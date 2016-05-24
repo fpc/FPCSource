@@ -1,31 +1,4 @@
 unit googlecloudmonitoring;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,67 +7,60 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TDeleteMetricDescriptorResponse = class;
+  
+  //Top-level schema types
+  TDeleteMetricDescriptorResponse = Class;
+  TListMetricDescriptorsRequest = Class;
+  TListMetricDescriptorsResponse = Class;
+  TListTimeseriesDescriptorsRequest = Class;
+  TListTimeseriesDescriptorsResponse = Class;
+  TListTimeseriesRequest = Class;
+  TListTimeseriesResponse = Class;
+  TMetricDescriptor = Class;
+  TMetricDescriptorLabelDescriptor = Class;
+  TMetricDescriptorTypeDescriptor = Class;
+  TPoint = Class;
+  TPointDistribution = Class;
+  TPointDistributionBucket = Class;
+  TPointDistributionOverflowBucket = Class;
+  TPointDistributionUnderflowBucket = Class;
+  TTimeseries = Class;
+  TTimeseriesDescriptor = Class;
+  TTimeseriesDescriptorLabel = Class;
+  TTimeseriesPoint = Class;
+  TWriteTimeseriesRequest = Class;
+  TWriteTimeseriesResponse = Class;
   TDeleteMetricDescriptorResponseArray = Array of TDeleteMetricDescriptorResponse;
-  TListMetricDescriptorsRequest = class;
   TListMetricDescriptorsRequestArray = Array of TListMetricDescriptorsRequest;
-  TListMetricDescriptorsResponse = class;
   TListMetricDescriptorsResponseArray = Array of TListMetricDescriptorsResponse;
-  TListMetricDescriptorsResponsemetrics = class;
-  TListMetricDescriptorsResponsemetricsArray = Array of TListMetricDescriptorsResponsemetrics;
-  TListTimeseriesDescriptorsRequest = class;
   TListTimeseriesDescriptorsRequestArray = Array of TListTimeseriesDescriptorsRequest;
-  TListTimeseriesDescriptorsResponse = class;
   TListTimeseriesDescriptorsResponseArray = Array of TListTimeseriesDescriptorsResponse;
-  TListTimeseriesDescriptorsResponsetimeseries = class;
-  TListTimeseriesDescriptorsResponsetimeseriesArray = Array of TListTimeseriesDescriptorsResponsetimeseries;
-  TListTimeseriesRequest = class;
   TListTimeseriesRequestArray = Array of TListTimeseriesRequest;
-  TListTimeseriesResponse = class;
   TListTimeseriesResponseArray = Array of TListTimeseriesResponse;
-  TListTimeseriesResponsetimeseries = class;
-  TListTimeseriesResponsetimeseriesArray = Array of TListTimeseriesResponsetimeseries;
-  TMetricDescriptor = class;
   TMetricDescriptorArray = Array of TMetricDescriptor;
-  TMetricDescriptorlabels = class;
-  TMetricDescriptorlabelsArray = Array of TMetricDescriptorlabels;
-  TMetricDescriptorLabelDescriptor = class;
   TMetricDescriptorLabelDescriptorArray = Array of TMetricDescriptorLabelDescriptor;
-  TMetricDescriptorTypeDescriptor = class;
   TMetricDescriptorTypeDescriptorArray = Array of TMetricDescriptorTypeDescriptor;
-  TPoint = class;
   TPointArray = Array of TPoint;
-  TPointDistribution = class;
   TPointDistributionArray = Array of TPointDistribution;
-  TPointDistributionbuckets = class;
-  TPointDistributionbucketsArray = Array of TPointDistributionbuckets;
-  TPointDistributionBucket = class;
   TPointDistributionBucketArray = Array of TPointDistributionBucket;
-  TPointDistributionOverflowBucket = class;
   TPointDistributionOverflowBucketArray = Array of TPointDistributionOverflowBucket;
-  TPointDistributionUnderflowBucket = class;
   TPointDistributionUnderflowBucketArray = Array of TPointDistributionUnderflowBucket;
-  TTimeseries = class;
   TTimeseriesArray = Array of TTimeseries;
-  TTimeseriespoints = class;
-  TTimeseriespointsArray = Array of TTimeseriespoints;
-  TTimeseriesDescriptor = class;
   TTimeseriesDescriptorArray = Array of TTimeseriesDescriptor;
-  TTimeseriesDescriptorlabels = class;
-  TTimeseriesDescriptorlabelsArray = Array of TTimeseriesDescriptorlabels;
-  TTimeseriesDescriptorLabel = class;
   TTimeseriesDescriptorLabelArray = Array of TTimeseriesDescriptorLabel;
-  TTimeseriesPoint = class;
   TTimeseriesPointArray = Array of TTimeseriesPoint;
-  TWriteTimeseriesRequest = class;
   TWriteTimeseriesRequestArray = Array of TWriteTimeseriesRequest;
-  TWriteTimeseriesRequestcommonLabels = class;
-  TWriteTimeseriesRequestcommonLabelsArray = Array of TWriteTimeseriesRequestcommonLabels;
-  TWriteTimeseriesRequesttimeseries = class;
-  TWriteTimeseriesRequesttimeseriesArray = Array of TWriteTimeseriesRequesttimeseries;
-  TWriteTimeseriesResponse = class;
   TWriteTimeseriesResponseArray = Array of TWriteTimeseriesResponse;
+  //Anonymous types, using auto-generated names
+  TTimeseriesDescriptorTypelabels = Class;
+  TWriteTimeseriesRequestTypecommonLabels = Class;
+  TListMetricDescriptorsResponseTypemetricsArray = Array of TMetricDescriptor;
+  TListTimeseriesDescriptorsResponseTypetimeseriesArray = Array of TTimeseriesDescriptor;
+  TListTimeseriesResponseTypetimeseriesArray = Array of TTimeseries;
+  TMetricDescriptorTypelabelsArray = Array of TMetricDescriptorLabelDescriptor;
+  TPointDistributionTypebucketsArray = Array of TPointDistributionBucket;
+  TTimeseriesTypepointsArray = Array of TPoint;
+  TWriteTimeseriesRequestTypetimeseriesArray = Array of TTimeseriesPoint;
   
   { --------------------------------------------------------------------
     TDeleteMetricDescriptorResponse
@@ -102,13 +68,13 @@ type
   
   TDeleteMetricDescriptorResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
   end;
   TDeleteMetricDescriptorResponseClass = Class of TDeleteMetricDescriptorResponse;
   
@@ -118,13 +84,13 @@ type
   
   TListMetricDescriptorsRequest = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
   end;
   TListMetricDescriptorsRequestClass = Class of TListMetricDescriptorsRequest;
   
@@ -134,34 +100,25 @@ type
   
   TListMetricDescriptorsResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fmetrics : TListMetricDescriptorsResponsemetrics;
-    FnextPageToken : string;
+    Fkind : String;
+    Fmetrics : TListMetricDescriptorsResponseTypemetricsArray;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmetrics(AIndex : Integer; AValue : TListMetricDescriptorsResponsemetrics); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmetrics(AIndex : Integer; const AValue : TListMetricDescriptorsResponseTypemetricsArray); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property metrics : TListMetricDescriptorsResponsemetrics Index 8 Read Fmetrics Write Setmetrics;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property metrics : TListMetricDescriptorsResponseTypemetricsArray Index 8 Read Fmetrics Write Setmetrics;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TListMetricDescriptorsResponseClass = Class of TListMetricDescriptorsResponse;
-  
-  { --------------------------------------------------------------------
-    TListMetricDescriptorsResponsemetrics
-    --------------------------------------------------------------------}
-  
-  TListMetricDescriptorsResponsemetrics = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListMetricDescriptorsResponsemetricsClass = Class of TListMetricDescriptorsResponsemetrics;
   
   { --------------------------------------------------------------------
     TListTimeseriesDescriptorsRequest
@@ -169,13 +126,13 @@ type
   
   TListTimeseriesDescriptorsRequest = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
   end;
   TListTimeseriesDescriptorsRequestClass = Class of TListTimeseriesDescriptorsRequest;
   
@@ -185,40 +142,31 @@ type
   
   TListTimeseriesDescriptorsResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
+    Fkind : String;
+    FnextPageToken : String;
     Foldest : TDatetime;
-    Ftimeseries : TListTimeseriesDescriptorsResponsetimeseries;
+    Ftimeseries : TListTimeseriesDescriptorsResponseTypetimeseriesArray;
     Fyoungest : TDatetime;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setoldest(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Settimeseries(AIndex : Integer; AValue : TListTimeseriesDescriptorsResponsetimeseries); virtual;
-    Procedure Setyoungest(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setoldest(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Settimeseries(AIndex : Integer; const AValue : TListTimeseriesDescriptorsResponseTypetimeseriesArray); virtual;
+    Procedure Setyoungest(AIndex : Integer; const AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
     Property oldest : TDatetime Index 16 Read Foldest Write Setoldest;
-    Property timeseries : TListTimeseriesDescriptorsResponsetimeseries Index 24 Read Ftimeseries Write Settimeseries;
+    Property timeseries : TListTimeseriesDescriptorsResponseTypetimeseriesArray Index 24 Read Ftimeseries Write Settimeseries;
     Property youngest : TDatetime Index 32 Read Fyoungest Write Setyoungest;
   end;
   TListTimeseriesDescriptorsResponseClass = Class of TListTimeseriesDescriptorsResponse;
-  
-  { --------------------------------------------------------------------
-    TListTimeseriesDescriptorsResponsetimeseries
-    --------------------------------------------------------------------}
-  
-  TListTimeseriesDescriptorsResponsetimeseries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListTimeseriesDescriptorsResponsetimeseriesClass = Class of TListTimeseriesDescriptorsResponsetimeseries;
   
   { --------------------------------------------------------------------
     TListTimeseriesRequest
@@ -226,13 +174,13 @@ type
   
   TListTimeseriesRequest = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
   end;
   TListTimeseriesRequestClass = Class of TListTimeseriesRequest;
   
@@ -242,40 +190,31 @@ type
   
   TListTimeseriesResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FnextPageToken : string;
+    Fkind : String;
+    FnextPageToken : String;
     Foldest : TDatetime;
-    Ftimeseries : TListTimeseriesResponsetimeseries;
+    Ftimeseries : TListTimeseriesResponseTypetimeseriesArray;
     Fyoungest : TDatetime;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Setoldest(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Settimeseries(AIndex : Integer; AValue : TListTimeseriesResponsetimeseries); virtual;
-    Procedure Setyoungest(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setoldest(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Settimeseries(AIndex : Integer; const AValue : TListTimeseriesResponseTypetimeseriesArray); virtual;
+    Procedure Setyoungest(AIndex : Integer; const AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
     Property oldest : TDatetime Index 16 Read Foldest Write Setoldest;
-    Property timeseries : TListTimeseriesResponsetimeseries Index 24 Read Ftimeseries Write Settimeseries;
+    Property timeseries : TListTimeseriesResponseTypetimeseriesArray Index 24 Read Ftimeseries Write Settimeseries;
     Property youngest : TDatetime Index 32 Read Fyoungest Write Setyoungest;
   end;
   TListTimeseriesResponseClass = Class of TListTimeseriesResponse;
-  
-  { --------------------------------------------------------------------
-    TListTimeseriesResponsetimeseries
-    --------------------------------------------------------------------}
-  
-  TListTimeseriesResponsetimeseries = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListTimeseriesResponsetimeseriesClass = Class of TListTimeseriesResponsetimeseries;
   
   { --------------------------------------------------------------------
     TMetricDescriptor
@@ -283,40 +222,31 @@ type
   
   TMetricDescriptor = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Flabels : TMetricDescriptorlabels;
-    Fname : string;
-    Fproject : string;
+    Fdescription : String;
+    Flabels : TMetricDescriptorTypelabelsArray;
+    Fname : String;
+    Fproject : String;
     FtypeDescriptor : TMetricDescriptorTypeDescriptor;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlabels(AIndex : Integer; AValue : TMetricDescriptorlabels); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setproject(AIndex : Integer; AValue : string); virtual;
-    Procedure SettypeDescriptor(AIndex : Integer; AValue : TMetricDescriptorTypeDescriptor); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlabels(AIndex : Integer; const AValue : TMetricDescriptorTypelabelsArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setproject(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettypeDescriptor(AIndex : Integer; const AValue : TMetricDescriptorTypeDescriptor); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property labels : TMetricDescriptorlabels Index 8 Read Flabels Write Setlabels;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property project : string Index 24 Read Fproject Write Setproject;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property labels : TMetricDescriptorTypelabelsArray Index 8 Read Flabels Write Setlabels;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property project : String Index 24 Read Fproject Write Setproject;
     Property typeDescriptor : TMetricDescriptorTypeDescriptor Index 32 Read FtypeDescriptor Write SettypeDescriptor;
   end;
   TMetricDescriptorClass = Class of TMetricDescriptor;
-  
-  { --------------------------------------------------------------------
-    TMetricDescriptorlabels
-    --------------------------------------------------------------------}
-  
-  TMetricDescriptorlabels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMetricDescriptorlabelsClass = Class of TMetricDescriptorlabels;
   
   { --------------------------------------------------------------------
     TMetricDescriptorLabelDescriptor
@@ -324,16 +254,16 @@ type
   
   TMetricDescriptorLabelDescriptor = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Fkey : string;
+    Fdescription : String;
+    Fkey : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property key : string Index 8 Read Fkey Write Setkey;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property key : String Index 8 Read Fkey Write Setkey;
   end;
   TMetricDescriptorLabelDescriptorClass = Class of TMetricDescriptorLabelDescriptor;
   
@@ -343,16 +273,16 @@ type
   
   TMetricDescriptorTypeDescriptor = Class(TGoogleBaseObject)
   Private
-    FmetricType : string;
-    FvalueType : string;
+    FmetricType : String;
+    FvalueType : String;
   Protected
     //Property setters
-    Procedure SetmetricType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvalueType(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmetricType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvalueType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property metricType : string Index 0 Read FmetricType Write SetmetricType;
-    Property valueType : string Index 8 Read FvalueType Write SetvalueType;
+    Property metricType : String Index 0 Read FmetricType Write SetmetricType;
+    Property valueType : String Index 8 Read FvalueType Write SetvalueType;
   end;
   TMetricDescriptorTypeDescriptorClass = Class of TMetricDescriptorTypeDescriptor;
   
@@ -366,28 +296,28 @@ type
     FdistributionValue : TPointDistribution;
     FdoubleValue : double;
     F_end : TDatetime;
-    Fint64Value : string;
+    Fint64Value : String;
     Fstart : TDatetime;
-    FstringValue : string;
+    FstringValue : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetboolValue(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetdistributionValue(AIndex : Integer; AValue : TPointDistribution); virtual;
-    Procedure SetdoubleValue(AIndex : Integer; AValue : double); virtual;
-    Procedure Set_end(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setint64Value(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetstringValue(AIndex : Integer; AValue : string); virtual;
+    Procedure SetboolValue(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetdistributionValue(AIndex : Integer; const AValue : TPointDistribution); virtual;
+    Procedure SetdoubleValue(AIndex : Integer; const AValue : double); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setint64Value(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetstringValue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property boolValue : boolean Index 0 Read FboolValue Write SetboolValue;
     Property distributionValue : TPointDistribution Index 8 Read FdistributionValue Write SetdistributionValue;
     Property doubleValue : double Index 16 Read FdoubleValue Write SetdoubleValue;
     Property _end : TDatetime Index 24 Read F_end Write Set_end;
-    Property int64Value : string Index 32 Read Fint64Value Write Setint64Value;
+    Property int64Value : String Index 32 Read Fint64Value Write Setint64Value;
     Property start : TDatetime Index 40 Read Fstart Write Setstart;
-    Property stringValue : string Index 48 Read FstringValue Write SetstringValue;
+    Property stringValue : String Index 48 Read FstringValue Write SetstringValue;
   end;
   TPointClass = Class of TPoint;
   
@@ -397,34 +327,25 @@ type
   
   TPointDistribution = Class(TGoogleBaseObject)
   Private
-    Fbuckets : TPointDistributionbuckets;
+    Fbuckets : TPointDistributionTypebucketsArray;
     FoverflowBucket : TPointDistributionOverflowBucket;
     FunderflowBucket : TPointDistributionUnderflowBucket;
   Protected
     //Property setters
-    Procedure Setbuckets(AIndex : Integer; AValue : TPointDistributionbuckets); virtual;
-    Procedure SetoverflowBucket(AIndex : Integer; AValue : TPointDistributionOverflowBucket); virtual;
-    Procedure SetunderflowBucket(AIndex : Integer; AValue : TPointDistributionUnderflowBucket); virtual;
+    Procedure Setbuckets(AIndex : Integer; const AValue : TPointDistributionTypebucketsArray); virtual;
+    Procedure SetoverflowBucket(AIndex : Integer; const AValue : TPointDistributionOverflowBucket); virtual;
+    Procedure SetunderflowBucket(AIndex : Integer; const AValue : TPointDistributionUnderflowBucket); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property buckets : TPointDistributionbuckets Index 0 Read Fbuckets Write Setbuckets;
+    Property buckets : TPointDistributionTypebucketsArray Index 0 Read Fbuckets Write Setbuckets;
     Property overflowBucket : TPointDistributionOverflowBucket Index 8 Read FoverflowBucket Write SetoverflowBucket;
     Property underflowBucket : TPointDistributionUnderflowBucket Index 16 Read FunderflowBucket Write SetunderflowBucket;
   end;
   TPointDistributionClass = Class of TPointDistribution;
-  
-  { --------------------------------------------------------------------
-    TPointDistributionbuckets
-    --------------------------------------------------------------------}
-  
-  TPointDistributionbuckets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPointDistributionbucketsClass = Class of TPointDistributionbuckets;
   
   { --------------------------------------------------------------------
     TPointDistributionBucket
@@ -432,17 +353,17 @@ type
   
   TPointDistributionBucket = Class(TGoogleBaseObject)
   Private
-    Fcount : string;
+    Fcount : String;
     FlowerBound : double;
     FupperBound : double;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlowerBound(AIndex : Integer; AValue : double); virtual;
-    Procedure SetupperBound(AIndex : Integer; AValue : double); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlowerBound(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetupperBound(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
-    Property count : string Index 0 Read Fcount Write Setcount;
+    Property count : String Index 0 Read Fcount Write Setcount;
     Property lowerBound : double Index 8 Read FlowerBound Write SetlowerBound;
     Property upperBound : double Index 16 Read FupperBound Write SetupperBound;
   end;
@@ -454,15 +375,15 @@ type
   
   TPointDistributionOverflowBucket = Class(TGoogleBaseObject)
   Private
-    Fcount : string;
+    Fcount : String;
     FlowerBound : double;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlowerBound(AIndex : Integer; AValue : double); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlowerBound(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
-    Property count : string Index 0 Read Fcount Write Setcount;
+    Property count : String Index 0 Read Fcount Write Setcount;
     Property lowerBound : double Index 8 Read FlowerBound Write SetlowerBound;
   end;
   TPointDistributionOverflowBucketClass = Class of TPointDistributionOverflowBucket;
@@ -473,15 +394,15 @@ type
   
   TPointDistributionUnderflowBucket = Class(TGoogleBaseObject)
   Private
-    Fcount : string;
+    Fcount : String;
     FupperBound : double;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetupperBound(AIndex : Integer; AValue : double); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetupperBound(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
-    Property count : string Index 0 Read Fcount Write Setcount;
+    Property count : String Index 0 Read Fcount Write Setcount;
     Property upperBound : double Index 8 Read FupperBound Write SetupperBound;
   end;
   TPointDistributionUnderflowBucketClass = Class of TPointDistributionUnderflowBucket;
@@ -492,59 +413,28 @@ type
   
   TTimeseries = Class(TGoogleBaseObject)
   Private
-    Fpoints : TTimeseriespoints;
+    Fpoints : TTimeseriesTypepointsArray;
     FtimeseriesDesc : TTimeseriesDescriptor;
   Protected
     //Property setters
-    Procedure Setpoints(AIndex : Integer; AValue : TTimeseriespoints); virtual;
-    Procedure SettimeseriesDesc(AIndex : Integer; AValue : TTimeseriesDescriptor); virtual;
+    Procedure Setpoints(AIndex : Integer; const AValue : TTimeseriesTypepointsArray); virtual;
+    Procedure SettimeseriesDesc(AIndex : Integer; const AValue : TTimeseriesDescriptor); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property points : TTimeseriespoints Index 0 Read Fpoints Write Setpoints;
+    Property points : TTimeseriesTypepointsArray Index 0 Read Fpoints Write Setpoints;
     Property timeseriesDesc : TTimeseriesDescriptor Index 8 Read FtimeseriesDesc Write SettimeseriesDesc;
   end;
   TTimeseriesClass = Class of TTimeseries;
   
   { --------------------------------------------------------------------
-    TTimeseriespoints
+    TTimeseriesDescriptorTypelabels
     --------------------------------------------------------------------}
   
-  TTimeseriespoints = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTimeseriespointsClass = Class of TTimeseriespoints;
-  
-  { --------------------------------------------------------------------
-    TTimeseriesDescriptor
-    --------------------------------------------------------------------}
-  
-  TTimeseriesDescriptor = Class(TGoogleBaseObject)
-  Private
-    Flabels : TTimeseriesDescriptorlabels;
-    Fmetric : string;
-    Fproject : string;
-  Protected
-    //Property setters
-    Procedure Setlabels(AIndex : Integer; AValue : TTimeseriesDescriptorlabels); virtual;
-    Procedure Setmetric(AIndex : Integer; AValue : string); virtual;
-    Procedure Setproject(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property labels : TTimeseriesDescriptorlabels Index 0 Read Flabels Write Setlabels;
-    Property metric : string Index 8 Read Fmetric Write Setmetric;
-    Property project : string Index 16 Read Fproject Write Setproject;
-  end;
-  TTimeseriesDescriptorClass = Class of TTimeseriesDescriptor;
-  
-  { --------------------------------------------------------------------
-    TTimeseriesDescriptorlabels
-    --------------------------------------------------------------------}
-  
-  TTimeseriesDescriptorlabels = Class(TGoogleBaseObject)
+  TTimeseriesDescriptorTypelabels = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -552,7 +442,29 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TTimeseriesDescriptorlabelsClass = Class of TTimeseriesDescriptorlabels;
+  TTimeseriesDescriptorTypelabelsClass = Class of TTimeseriesDescriptorTypelabels;
+  
+  { --------------------------------------------------------------------
+    TTimeseriesDescriptor
+    --------------------------------------------------------------------}
+  
+  TTimeseriesDescriptor = Class(TGoogleBaseObject)
+  Private
+    Flabels : TTimeseriesDescriptorTypelabels;
+    Fmetric : String;
+    Fproject : String;
+  Protected
+    //Property setters
+    Procedure Setlabels(AIndex : Integer; const AValue : TTimeseriesDescriptorTypelabels); virtual;
+    Procedure Setmetric(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setproject(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property labels : TTimeseriesDescriptorTypelabels Index 0 Read Flabels Write Setlabels;
+    Property metric : String Index 8 Read Fmetric Write Setmetric;
+    Property project : String Index 16 Read Fproject Write Setproject;
+  end;
+  TTimeseriesDescriptorClass = Class of TTimeseriesDescriptor;
   
   { --------------------------------------------------------------------
     TTimeseriesDescriptorLabel
@@ -560,16 +472,16 @@ type
   
   TTimeseriesDescriptorLabel = Class(TGoogleBaseObject)
   Private
-    Fkey : string;
-    Fvalue : string;
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TTimeseriesDescriptorLabelClass = Class of TTimeseriesDescriptorLabel;
   
@@ -583,8 +495,8 @@ type
     FtimeseriesDesc : TTimeseriesDescriptor;
   Protected
     //Property setters
-    Procedure Setpoint(AIndex : Integer; AValue : TPoint); virtual;
-    Procedure SettimeseriesDesc(AIndex : Integer; AValue : TTimeseriesDescriptor); virtual;
+    Procedure Setpoint(AIndex : Integer; const AValue : TPoint); virtual;
+    Procedure SettimeseriesDesc(AIndex : Integer; const AValue : TTimeseriesDescriptor); virtual;
   Public
   Published
     Property point : TPoint Index 0 Read Fpoint Write Setpoint;
@@ -593,29 +505,10 @@ type
   TTimeseriesPointClass = Class of TTimeseriesPoint;
   
   { --------------------------------------------------------------------
-    TWriteTimeseriesRequest
+    TWriteTimeseriesRequestTypecommonLabels
     --------------------------------------------------------------------}
   
-  TWriteTimeseriesRequest = Class(TGoogleBaseObject)
-  Private
-    FcommonLabels : TWriteTimeseriesRequestcommonLabels;
-    Ftimeseries : TWriteTimeseriesRequesttimeseries;
-  Protected
-    //Property setters
-    Procedure SetcommonLabels(AIndex : Integer; AValue : TWriteTimeseriesRequestcommonLabels); virtual;
-    Procedure Settimeseries(AIndex : Integer; AValue : TWriteTimeseriesRequesttimeseries); virtual;
-  Public
-  Published
-    Property commonLabels : TWriteTimeseriesRequestcommonLabels Index 0 Read FcommonLabels Write SetcommonLabels;
-    Property timeseries : TWriteTimeseriesRequesttimeseries Index 8 Read Ftimeseries Write Settimeseries;
-  end;
-  TWriteTimeseriesRequestClass = Class of TWriteTimeseriesRequest;
-  
-  { --------------------------------------------------------------------
-    TWriteTimeseriesRequestcommonLabels
-    --------------------------------------------------------------------}
-  
-  TWriteTimeseriesRequestcommonLabels = Class(TGoogleBaseObject)
+  TWriteTimeseriesRequestTypecommonLabels = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -623,20 +516,30 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TWriteTimeseriesRequestcommonLabelsClass = Class of TWriteTimeseriesRequestcommonLabels;
+  TWriteTimeseriesRequestTypecommonLabelsClass = Class of TWriteTimeseriesRequestTypecommonLabels;
   
   { --------------------------------------------------------------------
-    TWriteTimeseriesRequesttimeseries
+    TWriteTimeseriesRequest
     --------------------------------------------------------------------}
   
-  TWriteTimeseriesRequesttimeseries = Class(TGoogleBaseObject)
+  TWriteTimeseriesRequest = Class(TGoogleBaseObject)
   Private
+    FcommonLabels : TWriteTimeseriesRequestTypecommonLabels;
+    Ftimeseries : TWriteTimeseriesRequestTypetimeseriesArray;
   Protected
     //Property setters
+    Procedure SetcommonLabels(AIndex : Integer; const AValue : TWriteTimeseriesRequestTypecommonLabels); virtual;
+    Procedure Settimeseries(AIndex : Integer; const AValue : TWriteTimeseriesRequestTypetimeseriesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
+    Property commonLabels : TWriteTimeseriesRequestTypecommonLabels Index 0 Read FcommonLabels Write SetcommonLabels;
+    Property timeseries : TWriteTimeseriesRequestTypetimeseriesArray Index 8 Read Ftimeseries Write Settimeseries;
   end;
-  TWriteTimeseriesRequesttimeseriesClass = Class of TWriteTimeseriesRequesttimeseries;
+  TWriteTimeseriesRequestClass = Class of TWriteTimeseriesRequest;
   
   { --------------------------------------------------------------------
     TWriteTimeseriesResponse
@@ -644,13 +547,13 @@ type
   
   TWriteTimeseriesResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
+    Property kind : String Index 0 Read Fkind Write Setkind;
   end;
   TWriteTimeseriesResponseClass = Class of TWriteTimeseriesResponse;
   
@@ -663,8 +566,8 @@ type
   
   TMetricDescriptorsListOptions = Record
     count : integer;
-    pageToken : string;
-    query : string;
+    pageToken : String;
+    query : String;
   end;
   
   TMetricDescriptorsResource = Class(TGoogleResource)
@@ -686,14 +589,14 @@ type
   //Optional query Options for TTimeseriesResource, method List
   
   TTimeseriesListOptions = Record
-    aggregator : string;
+    aggregator : String;
     count : integer;
-    labels : string;
-    oldest : string;
-    pageToken : string;
-    timespan : string;
-    window : string;
-    youngest : string;
+    labels : String;
+    oldest : String;
+    pageToken : String;
+    timespan : String;
+    window : String;
+    youngest : String;
   end;
   
   TTimeseriesResource = Class(TGoogleResource)
@@ -714,14 +617,14 @@ type
   //Optional query Options for TTimeseriesDescriptorsResource, method List
   
   TTimeseriesDescriptorsListOptions = Record
-    aggregator : string;
+    aggregator : String;
     count : integer;
-    labels : string;
-    oldest : string;
-    pageToken : string;
-    timespan : string;
-    window : string;
-    youngest : string;
+    labels : String;
+    oldest : String;
+    pageToken : String;
+    timespan : String;
+    window : String;
+    youngest : String;
   end;
   
   TTimeseriesDescriptorsResource = Class(TGoogleResource)
@@ -788,7 +691,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteMetricDescriptorResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDeleteMetricDescriptorResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -805,7 +708,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListMetricDescriptorsRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TListMetricDescriptorsRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -822,7 +725,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListMetricDescriptorsResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TListMetricDescriptorsResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -832,7 +735,7 @@ end;
 
 
 
-Procedure TListMetricDescriptorsResponse.Setmetrics(AIndex : Integer; AValue : TListMetricDescriptorsResponsemetrics); 
+Procedure TListMetricDescriptorsResponse.Setmetrics(AIndex : Integer; const AValue : TListMetricDescriptorsResponseTypemetricsArray); 
 
 begin
   If (Fmetrics=AValue) then exit;
@@ -842,7 +745,7 @@ end;
 
 
 
-Procedure TListMetricDescriptorsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListMetricDescriptorsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -851,12 +754,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListMetricDescriptorsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TListMetricDescriptorsResponsemetrics
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'metrics' : SetLength(Fmetrics,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -866,7 +775,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTimeseriesDescriptorsRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TListTimeseriesDescriptorsRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -883,7 +792,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTimeseriesDescriptorsResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TListTimeseriesDescriptorsResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -893,7 +802,7 @@ end;
 
 
 
-Procedure TListTimeseriesDescriptorsResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListTimeseriesDescriptorsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -903,7 +812,7 @@ end;
 
 
 
-Procedure TListTimeseriesDescriptorsResponse.Setoldest(AIndex : Integer; AValue : TDatetime); 
+Procedure TListTimeseriesDescriptorsResponse.Setoldest(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Foldest=AValue) then exit;
@@ -913,7 +822,7 @@ end;
 
 
 
-Procedure TListTimeseriesDescriptorsResponse.Settimeseries(AIndex : Integer; AValue : TListTimeseriesDescriptorsResponsetimeseries); 
+Procedure TListTimeseriesDescriptorsResponse.Settimeseries(AIndex : Integer; const AValue : TListTimeseriesDescriptorsResponseTypetimeseriesArray); 
 
 begin
   If (Ftimeseries=AValue) then exit;
@@ -923,7 +832,7 @@ end;
 
 
 
-Procedure TListTimeseriesDescriptorsResponse.Setyoungest(AIndex : Integer; AValue : TDatetime); 
+Procedure TListTimeseriesDescriptorsResponse.Setyoungest(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fyoungest=AValue) then exit;
@@ -932,12 +841,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListTimeseriesDescriptorsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TListTimeseriesDescriptorsResponsetimeseries
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'timeseries' : SetLength(Ftimeseries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -947,7 +862,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTimeseriesRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TListTimeseriesRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -964,7 +879,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTimeseriesResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TListTimeseriesResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -974,7 +889,7 @@ end;
 
 
 
-Procedure TListTimeseriesResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TListTimeseriesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -984,7 +899,7 @@ end;
 
 
 
-Procedure TListTimeseriesResponse.Setoldest(AIndex : Integer; AValue : TDatetime); 
+Procedure TListTimeseriesResponse.Setoldest(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Foldest=AValue) then exit;
@@ -994,7 +909,7 @@ end;
 
 
 
-Procedure TListTimeseriesResponse.Settimeseries(AIndex : Integer; AValue : TListTimeseriesResponsetimeseries); 
+Procedure TListTimeseriesResponse.Settimeseries(AIndex : Integer; const AValue : TListTimeseriesResponseTypetimeseriesArray); 
 
 begin
   If (Ftimeseries=AValue) then exit;
@@ -1004,7 +919,7 @@ end;
 
 
 
-Procedure TListTimeseriesResponse.Setyoungest(AIndex : Integer; AValue : TDatetime); 
+Procedure TListTimeseriesResponse.Setyoungest(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fyoungest=AValue) then exit;
@@ -1013,12 +928,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListTimeseriesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TListTimeseriesResponsetimeseries
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'timeseries' : SetLength(Ftimeseries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1028,7 +949,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetricDescriptor.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TMetricDescriptor.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1038,7 +959,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.Setlabels(AIndex : Integer; AValue : TMetricDescriptorlabels); 
+Procedure TMetricDescriptor.Setlabels(AIndex : Integer; const AValue : TMetricDescriptorTypelabelsArray); 
 
 begin
   If (Flabels=AValue) then exit;
@@ -1048,7 +969,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.Setname(AIndex : Integer; AValue : string); 
+Procedure TMetricDescriptor.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1058,7 +979,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.Setproject(AIndex : Integer; AValue : string); 
+Procedure TMetricDescriptor.Setproject(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fproject=AValue) then exit;
@@ -1068,7 +989,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.SettypeDescriptor(AIndex : Integer; AValue : TMetricDescriptorTypeDescriptor); 
+Procedure TMetricDescriptor.SettypeDescriptor(AIndex : Integer; const AValue : TMetricDescriptorTypeDescriptor); 
 
 begin
   If (FtypeDescriptor=AValue) then exit;
@@ -1077,12 +998,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMetricDescriptor.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TMetricDescriptorlabels
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'labels' : SetLength(Flabels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1092,7 +1019,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetricDescriptorLabelDescriptor.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TMetricDescriptorLabelDescriptor.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1102,7 +1029,7 @@ end;
 
 
 
-Procedure TMetricDescriptorLabelDescriptor.Setkey(AIndex : Integer; AValue : string); 
+Procedure TMetricDescriptorLabelDescriptor.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1119,7 +1046,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetricDescriptorTypeDescriptor.SetmetricType(AIndex : Integer; AValue : string); 
+Procedure TMetricDescriptorTypeDescriptor.SetmetricType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmetricType=AValue) then exit;
@@ -1129,7 +1056,7 @@ end;
 
 
 
-Procedure TMetricDescriptorTypeDescriptor.SetvalueType(AIndex : Integer; AValue : string); 
+Procedure TMetricDescriptorTypeDescriptor.SetvalueType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvalueType=AValue) then exit;
@@ -1146,7 +1073,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPoint.SetboolValue(AIndex : Integer; AValue : boolean); 
+Procedure TPoint.SetboolValue(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FboolValue=AValue) then exit;
@@ -1156,7 +1083,7 @@ end;
 
 
 
-Procedure TPoint.SetdistributionValue(AIndex : Integer; AValue : TPointDistribution); 
+Procedure TPoint.SetdistributionValue(AIndex : Integer; const AValue : TPointDistribution); 
 
 begin
   If (FdistributionValue=AValue) then exit;
@@ -1166,7 +1093,7 @@ end;
 
 
 
-Procedure TPoint.SetdoubleValue(AIndex : Integer; AValue : double); 
+Procedure TPoint.SetdoubleValue(AIndex : Integer; const AValue : double); 
 
 begin
   If (FdoubleValue=AValue) then exit;
@@ -1176,7 +1103,7 @@ end;
 
 
 
-Procedure TPoint.Set_end(AIndex : Integer; AValue : TDatetime); 
+Procedure TPoint.Set_end(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (F_end=AValue) then exit;
@@ -1186,7 +1113,7 @@ end;
 
 
 
-Procedure TPoint.Setint64Value(AIndex : Integer; AValue : string); 
+Procedure TPoint.Setint64Value(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fint64Value=AValue) then exit;
@@ -1196,7 +1123,7 @@ end;
 
 
 
-Procedure TPoint.Setstart(AIndex : Integer; AValue : TDatetime); 
+Procedure TPoint.Setstart(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -1206,7 +1133,7 @@ end;
 
 
 
-Procedure TPoint.SetstringValue(AIndex : Integer; AValue : string); 
+Procedure TPoint.SetstringValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstringValue=AValue) then exit;
@@ -1234,7 +1161,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPointDistribution.Setbuckets(AIndex : Integer; AValue : TPointDistributionbuckets); 
+Procedure TPointDistribution.Setbuckets(AIndex : Integer; const AValue : TPointDistributionTypebucketsArray); 
 
 begin
   If (Fbuckets=AValue) then exit;
@@ -1244,7 +1171,7 @@ end;
 
 
 
-Procedure TPointDistribution.SetoverflowBucket(AIndex : Integer; AValue : TPointDistributionOverflowBucket); 
+Procedure TPointDistribution.SetoverflowBucket(AIndex : Integer; const AValue : TPointDistributionOverflowBucket); 
 
 begin
   If (FoverflowBucket=AValue) then exit;
@@ -1254,7 +1181,7 @@ end;
 
 
 
-Procedure TPointDistribution.SetunderflowBucket(AIndex : Integer; AValue : TPointDistributionUnderflowBucket); 
+Procedure TPointDistribution.SetunderflowBucket(AIndex : Integer; const AValue : TPointDistributionUnderflowBucket); 
 
 begin
   If (FunderflowBucket=AValue) then exit;
@@ -1263,12 +1190,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPointDistribution.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TPointDistributionbuckets
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'buckets' : SetLength(Fbuckets,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1278,7 +1211,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPointDistributionBucket.Setcount(AIndex : Integer; AValue : string); 
+Procedure TPointDistributionBucket.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -1288,7 +1221,7 @@ end;
 
 
 
-Procedure TPointDistributionBucket.SetlowerBound(AIndex : Integer; AValue : double); 
+Procedure TPointDistributionBucket.SetlowerBound(AIndex : Integer; const AValue : double); 
 
 begin
   If (FlowerBound=AValue) then exit;
@@ -1298,7 +1231,7 @@ end;
 
 
 
-Procedure TPointDistributionBucket.SetupperBound(AIndex : Integer; AValue : double); 
+Procedure TPointDistributionBucket.SetupperBound(AIndex : Integer; const AValue : double); 
 
 begin
   If (FupperBound=AValue) then exit;
@@ -1315,7 +1248,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPointDistributionOverflowBucket.Setcount(AIndex : Integer; AValue : string); 
+Procedure TPointDistributionOverflowBucket.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -1325,7 +1258,7 @@ end;
 
 
 
-Procedure TPointDistributionOverflowBucket.SetlowerBound(AIndex : Integer; AValue : double); 
+Procedure TPointDistributionOverflowBucket.SetlowerBound(AIndex : Integer; const AValue : double); 
 
 begin
   If (FlowerBound=AValue) then exit;
@@ -1342,7 +1275,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPointDistributionUnderflowBucket.Setcount(AIndex : Integer; AValue : string); 
+Procedure TPointDistributionUnderflowBucket.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -1352,7 +1285,7 @@ end;
 
 
 
-Procedure TPointDistributionUnderflowBucket.SetupperBound(AIndex : Integer; AValue : double); 
+Procedure TPointDistributionUnderflowBucket.SetupperBound(AIndex : Integer; const AValue : double); 
 
 begin
   If (FupperBound=AValue) then exit;
@@ -1369,7 +1302,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeseries.Setpoints(AIndex : Integer; AValue : TTimeseriespoints); 
+Procedure TTimeseries.Setpoints(AIndex : Integer; const AValue : TTimeseriesTypepointsArray); 
 
 begin
   If (Fpoints=AValue) then exit;
@@ -1379,7 +1312,7 @@ end;
 
 
 
-Procedure TTimeseries.SettimeseriesDesc(AIndex : Integer; AValue : TTimeseriesDescriptor); 
+Procedure TTimeseries.SettimeseriesDesc(AIndex : Integer; const AValue : TTimeseriesDescriptor); 
 
 begin
   If (FtimeseriesDesc=AValue) then exit;
@@ -1388,13 +1321,32 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTimeseries.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'points' : SetLength(Fpoints,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TTimeseriespoints
+  TTimeseriesDescriptorTypelabels
   --------------------------------------------------------------------}
 
+
+Class Function TTimeseriesDescriptorTypelabels.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -1403,7 +1355,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeseriesDescriptor.Setlabels(AIndex : Integer; AValue : TTimeseriesDescriptorlabels); 
+Procedure TTimeseriesDescriptor.Setlabels(AIndex : Integer; const AValue : TTimeseriesDescriptorTypelabels); 
 
 begin
   If (Flabels=AValue) then exit;
@@ -1413,7 +1365,7 @@ end;
 
 
 
-Procedure TTimeseriesDescriptor.Setmetric(AIndex : Integer; AValue : string); 
+Procedure TTimeseriesDescriptor.Setmetric(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmetric=AValue) then exit;
@@ -1423,7 +1375,7 @@ end;
 
 
 
-Procedure TTimeseriesDescriptor.Setproject(AIndex : Integer; AValue : string); 
+Procedure TTimeseriesDescriptor.Setproject(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fproject=AValue) then exit;
@@ -1436,24 +1388,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTimeseriesDescriptorlabels
-  --------------------------------------------------------------------}
-
-
-Class Function TTimeseriesDescriptorlabels.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TTimeseriesDescriptorLabel
   --------------------------------------------------------------------}
 
 
-Procedure TTimeseriesDescriptorLabel.Setkey(AIndex : Integer; AValue : string); 
+Procedure TTimeseriesDescriptorLabel.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1463,7 +1402,7 @@ end;
 
 
 
-Procedure TTimeseriesDescriptorLabel.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TTimeseriesDescriptorLabel.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1480,7 +1419,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeseriesPoint.Setpoint(AIndex : Integer; AValue : TPoint); 
+Procedure TTimeseriesPoint.Setpoint(AIndex : Integer; const AValue : TPoint); 
 
 begin
   If (Fpoint=AValue) then exit;
@@ -1490,7 +1429,7 @@ end;
 
 
 
-Procedure TTimeseriesPoint.SettimeseriesDesc(AIndex : Integer; AValue : TTimeseriesDescriptor); 
+Procedure TTimeseriesPoint.SettimeseriesDesc(AIndex : Integer; const AValue : TTimeseriesDescriptor); 
 
 begin
   If (FtimeseriesDesc=AValue) then exit;
@@ -1503,11 +1442,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TWriteTimeseriesRequestTypecommonLabels
+  --------------------------------------------------------------------}
+
+
+Class Function TWriteTimeseriesRequestTypecommonLabels.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TWriteTimeseriesRequest
   --------------------------------------------------------------------}
 
 
-Procedure TWriteTimeseriesRequest.SetcommonLabels(AIndex : Integer; AValue : TWriteTimeseriesRequestcommonLabels); 
+Procedure TWriteTimeseriesRequest.SetcommonLabels(AIndex : Integer; const AValue : TWriteTimeseriesRequestTypecommonLabels); 
 
 begin
   If (FcommonLabels=AValue) then exit;
@@ -1517,7 +1469,7 @@ end;
 
 
 
-Procedure TWriteTimeseriesRequest.Settimeseries(AIndex : Integer; AValue : TWriteTimeseriesRequesttimeseries); 
+Procedure TWriteTimeseriesRequest.Settimeseries(AIndex : Integer; const AValue : TWriteTimeseriesRequestTypetimeseriesArray); 
 
 begin
   If (Ftimeseries=AValue) then exit;
@@ -1526,25 +1478,18 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TWriteTimeseriesRequestcommonLabels
-  --------------------------------------------------------------------}
-
-
-Class Function TWriteTimeseriesRequestcommonLabels.AllowAdditionalProperties : Boolean;
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWriteTimeseriesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  Result:=True;
+  Case AName of
+  'timeseries' : SetLength(Ftimeseries,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-{ --------------------------------------------------------------------
-  TWriteTimeseriesRequesttimeseries
-  --------------------------------------------------------------------}
+{$ENDIF VER2_6}
 
 
 
@@ -1554,7 +1499,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWriteTimeseriesResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TWriteTimeseriesResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1784,7 +1729,7 @@ end;
 Class Function TCloudmonitoringAPI.APIRevision : String;
 
 begin
-  Result:='20150305';
+  Result:='20160415';
 end;
 
 Class Function TCloudmonitoringAPI.APIID : String;
@@ -1802,7 +1747,7 @@ end;
 Class Function TCloudmonitoringAPI.APIDescription : String;
 
 begin
-  Result:='API for accessing Google Cloud and API monitoring data.';
+  Result:='Accesses Google Cloud Monitoring data.';
 end;
 
 Class Function TCloudmonitoringAPI.APIOwnerDomain : String;
@@ -1874,9 +1819,11 @@ end;
 Class Function TCloudmonitoringAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
-  SetLength(Result,1);
-  Result[0].Name:='https://www.googleapis.com/auth/monitoring';
-  Result[0].Description:='View and write monitoring data for all of your Google and third-party Cloud and API projects';
+  SetLength(Result,2);
+  Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
+  Result[0].Description:='View and manage your data across Google Cloud Platform services';
+  Result[1].Name:='https://www.googleapis.com/auth/monitoring';
+  Result[1].Description:='View and write monitoring data for all of your Google and third-party Cloud and API projects';
   
 end;
 
@@ -1892,32 +1839,25 @@ begin
   TDeleteMetricDescriptorResponse.RegisterObject;
   TListMetricDescriptorsRequest.RegisterObject;
   TListMetricDescriptorsResponse.RegisterObject;
-  TListMetricDescriptorsResponsemetrics.RegisterObject;
   TListTimeseriesDescriptorsRequest.RegisterObject;
   TListTimeseriesDescriptorsResponse.RegisterObject;
-  TListTimeseriesDescriptorsResponsetimeseries.RegisterObject;
   TListTimeseriesRequest.RegisterObject;
   TListTimeseriesResponse.RegisterObject;
-  TListTimeseriesResponsetimeseries.RegisterObject;
   TMetricDescriptor.RegisterObject;
-  TMetricDescriptorlabels.RegisterObject;
   TMetricDescriptorLabelDescriptor.RegisterObject;
   TMetricDescriptorTypeDescriptor.RegisterObject;
   TPoint.RegisterObject;
   TPointDistribution.RegisterObject;
-  TPointDistributionbuckets.RegisterObject;
   TPointDistributionBucket.RegisterObject;
   TPointDistributionOverflowBucket.RegisterObject;
   TPointDistributionUnderflowBucket.RegisterObject;
   TTimeseries.RegisterObject;
-  TTimeseriespoints.RegisterObject;
+  TTimeseriesDescriptorTypelabels.RegisterObject;
   TTimeseriesDescriptor.RegisterObject;
-  TTimeseriesDescriptorlabels.RegisterObject;
   TTimeseriesDescriptorLabel.RegisterObject;
   TTimeseriesPoint.RegisterObject;
+  TWriteTimeseriesRequestTypecommonLabels.RegisterObject;
   TWriteTimeseriesRequest.RegisterObject;
-  TWriteTimeseriesRequestcommonLabels.RegisterObject;
-  TWriteTimeseriesRequesttimeseries.RegisterObject;
   TWriteTimeseriesResponse.RegisterObject;
 end;
 
@@ -1941,7 +1881,7 @@ Function TCloudmonitoringAPI.CreateMetricDescriptorsResource(AOwner : TComponent
 
 begin
   Result:=TMetricDescriptorsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1965,7 +1905,7 @@ Function TCloudmonitoringAPI.CreateTimeseriesResource(AOwner : TComponent) : TTi
 
 begin
   Result:=TTimeseriesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1989,7 +1929,7 @@ Function TCloudmonitoringAPI.CreateTimeseriesDescriptorsResource(AOwner : TCompo
 
 begin
   Result:=TTimeseriesDescriptorsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

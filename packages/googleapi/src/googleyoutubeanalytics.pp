@@ -1,31 +1,4 @@
 unit googleyoutubeAnalytics;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,47 +7,82 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TBatchReport = class;
+  
+  //Top-level schema types
+  TBatchReport = Class;
+  TBatchReportDefinition = Class;
+  TBatchReportDefinitionList = Class;
+  TBatchReportList = Class;
+  TGroup = Class;
+  TGroupItem = Class;
+  TGroupItemListResponse = Class;
+  TGroupListResponse = Class;
+  TResultTable = Class;
   TBatchReportArray = Array of TBatchReport;
-  TBatchReportoutputs = class;
-  TBatchReportoutputsArray = Array of TBatchReportoutputs;
-  TBatchReporttimeSpan = class;
-  TBatchReporttimeSpanArray = Array of TBatchReporttimeSpan;
-  TBatchReportDefinition = class;
   TBatchReportDefinitionArray = Array of TBatchReportDefinition;
-  TBatchReportDefinitionList = class;
   TBatchReportDefinitionListArray = Array of TBatchReportDefinitionList;
-  TBatchReportDefinitionListitems = class;
-  TBatchReportDefinitionListitemsArray = Array of TBatchReportDefinitionListitems;
-  TBatchReportList = class;
   TBatchReportListArray = Array of TBatchReportList;
-  TBatchReportListitems = class;
-  TBatchReportListitemsArray = Array of TBatchReportListitems;
-  TGroup = class;
   TGroupArray = Array of TGroup;
-  TGroupcontentDetails = class;
-  TGroupcontentDetailsArray = Array of TGroupcontentDetails;
-  TGroupsnippet = class;
-  TGroupsnippetArray = Array of TGroupsnippet;
-  TGroupItem = class;
   TGroupItemArray = Array of TGroupItem;
-  TGroupItemresource = class;
-  TGroupItemresourceArray = Array of TGroupItemresource;
-  TGroupItemListResponse = class;
   TGroupItemListResponseArray = Array of TGroupItemListResponse;
-  TGroupItemListResponseitems = class;
-  TGroupItemListResponseitemsArray = Array of TGroupItemListResponseitems;
-  TGroupListResponse = class;
   TGroupListResponseArray = Array of TGroupListResponse;
-  TGroupListResponseitems = class;
-  TGroupListResponseitemsArray = Array of TGroupListResponseitems;
-  TResultTable = class;
   TResultTableArray = Array of TResultTable;
-  TResultTablecolumnHeaders = class;
-  TResultTablecolumnHeadersArray = Array of TResultTablecolumnHeaders;
-  TResultTablerows = class;
-  TResultTablerowsArray = Array of TResultTablerows;
+  //Anonymous types, using auto-generated names
+  TBatchReportTypeoutputsItem = Class;
+  TBatchReportTypetimeSpan = Class;
+  TGroupTypecontentDetails = Class;
+  TGroupTypesnippet = Class;
+  TGroupItemTyperesource = Class;
+  TResultTableTypecolumnHeadersItem = Class;
+  TBatchReportTypeoutputsArray = Array of TBatchReportTypeoutputsItem;
+  TBatchReportDefinitionListTypeitemsArray = Array of TBatchReportDefinition;
+  TBatchReportListTypeitemsArray = Array of TBatchReport;
+  TGroupItemListResponseTypeitemsArray = Array of TGroupItem;
+  TGroupListResponseTypeitemsArray = Array of TGroup;
+  TResultTableTypecolumnHeadersArray = Array of TResultTableTypecolumnHeadersItem;
+  TResultTableTyperowsArray = Array of TTJSONSchemaArray;
+  
+  { --------------------------------------------------------------------
+    TBatchReportTypeoutputsItem
+    --------------------------------------------------------------------}
+  
+  TBatchReportTypeoutputsItem = Class(TGoogleBaseObject)
+  Private
+    FdownloadUrl : String;
+    Fformat : String;
+    F_type : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure SetdownloadUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property downloadUrl : String Index 0 Read FdownloadUrl Write SetdownloadUrl;
+    Property format : String Index 8 Read Fformat Write Setformat;
+    Property _type : String Index 16 Read F_type Write Set_type;
+  end;
+  TBatchReportTypeoutputsItemClass = Class of TBatchReportTypeoutputsItem;
+  
+  { --------------------------------------------------------------------
+    TBatchReportTypetimeSpan
+    --------------------------------------------------------------------}
+  
+  TBatchReportTypetimeSpan = Class(TGoogleBaseObject)
+  Private
+    FendTime : TDatetime;
+    FstartTime : TDatetime;
+  Protected
+    //Property setters
+    Procedure SetendTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : TDatetime); virtual;
+  Public
+  Published
+    Property endTime : TDatetime Index 0 Read FendTime Write SetendTime;
+    Property startTime : TDatetime Index 8 Read FstartTime Write SetstartTime;
+  end;
+  TBatchReportTypetimeSpanClass = Class of TBatchReportTypetimeSpan;
   
   { --------------------------------------------------------------------
     TBatchReport
@@ -82,72 +90,34 @@ type
   
   TBatchReport = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    Foutputs : TBatchReportoutputs;
-    FreportId : string;
-    FtimeSpan : TBatchReporttimeSpan;
+    Fid : String;
+    Fkind : String;
+    Foutputs : TBatchReportTypeoutputsArray;
+    FreportId : String;
+    FtimeSpan : TBatchReportTypetimeSpan;
     FtimeUpdated : TDatetime;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setoutputs(AIndex : Integer; AValue : TBatchReportoutputs); virtual;
-    Procedure SetreportId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimeSpan(AIndex : Integer; AValue : TBatchReporttimeSpan); virtual;
-    Procedure SettimeUpdated(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setoutputs(AIndex : Integer; const AValue : TBatchReportTypeoutputsArray); virtual;
+    Procedure SetreportId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeSpan(AIndex : Integer; const AValue : TBatchReportTypetimeSpan); virtual;
+    Procedure SettimeUpdated(AIndex : Integer; const AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property outputs : TBatchReportoutputs Index 16 Read Foutputs Write Setoutputs;
-    Property reportId : string Index 24 Read FreportId Write SetreportId;
-    Property timeSpan : TBatchReporttimeSpan Index 32 Read FtimeSpan Write SettimeSpan;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property outputs : TBatchReportTypeoutputsArray Index 16 Read Foutputs Write Setoutputs;
+    Property reportId : String Index 24 Read FreportId Write SetreportId;
+    Property timeSpan : TBatchReportTypetimeSpan Index 32 Read FtimeSpan Write SettimeSpan;
     Property timeUpdated : TDatetime Index 40 Read FtimeUpdated Write SettimeUpdated;
   end;
   TBatchReportClass = Class of TBatchReport;
-  
-  { --------------------------------------------------------------------
-    TBatchReportoutputs
-    --------------------------------------------------------------------}
-  
-  TBatchReportoutputs = Class(TGoogleBaseObject)
-  Private
-    FdownloadUrl : string;
-    Fformat : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure SetdownloadUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property downloadUrl : string Index 0 Read FdownloadUrl Write SetdownloadUrl;
-    Property format : string Index 8 Read Fformat Write Setformat;
-    Property _type : string Index 16 Read F_type Write Set_type;
-  end;
-  TBatchReportoutputsClass = Class of TBatchReportoutputs;
-  
-  { --------------------------------------------------------------------
-    TBatchReporttimeSpan
-    --------------------------------------------------------------------}
-  
-  TBatchReporttimeSpan = Class(TGoogleBaseObject)
-  Private
-    FendTime : TDatetime;
-    FstartTime : TDatetime;
-  Protected
-    //Property setters
-    Procedure SetendTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : TDatetime); virtual;
-  Public
-  Published
-    Property endTime : TDatetime Index 0 Read FendTime Write SetendTime;
-    Property startTime : TDatetime Index 8 Read FstartTime Write SetstartTime;
-  end;
-  TBatchReporttimeSpanClass = Class of TBatchReporttimeSpan;
   
   { --------------------------------------------------------------------
     TBatchReportDefinition
@@ -155,26 +125,26 @@ type
   
   TBatchReportDefinition = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    Fstatus : string;
-    F_type : string;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    Fstatus : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property status : string Index 24 Read Fstatus Write Setstatus;
-    Property _type : string Index 32 Read F_type Write Set_type;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property status : String Index 24 Read Fstatus Write Setstatus;
+    Property _type : String Index 32 Read F_type Write Set_type;
   end;
   TBatchReportDefinitionClass = Class of TBatchReportDefinition;
   
@@ -184,31 +154,22 @@ type
   
   TBatchReportDefinitionList = Class(TGoogleBaseObject)
   Private
-    Fitems : TBatchReportDefinitionListitems;
-    Fkind : string;
+    Fitems : TBatchReportDefinitionListTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TBatchReportDefinitionListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TBatchReportDefinitionListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property items : TBatchReportDefinitionListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TBatchReportDefinitionListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TBatchReportDefinitionListClass = Class of TBatchReportDefinitionList;
-  
-  { --------------------------------------------------------------------
-    TBatchReportDefinitionListitems
-    --------------------------------------------------------------------}
-  
-  TBatchReportDefinitionListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBatchReportDefinitionListitemsClass = Class of TBatchReportDefinitionListitems;
   
   { --------------------------------------------------------------------
     TBatchReportList
@@ -216,31 +177,60 @@ type
   
   TBatchReportList = Class(TGoogleBaseObject)
   Private
-    Fitems : TBatchReportListitems;
-    Fkind : string;
+    Fitems : TBatchReportListTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TBatchReportListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TBatchReportListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property items : TBatchReportListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TBatchReportListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TBatchReportListClass = Class of TBatchReportList;
   
   { --------------------------------------------------------------------
-    TBatchReportListitems
+    TGroupTypecontentDetails
     --------------------------------------------------------------------}
   
-  TBatchReportListitems = Class(TGoogleBaseObject)
+  TGroupTypecontentDetails = Class(TGoogleBaseObject)
   Private
+    FitemCount : String;
+    FitemType : String;
   Protected
     //Property setters
+    Procedure SetitemCount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetitemType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property itemCount : String Index 0 Read FitemCount Write SetitemCount;
+    Property itemType : String Index 8 Read FitemType Write SetitemType;
   end;
-  TBatchReportListitemsClass = Class of TBatchReportListitems;
+  TGroupTypecontentDetailsClass = Class of TGroupTypecontentDetails;
+  
+  { --------------------------------------------------------------------
+    TGroupTypesnippet
+    --------------------------------------------------------------------}
+  
+  TGroupTypesnippet = Class(TGoogleBaseObject)
+  Private
+    FpublishedAt : TDatetime;
+    Ftitle : String;
+  Protected
+    //Property setters
+    Procedure SetpublishedAt(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property publishedAt : TDatetime Index 0 Read FpublishedAt Write SetpublishedAt;
+    Property title : String Index 8 Read Ftitle Write Settitle;
+  end;
+  TGroupTypesnippetClass = Class of TGroupTypesnippet;
   
   { --------------------------------------------------------------------
     TGroup
@@ -248,65 +238,46 @@ type
   
   TGroup = Class(TGoogleBaseObject)
   Private
-    FcontentDetails : TGroupcontentDetails;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
-    Fsnippet : TGroupsnippet;
+    FcontentDetails : TGroupTypecontentDetails;
+    Fetag : String;
+    Fid : String;
+    Fkind : String;
+    Fsnippet : TGroupTypesnippet;
   Protected
     //Property setters
-    Procedure SetcontentDetails(AIndex : Integer; AValue : TGroupcontentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsnippet(AIndex : Integer; AValue : TGroupsnippet); virtual;
+    Procedure SetcontentDetails(AIndex : Integer; const AValue : TGroupTypecontentDetails); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsnippet(AIndex : Integer; const AValue : TGroupTypesnippet); virtual;
   Public
   Published
-    Property contentDetails : TGroupcontentDetails Index 0 Read FcontentDetails Write SetcontentDetails;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property snippet : TGroupsnippet Index 32 Read Fsnippet Write Setsnippet;
+    Property contentDetails : TGroupTypecontentDetails Index 0 Read FcontentDetails Write SetcontentDetails;
+    Property etag : String Index 8 Read Fetag Write Setetag;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property snippet : TGroupTypesnippet Index 32 Read Fsnippet Write Setsnippet;
   end;
   TGroupClass = Class of TGroup;
   
   { --------------------------------------------------------------------
-    TGroupcontentDetails
+    TGroupItemTyperesource
     --------------------------------------------------------------------}
   
-  TGroupcontentDetails = Class(TGoogleBaseObject)
+  TGroupItemTyperesource = Class(TGoogleBaseObject)
   Private
-    FitemCount : string;
-    FitemType : string;
+    Fid : String;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SetitemCount(AIndex : Integer; AValue : string); virtual;
-    Procedure SetitemType(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property itemCount : string Index 0 Read FitemCount Write SetitemCount;
-    Property itemType : string Index 8 Read FitemType Write SetitemType;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
-  TGroupcontentDetailsClass = Class of TGroupcontentDetails;
-  
-  { --------------------------------------------------------------------
-    TGroupsnippet
-    --------------------------------------------------------------------}
-  
-  TGroupsnippet = Class(TGoogleBaseObject)
-  Private
-    FpublishedAt : TDatetime;
-    Ftitle : string;
-  Protected
-    //Property setters
-    Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property publishedAt : TDatetime Index 0 Read FpublishedAt Write SetpublishedAt;
-    Property title : string Index 8 Read Ftitle Write Settitle;
-  end;
-  TGroupsnippetClass = Class of TGroupsnippet;
+  TGroupItemTyperesourceClass = Class of TGroupItemTyperesource;
   
   { --------------------------------------------------------------------
     TGroupItem
@@ -314,46 +285,27 @@ type
   
   TGroupItem = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    FgroupId : string;
-    Fid : string;
-    Fkind : string;
-    Fresource : TGroupItemresource;
+    Fetag : String;
+    FgroupId : String;
+    Fid : String;
+    Fkind : String;
+    Fresource : TGroupItemTyperesource;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgroupId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresource(AIndex : Integer; AValue : TGroupItemresource); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgroupId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setresource(AIndex : Integer; const AValue : TGroupItemTyperesource); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property groupId : string Index 8 Read FgroupId Write SetgroupId;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property resource : TGroupItemresource Index 32 Read Fresource Write Setresource;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property groupId : String Index 8 Read FgroupId Write SetgroupId;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property resource : TGroupItemTyperesource Index 32 Read Fresource Write Setresource;
   end;
   TGroupItemClass = Class of TGroupItem;
-  
-  { --------------------------------------------------------------------
-    TGroupItemresource
-    --------------------------------------------------------------------}
-  
-  TGroupItemresource = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fkind : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-  end;
-  TGroupItemresourceClass = Class of TGroupItemresource;
   
   { --------------------------------------------------------------------
     TGroupItemListResponse
@@ -361,34 +313,25 @@ type
   
   TGroupItemListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TGroupItemListResponseitems;
-    Fkind : string;
+    Fetag : String;
+    Fitems : TGroupItemListResponseTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TGroupItemListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TGroupItemListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TGroupItemListResponseitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TGroupItemListResponseTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TGroupItemListResponseClass = Class of TGroupItemListResponse;
-  
-  { --------------------------------------------------------------------
-    TGroupItemListResponseitems
-    --------------------------------------------------------------------}
-  
-  TGroupItemListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGroupItemListResponseitemsClass = Class of TGroupItemListResponseitems;
   
   { --------------------------------------------------------------------
     TGroupListResponse
@@ -396,34 +339,50 @@ type
   
   TGroupListResponse = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TGroupListResponseitems;
-    Fkind : string;
+    Fetag : String;
+    Fitems : TGroupListResponseTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TGroupListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TGroupListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TGroupListResponseitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TGroupListResponseTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TGroupListResponseClass = Class of TGroupListResponse;
   
   { --------------------------------------------------------------------
-    TGroupListResponseitems
+    TResultTableTypecolumnHeadersItem
     --------------------------------------------------------------------}
   
-  TGroupListResponseitems = Class(TGoogleBaseObject)
+  TResultTableTypecolumnHeadersItem = Class(TGoogleBaseObject)
   Private
+    FcolumnType : String;
+    FdataType : String;
+    Fname : String;
   Protected
     //Property setters
+    Procedure SetcolumnType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdataType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property columnType : String Index 0 Read FcolumnType Write SetcolumnType;
+    Property dataType : String Index 8 Read FdataType Write SetdataType;
+    Property name : String Index 16 Read Fname Write Setname;
   end;
-  TGroupListResponseitemsClass = Class of TGroupListResponseitems;
+  TResultTableTypecolumnHeadersItemClass = Class of TResultTableTypecolumnHeadersItem;
   
   { --------------------------------------------------------------------
     TResultTable
@@ -431,56 +390,25 @@ type
   
   TResultTable = Class(TGoogleBaseObject)
   Private
-    FcolumnHeaders : TResultTablecolumnHeaders;
-    Fkind : string;
-    Frows : TResultTablerows;
+    FcolumnHeaders : TResultTableTypecolumnHeadersArray;
+    Fkind : String;
+    Frows : TResultTableTyperowsArray;
   Protected
     //Property setters
-    Procedure SetcolumnHeaders(AIndex : Integer; AValue : TResultTablecolumnHeaders); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrows(AIndex : Integer; AValue : TResultTablerows); virtual;
+    Procedure SetcolumnHeaders(AIndex : Integer; const AValue : TResultTableTypecolumnHeadersArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrows(AIndex : Integer; const AValue : TResultTableTyperowsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property columnHeaders : TResultTablecolumnHeaders Index 0 Read FcolumnHeaders Write SetcolumnHeaders;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property rows : TResultTablerows Index 16 Read Frows Write Setrows;
+    Property columnHeaders : TResultTableTypecolumnHeadersArray Index 0 Read FcolumnHeaders Write SetcolumnHeaders;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property rows : TResultTableTyperowsArray Index 16 Read Frows Write Setrows;
   end;
   TResultTableClass = Class of TResultTable;
-  
-  { --------------------------------------------------------------------
-    TResultTablecolumnHeaders
-    --------------------------------------------------------------------}
-  
-  TResultTablecolumnHeaders = Class(TGoogleBaseObject)
-  Private
-    FcolumnType : string;
-    FdataType : string;
-    Fname : string;
-  Protected
-    //Property setters
-    Procedure SetcolumnType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdataType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property columnType : string Index 0 Read FcolumnType Write SetcolumnType;
-    Property dataType : string Index 8 Read FdataType Write SetdataType;
-    Property name : string Index 16 Read Fname Write Setname;
-  end;
-  TResultTablecolumnHeadersClass = Class of TResultTablecolumnHeaders;
-  
-  { --------------------------------------------------------------------
-    TResultTablerows
-    --------------------------------------------------------------------}
-  
-  TResultTablerows = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TResultTablerowsClass = Class of TResultTablerows;
   
   { --------------------------------------------------------------------
     TBatchReportDefinitionsResource
@@ -490,7 +418,7 @@ type
   //Optional query Options for TBatchReportDefinitionsResource, method List
   
   TBatchReportDefinitionsListOptions = Record
-    onBehalfOfContentOwner : string;
+    onBehalfOfContentOwner : String;
   end;
   
   TBatchReportDefinitionsResource = Class(TGoogleResource)
@@ -510,8 +438,8 @@ type
   //Optional query Options for TBatchReportsResource, method List
   
   TBatchReportsListOptions = Record
-    batchReportDefinitionId : string;
-    onBehalfOfContentOwner : string;
+    batchReportDefinitionId : String;
+    onBehalfOfContentOwner : String;
   end;
   
   TBatchReportsResource = Class(TGoogleResource)
@@ -531,23 +459,23 @@ type
   //Optional query Options for TGroupItemsResource, method Delete
   
   TGroupItemsDeleteOptions = Record
-    id : string;
-    onBehalfOfContentOwner : string;
+    id : String;
+    onBehalfOfContentOwner : String;
   end;
   
   
   //Optional query Options for TGroupItemsResource, method Insert
   
   TGroupItemsInsertOptions = Record
-    onBehalfOfContentOwner : string;
+    onBehalfOfContentOwner : String;
   end;
   
   
   //Optional query Options for TGroupItemsResource, method List
   
   TGroupItemsListOptions = Record
-    groupId : string;
-    onBehalfOfContentOwner : string;
+    groupId : String;
+    onBehalfOfContentOwner : String;
   end;
   
   TGroupItemsResource = Class(TGoogleResource)
@@ -571,31 +499,32 @@ type
   //Optional query Options for TGroupsResource, method Delete
   
   TGroupsDeleteOptions = Record
-    id : string;
-    onBehalfOfContentOwner : string;
+    id : String;
+    onBehalfOfContentOwner : String;
   end;
   
   
   //Optional query Options for TGroupsResource, method Insert
   
   TGroupsInsertOptions = Record
-    onBehalfOfContentOwner : string;
+    onBehalfOfContentOwner : String;
   end;
   
   
   //Optional query Options for TGroupsResource, method List
   
   TGroupsListOptions = Record
-    id : string;
+    id : String;
     mine : boolean;
-    onBehalfOfContentOwner : string;
+    onBehalfOfContentOwner : String;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TGroupsResource, method Update
   
   TGroupsUpdateOptions = Record
-    onBehalfOfContentOwner : string;
+    onBehalfOfContentOwner : String;
   end;
   
   TGroupsResource = Class(TGoogleResource)
@@ -621,15 +550,15 @@ type
   //Optional query Options for TReportsResource, method Query
   
   TReportsQueryOptions = Record
-    currency : string;
-    dimensions : string;
-    enddate : string;
-    filters : string;
-    ids : string;
+    currency : String;
+    dimensions : String;
+    enddate : String;
+    filters : String;
+    ids : String;
     maxresults : integer;
-    metrics : string;
-    sort : string;
-    startdate : string;
+    metrics : String;
+    sort : String;
+    startdate : String;
     startindex : integer;
   end;
   
@@ -703,78 +632,11 @@ implementation
 
 
 { --------------------------------------------------------------------
-  TBatchReport
+  TBatchReportTypeoutputsItem
   --------------------------------------------------------------------}
 
 
-Procedure TBatchReport.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBatchReport.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBatchReport.Setoutputs(AIndex : Integer; AValue : TBatchReportoutputs); 
-
-begin
-  If (Foutputs=AValue) then exit;
-  Foutputs:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBatchReport.SetreportId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FreportId=AValue) then exit;
-  FreportId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBatchReport.SettimeSpan(AIndex : Integer; AValue : TBatchReporttimeSpan); 
-
-begin
-  If (FtimeSpan=AValue) then exit;
-  FtimeSpan:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TBatchReport.SettimeUpdated(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (FtimeUpdated=AValue) then exit;
-  FtimeUpdated:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TBatchReportoutputs
-  --------------------------------------------------------------------}
-
-
-Procedure TBatchReportoutputs.SetdownloadUrl(AIndex : Integer; AValue : string); 
+Procedure TBatchReportTypeoutputsItem.SetdownloadUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdownloadUrl=AValue) then exit;
@@ -784,7 +646,7 @@ end;
 
 
 
-Procedure TBatchReportoutputs.Setformat(AIndex : Integer; AValue : string); 
+Procedure TBatchReportTypeoutputsItem.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -794,7 +656,7 @@ end;
 
 
 
-Procedure TBatchReportoutputs.Set_type(AIndex : Integer; AValue : string); 
+Procedure TBatchReportTypeoutputsItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -804,7 +666,7 @@ end;
 
 
 
-Class Function TBatchReportoutputs.ExportPropertyName(Const AName : String) :String;
+Class Function TBatchReportTypeoutputsItem.ExportPropertyName(Const AName : String) :String;
 
 begin
   Case AName of
@@ -818,11 +680,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TBatchReporttimeSpan
+  TBatchReportTypetimeSpan
   --------------------------------------------------------------------}
 
 
-Procedure TBatchReporttimeSpan.SetendTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TBatchReportTypetimeSpan.SetendTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -832,7 +694,7 @@ end;
 
 
 
-Procedure TBatchReporttimeSpan.SetstartTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TBatchReportTypetimeSpan.SetstartTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -845,11 +707,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TBatchReportDefinition
+  TBatchReport
   --------------------------------------------------------------------}
 
 
-Procedure TBatchReportDefinition.Setid(AIndex : Integer; AValue : string); 
+Procedure TBatchReport.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -859,7 +721,7 @@ end;
 
 
 
-Procedure TBatchReportDefinition.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBatchReport.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -869,7 +731,87 @@ end;
 
 
 
-Procedure TBatchReportDefinition.Setname(AIndex : Integer; AValue : string); 
+Procedure TBatchReport.Setoutputs(AIndex : Integer; const AValue : TBatchReportTypeoutputsArray); 
+
+begin
+  If (Foutputs=AValue) then exit;
+  Foutputs:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBatchReport.SetreportId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreportId=AValue) then exit;
+  FreportId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBatchReport.SettimeSpan(AIndex : Integer; const AValue : TBatchReportTypetimeSpan); 
+
+begin
+  If (FtimeSpan=AValue) then exit;
+  FtimeSpan:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBatchReport.SettimeUpdated(AIndex : Integer; const AValue : TDatetime); 
+
+begin
+  If (FtimeUpdated=AValue) then exit;
+  FtimeUpdated:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBatchReport.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'outputs' : SetLength(Foutputs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TBatchReportDefinition
+  --------------------------------------------------------------------}
+
+
+Procedure TBatchReportDefinition.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBatchReportDefinition.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBatchReportDefinition.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -879,7 +821,7 @@ end;
 
 
 
-Procedure TBatchReportDefinition.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TBatchReportDefinition.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -889,7 +831,7 @@ end;
 
 
 
-Procedure TBatchReportDefinition.Set_type(AIndex : Integer; AValue : string); 
+Procedure TBatchReportDefinition.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -917,7 +859,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchReportDefinitionList.Setitems(AIndex : Integer; AValue : TBatchReportDefinitionListitems); 
+Procedure TBatchReportDefinitionList.Setitems(AIndex : Integer; const AValue : TBatchReportDefinitionListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -927,7 +869,7 @@ end;
 
 
 
-Procedure TBatchReportDefinitionList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBatchReportDefinitionList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -936,12 +878,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBatchReportDefinitionList.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TBatchReportDefinitionListitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -951,7 +899,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchReportList.Setitems(AIndex : Integer; AValue : TBatchReportListitems); 
+Procedure TBatchReportList.Setitems(AIndex : Integer; const AValue : TBatchReportListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -961,7 +909,7 @@ end;
 
 
 
-Procedure TBatchReportList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBatchReportList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -970,79 +918,28 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TBatchReportListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TGroup
-  --------------------------------------------------------------------}
-
-
-Procedure TGroup.SetcontentDetails(AIndex : Integer; AValue : TGroupcontentDetails); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBatchReportList.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (FcontentDetails=AValue) then exit;
-  FcontentDetails:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TGroup.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TGroup.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TGroup.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TGroup.Setsnippet(AIndex : Integer; AValue : TGroupsnippet); 
-
-begin
-  If (Fsnippet=AValue) then exit;
-  Fsnippet:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TGroupcontentDetails
+  TGroupTypecontentDetails
   --------------------------------------------------------------------}
 
 
-Procedure TGroupcontentDetails.SetitemCount(AIndex : Integer; AValue : string); 
+Procedure TGroupTypecontentDetails.SetitemCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FitemCount=AValue) then exit;
@@ -1052,7 +949,7 @@ end;
 
 
 
-Procedure TGroupcontentDetails.SetitemType(AIndex : Integer; AValue : string); 
+Procedure TGroupTypecontentDetails.SetitemType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FitemType=AValue) then exit;
@@ -1065,11 +962,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGroupsnippet
+  TGroupTypesnippet
   --------------------------------------------------------------------}
 
 
-Procedure TGroupsnippet.SetpublishedAt(AIndex : Integer; AValue : TDatetime); 
+Procedure TGroupTypesnippet.SetpublishedAt(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FpublishedAt=AValue) then exit;
@@ -1079,7 +976,7 @@ end;
 
 
 
-Procedure TGroupsnippet.Settitle(AIndex : Integer; AValue : string); 
+Procedure TGroupTypesnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1092,11 +989,21 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGroupItem
+  TGroup
   --------------------------------------------------------------------}
 
 
-Procedure TGroupItem.Setetag(AIndex : Integer; AValue : string); 
+Procedure TGroup.SetcontentDetails(AIndex : Integer; const AValue : TGroupTypecontentDetails); 
+
+begin
+  If (FcontentDetails=AValue) then exit;
+  FcontentDetails:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TGroup.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1106,17 +1013,7 @@ end;
 
 
 
-Procedure TGroupItem.SetgroupId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FgroupId=AValue) then exit;
-  FgroupId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TGroupItem.Setid(AIndex : Integer; AValue : string); 
+Procedure TGroup.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1126,7 +1023,7 @@ end;
 
 
 
-Procedure TGroupItem.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGroup.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1136,7 +1033,91 @@ end;
 
 
 
-Procedure TGroupItem.Setresource(AIndex : Integer; AValue : TGroupItemresource); 
+Procedure TGroup.Setsnippet(AIndex : Integer; const AValue : TGroupTypesnippet); 
+
+begin
+  If (Fsnippet=AValue) then exit;
+  Fsnippet:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TGroupItemTyperesource
+  --------------------------------------------------------------------}
+
+
+Procedure TGroupItemTyperesource.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TGroupItemTyperesource.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TGroupItem
+  --------------------------------------------------------------------}
+
+
+Procedure TGroupItem.Setetag(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TGroupItem.SetgroupId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FgroupId=AValue) then exit;
+  FgroupId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TGroupItem.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TGroupItem.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TGroupItem.Setresource(AIndex : Integer; const AValue : TGroupItemTyperesource); 
 
 begin
   If (Fresource=AValue) then exit;
@@ -1149,38 +1130,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TGroupItemresource
-  --------------------------------------------------------------------}
-
-
-Procedure TGroupItemresource.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TGroupItemresource.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TGroupItemListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TGroupItemListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TGroupItemListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1190,7 +1144,7 @@ end;
 
 
 
-Procedure TGroupItemListResponse.Setitems(AIndex : Integer; AValue : TGroupItemListResponseitems); 
+Procedure TGroupItemListResponse.Setitems(AIndex : Integer; const AValue : TGroupItemListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1200,7 +1154,7 @@ end;
 
 
 
-Procedure TGroupItemListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGroupItemListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1209,12 +1163,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGroupItemListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TGroupItemListResponseitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1224,7 +1184,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupListResponse.Setetag(AIndex : Integer; AValue : string); 
+Procedure TGroupListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1234,7 +1194,7 @@ end;
 
 
 
-Procedure TGroupListResponse.Setitems(AIndex : Integer; AValue : TGroupListResponseitems); 
+Procedure TGroupListResponse.Setitems(AIndex : Integer; const AValue : TGroupListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1244,7 +1204,7 @@ end;
 
 
 
-Procedure TGroupListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGroupListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1254,58 +1214,37 @@ end;
 
 
 
-
-
-{ --------------------------------------------------------------------
-  TGroupListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TResultTable
-  --------------------------------------------------------------------}
-
-
-Procedure TResultTable.SetcolumnHeaders(AIndex : Integer; AValue : TResultTablecolumnHeaders); 
+Procedure TGroupListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FcolumnHeaders=AValue) then exit;
-  FcolumnHeaders:=AValue;
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
-
-Procedure TResultTable.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResultTable.Setrows(AIndex : Integer; AValue : TResultTablerows); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGroupListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Frows=AValue) then exit;
-  Frows:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TResultTablecolumnHeaders
+  TResultTableTypecolumnHeadersItem
   --------------------------------------------------------------------}
 
 
-Procedure TResultTablecolumnHeaders.SetcolumnType(AIndex : Integer; AValue : string); 
+Procedure TResultTableTypecolumnHeadersItem.SetcolumnType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolumnType=AValue) then exit;
@@ -1315,7 +1254,7 @@ end;
 
 
 
-Procedure TResultTablecolumnHeaders.SetdataType(AIndex : Integer; AValue : string); 
+Procedure TResultTableTypecolumnHeadersItem.SetdataType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataType=AValue) then exit;
@@ -1325,7 +1264,7 @@ end;
 
 
 
-Procedure TResultTablecolumnHeaders.Setname(AIndex : Integer; AValue : string); 
+Procedure TResultTableTypecolumnHeadersItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1338,8 +1277,52 @@ end;
 
 
 { --------------------------------------------------------------------
-  TResultTablerows
+  TResultTable
   --------------------------------------------------------------------}
+
+
+Procedure TResultTable.SetcolumnHeaders(AIndex : Integer; const AValue : TResultTableTypecolumnHeadersArray); 
+
+begin
+  If (FcolumnHeaders=AValue) then exit;
+  FcolumnHeaders:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTable.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResultTable.Setrows(AIndex : Integer; const AValue : TResultTableTyperowsArray); 
+
+begin
+  If (Frows=AValue) then exit;
+  Frows:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResultTable.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'columnheaders' : SetLength(FcolumnHeaders,ALength);
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1605,6 +1588,7 @@ begin
   AddToQuery(_Q,'id',AQuery.id);
   AddToQuery(_Q,'mine',AQuery.mine);
   AddToQuery(_Q,'onBehalfOfContentOwner',AQuery.onBehalfOfContentOwner);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(_Q);
 end;
 
@@ -1703,7 +1687,7 @@ end;
 Class Function TYoutubeAnalyticsAPI.APIRevision : String;
 
 begin
-  Result:='20150304';
+  Result:='20160513';
 end;
 
 Class Function TYoutubeAnalyticsAPI.APIID : String;
@@ -1721,7 +1705,7 @@ end;
 Class Function TYoutubeAnalyticsAPI.APIDescription : String;
 
 begin
-  Result:='Retrieve your YouTube Analytics reports.';
+  Result:='Retrieves your YouTube Analytics data.';
 end;
 
 Class Function TYoutubeAnalyticsAPI.APIOwnerDomain : String;
@@ -1801,7 +1785,7 @@ begin
   Result[2].Name:='https://www.googleapis.com/auth/youtubepartner';
   Result[2].Description:='View and manage your assets and associated content on YouTube';
   Result[3].Name:='https://www.googleapis.com/auth/yt-analytics-monetary.readonly';
-  Result[3].Description:='View YouTube Analytics monetary reports for your YouTube content';
+  Result[3].Description:='View monetary and non-monetary YouTube Analytics reports for your YouTube content';
   Result[4].Name:='https://www.googleapis.com/auth/yt-analytics.readonly';
   Result[4].Description:='View YouTube Analytics reports for your YouTube content';
   
@@ -1816,26 +1800,21 @@ end;
 Class Procedure TYoutubeAnalyticsAPI.RegisterAPIResources;
 
 begin
+  TBatchReportTypeoutputsItem.RegisterObject;
+  TBatchReportTypetimeSpan.RegisterObject;
   TBatchReport.RegisterObject;
-  TBatchReportoutputs.RegisterObject;
-  TBatchReporttimeSpan.RegisterObject;
   TBatchReportDefinition.RegisterObject;
   TBatchReportDefinitionList.RegisterObject;
-  TBatchReportDefinitionListitems.RegisterObject;
   TBatchReportList.RegisterObject;
-  TBatchReportListitems.RegisterObject;
+  TGroupTypecontentDetails.RegisterObject;
+  TGroupTypesnippet.RegisterObject;
   TGroup.RegisterObject;
-  TGroupcontentDetails.RegisterObject;
-  TGroupsnippet.RegisterObject;
+  TGroupItemTyperesource.RegisterObject;
   TGroupItem.RegisterObject;
-  TGroupItemresource.RegisterObject;
   TGroupItemListResponse.RegisterObject;
-  TGroupItemListResponseitems.RegisterObject;
   TGroupListResponse.RegisterObject;
-  TGroupListResponseitems.RegisterObject;
+  TResultTableTypecolumnHeadersItem.RegisterObject;
   TResultTable.RegisterObject;
-  TResultTablecolumnHeaders.RegisterObject;
-  TResultTablerows.RegisterObject;
 end;
 
 
@@ -1858,7 +1837,7 @@ Function TYoutubeAnalyticsAPI.CreateBatchReportDefinitionsResource(AOwner : TCom
 
 begin
   Result:=TBatchReportDefinitionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1882,7 +1861,7 @@ Function TYoutubeAnalyticsAPI.CreateBatchReportsResource(AOwner : TComponent) : 
 
 begin
   Result:=TBatchReportsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1906,7 +1885,7 @@ Function TYoutubeAnalyticsAPI.CreateGroupItemsResource(AOwner : TComponent) : TG
 
 begin
   Result:=TGroupItemsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1930,7 +1909,7 @@ Function TYoutubeAnalyticsAPI.CreateGroupsResource(AOwner : TComponent) : TGroup
 
 begin
   Result:=TGroupsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -1954,7 +1933,7 @@ Function TYoutubeAnalyticsAPI.CreateReportsResource(AOwner : TComponent) : TRepo
 
 begin
   Result:=TReportsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

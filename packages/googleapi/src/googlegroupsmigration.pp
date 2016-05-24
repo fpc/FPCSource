@@ -1,31 +1,4 @@
 unit googlegroupsmigration;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,9 +7,11 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TGroups = class;
+  
+  //Top-level schema types
+  TGroups = Class;
   TGroupsArray = Array of TGroups;
+  //Anonymous types, using auto-generated names
   
   { --------------------------------------------------------------------
     TGroups
@@ -44,16 +19,16 @@ type
   
   TGroups = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    FresponseCode : string;
+    Fkind : String;
+    FresponseCode : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetresponseCode(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetresponseCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property responseCode : string Index 8 Read FresponseCode Write SetresponseCode;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property responseCode : String Index 8 Read FresponseCode Write SetresponseCode;
   end;
   TGroupsClass = Class of TGroups;
   
@@ -114,7 +89,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TGroups.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGroups.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -124,7 +99,7 @@ end;
 
 
 
-Procedure TGroups.SetresponseCode(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetresponseCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresponseCode=AValue) then exit;
@@ -317,7 +292,7 @@ Function TGroupsmigrationAPI.CreateArchiveResource(AOwner : TComponent) : TArchi
 
 begin
   Result:=TArchiveResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

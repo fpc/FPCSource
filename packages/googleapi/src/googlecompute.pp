@@ -1,31 +1,4 @@
 unit googlecompute;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,461 +7,467 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TAccessConfig = class;
+  
+  //Top-level schema types
+  TAccessConfig = Class;
+  TAddress = Class;
+  TAddressAggregatedList = Class;
+  TAddressList = Class;
+  TAddressesScopedList = Class;
+  TAttachedDisk = Class;
+  TAttachedDiskInitializeParams = Class;
+  TAutoscaler = Class;
+  TAutoscalerAggregatedList = Class;
+  TAutoscalerList = Class;
+  TAutoscalersScopedList = Class;
+  TAutoscalingPolicy = Class;
+  TAutoscalingPolicyCpuUtilization = Class;
+  TAutoscalingPolicyCustomMetricUtilization = Class;
+  TAutoscalingPolicyLoadBalancingUtilization = Class;
+  TBackend = Class;
+  TBackendService = Class;
+  TBackendServiceGroupHealth = Class;
+  TBackendServiceList = Class;
+  TDeprecationStatus = Class;
+  TDisk = Class;
+  TDiskAggregatedList = Class;
+  TDiskList = Class;
+  TDiskMoveRequest = Class;
+  TDiskType = Class;
+  TDiskTypeAggregatedList = Class;
+  TDiskTypeList = Class;
+  TDiskTypesScopedList = Class;
+  TDisksResizeRequest = Class;
+  TDisksScopedList = Class;
+  TFirewall = Class;
+  TFirewallList = Class;
+  TForwardingRule = Class;
+  TForwardingRuleAggregatedList = Class;
+  TForwardingRuleList = Class;
+  TForwardingRulesScopedList = Class;
+  THealthCheckReference = Class;
+  THealthStatus = Class;
+  THostRule = Class;
+  THttpHealthCheck = Class;
+  THttpHealthCheckList = Class;
+  THttpsHealthCheck = Class;
+  THttpsHealthCheckList = Class;
+  TImage = Class;
+  TImageList = Class;
+  TInstance = Class;
+  TInstanceAggregatedList = Class;
+  TInstanceGroup = Class;
+  TInstanceGroupAggregatedList = Class;
+  TInstanceGroupList = Class;
+  TInstanceGroupManager = Class;
+  TInstanceGroupManagerActionsSummary = Class;
+  TInstanceGroupManagerAggregatedList = Class;
+  TInstanceGroupManagerList = Class;
+  TInstanceGroupManagersAbandonInstancesRequest = Class;
+  TInstanceGroupManagersDeleteInstancesRequest = Class;
+  TInstanceGroupManagersListManagedInstancesResponse = Class;
+  TInstanceGroupManagersRecreateInstancesRequest = Class;
+  TInstanceGroupManagersScopedList = Class;
+  TInstanceGroupManagersSetInstanceTemplateRequest = Class;
+  TInstanceGroupManagersSetTargetPoolsRequest = Class;
+  TInstanceGroupsAddInstancesRequest = Class;
+  TInstanceGroupsListInstances = Class;
+  TInstanceGroupsListInstancesRequest = Class;
+  TInstanceGroupsRemoveInstancesRequest = Class;
+  TInstanceGroupsScopedList = Class;
+  TInstanceGroupsSetNamedPortsRequest = Class;
+  TInstanceList = Class;
+  TInstanceMoveRequest = Class;
+  TInstanceProperties = Class;
+  TInstanceReference = Class;
+  TInstanceTemplate = Class;
+  TInstanceTemplateList = Class;
+  TInstanceWithNamedPorts = Class;
+  TInstancesScopedList = Class;
+  TInstancesSetMachineTypeRequest = Class;
+  TLicense = Class;
+  TMachineType = Class;
+  TMachineTypeAggregatedList = Class;
+  TMachineTypeList = Class;
+  TMachineTypesScopedList = Class;
+  TManagedInstance = Class;
+  TManagedInstanceLastAttempt = Class;
+  TMetadata = Class;
+  TNamedPort = Class;
+  TNetwork = Class;
+  TNetworkInterface = Class;
+  TNetworkList = Class;
+  TOperation = Class;
+  TOperationAggregatedList = Class;
+  TOperationList = Class;
+  TOperationsScopedList = Class;
+  TPathMatcher = Class;
+  TPathRule = Class;
+  TProject = Class;
+  TQuota = Class;
+  TRegion = Class;
+  TRegionList = Class;
+  TResourceGroupReference = Class;
+  TRoute = Class;
+  TRouteList = Class;
+  TScheduling = Class;
+  TSerialPortOutput = Class;
+  TServiceAccount = Class;
+  TSnapshot = Class;
+  TSnapshotList = Class;
+  TSslCertificate = Class;
+  TSslCertificateList = Class;
+  TSubnetwork = Class;
+  TSubnetworkAggregatedList = Class;
+  TSubnetworkList = Class;
+  TSubnetworksScopedList = Class;
+  TTags = Class;
+  TTargetHttpProxy = Class;
+  TTargetHttpProxyList = Class;
+  TTargetHttpsProxiesSetSslCertificatesRequest = Class;
+  TTargetHttpsProxy = Class;
+  TTargetHttpsProxyList = Class;
+  TTargetInstance = Class;
+  TTargetInstanceAggregatedList = Class;
+  TTargetInstanceList = Class;
+  TTargetInstancesScopedList = Class;
+  TTargetPool = Class;
+  TTargetPoolAggregatedList = Class;
+  TTargetPoolInstanceHealth = Class;
+  TTargetPoolList = Class;
+  TTargetPoolsAddHealthCheckRequest = Class;
+  TTargetPoolsAddInstanceRequest = Class;
+  TTargetPoolsRemoveHealthCheckRequest = Class;
+  TTargetPoolsRemoveInstanceRequest = Class;
+  TTargetPoolsScopedList = Class;
+  TTargetReference = Class;
+  TTargetVpnGateway = Class;
+  TTargetVpnGatewayAggregatedList = Class;
+  TTargetVpnGatewayList = Class;
+  TTargetVpnGatewaysScopedList = Class;
+  TTestFailure = Class;
+  TUrlMap = Class;
+  TUrlMapList = Class;
+  TUrlMapReference = Class;
+  TUrlMapTest = Class;
+  TUrlMapValidationResult = Class;
+  TUrlMapsValidateRequest = Class;
+  TUrlMapsValidateResponse = Class;
+  TUsageExportLocation = Class;
+  TVpnTunnel = Class;
+  TVpnTunnelAggregatedList = Class;
+  TVpnTunnelList = Class;
+  TVpnTunnelsScopedList = Class;
+  TZone = Class;
+  TZoneList = Class;
   TAccessConfigArray = Array of TAccessConfig;
-  TAddress = class;
   TAddressArray = Array of TAddress;
-  TAddressusers = class;
-  TAddressusersArray = Array of TAddressusers;
-  TAddressAggregatedList = class;
   TAddressAggregatedListArray = Array of TAddressAggregatedList;
-  TAddressAggregatedListitems = class;
-  TAddressAggregatedListitemsArray = Array of TAddressAggregatedListitems;
-  TAddressList = class;
   TAddressListArray = Array of TAddressList;
-  TAddressListitems = class;
-  TAddressListitemsArray = Array of TAddressListitems;
-  TAddressesScopedList = class;
   TAddressesScopedListArray = Array of TAddressesScopedList;
-  TAddressesScopedListaddresses = class;
-  TAddressesScopedListaddressesArray = Array of TAddressesScopedListaddresses;
-  TAddressesScopedListwarning = class;
-  TAddressesScopedListwarningArray = Array of TAddressesScopedListwarning;
-  TAddressesScopedListwarningdata = class;
-  TAddressesScopedListwarningdataArray = Array of TAddressesScopedListwarningdata;
-  TAttachedDisk = class;
   TAttachedDiskArray = Array of TAttachedDisk;
-  TAttachedDisklicenses = class;
-  TAttachedDisklicensesArray = Array of TAttachedDisklicenses;
-  TAttachedDiskInitializeParams = class;
   TAttachedDiskInitializeParamsArray = Array of TAttachedDiskInitializeParams;
-  TBackend = class;
+  TAutoscalerArray = Array of TAutoscaler;
+  TAutoscalerAggregatedListArray = Array of TAutoscalerAggregatedList;
+  TAutoscalerListArray = Array of TAutoscalerList;
+  TAutoscalersScopedListArray = Array of TAutoscalersScopedList;
+  TAutoscalingPolicyArray = Array of TAutoscalingPolicy;
+  TAutoscalingPolicyCpuUtilizationArray = Array of TAutoscalingPolicyCpuUtilization;
+  TAutoscalingPolicyCustomMetricUtilizationArray = Array of TAutoscalingPolicyCustomMetricUtilization;
+  TAutoscalingPolicyLoadBalancingUtilizationArray = Array of TAutoscalingPolicyLoadBalancingUtilization;
   TBackendArray = Array of TBackend;
-  TBackendService = class;
   TBackendServiceArray = Array of TBackendService;
-  TBackendServicebackends = class;
-  TBackendServicebackendsArray = Array of TBackendServicebackends;
-  TBackendServicehealthChecks = class;
-  TBackendServicehealthChecksArray = Array of TBackendServicehealthChecks;
-  TBackendServiceGroupHealth = class;
   TBackendServiceGroupHealthArray = Array of TBackendServiceGroupHealth;
-  TBackendServiceGroupHealthhealthStatus = class;
-  TBackendServiceGroupHealthhealthStatusArray = Array of TBackendServiceGroupHealthhealthStatus;
-  TBackendServiceList = class;
   TBackendServiceListArray = Array of TBackendServiceList;
-  TBackendServiceListitems = class;
-  TBackendServiceListitemsArray = Array of TBackendServiceListitems;
-  TDeprecationStatus = class;
   TDeprecationStatusArray = Array of TDeprecationStatus;
-  TDisk = class;
   TDiskArray = Array of TDisk;
-  TDisklicenses = class;
-  TDisklicensesArray = Array of TDisklicenses;
-  TDiskAggregatedList = class;
   TDiskAggregatedListArray = Array of TDiskAggregatedList;
-  TDiskAggregatedListitems = class;
-  TDiskAggregatedListitemsArray = Array of TDiskAggregatedListitems;
-  TDiskList = class;
   TDiskListArray = Array of TDiskList;
-  TDiskListitems = class;
-  TDiskListitemsArray = Array of TDiskListitems;
-  TDiskMoveRequest = class;
   TDiskMoveRequestArray = Array of TDiskMoveRequest;
-  TDiskType = class;
   TDiskTypeArray = Array of TDiskType;
-  TDiskTypeAggregatedList = class;
   TDiskTypeAggregatedListArray = Array of TDiskTypeAggregatedList;
-  TDiskTypeAggregatedListitems = class;
-  TDiskTypeAggregatedListitemsArray = Array of TDiskTypeAggregatedListitems;
-  TDiskTypeList = class;
   TDiskTypeListArray = Array of TDiskTypeList;
-  TDiskTypeListitems = class;
-  TDiskTypeListitemsArray = Array of TDiskTypeListitems;
-  TDiskTypesScopedList = class;
   TDiskTypesScopedListArray = Array of TDiskTypesScopedList;
-  TDiskTypesScopedListdiskTypes = class;
-  TDiskTypesScopedListdiskTypesArray = Array of TDiskTypesScopedListdiskTypes;
-  TDiskTypesScopedListwarning = class;
-  TDiskTypesScopedListwarningArray = Array of TDiskTypesScopedListwarning;
-  TDiskTypesScopedListwarningdata = class;
-  TDiskTypesScopedListwarningdataArray = Array of TDiskTypesScopedListwarningdata;
-  TDisksScopedList = class;
+  TDisksResizeRequestArray = Array of TDisksResizeRequest;
   TDisksScopedListArray = Array of TDisksScopedList;
-  TDisksScopedListdisks = class;
-  TDisksScopedListdisksArray = Array of TDisksScopedListdisks;
-  TDisksScopedListwarning = class;
-  TDisksScopedListwarningArray = Array of TDisksScopedListwarning;
-  TDisksScopedListwarningdata = class;
-  TDisksScopedListwarningdataArray = Array of TDisksScopedListwarningdata;
-  TFirewall = class;
   TFirewallArray = Array of TFirewall;
-  TFirewallallowed = class;
-  TFirewallallowedArray = Array of TFirewallallowed;
-  TFirewallallowedports = class;
-  TFirewallallowedportsArray = Array of TFirewallallowedports;
-  TFirewallsourceRanges = class;
-  TFirewallsourceRangesArray = Array of TFirewallsourceRanges;
-  TFirewallsourceTags = class;
-  TFirewallsourceTagsArray = Array of TFirewallsourceTags;
-  TFirewalltargetTags = class;
-  TFirewalltargetTagsArray = Array of TFirewalltargetTags;
-  TFirewallList = class;
   TFirewallListArray = Array of TFirewallList;
-  TFirewallListitems = class;
-  TFirewallListitemsArray = Array of TFirewallListitems;
-  TForwardingRule = class;
   TForwardingRuleArray = Array of TForwardingRule;
-  TForwardingRuleAggregatedList = class;
   TForwardingRuleAggregatedListArray = Array of TForwardingRuleAggregatedList;
-  TForwardingRuleAggregatedListitems = class;
-  TForwardingRuleAggregatedListitemsArray = Array of TForwardingRuleAggregatedListitems;
-  TForwardingRuleList = class;
   TForwardingRuleListArray = Array of TForwardingRuleList;
-  TForwardingRuleListitems = class;
-  TForwardingRuleListitemsArray = Array of TForwardingRuleListitems;
-  TForwardingRulesScopedList = class;
   TForwardingRulesScopedListArray = Array of TForwardingRulesScopedList;
-  TForwardingRulesScopedListforwardingRules = class;
-  TForwardingRulesScopedListforwardingRulesArray = Array of TForwardingRulesScopedListforwardingRules;
-  TForwardingRulesScopedListwarning = class;
-  TForwardingRulesScopedListwarningArray = Array of TForwardingRulesScopedListwarning;
-  TForwardingRulesScopedListwarningdata = class;
-  TForwardingRulesScopedListwarningdataArray = Array of TForwardingRulesScopedListwarningdata;
-  THealthCheckReference = class;
   THealthCheckReferenceArray = Array of THealthCheckReference;
-  THealthStatus = class;
   THealthStatusArray = Array of THealthStatus;
-  THostRule = class;
   THostRuleArray = Array of THostRule;
-  THostRulehosts = class;
-  THostRulehostsArray = Array of THostRulehosts;
-  THttpHealthCheck = class;
   THttpHealthCheckArray = Array of THttpHealthCheck;
-  THttpHealthCheckList = class;
   THttpHealthCheckListArray = Array of THttpHealthCheckList;
-  THttpHealthCheckListitems = class;
-  THttpHealthCheckListitemsArray = Array of THttpHealthCheckListitems;
-  TImage = class;
+  THttpsHealthCheckArray = Array of THttpsHealthCheck;
+  THttpsHealthCheckListArray = Array of THttpsHealthCheckList;
   TImageArray = Array of TImage;
-  TImagelicenses = class;
-  TImagelicensesArray = Array of TImagelicenses;
-  TImagerawDisk = class;
-  TImagerawDiskArray = Array of TImagerawDisk;
-  TImageList = class;
   TImageListArray = Array of TImageList;
-  TImageListitems = class;
-  TImageListitemsArray = Array of TImageListitems;
-  TInstance = class;
   TInstanceArray = Array of TInstance;
-  TInstancedisks = class;
-  TInstancedisksArray = Array of TInstancedisks;
-  TInstancenetworkInterfaces = class;
-  TInstancenetworkInterfacesArray = Array of TInstancenetworkInterfaces;
-  TInstanceserviceAccounts = class;
-  TInstanceserviceAccountsArray = Array of TInstanceserviceAccounts;
-  TInstanceAggregatedList = class;
   TInstanceAggregatedListArray = Array of TInstanceAggregatedList;
-  TInstanceAggregatedListitems = class;
-  TInstanceAggregatedListitemsArray = Array of TInstanceAggregatedListitems;
-  TInstanceList = class;
+  TInstanceGroupArray = Array of TInstanceGroup;
+  TInstanceGroupAggregatedListArray = Array of TInstanceGroupAggregatedList;
+  TInstanceGroupListArray = Array of TInstanceGroupList;
+  TInstanceGroupManagerArray = Array of TInstanceGroupManager;
+  TInstanceGroupManagerActionsSummaryArray = Array of TInstanceGroupManagerActionsSummary;
+  TInstanceGroupManagerAggregatedListArray = Array of TInstanceGroupManagerAggregatedList;
+  TInstanceGroupManagerListArray = Array of TInstanceGroupManagerList;
+  TInstanceGroupManagersAbandonInstancesRequestArray = Array of TInstanceGroupManagersAbandonInstancesRequest;
+  TInstanceGroupManagersDeleteInstancesRequestArray = Array of TInstanceGroupManagersDeleteInstancesRequest;
+  TInstanceGroupManagersListManagedInstancesResponseArray = Array of TInstanceGroupManagersListManagedInstancesResponse;
+  TInstanceGroupManagersRecreateInstancesRequestArray = Array of TInstanceGroupManagersRecreateInstancesRequest;
+  TInstanceGroupManagersScopedListArray = Array of TInstanceGroupManagersScopedList;
+  TInstanceGroupManagersSetInstanceTemplateRequestArray = Array of TInstanceGroupManagersSetInstanceTemplateRequest;
+  TInstanceGroupManagersSetTargetPoolsRequestArray = Array of TInstanceGroupManagersSetTargetPoolsRequest;
+  TInstanceGroupsAddInstancesRequestArray = Array of TInstanceGroupsAddInstancesRequest;
+  TInstanceGroupsListInstancesArray = Array of TInstanceGroupsListInstances;
+  TInstanceGroupsListInstancesRequestArray = Array of TInstanceGroupsListInstancesRequest;
+  TInstanceGroupsRemoveInstancesRequestArray = Array of TInstanceGroupsRemoveInstancesRequest;
+  TInstanceGroupsScopedListArray = Array of TInstanceGroupsScopedList;
+  TInstanceGroupsSetNamedPortsRequestArray = Array of TInstanceGroupsSetNamedPortsRequest;
   TInstanceListArray = Array of TInstanceList;
-  TInstanceListitems = class;
-  TInstanceListitemsArray = Array of TInstanceListitems;
-  TInstanceMoveRequest = class;
   TInstanceMoveRequestArray = Array of TInstanceMoveRequest;
-  TInstanceProperties = class;
   TInstancePropertiesArray = Array of TInstanceProperties;
-  TInstancePropertiesdisks = class;
-  TInstancePropertiesdisksArray = Array of TInstancePropertiesdisks;
-  TInstancePropertiesnetworkInterfaces = class;
-  TInstancePropertiesnetworkInterfacesArray = Array of TInstancePropertiesnetworkInterfaces;
-  TInstancePropertiesserviceAccounts = class;
-  TInstancePropertiesserviceAccountsArray = Array of TInstancePropertiesserviceAccounts;
-  TInstanceReference = class;
   TInstanceReferenceArray = Array of TInstanceReference;
-  TInstanceTemplate = class;
   TInstanceTemplateArray = Array of TInstanceTemplate;
-  TInstanceTemplateList = class;
   TInstanceTemplateListArray = Array of TInstanceTemplateList;
-  TInstanceTemplateListitems = class;
-  TInstanceTemplateListitemsArray = Array of TInstanceTemplateListitems;
-  TInstancesScopedList = class;
+  TInstanceWithNamedPortsArray = Array of TInstanceWithNamedPorts;
   TInstancesScopedListArray = Array of TInstancesScopedList;
-  TInstancesScopedListinstances = class;
-  TInstancesScopedListinstancesArray = Array of TInstancesScopedListinstances;
-  TInstancesScopedListwarning = class;
-  TInstancesScopedListwarningArray = Array of TInstancesScopedListwarning;
-  TInstancesScopedListwarningdata = class;
-  TInstancesScopedListwarningdataArray = Array of TInstancesScopedListwarningdata;
-  TLicense = class;
+  TInstancesSetMachineTypeRequestArray = Array of TInstancesSetMachineTypeRequest;
   TLicenseArray = Array of TLicense;
-  TMachineType = class;
   TMachineTypeArray = Array of TMachineType;
-  TMachineTypescratchDisks = class;
-  TMachineTypescratchDisksArray = Array of TMachineTypescratchDisks;
-  TMachineTypeAggregatedList = class;
   TMachineTypeAggregatedListArray = Array of TMachineTypeAggregatedList;
-  TMachineTypeAggregatedListitems = class;
-  TMachineTypeAggregatedListitemsArray = Array of TMachineTypeAggregatedListitems;
-  TMachineTypeList = class;
   TMachineTypeListArray = Array of TMachineTypeList;
-  TMachineTypeListitems = class;
-  TMachineTypeListitemsArray = Array of TMachineTypeListitems;
-  TMachineTypesScopedList = class;
   TMachineTypesScopedListArray = Array of TMachineTypesScopedList;
-  TMachineTypesScopedListmachineTypes = class;
-  TMachineTypesScopedListmachineTypesArray = Array of TMachineTypesScopedListmachineTypes;
-  TMachineTypesScopedListwarning = class;
-  TMachineTypesScopedListwarningArray = Array of TMachineTypesScopedListwarning;
-  TMachineTypesScopedListwarningdata = class;
-  TMachineTypesScopedListwarningdataArray = Array of TMachineTypesScopedListwarningdata;
-  TMetadata = class;
+  TManagedInstanceArray = Array of TManagedInstance;
+  TManagedInstanceLastAttemptArray = Array of TManagedInstanceLastAttempt;
   TMetadataArray = Array of TMetadata;
-  TMetadataitems = class;
-  TMetadataitemsArray = Array of TMetadataitems;
-  TNetwork = class;
+  TNamedPortArray = Array of TNamedPort;
   TNetworkArray = Array of TNetwork;
-  TNetworkInterface = class;
   TNetworkInterfaceArray = Array of TNetworkInterface;
-  TNetworkInterfaceaccessConfigs = class;
-  TNetworkInterfaceaccessConfigsArray = Array of TNetworkInterfaceaccessConfigs;
-  TNetworkList = class;
   TNetworkListArray = Array of TNetworkList;
-  TNetworkListitems = class;
-  TNetworkListitemsArray = Array of TNetworkListitems;
-  TOperation = class;
   TOperationArray = Array of TOperation;
-  TOperationerror = class;
-  TOperationerrorArray = Array of TOperationerror;
-  TOperationerrorerrors = class;
-  TOperationerrorerrorsArray = Array of TOperationerrorerrors;
-  TOperationwarnings = class;
-  TOperationwarningsArray = Array of TOperationwarnings;
-  TOperationwarningsdata = class;
-  TOperationwarningsdataArray = Array of TOperationwarningsdata;
-  TOperationAggregatedList = class;
   TOperationAggregatedListArray = Array of TOperationAggregatedList;
-  TOperationAggregatedListitems = class;
-  TOperationAggregatedListitemsArray = Array of TOperationAggregatedListitems;
-  TOperationList = class;
   TOperationListArray = Array of TOperationList;
-  TOperationListitems = class;
-  TOperationListitemsArray = Array of TOperationListitems;
-  TOperationsScopedList = class;
   TOperationsScopedListArray = Array of TOperationsScopedList;
-  TOperationsScopedListoperations = class;
-  TOperationsScopedListoperationsArray = Array of TOperationsScopedListoperations;
-  TOperationsScopedListwarning = class;
-  TOperationsScopedListwarningArray = Array of TOperationsScopedListwarning;
-  TOperationsScopedListwarningdata = class;
-  TOperationsScopedListwarningdataArray = Array of TOperationsScopedListwarningdata;
-  TPathMatcher = class;
   TPathMatcherArray = Array of TPathMatcher;
-  TPathMatcherpathRules = class;
-  TPathMatcherpathRulesArray = Array of TPathMatcherpathRules;
-  TPathRule = class;
   TPathRuleArray = Array of TPathRule;
-  TPathRulepaths = class;
-  TPathRulepathsArray = Array of TPathRulepaths;
-  TProject = class;
   TProjectArray = Array of TProject;
-  TProjectquotas = class;
-  TProjectquotasArray = Array of TProjectquotas;
-  TQuota = class;
   TQuotaArray = Array of TQuota;
-  TRegion = class;
   TRegionArray = Array of TRegion;
-  TRegionquotas = class;
-  TRegionquotasArray = Array of TRegionquotas;
-  TRegionzones = class;
-  TRegionzonesArray = Array of TRegionzones;
-  TRegionList = class;
   TRegionListArray = Array of TRegionList;
-  TRegionListitems = class;
-  TRegionListitemsArray = Array of TRegionListitems;
-  TResourceGroupReference = class;
   TResourceGroupReferenceArray = Array of TResourceGroupReference;
-  TRoute = class;
   TRouteArray = Array of TRoute;
-  TRoutetags = class;
-  TRoutetagsArray = Array of TRoutetags;
-  TRoutewarnings = class;
-  TRoutewarningsArray = Array of TRoutewarnings;
-  TRoutewarningsdata = class;
-  TRoutewarningsdataArray = Array of TRoutewarningsdata;
-  TRouteList = class;
   TRouteListArray = Array of TRouteList;
-  TRouteListitems = class;
-  TRouteListitemsArray = Array of TRouteListitems;
-  TScheduling = class;
   TSchedulingArray = Array of TScheduling;
-  TSerialPortOutput = class;
   TSerialPortOutputArray = Array of TSerialPortOutput;
-  TServiceAccount = class;
   TServiceAccountArray = Array of TServiceAccount;
-  TServiceAccountscopes = class;
-  TServiceAccountscopesArray = Array of TServiceAccountscopes;
-  TSnapshot = class;
   TSnapshotArray = Array of TSnapshot;
-  TSnapshotlicenses = class;
-  TSnapshotlicensesArray = Array of TSnapshotlicenses;
-  TSnapshotList = class;
   TSnapshotListArray = Array of TSnapshotList;
-  TSnapshotListitems = class;
-  TSnapshotListitemsArray = Array of TSnapshotListitems;
-  TTags = class;
+  TSslCertificateArray = Array of TSslCertificate;
+  TSslCertificateListArray = Array of TSslCertificateList;
+  TSubnetworkArray = Array of TSubnetwork;
+  TSubnetworkAggregatedListArray = Array of TSubnetworkAggregatedList;
+  TSubnetworkListArray = Array of TSubnetworkList;
+  TSubnetworksScopedListArray = Array of TSubnetworksScopedList;
   TTagsArray = Array of TTags;
-  TTagsitems = class;
-  TTagsitemsArray = Array of TTagsitems;
-  TTargetHttpProxy = class;
   TTargetHttpProxyArray = Array of TTargetHttpProxy;
-  TTargetHttpProxyList = class;
   TTargetHttpProxyListArray = Array of TTargetHttpProxyList;
-  TTargetHttpProxyListitems = class;
-  TTargetHttpProxyListitemsArray = Array of TTargetHttpProxyListitems;
-  TTargetInstance = class;
+  TTargetHttpsProxiesSetSslCertificatesRequestArray = Array of TTargetHttpsProxiesSetSslCertificatesRequest;
+  TTargetHttpsProxyArray = Array of TTargetHttpsProxy;
+  TTargetHttpsProxyListArray = Array of TTargetHttpsProxyList;
   TTargetInstanceArray = Array of TTargetInstance;
-  TTargetInstanceAggregatedList = class;
   TTargetInstanceAggregatedListArray = Array of TTargetInstanceAggregatedList;
-  TTargetInstanceAggregatedListitems = class;
-  TTargetInstanceAggregatedListitemsArray = Array of TTargetInstanceAggregatedListitems;
-  TTargetInstanceList = class;
   TTargetInstanceListArray = Array of TTargetInstanceList;
-  TTargetInstanceListitems = class;
-  TTargetInstanceListitemsArray = Array of TTargetInstanceListitems;
-  TTargetInstancesScopedList = class;
   TTargetInstancesScopedListArray = Array of TTargetInstancesScopedList;
-  TTargetInstancesScopedListtargetInstances = class;
-  TTargetInstancesScopedListtargetInstancesArray = Array of TTargetInstancesScopedListtargetInstances;
-  TTargetInstancesScopedListwarning = class;
-  TTargetInstancesScopedListwarningArray = Array of TTargetInstancesScopedListwarning;
-  TTargetInstancesScopedListwarningdata = class;
-  TTargetInstancesScopedListwarningdataArray = Array of TTargetInstancesScopedListwarningdata;
-  TTargetPool = class;
   TTargetPoolArray = Array of TTargetPool;
-  TTargetPoolhealthChecks = class;
-  TTargetPoolhealthChecksArray = Array of TTargetPoolhealthChecks;
-  TTargetPoolinstances = class;
-  TTargetPoolinstancesArray = Array of TTargetPoolinstances;
-  TTargetPoolAggregatedList = class;
   TTargetPoolAggregatedListArray = Array of TTargetPoolAggregatedList;
-  TTargetPoolAggregatedListitems = class;
-  TTargetPoolAggregatedListitemsArray = Array of TTargetPoolAggregatedListitems;
-  TTargetPoolInstanceHealth = class;
   TTargetPoolInstanceHealthArray = Array of TTargetPoolInstanceHealth;
-  TTargetPoolInstanceHealthhealthStatus = class;
-  TTargetPoolInstanceHealthhealthStatusArray = Array of TTargetPoolInstanceHealthhealthStatus;
-  TTargetPoolList = class;
   TTargetPoolListArray = Array of TTargetPoolList;
-  TTargetPoolListitems = class;
-  TTargetPoolListitemsArray = Array of TTargetPoolListitems;
-  TTargetPoolsAddHealthCheckRequest = class;
   TTargetPoolsAddHealthCheckRequestArray = Array of TTargetPoolsAddHealthCheckRequest;
-  TTargetPoolsAddHealthCheckRequesthealthChecks = class;
-  TTargetPoolsAddHealthCheckRequesthealthChecksArray = Array of TTargetPoolsAddHealthCheckRequesthealthChecks;
-  TTargetPoolsAddInstanceRequest = class;
   TTargetPoolsAddInstanceRequestArray = Array of TTargetPoolsAddInstanceRequest;
-  TTargetPoolsAddInstanceRequestinstances = class;
-  TTargetPoolsAddInstanceRequestinstancesArray = Array of TTargetPoolsAddInstanceRequestinstances;
-  TTargetPoolsRemoveHealthCheckRequest = class;
   TTargetPoolsRemoveHealthCheckRequestArray = Array of TTargetPoolsRemoveHealthCheckRequest;
-  TTargetPoolsRemoveHealthCheckRequesthealthChecks = class;
-  TTargetPoolsRemoveHealthCheckRequesthealthChecksArray = Array of TTargetPoolsRemoveHealthCheckRequesthealthChecks;
-  TTargetPoolsRemoveInstanceRequest = class;
   TTargetPoolsRemoveInstanceRequestArray = Array of TTargetPoolsRemoveInstanceRequest;
-  TTargetPoolsRemoveInstanceRequestinstances = class;
-  TTargetPoolsRemoveInstanceRequestinstancesArray = Array of TTargetPoolsRemoveInstanceRequestinstances;
-  TTargetPoolsScopedList = class;
   TTargetPoolsScopedListArray = Array of TTargetPoolsScopedList;
-  TTargetPoolsScopedListtargetPools = class;
-  TTargetPoolsScopedListtargetPoolsArray = Array of TTargetPoolsScopedListtargetPools;
-  TTargetPoolsScopedListwarning = class;
-  TTargetPoolsScopedListwarningArray = Array of TTargetPoolsScopedListwarning;
-  TTargetPoolsScopedListwarningdata = class;
-  TTargetPoolsScopedListwarningdataArray = Array of TTargetPoolsScopedListwarningdata;
-  TTargetReference = class;
   TTargetReferenceArray = Array of TTargetReference;
-  TTargetVpnGateway = class;
   TTargetVpnGatewayArray = Array of TTargetVpnGateway;
-  TTargetVpnGatewayforwardingRules = class;
-  TTargetVpnGatewayforwardingRulesArray = Array of TTargetVpnGatewayforwardingRules;
-  TTargetVpnGatewaytunnels = class;
-  TTargetVpnGatewaytunnelsArray = Array of TTargetVpnGatewaytunnels;
-  TTargetVpnGatewayAggregatedList = class;
   TTargetVpnGatewayAggregatedListArray = Array of TTargetVpnGatewayAggregatedList;
-  TTargetVpnGatewayAggregatedListitems = class;
-  TTargetVpnGatewayAggregatedListitemsArray = Array of TTargetVpnGatewayAggregatedListitems;
-  TTargetVpnGatewayList = class;
   TTargetVpnGatewayListArray = Array of TTargetVpnGatewayList;
-  TTargetVpnGatewayListitems = class;
-  TTargetVpnGatewayListitemsArray = Array of TTargetVpnGatewayListitems;
-  TTargetVpnGatewaysScopedList = class;
   TTargetVpnGatewaysScopedListArray = Array of TTargetVpnGatewaysScopedList;
-  TTargetVpnGatewaysScopedListtargetVpnGateways = class;
-  TTargetVpnGatewaysScopedListtargetVpnGatewaysArray = Array of TTargetVpnGatewaysScopedListtargetVpnGateways;
-  TTargetVpnGatewaysScopedListwarning = class;
-  TTargetVpnGatewaysScopedListwarningArray = Array of TTargetVpnGatewaysScopedListwarning;
-  TTargetVpnGatewaysScopedListwarningdata = class;
-  TTargetVpnGatewaysScopedListwarningdataArray = Array of TTargetVpnGatewaysScopedListwarningdata;
-  TTestFailure = class;
   TTestFailureArray = Array of TTestFailure;
-  TUrlMap = class;
   TUrlMapArray = Array of TUrlMap;
-  TUrlMaphostRules = class;
-  TUrlMaphostRulesArray = Array of TUrlMaphostRules;
-  TUrlMappathMatchers = class;
-  TUrlMappathMatchersArray = Array of TUrlMappathMatchers;
-  TUrlMaptests = class;
-  TUrlMaptestsArray = Array of TUrlMaptests;
-  TUrlMapList = class;
   TUrlMapListArray = Array of TUrlMapList;
-  TUrlMapListitems = class;
-  TUrlMapListitemsArray = Array of TUrlMapListitems;
-  TUrlMapReference = class;
   TUrlMapReferenceArray = Array of TUrlMapReference;
-  TUrlMapTest = class;
   TUrlMapTestArray = Array of TUrlMapTest;
-  TUrlMapValidationResult = class;
   TUrlMapValidationResultArray = Array of TUrlMapValidationResult;
-  TUrlMapValidationResultloadErrors = class;
-  TUrlMapValidationResultloadErrorsArray = Array of TUrlMapValidationResultloadErrors;
-  TUrlMapValidationResulttestFailures = class;
-  TUrlMapValidationResulttestFailuresArray = Array of TUrlMapValidationResulttestFailures;
-  TUrlMapsValidateRequest = class;
   TUrlMapsValidateRequestArray = Array of TUrlMapsValidateRequest;
-  TUrlMapsValidateResponse = class;
   TUrlMapsValidateResponseArray = Array of TUrlMapsValidateResponse;
-  TUsageExportLocation = class;
   TUsageExportLocationArray = Array of TUsageExportLocation;
-  TVpnTunnel = class;
   TVpnTunnelArray = Array of TVpnTunnel;
-  TVpnTunnelikeNetworks = class;
-  TVpnTunnelikeNetworksArray = Array of TVpnTunnelikeNetworks;
-  TVpnTunnelAggregatedList = class;
   TVpnTunnelAggregatedListArray = Array of TVpnTunnelAggregatedList;
-  TVpnTunnelAggregatedListitems = class;
-  TVpnTunnelAggregatedListitemsArray = Array of TVpnTunnelAggregatedListitems;
-  TVpnTunnelList = class;
   TVpnTunnelListArray = Array of TVpnTunnelList;
-  TVpnTunnelListitems = class;
-  TVpnTunnelListitemsArray = Array of TVpnTunnelListitems;
-  TVpnTunnelsScopedList = class;
   TVpnTunnelsScopedListArray = Array of TVpnTunnelsScopedList;
-  TVpnTunnelsScopedListvpnTunnels = class;
-  TVpnTunnelsScopedListvpnTunnelsArray = Array of TVpnTunnelsScopedListvpnTunnels;
-  TVpnTunnelsScopedListwarning = class;
-  TVpnTunnelsScopedListwarningArray = Array of TVpnTunnelsScopedListwarning;
-  TVpnTunnelsScopedListwarningdata = class;
-  TVpnTunnelsScopedListwarningdataArray = Array of TVpnTunnelsScopedListwarningdata;
-  TZone = class;
   TZoneArray = Array of TZone;
-  TZonemaintenanceWindows = class;
-  TZonemaintenanceWindowsArray = Array of TZonemaintenanceWindows;
-  TZoneList = class;
   TZoneListArray = Array of TZoneList;
-  TZoneListitems = class;
-  TZoneListitemsArray = Array of TZoneListitems;
+  //Anonymous types, using auto-generated names
+  TAddressAggregatedListTypeitems = Class;
+  TAddressesScopedListTypewarningTypedataItem = Class;
+  TAddressesScopedListTypewarning = Class;
+  TAutoscalerAggregatedListTypeitems = Class;
+  TAutoscalersScopedListTypewarningTypedataItem = Class;
+  TAutoscalersScopedListTypewarning = Class;
+  TDiskAggregatedListTypeitems = Class;
+  TDiskTypeAggregatedListTypeitems = Class;
+  TDiskTypesScopedListTypewarningTypedataItem = Class;
+  TDiskTypesScopedListTypewarning = Class;
+  TDisksScopedListTypewarningTypedataItem = Class;
+  TDisksScopedListTypewarning = Class;
+  TFirewallTypeallowedItem = Class;
+  TForwardingRuleAggregatedListTypeitems = Class;
+  TForwardingRulesScopedListTypewarningTypedataItem = Class;
+  TForwardingRulesScopedListTypewarning = Class;
+  TImageTyperawDisk = Class;
+  TInstanceAggregatedListTypeitems = Class;
+  TInstanceGroupAggregatedListTypeitems = Class;
+  TInstanceGroupManagerAggregatedListTypeitems = Class;
+  TInstanceGroupManagersScopedListTypewarningTypedataItem = Class;
+  TInstanceGroupManagersScopedListTypewarning = Class;
+  TInstanceGroupsScopedListTypewarningTypedataItem = Class;
+  TInstanceGroupsScopedListTypewarning = Class;
+  TInstancesScopedListTypewarningTypedataItem = Class;
+  TInstancesScopedListTypewarning = Class;
+  TMachineTypeTypescratchDisksItem = Class;
+  TMachineTypeAggregatedListTypeitems = Class;
+  TMachineTypesScopedListTypewarningTypedataItem = Class;
+  TMachineTypesScopedListTypewarning = Class;
+  TManagedInstanceLastAttemptTypeerrorsTypeerrorsItem = Class;
+  TManagedInstanceLastAttemptTypeerrors = Class;
+  TMetadataTypeitemsItem = Class;
+  TOperationTypeerrorTypeerrorsItem = Class;
+  TOperationTypeerror = Class;
+  TOperationTypewarningsItemTypedataItem = Class;
+  TOperationTypewarningsItem = Class;
+  TOperationAggregatedListTypeitems = Class;
+  TOperationsScopedListTypewarningTypedataItem = Class;
+  TOperationsScopedListTypewarning = Class;
+  TRouteTypewarningsItemTypedataItem = Class;
+  TRouteTypewarningsItem = Class;
+  TSubnetworkAggregatedListTypeitems = Class;
+  TSubnetworksScopedListTypewarningTypedataItem = Class;
+  TSubnetworksScopedListTypewarning = Class;
+  TTargetInstanceAggregatedListTypeitems = Class;
+  TTargetInstancesScopedListTypewarningTypedataItem = Class;
+  TTargetInstancesScopedListTypewarning = Class;
+  TTargetPoolAggregatedListTypeitems = Class;
+  TTargetPoolsScopedListTypewarningTypedataItem = Class;
+  TTargetPoolsScopedListTypewarning = Class;
+  TTargetVpnGatewayAggregatedListTypeitems = Class;
+  TTargetVpnGatewaysScopedListTypewarningTypedataItem = Class;
+  TTargetVpnGatewaysScopedListTypewarning = Class;
+  TVpnTunnelAggregatedListTypeitems = Class;
+  TVpnTunnelsScopedListTypewarningTypedataItem = Class;
+  TVpnTunnelsScopedListTypewarning = Class;
+  TAddressListTypeitemsArray = Array of TAddress;
+  TAddressesScopedListTypeaddressesArray = Array of TAddress;
+  TAddressesScopedListTypewarningTypedataArray = Array of TAddressesScopedListTypewarningTypedataItem;
+  TAutoscalerListTypeitemsArray = Array of TAutoscaler;
+  TAutoscalersScopedListTypeautoscalersArray = Array of TAutoscaler;
+  TAutoscalersScopedListTypewarningTypedataArray = Array of TAutoscalersScopedListTypewarningTypedataItem;
+  TAutoscalingPolicyTypecustomMetricUtilizationsArray = Array of TAutoscalingPolicyCustomMetricUtilization;
+  TBackendServiceTypebackendsArray = Array of TBackend;
+  TBackendServiceGroupHealthTypehealthStatusArray = Array of THealthStatus;
+  TBackendServiceListTypeitemsArray = Array of TBackendService;
+  TDiskListTypeitemsArray = Array of TDisk;
+  TDiskTypeListTypeitemsArray = Array of TDiskType;
+  TDiskTypesScopedListTypediskTypesArray = Array of TDiskType;
+  TDiskTypesScopedListTypewarningTypedataArray = Array of TDiskTypesScopedListTypewarningTypedataItem;
+  TDisksScopedListTypedisksArray = Array of TDisk;
+  TDisksScopedListTypewarningTypedataArray = Array of TDisksScopedListTypewarningTypedataItem;
+  TFirewallTypeallowedArray = Array of TFirewallTypeallowedItem;
+  TFirewallListTypeitemsArray = Array of TFirewall;
+  TForwardingRuleListTypeitemsArray = Array of TForwardingRule;
+  TForwardingRulesScopedListTypeforwardingRulesArray = Array of TForwardingRule;
+  TForwardingRulesScopedListTypewarningTypedataArray = Array of TForwardingRulesScopedListTypewarningTypedataItem;
+  THttpHealthCheckListTypeitemsArray = Array of THttpHealthCheck;
+  THttpsHealthCheckListTypeitemsArray = Array of THttpsHealthCheck;
+  TImageListTypeitemsArray = Array of TImage;
+  TInstanceTypedisksArray = Array of TAttachedDisk;
+  TInstanceTypenetworkInterfacesArray = Array of TNetworkInterface;
+  TInstanceTypeserviceAccountsArray = Array of TServiceAccount;
+  TInstanceGroupTypenamedPortsArray = Array of TNamedPort;
+  TInstanceGroupListTypeitemsArray = Array of TInstanceGroup;
+  TInstanceGroupManagerTypenamedPortsArray = Array of TNamedPort;
+  TInstanceGroupManagerListTypeitemsArray = Array of TInstanceGroupManager;
+  TInstanceGroupManagersListManagedInstancesResponseTypemanagedInstancesArray = Array of TManagedInstance;
+  TInstanceGroupManagersScopedListTypeinstanceGroupManagersArray = Array of TInstanceGroupManager;
+  TInstanceGroupManagersScopedListTypewarningTypedataArray = Array of TInstanceGroupManagersScopedListTypewarningTypedataItem;
+  TInstanceGroupsAddInstancesRequestTypeinstancesArray = Array of TInstanceReference;
+  TInstanceGroupsListInstancesTypeitemsArray = Array of TInstanceWithNamedPorts;
+  TInstanceGroupsRemoveInstancesRequestTypeinstancesArray = Array of TInstanceReference;
+  TInstanceGroupsScopedListTypeinstanceGroupsArray = Array of TInstanceGroup;
+  TInstanceGroupsScopedListTypewarningTypedataArray = Array of TInstanceGroupsScopedListTypewarningTypedataItem;
+  TInstanceGroupsSetNamedPortsRequestTypenamedPortsArray = Array of TNamedPort;
+  TInstanceListTypeitemsArray = Array of TInstance;
+  TInstancePropertiesTypedisksArray = Array of TAttachedDisk;
+  TInstancePropertiesTypenetworkInterfacesArray = Array of TNetworkInterface;
+  TInstancePropertiesTypeserviceAccountsArray = Array of TServiceAccount;
+  TInstanceTemplateListTypeitemsArray = Array of TInstanceTemplate;
+  TInstanceWithNamedPortsTypenamedPortsArray = Array of TNamedPort;
+  TInstancesScopedListTypeinstancesArray = Array of TInstance;
+  TInstancesScopedListTypewarningTypedataArray = Array of TInstancesScopedListTypewarningTypedataItem;
+  TMachineTypeTypescratchDisksArray = Array of TMachineTypeTypescratchDisksItem;
+  TMachineTypeListTypeitemsArray = Array of TMachineType;
+  TMachineTypesScopedListTypemachineTypesArray = Array of TMachineType;
+  TMachineTypesScopedListTypewarningTypedataArray = Array of TMachineTypesScopedListTypewarningTypedataItem;
+  TManagedInstanceLastAttemptTypeerrorsTypeerrorsArray = Array of TManagedInstanceLastAttemptTypeerrorsTypeerrorsItem;
+  TMetadataTypeitemsArray = Array of TMetadataTypeitemsItem;
+  TNetworkInterfaceTypeaccessConfigsArray = Array of TAccessConfig;
+  TNetworkListTypeitemsArray = Array of TNetwork;
+  TOperationTypeerrorTypeerrorsArray = Array of TOperationTypeerrorTypeerrorsItem;
+  TOperationTypewarningsItemTypedataArray = Array of TOperationTypewarningsItemTypedataItem;
+  TOperationTypewarningsArray = Array of TOperationTypewarningsItem;
+  TOperationListTypeitemsArray = Array of TOperation;
+  TOperationsScopedListTypeoperationsArray = Array of TOperation;
+  TOperationsScopedListTypewarningTypedataArray = Array of TOperationsScopedListTypewarningTypedataItem;
+  TPathMatcherTypepathRulesArray = Array of TPathRule;
+  TProjectTypequotasArray = Array of TQuota;
+  TRegionTypequotasArray = Array of TQuota;
+  TRegionListTypeitemsArray = Array of TRegion;
+  TRouteTypewarningsItemTypedataArray = Array of TRouteTypewarningsItemTypedataItem;
+  TRouteTypewarningsArray = Array of TRouteTypewarningsItem;
+  TRouteListTypeitemsArray = Array of TRoute;
+  TSnapshotListTypeitemsArray = Array of TSnapshot;
+  TSslCertificateListTypeitemsArray = Array of TSslCertificate;
+  TSubnetworkListTypeitemsArray = Array of TSubnetwork;
+  TSubnetworksScopedListTypesubnetworksArray = Array of TSubnetwork;
+  TSubnetworksScopedListTypewarningTypedataArray = Array of TSubnetworksScopedListTypewarningTypedataItem;
+  TTargetHttpProxyListTypeitemsArray = Array of TTargetHttpProxy;
+  TTargetHttpsProxyListTypeitemsArray = Array of TTargetHttpsProxy;
+  TTargetInstanceListTypeitemsArray = Array of TTargetInstance;
+  TTargetInstancesScopedListTypetargetInstancesArray = Array of TTargetInstance;
+  TTargetInstancesScopedListTypewarningTypedataArray = Array of TTargetInstancesScopedListTypewarningTypedataItem;
+  TTargetPoolInstanceHealthTypehealthStatusArray = Array of THealthStatus;
+  TTargetPoolListTypeitemsArray = Array of TTargetPool;
+  TTargetPoolsAddHealthCheckRequestTypehealthChecksArray = Array of THealthCheckReference;
+  TTargetPoolsAddInstanceRequestTypeinstancesArray = Array of TInstanceReference;
+  TTargetPoolsRemoveHealthCheckRequestTypehealthChecksArray = Array of THealthCheckReference;
+  TTargetPoolsRemoveInstanceRequestTypeinstancesArray = Array of TInstanceReference;
+  TTargetPoolsScopedListTypetargetPoolsArray = Array of TTargetPool;
+  TTargetPoolsScopedListTypewarningTypedataArray = Array of TTargetPoolsScopedListTypewarningTypedataItem;
+  TTargetVpnGatewayListTypeitemsArray = Array of TTargetVpnGateway;
+  TTargetVpnGatewaysScopedListTypetargetVpnGatewaysArray = Array of TTargetVpnGateway;
+  TTargetVpnGatewaysScopedListTypewarningTypedataArray = Array of TTargetVpnGatewaysScopedListTypewarningTypedataItem;
+  TUrlMapTypehostRulesArray = Array of THostRule;
+  TUrlMapTypepathMatchersArray = Array of TPathMatcher;
+  TUrlMapTypetestsArray = Array of TUrlMapTest;
+  TUrlMapListTypeitemsArray = Array of TUrlMap;
+  TUrlMapValidationResultTypetestFailuresArray = Array of TTestFailure;
+  TVpnTunnelListTypeitemsArray = Array of TVpnTunnel;
+  TVpnTunnelsScopedListTypevpnTunnelsArray = Array of TVpnTunnel;
+  TVpnTunnelsScopedListTypewarningTypedataArray = Array of TVpnTunnelsScopedListTypewarningTypedataItem;
+  TZoneListTypeitemsArray = Array of TZone;
   
   { --------------------------------------------------------------------
     TAccessConfig
@@ -496,23 +475,23 @@ type
   
   TAccessConfig = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fname : string;
-    FnatIP : string;
-    F_type : string;
+    Fkind : String;
+    Fname : String;
+    FnatIP : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnatIP(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnatIP(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property natIP : string Index 16 Read FnatIP Write SetnatIP;
-    Property _type : string Index 24 Read F_type Write Set_type;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property natIP : String Index 16 Read FnatIP Write SetnatIP;
+    Property _type : String Index 24 Read F_type Write Set_type;
   end;
   TAccessConfigClass = Class of TAccessConfig;
   
@@ -522,89 +501,52 @@ type
   
   TAddress = Class(TGoogleBaseObject)
   Private
-    Faddress : string;
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    Fregion : string;
-    FselfLink : string;
-    Fstatus : string;
-    Fusers : TAddressusers;
+    Faddress : String;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    Fregion : String;
+    FselfLink : String;
+    Fstatus : String;
+    Fusers : TStringArray;
   Protected
     //Property setters
-    Procedure Setaddress(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Setusers(AIndex : Integer; AValue : TAddressusers); virtual;
+    Procedure Setaddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setusers(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property address : string Index 0 Read Faddress Write Setaddress;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property region : string Index 48 Read Fregion Write Setregion;
-    Property selfLink : string Index 56 Read FselfLink Write SetselfLink;
-    Property status : string Index 64 Read Fstatus Write Setstatus;
-    Property users : TAddressusers Index 72 Read Fusers Write Setusers;
+    Property address : String Index 0 Read Faddress Write Setaddress;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property region : String Index 48 Read Fregion Write Setregion;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
+    Property status : String Index 64 Read Fstatus Write Setstatus;
+    Property users : TStringArray Index 72 Read Fusers Write Setusers;
   end;
   TAddressClass = Class of TAddress;
   
   { --------------------------------------------------------------------
-    TAddressusers
+    TAddressAggregatedListTypeitems
     --------------------------------------------------------------------}
   
-  TAddressusers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAddressusersClass = Class of TAddressusers;
-  
-  { --------------------------------------------------------------------
-    TAddressAggregatedList
-    --------------------------------------------------------------------}
-  
-  TAddressAggregatedList = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fitems : TAddressAggregatedListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAddressAggregatedListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TAddressAggregatedListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-  end;
-  TAddressAggregatedListClass = Class of TAddressAggregatedList;
-  
-  { --------------------------------------------------------------------
-    TAddressAggregatedListitems
-    --------------------------------------------------------------------}
-  
-  TAddressAggregatedListitems = Class(TGoogleBaseObject)
+  TAddressAggregatedListTypeitems = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -612,7 +554,35 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TAddressAggregatedListitemsClass = Class of TAddressAggregatedListitems;
+  TAddressAggregatedListTypeitemsClass = Class of TAddressAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TAddressAggregatedList
+    --------------------------------------------------------------------}
+  
+  TAddressAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TAddressAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAddressAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TAddressAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TAddressAggregatedListClass = Class of TAddressAggregatedList;
   
   { --------------------------------------------------------------------
     TAddressList
@@ -620,40 +590,76 @@ type
   
   TAddressList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TAddressListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TAddressListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAddressListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAddressListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TAddressListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TAddressListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TAddressListClass = Class of TAddressList;
   
   { --------------------------------------------------------------------
-    TAddressListitems
+    TAddressesScopedListTypewarningTypedataItem
     --------------------------------------------------------------------}
   
-  TAddressListitems = Class(TGoogleBaseObject)
+  TAddressesScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
   Private
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
-  TAddressListitemsClass = Class of TAddressListitems;
+  TAddressesScopedListTypewarningTypedataItemClass = Class of TAddressesScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TAddressesScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TAddressesScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TAddressesScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TAddressesScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TAddressesScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TAddressesScopedListTypewarningClass = Class of TAddressesScopedListTypewarning;
   
   { --------------------------------------------------------------------
     TAddressesScopedList
@@ -661,72 +667,22 @@ type
   
   TAddressesScopedList = Class(TGoogleBaseObject)
   Private
-    Faddresses : TAddressesScopedListaddresses;
-    Fwarning : TAddressesScopedListwarning;
+    Faddresses : TAddressesScopedListTypeaddressesArray;
+    Fwarning : TAddressesScopedListTypewarning;
   Protected
     //Property setters
-    Procedure Setaddresses(AIndex : Integer; AValue : TAddressesScopedListaddresses); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TAddressesScopedListwarning); virtual;
+    Procedure Setaddresses(AIndex : Integer; const AValue : TAddressesScopedListTypeaddressesArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TAddressesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property addresses : TAddressesScopedListaddresses Index 0 Read Faddresses Write Setaddresses;
-    Property warning : TAddressesScopedListwarning Index 8 Read Fwarning Write Setwarning;
+    Property addresses : TAddressesScopedListTypeaddressesArray Index 0 Read Faddresses Write Setaddresses;
+    Property warning : TAddressesScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
   end;
   TAddressesScopedListClass = Class of TAddressesScopedList;
-  
-  { --------------------------------------------------------------------
-    TAddressesScopedListaddresses
-    --------------------------------------------------------------------}
-  
-  TAddressesScopedListaddresses = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAddressesScopedListaddressesClass = Class of TAddressesScopedListaddresses;
-  
-  { --------------------------------------------------------------------
-    TAddressesScopedListwarning
-    --------------------------------------------------------------------}
-  
-  TAddressesScopedListwarning = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TAddressesScopedListwarningdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TAddressesScopedListwarningdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TAddressesScopedListwarningdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TAddressesScopedListwarningClass = Class of TAddressesScopedListwarning;
-  
-  { --------------------------------------------------------------------
-    TAddressesScopedListwarningdata
-    --------------------------------------------------------------------}
-  
-  TAddressesScopedListwarningdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TAddressesScopedListwarningdataClass = Class of TAddressesScopedListwarningdata;
   
   { --------------------------------------------------------------------
     TAttachedDisk
@@ -736,57 +692,48 @@ type
   Private
     FautoDelete : boolean;
     Fboot : boolean;
-    FdeviceName : string;
+    FdeviceName : String;
     Findex : integer;
     FinitializeParams : TAttachedDiskInitializeParams;
-    F_interface : string;
-    Fkind : string;
-    Flicenses : TAttachedDisklicenses;
-    Fmode : string;
-    Fsource : string;
-    F_type : string;
+    F_interface : String;
+    Fkind : String;
+    Flicenses : TStringArray;
+    Fmode : String;
+    Fsource : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetautoDelete(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setboot(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetdeviceName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setindex(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetinitializeParams(AIndex : Integer; AValue : TAttachedDiskInitializeParams); virtual;
-    Procedure Set_interface(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlicenses(AIndex : Integer; AValue : TAttachedDisklicenses); virtual;
-    Procedure Setmode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsource(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure SetautoDelete(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setboot(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetdeviceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setindex(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetinitializeParams(AIndex : Integer; const AValue : TAttachedDiskInitializeParams); virtual;
+    Procedure Set_interface(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlicenses(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setmode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsource(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property autoDelete : boolean Index 0 Read FautoDelete Write SetautoDelete;
     Property boot : boolean Index 8 Read Fboot Write Setboot;
-    Property deviceName : string Index 16 Read FdeviceName Write SetdeviceName;
+    Property deviceName : String Index 16 Read FdeviceName Write SetdeviceName;
     Property index : integer Index 24 Read Findex Write Setindex;
     Property initializeParams : TAttachedDiskInitializeParams Index 32 Read FinitializeParams Write SetinitializeParams;
-    Property _interface : string Index 40 Read F_interface Write Set_interface;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property licenses : TAttachedDisklicenses Index 56 Read Flicenses Write Setlicenses;
-    Property mode : string Index 64 Read Fmode Write Setmode;
-    Property source : string Index 72 Read Fsource Write Setsource;
-    Property _type : string Index 80 Read F_type Write Set_type;
+    Property _interface : String Index 40 Read F_interface Write Set_interface;
+    Property kind : String Index 48 Read Fkind Write Setkind;
+    Property licenses : TStringArray Index 56 Read Flicenses Write Setlicenses;
+    Property mode : String Index 64 Read Fmode Write Setmode;
+    Property source : String Index 72 Read Fsource Write Setsource;
+    Property _type : String Index 80 Read F_type Write Set_type;
   end;
   TAttachedDiskClass = Class of TAttachedDisk;
-  
-  { --------------------------------------------------------------------
-    TAttachedDisklicenses
-    --------------------------------------------------------------------}
-  
-  TAttachedDisklicenses = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAttachedDisklicensesClass = Class of TAttachedDisklicenses;
   
   { --------------------------------------------------------------------
     TAttachedDiskInitializeParams
@@ -794,24 +741,295 @@ type
   
   TAttachedDiskInitializeParams = Class(TGoogleBaseObject)
   Private
-    FdiskName : string;
-    FdiskSizeGb : string;
-    FdiskType : string;
-    FsourceImage : string;
+    FdiskName : String;
+    FdiskSizeGb : String;
+    FdiskType : String;
+    FsourceImage : String;
   Protected
     //Property setters
-    Procedure SetdiskName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdiskSizeGb(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdiskType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceImage(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdiskName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdiskSizeGb(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdiskType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceImage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property diskName : string Index 0 Read FdiskName Write SetdiskName;
-    Property diskSizeGb : string Index 8 Read FdiskSizeGb Write SetdiskSizeGb;
-    Property diskType : string Index 16 Read FdiskType Write SetdiskType;
-    Property sourceImage : string Index 24 Read FsourceImage Write SetsourceImage;
+    Property diskName : String Index 0 Read FdiskName Write SetdiskName;
+    Property diskSizeGb : String Index 8 Read FdiskSizeGb Write SetdiskSizeGb;
+    Property diskType : String Index 16 Read FdiskType Write SetdiskType;
+    Property sourceImage : String Index 24 Read FsourceImage Write SetsourceImage;
   end;
   TAttachedDiskInitializeParamsClass = Class of TAttachedDiskInitializeParams;
+  
+  { --------------------------------------------------------------------
+    TAutoscaler
+    --------------------------------------------------------------------}
+  
+  TAutoscaler = Class(TGoogleBaseObject)
+  Private
+    FautoscalingPolicy : TAutoscalingPolicy;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FselfLink : String;
+    Ftarget : String;
+    Fzone : String;
+  Protected
+    //Property setters
+    Procedure SetautoscalingPolicy(AIndex : Integer; const AValue : TAutoscalingPolicy); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settarget(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property autoscalingPolicy : TAutoscalingPolicy Index 0 Read FautoscalingPolicy Write SetautoscalingPolicy;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property selfLink : String Index 48 Read FselfLink Write SetselfLink;
+    Property target : String Index 56 Read Ftarget Write Settarget;
+    Property zone : String Index 64 Read Fzone Write Setzone;
+  end;
+  TAutoscalerClass = Class of TAutoscaler;
+  
+  { --------------------------------------------------------------------
+    TAutoscalerAggregatedListTypeitems
+    --------------------------------------------------------------------}
+  
+  TAutoscalerAggregatedListTypeitems = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TAutoscalerAggregatedListTypeitemsClass = Class of TAutoscalerAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TAutoscalerAggregatedList
+    --------------------------------------------------------------------}
+  
+  TAutoscalerAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TAutoscalerAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAutoscalerAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TAutoscalerAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TAutoscalerAggregatedListClass = Class of TAutoscalerAggregatedList;
+  
+  { --------------------------------------------------------------------
+    TAutoscalerList
+    --------------------------------------------------------------------}
+  
+  TAutoscalerList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TAutoscalerListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAutoscalerListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TAutoscalerListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TAutoscalerListClass = Class of TAutoscalerList;
+  
+  { --------------------------------------------------------------------
+    TAutoscalersScopedListTypewarningTypedataItem
+    --------------------------------------------------------------------}
+  
+  TAutoscalersScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TAutoscalersScopedListTypewarningTypedataItemClass = Class of TAutoscalersScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TAutoscalersScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TAutoscalersScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TAutoscalersScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TAutoscalersScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TAutoscalersScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TAutoscalersScopedListTypewarningClass = Class of TAutoscalersScopedListTypewarning;
+  
+  { --------------------------------------------------------------------
+    TAutoscalersScopedList
+    --------------------------------------------------------------------}
+  
+  TAutoscalersScopedList = Class(TGoogleBaseObject)
+  Private
+    Fautoscalers : TAutoscalersScopedListTypeautoscalersArray;
+    Fwarning : TAutoscalersScopedListTypewarning;
+  Protected
+    //Property setters
+    Procedure Setautoscalers(AIndex : Integer; const AValue : TAutoscalersScopedListTypeautoscalersArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TAutoscalersScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property autoscalers : TAutoscalersScopedListTypeautoscalersArray Index 0 Read Fautoscalers Write Setautoscalers;
+    Property warning : TAutoscalersScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
+  end;
+  TAutoscalersScopedListClass = Class of TAutoscalersScopedList;
+  
+  { --------------------------------------------------------------------
+    TAutoscalingPolicy
+    --------------------------------------------------------------------}
+  
+  TAutoscalingPolicy = Class(TGoogleBaseObject)
+  Private
+    FcoolDownPeriodSec : integer;
+    FcpuUtilization : TAutoscalingPolicyCpuUtilization;
+    FcustomMetricUtilizations : TAutoscalingPolicyTypecustomMetricUtilizationsArray;
+    FloadBalancingUtilization : TAutoscalingPolicyLoadBalancingUtilization;
+    FmaxNumReplicas : integer;
+    FminNumReplicas : integer;
+  Protected
+    //Property setters
+    Procedure SetcoolDownPeriodSec(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetcpuUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyCpuUtilization); virtual;
+    Procedure SetcustomMetricUtilizations(AIndex : Integer; const AValue : TAutoscalingPolicyTypecustomMetricUtilizationsArray); virtual;
+    Procedure SetloadBalancingUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyLoadBalancingUtilization); virtual;
+    Procedure SetmaxNumReplicas(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetminNumReplicas(AIndex : Integer; const AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property coolDownPeriodSec : integer Index 0 Read FcoolDownPeriodSec Write SetcoolDownPeriodSec;
+    Property cpuUtilization : TAutoscalingPolicyCpuUtilization Index 8 Read FcpuUtilization Write SetcpuUtilization;
+    Property customMetricUtilizations : TAutoscalingPolicyTypecustomMetricUtilizationsArray Index 16 Read FcustomMetricUtilizations Write SetcustomMetricUtilizations;
+    Property loadBalancingUtilization : TAutoscalingPolicyLoadBalancingUtilization Index 24 Read FloadBalancingUtilization Write SetloadBalancingUtilization;
+    Property maxNumReplicas : integer Index 32 Read FmaxNumReplicas Write SetmaxNumReplicas;
+    Property minNumReplicas : integer Index 40 Read FminNumReplicas Write SetminNumReplicas;
+  end;
+  TAutoscalingPolicyClass = Class of TAutoscalingPolicy;
+  
+  { --------------------------------------------------------------------
+    TAutoscalingPolicyCpuUtilization
+    --------------------------------------------------------------------}
+  
+  TAutoscalingPolicyCpuUtilization = Class(TGoogleBaseObject)
+  Private
+    FutilizationTarget : double;
+  Protected
+    //Property setters
+    Procedure SetutilizationTarget(AIndex : Integer; const AValue : double); virtual;
+  Public
+  Published
+    Property utilizationTarget : double Index 0 Read FutilizationTarget Write SetutilizationTarget;
+  end;
+  TAutoscalingPolicyCpuUtilizationClass = Class of TAutoscalingPolicyCpuUtilization;
+  
+  { --------------------------------------------------------------------
+    TAutoscalingPolicyCustomMetricUtilization
+    --------------------------------------------------------------------}
+  
+  TAutoscalingPolicyCustomMetricUtilization = Class(TGoogleBaseObject)
+  Private
+    Fmetric : String;
+    FutilizationTarget : double;
+    FutilizationTargetType : String;
+  Protected
+    //Property setters
+    Procedure Setmetric(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetutilizationTarget(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetutilizationTargetType(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property metric : String Index 0 Read Fmetric Write Setmetric;
+    Property utilizationTarget : double Index 8 Read FutilizationTarget Write SetutilizationTarget;
+    Property utilizationTargetType : String Index 16 Read FutilizationTargetType Write SetutilizationTargetType;
+  end;
+  TAutoscalingPolicyCustomMetricUtilizationClass = Class of TAutoscalingPolicyCustomMetricUtilization;
+  
+  { --------------------------------------------------------------------
+    TAutoscalingPolicyLoadBalancingUtilization
+    --------------------------------------------------------------------}
+  
+  TAutoscalingPolicyLoadBalancingUtilization = Class(TGoogleBaseObject)
+  Private
+    FutilizationTarget : double;
+  Protected
+    //Property setters
+    Procedure SetutilizationTarget(AIndex : Integer; const AValue : double); virtual;
+  Public
+  Published
+    Property utilizationTarget : double Index 0 Read FutilizationTarget Write SetutilizationTarget;
+  end;
+  TAutoscalingPolicyLoadBalancingUtilizationClass = Class of TAutoscalingPolicyLoadBalancingUtilization;
   
   { --------------------------------------------------------------------
     TBackend
@@ -819,28 +1037,28 @@ type
   
   TBackend = Class(TGoogleBaseObject)
   Private
-    FbalancingMode : string;
+    FbalancingMode : String;
     FcapacityScaler : integer;
-    Fdescription : string;
-    Fgroup : string;
+    Fdescription : String;
+    Fgroup : String;
     FmaxRate : integer;
     FmaxRatePerInstance : integer;
     FmaxUtilization : integer;
   Protected
     //Property setters
-    Procedure SetbalancingMode(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcapacityScaler(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setgroup(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmaxRate(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmaxRatePerInstance(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmaxUtilization(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetbalancingMode(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcapacityScaler(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setgroup(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmaxRate(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetmaxRatePerInstance(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetmaxUtilization(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
-    Property balancingMode : string Index 0 Read FbalancingMode Write SetbalancingMode;
+    Property balancingMode : String Index 0 Read FbalancingMode Write SetbalancingMode;
     Property capacityScaler : integer Index 8 Read FcapacityScaler Write SetcapacityScaler;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property group : string Index 24 Read Fgroup Write Setgroup;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property group : String Index 24 Read Fgroup Write Setgroup;
     Property maxRate : integer Index 32 Read FmaxRate Write SetmaxRate;
     Property maxRatePerInstance : integer Index 40 Read FmaxRatePerInstance Write SetmaxRatePerInstance;
     Property maxUtilization : integer Index 48 Read FmaxUtilization Write SetmaxUtilization;
@@ -853,77 +1071,58 @@ type
   
   TBackendService = Class(TGoogleBaseObject)
   Private
-    Fbackends : TBackendServicebackends;
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Ffingerprint : string;
-    FhealthChecks : TBackendServicehealthChecks;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
+    Fbackends : TBackendServiceTypebackendsArray;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Ffingerprint : String;
+    FhealthChecks : TStringArray;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
     Fport : integer;
-    FportName : string;
-    Fprotocol : string;
-    FselfLink : string;
+    FportName : String;
+    Fprotocol : String;
+    Fregion : String;
+    FselfLink : String;
     FtimeoutSec : integer;
   Protected
     //Property setters
-    Procedure Setbackends(AIndex : Integer; AValue : TBackendServicebackends); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure SethealthChecks(AIndex : Integer; AValue : TBackendServicehealthChecks); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setport(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetportName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setprotocol(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimeoutSec(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setbackends(AIndex : Integer; const AValue : TBackendServiceTypebackendsArray); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethealthChecks(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setport(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetportName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setprotocol(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeoutSec(AIndex : Integer; const AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property backends : TBackendServicebackends Index 0 Read Fbackends Write Setbackends;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property fingerprint : string Index 24 Read Ffingerprint Write Setfingerprint;
-    Property healthChecks : TBackendServicehealthChecks Index 32 Read FhealthChecks Write SethealthChecks;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property name : string Index 56 Read Fname Write Setname;
+    Property backends : TBackendServiceTypebackendsArray Index 0 Read Fbackends Write Setbackends;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property fingerprint : String Index 24 Read Ffingerprint Write Setfingerprint;
+    Property healthChecks : TStringArray Index 32 Read FhealthChecks Write SethealthChecks;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property kind : String Index 48 Read Fkind Write Setkind;
+    Property name : String Index 56 Read Fname Write Setname;
     Property port : integer Index 64 Read Fport Write Setport;
-    Property portName : string Index 72 Read FportName Write SetportName;
-    Property protocol : string Index 80 Read Fprotocol Write Setprotocol;
-    Property selfLink : string Index 88 Read FselfLink Write SetselfLink;
-    Property timeoutSec : integer Index 96 Read FtimeoutSec Write SettimeoutSec;
+    Property portName : String Index 72 Read FportName Write SetportName;
+    Property protocol : String Index 80 Read Fprotocol Write Setprotocol;
+    Property region : String Index 88 Read Fregion Write Setregion;
+    Property selfLink : String Index 96 Read FselfLink Write SetselfLink;
+    Property timeoutSec : integer Index 104 Read FtimeoutSec Write SettimeoutSec;
   end;
   TBackendServiceClass = Class of TBackendService;
-  
-  { --------------------------------------------------------------------
-    TBackendServicebackends
-    --------------------------------------------------------------------}
-  
-  TBackendServicebackends = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBackendServicebackendsClass = Class of TBackendServicebackends;
-  
-  { --------------------------------------------------------------------
-    TBackendServicehealthChecks
-    --------------------------------------------------------------------}
-  
-  TBackendServicehealthChecks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBackendServicehealthChecksClass = Class of TBackendServicehealthChecks;
   
   { --------------------------------------------------------------------
     TBackendServiceGroupHealth
@@ -931,31 +1130,22 @@ type
   
   TBackendServiceGroupHealth = Class(TGoogleBaseObject)
   Private
-    FhealthStatus : TBackendServiceGroupHealthhealthStatus;
-    Fkind : string;
+    FhealthStatus : TBackendServiceGroupHealthTypehealthStatusArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SethealthStatus(AIndex : Integer; AValue : TBackendServiceGroupHealthhealthStatus); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SethealthStatus(AIndex : Integer; const AValue : TBackendServiceGroupHealthTypehealthStatusArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property healthStatus : TBackendServiceGroupHealthhealthStatus Index 0 Read FhealthStatus Write SethealthStatus;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property healthStatus : TBackendServiceGroupHealthTypehealthStatusArray Index 0 Read FhealthStatus Write SethealthStatus;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TBackendServiceGroupHealthClass = Class of TBackendServiceGroupHealth;
-  
-  { --------------------------------------------------------------------
-    TBackendServiceGroupHealthhealthStatus
-    --------------------------------------------------------------------}
-  
-  TBackendServiceGroupHealthhealthStatus = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBackendServiceGroupHealthhealthStatusClass = Class of TBackendServiceGroupHealthhealthStatus;
   
   { --------------------------------------------------------------------
     TBackendServiceList
@@ -963,40 +1153,31 @@ type
   
   TBackendServiceList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TBackendServiceListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TBackendServiceListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TBackendServiceListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TBackendServiceListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TBackendServiceListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TBackendServiceListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TBackendServiceListClass = Class of TBackendServiceList;
-  
-  { --------------------------------------------------------------------
-    TBackendServiceListitems
-    --------------------------------------------------------------------}
-  
-  TBackendServiceListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TBackendServiceListitemsClass = Class of TBackendServiceListitems;
   
   { --------------------------------------------------------------------
     TDeprecationStatus
@@ -1004,25 +1185,25 @@ type
   
   TDeprecationStatus = Class(TGoogleBaseObject)
   Private
-    Fdeleted : string;
-    Fdeprecated : string;
-    Fobsolete : string;
-    Freplacement : string;
-    Fstate : string;
+    Fdeleted : String;
+    Fdeprecated : String;
+    Fobsolete : String;
+    Freplacement : String;
+    Fstate : String;
   Protected
     //Property setters
-    Procedure Setdeleted(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdeprecated(AIndex : Integer; AValue : string); virtual;
-    Procedure Setobsolete(AIndex : Integer; AValue : string); virtual;
-    Procedure Setreplacement(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdeleted(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdeprecated(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setobsolete(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setreplacement(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property deleted : string Index 0 Read Fdeleted Write Setdeleted;
-    Property deprecated : string Index 8 Read Fdeprecated Write Setdeprecated;
-    Property obsolete : string Index 16 Read Fobsolete Write Setobsolete;
-    Property replacement : string Index 24 Read Freplacement Write Setreplacement;
-    Property state : string Index 32 Read Fstate Write Setstate;
+    Property deleted : String Index 0 Read Fdeleted Write Setdeleted;
+    Property deprecated : String Index 8 Read Fdeprecated Write Setdeprecated;
+    Property obsolete : String Index 16 Read Fobsolete Write Setobsolete;
+    Property replacement : String Index 24 Read Freplacement Write Setreplacement;
+    Property state : String Index 32 Read Fstate Write Setstate;
   end;
   TDeprecationStatusClass = Class of TDeprecationStatus;
   
@@ -1032,108 +1213,80 @@ type
   
   TDisk = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Fid : string;
-    Fkind : string;
-    Flicenses : TDisklicenses;
-    Fname : string;
-    Foptions : string;
-    FselfLink : string;
-    FsizeGb : string;
-    FsourceImage : string;
-    FsourceImageId : string;
-    FsourceSnapshot : string;
-    FsourceSnapshotId : string;
-    Fstatus : string;
-    F_type : string;
-    Fzone : string;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    FlastAttachTimestamp : String;
+    FlastDetachTimestamp : String;
+    Flicenses : TStringArray;
+    Fname : String;
+    Foptions : String;
+    FselfLink : String;
+    FsizeGb : String;
+    FsourceImage : String;
+    FsourceImageId : String;
+    FsourceSnapshot : String;
+    FsourceSnapshotId : String;
+    Fstatus : String;
+    F_type : String;
+    Fusers : TStringArray;
+    Fzone : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlicenses(AIndex : Integer; AValue : TDisklicenses); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setoptions(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsizeGb(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceImage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceImageId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceSnapshot(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceSnapshotId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastAttachTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastDetachTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlicenses(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setoptions(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsizeGb(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceImage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceImageId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceSnapshot(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceSnapshotId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setusers(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property licenses : TDisklicenses Index 32 Read Flicenses Write Setlicenses;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property options : string Index 48 Read Foptions Write Setoptions;
-    Property selfLink : string Index 56 Read FselfLink Write SetselfLink;
-    Property sizeGb : string Index 64 Read FsizeGb Write SetsizeGb;
-    Property sourceImage : string Index 72 Read FsourceImage Write SetsourceImage;
-    Property sourceImageId : string Index 80 Read FsourceImageId Write SetsourceImageId;
-    Property sourceSnapshot : string Index 88 Read FsourceSnapshot Write SetsourceSnapshot;
-    Property sourceSnapshotId : string Index 96 Read FsourceSnapshotId Write SetsourceSnapshotId;
-    Property status : string Index 104 Read Fstatus Write Setstatus;
-    Property _type : string Index 112 Read F_type Write Set_type;
-    Property zone : string Index 120 Read Fzone Write Setzone;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property lastAttachTimestamp : String Index 32 Read FlastAttachTimestamp Write SetlastAttachTimestamp;
+    Property lastDetachTimestamp : String Index 40 Read FlastDetachTimestamp Write SetlastDetachTimestamp;
+    Property licenses : TStringArray Index 48 Read Flicenses Write Setlicenses;
+    Property name : String Index 56 Read Fname Write Setname;
+    Property options : String Index 64 Read Foptions Write Setoptions;
+    Property selfLink : String Index 72 Read FselfLink Write SetselfLink;
+    Property sizeGb : String Index 80 Read FsizeGb Write SetsizeGb;
+    Property sourceImage : String Index 88 Read FsourceImage Write SetsourceImage;
+    Property sourceImageId : String Index 96 Read FsourceImageId Write SetsourceImageId;
+    Property sourceSnapshot : String Index 104 Read FsourceSnapshot Write SetsourceSnapshot;
+    Property sourceSnapshotId : String Index 112 Read FsourceSnapshotId Write SetsourceSnapshotId;
+    Property status : String Index 120 Read Fstatus Write Setstatus;
+    Property _type : String Index 128 Read F_type Write Set_type;
+    Property users : TStringArray Index 136 Read Fusers Write Setusers;
+    Property zone : String Index 144 Read Fzone Write Setzone;
   end;
   TDiskClass = Class of TDisk;
   
   { --------------------------------------------------------------------
-    TDisklicenses
+    TDiskAggregatedListTypeitems
     --------------------------------------------------------------------}
   
-  TDisklicenses = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDisklicensesClass = Class of TDisklicenses;
-  
-  { --------------------------------------------------------------------
-    TDiskAggregatedList
-    --------------------------------------------------------------------}
-  
-  TDiskAggregatedList = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fitems : TDiskAggregatedListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TDiskAggregatedListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TDiskAggregatedListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-  end;
-  TDiskAggregatedListClass = Class of TDiskAggregatedList;
-  
-  { --------------------------------------------------------------------
-    TDiskAggregatedListitems
-    --------------------------------------------------------------------}
-  
-  TDiskAggregatedListitems = Class(TGoogleBaseObject)
+  TDiskAggregatedListTypeitems = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -1141,7 +1294,35 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TDiskAggregatedListitemsClass = Class of TDiskAggregatedListitems;
+  TDiskAggregatedListTypeitemsClass = Class of TDiskAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TDiskAggregatedList
+    --------------------------------------------------------------------}
+  
+  TDiskAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TDiskAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TDiskAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TDiskAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TDiskAggregatedListClass = Class of TDiskAggregatedList;
   
   { --------------------------------------------------------------------
     TDiskList
@@ -1149,40 +1330,31 @@ type
   
   TDiskList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TDiskListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TDiskListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TDiskListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TDiskListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TDiskListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TDiskListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TDiskListClass = Class of TDiskList;
-  
-  { --------------------------------------------------------------------
-    TDiskListitems
-    --------------------------------------------------------------------}
-  
-  TDiskListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDiskListitemsClass = Class of TDiskListitems;
   
   { --------------------------------------------------------------------
     TDiskMoveRequest
@@ -1190,16 +1362,16 @@ type
   
   TDiskMoveRequest = Class(TGoogleBaseObject)
   Private
-    FdestinationZone : string;
-    FtargetDisk : string;
+    FdestinationZone : String;
+    FtargetDisk : String;
   Protected
     //Property setters
-    Procedure SetdestinationZone(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetDisk(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdestinationZone(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetDisk(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property destinationZone : string Index 0 Read FdestinationZone Write SetdestinationZone;
-    Property targetDisk : string Index 8 Read FtargetDisk Write SettargetDisk;
+    Property destinationZone : String Index 0 Read FdestinationZone Write SetdestinationZone;
+    Property targetDisk : String Index 8 Read FtargetDisk Write SettargetDisk;
   end;
   TDiskMoveRequestClass = Class of TDiskMoveRequest;
   
@@ -1209,42 +1381,56 @@ type
   
   TDiskType = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    FdefaultDiskSizeGb : string;
+    FcreationTimestamp : String;
+    FdefaultDiskSizeGb : String;
     Fdeprecated : TDeprecationStatus;
-    Fdescription : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    FselfLink : string;
-    FvalidDiskSize : string;
-    Fzone : string;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FselfLink : String;
+    FvalidDiskSize : String;
+    Fzone : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdefaultDiskSizeGb(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvalidDiskSize(AIndex : Integer; AValue : string); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultDiskSizeGb(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvalidDiskSize(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property defaultDiskSizeGb : string Index 8 Read FdefaultDiskSizeGb Write SetdefaultDiskSizeGb;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property defaultDiskSizeGb : String Index 8 Read FdefaultDiskSizeGb Write SetdefaultDiskSizeGb;
     Property deprecated : TDeprecationStatus Index 16 Read Fdeprecated Write Setdeprecated;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property kind : string Index 40 Read Fkind Write Setkind;
-    Property name : string Index 48 Read Fname Write Setname;
-    Property selfLink : string Index 56 Read FselfLink Write SetselfLink;
-    Property validDiskSize : string Index 64 Read FvalidDiskSize Write SetvalidDiskSize;
-    Property zone : string Index 72 Read Fzone Write Setzone;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property name : String Index 48 Read Fname Write Setname;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
+    Property validDiskSize : String Index 64 Read FvalidDiskSize Write SetvalidDiskSize;
+    Property zone : String Index 72 Read Fzone Write Setzone;
   end;
   TDiskTypeClass = Class of TDiskType;
+  
+  { --------------------------------------------------------------------
+    TDiskTypeAggregatedListTypeitems
+    --------------------------------------------------------------------}
+  
+  TDiskTypeAggregatedListTypeitems = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TDiskTypeAggregatedListTypeitemsClass = Class of TDiskTypeAggregatedListTypeitems;
   
   { --------------------------------------------------------------------
     TDiskTypeAggregatedList
@@ -1252,41 +1438,27 @@ type
   
   TDiskTypeAggregatedList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TDiskTypeAggregatedListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TDiskTypeAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TDiskTypeAggregatedListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TDiskTypeAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TDiskTypeAggregatedListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TDiskTypeAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TDiskTypeAggregatedListClass = Class of TDiskTypeAggregatedList;
-  
-  { --------------------------------------------------------------------
-    TDiskTypeAggregatedListitems
-    --------------------------------------------------------------------}
-  
-  TDiskTypeAggregatedListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TDiskTypeAggregatedListitemsClass = Class of TDiskTypeAggregatedListitems;
   
   { --------------------------------------------------------------------
     TDiskTypeList
@@ -1294,40 +1466,76 @@ type
   
   TDiskTypeList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TDiskTypeListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TDiskTypeListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TDiskTypeListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TDiskTypeListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TDiskTypeListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TDiskTypeListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TDiskTypeListClass = Class of TDiskTypeList;
   
   { --------------------------------------------------------------------
-    TDiskTypeListitems
+    TDiskTypesScopedListTypewarningTypedataItem
     --------------------------------------------------------------------}
   
-  TDiskTypeListitems = Class(TGoogleBaseObject)
+  TDiskTypesScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
   Private
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
-  TDiskTypeListitemsClass = Class of TDiskTypeListitems;
+  TDiskTypesScopedListTypewarningTypedataItemClass = Class of TDiskTypesScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TDiskTypesScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TDiskTypesScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TDiskTypesScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TDiskTypesScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TDiskTypesScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TDiskTypesScopedListTypewarningClass = Class of TDiskTypesScopedListTypewarning;
   
   { --------------------------------------------------------------------
     TDiskTypesScopedList
@@ -1335,72 +1543,83 @@ type
   
   TDiskTypesScopedList = Class(TGoogleBaseObject)
   Private
-    FdiskTypes : TDiskTypesScopedListdiskTypes;
-    Fwarning : TDiskTypesScopedListwarning;
+    FdiskTypes : TDiskTypesScopedListTypediskTypesArray;
+    Fwarning : TDiskTypesScopedListTypewarning;
   Protected
     //Property setters
-    Procedure SetdiskTypes(AIndex : Integer; AValue : TDiskTypesScopedListdiskTypes); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TDiskTypesScopedListwarning); virtual;
+    Procedure SetdiskTypes(AIndex : Integer; const AValue : TDiskTypesScopedListTypediskTypesArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TDiskTypesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property diskTypes : TDiskTypesScopedListdiskTypes Index 0 Read FdiskTypes Write SetdiskTypes;
-    Property warning : TDiskTypesScopedListwarning Index 8 Read Fwarning Write Setwarning;
+    Property diskTypes : TDiskTypesScopedListTypediskTypesArray Index 0 Read FdiskTypes Write SetdiskTypes;
+    Property warning : TDiskTypesScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
   end;
   TDiskTypesScopedListClass = Class of TDiskTypesScopedList;
   
   { --------------------------------------------------------------------
-    TDiskTypesScopedListdiskTypes
+    TDisksResizeRequest
     --------------------------------------------------------------------}
   
-  TDiskTypesScopedListdiskTypes = Class(TGoogleBaseObject)
+  TDisksResizeRequest = Class(TGoogleBaseObject)
   Private
+    FsizeGb : String;
   Protected
     //Property setters
+    Procedure SetsizeGb(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property sizeGb : String Index 0 Read FsizeGb Write SetsizeGb;
   end;
-  TDiskTypesScopedListdiskTypesClass = Class of TDiskTypesScopedListdiskTypes;
+  TDisksResizeRequestClass = Class of TDisksResizeRequest;
   
   { --------------------------------------------------------------------
-    TDiskTypesScopedListwarning
+    TDisksScopedListTypewarningTypedataItem
     --------------------------------------------------------------------}
   
-  TDiskTypesScopedListwarning = Class(TGoogleBaseObject)
+  TDisksScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
   Private
-    Fcode : string;
-    Fdata : TDiskTypesScopedListwarningdata;
-    Fmessage : string;
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TDiskTypesScopedListwarningdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TDiskTypesScopedListwarningdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
-  TDiskTypesScopedListwarningClass = Class of TDiskTypesScopedListwarning;
+  TDisksScopedListTypewarningTypedataItemClass = Class of TDisksScopedListTypewarningTypedataItem;
   
   { --------------------------------------------------------------------
-    TDiskTypesScopedListwarningdata
+    TDisksScopedListTypewarning
     --------------------------------------------------------------------}
   
-  TDiskTypesScopedListwarningdata = Class(TGoogleBaseObject)
+  TDisksScopedListTypewarning = Class(TGoogleBaseObject)
   Private
-    Fkey : string;
-    Fvalue : string;
+    Fcode : String;
+    Fdata : TDisksScopedListTypewarningTypedataArray;
+    Fmessage : String;
   Protected
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TDisksScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TDisksScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
-  TDiskTypesScopedListwarningdataClass = Class of TDiskTypesScopedListwarningdata;
+  TDisksScopedListTypewarningClass = Class of TDisksScopedListTypewarning;
   
   { --------------------------------------------------------------------
     TDisksScopedList
@@ -1408,72 +1627,45 @@ type
   
   TDisksScopedList = Class(TGoogleBaseObject)
   Private
-    Fdisks : TDisksScopedListdisks;
-    Fwarning : TDisksScopedListwarning;
+    Fdisks : TDisksScopedListTypedisksArray;
+    Fwarning : TDisksScopedListTypewarning;
   Protected
     //Property setters
-    Procedure Setdisks(AIndex : Integer; AValue : TDisksScopedListdisks); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TDisksScopedListwarning); virtual;
+    Procedure Setdisks(AIndex : Integer; const AValue : TDisksScopedListTypedisksArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TDisksScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property disks : TDisksScopedListdisks Index 0 Read Fdisks Write Setdisks;
-    Property warning : TDisksScopedListwarning Index 8 Read Fwarning Write Setwarning;
+    Property disks : TDisksScopedListTypedisksArray Index 0 Read Fdisks Write Setdisks;
+    Property warning : TDisksScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
   end;
   TDisksScopedListClass = Class of TDisksScopedList;
   
   { --------------------------------------------------------------------
-    TDisksScopedListdisks
+    TFirewallTypeallowedItem
     --------------------------------------------------------------------}
   
-  TDisksScopedListdisks = Class(TGoogleBaseObject)
+  TFirewallTypeallowedItem = Class(TGoogleBaseObject)
   Private
+    FIPProtocol : String;
+    Fports : TStringArray;
   Protected
     //Property setters
+    Procedure SetIPProtocol(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setports(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
+    Property IPProtocol : String Index 0 Read FIPProtocol Write SetIPProtocol;
+    Property ports : TStringArray Index 8 Read Fports Write Setports;
   end;
-  TDisksScopedListdisksClass = Class of TDisksScopedListdisks;
-  
-  { --------------------------------------------------------------------
-    TDisksScopedListwarning
-    --------------------------------------------------------------------}
-  
-  TDisksScopedListwarning = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TDisksScopedListwarningdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TDisksScopedListwarningdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TDisksScopedListwarningdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TDisksScopedListwarningClass = Class of TDisksScopedListwarning;
-  
-  { --------------------------------------------------------------------
-    TDisksScopedListwarningdata
-    --------------------------------------------------------------------}
-  
-  TDisksScopedListwarningdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TDisksScopedListwarningdataClass = Class of TDisksScopedListwarningdata;
+  TFirewallTypeallowedItemClass = Class of TFirewallTypeallowedItem;
   
   { --------------------------------------------------------------------
     TFirewall
@@ -1481,116 +1673,49 @@ type
   
   TFirewall = Class(TGoogleBaseObject)
   Private
-    Fallowed : TFirewallallowed;
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    Fnetwork : string;
-    FselfLink : string;
-    FsourceRanges : TFirewallsourceRanges;
-    FsourceTags : TFirewallsourceTags;
-    FtargetTags : TFirewalltargetTags;
+    Fallowed : TFirewallTypeallowedArray;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    Fnetwork : String;
+    FselfLink : String;
+    FsourceRanges : TStringArray;
+    FsourceTags : TStringArray;
+    FtargetTags : TStringArray;
   Protected
     //Property setters
-    Procedure Setallowed(AIndex : Integer; AValue : TFirewallallowed); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceRanges(AIndex : Integer; AValue : TFirewallsourceRanges); virtual;
-    Procedure SetsourceTags(AIndex : Integer; AValue : TFirewallsourceTags); virtual;
-    Procedure SettargetTags(AIndex : Integer; AValue : TFirewalltargetTags); virtual;
+    Procedure Setallowed(AIndex : Integer; const AValue : TFirewallTypeallowedArray); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceRanges(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetsourceTags(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SettargetTags(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property allowed : TFirewallallowed Index 0 Read Fallowed Write Setallowed;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property network : string Index 48 Read Fnetwork Write Setnetwork;
-    Property selfLink : string Index 56 Read FselfLink Write SetselfLink;
-    Property sourceRanges : TFirewallsourceRanges Index 64 Read FsourceRanges Write SetsourceRanges;
-    Property sourceTags : TFirewallsourceTags Index 72 Read FsourceTags Write SetsourceTags;
-    Property targetTags : TFirewalltargetTags Index 80 Read FtargetTags Write SettargetTags;
+    Property allowed : TFirewallTypeallowedArray Index 0 Read Fallowed Write Setallowed;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property network : String Index 48 Read Fnetwork Write Setnetwork;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
+    Property sourceRanges : TStringArray Index 64 Read FsourceRanges Write SetsourceRanges;
+    Property sourceTags : TStringArray Index 72 Read FsourceTags Write SetsourceTags;
+    Property targetTags : TStringArray Index 80 Read FtargetTags Write SettargetTags;
   end;
   TFirewallClass = Class of TFirewall;
-  
-  { --------------------------------------------------------------------
-    TFirewallallowed
-    --------------------------------------------------------------------}
-  
-  TFirewallallowed = Class(TGoogleBaseObject)
-  Private
-    FIPProtocol : string;
-    Fports : TFirewallallowedports;
-  Protected
-    //Property setters
-    Procedure SetIPProtocol(AIndex : Integer; AValue : string); virtual;
-    Procedure Setports(AIndex : Integer; AValue : TFirewallallowedports); virtual;
-  Public
-  Published
-    Property IPProtocol : string Index 0 Read FIPProtocol Write SetIPProtocol;
-    Property ports : TFirewallallowedports Index 8 Read Fports Write Setports;
-  end;
-  TFirewallallowedClass = Class of TFirewallallowed;
-  
-  { --------------------------------------------------------------------
-    TFirewallallowedports
-    --------------------------------------------------------------------}
-  
-  TFirewallallowedports = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFirewallallowedportsClass = Class of TFirewallallowedports;
-  
-  { --------------------------------------------------------------------
-    TFirewallsourceRanges
-    --------------------------------------------------------------------}
-  
-  TFirewallsourceRanges = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFirewallsourceRangesClass = Class of TFirewallsourceRanges;
-  
-  { --------------------------------------------------------------------
-    TFirewallsourceTags
-    --------------------------------------------------------------------}
-  
-  TFirewallsourceTags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFirewallsourceTagsClass = Class of TFirewallsourceTags;
-  
-  { --------------------------------------------------------------------
-    TFirewalltargetTags
-    --------------------------------------------------------------------}
-  
-  TFirewalltargetTags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFirewalltargetTagsClass = Class of TFirewalltargetTags;
   
   { --------------------------------------------------------------------
     TFirewallList
@@ -1598,40 +1723,31 @@ type
   
   TFirewallList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TFirewallListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TFirewallListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TFirewallListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TFirewallListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TFirewallListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TFirewallListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TFirewallListClass = Class of TFirewallList;
-  
-  { --------------------------------------------------------------------
-    TFirewallListitems
-    --------------------------------------------------------------------}
-  
-  TFirewallListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFirewallListitemsClass = Class of TFirewallListitems;
   
   { --------------------------------------------------------------------
     TForwardingRule
@@ -1639,79 +1755,51 @@ type
   
   TForwardingRule = Class(TGoogleBaseObject)
   Private
-    FIPAddress : string;
-    FIPProtocol : string;
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    FportRange : string;
-    Fregion : string;
-    FselfLink : string;
-    Ftarget : string;
+    FIPAddress : String;
+    FIPProtocol : String;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FportRange : String;
+    Fregion : String;
+    FselfLink : String;
+    Ftarget : String;
   Protected
     //Property setters
-    Procedure SetIPAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure SetIPProtocol(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetportRange(AIndex : Integer; AValue : string); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Settarget(AIndex : Integer; AValue : string); virtual;
+    Procedure SetIPAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetIPProtocol(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetportRange(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settarget(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property IPAddress : string Index 0 Read FIPAddress Write SetIPAddress;
-    Property IPProtocol : string Index 8 Read FIPProtocol Write SetIPProtocol;
-    Property creationTimestamp : string Index 16 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property kind : string Index 40 Read Fkind Write Setkind;
-    Property name : string Index 48 Read Fname Write Setname;
-    Property portRange : string Index 56 Read FportRange Write SetportRange;
-    Property region : string Index 64 Read Fregion Write Setregion;
-    Property selfLink : string Index 72 Read FselfLink Write SetselfLink;
-    Property target : string Index 80 Read Ftarget Write Settarget;
+    Property IPAddress : String Index 0 Read FIPAddress Write SetIPAddress;
+    Property IPProtocol : String Index 8 Read FIPProtocol Write SetIPProtocol;
+    Property creationTimestamp : String Index 16 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property name : String Index 48 Read Fname Write Setname;
+    Property portRange : String Index 56 Read FportRange Write SetportRange;
+    Property region : String Index 64 Read Fregion Write Setregion;
+    Property selfLink : String Index 72 Read FselfLink Write SetselfLink;
+    Property target : String Index 80 Read Ftarget Write Settarget;
   end;
   TForwardingRuleClass = Class of TForwardingRule;
   
   { --------------------------------------------------------------------
-    TForwardingRuleAggregatedList
+    TForwardingRuleAggregatedListTypeitems
     --------------------------------------------------------------------}
   
-  TForwardingRuleAggregatedList = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fitems : TForwardingRuleAggregatedListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TForwardingRuleAggregatedListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TForwardingRuleAggregatedListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-  end;
-  TForwardingRuleAggregatedListClass = Class of TForwardingRuleAggregatedList;
-  
-  { --------------------------------------------------------------------
-    TForwardingRuleAggregatedListitems
-    --------------------------------------------------------------------}
-  
-  TForwardingRuleAggregatedListitems = Class(TGoogleBaseObject)
+  TForwardingRuleAggregatedListTypeitems = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -1719,7 +1807,35 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TForwardingRuleAggregatedListitemsClass = Class of TForwardingRuleAggregatedListitems;
+  TForwardingRuleAggregatedListTypeitemsClass = Class of TForwardingRuleAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TForwardingRuleAggregatedList
+    --------------------------------------------------------------------}
+  
+  TForwardingRuleAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TForwardingRuleAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TForwardingRuleAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TForwardingRuleAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TForwardingRuleAggregatedListClass = Class of TForwardingRuleAggregatedList;
   
   { --------------------------------------------------------------------
     TForwardingRuleList
@@ -1727,40 +1843,76 @@ type
   
   TForwardingRuleList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TForwardingRuleListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TForwardingRuleListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TForwardingRuleListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TForwardingRuleListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TForwardingRuleListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TForwardingRuleListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TForwardingRuleListClass = Class of TForwardingRuleList;
   
   { --------------------------------------------------------------------
-    TForwardingRuleListitems
+    TForwardingRulesScopedListTypewarningTypedataItem
     --------------------------------------------------------------------}
   
-  TForwardingRuleListitems = Class(TGoogleBaseObject)
+  TForwardingRulesScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
   Private
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
-  TForwardingRuleListitemsClass = Class of TForwardingRuleListitems;
+  TForwardingRulesScopedListTypewarningTypedataItemClass = Class of TForwardingRulesScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TForwardingRulesScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TForwardingRulesScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TForwardingRulesScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TForwardingRulesScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TForwardingRulesScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TForwardingRulesScopedListTypewarningClass = Class of TForwardingRulesScopedListTypewarning;
   
   { --------------------------------------------------------------------
     TForwardingRulesScopedList
@@ -1768,72 +1920,22 @@ type
   
   TForwardingRulesScopedList = Class(TGoogleBaseObject)
   Private
-    FforwardingRules : TForwardingRulesScopedListforwardingRules;
-    Fwarning : TForwardingRulesScopedListwarning;
+    FforwardingRules : TForwardingRulesScopedListTypeforwardingRulesArray;
+    Fwarning : TForwardingRulesScopedListTypewarning;
   Protected
     //Property setters
-    Procedure SetforwardingRules(AIndex : Integer; AValue : TForwardingRulesScopedListforwardingRules); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TForwardingRulesScopedListwarning); virtual;
+    Procedure SetforwardingRules(AIndex : Integer; const AValue : TForwardingRulesScopedListTypeforwardingRulesArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TForwardingRulesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property forwardingRules : TForwardingRulesScopedListforwardingRules Index 0 Read FforwardingRules Write SetforwardingRules;
-    Property warning : TForwardingRulesScopedListwarning Index 8 Read Fwarning Write Setwarning;
+    Property forwardingRules : TForwardingRulesScopedListTypeforwardingRulesArray Index 0 Read FforwardingRules Write SetforwardingRules;
+    Property warning : TForwardingRulesScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
   end;
   TForwardingRulesScopedListClass = Class of TForwardingRulesScopedList;
-  
-  { --------------------------------------------------------------------
-    TForwardingRulesScopedListforwardingRules
-    --------------------------------------------------------------------}
-  
-  TForwardingRulesScopedListforwardingRules = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TForwardingRulesScopedListforwardingRulesClass = Class of TForwardingRulesScopedListforwardingRules;
-  
-  { --------------------------------------------------------------------
-    TForwardingRulesScopedListwarning
-    --------------------------------------------------------------------}
-  
-  TForwardingRulesScopedListwarning = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TForwardingRulesScopedListwarningdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TForwardingRulesScopedListwarningdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TForwardingRulesScopedListwarningdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TForwardingRulesScopedListwarningClass = Class of TForwardingRulesScopedListwarning;
-  
-  { --------------------------------------------------------------------
-    TForwardingRulesScopedListwarningdata
-    --------------------------------------------------------------------}
-  
-  TForwardingRulesScopedListwarningdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TForwardingRulesScopedListwarningdataClass = Class of TForwardingRulesScopedListwarningdata;
   
   { --------------------------------------------------------------------
     THealthCheckReference
@@ -1841,13 +1943,13 @@ type
   
   THealthCheckReference = Class(TGoogleBaseObject)
   Private
-    FhealthCheck : string;
+    FhealthCheck : String;
   Protected
     //Property setters
-    Procedure SethealthCheck(AIndex : Integer; AValue : string); virtual;
+    Procedure SethealthCheck(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property healthCheck : string Index 0 Read FhealthCheck Write SethealthCheck;
+    Property healthCheck : String Index 0 Read FhealthCheck Write SethealthCheck;
   end;
   THealthCheckReferenceClass = Class of THealthCheckReference;
   
@@ -1857,21 +1959,21 @@ type
   
   THealthStatus = Class(TGoogleBaseObject)
   Private
-    FhealthState : string;
-    Finstance : string;
-    FipAddress : string;
+    FhealthState : String;
+    Finstance : String;
+    FipAddress : String;
     Fport : integer;
   Protected
     //Property setters
-    Procedure SethealthState(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinstance(AIndex : Integer; AValue : string); virtual;
-    Procedure SetipAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure Setport(AIndex : Integer; AValue : integer); virtual;
+    Procedure SethealthState(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setinstance(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetipAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setport(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
-    Property healthState : string Index 0 Read FhealthState Write SethealthState;
-    Property instance : string Index 8 Read Finstance Write Setinstance;
-    Property ipAddress : string Index 16 Read FipAddress Write SetipAddress;
+    Property healthState : String Index 0 Read FhealthState Write SethealthState;
+    Property instance : String Index 8 Read Finstance Write Setinstance;
+    Property ipAddress : String Index 16 Read FipAddress Write SetipAddress;
     Property port : integer Index 24 Read Fport Write Setport;
   end;
   THealthStatusClass = Class of THealthStatus;
@@ -1882,34 +1984,25 @@ type
   
   THostRule = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Fhosts : THostRulehosts;
-    FpathMatcher : string;
+    Fdescription : String;
+    Fhosts : TStringArray;
+    FpathMatcher : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Sethosts(AIndex : Integer; AValue : THostRulehosts); virtual;
-    Procedure SetpathMatcher(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Sethosts(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetpathMatcher(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property hosts : THostRulehosts Index 8 Read Fhosts Write Sethosts;
-    Property pathMatcher : string Index 16 Read FpathMatcher Write SetpathMatcher;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property hosts : TStringArray Index 8 Read Fhosts Write Sethosts;
+    Property pathMatcher : String Index 16 Read FpathMatcher Write SetpathMatcher;
   end;
   THostRuleClass = Class of THostRule;
-  
-  { --------------------------------------------------------------------
-    THostRulehosts
-    --------------------------------------------------------------------}
-  
-  THostRulehosts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  THostRulehostsClass = Class of THostRulehosts;
   
   { --------------------------------------------------------------------
     THttpHealthCheck
@@ -1918,46 +2011,46 @@ type
   THttpHealthCheck = Class(TGoogleBaseObject)
   Private
     FcheckIntervalSec : integer;
-    FcreationTimestamp : string;
-    Fdescription : string;
+    FcreationTimestamp : String;
+    Fdescription : String;
     FhealthyThreshold : integer;
-    Fhost : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
+    Fhost : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
     Fport : integer;
-    FrequestPath : string;
-    FselfLink : string;
+    FrequestPath : String;
+    FselfLink : String;
     FtimeoutSec : integer;
     FunhealthyThreshold : integer;
   Protected
     //Property setters
-    Procedure SetcheckIntervalSec(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SethealthyThreshold(AIndex : Integer; AValue : integer); virtual;
-    Procedure Sethost(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setport(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetrequestPath(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SettimeoutSec(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetunhealthyThreshold(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcheckIntervalSec(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethealthyThreshold(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Sethost(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setport(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetrequestPath(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeoutSec(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetunhealthyThreshold(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property checkIntervalSec : integer Index 0 Read FcheckIntervalSec Write SetcheckIntervalSec;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
     Property healthyThreshold : integer Index 24 Read FhealthyThreshold Write SethealthyThreshold;
-    Property host : string Index 32 Read Fhost Write Sethost;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property name : string Index 56 Read Fname Write Setname;
+    Property host : String Index 32 Read Fhost Write Sethost;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property kind : String Index 48 Read Fkind Write Setkind;
+    Property name : String Index 56 Read Fname Write Setname;
     Property port : integer Index 64 Read Fport Write Setport;
-    Property requestPath : string Index 72 Read FrequestPath Write SetrequestPath;
-    Property selfLink : string Index 80 Read FselfLink Write SetselfLink;
+    Property requestPath : String Index 72 Read FrequestPath Write SetrequestPath;
+    Property selfLink : String Index 80 Read FselfLink Write SetselfLink;
     Property timeoutSec : integer Index 88 Read FtimeoutSec Write SettimeoutSec;
     Property unhealthyThreshold : integer Index 96 Read FunhealthyThreshold Write SetunhealthyThreshold;
   end;
@@ -1969,40 +2062,137 @@ type
   
   THttpHealthCheckList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : THttpHealthCheckListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : THttpHealthCheckListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : THttpHealthCheckListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : THttpHealthCheckListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : THttpHealthCheckListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : THttpHealthCheckListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   THttpHealthCheckListClass = Class of THttpHealthCheckList;
   
   { --------------------------------------------------------------------
-    THttpHealthCheckListitems
+    THttpsHealthCheck
     --------------------------------------------------------------------}
   
-  THttpHealthCheckListitems = Class(TGoogleBaseObject)
+  THttpsHealthCheck = Class(TGoogleBaseObject)
   Private
+    FcheckIntervalSec : integer;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    FhealthyThreshold : integer;
+    Fhost : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    Fport : integer;
+    FrequestPath : String;
+    FselfLink : String;
+    FtimeoutSec : integer;
+    FunhealthyThreshold : integer;
   Protected
     //Property setters
+    Procedure SetcheckIntervalSec(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethealthyThreshold(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Sethost(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setport(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetrequestPath(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeoutSec(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetunhealthyThreshold(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
+    Property checkIntervalSec : integer Index 0 Read FcheckIntervalSec Write SetcheckIntervalSec;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property healthyThreshold : integer Index 24 Read FhealthyThreshold Write SethealthyThreshold;
+    Property host : String Index 32 Read Fhost Write Sethost;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property kind : String Index 48 Read Fkind Write Setkind;
+    Property name : String Index 56 Read Fname Write Setname;
+    Property port : integer Index 64 Read Fport Write Setport;
+    Property requestPath : String Index 72 Read FrequestPath Write SetrequestPath;
+    Property selfLink : String Index 80 Read FselfLink Write SetselfLink;
+    Property timeoutSec : integer Index 88 Read FtimeoutSec Write SettimeoutSec;
+    Property unhealthyThreshold : integer Index 96 Read FunhealthyThreshold Write SetunhealthyThreshold;
   end;
-  THttpHealthCheckListitemsClass = Class of THttpHealthCheckListitems;
+  THttpsHealthCheckClass = Class of THttpsHealthCheck;
+  
+  { --------------------------------------------------------------------
+    THttpsHealthCheckList
+    --------------------------------------------------------------------}
+  
+  THttpsHealthCheckList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : THttpsHealthCheckListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : THttpsHealthCheckListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : THttpsHealthCheckListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  THttpsHealthCheckListClass = Class of THttpsHealthCheckList;
+  
+  { --------------------------------------------------------------------
+    TImageTyperawDisk
+    --------------------------------------------------------------------}
+  
+  TImageTyperawDisk = Class(TGoogleBaseObject)
+  Private
+    FcontainerType : String;
+    Fsha1Checksum : String;
+    Fsource : String;
+  Protected
+    //Property setters
+    Procedure SetcontainerType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsha1Checksum(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsource(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property containerType : String Index 0 Read FcontainerType Write SetcontainerType;
+    Property sha1Checksum : String Index 8 Read Fsha1Checksum Write Setsha1Checksum;
+    Property source : String Index 16 Read Fsource Write Setsource;
+  end;
+  TImageTyperawDiskClass = Class of TImageTyperawDisk;
   
   { --------------------------------------------------------------------
     TImage
@@ -2010,92 +2200,64 @@ type
   
   TImage = Class(TGoogleBaseObject)
   Private
-    FarchiveSizeBytes : string;
-    FcreationTimestamp : string;
+    FarchiveSizeBytes : String;
+    FcreationTimestamp : String;
     Fdeprecated : TDeprecationStatus;
-    Fdescription : string;
-    FdiskSizeGb : string;
-    Fid : string;
-    Fkind : string;
-    Flicenses : TImagelicenses;
-    Fname : string;
-    FrawDisk : TImagerawDisk;
-    FselfLink : string;
-    FsourceDisk : string;
-    FsourceDiskId : string;
-    FsourceType : string;
-    Fstatus : string;
+    Fdescription : String;
+    FdiskSizeGb : String;
+    Ffamily : String;
+    Fid : String;
+    Fkind : String;
+    Flicenses : TStringArray;
+    Fname : String;
+    FrawDisk : TImageTyperawDisk;
+    FselfLink : String;
+    FsourceDisk : String;
+    FsourceDiskId : String;
+    FsourceType : String;
+    Fstatus : String;
   Protected
     //Property setters
-    Procedure SetarchiveSizeBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdiskSizeGb(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlicenses(AIndex : Integer; AValue : TImagelicenses); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrawDisk(AIndex : Integer; AValue : TImagerawDisk); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceDisk(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceDiskId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetarchiveSizeBytes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdiskSizeGb(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfamily(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlicenses(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrawDisk(AIndex : Integer; const AValue : TImageTyperawDisk); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceDisk(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceDiskId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property archiveSizeBytes : string Index 0 Read FarchiveSizeBytes Write SetarchiveSizeBytes;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property archiveSizeBytes : String Index 0 Read FarchiveSizeBytes Write SetarchiveSizeBytes;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
     Property deprecated : TDeprecationStatus Index 16 Read Fdeprecated Write Setdeprecated;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
-    Property diskSizeGb : string Index 32 Read FdiskSizeGb Write SetdiskSizeGb;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property licenses : TImagelicenses Index 56 Read Flicenses Write Setlicenses;
-    Property name : string Index 64 Read Fname Write Setname;
-    Property rawDisk : TImagerawDisk Index 72 Read FrawDisk Write SetrawDisk;
-    Property selfLink : string Index 80 Read FselfLink Write SetselfLink;
-    Property sourceDisk : string Index 88 Read FsourceDisk Write SetsourceDisk;
-    Property sourceDiskId : string Index 96 Read FsourceDiskId Write SetsourceDiskId;
-    Property sourceType : string Index 104 Read FsourceType Write SetsourceType;
-    Property status : string Index 112 Read Fstatus Write Setstatus;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
+    Property diskSizeGb : String Index 32 Read FdiskSizeGb Write SetdiskSizeGb;
+    Property family : String Index 40 Read Ffamily Write Setfamily;
+    Property id : String Index 48 Read Fid Write Setid;
+    Property kind : String Index 56 Read Fkind Write Setkind;
+    Property licenses : TStringArray Index 64 Read Flicenses Write Setlicenses;
+    Property name : String Index 72 Read Fname Write Setname;
+    Property rawDisk : TImageTyperawDisk Index 80 Read FrawDisk Write SetrawDisk;
+    Property selfLink : String Index 88 Read FselfLink Write SetselfLink;
+    Property sourceDisk : String Index 96 Read FsourceDisk Write SetsourceDisk;
+    Property sourceDiskId : String Index 104 Read FsourceDiskId Write SetsourceDiskId;
+    Property sourceType : String Index 112 Read FsourceType Write SetsourceType;
+    Property status : String Index 120 Read Fstatus Write Setstatus;
   end;
   TImageClass = Class of TImage;
-  
-  { --------------------------------------------------------------------
-    TImagelicenses
-    --------------------------------------------------------------------}
-  
-  TImagelicenses = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TImagelicensesClass = Class of TImagelicenses;
-  
-  { --------------------------------------------------------------------
-    TImagerawDisk
-    --------------------------------------------------------------------}
-  
-  TImagerawDisk = Class(TGoogleBaseObject)
-  Private
-    FcontainerType : string;
-    Fsha1Checksum : string;
-    Fsource : string;
-  Protected
-    //Property setters
-    Procedure SetcontainerType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsha1Checksum(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsource(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property containerType : string Index 0 Read FcontainerType Write SetcontainerType;
-    Property sha1Checksum : string Index 8 Read Fsha1Checksum Write Setsha1Checksum;
-    Property source : string Index 16 Read Fsource Write Setsource;
-  end;
-  TImagerawDiskClass = Class of TImagerawDisk;
   
   { --------------------------------------------------------------------
     TImageList
@@ -2103,40 +2265,31 @@ type
   
   TImageList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TImageListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TImageListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TImageListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TImageListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TImageListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TImageListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TImageListClass = Class of TImageList;
-  
-  { --------------------------------------------------------------------
-    TImageListitems
-    --------------------------------------------------------------------}
-  
-  TImageListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TImageListitemsClass = Class of TImageListitems;
   
   { --------------------------------------------------------------------
     TInstance
@@ -2145,138 +2298,75 @@ type
   TInstance = Class(TGoogleBaseObject)
   Private
     FcanIpForward : boolean;
-    FcpuPlatform : string;
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Fdisks : TInstancedisks;
-    Fid : string;
-    Fkind : string;
-    FmachineType : string;
+    FcpuPlatform : String;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fdisks : TInstanceTypedisksArray;
+    Fid : String;
+    Fkind : String;
+    FmachineType : String;
     Fmetadata : TMetadata;
-    Fname : string;
-    FnetworkInterfaces : TInstancenetworkInterfaces;
+    Fname : String;
+    FnetworkInterfaces : TInstanceTypenetworkInterfacesArray;
     Fscheduling : TScheduling;
-    FselfLink : string;
-    FserviceAccounts : TInstanceserviceAccounts;
-    Fstatus : string;
-    FstatusMessage : string;
-    Ftags : TRoutetags;
-    Fzone : string;
+    FselfLink : String;
+    FserviceAccounts : TInstanceTypeserviceAccountsArray;
+    Fstatus : String;
+    FstatusMessage : String;
+    Ftags : TTags;
+    Fzone : String;
   Protected
     //Property setters
-    Procedure SetcanIpForward(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetcpuPlatform(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdisks(AIndex : Integer; AValue : TInstancedisks); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmachineType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmetadata(AIndex : Integer; AValue : TMetadata); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnetworkInterfaces(AIndex : Integer; AValue : TInstancenetworkInterfaces); virtual;
-    Procedure Setscheduling(AIndex : Integer; AValue : TScheduling); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetserviceAccounts(AIndex : Integer; AValue : TInstanceserviceAccounts); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstatusMessage(AIndex : Integer; AValue : string); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TRoutetags); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcanIpForward(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetcpuPlatform(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdisks(AIndex : Integer; const AValue : TInstanceTypedisksArray); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmachineType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmetadata(AIndex : Integer; const AValue : TMetadata); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnetworkInterfaces(AIndex : Integer; const AValue : TInstanceTypenetworkInterfacesArray); virtual;
+    Procedure Setscheduling(AIndex : Integer; const AValue : TScheduling); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetserviceAccounts(AIndex : Integer; const AValue : TInstanceTypeserviceAccountsArray); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstatusMessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settags(AIndex : Integer; const AValue : TTags); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property canIpForward : boolean Index 0 Read FcanIpForward Write SetcanIpForward;
-    Property cpuPlatform : string Index 8 Read FcpuPlatform Write SetcpuPlatform;
-    Property creationTimestamp : string Index 16 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 24 Read Fdescription Write Setdescription;
-    Property disks : TInstancedisks Index 32 Read Fdisks Write Setdisks;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property machineType : string Index 56 Read FmachineType Write SetmachineType;
+    Property cpuPlatform : String Index 8 Read FcpuPlatform Write SetcpuPlatform;
+    Property creationTimestamp : String Index 16 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
+    Property disks : TInstanceTypedisksArray Index 32 Read Fdisks Write Setdisks;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property kind : String Index 48 Read Fkind Write Setkind;
+    Property machineType : String Index 56 Read FmachineType Write SetmachineType;
     Property metadata : TMetadata Index 64 Read Fmetadata Write Setmetadata;
-    Property name : string Index 72 Read Fname Write Setname;
-    Property networkInterfaces : TInstancenetworkInterfaces Index 80 Read FnetworkInterfaces Write SetnetworkInterfaces;
+    Property name : String Index 72 Read Fname Write Setname;
+    Property networkInterfaces : TInstanceTypenetworkInterfacesArray Index 80 Read FnetworkInterfaces Write SetnetworkInterfaces;
     Property scheduling : TScheduling Index 88 Read Fscheduling Write Setscheduling;
-    Property selfLink : string Index 96 Read FselfLink Write SetselfLink;
-    Property serviceAccounts : TInstanceserviceAccounts Index 104 Read FserviceAccounts Write SetserviceAccounts;
-    Property status : string Index 112 Read Fstatus Write Setstatus;
-    Property statusMessage : string Index 120 Read FstatusMessage Write SetstatusMessage;
-    Property tags : TRoutetags Index 128 Read Ftags Write Settags;
-    Property zone : string Index 136 Read Fzone Write Setzone;
+    Property selfLink : String Index 96 Read FselfLink Write SetselfLink;
+    Property serviceAccounts : TInstanceTypeserviceAccountsArray Index 104 Read FserviceAccounts Write SetserviceAccounts;
+    Property status : String Index 112 Read Fstatus Write Setstatus;
+    Property statusMessage : String Index 120 Read FstatusMessage Write SetstatusMessage;
+    Property tags : TTags Index 128 Read Ftags Write Settags;
+    Property zone : String Index 136 Read Fzone Write Setzone;
   end;
   TInstanceClass = Class of TInstance;
   
   { --------------------------------------------------------------------
-    TInstancedisks
+    TInstanceAggregatedListTypeitems
     --------------------------------------------------------------------}
   
-  TInstancedisks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInstancedisksClass = Class of TInstancedisks;
-  
-  { --------------------------------------------------------------------
-    TInstancenetworkInterfaces
-    --------------------------------------------------------------------}
-  
-  TInstancenetworkInterfaces = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInstancenetworkInterfacesClass = Class of TInstancenetworkInterfaces;
-  
-  { --------------------------------------------------------------------
-    TInstanceserviceAccounts
-    --------------------------------------------------------------------}
-  
-  TInstanceserviceAccounts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInstanceserviceAccountsClass = Class of TInstanceserviceAccounts;
-  
-  { --------------------------------------------------------------------
-    TInstanceAggregatedList
-    --------------------------------------------------------------------}
-  
-  TInstanceAggregatedList = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fitems : TInstanceAggregatedListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TInstanceAggregatedListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TInstanceAggregatedListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-  end;
-  TInstanceAggregatedListClass = Class of TInstanceAggregatedList;
-  
-  { --------------------------------------------------------------------
-    TInstanceAggregatedListitems
-    --------------------------------------------------------------------}
-  
-  TInstanceAggregatedListitems = Class(TGoogleBaseObject)
+  TInstanceAggregatedListTypeitems = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -2284,7 +2374,698 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TInstanceAggregatedListitemsClass = Class of TInstanceAggregatedListitems;
+  TInstanceAggregatedListTypeitemsClass = Class of TInstanceAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TInstanceAggregatedList
+    --------------------------------------------------------------------}
+  
+  TInstanceAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TInstanceAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TInstanceAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TInstanceAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TInstanceAggregatedListClass = Class of TInstanceAggregatedList;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroup
+    --------------------------------------------------------------------}
+  
+  TInstanceGroup = Class(TGoogleBaseObject)
+  Private
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Ffingerprint : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FnamedPorts : TInstanceGroupTypenamedPortsArray;
+    Fnetwork : String;
+    FselfLink : String;
+    Fsize : integer;
+    Fsubnetwork : String;
+    Fzone : String;
+  Protected
+    //Property setters
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnamedPorts(AIndex : Integer; const AValue : TInstanceGroupTypenamedPortsArray); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsize(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setsubnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property fingerprint : String Index 16 Read Ffingerprint Write Setfingerprint;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property namedPorts : TInstanceGroupTypenamedPortsArray Index 48 Read FnamedPorts Write SetnamedPorts;
+    Property network : String Index 56 Read Fnetwork Write Setnetwork;
+    Property selfLink : String Index 64 Read FselfLink Write SetselfLink;
+    Property size : integer Index 72 Read Fsize Write Setsize;
+    Property subnetwork : String Index 80 Read Fsubnetwork Write Setsubnetwork;
+    Property zone : String Index 88 Read Fzone Write Setzone;
+  end;
+  TInstanceGroupClass = Class of TInstanceGroup;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupAggregatedListTypeitems
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupAggregatedListTypeitems = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TInstanceGroupAggregatedListTypeitemsClass = Class of TInstanceGroupAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupAggregatedList
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TInstanceGroupAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TInstanceGroupAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TInstanceGroupAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TInstanceGroupAggregatedListClass = Class of TInstanceGroupAggregatedList;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupList
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TInstanceGroupListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TInstanceGroupListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TInstanceGroupListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TInstanceGroupListClass = Class of TInstanceGroupList;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManager
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManager = Class(TGoogleBaseObject)
+  Private
+    FbaseInstanceName : String;
+    FcreationTimestamp : String;
+    FcurrentActions : TInstanceGroupManagerActionsSummary;
+    Fdescription : String;
+    Ffingerprint : String;
+    Fid : String;
+    FinstanceGroup : String;
+    FinstanceTemplate : String;
+    Fkind : String;
+    Fname : String;
+    FnamedPorts : TInstanceGroupManagerTypenamedPortsArray;
+    FselfLink : String;
+    FtargetPools : TStringArray;
+    FtargetSize : integer;
+    Fzone : String;
+  Protected
+    //Property setters
+    Procedure SetbaseInstanceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcurrentActions(AIndex : Integer; const AValue : TInstanceGroupManagerActionsSummary); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinstanceGroup(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinstanceTemplate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnamedPorts(AIndex : Integer; const AValue : TInstanceGroupManagerTypenamedPortsArray); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetPools(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SettargetSize(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property baseInstanceName : String Index 0 Read FbaseInstanceName Write SetbaseInstanceName;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property currentActions : TInstanceGroupManagerActionsSummary Index 16 Read FcurrentActions Write SetcurrentActions;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
+    Property fingerprint : String Index 32 Read Ffingerprint Write Setfingerprint;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property instanceGroup : String Index 48 Read FinstanceGroup Write SetinstanceGroup;
+    Property instanceTemplate : String Index 56 Read FinstanceTemplate Write SetinstanceTemplate;
+    Property kind : String Index 64 Read Fkind Write Setkind;
+    Property name : String Index 72 Read Fname Write Setname;
+    Property namedPorts : TInstanceGroupManagerTypenamedPortsArray Index 80 Read FnamedPorts Write SetnamedPorts;
+    Property selfLink : String Index 88 Read FselfLink Write SetselfLink;
+    Property targetPools : TStringArray Index 96 Read FtargetPools Write SettargetPools;
+    Property targetSize : integer Index 104 Read FtargetSize Write SettargetSize;
+    Property zone : String Index 112 Read Fzone Write Setzone;
+  end;
+  TInstanceGroupManagerClass = Class of TInstanceGroupManager;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagerActionsSummary
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagerActionsSummary = Class(TGoogleBaseObject)
+  Private
+    Fabandoning : integer;
+    Fcreating : integer;
+    Fdeleting : integer;
+    Fnone : integer;
+    Frecreating : integer;
+    Frefreshing : integer;
+    Frestarting : integer;
+  Protected
+    //Property setters
+    Procedure Setabandoning(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setcreating(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setdeleting(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setnone(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setrecreating(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setrefreshing(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setrestarting(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property abandoning : integer Index 0 Read Fabandoning Write Setabandoning;
+    Property creating : integer Index 8 Read Fcreating Write Setcreating;
+    Property deleting : integer Index 16 Read Fdeleting Write Setdeleting;
+    Property none : integer Index 24 Read Fnone Write Setnone;
+    Property recreating : integer Index 32 Read Frecreating Write Setrecreating;
+    Property refreshing : integer Index 40 Read Frefreshing Write Setrefreshing;
+    Property restarting : integer Index 48 Read Frestarting Write Setrestarting;
+  end;
+  TInstanceGroupManagerActionsSummaryClass = Class of TInstanceGroupManagerActionsSummary;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagerAggregatedListTypeitems
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagerAggregatedListTypeitems = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TInstanceGroupManagerAggregatedListTypeitemsClass = Class of TInstanceGroupManagerAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagerAggregatedList
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagerAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TInstanceGroupManagerAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TInstanceGroupManagerAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TInstanceGroupManagerAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TInstanceGroupManagerAggregatedListClass = Class of TInstanceGroupManagerAggregatedList;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagerList
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagerList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TInstanceGroupManagerListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TInstanceGroupManagerListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TInstanceGroupManagerListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TInstanceGroupManagerListClass = Class of TInstanceGroupManagerList;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagersAbandonInstancesRequest
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagersAbandonInstancesRequest = Class(TGoogleBaseObject)
+  Private
+    Finstances : TStringArray;
+  Protected
+    //Property setters
+    Procedure Setinstances(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property instances : TStringArray Index 0 Read Finstances Write Setinstances;
+  end;
+  TInstanceGroupManagersAbandonInstancesRequestClass = Class of TInstanceGroupManagersAbandonInstancesRequest;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagersDeleteInstancesRequest
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagersDeleteInstancesRequest = Class(TGoogleBaseObject)
+  Private
+    Finstances : TStringArray;
+  Protected
+    //Property setters
+    Procedure Setinstances(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property instances : TStringArray Index 0 Read Finstances Write Setinstances;
+  end;
+  TInstanceGroupManagersDeleteInstancesRequestClass = Class of TInstanceGroupManagersDeleteInstancesRequest;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagersListManagedInstancesResponse
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagersListManagedInstancesResponse = Class(TGoogleBaseObject)
+  Private
+    FmanagedInstances : TInstanceGroupManagersListManagedInstancesResponseTypemanagedInstancesArray;
+  Protected
+    //Property setters
+    Procedure SetmanagedInstances(AIndex : Integer; const AValue : TInstanceGroupManagersListManagedInstancesResponseTypemanagedInstancesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property managedInstances : TInstanceGroupManagersListManagedInstancesResponseTypemanagedInstancesArray Index 0 Read FmanagedInstances Write SetmanagedInstances;
+  end;
+  TInstanceGroupManagersListManagedInstancesResponseClass = Class of TInstanceGroupManagersListManagedInstancesResponse;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagersRecreateInstancesRequest
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagersRecreateInstancesRequest = Class(TGoogleBaseObject)
+  Private
+    Finstances : TStringArray;
+  Protected
+    //Property setters
+    Procedure Setinstances(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property instances : TStringArray Index 0 Read Finstances Write Setinstances;
+  end;
+  TInstanceGroupManagersRecreateInstancesRequestClass = Class of TInstanceGroupManagersRecreateInstancesRequest;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagersScopedListTypewarningTypedataItem
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagersScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TInstanceGroupManagersScopedListTypewarningTypedataItemClass = Class of TInstanceGroupManagersScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagersScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagersScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TInstanceGroupManagersScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TInstanceGroupManagersScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TInstanceGroupManagersScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TInstanceGroupManagersScopedListTypewarningClass = Class of TInstanceGroupManagersScopedListTypewarning;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagersScopedList
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagersScopedList = Class(TGoogleBaseObject)
+  Private
+    FinstanceGroupManagers : TInstanceGroupManagersScopedListTypeinstanceGroupManagersArray;
+    Fwarning : TInstanceGroupManagersScopedListTypewarning;
+  Protected
+    //Property setters
+    Procedure SetinstanceGroupManagers(AIndex : Integer; const AValue : TInstanceGroupManagersScopedListTypeinstanceGroupManagersArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TInstanceGroupManagersScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property instanceGroupManagers : TInstanceGroupManagersScopedListTypeinstanceGroupManagersArray Index 0 Read FinstanceGroupManagers Write SetinstanceGroupManagers;
+    Property warning : TInstanceGroupManagersScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
+  end;
+  TInstanceGroupManagersScopedListClass = Class of TInstanceGroupManagersScopedList;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagersSetInstanceTemplateRequest
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagersSetInstanceTemplateRequest = Class(TGoogleBaseObject)
+  Private
+    FinstanceTemplate : String;
+  Protected
+    //Property setters
+    Procedure SetinstanceTemplate(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property instanceTemplate : String Index 0 Read FinstanceTemplate Write SetinstanceTemplate;
+  end;
+  TInstanceGroupManagersSetInstanceTemplateRequestClass = Class of TInstanceGroupManagersSetInstanceTemplateRequest;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagersSetTargetPoolsRequest
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupManagersSetTargetPoolsRequest = Class(TGoogleBaseObject)
+  Private
+    Ffingerprint : String;
+    FtargetPools : TStringArray;
+  Protected
+    //Property setters
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetPools(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property fingerprint : String Index 0 Read Ffingerprint Write Setfingerprint;
+    Property targetPools : TStringArray Index 8 Read FtargetPools Write SettargetPools;
+  end;
+  TInstanceGroupManagersSetTargetPoolsRequestClass = Class of TInstanceGroupManagersSetTargetPoolsRequest;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupsAddInstancesRequest
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupsAddInstancesRequest = Class(TGoogleBaseObject)
+  Private
+    Finstances : TInstanceGroupsAddInstancesRequestTypeinstancesArray;
+  Protected
+    //Property setters
+    Procedure Setinstances(AIndex : Integer; const AValue : TInstanceGroupsAddInstancesRequestTypeinstancesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property instances : TInstanceGroupsAddInstancesRequestTypeinstancesArray Index 0 Read Finstances Write Setinstances;
+  end;
+  TInstanceGroupsAddInstancesRequestClass = Class of TInstanceGroupsAddInstancesRequest;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupsListInstances
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupsListInstances = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TInstanceGroupsListInstancesTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TInstanceGroupsListInstancesTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TInstanceGroupsListInstancesTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TInstanceGroupsListInstancesClass = Class of TInstanceGroupsListInstances;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupsListInstancesRequest
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupsListInstancesRequest = Class(TGoogleBaseObject)
+  Private
+    FinstanceState : String;
+  Protected
+    //Property setters
+    Procedure SetinstanceState(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property instanceState : String Index 0 Read FinstanceState Write SetinstanceState;
+  end;
+  TInstanceGroupsListInstancesRequestClass = Class of TInstanceGroupsListInstancesRequest;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupsRemoveInstancesRequest
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupsRemoveInstancesRequest = Class(TGoogleBaseObject)
+  Private
+    Finstances : TInstanceGroupsRemoveInstancesRequestTypeinstancesArray;
+  Protected
+    //Property setters
+    Procedure Setinstances(AIndex : Integer; const AValue : TInstanceGroupsRemoveInstancesRequestTypeinstancesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property instances : TInstanceGroupsRemoveInstancesRequestTypeinstancesArray Index 0 Read Finstances Write Setinstances;
+  end;
+  TInstanceGroupsRemoveInstancesRequestClass = Class of TInstanceGroupsRemoveInstancesRequest;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupsScopedListTypewarningTypedataItem
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupsScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TInstanceGroupsScopedListTypewarningTypedataItemClass = Class of TInstanceGroupsScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupsScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupsScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TInstanceGroupsScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TInstanceGroupsScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TInstanceGroupsScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TInstanceGroupsScopedListTypewarningClass = Class of TInstanceGroupsScopedListTypewarning;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupsScopedList
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupsScopedList = Class(TGoogleBaseObject)
+  Private
+    FinstanceGroups : TInstanceGroupsScopedListTypeinstanceGroupsArray;
+    Fwarning : TInstanceGroupsScopedListTypewarning;
+  Protected
+    //Property setters
+    Procedure SetinstanceGroups(AIndex : Integer; const AValue : TInstanceGroupsScopedListTypeinstanceGroupsArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TInstanceGroupsScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property instanceGroups : TInstanceGroupsScopedListTypeinstanceGroupsArray Index 0 Read FinstanceGroups Write SetinstanceGroups;
+    Property warning : TInstanceGroupsScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
+  end;
+  TInstanceGroupsScopedListClass = Class of TInstanceGroupsScopedList;
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupsSetNamedPortsRequest
+    --------------------------------------------------------------------}
+  
+  TInstanceGroupsSetNamedPortsRequest = Class(TGoogleBaseObject)
+  Private
+    Ffingerprint : String;
+    FnamedPorts : TInstanceGroupsSetNamedPortsRequestTypenamedPortsArray;
+  Protected
+    //Property setters
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnamedPorts(AIndex : Integer; const AValue : TInstanceGroupsSetNamedPortsRequestTypenamedPortsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property fingerprint : String Index 0 Read Ffingerprint Write Setfingerprint;
+    Property namedPorts : TInstanceGroupsSetNamedPortsRequestTypenamedPortsArray Index 8 Read FnamedPorts Write SetnamedPorts;
+  end;
+  TInstanceGroupsSetNamedPortsRequestClass = Class of TInstanceGroupsSetNamedPortsRequest;
   
   { --------------------------------------------------------------------
     TInstanceList
@@ -2292,40 +3073,31 @@ type
   
   TInstanceList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TInstanceListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TInstanceListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TInstanceListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TInstanceListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TInstanceListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TInstanceListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TInstanceListClass = Class of TInstanceList;
-  
-  { --------------------------------------------------------------------
-    TInstanceListitems
-    --------------------------------------------------------------------}
-  
-  TInstanceListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInstanceListitemsClass = Class of TInstanceListitems;
   
   { --------------------------------------------------------------------
     TInstanceMoveRequest
@@ -2333,16 +3105,16 @@ type
   
   TInstanceMoveRequest = Class(TGoogleBaseObject)
   Private
-    FdestinationZone : string;
-    FtargetInstance : string;
+    FdestinationZone : String;
+    FtargetInstance : String;
   Protected
     //Property setters
-    Procedure SetdestinationZone(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetInstance(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdestinationZone(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetInstance(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property destinationZone : string Index 0 Read FdestinationZone Write SetdestinationZone;
-    Property targetInstance : string Index 8 Read FtargetInstance Write SettargetInstance;
+    Property destinationZone : String Index 0 Read FdestinationZone Write SetdestinationZone;
+    Property targetInstance : String Index 8 Read FtargetInstance Write SettargetInstance;
   end;
   TInstanceMoveRequestClass = Class of TInstanceMoveRequest;
   
@@ -2353,77 +3125,42 @@ type
   TInstanceProperties = Class(TGoogleBaseObject)
   Private
     FcanIpForward : boolean;
-    Fdescription : string;
-    Fdisks : TInstancePropertiesdisks;
-    FmachineType : string;
+    Fdescription : String;
+    Fdisks : TInstancePropertiesTypedisksArray;
+    FmachineType : String;
     Fmetadata : TMetadata;
-    FnetworkInterfaces : TInstancePropertiesnetworkInterfaces;
+    FnetworkInterfaces : TInstancePropertiesTypenetworkInterfacesArray;
     Fscheduling : TScheduling;
-    FserviceAccounts : TInstancePropertiesserviceAccounts;
-    Ftags : TRoutetags;
+    FserviceAccounts : TInstancePropertiesTypeserviceAccountsArray;
+    Ftags : TTags;
   Protected
     //Property setters
-    Procedure SetcanIpForward(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdisks(AIndex : Integer; AValue : TInstancePropertiesdisks); virtual;
-    Procedure SetmachineType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmetadata(AIndex : Integer; AValue : TMetadata); virtual;
-    Procedure SetnetworkInterfaces(AIndex : Integer; AValue : TInstancePropertiesnetworkInterfaces); virtual;
-    Procedure Setscheduling(AIndex : Integer; AValue : TScheduling); virtual;
-    Procedure SetserviceAccounts(AIndex : Integer; AValue : TInstancePropertiesserviceAccounts); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TRoutetags); virtual;
+    Procedure SetcanIpForward(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdisks(AIndex : Integer; const AValue : TInstancePropertiesTypedisksArray); virtual;
+    Procedure SetmachineType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmetadata(AIndex : Integer; const AValue : TMetadata); virtual;
+    Procedure SetnetworkInterfaces(AIndex : Integer; const AValue : TInstancePropertiesTypenetworkInterfacesArray); virtual;
+    Procedure Setscheduling(AIndex : Integer; const AValue : TScheduling); virtual;
+    Procedure SetserviceAccounts(AIndex : Integer; const AValue : TInstancePropertiesTypeserviceAccountsArray); virtual;
+    Procedure Settags(AIndex : Integer; const AValue : TTags); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property canIpForward : boolean Index 0 Read FcanIpForward Write SetcanIpForward;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property disks : TInstancePropertiesdisks Index 16 Read Fdisks Write Setdisks;
-    Property machineType : string Index 24 Read FmachineType Write SetmachineType;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property disks : TInstancePropertiesTypedisksArray Index 16 Read Fdisks Write Setdisks;
+    Property machineType : String Index 24 Read FmachineType Write SetmachineType;
     Property metadata : TMetadata Index 32 Read Fmetadata Write Setmetadata;
-    Property networkInterfaces : TInstancePropertiesnetworkInterfaces Index 40 Read FnetworkInterfaces Write SetnetworkInterfaces;
+    Property networkInterfaces : TInstancePropertiesTypenetworkInterfacesArray Index 40 Read FnetworkInterfaces Write SetnetworkInterfaces;
     Property scheduling : TScheduling Index 48 Read Fscheduling Write Setscheduling;
-    Property serviceAccounts : TInstancePropertiesserviceAccounts Index 56 Read FserviceAccounts Write SetserviceAccounts;
-    Property tags : TRoutetags Index 64 Read Ftags Write Settags;
+    Property serviceAccounts : TInstancePropertiesTypeserviceAccountsArray Index 56 Read FserviceAccounts Write SetserviceAccounts;
+    Property tags : TTags Index 64 Read Ftags Write Settags;
   end;
   TInstancePropertiesClass = Class of TInstanceProperties;
-  
-  { --------------------------------------------------------------------
-    TInstancePropertiesdisks
-    --------------------------------------------------------------------}
-  
-  TInstancePropertiesdisks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInstancePropertiesdisksClass = Class of TInstancePropertiesdisks;
-  
-  { --------------------------------------------------------------------
-    TInstancePropertiesnetworkInterfaces
-    --------------------------------------------------------------------}
-  
-  TInstancePropertiesnetworkInterfaces = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInstancePropertiesnetworkInterfacesClass = Class of TInstancePropertiesnetworkInterfaces;
-  
-  { --------------------------------------------------------------------
-    TInstancePropertiesserviceAccounts
-    --------------------------------------------------------------------}
-  
-  TInstancePropertiesserviceAccounts = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TInstancePropertiesserviceAccountsClass = Class of TInstancePropertiesserviceAccounts;
   
   { --------------------------------------------------------------------
     TInstanceReference
@@ -2431,13 +3168,13 @@ type
   
   TInstanceReference = Class(TGoogleBaseObject)
   Private
-    Finstance : string;
+    Finstance : String;
   Protected
     //Property setters
-    Procedure Setinstance(AIndex : Integer; AValue : string); virtual;
+    Procedure Setinstance(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property instance : string Index 0 Read Finstance Write Setinstance;
+    Property instance : String Index 0 Read Finstance Write Setinstance;
   end;
   TInstanceReferenceClass = Class of TInstanceReference;
   
@@ -2447,31 +3184,31 @@ type
   
   TInstanceTemplate = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
     Fproperties : TInstanceProperties;
-    FselfLink : string;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setproperties(AIndex : Integer; AValue : TInstanceProperties); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setproperties(AIndex : Integer; const AValue : TInstanceProperties); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property name : string Index 32 Read Fname Write Setname;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property name : String Index 32 Read Fname Write Setname;
     Property properties : TInstanceProperties Index 40 Read Fproperties Write Setproperties;
-    Property selfLink : string Index 48 Read FselfLink Write SetselfLink;
+    Property selfLink : String Index 48 Read FselfLink Write SetselfLink;
   end;
   TInstanceTemplateClass = Class of TInstanceTemplate;
   
@@ -2481,40 +3218,102 @@ type
   
   TInstanceTemplateList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TInstanceTemplateListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TInstanceTemplateListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TInstanceTemplateListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TInstanceTemplateListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TInstanceTemplateListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TInstanceTemplateListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TInstanceTemplateListClass = Class of TInstanceTemplateList;
   
   { --------------------------------------------------------------------
-    TInstanceTemplateListitems
+    TInstanceWithNamedPorts
     --------------------------------------------------------------------}
   
-  TInstanceTemplateListitems = Class(TGoogleBaseObject)
+  TInstanceWithNamedPorts = Class(TGoogleBaseObject)
   Private
+    Finstance : String;
+    FnamedPorts : TInstanceWithNamedPortsTypenamedPortsArray;
+    Fstatus : String;
   Protected
     //Property setters
+    Procedure Setinstance(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnamedPorts(AIndex : Integer; const AValue : TInstanceWithNamedPortsTypenamedPortsArray); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
+    Property instance : String Index 0 Read Finstance Write Setinstance;
+    Property namedPorts : TInstanceWithNamedPortsTypenamedPortsArray Index 8 Read FnamedPorts Write SetnamedPorts;
+    Property status : String Index 16 Read Fstatus Write Setstatus;
   end;
-  TInstanceTemplateListitemsClass = Class of TInstanceTemplateListitems;
+  TInstanceWithNamedPortsClass = Class of TInstanceWithNamedPorts;
+  
+  { --------------------------------------------------------------------
+    TInstancesScopedListTypewarningTypedataItem
+    --------------------------------------------------------------------}
+  
+  TInstancesScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TInstancesScopedListTypewarningTypedataItemClass = Class of TInstancesScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TInstancesScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TInstancesScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TInstancesScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TInstancesScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TInstancesScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TInstancesScopedListTypewarningClass = Class of TInstancesScopedListTypewarning;
   
   { --------------------------------------------------------------------
     TInstancesScopedList
@@ -2522,72 +3321,38 @@ type
   
   TInstancesScopedList = Class(TGoogleBaseObject)
   Private
-    Finstances : TInstancesScopedListinstances;
-    Fwarning : TInstancesScopedListwarning;
+    Finstances : TInstancesScopedListTypeinstancesArray;
+    Fwarning : TInstancesScopedListTypewarning;
   Protected
     //Property setters
-    Procedure Setinstances(AIndex : Integer; AValue : TInstancesScopedListinstances); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TInstancesScopedListwarning); virtual;
+    Procedure Setinstances(AIndex : Integer; const AValue : TInstancesScopedListTypeinstancesArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TInstancesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property instances : TInstancesScopedListinstances Index 0 Read Finstances Write Setinstances;
-    Property warning : TInstancesScopedListwarning Index 8 Read Fwarning Write Setwarning;
+    Property instances : TInstancesScopedListTypeinstancesArray Index 0 Read Finstances Write Setinstances;
+    Property warning : TInstancesScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
   end;
   TInstancesScopedListClass = Class of TInstancesScopedList;
   
   { --------------------------------------------------------------------
-    TInstancesScopedListinstances
+    TInstancesSetMachineTypeRequest
     --------------------------------------------------------------------}
   
-  TInstancesScopedListinstances = Class(TGoogleBaseObject)
+  TInstancesSetMachineTypeRequest = Class(TGoogleBaseObject)
   Private
+    FmachineType : String;
   Protected
     //Property setters
+    Procedure SetmachineType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property machineType : String Index 0 Read FmachineType Write SetmachineType;
   end;
-  TInstancesScopedListinstancesClass = Class of TInstancesScopedListinstances;
-  
-  { --------------------------------------------------------------------
-    TInstancesScopedListwarning
-    --------------------------------------------------------------------}
-  
-  TInstancesScopedListwarning = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TInstancesScopedListwarningdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TInstancesScopedListwarningdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TInstancesScopedListwarningdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TInstancesScopedListwarningClass = Class of TInstancesScopedListwarning;
-  
-  { --------------------------------------------------------------------
-    TInstancesScopedListwarningdata
-    --------------------------------------------------------------------}
-  
-  TInstancesScopedListwarningdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TInstancesScopedListwarningdataClass = Class of TInstancesScopedListwarningdata;
+  TInstancesSetMachineTypeRequestClass = Class of TInstancesSetMachineTypeRequest;
   
   { --------------------------------------------------------------------
     TLicense
@@ -2596,23 +3361,39 @@ type
   TLicense = Class(TGoogleBaseObject)
   Private
     FchargesUseFee : boolean;
-    Fkind : string;
-    Fname : string;
-    FselfLink : string;
+    Fkind : String;
+    Fname : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure SetchargesUseFee(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure SetchargesUseFee(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property chargesUseFee : boolean Index 0 Read FchargesUseFee Write SetchargesUseFee;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
   end;
   TLicenseClass = Class of TLicense;
+  
+  { --------------------------------------------------------------------
+    TMachineTypeTypescratchDisksItem
+    --------------------------------------------------------------------}
+  
+  TMachineTypeTypescratchDisksItem = Class(TGoogleBaseObject)
+  Private
+    FdiskGb : integer;
+  Protected
+    //Property setters
+    Procedure SetdiskGb(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property diskGb : integer Index 0 Read FdiskGb Write SetdiskGb;
+  end;
+  TMachineTypeTypescratchDisksItemClass = Class of TMachineTypeTypescratchDisksItem;
   
   { --------------------------------------------------------------------
     TMachineType
@@ -2620,104 +3401,64 @@ type
   
   TMachineType = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
+    FcreationTimestamp : String;
     Fdeprecated : TDeprecationStatus;
-    Fdescription : string;
+    Fdescription : String;
     FguestCpus : integer;
-    Fid : string;
+    Fid : String;
     FimageSpaceGb : integer;
-    Fkind : string;
+    Fkind : String;
     FmaximumPersistentDisks : integer;
-    FmaximumPersistentDisksSizeGb : string;
+    FmaximumPersistentDisksSizeGb : String;
     FmemoryMb : integer;
-    Fname : string;
-    FscratchDisks : TMachineTypescratchDisks;
-    FselfLink : string;
-    Fzone : string;
+    Fname : String;
+    FscratchDisks : TMachineTypeTypescratchDisksArray;
+    FselfLink : String;
+    Fzone : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetguestCpus(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetimageSpaceGb(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmaximumPersistentDisks(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmaximumPersistentDisksSizeGb(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmemoryMb(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetscratchDisks(AIndex : Integer; AValue : TMachineTypescratchDisks); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetguestCpus(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetimageSpaceGb(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmaximumPersistentDisks(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetmaximumPersistentDisksSizeGb(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmemoryMb(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscratchDisks(AIndex : Integer; const AValue : TMachineTypeTypescratchDisksArray); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
     Property deprecated : TDeprecationStatus Index 8 Read Fdeprecated Write Setdeprecated;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
     Property guestCpus : integer Index 24 Read FguestCpus Write SetguestCpus;
-    Property id : string Index 32 Read Fid Write Setid;
+    Property id : String Index 32 Read Fid Write Setid;
     Property imageSpaceGb : integer Index 40 Read FimageSpaceGb Write SetimageSpaceGb;
-    Property kind : string Index 48 Read Fkind Write Setkind;
+    Property kind : String Index 48 Read Fkind Write Setkind;
     Property maximumPersistentDisks : integer Index 56 Read FmaximumPersistentDisks Write SetmaximumPersistentDisks;
-    Property maximumPersistentDisksSizeGb : string Index 64 Read FmaximumPersistentDisksSizeGb Write SetmaximumPersistentDisksSizeGb;
+    Property maximumPersistentDisksSizeGb : String Index 64 Read FmaximumPersistentDisksSizeGb Write SetmaximumPersistentDisksSizeGb;
     Property memoryMb : integer Index 72 Read FmemoryMb Write SetmemoryMb;
-    Property name : string Index 80 Read Fname Write Setname;
-    Property scratchDisks : TMachineTypescratchDisks Index 88 Read FscratchDisks Write SetscratchDisks;
-    Property selfLink : string Index 96 Read FselfLink Write SetselfLink;
-    Property zone : string Index 104 Read Fzone Write Setzone;
+    Property name : String Index 80 Read Fname Write Setname;
+    Property scratchDisks : TMachineTypeTypescratchDisksArray Index 88 Read FscratchDisks Write SetscratchDisks;
+    Property selfLink : String Index 96 Read FselfLink Write SetselfLink;
+    Property zone : String Index 104 Read Fzone Write Setzone;
   end;
   TMachineTypeClass = Class of TMachineType;
   
   { --------------------------------------------------------------------
-    TMachineTypescratchDisks
+    TMachineTypeAggregatedListTypeitems
     --------------------------------------------------------------------}
   
-  TMachineTypescratchDisks = Class(TGoogleBaseObject)
-  Private
-    FdiskGb : integer;
-  Protected
-    //Property setters
-    Procedure SetdiskGb(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property diskGb : integer Index 0 Read FdiskGb Write SetdiskGb;
-  end;
-  TMachineTypescratchDisksClass = Class of TMachineTypescratchDisks;
-  
-  { --------------------------------------------------------------------
-    TMachineTypeAggregatedList
-    --------------------------------------------------------------------}
-  
-  TMachineTypeAggregatedList = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fitems : TMachineTypeAggregatedListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TMachineTypeAggregatedListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TMachineTypeAggregatedListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-  end;
-  TMachineTypeAggregatedListClass = Class of TMachineTypeAggregatedList;
-  
-  { --------------------------------------------------------------------
-    TMachineTypeAggregatedListitems
-    --------------------------------------------------------------------}
-  
-  TMachineTypeAggregatedListitems = Class(TGoogleBaseObject)
+  TMachineTypeAggregatedListTypeitems = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -2725,7 +3466,35 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TMachineTypeAggregatedListitemsClass = Class of TMachineTypeAggregatedListitems;
+  TMachineTypeAggregatedListTypeitemsClass = Class of TMachineTypeAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TMachineTypeAggregatedList
+    --------------------------------------------------------------------}
+  
+  TMachineTypeAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TMachineTypeAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TMachineTypeAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TMachineTypeAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TMachineTypeAggregatedListClass = Class of TMachineTypeAggregatedList;
   
   { --------------------------------------------------------------------
     TMachineTypeList
@@ -2733,40 +3502,76 @@ type
   
   TMachineTypeList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TMachineTypeListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TMachineTypeListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TMachineTypeListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TMachineTypeListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TMachineTypeListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TMachineTypeListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TMachineTypeListClass = Class of TMachineTypeList;
   
   { --------------------------------------------------------------------
-    TMachineTypeListitems
+    TMachineTypesScopedListTypewarningTypedataItem
     --------------------------------------------------------------------}
   
-  TMachineTypeListitems = Class(TGoogleBaseObject)
+  TMachineTypesScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
   Private
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
-  TMachineTypeListitemsClass = Class of TMachineTypeListitems;
+  TMachineTypesScopedListTypewarningTypedataItemClass = Class of TMachineTypesScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TMachineTypesScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TMachineTypesScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TMachineTypesScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TMachineTypesScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TMachineTypesScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TMachineTypesScopedListTypewarningClass = Class of TMachineTypesScopedListTypewarning;
   
   { --------------------------------------------------------------------
     TMachineTypesScopedList
@@ -2774,72 +3579,127 @@ type
   
   TMachineTypesScopedList = Class(TGoogleBaseObject)
   Private
-    FmachineTypes : TMachineTypesScopedListmachineTypes;
-    Fwarning : TMachineTypesScopedListwarning;
+    FmachineTypes : TMachineTypesScopedListTypemachineTypesArray;
+    Fwarning : TMachineTypesScopedListTypewarning;
   Protected
     //Property setters
-    Procedure SetmachineTypes(AIndex : Integer; AValue : TMachineTypesScopedListmachineTypes); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TMachineTypesScopedListwarning); virtual;
+    Procedure SetmachineTypes(AIndex : Integer; const AValue : TMachineTypesScopedListTypemachineTypesArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TMachineTypesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property machineTypes : TMachineTypesScopedListmachineTypes Index 0 Read FmachineTypes Write SetmachineTypes;
-    Property warning : TMachineTypesScopedListwarning Index 8 Read Fwarning Write Setwarning;
+    Property machineTypes : TMachineTypesScopedListTypemachineTypesArray Index 0 Read FmachineTypes Write SetmachineTypes;
+    Property warning : TMachineTypesScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
   end;
   TMachineTypesScopedListClass = Class of TMachineTypesScopedList;
   
   { --------------------------------------------------------------------
-    TMachineTypesScopedListmachineTypes
+    TManagedInstance
     --------------------------------------------------------------------}
   
-  TMachineTypesScopedListmachineTypes = Class(TGoogleBaseObject)
+  TManagedInstance = Class(TGoogleBaseObject)
   Private
+    FcurrentAction : String;
+    Fid : String;
+    Finstance : String;
+    FinstanceStatus : String;
+    FlastAttempt : TManagedInstanceLastAttempt;
   Protected
     //Property setters
+    Procedure SetcurrentAction(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setinstance(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinstanceStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastAttempt(AIndex : Integer; const AValue : TManagedInstanceLastAttempt); virtual;
   Public
   Published
+    Property currentAction : String Index 0 Read FcurrentAction Write SetcurrentAction;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property instance : String Index 16 Read Finstance Write Setinstance;
+    Property instanceStatus : String Index 24 Read FinstanceStatus Write SetinstanceStatus;
+    Property lastAttempt : TManagedInstanceLastAttempt Index 32 Read FlastAttempt Write SetlastAttempt;
   end;
-  TMachineTypesScopedListmachineTypesClass = Class of TMachineTypesScopedListmachineTypes;
+  TManagedInstanceClass = Class of TManagedInstance;
   
   { --------------------------------------------------------------------
-    TMachineTypesScopedListwarning
+    TManagedInstanceLastAttemptTypeerrorsTypeerrorsItem
     --------------------------------------------------------------------}
   
-  TMachineTypesScopedListwarning = Class(TGoogleBaseObject)
+  TManagedInstanceLastAttemptTypeerrorsTypeerrorsItem = Class(TGoogleBaseObject)
   Private
-    Fcode : string;
-    Fdata : TMachineTypesScopedListwarningdata;
-    Fmessage : string;
+    Fcode : String;
+    Flocation : String;
+    Fmessage : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TMachineTypesScopedListwarningdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TMachineTypesScopedListwarningdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property location : String Index 8 Read Flocation Write Setlocation;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
-  TMachineTypesScopedListwarningClass = Class of TMachineTypesScopedListwarning;
+  TManagedInstanceLastAttemptTypeerrorsTypeerrorsItemClass = Class of TManagedInstanceLastAttemptTypeerrorsTypeerrorsItem;
   
   { --------------------------------------------------------------------
-    TMachineTypesScopedListwarningdata
+    TManagedInstanceLastAttemptTypeerrors
     --------------------------------------------------------------------}
   
-  TMachineTypesScopedListwarningdata = Class(TGoogleBaseObject)
+  TManagedInstanceLastAttemptTypeerrors = Class(TGoogleBaseObject)
   Private
-    Fkey : string;
-    Fvalue : string;
+    Ferrors : TManagedInstanceLastAttemptTypeerrorsTypeerrorsArray;
   Protected
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Seterrors(AIndex : Integer; const AValue : TManagedInstanceLastAttemptTypeerrorsTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property errors : TManagedInstanceLastAttemptTypeerrorsTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
   end;
-  TMachineTypesScopedListwarningdataClass = Class of TMachineTypesScopedListwarningdata;
+  TManagedInstanceLastAttemptTypeerrorsClass = Class of TManagedInstanceLastAttemptTypeerrors;
+  
+  { --------------------------------------------------------------------
+    TManagedInstanceLastAttempt
+    --------------------------------------------------------------------}
+  
+  TManagedInstanceLastAttempt = Class(TGoogleBaseObject)
+  Private
+    Ferrors : TManagedInstanceLastAttemptTypeerrors;
+  Protected
+    //Property setters
+    Procedure Seterrors(AIndex : Integer; const AValue : TManagedInstanceLastAttemptTypeerrors); virtual;
+  Public
+  Published
+    Property errors : TManagedInstanceLastAttemptTypeerrors Index 0 Read Ferrors Write Seterrors;
+  end;
+  TManagedInstanceLastAttemptClass = Class of TManagedInstanceLastAttempt;
+  
+  { --------------------------------------------------------------------
+    TMetadataTypeitemsItem
+    --------------------------------------------------------------------}
+  
+  TMetadataTypeitemsItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TMetadataTypeitemsItemClass = Class of TMetadataTypeitemsItem;
   
   { --------------------------------------------------------------------
     TMetadata
@@ -2847,40 +3707,44 @@ type
   
   TMetadata = Class(TGoogleBaseObject)
   Private
-    Ffingerprint : string;
-    Fitems : TMetadataitems;
-    Fkind : string;
+    Ffingerprint : String;
+    Fitems : TMetadataTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TMetadataitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TMetadataTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property fingerprint : string Index 0 Read Ffingerprint Write Setfingerprint;
-    Property items : TMetadataitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property fingerprint : String Index 0 Read Ffingerprint Write Setfingerprint;
+    Property items : TMetadataTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TMetadataClass = Class of TMetadata;
   
   { --------------------------------------------------------------------
-    TMetadataitems
+    TNamedPort
     --------------------------------------------------------------------}
   
-  TMetadataitems = Class(TGoogleBaseObject)
+  TNamedPort = Class(TGoogleBaseObject)
   Private
-    Fkey : string;
-    Fvalue : string;
+    Fname : String;
+    Fport : integer;
   Protected
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setport(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property port : integer Index 8 Read Fport Write Setport;
   end;
-  TMetadataitemsClass = Class of TMetadataitems;
+  TNamedPortClass = Class of TNamedPort;
   
   { --------------------------------------------------------------------
     TNetwork
@@ -2888,34 +3752,44 @@ type
   
   TNetwork = Class(TGoogleBaseObject)
   Private
-    FIPv4Range : string;
-    FcreationTimestamp : string;
-    Fdescription : string;
-    FgatewayIPv4 : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    FselfLink : string;
+    FIPv4Range : String;
+    FautoCreateSubnetworks : boolean;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    FgatewayIPv4 : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FselfLink : String;
+    Fsubnetworks : TStringArray;
   Protected
     //Property setters
-    Procedure SetIPv4Range(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgatewayIPv4(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure SetIPv4Range(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetautoCreateSubnetworks(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgatewayIPv4(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsubnetworks(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property IPv4Range : string Index 0 Read FIPv4Range Write SetIPv4Range;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property gatewayIPv4 : string Index 24 Read FgatewayIPv4 Write SetgatewayIPv4;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property kind : string Index 40 Read Fkind Write Setkind;
-    Property name : string Index 48 Read Fname Write Setname;
-    Property selfLink : string Index 56 Read FselfLink Write SetselfLink;
+    Property IPv4Range : String Index 0 Read FIPv4Range Write SetIPv4Range;
+    Property autoCreateSubnetworks : boolean Index 8 Read FautoCreateSubnetworks Write SetautoCreateSubnetworks;
+    Property creationTimestamp : String Index 16 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 24 Read Fdescription Write Setdescription;
+    Property gatewayIPv4 : String Index 32 Read FgatewayIPv4 Write SetgatewayIPv4;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property kind : String Index 48 Read Fkind Write Setkind;
+    Property name : String Index 56 Read Fname Write Setname;
+    Property selfLink : String Index 64 Read FselfLink Write SetselfLink;
+    Property subnetworks : TStringArray Index 72 Read Fsubnetworks Write Setsubnetworks;
   end;
   TNetworkClass = Class of TNetwork;
   
@@ -2925,37 +3799,31 @@ type
   
   TNetworkInterface = Class(TGoogleBaseObject)
   Private
-    FaccessConfigs : TNetworkInterfaceaccessConfigs;
-    Fname : string;
-    Fnetwork : string;
-    FnetworkIP : string;
+    FaccessConfigs : TNetworkInterfaceTypeaccessConfigsArray;
+    Fname : String;
+    Fnetwork : String;
+    FnetworkIP : String;
+    Fsubnetwork : String;
   Protected
     //Property setters
-    Procedure SetaccessConfigs(AIndex : Integer; AValue : TNetworkInterfaceaccessConfigs); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnetworkIP(AIndex : Integer; AValue : string); virtual;
+    Procedure SetaccessConfigs(AIndex : Integer; const AValue : TNetworkInterfaceTypeaccessConfigsArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnetworkIP(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsubnetwork(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property accessConfigs : TNetworkInterfaceaccessConfigs Index 0 Read FaccessConfigs Write SetaccessConfigs;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property network : string Index 16 Read Fnetwork Write Setnetwork;
-    Property networkIP : string Index 24 Read FnetworkIP Write SetnetworkIP;
+    Property accessConfigs : TNetworkInterfaceTypeaccessConfigsArray Index 0 Read FaccessConfigs Write SetaccessConfigs;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property network : String Index 16 Read Fnetwork Write Setnetwork;
+    Property networkIP : String Index 24 Read FnetworkIP Write SetnetworkIP;
+    Property subnetwork : String Index 32 Read Fsubnetwork Write Setsubnetwork;
   end;
   TNetworkInterfaceClass = Class of TNetworkInterface;
-  
-  { --------------------------------------------------------------------
-    TNetworkInterfaceaccessConfigs
-    --------------------------------------------------------------------}
-  
-  TNetworkInterfaceaccessConfigs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TNetworkInterfaceaccessConfigsClass = Class of TNetworkInterfaceaccessConfigs;
   
   { --------------------------------------------------------------------
     TNetworkList
@@ -2963,40 +3831,118 @@ type
   
   TNetworkList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TNetworkListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TNetworkListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TNetworkListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TNetworkListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TNetworkListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TNetworkListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TNetworkListClass = Class of TNetworkList;
   
   { --------------------------------------------------------------------
-    TNetworkListitems
+    TOperationTypeerrorTypeerrorsItem
     --------------------------------------------------------------------}
   
-  TNetworkListitems = Class(TGoogleBaseObject)
+  TOperationTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
   Private
+    Fcode : String;
+    Flocation : String;
+    Fmessage : String;
   Protected
     //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property location : String Index 8 Read Flocation Write Setlocation;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
-  TNetworkListitemsClass = Class of TNetworkListitems;
+  TOperationTypeerrorTypeerrorsItemClass = Class of TOperationTypeerrorTypeerrorsItem;
+  
+  { --------------------------------------------------------------------
+    TOperationTypeerror
+    --------------------------------------------------------------------}
+  
+  TOperationTypeerror = Class(TGoogleBaseObject)
+  Private
+    Ferrors : TOperationTypeerrorTypeerrorsArray;
+  Protected
+    //Property setters
+    Procedure Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
+  end;
+  TOperationTypeerrorClass = Class of TOperationTypeerror;
+  
+  { --------------------------------------------------------------------
+    TOperationTypewarningsItemTypedataItem
+    --------------------------------------------------------------------}
+  
+  TOperationTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TOperationTypewarningsItemTypedataItemClass = Class of TOperationTypewarningsItemTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TOperationTypewarningsItem
+    --------------------------------------------------------------------}
+  
+  TOperationTypewarningsItem = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TOperationTypewarningsItemTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TOperationTypewarningsItemTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TOperationTypewarningsItemClass = Class of TOperationTypewarningsItem;
   
   { --------------------------------------------------------------------
     TOperation
@@ -3004,191 +3950,91 @@ type
   
   TOperation = Class(TGoogleBaseObject)
   Private
-    FclientOperationId : string;
-    FcreationTimestamp : string;
-    FendTime : string;
-    Ferror : TOperationerror;
-    FhttpErrorMessage : string;
+    FclientOperationId : String;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    FendTime : String;
+    Ferror : TOperationTypeerror;
+    FhttpErrorMessage : String;
     FhttpErrorStatusCode : integer;
-    Fid : string;
-    FinsertTime : string;
-    Fkind : string;
-    Fname : string;
-    FoperationType : string;
+    Fid : String;
+    FinsertTime : String;
+    Fkind : String;
+    Fname : String;
+    FoperationType : String;
     Fprogress : integer;
-    Fregion : string;
-    FselfLink : string;
-    FstartTime : string;
-    Fstatus : string;
-    FstatusMessage : string;
-    FtargetId : string;
-    FtargetLink : string;
-    Fuser : string;
-    Fwarnings : TOperationwarnings;
-    Fzone : string;
+    Fregion : String;
+    FselfLink : String;
+    FstartTime : String;
+    Fstatus : String;
+    FstatusMessage : String;
+    FtargetId : String;
+    FtargetLink : String;
+    Fuser : String;
+    Fwarnings : TOperationTypewarningsArray;
+    Fzone : String;
   Protected
     //Property setters
-    Procedure SetclientOperationId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : TOperationerror); virtual;
-    Procedure SethttpErrorMessage(AIndex : Integer; AValue : string); virtual;
-    Procedure SethttpErrorStatusCode(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinsertTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoperationType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setprogress(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstatusMessage(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TOperationwarnings); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure SetclientOperationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seterror(AIndex : Integer; const AValue : TOperationTypeerror); virtual;
+    Procedure SethttpErrorMessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinsertTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setprogress(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstatusMessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property clientOperationId : string Index 0 Read FclientOperationId Write SetclientOperationId;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property endTime : string Index 16 Read FendTime Write SetendTime;
-    Property error : TOperationerror Index 24 Read Ferror Write Seterror;
-    Property httpErrorMessage : string Index 32 Read FhttpErrorMessage Write SethttpErrorMessage;
-    Property httpErrorStatusCode : integer Index 40 Read FhttpErrorStatusCode Write SethttpErrorStatusCode;
-    Property id : string Index 48 Read Fid Write Setid;
-    Property insertTime : string Index 56 Read FinsertTime Write SetinsertTime;
-    Property kind : string Index 64 Read Fkind Write Setkind;
-    Property name : string Index 72 Read Fname Write Setname;
-    Property operationType : string Index 80 Read FoperationType Write SetoperationType;
-    Property progress : integer Index 88 Read Fprogress Write Setprogress;
-    Property region : string Index 96 Read Fregion Write Setregion;
-    Property selfLink : string Index 104 Read FselfLink Write SetselfLink;
-    Property startTime : string Index 112 Read FstartTime Write SetstartTime;
-    Property status : string Index 120 Read Fstatus Write Setstatus;
-    Property statusMessage : string Index 128 Read FstatusMessage Write SetstatusMessage;
-    Property targetId : string Index 136 Read FtargetId Write SettargetId;
-    Property targetLink : string Index 144 Read FtargetLink Write SettargetLink;
-    Property user : string Index 152 Read Fuser Write Setuser;
-    Property warnings : TOperationwarnings Index 160 Read Fwarnings Write Setwarnings;
-    Property zone : string Index 168 Read Fzone Write Setzone;
+    Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property endTime : String Index 24 Read FendTime Write SetendTime;
+    Property error : TOperationTypeerror Index 32 Read Ferror Write Seterror;
+    Property httpErrorMessage : String Index 40 Read FhttpErrorMessage Write SethttpErrorMessage;
+    Property httpErrorStatusCode : integer Index 48 Read FhttpErrorStatusCode Write SethttpErrorStatusCode;
+    Property id : String Index 56 Read Fid Write Setid;
+    Property insertTime : String Index 64 Read FinsertTime Write SetinsertTime;
+    Property kind : String Index 72 Read Fkind Write Setkind;
+    Property name : String Index 80 Read Fname Write Setname;
+    Property operationType : String Index 88 Read FoperationType Write SetoperationType;
+    Property progress : integer Index 96 Read Fprogress Write Setprogress;
+    Property region : String Index 104 Read Fregion Write Setregion;
+    Property selfLink : String Index 112 Read FselfLink Write SetselfLink;
+    Property startTime : String Index 120 Read FstartTime Write SetstartTime;
+    Property status : String Index 128 Read Fstatus Write Setstatus;
+    Property statusMessage : String Index 136 Read FstatusMessage Write SetstatusMessage;
+    Property targetId : String Index 144 Read FtargetId Write SettargetId;
+    Property targetLink : String Index 152 Read FtargetLink Write SettargetLink;
+    Property user : String Index 160 Read Fuser Write Setuser;
+    Property warnings : TOperationTypewarningsArray Index 168 Read Fwarnings Write Setwarnings;
+    Property zone : String Index 176 Read Fzone Write Setzone;
   end;
   TOperationClass = Class of TOperation;
   
   { --------------------------------------------------------------------
-    TOperationerror
+    TOperationAggregatedListTypeitems
     --------------------------------------------------------------------}
   
-  TOperationerror = Class(TGoogleBaseObject)
-  Private
-    Ferrors : TOperationerrorerrors;
-  Protected
-    //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TOperationerrorerrors); virtual;
-  Public
-  Published
-    Property errors : TOperationerrorerrors Index 0 Read Ferrors Write Seterrors;
-  end;
-  TOperationerrorClass = Class of TOperationerror;
-  
-  { --------------------------------------------------------------------
-    TOperationerrorerrors
-    --------------------------------------------------------------------}
-  
-  TOperationerrorerrors = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Flocation : string;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property location : string Index 8 Read Flocation Write Setlocation;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TOperationerrorerrorsClass = Class of TOperationerrorerrors;
-  
-  { --------------------------------------------------------------------
-    TOperationwarnings
-    --------------------------------------------------------------------}
-  
-  TOperationwarnings = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TOperationwarningsdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TOperationwarningsdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TOperationwarningsdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TOperationwarningsClass = Class of TOperationwarnings;
-  
-  { --------------------------------------------------------------------
-    TOperationwarningsdata
-    --------------------------------------------------------------------}
-  
-  TOperationwarningsdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TOperationwarningsdataClass = Class of TOperationwarningsdata;
-  
-  { --------------------------------------------------------------------
-    TOperationAggregatedList
-    --------------------------------------------------------------------}
-  
-  TOperationAggregatedList = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fitems : TOperationAggregatedListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TOperationAggregatedListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TOperationAggregatedListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-  end;
-  TOperationAggregatedListClass = Class of TOperationAggregatedList;
-  
-  { --------------------------------------------------------------------
-    TOperationAggregatedListitems
-    --------------------------------------------------------------------}
-  
-  TOperationAggregatedListitems = Class(TGoogleBaseObject)
+  TOperationAggregatedListTypeitems = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -3196,7 +4042,35 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TOperationAggregatedListitemsClass = Class of TOperationAggregatedListitems;
+  TOperationAggregatedListTypeitemsClass = Class of TOperationAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TOperationAggregatedList
+    --------------------------------------------------------------------}
+  
+  TOperationAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TOperationAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TOperationAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TOperationAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TOperationAggregatedListClass = Class of TOperationAggregatedList;
   
   { --------------------------------------------------------------------
     TOperationList
@@ -3204,40 +4078,76 @@ type
   
   TOperationList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TOperationListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TOperationListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TOperationListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TOperationListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TOperationListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TOperationListClass = Class of TOperationList;
   
   { --------------------------------------------------------------------
-    TOperationListitems
+    TOperationsScopedListTypewarningTypedataItem
     --------------------------------------------------------------------}
   
-  TOperationListitems = Class(TGoogleBaseObject)
+  TOperationsScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
   Private
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
-  TOperationListitemsClass = Class of TOperationListitems;
+  TOperationsScopedListTypewarningTypedataItemClass = Class of TOperationsScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TOperationsScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TOperationsScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TOperationsScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TOperationsScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TOperationsScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TOperationsScopedListTypewarningClass = Class of TOperationsScopedListTypewarning;
   
   { --------------------------------------------------------------------
     TOperationsScopedList
@@ -3245,72 +4155,22 @@ type
   
   TOperationsScopedList = Class(TGoogleBaseObject)
   Private
-    Foperations : TOperationsScopedListoperations;
-    Fwarning : TOperationsScopedListwarning;
+    Foperations : TOperationsScopedListTypeoperationsArray;
+    Fwarning : TOperationsScopedListTypewarning;
   Protected
     //Property setters
-    Procedure Setoperations(AIndex : Integer; AValue : TOperationsScopedListoperations); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TOperationsScopedListwarning); virtual;
+    Procedure Setoperations(AIndex : Integer; const AValue : TOperationsScopedListTypeoperationsArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TOperationsScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property operations : TOperationsScopedListoperations Index 0 Read Foperations Write Setoperations;
-    Property warning : TOperationsScopedListwarning Index 8 Read Fwarning Write Setwarning;
+    Property operations : TOperationsScopedListTypeoperationsArray Index 0 Read Foperations Write Setoperations;
+    Property warning : TOperationsScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
   end;
   TOperationsScopedListClass = Class of TOperationsScopedList;
-  
-  { --------------------------------------------------------------------
-    TOperationsScopedListoperations
-    --------------------------------------------------------------------}
-  
-  TOperationsScopedListoperations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOperationsScopedListoperationsClass = Class of TOperationsScopedListoperations;
-  
-  { --------------------------------------------------------------------
-    TOperationsScopedListwarning
-    --------------------------------------------------------------------}
-  
-  TOperationsScopedListwarning = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TOperationsScopedListwarningdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TOperationsScopedListwarningdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TOperationsScopedListwarningdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TOperationsScopedListwarningClass = Class of TOperationsScopedListwarning;
-  
-  { --------------------------------------------------------------------
-    TOperationsScopedListwarningdata
-    --------------------------------------------------------------------}
-  
-  TOperationsScopedListwarningdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TOperationsScopedListwarningdataClass = Class of TOperationsScopedListwarningdata;
   
   { --------------------------------------------------------------------
     TPathMatcher
@@ -3318,37 +4178,28 @@ type
   
   TPathMatcher = Class(TGoogleBaseObject)
   Private
-    FdefaultService : string;
-    Fdescription : string;
-    Fname : string;
-    FpathRules : TPathMatcherpathRules;
+    FdefaultService : String;
+    Fdescription : String;
+    Fname : String;
+    FpathRules : TPathMatcherTypepathRulesArray;
   Protected
     //Property setters
-    Procedure SetdefaultService(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpathRules(AIndex : Integer; AValue : TPathMatcherpathRules); virtual;
+    Procedure SetdefaultService(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpathRules(AIndex : Integer; const AValue : TPathMatcherTypepathRulesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property defaultService : string Index 0 Read FdefaultService Write SetdefaultService;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property pathRules : TPathMatcherpathRules Index 24 Read FpathRules Write SetpathRules;
+    Property defaultService : String Index 0 Read FdefaultService Write SetdefaultService;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property pathRules : TPathMatcherTypepathRulesArray Index 24 Read FpathRules Write SetpathRules;
   end;
   TPathMatcherClass = Class of TPathMatcher;
-  
-  { --------------------------------------------------------------------
-    TPathMatcherpathRules
-    --------------------------------------------------------------------}
-  
-  TPathMatcherpathRules = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPathMatcherpathRulesClass = Class of TPathMatcherpathRules;
   
   { --------------------------------------------------------------------
     TPathRule
@@ -3356,31 +4207,22 @@ type
   
   TPathRule = Class(TGoogleBaseObject)
   Private
-    Fpaths : TPathRulepaths;
-    Fservice : string;
+    Fpaths : TStringArray;
+    Fservice : String;
   Protected
     //Property setters
-    Procedure Setpaths(AIndex : Integer; AValue : TPathRulepaths); virtual;
-    Procedure Setservice(AIndex : Integer; AValue : string); virtual;
+    Procedure Setpaths(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setservice(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property paths : TPathRulepaths Index 0 Read Fpaths Write Setpaths;
-    Property service : string Index 8 Read Fservice Write Setservice;
+    Property paths : TStringArray Index 0 Read Fpaths Write Setpaths;
+    Property service : String Index 8 Read Fservice Write Setservice;
   end;
   TPathRuleClass = Class of TPathRule;
-  
-  { --------------------------------------------------------------------
-    TPathRulepaths
-    --------------------------------------------------------------------}
-  
-  TPathRulepaths = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPathRulepathsClass = Class of TPathRulepaths;
   
   { --------------------------------------------------------------------
     TProject
@@ -3389,51 +4231,45 @@ type
   TProject = Class(TGoogleBaseObject)
   Private
     FcommonInstanceMetadata : TMetadata;
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    Fquotas : TProjectquotas;
-    FselfLink : string;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    FenabledFeatures : TStringArray;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    Fquotas : TProjectTypequotasArray;
+    FselfLink : String;
     FusageExportLocation : TUsageExportLocation;
   Protected
     //Property setters
-    Procedure SetcommonInstanceMetadata(AIndex : Integer; AValue : TMetadata); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setquotas(AIndex : Integer; AValue : TProjectquotas); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetusageExportLocation(AIndex : Integer; AValue : TUsageExportLocation); virtual;
+    Procedure SetcommonInstanceMetadata(AIndex : Integer; const AValue : TMetadata); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetenabledFeatures(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setquotas(AIndex : Integer; const AValue : TProjectTypequotasArray); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetusageExportLocation(AIndex : Integer; const AValue : TUsageExportLocation); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property commonInstanceMetadata : TMetadata Index 0 Read FcommonInstanceMetadata Write SetcommonInstanceMetadata;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property quotas : TProjectquotas Index 48 Read Fquotas Write Setquotas;
-    Property selfLink : string Index 56 Read FselfLink Write SetselfLink;
-    Property usageExportLocation : TUsageExportLocation Index 64 Read FusageExportLocation Write SetusageExportLocation;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property enabledFeatures : TStringArray Index 24 Read FenabledFeatures Write SetenabledFeatures;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property name : String Index 48 Read Fname Write Setname;
+    Property quotas : TProjectTypequotasArray Index 56 Read Fquotas Write Setquotas;
+    Property selfLink : String Index 64 Read FselfLink Write SetselfLink;
+    Property usageExportLocation : TUsageExportLocation Index 72 Read FusageExportLocation Write SetusageExportLocation;
   end;
   TProjectClass = Class of TProject;
-  
-  { --------------------------------------------------------------------
-    TProjectquotas
-    --------------------------------------------------------------------}
-  
-  TProjectquotas = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TProjectquotasClass = Class of TProjectquotas;
   
   { --------------------------------------------------------------------
     TQuota
@@ -3442,17 +4278,17 @@ type
   TQuota = Class(TGoogleBaseObject)
   Private
     Flimit : double;
-    Fmetric : string;
+    Fmetric : String;
     Fusage : double;
   Protected
     //Property setters
-    Procedure Setlimit(AIndex : Integer; AValue : double); virtual;
-    Procedure Setmetric(AIndex : Integer; AValue : string); virtual;
-    Procedure Setusage(AIndex : Integer; AValue : double); virtual;
+    Procedure Setlimit(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setmetric(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setusage(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property limit : double Index 0 Read Flimit Write Setlimit;
-    Property metric : string Index 8 Read Fmetric Write Setmetric;
+    Property metric : String Index 8 Read Fmetric Write Setmetric;
     Property usage : double Index 16 Read Fusage Write Setusage;
   end;
   TQuotaClass = Class of TQuota;
@@ -3463,68 +4299,46 @@ type
   
   TRegion = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
+    FcreationTimestamp : String;
     Fdeprecated : TDeprecationStatus;
-    Fdescription : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    Fquotas : TRegionquotas;
-    FselfLink : string;
-    Fstatus : string;
-    Fzones : TRegionzones;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    Fquotas : TRegionTypequotasArray;
+    FselfLink : String;
+    Fstatus : String;
+    Fzones : TStringArray;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setquotas(AIndex : Integer; AValue : TRegionquotas); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Setzones(AIndex : Integer; AValue : TRegionzones); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setquotas(AIndex : Integer; const AValue : TRegionTypequotasArray); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzones(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
     Property deprecated : TDeprecationStatus Index 8 Read Fdeprecated Write Setdeprecated;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property quotas : TRegionquotas Index 48 Read Fquotas Write Setquotas;
-    Property selfLink : string Index 56 Read FselfLink Write SetselfLink;
-    Property status : string Index 64 Read Fstatus Write Setstatus;
-    Property zones : TRegionzones Index 72 Read Fzones Write Setzones;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property quotas : TRegionTypequotasArray Index 48 Read Fquotas Write Setquotas;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
+    Property status : String Index 64 Read Fstatus Write Setstatus;
+    Property zones : TStringArray Index 72 Read Fzones Write Setzones;
   end;
   TRegionClass = Class of TRegion;
-  
-  { --------------------------------------------------------------------
-    TRegionquotas
-    --------------------------------------------------------------------}
-  
-  TRegionquotas = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRegionquotasClass = Class of TRegionquotas;
-  
-  { --------------------------------------------------------------------
-    TRegionzones
-    --------------------------------------------------------------------}
-  
-  TRegionzones = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRegionzonesClass = Class of TRegionzones;
   
   { --------------------------------------------------------------------
     TRegionList
@@ -3532,40 +4346,31 @@ type
   
   TRegionList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TRegionListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TRegionListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TRegionListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TRegionListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TRegionListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TRegionListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TRegionListClass = Class of TRegionList;
-  
-  { --------------------------------------------------------------------
-    TRegionListitems
-    --------------------------------------------------------------------}
-  
-  TRegionListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRegionListitemsClass = Class of TRegionListitems;
   
   { --------------------------------------------------------------------
     TResourceGroupReference
@@ -3573,15 +4378,60 @@ type
   
   TResourceGroupReference = Class(TGoogleBaseObject)
   Private
-    Fgroup : string;
+    Fgroup : String;
   Protected
     //Property setters
-    Procedure Setgroup(AIndex : Integer; AValue : string); virtual;
+    Procedure Setgroup(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property group : string Index 0 Read Fgroup Write Setgroup;
+    Property group : String Index 0 Read Fgroup Write Setgroup;
   end;
   TResourceGroupReferenceClass = Class of TResourceGroupReference;
+  
+  { --------------------------------------------------------------------
+    TRouteTypewarningsItemTypedataItem
+    --------------------------------------------------------------------}
+  
+  TRouteTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TRouteTypewarningsItemTypedataItemClass = Class of TRouteTypewarningsItemTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TRouteTypewarningsItem
+    --------------------------------------------------------------------}
+  
+  TRouteTypewarningsItem = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TRouteTypewarningsItemTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TRouteTypewarningsItemTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TRouteTypewarningsItemTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TRouteTypewarningsItemClass = Class of TRouteTypewarningsItem;
   
   { --------------------------------------------------------------------
     TRoute
@@ -3589,114 +4439,64 @@ type
   
   TRoute = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    Fdescription : string;
-    FdestRange : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    Fnetwork : string;
-    FnextHopGateway : string;
-    FnextHopInstance : string;
-    FnextHopIp : string;
-    FnextHopNetwork : string;
-    FnextHopVpnTunnel : string;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    FdestRange : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    Fnetwork : String;
+    FnextHopGateway : String;
+    FnextHopInstance : String;
+    FnextHopIp : String;
+    FnextHopNetwork : String;
+    FnextHopVpnTunnel : String;
     Fpriority : integer;
-    FselfLink : string;
-    Ftags : TRoutetags;
-    Fwarnings : TRoutewarnings;
+    FselfLink : String;
+    Ftags : TStringArray;
+    Fwarnings : TRouteTypewarningsArray;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdestRange(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextHopGateway(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextHopInstance(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextHopIp(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextHopNetwork(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextHopVpnTunnel(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpriority(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Settags(AIndex : Integer; AValue : TRoutetags); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TRoutewarnings); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdestRange(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextHopGateway(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextHopInstance(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextHopIp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextHopNetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextHopVpnTunnel(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpriority(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settags(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : TRouteTypewarningsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property destRange : string Index 16 Read FdestRange Write SetdestRange;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property network : string Index 48 Read Fnetwork Write Setnetwork;
-    Property nextHopGateway : string Index 56 Read FnextHopGateway Write SetnextHopGateway;
-    Property nextHopInstance : string Index 64 Read FnextHopInstance Write SetnextHopInstance;
-    Property nextHopIp : string Index 72 Read FnextHopIp Write SetnextHopIp;
-    Property nextHopNetwork : string Index 80 Read FnextHopNetwork Write SetnextHopNetwork;
-    Property nextHopVpnTunnel : string Index 88 Read FnextHopVpnTunnel Write SetnextHopVpnTunnel;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property destRange : String Index 16 Read FdestRange Write SetdestRange;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property network : String Index 48 Read Fnetwork Write Setnetwork;
+    Property nextHopGateway : String Index 56 Read FnextHopGateway Write SetnextHopGateway;
+    Property nextHopInstance : String Index 64 Read FnextHopInstance Write SetnextHopInstance;
+    Property nextHopIp : String Index 72 Read FnextHopIp Write SetnextHopIp;
+    Property nextHopNetwork : String Index 80 Read FnextHopNetwork Write SetnextHopNetwork;
+    Property nextHopVpnTunnel : String Index 88 Read FnextHopVpnTunnel Write SetnextHopVpnTunnel;
     Property priority : integer Index 96 Read Fpriority Write Setpriority;
-    Property selfLink : string Index 104 Read FselfLink Write SetselfLink;
-    Property tags : TRoutetags Index 112 Read Ftags Write Settags;
-    Property warnings : TRoutewarnings Index 120 Read Fwarnings Write Setwarnings;
+    Property selfLink : String Index 104 Read FselfLink Write SetselfLink;
+    Property tags : TStringArray Index 112 Read Ftags Write Settags;
+    Property warnings : TRouteTypewarningsArray Index 120 Read Fwarnings Write Setwarnings;
   end;
   TRouteClass = Class of TRoute;
-  
-  { --------------------------------------------------------------------
-    TRoutetags
-    --------------------------------------------------------------------}
-  
-  TRoutetags = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRoutetagsClass = Class of TRoutetags;
-  
-  { --------------------------------------------------------------------
-    TRoutewarnings
-    --------------------------------------------------------------------}
-  
-  TRoutewarnings = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TRoutewarningsdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TRoutewarningsdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TRoutewarningsdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TRoutewarningsClass = Class of TRoutewarnings;
-  
-  { --------------------------------------------------------------------
-    TRoutewarningsdata
-    --------------------------------------------------------------------}
-  
-  TRoutewarningsdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TRoutewarningsdataClass = Class of TRoutewarningsdata;
   
   { --------------------------------------------------------------------
     TRouteList
@@ -3704,40 +4504,31 @@ type
   
   TRouteList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TRouteListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TRouteListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TRouteListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TRouteListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TRouteListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TRouteListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TRouteListClass = Class of TRouteList;
-  
-  { --------------------------------------------------------------------
-    TRouteListitems
-    --------------------------------------------------------------------}
-  
-  TRouteListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRouteListitemsClass = Class of TRouteListitems;
   
   { --------------------------------------------------------------------
     TScheduling
@@ -3746,15 +4537,18 @@ type
   TScheduling = Class(TGoogleBaseObject)
   Private
     FautomaticRestart : boolean;
-    FonHostMaintenance : string;
+    FonHostMaintenance : String;
+    Fpreemptible : boolean;
   Protected
     //Property setters
-    Procedure SetautomaticRestart(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetonHostMaintenance(AIndex : Integer; AValue : string); virtual;
+    Procedure SetautomaticRestart(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetonHostMaintenance(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpreemptible(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property automaticRestart : boolean Index 0 Read FautomaticRestart Write SetautomaticRestart;
-    Property onHostMaintenance : string Index 8 Read FonHostMaintenance Write SetonHostMaintenance;
+    Property onHostMaintenance : String Index 8 Read FonHostMaintenance Write SetonHostMaintenance;
+    Property preemptible : boolean Index 16 Read Fpreemptible Write Setpreemptible;
   end;
   TSchedulingClass = Class of TScheduling;
   
@@ -3764,19 +4558,19 @@ type
   
   TSerialPortOutput = Class(TGoogleBaseObject)
   Private
-    Fcontents : string;
-    Fkind : string;
-    FselfLink : string;
+    Fcontents : String;
+    Fkind : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setcontents(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcontents(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property contents : string Index 0 Read Fcontents Write Setcontents;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property selfLink : string Index 16 Read FselfLink Write SetselfLink;
+    Property contents : String Index 0 Read Fcontents Write Setcontents;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property selfLink : String Index 16 Read FselfLink Write SetselfLink;
   end;
   TSerialPortOutputClass = Class of TSerialPortOutput;
   
@@ -3786,31 +4580,22 @@ type
   
   TServiceAccount = Class(TGoogleBaseObject)
   Private
-    Femail : string;
-    Fscopes : TServiceAccountscopes;
+    Femail : String;
+    Fscopes : TStringArray;
   Protected
     //Property setters
-    Procedure Setemail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setscopes(AIndex : Integer; AValue : TServiceAccountscopes); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setscopes(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property email : string Index 0 Read Femail Write Setemail;
-    Property scopes : TServiceAccountscopes Index 8 Read Fscopes Write Setscopes;
+    Property email : String Index 0 Read Femail Write Setemail;
+    Property scopes : TStringArray Index 8 Read Fscopes Write Setscopes;
   end;
   TServiceAccountClass = Class of TServiceAccount;
-  
-  { --------------------------------------------------------------------
-    TServiceAccountscopes
-    --------------------------------------------------------------------}
-  
-  TServiceAccountscopes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TServiceAccountscopesClass = Class of TServiceAccountscopes;
   
   { --------------------------------------------------------------------
     TSnapshot
@@ -3818,64 +4603,55 @@ type
   
   TSnapshot = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    Fdescription : string;
-    FdiskSizeGb : string;
-    Fid : string;
-    Fkind : string;
-    Flicenses : TSnapshotlicenses;
-    Fname : string;
-    FselfLink : string;
-    FsourceDisk : string;
-    FsourceDiskId : string;
-    Fstatus : string;
-    FstorageBytes : string;
-    FstorageBytesStatus : string;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    FdiskSizeGb : String;
+    Fid : String;
+    Fkind : String;
+    Flicenses : TStringArray;
+    Fname : String;
+    FselfLink : String;
+    FsourceDisk : String;
+    FsourceDiskId : String;
+    Fstatus : String;
+    FstorageBytes : String;
+    FstorageBytesStatus : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdiskSizeGb(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlicenses(AIndex : Integer; AValue : TSnapshotlicenses); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceDisk(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsourceDiskId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstorageBytes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstorageBytesStatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdiskSizeGb(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlicenses(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceDisk(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceDiskId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstorageBytes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstorageBytesStatus(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property diskSizeGb : string Index 16 Read FdiskSizeGb Write SetdiskSizeGb;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property licenses : TSnapshotlicenses Index 40 Read Flicenses Write Setlicenses;
-    Property name : string Index 48 Read Fname Write Setname;
-    Property selfLink : string Index 56 Read FselfLink Write SetselfLink;
-    Property sourceDisk : string Index 64 Read FsourceDisk Write SetsourceDisk;
-    Property sourceDiskId : string Index 72 Read FsourceDiskId Write SetsourceDiskId;
-    Property status : string Index 80 Read Fstatus Write Setstatus;
-    Property storageBytes : string Index 88 Read FstorageBytes Write SetstorageBytes;
-    Property storageBytesStatus : string Index 96 Read FstorageBytesStatus Write SetstorageBytesStatus;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property diskSizeGb : String Index 16 Read FdiskSizeGb Write SetdiskSizeGb;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property licenses : TStringArray Index 40 Read Flicenses Write Setlicenses;
+    Property name : String Index 48 Read Fname Write Setname;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
+    Property sourceDisk : String Index 64 Read FsourceDisk Write SetsourceDisk;
+    Property sourceDiskId : String Index 72 Read FsourceDiskId Write SetsourceDiskId;
+    Property status : String Index 80 Read Fstatus Write Setstatus;
+    Property storageBytes : String Index 88 Read FstorageBytes Write SetstorageBytes;
+    Property storageBytesStatus : String Index 96 Read FstorageBytesStatus Write SetstorageBytesStatus;
   end;
   TSnapshotClass = Class of TSnapshot;
-  
-  { --------------------------------------------------------------------
-    TSnapshotlicenses
-    --------------------------------------------------------------------}
-  
-  TSnapshotlicenses = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSnapshotlicensesClass = Class of TSnapshotlicenses;
   
   { --------------------------------------------------------------------
     TSnapshotList
@@ -3883,40 +4659,285 @@ type
   
   TSnapshotList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TSnapshotListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TSnapshotListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TSnapshotListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TSnapshotListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TSnapshotListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TSnapshotListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TSnapshotListClass = Class of TSnapshotList;
   
   { --------------------------------------------------------------------
-    TSnapshotListitems
+    TSslCertificate
     --------------------------------------------------------------------}
   
-  TSnapshotListitems = Class(TGoogleBaseObject)
+  TSslCertificate = Class(TGoogleBaseObject)
+  Private
+    Fcertificate : String;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FprivateKey : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setcertificate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprivateKey(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property certificate : String Index 0 Read Fcertificate Write Setcertificate;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property privateKey : String Index 48 Read FprivateKey Write SetprivateKey;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
+  end;
+  TSslCertificateClass = Class of TSslCertificate;
+  
+  { --------------------------------------------------------------------
+    TSslCertificateList
+    --------------------------------------------------------------------}
+  
+  TSslCertificateList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TSslCertificateListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TSslCertificateListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TSslCertificateListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TSslCertificateListClass = Class of TSslCertificateList;
+  
+  { --------------------------------------------------------------------
+    TSubnetwork
+    --------------------------------------------------------------------}
+  
+  TSubnetwork = Class(TGoogleBaseObject)
+  Private
+    FcreationTimestamp : String;
+    Fdescription : String;
+    FgatewayAddress : String;
+    Fid : String;
+    FipCidrRange : String;
+    Fkind : String;
+    Fname : String;
+    Fnetwork : String;
+    Fregion : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgatewayAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetipCidrRange(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property gatewayAddress : String Index 16 Read FgatewayAddress Write SetgatewayAddress;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property ipCidrRange : String Index 32 Read FipCidrRange Write SetipCidrRange;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property name : String Index 48 Read Fname Write Setname;
+    Property network : String Index 56 Read Fnetwork Write Setnetwork;
+    Property region : String Index 64 Read Fregion Write Setregion;
+    Property selfLink : String Index 72 Read FselfLink Write SetselfLink;
+  end;
+  TSubnetworkClass = Class of TSubnetwork;
+  
+  { --------------------------------------------------------------------
+    TSubnetworkAggregatedListTypeitems
+    --------------------------------------------------------------------}
+  
+  TSubnetworkAggregatedListTypeitems = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TSnapshotListitemsClass = Class of TSnapshotListitems;
+  TSubnetworkAggregatedListTypeitemsClass = Class of TSubnetworkAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TSubnetworkAggregatedList
+    --------------------------------------------------------------------}
+  
+  TSubnetworkAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TSubnetworkAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TSubnetworkAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TSubnetworkAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TSubnetworkAggregatedListClass = Class of TSubnetworkAggregatedList;
+  
+  { --------------------------------------------------------------------
+    TSubnetworkList
+    --------------------------------------------------------------------}
+  
+  TSubnetworkList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TSubnetworkListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TSubnetworkListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TSubnetworkListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TSubnetworkListClass = Class of TSubnetworkList;
+  
+  { --------------------------------------------------------------------
+    TSubnetworksScopedListTypewarningTypedataItem
+    --------------------------------------------------------------------}
+  
+  TSubnetworksScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TSubnetworksScopedListTypewarningTypedataItemClass = Class of TSubnetworksScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TSubnetworksScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TSubnetworksScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TSubnetworksScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TSubnetworksScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TSubnetworksScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TSubnetworksScopedListTypewarningClass = Class of TSubnetworksScopedListTypewarning;
+  
+  { --------------------------------------------------------------------
+    TSubnetworksScopedList
+    --------------------------------------------------------------------}
+  
+  TSubnetworksScopedList = Class(TGoogleBaseObject)
+  Private
+    Fsubnetworks : TSubnetworksScopedListTypesubnetworksArray;
+    Fwarning : TSubnetworksScopedListTypewarning;
+  Protected
+    //Property setters
+    Procedure Setsubnetworks(AIndex : Integer; const AValue : TSubnetworksScopedListTypesubnetworksArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TSubnetworksScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property subnetworks : TSubnetworksScopedListTypesubnetworksArray Index 0 Read Fsubnetworks Write Setsubnetworks;
+    Property warning : TSubnetworksScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
+  end;
+  TSubnetworksScopedListClass = Class of TSubnetworksScopedList;
   
   { --------------------------------------------------------------------
     TTags
@@ -3924,31 +4945,22 @@ type
   
   TTags = Class(TGoogleBaseObject)
   Private
-    Ffingerprint : string;
-    Fitems : TTagsitems;
+    Ffingerprint : String;
+    Fitems : TStringArray;
   Protected
     //Property setters
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTagsitems); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property fingerprint : string Index 0 Read Ffingerprint Write Setfingerprint;
-    Property items : TTagsitems Index 8 Read Fitems Write Setitems;
+    Property fingerprint : String Index 0 Read Ffingerprint Write Setfingerprint;
+    Property items : TStringArray Index 8 Read Fitems Write Setitems;
   end;
   TTagsClass = Class of TTags;
-  
-  { --------------------------------------------------------------------
-    TTagsitems
-    --------------------------------------------------------------------}
-  
-  TTagsitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTagsitemsClass = Class of TTagsitems;
   
   { --------------------------------------------------------------------
     TTargetHttpProxy
@@ -3956,31 +4968,31 @@ type
   
   TTargetHttpProxy = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    FselfLink : string;
-    FurlMap : string;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FselfLink : String;
+    FurlMap : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SeturlMap(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeturlMap(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property name : string Index 32 Read Fname Write Setname;
-    Property selfLink : string Index 40 Read FselfLink Write SetselfLink;
-    Property urlMap : string Index 48 Read FurlMap Write SeturlMap;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property name : String Index 32 Read Fname Write Setname;
+    Property selfLink : String Index 40 Read FselfLink Write SetselfLink;
+    Property urlMap : String Index 48 Read FurlMap Write SeturlMap;
   end;
   TTargetHttpProxyClass = Class of TTargetHttpProxy;
   
@@ -3990,40 +5002,124 @@ type
   
   TTargetHttpProxyList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TTargetHttpProxyListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TTargetHttpProxyListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTargetHttpProxyListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTargetHttpProxyListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TTargetHttpProxyListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TTargetHttpProxyListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TTargetHttpProxyListClass = Class of TTargetHttpProxyList;
   
   { --------------------------------------------------------------------
-    TTargetHttpProxyListitems
+    TTargetHttpsProxiesSetSslCertificatesRequest
     --------------------------------------------------------------------}
   
-  TTargetHttpProxyListitems = Class(TGoogleBaseObject)
+  TTargetHttpsProxiesSetSslCertificatesRequest = Class(TGoogleBaseObject)
   Private
+    FsslCertificates : TStringArray;
   Protected
     //Property setters
+    Procedure SetsslCertificates(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
+    Property sslCertificates : TStringArray Index 0 Read FsslCertificates Write SetsslCertificates;
   end;
-  TTargetHttpProxyListitemsClass = Class of TTargetHttpProxyListitems;
+  TTargetHttpsProxiesSetSslCertificatesRequestClass = Class of TTargetHttpsProxiesSetSslCertificatesRequest;
+  
+  { --------------------------------------------------------------------
+    TTargetHttpsProxy
+    --------------------------------------------------------------------}
+  
+  TTargetHttpsProxy = Class(TGoogleBaseObject)
+  Private
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FselfLink : String;
+    FsslCertificates : TStringArray;
+    FurlMap : String;
+  Protected
+    //Property setters
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsslCertificates(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SeturlMap(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property name : String Index 32 Read Fname Write Setname;
+    Property selfLink : String Index 40 Read FselfLink Write SetselfLink;
+    Property sslCertificates : TStringArray Index 48 Read FsslCertificates Write SetsslCertificates;
+    Property urlMap : String Index 56 Read FurlMap Write SeturlMap;
+  end;
+  TTargetHttpsProxyClass = Class of TTargetHttpsProxy;
+  
+  { --------------------------------------------------------------------
+    TTargetHttpsProxyList
+    --------------------------------------------------------------------}
+  
+  TTargetHttpsProxyList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TTargetHttpsProxyListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTargetHttpsProxyListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TTargetHttpsProxyListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TTargetHttpsProxyListClass = Class of TTargetHttpsProxyList;
   
   { --------------------------------------------------------------------
     TTargetInstance
@@ -4031,39 +5127,53 @@ type
   
   TTargetInstance = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Fid : string;
-    Finstance : string;
-    Fkind : string;
-    Fname : string;
-    FnatPolicy : string;
-    FselfLink : string;
-    Fzone : string;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fid : String;
+    Finstance : String;
+    Fkind : String;
+    Fname : String;
+    FnatPolicy : String;
+    FselfLink : String;
+    Fzone : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinstance(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnatPolicy(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setinstance(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnatPolicy(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property instance : string Index 24 Read Finstance Write Setinstance;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property natPolicy : string Index 48 Read FnatPolicy Write SetnatPolicy;
-    Property selfLink : string Index 56 Read FselfLink Write SetselfLink;
-    Property zone : string Index 64 Read Fzone Write Setzone;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property instance : String Index 24 Read Finstance Write Setinstance;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property natPolicy : String Index 48 Read FnatPolicy Write SetnatPolicy;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
+    Property zone : String Index 64 Read Fzone Write Setzone;
   end;
   TTargetInstanceClass = Class of TTargetInstance;
+  
+  { --------------------------------------------------------------------
+    TTargetInstanceAggregatedListTypeitems
+    --------------------------------------------------------------------}
+  
+  TTargetInstanceAggregatedListTypeitems = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TTargetInstanceAggregatedListTypeitemsClass = Class of TTargetInstanceAggregatedListTypeitems;
   
   { --------------------------------------------------------------------
     TTargetInstanceAggregatedList
@@ -4071,41 +5181,27 @@ type
   
   TTargetInstanceAggregatedList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TTargetInstanceAggregatedListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TTargetInstanceAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTargetInstanceAggregatedListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTargetInstanceAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TTargetInstanceAggregatedListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TTargetInstanceAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TTargetInstanceAggregatedListClass = Class of TTargetInstanceAggregatedList;
-  
-  { --------------------------------------------------------------------
-    TTargetInstanceAggregatedListitems
-    --------------------------------------------------------------------}
-  
-  TTargetInstanceAggregatedListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TTargetInstanceAggregatedListitemsClass = Class of TTargetInstanceAggregatedListitems;
   
   { --------------------------------------------------------------------
     TTargetInstanceList
@@ -4113,40 +5209,76 @@ type
   
   TTargetInstanceList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TTargetInstanceListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TTargetInstanceListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTargetInstanceListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTargetInstanceListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TTargetInstanceListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TTargetInstanceListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TTargetInstanceListClass = Class of TTargetInstanceList;
   
   { --------------------------------------------------------------------
-    TTargetInstanceListitems
+    TTargetInstancesScopedListTypewarningTypedataItem
     --------------------------------------------------------------------}
   
-  TTargetInstanceListitems = Class(TGoogleBaseObject)
+  TTargetInstancesScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
   Private
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
-  TTargetInstanceListitemsClass = Class of TTargetInstanceListitems;
+  TTargetInstancesScopedListTypewarningTypedataItemClass = Class of TTargetInstancesScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TTargetInstancesScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TTargetInstancesScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TTargetInstancesScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TTargetInstancesScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TTargetInstancesScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TTargetInstancesScopedListTypewarningClass = Class of TTargetInstancesScopedListTypewarning;
   
   { --------------------------------------------------------------------
     TTargetInstancesScopedList
@@ -4154,72 +5286,22 @@ type
   
   TTargetInstancesScopedList = Class(TGoogleBaseObject)
   Private
-    FtargetInstances : TTargetInstancesScopedListtargetInstances;
-    Fwarning : TTargetInstancesScopedListwarning;
+    FtargetInstances : TTargetInstancesScopedListTypetargetInstancesArray;
+    Fwarning : TTargetInstancesScopedListTypewarning;
   Protected
     //Property setters
-    Procedure SettargetInstances(AIndex : Integer; AValue : TTargetInstancesScopedListtargetInstances); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TTargetInstancesScopedListwarning); virtual;
+    Procedure SettargetInstances(AIndex : Integer; const AValue : TTargetInstancesScopedListTypetargetInstancesArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TTargetInstancesScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property targetInstances : TTargetInstancesScopedListtargetInstances Index 0 Read FtargetInstances Write SettargetInstances;
-    Property warning : TTargetInstancesScopedListwarning Index 8 Read Fwarning Write Setwarning;
+    Property targetInstances : TTargetInstancesScopedListTypetargetInstancesArray Index 0 Read FtargetInstances Write SettargetInstances;
+    Property warning : TTargetInstancesScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
   end;
   TTargetInstancesScopedListClass = Class of TTargetInstancesScopedList;
-  
-  { --------------------------------------------------------------------
-    TTargetInstancesScopedListtargetInstances
-    --------------------------------------------------------------------}
-  
-  TTargetInstancesScopedListtargetInstances = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetInstancesScopedListtargetInstancesClass = Class of TTargetInstancesScopedListtargetInstances;
-  
-  { --------------------------------------------------------------------
-    TTargetInstancesScopedListwarning
-    --------------------------------------------------------------------}
-  
-  TTargetInstancesScopedListwarning = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TTargetInstancesScopedListwarningdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TTargetInstancesScopedListwarningdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TTargetInstancesScopedListwarningdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TTargetInstancesScopedListwarningClass = Class of TTargetInstancesScopedListwarning;
-  
-  { --------------------------------------------------------------------
-    TTargetInstancesScopedListwarningdata
-    --------------------------------------------------------------------}
-  
-  TTargetInstancesScopedListwarningdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TTargetInstancesScopedListwarningdataClass = Class of TTargetInstancesScopedListwarningdata;
   
   { --------------------------------------------------------------------
     TTargetPool
@@ -4227,108 +5309,58 @@ type
   
   TTargetPool = Class(TGoogleBaseObject)
   Private
-    FbackupPool : string;
-    FcreationTimestamp : string;
-    Fdescription : string;
+    FbackupPool : String;
+    FcreationTimestamp : String;
+    Fdescription : String;
     FfailoverRatio : integer;
-    FhealthChecks : TTargetPoolhealthChecks;
-    Fid : string;
-    Finstances : TTargetPoolinstances;
-    Fkind : string;
-    Fname : string;
-    Fregion : string;
-    FselfLink : string;
-    FsessionAffinity : string;
+    FhealthChecks : TStringArray;
+    Fid : String;
+    Finstances : TStringArray;
+    Fkind : String;
+    Fname : String;
+    Fregion : String;
+    FselfLink : String;
+    FsessionAffinity : String;
   Protected
     //Property setters
-    Procedure SetbackupPool(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfailoverRatio(AIndex : Integer; AValue : integer); virtual;
-    Procedure SethealthChecks(AIndex : Integer; AValue : TTargetPoolhealthChecks); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinstances(AIndex : Integer; AValue : TTargetPoolinstances); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsessionAffinity(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbackupPool(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfailoverRatio(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SethealthChecks(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setinstances(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsessionAffinity(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property backupPool : string Index 0 Read FbackupPool Write SetbackupPool;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
+    Property backupPool : String Index 0 Read FbackupPool Write SetbackupPool;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
     Property failoverRatio : integer Index 24 Read FfailoverRatio Write SetfailoverRatio;
-    Property healthChecks : TTargetPoolhealthChecks Index 32 Read FhealthChecks Write SethealthChecks;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property instances : TTargetPoolinstances Index 48 Read Finstances Write Setinstances;
-    Property kind : string Index 56 Read Fkind Write Setkind;
-    Property name : string Index 64 Read Fname Write Setname;
-    Property region : string Index 72 Read Fregion Write Setregion;
-    Property selfLink : string Index 80 Read FselfLink Write SetselfLink;
-    Property sessionAffinity : string Index 88 Read FsessionAffinity Write SetsessionAffinity;
+    Property healthChecks : TStringArray Index 32 Read FhealthChecks Write SethealthChecks;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property instances : TStringArray Index 48 Read Finstances Write Setinstances;
+    Property kind : String Index 56 Read Fkind Write Setkind;
+    Property name : String Index 64 Read Fname Write Setname;
+    Property region : String Index 72 Read Fregion Write Setregion;
+    Property selfLink : String Index 80 Read FselfLink Write SetselfLink;
+    Property sessionAffinity : String Index 88 Read FsessionAffinity Write SetsessionAffinity;
   end;
   TTargetPoolClass = Class of TTargetPool;
   
   { --------------------------------------------------------------------
-    TTargetPoolhealthChecks
+    TTargetPoolAggregatedListTypeitems
     --------------------------------------------------------------------}
   
-  TTargetPoolhealthChecks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetPoolhealthChecksClass = Class of TTargetPoolhealthChecks;
-  
-  { --------------------------------------------------------------------
-    TTargetPoolinstances
-    --------------------------------------------------------------------}
-  
-  TTargetPoolinstances = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetPoolinstancesClass = Class of TTargetPoolinstances;
-  
-  { --------------------------------------------------------------------
-    TTargetPoolAggregatedList
-    --------------------------------------------------------------------}
-  
-  TTargetPoolAggregatedList = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fitems : TTargetPoolAggregatedListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTargetPoolAggregatedListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TTargetPoolAggregatedListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-  end;
-  TTargetPoolAggregatedListClass = Class of TTargetPoolAggregatedList;
-  
-  { --------------------------------------------------------------------
-    TTargetPoolAggregatedListitems
-    --------------------------------------------------------------------}
-  
-  TTargetPoolAggregatedListitems = Class(TGoogleBaseObject)
+  TTargetPoolAggregatedListTypeitems = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -4336,7 +5368,35 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TTargetPoolAggregatedListitemsClass = Class of TTargetPoolAggregatedListitems;
+  TTargetPoolAggregatedListTypeitemsClass = Class of TTargetPoolAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TTargetPoolAggregatedList
+    --------------------------------------------------------------------}
+  
+  TTargetPoolAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TTargetPoolAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTargetPoolAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TTargetPoolAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TTargetPoolAggregatedListClass = Class of TTargetPoolAggregatedList;
   
   { --------------------------------------------------------------------
     TTargetPoolInstanceHealth
@@ -4344,31 +5404,22 @@ type
   
   TTargetPoolInstanceHealth = Class(TGoogleBaseObject)
   Private
-    FhealthStatus : TTargetPoolInstanceHealthhealthStatus;
-    Fkind : string;
+    FhealthStatus : TTargetPoolInstanceHealthTypehealthStatusArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure SethealthStatus(AIndex : Integer; AValue : TTargetPoolInstanceHealthhealthStatus); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure SethealthStatus(AIndex : Integer; const AValue : TTargetPoolInstanceHealthTypehealthStatusArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property healthStatus : TTargetPoolInstanceHealthhealthStatus Index 0 Read FhealthStatus Write SethealthStatus;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property healthStatus : TTargetPoolInstanceHealthTypehealthStatusArray Index 0 Read FhealthStatus Write SethealthStatus;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TTargetPoolInstanceHealthClass = Class of TTargetPoolInstanceHealth;
-  
-  { --------------------------------------------------------------------
-    TTargetPoolInstanceHealthhealthStatus
-    --------------------------------------------------------------------}
-  
-  TTargetPoolInstanceHealthhealthStatus = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetPoolInstanceHealthhealthStatusClass = Class of TTargetPoolInstanceHealthhealthStatus;
   
   { --------------------------------------------------------------------
     TTargetPoolList
@@ -4376,40 +5427,31 @@ type
   
   TTargetPoolList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TTargetPoolListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TTargetPoolListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTargetPoolListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTargetPoolListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TTargetPoolListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TTargetPoolListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TTargetPoolListClass = Class of TTargetPoolList;
-  
-  { --------------------------------------------------------------------
-    TTargetPoolListitems
-    --------------------------------------------------------------------}
-  
-  TTargetPoolListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetPoolListitemsClass = Class of TTargetPoolListitems;
   
   { --------------------------------------------------------------------
     TTargetPoolsAddHealthCheckRequest
@@ -4417,28 +5459,19 @@ type
   
   TTargetPoolsAddHealthCheckRequest = Class(TGoogleBaseObject)
   Private
-    FhealthChecks : TTargetPoolsAddHealthCheckRequesthealthChecks;
+    FhealthChecks : TTargetPoolsAddHealthCheckRequestTypehealthChecksArray;
   Protected
     //Property setters
-    Procedure SethealthChecks(AIndex : Integer; AValue : TTargetPoolsAddHealthCheckRequesthealthChecks); virtual;
+    Procedure SethealthChecks(AIndex : Integer; const AValue : TTargetPoolsAddHealthCheckRequestTypehealthChecksArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property healthChecks : TTargetPoolsAddHealthCheckRequesthealthChecks Index 0 Read FhealthChecks Write SethealthChecks;
+    Property healthChecks : TTargetPoolsAddHealthCheckRequestTypehealthChecksArray Index 0 Read FhealthChecks Write SethealthChecks;
   end;
   TTargetPoolsAddHealthCheckRequestClass = Class of TTargetPoolsAddHealthCheckRequest;
-  
-  { --------------------------------------------------------------------
-    TTargetPoolsAddHealthCheckRequesthealthChecks
-    --------------------------------------------------------------------}
-  
-  TTargetPoolsAddHealthCheckRequesthealthChecks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetPoolsAddHealthCheckRequesthealthChecksClass = Class of TTargetPoolsAddHealthCheckRequesthealthChecks;
   
   { --------------------------------------------------------------------
     TTargetPoolsAddInstanceRequest
@@ -4446,28 +5479,19 @@ type
   
   TTargetPoolsAddInstanceRequest = Class(TGoogleBaseObject)
   Private
-    Finstances : TTargetPoolsAddInstanceRequestinstances;
+    Finstances : TTargetPoolsAddInstanceRequestTypeinstancesArray;
   Protected
     //Property setters
-    Procedure Setinstances(AIndex : Integer; AValue : TTargetPoolsAddInstanceRequestinstances); virtual;
+    Procedure Setinstances(AIndex : Integer; const AValue : TTargetPoolsAddInstanceRequestTypeinstancesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property instances : TTargetPoolsAddInstanceRequestinstances Index 0 Read Finstances Write Setinstances;
+    Property instances : TTargetPoolsAddInstanceRequestTypeinstancesArray Index 0 Read Finstances Write Setinstances;
   end;
   TTargetPoolsAddInstanceRequestClass = Class of TTargetPoolsAddInstanceRequest;
-  
-  { --------------------------------------------------------------------
-    TTargetPoolsAddInstanceRequestinstances
-    --------------------------------------------------------------------}
-  
-  TTargetPoolsAddInstanceRequestinstances = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetPoolsAddInstanceRequestinstancesClass = Class of TTargetPoolsAddInstanceRequestinstances;
   
   { --------------------------------------------------------------------
     TTargetPoolsRemoveHealthCheckRequest
@@ -4475,28 +5499,19 @@ type
   
   TTargetPoolsRemoveHealthCheckRequest = Class(TGoogleBaseObject)
   Private
-    FhealthChecks : TTargetPoolsRemoveHealthCheckRequesthealthChecks;
+    FhealthChecks : TTargetPoolsRemoveHealthCheckRequestTypehealthChecksArray;
   Protected
     //Property setters
-    Procedure SethealthChecks(AIndex : Integer; AValue : TTargetPoolsRemoveHealthCheckRequesthealthChecks); virtual;
+    Procedure SethealthChecks(AIndex : Integer; const AValue : TTargetPoolsRemoveHealthCheckRequestTypehealthChecksArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property healthChecks : TTargetPoolsRemoveHealthCheckRequesthealthChecks Index 0 Read FhealthChecks Write SethealthChecks;
+    Property healthChecks : TTargetPoolsRemoveHealthCheckRequestTypehealthChecksArray Index 0 Read FhealthChecks Write SethealthChecks;
   end;
   TTargetPoolsRemoveHealthCheckRequestClass = Class of TTargetPoolsRemoveHealthCheckRequest;
-  
-  { --------------------------------------------------------------------
-    TTargetPoolsRemoveHealthCheckRequesthealthChecks
-    --------------------------------------------------------------------}
-  
-  TTargetPoolsRemoveHealthCheckRequesthealthChecks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetPoolsRemoveHealthCheckRequesthealthChecksClass = Class of TTargetPoolsRemoveHealthCheckRequesthealthChecks;
   
   { --------------------------------------------------------------------
     TTargetPoolsRemoveInstanceRequest
@@ -4504,28 +5519,64 @@ type
   
   TTargetPoolsRemoveInstanceRequest = Class(TGoogleBaseObject)
   Private
-    Finstances : TTargetPoolsRemoveInstanceRequestinstances;
+    Finstances : TTargetPoolsRemoveInstanceRequestTypeinstancesArray;
   Protected
     //Property setters
-    Procedure Setinstances(AIndex : Integer; AValue : TTargetPoolsRemoveInstanceRequestinstances); virtual;
+    Procedure Setinstances(AIndex : Integer; const AValue : TTargetPoolsRemoveInstanceRequestTypeinstancesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property instances : TTargetPoolsRemoveInstanceRequestinstances Index 0 Read Finstances Write Setinstances;
+    Property instances : TTargetPoolsRemoveInstanceRequestTypeinstancesArray Index 0 Read Finstances Write Setinstances;
   end;
   TTargetPoolsRemoveInstanceRequestClass = Class of TTargetPoolsRemoveInstanceRequest;
   
   { --------------------------------------------------------------------
-    TTargetPoolsRemoveInstanceRequestinstances
+    TTargetPoolsScopedListTypewarningTypedataItem
     --------------------------------------------------------------------}
   
-  TTargetPoolsRemoveInstanceRequestinstances = Class(TGoogleBaseObject)
+  TTargetPoolsScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
   Private
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
-  TTargetPoolsRemoveInstanceRequestinstancesClass = Class of TTargetPoolsRemoveInstanceRequestinstances;
+  TTargetPoolsScopedListTypewarningTypedataItemClass = Class of TTargetPoolsScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TTargetPoolsScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TTargetPoolsScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TTargetPoolsScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TTargetPoolsScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TTargetPoolsScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TTargetPoolsScopedListTypewarningClass = Class of TTargetPoolsScopedListTypewarning;
   
   { --------------------------------------------------------------------
     TTargetPoolsScopedList
@@ -4533,72 +5584,22 @@ type
   
   TTargetPoolsScopedList = Class(TGoogleBaseObject)
   Private
-    FtargetPools : TTargetPoolsScopedListtargetPools;
-    Fwarning : TTargetPoolsScopedListwarning;
+    FtargetPools : TTargetPoolsScopedListTypetargetPoolsArray;
+    Fwarning : TTargetPoolsScopedListTypewarning;
   Protected
     //Property setters
-    Procedure SettargetPools(AIndex : Integer; AValue : TTargetPoolsScopedListtargetPools); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TTargetPoolsScopedListwarning); virtual;
+    Procedure SettargetPools(AIndex : Integer; const AValue : TTargetPoolsScopedListTypetargetPoolsArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TTargetPoolsScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property targetPools : TTargetPoolsScopedListtargetPools Index 0 Read FtargetPools Write SettargetPools;
-    Property warning : TTargetPoolsScopedListwarning Index 8 Read Fwarning Write Setwarning;
+    Property targetPools : TTargetPoolsScopedListTypetargetPoolsArray Index 0 Read FtargetPools Write SettargetPools;
+    Property warning : TTargetPoolsScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
   end;
   TTargetPoolsScopedListClass = Class of TTargetPoolsScopedList;
-  
-  { --------------------------------------------------------------------
-    TTargetPoolsScopedListtargetPools
-    --------------------------------------------------------------------}
-  
-  TTargetPoolsScopedListtargetPools = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetPoolsScopedListtargetPoolsClass = Class of TTargetPoolsScopedListtargetPools;
-  
-  { --------------------------------------------------------------------
-    TTargetPoolsScopedListwarning
-    --------------------------------------------------------------------}
-  
-  TTargetPoolsScopedListwarning = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TTargetPoolsScopedListwarningdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TTargetPoolsScopedListwarningdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TTargetPoolsScopedListwarningdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TTargetPoolsScopedListwarningClass = Class of TTargetPoolsScopedListwarning;
-  
-  { --------------------------------------------------------------------
-    TTargetPoolsScopedListwarningdata
-    --------------------------------------------------------------------}
-  
-  TTargetPoolsScopedListwarningdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TTargetPoolsScopedListwarningdataClass = Class of TTargetPoolsScopedListwarningdata;
   
   { --------------------------------------------------------------------
     TTargetReference
@@ -4606,13 +5607,13 @@ type
   
   TTargetReference = Class(TGoogleBaseObject)
   Private
-    Ftarget : string;
+    Ftarget : String;
   Protected
     //Property setters
-    Procedure Settarget(AIndex : Integer; AValue : string); virtual;
+    Procedure Settarget(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property target : string Index 0 Read Ftarget Write Settarget;
+    Property target : String Index 0 Read Ftarget Write Settarget;
   end;
   TTargetReferenceClass = Class of TTargetReference;
   
@@ -4622,105 +5623,55 @@ type
   
   TTargetVpnGateway = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    Fdescription : string;
-    FforwardingRules : TTargetVpnGatewayforwardingRules;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    Fnetwork : string;
-    Fregion : string;
-    FselfLink : string;
-    Fstatus : string;
-    Ftunnels : TTargetVpnGatewaytunnels;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    FforwardingRules : TStringArray;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    Fnetwork : String;
+    Fregion : String;
+    FselfLink : String;
+    Fstatus : String;
+    Ftunnels : TStringArray;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetforwardingRules(AIndex : Integer; AValue : TTargetVpnGatewayforwardingRules); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : string); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Settunnels(AIndex : Integer; AValue : TTargetVpnGatewaytunnels); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetforwardingRules(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settunnels(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property forwardingRules : TTargetVpnGatewayforwardingRules Index 16 Read FforwardingRules Write SetforwardingRules;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property name : string Index 40 Read Fname Write Setname;
-    Property network : string Index 48 Read Fnetwork Write Setnetwork;
-    Property region : string Index 56 Read Fregion Write Setregion;
-    Property selfLink : string Index 64 Read FselfLink Write SetselfLink;
-    Property status : string Index 72 Read Fstatus Write Setstatus;
-    Property tunnels : TTargetVpnGatewaytunnels Index 80 Read Ftunnels Write Settunnels;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property forwardingRules : TStringArray Index 16 Read FforwardingRules Write SetforwardingRules;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property network : String Index 48 Read Fnetwork Write Setnetwork;
+    Property region : String Index 56 Read Fregion Write Setregion;
+    Property selfLink : String Index 64 Read FselfLink Write SetselfLink;
+    Property status : String Index 72 Read Fstatus Write Setstatus;
+    Property tunnels : TStringArray Index 80 Read Ftunnels Write Settunnels;
   end;
   TTargetVpnGatewayClass = Class of TTargetVpnGateway;
   
   { --------------------------------------------------------------------
-    TTargetVpnGatewayforwardingRules
+    TTargetVpnGatewayAggregatedListTypeitems
     --------------------------------------------------------------------}
   
-  TTargetVpnGatewayforwardingRules = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetVpnGatewayforwardingRulesClass = Class of TTargetVpnGatewayforwardingRules;
-  
-  { --------------------------------------------------------------------
-    TTargetVpnGatewaytunnels
-    --------------------------------------------------------------------}
-  
-  TTargetVpnGatewaytunnels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetVpnGatewaytunnelsClass = Class of TTargetVpnGatewaytunnels;
-  
-  { --------------------------------------------------------------------
-    TTargetVpnGatewayAggregatedList
-    --------------------------------------------------------------------}
-  
-  TTargetVpnGatewayAggregatedList = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fitems : TTargetVpnGatewayAggregatedListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTargetVpnGatewayAggregatedListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TTargetVpnGatewayAggregatedListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-  end;
-  TTargetVpnGatewayAggregatedListClass = Class of TTargetVpnGatewayAggregatedList;
-  
-  { --------------------------------------------------------------------
-    TTargetVpnGatewayAggregatedListitems
-    --------------------------------------------------------------------}
-  
-  TTargetVpnGatewayAggregatedListitems = Class(TGoogleBaseObject)
+  TTargetVpnGatewayAggregatedListTypeitems = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -4728,7 +5679,35 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TTargetVpnGatewayAggregatedListitemsClass = Class of TTargetVpnGatewayAggregatedListitems;
+  TTargetVpnGatewayAggregatedListTypeitemsClass = Class of TTargetVpnGatewayAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TTargetVpnGatewayAggregatedList
+    --------------------------------------------------------------------}
+  
+  TTargetVpnGatewayAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TTargetVpnGatewayAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTargetVpnGatewayAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TTargetVpnGatewayAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TTargetVpnGatewayAggregatedListClass = Class of TTargetVpnGatewayAggregatedList;
   
   { --------------------------------------------------------------------
     TTargetVpnGatewayList
@@ -4736,40 +5715,76 @@ type
   
   TTargetVpnGatewayList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TTargetVpnGatewayListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TTargetVpnGatewayListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTargetVpnGatewayListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTargetVpnGatewayListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TTargetVpnGatewayListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TTargetVpnGatewayListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TTargetVpnGatewayListClass = Class of TTargetVpnGatewayList;
   
   { --------------------------------------------------------------------
-    TTargetVpnGatewayListitems
+    TTargetVpnGatewaysScopedListTypewarningTypedataItem
     --------------------------------------------------------------------}
   
-  TTargetVpnGatewayListitems = Class(TGoogleBaseObject)
+  TTargetVpnGatewaysScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
   Private
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
-  TTargetVpnGatewayListitemsClass = Class of TTargetVpnGatewayListitems;
+  TTargetVpnGatewaysScopedListTypewarningTypedataItemClass = Class of TTargetVpnGatewaysScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TTargetVpnGatewaysScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TTargetVpnGatewaysScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TTargetVpnGatewaysScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TTargetVpnGatewaysScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TTargetVpnGatewaysScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TTargetVpnGatewaysScopedListTypewarningClass = Class of TTargetVpnGatewaysScopedListTypewarning;
   
   { --------------------------------------------------------------------
     TTargetVpnGatewaysScopedList
@@ -4777,72 +5792,22 @@ type
   
   TTargetVpnGatewaysScopedList = Class(TGoogleBaseObject)
   Private
-    FtargetVpnGateways : TTargetVpnGatewaysScopedListtargetVpnGateways;
-    Fwarning : TTargetVpnGatewaysScopedListwarning;
+    FtargetVpnGateways : TTargetVpnGatewaysScopedListTypetargetVpnGatewaysArray;
+    Fwarning : TTargetVpnGatewaysScopedListTypewarning;
   Protected
     //Property setters
-    Procedure SettargetVpnGateways(AIndex : Integer; AValue : TTargetVpnGatewaysScopedListtargetVpnGateways); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TTargetVpnGatewaysScopedListwarning); virtual;
+    Procedure SettargetVpnGateways(AIndex : Integer; const AValue : TTargetVpnGatewaysScopedListTypetargetVpnGatewaysArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TTargetVpnGatewaysScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property targetVpnGateways : TTargetVpnGatewaysScopedListtargetVpnGateways Index 0 Read FtargetVpnGateways Write SettargetVpnGateways;
-    Property warning : TTargetVpnGatewaysScopedListwarning Index 8 Read Fwarning Write Setwarning;
+    Property targetVpnGateways : TTargetVpnGatewaysScopedListTypetargetVpnGatewaysArray Index 0 Read FtargetVpnGateways Write SettargetVpnGateways;
+    Property warning : TTargetVpnGatewaysScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
   end;
   TTargetVpnGatewaysScopedListClass = Class of TTargetVpnGatewaysScopedList;
-  
-  { --------------------------------------------------------------------
-    TTargetVpnGatewaysScopedListtargetVpnGateways
-    --------------------------------------------------------------------}
-  
-  TTargetVpnGatewaysScopedListtargetVpnGateways = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTargetVpnGatewaysScopedListtargetVpnGatewaysClass = Class of TTargetVpnGatewaysScopedListtargetVpnGateways;
-  
-  { --------------------------------------------------------------------
-    TTargetVpnGatewaysScopedListwarning
-    --------------------------------------------------------------------}
-  
-  TTargetVpnGatewaysScopedListwarning = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TTargetVpnGatewaysScopedListwarningdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TTargetVpnGatewaysScopedListwarningdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TTargetVpnGatewaysScopedListwarningdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TTargetVpnGatewaysScopedListwarningClass = Class of TTargetVpnGatewaysScopedListwarning;
-  
-  { --------------------------------------------------------------------
-    TTargetVpnGatewaysScopedListwarningdata
-    --------------------------------------------------------------------}
-  
-  TTargetVpnGatewaysScopedListwarningdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TTargetVpnGatewaysScopedListwarningdataClass = Class of TTargetVpnGatewaysScopedListwarningdata;
   
   { --------------------------------------------------------------------
     TTestFailure
@@ -4850,22 +5815,22 @@ type
   
   TTestFailure = Class(TGoogleBaseObject)
   Private
-    FactualService : string;
-    FexpectedService : string;
-    Fhost : string;
-    Fpath : string;
+    FactualService : String;
+    FexpectedService : String;
+    Fhost : String;
+    Fpath : String;
   Protected
     //Property setters
-    Procedure SetactualService(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexpectedService(AIndex : Integer; AValue : string); virtual;
-    Procedure Sethost(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpath(AIndex : Integer; AValue : string); virtual;
+    Procedure SetactualService(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetexpectedService(AIndex : Integer; const AValue : String); virtual;
+    Procedure Sethost(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpath(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property actualService : string Index 0 Read FactualService Write SetactualService;
-    Property expectedService : string Index 8 Read FexpectedService Write SetexpectedService;
-    Property host : string Index 16 Read Fhost Write Sethost;
-    Property path : string Index 24 Read Fpath Write Setpath;
+    Property actualService : String Index 0 Read FactualService Write SetactualService;
+    Property expectedService : String Index 8 Read FexpectedService Write SetexpectedService;
+    Property host : String Index 16 Read Fhost Write Sethost;
+    Property path : String Index 24 Read Fpath Write Setpath;
   end;
   TTestFailureClass = Class of TTestFailure;
   
@@ -4875,84 +5840,49 @@ type
   
   TUrlMap = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    FdefaultService : string;
-    Fdescription : string;
-    Ffingerprint : string;
-    FhostRules : TUrlMaphostRules;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    FpathMatchers : TUrlMappathMatchers;
-    FselfLink : string;
-    Ftests : TUrlMaptests;
+    FcreationTimestamp : String;
+    FdefaultService : String;
+    Fdescription : String;
+    Ffingerprint : String;
+    FhostRules : TUrlMapTypehostRulesArray;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    FpathMatchers : TUrlMapTypepathMatchersArray;
+    FselfLink : String;
+    Ftests : TUrlMapTypetestsArray;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdefaultService(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure SethostRules(AIndex : Integer; AValue : TUrlMaphostRules); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpathMatchers(AIndex : Integer; AValue : TUrlMappathMatchers); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Settests(AIndex : Integer; AValue : TUrlMaptests); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultService(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethostRules(AIndex : Integer; const AValue : TUrlMapTypehostRulesArray); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpathMatchers(AIndex : Integer; const AValue : TUrlMapTypepathMatchersArray); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settests(AIndex : Integer; const AValue : TUrlMapTypetestsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property defaultService : string Index 8 Read FdefaultService Write SetdefaultService;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property fingerprint : string Index 24 Read Ffingerprint Write Setfingerprint;
-    Property hostRules : TUrlMaphostRules Index 32 Read FhostRules Write SethostRules;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property name : string Index 56 Read Fname Write Setname;
-    Property pathMatchers : TUrlMappathMatchers Index 64 Read FpathMatchers Write SetpathMatchers;
-    Property selfLink : string Index 72 Read FselfLink Write SetselfLink;
-    Property tests : TUrlMaptests Index 80 Read Ftests Write Settests;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property defaultService : String Index 8 Read FdefaultService Write SetdefaultService;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property fingerprint : String Index 24 Read Ffingerprint Write Setfingerprint;
+    Property hostRules : TUrlMapTypehostRulesArray Index 32 Read FhostRules Write SethostRules;
+    Property id : String Index 40 Read Fid Write Setid;
+    Property kind : String Index 48 Read Fkind Write Setkind;
+    Property name : String Index 56 Read Fname Write Setname;
+    Property pathMatchers : TUrlMapTypepathMatchersArray Index 64 Read FpathMatchers Write SetpathMatchers;
+    Property selfLink : String Index 72 Read FselfLink Write SetselfLink;
+    Property tests : TUrlMapTypetestsArray Index 80 Read Ftests Write Settests;
   end;
   TUrlMapClass = Class of TUrlMap;
-  
-  { --------------------------------------------------------------------
-    TUrlMaphostRules
-    --------------------------------------------------------------------}
-  
-  TUrlMaphostRules = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlMaphostRulesClass = Class of TUrlMaphostRules;
-  
-  { --------------------------------------------------------------------
-    TUrlMappathMatchers
-    --------------------------------------------------------------------}
-  
-  TUrlMappathMatchers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlMappathMatchersClass = Class of TUrlMappathMatchers;
-  
-  { --------------------------------------------------------------------
-    TUrlMaptests
-    --------------------------------------------------------------------}
-  
-  TUrlMaptests = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlMaptestsClass = Class of TUrlMaptests;
   
   { --------------------------------------------------------------------
     TUrlMapList
@@ -4960,40 +5890,31 @@ type
   
   TUrlMapList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TUrlMapListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TUrlMapListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TUrlMapListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TUrlMapListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TUrlMapListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TUrlMapListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TUrlMapListClass = Class of TUrlMapList;
-  
-  { --------------------------------------------------------------------
-    TUrlMapListitems
-    --------------------------------------------------------------------}
-  
-  TUrlMapListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlMapListitemsClass = Class of TUrlMapListitems;
   
   { --------------------------------------------------------------------
     TUrlMapReference
@@ -5001,13 +5922,13 @@ type
   
   TUrlMapReference = Class(TGoogleBaseObject)
   Private
-    FurlMap : string;
+    FurlMap : String;
   Protected
     //Property setters
-    Procedure SeturlMap(AIndex : Integer; AValue : string); virtual;
+    Procedure SeturlMap(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property urlMap : string Index 0 Read FurlMap Write SeturlMap;
+    Property urlMap : String Index 0 Read FurlMap Write SeturlMap;
   end;
   TUrlMapReferenceClass = Class of TUrlMapReference;
   
@@ -5017,22 +5938,22 @@ type
   
   TUrlMapTest = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Fhost : string;
-    Fpath : string;
-    Fservice : string;
+    Fdescription : String;
+    Fhost : String;
+    Fpath : String;
+    Fservice : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Sethost(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpath(AIndex : Integer; AValue : string); virtual;
-    Procedure Setservice(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Sethost(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpath(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setservice(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property host : string Index 8 Read Fhost Write Sethost;
-    Property path : string Index 16 Read Fpath Write Setpath;
-    Property service : string Index 24 Read Fservice Write Setservice;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property host : String Index 8 Read Fhost Write Sethost;
+    Property path : String Index 16 Read Fpath Write Setpath;
+    Property service : String Index 24 Read Fservice Write Setservice;
   end;
   TUrlMapTestClass = Class of TUrlMapTest;
   
@@ -5042,50 +5963,28 @@ type
   
   TUrlMapValidationResult = Class(TGoogleBaseObject)
   Private
-    FloadErrors : TUrlMapValidationResultloadErrors;
+    FloadErrors : TStringArray;
     FloadSucceeded : boolean;
-    FtestFailures : TUrlMapValidationResulttestFailures;
+    FtestFailures : TUrlMapValidationResultTypetestFailuresArray;
     FtestPassed : boolean;
   Protected
     //Property setters
-    Procedure SetloadErrors(AIndex : Integer; AValue : TUrlMapValidationResultloadErrors); virtual;
-    Procedure SetloadSucceeded(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SettestFailures(AIndex : Integer; AValue : TUrlMapValidationResulttestFailures); virtual;
-    Procedure SettestPassed(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetloadErrors(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetloadSucceeded(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SettestFailures(AIndex : Integer; const AValue : TUrlMapValidationResultTypetestFailuresArray); virtual;
+    Procedure SettestPassed(AIndex : Integer; const AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property loadErrors : TUrlMapValidationResultloadErrors Index 0 Read FloadErrors Write SetloadErrors;
+    Property loadErrors : TStringArray Index 0 Read FloadErrors Write SetloadErrors;
     Property loadSucceeded : boolean Index 8 Read FloadSucceeded Write SetloadSucceeded;
-    Property testFailures : TUrlMapValidationResulttestFailures Index 16 Read FtestFailures Write SettestFailures;
+    Property testFailures : TUrlMapValidationResultTypetestFailuresArray Index 16 Read FtestFailures Write SettestFailures;
     Property testPassed : boolean Index 24 Read FtestPassed Write SettestPassed;
   end;
   TUrlMapValidationResultClass = Class of TUrlMapValidationResult;
-  
-  { --------------------------------------------------------------------
-    TUrlMapValidationResultloadErrors
-    --------------------------------------------------------------------}
-  
-  TUrlMapValidationResultloadErrors = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlMapValidationResultloadErrorsClass = Class of TUrlMapValidationResultloadErrors;
-  
-  { --------------------------------------------------------------------
-    TUrlMapValidationResulttestFailures
-    --------------------------------------------------------------------}
-  
-  TUrlMapValidationResulttestFailures = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TUrlMapValidationResulttestFailuresClass = Class of TUrlMapValidationResulttestFailures;
   
   { --------------------------------------------------------------------
     TUrlMapsValidateRequest
@@ -5096,7 +5995,7 @@ type
     Fresource : TUrlMap;
   Protected
     //Property setters
-    Procedure Setresource(AIndex : Integer; AValue : TUrlMap); virtual;
+    Procedure Setresource(AIndex : Integer; const AValue : TUrlMap); virtual;
   Public
   Published
     Property resource : TUrlMap Index 0 Read Fresource Write Setresource;
@@ -5112,7 +6011,7 @@ type
     Fresult : TUrlMapValidationResult;
   Protected
     //Property setters
-    Procedure Setresult(AIndex : Integer; AValue : TUrlMapValidationResult); virtual;
+    Procedure Setresult(AIndex : Integer; const AValue : TUrlMapValidationResult); virtual;
   Public
   Published
     Property result : TUrlMapValidationResult Index 0 Read Fresult Write Setresult;
@@ -5125,16 +6024,16 @@ type
   
   TUsageExportLocation = Class(TGoogleBaseObject)
   Private
-    FbucketName : string;
-    FreportNamePrefix : string;
+    FbucketName : String;
+    FreportNamePrefix : String;
   Protected
     //Property setters
-    Procedure SetbucketName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreportNamePrefix(AIndex : Integer; AValue : string); virtual;
+    Procedure SetbucketName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreportNamePrefix(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property bucketName : string Index 0 Read FbucketName Write SetbucketName;
-    Property reportNamePrefix : string Index 8 Read FreportNamePrefix Write SetreportNamePrefix;
+    Property bucketName : String Index 0 Read FbucketName Write SetbucketName;
+    Property reportNamePrefix : String Index 8 Read FreportNamePrefix Write SetreportNamePrefix;
   end;
   TUsageExportLocationClass = Class of TUsageExportLocation;
   
@@ -5144,104 +6043,67 @@ type
   
   TVpnTunnel = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    Fdescription : string;
-    FdetailedStatus : string;
-    Fid : string;
-    FikeNetworks : TVpnTunnelikeNetworks;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    FdetailedStatus : String;
+    Fid : String;
     FikeVersion : integer;
-    Fkind : string;
-    Fname : string;
-    FpeerIp : string;
-    Fregion : string;
-    FselfLink : string;
-    FsharedSecret : string;
-    FsharedSecretHash : string;
-    Fstatus : string;
-    FtargetVpnGateway : string;
+    Fkind : String;
+    FlocalTrafficSelector : TStringArray;
+    Fname : String;
+    FpeerIp : String;
+    Fregion : String;
+    FselfLink : String;
+    FsharedSecret : String;
+    FsharedSecretHash : String;
+    Fstatus : String;
+    FtargetVpnGateway : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdetailedStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetikeNetworks(AIndex : Integer; AValue : TVpnTunnelikeNetworks); virtual;
-    Procedure SetikeVersion(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpeerIp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsharedSecret(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsharedSecretHash(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetVpnGateway(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdetailedStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetikeVersion(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlocalTrafficSelector(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpeerIp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsharedSecret(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsharedSecretHash(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetVpnGateway(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property detailedStatus : string Index 16 Read FdetailedStatus Write SetdetailedStatus;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property ikeNetworks : TVpnTunnelikeNetworks Index 32 Read FikeNetworks Write SetikeNetworks;
-    Property ikeVersion : integer Index 40 Read FikeVersion Write SetikeVersion;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property name : string Index 56 Read Fname Write Setname;
-    Property peerIp : string Index 64 Read FpeerIp Write SetpeerIp;
-    Property region : string Index 72 Read Fregion Write Setregion;
-    Property selfLink : string Index 80 Read FselfLink Write SetselfLink;
-    Property sharedSecret : string Index 88 Read FsharedSecret Write SetsharedSecret;
-    Property sharedSecretHash : string Index 96 Read FsharedSecretHash Write SetsharedSecretHash;
-    Property status : string Index 104 Read Fstatus Write Setstatus;
-    Property targetVpnGateway : string Index 112 Read FtargetVpnGateway Write SettargetVpnGateway;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property detailedStatus : String Index 16 Read FdetailedStatus Write SetdetailedStatus;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property ikeVersion : integer Index 32 Read FikeVersion Write SetikeVersion;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property localTrafficSelector : TStringArray Index 48 Read FlocalTrafficSelector Write SetlocalTrafficSelector;
+    Property name : String Index 56 Read Fname Write Setname;
+    Property peerIp : String Index 64 Read FpeerIp Write SetpeerIp;
+    Property region : String Index 72 Read Fregion Write Setregion;
+    Property selfLink : String Index 80 Read FselfLink Write SetselfLink;
+    Property sharedSecret : String Index 88 Read FsharedSecret Write SetsharedSecret;
+    Property sharedSecretHash : String Index 96 Read FsharedSecretHash Write SetsharedSecretHash;
+    Property status : String Index 104 Read Fstatus Write Setstatus;
+    Property targetVpnGateway : String Index 112 Read FtargetVpnGateway Write SettargetVpnGateway;
   end;
   TVpnTunnelClass = Class of TVpnTunnel;
   
   { --------------------------------------------------------------------
-    TVpnTunnelikeNetworks
+    TVpnTunnelAggregatedListTypeitems
     --------------------------------------------------------------------}
   
-  TVpnTunnelikeNetworks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVpnTunnelikeNetworksClass = Class of TVpnTunnelikeNetworks;
-  
-  { --------------------------------------------------------------------
-    TVpnTunnelAggregatedList
-    --------------------------------------------------------------------}
-  
-  TVpnTunnelAggregatedList = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fitems : TVpnTunnelAggregatedListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TVpnTunnelAggregatedListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TVpnTunnelAggregatedListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-  end;
-  TVpnTunnelAggregatedListClass = Class of TVpnTunnelAggregatedList;
-  
-  { --------------------------------------------------------------------
-    TVpnTunnelAggregatedListitems
-    --------------------------------------------------------------------}
-  
-  TVpnTunnelAggregatedListitems = Class(TGoogleBaseObject)
+  TVpnTunnelAggregatedListTypeitems = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -5249,7 +6111,35 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TVpnTunnelAggregatedListitemsClass = Class of TVpnTunnelAggregatedListitems;
+  TVpnTunnelAggregatedListTypeitemsClass = Class of TVpnTunnelAggregatedListTypeitems;
+  
+  { --------------------------------------------------------------------
+    TVpnTunnelAggregatedList
+    --------------------------------------------------------------------}
+  
+  TVpnTunnelAggregatedList = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fitems : TVpnTunnelAggregatedListTypeitems;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TVpnTunnelAggregatedListTypeitems); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TVpnTunnelAggregatedListTypeitems Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+  end;
+  TVpnTunnelAggregatedListClass = Class of TVpnTunnelAggregatedList;
   
   { --------------------------------------------------------------------
     TVpnTunnelList
@@ -5257,40 +6147,76 @@ type
   
   TVpnTunnelList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TVpnTunnelListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TVpnTunnelListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TVpnTunnelListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TVpnTunnelListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TVpnTunnelListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TVpnTunnelListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TVpnTunnelListClass = Class of TVpnTunnelList;
   
   { --------------------------------------------------------------------
-    TVpnTunnelListitems
+    TVpnTunnelsScopedListTypewarningTypedataItem
     --------------------------------------------------------------------}
   
-  TVpnTunnelListitems = Class(TGoogleBaseObject)
+  TVpnTunnelsScopedListTypewarningTypedataItem = Class(TGoogleBaseObject)
   Private
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
-  TVpnTunnelListitemsClass = Class of TVpnTunnelListitems;
+  TVpnTunnelsScopedListTypewarningTypedataItemClass = Class of TVpnTunnelsScopedListTypewarningTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TVpnTunnelsScopedListTypewarning
+    --------------------------------------------------------------------}
+  
+  TVpnTunnelsScopedListTypewarning = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TVpnTunnelsScopedListTypewarningTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TVpnTunnelsScopedListTypewarningTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TVpnTunnelsScopedListTypewarningTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TVpnTunnelsScopedListTypewarningClass = Class of TVpnTunnelsScopedListTypewarning;
   
   { --------------------------------------------------------------------
     TVpnTunnelsScopedList
@@ -5298,72 +6224,22 @@ type
   
   TVpnTunnelsScopedList = Class(TGoogleBaseObject)
   Private
-    FvpnTunnels : TVpnTunnelsScopedListvpnTunnels;
-    Fwarning : TVpnTunnelsScopedListwarning;
+    FvpnTunnels : TVpnTunnelsScopedListTypevpnTunnelsArray;
+    Fwarning : TVpnTunnelsScopedListTypewarning;
   Protected
     //Property setters
-    Procedure SetvpnTunnels(AIndex : Integer; AValue : TVpnTunnelsScopedListvpnTunnels); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TVpnTunnelsScopedListwarning); virtual;
+    Procedure SetvpnTunnels(AIndex : Integer; const AValue : TVpnTunnelsScopedListTypevpnTunnelsArray); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TVpnTunnelsScopedListTypewarning); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property vpnTunnels : TVpnTunnelsScopedListvpnTunnels Index 0 Read FvpnTunnels Write SetvpnTunnels;
-    Property warning : TVpnTunnelsScopedListwarning Index 8 Read Fwarning Write Setwarning;
+    Property vpnTunnels : TVpnTunnelsScopedListTypevpnTunnelsArray Index 0 Read FvpnTunnels Write SetvpnTunnels;
+    Property warning : TVpnTunnelsScopedListTypewarning Index 8 Read Fwarning Write Setwarning;
   end;
   TVpnTunnelsScopedListClass = Class of TVpnTunnelsScopedList;
-  
-  { --------------------------------------------------------------------
-    TVpnTunnelsScopedListvpnTunnels
-    --------------------------------------------------------------------}
-  
-  TVpnTunnelsScopedListvpnTunnels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVpnTunnelsScopedListvpnTunnelsClass = Class of TVpnTunnelsScopedListvpnTunnels;
-  
-  { --------------------------------------------------------------------
-    TVpnTunnelsScopedListwarning
-    --------------------------------------------------------------------}
-  
-  TVpnTunnelsScopedListwarning = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TVpnTunnelsScopedListwarningdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TVpnTunnelsScopedListwarningdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TVpnTunnelsScopedListwarningdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TVpnTunnelsScopedListwarningClass = Class of TVpnTunnelsScopedListwarning;
-  
-  { --------------------------------------------------------------------
-    TVpnTunnelsScopedListwarningdata
-    --------------------------------------------------------------------}
-  
-  TVpnTunnelsScopedListwarningdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TVpnTunnelsScopedListwarningdataClass = Class of TVpnTunnelsScopedListwarningdata;
   
   { --------------------------------------------------------------------
     TZone
@@ -5371,67 +6247,39 @@ type
   
   TZone = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
+    FcreationTimestamp : String;
     Fdeprecated : TDeprecationStatus;
-    Fdescription : string;
-    Fid : string;
-    Fkind : string;
-    FmaintenanceWindows : TZonemaintenanceWindows;
-    Fname : string;
-    Fregion : string;
-    FselfLink : string;
-    Fstatus : string;
+    Fdescription : String;
+    Fid : String;
+    Fkind : String;
+    Fname : String;
+    Fregion : String;
+    FselfLink : String;
+    Fstatus : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmaintenanceWindows(AIndex : Integer; AValue : TZonemaintenanceWindows); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
     Property deprecated : TDeprecationStatus Index 8 Read Fdeprecated Write Setdeprecated;
-    Property description : string Index 16 Read Fdescription Write Setdescription;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property maintenanceWindows : TZonemaintenanceWindows Index 40 Read FmaintenanceWindows Write SetmaintenanceWindows;
-    Property name : string Index 48 Read Fname Write Setname;
-    Property region : string Index 56 Read Fregion Write Setregion;
-    Property selfLink : string Index 64 Read FselfLink Write SetselfLink;
-    Property status : string Index 72 Read Fstatus Write Setstatus;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property region : String Index 48 Read Fregion Write Setregion;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
+    Property status : String Index 64 Read Fstatus Write Setstatus;
   end;
   TZoneClass = Class of TZone;
-  
-  { --------------------------------------------------------------------
-    TZonemaintenanceWindows
-    --------------------------------------------------------------------}
-  
-  TZonemaintenanceWindows = Class(TGoogleBaseObject)
-  Private
-    FbeginTime : string;
-    Fdescription : string;
-    FendTime : string;
-    Fname : string;
-  Protected
-    //Property setters
-    Procedure SetbeginTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property beginTime : string Index 0 Read FbeginTime Write SetbeginTime;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property endTime : string Index 16 Read FendTime Write SetendTime;
-    Property name : string Index 24 Read Fname Write Setname;
-  end;
-  TZonemaintenanceWindowsClass = Class of TZonemaintenanceWindows;
   
   { --------------------------------------------------------------------
     TZoneList
@@ -5439,40 +6287,31 @@ type
   
   TZoneList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TZoneListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TZoneListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TZoneListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TZoneListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TZoneListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TZoneListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TZoneListClass = Class of TZoneList;
-  
-  { --------------------------------------------------------------------
-    TZoneListitems
-    --------------------------------------------------------------------}
-  
-  TZoneListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TZoneListitemsClass = Class of TZoneListitems;
   
   { --------------------------------------------------------------------
     TAddressesResource
@@ -5482,18 +6321,18 @@ type
   //Optional query Options for TAddressesResource, method AggregatedList
   
   TAddressesAggregatedListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TAddressesResource, method List
   
   TAddressesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TAddressesResource = Class(TGoogleResource)
@@ -5511,6 +6350,60 @@ type
   
   
   { --------------------------------------------------------------------
+    TAutoscalersResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAutoscalersResource, method AggregatedList
+  
+  TAutoscalersAggregatedListOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  
+  //Optional query Options for TAutoscalersResource, method List
+  
+  TAutoscalersListOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  
+  //Optional query Options for TAutoscalersResource, method Patch
+  
+  TAutoscalersPatchOptions = Record
+    autoscaler : String;
+  end;
+  
+  
+  //Optional query Options for TAutoscalersResource, method Update
+  
+  TAutoscalersUpdateOptions = Record
+    autoscaler : String;
+  end;
+  
+  TAutoscalersResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function AggregatedList(project: string; AQuery : string  = '') : TAutoscalerAggregatedList;
+    Function AggregatedList(project: string; AQuery : TAutoscalersaggregatedListOptions) : TAutoscalerAggregatedList;
+    Function Delete(autoscaler: string; project: string; zone: string) : TOperation;
+    Function Get(autoscaler: string; project: string; zone: string) : TAutoscaler;
+    Function Insert(project: string; zone: string; aAutoscaler : TAutoscaler) : TOperation;
+    Function List(project: string; zone: string; AQuery : string  = '') : TAutoscalerList;
+    Function List(project: string; zone: string; AQuery : TAutoscalerslistOptions) : TAutoscalerList;
+    Function Patch(project: string; zone: string; aAutoscaler : TAutoscaler; AQuery : string  = '') : TOperation;
+    Function Patch(project: string; zone: string; aAutoscaler : TAutoscaler; AQuery : TAutoscalerspatchOptions) : TOperation;
+    Function Update(project: string; zone: string; aAutoscaler : TAutoscaler; AQuery : string  = '') : TOperation;
+    Function Update(project: string; zone: string; aAutoscaler : TAutoscaler; AQuery : TAutoscalersupdateOptions) : TOperation;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TBackendServicesResource
     --------------------------------------------------------------------}
   
@@ -5518,9 +6411,9 @@ type
   //Optional query Options for TBackendServicesResource, method List
   
   TBackendServicesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TBackendServicesResource = Class(TGoogleResource)
@@ -5546,18 +6439,18 @@ type
   //Optional query Options for TDiskTypesResource, method AggregatedList
   
   TDiskTypesAggregatedListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TDiskTypesResource, method List
   
   TDiskTypesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TDiskTypesResource = Class(TGoogleResource)
@@ -5580,25 +6473,25 @@ type
   //Optional query Options for TDisksResource, method AggregatedList
   
   TDisksAggregatedListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TDisksResource, method Insert
   
   TDisksInsertOptions = Record
-    sourceImage : string;
+    sourceImage : String;
   end;
   
   
   //Optional query Options for TDisksResource, method List
   
   TDisksListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TDisksResource = Class(TGoogleResource)
@@ -5614,6 +6507,7 @@ type
     Function Insert(project: string; zone: string; aDisk : TDisk; AQuery : TDisksinsertOptions) : TOperation;
     Function List(project: string; zone: string; AQuery : string  = '') : TDiskList;
     Function List(project: string; zone: string; AQuery : TDiskslistOptions) : TDiskList;
+    Function Resize(disk: string; project: string; zone: string; aDisksResizeRequest : TDisksResizeRequest) : TOperation;
   end;
   
   
@@ -5625,9 +6519,9 @@ type
   //Optional query Options for TFirewallsResource, method List
   
   TFirewallsListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TFirewallsResource = Class(TGoogleResource)
@@ -5652,18 +6546,18 @@ type
   //Optional query Options for TForwardingRulesResource, method AggregatedList
   
   TForwardingRulesAggregatedListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TForwardingRulesResource, method List
   
   TForwardingRulesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TForwardingRulesResource = Class(TGoogleResource)
@@ -5689,9 +6583,9 @@ type
   //Optional query Options for TGlobalAddressesResource, method List
   
   TGlobalAddressesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TGlobalAddressesResource = Class(TGoogleResource)
@@ -5714,9 +6608,9 @@ type
   //Optional query Options for TGlobalForwardingRulesResource, method List
   
   TGlobalForwardingRulesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TGlobalForwardingRulesResource = Class(TGoogleResource)
@@ -5740,18 +6634,18 @@ type
   //Optional query Options for TGlobalOperationsResource, method AggregatedList
   
   TGlobalOperationsAggregatedListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TGlobalOperationsResource, method List
   
   TGlobalOperationsListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TGlobalOperationsResource = Class(TGoogleResource)
@@ -5775,9 +6669,9 @@ type
   //Optional query Options for THttpHealthChecksResource, method List
   
   THttpHealthChecksListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   THttpHealthChecksResource = Class(TGoogleResource)
@@ -5795,6 +6689,33 @@ type
   
   
   { --------------------------------------------------------------------
+    THttpsHealthChecksResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for THttpsHealthChecksResource, method List
+  
+  THttpsHealthChecksListOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  THttpsHealthChecksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Delete(httpsHealthCheck: string; project: string) : TOperation;
+    Function Get(httpsHealthCheck: string; project: string) : THttpsHealthCheck;
+    Function Insert(project: string; aHttpsHealthCheck : THttpsHealthCheck) : TOperation;
+    Function List(project: string; AQuery : string  = '') : THttpsHealthCheckList;
+    Function List(project: string; AQuery : THttpsHealthCheckslistOptions) : THttpsHealthCheckList;
+    Function Patch(httpsHealthCheck: string; project: string; aHttpsHealthCheck : THttpsHealthCheck) : TOperation;
+    Function Update(httpsHealthCheck: string; project: string; aHttpsHealthCheck : THttpsHealthCheck) : TOperation;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TImagesResource
     --------------------------------------------------------------------}
   
@@ -5802,9 +6723,9 @@ type
   //Optional query Options for TImagesResource, method List
   
   TImagesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TImagesResource = Class(TGoogleResource)
@@ -5814,9 +6735,111 @@ type
     Function Delete(image: string; project: string) : TOperation;
     Function Deprecate(image: string; project: string; aDeprecationStatus : TDeprecationStatus) : TOperation;
     Function Get(image: string; project: string) : TImage;
+    Function GetFromFamily(family: string; project: string) : TImage;
     Function Insert(project: string; aImage : TImage) : TOperation;
     Function List(project: string; AQuery : string  = '') : TImageList;
     Function List(project: string; AQuery : TImageslistOptions) : TImageList;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupManagersResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TInstanceGroupManagersResource, method AggregatedList
+  
+  TInstanceGroupManagersAggregatedListOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  
+  //Optional query Options for TInstanceGroupManagersResource, method List
+  
+  TInstanceGroupManagersListOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  
+  //Optional query Options for TInstanceGroupManagersResource, method Resize
+  
+  TInstanceGroupManagersResizeOptions = Record
+    size : integer;
+  end;
+  
+  TInstanceGroupManagersResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function AbandonInstances(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersAbandonInstancesRequest : TInstanceGroupManagersAbandonInstancesRequest) : TOperation;
+    Function AggregatedList(project: string; AQuery : string  = '') : TInstanceGroupManagerAggregatedList;
+    Function AggregatedList(project: string; AQuery : TInstanceGroupManagersaggregatedListOptions) : TInstanceGroupManagerAggregatedList;
+    Function Delete(instanceGroupManager: string; project: string; zone: string) : TOperation;
+    Function DeleteInstances(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersDeleteInstancesRequest : TInstanceGroupManagersDeleteInstancesRequest) : TOperation;
+    Function Get(instanceGroupManager: string; project: string; zone: string) : TInstanceGroupManager;
+    Function Insert(project: string; zone: string; aInstanceGroupManager : TInstanceGroupManager) : TOperation;
+    Function List(project: string; zone: string; AQuery : string  = '') : TInstanceGroupManagerList;
+    Function List(project: string; zone: string; AQuery : TInstanceGroupManagerslistOptions) : TInstanceGroupManagerList;
+    Function ListManagedInstances(instanceGroupManager: string; project: string; zone: string) : TInstanceGroupManagersListManagedInstancesResponse;
+    Function RecreateInstances(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersRecreateInstancesRequest : TInstanceGroupManagersRecreateInstancesRequest) : TOperation;
+    Function Resize(instanceGroupManager: string; project: string; zone: string; AQuery : string  = '') : TOperation;
+    Function Resize(instanceGroupManager: string; project: string; zone: string; AQuery : TInstanceGroupManagersresizeOptions) : TOperation;
+    Function SetInstanceTemplate(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersSetInstanceTemplateRequest : TInstanceGroupManagersSetInstanceTemplateRequest) : TOperation;
+    Function SetTargetPools(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersSetTargetPoolsRequest : TInstanceGroupManagersSetTargetPoolsRequest) : TOperation;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TInstanceGroupsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TInstanceGroupsResource, method AggregatedList
+  
+  TInstanceGroupsAggregatedListOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  
+  //Optional query Options for TInstanceGroupsResource, method List
+  
+  TInstanceGroupsListOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  
+  //Optional query Options for TInstanceGroupsResource, method ListInstances
+  
+  TInstanceGroupsListInstancesOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TInstanceGroupsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function AddInstances(instanceGroup: string; project: string; zone: string; aInstanceGroupsAddInstancesRequest : TInstanceGroupsAddInstancesRequest) : TOperation;
+    Function AggregatedList(project: string; AQuery : string  = '') : TInstanceGroupAggregatedList;
+    Function AggregatedList(project: string; AQuery : TInstanceGroupsaggregatedListOptions) : TInstanceGroupAggregatedList;
+    Function Delete(instanceGroup: string; project: string; zone: string) : TOperation;
+    Function Get(instanceGroup: string; project: string; zone: string) : TInstanceGroup;
+    Function Insert(project: string; zone: string; aInstanceGroup : TInstanceGroup) : TOperation;
+    Function List(project: string; zone: string; AQuery : string  = '') : TInstanceGroupList;
+    Function List(project: string; zone: string; AQuery : TInstanceGroupslistOptions) : TInstanceGroupList;
+    Function ListInstances(instanceGroup: string; project: string; zone: string; aInstanceGroupsListInstancesRequest : TInstanceGroupsListInstancesRequest; AQuery : string  = '') : TInstanceGroupsListInstances;
+    Function ListInstances(instanceGroup: string; project: string; zone: string; aInstanceGroupsListInstancesRequest : TInstanceGroupsListInstancesRequest; AQuery : TInstanceGroupslistInstancesOptions) : TInstanceGroupsListInstances;
+    Function RemoveInstances(instanceGroup: string; project: string; zone: string; aInstanceGroupsRemoveInstancesRequest : TInstanceGroupsRemoveInstancesRequest) : TOperation;
+    Function SetNamedPorts(instanceGroup: string; project: string; zone: string; aInstanceGroupsSetNamedPortsRequest : TInstanceGroupsSetNamedPortsRequest) : TOperation;
   end;
   
   
@@ -5828,9 +6851,9 @@ type
   //Optional query Options for TInstanceTemplatesResource, method List
   
   TInstanceTemplatesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TInstanceTemplatesResource = Class(TGoogleResource)
@@ -5853,31 +6876,31 @@ type
   //Optional query Options for TInstancesResource, method AddAccessConfig
   
   TInstancesAddAccessConfigOptions = Record
-    networkInterface : string;
+    networkInterface : String;
   end;
   
   
   //Optional query Options for TInstancesResource, method AggregatedList
   
   TInstancesAggregatedListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TInstancesResource, method DeleteAccessConfig
   
   TInstancesDeleteAccessConfigOptions = Record
-    accessConfig : string;
-    networkInterface : string;
+    accessConfig : String;
+    networkInterface : String;
   end;
   
   
   //Optional query Options for TInstancesResource, method DetachDisk
   
   TInstancesDetachDiskOptions = Record
-    deviceName : string;
+    deviceName : String;
   end;
   
   
@@ -5891,9 +6914,9 @@ type
   //Optional query Options for TInstancesResource, method List
   
   TInstancesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
@@ -5901,7 +6924,7 @@ type
   
   TInstancesSetDiskAutoDeleteOptions = Record
     autoDelete : boolean;
-    deviceName : string;
+    deviceName : String;
   end;
   
   TInstancesResource = Class(TGoogleResource)
@@ -5927,6 +6950,7 @@ type
     Function Reset(instance: string; project: string; zone: string) : TOperation;
     Function SetDiskAutoDelete(instance: string; project: string; zone: string; AQuery : string  = '') : TOperation;
     Function SetDiskAutoDelete(instance: string; project: string; zone: string; AQuery : TInstancessetDiskAutoDeleteOptions) : TOperation;
+    Function SetMachineType(instance: string; project: string; zone: string; aInstancesSetMachineTypeRequest : TInstancesSetMachineTypeRequest) : TOperation;
     Function SetMetadata(instance: string; project: string; zone: string; aMetadata : TMetadata) : TOperation;
     Function SetScheduling(instance: string; project: string; zone: string; aScheduling : TScheduling) : TOperation;
     Function SetTags(instance: string; project: string; zone: string; aTags : TTags) : TOperation;
@@ -5955,18 +6979,18 @@ type
   //Optional query Options for TMachineTypesResource, method AggregatedList
   
   TMachineTypesAggregatedListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TMachineTypesResource, method List
   
   TMachineTypesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TMachineTypesResource = Class(TGoogleResource)
@@ -5989,9 +7013,9 @@ type
   //Optional query Options for TNetworksResource, method List
   
   TNetworksListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TNetworksResource = Class(TGoogleResource)
@@ -6030,9 +7054,9 @@ type
   //Optional query Options for TRegionOperationsResource, method List
   
   TRegionOperationsListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TRegionOperationsResource = Class(TGoogleResource)
@@ -6054,9 +7078,9 @@ type
   //Optional query Options for TRegionsResource, method List
   
   TRegionsListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TRegionsResource = Class(TGoogleResource)
@@ -6077,9 +7101,9 @@ type
   //Optional query Options for TRoutesResource, method List
   
   TRoutesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TRoutesResource = Class(TGoogleResource)
@@ -6102,9 +7126,9 @@ type
   //Optional query Options for TSnapshotsResource, method List
   
   TSnapshotsListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TSnapshotsResource = Class(TGoogleResource)
@@ -6119,6 +7143,67 @@ type
   
   
   { --------------------------------------------------------------------
+    TSslCertificatesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TSslCertificatesResource, method List
+  
+  TSslCertificatesListOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TSslCertificatesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Delete(project: string; sslCertificate: string) : TOperation;
+    Function Get(project: string; sslCertificate: string) : TSslCertificate;
+    Function Insert(project: string; aSslCertificate : TSslCertificate) : TOperation;
+    Function List(project: string; AQuery : string  = '') : TSslCertificateList;
+    Function List(project: string; AQuery : TSslCertificateslistOptions) : TSslCertificateList;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TSubnetworksResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TSubnetworksResource, method AggregatedList
+  
+  TSubnetworksAggregatedListOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  
+  //Optional query Options for TSubnetworksResource, method List
+  
+  TSubnetworksListOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TSubnetworksResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function AggregatedList(project: string; AQuery : string  = '') : TSubnetworkAggregatedList;
+    Function AggregatedList(project: string; AQuery : TSubnetworksaggregatedListOptions) : TSubnetworkAggregatedList;
+    Function Delete(project: string; region: string; subnetwork: string) : TOperation;
+    Function Get(project: string; region: string; subnetwork: string) : TSubnetwork;
+    Function Insert(project: string; region: string; aSubnetwork : TSubnetwork) : TOperation;
+    Function List(project: string; region: string; AQuery : string  = '') : TSubnetworkList;
+    Function List(project: string; region: string; AQuery : TSubnetworkslistOptions) : TSubnetworkList;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TTargetHttpProxiesResource
     --------------------------------------------------------------------}
   
@@ -6126,9 +7211,9 @@ type
   //Optional query Options for TTargetHttpProxiesResource, method List
   
   TTargetHttpProxiesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TTargetHttpProxiesResource = Class(TGoogleResource)
@@ -6145,6 +7230,33 @@ type
   
   
   { --------------------------------------------------------------------
+    TTargetHttpsProxiesResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TTargetHttpsProxiesResource, method List
+  
+  TTargetHttpsProxiesListOptions = Record
+    filter : String;
+    maxResults : integer;
+    pageToken : String;
+  end;
+  
+  TTargetHttpsProxiesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Delete(project: string; targetHttpsProxy: string) : TOperation;
+    Function Get(project: string; targetHttpsProxy: string) : TTargetHttpsProxy;
+    Function Insert(project: string; aTargetHttpsProxy : TTargetHttpsProxy) : TOperation;
+    Function List(project: string; AQuery : string  = '') : TTargetHttpsProxyList;
+    Function List(project: string; AQuery : TTargetHttpsProxieslistOptions) : TTargetHttpsProxyList;
+    Function SetSslCertificates(project: string; targetHttpsProxy: string; aTargetHttpsProxiesSetSslCertificatesRequest : TTargetHttpsProxiesSetSslCertificatesRequest) : TOperation;
+    Function SetUrlMap(project: string; targetHttpsProxy: string; aUrlMapReference : TUrlMapReference) : TOperation;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TTargetInstancesResource
     --------------------------------------------------------------------}
   
@@ -6152,18 +7264,18 @@ type
   //Optional query Options for TTargetInstancesResource, method AggregatedList
   
   TTargetInstancesAggregatedListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TTargetInstancesResource, method List
   
   TTargetInstancesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TTargetInstancesResource = Class(TGoogleResource)
@@ -6188,18 +7300,18 @@ type
   //Optional query Options for TTargetPoolsResource, method AggregatedList
   
   TTargetPoolsAggregatedListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TTargetPoolsResource, method List
   
   TTargetPoolsListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
@@ -6238,18 +7350,18 @@ type
   //Optional query Options for TTargetVpnGatewaysResource, method AggregatedList
   
   TTargetVpnGatewaysAggregatedListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TTargetVpnGatewaysResource, method List
   
   TTargetVpnGatewaysListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TTargetVpnGatewaysResource = Class(TGoogleResource)
@@ -6274,9 +7386,9 @@ type
   //Optional query Options for TUrlMapsResource, method List
   
   TUrlMapsListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TUrlMapsResource = Class(TGoogleResource)
@@ -6302,18 +7414,18 @@ type
   //Optional query Options for TVpnTunnelsResource, method AggregatedList
   
   TVpnTunnelsAggregatedListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TVpnTunnelsResource, method List
   
   TVpnTunnelsListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TVpnTunnelsResource = Class(TGoogleResource)
@@ -6338,9 +7450,9 @@ type
   //Optional query Options for TZoneOperationsResource, method List
   
   TZoneOperationsListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TZoneOperationsResource = Class(TGoogleResource)
@@ -6362,9 +7474,9 @@ type
   //Optional query Options for TZonesResource, method List
   
   TZonesListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TZonesResource = Class(TGoogleResource)
@@ -6384,6 +7496,7 @@ type
   TComputeAPI = Class(TGoogleAPI)
   Private
     FAddressesInstance : TAddressesResource;
+    FAutoscalersInstance : TAutoscalersResource;
     FBackendServicesInstance : TBackendServicesResource;
     FDiskTypesInstance : TDiskTypesResource;
     FDisksInstance : TDisksResource;
@@ -6393,7 +7506,10 @@ type
     FGlobalForwardingRulesInstance : TGlobalForwardingRulesResource;
     FGlobalOperationsInstance : TGlobalOperationsResource;
     FHttpHealthChecksInstance : THttpHealthChecksResource;
+    FHttpsHealthChecksInstance : THttpsHealthChecksResource;
     FImagesInstance : TImagesResource;
+    FInstanceGroupManagersInstance : TInstanceGroupManagersResource;
+    FInstanceGroupsInstance : TInstanceGroupsResource;
     FInstanceTemplatesInstance : TInstanceTemplatesResource;
     FInstancesInstance : TInstancesResource;
     FLicensesInstance : TLicensesResource;
@@ -6404,7 +7520,10 @@ type
     FRegionsInstance : TRegionsResource;
     FRoutesInstance : TRoutesResource;
     FSnapshotsInstance : TSnapshotsResource;
+    FSslCertificatesInstance : TSslCertificatesResource;
+    FSubnetworksInstance : TSubnetworksResource;
     FTargetHttpProxiesInstance : TTargetHttpProxiesResource;
+    FTargetHttpsProxiesInstance : TTargetHttpsProxiesResource;
     FTargetInstancesInstance : TTargetInstancesResource;
     FTargetPoolsInstance : TTargetPoolsResource;
     FTargetVpnGatewaysInstance : TTargetVpnGatewaysResource;
@@ -6413,6 +7532,7 @@ type
     FZoneOperationsInstance : TZoneOperationsResource;
     FZonesInstance : TZonesResource;
     Function GetAddressesInstance : TAddressesResource;virtual;
+    Function GetAutoscalersInstance : TAutoscalersResource;virtual;
     Function GetBackendServicesInstance : TBackendServicesResource;virtual;
     Function GetDiskTypesInstance : TDiskTypesResource;virtual;
     Function GetDisksInstance : TDisksResource;virtual;
@@ -6422,7 +7542,10 @@ type
     Function GetGlobalForwardingRulesInstance : TGlobalForwardingRulesResource;virtual;
     Function GetGlobalOperationsInstance : TGlobalOperationsResource;virtual;
     Function GetHttpHealthChecksInstance : THttpHealthChecksResource;virtual;
+    Function GetHttpsHealthChecksInstance : THttpsHealthChecksResource;virtual;
     Function GetImagesInstance : TImagesResource;virtual;
+    Function GetInstanceGroupManagersInstance : TInstanceGroupManagersResource;virtual;
+    Function GetInstanceGroupsInstance : TInstanceGroupsResource;virtual;
     Function GetInstanceTemplatesInstance : TInstanceTemplatesResource;virtual;
     Function GetInstancesInstance : TInstancesResource;virtual;
     Function GetLicensesInstance : TLicensesResource;virtual;
@@ -6433,7 +7556,10 @@ type
     Function GetRegionsInstance : TRegionsResource;virtual;
     Function GetRoutesInstance : TRoutesResource;virtual;
     Function GetSnapshotsInstance : TSnapshotsResource;virtual;
+    Function GetSslCertificatesInstance : TSslCertificatesResource;virtual;
+    Function GetSubnetworksInstance : TSubnetworksResource;virtual;
     Function GetTargetHttpProxiesInstance : TTargetHttpProxiesResource;virtual;
+    Function GetTargetHttpsProxiesInstance : TTargetHttpsProxiesResource;virtual;
     Function GetTargetInstancesInstance : TTargetInstancesResource;virtual;
     Function GetTargetPoolsInstance : TTargetPoolsResource;virtual;
     Function GetTargetVpnGatewaysInstance : TTargetVpnGatewaysResource;virtual;
@@ -6466,6 +7592,8 @@ type
     //Add create function for resources
     Function CreateAddressesResource(AOwner : TComponent) : TAddressesResource;virtual;overload;
     Function CreateAddressesResource : TAddressesResource;virtual;overload;
+    Function CreateAutoscalersResource(AOwner : TComponent) : TAutoscalersResource;virtual;overload;
+    Function CreateAutoscalersResource : TAutoscalersResource;virtual;overload;
     Function CreateBackendServicesResource(AOwner : TComponent) : TBackendServicesResource;virtual;overload;
     Function CreateBackendServicesResource : TBackendServicesResource;virtual;overload;
     Function CreateDiskTypesResource(AOwner : TComponent) : TDiskTypesResource;virtual;overload;
@@ -6484,8 +7612,14 @@ type
     Function CreateGlobalOperationsResource : TGlobalOperationsResource;virtual;overload;
     Function CreateHttpHealthChecksResource(AOwner : TComponent) : THttpHealthChecksResource;virtual;overload;
     Function CreateHttpHealthChecksResource : THttpHealthChecksResource;virtual;overload;
+    Function CreateHttpsHealthChecksResource(AOwner : TComponent) : THttpsHealthChecksResource;virtual;overload;
+    Function CreateHttpsHealthChecksResource : THttpsHealthChecksResource;virtual;overload;
     Function CreateImagesResource(AOwner : TComponent) : TImagesResource;virtual;overload;
     Function CreateImagesResource : TImagesResource;virtual;overload;
+    Function CreateInstanceGroupManagersResource(AOwner : TComponent) : TInstanceGroupManagersResource;virtual;overload;
+    Function CreateInstanceGroupManagersResource : TInstanceGroupManagersResource;virtual;overload;
+    Function CreateInstanceGroupsResource(AOwner : TComponent) : TInstanceGroupsResource;virtual;overload;
+    Function CreateInstanceGroupsResource : TInstanceGroupsResource;virtual;overload;
     Function CreateInstanceTemplatesResource(AOwner : TComponent) : TInstanceTemplatesResource;virtual;overload;
     Function CreateInstanceTemplatesResource : TInstanceTemplatesResource;virtual;overload;
     Function CreateInstancesResource(AOwner : TComponent) : TInstancesResource;virtual;overload;
@@ -6506,8 +7640,14 @@ type
     Function CreateRoutesResource : TRoutesResource;virtual;overload;
     Function CreateSnapshotsResource(AOwner : TComponent) : TSnapshotsResource;virtual;overload;
     Function CreateSnapshotsResource : TSnapshotsResource;virtual;overload;
+    Function CreateSslCertificatesResource(AOwner : TComponent) : TSslCertificatesResource;virtual;overload;
+    Function CreateSslCertificatesResource : TSslCertificatesResource;virtual;overload;
+    Function CreateSubnetworksResource(AOwner : TComponent) : TSubnetworksResource;virtual;overload;
+    Function CreateSubnetworksResource : TSubnetworksResource;virtual;overload;
     Function CreateTargetHttpProxiesResource(AOwner : TComponent) : TTargetHttpProxiesResource;virtual;overload;
     Function CreateTargetHttpProxiesResource : TTargetHttpProxiesResource;virtual;overload;
+    Function CreateTargetHttpsProxiesResource(AOwner : TComponent) : TTargetHttpsProxiesResource;virtual;overload;
+    Function CreateTargetHttpsProxiesResource : TTargetHttpsProxiesResource;virtual;overload;
     Function CreateTargetInstancesResource(AOwner : TComponent) : TTargetInstancesResource;virtual;overload;
     Function CreateTargetInstancesResource : TTargetInstancesResource;virtual;overload;
     Function CreateTargetPoolsResource(AOwner : TComponent) : TTargetPoolsResource;virtual;overload;
@@ -6524,6 +7664,7 @@ type
     Function CreateZonesResource : TZonesResource;virtual;overload;
     //Add default on-demand instances for resources
     Property AddressesResource : TAddressesResource Read GetAddressesInstance;
+    Property AutoscalersResource : TAutoscalersResource Read GetAutoscalersInstance;
     Property BackendServicesResource : TBackendServicesResource Read GetBackendServicesInstance;
     Property DiskTypesResource : TDiskTypesResource Read GetDiskTypesInstance;
     Property DisksResource : TDisksResource Read GetDisksInstance;
@@ -6533,7 +7674,10 @@ type
     Property GlobalForwardingRulesResource : TGlobalForwardingRulesResource Read GetGlobalForwardingRulesInstance;
     Property GlobalOperationsResource : TGlobalOperationsResource Read GetGlobalOperationsInstance;
     Property HttpHealthChecksResource : THttpHealthChecksResource Read GetHttpHealthChecksInstance;
+    Property HttpsHealthChecksResource : THttpsHealthChecksResource Read GetHttpsHealthChecksInstance;
     Property ImagesResource : TImagesResource Read GetImagesInstance;
+    Property InstanceGroupManagersResource : TInstanceGroupManagersResource Read GetInstanceGroupManagersInstance;
+    Property InstanceGroupsResource : TInstanceGroupsResource Read GetInstanceGroupsInstance;
     Property InstanceTemplatesResource : TInstanceTemplatesResource Read GetInstanceTemplatesInstance;
     Property InstancesResource : TInstancesResource Read GetInstancesInstance;
     Property LicensesResource : TLicensesResource Read GetLicensesInstance;
@@ -6544,7 +7688,10 @@ type
     Property RegionsResource : TRegionsResource Read GetRegionsInstance;
     Property RoutesResource : TRoutesResource Read GetRoutesInstance;
     Property SnapshotsResource : TSnapshotsResource Read GetSnapshotsInstance;
+    Property SslCertificatesResource : TSslCertificatesResource Read GetSslCertificatesInstance;
+    Property SubnetworksResource : TSubnetworksResource Read GetSubnetworksInstance;
     Property TargetHttpProxiesResource : TTargetHttpProxiesResource Read GetTargetHttpProxiesInstance;
+    Property TargetHttpsProxiesResource : TTargetHttpsProxiesResource Read GetTargetHttpsProxiesInstance;
     Property TargetInstancesResource : TTargetInstancesResource Read GetTargetInstancesInstance;
     Property TargetPoolsResource : TTargetPoolsResource Read GetTargetPoolsInstance;
     Property TargetVpnGatewaysResource : TTargetVpnGatewaysResource Read GetTargetVpnGatewaysInstance;
@@ -6562,7 +7709,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccessConfig.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAccessConfig.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6572,7 +7719,7 @@ end;
 
 
 
-Procedure TAccessConfig.Setname(AIndex : Integer; AValue : string); 
+Procedure TAccessConfig.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6582,7 +7729,7 @@ end;
 
 
 
-Procedure TAccessConfig.SetnatIP(AIndex : Integer; AValue : string); 
+Procedure TAccessConfig.SetnatIP(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnatIP=AValue) then exit;
@@ -6592,7 +7739,7 @@ end;
 
 
 
-Procedure TAccessConfig.Set_type(AIndex : Integer; AValue : string); 
+Procedure TAccessConfig.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -6620,7 +7767,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddress.Setaddress(AIndex : Integer; AValue : string); 
+Procedure TAddress.Setaddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (Faddress=AValue) then exit;
@@ -6630,7 +7777,7 @@ end;
 
 
 
-Procedure TAddress.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TAddress.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -6640,7 +7787,7 @@ end;
 
 
 
-Procedure TAddress.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TAddress.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6650,7 +7797,7 @@ end;
 
 
 
-Procedure TAddress.Setid(AIndex : Integer; AValue : string); 
+Procedure TAddress.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6660,7 +7807,7 @@ end;
 
 
 
-Procedure TAddress.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAddress.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6670,7 +7817,7 @@ end;
 
 
 
-Procedure TAddress.Setname(AIndex : Integer; AValue : string); 
+Procedure TAddress.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6680,7 +7827,7 @@ end;
 
 
 
-Procedure TAddress.Setregion(AIndex : Integer; AValue : string); 
+Procedure TAddress.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -6690,7 +7837,7 @@ end;
 
 
 
-Procedure TAddress.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TAddress.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -6700,7 +7847,7 @@ end;
 
 
 
-Procedure TAddress.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TAddress.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -6710,7 +7857,7 @@ end;
 
 
 
-Procedure TAddress.Setusers(AIndex : Integer; AValue : TAddressusers); 
+Procedure TAddress.Setusers(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fusers=AValue) then exit;
@@ -6719,79 +7866,28 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TAddressusers
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAddressAggregatedList
-  --------------------------------------------------------------------}
-
-
-Procedure TAddressAggregatedList.Setid(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAddress.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'users' : SetLength(Fusers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TAddressAggregatedList.Setitems(AIndex : Integer; AValue : TAddressAggregatedListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAddressAggregatedList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAddressAggregatedList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAddressAggregatedList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TAddressAggregatedListitems
+  TAddressAggregatedListTypeitems
   --------------------------------------------------------------------}
 
 
-Class Function TAddressAggregatedListitems.AllowAdditionalProperties : Boolean;
+Class Function TAddressAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -6800,11 +7896,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAddressList
+  TAddressAggregatedList
   --------------------------------------------------------------------}
 
 
-Procedure TAddressList.Setid(AIndex : Integer; AValue : string); 
+Procedure TAddressAggregatedList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6814,7 +7910,7 @@ end;
 
 
 
-Procedure TAddressList.Setitems(AIndex : Integer; AValue : TAddressListitems); 
+Procedure TAddressAggregatedList.Setitems(AIndex : Integer; const AValue : TAddressAggregatedListTypeitems); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -6824,7 +7920,7 @@ end;
 
 
 
-Procedure TAddressList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAddressAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6834,7 +7930,7 @@ end;
 
 
 
-Procedure TAddressList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TAddressAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6844,7 +7940,7 @@ end;
 
 
 
-Procedure TAddressList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TAddressAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -6857,89 +7953,81 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAddressListitems
+  TAddressList
   --------------------------------------------------------------------}
+
+
+Procedure TAddressList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAddressList.Setitems(AIndex : Integer; const AValue : TAddressListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAddressList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAddressList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAddressList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAddressList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TAddressesScopedList
+  TAddressesScopedListTypewarningTypedataItem
   --------------------------------------------------------------------}
 
 
-Procedure TAddressesScopedList.Setaddresses(AIndex : Integer; AValue : TAddressesScopedListaddresses); 
-
-begin
-  If (Faddresses=AValue) then exit;
-  Faddresses:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAddressesScopedList.Setwarning(AIndex : Integer; AValue : TAddressesScopedListwarning); 
-
-begin
-  If (Fwarning=AValue) then exit;
-  Fwarning:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAddressesScopedListaddresses
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAddressesScopedListwarning
-  --------------------------------------------------------------------}
-
-
-Procedure TAddressesScopedListwarning.Setcode(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAddressesScopedListwarning.Setdata(AIndex : Integer; AValue : TAddressesScopedListwarningdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAddressesScopedListwarning.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAddressesScopedListwarningdata
-  --------------------------------------------------------------------}
-
-
-Procedure TAddressesScopedListwarningdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TAddressesScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -6949,7 +8037,7 @@ end;
 
 
 
-Procedure TAddressesScopedListwarningdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TAddressesScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -6962,11 +8050,101 @@ end;
 
 
 { --------------------------------------------------------------------
+  TAddressesScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TAddressesScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAddressesScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TAddressesScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAddressesScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAddressesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TAddressesScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TAddressesScopedList.Setaddresses(AIndex : Integer; const AValue : TAddressesScopedListTypeaddressesArray); 
+
+begin
+  If (Faddresses=AValue) then exit;
+  Faddresses:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAddressesScopedList.Setwarning(AIndex : Integer; const AValue : TAddressesScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAddressesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'addresses' : SetLength(Faddresses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
   TAttachedDisk
   --------------------------------------------------------------------}
 
 
-Procedure TAttachedDisk.SetautoDelete(AIndex : Integer; AValue : boolean); 
+Procedure TAttachedDisk.SetautoDelete(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FautoDelete=AValue) then exit;
@@ -6976,7 +8154,7 @@ end;
 
 
 
-Procedure TAttachedDisk.Setboot(AIndex : Integer; AValue : boolean); 
+Procedure TAttachedDisk.Setboot(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fboot=AValue) then exit;
@@ -6986,7 +8164,7 @@ end;
 
 
 
-Procedure TAttachedDisk.SetdeviceName(AIndex : Integer; AValue : string); 
+Procedure TAttachedDisk.SetdeviceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdeviceName=AValue) then exit;
@@ -6996,7 +8174,7 @@ end;
 
 
 
-Procedure TAttachedDisk.Setindex(AIndex : Integer; AValue : integer); 
+Procedure TAttachedDisk.Setindex(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Findex=AValue) then exit;
@@ -7006,7 +8184,7 @@ end;
 
 
 
-Procedure TAttachedDisk.SetinitializeParams(AIndex : Integer; AValue : TAttachedDiskInitializeParams); 
+Procedure TAttachedDisk.SetinitializeParams(AIndex : Integer; const AValue : TAttachedDiskInitializeParams); 
 
 begin
   If (FinitializeParams=AValue) then exit;
@@ -7016,7 +8194,7 @@ end;
 
 
 
-Procedure TAttachedDisk.Set_interface(AIndex : Integer; AValue : string); 
+Procedure TAttachedDisk.Set_interface(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_interface=AValue) then exit;
@@ -7026,7 +8204,7 @@ end;
 
 
 
-Procedure TAttachedDisk.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAttachedDisk.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7036,7 +8214,7 @@ end;
 
 
 
-Procedure TAttachedDisk.Setlicenses(AIndex : Integer; AValue : TAttachedDisklicenses); 
+Procedure TAttachedDisk.Setlicenses(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Flicenses=AValue) then exit;
@@ -7046,7 +8224,7 @@ end;
 
 
 
-Procedure TAttachedDisk.Setmode(AIndex : Integer; AValue : string); 
+Procedure TAttachedDisk.Setmode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmode=AValue) then exit;
@@ -7056,7 +8234,7 @@ end;
 
 
 
-Procedure TAttachedDisk.Setsource(AIndex : Integer; AValue : string); 
+Procedure TAttachedDisk.Setsource(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsource=AValue) then exit;
@@ -7066,7 +8244,7 @@ end;
 
 
 
-Procedure TAttachedDisk.Set_type(AIndex : Integer; AValue : string); 
+Procedure TAttachedDisk.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7087,12 +8265,18 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAttachedDisk.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TAttachedDisklicenses
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'licenses' : SetLength(Flicenses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7102,7 +8286,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAttachedDiskInitializeParams.SetdiskName(AIndex : Integer; AValue : string); 
+Procedure TAttachedDiskInitializeParams.SetdiskName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiskName=AValue) then exit;
@@ -7112,7 +8296,7 @@ end;
 
 
 
-Procedure TAttachedDiskInitializeParams.SetdiskSizeGb(AIndex : Integer; AValue : string); 
+Procedure TAttachedDiskInitializeParams.SetdiskSizeGb(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiskSizeGb=AValue) then exit;
@@ -7122,7 +8306,7 @@ end;
 
 
 
-Procedure TAttachedDiskInitializeParams.SetdiskType(AIndex : Integer; AValue : string); 
+Procedure TAttachedDiskInitializeParams.SetdiskType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiskType=AValue) then exit;
@@ -7132,7 +8316,7 @@ end;
 
 
 
-Procedure TAttachedDiskInitializeParams.SetsourceImage(AIndex : Integer; AValue : string); 
+Procedure TAttachedDiskInitializeParams.SetsourceImage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceImage=AValue) then exit;
@@ -7145,31 +8329,31 @@ end;
 
 
 { --------------------------------------------------------------------
-  TBackend
+  TAutoscaler
   --------------------------------------------------------------------}
 
 
-Procedure TBackend.SetbalancingMode(AIndex : Integer; AValue : string); 
+Procedure TAutoscaler.SetautoscalingPolicy(AIndex : Integer; const AValue : TAutoscalingPolicy); 
 
 begin
-  If (FbalancingMode=AValue) then exit;
-  FbalancingMode:=AValue;
+  If (FautoscalingPolicy=AValue) then exit;
+  FautoscalingPolicy:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TBackend.SetcapacityScaler(AIndex : Integer; AValue : integer); 
+Procedure TAutoscaler.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FcapacityScaler=AValue) then exit;
-  FcapacityScaler:=AValue;
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TBackend.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TAutoscaler.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -7179,7 +8363,512 @@ end;
 
 
 
-Procedure TBackend.Setgroup(AIndex : Integer; AValue : string); 
+Procedure TAutoscaler.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscaler.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscaler.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscaler.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscaler.Settarget(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ftarget=AValue) then exit;
+  Ftarget:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscaler.Setzone(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fzone=AValue) then exit;
+  Fzone:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TAutoscalerAggregatedListTypeitems
+  --------------------------------------------------------------------}
+
+
+Class Function TAutoscalerAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAutoscalerAggregatedList
+  --------------------------------------------------------------------}
+
+
+Procedure TAutoscalerAggregatedList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalerAggregatedList.Setitems(AIndex : Integer; const AValue : TAutoscalerAggregatedListTypeitems); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalerAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalerAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalerAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TAutoscalerList
+  --------------------------------------------------------------------}
+
+
+Procedure TAutoscalerList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalerList.Setitems(AIndex : Integer; const AValue : TAutoscalerListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalerList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalerList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalerList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAutoscalerList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TAutoscalersScopedListTypewarningTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TAutoscalersScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalersScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TAutoscalersScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TAutoscalersScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalersScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TAutoscalersScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalersScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAutoscalersScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TAutoscalersScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TAutoscalersScopedList.Setautoscalers(AIndex : Integer; const AValue : TAutoscalersScopedListTypeautoscalersArray); 
+
+begin
+  If (Fautoscalers=AValue) then exit;
+  Fautoscalers:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalersScopedList.Setwarning(AIndex : Integer; const AValue : TAutoscalersScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAutoscalersScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'autoscalers' : SetLength(Fautoscalers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TAutoscalingPolicy
+  --------------------------------------------------------------------}
+
+
+Procedure TAutoscalingPolicy.SetcoolDownPeriodSec(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FcoolDownPeriodSec=AValue) then exit;
+  FcoolDownPeriodSec:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalingPolicy.SetcpuUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyCpuUtilization); 
+
+begin
+  If (FcpuUtilization=AValue) then exit;
+  FcpuUtilization:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalingPolicy.SetcustomMetricUtilizations(AIndex : Integer; const AValue : TAutoscalingPolicyTypecustomMetricUtilizationsArray); 
+
+begin
+  If (FcustomMetricUtilizations=AValue) then exit;
+  FcustomMetricUtilizations:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalingPolicy.SetloadBalancingUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyLoadBalancingUtilization); 
+
+begin
+  If (FloadBalancingUtilization=AValue) then exit;
+  FloadBalancingUtilization:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalingPolicy.SetmaxNumReplicas(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FmaxNumReplicas=AValue) then exit;
+  FmaxNumReplicas:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalingPolicy.SetminNumReplicas(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FminNumReplicas=AValue) then exit;
+  FminNumReplicas:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAutoscalingPolicy.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'custommetricutilizations' : SetLength(FcustomMetricUtilizations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TAutoscalingPolicyCpuUtilization
+  --------------------------------------------------------------------}
+
+
+Procedure TAutoscalingPolicyCpuUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double); 
+
+begin
+  If (FutilizationTarget=AValue) then exit;
+  FutilizationTarget:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TAutoscalingPolicyCustomMetricUtilization
+  --------------------------------------------------------------------}
+
+
+Procedure TAutoscalingPolicyCustomMetricUtilization.Setmetric(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmetric=AValue) then exit;
+  Fmetric:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalingPolicyCustomMetricUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double); 
+
+begin
+  If (FutilizationTarget=AValue) then exit;
+  FutilizationTarget:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAutoscalingPolicyCustomMetricUtilization.SetutilizationTargetType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FutilizationTargetType=AValue) then exit;
+  FutilizationTargetType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TAutoscalingPolicyLoadBalancingUtilization
+  --------------------------------------------------------------------}
+
+
+Procedure TAutoscalingPolicyLoadBalancingUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double); 
+
+begin
+  If (FutilizationTarget=AValue) then exit;
+  FutilizationTarget:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBackend
+  --------------------------------------------------------------------}
+
+
+Procedure TBackend.SetbalancingMode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FbalancingMode=AValue) then exit;
+  FbalancingMode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBackend.SetcapacityScaler(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FcapacityScaler=AValue) then exit;
+  FcapacityScaler:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBackend.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBackend.Setgroup(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fgroup=AValue) then exit;
@@ -7189,7 +8878,7 @@ end;
 
 
 
-Procedure TBackend.SetmaxRate(AIndex : Integer; AValue : integer); 
+Procedure TBackend.SetmaxRate(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxRate=AValue) then exit;
@@ -7199,7 +8888,7 @@ end;
 
 
 
-Procedure TBackend.SetmaxRatePerInstance(AIndex : Integer; AValue : integer); 
+Procedure TBackend.SetmaxRatePerInstance(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxRatePerInstance=AValue) then exit;
@@ -7209,7 +8898,7 @@ end;
 
 
 
-Procedure TBackend.SetmaxUtilization(AIndex : Integer; AValue : integer); 
+Procedure TBackend.SetmaxUtilization(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxUtilization=AValue) then exit;
@@ -7226,7 +8915,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBackendService.Setbackends(AIndex : Integer; AValue : TBackendServicebackends); 
+Procedure TBackendService.Setbackends(AIndex : Integer; const AValue : TBackendServiceTypebackendsArray); 
 
 begin
   If (Fbackends=AValue) then exit;
@@ -7236,7 +8925,7 @@ end;
 
 
 
-Procedure TBackendService.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TBackendService.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -7246,7 +8935,7 @@ end;
 
 
 
-Procedure TBackendService.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TBackendService.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -7256,7 +8945,7 @@ end;
 
 
 
-Procedure TBackendService.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TBackendService.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -7266,7 +8955,7 @@ end;
 
 
 
-Procedure TBackendService.SethealthChecks(AIndex : Integer; AValue : TBackendServicehealthChecks); 
+Procedure TBackendService.SethealthChecks(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FhealthChecks=AValue) then exit;
@@ -7276,7 +8965,7 @@ end;
 
 
 
-Procedure TBackendService.Setid(AIndex : Integer; AValue : string); 
+Procedure TBackendService.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7286,7 +8975,7 @@ end;
 
 
 
-Procedure TBackendService.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBackendService.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7296,7 +8985,7 @@ end;
 
 
 
-Procedure TBackendService.Setname(AIndex : Integer; AValue : string); 
+Procedure TBackendService.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7306,7 +8995,7 @@ end;
 
 
 
-Procedure TBackendService.Setport(AIndex : Integer; AValue : integer); 
+Procedure TBackendService.Setport(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fport=AValue) then exit;
@@ -7316,7 +9005,7 @@ end;
 
 
 
-Procedure TBackendService.SetportName(AIndex : Integer; AValue : string); 
+Procedure TBackendService.SetportName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FportName=AValue) then exit;
@@ -7326,7 +9015,7 @@ end;
 
 
 
-Procedure TBackendService.Setprotocol(AIndex : Integer; AValue : string); 
+Procedure TBackendService.Setprotocol(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fprotocol=AValue) then exit;
@@ -7336,7 +9025,17 @@ end;
 
 
 
-Procedure TBackendService.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TBackendService.Setregion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fregion=AValue) then exit;
+  Fregion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBackendService.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -7346,7 +9045,7 @@ end;
 
 
 
-Procedure TBackendService.SettimeoutSec(AIndex : Integer; AValue : integer); 
+Procedure TBackendService.SettimeoutSec(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtimeoutSec=AValue) then exit;
@@ -7355,19 +9054,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBackendService.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TBackendServicebackends
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TBackendServicehealthChecks
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'backends' : SetLength(Fbackends,ALength);
+  'healthchecks' : SetLength(FhealthChecks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7377,7 +9076,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBackendServiceGroupHealth.SethealthStatus(AIndex : Integer; AValue : TBackendServiceGroupHealthhealthStatus); 
+Procedure TBackendServiceGroupHealth.SethealthStatus(AIndex : Integer; const AValue : TBackendServiceGroupHealthTypehealthStatusArray); 
 
 begin
   If (FhealthStatus=AValue) then exit;
@@ -7387,7 +9086,7 @@ end;
 
 
 
-Procedure TBackendServiceGroupHealth.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBackendServiceGroupHealth.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7396,12 +9095,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBackendServiceGroupHealth.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TBackendServiceGroupHealthhealthStatus
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'healthstatus' : SetLength(FhealthStatus,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7411,7 +9116,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBackendServiceList.Setid(AIndex : Integer; AValue : string); 
+Procedure TBackendServiceList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7421,7 +9126,7 @@ end;
 
 
 
-Procedure TBackendServiceList.Setitems(AIndex : Integer; AValue : TBackendServiceListitems); 
+Procedure TBackendServiceList.Setitems(AIndex : Integer; const AValue : TBackendServiceListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -7431,7 +9136,7 @@ end;
 
 
 
-Procedure TBackendServiceList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TBackendServiceList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7441,7 +9146,7 @@ end;
 
 
 
-Procedure TBackendServiceList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TBackendServiceList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7451,7 +9156,7 @@ end;
 
 
 
-Procedure TBackendServiceList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TBackendServiceList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -7460,12 +9165,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TBackendServiceList.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TBackendServiceListitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7475,7 +9186,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeprecationStatus.Setdeleted(AIndex : Integer; AValue : string); 
+Procedure TDeprecationStatus.Setdeleted(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -7485,7 +9196,7 @@ end;
 
 
 
-Procedure TDeprecationStatus.Setdeprecated(AIndex : Integer; AValue : string); 
+Procedure TDeprecationStatus.Setdeprecated(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdeprecated=AValue) then exit;
@@ -7495,7 +9206,7 @@ end;
 
 
 
-Procedure TDeprecationStatus.Setobsolete(AIndex : Integer; AValue : string); 
+Procedure TDeprecationStatus.Setobsolete(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fobsolete=AValue) then exit;
@@ -7505,7 +9216,7 @@ end;
 
 
 
-Procedure TDeprecationStatus.Setreplacement(AIndex : Integer; AValue : string); 
+Procedure TDeprecationStatus.Setreplacement(AIndex : Integer; const AValue : String); 
 
 begin
   If (Freplacement=AValue) then exit;
@@ -7515,7 +9226,7 @@ end;
 
 
 
-Procedure TDeprecationStatus.Setstate(AIndex : Integer; AValue : string); 
+Procedure TDeprecationStatus.Setstate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -7532,7 +9243,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDisk.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TDisk.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -7542,7 +9253,7 @@ end;
 
 
 
-Procedure TDisk.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TDisk.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -7552,7 +9263,7 @@ end;
 
 
 
-Procedure TDisk.Setid(AIndex : Integer; AValue : string); 
+Procedure TDisk.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7562,7 +9273,7 @@ end;
 
 
 
-Procedure TDisk.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDisk.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7572,7 +9283,27 @@ end;
 
 
 
-Procedure TDisk.Setlicenses(AIndex : Integer; AValue : TDisklicenses); 
+Procedure TDisk.SetlastAttachTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FlastAttachTimestamp=AValue) then exit;
+  FlastAttachTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDisk.SetlastDetachTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FlastDetachTimestamp=AValue) then exit;
+  FlastDetachTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDisk.Setlicenses(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Flicenses=AValue) then exit;
@@ -7582,7 +9313,7 @@ end;
 
 
 
-Procedure TDisk.Setname(AIndex : Integer; AValue : string); 
+Procedure TDisk.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7592,7 +9323,7 @@ end;
 
 
 
-Procedure TDisk.Setoptions(AIndex : Integer; AValue : string); 
+Procedure TDisk.Setoptions(AIndex : Integer; const AValue : String); 
 
 begin
   If (Foptions=AValue) then exit;
@@ -7602,7 +9333,7 @@ end;
 
 
 
-Procedure TDisk.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TDisk.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -7612,7 +9343,7 @@ end;
 
 
 
-Procedure TDisk.SetsizeGb(AIndex : Integer; AValue : string); 
+Procedure TDisk.SetsizeGb(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsizeGb=AValue) then exit;
@@ -7622,7 +9353,7 @@ end;
 
 
 
-Procedure TDisk.SetsourceImage(AIndex : Integer; AValue : string); 
+Procedure TDisk.SetsourceImage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceImage=AValue) then exit;
@@ -7632,7 +9363,7 @@ end;
 
 
 
-Procedure TDisk.SetsourceImageId(AIndex : Integer; AValue : string); 
+Procedure TDisk.SetsourceImageId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceImageId=AValue) then exit;
@@ -7642,7 +9373,7 @@ end;
 
 
 
-Procedure TDisk.SetsourceSnapshot(AIndex : Integer; AValue : string); 
+Procedure TDisk.SetsourceSnapshot(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceSnapshot=AValue) then exit;
@@ -7652,7 +9383,7 @@ end;
 
 
 
-Procedure TDisk.SetsourceSnapshotId(AIndex : Integer; AValue : string); 
+Procedure TDisk.SetsourceSnapshotId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceSnapshotId=AValue) then exit;
@@ -7662,7 +9393,7 @@ end;
 
 
 
-Procedure TDisk.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TDisk.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -7672,7 +9403,7 @@ end;
 
 
 
-Procedure TDisk.Set_type(AIndex : Integer; AValue : string); 
+Procedure TDisk.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7682,7 +9413,17 @@ end;
 
 
 
-Procedure TDisk.Setzone(AIndex : Integer; AValue : string); 
+Procedure TDisk.Setusers(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Fusers=AValue) then exit;
+  Fusers:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDisk.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -7702,79 +9443,29 @@ begin
   end;
 end;
 
-
-
-
-{ --------------------------------------------------------------------
-  TDisklicenses
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TDiskAggregatedList
-  --------------------------------------------------------------------}
-
-
-Procedure TDiskAggregatedList.Setid(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDisk.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'licenses' : SetLength(Flicenses,ALength);
+  'users' : SetLength(Fusers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TDiskAggregatedList.Setitems(AIndex : Integer; AValue : TDiskAggregatedListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDiskAggregatedList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDiskAggregatedList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDiskAggregatedList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TDiskAggregatedListitems
+  TDiskAggregatedListTypeitems
   --------------------------------------------------------------------}
 
 
-Class Function TDiskAggregatedListitems.AllowAdditionalProperties : Boolean;
+Class Function TDiskAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -7783,11 +9474,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDiskList
+  TDiskAggregatedList
   --------------------------------------------------------------------}
 
 
-Procedure TDiskList.Setid(AIndex : Integer; AValue : string); 
+Procedure TDiskAggregatedList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7797,7 +9488,7 @@ end;
 
 
 
-Procedure TDiskList.Setitems(AIndex : Integer; AValue : TDiskListitems); 
+Procedure TDiskAggregatedList.Setitems(AIndex : Integer; const AValue : TDiskAggregatedListTypeitems); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -7807,7 +9498,7 @@ end;
 
 
 
-Procedure TDiskList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDiskAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7817,7 +9508,7 @@ end;
 
 
 
-Procedure TDiskList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TDiskAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7827,7 +9518,7 @@ end;
 
 
 
-Procedure TDiskList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TDiskAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -7840,8 +9531,71 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDiskListitems
+  TDiskList
   --------------------------------------------------------------------}
+
+
+Procedure TDiskList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDiskList.Setitems(AIndex : Integer; const AValue : TDiskListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDiskList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDiskList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDiskList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDiskList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -7851,7 +9605,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDiskMoveRequest.SetdestinationZone(AIndex : Integer; AValue : string); 
+Procedure TDiskMoveRequest.SetdestinationZone(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdestinationZone=AValue) then exit;
@@ -7861,7 +9615,7 @@ end;
 
 
 
-Procedure TDiskMoveRequest.SettargetDisk(AIndex : Integer; AValue : string); 
+Procedure TDiskMoveRequest.SettargetDisk(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetDisk=AValue) then exit;
@@ -7878,7 +9632,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDiskType.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TDiskType.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -7888,7 +9642,7 @@ end;
 
 
 
-Procedure TDiskType.SetdefaultDiskSizeGb(AIndex : Integer; AValue : string); 
+Procedure TDiskType.SetdefaultDiskSizeGb(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultDiskSizeGb=AValue) then exit;
@@ -7898,7 +9652,7 @@ end;
 
 
 
-Procedure TDiskType.Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); 
+Procedure TDiskType.Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); 
 
 begin
   If (Fdeprecated=AValue) then exit;
@@ -7908,7 +9662,7 @@ end;
 
 
 
-Procedure TDiskType.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TDiskType.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -7918,7 +9672,7 @@ end;
 
 
 
-Procedure TDiskType.Setid(AIndex : Integer; AValue : string); 
+Procedure TDiskType.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7928,7 +9682,7 @@ end;
 
 
 
-Procedure TDiskType.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDiskType.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7938,7 +9692,7 @@ end;
 
 
 
-Procedure TDiskType.Setname(AIndex : Integer; AValue : string); 
+Procedure TDiskType.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7948,7 +9702,7 @@ end;
 
 
 
-Procedure TDiskType.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TDiskType.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -7958,7 +9712,7 @@ end;
 
 
 
-Procedure TDiskType.SetvalidDiskSize(AIndex : Integer; AValue : string); 
+Procedure TDiskType.SetvalidDiskSize(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvalidDiskSize=AValue) then exit;
@@ -7968,7 +9722,7 @@ end;
 
 
 
-Procedure TDiskType.Setzone(AIndex : Integer; AValue : string); 
+Procedure TDiskType.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -7981,68 +9735,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDiskTypeAggregatedList
+  TDiskTypeAggregatedListTypeitems
   --------------------------------------------------------------------}
 
 
-Procedure TDiskTypeAggregatedList.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDiskTypeAggregatedList.Setitems(AIndex : Integer; AValue : TDiskTypeAggregatedListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDiskTypeAggregatedList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDiskTypeAggregatedList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDiskTypeAggregatedList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TDiskTypeAggregatedListitems
-  --------------------------------------------------------------------}
-
-
-Class Function TDiskTypeAggregatedListitems.AllowAdditionalProperties : Boolean;
+Class Function TDiskTypeAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -8051,11 +9748,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDiskTypeList
+  TDiskTypeAggregatedList
   --------------------------------------------------------------------}
 
 
-Procedure TDiskTypeList.Setid(AIndex : Integer; AValue : string); 
+Procedure TDiskTypeAggregatedList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8065,7 +9762,7 @@ end;
 
 
 
-Procedure TDiskTypeList.Setitems(AIndex : Integer; AValue : TDiskTypeListitems); 
+Procedure TDiskTypeAggregatedList.Setitems(AIndex : Integer; const AValue : TDiskTypeAggregatedListTypeitems); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -8075,7 +9772,7 @@ end;
 
 
 
-Procedure TDiskTypeList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDiskTypeAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8085,7 +9782,7 @@ end;
 
 
 
-Procedure TDiskTypeList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TDiskTypeAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8095,7 +9792,7 @@ end;
 
 
 
-Procedure TDiskTypeList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TDiskTypeAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -8108,8 +9805,148 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDiskTypeListitems
+  TDiskTypeList
   --------------------------------------------------------------------}
+
+
+Procedure TDiskTypeList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDiskTypeList.Setitems(AIndex : Integer; const AValue : TDiskTypeListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDiskTypeList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDiskTypeList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDiskTypeList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDiskTypeList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TDiskTypesScopedListTypewarningTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TDiskTypesScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDiskTypesScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TDiskTypesScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TDiskTypesScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDiskTypesScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TDiskTypesScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDiskTypesScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDiskTypesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -8119,7 +9956,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDiskTypesScopedList.SetdiskTypes(AIndex : Integer; AValue : TDiskTypesScopedListdiskTypes); 
+Procedure TDiskTypesScopedList.SetdiskTypes(AIndex : Integer; const AValue : TDiskTypesScopedListTypediskTypesArray); 
 
 begin
   If (FdiskTypes=AValue) then exit;
@@ -8129,7 +9966,7 @@ end;
 
 
 
-Procedure TDiskTypesScopedList.Setwarning(AIndex : Integer; AValue : TDiskTypesScopedListwarning); 
+Procedure TDiskTypesScopedList.Setwarning(AIndex : Integer; const AValue : TDiskTypesScopedListTypewarning); 
 
 begin
   If (Fwarning=AValue) then exit;
@@ -8138,46 +9975,32 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDiskTypesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'disktypes' : SetLength(FdiskTypes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TDiskTypesScopedListdiskTypes
+  TDisksResizeRequest
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TDiskTypesScopedListwarning
-  --------------------------------------------------------------------}
-
-
-Procedure TDiskTypesScopedListwarning.Setcode(AIndex : Integer; AValue : string); 
+Procedure TDisksResizeRequest.SetsizeGb(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDiskTypesScopedListwarning.Setdata(AIndex : Integer; AValue : TDiskTypesScopedListwarningdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDiskTypesScopedListwarning.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
+  If (FsizeGb=AValue) then exit;
+  FsizeGb:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -8186,11 +10009,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TDiskTypesScopedListwarningdata
+  TDisksScopedListTypewarningTypedataItem
   --------------------------------------------------------------------}
 
 
-Procedure TDiskTypesScopedListwarningdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TDisksScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -8200,7 +10023,7 @@ end;
 
 
 
-Procedure TDiskTypesScopedListwarningdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TDisksScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -8208,6 +10031,56 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+
+
+
+{ --------------------------------------------------------------------
+  TDisksScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TDisksScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDisksScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TDisksScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDisksScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDisksScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -8217,7 +10090,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDisksScopedList.Setdisks(AIndex : Integer; AValue : TDisksScopedListdisks); 
+Procedure TDisksScopedList.Setdisks(AIndex : Integer; const AValue : TDisksScopedListTypedisksArray); 
 
 begin
   If (Fdisks=AValue) then exit;
@@ -8227,7 +10100,7 @@ end;
 
 
 
-Procedure TDisksScopedList.Setwarning(AIndex : Integer; AValue : TDisksScopedListwarning); 
+Procedure TDisksScopedList.Setwarning(AIndex : Integer; const AValue : TDisksScopedListTypewarning); 
 
 begin
   If (Fwarning=AValue) then exit;
@@ -8236,76 +10109,58 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TDisksScopedListdisks
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TDisksScopedListwarning
-  --------------------------------------------------------------------}
-
-
-Procedure TDisksScopedListwarning.Setcode(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDisksScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'disks' : SetLength(Fdisks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TDisksScopedListwarning.Setdata(AIndex : Integer; AValue : TDisksScopedListwarningdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TDisksScopedListwarning.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TDisksScopedListwarningdata
+  TFirewallTypeallowedItem
   --------------------------------------------------------------------}
 
 
-Procedure TDisksScopedListwarningdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TFirewallTypeallowedItem.SetIPProtocol(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fkey=AValue) then exit;
-  Fkey:=AValue;
+  If (FIPProtocol=AValue) then exit;
+  FIPProtocol:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TDisksScopedListwarningdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TFirewallTypeallowedItem.Setports(AIndex : Integer; const AValue : TStringArray); 
 
 begin
-  If (Fvalue=AValue) then exit;
-  Fvalue:=AValue;
+  If (Fports=AValue) then exit;
+  Fports:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFirewallTypeallowedItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'ports' : SetLength(Fports,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -8315,7 +10170,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFirewall.Setallowed(AIndex : Integer; AValue : TFirewallallowed); 
+Procedure TFirewall.Setallowed(AIndex : Integer; const AValue : TFirewallTypeallowedArray); 
 
 begin
   If (Fallowed=AValue) then exit;
@@ -8325,7 +10180,7 @@ end;
 
 
 
-Procedure TFirewall.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TFirewall.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -8335,7 +10190,7 @@ end;
 
 
 
-Procedure TFirewall.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TFirewall.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -8345,7 +10200,7 @@ end;
 
 
 
-Procedure TFirewall.Setid(AIndex : Integer; AValue : string); 
+Procedure TFirewall.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8355,7 +10210,7 @@ end;
 
 
 
-Procedure TFirewall.Setkind(AIndex : Integer; AValue : string); 
+Procedure TFirewall.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8365,7 +10220,7 @@ end;
 
 
 
-Procedure TFirewall.Setname(AIndex : Integer; AValue : string); 
+Procedure TFirewall.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -8375,7 +10230,7 @@ end;
 
 
 
-Procedure TFirewall.Setnetwork(AIndex : Integer; AValue : string); 
+Procedure TFirewall.Setnetwork(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -8385,7 +10240,7 @@ end;
 
 
 
-Procedure TFirewall.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TFirewall.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -8395,7 +10250,7 @@ end;
 
 
 
-Procedure TFirewall.SetsourceRanges(AIndex : Integer; AValue : TFirewallsourceRanges); 
+Procedure TFirewall.SetsourceRanges(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FsourceRanges=AValue) then exit;
@@ -8405,7 +10260,7 @@ end;
 
 
 
-Procedure TFirewall.SetsourceTags(AIndex : Integer; AValue : TFirewallsourceTags); 
+Procedure TFirewall.SetsourceTags(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FsourceTags=AValue) then exit;
@@ -8415,7 +10270,7 @@ end;
 
 
 
-Procedure TFirewall.SettargetTags(AIndex : Integer; AValue : TFirewalltargetTags); 
+Procedure TFirewall.SettargetTags(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FtargetTags=AValue) then exit;
@@ -8424,60 +10279,21 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TFirewallallowed
-  --------------------------------------------------------------------}
-
-
-Procedure TFirewallallowed.SetIPProtocol(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFirewall.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (FIPProtocol=AValue) then exit;
-  FIPProtocol:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'allowed' : SetLength(Fallowed,ALength);
+  'sourceranges' : SetLength(FsourceRanges,ALength);
+  'sourcetags' : SetLength(FsourceTags,ALength);
+  'targettags' : SetLength(FtargetTags,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TFirewallallowed.Setports(AIndex : Integer; AValue : TFirewallallowedports); 
-
-begin
-  If (Fports=AValue) then exit;
-  Fports:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TFirewallallowedports
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFirewallsourceRanges
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFirewallsourceTags
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFirewalltargetTags
-  --------------------------------------------------------------------}
+{$ENDIF VER2_6}
 
 
 
@@ -8487,7 +10303,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFirewallList.Setid(AIndex : Integer; AValue : string); 
+Procedure TFirewallList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8497,7 +10313,7 @@ end;
 
 
 
-Procedure TFirewallList.Setitems(AIndex : Integer; AValue : TFirewallListitems); 
+Procedure TFirewallList.Setitems(AIndex : Integer; const AValue : TFirewallListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -8507,7 +10323,7 @@ end;
 
 
 
-Procedure TFirewallList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TFirewallList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8517,7 +10333,7 @@ end;
 
 
 
-Procedure TFirewallList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TFirewallList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8527,7 +10343,7 @@ end;
 
 
 
-Procedure TFirewallList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TFirewallList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -8536,12 +10352,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFirewallList.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TFirewallListitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -8551,7 +10373,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TForwardingRule.SetIPAddress(AIndex : Integer; AValue : string); 
+Procedure TForwardingRule.SetIPAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FIPAddress=AValue) then exit;
@@ -8561,7 +10383,7 @@ end;
 
 
 
-Procedure TForwardingRule.SetIPProtocol(AIndex : Integer; AValue : string); 
+Procedure TForwardingRule.SetIPProtocol(AIndex : Integer; const AValue : String); 
 
 begin
   If (FIPProtocol=AValue) then exit;
@@ -8571,7 +10393,7 @@ end;
 
 
 
-Procedure TForwardingRule.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TForwardingRule.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -8581,7 +10403,7 @@ end;
 
 
 
-Procedure TForwardingRule.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TForwardingRule.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -8591,7 +10413,7 @@ end;
 
 
 
-Procedure TForwardingRule.Setid(AIndex : Integer; AValue : string); 
+Procedure TForwardingRule.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8601,7 +10423,7 @@ end;
 
 
 
-Procedure TForwardingRule.Setkind(AIndex : Integer; AValue : string); 
+Procedure TForwardingRule.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8611,7 +10433,7 @@ end;
 
 
 
-Procedure TForwardingRule.Setname(AIndex : Integer; AValue : string); 
+Procedure TForwardingRule.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -8621,7 +10443,7 @@ end;
 
 
 
-Procedure TForwardingRule.SetportRange(AIndex : Integer; AValue : string); 
+Procedure TForwardingRule.SetportRange(AIndex : Integer; const AValue : String); 
 
 begin
   If (FportRange=AValue) then exit;
@@ -8631,7 +10453,7 @@ end;
 
 
 
-Procedure TForwardingRule.Setregion(AIndex : Integer; AValue : string); 
+Procedure TForwardingRule.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -8641,7 +10463,7 @@ end;
 
 
 
-Procedure TForwardingRule.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TForwardingRule.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -8651,7 +10473,7 @@ end;
 
 
 
-Procedure TForwardingRule.Settarget(AIndex : Integer; AValue : string); 
+Procedure TForwardingRule.Settarget(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftarget=AValue) then exit;
@@ -8664,68 +10486,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TForwardingRuleAggregatedList
+  TForwardingRuleAggregatedListTypeitems
   --------------------------------------------------------------------}
 
 
-Procedure TForwardingRuleAggregatedList.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TForwardingRuleAggregatedList.Setitems(AIndex : Integer; AValue : TForwardingRuleAggregatedListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TForwardingRuleAggregatedList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TForwardingRuleAggregatedList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TForwardingRuleAggregatedList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TForwardingRuleAggregatedListitems
-  --------------------------------------------------------------------}
-
-
-Class Function TForwardingRuleAggregatedListitems.AllowAdditionalProperties : Boolean;
+Class Function TForwardingRuleAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -8734,11 +10499,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TForwardingRuleList
+  TForwardingRuleAggregatedList
   --------------------------------------------------------------------}
 
 
-Procedure TForwardingRuleList.Setid(AIndex : Integer; AValue : string); 
+Procedure TForwardingRuleAggregatedList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8748,7 +10513,7 @@ end;
 
 
 
-Procedure TForwardingRuleList.Setitems(AIndex : Integer; AValue : TForwardingRuleListitems); 
+Procedure TForwardingRuleAggregatedList.Setitems(AIndex : Integer; const AValue : TForwardingRuleAggregatedListTypeitems); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -8758,7 +10523,7 @@ end;
 
 
 
-Procedure TForwardingRuleList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TForwardingRuleAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8768,7 +10533,7 @@ end;
 
 
 
-Procedure TForwardingRuleList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TForwardingRuleAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8778,7 +10543,7 @@ end;
 
 
 
-Procedure TForwardingRuleList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TForwardingRuleAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -8791,89 +10556,81 @@ end;
 
 
 { --------------------------------------------------------------------
-  TForwardingRuleListitems
+  TForwardingRuleList
   --------------------------------------------------------------------}
+
+
+Procedure TForwardingRuleList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TForwardingRuleList.Setitems(AIndex : Integer; const AValue : TForwardingRuleListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TForwardingRuleList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TForwardingRuleList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TForwardingRuleList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TForwardingRuleList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TForwardingRulesScopedList
+  TForwardingRulesScopedListTypewarningTypedataItem
   --------------------------------------------------------------------}
 
 
-Procedure TForwardingRulesScopedList.SetforwardingRules(AIndex : Integer; AValue : TForwardingRulesScopedListforwardingRules); 
-
-begin
-  If (FforwardingRules=AValue) then exit;
-  FforwardingRules:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TForwardingRulesScopedList.Setwarning(AIndex : Integer; AValue : TForwardingRulesScopedListwarning); 
-
-begin
-  If (Fwarning=AValue) then exit;
-  Fwarning:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TForwardingRulesScopedListforwardingRules
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TForwardingRulesScopedListwarning
-  --------------------------------------------------------------------}
-
-
-Procedure TForwardingRulesScopedListwarning.Setcode(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TForwardingRulesScopedListwarning.Setdata(AIndex : Integer; AValue : TForwardingRulesScopedListwarningdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TForwardingRulesScopedListwarning.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TForwardingRulesScopedListwarningdata
-  --------------------------------------------------------------------}
-
-
-Procedure TForwardingRulesScopedListwarningdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TForwardingRulesScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -8883,7 +10640,7 @@ end;
 
 
 
-Procedure TForwardingRulesScopedListwarningdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TForwardingRulesScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -8896,11 +10653,101 @@ end;
 
 
 { --------------------------------------------------------------------
+  TForwardingRulesScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TForwardingRulesScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TForwardingRulesScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TForwardingRulesScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TForwardingRulesScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TForwardingRulesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TForwardingRulesScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TForwardingRulesScopedList.SetforwardingRules(AIndex : Integer; const AValue : TForwardingRulesScopedListTypeforwardingRulesArray); 
+
+begin
+  If (FforwardingRules=AValue) then exit;
+  FforwardingRules:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TForwardingRulesScopedList.Setwarning(AIndex : Integer; const AValue : TForwardingRulesScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TForwardingRulesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'forwardingrules' : SetLength(FforwardingRules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
   THealthCheckReference
   --------------------------------------------------------------------}
 
 
-Procedure THealthCheckReference.SethealthCheck(AIndex : Integer; AValue : string); 
+Procedure THealthCheckReference.SethealthCheck(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhealthCheck=AValue) then exit;
@@ -8917,7 +10764,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THealthStatus.SethealthState(AIndex : Integer; AValue : string); 
+Procedure THealthStatus.SethealthState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhealthState=AValue) then exit;
@@ -8927,7 +10774,7 @@ end;
 
 
 
-Procedure THealthStatus.Setinstance(AIndex : Integer; AValue : string); 
+Procedure THealthStatus.Setinstance(AIndex : Integer; const AValue : String); 
 
 begin
   If (Finstance=AValue) then exit;
@@ -8937,7 +10784,7 @@ end;
 
 
 
-Procedure THealthStatus.SetipAddress(AIndex : Integer; AValue : string); 
+Procedure THealthStatus.SetipAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FipAddress=AValue) then exit;
@@ -8947,7 +10794,7 @@ end;
 
 
 
-Procedure THealthStatus.Setport(AIndex : Integer; AValue : integer); 
+Procedure THealthStatus.Setport(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fport=AValue) then exit;
@@ -8964,7 +10811,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THostRule.Setdescription(AIndex : Integer; AValue : string); 
+Procedure THostRule.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -8974,7 +10821,7 @@ end;
 
 
 
-Procedure THostRule.Sethosts(AIndex : Integer; AValue : THostRulehosts); 
+Procedure THostRule.Sethosts(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fhosts=AValue) then exit;
@@ -8984,7 +10831,7 @@ end;
 
 
 
-Procedure THostRule.SetpathMatcher(AIndex : Integer; AValue : string); 
+Procedure THostRule.SetpathMatcher(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpathMatcher=AValue) then exit;
@@ -8993,12 +10840,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure THostRule.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  THostRulehosts
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'hosts' : SetLength(Fhosts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9008,7 +10861,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THttpHealthCheck.SetcheckIntervalSec(AIndex : Integer; AValue : integer); 
+Procedure THttpHealthCheck.SetcheckIntervalSec(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FcheckIntervalSec=AValue) then exit;
@@ -9018,7 +10871,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheck.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -9028,7 +10881,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.Setdescription(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheck.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -9038,7 +10891,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.SethealthyThreshold(AIndex : Integer; AValue : integer); 
+Procedure THttpHealthCheck.SethealthyThreshold(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FhealthyThreshold=AValue) then exit;
@@ -9048,7 +10901,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.Sethost(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheck.Sethost(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhost=AValue) then exit;
@@ -9058,7 +10911,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.Setid(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheck.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9068,7 +10921,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.Setkind(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheck.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9078,7 +10931,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.Setname(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheck.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -9088,7 +10941,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.Setport(AIndex : Integer; AValue : integer); 
+Procedure THttpHealthCheck.Setport(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fport=AValue) then exit;
@@ -9098,7 +10951,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.SetrequestPath(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheck.SetrequestPath(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrequestPath=AValue) then exit;
@@ -9108,7 +10961,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheck.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -9118,7 +10971,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.SettimeoutSec(AIndex : Integer; AValue : integer); 
+Procedure THttpHealthCheck.SettimeoutSec(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtimeoutSec=AValue) then exit;
@@ -9128,7 +10981,7 @@ end;
 
 
 
-Procedure THttpHealthCheck.SetunhealthyThreshold(AIndex : Integer; AValue : integer); 
+Procedure THttpHealthCheck.SetunhealthyThreshold(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FunhealthyThreshold=AValue) then exit;
@@ -9145,7 +10998,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THttpHealthCheckList.Setid(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheckList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9155,7 +11008,7 @@ end;
 
 
 
-Procedure THttpHealthCheckList.Setitems(AIndex : Integer; AValue : THttpHealthCheckListitems); 
+Procedure THttpHealthCheckList.Setitems(AIndex : Integer; const AValue : THttpHealthCheckListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -9165,7 +11018,7 @@ end;
 
 
 
-Procedure THttpHealthCheckList.Setkind(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheckList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9175,7 +11028,7 @@ end;
 
 
 
-Procedure THttpHealthCheckList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheckList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -9185,7 +11038,7 @@ end;
 
 
 
-Procedure THttpHealthCheckList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure THttpHealthCheckList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -9194,32 +11047,38 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  THttpHealthCheckListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TImage
-  --------------------------------------------------------------------}
-
-
-Procedure TImage.SetarchiveSizeBytes(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure THttpHealthCheckList.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (FarchiveSizeBytes=AValue) then exit;
-  FarchiveSizeBytes:=AValue;
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  THttpsHealthCheck
+  --------------------------------------------------------------------}
+
+
+Procedure THttpsHealthCheck.SetcheckIntervalSec(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FcheckIntervalSec=AValue) then exit;
+  FcheckIntervalSec:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TImage.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure THttpsHealthCheck.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -9229,17 +11088,7 @@ end;
 
 
 
-Procedure TImage.Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); 
-
-begin
-  If (Fdeprecated=AValue) then exit;
-  Fdeprecated:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TImage.Setdescription(AIndex : Integer; AValue : string); 
+Procedure THttpsHealthCheck.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -9249,17 +11098,27 @@ end;
 
 
 
-Procedure TImage.SetdiskSizeGb(AIndex : Integer; AValue : string); 
+Procedure THttpsHealthCheck.SethealthyThreshold(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (FdiskSizeGb=AValue) then exit;
-  FdiskSizeGb:=AValue;
+  If (FhealthyThreshold=AValue) then exit;
+  FhealthyThreshold:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TImage.Setid(AIndex : Integer; AValue : string); 
+Procedure THttpsHealthCheck.Sethost(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fhost=AValue) then exit;
+  Fhost:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure THttpsHealthCheck.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9269,7 +11128,7 @@ end;
 
 
 
-Procedure TImage.Setkind(AIndex : Integer; AValue : string); 
+Procedure THttpsHealthCheck.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9279,17 +11138,7 @@ end;
 
 
 
-Procedure TImage.Setlicenses(AIndex : Integer; AValue : TImagelicenses); 
-
-begin
-  If (Flicenses=AValue) then exit;
-  Flicenses:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TImage.Setname(AIndex : Integer; AValue : string); 
+Procedure THttpsHealthCheck.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -9299,17 +11148,27 @@ end;
 
 
 
-Procedure TImage.SetrawDisk(AIndex : Integer; AValue : TImagerawDisk); 
+Procedure THttpsHealthCheck.Setport(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (FrawDisk=AValue) then exit;
-  FrawDisk:=AValue;
+  If (Fport=AValue) then exit;
+  Fport:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TImage.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure THttpsHealthCheck.SetrequestPath(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FrequestPath=AValue) then exit;
+  FrequestPath:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure THttpsHealthCheck.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -9319,41 +11178,21 @@ end;
 
 
 
-Procedure TImage.SetsourceDisk(AIndex : Integer; AValue : string); 
+Procedure THttpsHealthCheck.SettimeoutSec(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (FsourceDisk=AValue) then exit;
-  FsourceDisk:=AValue;
+  If (FtimeoutSec=AValue) then exit;
+  FtimeoutSec:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TImage.SetsourceDiskId(AIndex : Integer; AValue : string); 
+Procedure THttpsHealthCheck.SetunhealthyThreshold(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (FsourceDiskId=AValue) then exit;
-  FsourceDiskId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TImage.SetsourceType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FsourceType=AValue) then exit;
-  FsourceType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TImage.Setstatus(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fstatus=AValue) then exit;
-  Fstatus:=AValue;
+  If (FunhealthyThreshold=AValue) then exit;
+  FunhealthyThreshold:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -9362,18 +11201,81 @@ end;
 
 
 { --------------------------------------------------------------------
-  TImagelicenses
+  THttpsHealthCheckList
   --------------------------------------------------------------------}
+
+
+Procedure THttpsHealthCheckList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure THttpsHealthCheckList.Setitems(AIndex : Integer; const AValue : THttpsHealthCheckListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure THttpsHealthCheckList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure THttpsHealthCheckList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure THttpsHealthCheckList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure THttpsHealthCheckList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TImagerawDisk
+  TImageTyperawDisk
   --------------------------------------------------------------------}
 
 
-Procedure TImagerawDisk.SetcontainerType(AIndex : Integer; AValue : string); 
+Procedure TImageTyperawDisk.SetcontainerType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerType=AValue) then exit;
@@ -9383,7 +11285,7 @@ end;
 
 
 
-Procedure TImagerawDisk.Setsha1Checksum(AIndex : Integer; AValue : string); 
+Procedure TImageTyperawDisk.Setsha1Checksum(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsha1Checksum=AValue) then exit;
@@ -9393,7 +11295,7 @@ end;
 
 
 
-Procedure TImagerawDisk.Setsource(AIndex : Integer; AValue : string); 
+Procedure TImageTyperawDisk.Setsource(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsource=AValue) then exit;
@@ -9406,95 +11308,21 @@ end;
 
 
 { --------------------------------------------------------------------
-  TImageList
+  TImage
   --------------------------------------------------------------------}
 
 
-Procedure TImageList.Setid(AIndex : Integer; AValue : string); 
+Procedure TImage.SetarchiveSizeBytes(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
+  If (FarchiveSizeBytes=AValue) then exit;
+  FarchiveSizeBytes:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TImageList.Setitems(AIndex : Integer; AValue : TImageListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TImageList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TImageList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TImageList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TImageListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TInstance
-  --------------------------------------------------------------------}
-
-
-Procedure TInstance.SetcanIpForward(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FcanIpForward=AValue) then exit;
-  FcanIpForward:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInstance.SetcpuPlatform(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcpuPlatform=AValue) then exit;
-  FcpuPlatform:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInstance.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TImage.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -9504,7 +11332,17 @@ end;
 
 
 
-Procedure TInstance.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TImage.Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); 
+
+begin
+  If (Fdeprecated=AValue) then exit;
+  Fdeprecated:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TImage.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -9514,17 +11352,27 @@ end;
 
 
 
-Procedure TInstance.Setdisks(AIndex : Integer; AValue : TInstancedisks); 
+Procedure TImage.SetdiskSizeGb(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fdisks=AValue) then exit;
-  Fdisks:=AValue;
+  If (FdiskSizeGb=AValue) then exit;
+  FdiskSizeGb:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TInstance.Setid(AIndex : Integer; AValue : string); 
+Procedure TImage.Setfamily(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ffamily=AValue) then exit;
+  Ffamily:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TImage.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9534,7 +11382,7 @@ end;
 
 
 
-Procedure TInstance.Setkind(AIndex : Integer; AValue : string); 
+Procedure TImage.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9544,27 +11392,17 @@ end;
 
 
 
-Procedure TInstance.SetmachineType(AIndex : Integer; AValue : string); 
+Procedure TImage.Setlicenses(AIndex : Integer; const AValue : TStringArray); 
 
 begin
-  If (FmachineType=AValue) then exit;
-  FmachineType:=AValue;
+  If (Flicenses=AValue) then exit;
+  Flicenses:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TInstance.Setmetadata(AIndex : Integer; AValue : TMetadata); 
-
-begin
-  If (Fmetadata=AValue) then exit;
-  Fmetadata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInstance.Setname(AIndex : Integer; AValue : string); 
+Procedure TImage.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -9574,7 +11412,257 @@ end;
 
 
 
-Procedure TInstance.SetnetworkInterfaces(AIndex : Integer; AValue : TInstancenetworkInterfaces); 
+Procedure TImage.SetrawDisk(AIndex : Integer; const AValue : TImageTyperawDisk); 
+
+begin
+  If (FrawDisk=AValue) then exit;
+  FrawDisk:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TImage.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TImage.SetsourceDisk(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FsourceDisk=AValue) then exit;
+  FsourceDisk:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TImage.SetsourceDiskId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FsourceDiskId=AValue) then exit;
+  FsourceDiskId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TImage.SetsourceType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FsourceType=AValue) then exit;
+  FsourceType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TImage.Setstatus(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fstatus=AValue) then exit;
+  Fstatus:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TImage.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'licenses' : SetLength(Flicenses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TImageList
+  --------------------------------------------------------------------}
+
+
+Procedure TImageList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TImageList.Setitems(AIndex : Integer; const AValue : TImageListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TImageList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TImageList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TImageList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TImageList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstance
+  --------------------------------------------------------------------}
+
+
+Procedure TInstance.SetcanIpForward(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FcanIpForward=AValue) then exit;
+  FcanIpForward:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstance.SetcpuPlatform(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcpuPlatform=AValue) then exit;
+  FcpuPlatform:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstance.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstance.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstance.Setdisks(AIndex : Integer; const AValue : TInstanceTypedisksArray); 
+
+begin
+  If (Fdisks=AValue) then exit;
+  Fdisks:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstance.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstance.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstance.SetmachineType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FmachineType=AValue) then exit;
+  FmachineType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstance.Setmetadata(AIndex : Integer; const AValue : TMetadata); 
+
+begin
+  If (Fmetadata=AValue) then exit;
+  Fmetadata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstance.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstance.SetnetworkInterfaces(AIndex : Integer; const AValue : TInstanceTypenetworkInterfacesArray); 
 
 begin
   If (FnetworkInterfaces=AValue) then exit;
@@ -9584,7 +11672,7 @@ end;
 
 
 
-Procedure TInstance.Setscheduling(AIndex : Integer; AValue : TScheduling); 
+Procedure TInstance.Setscheduling(AIndex : Integer; const AValue : TScheduling); 
 
 begin
   If (Fscheduling=AValue) then exit;
@@ -9594,7 +11682,7 @@ end;
 
 
 
-Procedure TInstance.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TInstance.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -9604,7 +11692,7 @@ end;
 
 
 
-Procedure TInstance.SetserviceAccounts(AIndex : Integer; AValue : TInstanceserviceAccounts); 
+Procedure TInstance.SetserviceAccounts(AIndex : Integer; const AValue : TInstanceTypeserviceAccountsArray); 
 
 begin
   If (FserviceAccounts=AValue) then exit;
@@ -9614,7 +11702,7 @@ end;
 
 
 
-Procedure TInstance.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TInstance.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -9624,7 +11712,7 @@ end;
 
 
 
-Procedure TInstance.SetstatusMessage(AIndex : Integer; AValue : string); 
+Procedure TInstance.SetstatusMessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -9634,7 +11722,7 @@ end;
 
 
 
-Procedure TInstance.Settags(AIndex : Integer; AValue : TRoutetags); 
+Procedure TInstance.Settags(AIndex : Integer; const AValue : TTags); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -9644,7 +11732,7 @@ end;
 
 
 
-Procedure TInstance.Setzone(AIndex : Integer; AValue : string); 
+Procedure TInstance.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -9653,93 +11741,30 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstance.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TInstancedisks
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TInstancenetworkInterfaces
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TInstanceserviceAccounts
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'disks' : SetLength(Fdisks,ALength);
+  'networkinterfaces' : SetLength(FnetworkInterfaces,ALength);
+  'serviceaccounts' : SetLength(FserviceAccounts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TInstanceAggregatedList
+  TInstanceAggregatedListTypeitems
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceAggregatedList.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInstanceAggregatedList.Setitems(AIndex : Integer; AValue : TInstanceAggregatedListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInstanceAggregatedList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInstanceAggregatedList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInstanceAggregatedList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TInstanceAggregatedListitems
-  --------------------------------------------------------------------}
-
-
-Class Function TInstanceAggregatedListitems.AllowAdditionalProperties : Boolean;
+Class Function TInstanceAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -9748,11 +11773,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TInstanceList
+  TInstanceAggregatedList
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceList.Setid(AIndex : Integer; AValue : string); 
+Procedure TInstanceAggregatedList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9762,7 +11787,7 @@ end;
 
 
 
-Procedure TInstanceList.Setitems(AIndex : Integer; AValue : TInstanceListitems); 
+Procedure TInstanceAggregatedList.Setitems(AIndex : Integer; const AValue : TInstanceAggregatedListTypeitems); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -9772,7 +11797,7 @@ end;
 
 
 
-Procedure TInstanceList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TInstanceAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9782,7 +11807,7 @@ end;
 
 
 
-Procedure TInstanceList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TInstanceAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -9792,7 +11817,7 @@ end;
 
 
 
-Procedure TInstanceList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TInstanceAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -9805,8 +11830,1337 @@ end;
 
 
 { --------------------------------------------------------------------
-  TInstanceListitems
+  TInstanceGroup
   --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroup.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroup.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroup.Setfingerprint(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ffingerprint=AValue) then exit;
+  Ffingerprint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroup.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroup.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroup.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroup.SetnamedPorts(AIndex : Integer; const AValue : TInstanceGroupTypenamedPortsArray); 
+
+begin
+  If (FnamedPorts=AValue) then exit;
+  FnamedPorts:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroup.Setnetwork(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fnetwork=AValue) then exit;
+  Fnetwork:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroup.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroup.Setsize(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fsize=AValue) then exit;
+  Fsize:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroup.Setsubnetwork(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fsubnetwork=AValue) then exit;
+  Fsubnetwork:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroup.Setzone(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fzone=AValue) then exit;
+  Fzone:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'namedports' : SetLength(FnamedPorts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupAggregatedListTypeitems
+  --------------------------------------------------------------------}
+
+
+Class Function TInstanceGroupAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupAggregatedList
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupAggregatedList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupAggregatedList.Setitems(AIndex : Integer; const AValue : TInstanceGroupAggregatedListTypeitems); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupList
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupList.Setitems(AIndex : Integer; const AValue : TInstanceGroupListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManager
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManager.SetbaseInstanceName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FbaseInstanceName=AValue) then exit;
+  FbaseInstanceName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.SetcurrentActions(AIndex : Integer; const AValue : TInstanceGroupManagerActionsSummary); 
+
+begin
+  If (FcurrentActions=AValue) then exit;
+  FcurrentActions:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.Setfingerprint(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ffingerprint=AValue) then exit;
+  Ffingerprint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.SetinstanceGroup(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinstanceGroup=AValue) then exit;
+  FinstanceGroup:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.SetinstanceTemplate(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinstanceTemplate=AValue) then exit;
+  FinstanceTemplate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.SetnamedPorts(AIndex : Integer; const AValue : TInstanceGroupManagerTypenamedPortsArray); 
+
+begin
+  If (FnamedPorts=AValue) then exit;
+  FnamedPorts:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.SettargetPools(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FtargetPools=AValue) then exit;
+  FtargetPools:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.SettargetSize(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FtargetSize=AValue) then exit;
+  FtargetSize:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManager.Setzone(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fzone=AValue) then exit;
+  Fzone:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManager.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'namedports' : SetLength(FnamedPorts,ALength);
+  'targetpools' : SetLength(FtargetPools,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagerActionsSummary
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagerActionsSummary.Setabandoning(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fabandoning=AValue) then exit;
+  Fabandoning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerActionsSummary.Setcreating(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fcreating=AValue) then exit;
+  Fcreating:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerActionsSummary.Setdeleting(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fdeleting=AValue) then exit;
+  Fdeleting:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerActionsSummary.Setnone(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fnone=AValue) then exit;
+  Fnone:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerActionsSummary.Setrecreating(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Frecreating=AValue) then exit;
+  Frecreating:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerActionsSummary.Setrefreshing(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Frefreshing=AValue) then exit;
+  Frefreshing:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerActionsSummary.Setrestarting(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Frestarting=AValue) then exit;
+  Frestarting:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagerAggregatedListTypeitems
+  --------------------------------------------------------------------}
+
+
+Class Function TInstanceGroupManagerAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagerAggregatedList
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagerAggregatedList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerAggregatedList.Setitems(AIndex : Integer; const AValue : TInstanceGroupManagerAggregatedListTypeitems); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagerList
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagerList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerList.Setitems(AIndex : Integer; const AValue : TInstanceGroupManagerListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagerList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagerList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagersAbandonInstancesRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagersAbandonInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Finstances=AValue) then exit;
+  Finstances:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagersAbandonInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagersDeleteInstancesRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagersDeleteInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Finstances=AValue) then exit;
+  Finstances:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagersDeleteInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagersListManagedInstancesResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagersListManagedInstancesResponse.SetmanagedInstances(AIndex : Integer; const AValue : TInstanceGroupManagersListManagedInstancesResponseTypemanagedInstancesArray); 
+
+begin
+  If (FmanagedInstances=AValue) then exit;
+  FmanagedInstances:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagersListManagedInstancesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'managedinstances' : SetLength(FmanagedInstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagersRecreateInstancesRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagersRecreateInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Finstances=AValue) then exit;
+  Finstances:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagersRecreateInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagersScopedListTypewarningTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagersScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagersScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagersScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagersScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagersScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TInstanceGroupManagersScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagersScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagersScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagersScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagersScopedList.SetinstanceGroupManagers(AIndex : Integer; const AValue : TInstanceGroupManagersScopedListTypeinstanceGroupManagersArray); 
+
+begin
+  If (FinstanceGroupManagers=AValue) then exit;
+  FinstanceGroupManagers:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagersScopedList.Setwarning(AIndex : Integer; const AValue : TInstanceGroupManagersScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagersScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instancegroupmanagers' : SetLength(FinstanceGroupManagers,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagersSetInstanceTemplateRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagersSetInstanceTemplateRequest.SetinstanceTemplate(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinstanceTemplate=AValue) then exit;
+  FinstanceTemplate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagersSetTargetPoolsRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupManagersSetTargetPoolsRequest.Setfingerprint(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ffingerprint=AValue) then exit;
+  Ffingerprint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupManagersSetTargetPoolsRequest.SettargetPools(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FtargetPools=AValue) then exit;
+  FtargetPools:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupManagersSetTargetPoolsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'targetpools' : SetLength(FtargetPools,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupsAddInstancesRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupsAddInstancesRequest.Setinstances(AIndex : Integer; const AValue : TInstanceGroupsAddInstancesRequestTypeinstancesArray); 
+
+begin
+  If (Finstances=AValue) then exit;
+  Finstances:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupsAddInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupsListInstances
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupsListInstances.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupsListInstances.Setitems(AIndex : Integer; const AValue : TInstanceGroupsListInstancesTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupsListInstances.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupsListInstances.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupsListInstances.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupsListInstances.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupsListInstancesRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupsListInstancesRequest.SetinstanceState(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinstanceState=AValue) then exit;
+  FinstanceState:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupsRemoveInstancesRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupsRemoveInstancesRequest.Setinstances(AIndex : Integer; const AValue : TInstanceGroupsRemoveInstancesRequestTypeinstancesArray); 
+
+begin
+  If (Finstances=AValue) then exit;
+  Finstances:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupsRemoveInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupsScopedListTypewarningTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupsScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupsScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupsScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupsScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupsScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TInstanceGroupsScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupsScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupsScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupsScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupsScopedList.SetinstanceGroups(AIndex : Integer; const AValue : TInstanceGroupsScopedListTypeinstanceGroupsArray); 
+
+begin
+  If (FinstanceGroups=AValue) then exit;
+  FinstanceGroups:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupsScopedList.Setwarning(AIndex : Integer; const AValue : TInstanceGroupsScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupsScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instancegroups' : SetLength(FinstanceGroups,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupsSetNamedPortsRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceGroupsSetNamedPortsRequest.Setfingerprint(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ffingerprint=AValue) then exit;
+  Ffingerprint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceGroupsSetNamedPortsRequest.SetnamedPorts(AIndex : Integer; const AValue : TInstanceGroupsSetNamedPortsRequestTypenamedPortsArray); 
+
+begin
+  If (FnamedPorts=AValue) then exit;
+  FnamedPorts:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceGroupsSetNamedPortsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'namedports' : SetLength(FnamedPorts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceList
+  --------------------------------------------------------------------}
+
+
+Procedure TInstanceList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceList.Setitems(AIndex : Integer; const AValue : TInstanceListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9816,7 +13170,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceMoveRequest.SetdestinationZone(AIndex : Integer; AValue : string); 
+Procedure TInstanceMoveRequest.SetdestinationZone(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdestinationZone=AValue) then exit;
@@ -9826,7 +13180,7 @@ end;
 
 
 
-Procedure TInstanceMoveRequest.SettargetInstance(AIndex : Integer; AValue : string); 
+Procedure TInstanceMoveRequest.SettargetInstance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetInstance=AValue) then exit;
@@ -9843,7 +13197,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceProperties.SetcanIpForward(AIndex : Integer; AValue : boolean); 
+Procedure TInstanceProperties.SetcanIpForward(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FcanIpForward=AValue) then exit;
@@ -9853,7 +13207,7 @@ end;
 
 
 
-Procedure TInstanceProperties.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TInstanceProperties.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -9863,7 +13217,7 @@ end;
 
 
 
-Procedure TInstanceProperties.Setdisks(AIndex : Integer; AValue : TInstancePropertiesdisks); 
+Procedure TInstanceProperties.Setdisks(AIndex : Integer; const AValue : TInstancePropertiesTypedisksArray); 
 
 begin
   If (Fdisks=AValue) then exit;
@@ -9873,7 +13227,7 @@ end;
 
 
 
-Procedure TInstanceProperties.SetmachineType(AIndex : Integer; AValue : string); 
+Procedure TInstanceProperties.SetmachineType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmachineType=AValue) then exit;
@@ -9883,7 +13237,7 @@ end;
 
 
 
-Procedure TInstanceProperties.Setmetadata(AIndex : Integer; AValue : TMetadata); 
+Procedure TInstanceProperties.Setmetadata(AIndex : Integer; const AValue : TMetadata); 
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -9893,7 +13247,7 @@ end;
 
 
 
-Procedure TInstanceProperties.SetnetworkInterfaces(AIndex : Integer; AValue : TInstancePropertiesnetworkInterfaces); 
+Procedure TInstanceProperties.SetnetworkInterfaces(AIndex : Integer; const AValue : TInstancePropertiesTypenetworkInterfacesArray); 
 
 begin
   If (FnetworkInterfaces=AValue) then exit;
@@ -9903,7 +13257,7 @@ end;
 
 
 
-Procedure TInstanceProperties.Setscheduling(AIndex : Integer; AValue : TScheduling); 
+Procedure TInstanceProperties.Setscheduling(AIndex : Integer; const AValue : TScheduling); 
 
 begin
   If (Fscheduling=AValue) then exit;
@@ -9913,7 +13267,7 @@ end;
 
 
 
-Procedure TInstanceProperties.SetserviceAccounts(AIndex : Integer; AValue : TInstancePropertiesserviceAccounts); 
+Procedure TInstanceProperties.SetserviceAccounts(AIndex : Integer; const AValue : TInstancePropertiesTypeserviceAccountsArray); 
 
 begin
   If (FserviceAccounts=AValue) then exit;
@@ -9923,7 +13277,7 @@ end;
 
 
 
-Procedure TInstanceProperties.Settags(AIndex : Integer; AValue : TRoutetags); 
+Procedure TInstanceProperties.Settags(AIndex : Integer; const AValue : TTags); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -9932,26 +13286,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceProperties.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TInstancePropertiesdisks
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TInstancePropertiesnetworkInterfaces
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TInstancePropertiesserviceAccounts
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'disks' : SetLength(Fdisks,ALength);
+  'networkinterfaces' : SetLength(FnetworkInterfaces,ALength);
+  'serviceaccounts' : SetLength(FserviceAccounts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -9961,7 +13309,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceReference.Setinstance(AIndex : Integer; AValue : string); 
+Procedure TInstanceReference.Setinstance(AIndex : Integer; const AValue : String); 
 
 begin
   If (Finstance=AValue) then exit;
@@ -9978,7 +13326,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceTemplate.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TInstanceTemplate.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -9988,7 +13336,7 @@ end;
 
 
 
-Procedure TInstanceTemplate.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TInstanceTemplate.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -9998,7 +13346,7 @@ end;
 
 
 
-Procedure TInstanceTemplate.Setid(AIndex : Integer; AValue : string); 
+Procedure TInstanceTemplate.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10008,7 +13356,7 @@ end;
 
 
 
-Procedure TInstanceTemplate.Setkind(AIndex : Integer; AValue : string); 
+Procedure TInstanceTemplate.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10018,7 +13366,7 @@ end;
 
 
 
-Procedure TInstanceTemplate.Setname(AIndex : Integer; AValue : string); 
+Procedure TInstanceTemplate.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -10028,7 +13376,7 @@ end;
 
 
 
-Procedure TInstanceTemplate.Setproperties(AIndex : Integer; AValue : TInstanceProperties); 
+Procedure TInstanceTemplate.Setproperties(AIndex : Integer; const AValue : TInstanceProperties); 
 
 begin
   If (Fproperties=AValue) then exit;
@@ -10038,7 +13386,7 @@ end;
 
 
 
-Procedure TInstanceTemplate.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TInstanceTemplate.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -10055,7 +13403,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceTemplateList.Setid(AIndex : Integer; AValue : string); 
+Procedure TInstanceTemplateList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10065,7 +13413,7 @@ end;
 
 
 
-Procedure TInstanceTemplateList.Setitems(AIndex : Integer; AValue : TInstanceTemplateListitems); 
+Procedure TInstanceTemplateList.Setitems(AIndex : Integer; const AValue : TInstanceTemplateListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -10075,7 +13423,7 @@ end;
 
 
 
-Procedure TInstanceTemplateList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TInstanceTemplateList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10085,7 +13433,7 @@ end;
 
 
 
-Procedure TInstanceTemplateList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TInstanceTemplateList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -10095,7 +13443,7 @@ end;
 
 
 
-Procedure TInstanceTemplateList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TInstanceTemplateList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -10104,93 +13452,78 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TInstanceTemplateListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TInstancesScopedList
-  --------------------------------------------------------------------}
-
-
-Procedure TInstancesScopedList.Setinstances(AIndex : Integer; AValue : TInstancesScopedListinstances); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceTemplateList.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Finstances=AValue) then exit;
-  Finstances:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TInstancesScopedList.Setwarning(AIndex : Integer; AValue : TInstancesScopedListwarning); 
-
-begin
-  If (Fwarning=AValue) then exit;
-  Fwarning:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TInstancesScopedListinstances
+  TInstanceWithNamedPorts
   --------------------------------------------------------------------}
+
+
+Procedure TInstanceWithNamedPorts.Setinstance(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Finstance=AValue) then exit;
+  Finstance:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceWithNamedPorts.SetnamedPorts(AIndex : Integer; const AValue : TInstanceWithNamedPortsTypenamedPortsArray); 
+
+begin
+  If (FnamedPorts=AValue) then exit;
+  FnamedPorts:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstanceWithNamedPorts.Setstatus(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fstatus=AValue) then exit;
+  Fstatus:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstanceWithNamedPorts.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'namedports' : SetLength(FnamedPorts,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TInstancesScopedListwarning
+  TInstancesScopedListTypewarningTypedataItem
   --------------------------------------------------------------------}
 
 
-Procedure TInstancesScopedListwarning.Setcode(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInstancesScopedListwarning.Setdata(AIndex : Integer; AValue : TInstancesScopedListwarningdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TInstancesScopedListwarning.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TInstancesScopedListwarningdata
-  --------------------------------------------------------------------}
-
-
-Procedure TInstancesScopedListwarningdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TInstancesScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -10200,7 +13533,7 @@ end;
 
 
 
-Procedure TInstancesScopedListwarningdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TInstancesScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -10213,11 +13546,118 @@ end;
 
 
 { --------------------------------------------------------------------
+  TInstancesScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TInstancesScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstancesScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TInstancesScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstancesScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstancesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstancesScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TInstancesScopedList.Setinstances(AIndex : Integer; const AValue : TInstancesScopedListTypeinstancesArray); 
+
+begin
+  If (Finstances=AValue) then exit;
+  Finstances:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TInstancesScopedList.Setwarning(AIndex : Integer; const AValue : TInstancesScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TInstancesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TInstancesSetMachineTypeRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TInstancesSetMachineTypeRequest.SetmachineType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FmachineType=AValue) then exit;
+  FmachineType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TLicense
   --------------------------------------------------------------------}
 
 
-Procedure TLicense.SetchargesUseFee(AIndex : Integer; AValue : boolean); 
+Procedure TLicense.SetchargesUseFee(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FchargesUseFee=AValue) then exit;
@@ -10227,7 +13667,7 @@ end;
 
 
 
-Procedure TLicense.Setkind(AIndex : Integer; AValue : string); 
+Procedure TLicense.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10237,7 +13677,7 @@ end;
 
 
 
-Procedure TLicense.Setname(AIndex : Integer; AValue : string); 
+Procedure TLicense.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -10247,7 +13687,7 @@ end;
 
 
 
-Procedure TLicense.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TLicense.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -10260,158 +13700,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMachineType
+  TMachineTypeTypescratchDisksItem
   --------------------------------------------------------------------}
 
 
-Procedure TMachineType.SetcreationTimestamp(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcreationTimestamp=AValue) then exit;
-  FcreationTimestamp:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); 
-
-begin
-  If (Fdeprecated=AValue) then exit;
-  Fdeprecated:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.Setdescription(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdescription=AValue) then exit;
-  Fdescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.SetguestCpus(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FguestCpus=AValue) then exit;
-  FguestCpus:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.SetimageSpaceGb(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FimageSpaceGb=AValue) then exit;
-  FimageSpaceGb:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.SetmaximumPersistentDisks(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FmaximumPersistentDisks=AValue) then exit;
-  FmaximumPersistentDisks:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.SetmaximumPersistentDisksSizeGb(AIndex : Integer; AValue : string); 
-
-begin
-  If (FmaximumPersistentDisksSizeGb=AValue) then exit;
-  FmaximumPersistentDisksSizeGb:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.SetmemoryMb(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FmemoryMb=AValue) then exit;
-  FmemoryMb:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.SetscratchDisks(AIndex : Integer; AValue : TMachineTypescratchDisks); 
-
-begin
-  If (FscratchDisks=AValue) then exit;
-  FscratchDisks:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMachineType.Setzone(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fzone=AValue) then exit;
-  Fzone:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TMachineTypescratchDisks
-  --------------------------------------------------------------------}
-
-
-Procedure TMachineTypescratchDisks.SetdiskGb(AIndex : Integer; AValue : integer); 
+Procedure TMachineTypeTypescratchDisksItem.SetdiskGb(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FdiskGb=AValue) then exit;
@@ -10424,11 +13717,51 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMachineTypeAggregatedList
+  TMachineType
   --------------------------------------------------------------------}
 
 
-Procedure TMachineTypeAggregatedList.Setid(AIndex : Integer; AValue : string); 
+Procedure TMachineType.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineType.Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); 
+
+begin
+  If (Fdeprecated=AValue) then exit;
+  Fdeprecated:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineType.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineType.SetguestCpus(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FguestCpus=AValue) then exit;
+  FguestCpus:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineType.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10438,17 +13771,17 @@ end;
 
 
 
-Procedure TMachineTypeAggregatedList.Setitems(AIndex : Integer; AValue : TMachineTypeAggregatedListitems); 
+Procedure TMachineType.SetimageSpaceGb(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
+  If (FimageSpaceGb=AValue) then exit;
+  FimageSpaceGb:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TMachineTypeAggregatedList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TMachineType.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10458,17 +13791,57 @@ end;
 
 
 
-Procedure TMachineTypeAggregatedList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TMachineType.SetmaximumPersistentDisks(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
+  If (FmaximumPersistentDisks=AValue) then exit;
+  FmaximumPersistentDisks:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TMachineTypeAggregatedList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TMachineType.SetmaximumPersistentDisksSizeGb(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FmaximumPersistentDisksSizeGb=AValue) then exit;
+  FmaximumPersistentDisksSizeGb:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineType.SetmemoryMb(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FmemoryMb=AValue) then exit;
+  FmemoryMb:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineType.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineType.SetscratchDisks(AIndex : Integer; const AValue : TMachineTypeTypescratchDisksArray); 
+
+begin
+  If (FscratchDisks=AValue) then exit;
+  FscratchDisks:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineType.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -10478,14 +13851,37 @@ end;
 
 
 
+Procedure TMachineType.Setzone(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fzone=AValue) then exit;
+  Fzone:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMachineType.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'scratchdisks' : SetLength(FscratchDisks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
 
 
 { --------------------------------------------------------------------
-  TMachineTypeAggregatedListitems
+  TMachineTypeAggregatedListTypeitems
   --------------------------------------------------------------------}
 
 
-Class Function TMachineTypeAggregatedListitems.AllowAdditionalProperties : Boolean;
+Class Function TMachineTypeAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -10494,11 +13890,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMachineTypeList
+  TMachineTypeAggregatedList
   --------------------------------------------------------------------}
 
 
-Procedure TMachineTypeList.Setid(AIndex : Integer; AValue : string); 
+Procedure TMachineTypeAggregatedList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10508,7 +13904,7 @@ end;
 
 
 
-Procedure TMachineTypeList.Setitems(AIndex : Integer; AValue : TMachineTypeListitems); 
+Procedure TMachineTypeAggregatedList.Setitems(AIndex : Integer; const AValue : TMachineTypeAggregatedListTypeitems); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -10518,7 +13914,7 @@ end;
 
 
 
-Procedure TMachineTypeList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TMachineTypeAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10528,7 +13924,7 @@ end;
 
 
 
-Procedure TMachineTypeList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TMachineTypeAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -10538,7 +13934,7 @@ end;
 
 
 
-Procedure TMachineTypeList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TMachineTypeAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -10551,32 +13947,95 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMachineTypeListitems
+  TMachineTypeList
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TMachineTypesScopedList
-  --------------------------------------------------------------------}
-
-
-Procedure TMachineTypesScopedList.SetmachineTypes(AIndex : Integer; AValue : TMachineTypesScopedListmachineTypes); 
+Procedure TMachineTypeList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FmachineTypes=AValue) then exit;
-  FmachineTypes:=AValue;
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TMachineTypesScopedList.Setwarning(AIndex : Integer; AValue : TMachineTypesScopedListwarning); 
+Procedure TMachineTypeList.Setitems(AIndex : Integer; const AValue : TMachineTypeListTypeitemsArray); 
 
 begin
-  If (Fwarning=AValue) then exit;
-  Fwarning:=AValue;
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineTypeList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineTypeList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineTypeList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMachineTypeList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TMachineTypesScopedListTypewarningTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TMachineTypesScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineTypesScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -10585,18 +14044,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMachineTypesScopedListmachineTypes
+  TMachineTypesScopedListTypewarning
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TMachineTypesScopedListwarning
-  --------------------------------------------------------------------}
-
-
-Procedure TMachineTypesScopedListwarning.Setcode(AIndex : Integer; AValue : string); 
+Procedure TMachineTypesScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -10606,7 +14058,7 @@ end;
 
 
 
-Procedure TMachineTypesScopedListwarning.Setdata(AIndex : Integer; AValue : TMachineTypesScopedListwarningdata); 
+Procedure TMachineTypesScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TMachineTypesScopedListTypewarningTypedataArray); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -10616,7 +14068,154 @@ end;
 
 
 
-Procedure TMachineTypesScopedListwarning.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TMachineTypesScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMachineTypesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TMachineTypesScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TMachineTypesScopedList.SetmachineTypes(AIndex : Integer; const AValue : TMachineTypesScopedListTypemachineTypesArray); 
+
+begin
+  If (FmachineTypes=AValue) then exit;
+  FmachineTypes:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMachineTypesScopedList.Setwarning(AIndex : Integer; const AValue : TMachineTypesScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMachineTypesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'machinetypes' : SetLength(FmachineTypes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TManagedInstance
+  --------------------------------------------------------------------}
+
+
+Procedure TManagedInstance.SetcurrentAction(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcurrentAction=AValue) then exit;
+  FcurrentAction:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManagedInstance.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManagedInstance.Setinstance(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Finstance=AValue) then exit;
+  Finstance:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManagedInstance.SetinstanceStatus(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinstanceStatus=AValue) then exit;
+  FinstanceStatus:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManagedInstance.SetlastAttempt(AIndex : Integer; const AValue : TManagedInstanceLastAttempt); 
+
+begin
+  If (FlastAttempt=AValue) then exit;
+  FlastAttempt:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TManagedInstanceLastAttemptTypeerrorsTypeerrorsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TManagedInstanceLastAttemptTypeerrorsTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManagedInstanceLastAttemptTypeerrorsTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Flocation=AValue) then exit;
+  Flocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManagedInstanceLastAttemptTypeerrorsTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -10629,11 +14228,58 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMachineTypesScopedListwarningdata
+  TManagedInstanceLastAttemptTypeerrors
   --------------------------------------------------------------------}
 
 
-Procedure TMachineTypesScopedListwarningdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TManagedInstanceLastAttemptTypeerrors.Seterrors(AIndex : Integer; const AValue : TManagedInstanceLastAttemptTypeerrorsTypeerrorsArray); 
+
+begin
+  If (Ferrors=AValue) then exit;
+  Ferrors:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TManagedInstanceLastAttemptTypeerrors.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TManagedInstanceLastAttempt
+  --------------------------------------------------------------------}
+
+
+Procedure TManagedInstanceLastAttempt.Seterrors(AIndex : Integer; const AValue : TManagedInstanceLastAttemptTypeerrors); 
+
+begin
+  If (Ferrors=AValue) then exit;
+  Ferrors:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TMetadataTypeitemsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TMetadataTypeitemsItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -10643,7 +14289,7 @@ end;
 
 
 
-Procedure TMachineTypesScopedListwarningdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TMetadataTypeitemsItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -10660,7 +14306,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetadata.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TMetadata.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -10670,7 +14316,7 @@ end;
 
 
 
-Procedure TMetadata.Setitems(AIndex : Integer; AValue : TMetadataitems); 
+Procedure TMetadata.Setitems(AIndex : Integer; const AValue : TMetadataTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -10680,7 +14326,7 @@ end;
 
 
 
-Procedure TMetadata.Setkind(AIndex : Integer; AValue : string); 
+Procedure TMetadata.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10689,29 +14335,42 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TMetadataitems
+  TNamedPort
   --------------------------------------------------------------------}
 
 
-Procedure TMetadataitems.Setkey(AIndex : Integer; AValue : string); 
+Procedure TNamedPort.Setname(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fkey=AValue) then exit;
-  Fkey:=AValue;
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TMetadataitems.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TNamedPort.Setport(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (Fvalue=AValue) then exit;
-  Fvalue:=AValue;
+  If (Fport=AValue) then exit;
+  Fport:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -10724,7 +14383,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNetwork.SetIPv4Range(AIndex : Integer; AValue : string); 
+Procedure TNetwork.SetIPv4Range(AIndex : Integer; const AValue : String); 
 
 begin
   If (FIPv4Range=AValue) then exit;
@@ -10734,7 +14393,17 @@ end;
 
 
 
-Procedure TNetwork.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TNetwork.SetautoCreateSubnetworks(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FautoCreateSubnetworks=AValue) then exit;
+  FautoCreateSubnetworks:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNetwork.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -10744,7 +14413,7 @@ end;
 
 
 
-Procedure TNetwork.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TNetwork.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -10754,7 +14423,7 @@ end;
 
 
 
-Procedure TNetwork.SetgatewayIPv4(AIndex : Integer; AValue : string); 
+Procedure TNetwork.SetgatewayIPv4(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgatewayIPv4=AValue) then exit;
@@ -10764,7 +14433,7 @@ end;
 
 
 
-Procedure TNetwork.Setid(AIndex : Integer; AValue : string); 
+Procedure TNetwork.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10774,7 +14443,7 @@ end;
 
 
 
-Procedure TNetwork.Setkind(AIndex : Integer; AValue : string); 
+Procedure TNetwork.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10784,7 +14453,7 @@ end;
 
 
 
-Procedure TNetwork.Setname(AIndex : Integer; AValue : string); 
+Procedure TNetwork.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -10794,7 +14463,7 @@ end;
 
 
 
-Procedure TNetwork.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TNetwork.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -10802,6 +14471,29 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+
+Procedure TNetwork.Setsubnetworks(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Fsubnetworks=AValue) then exit;
+  Fsubnetworks:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TNetwork.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'subnetworks' : SetLength(Fsubnetworks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -10811,7 +14503,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNetworkInterface.SetaccessConfigs(AIndex : Integer; AValue : TNetworkInterfaceaccessConfigs); 
+Procedure TNetworkInterface.SetaccessConfigs(AIndex : Integer; const AValue : TNetworkInterfaceTypeaccessConfigsArray); 
 
 begin
   If (FaccessConfigs=AValue) then exit;
@@ -10821,7 +14513,7 @@ end;
 
 
 
-Procedure TNetworkInterface.Setname(AIndex : Integer; AValue : string); 
+Procedure TNetworkInterface.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -10831,7 +14523,7 @@ end;
 
 
 
-Procedure TNetworkInterface.Setnetwork(AIndex : Integer; AValue : string); 
+Procedure TNetworkInterface.Setnetwork(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -10841,7 +14533,7 @@ end;
 
 
 
-Procedure TNetworkInterface.SetnetworkIP(AIndex : Integer; AValue : string); 
+Procedure TNetworkInterface.SetnetworkIP(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnetworkIP=AValue) then exit;
@@ -10851,11 +14543,27 @@ end;
 
 
 
+Procedure TNetworkInterface.Setsubnetwork(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fsubnetwork=AValue) then exit;
+  Fsubnetwork:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
 
 
-{ --------------------------------------------------------------------
-  TNetworkInterfaceaccessConfigs
-  --------------------------------------------------------------------}
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TNetworkInterface.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'accessconfigs' : SetLength(FaccessConfigs,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -10865,7 +14573,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNetworkList.Setid(AIndex : Integer; AValue : string); 
+Procedure TNetworkList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10875,7 +14583,7 @@ end;
 
 
 
-Procedure TNetworkList.Setitems(AIndex : Integer; AValue : TNetworkListitems); 
+Procedure TNetworkList.Setitems(AIndex : Integer; const AValue : TNetworkListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -10885,7 +14593,7 @@ end;
 
 
 
-Procedure TNetworkList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TNetworkList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10895,7 +14603,7 @@ end;
 
 
 
-Procedure TNetworkList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TNetworkList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -10905,7 +14613,7 @@ end;
 
 
 
-Procedure TNetworkList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TNetworkList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -10914,266 +14622,28 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TNetworkListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperation
-  --------------------------------------------------------------------}
-
-
-Procedure TOperation.SetclientOperationId(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TNetworkList.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (FclientOperationId=AValue) then exit;
-  FclientOperationId:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TOperation.SetcreationTimestamp(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcreationTimestamp=AValue) then exit;
-  FcreationTimestamp:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetendTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FendTime=AValue) then exit;
-  FendTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationerror); 
-
-begin
-  If (Ferror=AValue) then exit;
-  Ferror:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SethttpErrorMessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (FhttpErrorMessage=AValue) then exit;
-  FhttpErrorMessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FhttpErrorStatusCode=AValue) then exit;
-  FhttpErrorStatusCode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetinsertTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FinsertTime=AValue) then exit;
-  FinsertTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetoperationType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FoperationType=AValue) then exit;
-  FoperationType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setprogress(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fprogress=AValue) then exit;
-  Fprogress:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setregion(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fregion=AValue) then exit;
-  Fregion:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetstartTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FstartTime=AValue) then exit;
-  FstartTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setstatus(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fstatus=AValue) then exit;
-  Fstatus:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetstatusMessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (FstatusMessage=AValue) then exit;
-  FstatusMessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SettargetId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FtargetId=AValue) then exit;
-  FtargetId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SettargetLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FtargetLink=AValue) then exit;
-  FtargetLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setuser(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fuser=AValue) then exit;
-  Fuser:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationwarnings); 
-
-begin
-  If (Fwarnings=AValue) then exit;
-  Fwarnings:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setzone(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fzone=AValue) then exit;
-  Fzone:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TOperationerror
+  TOperationTypeerrorTypeerrorsItem
   --------------------------------------------------------------------}
 
 
-Procedure TOperationerror.Seterrors(AIndex : Integer; AValue : TOperationerrorerrors); 
-
-begin
-  If (Ferrors=AValue) then exit;
-  Ferrors:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationerrorerrors
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationerrorerrors.Setcode(AIndex : Integer; AValue : string); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -11183,7 +14653,7 @@ end;
 
 
 
-Procedure TOperationerrorerrors.Setlocation(AIndex : Integer; AValue : string); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -11193,7 +14663,7 @@ end;
 
 
 
-Procedure TOperationerrorerrors.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -11206,48 +14676,41 @@ end;
 
 
 { --------------------------------------------------------------------
-  TOperationwarnings
+  TOperationTypeerror
   --------------------------------------------------------------------}
 
 
-Procedure TOperationwarnings.Setcode(AIndex : Integer; AValue : string); 
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); 
 
 begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
+  If (Ferrors=AValue) then exit;
+  Ferrors:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
-
-Procedure TOperationwarnings.Setdata(AIndex : Integer; AValue : TOperationwarningsdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationwarnings.Setmessage(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TOperationwarningsdata
+  TOperationTypewarningsItemTypedataItem
   --------------------------------------------------------------------}
 
 
-Procedure TOperationwarningsdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -11257,7 +14720,7 @@ end;
 
 
 
-Procedure TOperationwarningsdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -11270,179 +14733,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TOperationAggregatedList
+  TOperationTypewarningsItem
   --------------------------------------------------------------------}
 
 
-Procedure TOperationAggregatedList.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationAggregatedList.Setitems(AIndex : Integer; AValue : TOperationAggregatedListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationAggregatedList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationAggregatedList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationAggregatedList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationAggregatedListitems
-  --------------------------------------------------------------------}
-
-
-Class Function TOperationAggregatedListitems.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TOperationList
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationList.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationList.Setitems(AIndex : Integer; AValue : TOperationListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationsScopedList
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationsScopedList.Setoperations(AIndex : Integer; AValue : TOperationsScopedListoperations); 
-
-begin
-  If (Foperations=AValue) then exit;
-  Foperations:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationsScopedList.Setwarning(AIndex : Integer; AValue : TOperationsScopedListwarning); 
-
-begin
-  If (Fwarning=AValue) then exit;
-  Fwarning:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationsScopedListoperations
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationsScopedListwarning
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationsScopedListwarning.Setcode(AIndex : Integer; AValue : string); 
+Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -11452,7 +14747,7 @@ end;
 
 
 
-Procedure TOperationsScopedListwarning.Setdata(AIndex : Integer; AValue : TOperationsScopedListwarningdata); 
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -11462,7 +14757,7 @@ end;
 
 
 
-Procedure TOperationsScopedListwarning.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -11471,140 +14766,38 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TOperationsScopedListwarningdata
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationsScopedListwarningdata.Setkey(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Fkey=AValue) then exit;
-  Fkey:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TOperationsScopedListwarningdata.Setvalue(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fvalue=AValue) then exit;
-  Fvalue:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TPathMatcher
+  TOperation
   --------------------------------------------------------------------}
 
 
-Procedure TPathMatcher.SetdefaultService(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetclientOperationId(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FdefaultService=AValue) then exit;
-  FdefaultService:=AValue;
+  If (FclientOperationId=AValue) then exit;
+  FclientOperationId:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TPathMatcher.Setdescription(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdescription=AValue) then exit;
-  Fdescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPathMatcher.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPathMatcher.SetpathRules(AIndex : Integer; AValue : TPathMatcherpathRules); 
-
-begin
-  If (FpathRules=AValue) then exit;
-  FpathRules:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPathMatcherpathRules
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPathRule
-  --------------------------------------------------------------------}
-
-
-Procedure TPathRule.Setpaths(AIndex : Integer; AValue : TPathRulepaths); 
-
-begin
-  If (Fpaths=AValue) then exit;
-  Fpaths:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPathRule.Setservice(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fservice=AValue) then exit;
-  Fservice:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPathRulepaths
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProject
-  --------------------------------------------------------------------}
-
-
-Procedure TProject.SetcommonInstanceMetadata(AIndex : Integer; AValue : TMetadata); 
-
-begin
-  If (FcommonInstanceMetadata=AValue) then exit;
-  FcommonInstanceMetadata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TProject.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -11614,7 +14807,7 @@ end;
 
 
 
-Procedure TProject.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -11624,7 +14817,47 @@ end;
 
 
 
-Procedure TProject.Setid(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FendTime=AValue) then exit;
+  FendTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror); 
+
+begin
+  If (Ferror=AValue) then exit;
+  Ferror:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SethttpErrorMessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FhttpErrorMessage=AValue) then exit;
+  FhttpErrorMessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FhttpErrorStatusCode=AValue) then exit;
+  FhttpErrorStatusCode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11634,7 +14867,17 @@ end;
 
 
 
-Procedure TProject.Setkind(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinsertTime=AValue) then exit;
+  FinsertTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11644,7 +14887,7 @@ end;
 
 
 
-Procedure TProject.Setname(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -11654,17 +14897,37 @@ end;
 
 
 
-Procedure TProject.Setquotas(AIndex : Integer; AValue : TProjectquotas); 
+Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fquotas=AValue) then exit;
-  Fquotas:=AValue;
+  If (FoperationType=AValue) then exit;
+  FoperationType:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TProject.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fprogress=AValue) then exit;
+  Fprogress:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setregion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fregion=AValue) then exit;
+  Fregion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -11674,11 +14937,164 @@ end;
 
 
 
-Procedure TProject.SetusageExportLocation(AIndex : Integer; AValue : TUsageExportLocation); 
+Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FusageExportLocation=AValue) then exit;
-  FusageExportLocation:=AValue;
+  If (FstartTime=AValue) then exit;
+  FstartTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fstatus=AValue) then exit;
+  Fstatus:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FstatusMessage=AValue) then exit;
+  FstatusMessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FtargetId=AValue) then exit;
+  FtargetId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FtargetLink=AValue) then exit;
+  FtargetLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setuser(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fuser=AValue) then exit;
+  Fuser:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); 
+
+begin
+  If (Fwarnings=AValue) then exit;
+  Fwarnings:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setzone(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fzone=AValue) then exit;
+  Fzone:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TOperationAggregatedListTypeitems
+  --------------------------------------------------------------------}
+
+
+Class Function TOperationAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TOperationAggregatedList
+  --------------------------------------------------------------------}
+
+
+Procedure TOperationAggregatedList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationAggregatedList.Setitems(AIndex : Integer; const AValue : TOperationAggregatedListTypeitems); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -11687,8 +15103,409 @@ end;
 
 
 { --------------------------------------------------------------------
-  TProjectquotas
+  TOperationList
   --------------------------------------------------------------------}
+
+
+Procedure TOperationList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationList.Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TOperationsScopedListTypewarningTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TOperationsScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationsScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TOperationsScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TOperationsScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationsScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TOperationsScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationsScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationsScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TOperationsScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TOperationsScopedList.Setoperations(AIndex : Integer; const AValue : TOperationsScopedListTypeoperationsArray); 
+
+begin
+  If (Foperations=AValue) then exit;
+  Foperations:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationsScopedList.Setwarning(AIndex : Integer; const AValue : TOperationsScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationsScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'operations' : SetLength(Foperations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TPathMatcher
+  --------------------------------------------------------------------}
+
+
+Procedure TPathMatcher.SetdefaultService(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdefaultService=AValue) then exit;
+  FdefaultService:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPathMatcher.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPathMatcher.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPathMatcher.SetpathRules(AIndex : Integer; const AValue : TPathMatcherTypepathRulesArray); 
+
+begin
+  If (FpathRules=AValue) then exit;
+  FpathRules:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPathMatcher.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'pathrules' : SetLength(FpathRules,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TPathRule
+  --------------------------------------------------------------------}
+
+
+Procedure TPathRule.Setpaths(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Fpaths=AValue) then exit;
+  Fpaths:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPathRule.Setservice(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fservice=AValue) then exit;
+  Fservice:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPathRule.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'paths' : SetLength(Fpaths,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TProject
+  --------------------------------------------------------------------}
+
+
+Procedure TProject.SetcommonInstanceMetadata(AIndex : Integer; const AValue : TMetadata); 
+
+begin
+  If (FcommonInstanceMetadata=AValue) then exit;
+  FcommonInstanceMetadata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProject.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProject.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProject.SetenabledFeatures(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FenabledFeatures=AValue) then exit;
+  FenabledFeatures:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProject.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProject.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProject.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProject.Setquotas(AIndex : Integer; const AValue : TProjectTypequotasArray); 
+
+begin
+  If (Fquotas=AValue) then exit;
+  Fquotas:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProject.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProject.SetusageExportLocation(AIndex : Integer; const AValue : TUsageExportLocation); 
+
+begin
+  If (FusageExportLocation=AValue) then exit;
+  FusageExportLocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProject.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'enabledfeatures' : SetLength(FenabledFeatures,ALength);
+  'quotas' : SetLength(Fquotas,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -11698,7 +15515,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuota.Setlimit(AIndex : Integer; AValue : double); 
+Procedure TQuota.Setlimit(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flimit=AValue) then exit;
@@ -11708,7 +15525,7 @@ end;
 
 
 
-Procedure TQuota.Setmetric(AIndex : Integer; AValue : string); 
+Procedure TQuota.Setmetric(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmetric=AValue) then exit;
@@ -11718,7 +15535,7 @@ end;
 
 
 
-Procedure TQuota.Setusage(AIndex : Integer; AValue : double); 
+Procedure TQuota.Setusage(AIndex : Integer; const AValue : double); 
 
 begin
   If (Fusage=AValue) then exit;
@@ -11735,7 +15552,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRegion.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TRegion.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -11745,7 +15562,7 @@ end;
 
 
 
-Procedure TRegion.Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); 
+Procedure TRegion.Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); 
 
 begin
   If (Fdeprecated=AValue) then exit;
@@ -11755,7 +15572,7 @@ end;
 
 
 
-Procedure TRegion.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TRegion.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -11765,7 +15582,7 @@ end;
 
 
 
-Procedure TRegion.Setid(AIndex : Integer; AValue : string); 
+Procedure TRegion.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11775,7 +15592,7 @@ end;
 
 
 
-Procedure TRegion.Setkind(AIndex : Integer; AValue : string); 
+Procedure TRegion.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11785,7 +15602,7 @@ end;
 
 
 
-Procedure TRegion.Setname(AIndex : Integer; AValue : string); 
+Procedure TRegion.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -11795,7 +15612,7 @@ end;
 
 
 
-Procedure TRegion.Setquotas(AIndex : Integer; AValue : TRegionquotas); 
+Procedure TRegion.Setquotas(AIndex : Integer; const AValue : TRegionTypequotasArray); 
 
 begin
   If (Fquotas=AValue) then exit;
@@ -11805,7 +15622,7 @@ end;
 
 
 
-Procedure TRegion.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TRegion.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -11815,7 +15632,7 @@ end;
 
 
 
-Procedure TRegion.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TRegion.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -11825,7 +15642,7 @@ end;
 
 
 
-Procedure TRegion.Setzones(AIndex : Integer; AValue : TRegionzones); 
+Procedure TRegion.Setzones(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fzones=AValue) then exit;
@@ -11834,19 +15651,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRegion.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TRegionquotas
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TRegionzones
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'quotas' : SetLength(Fquotas,ALength);
+  'zones' : SetLength(Fzones,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -11856,7 +15673,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRegionList.Setid(AIndex : Integer; AValue : string); 
+Procedure TRegionList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11866,7 +15683,7 @@ end;
 
 
 
-Procedure TRegionList.Setitems(AIndex : Integer; AValue : TRegionListitems); 
+Procedure TRegionList.Setitems(AIndex : Integer; const AValue : TRegionListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -11876,7 +15693,7 @@ end;
 
 
 
-Procedure TRegionList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TRegionList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11886,7 +15703,7 @@ end;
 
 
 
-Procedure TRegionList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TRegionList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -11896,7 +15713,7 @@ end;
 
 
 
-Procedure TRegionList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TRegionList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -11905,12 +15722,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRegionList.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TRegionListitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -11920,7 +15743,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceGroupReference.Setgroup(AIndex : Integer; AValue : string); 
+Procedure TResourceGroupReference.Setgroup(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fgroup=AValue) then exit;
@@ -11933,222 +15756,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TRoute
+  TRouteTypewarningsItemTypedataItem
   --------------------------------------------------------------------}
 
 
-Procedure TRoute.SetcreationTimestamp(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcreationTimestamp=AValue) then exit;
-  FcreationTimestamp:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.Setdescription(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdescription=AValue) then exit;
-  Fdescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.SetdestRange(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdestRange=AValue) then exit;
-  FdestRange:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.Setnetwork(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fnetwork=AValue) then exit;
-  Fnetwork:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.SetnextHopGateway(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextHopGateway=AValue) then exit;
-  FnextHopGateway:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.SetnextHopInstance(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextHopInstance=AValue) then exit;
-  FnextHopInstance:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.SetnextHopIp(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextHopIp=AValue) then exit;
-  FnextHopIp:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.SetnextHopNetwork(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextHopNetwork=AValue) then exit;
-  FnextHopNetwork:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.SetnextHopVpnTunnel(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextHopVpnTunnel=AValue) then exit;
-  FnextHopVpnTunnel:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.Setpriority(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fpriority=AValue) then exit;
-  Fpriority:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.Settags(AIndex : Integer; AValue : TRoutetags); 
-
-begin
-  If (Ftags=AValue) then exit;
-  Ftags:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoute.Setwarnings(AIndex : Integer; AValue : TRoutewarnings); 
-
-begin
-  If (Fwarnings=AValue) then exit;
-  Fwarnings:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TRoutetags
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TRoutewarnings
-  --------------------------------------------------------------------}
-
-
-Procedure TRoutewarnings.Setcode(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoutewarnings.Setdata(AIndex : Integer; AValue : TRoutewarningsdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRoutewarnings.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TRoutewarningsdata
-  --------------------------------------------------------------------}
-
-
-Procedure TRoutewarningsdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TRouteTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -12158,7 +15770,7 @@ end;
 
 
 
-Procedure TRoutewarningsdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TRouteTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -12171,11 +15783,91 @@ end;
 
 
 { --------------------------------------------------------------------
-  TRouteList
+  TRouteTypewarningsItem
   --------------------------------------------------------------------}
 
 
-Procedure TRouteList.Setid(AIndex : Integer; AValue : string); 
+Procedure TRouteTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRouteTypewarningsItem.Setdata(AIndex : Integer; const AValue : TRouteTypewarningsItemTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRouteTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRouteTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TRoute
+  --------------------------------------------------------------------}
+
+
+Procedure TRoute.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRoute.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRoute.SetdestRange(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdestRange=AValue) then exit;
+  FdestRange:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRoute.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -12185,17 +15877,7 @@ end;
 
 
 
-Procedure TRouteList.Setitems(AIndex : Integer; AValue : TRouteListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRouteList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TRoute.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12205,17 +15887,87 @@ end;
 
 
 
-Procedure TRouteList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TRoute.Setname(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TRouteList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TRoute.Setnetwork(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fnetwork=AValue) then exit;
+  Fnetwork:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRoute.SetnextHopGateway(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextHopGateway=AValue) then exit;
+  FnextHopGateway:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRoute.SetnextHopInstance(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextHopInstance=AValue) then exit;
+  FnextHopInstance:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRoute.SetnextHopIp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextHopIp=AValue) then exit;
+  FnextHopIp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRoute.SetnextHopNetwork(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextHopNetwork=AValue) then exit;
+  FnextHopNetwork:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRoute.SetnextHopVpnTunnel(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextHopVpnTunnel=AValue) then exit;
+  FnextHopVpnTunnel:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRoute.Setpriority(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fpriority=AValue) then exit;
+  Fpriority:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRoute.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -12225,11 +15977,108 @@ end;
 
 
 
+Procedure TRoute.Settags(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Ftags=AValue) then exit;
+  Ftags:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRoute.Setwarnings(AIndex : Integer; const AValue : TRouteTypewarningsArray); 
+
+begin
+  If (Fwarnings=AValue) then exit;
+  Fwarnings:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRoute.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'tags' : SetLength(Ftags,ALength);
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
 
 
 { --------------------------------------------------------------------
-  TRouteListitems
+  TRouteList
   --------------------------------------------------------------------}
+
+
+Procedure TRouteList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRouteList.Setitems(AIndex : Integer; const AValue : TRouteListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRouteList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRouteList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRouteList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRouteList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -12239,7 +16088,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TScheduling.SetautomaticRestart(AIndex : Integer; AValue : boolean); 
+Procedure TScheduling.SetautomaticRestart(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FautomaticRestart=AValue) then exit;
@@ -12249,11 +16098,21 @@ end;
 
 
 
-Procedure TScheduling.SetonHostMaintenance(AIndex : Integer; AValue : string); 
+Procedure TScheduling.SetonHostMaintenance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FonHostMaintenance=AValue) then exit;
   FonHostMaintenance:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TScheduling.Setpreemptible(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (Fpreemptible=AValue) then exit;
+  Fpreemptible:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -12266,7 +16125,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSerialPortOutput.Setcontents(AIndex : Integer; AValue : string); 
+Procedure TSerialPortOutput.Setcontents(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcontents=AValue) then exit;
@@ -12276,7 +16135,7 @@ end;
 
 
 
-Procedure TSerialPortOutput.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSerialPortOutput.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12286,7 +16145,7 @@ end;
 
 
 
-Procedure TSerialPortOutput.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TSerialPortOutput.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -12303,7 +16162,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TServiceAccount.Setemail(AIndex : Integer; AValue : string); 
+Procedure TServiceAccount.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -12313,7 +16172,7 @@ end;
 
 
 
-Procedure TServiceAccount.Setscopes(AIndex : Integer; AValue : TServiceAccountscopes); 
+Procedure TServiceAccount.Setscopes(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fscopes=AValue) then exit;
@@ -12322,12 +16181,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TServiceAccount.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TServiceAccountscopes
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'scopes' : SetLength(Fscopes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -12337,7 +16202,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSnapshot.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -12347,7 +16212,7 @@ end;
 
 
 
-Procedure TSnapshot.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -12357,7 +16222,7 @@ end;
 
 
 
-Procedure TSnapshot.SetdiskSizeGb(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.SetdiskSizeGb(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiskSizeGb=AValue) then exit;
@@ -12367,7 +16232,7 @@ end;
 
 
 
-Procedure TSnapshot.Setid(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -12377,7 +16242,7 @@ end;
 
 
 
-Procedure TSnapshot.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12387,7 +16252,7 @@ end;
 
 
 
-Procedure TSnapshot.Setlicenses(AIndex : Integer; AValue : TSnapshotlicenses); 
+Procedure TSnapshot.Setlicenses(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Flicenses=AValue) then exit;
@@ -12397,7 +16262,7 @@ end;
 
 
 
-Procedure TSnapshot.Setname(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -12407,7 +16272,7 @@ end;
 
 
 
-Procedure TSnapshot.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -12417,7 +16282,7 @@ end;
 
 
 
-Procedure TSnapshot.SetsourceDisk(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.SetsourceDisk(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceDisk=AValue) then exit;
@@ -12427,7 +16292,7 @@ end;
 
 
 
-Procedure TSnapshot.SetsourceDiskId(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.SetsourceDiskId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceDiskId=AValue) then exit;
@@ -12437,7 +16302,7 @@ end;
 
 
 
-Procedure TSnapshot.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -12447,7 +16312,7 @@ end;
 
 
 
-Procedure TSnapshot.SetstorageBytes(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.SetstorageBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstorageBytes=AValue) then exit;
@@ -12457,7 +16322,7 @@ end;
 
 
 
-Procedure TSnapshot.SetstorageBytesStatus(AIndex : Integer; AValue : string); 
+Procedure TSnapshot.SetstorageBytesStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstorageBytesStatus=AValue) then exit;
@@ -12466,12 +16331,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSnapshot.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TSnapshotlicenses
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'licenses' : SetLength(Flicenses,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -12481,7 +16352,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSnapshotList.Setid(AIndex : Integer; AValue : string); 
+Procedure TSnapshotList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -12491,7 +16362,7 @@ end;
 
 
 
-Procedure TSnapshotList.Setitems(AIndex : Integer; AValue : TSnapshotListitems); 
+Procedure TSnapshotList.Setitems(AIndex : Integer; const AValue : TSnapshotListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -12501,7 +16372,7 @@ end;
 
 
 
-Procedure TSnapshotList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSnapshotList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12511,7 +16382,7 @@ end;
 
 
 
-Procedure TSnapshotList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TSnapshotList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -12521,7 +16392,7 @@ end;
 
 
 
-Procedure TSnapshotList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TSnapshotList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -12530,56 +16401,38 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TSnapshotListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTags
-  --------------------------------------------------------------------}
-
-
-Procedure TTags.Setfingerprint(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSnapshotList.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Ffingerprint=AValue) then exit;
-  Ffingerprint:=AValue;
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TSslCertificate
+  --------------------------------------------------------------------}
+
+
+Procedure TSslCertificate.Setcertificate(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcertificate=AValue) then exit;
+  Fcertificate:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TTags.Setitems(AIndex : Integer; AValue : TTagsitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TTagsitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTargetHttpProxy
-  --------------------------------------------------------------------}
-
-
-Procedure TTargetHttpProxy.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TSslCertificate.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -12589,7 +16442,7 @@ end;
 
 
 
-Procedure TTargetHttpProxy.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TSslCertificate.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -12599,7 +16452,7 @@ end;
 
 
 
-Procedure TTargetHttpProxy.Setid(AIndex : Integer; AValue : string); 
+Procedure TSslCertificate.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -12609,7 +16462,7 @@ end;
 
 
 
-Procedure TTargetHttpProxy.Setkind(AIndex : Integer; AValue : string); 
+Procedure TSslCertificate.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12619,7 +16472,7 @@ end;
 
 
 
-Procedure TTargetHttpProxy.Setname(AIndex : Integer; AValue : string); 
+Procedure TSslCertificate.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -12629,7 +16482,17 @@ end;
 
 
 
-Procedure TTargetHttpProxy.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TSslCertificate.SetprivateKey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FprivateKey=AValue) then exit;
+  FprivateKey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSslCertificate.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -12639,7 +16502,548 @@ end;
 
 
 
-Procedure TTargetHttpProxy.SeturlMap(AIndex : Integer; AValue : string); 
+
+
+{ --------------------------------------------------------------------
+  TSslCertificateList
+  --------------------------------------------------------------------}
+
+
+Procedure TSslCertificateList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSslCertificateList.Setitems(AIndex : Integer; const AValue : TSslCertificateListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSslCertificateList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSslCertificateList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSslCertificateList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSslCertificateList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TSubnetwork
+  --------------------------------------------------------------------}
+
+
+Procedure TSubnetwork.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetwork.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetwork.SetgatewayAddress(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FgatewayAddress=AValue) then exit;
+  FgatewayAddress:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetwork.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetwork.SetipCidrRange(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FipCidrRange=AValue) then exit;
+  FipCidrRange:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetwork.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetwork.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetwork.Setnetwork(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fnetwork=AValue) then exit;
+  Fnetwork:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetwork.Setregion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fregion=AValue) then exit;
+  Fregion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetwork.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TSubnetworkAggregatedListTypeitems
+  --------------------------------------------------------------------}
+
+
+Class Function TSubnetworkAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TSubnetworkAggregatedList
+  --------------------------------------------------------------------}
+
+
+Procedure TSubnetworkAggregatedList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworkAggregatedList.Setitems(AIndex : Integer; const AValue : TSubnetworkAggregatedListTypeitems); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworkAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworkAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworkAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TSubnetworkList
+  --------------------------------------------------------------------}
+
+
+Procedure TSubnetworkList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworkList.Setitems(AIndex : Integer; const AValue : TSubnetworkListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworkList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworkList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworkList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSubnetworkList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TSubnetworksScopedListTypewarningTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TSubnetworksScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworksScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TSubnetworksScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TSubnetworksScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworksScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TSubnetworksScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworksScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSubnetworksScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TSubnetworksScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TSubnetworksScopedList.Setsubnetworks(AIndex : Integer; const AValue : TSubnetworksScopedListTypesubnetworksArray); 
+
+begin
+  If (Fsubnetworks=AValue) then exit;
+  Fsubnetworks:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubnetworksScopedList.Setwarning(AIndex : Integer; const AValue : TSubnetworksScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSubnetworksScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'subnetworks' : SetLength(Fsubnetworks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TTags
+  --------------------------------------------------------------------}
+
+
+Procedure TTags.Setfingerprint(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ffingerprint=AValue) then exit;
+  Ffingerprint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTags.Setitems(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTags.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TTargetHttpProxy
+  --------------------------------------------------------------------}
+
+
+Procedure TTargetHttpProxy.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetHttpProxy.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetHttpProxy.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetHttpProxy.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetHttpProxy.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetHttpProxy.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetHttpProxy.SeturlMap(AIndex : Integer; const AValue : String); 
 
 begin
   If (FurlMap=AValue) then exit;
@@ -12656,7 +17060,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetHttpProxyList.Setid(AIndex : Integer; AValue : string); 
+Procedure TTargetHttpProxyList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -12666,7 +17070,7 @@ end;
 
 
 
-Procedure TTargetHttpProxyList.Setitems(AIndex : Integer; AValue : TTargetHttpProxyListitems); 
+Procedure TTargetHttpProxyList.Setitems(AIndex : Integer; const AValue : TTargetHttpProxyListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -12676,7 +17080,7 @@ end;
 
 
 
-Procedure TTargetHttpProxyList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTargetHttpProxyList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12686,7 +17090,7 @@ end;
 
 
 
-Procedure TTargetHttpProxyList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TTargetHttpProxyList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -12696,7 +17100,7 @@ end;
 
 
 
-Procedure TTargetHttpProxyList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TTargetHttpProxyList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -12705,22 +17109,58 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetHttpProxyList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TTargetHttpProxyListitems
+  TTargetHttpsProxiesSetSslCertificatesRequest
   --------------------------------------------------------------------}
+
+
+Procedure TTargetHttpsProxiesSetSslCertificatesRequest.SetsslCertificates(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FsslCertificates=AValue) then exit;
+  FsslCertificates:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetHttpsProxiesSetSslCertificatesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sslcertificates' : SetLength(FsslCertificates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TTargetInstance
+  TTargetHttpsProxy
   --------------------------------------------------------------------}
 
 
-Procedure TTargetInstance.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TTargetHttpsProxy.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -12730,7 +17170,7 @@ end;
 
 
 
-Procedure TTargetInstance.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TTargetHttpsProxy.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -12740,7 +17180,7 @@ end;
 
 
 
-Procedure TTargetInstance.Setid(AIndex : Integer; AValue : string); 
+Procedure TTargetHttpsProxy.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -12750,17 +17190,7 @@ end;
 
 
 
-Procedure TTargetInstance.Setinstance(AIndex : Integer; AValue : string); 
-
-begin
-  If (Finstance=AValue) then exit;
-  Finstance:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetInstance.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTargetHttpsProxy.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12770,7 +17200,7 @@ end;
 
 
 
-Procedure TTargetInstance.Setname(AIndex : Integer; AValue : string); 
+Procedure TTargetHttpsProxy.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -12780,17 +17210,7 @@ end;
 
 
 
-Procedure TTargetInstance.SetnatPolicy(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnatPolicy=AValue) then exit;
-  FnatPolicy:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetInstance.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TTargetHttpsProxy.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -12800,7 +17220,197 @@ end;
 
 
 
-Procedure TTargetInstance.Setzone(AIndex : Integer; AValue : string); 
+Procedure TTargetHttpsProxy.SetsslCertificates(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FsslCertificates=AValue) then exit;
+  FsslCertificates:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetHttpsProxy.SeturlMap(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FurlMap=AValue) then exit;
+  FurlMap:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetHttpsProxy.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sslcertificates' : SetLength(FsslCertificates,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TTargetHttpsProxyList
+  --------------------------------------------------------------------}
+
+
+Procedure TTargetHttpsProxyList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetHttpsProxyList.Setitems(AIndex : Integer; const AValue : TTargetHttpsProxyListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetHttpsProxyList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetHttpsProxyList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetHttpsProxyList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetHttpsProxyList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TTargetInstance
+  --------------------------------------------------------------------}
+
+
+Procedure TTargetInstance.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstance.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstance.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstance.Setinstance(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Finstance=AValue) then exit;
+  Finstance:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstance.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstance.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstance.SetnatPolicy(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnatPolicy=AValue) then exit;
+  FnatPolicy:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstance.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstance.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -12813,68 +17423,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTargetInstanceAggregatedList
+  TTargetInstanceAggregatedListTypeitems
   --------------------------------------------------------------------}
 
 
-Procedure TTargetInstanceAggregatedList.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetInstanceAggregatedList.Setitems(AIndex : Integer; AValue : TTargetInstanceAggregatedListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetInstanceAggregatedList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetInstanceAggregatedList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetInstanceAggregatedList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TTargetInstanceAggregatedListitems
-  --------------------------------------------------------------------}
-
-
-Class Function TTargetInstanceAggregatedListitems.AllowAdditionalProperties : Boolean;
+Class Function TTargetInstanceAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -12883,11 +17436,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTargetInstanceList
+  TTargetInstanceAggregatedList
   --------------------------------------------------------------------}
 
 
-Procedure TTargetInstanceList.Setid(AIndex : Integer; AValue : string); 
+Procedure TTargetInstanceAggregatedList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -12897,7 +17450,7 @@ end;
 
 
 
-Procedure TTargetInstanceList.Setitems(AIndex : Integer; AValue : TTargetInstanceListitems); 
+Procedure TTargetInstanceAggregatedList.Setitems(AIndex : Integer; const AValue : TTargetInstanceAggregatedListTypeitems); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -12907,7 +17460,7 @@ end;
 
 
 
-Procedure TTargetInstanceList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTargetInstanceAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12917,7 +17470,7 @@ end;
 
 
 
-Procedure TTargetInstanceList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TTargetInstanceAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -12927,7 +17480,7 @@ end;
 
 
 
-Procedure TTargetInstanceList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TTargetInstanceAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -12940,8 +17493,148 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTargetInstanceListitems
+  TTargetInstanceList
   --------------------------------------------------------------------}
+
+
+Procedure TTargetInstanceList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstanceList.Setitems(AIndex : Integer; const AValue : TTargetInstanceListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstanceList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstanceList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstanceList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetInstanceList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TTargetInstancesScopedListTypewarningTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TTargetInstancesScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstancesScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TTargetInstancesScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TTargetInstancesScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstancesScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TTargetInstancesScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetInstancesScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetInstancesScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -12951,7 +17644,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetInstancesScopedList.SettargetInstances(AIndex : Integer; AValue : TTargetInstancesScopedListtargetInstances); 
+Procedure TTargetInstancesScopedList.SettargetInstances(AIndex : Integer; const AValue : TTargetInstancesScopedListTypetargetInstancesArray); 
 
 begin
   If (FtargetInstances=AValue) then exit;
@@ -12961,7 +17654,7 @@ end;
 
 
 
-Procedure TTargetInstancesScopedList.Setwarning(AIndex : Integer; AValue : TTargetInstancesScopedListwarning); 
+Procedure TTargetInstancesScopedList.Setwarning(AIndex : Integer; const AValue : TTargetInstancesScopedListTypewarning); 
 
 begin
   If (Fwarning=AValue) then exit;
@@ -12970,76 +17663,18 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TTargetInstancesScopedListtargetInstances
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTargetInstancesScopedListwarning
-  --------------------------------------------------------------------}
-
-
-Procedure TTargetInstancesScopedListwarning.Setcode(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetInstancesScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'targetinstances' : SetLength(FtargetInstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TTargetInstancesScopedListwarning.Setdata(AIndex : Integer; AValue : TTargetInstancesScopedListwarningdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetInstancesScopedListwarning.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TTargetInstancesScopedListwarningdata
-  --------------------------------------------------------------------}
-
-
-Procedure TTargetInstancesScopedListwarningdata.Setkey(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkey=AValue) then exit;
-  Fkey:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetInstancesScopedListwarningdata.Setvalue(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fvalue=AValue) then exit;
-  Fvalue:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
@@ -13049,7 +17684,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetPool.SetbackupPool(AIndex : Integer; AValue : string); 
+Procedure TTargetPool.SetbackupPool(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbackupPool=AValue) then exit;
@@ -13059,7 +17694,7 @@ end;
 
 
 
-Procedure TTargetPool.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TTargetPool.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -13069,7 +17704,7 @@ end;
 
 
 
-Procedure TTargetPool.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TTargetPool.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -13079,7 +17714,7 @@ end;
 
 
 
-Procedure TTargetPool.SetfailoverRatio(AIndex : Integer; AValue : integer); 
+Procedure TTargetPool.SetfailoverRatio(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FfailoverRatio=AValue) then exit;
@@ -13089,7 +17724,7 @@ end;
 
 
 
-Procedure TTargetPool.SethealthChecks(AIndex : Integer; AValue : TTargetPoolhealthChecks); 
+Procedure TTargetPool.SethealthChecks(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FhealthChecks=AValue) then exit;
@@ -13099,7 +17734,7 @@ end;
 
 
 
-Procedure TTargetPool.Setid(AIndex : Integer; AValue : string); 
+Procedure TTargetPool.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13109,7 +17744,7 @@ end;
 
 
 
-Procedure TTargetPool.Setinstances(AIndex : Integer; AValue : TTargetPoolinstances); 
+Procedure TTargetPool.Setinstances(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Finstances=AValue) then exit;
@@ -13119,7 +17754,7 @@ end;
 
 
 
-Procedure TTargetPool.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTargetPool.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13129,7 +17764,7 @@ end;
 
 
 
-Procedure TTargetPool.Setname(AIndex : Integer; AValue : string); 
+Procedure TTargetPool.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -13139,7 +17774,7 @@ end;
 
 
 
-Procedure TTargetPool.Setregion(AIndex : Integer; AValue : string); 
+Procedure TTargetPool.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -13149,7 +17784,7 @@ end;
 
 
 
-Procedure TTargetPool.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TTargetPool.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -13159,7 +17794,7 @@ end;
 
 
 
-Procedure TTargetPool.SetsessionAffinity(AIndex : Integer; AValue : string); 
+Procedure TTargetPool.SetsessionAffinity(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsessionAffinity=AValue) then exit;
@@ -13168,20 +17803,33 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPool.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'healthchecks' : SetLength(FhealthChecks,ALength);
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TTargetPoolhealthChecks
+  TTargetPoolAggregatedListTypeitems
   --------------------------------------------------------------------}
 
 
+Class Function TTargetPoolAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
 
-
-{ --------------------------------------------------------------------
-  TTargetPoolinstances
-  --------------------------------------------------------------------}
-
+begin
+  Result:=True;
+end;
 
 
 
@@ -13190,7 +17838,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetPoolAggregatedList.Setid(AIndex : Integer; AValue : string); 
+Procedure TTargetPoolAggregatedList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13200,7 +17848,7 @@ end;
 
 
 
-Procedure TTargetPoolAggregatedList.Setitems(AIndex : Integer; AValue : TTargetPoolAggregatedListitems); 
+Procedure TTargetPoolAggregatedList.Setitems(AIndex : Integer; const AValue : TTargetPoolAggregatedListTypeitems); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -13210,7 +17858,7 @@ end;
 
 
 
-Procedure TTargetPoolAggregatedList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTargetPoolAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13220,7 +17868,7 @@ end;
 
 
 
-Procedure TTargetPoolAggregatedList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TTargetPoolAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -13230,7 +17878,7 @@ end;
 
 
 
-Procedure TTargetPoolAggregatedList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TTargetPoolAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -13243,24 +17891,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTargetPoolAggregatedListitems
-  --------------------------------------------------------------------}
-
-
-Class Function TTargetPoolAggregatedListitems.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TTargetPoolInstanceHealth
   --------------------------------------------------------------------}
 
 
-Procedure TTargetPoolInstanceHealth.SethealthStatus(AIndex : Integer; AValue : TTargetPoolInstanceHealthhealthStatus); 
+Procedure TTargetPoolInstanceHealth.SethealthStatus(AIndex : Integer; const AValue : TTargetPoolInstanceHealthTypehealthStatusArray); 
 
 begin
   If (FhealthStatus=AValue) then exit;
@@ -13270,7 +17905,7 @@ end;
 
 
 
-Procedure TTargetPoolInstanceHealth.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTargetPoolInstanceHealth.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13279,12 +17914,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolInstanceHealth.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TTargetPoolInstanceHealthhealthStatus
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'healthstatus' : SetLength(FhealthStatus,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -13294,7 +17935,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetPoolList.Setid(AIndex : Integer; AValue : string); 
+Procedure TTargetPoolList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13304,7 +17945,7 @@ end;
 
 
 
-Procedure TTargetPoolList.Setitems(AIndex : Integer; AValue : TTargetPoolListitems); 
+Procedure TTargetPoolList.Setitems(AIndex : Integer; const AValue : TTargetPoolListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -13314,7 +17955,7 @@ end;
 
 
 
-Procedure TTargetPoolList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTargetPoolList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13324,7 +17965,7 @@ end;
 
 
 
-Procedure TTargetPoolList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TTargetPoolList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -13334,7 +17975,7 @@ end;
 
 
 
-Procedure TTargetPoolList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TTargetPoolList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -13343,12 +17984,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolList.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TTargetPoolListitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -13358,7 +18005,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetPoolsAddHealthCheckRequest.SethealthChecks(AIndex : Integer; AValue : TTargetPoolsAddHealthCheckRequesthealthChecks); 
+Procedure TTargetPoolsAddHealthCheckRequest.SethealthChecks(AIndex : Integer; const AValue : TTargetPoolsAddHealthCheckRequestTypehealthChecksArray); 
 
 begin
   If (FhealthChecks=AValue) then exit;
@@ -13367,12 +18014,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsAddHealthCheckRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TTargetPoolsAddHealthCheckRequesthealthChecks
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'healthchecks' : SetLength(FhealthChecks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -13382,7 +18035,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetPoolsAddInstanceRequest.Setinstances(AIndex : Integer; AValue : TTargetPoolsAddInstanceRequestinstances); 
+Procedure TTargetPoolsAddInstanceRequest.Setinstances(AIndex : Integer; const AValue : TTargetPoolsAddInstanceRequestTypeinstancesArray); 
 
 begin
   If (Finstances=AValue) then exit;
@@ -13391,12 +18044,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsAddInstanceRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TTargetPoolsAddInstanceRequestinstances
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -13406,7 +18065,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetPoolsRemoveHealthCheckRequest.SethealthChecks(AIndex : Integer; AValue : TTargetPoolsRemoveHealthCheckRequesthealthChecks); 
+Procedure TTargetPoolsRemoveHealthCheckRequest.SethealthChecks(AIndex : Integer; const AValue : TTargetPoolsRemoveHealthCheckRequestTypehealthChecksArray); 
 
 begin
   If (FhealthChecks=AValue) then exit;
@@ -13415,12 +18074,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsRemoveHealthCheckRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TTargetPoolsRemoveHealthCheckRequesthealthChecks
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'healthchecks' : SetLength(FhealthChecks,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -13430,7 +18095,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetPoolsRemoveInstanceRequest.Setinstances(AIndex : Integer; AValue : TTargetPoolsRemoveInstanceRequestinstances); 
+Procedure TTargetPoolsRemoveInstanceRequest.Setinstances(AIndex : Integer; const AValue : TTargetPoolsRemoveInstanceRequestTypeinstancesArray); 
 
 begin
   If (Finstances=AValue) then exit;
@@ -13439,93 +18104,28 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TTargetPoolsRemoveInstanceRequestinstances
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTargetPoolsScopedList
-  --------------------------------------------------------------------}
-
-
-Procedure TTargetPoolsScopedList.SettargetPools(AIndex : Integer; AValue : TTargetPoolsScopedListtargetPools); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsRemoveInstanceRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (FtargetPools=AValue) then exit;
-  FtargetPools:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'instances' : SetLength(Finstances,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TTargetPoolsScopedList.Setwarning(AIndex : Integer; AValue : TTargetPoolsScopedListwarning); 
-
-begin
-  If (Fwarning=AValue) then exit;
-  Fwarning:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TTargetPoolsScopedListtargetPools
+  TTargetPoolsScopedListTypewarningTypedataItem
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TTargetPoolsScopedListwarning
-  --------------------------------------------------------------------}
-
-
-Procedure TTargetPoolsScopedListwarning.Setcode(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetPoolsScopedListwarning.Setdata(AIndex : Integer; AValue : TTargetPoolsScopedListwarningdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetPoolsScopedListwarning.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TTargetPoolsScopedListwarningdata
-  --------------------------------------------------------------------}
-
-
-Procedure TTargetPoolsScopedListwarningdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TTargetPoolsScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -13535,7 +18135,7 @@ end;
 
 
 
-Procedure TTargetPoolsScopedListwarningdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TTargetPoolsScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -13548,11 +18148,101 @@ end;
 
 
 { --------------------------------------------------------------------
+  TTargetPoolsScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TTargetPoolsScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetPoolsScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TTargetPoolsScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetPoolsScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TTargetPoolsScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TTargetPoolsScopedList.SettargetPools(AIndex : Integer; const AValue : TTargetPoolsScopedListTypetargetPoolsArray); 
+
+begin
+  If (FtargetPools=AValue) then exit;
+  FtargetPools:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetPoolsScopedList.Setwarning(AIndex : Integer; const AValue : TTargetPoolsScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetPoolsScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'targetpools' : SetLength(FtargetPools,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
   TTargetReference
   --------------------------------------------------------------------}
 
 
-Procedure TTargetReference.Settarget(AIndex : Integer; AValue : string); 
+Procedure TTargetReference.Settarget(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftarget=AValue) then exit;
@@ -13569,7 +18259,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetVpnGateway.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGateway.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -13579,7 +18269,7 @@ end;
 
 
 
-Procedure TTargetVpnGateway.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGateway.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -13589,7 +18279,7 @@ end;
 
 
 
-Procedure TTargetVpnGateway.SetforwardingRules(AIndex : Integer; AValue : TTargetVpnGatewayforwardingRules); 
+Procedure TTargetVpnGateway.SetforwardingRules(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FforwardingRules=AValue) then exit;
@@ -13599,7 +18289,7 @@ end;
 
 
 
-Procedure TTargetVpnGateway.Setid(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGateway.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13609,7 +18299,7 @@ end;
 
 
 
-Procedure TTargetVpnGateway.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGateway.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13619,7 +18309,7 @@ end;
 
 
 
-Procedure TTargetVpnGateway.Setname(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGateway.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -13629,7 +18319,7 @@ end;
 
 
 
-Procedure TTargetVpnGateway.Setnetwork(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGateway.Setnetwork(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -13639,7 +18329,7 @@ end;
 
 
 
-Procedure TTargetVpnGateway.Setregion(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGateway.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -13649,7 +18339,7 @@ end;
 
 
 
-Procedure TTargetVpnGateway.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGateway.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -13659,7 +18349,7 @@ end;
 
 
 
-Procedure TTargetVpnGateway.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGateway.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -13669,7 +18359,7 @@ end;
 
 
 
-Procedure TTargetVpnGateway.Settunnels(AIndex : Integer; AValue : TTargetVpnGatewaytunnels); 
+Procedure TTargetVpnGateway.Settunnels(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Ftunnels=AValue) then exit;
@@ -13678,86 +18368,29 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TTargetVpnGatewayforwardingRules
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTargetVpnGatewaytunnels
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTargetVpnGatewayAggregatedList
-  --------------------------------------------------------------------}
-
-
-Procedure TTargetVpnGatewayAggregatedList.Setid(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetVpnGateway.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'forwardingrules' : SetLength(FforwardingRules,ALength);
+  'tunnels' : SetLength(Ftunnels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TTargetVpnGatewayAggregatedList.Setitems(AIndex : Integer; AValue : TTargetVpnGatewayAggregatedListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetVpnGatewayAggregatedList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetVpnGatewayAggregatedList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetVpnGatewayAggregatedList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TTargetVpnGatewayAggregatedListitems
+  TTargetVpnGatewayAggregatedListTypeitems
   --------------------------------------------------------------------}
 
 
-Class Function TTargetVpnGatewayAggregatedListitems.AllowAdditionalProperties : Boolean;
+Class Function TTargetVpnGatewayAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -13766,11 +18399,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTargetVpnGatewayList
+  TTargetVpnGatewayAggregatedList
   --------------------------------------------------------------------}
 
 
-Procedure TTargetVpnGatewayList.Setid(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGatewayAggregatedList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13780,7 +18413,7 @@ end;
 
 
 
-Procedure TTargetVpnGatewayList.Setitems(AIndex : Integer; AValue : TTargetVpnGatewayListitems); 
+Procedure TTargetVpnGatewayAggregatedList.Setitems(AIndex : Integer; const AValue : TTargetVpnGatewayAggregatedListTypeitems); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -13790,7 +18423,7 @@ end;
 
 
 
-Procedure TTargetVpnGatewayList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGatewayAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13800,7 +18433,7 @@ end;
 
 
 
-Procedure TTargetVpnGatewayList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGatewayAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -13810,7 +18443,7 @@ end;
 
 
 
-Procedure TTargetVpnGatewayList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGatewayAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -13823,89 +18456,81 @@ end;
 
 
 { --------------------------------------------------------------------
-  TTargetVpnGatewayListitems
+  TTargetVpnGatewayList
   --------------------------------------------------------------------}
+
+
+Procedure TTargetVpnGatewayList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetVpnGatewayList.Setitems(AIndex : Integer; const AValue : TTargetVpnGatewayListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetVpnGatewayList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetVpnGatewayList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetVpnGatewayList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetVpnGatewayList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TTargetVpnGatewaysScopedList
+  TTargetVpnGatewaysScopedListTypewarningTypedataItem
   --------------------------------------------------------------------}
 
 
-Procedure TTargetVpnGatewaysScopedList.SettargetVpnGateways(AIndex : Integer; AValue : TTargetVpnGatewaysScopedListtargetVpnGateways); 
-
-begin
-  If (FtargetVpnGateways=AValue) then exit;
-  FtargetVpnGateways:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetVpnGatewaysScopedList.Setwarning(AIndex : Integer; AValue : TTargetVpnGatewaysScopedListwarning); 
-
-begin
-  If (Fwarning=AValue) then exit;
-  Fwarning:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TTargetVpnGatewaysScopedListtargetVpnGateways
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TTargetVpnGatewaysScopedListwarning
-  --------------------------------------------------------------------}
-
-
-Procedure TTargetVpnGatewaysScopedListwarning.Setcode(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetVpnGatewaysScopedListwarning.Setdata(AIndex : Integer; AValue : TTargetVpnGatewaysScopedListwarningdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TTargetVpnGatewaysScopedListwarning.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TTargetVpnGatewaysScopedListwarningdata
-  --------------------------------------------------------------------}
-
-
-Procedure TTargetVpnGatewaysScopedListwarningdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGatewaysScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -13915,7 +18540,7 @@ end;
 
 
 
-Procedure TTargetVpnGatewaysScopedListwarningdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TTargetVpnGatewaysScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -13928,11 +18553,101 @@ end;
 
 
 { --------------------------------------------------------------------
+  TTargetVpnGatewaysScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TTargetVpnGatewaysScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetVpnGatewaysScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TTargetVpnGatewaysScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetVpnGatewaysScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetVpnGatewaysScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TTargetVpnGatewaysScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TTargetVpnGatewaysScopedList.SettargetVpnGateways(AIndex : Integer; const AValue : TTargetVpnGatewaysScopedListTypetargetVpnGatewaysArray); 
+
+begin
+  If (FtargetVpnGateways=AValue) then exit;
+  FtargetVpnGateways:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTargetVpnGatewaysScopedList.Setwarning(AIndex : Integer; const AValue : TTargetVpnGatewaysScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTargetVpnGatewaysScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'targetvpngateways' : SetLength(FtargetVpnGateways,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
   TTestFailure
   --------------------------------------------------------------------}
 
 
-Procedure TTestFailure.SetactualService(AIndex : Integer; AValue : string); 
+Procedure TTestFailure.SetactualService(AIndex : Integer; const AValue : String); 
 
 begin
   If (FactualService=AValue) then exit;
@@ -13942,7 +18657,7 @@ end;
 
 
 
-Procedure TTestFailure.SetexpectedService(AIndex : Integer; AValue : string); 
+Procedure TTestFailure.SetexpectedService(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexpectedService=AValue) then exit;
@@ -13952,7 +18667,7 @@ end;
 
 
 
-Procedure TTestFailure.Sethost(AIndex : Integer; AValue : string); 
+Procedure TTestFailure.Sethost(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhost=AValue) then exit;
@@ -13962,7 +18677,7 @@ end;
 
 
 
-Procedure TTestFailure.Setpath(AIndex : Integer; AValue : string); 
+Procedure TTestFailure.Setpath(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpath=AValue) then exit;
@@ -13979,7 +18694,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlMap.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TUrlMap.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -13989,7 +18704,7 @@ end;
 
 
 
-Procedure TUrlMap.SetdefaultService(AIndex : Integer; AValue : string); 
+Procedure TUrlMap.SetdefaultService(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultService=AValue) then exit;
@@ -13999,7 +18714,7 @@ end;
 
 
 
-Procedure TUrlMap.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TUrlMap.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -14009,7 +18724,7 @@ end;
 
 
 
-Procedure TUrlMap.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TUrlMap.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -14019,7 +18734,7 @@ end;
 
 
 
-Procedure TUrlMap.SethostRules(AIndex : Integer; AValue : TUrlMaphostRules); 
+Procedure TUrlMap.SethostRules(AIndex : Integer; const AValue : TUrlMapTypehostRulesArray); 
 
 begin
   If (FhostRules=AValue) then exit;
@@ -14029,7 +18744,7 @@ end;
 
 
 
-Procedure TUrlMap.Setid(AIndex : Integer; AValue : string); 
+Procedure TUrlMap.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -14039,7 +18754,7 @@ end;
 
 
 
-Procedure TUrlMap.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUrlMap.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14049,7 +18764,7 @@ end;
 
 
 
-Procedure TUrlMap.Setname(AIndex : Integer; AValue : string); 
+Procedure TUrlMap.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -14059,7 +18774,7 @@ end;
 
 
 
-Procedure TUrlMap.SetpathMatchers(AIndex : Integer; AValue : TUrlMappathMatchers); 
+Procedure TUrlMap.SetpathMatchers(AIndex : Integer; const AValue : TUrlMapTypepathMatchersArray); 
 
 begin
   If (FpathMatchers=AValue) then exit;
@@ -14069,7 +18784,7 @@ end;
 
 
 
-Procedure TUrlMap.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TUrlMap.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -14079,7 +18794,7 @@ end;
 
 
 
-Procedure TUrlMap.Settests(AIndex : Integer; AValue : TUrlMaptests); 
+Procedure TUrlMap.Settests(AIndex : Integer; const AValue : TUrlMapTypetestsArray); 
 
 begin
   If (Ftests=AValue) then exit;
@@ -14088,26 +18803,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlMap.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TUrlMaphostRules
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TUrlMappathMatchers
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TUrlMaptests
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'hostrules' : SetLength(FhostRules,ALength);
+  'pathmatchers' : SetLength(FpathMatchers,ALength);
+  'tests' : SetLength(Ftests,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -14117,7 +18826,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlMapList.Setid(AIndex : Integer; AValue : string); 
+Procedure TUrlMapList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -14127,7 +18836,7 @@ end;
 
 
 
-Procedure TUrlMapList.Setitems(AIndex : Integer; AValue : TUrlMapListitems); 
+Procedure TUrlMapList.Setitems(AIndex : Integer; const AValue : TUrlMapListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -14137,7 +18846,7 @@ end;
 
 
 
-Procedure TUrlMapList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUrlMapList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14147,7 +18856,7 @@ end;
 
 
 
-Procedure TUrlMapList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TUrlMapList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -14157,7 +18866,7 @@ end;
 
 
 
-Procedure TUrlMapList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TUrlMapList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -14166,12 +18875,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlMapList.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TUrlMapListitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -14181,7 +18896,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlMapReference.SeturlMap(AIndex : Integer; AValue : string); 
+Procedure TUrlMapReference.SeturlMap(AIndex : Integer; const AValue : String); 
 
 begin
   If (FurlMap=AValue) then exit;
@@ -14198,7 +18913,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlMapTest.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TUrlMapTest.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -14208,7 +18923,7 @@ end;
 
 
 
-Procedure TUrlMapTest.Sethost(AIndex : Integer; AValue : string); 
+Procedure TUrlMapTest.Sethost(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhost=AValue) then exit;
@@ -14218,7 +18933,7 @@ end;
 
 
 
-Procedure TUrlMapTest.Setpath(AIndex : Integer; AValue : string); 
+Procedure TUrlMapTest.Setpath(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpath=AValue) then exit;
@@ -14228,7 +18943,7 @@ end;
 
 
 
-Procedure TUrlMapTest.Setservice(AIndex : Integer; AValue : string); 
+Procedure TUrlMapTest.Setservice(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fservice=AValue) then exit;
@@ -14245,7 +18960,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlMapValidationResult.SetloadErrors(AIndex : Integer; AValue : TUrlMapValidationResultloadErrors); 
+Procedure TUrlMapValidationResult.SetloadErrors(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FloadErrors=AValue) then exit;
@@ -14255,7 +18970,7 @@ end;
 
 
 
-Procedure TUrlMapValidationResult.SetloadSucceeded(AIndex : Integer; AValue : boolean); 
+Procedure TUrlMapValidationResult.SetloadSucceeded(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FloadSucceeded=AValue) then exit;
@@ -14265,7 +18980,7 @@ end;
 
 
 
-Procedure TUrlMapValidationResult.SettestFailures(AIndex : Integer; AValue : TUrlMapValidationResulttestFailures); 
+Procedure TUrlMapValidationResult.SettestFailures(AIndex : Integer; const AValue : TUrlMapValidationResultTypetestFailuresArray); 
 
 begin
   If (FtestFailures=AValue) then exit;
@@ -14275,7 +18990,7 @@ end;
 
 
 
-Procedure TUrlMapValidationResult.SettestPassed(AIndex : Integer; AValue : boolean); 
+Procedure TUrlMapValidationResult.SettestPassed(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FtestPassed=AValue) then exit;
@@ -14284,19 +18999,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TUrlMapValidationResult.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TUrlMapValidationResultloadErrors
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TUrlMapValidationResulttestFailures
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'loaderrors' : SetLength(FloadErrors,ALength);
+  'testfailures' : SetLength(FtestFailures,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -14306,7 +19021,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlMapsValidateRequest.Setresource(AIndex : Integer; AValue : TUrlMap); 
+Procedure TUrlMapsValidateRequest.Setresource(AIndex : Integer; const AValue : TUrlMap); 
 
 begin
   If (Fresource=AValue) then exit;
@@ -14323,7 +19038,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlMapsValidateResponse.Setresult(AIndex : Integer; AValue : TUrlMapValidationResult); 
+Procedure TUrlMapsValidateResponse.Setresult(AIndex : Integer; const AValue : TUrlMapValidationResult); 
 
 begin
   If (Fresult=AValue) then exit;
@@ -14340,7 +19055,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUsageExportLocation.SetbucketName(AIndex : Integer; AValue : string); 
+Procedure TUsageExportLocation.SetbucketName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbucketName=AValue) then exit;
@@ -14350,7 +19065,7 @@ end;
 
 
 
-Procedure TUsageExportLocation.SetreportNamePrefix(AIndex : Integer; AValue : string); 
+Procedure TUsageExportLocation.SetreportNamePrefix(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportNamePrefix=AValue) then exit;
@@ -14367,7 +19082,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVpnTunnel.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -14377,7 +19092,7 @@ end;
 
 
 
-Procedure TVpnTunnel.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -14387,7 +19102,7 @@ end;
 
 
 
-Procedure TVpnTunnel.SetdetailedStatus(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.SetdetailedStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdetailedStatus=AValue) then exit;
@@ -14397,7 +19112,7 @@ end;
 
 
 
-Procedure TVpnTunnel.Setid(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -14407,17 +19122,7 @@ end;
 
 
 
-Procedure TVpnTunnel.SetikeNetworks(AIndex : Integer; AValue : TVpnTunnelikeNetworks); 
-
-begin
-  If (FikeNetworks=AValue) then exit;
-  FikeNetworks:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TVpnTunnel.SetikeVersion(AIndex : Integer; AValue : integer); 
+Procedure TVpnTunnel.SetikeVersion(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FikeVersion=AValue) then exit;
@@ -14427,7 +19132,7 @@ end;
 
 
 
-Procedure TVpnTunnel.Setkind(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14437,7 +19142,17 @@ end;
 
 
 
-Procedure TVpnTunnel.Setname(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.SetlocalTrafficSelector(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FlocalTrafficSelector=AValue) then exit;
+  FlocalTrafficSelector:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TVpnTunnel.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -14447,7 +19162,7 @@ end;
 
 
 
-Procedure TVpnTunnel.SetpeerIp(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.SetpeerIp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpeerIp=AValue) then exit;
@@ -14457,7 +19172,7 @@ end;
 
 
 
-Procedure TVpnTunnel.Setregion(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -14467,7 +19182,7 @@ end;
 
 
 
-Procedure TVpnTunnel.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -14477,7 +19192,7 @@ end;
 
 
 
-Procedure TVpnTunnel.SetsharedSecret(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.SetsharedSecret(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsharedSecret=AValue) then exit;
@@ -14487,7 +19202,7 @@ end;
 
 
 
-Procedure TVpnTunnel.SetsharedSecretHash(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.SetsharedSecretHash(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsharedSecretHash=AValue) then exit;
@@ -14497,7 +19212,7 @@ end;
 
 
 
-Procedure TVpnTunnel.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -14507,7 +19222,7 @@ end;
 
 
 
-Procedure TVpnTunnel.SettargetVpnGateway(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnel.SettargetVpnGateway(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetVpnGateway=AValue) then exit;
@@ -14516,79 +19231,28 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TVpnTunnelikeNetworks
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVpnTunnelAggregatedList
-  --------------------------------------------------------------------}
-
-
-Procedure TVpnTunnelAggregatedList.Setid(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVpnTunnel.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'localtrafficselector' : SetLength(FlocalTrafficSelector,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TVpnTunnelAggregatedList.Setitems(AIndex : Integer; AValue : TVpnTunnelAggregatedListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TVpnTunnelAggregatedList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TVpnTunnelAggregatedList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TVpnTunnelAggregatedList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TVpnTunnelAggregatedListitems
+  TVpnTunnelAggregatedListTypeitems
   --------------------------------------------------------------------}
 
 
-Class Function TVpnTunnelAggregatedListitems.AllowAdditionalProperties : Boolean;
+Class Function TVpnTunnelAggregatedListTypeitems.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -14597,11 +19261,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVpnTunnelList
+  TVpnTunnelAggregatedList
   --------------------------------------------------------------------}
 
 
-Procedure TVpnTunnelList.Setid(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnelAggregatedList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -14611,7 +19275,7 @@ end;
 
 
 
-Procedure TVpnTunnelList.Setitems(AIndex : Integer; AValue : TVpnTunnelListitems); 
+Procedure TVpnTunnelAggregatedList.Setitems(AIndex : Integer; const AValue : TVpnTunnelAggregatedListTypeitems); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -14621,7 +19285,7 @@ end;
 
 
 
-Procedure TVpnTunnelList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnelAggregatedList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14631,7 +19295,7 @@ end;
 
 
 
-Procedure TVpnTunnelList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnelAggregatedList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -14641,7 +19305,7 @@ end;
 
 
 
-Procedure TVpnTunnelList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnelAggregatedList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -14654,89 +19318,81 @@ end;
 
 
 { --------------------------------------------------------------------
-  TVpnTunnelListitems
+  TVpnTunnelList
   --------------------------------------------------------------------}
+
+
+Procedure TVpnTunnelList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TVpnTunnelList.Setitems(AIndex : Integer; const AValue : TVpnTunnelListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TVpnTunnelList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TVpnTunnelList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TVpnTunnelList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVpnTunnelList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TVpnTunnelsScopedList
+  TVpnTunnelsScopedListTypewarningTypedataItem
   --------------------------------------------------------------------}
 
 
-Procedure TVpnTunnelsScopedList.SetvpnTunnels(AIndex : Integer; AValue : TVpnTunnelsScopedListvpnTunnels); 
-
-begin
-  If (FvpnTunnels=AValue) then exit;
-  FvpnTunnels:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TVpnTunnelsScopedList.Setwarning(AIndex : Integer; AValue : TVpnTunnelsScopedListwarning); 
-
-begin
-  If (Fwarning=AValue) then exit;
-  Fwarning:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TVpnTunnelsScopedListvpnTunnels
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVpnTunnelsScopedListwarning
-  --------------------------------------------------------------------}
-
-
-Procedure TVpnTunnelsScopedListwarning.Setcode(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TVpnTunnelsScopedListwarning.Setdata(AIndex : Integer; AValue : TVpnTunnelsScopedListwarningdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TVpnTunnelsScopedListwarning.Setmessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TVpnTunnelsScopedListwarningdata
-  --------------------------------------------------------------------}
-
-
-Procedure TVpnTunnelsScopedListwarningdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnelsScopedListTypewarningTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -14746,7 +19402,7 @@ end;
 
 
 
-Procedure TVpnTunnelsScopedListwarningdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TVpnTunnelsScopedListTypewarningTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -14759,11 +19415,101 @@ end;
 
 
 { --------------------------------------------------------------------
+  TVpnTunnelsScopedListTypewarning
+  --------------------------------------------------------------------}
+
+
+Procedure TVpnTunnelsScopedListTypewarning.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TVpnTunnelsScopedListTypewarning.Setdata(AIndex : Integer; const AValue : TVpnTunnelsScopedListTypewarningTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TVpnTunnelsScopedListTypewarning.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVpnTunnelsScopedListTypewarning.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TVpnTunnelsScopedList
+  --------------------------------------------------------------------}
+
+
+Procedure TVpnTunnelsScopedList.SetvpnTunnels(AIndex : Integer; const AValue : TVpnTunnelsScopedListTypevpnTunnelsArray); 
+
+begin
+  If (FvpnTunnels=AValue) then exit;
+  FvpnTunnels:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TVpnTunnelsScopedList.Setwarning(AIndex : Integer; const AValue : TVpnTunnelsScopedListTypewarning); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVpnTunnelsScopedList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'vpntunnels' : SetLength(FvpnTunnels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
   TZone
   --------------------------------------------------------------------}
 
 
-Procedure TZone.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TZone.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -14773,7 +19519,7 @@ end;
 
 
 
-Procedure TZone.Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); 
+Procedure TZone.Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); 
 
 begin
   If (Fdeprecated=AValue) then exit;
@@ -14783,7 +19529,7 @@ end;
 
 
 
-Procedure TZone.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TZone.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -14793,7 +19539,7 @@ end;
 
 
 
-Procedure TZone.Setid(AIndex : Integer; AValue : string); 
+Procedure TZone.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -14803,7 +19549,7 @@ end;
 
 
 
-Procedure TZone.Setkind(AIndex : Integer; AValue : string); 
+Procedure TZone.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14813,17 +19559,7 @@ end;
 
 
 
-Procedure TZone.SetmaintenanceWindows(AIndex : Integer; AValue : TZonemaintenanceWindows); 
-
-begin
-  If (FmaintenanceWindows=AValue) then exit;
-  FmaintenanceWindows:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TZone.Setname(AIndex : Integer; AValue : string); 
+Procedure TZone.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -14833,7 +19569,7 @@ end;
 
 
 
-Procedure TZone.Setregion(AIndex : Integer; AValue : string); 
+Procedure TZone.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -14843,7 +19579,7 @@ end;
 
 
 
-Procedure TZone.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TZone.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -14853,7 +19589,7 @@ end;
 
 
 
-Procedure TZone.Setstatus(AIndex : Integer; AValue : string); 
+Procedure TZone.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -14866,58 +19602,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TZonemaintenanceWindows
-  --------------------------------------------------------------------}
-
-
-Procedure TZonemaintenanceWindows.SetbeginTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FbeginTime=AValue) then exit;
-  FbeginTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TZonemaintenanceWindows.Setdescription(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdescription=AValue) then exit;
-  Fdescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TZonemaintenanceWindows.SetendTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FendTime=AValue) then exit;
-  FendTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TZonemaintenanceWindows.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TZoneList
   --------------------------------------------------------------------}
 
 
-Procedure TZoneList.Setid(AIndex : Integer; AValue : string); 
+Procedure TZoneList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -14927,7 +19616,7 @@ end;
 
 
 
-Procedure TZoneList.Setitems(AIndex : Integer; AValue : TZoneListitems); 
+Procedure TZoneList.Setitems(AIndex : Integer; const AValue : TZoneListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -14937,7 +19626,7 @@ end;
 
 
 
-Procedure TZoneList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TZoneList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14947,7 +19636,7 @@ end;
 
 
 
-Procedure TZoneList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TZoneList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -14957,7 +19646,7 @@ end;
 
 
 
-Procedure TZoneList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TZoneList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -14966,12 +19655,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneList.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TZoneListitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -15094,6 +19789,182 @@ begin
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(project,region,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAutoscalersResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAutoscalersResource.ResourceName : String;
+
+begin
+  Result:='autoscalers';
+end;
+
+Class Function TAutoscalersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcomputeAPI;
+end;
+
+Function TAutoscalersResource.AggregatedList(project: string; AQuery : string = '') : TAutoscalerAggregatedList;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/aggregated/autoscalers';
+  _Methodid   = 'compute.autoscalers.aggregatedList';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAutoscalerAggregatedList) as TAutoscalerAggregatedList;
+end;
+
+
+Function TAutoscalersResource.AggregatedList(project: string; AQuery : TAutoscalersaggregatedListOptions) : TAutoscalerAggregatedList;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=AggregatedList(project,_Q);
+end;
+
+Function TAutoscalersResource.Delete(autoscaler: string; project: string; zone: string) : TOperation;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{project}/zones/{zone}/autoscalers/{autoscaler}';
+  _Methodid   = 'compute.autoscalers.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['autoscaler',autoscaler,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
+end;
+
+Function TAutoscalersResource.Get(autoscaler: string; project: string; zone: string) : TAutoscaler;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/zones/{zone}/autoscalers/{autoscaler}';
+  _Methodid   = 'compute.autoscalers.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['autoscaler',autoscaler,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TAutoscaler) as TAutoscaler;
+end;
+
+Function TAutoscalersResource.Insert(project: string; zone: string; aAutoscaler : TAutoscaler) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/autoscalers';
+  _Methodid   = 'compute.autoscalers.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aAutoscaler,TOperation) as TOperation;
+end;
+
+Function TAutoscalersResource.List(project: string; zone: string; AQuery : string = '') : TAutoscalerList;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/zones/{zone}/autoscalers';
+  _Methodid   = 'compute.autoscalers.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAutoscalerList) as TAutoscalerList;
+end;
+
+
+Function TAutoscalersResource.List(project: string; zone: string; AQuery : TAutoscalerslistOptions) : TAutoscalerList;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(project,zone,_Q);
+end;
+
+Function TAutoscalersResource.Patch(project: string; zone: string; aAutoscaler : TAutoscaler; AQuery : string = '') : TOperation;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{project}/zones/{zone}/autoscalers';
+  _Methodid   = 'compute.autoscalers.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aAutoscaler,TOperation) as TOperation;
+end;
+
+
+Function TAutoscalersResource.Patch(project: string; zone: string; aAutoscaler : TAutoscaler; AQuery : TAutoscalerspatchOptions) : TOperation;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'autoscaler',AQuery.autoscaler);
+  Result:=Patch(project,zone,aAutoscaler,_Q);
+end;
+
+Function TAutoscalersResource.Update(project: string; zone: string; aAutoscaler : TAutoscaler; AQuery : string = '') : TOperation;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{project}/zones/{zone}/autoscalers';
+  _Methodid   = 'compute.autoscalers.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aAutoscaler,TOperation) as TOperation;
+end;
+
+
+Function TAutoscalersResource.Update(project: string; zone: string; aAutoscaler : TAutoscaler; AQuery : TAutoscalersupdateOptions) : TOperation;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'autoscaler',AQuery.autoscaler);
+  Result:=Update(project,zone,aAutoscaler,_Q);
 end;
 
 
@@ -15473,6 +20344,21 @@ begin
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(project,zone,_Q);
+end;
+
+Function TDisksResource.Resize(disk: string; project: string; zone: string; aDisksResizeRequest : TDisksResizeRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/disks/{disk}/resize';
+  _Methodid   = 'compute.disks.resize';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['disk',disk,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aDisksResizeRequest,TOperation) as TOperation;
 end;
 
 
@@ -16169,6 +21055,129 @@ end;
 
 
 { --------------------------------------------------------------------
+  THttpsHealthChecksResource
+  --------------------------------------------------------------------}
+
+
+Class Function THttpsHealthChecksResource.ResourceName : String;
+
+begin
+  Result:='httpsHealthChecks';
+end;
+
+Class Function THttpsHealthChecksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcomputeAPI;
+end;
+
+Function THttpsHealthChecksResource.Delete(httpsHealthCheck: string; project: string) : TOperation;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{project}/global/httpsHealthChecks/{httpsHealthCheck}';
+  _Methodid   = 'compute.httpsHealthChecks.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['httpsHealthCheck',httpsHealthCheck,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
+end;
+
+Function THttpsHealthChecksResource.Get(httpsHealthCheck: string; project: string) : THttpsHealthCheck;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/global/httpsHealthChecks/{httpsHealthCheck}';
+  _Methodid   = 'compute.httpsHealthChecks.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['httpsHealthCheck',httpsHealthCheck,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,THttpsHealthCheck) as THttpsHealthCheck;
+end;
+
+Function THttpsHealthChecksResource.Insert(project: string; aHttpsHealthCheck : THttpsHealthCheck) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/global/httpsHealthChecks';
+  _Methodid   = 'compute.httpsHealthChecks.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aHttpsHealthCheck,TOperation) as TOperation;
+end;
+
+Function THttpsHealthChecksResource.List(project: string; AQuery : string = '') : THttpsHealthCheckList;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/global/httpsHealthChecks';
+  _Methodid   = 'compute.httpsHealthChecks.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,THttpsHealthCheckList) as THttpsHealthCheckList;
+end;
+
+
+Function THttpsHealthChecksResource.List(project: string; AQuery : THttpsHealthCheckslistOptions) : THttpsHealthCheckList;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(project,_Q);
+end;
+
+Function THttpsHealthChecksResource.Patch(httpsHealthCheck: string; project: string; aHttpsHealthCheck : THttpsHealthCheck) : TOperation;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = '{project}/global/httpsHealthChecks/{httpsHealthCheck}';
+  _Methodid   = 'compute.httpsHealthChecks.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['httpsHealthCheck',httpsHealthCheck,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aHttpsHealthCheck,TOperation) as TOperation;
+end;
+
+Function THttpsHealthChecksResource.Update(httpsHealthCheck: string; project: string; aHttpsHealthCheck : THttpsHealthCheck) : TOperation;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = '{project}/global/httpsHealthChecks/{httpsHealthCheck}';
+  _Methodid   = 'compute.httpsHealthChecks.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['httpsHealthCheck',httpsHealthCheck,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aHttpsHealthCheck,TOperation) as TOperation;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TImagesResource
   --------------------------------------------------------------------}
 
@@ -16230,6 +21239,21 @@ begin
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TImage) as TImage;
 end;
 
+Function TImagesResource.GetFromFamily(family: string; project: string) : TImage;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/global/images/family/{family}';
+  _Methodid   = 'compute.images.getFromFamily';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['family',family,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TImage) as TImage;
+end;
+
 Function TImagesResource.Insert(project: string; aImage : TImage) : TOperation;
 
 Const
@@ -16272,6 +21296,441 @@ begin
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(project,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupManagersResource
+  --------------------------------------------------------------------}
+
+
+Class Function TInstanceGroupManagersResource.ResourceName : String;
+
+begin
+  Result:='instanceGroupManagers';
+end;
+
+Class Function TInstanceGroupManagersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcomputeAPI;
+end;
+
+Function TInstanceGroupManagersResource.AbandonInstances(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersAbandonInstancesRequest : TInstanceGroupManagersAbandonInstancesRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/abandonInstances';
+  _Methodid   = 'compute.instanceGroupManagers.abandonInstances';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroupManager',instanceGroupManager,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstanceGroupManagersAbandonInstancesRequest,TOperation) as TOperation;
+end;
+
+Function TInstanceGroupManagersResource.AggregatedList(project: string; AQuery : string = '') : TInstanceGroupManagerAggregatedList;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/aggregated/instanceGroupManagers';
+  _Methodid   = 'compute.instanceGroupManagers.aggregatedList';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TInstanceGroupManagerAggregatedList) as TInstanceGroupManagerAggregatedList;
+end;
+
+
+Function TInstanceGroupManagersResource.AggregatedList(project: string; AQuery : TInstanceGroupManagersaggregatedListOptions) : TInstanceGroupManagerAggregatedList;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=AggregatedList(project,_Q);
+end;
+
+Function TInstanceGroupManagersResource.Delete(instanceGroupManager: string; project: string; zone: string) : TOperation;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}';
+  _Methodid   = 'compute.instanceGroupManagers.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroupManager',instanceGroupManager,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
+end;
+
+Function TInstanceGroupManagersResource.DeleteInstances(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersDeleteInstancesRequest : TInstanceGroupManagersDeleteInstancesRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/deleteInstances';
+  _Methodid   = 'compute.instanceGroupManagers.deleteInstances';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroupManager',instanceGroupManager,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstanceGroupManagersDeleteInstancesRequest,TOperation) as TOperation;
+end;
+
+Function TInstanceGroupManagersResource.Get(instanceGroupManager: string; project: string; zone: string) : TInstanceGroupManager;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}';
+  _Methodid   = 'compute.instanceGroupManagers.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroupManager',instanceGroupManager,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TInstanceGroupManager) as TInstanceGroupManager;
+end;
+
+Function TInstanceGroupManagersResource.Insert(project: string; zone: string; aInstanceGroupManager : TInstanceGroupManager) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroupManagers';
+  _Methodid   = 'compute.instanceGroupManagers.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstanceGroupManager,TOperation) as TOperation;
+end;
+
+Function TInstanceGroupManagersResource.List(project: string; zone: string; AQuery : string = '') : TInstanceGroupManagerList;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/zones/{zone}/instanceGroupManagers';
+  _Methodid   = 'compute.instanceGroupManagers.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TInstanceGroupManagerList) as TInstanceGroupManagerList;
+end;
+
+
+Function TInstanceGroupManagersResource.List(project: string; zone: string; AQuery : TInstanceGroupManagerslistOptions) : TInstanceGroupManagerList;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(project,zone,_Q);
+end;
+
+Function TInstanceGroupManagersResource.ListManagedInstances(instanceGroupManager: string; project: string; zone: string) : TInstanceGroupManagersListManagedInstancesResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/listManagedInstances';
+  _Methodid   = 'compute.instanceGroupManagers.listManagedInstances';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroupManager',instanceGroupManager,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TInstanceGroupManagersListManagedInstancesResponse) as TInstanceGroupManagersListManagedInstancesResponse;
+end;
+
+Function TInstanceGroupManagersResource.RecreateInstances(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersRecreateInstancesRequest : TInstanceGroupManagersRecreateInstancesRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/recreateInstances';
+  _Methodid   = 'compute.instanceGroupManagers.recreateInstances';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroupManager',instanceGroupManager,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstanceGroupManagersRecreateInstancesRequest,TOperation) as TOperation;
+end;
+
+Function TInstanceGroupManagersResource.Resize(instanceGroupManager: string; project: string; zone: string; AQuery : string = '') : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/resize';
+  _Methodid   = 'compute.instanceGroupManagers.resize';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroupManager',instanceGroupManager,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TOperation) as TOperation;
+end;
+
+
+Function TInstanceGroupManagersResource.Resize(instanceGroupManager: string; project: string; zone: string; AQuery : TInstanceGroupManagersresizeOptions) : TOperation;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'size',AQuery.size);
+  Result:=Resize(instanceGroupManager,project,zone,_Q);
+end;
+
+Function TInstanceGroupManagersResource.SetInstanceTemplate(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersSetInstanceTemplateRequest : TInstanceGroupManagersSetInstanceTemplateRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/setInstanceTemplate';
+  _Methodid   = 'compute.instanceGroupManagers.setInstanceTemplate';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroupManager',instanceGroupManager,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstanceGroupManagersSetInstanceTemplateRequest,TOperation) as TOperation;
+end;
+
+Function TInstanceGroupManagersResource.SetTargetPools(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersSetTargetPoolsRequest : TInstanceGroupManagersSetTargetPoolsRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/setTargetPools';
+  _Methodid   = 'compute.instanceGroupManagers.setTargetPools';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroupManager',instanceGroupManager,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstanceGroupManagersSetTargetPoolsRequest,TOperation) as TOperation;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TInstanceGroupsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TInstanceGroupsResource.ResourceName : String;
+
+begin
+  Result:='instanceGroups';
+end;
+
+Class Function TInstanceGroupsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcomputeAPI;
+end;
+
+Function TInstanceGroupsResource.AddInstances(instanceGroup: string; project: string; zone: string; aInstanceGroupsAddInstancesRequest : TInstanceGroupsAddInstancesRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroups/{instanceGroup}/addInstances';
+  _Methodid   = 'compute.instanceGroups.addInstances';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroup',instanceGroup,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstanceGroupsAddInstancesRequest,TOperation) as TOperation;
+end;
+
+Function TInstanceGroupsResource.AggregatedList(project: string; AQuery : string = '') : TInstanceGroupAggregatedList;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/aggregated/instanceGroups';
+  _Methodid   = 'compute.instanceGroups.aggregatedList';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TInstanceGroupAggregatedList) as TInstanceGroupAggregatedList;
+end;
+
+
+Function TInstanceGroupsResource.AggregatedList(project: string; AQuery : TInstanceGroupsaggregatedListOptions) : TInstanceGroupAggregatedList;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=AggregatedList(project,_Q);
+end;
+
+Function TInstanceGroupsResource.Delete(instanceGroup: string; project: string; zone: string) : TOperation;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{project}/zones/{zone}/instanceGroups/{instanceGroup}';
+  _Methodid   = 'compute.instanceGroups.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroup',instanceGroup,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
+end;
+
+Function TInstanceGroupsResource.Get(instanceGroup: string; project: string; zone: string) : TInstanceGroup;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/zones/{zone}/instanceGroups/{instanceGroup}';
+  _Methodid   = 'compute.instanceGroups.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroup',instanceGroup,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TInstanceGroup) as TInstanceGroup;
+end;
+
+Function TInstanceGroupsResource.Insert(project: string; zone: string; aInstanceGroup : TInstanceGroup) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroups';
+  _Methodid   = 'compute.instanceGroups.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstanceGroup,TOperation) as TOperation;
+end;
+
+Function TInstanceGroupsResource.List(project: string; zone: string; AQuery : string = '') : TInstanceGroupList;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/zones/{zone}/instanceGroups';
+  _Methodid   = 'compute.instanceGroups.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TInstanceGroupList) as TInstanceGroupList;
+end;
+
+
+Function TInstanceGroupsResource.List(project: string; zone: string; AQuery : TInstanceGroupslistOptions) : TInstanceGroupList;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(project,zone,_Q);
+end;
+
+Function TInstanceGroupsResource.ListInstances(instanceGroup: string; project: string; zone: string; aInstanceGroupsListInstancesRequest : TInstanceGroupsListInstancesRequest; AQuery : string = '') : TInstanceGroupsListInstances;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroups/{instanceGroup}/listInstances';
+  _Methodid   = 'compute.instanceGroups.listInstances';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroup',instanceGroup,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aInstanceGroupsListInstancesRequest,TInstanceGroupsListInstances) as TInstanceGroupsListInstances;
+end;
+
+
+Function TInstanceGroupsResource.ListInstances(instanceGroup: string; project: string; zone: string; aInstanceGroupsListInstancesRequest : TInstanceGroupsListInstancesRequest; AQuery : TInstanceGroupslistInstancesOptions) : TInstanceGroupsListInstances;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=ListInstances(instanceGroup,project,zone,aInstanceGroupsListInstancesRequest,_Q);
+end;
+
+Function TInstanceGroupsResource.RemoveInstances(instanceGroup: string; project: string; zone: string; aInstanceGroupsRemoveInstancesRequest : TInstanceGroupsRemoveInstancesRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroups/{instanceGroup}/removeInstances';
+  _Methodid   = 'compute.instanceGroups.removeInstances';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroup',instanceGroup,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstanceGroupsRemoveInstancesRequest,TOperation) as TOperation;
+end;
+
+Function TInstanceGroupsResource.SetNamedPorts(instanceGroup: string; project: string; zone: string; aInstanceGroupsSetNamedPortsRequest : TInstanceGroupsSetNamedPortsRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instanceGroups/{instanceGroup}/setNamedPorts';
+  _Methodid   = 'compute.instanceGroups.setNamedPorts';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instanceGroup',instanceGroup,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstanceGroupsSetNamedPortsRequest,TOperation) as TOperation;
 end;
 
 
@@ -16654,6 +22113,21 @@ begin
   AddToQuery(_Q,'autoDelete',AQuery.autoDelete);
   AddToQuery(_Q,'deviceName',AQuery.deviceName);
   Result:=SetDiskAutoDelete(instance,project,zone,_Q);
+end;
+
+Function TInstancesResource.SetMachineType(instance: string; project: string; zone: string; aInstancesSetMachineTypeRequest : TInstancesSetMachineTypeRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/zones/{zone}/instances/{instance}/setMachineType';
+  _Methodid   = 'compute.instances.setMachineType';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instance',instance,'project',project,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstancesSetMachineTypeRequest,TOperation) as TOperation;
 end;
 
 Function TInstancesResource.SetMetadata(instance: string; project: string; zone: string; aMetadata : TMetadata) : TOperation;
@@ -17359,6 +22833,221 @@ end;
 
 
 { --------------------------------------------------------------------
+  TSslCertificatesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TSslCertificatesResource.ResourceName : String;
+
+begin
+  Result:='sslCertificates';
+end;
+
+Class Function TSslCertificatesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcomputeAPI;
+end;
+
+Function TSslCertificatesResource.Delete(project: string; sslCertificate: string) : TOperation;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{project}/global/sslCertificates/{sslCertificate}';
+  _Methodid   = 'compute.sslCertificates.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'sslCertificate',sslCertificate]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
+end;
+
+Function TSslCertificatesResource.Get(project: string; sslCertificate: string) : TSslCertificate;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/global/sslCertificates/{sslCertificate}';
+  _Methodid   = 'compute.sslCertificates.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'sslCertificate',sslCertificate]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TSslCertificate) as TSslCertificate;
+end;
+
+Function TSslCertificatesResource.Insert(project: string; aSslCertificate : TSslCertificate) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/global/sslCertificates';
+  _Methodid   = 'compute.sslCertificates.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aSslCertificate,TOperation) as TOperation;
+end;
+
+Function TSslCertificatesResource.List(project: string; AQuery : string = '') : TSslCertificateList;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/global/sslCertificates';
+  _Methodid   = 'compute.sslCertificates.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TSslCertificateList) as TSslCertificateList;
+end;
+
+
+Function TSslCertificatesResource.List(project: string; AQuery : TSslCertificateslistOptions) : TSslCertificateList;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(project,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TSubnetworksResource
+  --------------------------------------------------------------------}
+
+
+Class Function TSubnetworksResource.ResourceName : String;
+
+begin
+  Result:='subnetworks';
+end;
+
+Class Function TSubnetworksResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcomputeAPI;
+end;
+
+Function TSubnetworksResource.AggregatedList(project: string; AQuery : string = '') : TSubnetworkAggregatedList;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/aggregated/subnetworks';
+  _Methodid   = 'compute.subnetworks.aggregatedList';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TSubnetworkAggregatedList) as TSubnetworkAggregatedList;
+end;
+
+
+Function TSubnetworksResource.AggregatedList(project: string; AQuery : TSubnetworksaggregatedListOptions) : TSubnetworkAggregatedList;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=AggregatedList(project,_Q);
+end;
+
+Function TSubnetworksResource.Delete(project: string; region: string; subnetwork: string) : TOperation;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{project}/regions/{region}/subnetworks/{subnetwork}';
+  _Methodid   = 'compute.subnetworks.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'region',region,'subnetwork',subnetwork]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
+end;
+
+Function TSubnetworksResource.Get(project: string; region: string; subnetwork: string) : TSubnetwork;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/regions/{region}/subnetworks/{subnetwork}';
+  _Methodid   = 'compute.subnetworks.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'region',region,'subnetwork',subnetwork]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TSubnetwork) as TSubnetwork;
+end;
+
+Function TSubnetworksResource.Insert(project: string; region: string; aSubnetwork : TSubnetwork) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/regions/{region}/subnetworks';
+  _Methodid   = 'compute.subnetworks.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'region',region]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aSubnetwork,TOperation) as TOperation;
+end;
+
+Function TSubnetworksResource.List(project: string; region: string; AQuery : string = '') : TSubnetworkList;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/regions/{region}/subnetworks';
+  _Methodid   = 'compute.subnetworks.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'region',region]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TSubnetworkList) as TSubnetworkList;
+end;
+
+
+Function TSubnetworksResource.List(project: string; region: string; AQuery : TSubnetworkslistOptions) : TSubnetworkList;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(project,region,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
   TTargetHttpProxiesResource
   --------------------------------------------------------------------}
 
@@ -17461,6 +23150,129 @@ Var
 
 begin
   _P:=SubstitutePath(_Path,['project',project,'targetHttpProxy',targetHttpProxy]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aUrlMapReference,TOperation) as TOperation;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TTargetHttpsProxiesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TTargetHttpsProxiesResource.ResourceName : String;
+
+begin
+  Result:='targetHttpsProxies';
+end;
+
+Class Function TTargetHttpsProxiesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TcomputeAPI;
+end;
+
+Function TTargetHttpsProxiesResource.Delete(project: string; targetHttpsProxy: string) : TOperation;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = '{project}/global/targetHttpsProxies/{targetHttpsProxy}';
+  _Methodid   = 'compute.targetHttpsProxies.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'targetHttpsProxy',targetHttpsProxy]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
+end;
+
+Function TTargetHttpsProxiesResource.Get(project: string; targetHttpsProxy: string) : TTargetHttpsProxy;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/global/targetHttpsProxies/{targetHttpsProxy}';
+  _Methodid   = 'compute.targetHttpsProxies.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'targetHttpsProxy',targetHttpsProxy]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TTargetHttpsProxy) as TTargetHttpsProxy;
+end;
+
+Function TTargetHttpsProxiesResource.Insert(project: string; aTargetHttpsProxy : TTargetHttpsProxy) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/global/targetHttpsProxies';
+  _Methodid   = 'compute.targetHttpsProxies.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aTargetHttpsProxy,TOperation) as TOperation;
+end;
+
+Function TTargetHttpsProxiesResource.List(project: string; AQuery : string = '') : TTargetHttpsProxyList;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{project}/global/targetHttpsProxies';
+  _Methodid   = 'compute.targetHttpsProxies.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TTargetHttpsProxyList) as TTargetHttpsProxyList;
+end;
+
+
+Function TTargetHttpsProxiesResource.List(project: string; AQuery : TTargetHttpsProxieslistOptions) : TTargetHttpsProxyList;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'filter',AQuery.filter);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
+  Result:=List(project,_Q);
+end;
+
+Function TTargetHttpsProxiesResource.SetSslCertificates(project: string; targetHttpsProxy: string; aTargetHttpsProxiesSetSslCertificatesRequest : TTargetHttpsProxiesSetSslCertificatesRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/targetHttpsProxies/{targetHttpsProxy}/setSslCertificates';
+  _Methodid   = 'compute.targetHttpsProxies.setSslCertificates';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'targetHttpsProxy',targetHttpsProxy]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aTargetHttpsProxiesSetSslCertificatesRequest,TOperation) as TOperation;
+end;
+
+Function TTargetHttpsProxiesResource.SetUrlMap(project: string; targetHttpsProxy: string; aUrlMapReference : TUrlMapReference) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/targetHttpsProxies/{targetHttpsProxy}/setUrlMap';
+  _Methodid   = 'compute.targetHttpsProxies.setUrlMap';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['project',project,'targetHttpsProxy',targetHttpsProxy]);
   Result:=ServiceCall(_HTTPMethod,_P,'',aUrlMapReference,TOperation) as TOperation;
 end;
 
@@ -18354,7 +24166,7 @@ end;
 Class Function TComputeAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20160509';
 end;
 
 Class Function TComputeAPI.APIID : String;
@@ -18372,7 +24184,7 @@ end;
 Class Function TComputeAPI.APIDescription : String;
 
 begin
-  Result:='API for the Google Compute Engine service.';
+  Result:='Creates and runs virtual machines on Google Cloud Platform.';
 end;
 
 Class Function TComputeAPI.APIOwnerDomain : String;
@@ -18471,231 +24283,212 @@ Class Procedure TComputeAPI.RegisterAPIResources;
 begin
   TAccessConfig.RegisterObject;
   TAddress.RegisterObject;
-  TAddressusers.RegisterObject;
+  TAddressAggregatedListTypeitems.RegisterObject;
   TAddressAggregatedList.RegisterObject;
-  TAddressAggregatedListitems.RegisterObject;
   TAddressList.RegisterObject;
-  TAddressListitems.RegisterObject;
+  TAddressesScopedListTypewarningTypedataItem.RegisterObject;
+  TAddressesScopedListTypewarning.RegisterObject;
   TAddressesScopedList.RegisterObject;
-  TAddressesScopedListaddresses.RegisterObject;
-  TAddressesScopedListwarning.RegisterObject;
-  TAddressesScopedListwarningdata.RegisterObject;
   TAttachedDisk.RegisterObject;
-  TAttachedDisklicenses.RegisterObject;
   TAttachedDiskInitializeParams.RegisterObject;
+  TAutoscaler.RegisterObject;
+  TAutoscalerAggregatedListTypeitems.RegisterObject;
+  TAutoscalerAggregatedList.RegisterObject;
+  TAutoscalerList.RegisterObject;
+  TAutoscalersScopedListTypewarningTypedataItem.RegisterObject;
+  TAutoscalersScopedListTypewarning.RegisterObject;
+  TAutoscalersScopedList.RegisterObject;
+  TAutoscalingPolicy.RegisterObject;
+  TAutoscalingPolicyCpuUtilization.RegisterObject;
+  TAutoscalingPolicyCustomMetricUtilization.RegisterObject;
+  TAutoscalingPolicyLoadBalancingUtilization.RegisterObject;
   TBackend.RegisterObject;
   TBackendService.RegisterObject;
-  TBackendServicebackends.RegisterObject;
-  TBackendServicehealthChecks.RegisterObject;
   TBackendServiceGroupHealth.RegisterObject;
-  TBackendServiceGroupHealthhealthStatus.RegisterObject;
   TBackendServiceList.RegisterObject;
-  TBackendServiceListitems.RegisterObject;
   TDeprecationStatus.RegisterObject;
   TDisk.RegisterObject;
-  TDisklicenses.RegisterObject;
+  TDiskAggregatedListTypeitems.RegisterObject;
   TDiskAggregatedList.RegisterObject;
-  TDiskAggregatedListitems.RegisterObject;
   TDiskList.RegisterObject;
-  TDiskListitems.RegisterObject;
   TDiskMoveRequest.RegisterObject;
   TDiskType.RegisterObject;
+  TDiskTypeAggregatedListTypeitems.RegisterObject;
   TDiskTypeAggregatedList.RegisterObject;
-  TDiskTypeAggregatedListitems.RegisterObject;
   TDiskTypeList.RegisterObject;
-  TDiskTypeListitems.RegisterObject;
+  TDiskTypesScopedListTypewarningTypedataItem.RegisterObject;
+  TDiskTypesScopedListTypewarning.RegisterObject;
   TDiskTypesScopedList.RegisterObject;
-  TDiskTypesScopedListdiskTypes.RegisterObject;
-  TDiskTypesScopedListwarning.RegisterObject;
-  TDiskTypesScopedListwarningdata.RegisterObject;
+  TDisksResizeRequest.RegisterObject;
+  TDisksScopedListTypewarningTypedataItem.RegisterObject;
+  TDisksScopedListTypewarning.RegisterObject;
   TDisksScopedList.RegisterObject;
-  TDisksScopedListdisks.RegisterObject;
-  TDisksScopedListwarning.RegisterObject;
-  TDisksScopedListwarningdata.RegisterObject;
+  TFirewallTypeallowedItem.RegisterObject;
   TFirewall.RegisterObject;
-  TFirewallallowed.RegisterObject;
-  TFirewallallowedports.RegisterObject;
-  TFirewallsourceRanges.RegisterObject;
-  TFirewallsourceTags.RegisterObject;
-  TFirewalltargetTags.RegisterObject;
   TFirewallList.RegisterObject;
-  TFirewallListitems.RegisterObject;
   TForwardingRule.RegisterObject;
+  TForwardingRuleAggregatedListTypeitems.RegisterObject;
   TForwardingRuleAggregatedList.RegisterObject;
-  TForwardingRuleAggregatedListitems.RegisterObject;
   TForwardingRuleList.RegisterObject;
-  TForwardingRuleListitems.RegisterObject;
+  TForwardingRulesScopedListTypewarningTypedataItem.RegisterObject;
+  TForwardingRulesScopedListTypewarning.RegisterObject;
   TForwardingRulesScopedList.RegisterObject;
-  TForwardingRulesScopedListforwardingRules.RegisterObject;
-  TForwardingRulesScopedListwarning.RegisterObject;
-  TForwardingRulesScopedListwarningdata.RegisterObject;
   THealthCheckReference.RegisterObject;
   THealthStatus.RegisterObject;
   THostRule.RegisterObject;
-  THostRulehosts.RegisterObject;
   THttpHealthCheck.RegisterObject;
   THttpHealthCheckList.RegisterObject;
-  THttpHealthCheckListitems.RegisterObject;
+  THttpsHealthCheck.RegisterObject;
+  THttpsHealthCheckList.RegisterObject;
+  TImageTyperawDisk.RegisterObject;
   TImage.RegisterObject;
-  TImagelicenses.RegisterObject;
-  TImagerawDisk.RegisterObject;
   TImageList.RegisterObject;
-  TImageListitems.RegisterObject;
   TInstance.RegisterObject;
-  TInstancedisks.RegisterObject;
-  TInstancenetworkInterfaces.RegisterObject;
-  TInstanceserviceAccounts.RegisterObject;
+  TInstanceAggregatedListTypeitems.RegisterObject;
   TInstanceAggregatedList.RegisterObject;
-  TInstanceAggregatedListitems.RegisterObject;
+  TInstanceGroup.RegisterObject;
+  TInstanceGroupAggregatedListTypeitems.RegisterObject;
+  TInstanceGroupAggregatedList.RegisterObject;
+  TInstanceGroupList.RegisterObject;
+  TInstanceGroupManager.RegisterObject;
+  TInstanceGroupManagerActionsSummary.RegisterObject;
+  TInstanceGroupManagerAggregatedListTypeitems.RegisterObject;
+  TInstanceGroupManagerAggregatedList.RegisterObject;
+  TInstanceGroupManagerList.RegisterObject;
+  TInstanceGroupManagersAbandonInstancesRequest.RegisterObject;
+  TInstanceGroupManagersDeleteInstancesRequest.RegisterObject;
+  TInstanceGroupManagersListManagedInstancesResponse.RegisterObject;
+  TInstanceGroupManagersRecreateInstancesRequest.RegisterObject;
+  TInstanceGroupManagersScopedListTypewarningTypedataItem.RegisterObject;
+  TInstanceGroupManagersScopedListTypewarning.RegisterObject;
+  TInstanceGroupManagersScopedList.RegisterObject;
+  TInstanceGroupManagersSetInstanceTemplateRequest.RegisterObject;
+  TInstanceGroupManagersSetTargetPoolsRequest.RegisterObject;
+  TInstanceGroupsAddInstancesRequest.RegisterObject;
+  TInstanceGroupsListInstances.RegisterObject;
+  TInstanceGroupsListInstancesRequest.RegisterObject;
+  TInstanceGroupsRemoveInstancesRequest.RegisterObject;
+  TInstanceGroupsScopedListTypewarningTypedataItem.RegisterObject;
+  TInstanceGroupsScopedListTypewarning.RegisterObject;
+  TInstanceGroupsScopedList.RegisterObject;
+  TInstanceGroupsSetNamedPortsRequest.RegisterObject;
   TInstanceList.RegisterObject;
-  TInstanceListitems.RegisterObject;
   TInstanceMoveRequest.RegisterObject;
   TInstanceProperties.RegisterObject;
-  TInstancePropertiesdisks.RegisterObject;
-  TInstancePropertiesnetworkInterfaces.RegisterObject;
-  TInstancePropertiesserviceAccounts.RegisterObject;
   TInstanceReference.RegisterObject;
   TInstanceTemplate.RegisterObject;
   TInstanceTemplateList.RegisterObject;
-  TInstanceTemplateListitems.RegisterObject;
+  TInstanceWithNamedPorts.RegisterObject;
+  TInstancesScopedListTypewarningTypedataItem.RegisterObject;
+  TInstancesScopedListTypewarning.RegisterObject;
   TInstancesScopedList.RegisterObject;
-  TInstancesScopedListinstances.RegisterObject;
-  TInstancesScopedListwarning.RegisterObject;
-  TInstancesScopedListwarningdata.RegisterObject;
+  TInstancesSetMachineTypeRequest.RegisterObject;
   TLicense.RegisterObject;
+  TMachineTypeTypescratchDisksItem.RegisterObject;
   TMachineType.RegisterObject;
-  TMachineTypescratchDisks.RegisterObject;
+  TMachineTypeAggregatedListTypeitems.RegisterObject;
   TMachineTypeAggregatedList.RegisterObject;
-  TMachineTypeAggregatedListitems.RegisterObject;
   TMachineTypeList.RegisterObject;
-  TMachineTypeListitems.RegisterObject;
+  TMachineTypesScopedListTypewarningTypedataItem.RegisterObject;
+  TMachineTypesScopedListTypewarning.RegisterObject;
   TMachineTypesScopedList.RegisterObject;
-  TMachineTypesScopedListmachineTypes.RegisterObject;
-  TMachineTypesScopedListwarning.RegisterObject;
-  TMachineTypesScopedListwarningdata.RegisterObject;
+  TManagedInstance.RegisterObject;
+  TManagedInstanceLastAttemptTypeerrorsTypeerrorsItem.RegisterObject;
+  TManagedInstanceLastAttemptTypeerrors.RegisterObject;
+  TManagedInstanceLastAttempt.RegisterObject;
+  TMetadataTypeitemsItem.RegisterObject;
   TMetadata.RegisterObject;
-  TMetadataitems.RegisterObject;
+  TNamedPort.RegisterObject;
   TNetwork.RegisterObject;
   TNetworkInterface.RegisterObject;
-  TNetworkInterfaceaccessConfigs.RegisterObject;
   TNetworkList.RegisterObject;
-  TNetworkListitems.RegisterObject;
+  TOperationTypeerrorTypeerrorsItem.RegisterObject;
+  TOperationTypeerror.RegisterObject;
+  TOperationTypewarningsItemTypedataItem.RegisterObject;
+  TOperationTypewarningsItem.RegisterObject;
   TOperation.RegisterObject;
-  TOperationerror.RegisterObject;
-  TOperationerrorerrors.RegisterObject;
-  TOperationwarnings.RegisterObject;
-  TOperationwarningsdata.RegisterObject;
+  TOperationAggregatedListTypeitems.RegisterObject;
   TOperationAggregatedList.RegisterObject;
-  TOperationAggregatedListitems.RegisterObject;
   TOperationList.RegisterObject;
-  TOperationListitems.RegisterObject;
+  TOperationsScopedListTypewarningTypedataItem.RegisterObject;
+  TOperationsScopedListTypewarning.RegisterObject;
   TOperationsScopedList.RegisterObject;
-  TOperationsScopedListoperations.RegisterObject;
-  TOperationsScopedListwarning.RegisterObject;
-  TOperationsScopedListwarningdata.RegisterObject;
   TPathMatcher.RegisterObject;
-  TPathMatcherpathRules.RegisterObject;
   TPathRule.RegisterObject;
-  TPathRulepaths.RegisterObject;
   TProject.RegisterObject;
-  TProjectquotas.RegisterObject;
   TQuota.RegisterObject;
   TRegion.RegisterObject;
-  TRegionquotas.RegisterObject;
-  TRegionzones.RegisterObject;
   TRegionList.RegisterObject;
-  TRegionListitems.RegisterObject;
   TResourceGroupReference.RegisterObject;
+  TRouteTypewarningsItemTypedataItem.RegisterObject;
+  TRouteTypewarningsItem.RegisterObject;
   TRoute.RegisterObject;
-  TRoutetags.RegisterObject;
-  TRoutewarnings.RegisterObject;
-  TRoutewarningsdata.RegisterObject;
   TRouteList.RegisterObject;
-  TRouteListitems.RegisterObject;
   TScheduling.RegisterObject;
   TSerialPortOutput.RegisterObject;
   TServiceAccount.RegisterObject;
-  TServiceAccountscopes.RegisterObject;
   TSnapshot.RegisterObject;
-  TSnapshotlicenses.RegisterObject;
   TSnapshotList.RegisterObject;
-  TSnapshotListitems.RegisterObject;
+  TSslCertificate.RegisterObject;
+  TSslCertificateList.RegisterObject;
+  TSubnetwork.RegisterObject;
+  TSubnetworkAggregatedListTypeitems.RegisterObject;
+  TSubnetworkAggregatedList.RegisterObject;
+  TSubnetworkList.RegisterObject;
+  TSubnetworksScopedListTypewarningTypedataItem.RegisterObject;
+  TSubnetworksScopedListTypewarning.RegisterObject;
+  TSubnetworksScopedList.RegisterObject;
   TTags.RegisterObject;
-  TTagsitems.RegisterObject;
   TTargetHttpProxy.RegisterObject;
   TTargetHttpProxyList.RegisterObject;
-  TTargetHttpProxyListitems.RegisterObject;
+  TTargetHttpsProxiesSetSslCertificatesRequest.RegisterObject;
+  TTargetHttpsProxy.RegisterObject;
+  TTargetHttpsProxyList.RegisterObject;
   TTargetInstance.RegisterObject;
+  TTargetInstanceAggregatedListTypeitems.RegisterObject;
   TTargetInstanceAggregatedList.RegisterObject;
-  TTargetInstanceAggregatedListitems.RegisterObject;
   TTargetInstanceList.RegisterObject;
-  TTargetInstanceListitems.RegisterObject;
+  TTargetInstancesScopedListTypewarningTypedataItem.RegisterObject;
+  TTargetInstancesScopedListTypewarning.RegisterObject;
   TTargetInstancesScopedList.RegisterObject;
-  TTargetInstancesScopedListtargetInstances.RegisterObject;
-  TTargetInstancesScopedListwarning.RegisterObject;
-  TTargetInstancesScopedListwarningdata.RegisterObject;
   TTargetPool.RegisterObject;
-  TTargetPoolhealthChecks.RegisterObject;
-  TTargetPoolinstances.RegisterObject;
+  TTargetPoolAggregatedListTypeitems.RegisterObject;
   TTargetPoolAggregatedList.RegisterObject;
-  TTargetPoolAggregatedListitems.RegisterObject;
   TTargetPoolInstanceHealth.RegisterObject;
-  TTargetPoolInstanceHealthhealthStatus.RegisterObject;
   TTargetPoolList.RegisterObject;
-  TTargetPoolListitems.RegisterObject;
   TTargetPoolsAddHealthCheckRequest.RegisterObject;
-  TTargetPoolsAddHealthCheckRequesthealthChecks.RegisterObject;
   TTargetPoolsAddInstanceRequest.RegisterObject;
-  TTargetPoolsAddInstanceRequestinstances.RegisterObject;
   TTargetPoolsRemoveHealthCheckRequest.RegisterObject;
-  TTargetPoolsRemoveHealthCheckRequesthealthChecks.RegisterObject;
   TTargetPoolsRemoveInstanceRequest.RegisterObject;
-  TTargetPoolsRemoveInstanceRequestinstances.RegisterObject;
+  TTargetPoolsScopedListTypewarningTypedataItem.RegisterObject;
+  TTargetPoolsScopedListTypewarning.RegisterObject;
   TTargetPoolsScopedList.RegisterObject;
-  TTargetPoolsScopedListtargetPools.RegisterObject;
-  TTargetPoolsScopedListwarning.RegisterObject;
-  TTargetPoolsScopedListwarningdata.RegisterObject;
   TTargetReference.RegisterObject;
   TTargetVpnGateway.RegisterObject;
-  TTargetVpnGatewayforwardingRules.RegisterObject;
-  TTargetVpnGatewaytunnels.RegisterObject;
+  TTargetVpnGatewayAggregatedListTypeitems.RegisterObject;
   TTargetVpnGatewayAggregatedList.RegisterObject;
-  TTargetVpnGatewayAggregatedListitems.RegisterObject;
   TTargetVpnGatewayList.RegisterObject;
-  TTargetVpnGatewayListitems.RegisterObject;
+  TTargetVpnGatewaysScopedListTypewarningTypedataItem.RegisterObject;
+  TTargetVpnGatewaysScopedListTypewarning.RegisterObject;
   TTargetVpnGatewaysScopedList.RegisterObject;
-  TTargetVpnGatewaysScopedListtargetVpnGateways.RegisterObject;
-  TTargetVpnGatewaysScopedListwarning.RegisterObject;
-  TTargetVpnGatewaysScopedListwarningdata.RegisterObject;
   TTestFailure.RegisterObject;
   TUrlMap.RegisterObject;
-  TUrlMaphostRules.RegisterObject;
-  TUrlMappathMatchers.RegisterObject;
-  TUrlMaptests.RegisterObject;
   TUrlMapList.RegisterObject;
-  TUrlMapListitems.RegisterObject;
   TUrlMapReference.RegisterObject;
   TUrlMapTest.RegisterObject;
   TUrlMapValidationResult.RegisterObject;
-  TUrlMapValidationResultloadErrors.RegisterObject;
-  TUrlMapValidationResulttestFailures.RegisterObject;
   TUrlMapsValidateRequest.RegisterObject;
   TUrlMapsValidateResponse.RegisterObject;
   TUsageExportLocation.RegisterObject;
   TVpnTunnel.RegisterObject;
-  TVpnTunnelikeNetworks.RegisterObject;
+  TVpnTunnelAggregatedListTypeitems.RegisterObject;
   TVpnTunnelAggregatedList.RegisterObject;
-  TVpnTunnelAggregatedListitems.RegisterObject;
   TVpnTunnelList.RegisterObject;
-  TVpnTunnelListitems.RegisterObject;
+  TVpnTunnelsScopedListTypewarningTypedataItem.RegisterObject;
+  TVpnTunnelsScopedListTypewarning.RegisterObject;
   TVpnTunnelsScopedList.RegisterObject;
-  TVpnTunnelsScopedListvpnTunnels.RegisterObject;
-  TVpnTunnelsScopedListwarning.RegisterObject;
-  TVpnTunnelsScopedListwarningdata.RegisterObject;
   TZone.RegisterObject;
-  TZonemaintenanceWindows.RegisterObject;
   TZoneList.RegisterObject;
-  TZoneListitems.RegisterObject;
 end;
 
 
@@ -18718,7 +24511,31 @@ Function TComputeAPI.CreateAddressesResource(AOwner : TComponent) : TAddressesRe
 
 begin
   Result:=TAddressesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TComputeAPI.GetAutoscalersInstance : TAutoscalersResource;
+
+begin
+  if (FAutoscalersInstance=Nil) then
+    FAutoscalersInstance:=CreateAutoscalersResource;
+  Result:=FAutoscalersInstance;
+end;
+
+Function TComputeAPI.CreateAutoscalersResource : TAutoscalersResource;
+
+begin
+  Result:=CreateAutoscalersResource(Self);
+end;
+
+
+Function TComputeAPI.CreateAutoscalersResource(AOwner : TComponent) : TAutoscalersResource;
+
+begin
+  Result:=TAutoscalersResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -18742,7 +24559,7 @@ Function TComputeAPI.CreateBackendServicesResource(AOwner : TComponent) : TBacke
 
 begin
   Result:=TBackendServicesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -18766,7 +24583,7 @@ Function TComputeAPI.CreateDiskTypesResource(AOwner : TComponent) : TDiskTypesRe
 
 begin
   Result:=TDiskTypesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -18790,7 +24607,7 @@ Function TComputeAPI.CreateDisksResource(AOwner : TComponent) : TDisksResource;
 
 begin
   Result:=TDisksResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -18814,7 +24631,7 @@ Function TComputeAPI.CreateFirewallsResource(AOwner : TComponent) : TFirewallsRe
 
 begin
   Result:=TFirewallsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -18838,7 +24655,7 @@ Function TComputeAPI.CreateForwardingRulesResource(AOwner : TComponent) : TForwa
 
 begin
   Result:=TForwardingRulesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -18862,7 +24679,7 @@ Function TComputeAPI.CreateGlobalAddressesResource(AOwner : TComponent) : TGloba
 
 begin
   Result:=TGlobalAddressesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -18886,7 +24703,7 @@ Function TComputeAPI.CreateGlobalForwardingRulesResource(AOwner : TComponent) : 
 
 begin
   Result:=TGlobalForwardingRulesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -18910,7 +24727,7 @@ Function TComputeAPI.CreateGlobalOperationsResource(AOwner : TComponent) : TGlob
 
 begin
   Result:=TGlobalOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -18934,7 +24751,31 @@ Function TComputeAPI.CreateHttpHealthChecksResource(AOwner : TComponent) : THttp
 
 begin
   Result:=THttpHealthChecksResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TComputeAPI.GetHttpsHealthChecksInstance : THttpsHealthChecksResource;
+
+begin
+  if (FHttpsHealthChecksInstance=Nil) then
+    FHttpsHealthChecksInstance:=CreateHttpsHealthChecksResource;
+  Result:=FHttpsHealthChecksInstance;
+end;
+
+Function TComputeAPI.CreateHttpsHealthChecksResource : THttpsHealthChecksResource;
+
+begin
+  Result:=CreateHttpsHealthChecksResource(Self);
+end;
+
+
+Function TComputeAPI.CreateHttpsHealthChecksResource(AOwner : TComponent) : THttpsHealthChecksResource;
+
+begin
+  Result:=THttpsHealthChecksResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -18958,7 +24799,55 @@ Function TComputeAPI.CreateImagesResource(AOwner : TComponent) : TImagesResource
 
 begin
   Result:=TImagesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TComputeAPI.GetInstanceGroupManagersInstance : TInstanceGroupManagersResource;
+
+begin
+  if (FInstanceGroupManagersInstance=Nil) then
+    FInstanceGroupManagersInstance:=CreateInstanceGroupManagersResource;
+  Result:=FInstanceGroupManagersInstance;
+end;
+
+Function TComputeAPI.CreateInstanceGroupManagersResource : TInstanceGroupManagersResource;
+
+begin
+  Result:=CreateInstanceGroupManagersResource(Self);
+end;
+
+
+Function TComputeAPI.CreateInstanceGroupManagersResource(AOwner : TComponent) : TInstanceGroupManagersResource;
+
+begin
+  Result:=TInstanceGroupManagersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TComputeAPI.GetInstanceGroupsInstance : TInstanceGroupsResource;
+
+begin
+  if (FInstanceGroupsInstance=Nil) then
+    FInstanceGroupsInstance:=CreateInstanceGroupsResource;
+  Result:=FInstanceGroupsInstance;
+end;
+
+Function TComputeAPI.CreateInstanceGroupsResource : TInstanceGroupsResource;
+
+begin
+  Result:=CreateInstanceGroupsResource(Self);
+end;
+
+
+Function TComputeAPI.CreateInstanceGroupsResource(AOwner : TComponent) : TInstanceGroupsResource;
+
+begin
+  Result:=TInstanceGroupsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -18982,7 +24871,7 @@ Function TComputeAPI.CreateInstanceTemplatesResource(AOwner : TComponent) : TIns
 
 begin
   Result:=TInstanceTemplatesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19006,7 +24895,7 @@ Function TComputeAPI.CreateInstancesResource(AOwner : TComponent) : TInstancesRe
 
 begin
   Result:=TInstancesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19030,7 +24919,7 @@ Function TComputeAPI.CreateLicensesResource(AOwner : TComponent) : TLicensesReso
 
 begin
   Result:=TLicensesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19054,7 +24943,7 @@ Function TComputeAPI.CreateMachineTypesResource(AOwner : TComponent) : TMachineT
 
 begin
   Result:=TMachineTypesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19078,7 +24967,7 @@ Function TComputeAPI.CreateNetworksResource(AOwner : TComponent) : TNetworksReso
 
 begin
   Result:=TNetworksResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19102,7 +24991,7 @@ Function TComputeAPI.CreateProjectsResource(AOwner : TComponent) : TProjectsReso
 
 begin
   Result:=TProjectsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19126,7 +25015,7 @@ Function TComputeAPI.CreateRegionOperationsResource(AOwner : TComponent) : TRegi
 
 begin
   Result:=TRegionOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19150,7 +25039,7 @@ Function TComputeAPI.CreateRegionsResource(AOwner : TComponent) : TRegionsResour
 
 begin
   Result:=TRegionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19174,7 +25063,7 @@ Function TComputeAPI.CreateRoutesResource(AOwner : TComponent) : TRoutesResource
 
 begin
   Result:=TRoutesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19198,7 +25087,55 @@ Function TComputeAPI.CreateSnapshotsResource(AOwner : TComponent) : TSnapshotsRe
 
 begin
   Result:=TSnapshotsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TComputeAPI.GetSslCertificatesInstance : TSslCertificatesResource;
+
+begin
+  if (FSslCertificatesInstance=Nil) then
+    FSslCertificatesInstance:=CreateSslCertificatesResource;
+  Result:=FSslCertificatesInstance;
+end;
+
+Function TComputeAPI.CreateSslCertificatesResource : TSslCertificatesResource;
+
+begin
+  Result:=CreateSslCertificatesResource(Self);
+end;
+
+
+Function TComputeAPI.CreateSslCertificatesResource(AOwner : TComponent) : TSslCertificatesResource;
+
+begin
+  Result:=TSslCertificatesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TComputeAPI.GetSubnetworksInstance : TSubnetworksResource;
+
+begin
+  if (FSubnetworksInstance=Nil) then
+    FSubnetworksInstance:=CreateSubnetworksResource;
+  Result:=FSubnetworksInstance;
+end;
+
+Function TComputeAPI.CreateSubnetworksResource : TSubnetworksResource;
+
+begin
+  Result:=CreateSubnetworksResource(Self);
+end;
+
+
+Function TComputeAPI.CreateSubnetworksResource(AOwner : TComponent) : TSubnetworksResource;
+
+begin
+  Result:=TSubnetworksResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -19222,7 +25159,31 @@ Function TComputeAPI.CreateTargetHttpProxiesResource(AOwner : TComponent) : TTar
 
 begin
   Result:=TTargetHttpProxiesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
+end;
+
+
+
+Function TComputeAPI.GetTargetHttpsProxiesInstance : TTargetHttpsProxiesResource;
+
+begin
+  if (FTargetHttpsProxiesInstance=Nil) then
+    FTargetHttpsProxiesInstance:=CreateTargetHttpsProxiesResource;
+  Result:=FTargetHttpsProxiesInstance;
+end;
+
+Function TComputeAPI.CreateTargetHttpsProxiesResource : TTargetHttpsProxiesResource;
+
+begin
+  Result:=CreateTargetHttpsProxiesResource(Self);
+end;
+
+
+Function TComputeAPI.CreateTargetHttpsProxiesResource(AOwner : TComponent) : TTargetHttpsProxiesResource;
+
+begin
+  Result:=TTargetHttpsProxiesResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -19246,7 +25207,7 @@ Function TComputeAPI.CreateTargetInstancesResource(AOwner : TComponent) : TTarge
 
 begin
   Result:=TTargetInstancesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19270,7 +25231,7 @@ Function TComputeAPI.CreateTargetPoolsResource(AOwner : TComponent) : TTargetPoo
 
 begin
   Result:=TTargetPoolsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19294,7 +25255,7 @@ Function TComputeAPI.CreateTargetVpnGatewaysResource(AOwner : TComponent) : TTar
 
 begin
   Result:=TTargetVpnGatewaysResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19318,7 +25279,7 @@ Function TComputeAPI.CreateUrlMapsResource(AOwner : TComponent) : TUrlMapsResour
 
 begin
   Result:=TUrlMapsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19342,7 +25303,7 @@ Function TComputeAPI.CreateVpnTunnelsResource(AOwner : TComponent) : TVpnTunnels
 
 begin
   Result:=TVpnTunnelsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19366,7 +25327,7 @@ Function TComputeAPI.CreateZoneOperationsResource(AOwner : TComponent) : TZoneOp
 
 begin
   Result:=TZoneOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -19390,7 +25351,7 @@ Function TComputeAPI.CreateZonesResource(AOwner : TComponent) : TZonesResource;
 
 begin
   Result:=TZonesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

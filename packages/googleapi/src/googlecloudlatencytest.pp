@@ -1,31 +1,4 @@
 unit googlecloudlatencytest;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,29 +7,27 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TAggregatedStats = class;
+  
+  //Top-level schema types
+  TAggregatedStats = Class;
+  TAggregatedStatsReply = Class;
+  TDoubleValue = Class;
+  TIntValue = Class;
+  TStats = Class;
+  TStatsReply = Class;
+  TStringValue = Class;
   TAggregatedStatsArray = Array of TAggregatedStats;
-  TAggregatedStatsstats = class;
-  TAggregatedStatsstatsArray = Array of TAggregatedStatsstats;
-  TAggregatedStatsReply = class;
   TAggregatedStatsReplyArray = Array of TAggregatedStatsReply;
-  TDoubleValue = class;
   TDoubleValueArray = Array of TDoubleValue;
-  TIntValue = class;
   TIntValueArray = Array of TIntValue;
-  TStats = class;
   TStatsArray = Array of TStats;
-  TStatsdoubleValues = class;
-  TStatsdoubleValuesArray = Array of TStatsdoubleValues;
-  TStatsintValues = class;
-  TStatsintValuesArray = Array of TStatsintValues;
-  TStatsstringValues = class;
-  TStatsstringValuesArray = Array of TStatsstringValues;
-  TStatsReply = class;
   TStatsReplyArray = Array of TStatsReply;
-  TStringValue = class;
   TStringValueArray = Array of TStringValue;
+  //Anonymous types, using auto-generated names
+  TAggregatedStatsTypestatsArray = Array of TStats;
+  TStatsTypedoubleValuesArray = Array of TDoubleValue;
+  TStatsTypeintValuesArray = Array of TIntValue;
+  TStatsTypestringValuesArray = Array of TStringValue;
   
   { --------------------------------------------------------------------
     TAggregatedStats
@@ -64,28 +35,19 @@ type
   
   TAggregatedStats = Class(TGoogleBaseObject)
   Private
-    Fstats : TAggregatedStatsstats;
+    Fstats : TAggregatedStatsTypestatsArray;
   Protected
     //Property setters
-    Procedure Setstats(AIndex : Integer; AValue : TAggregatedStatsstats); virtual;
+    Procedure Setstats(AIndex : Integer; const AValue : TAggregatedStatsTypestatsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property stats : TAggregatedStatsstats Index 0 Read Fstats Write Setstats;
+    Property stats : TAggregatedStatsTypestatsArray Index 0 Read Fstats Write Setstats;
   end;
   TAggregatedStatsClass = Class of TAggregatedStats;
-  
-  { --------------------------------------------------------------------
-    TAggregatedStatsstats
-    --------------------------------------------------------------------}
-  
-  TAggregatedStatsstats = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAggregatedStatsstatsClass = Class of TAggregatedStatsstats;
   
   { --------------------------------------------------------------------
     TAggregatedStatsReply
@@ -93,13 +55,13 @@ type
   
   TAggregatedStatsReply = Class(TGoogleBaseObject)
   Private
-    FtestValue : string;
+    FtestValue : String;
   Protected
     //Property setters
-    Procedure SettestValue(AIndex : Integer; AValue : string); virtual;
+    Procedure SettestValue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property testValue : string Index 0 Read FtestValue Write SettestValue;
+    Property testValue : String Index 0 Read FtestValue Write SettestValue;
   end;
   TAggregatedStatsReplyClass = Class of TAggregatedStatsReply;
   
@@ -109,16 +71,16 @@ type
   
   TDoubleValue = Class(TGoogleBaseObject)
   Private
-    F_label : string;
+    F_label : String;
     Fvalue : integer;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_label(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : integer); virtual;
+    Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
-    Property _label : string Index 0 Read F_label Write Set_label;
+    Property _label : String Index 0 Read F_label Write Set_label;
     Property value : integer Index 8 Read Fvalue Write Setvalue;
   end;
   TDoubleValueClass = Class of TDoubleValue;
@@ -129,17 +91,17 @@ type
   
   TIntValue = Class(TGoogleBaseObject)
   Private
-    F_label : string;
-    Fvalue : string;
+    F_label : String;
+    Fvalue : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_label(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property _label : string Index 0 Read F_label Write Set_label;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property _label : String Index 0 Read F_label Write Set_label;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TIntValueClass = Class of TIntValue;
   
@@ -149,63 +111,28 @@ type
   
   TStats = Class(TGoogleBaseObject)
   Private
-    FdoubleValues : TStatsdoubleValues;
-    FintValues : TStatsintValues;
-    FstringValues : TStatsstringValues;
+    FdoubleValues : TStatsTypedoubleValuesArray;
+    FintValues : TStatsTypeintValuesArray;
+    FstringValues : TStatsTypestringValuesArray;
     Ftime : double;
   Protected
     //Property setters
-    Procedure SetdoubleValues(AIndex : Integer; AValue : TStatsdoubleValues); virtual;
-    Procedure SetintValues(AIndex : Integer; AValue : TStatsintValues); virtual;
-    Procedure SetstringValues(AIndex : Integer; AValue : TStatsstringValues); virtual;
-    Procedure Settime(AIndex : Integer; AValue : double); virtual;
+    Procedure SetdoubleValues(AIndex : Integer; const AValue : TStatsTypedoubleValuesArray); virtual;
+    Procedure SetintValues(AIndex : Integer; const AValue : TStatsTypeintValuesArray); virtual;
+    Procedure SetstringValues(AIndex : Integer; const AValue : TStatsTypestringValuesArray); virtual;
+    Procedure Settime(AIndex : Integer; const AValue : double); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property doubleValues : TStatsdoubleValues Index 0 Read FdoubleValues Write SetdoubleValues;
-    Property intValues : TStatsintValues Index 8 Read FintValues Write SetintValues;
-    Property stringValues : TStatsstringValues Index 16 Read FstringValues Write SetstringValues;
+    Property doubleValues : TStatsTypedoubleValuesArray Index 0 Read FdoubleValues Write SetdoubleValues;
+    Property intValues : TStatsTypeintValuesArray Index 8 Read FintValues Write SetintValues;
+    Property stringValues : TStatsTypestringValuesArray Index 16 Read FstringValues Write SetstringValues;
     Property time : double Index 24 Read Ftime Write Settime;
   end;
   TStatsClass = Class of TStats;
-  
-  { --------------------------------------------------------------------
-    TStatsdoubleValues
-    --------------------------------------------------------------------}
-  
-  TStatsdoubleValues = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TStatsdoubleValuesClass = Class of TStatsdoubleValues;
-  
-  { --------------------------------------------------------------------
-    TStatsintValues
-    --------------------------------------------------------------------}
-  
-  TStatsintValues = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TStatsintValuesClass = Class of TStatsintValues;
-  
-  { --------------------------------------------------------------------
-    TStatsstringValues
-    --------------------------------------------------------------------}
-  
-  TStatsstringValues = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TStatsstringValuesClass = Class of TStatsstringValues;
   
   { --------------------------------------------------------------------
     TStatsReply
@@ -213,13 +140,13 @@ type
   
   TStatsReply = Class(TGoogleBaseObject)
   Private
-    FtestValue : string;
+    FtestValue : String;
   Protected
     //Property setters
-    Procedure SettestValue(AIndex : Integer; AValue : string); virtual;
+    Procedure SettestValue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property testValue : string Index 0 Read FtestValue Write SettestValue;
+    Property testValue : String Index 0 Read FtestValue Write SettestValue;
   end;
   TStatsReplyClass = Class of TStatsReply;
   
@@ -229,17 +156,17 @@ type
   
   TStringValue = Class(TGoogleBaseObject)
   Private
-    F_label : string;
-    Fvalue : string;
+    F_label : String;
+    Fvalue : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_label(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property _label : string Index 0 Read F_label Write Set_label;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property _label : String Index 0 Read F_label Write Set_label;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TStringValueClass = Class of TStringValue;
   
@@ -301,7 +228,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAggregatedStats.Setstats(AIndex : Integer; AValue : TAggregatedStatsstats); 
+Procedure TAggregatedStats.Setstats(AIndex : Integer; const AValue : TAggregatedStatsTypestatsArray); 
 
 begin
   If (Fstats=AValue) then exit;
@@ -310,12 +237,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAggregatedStats.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TAggregatedStatsstats
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'stats' : SetLength(Fstats,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -325,7 +258,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAggregatedStatsReply.SettestValue(AIndex : Integer; AValue : string); 
+Procedure TAggregatedStatsReply.SettestValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtestValue=AValue) then exit;
@@ -342,7 +275,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDoubleValue.Set_label(AIndex : Integer; AValue : string); 
+Procedure TDoubleValue.Set_label(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -352,7 +285,7 @@ end;
 
 
 
-Procedure TDoubleValue.Setvalue(AIndex : Integer; AValue : integer); 
+Procedure TDoubleValue.Setvalue(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -380,7 +313,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIntValue.Set_label(AIndex : Integer; AValue : string); 
+Procedure TIntValue.Set_label(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -390,7 +323,7 @@ end;
 
 
 
-Procedure TIntValue.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TIntValue.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -418,7 +351,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStats.SetdoubleValues(AIndex : Integer; AValue : TStatsdoubleValues); 
+Procedure TStats.SetdoubleValues(AIndex : Integer; const AValue : TStatsTypedoubleValuesArray); 
 
 begin
   If (FdoubleValues=AValue) then exit;
@@ -428,7 +361,7 @@ end;
 
 
 
-Procedure TStats.SetintValues(AIndex : Integer; AValue : TStatsintValues); 
+Procedure TStats.SetintValues(AIndex : Integer; const AValue : TStatsTypeintValuesArray); 
 
 begin
   If (FintValues=AValue) then exit;
@@ -438,7 +371,7 @@ end;
 
 
 
-Procedure TStats.SetstringValues(AIndex : Integer; AValue : TStatsstringValues); 
+Procedure TStats.SetstringValues(AIndex : Integer; const AValue : TStatsTypestringValuesArray); 
 
 begin
   If (FstringValues=AValue) then exit;
@@ -448,7 +381,7 @@ end;
 
 
 
-Procedure TStats.Settime(AIndex : Integer; AValue : double); 
+Procedure TStats.Settime(AIndex : Integer; const AValue : double); 
 
 begin
   If (Ftime=AValue) then exit;
@@ -457,26 +390,20 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStats.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TStatsdoubleValues
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TStatsintValues
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TStatsstringValues
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'doublevalues' : SetLength(FdoubleValues,ALength);
+  'intvalues' : SetLength(FintValues,ALength);
+  'stringvalues' : SetLength(FstringValues,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -486,7 +413,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStatsReply.SettestValue(AIndex : Integer; AValue : string); 
+Procedure TStatsReply.SettestValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtestValue=AValue) then exit;
@@ -503,7 +430,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStringValue.Set_label(AIndex : Integer; AValue : string); 
+Procedure TStringValue.Set_label(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -513,7 +440,7 @@ end;
 
 
 
-Procedure TStringValue.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TStringValue.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -596,7 +523,7 @@ end;
 Class Function TCloudlatencytestAPI.APIRevision : String;
 
 begin
-  Result:='20150206';
+  Result:='20160309';
 end;
 
 Class Function TCloudlatencytestAPI.APIID : String;
@@ -614,7 +541,7 @@ end;
 Class Function TCloudlatencytestAPI.APIDescription : String;
 
 begin
-  Result:='A Test API to report latency data.';
+  Result:='Reports latency data.';
 end;
 
 Class Function TCloudlatencytestAPI.APIOwnerDomain : String;
@@ -702,14 +629,10 @@ Class Procedure TCloudlatencytestAPI.RegisterAPIResources;
 
 begin
   TAggregatedStats.RegisterObject;
-  TAggregatedStatsstats.RegisterObject;
   TAggregatedStatsReply.RegisterObject;
   TDoubleValue.RegisterObject;
   TIntValue.RegisterObject;
   TStats.RegisterObject;
-  TStatsdoubleValues.RegisterObject;
-  TStatsintValues.RegisterObject;
-  TStatsstringValues.RegisterObject;
   TStatsReply.RegisterObject;
   TStringValue.RegisterObject;
 end;
@@ -734,7 +657,7 @@ Function TCloudlatencytestAPI.CreateStatscollectionResource(AOwner : TComponent)
 
 begin
   Result:=TStatscollectionResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

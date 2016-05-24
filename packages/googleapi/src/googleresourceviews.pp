@@ -1,31 +1,4 @@
 unit googleresourceviews;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,61 +7,48 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TLabel = class;
+  
+  //Top-level schema types
+  TLabel = Class;
+  TListResourceResponseItem = Class;
+  TOperation = Class;
+  TOperationList = Class;
+  TResourceView = Class;
+  TServiceEndpoint = Class;
+  TZoneViewsAddResourcesRequest = Class;
+  TZoneViewsGetServiceResponse = Class;
+  TZoneViewsList = Class;
+  TZoneViewsListResourcesResponse = Class;
+  TZoneViewsRemoveResourcesRequest = Class;
+  TZoneViewsSetServiceRequest = Class;
   TLabelArray = Array of TLabel;
-  TListResourceResponseItem = class;
   TListResourceResponseItemArray = Array of TListResourceResponseItem;
-  TListResourceResponseItemendpoints = class;
-  TListResourceResponseItemendpointsArray = Array of TListResourceResponseItemendpoints;
-  TOperation = class;
   TOperationArray = Array of TOperation;
-  TOperationerror = class;
-  TOperationerrorArray = Array of TOperationerror;
-  TOperationerrorerrors = class;
-  TOperationerrorerrorsArray = Array of TOperationerrorerrors;
-  TOperationwarnings = class;
-  TOperationwarningsArray = Array of TOperationwarnings;
-  TOperationwarningsdata = class;
-  TOperationwarningsdataArray = Array of TOperationwarningsdata;
-  TOperationList = class;
   TOperationListArray = Array of TOperationList;
-  TOperationListitems = class;
-  TOperationListitemsArray = Array of TOperationListitems;
-  TResourceView = class;
   TResourceViewArray = Array of TResourceView;
-  TResourceViewendpoints = class;
-  TResourceViewendpointsArray = Array of TResourceViewendpoints;
-  TResourceViewlabels = class;
-  TResourceViewlabelsArray = Array of TResourceViewlabels;
-  TResourceViewresources = class;
-  TResourceViewresourcesArray = Array of TResourceViewresources;
-  TServiceEndpoint = class;
   TServiceEndpointArray = Array of TServiceEndpoint;
-  TZoneViewsAddResourcesRequest = class;
   TZoneViewsAddResourcesRequestArray = Array of TZoneViewsAddResourcesRequest;
-  TZoneViewsAddResourcesRequestresources = class;
-  TZoneViewsAddResourcesRequestresourcesArray = Array of TZoneViewsAddResourcesRequestresources;
-  TZoneViewsGetServiceResponse = class;
   TZoneViewsGetServiceResponseArray = Array of TZoneViewsGetServiceResponse;
-  TZoneViewsGetServiceResponseendpoints = class;
-  TZoneViewsGetServiceResponseendpointsArray = Array of TZoneViewsGetServiceResponseendpoints;
-  TZoneViewsList = class;
   TZoneViewsListArray = Array of TZoneViewsList;
-  TZoneViewsListitems = class;
-  TZoneViewsListitemsArray = Array of TZoneViewsListitems;
-  TZoneViewsListResourcesResponse = class;
   TZoneViewsListResourcesResponseArray = Array of TZoneViewsListResourcesResponse;
-  TZoneViewsListResourcesResponseitems = class;
-  TZoneViewsListResourcesResponseitemsArray = Array of TZoneViewsListResourcesResponseitems;
-  TZoneViewsRemoveResourcesRequest = class;
   TZoneViewsRemoveResourcesRequestArray = Array of TZoneViewsRemoveResourcesRequest;
-  TZoneViewsRemoveResourcesRequestresources = class;
-  TZoneViewsRemoveResourcesRequestresourcesArray = Array of TZoneViewsRemoveResourcesRequestresources;
-  TZoneViewsSetServiceRequest = class;
   TZoneViewsSetServiceRequestArray = Array of TZoneViewsSetServiceRequest;
-  TZoneViewsSetServiceRequestendpoints = class;
-  TZoneViewsSetServiceRequestendpointsArray = Array of TZoneViewsSetServiceRequestendpoints;
+  //Anonymous types, using auto-generated names
+  TListResourceResponseItemTypeendpoints = Class;
+  TOperationTypeerrorTypeerrorsItem = Class;
+  TOperationTypeerror = Class;
+  TOperationTypewarningsItemTypedataItem = Class;
+  TOperationTypewarningsItem = Class;
+  TOperationTypeerrorTypeerrorsArray = Array of TOperationTypeerrorTypeerrorsItem;
+  TOperationTypewarningsItemTypedataArray = Array of TOperationTypewarningsItemTypedataItem;
+  TOperationTypewarningsArray = Array of TOperationTypewarningsItem;
+  TOperationListTypeitemsArray = Array of TOperation;
+  TResourceViewTypeendpointsArray = Array of TServiceEndpoint;
+  TResourceViewTypelabelsArray = Array of TLabel;
+  TZoneViewsGetServiceResponseTypeendpointsArray = Array of TServiceEndpoint;
+  TZoneViewsListTypeitemsArray = Array of TResourceView;
+  TZoneViewsListResourcesResponseTypeitemsArray = Array of TListResourceResponseItem;
+  TZoneViewsSetServiceRequestTypeendpointsArray = Array of TServiceEndpoint;
   
   { --------------------------------------------------------------------
     TLabel
@@ -96,43 +56,24 @@ type
   
   TLabel = Class(TGoogleBaseObject)
   Private
-    Fkey : string;
-    Fvalue : string;
+    Fkey : String;
+    Fvalue : String;
   Protected
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TLabelClass = Class of TLabel;
   
   { --------------------------------------------------------------------
-    TListResourceResponseItem
+    TListResourceResponseItemTypeendpoints
     --------------------------------------------------------------------}
   
-  TListResourceResponseItem = Class(TGoogleBaseObject)
-  Private
-    Fendpoints : TListResourceResponseItemendpoints;
-    Fresource : string;
-  Protected
-    //Property setters
-    Procedure Setendpoints(AIndex : Integer; AValue : TListResourceResponseItemendpoints); virtual;
-    Procedure Setresource(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property endpoints : TListResourceResponseItemendpoints Index 0 Read Fendpoints Write Setendpoints;
-    Property resource : string Index 8 Read Fresource Write Setresource;
-  end;
-  TListResourceResponseItemClass = Class of TListResourceResponseItem;
-  
-  { --------------------------------------------------------------------
-    TListResourceResponseItemendpoints
-    --------------------------------------------------------------------}
-  
-  TListResourceResponseItemendpoints = Class(TGoogleBaseObject)
+  TListResourceResponseItemTypeendpoints = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -140,7 +81,113 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TListResourceResponseItemendpointsClass = Class of TListResourceResponseItemendpoints;
+  TListResourceResponseItemTypeendpointsClass = Class of TListResourceResponseItemTypeendpoints;
+  
+  { --------------------------------------------------------------------
+    TListResourceResponseItem
+    --------------------------------------------------------------------}
+  
+  TListResourceResponseItem = Class(TGoogleBaseObject)
+  Private
+    Fendpoints : TListResourceResponseItemTypeendpoints;
+    Fresource : String;
+  Protected
+    //Property setters
+    Procedure Setendpoints(AIndex : Integer; const AValue : TListResourceResponseItemTypeendpoints); virtual;
+    Procedure Setresource(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property endpoints : TListResourceResponseItemTypeendpoints Index 0 Read Fendpoints Write Setendpoints;
+    Property resource : String Index 8 Read Fresource Write Setresource;
+  end;
+  TListResourceResponseItemClass = Class of TListResourceResponseItem;
+  
+  { --------------------------------------------------------------------
+    TOperationTypeerrorTypeerrorsItem
+    --------------------------------------------------------------------}
+  
+  TOperationTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Flocation : String;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property location : String Index 8 Read Flocation Write Setlocation;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TOperationTypeerrorTypeerrorsItemClass = Class of TOperationTypeerrorTypeerrorsItem;
+  
+  { --------------------------------------------------------------------
+    TOperationTypeerror
+    --------------------------------------------------------------------}
+  
+  TOperationTypeerror = Class(TGoogleBaseObject)
+  Private
+    Ferrors : TOperationTypeerrorTypeerrorsArray;
+  Protected
+    //Property setters
+    Procedure Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
+  end;
+  TOperationTypeerrorClass = Class of TOperationTypeerror;
+  
+  { --------------------------------------------------------------------
+    TOperationTypewarningsItemTypedataItem
+    --------------------------------------------------------------------}
+  
+  TOperationTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TOperationTypewarningsItemTypedataItemClass = Class of TOperationTypewarningsItemTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TOperationTypewarningsItem
+    --------------------------------------------------------------------}
+  
+  TOperationTypewarningsItem = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TOperationTypewarningsItemTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TOperationTypewarningsItemTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TOperationTypewarningsItemClass = Class of TOperationTypewarningsItem;
   
   { --------------------------------------------------------------------
     TOperation
@@ -148,157 +195,82 @@ type
   
   TOperation = Class(TGoogleBaseObject)
   Private
-    FclientOperationId : string;
-    FcreationTimestamp : string;
-    FendTime : string;
-    Ferror : TOperationerror;
-    FhttpErrorMessage : string;
+    FclientOperationId : String;
+    FcreationTimestamp : String;
+    FendTime : String;
+    Ferror : TOperationTypeerror;
+    FhttpErrorMessage : String;
     FhttpErrorStatusCode : integer;
-    Fid : string;
-    FinsertTime : string;
-    Fkind : string;
-    Fname : string;
-    FoperationType : string;
+    Fid : String;
+    FinsertTime : String;
+    Fkind : String;
+    Fname : String;
+    FoperationType : String;
     Fprogress : integer;
-    Fregion : string;
-    FselfLink : string;
-    FstartTime : string;
-    Fstatus : string;
-    FstatusMessage : string;
-    FtargetId : string;
-    FtargetLink : string;
-    Fuser : string;
-    Fwarnings : TOperationwarnings;
-    Fzone : string;
+    Fregion : String;
+    FselfLink : String;
+    FstartTime : String;
+    Fstatus : String;
+    FstatusMessage : String;
+    FtargetId : String;
+    FtargetLink : String;
+    Fuser : String;
+    Fwarnings : TOperationTypewarningsArray;
+    Fzone : String;
   Protected
     //Property setters
-    Procedure SetclientOperationId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : TOperationerror); virtual;
-    Procedure SethttpErrorMessage(AIndex : Integer; AValue : string); virtual;
-    Procedure SethttpErrorStatusCode(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinsertTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoperationType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setprogress(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstatusMessage(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetId(AIndex : Integer; AValue : string); virtual;
-    Procedure SettargetLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TOperationwarnings); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : string); virtual;
+    Procedure SetclientOperationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seterror(AIndex : Integer; const AValue : TOperationTypeerror); virtual;
+    Procedure SethttpErrorMessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinsertTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setprogress(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstatusMessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property clientOperationId : string Index 0 Read FclientOperationId Write SetclientOperationId;
-    Property creationTimestamp : string Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property endTime : string Index 16 Read FendTime Write SetendTime;
-    Property error : TOperationerror Index 24 Read Ferror Write Seterror;
-    Property httpErrorMessage : string Index 32 Read FhttpErrorMessage Write SethttpErrorMessage;
+    Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
+    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property endTime : String Index 16 Read FendTime Write SetendTime;
+    Property error : TOperationTypeerror Index 24 Read Ferror Write Seterror;
+    Property httpErrorMessage : String Index 32 Read FhttpErrorMessage Write SethttpErrorMessage;
     Property httpErrorStatusCode : integer Index 40 Read FhttpErrorStatusCode Write SethttpErrorStatusCode;
-    Property id : string Index 48 Read Fid Write Setid;
-    Property insertTime : string Index 56 Read FinsertTime Write SetinsertTime;
-    Property kind : string Index 64 Read Fkind Write Setkind;
-    Property name : string Index 72 Read Fname Write Setname;
-    Property operationType : string Index 80 Read FoperationType Write SetoperationType;
+    Property id : String Index 48 Read Fid Write Setid;
+    Property insertTime : String Index 56 Read FinsertTime Write SetinsertTime;
+    Property kind : String Index 64 Read Fkind Write Setkind;
+    Property name : String Index 72 Read Fname Write Setname;
+    Property operationType : String Index 80 Read FoperationType Write SetoperationType;
     Property progress : integer Index 88 Read Fprogress Write Setprogress;
-    Property region : string Index 96 Read Fregion Write Setregion;
-    Property selfLink : string Index 104 Read FselfLink Write SetselfLink;
-    Property startTime : string Index 112 Read FstartTime Write SetstartTime;
-    Property status : string Index 120 Read Fstatus Write Setstatus;
-    Property statusMessage : string Index 128 Read FstatusMessage Write SetstatusMessage;
-    Property targetId : string Index 136 Read FtargetId Write SettargetId;
-    Property targetLink : string Index 144 Read FtargetLink Write SettargetLink;
-    Property user : string Index 152 Read Fuser Write Setuser;
-    Property warnings : TOperationwarnings Index 160 Read Fwarnings Write Setwarnings;
-    Property zone : string Index 168 Read Fzone Write Setzone;
+    Property region : String Index 96 Read Fregion Write Setregion;
+    Property selfLink : String Index 104 Read FselfLink Write SetselfLink;
+    Property startTime : String Index 112 Read FstartTime Write SetstartTime;
+    Property status : String Index 120 Read Fstatus Write Setstatus;
+    Property statusMessage : String Index 128 Read FstatusMessage Write SetstatusMessage;
+    Property targetId : String Index 136 Read FtargetId Write SettargetId;
+    Property targetLink : String Index 144 Read FtargetLink Write SettargetLink;
+    Property user : String Index 152 Read Fuser Write Setuser;
+    Property warnings : TOperationTypewarningsArray Index 160 Read Fwarnings Write Setwarnings;
+    Property zone : String Index 168 Read Fzone Write Setzone;
   end;
   TOperationClass = Class of TOperation;
-  
-  { --------------------------------------------------------------------
-    TOperationerror
-    --------------------------------------------------------------------}
-  
-  TOperationerror = Class(TGoogleBaseObject)
-  Private
-    Ferrors : TOperationerrorerrors;
-  Protected
-    //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TOperationerrorerrors); virtual;
-  Public
-  Published
-    Property errors : TOperationerrorerrors Index 0 Read Ferrors Write Seterrors;
-  end;
-  TOperationerrorClass = Class of TOperationerror;
-  
-  { --------------------------------------------------------------------
-    TOperationerrorerrors
-    --------------------------------------------------------------------}
-  
-  TOperationerrorerrors = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Flocation : string;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property location : string Index 8 Read Flocation Write Setlocation;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TOperationerrorerrorsClass = Class of TOperationerrorerrors;
-  
-  { --------------------------------------------------------------------
-    TOperationwarnings
-    --------------------------------------------------------------------}
-  
-  TOperationwarnings = Class(TGoogleBaseObject)
-  Private
-    Fcode : string;
-    Fdata : TOperationwarningsdata;
-    Fmessage : string;
-  Protected
-    //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TOperationwarningsdata); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property code : string Index 0 Read Fcode Write Setcode;
-    Property data : TOperationwarningsdata Index 8 Read Fdata Write Setdata;
-    Property message : string Index 16 Read Fmessage Write Setmessage;
-  end;
-  TOperationwarningsClass = Class of TOperationwarnings;
-  
-  { --------------------------------------------------------------------
-    TOperationwarningsdata
-    --------------------------------------------------------------------}
-  
-  TOperationwarningsdata = Class(TGoogleBaseObject)
-  Private
-    Fkey : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property key : string Index 0 Read Fkey Write Setkey;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TOperationwarningsdataClass = Class of TOperationwarningsdata;
   
   { --------------------------------------------------------------------
     TOperationList
@@ -306,40 +278,31 @@ type
   
   TOperationList = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fitems : TOperationListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fid : String;
+    Fitems : TOperationListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TOperationListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property items : TOperationListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property items : TOperationListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TOperationListClass = Class of TOperationList;
-  
-  { --------------------------------------------------------------------
-    TOperationListitems
-    --------------------------------------------------------------------}
-  
-  TOperationListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOperationListitemsClass = Class of TOperationListitems;
   
   { --------------------------------------------------------------------
     TResourceView
@@ -347,87 +310,52 @@ type
   
   TResourceView = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : string;
-    Fdescription : string;
-    Fendpoints : TResourceViewendpoints;
-    Ffingerprint : string;
-    Fid : string;
-    Fkind : string;
-    Flabels : TResourceViewlabels;
-    Fname : string;
-    Fnetwork : string;
-    Fresources : TResourceViewresources;
-    FselfLink : string;
+    FcreationTimestamp : String;
+    Fdescription : String;
+    Fendpoints : TResourceViewTypeendpointsArray;
+    Ffingerprint : String;
+    Fid : String;
+    Fkind : String;
+    Flabels : TResourceViewTypelabelsArray;
+    Fname : String;
+    Fnetwork : String;
+    Fresources : TStringArray;
+    FselfLink : String;
     Fsize : integer;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setendpoints(AIndex : Integer; AValue : TResourceViewendpoints); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlabels(AIndex : Integer; AValue : TResourceViewlabels); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TResourceViewresources); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsize(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setendpoints(AIndex : Integer; const AValue : TResourceViewTypeendpointsArray); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlabels(AIndex : Integer; const AValue : TResourceViewTypelabelsArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setresources(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsize(AIndex : Integer; const AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property creationTimestamp : string Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property endpoints : TResourceViewendpoints Index 16 Read Fendpoints Write Setendpoints;
-    Property fingerprint : string Index 24 Read Ffingerprint Write Setfingerprint;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property kind : string Index 40 Read Fkind Write Setkind;
-    Property labels : TResourceViewlabels Index 48 Read Flabels Write Setlabels;
-    Property name : string Index 56 Read Fname Write Setname;
-    Property network : string Index 64 Read Fnetwork Write Setnetwork;
-    Property resources : TResourceViewresources Index 72 Read Fresources Write Setresources;
-    Property selfLink : string Index 80 Read FselfLink Write SetselfLink;
+    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property endpoints : TResourceViewTypeendpointsArray Index 16 Read Fendpoints Write Setendpoints;
+    Property fingerprint : String Index 24 Read Ffingerprint Write Setfingerprint;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property labels : TResourceViewTypelabelsArray Index 48 Read Flabels Write Setlabels;
+    Property name : String Index 56 Read Fname Write Setname;
+    Property network : String Index 64 Read Fnetwork Write Setnetwork;
+    Property resources : TStringArray Index 72 Read Fresources Write Setresources;
+    Property selfLink : String Index 80 Read FselfLink Write SetselfLink;
     Property size : integer Index 88 Read Fsize Write Setsize;
   end;
   TResourceViewClass = Class of TResourceView;
-  
-  { --------------------------------------------------------------------
-    TResourceViewendpoints
-    --------------------------------------------------------------------}
-  
-  TResourceViewendpoints = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TResourceViewendpointsClass = Class of TResourceViewendpoints;
-  
-  { --------------------------------------------------------------------
-    TResourceViewlabels
-    --------------------------------------------------------------------}
-  
-  TResourceViewlabels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TResourceViewlabelsClass = Class of TResourceViewlabels;
-  
-  { --------------------------------------------------------------------
-    TResourceViewresources
-    --------------------------------------------------------------------}
-  
-  TResourceViewresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TResourceViewresourcesClass = Class of TResourceViewresources;
   
   { --------------------------------------------------------------------
     TServiceEndpoint
@@ -435,15 +363,15 @@ type
   
   TServiceEndpoint = Class(TGoogleBaseObject)
   Private
-    Fname : string;
+    Fname : String;
     Fport : integer;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setport(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setport(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
+    Property name : String Index 0 Read Fname Write Setname;
     Property port : integer Index 8 Read Fport Write Setport;
   end;
   TServiceEndpointClass = Class of TServiceEndpoint;
@@ -454,28 +382,19 @@ type
   
   TZoneViewsAddResourcesRequest = Class(TGoogleBaseObject)
   Private
-    Fresources : TZoneViewsAddResourcesRequestresources;
+    Fresources : TStringArray;
   Protected
     //Property setters
-    Procedure Setresources(AIndex : Integer; AValue : TZoneViewsAddResourcesRequestresources); virtual;
+    Procedure Setresources(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property resources : TZoneViewsAddResourcesRequestresources Index 0 Read Fresources Write Setresources;
+    Property resources : TStringArray Index 0 Read Fresources Write Setresources;
   end;
   TZoneViewsAddResourcesRequestClass = Class of TZoneViewsAddResourcesRequest;
-  
-  { --------------------------------------------------------------------
-    TZoneViewsAddResourcesRequestresources
-    --------------------------------------------------------------------}
-  
-  TZoneViewsAddResourcesRequestresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TZoneViewsAddResourcesRequestresourcesClass = Class of TZoneViewsAddResourcesRequestresources;
   
   { --------------------------------------------------------------------
     TZoneViewsGetServiceResponse
@@ -483,31 +402,22 @@ type
   
   TZoneViewsGetServiceResponse = Class(TGoogleBaseObject)
   Private
-    Fendpoints : TZoneViewsGetServiceResponseendpoints;
-    Ffingerprint : string;
+    Fendpoints : TZoneViewsGetServiceResponseTypeendpointsArray;
+    Ffingerprint : String;
   Protected
     //Property setters
-    Procedure Setendpoints(AIndex : Integer; AValue : TZoneViewsGetServiceResponseendpoints); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
+    Procedure Setendpoints(AIndex : Integer; const AValue : TZoneViewsGetServiceResponseTypeendpointsArray); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property endpoints : TZoneViewsGetServiceResponseendpoints Index 0 Read Fendpoints Write Setendpoints;
-    Property fingerprint : string Index 8 Read Ffingerprint Write Setfingerprint;
+    Property endpoints : TZoneViewsGetServiceResponseTypeendpointsArray Index 0 Read Fendpoints Write Setendpoints;
+    Property fingerprint : String Index 8 Read Ffingerprint Write Setfingerprint;
   end;
   TZoneViewsGetServiceResponseClass = Class of TZoneViewsGetServiceResponse;
-  
-  { --------------------------------------------------------------------
-    TZoneViewsGetServiceResponseendpoints
-    --------------------------------------------------------------------}
-  
-  TZoneViewsGetServiceResponseendpoints = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TZoneViewsGetServiceResponseendpointsClass = Class of TZoneViewsGetServiceResponseendpoints;
   
   { --------------------------------------------------------------------
     TZoneViewsList
@@ -515,37 +425,28 @@ type
   
   TZoneViewsList = Class(TGoogleBaseObject)
   Private
-    Fitems : TZoneViewsListitems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fitems : TZoneViewsListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TZoneViewsListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TZoneViewsListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property items : TZoneViewsListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
+    Property items : TZoneViewsListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
   end;
   TZoneViewsListClass = Class of TZoneViewsList;
-  
-  { --------------------------------------------------------------------
-    TZoneViewsListitems
-    --------------------------------------------------------------------}
-  
-  TZoneViewsListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TZoneViewsListitemsClass = Class of TZoneViewsListitems;
   
   { --------------------------------------------------------------------
     TZoneViewsListResourcesResponse
@@ -553,34 +454,25 @@ type
   
   TZoneViewsListResourcesResponse = Class(TGoogleBaseObject)
   Private
-    Fitems : TZoneViewsListResourcesResponseitems;
-    Fnetwork : string;
-    FnextPageToken : string;
+    Fitems : TZoneViewsListResourcesResponseTypeitemsArray;
+    Fnetwork : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TZoneViewsListResourcesResponseitems); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TZoneViewsListResourcesResponseTypeitemsArray); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property items : TZoneViewsListResourcesResponseitems Index 0 Read Fitems Write Setitems;
-    Property network : string Index 8 Read Fnetwork Write Setnetwork;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property items : TZoneViewsListResourcesResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property network : String Index 8 Read Fnetwork Write Setnetwork;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TZoneViewsListResourcesResponseClass = Class of TZoneViewsListResourcesResponse;
-  
-  { --------------------------------------------------------------------
-    TZoneViewsListResourcesResponseitems
-    --------------------------------------------------------------------}
-  
-  TZoneViewsListResourcesResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TZoneViewsListResourcesResponseitemsClass = Class of TZoneViewsListResourcesResponseitems;
   
   { --------------------------------------------------------------------
     TZoneViewsRemoveResourcesRequest
@@ -588,28 +480,19 @@ type
   
   TZoneViewsRemoveResourcesRequest = Class(TGoogleBaseObject)
   Private
-    Fresources : TZoneViewsRemoveResourcesRequestresources;
+    Fresources : TStringArray;
   Protected
     //Property setters
-    Procedure Setresources(AIndex : Integer; AValue : TZoneViewsRemoveResourcesRequestresources); virtual;
+    Procedure Setresources(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property resources : TZoneViewsRemoveResourcesRequestresources Index 0 Read Fresources Write Setresources;
+    Property resources : TStringArray Index 0 Read Fresources Write Setresources;
   end;
   TZoneViewsRemoveResourcesRequestClass = Class of TZoneViewsRemoveResourcesRequest;
-  
-  { --------------------------------------------------------------------
-    TZoneViewsRemoveResourcesRequestresources
-    --------------------------------------------------------------------}
-  
-  TZoneViewsRemoveResourcesRequestresources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TZoneViewsRemoveResourcesRequestresourcesClass = Class of TZoneViewsRemoveResourcesRequestresources;
   
   { --------------------------------------------------------------------
     TZoneViewsSetServiceRequest
@@ -617,34 +500,25 @@ type
   
   TZoneViewsSetServiceRequest = Class(TGoogleBaseObject)
   Private
-    Fendpoints : TZoneViewsSetServiceRequestendpoints;
-    Ffingerprint : string;
-    FresourceName : string;
+    Fendpoints : TZoneViewsSetServiceRequestTypeendpointsArray;
+    Ffingerprint : String;
+    FresourceName : String;
   Protected
     //Property setters
-    Procedure Setendpoints(AIndex : Integer; AValue : TZoneViewsSetServiceRequestendpoints); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : string); virtual;
-    Procedure SetresourceName(AIndex : Integer; AValue : string); virtual;
+    Procedure Setendpoints(AIndex : Integer; const AValue : TZoneViewsSetServiceRequestTypeendpointsArray); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetresourceName(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property endpoints : TZoneViewsSetServiceRequestendpoints Index 0 Read Fendpoints Write Setendpoints;
-    Property fingerprint : string Index 8 Read Ffingerprint Write Setfingerprint;
-    Property resourceName : string Index 16 Read FresourceName Write SetresourceName;
+    Property endpoints : TZoneViewsSetServiceRequestTypeendpointsArray Index 0 Read Fendpoints Write Setendpoints;
+    Property fingerprint : String Index 8 Read Ffingerprint Write Setfingerprint;
+    Property resourceName : String Index 16 Read FresourceName Write SetresourceName;
   end;
   TZoneViewsSetServiceRequestClass = Class of TZoneViewsSetServiceRequest;
-  
-  { --------------------------------------------------------------------
-    TZoneViewsSetServiceRequestendpoints
-    --------------------------------------------------------------------}
-  
-  TZoneViewsSetServiceRequestendpoints = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TZoneViewsSetServiceRequestendpointsClass = Class of TZoneViewsSetServiceRequestendpoints;
   
   { --------------------------------------------------------------------
     TZoneOperationsResource
@@ -654,9 +528,9 @@ type
   //Optional query Options for TZoneOperationsResource, method List
   
   TZoneOperationsListOptions = Record
-    filter : string;
+    filter : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TZoneOperationsResource = Class(TGoogleResource)
@@ -677,7 +551,7 @@ type
   //Optional query Options for TZoneViewsResource, method GetService
   
   TZoneViewsGetServiceOptions = Record
-    _resourceName : string;
+    _resourceName : String;
   end;
   
   
@@ -685,18 +559,18 @@ type
   
   TZoneViewsListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TZoneViewsResource, method ListResources
   
   TZoneViewsListResourcesOptions = Record
-    format : string;
-    listState : string;
+    format : String;
+    listState : String;
     maxResults : integer;
-    pageToken : string;
-    serviceName : string;
+    pageToken : String;
+    serviceName : String;
   end;
   
   TZoneViewsResource = Class(TGoogleResource)
@@ -768,7 +642,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TLabel.Setkey(AIndex : Integer; AValue : string); 
+Procedure TLabel.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -778,7 +652,7 @@ end;
 
 
 
-Procedure TLabel.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TLabel.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -791,11 +665,24 @@ end;
 
 
 { --------------------------------------------------------------------
+  TListResourceResponseItemTypeendpoints
+  --------------------------------------------------------------------}
+
+
+Class Function TListResourceResponseItemTypeendpoints.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TListResourceResponseItem
   --------------------------------------------------------------------}
 
 
-Procedure TListResourceResponseItem.Setendpoints(AIndex : Integer; AValue : TListResourceResponseItemendpoints); 
+Procedure TListResourceResponseItem.Setendpoints(AIndex : Integer; const AValue : TListResourceResponseItemTypeendpoints); 
 
 begin
   If (Fendpoints=AValue) then exit;
@@ -805,7 +692,7 @@ end;
 
 
 
-Procedure TListResourceResponseItem.Setresource(AIndex : Integer; AValue : string); 
+Procedure TListResourceResponseItem.Setresource(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fresource=AValue) then exit;
@@ -818,268 +705,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListResourceResponseItemendpoints
+  TOperationTypeerrorTypeerrorsItem
   --------------------------------------------------------------------}
 
 
-Class Function TListResourceResponseItemendpoints.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TOperation
-  --------------------------------------------------------------------}
-
-
-Procedure TOperation.SetclientOperationId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FclientOperationId=AValue) then exit;
-  FclientOperationId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetcreationTimestamp(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcreationTimestamp=AValue) then exit;
-  FcreationTimestamp:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetendTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FendTime=AValue) then exit;
-  FendTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationerror); 
-
-begin
-  If (Ferror=AValue) then exit;
-  Ferror:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SethttpErrorMessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (FhttpErrorMessage=AValue) then exit;
-  FhttpErrorMessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FhttpErrorStatusCode=AValue) then exit;
-  FhttpErrorStatusCode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetinsertTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FinsertTime=AValue) then exit;
-  FinsertTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetoperationType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FoperationType=AValue) then exit;
-  FoperationType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setprogress(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fprogress=AValue) then exit;
-  Fprogress:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setregion(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fregion=AValue) then exit;
-  Fregion:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetstartTime(AIndex : Integer; AValue : string); 
-
-begin
-  If (FstartTime=AValue) then exit;
-  FstartTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setstatus(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fstatus=AValue) then exit;
-  Fstatus:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SetstatusMessage(AIndex : Integer; AValue : string); 
-
-begin
-  If (FstatusMessage=AValue) then exit;
-  FstatusMessage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SettargetId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FtargetId=AValue) then exit;
-  FtargetId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.SettargetLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FtargetLink=AValue) then exit;
-  FtargetLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setuser(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fuser=AValue) then exit;
-  Fuser:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationwarnings); 
-
-begin
-  If (Fwarnings=AValue) then exit;
-  Fwarnings:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperation.Setzone(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fzone=AValue) then exit;
-  Fzone:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationerror
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationerror.Seterrors(AIndex : Integer; AValue : TOperationerrorerrors); 
-
-begin
-  If (Ferrors=AValue) then exit;
-  Ferrors:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TOperationerrorerrors
-  --------------------------------------------------------------------}
-
-
-Procedure TOperationerrorerrors.Setcode(AIndex : Integer; AValue : string); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1089,7 +719,7 @@ end;
 
 
 
-Procedure TOperationerrorerrors.Setlocation(AIndex : Integer; AValue : string); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -1099,7 +729,7 @@ end;
 
 
 
-Procedure TOperationerrorerrors.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1112,48 +742,41 @@ end;
 
 
 { --------------------------------------------------------------------
-  TOperationwarnings
+  TOperationTypeerror
   --------------------------------------------------------------------}
 
 
-Procedure TOperationwarnings.Setcode(AIndex : Integer; AValue : string); 
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); 
 
 begin
-  If (Fcode=AValue) then exit;
-  Fcode:=AValue;
+  If (Ferrors=AValue) then exit;
+  Ferrors:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
-
-Procedure TOperationwarnings.Setdata(AIndex : Integer; AValue : TOperationwarningsdata); 
-
-begin
-  If (Fdata=AValue) then exit;
-  Fdata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationwarnings.Setmessage(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Fmessage=AValue) then exit;
-  Fmessage:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TOperationwarningsdata
+  TOperationTypewarningsItemTypedataItem
   --------------------------------------------------------------------}
 
 
-Procedure TOperationwarningsdata.Setkey(AIndex : Integer; AValue : string); 
+Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1163,7 +786,7 @@ end;
 
 
 
-Procedure TOperationwarningsdata.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1176,75 +799,71 @@ end;
 
 
 { --------------------------------------------------------------------
-  TOperationList
+  TOperationTypewarningsItem
   --------------------------------------------------------------------}
 
 
-Procedure TOperationList.Setid(AIndex : Integer; AValue : string); 
+Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TOperationList.Setitems(AIndex : Integer; AValue : TOperationListitems); 
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); 
 
 begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TOperationList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
-
-Procedure TOperationList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TOperationList.SetselfLink(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TOperationListitems
+  TOperation
   --------------------------------------------------------------------}
 
 
+Procedure TOperation.SetclientOperationId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FclientOperationId=AValue) then exit;
+  FclientOperationId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
 
 
-{ --------------------------------------------------------------------
-  TResourceView
-  --------------------------------------------------------------------}
 
-
-Procedure TResourceView.SetcreationTimestamp(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1254,37 +873,47 @@ end;
 
 
 
-Procedure TResourceView.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fdescription=AValue) then exit;
-  Fdescription:=AValue;
+  If (FendTime=AValue) then exit;
+  FendTime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TResourceView.Setendpoints(AIndex : Integer; AValue : TResourceViewendpoints); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror); 
 
 begin
-  If (Fendpoints=AValue) then exit;
-  Fendpoints:=AValue;
+  If (Ferror=AValue) then exit;
+  Ferror:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TResourceView.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TOperation.SethttpErrorMessage(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Ffingerprint=AValue) then exit;
-  Ffingerprint:=AValue;
+  If (FhttpErrorMessage=AValue) then exit;
+  FhttpErrorMessage:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TResourceView.Setid(AIndex : Integer; AValue : string); 
+Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FhttpErrorStatusCode=AValue) then exit;
+  FhttpErrorStatusCode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1294,7 +923,17 @@ end;
 
 
 
-Procedure TResourceView.Setkind(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinsertTime=AValue) then exit;
+  FinsertTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1304,17 +943,7 @@ end;
 
 
 
-Procedure TResourceView.Setlabels(AIndex : Integer; AValue : TResourceViewlabels); 
-
-begin
-  If (Flabels=AValue) then exit;
-  Flabels:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TResourceView.Setname(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1324,27 +953,37 @@ end;
 
 
 
-Procedure TResourceView.Setnetwork(AIndex : Integer; AValue : string); 
+Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fnetwork=AValue) then exit;
-  Fnetwork:=AValue;
+  If (FoperationType=AValue) then exit;
+  FoperationType:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TResourceView.Setresources(AIndex : Integer; AValue : TResourceViewresources); 
+Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (Fresources=AValue) then exit;
-  Fresources:=AValue;
+  If (Fprogress=AValue) then exit;
+  Fprogress:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TResourceView.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TOperation.Setregion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fregion=AValue) then exit;
+  Fregion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1354,45 +993,247 @@ end;
 
 
 
-Procedure TResourceView.Setsize(AIndex : Integer; AValue : integer); 
+Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fsize=AValue) then exit;
-  Fsize:=AValue;
+  If (FstartTime=AValue) then exit;
+  FstartTime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
+Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fstatus=AValue) then exit;
+  Fstatus:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FstatusMessage=AValue) then exit;
+  FstatusMessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FtargetId=AValue) then exit;
+  FtargetId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FtargetLink=AValue) then exit;
+  FtargetLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setuser(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fuser=AValue) then exit;
+  Fuser:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); 
+
+begin
+  If (Fwarnings=AValue) then exit;
+  Fwarnings:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setzone(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fzone=AValue) then exit;
+  Fzone:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
 
 
 { --------------------------------------------------------------------
-  TResourceViewendpoints
+  TOperationList
   --------------------------------------------------------------------}
+
+
+Procedure TOperationList.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationList.Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); 
+
+begin
+  If (Fitems=AValue) then exit;
+  Fitems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperationList.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TResourceViewlabels
+  TResourceView
   --------------------------------------------------------------------}
 
 
+Procedure TResourceView.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcreationTimestamp=AValue) then exit;
+  FcreationTimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
 
 
-{ --------------------------------------------------------------------
-  TResourceViewresources
-  --------------------------------------------------------------------}
+
+Procedure TResourceView.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
 
 
 
+Procedure TResourceView.Setendpoints(AIndex : Integer; const AValue : TResourceViewTypeendpointsArray); 
 
-{ --------------------------------------------------------------------
-  TServiceEndpoint
-  --------------------------------------------------------------------}
+begin
+  If (Fendpoints=AValue) then exit;
+  Fendpoints:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
 
 
-Procedure TServiceEndpoint.Setname(AIndex : Integer; AValue : string); 
+
+Procedure TResourceView.Setfingerprint(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ffingerprint=AValue) then exit;
+  Ffingerprint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceView.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceView.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceView.Setlabels(AIndex : Integer; const AValue : TResourceViewTypelabelsArray); 
+
+begin
+  If (Flabels=AValue) then exit;
+  Flabels:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceView.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1402,7 +1243,79 @@ end;
 
 
 
-Procedure TServiceEndpoint.Setport(AIndex : Integer; AValue : integer); 
+Procedure TResourceView.Setnetwork(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fnetwork=AValue) then exit;
+  Fnetwork:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceView.Setresources(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Fresources=AValue) then exit;
+  Fresources:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceView.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceView.Setsize(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fsize=AValue) then exit;
+  Fsize:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResourceView.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'endpoints' : SetLength(Fendpoints,ALength);
+  'labels' : SetLength(Flabels,ALength);
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TServiceEndpoint
+  --------------------------------------------------------------------}
+
+
+Procedure TServiceEndpoint.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TServiceEndpoint.Setport(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fport=AValue) then exit;
@@ -1419,7 +1332,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsAddResourcesRequest.Setresources(AIndex : Integer; AValue : TZoneViewsAddResourcesRequestresources); 
+Procedure TZoneViewsAddResourcesRequest.Setresources(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -1428,12 +1341,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsAddResourcesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TZoneViewsAddResourcesRequestresources
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1443,7 +1362,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsGetServiceResponse.Setendpoints(AIndex : Integer; AValue : TZoneViewsGetServiceResponseendpoints); 
+Procedure TZoneViewsGetServiceResponse.Setendpoints(AIndex : Integer; const AValue : TZoneViewsGetServiceResponseTypeendpointsArray); 
 
 begin
   If (Fendpoints=AValue) then exit;
@@ -1453,7 +1372,7 @@ end;
 
 
 
-Procedure TZoneViewsGetServiceResponse.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TZoneViewsGetServiceResponse.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1462,12 +1381,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsGetServiceResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TZoneViewsGetServiceResponseendpoints
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'endpoints' : SetLength(Fendpoints,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1477,7 +1402,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsList.Setitems(AIndex : Integer; AValue : TZoneViewsListitems); 
+Procedure TZoneViewsList.Setitems(AIndex : Integer; const AValue : TZoneViewsListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1487,7 +1412,7 @@ end;
 
 
 
-Procedure TZoneViewsList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TZoneViewsList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1497,7 +1422,7 @@ end;
 
 
 
-Procedure TZoneViewsList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TZoneViewsList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1507,7 +1432,7 @@ end;
 
 
 
-Procedure TZoneViewsList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TZoneViewsList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1516,12 +1441,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsList.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TZoneViewsListitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1531,7 +1462,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsListResourcesResponse.Setitems(AIndex : Integer; AValue : TZoneViewsListResourcesResponseitems); 
+Procedure TZoneViewsListResourcesResponse.Setitems(AIndex : Integer; const AValue : TZoneViewsListResourcesResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1541,7 +1472,7 @@ end;
 
 
 
-Procedure TZoneViewsListResourcesResponse.Setnetwork(AIndex : Integer; AValue : string); 
+Procedure TZoneViewsListResourcesResponse.Setnetwork(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -1551,7 +1482,7 @@ end;
 
 
 
-Procedure TZoneViewsListResourcesResponse.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TZoneViewsListResourcesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1560,12 +1491,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsListResourcesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TZoneViewsListResourcesResponseitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1575,7 +1512,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsRemoveResourcesRequest.Setresources(AIndex : Integer; AValue : TZoneViewsRemoveResourcesRequestresources); 
+Procedure TZoneViewsRemoveResourcesRequest.Setresources(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -1584,12 +1521,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsRemoveResourcesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TZoneViewsRemoveResourcesRequestresources
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'resources' : SetLength(Fresources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1599,7 +1542,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsSetServiceRequest.Setendpoints(AIndex : Integer; AValue : TZoneViewsSetServiceRequestendpoints); 
+Procedure TZoneViewsSetServiceRequest.Setendpoints(AIndex : Integer; const AValue : TZoneViewsSetServiceRequestTypeendpointsArray); 
 
 begin
   If (Fendpoints=AValue) then exit;
@@ -1609,7 +1552,7 @@ end;
 
 
 
-Procedure TZoneViewsSetServiceRequest.Setfingerprint(AIndex : Integer; AValue : string); 
+Procedure TZoneViewsSetServiceRequest.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1619,7 +1562,7 @@ end;
 
 
 
-Procedure TZoneViewsSetServiceRequest.SetresourceName(AIndex : Integer; AValue : string); 
+Procedure TZoneViewsSetServiceRequest.SetresourceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceName=AValue) then exit;
@@ -1628,12 +1571,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TZoneViewsSetServiceRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TZoneViewsSetServiceRequestendpoints
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'endpoints' : SetLength(Fendpoints,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1915,7 +1864,7 @@ end;
 Class Function TResourceviewsAPI.APIRevision : String;
 
 begin
-  Result:='20150302';
+  Result:='20160512';
 end;
 
 Class Function TResourceviewsAPI.APIID : String;
@@ -2005,17 +1954,19 @@ end;
 Class Function TResourceviewsAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
-  SetLength(Result,5);
+  SetLength(Result,6);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  Result[1].Name:='https://www.googleapis.com/auth/compute';
-  Result[1].Description:='View and manage your Google Compute Engine resources';
-  Result[2].Name:='https://www.googleapis.com/auth/compute.readonly';
-  Result[2].Description:='View your Google Compute Engine resources';
-  Result[3].Name:='https://www.googleapis.com/auth/ndev.cloudman';
-  Result[3].Description:='View and manage your Google Cloud Platform management resources and deployment status information';
-  Result[4].Name:='https://www.googleapis.com/auth/ndev.cloudman.readonly';
-  Result[4].Description:='View your Google Cloud Platform management resources and deployment status information';
+  Result[1].Name:='https://www.googleapis.com/auth/cloud-platform.read-only';
+  Result[1].Description:='View your data across Google Cloud Platform services';
+  Result[2].Name:='https://www.googleapis.com/auth/compute';
+  Result[2].Description:='View and manage your Google Compute Engine resources';
+  Result[3].Name:='https://www.googleapis.com/auth/compute.readonly';
+  Result[3].Description:='View your Google Compute Engine resources';
+  Result[4].Name:='https://www.googleapis.com/auth/ndev.cloudman';
+  Result[4].Description:='View and manage your Google Cloud Platform management resources and deployment status information';
+  Result[5].Name:='https://www.googleapis.com/auth/ndev.cloudman.readonly';
+  Result[5].Description:='View your Google Cloud Platform management resources and deployment status information';
   
 end;
 
@@ -2029,32 +1980,22 @@ Class Procedure TResourceviewsAPI.RegisterAPIResources;
 
 begin
   TLabel.RegisterObject;
+  TListResourceResponseItemTypeendpoints.RegisterObject;
   TListResourceResponseItem.RegisterObject;
-  TListResourceResponseItemendpoints.RegisterObject;
+  TOperationTypeerrorTypeerrorsItem.RegisterObject;
+  TOperationTypeerror.RegisterObject;
+  TOperationTypewarningsItemTypedataItem.RegisterObject;
+  TOperationTypewarningsItem.RegisterObject;
   TOperation.RegisterObject;
-  TOperationerror.RegisterObject;
-  TOperationerrorerrors.RegisterObject;
-  TOperationwarnings.RegisterObject;
-  TOperationwarningsdata.RegisterObject;
   TOperationList.RegisterObject;
-  TOperationListitems.RegisterObject;
   TResourceView.RegisterObject;
-  TResourceViewendpoints.RegisterObject;
-  TResourceViewlabels.RegisterObject;
-  TResourceViewresources.RegisterObject;
   TServiceEndpoint.RegisterObject;
   TZoneViewsAddResourcesRequest.RegisterObject;
-  TZoneViewsAddResourcesRequestresources.RegisterObject;
   TZoneViewsGetServiceResponse.RegisterObject;
-  TZoneViewsGetServiceResponseendpoints.RegisterObject;
   TZoneViewsList.RegisterObject;
-  TZoneViewsListitems.RegisterObject;
   TZoneViewsListResourcesResponse.RegisterObject;
-  TZoneViewsListResourcesResponseitems.RegisterObject;
   TZoneViewsRemoveResourcesRequest.RegisterObject;
-  TZoneViewsRemoveResourcesRequestresources.RegisterObject;
   TZoneViewsSetServiceRequest.RegisterObject;
-  TZoneViewsSetServiceRequestendpoints.RegisterObject;
 end;
 
 
@@ -2077,7 +2018,7 @@ Function TResourceviewsAPI.CreateZoneOperationsResource(AOwner : TComponent) : T
 
 begin
   Result:=TZoneOperationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2101,7 +2042,7 @@ Function TResourceviewsAPI.CreateZoneViewsResource(AOwner : TComponent) : TZoneV
 
 begin
   Result:=TZoneViewsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

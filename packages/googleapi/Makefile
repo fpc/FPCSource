@@ -325,7 +325,7 @@ FPMAKE_SKIP_CONFIG=-n
 FPCFPMAKE=$(FPC)
 endif
 endif
-override PACKAGE_NAME=fcl-db
+override PACKAGE_NAME=googleapi
 override PACKAGE_VERSION=3.1.1
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 ifdef OS_TARGET

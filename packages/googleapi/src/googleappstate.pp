@@ -1,31 +1,4 @@
 unit googleappstate;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,17 +7,18 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TGetResponse = class;
+  
+  //Top-level schema types
+  TGetResponse = Class;
+  TListResponse = Class;
+  TUpdateRequest = Class;
+  TWriteResult = Class;
   TGetResponseArray = Array of TGetResponse;
-  TListResponse = class;
   TListResponseArray = Array of TListResponse;
-  TListResponseitems = class;
-  TListResponseitemsArray = Array of TListResponseitems;
-  TUpdateRequest = class;
   TUpdateRequestArray = Array of TUpdateRequest;
-  TWriteResult = class;
   TWriteResultArray = Array of TWriteResult;
+  //Anonymous types, using auto-generated names
+  TListResponseTypeitemsArray = Array of TGetResponse;
   
   { --------------------------------------------------------------------
     TGetResponse
@@ -52,21 +26,21 @@ type
   
   TGetResponse = Class(TGoogleBaseObject)
   Private
-    FcurrentStateVersion : string;
-    Fdata : string;
-    Fkind : string;
+    FcurrentStateVersion : String;
+    Fdata : String;
+    Fkind : String;
     FstateKey : integer;
   Protected
     //Property setters
-    Procedure SetcurrentStateVersion(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstateKey(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcurrentStateVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstateKey(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
-    Property currentStateVersion : string Index 0 Read FcurrentStateVersion Write SetcurrentStateVersion;
-    Property data : string Index 8 Read Fdata Write Setdata;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property currentStateVersion : String Index 0 Read FcurrentStateVersion Write SetcurrentStateVersion;
+    Property data : String Index 8 Read Fdata Write Setdata;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property stateKey : integer Index 24 Read FstateKey Write SetstateKey;
   end;
   TGetResponseClass = Class of TGetResponse;
@@ -77,34 +51,25 @@ type
   
   TListResponse = Class(TGoogleBaseObject)
   Private
-    Fitems : TListResponseitems;
-    Fkind : string;
+    Fitems : TListResponseTypeitemsArray;
+    Fkind : String;
     FmaximumKeyCount : integer;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TListResponseitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmaximumKeyCount(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TListResponseTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmaximumKeyCount(AIndex : Integer; const AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property items : TListResponseitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
     Property maximumKeyCount : integer Index 16 Read FmaximumKeyCount Write SetmaximumKeyCount;
   end;
   TListResponseClass = Class of TListResponse;
-  
-  { --------------------------------------------------------------------
-    TListResponseitems
-    --------------------------------------------------------------------}
-  
-  TListResponseitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TListResponseitemsClass = Class of TListResponseitems;
   
   { --------------------------------------------------------------------
     TUpdateRequest
@@ -112,16 +77,16 @@ type
   
   TUpdateRequest = Class(TGoogleBaseObject)
   Private
-    Fdata : string;
-    Fkind : string;
+    Fdata : String;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setdata(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property data : string Index 0 Read Fdata Write Setdata;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property data : String Index 0 Read Fdata Write Setdata;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TUpdateRequestClass = Class of TUpdateRequest;
   
@@ -131,18 +96,18 @@ type
   
   TWriteResult = Class(TGoogleBaseObject)
   Private
-    FcurrentStateVersion : string;
-    Fkind : string;
+    FcurrentStateVersion : String;
+    Fkind : String;
     FstateKey : integer;
   Protected
     //Property setters
-    Procedure SetcurrentStateVersion(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstateKey(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcurrentStateVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstateKey(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
-    Property currentStateVersion : string Index 0 Read FcurrentStateVersion Write SetcurrentStateVersion;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property currentStateVersion : String Index 0 Read FcurrentStateVersion Write SetcurrentStateVersion;
+    Property kind : String Index 8 Read Fkind Write Setkind;
     Property stateKey : integer Index 16 Read FstateKey Write SetstateKey;
   end;
   TWriteResultClass = Class of TWriteResult;
@@ -155,7 +120,7 @@ type
   //Optional query Options for TStatesResource, method Clear
   
   TStatesClearOptions = Record
-    currentDataVersion : string;
+    currentDataVersion : String;
   end;
   
   
@@ -169,7 +134,7 @@ type
   //Optional query Options for TStatesResource, method Update
   
   TStatesUpdateOptions = Record
-    currentStateVersion : string;
+    currentStateVersion : String;
   end;
   
   TStatesResource = Class(TGoogleResource)
@@ -232,7 +197,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TGetResponse.SetcurrentStateVersion(AIndex : Integer; AValue : string); 
+Procedure TGetResponse.SetcurrentStateVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentStateVersion=AValue) then exit;
@@ -242,7 +207,7 @@ end;
 
 
 
-Procedure TGetResponse.Setdata(AIndex : Integer; AValue : string); 
+Procedure TGetResponse.Setdata(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -252,7 +217,7 @@ end;
 
 
 
-Procedure TGetResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGetResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -262,7 +227,7 @@ end;
 
 
 
-Procedure TGetResponse.SetstateKey(AIndex : Integer; AValue : integer); 
+Procedure TGetResponse.SetstateKey(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FstateKey=AValue) then exit;
@@ -279,7 +244,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListResponse.Setitems(AIndex : Integer; AValue : TListResponseitems); 
+Procedure TListResponse.Setitems(AIndex : Integer; const AValue : TListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -289,7 +254,7 @@ end;
 
 
 
-Procedure TListResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -299,7 +264,7 @@ end;
 
 
 
-Procedure TListResponse.SetmaximumKeyCount(AIndex : Integer; AValue : integer); 
+Procedure TListResponse.SetmaximumKeyCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaximumKeyCount=AValue) then exit;
@@ -308,12 +273,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TListResponseitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -323,7 +294,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateRequest.Setdata(AIndex : Integer; AValue : string); 
+Procedure TUpdateRequest.Setdata(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -333,7 +304,7 @@ end;
 
 
 
-Procedure TUpdateRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUpdateRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -350,7 +321,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWriteResult.SetcurrentStateVersion(AIndex : Integer; AValue : string); 
+Procedure TWriteResult.SetcurrentStateVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentStateVersion=AValue) then exit;
@@ -360,7 +331,7 @@ end;
 
 
 
-Procedure TWriteResult.Setkind(AIndex : Integer; AValue : string); 
+Procedure TWriteResult.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -370,7 +341,7 @@ end;
 
 
 
-Procedure TWriteResult.SetstateKey(AIndex : Integer; AValue : integer); 
+Procedure TWriteResult.SetstateKey(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FstateKey=AValue) then exit;
@@ -527,7 +498,7 @@ end;
 Class Function TAppstateAPI.APIRevision : String;
 
 begin
-  Result:='20150428';
+  Result:='20160519';
 end;
 
 Class Function TAppstateAPI.APIID : String;
@@ -634,7 +605,6 @@ Class Procedure TAppstateAPI.RegisterAPIResources;
 begin
   TGetResponse.RegisterObject;
   TListResponse.RegisterObject;
-  TListResponseitems.RegisterObject;
   TUpdateRequest.RegisterObject;
   TWriteResult.RegisterObject;
 end;
@@ -659,7 +629,7 @@ Function TAppstateAPI.CreateStatesResource(AOwner : TComponent) : TStatesResourc
 
 begin
   Result:=TStatesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

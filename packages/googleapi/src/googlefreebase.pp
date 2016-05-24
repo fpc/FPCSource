@@ -1,31 +1,4 @@
 unit googlefreebase;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,19 +7,37 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TReconcileCandidate = class;
+  
+  //Top-level schema types
+  TReconcileCandidate = Class;
+  TReconcileGet = Class;
   TReconcileCandidateArray = Array of TReconcileCandidate;
-  TReconcileCandidatenotable = class;
-  TReconcileCandidatenotableArray = Array of TReconcileCandidatenotable;
-  TReconcileGet = class;
   TReconcileGetArray = Array of TReconcileGet;
-  TReconcileGetcandidate = class;
-  TReconcileGetcandidateArray = Array of TReconcileGetcandidate;
-  TReconcileGetcosts = class;
-  TReconcileGetcostsArray = Array of TReconcileGetcosts;
-  TReconcileGetwarning = class;
-  TReconcileGetwarningArray = Array of TReconcileGetwarning;
+  //Anonymous types, using auto-generated names
+  TReconcileCandidateTypenotable = Class;
+  TReconcileGetTypecosts = Class;
+  TReconcileGetTypewarningItem = Class;
+  TReconcileGetTypecandidateArray = Array of TReconcileCandidate;
+  TReconcileGetTypewarningArray = Array of TReconcileGetTypewarningItem;
+  
+  { --------------------------------------------------------------------
+    TReconcileCandidateTypenotable
+    --------------------------------------------------------------------}
+  
+  TReconcileCandidateTypenotable = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fname : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property name : String Index 8 Read Fname Write Setname;
+  end;
+  TReconcileCandidateTypenotableClass = Class of TReconcileCandidateTypenotable;
   
   { --------------------------------------------------------------------
     TReconcileCandidate
@@ -55,45 +46,67 @@ type
   TReconcileCandidate = Class(TGoogleBaseObject)
   Private
     Fconfidence : integer;
-    Flang : string;
-    Fmid : string;
-    Fname : string;
-    Fnotable : TReconcileCandidatenotable;
+    Flang : String;
+    Fmid : String;
+    Fname : String;
+    Fnotable : TReconcileCandidateTypenotable;
   Protected
     //Property setters
-    Procedure Setconfidence(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setlang(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnotable(AIndex : Integer; AValue : TReconcileCandidatenotable); virtual;
+    Procedure Setconfidence(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setlang(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnotable(AIndex : Integer; const AValue : TReconcileCandidateTypenotable); virtual;
   Public
   Published
     Property confidence : integer Index 0 Read Fconfidence Write Setconfidence;
-    Property lang : string Index 8 Read Flang Write Setlang;
-    Property mid : string Index 16 Read Fmid Write Setmid;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property notable : TReconcileCandidatenotable Index 32 Read Fnotable Write Setnotable;
+    Property lang : String Index 8 Read Flang Write Setlang;
+    Property mid : String Index 16 Read Fmid Write Setmid;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property notable : TReconcileCandidateTypenotable Index 32 Read Fnotable Write Setnotable;
   end;
   TReconcileCandidateClass = Class of TReconcileCandidate;
   
   { --------------------------------------------------------------------
-    TReconcileCandidatenotable
+    TReconcileGetTypecosts
     --------------------------------------------------------------------}
   
-  TReconcileCandidatenotable = Class(TGoogleBaseObject)
+  TReconcileGetTypecosts = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fname : string;
+    Fhits : integer;
+    Fms : integer;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Sethits(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setms(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property hits : integer Index 0 Read Fhits Write Sethits;
+    Property ms : integer Index 8 Read Fms Write Setms;
   end;
-  TReconcileCandidatenotableClass = Class of TReconcileCandidatenotable;
+  TReconcileGetTypecostsClass = Class of TReconcileGetTypecosts;
+  
+  { --------------------------------------------------------------------
+    TReconcileGetTypewarningItem
+    --------------------------------------------------------------------}
+  
+  TReconcileGetTypewarningItem = Class(TGoogleBaseObject)
+  Private
+    Flocation : String;
+    Fmessage : String;
+    Freason : String;
+  Protected
+    //Property setters
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setreason(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property location : String Index 0 Read Flocation Write Setlocation;
+    Property message : String Index 8 Read Fmessage Write Setmessage;
+    Property reason : String Index 16 Read Freason Write Setreason;
+  end;
+  TReconcileGetTypewarningItemClass = Class of TReconcileGetTypewarningItem;
   
   { --------------------------------------------------------------------
     TReconcileGet
@@ -101,78 +114,28 @@ type
   
   TReconcileGet = Class(TGoogleBaseObject)
   Private
-    Fcandidate : TReconcileGetcandidate;
-    Fcosts : TReconcileGetcosts;
+    Fcandidate : TReconcileGetTypecandidateArray;
+    Fcosts : TReconcileGetTypecosts;
     Fmatch : TReconcileCandidate;
-    Fwarning : TReconcileGetwarning;
+    Fwarning : TReconcileGetTypewarningArray;
   Protected
     //Property setters
-    Procedure Setcandidate(AIndex : Integer; AValue : TReconcileGetcandidate); virtual;
-    Procedure Setcosts(AIndex : Integer; AValue : TReconcileGetcosts); virtual;
-    Procedure Setmatch(AIndex : Integer; AValue : TReconcileCandidate); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TReconcileGetwarning); virtual;
+    Procedure Setcandidate(AIndex : Integer; const AValue : TReconcileGetTypecandidateArray); virtual;
+    Procedure Setcosts(AIndex : Integer; const AValue : TReconcileGetTypecosts); virtual;
+    Procedure Setmatch(AIndex : Integer; const AValue : TReconcileCandidate); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TReconcileGetTypewarningArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property candidate : TReconcileGetcandidate Index 0 Read Fcandidate Write Setcandidate;
-    Property costs : TReconcileGetcosts Index 8 Read Fcosts Write Setcosts;
+    Property candidate : TReconcileGetTypecandidateArray Index 0 Read Fcandidate Write Setcandidate;
+    Property costs : TReconcileGetTypecosts Index 8 Read Fcosts Write Setcosts;
     Property match : TReconcileCandidate Index 16 Read Fmatch Write Setmatch;
-    Property warning : TReconcileGetwarning Index 24 Read Fwarning Write Setwarning;
+    Property warning : TReconcileGetTypewarningArray Index 24 Read Fwarning Write Setwarning;
   end;
   TReconcileGetClass = Class of TReconcileGet;
-  
-  { --------------------------------------------------------------------
-    TReconcileGetcandidate
-    --------------------------------------------------------------------}
-  
-  TReconcileGetcandidate = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TReconcileGetcandidateClass = Class of TReconcileGetcandidate;
-  
-  { --------------------------------------------------------------------
-    TReconcileGetcosts
-    --------------------------------------------------------------------}
-  
-  TReconcileGetcosts = Class(TGoogleBaseObject)
-  Private
-    Fhits : integer;
-    Fms : integer;
-  Protected
-    //Property setters
-    Procedure Sethits(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setms(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property hits : integer Index 0 Read Fhits Write Sethits;
-    Property ms : integer Index 8 Read Fms Write Setms;
-  end;
-  TReconcileGetcostsClass = Class of TReconcileGetcosts;
-  
-  { --------------------------------------------------------------------
-    TReconcileGetwarning
-    --------------------------------------------------------------------}
-  
-  TReconcileGetwarning = Class(TGoogleBaseObject)
-  Private
-    Flocation : string;
-    Fmessage : string;
-    Freason : string;
-  Protected
-    //Property setters
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property location : string Index 0 Read Flocation Write Setlocation;
-    Property message : string Index 8 Read Fmessage Write Setmessage;
-    Property reason : string Index 16 Read Freason Write Setreason;
-  end;
-  TReconcileGetwarningClass = Class of TReconcileGetwarning;
   
   { --------------------------------------------------------------------
     TFreebaseAPI
@@ -210,41 +173,21 @@ implementation
 
 
 { --------------------------------------------------------------------
-  TReconcileCandidate
+  TReconcileCandidateTypenotable
   --------------------------------------------------------------------}
 
 
-Procedure TReconcileCandidate.Setconfidence(AIndex : Integer; AValue : integer); 
+Procedure TReconcileCandidateTypenotable.Setid(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fconfidence=AValue) then exit;
-  Fconfidence:=AValue;
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TReconcileCandidate.Setlang(AIndex : Integer; AValue : string); 
-
-begin
-  If (Flang=AValue) then exit;
-  Flang:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TReconcileCandidate.Setmid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fmid=AValue) then exit;
-  Fmid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TReconcileCandidate.Setname(AIndex : Integer; AValue : string); 
+Procedure TReconcileCandidateTypenotable.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -254,7 +197,54 @@ end;
 
 
 
-Procedure TReconcileCandidate.Setnotable(AIndex : Integer; AValue : TReconcileCandidatenotable); 
+
+
+{ --------------------------------------------------------------------
+  TReconcileCandidate
+  --------------------------------------------------------------------}
+
+
+Procedure TReconcileCandidate.Setconfidence(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fconfidence=AValue) then exit;
+  Fconfidence:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReconcileCandidate.Setlang(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Flang=AValue) then exit;
+  Flang:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReconcileCandidate.Setmid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmid=AValue) then exit;
+  Fmid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReconcileCandidate.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReconcileCandidate.Setnotable(AIndex : Integer; const AValue : TReconcileCandidateTypenotable); 
 
 begin
   If (Fnotable=AValue) then exit;
@@ -267,92 +257,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TReconcileCandidatenotable
+  TReconcileGetTypecosts
   --------------------------------------------------------------------}
 
 
-Procedure TReconcileCandidatenotable.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TReconcileCandidatenotable.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TReconcileGet
-  --------------------------------------------------------------------}
-
-
-Procedure TReconcileGet.Setcandidate(AIndex : Integer; AValue : TReconcileGetcandidate); 
-
-begin
-  If (Fcandidate=AValue) then exit;
-  Fcandidate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TReconcileGet.Setcosts(AIndex : Integer; AValue : TReconcileGetcosts); 
-
-begin
-  If (Fcosts=AValue) then exit;
-  Fcosts:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TReconcileGet.Setmatch(AIndex : Integer; AValue : TReconcileCandidate); 
-
-begin
-  If (Fmatch=AValue) then exit;
-  Fmatch:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TReconcileGet.Setwarning(AIndex : Integer; AValue : TReconcileGetwarning); 
-
-begin
-  If (Fwarning=AValue) then exit;
-  Fwarning:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TReconcileGetcandidate
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TReconcileGetcosts
-  --------------------------------------------------------------------}
-
-
-Procedure TReconcileGetcosts.Sethits(AIndex : Integer; AValue : integer); 
+Procedure TReconcileGetTypecosts.Sethits(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fhits=AValue) then exit;
@@ -362,7 +271,7 @@ end;
 
 
 
-Procedure TReconcileGetcosts.Setms(AIndex : Integer; AValue : integer); 
+Procedure TReconcileGetTypecosts.Setms(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fms=AValue) then exit;
@@ -375,11 +284,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TReconcileGetwarning
+  TReconcileGetTypewarningItem
   --------------------------------------------------------------------}
 
 
-Procedure TReconcileGetwarning.Setlocation(AIndex : Integer; AValue : string); 
+Procedure TReconcileGetTypewarningItem.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -389,7 +298,7 @@ end;
 
 
 
-Procedure TReconcileGetwarning.Setmessage(AIndex : Integer; AValue : string); 
+Procedure TReconcileGetTypewarningItem.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -399,7 +308,7 @@ end;
 
 
 
-Procedure TReconcileGetwarning.Setreason(AIndex : Integer; AValue : string); 
+Procedure TReconcileGetTypewarningItem.Setreason(AIndex : Integer; const AValue : String); 
 
 begin
   If (Freason=AValue) then exit;
@@ -407,6 +316,67 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+
+
+
+{ --------------------------------------------------------------------
+  TReconcileGet
+  --------------------------------------------------------------------}
+
+
+Procedure TReconcileGet.Setcandidate(AIndex : Integer; const AValue : TReconcileGetTypecandidateArray); 
+
+begin
+  If (Fcandidate=AValue) then exit;
+  Fcandidate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReconcileGet.Setcosts(AIndex : Integer; const AValue : TReconcileGetTypecosts); 
+
+begin
+  If (Fcosts=AValue) then exit;
+  Fcosts:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReconcileGet.Setmatch(AIndex : Integer; const AValue : TReconcileCandidate); 
+
+begin
+  If (Fmatch=AValue) then exit;
+  Fmatch:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReconcileGet.Setwarning(AIndex : Integer; const AValue : TReconcileGetTypewarningArray); 
+
+begin
+  If (Fwarning=AValue) then exit;
+  Fwarning:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReconcileGet.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'candidate' : SetLength(Fcandidate,ALength);
+  'warning' : SetLength(Fwarning,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -430,7 +400,7 @@ end;
 Class Function TFreebaseAPI.APIRevision : String;
 
 begin
-  Result:='20150330';
+  Result:='20150728';
 end;
 
 Class Function TFreebaseAPI.APIID : String;
@@ -533,12 +503,11 @@ end;
 Class Procedure TFreebaseAPI.RegisterAPIResources;
 
 begin
+  TReconcileCandidateTypenotable.RegisterObject;
   TReconcileCandidate.RegisterObject;
-  TReconcileCandidatenotable.RegisterObject;
+  TReconcileGetTypecosts.RegisterObject;
+  TReconcileGetTypewarningItem.RegisterObject;
   TReconcileGet.RegisterObject;
-  TReconcileGetcandidate.RegisterObject;
-  TReconcileGetcosts.RegisterObject;
-  TReconcileGetwarning.RegisterObject;
 end;
 
 

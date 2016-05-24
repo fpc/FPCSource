@@ -1,31 +1,4 @@
 unit googlelicensing;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,15 +7,16 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TLicenseAssignment = class;
+  
+  //Top-level schema types
+  TLicenseAssignment = Class;
+  TLicenseAssignmentInsert = Class;
+  TLicenseAssignmentList = Class;
   TLicenseAssignmentArray = Array of TLicenseAssignment;
-  TLicenseAssignmentInsert = class;
   TLicenseAssignmentInsertArray = Array of TLicenseAssignmentInsert;
-  TLicenseAssignmentList = class;
   TLicenseAssignmentListArray = Array of TLicenseAssignmentList;
-  TLicenseAssignmentListitems = class;
-  TLicenseAssignmentListitemsArray = Array of TLicenseAssignmentListitems;
+  //Anonymous types, using auto-generated names
+  TLicenseAssignmentListTypeitemsArray = Array of TLicenseAssignment;
   
   { --------------------------------------------------------------------
     TLicenseAssignment
@@ -50,28 +24,28 @@ type
   
   TLicenseAssignment = Class(TGoogleBaseObject)
   Private
-    Fetags : string;
-    Fkind : string;
-    FproductId : string;
-    FselfLink : string;
-    FskuId : string;
-    FuserId : string;
+    Fetags : String;
+    Fkind : String;
+    FproductId : String;
+    FselfLink : String;
+    FskuId : String;
+    FuserId : String;
   Protected
     //Property setters
-    Procedure Setetags(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetskuId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetuserId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetags(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetskuId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetuserId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property etags : string Index 0 Read Fetags Write Setetags;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property productId : string Index 16 Read FproductId Write SetproductId;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
-    Property skuId : string Index 32 Read FskuId Write SetskuId;
-    Property userId : string Index 40 Read FuserId Write SetuserId;
+    Property etags : String Index 0 Read Fetags Write Setetags;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property productId : String Index 16 Read FproductId Write SetproductId;
+    Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
+    Property skuId : String Index 32 Read FskuId Write SetskuId;
+    Property userId : String Index 40 Read FuserId Write SetuserId;
   end;
   TLicenseAssignmentClass = Class of TLicenseAssignment;
   
@@ -81,13 +55,13 @@ type
   
   TLicenseAssignmentInsert = Class(TGoogleBaseObject)
   Private
-    FuserId : string;
+    FuserId : String;
   Protected
     //Property setters
-    Procedure SetuserId(AIndex : Integer; AValue : string); virtual;
+    Procedure SetuserId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property userId : string Index 0 Read FuserId Write SetuserId;
+    Property userId : String Index 0 Read FuserId Write SetuserId;
   end;
   TLicenseAssignmentInsertClass = Class of TLicenseAssignmentInsert;
   
@@ -97,37 +71,28 @@ type
   
   TLicenseAssignmentList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TLicenseAssignmentListitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fetag : String;
+    Fitems : TLicenseAssignmentListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TLicenseAssignmentListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TLicenseAssignmentListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TLicenseAssignmentListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TLicenseAssignmentListTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TLicenseAssignmentListClass = Class of TLicenseAssignmentList;
-  
-  { --------------------------------------------------------------------
-    TLicenseAssignmentListitems
-    --------------------------------------------------------------------}
-  
-  TLicenseAssignmentListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLicenseAssignmentListitemsClass = Class of TLicenseAssignmentListitems;
   
   { --------------------------------------------------------------------
     TLicenseAssignmentsResource
@@ -137,18 +102,18 @@ type
   //Optional query Options for TLicenseAssignmentsResource, method ListForProduct
   
   TLicenseAssignmentsListForProductOptions = Record
-    customerId : string;
+    customerId : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TLicenseAssignmentsResource, method ListForProductAndSku
   
   TLicenseAssignmentsListForProductAndSkuOptions = Record
-    customerId : string;
+    customerId : String;
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TLicenseAssignmentsResource = Class(TGoogleResource)
@@ -212,7 +177,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TLicenseAssignment.Setetags(AIndex : Integer; AValue : string); 
+Procedure TLicenseAssignment.Setetags(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetags=AValue) then exit;
@@ -222,7 +187,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.Setkind(AIndex : Integer; AValue : string); 
+Procedure TLicenseAssignment.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -232,7 +197,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetproductId(AIndex : Integer; AValue : string); 
+Procedure TLicenseAssignment.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -242,7 +207,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TLicenseAssignment.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -252,7 +217,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetskuId(AIndex : Integer; AValue : string); 
+Procedure TLicenseAssignment.SetskuId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FskuId=AValue) then exit;
@@ -262,7 +227,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetuserId(AIndex : Integer; AValue : string); 
+Procedure TLicenseAssignment.SetuserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -279,7 +244,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLicenseAssignmentInsert.SetuserId(AIndex : Integer; AValue : string); 
+Procedure TLicenseAssignmentInsert.SetuserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -296,7 +261,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLicenseAssignmentList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TLicenseAssignmentList.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -306,7 +271,7 @@ end;
 
 
 
-Procedure TLicenseAssignmentList.Setitems(AIndex : Integer; AValue : TLicenseAssignmentListitems); 
+Procedure TLicenseAssignmentList.Setitems(AIndex : Integer; const AValue : TLicenseAssignmentListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -316,7 +281,7 @@ end;
 
 
 
-Procedure TLicenseAssignmentList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TLicenseAssignmentList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -326,7 +291,7 @@ end;
 
 
 
-Procedure TLicenseAssignmentList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TLicenseAssignmentList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -335,12 +300,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLicenseAssignmentList.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TLicenseAssignmentListitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -516,7 +487,7 @@ end;
 Class Function TLicensingAPI.APIRevision : String;
 
 begin
-  Result:='20140122';
+  Result:='20150901';
 end;
 
 Class Function TLicensingAPI.APIID : String;
@@ -624,7 +595,6 @@ begin
   TLicenseAssignment.RegisterObject;
   TLicenseAssignmentInsert.RegisterObject;
   TLicenseAssignmentList.RegisterObject;
-  TLicenseAssignmentListitems.RegisterObject;
 end;
 
 
@@ -647,7 +617,7 @@ Function TLicensingAPI.CreateLicenseAssignmentsResource(AOwner : TComponent) : T
 
 begin
   Result:=TLicenseAssignmentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

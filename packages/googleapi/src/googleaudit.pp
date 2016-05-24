@@ -1,31 +1,19 @@
 unit googleaudit;
 {
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
+   **********************************************************************
+      This file is part of the Free Component Library (FCL)
+      Copyright (c) 2015 The free pascal team.
   
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
+      See the file COPYING.FPC, included in this distribution,
+      for details about the copyright.
   
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
+   **********************************************************************
 }
+//Generated on: 16-5-15 08:52:58
 {$MODE objfpc}
 {$H+}
 
@@ -34,21 +22,20 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TActivities = class;
+  
+  //Top-level schema types
+  TActivities = Class;
+  TActivity = Class;
   TActivitiesArray = Array of TActivities;
-  TActivitiesitems = class;
-  TActivitiesitemsArray = Array of TActivitiesitems;
-  TActivity = class;
   TActivityArray = Array of TActivity;
-  TActivityactor = class;
-  TActivityactorArray = Array of TActivityactor;
-  TActivityevents = class;
-  TActivityeventsArray = Array of TActivityevents;
-  TActivityeventsparameters = class;
-  TActivityeventsparametersArray = Array of TActivityeventsparameters;
-  TActivityid = class;
-  TActivityidArray = Array of TActivityid;
+  //Anonymous types, using auto-generated names
+  TActivityTypeactor = Class;
+  TActivityTypeeventsItemTypeparametersItem = Class;
+  TActivityTypeeventsItem = Class;
+  TActivityTypeid = Class;
+  TActivitiesTypeitemsArray = Array of TActivity;
+  TActivityTypeeventsItemTypeparametersArray = Array of TActivityTypeeventsItemTypeparametersItem;
+  TActivityTypeeventsArray = Array of TActivityTypeeventsItem;
   
   { --------------------------------------------------------------------
     TActivities
@@ -56,34 +43,120 @@ type
   
   TActivities = Class(TGoogleBaseObject)
   Private
-    Fitems : TActivitiesitems;
-    Fkind : string;
-    Fnext : string;
+    Fitems : TActivitiesTypeitemsArray;
+    Fkind : String;
+    Fnext : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TActivitiesitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnext(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; AValue : TActivitiesTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnext(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property items : TActivitiesitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property next : string Index 16 Read Fnext Write Setnext;
+    Property items : TActivitiesTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property next : String Index 16 Read Fnext Write Setnext;
   end;
   TActivitiesClass = Class of TActivities;
   
   { --------------------------------------------------------------------
-    TActivitiesitems
+    TActivityTypeactor
     --------------------------------------------------------------------}
   
-  TActivitiesitems = Class(TGoogleBaseObject)
+  TActivityTypeactor = Class(TGoogleBaseObject)
   Private
+    FapplicationId : String;
+    FcallerType : String;
+    Femail : String;
+    Fkey : String;
   Protected
     //Property setters
+    Procedure SetapplicationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcallerType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property applicationId : String Index 0 Read FapplicationId Write SetapplicationId;
+    Property callerType : String Index 8 Read FcallerType Write SetcallerType;
+    Property email : String Index 16 Read Femail Write Setemail;
+    Property key : String Index 24 Read Fkey Write Setkey;
   end;
-  TActivitiesitemsClass = Class of TActivitiesitems;
+  TActivityTypeactorClass = Class of TActivityTypeactor;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeeventsItemTypeparametersItem
+    --------------------------------------------------------------------}
+  
+  TActivityTypeeventsItemTypeparametersItem = Class(TGoogleBaseObject)
+  Private
+    Fname : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property name : String Index 0 Read Fname Write Setname;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TActivityTypeeventsItemTypeparametersItemClass = Class of TActivityTypeeventsItemTypeparametersItem;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeeventsItem
+    --------------------------------------------------------------------}
+  
+  TActivityTypeeventsItem = Class(TGoogleBaseObject)
+  Private
+    FeventType : String;
+    Fname : String;
+    Fparameters : TActivityTypeeventsItemTypeparametersArray;
+  Protected
+    //Property setters
+    Procedure SeteventType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setparameters(AIndex : Integer; AValue : TActivityTypeeventsItemTypeparametersArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property eventType : String Index 0 Read FeventType Write SeteventType;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property parameters : TActivityTypeeventsItemTypeparametersArray Index 16 Read Fparameters Write Setparameters;
+  end;
+  TActivityTypeeventsItemClass = Class of TActivityTypeeventsItem;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeid
+    --------------------------------------------------------------------}
+  
+  TActivityTypeid = Class(TGoogleBaseObject)
+  Private
+    FapplicationId : String;
+    FcustomerId : String;
+    Ftime : TDatetime;
+    FuniqQualifier : String;
+  Protected
+    //Property setters
+    Procedure SetapplicationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settime(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetuniqQualifier(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property applicationId : String Index 0 Read FapplicationId Write SetapplicationId;
+    Property customerId : String Index 8 Read FcustomerId Write SetcustomerId;
+    Property time : TDatetime Index 16 Read Ftime Write Settime;
+    Property uniqQualifier : String Index 24 Read FuniqQualifier Write SetuniqQualifier;
+  end;
+  TActivityTypeidClass = Class of TActivityTypeid;
   
   { --------------------------------------------------------------------
     TActivity
@@ -91,121 +164,34 @@ type
   
   TActivity = Class(TGoogleBaseObject)
   Private
-    Factor : TActivityactor;
-    Fevents : TActivityevents;
-    Fid : TActivityid;
-    FipAddress : string;
-    Fkind : string;
-    FownerDomain : string;
+    Factor : TActivityTypeactor;
+    Fevents : TActivityTypeeventsArray;
+    Fid : TActivityTypeid;
+    FipAddress : String;
+    Fkind : String;
+    FownerDomain : String;
   Protected
     //Property setters
-    Procedure Setactor(AIndex : Integer; AValue : TActivityactor); virtual;
-    Procedure Setevents(AIndex : Integer; AValue : TActivityevents); virtual;
-    Procedure Setid(AIndex : Integer; AValue : TActivityid); virtual;
-    Procedure SetipAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetownerDomain(AIndex : Integer; AValue : string); virtual;
+    Procedure Setactor(AIndex : Integer; AValue : TActivityTypeactor); virtual;
+    Procedure Setevents(AIndex : Integer; AValue : TActivityTypeeventsArray); virtual;
+    Procedure Setid(AIndex : Integer; AValue : TActivityTypeid); virtual;
+    Procedure SetipAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetownerDomain(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property actor : TActivityactor Index 0 Read Factor Write Setactor;
-    Property events : TActivityevents Index 8 Read Fevents Write Setevents;
-    Property id : TActivityid Index 16 Read Fid Write Setid;
-    Property ipAddress : string Index 24 Read FipAddress Write SetipAddress;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property ownerDomain : string Index 40 Read FownerDomain Write SetownerDomain;
+    Property actor : TActivityTypeactor Index 0 Read Factor Write Setactor;
+    Property events : TActivityTypeeventsArray Index 8 Read Fevents Write Setevents;
+    Property id : TActivityTypeid Index 16 Read Fid Write Setid;
+    Property ipAddress : String Index 24 Read FipAddress Write SetipAddress;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property ownerDomain : String Index 40 Read FownerDomain Write SetownerDomain;
   end;
   TActivityClass = Class of TActivity;
-  
-  { --------------------------------------------------------------------
-    TActivityactor
-    --------------------------------------------------------------------}
-  
-  TActivityactor = Class(TGoogleBaseObject)
-  Private
-    FapplicationId : string;
-    FcallerType : string;
-    Femail : string;
-    Fkey : string;
-  Protected
-    //Property setters
-    Procedure SetapplicationId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcallerType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property applicationId : string Index 0 Read FapplicationId Write SetapplicationId;
-    Property callerType : string Index 8 Read FcallerType Write SetcallerType;
-    Property email : string Index 16 Read Femail Write Setemail;
-    Property key : string Index 24 Read Fkey Write Setkey;
-  end;
-  TActivityactorClass = Class of TActivityactor;
-  
-  { --------------------------------------------------------------------
-    TActivityevents
-    --------------------------------------------------------------------}
-  
-  TActivityevents = Class(TGoogleBaseObject)
-  Private
-    FeventType : string;
-    Fname : string;
-    Fparameters : TActivityeventsparameters;
-  Protected
-    //Property setters
-    Procedure SeteventType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setparameters(AIndex : Integer; AValue : TActivityeventsparameters); virtual;
-  Public
-  Published
-    Property eventType : string Index 0 Read FeventType Write SeteventType;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property parameters : TActivityeventsparameters Index 16 Read Fparameters Write Setparameters;
-  end;
-  TActivityeventsClass = Class of TActivityevents;
-  
-  { --------------------------------------------------------------------
-    TActivityeventsparameters
-    --------------------------------------------------------------------}
-  
-  TActivityeventsparameters = Class(TGoogleBaseObject)
-  Private
-    Fname : string;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property name : string Index 0 Read Fname Write Setname;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TActivityeventsparametersClass = Class of TActivityeventsparameters;
-  
-  { --------------------------------------------------------------------
-    TActivityid
-    --------------------------------------------------------------------}
-  
-  TActivityid = Class(TGoogleBaseObject)
-  Private
-    FapplicationId : string;
-    FcustomerId : string;
-    Ftime : TDatetime;
-    FuniqQualifier : string;
-  Protected
-    //Property setters
-    Procedure SetapplicationId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomerId(AIndex : Integer; AValue : string); virtual;
-    Procedure Settime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetuniqQualifier(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property applicationId : string Index 0 Read FapplicationId Write SetapplicationId;
-    Property customerId : string Index 8 Read FcustomerId Write SetcustomerId;
-    Property time : TDatetime Index 16 Read Ftime Write Settime;
-    Property uniqQualifier : string Index 24 Read FuniqQualifier Write SetuniqQualifier;
-  end;
-  TActivityidClass = Class of TActivityid;
   
   { --------------------------------------------------------------------
     TActivitiesResource
@@ -216,14 +202,14 @@ type
   
   TActivitiesListOptions = Record
     actorApplicationId : int64;
-    actorEmail : string;
-    actorIpAddress : string;
-    caller : string;
-    continuationToken : string;
-    endTime : string;
-    eventName : string;
+    actorEmail : String;
+    actorIpAddress : String;
+    caller : String;
+    continuationToken : String;
+    endTime : String;
+    eventName : String;
     maxResults : integer;
-    startTime : string;
+    startTime : String;
   end;
   
   TActivitiesResource = Class(TGoogleResource)
@@ -280,7 +266,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TActivities.Setitems(AIndex : Integer; AValue : TActivitiesitems); 
+Procedure TActivities.Setitems(AIndex : Integer; AValue : TActivitiesTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -290,7 +276,7 @@ end;
 
 
 
-Procedure TActivities.Setkind(AIndex : Integer; AValue : string); 
+Procedure TActivities.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -300,7 +286,7 @@ end;
 
 
 
-Procedure TActivities.Setnext(AIndex : Integer; AValue : string); 
+Procedure TActivities.Setnext(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnext=AValue) then exit;
@@ -309,89 +295,28 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TActivitiesitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivity
-  --------------------------------------------------------------------}
-
-
-Procedure TActivity.Setactor(AIndex : Integer; AValue : TActivityactor); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivities.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Factor=AValue) then exit;
-  Factor:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TActivity.Setevents(AIndex : Integer; AValue : TActivityevents); 
-
-begin
-  If (Fevents=AValue) then exit;
-  Fevents:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Setid(AIndex : Integer; AValue : TActivityid); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.SetipAddress(AIndex : Integer; AValue : string); 
-
-begin
-  If (FipAddress=AValue) then exit;
-  FipAddress:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.SetownerDomain(AIndex : Integer; AValue : string); 
-
-begin
-  If (FownerDomain=AValue) then exit;
-  FownerDomain:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TActivityactor
+  TActivityTypeactor
   --------------------------------------------------------------------}
 
 
-Procedure TActivityactor.SetapplicationId(AIndex : Integer; AValue : string); 
+Procedure TActivityTypeactor.SetapplicationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -401,7 +326,7 @@ end;
 
 
 
-Procedure TActivityactor.SetcallerType(AIndex : Integer; AValue : string); 
+Procedure TActivityTypeactor.SetcallerType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcallerType=AValue) then exit;
@@ -411,7 +336,7 @@ end;
 
 
 
-Procedure TActivityactor.Setemail(AIndex : Integer; AValue : string); 
+Procedure TActivityTypeactor.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -421,7 +346,7 @@ end;
 
 
 
-Procedure TActivityactor.Setkey(AIndex : Integer; AValue : string); 
+Procedure TActivityTypeactor.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -434,21 +359,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TActivityevents
+  TActivityTypeeventsItemTypeparametersItem
   --------------------------------------------------------------------}
 
 
-Procedure TActivityevents.SeteventType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FeventType=AValue) then exit;
-  FeventType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityevents.Setname(AIndex : Integer; AValue : string); 
+Procedure TActivityTypeeventsItemTypeparametersItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -458,34 +373,7 @@ end;
 
 
 
-Procedure TActivityevents.Setparameters(AIndex : Integer; AValue : TActivityeventsparameters); 
-
-begin
-  If (Fparameters=AValue) then exit;
-  Fparameters:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityeventsparameters
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityeventsparameters.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityeventsparameters.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TActivityTypeeventsItemTypeparametersItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -498,11 +386,61 @@ end;
 
 
 { --------------------------------------------------------------------
-  TActivityid
+  TActivityTypeeventsItem
   --------------------------------------------------------------------}
 
 
-Procedure TActivityid.SetapplicationId(AIndex : Integer; AValue : string); 
+Procedure TActivityTypeeventsItem.SeteventType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FeventType=AValue) then exit;
+  FeventType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeeventsItem.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeeventsItem.Setparameters(AIndex : Integer; AValue : TActivityTypeeventsItemTypeparametersArray); 
+
+begin
+  If (Fparameters=AValue) then exit;
+  Fparameters:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivityTypeeventsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'parameters' : SetLength(Fparameters,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeid
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeid.SetapplicationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -512,7 +450,7 @@ end;
 
 
 
-Procedure TActivityid.SetcustomerId(AIndex : Integer; AValue : string); 
+Procedure TActivityTypeid.SetcustomerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -522,7 +460,7 @@ end;
 
 
 
-Procedure TActivityid.Settime(AIndex : Integer; AValue : TDatetime); 
+Procedure TActivityTypeid.Settime(AIndex : Integer; AValue : TDatetime); 
 
 begin
   If (Ftime=AValue) then exit;
@@ -532,7 +470,7 @@ end;
 
 
 
-Procedure TActivityid.SetuniqQualifier(AIndex : Integer; AValue : string); 
+Procedure TActivityTypeid.SetuniqQualifier(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuniqQualifier=AValue) then exit;
@@ -540,6 +478,86 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivity
+  --------------------------------------------------------------------}
+
+
+Procedure TActivity.Setactor(AIndex : Integer; AValue : TActivityTypeactor); 
+
+begin
+  If (Factor=AValue) then exit;
+  Factor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setevents(AIndex : Integer; AValue : TActivityTypeeventsArray); 
+
+begin
+  If (Fevents=AValue) then exit;
+  Fevents:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setid(AIndex : Integer; AValue : TActivityTypeid); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.SetipAddress(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FipAddress=AValue) then exit;
+  FipAddress:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.SetownerDomain(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FownerDomain=AValue) then exit;
+  FownerDomain:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivity.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'events' : SetLength(Fevents,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -671,7 +689,7 @@ end;
 Class Function TAuditAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com/';
+  Result:='https://www.googleapis.com:443/';
 end;
 
 Class Function TAuditAPI.APIbasePath : string;
@@ -683,7 +701,7 @@ end;
 Class Function TAuditAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/apps/reporting/audit/v1/';
+  Result:='https://www.googleapis.com:443/apps/reporting/audit/v1/';
 end;
 
 Class Function TAuditAPI.APIProtocol : string;
@@ -721,12 +739,11 @@ Class Procedure TAuditAPI.RegisterAPIResources;
 
 begin
   TActivities.RegisterObject;
-  TActivitiesitems.RegisterObject;
+  TActivityTypeactor.RegisterObject;
+  TActivityTypeeventsItemTypeparametersItem.RegisterObject;
+  TActivityTypeeventsItem.RegisterObject;
+  TActivityTypeid.RegisterObject;
   TActivity.RegisterObject;
-  TActivityactor.RegisterObject;
-  TActivityevents.RegisterObject;
-  TActivityeventsparameters.RegisterObject;
-  TActivityid.RegisterObject;
 end;
 
 
@@ -749,7 +766,7 @@ Function TAuditAPI.CreateActivitiesResource(AOwner : TComponent) : TActivitiesRe
 
 begin
   Result:=TActivitiesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -1,31 +1,4 @@
 unit googlegamesManagement;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,53 +7,43 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TAchievementResetAllResponse = class;
+  
+  //Top-level schema types
+  TAchievementResetAllResponse = Class;
+  TAchievementResetMultipleForAllRequest = Class;
+  TAchievementResetResponse = Class;
+  TEventsResetMultipleForAllRequest = Class;
+  TGamesPlayedResource = Class;
+  TGamesPlayerExperienceInfoResource = Class;
+  TGamesPlayerLevelResource = Class;
+  THiddenPlayer = Class;
+  THiddenPlayerList = Class;
+  TPlayer = Class;
+  TPlayerScoreResetAllResponse = Class;
+  TPlayerScoreResetResponse = Class;
+  TProfileSettings = Class;
+  TQuestsResetMultipleForAllRequest = Class;
+  TScoresResetMultipleForAllRequest = Class;
   TAchievementResetAllResponseArray = Array of TAchievementResetAllResponse;
-  TAchievementResetAllResponseresults = class;
-  TAchievementResetAllResponseresultsArray = Array of TAchievementResetAllResponseresults;
-  TAchievementResetMultipleForAllRequest = class;
   TAchievementResetMultipleForAllRequestArray = Array of TAchievementResetMultipleForAllRequest;
-  TAchievementResetMultipleForAllRequestachievement_ids = class;
-  TAchievementResetMultipleForAllRequestachievement_idsArray = Array of TAchievementResetMultipleForAllRequestachievement_ids;
-  TAchievementResetResponse = class;
   TAchievementResetResponseArray = Array of TAchievementResetResponse;
-  TEventsResetMultipleForAllRequest = class;
   TEventsResetMultipleForAllRequestArray = Array of TEventsResetMultipleForAllRequest;
-  TEventsResetMultipleForAllRequestevent_ids = class;
-  TEventsResetMultipleForAllRequestevent_idsArray = Array of TEventsResetMultipleForAllRequestevent_ids;
-  TGamesPlayedResource = class;
   TGamesPlayedResourceArray = Array of TGamesPlayedResource;
-  TGamesPlayerExperienceInfoResource = class;
   TGamesPlayerExperienceInfoResourceArray = Array of TGamesPlayerExperienceInfoResource;
-  TGamesPlayerLevelResource = class;
   TGamesPlayerLevelResourceArray = Array of TGamesPlayerLevelResource;
-  THiddenPlayer = class;
   THiddenPlayerArray = Array of THiddenPlayer;
-  THiddenPlayerList = class;
   THiddenPlayerListArray = Array of THiddenPlayerList;
-  THiddenPlayerListitems = class;
-  THiddenPlayerListitemsArray = Array of THiddenPlayerListitems;
-  TPlayer = class;
   TPlayerArray = Array of TPlayer;
-  TPlayername = class;
-  TPlayernameArray = Array of TPlayername;
-  TPlayerScoreResetAllResponse = class;
   TPlayerScoreResetAllResponseArray = Array of TPlayerScoreResetAllResponse;
-  TPlayerScoreResetAllResponseresults = class;
-  TPlayerScoreResetAllResponseresultsArray = Array of TPlayerScoreResetAllResponseresults;
-  TPlayerScoreResetResponse = class;
   TPlayerScoreResetResponseArray = Array of TPlayerScoreResetResponse;
-  TPlayerScoreResetResponseresetScoreTimeSpans = class;
-  TPlayerScoreResetResponseresetScoreTimeSpansArray = Array of TPlayerScoreResetResponseresetScoreTimeSpans;
-  TQuestsResetMultipleForAllRequest = class;
+  TProfileSettingsArray = Array of TProfileSettings;
   TQuestsResetMultipleForAllRequestArray = Array of TQuestsResetMultipleForAllRequest;
-  TQuestsResetMultipleForAllRequestquest_ids = class;
-  TQuestsResetMultipleForAllRequestquest_idsArray = Array of TQuestsResetMultipleForAllRequestquest_ids;
-  TScoresResetMultipleForAllRequest = class;
   TScoresResetMultipleForAllRequestArray = Array of TScoresResetMultipleForAllRequest;
-  TScoresResetMultipleForAllRequestleaderboard_ids = class;
-  TScoresResetMultipleForAllRequestleaderboard_idsArray = Array of TScoresResetMultipleForAllRequestleaderboard_ids;
+  //Anonymous types, using auto-generated names
+  TPlayerTypename = Class;
+  TAchievementResetAllResponseTyperesultsArray = Array of TAchievementResetResponse;
+  THiddenPlayerListTypeitemsArray = Array of THiddenPlayer;
+  TPlayerScoreResetAllResponseTyperesultsArray = Array of TPlayerScoreResetResponse;
   
   { --------------------------------------------------------------------
     TAchievementResetAllResponse
@@ -88,31 +51,22 @@ type
   
   TAchievementResetAllResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fresults : TAchievementResetAllResponseresults;
+    Fkind : String;
+    Fresults : TAchievementResetAllResponseTyperesultsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresults(AIndex : Integer; AValue : TAchievementResetAllResponseresults); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setresults(AIndex : Integer; const AValue : TAchievementResetAllResponseTyperesultsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property results : TAchievementResetAllResponseresults Index 8 Read Fresults Write Setresults;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property results : TAchievementResetAllResponseTyperesultsArray Index 8 Read Fresults Write Setresults;
   end;
   TAchievementResetAllResponseClass = Class of TAchievementResetAllResponse;
-  
-  { --------------------------------------------------------------------
-    TAchievementResetAllResponseresults
-    --------------------------------------------------------------------}
-  
-  TAchievementResetAllResponseresults = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAchievementResetAllResponseresultsClass = Class of TAchievementResetAllResponseresults;
   
   { --------------------------------------------------------------------
     TAchievementResetMultipleForAllRequest
@@ -120,31 +74,22 @@ type
   
   TAchievementResetMultipleForAllRequest = Class(TGoogleBaseObject)
   Private
-    Fachievement_ids : TAchievementResetMultipleForAllRequestachievement_ids;
-    Fkind : string;
+    Fachievement_ids : TStringArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setachievement_ids(AIndex : Integer; AValue : TAchievementResetMultipleForAllRequestachievement_ids); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setachievement_ids(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property achievement_ids : TAchievementResetMultipleForAllRequestachievement_ids Index 0 Read Fachievement_ids Write Setachievement_ids;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property achievement_ids : TStringArray Index 0 Read Fachievement_ids Write Setachievement_ids;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAchievementResetMultipleForAllRequestClass = Class of TAchievementResetMultipleForAllRequest;
-  
-  { --------------------------------------------------------------------
-    TAchievementResetMultipleForAllRequestachievement_ids
-    --------------------------------------------------------------------}
-  
-  TAchievementResetMultipleForAllRequestachievement_ids = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAchievementResetMultipleForAllRequestachievement_idsClass = Class of TAchievementResetMultipleForAllRequestachievement_ids;
   
   { --------------------------------------------------------------------
     TAchievementResetResponse
@@ -152,21 +97,21 @@ type
   
   TAchievementResetResponse = Class(TGoogleBaseObject)
   Private
-    FcurrentState : string;
-    FdefinitionId : string;
-    Fkind : string;
+    FcurrentState : String;
+    FdefinitionId : String;
+    Fkind : String;
     FupdateOccurred : boolean;
   Protected
     //Property setters
-    Procedure SetcurrentState(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdefinitionId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetupdateOccurred(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetcurrentState(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefinitionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetupdateOccurred(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
-    Property currentState : string Index 0 Read FcurrentState Write SetcurrentState;
-    Property definitionId : string Index 8 Read FdefinitionId Write SetdefinitionId;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property currentState : String Index 0 Read FcurrentState Write SetcurrentState;
+    Property definitionId : String Index 8 Read FdefinitionId Write SetdefinitionId;
+    Property kind : String Index 16 Read Fkind Write Setkind;
     Property updateOccurred : boolean Index 24 Read FupdateOccurred Write SetupdateOccurred;
   end;
   TAchievementResetResponseClass = Class of TAchievementResetResponse;
@@ -177,31 +122,22 @@ type
   
   TEventsResetMultipleForAllRequest = Class(TGoogleBaseObject)
   Private
-    Fevent_ids : TEventsResetMultipleForAllRequestevent_ids;
-    Fkind : string;
+    Fevent_ids : TStringArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setevent_ids(AIndex : Integer; AValue : TEventsResetMultipleForAllRequestevent_ids); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setevent_ids(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property event_ids : TEventsResetMultipleForAllRequestevent_ids Index 0 Read Fevent_ids Write Setevent_ids;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property event_ids : TStringArray Index 0 Read Fevent_ids Write Setevent_ids;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TEventsResetMultipleForAllRequestClass = Class of TEventsResetMultipleForAllRequest;
-  
-  { --------------------------------------------------------------------
-    TEventsResetMultipleForAllRequestevent_ids
-    --------------------------------------------------------------------}
-  
-  TEventsResetMultipleForAllRequestevent_ids = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TEventsResetMultipleForAllRequestevent_idsClass = Class of TEventsResetMultipleForAllRequestevent_ids;
   
   { --------------------------------------------------------------------
     TGamesPlayedResource
@@ -210,15 +146,15 @@ type
   TGamesPlayedResource = Class(TGoogleBaseObject)
   Private
     FautoMatched : boolean;
-    FtimeMillis : string;
+    FtimeMillis : String;
   Protected
     //Property setters
-    Procedure SetautoMatched(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SettimeMillis(AIndex : Integer; AValue : string); virtual;
+    Procedure SetautoMatched(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SettimeMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property autoMatched : boolean Index 0 Read FautoMatched Write SetautoMatched;
-    Property timeMillis : string Index 8 Read FtimeMillis Write SettimeMillis;
+    Property timeMillis : String Index 8 Read FtimeMillis Write SettimeMillis;
   end;
   TGamesPlayedResourceClass = Class of TGamesPlayedResource;
   
@@ -228,21 +164,21 @@ type
   
   TGamesPlayerExperienceInfoResource = Class(TGoogleBaseObject)
   Private
-    FcurrentExperiencePoints : string;
+    FcurrentExperiencePoints : String;
     FcurrentLevel : TGamesPlayerLevelResource;
-    FlastLevelUpTimestampMillis : string;
+    FlastLevelUpTimestampMillis : String;
     FnextLevel : TGamesPlayerLevelResource;
   Protected
     //Property setters
-    Procedure SetcurrentExperiencePoints(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcurrentLevel(AIndex : Integer; AValue : TGamesPlayerLevelResource); virtual;
-    Procedure SetlastLevelUpTimestampMillis(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextLevel(AIndex : Integer; AValue : TGamesPlayerLevelResource); virtual;
+    Procedure SetcurrentExperiencePoints(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcurrentLevel(AIndex : Integer; const AValue : TGamesPlayerLevelResource); virtual;
+    Procedure SetlastLevelUpTimestampMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLevel(AIndex : Integer; const AValue : TGamesPlayerLevelResource); virtual;
   Public
   Published
-    Property currentExperiencePoints : string Index 0 Read FcurrentExperiencePoints Write SetcurrentExperiencePoints;
+    Property currentExperiencePoints : String Index 0 Read FcurrentExperiencePoints Write SetcurrentExperiencePoints;
     Property currentLevel : TGamesPlayerLevelResource Index 8 Read FcurrentLevel Write SetcurrentLevel;
-    Property lastLevelUpTimestampMillis : string Index 16 Read FlastLevelUpTimestampMillis Write SetlastLevelUpTimestampMillis;
+    Property lastLevelUpTimestampMillis : String Index 16 Read FlastLevelUpTimestampMillis Write SetlastLevelUpTimestampMillis;
     Property nextLevel : TGamesPlayerLevelResource Index 24 Read FnextLevel Write SetnextLevel;
   end;
   TGamesPlayerExperienceInfoResourceClass = Class of TGamesPlayerExperienceInfoResource;
@@ -254,18 +190,18 @@ type
   TGamesPlayerLevelResource = Class(TGoogleBaseObject)
   Private
     Flevel : integer;
-    FmaxExperiencePoints : string;
-    FminExperiencePoints : string;
+    FmaxExperiencePoints : String;
+    FminExperiencePoints : String;
   Protected
     //Property setters
-    Procedure Setlevel(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmaxExperiencePoints(AIndex : Integer; AValue : string); virtual;
-    Procedure SetminExperiencePoints(AIndex : Integer; AValue : string); virtual;
+    Procedure Setlevel(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetmaxExperiencePoints(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetminExperiencePoints(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property level : integer Index 0 Read Flevel Write Setlevel;
-    Property maxExperiencePoints : string Index 8 Read FmaxExperiencePoints Write SetmaxExperiencePoints;
-    Property minExperiencePoints : string Index 16 Read FminExperiencePoints Write SetminExperiencePoints;
+    Property maxExperiencePoints : String Index 8 Read FmaxExperiencePoints Write SetmaxExperiencePoints;
+    Property minExperiencePoints : String Index 16 Read FminExperiencePoints Write SetminExperiencePoints;
   end;
   TGamesPlayerLevelResourceClass = Class of TGamesPlayerLevelResource;
   
@@ -275,18 +211,18 @@ type
   
   THiddenPlayer = Class(TGoogleBaseObject)
   Private
-    FhiddenTimeMillis : string;
-    Fkind : string;
+    FhiddenTimeMillis : String;
+    Fkind : String;
     Fplayer : TPlayer;
   Protected
     //Property setters
-    Procedure SethiddenTimeMillis(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
+    Procedure SethiddenTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setplayer(AIndex : Integer; const AValue : TPlayer); virtual;
   Public
   Published
-    Property hiddenTimeMillis : string Index 0 Read FhiddenTimeMillis Write SethiddenTimeMillis;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property hiddenTimeMillis : String Index 0 Read FhiddenTimeMillis Write SethiddenTimeMillis;
+    Property kind : String Index 8 Read Fkind Write Setkind;
     Property player : TPlayer Index 16 Read Fplayer Write Setplayer;
   end;
   THiddenPlayerClass = Class of THiddenPlayer;
@@ -297,34 +233,44 @@ type
   
   THiddenPlayerList = Class(TGoogleBaseObject)
   Private
-    Fitems : THiddenPlayerListitems;
-    Fkind : string;
-    FnextPageToken : string;
+    Fitems : THiddenPlayerListTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : THiddenPlayerListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : THiddenPlayerListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property items : THiddenPlayerListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 16 Read FnextPageToken Write SetnextPageToken;
+    Property items : THiddenPlayerListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   THiddenPlayerListClass = Class of THiddenPlayerList;
   
   { --------------------------------------------------------------------
-    THiddenPlayerListitems
+    TPlayerTypename
     --------------------------------------------------------------------}
   
-  THiddenPlayerListitems = Class(TGoogleBaseObject)
+  TPlayerTypename = Class(TGoogleBaseObject)
   Private
+    FfamilyName : String;
+    FgivenName : String;
   Protected
     //Property setters
+    Procedure SetfamilyName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgivenName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property familyName : String Index 0 Read FfamilyName Write SetfamilyName;
+    Property givenName : String Index 8 Read FgivenName Write SetgivenName;
   end;
-  THiddenPlayerListitemsClass = Class of THiddenPlayerListitems;
+  TPlayerTypenameClass = Class of TPlayerTypename;
   
   { --------------------------------------------------------------------
     TPlayer
@@ -332,55 +278,48 @@ type
   
   TPlayer = Class(TGoogleBaseObject)
   Private
-    FavatarImageUrl : string;
-    FdisplayName : string;
+    FavatarImageUrl : String;
+    FbannerUrlLandscape : String;
+    FbannerUrlPortrait : String;
+    FdisplayName : String;
     FexperienceInfo : TGamesPlayerExperienceInfoResource;
-    Fkind : string;
+    Fkind : String;
     FlastPlayedWith : TGamesPlayedResource;
-    Fname : TPlayername;
-    FplayerId : string;
-    Ftitle : string;
+    Fname : TPlayerTypename;
+    ForiginalPlayerId : String;
+    FplayerId : String;
+    FprofileSettings : TProfileSettings;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetavatarImageUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexperienceInfo(AIndex : Integer; AValue : TGamesPlayerExperienceInfoResource); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlastPlayedWith(AIndex : Integer; AValue : TGamesPlayedResource); virtual;
-    Procedure Setname(AIndex : Integer; AValue : TPlayername); virtual;
-    Procedure SetplayerId(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure SetavatarImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerUrlLandscape(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerUrlPortrait(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetexperienceInfo(AIndex : Integer; const AValue : TGamesPlayerExperienceInfoResource); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastPlayedWith(AIndex : Integer; const AValue : TGamesPlayedResource); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : TPlayerTypename); virtual;
+    Procedure SetoriginalPlayerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplayerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileSettings(AIndex : Integer; const AValue : TProfileSettings); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property avatarImageUrl : string Index 0 Read FavatarImageUrl Write SetavatarImageUrl;
-    Property displayName : string Index 8 Read FdisplayName Write SetdisplayName;
-    Property experienceInfo : TGamesPlayerExperienceInfoResource Index 16 Read FexperienceInfo Write SetexperienceInfo;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property lastPlayedWith : TGamesPlayedResource Index 32 Read FlastPlayedWith Write SetlastPlayedWith;
-    Property name : TPlayername Index 40 Read Fname Write Setname;
-    Property playerId : string Index 48 Read FplayerId Write SetplayerId;
-    Property title : string Index 56 Read Ftitle Write Settitle;
+    Property avatarImageUrl : String Index 0 Read FavatarImageUrl Write SetavatarImageUrl;
+    Property bannerUrlLandscape : String Index 8 Read FbannerUrlLandscape Write SetbannerUrlLandscape;
+    Property bannerUrlPortrait : String Index 16 Read FbannerUrlPortrait Write SetbannerUrlPortrait;
+    Property displayName : String Index 24 Read FdisplayName Write SetdisplayName;
+    Property experienceInfo : TGamesPlayerExperienceInfoResource Index 32 Read FexperienceInfo Write SetexperienceInfo;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property lastPlayedWith : TGamesPlayedResource Index 48 Read FlastPlayedWith Write SetlastPlayedWith;
+    Property name : TPlayerTypename Index 56 Read Fname Write Setname;
+    Property originalPlayerId : String Index 64 Read ForiginalPlayerId Write SetoriginalPlayerId;
+    Property playerId : String Index 72 Read FplayerId Write SetplayerId;
+    Property profileSettings : TProfileSettings Index 80 Read FprofileSettings Write SetprofileSettings;
+    Property title : String Index 88 Read Ftitle Write Settitle;
   end;
   TPlayerClass = Class of TPlayer;
-  
-  { --------------------------------------------------------------------
-    TPlayername
-    --------------------------------------------------------------------}
-  
-  TPlayername = Class(TGoogleBaseObject)
-  Private
-    FfamilyName : string;
-    FgivenName : string;
-  Protected
-    //Property setters
-    Procedure SetfamilyName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgivenName(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property familyName : string Index 0 Read FfamilyName Write SetfamilyName;
-    Property givenName : string Index 8 Read FgivenName Write SetgivenName;
-  end;
-  TPlayernameClass = Class of TPlayername;
   
   { --------------------------------------------------------------------
     TPlayerScoreResetAllResponse
@@ -388,31 +327,22 @@ type
   
   TPlayerScoreResetAllResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fresults : TPlayerScoreResetAllResponseresults;
+    Fkind : String;
+    Fresults : TPlayerScoreResetAllResponseTyperesultsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresults(AIndex : Integer; AValue : TPlayerScoreResetAllResponseresults); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setresults(AIndex : Integer; const AValue : TPlayerScoreResetAllResponseTyperesultsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property results : TPlayerScoreResetAllResponseresults Index 8 Read Fresults Write Setresults;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property results : TPlayerScoreResetAllResponseTyperesultsArray Index 8 Read Fresults Write Setresults;
   end;
   TPlayerScoreResetAllResponseClass = Class of TPlayerScoreResetAllResponse;
-  
-  { --------------------------------------------------------------------
-    TPlayerScoreResetAllResponseresults
-    --------------------------------------------------------------------}
-  
-  TPlayerScoreResetAllResponseresults = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPlayerScoreResetAllResponseresultsClass = Class of TPlayerScoreResetAllResponseresults;
   
   { --------------------------------------------------------------------
     TPlayerScoreResetResponse
@@ -420,34 +350,44 @@ type
   
   TPlayerScoreResetResponse = Class(TGoogleBaseObject)
   Private
-    FdefinitionId : string;
-    Fkind : string;
-    FresetScoreTimeSpans : TPlayerScoreResetResponseresetScoreTimeSpans;
+    FdefinitionId : String;
+    Fkind : String;
+    FresetScoreTimeSpans : TStringArray;
   Protected
     //Property setters
-    Procedure SetdefinitionId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetresetScoreTimeSpans(AIndex : Integer; AValue : TPlayerScoreResetResponseresetScoreTimeSpans); virtual;
+    Procedure SetdefinitionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetresetScoreTimeSpans(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property definitionId : string Index 0 Read FdefinitionId Write SetdefinitionId;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property resetScoreTimeSpans : TPlayerScoreResetResponseresetScoreTimeSpans Index 16 Read FresetScoreTimeSpans Write SetresetScoreTimeSpans;
+    Property definitionId : String Index 0 Read FdefinitionId Write SetdefinitionId;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property resetScoreTimeSpans : TStringArray Index 16 Read FresetScoreTimeSpans Write SetresetScoreTimeSpans;
   end;
   TPlayerScoreResetResponseClass = Class of TPlayerScoreResetResponse;
   
   { --------------------------------------------------------------------
-    TPlayerScoreResetResponseresetScoreTimeSpans
+    TProfileSettings
     --------------------------------------------------------------------}
   
-  TPlayerScoreResetResponseresetScoreTimeSpans = Class(TGoogleBaseObject)
+  TProfileSettings = Class(TGoogleBaseObject)
   Private
+    Fkind : String;
+    FprofileVisible : boolean;
   Protected
     //Property setters
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileVisible(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property profileVisible : boolean Index 8 Read FprofileVisible Write SetprofileVisible;
   end;
-  TPlayerScoreResetResponseresetScoreTimeSpansClass = Class of TPlayerScoreResetResponseresetScoreTimeSpans;
+  TProfileSettingsClass = Class of TProfileSettings;
   
   { --------------------------------------------------------------------
     TQuestsResetMultipleForAllRequest
@@ -455,31 +395,22 @@ type
   
   TQuestsResetMultipleForAllRequest = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fquest_ids : TQuestsResetMultipleForAllRequestquest_ids;
+    Fkind : String;
+    Fquest_ids : TStringArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setquest_ids(AIndex : Integer; AValue : TQuestsResetMultipleForAllRequestquest_ids); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setquest_ids(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property quest_ids : TQuestsResetMultipleForAllRequestquest_ids Index 8 Read Fquest_ids Write Setquest_ids;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property quest_ids : TStringArray Index 8 Read Fquest_ids Write Setquest_ids;
   end;
   TQuestsResetMultipleForAllRequestClass = Class of TQuestsResetMultipleForAllRequest;
-  
-  { --------------------------------------------------------------------
-    TQuestsResetMultipleForAllRequestquest_ids
-    --------------------------------------------------------------------}
-  
-  TQuestsResetMultipleForAllRequestquest_ids = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TQuestsResetMultipleForAllRequestquest_idsClass = Class of TQuestsResetMultipleForAllRequestquest_ids;
   
   { --------------------------------------------------------------------
     TScoresResetMultipleForAllRequest
@@ -487,31 +418,22 @@ type
   
   TScoresResetMultipleForAllRequest = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fleaderboard_ids : TScoresResetMultipleForAllRequestleaderboard_ids;
+    Fkind : String;
+    Fleaderboard_ids : TStringArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setleaderboard_ids(AIndex : Integer; AValue : TScoresResetMultipleForAllRequestleaderboard_ids); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setleaderboard_ids(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property leaderboard_ids : TScoresResetMultipleForAllRequestleaderboard_ids Index 8 Read Fleaderboard_ids Write Setleaderboard_ids;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property leaderboard_ids : TStringArray Index 8 Read Fleaderboard_ids Write Setleaderboard_ids;
   end;
   TScoresResetMultipleForAllRequestClass = Class of TScoresResetMultipleForAllRequest;
-  
-  { --------------------------------------------------------------------
-    TScoresResetMultipleForAllRequestleaderboard_ids
-    --------------------------------------------------------------------}
-  
-  TScoresResetMultipleForAllRequestleaderboard_ids = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TScoresResetMultipleForAllRequestleaderboard_idsClass = Class of TScoresResetMultipleForAllRequestleaderboard_ids;
   
   { --------------------------------------------------------------------
     TAchievementsResource
@@ -538,7 +460,7 @@ type
   
   TApplicationsListHiddenOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   TApplicationsResource = Class(TGoogleResource)
@@ -717,7 +639,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementResetAllResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAchievementResetAllResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -727,7 +649,7 @@ end;
 
 
 
-Procedure TAchievementResetAllResponse.Setresults(AIndex : Integer; AValue : TAchievementResetAllResponseresults); 
+Procedure TAchievementResetAllResponse.Setresults(AIndex : Integer; const AValue : TAchievementResetAllResponseTyperesultsArray); 
 
 begin
   If (Fresults=AValue) then exit;
@@ -736,12 +658,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAchievementResetAllResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TAchievementResetAllResponseresults
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'results' : SetLength(Fresults,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -751,7 +679,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementResetMultipleForAllRequest.Setachievement_ids(AIndex : Integer; AValue : TAchievementResetMultipleForAllRequestachievement_ids); 
+Procedure TAchievementResetMultipleForAllRequest.Setachievement_ids(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fachievement_ids=AValue) then exit;
@@ -761,7 +689,7 @@ end;
 
 
 
-Procedure TAchievementResetMultipleForAllRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAchievementResetMultipleForAllRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -770,12 +698,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAchievementResetMultipleForAllRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TAchievementResetMultipleForAllRequestachievement_ids
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'achievement_ids' : SetLength(Fachievement_ids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -785,7 +719,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementResetResponse.SetcurrentState(AIndex : Integer; AValue : string); 
+Procedure TAchievementResetResponse.SetcurrentState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentState=AValue) then exit;
@@ -795,7 +729,7 @@ end;
 
 
 
-Procedure TAchievementResetResponse.SetdefinitionId(AIndex : Integer; AValue : string); 
+Procedure TAchievementResetResponse.SetdefinitionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefinitionId=AValue) then exit;
@@ -805,7 +739,7 @@ end;
 
 
 
-Procedure TAchievementResetResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAchievementResetResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -815,7 +749,7 @@ end;
 
 
 
-Procedure TAchievementResetResponse.SetupdateOccurred(AIndex : Integer; AValue : boolean); 
+Procedure TAchievementResetResponse.SetupdateOccurred(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FupdateOccurred=AValue) then exit;
@@ -832,7 +766,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventsResetMultipleForAllRequest.Setevent_ids(AIndex : Integer; AValue : TEventsResetMultipleForAllRequestevent_ids); 
+Procedure TEventsResetMultipleForAllRequest.Setevent_ids(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fevent_ids=AValue) then exit;
@@ -842,7 +776,7 @@ end;
 
 
 
-Procedure TEventsResetMultipleForAllRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TEventsResetMultipleForAllRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -851,12 +785,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TEventsResetMultipleForAllRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TEventsResetMultipleForAllRequestevent_ids
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'event_ids' : SetLength(Fevent_ids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -866,7 +806,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesPlayedResource.SetautoMatched(AIndex : Integer; AValue : boolean); 
+Procedure TGamesPlayedResource.SetautoMatched(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FautoMatched=AValue) then exit;
@@ -876,7 +816,7 @@ end;
 
 
 
-Procedure TGamesPlayedResource.SettimeMillis(AIndex : Integer; AValue : string); 
+Procedure TGamesPlayedResource.SettimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeMillis=AValue) then exit;
@@ -893,7 +833,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesPlayerExperienceInfoResource.SetcurrentExperiencePoints(AIndex : Integer; AValue : string); 
+Procedure TGamesPlayerExperienceInfoResource.SetcurrentExperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentExperiencePoints=AValue) then exit;
@@ -903,7 +843,7 @@ end;
 
 
 
-Procedure TGamesPlayerExperienceInfoResource.SetcurrentLevel(AIndex : Integer; AValue : TGamesPlayerLevelResource); 
+Procedure TGamesPlayerExperienceInfoResource.SetcurrentLevel(AIndex : Integer; const AValue : TGamesPlayerLevelResource); 
 
 begin
   If (FcurrentLevel=AValue) then exit;
@@ -913,7 +853,7 @@ end;
 
 
 
-Procedure TGamesPlayerExperienceInfoResource.SetlastLevelUpTimestampMillis(AIndex : Integer; AValue : string); 
+Procedure TGamesPlayerExperienceInfoResource.SetlastLevelUpTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastLevelUpTimestampMillis=AValue) then exit;
@@ -923,7 +863,7 @@ end;
 
 
 
-Procedure TGamesPlayerExperienceInfoResource.SetnextLevel(AIndex : Integer; AValue : TGamesPlayerLevelResource); 
+Procedure TGamesPlayerExperienceInfoResource.SetnextLevel(AIndex : Integer; const AValue : TGamesPlayerLevelResource); 
 
 begin
   If (FnextLevel=AValue) then exit;
@@ -940,7 +880,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesPlayerLevelResource.Setlevel(AIndex : Integer; AValue : integer); 
+Procedure TGamesPlayerLevelResource.Setlevel(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Flevel=AValue) then exit;
@@ -950,7 +890,7 @@ end;
 
 
 
-Procedure TGamesPlayerLevelResource.SetmaxExperiencePoints(AIndex : Integer; AValue : string); 
+Procedure TGamesPlayerLevelResource.SetmaxExperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmaxExperiencePoints=AValue) then exit;
@@ -960,7 +900,7 @@ end;
 
 
 
-Procedure TGamesPlayerLevelResource.SetminExperiencePoints(AIndex : Integer; AValue : string); 
+Procedure TGamesPlayerLevelResource.SetminExperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FminExperiencePoints=AValue) then exit;
@@ -977,7 +917,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THiddenPlayer.SethiddenTimeMillis(AIndex : Integer; AValue : string); 
+Procedure THiddenPlayer.SethiddenTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhiddenTimeMillis=AValue) then exit;
@@ -987,7 +927,7 @@ end;
 
 
 
-Procedure THiddenPlayer.Setkind(AIndex : Integer; AValue : string); 
+Procedure THiddenPlayer.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -997,7 +937,7 @@ end;
 
 
 
-Procedure THiddenPlayer.Setplayer(AIndex : Integer; AValue : TPlayer); 
+Procedure THiddenPlayer.Setplayer(AIndex : Integer; const AValue : TPlayer); 
 
 begin
   If (Fplayer=AValue) then exit;
@@ -1014,7 +954,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THiddenPlayerList.Setitems(AIndex : Integer; AValue : THiddenPlayerListitems); 
+Procedure THiddenPlayerList.Setitems(AIndex : Integer; const AValue : THiddenPlayerListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1024,7 +964,7 @@ end;
 
 
 
-Procedure THiddenPlayerList.Setkind(AIndex : Integer; AValue : string); 
+Procedure THiddenPlayerList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1034,7 +974,7 @@ end;
 
 
 
-Procedure THiddenPlayerList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure THiddenPlayerList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1043,109 +983,28 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  THiddenPlayerListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPlayer
-  --------------------------------------------------------------------}
-
-
-Procedure TPlayer.SetavatarImageUrl(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure THiddenPlayerList.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (FavatarImageUrl=AValue) then exit;
-  FavatarImageUrl:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TPlayer.SetdisplayName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdisplayName=AValue) then exit;
-  FdisplayName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPlayer.SetexperienceInfo(AIndex : Integer; AValue : TGamesPlayerExperienceInfoResource); 
-
-begin
-  If (FexperienceInfo=AValue) then exit;
-  FexperienceInfo:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPlayer.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPlayer.SetlastPlayedWith(AIndex : Integer; AValue : TGamesPlayedResource); 
-
-begin
-  If (FlastPlayedWith=AValue) then exit;
-  FlastPlayedWith:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPlayer.Setname(AIndex : Integer; AValue : TPlayername); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPlayer.SetplayerId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FplayerId=AValue) then exit;
-  FplayerId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPlayer.Settitle(AIndex : Integer; AValue : string); 
-
-begin
-  If (Ftitle=AValue) then exit;
-  Ftitle:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TPlayername
+  TPlayerTypename
   --------------------------------------------------------------------}
 
 
-Procedure TPlayername.SetfamilyName(AIndex : Integer; AValue : string); 
+Procedure TPlayerTypename.SetfamilyName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfamilyName=AValue) then exit;
@@ -1155,7 +1014,7 @@ end;
 
 
 
-Procedure TPlayername.SetgivenName(AIndex : Integer; AValue : string); 
+Procedure TPlayerTypename.SetgivenName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgivenName=AValue) then exit;
@@ -1168,11 +1027,61 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPlayerScoreResetAllResponse
+  TPlayer
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScoreResetAllResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPlayer.SetavatarImageUrl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FavatarImageUrl=AValue) then exit;
+  FavatarImageUrl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.SetbannerUrlLandscape(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FbannerUrlLandscape=AValue) then exit;
+  FbannerUrlLandscape:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.SetbannerUrlPortrait(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FbannerUrlPortrait=AValue) then exit;
+  FbannerUrlPortrait:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.SetdisplayName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdisplayName=AValue) then exit;
+  FdisplayName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.SetexperienceInfo(AIndex : Integer; const AValue : TGamesPlayerExperienceInfoResource); 
+
+begin
+  If (FexperienceInfo=AValue) then exit;
+  FexperienceInfo:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1182,11 +1091,61 @@ end;
 
 
 
-Procedure TPlayerScoreResetAllResponse.Setresults(AIndex : Integer; AValue : TPlayerScoreResetAllResponseresults); 
+Procedure TPlayer.SetlastPlayedWith(AIndex : Integer; const AValue : TGamesPlayedResource); 
 
 begin
-  If (Fresults=AValue) then exit;
-  Fresults:=AValue;
+  If (FlastPlayedWith=AValue) then exit;
+  FlastPlayedWith:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.Setname(AIndex : Integer; const AValue : TPlayerTypename); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.SetoriginalPlayerId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (ForiginalPlayerId=AValue) then exit;
+  ForiginalPlayerId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.SetplayerId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FplayerId=AValue) then exit;
+  FplayerId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.SetprofileSettings(AIndex : Integer; const AValue : TProfileSettings); 
+
+begin
+  If (FprofileSettings=AValue) then exit;
+  FprofileSettings:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.Settitle(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ftitle=AValue) then exit;
+  Ftitle:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1195,8 +1154,41 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPlayerScoreResetAllResponseresults
+  TPlayerScoreResetAllResponse
   --------------------------------------------------------------------}
+
+
+Procedure TPlayerScoreResetAllResponse.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayerScoreResetAllResponse.Setresults(AIndex : Integer; const AValue : TPlayerScoreResetAllResponseTyperesultsArray); 
+
+begin
+  If (Fresults=AValue) then exit;
+  Fresults:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPlayerScoreResetAllResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'results' : SetLength(Fresults,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1206,7 +1198,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScoreResetResponse.SetdefinitionId(AIndex : Integer; AValue : string); 
+Procedure TPlayerScoreResetResponse.SetdefinitionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefinitionId=AValue) then exit;
@@ -1216,7 +1208,7 @@ end;
 
 
 
-Procedure TPlayerScoreResetResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPlayerScoreResetResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1226,7 +1218,7 @@ end;
 
 
 
-Procedure TPlayerScoreResetResponse.SetresetScoreTimeSpans(AIndex : Integer; AValue : TPlayerScoreResetResponseresetScoreTimeSpans); 
+Procedure TPlayerScoreResetResponse.SetresetScoreTimeSpans(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FresetScoreTimeSpans=AValue) then exit;
@@ -1235,12 +1227,45 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPlayerScoreResetResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'resetscoretimespans' : SetLength(FresetScoreTimeSpans,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TPlayerScoreResetResponseresetScoreTimeSpans
+  TProfileSettings
   --------------------------------------------------------------------}
+
+
+Procedure TProfileSettings.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProfileSettings.SetprofileVisible(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FprofileVisible=AValue) then exit;
+  FprofileVisible:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -1250,7 +1275,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuestsResetMultipleForAllRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TQuestsResetMultipleForAllRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1260,7 +1285,7 @@ end;
 
 
 
-Procedure TQuestsResetMultipleForAllRequest.Setquest_ids(AIndex : Integer; AValue : TQuestsResetMultipleForAllRequestquest_ids); 
+Procedure TQuestsResetMultipleForAllRequest.Setquest_ids(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fquest_ids=AValue) then exit;
@@ -1269,12 +1294,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TQuestsResetMultipleForAllRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TQuestsResetMultipleForAllRequestquest_ids
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'quest_ids' : SetLength(Fquest_ids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1284,7 +1315,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TScoresResetMultipleForAllRequest.Setkind(AIndex : Integer; AValue : string); 
+Procedure TScoresResetMultipleForAllRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1294,7 +1325,7 @@ end;
 
 
 
-Procedure TScoresResetMultipleForAllRequest.Setleaderboard_ids(AIndex : Integer; AValue : TScoresResetMultipleForAllRequestleaderboard_ids); 
+Procedure TScoresResetMultipleForAllRequest.Setleaderboard_ids(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fleaderboard_ids=AValue) then exit;
@@ -1303,12 +1334,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TScoresResetMultipleForAllRequest.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TScoresResetMultipleForAllRequestleaderboard_ids
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'leaderboard_ids' : SetLength(Fleaderboard_ids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1838,7 +1875,7 @@ end;
 Class Function TGamesManagementAPI.APIRevision : String;
 
 begin
-  Result:='20150421';
+  Result:='20160519';
 end;
 
 Class Function TGamesManagementAPI.APIID : String;
@@ -1932,7 +1969,7 @@ begin
   Result[0].Name:='https://www.googleapis.com/auth/games';
   Result[0].Description:='Share your Google+ profile information and view and manage your game activity';
   Result[1].Name:='https://www.googleapis.com/auth/plus.login';
-  Result[1].Description:='Know your basic profile info and list of people in your circles.';
+  Result[1].Description:='Know the list of people in your circles, your age range, and language';
   
 end;
 
@@ -1946,28 +1983,21 @@ Class Procedure TGamesManagementAPI.RegisterAPIResources;
 
 begin
   TAchievementResetAllResponse.RegisterObject;
-  TAchievementResetAllResponseresults.RegisterObject;
   TAchievementResetMultipleForAllRequest.RegisterObject;
-  TAchievementResetMultipleForAllRequestachievement_ids.RegisterObject;
   TAchievementResetResponse.RegisterObject;
   TEventsResetMultipleForAllRequest.RegisterObject;
-  TEventsResetMultipleForAllRequestevent_ids.RegisterObject;
   TGamesPlayedResource.RegisterObject;
   TGamesPlayerExperienceInfoResource.RegisterObject;
   TGamesPlayerLevelResource.RegisterObject;
   THiddenPlayer.RegisterObject;
   THiddenPlayerList.RegisterObject;
-  THiddenPlayerListitems.RegisterObject;
+  TPlayerTypename.RegisterObject;
   TPlayer.RegisterObject;
-  TPlayername.RegisterObject;
   TPlayerScoreResetAllResponse.RegisterObject;
-  TPlayerScoreResetAllResponseresults.RegisterObject;
   TPlayerScoreResetResponse.RegisterObject;
-  TPlayerScoreResetResponseresetScoreTimeSpans.RegisterObject;
+  TProfileSettings.RegisterObject;
   TQuestsResetMultipleForAllRequest.RegisterObject;
-  TQuestsResetMultipleForAllRequestquest_ids.RegisterObject;
   TScoresResetMultipleForAllRequest.RegisterObject;
-  TScoresResetMultipleForAllRequestleaderboard_ids.RegisterObject;
 end;
 
 
@@ -1990,7 +2020,7 @@ Function TGamesManagementAPI.CreateAchievementsResource(AOwner : TComponent) : T
 
 begin
   Result:=TAchievementsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2014,7 +2044,7 @@ Function TGamesManagementAPI.CreateApplicationsResource(AOwner : TComponent) : T
 
 begin
   Result:=TApplicationsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2038,7 +2068,7 @@ Function TGamesManagementAPI.CreateEventsResource(AOwner : TComponent) : TEvents
 
 begin
   Result:=TEventsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2062,7 +2092,7 @@ Function TGamesManagementAPI.CreatePlayersResource(AOwner : TComponent) : TPlaye
 
 begin
   Result:=TPlayersResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2086,7 +2116,7 @@ Function TGamesManagementAPI.CreateQuestsResource(AOwner : TComponent) : TQuests
 
 begin
   Result:=TQuestsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2110,7 +2140,7 @@ Function TGamesManagementAPI.CreateRoomsResource(AOwner : TComponent) : TRoomsRe
 
 begin
   Result:=TRoomsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2134,7 +2164,7 @@ Function TGamesManagementAPI.CreateScoresResource(AOwner : TComponent) : TScores
 
 begin
   Result:=TScoresResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -2158,7 +2188,7 @@ Function TGamesManagementAPI.CreateTurnBasedMatchesResource(AOwner : TComponent)
 
 begin
   Result:=TTurnBasedMatchesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -1,31 +1,4 @@
 unit googletranslate;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,25 +7,25 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TDetectionsListResponse = class;
+  
+  //Top-level schema types
+  TDetectionsListResponse = Class;
+  TDetectionsResourceItem = Class;
+  TLanguagesListResponse = Class;
+  TLanguagesResource = Class;
+  TTranslationsListResponse = Class;
+  TTranslationsResource = Class;
   TDetectionsListResponseArray = Array of TDetectionsListResponse;
-  TDetectionsListResponsedetections = class;
-  TDetectionsListResponsedetectionsArray = Array of TDetectionsListResponsedetections;
-  TDetectionsResource = class;
-  TDetectionsResourceArray = Array of TDetectionsResource;
-  TLanguagesListResponse = class;
+  TDetectionsResourceItemArray = Array of TDetectionsResourceItem;
+  TDetectionsResource = Array of TDetectionsResourceItem;
   TLanguagesListResponseArray = Array of TLanguagesListResponse;
-  TLanguagesListResponselanguages = class;
-  TLanguagesListResponselanguagesArray = Array of TLanguagesListResponselanguages;
-  TLanguagesResource = class;
   TLanguagesResourceArray = Array of TLanguagesResource;
-  TTranslationsListResponse = class;
   TTranslationsListResponseArray = Array of TTranslationsListResponse;
-  TTranslationsListResponsetranslations = class;
-  TTranslationsListResponsetranslationsArray = Array of TTranslationsListResponsetranslations;
-  TTranslationsResource = class;
   TTranslationsResourceArray = Array of TTranslationsResource;
+  //Anonymous types, using auto-generated names
+  TDetectionsListResponseTypedetectionsArray = Array of TDetectionsResource;
+  TLanguagesListResponseTypelanguagesArray = Array of TLanguagesResource;
+  TTranslationsListResponseTypetranslationsArray = Array of TTranslationsResource;
   
   { --------------------------------------------------------------------
     TDetectionsListResponse
@@ -60,50 +33,41 @@ type
   
   TDetectionsListResponse = Class(TGoogleBaseObject)
   Private
-    Fdetections : TDetectionsListResponsedetections;
+    Fdetections : TDetectionsListResponseTypedetectionsArray;
   Protected
     //Property setters
-    Procedure Setdetections(AIndex : Integer; AValue : TDetectionsListResponsedetections); virtual;
+    Procedure Setdetections(AIndex : Integer; const AValue : TDetectionsListResponseTypedetectionsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property detections : TDetectionsListResponsedetections Index 0 Read Fdetections Write Setdetections;
+    Property detections : TDetectionsListResponseTypedetectionsArray Index 0 Read Fdetections Write Setdetections;
   end;
   TDetectionsListResponseClass = Class of TDetectionsListResponse;
   
   { --------------------------------------------------------------------
-    TDetectionsListResponsedetections
+    TDetectionsResourceItem
     --------------------------------------------------------------------}
   
-  TDetectionsListResponsedetections = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDetectionsListResponsedetectionsClass = Class of TDetectionsListResponsedetections;
-  
-  { --------------------------------------------------------------------
-    TDetectionsResource
-    --------------------------------------------------------------------}
-  
-  TDetectionsResource = Class(TGoogleBaseObject)
+  TDetectionsResourceItem = Class(TGoogleBaseObject)
   Private
     Fconfidence : integer;
     FisReliable : boolean;
-    Flanguage : string;
+    Flanguage : String;
   Protected
     //Property setters
-    Procedure Setconfidence(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetisReliable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : string); virtual;
+    Procedure Setconfidence(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetisReliable(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property confidence : integer Index 0 Read Fconfidence Write Setconfidence;
     Property isReliable : boolean Index 8 Read FisReliable Write SetisReliable;
-    Property language : string Index 16 Read Flanguage Write Setlanguage;
+    Property language : String Index 16 Read Flanguage Write Setlanguage;
   end;
-  TDetectionsResourceClass = Class of TDetectionsResource;
+  TDetectionsResourceItemClass = Class of TDetectionsResourceItem;
   
   { --------------------------------------------------------------------
     TLanguagesListResponse
@@ -111,28 +75,19 @@ type
   
   TLanguagesListResponse = Class(TGoogleBaseObject)
   Private
-    Flanguages : TLanguagesListResponselanguages;
+    Flanguages : TLanguagesListResponseTypelanguagesArray;
   Protected
     //Property setters
-    Procedure Setlanguages(AIndex : Integer; AValue : TLanguagesListResponselanguages); virtual;
+    Procedure Setlanguages(AIndex : Integer; const AValue : TLanguagesListResponseTypelanguagesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property languages : TLanguagesListResponselanguages Index 0 Read Flanguages Write Setlanguages;
+    Property languages : TLanguagesListResponseTypelanguagesArray Index 0 Read Flanguages Write Setlanguages;
   end;
   TLanguagesListResponseClass = Class of TLanguagesListResponse;
-  
-  { --------------------------------------------------------------------
-    TLanguagesListResponselanguages
-    --------------------------------------------------------------------}
-  
-  TLanguagesListResponselanguages = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TLanguagesListResponselanguagesClass = Class of TLanguagesListResponselanguages;
   
   { --------------------------------------------------------------------
     TLanguagesResource
@@ -140,16 +95,16 @@ type
   
   TLanguagesResource = Class(TGoogleBaseObject)
   Private
-    Flanguage : string;
-    Fname : string;
+    Flanguage : String;
+    Fname : String;
   Protected
     //Property setters
-    Procedure Setlanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property language : string Index 0 Read Flanguage Write Setlanguage;
-    Property name : string Index 8 Read Fname Write Setname;
+    Property language : String Index 0 Read Flanguage Write Setlanguage;
+    Property name : String Index 8 Read Fname Write Setname;
   end;
   TLanguagesResourceClass = Class of TLanguagesResource;
   
@@ -159,28 +114,19 @@ type
   
   TTranslationsListResponse = Class(TGoogleBaseObject)
   Private
-    Ftranslations : TTranslationsListResponsetranslations;
+    Ftranslations : TTranslationsListResponseTypetranslationsArray;
   Protected
     //Property setters
-    Procedure Settranslations(AIndex : Integer; AValue : TTranslationsListResponsetranslations); virtual;
+    Procedure Settranslations(AIndex : Integer; const AValue : TTranslationsListResponseTypetranslationsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property translations : TTranslationsListResponsetranslations Index 0 Read Ftranslations Write Settranslations;
+    Property translations : TTranslationsListResponseTypetranslationsArray Index 0 Read Ftranslations Write Settranslations;
   end;
   TTranslationsListResponseClass = Class of TTranslationsListResponse;
-  
-  { --------------------------------------------------------------------
-    TTranslationsListResponsetranslations
-    --------------------------------------------------------------------}
-  
-  TTranslationsListResponsetranslations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TTranslationsListResponsetranslationsClass = Class of TTranslationsListResponsetranslations;
   
   { --------------------------------------------------------------------
     TTranslationsResource
@@ -188,16 +134,16 @@ type
   
   TTranslationsResource = Class(TGoogleBaseObject)
   Private
-    FdetectedSourceLanguage : string;
-    FtranslatedText : string;
+    FdetectedSourceLanguage : String;
+    FtranslatedText : String;
   Protected
     //Property setters
-    Procedure SetdetectedSourceLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure SettranslatedText(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdetectedSourceLanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettranslatedText(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property detectedSourceLanguage : string Index 0 Read FdetectedSourceLanguage Write SetdetectedSourceLanguage;
-    Property translatedText : string Index 8 Read FtranslatedText Write SettranslatedText;
+    Property detectedSourceLanguage : String Index 0 Read FdetectedSourceLanguage Write SetdetectedSourceLanguage;
+    Property translatedText : String Index 8 Read FtranslatedText Write SettranslatedText;
   end;
   TTranslationsResourceClass = Class of TTranslationsResource;
   
@@ -209,7 +155,7 @@ type
   //Optional query Options for TDetections_Resource, method List
   
   TDetectionsListOptions = Record
-    q : string;
+    q : String;
   end;
   
   TDetections_Resource = Class(TGoogleResource)
@@ -229,7 +175,7 @@ type
   //Optional query Options for TLanguages_Resource, method List
   
   TLanguagesListOptions = Record
-    target : string;
+    target : String;
   end;
   
   TLanguages_Resource = Class(TGoogleResource)
@@ -249,11 +195,11 @@ type
   //Optional query Options for TTranslations_Resource, method List
   
   TTranslationsListOptions = Record
-    cid : string;
-    format : string;
-    q : string;
-    source : string;
-    target : string;
+    cid : String;
+    format : String;
+    q : String;
+    source : String;
+    target : String;
   end;
   
   TTranslations_Resource = Class(TGoogleResource)
@@ -320,7 +266,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TDetectionsListResponse.Setdetections(AIndex : Integer; AValue : TDetectionsListResponsedetections); 
+Procedure TDetectionsListResponse.Setdetections(AIndex : Integer; const AValue : TDetectionsListResponseTypedetectionsArray); 
 
 begin
   If (Fdetections=AValue) then exit;
@@ -329,22 +275,28 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDetectionsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'detections' : SetLength(Fdetections,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TDetectionsListResponsedetections
+  TDetectionsResourceItem
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TDetectionsResource
-  --------------------------------------------------------------------}
-
-
-Procedure TDetectionsResource.Setconfidence(AIndex : Integer; AValue : integer); 
+Procedure TDetectionsResourceItem.Setconfidence(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fconfidence=AValue) then exit;
@@ -354,7 +306,7 @@ end;
 
 
 
-Procedure TDetectionsResource.SetisReliable(AIndex : Integer; AValue : boolean); 
+Procedure TDetectionsResourceItem.SetisReliable(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisReliable=AValue) then exit;
@@ -364,7 +316,7 @@ end;
 
 
 
-Procedure TDetectionsResource.Setlanguage(AIndex : Integer; AValue : string); 
+Procedure TDetectionsResourceItem.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -381,7 +333,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLanguagesListResponse.Setlanguages(AIndex : Integer; AValue : TLanguagesListResponselanguages); 
+Procedure TLanguagesListResponse.Setlanguages(AIndex : Integer; const AValue : TLanguagesListResponseTypelanguagesArray); 
 
 begin
   If (Flanguages=AValue) then exit;
@@ -390,12 +342,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TLanguagesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TLanguagesListResponselanguages
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'languages' : SetLength(Flanguages,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -405,7 +363,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLanguagesResource.Setlanguage(AIndex : Integer; AValue : string); 
+Procedure TLanguagesResource.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -415,7 +373,7 @@ end;
 
 
 
-Procedure TLanguagesResource.Setname(AIndex : Integer; AValue : string); 
+Procedure TLanguagesResource.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -432,7 +390,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTranslationsListResponse.Settranslations(AIndex : Integer; AValue : TTranslationsListResponsetranslations); 
+Procedure TTranslationsListResponse.Settranslations(AIndex : Integer; const AValue : TTranslationsListResponseTypetranslationsArray); 
 
 begin
   If (Ftranslations=AValue) then exit;
@@ -441,12 +399,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TTranslationsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TTranslationsListResponsetranslations
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'translations' : SetLength(Ftranslations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -456,7 +420,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTranslationsResource.SetdetectedSourceLanguage(AIndex : Integer; AValue : string); 
+Procedure TTranslationsResource.SetdetectedSourceLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdetectedSourceLanguage=AValue) then exit;
@@ -466,7 +430,7 @@ end;
 
 
 
-Procedure TTranslationsResource.SettranslatedText(AIndex : Integer; AValue : string); 
+Procedure TTranslationsResource.SettranslatedText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtranslatedText=AValue) then exit;
@@ -627,7 +591,7 @@ end;
 Class Function TTranslateAPI.APIRevision : String;
 
 begin
-  Result:='20141123';
+  Result:='20160217';
 end;
 
 Class Function TTranslateAPI.APIID : String;
@@ -731,13 +695,10 @@ Class Procedure TTranslateAPI.RegisterAPIResources;
 
 begin
   TDetectionsListResponse.RegisterObject;
-  TDetectionsListResponsedetections.RegisterObject;
-  TDetectionsResource.RegisterObject;
+  TDetectionsResourceItem.RegisterObject;
   TLanguagesListResponse.RegisterObject;
-  TLanguagesListResponselanguages.RegisterObject;
   TLanguagesResource.RegisterObject;
   TTranslationsListResponse.RegisterObject;
-  TTranslationsListResponsetranslations.RegisterObject;
   TTranslationsResource.RegisterObject;
 end;
 
@@ -761,7 +722,7 @@ Function TTranslateAPI.CreateDetectionsResource(AOwner : TComponent) : TDetectio
 
 begin
   Result:=TDetections_Resource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -785,7 +746,7 @@ Function TTranslateAPI.CreateLanguagesResource(AOwner : TComponent) : TLanguages
 
 begin
   Result:=TLanguages_Resource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -809,7 +770,7 @@ Function TTranslateAPI.CreateTranslationsResource(AOwner : TComponent) : TTransl
 
 begin
   Result:=TTranslations_Resource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

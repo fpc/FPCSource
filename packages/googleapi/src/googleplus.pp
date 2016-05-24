@@ -1,31 +1,4 @@
 unit googleplus;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,119 +7,80 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TAcl = class;
+  
+  //Top-level schema types
+  TAcl = Class;
+  TActivity = Class;
+  TActivityFeed = Class;
+  TComment = Class;
+  TCommentFeed = Class;
+  TPeopleFeed = Class;
+  TPerson = Class;
+  TPlace = Class;
+  TPlusAclentryResource = Class;
   TAclArray = Array of TAcl;
-  TAclitems = class;
-  TAclitemsArray = Array of TAclitems;
-  TActivity = class;
   TActivityArray = Array of TActivity;
-  TActivityactor = class;
-  TActivityactorArray = Array of TActivityactor;
-  TActivityactorimage = class;
-  TActivityactorimageArray = Array of TActivityactorimage;
-  TActivityactorname = class;
-  TActivityactornameArray = Array of TActivityactorname;
-  TActivityobject = class;
-  TActivityobjectArray = Array of TActivityobject;
-  TActivityobjectactor = class;
-  TActivityobjectactorArray = Array of TActivityobjectactor;
-  TActivityobjectactorimage = class;
-  TActivityobjectactorimageArray = Array of TActivityobjectactorimage;
-  TActivityobjectattachments = class;
-  TActivityobjectattachmentsArray = Array of TActivityobjectattachments;
-  TActivityobjectattachmentsembed = class;
-  TActivityobjectattachmentsembedArray = Array of TActivityobjectattachmentsembed;
-  TActivityobjectattachmentsfullImage = class;
-  TActivityobjectattachmentsfullImageArray = Array of TActivityobjectattachmentsfullImage;
-  TActivityobjectattachmentsimage = class;
-  TActivityobjectattachmentsimageArray = Array of TActivityobjectattachmentsimage;
-  TActivityobjectattachmentsthumbnails = class;
-  TActivityobjectattachmentsthumbnailsArray = Array of TActivityobjectattachmentsthumbnails;
-  TActivityobjectattachmentsthumbnailsimage = class;
-  TActivityobjectattachmentsthumbnailsimageArray = Array of TActivityobjectattachmentsthumbnailsimage;
-  TActivityobjectplusoners = class;
-  TActivityobjectplusonersArray = Array of TActivityobjectplusoners;
-  TActivityobjectreplies = class;
-  TActivityobjectrepliesArray = Array of TActivityobjectreplies;
-  TActivityobjectresharers = class;
-  TActivityobjectresharersArray = Array of TActivityobjectresharers;
-  TActivityprovider = class;
-  TActivityproviderArray = Array of TActivityprovider;
-  TActivityFeed = class;
   TActivityFeedArray = Array of TActivityFeed;
-  TActivityFeeditems = class;
-  TActivityFeeditemsArray = Array of TActivityFeeditems;
-  TComment = class;
   TCommentArray = Array of TComment;
-  TCommentactor = class;
-  TCommentactorArray = Array of TCommentactor;
-  TCommentactorimage = class;
-  TCommentactorimageArray = Array of TCommentactorimage;
-  TCommentinReplyTo = class;
-  TCommentinReplyToArray = Array of TCommentinReplyTo;
-  TCommentobject = class;
-  TCommentobjectArray = Array of TCommentobject;
-  TCommentplusoners = class;
-  TCommentplusonersArray = Array of TCommentplusoners;
-  TCommentFeed = class;
   TCommentFeedArray = Array of TCommentFeed;
-  TCommentFeeditems = class;
-  TCommentFeeditemsArray = Array of TCommentFeeditems;
-  TItemScope = class;
-  TItemScopeArray = Array of TItemScope;
-  TItemScopeadditionalName = class;
-  TItemScopeadditionalNameArray = Array of TItemScopeadditionalName;
-  TItemScopeassociated_media = class;
-  TItemScopeassociated_mediaArray = Array of TItemScopeassociated_media;
-  TItemScopeattendees = class;
-  TItemScopeattendeesArray = Array of TItemScopeattendees;
-  TItemScopeauthor = class;
-  TItemScopeauthorArray = Array of TItemScopeauthor;
-  TItemScopecontributor = class;
-  TItemScopecontributorArray = Array of TItemScopecontributor;
-  TItemScopeperformers = class;
-  TItemScopeperformersArray = Array of TItemScopeperformers;
-  TMoment = class;
-  TMomentArray = Array of TMoment;
-  TMomentsFeed = class;
-  TMomentsFeedArray = Array of TMomentsFeed;
-  TMomentsFeeditems = class;
-  TMomentsFeeditemsArray = Array of TMomentsFeeditems;
-  TPeopleFeed = class;
   TPeopleFeedArray = Array of TPeopleFeed;
-  TPeopleFeeditems = class;
-  TPeopleFeeditemsArray = Array of TPeopleFeeditems;
-  TPerson = class;
   TPersonArray = Array of TPerson;
-  TPersonageRange = class;
-  TPersonageRangeArray = Array of TPersonageRange;
-  TPersoncover = class;
-  TPersoncoverArray = Array of TPersoncover;
-  TPersoncovercoverInfo = class;
-  TPersoncovercoverInfoArray = Array of TPersoncovercoverInfo;
-  TPersoncovercoverPhoto = class;
-  TPersoncovercoverPhotoArray = Array of TPersoncovercoverPhoto;
-  TPersonemails = class;
-  TPersonemailsArray = Array of TPersonemails;
-  TPersonimage = class;
-  TPersonimageArray = Array of TPersonimage;
-  TPersonname = class;
-  TPersonnameArray = Array of TPersonname;
-  TPersonorganizations = class;
-  TPersonorganizationsArray = Array of TPersonorganizations;
-  TPersonplacesLived = class;
-  TPersonplacesLivedArray = Array of TPersonplacesLived;
-  TPersonurls = class;
-  TPersonurlsArray = Array of TPersonurls;
-  TPlace = class;
   TPlaceArray = Array of TPlace;
-  TPlaceaddress = class;
-  TPlaceaddressArray = Array of TPlaceaddress;
-  TPlaceposition = class;
-  TPlacepositionArray = Array of TPlaceposition;
-  TPlusAclentryResource = class;
   TPlusAclentryResourceArray = Array of TPlusAclentryResource;
+  //Anonymous types, using auto-generated names
+  TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo = Class;
+  TActivityTypeactorTypeclientSpecificActorInfo = Class;
+  TActivityTypeactorTypeimage = Class;
+  TActivityTypeactorTypename = Class;
+  TActivityTypeactorTypeverification = Class;
+  TActivityTypeactor = Class;
+  TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo = Class;
+  TActivityTypeobjectTypeactorTypeclientSpecificActorInfo = Class;
+  TActivityTypeobjectTypeactorTypeimage = Class;
+  TActivityTypeobjectTypeactorTypeverification = Class;
+  TActivityTypeobjectTypeactor = Class;
+  TActivityTypeobjectTypeattachmentsItemTypeembed = Class;
+  TActivityTypeobjectTypeattachmentsItemTypefullImage = Class;
+  TActivityTypeobjectTypeattachmentsItemTypeimage = Class;
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage = Class;
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem = Class;
+  TActivityTypeobjectTypeattachmentsItem = Class;
+  TActivityTypeobjectTypeplusoners = Class;
+  TActivityTypeobjectTypereplies = Class;
+  TActivityTypeobjectTyperesharers = Class;
+  TActivityTypeobject = Class;
+  TActivityTypeprovider = Class;
+  TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo = Class;
+  TCommentTypeactorTypeclientSpecificActorInfo = Class;
+  TCommentTypeactorTypeimage = Class;
+  TCommentTypeactorTypeverification = Class;
+  TCommentTypeactor = Class;
+  TCommentTypeinReplyToItem = Class;
+  TCommentTypeobject = Class;
+  TCommentTypeplusoners = Class;
+  TPersonTypeageRange = Class;
+  TPersonTypecoverTypecoverInfo = Class;
+  TPersonTypecoverTypecoverPhoto = Class;
+  TPersonTypecover = Class;
+  TPersonTypeemailsItem = Class;
+  TPersonTypeimage = Class;
+  TPersonTypename = Class;
+  TPersonTypeorganizationsItem = Class;
+  TPersonTypeplacesLivedItem = Class;
+  TPersonTypeurlsItem = Class;
+  TPlaceTypeaddress = Class;
+  TPlaceTypeposition = Class;
+  TAclTypeitemsArray = Array of TPlusAclentryResource;
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsArray = Array of TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem;
+  TActivityTypeobjectTypeattachmentsArray = Array of TActivityTypeobjectTypeattachmentsItem;
+  TActivityFeedTypeitemsArray = Array of TActivity;
+  TCommentTypeinReplyToArray = Array of TCommentTypeinReplyToItem;
+  TCommentFeedTypeitemsArray = Array of TComment;
+  TPeopleFeedTypeitemsArray = Array of TPerson;
+  TPersonTypeemailsArray = Array of TPersonTypeemailsItem;
+  TPersonTypeorganizationsArray = Array of TPersonTypeorganizationsItem;
+  TPersonTypeplacesLivedArray = Array of TPersonTypeplacesLivedItem;
+  TPersonTypeurlsArray = Array of TPersonTypeurlsItem;
   
   { --------------------------------------------------------------------
     TAcl
@@ -154,34 +88,521 @@ type
   
   TAcl = Class(TGoogleBaseObject)
   Private
-    Fdescription : string;
-    Fitems : TAclitems;
-    Fkind : string;
+    Fdescription : String;
+    Fitems : TAclTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAclitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAclTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property items : TAclitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property items : TAclTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TAclClass = Class of TAcl;
   
   { --------------------------------------------------------------------
-    TAclitems
+    TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo
     --------------------------------------------------------------------}
   
-  TAclitems = Class(TGoogleBaseObject)
+  TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo = Class(TGoogleBaseObject)
   Private
+    FchannelId : String;
   Protected
     //Property setters
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
   end;
-  TAclitemsClass = Class of TAclitems;
+  TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfoClass = Class of TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeactorTypeclientSpecificActorInfo
+    --------------------------------------------------------------------}
+  
+  TActivityTypeactorTypeclientSpecificActorInfo = Class(TGoogleBaseObject)
+  Private
+    FyoutubeActorInfo : TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo;
+  Protected
+    //Property setters
+    Procedure SetyoutubeActorInfo(AIndex : Integer; const AValue : TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo); virtual;
+  Public
+  Published
+    Property youtubeActorInfo : TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo Index 0 Read FyoutubeActorInfo Write SetyoutubeActorInfo;
+  end;
+  TActivityTypeactorTypeclientSpecificActorInfoClass = Class of TActivityTypeactorTypeclientSpecificActorInfo;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeactorTypeimage
+    --------------------------------------------------------------------}
+  
+  TActivityTypeactorTypeimage = Class(TGoogleBaseObject)
+  Private
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property url : String Index 0 Read Furl Write Seturl;
+  end;
+  TActivityTypeactorTypeimageClass = Class of TActivityTypeactorTypeimage;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeactorTypename
+    --------------------------------------------------------------------}
+  
+  TActivityTypeactorTypename = Class(TGoogleBaseObject)
+  Private
+    FfamilyName : String;
+    FgivenName : String;
+  Protected
+    //Property setters
+    Procedure SetfamilyName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgivenName(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property familyName : String Index 0 Read FfamilyName Write SetfamilyName;
+    Property givenName : String Index 8 Read FgivenName Write SetgivenName;
+  end;
+  TActivityTypeactorTypenameClass = Class of TActivityTypeactorTypename;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeactorTypeverification
+    --------------------------------------------------------------------}
+  
+  TActivityTypeactorTypeverification = Class(TGoogleBaseObject)
+  Private
+    FadHocVerified : String;
+  Protected
+    //Property setters
+    Procedure SetadHocVerified(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property adHocVerified : String Index 0 Read FadHocVerified Write SetadHocVerified;
+  end;
+  TActivityTypeactorTypeverificationClass = Class of TActivityTypeactorTypeverification;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeactor
+    --------------------------------------------------------------------}
+  
+  TActivityTypeactor = Class(TGoogleBaseObject)
+  Private
+    FclientSpecificActorInfo : TActivityTypeactorTypeclientSpecificActorInfo;
+    FdisplayName : String;
+    Fid : String;
+    Fimage : TActivityTypeactorTypeimage;
+    Fname : TActivityTypeactorTypename;
+    Furl : String;
+    Fverification : TActivityTypeactorTypeverification;
+  Protected
+    //Property setters
+    Procedure SetclientSpecificActorInfo(AIndex : Integer; const AValue : TActivityTypeactorTypeclientSpecificActorInfo); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setimage(AIndex : Integer; const AValue : TActivityTypeactorTypeimage); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : TActivityTypeactorTypename); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setverification(AIndex : Integer; const AValue : TActivityTypeactorTypeverification); virtual;
+  Public
+  Published
+    Property clientSpecificActorInfo : TActivityTypeactorTypeclientSpecificActorInfo Index 0 Read FclientSpecificActorInfo Write SetclientSpecificActorInfo;
+    Property displayName : String Index 8 Read FdisplayName Write SetdisplayName;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property image : TActivityTypeactorTypeimage Index 24 Read Fimage Write Setimage;
+    Property name : TActivityTypeactorTypename Index 32 Read Fname Write Setname;
+    Property url : String Index 40 Read Furl Write Seturl;
+    Property verification : TActivityTypeactorTypeverification Index 48 Read Fverification Write Setverification;
+  end;
+  TActivityTypeactorClass = Class of TActivityTypeactor;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo = Class(TGoogleBaseObject)
+  Private
+    FchannelId : String;
+  Protected
+    //Property setters
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
+  end;
+  TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfoClass = Class of TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeactorTypeclientSpecificActorInfo
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeactorTypeclientSpecificActorInfo = Class(TGoogleBaseObject)
+  Private
+    FyoutubeActorInfo : TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo;
+  Protected
+    //Property setters
+    Procedure SetyoutubeActorInfo(AIndex : Integer; const AValue : TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo); virtual;
+  Public
+  Published
+    Property youtubeActorInfo : TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo Index 0 Read FyoutubeActorInfo Write SetyoutubeActorInfo;
+  end;
+  TActivityTypeobjectTypeactorTypeclientSpecificActorInfoClass = Class of TActivityTypeobjectTypeactorTypeclientSpecificActorInfo;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeactorTypeimage
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeactorTypeimage = Class(TGoogleBaseObject)
+  Private
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property url : String Index 0 Read Furl Write Seturl;
+  end;
+  TActivityTypeobjectTypeactorTypeimageClass = Class of TActivityTypeobjectTypeactorTypeimage;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeactorTypeverification
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeactorTypeverification = Class(TGoogleBaseObject)
+  Private
+    FadHocVerified : String;
+  Protected
+    //Property setters
+    Procedure SetadHocVerified(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property adHocVerified : String Index 0 Read FadHocVerified Write SetadHocVerified;
+  end;
+  TActivityTypeobjectTypeactorTypeverificationClass = Class of TActivityTypeobjectTypeactorTypeverification;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeactor
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeactor = Class(TGoogleBaseObject)
+  Private
+    FclientSpecificActorInfo : TActivityTypeobjectTypeactorTypeclientSpecificActorInfo;
+    FdisplayName : String;
+    Fid : String;
+    Fimage : TActivityTypeobjectTypeactorTypeimage;
+    Furl : String;
+    Fverification : TActivityTypeobjectTypeactorTypeverification;
+  Protected
+    //Property setters
+    Procedure SetclientSpecificActorInfo(AIndex : Integer; const AValue : TActivityTypeobjectTypeactorTypeclientSpecificActorInfo); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setimage(AIndex : Integer; const AValue : TActivityTypeobjectTypeactorTypeimage); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setverification(AIndex : Integer; const AValue : TActivityTypeobjectTypeactorTypeverification); virtual;
+  Public
+  Published
+    Property clientSpecificActorInfo : TActivityTypeobjectTypeactorTypeclientSpecificActorInfo Index 0 Read FclientSpecificActorInfo Write SetclientSpecificActorInfo;
+    Property displayName : String Index 8 Read FdisplayName Write SetdisplayName;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property image : TActivityTypeobjectTypeactorTypeimage Index 24 Read Fimage Write Setimage;
+    Property url : String Index 32 Read Furl Write Seturl;
+    Property verification : TActivityTypeobjectTypeactorTypeverification Index 40 Read Fverification Write Setverification;
+  end;
+  TActivityTypeobjectTypeactorClass = Class of TActivityTypeobjectTypeactor;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeattachmentsItemTypeembed
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeattachmentsItemTypeembed = Class(TGoogleBaseObject)
+  Private
+    F_type : String;
+    Furl : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property _type : String Index 0 Read F_type Write Set_type;
+    Property url : String Index 8 Read Furl Write Seturl;
+  end;
+  TActivityTypeobjectTypeattachmentsItemTypeembedClass = Class of TActivityTypeobjectTypeattachmentsItemTypeembed;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeattachmentsItemTypefullImage
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeattachmentsItemTypefullImage = Class(TGoogleBaseObject)
+  Private
+    Fheight : integer;
+    F_type : String;
+    Furl : String;
+    Fwidth : integer;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property height : integer Index 0 Read Fheight Write Setheight;
+    Property _type : String Index 8 Read F_type Write Set_type;
+    Property url : String Index 16 Read Furl Write Seturl;
+    Property width : integer Index 24 Read Fwidth Write Setwidth;
+  end;
+  TActivityTypeobjectTypeattachmentsItemTypefullImageClass = Class of TActivityTypeobjectTypeattachmentsItemTypefullImage;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeattachmentsItemTypeimage
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeattachmentsItemTypeimage = Class(TGoogleBaseObject)
+  Private
+    Fheight : integer;
+    F_type : String;
+    Furl : String;
+    Fwidth : integer;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property height : integer Index 0 Read Fheight Write Setheight;
+    Property _type : String Index 8 Read F_type Write Set_type;
+    Property url : String Index 16 Read Furl Write Seturl;
+    Property width : integer Index 24 Read Fwidth Write Setwidth;
+  end;
+  TActivityTypeobjectTypeattachmentsItemTypeimageClass = Class of TActivityTypeobjectTypeattachmentsItemTypeimage;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage = Class(TGoogleBaseObject)
+  Private
+    Fheight : integer;
+    F_type : String;
+    Furl : String;
+    Fwidth : integer;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property height : integer Index 0 Read Fheight Write Setheight;
+    Property _type : String Index 8 Read F_type Write Set_type;
+    Property url : String Index 16 Read Furl Write Seturl;
+    Property width : integer Index 24 Read Fwidth Write Setwidth;
+  end;
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimageClass = Class of TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem = Class(TGoogleBaseObject)
+  Private
+    Fdescription : String;
+    Fimage : TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage;
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setimage(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property image : TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage Index 8 Read Fimage Write Setimage;
+    Property url : String Index 16 Read Furl Write Seturl;
+  end;
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemClass = Class of TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeattachmentsItem
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeattachmentsItem = Class(TGoogleBaseObject)
+  Private
+    Fcontent : String;
+    FdisplayName : String;
+    Fembed : TActivityTypeobjectTypeattachmentsItemTypeembed;
+    FfullImage : TActivityTypeobjectTypeattachmentsItemTypefullImage;
+    Fid : String;
+    Fimage : TActivityTypeobjectTypeattachmentsItemTypeimage;
+    FobjectType : String;
+    Fthumbnails : TActivityTypeobjectTypeattachmentsItemTypethumbnailsArray;
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure Setcontent(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setembed(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsItemTypeembed); virtual;
+    Procedure SetfullImage(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsItemTypefullImage); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setimage(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsItemTypeimage); virtual;
+    Procedure SetobjectType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setthumbnails(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsItemTypethumbnailsArray); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property content : String Index 0 Read Fcontent Write Setcontent;
+    Property displayName : String Index 8 Read FdisplayName Write SetdisplayName;
+    Property embed : TActivityTypeobjectTypeattachmentsItemTypeembed Index 16 Read Fembed Write Setembed;
+    Property fullImage : TActivityTypeobjectTypeattachmentsItemTypefullImage Index 24 Read FfullImage Write SetfullImage;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property image : TActivityTypeobjectTypeattachmentsItemTypeimage Index 40 Read Fimage Write Setimage;
+    Property objectType : String Index 48 Read FobjectType Write SetobjectType;
+    Property thumbnails : TActivityTypeobjectTypeattachmentsItemTypethumbnailsArray Index 56 Read Fthumbnails Write Setthumbnails;
+    Property url : String Index 64 Read Furl Write Seturl;
+  end;
+  TActivityTypeobjectTypeattachmentsItemClass = Class of TActivityTypeobjectTypeattachmentsItem;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypeplusoners
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypeplusoners = Class(TGoogleBaseObject)
+  Private
+    FselfLink : String;
+    FtotalItems : integer;
+  Protected
+    //Property setters
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettotalItems(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property selfLink : String Index 0 Read FselfLink Write SetselfLink;
+    Property totalItems : integer Index 8 Read FtotalItems Write SettotalItems;
+  end;
+  TActivityTypeobjectTypeplusonersClass = Class of TActivityTypeobjectTypeplusoners;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTypereplies
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTypereplies = Class(TGoogleBaseObject)
+  Private
+    FselfLink : String;
+    FtotalItems : integer;
+  Protected
+    //Property setters
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettotalItems(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property selfLink : String Index 0 Read FselfLink Write SetselfLink;
+    Property totalItems : integer Index 8 Read FtotalItems Write SettotalItems;
+  end;
+  TActivityTypeobjectTyperepliesClass = Class of TActivityTypeobjectTypereplies;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobjectTyperesharers
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobjectTyperesharers = Class(TGoogleBaseObject)
+  Private
+    FselfLink : String;
+    FtotalItems : integer;
+  Protected
+    //Property setters
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettotalItems(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property selfLink : String Index 0 Read FselfLink Write SetselfLink;
+    Property totalItems : integer Index 8 Read FtotalItems Write SettotalItems;
+  end;
+  TActivityTypeobjectTyperesharersClass = Class of TActivityTypeobjectTyperesharers;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeobject
+    --------------------------------------------------------------------}
+  
+  TActivityTypeobject = Class(TGoogleBaseObject)
+  Private
+    Factor : TActivityTypeobjectTypeactor;
+    Fattachments : TActivityTypeobjectTypeattachmentsArray;
+    Fcontent : String;
+    Fid : String;
+    FobjectType : String;
+    ForiginalContent : String;
+    Fplusoners : TActivityTypeobjectTypeplusoners;
+    Freplies : TActivityTypeobjectTypereplies;
+    Fresharers : TActivityTypeobjectTyperesharers;
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure Setactor(AIndex : Integer; const AValue : TActivityTypeobjectTypeactor); virtual;
+    Procedure Setattachments(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsArray); virtual;
+    Procedure Setcontent(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetobjectType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoriginalContent(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setplusoners(AIndex : Integer; const AValue : TActivityTypeobjectTypeplusoners); virtual;
+    Procedure Setreplies(AIndex : Integer; const AValue : TActivityTypeobjectTypereplies); virtual;
+    Procedure Setresharers(AIndex : Integer; const AValue : TActivityTypeobjectTyperesharers); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property actor : TActivityTypeobjectTypeactor Index 0 Read Factor Write Setactor;
+    Property attachments : TActivityTypeobjectTypeattachmentsArray Index 8 Read Fattachments Write Setattachments;
+    Property content : String Index 16 Read Fcontent Write Setcontent;
+    Property id : String Index 24 Read Fid Write Setid;
+    Property objectType : String Index 32 Read FobjectType Write SetobjectType;
+    Property originalContent : String Index 40 Read ForiginalContent Write SetoriginalContent;
+    Property plusoners : TActivityTypeobjectTypeplusoners Index 48 Read Fplusoners Write Setplusoners;
+    Property replies : TActivityTypeobjectTypereplies Index 56 Read Freplies Write Setreplies;
+    Property resharers : TActivityTypeobjectTyperesharers Index 64 Read Fresharers Write Setresharers;
+    Property url : String Index 72 Read Furl Write Seturl;
+  end;
+  TActivityTypeobjectClass = Class of TActivityTypeobject;
+  
+  { --------------------------------------------------------------------
+    TActivityTypeprovider
+    --------------------------------------------------------------------}
+  
+  TActivityTypeprovider = Class(TGoogleBaseObject)
+  Private
+    Ftitle : String;
+  Protected
+    //Property setters
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property title : String Index 0 Read Ftitle Write Settitle;
+  end;
+  TActivityTypeproviderClass = Class of TActivityTypeprovider;
   
   { --------------------------------------------------------------------
     TActivity
@@ -190,452 +611,72 @@ type
   TActivity = Class(TGoogleBaseObject)
   Private
     Faccess : TAcl;
-    Factor : TActivityactor;
-    Faddress : string;
-    Fannotation : string;
-    FcrosspostSource : string;
-    Fetag : string;
-    Fgeocode : string;
-    Fid : string;
-    Fkind : string;
+    Factor : TActivityTypeactor;
+    Faddress : String;
+    Fannotation : String;
+    FcrosspostSource : String;
+    Fetag : String;
+    Fgeocode : String;
+    Fid : String;
+    Fkind : String;
     Flocation : TPlace;
-    F_object : TActivityobject;
-    FplaceId : string;
-    FplaceName : string;
-    Fprovider : TActivityprovider;
+    F_object : TActivityTypeobject;
+    FplaceId : String;
+    FplaceName : String;
+    Fprovider : TActivityTypeprovider;
     F_published : TDatetime;
-    Fradius : string;
-    Ftitle : string;
+    Fradius : String;
+    Ftitle : String;
     Fupdated : TDatetime;
-    Furl : string;
-    Fverb : string;
+    Furl : String;
+    Fverb : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setaccess(AIndex : Integer; AValue : TAcl); virtual;
-    Procedure Setactor(AIndex : Integer; AValue : TActivityactor); virtual;
-    Procedure Setaddress(AIndex : Integer; AValue : string); virtual;
-    Procedure Setannotation(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcrosspostSource(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setgeocode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : TPlace); virtual;
-    Procedure Set_object(AIndex : Integer; AValue : TActivityobject); virtual;
-    Procedure SetplaceId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetplaceName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setprovider(AIndex : Integer; AValue : TActivityprovider); virtual;
-    Procedure Set_published(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setradius(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setverb(AIndex : Integer; AValue : string); virtual;
+    Procedure Setaccess(AIndex : Integer; const AValue : TAcl); virtual;
+    Procedure Setactor(AIndex : Integer; const AValue : TActivityTypeactor); virtual;
+    Procedure Setaddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setannotation(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcrosspostSource(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setgeocode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : TPlace); virtual;
+    Procedure Set_object(AIndex : Integer; const AValue : TActivityTypeobject); virtual;
+    Procedure SetplaceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplaceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setprovider(AIndex : Integer; const AValue : TActivityTypeprovider); virtual;
+    Procedure Set_published(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setradius(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setupdated(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setverb(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property access : TAcl Index 0 Read Faccess Write Setaccess;
-    Property actor : TActivityactor Index 8 Read Factor Write Setactor;
-    Property address : string Index 16 Read Faddress Write Setaddress;
-    Property annotation : string Index 24 Read Fannotation Write Setannotation;
-    Property crosspostSource : string Index 32 Read FcrosspostSource Write SetcrosspostSource;
-    Property etag : string Index 40 Read Fetag Write Setetag;
-    Property geocode : string Index 48 Read Fgeocode Write Setgeocode;
-    Property id : string Index 56 Read Fid Write Setid;
-    Property kind : string Index 64 Read Fkind Write Setkind;
+    Property actor : TActivityTypeactor Index 8 Read Factor Write Setactor;
+    Property address : String Index 16 Read Faddress Write Setaddress;
+    Property annotation : String Index 24 Read Fannotation Write Setannotation;
+    Property crosspostSource : String Index 32 Read FcrosspostSource Write SetcrosspostSource;
+    Property etag : String Index 40 Read Fetag Write Setetag;
+    Property geocode : String Index 48 Read Fgeocode Write Setgeocode;
+    Property id : String Index 56 Read Fid Write Setid;
+    Property kind : String Index 64 Read Fkind Write Setkind;
     Property location : TPlace Index 72 Read Flocation Write Setlocation;
-    Property _object : TActivityobject Index 80 Read F_object Write Set_object;
-    Property placeId : string Index 88 Read FplaceId Write SetplaceId;
-    Property placeName : string Index 96 Read FplaceName Write SetplaceName;
-    Property provider : TActivityprovider Index 104 Read Fprovider Write Setprovider;
+    Property _object : TActivityTypeobject Index 80 Read F_object Write Set_object;
+    Property placeId : String Index 88 Read FplaceId Write SetplaceId;
+    Property placeName : String Index 96 Read FplaceName Write SetplaceName;
+    Property provider : TActivityTypeprovider Index 104 Read Fprovider Write Setprovider;
     Property _published : TDatetime Index 112 Read F_published Write Set_published;
-    Property radius : string Index 120 Read Fradius Write Setradius;
-    Property title : string Index 128 Read Ftitle Write Settitle;
+    Property radius : String Index 120 Read Fradius Write Setradius;
+    Property title : String Index 128 Read Ftitle Write Settitle;
     Property updated : TDatetime Index 136 Read Fupdated Write Setupdated;
-    Property url : string Index 144 Read Furl Write Seturl;
-    Property verb : string Index 152 Read Fverb Write Setverb;
+    Property url : String Index 144 Read Furl Write Seturl;
+    Property verb : String Index 152 Read Fverb Write Setverb;
   end;
   TActivityClass = Class of TActivity;
-  
-  { --------------------------------------------------------------------
-    TActivityactor
-    --------------------------------------------------------------------}
-  
-  TActivityactor = Class(TGoogleBaseObject)
-  Private
-    FdisplayName : string;
-    Fid : string;
-    Fimage : TActivityactorimage;
-    Fname : TActivityactorname;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setimage(AIndex : Integer; AValue : TActivityactorimage); virtual;
-    Procedure Setname(AIndex : Integer; AValue : TActivityactorname); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property displayName : string Index 0 Read FdisplayName Write SetdisplayName;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property image : TActivityactorimage Index 16 Read Fimage Write Setimage;
-    Property name : TActivityactorname Index 24 Read Fname Write Setname;
-    Property url : string Index 32 Read Furl Write Seturl;
-  end;
-  TActivityactorClass = Class of TActivityactor;
-  
-  { --------------------------------------------------------------------
-    TActivityactorimage
-    --------------------------------------------------------------------}
-  
-  TActivityactorimage = Class(TGoogleBaseObject)
-  Private
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property url : string Index 0 Read Furl Write Seturl;
-  end;
-  TActivityactorimageClass = Class of TActivityactorimage;
-  
-  { --------------------------------------------------------------------
-    TActivityactorname
-    --------------------------------------------------------------------}
-  
-  TActivityactorname = Class(TGoogleBaseObject)
-  Private
-    FfamilyName : string;
-    FgivenName : string;
-  Protected
-    //Property setters
-    Procedure SetfamilyName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgivenName(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property familyName : string Index 0 Read FfamilyName Write SetfamilyName;
-    Property givenName : string Index 8 Read FgivenName Write SetgivenName;
-  end;
-  TActivityactornameClass = Class of TActivityactorname;
-  
-  { --------------------------------------------------------------------
-    TActivityobject
-    --------------------------------------------------------------------}
-  
-  TActivityobject = Class(TGoogleBaseObject)
-  Private
-    Factor : TActivityobjectactor;
-    Fattachments : TActivityobjectattachments;
-    Fcontent : string;
-    Fid : string;
-    FobjectType : string;
-    ForiginalContent : string;
-    Fplusoners : TActivityobjectplusoners;
-    Freplies : TActivityobjectreplies;
-    Fresharers : TActivityobjectresharers;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Setactor(AIndex : Integer; AValue : TActivityobjectactor); virtual;
-    Procedure Setattachments(AIndex : Integer; AValue : TActivityobjectattachments); virtual;
-    Procedure Setcontent(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetobjectType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoriginalContent(AIndex : Integer; AValue : string); virtual;
-    Procedure Setplusoners(AIndex : Integer; AValue : TActivityobjectplusoners); virtual;
-    Procedure Setreplies(AIndex : Integer; AValue : TActivityobjectreplies); virtual;
-    Procedure Setresharers(AIndex : Integer; AValue : TActivityobjectresharers); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property actor : TActivityobjectactor Index 0 Read Factor Write Setactor;
-    Property attachments : TActivityobjectattachments Index 8 Read Fattachments Write Setattachments;
-    Property content : string Index 16 Read Fcontent Write Setcontent;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property objectType : string Index 32 Read FobjectType Write SetobjectType;
-    Property originalContent : string Index 40 Read ForiginalContent Write SetoriginalContent;
-    Property plusoners : TActivityobjectplusoners Index 48 Read Fplusoners Write Setplusoners;
-    Property replies : TActivityobjectreplies Index 56 Read Freplies Write Setreplies;
-    Property resharers : TActivityobjectresharers Index 64 Read Fresharers Write Setresharers;
-    Property url : string Index 72 Read Furl Write Seturl;
-  end;
-  TActivityobjectClass = Class of TActivityobject;
-  
-  { --------------------------------------------------------------------
-    TActivityobjectactor
-    --------------------------------------------------------------------}
-  
-  TActivityobjectactor = Class(TGoogleBaseObject)
-  Private
-    FdisplayName : string;
-    Fid : string;
-    Fimage : TActivityobjectactorimage;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setimage(AIndex : Integer; AValue : TActivityobjectactorimage); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property displayName : string Index 0 Read FdisplayName Write SetdisplayName;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property image : TActivityobjectactorimage Index 16 Read Fimage Write Setimage;
-    Property url : string Index 24 Read Furl Write Seturl;
-  end;
-  TActivityobjectactorClass = Class of TActivityobjectactor;
-  
-  { --------------------------------------------------------------------
-    TActivityobjectactorimage
-    --------------------------------------------------------------------}
-  
-  TActivityobjectactorimage = Class(TGoogleBaseObject)
-  Private
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property url : string Index 0 Read Furl Write Seturl;
-  end;
-  TActivityobjectactorimageClass = Class of TActivityobjectactorimage;
-  
-  { --------------------------------------------------------------------
-    TActivityobjectattachments
-    --------------------------------------------------------------------}
-  
-  TActivityobjectattachments = Class(TGoogleBaseObject)
-  Private
-    Fcontent : string;
-    FdisplayName : string;
-    Fembed : TActivityobjectattachmentsembed;
-    FfullImage : TActivityobjectattachmentsfullImage;
-    Fid : string;
-    Fimage : TActivityobjectattachmentsimage;
-    FobjectType : string;
-    Fthumbnails : TActivityobjectattachmentsthumbnails;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Setcontent(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setembed(AIndex : Integer; AValue : TActivityobjectattachmentsembed); virtual;
-    Procedure SetfullImage(AIndex : Integer; AValue : TActivityobjectattachmentsfullImage); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setimage(AIndex : Integer; AValue : TActivityobjectattachmentsimage); virtual;
-    Procedure SetobjectType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setthumbnails(AIndex : Integer; AValue : TActivityobjectattachmentsthumbnails); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property content : string Index 0 Read Fcontent Write Setcontent;
-    Property displayName : string Index 8 Read FdisplayName Write SetdisplayName;
-    Property embed : TActivityobjectattachmentsembed Index 16 Read Fembed Write Setembed;
-    Property fullImage : TActivityobjectattachmentsfullImage Index 24 Read FfullImage Write SetfullImage;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property image : TActivityobjectattachmentsimage Index 40 Read Fimage Write Setimage;
-    Property objectType : string Index 48 Read FobjectType Write SetobjectType;
-    Property thumbnails : TActivityobjectattachmentsthumbnails Index 56 Read Fthumbnails Write Setthumbnails;
-    Property url : string Index 64 Read Furl Write Seturl;
-  end;
-  TActivityobjectattachmentsClass = Class of TActivityobjectattachments;
-  
-  { --------------------------------------------------------------------
-    TActivityobjectattachmentsembed
-    --------------------------------------------------------------------}
-  
-  TActivityobjectattachmentsembed = Class(TGoogleBaseObject)
-  Private
-    F_type : string;
-    Furl : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property _type : string Index 0 Read F_type Write Set_type;
-    Property url : string Index 8 Read Furl Write Seturl;
-  end;
-  TActivityobjectattachmentsembedClass = Class of TActivityobjectattachmentsembed;
-  
-  { --------------------------------------------------------------------
-    TActivityobjectattachmentsfullImage
-    --------------------------------------------------------------------}
-  
-  TActivityobjectattachmentsfullImage = Class(TGoogleBaseObject)
-  Private
-    Fheight : integer;
-    F_type : string;
-    Furl : string;
-    Fwidth : integer;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property height : integer Index 0 Read Fheight Write Setheight;
-    Property _type : string Index 8 Read F_type Write Set_type;
-    Property url : string Index 16 Read Furl Write Seturl;
-    Property width : integer Index 24 Read Fwidth Write Setwidth;
-  end;
-  TActivityobjectattachmentsfullImageClass = Class of TActivityobjectattachmentsfullImage;
-  
-  { --------------------------------------------------------------------
-    TActivityobjectattachmentsimage
-    --------------------------------------------------------------------}
-  
-  TActivityobjectattachmentsimage = Class(TGoogleBaseObject)
-  Private
-    Fheight : integer;
-    F_type : string;
-    Furl : string;
-    Fwidth : integer;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property height : integer Index 0 Read Fheight Write Setheight;
-    Property _type : string Index 8 Read F_type Write Set_type;
-    Property url : string Index 16 Read Furl Write Seturl;
-    Property width : integer Index 24 Read Fwidth Write Setwidth;
-  end;
-  TActivityobjectattachmentsimageClass = Class of TActivityobjectattachmentsimage;
-  
-  { --------------------------------------------------------------------
-    TActivityobjectattachmentsthumbnails
-    --------------------------------------------------------------------}
-  
-  TActivityobjectattachmentsthumbnails = Class(TGoogleBaseObject)
-  Private
-    Fdescription : string;
-    Fimage : TActivityobjectattachmentsthumbnailsimage;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setimage(AIndex : Integer; AValue : TActivityobjectattachmentsthumbnailsimage); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property description : string Index 0 Read Fdescription Write Setdescription;
-    Property image : TActivityobjectattachmentsthumbnailsimage Index 8 Read Fimage Write Setimage;
-    Property url : string Index 16 Read Furl Write Seturl;
-  end;
-  TActivityobjectattachmentsthumbnailsClass = Class of TActivityobjectattachmentsthumbnails;
-  
-  { --------------------------------------------------------------------
-    TActivityobjectattachmentsthumbnailsimage
-    --------------------------------------------------------------------}
-  
-  TActivityobjectattachmentsthumbnailsimage = Class(TGoogleBaseObject)
-  Private
-    Fheight : integer;
-    F_type : string;
-    Furl : string;
-    Fwidth : integer;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property height : integer Index 0 Read Fheight Write Setheight;
-    Property _type : string Index 8 Read F_type Write Set_type;
-    Property url : string Index 16 Read Furl Write Seturl;
-    Property width : integer Index 24 Read Fwidth Write Setwidth;
-  end;
-  TActivityobjectattachmentsthumbnailsimageClass = Class of TActivityobjectattachmentsthumbnailsimage;
-  
-  { --------------------------------------------------------------------
-    TActivityobjectplusoners
-    --------------------------------------------------------------------}
-  
-  TActivityobjectplusoners = Class(TGoogleBaseObject)
-  Private
-    FselfLink : string;
-    FtotalItems : integer;
-  Protected
-    //Property setters
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property selfLink : string Index 0 Read FselfLink Write SetselfLink;
-    Property totalItems : integer Index 8 Read FtotalItems Write SettotalItems;
-  end;
-  TActivityobjectplusonersClass = Class of TActivityobjectplusoners;
-  
-  { --------------------------------------------------------------------
-    TActivityobjectreplies
-    --------------------------------------------------------------------}
-  
-  TActivityobjectreplies = Class(TGoogleBaseObject)
-  Private
-    FselfLink : string;
-    FtotalItems : integer;
-  Protected
-    //Property setters
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property selfLink : string Index 0 Read FselfLink Write SetselfLink;
-    Property totalItems : integer Index 8 Read FtotalItems Write SettotalItems;
-  end;
-  TActivityobjectrepliesClass = Class of TActivityobjectreplies;
-  
-  { --------------------------------------------------------------------
-    TActivityobjectresharers
-    --------------------------------------------------------------------}
-  
-  TActivityobjectresharers = Class(TGoogleBaseObject)
-  Private
-    FselfLink : string;
-    FtotalItems : integer;
-  Protected
-    //Property setters
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property selfLink : string Index 0 Read FselfLink Write SetselfLink;
-    Property totalItems : integer Index 8 Read FtotalItems Write SettotalItems;
-  end;
-  TActivityobjectresharersClass = Class of TActivityobjectresharers;
-  
-  { --------------------------------------------------------------------
-    TActivityprovider
-    --------------------------------------------------------------------}
-  
-  TActivityprovider = Class(TGoogleBaseObject)
-  Private
-    Ftitle : string;
-  Protected
-    //Property setters
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property title : string Index 0 Read Ftitle Write Settitle;
-  end;
-  TActivityproviderClass = Class of TActivityprovider;
   
   { --------------------------------------------------------------------
     TActivityFeed
@@ -643,52 +684,195 @@ type
   
   TActivityFeed = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fid : string;
-    Fitems : TActivityFeeditems;
-    Fkind : string;
-    FnextLink : string;
-    FnextPageToken : string;
-    FselfLink : string;
-    Ftitle : string;
+    Fetag : String;
+    Fid : String;
+    Fitems : TActivityFeedTypeitemsArray;
+    Fkind : String;
+    FnextLink : String;
+    FnextPageToken : String;
+    FselfLink : String;
+    Ftitle : String;
     Fupdated : TDatetime;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TActivityFeeditems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TActivityFeedTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setupdated(AIndex : Integer; const AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property items : TActivityFeeditems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextLink : string Index 32 Read FnextLink Write SetnextLink;
-    Property nextPageToken : string Index 40 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 48 Read FselfLink Write SetselfLink;
-    Property title : string Index 56 Read Ftitle Write Settitle;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property items : TActivityFeedTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextLink : String Index 32 Read FnextLink Write SetnextLink;
+    Property nextPageToken : String Index 40 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 48 Read FselfLink Write SetselfLink;
+    Property title : String Index 56 Read Ftitle Write Settitle;
     Property updated : TDatetime Index 64 Read Fupdated Write Setupdated;
   end;
   TActivityFeedClass = Class of TActivityFeed;
   
   { --------------------------------------------------------------------
-    TActivityFeeditems
+    TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo
     --------------------------------------------------------------------}
   
-  TActivityFeeditems = Class(TGoogleBaseObject)
+  TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo = Class(TGoogleBaseObject)
   Private
+    FchannelId : String;
   Protected
     //Property setters
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property channelId : String Index 0 Read FchannelId Write SetchannelId;
   end;
-  TActivityFeeditemsClass = Class of TActivityFeeditems;
+  TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfoClass = Class of TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo;
+  
+  { --------------------------------------------------------------------
+    TCommentTypeactorTypeclientSpecificActorInfo
+    --------------------------------------------------------------------}
+  
+  TCommentTypeactorTypeclientSpecificActorInfo = Class(TGoogleBaseObject)
+  Private
+    FyoutubeActorInfo : TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo;
+  Protected
+    //Property setters
+    Procedure SetyoutubeActorInfo(AIndex : Integer; const AValue : TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo); virtual;
+  Public
+  Published
+    Property youtubeActorInfo : TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo Index 0 Read FyoutubeActorInfo Write SetyoutubeActorInfo;
+  end;
+  TCommentTypeactorTypeclientSpecificActorInfoClass = Class of TCommentTypeactorTypeclientSpecificActorInfo;
+  
+  { --------------------------------------------------------------------
+    TCommentTypeactorTypeimage
+    --------------------------------------------------------------------}
+  
+  TCommentTypeactorTypeimage = Class(TGoogleBaseObject)
+  Private
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property url : String Index 0 Read Furl Write Seturl;
+  end;
+  TCommentTypeactorTypeimageClass = Class of TCommentTypeactorTypeimage;
+  
+  { --------------------------------------------------------------------
+    TCommentTypeactorTypeverification
+    --------------------------------------------------------------------}
+  
+  TCommentTypeactorTypeverification = Class(TGoogleBaseObject)
+  Private
+    FadHocVerified : String;
+  Protected
+    //Property setters
+    Procedure SetadHocVerified(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property adHocVerified : String Index 0 Read FadHocVerified Write SetadHocVerified;
+  end;
+  TCommentTypeactorTypeverificationClass = Class of TCommentTypeactorTypeverification;
+  
+  { --------------------------------------------------------------------
+    TCommentTypeactor
+    --------------------------------------------------------------------}
+  
+  TCommentTypeactor = Class(TGoogleBaseObject)
+  Private
+    FclientSpecificActorInfo : TCommentTypeactorTypeclientSpecificActorInfo;
+    FdisplayName : String;
+    Fid : String;
+    Fimage : TCommentTypeactorTypeimage;
+    Furl : String;
+    Fverification : TCommentTypeactorTypeverification;
+  Protected
+    //Property setters
+    Procedure SetclientSpecificActorInfo(AIndex : Integer; const AValue : TCommentTypeactorTypeclientSpecificActorInfo); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setimage(AIndex : Integer; const AValue : TCommentTypeactorTypeimage); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setverification(AIndex : Integer; const AValue : TCommentTypeactorTypeverification); virtual;
+  Public
+  Published
+    Property clientSpecificActorInfo : TCommentTypeactorTypeclientSpecificActorInfo Index 0 Read FclientSpecificActorInfo Write SetclientSpecificActorInfo;
+    Property displayName : String Index 8 Read FdisplayName Write SetdisplayName;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property image : TCommentTypeactorTypeimage Index 24 Read Fimage Write Setimage;
+    Property url : String Index 32 Read Furl Write Seturl;
+    Property verification : TCommentTypeactorTypeverification Index 40 Read Fverification Write Setverification;
+  end;
+  TCommentTypeactorClass = Class of TCommentTypeactor;
+  
+  { --------------------------------------------------------------------
+    TCommentTypeinReplyToItem
+    --------------------------------------------------------------------}
+  
+  TCommentTypeinReplyToItem = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property url : String Index 8 Read Furl Write Seturl;
+  end;
+  TCommentTypeinReplyToItemClass = Class of TCommentTypeinReplyToItem;
+  
+  { --------------------------------------------------------------------
+    TCommentTypeobject
+    --------------------------------------------------------------------}
+  
+  TCommentTypeobject = Class(TGoogleBaseObject)
+  Private
+    Fcontent : String;
+    FobjectType : String;
+    ForiginalContent : String;
+  Protected
+    //Property setters
+    Procedure Setcontent(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetobjectType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoriginalContent(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property content : String Index 0 Read Fcontent Write Setcontent;
+    Property objectType : String Index 8 Read FobjectType Write SetobjectType;
+    Property originalContent : String Index 16 Read ForiginalContent Write SetoriginalContent;
+  end;
+  TCommentTypeobjectClass = Class of TCommentTypeobject;
+  
+  { --------------------------------------------------------------------
+    TCommentTypeplusoners
+    --------------------------------------------------------------------}
+  
+  TCommentTypeplusoners = Class(TGoogleBaseObject)
+  Private
+    FtotalItems : integer;
+  Protected
+    //Property setters
+    Procedure SettotalItems(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property totalItems : integer Index 0 Read FtotalItems Write SettotalItems;
+  end;
+  TCommentTypeplusonersClass = Class of TCommentTypeplusoners;
   
   { --------------------------------------------------------------------
     TComment
@@ -696,144 +880,50 @@ type
   
   TComment = Class(TGoogleBaseObject)
   Private
-    Factor : TCommentactor;
-    Fetag : string;
-    Fid : string;
-    FinReplyTo : TCommentinReplyTo;
-    Fkind : string;
-    F_object : TCommentobject;
-    Fplusoners : TCommentplusoners;
+    Factor : TCommentTypeactor;
+    Fetag : String;
+    Fid : String;
+    FinReplyTo : TCommentTypeinReplyToArray;
+    Fkind : String;
+    F_object : TCommentTypeobject;
+    Fplusoners : TCommentTypeplusoners;
     F_published : TDatetime;
-    FselfLink : string;
+    FselfLink : String;
     Fupdated : TDatetime;
-    Fverb : string;
+    Fverb : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setactor(AIndex : Integer; AValue : TCommentactor); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinReplyTo(AIndex : Integer; AValue : TCommentinReplyTo); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_object(AIndex : Integer; AValue : TCommentobject); virtual;
-    Procedure Setplusoners(AIndex : Integer; AValue : TCommentplusoners); virtual;
-    Procedure Set_published(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setverb(AIndex : Integer; AValue : string); virtual;
+    Procedure Setactor(AIndex : Integer; const AValue : TCommentTypeactor); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinReplyTo(AIndex : Integer; const AValue : TCommentTypeinReplyToArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_object(AIndex : Integer; const AValue : TCommentTypeobject); virtual;
+    Procedure Setplusoners(AIndex : Integer; const AValue : TCommentTypeplusoners); virtual;
+    Procedure Set_published(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setupdated(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setverb(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property actor : TCommentactor Index 0 Read Factor Write Setactor;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property inReplyTo : TCommentinReplyTo Index 24 Read FinReplyTo Write SetinReplyTo;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property _object : TCommentobject Index 40 Read F_object Write Set_object;
-    Property plusoners : TCommentplusoners Index 48 Read Fplusoners Write Setplusoners;
+    Property actor : TCommentTypeactor Index 0 Read Factor Write Setactor;
+    Property etag : String Index 8 Read Fetag Write Setetag;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property inReplyTo : TCommentTypeinReplyToArray Index 24 Read FinReplyTo Write SetinReplyTo;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property _object : TCommentTypeobject Index 40 Read F_object Write Set_object;
+    Property plusoners : TCommentTypeplusoners Index 48 Read Fplusoners Write Setplusoners;
     Property _published : TDatetime Index 56 Read F_published Write Set_published;
-    Property selfLink : string Index 64 Read FselfLink Write SetselfLink;
+    Property selfLink : String Index 64 Read FselfLink Write SetselfLink;
     Property updated : TDatetime Index 72 Read Fupdated Write Setupdated;
-    Property verb : string Index 80 Read Fverb Write Setverb;
+    Property verb : String Index 80 Read Fverb Write Setverb;
   end;
   TCommentClass = Class of TComment;
-  
-  { --------------------------------------------------------------------
-    TCommentactor
-    --------------------------------------------------------------------}
-  
-  TCommentactor = Class(TGoogleBaseObject)
-  Private
-    FdisplayName : string;
-    Fid : string;
-    Fimage : TCommentactorimage;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setimage(AIndex : Integer; AValue : TCommentactorimage); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property displayName : string Index 0 Read FdisplayName Write SetdisplayName;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property image : TCommentactorimage Index 16 Read Fimage Write Setimage;
-    Property url : string Index 24 Read Furl Write Seturl;
-  end;
-  TCommentactorClass = Class of TCommentactor;
-  
-  { --------------------------------------------------------------------
-    TCommentactorimage
-    --------------------------------------------------------------------}
-  
-  TCommentactorimage = Class(TGoogleBaseObject)
-  Private
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property url : string Index 0 Read Furl Write Seturl;
-  end;
-  TCommentactorimageClass = Class of TCommentactorimage;
-  
-  { --------------------------------------------------------------------
-    TCommentinReplyTo
-    --------------------------------------------------------------------}
-  
-  TCommentinReplyTo = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property url : string Index 8 Read Furl Write Seturl;
-  end;
-  TCommentinReplyToClass = Class of TCommentinReplyTo;
-  
-  { --------------------------------------------------------------------
-    TCommentobject
-    --------------------------------------------------------------------}
-  
-  TCommentobject = Class(TGoogleBaseObject)
-  Private
-    Fcontent : string;
-    FobjectType : string;
-    ForiginalContent : string;
-  Protected
-    //Property setters
-    Procedure Setcontent(AIndex : Integer; AValue : string); virtual;
-    Procedure SetobjectType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetoriginalContent(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property content : string Index 0 Read Fcontent Write Setcontent;
-    Property objectType : string Index 8 Read FobjectType Write SetobjectType;
-    Property originalContent : string Index 16 Read ForiginalContent Write SetoriginalContent;
-  end;
-  TCommentobjectClass = Class of TCommentobject;
-  
-  { --------------------------------------------------------------------
-    TCommentplusoners
-    --------------------------------------------------------------------}
-  
-  TCommentplusoners = Class(TGoogleBaseObject)
-  Private
-    FtotalItems : integer;
-  Protected
-    //Property setters
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property totalItems : integer Index 0 Read FtotalItems Write SettotalItems;
-  end;
-  TCommentplusonersClass = Class of TCommentplusoners;
   
   { --------------------------------------------------------------------
     TCommentFeed
@@ -841,391 +931,40 @@ type
   
   TCommentFeed = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fid : string;
-    Fitems : TCommentFeeditems;
-    Fkind : string;
-    FnextLink : string;
-    FnextPageToken : string;
-    Ftitle : string;
+    Fetag : String;
+    Fid : String;
+    Fitems : TCommentFeedTypeitemsArray;
+    Fkind : String;
+    FnextLink : String;
+    FnextPageToken : String;
+    Ftitle : String;
     Fupdated : TDatetime;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TCommentFeeditems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TCommentFeedTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setupdated(AIndex : Integer; const AValue : TDatetime); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property items : TCommentFeeditems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property nextLink : string Index 32 Read FnextLink Write SetnextLink;
-    Property nextPageToken : string Index 40 Read FnextPageToken Write SetnextPageToken;
-    Property title : string Index 48 Read Ftitle Write Settitle;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property items : TCommentFeedTypeitemsArray Index 16 Read Fitems Write Setitems;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property nextLink : String Index 32 Read FnextLink Write SetnextLink;
+    Property nextPageToken : String Index 40 Read FnextPageToken Write SetnextPageToken;
+    Property title : String Index 48 Read Ftitle Write Settitle;
     Property updated : TDatetime Index 56 Read Fupdated Write Setupdated;
   end;
   TCommentFeedClass = Class of TCommentFeed;
-  
-  { --------------------------------------------------------------------
-    TCommentFeeditems
-    --------------------------------------------------------------------}
-  
-  TCommentFeeditems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCommentFeeditemsClass = Class of TCommentFeeditems;
-  
-  { --------------------------------------------------------------------
-    TItemScope
-    --------------------------------------------------------------------}
-  
-  TItemScope = Class(TGoogleBaseObject)
-  Private
-    Fabout : TItemScope;
-    FadditionalName : TItemScopeadditionalName;
-    Faddress : TItemScope;
-    FaddressCountry : string;
-    FaddressLocality : string;
-    FaddressRegion : string;
-    Fassociated_media : TItemScopeassociated_media;
-    FattendeeCount : integer;
-    Fattendees : TItemScopeattendees;
-    Faudio : TItemScope;
-    Fauthor : TItemScopeauthor;
-    FbestRating : string;
-    FbirthDate : string;
-    FbyArtist : TItemScope;
-    Fcaption : string;
-    FcontentSize : string;
-    FcontentUrl : string;
-    Fcontributor : TItemScopecontributor;
-    FdateCreated : string;
-    FdateModified : string;
-    FdatePublished : string;
-    Fdescription : string;
-    Fduration : string;
-    FembedUrl : string;
-    FendDate : string;
-    FfamilyName : string;
-    Fgender : string;
-    Fgeo : TItemScope;
-    FgivenName : string;
-    Fheight : string;
-    Fid : string;
-    Fimage : string;
-    FinAlbum : TItemScope;
-    Fkind : string;
-    Flatitude : double;
-    Flocation : TItemScope;
-    Flongitude : double;
-    Fname : string;
-    FpartOfTVSeries : TItemScope;
-    Fperformers : TItemScopeperformers;
-    FplayerType : string;
-    FpostOfficeBoxNumber : string;
-    FpostalCode : string;
-    FratingValue : string;
-    FreviewRating : TItemScope;
-    FstartDate : string;
-    FstreetAddress : string;
-    Ftext : string;
-    Fthumbnail : TItemScope;
-    FthumbnailUrl : string;
-    FtickerSymbol : string;
-    F_type : string;
-    Furl : string;
-    Fwidth : string;
-    FworstRating : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setabout(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure SetadditionalName(AIndex : Integer; AValue : TItemScopeadditionalName); virtual;
-    Procedure Setaddress(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure SetaddressCountry(AIndex : Integer; AValue : string); virtual;
-    Procedure SetaddressLocality(AIndex : Integer; AValue : string); virtual;
-    Procedure SetaddressRegion(AIndex : Integer; AValue : string); virtual;
-    Procedure Setassociated_media(AIndex : Integer; AValue : TItemScopeassociated_media); virtual;
-    Procedure SetattendeeCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setattendees(AIndex : Integer; AValue : TItemScopeattendees); virtual;
-    Procedure Setaudio(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure Setauthor(AIndex : Integer; AValue : TItemScopeauthor); virtual;
-    Procedure SetbestRating(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbirthDate(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbyArtist(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure Setcaption(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontentSize(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcontentUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcontributor(AIndex : Integer; AValue : TItemScopecontributor); virtual;
-    Procedure SetdateCreated(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdateModified(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdatePublished(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setduration(AIndex : Integer; AValue : string); virtual;
-    Procedure SetembedUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendDate(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfamilyName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setgender(AIndex : Integer; AValue : string); virtual;
-    Procedure Setgeo(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure SetgivenName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setheight(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setimage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetinAlbum(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlatitude(AIndex : Integer; AValue : double); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure Setlongitude(AIndex : Integer; AValue : double); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpartOfTVSeries(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure Setperformers(AIndex : Integer; AValue : TItemScopeperformers); virtual;
-    Procedure SetplayerType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpostOfficeBoxNumber(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpostalCode(AIndex : Integer; AValue : string); virtual;
-    Procedure SetratingValue(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreviewRating(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure SetstartDate(AIndex : Integer; AValue : string); virtual;
-    Procedure SetstreetAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure Settext(AIndex : Integer; AValue : string); virtual;
-    Procedure Setthumbnail(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure SetthumbnailUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SettickerSymbol(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : string); virtual;
-    Procedure SetworstRating(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property about : TItemScope Index 0 Read Fabout Write Setabout;
-    Property additionalName : TItemScopeadditionalName Index 8 Read FadditionalName Write SetadditionalName;
-    Property address : TItemScope Index 16 Read Faddress Write Setaddress;
-    Property addressCountry : string Index 24 Read FaddressCountry Write SetaddressCountry;
-    Property addressLocality : string Index 32 Read FaddressLocality Write SetaddressLocality;
-    Property addressRegion : string Index 40 Read FaddressRegion Write SetaddressRegion;
-    Property associated_media : TItemScopeassociated_media Index 48 Read Fassociated_media Write Setassociated_media;
-    Property attendeeCount : integer Index 56 Read FattendeeCount Write SetattendeeCount;
-    Property attendees : TItemScopeattendees Index 64 Read Fattendees Write Setattendees;
-    Property audio : TItemScope Index 72 Read Faudio Write Setaudio;
-    Property author : TItemScopeauthor Index 80 Read Fauthor Write Setauthor;
-    Property bestRating : string Index 88 Read FbestRating Write SetbestRating;
-    Property birthDate : string Index 96 Read FbirthDate Write SetbirthDate;
-    Property byArtist : TItemScope Index 104 Read FbyArtist Write SetbyArtist;
-    Property caption : string Index 112 Read Fcaption Write Setcaption;
-    Property contentSize : string Index 120 Read FcontentSize Write SetcontentSize;
-    Property contentUrl : string Index 128 Read FcontentUrl Write SetcontentUrl;
-    Property contributor : TItemScopecontributor Index 136 Read Fcontributor Write Setcontributor;
-    Property dateCreated : string Index 144 Read FdateCreated Write SetdateCreated;
-    Property dateModified : string Index 152 Read FdateModified Write SetdateModified;
-    Property datePublished : string Index 160 Read FdatePublished Write SetdatePublished;
-    Property description : string Index 168 Read Fdescription Write Setdescription;
-    Property duration : string Index 176 Read Fduration Write Setduration;
-    Property embedUrl : string Index 184 Read FembedUrl Write SetembedUrl;
-    Property endDate : string Index 192 Read FendDate Write SetendDate;
-    Property familyName : string Index 200 Read FfamilyName Write SetfamilyName;
-    Property gender : string Index 208 Read Fgender Write Setgender;
-    Property geo : TItemScope Index 216 Read Fgeo Write Setgeo;
-    Property givenName : string Index 224 Read FgivenName Write SetgivenName;
-    Property height : string Index 232 Read Fheight Write Setheight;
-    Property id : string Index 240 Read Fid Write Setid;
-    Property image : string Index 248 Read Fimage Write Setimage;
-    Property inAlbum : TItemScope Index 256 Read FinAlbum Write SetinAlbum;
-    Property kind : string Index 264 Read Fkind Write Setkind;
-    Property latitude : double Index 272 Read Flatitude Write Setlatitude;
-    Property location : TItemScope Index 280 Read Flocation Write Setlocation;
-    Property longitude : double Index 288 Read Flongitude Write Setlongitude;
-    Property name : string Index 296 Read Fname Write Setname;
-    Property partOfTVSeries : TItemScope Index 304 Read FpartOfTVSeries Write SetpartOfTVSeries;
-    Property performers : TItemScopeperformers Index 312 Read Fperformers Write Setperformers;
-    Property playerType : string Index 320 Read FplayerType Write SetplayerType;
-    Property postOfficeBoxNumber : string Index 328 Read FpostOfficeBoxNumber Write SetpostOfficeBoxNumber;
-    Property postalCode : string Index 336 Read FpostalCode Write SetpostalCode;
-    Property ratingValue : string Index 344 Read FratingValue Write SetratingValue;
-    Property reviewRating : TItemScope Index 352 Read FreviewRating Write SetreviewRating;
-    Property startDate : string Index 360 Read FstartDate Write SetstartDate;
-    Property streetAddress : string Index 368 Read FstreetAddress Write SetstreetAddress;
-    Property text : string Index 376 Read Ftext Write Settext;
-    Property thumbnail : TItemScope Index 384 Read Fthumbnail Write Setthumbnail;
-    Property thumbnailUrl : string Index 392 Read FthumbnailUrl Write SetthumbnailUrl;
-    Property tickerSymbol : string Index 400 Read FtickerSymbol Write SettickerSymbol;
-    Property _type : string Index 408 Read F_type Write Set_type;
-    Property url : string Index 416 Read Furl Write Seturl;
-    Property width : string Index 424 Read Fwidth Write Setwidth;
-    Property worstRating : string Index 432 Read FworstRating Write SetworstRating;
-  end;
-  TItemScopeClass = Class of TItemScope;
-  
-  { --------------------------------------------------------------------
-    TItemScopeadditionalName
-    --------------------------------------------------------------------}
-  
-  TItemScopeadditionalName = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TItemScopeadditionalNameClass = Class of TItemScopeadditionalName;
-  
-  { --------------------------------------------------------------------
-    TItemScopeassociated_media
-    --------------------------------------------------------------------}
-  
-  TItemScopeassociated_media = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TItemScopeassociated_mediaClass = Class of TItemScopeassociated_media;
-  
-  { --------------------------------------------------------------------
-    TItemScopeattendees
-    --------------------------------------------------------------------}
-  
-  TItemScopeattendees = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TItemScopeattendeesClass = Class of TItemScopeattendees;
-  
-  { --------------------------------------------------------------------
-    TItemScopeauthor
-    --------------------------------------------------------------------}
-  
-  TItemScopeauthor = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TItemScopeauthorClass = Class of TItemScopeauthor;
-  
-  { --------------------------------------------------------------------
-    TItemScopecontributor
-    --------------------------------------------------------------------}
-  
-  TItemScopecontributor = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TItemScopecontributorClass = Class of TItemScopecontributor;
-  
-  { --------------------------------------------------------------------
-    TItemScopeperformers
-    --------------------------------------------------------------------}
-  
-  TItemScopeperformers = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TItemScopeperformersClass = Class of TItemScopeperformers;
-  
-  { --------------------------------------------------------------------
-    TMoment
-    --------------------------------------------------------------------}
-  
-  TMoment = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fkind : string;
-    F_object : TItemScope;
-    Fresult : TItemScope;
-    FstartDate : TDatetime;
-    Ftarget : TItemScope;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_object(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure Setresult(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure SetstartDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Settarget(AIndex : Integer; AValue : TItemScope); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property _object : TItemScope Index 16 Read F_object Write Set_object;
-    Property result : TItemScope Index 24 Read Fresult Write Setresult;
-    Property startDate : TDatetime Index 32 Read FstartDate Write SetstartDate;
-    Property target : TItemScope Index 40 Read Ftarget Write Settarget;
-    Property _type : string Index 48 Read F_type Write Set_type;
-  end;
-  TMomentClass = Class of TMoment;
-  
-  { --------------------------------------------------------------------
-    TMomentsFeed
-    --------------------------------------------------------------------}
-  
-  TMomentsFeed = Class(TGoogleBaseObject)
-  Private
-    Fetag : string;
-    Fitems : TMomentsFeeditems;
-    Fkind : string;
-    FnextLink : string;
-    FnextPageToken : string;
-    FselfLink : string;
-    Ftitle : string;
-    Fupdated : TDatetime;
-  Protected
-    //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TMomentsFeeditems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-  Public
-  Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TMomentsFeeditems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextLink : string Index 24 Read FnextLink Write SetnextLink;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 40 Read FselfLink Write SetselfLink;
-    Property title : string Index 48 Read Ftitle Write Settitle;
-    Property updated : TDatetime Index 56 Read Fupdated Write Setupdated;
-  end;
-  TMomentsFeedClass = Class of TMomentsFeed;
-  
-  { --------------------------------------------------------------------
-    TMomentsFeeditems
-    --------------------------------------------------------------------}
-  
-  TMomentsFeeditems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TMomentsFeeditemsClass = Class of TMomentsFeeditems;
   
   { --------------------------------------------------------------------
     TPeopleFeed
@@ -1233,46 +972,272 @@ type
   
   TPeopleFeed = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TPeopleFeeditems;
-    Fkind : string;
-    FnextPageToken : string;
-    FselfLink : string;
-    Ftitle : string;
+    Fetag : String;
+    Fitems : TPeopleFeedTypeitemsArray;
+    Fkind : String;
+    FnextPageToken : String;
+    FselfLink : String;
+    Ftitle : String;
     FtotalItems : integer;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TPeopleFeeditems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TPeopleFeedTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettotalItems(AIndex : Integer; const AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TPeopleFeeditems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-    Property title : string Index 40 Read Ftitle Write Settitle;
+    Property etag : String Index 0 Read Fetag Write Setetag;
+    Property items : TPeopleFeedTypeitemsArray Index 8 Read Fitems Write Setitems;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
+    Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
+    Property title : String Index 40 Read Ftitle Write Settitle;
     Property totalItems : integer Index 48 Read FtotalItems Write SettotalItems;
   end;
   TPeopleFeedClass = Class of TPeopleFeed;
   
   { --------------------------------------------------------------------
-    TPeopleFeeditems
+    TPersonTypeageRange
     --------------------------------------------------------------------}
   
-  TPeopleFeeditems = Class(TGoogleBaseObject)
+  TPersonTypeageRange = Class(TGoogleBaseObject)
   Private
+    Fmax : integer;
+    Fmin : integer;
   Protected
     //Property setters
+    Procedure Setmax(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setmin(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
+    Property max : integer Index 0 Read Fmax Write Setmax;
+    Property min : integer Index 8 Read Fmin Write Setmin;
   end;
-  TPeopleFeeditemsClass = Class of TPeopleFeeditems;
+  TPersonTypeageRangeClass = Class of TPersonTypeageRange;
+  
+  { --------------------------------------------------------------------
+    TPersonTypecoverTypecoverInfo
+    --------------------------------------------------------------------}
+  
+  TPersonTypecoverTypecoverInfo = Class(TGoogleBaseObject)
+  Private
+    FleftImageOffset : integer;
+    FtopImageOffset : integer;
+  Protected
+    //Property setters
+    Procedure SetleftImageOffset(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SettopImageOffset(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property leftImageOffset : integer Index 0 Read FleftImageOffset Write SetleftImageOffset;
+    Property topImageOffset : integer Index 8 Read FtopImageOffset Write SettopImageOffset;
+  end;
+  TPersonTypecoverTypecoverInfoClass = Class of TPersonTypecoverTypecoverInfo;
+  
+  { --------------------------------------------------------------------
+    TPersonTypecoverTypecoverPhoto
+    --------------------------------------------------------------------}
+  
+  TPersonTypecoverTypecoverPhoto = Class(TGoogleBaseObject)
+  Private
+    Fheight : integer;
+    Furl : String;
+    Fwidth : integer;
+  Protected
+    //Property setters
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property height : integer Index 0 Read Fheight Write Setheight;
+    Property url : String Index 8 Read Furl Write Seturl;
+    Property width : integer Index 16 Read Fwidth Write Setwidth;
+  end;
+  TPersonTypecoverTypecoverPhotoClass = Class of TPersonTypecoverTypecoverPhoto;
+  
+  { --------------------------------------------------------------------
+    TPersonTypecover
+    --------------------------------------------------------------------}
+  
+  TPersonTypecover = Class(TGoogleBaseObject)
+  Private
+    FcoverInfo : TPersonTypecoverTypecoverInfo;
+    FcoverPhoto : TPersonTypecoverTypecoverPhoto;
+    Flayout : String;
+  Protected
+    //Property setters
+    Procedure SetcoverInfo(AIndex : Integer; const AValue : TPersonTypecoverTypecoverInfo); virtual;
+    Procedure SetcoverPhoto(AIndex : Integer; const AValue : TPersonTypecoverTypecoverPhoto); virtual;
+    Procedure Setlayout(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property coverInfo : TPersonTypecoverTypecoverInfo Index 0 Read FcoverInfo Write SetcoverInfo;
+    Property coverPhoto : TPersonTypecoverTypecoverPhoto Index 8 Read FcoverPhoto Write SetcoverPhoto;
+    Property layout : String Index 16 Read Flayout Write Setlayout;
+  end;
+  TPersonTypecoverClass = Class of TPersonTypecover;
+  
+  { --------------------------------------------------------------------
+    TPersonTypeemailsItem
+    --------------------------------------------------------------------}
+  
+  TPersonTypeemailsItem = Class(TGoogleBaseObject)
+  Private
+    F_type : String;
+    Fvalue : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property _type : String Index 0 Read F_type Write Set_type;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TPersonTypeemailsItemClass = Class of TPersonTypeemailsItem;
+  
+  { --------------------------------------------------------------------
+    TPersonTypeimage
+    --------------------------------------------------------------------}
+  
+  TPersonTypeimage = Class(TGoogleBaseObject)
+  Private
+    FisDefault : boolean;
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure SetisDefault(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property isDefault : boolean Index 0 Read FisDefault Write SetisDefault;
+    Property url : String Index 8 Read Furl Write Seturl;
+  end;
+  TPersonTypeimageClass = Class of TPersonTypeimage;
+  
+  { --------------------------------------------------------------------
+    TPersonTypename
+    --------------------------------------------------------------------}
+  
+  TPersonTypename = Class(TGoogleBaseObject)
+  Private
+    FfamilyName : String;
+    Fformatted : String;
+    FgivenName : String;
+    FhonorificPrefix : String;
+    FhonorificSuffix : String;
+    FmiddleName : String;
+  Protected
+    //Property setters
+    Procedure SetfamilyName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setformatted(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgivenName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethonorificPrefix(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethonorificSuffix(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmiddleName(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property familyName : String Index 0 Read FfamilyName Write SetfamilyName;
+    Property formatted : String Index 8 Read Fformatted Write Setformatted;
+    Property givenName : String Index 16 Read FgivenName Write SetgivenName;
+    Property honorificPrefix : String Index 24 Read FhonorificPrefix Write SethonorificPrefix;
+    Property honorificSuffix : String Index 32 Read FhonorificSuffix Write SethonorificSuffix;
+    Property middleName : String Index 40 Read FmiddleName Write SetmiddleName;
+  end;
+  TPersonTypenameClass = Class of TPersonTypename;
+  
+  { --------------------------------------------------------------------
+    TPersonTypeorganizationsItem
+    --------------------------------------------------------------------}
+  
+  TPersonTypeorganizationsItem = Class(TGoogleBaseObject)
+  Private
+    Fdepartment : String;
+    Fdescription : String;
+    FendDate : String;
+    Flocation : String;
+    Fname : String;
+    Fprimary : boolean;
+    FstartDate : String;
+    Ftitle : String;
+    F_type : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Setdepartment(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetendDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setprimary(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetstartDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property department : String Index 0 Read Fdepartment Write Setdepartment;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property endDate : String Index 16 Read FendDate Write SetendDate;
+    Property location : String Index 24 Read Flocation Write Setlocation;
+    Property name : String Index 32 Read Fname Write Setname;
+    Property primary : boolean Index 40 Read Fprimary Write Setprimary;
+    Property startDate : String Index 48 Read FstartDate Write SetstartDate;
+    Property title : String Index 56 Read Ftitle Write Settitle;
+    Property _type : String Index 64 Read F_type Write Set_type;
+  end;
+  TPersonTypeorganizationsItemClass = Class of TPersonTypeorganizationsItem;
+  
+  { --------------------------------------------------------------------
+    TPersonTypeplacesLivedItem
+    --------------------------------------------------------------------}
+  
+  TPersonTypeplacesLivedItem = Class(TGoogleBaseObject)
+  Private
+    Fprimary : boolean;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setprimary(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property primary : boolean Index 0 Read Fprimary Write Setprimary;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TPersonTypeplacesLivedItemClass = Class of TPersonTypeplacesLivedItem;
+  
+  { --------------------------------------------------------------------
+    TPersonTypeurlsItem
+    --------------------------------------------------------------------}
+  
+  TPersonTypeurlsItem = Class(TGoogleBaseObject)
+  Private
+    F_label : String;
+    F_type : String;
+    Fvalue : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property _label : String Index 0 Read F_label Write Set_label;
+    Property _type : String Index 8 Read F_type Write Set_type;
+    Property value : String Index 16 Read Fvalue Write Setvalue;
+  end;
+  TPersonTypeurlsItemClass = Class of TPersonTypeurlsItem;
   
   { --------------------------------------------------------------------
     TPerson
@@ -1280,337 +1245,141 @@ type
   
   TPerson = Class(TGoogleBaseObject)
   Private
-    FaboutMe : string;
-    FageRange : TPersonageRange;
-    Fbirthday : string;
-    FbraggingRights : string;
+    FaboutMe : String;
+    FageRange : TPersonTypeageRange;
+    Fbirthday : String;
+    FbraggingRights : String;
     FcircledByCount : integer;
-    Fcover : TPersoncover;
-    FcurrentLocation : string;
-    FdisplayName : string;
-    Fdomain : string;
-    Femails : TPersonemails;
-    Fetag : string;
-    Fgender : string;
-    Fid : string;
-    Fimage : TPersonimage;
+    Fcover : TPersonTypecover;
+    FcurrentLocation : String;
+    FdisplayName : String;
+    Fdomain : String;
+    Femails : TPersonTypeemailsArray;
+    Fetag : String;
+    Fgender : String;
+    Fid : String;
+    Fimage : TPersonTypeimage;
     FisPlusUser : boolean;
-    Fkind : string;
-    Flanguage : string;
-    Fname : TPersonname;
-    Fnickname : string;
-    FobjectType : string;
-    Foccupation : string;
-    Forganizations : TPersonorganizations;
-    FplacesLived : TPersonplacesLived;
+    Fkind : String;
+    Flanguage : String;
+    Fname : TPersonTypename;
+    Fnickname : String;
+    FobjectType : String;
+    Foccupation : String;
+    Forganizations : TPersonTypeorganizationsArray;
+    FplacesLived : TPersonTypeplacesLivedArray;
     FplusOneCount : integer;
-    FrelationshipStatus : string;
-    Fskills : string;
-    Ftagline : string;
-    Furl : string;
-    Furls : TPersonurls;
+    FrelationshipStatus : String;
+    Fskills : String;
+    Ftagline : String;
+    Furl : String;
+    Furls : TPersonTypeurlsArray;
     Fverified : boolean;
   Protected
     //Property setters
-    Procedure SetaboutMe(AIndex : Integer; AValue : string); virtual;
-    Procedure SetageRange(AIndex : Integer; AValue : TPersonageRange); virtual;
-    Procedure Setbirthday(AIndex : Integer; AValue : string); virtual;
-    Procedure SetbraggingRights(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcircledByCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setcover(AIndex : Integer; AValue : TPersoncover); virtual;
-    Procedure SetcurrentLocation(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdomain(AIndex : Integer; AValue : string); virtual;
-    Procedure Setemails(AIndex : Integer; AValue : TPersonemails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setgender(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setimage(AIndex : Integer; AValue : TPersonimage); virtual;
-    Procedure SetisPlusUser(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : TPersonname); virtual;
-    Procedure Setnickname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetobjectType(AIndex : Integer; AValue : string); virtual;
-    Procedure Setoccupation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setorganizations(AIndex : Integer; AValue : TPersonorganizations); virtual;
-    Procedure SetplacesLived(AIndex : Integer; AValue : TPersonplacesLived); virtual;
-    Procedure SetplusOneCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetrelationshipStatus(AIndex : Integer; AValue : string); virtual;
-    Procedure Setskills(AIndex : Integer; AValue : string); virtual;
-    Procedure Settagline(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturls(AIndex : Integer; AValue : TPersonurls); virtual;
-    Procedure Setverified(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetaboutMe(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetageRange(AIndex : Integer; const AValue : TPersonTypeageRange); virtual;
+    Procedure Setbirthday(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbraggingRights(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcircledByCount(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setcover(AIndex : Integer; const AValue : TPersonTypecover); virtual;
+    Procedure SetcurrentLocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdomain(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setemails(AIndex : Integer; const AValue : TPersonTypeemailsArray); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setgender(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setimage(AIndex : Integer; const AValue : TPersonTypeimage); virtual;
+    Procedure SetisPlusUser(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : TPersonTypename); virtual;
+    Procedure Setnickname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetobjectType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setoccupation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setorganizations(AIndex : Integer; const AValue : TPersonTypeorganizationsArray); virtual;
+    Procedure SetplacesLived(AIndex : Integer; const AValue : TPersonTypeplacesLivedArray); virtual;
+    Procedure SetplusOneCount(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetrelationshipStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setskills(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settagline(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturls(AIndex : Integer; const AValue : TPersonTypeurlsArray); virtual;
+    Procedure Setverified(AIndex : Integer; const AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property aboutMe : string Index 0 Read FaboutMe Write SetaboutMe;
-    Property ageRange : TPersonageRange Index 8 Read FageRange Write SetageRange;
-    Property birthday : string Index 16 Read Fbirthday Write Setbirthday;
-    Property braggingRights : string Index 24 Read FbraggingRights Write SetbraggingRights;
+    Property aboutMe : String Index 0 Read FaboutMe Write SetaboutMe;
+    Property ageRange : TPersonTypeageRange Index 8 Read FageRange Write SetageRange;
+    Property birthday : String Index 16 Read Fbirthday Write Setbirthday;
+    Property braggingRights : String Index 24 Read FbraggingRights Write SetbraggingRights;
     Property circledByCount : integer Index 32 Read FcircledByCount Write SetcircledByCount;
-    Property cover : TPersoncover Index 40 Read Fcover Write Setcover;
-    Property currentLocation : string Index 48 Read FcurrentLocation Write SetcurrentLocation;
-    Property displayName : string Index 56 Read FdisplayName Write SetdisplayName;
-    Property domain : string Index 64 Read Fdomain Write Setdomain;
-    Property emails : TPersonemails Index 72 Read Femails Write Setemails;
-    Property etag : string Index 80 Read Fetag Write Setetag;
-    Property gender : string Index 88 Read Fgender Write Setgender;
-    Property id : string Index 96 Read Fid Write Setid;
-    Property image : TPersonimage Index 104 Read Fimage Write Setimage;
+    Property cover : TPersonTypecover Index 40 Read Fcover Write Setcover;
+    Property currentLocation : String Index 48 Read FcurrentLocation Write SetcurrentLocation;
+    Property displayName : String Index 56 Read FdisplayName Write SetdisplayName;
+    Property domain : String Index 64 Read Fdomain Write Setdomain;
+    Property emails : TPersonTypeemailsArray Index 72 Read Femails Write Setemails;
+    Property etag : String Index 80 Read Fetag Write Setetag;
+    Property gender : String Index 88 Read Fgender Write Setgender;
+    Property id : String Index 96 Read Fid Write Setid;
+    Property image : TPersonTypeimage Index 104 Read Fimage Write Setimage;
     Property isPlusUser : boolean Index 112 Read FisPlusUser Write SetisPlusUser;
-    Property kind : string Index 120 Read Fkind Write Setkind;
-    Property language : string Index 128 Read Flanguage Write Setlanguage;
-    Property name : TPersonname Index 136 Read Fname Write Setname;
-    Property nickname : string Index 144 Read Fnickname Write Setnickname;
-    Property objectType : string Index 152 Read FobjectType Write SetobjectType;
-    Property occupation : string Index 160 Read Foccupation Write Setoccupation;
-    Property organizations : TPersonorganizations Index 168 Read Forganizations Write Setorganizations;
-    Property placesLived : TPersonplacesLived Index 176 Read FplacesLived Write SetplacesLived;
+    Property kind : String Index 120 Read Fkind Write Setkind;
+    Property language : String Index 128 Read Flanguage Write Setlanguage;
+    Property name : TPersonTypename Index 136 Read Fname Write Setname;
+    Property nickname : String Index 144 Read Fnickname Write Setnickname;
+    Property objectType : String Index 152 Read FobjectType Write SetobjectType;
+    Property occupation : String Index 160 Read Foccupation Write Setoccupation;
+    Property organizations : TPersonTypeorganizationsArray Index 168 Read Forganizations Write Setorganizations;
+    Property placesLived : TPersonTypeplacesLivedArray Index 176 Read FplacesLived Write SetplacesLived;
     Property plusOneCount : integer Index 184 Read FplusOneCount Write SetplusOneCount;
-    Property relationshipStatus : string Index 192 Read FrelationshipStatus Write SetrelationshipStatus;
-    Property skills : string Index 200 Read Fskills Write Setskills;
-    Property tagline : string Index 208 Read Ftagline Write Settagline;
-    Property url : string Index 216 Read Furl Write Seturl;
-    Property urls : TPersonurls Index 224 Read Furls Write Seturls;
+    Property relationshipStatus : String Index 192 Read FrelationshipStatus Write SetrelationshipStatus;
+    Property skills : String Index 200 Read Fskills Write Setskills;
+    Property tagline : String Index 208 Read Ftagline Write Settagline;
+    Property url : String Index 216 Read Furl Write Seturl;
+    Property urls : TPersonTypeurlsArray Index 224 Read Furls Write Seturls;
     Property verified : boolean Index 232 Read Fverified Write Setverified;
   end;
   TPersonClass = Class of TPerson;
   
   { --------------------------------------------------------------------
-    TPersonageRange
+    TPlaceTypeaddress
     --------------------------------------------------------------------}
   
-  TPersonageRange = Class(TGoogleBaseObject)
+  TPlaceTypeaddress = Class(TGoogleBaseObject)
   Private
-    Fmax : integer;
-    Fmin : integer;
+    Fformatted : String;
   Protected
     //Property setters
-    Procedure Setmax(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setmin(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setformatted(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property max : integer Index 0 Read Fmax Write Setmax;
-    Property min : integer Index 8 Read Fmin Write Setmin;
+    Property formatted : String Index 0 Read Fformatted Write Setformatted;
   end;
-  TPersonageRangeClass = Class of TPersonageRange;
+  TPlaceTypeaddressClass = Class of TPlaceTypeaddress;
   
   { --------------------------------------------------------------------
-    TPersoncover
+    TPlaceTypeposition
     --------------------------------------------------------------------}
   
-  TPersoncover = Class(TGoogleBaseObject)
+  TPlaceTypeposition = Class(TGoogleBaseObject)
   Private
-    FcoverInfo : TPersoncovercoverInfo;
-    FcoverPhoto : TPersoncovercoverPhoto;
-    Flayout : string;
+    Flatitude : double;
+    Flongitude : double;
   Protected
     //Property setters
-    Procedure SetcoverInfo(AIndex : Integer; AValue : TPersoncovercoverInfo); virtual;
-    Procedure SetcoverPhoto(AIndex : Integer; AValue : TPersoncovercoverPhoto); virtual;
-    Procedure Setlayout(AIndex : Integer; AValue : string); virtual;
+    Procedure Setlatitude(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setlongitude(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
-    Property coverInfo : TPersoncovercoverInfo Index 0 Read FcoverInfo Write SetcoverInfo;
-    Property coverPhoto : TPersoncovercoverPhoto Index 8 Read FcoverPhoto Write SetcoverPhoto;
-    Property layout : string Index 16 Read Flayout Write Setlayout;
+    Property latitude : double Index 0 Read Flatitude Write Setlatitude;
+    Property longitude : double Index 8 Read Flongitude Write Setlongitude;
   end;
-  TPersoncoverClass = Class of TPersoncover;
-  
-  { --------------------------------------------------------------------
-    TPersoncovercoverInfo
-    --------------------------------------------------------------------}
-  
-  TPersoncovercoverInfo = Class(TGoogleBaseObject)
-  Private
-    FleftImageOffset : integer;
-    FtopImageOffset : integer;
-  Protected
-    //Property setters
-    Procedure SetleftImageOffset(AIndex : Integer; AValue : integer); virtual;
-    Procedure SettopImageOffset(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property leftImageOffset : integer Index 0 Read FleftImageOffset Write SetleftImageOffset;
-    Property topImageOffset : integer Index 8 Read FtopImageOffset Write SettopImageOffset;
-  end;
-  TPersoncovercoverInfoClass = Class of TPersoncovercoverInfo;
-  
-  { --------------------------------------------------------------------
-    TPersoncovercoverPhoto
-    --------------------------------------------------------------------}
-  
-  TPersoncovercoverPhoto = Class(TGoogleBaseObject)
-  Private
-    Fheight : integer;
-    Furl : string;
-    Fwidth : integer;
-  Protected
-    //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property height : integer Index 0 Read Fheight Write Setheight;
-    Property url : string Index 8 Read Furl Write Seturl;
-    Property width : integer Index 16 Read Fwidth Write Setwidth;
-  end;
-  TPersoncovercoverPhotoClass = Class of TPersoncovercoverPhoto;
-  
-  { --------------------------------------------------------------------
-    TPersonemails
-    --------------------------------------------------------------------}
-  
-  TPersonemails = Class(TGoogleBaseObject)
-  Private
-    F_type : string;
-    Fvalue : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property _type : string Index 0 Read F_type Write Set_type;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TPersonemailsClass = Class of TPersonemails;
-  
-  { --------------------------------------------------------------------
-    TPersonimage
-    --------------------------------------------------------------------}
-  
-  TPersonimage = Class(TGoogleBaseObject)
-  Private
-    FisDefault : boolean;
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure SetisDefault(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property isDefault : boolean Index 0 Read FisDefault Write SetisDefault;
-    Property url : string Index 8 Read Furl Write Seturl;
-  end;
-  TPersonimageClass = Class of TPersonimage;
-  
-  { --------------------------------------------------------------------
-    TPersonname
-    --------------------------------------------------------------------}
-  
-  TPersonname = Class(TGoogleBaseObject)
-  Private
-    FfamilyName : string;
-    Fformatted : string;
-    FgivenName : string;
-    FhonorificPrefix : string;
-    FhonorificSuffix : string;
-    FmiddleName : string;
-  Protected
-    //Property setters
-    Procedure SetfamilyName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setformatted(AIndex : Integer; AValue : string); virtual;
-    Procedure SetgivenName(AIndex : Integer; AValue : string); virtual;
-    Procedure SethonorificPrefix(AIndex : Integer; AValue : string); virtual;
-    Procedure SethonorificSuffix(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmiddleName(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property familyName : string Index 0 Read FfamilyName Write SetfamilyName;
-    Property formatted : string Index 8 Read Fformatted Write Setformatted;
-    Property givenName : string Index 16 Read FgivenName Write SetgivenName;
-    Property honorificPrefix : string Index 24 Read FhonorificPrefix Write SethonorificPrefix;
-    Property honorificSuffix : string Index 32 Read FhonorificSuffix Write SethonorificSuffix;
-    Property middleName : string Index 40 Read FmiddleName Write SetmiddleName;
-  end;
-  TPersonnameClass = Class of TPersonname;
-  
-  { --------------------------------------------------------------------
-    TPersonorganizations
-    --------------------------------------------------------------------}
-  
-  TPersonorganizations = Class(TGoogleBaseObject)
-  Private
-    Fdepartment : string;
-    Fdescription : string;
-    FendDate : string;
-    Flocation : string;
-    Fname : string;
-    Fprimary : boolean;
-    FstartDate : string;
-    Ftitle : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setdepartment(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetendDate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setprimary(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetstartDate(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property department : string Index 0 Read Fdepartment Write Setdepartment;
-    Property description : string Index 8 Read Fdescription Write Setdescription;
-    Property endDate : string Index 16 Read FendDate Write SetendDate;
-    Property location : string Index 24 Read Flocation Write Setlocation;
-    Property name : string Index 32 Read Fname Write Setname;
-    Property primary : boolean Index 40 Read Fprimary Write Setprimary;
-    Property startDate : string Index 48 Read FstartDate Write SetstartDate;
-    Property title : string Index 56 Read Ftitle Write Settitle;
-    Property _type : string Index 64 Read F_type Write Set_type;
-  end;
-  TPersonorganizationsClass = Class of TPersonorganizations;
-  
-  { --------------------------------------------------------------------
-    TPersonplacesLived
-    --------------------------------------------------------------------}
-  
-  TPersonplacesLived = Class(TGoogleBaseObject)
-  Private
-    Fprimary : boolean;
-    Fvalue : string;
-  Protected
-    //Property setters
-    Procedure Setprimary(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property primary : boolean Index 0 Read Fprimary Write Setprimary;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TPersonplacesLivedClass = Class of TPersonplacesLived;
-  
-  { --------------------------------------------------------------------
-    TPersonurls
-    --------------------------------------------------------------------}
-  
-  TPersonurls = Class(TGoogleBaseObject)
-  Private
-    F_label : string;
-    F_type : string;
-    Fvalue : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Set_label(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property _label : string Index 0 Read F_label Write Set_label;
-    Property _type : string Index 8 Read F_type Write Set_type;
-    Property value : string Index 16 Read Fvalue Write Setvalue;
-  end;
-  TPersonurlsClass = Class of TPersonurls;
+  TPlaceTypepositionClass = Class of TPlaceTypeposition;
   
   { --------------------------------------------------------------------
     TPlace
@@ -1618,62 +1387,27 @@ type
   
   TPlace = Class(TGoogleBaseObject)
   Private
-    Faddress : TPlaceaddress;
-    FdisplayName : string;
-    Fid : string;
-    Fkind : string;
-    Fposition : TPlaceposition;
+    Faddress : TPlaceTypeaddress;
+    FdisplayName : String;
+    Fid : String;
+    Fkind : String;
+    Fposition : TPlaceTypeposition;
   Protected
     //Property setters
-    Procedure Setaddress(AIndex : Integer; AValue : TPlaceaddress); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setposition(AIndex : Integer; AValue : TPlaceposition); virtual;
+    Procedure Setaddress(AIndex : Integer; const AValue : TPlaceTypeaddress); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setposition(AIndex : Integer; const AValue : TPlaceTypeposition); virtual;
   Public
   Published
-    Property address : TPlaceaddress Index 0 Read Faddress Write Setaddress;
-    Property displayName : string Index 8 Read FdisplayName Write SetdisplayName;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property position : TPlaceposition Index 32 Read Fposition Write Setposition;
+    Property address : TPlaceTypeaddress Index 0 Read Faddress Write Setaddress;
+    Property displayName : String Index 8 Read FdisplayName Write SetdisplayName;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property position : TPlaceTypeposition Index 32 Read Fposition Write Setposition;
   end;
   TPlaceClass = Class of TPlace;
-  
-  { --------------------------------------------------------------------
-    TPlaceaddress
-    --------------------------------------------------------------------}
-  
-  TPlaceaddress = Class(TGoogleBaseObject)
-  Private
-    Fformatted : string;
-  Protected
-    //Property setters
-    Procedure Setformatted(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property formatted : string Index 0 Read Fformatted Write Setformatted;
-  end;
-  TPlaceaddressClass = Class of TPlaceaddress;
-  
-  { --------------------------------------------------------------------
-    TPlaceposition
-    --------------------------------------------------------------------}
-  
-  TPlaceposition = Class(TGoogleBaseObject)
-  Private
-    Flatitude : double;
-    Flongitude : double;
-  Protected
-    //Property setters
-    Procedure Setlatitude(AIndex : Integer; AValue : double); virtual;
-    Procedure Setlongitude(AIndex : Integer; AValue : double); virtual;
-  Public
-  Published
-    Property latitude : double Index 0 Read Flatitude Write Setlatitude;
-    Property longitude : double Index 8 Read Flongitude Write Setlongitude;
-  end;
-  TPlacepositionClass = Class of TPlaceposition;
   
   { --------------------------------------------------------------------
     TPlusAclentryResource
@@ -1681,20 +1415,20 @@ type
   
   TPlusAclentryResource = Class(TGoogleBaseObject)
   Private
-    FdisplayName : string;
-    Fid : string;
-    F_type : string;
+    FdisplayName : String;
+    Fid : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property displayName : string Index 0 Read FdisplayName Write SetdisplayName;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property _type : string Index 16 Read F_type Write Set_type;
+    Property displayName : String Index 0 Read FdisplayName Write SetdisplayName;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TPlusAclentryResourceClass = Class of TPlusAclentryResource;
   
@@ -1707,18 +1441,18 @@ type
   
   TActivitiesListOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TActivitiesResource, method Search
   
   TActivitiesSearchOptions = Record
-    language : string;
+    language : String;
     maxResults : integer;
-    orderBy : string;
-    pageToken : string;
-    query : string;
+    orderBy : String;
+    pageToken : String;
+    query : String;
   end;
   
   TActivitiesResource = Class(TGoogleResource)
@@ -1742,8 +1476,8 @@ type
   
   TCommentsListOptions = Record
     maxResults : integer;
-    pageToken : string;
-    sortOrder : string;
+    pageToken : String;
+    sortOrder : String;
   end;
   
   TCommentsResource = Class(TGoogleResource)
@@ -1757,39 +1491,6 @@ type
   
   
   { --------------------------------------------------------------------
-    TMomentsResource
-    --------------------------------------------------------------------}
-  
-  
-  //Optional query Options for TMomentsResource, method Insert
-  
-  TMomentsInsertOptions = Record
-    debug : boolean;
-  end;
-  
-  
-  //Optional query Options for TMomentsResource, method List
-  
-  TMomentsListOptions = Record
-    maxResults : integer;
-    pageToken : string;
-    targetUrl : string;
-    _type : string;
-  end;
-  
-  TMomentsResource = Class(TGoogleResource)
-  Public
-    Class Function ResourceName : String; override;
-    Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function Insert(collection: string; userId: string; aMoment : TMoment; AQuery : string  = '') : TMoment;
-    Function Insert(collection: string; userId: string; aMoment : TMoment; AQuery : TMomentsinsertOptions) : TMoment;
-    Function List(collection: string; userId: string; AQuery : string  = '') : TMomentsFeed;
-    Function List(collection: string; userId: string; AQuery : TMomentslistOptions) : TMomentsFeed;
-    Procedure Remove(id: string);
-  end;
-  
-  
-  { --------------------------------------------------------------------
     TPeopleResource
     --------------------------------------------------------------------}
   
@@ -1798,8 +1499,8 @@ type
   
   TPeopleListOptions = Record
     maxResults : integer;
-    orderBy : string;
-    pageToken : string;
+    orderBy : String;
+    pageToken : String;
   end;
   
   
@@ -1807,17 +1508,17 @@ type
   
   TPeopleListByActivityOptions = Record
     maxResults : integer;
-    pageToken : string;
+    pageToken : String;
   end;
   
   
   //Optional query Options for TPeopleResource, method Search
   
   TPeopleSearchOptions = Record
-    language : string;
+    language : String;
     maxResults : integer;
-    pageToken : string;
-    query : string;
+    pageToken : String;
+    query : String;
   end;
   
   TPeopleResource = Class(TGoogleResource)
@@ -1842,11 +1543,9 @@ type
   Private
     FActivitiesInstance : TActivitiesResource;
     FCommentsInstance : TCommentsResource;
-    FMomentsInstance : TMomentsResource;
     FPeopleInstance : TPeopleResource;
     Function GetActivitiesInstance : TActivitiesResource;virtual;
     Function GetCommentsInstance : TCommentsResource;virtual;
-    Function GetMomentsInstance : TMomentsResource;virtual;
     Function GetPeopleInstance : TPeopleResource;virtual;
   Public
     //Override class functions with API info
@@ -1875,14 +1574,11 @@ type
     Function CreateActivitiesResource : TActivitiesResource;virtual;overload;
     Function CreateCommentsResource(AOwner : TComponent) : TCommentsResource;virtual;overload;
     Function CreateCommentsResource : TCommentsResource;virtual;overload;
-    Function CreateMomentsResource(AOwner : TComponent) : TMomentsResource;virtual;overload;
-    Function CreateMomentsResource : TMomentsResource;virtual;overload;
     Function CreatePeopleResource(AOwner : TComponent) : TPeopleResource;virtual;overload;
     Function CreatePeopleResource : TPeopleResource;virtual;overload;
     //Add default on-demand instances for resources
     Property ActivitiesResource : TActivitiesResource Read GetActivitiesInstance;
     Property CommentsResource : TCommentsResource Read GetCommentsInstance;
-    Property MomentsResource : TMomentsResource Read GetMomentsInstance;
     Property PeopleResource : TPeopleResource Read GetPeopleInstance;
   end;
 
@@ -1894,7 +1590,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAcl.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TAcl.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1904,7 +1600,7 @@ end;
 
 
 
-Procedure TAcl.Setitems(AIndex : Integer; AValue : TAclitems); 
+Procedure TAcl.Setitems(AIndex : Integer; const AValue : TAclTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1914,7 +1610,7 @@ end;
 
 
 
-Procedure TAcl.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAcl.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1923,202 +1619,62 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAcl.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TAclitems
+  TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo
   --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo.SetchannelId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FchannelId=AValue) then exit;
+  FchannelId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
 
 { --------------------------------------------------------------------
-  TActivity
+  TActivityTypeactorTypeclientSpecificActorInfo
   --------------------------------------------------------------------}
 
 
-Procedure TActivity.Setaccess(AIndex : Integer; AValue : TAcl); 
+Procedure TActivityTypeactorTypeclientSpecificActorInfo.SetyoutubeActorInfo(AIndex : Integer; const AValue : TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo); 
 
 begin
-  If (Faccess=AValue) then exit;
-  Faccess:=AValue;
+  If (FyoutubeActorInfo=AValue) then exit;
+  FyoutubeActorInfo:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TActivity.Setactor(AIndex : Integer; AValue : TActivityactor); 
 
-begin
-  If (Factor=AValue) then exit;
-  Factor:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
 
+{ --------------------------------------------------------------------
+  TActivityTypeactorTypeimage
+  --------------------------------------------------------------------}
 
 
-Procedure TActivity.Setaddress(AIndex : Integer; AValue : string); 
-
-begin
-  If (Faddress=AValue) then exit;
-  Faddress:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Setannotation(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fannotation=AValue) then exit;
-  Fannotation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.SetcrosspostSource(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcrosspostSource=AValue) then exit;
-  FcrosspostSource:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Setgeocode(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fgeocode=AValue) then exit;
-  Fgeocode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Setlocation(AIndex : Integer; AValue : TPlace); 
-
-begin
-  If (Flocation=AValue) then exit;
-  Flocation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Set_object(AIndex : Integer; AValue : TActivityobject); 
-
-begin
-  If (F_object=AValue) then exit;
-  F_object:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.SetplaceId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FplaceId=AValue) then exit;
-  FplaceId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.SetplaceName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FplaceName=AValue) then exit;
-  FplaceName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Setprovider(AIndex : Integer; AValue : TActivityprovider); 
-
-begin
-  If (Fprovider=AValue) then exit;
-  Fprovider:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Set_published(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (F_published=AValue) then exit;
-  F_published:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Setradius(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fradius=AValue) then exit;
-  Fradius:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Settitle(AIndex : Integer; AValue : string); 
-
-begin
-  If (Ftitle=AValue) then exit;
-  Ftitle:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Setupdated(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (Fupdated=AValue) then exit;
-  Fupdated:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivity.Seturl(AIndex : Integer; AValue : string); 
+Procedure TActivityTypeactorTypeimage.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2128,7 +1684,1037 @@ end;
 
 
 
-Procedure TActivity.Setverb(AIndex : Integer; AValue : string); 
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeactorTypename
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeactorTypename.SetfamilyName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FfamilyName=AValue) then exit;
+  FfamilyName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeactorTypename.SetgivenName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FgivenName=AValue) then exit;
+  FgivenName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeactorTypeverification
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeactorTypeverification.SetadHocVerified(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FadHocVerified=AValue) then exit;
+  FadHocVerified:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeactor
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeactor.SetclientSpecificActorInfo(AIndex : Integer; const AValue : TActivityTypeactorTypeclientSpecificActorInfo); 
+
+begin
+  If (FclientSpecificActorInfo=AValue) then exit;
+  FclientSpecificActorInfo:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeactor.SetdisplayName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdisplayName=AValue) then exit;
+  FdisplayName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeactor.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeactor.Setimage(AIndex : Integer; const AValue : TActivityTypeactorTypeimage); 
+
+begin
+  If (Fimage=AValue) then exit;
+  Fimage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeactor.Setname(AIndex : Integer; const AValue : TActivityTypeactorTypename); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeactor.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeactor.Setverification(AIndex : Integer; const AValue : TActivityTypeactorTypeverification); 
+
+begin
+  If (Fverification=AValue) then exit;
+  Fverification:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo.SetchannelId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FchannelId=AValue) then exit;
+  FchannelId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeactorTypeclientSpecificActorInfo
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeactorTypeclientSpecificActorInfo.SetyoutubeActorInfo(AIndex : Integer; const AValue : TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo); 
+
+begin
+  If (FyoutubeActorInfo=AValue) then exit;
+  FyoutubeActorInfo:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeactorTypeimage
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeactorTypeimage.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeactorTypeverification
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeactorTypeverification.SetadHocVerified(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FadHocVerified=AValue) then exit;
+  FadHocVerified:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeactor
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeactor.SetclientSpecificActorInfo(AIndex : Integer; const AValue : TActivityTypeobjectTypeactorTypeclientSpecificActorInfo); 
+
+begin
+  If (FclientSpecificActorInfo=AValue) then exit;
+  FclientSpecificActorInfo:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeactor.SetdisplayName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdisplayName=AValue) then exit;
+  FdisplayName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeactor.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeactor.Setimage(AIndex : Integer; const AValue : TActivityTypeobjectTypeactorTypeimage); 
+
+begin
+  If (Fimage=AValue) then exit;
+  Fimage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeactor.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeactor.Setverification(AIndex : Integer; const AValue : TActivityTypeobjectTypeactorTypeverification); 
+
+begin
+  If (Fverification=AValue) then exit;
+  Fverification:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeattachmentsItemTypeembed
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypeembed.Set_type(AIndex : Integer; const AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypeembed.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TActivityTypeobjectTypeattachmentsItemTypeembed.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeattachmentsItemTypefullImage
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypefullImage.Setheight(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fheight=AValue) then exit;
+  Fheight:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypefullImage.Set_type(AIndex : Integer; const AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypefullImage.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypefullImage.Setwidth(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fwidth=AValue) then exit;
+  Fwidth:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TActivityTypeobjectTypeattachmentsItemTypefullImage.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeattachmentsItemTypeimage
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypeimage.Setheight(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fheight=AValue) then exit;
+  Fheight:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypeimage.Set_type(AIndex : Integer; const AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypeimage.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypeimage.Setwidth(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fwidth=AValue) then exit;
+  Fwidth:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TActivityTypeobjectTypeattachmentsItemTypeimage.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage.Setheight(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fheight=AValue) then exit;
+  Fheight:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage.Set_type(AIndex : Integer; const AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage.Setwidth(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fwidth=AValue) then exit;
+  Fwidth:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem.Setimage(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage); 
+
+begin
+  If (Fimage=AValue) then exit;
+  Fimage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeattachmentsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeattachmentsItem.Setcontent(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcontent=AValue) then exit;
+  Fcontent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItem.SetdisplayName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdisplayName=AValue) then exit;
+  FdisplayName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItem.Setembed(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsItemTypeembed); 
+
+begin
+  If (Fembed=AValue) then exit;
+  Fembed:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItem.SetfullImage(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsItemTypefullImage); 
+
+begin
+  If (FfullImage=AValue) then exit;
+  FfullImage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItem.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItem.Setimage(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsItemTypeimage); 
+
+begin
+  If (Fimage=AValue) then exit;
+  Fimage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItem.SetobjectType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FobjectType=AValue) then exit;
+  FobjectType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItem.Setthumbnails(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsItemTypethumbnailsArray); 
+
+begin
+  If (Fthumbnails=AValue) then exit;
+  Fthumbnails:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeattachmentsItem.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivityTypeobjectTypeattachmentsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'thumbnails' : SetLength(Fthumbnails,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypeplusoners
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypeplusoners.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypeplusoners.SettotalItems(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FtotalItems=AValue) then exit;
+  FtotalItems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTypereplies
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTypereplies.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTypereplies.SettotalItems(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FtotalItems=AValue) then exit;
+  FtotalItems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobjectTyperesharers
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobjectTyperesharers.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobjectTyperesharers.SettotalItems(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FtotalItems=AValue) then exit;
+  FtotalItems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeobject
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeobject.Setactor(AIndex : Integer; const AValue : TActivityTypeobjectTypeactor); 
+
+begin
+  If (Factor=AValue) then exit;
+  Factor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobject.Setattachments(AIndex : Integer; const AValue : TActivityTypeobjectTypeattachmentsArray); 
+
+begin
+  If (Fattachments=AValue) then exit;
+  Fattachments:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobject.Setcontent(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcontent=AValue) then exit;
+  Fcontent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobject.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobject.SetobjectType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FobjectType=AValue) then exit;
+  FobjectType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobject.SetoriginalContent(AIndex : Integer; const AValue : String); 
+
+begin
+  If (ForiginalContent=AValue) then exit;
+  ForiginalContent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobject.Setplusoners(AIndex : Integer; const AValue : TActivityTypeobjectTypeplusoners); 
+
+begin
+  If (Fplusoners=AValue) then exit;
+  Fplusoners:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobject.Setreplies(AIndex : Integer; const AValue : TActivityTypeobjectTypereplies); 
+
+begin
+  If (Freplies=AValue) then exit;
+  Freplies:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobject.Setresharers(AIndex : Integer; const AValue : TActivityTypeobjectTyperesharers); 
+
+begin
+  If (Fresharers=AValue) then exit;
+  Fresharers:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivityTypeobject.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivityTypeobject.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'attachments' : SetLength(Fattachments,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivityTypeprovider
+  --------------------------------------------------------------------}
+
+
+Procedure TActivityTypeprovider.Settitle(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ftitle=AValue) then exit;
+  Ftitle:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TActivity
+  --------------------------------------------------------------------}
+
+
+Procedure TActivity.Setaccess(AIndex : Integer; const AValue : TAcl); 
+
+begin
+  If (Faccess=AValue) then exit;
+  Faccess:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setactor(AIndex : Integer; const AValue : TActivityTypeactor); 
+
+begin
+  If (Factor=AValue) then exit;
+  Factor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setaddress(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Faddress=AValue) then exit;
+  Faddress:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setannotation(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fannotation=AValue) then exit;
+  Fannotation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.SetcrosspostSource(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcrosspostSource=AValue) then exit;
+  FcrosspostSource:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setetag(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setgeocode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fgeocode=AValue) then exit;
+  Fgeocode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setlocation(AIndex : Integer; const AValue : TPlace); 
+
+begin
+  If (Flocation=AValue) then exit;
+  Flocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Set_object(AIndex : Integer; const AValue : TActivityTypeobject); 
+
+begin
+  If (F_object=AValue) then exit;
+  F_object:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.SetplaceId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FplaceId=AValue) then exit;
+  FplaceId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.SetplaceName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FplaceName=AValue) then exit;
+  FplaceName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setprovider(AIndex : Integer; const AValue : TActivityTypeprovider); 
+
+begin
+  If (Fprovider=AValue) then exit;
+  Fprovider:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Set_published(AIndex : Integer; const AValue : TDatetime); 
+
+begin
+  If (F_published=AValue) then exit;
+  F_published:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setradius(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fradius=AValue) then exit;
+  Fradius:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Settitle(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ftitle=AValue) then exit;
+  Ftitle:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+
+begin
+  If (Fupdated=AValue) then exit;
+  Fupdated:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TActivity.Setverb(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fverb=AValue) then exit;
@@ -2153,727 +2739,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TActivityactor
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityactor.SetdisplayName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdisplayName=AValue) then exit;
-  FdisplayName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityactor.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityactor.Setimage(AIndex : Integer; AValue : TActivityactorimage); 
-
-begin
-  If (Fimage=AValue) then exit;
-  Fimage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityactor.Setname(AIndex : Integer; AValue : TActivityactorname); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityactor.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityactorimage
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityactorimage.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityactorname
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityactorname.SetfamilyName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfamilyName=AValue) then exit;
-  FfamilyName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityactorname.SetgivenName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FgivenName=AValue) then exit;
-  FgivenName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobject
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobject.Setactor(AIndex : Integer; AValue : TActivityobjectactor); 
-
-begin
-  If (Factor=AValue) then exit;
-  Factor:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobject.Setattachments(AIndex : Integer; AValue : TActivityobjectattachments); 
-
-begin
-  If (Fattachments=AValue) then exit;
-  Fattachments:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobject.Setcontent(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcontent=AValue) then exit;
-  Fcontent:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobject.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobject.SetobjectType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FobjectType=AValue) then exit;
-  FobjectType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobject.SetoriginalContent(AIndex : Integer; AValue : string); 
-
-begin
-  If (ForiginalContent=AValue) then exit;
-  ForiginalContent:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobject.Setplusoners(AIndex : Integer; AValue : TActivityobjectplusoners); 
-
-begin
-  If (Fplusoners=AValue) then exit;
-  Fplusoners:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobject.Setreplies(AIndex : Integer; AValue : TActivityobjectreplies); 
-
-begin
-  If (Freplies=AValue) then exit;
-  Freplies:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobject.Setresharers(AIndex : Integer; AValue : TActivityobjectresharers); 
-
-begin
-  If (Fresharers=AValue) then exit;
-  Fresharers:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobject.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobjectactor
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobjectactor.SetdisplayName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdisplayName=AValue) then exit;
-  FdisplayName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectactor.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectactor.Setimage(AIndex : Integer; AValue : TActivityobjectactorimage); 
-
-begin
-  If (Fimage=AValue) then exit;
-  Fimage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectactor.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobjectactorimage
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobjectactorimage.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobjectattachments
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobjectattachments.Setcontent(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcontent=AValue) then exit;
-  Fcontent:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachments.SetdisplayName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdisplayName=AValue) then exit;
-  FdisplayName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachments.Setembed(AIndex : Integer; AValue : TActivityobjectattachmentsembed); 
-
-begin
-  If (Fembed=AValue) then exit;
-  Fembed:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachments.SetfullImage(AIndex : Integer; AValue : TActivityobjectattachmentsfullImage); 
-
-begin
-  If (FfullImage=AValue) then exit;
-  FfullImage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachments.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachments.Setimage(AIndex : Integer; AValue : TActivityobjectattachmentsimage); 
-
-begin
-  If (Fimage=AValue) then exit;
-  Fimage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachments.SetobjectType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FobjectType=AValue) then exit;
-  FobjectType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachments.Setthumbnails(AIndex : Integer; AValue : TActivityobjectattachmentsthumbnails); 
-
-begin
-  If (Fthumbnails=AValue) then exit;
-  Fthumbnails:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachments.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobjectattachmentsembed
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobjectattachmentsembed.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsembed.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TActivityobjectattachmentsembed.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobjectattachmentsfullImage
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobjectattachmentsfullImage.Setheight(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fheight=AValue) then exit;
-  Fheight:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsfullImage.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsfullImage.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsfullImage.Setwidth(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fwidth=AValue) then exit;
-  Fwidth:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TActivityobjectattachmentsfullImage.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobjectattachmentsimage
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobjectattachmentsimage.Setheight(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fheight=AValue) then exit;
-  Fheight:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsimage.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsimage.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsimage.Setwidth(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fwidth=AValue) then exit;
-  Fwidth:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TActivityobjectattachmentsimage.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobjectattachmentsthumbnails
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobjectattachmentsthumbnails.Setdescription(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdescription=AValue) then exit;
-  Fdescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsthumbnails.Setimage(AIndex : Integer; AValue : TActivityobjectattachmentsthumbnailsimage); 
-
-begin
-  If (Fimage=AValue) then exit;
-  Fimage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsthumbnails.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobjectattachmentsthumbnailsimage
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobjectattachmentsthumbnailsimage.Setheight(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fheight=AValue) then exit;
-  Fheight:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsthumbnailsimage.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsthumbnailsimage.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectattachmentsthumbnailsimage.Setwidth(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fwidth=AValue) then exit;
-  Fwidth:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TActivityobjectattachmentsthumbnailsimage.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobjectplusoners
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobjectplusoners.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectplusoners.SettotalItems(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FtotalItems=AValue) then exit;
-  FtotalItems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobjectreplies
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobjectreplies.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectreplies.SettotalItems(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FtotalItems=AValue) then exit;
-  FtotalItems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityobjectresharers
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityobjectresharers.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TActivityobjectresharers.SettotalItems(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FtotalItems=AValue) then exit;
-  FtotalItems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TActivityprovider
-  --------------------------------------------------------------------}
-
-
-Procedure TActivityprovider.Settitle(AIndex : Integer; AValue : string); 
-
-begin
-  If (Ftitle=AValue) then exit;
-  Ftitle:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TActivityFeed
   --------------------------------------------------------------------}
 
 
-Procedure TActivityFeed.Setetag(AIndex : Integer; AValue : string); 
+Procedure TActivityFeed.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2883,7 +2753,7 @@ end;
 
 
 
-Procedure TActivityFeed.Setid(AIndex : Integer; AValue : string); 
+Procedure TActivityFeed.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2893,7 +2763,7 @@ end;
 
 
 
-Procedure TActivityFeed.Setitems(AIndex : Integer; AValue : TActivityFeeditems); 
+Procedure TActivityFeed.Setitems(AIndex : Integer; const AValue : TActivityFeedTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2903,7 +2773,7 @@ end;
 
 
 
-Procedure TActivityFeed.Setkind(AIndex : Integer; AValue : string); 
+Procedure TActivityFeed.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2913,7 +2783,7 @@ end;
 
 
 
-Procedure TActivityFeed.SetnextLink(AIndex : Integer; AValue : string); 
+Procedure TActivityFeed.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -2923,7 +2793,7 @@ end;
 
 
 
-Procedure TActivityFeed.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TActivityFeed.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2933,7 +2803,7 @@ end;
 
 
 
-Procedure TActivityFeed.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TActivityFeed.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2943,7 +2813,7 @@ end;
 
 
 
-Procedure TActivityFeed.Settitle(AIndex : Integer; AValue : string); 
+Procedure TActivityFeed.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2953,7 +2823,7 @@ end;
 
 
 
-Procedure TActivityFeed.Setupdated(AIndex : Integer; AValue : TDatetime); 
+Procedure TActivityFeed.Setupdated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fupdated=AValue) then exit;
@@ -2962,42 +2832,116 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TActivityFeeditems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TComment
-  --------------------------------------------------------------------}
-
-
-Procedure TComment.Setactor(AIndex : Integer; AValue : TCommentactor); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TActivityFeed.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Factor=AValue) then exit;
-  Factor:=AValue;
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo.SetchannelId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FchannelId=AValue) then exit;
+  FchannelId:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TComment.Setetag(AIndex : Integer; AValue : string); 
+
+
+{ --------------------------------------------------------------------
+  TCommentTypeactorTypeclientSpecificActorInfo
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypeactorTypeclientSpecificActorInfo.SetyoutubeActorInfo(AIndex : Integer; const AValue : TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo); 
 
 begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
+  If (FyoutubeActorInfo=AValue) then exit;
+  FyoutubeActorInfo:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TComment.Setid(AIndex : Integer; AValue : string); 
+
+
+{ --------------------------------------------------------------------
+  TCommentTypeactorTypeimage
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypeactorTypeimage.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCommentTypeactorTypeverification
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypeactorTypeverification.SetadHocVerified(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FadHocVerified=AValue) then exit;
+  FadHocVerified:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCommentTypeactor
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypeactor.SetclientSpecificActorInfo(AIndex : Integer; const AValue : TCommentTypeactorTypeclientSpecificActorInfo); 
+
+begin
+  If (FclientSpecificActorInfo=AValue) then exit;
+  FclientSpecificActorInfo:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCommentTypeactor.SetdisplayName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdisplayName=AValue) then exit;
+  FdisplayName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCommentTypeactor.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3007,7 +2951,155 @@ end;
 
 
 
-Procedure TComment.SetinReplyTo(AIndex : Integer; AValue : TCommentinReplyTo); 
+Procedure TCommentTypeactor.Setimage(AIndex : Integer; const AValue : TCommentTypeactorTypeimage); 
+
+begin
+  If (Fimage=AValue) then exit;
+  Fimage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCommentTypeactor.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCommentTypeactor.Setverification(AIndex : Integer; const AValue : TCommentTypeactorTypeverification); 
+
+begin
+  If (Fverification=AValue) then exit;
+  Fverification:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCommentTypeinReplyToItem
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypeinReplyToItem.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCommentTypeinReplyToItem.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCommentTypeobject
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypeobject.Setcontent(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcontent=AValue) then exit;
+  Fcontent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCommentTypeobject.SetobjectType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FobjectType=AValue) then exit;
+  FobjectType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCommentTypeobject.SetoriginalContent(AIndex : Integer; const AValue : String); 
+
+begin
+  If (ForiginalContent=AValue) then exit;
+  ForiginalContent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TCommentTypeplusoners
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentTypeplusoners.SettotalItems(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FtotalItems=AValue) then exit;
+  FtotalItems:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TComment
+  --------------------------------------------------------------------}
+
+
+Procedure TComment.Setactor(AIndex : Integer; const AValue : TCommentTypeactor); 
+
+begin
+  If (Factor=AValue) then exit;
+  Factor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TComment.Setetag(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TComment.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TComment.SetinReplyTo(AIndex : Integer; const AValue : TCommentTypeinReplyToArray); 
 
 begin
   If (FinReplyTo=AValue) then exit;
@@ -3017,7 +3109,7 @@ end;
 
 
 
-Procedure TComment.Setkind(AIndex : Integer; AValue : string); 
+Procedure TComment.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3027,7 +3119,7 @@ end;
 
 
 
-Procedure TComment.Set_object(AIndex : Integer; AValue : TCommentobject); 
+Procedure TComment.Set_object(AIndex : Integer; const AValue : TCommentTypeobject); 
 
 begin
   If (F_object=AValue) then exit;
@@ -3037,7 +3129,7 @@ end;
 
 
 
-Procedure TComment.Setplusoners(AIndex : Integer; AValue : TCommentplusoners); 
+Procedure TComment.Setplusoners(AIndex : Integer; const AValue : TCommentTypeplusoners); 
 
 begin
   If (Fplusoners=AValue) then exit;
@@ -3047,7 +3139,7 @@ end;
 
 
 
-Procedure TComment.Set_published(AIndex : Integer; AValue : TDatetime); 
+Procedure TComment.Set_published(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (F_published=AValue) then exit;
@@ -3057,7 +3149,7 @@ end;
 
 
 
-Procedure TComment.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TComment.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -3067,7 +3159,7 @@ end;
 
 
 
-Procedure TComment.Setupdated(AIndex : Integer; AValue : TDatetime); 
+Procedure TComment.Setupdated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fupdated=AValue) then exit;
@@ -3077,7 +3169,7 @@ end;
 
 
 
-Procedure TComment.Setverb(AIndex : Integer; AValue : string); 
+Procedure TComment.Setverb(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fverb=AValue) then exit;
@@ -3098,150 +3190,18 @@ begin
   end;
 end;
 
-
-
-
-{ --------------------------------------------------------------------
-  TCommentactor
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentactor.SetdisplayName(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TComment.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (FdisplayName=AValue) then exit;
-  FdisplayName:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'inreplyto' : SetLength(FinReplyTo,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TCommentactor.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentactor.Setimage(AIndex : Integer; AValue : TCommentactorimage); 
-
-begin
-  If (Fimage=AValue) then exit;
-  Fimage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentactor.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentactorimage
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentactorimage.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentinReplyTo
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentinReplyTo.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentinReplyTo.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentobject
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentobject.Setcontent(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcontent=AValue) then exit;
-  Fcontent:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentobject.SetobjectType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FobjectType=AValue) then exit;
-  FobjectType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentobject.SetoriginalContent(AIndex : Integer; AValue : string); 
-
-begin
-  If (ForiginalContent=AValue) then exit;
-  ForiginalContent:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentplusoners
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentplusoners.SettotalItems(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FtotalItems=AValue) then exit;
-  FtotalItems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
@@ -3251,7 +3211,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentFeed.Setetag(AIndex : Integer; AValue : string); 
+Procedure TCommentFeed.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3261,7 +3221,7 @@ end;
 
 
 
-Procedure TCommentFeed.Setid(AIndex : Integer; AValue : string); 
+Procedure TCommentFeed.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3271,7 +3231,7 @@ end;
 
 
 
-Procedure TCommentFeed.Setitems(AIndex : Integer; AValue : TCommentFeeditems); 
+Procedure TCommentFeed.Setitems(AIndex : Integer; const AValue : TCommentFeedTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3281,7 +3241,7 @@ end;
 
 
 
-Procedure TCommentFeed.Setkind(AIndex : Integer; AValue : string); 
+Procedure TCommentFeed.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3291,7 +3251,7 @@ end;
 
 
 
-Procedure TCommentFeed.SetnextLink(AIndex : Integer; AValue : string); 
+Procedure TCommentFeed.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -3301,7 +3261,7 @@ end;
 
 
 
-Procedure TCommentFeed.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TCommentFeed.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3311,7 +3271,7 @@ end;
 
 
 
-Procedure TCommentFeed.Settitle(AIndex : Integer; AValue : string); 
+Procedure TCommentFeed.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -3321,7 +3281,7 @@ end;
 
 
 
-Procedure TCommentFeed.Setupdated(AIndex : Integer; AValue : TDatetime); 
+Procedure TCommentFeed.Setupdated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fupdated=AValue) then exit;
@@ -3330,805 +3290,18 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TCommentFeeditems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TItemScope
-  --------------------------------------------------------------------}
-
-
-Procedure TItemScope.Setabout(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (Fabout=AValue) then exit;
-  Fabout:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetadditionalName(AIndex : Integer; AValue : TItemScopeadditionalName); 
-
-begin
-  If (FadditionalName=AValue) then exit;
-  FadditionalName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setaddress(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (Faddress=AValue) then exit;
-  Faddress:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetaddressCountry(AIndex : Integer; AValue : string); 
-
-begin
-  If (FaddressCountry=AValue) then exit;
-  FaddressCountry:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetaddressLocality(AIndex : Integer; AValue : string); 
-
-begin
-  If (FaddressLocality=AValue) then exit;
-  FaddressLocality:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetaddressRegion(AIndex : Integer; AValue : string); 
-
-begin
-  If (FaddressRegion=AValue) then exit;
-  FaddressRegion:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setassociated_media(AIndex : Integer; AValue : TItemScopeassociated_media); 
-
-begin
-  If (Fassociated_media=AValue) then exit;
-  Fassociated_media:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetattendeeCount(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FattendeeCount=AValue) then exit;
-  FattendeeCount:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setattendees(AIndex : Integer; AValue : TItemScopeattendees); 
-
-begin
-  If (Fattendees=AValue) then exit;
-  Fattendees:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setaudio(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (Faudio=AValue) then exit;
-  Faudio:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setauthor(AIndex : Integer; AValue : TItemScopeauthor); 
-
-begin
-  If (Fauthor=AValue) then exit;
-  Fauthor:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetbestRating(AIndex : Integer; AValue : string); 
-
-begin
-  If (FbestRating=AValue) then exit;
-  FbestRating:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetbirthDate(AIndex : Integer; AValue : string); 
-
-begin
-  If (FbirthDate=AValue) then exit;
-  FbirthDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetbyArtist(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (FbyArtist=AValue) then exit;
-  FbyArtist:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setcaption(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcaption=AValue) then exit;
-  Fcaption:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetcontentSize(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcontentSize=AValue) then exit;
-  FcontentSize:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetcontentUrl(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcontentUrl=AValue) then exit;
-  FcontentUrl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setcontributor(AIndex : Integer; AValue : TItemScopecontributor); 
-
-begin
-  If (Fcontributor=AValue) then exit;
-  Fcontributor:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetdateCreated(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdateCreated=AValue) then exit;
-  FdateCreated:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetdateModified(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdateModified=AValue) then exit;
-  FdateModified:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetdatePublished(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdatePublished=AValue) then exit;
-  FdatePublished:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setdescription(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdescription=AValue) then exit;
-  Fdescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setduration(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fduration=AValue) then exit;
-  Fduration:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetembedUrl(AIndex : Integer; AValue : string); 
-
-begin
-  If (FembedUrl=AValue) then exit;
-  FembedUrl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetendDate(AIndex : Integer; AValue : string); 
-
-begin
-  If (FendDate=AValue) then exit;
-  FendDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetfamilyName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfamilyName=AValue) then exit;
-  FfamilyName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setgender(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fgender=AValue) then exit;
-  Fgender:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setgeo(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (Fgeo=AValue) then exit;
-  Fgeo:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetgivenName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FgivenName=AValue) then exit;
-  FgivenName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setheight(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fheight=AValue) then exit;
-  Fheight:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setimage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fimage=AValue) then exit;
-  Fimage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetinAlbum(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (FinAlbum=AValue) then exit;
-  FinAlbum:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setlatitude(AIndex : Integer; AValue : double); 
-
-begin
-  If (Flatitude=AValue) then exit;
-  Flatitude:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setlocation(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (Flocation=AValue) then exit;
-  Flocation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setlongitude(AIndex : Integer; AValue : double); 
-
-begin
-  If (Flongitude=AValue) then exit;
-  Flongitude:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetpartOfTVSeries(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (FpartOfTVSeries=AValue) then exit;
-  FpartOfTVSeries:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setperformers(AIndex : Integer; AValue : TItemScopeperformers); 
-
-begin
-  If (Fperformers=AValue) then exit;
-  Fperformers:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetplayerType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FplayerType=AValue) then exit;
-  FplayerType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetpostOfficeBoxNumber(AIndex : Integer; AValue : string); 
-
-begin
-  If (FpostOfficeBoxNumber=AValue) then exit;
-  FpostOfficeBoxNumber:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetpostalCode(AIndex : Integer; AValue : string); 
-
-begin
-  If (FpostalCode=AValue) then exit;
-  FpostalCode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetratingValue(AIndex : Integer; AValue : string); 
-
-begin
-  If (FratingValue=AValue) then exit;
-  FratingValue:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetreviewRating(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (FreviewRating=AValue) then exit;
-  FreviewRating:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetstartDate(AIndex : Integer; AValue : string); 
-
-begin
-  If (FstartDate=AValue) then exit;
-  FstartDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetstreetAddress(AIndex : Integer; AValue : string); 
-
-begin
-  If (FstreetAddress=AValue) then exit;
-  FstreetAddress:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Settext(AIndex : Integer; AValue : string); 
-
-begin
-  If (Ftext=AValue) then exit;
-  Ftext:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setthumbnail(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (Fthumbnail=AValue) then exit;
-  Fthumbnail:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetthumbnailUrl(AIndex : Integer; AValue : string); 
-
-begin
-  If (FthumbnailUrl=AValue) then exit;
-  FthumbnailUrl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SettickerSymbol(AIndex : Integer; AValue : string); 
-
-begin
-  If (FtickerSymbol=AValue) then exit;
-  FtickerSymbol:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.Setwidth(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fwidth=AValue) then exit;
-  Fwidth:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TItemScope.SetworstRating(AIndex : Integer; AValue : string); 
-
-begin
-  If (FworstRating=AValue) then exit;
-  FworstRating:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TItemScope.ExportPropertyName(Const AName : String) :String;
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCommentFeed.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
   Case AName of
-  '_type' : Result:='type';
+  'items' : SetLength(Fitems,ALength);
   else
-    Result:=Inherited ExportPropertyName(AName);
+    Inherited SetArrayLength(AName,ALength);
   end;
 end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TItemScopeadditionalName
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TItemScopeassociated_media
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TItemScopeattendees
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TItemScopeauthor
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TItemScopecontributor
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TItemScopeperformers
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMoment
-  --------------------------------------------------------------------}
-
-
-Procedure TMoment.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMoment.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMoment.Set_object(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (F_object=AValue) then exit;
-  F_object:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMoment.Setresult(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (Fresult=AValue) then exit;
-  Fresult:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMoment.SetstartDate(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (FstartDate=AValue) then exit;
-  FstartDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMoment.Settarget(AIndex : Integer; AValue : TItemScope); 
-
-begin
-  If (Ftarget=AValue) then exit;
-  Ftarget:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMoment.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TMoment.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_object' : Result:='object';
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TMomentsFeed
-  --------------------------------------------------------------------}
-
-
-Procedure TMomentsFeed.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMomentsFeed.Setitems(AIndex : Integer; AValue : TMomentsFeeditems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMomentsFeed.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMomentsFeed.SetnextLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextLink=AValue) then exit;
-  FnextLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMomentsFeed.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMomentsFeed.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMomentsFeed.Settitle(AIndex : Integer; AValue : string); 
-
-begin
-  If (Ftitle=AValue) then exit;
-  Ftitle:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMomentsFeed.Setupdated(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (Fupdated=AValue) then exit;
-  Fupdated:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TMomentsFeeditems
-  --------------------------------------------------------------------}
+{$ENDIF VER2_6}
 
 
 
@@ -4138,7 +3311,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPeopleFeed.Setetag(AIndex : Integer; AValue : string); 
+Procedure TPeopleFeed.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -4148,7 +3321,7 @@ end;
 
 
 
-Procedure TPeopleFeed.Setitems(AIndex : Integer; AValue : TPeopleFeeditems); 
+Procedure TPeopleFeed.Setitems(AIndex : Integer; const AValue : TPeopleFeedTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -4158,7 +3331,7 @@ end;
 
 
 
-Procedure TPeopleFeed.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPeopleFeed.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4168,7 +3341,7 @@ end;
 
 
 
-Procedure TPeopleFeed.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TPeopleFeed.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4178,7 +3351,7 @@ end;
 
 
 
-Procedure TPeopleFeed.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TPeopleFeed.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -4188,7 +3361,7 @@ end;
 
 
 
-Procedure TPeopleFeed.Settitle(AIndex : Integer; AValue : string); 
+Procedure TPeopleFeed.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -4198,7 +3371,7 @@ end;
 
 
 
-Procedure TPeopleFeed.SettotalItems(AIndex : Integer; AValue : integer); 
+Procedure TPeopleFeed.SettotalItems(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -4207,329 +3380,28 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TPeopleFeeditems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TPerson
-  --------------------------------------------------------------------}
-
-
-Procedure TPerson.SetaboutMe(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPeopleFeed.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (FaboutMe=AValue) then exit;
-  FaboutMe:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TPerson.SetageRange(AIndex : Integer; AValue : TPersonageRange); 
-
-begin
-  If (FageRange=AValue) then exit;
-  FageRange:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setbirthday(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fbirthday=AValue) then exit;
-  Fbirthday:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.SetbraggingRights(AIndex : Integer; AValue : string); 
-
-begin
-  If (FbraggingRights=AValue) then exit;
-  FbraggingRights:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.SetcircledByCount(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FcircledByCount=AValue) then exit;
-  FcircledByCount:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setcover(AIndex : Integer; AValue : TPersoncover); 
-
-begin
-  If (Fcover=AValue) then exit;
-  Fcover:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.SetcurrentLocation(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcurrentLocation=AValue) then exit;
-  FcurrentLocation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.SetdisplayName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdisplayName=AValue) then exit;
-  FdisplayName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setdomain(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdomain=AValue) then exit;
-  Fdomain:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setemails(AIndex : Integer; AValue : TPersonemails); 
-
-begin
-  If (Femails=AValue) then exit;
-  Femails:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setgender(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fgender=AValue) then exit;
-  Fgender:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setimage(AIndex : Integer; AValue : TPersonimage); 
-
-begin
-  If (Fimage=AValue) then exit;
-  Fimage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.SetisPlusUser(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FisPlusUser=AValue) then exit;
-  FisPlusUser:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setlanguage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Flanguage=AValue) then exit;
-  Flanguage:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setname(AIndex : Integer; AValue : TPersonname); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setnickname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fnickname=AValue) then exit;
-  Fnickname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.SetobjectType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FobjectType=AValue) then exit;
-  FobjectType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setoccupation(AIndex : Integer; AValue : string); 
-
-begin
-  If (Foccupation=AValue) then exit;
-  Foccupation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setorganizations(AIndex : Integer; AValue : TPersonorganizations); 
-
-begin
-  If (Forganizations=AValue) then exit;
-  Forganizations:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.SetplacesLived(AIndex : Integer; AValue : TPersonplacesLived); 
-
-begin
-  If (FplacesLived=AValue) then exit;
-  FplacesLived:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.SetplusOneCount(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FplusOneCount=AValue) then exit;
-  FplusOneCount:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.SetrelationshipStatus(AIndex : Integer; AValue : string); 
-
-begin
-  If (FrelationshipStatus=AValue) then exit;
-  FrelationshipStatus:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setskills(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fskills=AValue) then exit;
-  Fskills:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Settagline(AIndex : Integer; AValue : string); 
-
-begin
-  If (Ftagline=AValue) then exit;
-  Ftagline:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Seturls(AIndex : Integer; AValue : TPersonurls); 
-
-begin
-  If (Furls=AValue) then exit;
-  Furls:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPerson.Setverified(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (Fverified=AValue) then exit;
-  Fverified:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TPersonageRange
+  TPersonTypeageRange
   --------------------------------------------------------------------}
 
 
-Procedure TPersonageRange.Setmax(AIndex : Integer; AValue : integer); 
+Procedure TPersonTypeageRange.Setmax(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fmax=AValue) then exit;
@@ -4539,7 +3411,7 @@ end;
 
 
 
-Procedure TPersonageRange.Setmin(AIndex : Integer; AValue : integer); 
+Procedure TPersonTypeageRange.Setmin(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fmin=AValue) then exit;
@@ -4552,48 +3424,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPersoncover
+  TPersonTypecoverTypecoverInfo
   --------------------------------------------------------------------}
 
 
-Procedure TPersoncover.SetcoverInfo(AIndex : Integer; AValue : TPersoncovercoverInfo); 
-
-begin
-  If (FcoverInfo=AValue) then exit;
-  FcoverInfo:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPersoncover.SetcoverPhoto(AIndex : Integer; AValue : TPersoncovercoverPhoto); 
-
-begin
-  If (FcoverPhoto=AValue) then exit;
-  FcoverPhoto:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPersoncover.Setlayout(AIndex : Integer; AValue : string); 
-
-begin
-  If (Flayout=AValue) then exit;
-  Flayout:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPersoncovercoverInfo
-  --------------------------------------------------------------------}
-
-
-Procedure TPersoncovercoverInfo.SetleftImageOffset(AIndex : Integer; AValue : integer); 
+Procedure TPersonTypecoverTypecoverInfo.SetleftImageOffset(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FleftImageOffset=AValue) then exit;
@@ -4603,7 +3438,7 @@ end;
 
 
 
-Procedure TPersoncovercoverInfo.SettopImageOffset(AIndex : Integer; AValue : integer); 
+Procedure TPersonTypecoverTypecoverInfo.SettopImageOffset(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtopImageOffset=AValue) then exit;
@@ -4616,11 +3451,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPersoncovercoverPhoto
+  TPersonTypecoverTypecoverPhoto
   --------------------------------------------------------------------}
 
 
-Procedure TPersoncovercoverPhoto.Setheight(AIndex : Integer; AValue : integer); 
+Procedure TPersonTypecoverTypecoverPhoto.Setheight(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fheight=AValue) then exit;
@@ -4630,7 +3465,7 @@ end;
 
 
 
-Procedure TPersoncovercoverPhoto.Seturl(AIndex : Integer; AValue : string); 
+Procedure TPersonTypecoverTypecoverPhoto.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -4640,7 +3475,7 @@ end;
 
 
 
-Procedure TPersoncovercoverPhoto.Setwidth(AIndex : Integer; AValue : integer); 
+Procedure TPersonTypecoverTypecoverPhoto.Setwidth(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fwidth=AValue) then exit;
@@ -4653,11 +3488,48 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPersonemails
+  TPersonTypecover
   --------------------------------------------------------------------}
 
 
-Procedure TPersonemails.Set_type(AIndex : Integer; AValue : string); 
+Procedure TPersonTypecover.SetcoverInfo(AIndex : Integer; const AValue : TPersonTypecoverTypecoverInfo); 
+
+begin
+  If (FcoverInfo=AValue) then exit;
+  FcoverInfo:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPersonTypecover.SetcoverPhoto(AIndex : Integer; const AValue : TPersonTypecoverTypecoverPhoto); 
+
+begin
+  If (FcoverPhoto=AValue) then exit;
+  FcoverPhoto:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPersonTypecover.Setlayout(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Flayout=AValue) then exit;
+  Flayout:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPersonTypeemailsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TPersonTypeemailsItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4667,7 +3539,7 @@ end;
 
 
 
-Procedure TPersonemails.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeemailsItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -4677,7 +3549,7 @@ end;
 
 
 
-Class Function TPersonemails.ExportPropertyName(Const AName : String) :String;
+Class Function TPersonTypeemailsItem.ExportPropertyName(Const AName : String) :String;
 
 begin
   Case AName of
@@ -4691,11 +3563,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPersonimage
+  TPersonTypeimage
   --------------------------------------------------------------------}
 
 
-Procedure TPersonimage.SetisDefault(AIndex : Integer; AValue : boolean); 
+Procedure TPersonTypeimage.SetisDefault(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisDefault=AValue) then exit;
@@ -4705,7 +3577,7 @@ end;
 
 
 
-Procedure TPersonimage.Seturl(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeimage.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -4718,11 +3590,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPersonname
+  TPersonTypename
   --------------------------------------------------------------------}
 
 
-Procedure TPersonname.SetfamilyName(AIndex : Integer; AValue : string); 
+Procedure TPersonTypename.SetfamilyName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfamilyName=AValue) then exit;
@@ -4732,7 +3604,7 @@ end;
 
 
 
-Procedure TPersonname.Setformatted(AIndex : Integer; AValue : string); 
+Procedure TPersonTypename.Setformatted(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformatted=AValue) then exit;
@@ -4742,7 +3614,7 @@ end;
 
 
 
-Procedure TPersonname.SetgivenName(AIndex : Integer; AValue : string); 
+Procedure TPersonTypename.SetgivenName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgivenName=AValue) then exit;
@@ -4752,7 +3624,7 @@ end;
 
 
 
-Procedure TPersonname.SethonorificPrefix(AIndex : Integer; AValue : string); 
+Procedure TPersonTypename.SethonorificPrefix(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhonorificPrefix=AValue) then exit;
@@ -4762,7 +3634,7 @@ end;
 
 
 
-Procedure TPersonname.SethonorificSuffix(AIndex : Integer; AValue : string); 
+Procedure TPersonTypename.SethonorificSuffix(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhonorificSuffix=AValue) then exit;
@@ -4772,7 +3644,7 @@ end;
 
 
 
-Procedure TPersonname.SetmiddleName(AIndex : Integer; AValue : string); 
+Procedure TPersonTypename.SetmiddleName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmiddleName=AValue) then exit;
@@ -4785,11 +3657,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPersonorganizations
+  TPersonTypeorganizationsItem
   --------------------------------------------------------------------}
 
 
-Procedure TPersonorganizations.Setdepartment(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeorganizationsItem.Setdepartment(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdepartment=AValue) then exit;
@@ -4799,7 +3671,7 @@ end;
 
 
 
-Procedure TPersonorganizations.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeorganizationsItem.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4809,7 +3681,7 @@ end;
 
 
 
-Procedure TPersonorganizations.SetendDate(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeorganizationsItem.SetendDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendDate=AValue) then exit;
@@ -4819,7 +3691,7 @@ end;
 
 
 
-Procedure TPersonorganizations.Setlocation(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeorganizationsItem.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -4829,7 +3701,7 @@ end;
 
 
 
-Procedure TPersonorganizations.Setname(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeorganizationsItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4839,7 +3711,7 @@ end;
 
 
 
-Procedure TPersonorganizations.Setprimary(AIndex : Integer; AValue : boolean); 
+Procedure TPersonTypeorganizationsItem.Setprimary(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fprimary=AValue) then exit;
@@ -4849,7 +3721,7 @@ end;
 
 
 
-Procedure TPersonorganizations.SetstartDate(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeorganizationsItem.SetstartDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartDate=AValue) then exit;
@@ -4859,7 +3731,7 @@ end;
 
 
 
-Procedure TPersonorganizations.Settitle(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeorganizationsItem.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -4869,7 +3741,7 @@ end;
 
 
 
-Procedure TPersonorganizations.Set_type(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeorganizationsItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4879,7 +3751,7 @@ end;
 
 
 
-Class Function TPersonorganizations.ExportPropertyName(Const AName : String) :String;
+Class Function TPersonTypeorganizationsItem.ExportPropertyName(Const AName : String) :String;
 
 begin
   Case AName of
@@ -4893,11 +3765,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPersonplacesLived
+  TPersonTypeplacesLivedItem
   --------------------------------------------------------------------}
 
 
-Procedure TPersonplacesLived.Setprimary(AIndex : Integer; AValue : boolean); 
+Procedure TPersonTypeplacesLivedItem.Setprimary(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fprimary=AValue) then exit;
@@ -4907,7 +3779,7 @@ end;
 
 
 
-Procedure TPersonplacesLived.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeplacesLivedItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -4920,11 +3792,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPersonurls
+  TPersonTypeurlsItem
   --------------------------------------------------------------------}
 
 
-Procedure TPersonurls.Set_label(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeurlsItem.Set_label(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -4934,7 +3806,7 @@ end;
 
 
 
-Procedure TPersonurls.Set_type(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeurlsItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4944,7 +3816,7 @@ end;
 
 
 
-Procedure TPersonurls.Setvalue(AIndex : Integer; AValue : string); 
+Procedure TPersonTypeurlsItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -4954,7 +3826,7 @@ end;
 
 
 
-Class Function TPersonurls.ExportPropertyName(Const AName : String) :String;
+Class Function TPersonTypeurlsItem.ExportPropertyName(Const AName : String) :String;
 
 begin
   Case AName of
@@ -4969,21 +3841,81 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPlace
+  TPerson
   --------------------------------------------------------------------}
 
 
-Procedure TPlace.Setaddress(AIndex : Integer; AValue : TPlaceaddress); 
+Procedure TPerson.SetaboutMe(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Faddress=AValue) then exit;
-  Faddress:=AValue;
+  If (FaboutMe=AValue) then exit;
+  FaboutMe:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TPlace.SetdisplayName(AIndex : Integer; AValue : string); 
+Procedure TPerson.SetageRange(AIndex : Integer; const AValue : TPersonTypeageRange); 
+
+begin
+  If (FageRange=AValue) then exit;
+  FageRange:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setbirthday(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fbirthday=AValue) then exit;
+  Fbirthday:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.SetbraggingRights(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FbraggingRights=AValue) then exit;
+  FbraggingRights:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.SetcircledByCount(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FcircledByCount=AValue) then exit;
+  FcircledByCount:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setcover(AIndex : Integer; const AValue : TPersonTypecover); 
+
+begin
+  If (Fcover=AValue) then exit;
+  Fcover:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.SetcurrentLocation(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcurrentLocation=AValue) then exit;
+  FcurrentLocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -4993,7 +3925,47 @@ end;
 
 
 
-Procedure TPlace.Setid(AIndex : Integer; AValue : string); 
+Procedure TPerson.Setdomain(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdomain=AValue) then exit;
+  Fdomain:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setemails(AIndex : Integer; const AValue : TPersonTypeemailsArray); 
+
+begin
+  If (Femails=AValue) then exit;
+  Femails:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setetag(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fetag=AValue) then exit;
+  Fetag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setgender(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fgender=AValue) then exit;
+  Fgender:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5003,7 +3975,27 @@ end;
 
 
 
-Procedure TPlace.Setkind(AIndex : Integer; AValue : string); 
+Procedure TPerson.Setimage(AIndex : Integer; const AValue : TPersonTypeimage); 
+
+begin
+  If (Fimage=AValue) then exit;
+  Fimage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.SetisPlusUser(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FisPlusUser=AValue) then exit;
+  FisPlusUser:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5013,24 +4005,170 @@ end;
 
 
 
-Procedure TPlace.Setposition(AIndex : Integer; AValue : TPlaceposition); 
+Procedure TPerson.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fposition=AValue) then exit;
-  Fposition:=AValue;
+  If (Flanguage=AValue) then exit;
+  Flanguage:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
+Procedure TPerson.Setname(AIndex : Integer; const AValue : TPersonTypename); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setnickname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fnickname=AValue) then exit;
+  Fnickname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.SetobjectType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FobjectType=AValue) then exit;
+  FobjectType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setoccupation(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Foccupation=AValue) then exit;
+  Foccupation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setorganizations(AIndex : Integer; const AValue : TPersonTypeorganizationsArray); 
+
+begin
+  If (Forganizations=AValue) then exit;
+  Forganizations:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.SetplacesLived(AIndex : Integer; const AValue : TPersonTypeplacesLivedArray); 
+
+begin
+  If (FplacesLived=AValue) then exit;
+  FplacesLived:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.SetplusOneCount(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FplusOneCount=AValue) then exit;
+  FplusOneCount:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.SetrelationshipStatus(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FrelationshipStatus=AValue) then exit;
+  FrelationshipStatus:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setskills(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fskills=AValue) then exit;
+  Fskills:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Settagline(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ftagline=AValue) then exit;
+  Ftagline:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Seturls(AIndex : Integer; const AValue : TPersonTypeurlsArray); 
+
+begin
+  If (Furls=AValue) then exit;
+  Furls:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPerson.Setverified(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (Fverified=AValue) then exit;
+  Fverified:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPerson.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'emails' : SetLength(Femails,ALength);
+  'organizations' : SetLength(Forganizations,ALength);
+  'placeslived' : SetLength(FplacesLived,ALength);
+  'urls' : SetLength(Furls,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
 
 
 { --------------------------------------------------------------------
-  TPlaceaddress
+  TPlaceTypeaddress
   --------------------------------------------------------------------}
 
 
-Procedure TPlaceaddress.Setformatted(AIndex : Integer; AValue : string); 
+Procedure TPlaceTypeaddress.Setformatted(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformatted=AValue) then exit;
@@ -5043,11 +4181,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPlaceposition
+  TPlaceTypeposition
   --------------------------------------------------------------------}
 
 
-Procedure TPlaceposition.Setlatitude(AIndex : Integer; AValue : double); 
+Procedure TPlaceTypeposition.Setlatitude(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flatitude=AValue) then exit;
@@ -5057,7 +4195,7 @@ end;
 
 
 
-Procedure TPlaceposition.Setlongitude(AIndex : Integer; AValue : double); 
+Procedure TPlaceTypeposition.Setlongitude(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flongitude=AValue) then exit;
@@ -5070,11 +4208,21 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPlusAclentryResource
+  TPlace
   --------------------------------------------------------------------}
 
 
-Procedure TPlusAclentryResource.SetdisplayName(AIndex : Integer; AValue : string); 
+Procedure TPlace.Setaddress(AIndex : Integer; const AValue : TPlaceTypeaddress); 
+
+begin
+  If (Faddress=AValue) then exit;
+  Faddress:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlace.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -5084,7 +4232,7 @@ end;
 
 
 
-Procedure TPlusAclentryResource.Setid(AIndex : Integer; AValue : string); 
+Procedure TPlace.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5094,7 +4242,54 @@ end;
 
 
 
-Procedure TPlusAclentryResource.Set_type(AIndex : Integer; AValue : string); 
+Procedure TPlace.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlace.Setposition(AIndex : Integer; const AValue : TPlaceTypeposition); 
+
+begin
+  If (Fposition=AValue) then exit;
+  Fposition:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPlusAclentryResource
+  --------------------------------------------------------------------}
+
+
+Procedure TPlusAclentryResource.SetdisplayName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdisplayName=AValue) then exit;
+  FdisplayName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlusAclentryResource.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlusAclentryResource.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5270,97 +4465,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TMomentsResource
-  --------------------------------------------------------------------}
-
-
-Class Function TMomentsResource.ResourceName : String;
-
-begin
-  Result:='moments';
-end;
-
-Class Function TMomentsResource.DefaultAPI : TGoogleAPIClass;
-
-begin
-  Result:=TplusAPI;
-end;
-
-Function TMomentsResource.Insert(collection: string; userId: string; aMoment : TMoment; AQuery : string = '') : TMoment;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'people/{userId}/moments/{collection}';
-  _Methodid   = 'plus.moments.insert';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['collection',collection,'userId',userId]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aMoment,TMoment) as TMoment;
-end;
-
-
-Function TMomentsResource.Insert(collection: string; userId: string; aMoment : TMoment; AQuery : TMomentsinsertOptions) : TMoment;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'debug',AQuery.debug);
-  Result:=Insert(collection,userId,aMoment,_Q);
-end;
-
-Function TMomentsResource.List(collection: string; userId: string; AQuery : string = '') : TMomentsFeed;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = 'people/{userId}/moments/{collection}';
-  _Methodid   = 'plus.moments.list';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['collection',collection,'userId',userId]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TMomentsFeed) as TMomentsFeed;
-end;
-
-
-Function TMomentsResource.List(collection: string; userId: string; AQuery : TMomentslistOptions) : TMomentsFeed;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'maxResults',AQuery.maxResults);
-  AddToQuery(_Q,'pageToken',AQuery.pageToken);
-  AddToQuery(_Q,'targetUrl',AQuery.targetUrl);
-  AddToQuery(_Q,'type',AQuery._type);
-  Result:=List(collection,userId,_Q);
-end;
-
-Procedure TMomentsResource.Remove(id: string);
-
-Const
-  _HTTPMethod = 'DELETE';
-  _Path       = 'moments/{id}';
-  _Methodid   = 'plus.moments.remove';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['id',id]);
-  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
-end;
-
-
-
-{ --------------------------------------------------------------------
   TPeopleResource
   --------------------------------------------------------------------}
 
@@ -5496,7 +4600,7 @@ end;
 Class Function TPlusAPI.APIRevision : String;
 
 begin
-  Result:='20150401';
+  Result:='20160521';
 end;
 
 Class Function TPlusAPI.APIID : String;
@@ -5514,7 +4618,7 @@ end;
 Class Function TPlusAPI.APIDescription : String;
 
 begin
-  Result:='The Google+ API enables developers to build on top of the Google+ platform.';
+  Result:='Builds on top of the Google+ platform.';
 end;
 
 Class Function TPlusAPI.APIOwnerDomain : String;
@@ -5588,7 +4692,7 @@ Class Function TPlusAPI.APIAuthScopes : TScopeInfoArray;
 begin
   SetLength(Result,4);
   Result[0].Name:='https://www.googleapis.com/auth/plus.login';
-  Result[0].Description:='Know your basic profile info and list of people in your circles.';
+  Result[0].Description:='Know the list of people in your circles, your age range, and language';
   Result[1].Name:='https://www.googleapis.com/auth/plus.me';
   Result[1].Description:='Know who you are on Google';
   Result[2].Name:='https://www.googleapis.com/auth/userinfo.email';
@@ -5608,60 +4712,55 @@ Class Procedure TPlusAPI.RegisterAPIResources;
 
 begin
   TAcl.RegisterObject;
-  TAclitems.RegisterObject;
+  TActivityTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo.RegisterObject;
+  TActivityTypeactorTypeclientSpecificActorInfo.RegisterObject;
+  TActivityTypeactorTypeimage.RegisterObject;
+  TActivityTypeactorTypename.RegisterObject;
+  TActivityTypeactorTypeverification.RegisterObject;
+  TActivityTypeactor.RegisterObject;
+  TActivityTypeobjectTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo.RegisterObject;
+  TActivityTypeobjectTypeactorTypeclientSpecificActorInfo.RegisterObject;
+  TActivityTypeobjectTypeactorTypeimage.RegisterObject;
+  TActivityTypeobjectTypeactorTypeverification.RegisterObject;
+  TActivityTypeobjectTypeactor.RegisterObject;
+  TActivityTypeobjectTypeattachmentsItemTypeembed.RegisterObject;
+  TActivityTypeobjectTypeattachmentsItemTypefullImage.RegisterObject;
+  TActivityTypeobjectTypeattachmentsItemTypeimage.RegisterObject;
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItemTypeimage.RegisterObject;
+  TActivityTypeobjectTypeattachmentsItemTypethumbnailsItem.RegisterObject;
+  TActivityTypeobjectTypeattachmentsItem.RegisterObject;
+  TActivityTypeobjectTypeplusoners.RegisterObject;
+  TActivityTypeobjectTypereplies.RegisterObject;
+  TActivityTypeobjectTyperesharers.RegisterObject;
+  TActivityTypeobject.RegisterObject;
+  TActivityTypeprovider.RegisterObject;
   TActivity.RegisterObject;
-  TActivityactor.RegisterObject;
-  TActivityactorimage.RegisterObject;
-  TActivityactorname.RegisterObject;
-  TActivityobject.RegisterObject;
-  TActivityobjectactor.RegisterObject;
-  TActivityobjectactorimage.RegisterObject;
-  TActivityobjectattachments.RegisterObject;
-  TActivityobjectattachmentsembed.RegisterObject;
-  TActivityobjectattachmentsfullImage.RegisterObject;
-  TActivityobjectattachmentsimage.RegisterObject;
-  TActivityobjectattachmentsthumbnails.RegisterObject;
-  TActivityobjectattachmentsthumbnailsimage.RegisterObject;
-  TActivityobjectplusoners.RegisterObject;
-  TActivityobjectreplies.RegisterObject;
-  TActivityobjectresharers.RegisterObject;
-  TActivityprovider.RegisterObject;
   TActivityFeed.RegisterObject;
-  TActivityFeeditems.RegisterObject;
+  TCommentTypeactorTypeclientSpecificActorInfoTypeyoutubeActorInfo.RegisterObject;
+  TCommentTypeactorTypeclientSpecificActorInfo.RegisterObject;
+  TCommentTypeactorTypeimage.RegisterObject;
+  TCommentTypeactorTypeverification.RegisterObject;
+  TCommentTypeactor.RegisterObject;
+  TCommentTypeinReplyToItem.RegisterObject;
+  TCommentTypeobject.RegisterObject;
+  TCommentTypeplusoners.RegisterObject;
   TComment.RegisterObject;
-  TCommentactor.RegisterObject;
-  TCommentactorimage.RegisterObject;
-  TCommentinReplyTo.RegisterObject;
-  TCommentobject.RegisterObject;
-  TCommentplusoners.RegisterObject;
   TCommentFeed.RegisterObject;
-  TCommentFeeditems.RegisterObject;
-  TItemScope.RegisterObject;
-  TItemScopeadditionalName.RegisterObject;
-  TItemScopeassociated_media.RegisterObject;
-  TItemScopeattendees.RegisterObject;
-  TItemScopeauthor.RegisterObject;
-  TItemScopecontributor.RegisterObject;
-  TItemScopeperformers.RegisterObject;
-  TMoment.RegisterObject;
-  TMomentsFeed.RegisterObject;
-  TMomentsFeeditems.RegisterObject;
   TPeopleFeed.RegisterObject;
-  TPeopleFeeditems.RegisterObject;
+  TPersonTypeageRange.RegisterObject;
+  TPersonTypecoverTypecoverInfo.RegisterObject;
+  TPersonTypecoverTypecoverPhoto.RegisterObject;
+  TPersonTypecover.RegisterObject;
+  TPersonTypeemailsItem.RegisterObject;
+  TPersonTypeimage.RegisterObject;
+  TPersonTypename.RegisterObject;
+  TPersonTypeorganizationsItem.RegisterObject;
+  TPersonTypeplacesLivedItem.RegisterObject;
+  TPersonTypeurlsItem.RegisterObject;
   TPerson.RegisterObject;
-  TPersonageRange.RegisterObject;
-  TPersoncover.RegisterObject;
-  TPersoncovercoverInfo.RegisterObject;
-  TPersoncovercoverPhoto.RegisterObject;
-  TPersonemails.RegisterObject;
-  TPersonimage.RegisterObject;
-  TPersonname.RegisterObject;
-  TPersonorganizations.RegisterObject;
-  TPersonplacesLived.RegisterObject;
-  TPersonurls.RegisterObject;
+  TPlaceTypeaddress.RegisterObject;
+  TPlaceTypeposition.RegisterObject;
   TPlace.RegisterObject;
-  TPlaceaddress.RegisterObject;
-  TPlaceposition.RegisterObject;
   TPlusAclentryResource.RegisterObject;
 end;
 
@@ -5685,7 +4784,7 @@ Function TPlusAPI.CreateActivitiesResource(AOwner : TComponent) : TActivitiesRes
 
 begin
   Result:=TActivitiesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -5709,31 +4808,7 @@ Function TPlusAPI.CreateCommentsResource(AOwner : TComponent) : TCommentsResourc
 
 begin
   Result:=TCommentsResource.Create(AOwner);
-  Result.API:=Self;
-end;
-
-
-
-Function TPlusAPI.GetMomentsInstance : TMomentsResource;
-
-begin
-  if (FMomentsInstance=Nil) then
-    FMomentsInstance:=CreateMomentsResource;
-  Result:=FMomentsInstance;
-end;
-
-Function TPlusAPI.CreateMomentsResource : TMomentsResource;
-
-begin
-  Result:=CreateMomentsResource(Self);
-end;
-
-
-Function TPlusAPI.CreateMomentsResource(AOwner : TComponent) : TMomentsResource;
-
-begin
-  Result:=TMomentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -5757,7 +4832,7 @@ Function TPlusAPI.CreatePeopleResource(AOwner : TComponent) : TPeopleResource;
 
 begin
   Result:=TPeopleResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

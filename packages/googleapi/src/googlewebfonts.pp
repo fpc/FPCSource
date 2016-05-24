@@ -1,31 +1,4 @@
 unit googlewebfonts;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,62 +7,21 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TWebfont = class;
+  
+  //Top-level schema types
+  TWebfont = Class;
+  TWebfontList = Class;
   TWebfontArray = Array of TWebfont;
-  TWebfontfiles = class;
-  TWebfontfilesArray = Array of TWebfontfiles;
-  TWebfontsubsets = class;
-  TWebfontsubsetsArray = Array of TWebfontsubsets;
-  TWebfontvariants = class;
-  TWebfontvariantsArray = Array of TWebfontvariants;
-  TWebfontList = class;
   TWebfontListArray = Array of TWebfontList;
-  TWebfontListitems = class;
-  TWebfontListitemsArray = Array of TWebfontListitems;
+  //Anonymous types, using auto-generated names
+  TWebfontTypefiles = Class;
+  TWebfontListTypeitemsArray = Array of TWebfont;
   
   { --------------------------------------------------------------------
-    TWebfont
+    TWebfontTypefiles
     --------------------------------------------------------------------}
   
-  TWebfont = Class(TGoogleBaseObject)
-  Private
-    Fcategory : string;
-    Ffamily : string;
-    Ffiles : TWebfontfiles;
-    Fkind : string;
-    FlastModified : TDate;
-    Fsubsets : TWebfontsubsets;
-    Fvariants : TWebfontvariants;
-    Fversion : string;
-  Protected
-    //Property setters
-    Procedure Setcategory(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfamily(AIndex : Integer; AValue : string); virtual;
-    Procedure Setfiles(AIndex : Integer; AValue : TWebfontfiles); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlastModified(AIndex : Integer; AValue : TDate); virtual;
-    Procedure Setsubsets(AIndex : Integer; AValue : TWebfontsubsets); virtual;
-    Procedure Setvariants(AIndex : Integer; AValue : TWebfontvariants); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property category : string Index 0 Read Fcategory Write Setcategory;
-    Property family : string Index 8 Read Ffamily Write Setfamily;
-    Property files : TWebfontfiles Index 16 Read Ffiles Write Setfiles;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property lastModified : TDate Index 32 Read FlastModified Write SetlastModified;
-    Property subsets : TWebfontsubsets Index 40 Read Fsubsets Write Setsubsets;
-    Property variants : TWebfontvariants Index 48 Read Fvariants Write Setvariants;
-    Property version : string Index 56 Read Fversion Write Setversion;
-  end;
-  TWebfontClass = Class of TWebfont;
-  
-  { --------------------------------------------------------------------
-    TWebfontfiles
-    --------------------------------------------------------------------}
-  
-  TWebfontfiles = Class(TGoogleBaseObject)
+  TWebfontTypefiles = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -97,33 +29,48 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TWebfontfilesClass = Class of TWebfontfiles;
+  TWebfontTypefilesClass = Class of TWebfontTypefiles;
   
   { --------------------------------------------------------------------
-    TWebfontsubsets
+    TWebfont
     --------------------------------------------------------------------}
   
-  TWebfontsubsets = Class(TGoogleBaseObject)
+  TWebfont = Class(TGoogleBaseObject)
   Private
+    Fcategory : String;
+    Ffamily : String;
+    Ffiles : TWebfontTypefiles;
+    Fkind : String;
+    FlastModified : TDate;
+    Fsubsets : TStringArray;
+    Fvariants : TStringArray;
+    Fversion : String;
   Protected
     //Property setters
+    Procedure Setcategory(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfamily(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfiles(AIndex : Integer; const AValue : TWebfontTypefiles); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastModified(AIndex : Integer; const AValue : TDate); virtual;
+    Procedure Setsubsets(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setvariants(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
+    Property category : String Index 0 Read Fcategory Write Setcategory;
+    Property family : String Index 8 Read Ffamily Write Setfamily;
+    Property files : TWebfontTypefiles Index 16 Read Ffiles Write Setfiles;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property lastModified : TDate Index 32 Read FlastModified Write SetlastModified;
+    Property subsets : TStringArray Index 40 Read Fsubsets Write Setsubsets;
+    Property variants : TStringArray Index 48 Read Fvariants Write Setvariants;
+    Property version : String Index 56 Read Fversion Write Setversion;
   end;
-  TWebfontsubsetsClass = Class of TWebfontsubsets;
-  
-  { --------------------------------------------------------------------
-    TWebfontvariants
-    --------------------------------------------------------------------}
-  
-  TWebfontvariants = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TWebfontvariantsClass = Class of TWebfontvariants;
+  TWebfontClass = Class of TWebfont;
   
   { --------------------------------------------------------------------
     TWebfontList
@@ -131,31 +78,22 @@ type
   
   TWebfontList = Class(TGoogleBaseObject)
   Private
-    Fitems : TWebfontListitems;
-    Fkind : string;
+    Fitems : TWebfontListTypeitemsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TWebfontListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TWebfontListTypeitemsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property items : TWebfontListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property items : TWebfontListTypeitemsArray Index 0 Read Fitems Write Setitems;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TWebfontListClass = Class of TWebfontList;
-  
-  { --------------------------------------------------------------------
-    TWebfontListitems
-    --------------------------------------------------------------------}
-  
-  TWebfontListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TWebfontListitemsClass = Class of TWebfontListitems;
   
   { --------------------------------------------------------------------
     TWebfontsResource
@@ -165,7 +103,7 @@ type
   //Optional query Options for TWebfontsResource, method List
   
   TWebfontsListOptions = Record
-    sort : string;
+    sort : String;
   end;
   
   TWebfontsResource = Class(TGoogleResource)
@@ -218,11 +156,24 @@ implementation
 
 
 { --------------------------------------------------------------------
+  TWebfontTypefiles
+  --------------------------------------------------------------------}
+
+
+Class Function TWebfontTypefiles.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TWebfont
   --------------------------------------------------------------------}
 
 
-Procedure TWebfont.Setcategory(AIndex : Integer; AValue : string); 
+Procedure TWebfont.Setcategory(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcategory=AValue) then exit;
@@ -232,7 +183,7 @@ end;
 
 
 
-Procedure TWebfont.Setfamily(AIndex : Integer; AValue : string); 
+Procedure TWebfont.Setfamily(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffamily=AValue) then exit;
@@ -242,7 +193,7 @@ end;
 
 
 
-Procedure TWebfont.Setfiles(AIndex : Integer; AValue : TWebfontfiles); 
+Procedure TWebfont.Setfiles(AIndex : Integer; const AValue : TWebfontTypefiles); 
 
 begin
   If (Ffiles=AValue) then exit;
@@ -252,7 +203,7 @@ end;
 
 
 
-Procedure TWebfont.Setkind(AIndex : Integer; AValue : string); 
+Procedure TWebfont.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -262,7 +213,7 @@ end;
 
 
 
-Procedure TWebfont.SetlastModified(AIndex : Integer; AValue : TDate); 
+Procedure TWebfont.SetlastModified(AIndex : Integer; const AValue : TDate); 
 
 begin
   If (FlastModified=AValue) then exit;
@@ -272,7 +223,7 @@ end;
 
 
 
-Procedure TWebfont.Setsubsets(AIndex : Integer; AValue : TWebfontsubsets); 
+Procedure TWebfont.Setsubsets(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fsubsets=AValue) then exit;
@@ -282,7 +233,7 @@ end;
 
 
 
-Procedure TWebfont.Setvariants(AIndex : Integer; AValue : TWebfontvariants); 
+Procedure TWebfont.Setvariants(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fvariants=AValue) then exit;
@@ -292,7 +243,7 @@ end;
 
 
 
-Procedure TWebfont.Setversion(AIndex : Integer; AValue : string); 
+Procedure TWebfont.Setversion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -301,32 +252,19 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TWebfontfiles
-  --------------------------------------------------------------------}
-
-
-Class Function TWebfontfiles.AllowAdditionalProperties : Boolean;
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWebfont.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  Result:=True;
+  Case AName of
+  'subsets' : SetLength(Fsubsets,ALength);
+  'variants' : SetLength(Fvariants,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-{ --------------------------------------------------------------------
-  TWebfontsubsets
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TWebfontvariants
-  --------------------------------------------------------------------}
+{$ENDIF VER2_6}
 
 
 
@@ -336,7 +274,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWebfontList.Setitems(AIndex : Integer; AValue : TWebfontListitems); 
+Procedure TWebfontList.Setitems(AIndex : Integer; const AValue : TWebfontListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -346,7 +284,7 @@ end;
 
 
 
-Procedure TWebfontList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TWebfontList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -355,12 +293,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TWebfontList.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TWebfontListitems
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -426,7 +370,7 @@ end;
 Class Function TWebfontsAPI.APIRevision : String;
 
 begin
-  Result:='20140210';
+  Result:='20160302';
 end;
 
 Class Function TWebfontsAPI.APIID : String;
@@ -444,7 +388,7 @@ end;
 Class Function TWebfontsAPI.APIDescription : String;
 
 begin
-  Result:='The Google Fonts Developer API.';
+  Result:='Accesses the metadata for all families served by Google Fonts, providing a list of families currently available (including available styles and a list of supported script subsets).';
 end;
 
 Class Function TWebfontsAPI.APIOwnerDomain : String;
@@ -462,13 +406,13 @@ end;
 Class Function TWebfontsAPI.APIIcon16 : String;
 
 begin
-  Result:='http://www.google.com/images/icons/feature/font_api-16.png';
+  Result:='https://www.google.com/images/icons/feature/font_api-16.png';
 end;
 
 Class Function TWebfontsAPI.APIIcon32 : String;
 
 begin
-  Result:='http://www.google.com/images/icons/feature/font_api-32.gif';
+  Result:='https://www.google.com/images/icons/feature/font_api-32.gif';
 end;
 
 Class Function TWebfontsAPI.APIdocumentationLink : String;
@@ -529,12 +473,9 @@ end;
 Class Procedure TWebfontsAPI.RegisterAPIResources;
 
 begin
+  TWebfontTypefiles.RegisterObject;
   TWebfont.RegisterObject;
-  TWebfontfiles.RegisterObject;
-  TWebfontsubsets.RegisterObject;
-  TWebfontvariants.RegisterObject;
   TWebfontList.RegisterObject;
-  TWebfontListitems.RegisterObject;
 end;
 
 
@@ -557,7 +498,7 @@ Function TWebfontsAPI.CreateWebfontsResource(AOwner : TComponent) : TWebfontsRes
 
 begin
   Result:=TWebfontsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

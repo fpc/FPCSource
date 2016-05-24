@@ -1,31 +1,4 @@
 unit googledrive;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,147 +7,133 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TAbout = class;
+  
+  //Top-level schema types
+  TAbout = Class;
+  TChange = Class;
+  TChangeList = Class;
+  TChannel = Class;
+  TComment = Class;
+  TCommentList = Class;
+  TFile = Class;
+  TFileList = Class;
+  TGeneratedIds = Class;
+  TPermission = Class;
+  TPermissionList = Class;
+  TReply = Class;
+  TReplyList = Class;
+  TRevision = Class;
+  TRevisionList = Class;
+  TStartPageToken = Class;
+  TUser = Class;
   TAboutArray = Array of TAbout;
-  TAboutadditionalRoleInfo = class;
-  TAboutadditionalRoleInfoArray = Array of TAboutadditionalRoleInfo;
-  TAboutadditionalRoleInforoleSets = class;
-  TAboutadditionalRoleInforoleSetsArray = Array of TAboutadditionalRoleInforoleSets;
-  TAboutadditionalRoleInforoleSetsadditionalRoles = class;
-  TAboutadditionalRoleInforoleSetsadditionalRolesArray = Array of TAboutadditionalRoleInforoleSetsadditionalRoles;
-  TAboutexportFormats = class;
-  TAboutexportFormatsArray = Array of TAboutexportFormats;
-  TAboutexportFormatstargets = class;
-  TAboutexportFormatstargetsArray = Array of TAboutexportFormatstargets;
-  TAboutfeatures = class;
-  TAboutfeaturesArray = Array of TAboutfeatures;
-  TAboutfolderColorPalette = class;
-  TAboutfolderColorPaletteArray = Array of TAboutfolderColorPalette;
-  TAboutimportFormats = class;
-  TAboutimportFormatsArray = Array of TAboutimportFormats;
-  TAboutimportFormatstargets = class;
-  TAboutimportFormatstargetsArray = Array of TAboutimportFormatstargets;
-  TAboutmaxUploadSizes = class;
-  TAboutmaxUploadSizesArray = Array of TAboutmaxUploadSizes;
-  TAboutquotaBytesByService = class;
-  TAboutquotaBytesByServiceArray = Array of TAboutquotaBytesByService;
-  TApp = class;
-  TAppArray = Array of TApp;
-  TAppicons = class;
-  TAppiconsArray = Array of TAppicons;
-  TAppprimaryFileExtensions = class;
-  TAppprimaryFileExtensionsArray = Array of TAppprimaryFileExtensions;
-  TAppprimaryMimeTypes = class;
-  TAppprimaryMimeTypesArray = Array of TAppprimaryMimeTypes;
-  TAppsecondaryFileExtensions = class;
-  TAppsecondaryFileExtensionsArray = Array of TAppsecondaryFileExtensions;
-  TAppsecondaryMimeTypes = class;
-  TAppsecondaryMimeTypesArray = Array of TAppsecondaryMimeTypes;
-  TAppList = class;
-  TAppListArray = Array of TAppList;
-  TAppListdefaultAppIds = class;
-  TAppListdefaultAppIdsArray = Array of TAppListdefaultAppIds;
-  TAppListitems = class;
-  TAppListitemsArray = Array of TAppListitems;
-  TChange = class;
   TChangeArray = Array of TChange;
-  TChangeList = class;
   TChangeListArray = Array of TChangeList;
-  TChangeListitems = class;
-  TChangeListitemsArray = Array of TChangeListitems;
-  TChannel = class;
   TChannelArray = Array of TChannel;
-  TChannelparams = class;
-  TChannelparamsArray = Array of TChannelparams;
-  TChildList = class;
-  TChildListArray = Array of TChildList;
-  TChildListitems = class;
-  TChildListitemsArray = Array of TChildListitems;
-  TChildReference = class;
-  TChildReferenceArray = Array of TChildReference;
-  TComment = class;
   TCommentArray = Array of TComment;
-  TCommentcontext = class;
-  TCommentcontextArray = Array of TCommentcontext;
-  TCommentreplies = class;
-  TCommentrepliesArray = Array of TCommentreplies;
-  TCommentList = class;
   TCommentListArray = Array of TCommentList;
-  TCommentListitems = class;
-  TCommentListitemsArray = Array of TCommentListitems;
-  TCommentReply = class;
-  TCommentReplyArray = Array of TCommentReply;
-  TCommentReplyList = class;
-  TCommentReplyListArray = Array of TCommentReplyList;
-  TCommentReplyListitems = class;
-  TCommentReplyListitemsArray = Array of TCommentReplyListitems;
-  TFile = class;
   TFileArray = Array of TFile;
-  TFileexportLinks = class;
-  TFileexportLinksArray = Array of TFileexportLinks;
-  TFileimageMediaMetadata = class;
-  TFileimageMediaMetadataArray = Array of TFileimageMediaMetadata;
-  TFileimageMediaMetadatalocation = class;
-  TFileimageMediaMetadatalocationArray = Array of TFileimageMediaMetadatalocation;
-  TFileindexableText = class;
-  TFileindexableTextArray = Array of TFileindexableText;
-  TFilelabels = class;
-  TFilelabelsArray = Array of TFilelabels;
-  TFileopenWithLinks = class;
-  TFileopenWithLinksArray = Array of TFileopenWithLinks;
-  TFileownerNames = class;
-  TFileownerNamesArray = Array of TFileownerNames;
-  TFileowners = class;
-  TFileownersArray = Array of TFileowners;
-  TFileparents = class;
-  TFileparentsArray = Array of TFileparents;
-  TFilepermissions = class;
-  TFilepermissionsArray = Array of TFilepermissions;
-  TFileproperties = class;
-  TFilepropertiesArray = Array of TFileproperties;
-  TFilethumbnail = class;
-  TFilethumbnailArray = Array of TFilethumbnail;
-  TFilevideoMediaMetadata = class;
-  TFilevideoMediaMetadataArray = Array of TFilevideoMediaMetadata;
-  TFileList = class;
   TFileListArray = Array of TFileList;
-  TFileListitems = class;
-  TFileListitemsArray = Array of TFileListitems;
-  TParentList = class;
-  TParentListArray = Array of TParentList;
-  TParentListitems = class;
-  TParentListitemsArray = Array of TParentListitems;
-  TParentReference = class;
-  TParentReferenceArray = Array of TParentReference;
-  TPermission = class;
+  TGeneratedIdsArray = Array of TGeneratedIds;
   TPermissionArray = Array of TPermission;
-  TPermissionadditionalRoles = class;
-  TPermissionadditionalRolesArray = Array of TPermissionadditionalRoles;
-  TPermissionId = class;
-  TPermissionIdArray = Array of TPermissionId;
-  TPermissionList = class;
   TPermissionListArray = Array of TPermissionList;
-  TPermissionListitems = class;
-  TPermissionListitemsArray = Array of TPermissionListitems;
-  TProperty = class;
-  TPropertyArray = Array of TProperty;
-  TPropertyList = class;
-  TPropertyListArray = Array of TPropertyList;
-  TPropertyListitems = class;
-  TPropertyListitemsArray = Array of TPropertyListitems;
-  TRevision = class;
+  TReplyArray = Array of TReply;
+  TReplyListArray = Array of TReplyList;
   TRevisionArray = Array of TRevision;
-  TRevisionexportLinks = class;
-  TRevisionexportLinksArray = Array of TRevisionexportLinks;
-  TRevisionList = class;
   TRevisionListArray = Array of TRevisionList;
-  TRevisionListitems = class;
-  TRevisionListitemsArray = Array of TRevisionListitems;
-  TUser = class;
+  TStartPageTokenArray = Array of TStartPageToken;
   TUserArray = Array of TUser;
-  TUserpicture = class;
-  TUserpictureArray = Array of TUserpicture;
+  //Anonymous types, using auto-generated names
+  TAboutTypeexportFormats = Class;
+  TAboutTypeimportFormats = Class;
+  TAboutTypemaxImportSizes = Class;
+  TAboutTypestorageQuota = Class;
+  TChannelTypeparams = Class;
+  TCommentTypequotedFileContent = Class;
+  TFileTypeappProperties = Class;
+  TFileTypecapabilities = Class;
+  TFileTypecontentHintsTypethumbnail = Class;
+  TFileTypecontentHints = Class;
+  TFileTypeimageMediaMetadataTypelocation = Class;
+  TFileTypeimageMediaMetadata = Class;
+  TFileTypeproperties = Class;
+  TFileTypevideoMediaMetadata = Class;
+  TChangeListTypechangesArray = Array of TChange;
+  TCommentTyperepliesArray = Array of TReply;
+  TCommentListTypecommentsArray = Array of TComment;
+  TFileTypeownersArray = Array of TUser;
+  TFileTypepermissionsArray = Array of TPermission;
+  TFileListTypefilesArray = Array of TFile;
+  TPermissionListTypepermissionsArray = Array of TPermission;
+  TReplyListTyperepliesArray = Array of TReply;
+  TRevisionListTyperevisionsArray = Array of TRevision;
+  
+  { --------------------------------------------------------------------
+    TAboutTypeexportFormats
+    --------------------------------------------------------------------}
+  
+  TAboutTypeexportFormats = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TAboutTypeexportFormatsClass = Class of TAboutTypeexportFormats;
+  
+  { --------------------------------------------------------------------
+    TAboutTypeimportFormats
+    --------------------------------------------------------------------}
+  
+  TAboutTypeimportFormats = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TAboutTypeimportFormatsClass = Class of TAboutTypeimportFormats;
+  
+  { --------------------------------------------------------------------
+    TAboutTypemaxImportSizes
+    --------------------------------------------------------------------}
+  
+  TAboutTypemaxImportSizes = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TAboutTypemaxImportSizesClass = Class of TAboutTypemaxImportSizes;
+  
+  { --------------------------------------------------------------------
+    TAboutTypestorageQuota
+    --------------------------------------------------------------------}
+  
+  TAboutTypestorageQuota = Class(TGoogleBaseObject)
+  Private
+    Flimit : String;
+    Fusage : String;
+    FusageInDrive : String;
+    FusageInDriveTrash : String;
+  Protected
+    //Property setters
+    Procedure Setlimit(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setusage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetusageInDrive(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetusageInDriveTrash(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property limit : String Index 0 Read Flimit Write Setlimit;
+    Property usage : String Index 8 Read Fusage Write Setusage;
+    Property usageInDrive : String Index 16 Read FusageInDrive Write SetusageInDrive;
+    Property usageInDriveTrash : String Index 24 Read FusageInDriveTrash Write SetusageInDriveTrash;
+  end;
+  TAboutTypestorageQuotaClass = Class of TAboutTypestorageQuota;
   
   { --------------------------------------------------------------------
     TAbout
@@ -182,484 +141,43 @@ type
   
   TAbout = Class(TGoogleBaseObject)
   Private
-    FadditionalRoleInfo : TAboutadditionalRoleInfo;
-    FdomainSharingPolicy : string;
-    Fetag : string;
-    FexportFormats : TAboutexportFormats;
-    Ffeatures : TAboutfeatures;
-    FfolderColorPalette : TAboutfolderColorPalette;
-    FimportFormats : TAboutimportFormats;
-    FisCurrentAppInstalled : boolean;
-    Fkind : string;
-    FlanguageCode : string;
-    FlargestChangeId : string;
-    FmaxUploadSizes : TAboutmaxUploadSizes;
-    Fname : string;
-    FpermissionId : string;
-    FquotaBytesByService : TAboutquotaBytesByService;
-    FquotaBytesTotal : string;
-    FquotaBytesUsed : string;
-    FquotaBytesUsedAggregate : string;
-    FquotaBytesUsedInTrash : string;
-    FquotaType : string;
-    FremainingChangeIds : string;
-    FrootFolderId : string;
-    FselfLink : string;
+    FappInstalled : boolean;
+    FexportFormats : TAboutTypeexportFormats;
+    FfolderColorPalette : TStringArray;
+    FimportFormats : TAboutTypeimportFormats;
+    Fkind : String;
+    FmaxImportSizes : TAboutTypemaxImportSizes;
+    FmaxUploadSize : String;
+    FstorageQuota : TAboutTypestorageQuota;
     Fuser : TUser;
   Protected
     //Property setters
-    Procedure SetadditionalRoleInfo(AIndex : Integer; AValue : TAboutadditionalRoleInfo); virtual;
-    Procedure SetdomainSharingPolicy(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexportFormats(AIndex : Integer; AValue : TAboutexportFormats); virtual;
-    Procedure Setfeatures(AIndex : Integer; AValue : TAboutfeatures); virtual;
-    Procedure SetfolderColorPalette(AIndex : Integer; AValue : TAboutfolderColorPalette); virtual;
-    Procedure SetimportFormats(AIndex : Integer; AValue : TAboutimportFormats); virtual;
-    Procedure SetisCurrentAppInstalled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlanguageCode(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlargestChangeId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmaxUploadSizes(AIndex : Integer; AValue : TAboutmaxUploadSizes); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpermissionId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetquotaBytesByService(AIndex : Integer; AValue : TAboutquotaBytesByService); virtual;
-    Procedure SetquotaBytesTotal(AIndex : Integer; AValue : string); virtual;
-    Procedure SetquotaBytesUsed(AIndex : Integer; AValue : string); virtual;
-    Procedure SetquotaBytesUsedAggregate(AIndex : Integer; AValue : string); virtual;
-    Procedure SetquotaBytesUsedInTrash(AIndex : Integer; AValue : string); virtual;
-    Procedure SetquotaType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetremainingChangeIds(AIndex : Integer; AValue : string); virtual;
-    Procedure SetrootFolderId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : TUser); virtual;
+    Procedure SetappInstalled(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetexportFormats(AIndex : Integer; const AValue : TAboutTypeexportFormats); virtual;
+    Procedure SetfolderColorPalette(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetimportFormats(AIndex : Integer; const AValue : TAboutTypeimportFormats); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmaxImportSizes(AIndex : Integer; const AValue : TAboutTypemaxImportSizes); virtual;
+    Procedure SetmaxUploadSize(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstorageQuota(AIndex : Integer; const AValue : TAboutTypestorageQuota); virtual;
+    Procedure Setuser(AIndex : Integer; const AValue : TUser); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property additionalRoleInfo : TAboutadditionalRoleInfo Index 0 Read FadditionalRoleInfo Write SetadditionalRoleInfo;
-    Property domainSharingPolicy : string Index 8 Read FdomainSharingPolicy Write SetdomainSharingPolicy;
-    Property etag : string Index 16 Read Fetag Write Setetag;
-    Property exportFormats : TAboutexportFormats Index 24 Read FexportFormats Write SetexportFormats;
-    Property features : TAboutfeatures Index 32 Read Ffeatures Write Setfeatures;
-    Property folderColorPalette : TAboutfolderColorPalette Index 40 Read FfolderColorPalette Write SetfolderColorPalette;
-    Property importFormats : TAboutimportFormats Index 48 Read FimportFormats Write SetimportFormats;
-    Property isCurrentAppInstalled : boolean Index 56 Read FisCurrentAppInstalled Write SetisCurrentAppInstalled;
-    Property kind : string Index 64 Read Fkind Write Setkind;
-    Property languageCode : string Index 72 Read FlanguageCode Write SetlanguageCode;
-    Property largestChangeId : string Index 80 Read FlargestChangeId Write SetlargestChangeId;
-    Property maxUploadSizes : TAboutmaxUploadSizes Index 88 Read FmaxUploadSizes Write SetmaxUploadSizes;
-    Property name : string Index 96 Read Fname Write Setname;
-    Property permissionId : string Index 104 Read FpermissionId Write SetpermissionId;
-    Property quotaBytesByService : TAboutquotaBytesByService Index 112 Read FquotaBytesByService Write SetquotaBytesByService;
-    Property quotaBytesTotal : string Index 120 Read FquotaBytesTotal Write SetquotaBytesTotal;
-    Property quotaBytesUsed : string Index 128 Read FquotaBytesUsed Write SetquotaBytesUsed;
-    Property quotaBytesUsedAggregate : string Index 136 Read FquotaBytesUsedAggregate Write SetquotaBytesUsedAggregate;
-    Property quotaBytesUsedInTrash : string Index 144 Read FquotaBytesUsedInTrash Write SetquotaBytesUsedInTrash;
-    Property quotaType : string Index 152 Read FquotaType Write SetquotaType;
-    Property remainingChangeIds : string Index 160 Read FremainingChangeIds Write SetremainingChangeIds;
-    Property rootFolderId : string Index 168 Read FrootFolderId Write SetrootFolderId;
-    Property selfLink : string Index 176 Read FselfLink Write SetselfLink;
-    Property user : TUser Index 184 Read Fuser Write Setuser;
+    Property appInstalled : boolean Index 0 Read FappInstalled Write SetappInstalled;
+    Property exportFormats : TAboutTypeexportFormats Index 8 Read FexportFormats Write SetexportFormats;
+    Property folderColorPalette : TStringArray Index 16 Read FfolderColorPalette Write SetfolderColorPalette;
+    Property importFormats : TAboutTypeimportFormats Index 24 Read FimportFormats Write SetimportFormats;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property maxImportSizes : TAboutTypemaxImportSizes Index 40 Read FmaxImportSizes Write SetmaxImportSizes;
+    Property maxUploadSize : String Index 48 Read FmaxUploadSize Write SetmaxUploadSize;
+    Property storageQuota : TAboutTypestorageQuota Index 56 Read FstorageQuota Write SetstorageQuota;
+    Property user : TUser Index 64 Read Fuser Write Setuser;
   end;
   TAboutClass = Class of TAbout;
-  
-  { --------------------------------------------------------------------
-    TAboutadditionalRoleInfo
-    --------------------------------------------------------------------}
-  
-  TAboutadditionalRoleInfo = Class(TGoogleBaseObject)
-  Private
-    FroleSets : TAboutadditionalRoleInforoleSets;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure SetroleSets(AIndex : Integer; AValue : TAboutadditionalRoleInforoleSets); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property roleSets : TAboutadditionalRoleInforoleSets Index 0 Read FroleSets Write SetroleSets;
-    Property _type : string Index 8 Read F_type Write Set_type;
-  end;
-  TAboutadditionalRoleInfoClass = Class of TAboutadditionalRoleInfo;
-  
-  { --------------------------------------------------------------------
-    TAboutadditionalRoleInforoleSets
-    --------------------------------------------------------------------}
-  
-  TAboutadditionalRoleInforoleSets = Class(TGoogleBaseObject)
-  Private
-    FadditionalRoles : TAboutadditionalRoleInforoleSetsadditionalRoles;
-    FprimaryRole : string;
-  Protected
-    //Property setters
-    Procedure SetadditionalRoles(AIndex : Integer; AValue : TAboutadditionalRoleInforoleSetsadditionalRoles); virtual;
-    Procedure SetprimaryRole(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property additionalRoles : TAboutadditionalRoleInforoleSetsadditionalRoles Index 0 Read FadditionalRoles Write SetadditionalRoles;
-    Property primaryRole : string Index 8 Read FprimaryRole Write SetprimaryRole;
-  end;
-  TAboutadditionalRoleInforoleSetsClass = Class of TAboutadditionalRoleInforoleSets;
-  
-  { --------------------------------------------------------------------
-    TAboutadditionalRoleInforoleSetsadditionalRoles
-    --------------------------------------------------------------------}
-  
-  TAboutadditionalRoleInforoleSetsadditionalRoles = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAboutadditionalRoleInforoleSetsadditionalRolesClass = Class of TAboutadditionalRoleInforoleSetsadditionalRoles;
-  
-  { --------------------------------------------------------------------
-    TAboutexportFormats
-    --------------------------------------------------------------------}
-  
-  TAboutexportFormats = Class(TGoogleBaseObject)
-  Private
-    Fsource : string;
-    Ftargets : TAboutexportFormatstargets;
-  Protected
-    //Property setters
-    Procedure Setsource(AIndex : Integer; AValue : string); virtual;
-    Procedure Settargets(AIndex : Integer; AValue : TAboutexportFormatstargets); virtual;
-  Public
-  Published
-    Property source : string Index 0 Read Fsource Write Setsource;
-    Property targets : TAboutexportFormatstargets Index 8 Read Ftargets Write Settargets;
-  end;
-  TAboutexportFormatsClass = Class of TAboutexportFormats;
-  
-  { --------------------------------------------------------------------
-    TAboutexportFormatstargets
-    --------------------------------------------------------------------}
-  
-  TAboutexportFormatstargets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAboutexportFormatstargetsClass = Class of TAboutexportFormatstargets;
-  
-  { --------------------------------------------------------------------
-    TAboutfeatures
-    --------------------------------------------------------------------}
-  
-  TAboutfeatures = Class(TGoogleBaseObject)
-  Private
-    FfeatureName : string;
-    FfeatureRate : double;
-  Protected
-    //Property setters
-    Procedure SetfeatureName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfeatureRate(AIndex : Integer; AValue : double); virtual;
-  Public
-  Published
-    Property featureName : string Index 0 Read FfeatureName Write SetfeatureName;
-    Property featureRate : double Index 8 Read FfeatureRate Write SetfeatureRate;
-  end;
-  TAboutfeaturesClass = Class of TAboutfeatures;
-  
-  { --------------------------------------------------------------------
-    TAboutfolderColorPalette
-    --------------------------------------------------------------------}
-  
-  TAboutfolderColorPalette = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAboutfolderColorPaletteClass = Class of TAboutfolderColorPalette;
-  
-  { --------------------------------------------------------------------
-    TAboutimportFormats
-    --------------------------------------------------------------------}
-  
-  TAboutimportFormats = Class(TGoogleBaseObject)
-  Private
-    Fsource : string;
-    Ftargets : TAboutimportFormatstargets;
-  Protected
-    //Property setters
-    Procedure Setsource(AIndex : Integer; AValue : string); virtual;
-    Procedure Settargets(AIndex : Integer; AValue : TAboutimportFormatstargets); virtual;
-  Public
-  Published
-    Property source : string Index 0 Read Fsource Write Setsource;
-    Property targets : TAboutimportFormatstargets Index 8 Read Ftargets Write Settargets;
-  end;
-  TAboutimportFormatsClass = Class of TAboutimportFormats;
-  
-  { --------------------------------------------------------------------
-    TAboutimportFormatstargets
-    --------------------------------------------------------------------}
-  
-  TAboutimportFormatstargets = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAboutimportFormatstargetsClass = Class of TAboutimportFormatstargets;
-  
-  { --------------------------------------------------------------------
-    TAboutmaxUploadSizes
-    --------------------------------------------------------------------}
-  
-  TAboutmaxUploadSizes = Class(TGoogleBaseObject)
-  Private
-    Fsize : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setsize(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property size : string Index 0 Read Fsize Write Setsize;
-    Property _type : string Index 8 Read F_type Write Set_type;
-  end;
-  TAboutmaxUploadSizesClass = Class of TAboutmaxUploadSizes;
-  
-  { --------------------------------------------------------------------
-    TAboutquotaBytesByService
-    --------------------------------------------------------------------}
-  
-  TAboutquotaBytesByService = Class(TGoogleBaseObject)
-  Private
-    FbytesUsed : string;
-    FserviceName : string;
-  Protected
-    //Property setters
-    Procedure SetbytesUsed(AIndex : Integer; AValue : string); virtual;
-    Procedure SetserviceName(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property bytesUsed : string Index 0 Read FbytesUsed Write SetbytesUsed;
-    Property serviceName : string Index 8 Read FserviceName Write SetserviceName;
-  end;
-  TAboutquotaBytesByServiceClass = Class of TAboutquotaBytesByService;
-  
-  { --------------------------------------------------------------------
-    TApp
-    --------------------------------------------------------------------}
-  
-  TApp = Class(TGoogleBaseObject)
-  Private
-    Fauthorized : boolean;
-    FcreateInFolderTemplate : string;
-    FcreateUrl : string;
-    FhasDriveWideScope : boolean;
-    Ficons : TAppicons;
-    Fid : string;
-    Finstalled : boolean;
-    Fkind : string;
-    FlongDescription : string;
-    Fname : string;
-    FobjectType : string;
-    FopenUrlTemplate : string;
-    FprimaryFileExtensions : TAppprimaryFileExtensions;
-    FprimaryMimeTypes : TAppprimaryMimeTypes;
-    FproductId : string;
-    FproductUrl : string;
-    FsecondaryFileExtensions : TAppsecondaryFileExtensions;
-    FsecondaryMimeTypes : TAppsecondaryMimeTypes;
-    FshortDescription : string;
-    FsupportsCreate : boolean;
-    FsupportsImport : boolean;
-    FsupportsMultiOpen : boolean;
-    FsupportsOfflineCreate : boolean;
-    FuseByDefault : boolean;
-  Protected
-    //Property setters
-    Procedure Setauthorized(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetcreateInFolderTemplate(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreateUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SethasDriveWideScope(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Seticons(AIndex : Integer; AValue : TAppicons); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setinstalled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlongDescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetobjectType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetopenUrlTemplate(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprimaryFileExtensions(AIndex : Integer; AValue : TAppprimaryFileExtensions); virtual;
-    Procedure SetprimaryMimeTypes(AIndex : Integer; AValue : TAppprimaryMimeTypes); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetproductUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsecondaryFileExtensions(AIndex : Integer; AValue : TAppsecondaryFileExtensions); virtual;
-    Procedure SetsecondaryMimeTypes(AIndex : Integer; AValue : TAppsecondaryMimeTypes); virtual;
-    Procedure SetshortDescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsupportsCreate(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsupportsImport(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsupportsMultiOpen(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsupportsOfflineCreate(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetuseByDefault(AIndex : Integer; AValue : boolean); virtual;
-  Public
-  Published
-    Property authorized : boolean Index 0 Read Fauthorized Write Setauthorized;
-    Property createInFolderTemplate : string Index 8 Read FcreateInFolderTemplate Write SetcreateInFolderTemplate;
-    Property createUrl : string Index 16 Read FcreateUrl Write SetcreateUrl;
-    Property hasDriveWideScope : boolean Index 24 Read FhasDriveWideScope Write SethasDriveWideScope;
-    Property icons : TAppicons Index 32 Read Ficons Write Seticons;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property installed : boolean Index 48 Read Finstalled Write Setinstalled;
-    Property kind : string Index 56 Read Fkind Write Setkind;
-    Property longDescription : string Index 64 Read FlongDescription Write SetlongDescription;
-    Property name : string Index 72 Read Fname Write Setname;
-    Property objectType : string Index 80 Read FobjectType Write SetobjectType;
-    Property openUrlTemplate : string Index 88 Read FopenUrlTemplate Write SetopenUrlTemplate;
-    Property primaryFileExtensions : TAppprimaryFileExtensions Index 96 Read FprimaryFileExtensions Write SetprimaryFileExtensions;
-    Property primaryMimeTypes : TAppprimaryMimeTypes Index 104 Read FprimaryMimeTypes Write SetprimaryMimeTypes;
-    Property productId : string Index 112 Read FproductId Write SetproductId;
-    Property productUrl : string Index 120 Read FproductUrl Write SetproductUrl;
-    Property secondaryFileExtensions : TAppsecondaryFileExtensions Index 128 Read FsecondaryFileExtensions Write SetsecondaryFileExtensions;
-    Property secondaryMimeTypes : TAppsecondaryMimeTypes Index 136 Read FsecondaryMimeTypes Write SetsecondaryMimeTypes;
-    Property shortDescription : string Index 144 Read FshortDescription Write SetshortDescription;
-    Property supportsCreate : boolean Index 152 Read FsupportsCreate Write SetsupportsCreate;
-    Property supportsImport : boolean Index 160 Read FsupportsImport Write SetsupportsImport;
-    Property supportsMultiOpen : boolean Index 168 Read FsupportsMultiOpen Write SetsupportsMultiOpen;
-    Property supportsOfflineCreate : boolean Index 176 Read FsupportsOfflineCreate Write SetsupportsOfflineCreate;
-    Property useByDefault : boolean Index 184 Read FuseByDefault Write SetuseByDefault;
-  end;
-  TAppClass = Class of TApp;
-  
-  { --------------------------------------------------------------------
-    TAppicons
-    --------------------------------------------------------------------}
-  
-  TAppicons = Class(TGoogleBaseObject)
-  Private
-    Fcategory : string;
-    FiconUrl : string;
-    Fsize : integer;
-  Protected
-    //Property setters
-    Procedure Setcategory(AIndex : Integer; AValue : string); virtual;
-    Procedure SeticonUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsize(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property category : string Index 0 Read Fcategory Write Setcategory;
-    Property iconUrl : string Index 8 Read FiconUrl Write SeticonUrl;
-    Property size : integer Index 16 Read Fsize Write Setsize;
-  end;
-  TAppiconsClass = Class of TAppicons;
-  
-  { --------------------------------------------------------------------
-    TAppprimaryFileExtensions
-    --------------------------------------------------------------------}
-  
-  TAppprimaryFileExtensions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAppprimaryFileExtensionsClass = Class of TAppprimaryFileExtensions;
-  
-  { --------------------------------------------------------------------
-    TAppprimaryMimeTypes
-    --------------------------------------------------------------------}
-  
-  TAppprimaryMimeTypes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAppprimaryMimeTypesClass = Class of TAppprimaryMimeTypes;
-  
-  { --------------------------------------------------------------------
-    TAppsecondaryFileExtensions
-    --------------------------------------------------------------------}
-  
-  TAppsecondaryFileExtensions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAppsecondaryFileExtensionsClass = Class of TAppsecondaryFileExtensions;
-  
-  { --------------------------------------------------------------------
-    TAppsecondaryMimeTypes
-    --------------------------------------------------------------------}
-  
-  TAppsecondaryMimeTypes = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAppsecondaryMimeTypesClass = Class of TAppsecondaryMimeTypes;
-  
-  { --------------------------------------------------------------------
-    TAppList
-    --------------------------------------------------------------------}
-  
-  TAppList = Class(TGoogleBaseObject)
-  Private
-    FdefaultAppIds : TAppListdefaultAppIds;
-    Fetag : string;
-    Fitems : TAppListitems;
-    Fkind : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure SetdefaultAppIds(AIndex : Integer; AValue : TAppListdefaultAppIds); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAppListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property defaultAppIds : TAppListdefaultAppIds Index 0 Read FdefaultAppIds Write SetdefaultAppIds;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property items : TAppListitems Index 16 Read Fitems Write Setitems;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-  end;
-  TAppListClass = Class of TAppList;
-  
-  { --------------------------------------------------------------------
-    TAppListdefaultAppIds
-    --------------------------------------------------------------------}
-  
-  TAppListdefaultAppIds = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAppListdefaultAppIdsClass = Class of TAppListdefaultAppIds;
-  
-  { --------------------------------------------------------------------
-    TAppListitems
-    --------------------------------------------------------------------}
-  
-  TAppListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAppListitemsClass = Class of TAppListitems;
   
   { --------------------------------------------------------------------
     TChange
@@ -667,32 +185,26 @@ type
   
   TChange = Class(TGoogleBaseObject)
   Private
-    Fdeleted : boolean;
     F_file : TFile;
-    FfileId : string;
-    Fid : string;
-    Fkind : string;
-    FmodificationDate : TDatetime;
-    FselfLink : string;
+    FfileId : String;
+    Fkind : String;
+    Fremoved : boolean;
+    Ftime : TDatetime;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Set_file(AIndex : Integer; AValue : TFile); virtual;
-    Procedure SetfileId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmodificationDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Set_file(AIndex : Integer; const AValue : TFile); virtual;
+    Procedure SetfileId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setremoved(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Settime(AIndex : Integer; const AValue : TDatetime); virtual;
   Public
   Published
-    Property deleted : boolean Index 0 Read Fdeleted Write Setdeleted;
-    Property _file : TFile Index 8 Read F_file Write Set_file;
-    Property fileId : string Index 16 Read FfileId Write SetfileId;
-    Property id : string Index 24 Read Fid Write Setid;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property modificationDate : TDatetime Index 40 Read FmodificationDate Write SetmodificationDate;
-    Property selfLink : string Index 48 Read FselfLink Write SetselfLink;
+    Property _file : TFile Index 0 Read F_file Write Set_file;
+    Property fileId : String Index 8 Read FfileId Write SetfileId;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property removed : boolean Index 24 Read Fremoved Write Setremoved;
+    Property time : TDatetime Index 32 Read Ftime Write Settime;
   end;
   TChangeClass = Class of TChange;
   
@@ -702,46 +214,42 @@ type
   
   TChangeList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TChangeListitems;
-    Fkind : string;
-    FlargestChangeId : string;
-    FnextLink : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fchanges : TChangeListTypechangesArray;
+    Fkind : String;
+    FnewStartPageToken : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TChangeListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlargestChangeId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setchanges(AIndex : Integer; const AValue : TChangeListTypechangesArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnewStartPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TChangeListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property largestChangeId : string Index 24 Read FlargestChangeId Write SetlargestChangeId;
-    Property nextLink : string Index 32 Read FnextLink Write SetnextLink;
-    Property nextPageToken : string Index 40 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 48 Read FselfLink Write SetselfLink;
+    Property changes : TChangeListTypechangesArray Index 0 Read Fchanges Write Setchanges;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property newStartPageToken : String Index 16 Read FnewStartPageToken Write SetnewStartPageToken;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TChangeListClass = Class of TChangeList;
   
   { --------------------------------------------------------------------
-    TChangeListitems
+    TChannelTypeparams
     --------------------------------------------------------------------}
   
-  TChangeListitems = Class(TGoogleBaseObject)
+  TChannelTypeparams = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TChangeListitemsClass = Class of TChangeListitems;
+  TChannelTypeparamsClass = Class of TChannelTypeparams;
   
   { --------------------------------------------------------------------
     TChannel
@@ -749,126 +257,62 @@ type
   
   TChannel = Class(TGoogleBaseObject)
   Private
-    Faddress : string;
-    Fexpiration : string;
-    Fid : string;
-    Fkind : string;
-    Fparams : TChannelparams;
+    Faddress : String;
+    Fexpiration : String;
+    Fid : String;
+    Fkind : String;
+    Fparams : TChannelTypeparams;
     Fpayload : boolean;
-    FresourceId : string;
-    FresourceUri : string;
-    Ftoken : string;
-    F_type : string;
+    FresourceId : String;
+    FresourceUri : String;
+    Ftoken : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setaddress(AIndex : Integer; AValue : string); virtual;
-    Procedure Setexpiration(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setparams(AIndex : Integer; AValue : TChannelparams); virtual;
-    Procedure Setpayload(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetresourceId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetresourceUri(AIndex : Integer; AValue : string); virtual;
-    Procedure Settoken(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setaddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setexpiration(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setparams(AIndex : Integer; const AValue : TChannelTypeparams); virtual;
+    Procedure Setpayload(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetresourceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetresourceUri(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property address : string Index 0 Read Faddress Write Setaddress;
-    Property expiration : string Index 8 Read Fexpiration Write Setexpiration;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property params : TChannelparams Index 32 Read Fparams Write Setparams;
+    Property address : String Index 0 Read Faddress Write Setaddress;
+    Property expiration : String Index 8 Read Fexpiration Write Setexpiration;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property kind : String Index 24 Read Fkind Write Setkind;
+    Property params : TChannelTypeparams Index 32 Read Fparams Write Setparams;
     Property payload : boolean Index 40 Read Fpayload Write Setpayload;
-    Property resourceId : string Index 48 Read FresourceId Write SetresourceId;
-    Property resourceUri : string Index 56 Read FresourceUri Write SetresourceUri;
-    Property token : string Index 64 Read Ftoken Write Settoken;
-    Property _type : string Index 72 Read F_type Write Set_type;
+    Property resourceId : String Index 48 Read FresourceId Write SetresourceId;
+    Property resourceUri : String Index 56 Read FresourceUri Write SetresourceUri;
+    Property token : String Index 64 Read Ftoken Write Settoken;
+    Property _type : String Index 72 Read F_type Write Set_type;
   end;
   TChannelClass = Class of TChannel;
   
   { --------------------------------------------------------------------
-    TChannelparams
+    TCommentTypequotedFileContent
     --------------------------------------------------------------------}
   
-  TChannelparams = Class(TGoogleBaseObject)
+  TCommentTypequotedFileContent = Class(TGoogleBaseObject)
   Private
+    FmimeType : String;
+    Fvalue : String;
   Protected
     //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TChannelparamsClass = Class of TChannelparams;
-  
-  { --------------------------------------------------------------------
-    TChildList
-    --------------------------------------------------------------------}
-  
-  TChildList = Class(TGoogleBaseObject)
-  Private
-    Fetag : string;
-    Fitems : TChildListitems;
-    Fkind : string;
-    FnextLink : string;
-    FnextPageToken : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TChildListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure SetmimeType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TChildListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextLink : string Index 24 Read FnextLink Write SetnextLink;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 40 Read FselfLink Write SetselfLink;
+    Property mimeType : String Index 0 Read FmimeType Write SetmimeType;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
-  TChildListClass = Class of TChildList;
-  
-  { --------------------------------------------------------------------
-    TChildListitems
-    --------------------------------------------------------------------}
-  
-  TChildListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TChildListitemsClass = Class of TChildListitems;
-  
-  { --------------------------------------------------------------------
-    TChildReference
-    --------------------------------------------------------------------}
-  
-  TChildReference = Class(TGoogleBaseObject)
-  Private
-    FchildLink : string;
-    Fid : string;
-    Fkind : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure SetchildLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property childLink : string Index 0 Read FchildLink Write SetchildLink;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
-  end;
-  TChildReferenceClass = Class of TChildReference;
+  TCommentTypequotedFileContentClass = Class of TCommentTypequotedFileContent;
   
   { --------------------------------------------------------------------
     TComment
@@ -876,90 +320,52 @@ type
   
   TComment = Class(TGoogleBaseObject)
   Private
-    Fanchor : string;
+    Fanchor : String;
     Fauthor : TUser;
-    FcommentId : string;
-    Fcontent : string;
-    Fcontext : TCommentcontext;
-    FcreatedDate : TDatetime;
+    Fcontent : String;
+    FcreatedTime : TDatetime;
     Fdeleted : boolean;
-    FfileId : string;
-    FfileTitle : string;
-    FhtmlContent : string;
-    Fkind : string;
-    FmodifiedDate : TDatetime;
-    Freplies : TCommentreplies;
-    FselfLink : string;
-    Fstatus : string;
+    FhtmlContent : String;
+    Fid : String;
+    Fkind : String;
+    FmodifiedTime : TDatetime;
+    FquotedFileContent : TCommentTypequotedFileContent;
+    Freplies : TCommentTyperepliesArray;
+    Fresolved : boolean;
   Protected
     //Property setters
-    Procedure Setanchor(AIndex : Integer; AValue : string); virtual;
-    Procedure Setauthor(AIndex : Integer; AValue : TUser); virtual;
-    Procedure SetcommentId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcontent(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcontext(AIndex : Integer; AValue : TCommentcontext); virtual;
-    Procedure SetcreatedDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetfileId(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfileTitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SethtmlContent(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmodifiedDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setreplies(AIndex : Integer; AValue : TCommentreplies); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : string); virtual;
+    Procedure Setanchor(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setauthor(AIndex : Integer; const AValue : TUser); virtual;
+    Procedure Setcontent(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreatedTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setdeleted(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SethtmlContent(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmodifiedTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetquotedFileContent(AIndex : Integer; const AValue : TCommentTypequotedFileContent); virtual;
+    Procedure Setreplies(AIndex : Integer; const AValue : TCommentTyperepliesArray); virtual;
+    Procedure Setresolved(AIndex : Integer; const AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property anchor : string Index 0 Read Fanchor Write Setanchor;
+    Property anchor : String Index 0 Read Fanchor Write Setanchor;
     Property author : TUser Index 8 Read Fauthor Write Setauthor;
-    Property commentId : string Index 16 Read FcommentId Write SetcommentId;
-    Property content : string Index 24 Read Fcontent Write Setcontent;
-    Property context : TCommentcontext Index 32 Read Fcontext Write Setcontext;
-    Property createdDate : TDatetime Index 40 Read FcreatedDate Write SetcreatedDate;
-    Property deleted : boolean Index 48 Read Fdeleted Write Setdeleted;
-    Property fileId : string Index 56 Read FfileId Write SetfileId;
-    Property fileTitle : string Index 64 Read FfileTitle Write SetfileTitle;
-    Property htmlContent : string Index 72 Read FhtmlContent Write SethtmlContent;
-    Property kind : string Index 80 Read Fkind Write Setkind;
-    Property modifiedDate : TDatetime Index 88 Read FmodifiedDate Write SetmodifiedDate;
-    Property replies : TCommentreplies Index 96 Read Freplies Write Setreplies;
-    Property selfLink : string Index 104 Read FselfLink Write SetselfLink;
-    Property status : string Index 112 Read Fstatus Write Setstatus;
+    Property content : String Index 16 Read Fcontent Write Setcontent;
+    Property createdTime : TDatetime Index 24 Read FcreatedTime Write SetcreatedTime;
+    Property deleted : boolean Index 32 Read Fdeleted Write Setdeleted;
+    Property htmlContent : String Index 40 Read FhtmlContent Write SethtmlContent;
+    Property id : String Index 48 Read Fid Write Setid;
+    Property kind : String Index 56 Read Fkind Write Setkind;
+    Property modifiedTime : TDatetime Index 64 Read FmodifiedTime Write SetmodifiedTime;
+    Property quotedFileContent : TCommentTypequotedFileContent Index 72 Read FquotedFileContent Write SetquotedFileContent;
+    Property replies : TCommentTyperepliesArray Index 80 Read Freplies Write Setreplies;
+    Property resolved : boolean Index 88 Read Fresolved Write Setresolved;
   end;
   TCommentClass = Class of TComment;
-  
-  { --------------------------------------------------------------------
-    TCommentcontext
-    --------------------------------------------------------------------}
-  
-  TCommentcontext = Class(TGoogleBaseObject)
-  Private
-    F_type : string;
-    Fvalue : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property _type : string Index 0 Read F_type Write Set_type;
-    Property value : string Index 8 Read Fvalue Write Setvalue;
-  end;
-  TCommentcontextClass = Class of TCommentcontext;
-  
-  { --------------------------------------------------------------------
-    TCommentreplies
-    --------------------------------------------------------------------}
-  
-  TCommentreplies = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCommentrepliesClass = Class of TCommentreplies;
   
   { --------------------------------------------------------------------
     TCommentList
@@ -967,121 +373,239 @@ type
   
   TCommentList = Class(TGoogleBaseObject)
   Private
-    Fitems : TCommentListitems;
-    Fkind : string;
-    FnextLink : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fcomments : TCommentListTypecommentsArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TCommentListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcomments(AIndex : Integer; const AValue : TCommentListTypecommentsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property items : TCommentListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextLink : string Index 16 Read FnextLink Write SetnextLink;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property comments : TCommentListTypecommentsArray Index 0 Read Fcomments Write Setcomments;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TCommentListClass = Class of TCommentList;
   
   { --------------------------------------------------------------------
-    TCommentListitems
+    TFileTypeappProperties
     --------------------------------------------------------------------}
   
-  TCommentListitems = Class(TGoogleBaseObject)
+  TFileTypeappProperties = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TCommentListitemsClass = Class of TCommentListitems;
+  TFileTypeappPropertiesClass = Class of TFileTypeappProperties;
   
   { --------------------------------------------------------------------
-    TCommentReply
+    TFileTypecapabilities
     --------------------------------------------------------------------}
   
-  TCommentReply = Class(TGoogleBaseObject)
+  TFileTypecapabilities = Class(TGoogleBaseObject)
   Private
-    Fauthor : TUser;
-    Fcontent : string;
-    FcreatedDate : TDatetime;
-    Fdeleted : boolean;
-    FhtmlContent : string;
-    Fkind : string;
-    FmodifiedDate : TDatetime;
-    FreplyId : string;
-    Fverb : string;
+    FcanComment : boolean;
+    FcanCopy : boolean;
+    FcanEdit : boolean;
+    FcanReadRevisions : boolean;
+    FcanShare : boolean;
   Protected
     //Property setters
-    Procedure Setauthor(AIndex : Integer; AValue : TUser); virtual;
-    Procedure Setcontent(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcreatedDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SethtmlContent(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmodifiedDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetreplyId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setverb(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcanComment(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetcanCopy(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetcanEdit(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetcanReadRevisions(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetcanShare(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
-    Property author : TUser Index 0 Read Fauthor Write Setauthor;
-    Property content : string Index 8 Read Fcontent Write Setcontent;
-    Property createdDate : TDatetime Index 16 Read FcreatedDate Write SetcreatedDate;
-    Property deleted : boolean Index 24 Read Fdeleted Write Setdeleted;
-    Property htmlContent : string Index 32 Read FhtmlContent Write SethtmlContent;
-    Property kind : string Index 40 Read Fkind Write Setkind;
-    Property modifiedDate : TDatetime Index 48 Read FmodifiedDate Write SetmodifiedDate;
-    Property replyId : string Index 56 Read FreplyId Write SetreplyId;
-    Property verb : string Index 64 Read Fverb Write Setverb;
+    Property canComment : boolean Index 0 Read FcanComment Write SetcanComment;
+    Property canCopy : boolean Index 8 Read FcanCopy Write SetcanCopy;
+    Property canEdit : boolean Index 16 Read FcanEdit Write SetcanEdit;
+    Property canReadRevisions : boolean Index 24 Read FcanReadRevisions Write SetcanReadRevisions;
+    Property canShare : boolean Index 32 Read FcanShare Write SetcanShare;
   end;
-  TCommentReplyClass = Class of TCommentReply;
+  TFileTypecapabilitiesClass = Class of TFileTypecapabilities;
   
   { --------------------------------------------------------------------
-    TCommentReplyList
+    TFileTypecontentHintsTypethumbnail
     --------------------------------------------------------------------}
   
-  TCommentReplyList = Class(TGoogleBaseObject)
+  TFileTypecontentHintsTypethumbnail = Class(TGoogleBaseObject)
   Private
-    Fitems : TCommentReplyListitems;
-    Fkind : string;
-    FnextLink : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Fimage : String;
+    FmimeType : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TCommentReplyListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setimage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmimeType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property items : TCommentReplyListitems Index 0 Read Fitems Write Setitems;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-    Property nextLink : string Index 16 Read FnextLink Write SetnextLink;
-    Property nextPageToken : string Index 24 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
+    Property image : String Index 0 Read Fimage Write Setimage;
+    Property mimeType : String Index 8 Read FmimeType Write SetmimeType;
   end;
-  TCommentReplyListClass = Class of TCommentReplyList;
+  TFileTypecontentHintsTypethumbnailClass = Class of TFileTypecontentHintsTypethumbnail;
   
   { --------------------------------------------------------------------
-    TCommentReplyListitems
+    TFileTypecontentHints
     --------------------------------------------------------------------}
   
-  TCommentReplyListitems = Class(TGoogleBaseObject)
+  TFileTypecontentHints = Class(TGoogleBaseObject)
+  Private
+    FindexableText : String;
+    Fthumbnail : TFileTypecontentHintsTypethumbnail;
+  Protected
+    //Property setters
+    Procedure SetindexableText(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setthumbnail(AIndex : Integer; const AValue : TFileTypecontentHintsTypethumbnail); virtual;
+  Public
+  Published
+    Property indexableText : String Index 0 Read FindexableText Write SetindexableText;
+    Property thumbnail : TFileTypecontentHintsTypethumbnail Index 8 Read Fthumbnail Write Setthumbnail;
+  end;
+  TFileTypecontentHintsClass = Class of TFileTypecontentHints;
+  
+  { --------------------------------------------------------------------
+    TFileTypeimageMediaMetadataTypelocation
+    --------------------------------------------------------------------}
+  
+  TFileTypeimageMediaMetadataTypelocation = Class(TGoogleBaseObject)
+  Private
+    Faltitude : double;
+    Flatitude : double;
+    Flongitude : double;
+  Protected
+    //Property setters
+    Procedure Setaltitude(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setlatitude(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setlongitude(AIndex : Integer; const AValue : double); virtual;
+  Public
+  Published
+    Property altitude : double Index 0 Read Faltitude Write Setaltitude;
+    Property latitude : double Index 8 Read Flatitude Write Setlatitude;
+    Property longitude : double Index 16 Read Flongitude Write Setlongitude;
+  end;
+  TFileTypeimageMediaMetadataTypelocationClass = Class of TFileTypeimageMediaMetadataTypelocation;
+  
+  { --------------------------------------------------------------------
+    TFileTypeimageMediaMetadata
+    --------------------------------------------------------------------}
+  
+  TFileTypeimageMediaMetadata = Class(TGoogleBaseObject)
+  Private
+    Faperture : integer;
+    FcameraMake : String;
+    FcameraModel : String;
+    FcolorSpace : String;
+    FexposureBias : integer;
+    FexposureMode : String;
+    FexposureTime : integer;
+    FflashUsed : boolean;
+    FfocalLength : integer;
+    Fheight : integer;
+    FisoSpeed : integer;
+    Flens : String;
+    Flocation : TFileTypeimageMediaMetadataTypelocation;
+    FmaxApertureValue : integer;
+    FmeteringMode : String;
+    Frotation : integer;
+    Fsensor : String;
+    FsubjectDistance : integer;
+    Ftime : String;
+    FwhiteBalance : String;
+    Fwidth : integer;
+  Protected
+    //Property setters
+    Procedure Setaperture(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetcameraMake(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcameraModel(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcolorSpace(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetexposureBias(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetexposureMode(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetexposureTime(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetflashUsed(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetfocalLength(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetisoSpeed(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setlens(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : TFileTypeimageMediaMetadataTypelocation); virtual;
+    Procedure SetmaxApertureValue(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetmeteringMode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrotation(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setsensor(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsubjectDistance(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Settime(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwhiteBalance(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property aperture : integer Index 0 Read Faperture Write Setaperture;
+    Property cameraMake : String Index 8 Read FcameraMake Write SetcameraMake;
+    Property cameraModel : String Index 16 Read FcameraModel Write SetcameraModel;
+    Property colorSpace : String Index 24 Read FcolorSpace Write SetcolorSpace;
+    Property exposureBias : integer Index 32 Read FexposureBias Write SetexposureBias;
+    Property exposureMode : String Index 40 Read FexposureMode Write SetexposureMode;
+    Property exposureTime : integer Index 48 Read FexposureTime Write SetexposureTime;
+    Property flashUsed : boolean Index 56 Read FflashUsed Write SetflashUsed;
+    Property focalLength : integer Index 64 Read FfocalLength Write SetfocalLength;
+    Property height : integer Index 72 Read Fheight Write Setheight;
+    Property isoSpeed : integer Index 80 Read FisoSpeed Write SetisoSpeed;
+    Property lens : String Index 88 Read Flens Write Setlens;
+    Property location : TFileTypeimageMediaMetadataTypelocation Index 96 Read Flocation Write Setlocation;
+    Property maxApertureValue : integer Index 104 Read FmaxApertureValue Write SetmaxApertureValue;
+    Property meteringMode : String Index 112 Read FmeteringMode Write SetmeteringMode;
+    Property rotation : integer Index 120 Read Frotation Write Setrotation;
+    Property sensor : String Index 128 Read Fsensor Write Setsensor;
+    Property subjectDistance : integer Index 136 Read FsubjectDistance Write SetsubjectDistance;
+    Property time : String Index 144 Read Ftime Write Settime;
+    Property whiteBalance : String Index 152 Read FwhiteBalance Write SetwhiteBalance;
+    Property width : integer Index 160 Read Fwidth Write Setwidth;
+  end;
+  TFileTypeimageMediaMetadataClass = Class of TFileTypeimageMediaMetadata;
+  
+  { --------------------------------------------------------------------
+    TFileTypeproperties
+    --------------------------------------------------------------------}
+  
+  TFileTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TCommentReplyListitemsClass = Class of TCommentReplyListitems;
+  TFileTypepropertiesClass = Class of TFileTypeproperties;
+  
+  { --------------------------------------------------------------------
+    TFileTypevideoMediaMetadata
+    --------------------------------------------------------------------}
+  
+  TFileTypevideoMediaMetadata = Class(TGoogleBaseObject)
+  Private
+    FdurationMillis : String;
+    Fheight : integer;
+    Fwidth : integer;
+  Protected
+    //Property setters
+    Procedure SetdurationMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property durationMillis : String Index 0 Read FdurationMillis Write SetdurationMillis;
+    Property height : integer Index 8 Read Fheight Write Setheight;
+    Property width : integer Index 16 Read Fwidth Write Setwidth;
+  end;
+  TFileTypevideoMediaMetadataClass = Class of TFileTypevideoMediaMetadata;
   
   { --------------------------------------------------------------------
     TFile
@@ -1089,441 +613,148 @@ type
   
   TFile = Class(TGoogleBaseObject)
   Private
-    FalternateLink : string;
-    FappDataContents : boolean;
-    Fcopyable : boolean;
-    FcreatedDate : TDatetime;
-    FdefaultOpenWithLink : string;
-    Fdescription : string;
-    FdownloadUrl : string;
-    Feditable : boolean;
-    FembedLink : string;
-    Fetag : string;
+    FappProperties : TFileTypeappProperties;
+    Fcapabilities : TFileTypecapabilities;
+    FcontentHints : TFileTypecontentHints;
+    FcreatedTime : TDatetime;
+    Fdescription : String;
     FexplicitlyTrashed : boolean;
-    FexportLinks : TFileexportLinks;
-    FfileExtension : string;
-    FfileSize : string;
-    FfolderColorRgb : string;
-    FheadRevisionId : string;
-    FiconLink : string;
-    Fid : string;
-    FimageMediaMetadata : TFileimageMediaMetadata;
-    FindexableText : TFileindexableText;
-    Fkind : string;
-    Flabels : TFilelabels;
+    FfileExtension : String;
+    FfolderColorRgb : String;
+    FfullFileExtension : String;
+    FheadRevisionId : String;
+    FiconLink : String;
+    Fid : String;
+    FimageMediaMetadata : TFileTypeimageMediaMetadata;
+    FisAppAuthorized : boolean;
+    Fkind : String;
     FlastModifyingUser : TUser;
-    FlastModifyingUserName : string;
-    FlastViewedByMeDate : TDatetime;
-    FmarkedViewedByMeDate : TDatetime;
-    Fmd5Checksum : string;
-    FmimeType : string;
-    FmodifiedByMeDate : TDatetime;
-    FmodifiedDate : TDatetime;
-    FopenWithLinks : TFileopenWithLinks;
-    ForiginalFilename : string;
-    FownerNames : TFileownerNames;
-    Fowners : TFileowners;
-    Fparents : TFileparents;
-    Fpermissions : TFilepermissions;
-    Fproperties : TFileproperties;
-    FquotaBytesUsed : string;
-    FselfLink : string;
+    Fmd5Checksum : String;
+    FmimeType : String;
+    FmodifiedByMeTime : TDatetime;
+    FmodifiedTime : TDatetime;
+    Fname : String;
+    ForiginalFilename : String;
+    FownedByMe : boolean;
+    Fowners : TFileTypeownersArray;
+    Fparents : TStringArray;
+    Fpermissions : TFileTypepermissionsArray;
+    Fproperties : TFileTypeproperties;
+    FquotaBytesUsed : String;
     Fshared : boolean;
-    FsharedWithMeDate : TDatetime;
+    FsharedWithMeTime : TDatetime;
     FsharingUser : TUser;
-    Fthumbnail : TFilethumbnail;
-    FthumbnailLink : string;
-    Ftitle : string;
-    FuserPermission : TPermission;
-    Fversion : string;
-    FvideoMediaMetadata : TFilevideoMediaMetadata;
-    FwebContentLink : string;
-    FwebViewLink : string;
+    Fsize : String;
+    Fspaces : TStringArray;
+    Fstarred : boolean;
+    FthumbnailLink : String;
+    Ftrashed : boolean;
+    Fversion : String;
+    FvideoMediaMetadata : TFileTypevideoMediaMetadata;
+    FviewedByMe : boolean;
+    FviewedByMeTime : TDatetime;
+    FviewersCanCopyContent : boolean;
+    FwebContentLink : String;
+    FwebViewLink : String;
     FwritersCanShare : boolean;
   Protected
     //Property setters
-    Procedure SetalternateLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetappDataContents(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setcopyable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetcreatedDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetdefaultOpenWithLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdownloadUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Seteditable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetembedLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexplicitlyTrashed(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetexportLinks(AIndex : Integer; AValue : TFileexportLinks); virtual;
-    Procedure SetfileExtension(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfileSize(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfolderColorRgb(AIndex : Integer; AValue : string); virtual;
-    Procedure SetheadRevisionId(AIndex : Integer; AValue : string); virtual;
-    Procedure SeticonLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetimageMediaMetadata(AIndex : Integer; AValue : TFileimageMediaMetadata); virtual;
-    Procedure SetindexableText(AIndex : Integer; AValue : TFileindexableText); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlabels(AIndex : Integer; AValue : TFilelabels); virtual;
-    Procedure SetlastModifyingUser(AIndex : Integer; AValue : TUser); virtual;
-    Procedure SetlastModifyingUserName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlastViewedByMeDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetmarkedViewedByMeDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setmd5Checksum(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmimeType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmodifiedByMeDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetmodifiedDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetopenWithLinks(AIndex : Integer; AValue : TFileopenWithLinks); virtual;
-    Procedure SetoriginalFilename(AIndex : Integer; AValue : string); virtual;
-    Procedure SetownerNames(AIndex : Integer; AValue : TFileownerNames); virtual;
-    Procedure Setowners(AIndex : Integer; AValue : TFileowners); virtual;
-    Procedure Setparents(AIndex : Integer; AValue : TFileparents); virtual;
-    Procedure Setpermissions(AIndex : Integer; AValue : TFilepermissions); virtual;
-    Procedure Setproperties(AIndex : Integer; AValue : TFileproperties); virtual;
-    Procedure SetquotaBytesUsed(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setshared(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsharedWithMeDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetsharingUser(AIndex : Integer; AValue : TUser); virtual;
-    Procedure Setthumbnail(AIndex : Integer; AValue : TFilethumbnail); virtual;
-    Procedure SetthumbnailLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SetuserPermission(AIndex : Integer; AValue : TPermission); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvideoMediaMetadata(AIndex : Integer; AValue : TFilevideoMediaMetadata); virtual;
-    Procedure SetwebContentLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwebViewLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwritersCanShare(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetappProperties(AIndex : Integer; const AValue : TFileTypeappProperties); virtual;
+    Procedure Setcapabilities(AIndex : Integer; const AValue : TFileTypecapabilities); virtual;
+    Procedure SetcontentHints(AIndex : Integer; const AValue : TFileTypecontentHints); virtual;
+    Procedure SetcreatedTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetexplicitlyTrashed(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetfileExtension(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfolderColorRgb(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfullFileExtension(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetheadRevisionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeticonLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetimageMediaMetadata(AIndex : Integer; const AValue : TFileTypeimageMediaMetadata); virtual;
+    Procedure SetisAppAuthorized(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastModifyingUser(AIndex : Integer; const AValue : TUser); virtual;
+    Procedure Setmd5Checksum(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmimeType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmodifiedByMeTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetmodifiedTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoriginalFilename(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetownedByMe(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setowners(AIndex : Integer; const AValue : TFileTypeownersArray); virtual;
+    Procedure Setparents(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setpermissions(AIndex : Integer; const AValue : TFileTypepermissionsArray); virtual;
+    Procedure Setproperties(AIndex : Integer; const AValue : TFileTypeproperties); virtual;
+    Procedure SetquotaBytesUsed(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setshared(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetsharedWithMeTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetsharingUser(AIndex : Integer; const AValue : TUser); virtual;
+    Procedure Setsize(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setspaces(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setstarred(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetthumbnailLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settrashed(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvideoMediaMetadata(AIndex : Integer; const AValue : TFileTypevideoMediaMetadata); virtual;
+    Procedure SetviewedByMe(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetviewedByMeTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetviewersCanCopyContent(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetwebContentLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwebViewLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwritersCanShare(AIndex : Integer; const AValue : boolean); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property alternateLink : string Index 0 Read FalternateLink Write SetalternateLink;
-    Property appDataContents : boolean Index 8 Read FappDataContents Write SetappDataContents;
-    Property copyable : boolean Index 16 Read Fcopyable Write Setcopyable;
-    Property createdDate : TDatetime Index 24 Read FcreatedDate Write SetcreatedDate;
-    Property defaultOpenWithLink : string Index 32 Read FdefaultOpenWithLink Write SetdefaultOpenWithLink;
-    Property description : string Index 40 Read Fdescription Write Setdescription;
-    Property downloadUrl : string Index 48 Read FdownloadUrl Write SetdownloadUrl;
-    Property editable : boolean Index 56 Read Feditable Write Seteditable;
-    Property embedLink : string Index 64 Read FembedLink Write SetembedLink;
-    Property etag : string Index 72 Read Fetag Write Setetag;
-    Property explicitlyTrashed : boolean Index 80 Read FexplicitlyTrashed Write SetexplicitlyTrashed;
-    Property exportLinks : TFileexportLinks Index 88 Read FexportLinks Write SetexportLinks;
-    Property fileExtension : string Index 96 Read FfileExtension Write SetfileExtension;
-    Property fileSize : string Index 104 Read FfileSize Write SetfileSize;
-    Property folderColorRgb : string Index 112 Read FfolderColorRgb Write SetfolderColorRgb;
-    Property headRevisionId : string Index 120 Read FheadRevisionId Write SetheadRevisionId;
-    Property iconLink : string Index 128 Read FiconLink Write SeticonLink;
-    Property id : string Index 136 Read Fid Write Setid;
-    Property imageMediaMetadata : TFileimageMediaMetadata Index 144 Read FimageMediaMetadata Write SetimageMediaMetadata;
-    Property indexableText : TFileindexableText Index 152 Read FindexableText Write SetindexableText;
-    Property kind : string Index 160 Read Fkind Write Setkind;
-    Property labels : TFilelabels Index 168 Read Flabels Write Setlabels;
-    Property lastModifyingUser : TUser Index 176 Read FlastModifyingUser Write SetlastModifyingUser;
-    Property lastModifyingUserName : string Index 184 Read FlastModifyingUserName Write SetlastModifyingUserName;
-    Property lastViewedByMeDate : TDatetime Index 192 Read FlastViewedByMeDate Write SetlastViewedByMeDate;
-    Property markedViewedByMeDate : TDatetime Index 200 Read FmarkedViewedByMeDate Write SetmarkedViewedByMeDate;
-    Property md5Checksum : string Index 208 Read Fmd5Checksum Write Setmd5Checksum;
-    Property mimeType : string Index 216 Read FmimeType Write SetmimeType;
-    Property modifiedByMeDate : TDatetime Index 224 Read FmodifiedByMeDate Write SetmodifiedByMeDate;
-    Property modifiedDate : TDatetime Index 232 Read FmodifiedDate Write SetmodifiedDate;
-    Property openWithLinks : TFileopenWithLinks Index 240 Read FopenWithLinks Write SetopenWithLinks;
-    Property originalFilename : string Index 248 Read ForiginalFilename Write SetoriginalFilename;
-    Property ownerNames : TFileownerNames Index 256 Read FownerNames Write SetownerNames;
-    Property owners : TFileowners Index 264 Read Fowners Write Setowners;
-    Property parents : TFileparents Index 272 Read Fparents Write Setparents;
-    Property permissions : TFilepermissions Index 280 Read Fpermissions Write Setpermissions;
-    Property properties : TFileproperties Index 288 Read Fproperties Write Setproperties;
-    Property quotaBytesUsed : string Index 296 Read FquotaBytesUsed Write SetquotaBytesUsed;
-    Property selfLink : string Index 304 Read FselfLink Write SetselfLink;
-    Property shared : boolean Index 312 Read Fshared Write Setshared;
-    Property sharedWithMeDate : TDatetime Index 320 Read FsharedWithMeDate Write SetsharedWithMeDate;
-    Property sharingUser : TUser Index 328 Read FsharingUser Write SetsharingUser;
-    Property thumbnail : TFilethumbnail Index 336 Read Fthumbnail Write Setthumbnail;
-    Property thumbnailLink : string Index 344 Read FthumbnailLink Write SetthumbnailLink;
-    Property title : string Index 352 Read Ftitle Write Settitle;
-    Property userPermission : TPermission Index 360 Read FuserPermission Write SetuserPermission;
-    Property version : string Index 368 Read Fversion Write Setversion;
-    Property videoMediaMetadata : TFilevideoMediaMetadata Index 376 Read FvideoMediaMetadata Write SetvideoMediaMetadata;
-    Property webContentLink : string Index 384 Read FwebContentLink Write SetwebContentLink;
-    Property webViewLink : string Index 392 Read FwebViewLink Write SetwebViewLink;
-    Property writersCanShare : boolean Index 400 Read FwritersCanShare Write SetwritersCanShare;
+    Property appProperties : TFileTypeappProperties Index 0 Read FappProperties Write SetappProperties;
+    Property capabilities : TFileTypecapabilities Index 8 Read Fcapabilities Write Setcapabilities;
+    Property contentHints : TFileTypecontentHints Index 16 Read FcontentHints Write SetcontentHints;
+    Property createdTime : TDatetime Index 24 Read FcreatedTime Write SetcreatedTime;
+    Property description : String Index 32 Read Fdescription Write Setdescription;
+    Property explicitlyTrashed : boolean Index 40 Read FexplicitlyTrashed Write SetexplicitlyTrashed;
+    Property fileExtension : String Index 48 Read FfileExtension Write SetfileExtension;
+    Property folderColorRgb : String Index 56 Read FfolderColorRgb Write SetfolderColorRgb;
+    Property fullFileExtension : String Index 64 Read FfullFileExtension Write SetfullFileExtension;
+    Property headRevisionId : String Index 72 Read FheadRevisionId Write SetheadRevisionId;
+    Property iconLink : String Index 80 Read FiconLink Write SeticonLink;
+    Property id : String Index 88 Read Fid Write Setid;
+    Property imageMediaMetadata : TFileTypeimageMediaMetadata Index 96 Read FimageMediaMetadata Write SetimageMediaMetadata;
+    Property isAppAuthorized : boolean Index 104 Read FisAppAuthorized Write SetisAppAuthorized;
+    Property kind : String Index 112 Read Fkind Write Setkind;
+    Property lastModifyingUser : TUser Index 120 Read FlastModifyingUser Write SetlastModifyingUser;
+    Property md5Checksum : String Index 128 Read Fmd5Checksum Write Setmd5Checksum;
+    Property mimeType : String Index 136 Read FmimeType Write SetmimeType;
+    Property modifiedByMeTime : TDatetime Index 144 Read FmodifiedByMeTime Write SetmodifiedByMeTime;
+    Property modifiedTime : TDatetime Index 152 Read FmodifiedTime Write SetmodifiedTime;
+    Property name : String Index 160 Read Fname Write Setname;
+    Property originalFilename : String Index 168 Read ForiginalFilename Write SetoriginalFilename;
+    Property ownedByMe : boolean Index 176 Read FownedByMe Write SetownedByMe;
+    Property owners : TFileTypeownersArray Index 184 Read Fowners Write Setowners;
+    Property parents : TStringArray Index 192 Read Fparents Write Setparents;
+    Property permissions : TFileTypepermissionsArray Index 200 Read Fpermissions Write Setpermissions;
+    Property properties : TFileTypeproperties Index 208 Read Fproperties Write Setproperties;
+    Property quotaBytesUsed : String Index 216 Read FquotaBytesUsed Write SetquotaBytesUsed;
+    Property shared : boolean Index 224 Read Fshared Write Setshared;
+    Property sharedWithMeTime : TDatetime Index 232 Read FsharedWithMeTime Write SetsharedWithMeTime;
+    Property sharingUser : TUser Index 240 Read FsharingUser Write SetsharingUser;
+    Property size : String Index 248 Read Fsize Write Setsize;
+    Property spaces : TStringArray Index 256 Read Fspaces Write Setspaces;
+    Property starred : boolean Index 264 Read Fstarred Write Setstarred;
+    Property thumbnailLink : String Index 272 Read FthumbnailLink Write SetthumbnailLink;
+    Property trashed : boolean Index 280 Read Ftrashed Write Settrashed;
+    Property version : String Index 288 Read Fversion Write Setversion;
+    Property videoMediaMetadata : TFileTypevideoMediaMetadata Index 296 Read FvideoMediaMetadata Write SetvideoMediaMetadata;
+    Property viewedByMe : boolean Index 304 Read FviewedByMe Write SetviewedByMe;
+    Property viewedByMeTime : TDatetime Index 312 Read FviewedByMeTime Write SetviewedByMeTime;
+    Property viewersCanCopyContent : boolean Index 320 Read FviewersCanCopyContent Write SetviewersCanCopyContent;
+    Property webContentLink : String Index 328 Read FwebContentLink Write SetwebContentLink;
+    Property webViewLink : String Index 336 Read FwebViewLink Write SetwebViewLink;
+    Property writersCanShare : boolean Index 344 Read FwritersCanShare Write SetwritersCanShare;
   end;
   TFileClass = Class of TFile;
-  
-  { --------------------------------------------------------------------
-    TFileexportLinks
-    --------------------------------------------------------------------}
-  
-  TFileexportLinks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TFileexportLinksClass = Class of TFileexportLinks;
-  
-  { --------------------------------------------------------------------
-    TFileimageMediaMetadata
-    --------------------------------------------------------------------}
-  
-  TFileimageMediaMetadata = Class(TGoogleBaseObject)
-  Private
-    Faperture : integer;
-    FcameraMake : string;
-    FcameraModel : string;
-    FcolorSpace : string;
-    Fdate : string;
-    FexposureBias : integer;
-    FexposureMode : string;
-    FexposureTime : integer;
-    FflashUsed : boolean;
-    FfocalLength : integer;
-    Fheight : integer;
-    FisoSpeed : integer;
-    Flens : string;
-    Flocation : TFileimageMediaMetadatalocation;
-    FmaxApertureValue : integer;
-    FmeteringMode : string;
-    Frotation : integer;
-    Fsensor : string;
-    FsubjectDistance : integer;
-    FwhiteBalance : string;
-    Fwidth : integer;
-  Protected
-    //Property setters
-    Procedure Setaperture(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetcameraMake(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcameraModel(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcolorSpace(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdate(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexposureBias(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetexposureMode(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexposureTime(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetflashUsed(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetfocalLength(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetisoSpeed(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setlens(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : TFileimageMediaMetadatalocation); virtual;
-    Procedure SetmaxApertureValue(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmeteringMode(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrotation(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setsensor(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsubjectDistance(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetwhiteBalance(AIndex : Integer; AValue : string); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property aperture : integer Index 0 Read Faperture Write Setaperture;
-    Property cameraMake : string Index 8 Read FcameraMake Write SetcameraMake;
-    Property cameraModel : string Index 16 Read FcameraModel Write SetcameraModel;
-    Property colorSpace : string Index 24 Read FcolorSpace Write SetcolorSpace;
-    Property date : string Index 32 Read Fdate Write Setdate;
-    Property exposureBias : integer Index 40 Read FexposureBias Write SetexposureBias;
-    Property exposureMode : string Index 48 Read FexposureMode Write SetexposureMode;
-    Property exposureTime : integer Index 56 Read FexposureTime Write SetexposureTime;
-    Property flashUsed : boolean Index 64 Read FflashUsed Write SetflashUsed;
-    Property focalLength : integer Index 72 Read FfocalLength Write SetfocalLength;
-    Property height : integer Index 80 Read Fheight Write Setheight;
-    Property isoSpeed : integer Index 88 Read FisoSpeed Write SetisoSpeed;
-    Property lens : string Index 96 Read Flens Write Setlens;
-    Property location : TFileimageMediaMetadatalocation Index 104 Read Flocation Write Setlocation;
-    Property maxApertureValue : integer Index 112 Read FmaxApertureValue Write SetmaxApertureValue;
-    Property meteringMode : string Index 120 Read FmeteringMode Write SetmeteringMode;
-    Property rotation : integer Index 128 Read Frotation Write Setrotation;
-    Property sensor : string Index 136 Read Fsensor Write Setsensor;
-    Property subjectDistance : integer Index 144 Read FsubjectDistance Write SetsubjectDistance;
-    Property whiteBalance : string Index 152 Read FwhiteBalance Write SetwhiteBalance;
-    Property width : integer Index 160 Read Fwidth Write Setwidth;
-  end;
-  TFileimageMediaMetadataClass = Class of TFileimageMediaMetadata;
-  
-  { --------------------------------------------------------------------
-    TFileimageMediaMetadatalocation
-    --------------------------------------------------------------------}
-  
-  TFileimageMediaMetadatalocation = Class(TGoogleBaseObject)
-  Private
-    Faltitude : double;
-    Flatitude : double;
-    Flongitude : double;
-  Protected
-    //Property setters
-    Procedure Setaltitude(AIndex : Integer; AValue : double); virtual;
-    Procedure Setlatitude(AIndex : Integer; AValue : double); virtual;
-    Procedure Setlongitude(AIndex : Integer; AValue : double); virtual;
-  Public
-  Published
-    Property altitude : double Index 0 Read Faltitude Write Setaltitude;
-    Property latitude : double Index 8 Read Flatitude Write Setlatitude;
-    Property longitude : double Index 16 Read Flongitude Write Setlongitude;
-  end;
-  TFileimageMediaMetadatalocationClass = Class of TFileimageMediaMetadatalocation;
-  
-  { --------------------------------------------------------------------
-    TFileindexableText
-    --------------------------------------------------------------------}
-  
-  TFileindexableText = Class(TGoogleBaseObject)
-  Private
-    Ftext : string;
-  Protected
-    //Property setters
-    Procedure Settext(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property text : string Index 0 Read Ftext Write Settext;
-  end;
-  TFileindexableTextClass = Class of TFileindexableText;
-  
-  { --------------------------------------------------------------------
-    TFilelabels
-    --------------------------------------------------------------------}
-  
-  TFilelabels = Class(TGoogleBaseObject)
-  Private
-    Fhidden : boolean;
-    Frestricted : boolean;
-    Fstarred : boolean;
-    Ftrashed : boolean;
-    Fviewed : boolean;
-  Protected
-    //Property setters
-    Procedure Sethidden(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setrestricted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setstarred(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Settrashed(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setviewed(AIndex : Integer; AValue : boolean); virtual;
-  Public
-  Published
-    Property hidden : boolean Index 0 Read Fhidden Write Sethidden;
-    Property restricted : boolean Index 8 Read Frestricted Write Setrestricted;
-    Property starred : boolean Index 16 Read Fstarred Write Setstarred;
-    Property trashed : boolean Index 24 Read Ftrashed Write Settrashed;
-    Property viewed : boolean Index 32 Read Fviewed Write Setviewed;
-  end;
-  TFilelabelsClass = Class of TFilelabels;
-  
-  { --------------------------------------------------------------------
-    TFileopenWithLinks
-    --------------------------------------------------------------------}
-  
-  TFileopenWithLinks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TFileopenWithLinksClass = Class of TFileopenWithLinks;
-  
-  { --------------------------------------------------------------------
-    TFileownerNames
-    --------------------------------------------------------------------}
-  
-  TFileownerNames = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFileownerNamesClass = Class of TFileownerNames;
-  
-  { --------------------------------------------------------------------
-    TFileowners
-    --------------------------------------------------------------------}
-  
-  TFileowners = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFileownersClass = Class of TFileowners;
-  
-  { --------------------------------------------------------------------
-    TFileparents
-    --------------------------------------------------------------------}
-  
-  TFileparents = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFileparentsClass = Class of TFileparents;
-  
-  { --------------------------------------------------------------------
-    TFilepermissions
-    --------------------------------------------------------------------}
-  
-  TFilepermissions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFilepermissionsClass = Class of TFilepermissions;
-  
-  { --------------------------------------------------------------------
-    TFileproperties
-    --------------------------------------------------------------------}
-  
-  TFileproperties = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TFilepropertiesClass = Class of TFileproperties;
-  
-  { --------------------------------------------------------------------
-    TFilethumbnail
-    --------------------------------------------------------------------}
-  
-  TFilethumbnail = Class(TGoogleBaseObject)
-  Private
-    Fimage : string;
-    FmimeType : string;
-  Protected
-    //Property setters
-    Procedure Setimage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmimeType(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property image : string Index 0 Read Fimage Write Setimage;
-    Property mimeType : string Index 8 Read FmimeType Write SetmimeType;
-  end;
-  TFilethumbnailClass = Class of TFilethumbnail;
-  
-  { --------------------------------------------------------------------
-    TFilevideoMediaMetadata
-    --------------------------------------------------------------------}
-  
-  TFilevideoMediaMetadata = Class(TGoogleBaseObject)
-  Private
-    FdurationMillis : string;
-    Fheight : integer;
-    Fwidth : integer;
-  Protected
-    //Property setters
-    Procedure SetdurationMillis(AIndex : Integer; AValue : string); virtual;
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
-  Public
-  Published
-    Property durationMillis : string Index 0 Read FdurationMillis Write SetdurationMillis;
-    Property height : integer Index 8 Read Fheight Write Setheight;
-    Property width : integer Index 16 Read Fwidth Write Setwidth;
-  end;
-  TFilevideoMediaMetadataClass = Class of TFilevideoMediaMetadata;
   
   { --------------------------------------------------------------------
     TFileList
@@ -1531,109 +762,51 @@ type
   
   TFileList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TFileListitems;
-    Fkind : string;
-    FnextLink : string;
-    FnextPageToken : string;
-    FselfLink : string;
+    Ffiles : TFileListTypefilesArray;
+    Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TFileListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setfiles(AIndex : Integer; const AValue : TFileListTypefilesArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TFileListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property nextLink : string Index 24 Read FnextLink Write SetnextLink;
-    Property nextPageToken : string Index 32 Read FnextPageToken Write SetnextPageToken;
-    Property selfLink : string Index 40 Read FselfLink Write SetselfLink;
+    Property files : TFileListTypefilesArray Index 0 Read Ffiles Write Setfiles;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TFileListClass = Class of TFileList;
   
   { --------------------------------------------------------------------
-    TFileListitems
+    TGeneratedIds
     --------------------------------------------------------------------}
   
-  TFileListitems = Class(TGoogleBaseObject)
+  TGeneratedIds = Class(TGoogleBaseObject)
   Private
+    Fids : TStringArray;
+    Fkind : String;
+    Fspace : String;
   Protected
     //Property setters
+    Procedure Setids(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setspace(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
+    Property ids : TStringArray Index 0 Read Fids Write Setids;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property space : String Index 16 Read Fspace Write Setspace;
   end;
-  TFileListitemsClass = Class of TFileListitems;
-  
-  { --------------------------------------------------------------------
-    TParentList
-    --------------------------------------------------------------------}
-  
-  TParentList = Class(TGoogleBaseObject)
-  Private
-    Fetag : string;
-    Fitems : TParentListitems;
-    Fkind : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TParentListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TParentListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
-  end;
-  TParentListClass = Class of TParentList;
-  
-  { --------------------------------------------------------------------
-    TParentListitems
-    --------------------------------------------------------------------}
-  
-  TParentListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TParentListitemsClass = Class of TParentListitems;
-  
-  { --------------------------------------------------------------------
-    TParentReference
-    --------------------------------------------------------------------}
-  
-  TParentReference = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    FisRoot : boolean;
-    Fkind : string;
-    FparentLink : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure SetisRoot(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetparentLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property isRoot : boolean Index 8 Read FisRoot Write SetisRoot;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property parentLink : string Index 24 Read FparentLink Write SetparentLink;
-    Property selfLink : string Index 32 Read FselfLink Write SetselfLink;
-  end;
-  TParentReferenceClass = Class of TParentReference;
+  TGeneratedIdsClass = Class of TGeneratedIds;
   
   { --------------------------------------------------------------------
     TPermission
@@ -1641,87 +814,40 @@ type
   
   TPermission = Class(TGoogleBaseObject)
   Private
-    FadditionalRoles : TPermissionadditionalRoles;
-    FauthKey : string;
-    Fdomain : string;
-    FemailAddress : string;
-    Fetag : string;
-    Fid : string;
-    Fkind : string;
-    Fname : string;
-    FphotoLink : string;
-    Frole : string;
-    FselfLink : string;
-    F_type : string;
-    Fvalue : string;
-    FwithLink : boolean;
+    FallowFileDiscovery : boolean;
+    FdisplayName : String;
+    Fdomain : String;
+    FemailAddress : String;
+    Fid : String;
+    Fkind : String;
+    FphotoLink : String;
+    Frole : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetadditionalRoles(AIndex : Integer; AValue : TPermissionadditionalRoles); virtual;
-    Procedure SetauthKey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdomain(AIndex : Integer; AValue : string); virtual;
-    Procedure SetemailAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetphotoLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setrole(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwithLink(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetallowFileDiscovery(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdomain(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetemailAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetphotoLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrole(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property additionalRoles : TPermissionadditionalRoles Index 0 Read FadditionalRoles Write SetadditionalRoles;
-    Property authKey : string Index 8 Read FauthKey Write SetauthKey;
-    Property domain : string Index 16 Read Fdomain Write Setdomain;
-    Property emailAddress : string Index 24 Read FemailAddress Write SetemailAddress;
-    Property etag : string Index 32 Read Fetag Write Setetag;
-    Property id : string Index 40 Read Fid Write Setid;
-    Property kind : string Index 48 Read Fkind Write Setkind;
-    Property name : string Index 56 Read Fname Write Setname;
-    Property photoLink : string Index 64 Read FphotoLink Write SetphotoLink;
-    Property role : string Index 72 Read Frole Write Setrole;
-    Property selfLink : string Index 80 Read FselfLink Write SetselfLink;
-    Property _type : string Index 88 Read F_type Write Set_type;
-    Property value : string Index 96 Read Fvalue Write Setvalue;
-    Property withLink : boolean Index 104 Read FwithLink Write SetwithLink;
+    Property allowFileDiscovery : boolean Index 0 Read FallowFileDiscovery Write SetallowFileDiscovery;
+    Property displayName : String Index 8 Read FdisplayName Write SetdisplayName;
+    Property domain : String Index 16 Read Fdomain Write Setdomain;
+    Property emailAddress : String Index 24 Read FemailAddress Write SetemailAddress;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property photoLink : String Index 48 Read FphotoLink Write SetphotoLink;
+    Property role : String Index 56 Read Frole Write Setrole;
+    Property _type : String Index 64 Read F_type Write Set_type;
   end;
   TPermissionClass = Class of TPermission;
-  
-  { --------------------------------------------------------------------
-    TPermissionadditionalRoles
-    --------------------------------------------------------------------}
-  
-  TPermissionadditionalRoles = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPermissionadditionalRolesClass = Class of TPermissionadditionalRoles;
-  
-  { --------------------------------------------------------------------
-    TPermissionId
-    --------------------------------------------------------------------}
-  
-  TPermissionId = Class(TGoogleBaseObject)
-  Private
-    Fid : string;
-    Fkind : string;
-  Protected
-    //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property kind : string Index 8 Read Fkind Write Setkind;
-  end;
-  TPermissionIdClass = Class of TPermissionId;
   
   { --------------------------------------------------------------------
     TPermissionList
@@ -1729,106 +855,88 @@ type
   
   TPermissionList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TPermissionListitems;
-    Fkind : string;
-    FselfLink : string;
+    Fkind : String;
+    Fpermissions : TPermissionListTypepermissionsArray;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TPermissionListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpermissions(AIndex : Integer; const AValue : TPermissionListTypepermissionsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TPermissionListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property permissions : TPermissionListTypepermissionsArray Index 8 Read Fpermissions Write Setpermissions;
   end;
   TPermissionListClass = Class of TPermissionList;
   
   { --------------------------------------------------------------------
-    TPermissionListitems
+    TReply
     --------------------------------------------------------------------}
   
-  TPermissionListitems = Class(TGoogleBaseObject)
+  TReply = Class(TGoogleBaseObject)
   Private
+    Faction : String;
+    Fauthor : TUser;
+    Fcontent : String;
+    FcreatedTime : TDatetime;
+    Fdeleted : boolean;
+    FhtmlContent : String;
+    Fid : String;
+    Fkind : String;
+    FmodifiedTime : TDatetime;
   Protected
     //Property setters
+    Procedure Setaction(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setauthor(AIndex : Integer; const AValue : TUser); virtual;
+    Procedure Setcontent(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreatedTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setdeleted(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SethtmlContent(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmodifiedTime(AIndex : Integer; const AValue : TDatetime); virtual;
   Public
   Published
+    Property action : String Index 0 Read Faction Write Setaction;
+    Property author : TUser Index 8 Read Fauthor Write Setauthor;
+    Property content : String Index 16 Read Fcontent Write Setcontent;
+    Property createdTime : TDatetime Index 24 Read FcreatedTime Write SetcreatedTime;
+    Property deleted : boolean Index 32 Read Fdeleted Write Setdeleted;
+    Property htmlContent : String Index 40 Read FhtmlContent Write SethtmlContent;
+    Property id : String Index 48 Read Fid Write Setid;
+    Property kind : String Index 56 Read Fkind Write Setkind;
+    Property modifiedTime : TDatetime Index 64 Read FmodifiedTime Write SetmodifiedTime;
   end;
-  TPermissionListitemsClass = Class of TPermissionListitems;
+  TReplyClass = Class of TReply;
   
   { --------------------------------------------------------------------
-    TProperty
+    TReplyList
     --------------------------------------------------------------------}
   
-  TProperty = Class(TGoogleBaseObject)
+  TReplyList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fkey : string;
-    Fkind : string;
-    FselfLink : string;
-    Fvalue : string;
-    Fvisibility : string;
+    Fkind : String;
+    FnextPageToken : String;
+    Freplies : TReplyListTyperepliesArray;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : string); virtual;
-    Procedure Setvisibility(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setreplies(AIndex : Integer; const AValue : TReplyListTyperepliesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property key : string Index 8 Read Fkey Write Setkey;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
-    Property value : string Index 32 Read Fvalue Write Setvalue;
-    Property visibility : string Index 40 Read Fvisibility Write Setvisibility;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
+    Property replies : TReplyListTyperepliesArray Index 16 Read Freplies Write Setreplies;
   end;
-  TPropertyClass = Class of TProperty;
-  
-  { --------------------------------------------------------------------
-    TPropertyList
-    --------------------------------------------------------------------}
-  
-  TPropertyList = Class(TGoogleBaseObject)
-  Private
-    Fetag : string;
-    Fitems : TPropertyListitems;
-    Fkind : string;
-    FselfLink : string;
-  Protected
-    //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TPropertyListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TPropertyListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
-  end;
-  TPropertyListClass = Class of TPropertyList;
-  
-  { --------------------------------------------------------------------
-    TPropertyListitems
-    --------------------------------------------------------------------}
-  
-  TPropertyListitems = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TPropertyListitemsClass = Class of TPropertyListitems;
+  TReplyListClass = Class of TReplyList;
   
   { --------------------------------------------------------------------
     TRevision
@@ -1836,81 +944,49 @@ type
   
   TRevision = Class(TGoogleBaseObject)
   Private
-    FdownloadUrl : string;
-    Fetag : string;
-    FexportLinks : TRevisionexportLinks;
-    FfileSize : string;
-    Fid : string;
-    Fkind : string;
+    Fid : String;
+    FkeepForever : boolean;
+    Fkind : String;
     FlastModifyingUser : TUser;
-    FlastModifyingUserName : string;
-    Fmd5Checksum : string;
-    FmimeType : string;
-    FmodifiedDate : TDatetime;
-    ForiginalFilename : string;
-    Fpinned : boolean;
+    Fmd5Checksum : String;
+    FmimeType : String;
+    FmodifiedTime : TDatetime;
+    ForiginalFilename : String;
     FpublishAuto : boolean;
     F_published : boolean;
-    FpublishedLink : string;
     FpublishedOutsideDomain : boolean;
-    FselfLink : string;
+    Fsize : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdownloadUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure SetexportLinks(AIndex : Integer; AValue : TRevisionexportLinks); virtual;
-    Procedure SetfileSize(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlastModifyingUser(AIndex : Integer; AValue : TUser); virtual;
-    Procedure SetlastModifyingUserName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setmd5Checksum(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmimeType(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmodifiedDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetoriginalFilename(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpinned(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetpublishAuto(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Set_published(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetpublishedLink(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpublishedOutsideDomain(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetkeepForever(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastModifyingUser(AIndex : Integer; const AValue : TUser); virtual;
+    Procedure Setmd5Checksum(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmimeType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmodifiedTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetoriginalFilename(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpublishAuto(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Set_published(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetpublishedOutsideDomain(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setsize(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property downloadUrl : string Index 0 Read FdownloadUrl Write SetdownloadUrl;
-    Property etag : string Index 8 Read Fetag Write Setetag;
-    Property exportLinks : TRevisionexportLinks Index 16 Read FexportLinks Write SetexportLinks;
-    Property fileSize : string Index 24 Read FfileSize Write SetfileSize;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property kind : string Index 40 Read Fkind Write Setkind;
-    Property lastModifyingUser : TUser Index 48 Read FlastModifyingUser Write SetlastModifyingUser;
-    Property lastModifyingUserName : string Index 56 Read FlastModifyingUserName Write SetlastModifyingUserName;
-    Property md5Checksum : string Index 64 Read Fmd5Checksum Write Setmd5Checksum;
-    Property mimeType : string Index 72 Read FmimeType Write SetmimeType;
-    Property modifiedDate : TDatetime Index 80 Read FmodifiedDate Write SetmodifiedDate;
-    Property originalFilename : string Index 88 Read ForiginalFilename Write SetoriginalFilename;
-    Property pinned : boolean Index 96 Read Fpinned Write Setpinned;
-    Property publishAuto : boolean Index 104 Read FpublishAuto Write SetpublishAuto;
-    Property _published : boolean Index 112 Read F_published Write Set_published;
-    Property publishedLink : string Index 120 Read FpublishedLink Write SetpublishedLink;
-    Property publishedOutsideDomain : boolean Index 128 Read FpublishedOutsideDomain Write SetpublishedOutsideDomain;
-    Property selfLink : string Index 136 Read FselfLink Write SetselfLink;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property keepForever : boolean Index 8 Read FkeepForever Write SetkeepForever;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property lastModifyingUser : TUser Index 24 Read FlastModifyingUser Write SetlastModifyingUser;
+    Property md5Checksum : String Index 32 Read Fmd5Checksum Write Setmd5Checksum;
+    Property mimeType : String Index 40 Read FmimeType Write SetmimeType;
+    Property modifiedTime : TDatetime Index 48 Read FmodifiedTime Write SetmodifiedTime;
+    Property originalFilename : String Index 56 Read ForiginalFilename Write SetoriginalFilename;
+    Property publishAuto : boolean Index 64 Read FpublishAuto Write SetpublishAuto;
+    Property _published : boolean Index 72 Read F_published Write Set_published;
+    Property publishedOutsideDomain : boolean Index 80 Read FpublishedOutsideDomain Write SetpublishedOutsideDomain;
+    Property size : String Index 88 Read Fsize Write Setsize;
   end;
   TRevisionClass = Class of TRevision;
-  
-  { --------------------------------------------------------------------
-    TRevisionexportLinks
-    --------------------------------------------------------------------}
-  
-  TRevisionexportLinks = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TRevisionexportLinksClass = Class of TRevisionexportLinks;
   
   { --------------------------------------------------------------------
     TRevisionList
@@ -1918,37 +994,41 @@ type
   
   TRevisionList = Class(TGoogleBaseObject)
   Private
-    Fetag : string;
-    Fitems : TRevisionListitems;
-    Fkind : string;
-    FselfLink : string;
+    Fkind : String;
+    Frevisions : TRevisionListTyperevisionsArray;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : string); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TRevisionListitems); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : string); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrevisions(AIndex : Integer; const AValue : TRevisionListTyperevisionsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property etag : string Index 0 Read Fetag Write Setetag;
-    Property items : TRevisionListitems Index 8 Read Fitems Write Setitems;
-    Property kind : string Index 16 Read Fkind Write Setkind;
-    Property selfLink : string Index 24 Read FselfLink Write SetselfLink;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property revisions : TRevisionListTyperevisionsArray Index 8 Read Frevisions Write Setrevisions;
   end;
   TRevisionListClass = Class of TRevisionList;
   
   { --------------------------------------------------------------------
-    TRevisionListitems
+    TStartPageToken
     --------------------------------------------------------------------}
   
-  TRevisionListitems = Class(TGoogleBaseObject)
+  TStartPageToken = Class(TGoogleBaseObject)
   Private
+    Fkind : String;
+    FstartPageToken : String;
   Protected
     //Property setters
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartPageToken(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property startPageToken : String Index 8 Read FstartPageToken Write SetstartPageToken;
   end;
-  TRevisionListitemsClass = Class of TRevisionListitems;
+  TStartPageTokenClass = Class of TStartPageToken;
   
   { --------------------------------------------------------------------
     TUser
@@ -1956,89 +1036,40 @@ type
   
   TUser = Class(TGoogleBaseObject)
   Private
-    FdisplayName : string;
-    FemailAddress : string;
-    FisAuthenticatedUser : boolean;
-    Fkind : string;
-    FpermissionId : string;
-    Fpicture : TUserpicture;
+    FdisplayName : String;
+    FemailAddress : String;
+    Fkind : String;
+    Fme : boolean;
+    FpermissionId : String;
+    FphotoLink : String;
   Protected
     //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : string); virtual;
-    Procedure SetemailAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure SetisAuthenticatedUser(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpermissionId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setpicture(AIndex : Integer; AValue : TUserpicture); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetemailAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setme(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetpermissionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetphotoLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property displayName : string Index 0 Read FdisplayName Write SetdisplayName;
-    Property emailAddress : string Index 8 Read FemailAddress Write SetemailAddress;
-    Property isAuthenticatedUser : boolean Index 16 Read FisAuthenticatedUser Write SetisAuthenticatedUser;
-    Property kind : string Index 24 Read Fkind Write Setkind;
-    Property permissionId : string Index 32 Read FpermissionId Write SetpermissionId;
-    Property picture : TUserpicture Index 40 Read Fpicture Write Setpicture;
+    Property displayName : String Index 0 Read FdisplayName Write SetdisplayName;
+    Property emailAddress : String Index 8 Read FemailAddress Write SetemailAddress;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property me : boolean Index 24 Read Fme Write Setme;
+    Property permissionId : String Index 32 Read FpermissionId Write SetpermissionId;
+    Property photoLink : String Index 40 Read FphotoLink Write SetphotoLink;
   end;
   TUserClass = Class of TUser;
-  
-  { --------------------------------------------------------------------
-    TUserpicture
-    --------------------------------------------------------------------}
-  
-  TUserpicture = Class(TGoogleBaseObject)
-  Private
-    Furl : string;
-  Protected
-    //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property url : string Index 0 Read Furl Write Seturl;
-  end;
-  TUserpictureClass = Class of TUserpicture;
   
   { --------------------------------------------------------------------
     TAboutResource
     --------------------------------------------------------------------}
   
-  
-  //Optional query Options for TAboutResource, method Get
-  
-  TAboutGetOptions = Record
-    includeSubscribed : boolean;
-    maxChangeIdCount : int64;
-    startChangeId : int64;
-  end;
-  
   TAboutResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function Get(AQuery : string  = '') : TAbout;
-    Function Get(AQuery : TAboutgetOptions) : TAbout;
-  end;
-  
-  
-  { --------------------------------------------------------------------
-    TAppsResource
-    --------------------------------------------------------------------}
-  
-  
-  //Optional query Options for TAppsResource, method List
-  
-  TAppsListOptions = Record
-    appFilterExtensions : string;
-    appFilterMimeTypes : string;
-    languageCode : string;
-  end;
-  
-  TAppsResource = Class(TGoogleResource)
-  Public
-    Class Function ResourceName : String; override;
-    Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function Get(appId: string) : TApp;
-    Function List(AQuery : string  = '') : TAppList;
-    Function List(AQuery : TAppslistOptions) : TAppList;
+    Function Get : TAbout;
   end;
   
   
@@ -2050,29 +1081,29 @@ type
   //Optional query Options for TChangesResource, method List
   
   TChangesListOptions = Record
-    includeDeleted : boolean;
-    includeSubscribed : boolean;
-    maxResults : integer;
-    pageToken : string;
-    startChangeId : int64;
+    includeRemoved : boolean;
+    pageSize : integer;
+    pageToken : String;
+    restrictToMyDrive : boolean;
+    spaces : String;
   end;
   
   
   //Optional query Options for TChangesResource, method Watch
   
   TChangesWatchOptions = Record
-    includeDeleted : boolean;
-    includeSubscribed : boolean;
-    maxResults : integer;
-    pageToken : string;
-    startChangeId : int64;
+    includeRemoved : boolean;
+    pageSize : integer;
+    pageToken : String;
+    restrictToMyDrive : boolean;
+    spaces : String;
   end;
   
   TChangesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function Get(changeId: string) : TChange;
+    Function GetStartPageToken : TStartPageToken;
     Function List(AQuery : string  = '') : TChangeList;
     Function List(AQuery : TChangeslistOptions) : TChangeList;
     Function Watch(aChannel : TChannel; AQuery : string  = '') : TChannel;
@@ -2093,31 +1124,6 @@ type
   
   
   { --------------------------------------------------------------------
-    TChildrenResource
-    --------------------------------------------------------------------}
-  
-  
-  //Optional query Options for TChildrenResource, method List
-  
-  TChildrenListOptions = Record
-    maxResults : integer;
-    pageToken : string;
-    q : string;
-  end;
-  
-  TChildrenResource = Class(TGoogleResource)
-  Public
-    Class Function ResourceName : String; override;
-    Class Function DefaultAPI : TGoogleAPIClass; override;
-    Procedure Delete(childId: string; folderId: string);
-    Function Get(childId: string; folderId: string) : TChildReference;
-    Function Insert(folderId: string; aChildReference : TChildReference) : TChildReference;
-    Function List(folderId: string; AQuery : string  = '') : TChildList;
-    Function List(folderId: string; AQuery : TChildrenlistOptions) : TChildList;
-  end;
-  
-  
-  { --------------------------------------------------------------------
     TCommentsResource
     --------------------------------------------------------------------}
   
@@ -2133,22 +1139,21 @@ type
   
   TCommentsListOptions = Record
     includeDeleted : boolean;
-    maxResults : integer;
-    pageToken : string;
-    updatedMin : string;
+    pageSize : integer;
+    pageToken : String;
+    startModifiedTime : String;
   end;
   
   TCommentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(fileId: string; aComment : TComment) : TComment;overload;
     Procedure Delete(commentId: string; fileId: string);
     Function Get(commentId: string; fileId: string; AQuery : string  = '') : TComment;
     Function Get(commentId: string; fileId: string; AQuery : TCommentsgetOptions) : TComment;
-    Function Insert(fileId: string; aComment : TComment) : TComment;
     Function List(fileId: string; AQuery : string  = '') : TCommentList;
     Function List(fileId: string; AQuery : TCommentslistOptions) : TCommentList;
-    Function Patch(commentId: string; fileId: string; aComment : TComment) : TComment;
     Function Update(commentId: string; fileId: string; aComment : TComment) : TComment;
   end;
   
@@ -2161,13 +1166,34 @@ type
   //Optional query Options for TFilesResource, method Copy
   
   TFilesCopyOptions = Record
-    convert : boolean;
-    ocr : boolean;
-    ocrLanguage : string;
-    pinned : boolean;
-    timedTextLanguage : string;
-    timedTextTrackName : string;
-    visibility : string;
+    ignoreDefaultVisibility : boolean;
+    keepRevisionForever : boolean;
+    ocrLanguage : String;
+  end;
+  
+  
+  //Optional query Options for TFilesResource, method Create
+  
+  TFilesCreateOptions = Record
+    ignoreDefaultVisibility : boolean;
+    keepRevisionForever : boolean;
+    ocrLanguage : String;
+    useContentAsIndexableText : boolean;
+  end;
+  
+  
+  //Optional query Options for TFilesResource, method Export
+  
+  TFilesExportOptions = Record
+    mimeType : String;
+  end;
+  
+  
+  //Optional query Options for TFilesResource, method GenerateIds
+  
+  TFilesGenerateIdsOptions = Record
+    count : integer;
+    space : String;
   end;
   
   
@@ -2175,69 +1201,28 @@ type
   
   TFilesGetOptions = Record
     acknowledgeAbuse : boolean;
-    projection : string;
-    revisionId : string;
-    updateViewedDate : boolean;
-  end;
-  
-  
-  //Optional query Options for TFilesResource, method Insert
-  
-  TFilesInsertOptions = Record
-    convert : boolean;
-    ocr : boolean;
-    ocrLanguage : string;
-    pinned : boolean;
-    timedTextLanguage : string;
-    timedTextTrackName : string;
-    useContentAsIndexableText : boolean;
-    visibility : string;
   end;
   
   
   //Optional query Options for TFilesResource, method List
   
   TFilesListOptions = Record
-    corpus : string;
-    maxResults : integer;
-    pageToken : string;
-    projection : string;
-    q : string;
-  end;
-  
-  
-  //Optional query Options for TFilesResource, method Patch
-  
-  TFilesPatchOptions = Record
-    addParents : string;
-    convert : boolean;
-    newRevision : boolean;
-    ocr : boolean;
-    ocrLanguage : string;
-    pinned : boolean;
-    removeParents : string;
-    setModifiedDate : boolean;
-    timedTextLanguage : string;
-    timedTextTrackName : string;
-    updateViewedDate : boolean;
-    useContentAsIndexableText : boolean;
+    corpus : String;
+    orderBy : String;
+    pageSize : integer;
+    pageToken : String;
+    q : String;
+    spaces : String;
   end;
   
   
   //Optional query Options for TFilesResource, method Update
   
   TFilesUpdateOptions = Record
-    addParents : string;
-    convert : boolean;
-    newRevision : boolean;
-    ocr : boolean;
-    ocrLanguage : string;
-    pinned : boolean;
-    removeParents : string;
-    setModifiedDate : boolean;
-    timedTextLanguage : string;
-    timedTextTrackName : string;
-    updateViewedDate : boolean;
+    addParents : String;
+    keepRevisionForever : boolean;
+    ocrLanguage : String;
+    removeParents : String;
     useContentAsIndexableText : boolean;
   end;
   
@@ -2246,9 +1231,6 @@ type
   
   TFilesWatchOptions = Record
     acknowledgeAbuse : boolean;
-    projection : string;
-    revisionId : string;
-    updateViewedDate : boolean;
   end;
   
   TFilesResource = Class(TGoogleResource)
@@ -2257,19 +1239,18 @@ type
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Copy(fileId: string; aFile : TFile; AQuery : string  = '') : TFile;
     Function Copy(fileId: string; aFile : TFile; AQuery : TFilescopyOptions) : TFile;
+    Function Create(aFile : TFile; AQuery : string  = '') : TFile;overload;
+    Function Create(aFile : TFile; AQuery : TFilescreateOptions) : TFile;overload;
     Procedure Delete(fileId: string);
     Procedure EmptyTrash;
+    Procedure Export(fileId: string; AQuery : string  = '');
+    Procedure Export(fileId: string; AQuery : TFilesexportOptions);
+    Function GenerateIds(AQuery : string  = '') : TGeneratedIds;
+    Function GenerateIds(AQuery : TFilesgenerateIdsOptions) : TGeneratedIds;
     Function Get(fileId: string; AQuery : string  = '') : TFile;
     Function Get(fileId: string; AQuery : TFilesgetOptions) : TFile;
-    Function Insert(aFile : TFile; AQuery : string  = '') : TFile;
-    Function Insert(aFile : TFile; AQuery : TFilesinsertOptions) : TFile;
     Function List(AQuery : string  = '') : TFileList;
     Function List(AQuery : TFileslistOptions) : TFileList;
-    Function Patch(fileId: string; aFile : TFile; AQuery : string  = '') : TFile;
-    Function Patch(fileId: string; aFile : TFile; AQuery : TFilespatchOptions) : TFile;
-    Function Touch(fileId: string) : TFile;
-    Function Trash(fileId: string) : TFile;
-    Function Untrash(fileId: string) : TFile;
     Function Update(fileId: string; aFile : TFile; AQuery : string  = '') : TFile;
     Function Update(fileId: string; aFile : TFile; AQuery : TFilesupdateOptions) : TFile;
     Function Watch(fileId: string; aChannel : TChannel; AQuery : string  = '') : TChannel;
@@ -2278,36 +1259,15 @@ type
   
   
   { --------------------------------------------------------------------
-    TParentsResource
-    --------------------------------------------------------------------}
-  
-  TParentsResource = Class(TGoogleResource)
-  Public
-    Class Function ResourceName : String; override;
-    Class Function DefaultAPI : TGoogleAPIClass; override;
-    Procedure Delete(fileId: string; parentId: string);
-    Function Get(fileId: string; parentId: string) : TParentReference;
-    Function Insert(fileId: string; aParentReference : TParentReference) : TParentReference;
-    Function List(fileId: string) : TParentList;
-  end;
-  
-  
-  { --------------------------------------------------------------------
     TPermissionsResource
     --------------------------------------------------------------------}
   
   
-  //Optional query Options for TPermissionsResource, method Insert
+  //Optional query Options for TPermissionsResource, method Create
   
-  TPermissionsInsertOptions = Record
-    emailMessage : string;
-    sendNotificationEmails : boolean;
-  end;
-  
-  
-  //Optional query Options for TPermissionsResource, method Patch
-  
-  TPermissionsPatchOptions = Record
+  TPermissionsCreateOptions = Record
+    emailMessage : String;
+    sendNotificationEmail : boolean;
     transferOwnership : boolean;
   end;
   
@@ -2322,94 +1282,13 @@ type
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(fileId: string; aPermission : TPermission; AQuery : string  = '') : TPermission;overload;
+    Function Create(fileId: string; aPermission : TPermission; AQuery : TPermissionscreateOptions) : TPermission;overload;
     Procedure Delete(fileId: string; permissionId: string);
     Function Get(fileId: string; permissionId: string) : TPermission;
-    Function GetIdForEmail(email: string) : TPermissionId;
-    Function Insert(fileId: string; aPermission : TPermission; AQuery : string  = '') : TPermission;
-    Function Insert(fileId: string; aPermission : TPermission; AQuery : TPermissionsinsertOptions) : TPermission;
     Function List(fileId: string) : TPermissionList;
-    Function Patch(fileId: string; permissionId: string; aPermission : TPermission; AQuery : string  = '') : TPermission;
-    Function Patch(fileId: string; permissionId: string; aPermission : TPermission; AQuery : TPermissionspatchOptions) : TPermission;
     Function Update(fileId: string; permissionId: string; aPermission : TPermission; AQuery : string  = '') : TPermission;
     Function Update(fileId: string; permissionId: string; aPermission : TPermission; AQuery : TPermissionsupdateOptions) : TPermission;
-  end;
-  
-  
-  { --------------------------------------------------------------------
-    TPropertiesResource
-    --------------------------------------------------------------------}
-  
-  
-  //Optional query Options for TPropertiesResource, method Delete
-  
-  TPropertiesDeleteOptions = Record
-    visibility : string;
-  end;
-  
-  
-  //Optional query Options for TPropertiesResource, method Get
-  
-  TPropertiesGetOptions = Record
-    visibility : string;
-  end;
-  
-  
-  //Optional query Options for TPropertiesResource, method Patch
-  
-  TPropertiesPatchOptions = Record
-    visibility : string;
-  end;
-  
-  
-  //Optional query Options for TPropertiesResource, method Update
-  
-  TPropertiesUpdateOptions = Record
-    visibility : string;
-  end;
-  
-  TPropertiesResource = Class(TGoogleResource)
-  Public
-    Class Function ResourceName : String; override;
-    Class Function DefaultAPI : TGoogleAPIClass; override;
-    Procedure Delete(fileId: string; propertyKey: string; AQuery : string  = '');
-    Procedure Delete(fileId: string; propertyKey: string; AQuery : TPropertiesdeleteOptions);
-    Function Get(fileId: string; propertyKey: string; AQuery : string  = '') : TProperty;
-    Function Get(fileId: string; propertyKey: string; AQuery : TPropertiesgetOptions) : TProperty;
-    Function Insert(fileId: string; aProperty : TProperty) : TProperty;
-    Function List(fileId: string) : TPropertyList;
-    Function Patch(fileId: string; propertyKey: string; aProperty : TProperty; AQuery : string  = '') : TProperty;
-    Function Patch(fileId: string; propertyKey: string; aProperty : TProperty; AQuery : TPropertiespatchOptions) : TProperty;
-    Function Update(fileId: string; propertyKey: string; aProperty : TProperty; AQuery : string  = '') : TProperty;
-    Function Update(fileId: string; propertyKey: string; aProperty : TProperty; AQuery : TPropertiesupdateOptions) : TProperty;
-  end;
-  
-  
-  { --------------------------------------------------------------------
-    TRealtimeResource
-    --------------------------------------------------------------------}
-  
-  
-  //Optional query Options for TRealtimeResource, method Get
-  
-  TRealtimeGetOptions = Record
-    revision : integer;
-  end;
-  
-  
-  //Optional query Options for TRealtimeResource, method Update
-  
-  TRealtimeUpdateOptions = Record
-    baseRevision : string;
-  end;
-  
-  TRealtimeResource = Class(TGoogleResource)
-  Public
-    Class Function ResourceName : String; override;
-    Class Function DefaultAPI : TGoogleAPIClass; override;
-    Procedure Get(fileId: string; AQuery : string  = '');
-    Procedure Get(fileId: string; AQuery : TRealtimegetOptions);
-    Procedure Update(fileId: string; AQuery : string  = '');
-    Procedure Update(fileId: string; AQuery : TRealtimeupdateOptions);
   end;
   
   
@@ -2429,22 +1308,21 @@ type
   
   TRepliesListOptions = Record
     includeDeleted : boolean;
-    maxResults : integer;
-    pageToken : string;
+    pageSize : integer;
+    pageToken : String;
   end;
   
   TRepliesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(commentId: string; fileId: string; aReply : TReply) : TReply;overload;
     Procedure Delete(commentId: string; fileId: string; replyId: string);
-    Function Get(commentId: string; fileId: string; replyId: string; AQuery : string  = '') : TCommentReply;
-    Function Get(commentId: string; fileId: string; replyId: string; AQuery : TRepliesgetOptions) : TCommentReply;
-    Function Insert(commentId: string; fileId: string; aCommentReply : TCommentReply) : TCommentReply;
-    Function List(commentId: string; fileId: string; AQuery : string  = '') : TCommentReplyList;
-    Function List(commentId: string; fileId: string; AQuery : TReplieslistOptions) : TCommentReplyList;
-    Function Patch(commentId: string; fileId: string; replyId: string; aCommentReply : TCommentReply) : TCommentReply;
-    Function Update(commentId: string; fileId: string; replyId: string; aCommentReply : TCommentReply) : TCommentReply;
+    Function Get(commentId: string; fileId: string; replyId: string; AQuery : string  = '') : TReply;
+    Function Get(commentId: string; fileId: string; replyId: string; AQuery : TRepliesgetOptions) : TReply;
+    Function List(commentId: string; fileId: string; AQuery : string  = '') : TReplyList;
+    Function List(commentId: string; fileId: string; AQuery : TReplieslistOptions) : TReplyList;
+    Function Update(commentId: string; fileId: string; replyId: string; aReply : TReply) : TReply;
   end;
   
   
@@ -2452,14 +1330,21 @@ type
     TRevisionsResource
     --------------------------------------------------------------------}
   
+  
+  //Optional query Options for TRevisionsResource, method Get
+  
+  TRevisionsGetOptions = Record
+    acknowledgeAbuse : boolean;
+  end;
+  
   TRevisionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Procedure Delete(fileId: string; revisionId: string);
-    Function Get(fileId: string; revisionId: string) : TRevision;
+    Function Get(fileId: string; revisionId: string; AQuery : string  = '') : TRevision;
+    Function Get(fileId: string; revisionId: string; AQuery : TRevisionsgetOptions) : TRevision;
     Function List(fileId: string) : TRevisionList;
-    Function Patch(fileId: string; revisionId: string; aRevision : TRevision) : TRevision;
     Function Update(fileId: string; revisionId: string; aRevision : TRevision) : TRevision;
   end;
   
@@ -2471,29 +1356,19 @@ type
   TDriveAPI = Class(TGoogleAPI)
   Private
     FAboutInstance : TAboutResource;
-    FAppsInstance : TAppsResource;
     FChangesInstance : TChangesResource;
     FChannelsInstance : TChannelsResource;
-    FChildrenInstance : TChildrenResource;
     FCommentsInstance : TCommentsResource;
     FFilesInstance : TFilesResource;
-    FParentsInstance : TParentsResource;
     FPermissionsInstance : TPermissionsResource;
-    FPropertiesInstance : TPropertiesResource;
-    FRealtimeInstance : TRealtimeResource;
     FRepliesInstance : TRepliesResource;
     FRevisionsInstance : TRevisionsResource;
     Function GetAboutInstance : TAboutResource;virtual;
-    Function GetAppsInstance : TAppsResource;virtual;
     Function GetChangesInstance : TChangesResource;virtual;
     Function GetChannelsInstance : TChannelsResource;virtual;
-    Function GetChildrenInstance : TChildrenResource;virtual;
     Function GetCommentsInstance : TCommentsResource;virtual;
     Function GetFilesInstance : TFilesResource;virtual;
-    Function GetParentsInstance : TParentsResource;virtual;
     Function GetPermissionsInstance : TPermissionsResource;virtual;
-    Function GetPropertiesInstance : TPropertiesResource;virtual;
-    Function GetRealtimeInstance : TRealtimeResource;virtual;
     Function GetRepliesInstance : TRepliesResource;virtual;
     Function GetRevisionsInstance : TRevisionsResource;virtual;
   Public
@@ -2521,42 +1396,27 @@ type
     //Add create function for resources
     Function CreateAboutResource(AOwner : TComponent) : TAboutResource;virtual;overload;
     Function CreateAboutResource : TAboutResource;virtual;overload;
-    Function CreateAppsResource(AOwner : TComponent) : TAppsResource;virtual;overload;
-    Function CreateAppsResource : TAppsResource;virtual;overload;
     Function CreateChangesResource(AOwner : TComponent) : TChangesResource;virtual;overload;
     Function CreateChangesResource : TChangesResource;virtual;overload;
     Function CreateChannelsResource(AOwner : TComponent) : TChannelsResource;virtual;overload;
     Function CreateChannelsResource : TChannelsResource;virtual;overload;
-    Function CreateChildrenResource(AOwner : TComponent) : TChildrenResource;virtual;overload;
-    Function CreateChildrenResource : TChildrenResource;virtual;overload;
     Function CreateCommentsResource(AOwner : TComponent) : TCommentsResource;virtual;overload;
     Function CreateCommentsResource : TCommentsResource;virtual;overload;
     Function CreateFilesResource(AOwner : TComponent) : TFilesResource;virtual;overload;
     Function CreateFilesResource : TFilesResource;virtual;overload;
-    Function CreateParentsResource(AOwner : TComponent) : TParentsResource;virtual;overload;
-    Function CreateParentsResource : TParentsResource;virtual;overload;
     Function CreatePermissionsResource(AOwner : TComponent) : TPermissionsResource;virtual;overload;
     Function CreatePermissionsResource : TPermissionsResource;virtual;overload;
-    Function CreatePropertiesResource(AOwner : TComponent) : TPropertiesResource;virtual;overload;
-    Function CreatePropertiesResource : TPropertiesResource;virtual;overload;
-    Function CreateRealtimeResource(AOwner : TComponent) : TRealtimeResource;virtual;overload;
-    Function CreateRealtimeResource : TRealtimeResource;virtual;overload;
     Function CreateRepliesResource(AOwner : TComponent) : TRepliesResource;virtual;overload;
     Function CreateRepliesResource : TRepliesResource;virtual;overload;
     Function CreateRevisionsResource(AOwner : TComponent) : TRevisionsResource;virtual;overload;
     Function CreateRevisionsResource : TRevisionsResource;virtual;overload;
     //Add default on-demand instances for resources
     Property AboutResource : TAboutResource Read GetAboutInstance;
-    Property AppsResource : TAppsResource Read GetAppsInstance;
     Property ChangesResource : TChangesResource Read GetChangesInstance;
     Property ChannelsResource : TChannelsResource Read GetChannelsInstance;
-    Property ChildrenResource : TChildrenResource Read GetChildrenInstance;
     Property CommentsResource : TCommentsResource Read GetCommentsInstance;
     Property FilesResource : TFilesResource Read GetFilesInstance;
-    Property ParentsResource : TParentsResource Read GetParentsInstance;
     Property PermissionsResource : TPermissionsResource Read GetPermissionsInstance;
-    Property PropertiesResource : TPropertiesResource Read GetPropertiesInstance;
-    Property RealtimeResource : TRealtimeResource Read GetRealtimeInstance;
     Property RepliesResource : TRepliesResource Read GetRepliesInstance;
     Property RevisionsResource : TRevisionsResource Read GetRevisionsInstance;
   end;
@@ -2565,41 +1425,107 @@ implementation
 
 
 { --------------------------------------------------------------------
+  TAboutTypeexportFormats
+  --------------------------------------------------------------------}
+
+
+Class Function TAboutTypeexportFormats.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAboutTypeimportFormats
+  --------------------------------------------------------------------}
+
+
+Class Function TAboutTypeimportFormats.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAboutTypemaxImportSizes
+  --------------------------------------------------------------------}
+
+
+Class Function TAboutTypemaxImportSizes.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAboutTypestorageQuota
+  --------------------------------------------------------------------}
+
+
+Procedure TAboutTypestorageQuota.Setlimit(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Flimit=AValue) then exit;
+  Flimit:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAboutTypestorageQuota.Setusage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fusage=AValue) then exit;
+  Fusage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAboutTypestorageQuota.SetusageInDrive(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FusageInDrive=AValue) then exit;
+  FusageInDrive:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAboutTypestorageQuota.SetusageInDriveTrash(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FusageInDriveTrash=AValue) then exit;
+  FusageInDriveTrash:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TAbout
   --------------------------------------------------------------------}
 
 
-Procedure TAbout.SetadditionalRoleInfo(AIndex : Integer; AValue : TAboutadditionalRoleInfo); 
+Procedure TAbout.SetappInstalled(AIndex : Integer; const AValue : boolean); 
 
 begin
-  If (FadditionalRoleInfo=AValue) then exit;
-  FadditionalRoleInfo:=AValue;
+  If (FappInstalled=AValue) then exit;
+  FappInstalled:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TAbout.SetdomainSharingPolicy(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdomainSharingPolicy=AValue) then exit;
-  FdomainSharingPolicy:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetexportFormats(AIndex : Integer; AValue : TAboutexportFormats); 
+Procedure TAbout.SetexportFormats(AIndex : Integer; const AValue : TAboutTypeexportFormats); 
 
 begin
   If (FexportFormats=AValue) then exit;
@@ -2609,17 +1535,7 @@ end;
 
 
 
-Procedure TAbout.Setfeatures(AIndex : Integer; AValue : TAboutfeatures); 
-
-begin
-  If (Ffeatures=AValue) then exit;
-  Ffeatures:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetfolderColorPalette(AIndex : Integer; AValue : TAboutfolderColorPalette); 
+Procedure TAbout.SetfolderColorPalette(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FfolderColorPalette=AValue) then exit;
@@ -2629,7 +1545,7 @@ end;
 
 
 
-Procedure TAbout.SetimportFormats(AIndex : Integer; AValue : TAboutimportFormats); 
+Procedure TAbout.SetimportFormats(AIndex : Integer; const AValue : TAboutTypeimportFormats); 
 
 begin
   If (FimportFormats=AValue) then exit;
@@ -2639,17 +1555,7 @@ end;
 
 
 
-Procedure TAbout.SetisCurrentAppInstalled(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FisCurrentAppInstalled=AValue) then exit;
-  FisCurrentAppInstalled:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.Setkind(AIndex : Integer; AValue : string); 
+Procedure TAbout.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2659,147 +1565,37 @@ end;
 
 
 
-Procedure TAbout.SetlanguageCode(AIndex : Integer; AValue : string); 
+Procedure TAbout.SetmaxImportSizes(AIndex : Integer; const AValue : TAboutTypemaxImportSizes); 
 
 begin
-  If (FlanguageCode=AValue) then exit;
-  FlanguageCode:=AValue;
+  If (FmaxImportSizes=AValue) then exit;
+  FmaxImportSizes:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TAbout.SetlargestChangeId(AIndex : Integer; AValue : string); 
+Procedure TAbout.SetmaxUploadSize(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FlargestChangeId=AValue) then exit;
-  FlargestChangeId:=AValue;
+  If (FmaxUploadSize=AValue) then exit;
+  FmaxUploadSize:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TAbout.SetmaxUploadSizes(AIndex : Integer; AValue : TAboutmaxUploadSizes); 
+Procedure TAbout.SetstorageQuota(AIndex : Integer; const AValue : TAboutTypestorageQuota); 
 
 begin
-  If (FmaxUploadSizes=AValue) then exit;
-  FmaxUploadSizes:=AValue;
+  If (FstorageQuota=AValue) then exit;
+  FstorageQuota:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TAbout.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetpermissionId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FpermissionId=AValue) then exit;
-  FpermissionId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetquotaBytesByService(AIndex : Integer; AValue : TAboutquotaBytesByService); 
-
-begin
-  If (FquotaBytesByService=AValue) then exit;
-  FquotaBytesByService:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetquotaBytesTotal(AIndex : Integer; AValue : string); 
-
-begin
-  If (FquotaBytesTotal=AValue) then exit;
-  FquotaBytesTotal:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetquotaBytesUsed(AIndex : Integer; AValue : string); 
-
-begin
-  If (FquotaBytesUsed=AValue) then exit;
-  FquotaBytesUsed:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetquotaBytesUsedAggregate(AIndex : Integer; AValue : string); 
-
-begin
-  If (FquotaBytesUsedAggregate=AValue) then exit;
-  FquotaBytesUsedAggregate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetquotaBytesUsedInTrash(AIndex : Integer; AValue : string); 
-
-begin
-  If (FquotaBytesUsedInTrash=AValue) then exit;
-  FquotaBytesUsedInTrash:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetquotaType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FquotaType=AValue) then exit;
-  FquotaType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetremainingChangeIds(AIndex : Integer; AValue : string); 
-
-begin
-  If (FremainingChangeIds=AValue) then exit;
-  FremainingChangeIds:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetrootFolderId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FrootFolderId=AValue) then exit;
-  FrootFolderId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAbout.Setuser(AIndex : Integer; AValue : TUser); 
+Procedure TAbout.Setuser(AIndex : Integer; const AValue : TUser); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -2808,627 +1604,18 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TAboutadditionalRoleInfo
-  --------------------------------------------------------------------}
-
-
-Procedure TAboutadditionalRoleInfo.SetroleSets(AIndex : Integer; AValue : TAboutadditionalRoleInforoleSets); 
-
-begin
-  If (FroleSets=AValue) then exit;
-  FroleSets:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAboutadditionalRoleInfo.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TAboutadditionalRoleInfo.ExportPropertyName(Const AName : String) :String;
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAbout.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
   Case AName of
-  '_type' : Result:='type';
+  'foldercolorpalette' : SetLength(FfolderColorPalette,ALength);
   else
-    Result:=Inherited ExportPropertyName(AName);
+    Inherited SetArrayLength(AName,ALength);
   end;
 end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TAboutadditionalRoleInforoleSets
-  --------------------------------------------------------------------}
-
-
-Procedure TAboutadditionalRoleInforoleSets.SetadditionalRoles(AIndex : Integer; AValue : TAboutadditionalRoleInforoleSetsadditionalRoles); 
-
-begin
-  If (FadditionalRoles=AValue) then exit;
-  FadditionalRoles:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAboutadditionalRoleInforoleSets.SetprimaryRole(AIndex : Integer; AValue : string); 
-
-begin
-  If (FprimaryRole=AValue) then exit;
-  FprimaryRole:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAboutadditionalRoleInforoleSetsadditionalRoles
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAboutexportFormats
-  --------------------------------------------------------------------}
-
-
-Procedure TAboutexportFormats.Setsource(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fsource=AValue) then exit;
-  Fsource:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAboutexportFormats.Settargets(AIndex : Integer; AValue : TAboutexportFormatstargets); 
-
-begin
-  If (Ftargets=AValue) then exit;
-  Ftargets:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAboutexportFormatstargets
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAboutfeatures
-  --------------------------------------------------------------------}
-
-
-Procedure TAboutfeatures.SetfeatureName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfeatureName=AValue) then exit;
-  FfeatureName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAboutfeatures.SetfeatureRate(AIndex : Integer; AValue : double); 
-
-begin
-  If (FfeatureRate=AValue) then exit;
-  FfeatureRate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAboutfolderColorPalette
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAboutimportFormats
-  --------------------------------------------------------------------}
-
-
-Procedure TAboutimportFormats.Setsource(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fsource=AValue) then exit;
-  Fsource:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAboutimportFormats.Settargets(AIndex : Integer; AValue : TAboutimportFormatstargets); 
-
-begin
-  If (Ftargets=AValue) then exit;
-  Ftargets:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAboutimportFormatstargets
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAboutmaxUploadSizes
-  --------------------------------------------------------------------}
-
-
-Procedure TAboutmaxUploadSizes.Setsize(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fsize=AValue) then exit;
-  Fsize:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAboutmaxUploadSizes.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TAboutmaxUploadSizes.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TAboutquotaBytesByService
-  --------------------------------------------------------------------}
-
-
-Procedure TAboutquotaBytesByService.SetbytesUsed(AIndex : Integer; AValue : string); 
-
-begin
-  If (FbytesUsed=AValue) then exit;
-  FbytesUsed:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAboutquotaBytesByService.SetserviceName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FserviceName=AValue) then exit;
-  FserviceName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TApp
-  --------------------------------------------------------------------}
-
-
-Procedure TApp.Setauthorized(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (Fauthorized=AValue) then exit;
-  Fauthorized:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetcreateInFolderTemplate(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcreateInFolderTemplate=AValue) then exit;
-  FcreateInFolderTemplate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetcreateUrl(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcreateUrl=AValue) then exit;
-  FcreateUrl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SethasDriveWideScope(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FhasDriveWideScope=AValue) then exit;
-  FhasDriveWideScope:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.Seticons(AIndex : Integer; AValue : TAppicons); 
-
-begin
-  If (Ficons=AValue) then exit;
-  Ficons:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.Setinstalled(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (Finstalled=AValue) then exit;
-  Finstalled:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetlongDescription(AIndex : Integer; AValue : string); 
-
-begin
-  If (FlongDescription=AValue) then exit;
-  FlongDescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.Setname(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetobjectType(AIndex : Integer; AValue : string); 
-
-begin
-  If (FobjectType=AValue) then exit;
-  FobjectType:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetopenUrlTemplate(AIndex : Integer; AValue : string); 
-
-begin
-  If (FopenUrlTemplate=AValue) then exit;
-  FopenUrlTemplate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetprimaryFileExtensions(AIndex : Integer; AValue : TAppprimaryFileExtensions); 
-
-begin
-  If (FprimaryFileExtensions=AValue) then exit;
-  FprimaryFileExtensions:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetprimaryMimeTypes(AIndex : Integer; AValue : TAppprimaryMimeTypes); 
-
-begin
-  If (FprimaryMimeTypes=AValue) then exit;
-  FprimaryMimeTypes:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetproductId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FproductId=AValue) then exit;
-  FproductId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetproductUrl(AIndex : Integer; AValue : string); 
-
-begin
-  If (FproductUrl=AValue) then exit;
-  FproductUrl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetsecondaryFileExtensions(AIndex : Integer; AValue : TAppsecondaryFileExtensions); 
-
-begin
-  If (FsecondaryFileExtensions=AValue) then exit;
-  FsecondaryFileExtensions:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetsecondaryMimeTypes(AIndex : Integer; AValue : TAppsecondaryMimeTypes); 
-
-begin
-  If (FsecondaryMimeTypes=AValue) then exit;
-  FsecondaryMimeTypes:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetshortDescription(AIndex : Integer; AValue : string); 
-
-begin
-  If (FshortDescription=AValue) then exit;
-  FshortDescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetsupportsCreate(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FsupportsCreate=AValue) then exit;
-  FsupportsCreate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetsupportsImport(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FsupportsImport=AValue) then exit;
-  FsupportsImport:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetsupportsMultiOpen(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FsupportsMultiOpen=AValue) then exit;
-  FsupportsMultiOpen:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetsupportsOfflineCreate(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FsupportsOfflineCreate=AValue) then exit;
-  FsupportsOfflineCreate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TApp.SetuseByDefault(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FuseByDefault=AValue) then exit;
-  FuseByDefault:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAppicons
-  --------------------------------------------------------------------}
-
-
-Procedure TAppicons.Setcategory(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcategory=AValue) then exit;
-  Fcategory:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAppicons.SeticonUrl(AIndex : Integer; AValue : string); 
-
-begin
-  If (FiconUrl=AValue) then exit;
-  FiconUrl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAppicons.Setsize(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fsize=AValue) then exit;
-  Fsize:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAppprimaryFileExtensions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAppprimaryMimeTypes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAppsecondaryFileExtensions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAppsecondaryMimeTypes
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAppList
-  --------------------------------------------------------------------}
-
-
-Procedure TAppList.SetdefaultAppIds(AIndex : Integer; AValue : TAppListdefaultAppIds); 
-
-begin
-  If (FdefaultAppIds=AValue) then exit;
-  FdefaultAppIds:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAppList.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAppList.Setitems(AIndex : Integer; AValue : TAppListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAppList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TAppList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TAppListdefaultAppIds
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAppListitems
-  --------------------------------------------------------------------}
+{$ENDIF VER2_6}
 
 
 
@@ -3438,17 +1625,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChange.Setdeleted(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (Fdeleted=AValue) then exit;
-  Fdeleted:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChange.Set_file(AIndex : Integer; AValue : TFile); 
+Procedure TChange.Set_file(AIndex : Integer; const AValue : TFile); 
 
 begin
   If (F_file=AValue) then exit;
@@ -3458,7 +1635,7 @@ end;
 
 
 
-Procedure TChange.SetfileId(AIndex : Integer; AValue : string); 
+Procedure TChange.SetfileId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileId=AValue) then exit;
@@ -3468,17 +1645,7 @@ end;
 
 
 
-Procedure TChange.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChange.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChange.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3488,21 +1655,21 @@ end;
 
 
 
-Procedure TChange.SetmodificationDate(AIndex : Integer; AValue : TDatetime); 
+Procedure TChange.Setremoved(AIndex : Integer; const AValue : boolean); 
 
 begin
-  If (FmodificationDate=AValue) then exit;
-  FmodificationDate:=AValue;
+  If (Fremoved=AValue) then exit;
+  Fremoved:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TChange.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TChange.Settime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
+  If (Ftime=AValue) then exit;
+  Ftime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -3526,27 +1693,17 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChangeList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TChangeList.Setchanges(AIndex : Integer; const AValue : TChangeListTypechangesArray); 
 
 begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
+  If (Fchanges=AValue) then exit;
+  Fchanges:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TChangeList.Setitems(AIndex : Integer; AValue : TChangeListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChangeList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChangeList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3556,27 +1713,17 @@ end;
 
 
 
-Procedure TChangeList.SetlargestChangeId(AIndex : Integer; AValue : string); 
+Procedure TChangeList.SetnewStartPageToken(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FlargestChangeId=AValue) then exit;
-  FlargestChangeId:=AValue;
+  If (FnewStartPageToken=AValue) then exit;
+  FnewStartPageToken:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TChangeList.SetnextLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextLink=AValue) then exit;
-  FnextLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChangeList.SetnextPageToken(AIndex : Integer; AValue : string); 
+Procedure TChangeList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3585,23 +1732,32 @@ begin
 end;
 
 
-
-Procedure TChangeList.SetselfLink(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TChangeList.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'changes' : SetLength(Fchanges,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TChangeListitems
+  TChannelTypeparams
   --------------------------------------------------------------------}
 
+
+Class Function TChannelTypeparams.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -3610,7 +1766,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannel.Setaddress(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setaddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (Faddress=AValue) then exit;
@@ -3620,7 +1776,7 @@ end;
 
 
 
-Procedure TChannel.Setexpiration(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setexpiration(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fexpiration=AValue) then exit;
@@ -3630,7 +1786,7 @@ end;
 
 
 
-Procedure TChannel.Setid(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3640,7 +1796,7 @@ end;
 
 
 
-Procedure TChannel.Setkind(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3650,7 +1806,7 @@ end;
 
 
 
-Procedure TChannel.Setparams(AIndex : Integer; AValue : TChannelparams); 
+Procedure TChannel.Setparams(AIndex : Integer; const AValue : TChannelTypeparams); 
 
 begin
   If (Fparams=AValue) then exit;
@@ -3660,7 +1816,7 @@ end;
 
 
 
-Procedure TChannel.Setpayload(AIndex : Integer; AValue : boolean); 
+Procedure TChannel.Setpayload(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fpayload=AValue) then exit;
@@ -3670,7 +1826,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceId(AIndex : Integer; AValue : string); 
+Procedure TChannel.SetresourceId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceId=AValue) then exit;
@@ -3680,7 +1836,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceUri(AIndex : Integer; AValue : string); 
+Procedure TChannel.SetresourceUri(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceUri=AValue) then exit;
@@ -3690,7 +1846,7 @@ end;
 
 
 
-Procedure TChannel.Settoken(AIndex : Integer; AValue : string); 
+Procedure TChannel.Settoken(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftoken=AValue) then exit;
@@ -3700,7 +1856,7 @@ end;
 
 
 
-Procedure TChannel.Set_type(AIndex : Integer; AValue : string); 
+Procedure TChannel.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3724,132 +1880,25 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChannelparams
+  TCommentTypequotedFileContent
   --------------------------------------------------------------------}
 
 
-Class Function TChannelparams.AllowAdditionalProperties : Boolean;
+Procedure TCommentTypequotedFileContent.SetmimeType(AIndex : Integer; const AValue : String); 
 
 begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TChildList
-  --------------------------------------------------------------------}
-
-
-Procedure TChildList.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
+  If (FmimeType=AValue) then exit;
+  FmimeType:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TChildList.Setitems(AIndex : Integer; AValue : TChildListitems); 
+Procedure TCommentTypequotedFileContent.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChildList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChildList.SetnextLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextLink=AValue) then exit;
-  FnextLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChildList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChildList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TChildListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TChildReference
-  --------------------------------------------------------------------}
-
-
-Procedure TChildReference.SetchildLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FchildLink=AValue) then exit;
-  FchildLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChildReference.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChildReference.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TChildReference.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -3862,7 +1911,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TComment.Setanchor(AIndex : Integer; AValue : string); 
+Procedure TComment.Setanchor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fanchor=AValue) then exit;
@@ -3872,7 +1921,7 @@ end;
 
 
 
-Procedure TComment.Setauthor(AIndex : Integer; AValue : TUser); 
+Procedure TComment.Setauthor(AIndex : Integer; const AValue : TUser); 
 
 begin
   If (Fauthor=AValue) then exit;
@@ -3882,17 +1931,7 @@ end;
 
 
 
-Procedure TComment.SetcommentId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcommentId=AValue) then exit;
-  FcommentId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TComment.Setcontent(AIndex : Integer; AValue : string); 
+Procedure TComment.Setcontent(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcontent=AValue) then exit;
@@ -3902,27 +1941,17 @@ end;
 
 
 
-Procedure TComment.Setcontext(AIndex : Integer; AValue : TCommentcontext); 
+Procedure TComment.SetcreatedTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
-  If (Fcontext=AValue) then exit;
-  Fcontext:=AValue;
+  If (FcreatedTime=AValue) then exit;
+  FcreatedTime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TComment.SetcreatedDate(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (FcreatedDate=AValue) then exit;
-  FcreatedDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TComment.Setdeleted(AIndex : Integer; AValue : boolean); 
+Procedure TComment.Setdeleted(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -3932,27 +1961,7 @@ end;
 
 
 
-Procedure TComment.SetfileId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfileId=AValue) then exit;
-  FfileId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TComment.SetfileTitle(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfileTitle=AValue) then exit;
-  FfileTitle:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TComment.SethtmlContent(AIndex : Integer; AValue : string); 
+Procedure TComment.SethtmlContent(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhtmlContent=AValue) then exit;
@@ -3962,504 +1971,7 @@ end;
 
 
 
-Procedure TComment.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TComment.SetmodifiedDate(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (FmodifiedDate=AValue) then exit;
-  FmodifiedDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TComment.Setreplies(AIndex : Integer; AValue : TCommentreplies); 
-
-begin
-  If (Freplies=AValue) then exit;
-  Freplies:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TComment.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TComment.Setstatus(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fstatus=AValue) then exit;
-  Fstatus:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentcontext
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentcontext.Set_type(AIndex : Integer; AValue : string); 
-
-begin
-  If (F_type=AValue) then exit;
-  F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentcontext.Setvalue(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fvalue=AValue) then exit;
-  Fvalue:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Class Function TCommentcontext.ExportPropertyName(Const AName : String) :String;
-
-begin
-  Case AName of
-  '_type' : Result:='type';
-  else
-    Result:=Inherited ExportPropertyName(AName);
-  end;
-end;
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentreplies
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentList
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentList.Setitems(AIndex : Integer; AValue : TCommentListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentList.SetnextLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextLink=AValue) then exit;
-  FnextLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentReply
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentReply.Setauthor(AIndex : Integer; AValue : TUser); 
-
-begin
-  If (Fauthor=AValue) then exit;
-  Fauthor:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReply.Setcontent(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fcontent=AValue) then exit;
-  Fcontent:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReply.SetcreatedDate(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (FcreatedDate=AValue) then exit;
-  FcreatedDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReply.Setdeleted(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (Fdeleted=AValue) then exit;
-  Fdeleted:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReply.SethtmlContent(AIndex : Integer; AValue : string); 
-
-begin
-  If (FhtmlContent=AValue) then exit;
-  FhtmlContent:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReply.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReply.SetmodifiedDate(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (FmodifiedDate=AValue) then exit;
-  FmodifiedDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReply.SetreplyId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FreplyId=AValue) then exit;
-  FreplyId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReply.Setverb(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fverb=AValue) then exit;
-  Fverb:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentReplyList
-  --------------------------------------------------------------------}
-
-
-Procedure TCommentReplyList.Setitems(AIndex : Integer; AValue : TCommentReplyListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReplyList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReplyList.SetnextLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextLink=AValue) then exit;
-  FnextLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReplyList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCommentReplyList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TCommentReplyListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFile
-  --------------------------------------------------------------------}
-
-
-Procedure TFile.SetalternateLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FalternateLink=AValue) then exit;
-  FalternateLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetappDataContents(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FappDataContents=AValue) then exit;
-  FappDataContents:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setcopyable(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (Fcopyable=AValue) then exit;
-  Fcopyable:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetcreatedDate(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (FcreatedDate=AValue) then exit;
-  FcreatedDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetdefaultOpenWithLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdefaultOpenWithLink=AValue) then exit;
-  FdefaultOpenWithLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setdescription(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdescription=AValue) then exit;
-  Fdescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetdownloadUrl(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdownloadUrl=AValue) then exit;
-  FdownloadUrl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Seteditable(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (Feditable=AValue) then exit;
-  Feditable:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetembedLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FembedLink=AValue) then exit;
-  FembedLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetexplicitlyTrashed(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FexplicitlyTrashed=AValue) then exit;
-  FexplicitlyTrashed:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetexportLinks(AIndex : Integer; AValue : TFileexportLinks); 
-
-begin
-  If (FexportLinks=AValue) then exit;
-  FexportLinks:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetfileExtension(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfileExtension=AValue) then exit;
-  FfileExtension:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetfileSize(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfileSize=AValue) then exit;
-  FfileSize:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetfolderColorRgb(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfolderColorRgb=AValue) then exit;
-  FfolderColorRgb:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetheadRevisionId(AIndex : Integer; AValue : string); 
-
-begin
-  If (FheadRevisionId=AValue) then exit;
-  FheadRevisionId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SeticonLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FiconLink=AValue) then exit;
-  FiconLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setid(AIndex : Integer; AValue : string); 
+Procedure TComment.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4469,27 +1981,7 @@ end;
 
 
 
-Procedure TFile.SetimageMediaMetadata(AIndex : Integer; AValue : TFileimageMediaMetadata); 
-
-begin
-  If (FimageMediaMetadata=AValue) then exit;
-  FimageMediaMetadata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetindexableText(AIndex : Integer; AValue : TFileindexableText); 
-
-begin
-  If (FindexableText=AValue) then exit;
-  FindexableText:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setkind(AIndex : Integer; AValue : string); 
+Procedure TComment.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4499,67 +1991,197 @@ end;
 
 
 
-Procedure TFile.Setlabels(AIndex : Integer; AValue : TFilelabels); 
+Procedure TComment.SetmodifiedTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
-  If (Flabels=AValue) then exit;
-  Flabels:=AValue;
+  If (FmodifiedTime=AValue) then exit;
+  FmodifiedTime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFile.SetlastModifyingUser(AIndex : Integer; AValue : TUser); 
+Procedure TComment.SetquotedFileContent(AIndex : Integer; const AValue : TCommentTypequotedFileContent); 
 
 begin
-  If (FlastModifyingUser=AValue) then exit;
-  FlastModifyingUser:=AValue;
+  If (FquotedFileContent=AValue) then exit;
+  FquotedFileContent:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFile.SetlastModifyingUserName(AIndex : Integer; AValue : string); 
+Procedure TComment.Setreplies(AIndex : Integer; const AValue : TCommentTyperepliesArray); 
 
 begin
-  If (FlastModifyingUserName=AValue) then exit;
-  FlastModifyingUserName:=AValue;
+  If (Freplies=AValue) then exit;
+  Freplies:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFile.SetlastViewedByMeDate(AIndex : Integer; AValue : TDatetime); 
+Procedure TComment.Setresolved(AIndex : Integer; const AValue : boolean); 
 
 begin
-  If (FlastViewedByMeDate=AValue) then exit;
-  FlastViewedByMeDate:=AValue;
+  If (Fresolved=AValue) then exit;
+  Fresolved:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TComment.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'replies' : SetLength(Freplies,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TCommentList
+  --------------------------------------------------------------------}
+
+
+Procedure TCommentList.Setcomments(AIndex : Integer; const AValue : TCommentListTypecommentsArray); 
+
+begin
+  If (Fcomments=AValue) then exit;
+  Fcomments:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFile.SetmarkedViewedByMeDate(AIndex : Integer; AValue : TDatetime); 
+Procedure TCommentList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FmarkedViewedByMeDate=AValue) then exit;
-  FmarkedViewedByMeDate:=AValue;
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFile.Setmd5Checksum(AIndex : Integer; AValue : string); 
+Procedure TCommentList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fmd5Checksum=AValue) then exit;
-  Fmd5Checksum:=AValue;
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCommentList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'comments' : SetLength(Fcomments,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TFileTypeappProperties
+  --------------------------------------------------------------------}
+
+
+Class Function TFileTypeappProperties.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TFileTypecapabilities
+  --------------------------------------------------------------------}
+
+
+Procedure TFileTypecapabilities.SetcanComment(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FcanComment=AValue) then exit;
+  FcanComment:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFile.SetmimeType(AIndex : Integer; AValue : string); 
+Procedure TFileTypecapabilities.SetcanCopy(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FcanCopy=AValue) then exit;
+  FcanCopy:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypecapabilities.SetcanEdit(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FcanEdit=AValue) then exit;
+  FcanEdit:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypecapabilities.SetcanReadRevisions(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FcanReadRevisions=AValue) then exit;
+  FcanReadRevisions:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypecapabilities.SetcanShare(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FcanShare=AValue) then exit;
+  FcanShare:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TFileTypecontentHintsTypethumbnail
+  --------------------------------------------------------------------}
+
+
+Procedure TFileTypecontentHintsTypethumbnail.Setimage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fimage=AValue) then exit;
+  Fimage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypecontentHintsTypethumbnail.SetmimeType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmimeType=AValue) then exit;
@@ -4569,147 +2191,24 @@ end;
 
 
 
-Procedure TFile.SetmodifiedByMeDate(AIndex : Integer; AValue : TDatetime); 
+
+
+{ --------------------------------------------------------------------
+  TFileTypecontentHints
+  --------------------------------------------------------------------}
+
+
+Procedure TFileTypecontentHints.SetindexableText(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FmodifiedByMeDate=AValue) then exit;
-  FmodifiedByMeDate:=AValue;
+  If (FindexableText=AValue) then exit;
+  FindexableText:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFile.SetmodifiedDate(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (FmodifiedDate=AValue) then exit;
-  FmodifiedDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetopenWithLinks(AIndex : Integer; AValue : TFileopenWithLinks); 
-
-begin
-  If (FopenWithLinks=AValue) then exit;
-  FopenWithLinks:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetoriginalFilename(AIndex : Integer; AValue : string); 
-
-begin
-  If (ForiginalFilename=AValue) then exit;
-  ForiginalFilename:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetownerNames(AIndex : Integer; AValue : TFileownerNames); 
-
-begin
-  If (FownerNames=AValue) then exit;
-  FownerNames:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setowners(AIndex : Integer; AValue : TFileowners); 
-
-begin
-  If (Fowners=AValue) then exit;
-  Fowners:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setparents(AIndex : Integer; AValue : TFileparents); 
-
-begin
-  If (Fparents=AValue) then exit;
-  Fparents:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setpermissions(AIndex : Integer; AValue : TFilepermissions); 
-
-begin
-  If (Fpermissions=AValue) then exit;
-  Fpermissions:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setproperties(AIndex : Integer; AValue : TFileproperties); 
-
-begin
-  If (Fproperties=AValue) then exit;
-  Fproperties:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetquotaBytesUsed(AIndex : Integer; AValue : string); 
-
-begin
-  If (FquotaBytesUsed=AValue) then exit;
-  FquotaBytesUsed:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setshared(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (Fshared=AValue) then exit;
-  Fshared:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetsharedWithMeDate(AIndex : Integer; AValue : TDatetime); 
-
-begin
-  If (FsharedWithMeDate=AValue) then exit;
-  FsharedWithMeDate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetsharingUser(AIndex : Integer; AValue : TUser); 
-
-begin
-  If (FsharingUser=AValue) then exit;
-  FsharingUser:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setthumbnail(AIndex : Integer; AValue : TFilethumbnail); 
+Procedure TFileTypecontentHints.Setthumbnail(AIndex : Integer; const AValue : TFileTypecontentHintsTypethumbnail); 
 
 begin
   If (Fthumbnail=AValue) then exit;
@@ -4719,324 +2218,14 @@ end;
 
 
 
-Procedure TFile.SetthumbnailLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FthumbnailLink=AValue) then exit;
-  FthumbnailLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Settitle(AIndex : Integer; AValue : string); 
-
-begin
-  If (Ftitle=AValue) then exit;
-  Ftitle:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetuserPermission(AIndex : Integer; AValue : TPermission); 
-
-begin
-  If (FuserPermission=AValue) then exit;
-  FuserPermission:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.Setversion(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fversion=AValue) then exit;
-  Fversion:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetvideoMediaMetadata(AIndex : Integer; AValue : TFilevideoMediaMetadata); 
-
-begin
-  If (FvideoMediaMetadata=AValue) then exit;
-  FvideoMediaMetadata:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetwebContentLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FwebContentLink=AValue) then exit;
-  FwebContentLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetwebViewLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FwebViewLink=AValue) then exit;
-  FwebViewLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFile.SetwritersCanShare(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FwritersCanShare=AValue) then exit;
-  FwritersCanShare:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
 
 
 { --------------------------------------------------------------------
-  TFileexportLinks
+  TFileTypeimageMediaMetadataTypelocation
   --------------------------------------------------------------------}
 
 
-Class Function TFileexportLinks.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TFileimageMediaMetadata
-  --------------------------------------------------------------------}
-
-
-Procedure TFileimageMediaMetadata.Setaperture(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Faperture=AValue) then exit;
-  Faperture:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetcameraMake(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcameraMake=AValue) then exit;
-  FcameraMake:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetcameraModel(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcameraModel=AValue) then exit;
-  FcameraModel:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetcolorSpace(AIndex : Integer; AValue : string); 
-
-begin
-  If (FcolorSpace=AValue) then exit;
-  FcolorSpace:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.Setdate(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdate=AValue) then exit;
-  Fdate:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetexposureBias(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FexposureBias=AValue) then exit;
-  FexposureBias:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetexposureMode(AIndex : Integer; AValue : string); 
-
-begin
-  If (FexposureMode=AValue) then exit;
-  FexposureMode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetexposureTime(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FexposureTime=AValue) then exit;
-  FexposureTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetflashUsed(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FflashUsed=AValue) then exit;
-  FflashUsed:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetfocalLength(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FfocalLength=AValue) then exit;
-  FfocalLength:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.Setheight(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fheight=AValue) then exit;
-  Fheight:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetisoSpeed(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FisoSpeed=AValue) then exit;
-  FisoSpeed:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.Setlens(AIndex : Integer; AValue : string); 
-
-begin
-  If (Flens=AValue) then exit;
-  Flens:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.Setlocation(AIndex : Integer; AValue : TFileimageMediaMetadatalocation); 
-
-begin
-  If (Flocation=AValue) then exit;
-  Flocation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetmaxApertureValue(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FmaxApertureValue=AValue) then exit;
-  FmaxApertureValue:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetmeteringMode(AIndex : Integer; AValue : string); 
-
-begin
-  If (FmeteringMode=AValue) then exit;
-  FmeteringMode:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.Setrotation(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Frotation=AValue) then exit;
-  Frotation:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.Setsensor(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fsensor=AValue) then exit;
-  Fsensor:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetsubjectDistance(AIndex : Integer; AValue : integer); 
-
-begin
-  If (FsubjectDistance=AValue) then exit;
-  FsubjectDistance:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.SetwhiteBalance(AIndex : Integer; AValue : string); 
-
-begin
-  If (FwhiteBalance=AValue) then exit;
-  FwhiteBalance:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileimageMediaMetadata.Setwidth(AIndex : Integer; AValue : integer); 
-
-begin
-  If (Fwidth=AValue) then exit;
-  Fwidth:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TFileimageMediaMetadatalocation
-  --------------------------------------------------------------------}
-
-
-Procedure TFileimageMediaMetadatalocation.Setaltitude(AIndex : Integer; AValue : double); 
+Procedure TFileTypeimageMediaMetadataTypelocation.Setaltitude(AIndex : Integer; const AValue : double); 
 
 begin
   If (Faltitude=AValue) then exit;
@@ -5046,7 +2235,7 @@ end;
 
 
 
-Procedure TFileimageMediaMetadatalocation.Setlatitude(AIndex : Integer; AValue : double); 
+Procedure TFileTypeimageMediaMetadataTypelocation.Setlatitude(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flatitude=AValue) then exit;
@@ -5056,7 +2245,7 @@ end;
 
 
 
-Procedure TFileimageMediaMetadatalocation.Setlongitude(AIndex : Integer; AValue : double); 
+Procedure TFileTypeimageMediaMetadataTypelocation.Setlongitude(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flongitude=AValue) then exit;
@@ -5069,170 +2258,101 @@ end;
 
 
 { --------------------------------------------------------------------
-  TFileindexableText
+  TFileTypeimageMediaMetadata
   --------------------------------------------------------------------}
 
 
-Procedure TFileindexableText.Settext(AIndex : Integer; AValue : string); 
+Procedure TFileTypeimageMediaMetadata.Setaperture(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (Ftext=AValue) then exit;
-  Ftext:=AValue;
+  If (Faperture=AValue) then exit;
+  Faperture:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-
-
-{ --------------------------------------------------------------------
-  TFilelabels
-  --------------------------------------------------------------------}
-
-
-Procedure TFilelabels.Sethidden(AIndex : Integer; AValue : boolean); 
+Procedure TFileTypeimageMediaMetadata.SetcameraMake(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fhidden=AValue) then exit;
-  Fhidden:=AValue;
+  If (FcameraMake=AValue) then exit;
+  FcameraMake:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFilelabels.Setrestricted(AIndex : Integer; AValue : boolean); 
+Procedure TFileTypeimageMediaMetadata.SetcameraModel(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Frestricted=AValue) then exit;
-  Frestricted:=AValue;
+  If (FcameraModel=AValue) then exit;
+  FcameraModel:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFilelabels.Setstarred(AIndex : Integer; AValue : boolean); 
+Procedure TFileTypeimageMediaMetadata.SetcolorSpace(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fstarred=AValue) then exit;
-  Fstarred:=AValue;
+  If (FcolorSpace=AValue) then exit;
+  FcolorSpace:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFilelabels.Settrashed(AIndex : Integer; AValue : boolean); 
+Procedure TFileTypeimageMediaMetadata.SetexposureBias(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (Ftrashed=AValue) then exit;
-  Ftrashed:=AValue;
+  If (FexposureBias=AValue) then exit;
+  FexposureBias:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFilelabels.Setviewed(AIndex : Integer; AValue : boolean); 
+Procedure TFileTypeimageMediaMetadata.SetexposureMode(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fviewed=AValue) then exit;
-  Fviewed:=AValue;
+  If (FexposureMode=AValue) then exit;
+  FexposureMode:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-
-
-{ --------------------------------------------------------------------
-  TFileopenWithLinks
-  --------------------------------------------------------------------}
-
-
-Class Function TFileopenWithLinks.AllowAdditionalProperties : Boolean;
+Procedure TFileTypeimageMediaMetadata.SetexposureTime(AIndex : Integer; const AValue : integer); 
 
 begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TFileownerNames
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFileowners
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFileparents
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFilepermissions
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFileproperties
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TFilethumbnail
-  --------------------------------------------------------------------}
-
-
-Procedure TFilethumbnail.Setimage(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fimage=AValue) then exit;
-  Fimage:=AValue;
+  If (FexposureTime=AValue) then exit;
+  FexposureTime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFilethumbnail.SetmimeType(AIndex : Integer; AValue : string); 
+Procedure TFileTypeimageMediaMetadata.SetflashUsed(AIndex : Integer; const AValue : boolean); 
 
 begin
-  If (FmimeType=AValue) then exit;
-  FmimeType:=AValue;
+  If (FflashUsed=AValue) then exit;
+  FflashUsed:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-
-
-{ --------------------------------------------------------------------
-  TFilevideoMediaMetadata
-  --------------------------------------------------------------------}
-
-
-Procedure TFilevideoMediaMetadata.SetdurationMillis(AIndex : Integer; AValue : string); 
+Procedure TFileTypeimageMediaMetadata.SetfocalLength(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (FdurationMillis=AValue) then exit;
-  FdurationMillis:=AValue;
+  If (FfocalLength=AValue) then exit;
+  FfocalLength:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFilevideoMediaMetadata.Setheight(AIndex : Integer; AValue : integer); 
+Procedure TFileTypeimageMediaMetadata.Setheight(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fheight=AValue) then exit;
@@ -5242,7 +2362,107 @@ end;
 
 
 
-Procedure TFilevideoMediaMetadata.Setwidth(AIndex : Integer; AValue : integer); 
+Procedure TFileTypeimageMediaMetadata.SetisoSpeed(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FisoSpeed=AValue) then exit;
+  FisoSpeed:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypeimageMediaMetadata.Setlens(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Flens=AValue) then exit;
+  Flens:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypeimageMediaMetadata.Setlocation(AIndex : Integer; const AValue : TFileTypeimageMediaMetadataTypelocation); 
+
+begin
+  If (Flocation=AValue) then exit;
+  Flocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypeimageMediaMetadata.SetmaxApertureValue(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FmaxApertureValue=AValue) then exit;
+  FmaxApertureValue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypeimageMediaMetadata.SetmeteringMode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FmeteringMode=AValue) then exit;
+  FmeteringMode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypeimageMediaMetadata.Setrotation(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Frotation=AValue) then exit;
+  Frotation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypeimageMediaMetadata.Setsensor(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fsensor=AValue) then exit;
+  Fsensor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypeimageMediaMetadata.SetsubjectDistance(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FsubjectDistance=AValue) then exit;
+  FsubjectDistance:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypeimageMediaMetadata.Settime(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ftime=AValue) then exit;
+  Ftime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypeimageMediaMetadata.SetwhiteBalance(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FwhiteBalance=AValue) then exit;
+  FwhiteBalance:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileTypeimageMediaMetadata.Setwidth(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fwidth=AValue) then exit;
@@ -5255,65 +2475,48 @@ end;
 
 
 { --------------------------------------------------------------------
-  TFileList
+  TFileTypeproperties
   --------------------------------------------------------------------}
 
 
-Procedure TFileList.Setetag(AIndex : Integer; AValue : string); 
+Class Function TFileTypeproperties.AllowAdditionalProperties : Boolean;
 
 begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
+  Result:=True;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TFileTypevideoMediaMetadata
+  --------------------------------------------------------------------}
+
+
+Procedure TFileTypevideoMediaMetadata.SetdurationMillis(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdurationMillis=AValue) then exit;
+  FdurationMillis:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFileList.Setitems(AIndex : Integer; AValue : TFileListitems); 
+Procedure TFileTypevideoMediaMetadata.Setheight(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
+  If (Fheight=AValue) then exit;
+  Fheight:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TFileList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TFileTypevideoMediaMetadata.Setwidth(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileList.SetnextLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextLink=AValue) then exit;
-  FnextLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileList.SetnextPageToken(AIndex : Integer; AValue : string); 
-
-begin
-  If (FnextPageToken=AValue) then exit;
-  FnextPageToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TFileList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
+  If (Fwidth=AValue) then exit;
+  Fwidth:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -5322,72 +2525,121 @@ end;
 
 
 { --------------------------------------------------------------------
-  TFileListitems
+  TFile
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TParentList
-  --------------------------------------------------------------------}
-
-
-Procedure TParentList.Setetag(AIndex : Integer; AValue : string); 
+Procedure TFile.SetappProperties(AIndex : Integer; const AValue : TFileTypeappProperties); 
 
 begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
+  If (FappProperties=AValue) then exit;
+  FappProperties:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TParentList.Setitems(AIndex : Integer; AValue : TParentListitems); 
+Procedure TFile.Setcapabilities(AIndex : Integer; const AValue : TFileTypecapabilities); 
 
 begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
+  If (Fcapabilities=AValue) then exit;
+  Fcapabilities:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TParentList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TFile.SetcontentHints(AIndex : Integer; const AValue : TFileTypecontentHints); 
 
 begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
+  If (FcontentHints=AValue) then exit;
+  FcontentHints:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TParentList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TFile.SetcreatedTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
+  If (FcreatedTime=AValue) then exit;
+  FcreatedTime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
+Procedure TFile.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
 
 
-{ --------------------------------------------------------------------
-  TParentListitems
-  --------------------------------------------------------------------}
+
+Procedure TFile.SetexplicitlyTrashed(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FexplicitlyTrashed=AValue) then exit;
+  FexplicitlyTrashed:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
 
 
 
+Procedure TFile.SetfileExtension(AIndex : Integer; const AValue : String); 
 
-{ --------------------------------------------------------------------
-  TParentReference
-  --------------------------------------------------------------------}
+begin
+  If (FfileExtension=AValue) then exit;
+  FfileExtension:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
 
 
-Procedure TParentReference.Setid(AIndex : Integer; AValue : string); 
+
+Procedure TFile.SetfolderColorRgb(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FfolderColorRgb=AValue) then exit;
+  FfolderColorRgb:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetfullFileExtension(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FfullFileExtension=AValue) then exit;
+  FfullFileExtension:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetheadRevisionId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FheadRevisionId=AValue) then exit;
+  FheadRevisionId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SeticonLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FiconLink=AValue) then exit;
+  FiconLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5397,114 +2649,27 @@ end;
 
 
 
-Procedure TParentReference.SetisRoot(AIndex : Integer; AValue : boolean); 
+Procedure TFile.SetimageMediaMetadata(AIndex : Integer; const AValue : TFileTypeimageMediaMetadata); 
 
 begin
-  If (FisRoot=AValue) then exit;
-  FisRoot:=AValue;
+  If (FimageMediaMetadata=AValue) then exit;
+  FimageMediaMetadata:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TParentReference.Setkind(AIndex : Integer; AValue : string); 
+Procedure TFile.SetisAppAuthorized(AIndex : Integer; const AValue : boolean); 
 
 begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
+  If (FisAppAuthorized=AValue) then exit;
+  FisAppAuthorized:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TParentReference.SetparentLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FparentLink=AValue) then exit;
-  FparentLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TParentReference.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPermission
-  --------------------------------------------------------------------}
-
-
-Procedure TPermission.SetadditionalRoles(AIndex : Integer; AValue : TPermissionadditionalRoles); 
-
-begin
-  If (FadditionalRoles=AValue) then exit;
-  FadditionalRoles:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPermission.SetauthKey(AIndex : Integer; AValue : string); 
-
-begin
-  If (FauthKey=AValue) then exit;
-  FauthKey:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPermission.Setdomain(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fdomain=AValue) then exit;
-  Fdomain:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPermission.SetemailAddress(AIndex : Integer; AValue : string); 
-
-begin
-  If (FemailAddress=AValue) then exit;
-  FemailAddress:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPermission.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPermission.Setid(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPermission.Setkind(AIndex : Integer; AValue : string); 
+Procedure TFile.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5514,7 +2679,57 @@ end;
 
 
 
-Procedure TPermission.Setname(AIndex : Integer; AValue : string); 
+Procedure TFile.SetlastModifyingUser(AIndex : Integer; const AValue : TUser); 
+
+begin
+  If (FlastModifyingUser=AValue) then exit;
+  FlastModifyingUser:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setmd5Checksum(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmd5Checksum=AValue) then exit;
+  Fmd5Checksum:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetmimeType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FmimeType=AValue) then exit;
+  FmimeType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetmodifiedByMeTime(AIndex : Integer; const AValue : TDatetime); 
+
+begin
+  If (FmodifiedByMeTime=AValue) then exit;
+  FmodifiedByMeTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetmodifiedTime(AIndex : Integer; const AValue : TDatetime); 
+
+begin
+  If (FmodifiedTime=AValue) then exit;
+  FmodifiedTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5524,7 +2739,420 @@ end;
 
 
 
-Procedure TPermission.SetphotoLink(AIndex : Integer; AValue : string); 
+Procedure TFile.SetoriginalFilename(AIndex : Integer; const AValue : String); 
+
+begin
+  If (ForiginalFilename=AValue) then exit;
+  ForiginalFilename:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetownedByMe(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FownedByMe=AValue) then exit;
+  FownedByMe:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setowners(AIndex : Integer; const AValue : TFileTypeownersArray); 
+
+begin
+  If (Fowners=AValue) then exit;
+  Fowners:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setparents(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Fparents=AValue) then exit;
+  Fparents:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setpermissions(AIndex : Integer; const AValue : TFileTypepermissionsArray); 
+
+begin
+  If (Fpermissions=AValue) then exit;
+  Fpermissions:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setproperties(AIndex : Integer; const AValue : TFileTypeproperties); 
+
+begin
+  If (Fproperties=AValue) then exit;
+  Fproperties:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetquotaBytesUsed(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FquotaBytesUsed=AValue) then exit;
+  FquotaBytesUsed:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setshared(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (Fshared=AValue) then exit;
+  Fshared:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetsharedWithMeTime(AIndex : Integer; const AValue : TDatetime); 
+
+begin
+  If (FsharedWithMeTime=AValue) then exit;
+  FsharedWithMeTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetsharingUser(AIndex : Integer; const AValue : TUser); 
+
+begin
+  If (FsharingUser=AValue) then exit;
+  FsharingUser:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setsize(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fsize=AValue) then exit;
+  Fsize:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setspaces(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Fspaces=AValue) then exit;
+  Fspaces:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setstarred(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (Fstarred=AValue) then exit;
+  Fstarred:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetthumbnailLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FthumbnailLink=AValue) then exit;
+  FthumbnailLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Settrashed(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (Ftrashed=AValue) then exit;
+  Ftrashed:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.Setversion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fversion=AValue) then exit;
+  Fversion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetvideoMediaMetadata(AIndex : Integer; const AValue : TFileTypevideoMediaMetadata); 
+
+begin
+  If (FvideoMediaMetadata=AValue) then exit;
+  FvideoMediaMetadata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetviewedByMe(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FviewedByMe=AValue) then exit;
+  FviewedByMe:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetviewedByMeTime(AIndex : Integer; const AValue : TDatetime); 
+
+begin
+  If (FviewedByMeTime=AValue) then exit;
+  FviewedByMeTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetviewersCanCopyContent(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FviewersCanCopyContent=AValue) then exit;
+  FviewersCanCopyContent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetwebContentLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FwebContentLink=AValue) then exit;
+  FwebContentLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetwebViewLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FwebViewLink=AValue) then exit;
+  FwebViewLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFile.SetwritersCanShare(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FwritersCanShare=AValue) then exit;
+  FwritersCanShare:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFile.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'owners' : SetLength(Fowners,ALength);
+  'parents' : SetLength(Fparents,ALength);
+  'permissions' : SetLength(Fpermissions,ALength);
+  'spaces' : SetLength(Fspaces,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TFileList
+  --------------------------------------------------------------------}
+
+
+Procedure TFileList.Setfiles(AIndex : Integer; const AValue : TFileListTypefilesArray); 
+
+begin
+  If (Ffiles=AValue) then exit;
+  Ffiles:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFileList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFileList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'files' : SetLength(Ffiles,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TGeneratedIds
+  --------------------------------------------------------------------}
+
+
+Procedure TGeneratedIds.Setids(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Fids=AValue) then exit;
+  Fids:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TGeneratedIds.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TGeneratedIds.Setspace(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fspace=AValue) then exit;
+  Fspace:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeneratedIds.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'ids' : SetLength(Fids,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TPermission
+  --------------------------------------------------------------------}
+
+
+Procedure TPermission.SetallowFileDiscovery(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FallowFileDiscovery=AValue) then exit;
+  FallowFileDiscovery:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPermission.SetdisplayName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdisplayName=AValue) then exit;
+  FdisplayName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPermission.Setdomain(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdomain=AValue) then exit;
+  Fdomain:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPermission.SetemailAddress(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FemailAddress=AValue) then exit;
+  FemailAddress:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPermission.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPermission.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPermission.SetphotoLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FphotoLink=AValue) then exit;
@@ -5534,7 +3162,7 @@ end;
 
 
 
-Procedure TPermission.Setrole(AIndex : Integer; AValue : string); 
+Procedure TPermission.Setrole(AIndex : Integer; const AValue : String); 
 
 begin
   If (Frole=AValue) then exit;
@@ -5544,41 +3172,11 @@ end;
 
 
 
-Procedure TPermission.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPermission.Set_type(AIndex : Integer; AValue : string); 
+Procedure TPermission.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
   F_type:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPermission.Setvalue(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fvalue=AValue) then exit;
-  Fvalue:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPermission.SetwithLink(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FwithLink=AValue) then exit;
-  FwithLink:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -5598,18 +3196,111 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPermissionadditionalRoles
+  TPermissionList
   --------------------------------------------------------------------}
+
+
+Procedure TPermissionList.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPermissionList.Setpermissions(AIndex : Integer; const AValue : TPermissionListTypepermissionsArray); 
+
+begin
+  If (Fpermissions=AValue) then exit;
+  Fpermissions:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPermissionList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'permissions' : SetLength(Fpermissions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TPermissionId
+  TReply
   --------------------------------------------------------------------}
 
 
-Procedure TPermissionId.Setid(AIndex : Integer; AValue : string); 
+Procedure TReply.Setaction(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Faction=AValue) then exit;
+  Faction:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReply.Setauthor(AIndex : Integer; const AValue : TUser); 
+
+begin
+  If (Fauthor=AValue) then exit;
+  Fauthor:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReply.Setcontent(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcontent=AValue) then exit;
+  Fcontent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReply.SetcreatedTime(AIndex : Integer; const AValue : TDatetime); 
+
+begin
+  If (FcreatedTime=AValue) then exit;
+  FcreatedTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReply.Setdeleted(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (Fdeleted=AValue) then exit;
+  Fdeleted:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReply.SethtmlContent(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FhtmlContent=AValue) then exit;
+  FhtmlContent:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReply.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5619,7 +3310,7 @@ end;
 
 
 
-Procedure TPermissionId.Setkind(AIndex : Integer; AValue : string); 
+Procedure TReply.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5629,34 +3320,24 @@ end;
 
 
 
+Procedure TReply.SetmodifiedTime(AIndex : Integer; const AValue : TDatetime); 
+
+begin
+  If (FmodifiedTime=AValue) then exit;
+  FmodifiedTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 
 
 { --------------------------------------------------------------------
-  TPermissionList
+  TReplyList
   --------------------------------------------------------------------}
 
 
-Procedure TPermissionList.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPermissionList.Setitems(AIndex : Integer; AValue : TPermissionListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPermissionList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TReplyList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5666,142 +3347,37 @@ end;
 
 
 
-Procedure TPermissionList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TReplyList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-
-
-{ --------------------------------------------------------------------
-  TPermissionListitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TProperty
-  --------------------------------------------------------------------}
-
-
-Procedure TProperty.Setetag(AIndex : Integer; AValue : string); 
+Procedure TReplyList.Setreplies(AIndex : Integer; const AValue : TReplyListTyperepliesArray); 
 
 begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
+  If (Freplies=AValue) then exit;
+  Freplies:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
-
-Procedure TProperty.Setkey(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkey=AValue) then exit;
-  Fkey:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TProperty.Setkind(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReplyList.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'replies' : SetLength(Freplies,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TProperty.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TProperty.Setvalue(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fvalue=AValue) then exit;
-  Fvalue:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TProperty.Setvisibility(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fvisibility=AValue) then exit;
-  Fvisibility:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPropertyList
-  --------------------------------------------------------------------}
-
-
-Procedure TPropertyList.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPropertyList.Setitems(AIndex : Integer; AValue : TPropertyListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPropertyList.Setkind(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fkind=AValue) then exit;
-  Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TPropertyList.SetselfLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TPropertyListitems
-  --------------------------------------------------------------------}
+{$ENDIF VER2_6}
 
 
 
@@ -5811,47 +3387,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRevision.SetdownloadUrl(AIndex : Integer; AValue : string); 
-
-begin
-  If (FdownloadUrl=AValue) then exit;
-  FdownloadUrl:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRevision.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRevision.SetexportLinks(AIndex : Integer; AValue : TRevisionexportLinks); 
-
-begin
-  If (FexportLinks=AValue) then exit;
-  FexportLinks:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRevision.SetfileSize(AIndex : Integer; AValue : string); 
-
-begin
-  If (FfileSize=AValue) then exit;
-  FfileSize:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRevision.Setid(AIndex : Integer; AValue : string); 
+Procedure TRevision.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5861,7 +3397,17 @@ end;
 
 
 
-Procedure TRevision.Setkind(AIndex : Integer; AValue : string); 
+Procedure TRevision.SetkeepForever(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FkeepForever=AValue) then exit;
+  FkeepForever:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TRevision.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5871,7 +3417,7 @@ end;
 
 
 
-Procedure TRevision.SetlastModifyingUser(AIndex : Integer; AValue : TUser); 
+Procedure TRevision.SetlastModifyingUser(AIndex : Integer; const AValue : TUser); 
 
 begin
   If (FlastModifyingUser=AValue) then exit;
@@ -5881,17 +3427,7 @@ end;
 
 
 
-Procedure TRevision.SetlastModifyingUserName(AIndex : Integer; AValue : string); 
-
-begin
-  If (FlastModifyingUserName=AValue) then exit;
-  FlastModifyingUserName:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRevision.Setmd5Checksum(AIndex : Integer; AValue : string); 
+Procedure TRevision.Setmd5Checksum(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmd5Checksum=AValue) then exit;
@@ -5901,7 +3437,7 @@ end;
 
 
 
-Procedure TRevision.SetmimeType(AIndex : Integer; AValue : string); 
+Procedure TRevision.SetmimeType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmimeType=AValue) then exit;
@@ -5911,17 +3447,17 @@ end;
 
 
 
-Procedure TRevision.SetmodifiedDate(AIndex : Integer; AValue : TDatetime); 
+Procedure TRevision.SetmodifiedTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
-  If (FmodifiedDate=AValue) then exit;
-  FmodifiedDate:=AValue;
+  If (FmodifiedTime=AValue) then exit;
+  FmodifiedTime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TRevision.SetoriginalFilename(AIndex : Integer; AValue : string); 
+Procedure TRevision.SetoriginalFilename(AIndex : Integer; const AValue : String); 
 
 begin
   If (ForiginalFilename=AValue) then exit;
@@ -5931,17 +3467,7 @@ end;
 
 
 
-Procedure TRevision.Setpinned(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (Fpinned=AValue) then exit;
-  Fpinned:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRevision.SetpublishAuto(AIndex : Integer; AValue : boolean); 
+Procedure TRevision.SetpublishAuto(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FpublishAuto=AValue) then exit;
@@ -5951,7 +3477,7 @@ end;
 
 
 
-Procedure TRevision.Set_published(AIndex : Integer; AValue : boolean); 
+Procedure TRevision.Set_published(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (F_published=AValue) then exit;
@@ -5961,17 +3487,7 @@ end;
 
 
 
-Procedure TRevision.SetpublishedLink(AIndex : Integer; AValue : string); 
-
-begin
-  If (FpublishedLink=AValue) then exit;
-  FpublishedLink:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRevision.SetpublishedOutsideDomain(AIndex : Integer; AValue : boolean); 
+Procedure TRevision.SetpublishedOutsideDomain(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FpublishedOutsideDomain=AValue) then exit;
@@ -5981,11 +3497,11 @@ end;
 
 
 
-Procedure TRevision.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TRevision.Setsize(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
+  If (Fsize=AValue) then exit;
+  Fsize:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -6005,44 +3521,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TRevisionexportLinks
-  --------------------------------------------------------------------}
-
-
-Class Function TRevisionexportLinks.AllowAdditionalProperties : Boolean;
-
-begin
-  Result:=True;
-end;
-
-
-
-{ --------------------------------------------------------------------
   TRevisionList
   --------------------------------------------------------------------}
 
 
-Procedure TRevisionList.Setetag(AIndex : Integer; AValue : string); 
-
-begin
-  If (Fetag=AValue) then exit;
-  Fetag:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRevisionList.Setitems(AIndex : Integer; AValue : TRevisionListitems); 
-
-begin
-  If (Fitems=AValue) then exit;
-  Fitems:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TRevisionList.Setkind(AIndex : Integer; AValue : string); 
+Procedure TRevisionList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6052,21 +3535,54 @@ end;
 
 
 
-Procedure TRevisionList.SetselfLink(AIndex : Integer; AValue : string); 
+Procedure TRevisionList.Setrevisions(AIndex : Integer; const AValue : TRevisionListTyperevisionsArray); 
 
 begin
-  If (FselfLink=AValue) then exit;
-  FselfLink:=AValue;
+  If (Frevisions=AValue) then exit;
+  Frevisions:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRevisionList.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'revisions' : SetLength(Frevisions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TRevisionListitems
+  TStartPageToken
   --------------------------------------------------------------------}
+
+
+Procedure TStartPageToken.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TStartPageToken.SetstartPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FstartPageToken=AValue) then exit;
+  FstartPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -6076,7 +3592,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUser.SetdisplayName(AIndex : Integer; AValue : string); 
+Procedure TUser.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -6086,7 +3602,7 @@ end;
 
 
 
-Procedure TUser.SetemailAddress(AIndex : Integer; AValue : string); 
+Procedure TUser.SetemailAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FemailAddress=AValue) then exit;
@@ -6096,17 +3612,7 @@ end;
 
 
 
-Procedure TUser.SetisAuthenticatedUser(AIndex : Integer; AValue : boolean); 
-
-begin
-  If (FisAuthenticatedUser=AValue) then exit;
-  FisAuthenticatedUser:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TUser.Setkind(AIndex : Integer; AValue : string); 
+Procedure TUser.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6116,7 +3622,17 @@ end;
 
 
 
-Procedure TUser.SetpermissionId(AIndex : Integer; AValue : string); 
+Procedure TUser.Setme(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (Fme=AValue) then exit;
+  Fme:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TUser.SetpermissionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpermissionId=AValue) then exit;
@@ -6126,28 +3642,11 @@ end;
 
 
 
-Procedure TUser.Setpicture(AIndex : Integer; AValue : TUserpicture); 
+Procedure TUser.SetphotoLink(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fpicture=AValue) then exit;
-  Fpicture:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TUserpicture
-  --------------------------------------------------------------------}
-
-
-Procedure TUserpicture.Seturl(AIndex : Integer; AValue : string); 
-
-begin
-  If (Furl=AValue) then exit;
-  Furl:=AValue;
+  If (FphotoLink=AValue) then exit;
+  FphotoLink:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -6172,7 +3671,7 @@ begin
   Result:=TdriveAPI;
 end;
 
-Function TAboutResource.Get(AQuery : string = '') : TAbout;
+Function TAboutResource.Get : TAbout;
 
 Const
   _HTTPMethod = 'GET';
@@ -6180,80 +3679,7 @@ Const
   _Methodid   = 'drive.about.get';
 
 begin
-  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TAbout) as TAbout;
-end;
-
-
-Function TAboutResource.Get(AQuery : TAboutgetOptions) : TAbout;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'includeSubscribed',AQuery.includeSubscribed);
-  AddToQuery(_Q,'maxChangeIdCount',AQuery.maxChangeIdCount);
-  AddToQuery(_Q,'startChangeId',AQuery.startChangeId);
-  Result:=Get(_Q);
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TAppsResource
-  --------------------------------------------------------------------}
-
-
-Class Function TAppsResource.ResourceName : String;
-
-begin
-  Result:='apps';
-end;
-
-Class Function TAppsResource.DefaultAPI : TGoogleAPIClass;
-
-begin
-  Result:=TdriveAPI;
-end;
-
-Function TAppsResource.Get(appId: string) : TApp;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = 'apps/{appId}';
-  _Methodid   = 'drive.apps.get';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['appId',appId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TApp) as TApp;
-end;
-
-Function TAppsResource.List(AQuery : string = '') : TAppList;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = 'apps';
-  _Methodid   = 'drive.apps.list';
-
-begin
-  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TAppList) as TAppList;
-end;
-
-
-Function TAppsResource.List(AQuery : TAppslistOptions) : TAppList;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'appFilterExtensions',AQuery.appFilterExtensions);
-  AddToQuery(_Q,'appFilterMimeTypes',AQuery.appFilterMimeTypes);
-  AddToQuery(_Q,'languageCode',AQuery.languageCode);
-  Result:=List(_Q);
+  Result:=ServiceCall(_HTTPMethod,_Path,'',Nil,TAbout) as TAbout;
 end;
 
 
@@ -6275,19 +3701,15 @@ begin
   Result:=TdriveAPI;
 end;
 
-Function TChangesResource.Get(changeId: string) : TChange;
+Function TChangesResource.GetStartPageToken : TStartPageToken;
 
 Const
   _HTTPMethod = 'GET';
-  _Path       = 'changes/{changeId}';
-  _Methodid   = 'drive.changes.get';
-
-Var
-  _P : String;
+  _Path       = 'changes/startPageToken';
+  _Methodid   = 'drive.changes.getStartPageToken';
 
 begin
-  _P:=SubstitutePath(_Path,['changeId',changeId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TChange) as TChange;
+  Result:=ServiceCall(_HTTPMethod,_Path,'',Nil,TStartPageToken) as TStartPageToken;
 end;
 
 Function TChangesResource.List(AQuery : string = '') : TChangeList;
@@ -6309,11 +3731,11 @@ Var
 
 begin
   _Q:='';
-  AddToQuery(_Q,'includeDeleted',AQuery.includeDeleted);
-  AddToQuery(_Q,'includeSubscribed',AQuery.includeSubscribed);
-  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'includeRemoved',AQuery.includeRemoved);
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
-  AddToQuery(_Q,'startChangeId',AQuery.startChangeId);
+  AddToQuery(_Q,'restrictToMyDrive',AQuery.restrictToMyDrive);
+  AddToQuery(_Q,'spaces',AQuery.spaces);
   Result:=List(_Q);
 end;
 
@@ -6336,11 +3758,11 @@ Var
 
 begin
   _Q:='';
-  AddToQuery(_Q,'includeDeleted',AQuery.includeDeleted);
-  AddToQuery(_Q,'includeSubscribed',AQuery.includeSubscribed);
-  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'includeRemoved',AQuery.includeRemoved);
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
-  AddToQuery(_Q,'startChangeId',AQuery.startChangeId);
+  AddToQuery(_Q,'restrictToMyDrive',AQuery.restrictToMyDrive);
+  AddToQuery(_Q,'spaces',AQuery.spaces);
   Result:=Watch(aChannel,_Q);
 end;
 
@@ -6377,99 +3799,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TChildrenResource
-  --------------------------------------------------------------------}
-
-
-Class Function TChildrenResource.ResourceName : String;
-
-begin
-  Result:='children';
-end;
-
-Class Function TChildrenResource.DefaultAPI : TGoogleAPIClass;
-
-begin
-  Result:=TdriveAPI;
-end;
-
-Procedure TChildrenResource.Delete(childId: string; folderId: string);
-
-Const
-  _HTTPMethod = 'DELETE';
-  _Path       = 'files/{folderId}/children/{childId}';
-  _Methodid   = 'drive.children.delete';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['childId',childId,'folderId',folderId]);
-  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
-end;
-
-Function TChildrenResource.Get(childId: string; folderId: string) : TChildReference;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = 'files/{folderId}/children/{childId}';
-  _Methodid   = 'drive.children.get';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['childId',childId,'folderId',folderId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TChildReference) as TChildReference;
-end;
-
-Function TChildrenResource.Insert(folderId: string; aChildReference : TChildReference) : TChildReference;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'files/{folderId}/children';
-  _Methodid   = 'drive.children.insert';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['folderId',folderId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aChildReference,TChildReference) as TChildReference;
-end;
-
-Function TChildrenResource.List(folderId: string; AQuery : string = '') : TChildList;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = 'files/{folderId}/children';
-  _Methodid   = 'drive.children.list';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['folderId',folderId]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TChildList) as TChildList;
-end;
-
-
-Function TChildrenResource.List(folderId: string; AQuery : TChildrenlistOptions) : TChildList;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'maxResults',AQuery.maxResults);
-  AddToQuery(_Q,'pageToken',AQuery.pageToken);
-  AddToQuery(_Q,'q',AQuery.q);
-  Result:=List(folderId,_Q);
-end;
-
-
-
-{ --------------------------------------------------------------------
   TCommentsResource
   --------------------------------------------------------------------}
 
@@ -6484,6 +3813,21 @@ Class Function TCommentsResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TdriveAPI;
+end;
+
+Function TCommentsResource.Create(fileId: string; aComment : TComment) : TComment;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'files/{fileId}/comments';
+  _Methodid   = 'drive.comments.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['fileId',fileId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aComment,TComment) as TComment;
 end;
 
 Procedure TCommentsResource.Delete(commentId: string; fileId: string);
@@ -6528,21 +3872,6 @@ begin
   Result:=Get(commentId,fileId,_Q);
 end;
 
-Function TCommentsResource.Insert(fileId: string; aComment : TComment) : TComment;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'files/{fileId}/comments';
-  _Methodid   = 'drive.comments.insert';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aComment,TComment) as TComment;
-end;
-
 Function TCommentsResource.List(fileId: string; AQuery : string = '') : TCommentList;
 
 Const
@@ -6567,31 +3896,16 @@ Var
 begin
   _Q:='';
   AddToQuery(_Q,'includeDeleted',AQuery.includeDeleted);
-  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
-  AddToQuery(_Q,'updatedMin',AQuery.updatedMin);
+  AddToQuery(_Q,'startModifiedTime',AQuery.startModifiedTime);
   Result:=List(fileId,_Q);
-end;
-
-Function TCommentsResource.Patch(commentId: string; fileId: string; aComment : TComment) : TComment;
-
-Const
-  _HTTPMethod = 'PATCH';
-  _Path       = 'files/{fileId}/comments/{commentId}';
-  _Methodid   = 'drive.comments.patch';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['commentId',commentId,'fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aComment,TComment) as TComment;
 end;
 
 Function TCommentsResource.Update(commentId: string; fileId: string; aComment : TComment) : TComment;
 
 Const
-  _HTTPMethod = 'PUT';
+  _HTTPMethod = 'PATCH';
   _Path       = 'files/{fileId}/comments/{commentId}';
   _Methodid   = 'drive.comments.update';
 
@@ -6645,14 +3959,36 @@ Var
 
 begin
   _Q:='';
-  AddToQuery(_Q,'convert',AQuery.convert);
-  AddToQuery(_Q,'ocr',AQuery.ocr);
+  AddToQuery(_Q,'ignoreDefaultVisibility',AQuery.ignoreDefaultVisibility);
+  AddToQuery(_Q,'keepRevisionForever',AQuery.keepRevisionForever);
   AddToQuery(_Q,'ocrLanguage',AQuery.ocrLanguage);
-  AddToQuery(_Q,'pinned',AQuery.pinned);
-  AddToQuery(_Q,'timedTextLanguage',AQuery.timedTextLanguage);
-  AddToQuery(_Q,'timedTextTrackName',AQuery.timedTextTrackName);
-  AddToQuery(_Q,'visibility',AQuery.visibility);
   Result:=Copy(fileId,aFile,_Q);
+end;
+
+Function TFilesResource.Create(aFile : TFile; AQuery : string = '') : TFile;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'files';
+  _Methodid   = 'drive.files.create';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,aFile,TFile) as TFile;
+end;
+
+
+Function TFilesResource.Create(aFile : TFile; AQuery : TFilescreateOptions) : TFile;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'ignoreDefaultVisibility',AQuery.ignoreDefaultVisibility);
+  AddToQuery(_Q,'keepRevisionForever',AQuery.keepRevisionForever);
+  AddToQuery(_Q,'ocrLanguage',AQuery.ocrLanguage);
+  AddToQuery(_Q,'useContentAsIndexableText',AQuery.useContentAsIndexableText);
+  Result:=Create(aFile,_Q);
 end;
 
 Procedure TFilesResource.Delete(fileId: string);
@@ -6681,6 +4017,57 @@ begin
   ServiceCall(_HTTPMethod,_Path,'',Nil,Nil);
 end;
 
+Procedure TFilesResource.Export(fileId: string; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'files/{fileId}/export';
+  _Methodid   = 'drive.files.export';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['fileId',fileId]);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TFilesResource.Export(fileId: string; AQuery : TFilesexportOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'mimeType',AQuery.mimeType);
+  Export(fileId,_Q);
+end;
+
+Function TFilesResource.GenerateIds(AQuery : string = '') : TGeneratedIds;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'files/generateIds';
+  _Methodid   = 'drive.files.generateIds';
+
+begin
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TGeneratedIds) as TGeneratedIds;
+end;
+
+
+Function TFilesResource.GenerateIds(AQuery : TFilesgenerateIdsOptions) : TGeneratedIds;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'count',AQuery.count);
+  AddToQuery(_Q,'space',AQuery.space);
+  Result:=GenerateIds(_Q);
+end;
+
 Function TFilesResource.Get(fileId: string; AQuery : string = '') : TFile;
 
 Const
@@ -6705,40 +4092,7 @@ Var
 begin
   _Q:='';
   AddToQuery(_Q,'acknowledgeAbuse',AQuery.acknowledgeAbuse);
-  AddToQuery(_Q,'projection',AQuery.projection);
-  AddToQuery(_Q,'revisionId',AQuery.revisionId);
-  AddToQuery(_Q,'updateViewedDate',AQuery.updateViewedDate);
   Result:=Get(fileId,_Q);
-end;
-
-Function TFilesResource.Insert(aFile : TFile; AQuery : string = '') : TFile;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'files';
-  _Methodid   = 'drive.files.insert';
-
-begin
-  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,aFile,TFile) as TFile;
-end;
-
-
-Function TFilesResource.Insert(aFile : TFile; AQuery : TFilesinsertOptions) : TFile;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'convert',AQuery.convert);
-  AddToQuery(_Q,'ocr',AQuery.ocr);
-  AddToQuery(_Q,'ocrLanguage',AQuery.ocrLanguage);
-  AddToQuery(_Q,'pinned',AQuery.pinned);
-  AddToQuery(_Q,'timedTextLanguage',AQuery.timedTextLanguage);
-  AddToQuery(_Q,'timedTextTrackName',AQuery.timedTextTrackName);
-  AddToQuery(_Q,'useContentAsIndexableText',AQuery.useContentAsIndexableText);
-  AddToQuery(_Q,'visibility',AQuery.visibility);
-  Result:=Insert(aFile,_Q);
 end;
 
 Function TFilesResource.List(AQuery : string = '') : TFileList;
@@ -6761,100 +4115,18 @@ Var
 begin
   _Q:='';
   AddToQuery(_Q,'corpus',AQuery.corpus);
-  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'orderBy',AQuery.orderBy);
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
-  AddToQuery(_Q,'projection',AQuery.projection);
   AddToQuery(_Q,'q',AQuery.q);
+  AddToQuery(_Q,'spaces',AQuery.spaces);
   Result:=List(_Q);
-end;
-
-Function TFilesResource.Patch(fileId: string; aFile : TFile; AQuery : string = '') : TFile;
-
-Const
-  _HTTPMethod = 'PATCH';
-  _Path       = 'files/{fileId}';
-  _Methodid   = 'drive.files.patch';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aFile,TFile) as TFile;
-end;
-
-
-Function TFilesResource.Patch(fileId: string; aFile : TFile; AQuery : TFilespatchOptions) : TFile;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'addParents',AQuery.addParents);
-  AddToQuery(_Q,'convert',AQuery.convert);
-  AddToQuery(_Q,'newRevision',AQuery.newRevision);
-  AddToQuery(_Q,'ocr',AQuery.ocr);
-  AddToQuery(_Q,'ocrLanguage',AQuery.ocrLanguage);
-  AddToQuery(_Q,'pinned',AQuery.pinned);
-  AddToQuery(_Q,'removeParents',AQuery.removeParents);
-  AddToQuery(_Q,'setModifiedDate',AQuery.setModifiedDate);
-  AddToQuery(_Q,'timedTextLanguage',AQuery.timedTextLanguage);
-  AddToQuery(_Q,'timedTextTrackName',AQuery.timedTextTrackName);
-  AddToQuery(_Q,'updateViewedDate',AQuery.updateViewedDate);
-  AddToQuery(_Q,'useContentAsIndexableText',AQuery.useContentAsIndexableText);
-  Result:=Patch(fileId,aFile,_Q);
-end;
-
-Function TFilesResource.Touch(fileId: string) : TFile;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'files/{fileId}/touch';
-  _Methodid   = 'drive.files.touch';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TFile) as TFile;
-end;
-
-Function TFilesResource.Trash(fileId: string) : TFile;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'files/{fileId}/trash';
-  _Methodid   = 'drive.files.trash';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TFile) as TFile;
-end;
-
-Function TFilesResource.Untrash(fileId: string) : TFile;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'files/{fileId}/untrash';
-  _Methodid   = 'drive.files.untrash';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TFile) as TFile;
 end;
 
 Function TFilesResource.Update(fileId: string; aFile : TFile; AQuery : string = '') : TFile;
 
 Const
-  _HTTPMethod = 'PUT';
+  _HTTPMethod = 'PATCH';
   _Path       = 'files/{fileId}';
   _Methodid   = 'drive.files.update';
 
@@ -6875,16 +4147,9 @@ Var
 begin
   _Q:='';
   AddToQuery(_Q,'addParents',AQuery.addParents);
-  AddToQuery(_Q,'convert',AQuery.convert);
-  AddToQuery(_Q,'newRevision',AQuery.newRevision);
-  AddToQuery(_Q,'ocr',AQuery.ocr);
+  AddToQuery(_Q,'keepRevisionForever',AQuery.keepRevisionForever);
   AddToQuery(_Q,'ocrLanguage',AQuery.ocrLanguage);
-  AddToQuery(_Q,'pinned',AQuery.pinned);
   AddToQuery(_Q,'removeParents',AQuery.removeParents);
-  AddToQuery(_Q,'setModifiedDate',AQuery.setModifiedDate);
-  AddToQuery(_Q,'timedTextLanguage',AQuery.timedTextLanguage);
-  AddToQuery(_Q,'timedTextTrackName',AQuery.timedTextTrackName);
-  AddToQuery(_Q,'updateViewedDate',AQuery.updateViewedDate);
   AddToQuery(_Q,'useContentAsIndexableText',AQuery.useContentAsIndexableText);
   Result:=Update(fileId,aFile,_Q);
 end;
@@ -6913,89 +4178,7 @@ Var
 begin
   _Q:='';
   AddToQuery(_Q,'acknowledgeAbuse',AQuery.acknowledgeAbuse);
-  AddToQuery(_Q,'projection',AQuery.projection);
-  AddToQuery(_Q,'revisionId',AQuery.revisionId);
-  AddToQuery(_Q,'updateViewedDate',AQuery.updateViewedDate);
   Result:=Watch(fileId,aChannel,_Q);
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TParentsResource
-  --------------------------------------------------------------------}
-
-
-Class Function TParentsResource.ResourceName : String;
-
-begin
-  Result:='parents';
-end;
-
-Class Function TParentsResource.DefaultAPI : TGoogleAPIClass;
-
-begin
-  Result:=TdriveAPI;
-end;
-
-Procedure TParentsResource.Delete(fileId: string; parentId: string);
-
-Const
-  _HTTPMethod = 'DELETE';
-  _Path       = 'files/{fileId}/parents/{parentId}';
-  _Methodid   = 'drive.parents.delete';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId,'parentId',parentId]);
-  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
-end;
-
-Function TParentsResource.Get(fileId: string; parentId: string) : TParentReference;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = 'files/{fileId}/parents/{parentId}';
-  _Methodid   = 'drive.parents.get';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId,'parentId',parentId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TParentReference) as TParentReference;
-end;
-
-Function TParentsResource.Insert(fileId: string; aParentReference : TParentReference) : TParentReference;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'files/{fileId}/parents';
-  _Methodid   = 'drive.parents.insert';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aParentReference,TParentReference) as TParentReference;
-end;
-
-Function TParentsResource.List(fileId: string) : TParentList;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = 'files/{fileId}/parents';
-  _Methodid   = 'drive.parents.list';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TParentList) as TParentList;
 end;
 
 
@@ -7015,6 +4198,35 @@ Class Function TPermissionsResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TdriveAPI;
+end;
+
+Function TPermissionsResource.Create(fileId: string; aPermission : TPermission; AQuery : string = '') : TPermission;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'files/{fileId}/permissions';
+  _Methodid   = 'drive.permissions.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['fileId',fileId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aPermission,TPermission) as TPermission;
+end;
+
+
+Function TPermissionsResource.Create(fileId: string; aPermission : TPermission; AQuery : TPermissionscreateOptions) : TPermission;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'emailMessage',AQuery.emailMessage);
+  AddToQuery(_Q,'sendNotificationEmail',AQuery.sendNotificationEmail);
+  AddToQuery(_Q,'transferOwnership',AQuery.transferOwnership);
+  Result:=Create(fileId,aPermission,_Q);
 end;
 
 Procedure TPermissionsResource.Delete(fileId: string; permissionId: string);
@@ -7047,49 +4259,6 @@ begin
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TPermission) as TPermission;
 end;
 
-Function TPermissionsResource.GetIdForEmail(email: string) : TPermissionId;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = 'permissionIds/{email}';
-  _Methodid   = 'drive.permissions.getIdForEmail';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['email',email]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TPermissionId) as TPermissionId;
-end;
-
-Function TPermissionsResource.Insert(fileId: string; aPermission : TPermission; AQuery : string = '') : TPermission;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'files/{fileId}/permissions';
-  _Methodid   = 'drive.permissions.insert';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aPermission,TPermission) as TPermission;
-end;
-
-
-Function TPermissionsResource.Insert(fileId: string; aPermission : TPermission; AQuery : TPermissionsinsertOptions) : TPermission;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'emailMessage',AQuery.emailMessage);
-  AddToQuery(_Q,'sendNotificationEmails',AQuery.sendNotificationEmails);
-  Result:=Insert(fileId,aPermission,_Q);
-end;
-
 Function TPermissionsResource.List(fileId: string) : TPermissionList;
 
 Const
@@ -7105,37 +4274,10 @@ begin
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TPermissionList) as TPermissionList;
 end;
 
-Function TPermissionsResource.Patch(fileId: string; permissionId: string; aPermission : TPermission; AQuery : string = '') : TPermission;
-
-Const
-  _HTTPMethod = 'PATCH';
-  _Path       = 'files/{fileId}/permissions/{permissionId}';
-  _Methodid   = 'drive.permissions.patch';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId,'permissionId',permissionId]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aPermission,TPermission) as TPermission;
-end;
-
-
-Function TPermissionsResource.Patch(fileId: string; permissionId: string; aPermission : TPermission; AQuery : TPermissionspatchOptions) : TPermission;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'transferOwnership',AQuery.transferOwnership);
-  Result:=Patch(fileId,permissionId,aPermission,_Q);
-end;
-
 Function TPermissionsResource.Update(fileId: string; permissionId: string; aPermission : TPermission; AQuery : string = '') : TPermission;
 
 Const
-  _HTTPMethod = 'PUT';
+  _HTTPMethod = 'PATCH';
   _Path       = 'files/{fileId}/permissions/{permissionId}';
   _Methodid   = 'drive.permissions.update';
 
@@ -7162,236 +4304,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TPropertiesResource
-  --------------------------------------------------------------------}
-
-
-Class Function TPropertiesResource.ResourceName : String;
-
-begin
-  Result:='properties';
-end;
-
-Class Function TPropertiesResource.DefaultAPI : TGoogleAPIClass;
-
-begin
-  Result:=TdriveAPI;
-end;
-
-Procedure TPropertiesResource.Delete(fileId: string; propertyKey: string; AQuery : string = '');
-
-Const
-  _HTTPMethod = 'DELETE';
-  _Path       = 'files/{fileId}/properties/{propertyKey}';
-  _Methodid   = 'drive.properties.delete';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId,'propertyKey',propertyKey]);
-  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
-end;
-
-
-Procedure TPropertiesResource.Delete(fileId: string; propertyKey: string; AQuery : TPropertiesdeleteOptions);
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'visibility',AQuery.visibility);
-  Delete(fileId,propertyKey,_Q);
-end;
-
-Function TPropertiesResource.Get(fileId: string; propertyKey: string; AQuery : string = '') : TProperty;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = 'files/{fileId}/properties/{propertyKey}';
-  _Methodid   = 'drive.properties.get';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId,'propertyKey',propertyKey]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TProperty) as TProperty;
-end;
-
-
-Function TPropertiesResource.Get(fileId: string; propertyKey: string; AQuery : TPropertiesgetOptions) : TProperty;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'visibility',AQuery.visibility);
-  Result:=Get(fileId,propertyKey,_Q);
-end;
-
-Function TPropertiesResource.Insert(fileId: string; aProperty : TProperty) : TProperty;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'files/{fileId}/properties';
-  _Methodid   = 'drive.properties.insert';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aProperty,TProperty) as TProperty;
-end;
-
-Function TPropertiesResource.List(fileId: string) : TPropertyList;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = 'files/{fileId}/properties';
-  _Methodid   = 'drive.properties.list';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TPropertyList) as TPropertyList;
-end;
-
-Function TPropertiesResource.Patch(fileId: string; propertyKey: string; aProperty : TProperty; AQuery : string = '') : TProperty;
-
-Const
-  _HTTPMethod = 'PATCH';
-  _Path       = 'files/{fileId}/properties/{propertyKey}';
-  _Methodid   = 'drive.properties.patch';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId,'propertyKey',propertyKey]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aProperty,TProperty) as TProperty;
-end;
-
-
-Function TPropertiesResource.Patch(fileId: string; propertyKey: string; aProperty : TProperty; AQuery : TPropertiespatchOptions) : TProperty;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'visibility',AQuery.visibility);
-  Result:=Patch(fileId,propertyKey,aProperty,_Q);
-end;
-
-Function TPropertiesResource.Update(fileId: string; propertyKey: string; aProperty : TProperty; AQuery : string = '') : TProperty;
-
-Const
-  _HTTPMethod = 'PUT';
-  _Path       = 'files/{fileId}/properties/{propertyKey}';
-  _Methodid   = 'drive.properties.update';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId,'propertyKey',propertyKey]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aProperty,TProperty) as TProperty;
-end;
-
-
-Function TPropertiesResource.Update(fileId: string; propertyKey: string; aProperty : TProperty; AQuery : TPropertiesupdateOptions) : TProperty;
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'visibility',AQuery.visibility);
-  Result:=Update(fileId,propertyKey,aProperty,_Q);
-end;
-
-
-
-{ --------------------------------------------------------------------
-  TRealtimeResource
-  --------------------------------------------------------------------}
-
-
-Class Function TRealtimeResource.ResourceName : String;
-
-begin
-  Result:='realtime';
-end;
-
-Class Function TRealtimeResource.DefaultAPI : TGoogleAPIClass;
-
-begin
-  Result:=TdriveAPI;
-end;
-
-Procedure TRealtimeResource.Get(fileId: string; AQuery : string = '');
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = 'files/{fileId}/realtime';
-  _Methodid   = 'drive.realtime.get';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
-end;
-
-
-Procedure TRealtimeResource.Get(fileId: string; AQuery : TRealtimegetOptions);
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'revision',AQuery.revision);
-  Get(fileId,_Q);
-end;
-
-Procedure TRealtimeResource.Update(fileId: string; AQuery : string = '');
-
-Const
-  _HTTPMethod = 'PUT';
-  _Path       = 'files/{fileId}/realtime';
-  _Methodid   = 'drive.realtime.update';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId]);
-  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
-end;
-
-
-Procedure TRealtimeResource.Update(fileId: string; AQuery : TRealtimeupdateOptions);
-
-Var
-  _Q : String;
-
-begin
-  _Q:='';
-  AddToQuery(_Q,'baseRevision',AQuery.baseRevision);
-  Update(fileId,_Q);
-end;
-
-
-
-{ --------------------------------------------------------------------
   TRepliesResource
   --------------------------------------------------------------------}
 
@@ -7406,6 +4318,21 @@ Class Function TRepliesResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TdriveAPI;
+end;
+
+Function TRepliesResource.Create(commentId: string; fileId: string; aReply : TReply) : TReply;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'files/{fileId}/comments/{commentId}/replies';
+  _Methodid   = 'drive.replies.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['commentId',commentId,'fileId',fileId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aReply,TReply) as TReply;
 end;
 
 Procedure TRepliesResource.Delete(commentId: string; fileId: string; replyId: string);
@@ -7423,7 +4350,7 @@ begin
   ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
 end;
 
-Function TRepliesResource.Get(commentId: string; fileId: string; replyId: string; AQuery : string = '') : TCommentReply;
+Function TRepliesResource.Get(commentId: string; fileId: string; replyId: string; AQuery : string = '') : TReply;
 
 Const
   _HTTPMethod = 'GET';
@@ -7435,11 +4362,11 @@ Var
 
 begin
   _P:=SubstitutePath(_Path,['commentId',commentId,'fileId',fileId,'replyId',replyId]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TCommentReply) as TCommentReply;
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TReply) as TReply;
 end;
 
 
-Function TRepliesResource.Get(commentId: string; fileId: string; replyId: string; AQuery : TRepliesgetOptions) : TCommentReply;
+Function TRepliesResource.Get(commentId: string; fileId: string; replyId: string; AQuery : TRepliesgetOptions) : TReply;
 
 Var
   _Q : String;
@@ -7450,22 +4377,7 @@ begin
   Result:=Get(commentId,fileId,replyId,_Q);
 end;
 
-Function TRepliesResource.Insert(commentId: string; fileId: string; aCommentReply : TCommentReply) : TCommentReply;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = 'files/{fileId}/comments/{commentId}/replies';
-  _Methodid   = 'drive.replies.insert';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['commentId',commentId,'fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aCommentReply,TCommentReply) as TCommentReply;
-end;
-
-Function TRepliesResource.List(commentId: string; fileId: string; AQuery : string = '') : TCommentReplyList;
+Function TRepliesResource.List(commentId: string; fileId: string; AQuery : string = '') : TReplyList;
 
 Const
   _HTTPMethod = 'GET';
@@ -7477,11 +4389,11 @@ Var
 
 begin
   _P:=SubstitutePath(_Path,['commentId',commentId,'fileId',fileId]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TCommentReplyList) as TCommentReplyList;
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TReplyList) as TReplyList;
 end;
 
 
-Function TRepliesResource.List(commentId: string; fileId: string; AQuery : TReplieslistOptions) : TCommentReplyList;
+Function TRepliesResource.List(commentId: string; fileId: string; AQuery : TReplieslistOptions) : TReplyList;
 
 Var
   _Q : String;
@@ -7489,30 +4401,15 @@ Var
 begin
   _Q:='';
   AddToQuery(_Q,'includeDeleted',AQuery.includeDeleted);
-  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'pageSize',AQuery.pageSize);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(commentId,fileId,_Q);
 end;
 
-Function TRepliesResource.Patch(commentId: string; fileId: string; replyId: string; aCommentReply : TCommentReply) : TCommentReply;
+Function TRepliesResource.Update(commentId: string; fileId: string; replyId: string; aReply : TReply) : TReply;
 
 Const
   _HTTPMethod = 'PATCH';
-  _Path       = 'files/{fileId}/comments/{commentId}/replies/{replyId}';
-  _Methodid   = 'drive.replies.patch';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['commentId',commentId,'fileId',fileId,'replyId',replyId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aCommentReply,TCommentReply) as TCommentReply;
-end;
-
-Function TRepliesResource.Update(commentId: string; fileId: string; replyId: string; aCommentReply : TCommentReply) : TCommentReply;
-
-Const
-  _HTTPMethod = 'PUT';
   _Path       = 'files/{fileId}/comments/{commentId}/replies/{replyId}';
   _Methodid   = 'drive.replies.update';
 
@@ -7521,7 +4418,7 @@ Var
 
 begin
   _P:=SubstitutePath(_Path,['commentId',commentId,'fileId',fileId,'replyId',replyId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aCommentReply,TCommentReply) as TCommentReply;
+  Result:=ServiceCall(_HTTPMethod,_P,'',aReply,TReply) as TReply;
 end;
 
 
@@ -7558,7 +4455,7 @@ begin
   ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
 end;
 
-Function TRevisionsResource.Get(fileId: string; revisionId: string) : TRevision;
+Function TRevisionsResource.Get(fileId: string; revisionId: string; AQuery : string = '') : TRevision;
 
 Const
   _HTTPMethod = 'GET';
@@ -7570,7 +4467,19 @@ Var
 
 begin
   _P:=SubstitutePath(_Path,['fileId',fileId,'revisionId',revisionId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TRevision) as TRevision;
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TRevision) as TRevision;
+end;
+
+
+Function TRevisionsResource.Get(fileId: string; revisionId: string; AQuery : TRevisionsgetOptions) : TRevision;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'acknowledgeAbuse',AQuery.acknowledgeAbuse);
+  Result:=Get(fileId,revisionId,_Q);
 end;
 
 Function TRevisionsResource.List(fileId: string) : TRevisionList;
@@ -7588,25 +4497,10 @@ begin
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TRevisionList) as TRevisionList;
 end;
 
-Function TRevisionsResource.Patch(fileId: string; revisionId: string; aRevision : TRevision) : TRevision;
-
-Const
-  _HTTPMethod = 'PATCH';
-  _Path       = 'files/{fileId}/revisions/{revisionId}';
-  _Methodid   = 'drive.revisions.patch';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['fileId',fileId,'revisionId',revisionId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aRevision,TRevision) as TRevision;
-end;
-
 Function TRevisionsResource.Update(fileId: string; revisionId: string; aRevision : TRevision) : TRevision;
 
 Const
-  _HTTPMethod = 'PUT';
+  _HTTPMethod = 'PATCH';
   _Path       = 'files/{fileId}/revisions/{revisionId}';
   _Methodid   = 'drive.revisions.update';
 
@@ -7633,19 +4527,19 @@ end;
 Class Function TDriveAPI.APIVersion : String;
 
 begin
-  Result:='v2';
+  Result:='v3';
 end;
 
 Class Function TDriveAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20160513';
 end;
 
 Class Function TDriveAPI.APIID : String;
 
 begin
-  Result:='drive:v2';
+  Result:='drive:v3';
 end;
 
 Class Function TDriveAPI.APITitle : String;
@@ -7657,7 +4551,7 @@ end;
 Class Function TDriveAPI.APIDescription : String;
 
 begin
-  Result:='The API to interact with Drive.';
+  Result:='Manages files in Drive including uploading, downloading, searching, detecting changes, and updating sharing permissions.';
 end;
 
 Class Function TDriveAPI.APIOwnerDomain : String;
@@ -7699,13 +4593,13 @@ end;
 Class Function TDriveAPI.APIbasePath : string;
 
 begin
-  Result:='/drive/v2/';
+  Result:='/drive/v3/';
 end;
 
 Class Function TDriveAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com/drive/v2/';
+  Result:='https://www.googleapis.com/drive/v3/';
 end;
 
 Class Function TDriveAPI.APIProtocol : string;
@@ -7717,7 +4611,7 @@ end;
 Class Function TDriveAPI.APIservicePath : string;
 
 begin
-  Result:='drive/v2/';
+  Result:='drive/v3/';
 end;
 
 Class Function TDriveAPI.APIbatchPath : String;
@@ -7734,14 +4628,14 @@ begin
   Result[0].Description:='View and manage the files in your Google Drive';
   Result[1].Name:='https://www.googleapis.com/auth/drive.appdata';
   Result[1].Description:='View and manage its own configuration data in your Google Drive';
-  Result[2].Name:='https://www.googleapis.com/auth/drive.apps.readonly';
-  Result[2].Description:='View your Google Drive apps';
-  Result[3].Name:='https://www.googleapis.com/auth/drive.file';
-  Result[3].Description:='View and manage Google Drive files that you have opened or created with this app';
-  Result[4].Name:='https://www.googleapis.com/auth/drive.metadata';
-  Result[4].Description:='View and manage metadata of files in your Google Drive';
-  Result[5].Name:='https://www.googleapis.com/auth/drive.metadata.readonly';
-  Result[5].Description:='View metadata for files in your Google Drive';
+  Result[2].Name:='https://www.googleapis.com/auth/drive.file';
+  Result[2].Description:='View and manage Google Drive files and folders that you have opened or created with this app';
+  Result[3].Name:='https://www.googleapis.com/auth/drive.metadata';
+  Result[3].Description:='View and manage metadata of files in your Google Drive';
+  Result[4].Name:='https://www.googleapis.com/auth/drive.metadata.readonly';
+  Result[4].Description:='View metadata for files in your Google Drive';
+  Result[5].Name:='https://www.googleapis.com/auth/drive.photos.readonly';
+  Result[5].Description:='View the photos, videos and albums in your Google Photos';
   Result[6].Name:='https://www.googleapis.com/auth/drive.readonly';
   Result[6].Description:='View the files in your Google Drive';
   Result[7].Name:='https://www.googleapis.com/auth/drive.scripts';
@@ -7758,76 +4652,37 @@ end;
 Class Procedure TDriveAPI.RegisterAPIResources;
 
 begin
+  TAboutTypeexportFormats.RegisterObject;
+  TAboutTypeimportFormats.RegisterObject;
+  TAboutTypemaxImportSizes.RegisterObject;
+  TAboutTypestorageQuota.RegisterObject;
   TAbout.RegisterObject;
-  TAboutadditionalRoleInfo.RegisterObject;
-  TAboutadditionalRoleInforoleSets.RegisterObject;
-  TAboutadditionalRoleInforoleSetsadditionalRoles.RegisterObject;
-  TAboutexportFormats.RegisterObject;
-  TAboutexportFormatstargets.RegisterObject;
-  TAboutfeatures.RegisterObject;
-  TAboutfolderColorPalette.RegisterObject;
-  TAboutimportFormats.RegisterObject;
-  TAboutimportFormatstargets.RegisterObject;
-  TAboutmaxUploadSizes.RegisterObject;
-  TAboutquotaBytesByService.RegisterObject;
-  TApp.RegisterObject;
-  TAppicons.RegisterObject;
-  TAppprimaryFileExtensions.RegisterObject;
-  TAppprimaryMimeTypes.RegisterObject;
-  TAppsecondaryFileExtensions.RegisterObject;
-  TAppsecondaryMimeTypes.RegisterObject;
-  TAppList.RegisterObject;
-  TAppListdefaultAppIds.RegisterObject;
-  TAppListitems.RegisterObject;
   TChange.RegisterObject;
   TChangeList.RegisterObject;
-  TChangeListitems.RegisterObject;
+  TChannelTypeparams.RegisterObject;
   TChannel.RegisterObject;
-  TChannelparams.RegisterObject;
-  TChildList.RegisterObject;
-  TChildListitems.RegisterObject;
-  TChildReference.RegisterObject;
+  TCommentTypequotedFileContent.RegisterObject;
   TComment.RegisterObject;
-  TCommentcontext.RegisterObject;
-  TCommentreplies.RegisterObject;
   TCommentList.RegisterObject;
-  TCommentListitems.RegisterObject;
-  TCommentReply.RegisterObject;
-  TCommentReplyList.RegisterObject;
-  TCommentReplyListitems.RegisterObject;
+  TFileTypeappProperties.RegisterObject;
+  TFileTypecapabilities.RegisterObject;
+  TFileTypecontentHintsTypethumbnail.RegisterObject;
+  TFileTypecontentHints.RegisterObject;
+  TFileTypeimageMediaMetadataTypelocation.RegisterObject;
+  TFileTypeimageMediaMetadata.RegisterObject;
+  TFileTypeproperties.RegisterObject;
+  TFileTypevideoMediaMetadata.RegisterObject;
   TFile.RegisterObject;
-  TFileexportLinks.RegisterObject;
-  TFileimageMediaMetadata.RegisterObject;
-  TFileimageMediaMetadatalocation.RegisterObject;
-  TFileindexableText.RegisterObject;
-  TFilelabels.RegisterObject;
-  TFileopenWithLinks.RegisterObject;
-  TFileownerNames.RegisterObject;
-  TFileowners.RegisterObject;
-  TFileparents.RegisterObject;
-  TFilepermissions.RegisterObject;
-  TFileproperties.RegisterObject;
-  TFilethumbnail.RegisterObject;
-  TFilevideoMediaMetadata.RegisterObject;
   TFileList.RegisterObject;
-  TFileListitems.RegisterObject;
-  TParentList.RegisterObject;
-  TParentListitems.RegisterObject;
-  TParentReference.RegisterObject;
+  TGeneratedIds.RegisterObject;
   TPermission.RegisterObject;
-  TPermissionadditionalRoles.RegisterObject;
-  TPermissionId.RegisterObject;
   TPermissionList.RegisterObject;
-  TPermissionListitems.RegisterObject;
-  TProperty.RegisterObject;
-  TPropertyList.RegisterObject;
-  TPropertyListitems.RegisterObject;
+  TReply.RegisterObject;
+  TReplyList.RegisterObject;
   TRevision.RegisterObject;
-  TRevisionexportLinks.RegisterObject;
   TRevisionList.RegisterObject;
-  TRevisionListitems.RegisterObject;
+  TStartPageToken.RegisterObject;
   TUser.RegisterObject;
-  TUserpicture.RegisterObject;
 end;
 
 
@@ -7850,31 +4705,7 @@ Function TDriveAPI.CreateAboutResource(AOwner : TComponent) : TAboutResource;
 
 begin
   Result:=TAboutResource.Create(AOwner);
-  Result.API:=Self;
-end;
-
-
-
-Function TDriveAPI.GetAppsInstance : TAppsResource;
-
-begin
-  if (FAppsInstance=Nil) then
-    FAppsInstance:=CreateAppsResource;
-  Result:=FAppsInstance;
-end;
-
-Function TDriveAPI.CreateAppsResource : TAppsResource;
-
-begin
-  Result:=CreateAppsResource(Self);
-end;
-
-
-Function TDriveAPI.CreateAppsResource(AOwner : TComponent) : TAppsResource;
-
-begin
-  Result:=TAppsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7898,7 +4729,7 @@ Function TDriveAPI.CreateChangesResource(AOwner : TComponent) : TChangesResource
 
 begin
   Result:=TChangesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7922,31 +4753,7 @@ Function TDriveAPI.CreateChannelsResource(AOwner : TComponent) : TChannelsResour
 
 begin
   Result:=TChannelsResource.Create(AOwner);
-  Result.API:=Self;
-end;
-
-
-
-Function TDriveAPI.GetChildrenInstance : TChildrenResource;
-
-begin
-  if (FChildrenInstance=Nil) then
-    FChildrenInstance:=CreateChildrenResource;
-  Result:=FChildrenInstance;
-end;
-
-Function TDriveAPI.CreateChildrenResource : TChildrenResource;
-
-begin
-  Result:=CreateChildrenResource(Self);
-end;
-
-
-Function TDriveAPI.CreateChildrenResource(AOwner : TComponent) : TChildrenResource;
-
-begin
-  Result:=TChildrenResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7970,7 +4777,7 @@ Function TDriveAPI.CreateCommentsResource(AOwner : TComponent) : TCommentsResour
 
 begin
   Result:=TCommentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -7994,31 +4801,7 @@ Function TDriveAPI.CreateFilesResource(AOwner : TComponent) : TFilesResource;
 
 begin
   Result:=TFilesResource.Create(AOwner);
-  Result.API:=Self;
-end;
-
-
-
-Function TDriveAPI.GetParentsInstance : TParentsResource;
-
-begin
-  if (FParentsInstance=Nil) then
-    FParentsInstance:=CreateParentsResource;
-  Result:=FParentsInstance;
-end;
-
-Function TDriveAPI.CreateParentsResource : TParentsResource;
-
-begin
-  Result:=CreateParentsResource(Self);
-end;
-
-
-Function TDriveAPI.CreateParentsResource(AOwner : TComponent) : TParentsResource;
-
-begin
-  Result:=TParentsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8042,55 +4825,7 @@ Function TDriveAPI.CreatePermissionsResource(AOwner : TComponent) : TPermissions
 
 begin
   Result:=TPermissionsResource.Create(AOwner);
-  Result.API:=Self;
-end;
-
-
-
-Function TDriveAPI.GetPropertiesInstance : TPropertiesResource;
-
-begin
-  if (FPropertiesInstance=Nil) then
-    FPropertiesInstance:=CreatePropertiesResource;
-  Result:=FPropertiesInstance;
-end;
-
-Function TDriveAPI.CreatePropertiesResource : TPropertiesResource;
-
-begin
-  Result:=CreatePropertiesResource(Self);
-end;
-
-
-Function TDriveAPI.CreatePropertiesResource(AOwner : TComponent) : TPropertiesResource;
-
-begin
-  Result:=TPropertiesResource.Create(AOwner);
-  Result.API:=Self;
-end;
-
-
-
-Function TDriveAPI.GetRealtimeInstance : TRealtimeResource;
-
-begin
-  if (FRealtimeInstance=Nil) then
-    FRealtimeInstance:=CreateRealtimeResource;
-  Result:=FRealtimeInstance;
-end;
-
-Function TDriveAPI.CreateRealtimeResource : TRealtimeResource;
-
-begin
-  Result:=CreateRealtimeResource(Self);
-end;
-
-
-Function TDriveAPI.CreateRealtimeResource(AOwner : TComponent) : TRealtimeResource;
-
-begin
-  Result:=TRealtimeResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8114,7 +4849,7 @@ Function TDriveAPI.CreateRepliesResource(AOwner : TComponent) : TRepliesResource
 
 begin
   Result:=TRepliesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -8138,7 +4873,7 @@ Function TDriveAPI.CreateRevisionsResource(AOwner : TComponent) : TRevisionsReso
 
 begin
   Result:=TRevisionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

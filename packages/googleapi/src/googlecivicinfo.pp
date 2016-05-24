@@ -1,31 +1,4 @@
 unit googlecivicinfo;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,117 +7,72 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TAdministrationRegion = class;
+  
+  //Top-level schema types
+  TAdministrationRegion = Class;
+  TAdministrativeBody = Class;
+  TCandidate = Class;
+  TChannel = Class;
+  TContest = Class;
+  TDivisionSearchResponse = Class;
+  TDivisionSearchResult = Class;
+  TElection = Class;
+  TElectionOfficial = Class;
+  TElectionsQueryResponse = Class;
+  TElectoralDistrict = Class;
+  TGeographicDivision = Class;
+  TOffice = Class;
+  TOfficial = Class;
+  TPollingLocation = Class;
+  TRepresentativeInfoData = Class;
+  TRepresentativeInfoResponse = Class;
+  TSimpleAddressType = Class;
+  TSource = Class;
+  TVoterInfoResponse = Class;
   TAdministrationRegionArray = Array of TAdministrationRegion;
-  TAdministrationRegionsources = class;
-  TAdministrationRegionsourcesArray = Array of TAdministrationRegionsources;
-  TAdministrativeBody = class;
   TAdministrativeBodyArray = Array of TAdministrativeBody;
-  TAdministrativeBodyelectionOfficials = class;
-  TAdministrativeBodyelectionOfficialsArray = Array of TAdministrativeBodyelectionOfficials;
-  TAdministrativeBodyvoter_services = class;
-  TAdministrativeBodyvoter_servicesArray = Array of TAdministrativeBodyvoter_services;
-  TCandidate = class;
   TCandidateArray = Array of TCandidate;
-  TCandidatechannels = class;
-  TCandidatechannelsArray = Array of TCandidatechannels;
-  TChannel = class;
   TChannelArray = Array of TChannel;
-  TContest = class;
   TContestArray = Array of TContest;
-  TContestcandidates = class;
-  TContestcandidatesArray = Array of TContestcandidates;
-  TContestlevel = class;
-  TContestlevelArray = Array of TContestlevel;
-  TContestroles = class;
-  TContestrolesArray = Array of TContestroles;
-  TContestsources = class;
-  TContestsourcesArray = Array of TContestsources;
-  TDivisionSearchResponse = class;
   TDivisionSearchResponseArray = Array of TDivisionSearchResponse;
-  TDivisionSearchResponseresults = class;
-  TDivisionSearchResponseresultsArray = Array of TDivisionSearchResponseresults;
-  TDivisionSearchResult = class;
   TDivisionSearchResultArray = Array of TDivisionSearchResult;
-  TDivisionSearchResultaliases = class;
-  TDivisionSearchResultaliasesArray = Array of TDivisionSearchResultaliases;
-  TElection = class;
   TElectionArray = Array of TElection;
-  TElectionOfficial = class;
   TElectionOfficialArray = Array of TElectionOfficial;
-  TElectionsQueryResponse = class;
   TElectionsQueryResponseArray = Array of TElectionsQueryResponse;
-  TElectionsQueryResponseelections = class;
-  TElectionsQueryResponseelectionsArray = Array of TElectionsQueryResponseelections;
-  TElectoralDistrict = class;
   TElectoralDistrictArray = Array of TElectoralDistrict;
-  TGeographicDivision = class;
   TGeographicDivisionArray = Array of TGeographicDivision;
-  TGeographicDivisionalsoKnownAs = class;
-  TGeographicDivisionalsoKnownAsArray = Array of TGeographicDivisionalsoKnownAs;
-  TGeographicDivisionofficeIndices = class;
-  TGeographicDivisionofficeIndicesArray = Array of TGeographicDivisionofficeIndices;
-  TOffice = class;
   TOfficeArray = Array of TOffice;
-  TOfficelevels = class;
-  TOfficelevelsArray = Array of TOfficelevels;
-  TOfficeofficialIndices = class;
-  TOfficeofficialIndicesArray = Array of TOfficeofficialIndices;
-  TOfficeroles = class;
-  TOfficerolesArray = Array of TOfficeroles;
-  TOfficesources = class;
-  TOfficesourcesArray = Array of TOfficesources;
-  TOfficial = class;
   TOfficialArray = Array of TOfficial;
-  TOfficialaddress = class;
-  TOfficialaddressArray = Array of TOfficialaddress;
-  TOfficialchannels = class;
-  TOfficialchannelsArray = Array of TOfficialchannels;
-  TOfficialemails = class;
-  TOfficialemailsArray = Array of TOfficialemails;
-  TOfficialphones = class;
-  TOfficialphonesArray = Array of TOfficialphones;
-  TOfficialurls = class;
-  TOfficialurlsArray = Array of TOfficialurls;
-  TPollingLocation = class;
   TPollingLocationArray = Array of TPollingLocation;
-  TPollingLocationsources = class;
-  TPollingLocationsourcesArray = Array of TPollingLocationsources;
-  TRepresentativeInfoData = class;
   TRepresentativeInfoDataArray = Array of TRepresentativeInfoData;
-  TRepresentativeInfoDatadivisions = class;
-  TRepresentativeInfoDatadivisionsArray = Array of TRepresentativeInfoDatadivisions;
-  TRepresentativeInfoDataoffices = class;
-  TRepresentativeInfoDataofficesArray = Array of TRepresentativeInfoDataoffices;
-  TRepresentativeInfoDataofficials = class;
-  TRepresentativeInfoDataofficialsArray = Array of TRepresentativeInfoDataofficials;
-  TRepresentativeInfoResponse = class;
   TRepresentativeInfoResponseArray = Array of TRepresentativeInfoResponse;
-  TRepresentativeInfoResponsedivisions = class;
-  TRepresentativeInfoResponsedivisionsArray = Array of TRepresentativeInfoResponsedivisions;
-  TRepresentativeInfoResponseoffices = class;
-  TRepresentativeInfoResponseofficesArray = Array of TRepresentativeInfoResponseoffices;
-  TRepresentativeInfoResponseofficials = class;
-  TRepresentativeInfoResponseofficialsArray = Array of TRepresentativeInfoResponseofficials;
-  TSimpleAddressType = class;
   TSimpleAddressTypeArray = Array of TSimpleAddressType;
-  TSource = class;
   TSourceArray = Array of TSource;
-  TVoterInfoResponse = class;
   TVoterInfoResponseArray = Array of TVoterInfoResponse;
-  TVoterInfoResponsecontests = class;
-  TVoterInfoResponsecontestsArray = Array of TVoterInfoResponsecontests;
-  TVoterInfoResponsedropOffLocations = class;
-  TVoterInfoResponsedropOffLocationsArray = Array of TVoterInfoResponsedropOffLocations;
-  TVoterInfoResponseearlyVoteSites = class;
-  TVoterInfoResponseearlyVoteSitesArray = Array of TVoterInfoResponseearlyVoteSites;
-  TVoterInfoResponseotherElections = class;
-  TVoterInfoResponseotherElectionsArray = Array of TVoterInfoResponseotherElections;
-  TVoterInfoResponsepollingLocations = class;
-  TVoterInfoResponsepollingLocationsArray = Array of TVoterInfoResponsepollingLocations;
-  TVoterInfoResponsestate = class;
-  TVoterInfoResponsestateArray = Array of TVoterInfoResponsestate;
+  //Anonymous types, using auto-generated names
+  TRepresentativeInfoDataTypedivisions = Class;
+  TRepresentativeInfoResponseTypedivisions = Class;
+  TAdministrationRegionTypesourcesArray = Array of TSource;
+  TAdministrativeBodyTypeelectionOfficialsArray = Array of TElectionOfficial;
+  TCandidateTypechannelsArray = Array of TChannel;
+  TContestTypecandidatesArray = Array of TCandidate;
+  TContestTypesourcesArray = Array of TSource;
+  TDivisionSearchResponseTyperesultsArray = Array of TDivisionSearchResult;
+  TElectionsQueryResponseTypeelectionsArray = Array of TElection;
+  TOfficeTypesourcesArray = Array of TSource;
+  TOfficialTypeaddressArray = Array of TSimpleAddressType;
+  TOfficialTypechannelsArray = Array of TChannel;
+  TPollingLocationTypesourcesArray = Array of TSource;
+  TRepresentativeInfoDataTypeofficesArray = Array of TOffice;
+  TRepresentativeInfoDataTypeofficialsArray = Array of TOfficial;
+  TRepresentativeInfoResponseTypeofficesArray = Array of TOffice;
+  TRepresentativeInfoResponseTypeofficialsArray = Array of TOfficial;
+  TVoterInfoResponseTypecontestsArray = Array of TContest;
+  TVoterInfoResponseTypedropOffLocationsArray = Array of TPollingLocation;
+  TVoterInfoResponseTypeearlyVoteSitesArray = Array of TPollingLocation;
+  TVoterInfoResponseTypeotherElectionsArray = Array of TElection;
+  TVoterInfoResponseTypepollingLocationsArray = Array of TPollingLocation;
+  TVoterInfoResponseTypestateArray = Array of TAdministrationRegion;
   
   { --------------------------------------------------------------------
     TAdministrationRegion
@@ -153,39 +81,30 @@ type
   TAdministrationRegion = Class(TGoogleBaseObject)
   Private
     FelectionAdministrationBody : TAdministrativeBody;
-    Fid : string;
+    Fid : String;
     Flocal_jurisdiction : TAdministrationRegion;
-    Fname : string;
-    Fsources : TAdministrationRegionsources;
+    Fname : String;
+    Fsources : TAdministrationRegionTypesourcesArray;
   Protected
     //Property setters
-    Procedure SetelectionAdministrationBody(AIndex : Integer; AValue : TAdministrativeBody); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlocal_jurisdiction(AIndex : Integer; AValue : TAdministrationRegion); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsources(AIndex : Integer; AValue : TAdministrationRegionsources); virtual;
+    Procedure SetelectionAdministrationBody(AIndex : Integer; const AValue : TAdministrativeBody); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocal_jurisdiction(AIndex : Integer; const AValue : TAdministrationRegion); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsources(AIndex : Integer; const AValue : TAdministrationRegionTypesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property electionAdministrationBody : TAdministrativeBody Index 0 Read FelectionAdministrationBody Write SetelectionAdministrationBody;
-    Property id : string Index 8 Read Fid Write Setid;
+    Property id : String Index 8 Read Fid Write Setid;
     Property local_jurisdiction : TAdministrationRegion Index 16 Read Flocal_jurisdiction Write Setlocal_jurisdiction;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property sources : TAdministrationRegionsources Index 32 Read Fsources Write Setsources;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property sources : TAdministrationRegionTypesourcesArray Index 32 Read Fsources Write Setsources;
   end;
   TAdministrationRegionClass = Class of TAdministrationRegion;
-  
-  { --------------------------------------------------------------------
-    TAdministrationRegionsources
-    --------------------------------------------------------------------}
-  
-  TAdministrationRegionsources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAdministrationRegionsourcesClass = Class of TAdministrationRegionsources;
   
   { --------------------------------------------------------------------
     TAdministrativeBody
@@ -193,77 +112,55 @@ type
   
   TAdministrativeBody = Class(TGoogleBaseObject)
   Private
-    FabsenteeVotingInfoUrl : string;
-    FballotInfoUrl : string;
+    FabsenteeVotingInfoUrl : String;
+    FballotInfoUrl : String;
     FcorrespondenceAddress : TSimpleAddressType;
-    FelectionInfoUrl : string;
-    FelectionOfficials : TAdministrativeBodyelectionOfficials;
-    FelectionRegistrationConfirmationUrl : string;
-    FelectionRegistrationUrl : string;
-    FelectionRulesUrl : string;
-    FhoursOfOperation : string;
-    Fname : string;
+    FelectionInfoUrl : String;
+    FelectionOfficials : TAdministrativeBodyTypeelectionOfficialsArray;
+    FelectionRegistrationConfirmationUrl : String;
+    FelectionRegistrationUrl : String;
+    FelectionRulesUrl : String;
+    FhoursOfOperation : String;
+    Fname : String;
     FphysicalAddress : TSimpleAddressType;
-    Fvoter_services : TAdministrativeBodyvoter_services;
-    FvotingLocationFinderUrl : string;
+    Fvoter_services : TStringArray;
+    FvotingLocationFinderUrl : String;
   Protected
     //Property setters
-    Procedure SetabsenteeVotingInfoUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetballotInfoUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcorrespondenceAddress(AIndex : Integer; AValue : TSimpleAddressType); virtual;
-    Procedure SetelectionInfoUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetelectionOfficials(AIndex : Integer; AValue : TAdministrativeBodyelectionOfficials); virtual;
-    Procedure SetelectionRegistrationConfirmationUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetelectionRegistrationUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SetelectionRulesUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure SethoursOfOperation(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetphysicalAddress(AIndex : Integer; AValue : TSimpleAddressType); virtual;
-    Procedure Setvoter_services(AIndex : Integer; AValue : TAdministrativeBodyvoter_services); virtual;
-    Procedure SetvotingLocationFinderUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetabsenteeVotingInfoUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetballotInfoUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcorrespondenceAddress(AIndex : Integer; const AValue : TSimpleAddressType); virtual;
+    Procedure SetelectionInfoUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetelectionOfficials(AIndex : Integer; const AValue : TAdministrativeBodyTypeelectionOfficialsArray); virtual;
+    Procedure SetelectionRegistrationConfirmationUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetelectionRegistrationUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetelectionRulesUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethoursOfOperation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetphysicalAddress(AIndex : Integer; const AValue : TSimpleAddressType); virtual;
+    Procedure Setvoter_services(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetvotingLocationFinderUrl(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property absenteeVotingInfoUrl : string Index 0 Read FabsenteeVotingInfoUrl Write SetabsenteeVotingInfoUrl;
-    Property ballotInfoUrl : string Index 8 Read FballotInfoUrl Write SetballotInfoUrl;
+    Property absenteeVotingInfoUrl : String Index 0 Read FabsenteeVotingInfoUrl Write SetabsenteeVotingInfoUrl;
+    Property ballotInfoUrl : String Index 8 Read FballotInfoUrl Write SetballotInfoUrl;
     Property correspondenceAddress : TSimpleAddressType Index 16 Read FcorrespondenceAddress Write SetcorrespondenceAddress;
-    Property electionInfoUrl : string Index 24 Read FelectionInfoUrl Write SetelectionInfoUrl;
-    Property electionOfficials : TAdministrativeBodyelectionOfficials Index 32 Read FelectionOfficials Write SetelectionOfficials;
-    Property electionRegistrationConfirmationUrl : string Index 40 Read FelectionRegistrationConfirmationUrl Write SetelectionRegistrationConfirmationUrl;
-    Property electionRegistrationUrl : string Index 48 Read FelectionRegistrationUrl Write SetelectionRegistrationUrl;
-    Property electionRulesUrl : string Index 56 Read FelectionRulesUrl Write SetelectionRulesUrl;
-    Property hoursOfOperation : string Index 64 Read FhoursOfOperation Write SethoursOfOperation;
-    Property name : string Index 72 Read Fname Write Setname;
+    Property electionInfoUrl : String Index 24 Read FelectionInfoUrl Write SetelectionInfoUrl;
+    Property electionOfficials : TAdministrativeBodyTypeelectionOfficialsArray Index 32 Read FelectionOfficials Write SetelectionOfficials;
+    Property electionRegistrationConfirmationUrl : String Index 40 Read FelectionRegistrationConfirmationUrl Write SetelectionRegistrationConfirmationUrl;
+    Property electionRegistrationUrl : String Index 48 Read FelectionRegistrationUrl Write SetelectionRegistrationUrl;
+    Property electionRulesUrl : String Index 56 Read FelectionRulesUrl Write SetelectionRulesUrl;
+    Property hoursOfOperation : String Index 64 Read FhoursOfOperation Write SethoursOfOperation;
+    Property name : String Index 72 Read Fname Write Setname;
     Property physicalAddress : TSimpleAddressType Index 80 Read FphysicalAddress Write SetphysicalAddress;
-    Property voter_services : TAdministrativeBodyvoter_services Index 88 Read Fvoter_services Write Setvoter_services;
-    Property votingLocationFinderUrl : string Index 96 Read FvotingLocationFinderUrl Write SetvotingLocationFinderUrl;
+    Property voter_services : TStringArray Index 88 Read Fvoter_services Write Setvoter_services;
+    Property votingLocationFinderUrl : String Index 96 Read FvotingLocationFinderUrl Write SetvotingLocationFinderUrl;
   end;
   TAdministrativeBodyClass = Class of TAdministrativeBody;
-  
-  { --------------------------------------------------------------------
-    TAdministrativeBodyelectionOfficials
-    --------------------------------------------------------------------}
-  
-  TAdministrativeBodyelectionOfficials = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAdministrativeBodyelectionOfficialsClass = Class of TAdministrativeBodyelectionOfficials;
-  
-  { --------------------------------------------------------------------
-    TAdministrativeBodyvoter_services
-    --------------------------------------------------------------------}
-  
-  TAdministrativeBodyvoter_services = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TAdministrativeBodyvoter_servicesClass = Class of TAdministrativeBodyvoter_services;
   
   { --------------------------------------------------------------------
     TCandidate
@@ -271,49 +168,40 @@ type
   
   TCandidate = Class(TGoogleBaseObject)
   Private
-    FcandidateUrl : string;
-    Fchannels : TCandidatechannels;
-    Femail : string;
-    Fname : string;
-    ForderOnBallot : string;
-    Fparty : string;
-    Fphone : string;
-    FphotoUrl : string;
+    FcandidateUrl : String;
+    Fchannels : TCandidateTypechannelsArray;
+    Femail : String;
+    Fname : String;
+    ForderOnBallot : String;
+    Fparty : String;
+    Fphone : String;
+    FphotoUrl : String;
   Protected
     //Property setters
-    Procedure SetcandidateUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setchannels(AIndex : Integer; AValue : TCandidatechannels); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetorderOnBallot(AIndex : Integer; AValue : string); virtual;
-    Procedure Setparty(AIndex : Integer; AValue : string); virtual;
-    Procedure Setphone(AIndex : Integer; AValue : string); virtual;
-    Procedure SetphotoUrl(AIndex : Integer; AValue : string); virtual;
+    Procedure SetcandidateUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setchannels(AIndex : Integer; const AValue : TCandidateTypechannelsArray); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetorderOnBallot(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setparty(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setphone(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetphotoUrl(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property candidateUrl : string Index 0 Read FcandidateUrl Write SetcandidateUrl;
-    Property channels : TCandidatechannels Index 8 Read Fchannels Write Setchannels;
-    Property email : string Index 16 Read Femail Write Setemail;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property orderOnBallot : string Index 32 Read ForderOnBallot Write SetorderOnBallot;
-    Property party : string Index 40 Read Fparty Write Setparty;
-    Property phone : string Index 48 Read Fphone Write Setphone;
-    Property photoUrl : string Index 56 Read FphotoUrl Write SetphotoUrl;
+    Property candidateUrl : String Index 0 Read FcandidateUrl Write SetcandidateUrl;
+    Property channels : TCandidateTypechannelsArray Index 8 Read Fchannels Write Setchannels;
+    Property email : String Index 16 Read Femail Write Setemail;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property orderOnBallot : String Index 32 Read ForderOnBallot Write SetorderOnBallot;
+    Property party : String Index 40 Read Fparty Write Setparty;
+    Property phone : String Index 48 Read Fphone Write Setphone;
+    Property photoUrl : String Index 56 Read FphotoUrl Write SetphotoUrl;
   end;
   TCandidateClass = Class of TCandidate;
-  
-  { --------------------------------------------------------------------
-    TCandidatechannels
-    --------------------------------------------------------------------}
-  
-  TCandidatechannels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TCandidatechannelsClass = Class of TCandidatechannels;
   
   { --------------------------------------------------------------------
     TChannel
@@ -321,17 +209,17 @@ type
   
   TChannel = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    F_type : string;
+    Fid : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property _type : string Index 8 Read F_type Write Set_type;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TChannelClass = Class of TChannel;
   
@@ -341,116 +229,89 @@ type
   
   TContest = Class(TGoogleBaseObject)
   Private
-    FballotPlacement : string;
-    Fcandidates : TContestcandidates;
+    FballotPlacement : String;
+    Fcandidates : TContestTypecandidatesArray;
     Fdistrict : TElectoralDistrict;
-    FelectorateSpecifications : string;
-    Fid : string;
-    Flevel : TContestlevel;
-    FnumberElected : string;
-    FnumberVotingFor : string;
-    Foffice : string;
-    FprimaryParty : string;
-    FreferendumSubtitle : string;
-    FreferendumTitle : string;
-    FreferendumUrl : string;
-    Froles : TContestroles;
-    Fsources : TContestsources;
-    Fspecial : string;
-    F_type : string;
+    FelectorateSpecifications : String;
+    Fid : String;
+    Flevel : TStringArray;
+    FnumberElected : String;
+    FnumberVotingFor : String;
+    Foffice : String;
+    FprimaryParty : String;
+    FreferendumBallotResponses : TStringArray;
+    FreferendumBrief : String;
+    FreferendumConStatement : String;
+    FreferendumEffectOfAbstain : String;
+    FreferendumPassageThreshold : String;
+    FreferendumProStatement : String;
+    FreferendumSubtitle : String;
+    FreferendumText : String;
+    FreferendumTitle : String;
+    FreferendumUrl : String;
+    Froles : TStringArray;
+    Fsources : TContestTypesourcesArray;
+    Fspecial : String;
+    F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetballotPlacement(AIndex : Integer; AValue : string); virtual;
-    Procedure Setcandidates(AIndex : Integer; AValue : TContestcandidates); virtual;
-    Procedure Setdistrict(AIndex : Integer; AValue : TElectoralDistrict); virtual;
-    Procedure SetelectorateSpecifications(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlevel(AIndex : Integer; AValue : TContestlevel); virtual;
-    Procedure SetnumberElected(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnumberVotingFor(AIndex : Integer; AValue : string); virtual;
-    Procedure Setoffice(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprimaryParty(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferendumSubtitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferendumTitle(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreferendumUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Setroles(AIndex : Integer; AValue : TContestroles); virtual;
-    Procedure Setsources(AIndex : Integer; AValue : TContestsources); virtual;
-    Procedure Setspecial(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
+    Procedure SetballotPlacement(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcandidates(AIndex : Integer; const AValue : TContestTypecandidatesArray); virtual;
+    Procedure Setdistrict(AIndex : Integer; const AValue : TElectoralDistrict); virtual;
+    Procedure SetelectorateSpecifications(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlevel(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetnumberElected(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumberVotingFor(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setoffice(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprimaryParty(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumBallotResponses(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetreferendumBrief(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumConStatement(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumEffectOfAbstain(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumPassageThreshold(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumProStatement(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumSubtitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumText(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumTitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setroles(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setsources(AIndex : Integer; const AValue : TContestTypesourcesArray); virtual;
+    Procedure Setspecial(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property ballotPlacement : string Index 0 Read FballotPlacement Write SetballotPlacement;
-    Property candidates : TContestcandidates Index 8 Read Fcandidates Write Setcandidates;
+    Property ballotPlacement : String Index 0 Read FballotPlacement Write SetballotPlacement;
+    Property candidates : TContestTypecandidatesArray Index 8 Read Fcandidates Write Setcandidates;
     Property district : TElectoralDistrict Index 16 Read Fdistrict Write Setdistrict;
-    Property electorateSpecifications : string Index 24 Read FelectorateSpecifications Write SetelectorateSpecifications;
-    Property id : string Index 32 Read Fid Write Setid;
-    Property level : TContestlevel Index 40 Read Flevel Write Setlevel;
-    Property numberElected : string Index 48 Read FnumberElected Write SetnumberElected;
-    Property numberVotingFor : string Index 56 Read FnumberVotingFor Write SetnumberVotingFor;
-    Property office : string Index 64 Read Foffice Write Setoffice;
-    Property primaryParty : string Index 72 Read FprimaryParty Write SetprimaryParty;
-    Property referendumSubtitle : string Index 80 Read FreferendumSubtitle Write SetreferendumSubtitle;
-    Property referendumTitle : string Index 88 Read FreferendumTitle Write SetreferendumTitle;
-    Property referendumUrl : string Index 96 Read FreferendumUrl Write SetreferendumUrl;
-    Property roles : TContestroles Index 104 Read Froles Write Setroles;
-    Property sources : TContestsources Index 112 Read Fsources Write Setsources;
-    Property special : string Index 120 Read Fspecial Write Setspecial;
-    Property _type : string Index 128 Read F_type Write Set_type;
+    Property electorateSpecifications : String Index 24 Read FelectorateSpecifications Write SetelectorateSpecifications;
+    Property id : String Index 32 Read Fid Write Setid;
+    Property level : TStringArray Index 40 Read Flevel Write Setlevel;
+    Property numberElected : String Index 48 Read FnumberElected Write SetnumberElected;
+    Property numberVotingFor : String Index 56 Read FnumberVotingFor Write SetnumberVotingFor;
+    Property office : String Index 64 Read Foffice Write Setoffice;
+    Property primaryParty : String Index 72 Read FprimaryParty Write SetprimaryParty;
+    Property referendumBallotResponses : TStringArray Index 80 Read FreferendumBallotResponses Write SetreferendumBallotResponses;
+    Property referendumBrief : String Index 88 Read FreferendumBrief Write SetreferendumBrief;
+    Property referendumConStatement : String Index 96 Read FreferendumConStatement Write SetreferendumConStatement;
+    Property referendumEffectOfAbstain : String Index 104 Read FreferendumEffectOfAbstain Write SetreferendumEffectOfAbstain;
+    Property referendumPassageThreshold : String Index 112 Read FreferendumPassageThreshold Write SetreferendumPassageThreshold;
+    Property referendumProStatement : String Index 120 Read FreferendumProStatement Write SetreferendumProStatement;
+    Property referendumSubtitle : String Index 128 Read FreferendumSubtitle Write SetreferendumSubtitle;
+    Property referendumText : String Index 136 Read FreferendumText Write SetreferendumText;
+    Property referendumTitle : String Index 144 Read FreferendumTitle Write SetreferendumTitle;
+    Property referendumUrl : String Index 152 Read FreferendumUrl Write SetreferendumUrl;
+    Property roles : TStringArray Index 160 Read Froles Write Setroles;
+    Property sources : TContestTypesourcesArray Index 168 Read Fsources Write Setsources;
+    Property special : String Index 176 Read Fspecial Write Setspecial;
+    Property _type : String Index 184 Read F_type Write Set_type;
   end;
   TContestClass = Class of TContest;
-  
-  { --------------------------------------------------------------------
-    TContestcandidates
-    --------------------------------------------------------------------}
-  
-  TContestcandidates = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContestcandidatesClass = Class of TContestcandidates;
-  
-  { --------------------------------------------------------------------
-    TContestlevel
-    --------------------------------------------------------------------}
-  
-  TContestlevel = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContestlevelClass = Class of TContestlevel;
-  
-  { --------------------------------------------------------------------
-    TContestroles
-    --------------------------------------------------------------------}
-  
-  TContestroles = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContestrolesClass = Class of TContestroles;
-  
-  { --------------------------------------------------------------------
-    TContestsources
-    --------------------------------------------------------------------}
-  
-  TContestsources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TContestsourcesClass = Class of TContestsources;
   
   { --------------------------------------------------------------------
     TDivisionSearchResponse
@@ -458,31 +319,22 @@ type
   
   TDivisionSearchResponse = Class(TGoogleBaseObject)
   Private
-    Fkind : string;
-    Fresults : TDivisionSearchResponseresults;
+    Fkind : String;
+    Fresults : TDivisionSearchResponseTyperesultsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure Setresults(AIndex : Integer; AValue : TDivisionSearchResponseresults); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setresults(AIndex : Integer; const AValue : TDivisionSearchResponseTyperesultsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property kind : string Index 0 Read Fkind Write Setkind;
-    Property results : TDivisionSearchResponseresults Index 8 Read Fresults Write Setresults;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property results : TDivisionSearchResponseTyperesultsArray Index 8 Read Fresults Write Setresults;
   end;
   TDivisionSearchResponseClass = Class of TDivisionSearchResponse;
-  
-  { --------------------------------------------------------------------
-    TDivisionSearchResponseresults
-    --------------------------------------------------------------------}
-  
-  TDivisionSearchResponseresults = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDivisionSearchResponseresultsClass = Class of TDivisionSearchResponseresults;
   
   { --------------------------------------------------------------------
     TDivisionSearchResult
@@ -490,34 +342,25 @@ type
   
   TDivisionSearchResult = Class(TGoogleBaseObject)
   Private
-    Faliases : TDivisionSearchResultaliases;
-    Fname : string;
-    FocdId : string;
+    Faliases : TStringArray;
+    Fname : String;
+    FocdId : String;
   Protected
     //Property setters
-    Procedure Setaliases(AIndex : Integer; AValue : TDivisionSearchResultaliases); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetocdId(AIndex : Integer; AValue : string); virtual;
+    Procedure Setaliases(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetocdId(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property aliases : TDivisionSearchResultaliases Index 0 Read Faliases Write Setaliases;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property ocdId : string Index 16 Read FocdId Write SetocdId;
+    Property aliases : TStringArray Index 0 Read Faliases Write Setaliases;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property ocdId : String Index 16 Read FocdId Write SetocdId;
   end;
   TDivisionSearchResultClass = Class of TDivisionSearchResult;
-  
-  { --------------------------------------------------------------------
-    TDivisionSearchResultaliases
-    --------------------------------------------------------------------}
-  
-  TDivisionSearchResultaliases = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TDivisionSearchResultaliasesClass = Class of TDivisionSearchResultaliases;
   
   { --------------------------------------------------------------------
     TElection
@@ -525,19 +368,22 @@ type
   
   TElection = Class(TGoogleBaseObject)
   Private
-    FelectionDay : string;
-    Fid : string;
-    Fname : string;
+    FelectionDay : String;
+    Fid : String;
+    Fname : String;
+    FocdDivisionId : String;
   Protected
     //Property setters
-    Procedure SetelectionDay(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
+    Procedure SetelectionDay(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetocdDivisionId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property electionDay : string Index 0 Read FelectionDay Write SetelectionDay;
-    Property id : string Index 8 Read Fid Write Setid;
-    Property name : string Index 16 Read Fname Write Setname;
+    Property electionDay : String Index 0 Read FelectionDay Write SetelectionDay;
+    Property id : String Index 8 Read Fid Write Setid;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property ocdDivisionId : String Index 24 Read FocdDivisionId Write SetocdDivisionId;
   end;
   TElectionClass = Class of TElection;
   
@@ -547,25 +393,25 @@ type
   
   TElectionOfficial = Class(TGoogleBaseObject)
   Private
-    FemailAddress : string;
-    FfaxNumber : string;
-    Fname : string;
-    FofficePhoneNumber : string;
-    Ftitle : string;
+    FemailAddress : String;
+    FfaxNumber : String;
+    Fname : String;
+    FofficePhoneNumber : String;
+    Ftitle : String;
   Protected
     //Property setters
-    Procedure SetemailAddress(AIndex : Integer; AValue : string); virtual;
-    Procedure SetfaxNumber(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetofficePhoneNumber(AIndex : Integer; AValue : string); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : string); virtual;
+    Procedure SetemailAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfaxNumber(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetofficePhoneNumber(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property emailAddress : string Index 0 Read FemailAddress Write SetemailAddress;
-    Property faxNumber : string Index 8 Read FfaxNumber Write SetfaxNumber;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property officePhoneNumber : string Index 24 Read FofficePhoneNumber Write SetofficePhoneNumber;
-    Property title : string Index 32 Read Ftitle Write Settitle;
+    Property emailAddress : String Index 0 Read FemailAddress Write SetemailAddress;
+    Property faxNumber : String Index 8 Read FfaxNumber Write SetfaxNumber;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property officePhoneNumber : String Index 24 Read FofficePhoneNumber Write SetofficePhoneNumber;
+    Property title : String Index 32 Read Ftitle Write Settitle;
   end;
   TElectionOfficialClass = Class of TElectionOfficial;
   
@@ -575,31 +421,22 @@ type
   
   TElectionsQueryResponse = Class(TGoogleBaseObject)
   Private
-    Felections : TElectionsQueryResponseelections;
-    Fkind : string;
+    Felections : TElectionsQueryResponseTypeelectionsArray;
+    Fkind : String;
   Protected
     //Property setters
-    Procedure Setelections(AIndex : Integer; AValue : TElectionsQueryResponseelections); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
+    Procedure Setelections(AIndex : Integer; const AValue : TElectionsQueryResponseTypeelectionsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property elections : TElectionsQueryResponseelections Index 0 Read Felections Write Setelections;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property elections : TElectionsQueryResponseTypeelectionsArray Index 0 Read Felections Write Setelections;
+    Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TElectionsQueryResponseClass = Class of TElectionsQueryResponse;
-  
-  { --------------------------------------------------------------------
-    TElectionsQueryResponseelections
-    --------------------------------------------------------------------}
-  
-  TElectionsQueryResponseelections = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TElectionsQueryResponseelectionsClass = Class of TElectionsQueryResponseelections;
   
   { --------------------------------------------------------------------
     TElectoralDistrict
@@ -607,19 +444,19 @@ type
   
   TElectoralDistrict = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fname : string;
-    Fscope : string;
+    Fid : String;
+    Fname : String;
+    Fscope : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setscope(AIndex : Integer; AValue : string); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setscope(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property scope : string Index 16 Read Fscope Write Setscope;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property scope : String Index 16 Read Fscope Write Setscope;
   end;
   TElectoralDistrictClass = Class of TElectoralDistrict;
   
@@ -629,47 +466,25 @@ type
   
   TGeographicDivision = Class(TGoogleBaseObject)
   Private
-    FalsoKnownAs : TGeographicDivisionalsoKnownAs;
-    Fname : string;
-    FofficeIndices : TGeographicDivisionofficeIndices;
+    FalsoKnownAs : TStringArray;
+    Fname : String;
+    FofficeIndices : TintegerArray;
   Protected
     //Property setters
-    Procedure SetalsoKnownAs(AIndex : Integer; AValue : TGeographicDivisionalsoKnownAs); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetofficeIndices(AIndex : Integer; AValue : TGeographicDivisionofficeIndices); virtual;
+    Procedure SetalsoKnownAs(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetofficeIndices(AIndex : Integer; const AValue : TintegerArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property alsoKnownAs : TGeographicDivisionalsoKnownAs Index 0 Read FalsoKnownAs Write SetalsoKnownAs;
-    Property name : string Index 8 Read Fname Write Setname;
-    Property officeIndices : TGeographicDivisionofficeIndices Index 16 Read FofficeIndices Write SetofficeIndices;
+    Property alsoKnownAs : TStringArray Index 0 Read FalsoKnownAs Write SetalsoKnownAs;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property officeIndices : TintegerArray Index 16 Read FofficeIndices Write SetofficeIndices;
   end;
   TGeographicDivisionClass = Class of TGeographicDivision;
-  
-  { --------------------------------------------------------------------
-    TGeographicDivisionalsoKnownAs
-    --------------------------------------------------------------------}
-  
-  TGeographicDivisionalsoKnownAs = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGeographicDivisionalsoKnownAsClass = Class of TGeographicDivisionalsoKnownAs;
-  
-  { --------------------------------------------------------------------
-    TGeographicDivisionofficeIndices
-    --------------------------------------------------------------------}
-  
-  TGeographicDivisionofficeIndices = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TGeographicDivisionofficeIndicesClass = Class of TGeographicDivisionofficeIndices;
   
   { --------------------------------------------------------------------
     TOffice
@@ -677,82 +492,34 @@ type
   
   TOffice = Class(TGoogleBaseObject)
   Private
-    FdivisionId : string;
-    Flevels : TOfficelevels;
-    Fname : string;
-    FofficialIndices : TOfficeofficialIndices;
-    Froles : TOfficeroles;
-    Fsources : TOfficesources;
+    FdivisionId : String;
+    Flevels : TStringArray;
+    Fname : String;
+    FofficialIndices : TintegerArray;
+    Froles : TStringArray;
+    Fsources : TOfficeTypesourcesArray;
   Protected
     //Property setters
-    Procedure SetdivisionId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setlevels(AIndex : Integer; AValue : TOfficelevels); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetofficialIndices(AIndex : Integer; AValue : TOfficeofficialIndices); virtual;
-    Procedure Setroles(AIndex : Integer; AValue : TOfficeroles); virtual;
-    Procedure Setsources(AIndex : Integer; AValue : TOfficesources); virtual;
+    Procedure SetdivisionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlevels(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetofficialIndices(AIndex : Integer; const AValue : TintegerArray); virtual;
+    Procedure Setroles(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setsources(AIndex : Integer; const AValue : TOfficeTypesourcesArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property divisionId : string Index 0 Read FdivisionId Write SetdivisionId;
-    Property levels : TOfficelevels Index 8 Read Flevels Write Setlevels;
-    Property name : string Index 16 Read Fname Write Setname;
-    Property officialIndices : TOfficeofficialIndices Index 24 Read FofficialIndices Write SetofficialIndices;
-    Property roles : TOfficeroles Index 32 Read Froles Write Setroles;
-    Property sources : TOfficesources Index 40 Read Fsources Write Setsources;
+    Property divisionId : String Index 0 Read FdivisionId Write SetdivisionId;
+    Property levels : TStringArray Index 8 Read Flevels Write Setlevels;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property officialIndices : TintegerArray Index 24 Read FofficialIndices Write SetofficialIndices;
+    Property roles : TStringArray Index 32 Read Froles Write Setroles;
+    Property sources : TOfficeTypesourcesArray Index 40 Read Fsources Write Setsources;
   end;
   TOfficeClass = Class of TOffice;
-  
-  { --------------------------------------------------------------------
-    TOfficelevels
-    --------------------------------------------------------------------}
-  
-  TOfficelevels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOfficelevelsClass = Class of TOfficelevels;
-  
-  { --------------------------------------------------------------------
-    TOfficeofficialIndices
-    --------------------------------------------------------------------}
-  
-  TOfficeofficialIndices = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOfficeofficialIndicesClass = Class of TOfficeofficialIndices;
-  
-  { --------------------------------------------------------------------
-    TOfficeroles
-    --------------------------------------------------------------------}
-  
-  TOfficeroles = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOfficerolesClass = Class of TOfficeroles;
-  
-  { --------------------------------------------------------------------
-    TOfficesources
-    --------------------------------------------------------------------}
-  
-  TOfficesources = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOfficesourcesClass = Class of TOfficesources;
   
   { --------------------------------------------------------------------
     TOfficial
@@ -760,101 +527,40 @@ type
   
   TOfficial = Class(TGoogleBaseObject)
   Private
-    Faddress : TOfficialaddress;
-    Fchannels : TOfficialchannels;
-    Femails : TOfficialemails;
-    Fname : string;
-    Fparty : string;
-    Fphones : TOfficialphones;
-    FphotoUrl : string;
-    Furls : TOfficialurls;
+    Faddress : TOfficialTypeaddressArray;
+    Fchannels : TOfficialTypechannelsArray;
+    Femails : TStringArray;
+    Fname : String;
+    Fparty : String;
+    Fphones : TStringArray;
+    FphotoUrl : String;
+    Furls : TStringArray;
   Protected
     //Property setters
-    Procedure Setaddress(AIndex : Integer; AValue : TOfficialaddress); virtual;
-    Procedure Setchannels(AIndex : Integer; AValue : TOfficialchannels); virtual;
-    Procedure Setemails(AIndex : Integer; AValue : TOfficialemails); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setparty(AIndex : Integer; AValue : string); virtual;
-    Procedure Setphones(AIndex : Integer; AValue : TOfficialphones); virtual;
-    Procedure SetphotoUrl(AIndex : Integer; AValue : string); virtual;
-    Procedure Seturls(AIndex : Integer; AValue : TOfficialurls); virtual;
+    Procedure Setaddress(AIndex : Integer; const AValue : TOfficialTypeaddressArray); virtual;
+    Procedure Setchannels(AIndex : Integer; const AValue : TOfficialTypechannelsArray); virtual;
+    Procedure Setemails(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setparty(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setphones(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetphotoUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturls(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property address : TOfficialaddress Index 0 Read Faddress Write Setaddress;
-    Property channels : TOfficialchannels Index 8 Read Fchannels Write Setchannels;
-    Property emails : TOfficialemails Index 16 Read Femails Write Setemails;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property party : string Index 32 Read Fparty Write Setparty;
-    Property phones : TOfficialphones Index 40 Read Fphones Write Setphones;
-    Property photoUrl : string Index 48 Read FphotoUrl Write SetphotoUrl;
-    Property urls : TOfficialurls Index 56 Read Furls Write Seturls;
+    Property address : TOfficialTypeaddressArray Index 0 Read Faddress Write Setaddress;
+    Property channels : TOfficialTypechannelsArray Index 8 Read Fchannels Write Setchannels;
+    Property emails : TStringArray Index 16 Read Femails Write Setemails;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property party : String Index 32 Read Fparty Write Setparty;
+    Property phones : TStringArray Index 40 Read Fphones Write Setphones;
+    Property photoUrl : String Index 48 Read FphotoUrl Write SetphotoUrl;
+    Property urls : TStringArray Index 56 Read Furls Write Seturls;
   end;
   TOfficialClass = Class of TOfficial;
-  
-  { --------------------------------------------------------------------
-    TOfficialaddress
-    --------------------------------------------------------------------}
-  
-  TOfficialaddress = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOfficialaddressClass = Class of TOfficialaddress;
-  
-  { --------------------------------------------------------------------
-    TOfficialchannels
-    --------------------------------------------------------------------}
-  
-  TOfficialchannels = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOfficialchannelsClass = Class of TOfficialchannels;
-  
-  { --------------------------------------------------------------------
-    TOfficialemails
-    --------------------------------------------------------------------}
-  
-  TOfficialemails = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOfficialemailsClass = Class of TOfficialemails;
-  
-  { --------------------------------------------------------------------
-    TOfficialphones
-    --------------------------------------------------------------------}
-  
-  TOfficialphones = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOfficialphonesClass = Class of TOfficialphones;
-  
-  { --------------------------------------------------------------------
-    TOfficialurls
-    --------------------------------------------------------------------}
-  
-  TOfficialurls = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TOfficialurlsClass = Class of TOfficialurls;
   
   { --------------------------------------------------------------------
     TPollingLocation
@@ -863,51 +569,56 @@ type
   TPollingLocation = Class(TGoogleBaseObject)
   Private
     Faddress : TSimpleAddressType;
-    FendDate : string;
-    Fid : string;
-    Fname : string;
-    Fnotes : string;
-    FpollingHours : string;
-    Fsources : TPollingLocationsources;
-    FstartDate : string;
-    FvoterServices : string;
+    FendDate : String;
+    Fid : String;
+    Fname : String;
+    Fnotes : String;
+    FpollingHours : String;
+    Fsources : TPollingLocationTypesourcesArray;
+    FstartDate : String;
+    FvoterServices : String;
   Protected
     //Property setters
-    Procedure Setaddress(AIndex : Integer; AValue : TSimpleAddressType); virtual;
-    Procedure SetendDate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : string); virtual;
-    Procedure SetpollingHours(AIndex : Integer; AValue : string); virtual;
-    Procedure Setsources(AIndex : Integer; AValue : TPollingLocationsources); virtual;
-    Procedure SetstartDate(AIndex : Integer; AValue : string); virtual;
-    Procedure SetvoterServices(AIndex : Integer; AValue : string); virtual;
+    Procedure Setaddress(AIndex : Integer; const AValue : TSimpleAddressType); virtual;
+    Procedure SetendDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpollingHours(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsources(AIndex : Integer; const AValue : TPollingLocationTypesourcesArray); virtual;
+    Procedure SetstartDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvoterServices(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property address : TSimpleAddressType Index 0 Read Faddress Write Setaddress;
-    Property endDate : string Index 8 Read FendDate Write SetendDate;
-    Property id : string Index 16 Read Fid Write Setid;
-    Property name : string Index 24 Read Fname Write Setname;
-    Property notes : string Index 32 Read Fnotes Write Setnotes;
-    Property pollingHours : string Index 40 Read FpollingHours Write SetpollingHours;
-    Property sources : TPollingLocationsources Index 48 Read Fsources Write Setsources;
-    Property startDate : string Index 56 Read FstartDate Write SetstartDate;
-    Property voterServices : string Index 64 Read FvoterServices Write SetvoterServices;
+    Property endDate : String Index 8 Read FendDate Write SetendDate;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property name : String Index 24 Read Fname Write Setname;
+    Property notes : String Index 32 Read Fnotes Write Setnotes;
+    Property pollingHours : String Index 40 Read FpollingHours Write SetpollingHours;
+    Property sources : TPollingLocationTypesourcesArray Index 48 Read Fsources Write Setsources;
+    Property startDate : String Index 56 Read FstartDate Write SetstartDate;
+    Property voterServices : String Index 64 Read FvoterServices Write SetvoterServices;
   end;
   TPollingLocationClass = Class of TPollingLocation;
   
   { --------------------------------------------------------------------
-    TPollingLocationsources
+    TRepresentativeInfoDataTypedivisions
     --------------------------------------------------------------------}
   
-  TPollingLocationsources = Class(TGoogleBaseObject)
+  TRepresentativeInfoDataTypedivisions = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
   Public
+    Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TPollingLocationsourcesClass = Class of TPollingLocationsources;
+  TRepresentativeInfoDataTypedivisionsClass = Class of TRepresentativeInfoDataTypedivisions;
   
   { --------------------------------------------------------------------
     TRepresentativeInfoData
@@ -915,27 +626,31 @@ type
   
   TRepresentativeInfoData = Class(TGoogleBaseObject)
   Private
-    Fdivisions : TRepresentativeInfoDatadivisions;
-    Foffices : TRepresentativeInfoDataoffices;
-    Fofficials : TRepresentativeInfoDataofficials;
+    Fdivisions : TRepresentativeInfoDataTypedivisions;
+    Foffices : TRepresentativeInfoDataTypeofficesArray;
+    Fofficials : TRepresentativeInfoDataTypeofficialsArray;
   Protected
     //Property setters
-    Procedure Setdivisions(AIndex : Integer; AValue : TRepresentativeInfoDatadivisions); virtual;
-    Procedure Setoffices(AIndex : Integer; AValue : TRepresentativeInfoDataoffices); virtual;
-    Procedure Setofficials(AIndex : Integer; AValue : TRepresentativeInfoDataofficials); virtual;
+    Procedure Setdivisions(AIndex : Integer; const AValue : TRepresentativeInfoDataTypedivisions); virtual;
+    Procedure Setoffices(AIndex : Integer; const AValue : TRepresentativeInfoDataTypeofficesArray); virtual;
+    Procedure Setofficials(AIndex : Integer; const AValue : TRepresentativeInfoDataTypeofficialsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property divisions : TRepresentativeInfoDatadivisions Index 0 Read Fdivisions Write Setdivisions;
-    Property offices : TRepresentativeInfoDataoffices Index 8 Read Foffices Write Setoffices;
-    Property officials : TRepresentativeInfoDataofficials Index 16 Read Fofficials Write Setofficials;
+    Property divisions : TRepresentativeInfoDataTypedivisions Index 0 Read Fdivisions Write Setdivisions;
+    Property offices : TRepresentativeInfoDataTypeofficesArray Index 8 Read Foffices Write Setoffices;
+    Property officials : TRepresentativeInfoDataTypeofficialsArray Index 16 Read Fofficials Write Setofficials;
   end;
   TRepresentativeInfoDataClass = Class of TRepresentativeInfoData;
   
   { --------------------------------------------------------------------
-    TRepresentativeInfoDatadivisions
+    TRepresentativeInfoResponseTypedivisions
     --------------------------------------------------------------------}
   
-  TRepresentativeInfoDatadivisions = Class(TGoogleBaseObject)
+  TRepresentativeInfoResponseTypedivisions = Class(TGoogleBaseObject)
   Private
   Protected
     //Property setters
@@ -943,33 +658,7 @@ type
     Class Function AllowAdditionalProperties : Boolean; override;
   Published
   end;
-  TRepresentativeInfoDatadivisionsClass = Class of TRepresentativeInfoDatadivisions;
-  
-  { --------------------------------------------------------------------
-    TRepresentativeInfoDataoffices
-    --------------------------------------------------------------------}
-  
-  TRepresentativeInfoDataoffices = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRepresentativeInfoDataofficesClass = Class of TRepresentativeInfoDataoffices;
-  
-  { --------------------------------------------------------------------
-    TRepresentativeInfoDataofficials
-    --------------------------------------------------------------------}
-  
-  TRepresentativeInfoDataofficials = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRepresentativeInfoDataofficialsClass = Class of TRepresentativeInfoDataofficials;
+  TRepresentativeInfoResponseTypedivisionsClass = Class of TRepresentativeInfoResponseTypedivisions;
   
   { --------------------------------------------------------------------
     TRepresentativeInfoResponse
@@ -977,67 +666,31 @@ type
   
   TRepresentativeInfoResponse = Class(TGoogleBaseObject)
   Private
-    Fdivisions : TRepresentativeInfoResponsedivisions;
-    Fkind : string;
+    Fdivisions : TRepresentativeInfoResponseTypedivisions;
+    Fkind : String;
     FnormalizedInput : TSimpleAddressType;
-    Foffices : TRepresentativeInfoResponseoffices;
-    Fofficials : TRepresentativeInfoResponseofficials;
+    Foffices : TRepresentativeInfoResponseTypeofficesArray;
+    Fofficials : TRepresentativeInfoResponseTypeofficialsArray;
   Protected
     //Property setters
-    Procedure Setdivisions(AIndex : Integer; AValue : TRepresentativeInfoResponsedivisions); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnormalizedInput(AIndex : Integer; AValue : TSimpleAddressType); virtual;
-    Procedure Setoffices(AIndex : Integer; AValue : TRepresentativeInfoResponseoffices); virtual;
-    Procedure Setofficials(AIndex : Integer; AValue : TRepresentativeInfoResponseofficials); virtual;
+    Procedure Setdivisions(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypedivisions); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnormalizedInput(AIndex : Integer; const AValue : TSimpleAddressType); virtual;
+    Procedure Setoffices(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypeofficesArray); virtual;
+    Procedure Setofficials(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypeofficialsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property divisions : TRepresentativeInfoResponsedivisions Index 0 Read Fdivisions Write Setdivisions;
-    Property kind : string Index 8 Read Fkind Write Setkind;
+    Property divisions : TRepresentativeInfoResponseTypedivisions Index 0 Read Fdivisions Write Setdivisions;
+    Property kind : String Index 8 Read Fkind Write Setkind;
     Property normalizedInput : TSimpleAddressType Index 16 Read FnormalizedInput Write SetnormalizedInput;
-    Property offices : TRepresentativeInfoResponseoffices Index 24 Read Foffices Write Setoffices;
-    Property officials : TRepresentativeInfoResponseofficials Index 32 Read Fofficials Write Setofficials;
+    Property offices : TRepresentativeInfoResponseTypeofficesArray Index 24 Read Foffices Write Setoffices;
+    Property officials : TRepresentativeInfoResponseTypeofficialsArray Index 32 Read Fofficials Write Setofficials;
   end;
   TRepresentativeInfoResponseClass = Class of TRepresentativeInfoResponse;
-  
-  { --------------------------------------------------------------------
-    TRepresentativeInfoResponsedivisions
-    --------------------------------------------------------------------}
-  
-  TRepresentativeInfoResponsedivisions = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-    Class Function AllowAdditionalProperties : Boolean; override;
-  Published
-  end;
-  TRepresentativeInfoResponsedivisionsClass = Class of TRepresentativeInfoResponsedivisions;
-  
-  { --------------------------------------------------------------------
-    TRepresentativeInfoResponseoffices
-    --------------------------------------------------------------------}
-  
-  TRepresentativeInfoResponseoffices = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRepresentativeInfoResponseofficesClass = Class of TRepresentativeInfoResponseoffices;
-  
-  { --------------------------------------------------------------------
-    TRepresentativeInfoResponseofficials
-    --------------------------------------------------------------------}
-  
-  TRepresentativeInfoResponseofficials = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TRepresentativeInfoResponseofficialsClass = Class of TRepresentativeInfoResponseofficials;
   
   { --------------------------------------------------------------------
     TSimpleAddressType
@@ -1045,31 +698,31 @@ type
   
   TSimpleAddressType = Class(TGoogleBaseObject)
   Private
-    Fcity : string;
-    Fline1 : string;
-    Fline2 : string;
-    Fline3 : string;
-    FlocationName : string;
-    Fstate : string;
-    Fzip : string;
+    Fcity : String;
+    Fline1 : String;
+    Fline2 : String;
+    Fline3 : String;
+    FlocationName : String;
+    Fstate : String;
+    Fzip : String;
   Protected
     //Property setters
-    Procedure Setcity(AIndex : Integer; AValue : string); virtual;
-    Procedure Setline1(AIndex : Integer; AValue : string); virtual;
-    Procedure Setline2(AIndex : Integer; AValue : string); virtual;
-    Procedure Setline3(AIndex : Integer; AValue : string); virtual;
-    Procedure SetlocationName(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : string); virtual;
-    Procedure Setzip(AIndex : Integer; AValue : string); virtual;
+    Procedure Setcity(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setline1(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setline2(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setline3(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlocationName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzip(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property city : string Index 0 Read Fcity Write Setcity;
-    Property line1 : string Index 8 Read Fline1 Write Setline1;
-    Property line2 : string Index 16 Read Fline2 Write Setline2;
-    Property line3 : string Index 24 Read Fline3 Write Setline3;
-    Property locationName : string Index 32 Read FlocationName Write SetlocationName;
-    Property state : string Index 40 Read Fstate Write Setstate;
-    Property zip : string Index 48 Read Fzip Write Setzip;
+    Property city : String Index 0 Read Fcity Write Setcity;
+    Property line1 : String Index 8 Read Fline1 Write Setline1;
+    Property line2 : String Index 16 Read Fline2 Write Setline2;
+    Property line3 : String Index 24 Read Fline3 Write Setline3;
+    Property locationName : String Index 32 Read FlocationName Write SetlocationName;
+    Property state : String Index 40 Read Fstate Write Setstate;
+    Property zip : String Index 48 Read Fzip Write Setzip;
   end;
   TSimpleAddressTypeClass = Class of TSimpleAddressType;
   
@@ -1079,15 +732,15 @@ type
   
   TSource = Class(TGoogleBaseObject)
   Private
-    Fname : string;
+    Fname : String;
     Fofficial : boolean;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure Setofficial(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setofficial(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
-    Property name : string Index 0 Read Fname Write Setname;
+    Property name : String Index 0 Read Fname Write Setname;
     Property official : boolean Index 8 Read Fofficial Write Setofficial;
   end;
   TSourceClass = Class of TSource;
@@ -1098,120 +751,49 @@ type
   
   TVoterInfoResponse = Class(TGoogleBaseObject)
   Private
-    Fcontests : TVoterInfoResponsecontests;
-    FdropOffLocations : TVoterInfoResponsedropOffLocations;
-    FearlyVoteSites : TVoterInfoResponseearlyVoteSites;
+    Fcontests : TVoterInfoResponseTypecontestsArray;
+    FdropOffLocations : TVoterInfoResponseTypedropOffLocationsArray;
+    FearlyVoteSites : TVoterInfoResponseTypeearlyVoteSitesArray;
     Felection : TElection;
-    Fkind : string;
+    Fkind : String;
+    FmailOnly : boolean;
     FnormalizedInput : TSimpleAddressType;
-    FotherElections : TVoterInfoResponseotherElections;
-    FpollingLocations : TVoterInfoResponsepollingLocations;
-    FprecinctId : string;
-    Fstate : TVoterInfoResponsestate;
+    FotherElections : TVoterInfoResponseTypeotherElectionsArray;
+    FpollingLocations : TVoterInfoResponseTypepollingLocationsArray;
+    FprecinctId : String;
+    Fstate : TVoterInfoResponseTypestateArray;
   Protected
     //Property setters
-    Procedure Setcontests(AIndex : Integer; AValue : TVoterInfoResponsecontests); virtual;
-    Procedure SetdropOffLocations(AIndex : Integer; AValue : TVoterInfoResponsedropOffLocations); virtual;
-    Procedure SetearlyVoteSites(AIndex : Integer; AValue : TVoterInfoResponseearlyVoteSites); virtual;
-    Procedure Setelection(AIndex : Integer; AValue : TElection); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetnormalizedInput(AIndex : Integer; AValue : TSimpleAddressType); virtual;
-    Procedure SetotherElections(AIndex : Integer; AValue : TVoterInfoResponseotherElections); virtual;
-    Procedure SetpollingLocations(AIndex : Integer; AValue : TVoterInfoResponsepollingLocations); virtual;
-    Procedure SetprecinctId(AIndex : Integer; AValue : string); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : TVoterInfoResponsestate); virtual;
+    Procedure Setcontests(AIndex : Integer; const AValue : TVoterInfoResponseTypecontestsArray); virtual;
+    Procedure SetdropOffLocations(AIndex : Integer; const AValue : TVoterInfoResponseTypedropOffLocationsArray); virtual;
+    Procedure SetearlyVoteSites(AIndex : Integer; const AValue : TVoterInfoResponseTypeearlyVoteSitesArray); virtual;
+    Procedure Setelection(AIndex : Integer; const AValue : TElection); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmailOnly(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetnormalizedInput(AIndex : Integer; const AValue : TSimpleAddressType); virtual;
+    Procedure SetotherElections(AIndex : Integer; const AValue : TVoterInfoResponseTypeotherElectionsArray); virtual;
+    Procedure SetpollingLocations(AIndex : Integer; const AValue : TVoterInfoResponseTypepollingLocationsArray); virtual;
+    Procedure SetprecinctId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : TVoterInfoResponseTypestateArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property contests : TVoterInfoResponsecontests Index 0 Read Fcontests Write Setcontests;
-    Property dropOffLocations : TVoterInfoResponsedropOffLocations Index 8 Read FdropOffLocations Write SetdropOffLocations;
-    Property earlyVoteSites : TVoterInfoResponseearlyVoteSites Index 16 Read FearlyVoteSites Write SetearlyVoteSites;
+    Property contests : TVoterInfoResponseTypecontestsArray Index 0 Read Fcontests Write Setcontests;
+    Property dropOffLocations : TVoterInfoResponseTypedropOffLocationsArray Index 8 Read FdropOffLocations Write SetdropOffLocations;
+    Property earlyVoteSites : TVoterInfoResponseTypeearlyVoteSitesArray Index 16 Read FearlyVoteSites Write SetearlyVoteSites;
     Property election : TElection Index 24 Read Felection Write Setelection;
-    Property kind : string Index 32 Read Fkind Write Setkind;
-    Property normalizedInput : TSimpleAddressType Index 40 Read FnormalizedInput Write SetnormalizedInput;
-    Property otherElections : TVoterInfoResponseotherElections Index 48 Read FotherElections Write SetotherElections;
-    Property pollingLocations : TVoterInfoResponsepollingLocations Index 56 Read FpollingLocations Write SetpollingLocations;
-    Property precinctId : string Index 64 Read FprecinctId Write SetprecinctId;
-    Property state : TVoterInfoResponsestate Index 72 Read Fstate Write Setstate;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property mailOnly : boolean Index 40 Read FmailOnly Write SetmailOnly;
+    Property normalizedInput : TSimpleAddressType Index 48 Read FnormalizedInput Write SetnormalizedInput;
+    Property otherElections : TVoterInfoResponseTypeotherElectionsArray Index 56 Read FotherElections Write SetotherElections;
+    Property pollingLocations : TVoterInfoResponseTypepollingLocationsArray Index 64 Read FpollingLocations Write SetpollingLocations;
+    Property precinctId : String Index 72 Read FprecinctId Write SetprecinctId;
+    Property state : TVoterInfoResponseTypestateArray Index 80 Read Fstate Write Setstate;
   end;
   TVoterInfoResponseClass = Class of TVoterInfoResponse;
-  
-  { --------------------------------------------------------------------
-    TVoterInfoResponsecontests
-    --------------------------------------------------------------------}
-  
-  TVoterInfoResponsecontests = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVoterInfoResponsecontestsClass = Class of TVoterInfoResponsecontests;
-  
-  { --------------------------------------------------------------------
-    TVoterInfoResponsedropOffLocations
-    --------------------------------------------------------------------}
-  
-  TVoterInfoResponsedropOffLocations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVoterInfoResponsedropOffLocationsClass = Class of TVoterInfoResponsedropOffLocations;
-  
-  { --------------------------------------------------------------------
-    TVoterInfoResponseearlyVoteSites
-    --------------------------------------------------------------------}
-  
-  TVoterInfoResponseearlyVoteSites = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVoterInfoResponseearlyVoteSitesClass = Class of TVoterInfoResponseearlyVoteSites;
-  
-  { --------------------------------------------------------------------
-    TVoterInfoResponseotherElections
-    --------------------------------------------------------------------}
-  
-  TVoterInfoResponseotherElections = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVoterInfoResponseotherElectionsClass = Class of TVoterInfoResponseotherElections;
-  
-  { --------------------------------------------------------------------
-    TVoterInfoResponsepollingLocations
-    --------------------------------------------------------------------}
-  
-  TVoterInfoResponsepollingLocations = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVoterInfoResponsepollingLocationsClass = Class of TVoterInfoResponsepollingLocations;
-  
-  { --------------------------------------------------------------------
-    TVoterInfoResponsestate
-    --------------------------------------------------------------------}
-  
-  TVoterInfoResponsestate = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TVoterInfoResponsestateClass = Class of TVoterInfoResponsestate;
   
   { --------------------------------------------------------------------
     TDivisionsResource
@@ -1221,7 +803,7 @@ type
   //Optional query Options for TDivisionsResource, method Search
   
   TDivisionsSearchOptions = Record
-    query : string;
+    query : String;
   end;
   
   TDivisionsResource = Class(TGoogleResource)
@@ -1241,7 +823,7 @@ type
   //Optional query Options for TElectionsResource, method VoterInfoQuery
   
   TElectionsVoterInfoQueryOptions = Record
-    address : string;
+    address : String;
     electionId : int64;
     officialOnly : boolean;
   end;
@@ -1264,19 +846,19 @@ type
   //Optional query Options for TRepresentativesResource, method RepresentativeInfoByAddress
   
   TRepresentativesRepresentativeInfoByAddressOptions = Record
-    address : string;
+    address : String;
     includeOffices : boolean;
-    levels : string;
-    roles : string;
+    levels : String;
+    roles : String;
   end;
   
   
   //Optional query Options for TRepresentativesResource, method RepresentativeInfoByDivision
   
   TRepresentativesRepresentativeInfoByDivisionOptions = Record
-    levels : string;
+    levels : String;
     recursive : boolean;
-    roles : string;
+    roles : String;
   end;
   
   TRepresentativesResource = Class(TGoogleResource)
@@ -1345,7 +927,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAdministrationRegion.SetelectionAdministrationBody(AIndex : Integer; AValue : TAdministrativeBody); 
+Procedure TAdministrationRegion.SetelectionAdministrationBody(AIndex : Integer; const AValue : TAdministrativeBody); 
 
 begin
   If (FelectionAdministrationBody=AValue) then exit;
@@ -1355,7 +937,7 @@ end;
 
 
 
-Procedure TAdministrationRegion.Setid(AIndex : Integer; AValue : string); 
+Procedure TAdministrationRegion.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1365,7 +947,7 @@ end;
 
 
 
-Procedure TAdministrationRegion.Setlocal_jurisdiction(AIndex : Integer; AValue : TAdministrationRegion); 
+Procedure TAdministrationRegion.Setlocal_jurisdiction(AIndex : Integer; const AValue : TAdministrationRegion); 
 
 begin
   If (Flocal_jurisdiction=AValue) then exit;
@@ -1375,7 +957,7 @@ end;
 
 
 
-Procedure TAdministrationRegion.Setname(AIndex : Integer; AValue : string); 
+Procedure TAdministrationRegion.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1385,7 +967,7 @@ end;
 
 
 
-Procedure TAdministrationRegion.Setsources(AIndex : Integer; AValue : TAdministrationRegionsources); 
+Procedure TAdministrationRegion.Setsources(AIndex : Integer; const AValue : TAdministrationRegionTypesourcesArray); 
 
 begin
   If (Fsources=AValue) then exit;
@@ -1394,12 +976,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAdministrationRegion.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TAdministrationRegionsources
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'sources' : SetLength(Fsources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1409,7 +997,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdministrativeBody.SetabsenteeVotingInfoUrl(AIndex : Integer; AValue : string); 
+Procedure TAdministrativeBody.SetabsenteeVotingInfoUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FabsenteeVotingInfoUrl=AValue) then exit;
@@ -1419,7 +1007,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetballotInfoUrl(AIndex : Integer; AValue : string); 
+Procedure TAdministrativeBody.SetballotInfoUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FballotInfoUrl=AValue) then exit;
@@ -1429,7 +1017,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetcorrespondenceAddress(AIndex : Integer; AValue : TSimpleAddressType); 
+Procedure TAdministrativeBody.SetcorrespondenceAddress(AIndex : Integer; const AValue : TSimpleAddressType); 
 
 begin
   If (FcorrespondenceAddress=AValue) then exit;
@@ -1439,7 +1027,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetelectionInfoUrl(AIndex : Integer; AValue : string); 
+Procedure TAdministrativeBody.SetelectionInfoUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FelectionInfoUrl=AValue) then exit;
@@ -1449,7 +1037,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetelectionOfficials(AIndex : Integer; AValue : TAdministrativeBodyelectionOfficials); 
+Procedure TAdministrativeBody.SetelectionOfficials(AIndex : Integer; const AValue : TAdministrativeBodyTypeelectionOfficialsArray); 
 
 begin
   If (FelectionOfficials=AValue) then exit;
@@ -1459,7 +1047,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetelectionRegistrationConfirmationUrl(AIndex : Integer; AValue : string); 
+Procedure TAdministrativeBody.SetelectionRegistrationConfirmationUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FelectionRegistrationConfirmationUrl=AValue) then exit;
@@ -1469,7 +1057,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetelectionRegistrationUrl(AIndex : Integer; AValue : string); 
+Procedure TAdministrativeBody.SetelectionRegistrationUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FelectionRegistrationUrl=AValue) then exit;
@@ -1479,7 +1067,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetelectionRulesUrl(AIndex : Integer; AValue : string); 
+Procedure TAdministrativeBody.SetelectionRulesUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FelectionRulesUrl=AValue) then exit;
@@ -1489,7 +1077,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SethoursOfOperation(AIndex : Integer; AValue : string); 
+Procedure TAdministrativeBody.SethoursOfOperation(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhoursOfOperation=AValue) then exit;
@@ -1499,7 +1087,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.Setname(AIndex : Integer; AValue : string); 
+Procedure TAdministrativeBody.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1509,7 +1097,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetphysicalAddress(AIndex : Integer; AValue : TSimpleAddressType); 
+Procedure TAdministrativeBody.SetphysicalAddress(AIndex : Integer; const AValue : TSimpleAddressType); 
 
 begin
   If (FphysicalAddress=AValue) then exit;
@@ -1519,7 +1107,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.Setvoter_services(AIndex : Integer; AValue : TAdministrativeBodyvoter_services); 
+Procedure TAdministrativeBody.Setvoter_services(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fvoter_services=AValue) then exit;
@@ -1529,7 +1117,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetvotingLocationFinderUrl(AIndex : Integer; AValue : string); 
+Procedure TAdministrativeBody.SetvotingLocationFinderUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvotingLocationFinderUrl=AValue) then exit;
@@ -1538,19 +1126,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAdministrativeBody.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TAdministrativeBodyelectionOfficials
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TAdministrativeBodyvoter_services
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'electionofficials' : SetLength(FelectionOfficials,ALength);
+  'voter_services' : SetLength(Fvoter_services,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1560,7 +1148,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCandidate.SetcandidateUrl(AIndex : Integer; AValue : string); 
+Procedure TCandidate.SetcandidateUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcandidateUrl=AValue) then exit;
@@ -1570,7 +1158,7 @@ end;
 
 
 
-Procedure TCandidate.Setchannels(AIndex : Integer; AValue : TCandidatechannels); 
+Procedure TCandidate.Setchannels(AIndex : Integer; const AValue : TCandidateTypechannelsArray); 
 
 begin
   If (Fchannels=AValue) then exit;
@@ -1580,7 +1168,7 @@ end;
 
 
 
-Procedure TCandidate.Setemail(AIndex : Integer; AValue : string); 
+Procedure TCandidate.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -1590,7 +1178,7 @@ end;
 
 
 
-Procedure TCandidate.Setname(AIndex : Integer; AValue : string); 
+Procedure TCandidate.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1600,7 +1188,7 @@ end;
 
 
 
-Procedure TCandidate.SetorderOnBallot(AIndex : Integer; AValue : string); 
+Procedure TCandidate.SetorderOnBallot(AIndex : Integer; const AValue : String); 
 
 begin
   If (ForderOnBallot=AValue) then exit;
@@ -1610,7 +1198,7 @@ end;
 
 
 
-Procedure TCandidate.Setparty(AIndex : Integer; AValue : string); 
+Procedure TCandidate.Setparty(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fparty=AValue) then exit;
@@ -1620,7 +1208,7 @@ end;
 
 
 
-Procedure TCandidate.Setphone(AIndex : Integer; AValue : string); 
+Procedure TCandidate.Setphone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fphone=AValue) then exit;
@@ -1630,7 +1218,7 @@ end;
 
 
 
-Procedure TCandidate.SetphotoUrl(AIndex : Integer; AValue : string); 
+Procedure TCandidate.SetphotoUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FphotoUrl=AValue) then exit;
@@ -1639,12 +1227,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TCandidate.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TCandidatechannels
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'channels' : SetLength(Fchannels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1654,7 +1248,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannel.Setid(AIndex : Integer; AValue : string); 
+Procedure TChannel.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1664,7 +1258,7 @@ end;
 
 
 
-Procedure TChannel.Set_type(AIndex : Integer; AValue : string); 
+Procedure TChannel.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1692,7 +1286,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContest.SetballotPlacement(AIndex : Integer; AValue : string); 
+Procedure TContest.SetballotPlacement(AIndex : Integer; const AValue : String); 
 
 begin
   If (FballotPlacement=AValue) then exit;
@@ -1702,7 +1296,7 @@ end;
 
 
 
-Procedure TContest.Setcandidates(AIndex : Integer; AValue : TContestcandidates); 
+Procedure TContest.Setcandidates(AIndex : Integer; const AValue : TContestTypecandidatesArray); 
 
 begin
   If (Fcandidates=AValue) then exit;
@@ -1712,7 +1306,7 @@ end;
 
 
 
-Procedure TContest.Setdistrict(AIndex : Integer; AValue : TElectoralDistrict); 
+Procedure TContest.Setdistrict(AIndex : Integer; const AValue : TElectoralDistrict); 
 
 begin
   If (Fdistrict=AValue) then exit;
@@ -1722,7 +1316,7 @@ end;
 
 
 
-Procedure TContest.SetelectorateSpecifications(AIndex : Integer; AValue : string); 
+Procedure TContest.SetelectorateSpecifications(AIndex : Integer; const AValue : String); 
 
 begin
   If (FelectorateSpecifications=AValue) then exit;
@@ -1732,7 +1326,7 @@ end;
 
 
 
-Procedure TContest.Setid(AIndex : Integer; AValue : string); 
+Procedure TContest.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1742,7 +1336,7 @@ end;
 
 
 
-Procedure TContest.Setlevel(AIndex : Integer; AValue : TContestlevel); 
+Procedure TContest.Setlevel(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Flevel=AValue) then exit;
@@ -1752,7 +1346,7 @@ end;
 
 
 
-Procedure TContest.SetnumberElected(AIndex : Integer; AValue : string); 
+Procedure TContest.SetnumberElected(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumberElected=AValue) then exit;
@@ -1762,7 +1356,7 @@ end;
 
 
 
-Procedure TContest.SetnumberVotingFor(AIndex : Integer; AValue : string); 
+Procedure TContest.SetnumberVotingFor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumberVotingFor=AValue) then exit;
@@ -1772,7 +1366,7 @@ end;
 
 
 
-Procedure TContest.Setoffice(AIndex : Integer; AValue : string); 
+Procedure TContest.Setoffice(AIndex : Integer; const AValue : String); 
 
 begin
   If (Foffice=AValue) then exit;
@@ -1782,7 +1376,7 @@ end;
 
 
 
-Procedure TContest.SetprimaryParty(AIndex : Integer; AValue : string); 
+Procedure TContest.SetprimaryParty(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprimaryParty=AValue) then exit;
@@ -1792,7 +1386,67 @@ end;
 
 
 
-Procedure TContest.SetreferendumSubtitle(AIndex : Integer; AValue : string); 
+Procedure TContest.SetreferendumBallotResponses(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FreferendumBallotResponses=AValue) then exit;
+  FreferendumBallotResponses:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumBrief(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumBrief=AValue) then exit;
+  FreferendumBrief:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumConStatement(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumConStatement=AValue) then exit;
+  FreferendumConStatement:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumEffectOfAbstain(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumEffectOfAbstain=AValue) then exit;
+  FreferendumEffectOfAbstain:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumPassageThreshold(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumPassageThreshold=AValue) then exit;
+  FreferendumPassageThreshold:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumProStatement(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumProStatement=AValue) then exit;
+  FreferendumProStatement:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumSubtitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferendumSubtitle=AValue) then exit;
@@ -1802,7 +1456,17 @@ end;
 
 
 
-Procedure TContest.SetreferendumTitle(AIndex : Integer; AValue : string); 
+Procedure TContest.SetreferendumText(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumText=AValue) then exit;
+  FreferendumText:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumTitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferendumTitle=AValue) then exit;
@@ -1812,7 +1476,7 @@ end;
 
 
 
-Procedure TContest.SetreferendumUrl(AIndex : Integer; AValue : string); 
+Procedure TContest.SetreferendumUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferendumUrl=AValue) then exit;
@@ -1822,7 +1486,7 @@ end;
 
 
 
-Procedure TContest.Setroles(AIndex : Integer; AValue : TContestroles); 
+Procedure TContest.Setroles(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Froles=AValue) then exit;
@@ -1832,7 +1496,7 @@ end;
 
 
 
-Procedure TContest.Setsources(AIndex : Integer; AValue : TContestsources); 
+Procedure TContest.Setsources(AIndex : Integer; const AValue : TContestTypesourcesArray); 
 
 begin
   If (Fsources=AValue) then exit;
@@ -1842,7 +1506,7 @@ end;
 
 
 
-Procedure TContest.Setspecial(AIndex : Integer; AValue : string); 
+Procedure TContest.Setspecial(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fspecial=AValue) then exit;
@@ -1852,7 +1516,7 @@ end;
 
 
 
-Procedure TContest.Set_type(AIndex : Integer; AValue : string); 
+Procedure TContest.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1872,33 +1536,22 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TContest.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TContestcandidates
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TContestlevel
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TContestroles
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TContestsources
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'candidates' : SetLength(Fcandidates,ALength);
+  'level' : SetLength(Flevel,ALength);
+  'referendumballotresponses' : SetLength(FreferendumBallotResponses,ALength);
+  'roles' : SetLength(Froles,ALength);
+  'sources' : SetLength(Fsources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1908,7 +1561,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDivisionSearchResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TDivisionSearchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1918,7 +1571,7 @@ end;
 
 
 
-Procedure TDivisionSearchResponse.Setresults(AIndex : Integer; AValue : TDivisionSearchResponseresults); 
+Procedure TDivisionSearchResponse.Setresults(AIndex : Integer; const AValue : TDivisionSearchResponseTyperesultsArray); 
 
 begin
   If (Fresults=AValue) then exit;
@@ -1927,12 +1580,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDivisionSearchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TDivisionSearchResponseresults
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'results' : SetLength(Fresults,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1942,7 +1601,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDivisionSearchResult.Setaliases(AIndex : Integer; AValue : TDivisionSearchResultaliases); 
+Procedure TDivisionSearchResult.Setaliases(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Faliases=AValue) then exit;
@@ -1952,7 +1611,7 @@ end;
 
 
 
-Procedure TDivisionSearchResult.Setname(AIndex : Integer; AValue : string); 
+Procedure TDivisionSearchResult.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1962,7 +1621,7 @@ end;
 
 
 
-Procedure TDivisionSearchResult.SetocdId(AIndex : Integer; AValue : string); 
+Procedure TDivisionSearchResult.SetocdId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FocdId=AValue) then exit;
@@ -1971,12 +1630,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDivisionSearchResult.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TDivisionSearchResultaliases
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'aliases' : SetLength(Faliases,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1986,7 +1651,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TElection.SetelectionDay(AIndex : Integer; AValue : string); 
+Procedure TElection.SetelectionDay(AIndex : Integer; const AValue : String); 
 
 begin
   If (FelectionDay=AValue) then exit;
@@ -1996,7 +1661,7 @@ end;
 
 
 
-Procedure TElection.Setid(AIndex : Integer; AValue : string); 
+Procedure TElection.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2006,11 +1671,21 @@ end;
 
 
 
-Procedure TElection.Setname(AIndex : Integer; AValue : string); 
+Procedure TElection.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
   Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TElection.SetocdDivisionId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FocdDivisionId=AValue) then exit;
+  FocdDivisionId:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -2023,7 +1698,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TElectionOfficial.SetemailAddress(AIndex : Integer; AValue : string); 
+Procedure TElectionOfficial.SetemailAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FemailAddress=AValue) then exit;
@@ -2033,7 +1708,7 @@ end;
 
 
 
-Procedure TElectionOfficial.SetfaxNumber(AIndex : Integer; AValue : string); 
+Procedure TElectionOfficial.SetfaxNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfaxNumber=AValue) then exit;
@@ -2043,7 +1718,7 @@ end;
 
 
 
-Procedure TElectionOfficial.Setname(AIndex : Integer; AValue : string); 
+Procedure TElectionOfficial.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2053,7 +1728,7 @@ end;
 
 
 
-Procedure TElectionOfficial.SetofficePhoneNumber(AIndex : Integer; AValue : string); 
+Procedure TElectionOfficial.SetofficePhoneNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FofficePhoneNumber=AValue) then exit;
@@ -2063,7 +1738,7 @@ end;
 
 
 
-Procedure TElectionOfficial.Settitle(AIndex : Integer; AValue : string); 
+Procedure TElectionOfficial.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2080,7 +1755,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TElectionsQueryResponse.Setelections(AIndex : Integer; AValue : TElectionsQueryResponseelections); 
+Procedure TElectionsQueryResponse.Setelections(AIndex : Integer; const AValue : TElectionsQueryResponseTypeelectionsArray); 
 
 begin
   If (Felections=AValue) then exit;
@@ -2090,7 +1765,7 @@ end;
 
 
 
-Procedure TElectionsQueryResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TElectionsQueryResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2099,12 +1774,18 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TElectionsQueryResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TElectionsQueryResponseelections
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'elections' : SetLength(Felections,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2114,7 +1795,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TElectoralDistrict.Setid(AIndex : Integer; AValue : string); 
+Procedure TElectoralDistrict.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2124,7 +1805,7 @@ end;
 
 
 
-Procedure TElectoralDistrict.Setname(AIndex : Integer; AValue : string); 
+Procedure TElectoralDistrict.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2134,7 +1815,7 @@ end;
 
 
 
-Procedure TElectoralDistrict.Setscope(AIndex : Integer; AValue : string); 
+Procedure TElectoralDistrict.Setscope(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fscope=AValue) then exit;
@@ -2151,7 +1832,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeographicDivision.SetalsoKnownAs(AIndex : Integer; AValue : TGeographicDivisionalsoKnownAs); 
+Procedure TGeographicDivision.SetalsoKnownAs(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FalsoKnownAs=AValue) then exit;
@@ -2161,7 +1842,7 @@ end;
 
 
 
-Procedure TGeographicDivision.Setname(AIndex : Integer; AValue : string); 
+Procedure TGeographicDivision.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2171,7 +1852,7 @@ end;
 
 
 
-Procedure TGeographicDivision.SetofficeIndices(AIndex : Integer; AValue : TGeographicDivisionofficeIndices); 
+Procedure TGeographicDivision.SetofficeIndices(AIndex : Integer; const AValue : TintegerArray); 
 
 begin
   If (FofficeIndices=AValue) then exit;
@@ -2180,19 +1861,19 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TGeographicDivision.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TGeographicDivisionalsoKnownAs
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TGeographicDivisionofficeIndices
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'alsoknownas' : SetLength(FalsoKnownAs,ALength);
+  'officeindices' : SetLength(FofficeIndices,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2202,7 +1883,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOffice.SetdivisionId(AIndex : Integer; AValue : string); 
+Procedure TOffice.SetdivisionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdivisionId=AValue) then exit;
@@ -2212,7 +1893,7 @@ end;
 
 
 
-Procedure TOffice.Setlevels(AIndex : Integer; AValue : TOfficelevels); 
+Procedure TOffice.Setlevels(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Flevels=AValue) then exit;
@@ -2222,7 +1903,7 @@ end;
 
 
 
-Procedure TOffice.Setname(AIndex : Integer; AValue : string); 
+Procedure TOffice.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2232,7 +1913,7 @@ end;
 
 
 
-Procedure TOffice.SetofficialIndices(AIndex : Integer; AValue : TOfficeofficialIndices); 
+Procedure TOffice.SetofficialIndices(AIndex : Integer; const AValue : TintegerArray); 
 
 begin
   If (FofficialIndices=AValue) then exit;
@@ -2242,7 +1923,7 @@ end;
 
 
 
-Procedure TOffice.Setroles(AIndex : Integer; AValue : TOfficeroles); 
+Procedure TOffice.Setroles(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Froles=AValue) then exit;
@@ -2252,7 +1933,7 @@ end;
 
 
 
-Procedure TOffice.Setsources(AIndex : Integer; AValue : TOfficesources); 
+Procedure TOffice.Setsources(AIndex : Integer; const AValue : TOfficeTypesourcesArray); 
 
 begin
   If (Fsources=AValue) then exit;
@@ -2261,33 +1942,21 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOffice.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TOfficelevels
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TOfficeofficialIndices
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TOfficeroles
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TOfficesources
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'levels' : SetLength(Flevels,ALength);
+  'officialindices' : SetLength(FofficialIndices,ALength);
+  'roles' : SetLength(Froles,ALength);
+  'sources' : SetLength(Fsources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2297,7 +1966,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOfficial.Setaddress(AIndex : Integer; AValue : TOfficialaddress); 
+Procedure TOfficial.Setaddress(AIndex : Integer; const AValue : TOfficialTypeaddressArray); 
 
 begin
   If (Faddress=AValue) then exit;
@@ -2307,7 +1976,7 @@ end;
 
 
 
-Procedure TOfficial.Setchannels(AIndex : Integer; AValue : TOfficialchannels); 
+Procedure TOfficial.Setchannels(AIndex : Integer; const AValue : TOfficialTypechannelsArray); 
 
 begin
   If (Fchannels=AValue) then exit;
@@ -2317,7 +1986,7 @@ end;
 
 
 
-Procedure TOfficial.Setemails(AIndex : Integer; AValue : TOfficialemails); 
+Procedure TOfficial.Setemails(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Femails=AValue) then exit;
@@ -2327,7 +1996,7 @@ end;
 
 
 
-Procedure TOfficial.Setname(AIndex : Integer; AValue : string); 
+Procedure TOfficial.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2337,7 +2006,7 @@ end;
 
 
 
-Procedure TOfficial.Setparty(AIndex : Integer; AValue : string); 
+Procedure TOfficial.Setparty(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fparty=AValue) then exit;
@@ -2347,7 +2016,7 @@ end;
 
 
 
-Procedure TOfficial.Setphones(AIndex : Integer; AValue : TOfficialphones); 
+Procedure TOfficial.Setphones(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fphones=AValue) then exit;
@@ -2357,7 +2026,7 @@ end;
 
 
 
-Procedure TOfficial.SetphotoUrl(AIndex : Integer; AValue : string); 
+Procedure TOfficial.SetphotoUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FphotoUrl=AValue) then exit;
@@ -2367,7 +2036,7 @@ end;
 
 
 
-Procedure TOfficial.Seturls(AIndex : Integer; AValue : TOfficialurls); 
+Procedure TOfficial.Seturls(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Furls=AValue) then exit;
@@ -2376,40 +2045,22 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TOfficial.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TOfficialaddress
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TOfficialchannels
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TOfficialemails
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TOfficialphones
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TOfficialurls
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'address' : SetLength(Faddress,ALength);
+  'channels' : SetLength(Fchannels,ALength);
+  'emails' : SetLength(Femails,ALength);
+  'phones' : SetLength(Fphones,ALength);
+  'urls' : SetLength(Furls,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2419,7 +2070,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPollingLocation.Setaddress(AIndex : Integer; AValue : TSimpleAddressType); 
+Procedure TPollingLocation.Setaddress(AIndex : Integer; const AValue : TSimpleAddressType); 
 
 begin
   If (Faddress=AValue) then exit;
@@ -2429,7 +2080,7 @@ end;
 
 
 
-Procedure TPollingLocation.SetendDate(AIndex : Integer; AValue : string); 
+Procedure TPollingLocation.SetendDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendDate=AValue) then exit;
@@ -2439,7 +2090,7 @@ end;
 
 
 
-Procedure TPollingLocation.Setid(AIndex : Integer; AValue : string); 
+Procedure TPollingLocation.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2449,7 +2100,7 @@ end;
 
 
 
-Procedure TPollingLocation.Setname(AIndex : Integer; AValue : string); 
+Procedure TPollingLocation.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2459,7 +2110,7 @@ end;
 
 
 
-Procedure TPollingLocation.Setnotes(AIndex : Integer; AValue : string); 
+Procedure TPollingLocation.Setnotes(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2469,7 +2120,7 @@ end;
 
 
 
-Procedure TPollingLocation.SetpollingHours(AIndex : Integer; AValue : string); 
+Procedure TPollingLocation.SetpollingHours(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpollingHours=AValue) then exit;
@@ -2479,7 +2130,7 @@ end;
 
 
 
-Procedure TPollingLocation.Setsources(AIndex : Integer; AValue : TPollingLocationsources); 
+Procedure TPollingLocation.Setsources(AIndex : Integer; const AValue : TPollingLocationTypesourcesArray); 
 
 begin
   If (Fsources=AValue) then exit;
@@ -2489,7 +2140,7 @@ end;
 
 
 
-Procedure TPollingLocation.SetstartDate(AIndex : Integer; AValue : string); 
+Procedure TPollingLocation.SetstartDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartDate=AValue) then exit;
@@ -2499,7 +2150,7 @@ end;
 
 
 
-Procedure TPollingLocation.SetvoterServices(AIndex : Integer; AValue : string); 
+Procedure TPollingLocation.SetvoterServices(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvoterServices=AValue) then exit;
@@ -2508,13 +2159,32 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TPollingLocation.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'sources' : SetLength(Fsources,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TPollingLocationsources
+  TRepresentativeInfoDataTypedivisions
   --------------------------------------------------------------------}
 
+
+Class Function TRepresentativeInfoDataTypedivisions.AllowAdditionalProperties : Boolean;
+
+begin
+  Result:=True;
+end;
 
 
 
@@ -2523,7 +2193,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRepresentativeInfoData.Setdivisions(AIndex : Integer; AValue : TRepresentativeInfoDatadivisions); 
+Procedure TRepresentativeInfoData.Setdivisions(AIndex : Integer; const AValue : TRepresentativeInfoDataTypedivisions); 
 
 begin
   If (Fdivisions=AValue) then exit;
@@ -2533,7 +2203,7 @@ end;
 
 
 
-Procedure TRepresentativeInfoData.Setoffices(AIndex : Integer; AValue : TRepresentativeInfoDataoffices); 
+Procedure TRepresentativeInfoData.Setoffices(AIndex : Integer; const AValue : TRepresentativeInfoDataTypeofficesArray); 
 
 begin
   If (Foffices=AValue) then exit;
@@ -2543,7 +2213,7 @@ end;
 
 
 
-Procedure TRepresentativeInfoData.Setofficials(AIndex : Integer; AValue : TRepresentativeInfoDataofficials); 
+Procedure TRepresentativeInfoData.Setofficials(AIndex : Integer; const AValue : TRepresentativeInfoDataTypeofficialsArray); 
 
 begin
   If (Fofficials=AValue) then exit;
@@ -2552,15 +2222,29 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRepresentativeInfoData.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'offices' : SetLength(Foffices,ALength);
+  'officials' : SetLength(Fofficials,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TRepresentativeInfoDatadivisions
+  TRepresentativeInfoResponseTypedivisions
   --------------------------------------------------------------------}
 
 
-Class Function TRepresentativeInfoDatadivisions.AllowAdditionalProperties : Boolean;
+Class Function TRepresentativeInfoResponseTypedivisions.AllowAdditionalProperties : Boolean;
 
 begin
   Result:=True;
@@ -2569,25 +2253,11 @@ end;
 
 
 { --------------------------------------------------------------------
-  TRepresentativeInfoDataoffices
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TRepresentativeInfoDataofficials
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
   TRepresentativeInfoResponse
   --------------------------------------------------------------------}
 
 
-Procedure TRepresentativeInfoResponse.Setdivisions(AIndex : Integer; AValue : TRepresentativeInfoResponsedivisions); 
+Procedure TRepresentativeInfoResponse.Setdivisions(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypedivisions); 
 
 begin
   If (Fdivisions=AValue) then exit;
@@ -2597,7 +2267,7 @@ end;
 
 
 
-Procedure TRepresentativeInfoResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TRepresentativeInfoResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2607,7 +2277,7 @@ end;
 
 
 
-Procedure TRepresentativeInfoResponse.SetnormalizedInput(AIndex : Integer; AValue : TSimpleAddressType); 
+Procedure TRepresentativeInfoResponse.SetnormalizedInput(AIndex : Integer; const AValue : TSimpleAddressType); 
 
 begin
   If (FnormalizedInput=AValue) then exit;
@@ -2617,7 +2287,7 @@ end;
 
 
 
-Procedure TRepresentativeInfoResponse.Setoffices(AIndex : Integer; AValue : TRepresentativeInfoResponseoffices); 
+Procedure TRepresentativeInfoResponse.Setoffices(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypeofficesArray); 
 
 begin
   If (Foffices=AValue) then exit;
@@ -2627,7 +2297,7 @@ end;
 
 
 
-Procedure TRepresentativeInfoResponse.Setofficials(AIndex : Integer; AValue : TRepresentativeInfoResponseofficials); 
+Procedure TRepresentativeInfoResponse.Setofficials(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypeofficialsArray); 
 
 begin
   If (Fofficials=AValue) then exit;
@@ -2636,32 +2306,19 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TRepresentativeInfoResponsedivisions
-  --------------------------------------------------------------------}
-
-
-Class Function TRepresentativeInfoResponsedivisions.AllowAdditionalProperties : Boolean;
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TRepresentativeInfoResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  Result:=True;
+  Case AName of
+  'offices' : SetLength(Foffices,ALength);
+  'officials' : SetLength(Fofficials,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-{ --------------------------------------------------------------------
-  TRepresentativeInfoResponseoffices
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TRepresentativeInfoResponseofficials
-  --------------------------------------------------------------------}
+{$ENDIF VER2_6}
 
 
 
@@ -2671,7 +2328,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSimpleAddressType.Setcity(AIndex : Integer; AValue : string); 
+Procedure TSimpleAddressType.Setcity(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcity=AValue) then exit;
@@ -2681,7 +2338,7 @@ end;
 
 
 
-Procedure TSimpleAddressType.Setline1(AIndex : Integer; AValue : string); 
+Procedure TSimpleAddressType.Setline1(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fline1=AValue) then exit;
@@ -2691,7 +2348,7 @@ end;
 
 
 
-Procedure TSimpleAddressType.Setline2(AIndex : Integer; AValue : string); 
+Procedure TSimpleAddressType.Setline2(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fline2=AValue) then exit;
@@ -2701,7 +2358,7 @@ end;
 
 
 
-Procedure TSimpleAddressType.Setline3(AIndex : Integer; AValue : string); 
+Procedure TSimpleAddressType.Setline3(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fline3=AValue) then exit;
@@ -2711,7 +2368,7 @@ end;
 
 
 
-Procedure TSimpleAddressType.SetlocationName(AIndex : Integer; AValue : string); 
+Procedure TSimpleAddressType.SetlocationName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlocationName=AValue) then exit;
@@ -2721,7 +2378,7 @@ end;
 
 
 
-Procedure TSimpleAddressType.Setstate(AIndex : Integer; AValue : string); 
+Procedure TSimpleAddressType.Setstate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -2731,7 +2388,7 @@ end;
 
 
 
-Procedure TSimpleAddressType.Setzip(AIndex : Integer; AValue : string); 
+Procedure TSimpleAddressType.Setzip(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzip=AValue) then exit;
@@ -2748,7 +2405,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSource.Setname(AIndex : Integer; AValue : string); 
+Procedure TSource.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2758,7 +2415,7 @@ end;
 
 
 
-Procedure TSource.Setofficial(AIndex : Integer; AValue : boolean); 
+Procedure TSource.Setofficial(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fofficial=AValue) then exit;
@@ -2775,7 +2432,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVoterInfoResponse.Setcontests(AIndex : Integer; AValue : TVoterInfoResponsecontests); 
+Procedure TVoterInfoResponse.Setcontests(AIndex : Integer; const AValue : TVoterInfoResponseTypecontestsArray); 
 
 begin
   If (Fcontests=AValue) then exit;
@@ -2785,7 +2442,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.SetdropOffLocations(AIndex : Integer; AValue : TVoterInfoResponsedropOffLocations); 
+Procedure TVoterInfoResponse.SetdropOffLocations(AIndex : Integer; const AValue : TVoterInfoResponseTypedropOffLocationsArray); 
 
 begin
   If (FdropOffLocations=AValue) then exit;
@@ -2795,7 +2452,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.SetearlyVoteSites(AIndex : Integer; AValue : TVoterInfoResponseearlyVoteSites); 
+Procedure TVoterInfoResponse.SetearlyVoteSites(AIndex : Integer; const AValue : TVoterInfoResponseTypeearlyVoteSitesArray); 
 
 begin
   If (FearlyVoteSites=AValue) then exit;
@@ -2805,7 +2462,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.Setelection(AIndex : Integer; AValue : TElection); 
+Procedure TVoterInfoResponse.Setelection(AIndex : Integer; const AValue : TElection); 
 
 begin
   If (Felection=AValue) then exit;
@@ -2815,7 +2472,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.Setkind(AIndex : Integer; AValue : string); 
+Procedure TVoterInfoResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2825,7 +2482,17 @@ end;
 
 
 
-Procedure TVoterInfoResponse.SetnormalizedInput(AIndex : Integer; AValue : TSimpleAddressType); 
+Procedure TVoterInfoResponse.SetmailOnly(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FmailOnly=AValue) then exit;
+  FmailOnly:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TVoterInfoResponse.SetnormalizedInput(AIndex : Integer; const AValue : TSimpleAddressType); 
 
 begin
   If (FnormalizedInput=AValue) then exit;
@@ -2835,7 +2502,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.SetotherElections(AIndex : Integer; AValue : TVoterInfoResponseotherElections); 
+Procedure TVoterInfoResponse.SetotherElections(AIndex : Integer; const AValue : TVoterInfoResponseTypeotherElectionsArray); 
 
 begin
   If (FotherElections=AValue) then exit;
@@ -2845,7 +2512,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.SetpollingLocations(AIndex : Integer; AValue : TVoterInfoResponsepollingLocations); 
+Procedure TVoterInfoResponse.SetpollingLocations(AIndex : Integer; const AValue : TVoterInfoResponseTypepollingLocationsArray); 
 
 begin
   If (FpollingLocations=AValue) then exit;
@@ -2855,7 +2522,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.SetprecinctId(AIndex : Integer; AValue : string); 
+Procedure TVoterInfoResponse.SetprecinctId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprecinctId=AValue) then exit;
@@ -2865,7 +2532,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.Setstate(AIndex : Integer; AValue : TVoterInfoResponsestate); 
+Procedure TVoterInfoResponse.Setstate(AIndex : Integer; const AValue : TVoterInfoResponseTypestateArray); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -2874,47 +2541,23 @@ begin
 end;
 
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TVoterInfoResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
-
-
-{ --------------------------------------------------------------------
-  TVoterInfoResponsecontests
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVoterInfoResponsedropOffLocations
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVoterInfoResponseearlyVoteSites
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVoterInfoResponseotherElections
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVoterInfoResponsepollingLocations
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TVoterInfoResponsestate
-  --------------------------------------------------------------------}
+begin
+  Case AName of
+  'contests' : SetLength(Fcontests,ALength);
+  'dropofflocations' : SetLength(FdropOffLocations,ALength);
+  'earlyvotesites' : SetLength(FearlyVoteSites,ALength);
+  'otherelections' : SetLength(FotherElections,ALength);
+  'pollinglocations' : SetLength(FpollingLocations,ALength);
+  'state' : SetLength(Fstate,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3109,7 +2752,7 @@ end;
 Class Function TCivicinfoAPI.APIRevision : String;
 
 begin
-  Result:='20150302';
+  Result:='20150820';
 end;
 
 Class Function TCivicinfoAPI.APIID : String;
@@ -3213,60 +2856,27 @@ Class Procedure TCivicinfoAPI.RegisterAPIResources;
 
 begin
   TAdministrationRegion.RegisterObject;
-  TAdministrationRegionsources.RegisterObject;
   TAdministrativeBody.RegisterObject;
-  TAdministrativeBodyelectionOfficials.RegisterObject;
-  TAdministrativeBodyvoter_services.RegisterObject;
   TCandidate.RegisterObject;
-  TCandidatechannels.RegisterObject;
   TChannel.RegisterObject;
   TContest.RegisterObject;
-  TContestcandidates.RegisterObject;
-  TContestlevel.RegisterObject;
-  TContestroles.RegisterObject;
-  TContestsources.RegisterObject;
   TDivisionSearchResponse.RegisterObject;
-  TDivisionSearchResponseresults.RegisterObject;
   TDivisionSearchResult.RegisterObject;
-  TDivisionSearchResultaliases.RegisterObject;
   TElection.RegisterObject;
   TElectionOfficial.RegisterObject;
   TElectionsQueryResponse.RegisterObject;
-  TElectionsQueryResponseelections.RegisterObject;
   TElectoralDistrict.RegisterObject;
   TGeographicDivision.RegisterObject;
-  TGeographicDivisionalsoKnownAs.RegisterObject;
-  TGeographicDivisionofficeIndices.RegisterObject;
   TOffice.RegisterObject;
-  TOfficelevels.RegisterObject;
-  TOfficeofficialIndices.RegisterObject;
-  TOfficeroles.RegisterObject;
-  TOfficesources.RegisterObject;
   TOfficial.RegisterObject;
-  TOfficialaddress.RegisterObject;
-  TOfficialchannels.RegisterObject;
-  TOfficialemails.RegisterObject;
-  TOfficialphones.RegisterObject;
-  TOfficialurls.RegisterObject;
   TPollingLocation.RegisterObject;
-  TPollingLocationsources.RegisterObject;
+  TRepresentativeInfoDataTypedivisions.RegisterObject;
   TRepresentativeInfoData.RegisterObject;
-  TRepresentativeInfoDatadivisions.RegisterObject;
-  TRepresentativeInfoDataoffices.RegisterObject;
-  TRepresentativeInfoDataofficials.RegisterObject;
+  TRepresentativeInfoResponseTypedivisions.RegisterObject;
   TRepresentativeInfoResponse.RegisterObject;
-  TRepresentativeInfoResponsedivisions.RegisterObject;
-  TRepresentativeInfoResponseoffices.RegisterObject;
-  TRepresentativeInfoResponseofficials.RegisterObject;
   TSimpleAddressType.RegisterObject;
   TSource.RegisterObject;
   TVoterInfoResponse.RegisterObject;
-  TVoterInfoResponsecontests.RegisterObject;
-  TVoterInfoResponsedropOffLocations.RegisterObject;
-  TVoterInfoResponseearlyVoteSites.RegisterObject;
-  TVoterInfoResponseotherElections.RegisterObject;
-  TVoterInfoResponsepollingLocations.RegisterObject;
-  TVoterInfoResponsestate.RegisterObject;
 end;
 
 
@@ -3289,7 +2899,7 @@ Function TCivicinfoAPI.CreateDivisionsResource(AOwner : TComponent) : TDivisions
 
 begin
   Result:=TDivisionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3313,7 +2923,7 @@ Function TCivicinfoAPI.CreateElectionsResource(AOwner : TComponent) : TElections
 
 begin
   Result:=TElectionsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 
@@ -3337,7 +2947,7 @@ Function TCivicinfoAPI.CreateRepresentativesResource(AOwner : TComponent) : TRep
 
 begin
   Result:=TRepresentativesResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -1,31 +1,4 @@
 unit googlegroupssettings;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,9 +7,11 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TGroups = class;
+  
+  //Top-level schema types
+  TGroups = Class;
   TGroupsArray = Array of TGroups;
+  //Anonymous types, using auto-generated names
   
   { --------------------------------------------------------------------
     TGroups
@@ -44,94 +19,97 @@ type
   
   TGroups = Class(TGoogleBaseObject)
   Private
-    FallowExternalMembers : string;
-    FallowGoogleCommunication : string;
-    FallowWebPosting : string;
-    FarchiveOnly : string;
-    FcustomReplyTo : string;
-    FdefaultMessageDenyNotificationText : string;
-    Fdescription : string;
-    Femail : string;
-    FincludeInGlobalAddressList : string;
-    FisArchived : string;
-    Fkind : string;
+    FallowExternalMembers : String;
+    FallowGoogleCommunication : String;
+    FallowWebPosting : String;
+    FarchiveOnly : String;
+    FcustomReplyTo : String;
+    FdefaultMessageDenyNotificationText : String;
+    Fdescription : String;
+    Femail : String;
+    FincludeInGlobalAddressList : String;
+    FisArchived : String;
+    Fkind : String;
     FmaxMessageBytes : integer;
-    FmembersCanPostAsTheGroup : string;
-    FmessageDisplayFont : string;
-    FmessageModerationLevel : string;
-    Fname : string;
-    FprimaryLanguage : string;
-    FreplyTo : string;
-    FsendMessageDenyNotification : string;
-    FshowInGroupDirectory : string;
-    FspamModerationLevel : string;
-    FwhoCanContactOwner : string;
-    FwhoCanInvite : string;
-    FwhoCanJoin : string;
-    FwhoCanLeaveGroup : string;
-    FwhoCanPostMessage : string;
-    FwhoCanViewGroup : string;
-    FwhoCanViewMembership : string;
+    FmembersCanPostAsTheGroup : String;
+    FmessageDisplayFont : String;
+    FmessageModerationLevel : String;
+    Fname : String;
+    FprimaryLanguage : String;
+    FreplyTo : String;
+    FsendMessageDenyNotification : String;
+    FshowInGroupDirectory : String;
+    FspamModerationLevel : String;
+    FwhoCanAdd : String;
+    FwhoCanContactOwner : String;
+    FwhoCanInvite : String;
+    FwhoCanJoin : String;
+    FwhoCanLeaveGroup : String;
+    FwhoCanPostMessage : String;
+    FwhoCanViewGroup : String;
+    FwhoCanViewMembership : String;
   Protected
     //Property setters
-    Procedure SetallowExternalMembers(AIndex : Integer; AValue : string); virtual;
-    Procedure SetallowGoogleCommunication(AIndex : Integer; AValue : string); virtual;
-    Procedure SetallowWebPosting(AIndex : Integer; AValue : string); virtual;
-    Procedure SetarchiveOnly(AIndex : Integer; AValue : string); virtual;
-    Procedure SetcustomReplyTo(AIndex : Integer; AValue : string); virtual;
-    Procedure SetdefaultMessageDenyNotificationText(AIndex : Integer; AValue : string); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : string); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : string); virtual;
-    Procedure SetincludeInGlobalAddressList(AIndex : Integer; AValue : string); virtual;
-    Procedure SetisArchived(AIndex : Integer; AValue : string); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmaxMessageBytes(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmembersCanPostAsTheGroup(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmessageDisplayFont(AIndex : Integer; AValue : string); virtual;
-    Procedure SetmessageModerationLevel(AIndex : Integer; AValue : string); virtual;
-    Procedure Setname(AIndex : Integer; AValue : string); virtual;
-    Procedure SetprimaryLanguage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetreplyTo(AIndex : Integer; AValue : string); virtual;
-    Procedure SetsendMessageDenyNotification(AIndex : Integer; AValue : string); virtual;
-    Procedure SetshowInGroupDirectory(AIndex : Integer; AValue : string); virtual;
-    Procedure SetspamModerationLevel(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwhoCanContactOwner(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwhoCanInvite(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwhoCanJoin(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwhoCanLeaveGroup(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwhoCanPostMessage(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwhoCanViewGroup(AIndex : Integer; AValue : string); virtual;
-    Procedure SetwhoCanViewMembership(AIndex : Integer; AValue : string); virtual;
+    Procedure SetallowExternalMembers(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetallowGoogleCommunication(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetallowWebPosting(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetarchiveOnly(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomReplyTo(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultMessageDenyNotificationText(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetincludeInGlobalAddressList(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetisArchived(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmaxMessageBytes(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetmembersCanPostAsTheGroup(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmessageDisplayFont(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmessageModerationLevel(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprimaryLanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreplyTo(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsendMessageDenyNotification(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetshowInGroupDirectory(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetspamModerationLevel(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwhoCanAdd(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwhoCanContactOwner(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwhoCanInvite(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwhoCanJoin(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwhoCanLeaveGroup(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwhoCanPostMessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwhoCanViewGroup(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwhoCanViewMembership(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property allowExternalMembers : string Index 0 Read FallowExternalMembers Write SetallowExternalMembers;
-    Property allowGoogleCommunication : string Index 8 Read FallowGoogleCommunication Write SetallowGoogleCommunication;
-    Property allowWebPosting : string Index 16 Read FallowWebPosting Write SetallowWebPosting;
-    Property archiveOnly : string Index 24 Read FarchiveOnly Write SetarchiveOnly;
-    Property customReplyTo : string Index 32 Read FcustomReplyTo Write SetcustomReplyTo;
-    Property defaultMessageDenyNotificationText : string Index 40 Read FdefaultMessageDenyNotificationText Write SetdefaultMessageDenyNotificationText;
-    Property description : string Index 48 Read Fdescription Write Setdescription;
-    Property email : string Index 56 Read Femail Write Setemail;
-    Property includeInGlobalAddressList : string Index 64 Read FincludeInGlobalAddressList Write SetincludeInGlobalAddressList;
-    Property isArchived : string Index 72 Read FisArchived Write SetisArchived;
-    Property kind : string Index 80 Read Fkind Write Setkind;
+    Property allowExternalMembers : String Index 0 Read FallowExternalMembers Write SetallowExternalMembers;
+    Property allowGoogleCommunication : String Index 8 Read FallowGoogleCommunication Write SetallowGoogleCommunication;
+    Property allowWebPosting : String Index 16 Read FallowWebPosting Write SetallowWebPosting;
+    Property archiveOnly : String Index 24 Read FarchiveOnly Write SetarchiveOnly;
+    Property customReplyTo : String Index 32 Read FcustomReplyTo Write SetcustomReplyTo;
+    Property defaultMessageDenyNotificationText : String Index 40 Read FdefaultMessageDenyNotificationText Write SetdefaultMessageDenyNotificationText;
+    Property description : String Index 48 Read Fdescription Write Setdescription;
+    Property email : String Index 56 Read Femail Write Setemail;
+    Property includeInGlobalAddressList : String Index 64 Read FincludeInGlobalAddressList Write SetincludeInGlobalAddressList;
+    Property isArchived : String Index 72 Read FisArchived Write SetisArchived;
+    Property kind : String Index 80 Read Fkind Write Setkind;
     Property maxMessageBytes : integer Index 88 Read FmaxMessageBytes Write SetmaxMessageBytes;
-    Property membersCanPostAsTheGroup : string Index 96 Read FmembersCanPostAsTheGroup Write SetmembersCanPostAsTheGroup;
-    Property messageDisplayFont : string Index 104 Read FmessageDisplayFont Write SetmessageDisplayFont;
-    Property messageModerationLevel : string Index 112 Read FmessageModerationLevel Write SetmessageModerationLevel;
-    Property name : string Index 120 Read Fname Write Setname;
-    Property primaryLanguage : string Index 128 Read FprimaryLanguage Write SetprimaryLanguage;
-    Property replyTo : string Index 136 Read FreplyTo Write SetreplyTo;
-    Property sendMessageDenyNotification : string Index 144 Read FsendMessageDenyNotification Write SetsendMessageDenyNotification;
-    Property showInGroupDirectory : string Index 152 Read FshowInGroupDirectory Write SetshowInGroupDirectory;
-    Property spamModerationLevel : string Index 160 Read FspamModerationLevel Write SetspamModerationLevel;
-    Property whoCanContactOwner : string Index 168 Read FwhoCanContactOwner Write SetwhoCanContactOwner;
-    Property whoCanInvite : string Index 176 Read FwhoCanInvite Write SetwhoCanInvite;
-    Property whoCanJoin : string Index 184 Read FwhoCanJoin Write SetwhoCanJoin;
-    Property whoCanLeaveGroup : string Index 192 Read FwhoCanLeaveGroup Write SetwhoCanLeaveGroup;
-    Property whoCanPostMessage : string Index 200 Read FwhoCanPostMessage Write SetwhoCanPostMessage;
-    Property whoCanViewGroup : string Index 208 Read FwhoCanViewGroup Write SetwhoCanViewGroup;
-    Property whoCanViewMembership : string Index 216 Read FwhoCanViewMembership Write SetwhoCanViewMembership;
+    Property membersCanPostAsTheGroup : String Index 96 Read FmembersCanPostAsTheGroup Write SetmembersCanPostAsTheGroup;
+    Property messageDisplayFont : String Index 104 Read FmessageDisplayFont Write SetmessageDisplayFont;
+    Property messageModerationLevel : String Index 112 Read FmessageModerationLevel Write SetmessageModerationLevel;
+    Property name : String Index 120 Read Fname Write Setname;
+    Property primaryLanguage : String Index 128 Read FprimaryLanguage Write SetprimaryLanguage;
+    Property replyTo : String Index 136 Read FreplyTo Write SetreplyTo;
+    Property sendMessageDenyNotification : String Index 144 Read FsendMessageDenyNotification Write SetsendMessageDenyNotification;
+    Property showInGroupDirectory : String Index 152 Read FshowInGroupDirectory Write SetshowInGroupDirectory;
+    Property spamModerationLevel : String Index 160 Read FspamModerationLevel Write SetspamModerationLevel;
+    Property whoCanAdd : String Index 168 Read FwhoCanAdd Write SetwhoCanAdd;
+    Property whoCanContactOwner : String Index 176 Read FwhoCanContactOwner Write SetwhoCanContactOwner;
+    Property whoCanInvite : String Index 184 Read FwhoCanInvite Write SetwhoCanInvite;
+    Property whoCanJoin : String Index 192 Read FwhoCanJoin Write SetwhoCanJoin;
+    Property whoCanLeaveGroup : String Index 200 Read FwhoCanLeaveGroup Write SetwhoCanLeaveGroup;
+    Property whoCanPostMessage : String Index 208 Read FwhoCanPostMessage Write SetwhoCanPostMessage;
+    Property whoCanViewGroup : String Index 216 Read FwhoCanViewGroup Write SetwhoCanViewGroup;
+    Property whoCanViewMembership : String Index 224 Read FwhoCanViewMembership Write SetwhoCanViewMembership;
   end;
   TGroupsClass = Class of TGroups;
   
@@ -194,7 +172,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TGroups.SetallowExternalMembers(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetallowExternalMembers(AIndex : Integer; const AValue : String); 
 
 begin
   If (FallowExternalMembers=AValue) then exit;
@@ -204,7 +182,7 @@ end;
 
 
 
-Procedure TGroups.SetallowGoogleCommunication(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetallowGoogleCommunication(AIndex : Integer; const AValue : String); 
 
 begin
   If (FallowGoogleCommunication=AValue) then exit;
@@ -214,7 +192,7 @@ end;
 
 
 
-Procedure TGroups.SetallowWebPosting(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetallowWebPosting(AIndex : Integer; const AValue : String); 
 
 begin
   If (FallowWebPosting=AValue) then exit;
@@ -224,7 +202,7 @@ end;
 
 
 
-Procedure TGroups.SetarchiveOnly(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetarchiveOnly(AIndex : Integer; const AValue : String); 
 
 begin
   If (FarchiveOnly=AValue) then exit;
@@ -234,7 +212,7 @@ end;
 
 
 
-Procedure TGroups.SetcustomReplyTo(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetcustomReplyTo(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomReplyTo=AValue) then exit;
@@ -244,7 +222,7 @@ end;
 
 
 
-Procedure TGroups.SetdefaultMessageDenyNotificationText(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetdefaultMessageDenyNotificationText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultMessageDenyNotificationText=AValue) then exit;
@@ -254,7 +232,7 @@ end;
 
 
 
-Procedure TGroups.Setdescription(AIndex : Integer; AValue : string); 
+Procedure TGroups.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -264,7 +242,7 @@ end;
 
 
 
-Procedure TGroups.Setemail(AIndex : Integer; AValue : string); 
+Procedure TGroups.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -274,7 +252,7 @@ end;
 
 
 
-Procedure TGroups.SetincludeInGlobalAddressList(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetincludeInGlobalAddressList(AIndex : Integer; const AValue : String); 
 
 begin
   If (FincludeInGlobalAddressList=AValue) then exit;
@@ -284,7 +262,7 @@ end;
 
 
 
-Procedure TGroups.SetisArchived(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetisArchived(AIndex : Integer; const AValue : String); 
 
 begin
   If (FisArchived=AValue) then exit;
@@ -294,7 +272,7 @@ end;
 
 
 
-Procedure TGroups.Setkind(AIndex : Integer; AValue : string); 
+Procedure TGroups.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -304,7 +282,7 @@ end;
 
 
 
-Procedure TGroups.SetmaxMessageBytes(AIndex : Integer; AValue : integer); 
+Procedure TGroups.SetmaxMessageBytes(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxMessageBytes=AValue) then exit;
@@ -314,7 +292,7 @@ end;
 
 
 
-Procedure TGroups.SetmembersCanPostAsTheGroup(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetmembersCanPostAsTheGroup(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmembersCanPostAsTheGroup=AValue) then exit;
@@ -324,7 +302,7 @@ end;
 
 
 
-Procedure TGroups.SetmessageDisplayFont(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetmessageDisplayFont(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmessageDisplayFont=AValue) then exit;
@@ -334,7 +312,7 @@ end;
 
 
 
-Procedure TGroups.SetmessageModerationLevel(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetmessageModerationLevel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmessageModerationLevel=AValue) then exit;
@@ -344,7 +322,7 @@ end;
 
 
 
-Procedure TGroups.Setname(AIndex : Integer; AValue : string); 
+Procedure TGroups.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -354,7 +332,7 @@ end;
 
 
 
-Procedure TGroups.SetprimaryLanguage(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetprimaryLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprimaryLanguage=AValue) then exit;
@@ -364,7 +342,7 @@ end;
 
 
 
-Procedure TGroups.SetreplyTo(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetreplyTo(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreplyTo=AValue) then exit;
@@ -374,7 +352,7 @@ end;
 
 
 
-Procedure TGroups.SetsendMessageDenyNotification(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetsendMessageDenyNotification(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsendMessageDenyNotification=AValue) then exit;
@@ -384,7 +362,7 @@ end;
 
 
 
-Procedure TGroups.SetshowInGroupDirectory(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetshowInGroupDirectory(AIndex : Integer; const AValue : String); 
 
 begin
   If (FshowInGroupDirectory=AValue) then exit;
@@ -394,7 +372,7 @@ end;
 
 
 
-Procedure TGroups.SetspamModerationLevel(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetspamModerationLevel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FspamModerationLevel=AValue) then exit;
@@ -404,7 +382,17 @@ end;
 
 
 
-Procedure TGroups.SetwhoCanContactOwner(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetwhoCanAdd(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FwhoCanAdd=AValue) then exit;
+  FwhoCanAdd:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TGroups.SetwhoCanContactOwner(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwhoCanContactOwner=AValue) then exit;
@@ -414,7 +402,7 @@ end;
 
 
 
-Procedure TGroups.SetwhoCanInvite(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetwhoCanInvite(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwhoCanInvite=AValue) then exit;
@@ -424,7 +412,7 @@ end;
 
 
 
-Procedure TGroups.SetwhoCanJoin(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetwhoCanJoin(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwhoCanJoin=AValue) then exit;
@@ -434,7 +422,7 @@ end;
 
 
 
-Procedure TGroups.SetwhoCanLeaveGroup(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetwhoCanLeaveGroup(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwhoCanLeaveGroup=AValue) then exit;
@@ -444,7 +432,7 @@ end;
 
 
 
-Procedure TGroups.SetwhoCanPostMessage(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetwhoCanPostMessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwhoCanPostMessage=AValue) then exit;
@@ -454,7 +442,7 @@ end;
 
 
 
-Procedure TGroups.SetwhoCanViewGroup(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetwhoCanViewGroup(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwhoCanViewGroup=AValue) then exit;
@@ -464,7 +452,7 @@ end;
 
 
 
-Procedure TGroups.SetwhoCanViewMembership(AIndex : Integer; AValue : string); 
+Procedure TGroups.SetwhoCanViewMembership(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwhoCanViewMembership=AValue) then exit;
@@ -559,7 +547,7 @@ end;
 Class Function TGroupssettingsAPI.APIRevision : String;
 
 begin
-  Result:='20140428';
+  Result:='20160323';
 end;
 
 Class Function TGroupssettingsAPI.APIID : String;
@@ -687,7 +675,7 @@ Function TGroupssettingsAPI.CreateGroupsResource(AOwner : TComponent) : TGroupsR
 
 begin
   Result:=TGroupsResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

@@ -1,31 +1,4 @@
 unit googlesiteVerification;
-{
-  This is the file COPYING.FPC, it applies to the Free Pascal Run-Time Library 
-  (RTL) and packages (packages) distributed by members of the Free Pascal 
-  Development Team.
-  
-  The source code of the Free Pascal Runtime Libraries and packages are 
-  distributed under the Library GNU General Public License 
-  (see the file COPYING) with the following modification:
-  
-  As a special exception, the copyright holders of this library give you
-  permission to link this library with independent modules to produce an
-  executable, regardless of the license terms of these independent modules,
-  and to copy and distribute the resulting executable under terms of your choice,
-  provided that you also meet, for each linked independent module, the terms
-  and conditions of the license of that module. An independent module is a module
-  which is not derived from or based on this library. If you modify this
-  library, you may extend this exception to your version of the library, but you are
-  not obligated to do so. If you do not wish to do so, delete this exception
-  statement from your version.
-  
-  If you didn't receive a copy of the file COPYING, contact:
-        Free Software Foundation
-        675 Mass Ave
-        Cambridge, MA  02139
-        USA
-  
-}
 {$MODE objfpc}
 {$H+}
 
@@ -34,23 +7,40 @@ interface
 uses sysutils, classes, googleservice, restbase, googlebase;
 
 type
-  //
-  TSiteVerificationWebResourceGettokenRequest = class;
+  
+  //Top-level schema types
+  TSiteVerificationWebResourceGettokenRequest = Class;
+  TSiteVerificationWebResourceGettokenResponse = Class;
+  TSiteVerificationWebResourceListResponse = Class;
+  TSiteVerificationWebResourceResource = Class;
   TSiteVerificationWebResourceGettokenRequestArray = Array of TSiteVerificationWebResourceGettokenRequest;
-  TSiteVerificationWebResourceGettokenRequestsite = class;
-  TSiteVerificationWebResourceGettokenRequestsiteArray = Array of TSiteVerificationWebResourceGettokenRequestsite;
-  TSiteVerificationWebResourceGettokenResponse = class;
   TSiteVerificationWebResourceGettokenResponseArray = Array of TSiteVerificationWebResourceGettokenResponse;
-  TSiteVerificationWebResourceListResponse = class;
   TSiteVerificationWebResourceListResponseArray = Array of TSiteVerificationWebResourceListResponse;
-  TSiteVerificationWebResourceListResponseitems = class;
-  TSiteVerificationWebResourceListResponseitemsArray = Array of TSiteVerificationWebResourceListResponseitems;
-  TSiteVerificationWebResourceResource = class;
   TSiteVerificationWebResourceResourceArray = Array of TSiteVerificationWebResourceResource;
-  TSiteVerificationWebResourceResourceowners = class;
-  TSiteVerificationWebResourceResourceownersArray = Array of TSiteVerificationWebResourceResourceowners;
-  TSiteVerificationWebResourceResourcesite = class;
-  TSiteVerificationWebResourceResourcesiteArray = Array of TSiteVerificationWebResourceResourcesite;
+  //Anonymous types, using auto-generated names
+  TSiteVerificationWebResourceGettokenRequestTypesite = Class;
+  TSiteVerificationWebResourceResourceTypesite = Class;
+  TSiteVerificationWebResourceListResponseTypeitemsArray = Array of TSiteVerificationWebResourceResource;
+  
+  { --------------------------------------------------------------------
+    TSiteVerificationWebResourceGettokenRequestTypesite
+    --------------------------------------------------------------------}
+  
+  TSiteVerificationWebResourceGettokenRequestTypesite = Class(TGoogleBaseObject)
+  Private
+    Fidentifier : String;
+    F_type : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Setidentifier(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property identifier : String Index 0 Read Fidentifier Write Setidentifier;
+    Property _type : String Index 8 Read F_type Write Set_type;
+  end;
+  TSiteVerificationWebResourceGettokenRequestTypesiteClass = Class of TSiteVerificationWebResourceGettokenRequestTypesite;
   
   { --------------------------------------------------------------------
     TSiteVerificationWebResourceGettokenRequest
@@ -58,38 +48,18 @@ type
   
   TSiteVerificationWebResourceGettokenRequest = Class(TGoogleBaseObject)
   Private
-    Fsite : TSiteVerificationWebResourceGettokenRequestsite;
-    FverificationMethod : string;
+    Fsite : TSiteVerificationWebResourceGettokenRequestTypesite;
+    FverificationMethod : String;
   Protected
     //Property setters
-    Procedure Setsite(AIndex : Integer; AValue : TSiteVerificationWebResourceGettokenRequestsite); virtual;
-    Procedure SetverificationMethod(AIndex : Integer; AValue : string); virtual;
+    Procedure Setsite(AIndex : Integer; const AValue : TSiteVerificationWebResourceGettokenRequestTypesite); virtual;
+    Procedure SetverificationMethod(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property site : TSiteVerificationWebResourceGettokenRequestsite Index 0 Read Fsite Write Setsite;
-    Property verificationMethod : string Index 8 Read FverificationMethod Write SetverificationMethod;
+    Property site : TSiteVerificationWebResourceGettokenRequestTypesite Index 0 Read Fsite Write Setsite;
+    Property verificationMethod : String Index 8 Read FverificationMethod Write SetverificationMethod;
   end;
   TSiteVerificationWebResourceGettokenRequestClass = Class of TSiteVerificationWebResourceGettokenRequest;
-  
-  { --------------------------------------------------------------------
-    TSiteVerificationWebResourceGettokenRequestsite
-    --------------------------------------------------------------------}
-  
-  TSiteVerificationWebResourceGettokenRequestsite = Class(TGoogleBaseObject)
-  Private
-    Fidentifier : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setidentifier(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property identifier : string Index 0 Read Fidentifier Write Setidentifier;
-    Property _type : string Index 8 Read F_type Write Set_type;
-  end;
-  TSiteVerificationWebResourceGettokenRequestsiteClass = Class of TSiteVerificationWebResourceGettokenRequestsite;
   
   { --------------------------------------------------------------------
     TSiteVerificationWebResourceGettokenResponse
@@ -97,16 +67,16 @@ type
   
   TSiteVerificationWebResourceGettokenResponse = Class(TGoogleBaseObject)
   Private
-    Fmethod : string;
-    Ftoken : string;
+    Fmethod : String;
+    Ftoken : String;
   Protected
     //Property setters
-    Procedure Setmethod(AIndex : Integer; AValue : string); virtual;
-    Procedure Settoken(AIndex : Integer; AValue : string); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property method : string Index 0 Read Fmethod Write Setmethod;
-    Property token : string Index 8 Read Ftoken Write Settoken;
+    Property method : String Index 0 Read Fmethod Write Setmethod;
+    Property token : String Index 8 Read Ftoken Write Settoken;
   end;
   TSiteVerificationWebResourceGettokenResponseClass = Class of TSiteVerificationWebResourceGettokenResponse;
   
@@ -116,28 +86,39 @@ type
   
   TSiteVerificationWebResourceListResponse = Class(TGoogleBaseObject)
   Private
-    Fitems : TSiteVerificationWebResourceListResponseitems;
+    Fitems : TSiteVerificationWebResourceListResponseTypeitemsArray;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TSiteVerificationWebResourceListResponseitems); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TSiteVerificationWebResourceListResponseTypeitemsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property items : TSiteVerificationWebResourceListResponseitems Index 0 Read Fitems Write Setitems;
+    Property items : TSiteVerificationWebResourceListResponseTypeitemsArray Index 0 Read Fitems Write Setitems;
   end;
   TSiteVerificationWebResourceListResponseClass = Class of TSiteVerificationWebResourceListResponse;
   
   { --------------------------------------------------------------------
-    TSiteVerificationWebResourceListResponseitems
+    TSiteVerificationWebResourceResourceTypesite
     --------------------------------------------------------------------}
   
-  TSiteVerificationWebResourceListResponseitems = Class(TGoogleBaseObject)
+  TSiteVerificationWebResourceResourceTypesite = Class(TGoogleBaseObject)
   Private
+    Fidentifier : String;
+    F_type : String;
   Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
+    Procedure Setidentifier(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
+    Property identifier : String Index 0 Read Fidentifier Write Setidentifier;
+    Property _type : String Index 8 Read F_type Write Set_type;
   end;
-  TSiteVerificationWebResourceListResponseitemsClass = Class of TSiteVerificationWebResourceListResponseitems;
+  TSiteVerificationWebResourceResourceTypesiteClass = Class of TSiteVerificationWebResourceResourceTypesite;
   
   { --------------------------------------------------------------------
     TSiteVerificationWebResourceResource
@@ -145,54 +126,25 @@ type
   
   TSiteVerificationWebResourceResource = Class(TGoogleBaseObject)
   Private
-    Fid : string;
-    Fowners : TSiteVerificationWebResourceResourceowners;
-    Fsite : TSiteVerificationWebResourceResourcesite;
+    Fid : String;
+    Fowners : TStringArray;
+    Fsite : TSiteVerificationWebResourceResourceTypesite;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : string); virtual;
-    Procedure Setowners(AIndex : Integer; AValue : TSiteVerificationWebResourceResourceowners); virtual;
-    Procedure Setsite(AIndex : Integer; AValue : TSiteVerificationWebResourceResourcesite); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setowners(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setsite(AIndex : Integer; const AValue : TSiteVerificationWebResourceResourceTypesite); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property id : string Index 0 Read Fid Write Setid;
-    Property owners : TSiteVerificationWebResourceResourceowners Index 8 Read Fowners Write Setowners;
-    Property site : TSiteVerificationWebResourceResourcesite Index 16 Read Fsite Write Setsite;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property owners : TStringArray Index 8 Read Fowners Write Setowners;
+    Property site : TSiteVerificationWebResourceResourceTypesite Index 16 Read Fsite Write Setsite;
   end;
   TSiteVerificationWebResourceResourceClass = Class of TSiteVerificationWebResourceResource;
-  
-  { --------------------------------------------------------------------
-    TSiteVerificationWebResourceResourceowners
-    --------------------------------------------------------------------}
-  
-  TSiteVerificationWebResourceResourceowners = Class(TGoogleBaseObject)
-  Private
-  Protected
-    //Property setters
-  Public
-  Published
-  end;
-  TSiteVerificationWebResourceResourceownersClass = Class of TSiteVerificationWebResourceResourceowners;
-  
-  { --------------------------------------------------------------------
-    TSiteVerificationWebResourceResourcesite
-    --------------------------------------------------------------------}
-  
-  TSiteVerificationWebResourceResourcesite = Class(TGoogleBaseObject)
-  Private
-    Fidentifier : string;
-    F_type : string;
-  Protected
-    Class Function ExportPropertyName(Const AName : String) : string; override;
-    //Property setters
-    Procedure Setidentifier(AIndex : Integer; AValue : string); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : string); virtual;
-  Public
-  Published
-    Property identifier : string Index 0 Read Fidentifier Write Setidentifier;
-    Property _type : string Index 8 Read F_type Write Set_type;
-  end;
-  TSiteVerificationWebResourceResourcesiteClass = Class of TSiteVerificationWebResourceResourcesite;
   
   { --------------------------------------------------------------------
     TWebResourceResource
@@ -202,7 +154,7 @@ type
   //Optional query Options for TWebResourceResource, method Insert
   
   TWebResourceInsertOptions = Record
-    verificationMethod : string;
+    verificationMethod : String;
   end;
   
   TWebResourceResource = Class(TGoogleResource)
@@ -261,38 +213,11 @@ implementation
 
 
 { --------------------------------------------------------------------
-  TSiteVerificationWebResourceGettokenRequest
+  TSiteVerificationWebResourceGettokenRequestTypesite
   --------------------------------------------------------------------}
 
 
-Procedure TSiteVerificationWebResourceGettokenRequest.Setsite(AIndex : Integer; AValue : TSiteVerificationWebResourceGettokenRequestsite); 
-
-begin
-  If (Fsite=AValue) then exit;
-  Fsite:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TSiteVerificationWebResourceGettokenRequest.SetverificationMethod(AIndex : Integer; AValue : string); 
-
-begin
-  If (FverificationMethod=AValue) then exit;
-  FverificationMethod:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
-  TSiteVerificationWebResourceGettokenRequestsite
-  --------------------------------------------------------------------}
-
-
-Procedure TSiteVerificationWebResourceGettokenRequestsite.Setidentifier(AIndex : Integer; AValue : string); 
+Procedure TSiteVerificationWebResourceGettokenRequestTypesite.Setidentifier(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fidentifier=AValue) then exit;
@@ -302,7 +227,7 @@ end;
 
 
 
-Procedure TSiteVerificationWebResourceGettokenRequestsite.Set_type(AIndex : Integer; AValue : string); 
+Procedure TSiteVerificationWebResourceGettokenRequestTypesite.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -312,7 +237,7 @@ end;
 
 
 
-Class Function TSiteVerificationWebResourceGettokenRequestsite.ExportPropertyName(Const AName : String) :String;
+Class Function TSiteVerificationWebResourceGettokenRequestTypesite.ExportPropertyName(Const AName : String) :String;
 
 begin
   Case AName of
@@ -326,11 +251,38 @@ end;
 
 
 { --------------------------------------------------------------------
+  TSiteVerificationWebResourceGettokenRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TSiteVerificationWebResourceGettokenRequest.Setsite(AIndex : Integer; const AValue : TSiteVerificationWebResourceGettokenRequestTypesite); 
+
+begin
+  If (Fsite=AValue) then exit;
+  Fsite:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSiteVerificationWebResourceGettokenRequest.SetverificationMethod(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FverificationMethod=AValue) then exit;
+  FverificationMethod:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TSiteVerificationWebResourceGettokenResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSiteVerificationWebResourceGettokenResponse.Setmethod(AIndex : Integer; AValue : string); 
+Procedure TSiteVerificationWebResourceGettokenResponse.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -340,7 +292,7 @@ end;
 
 
 
-Procedure TSiteVerificationWebResourceGettokenResponse.Settoken(AIndex : Integer; AValue : string); 
+Procedure TSiteVerificationWebResourceGettokenResponse.Settoken(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftoken=AValue) then exit;
@@ -357,7 +309,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSiteVerificationWebResourceListResponse.Setitems(AIndex : Integer; AValue : TSiteVerificationWebResourceListResponseitems); 
+Procedure TSiteVerificationWebResourceListResponse.Setitems(AIndex : Integer; const AValue : TSiteVerificationWebResourceListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -366,66 +318,28 @@ begin
 end;
 
 
-
-
-
-{ --------------------------------------------------------------------
-  TSiteVerificationWebResourceListResponseitems
-  --------------------------------------------------------------------}
-
-
-
-
-{ --------------------------------------------------------------------
-  TSiteVerificationWebResourceResource
-  --------------------------------------------------------------------}
-
-
-Procedure TSiteVerificationWebResourceResource.Setid(AIndex : Integer; AValue : string); 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSiteVerificationWebResourceListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
-  If (Fid=AValue) then exit;
-  Fid:=AValue;
-  MarkPropertyChanged(AIndex);
+  Case AName of
+  'items' : SetLength(Fitems,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
 end;
-
-
-
-Procedure TSiteVerificationWebResourceResource.Setowners(AIndex : Integer; AValue : TSiteVerificationWebResourceResourceowners); 
-
-begin
-  If (Fowners=AValue) then exit;
-  Fowners:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TSiteVerificationWebResourceResource.Setsite(AIndex : Integer; AValue : TSiteVerificationWebResourceResourcesite); 
-
-begin
-  If (Fsite=AValue) then exit;
-  Fsite:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
+{$ENDIF VER2_6}
 
 
 
 
 { --------------------------------------------------------------------
-  TSiteVerificationWebResourceResourceowners
+  TSiteVerificationWebResourceResourceTypesite
   --------------------------------------------------------------------}
 
 
-
-
-{ --------------------------------------------------------------------
-  TSiteVerificationWebResourceResourcesite
-  --------------------------------------------------------------------}
-
-
-Procedure TSiteVerificationWebResourceResourcesite.Setidentifier(AIndex : Integer; AValue : string); 
+Procedure TSiteVerificationWebResourceResourceTypesite.Setidentifier(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fidentifier=AValue) then exit;
@@ -435,7 +349,7 @@ end;
 
 
 
-Procedure TSiteVerificationWebResourceResourcesite.Set_type(AIndex : Integer; AValue : string); 
+Procedure TSiteVerificationWebResourceResourceTypesite.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -445,7 +359,7 @@ end;
 
 
 
-Class Function TSiteVerificationWebResourceResourcesite.ExportPropertyName(Const AName : String) :String;
+Class Function TSiteVerificationWebResourceResourceTypesite.ExportPropertyName(Const AName : String) :String;
 
 begin
   Case AName of
@@ -454,6 +368,56 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TSiteVerificationWebResourceResource
+  --------------------------------------------------------------------}
+
+
+Procedure TSiteVerificationWebResourceResource.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSiteVerificationWebResourceResource.Setowners(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Fowners=AValue) then exit;
+  Fowners:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSiteVerificationWebResourceResource.Setsite(AIndex : Integer; const AValue : TSiteVerificationWebResourceResourceTypesite); 
+
+begin
+  If (Fsite=AValue) then exit;
+  Fsite:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSiteVerificationWebResourceResource.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'owners' : SetLength(Fowners,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -601,7 +565,7 @@ end;
 Class Function TSiteVerificationAPI.APIRevision : String;
 
 begin
-  Result:='20131007';
+  Result:='20160228';
 end;
 
 Class Function TSiteVerificationAPI.APIID : String;
@@ -619,7 +583,7 @@ end;
 Class Function TSiteVerificationAPI.APIDescription : String;
 
 begin
-  Result:='Lets you programatically verify ownership of websites or domains with Google.';
+  Result:='Verifies ownership of websites or domains with Google.';
 end;
 
 Class Function TSiteVerificationAPI.APIOwnerDomain : String;
@@ -708,14 +672,12 @@ end;
 Class Procedure TSiteVerificationAPI.RegisterAPIResources;
 
 begin
+  TSiteVerificationWebResourceGettokenRequestTypesite.RegisterObject;
   TSiteVerificationWebResourceGettokenRequest.RegisterObject;
-  TSiteVerificationWebResourceGettokenRequestsite.RegisterObject;
   TSiteVerificationWebResourceGettokenResponse.RegisterObject;
   TSiteVerificationWebResourceListResponse.RegisterObject;
-  TSiteVerificationWebResourceListResponseitems.RegisterObject;
+  TSiteVerificationWebResourceResourceTypesite.RegisterObject;
   TSiteVerificationWebResourceResource.RegisterObject;
-  TSiteVerificationWebResourceResourceowners.RegisterObject;
-  TSiteVerificationWebResourceResourcesite.RegisterObject;
 end;
 
 
@@ -738,7 +700,7 @@ Function TSiteVerificationAPI.CreateWebResourceResource(AOwner : TComponent) : T
 
 begin
   Result:=TWebResourceResource.Create(AOwner);
-  Result.API:=Self;
+  Result.API:=Self.API;
 end;
 
 

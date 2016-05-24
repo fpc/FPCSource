@@ -43,7 +43,11 @@ Type
 
 Type
 
-  TGoogleBaseObject = CLass(TBaseObject);
+  { TGoogleBaseObject }
+
+  TGoogleBaseObject = CLass(TBaseObject)
+    Class Function AllowAdditionalProperties: Boolean; override;
+  end;
   TGoogleBaseObjectClass = Class of TGoogleBaseObject;
   TGoogleObjectArray =  Array of TGoogleBaseObject;
 
@@ -68,6 +72,15 @@ Function GoogleFactory : TObjectFactory;
 
 begin
   Result:=RestFactory;
+end;
+
+{ TGoogleBaseObject }
+
+Class Function TGoogleBaseObject.AllowAdditionalProperties: Boolean;
+begin
+  // We override this, so people don't get caught whenn google inadvertently adds properties.
+  // (see e.g. 30174)
+  Result:=True;
 end;
 
 { TGoogleBaseObjectList }
