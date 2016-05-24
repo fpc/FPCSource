@@ -72,6 +72,8 @@ type
     FDPI: integer;
     procedure   SearchForFonts(const AFontPath: String);
     procedure   SetDPI(AValue: integer);
+    { Set any / or \ path delimiters to the OS specific delimiter }
+    procedure   FixPathDelimiters;
   protected
     function    GetCount: integer; virtual;
     function    GetItem(AIndex: Integer): TFPFontCacheItem; virtual;
@@ -322,6 +324,14 @@ begin
   FDPI := AValue;
 end;
 
+procedure TFPFontCacheList.FixPathDelimiters;
+var
+  i: integer;
+begin
+  for i := 0 to FSearchPath.Count-1 do
+    FSearchPath[i] := SetDirSeparators(FSearchPath[i]);
+end;
+
 function TFPFontCacheList.GetCount: integer;
 begin
   Result := FList.Count;
@@ -360,6 +370,7 @@ begin
   if FSearchPath.Count < 1 then
     raise ETTF.Create(rsNoSearchPathDefined);
 
+  FixPathDelimiters;
   for i := 0 to FSearchPath.Count-1 do
   begin
     lPath := FSearchPath[i];

@@ -21,7 +21,8 @@ uses
   fpimage,
   fpreadjpeg,
   fppdf,
-  fpparsettf;
+  fpparsettf,
+  typinfo;
 
 type
 
@@ -42,6 +43,7 @@ type
     procedure   SimpleImage(D: TPDFDocument; APage: integer);
     procedure   SimpleShapes(D: TPDFDocument; APage: integer);
     procedure   SampleMatrixTransform(D: TPDFDocument; APage: integer);
+    procedure   SampleLandscape(D: TPDFDocument; APage: integer);
   protected
     procedure   DoRun; override;
   public
@@ -81,7 +83,7 @@ begin
 
   Result.StartDocument;
   S := Result.Sections.AddSection; // we always need at least one section
-  lPageCount := 6;
+  lPageCount := 7;
   if Fpg <> -1 then
     lPageCount := 1;
   for i := 1 to lPageCount do
@@ -426,6 +428,42 @@ begin
   OutputSample;
 end;
 
+procedure TPDFTestApp.SampleLandscape(D: TPDFDocument; APage: integer);
+var
+  P: TPDFPage;
+  FtTitle: integer;
+
+    function PaperTypeToString(AEnum: TPDFPaperType): string;
+    begin
+      result := GetEnumName(TypeInfo(TPDFPaperType), Ord(AEnum));
+    end;
+
+    function PixelsToMM(AValue: integer): integer;
+    begin
+      Result := Round((AValue / 72) * 25.4);
+    end;
+
+begin
+  P:=D.Pages[APage];
+  P.Orientation := ppoLandscape;
+
+  // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
+  FtTitle := D.AddFont('Helvetica', clBlack);
+
+  { Page title }
+  P.SetFont(FtTitle,23);
+  P.SetColor(clBlack);
+  P.WriteText(25, 20, 'Landscape Page');
+
+  P.SetFont(FtTitle, 12);
+  P.WriteText(100, 80, 'Page PaperType:');
+  P.WriteText(145, 80, PaperTypeToString(P.PaperType));
+
+  P.WriteText(100, 90, 'Page Size:');
+  P.WriteText(145, 90, Format('%d x %d  (pixels)', [P.Paper.W, P.Paper.H]));
+  P.WriteText(145, 95, Format('%d x %d  (mm)', [PixelsToMM(P.Paper.W), PixelsToMM(P.Paper.H)]));
+end;
+
 { TPDFTestApp }
 
 procedure TPDFTestApp.DoRun;
@@ -474,9 +512,9 @@ begin
   if HasOption('p', '') then
   begin
     Fpg := StrToInt(GetOptionValue('p', ''));
-    if (Fpg < 1) or (Fpg > 5) then
+    if (Fpg < 1) or (Fpg > 7) then
     begin
-      Writeln('Error in -p parameter. Valid range is 1-5.');
+      Writeln('Error in -p parameter. Valid range is 1-7.');
       Writeln('');
       Terminate;
       Exit;
@@ -500,6 +538,7 @@ begin
       SimpleLinesRaw(FDoc, 3);
       SimpleImage(FDoc, 4);
       SampleMatrixTransform(FDoc, 5);
+      SampleLandscape(FDoc, 6);
     end
     else
     begin
@@ -510,6 +549,7 @@ begin
         4:  SimpleLinesRaw(FDoc, 0);
         5:  SimpleImage(FDoc, 0);
         6:  SampleMatrixTransform(FDoc, 0);
+        7:  SampleLandscape(FDoc, 0);
       end;
     end;
 
@@ -526,8 +566,8 @@ procedure TPDFTestApp.WriteHelp;
 begin
   writeln('Usage:');
   writeln('    -h          Show this help.');
-  writeln('    -p <n>      Generate only one page. Valid range is 1-5.' + LineEnding +
-          '                If this option is not specified, then all 5 pages are' + LineEnding +
+  writeln('    -p <n>      Generate only one page. Valid range is 1-7.' + LineEnding +
+          '                If this option is not specified, then all 7 pages are' + LineEnding +
           '                generated.');
   writeln('    -f <0|1>    Toggle embedded font compression. A value of 0' + LineEnding +
           '                disables compression. A value of 1 enables compression.');

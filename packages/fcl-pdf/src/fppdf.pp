@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit fppdf;
+unit fpPDF;
 
 {$mode objfpc}{$H+}
 
@@ -1560,6 +1560,7 @@ begin
   if FOrientation=AValue then Exit;
   FOrientation:=AValue;
   CalcPaperSize;
+  AdjustMatrix;
 end;
 
 procedure TPDFPage.CalcPaperSize;
@@ -1590,6 +1591,7 @@ begin
   if FPaperType=AValue then Exit;
   FPaperType:=AValue;
   CalcPaperSize;
+  AdjustMatrix;
 end;
 
 procedure TPDFPage.AddTextToLookupLists(AText: UTF8String);
@@ -2113,6 +2115,11 @@ function TPDFImageItem.Equals(AImage: TFPCustomImage): boolean;
 var
   x, y: Integer;
 begin
+  if AImage = nil then
+  begin
+    Result := False;
+    exit;
+  end;
   Result := True;
   for x := 0 to Image.Width-1 do
     for y := 0 to Image.Height-1 do
