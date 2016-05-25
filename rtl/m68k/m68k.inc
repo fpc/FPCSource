@@ -96,31 +96,27 @@ function get_frame : pointer; assembler;nostackframe;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp : pointer;addr:pointer=nil) : pointer;
-  begin
-     asm
-        move.l framebp,a0
-        cmp.l #0,a0
-        beq @Lnul_address
-        move.l 4(a0),a0
-     @Lnul_address:
-        move.l a0,@RESULT
-     end ['a0'];
-  end;
+function get_caller_addr(framebp : pointer;addr:pointer=nil) : pointer; assembler;
+asm
+    move.l framebp,d0
+    tst.l  d0
+    beq @Lnul_address
+    move.l d0,a0
+    move.l 4(a0),d0
+@Lnul_address:
+end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp : pointer;addr:pointer=nil) : pointer;
-  begin
-     asm
-        move.l FRAMEBP,a0
-        cmp.l  #0,a0
-        beq    @Lnul_frame
-        move.l (a0),a0
-     @Lnul_frame:
-        move.l a0,@RESULT
-     end ['a0'];
-  end;
+function get_caller_frame(framebp : pointer;addr:pointer=nil) : pointer; assembler;
+asm
+    move.l framebp,d0
+    tst.l  d0
+    beq    @Lnul_frame
+    move.l d0,a0
+    move.l (a0),d0
+@Lnul_frame:
+end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
@@ -141,30 +137,29 @@ end;
 procedure FillChar(var x; count : longint; value : byte); assembler;
 asm
   move.l x, a0          { destination                   }
-  move.l count, d1      { number of bytes to fill       }
-  move.b value, d0      { fill data                     }
-  tst.l  d1             { anything to fill at all?      }
-  ble    @LMEMSET5
+  move.b value, d1      { fill data                     }
+  move.l count, d0      { number of bytes to fill       }
+  ble    @LMEMSET5      { anything to fill at all?      }
 {$ifdef CPUM68K_HAS_DBRA}
 { FIXME: Any reason why not always just use DBRA mode on
          CPUs which support it? (KB)
          - DBRA does only 16-bit decrements, so handling more than 65535 bytes
          requires additional code anyway (Sergei) }
-  cmpi.l #65535, d1     { check, if this is a word move }
+  cmpi.l #65535, d0     { check, if this is a word move }
   ble    @LMEMSET3      { use fast dbra mode            }
 {$endif CPUM68K_HAS_DBRA}
   bra    @LMEMSET2
 @LMEMSET1:
-  move.b d0,(a0)+
+  move.b d1,(a0)+
 @LMEMSET2:
-  subq.l #1,d1
+  subq.l #1,d0
   bpl @LMEMSET1
   bra @LMEMSET5         { finished slow mode , exit     }
 {$ifdef CPUM68K_HAS_DBRA}
 @LMEMSET4:              { fast loop mode section 68010+ }
-  move.b d0,(a0)+
+  move.b d1,(a0)+
 @LMEMSET3:
-  dbra d1,@LMEMSET4
+  dbra d0,@LMEMSET4
 {$endif CPUM68K_HAS_DBRA}
 @LMEMSET5:
 end;
@@ -305,17 +300,14 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure move(const source;var dest;count : longint);
+procedure move(const source;var dest;count : longint); assembler;
 { base pointer+8 = source                  }
 { base pointer+12 = destination            }
 { base pointer+16 = number of bytes to move}
-begin
-  asm
-    clr.l      d0
+asm
     move.l   count, d0   {  number of bytes }
-    tst.l  d0            { anything to copy at all? }
-    ble    @LMOVE5
-  @LMOVE0:
+    ble    @LMOVE5       { anything to copy at all? }
+
     move.l   dest, a1    {  destination          }
     move.l   source, a0  {  source               }
 
@@ -325,22 +317,17 @@ begin
 {$endif CPUM68K_HAS_DBRA}
 
     cmp.l      a0,a1         {  check copy direction }
-    bls      @LMOVE4
+    bls      @LMOVE3
     add.l      d0,a0         { move pointers to end  }
     add.l      d0,a1
-    bra     @LMOVE2
   @LMOVE1:
     move.b   -(a0),-(a1)   {  (s < d) copy loop }
-  @LMOVE2:
     subq.l    #1,d0
-    cmpi.l    #-1,d0
     bne       @LMOVE1
     bra       @LMOVE5
   @LMOVE3:
     move.b  (a0)+,(a1)+  { (s >= d) copy loop }
-  @LMOVE4:
     subq.l    #1,d0
-    cmpi.l    #-1,d0
     bne       @LMOVE3
     bra       @LMOVE5
 
@@ -363,26 +350,26 @@ begin
 {$endif CPUM68K_HAS_DBRA}
   { end fast loop mode }
   @LMOVE5:
-  end ['d0','a0','a1'];
 end;
 
 
+{$ifdef CPUM68K_HAS_UNALIGNED}
 {$define FPC_SYSTEM_HAS_FILLWORD}
 procedure FillWord(var x; count : longint; value : word); assembler;
 asm
   move.l x, a0         { destination              }
-  move.l count, d1     { number of bytes to fill  }
-  move.w value, d0     { fill data                }
-  tst.l  d1            { anything to fill at all? }
-  ble @LMEMSET3
+  move.w value, d1     { fill data                }
+  move.l count, d0     { number of bytes to fill  }
+  ble @LMEMSET3        { anything to fill at all? }
   bra @LMEMSET21
 @LMEMSET11:
-  move.w d0,(a0)+
+  move.w d1,(a0)+
 @LMEMSET21:
-  subq.l #1,d1
+  subq.l #1,d0
   bpl @LMEMSET11
 @LMEMSET3:
 end;
+{$endif}
 
 {$IFNDEF HASAMIGA}
 function InterLockedDecrement (var Target: longint) : longint;
