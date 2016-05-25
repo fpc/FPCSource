@@ -2538,9 +2538,10 @@ begin
     end;
 end;
 
-Function isMatch(inputstr,wilds : string; CWild, CinputWord: integer;MaxInputword,maxwilds : word) : Boolean;
+Function isMatch(level : integer;inputstr,wilds : string; CWild, CinputWord: integer;MaxInputword,maxwilds : word; Out EOS : Boolean) : Boolean;
 
 begin
+  EOS:=False;
   Result:=True;
   repeat
     if Wilds[CWild] = '*' then { handling of '*' }
@@ -2556,10 +2557,12 @@ begin
       Repeat
         while (inputStr[CinputWord]<>Wilds[CWild]) and (CinputWord <= MaxinputWord) do
           inc(CinputWord);
-        Result:=isMatch(inputstr,wilds,CWild, CinputWord,MaxInputword,maxwilds);
+        Result:=isMatch(Level+1,inputstr,wilds,CWild, CinputWord,MaxInputword,maxwilds,EOS);
         if not Result then
           Inc(cInputWord);
       Until Result or (CinputWord>=MaxinputWord);
+      if Result and EOS then
+        Exit;
       Continue;
       end;
     if Wilds[CWild] = '?' then { equal to '?' }
@@ -2579,9 +2582,17 @@ begin
     Result:=false;
     Exit;
   until (CinputWord > MaxinputWord) or (CWild > MaxWilds);
-  { no completed evaluation }
-  if (CinputWord <= MaxinputWord) or (CWild <= MaxWilds) then
-    Result:=false;
+  { no completed evaluation, we need to check what happened }
+  if (CinputWord <= MaxinputWord) or (CWild < MaxWilds) then
+    Result:=false
+  else if (CWild>Maxwilds) then
+    EOS:=False
+  else
+    begin
+    EOS:=Wilds[CWild]='*';
+    if not EOS then
+      Result:=False;
+    end
 end;
 
 function isWild(inputStr, Wilds: string; ignoreCase: boolean): boolean;
@@ -2589,6 +2600,8 @@ function isWild(inputStr, Wilds: string; ignoreCase: boolean): boolean;
 var
   i: integer;
   MaxinputWord, MaxWilds: integer; { Length of inputStr and Wilds }
+  eos : Boolean;
+
 begin
   Result:=true;
   if Wilds = inputStr then
@@ -2614,7 +2627,7 @@ begin
     inputStr:=AnsiUpperCase(inputStr);
     Wilds:=AnsiUpperCase(Wilds);
     end;
-  Result:=isMatch(inputStr,wilds,1,1,MaxinputWord, MaxWilds);  
+  Result:=isMatch(1,inputStr,wilds,1,1,MaxinputWord, MaxWilds,EOS);
 end;
 
 
