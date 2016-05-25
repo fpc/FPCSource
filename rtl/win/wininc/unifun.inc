@@ -293,6 +293,7 @@ function WinHelpW(hWndMain:HWND; lpszHelp:LPCWSTR; uCommand:UINT; dwData:DWORD):
 function ChangeDisplaySettingsW(lpDevMode:LPDEVMODEW; dwFlags:DWORD):LONG; external 'user32' name 'ChangeDisplaySettingsW';
 function EnumDisplaySettingsW(lpszDeviceName:LPCWSTR; iModeNum:DWORD;lpDevMode:LPDEVMODEW):WINBOOL; external 'user32' name 'EnumDisplaySettingsW';
 function SystemParametersInfoW(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external 'user32' name 'SystemParametersInfoW';
+function GetRawInputDeviceInfoW(hDevice: HANDLE; uiCommand: UINT; pData: LPVOID; pcbSize: PUINT): UINT; external 'user32' name 'GetRawInputDeviceInfoW';
 function AddFontResourceW(_para1:LPCWSTR):longint; external 'gdi32' name 'AddFontResourceW';
 function CopyMetaFileW(_para1:HMETAFILE; _para2:LPCWSTR):HMETAFILE; external 'gdi32' name 'CopyMetaFileW';
 function CreateFontIndirectW(_para1:PLOGFONTW):HFONT; external 'gdi32' name 'CreateFontIndirectW';

@@ -668,6 +668,12 @@ function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:long
 function ChildWindowFromPointEx(_para1:HWND; _para2:POINT; _para3:UINT):HWND; external 'user32' name 'ChildWindowFromPointEx';
 function DrawIconEx(hdc:HDC; xLeft:longint; yTop:longint; hIcon:HICON; cxWidth:longint;cyWidth:longint; istepIfAniCur:UINT; hbrFlickerFreeDraw:HBRUSH; diFlags:UINT):WINBOOL; external 'user32' name 'DrawIconEx';
 function GetWindowInfo(hWnd:HWND; pwi:PWindowInfo):WINBOOL; external 'user32' name 'GetWindowInfo';
+function GetRawInputData(hRawInput: HRAWINPUT; uiCommand: UINT; pData: LPVOID; pcbSize: PUINT; cbSizeHeader: UINT): UINT; external 'user32' name 'GetRawInputData';
+function GetRawInputBuffer(pData: PRAWINPUT; pcbSize: PUINT; cbSizeHeader: UINT): UINT; external 'user32' name 'GetRawInputBuffer';
+function RegisterRawInputDevices(pRawInputDevices: PCRAWINPUTDEVICE; uiNumDevices: UINT; cbSize: UINT):WINBOOL; external 'user32' name 'RegisterRawInputDevices';
+function GetRegisteredRawInputDevices(pRawInputDevices: PRAWINPUTDEVICE; puiNumDevices: PUINT; cbSize: UINT): UINT; external 'user32' name 'GetRegisteredRawInputDevices';
+function GetRawInputDeviceList(pRawInputDeviceList: PRAWINPUTDEVICELIST; puiNumDevices: PUINT; cbSize: UINT): UINT; external 'user32' name 'GetRawInputDeviceList';
+function DefRawInputProc(paRawInput: PPRAWINPUT; nInput: longint; cbSizeHeader: UINT): LRESULT; external 'user32' name 'DefRawInputProc';
 
 function AnimatePalette(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):WINBOOL; external 'gdi32' name 'AnimatePalette';
 function Arc(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32' name 'Arc';
@@ -1275,6 +1281,16 @@ function EndMenu:BOOL; external 'user32' name 'EndMenu';
 
 function GetMenuBarInfo(_hwnd:HWND; idObject:longint; idItem:longint; pmbi:LPMENUBARINFO):BOOL; external 'user32' name 'GetMenuBarInfo';
 function IMAGE_FIRST_SECTION(ntheader : PIMAGE_NT_HEADERS):PIMAGE_SECTION_HEADER;
+
+function GET_RAWINPUT_CODE_WPARAM(wp: WPARAM): longint; inline;
+function RAWINPUT_ALIGN(x: PtrUInt): PtrUInt; inline;
+function NEXTRAWINPUTBLOCK(ptr: PRAWINPUT): PRAWINPUT; inline;
+function RIDEV_EXMODE(mode: DWORD): DWORD; inline;
+//#if (_WIN32_WINNT >= 0x0601)
+function GET_DEVICE_CHANGE_WPARAM(wParam: WPARAM): WORD; inline;
+//#elif (_WIN32_WINNT >= 0x0501)
+function GET_DEVICE_CHANGE_LPARAM(lParam: LPARAM): WORD; inline;
+//#endif /* (_WIN32_WINNT >= 0x0601) */
 
 {$endif read_interface}
 
@@ -2387,6 +2403,36 @@ function IMAGE_FIRST_SECTION(ntheader : PIMAGE_NT_HEADERS):PIMAGE_SECTION_HEADER
 // (PTRUINT(ntheader)+ OFS(ntheader^.OptionalHeader) - OFS(NTHEADER);  -> address of ntheader cancels.
 begin
   IMAGE_FIRST_SECTION:=PIMAGE_SECTION_HEADER(OFS(ntheader^.OptionalHeader) + ntheader^.FileHeader.SizeOfOptionalHeader);
+end;
+
+function GET_RAWINPUT_CODE_WPARAM(wp: WPARAM): longint;
+begin
+  GET_RAWINPUT_CODE_WPARAM:=wp and $FF;
+end;
+
+function RAWINPUT_ALIGN(x: PtrUInt): PtrUInt;
+begin
+  RAWINPUT_ALIGN:=PtrUInt(x+(SizeOf(PtrUInt)-1)) and not PtrUInt(SizeOf(PtrUInt)-1);
+end;
+
+function NEXTRAWINPUTBLOCK(ptr: PRAWINPUT): PRAWINPUT;
+begin
+  NEXTRAWINPUTBLOCK:=PRAWINPUT(RAWINPUT_ALIGN(ULONG_PTR(PBYTE(ptr)+ptr^.header.dwSize)));
+end;
+
+function RIDEV_EXMODE(mode: DWORD): DWORD;
+begin
+  RIDEV_EXMODE:=mode and RIDEV_EXMODEMASK;
+end;
+
+function GET_DEVICE_CHANGE_WPARAM(wParam: WPARAM): WORD;
+begin
+  GET_DEVICE_CHANGE_WPARAM:=LOWORD(wParam);
+end;
+
+function GET_DEVICE_CHANGE_LPARAM(lParam: LPARAM): WORD;
+begin
+  GET_DEVICE_CHANGE_LPARAM:=LOWORD(lParam);
 end;
 
 {$endif read_implementation}
