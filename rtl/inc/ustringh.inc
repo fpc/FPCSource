@@ -52,7 +52,11 @@ procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp 
 procedure DefaultAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 
 Type
-  TStandardCodePageEnum = (
+  TCompareOption = (coLingIgnoreCase, coLingIgnoreDiacritic, coIgnoreCase,
+                    coIgnoreKanaType, coIgnoreNonSpace, coIgnoreSymbols, coIgnoreWidth,
+                    coLingCasing, coDigitAsNumbers, coStringSort);
+  TCompareOptions = set of TCompareOption;
+                                              TStandardCodePageEnum = (
     scpAnsi,                 // system Ansi code page (GetACP on windows)
     scpConsoleInput,         // system console input code page (GetConsoleCP on windows)
     scpConsoleOutput,        // system console output code page (GetConsoleOutputCP on windows)
@@ -78,8 +82,9 @@ Type
     CompUCS2 : function(p1,p2:PUCS2Char) : shortint;
     CompUCS4 : function(p1,p2:PUC42Char) : shortint;
 }
-    CompareWideStringProc : function(const s1, s2 : WideString) : PtrInt;
-    CompareTextWideStringProc : function(const s1, s2 : WideString): PtrInt;
+    CompareWideStringProc : function(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+    // CompareTextWideStringProc is CompareWideStringProc with coIgnoreCase in options.
+//    CompareTextWideStringProc : function(const s1, s2 : WideString): PtrInt;
     { return value: number of code points in the string. Whenever an invalid
       code point is encountered, all characters part of this invalid code point
       are considered to form one "character" and the next character is
@@ -109,8 +114,9 @@ Type
     Ansi2UnicodeMoveProc : procedure(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
     UpperUnicodeStringProc : function(const S: UnicodeString): UnicodeString;
     LowerUnicodeStringProc : function(const S: UnicodeString): UnicodeString;
-    CompareUnicodeStringProc : function(const s1, s2 : UnicodeString) : PtrInt;
-    CompareTextUnicodeStringProc : function(const s1, s2 : UnicodeString): PtrInt;
+    CompareUnicodeStringProc : function(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
+    // CompareTextUnicodeStringProc is CompareUnicodeStringProc with coIgnoreCase in options.
+    /// CompareTextUnicodeStringProc : function(const s1, s2 : UnicodeString): PtrInt;
 
     { codepage retrieve function }
     GetStandardCodePageProc: function(const stdcp: TStandardCodePageEnum): TSystemCodePage;

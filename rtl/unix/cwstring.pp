@@ -766,36 +766,59 @@ function WideStringToUCS4StringNoNulls(const s : WideString) : UCS4String;
   end;
 
 
-function CompareWideString(const s1, s2 : WideString) : PtrInt;
+function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
 {$if not(defined (aix) and defined(cpupowerpc32))}
   var
     hs1,hs2 : UCS4String;
+    us1,us2 : WideString;
+    
   begin
     { wcscoll interprets null chars as end-of-string -> filter out }
-    hs1:=WideStringToUCS4StringNoNulls(s1);
-    hs2:=WideStringToUCS4StringNoNulls(s2);
+    if coIgnoreCase in Options then
+      begin
+      us1:=UpperWideString(s1);
+      us2:=UpperWideString(s2);
+      end     
+    else      
+      begin   
+      us1:=s1;
+      us2:=s2;
+      end;  
+    hs1:=WideStringToUCS4StringNoNulls(us1);
+    hs2:=WideStringToUCS4StringNoNulls(us2);
     result:=wcscoll(pwchar_t(hs1),pwchar_t(hs2));
   end;
 {$else}
   { AIX/PPC32 has a 16 bit wchar_t }
   var
     i, len: longint;
+    us1,us2 : WideString;
     hs1, hs2: array of widechar;
   begin
-    len:=length(s1);
+    if coIgnoreCase in Options then
+      begin
+      us1:=UpperWideString(s1);
+      us2:=UpperWideString(s2);
+      end
+    else
+      begin
+      us1:=s1;
+      us2:=s2;
+      end;  
+    len:=length(us1);
     setlength(hs1,len+1);
     for i:=1 to len do
-      if s1[i]<>#0 then
-        hs1[i-1]:=s1[i]
+      if us1[i]<>#0 then
+        hs1[i-1]:=us1[i]
       else
         hs1[i-1]:=#32;
     hs1[len]:=#0;
 
-    len:=length(s2);
+    len:=length(us2);
     setlength(hs2,len+1);
     for i:=1 to len do
-      if s2[i]<>#0 then
-        hs2[i-1]:=s2[i]
+      if us2[i]<>#0 then
+        hs2[i-1]:=us2[i]
       else
         hs2[i-1]:=#32;
     hs2[len]:=#0;
@@ -803,11 +826,6 @@ function CompareWideString(const s1, s2 : WideString) : PtrInt;
   end;
 {$endif}
 
-
-function CompareTextWideString(const s1, s2 : WideString): PtrInt;
-  begin
-    result:=CompareWideString(UpperWideString(s1),UpperWideString(s2));
-  end;
 
 
 { return value: number of code points in the string. Whenever an invalid
@@ -1080,7 +1098,7 @@ begin
       LowerWideStringProc:=@LowerWideString;
 
       CompareWideStringProc:=@CompareWideString;
-      CompareTextWideStringProc:=@CompareTextWideString;
+//      CompareTextWideStringProc:=@CompareTextWideString;
 
       CharLengthPCharProc:=@CharLengthPChar;
       CodePointLengthProc:=@CodePointLength;
@@ -1103,7 +1121,6 @@ begin
       UpperUnicodeStringProc:=@UpperWideString;
       LowerUnicodeStringProc:=@LowerWideString;
       CompareUnicodeStringProc:=@CompareWideString;
-      CompareTextUnicodeStringProc:=@CompareTextWideString;
       { CodePage }
       GetStandardCodePageProc:=@GetStandardCodePage;
     end;

@@ -39,7 +39,9 @@
 
   { variant error codes }
   {$i varerror.inc}
-
+  
+  { Type helpers}
+  {$i syshelp.inc}
 
   {$ifndef OS_FILEISREADONLY}
   Function FileIsReadOnly(const FileName: RawByteString): Boolean;

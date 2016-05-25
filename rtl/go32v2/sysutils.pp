@@ -23,6 +23,8 @@ interface
 {$MODESWITCH out}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 uses
   go32,dos;

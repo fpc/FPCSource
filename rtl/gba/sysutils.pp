@@ -28,6 +28,8 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}

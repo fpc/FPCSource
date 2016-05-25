@@ -20,6 +20,11 @@ unit sysutils;
 
 interface
 
+{$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
+
 { used OS file system APIs use ansistring }
 {$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
 { OS has an ansistring/single byte environment variable API }

@@ -64,25 +64,25 @@ function WideLowerCase(const s : WideString) : WideString;{$ifdef SYSUTILSINLINE
 
 function WideCompareStr(const s1, s2 : WideString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareWideStringProc(s1,s2);
+    result:=widestringmanager.CompareWideStringProc(s1,s2,[]);
   end;
 
 
 function WideSameStr(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareWideStringProc(s1,s2)=0;
+    result:=widestringmanager.CompareWideStringProc(s1,s2,[])=0;
   end;
 
 
 function WideCompareText(const s1, s2 : WideString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareTextWideStringProc(s1,s2);
+    result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase]);
   end;
   
   
 function WideSameText(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareTextWideStringProc(s1,s2)=0;
+    result:=widestringmanager.CompareWideStringProc(s1,s2,[coIgnoreCase])=0;
   end;
   
 

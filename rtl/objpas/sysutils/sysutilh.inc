@@ -307,6 +307,9 @@ Type
   { read thread handling }
   {$i systhrdh.inc}
 
+  { Type Helpers}
+  {$i syshelph.inc}
+
   procedure FreeAndNil(var obj);
 
   { interface handling }

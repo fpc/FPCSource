@@ -1252,13 +1252,19 @@ begin
 end;
 
 
-function OS2CompareUnicodeString (const S1, S2: UnicodeString): PtrInt;
+function OS2CompareUnicodeString (const S1, S2: UnicodeString; Options : TCompareOptions): PtrInt;
 var
   HS1, HS2: UnicodeString;
+  
 begin
   { UniStrColl interprets null chars as end-of-string -> filter out }
   HS1 := NoNullsUnicodeString (S1);
   HS2 := NoNullsUnicodeString (S2);
+  if coIgnoreCase in Options then
+    begin
+    HS1:=OS2UpperUnicodeString(HS1);
+    HS2:=OS2UpperUnicodeString(HS2);
+    end;
   Result := Sys_UniStrColl (DefLocObj, PWideChar (HS1), PWideChar (HS2));
   if Result < -1 then
    Result := -1
@@ -1694,15 +1700,12 @@ begin
   WideStringManager.UpperWideStringProc := @OS2UpperUnicodeString;
   WideStringManager.LowerWideStringProc := @OS2LowerUnicodeString;
   WideStringManager.CompareWideStringProc := @OS2CompareUnicodeString;
-  WideStringManager.CompareTextWideStringProc := @OS2CompareTextUnicodeString;
     { Unicode }
   WideStringManager.Unicode2AnsiMoveProc := @OS2Unicode2AnsiMove;
   WideStringManager.Ansi2UnicodeMoveProc := @OS2Ansi2UnicodeMove;
   WideStringManager.UpperUnicodeStringProc := @OS2UpperUnicodeString;
   WideStringManager.LowerUnicodeStringProc := @OS2LowerUnicodeString;
   WideStringManager.CompareUnicodeStringProc := @OS2CompareUnicodeString;
-  WideStringManager.CompareTextUnicodeStringProc :=
-                                                  @OS2CompareTextUnicodeString;
     { Codepage }
   WideStringManager.GetStandardCodePageProc := @OS2GetStandardCodePage;
 (*
