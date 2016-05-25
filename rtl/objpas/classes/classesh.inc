@@ -1558,13 +1558,25 @@ type
   end;
 
 { TThread }
-
+  TThread = Class;
+  
   EThread = class(Exception);
   EThreadExternalException = class(EThread);
   EThreadDestroyCalled = class(EThread);
   TSynchronizeProcVar = procedure;
   TThreadMethod = procedure of object;
+  
+  TThreadReportStatus = Procedure(Const status : String) of Object;
 
+  TThreadStatusNotifyEvent = Procedure(Sender : TThread; Const status : String) of Object;
+  TThreadExecuteHandler = TThreadMethod;
+  TThreadExecuteStatusHandler = Procedure(ReportStatus : TThreadReportStatus) of object;
+
+  TNotifyCallBack = Procedure(Sender : TObject; AData : Pointer);
+  TThreadStatusNotifyCallBack = Procedure(Sender : TThread; AData : Pointer; Const status : String);
+  TThreadExecuteCallBack = Procedure(AData : Pointer);
+  TThreadExecuteStatusCallBack = Procedure(AData : Pointer; ReportStatus : TThreadReportStatus);
+  
   TThreadPriority = (tpIdle, tpLowest, tpLower, tpNormal, tpHigher, tpHighest,
     tpTimeCritical);
 
@@ -1674,6 +1686,12 @@ type
     class procedure GetSystemTimes(out aSystemTimes: TSystemTimes); static;
     class function GetTickCount: LongWord; static; deprecated 'Use TThread.GetTickCount64 instead';
     class function GetTickCount64: QWord; static;
+    // Object based
+    Class Function ExecuteInThread(AMethod : TThreadExecuteHandler; AOnTerminate : TNotifyEvent = Nil) : TThread; overload; static;
+    Class Function ExecuteInThread(AMethod : TThreadExecuteStatusHandler; AOnStatus : TThreadStatusNotifyEvent; AOnTerminate : TNotifyEvent = Nil) : TThread; overload;static;
+    // Plain methods.
+    Class Function ExecuteInThread(AMethod : TThreadExecuteCallback; AData : Pointer = Nil; AOnTerminate: TNotifyCallBack = Nil) : TThread; overload;static;
+    Class Function ExecuteInThread(AMethod : TThreadExecuteStatusCallback; AOnStatus : TThreadStatusNotifyCallback; AData : Pointer = Nil; AOnTerminate : TNotifyCallBack = Nil) : TThread; overload;static;
     procedure AfterConstruction; override;
     procedure Start;
     procedure Resume; deprecated;

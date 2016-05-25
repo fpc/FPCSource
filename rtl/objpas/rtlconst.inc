@@ -301,6 +301,7 @@ ResourceString
   SInvalidHighSurrogate         = 'Invalid high surrogate at index %d. High surrogate must be followed by a low surrogate pair';
   SInvalidUnicodeCodePointSequence = 'Invalid unicode code point sequence';
   SClassCantBeConstructed       = 'Class %s can not be constructed';
+  SErrStatusCallBackRequired    = 'Thread status report handler cannot be empty.';
 
 { ---------------------------------------------------------------------
     Keysim Names

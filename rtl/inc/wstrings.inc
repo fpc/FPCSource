@@ -586,7 +586,7 @@ begin
   Pos:=0;
   if Length(SubStr)>0 then
    begin
-     MaxLen:=Length(source)-Length(SubStr);
+     MaxLen:=Length(source)-Length(SubStr)-(OffSet-1);
      i:=0;
      pc:=@source[1];
      while (i<=MaxLen) do
