@@ -1184,7 +1184,7 @@ begin
     begin
     T:=SubString(LastSep,Sep-LastSep);
 //    Writeln('Examining >',T,'< at pos,',LastSep,' till pos ',Sep);
-    If (T<>'') or (not (ExcludeEmpty=Options)) then
+    If (T<>'') or (not (TStringSplitOptions.ExcludeEmpty=Options)) then
       begin
       MaybeGrow(Len);
       Result[Len]:=T;
@@ -1267,7 +1267,7 @@ begin
   While (Sep<>-1) and ((ACount=0) or (Len<ACount)) do
     begin
     T:=SubString(LastSep,Sep-LastSep);
-    If (T<>'') or (not (ExcludeEmpty=Options)) then
+    If (T<>'') or (not (TStringSplitOptions.ExcludeEmpty=Options)) then
       begin
       MaybeGrow(Len);
       Result[Len]:=T;
