@@ -555,15 +555,18 @@ end;
 function TSocketServer.RunIdleLoop: Boolean;
 
 // Run Accept idle loop. Return True if there is a new connection waiting
-
+{$if defined(unix) or defined(windows)}
 var
   FDS: TFDSet;
   TimeV: TTimeVal;
+{$endif}
 begin
   Repeat
     Result:=False;
+{$if defined(unix) or defined(windows)}
     TimeV.tv_usec := (AcceptIdleTimeout mod 1000) * 1000;
     TimeV.tv_sec := AcceptIdleTimeout div 1000;
+{$endif}
 {$ifdef unix}
     FDS := Default(TFDSet);
     fpFD_Zero(FDS);
