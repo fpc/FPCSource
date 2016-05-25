@@ -60,6 +60,7 @@
   add_ldap(ADirectory+IncludeTrailingPathDelimiter('ldap'));
   add_libc(ADirectory+IncludeTrailingPathDelimiter('libc'));
   add_libcurl(ADirectory+IncludeTrailingPathDelimiter('libcurl'));
+  add_libmicrohttpd(ADirectory+IncludeTrailingPathDelimiter('libmicrohttpd'));
   add_libgbafpc(ADirectory+IncludeTrailingPathDelimiter('libgbafpc'));
   add_libgd(ADirectory+IncludeTrailingPathDelimiter('libgd'));
   add_libndsfpc(ADirectory+IncludeTrailingPathDelimiter('libndsfpc'));
