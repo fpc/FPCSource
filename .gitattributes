@@ -5007,6 +5007,7 @@ packages/libmicrohttpd/examples/demo.pp svneol=native#text/plain
 packages/libmicrohttpd/examples/demo_https.pp svneol=native#text/plain
 packages/libmicrohttpd/examples/digest_auth_example.pp svneol=native#text/plain
 packages/libmicrohttpd/examples/dual_stack_example.pp svneol=native#text/plain
+packages/libmicrohttpd/examples/event_and_thread.pp svneol=native#text/plain
 packages/libmicrohttpd/examples/fileserver_example.pp svneol=native#text/plain
 packages/libmicrohttpd/examples/fileserver_example_dirs.pp svneol=native#text/plain
 packages/libmicrohttpd/examples/fileserver_example_external_select.pp svneol=native#text/plain

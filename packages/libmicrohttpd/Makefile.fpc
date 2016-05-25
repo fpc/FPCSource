@@ -7,7 +7,7 @@ name=libmicrohttpd
 version=3.1.1
 
 [require]
-packages=rtl
+packages=rtl fpmkunit
 
 [install]
 fpcpackage=y
