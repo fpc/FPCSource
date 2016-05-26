@@ -85,9 +85,10 @@ interface
       true) }
     procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef;isgeneric:boolean);
 
-    procedure import_external_proc(pd:tprocdef);
+    { parses only the body of a non nested routine; needs a correctly setup pd }
+    procedure read_proc_body(pd:tprocdef);inline;
 
-    procedure generate_specialization_procs;
+    procedure import_external_proc(pd:tprocdef);
 
 
 implementation
@@ -2051,6 +2052,21 @@ implementation
       end;
 
 
+    procedure read_proc_body(pd:tprocdef);
+      var
+        old_module_procinfo : tobject;
+        old_current_procinfo : tprocinfo;
+      begin
+        old_current_procinfo:=current_procinfo;
+        old_module_procinfo:=current_module.procinfo;
+        current_procinfo:=nil;
+        current_module.procinfo:=nil;
+        read_proc_body(nil,pd);
+        current_procinfo:=old_current_procinfo;
+        current_module.procinfo:=old_module_procinfo;
+      end;
+
+
     procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef;isgeneric:boolean);
       {
         Parses the procedure directives, then parses the procedure body, then
@@ -2497,132 +2513,5 @@ implementation
           symtablestack.top.SymList.ForEachCall(@check_forward_class,nil);
       end;
 
-
-{****************************************************************************
-                      SPECIALIZATION BODY GENERATION
-****************************************************************************}
-
-
-    procedure specialize_objectdefs(p:TObject;arg:pointer);
-      var
-        specobj : tabstractrecorddef;
-        state : tspecializationstate;
-
-        procedure process_procdef(def:tprocdef;hmodule:tmodule);
-          var
-            oldcurrent_filepos : tfileposinfo;
-          begin
-            if assigned(def.genericdef) and
-                (def.genericdef.typ=procdef) and
-                assigned(tprocdef(def.genericdef).generictokenbuf) then
-              begin
-                if not assigned(tprocdef(def.genericdef).generictokenbuf) then
-                  internalerror(2015061902);
-                oldcurrent_filepos:=current_filepos;
-                current_filepos:=tprocdef(def.genericdef).fileinfo;
-                { use the index the module got from the current compilation process }
-                current_filepos.moduleindex:=hmodule.unit_index;
-                current_tokenpos:=current_filepos;
-                current_scanner.startreplaytokens(tprocdef(def.genericdef).generictokenbuf);
-                read_proc_body(nil,def);
-                current_filepos:=oldcurrent_filepos;
-              end
-            { synthetic routines will be implemented afterwards }
-            else if def.synthetickind=tsk_none then
-              MessagePos1(def.fileinfo,sym_e_forward_not_resolved,def.fullprocname(false));
-          end;
-
-      procedure process_abstractrecorddef(def:tabstractrecorddef);
-        var
-          i  : longint;
-          hp : tdef;
-          hmodule : tmodule;
-        begin
-          hmodule:=find_module_from_symtable(def.genericdef.owner);
-          if hmodule=nil then
-            internalerror(201202041);
-          for i:=0 to def.symtable.DefList.Count-1 do
-            begin
-              hp:=tdef(def.symtable.DefList[i]);
-              if hp.typ=procdef then
-               begin
-                 { only generate the code if we need a body }
-                 if assigned(tprocdef(hp).struct) and not tprocdef(hp).forwarddef then
-                   continue;
-                 process_procdef(tprocdef(hp),hmodule);
-               end
-             else
-               if hp.typ in [objectdef,recorddef] then
-                 { generate code for subtypes as well }
-                 process_abstractrecorddef(tabstractrecorddef(hp));
-           end;
-        end;
-
-      procedure process_procsym(procsym:tprocsym);
-        var
-          i : longint;
-          pd : tprocdef;
-          state : tspecializationstate;
-          hmodule : tmodule;
-        begin
-          for i:=0 to procsym.procdeflist.count-1 do
-            begin
-              pd:=tprocdef(procsym.procdeflist[i]);
-              if not pd.is_specialization then
-                continue;
-              if not pd.forwarddef then
-                continue;
-              if not assigned(pd.genericdef) then
-                internalerror(2015061903);
-              hmodule:=find_module_from_symtable(pd.genericdef.owner);
-              if hmodule=nil then
-                internalerror(2015061904);
-
-              specialization_init(pd.genericdef,state);
-
-              process_procdef(pd,hmodule);
-
-              specialization_done(state);
-            end;
-        end;
-
-      begin
-        if not((tsym(p).typ=typesym) and
-               (ttypesym(p).typedef.typesym=tsym(p)) and
-               (ttypesym(p).typedef.typ in [objectdef,recorddef])
-              ) and
-            not (tsym(p).typ=procsym) then
-          exit;
-
-        if tsym(p).typ=procsym then
-          process_procsym(tprocsym(p))
-        else
-          if df_specialization in ttypesym(p).typedef.defoptions then
-            begin
-              { Setup symtablestack a definition time }
-              specobj:=tabstractrecorddef(ttypesym(p).typedef);
-
-              if not (is_class_or_object(specobj) or is_record(specobj) or is_javaclass(specobj)) then
-                exit;
-
-              specialization_init(specobj.genericdef,state);
-
-              { procedure definitions for classes or objects }
-              process_abstractrecorddef(specobj);
-
-              specialization_done(state);
-            end
-          else
-            tabstractrecorddef(ttypesym(p).typedef).symtable.symlist.whileeachcall(@specialize_objectdefs,nil);
-      end;
-
-
-    procedure generate_specialization_procs;
-      begin
-        if assigned(current_module.globalsymtable) then
-          current_module.globalsymtable.SymList.WhileEachCall(@specialize_objectdefs,nil);
-        if assigned(current_module.localsymtable) then
-          current_module.localsymtable.SymList.WhileEachCall(@specialize_objectdefs,nil);
-      end;
 
 end.

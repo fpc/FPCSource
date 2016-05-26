@@ -51,6 +51,8 @@ uses
     function resolve_generic_dummysym(const name:tidstring):tsym;
     function could_be_generic(const name:tidstring):boolean;inline;
 
+    procedure generate_specialization_procs;
+
     procedure specialization_init(genericdef:tdef;var state:tspecializationstate);
     procedure specialization_done(var state:tspecializationstate);
 
@@ -70,7 +72,7 @@ uses
   node,nobj,nmem,
   { parser }
   scanner,
-  pbase,pexpr,pdecsub,ptype;
+  pbase,pexpr,pdecsub,ptype,psub;
 
 
     procedure maybe_add_waiting_unit(tt:tdef);
@@ -1071,7 +1073,9 @@ uses
             specialization_done(state);
 
             if not assigned(result.owner) then
-              result.changeowner(specializest);
+              result.ChangeOwner(specializest);
+
+            current_module.pendingspecializations.add(result.typename,result);
           end;
 
         generictypelist.free;
@@ -1505,5 +1509,139 @@ uses
       { clear the state record to be on the safe side }
       fillchar(state, sizeof(state), 0);
     end;
+
+
+{****************************************************************************
+                      SPECIALIZATION BODY GENERATION
+****************************************************************************}
+
+
+    procedure process_procdef(def:tprocdef;hmodule:tmodule);
+      var
+        oldcurrent_filepos : tfileposinfo;
+      begin
+        if assigned(def.genericdef) and
+            (def.genericdef.typ=procdef) and
+            assigned(tprocdef(def.genericdef).generictokenbuf) then
+          begin
+            if not assigned(tprocdef(def.genericdef).generictokenbuf) then
+              internalerror(2015061902);
+            oldcurrent_filepos:=current_filepos;
+            current_filepos:=tprocdef(def.genericdef).fileinfo;
+            { use the index the module got from the current compilation process }
+            current_filepos.moduleindex:=hmodule.unit_index;
+            current_tokenpos:=current_filepos;
+            current_scanner.startreplaytokens(tprocdef(def.genericdef).generictokenbuf);
+            read_proc_body(def);
+            current_filepos:=oldcurrent_filepos;
+          end
+        { synthetic routines will be implemented afterwards }
+        else if def.synthetickind=tsk_none then
+          MessagePos1(def.fileinfo,sym_e_forward_not_resolved,def.fullprocname(false));
+      end;
+
+
+    function process_abstractrecorddef(def:tabstractrecorddef):boolean;
+      var
+        i  : longint;
+        hp : tdef;
+        hmodule : tmodule;
+      begin
+        result:=true;
+        hmodule:=find_module_from_symtable(def.genericdef.owner);
+        if hmodule=nil then
+          internalerror(201202041);
+        for i:=0 to def.symtable.DefList.Count-1 do
+          begin
+            hp:=tdef(def.symtable.DefList[i]);
+            if hp.typ=procdef then
+             begin
+               { only generate the code if we need a body }
+               if assigned(tprocdef(hp).struct) and not tprocdef(hp).forwarddef then
+                 continue;
+               { and the body is available already }
+               if tprocdef(tprocdef(hp).genericdef).forwarddef then
+                 begin
+                   result:=false;
+                   continue;
+                 end;
+               process_procdef(tprocdef(hp),hmodule);
+             end
+           else
+             if hp.typ in [objectdef,recorddef] then
+               { generate code for subtypes as well }
+               result:=process_abstractrecorddef(tabstractrecorddef(hp)) and result;
+         end;
+      end;
+
+
+    procedure generate_specialization_procs;
+      var
+        i : longint;
+        list,
+        readdlist : tfpobjectlist;
+        def : tstoreddef;
+        state : tspecializationstate;
+        hmodule : tmodule;
+      begin
+        { first copy all entries and then work with that list to ensure that
+          we don't get an infinite recursion }
+        list:=tfpobjectlist.create(false);
+        readdlist:=tfpobjectlist.create(false);
+
+        for i:=0 to current_module.pendingspecializations.Count-1 do
+          list.add(current_module.pendingspecializations.Items[i]);
+
+        current_module.pendingspecializations.clear;
+
+        for i:=0 to list.count-1 do
+          begin
+            def:=tstoreddef(list[i]);
+            if not tstoreddef(def).is_specialization then
+              continue;
+            case def.typ of
+              procdef:
+                begin
+                  if not tprocdef(def).forwarddef then
+                    continue;
+                  if not assigned(def.genericdef) then
+                    internalerror(2015061903);
+                  if tprocdef(def.genericdef).forwarddef then
+                    begin
+                      readdlist.add(def);
+                      continue;
+                    end;
+                  hmodule:=find_module_from_symtable(def.genericdef.owner);
+                  if hmodule=nil then
+                    internalerror(2015061904);
+
+                  specialization_init(tstoreddef(def).genericdef,state);
+
+                  process_procdef(tprocdef(def),hmodule);
+
+                  specialization_done(state);
+                end;
+              recorddef,
+              objectdef:
+                begin
+                  specialization_init(tstoreddef(def).genericdef,state);
+
+                  if not process_abstractrecorddef(tabstractrecorddef(def)) then
+                    readdlist.add(def);
+
+                  specialization_done(state);
+                end;
+            end;
+          end;
+
+        { add those defs back to the pending list for which we don't yet have
+          all method bodies }
+        for i:=0 to readdlist.count-1 do
+          current_module.pendingspecializations.add(tstoreddef(readdlist[i]).typename,readdlist[i]);
+
+        readdlist.free;
+        list.free;
+      end;
+
 
 end.

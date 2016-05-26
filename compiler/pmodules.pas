@@ -47,7 +47,7 @@ implementation
        objcgutl,
        pkgutil,
        wpobase,
-       scanner,pbase,pexpr,psystem,psub,pdecsub,ncgvmt,ncgrtti,
+       scanner,pbase,pexpr,psystem,psub,pdecsub,pgenutil,ncgvmt,ncgrtti,
        cpuinfo;
 
 
