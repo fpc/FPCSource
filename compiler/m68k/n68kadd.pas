@@ -444,8 +444,8 @@ implementation
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
              if (current_settings.cputype = cpu_mc68000) and isaddressregister(left.location.register) then
                begin
-                 tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                 cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,opsize,left.location.register,tmpreg);
+                 tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,cmpsize);
+                 cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,cmpsize,left.location.register,tmpreg);
                end
              else
                tmpreg:=left.location.register;
