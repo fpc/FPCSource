@@ -706,6 +706,12 @@ unit cgcpu;
         hreg : tregister;
         href : treference;
       begin
+        if needs_unaligned(ref.alignment,tosize) then
+          begin
+            inherited;
+            exit;
+          end;
+
         a:=longint(a);
         href:=ref;
         fixref(list,href,false);
@@ -750,16 +756,12 @@ unit cgcpu;
         href : treference;
         hreg : tregister;
       begin
-        {
-        // FIX ME: experimental code, disabled for now. (KB)
-        if (current_settings.cputype = cpu_mc68000) and
-           (ref.alignment=1) and (tcgsize2size[tosize] > 1) then
+        if needs_unaligned(ref.alignment,tosize) then
           begin
             //list.concat(tai_comment.create(strpnew('a_load_reg_ref calling unaligned')));
             a_load_reg_ref_unaligned(list,fromsize,tosize,register,ref);
             exit;
           end;
-        }
 
         href := ref;
         hreg := register;
@@ -780,14 +782,13 @@ unit cgcpu;
         tmpreg,
         tmpreg2 : tregister;
       begin
-        //list.concat(tai_comment.create(strpnew('a_load_reg_ref_unaligned')));
-        if (current_settings.cputype <> cpu_mc68000) or
-           (ref.alignment <> 1) or
-           (tcgsize2size[tosize] < 2) then
+        if not needs_unaligned(ref.alignment,tosize) then
           begin
             a_load_reg_ref(list,fromsize,tosize,register,ref);
             exit;
           end;
+
+        list.concat(tai_comment.create(strpnew('a_load_reg_ref_unaligned: generating unaligned store')));
 
         tmpreg2:=getaddressregister(list);
         tmpref:=ref;
@@ -833,24 +834,38 @@ unit cgcpu;
         hreg: TRegister;
       begin
         usetemp:=TCGSize2OpSize[fromsize]<>TCGSize2OpSize[tosize];
+        usetemp:=usetemp or (needs_unaligned(sref.alignment,fromsize) or needs_unaligned(dref.alignment,tosize));
 
         aref := sref;
         bref := dref;
-        fixref(list,aref,false);
 
         if usetemp then
           begin
-            { if we will use a temp register, we don't need to fully resolve 
-              the dest ref, not even on coldfire }
-            fixref(list,bref,false);
             { if we need to change the size then always use a temporary register }
             hreg:=getintregister(list,fromsize);
-            list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],aref,hreg));
-            sign_extend(list,fromsize,tosize,hreg);
-            list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],hreg,bref));
+
+            if needs_unaligned(sref.alignment,fromsize) then
+              a_load_ref_reg_unaligned(list,fromsize,tosize,sref,hreg)
+            else
+              begin
+                fixref(list,aref,false);
+                list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],aref,hreg));
+                sign_extend(list,fromsize,tosize,hreg);
+              end;
+
+            if needs_unaligned(dref.alignment,tosize) then
+              a_load_reg_ref_unaligned(list,tosize,tosize,hreg,dref)
+            else
+              begin
+                { if we use a temp register, we don't need to fully resolve 
+                  the dest ref, not even on coldfire }
+                fixref(list,bref,false);
+                list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],hreg,bref));
+              end;
           end
         else
           begin
+            fixref(list,aref,false);
             fixref(list,bref,current_settings.cputype in cpu_coldfire);
             list.concat(taicpu.op_ref_ref(A_MOVE,TCGSize2OpSize[fromsize],aref,bref));
           end;
@@ -895,16 +910,13 @@ unit cgcpu;
        opsize: topsize;
        needsext: boolean;
       begin
-         {
-         // FIX ME: experimental code, disabled for now. (KB)
-         if (current_settings.cputype = cpu_mc68000) and
-            (ref.alignment=1) and (tcgsize2size[fromsize] > 1) then
+         if needs_unaligned(ref.alignment,fromsize) then
            begin
              //list.concat(tai_comment.create(strpnew('a_load_ref_reg calling unaligned')));
              a_load_ref_reg_unaligned(list,fromsize,tosize,ref,register);
              exit;
            end;
-         }
+
          href:=ref;
          fixref(list,href,false);
 
@@ -945,14 +957,13 @@ unit cgcpu;
         tmpreg,
         tmpreg2 : tregister;
       begin
-        //list.concat(tai_comment.create(strpnew('a_load_ref_reg_unaligned')));
-        if (current_settings.cputype <> cpu_mc68000) or
-           (ref.alignment <> 1) or
-           (tcgsize2size[fromsize] < 2) then
+        if not needs_unaligned(ref.alignment,fromsize) then
           begin
             a_load_ref_reg(list,fromsize,tosize,ref,register);
             exit;
           end;
+
+        list.concat(tai_comment.create(strpnew('a_load_ref_reg_unaligned: generating unaligned load')));
 
         tmpreg2:=getaddressregister(list);
         a_loadaddr_ref_reg(list,ref,tmpreg2);
@@ -1253,7 +1264,8 @@ unit cgcpu;
         opsize := TCGSize2OpSize[size];
 
         { on ColdFire all arithmetic operations are only possible on 32bit }
-        if ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)
+        if needs_unaligned(ref.alignment,size) or
+           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)
            and not (op in [OP_NONE,OP_MOVE])) then
           begin
             inherited;
@@ -1419,7 +1431,8 @@ unit cgcpu;
 
         { on ColdFire all arithmetic operations are only possible on 32bit 
           and addressing modes are limited }
-        if ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
+        if needs_unaligned(ref.alignment,size) or
+           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
           begin
             //list.concat(tai_comment.create(strpnew('a_op_reg_ref: inherited #1')));
             inherited;
@@ -1461,7 +1474,8 @@ unit cgcpu;
 
         { on ColdFire all arithmetic operations are only possible on 32bit 
           and addressing modes are limited }
-        if ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
+        if needs_unaligned(ref.alignment,size) or
+           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
           begin
             //list.concat(tai_comment.create(strpnew('a_op_ref_reg: inherited #1')));
             inherited;
@@ -1555,7 +1569,7 @@ unit cgcpu;
       begin
         { optimize for usage of TST here, so ref compares against zero, which is the 
           most common case by far in the RTL code at least (KB) }
-        if (a = 0) then
+        if not needs_unaligned(ref.alignment,size) and (a = 0) then
           begin
             //list.concat(tai_comment.create(strpnew('a_cmp_const_ref_label with TST')));
             tmpref:=ref;
@@ -1696,7 +1710,7 @@ unit cgcpu;
          a_loadaddr_ref_reg(list,source,iregister);
          a_loadaddr_ref_reg(list,dest,jregister);
 
-         if (current_settings.cputype <> cpu_mc68000) then 
+         if not (needs_unaligned(source.alignment,OS_INT) or needs_unaligned(dest.alignment,OS_INT)) then
            begin
              if not ((len<=8) or (not(cs_opt_size in current_settings.optimizerswitches) and (len<=16))) then
                begin
@@ -1753,7 +1767,7 @@ unit cgcpu;
                  list.concat(taicpu.op_sym(A_BPL,S_NO,hl));
                end
              else
-               list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
+               list.concat(taicpu.op_reg_sym(A_DBRA,S_NO,hregister,hl));
            end;
       end;
 
