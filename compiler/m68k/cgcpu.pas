@@ -1967,7 +1967,7 @@ unit cgcpu;
             { Copy registers to temp }
             { NOTE: virtual registers allocated here won't be translated --> no higher-level stuff. }
             href:=current_procinfo.save_regs_ref;
-            if (href.offset<low(smallint)) and (current_settings.cputype in cpu_coldfire) then
+            if (href.offset<low(smallint)) and (current_settings.cputype in cpu_coldfire+[cpu_mc68000]) then
               begin
                 list.concat(taicpu.op_reg_reg(A_MOVE,S_L,href.base,NR_A0));
                 list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
@@ -2055,7 +2055,7 @@ unit cgcpu;
 
         { Restore registers from temp }
         href:=current_procinfo.save_regs_ref;
-        if (href.offset<low(smallint)) and (current_settings.cputype in cpu_coldfire) then
+        if (href.offset<low(smallint)) and (current_settings.cputype in cpu_coldfire+[cpu_mc68000]) then
           begin
             list.concat(taicpu.op_reg_reg(A_MOVE,S_L,href.base,NR_A0));
             list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
