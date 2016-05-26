@@ -199,15 +199,17 @@ implementation
               begin
                 if opsize in [OS_64,OS_S64] then
                   begin
+                    //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('typeconvnode second_int_to_bool #1')));
                     reg64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                     reg64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                     cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,reg64);
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_L,reg64.reghi,reg64.reglo));
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,reg64.reglo));
+                    // it's not necessary to call TST after OR, which sets the flags as required already
+                    //current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,reg64.reglo));
                   end
                 else
                   begin
-                    //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('typeconvnode second_int_to_bool')));
+                    //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('typeconvnode second_int_to_bool #2')));
                     tmpreference:=left.location.reference;
                     tcg68k(cg).fixref(current_asmdata.CurrAsmList,tmpreference,false);
                     current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],tmpreference));
@@ -217,10 +219,12 @@ implementation
               begin
                 if opsize in [OS_64,OS_S64] then
                   begin
+                    //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('typeconvnode second_int_to_bool #3')));
                     hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVE,S_L,left.location.register64.reglo,hreg2));
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_L,left.location.register64.reghi,hreg2));
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,hreg2));
+                    // it's not necessary to call TST after OR, which sets the flags as required already
+                    //current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,hreg2));
                   end
                 else
                   begin
