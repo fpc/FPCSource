@@ -5,17 +5,13 @@
     <General>
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
-        <MainUnitHasTitleStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="ipcserver"/>
+      <Title Value="IPC Server"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
-    <i18n>
-      <EnableI18N LFM="False"/>
-    </i18n>
     <VersionInfo>
       <StringTable ProductVersion=""/>
     </VersionInfo>
@@ -28,12 +24,11 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-t"/>
       </local>
     </RunParams>
     <Units Count="1">
       <Unit0>
-        <Filename Value="ipcserver.pp"/>
+        <Filename Value="simpleipcserver.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>
@@ -41,12 +36,24 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="ipcserver"/>
+      <Filename Value="simpleipcserver"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../units/$(TargetCPU)-$(TargetOS)"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
   </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
 </CONFIG>

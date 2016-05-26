@@ -164,19 +164,13 @@ end;
 
 
 procedure TPipeServerComm.ReadMessage;
+
 var
   Hdr: TMsgHeader;
+  
 begin
-  FStream.ReadBuffer (Hdr, SizeOf (Hdr));
-  Owner.FMsgType := Hdr.MsgType;
-  if Hdr.MsgLen > 0 then
-    begin
-      Owner.FMsgData.Size:=0;
-      Owner.FMsgData.Seek (0, soFromBeginning);
-      Owner.FMsgData.CopyFrom (FStream, Hdr.MsgLen);
-    end
-  else
-    Owner.FMsgData.Size := 0;
+  FStream.ReadBuffer(Hdr,SizeOf(Hdr));
+  PushMessage(Hdr,FStream);
 end;
 
 function TPipeServerComm.GetInstanceID: string;
