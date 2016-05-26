@@ -142,7 +142,7 @@ implementation
 
   function tm68kmoddivnode.first_moddivint: tnode;
     begin
-      if current_settings.cputype=cpu_MC68020 then
+      if current_settings.cputype in cpu_mc68020p then
         result:=nil
       else
         result:=inherited first_moddivint;
@@ -151,7 +151,7 @@ implementation
 
   procedure tm68kmoddivnode.emit_div_reg_reg(signed: boolean;denum,num : tregister);
    begin
-     if current_settings.cputype=cpu_MC68020 then
+     if current_settings.cputype in cpu_mc68020p then
        begin
          if signed then
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DIVS,S_L,denum,num))
@@ -167,7 +167,7 @@ implementation
     var
       tmpreg : tregister;
     begin
-     if current_settings.cputype=cpu_MC68020 then
+     if current_settings.cputype in cpu_mc68020p then
        begin
          tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
          { copy the numerator to the tmpreg, so we can use it as quotient, which
