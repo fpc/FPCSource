@@ -990,7 +990,7 @@ begin
                  MaxMsgSize,                           { Maximum message size }
                  nil);
   SysErrorMessage := MsgBuffer;
-  FreeMem(MsgBuffer, MaxMsgSize);
+  FreeMem(MsgBuffer, MaxMsgSize*2);
 end;
 
 {****************************************************************************
