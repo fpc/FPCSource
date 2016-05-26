@@ -59,7 +59,7 @@ type
   end;
 
 var
-  FontMgr : TFontManager;
+  FontMgr : TFontManager = nil;
 
 procedure InitEngine;
 procedure DoneEngine;
@@ -78,8 +78,7 @@ end;
 
 procedure DoneEngine;
 begin
-  if assigned (FontMgr) then
-    FontMgr.Free;
+  FreeAndNil(FontMgr);
 end;
 
 constructor TFreeTypeFont.Create;
