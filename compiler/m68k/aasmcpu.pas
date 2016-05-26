@@ -498,7 +498,7 @@ type
           A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ, A_SUBX,
           A_AND, A_LSR, A_LSL, A_ASR, A_ASL, A_EOR, A_EORI, A_OR,
           A_ROL, A_ROR, A_ROXL, A_ROXR,
-          A_MULS, A_MULU, A_DIVS, A_DIVU, A_DIVSL, A_DIVUL,
+          A_MULS, A_MULU, A_DIVS, A_DIVU, A_DIVSL, A_DIVUL, A_REMS, A_REMU,
           A_BSET, A_BCLR:
             if opnr=1 then
               result:=operand_readwrite;

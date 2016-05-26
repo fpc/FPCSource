@@ -142,7 +142,7 @@ implementation
 
   function tm68kmoddivnode.first_moddivint: tnode;
     begin
-      if current_settings.cputype in cpu_mc68020p then
+      if CPUM68K_HAS_32BITDIV in cpu_capabilities[current_settings.cputype] then
         result:=nil
       else
         result:=inherited first_moddivint;
@@ -150,13 +150,12 @@ implementation
 
 
   procedure tm68kmoddivnode.emit_div_reg_reg(signed: boolean;denum,num : tregister);
+   const
+     divudivs: array[boolean] of tasmop = (A_DIVU,A_DIVS);
    begin
-     if current_settings.cputype in cpu_mc68020p then
+     if CPUM68K_HAS_32BITDIV in cpu_capabilities[current_settings.cputype] then
        begin
-         if signed then
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DIVS,S_L,denum,num))
-         else
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DIVU,S_L,denum,num));
+         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(divudivs[signed],S_L,denum,num));
        end
      else
        InternalError(2014062801);
@@ -164,22 +163,22 @@ implementation
 
 
   procedure tm68kmoddivnode.emit_mod_reg_reg(signed: boolean;denum,num : tregister);
+    const
+      remop: array[boolean,boolean] of tasmop = ((A_DIVU,A_DIVS),(A_REMU,A_REMS));
     var
       tmpreg : tregister;
     begin
-     if current_settings.cputype in cpu_mc68020p then
-       begin
-         tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-         { copy the numerator to the tmpreg, so we can use it as quotient, which
-           means we'll get the remainder immediately in the numerator }
-         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,num,tmpreg);
-         if signed then
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIVSL,S_L,denum,num,tmpreg))
-         else
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIVUL,S_L,denum,num,tmpreg));
-       end
-     else
-       InternalError(2014062802);
+      if CPUM68K_HAS_32BITDIV in cpu_capabilities[current_settings.cputype] then
+        begin
+          tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+          { copy the numerator to the tmpreg, so we can use it as quotient, which
+            means we'll get the remainder immediately in the numerator }
+          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,num,tmpreg);
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(
+            remop[CPUM68K_HAS_REMSREMU in cpu_capabilities[current_settings.cputype],signed],S_L,denum,num,tmpreg));
+        end
+      else
+        InternalError(2014062802);
     end;
 
 
