@@ -1069,6 +1069,9 @@ uses
             tempst.free;
 
             specialization_done(state);
+
+            if not assigned(result.owner) then
+              result.changeowner(specializest);
           end;
 
         generictypelist.free;
