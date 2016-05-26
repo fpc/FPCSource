@@ -701,6 +701,7 @@ uses
         item : tobject;
         hintsprocessed : boolean;
         pd : tprocdef;
+        pdflags : tpdflags;
       begin
         if not assigned(context) then
           internalerror(2015052203);
@@ -995,6 +996,14 @@ uses
                     end;
                   procdef:
                     begin
+                      pdflags:=[pd_body,pd_implemen];
+                      if genericdef.owner.symtabletype=objectsymtable then
+                        include(pdflags,pd_object)
+                      else if genericdef.owner.symtabletype=recordsymtable then
+                        include(pdflags,pd_record);
+                      parse_proc_directives(pd,pdflags);
+                      while try_consume_hintdirective(pd.symoptions,pd.deprecatedmsg) do
+                        consume(_SEMICOLON);
                       handle_calling_convention(tprocdef(result),hcc_all);
                       proc_add_definition(tprocdef(result));
                       { for partial specializations we implicitely declare the routine as

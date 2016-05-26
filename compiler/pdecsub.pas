@@ -3229,6 +3229,7 @@ const
         are written using ;procdir; or ['procdir'] syntax.
       }
       var
+        stoprecording,
         res : boolean;
       begin
         if (m_mac in current_settings.modeswitches) and (cs_externally_visible in current_settings.localswitches) then
@@ -3256,6 +3257,17 @@ const
             include(pd.procoptions,po_classmethod);
             include(pd.procoptions,po_staticmethod);
           end;
+
+        { for a generic routine we also need to record the procedure          }
+        { directives, but only if we aren't already recording for a           }
+        { surrounding generic                                                 }
+        if pd.is_generic and (pd.typ=procdef) and not current_scanner.is_recording_tokens then
+          begin
+            current_scanner.startrecordtokens(tprocdef(pd).genericdecltokenbuf);
+            stoprecording:=true;
+          end
+        else
+          stoprecording:=false;
 
         while token in [_ID,_LECKKLAMMER] do
          begin
@@ -3302,6 +3314,10 @@ const
            else
             break;
          end;
+
+        if stoprecording then
+          current_scanner.stoprecordtokens;
+
          { nostackframe requires assembler, but assembler
            may be specified in the implementation part only,
            and in not required if the function is first forward declared
