@@ -46,7 +46,7 @@ implementation
       ncon,ncal,
       ncgutil,
       cpubase,cpuinfo,aasmcpu,
-      rgobj,tgobj,cgobj,hlcgobj,cgutils,globtype,cgcpu;
+      rgobj,tgobj,cgobj,hlcgobj,cgutils,globtype,cgcpu,cutils;
 
 
 {*****************************************************************************
@@ -207,29 +207,10 @@ implementation
                   end
                 else
                   begin
-                    { can we optimize it, or do we need to fix the ref. ? }
-                    if isvalidrefoffset(left.location.reference) then
-                      begin
-                        { Coldfire cannot handle tst.l 123(dX) }
-                        if (current_settings.cputype in (cpu_coldfire + [cpu_mc68000])) and
-                           isintregister(left.location.reference.base) then
-                          begin
-                            tmpreference:=left.location.reference;
-                            hreg2:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                            tmpreference.base:=hreg2;
-                            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVE,S_L,left.location.reference.base,hreg2));
-                            current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],tmpreference));
-                          end
-                        else
-                          current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],left.location.reference));
-                      end
-                    else
-                      begin
-                         hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,
-                            left.location.reference,hreg2);
-                         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-                      end;
+                    //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('typeconvnode second_int_to_bool')));
+                    tmpreference:=left.location.reference;
+                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,tmpreference,false);
+                    current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],tmpreference));
                   end;
               end;
             LOC_REGISTER,LOC_CREGISTER :
@@ -243,7 +224,13 @@ implementation
                   end
                 else
                   begin
-                    hreg2:=left.location.register;
+                    if (current_settings.cputype = cpu_mc68000) and isaddressregister(left.location.register) then
+                      begin
+                        hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,opsize,left.location.register,hreg2);
+                      end
+                    else
+                      hreg2:=left.location.register;
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
                   end;
               end;

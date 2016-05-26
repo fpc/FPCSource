@@ -388,7 +388,8 @@ implementation
         cg.a_load_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
 
         if (location.size <> right.location.size) or
-           not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) then
+           not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
+           (not(CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]) and (nodetype = muln)) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
         case right.location.loc of
@@ -441,7 +442,14 @@ implementation
                end;
            else
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,opsize,left.location.register));
+             if (current_settings.cputype = cpu_mc68000) and isaddressregister(left.location.register) then
+               begin
+                 tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                 cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,opsize,left.location.register,tmpreg);
+               end
+             else
+               tmpreg:=left.location.register;
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,opsize,tmpreg));
            end;
            location.resflags := getresflags(unsigned);
            exit;

@@ -117,7 +117,14 @@ implementation
                   else
                     begin
                       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
-                      current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,tcgsize2opsize[opsize],left.location.register));
+                      if (current_settings.cputype = cpu_mc68000) and isaddressregister(left.location.register) then
+                        begin
+                          hreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,opsize,left.location.register,hreg);
+                        end
+                      else
+                        hreg:=left.location.register;
+                      current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,tcgsize2opsize[opsize],hreg));
                     end;
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;
