@@ -1103,7 +1103,7 @@ end;
 
 Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
 begin
-  If pointer(ErrorProc)<>Nil then
+  If codepointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
   errorcode:=word(Errno);
   erroraddr:=addr;
@@ -1415,7 +1415,7 @@ end;
 
 procedure fpc_AbstractErrorIntern;compilerproc;[public,alias : 'FPC_ABSTRACTERROR'];
 begin
-  If pointer(AbstractErrorProc)<>nil then
+  If codepointer(AbstractErrorProc)<>nil then
     AbstractErrorProc();
   HandleErrorAddrFrameInd(211,get_pc_addr,get_frame);
 end;
@@ -1424,7 +1424,7 @@ end;
 Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;
    ErrorAddr:Pointer); [Public,Alias : 'FPC_ASSERT']; compilerproc;
 begin
-  if pointer(AssertErrorProc)<>nil then
+  if codepointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
   else
     HandleErrorAddrFrameInd(227,get_pc_addr,get_frame);
@@ -1844,7 +1844,7 @@ var
   s: rawbytestring;
 begin
   Do_getdir(drivenr,s);
-  dir:=s;
+  dir:=unicodestring(s);
 end;
 {$endif FPCRTL_FILESYSTEM_TWO_BYTE_API}
 

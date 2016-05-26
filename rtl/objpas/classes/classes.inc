@@ -2112,7 +2112,7 @@ var
             case parser.Token of
               toString  : s:=s+parser.TokenString;
               toWString : begin
-                            ProcessWideString(s);
+                            ProcessWideString(WideString(s));
                             exit;
                           end
               else parser.CheckToken(toString);
