@@ -2028,7 +2028,12 @@ implementation
         if not isnestedproc then
           begin
             if not(df_generic in current_procinfo.procdef.defoptions) then
-              tcgprocinfo(current_procinfo).generate_code_tree;
+              begin
+                { also generate the bodies for all previously done
+                  specializations so that we might inline them }
+                generate_specialization_procs;
+                tcgprocinfo(current_procinfo).generate_code_tree;
+              end;
           end;
 
         { reset _FAIL as _SELF normal }
