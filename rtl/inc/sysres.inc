@@ -32,13 +32,13 @@ end;
 *****************************************************************************)
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: AnsiString): TFPResourceHandle;
+Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName, ResourceType: AnsiString): TFPResourceHandle;
 
 begin
   Result:=FindResource(ModuleHandle,PChar(ResourceName),PChar(ResourceType));
 end;
 
-Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: AnsiString; Language : word): TFPResourceHandle;
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType, ResourceName: AnsiString; Language : word): TFPResourceHandle;
 
 begin
   Result:=FindResourceEx(ModuleHandle,PChar(ResourceType),PChar(ResourceName),Language);
