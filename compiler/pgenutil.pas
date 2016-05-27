@@ -1559,8 +1559,9 @@ uses
                { only generate the code if we need a body }
                if assigned(tprocdef(hp).struct) and not tprocdef(hp).forwarddef then
                  continue;
-               { and the body is available already }
-               if tprocdef(tprocdef(hp).genericdef).forwarddef then
+               { and the body is available already (which is implicitely the
+                 case if the generic routine is part of another unit) }
+               if (hmodule=current_module) and tprocdef(tprocdef(hp).genericdef).forwarddef then
                  begin
                    result:=false;
                    continue;
@@ -1602,18 +1603,23 @@ uses
             case def.typ of
               procdef:
                 begin
+                  { the use of forwarddef should not backfire as the
+                    specialization always belongs to the current module }
                   if not tprocdef(def).forwarddef then
                     continue;
                   if not assigned(def.genericdef) then
                     internalerror(2015061903);
-                  if tprocdef(def.genericdef).forwarddef then
+                  hmodule:=find_module_from_symtable(def.genericdef.owner);
+                  if hmodule=nil then
+                    internalerror(2015061904);
+                  { we need to check for a forward declaration only if the
+                    generic was declared in the same unit (otherwise there
+                    should be one) }
+                  if (hmodule=current_module) and tprocdef(def.genericdef).forwarddef then
                     begin
                       readdlist.add(def);
                       continue;
                     end;
-                  hmodule:=find_module_from_symtable(def.genericdef.owner);
-                  if hmodule=nil then
-                    internalerror(2015061904);
 
                   specialization_init(tstoreddef(def).genericdef,state);
 
