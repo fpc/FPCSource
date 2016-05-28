@@ -44,7 +44,9 @@ Type
 
     { uses the same constructor as TAopObj }
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
-    procedure PeepHoleOptPass2;override;
+    function PeepHoleOptPass2Cpu(var p: tai): boolean; override;
+
+    function PostPeepHoleOptsCpu(var p: tai): boolean; override;
 
     procedure DebugMsg(const s: string; p: tai);
   End;
@@ -965,8 +967,93 @@ Implementation
     end;
 
 
-  procedure TCpuAsmOptimizer.PeepHoleOptPass2;
+  function TCpuAsmOptimizer.PeepHoleOptPass2Cpu(var p: tai): boolean;
+    var
+      hp1,hp2,hp3: tai;
+      alloc, dealloc: tai_regalloc;
+      i: integer;
     begin
+      result := false;
+      case p.typ of
+        ait_instruction:
+          begin
+            case taicpu(p).opcode of
+              A_PJMP:
+                begin
+                  AsmL.InsertBefore(taicpu.op_const(A_GS,SS_PC),p);
+                  taicpu(p).opcode:=A_JMP;
+                  result:=true;
+                end;
+              A_PJxx:
+                begin
+                  AsmL.InsertBefore(taicpu.op_const(A_GS,SS_PC),p);
+                  taicpu(p).opcode:=A_Jxx;
+                  result:=true;
+                end;
+              A_PCALL:
+                begin
+                  AsmL.InsertBefore(taicpu.op_const(A_GS,SS_PC),p);
+                  taicpu(p).opcode:=A_CALL;
+                  result:=true;
+                end;
+            end;
+          end;
+      end;
+    end;
+
+
+  function TCpuAsmOptimizer.PostPeepHoleOptsCpu(var p: tai): boolean;
+    var
+      hp1,hp2,hp3, hp4: tai;
+      alloc, dealloc: tai_regalloc;
+      i: integer;
+    begin
+      result := false;
+      case p.typ of
+        ait_instruction:
+          begin
+            case taicpu(p).opcode of
+              A_GS:
+                begin
+                  if (taicpu(p).ops=1) and
+                     (taicpu(p).oper[0]^.typ=top_const) and
+                     (taicpu(p).oper[0]^.val=SS_PC) then
+                    begin
+                      hp1:=p;
+
+                      while GetNextInstruction(hp1,hp2) and
+                            (hp2.typ=ait_instruction) and
+                            (taicpu(hp2).is_jmp) do
+                        begin
+                          if GetNextInstruction(hp2,hp3) and
+                             (hp3.typ=ait_label) and
+                             GetNextInstruction(hp3,hp4) and
+                             (hp4.typ=ait_instruction) and
+                             (taicpu(hp4).opcode=A_GS) and
+                             (taicpu(hp4).ops=1) and
+                             (taicpu(hp4).oper[0]^.typ=top_const) and
+                             (taicpu(hp4).oper[0]^.val=SS_PC) then
+                            begin
+                              DebugMsg('GsJGs2GsJ', hp1);
+
+                              asml.Remove(hp3);
+                              asml.InsertBefore(hp3,p);
+
+                              asml.Remove(hp4);
+                              hp4.free;
+
+                              result:=true;
+                            end
+                          else
+                            break;
+
+                          hp1:=hp2;
+                        end;
+                    end;
+                end;
+            end;
+          end;
+      end;
     end;
 
 begin

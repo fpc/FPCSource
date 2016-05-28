@@ -99,8 +99,8 @@ Const
 
   StoreDst = 1;
 
-  aopt_uncondjmp = A_JMP;
-  aopt_condjmp = A_Jxx;
+  aopt_uncondjmp = A_PJMP;
+  aopt_condjmp = A_PJxx;
 
 Implementation
 

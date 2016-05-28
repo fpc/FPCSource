@@ -58,7 +58,8 @@ unit cpubase;
         // Extended instructions
         A_PUSH,A_POP,A_INC,A_XCHG,A_CAS,A_IRET,
         // Pseudo instructions
-        A_MOV,A_LOAD,A_STORE);
+        A_MOV,A_LOAD,A_STORE,
+        A_PCALL,A_PJMP,A_PJxx);
 
 
       { This should define the array of instructions as string }
@@ -70,7 +71,8 @@ unit cpubase;
       { Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
-      jmp_instructions = [A_Jxx,A_JMP,A_CALL];
+      jmp_instructions = [A_Jxx,A_JMP,A_CALL,
+                          A_PCALL,A_PJMP,A_PJxx];
 
 {*****************************************************************************
                                   Registers

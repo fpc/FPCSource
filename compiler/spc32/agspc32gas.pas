@@ -113,6 +113,9 @@ unit agspc32gas;
                   else if offset>0 then
                     s:=s+'+'+tostr(offset);
 
+                  if assigned(relsymbol) then
+                    s:=s+'-'+ReplaceForbiddenAsmSymbolChars(relsymbol.name);
+
                   case refaddr of
                     addr_hi16:
                       s:='hi16('+s+')';

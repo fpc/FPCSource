@@ -232,6 +232,11 @@ implementation
                 result:=operand_read;
             end;
 
+          A_PUSH,
+          A_POP:
+            if (oper[0]^.typ=top_reg) then
+              result:=operand_readwrite;
+
           A_ST:
             result:=operand_write;
           else
@@ -310,7 +315,8 @@ implementation
     procedure taicpu.Pass2(objdata: TObjData);
       var
         b, code : longword;
-        objsym : TObjSymbol;
+        objsym , relsym: TObjSymbol;
+        reloffset: AWord;
       begin
         code:=0;
 
@@ -431,12 +437,22 @@ implementation
 
             objsym:=objdata.symbolref(oper[0]^.ref^.symbol);
 
+            reloffset:=0;
+            if assigned(oper[0]^.ref^.relsymbol) then
+              begin
+                relsym:=objdata.symbolref(oper[0]^.ref^.relsymbol);
+                if relsym.objsection=objdata.CurrObjSec then
+                  reloffset:=objdata.CurrObjSec.size+2-relsym.offset
+                else
+                  Message(verbose.asmw_e_undefined_label);
+              end;
+
             if oper[0]^.ref^.refaddr = addr_hi16 then
               code:=(oper[0]^.ref^.offset shr 16) and $FFFF
             else if oper[0]^.ref^.refaddr = addr_lo16 then
               code:=(oper[0]^.ref^.offset) and $FFFF
             else
-              code:=(oper[0]^.ref^.offset+6) and $FFFF;
+              code:=(oper[0]^.ref^.offset+reloffset) and $FFFF;
 
             case oper[0]^.ref^.refaddr of
               addr_lo16:

@@ -379,9 +379,18 @@ unit cgcpu;
 
 
     procedure tcgspc32.a_call_name(list : TAsmList;const s : string; weak: boolean);
+      var
+        href: treference;
+        l: tasmlabel;
       begin
-        list.concat(taicpu.op_const(A_GS, SS_PC));
-        list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(s)));
+        reference_reset_symbol(href, current_asmdata.RefAsmSymbol(s), 0,1);
+
+        current_asmdata.getjumplabel(l);
+
+        href.relsymbol:=l;
+
+        a_label(list,l);
+        list.concat(taicpu.op_ref(A_PCALL,href));
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)
@@ -846,10 +855,17 @@ unit cgcpu;
     procedure tcgspc32.a_jmp_name(list : TAsmList;const s : string);
       var
         ai : taicpu;
+        href: treference;
+        rl: TAsmLabel;
       begin
-        ai:=taicpu.op_sym(A_JMP,current_asmdata.RefAsmSymbol(s));
+        current_asmdata.getjumplabel(rl);
+
+        reference_reset_symbol(href, current_asmdata.RefAsmSymbol(s), 0, 1);
+        href.relsymbol:=rl;
+
+        a_label(list, rl);
+        ai:=taicpu.op_ref(A_PJMP,href);
         ai.is_jmp:=true;
-        list.Concat(taicpu.op_const(A_GS,SS_PC));
         list.concat(ai);
       end;
 
@@ -857,10 +873,18 @@ unit cgcpu;
     procedure tcgspc32.a_jmp_always(list : TAsmList;l: tasmlabel);
       var
         ai : taicpu;
+        rl: TAsmLabel;
+        href: treference;
       begin
-        ai:=taicpu.op_sym(A_JMP,l);
+        current_asmdata.getjumplabel(rl);
+
+        reference_reset_symbol(href, l, 0, 1);
+        href.relsymbol:=rl;
+
+        a_label(list, rl);
+
+        ai:=taicpu.op_ref(A_PJMP,href);
         ai.is_jmp:=true;
-        list.Concat(taicpu.op_const(A_GS,SS_PC));
         list.concat(ai);
       end;
 
@@ -868,10 +892,18 @@ unit cgcpu;
     procedure tcgspc32.a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel);
       var
         ai : taicpu;
+        rl: TAsmLabel;
+        href: treference;
       begin
-        ai:=setcondition(taicpu.op_sym(A_Jxx,l),flags_to_cond(f));
+        current_asmdata.getjumplabel(rl);
+
+        reference_reset_symbol(href, l, 0, 1);
+        href.relsymbol:=rl;
+
+        a_label(list, rl);
+
+        ai:=setcondition(taicpu.op_ref(A_PJxx,href),flags_to_cond(f));
         ai.is_jmp:=true;
-        list.Concat(taicpu.op_const(A_GS,SS_PC));
         list.concat(ai);
       end;
 
@@ -1339,9 +1371,15 @@ unit cgcpu;
     procedure tcgspc32.a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
       var
         ai1,ai2 : taicpu;
-        hl : TAsmLabel;
+        hl , rl: TAsmLabel;
+        href: treference;
       begin
-        ai1:=Taicpu.Op_sym(A_Jxx,l);
+        current_asmdata.getjumplabel(rl);
+
+        reference_reset_symbol(href, l, 0,1);
+        href.relsymbol:=rl;
+
+        ai1:=Taicpu.op_ref(A_PJxx,href);
         ai1.is_jmp:=true;
         hl:=nil;
         case cond of
@@ -1360,7 +1398,7 @@ unit cgcpu;
           else
             internalerror(2011082501);
         end;
-        list.Concat(taicpu.op_const(A_GS,SS_PC));
+        a_label(list,rl);
         list.concat(ai1);
         if assigned(hl) then
           a_label(list,hl);

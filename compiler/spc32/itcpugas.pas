@@ -47,7 +47,8 @@ interface
         'jmp','call','j',
         'gs','ss',
         'push','pop','inc','xchg','cas','iret',
-        'mov','load','store');
+        'mov','load','store',
+        'pcall','pjmp','pj');
 
     function gas_regnum_search(const s:string):Tregister;
     function gas_regname(r:Tregister):string;
