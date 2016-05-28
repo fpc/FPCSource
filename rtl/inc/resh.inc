@@ -65,8 +65,8 @@ Function LockResource(ResData: TFPResourceHGLOBAL): Pointer;
 Function UnlockResource(ResData: TFPResourceHGLOBAL): LongBool;
 Function FreeResource(ResData: TFPResourceHGLOBAL): LongBool;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: AnsiString): TFPResourceHandle;
-Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: AnsiString; Language : word): TFPResourceHandle;
+Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName, ResourceType: AnsiString): TFPResourceHandle;
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType, ResourceName: AnsiString; Language : word): TFPResourceHandle;
 {$endif}
 
 type

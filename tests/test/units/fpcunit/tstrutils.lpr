@@ -3,6 +3,7 @@ program tstrutils;
 {$mode objfpc}{$H+}
 
 uses
+  cwstring,
   Classes, consoletestrunner, tcstrutils, tcstringlist, tclist;
 
 type

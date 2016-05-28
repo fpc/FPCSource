@@ -2204,6 +2204,17 @@ Var
         End;
       If (J<>0) then
         Digits[1]:='-';
+      If (Digits[1]='-') then
+        Begin
+        I:=1;
+        While (I<=length(Digits)) And (Not (Digits[I] in ['1'..'9'])) Do
+          Inc(I);
+        If (I>length(Digits)) then
+          Begin
+          Digits:=Copy(Digits, 2, Length(Digits));
+          Dec(DecimalPoint);
+          End;
+        End;  
       Exp := 0;
       End
     Else
@@ -2843,7 +2854,7 @@ begin
           Inc(P,Blen)
         else
           begin
-          If (P>MaxCol) then
+          If (P>=MaxCol) then
             IBC:=C in BreakChars;
           Inc(P);
           end;
@@ -2851,10 +2862,10 @@ begin
 //      Writeln('"',C,'" : IBC : ',IBC,' HB  : ',HB,' LQ  : ',LQ,' P>MaxCol : ',P>MaxCol);
       end;
     Result:=Result+Copy(L,1,P-1);
-    If Not HB then
-      Result:=Result+BreakStr;
     Delete(L,1,P-1);
     Len:=Length(L);
+    If (Len>0) and Not HB then
+      Result:=Result+BreakStr;
     end;
 end;
 
