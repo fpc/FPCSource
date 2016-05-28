@@ -304,6 +304,7 @@ implementation
       symconst,defutil,defcmp,
       htypechk,pass_1,
       ncnv,nflw,nld,ninl,nadd,ncon,nmem,nset,nobjc,
+      pgenutil,
       ngenutil,objcutil,
       procinfo,cpuinfo,
       wpobase;
@@ -3603,6 +3604,8 @@ implementation
                      { if the final procedure definition is not yet owned,
                        ensure that it is }
                      procdefinition.register_def;
+                     if procdefinition.is_specialization and (procdefinition.typ=procdef) then
+                       maybe_add_pending_specialization(procdefinition);
 
                      candidates.free;
                  end; { end of procedure to call determination }

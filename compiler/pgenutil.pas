@@ -52,6 +52,7 @@ uses
     function could_be_generic(const name:tidstring):boolean;inline;
 
     procedure generate_specialization_procs;
+    procedure maybe_add_pending_specialization(def:tdef);
 
     procedure specialization_init(genericdef:tdef;var state:tspecializationstate);
     procedure specialization_done(var state:tspecializationstate);
@@ -1072,10 +1073,9 @@ uses
 
             specialization_done(state);
 
-            if not assigned(result.owner) then
-              result.ChangeOwner(specializest);
-
-            current_module.pendingspecializations.add(result.typename,result);
+            { procdefs are only added once we know which overload we use }
+            if result.typ<>procdef then
+              current_module.pendingspecializations.add(result.typename,result);
           end;
 
         generictypelist.free;
@@ -1649,5 +1649,18 @@ uses
         list.free;
       end;
 
+
+    procedure maybe_add_pending_specialization(def:tdef);
+      var
+        hmodule : tmodule;
+        st : tsymtable;
+      begin
+        st:=def.owner;
+        while st.symtabletype in [localsymtable] do
+          st:=st.defowner.owner;
+        hmodule:=find_module_from_symtable(st);
+        if tstoreddef(def).is_specialization and (hmodule=current_module) then
+          current_module.pendingspecializations.add(def.typename,def);
+      end;
 
 end.
