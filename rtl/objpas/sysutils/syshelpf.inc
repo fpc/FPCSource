@@ -98,16 +98,19 @@ end;
 Function TFLOATHELPER.GetE: QWord; inline;
 
 begin
+  runerror(219);
 end;
 
 Function TFLOATHELPER.GetF: QWord; inline;
 
 begin
+  runerror(219);
 end;
 
 Function TFLOATHELPER.GetS: Boolean; inline;
 
 begin
+ runerror(219)
 end;
 
 procedure TFLOATHELPER.SetB(AIndex: Cardinal; const AValue: Byte);
@@ -129,16 +132,19 @@ end;
 procedure TFLOATHELPER.SetE(AValue: QWord);
 
 begin
+  runerror(219);
 end;
 
 procedure TFLOATHELPER.SetF(AValue: QWord);
 
 begin
+  runerror(219);
 end;
 
 procedure TFLOATHELPER.SetS(AValue: Boolean);
 
 begin
+  runerror(219);
 end;
 
 
@@ -168,6 +174,7 @@ end;
 Function TFLOATHELPER.Fraction: Extended;
 
 begin
+  runerror(219);
 end;
 
 Function TFLOATHELPER.IsInfinity: Boolean; overload; inline;
@@ -197,6 +204,7 @@ end;
 Function TFLOATHELPER.Mantissa: QWord;
 
 begin
+  runerror(219);
 end;
 
 Function TFLOATHELPER.SpecialType: TFloatSpecial;
