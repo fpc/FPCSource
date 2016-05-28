@@ -154,8 +154,10 @@ LOGFILES=$(TEST_OUTPUTDIR)/log $(TEST_OUTPUTDIR)/longlog $(TEST_OUTPUTDIR)/faill
 LOGEXT=.testlog .tbslog .tbflog .webtbslog .webtbflog
 
 # Subdirs available in the test subdir
-TESTSUBDIRS=cg cg/variants cg/cdecl cpu16 cpu16/i8086 library opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem units/strutils units/matrix units/lineinfo units/ucomplex units/fpwidestring units/cpu units/fmtbcd units/windows
-TESTPACKAGESUBDIRS=packages/win-base packages/webtbs packages/hash packages/fcl-registry packages/fcl-process packages/zlib packages/fcl-db packages/fcl-base packages/fcl-xml packages/cocoaint packages/bzip2
+TESTUNITDIRS=system dos crt objects strings sysutils math sharemem strutils matrix lineinfo ucomplex fpwidestring cpu fmtbcd windows
+TESTSUBDIRS=cg cg/variants cg/cdecl cpu16 cpu16/i8086 library opt $(addprefix units/,$(TESTUNITDIRS))
+TESTPACKAGESDIRS=win-base webtbs hash fcl-registry fcl-process zlib fcl-db fcl-xml cocoaint bzip2
+TESTPACKAGESUBDIRS=$(addprefix packages/,$(TESTPACKAGESDIRS))
 
 ifdef QUICKTEST
 export QUICKTEST
