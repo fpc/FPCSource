@@ -295,7 +295,7 @@ interface
                         sep:=#9
                       else
                       if (i=2) and
-                         (op in [A_DIVSL,A_DIVUL,A_MULS,A_MULU,A_DIVS,A_DIVU]) then
+                         (op in [A_DIVSL,A_DIVUL,A_MULS,A_MULU,A_DIVS,A_DIVU,A_REMS,A_REMU]) then
                         sep:=':'
                       else
                         sep:=',';
