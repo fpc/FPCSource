@@ -5753,7 +5753,7 @@ implementation
            assigned(returndef) and
            not(is_void(returndef)) then
           s:=s+':'+returndef.GetTypeName;
-        if owner.symtabletype=localsymtable then
+        if assigned(owner) and (owner.symtabletype=localsymtable) then
           s:=s+' is nested'
         else if po_is_block in procoptions then
           s:=s+' is block';
