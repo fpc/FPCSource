@@ -520,7 +520,7 @@ unit cgcpu;
     function tcgspc32.normalize_ref(list:TAsmList;ref: treference) : treference;
       var
         tmpref : treference;
-        tmpreg : tregister;
+        tmpreg , b: tregister;
         l : tasmlabel;
       begin
         Result:=ref;
@@ -545,13 +545,16 @@ unit cgcpu;
           begin
             tmpreg:=getaddressregister(list);
 
+            b:=result.base;
+            result.base:=NR_NO;
+
             result.refaddr:=addr_lo16;
             list.concat(taicpu.op_ref(A_LD,Result));
             result.refaddr:=addr_hi16;
             list.concat(taicpu.op_ref(A_LDU,Result));
 
-            if result.base<>NR_NO then
-              list.concat(taicpu.op_reg(A_ADD,result.base));
+            if b<>NR_NO then
+              list.concat(taicpu.op_reg(A_ADD,b));
 
             list.concat(taicpu.op_reg(A_ST,tmpreg));
 
@@ -999,9 +1002,9 @@ unit cgcpu;
               list.concat(taicpu.op_const(A_PUSH,longword(regs)));
 
             cnt:=0;
-            for reg:=RS_R0 to RS_LR do
+            {for reg:=RS_R0 to RS_LR do
               if reg in regs then
-                inc(cnt);
+                inc(cnt);}
 
             if (current_procinfo.framepointer<>NR_STACK_POINTER_REG) or (LocalSize>0) then
               begin

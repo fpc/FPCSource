@@ -96,7 +96,7 @@ unit rgcpu;
         b : byte;
       begin
         result:=false;
-        //if abs(spilltemp.offset)>127 then
+        if abs(spilltemp.offset)>$7FFF then
           exit;
 
         { Replace 'mov  dst,orgreg' with 'ldr  dst,spilltemp'

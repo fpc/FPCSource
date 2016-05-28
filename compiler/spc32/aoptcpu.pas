@@ -262,6 +262,43 @@ Implementation
                     end
                   {
                     turn
+                      ld #x
+                      ldu #y
+                      ldX #0
+                    into
+                      nul
+                      ldu #y+$8000
+                      ldX #x
+                  }
+                  else if (taicpu(p).ops=1) and
+                     (taicpu(p).oper[0]^.typ=top_ref) and
+                     (taicpu(p).oper[0]^.ref^.refaddr=addr_lo16) and
+                     GetNextInstruction(p,hp1) and
+                     (hp1.typ=ait_instruction) and
+                     (taicpu(hp1).opcode in [A_LDU]) and
+                     (taicpu(hp1).ops=1) and
+                     (taicpu(hp1).oper[0]^.typ=top_ref) and
+                     (taicpu(hp1).oper[0]^.ref^.refaddr=addr_hi16) and
+                     GetNextInstruction(hp1,hp2) and
+                     (hp2.typ=ait_instruction) and
+                     (taicpu(hp2).opcode in [A_LDB,A_LDH,A_LDW]) and
+                     (taicpu(hp2).ops=1) and
+                     (taicpu(hp2).oper[0]^.typ=top_const) and
+                     (taicpu(hp2).oper[0]^.val=0) then
+                    begin
+                      DebugMsg('LdLduLdx2NulLduLdx', p);
+
+                      inc(taicpu(hp1).oper[0]^.ref^.offset, $8000);
+
+                      taicpu(hp2).loadref(0, taicpu(p).oper[0]^.ref^);
+
+                      taicpu(p).ops:=0;
+                      taicpu(p).opcode:=A_NUL;
+
+                      result:=true;
+                    end
+                  {
+                    turn
                       ld 0
                     into
                       nul
@@ -474,13 +511,13 @@ Implementation
                      (taicpu(hp1).opcode=A_NUL) and
                      GetNextInstruction(hp1,hp2) and
                      (hp1.typ=ait_instruction) and
-                     (taicpu(hp2).opcode=A_LDW) and
+                     (taicpu(hp2).opcode in [A_LDW,A_LDH,A_LDB]) and
                      (taicpu(hp2).ops=1) and
                      (taicpu(hp2).oper[0]^.typ=top_reg) and
                      (taicpu(hp2).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
                      Assigned(FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(hp2.next))) then
                     begin
-                      DebugMsg('StNulLdw2Ldw', p);
+                      DebugMsg('StNulLdx2Ldx', p);
 
                       alloc:=FindRegAllocBackward(taicpu(p).oper[0]^.reg, tai(p.Previous));
                       dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(hp2.next));
@@ -778,6 +815,8 @@ Implementation
                           dealloc.free;
                         end;
 
+                      DebugMsg('NulStOp2Op0', p);
+
                       AsmL.Remove(hp1);
                       hp1.free;
 
@@ -796,6 +835,9 @@ Implementation
                      (hp1.typ=ait_instruction) and
                      (taicpu(hp1).opcode in [A_NUL,A_LD]) then
                     begin
+
+                      DebugMsg('Dup nul removed', p);
+
                       asml.remove(p);
                       p.free;
                       p:=hp1;
@@ -813,11 +855,38 @@ Implementation
                      (hp1.typ=ait_instruction) and
                      (taicpu(hp1).opcode in [A_ADD]) then
                     begin
+                      DebugMsg('NulAdd2Ld', p);
+
                       asml.remove(p);
                       p.free;
                       p:=hp1;
 
                       taicpu(p).opcode:=A_LD;
+
+                      result:=true;
+                    end
+                  {
+                    turn
+                      nul
+                      sub #x
+                    into
+                      ld #x
+                  }
+                  else if GetNextInstruction(p,hp1) and
+                     (hp1.typ=ait_instruction) and
+                     (taicpu(hp1).opcode in [A_SUB]) and
+                     (taicpu(hp1).ops=1) and
+                     (taicpu(hp1).oper[0]^.typ=top_const) and
+                     (abs(taicpu(hp1).oper[0]^.val)<$8000) then
+                    begin
+                      DebugMsg('NulSub2Ld', p);
+
+                      asml.remove(p);
+                      p.free;
+                      p:=hp1;
+
+                      taicpu(p).opcode:=A_LD;
+                      taicpu(p).oper[0]^.val:=-taicpu(p).oper[0]^.val;
 
                       result:=true;
                     end;
