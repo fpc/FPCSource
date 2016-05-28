@@ -218,6 +218,12 @@ begin
  Result:=CompareText(S1,S2)=0;
 end;
 
+function SameStr(const s1,s2:String):Boolean;
+
+begin
+ Result:=CompareStr(S1,S2)=0;
+end;
+
 {$ifndef FPC_NOGENERICANSIROUTINES}
 {==============================================================================}
 {   Ansi string functions                                                      }
@@ -845,6 +851,19 @@ begin
   if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
 end;
 
+function StrToDWord(const s: string): DWord;
+var Error: word;
+begin
+  Val(S, result, Error);
+  if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
+end;
+
+function TryStrToDWord(const s: string; Out D: DWord): boolean;
+var Error : word;
+begin
+  Val(s, D, Error);
+  TryStrToDWord:=Error=0
+end;
 
 function TryStrToQWord(const s: string; Out Q: QWord): boolean;
 var Error : word;
@@ -862,6 +881,16 @@ begin
   Val(S, result, Error);
   if Error <> 0 then result := Default;
 end ;
+
+{   StrToDWordDef converts the string S to an DWord value,
+    Default is returned in case S does not represent a valid DWord value  }
+
+function StrToDWordDef(const S: string; Default: DWord): DWord;
+var Error: word;
+begin
+  Val(S, result, Error);
+  if Error <> 0 then result := Default;
+end;
 
 {   StrToInt64Def converts the string S to an int64 value,
     Default is returned in case S does not represent a valid int64 value  }

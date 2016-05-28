@@ -78,6 +78,7 @@ function CompareMemRange(P1, P2: Pointer; Length: PtrUInt): integer;{$ifdef SYSU
 function CompareMem(P1, P2: Pointer; Length: PtrUInt): Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function CompareText(const S1, S2: string): integer;
 function SameText(const s1,s2:String):Boolean;
+function SameStr(const s1,s2:String):Boolean;
 
 function AnsiUpperCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
@@ -111,12 +112,15 @@ function IntToHex(Value: Longint; Digits: integer): string;
 function IntToHex(Value: Int64; Digits: integer): string;
 function IntToHex(Value: QWord; Digits: integer): string;
 function StrToInt(const s: string): Longint;
-function TryStrToInt(const s: string; Out i : Longint) : boolean;
+function StrToDWord(const s: string): DWord;
 function StrToInt64(const s: string): int64;
-function TryStrToInt64(const s: string; Out i : int64) : boolean;
 function StrToQWord(const s: string): QWord;
+function TryStrToInt(const s: string; Out i : Longint) : boolean;
+function TryStrToDWord(const s: string; Out D : DWord) : boolean;
+function TryStrToInt64(const s: string; Out i : int64) : boolean;
 function TryStrToQWord(const s: string; Out Q : QWord) : boolean;
 function StrToIntDef(const S: string; Default: Longint): Longint;
+function StrToDWordDef(const S: string; Default: DWord): DWord;
 function StrToInt64Def(const S: string; Default: int64): int64;
 function StrToQWordDef(const S: string; Default: QWord): QWord;
 function LoadStr(Ident: integer): string;

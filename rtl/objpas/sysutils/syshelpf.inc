@@ -98,19 +98,19 @@ end;
 Function TFLOATHELPER.GetE: QWord; inline;
 
 begin
-  runerror(219);
+  Result:=TFloatRec(Self).Exp;
 end;
 
 Function TFLOATHELPER.GetF: QWord; inline;
 
 begin
-  runerror(219);
+  Result:=TFloatRec(Self).Frac;
 end;
 
 Function TFLOATHELPER.GetS: Boolean; inline;
 
 begin
- runerror(219)
+  Result:=TFloatRec(Self).Sign;
 end;
 
 procedure TFLOATHELPER.SetB(AIndex: Cardinal; const AValue: Byte);
@@ -132,19 +132,19 @@ end;
 procedure TFLOATHELPER.SetE(AValue: QWord);
 
 begin
-  runerror(219);
+  TFloatRec(Self).Exp:=AValue;
 end;
 
 procedure TFLOATHELPER.SetF(AValue: QWord);
 
 begin
-  runerror(219);
+  TFloatRec(Self).Frac:=AValue;
 end;
 
 procedure TFLOATHELPER.SetS(AValue: Boolean);
 
 begin
-  runerror(219);
+  TFloatRec(Self).Sign:=AValue;
 end;
 
 
@@ -174,7 +174,7 @@ end;
 Function TFLOATHELPER.Fraction: Extended;
 
 begin
-  runerror(219);
+  Result:=TFloatRec(Self).Fraction;
 end;
 
 Function TFLOATHELPER.IsInfinity: Boolean; overload; inline;
@@ -204,18 +204,13 @@ end;
 Function TFLOATHELPER.Mantissa: QWord;
 
 begin
-  runerror(219);
+  Result:=TFLoatRec(Self).Mantissa;
 end;
 
 Function TFLOATHELPER.SpecialType: TFloatSpecial;
 
 begin
-  if IsNan then
-    Result:=fsNan
-  else if IsNegativeInfinity then
-    Result:=fsNInf
-  else if IsPositiveInfinity then
-    Result:=fsInf
+  Result:=TFLoatRec(Self).SpecialType;
 end;
 
 Function TFLOATHELPER.ToString(const AFormat: TFloatFormat; const APrecision, ADigits: Integer): string; overload; inline;
