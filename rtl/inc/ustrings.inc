@@ -1160,7 +1160,7 @@ end;
 
 {$ifndef FPC_HAS_POS_UNICODESTR_UNICODESTR}
 {$define FPC_HAS_POS_UNICODESTR_UNICODESTR}
-Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString) : SizeInt;
+Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 var
   i,MaxLen : SizeInt;
   pc : punicodechar;
@@ -1168,9 +1168,9 @@ begin
   Pos:=0;
   if Length(SubStr)>0 then
    begin
-     MaxLen:=Length(source)-Length(SubStr);
+     MaxLen:=Length(source)-Length(SubStr)-(OffSet-1);
      i:=0;
-     pc:=@source[1];
+     pc:=@source[OffSet];
      while (i<=MaxLen) do
       begin
         inc(i);
@@ -1190,13 +1190,13 @@ end;
 {$ifndef FPC_HAS_POS_UNICODECHAR_UNICODESTR}
 {$define FPC_HAS_POS_UNICODECHAR_UNICODESTR}
 { Faster version for a unicodechar alone }
-Function Pos (c : UnicodeChar; Const s : UnicodeString) : SizeInt;
+Function Pos (c : UnicodeChar; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 var
   i: SizeInt;
   pc : punicodechar;
 begin
-  pc:=@s[1];
-  for i:=1 to length(s) do
+  pc:=@s[OffSet];
+  for i:=OffSet to length(s) do
    begin
      if pc^=c then
       begin
@@ -1212,21 +1212,21 @@ end;
 
 { DO NOT inline these! Inlining a managed typecast creates an implicit try..finally
   block, which is significant bloat without any sensible speed improvement. }
-Function Pos (const c : RawByteString; Const s : UnicodeString) : SizeInt;
+Function Pos (const c : RawByteString; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
   begin
-    result:=Pos(UnicodeString(c),s);
+    result:=Pos(UnicodeString(c),s,offset);
   end;
 
 
-Function Pos (const c : ShortString; Const s : UnicodeString) : SizeInt;
+Function Pos (const c : ShortString; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
   begin
-    result:=Pos(UnicodeString(c),s);
+    result:=Pos(UnicodeString(c),s,OffSet);
   end;
 
 
-Function Pos (const c : UnicodeString; Const s : RawByteString) : SizeInt;
+Function Pos (const c : UnicodeString; Const s : RawByteString; Offset: Sizeint = 1) : SizeInt;
   begin
-    result:=Pos(c,UnicodeString(s));
+    result:=Pos(c,UnicodeString(s),OffSet);
   end;
 
 {$ifndef FPC_HAS_POS_CHAR_UNICODESTR}
@@ -1235,15 +1235,15 @@ Function Pos (const c : UnicodeString; Const s : RawByteString) : SizeInt;
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : Char; Const s : UnicodeString) : SizeInt;
+Function Pos (c : Char; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 var
   i: SizeInt;
   wc : unicodechar;
   pc : punicodechar;
 begin
   wc:=c;
-  pc:=@s[1];
-  for i:=1 to length(s) do
+  pc:=@s[OffSet];
+  for i:=OffSet to length(s) do
    begin
      if pc^=wc then
       begin

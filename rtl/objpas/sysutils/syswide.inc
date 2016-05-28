@@ -184,9 +184,14 @@ end;
 {$define INWIDESTRINGREPLACE}
 {$define SRString:=WideString}
 {$define SRUpperCase:=WideUppercase}
+{$define SRPChar:=PWideChar}
+{$define SRChar:=WideChar}
+
 function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags): WideString;
 {$i syssr.inc}
 
 {$undef INWIDESTRINGREPLACE}
 {$undef SRString}
 {$undef SRUpperCase}
+{$undef SRPChar}
+{$undef SRChar}

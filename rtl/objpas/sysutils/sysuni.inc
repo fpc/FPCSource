@@ -537,9 +537,14 @@ end;
 {$define INUNICODESTRINGREPLACE}
 {$define SRString:=UnicodeString}
 {$define SRUpperCase:=WideUppercase}
+{$define SRPCHAR:=PChar}
+{$define SRCHAR:=Char}
+
 function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags): UnicodeString;
 {$i syssr.inc}
 
 {$undef INUNICODESTRINGREPLACE}
 {$undef SRString}
 {$undef SRUpperCase}
+{$undef SRPCHAR}
+{$undef SRCHAR}
