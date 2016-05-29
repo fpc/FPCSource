@@ -80,6 +80,10 @@ implementation
           begin
             secondpass(left);
             opsize:=def_cgsize(resultdef);
+
+            if ((left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(left.location.reference.alignment,opsize)) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+
             case left.location.loc of
               LOC_FLAGS :
                 begin
