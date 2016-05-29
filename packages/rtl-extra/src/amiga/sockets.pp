@@ -143,7 +143,7 @@ function ReleaseCopyOfSocket(s: LongInt location 'd0'; id: LongInt location 'd1'
 
 {$else AMIGAOS4}
 
-var
+threadvar
   SocketBase: PLibrary;
   ISocket: PInterface;
 
@@ -339,10 +339,8 @@ begin
 end;
 
 initialization
-  {$ifndef AMIGAOS4}
   AddThreadInitProc(@BSDSocketOpen);
   AddThreadExitProc(@BSDSocketClose);
-  {$endif}
   BSDSocketOpen;
 
 finalization
