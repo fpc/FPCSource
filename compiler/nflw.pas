@@ -84,6 +84,7 @@ interface
 
        tifnode = class(tloopnode)
           constructor create(l,r,_t1 : tnode);virtual;reintroduce;
+          constructor create_internal(l,r,_t1 : tnode);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function simplify(forinline : boolean) : tnode;override;
@@ -1331,6 +1332,13 @@ implementation
     constructor tifnode.create(l,r,_t1 : tnode);
       begin
          inherited create(ifn,l,r,_t1,nil);
+      end;
+
+
+    constructor tifnode.create_internal(l,r,_t1 : tnode);
+      begin
+        create(l,r,_t1);
+        include(flags,nf_internal);
       end;
 
 

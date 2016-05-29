@@ -1493,9 +1493,10 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; ob
       ObjCEmptyCacheVar:=current_asmdata.RefAsmSymbol(target_info.Cprefix+'_objc_empty_cache');
     list.Concat(Tai_const.Create_sym(ObjCEmptyCacheVar));
     { pointer to vtable }
-    if not assigned(ObjCEmptyVtableVar) then
+    if not assigned(ObjCEmptyVtableVar) and
+       not(target_info.system in [system_arm_darwin,system_aarch64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
       ObjCEmptyVtableVar:=current_asmdata.RefAsmSymbol(target_info.Cprefix+'_objc_empty_vtable');
-    list.Concat(Tai_const.Create_sym(ObjCEmptyVtableVar));
+    ConcatSymOrNil(list,ObjCEmptyVtableVar);
     { the read-only part }
     list.Concat(Tai_const.Create_sym(metarosym));
 
@@ -1509,7 +1510,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; ob
     { pointer to cache }
     list.Concat(Tai_const.Create_sym(ObjCEmptyCacheVar));
     { pointer to vtable }
-    list.Concat(Tai_const.Create_sym(ObjCEmptyVtableVar));
+    ConcatSymOrNil(list,ObjCEmptyVtableVar);
     { the read-only part }
     list.Concat(Tai_const.Create_sym(rosym));
 
