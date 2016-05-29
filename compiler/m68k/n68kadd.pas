@@ -389,7 +389,8 @@ implementation
 
         if (location.size <> right.location.size) or
            not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
-           (not(CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]) and (nodetype = muln)) then
+           (not(CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]) and (nodetype = muln)) or 
+           ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,def_cgsize(resultdef))) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
         case right.location.loc of
@@ -431,26 +432,25 @@ implementation
        if (right.location.loc=LOC_CONSTANT) and (right.location.value=0) then
          begin
            { Unsigned <0 or >=0 should not reach pass2, most likely }
-           case left.location.loc of
-             LOC_REFERENCE,
-             LOC_CREFERENCE:
-               begin
-                 href:=left.location.reference;
-                 tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
-                 current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,opsize,href));
-                 location_freetemp(current_asmdata.CurrAsmList,left.location);
-               end;
+           if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and not needs_unaligned(left.location.reference.alignment,cmpsize) then
+             begin
+               href:=left.location.reference;
+               tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+               current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,opsize,href));
+               location_freetemp(current_asmdata.CurrAsmList,left.location);
+             end
            else
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-             if (current_settings.cputype = cpu_mc68000) and isaddressregister(left.location.register) then
-               begin
-                 tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,cmpsize);
-                 cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,cmpsize,left.location.register,tmpreg);
-               end
-             else
-               tmpreg:=left.location.register;
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,opsize,tmpreg));
-           end;
+             begin
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+               if (current_settings.cputype = cpu_mc68000) and isaddressregister(left.location.register) then
+                 begin
+                   tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,cmpsize);
+                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,cmpsize,left.location.register,tmpreg);
+                 end
+               else
+                 tmpreg:=left.location.register;
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,opsize,tmpreg));
+             end;
            location.resflags := getresflags(unsigned);
            exit;
          end;
@@ -477,6 +477,10 @@ implementation
                toggleflag(nf_swapped);
              end;
          end;
+
+       if (right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,cmpsize) then
+         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+
        { left is now in register }
        case right.location.loc of
          LOC_CONSTANT:
@@ -606,26 +610,25 @@ implementation
         if (right.location.loc=LOC_CONSTANT) and (right.location.value64=0) and
           (nodetype in [equaln,unequaln]) then
           begin
-            case left.location.loc of
-              LOC_REFERENCE,
-              LOC_CREFERENCE:
-                begin
-                  href:=left.location.reference;
-                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
-                  firstjmp64bitcmp;
-                  inc(href.offset,4);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
-                  secondjmp64bitcmp;
-                  location_freetemp(current_asmdata.CurrAsmList,left.location);
-                end;
+            if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and not needs_unaligned(left.location.reference.alignment,OS_INT) then
+              begin
+                href:=left.location.reference;
+                tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+                current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
+                firstjmp64bitcmp;
+                inc(href.offset,4);
+                current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
+                secondjmp64bitcmp;
+                location_freetemp(current_asmdata.CurrAsmList,left.location);
+              end
             else
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reglo));
-              firstjmp64bitcmp;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reghi));
-              secondjmp64bitcmp;
-            end;
+              begin
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reglo));
+                firstjmp64bitcmp;
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reghi));
+                secondjmp64bitcmp;
+              end;
             exit;
           end;
 
@@ -641,6 +644,9 @@ implementation
                 toggleflag(nf_swapped);
               end;
           end;
+
+        if (right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,OS_INT) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
         { left is now in register }
         case right.location.loc of
