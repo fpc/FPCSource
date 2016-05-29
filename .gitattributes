@@ -358,6 +358,7 @@ compiler/llvm/symllvm.pas svneol=native#text/plain
 compiler/llvm/tgllvm.pas svneol=native#text/plain
 compiler/m68k/aasmcpu.pas svneol=native#text/plain
 compiler/m68k/ag68kgas.pas svneol=native#text/plain
+compiler/m68k/ag68kvasm.pas svneol=native#text/plain
 compiler/m68k/aoptcpu.pas svneol=native#text/plain
 compiler/m68k/aoptcpub.pas svneol=native#text/plain
 compiler/m68k/aoptcpud.pas svneol=native#text/plain
