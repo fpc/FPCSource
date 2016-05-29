@@ -222,6 +222,7 @@
              ,as_llvm
              ,as_clang
              ,as_solaris_as
+             ,as_m68k_vasm
        );
 
        tlink = (ld_none,
