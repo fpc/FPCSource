@@ -1469,65 +1469,66 @@ const msgtxt : array[0..000310,1..240] of char=(
   '**2Mdelphi_Delphi 7 com','patibility mode'#010+
   '**2Mtp_TP/BP 7.0 compatibility mode'#010+
   '**2Mmacpas_Macintosh Pascal dialects compatibility mode'#010+
+  '**2Miso_ISO 7185 mode'#010+
   '**1n_Do not read the default config files'#010+
   '**1o<x>_Change the name of the executable produced to <x>'#010+
-  '**1O<x>_Optimizations:'#010+
-  '**2O-_Dis','able optimizations'#010+
+  '**1O<x>_Op','timizations:'#010+
+  '**2O-_Disable optimizations'#010+
   '**2O1_Level 1 optimizations (quick and debugger friendly)'#010+
   '**2O2_Level 2 optimizations (-O1 + quick optimizations)'#010+
   '**2O3_Level 3 optimizations (-O2 + slow optimizations)'#010+
-  '**2O4_Level 4 optimizations (-O3 + optimizations whi','ch might have un'+
+  '**2O4_Level 4 optimizations (-','O3 + optimizations which might have un'+
   'expected side effects)'#010+
   '**2Oa<x>=<y>_Set alignment'#010+
   '**2Oo[NO]<x>_Enable or disable optimizations; see fpc -i or fpc -io fo'+
   'r possible values'#010+
-  '**2Op<x>_Set target cpu for optimizing; see fpc -i or fpc -ic for poss'+
-  'ible values'#010+
-  '**2O','W<x>_Generate whole-program optimization feedback for optimizati'+
-  'on <x>; see fpc -i or fpc -iw for possible values'#010+
+  '**2Op<x>_Set target cpu for optimizing; see fpc -i or fpc -ic fo','r po'+
+  'ssible values'#010+
+  '**2OW<x>_Generate whole-program optimization feedback for optimization'+
+  ' <x>; see fpc -i or fpc -iw for possible values'#010+
   '**2Ow<x>_Perform whole-program optimization <x>; see fpc -i or fpc -iw'+
   ' for possible values'#010+
-  '**2Os_Optimize for size rather than',' speed'#010+
+  '**2Os_Optimiz','e for size rather than speed'#010+
   '**1pg_Generate profile code for gprof (defines FPC_PROFILE)'#010+
   'F*1P<x>_Target CPU / compiler related options:'#010+
   'F*2PB_Show default compiler binary'#010+
   'F*2PP_Show default target cpu'#010+
-  'F*2P<x>_Set target CPU (arm,avr,i386,jvm,m68k,mips,mipsel,pow','erpc,po'+
+  'F*2P<x>_Set target CPU (arm,avr,i386,jv','m,m68k,mips,mipsel,powerpc,po'+
   'werpc64,sparc,x86_64)'#010+
   '**1R<x>_Assembler reading style:'#010+
   '**2Rdefault_Use default assembler for target'#010+
   '3*2Ratt_Read AT&T style assembler'#010+
   '3*2Rintel_Read Intel style assembler'#010+
   '6*2RMOT_Read motorola style assembler'#010+
-  '**1S<x>_Syntax options:'#010,
+  '**','1S<x>_Syntax options:'#010+
   '**2S2_Same as -Mobjfpc'#010+
   '**2Sc_Support operators like C (*=,+=,/= and -=)'#010+
   '**2Sa_Turn on assertions'#010+
   '**2Sd_Same as -Mdelphi'#010+
   '**2Se<x>_Error options. <x> is a combination of the following:'#010+
-  '**3*_<n> : Compiler halts after the <n> errors (default i','s 1)'#010+
+  '**3*_<n> : Compiler halts after the',' <n> errors (default is 1)'#010+
   '**3*_w : Compiler also halts after warnings'#010+
   '**3*_n : Compiler also halts after notes'#010+
   '**3*_h : Compiler also halts after hints'#010+
   '**2Sf_Enable certain features in compiler and RTL; see fpc -i or fpc -'+
-  'ir for possible values)'#010+
-  '**2Sg_Enable LA','BEL and GOTO (default in -Mtp and -Mdelphi)'#010+
+  'ir for possible v','alues)'#010+
+  '**2Sg_Enable LABEL and GOTO (default in -Mtp and -Mdelphi)'#010+
   '**2Sh_Use reference counted strings (ansistring by default) instead of'+
   ' shortstrings'#010+
   '**2Si_Turn on inlining of procedures/functions declared as "inline"'#010+
-  '**2Sk_Load fpcylix unit'#010+
-  '**2SI<x>_Set interfa','ce style to <x>'#010+
+  '**2Sk_Load fpcylix uni','t'#010+
+  '**2SI<x>_Set interface style to <x>'#010+
   '**3SIcom_COM compatible interface (default)'#010+
   '**3SIcorba_CORBA compatible interface'#010+
   '**2Sm_Support macros like C (global)'#010+
   '**2So_Same as -Mtp'#010+
   '**2Ss_Constructor name must be init (destructor must be done)'#010+
-  '**2Sv_Support vector pro','cessing (use CPU vector extensions if availa'+
+  '**','2Sv_Support vector processing (use CPU vector extensions if availa'+
   'ble)'#010+
   '**2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)'#010+
   '**2Sy_@<pointer> returns a typed pointer, same as $T+'#010+
   '**1s_Do not call assembler and linker'#010+
-  '**2sh_Generate script to link on h','ost'#010+
+  '**2sh_Genera','te script to link on host'#010+
   '**2st_Generate script to link on target'#010+
   '**2sr_Skip register allocation phase (use with -alr)'#010+
   '**1T<x>_Target operating system:'#010+
@@ -1535,15 +1536,15 @@ const msgtxt : array[0..000310,1..240] of char=(
   '3*2Taros_AROS'#010+
   '3*2Tbeos_BeOS'#010+
   '3*2Tdarwin_Darwin/Mac OS X'#010+
-  '3*2Tembedded_Embedded'#010+
-  '3*2Temx_OS/2 ','via EMX (including EMX/RSX extender)'#010+
+  '3*2Tembedded_','Embedded'#010+
+  '3*2Temx_OS/2 via EMX (including EMX/RSX extender)'#010+
   '3*2Tfreebsd_FreeBSD'#010+
   '3*2Tgo32v2_Version 2 of DJ Delorie DOS extender'#010+
   '3*2Thaiku_Haiku'#010+
   '3*2Tiphonesim_ iPhoneSimulator from iOS SDK 3.2+ (older versions: -Tda'+
   'rwin)'#010+
   '3*2Tlinux_Linux'#010+
-  '3*2Tnativent_Native NT API ','(experimental)'#010+
+  '3*2Tn','ativent_Native NT API (experimental)'#010+
   '3*2Tnetbsd_NetBSD'#010+
   '3*2Tnetware_Novell Netware Module (clib)'#010+
   '3*2Tnetwlibc_Novell Netware Module (libc)'#010+
@@ -1551,8 +1552,8 @@ const msgtxt : array[0..000310,1..240] of char=(
   '3*2Tos2_OS/2 / eComStation'#010+
   '3*2Tsunos_SunOS/Solaris'#010+
   '3*2Tsymbian_Symbian OS'#010+
-  '3*2Tsolaris_Solaris'#010+
-  '3*2Twatcom','_Watcom compatible DOS extender'#010+
+  '3*2Tsola','ris_Solaris'#010+
+  '3*2Twatcom_Watcom compatible DOS extender'#010+
   '3*2Twdosx_WDOSX DOS extender'#010+
   '3*2Twin32_Windows 32 Bit'#010+
   '3*2Twince_Windows CE'#010+
@@ -1561,8 +1562,8 @@ const msgtxt : array[0..000310,1..240] of char=(
   '4*2Tlinux_Linux'#010+
   '4*2Tnetbsd_NetBSD'#010+
   '4*2Topenbsd_OpenBSD'#010+
-  '4*2Tsolaris_Solaris'#010+
-  '4*2Twin64_Wi','n64 (64 bit Windows systems)'#010+
+  '4*2Tsolari','s_Solaris'#010+
+  '4*2Twin64_Win64 (64 bit Windows systems)'#010+
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
   '6*2Tlinux_Linux'#010+
@@ -1570,8 +1571,8 @@ const msgtxt : array[0..000310,1..240] of char=(
   '8*2Tmsdos_MS-DOS (and compatible)'#010+
   'A*2Tandroid_Android'#010+
   'A*2Tdarwin_Darwin/iPhoneOS/iOS'#010+
-  'A*2Tembedded_Embedded'#010+
-  'A*2Tgba_Game Boy A','dvance'#010+
+  'A*2Tembedded_Embed','ded'#010+
+  'A*2Tgba_Game Boy Advance'#010+
   'A*2Tlinux_Linux'#010+
   'A*2Tnds_Nintendo DS'#010+
   'A*2Tsymbian_Symbian'#010+
@@ -1583,8 +1584,8 @@ const msgtxt : array[0..000310,1..240] of char=(
   'M*2Tembedded_Embedded'#010+
   'M*2Tlinux_Linux'#010+
   'P*2Taix_AIX'#010+
-  'P*2Tamiga_AmigaOS'#010+
-  'P*2Tdarwin_D','arwin/Mac OS X'#010+
+  'P*2Tamig','a_AmigaOS'#010+
+  'P*2Tdarwin_Darwin/Mac OS X'#010+
   'P*2Tlinux_Linux'#010+
   'P*2Tmacos_Mac OS (classic)'#010+
   'P*2Tmorphos_MorphOS'#010+
@@ -1595,131 +1596,132 @@ const msgtxt : array[0..000310,1..240] of char=(
   'p*2Tlinux_Linux'#010+
   'S*2Tsolaris_Solaris'#010+
   'S*2Tlinux_Linux'#010+
-  'V*2Tembedded_Embedded'#010+
-  '**1u<x>_Undefines t','he symbol <x>'#010+
+  'V*2Tembedded_Embedd','ed'#010+
+  '**1u<x>_Undefines the symbol <x>'#010+
   '**1U_Unit options:'#010+
   '**2Un_Do not check where the unit name matches the file name'#010+
   '**2Ur_Generate release unit files (never automatically recompiled)'#010+
   '**2Us_Compile a system unit'#010+
-  '**1v<x>_Be verbose. <x> is a combination of the fol','lowing letters:'#010+
+  '**1v<x>_Be verbose. <x> is a ','combination of the following letters:'#010+
   '**2*_e : Show errors (default)       0 : Show nothing (except errors)'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
   '**2*_n : Show notes                  t : Show tried/used files'#010+
-  '**2*_h : Show hints                ','  c : Show conditionals'#010+
+  '**2*_h : Show',' hints                  c : Show conditionals'#010+
   '**2*_i : Show general info           d : Show debug info'#010+
   '**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode'#010+
   '**2*_s : Show time stamps            q : Show message numbers'#010+
-  '**2*_a : Show everything   ','          x : Show info about invoked too'+
+  '**2*_','a : Show everything             x : Show info about invoked too'+
   'ls'#010+
   '**2*_b : Write file names messages   p : Write tree.log with parse tre'+
   'e'#010+
   '**2*_    with full path              v : Write fpcdebug.txt with'#010+
-  '**2*_z : Write output to stderr          lots of debugging ','info'#010+
+  '**2*_z : Write output to stderr      ','    lots of debugging info'#010+
   '**2*_m<x>,<y> : Do not show messages numbered <x> and <y>'#010+
   'F*1V<x>_Append '#039'-<x>'#039' to the used compiler binary name (e.g. f'+
   'or version)'#010+
   '**1W<x>_Target-specific options (targets)'#010+
-  '3*2WA_Specify native type application (Windows)'#010+
-  '4*2WA_Specify',' native type application (Windows)'#010+
+  '3*2WA_Specify native type application (','Windows)'#010+
+  '4*2WA_Specify native type application (Windows)'#010+
   'A*2WA_Specify native type application (Windows)'#010+
   '3*2Wb_Create a bundle instead of a library (Darwin)'#010+
   'P*2Wb_Create a bundle instead of a library (Darwin)'#010+
-  'p*2Wb_Create a bundle instead of a library (Darwin)'#010+
-  'A','*2Wb_Create a bundle instead of a library (Darwin)'#010+
+  'p*2Wb_Create a bundle instead o','f a library (Darwin)'#010+
+  'A*2Wb_Create a bundle instead of a library (Darwin)'#010+
   '4*2Wb_Create a bundle instead of a library (Darwin)'#010+
   '3*2WB_Create a relocatable image (Windows, Symbian)'#010+
   '3*2WBxxxx_Set image base to xxxx (Windows, Symbian)'#010+
-  '4*2WB_Create a relocatable image ','(Windows)'#010+
+  '4*2WB_Creat','e a relocatable image (Windows)'#010+
   '4*2WBxxxx_Set image base to xxxx (Windows)'#010+
   'A*2WB_Create a relocatable image (Windows, Symbian)'#010+
   'A*2WBxxxx_Set image base to xxxx (Windows, Symbian)'#010+
   '3*2WC_Specify console type application (EMX, OS/2, Windows)'#010+
-  '4*2WC_Specify console t','ype application (Windows)'#010+
+  '4','*2WC_Specify console type application (Windows)'#010+
   'A*2WC_Specify console type application (Windows)'#010+
   'P*2WC_Specify console type application (Classic Mac OS)'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
-  '4*2WD_Use DEFFILE to export functions of DLL or',' EXE (Windows)'#010+
+  '4*2WD_Use DEFFILE to expo','rt functions of DLL or EXE (Windows)'#010+
   'A*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
   '3*2We_Use external resources (Darwin)'#010+
   '4*2We_Use external resources (Darwin)'#010+
   'A*2We_Use external resources (Darwin)'#010+
-  'P*2We_Use external resources (Darwin)'#010+
-  'p*2We_Use e','xternal resources (Darwin)'#010+
+  'P*2We_Use external resource','s (Darwin)'#010+
+  'p*2We_Use external resources (Darwin)'#010+
   '3*2WF_Specify full-screen type application (EMX, OS/2)'#010+
   '3*2WG_Specify graphic type application (EMX, OS/2, Windows)'#010+
   '4*2WG_Specify graphic type application (Windows)'#010+
-  'A*2WG_Specify graphic type application (Windows)'#010,
+  'A*2WG_Specify graphic type ','application (Windows)'#010+
   'P*2WG_Specify graphic type application (Classic Mac OS)'#010+
   '3*2Wi_Use internal resources (Darwin)'#010+
   '4*2Wi_Use internal resources (Darwin)'#010+
   'A*2Wi_Use internal resources (Darwin)'#010+
   'P*2Wi_Use internal resources (Darwin)'#010+
-  'p*2Wi_Use internal resources (Da','rwin)'#010+
+  'p*2Wi_Use ','internal resources (Darwin)'#010+
   '3*2WI_Turn on/off the usage of import sections (Windows)'#010+
   '4*2WI_Turn on/off the usage of import sections (Windows)'#010+
   'A*2WI_Turn on/off the usage of import sections (Windows)'#010+
   '8*2Wm<x>_Set memory model'#010+
-  '8*3WmTiny_Tiny memory model'#010+
-  '8*3WmSmal','l_Small memory model (default)'#010+
+  '8*3WmTiny_Tiny ','memory model'#010+
+  '8*3WmSmall_Small memory model (default)'#010+
   '8*3WmMedium_Medium memory model'#010+
   '8*3WmCompact_Compact memory model'#010+
   '8*3WmLarge_Large memory model'#010+
   '3*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwi'+
   'n)'#010+
-  '4*2WM<x>_Minimum Mac OS X deployment ver','sion: 10.4, 10.5.1, ... (Dar'+
+  '4*2WM<x>_Minimum M','ac OS X deployment version: 10.4, 10.5.1, ... (Dar'+
   'win)'#010+
   'p*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwi'+
   'n)'#010+
   'P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwi'+
   'n)'#010+
-  '3*2WN_Do not generate relocation code, needed for debugging (','Windows'+
+  '3*2WN_Do not generate relocation code, ','needed for debugging (Windows'+
   ')'#010+
   '4*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
   'A*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
-  'A*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possi'+
+  'A*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for poss',
+  'ible values'#010+
+  'm*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possi'+
   'ble values'#010+
-  'm*2Wpxxxx_','Specify the controller type; see fpc -i or fpc -iu for pos'+
-  'sible values'#010+
   'V*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possi'+
   'ble values'#010+
-  '3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)'#010+
-  'A*2WP<x>_Minimum iO','S deployment version: 3.0, 5.0.1, ... (Darwin)'#010+
+  '3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesi','m)'+
+  #010+
+  'A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)'#010+
   '3*2WR_Generate relocation code (Windows)'#010+
   '4*2WR_Generate relocation code (Windows)'#010+
   'A*2WR_Generate relocation code (Windows)'#010+
   '8*2Wt<x>_Set the target executable format'#010+
-  '8*3Wtexe_Create a DOS .EXE f','ile (default)'#010+
+  '8*3Wte','xe_Create a DOS .EXE file (default)'#010+
   '8*3Wtcom_Create a DOS .COM file (requires tiny memory model)'#010+
   'P*2WT_Specify MPW tool type application (Classic Mac OS)'#010+
   '**2WX_Enable executable stack (Linux)'#010+
   '**1X_Executable options:'#010+
-  '**2Xc_Pass --shared/-dynamic to the linker (B','eOS, Darwin, FreeBSD, L'+
+  '**2Xc_Pass --shared/-dy','namic to the linker (BeOS, Darwin, FreeBSD, L'+
   'inux)'#010+
   '**2Xd_Do not search default library path (sometimes required for cross'+
   '-compiling when not using -XR)'#010+
   '**2Xe_Use external linker'#010+
   '**2Xf_Substitute pthread library name for linking (BSD)'#010+
-  '**2Xg_Create debuginfo in a ','separate file and add a debuglink sectio'+
+  '**2Xg_','Create debuginfo in a separate file and add a debuglink sectio'+
   'n to executable'#010+
   '**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xi_Use internal linker'#010+
   '**2XLA_Define library substitutions for linking'#010+
-  '**2XLO_Define order of library linking'#010+
-  '**2','XLD_Exclude default order of standard libraries'#010+
+  '**2XLO_Define order ','of library linking'#010+
+  '**2XLD_Exclude default order of standard libraries'#010+
   '**2Xm_Generate link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
   '**2Xn_Use target system native linker instead of GNU ld (Solaris, AIX)'+
   #010+
-  'F*2Xp<x>_First search for',' the compiler binary in the directory <x>'#010+
+  'F*2','Xp<x>_First search for the compiler binary in the directory <x>'#010+
   '**2XP<x>_Prepend the binutils names with the prefix <x>'#010+
   '**2Xr<x>_Set the linker'#039's rlink-path to <x> (needed for cross comp'+
-  'ile, see the ld manual for more information) (BeOS, Linux)'#010+
-  '**2XR<x>_Prepend ','<x> to all linker search paths (BeOS, Darwin, FreeB'+
-  'SD, Linux, Mac OS, Solaris)'#010+
+  'ile, see the ld manual for more information) (BeOS, Li','nux)'#010+
+  '**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD'+
+  ', Linux, Mac OS, Solaris)'#010+
   '**2Xs_Strip all symbols from executable'#010+
   '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
-  '**2Xt_Link with static libraries (-static is passed',' to linker)'#010+
+  '**2Xt_Link with static librar','ies (-static is passed to linker)'#010+
   '**2Xv_Generate table for Virtual Entry calls'#010+
   '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
