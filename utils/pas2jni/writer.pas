@@ -1270,6 +1270,9 @@ begin
     Fps.WriteLn('begin');
     Fps.IncI;
     Fps.WriteLn('CurJavaVM^^.GetEnv(CurJavaVM, @_env, JNI_VERSION_1_6);');
+    Fps.WriteLn('_env^^.PushLocalFrame(_env, 100);');
+    Fps.WriteLn('try');
+    Fps.IncI;
     Fps.WriteLn('_MethodPointersCS.Enter;');
     Fps.WriteLn('try');
     Fps.WriteLn('_mpi:=_TMethodPtrInfo(_MethodPointers[-integer(ptruint(Self)) - 1]);', 1);
@@ -1330,6 +1333,10 @@ begin
           end;
     end;
 
+    Fps.DecI;
+    Fps.WriteLn('finally');
+    Fps.WriteLn('_env^^.PopLocalFrame(_env, nil);', 1);
+    Fps.WriteLn('end;');
     Fps.DecI;
     Fps.WriteLn('end;');
 
