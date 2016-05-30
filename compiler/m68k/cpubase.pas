@@ -67,7 +67,7 @@ unit cpubase;
          { mc64040 instructions }
          a_move16,
          { coldfire v4 instructions }
-         a_mov3q,a_mvz,a_mvs,a_sats,a_byterev,a_ff1,
+         a_mov3q,a_mvz,a_mvs,a_sats,a_byterev,a_ff1,a_remu,a_rems,
          { fpu processor instructions - directly supported }
          { ieee aware and misc. condition codes not supported   }
          a_fabs,a_fadd,
@@ -364,6 +364,7 @@ unit cpubase;
     function isintregister(reg : tregister) : boolean;
     function fpuregopsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function fpuregsize: aint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function needs_unaligned(const refalignment: aint; const size: tcgsize): boolean;
     function isregoverlap(reg1: tregister; reg2: tregister): boolean;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -551,6 +552,13 @@ implementation
         fpu_regsize: array[boolean] of aint = ( 12, 8 ); { S_FX is 12 bytes on '881 }
       begin
         result:=fpu_regsize[current_settings.fputype = fpu_coldfire];
+      end;
+
+    function needs_unaligned(const refalignment: aint; const size: tcgsize): boolean;
+      begin
+        result:=not(CPUM68K_HAS_UNALIGNED in cpu_capabilities[current_settings.cputype]) and
+                (refalignment = 1) and
+                (tcgsize2size[size] > 1);
       end;
 
     // the function returns true, if the registers overlap (subreg of the same superregister and same type)

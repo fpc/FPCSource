@@ -163,23 +163,30 @@ interface
               getopstr:='';
               for i:=RS_D0 to RS_D7 do
                 begin
-                  if i in o.dataregset^ then
+                  if i in o.dataregset then
                    getopstr:=getopstr+gas_regname(newreg(R_INTREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               for i:=RS_A0 to RS_SP do
                 begin
-                  if i in o.addrregset^ then
+                  if i in o.addrregset then
                    getopstr:=getopstr+gas_regname(newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               for i:=RS_FP0 to RS_FP7 do
                 begin
-                  if i in o.fpuregset^ then
+                  if i in o.fpuregset then
                    getopstr:=getopstr+gas_regname(newreg(R_FPUREGISTER,i,R_SUBNONE))+'/';
                 end;
               delete(getopstr,length(getopstr),1);
             end;
           top_const:
             getopstr:='#'+tostr(longint(o.val));
+          top_realconst:
+            begin
+              str(o.val_real,getopstr);
+              if getopstr[1]=' ' then
+                getopstr[1]:='+';
+              getopstr:='#0d'+getopstr;
+            end;
           else internalerror(200405021);
         end;
       end;
@@ -288,7 +295,7 @@ interface
                         sep:=#9
                       else
                       if (i=2) and
-                         (op in [A_DIVSL,A_DIVUL,A_MULS,A_MULU,A_DIVS,A_DIVU]) then
+                         (op in [A_DIVSL,A_DIVUL,A_MULS,A_MULU,A_DIVS,A_DIVU,A_REMS,A_REMU]) then
                         sep:=':'
                       else
                         sep:=',';

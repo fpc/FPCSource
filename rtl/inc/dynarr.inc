@@ -33,6 +33,7 @@ type
      elSize : SizeUInt;
      elType2 : Pointer;
      varType : Longint;
+     elType : Pointer;
    end;
 
 procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex);[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; compilerproc;
@@ -73,7 +74,8 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
     if declocked(realp^.refcount) then
       begin
         ti:=aligntoptr(ti+2+PByte(ti)[1]);
-        int_finalizearray(p,pdynarraytypedata(ti)^.elType2,realp^.high+1);
+        if assigned(pdynarraytypedata(ti)^.elType) then
+          int_finalizearray(p,pdynarraytypedata(ti)^.elType,realp^.high+1);
         freemem(realp);
       end;
     p:=nil;
@@ -127,7 +129,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      ti : pointer;
      updatep: boolean;
      elesize : sizeint;
-     eletype : pointer;
+     eletype,eletypemngd : pointer;
      movsize : sizeint;
 
   begin
@@ -140,6 +142,8 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
 
      elesize:=pdynarraytypedata(ti)^.elSize;
      eletype:=pdynarraytypedata(ti)^.elType2;
+     { only set if type needs finalization }
+     eletypemngd:=pdynarraytypedata(ti)^.elType;
 
      { determine new memory size }
      size:=elesize*dims[0]+sizeof(tdynarray);
@@ -182,9 +186,10 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                if size-sizeof(tdynarray)>movsize then
                  fillchar((pointer(newp)+sizeof(tdynarray)+movsize)^,size-sizeof(tdynarray)-movsize,0);
 
-               { increment ref. count of members }
-               for i:= 0 to movelen-1 do
-                 int_addref(pointer(newp)+sizeof(tdynarray)+elesize*i,eletype);
+               { increment ref. count of managed members }
+               if assigned(eletypemngd) then
+                 for i:= 0 to movelen-1 do
+                   int_addref(pointer(newp)+sizeof(tdynarray)+elesize*i,eletypemngd);
 
                { a declock(ref. count) isn't enough here }
                { it could be that the in MT environments  }
@@ -213,9 +218,10 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                     { shrink the array? }
                     if dims[0]<realp^.high+1 then
                       begin
-                          int_finalizearray(pointer(realp)+sizeof(tdynarray)+
-                            elesize*dims[0],
-                            eletype,realp^.high-dims[0]+1);
+                         if assigned(eletypemngd) then
+                           int_finalizearray(pointer(realp)+sizeof(tdynarray)+
+                              elesize*dims[0],
+                              eletypemngd,realp^.high-dims[0]+1);
                          reallocmem(realp,size);
                       end
                     else if dims[0]>realp^.high+1 then
@@ -286,7 +292,8 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
      ti:=aligntoptr(ti+2+PByte(ti)[1]);
 
      elesize:=pdynarraytypedata(ti)^.elSize;
-     eletype:=pdynarraytypedata(ti)^.elType2;
+     { only set if type needs finalization }
+     eletype:=pdynarraytypedata(ti)^.elType;
 
      { create new array }
      size:=elesize*count;
@@ -298,7 +305,7 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
      move(pointer(psrc+elesize*lowidx)^,pointer(result)^,size);
 
      { increment ref. count of members? }
-     if PByte(eletype)^ in tkManagedTypes then
+     if assigned(eletype) then
        for i:=0 to count-1 do
          int_addref(pointer(pointer(result)+elesize*i),eletype);
   end;

@@ -45,13 +45,16 @@ implementation
     uses
       verbose,cutils,globals,fmodule,systems,
       aasmbase,aasmtai,cpubase,llvmbase,aasmllvm,
+      aasmcnst,
       symbase,symtable,defutil,
       llvmtype;
 
   class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
     var
-      asmsym: tasmsymbol;
+      asmsym,
+      symind: tasmsymbol;
       field1, field2: tsym;
+      tcb: ttai_typedconstbuilder;
     begin
       if sym.globalasmsym then
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,AT_DATA)
@@ -65,6 +68,15 @@ implementation
         list.concat(taillvmdecl.createdef(asmsym,
           get_threadvar_record(sym.vardef,field1,field2),
           nil,sec_data,varalign));
+      symind:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_INDIRECT,AT_DATA);
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+      tcb.emit_tai(Tai_const.Create_sym_offset(asmsym,0),cpointerdef.getreusable(sym.vardef));
+      list.concatlist(tcb.get_final_asmlist(
+        symind,cpointerdef.getreusable(sym.vardef),
+        sec_rodata,
+        lower(sym.mangledname),
+        const_align(sym.vardef.alignment)));
+      tcb.free;
     end;
 
 

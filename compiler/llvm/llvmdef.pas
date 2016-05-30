@@ -211,17 +211,23 @@ implementation
                   end;
               end;
             end
-          else if is_pasbool(fromsize) and
-                  not is_pasbool(tosize) then
+          else if (fromsize=llvmbool1type) and
+                  (tosize<>llvmbool1type) then
             begin
               if is_cbool(tosize) then
                 result:=la_sext
               else
                 result:=la_zext
             end
-          else if is_pasbool(tosize) and
-                  not is_pasbool(fromsize) then
-            result:=la_trunc
+          else if (tosize=llvmbool1type) and
+                  (fromsize<>llvmbool1type) then
+            begin
+              { would have to compare with 0, can't just take the lowest bit }
+              if is_cbool(fromsize) then
+                internalerror(2016052001)
+              else
+                result:=la_trunc
+            end
           else
             result:=la_bitcast;
         end;
@@ -308,10 +314,10 @@ implementation
               if is_void(def) then
                 encodedstr:=encodedstr+'void'
               { mainly required because comparison operations return i1, and
-                otherwise we always have to immediatel extend them to i8 for
-                no good reason; besides, Pascal booleans can only contain 0
-                or 1 in valid code anyway (famous last words...) }
-              else if torddef(def).ordtype=pasbool8 then
+                we need a way to represent the i1 type in Pascal. We don't
+                reuse pasbool8type, because putting an i1 in a record or
+                passing it as a parameter may result in unexpected behaviour }
+              else if def=llvmbool1type then
                 encodedstr:=encodedstr+'i1'
               else
                 encodedstr:=encodedstr+'i'+tostr(def.size*8);

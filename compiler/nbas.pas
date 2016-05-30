@@ -214,7 +214,6 @@ interface
           tempinfo: ptempinfo;
 
           constructor create(const temp: ttempcreatenode); virtual;
-          constructor create_offset(const temp: ttempcreatenode;aoffset:longint);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure resolveppuidx;override;
@@ -224,8 +223,6 @@ interface
           procedure mark_write;override;
           function docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
-         protected
-          offset : longint;
          private
           tempidx : longint;
         end;
@@ -1024,14 +1021,6 @@ implementation
       begin
         inherited create(temprefn);
         tempinfo := temp.tempinfo;
-        offset:=0;
-      end;
-
-
-    constructor ttemprefnode.create_offset(const temp: ttempcreatenode;aoffset:longint);
-      begin
-        self.create(temp);
-        offset := aoffset;
       end;
 
 
@@ -1040,7 +1029,6 @@ implementation
         n: ttemprefnode;
       begin
         n := ttemprefnode(inherited dogetcopy);
-        n.offset := offset;
 
         if assigned(tempinfo^.hookoncopy) then
           { if the temp has been copied, assume it becomes a new }
@@ -1073,7 +1061,6 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         tempidx:=ppufile.getlongint;
-        offset:=ppufile.getlongint;
       end;
 
 
@@ -1081,7 +1068,6 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putlongint(tempinfo^.owner.ppuidx);
-        ppufile.putlongint(offset);
       end;
 
 
@@ -1141,8 +1127,7 @@ implementation
       begin
         result :=
           inherited docompare(p) and
-          (ttemprefnode(p).tempinfo = tempinfo) and
-          (ttemprefnode(p).offset = offset);
+          (ttemprefnode(p).tempinfo = tempinfo);
       end;
 
 

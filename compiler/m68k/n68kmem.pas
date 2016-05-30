@@ -90,7 +90,7 @@ implementation
               end;
           end;
 
-        if (location.reference.base=NR_NO) and not (scaled) then
+        if (location.reference.base=NR_NO) and not (scaled) and not assigned(location.reference.symbol) then
           begin
            { prefer an address reg, if we will be a base, for indexes any register works }
             if isintregister(maybe_const_reg) then

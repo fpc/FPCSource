@@ -92,6 +92,7 @@ Type
    ISC_INT64     = int64;
    ISC_UINT64    = qword;
    ISC_LONG      = Longint;
+   ISC_ULONG     = dword;
 
    PISC_USHORT = ^ISC_USHORT;
    PISC_STATUS = ^ISC_STATUS;
@@ -155,7 +156,7 @@ Type
 
    GDS_QUAD = record
       gds_quad_high : ISC_LONG;
-      gds_quad_low : ISC_LONG;
+      gds_quad_low : ISC_ULONG;
    end;
    TGDS_QUAD = GDS_QUAD;
    PGDS_QUAD = ^GDS_QUAD;

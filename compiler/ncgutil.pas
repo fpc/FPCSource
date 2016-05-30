@@ -1308,7 +1308,9 @@ implementation
         for i:=0 to current_procinfo.procdef.paras.count-1 do
           begin
             currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
-            gen_load_cgpara_loc(list,currpara.vardef,currpara.paraloc[calleeside],currpara.initialloc,paramanager.param_use_paraloc(currpara.paraloc[calleeside]));
+            { don't use currpara.vardef, as this will be wrong in case of
+              call-by-reference parameters (it won't contain the pointerdef) }
+            gen_load_cgpara_loc(list,currpara.paraloc[calleeside].def,currpara.paraloc[calleeside],currpara.initialloc,paramanager.param_use_paraloc(currpara.paraloc[calleeside]));
             { gen_load_cgpara_loc() already allocated the initialloc
               -> don't allocate again }
             if currpara.initialloc.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER] then

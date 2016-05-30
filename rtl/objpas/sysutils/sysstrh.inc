@@ -264,3 +264,48 @@ function LeftStr(const S: string; Count: integer): string;
 function RightStr(const S: string; Count: integer): string;
 function BCDToInt(Value: integer): integer;
 
+Type
+  {==============================================================================}
+  {   TStringBuilder                                                             }
+  {==============================================================================}
+
+  // Ansi version implementation
+
+{$MACRO ON}
+{$UNDEF SBUNICODE}
+{$define SBChar:=AnsiChar}
+{$define SBString:=AnsiString}
+{$define TSBCharArray:=Array of SBChar}
+{$define PSBChar:=PAnsiChar}
+{$define SBRAWString:=RawByteString}
+{$define TStringBuilder:=TAnsiStringBuilder}
+
+{$i syssbh.inc}
+{$undef SBChar}
+{$undef SBString}
+{$undef TSBCharArray}
+{$undef PSBChar}
+{$undef SBRAWString}
+{$undef TStringBuilder}
+
+// Unicode version implementation
+
+{$define SBUNICODE}
+{$define SBChar:=WideChar}
+{$define SBString:=UnicodeString}
+{$define TSBCharArray:=Array of SBChar}
+{$define PSBChar:=PWideChar}
+{$define SBRAWString:=UnicodeString}
+{$define TStringBuilder:=TUnicodeStringBuilder}
+{$i syssbh.inc}
+{$undef SBChar}
+{$undef SBString}
+{$undef TSBCharArray}
+{$undef PSBChar}
+{$undef SBRAWString}
+{$undef TStringBuilder}
+{$undef SBUNICODE}
+
+Type
+  TStringBuilder = TAnsiStringBuilder;
+

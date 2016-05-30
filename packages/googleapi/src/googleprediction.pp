@@ -1,19 +1,4 @@
 unit googleprediction;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:06
 {$MODE objfpc}
 {$H+}
 
@@ -96,7 +81,7 @@ type
   Protected
     //Property setters
     Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setvalues(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray); virtual;
+    Procedure Setvalues(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -158,10 +143,10 @@ type
     Ftext : TAnalyzeTypedataDescriptionTypefeaturesItemTypetext;
   Protected
     //Property setters
-    Procedure Setcategorical(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical); virtual;
+    Procedure Setcategorical(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical); virtual;
     Procedure Setindex(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setnumeric(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric); virtual;
-    Procedure Settext(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypetext); virtual;
+    Procedure Setnumeric(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric); virtual;
+    Procedure Settext(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypetext); virtual;
   Public
   Published
     Property categorical : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical Index 0 Read Fcategorical Write Setcategorical;
@@ -222,8 +207,8 @@ type
     Ftext : TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray;
   Protected
     //Property setters
-    Procedure Setnumeric(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric); virtual;
-    Procedure Settext(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray); virtual;
+    Procedure Setnumeric(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric); virtual;
+    Procedure Settext(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -245,8 +230,8 @@ type
     FoutputFeature : TAnalyzeTypedataDescriptionTypeoutputFeature;
   Protected
     //Property setters
-    Procedure Setfeatures(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesArray); virtual;
-    Procedure SetoutputFeature(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeature); virtual;
+    Procedure Setfeatures(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypefeaturesArray); virtual;
+    Procedure SetoutputFeature(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypeoutputFeature); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -311,9 +296,9 @@ type
     Fmodelinfo : TInsert2;
   Protected
     //Property setters
-    Procedure SetconfusionMatrix(AIndex : Integer; AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrix); virtual;
-    Procedure SetconfusionMatrixRowTotals(AIndex : Integer; AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals); virtual;
-    Procedure Setmodelinfo(AIndex : Integer; AValue : TInsert2); virtual;
+    Procedure SetconfusionMatrix(AIndex : Integer; const AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrix); virtual;
+    Procedure SetconfusionMatrixRowTotals(AIndex : Integer; const AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals); virtual;
+    Procedure Setmodelinfo(AIndex : Integer; const AValue : TInsert2); virtual;
   Public
   Published
     Property confusionMatrix : TAnalyzeTypemodelDescriptionTypeconfusionMatrix Index 0 Read FconfusionMatrix Write SetconfusionMatrix;
@@ -336,11 +321,11 @@ type
     FselfLink : String;
   Protected
     //Property setters
-    Procedure SetdataDescription(AIndex : Integer; AValue : TAnalyzeTypedataDescription); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TAnalyzeTypeerrorsArray); virtual;
+    Procedure SetdataDescription(AIndex : Integer; const AValue : TAnalyzeTypedataDescription); virtual;
+    Procedure Seterrors(AIndex : Integer; const AValue : TAnalyzeTypeerrorsArray); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmodelDescription(AIndex : Integer; AValue : TAnalyzeTypemodelDescription); virtual;
+    Procedure SetmodelDescription(AIndex : Integer; const AValue : TAnalyzeTypemodelDescription); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -366,7 +351,7 @@ type
     FcsvInstance : TTJSONSchemaArray;
   Protected
     //Property setters
-    Procedure SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure SetcsvInstance(AIndex : Integer; const AValue : TTJSONSchemaArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -386,7 +371,7 @@ type
     Finput : TInputTypeinput;
   Protected
     //Property setters
-    Procedure Setinput(AIndex : Integer; AValue : TInputTypeinput); virtual;
+    Procedure Setinput(AIndex : Integer; const AValue : TInputTypeinput); virtual;
   Public
   Published
     Property input : TInputTypeinput Index 0 Read Finput Write Setinput;
@@ -403,7 +388,7 @@ type
     Foutput : String;
   Protected
     //Property setters
-    Procedure SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure SetcsvInstance(AIndex : Integer; const AValue : TTJSONSchemaArray); virtual;
     Procedure Setoutput(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -452,8 +437,8 @@ type
     Procedure SetstorageDataLocation(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstoragePMMLLocation(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstoragePMMLModelLocation(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettrainingInstances(AIndex : Integer; AValue : TInsertTypetrainingInstancesArray); virtual;
-    Procedure Setutility(AIndex : Integer; AValue : TInsertTypeutilityArray); virtual;
+    Procedure SettrainingInstances(AIndex : Integer; const AValue : TInsertTypetrainingInstancesArray); virtual;
+    Procedure Setutility(AIndex : Integer; const AValue : TInsertTypeutilityArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -521,16 +506,16 @@ type
     FtrainingStatus : String;
   Protected
     //Property setters
-    Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setcreated(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmodelInfo(AIndex : Integer; AValue : TInsert2TypemodelInfo); virtual;
+    Procedure SetmodelInfo(AIndex : Integer; const AValue : TInsert2TypemodelInfo); virtual;
     Procedure SetmodelType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstorageDataLocation(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstoragePMMLLocation(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstoragePMMLModelLocation(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettrainingComplete(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SettrainingComplete(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure SettrainingStatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -560,7 +545,7 @@ type
     FselfLink : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
@@ -614,7 +599,7 @@ type
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoutputLabel(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetoutputMulti(AIndex : Integer; AValue : TOutputTypeoutputMultiArray); virtual;
+    Procedure SetoutputMulti(AIndex : Integer; const AValue : TOutputTypeoutputMultiArray); virtual;
     Procedure SetoutputValue(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -642,7 +627,7 @@ type
     Foutput : String;
   Protected
     //Property setters
-    Procedure SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure SetcsvInstance(AIndex : Integer; const AValue : TTJSONSchemaArray); virtual;
     Procedure Setoutput(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -781,7 +766,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical.Setvalues(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical.Setvalues(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray); 
 
 begin
   If (Fvalues=AValue) then exit;
@@ -865,7 +850,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Setcategorical(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Setcategorical(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical); 
 
 begin
   If (Fcategorical=AValue) then exit;
@@ -885,7 +870,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Setnumeric(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Setnumeric(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric); 
 
 begin
   If (Fnumeric=AValue) then exit;
@@ -895,7 +880,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Settext(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypetext); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Settext(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypetext); 
 
 begin
   If (Ftext=AValue) then exit;
@@ -976,7 +961,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzeTypedataDescriptionTypeoutputFeature.Setnumeric(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeature.Setnumeric(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric); 
 
 begin
   If (Fnumeric=AValue) then exit;
@@ -986,7 +971,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescriptionTypeoutputFeature.Settext(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeature.Settext(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextArray); 
 
 begin
   If (Ftext=AValue) then exit;
@@ -1016,7 +1001,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzeTypedataDescription.Setfeatures(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesArray); 
+Procedure TAnalyzeTypedataDescription.Setfeatures(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypefeaturesArray); 
 
 begin
   If (Ffeatures=AValue) then exit;
@@ -1026,7 +1011,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescription.SetoutputFeature(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypeoutputFeature); 
+Procedure TAnalyzeTypedataDescription.SetoutputFeature(AIndex : Integer; const AValue : TAnalyzeTypedataDescriptionTypeoutputFeature); 
 
 begin
   If (FoutputFeature=AValue) then exit;
@@ -1095,7 +1080,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzeTypemodelDescription.SetconfusionMatrix(AIndex : Integer; AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrix); 
+Procedure TAnalyzeTypemodelDescription.SetconfusionMatrix(AIndex : Integer; const AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrix); 
 
 begin
   If (FconfusionMatrix=AValue) then exit;
@@ -1105,7 +1090,7 @@ end;
 
 
 
-Procedure TAnalyzeTypemodelDescription.SetconfusionMatrixRowTotals(AIndex : Integer; AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals); 
+Procedure TAnalyzeTypemodelDescription.SetconfusionMatrixRowTotals(AIndex : Integer; const AValue : TAnalyzeTypemodelDescriptionTypeconfusionMatrixRowTotals); 
 
 begin
   If (FconfusionMatrixRowTotals=AValue) then exit;
@@ -1115,7 +1100,7 @@ end;
 
 
 
-Procedure TAnalyzeTypemodelDescription.Setmodelinfo(AIndex : Integer; AValue : TInsert2); 
+Procedure TAnalyzeTypemodelDescription.Setmodelinfo(AIndex : Integer; const AValue : TInsert2); 
 
 begin
   If (Fmodelinfo=AValue) then exit;
@@ -1132,7 +1117,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyze.SetdataDescription(AIndex : Integer; AValue : TAnalyzeTypedataDescription); 
+Procedure TAnalyze.SetdataDescription(AIndex : Integer; const AValue : TAnalyzeTypedataDescription); 
 
 begin
   If (FdataDescription=AValue) then exit;
@@ -1142,7 +1127,7 @@ end;
 
 
 
-Procedure TAnalyze.Seterrors(AIndex : Integer; AValue : TAnalyzeTypeerrorsArray); 
+Procedure TAnalyze.Seterrors(AIndex : Integer; const AValue : TAnalyzeTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1172,7 +1157,7 @@ end;
 
 
 
-Procedure TAnalyze.SetmodelDescription(AIndex : Integer; AValue : TAnalyzeTypemodelDescription); 
+Procedure TAnalyze.SetmodelDescription(AIndex : Integer; const AValue : TAnalyzeTypemodelDescription); 
 
 begin
   If (FmodelDescription=AValue) then exit;
@@ -1212,7 +1197,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInputTypeinput.SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); 
+Procedure TInputTypeinput.SetcsvInstance(AIndex : Integer; const AValue : TTJSONSchemaArray); 
 
 begin
   If (FcsvInstance=AValue) then exit;
@@ -1242,7 +1227,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInput.Setinput(AIndex : Integer; AValue : TInputTypeinput); 
+Procedure TInput.Setinput(AIndex : Integer; const AValue : TInputTypeinput); 
 
 begin
   If (Finput=AValue) then exit;
@@ -1259,7 +1244,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInsertTypetrainingInstancesItem.SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); 
+Procedure TInsertTypetrainingInstancesItem.SetcsvInstance(AIndex : Integer; const AValue : TTJSONSchemaArray); 
 
 begin
   If (FcsvInstance=AValue) then exit;
@@ -1372,7 +1357,7 @@ end;
 
 
 
-Procedure TInsert.SettrainingInstances(AIndex : Integer; AValue : TInsertTypetrainingInstancesArray); 
+Procedure TInsert.SettrainingInstances(AIndex : Integer; const AValue : TInsertTypetrainingInstancesArray); 
 
 begin
   If (FtrainingInstances=AValue) then exit;
@@ -1382,7 +1367,7 @@ end;
 
 
 
-Procedure TInsert.Setutility(AIndex : Integer; AValue : TInsertTypeutilityArray); 
+Procedure TInsert.Setutility(AIndex : Integer; const AValue : TInsertTypeutilityArray); 
 
 begin
   If (Futility=AValue) then exit;
@@ -1480,7 +1465,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInsert2.Setcreated(AIndex : Integer; AValue : TDatetime); 
+Procedure TInsert2.Setcreated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fcreated=AValue) then exit;
@@ -1510,7 +1495,7 @@ end;
 
 
 
-Procedure TInsert2.SetmodelInfo(AIndex : Integer; AValue : TInsert2TypemodelInfo); 
+Procedure TInsert2.SetmodelInfo(AIndex : Integer; const AValue : TInsert2TypemodelInfo); 
 
 begin
   If (FmodelInfo=AValue) then exit;
@@ -1570,7 +1555,7 @@ end;
 
 
 
-Procedure TInsert2.SettrainingComplete(AIndex : Integer; AValue : TDatetime); 
+Procedure TInsert2.SettrainingComplete(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FtrainingComplete=AValue) then exit;
@@ -1597,7 +1582,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TList.Setitems(AIndex : Integer; AValue : TListTypeitemsArray); 
+Procedure TList.Setitems(AIndex : Integer; const AValue : TListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1725,7 +1710,7 @@ end;
 
 
 
-Procedure TOutput.SetoutputMulti(AIndex : Integer; AValue : TOutputTypeoutputMultiArray); 
+Procedure TOutput.SetoutputMulti(AIndex : Integer; const AValue : TOutputTypeoutputMultiArray); 
 
 begin
   If (FoutputMulti=AValue) then exit;
@@ -1775,7 +1760,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdate.SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); 
+Procedure TUpdate.SetcsvInstance(AIndex : Integer; const AValue : TTJSONSchemaArray); 
 
 begin
   If (FcsvInstance=AValue) then exit;
@@ -2000,7 +1985,7 @@ end;
 Class Function TPredictionAPI.APIRevision : String;
 
 begin
-  Result:='20140522';
+  Result:='20160511';
 end;
 
 Class Function TPredictionAPI.APIID : String;
@@ -2036,13 +2021,13 @@ end;
 Class Function TPredictionAPI.APIIcon16 : String;
 
 begin
-  Result:='http://www.google.com/images/icons/feature/predictionapi-16.png';
+  Result:='https://www.google.com/images/icons/feature/predictionapi-16.png';
 end;
 
 Class Function TPredictionAPI.APIIcon32 : String;
 
 begin
-  Result:='http://www.google.com/images/icons/feature/predictionapi-32.png';
+  Result:='https://www.google.com/images/icons/feature/predictionapi-32.png';
 end;
 
 Class Function TPredictionAPI.APIdocumentationLink : String;
@@ -2054,7 +2039,7 @@ end;
 Class Function TPredictionAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TPredictionAPI.APIbasePath : string;
@@ -2066,7 +2051,7 @@ end;
 Class Function TPredictionAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/prediction/v1.6/projects/';
+  Result:='https://www.googleapis.com/prediction/v1.6/projects/';
 end;
 
 Class Function TPredictionAPI.APIProtocol : string;
@@ -2090,15 +2075,17 @@ end;
 Class Function TPredictionAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
-  SetLength(Result,4);
-  Result[0].Name:='https://www.googleapis.com/auth/devstorage.full_control';
-  Result[0].Description:='Manage your data and permissions in Google Cloud Storage';
-  Result[1].Name:='https://www.googleapis.com/auth/devstorage.read_only';
-  Result[1].Description:='View your data in Google Cloud Storage';
-  Result[2].Name:='https://www.googleapis.com/auth/devstorage.read_write';
-  Result[2].Description:='Manage your data in Google Cloud Storage';
-  Result[3].Name:='https://www.googleapis.com/auth/prediction';
-  Result[3].Description:='Manage your data in the Google Prediction API';
+  SetLength(Result,5);
+  Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
+  Result[0].Description:='View and manage your data across Google Cloud Platform services';
+  Result[1].Name:='https://www.googleapis.com/auth/devstorage.full_control';
+  Result[1].Description:='Manage your data and permissions in Google Cloud Storage';
+  Result[2].Name:='https://www.googleapis.com/auth/devstorage.read_only';
+  Result[2].Description:='View your data in Google Cloud Storage';
+  Result[3].Name:='https://www.googleapis.com/auth/devstorage.read_write';
+  Result[3].Description:='Manage your data in Google Cloud Storage';
+  Result[4].Name:='https://www.googleapis.com/auth/prediction';
+  Result[4].Description:='Manage your data in the Google Prediction API';
   
 end;
 

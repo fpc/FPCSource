@@ -26,8 +26,6 @@
 
       { we cannot allocate memory using SysGetMem, as we use tinyheap code,
         but tinyheap.inc source in inserted later, so we need a forward declaration }
-   function SysTinyFreeMemSize(Addr: Pointer; Size: Ptruint): ptruint; forward;
-   function SysTinyGetMem(Size: ptruint): pointer; forward;
 {$endif SYSTEMDEBUG}
 
 

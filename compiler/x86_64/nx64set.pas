@@ -112,7 +112,10 @@ implementation
              { case expr greater than max_ => goto elselabel }
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
              min_:=0;
+             { do not sign extend when we load the index register, as we applied an offset above }
+             opcgsize:=tcgsize2unsigned[opcgsize];
           end;
+
         { local label in order to avoid using GOT }
         current_asmdata.getlabel(tablelabel,alt_data);
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_ADDR);

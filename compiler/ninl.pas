@@ -3958,7 +3958,7 @@ implementation
            newblock:=internalstatements(newstatement);
 
            { get temp for array of lengths }
-           temp:=ctempcreatenode.create(sinttype,dims*sinttype.size,tt_persistent,false);
+           temp:=ctempcreatenode.create(carraydef.getreusable(sinttype,dims),dims*sinttype.size,tt_persistent,false);
            addstatement(newstatement,temp);
 
            { load array of lengths }
@@ -3967,7 +3967,10 @@ implementation
            while assigned(ppn.right) do
              begin
                addstatement(newstatement,cassignmentnode.create(
-                   ctemprefnode.create_offset(temp,counter*sinttype.size),
+                   cvecnode.create(
+                     ctemprefnode.create(temp),
+                     genintconstnode(counter)
+                   ),
                    ppn.left));
                ppn.left:=nil;
                dec(counter);
@@ -3977,8 +3980,11 @@ implementation
            ppn.left:=nil;
 
            { create call to fpc_dynarr_setlength }
-           npara:=ccallparanode.create(caddrnode.create_internal
-                     (ctemprefnode.create(temp)),
+           npara:=ccallparanode.create(caddrnode.create_internal(
+                     cvecnode.create(
+                       ctemprefnode.create(temp),
+                       genintconstnode(0)
+                     )),
                   ccallparanode.create(cordconstnode.create
                      (dims,sinttype,true),
                   ccallparanode.create(caddrnode.create_internal

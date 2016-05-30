@@ -1,19 +1,4 @@
 unit googlecontainer;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:01
 {$MODE objfpc}
 {$H+}
 
@@ -24,32 +9,67 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
-  TCluster = Class;
-  TCreateClusterRequest = Class;
-  TListAggregatedClustersResponse = Class;
-  TListAggregatedOperationsResponse = Class;
   TListClustersResponse = Class;
-  TListOperationsResponse = Class;
-  TMasterAuth = Class;
+  TCluster = Class;
   TNodeConfig = Class;
+  TMasterAuth = Class;
+  TAddonsConfig = Class;
+  THttpLoadBalancing = Class;
+  THorizontalPodAutoscaling = Class;
+  TNodePool = Class;
+  TCreateClusterRequest = Class;
   TOperation = Class;
-  TServiceAccount = Class;
-  TClusterArray = Array of TCluster;
-  TCreateClusterRequestArray = Array of TCreateClusterRequest;
-  TListAggregatedClustersResponseArray = Array of TListAggregatedClustersResponse;
-  TListAggregatedOperationsResponseArray = Array of TListAggregatedOperationsResponse;
+  TUpdateClusterRequest = Class;
+  TClusterUpdate = Class;
+  TListOperationsResponse = Class;
+  TServerConfig = Class;
+  TListNodePoolsResponse = Class;
+  TCreateNodePoolRequest = Class;
   TListClustersResponseArray = Array of TListClustersResponse;
-  TListOperationsResponseArray = Array of TListOperationsResponse;
-  TMasterAuthArray = Array of TMasterAuth;
+  TClusterArray = Array of TCluster;
   TNodeConfigArray = Array of TNodeConfig;
+  TMasterAuthArray = Array of TMasterAuth;
+  TAddonsConfigArray = Array of TAddonsConfig;
+  THttpLoadBalancingArray = Array of THttpLoadBalancing;
+  THorizontalPodAutoscalingArray = Array of THorizontalPodAutoscaling;
+  TNodePoolArray = Array of TNodePool;
+  TCreateClusterRequestArray = Array of TCreateClusterRequest;
   TOperationArray = Array of TOperation;
-  TServiceAccountArray = Array of TServiceAccount;
+  TUpdateClusterRequestArray = Array of TUpdateClusterRequest;
+  TClusterUpdateArray = Array of TClusterUpdate;
+  TListOperationsResponseArray = Array of TListOperationsResponse;
+  TServerConfigArray = Array of TServerConfig;
+  TListNodePoolsResponseArray = Array of TListNodePoolsResponse;
+  TCreateNodePoolRequestArray = Array of TCreateNodePoolRequest;
   //Anonymous types, using auto-generated names
-  TListAggregatedClustersResponseTypeclustersArray = Array of TCluster;
-  TListAggregatedOperationsResponseTypeoperationsArray = Array of TOperation;
+  TNodeConfigTypemetadata = Class;
   TListClustersResponseTypeclustersArray = Array of TCluster;
+  TClusterTypenodePoolsArray = Array of TNodePool;
   TListOperationsResponseTypeoperationsArray = Array of TOperation;
-  TNodeConfigTypeserviceAccountsArray = Array of TServiceAccount;
+  TListNodePoolsResponseTypenodePoolsArray = Array of TNodePool;
+  
+  { --------------------------------------------------------------------
+    TListClustersResponse
+    --------------------------------------------------------------------}
+  
+  TListClustersResponse = Class(TGoogleBaseObject)
+  Private
+    Fclusters : TListClustersResponseTypeclustersArray;
+    FmissingZones : TStringArray;
+  Protected
+    //Property setters
+    Procedure Setclusters(AIndex : Integer; const AValue : TListClustersResponseTypeclustersArray); virtual;
+    Procedure SetmissingZones(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property clusters : TListClustersResponseTypeclustersArray Index 0 Read Fclusters Write Setclusters;
+    Property missingZones : TStringArray Index 8 Read FmissingZones Write SetmissingZones;
+  end;
+  TListClustersResponseClass = Class of TListClustersResponse;
   
   { --------------------------------------------------------------------
     TCluster
@@ -57,63 +77,257 @@ type
   
   TCluster = Class(TGoogleBaseObject)
   Private
-    FclusterApiVersion : String;
-    FcontainerIpv4Cidr : String;
-    FcreationTimestamp : String;
-    Fdescription : String;
-    FenableCloudLogging : boolean;
-    Fendpoint : String;
-    FmasterAuth : TMasterAuth;
     Fname : String;
-    Fnetwork : String;
+    Fdescription : String;
+    FinitialNodeCount : integer;
     FnodeConfig : TNodeConfig;
-    FnodeRoutingPrefixSize : integer;
-    FnumNodes : integer;
+    FmasterAuth : TMasterAuth;
+    FloggingService : String;
+    FmonitoringService : String;
+    Fnetwork : String;
+    FclusterIpv4Cidr : String;
+    FaddonsConfig : TAddonsConfig;
+    Fsubnetwork : String;
+    FnodePools : TClusterTypenodePoolsArray;
+    Flocations : TStringArray;
     FselfLink : String;
-    FservicesIpv4Cidr : String;
+    Fzone : String;
+    Fendpoint : String;
+    FinitialClusterVersion : String;
+    FcurrentMasterVersion : String;
+    FcurrentNodeVersion : String;
+    FcreateTime : String;
     Fstatus : String;
     FstatusMessage : String;
-    Fzone : String;
+    FnodeIpv4CidrSize : integer;
+    FservicesIpv4Cidr : String;
+    FinstanceGroupUrls : TStringArray;
+    FcurrentNodeCount : integer;
   Protected
     //Property setters
-    Procedure SetclusterApiVersion(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcontainerIpv4Cidr(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetenableCloudLogging(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setendpoint(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmasterAuth(AIndex : Integer; AValue : TMasterAuth); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinitialNodeCount(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetnodeConfig(AIndex : Integer; const AValue : TNodeConfig); virtual;
+    Procedure SetmasterAuth(AIndex : Integer; const AValue : TMasterAuth); virtual;
+    Procedure SetloggingService(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmonitoringService(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnodeConfig(AIndex : Integer; AValue : TNodeConfig); virtual;
-    Procedure SetnodeRoutingPrefixSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnumNodes(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetclusterIpv4Cidr(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetaddonsConfig(AIndex : Integer; const AValue : TAddonsConfig); virtual;
+    Procedure Setsubnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnodePools(AIndex : Integer; const AValue : TClusterTypenodePoolsArray); virtual;
+    Procedure Setlocations(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetservicesIpv4Cidr(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setendpoint(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinitialClusterVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcurrentMasterVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcurrentNodeVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreateTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstatusMessage(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnodeIpv4CidrSize(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetservicesIpv4Cidr(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinstanceGroupUrls(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetcurrentNodeCount(AIndex : Integer; const AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property clusterApiVersion : String Index 0 Read FclusterApiVersion Write SetclusterApiVersion;
-    Property containerIpv4Cidr : String Index 8 Read FcontainerIpv4Cidr Write SetcontainerIpv4Cidr;
-    Property creationTimestamp : String Index 16 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : String Index 24 Read Fdescription Write Setdescription;
-    Property enableCloudLogging : boolean Index 32 Read FenableCloudLogging Write SetenableCloudLogging;
-    Property endpoint : String Index 40 Read Fendpoint Write Setendpoint;
-    Property masterAuth : TMasterAuth Index 48 Read FmasterAuth Write SetmasterAuth;
-    Property name : String Index 56 Read Fname Write Setname;
-    Property network : String Index 64 Read Fnetwork Write Setnetwork;
-    Property nodeConfig : TNodeConfig Index 72 Read FnodeConfig Write SetnodeConfig;
-    Property nodeRoutingPrefixSize : integer Index 80 Read FnodeRoutingPrefixSize Write SetnodeRoutingPrefixSize;
-    Property numNodes : integer Index 88 Read FnumNodes Write SetnumNodes;
-    Property selfLink : String Index 96 Read FselfLink Write SetselfLink;
-    Property servicesIpv4Cidr : String Index 104 Read FservicesIpv4Cidr Write SetservicesIpv4Cidr;
-    Property status : String Index 112 Read Fstatus Write Setstatus;
-    Property statusMessage : String Index 120 Read FstatusMessage Write SetstatusMessage;
-    Property zone : String Index 128 Read Fzone Write Setzone;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property description : String Index 8 Read Fdescription Write Setdescription;
+    Property initialNodeCount : integer Index 16 Read FinitialNodeCount Write SetinitialNodeCount;
+    Property nodeConfig : TNodeConfig Index 24 Read FnodeConfig Write SetnodeConfig;
+    Property masterAuth : TMasterAuth Index 32 Read FmasterAuth Write SetmasterAuth;
+    Property loggingService : String Index 40 Read FloggingService Write SetloggingService;
+    Property monitoringService : String Index 48 Read FmonitoringService Write SetmonitoringService;
+    Property network : String Index 56 Read Fnetwork Write Setnetwork;
+    Property clusterIpv4Cidr : String Index 64 Read FclusterIpv4Cidr Write SetclusterIpv4Cidr;
+    Property addonsConfig : TAddonsConfig Index 72 Read FaddonsConfig Write SetaddonsConfig;
+    Property subnetwork : String Index 80 Read Fsubnetwork Write Setsubnetwork;
+    Property nodePools : TClusterTypenodePoolsArray Index 88 Read FnodePools Write SetnodePools;
+    Property locations : TStringArray Index 96 Read Flocations Write Setlocations;
+    Property selfLink : String Index 104 Read FselfLink Write SetselfLink;
+    Property zone : String Index 112 Read Fzone Write Setzone;
+    Property endpoint : String Index 120 Read Fendpoint Write Setendpoint;
+    Property initialClusterVersion : String Index 128 Read FinitialClusterVersion Write SetinitialClusterVersion;
+    Property currentMasterVersion : String Index 136 Read FcurrentMasterVersion Write SetcurrentMasterVersion;
+    Property currentNodeVersion : String Index 144 Read FcurrentNodeVersion Write SetcurrentNodeVersion;
+    Property createTime : String Index 152 Read FcreateTime Write SetcreateTime;
+    Property status : String Index 160 Read Fstatus Write Setstatus;
+    Property statusMessage : String Index 168 Read FstatusMessage Write SetstatusMessage;
+    Property nodeIpv4CidrSize : integer Index 176 Read FnodeIpv4CidrSize Write SetnodeIpv4CidrSize;
+    Property servicesIpv4Cidr : String Index 184 Read FservicesIpv4Cidr Write SetservicesIpv4Cidr;
+    Property instanceGroupUrls : TStringArray Index 192 Read FinstanceGroupUrls Write SetinstanceGroupUrls;
+    Property currentNodeCount : integer Index 200 Read FcurrentNodeCount Write SetcurrentNodeCount;
   end;
   TClusterClass = Class of TCluster;
+  
+  { --------------------------------------------------------------------
+    TNodeConfigTypemetadata
+    --------------------------------------------------------------------}
+  
+  TNodeConfigTypemetadata = Class(TGoogleBaseObject)
+  Private
+  Protected
+    //Property setters
+  Public
+    Class Function AllowAdditionalProperties : Boolean; override;
+  Published
+  end;
+  TNodeConfigTypemetadataClass = Class of TNodeConfigTypemetadata;
+  
+  { --------------------------------------------------------------------
+    TNodeConfig
+    --------------------------------------------------------------------}
+  
+  TNodeConfig = Class(TGoogleBaseObject)
+  Private
+    FmachineType : String;
+    FdiskSizeGb : integer;
+    FoauthScopes : TStringArray;
+    Fmetadata : TNodeConfigTypemetadata;
+  Protected
+    //Property setters
+    Procedure SetmachineType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdiskSizeGb(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetoauthScopes(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setmetadata(AIndex : Integer; const AValue : TNodeConfigTypemetadata); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property machineType : String Index 0 Read FmachineType Write SetmachineType;
+    Property diskSizeGb : integer Index 8 Read FdiskSizeGb Write SetdiskSizeGb;
+    Property oauthScopes : TStringArray Index 16 Read FoauthScopes Write SetoauthScopes;
+    Property metadata : TNodeConfigTypemetadata Index 24 Read Fmetadata Write Setmetadata;
+  end;
+  TNodeConfigClass = Class of TNodeConfig;
+  
+  { --------------------------------------------------------------------
+    TMasterAuth
+    --------------------------------------------------------------------}
+  
+  TMasterAuth = Class(TGoogleBaseObject)
+  Private
+    Fusername : String;
+    Fpassword : String;
+    FclusterCaCertificate : String;
+    FclientCertificate : String;
+    FclientKey : String;
+  Protected
+    //Property setters
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpassword(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetclusterCaCertificate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetclientCertificate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetclientKey(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property username : String Index 0 Read Fusername Write Setusername;
+    Property password : String Index 8 Read Fpassword Write Setpassword;
+    Property clusterCaCertificate : String Index 16 Read FclusterCaCertificate Write SetclusterCaCertificate;
+    Property clientCertificate : String Index 24 Read FclientCertificate Write SetclientCertificate;
+    Property clientKey : String Index 32 Read FclientKey Write SetclientKey;
+  end;
+  TMasterAuthClass = Class of TMasterAuth;
+  
+  { --------------------------------------------------------------------
+    TAddonsConfig
+    --------------------------------------------------------------------}
+  
+  TAddonsConfig = Class(TGoogleBaseObject)
+  Private
+    FhttpLoadBalancing : THttpLoadBalancing;
+    FhorizontalPodAutoscaling : THorizontalPodAutoscaling;
+  Protected
+    //Property setters
+    Procedure SethttpLoadBalancing(AIndex : Integer; const AValue : THttpLoadBalancing); virtual;
+    Procedure SethorizontalPodAutoscaling(AIndex : Integer; const AValue : THorizontalPodAutoscaling); virtual;
+  Public
+  Published
+    Property httpLoadBalancing : THttpLoadBalancing Index 0 Read FhttpLoadBalancing Write SethttpLoadBalancing;
+    Property horizontalPodAutoscaling : THorizontalPodAutoscaling Index 8 Read FhorizontalPodAutoscaling Write SethorizontalPodAutoscaling;
+  end;
+  TAddonsConfigClass = Class of TAddonsConfig;
+  
+  { --------------------------------------------------------------------
+    THttpLoadBalancing
+    --------------------------------------------------------------------}
+  
+  THttpLoadBalancing = Class(TGoogleBaseObject)
+  Private
+    Fdisabled : boolean;
+  Protected
+    //Property setters
+    Procedure Setdisabled(AIndex : Integer; const AValue : boolean); virtual;
+  Public
+  Published
+    Property disabled : boolean Index 0 Read Fdisabled Write Setdisabled;
+  end;
+  THttpLoadBalancingClass = Class of THttpLoadBalancing;
+  
+  { --------------------------------------------------------------------
+    THorizontalPodAutoscaling
+    --------------------------------------------------------------------}
+  
+  THorizontalPodAutoscaling = Class(TGoogleBaseObject)
+  Private
+    Fdisabled : boolean;
+  Protected
+    //Property setters
+    Procedure Setdisabled(AIndex : Integer; const AValue : boolean); virtual;
+  Public
+  Published
+    Property disabled : boolean Index 0 Read Fdisabled Write Setdisabled;
+  end;
+  THorizontalPodAutoscalingClass = Class of THorizontalPodAutoscaling;
+  
+  { --------------------------------------------------------------------
+    TNodePool
+    --------------------------------------------------------------------}
+  
+  TNodePool = Class(TGoogleBaseObject)
+  Private
+    Fname : String;
+    Fconfig : TNodeConfig;
+    FinitialNodeCount : integer;
+    FselfLink : String;
+    Fversion : String;
+    FinstanceGroupUrls : TStringArray;
+    Fstatus : String;
+    FstatusMessage : String;
+  Protected
+    //Property setters
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setconfig(AIndex : Integer; const AValue : TNodeConfig); virtual;
+    Procedure SetinitialNodeCount(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinstanceGroupUrls(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstatusMessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property name : String Index 0 Read Fname Write Setname;
+    Property config : TNodeConfig Index 8 Read Fconfig Write Setconfig;
+    Property initialNodeCount : integer Index 16 Read FinitialNodeCount Write SetinitialNodeCount;
+    Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
+    Property version : String Index 32 Read Fversion Write Setversion;
+    Property instanceGroupUrls : TStringArray Index 40 Read FinstanceGroupUrls Write SetinstanceGroupUrls;
+    Property status : String Index 48 Read Fstatus Write Setstatus;
+    Property statusMessage : String Index 56 Read FstatusMessage Write SetstatusMessage;
+  end;
+  TNodePoolClass = Class of TNodePool;
   
   { --------------------------------------------------------------------
     TCreateClusterRequest
@@ -124,7 +338,7 @@ type
     Fcluster : TCluster;
   Protected
     //Property setters
-    Procedure Setcluster(AIndex : Integer; AValue : TCluster); virtual;
+    Procedure Setcluster(AIndex : Integer; const AValue : TCluster); virtual;
   Public
   Published
     Property cluster : TCluster Index 0 Read Fcluster Write Setcluster;
@@ -132,64 +346,85 @@ type
   TCreateClusterRequestClass = Class of TCreateClusterRequest;
   
   { --------------------------------------------------------------------
-    TListAggregatedClustersResponse
+    TOperation
     --------------------------------------------------------------------}
   
-  TListAggregatedClustersResponse = Class(TGoogleBaseObject)
+  TOperation = Class(TGoogleBaseObject)
   Private
-    Fclusters : TListAggregatedClustersResponseTypeclustersArray;
+    Fname : String;
+    Fzone : String;
+    FoperationType : String;
+    Fstatus : String;
+    Fdetail : String;
+    FstatusMessage : String;
+    FselfLink : String;
+    FtargetLink : String;
   Protected
     //Property setters
-    Procedure Setclusters(AIndex : Integer; AValue : TListAggregatedClustersResponseTypeclustersArray); virtual;
-    //2.6.4. bug workaround
-    {$IFDEF VER2_6}
-    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
-    {$ENDIF VER2_6}
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdetail(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstatusMessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property clusters : TListAggregatedClustersResponseTypeclustersArray Index 0 Read Fclusters Write Setclusters;
+    Property name : String Index 0 Read Fname Write Setname;
+    Property zone : String Index 8 Read Fzone Write Setzone;
+    Property operationType : String Index 16 Read FoperationType Write SetoperationType;
+    Property status : String Index 24 Read Fstatus Write Setstatus;
+    Property detail : String Index 32 Read Fdetail Write Setdetail;
+    Property statusMessage : String Index 40 Read FstatusMessage Write SetstatusMessage;
+    Property selfLink : String Index 48 Read FselfLink Write SetselfLink;
+    Property targetLink : String Index 56 Read FtargetLink Write SettargetLink;
   end;
-  TListAggregatedClustersResponseClass = Class of TListAggregatedClustersResponse;
+  TOperationClass = Class of TOperation;
   
   { --------------------------------------------------------------------
-    TListAggregatedOperationsResponse
+    TUpdateClusterRequest
     --------------------------------------------------------------------}
   
-  TListAggregatedOperationsResponse = Class(TGoogleBaseObject)
+  TUpdateClusterRequest = Class(TGoogleBaseObject)
   Private
-    Foperations : TListAggregatedOperationsResponseTypeoperationsArray;
+    Fupdate : TClusterUpdate;
   Protected
     //Property setters
-    Procedure Setoperations(AIndex : Integer; AValue : TListAggregatedOperationsResponseTypeoperationsArray); virtual;
-    //2.6.4. bug workaround
-    {$IFDEF VER2_6}
-    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
-    {$ENDIF VER2_6}
+    Procedure Setupdate(AIndex : Integer; const AValue : TClusterUpdate); virtual;
   Public
   Published
-    Property operations : TListAggregatedOperationsResponseTypeoperationsArray Index 0 Read Foperations Write Setoperations;
+    Property update : TClusterUpdate Index 0 Read Fupdate Write Setupdate;
   end;
-  TListAggregatedOperationsResponseClass = Class of TListAggregatedOperationsResponse;
+  TUpdateClusterRequestClass = Class of TUpdateClusterRequest;
   
   { --------------------------------------------------------------------
-    TListClustersResponse
+    TClusterUpdate
     --------------------------------------------------------------------}
   
-  TListClustersResponse = Class(TGoogleBaseObject)
+  TClusterUpdate = Class(TGoogleBaseObject)
   Private
-    Fclusters : TListClustersResponseTypeclustersArray;
+    FdesiredNodeVersion : String;
+    FdesiredMonitoringService : String;
+    FdesiredAddonsConfig : TAddonsConfig;
+    FdesiredNodePoolId : String;
+    FdesiredMasterVersion : String;
   Protected
     //Property setters
-    Procedure Setclusters(AIndex : Integer; AValue : TListClustersResponseTypeclustersArray); virtual;
-    //2.6.4. bug workaround
-    {$IFDEF VER2_6}
-    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
-    {$ENDIF VER2_6}
+    Procedure SetdesiredNodeVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdesiredMonitoringService(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdesiredAddonsConfig(AIndex : Integer; const AValue : TAddonsConfig); virtual;
+    Procedure SetdesiredNodePoolId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdesiredMasterVersion(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property clusters : TListClustersResponseTypeclustersArray Index 0 Read Fclusters Write Setclusters;
+    Property desiredNodeVersion : String Index 0 Read FdesiredNodeVersion Write SetdesiredNodeVersion;
+    Property desiredMonitoringService : String Index 8 Read FdesiredMonitoringService Write SetdesiredMonitoringService;
+    Property desiredAddonsConfig : TAddonsConfig Index 16 Read FdesiredAddonsConfig Write SetdesiredAddonsConfig;
+    Property desiredNodePoolId : String Index 24 Read FdesiredNodePoolId Write SetdesiredNodePoolId;
+    Property desiredMasterVersion : String Index 32 Read FdesiredMasterVersion Write SetdesiredMasterVersion;
   end;
-  TListClustersResponseClass = Class of TListClustersResponse;
+  TClusterUpdateClass = Class of TClusterUpdate;
   
   { --------------------------------------------------------------------
     TListOperationsResponse
@@ -198,9 +433,11 @@ type
   TListOperationsResponse = Class(TGoogleBaseObject)
   Private
     Foperations : TListOperationsResponseTypeoperationsArray;
+    FmissingZones : TStringArray;
   Protected
     //Property setters
-    Procedure Setoperations(AIndex : Integer; AValue : TListOperationsResponseTypeoperationsArray); virtual;
+    Procedure Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray); virtual;
+    Procedure SetmissingZones(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -208,138 +445,87 @@ type
   Public
   Published
     Property operations : TListOperationsResponseTypeoperationsArray Index 0 Read Foperations Write Setoperations;
+    Property missingZones : TStringArray Index 8 Read FmissingZones Write SetmissingZones;
   end;
   TListOperationsResponseClass = Class of TListOperationsResponse;
   
   { --------------------------------------------------------------------
-    TMasterAuth
+    TServerConfig
     --------------------------------------------------------------------}
   
-  TMasterAuth = Class(TGoogleBaseObject)
+  TServerConfig = Class(TGoogleBaseObject)
   Private
-    FbearerToken : String;
-    Fpassword : String;
-    Fuser : String;
+    FdefaultClusterVersion : String;
+    FvalidNodeVersions : TStringArray;
+    FdefaultImageFamily : String;
+    FvalidImageFamilies : TStringArray;
   Protected
     //Property setters
-    Procedure SetbearerToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpassword(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setuser(AIndex : Integer; const AValue : String); virtual;
-  Public
-  Published
-    Property bearerToken : String Index 0 Read FbearerToken Write SetbearerToken;
-    Property password : String Index 8 Read Fpassword Write Setpassword;
-    Property user : String Index 16 Read Fuser Write Setuser;
-  end;
-  TMasterAuthClass = Class of TMasterAuth;
-  
-  { --------------------------------------------------------------------
-    TNodeConfig
-    --------------------------------------------------------------------}
-  
-  TNodeConfig = Class(TGoogleBaseObject)
-  Private
-    FmachineType : String;
-    FserviceAccounts : TNodeConfigTypeserviceAccountsArray;
-    FsourceImage : String;
-  Protected
-    //Property setters
-    Procedure SetmachineType(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetserviceAccounts(AIndex : Integer; AValue : TNodeConfigTypeserviceAccountsArray); virtual;
-    Procedure SetsourceImage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultClusterVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvalidNodeVersions(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetdefaultImageFamily(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvalidImageFamilies(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
     {$ENDIF VER2_6}
   Public
   Published
-    Property machineType : String Index 0 Read FmachineType Write SetmachineType;
-    Property serviceAccounts : TNodeConfigTypeserviceAccountsArray Index 8 Read FserviceAccounts Write SetserviceAccounts;
-    Property sourceImage : String Index 16 Read FsourceImage Write SetsourceImage;
+    Property defaultClusterVersion : String Index 0 Read FdefaultClusterVersion Write SetdefaultClusterVersion;
+    Property validNodeVersions : TStringArray Index 8 Read FvalidNodeVersions Write SetvalidNodeVersions;
+    Property defaultImageFamily : String Index 16 Read FdefaultImageFamily Write SetdefaultImageFamily;
+    Property validImageFamilies : TStringArray Index 24 Read FvalidImageFamilies Write SetvalidImageFamilies;
   end;
-  TNodeConfigClass = Class of TNodeConfig;
+  TServerConfigClass = Class of TServerConfig;
   
   { --------------------------------------------------------------------
-    TOperation
+    TListNodePoolsResponse
     --------------------------------------------------------------------}
   
-  TOperation = Class(TGoogleBaseObject)
+  TListNodePoolsResponse = Class(TGoogleBaseObject)
   Private
-    FerrorMessage : String;
-    Fname : String;
-    FoperationType : String;
-    FselfLink : String;
-    Fstatus : String;
-    Ftarget : String;
-    FtargetLink : String;
-    Fzone : String;
+    FnodePools : TListNodePoolsResponseTypenodePoolsArray;
   Protected
     //Property setters
-    Procedure SeterrorMessage(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
-    Procedure Settarget(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
-  Public
-  Published
-    Property errorMessage : String Index 0 Read FerrorMessage Write SeterrorMessage;
-    Property name : String Index 8 Read Fname Write Setname;
-    Property operationType : String Index 16 Read FoperationType Write SetoperationType;
-    Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
-    Property status : String Index 32 Read Fstatus Write Setstatus;
-    Property target : String Index 40 Read Ftarget Write Settarget;
-    Property targetLink : String Index 48 Read FtargetLink Write SettargetLink;
-    Property zone : String Index 56 Read Fzone Write Setzone;
-  end;
-  TOperationClass = Class of TOperation;
-  
-  { --------------------------------------------------------------------
-    TServiceAccount
-    --------------------------------------------------------------------}
-  
-  TServiceAccount = Class(TGoogleBaseObject)
-  Private
-    Femail : String;
-    Fscopes : TStringArray;
-  Protected
-    //Property setters
-    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setscopes(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetnodePools(AIndex : Integer; const AValue : TListNodePoolsResponseTypenodePoolsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
     {$ENDIF VER2_6}
   Public
   Published
-    Property email : String Index 0 Read Femail Write Setemail;
-    Property scopes : TStringArray Index 8 Read Fscopes Write Setscopes;
+    Property nodePools : TListNodePoolsResponseTypenodePoolsArray Index 0 Read FnodePools Write SetnodePools;
   end;
-  TServiceAccountClass = Class of TServiceAccount;
+  TListNodePoolsResponseClass = Class of TListNodePoolsResponse;
   
   { --------------------------------------------------------------------
-    TProjectsClustersResource
+    TCreateNodePoolRequest
     --------------------------------------------------------------------}
   
-  TProjectsClustersResource = Class(TGoogleResource)
+  TCreateNodePoolRequest = Class(TGoogleBaseObject)
+  Private
+    FnodePool : TNodePool;
+  Protected
+    //Property setters
+    Procedure SetnodePool(AIndex : Integer; const AValue : TNodePool); virtual;
+  Public
+  Published
+    Property nodePool : TNodePool Index 0 Read FnodePool Write SetnodePool;
+  end;
+  TCreateNodePoolRequestClass = Class of TCreateNodePoolRequest;
+  
+  { --------------------------------------------------------------------
+    TProjectsZonesClustersNodePoolsResource
+    --------------------------------------------------------------------}
+  
+  TProjectsZonesClustersNodePoolsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function List(projectId: string) : TListAggregatedClustersResponse;
-  end;
-  
-  
-  { --------------------------------------------------------------------
-    TProjectsOperationsResource
-    --------------------------------------------------------------------}
-  
-  TProjectsOperationsResource = Class(TGoogleResource)
-  Public
-    Class Function ResourceName : String; override;
-    Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function List(projectId: string) : TListAggregatedOperationsResponse;
+    Function List(projectId: string; zone: string; clusterId: string) : TListNodePoolsResponse;
+    Function Get(projectId: string; zone: string; clusterId: string; nodePoolId: string) : TNodePool;
+    Function Create(projectId: string; zone: string; clusterId: string; aCreateNodePoolRequest : TCreateNodePoolRequest) : TOperation;overload;
+    Function Delete(projectId: string; zone: string; clusterId: string; nodePoolId: string) : TOperation;
   end;
   
   
@@ -348,13 +534,20 @@ type
     --------------------------------------------------------------------}
   
   TProjectsZonesClustersResource = Class(TGoogleResource)
+  Private
+    FNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
+    Function GetNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function Create(projectId: string; zoneId: string; aCreateClusterRequest : TCreateClusterRequest) : TOperation;overload;
-    Function Delete(clusterId: string; projectId: string; zoneId: string) : TOperation;
-    Function Get(clusterId: string; projectId: string; zoneId: string) : TCluster;
-    Function List(projectId: string; zoneId: string) : TListClustersResponse;
+    Function List(projectId: string; zone: string) : TListClustersResponse;
+    Function Get(projectId: string; zone: string; clusterId: string) : TCluster;
+    Function Create(projectId: string; zone: string; aCreateClusterRequest : TCreateClusterRequest) : TOperation;overload;
+    Function Update(projectId: string; zone: string; clusterId: string; aUpdateClusterRequest : TUpdateClusterRequest) : TOperation;
+    Function Delete(projectId: string; zone: string; clusterId: string) : TOperation;
+    Function CreateNodePoolsResource(AOwner : TComponent) : TProjectsZonesClustersNodePoolsResource;virtual;overload;
+    Function CreateNodePoolsResource : TProjectsZonesClustersNodePoolsResource;virtual;overload;
+    Property NodePoolsResource : TProjectsZonesClustersNodePoolsResource Read GetNodePoolsInstance;
   end;
   
   
@@ -366,8 +559,8 @@ type
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function Get(operationId: string; projectId: string; zoneId: string) : TOperation;
-    Function List(projectId: string; zoneId: string) : TListOperationsResponse;
+    Function List(projectId: string; zone: string) : TListOperationsResponse;
+    Function Get(projectId: string; zone: string; operationId: string) : TOperation;
   end;
   
   
@@ -377,17 +570,23 @@ type
   
   TProjectsZonesResource = Class(TGoogleResource)
   Private
+    FClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
     FClustersInstance : TProjectsZonesClustersResource;
     FOperationsInstance : TProjectsZonesOperationsResource;
+    Function GetClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;virtual;
     Function GetClustersInstance : TProjectsZonesClustersResource;virtual;
     Function GetOperationsInstance : TProjectsZonesOperationsResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function GetServerconfig(projectId: string; zone: string) : TServerConfig;
+    Function CreateClustersNodePoolsResource(AOwner : TComponent) : TProjectsZonesClustersNodePoolsResource;virtual;overload;
+    Function CreateClustersNodePoolsResource : TProjectsZonesClustersNodePoolsResource;virtual;overload;
     Function CreateClustersResource(AOwner : TComponent) : TProjectsZonesClustersResource;virtual;overload;
     Function CreateClustersResource : TProjectsZonesClustersResource;virtual;overload;
     Function CreateOperationsResource(AOwner : TComponent) : TProjectsZonesOperationsResource;virtual;overload;
     Function CreateOperationsResource : TProjectsZonesOperationsResource;virtual;overload;
+    Property ClustersNodePoolsResource : TProjectsZonesClustersNodePoolsResource Read GetClustersNodePoolsInstance;
     Property ClustersResource : TProjectsZonesClustersResource Read GetClustersInstance;
     Property OperationsResource : TProjectsZonesOperationsResource Read GetOperationsInstance;
   end;
@@ -399,31 +598,26 @@ type
   
   TProjectsResource = Class(TGoogleResource)
   Private
-    FClustersInstance : TProjectsClustersResource;
-    FOperationsInstance : TProjectsOperationsResource;
+    FZonesClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
     FZonesClustersInstance : TProjectsZonesClustersResource;
     FZonesOperationsInstance : TProjectsZonesOperationsResource;
     FZonesInstance : TProjectsZonesResource;
-    Function GetClustersInstance : TProjectsClustersResource;virtual;
-    Function GetOperationsInstance : TProjectsOperationsResource;virtual;
+    Function GetZonesClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;virtual;
     Function GetZonesClustersInstance : TProjectsZonesClustersResource;virtual;
     Function GetZonesOperationsInstance : TProjectsZonesOperationsResource;virtual;
     Function GetZonesInstance : TProjectsZonesResource;virtual;
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function CreateClustersResource(AOwner : TComponent) : TProjectsClustersResource;virtual;overload;
-    Function CreateClustersResource : TProjectsClustersResource;virtual;overload;
-    Function CreateOperationsResource(AOwner : TComponent) : TProjectsOperationsResource;virtual;overload;
-    Function CreateOperationsResource : TProjectsOperationsResource;virtual;overload;
+    Function CreateZonesClustersNodePoolsResource(AOwner : TComponent) : TProjectsZonesClustersNodePoolsResource;virtual;overload;
+    Function CreateZonesClustersNodePoolsResource : TProjectsZonesClustersNodePoolsResource;virtual;overload;
     Function CreateZonesClustersResource(AOwner : TComponent) : TProjectsZonesClustersResource;virtual;overload;
     Function CreateZonesClustersResource : TProjectsZonesClustersResource;virtual;overload;
     Function CreateZonesOperationsResource(AOwner : TComponent) : TProjectsZonesOperationsResource;virtual;overload;
     Function CreateZonesOperationsResource : TProjectsZonesOperationsResource;virtual;overload;
     Function CreateZonesResource(AOwner : TComponent) : TProjectsZonesResource;virtual;overload;
     Function CreateZonesResource : TProjectsZonesResource;virtual;overload;
-    Property ClustersResource : TProjectsClustersResource Read GetClustersInstance;
-    Property OperationsResource : TProjectsOperationsResource Read GetOperationsInstance;
+    Property ZonesClustersNodePoolsResource : TProjectsZonesClustersNodePoolsResource Read GetZonesClustersNodePoolsInstance;
     Property ZonesClustersResource : TProjectsZonesClustersResource Read GetZonesClustersInstance;
     Property ZonesOperationsResource : TProjectsZonesOperationsResource Read GetZonesOperationsInstance;
     Property ZonesResource : TProjectsZonesResource Read GetZonesInstance;
@@ -436,14 +630,12 @@ type
   
   TContainerAPI = Class(TGoogleAPI)
   Private
-    FProjectsClustersInstance : TProjectsClustersResource;
-    FProjectsOperationsInstance : TProjectsOperationsResource;
+    FProjectsZonesClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
     FProjectsZonesClustersInstance : TProjectsZonesClustersResource;
     FProjectsZonesOperationsInstance : TProjectsZonesOperationsResource;
     FProjectsZonesInstance : TProjectsZonesResource;
     FProjectsInstance : TProjectsResource;
-    Function GetProjectsClustersInstance : TProjectsClustersResource;virtual;
-    Function GetProjectsOperationsInstance : TProjectsOperationsResource;virtual;
+    Function GetProjectsZonesClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;virtual;
     Function GetProjectsZonesClustersInstance : TProjectsZonesClustersResource;virtual;
     Function GetProjectsZonesOperationsInstance : TProjectsZonesOperationsResource;virtual;
     Function GetProjectsZonesInstance : TProjectsZonesResource;virtual;
@@ -471,10 +663,8 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
-    Function CreateProjectsClustersResource(AOwner : TComponent) : TProjectsClustersResource;virtual;overload;
-    Function CreateProjectsClustersResource : TProjectsClustersResource;virtual;overload;
-    Function CreateProjectsOperationsResource(AOwner : TComponent) : TProjectsOperationsResource;virtual;overload;
-    Function CreateProjectsOperationsResource : TProjectsOperationsResource;virtual;overload;
+    Function CreateProjectsZonesClustersNodePoolsResource(AOwner : TComponent) : TProjectsZonesClustersNodePoolsResource;virtual;overload;
+    Function CreateProjectsZonesClustersNodePoolsResource : TProjectsZonesClustersNodePoolsResource;virtual;overload;
     Function CreateProjectsZonesClustersResource(AOwner : TComponent) : TProjectsZonesClustersResource;virtual;overload;
     Function CreateProjectsZonesClustersResource : TProjectsZonesClustersResource;virtual;overload;
     Function CreateProjectsZonesOperationsResource(AOwner : TComponent) : TProjectsZonesOperationsResource;virtual;overload;
@@ -484,8 +674,7 @@ type
     Function CreateProjectsResource(AOwner : TComponent) : TProjectsResource;virtual;overload;
     Function CreateProjectsResource : TProjectsResource;virtual;overload;
     //Add default on-demand instances for resources
-    Property ProjectsClustersResource : TProjectsClustersResource Read GetProjectsClustersInstance;
-    Property ProjectsOperationsResource : TProjectsOperationsResource Read GetProjectsOperationsInstance;
+    Property ProjectsZonesClustersNodePoolsResource : TProjectsZonesClustersNodePoolsResource Read GetProjectsZonesClustersNodePoolsInstance;
     Property ProjectsZonesClustersResource : TProjectsZonesClustersResource Read GetProjectsZonesClustersInstance;
     Property ProjectsZonesOperationsResource : TProjectsZonesOperationsResource Read GetProjectsZonesOperationsInstance;
     Property ProjectsZonesResource : TProjectsZonesResource Read GetProjectsZonesInstance;
@@ -496,35 +685,56 @@ implementation
 
 
 { --------------------------------------------------------------------
+  TListClustersResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TListClustersResponse.Setclusters(AIndex : Integer; const AValue : TListClustersResponseTypeclustersArray); 
+
+begin
+  If (Fclusters=AValue) then exit;
+  Fclusters:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TListClustersResponse.SetmissingZones(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FmissingZones=AValue) then exit;
+  FmissingZones:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListClustersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'clusters' : SetLength(Fclusters,ALength);
+  'missingzones' : SetLength(FmissingZones,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
   TCluster
   --------------------------------------------------------------------}
 
 
-Procedure TCluster.SetclusterApiVersion(AIndex : Integer; const AValue : String); 
+Procedure TCluster.Setname(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FclusterApiVersion=AValue) then exit;
-  FclusterApiVersion:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCluster.SetcontainerIpv4Cidr(AIndex : Integer; const AValue : String); 
-
-begin
-  If (FcontainerIpv4Cidr=AValue) then exit;
-  FcontainerIpv4Cidr:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TCluster.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
-
-begin
-  If (FcreationTimestamp=AValue) then exit;
-  FcreationTimestamp:=AValue;
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -540,27 +750,27 @@ end;
 
 
 
-Procedure TCluster.SetenableCloudLogging(AIndex : Integer; AValue : boolean); 
+Procedure TCluster.SetinitialNodeCount(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (FenableCloudLogging=AValue) then exit;
-  FenableCloudLogging:=AValue;
+  If (FinitialNodeCount=AValue) then exit;
+  FinitialNodeCount:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TCluster.Setendpoint(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetnodeConfig(AIndex : Integer; const AValue : TNodeConfig); 
 
 begin
-  If (Fendpoint=AValue) then exit;
-  Fendpoint:=AValue;
+  If (FnodeConfig=AValue) then exit;
+  FnodeConfig:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TCluster.SetmasterAuth(AIndex : Integer; AValue : TMasterAuth); 
+Procedure TCluster.SetmasterAuth(AIndex : Integer; const AValue : TMasterAuth); 
 
 begin
   If (FmasterAuth=AValue) then exit;
@@ -570,11 +780,21 @@ end;
 
 
 
-Procedure TCluster.Setname(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetloggingService(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
+  If (FloggingService=AValue) then exit;
+  FloggingService:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCluster.SetmonitoringService(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FmonitoringService=AValue) then exit;
+  FmonitoringService:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -590,31 +810,51 @@ end;
 
 
 
-Procedure TCluster.SetnodeConfig(AIndex : Integer; AValue : TNodeConfig); 
+Procedure TCluster.SetclusterIpv4Cidr(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FnodeConfig=AValue) then exit;
-  FnodeConfig:=AValue;
+  If (FclusterIpv4Cidr=AValue) then exit;
+  FclusterIpv4Cidr:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TCluster.SetnodeRoutingPrefixSize(AIndex : Integer; AValue : integer); 
+Procedure TCluster.SetaddonsConfig(AIndex : Integer; const AValue : TAddonsConfig); 
 
 begin
-  If (FnodeRoutingPrefixSize=AValue) then exit;
-  FnodeRoutingPrefixSize:=AValue;
+  If (FaddonsConfig=AValue) then exit;
+  FaddonsConfig:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TCluster.SetnumNodes(AIndex : Integer; AValue : integer); 
+Procedure TCluster.Setsubnetwork(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FnumNodes=AValue) then exit;
-  FnumNodes:=AValue;
+  If (Fsubnetwork=AValue) then exit;
+  Fsubnetwork:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCluster.SetnodePools(AIndex : Integer; const AValue : TClusterTypenodePoolsArray); 
+
+begin
+  If (FnodePools=AValue) then exit;
+  FnodePools:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCluster.Setlocations(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Flocations=AValue) then exit;
+  Flocations:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -630,11 +870,61 @@ end;
 
 
 
-Procedure TCluster.SetservicesIpv4Cidr(AIndex : Integer; const AValue : String); 
+Procedure TCluster.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FservicesIpv4Cidr=AValue) then exit;
-  FservicesIpv4Cidr:=AValue;
+  If (Fzone=AValue) then exit;
+  Fzone:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCluster.Setendpoint(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fendpoint=AValue) then exit;
+  Fendpoint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCluster.SetinitialClusterVersion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinitialClusterVersion=AValue) then exit;
+  FinitialClusterVersion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCluster.SetcurrentMasterVersion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcurrentMasterVersion=AValue) then exit;
+  FcurrentMasterVersion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCluster.SetcurrentNodeVersion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcurrentNodeVersion=AValue) then exit;
+  FcurrentNodeVersion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCluster.SetcreateTime(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcreateTime=AValue) then exit;
+  FcreateTime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -660,56 +950,54 @@ end;
 
 
 
-Procedure TCluster.Setzone(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetnodeIpv4CidrSize(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (Fzone=AValue) then exit;
-  Fzone:=AValue;
+  If (FnodeIpv4CidrSize=AValue) then exit;
+  FnodeIpv4CidrSize:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-
-
-{ --------------------------------------------------------------------
-  TCreateClusterRequest
-  --------------------------------------------------------------------}
-
-
-Procedure TCreateClusterRequest.Setcluster(AIndex : Integer; AValue : TCluster); 
+Procedure TCluster.SetservicesIpv4Cidr(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fcluster=AValue) then exit;
-  Fcluster:=AValue;
+  If (FservicesIpv4Cidr=AValue) then exit;
+  FservicesIpv4Cidr:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-
-
-{ --------------------------------------------------------------------
-  TListAggregatedClustersResponse
-  --------------------------------------------------------------------}
-
-
-Procedure TListAggregatedClustersResponse.Setclusters(AIndex : Integer; AValue : TListAggregatedClustersResponseTypeclustersArray); 
+Procedure TCluster.SetinstanceGroupUrls(AIndex : Integer; const AValue : TStringArray); 
 
 begin
-  If (Fclusters=AValue) then exit;
-  Fclusters:=AValue;
+  If (FinstanceGroupUrls=AValue) then exit;
+  FinstanceGroupUrls:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TCluster.SetcurrentNodeCount(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FcurrentNodeCount=AValue) then exit;
+  FcurrentNodeCount:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListAggregatedClustersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCluster.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
   Case AName of
-  'clusters' : SetLength(Fclusters,ALength);
+  'nodepools' : SetLength(FnodePools,ALength);
+  'locations' : SetLength(Flocations,ALength);
+  'instancegroupurls' : SetLength(FinstanceGroupUrls,ALength);
   else
     Inherited SetArrayLength(AName,ALength);
   end;
@@ -720,129 +1008,15 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListAggregatedOperationsResponse
+  TNodeConfigTypemetadata
   --------------------------------------------------------------------}
 
 
-Procedure TListAggregatedOperationsResponse.Setoperations(AIndex : Integer; AValue : TListAggregatedOperationsResponseTypeoperationsArray); 
+Class Function TNodeConfigTypemetadata.AllowAdditionalProperties : Boolean;
 
 begin
-  If (Foperations=AValue) then exit;
-  Foperations:=AValue;
-  MarkPropertyChanged(AIndex);
+  Result:=True;
 end;
-
-
-//2.6.4. bug workaround
-{$IFDEF VER2_6}
-Procedure TListAggregatedOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
-
-begin
-  Case AName of
-  'operations' : SetLength(Foperations,ALength);
-  else
-    Inherited SetArrayLength(AName,ALength);
-  end;
-end;
-{$ENDIF VER2_6}
-
-
-
-
-{ --------------------------------------------------------------------
-  TListClustersResponse
-  --------------------------------------------------------------------}
-
-
-Procedure TListClustersResponse.Setclusters(AIndex : Integer; AValue : TListClustersResponseTypeclustersArray); 
-
-begin
-  If (Fclusters=AValue) then exit;
-  Fclusters:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-//2.6.4. bug workaround
-{$IFDEF VER2_6}
-Procedure TListClustersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
-
-begin
-  Case AName of
-  'clusters' : SetLength(Fclusters,ALength);
-  else
-    Inherited SetArrayLength(AName,ALength);
-  end;
-end;
-{$ENDIF VER2_6}
-
-
-
-
-{ --------------------------------------------------------------------
-  TListOperationsResponse
-  --------------------------------------------------------------------}
-
-
-Procedure TListOperationsResponse.Setoperations(AIndex : Integer; AValue : TListOperationsResponseTypeoperationsArray); 
-
-begin
-  If (Foperations=AValue) then exit;
-  Foperations:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-//2.6.4. bug workaround
-{$IFDEF VER2_6}
-Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
-
-begin
-  Case AName of
-  'operations' : SetLength(Foperations,ALength);
-  else
-    Inherited SetArrayLength(AName,ALength);
-  end;
-end;
-{$ENDIF VER2_6}
-
-
-
-
-{ --------------------------------------------------------------------
-  TMasterAuth
-  --------------------------------------------------------------------}
-
-
-Procedure TMasterAuth.SetbearerToken(AIndex : Integer; const AValue : String); 
-
-begin
-  If (FbearerToken=AValue) then exit;
-  FbearerToken:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMasterAuth.Setpassword(AIndex : Integer; const AValue : String); 
-
-begin
-  If (Fpassword=AValue) then exit;
-  Fpassword:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TMasterAuth.Setuser(AIndex : Integer; const AValue : String); 
-
-begin
-  If (Fuser=AValue) then exit;
-  Fuser:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
 
 
 
@@ -861,21 +1035,31 @@ end;
 
 
 
-Procedure TNodeConfig.SetserviceAccounts(AIndex : Integer; AValue : TNodeConfigTypeserviceAccountsArray); 
+Procedure TNodeConfig.SetdiskSizeGb(AIndex : Integer; const AValue : integer); 
 
 begin
-  If (FserviceAccounts=AValue) then exit;
-  FserviceAccounts:=AValue;
+  If (FdiskSizeGb=AValue) then exit;
+  FdiskSizeGb:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TNodeConfig.SetsourceImage(AIndex : Integer; const AValue : String); 
+Procedure TNodeConfig.SetoauthScopes(AIndex : Integer; const AValue : TStringArray); 
 
 begin
-  If (FsourceImage=AValue) then exit;
-  FsourceImage:=AValue;
+  If (FoauthScopes=AValue) then exit;
+  FoauthScopes:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNodeConfig.Setmetadata(AIndex : Integer; const AValue : TNodeConfigTypemetadata); 
+
+begin
+  If (Fmetadata=AValue) then exit;
+  Fmetadata:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -886,7 +1070,7 @@ Procedure TNodeConfig.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
-  'serviceaccounts' : SetLength(FserviceAccounts,ALength);
+  'oauthscopes' : SetLength(FoauthScopes,ALength);
   else
     Inherited SetArrayLength(AName,ALength);
   end;
@@ -897,21 +1081,129 @@ end;
 
 
 { --------------------------------------------------------------------
-  TOperation
+  TMasterAuth
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.SeterrorMessage(AIndex : Integer; const AValue : String); 
+Procedure TMasterAuth.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FerrorMessage=AValue) then exit;
-  FerrorMessage:=AValue;
+  If (Fusername=AValue) then exit;
+  Fusername:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TMasterAuth.Setpassword(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fpassword=AValue) then exit;
+  Fpassword:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMasterAuth.SetclusterCaCertificate(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FclusterCaCertificate=AValue) then exit;
+  FclusterCaCertificate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMasterAuth.SetclientCertificate(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FclientCertificate=AValue) then exit;
+  FclientCertificate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMasterAuth.SetclientKey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FclientKey=AValue) then exit;
+  FclientKey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TAddonsConfig
+  --------------------------------------------------------------------}
+
+
+Procedure TAddonsConfig.SethttpLoadBalancing(AIndex : Integer; const AValue : THttpLoadBalancing); 
+
+begin
+  If (FhttpLoadBalancing=AValue) then exit;
+  FhttpLoadBalancing:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAddonsConfig.SethorizontalPodAutoscaling(AIndex : Integer; const AValue : THorizontalPodAutoscaling); 
+
+begin
+  If (FhorizontalPodAutoscaling=AValue) then exit;
+  FhorizontalPodAutoscaling:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  THttpLoadBalancing
+  --------------------------------------------------------------------}
+
+
+Procedure THttpLoadBalancing.Setdisabled(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (Fdisabled=AValue) then exit;
+  Fdisabled:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  THorizontalPodAutoscaling
+  --------------------------------------------------------------------}
+
+
+Procedure THorizontalPodAutoscaling.Setdisabled(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (Fdisabled=AValue) then exit;
+  Fdisabled:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TNodePool
+  --------------------------------------------------------------------}
+
+
+Procedure TNodePool.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -921,17 +1213,27 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
+Procedure TNodePool.Setconfig(AIndex : Integer; const AValue : TNodeConfig); 
 
 begin
-  If (FoperationType=AValue) then exit;
-  FoperationType:=AValue;
+  If (Fconfig=AValue) then exit;
+  Fconfig:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TNodePool.SetinitialNodeCount(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FinitialNodeCount=AValue) then exit;
+  FinitialNodeCount:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNodePool.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -941,7 +1243,27 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TNodePool.Setversion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fversion=AValue) then exit;
+  Fversion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNodePool.SetinstanceGroupUrls(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FinstanceGroupUrls=AValue) then exit;
+  FinstanceGroupUrls:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNodePool.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -951,21 +1273,58 @@ end;
 
 
 
-Procedure TOperation.Settarget(AIndex : Integer; const AValue : String); 
+Procedure TNodePool.SetstatusMessage(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Ftarget=AValue) then exit;
-  Ftarget:=AValue;
+  If (FstatusMessage=AValue) then exit;
+  FstatusMessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TNodePool.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'instancegroupurls' : SetLength(FinstanceGroupUrls,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TCreateClusterRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TCreateClusterRequest.Setcluster(AIndex : Integer; const AValue : TCluster); 
+
+begin
+  If (Fcluster=AValue) then exit;
+  Fcluster:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
+
+
+{ --------------------------------------------------------------------
+  TOperation
+  --------------------------------------------------------------------}
+
+
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FtargetLink=AValue) then exit;
-  FtargetLink:=AValue;
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -981,39 +1340,174 @@ end;
 
 
 
-
-
-{ --------------------------------------------------------------------
-  TServiceAccount
-  --------------------------------------------------------------------}
-
-
-Procedure TServiceAccount.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Femail=AValue) then exit;
-  Femail:=AValue;
+  If (FoperationType=AValue) then exit;
+  FoperationType:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TServiceAccount.Setscopes(AIndex : Integer; AValue : TStringArray); 
+Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fscopes=AValue) then exit;
-  Fscopes:=AValue;
+  If (Fstatus=AValue) then exit;
+  Fstatus:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.Setdetail(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdetail=AValue) then exit;
+  Fdetail:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FstatusMessage=AValue) then exit;
+  FstatusMessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FtargetLink=AValue) then exit;
+  FtargetLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TUpdateClusterRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TUpdateClusterRequest.Setupdate(AIndex : Integer; const AValue : TClusterUpdate); 
+
+begin
+  If (Fupdate=AValue) then exit;
+  Fupdate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TClusterUpdate
+  --------------------------------------------------------------------}
+
+
+Procedure TClusterUpdate.SetdesiredNodeVersion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdesiredNodeVersion=AValue) then exit;
+  FdesiredNodeVersion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TClusterUpdate.SetdesiredMonitoringService(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdesiredMonitoringService=AValue) then exit;
+  FdesiredMonitoringService:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TClusterUpdate.SetdesiredAddonsConfig(AIndex : Integer; const AValue : TAddonsConfig); 
+
+begin
+  If (FdesiredAddonsConfig=AValue) then exit;
+  FdesiredAddonsConfig:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TClusterUpdate.SetdesiredNodePoolId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdesiredNodePoolId=AValue) then exit;
+  FdesiredNodePoolId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TClusterUpdate.SetdesiredMasterVersion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdesiredMasterVersion=AValue) then exit;
+  FdesiredMasterVersion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TListOperationsResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TListOperationsResponse.Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray); 
+
+begin
+  If (Foperations=AValue) then exit;
+  Foperations:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TListOperationsResponse.SetmissingZones(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FmissingZones=AValue) then exit;
+  FmissingZones:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TServiceAccount.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
   Case AName of
-  'scopes' : SetLength(Fscopes,ALength);
+  'operations' : SetLength(Foperations,ALength);
+  'missingzones' : SetLength(FmissingZones,ALength);
   else
     Inherited SetArrayLength(AName,ALength);
   end;
@@ -1024,69 +1518,188 @@ end;
 
 
 { --------------------------------------------------------------------
-  TProjectsClustersResource
+  TServerConfig
   --------------------------------------------------------------------}
 
 
-Class Function TProjectsClustersResource.ResourceName : String;
+Procedure TServerConfig.SetdefaultClusterVersion(AIndex : Integer; const AValue : String); 
 
 begin
-  Result:='clusters';
+  If (FdefaultClusterVersion=AValue) then exit;
+  FdefaultClusterVersion:=AValue;
+  MarkPropertyChanged(AIndex);
 end;
 
-Class Function TProjectsClustersResource.DefaultAPI : TGoogleAPIClass;
+
+
+Procedure TServerConfig.SetvalidNodeVersions(AIndex : Integer; const AValue : TStringArray); 
 
 begin
-  Result:=TcontainerAPI;
+  If (FvalidNodeVersions=AValue) then exit;
+  FvalidNodeVersions:=AValue;
+  MarkPropertyChanged(AIndex);
 end;
 
-Function TProjectsClustersResource.List(projectId: string) : TListAggregatedClustersResponse;
 
-Const
-  _HTTPMethod = 'GET';
-  _Path       = '{projectId}/clusters';
-  _Methodid   = 'container.projects.clusters.list';
 
-Var
-  _P : String;
+Procedure TServerConfig.SetdefaultImageFamily(AIndex : Integer; const AValue : String); 
 
 begin
-  _P:=SubstitutePath(_Path,['projectId',projectId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListAggregatedClustersResponse) as TListAggregatedClustersResponse;
+  If (FdefaultImageFamily=AValue) then exit;
+  FdefaultImageFamily:=AValue;
+  MarkPropertyChanged(AIndex);
 end;
+
+
+
+Procedure TServerConfig.SetvalidImageFamilies(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FvalidImageFamilies=AValue) then exit;
+  FvalidImageFamilies:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TServerConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'validnodeversions' : SetLength(FvalidNodeVersions,ALength);
+  'validimagefamilies' : SetLength(FvalidImageFamilies,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
 { --------------------------------------------------------------------
-  TProjectsOperationsResource
+  TListNodePoolsResponse
   --------------------------------------------------------------------}
 
 
-Class Function TProjectsOperationsResource.ResourceName : String;
+Procedure TListNodePoolsResponse.SetnodePools(AIndex : Integer; const AValue : TListNodePoolsResponseTypenodePoolsArray); 
 
 begin
-  Result:='operations';
+  If (FnodePools=AValue) then exit;
+  FnodePools:=AValue;
+  MarkPropertyChanged(AIndex);
 end;
 
-Class Function TProjectsOperationsResource.DefaultAPI : TGoogleAPIClass;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TListNodePoolsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'nodepools' : SetLength(FnodePools,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TCreateNodePoolRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TCreateNodePoolRequest.SetnodePool(AIndex : Integer; const AValue : TNodePool); 
+
+begin
+  If (FnodePool=AValue) then exit;
+  FnodePool:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TProjectsZonesClustersNodePoolsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TProjectsZonesClustersNodePoolsResource.ResourceName : String;
+
+begin
+  Result:='nodePools';
+end;
+
+Class Function TProjectsZonesClustersNodePoolsResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TcontainerAPI;
 end;
 
-Function TProjectsOperationsResource.List(projectId: string) : TListAggregatedOperationsResponse;
+Function TProjectsZonesClustersNodePoolsResource.List(projectId: string; zone: string; clusterId: string) : TListNodePoolsResponse;
 
 Const
   _HTTPMethod = 'GET';
-  _Path       = '{projectId}/operations';
-  _Methodid   = 'container.projects.operations.list';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools';
+  _Methodid   = 'container.projects.zones.clusters.nodePools.list';
 
 Var
   _P : String;
 
 begin
-  _P:=SubstitutePath(_Path,['projectId',projectId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListAggregatedOperationsResponse) as TListAggregatedOperationsResponse;
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone,'clusterId',clusterId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListNodePoolsResponse) as TListNodePoolsResponse;
+end;
+
+Function TProjectsZonesClustersNodePoolsResource.Get(projectId: string; zone: string; clusterId: string; nodePoolId: string) : TNodePool;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools/{nodePoolId}';
+  _Methodid   = 'container.projects.zones.clusters.nodePools.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone,'clusterId',clusterId,'nodePoolId',nodePoolId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TNodePool) as TNodePool;
+end;
+
+Function TProjectsZonesClustersNodePoolsResource.Create(projectId: string; zone: string; clusterId: string; aCreateNodePoolRequest : TCreateNodePoolRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools';
+  _Methodid   = 'container.projects.zones.clusters.nodePools.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone,'clusterId',clusterId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aCreateNodePoolRequest,TOperation) as TOperation;
+end;
+
+Function TProjectsZonesClustersNodePoolsResource.Delete(projectId: string; zone: string; clusterId: string; nodePoolId: string) : TOperation;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools/{nodePoolId}';
+  _Methodid   = 'container.projects.zones.clusters.nodePools.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone,'clusterId',clusterId,'nodePoolId',nodePoolId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
 end;
 
 
@@ -1108,64 +1721,103 @@ begin
   Result:=TcontainerAPI;
 end;
 
-Function TProjectsZonesClustersResource.Create(projectId: string; zoneId: string; aCreateClusterRequest : TCreateClusterRequest) : TOperation;
-
-Const
-  _HTTPMethod = 'POST';
-  _Path       = '{projectId}/zones/{zoneId}/clusters';
-  _Methodid   = 'container.projects.zones.clusters.create';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['projectId',projectId,'zoneId',zoneId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aCreateClusterRequest,TOperation) as TOperation;
-end;
-
-Function TProjectsZonesClustersResource.Delete(clusterId: string; projectId: string; zoneId: string) : TOperation;
-
-Const
-  _HTTPMethod = 'DELETE';
-  _Path       = '{projectId}/zones/{zoneId}/clusters/{clusterId}';
-  _Methodid   = 'container.projects.zones.clusters.delete';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['clusterId',clusterId,'projectId',projectId,'zoneId',zoneId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
-end;
-
-Function TProjectsZonesClustersResource.Get(clusterId: string; projectId: string; zoneId: string) : TCluster;
+Function TProjectsZonesClustersResource.List(projectId: string; zone: string) : TListClustersResponse;
 
 Const
   _HTTPMethod = 'GET';
-  _Path       = '{projectId}/zones/{zoneId}/clusters/{clusterId}';
-  _Methodid   = 'container.projects.zones.clusters.get';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['clusterId',clusterId,'projectId',projectId,'zoneId',zoneId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TCluster) as TCluster;
-end;
-
-Function TProjectsZonesClustersResource.List(projectId: string; zoneId: string) : TListClustersResponse;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = '{projectId}/zones/{zoneId}/clusters';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/clusters';
   _Methodid   = 'container.projects.zones.clusters.list';
 
 Var
   _P : String;
 
 begin
-  _P:=SubstitutePath(_Path,['projectId',projectId,'zoneId',zoneId]);
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone]);
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListClustersResponse) as TListClustersResponse;
+end;
+
+Function TProjectsZonesClustersResource.Get(projectId: string; zone: string; clusterId: string) : TCluster;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}';
+  _Methodid   = 'container.projects.zones.clusters.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone,'clusterId',clusterId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TCluster) as TCluster;
+end;
+
+Function TProjectsZonesClustersResource.Create(projectId: string; zone: string; aCreateClusterRequest : TCreateClusterRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/clusters';
+  _Methodid   = 'container.projects.zones.clusters.create';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aCreateClusterRequest,TOperation) as TOperation;
+end;
+
+Function TProjectsZonesClustersResource.Update(projectId: string; zone: string; clusterId: string; aUpdateClusterRequest : TUpdateClusterRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}';
+  _Methodid   = 'container.projects.zones.clusters.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone,'clusterId',clusterId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aUpdateClusterRequest,TOperation) as TOperation;
+end;
+
+Function TProjectsZonesClustersResource.Delete(projectId: string; zone: string; clusterId: string) : TOperation;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}';
+  _Methodid   = 'container.projects.zones.clusters.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone,'clusterId',clusterId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
+end;
+
+
+
+Function TProjectsZonesClustersResource.GetNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
+
+begin
+  if (FNodePoolsInstance=Nil) then
+    FNodePoolsInstance:=CreateNodePoolsResource;
+  Result:=FNodePoolsInstance;
+end;
+
+Function TProjectsZonesClustersResource.CreateNodePoolsResource : TProjectsZonesClustersNodePoolsResource;
+
+begin
+  Result:=CreateNodePoolsResource(Self);
+end;
+
+
+Function TProjectsZonesClustersResource.CreateNodePoolsResource(AOwner : TComponent) : TProjectsZonesClustersNodePoolsResource;
+
+begin
+  Result:=TProjectsZonesClustersNodePoolsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -1187,34 +1839,34 @@ begin
   Result:=TcontainerAPI;
 end;
 
-Function TProjectsZonesOperationsResource.Get(operationId: string; projectId: string; zoneId: string) : TOperation;
+Function TProjectsZonesOperationsResource.List(projectId: string; zone: string) : TListOperationsResponse;
 
 Const
   _HTTPMethod = 'GET';
-  _Path       = '{projectId}/zones/{zoneId}/operations/{operationId}';
-  _Methodid   = 'container.projects.zones.operations.get';
-
-Var
-  _P : String;
-
-begin
-  _P:=SubstitutePath(_Path,['operationId',operationId,'projectId',projectId,'zoneId',zoneId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
-end;
-
-Function TProjectsZonesOperationsResource.List(projectId: string; zoneId: string) : TListOperationsResponse;
-
-Const
-  _HTTPMethod = 'GET';
-  _Path       = '{projectId}/zones/{zoneId}/operations';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/operations';
   _Methodid   = 'container.projects.zones.operations.list';
 
 Var
   _P : String;
 
 begin
-  _P:=SubstitutePath(_Path,['projectId',projectId,'zoneId',zoneId]);
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone]);
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListOperationsResponse) as TListOperationsResponse;
+end;
+
+Function TProjectsZonesOperationsResource.Get(projectId: string; zone: string; operationId: string) : TOperation;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/operations/{operationId}';
+  _Methodid   = 'container.projects.zones.operations.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone,'operationId',operationId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
 end;
 
 
@@ -1234,6 +1886,45 @@ Class Function TProjectsZonesResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TcontainerAPI;
+end;
+
+Function TProjectsZonesResource.GetServerconfig(projectId: string; zone: string) : TServerConfig;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'v1/projects/{projectId}/zones/{zone}/serverconfig';
+  _Methodid   = 'container.projects.zones.getServerconfig';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['projectId',projectId,'zone',zone]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TServerConfig) as TServerConfig;
+end;
+
+
+
+Function TProjectsZonesResource.GetClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
+
+begin
+  if (FClustersNodePoolsInstance=Nil) then
+    FClustersNodePoolsInstance:=CreateClustersNodePoolsResource;
+  Result:=FClustersNodePoolsInstance;
+end;
+
+Function TProjectsZonesResource.CreateClustersNodePoolsResource : TProjectsZonesClustersNodePoolsResource;
+
+begin
+  Result:=CreateClustersNodePoolsResource(Self);
+end;
+
+
+Function TProjectsZonesResource.CreateClustersNodePoolsResource(AOwner : TComponent) : TProjectsZonesClustersNodePoolsResource;
+
+begin
+  Result:=TProjectsZonesClustersNodePoolsResource.Create(AOwner);
+  Result.API:=Self.API;
 end;
 
 
@@ -1305,49 +1996,25 @@ end;
 
 
 
-Function TProjectsResource.GetClustersInstance : TProjectsClustersResource;
+Function TProjectsResource.GetZonesClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
 
 begin
-  if (FClustersInstance=Nil) then
-    FClustersInstance:=CreateClustersResource;
-  Result:=FClustersInstance;
+  if (FZonesClustersNodePoolsInstance=Nil) then
+    FZonesClustersNodePoolsInstance:=CreateZonesClustersNodePoolsResource;
+  Result:=FZonesClustersNodePoolsInstance;
 end;
 
-Function TProjectsResource.CreateClustersResource : TProjectsClustersResource;
+Function TProjectsResource.CreateZonesClustersNodePoolsResource : TProjectsZonesClustersNodePoolsResource;
 
 begin
-  Result:=CreateClustersResource(Self);
-end;
-
-
-Function TProjectsResource.CreateClustersResource(AOwner : TComponent) : TProjectsClustersResource;
-
-begin
-  Result:=TProjectsClustersResource.Create(AOwner);
-  Result.API:=Self.API;
+  Result:=CreateZonesClustersNodePoolsResource(Self);
 end;
 
 
-
-Function TProjectsResource.GetOperationsInstance : TProjectsOperationsResource;
-
-begin
-  if (FOperationsInstance=Nil) then
-    FOperationsInstance:=CreateOperationsResource;
-  Result:=FOperationsInstance;
-end;
-
-Function TProjectsResource.CreateOperationsResource : TProjectsOperationsResource;
+Function TProjectsResource.CreateZonesClustersNodePoolsResource(AOwner : TComponent) : TProjectsZonesClustersNodePoolsResource;
 
 begin
-  Result:=CreateOperationsResource(Self);
-end;
-
-
-Function TProjectsResource.CreateOperationsResource(AOwner : TComponent) : TProjectsOperationsResource;
-
-begin
-  Result:=TProjectsOperationsResource.Create(AOwner);
+  Result:=TProjectsZonesClustersNodePoolsResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 
@@ -1438,19 +2105,19 @@ end;
 Class Function TContainerAPI.APIVersion : String;
 
 begin
-  Result:='v1beta1';
+  Result:='v1';
 end;
 
 Class Function TContainerAPI.APIRevision : String;
 
 begin
-  Result:='20150504';
+  Result:='20160421';
 end;
 
 Class Function TContainerAPI.APIID : String;
 
 begin
-  Result:='container:v1beta1';
+  Result:='container:v1';
 end;
 
 Class Function TContainerAPI.APITitle : String;
@@ -1462,7 +2129,7 @@ end;
 Class Function TContainerAPI.APIDescription : String;
 
 begin
-  Result:='The Google Container Engine API is used for building and managing container based applications, powered by the open source Kubernetes technology.';
+  Result:='Builds and manages clusters that run container-based applications, powered by open source Kubernetes technology.';
 end;
 
 Class Function TContainerAPI.APIOwnerDomain : String;
@@ -1492,25 +2159,25 @@ end;
 Class Function TContainerAPI.APIdocumentationLink : String;
 
 begin
-  Result:='https://cloud.google.com/container-engine/docs/v1beta1/';
+  Result:='https://cloud.google.com/container-engine/';
 end;
 
 Class Function TContainerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://container.googleapis.com/';
 end;
 
 Class Function TContainerAPI.APIbasePath : string;
 
 begin
-  Result:='/container/v1beta1/projects/';
+  Result:='';
 end;
 
 Class Function TContainerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/container/v1beta1/projects/';
+  Result:='https://container.googleapis.com/';
 end;
 
 Class Function TContainerAPI.APIProtocol : string;
@@ -1522,7 +2189,7 @@ end;
 Class Function TContainerAPI.APIservicePath : string;
 
 begin
-  Result:='container/v1beta1/projects/';
+  Result:='';
 end;
 
 Class Function TContainerAPI.APIbatchPath : String;
@@ -1549,62 +2216,45 @@ end;
 Class Procedure TContainerAPI.RegisterAPIResources;
 
 begin
-  TCluster.RegisterObject;
-  TCreateClusterRequest.RegisterObject;
-  TListAggregatedClustersResponse.RegisterObject;
-  TListAggregatedOperationsResponse.RegisterObject;
   TListClustersResponse.RegisterObject;
-  TListOperationsResponse.RegisterObject;
-  TMasterAuth.RegisterObject;
+  TCluster.RegisterObject;
+  TNodeConfigTypemetadata.RegisterObject;
   TNodeConfig.RegisterObject;
+  TMasterAuth.RegisterObject;
+  TAddonsConfig.RegisterObject;
+  THttpLoadBalancing.RegisterObject;
+  THorizontalPodAutoscaling.RegisterObject;
+  TNodePool.RegisterObject;
+  TCreateClusterRequest.RegisterObject;
   TOperation.RegisterObject;
-  TServiceAccount.RegisterObject;
+  TUpdateClusterRequest.RegisterObject;
+  TClusterUpdate.RegisterObject;
+  TListOperationsResponse.RegisterObject;
+  TServerConfig.RegisterObject;
+  TListNodePoolsResponse.RegisterObject;
+  TCreateNodePoolRequest.RegisterObject;
 end;
 
 
-Function TContainerAPI.GetProjectsClustersInstance : TProjectsClustersResource;
+Function TContainerAPI.GetProjectsZonesClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
 
 begin
-  if (FProjectsClustersInstance=Nil) then
-    FProjectsClustersInstance:=CreateProjectsClustersResource;
-  Result:=FProjectsClustersInstance;
+  if (FProjectsZonesClustersNodePoolsInstance=Nil) then
+    FProjectsZonesClustersNodePoolsInstance:=CreateProjectsZonesClustersNodePoolsResource;
+  Result:=FProjectsZonesClustersNodePoolsInstance;
 end;
 
-Function TContainerAPI.CreateProjectsClustersResource : TProjectsClustersResource;
+Function TContainerAPI.CreateProjectsZonesClustersNodePoolsResource : TProjectsZonesClustersNodePoolsResource;
 
 begin
-  Result:=CreateProjectsClustersResource(Self);
-end;
-
-
-Function TContainerAPI.CreateProjectsClustersResource(AOwner : TComponent) : TProjectsClustersResource;
-
-begin
-  Result:=TProjectsClustersResource.Create(AOwner);
-  Result.API:=Self.API;
+  Result:=CreateProjectsZonesClustersNodePoolsResource(Self);
 end;
 
 
-
-Function TContainerAPI.GetProjectsOperationsInstance : TProjectsOperationsResource;
-
-begin
-  if (FProjectsOperationsInstance=Nil) then
-    FProjectsOperationsInstance:=CreateProjectsOperationsResource;
-  Result:=FProjectsOperationsInstance;
-end;
-
-Function TContainerAPI.CreateProjectsOperationsResource : TProjectsOperationsResource;
+Function TContainerAPI.CreateProjectsZonesClustersNodePoolsResource(AOwner : TComponent) : TProjectsZonesClustersNodePoolsResource;
 
 begin
-  Result:=CreateProjectsOperationsResource(Self);
-end;
-
-
-Function TContainerAPI.CreateProjectsOperationsResource(AOwner : TComponent) : TProjectsOperationsResource;
-
-begin
-  Result:=TProjectsOperationsResource.Create(AOwner);
+  Result:=TProjectsZonesClustersNodePoolsResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 

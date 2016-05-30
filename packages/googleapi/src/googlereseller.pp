@@ -1,19 +1,4 @@
 unit googlereseller;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -94,22 +79,25 @@ type
   
   TChangePlanRequest = Class(TGoogleBaseObject)
   Private
+    FdealCode : String;
     Fkind : String;
     FplanName : String;
     FpurchaseOrderId : String;
     Fseats : TSeats;
   Protected
     //Property setters
+    Procedure SetdealCode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetplanName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpurchaseOrderId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setseats(AIndex : Integer; AValue : TSeats); virtual;
+    Procedure Setseats(AIndex : Integer; const AValue : TSeats); virtual;
   Public
   Published
-    Property kind : String Index 0 Read Fkind Write Setkind;
-    Property planName : String Index 8 Read FplanName Write SetplanName;
-    Property purchaseOrderId : String Index 16 Read FpurchaseOrderId Write SetpurchaseOrderId;
-    Property seats : TSeats Index 24 Read Fseats Write Setseats;
+    Property dealCode : String Index 0 Read FdealCode Write SetdealCode;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property planName : String Index 16 Read FplanName Write SetplanName;
+    Property purchaseOrderId : String Index 24 Read FpurchaseOrderId Write SetpurchaseOrderId;
+    Property seats : TSeats Index 32 Read Fseats Write Setseats;
   end;
   TChangePlanRequestClass = Class of TChangePlanRequest;
   
@@ -121,6 +109,7 @@ type
   Private
     FalternateEmail : String;
     FcustomerDomain : String;
+    FcustomerDomainVerified : boolean;
     FcustomerId : String;
     Fkind : String;
     FphoneNumber : String;
@@ -130,20 +119,22 @@ type
     //Property setters
     Procedure SetalternateEmail(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcustomerDomain(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomerDomainVerified(AIndex : Integer; const AValue : boolean); virtual;
     Procedure SetcustomerId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetphoneNumber(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetpostalAddress(AIndex : Integer; AValue : TAddress); virtual;
+    Procedure SetpostalAddress(AIndex : Integer; const AValue : TAddress); virtual;
     Procedure SetresourceUiUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property alternateEmail : String Index 0 Read FalternateEmail Write SetalternateEmail;
     Property customerDomain : String Index 8 Read FcustomerDomain Write SetcustomerDomain;
-    Property customerId : String Index 16 Read FcustomerId Write SetcustomerId;
-    Property kind : String Index 24 Read Fkind Write Setkind;
-    Property phoneNumber : String Index 32 Read FphoneNumber Write SetphoneNumber;
-    Property postalAddress : TAddress Index 40 Read FpostalAddress Write SetpostalAddress;
-    Property resourceUiUrl : String Index 48 Read FresourceUiUrl Write SetresourceUiUrl;
+    Property customerDomainVerified : boolean Index 16 Read FcustomerDomainVerified Write SetcustomerDomainVerified;
+    Property customerId : String Index 24 Read FcustomerId Write SetcustomerId;
+    Property kind : String Index 32 Read Fkind Write Setkind;
+    Property phoneNumber : String Index 40 Read FphoneNumber Write SetphoneNumber;
+    Property postalAddress : TAddress Index 48 Read FpostalAddress Write SetpostalAddress;
+    Property resourceUiUrl : String Index 56 Read FresourceUiUrl Write SetresourceUiUrl;
   end;
   TCustomerClass = Class of TCustomer;
   
@@ -179,9 +170,9 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetlicensedNumberOfSeats(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmaximumNumberOfSeats(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnumberOfSeats(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetlicensedNumberOfSeats(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetmaximumNumberOfSeats(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetnumberOfSeats(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -221,8 +212,8 @@ type
     FplanName : String;
   Protected
     //Property setters
-    Procedure SetcommitmentInterval(AIndex : Integer; AValue : TSubscriptionTypeplanTypecommitmentInterval); virtual;
-    Procedure SetisCommitmentPlan(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetcommitmentInterval(AIndex : Integer; const AValue : TSubscriptionTypeplanTypecommitmentInterval); virtual;
+    Procedure SetisCommitmentPlan(AIndex : Integer; const AValue : boolean); virtual;
     Procedure SetplanName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -242,7 +233,7 @@ type
     FtransferabilityExpirationTime : String;
   Protected
     //Property setters
-    Procedure SetminimumTransferableSeats(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetminimumTransferableSeats(AIndex : Integer; const AValue : integer); virtual;
     Procedure SettransferabilityExpirationTime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -261,7 +252,7 @@ type
     FtrialEndTime : String;
   Protected
     //Property setters
-    Procedure SetisInTrial(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetisInTrial(AIndex : Integer; const AValue : boolean); virtual;
     Procedure SettrialEndTime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -278,7 +269,9 @@ type
   Private
     FbillingMethod : String;
     FcreationTime : String;
+    FcustomerDomain : String;
     FcustomerId : String;
+    FdealCode : String;
     Fkind : String;
     Fplan : TSubscriptionTypeplan;
     FpurchaseOrderId : String;
@@ -288,40 +281,51 @@ type
     FskuId : String;
     Fstatus : String;
     FsubscriptionId : String;
+    FsuspensionReasons : TStringArray;
     FtransferInfo : TSubscriptionTypetransferInfo;
     FtrialSettings : TSubscriptionTypetrialSettings;
   Protected
     //Property setters
     Procedure SetbillingMethod(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcreationTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomerDomain(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcustomerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdealCode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setplan(AIndex : Integer; AValue : TSubscriptionTypeplan); virtual;
+    Procedure Setplan(AIndex : Integer; const AValue : TSubscriptionTypeplan); virtual;
     Procedure SetpurchaseOrderId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetrenewalSettings(AIndex : Integer; AValue : TRenewalSettings); virtual;
+    Procedure SetrenewalSettings(AIndex : Integer; const AValue : TRenewalSettings); virtual;
     Procedure SetresourceUiUrl(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setseats(AIndex : Integer; AValue : TSeats); virtual;
+    Procedure Setseats(AIndex : Integer; const AValue : TSeats); virtual;
     Procedure SetskuId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsubscriptionId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettransferInfo(AIndex : Integer; AValue : TSubscriptionTypetransferInfo); virtual;
-    Procedure SettrialSettings(AIndex : Integer; AValue : TSubscriptionTypetrialSettings); virtual;
+    Procedure SetsuspensionReasons(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SettransferInfo(AIndex : Integer; const AValue : TSubscriptionTypetransferInfo); virtual;
+    Procedure SettrialSettings(AIndex : Integer; const AValue : TSubscriptionTypetrialSettings); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property billingMethod : String Index 0 Read FbillingMethod Write SetbillingMethod;
     Property creationTime : String Index 8 Read FcreationTime Write SetcreationTime;
-    Property customerId : String Index 16 Read FcustomerId Write SetcustomerId;
-    Property kind : String Index 24 Read Fkind Write Setkind;
-    Property plan : TSubscriptionTypeplan Index 32 Read Fplan Write Setplan;
-    Property purchaseOrderId : String Index 40 Read FpurchaseOrderId Write SetpurchaseOrderId;
-    Property renewalSettings : TRenewalSettings Index 48 Read FrenewalSettings Write SetrenewalSettings;
-    Property resourceUiUrl : String Index 56 Read FresourceUiUrl Write SetresourceUiUrl;
-    Property seats : TSeats Index 64 Read Fseats Write Setseats;
-    Property skuId : String Index 72 Read FskuId Write SetskuId;
-    Property status : String Index 80 Read Fstatus Write Setstatus;
-    Property subscriptionId : String Index 88 Read FsubscriptionId Write SetsubscriptionId;
-    Property transferInfo : TSubscriptionTypetransferInfo Index 96 Read FtransferInfo Write SettransferInfo;
-    Property trialSettings : TSubscriptionTypetrialSettings Index 104 Read FtrialSettings Write SettrialSettings;
+    Property customerDomain : String Index 16 Read FcustomerDomain Write SetcustomerDomain;
+    Property customerId : String Index 24 Read FcustomerId Write SetcustomerId;
+    Property dealCode : String Index 32 Read FdealCode Write SetdealCode;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property plan : TSubscriptionTypeplan Index 48 Read Fplan Write Setplan;
+    Property purchaseOrderId : String Index 56 Read FpurchaseOrderId Write SetpurchaseOrderId;
+    Property renewalSettings : TRenewalSettings Index 64 Read FrenewalSettings Write SetrenewalSettings;
+    Property resourceUiUrl : String Index 72 Read FresourceUiUrl Write SetresourceUiUrl;
+    Property seats : TSeats Index 80 Read Fseats Write Setseats;
+    Property skuId : String Index 88 Read FskuId Write SetskuId;
+    Property status : String Index 96 Read Fstatus Write Setstatus;
+    Property subscriptionId : String Index 104 Read FsubscriptionId Write SetsubscriptionId;
+    Property suspensionReasons : TStringArray Index 112 Read FsuspensionReasons Write SetsuspensionReasons;
+    Property transferInfo : TSubscriptionTypetransferInfo Index 120 Read FtransferInfo Write SettransferInfo;
+    Property trialSettings : TSubscriptionTypetrialSettings Index 128 Read FtrialSettings Write SettrialSettings;
   end;
   TSubscriptionClass = Class of TSubscription;
   
@@ -338,7 +342,7 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsubscriptions(AIndex : Integer; AValue : TSubscriptionsTypesubscriptionsArray); virtual;
+    Procedure Setsubscriptions(AIndex : Integer; const AValue : TSubscriptionsTypesubscriptionsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -580,6 +584,16 @@ end;
   --------------------------------------------------------------------}
 
 
+Procedure TChangePlanRequest.SetdealCode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdealCode=AValue) then exit;
+  FdealCode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TChangePlanRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
@@ -610,7 +624,7 @@ end;
 
 
 
-Procedure TChangePlanRequest.Setseats(AIndex : Integer; AValue : TSeats); 
+Procedure TChangePlanRequest.Setseats(AIndex : Integer; const AValue : TSeats); 
 
 begin
   If (Fseats=AValue) then exit;
@@ -647,6 +661,16 @@ end;
 
 
 
+Procedure TCustomer.SetcustomerDomainVerified(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FcustomerDomainVerified=AValue) then exit;
+  FcustomerDomainVerified:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TCustomer.SetcustomerId(AIndex : Integer; const AValue : String); 
 
 begin
@@ -677,7 +701,7 @@ end;
 
 
 
-Procedure TCustomer.SetpostalAddress(AIndex : Integer; AValue : TAddress); 
+Procedure TCustomer.SetpostalAddress(AIndex : Integer; const AValue : TAddress); 
 
 begin
   If (FpostalAddress=AValue) then exit;
@@ -741,7 +765,7 @@ end;
 
 
 
-Procedure TSeats.SetlicensedNumberOfSeats(AIndex : Integer; AValue : integer); 
+Procedure TSeats.SetlicensedNumberOfSeats(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FlicensedNumberOfSeats=AValue) then exit;
@@ -751,7 +775,7 @@ end;
 
 
 
-Procedure TSeats.SetmaximumNumberOfSeats(AIndex : Integer; AValue : integer); 
+Procedure TSeats.SetmaximumNumberOfSeats(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaximumNumberOfSeats=AValue) then exit;
@@ -761,7 +785,7 @@ end;
 
 
 
-Procedure TSeats.SetnumberOfSeats(AIndex : Integer; AValue : integer); 
+Procedure TSeats.SetnumberOfSeats(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumberOfSeats=AValue) then exit;
@@ -805,7 +829,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionTypeplan.SetcommitmentInterval(AIndex : Integer; AValue : TSubscriptionTypeplanTypecommitmentInterval); 
+Procedure TSubscriptionTypeplan.SetcommitmentInterval(AIndex : Integer; const AValue : TSubscriptionTypeplanTypecommitmentInterval); 
 
 begin
   If (FcommitmentInterval=AValue) then exit;
@@ -815,7 +839,7 @@ end;
 
 
 
-Procedure TSubscriptionTypeplan.SetisCommitmentPlan(AIndex : Integer; AValue : boolean); 
+Procedure TSubscriptionTypeplan.SetisCommitmentPlan(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisCommitmentPlan=AValue) then exit;
@@ -842,7 +866,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionTypetransferInfo.SetminimumTransferableSeats(AIndex : Integer; AValue : integer); 
+Procedure TSubscriptionTypetransferInfo.SetminimumTransferableSeats(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FminimumTransferableSeats=AValue) then exit;
@@ -869,7 +893,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionTypetrialSettings.SetisInTrial(AIndex : Integer; AValue : boolean); 
+Procedure TSubscriptionTypetrialSettings.SetisInTrial(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisInTrial=AValue) then exit;
@@ -916,11 +940,31 @@ end;
 
 
 
+Procedure TSubscription.SetcustomerDomain(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcustomerDomain=AValue) then exit;
+  FcustomerDomain:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TSubscription.SetcustomerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomerId=AValue) then exit;
   FcustomerId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscription.SetdealCode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdealCode=AValue) then exit;
+  FdealCode:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -936,7 +980,7 @@ end;
 
 
 
-Procedure TSubscription.Setplan(AIndex : Integer; AValue : TSubscriptionTypeplan); 
+Procedure TSubscription.Setplan(AIndex : Integer; const AValue : TSubscriptionTypeplan); 
 
 begin
   If (Fplan=AValue) then exit;
@@ -956,7 +1000,7 @@ end;
 
 
 
-Procedure TSubscription.SetrenewalSettings(AIndex : Integer; AValue : TRenewalSettings); 
+Procedure TSubscription.SetrenewalSettings(AIndex : Integer; const AValue : TRenewalSettings); 
 
 begin
   If (FrenewalSettings=AValue) then exit;
@@ -976,7 +1020,7 @@ end;
 
 
 
-Procedure TSubscription.Setseats(AIndex : Integer; AValue : TSeats); 
+Procedure TSubscription.Setseats(AIndex : Integer; const AValue : TSeats); 
 
 begin
   If (Fseats=AValue) then exit;
@@ -1016,7 +1060,17 @@ end;
 
 
 
-Procedure TSubscription.SettransferInfo(AIndex : Integer; AValue : TSubscriptionTypetransferInfo); 
+Procedure TSubscription.SetsuspensionReasons(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FsuspensionReasons=AValue) then exit;
+  FsuspensionReasons:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscription.SettransferInfo(AIndex : Integer; const AValue : TSubscriptionTypetransferInfo); 
 
 begin
   If (FtransferInfo=AValue) then exit;
@@ -1026,7 +1080,7 @@ end;
 
 
 
-Procedure TSubscription.SettrialSettings(AIndex : Integer; AValue : TSubscriptionTypetrialSettings); 
+Procedure TSubscription.SettrialSettings(AIndex : Integer; const AValue : TSubscriptionTypetrialSettings); 
 
 begin
   If (FtrialSettings=AValue) then exit;
@@ -1034,6 +1088,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSubscription.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'suspensionreasons' : SetLength(FsuspensionReasons,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -1063,7 +1130,7 @@ end;
 
 
 
-Procedure TSubscriptions.Setsubscriptions(AIndex : Integer; AValue : TSubscriptionsTypesubscriptionsArray); 
+Procedure TSubscriptions.Setsubscriptions(AIndex : Integer; const AValue : TSubscriptionsTypesubscriptionsArray); 
 
 begin
   If (Fsubscriptions=AValue) then exit;
@@ -1399,7 +1466,7 @@ end;
 Class Function TResellerAPI.APIRevision : String;
 
 begin
-  Result:='20141112';
+  Result:='20160329';
 end;
 
 Class Function TResellerAPI.APIID : String;
@@ -1417,7 +1484,7 @@ end;
 Class Function TResellerAPI.APIDescription : String;
 
 begin
-  Result:='Lets you create and manage your customers and their subscriptions.';
+  Result:='Creates and manages your customers and their subscriptions.';
 end;
 
 Class Function TResellerAPI.APIOwnerDomain : String;
@@ -1453,7 +1520,7 @@ end;
 Class Function TResellerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TResellerAPI.APIbasePath : string;
@@ -1465,7 +1532,7 @@ end;
 Class Function TResellerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/apps/reseller/v1/';
+  Result:='https://www.googleapis.com/apps/reseller/v1/';
 end;
 
 Class Function TResellerAPI.APIProtocol : string;

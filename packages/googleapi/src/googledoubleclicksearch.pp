@@ -1,19 +1,4 @@
 unit googledoubleclicksearch;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:03
 {$MODE objfpc}
 {$H+}
 
@@ -124,8 +109,8 @@ type
     FdeviceType : String;
     FdsConversionId : String;
     FengineAccountId : String;
-    FfeedId : String;
     FfloodlightOrderId : String;
+    FinventoryAccountId : String;
     FproductCountry : String;
     FproductGroupId : String;
     FproductId : String;
@@ -155,13 +140,13 @@ type
     Procedure SetcountMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcriterionId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcurrencyCode(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcustomDimension(AIndex : Integer; AValue : TConversionTypecustomDimensionArray); virtual;
-    Procedure SetcustomMetric(AIndex : Integer; AValue : TConversionTypecustomMetricArray); virtual;
+    Procedure SetcustomDimension(AIndex : Integer; const AValue : TConversionTypecustomDimensionArray); virtual;
+    Procedure SetcustomMetric(AIndex : Integer; const AValue : TConversionTypecustomMetricArray); virtual;
     Procedure SetdeviceType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdsConversionId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetengineAccountId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetfeedId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfloodlightOrderId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinventoryAccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetproductCountry(AIndex : Integer; const AValue : String); virtual;
     Procedure SetproductGroupId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
@@ -199,8 +184,8 @@ type
     Property deviceType : String Index 128 Read FdeviceType Write SetdeviceType;
     Property dsConversionId : String Index 136 Read FdsConversionId Write SetdsConversionId;
     Property engineAccountId : String Index 144 Read FengineAccountId Write SetengineAccountId;
-    Property feedId : String Index 152 Read FfeedId Write SetfeedId;
-    Property floodlightOrderId : String Index 160 Read FfloodlightOrderId Write SetfloodlightOrderId;
+    Property floodlightOrderId : String Index 152 Read FfloodlightOrderId Write SetfloodlightOrderId;
+    Property inventoryAccountId : String Index 160 Read FinventoryAccountId Write SetinventoryAccountId;
     Property productCountry : String Index 168 Read FproductCountry Write SetproductCountry;
     Property productGroupId : String Index 176 Read FproductGroupId Write SetproductGroupId;
     Property productId : String Index 184 Read FproductId Write SetproductId;
@@ -226,7 +211,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setconversion(AIndex : Integer; AValue : TConversionListTypeconversionArray); virtual;
+    Procedure Setconversion(AIndex : Integer; const AValue : TConversionListTypeconversionArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -269,7 +254,7 @@ type
   Protected
     //Property setters
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : double); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -313,13 +298,13 @@ type
     FstatisticsTimeZone : String;
   Protected
     //Property setters
-    Procedure Setfiles(AIndex : Integer; AValue : TReportTypefilesArray); virtual;
+    Procedure Setfiles(AIndex : Integer; const AValue : TReportTypefilesArray); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetisReportReady(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetisReportReady(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrequest(AIndex : Integer; AValue : TReportRequest); virtual;
-    Procedure SetrowCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setrows(AIndex : Integer; AValue : TReportTyperowsArray); virtual;
+    Procedure Setrequest(AIndex : Integer; const AValue : TReportRequest); virtual;
+    Procedure SetrowCount(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setrows(AIndex : Integer; const AValue : TReportTyperowsArray); virtual;
     Procedure SetstatisticsCurrencyCode(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstatisticsTimeZone(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -353,6 +338,7 @@ type
     FgroupByColumn : boolean;
     FheaderText : String;
     FplatformSource : String;
+    FproductReportPerspective : String;
     FsavedColumnName : String;
     FstartDate : String;
   Protected
@@ -361,9 +347,10 @@ type
     Procedure SetcustomDimensionName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcustomMetricName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetendDate(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetgroupByColumn(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetgroupByColumn(AIndex : Integer; const AValue : boolean); virtual;
     Procedure SetheaderText(AIndex : Integer; const AValue : String); virtual;
     Procedure SetplatformSource(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductReportPerspective(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsavedColumnName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartDate(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -375,8 +362,9 @@ type
     Property groupByColumn : boolean Index 32 Read FgroupByColumn Write SetgroupByColumn;
     Property headerText : String Index 40 Read FheaderText Write SetheaderText;
     Property platformSource : String Index 48 Read FplatformSource Write SetplatformSource;
-    Property savedColumnName : String Index 56 Read FsavedColumnName Write SetsavedColumnName;
-    Property startDate : String Index 64 Read FstartDate Write SetstartDate;
+    Property productReportPerspective : String Index 56 Read FproductReportPerspective Write SetproductReportPerspective;
+    Property savedColumnName : String Index 64 Read FsavedColumnName Write SetsavedColumnName;
+    Property startDate : String Index 72 Read FstartDate Write SetstartDate;
   end;
   TReportApiColumnSpecClass = Class of TReportApiColumnSpec;
   
@@ -392,9 +380,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcolumn(AIndex : Integer; AValue : TReportApiColumnSpec); virtual;
+    Procedure Setcolumn(AIndex : Integer; const AValue : TReportApiColumnSpec); virtual;
     Procedure Set_operator(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setvalues(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure Setvalues(AIndex : Integer; const AValue : TTJSONSchemaArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -417,7 +405,7 @@ type
     FsortOrder : String;
   Protected
     //Property setters
-    Procedure Setcolumn(AIndex : Integer; AValue : TReportApiColumnSpec); virtual;
+    Procedure Setcolumn(AIndex : Integer; const AValue : TReportApiColumnSpec); virtual;
     Procedure SetsortOrder(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -472,8 +460,8 @@ type
     FstartDate : String;
   Protected
     //Property setters
-    Procedure SetchangedAttributesSinceTimestamp(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetchangedMetricsSinceTimestamp(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetchangedAttributesSinceTimestamp(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetchangedMetricsSinceTimestamp(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure SetendDate(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartDate(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -507,20 +495,20 @@ type
     FverifySingleTimeZone : boolean;
   Protected
     //Property setters
-    Procedure Setcolumns(AIndex : Integer; AValue : TReportRequestTypecolumnsArray); virtual;
+    Procedure Setcolumns(AIndex : Integer; const AValue : TReportRequestTypecolumnsArray); virtual;
     Procedure SetdownloadFormat(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setfilters(AIndex : Integer; AValue : TReportRequestTypefiltersArray); virtual;
-    Procedure SetincludeDeletedEntities(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetincludeRemovedEntities(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetmaxRowsPerFile(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetorderBy(AIndex : Integer; AValue : TReportRequestTypeorderByArray); virtual;
-    Procedure SetreportScope(AIndex : Integer; AValue : TReportRequestTypereportScope); virtual;
+    Procedure Setfilters(AIndex : Integer; const AValue : TReportRequestTypefiltersArray); virtual;
+    Procedure SetincludeDeletedEntities(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetincludeRemovedEntities(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetmaxRowsPerFile(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetorderBy(AIndex : Integer; const AValue : TReportRequestTypeorderByArray); virtual;
+    Procedure SetreportScope(AIndex : Integer; const AValue : TReportRequestTypereportScope); virtual;
     Procedure SetreportType(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetrowCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetstartRow(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetrowCount(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetstartRow(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetstatisticsCurrency(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettimeRange(AIndex : Integer; AValue : TReportRequestTypetimeRange); virtual;
-    Procedure SetverifySingleTimeZone(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SettimeRange(AIndex : Integer; const AValue : TReportRequestTypetimeRange); virtual;
+    Procedure SetverifySingleTimeZone(AIndex : Integer; const AValue : boolean); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -591,7 +579,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TSavedColumnListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TSavedColumnListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -613,7 +601,7 @@ type
     Favailabilities : TUpdateAvailabilityRequestTypeavailabilitiesArray;
   Protected
     //Property setters
-    Procedure Setavailabilities(AIndex : Integer; AValue : TUpdateAvailabilityRequestTypeavailabilitiesArray); virtual;
+    Procedure Setavailabilities(AIndex : Integer; const AValue : TUpdateAvailabilityRequestTypeavailabilitiesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -633,7 +621,7 @@ type
     Favailabilities : TUpdateAvailabilityResponseTypeavailabilitiesArray;
   Protected
     //Property setters
-    Procedure Setavailabilities(AIndex : Integer; AValue : TUpdateAvailabilityResponseTypeavailabilitiesArray); virtual;
+    Procedure Setavailabilities(AIndex : Integer; const AValue : TUpdateAvailabilityResponseTypeavailabilitiesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -978,7 +966,7 @@ end;
 
 
 
-Procedure TConversion.SetcustomDimension(AIndex : Integer; AValue : TConversionTypecustomDimensionArray); 
+Procedure TConversion.SetcustomDimension(AIndex : Integer; const AValue : TConversionTypecustomDimensionArray); 
 
 begin
   If (FcustomDimension=AValue) then exit;
@@ -988,7 +976,7 @@ end;
 
 
 
-Procedure TConversion.SetcustomMetric(AIndex : Integer; AValue : TConversionTypecustomMetricArray); 
+Procedure TConversion.SetcustomMetric(AIndex : Integer; const AValue : TConversionTypecustomMetricArray); 
 
 begin
   If (FcustomMetric=AValue) then exit;
@@ -1028,21 +1016,21 @@ end;
 
 
 
-Procedure TConversion.SetfeedId(AIndex : Integer; const AValue : String); 
-
-begin
-  If (FfeedId=AValue) then exit;
-  FfeedId:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
 Procedure TConversion.SetfloodlightOrderId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfloodlightOrderId=AValue) then exit;
   FfloodlightOrderId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TConversion.SetinventoryAccountId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinventoryAccountId=AValue) then exit;
+  FinventoryAccountId:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1200,7 +1188,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TConversionList.Setconversion(AIndex : Integer; AValue : TConversionListTypeconversionArray); 
+Procedure TConversionList.Setconversion(AIndex : Integer; const AValue : TConversionListTypeconversionArray); 
 
 begin
   If (Fconversion=AValue) then exit;
@@ -1277,7 +1265,7 @@ end;
 
 
 
-Procedure TCustomMetric.Setvalue(AIndex : Integer; AValue : double); 
+Procedure TCustomMetric.Setvalue(AIndex : Integer; const AValue : double); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1321,7 +1309,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReport.Setfiles(AIndex : Integer; AValue : TReportTypefilesArray); 
+Procedure TReport.Setfiles(AIndex : Integer; const AValue : TReportTypefilesArray); 
 
 begin
   If (Ffiles=AValue) then exit;
@@ -1341,7 +1329,7 @@ end;
 
 
 
-Procedure TReport.SetisReportReady(AIndex : Integer; AValue : boolean); 
+Procedure TReport.SetisReportReady(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisReportReady=AValue) then exit;
@@ -1361,7 +1349,7 @@ end;
 
 
 
-Procedure TReport.Setrequest(AIndex : Integer; AValue : TReportRequest); 
+Procedure TReport.Setrequest(AIndex : Integer; const AValue : TReportRequest); 
 
 begin
   If (Frequest=AValue) then exit;
@@ -1371,7 +1359,7 @@ end;
 
 
 
-Procedure TReport.SetrowCount(AIndex : Integer; AValue : integer); 
+Procedure TReport.SetrowCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FrowCount=AValue) then exit;
@@ -1381,7 +1369,7 @@ end;
 
 
 
-Procedure TReport.Setrows(AIndex : Integer; AValue : TReportTyperowsArray); 
+Procedure TReport.Setrows(AIndex : Integer; const AValue : TReportTyperowsArray); 
 
 begin
   If (Frows=AValue) then exit;
@@ -1472,7 +1460,7 @@ end;
 
 
 
-Procedure TReportApiColumnSpec.SetgroupByColumn(AIndex : Integer; AValue : boolean); 
+Procedure TReportApiColumnSpec.SetgroupByColumn(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FgroupByColumn=AValue) then exit;
@@ -1497,6 +1485,16 @@ Procedure TReportApiColumnSpec.SetplatformSource(AIndex : Integer; const AValue 
 begin
   If (FplatformSource=AValue) then exit;
   FplatformSource:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReportApiColumnSpec.SetproductReportPerspective(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FproductReportPerspective=AValue) then exit;
+  FproductReportPerspective:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1529,7 +1527,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportRequestTypefiltersItem.Setcolumn(AIndex : Integer; AValue : TReportApiColumnSpec); 
+Procedure TReportRequestTypefiltersItem.Setcolumn(AIndex : Integer; const AValue : TReportApiColumnSpec); 
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -1549,7 +1547,7 @@ end;
 
 
 
-Procedure TReportRequestTypefiltersItem.Setvalues(AIndex : Integer; AValue : TTJSONSchemaArray); 
+Procedure TReportRequestTypefiltersItem.Setvalues(AIndex : Integer; const AValue : TTJSONSchemaArray); 
 
 begin
   If (Fvalues=AValue) then exit;
@@ -1590,7 +1588,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportRequestTypeorderByItem.Setcolumn(AIndex : Integer; AValue : TReportApiColumnSpec); 
+Procedure TReportRequestTypeorderByItem.Setcolumn(AIndex : Integer; const AValue : TReportApiColumnSpec); 
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -1694,7 +1692,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportRequestTypetimeRange.SetchangedAttributesSinceTimestamp(AIndex : Integer; AValue : TDatetime); 
+Procedure TReportRequestTypetimeRange.SetchangedAttributesSinceTimestamp(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FchangedAttributesSinceTimestamp=AValue) then exit;
@@ -1704,7 +1702,7 @@ end;
 
 
 
-Procedure TReportRequestTypetimeRange.SetchangedMetricsSinceTimestamp(AIndex : Integer; AValue : TDatetime); 
+Procedure TReportRequestTypetimeRange.SetchangedMetricsSinceTimestamp(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FchangedMetricsSinceTimestamp=AValue) then exit;
@@ -1741,7 +1739,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportRequest.Setcolumns(AIndex : Integer; AValue : TReportRequestTypecolumnsArray); 
+Procedure TReportRequest.Setcolumns(AIndex : Integer; const AValue : TReportRequestTypecolumnsArray); 
 
 begin
   If (Fcolumns=AValue) then exit;
@@ -1761,7 +1759,7 @@ end;
 
 
 
-Procedure TReportRequest.Setfilters(AIndex : Integer; AValue : TReportRequestTypefiltersArray); 
+Procedure TReportRequest.Setfilters(AIndex : Integer; const AValue : TReportRequestTypefiltersArray); 
 
 begin
   If (Ffilters=AValue) then exit;
@@ -1771,7 +1769,7 @@ end;
 
 
 
-Procedure TReportRequest.SetincludeDeletedEntities(AIndex : Integer; AValue : boolean); 
+Procedure TReportRequest.SetincludeDeletedEntities(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FincludeDeletedEntities=AValue) then exit;
@@ -1781,7 +1779,7 @@ end;
 
 
 
-Procedure TReportRequest.SetincludeRemovedEntities(AIndex : Integer; AValue : boolean); 
+Procedure TReportRequest.SetincludeRemovedEntities(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FincludeRemovedEntities=AValue) then exit;
@@ -1791,7 +1789,7 @@ end;
 
 
 
-Procedure TReportRequest.SetmaxRowsPerFile(AIndex : Integer; AValue : integer); 
+Procedure TReportRequest.SetmaxRowsPerFile(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxRowsPerFile=AValue) then exit;
@@ -1801,7 +1799,7 @@ end;
 
 
 
-Procedure TReportRequest.SetorderBy(AIndex : Integer; AValue : TReportRequestTypeorderByArray); 
+Procedure TReportRequest.SetorderBy(AIndex : Integer; const AValue : TReportRequestTypeorderByArray); 
 
 begin
   If (ForderBy=AValue) then exit;
@@ -1811,7 +1809,7 @@ end;
 
 
 
-Procedure TReportRequest.SetreportScope(AIndex : Integer; AValue : TReportRequestTypereportScope); 
+Procedure TReportRequest.SetreportScope(AIndex : Integer; const AValue : TReportRequestTypereportScope); 
 
 begin
   If (FreportScope=AValue) then exit;
@@ -1831,7 +1829,7 @@ end;
 
 
 
-Procedure TReportRequest.SetrowCount(AIndex : Integer; AValue : integer); 
+Procedure TReportRequest.SetrowCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FrowCount=AValue) then exit;
@@ -1841,7 +1839,7 @@ end;
 
 
 
-Procedure TReportRequest.SetstartRow(AIndex : Integer; AValue : integer); 
+Procedure TReportRequest.SetstartRow(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FstartRow=AValue) then exit;
@@ -1861,7 +1859,7 @@ end;
 
 
 
-Procedure TReportRequest.SettimeRange(AIndex : Integer; AValue : TReportRequestTypetimeRange); 
+Procedure TReportRequest.SettimeRange(AIndex : Integer; const AValue : TReportRequestTypetimeRange); 
 
 begin
   If (FtimeRange=AValue) then exit;
@@ -1871,7 +1869,7 @@ end;
 
 
 
-Procedure TReportRequest.SetverifySingleTimeZone(AIndex : Integer; AValue : boolean); 
+Procedure TReportRequest.SetverifySingleTimeZone(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FverifySingleTimeZone=AValue) then exit;
@@ -1964,7 +1962,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSavedColumnList.Setitems(AIndex : Integer; AValue : TSavedColumnListTypeitemsArray); 
+Procedure TSavedColumnList.Setitems(AIndex : Integer; const AValue : TSavedColumnListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2004,7 +2002,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateAvailabilityRequest.Setavailabilities(AIndex : Integer; AValue : TUpdateAvailabilityRequestTypeavailabilitiesArray); 
+Procedure TUpdateAvailabilityRequest.Setavailabilities(AIndex : Integer; const AValue : TUpdateAvailabilityRequestTypeavailabilitiesArray); 
 
 begin
   If (Favailabilities=AValue) then exit;
@@ -2034,7 +2032,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateAvailabilityResponse.Setavailabilities(AIndex : Integer; AValue : TUpdateAvailabilityResponseTypeavailabilitiesArray); 
+Procedure TUpdateAvailabilityResponse.Setavailabilities(AIndex : Integer; const AValue : TUpdateAvailabilityResponseTypeavailabilitiesArray); 
 
 begin
   If (Favailabilities=AValue) then exit;
@@ -2298,7 +2296,7 @@ end;
 Class Function TDoubleclicksearchAPI.APIRevision : String;
 
 begin
-  Result:='20150305';
+  Result:='20160519';
 end;
 
 Class Function TDoubleclicksearchAPI.APIID : String;
@@ -2316,7 +2314,7 @@ end;
 Class Function TDoubleclicksearchAPI.APIDescription : String;
 
 begin
-  Result:='Report and modify your advertising data in DoubleClick Search (for example, campaigns, ad groups, keywords, and conversions).';
+  Result:='Reports and modifies your advertising data in DoubleClick Search (for example, campaigns, ad groups, keywords, and conversions).';
 end;
 
 Class Function TDoubleclicksearchAPI.APIOwnerDomain : String;
@@ -2352,7 +2350,7 @@ end;
 Class Function TDoubleclicksearchAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TDoubleclicksearchAPI.APIbasePath : string;
@@ -2364,7 +2362,7 @@ end;
 Class Function TDoubleclicksearchAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/doubleclicksearch/v2/';
+  Result:='https://www.googleapis.com/doubleclicksearch/v2/';
 end;
 
 Class Function TDoubleclicksearchAPI.APIProtocol : string;

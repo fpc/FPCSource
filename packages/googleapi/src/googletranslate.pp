@@ -1,19 +1,4 @@
 unit googletranslate;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -51,7 +36,7 @@ type
     Fdetections : TDetectionsListResponseTypedetectionsArray;
   Protected
     //Property setters
-    Procedure Setdetections(AIndex : Integer; AValue : TDetectionsListResponseTypedetectionsArray); virtual;
+    Procedure Setdetections(AIndex : Integer; const AValue : TDetectionsListResponseTypedetectionsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -73,8 +58,8 @@ type
     Flanguage : String;
   Protected
     //Property setters
-    Procedure Setconfidence(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetisReliable(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setconfidence(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetisReliable(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -93,7 +78,7 @@ type
     Flanguages : TLanguagesListResponseTypelanguagesArray;
   Protected
     //Property setters
-    Procedure Setlanguages(AIndex : Integer; AValue : TLanguagesListResponseTypelanguagesArray); virtual;
+    Procedure Setlanguages(AIndex : Integer; const AValue : TLanguagesListResponseTypelanguagesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -132,7 +117,7 @@ type
     Ftranslations : TTranslationsListResponseTypetranslationsArray;
   Protected
     //Property setters
-    Procedure Settranslations(AIndex : Integer; AValue : TTranslationsListResponseTypetranslationsArray); virtual;
+    Procedure Settranslations(AIndex : Integer; const AValue : TTranslationsListResponseTypetranslationsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -281,7 +266,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TDetectionsListResponse.Setdetections(AIndex : Integer; AValue : TDetectionsListResponseTypedetectionsArray); 
+Procedure TDetectionsListResponse.Setdetections(AIndex : Integer; const AValue : TDetectionsListResponseTypedetectionsArray); 
 
 begin
   If (Fdetections=AValue) then exit;
@@ -311,7 +296,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDetectionsResourceItem.Setconfidence(AIndex : Integer; AValue : integer); 
+Procedure TDetectionsResourceItem.Setconfidence(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fconfidence=AValue) then exit;
@@ -321,7 +306,7 @@ end;
 
 
 
-Procedure TDetectionsResourceItem.SetisReliable(AIndex : Integer; AValue : boolean); 
+Procedure TDetectionsResourceItem.SetisReliable(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisReliable=AValue) then exit;
@@ -348,7 +333,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLanguagesListResponse.Setlanguages(AIndex : Integer; AValue : TLanguagesListResponseTypelanguagesArray); 
+Procedure TLanguagesListResponse.Setlanguages(AIndex : Integer; const AValue : TLanguagesListResponseTypelanguagesArray); 
 
 begin
   If (Flanguages=AValue) then exit;
@@ -405,7 +390,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTranslationsListResponse.Settranslations(AIndex : Integer; AValue : TTranslationsListResponseTypetranslationsArray); 
+Procedure TTranslationsListResponse.Settranslations(AIndex : Integer; const AValue : TTranslationsListResponseTypetranslationsArray); 
 
 begin
   If (Ftranslations=AValue) then exit;
@@ -606,7 +591,7 @@ end;
 Class Function TTranslateAPI.APIRevision : String;
 
 begin
-  Result:='20141123';
+  Result:='20160217';
 end;
 
 Class Function TTranslateAPI.APIID : String;
@@ -660,7 +645,7 @@ end;
 Class Function TTranslateAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TTranslateAPI.APIbasePath : string;
@@ -672,7 +657,7 @@ end;
 Class Function TTranslateAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/language/translate/';
+  Result:='https://www.googleapis.com/language/translate/';
 end;
 
 Class Function TTranslateAPI.APIProtocol : string;

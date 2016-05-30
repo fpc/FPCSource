@@ -47,6 +47,8 @@ begin
     T:=P.Targets.AddUnit('workbench.pas');
     T:=P.Targets.AddUnit('asl.pas');
     T:=P.Targets.AddUnit('icon.pas');
+    T:=P.Targets.AddUnit('picasso96api.pas');
+    T:=P.Targets.AddUnit('cybergraphics.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

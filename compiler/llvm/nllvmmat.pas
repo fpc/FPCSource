@@ -96,16 +96,16 @@ procedure tllvmmoddivnode.pass_generate_code;
       begin
         current_asmdata.getjumplabel(hl);
         location_reset(ovloc,LOC_REGISTER,OS_8);
-        ovloc.register:=hlcg.getintregister(current_asmdata.CurrAsmList,pasbool8type);
+        ovloc.register:=hlcg.getintregister(current_asmdata.CurrAsmList,llvmbool1type);
         if right.nodetype=ordconstn then
           current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,ovloc.register,OC_EQ,resultdef,left.location.register,low(int64)))
         else
           begin
-            tmpovreg1:=hlcg.getintregister(current_asmdata.CurrAsmList,pasbool8type);
-            tmpovreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,pasbool8type);
+            tmpovreg1:=hlcg.getintregister(current_asmdata.CurrAsmList,llvmbool1type);
+            tmpovreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,llvmbool1type);
             current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,tmpovreg1,OC_EQ,resultdef,left.location.register,low(int64)));
             current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,tmpovreg2,OC_EQ,resultdef,right.location.register,-1));
-            hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,pasbool8type,tmpovreg1,tmpovreg2,ovloc.register);
+            hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,llvmbool1type,tmpovreg1,tmpovreg2,ovloc.register);
           end;
         hlcg.g_overflowCheck_loc(current_asmdata.CurrAsmList,location,resultdef,ovloc);
       end;

@@ -1,19 +1,4 @@
 unit googlestorage;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -60,6 +45,7 @@ type
   TChannelTypeparams = Class;
   TComposeRequestTypesourceObjectsItemTypeobjectPreconditions = Class;
   TComposeRequestTypesourceObjectsItem = Class;
+  TObjectTypecustomerEncryption = Class;
   TObjectTypemetadata = Class;
   TObjectTypeowner = Class;
   TObjectAccessControlTypeprojectTeam = Class;
@@ -85,10 +71,10 @@ type
     FresponseHeader : TStringArray;
   Protected
     //Property setters
-    Procedure SetmaxAgeSeconds(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setorigin(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetresponseHeader(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetmaxAgeSeconds(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setorigin(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetresponseHeader(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -131,10 +117,10 @@ type
     FnumNewerVersions : integer;
   Protected
     //Property setters
-    Procedure Setage(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetcreatedBefore(AIndex : Integer; AValue : TDate); virtual;
-    Procedure SetisLive(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetnumNewerVersions(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setage(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetcreatedBefore(AIndex : Integer; const AValue : TDate); virtual;
+    Procedure SetisLive(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetnumNewerVersions(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property age : integer Index 0 Read Fage Write Setage;
@@ -154,8 +140,8 @@ type
     Fcondition : TBucketTypelifecycleTyperuleItemTypecondition;
   Protected
     //Property setters
-    Procedure Setaction(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleItemTypeaction); virtual;
-    Procedure Setcondition(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleItemTypecondition); virtual;
+    Procedure Setaction(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleItemTypeaction); virtual;
+    Procedure Setcondition(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleItemTypecondition); virtual;
   Public
   Published
     Property action : TBucketTypelifecycleTyperuleItemTypeaction Index 0 Read Faction Write Setaction;
@@ -172,7 +158,7 @@ type
     Frule : TBucketTypelifecycleTyperuleArray;
   Protected
     //Property setters
-    Procedure Setrule(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleArray); virtual;
+    Procedure Setrule(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -230,7 +216,7 @@ type
     Fenabled : boolean;
   Protected
     //Property setters
-    Procedure Setenabled(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setenabled(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property enabled : boolean Index 0 Read Fenabled Write Setenabled;
@@ -278,28 +264,30 @@ type
     FselfLink : String;
     FstorageClass : String;
     FtimeCreated : TDatetime;
+    Fupdated : TDatetime;
     Fversioning : TBucketTypeversioning;
     Fwebsite : TBucketTypewebsite;
   Protected
     //Property setters
-    Procedure Setacl(AIndex : Integer; AValue : TBucketTypeaclArray); virtual;
-    Procedure Setcors(AIndex : Integer; AValue : TBucketTypecorsArray); virtual;
-    Procedure SetdefaultObjectAcl(AIndex : Integer; AValue : TBucketTypedefaultObjectAclArray); virtual;
+    Procedure Setacl(AIndex : Integer; const AValue : TBucketTypeaclArray); virtual;
+    Procedure Setcors(AIndex : Integer; const AValue : TBucketTypecorsArray); virtual;
+    Procedure SetdefaultObjectAcl(AIndex : Integer; const AValue : TBucketTypedefaultObjectAclArray); virtual;
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlifecycle(AIndex : Integer; AValue : TBucketTypelifecycle); virtual;
+    Procedure Setlifecycle(AIndex : Integer; const AValue : TBucketTypelifecycle); virtual;
     Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlogging(AIndex : Integer; AValue : TBucketTypelogging); virtual;
+    Procedure Setlogging(AIndex : Integer; const AValue : TBucketTypelogging); virtual;
     Procedure Setmetageneration(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setowner(AIndex : Integer; AValue : TBucketTypeowner); virtual;
+    Procedure Setowner(AIndex : Integer; const AValue : TBucketTypeowner); virtual;
     Procedure SetprojectNumber(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstorageClass(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettimeCreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setversioning(AIndex : Integer; AValue : TBucketTypeversioning); virtual;
-    Procedure Setwebsite(AIndex : Integer; AValue : TBucketTypewebsite); virtual;
+    Procedure SettimeCreated(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setupdated(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setversioning(AIndex : Integer; const AValue : TBucketTypeversioning); virtual;
+    Procedure Setwebsite(AIndex : Integer; const AValue : TBucketTypewebsite); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -322,8 +310,9 @@ type
     Property selfLink : String Index 104 Read FselfLink Write SetselfLink;
     Property storageClass : String Index 112 Read FstorageClass Write SetstorageClass;
     Property timeCreated : TDatetime Index 120 Read FtimeCreated Write SettimeCreated;
-    Property versioning : TBucketTypeversioning Index 128 Read Fversioning Write Setversioning;
-    Property website : TBucketTypewebsite Index 136 Read Fwebsite Write Setwebsite;
+    Property updated : TDatetime Index 128 Read Fupdated Write Setupdated;
+    Property versioning : TBucketTypeversioning Index 136 Read Fversioning Write Setversioning;
+    Property website : TBucketTypewebsite Index 144 Read Fwebsite Write Setwebsite;
   end;
   TBucketClass = Class of TBucket;
   
@@ -373,7 +362,7 @@ type
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetprojectTeam(AIndex : Integer; AValue : TBucketAccessControlTypeprojectTeam); virtual;
+    Procedure SetprojectTeam(AIndex : Integer; const AValue : TBucketAccessControlTypeprojectTeam); virtual;
     Procedure Setrole(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -402,7 +391,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TBucketAccessControlsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TBucketAccessControlsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -426,7 +415,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TBucketsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TBucketsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -478,8 +467,8 @@ type
     Procedure Setexpiration(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setparams(AIndex : Integer; AValue : TChannelTypeparams); virtual;
-    Procedure Setpayload(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setparams(AIndex : Integer; const AValue : TChannelTypeparams); virtual;
+    Procedure Setpayload(AIndex : Integer; const AValue : boolean); virtual;
     Procedure SetresourceId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetresourceUri(AIndex : Integer; const AValue : String); virtual;
     Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
@@ -528,7 +517,7 @@ type
     //Property setters
     Procedure Setgeneration(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetobjectPreconditions(AIndex : Integer; AValue : TComposeRequestTypesourceObjectsItemTypeobjectPreconditions); virtual;
+    Procedure SetobjectPreconditions(AIndex : Integer; const AValue : TComposeRequestTypesourceObjectsItemTypeobjectPreconditions); virtual;
   Public
   Published
     Property generation : String Index 0 Read Fgeneration Write Setgeneration;
@@ -548,9 +537,9 @@ type
     FsourceObjects : TComposeRequestTypesourceObjectsArray;
   Protected
     //Property setters
-    Procedure Setdestination(AIndex : Integer; AValue : TObject); virtual;
+    Procedure Setdestination(AIndex : Integer; const AValue : TObject); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetsourceObjects(AIndex : Integer; AValue : TComposeRequestTypesourceObjectsArray); virtual;
+    Procedure SetsourceObjects(AIndex : Integer; const AValue : TComposeRequestTypesourceObjectsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -562,6 +551,25 @@ type
     Property sourceObjects : TComposeRequestTypesourceObjectsArray Index 16 Read FsourceObjects Write SetsourceObjects;
   end;
   TComposeRequestClass = Class of TComposeRequest;
+  
+  { --------------------------------------------------------------------
+    TObjectTypecustomerEncryption
+    --------------------------------------------------------------------}
+  
+  TObjectTypecustomerEncryption = Class(TGoogleBaseObject)
+  Private
+    FencryptionAlgorithm : String;
+    FkeySha256 : String;
+  Protected
+    //Property setters
+    Procedure SetencryptionAlgorithm(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetkeySha256(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property encryptionAlgorithm : String Index 0 Read FencryptionAlgorithm Write SetencryptionAlgorithm;
+    Property keySha256 : String Index 8 Read FkeySha256 Write SetkeySha256;
+  end;
+  TObjectTypecustomerEncryptionClass = Class of TObjectTypecustomerEncryption;
   
   { --------------------------------------------------------------------
     TObjectTypemetadata
@@ -611,6 +619,7 @@ type
     FcontentLanguage : String;
     FcontentType : String;
     Fcrc32c : String;
+    FcustomerEncryption : TObjectTypecustomerEncryption;
     Fetag : String;
     Fgeneration : String;
     Fid : String;
@@ -624,34 +633,37 @@ type
     FselfLink : String;
     Fsize : String;
     FstorageClass : String;
+    FtimeCreated : TDatetime;
     FtimeDeleted : TDatetime;
     Fupdated : TDatetime;
   Protected
     //Property setters
-    Procedure Setacl(AIndex : Integer; AValue : TObjectTypeaclArray); virtual;
+    Procedure Setacl(AIndex : Integer; const AValue : TObjectTypeaclArray); virtual;
     Procedure Setbucket(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcacheControl(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcomponentCount(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcomponentCount(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetcontentDisposition(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontentEncoding(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontentLanguage(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontentType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcrc32c(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomerEncryption(AIndex : Integer; const AValue : TObjectTypecustomerEncryption); virtual;
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setgeneration(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmd5Hash(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmediaLink(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setmetadata(AIndex : Integer; AValue : TObjectTypemetadata); virtual;
+    Procedure Setmetadata(AIndex : Integer; const AValue : TObjectTypemetadata); virtual;
     Procedure Setmetageneration(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setowner(AIndex : Integer; AValue : TObjectTypeowner); virtual;
+    Procedure Setowner(AIndex : Integer; const AValue : TObjectTypeowner); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsize(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstorageClass(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettimeDeleted(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SettimeCreated(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SettimeDeleted(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setupdated(AIndex : Integer; const AValue : TDatetime); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -667,21 +679,23 @@ type
     Property contentLanguage : String Index 48 Read FcontentLanguage Write SetcontentLanguage;
     Property contentType : String Index 56 Read FcontentType Write SetcontentType;
     Property crc32c : String Index 64 Read Fcrc32c Write Setcrc32c;
-    Property etag : String Index 72 Read Fetag Write Setetag;
-    Property generation : String Index 80 Read Fgeneration Write Setgeneration;
-    Property id : String Index 88 Read Fid Write Setid;
-    Property kind : String Index 96 Read Fkind Write Setkind;
-    Property md5Hash : String Index 104 Read Fmd5Hash Write Setmd5Hash;
-    Property mediaLink : String Index 112 Read FmediaLink Write SetmediaLink;
-    Property metadata : TObjectTypemetadata Index 120 Read Fmetadata Write Setmetadata;
-    Property metageneration : String Index 128 Read Fmetageneration Write Setmetageneration;
-    Property name : String Index 136 Read Fname Write Setname;
-    Property owner : TObjectTypeowner Index 144 Read Fowner Write Setowner;
-    Property selfLink : String Index 152 Read FselfLink Write SetselfLink;
-    Property size : String Index 160 Read Fsize Write Setsize;
-    Property storageClass : String Index 168 Read FstorageClass Write SetstorageClass;
-    Property timeDeleted : TDatetime Index 176 Read FtimeDeleted Write SettimeDeleted;
-    Property updated : TDatetime Index 184 Read Fupdated Write Setupdated;
+    Property customerEncryption : TObjectTypecustomerEncryption Index 72 Read FcustomerEncryption Write SetcustomerEncryption;
+    Property etag : String Index 80 Read Fetag Write Setetag;
+    Property generation : String Index 88 Read Fgeneration Write Setgeneration;
+    Property id : String Index 96 Read Fid Write Setid;
+    Property kind : String Index 104 Read Fkind Write Setkind;
+    Property md5Hash : String Index 112 Read Fmd5Hash Write Setmd5Hash;
+    Property mediaLink : String Index 120 Read FmediaLink Write SetmediaLink;
+    Property metadata : TObjectTypemetadata Index 128 Read Fmetadata Write Setmetadata;
+    Property metageneration : String Index 136 Read Fmetageneration Write Setmetageneration;
+    Property name : String Index 144 Read Fname Write Setname;
+    Property owner : TObjectTypeowner Index 152 Read Fowner Write Setowner;
+    Property selfLink : String Index 160 Read FselfLink Write SetselfLink;
+    Property size : String Index 168 Read Fsize Write Setsize;
+    Property storageClass : String Index 176 Read FstorageClass Write SetstorageClass;
+    Property timeCreated : TDatetime Index 184 Read FtimeCreated Write SettimeCreated;
+    Property timeDeleted : TDatetime Index 192 Read FtimeDeleted Write SettimeDeleted;
+    Property updated : TDatetime Index 200 Read Fupdated Write Setupdated;
   end;
   TObjectClass = Class of TObject;
   
@@ -736,7 +750,7 @@ type
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_object(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetprojectTeam(AIndex : Integer; AValue : TObjectAccessControlTypeprojectTeam); virtual;
+    Procedure SetprojectTeam(AIndex : Integer; const AValue : TObjectAccessControlTypeprojectTeam); virtual;
     Procedure Setrole(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -767,7 +781,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTJSONSchemaArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -792,10 +806,10 @@ type
     Fprefixes : TStringArray;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TObjectsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TObjectsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setprefixes(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setprefixes(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -823,10 +837,10 @@ type
     FtotalBytesRewritten : String;
   Protected
     //Property setters
-    Procedure Setdone(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setdone(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetobjectSize(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setresource(AIndex : Integer; AValue : TObject); virtual;
+    Procedure Setresource(AIndex : Integer; const AValue : TObject); virtual;
     Procedure SetrewriteToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalBytesRewritten(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -1276,7 +1290,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypecorsItem.SetmaxAgeSeconds(AIndex : Integer; AValue : integer); 
+Procedure TBucketTypecorsItem.SetmaxAgeSeconds(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxAgeSeconds=AValue) then exit;
@@ -1286,7 +1300,7 @@ end;
 
 
 
-Procedure TBucketTypecorsItem.Setmethod(AIndex : Integer; AValue : TStringArray); 
+Procedure TBucketTypecorsItem.Setmethod(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -1296,7 +1310,7 @@ end;
 
 
 
-Procedure TBucketTypecorsItem.Setorigin(AIndex : Integer; AValue : TStringArray); 
+Procedure TBucketTypecorsItem.Setorigin(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Forigin=AValue) then exit;
@@ -1306,7 +1320,7 @@ end;
 
 
 
-Procedure TBucketTypecorsItem.SetresponseHeader(AIndex : Integer; AValue : TStringArray); 
+Procedure TBucketTypecorsItem.SetresponseHeader(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FresponseHeader=AValue) then exit;
@@ -1366,7 +1380,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypelifecycleTyperuleItemTypecondition.Setage(AIndex : Integer; AValue : integer); 
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.Setage(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fage=AValue) then exit;
@@ -1376,7 +1390,7 @@ end;
 
 
 
-Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetcreatedBefore(AIndex : Integer; AValue : TDate); 
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetcreatedBefore(AIndex : Integer; const AValue : TDate); 
 
 begin
   If (FcreatedBefore=AValue) then exit;
@@ -1386,7 +1400,7 @@ end;
 
 
 
-Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetisLive(AIndex : Integer; AValue : boolean); 
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetisLive(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisLive=AValue) then exit;
@@ -1396,7 +1410,7 @@ end;
 
 
 
-Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetnumNewerVersions(AIndex : Integer; AValue : integer); 
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetnumNewerVersions(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumNewerVersions=AValue) then exit;
@@ -1413,7 +1427,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypelifecycleTyperuleItem.Setaction(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleItemTypeaction); 
+Procedure TBucketTypelifecycleTyperuleItem.Setaction(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleItemTypeaction); 
 
 begin
   If (Faction=AValue) then exit;
@@ -1423,7 +1437,7 @@ end;
 
 
 
-Procedure TBucketTypelifecycleTyperuleItem.Setcondition(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleItemTypecondition); 
+Procedure TBucketTypelifecycleTyperuleItem.Setcondition(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleItemTypecondition); 
 
 begin
   If (Fcondition=AValue) then exit;
@@ -1440,7 +1454,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypelifecycle.Setrule(AIndex : Integer; AValue : TBucketTypelifecycleTyperuleArray); 
+Procedure TBucketTypelifecycle.Setrule(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleArray); 
 
 begin
   If (Frule=AValue) then exit;
@@ -1524,7 +1538,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypeversioning.Setenabled(AIndex : Integer; AValue : boolean); 
+Procedure TBucketTypeversioning.Setenabled(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fenabled=AValue) then exit;
@@ -1568,7 +1582,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucket.Setacl(AIndex : Integer; AValue : TBucketTypeaclArray); 
+Procedure TBucket.Setacl(AIndex : Integer; const AValue : TBucketTypeaclArray); 
 
 begin
   If (Facl=AValue) then exit;
@@ -1578,7 +1592,7 @@ end;
 
 
 
-Procedure TBucket.Setcors(AIndex : Integer; AValue : TBucketTypecorsArray); 
+Procedure TBucket.Setcors(AIndex : Integer; const AValue : TBucketTypecorsArray); 
 
 begin
   If (Fcors=AValue) then exit;
@@ -1588,7 +1602,7 @@ end;
 
 
 
-Procedure TBucket.SetdefaultObjectAcl(AIndex : Integer; AValue : TBucketTypedefaultObjectAclArray); 
+Procedure TBucket.SetdefaultObjectAcl(AIndex : Integer; const AValue : TBucketTypedefaultObjectAclArray); 
 
 begin
   If (FdefaultObjectAcl=AValue) then exit;
@@ -1628,7 +1642,7 @@ end;
 
 
 
-Procedure TBucket.Setlifecycle(AIndex : Integer; AValue : TBucketTypelifecycle); 
+Procedure TBucket.Setlifecycle(AIndex : Integer; const AValue : TBucketTypelifecycle); 
 
 begin
   If (Flifecycle=AValue) then exit;
@@ -1648,7 +1662,7 @@ end;
 
 
 
-Procedure TBucket.Setlogging(AIndex : Integer; AValue : TBucketTypelogging); 
+Procedure TBucket.Setlogging(AIndex : Integer; const AValue : TBucketTypelogging); 
 
 begin
   If (Flogging=AValue) then exit;
@@ -1678,7 +1692,7 @@ end;
 
 
 
-Procedure TBucket.Setowner(AIndex : Integer; AValue : TBucketTypeowner); 
+Procedure TBucket.Setowner(AIndex : Integer; const AValue : TBucketTypeowner); 
 
 begin
   If (Fowner=AValue) then exit;
@@ -1718,7 +1732,7 @@ end;
 
 
 
-Procedure TBucket.SettimeCreated(AIndex : Integer; AValue : TDatetime); 
+Procedure TBucket.SettimeCreated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FtimeCreated=AValue) then exit;
@@ -1728,7 +1742,17 @@ end;
 
 
 
-Procedure TBucket.Setversioning(AIndex : Integer; AValue : TBucketTypeversioning); 
+Procedure TBucket.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+
+begin
+  If (Fupdated=AValue) then exit;
+  Fupdated:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucket.Setversioning(AIndex : Integer; const AValue : TBucketTypeversioning); 
 
 begin
   If (Fversioning=AValue) then exit;
@@ -1738,7 +1762,7 @@ end;
 
 
 
-Procedure TBucket.Setwebsite(AIndex : Integer; AValue : TBucketTypewebsite); 
+Procedure TBucket.Setwebsite(AIndex : Integer; const AValue : TBucketTypewebsite); 
 
 begin
   If (Fwebsite=AValue) then exit;
@@ -1877,7 +1901,7 @@ end;
 
 
 
-Procedure TBucketAccessControl.SetprojectTeam(AIndex : Integer; AValue : TBucketAccessControlTypeprojectTeam); 
+Procedure TBucketAccessControl.SetprojectTeam(AIndex : Integer; const AValue : TBucketAccessControlTypeprojectTeam); 
 
 begin
   If (FprojectTeam=AValue) then exit;
@@ -1914,7 +1938,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketAccessControls.Setitems(AIndex : Integer; AValue : TBucketAccessControlsTypeitemsArray); 
+Procedure TBucketAccessControls.Setitems(AIndex : Integer; const AValue : TBucketAccessControlsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1954,7 +1978,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBuckets.Setitems(AIndex : Integer; AValue : TBucketsTypeitemsArray); 
+Procedure TBuckets.Setitems(AIndex : Integer; const AValue : TBucketsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2057,7 +2081,7 @@ end;
 
 
 
-Procedure TChannel.Setparams(AIndex : Integer; AValue : TChannelTypeparams); 
+Procedure TChannel.Setparams(AIndex : Integer; const AValue : TChannelTypeparams); 
 
 begin
   If (Fparams=AValue) then exit;
@@ -2067,7 +2091,7 @@ end;
 
 
 
-Procedure TChannel.Setpayload(AIndex : Integer; AValue : boolean); 
+Procedure TChannel.Setpayload(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fpayload=AValue) then exit;
@@ -2172,7 +2196,7 @@ end;
 
 
 
-Procedure TComposeRequestTypesourceObjectsItem.SetobjectPreconditions(AIndex : Integer; AValue : TComposeRequestTypesourceObjectsItemTypeobjectPreconditions); 
+Procedure TComposeRequestTypesourceObjectsItem.SetobjectPreconditions(AIndex : Integer; const AValue : TComposeRequestTypesourceObjectsItemTypeobjectPreconditions); 
 
 begin
   If (FobjectPreconditions=AValue) then exit;
@@ -2189,7 +2213,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TComposeRequest.Setdestination(AIndex : Integer; AValue : TObject); 
+Procedure TComposeRequest.Setdestination(AIndex : Integer; const AValue : TObject); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -2209,7 +2233,7 @@ end;
 
 
 
-Procedure TComposeRequest.SetsourceObjects(AIndex : Integer; AValue : TComposeRequestTypesourceObjectsArray); 
+Procedure TComposeRequest.SetsourceObjects(AIndex : Integer; const AValue : TComposeRequestTypesourceObjectsArray); 
 
 begin
   If (FsourceObjects=AValue) then exit;
@@ -2230,6 +2254,33 @@ begin
   end;
 end;
 {$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TObjectTypecustomerEncryption
+  --------------------------------------------------------------------}
+
+
+Procedure TObjectTypecustomerEncryption.SetencryptionAlgorithm(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FencryptionAlgorithm=AValue) then exit;
+  FencryptionAlgorithm:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TObjectTypecustomerEncryption.SetkeySha256(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FkeySha256=AValue) then exit;
+  FkeySha256:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -2279,7 +2330,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObject.Setacl(AIndex : Integer; AValue : TObjectTypeaclArray); 
+Procedure TObject.Setacl(AIndex : Integer; const AValue : TObjectTypeaclArray); 
 
 begin
   If (Facl=AValue) then exit;
@@ -2309,7 +2360,7 @@ end;
 
 
 
-Procedure TObject.SetcomponentCount(AIndex : Integer; AValue : integer); 
+Procedure TObject.SetcomponentCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FcomponentCount=AValue) then exit;
@@ -2364,6 +2415,16 @@ Procedure TObject.Setcrc32c(AIndex : Integer; const AValue : String);
 begin
   If (Fcrc32c=AValue) then exit;
   Fcrc32c:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TObject.SetcustomerEncryption(AIndex : Integer; const AValue : TObjectTypecustomerEncryption); 
+
+begin
+  If (FcustomerEncryption=AValue) then exit;
+  FcustomerEncryption:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -2429,7 +2490,7 @@ end;
 
 
 
-Procedure TObject.Setmetadata(AIndex : Integer; AValue : TObjectTypemetadata); 
+Procedure TObject.Setmetadata(AIndex : Integer; const AValue : TObjectTypemetadata); 
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2459,7 +2520,7 @@ end;
 
 
 
-Procedure TObject.Setowner(AIndex : Integer; AValue : TObjectTypeowner); 
+Procedure TObject.Setowner(AIndex : Integer; const AValue : TObjectTypeowner); 
 
 begin
   If (Fowner=AValue) then exit;
@@ -2499,7 +2560,17 @@ end;
 
 
 
-Procedure TObject.SettimeDeleted(AIndex : Integer; AValue : TDatetime); 
+Procedure TObject.SettimeCreated(AIndex : Integer; const AValue : TDatetime); 
+
+begin
+  If (FtimeCreated=AValue) then exit;
+  FtimeCreated:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TObject.SettimeDeleted(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FtimeDeleted=AValue) then exit;
@@ -2509,7 +2580,7 @@ end;
 
 
 
-Procedure TObject.Setupdated(AIndex : Integer; AValue : TDatetime); 
+Procedure TObject.Setupdated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fupdated=AValue) then exit;
@@ -2666,7 +2737,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.SetprojectTeam(AIndex : Integer; AValue : TObjectAccessControlTypeprojectTeam); 
+Procedure TObjectAccessControl.SetprojectTeam(AIndex : Integer; const AValue : TObjectAccessControlTypeprojectTeam); 
 
 begin
   If (FprojectTeam=AValue) then exit;
@@ -2714,7 +2785,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObjectAccessControls.Setitems(AIndex : Integer; AValue : TTJSONSchemaArray); 
+Procedure TObjectAccessControls.Setitems(AIndex : Integer; const AValue : TTJSONSchemaArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2754,7 +2825,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObjects.Setitems(AIndex : Integer; AValue : TObjectsTypeitemsArray); 
+Procedure TObjects.Setitems(AIndex : Integer; const AValue : TObjectsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2784,7 +2855,7 @@ end;
 
 
 
-Procedure TObjects.Setprefixes(AIndex : Integer; AValue : TStringArray); 
+Procedure TObjects.Setprefixes(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fprefixes=AValue) then exit;
@@ -2815,7 +2886,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRewriteResponse.Setdone(AIndex : Integer; AValue : boolean); 
+Procedure TRewriteResponse.Setdone(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fdone=AValue) then exit;
@@ -2845,7 +2916,7 @@ end;
 
 
 
-Procedure TRewriteResponse.Setresource(AIndex : Integer; AValue : TObject); 
+Procedure TRewriteResponse.Setresource(AIndex : Integer; const AValue : TObject); 
 
 begin
   If (Fresource=AValue) then exit;
@@ -3880,7 +3951,7 @@ end;
 Class Function TStorageAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20160504';
 end;
 
 Class Function TStorageAPI.APIID : String;
@@ -3892,13 +3963,13 @@ end;
 Class Function TStorageAPI.APITitle : String;
 
 begin
-  Result:='Cloud Storage API';
+  Result:='Cloud Storage JSON API';
 end;
 
 Class Function TStorageAPI.APIDescription : String;
 
 begin
-  Result:='Lets you store and retrieve potentially-large, immutable data objects.';
+  Result:='Stores and retrieves potentially large, immutable data objects.';
 end;
 
 Class Function TStorageAPI.APIOwnerDomain : String;
@@ -3934,7 +4005,7 @@ end;
 Class Function TStorageAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TStorageAPI.APIbasePath : string;
@@ -3946,7 +4017,7 @@ end;
 Class Function TStorageAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/storage/v1/';
+  Result:='https://www.googleapis.com/storage/v1/';
 end;
 
 Class Function TStorageAPI.APIProtocol : string;
@@ -3970,15 +4041,17 @@ end;
 Class Function TStorageAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
-  SetLength(Result,4);
+  SetLength(Result,5);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  Result[1].Name:='https://www.googleapis.com/auth/devstorage.full_control';
-  Result[1].Description:='Manage your data and permissions in Google Cloud Storage';
-  Result[2].Name:='https://www.googleapis.com/auth/devstorage.read_only';
-  Result[2].Description:='View your data in Google Cloud Storage';
-  Result[3].Name:='https://www.googleapis.com/auth/devstorage.read_write';
-  Result[3].Description:='Manage your data in Google Cloud Storage';
+  Result[1].Name:='https://www.googleapis.com/auth/cloud-platform.read-only';
+  Result[1].Description:='View your data across Google Cloud Platform services';
+  Result[2].Name:='https://www.googleapis.com/auth/devstorage.full_control';
+  Result[2].Description:='Manage your data and permissions in Google Cloud Storage';
+  Result[3].Name:='https://www.googleapis.com/auth/devstorage.read_only';
+  Result[3].Description:='View your data in Google Cloud Storage';
+  Result[4].Name:='https://www.googleapis.com/auth/devstorage.read_write';
+  Result[4].Description:='Manage your data in Google Cloud Storage';
   
 end;
 
@@ -4010,6 +4083,7 @@ begin
   TComposeRequestTypesourceObjectsItemTypeobjectPreconditions.RegisterObject;
   TComposeRequestTypesourceObjectsItem.RegisterObject;
   TComposeRequest.RegisterObject;
+  TObjectTypecustomerEncryption.RegisterObject;
   TObjectTypemetadata.RegisterObject;
   TObjectTypeowner.RegisterObject;
   TObject.RegisterObject;

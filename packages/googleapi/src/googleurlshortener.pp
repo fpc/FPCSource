@@ -1,19 +1,4 @@
 unit googleurlshortener;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:09
 {$MODE objfpc}
 {$H+}
 
@@ -55,11 +40,11 @@ type
     FshortUrlClicks : String;
   Protected
     //Property setters
-    Procedure Setbrowsers(AIndex : Integer; AValue : TAnalyticsSnapshotTypebrowsersArray); virtual;
-    Procedure Setcountries(AIndex : Integer; AValue : TAnalyticsSnapshotTypecountriesArray); virtual;
+    Procedure Setbrowsers(AIndex : Integer; const AValue : TAnalyticsSnapshotTypebrowsersArray); virtual;
+    Procedure Setcountries(AIndex : Integer; const AValue : TAnalyticsSnapshotTypecountriesArray); virtual;
     Procedure SetlongUrlClicks(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setplatforms(AIndex : Integer; AValue : TAnalyticsSnapshotTypeplatformsArray); virtual;
-    Procedure Setreferrers(AIndex : Integer; AValue : TAnalyticsSnapshotTypereferrersArray); virtual;
+    Procedure Setplatforms(AIndex : Integer; const AValue : TAnalyticsSnapshotTypeplatformsArray); virtual;
+    Procedure Setreferrers(AIndex : Integer; const AValue : TAnalyticsSnapshotTypereferrersArray); virtual;
     Procedure SetshortUrlClicks(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -89,11 +74,11 @@ type
     Fweek : TAnalyticsSnapshot;
   Protected
     //Property setters
-    Procedure SetallTime(AIndex : Integer; AValue : TAnalyticsSnapshot); virtual;
-    Procedure Setday(AIndex : Integer; AValue : TAnalyticsSnapshot); virtual;
-    Procedure Setmonth(AIndex : Integer; AValue : TAnalyticsSnapshot); virtual;
-    Procedure SettwoHours(AIndex : Integer; AValue : TAnalyticsSnapshot); virtual;
-    Procedure Setweek(AIndex : Integer; AValue : TAnalyticsSnapshot); virtual;
+    Procedure SetallTime(AIndex : Integer; const AValue : TAnalyticsSnapshot); virtual;
+    Procedure Setday(AIndex : Integer; const AValue : TAnalyticsSnapshot); virtual;
+    Procedure Setmonth(AIndex : Integer; const AValue : TAnalyticsSnapshot); virtual;
+    Procedure SettwoHours(AIndex : Integer; const AValue : TAnalyticsSnapshot); virtual;
+    Procedure Setweek(AIndex : Integer; const AValue : TAnalyticsSnapshot); virtual;
   Public
   Published
     Property allTime : TAnalyticsSnapshot Index 0 Read FallTime Write SetallTime;
@@ -137,7 +122,7 @@ type
     Fstatus : String;
   Protected
     //Property setters
-    Procedure Setanalytics(AIndex : Integer; AValue : TAnalyticsSummary); virtual;
+    Procedure Setanalytics(AIndex : Integer; const AValue : TAnalyticsSummary); virtual;
     Procedure Setcreated(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
@@ -167,11 +152,11 @@ type
     FtotalItems : integer;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TUrlHistoryTypeitemsArray); virtual;
-    Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TUrlHistoryTypeitemsArray); virtual;
+    Procedure SetitemsPerPage(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    Procedure SettotalItems(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -263,7 +248,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyticsSnapshot.Setbrowsers(AIndex : Integer; AValue : TAnalyticsSnapshotTypebrowsersArray); 
+Procedure TAnalyticsSnapshot.Setbrowsers(AIndex : Integer; const AValue : TAnalyticsSnapshotTypebrowsersArray); 
 
 begin
   If (Fbrowsers=AValue) then exit;
@@ -273,7 +258,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.Setcountries(AIndex : Integer; AValue : TAnalyticsSnapshotTypecountriesArray); 
+Procedure TAnalyticsSnapshot.Setcountries(AIndex : Integer; const AValue : TAnalyticsSnapshotTypecountriesArray); 
 
 begin
   If (Fcountries=AValue) then exit;
@@ -293,7 +278,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.Setplatforms(AIndex : Integer; AValue : TAnalyticsSnapshotTypeplatformsArray); 
+Procedure TAnalyticsSnapshot.Setplatforms(AIndex : Integer; const AValue : TAnalyticsSnapshotTypeplatformsArray); 
 
 begin
   If (Fplatforms=AValue) then exit;
@@ -303,7 +288,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.Setreferrers(AIndex : Integer; AValue : TAnalyticsSnapshotTypereferrersArray); 
+Procedure TAnalyticsSnapshot.Setreferrers(AIndex : Integer; const AValue : TAnalyticsSnapshotTypereferrersArray); 
 
 begin
   If (Freferrers=AValue) then exit;
@@ -346,7 +331,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyticsSummary.SetallTime(AIndex : Integer; AValue : TAnalyticsSnapshot); 
+Procedure TAnalyticsSummary.SetallTime(AIndex : Integer; const AValue : TAnalyticsSnapshot); 
 
 begin
   If (FallTime=AValue) then exit;
@@ -356,7 +341,7 @@ end;
 
 
 
-Procedure TAnalyticsSummary.Setday(AIndex : Integer; AValue : TAnalyticsSnapshot); 
+Procedure TAnalyticsSummary.Setday(AIndex : Integer; const AValue : TAnalyticsSnapshot); 
 
 begin
   If (Fday=AValue) then exit;
@@ -366,7 +351,7 @@ end;
 
 
 
-Procedure TAnalyticsSummary.Setmonth(AIndex : Integer; AValue : TAnalyticsSnapshot); 
+Procedure TAnalyticsSummary.Setmonth(AIndex : Integer; const AValue : TAnalyticsSnapshot); 
 
 begin
   If (Fmonth=AValue) then exit;
@@ -376,7 +361,7 @@ end;
 
 
 
-Procedure TAnalyticsSummary.SettwoHours(AIndex : Integer; AValue : TAnalyticsSnapshot); 
+Procedure TAnalyticsSummary.SettwoHours(AIndex : Integer; const AValue : TAnalyticsSnapshot); 
 
 begin
   If (FtwoHours=AValue) then exit;
@@ -386,7 +371,7 @@ end;
 
 
 
-Procedure TAnalyticsSummary.Setweek(AIndex : Integer; AValue : TAnalyticsSnapshot); 
+Procedure TAnalyticsSummary.Setweek(AIndex : Integer; const AValue : TAnalyticsSnapshot); 
 
 begin
   If (Fweek=AValue) then exit;
@@ -430,7 +415,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrl.Setanalytics(AIndex : Integer; AValue : TAnalyticsSummary); 
+Procedure TUrl.Setanalytics(AIndex : Integer; const AValue : TAnalyticsSummary); 
 
 begin
   If (Fanalytics=AValue) then exit;
@@ -497,7 +482,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlHistory.Setitems(AIndex : Integer; AValue : TUrlHistoryTypeitemsArray); 
+Procedure TUrlHistory.Setitems(AIndex : Integer; const AValue : TUrlHistoryTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -507,7 +492,7 @@ end;
 
 
 
-Procedure TUrlHistory.SetitemsPerPage(AIndex : Integer; AValue : integer); 
+Procedure TUrlHistory.SetitemsPerPage(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FitemsPerPage=AValue) then exit;
@@ -537,7 +522,7 @@ end;
 
 
 
-Procedure TUrlHistory.SettotalItems(AIndex : Integer; AValue : integer); 
+Procedure TUrlHistory.SettotalItems(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -659,7 +644,7 @@ end;
 Class Function TUrlshortenerAPI.APIRevision : String;
 
 begin
-  Result:='20150319';
+  Result:='20150519';
 end;
 
 Class Function TUrlshortenerAPI.APIID : String;
@@ -713,7 +698,7 @@ end;
 Class Function TUrlshortenerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TUrlshortenerAPI.APIbasePath : string;
@@ -725,7 +710,7 @@ end;
 Class Function TUrlshortenerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/urlshortener/v1/';
+  Result:='https://www.googleapis.com/urlshortener/v1/';
 end;
 
 Class Function TUrlshortenerAPI.APIProtocol : string;

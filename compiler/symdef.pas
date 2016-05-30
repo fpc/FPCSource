@@ -1029,6 +1029,9 @@ interface
        bool16type,
        bool32type,
        bool64type,                { implement me }
+{$ifdef llvm}
+       llvmbool1type,             { LLVM i1 type }
+{$endif llvm}
        u8inttype,                 { 8-Bit unsigned integer }
        s8inttype,                 { 8-Bit signed integer }
        u16inttype,                { 16-Bit unsigned integer }
@@ -5750,7 +5753,7 @@ implementation
            assigned(returndef) and
            not(is_void(returndef)) then
           s:=s+':'+returndef.GetTypeName;
-        if owner.symtabletype=localsymtable then
+        if assigned(owner) and (owner.symtabletype=localsymtable) then
           s:=s+' is nested'
         else if po_is_block in procoptions then
           s:=s+' is block';

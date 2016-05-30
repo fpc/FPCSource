@@ -34,6 +34,7 @@ Unit System;
 {$define DISABLE_NO_THREAD_MANAGER}
 { Do not use standard memory manager }
 {$define HAS_MEMORYMANAGER}
+{$define FPC_NO_DEFAULT_HEAP}
 
 {$define FPC_ANSI_TEXTFILEREC}
 

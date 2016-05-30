@@ -1,19 +1,4 @@
 unit googledeploymentmanager;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:02
 {$MODE objfpc}
 {$H+}
 
@@ -24,9 +9,14 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
+  TConfigFile = Class;
   TDeployment = Class;
+  TDeploymentLabelEntry = Class;
   TDeploymentUpdate = Class;
+  TDeploymentUpdateLabelEntry = Class;
+  TDeploymentsCancelPreviewRequest = Class;
   TDeploymentsListResponse = Class;
+  TDeploymentsStopRequest = Class;
   TImportFile = Class;
   TManifest = Class;
   TManifestsListResponse = Class;
@@ -38,9 +28,14 @@ type
   TTargetConfiguration = Class;
   TType = Class;
   TTypesListResponse = Class;
+  TConfigFileArray = Array of TConfigFile;
   TDeploymentArray = Array of TDeployment;
+  TDeploymentLabelEntryArray = Array of TDeploymentLabelEntry;
   TDeploymentUpdateArray = Array of TDeploymentUpdate;
+  TDeploymentUpdateLabelEntryArray = Array of TDeploymentUpdateLabelEntry;
+  TDeploymentsCancelPreviewRequestArray = Array of TDeploymentsCancelPreviewRequest;
   TDeploymentsListResponseArray = Array of TDeploymentsListResponse;
+  TDeploymentsStopRequestArray = Array of TDeploymentsStopRequest;
   TImportFileArray = Array of TImportFile;
   TManifestArray = Array of TManifest;
   TManifestsListResponseArray = Array of TManifestsListResponse;
@@ -57,6 +52,14 @@ type
   TOperationTypeerror = Class;
   TOperationTypewarningsItemTypedataItem = Class;
   TOperationTypewarningsItem = Class;
+  TResourceTypewarningsItemTypedataItem = Class;
+  TResourceTypewarningsItem = Class;
+  TResourceUpdateTypeerrorTypeerrorsItem = Class;
+  TResourceUpdateTypeerror = Class;
+  TResourceUpdateTypewarningsItemTypedataItem = Class;
+  TResourceUpdateTypewarningsItem = Class;
+  TDeploymentTypelabelsArray = Array of TDeploymentLabelEntry;
+  TDeploymentUpdateTypelabelsArray = Array of TDeploymentUpdateLabelEntry;
   TDeploymentsListResponseTypedeploymentsArray = Array of TDeployment;
   TManifestTypeimportsArray = Array of TImportFile;
   TManifestsListResponseTypemanifestsArray = Array of TManifest;
@@ -64,9 +67,30 @@ type
   TOperationTypewarningsItemTypedataArray = Array of TOperationTypewarningsItemTypedataItem;
   TOperationTypewarningsArray = Array of TOperationTypewarningsItem;
   TOperationsListResponseTypeoperationsArray = Array of TOperation;
+  TResourceTypewarningsItemTypedataArray = Array of TResourceTypewarningsItemTypedataItem;
+  TResourceTypewarningsArray = Array of TResourceTypewarningsItem;
+  TResourceUpdateTypeerrorTypeerrorsArray = Array of TResourceUpdateTypeerrorTypeerrorsItem;
+  TResourceUpdateTypewarningsItemTypedataArray = Array of TResourceUpdateTypewarningsItemTypedataItem;
+  TResourceUpdateTypewarningsArray = Array of TResourceUpdateTypewarningsItem;
   TResourcesListResponseTyperesourcesArray = Array of TResource;
   TTargetConfigurationTypeimportsArray = Array of TImportFile;
   TTypesListResponseTypetypesArray = Array of TType;
+  
+  { --------------------------------------------------------------------
+    TConfigFile
+    --------------------------------------------------------------------}
+  
+  TConfigFile = Class(TGoogleBaseObject)
+  Private
+    Fcontent : String;
+  Protected
+    //Property setters
+    Procedure Setcontent(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property content : String Index 0 Read Fcontent Write Setcontent;
+  end;
+  TConfigFileClass = Class of TConfigFile;
   
   { --------------------------------------------------------------------
     TDeployment
@@ -74,42 +98,68 @@ type
   
   TDeployment = Class(TGoogleBaseObject)
   Private
-    FcreationTimestamp : String;
     Fdescription : String;
     Ffingerprint : String;
     Fid : String;
-    Fintent : String;
+    FinsertTime : String;
+    Flabels : TDeploymentTypelabelsArray;
     Fmanifest : String;
     Fname : String;
-    Fstate : String;
+    Foperation : TOperation;
+    FselfLink : String;
     Ftarget : TTargetConfiguration;
     Fupdate : TDeploymentUpdate;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setintent(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinsertTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlabels(AIndex : Integer; const AValue : TDeploymentTypelabelsArray); virtual;
     Procedure Setmanifest(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
-    Procedure Settarget(AIndex : Integer; AValue : TTargetConfiguration); virtual;
-    Procedure Setupdate(AIndex : Integer; AValue : TDeploymentUpdate); virtual;
+    Procedure Setoperation(AIndex : Integer; const AValue : TOperation); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settarget(AIndex : Integer; const AValue : TTargetConfiguration); virtual;
+    Procedure Setupdate(AIndex : Integer; const AValue : TDeploymentUpdate); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property description : String Index 8 Read Fdescription Write Setdescription;
-    Property fingerprint : String Index 16 Read Ffingerprint Write Setfingerprint;
-    Property id : String Index 24 Read Fid Write Setid;
-    Property intent : String Index 32 Read Fintent Write Setintent;
+    Property description : String Index 0 Read Fdescription Write Setdescription;
+    Property fingerprint : String Index 8 Read Ffingerprint Write Setfingerprint;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property insertTime : String Index 24 Read FinsertTime Write SetinsertTime;
+    Property labels : TDeploymentTypelabelsArray Index 32 Read Flabels Write Setlabels;
     Property manifest : String Index 40 Read Fmanifest Write Setmanifest;
     Property name : String Index 48 Read Fname Write Setname;
-    Property state : String Index 56 Read Fstate Write Setstate;
-    Property target : TTargetConfiguration Index 64 Read Ftarget Write Settarget;
-    Property update : TDeploymentUpdate Index 72 Read Fupdate Write Setupdate;
+    Property operation : TOperation Index 56 Read Foperation Write Setoperation;
+    Property selfLink : String Index 64 Read FselfLink Write SetselfLink;
+    Property target : TTargetConfiguration Index 72 Read Ftarget Write Settarget;
+    Property update : TDeploymentUpdate Index 80 Read Fupdate Write Setupdate;
   end;
   TDeploymentClass = Class of TDeployment;
+  
+  { --------------------------------------------------------------------
+    TDeploymentLabelEntry
+    --------------------------------------------------------------------}
+  
+  TDeploymentLabelEntry = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TDeploymentLabelEntryClass = Class of TDeploymentLabelEntry;
   
   { --------------------------------------------------------------------
     TDeploymentUpdate
@@ -117,11 +167,11 @@ type
   
   TDeploymentUpdate = Class(TGoogleBaseObject)
   Private
-    Ferrors : TStringArray;
+    Flabels : TDeploymentUpdateTypelabelsArray;
     Fmanifest : String;
   Protected
     //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setlabels(AIndex : Integer; const AValue : TDeploymentUpdateTypelabelsArray); virtual;
     Procedure Setmanifest(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -129,10 +179,45 @@ type
     {$ENDIF VER2_6}
   Public
   Published
-    Property errors : TStringArray Index 0 Read Ferrors Write Seterrors;
+    Property labels : TDeploymentUpdateTypelabelsArray Index 0 Read Flabels Write Setlabels;
     Property manifest : String Index 8 Read Fmanifest Write Setmanifest;
   end;
   TDeploymentUpdateClass = Class of TDeploymentUpdate;
+  
+  { --------------------------------------------------------------------
+    TDeploymentUpdateLabelEntry
+    --------------------------------------------------------------------}
+  
+  TDeploymentUpdateLabelEntry = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TDeploymentUpdateLabelEntryClass = Class of TDeploymentUpdateLabelEntry;
+  
+  { --------------------------------------------------------------------
+    TDeploymentsCancelPreviewRequest
+    --------------------------------------------------------------------}
+  
+  TDeploymentsCancelPreviewRequest = Class(TGoogleBaseObject)
+  Private
+    Ffingerprint : String;
+  Protected
+    //Property setters
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property fingerprint : String Index 0 Read Ffingerprint Write Setfingerprint;
+  end;
+  TDeploymentsCancelPreviewRequestClass = Class of TDeploymentsCancelPreviewRequest;
   
   { --------------------------------------------------------------------
     TDeploymentsListResponse
@@ -144,7 +229,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setdeployments(AIndex : Integer; AValue : TDeploymentsListResponseTypedeploymentsArray); virtual;
+    Procedure Setdeployments(AIndex : Integer; const AValue : TDeploymentsListResponseTypedeploymentsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -156,6 +241,22 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TDeploymentsListResponseClass = Class of TDeploymentsListResponse;
+  
+  { --------------------------------------------------------------------
+    TDeploymentsStopRequest
+    --------------------------------------------------------------------}
+  
+  TDeploymentsStopRequest = Class(TGoogleBaseObject)
+  Private
+    Ffingerprint : String;
+  Protected
+    //Property setters
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property fingerprint : String Index 0 Read Ffingerprint Write Setfingerprint;
+  end;
+  TDeploymentsStopRequestClass = Class of TDeploymentsStopRequest;
   
   { --------------------------------------------------------------------
     TImportFile
@@ -182,21 +283,21 @@ type
   
   TManifest = Class(TGoogleBaseObject)
   Private
-    Fconfig : String;
-    FcreationTimestamp : String;
-    FevaluatedConfig : String;
+    Fconfig : TConfigFile;
+    FexpandedConfig : String;
     Fid : String;
     Fimports : TManifestTypeimportsArray;
+    FinsertTime : String;
     Flayout : String;
     Fname : String;
     FselfLink : String;
   Protected
     //Property setters
-    Procedure Setconfig(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetevaluatedConfig(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setconfig(AIndex : Integer; const AValue : TConfigFile); virtual;
+    Procedure SetexpandedConfig(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setimports(AIndex : Integer; AValue : TManifestTypeimportsArray); virtual;
+    Procedure Setimports(AIndex : Integer; const AValue : TManifestTypeimportsArray); virtual;
+    Procedure SetinsertTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlayout(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
@@ -206,11 +307,11 @@ type
     {$ENDIF VER2_6}
   Public
   Published
-    Property config : String Index 0 Read Fconfig Write Setconfig;
-    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property evaluatedConfig : String Index 16 Read FevaluatedConfig Write SetevaluatedConfig;
-    Property id : String Index 24 Read Fid Write Setid;
-    Property imports : TManifestTypeimportsArray Index 32 Read Fimports Write Setimports;
+    Property config : TConfigFile Index 0 Read Fconfig Write Setconfig;
+    Property expandedConfig : String Index 8 Read FexpandedConfig Write SetexpandedConfig;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property imports : TManifestTypeimportsArray Index 24 Read Fimports Write Setimports;
+    Property insertTime : String Index 32 Read FinsertTime Write SetinsertTime;
     Property layout : String Index 40 Read Flayout Write Setlayout;
     Property name : String Index 48 Read Fname Write Setname;
     Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
@@ -227,7 +328,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setmanifests(AIndex : Integer; AValue : TManifestsListResponseTypemanifestsArray); virtual;
+    Procedure Setmanifests(AIndex : Integer; const AValue : TManifestsListResponseTypemanifestsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -271,7 +372,7 @@ type
     Ferrors : TOperationTypeerrorTypeerrorsArray;
   Protected
     //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    Procedure Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -313,7 +414,7 @@ type
   Protected
     //Property setters
     Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -335,6 +436,7 @@ type
   Private
     FclientOperationId : String;
     FcreationTimestamp : String;
+    Fdescription : String;
     FendTime : String;
     Ferror : TOperationTypeerror;
     FhttpErrorMessage : String;
@@ -359,16 +461,17 @@ type
     //Property setters
     Procedure SetclientOperationId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : TOperationTypeerror); virtual;
+    Procedure Seterror(AIndex : Integer; const AValue : TOperationTypeerror); virtual;
     Procedure SethttpErrorMessage(AIndex : Integer; const AValue : String); virtual;
-    Procedure SethttpErrorStatusCode(AIndex : Integer; AValue : integer); virtual;
+    Procedure SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinsertTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setprogress(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setprogress(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
@@ -377,7 +480,7 @@ type
     Procedure SettargetId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); virtual;
     Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -387,26 +490,27 @@ type
   Published
     Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
     Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property endTime : String Index 16 Read FendTime Write SetendTime;
-    Property error : TOperationTypeerror Index 24 Read Ferror Write Seterror;
-    Property httpErrorMessage : String Index 32 Read FhttpErrorMessage Write SethttpErrorMessage;
-    Property httpErrorStatusCode : integer Index 40 Read FhttpErrorStatusCode Write SethttpErrorStatusCode;
-    Property id : String Index 48 Read Fid Write Setid;
-    Property insertTime : String Index 56 Read FinsertTime Write SetinsertTime;
-    Property kind : String Index 64 Read Fkind Write Setkind;
-    Property name : String Index 72 Read Fname Write Setname;
-    Property operationType : String Index 80 Read FoperationType Write SetoperationType;
-    Property progress : integer Index 88 Read Fprogress Write Setprogress;
-    Property region : String Index 96 Read Fregion Write Setregion;
-    Property selfLink : String Index 104 Read FselfLink Write SetselfLink;
-    Property startTime : String Index 112 Read FstartTime Write SetstartTime;
-    Property status : String Index 120 Read Fstatus Write Setstatus;
-    Property statusMessage : String Index 128 Read FstatusMessage Write SetstatusMessage;
-    Property targetId : String Index 136 Read FtargetId Write SettargetId;
-    Property targetLink : String Index 144 Read FtargetLink Write SettargetLink;
-    Property user : String Index 152 Read Fuser Write Setuser;
-    Property warnings : TOperationTypewarningsArray Index 160 Read Fwarnings Write Setwarnings;
-    Property zone : String Index 168 Read Fzone Write Setzone;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property endTime : String Index 24 Read FendTime Write SetendTime;
+    Property error : TOperationTypeerror Index 32 Read Ferror Write Seterror;
+    Property httpErrorMessage : String Index 40 Read FhttpErrorMessage Write SethttpErrorMessage;
+    Property httpErrorStatusCode : integer Index 48 Read FhttpErrorStatusCode Write SethttpErrorStatusCode;
+    Property id : String Index 56 Read Fid Write Setid;
+    Property insertTime : String Index 64 Read FinsertTime Write SetinsertTime;
+    Property kind : String Index 72 Read Fkind Write Setkind;
+    Property name : String Index 80 Read Fname Write Setname;
+    Property operationType : String Index 88 Read FoperationType Write SetoperationType;
+    Property progress : integer Index 96 Read Fprogress Write Setprogress;
+    Property region : String Index 104 Read Fregion Write Setregion;
+    Property selfLink : String Index 112 Read FselfLink Write SetselfLink;
+    Property startTime : String Index 120 Read FstartTime Write SetstartTime;
+    Property status : String Index 128 Read Fstatus Write Setstatus;
+    Property statusMessage : String Index 136 Read FstatusMessage Write SetstatusMessage;
+    Property targetId : String Index 144 Read FtargetId Write SettargetId;
+    Property targetLink : String Index 152 Read FtargetLink Write SettargetLink;
+    Property user : String Index 160 Read Fuser Write Setuser;
+    Property warnings : TOperationTypewarningsArray Index 168 Read Fwarnings Write Setwarnings;
+    Property zone : String Index 176 Read Fzone Write Setzone;
   end;
   TOperationClass = Class of TOperation;
   
@@ -421,7 +525,7 @@ type
   Protected
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setoperations(AIndex : Integer; AValue : TOperationsListResponseTypeoperationsArray); virtual;
+    Procedure Setoperations(AIndex : Integer; const AValue : TOperationsListResponseTypeoperationsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -434,6 +538,51 @@ type
   TOperationsListResponseClass = Class of TOperationsListResponse;
   
   { --------------------------------------------------------------------
+    TResourceTypewarningsItemTypedataItem
+    --------------------------------------------------------------------}
+  
+  TResourceTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TResourceTypewarningsItemTypedataItemClass = Class of TResourceTypewarningsItemTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TResourceTypewarningsItem
+    --------------------------------------------------------------------}
+  
+  TResourceTypewarningsItem = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TResourceTypewarningsItemTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TResourceTypewarningsItemTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TResourceTypewarningsItemTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TResourceTypewarningsItemClass = Class of TResourceTypewarningsItem;
+  
+  { --------------------------------------------------------------------
     TResource
     --------------------------------------------------------------------}
   
@@ -441,35 +590,135 @@ type
   Private
     FfinalProperties : String;
     Fid : String;
+    FinsertTime : String;
     Fmanifest : String;
     Fname : String;
     Fproperties : String;
     F_type : String;
     Fupdate : TResourceUpdate;
+    FupdateTime : String;
     Furl : String;
+    Fwarnings : TResourceTypewarningsArray;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure SetfinalProperties(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinsertTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmanifest(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setproperties(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setupdate(AIndex : Integer; AValue : TResourceUpdate); virtual;
+    Procedure Setupdate(AIndex : Integer; const AValue : TResourceUpdate); virtual;
+    Procedure SetupdateTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : TResourceTypewarningsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property finalProperties : String Index 0 Read FfinalProperties Write SetfinalProperties;
     Property id : String Index 8 Read Fid Write Setid;
-    Property manifest : String Index 16 Read Fmanifest Write Setmanifest;
-    Property name : String Index 24 Read Fname Write Setname;
-    Property properties : String Index 32 Read Fproperties Write Setproperties;
-    Property _type : String Index 40 Read F_type Write Set_type;
-    Property update : TResourceUpdate Index 48 Read Fupdate Write Setupdate;
-    Property url : String Index 56 Read Furl Write Seturl;
+    Property insertTime : String Index 16 Read FinsertTime Write SetinsertTime;
+    Property manifest : String Index 24 Read Fmanifest Write Setmanifest;
+    Property name : String Index 32 Read Fname Write Setname;
+    Property properties : String Index 40 Read Fproperties Write Setproperties;
+    Property _type : String Index 48 Read F_type Write Set_type;
+    Property update : TResourceUpdate Index 56 Read Fupdate Write Setupdate;
+    Property updateTime : String Index 64 Read FupdateTime Write SetupdateTime;
+    Property url : String Index 72 Read Furl Write Seturl;
+    Property warnings : TResourceTypewarningsArray Index 80 Read Fwarnings Write Setwarnings;
   end;
   TResourceClass = Class of TResource;
+  
+  { --------------------------------------------------------------------
+    TResourceUpdateTypeerrorTypeerrorsItem
+    --------------------------------------------------------------------}
+  
+  TResourceUpdateTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Flocation : String;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property location : String Index 8 Read Flocation Write Setlocation;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TResourceUpdateTypeerrorTypeerrorsItemClass = Class of TResourceUpdateTypeerrorTypeerrorsItem;
+  
+  { --------------------------------------------------------------------
+    TResourceUpdateTypeerror
+    --------------------------------------------------------------------}
+  
+  TResourceUpdateTypeerror = Class(TGoogleBaseObject)
+  Private
+    Ferrors : TResourceUpdateTypeerrorTypeerrorsArray;
+  Protected
+    //Property setters
+    Procedure Seterrors(AIndex : Integer; const AValue : TResourceUpdateTypeerrorTypeerrorsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property errors : TResourceUpdateTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
+  end;
+  TResourceUpdateTypeerrorClass = Class of TResourceUpdateTypeerror;
+  
+  { --------------------------------------------------------------------
+    TResourceUpdateTypewarningsItemTypedataItem
+    --------------------------------------------------------------------}
+  
+  TResourceUpdateTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : String;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : String Index 8 Read Fvalue Write Setvalue;
+  end;
+  TResourceUpdateTypewarningsItemTypedataItemClass = Class of TResourceUpdateTypewarningsItemTypedataItem;
+  
+  { --------------------------------------------------------------------
+    TResourceUpdateTypewarningsItem
+    --------------------------------------------------------------------}
+  
+  TResourceUpdateTypewarningsItem = Class(TGoogleBaseObject)
+  Private
+    Fcode : String;
+    Fdata : TResourceUpdateTypewarningsItemTypedataArray;
+    Fmessage : String;
+  Protected
+    //Property setters
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TResourceUpdateTypewarningsItemTypedataArray); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property code : String Index 0 Read Fcode Write Setcode;
+    Property data : TResourceUpdateTypewarningsItemTypedataArray Index 8 Read Fdata Write Setdata;
+    Property message : String Index 16 Read Fmessage Write Setmessage;
+  end;
+  TResourceUpdateTypewarningsItemClass = Class of TResourceUpdateTypewarningsItem;
   
   { --------------------------------------------------------------------
     TResourceUpdate
@@ -477,32 +726,35 @@ type
   
   TResourceUpdate = Class(TGoogleBaseObject)
   Private
-    Ferrors : TStringArray;
+    Ferror : TResourceUpdateTypeerror;
     FfinalProperties : String;
     Fintent : String;
     Fmanifest : String;
     Fproperties : String;
     Fstate : String;
+    Fwarnings : TResourceUpdateTypewarningsArray;
   Protected
     //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Seterror(AIndex : Integer; const AValue : TResourceUpdateTypeerror); virtual;
     Procedure SetfinalProperties(AIndex : Integer; const AValue : String); virtual;
     Procedure Setintent(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmanifest(AIndex : Integer; const AValue : String); virtual;
     Procedure Setproperties(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : TResourceUpdateTypewarningsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
     {$ENDIF VER2_6}
   Public
   Published
-    Property errors : TStringArray Index 0 Read Ferrors Write Seterrors;
+    Property error : TResourceUpdateTypeerror Index 0 Read Ferror Write Seterror;
     Property finalProperties : String Index 8 Read FfinalProperties Write SetfinalProperties;
     Property intent : String Index 16 Read Fintent Write Setintent;
     Property manifest : String Index 24 Read Fmanifest Write Setmanifest;
     Property properties : String Index 32 Read Fproperties Write Setproperties;
     Property state : String Index 40 Read Fstate Write Setstate;
+    Property warnings : TResourceUpdateTypewarningsArray Index 48 Read Fwarnings Write Setwarnings;
   end;
   TResourceUpdateClass = Class of TResourceUpdate;
   
@@ -517,7 +769,7 @@ type
   Protected
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TResourcesListResponseTyperesourcesArray); virtual;
+    Procedure Setresources(AIndex : Integer; const AValue : TResourcesListResponseTyperesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -535,19 +787,19 @@ type
   
   TTargetConfiguration = Class(TGoogleBaseObject)
   Private
-    Fconfig : String;
+    Fconfig : TConfigFile;
     Fimports : TTargetConfigurationTypeimportsArray;
   Protected
     //Property setters
-    Procedure Setconfig(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setimports(AIndex : Integer; AValue : TTargetConfigurationTypeimportsArray); virtual;
+    Procedure Setconfig(AIndex : Integer; const AValue : TConfigFile); virtual;
+    Procedure Setimports(AIndex : Integer; const AValue : TTargetConfigurationTypeimportsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
     {$ENDIF VER2_6}
   Public
   Published
-    Property config : String Index 0 Read Fconfig Write Setconfig;
+    Property config : TConfigFile Index 0 Read Fconfig Write Setconfig;
     Property imports : TTargetConfigurationTypeimportsArray Index 8 Read Fimports Write Setimports;
   end;
   TTargetConfigurationClass = Class of TTargetConfiguration;
@@ -558,13 +810,22 @@ type
   
   TType = Class(TGoogleBaseObject)
   Private
+    Fid : String;
+    FinsertTime : String;
     Fname : String;
+    FselfLink : String;
   Protected
     //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinsertTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
-    Property name : String Index 0 Read Fname Write Setname;
+    Property id : String Index 0 Read Fid Write Setid;
+    Property insertTime : String Index 8 Read FinsertTime Write SetinsertTime;
+    Property name : String Index 16 Read Fname Write Setname;
+    Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
   end;
   TTypeClass = Class of TType;
   
@@ -579,7 +840,7 @@ type
   Protected
     //Property setters
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Settypes(AIndex : Integer; AValue : TTypesListResponseTypetypesArray); virtual;
+    Procedure Settypes(AIndex : Integer; const AValue : TTypesListResponseTypetypesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -596,6 +857,13 @@ type
     --------------------------------------------------------------------}
   
   
+  //Optional query Options for TDeploymentsResource, method Insert
+  
+  TDeploymentsInsertOptions = Record
+    preview : boolean;
+  end;
+  
+  
   //Optional query Options for TDeploymentsResource, method List
   
   TDeploymentsListOptions = Record
@@ -610,7 +878,7 @@ type
   TDeploymentsPatchOptions = Record
     createPolicy : String;
     deletePolicy : String;
-    updatePolicy : String;
+    preview : boolean;
   end;
   
   
@@ -619,20 +887,23 @@ type
   TDeploymentsUpdateOptions = Record
     createPolicy : String;
     deletePolicy : String;
-    updatePolicy : String;
+    preview : boolean;
   end;
   
   TDeploymentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CancelPreview(deployment: string; project: string; aDeploymentsCancelPreviewRequest : TDeploymentsCancelPreviewRequest) : TOperation;
     Function Delete(deployment: string; project: string) : TOperation;
     Function Get(deployment: string; project: string) : TDeployment;
-    Function Insert(project: string; aDeployment : TDeployment) : TOperation;
+    Function Insert(project: string; aDeployment : TDeployment; AQuery : string  = '') : TOperation;
+    Function Insert(project: string; aDeployment : TDeployment; AQuery : TDeploymentsinsertOptions) : TOperation;
     Function List(project: string; AQuery : string  = '') : TDeploymentsListResponse;
     Function List(project: string; AQuery : TDeploymentslistOptions) : TDeploymentsListResponse;
     Function Patch(deployment: string; project: string; aDeployment : TDeployment; AQuery : string  = '') : TOperation;
     Function Patch(deployment: string; project: string; aDeployment : TDeployment; AQuery : TDeploymentspatchOptions) : TOperation;
+    Function Stop(deployment: string; project: string; aDeploymentsStopRequest : TDeploymentsStopRequest) : TOperation;
     Function Update(deployment: string; project: string; aDeployment : TDeployment; AQuery : string  = '') : TOperation;
     Function Update(deployment: string; project: string; aDeployment : TDeployment; AQuery : TDeploymentsupdateOptions) : TOperation;
   end;
@@ -790,18 +1061,25 @@ implementation
 
 
 { --------------------------------------------------------------------
-  TDeployment
+  TConfigFile
   --------------------------------------------------------------------}
 
 
-Procedure TDeployment.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TConfigFile.Setcontent(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FcreationTimestamp=AValue) then exit;
-  FcreationTimestamp:=AValue;
+  If (Fcontent=AValue) then exit;
+  Fcontent:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
+
+
+
+
+{ --------------------------------------------------------------------
+  TDeployment
+  --------------------------------------------------------------------}
 
 
 Procedure TDeployment.Setdescription(AIndex : Integer; const AValue : String); 
@@ -834,11 +1112,21 @@ end;
 
 
 
-Procedure TDeployment.Setintent(AIndex : Integer; const AValue : String); 
+Procedure TDeployment.SetinsertTime(AIndex : Integer; const AValue : String); 
 
 begin
-  If (Fintent=AValue) then exit;
-  Fintent:=AValue;
+  If (FinsertTime=AValue) then exit;
+  FinsertTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDeployment.Setlabels(AIndex : Integer; const AValue : TDeploymentTypelabelsArray); 
+
+begin
+  If (Flabels=AValue) then exit;
+  Flabels:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -864,17 +1152,27 @@ end;
 
 
 
-Procedure TDeployment.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TDeployment.Setoperation(AIndex : Integer; const AValue : TOperation); 
 
 begin
-  If (Fstate=AValue) then exit;
-  Fstate:=AValue;
+  If (Foperation=AValue) then exit;
+  Foperation:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 
-Procedure TDeployment.Settarget(AIndex : Integer; AValue : TTargetConfiguration); 
+Procedure TDeployment.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDeployment.Settarget(AIndex : Integer; const AValue : TTargetConfiguration); 
 
 begin
   If (Ftarget=AValue) then exit;
@@ -884,11 +1182,51 @@ end;
 
 
 
-Procedure TDeployment.Setupdate(AIndex : Integer; AValue : TDeploymentUpdate); 
+Procedure TDeployment.Setupdate(AIndex : Integer; const AValue : TDeploymentUpdate); 
 
 begin
   If (Fupdate=AValue) then exit;
   Fupdate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TDeployment.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'labels' : SetLength(Flabels,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TDeploymentLabelEntry
+  --------------------------------------------------------------------}
+
+
+Procedure TDeploymentLabelEntry.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDeploymentLabelEntry.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -901,11 +1239,11 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeploymentUpdate.Seterrors(AIndex : Integer; AValue : TStringArray); 
+Procedure TDeploymentUpdate.Setlabels(AIndex : Integer; const AValue : TDeploymentUpdateTypelabelsArray); 
 
 begin
-  If (Ferrors=AValue) then exit;
-  Ferrors:=AValue;
+  If (Flabels=AValue) then exit;
+  Flabels:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -926,7 +1264,7 @@ Procedure TDeploymentUpdate.SetArrayLength(Const AName : String; ALength : Longi
 
 begin
   Case AName of
-  'errors' : SetLength(Ferrors,ALength);
+  'labels' : SetLength(Flabels,ALength);
   else
     Inherited SetArrayLength(AName,ALength);
   end;
@@ -937,11 +1275,55 @@ end;
 
 
 { --------------------------------------------------------------------
+  TDeploymentUpdateLabelEntry
+  --------------------------------------------------------------------}
+
+
+Procedure TDeploymentUpdateLabelEntry.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDeploymentUpdateLabelEntry.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TDeploymentsCancelPreviewRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TDeploymentsCancelPreviewRequest.Setfingerprint(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ffingerprint=AValue) then exit;
+  Ffingerprint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TDeploymentsListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TDeploymentsListResponse.Setdeployments(AIndex : Integer; AValue : TDeploymentsListResponseTypedeploymentsArray); 
+Procedure TDeploymentsListResponse.Setdeployments(AIndex : Integer; const AValue : TDeploymentsListResponseTypedeploymentsArray); 
 
 begin
   If (Fdeployments=AValue) then exit;
@@ -972,6 +1354,23 @@ begin
   end;
 end;
 {$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TDeploymentsStopRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TDeploymentsStopRequest.Setfingerprint(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ffingerprint=AValue) then exit;
+  Ffingerprint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -1008,7 +1407,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TManifest.Setconfig(AIndex : Integer; const AValue : String); 
+Procedure TManifest.Setconfig(AIndex : Integer; const AValue : TConfigFile); 
 
 begin
   If (Fconfig=AValue) then exit;
@@ -1018,21 +1417,11 @@ end;
 
 
 
-Procedure TManifest.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TManifest.SetexpandedConfig(AIndex : Integer; const AValue : String); 
 
 begin
-  If (FcreationTimestamp=AValue) then exit;
-  FcreationTimestamp:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TManifest.SetevaluatedConfig(AIndex : Integer; const AValue : String); 
-
-begin
-  If (FevaluatedConfig=AValue) then exit;
-  FevaluatedConfig:=AValue;
+  If (FexpandedConfig=AValue) then exit;
+  FexpandedConfig:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1048,11 +1437,21 @@ end;
 
 
 
-Procedure TManifest.Setimports(AIndex : Integer; AValue : TManifestTypeimportsArray); 
+Procedure TManifest.Setimports(AIndex : Integer; const AValue : TManifestTypeimportsArray); 
 
 begin
   If (Fimports=AValue) then exit;
   Fimports:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TManifest.SetinsertTime(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinsertTime=AValue) then exit;
+  FinsertTime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1108,7 +1507,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TManifestsListResponse.Setmanifests(AIndex : Integer; AValue : TManifestsListResponseTypemanifestsArray); 
+Procedure TManifestsListResponse.Setmanifests(AIndex : Integer; const AValue : TManifestsListResponseTypemanifestsArray); 
 
 begin
   If (Fmanifests=AValue) then exit;
@@ -1185,7 +1584,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerror.Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); 
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1252,7 +1651,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); 
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -1312,6 +1711,16 @@ end;
 
 
 
+Procedure TOperation.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String); 
 
 begin
@@ -1322,7 +1731,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationTypeerror); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror); 
 
 begin
   If (Ferror=AValue) then exit;
@@ -1342,7 +1751,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; AValue : integer); 
+Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FhttpErrorStatusCode=AValue) then exit;
@@ -1402,7 +1811,7 @@ end;
 
 
 
-Procedure TOperation.Setprogress(AIndex : Integer; AValue : integer); 
+Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fprogress=AValue) then exit;
@@ -1492,7 +1901,7 @@ end;
 
 
 
-Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); 
+Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1542,7 +1951,7 @@ end;
 
 
 
-Procedure TOperationsListResponse.Setoperations(AIndex : Integer; AValue : TOperationsListResponseTypeoperationsArray); 
+Procedure TOperationsListResponse.Setoperations(AIndex : Integer; const AValue : TOperationsListResponseTypeoperationsArray); 
 
 begin
   If (Foperations=AValue) then exit;
@@ -1558,6 +1967,83 @@ Procedure TOperationsListResponse.SetArrayLength(Const AName : String; ALength :
 begin
   Case AName of
   'operations' : SetLength(Foperations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TResourceTypewarningsItemTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TResourceTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TResourceTypewarningsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TResourceTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceTypewarningsItem.Setdata(AIndex : Integer; const AValue : TResourceTypewarningsItemTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResourceTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
   else
     Inherited SetArrayLength(AName,ALength);
   end;
@@ -1587,6 +2073,16 @@ Procedure TResource.Setid(AIndex : Integer; const AValue : String);
 begin
   If (Fid=AValue) then exit;
   Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResource.SetinsertTime(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinsertTime=AValue) then exit;
+  FinsertTime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1632,11 +2128,21 @@ end;
 
 
 
-Procedure TResource.Setupdate(AIndex : Integer; AValue : TResourceUpdate); 
+Procedure TResource.Setupdate(AIndex : Integer; const AValue : TResourceUpdate); 
 
 begin
   If (Fupdate=AValue) then exit;
   Fupdate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResource.SetupdateTime(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FupdateTime=AValue) then exit;
+  FupdateTime:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1652,6 +2158,16 @@ end;
 
 
 
+Procedure TResource.Setwarnings(AIndex : Integer; const AValue : TResourceTypewarningsArray); 
+
+begin
+  If (Fwarnings=AValue) then exit;
+  Fwarnings:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Class Function TResource.ExportPropertyName(Const AName : String) :String;
 
 begin
@@ -1662,6 +2178,163 @@ begin
   end;
 end;
 
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResource.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'warnings' : SetLength(Fwarnings,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TResourceUpdateTypeerrorTypeerrorsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TResourceUpdateTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceUpdateTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Flocation=AValue) then exit;
+  Flocation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceUpdateTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TResourceUpdateTypeerror
+  --------------------------------------------------------------------}
+
+
+Procedure TResourceUpdateTypeerror.Seterrors(AIndex : Integer; const AValue : TResourceUpdateTypeerrorTypeerrorsArray); 
+
+begin
+  If (Ferrors=AValue) then exit;
+  Ferrors:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResourceUpdateTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'errors' : SetLength(Ferrors,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TResourceUpdateTypewarningsItemTypedataItem
+  --------------------------------------------------------------------}
+
+
+Procedure TResourceUpdateTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceUpdateTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TResourceUpdateTypewarningsItem
+  --------------------------------------------------------------------}
+
+
+Procedure TResourceUpdateTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fcode=AValue) then exit;
+  Fcode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceUpdateTypewarningsItem.Setdata(AIndex : Integer; const AValue : TResourceUpdateTypewarningsItemTypedataArray); 
+
+begin
+  If (Fdata=AValue) then exit;
+  Fdata:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TResourceUpdateTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TResourceUpdateTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'data' : SetLength(Fdata,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
 
 
 
@@ -1670,11 +2343,11 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceUpdate.Seterrors(AIndex : Integer; AValue : TStringArray); 
+Procedure TResourceUpdate.Seterror(AIndex : Integer; const AValue : TResourceUpdateTypeerror); 
 
 begin
-  If (Ferrors=AValue) then exit;
-  Ferrors:=AValue;
+  If (Ferror=AValue) then exit;
+  Ferror:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1729,13 +2402,23 @@ begin
 end;
 
 
+
+Procedure TResourceUpdate.Setwarnings(AIndex : Integer; const AValue : TResourceUpdateTypewarningsArray); 
+
+begin
+  If (Fwarnings=AValue) then exit;
+  Fwarnings:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
 Procedure TResourceUpdate.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
   Case AName of
-  'errors' : SetLength(Ferrors,ALength);
+  'warnings' : SetLength(Fwarnings,ALength);
   else
     Inherited SetArrayLength(AName,ALength);
   end;
@@ -1760,7 +2443,7 @@ end;
 
 
 
-Procedure TResourcesListResponse.Setresources(AIndex : Integer; AValue : TResourcesListResponseTyperesourcesArray); 
+Procedure TResourcesListResponse.Setresources(AIndex : Integer; const AValue : TResourcesListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -1790,7 +2473,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetConfiguration.Setconfig(AIndex : Integer; const AValue : String); 
+Procedure TTargetConfiguration.Setconfig(AIndex : Integer; const AValue : TConfigFile); 
 
 begin
   If (Fconfig=AValue) then exit;
@@ -1800,7 +2483,7 @@ end;
 
 
 
-Procedure TTargetConfiguration.Setimports(AIndex : Integer; AValue : TTargetConfigurationTypeimportsArray); 
+Procedure TTargetConfiguration.Setimports(AIndex : Integer; const AValue : TTargetConfigurationTypeimportsArray); 
 
 begin
   If (Fimports=AValue) then exit;
@@ -1830,11 +2513,41 @@ end;
   --------------------------------------------------------------------}
 
 
+Procedure TType.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TType.SetinsertTime(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FinsertTime=AValue) then exit;
+  FinsertTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TType.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
   Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TType.SetselfLink(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FselfLink=AValue) then exit;
+  FselfLink:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1857,7 +2570,7 @@ end;
 
 
 
-Procedure TTypesListResponse.Settypes(AIndex : Integer; AValue : TTypesListResponseTypetypesArray); 
+Procedure TTypesListResponse.Settypes(AIndex : Integer; const AValue : TTypesListResponseTypetypesArray); 
 
 begin
   If (Ftypes=AValue) then exit;
@@ -1899,6 +2612,21 @@ begin
   Result:=TdeploymentmanagerAPI;
 end;
 
+Function TDeploymentsResource.CancelPreview(deployment: string; project: string; aDeploymentsCancelPreviewRequest : TDeploymentsCancelPreviewRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/global/deployments/{deployment}/cancelPreview';
+  _Methodid   = 'deploymentmanager.deployments.cancelPreview';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['deployment',deployment,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aDeploymentsCancelPreviewRequest,TOperation) as TOperation;
+end;
+
 Function TDeploymentsResource.Delete(deployment: string; project: string) : TOperation;
 
 Const
@@ -1929,7 +2657,7 @@ begin
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TDeployment) as TDeployment;
 end;
 
-Function TDeploymentsResource.Insert(project: string; aDeployment : TDeployment) : TOperation;
+Function TDeploymentsResource.Insert(project: string; aDeployment : TDeployment; AQuery : string = '') : TOperation;
 
 Const
   _HTTPMethod = 'POST';
@@ -1941,7 +2669,19 @@ Var
 
 begin
   _P:=SubstitutePath(_Path,['project',project]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aDeployment,TOperation) as TOperation;
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aDeployment,TOperation) as TOperation;
+end;
+
+
+Function TDeploymentsResource.Insert(project: string; aDeployment : TDeployment; AQuery : TDeploymentsinsertOptions) : TOperation;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'preview',AQuery.preview);
+  Result:=Insert(project,aDeployment,_Q);
 end;
 
 Function TDeploymentsResource.List(project: string; AQuery : string = '') : TDeploymentsListResponse;
@@ -1998,8 +2738,23 @@ begin
   _Q:='';
   AddToQuery(_Q,'createPolicy',AQuery.createPolicy);
   AddToQuery(_Q,'deletePolicy',AQuery.deletePolicy);
-  AddToQuery(_Q,'updatePolicy',AQuery.updatePolicy);
+  AddToQuery(_Q,'preview',AQuery.preview);
   Result:=Patch(deployment,project,aDeployment,_Q);
+end;
+
+Function TDeploymentsResource.Stop(deployment: string; project: string; aDeploymentsStopRequest : TDeploymentsStopRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{project}/global/deployments/{deployment}/stop';
+  _Methodid   = 'deploymentmanager.deployments.stop';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['deployment',deployment,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aDeploymentsStopRequest,TOperation) as TOperation;
 end;
 
 Function TDeploymentsResource.Update(deployment: string; project: string; aDeployment : TDeployment; AQuery : string = '') : TOperation;
@@ -2027,7 +2782,7 @@ begin
   _Q:='';
   AddToQuery(_Q,'createPolicy',AQuery.createPolicy);
   AddToQuery(_Q,'deletePolicy',AQuery.deletePolicy);
-  AddToQuery(_Q,'updatePolicy',AQuery.updatePolicy);
+  AddToQuery(_Q,'preview',AQuery.preview);
   Result:=Update(deployment,project,aDeployment,_Q);
 end;
 
@@ -2283,31 +3038,31 @@ end;
 Class Function TDeploymentmanagerAPI.APIVersion : String;
 
 begin
-  Result:='v2beta2';
+  Result:='v2';
 end;
 
 Class Function TDeploymentmanagerAPI.APIRevision : String;
 
 begin
-  Result:='20150427';
+  Result:='20160426';
 end;
 
 Class Function TDeploymentmanagerAPI.APIID : String;
 
 begin
-  Result:='deploymentmanager:v2beta2';
+  Result:='deploymentmanager:v2';
 end;
 
 Class Function TDeploymentmanagerAPI.APITitle : String;
 
 begin
-  Result:='Google Cloud Deployment Manager API V2';
+  Result:='Google Cloud Deployment Manager API';
 end;
 
 Class Function TDeploymentmanagerAPI.APIDescription : String;
 
 begin
-  Result:='The Deployment Manager API allows users to declaratively configure, deploy and run complex solutions on the Google Cloud Platform.';
+  Result:='Declares, configures, and deploys complex solutions on Google Cloud Platform.';
 end;
 
 Class Function TDeploymentmanagerAPI.APIOwnerDomain : String;
@@ -2337,25 +3092,25 @@ end;
 Class Function TDeploymentmanagerAPI.APIdocumentationLink : String;
 
 begin
-  Result:='https://developers.google.com/deployment-manager/';
+  Result:='https://cloud.google.com/deployment-manager/';
 end;
 
 Class Function TDeploymentmanagerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TDeploymentmanagerAPI.APIbasePath : string;
 
 begin
-  Result:='/deploymentmanager/v2beta2/projects/';
+  Result:='/deploymentmanager/v2/projects/';
 end;
 
 Class Function TDeploymentmanagerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/deploymentmanager/v2beta2/projects/';
+  Result:='https://www.googleapis.com/deploymentmanager/v2/projects/';
 end;
 
 Class Function TDeploymentmanagerAPI.APIProtocol : string;
@@ -2367,7 +3122,7 @@ end;
 Class Function TDeploymentmanagerAPI.APIservicePath : string;
 
 begin
-  Result:='deploymentmanager/v2beta2/projects/';
+  Result:='deploymentmanager/v2/projects/';
 end;
 
 Class Function TDeploymentmanagerAPI.APIbatchPath : String;
@@ -2379,13 +3134,15 @@ end;
 Class Function TDeploymentmanagerAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
-  SetLength(Result,3);
+  SetLength(Result,4);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  Result[1].Name:='https://www.googleapis.com/auth/ndev.cloudman';
-  Result[1].Description:='View and manage your Google Cloud Platform management resources and deployment status information';
-  Result[2].Name:='https://www.googleapis.com/auth/ndev.cloudman.readonly';
-  Result[2].Description:='View your Google Cloud Platform management resources and deployment status information';
+  Result[1].Name:='https://www.googleapis.com/auth/cloud-platform.read-only';
+  Result[1].Description:='View your data across Google Cloud Platform services';
+  Result[2].Name:='https://www.googleapis.com/auth/ndev.cloudman';
+  Result[2].Description:='View and manage your Google Cloud Platform management resources and deployment status information';
+  Result[3].Name:='https://www.googleapis.com/auth/ndev.cloudman.readonly';
+  Result[3].Description:='View your Google Cloud Platform management resources and deployment status information';
   
 end;
 
@@ -2398,9 +3155,14 @@ end;
 Class Procedure TDeploymentmanagerAPI.RegisterAPIResources;
 
 begin
+  TConfigFile.RegisterObject;
   TDeployment.RegisterObject;
+  TDeploymentLabelEntry.RegisterObject;
   TDeploymentUpdate.RegisterObject;
+  TDeploymentUpdateLabelEntry.RegisterObject;
+  TDeploymentsCancelPreviewRequest.RegisterObject;
   TDeploymentsListResponse.RegisterObject;
+  TDeploymentsStopRequest.RegisterObject;
   TImportFile.RegisterObject;
   TManifest.RegisterObject;
   TManifestsListResponse.RegisterObject;
@@ -2410,7 +3172,13 @@ begin
   TOperationTypewarningsItem.RegisterObject;
   TOperation.RegisterObject;
   TOperationsListResponse.RegisterObject;
+  TResourceTypewarningsItemTypedataItem.RegisterObject;
+  TResourceTypewarningsItem.RegisterObject;
   TResource.RegisterObject;
+  TResourceUpdateTypeerrorTypeerrorsItem.RegisterObject;
+  TResourceUpdateTypeerror.RegisterObject;
+  TResourceUpdateTypewarningsItemTypedataItem.RegisterObject;
+  TResourceUpdateTypewarningsItem.RegisterObject;
   TResourceUpdate.RegisterObject;
   TResourcesListResponse.RegisterObject;
   TTargetConfiguration.RegisterObject;

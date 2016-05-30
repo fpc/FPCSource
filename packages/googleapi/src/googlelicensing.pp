@@ -1,19 +1,4 @@
 unit googlelicensing;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:05
 {$MODE objfpc}
 {$H+}
 
@@ -93,7 +78,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TLicenseAssignmentListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TLicenseAssignmentListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -286,7 +271,7 @@ end;
 
 
 
-Procedure TLicenseAssignmentList.Setitems(AIndex : Integer; AValue : TLicenseAssignmentListTypeitemsArray); 
+Procedure TLicenseAssignmentList.Setitems(AIndex : Integer; const AValue : TLicenseAssignmentListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -502,7 +487,7 @@ end;
 Class Function TLicensingAPI.APIRevision : String;
 
 begin
-  Result:='20140122';
+  Result:='20150901';
 end;
 
 Class Function TLicensingAPI.APIID : String;
@@ -556,7 +541,7 @@ end;
 Class Function TLicensingAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TLicensingAPI.APIbasePath : string;
@@ -568,7 +553,7 @@ end;
 Class Function TLicensingAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/apps/licensing/v1/product/';
+  Result:='https://www.googleapis.com/apps/licensing/v1/product/';
 end;
 
 Class Function TLicensingAPI.APIProtocol : string;

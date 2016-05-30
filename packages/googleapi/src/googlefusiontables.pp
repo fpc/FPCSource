@@ -1,19 +1,4 @@
 unit googlefusiontables;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:03
 {$MODE objfpc}
 {$H+}
 
@@ -99,10 +84,10 @@ type
     //Property setters
     Procedure Setcolor(AIndex : Integer; const AValue : String); virtual;
     Procedure Seticon(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setmax(AIndex : Integer; AValue : double); virtual;
-    Procedure Setmin(AIndex : Integer; AValue : double); virtual;
-    Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
-    Procedure Setweight(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setmax(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setmin(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setopacity(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setweight(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property color : String Index 0 Read Fcolor Write Setcolor;
@@ -124,8 +109,8 @@ type
     FtableIndex : integer;
   Protected
     //Property setters
-    Procedure SetcolumnId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SettableIndex(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcolumnId(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SettableIndex(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property columnId : integer Index 0 Read FcolumnId Write SetcolumnId;
@@ -154,8 +139,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetbaseColumn(AIndex : Integer; AValue : TColumnTypebaseColumn); virtual;
-    Procedure SetcolumnId(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetbaseColumn(AIndex : Integer; const AValue : TColumnTypebaseColumn); virtual;
+    Procedure SetcolumnId(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetcolumnJsonSchema(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcolumnPropertiesJson(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
@@ -164,8 +149,8 @@ type
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetvalidValues(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetvalidateData(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetvalidValues(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetvalidateData(AIndex : Integer; const AValue : boolean); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -199,10 +184,10 @@ type
     FtotalItems : integer;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TColumnListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TColumnListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    Procedure SettotalItems(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -228,8 +213,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setgeometries(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
-    Procedure Setgeometry(AIndex : Integer; AValue : TJSONSchema); virtual;
+    Procedure Setgeometries(AIndex : Integer; const AValue : TTJSONSchemaArray); virtual;
+    Procedure Setgeometry(AIndex : Integer; const AValue : TJSONSchema); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -273,7 +258,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcoordinates(AIndex : Integer; AValue : TLineTypecoordinatesArray); virtual;
+    Procedure Setcoordinates(AIndex : Integer; const AValue : TLineTypecoordinatesArray); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -300,10 +285,10 @@ type
   Protected
     //Property setters
     Procedure SetstrokeColor(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetstrokeColorStyler(AIndex : Integer; AValue : TStyleFunction); virtual;
-    Procedure SetstrokeOpacity(AIndex : Integer; AValue : double); virtual;
-    Procedure SetstrokeWeight(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetstrokeWeightStyler(AIndex : Integer; AValue : TStyleFunction); virtual;
+    Procedure SetstrokeColorStyler(AIndex : Integer; const AValue : TStyleFunction); virtual;
+    Procedure SetstrokeOpacity(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetstrokeWeight(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetstrokeWeightStyler(AIndex : Integer; const AValue : TStyleFunction); virtual;
   Public
   Published
     Property strokeColor : String Index 0 Read FstrokeColor Write SetstrokeColor;
@@ -325,7 +310,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcoordinates(AIndex : Integer; AValue : TdoubleArray); virtual;
+    Procedure Setcoordinates(AIndex : Integer; const AValue : TdoubleArray); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -349,7 +334,7 @@ type
   Protected
     //Property setters
     Procedure SeticonName(AIndex : Integer; const AValue : String); virtual;
-    Procedure SeticonStyler(AIndex : Integer; AValue : TStyleFunction); virtual;
+    Procedure SeticonStyler(AIndex : Integer; const AValue : TStyleFunction); virtual;
   Public
   Published
     Property iconName : String Index 0 Read FiconName Write SeticonName;
@@ -368,7 +353,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcoordinates(AIndex : Integer; AValue : TPolygonTypecoordinatesArray); virtual;
+    Procedure Setcoordinates(AIndex : Integer; const AValue : TPolygonTypecoordinatesArray); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -398,13 +383,13 @@ type
   Protected
     //Property setters
     Procedure SetfillColor(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetfillColorStyler(AIndex : Integer; AValue : TStyleFunction); virtual;
-    Procedure SetfillOpacity(AIndex : Integer; AValue : double); virtual;
+    Procedure SetfillColorStyler(AIndex : Integer; const AValue : TStyleFunction); virtual;
+    Procedure SetfillOpacity(AIndex : Integer; const AValue : double); virtual;
     Procedure SetstrokeColor(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetstrokeColorStyler(AIndex : Integer; AValue : TStyleFunction); virtual;
-    Procedure SetstrokeOpacity(AIndex : Integer; AValue : double); virtual;
-    Procedure SetstrokeWeight(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetstrokeWeightStyler(AIndex : Integer; AValue : TStyleFunction); virtual;
+    Procedure SetstrokeColorStyler(AIndex : Integer; const AValue : TStyleFunction); virtual;
+    Procedure SetstrokeOpacity(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetstrokeWeight(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetstrokeWeightStyler(AIndex : Integer; const AValue : TStyleFunction); virtual;
   Public
   Published
     Property fillColor : String Index 0 Read FfillColor Write SetfillColor;
@@ -429,9 +414,9 @@ type
     Frows : TSqlresponseTyperowsArray;
   Protected
     //Property setters
-    Procedure Setcolumns(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setcolumns(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrows(AIndex : Integer; AValue : TSqlresponseTyperowsArray); virtual;
+    Procedure Setrows(AIndex : Integer; const AValue : TSqlresponseTyperowsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -455,7 +440,7 @@ type
   Protected
     //Property setters
     Procedure Setcolor(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
+    Procedure Setopacity(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property color : String Index 0 Read Fcolor Write Setcolor;
@@ -474,9 +459,9 @@ type
     Fmin : double;
   Protected
     //Property setters
-    Procedure Setcolors(AIndex : Integer; AValue : TStyleFunctionTypegradientTypecolorsArray); virtual;
-    Procedure Setmax(AIndex : Integer; AValue : double); virtual;
-    Procedure Setmin(AIndex : Integer; AValue : double); virtual;
+    Procedure Setcolors(AIndex : Integer; const AValue : TStyleFunctionTypegradientTypecolorsArray); virtual;
+    Procedure Setmax(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setmin(AIndex : Integer; const AValue : double); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -501,9 +486,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setbuckets(AIndex : Integer; AValue : TStyleFunctionTypebucketsArray); virtual;
+    Procedure Setbuckets(AIndex : Integer; const AValue : TStyleFunctionTypebucketsArray); virtual;
     Procedure SetcolumnName(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setgradient(AIndex : Integer; AValue : TStyleFunctionTypegradient); virtual;
+    Procedure Setgradient(AIndex : Integer; const AValue : TStyleFunctionTypegradient); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -534,11 +519,11 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmarkerOptions(AIndex : Integer; AValue : TPointStyle); virtual;
+    Procedure SetmarkerOptions(AIndex : Integer; const AValue : TPointStyle); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetpolygonOptions(AIndex : Integer; AValue : TPolygonStyle); virtual;
-    Procedure SetpolylineOptions(AIndex : Integer; AValue : TLineStyle); virtual;
-    Procedure SetstyleId(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetpolygonOptions(AIndex : Integer; const AValue : TPolygonStyle); virtual;
+    Procedure SetpolylineOptions(AIndex : Integer; const AValue : TLineStyle); virtual;
+    Procedure SetstyleId(AIndex : Integer; const AValue : integer); virtual;
     Procedure SettableId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -564,10 +549,10 @@ type
     FtotalItems : integer;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TStyleSettingListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TStyleSettingListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    Procedure SettotalItems(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -604,11 +589,11 @@ type
     //Property setters
     Procedure Setattribution(AIndex : Integer; const AValue : String); virtual;
     Procedure SetattributionLink(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetbaseTableIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetbaseTableIds(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetcolumnPropertiesJsonSchema(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setcolumns(AIndex : Integer; AValue : TTableTypecolumnsArray); virtual;
+    Procedure Setcolumns(AIndex : Integer; const AValue : TTableTypecolumnsArray); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetisExportable(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetisExportable(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsql(AIndex : Integer; const AValue : String); virtual;
@@ -648,7 +633,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTableListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTableListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -679,7 +664,7 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setprogress(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setstarted(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setstarted(AIndex : Integer; const AValue : boolean); virtual;
     Procedure SettaskId(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -704,10 +689,10 @@ type
     FtotalItems : integer;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTaskListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTaskListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    Procedure SettotalItems(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -735,12 +720,12 @@ type
     FtemplateId : integer;
   Protected
     //Property setters
-    Procedure SetautomaticColumnNames(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetautomaticColumnNames(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setbody(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SettableId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettemplateId(AIndex : Integer; AValue : integer); virtual;
+    Procedure SettemplateId(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -768,10 +753,10 @@ type
     FtotalItems : integer;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTemplateListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTemplateListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
+    Procedure SettotalItems(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1098,7 +1083,7 @@ end;
 
 
 
-Procedure TBucket.Setmax(AIndex : Integer; AValue : double); 
+Procedure TBucket.Setmax(AIndex : Integer; const AValue : double); 
 
 begin
   If (Fmax=AValue) then exit;
@@ -1108,7 +1093,7 @@ end;
 
 
 
-Procedure TBucket.Setmin(AIndex : Integer; AValue : double); 
+Procedure TBucket.Setmin(AIndex : Integer; const AValue : double); 
 
 begin
   If (Fmin=AValue) then exit;
@@ -1118,7 +1103,7 @@ end;
 
 
 
-Procedure TBucket.Setopacity(AIndex : Integer; AValue : double); 
+Procedure TBucket.Setopacity(AIndex : Integer; const AValue : double); 
 
 begin
   If (Fopacity=AValue) then exit;
@@ -1128,7 +1113,7 @@ end;
 
 
 
-Procedure TBucket.Setweight(AIndex : Integer; AValue : integer); 
+Procedure TBucket.Setweight(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fweight=AValue) then exit;
@@ -1145,7 +1130,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColumnTypebaseColumn.SetcolumnId(AIndex : Integer; AValue : integer); 
+Procedure TColumnTypebaseColumn.SetcolumnId(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FcolumnId=AValue) then exit;
@@ -1155,7 +1140,7 @@ end;
 
 
 
-Procedure TColumnTypebaseColumn.SettableIndex(AIndex : Integer; AValue : integer); 
+Procedure TColumnTypebaseColumn.SettableIndex(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtableIndex=AValue) then exit;
@@ -1172,7 +1157,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColumn.SetbaseColumn(AIndex : Integer; AValue : TColumnTypebaseColumn); 
+Procedure TColumn.SetbaseColumn(AIndex : Integer; const AValue : TColumnTypebaseColumn); 
 
 begin
   If (FbaseColumn=AValue) then exit;
@@ -1182,7 +1167,7 @@ end;
 
 
 
-Procedure TColumn.SetcolumnId(AIndex : Integer; AValue : integer); 
+Procedure TColumn.SetcolumnId(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FcolumnId=AValue) then exit;
@@ -1272,7 +1257,7 @@ end;
 
 
 
-Procedure TColumn.SetvalidValues(AIndex : Integer; AValue : TStringArray); 
+Procedure TColumn.SetvalidValues(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FvalidValues=AValue) then exit;
@@ -1282,7 +1267,7 @@ end;
 
 
 
-Procedure TColumn.SetvalidateData(AIndex : Integer; AValue : boolean); 
+Procedure TColumn.SetvalidateData(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FvalidateData=AValue) then exit;
@@ -1323,7 +1308,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColumnList.Setitems(AIndex : Integer; AValue : TColumnListTypeitemsArray); 
+Procedure TColumnList.Setitems(AIndex : Integer; const AValue : TColumnListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1353,7 +1338,7 @@ end;
 
 
 
-Procedure TColumnList.SettotalItems(AIndex : Integer; AValue : integer); 
+Procedure TColumnList.SettotalItems(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -1383,7 +1368,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeometry.Setgeometries(AIndex : Integer; AValue : TTJSONSchemaArray); 
+Procedure TGeometry.Setgeometries(AIndex : Integer; const AValue : TTJSONSchemaArray); 
 
 begin
   If (Fgeometries=AValue) then exit;
@@ -1393,7 +1378,7 @@ end;
 
 
 
-Procedure TGeometry.Setgeometry(AIndex : Integer; AValue : TJSONSchema); 
+Procedure TGeometry.Setgeometry(AIndex : Integer; const AValue : TJSONSchema); 
 
 begin
   If (Fgeometry=AValue) then exit;
@@ -1471,7 +1456,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLine.Setcoordinates(AIndex : Integer; AValue : TLineTypecoordinatesArray); 
+Procedure TLine.Setcoordinates(AIndex : Integer; const AValue : TLineTypecoordinatesArray); 
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -1532,7 +1517,7 @@ end;
 
 
 
-Procedure TLineStyle.SetstrokeColorStyler(AIndex : Integer; AValue : TStyleFunction); 
+Procedure TLineStyle.SetstrokeColorStyler(AIndex : Integer; const AValue : TStyleFunction); 
 
 begin
   If (FstrokeColorStyler=AValue) then exit;
@@ -1542,7 +1527,7 @@ end;
 
 
 
-Procedure TLineStyle.SetstrokeOpacity(AIndex : Integer; AValue : double); 
+Procedure TLineStyle.SetstrokeOpacity(AIndex : Integer; const AValue : double); 
 
 begin
   If (FstrokeOpacity=AValue) then exit;
@@ -1552,7 +1537,7 @@ end;
 
 
 
-Procedure TLineStyle.SetstrokeWeight(AIndex : Integer; AValue : integer); 
+Procedure TLineStyle.SetstrokeWeight(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FstrokeWeight=AValue) then exit;
@@ -1562,7 +1547,7 @@ end;
 
 
 
-Procedure TLineStyle.SetstrokeWeightStyler(AIndex : Integer; AValue : TStyleFunction); 
+Procedure TLineStyle.SetstrokeWeightStyler(AIndex : Integer; const AValue : TStyleFunction); 
 
 begin
   If (FstrokeWeightStyler=AValue) then exit;
@@ -1579,7 +1564,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPoint.Setcoordinates(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TPoint.Setcoordinates(AIndex : Integer; const AValue : TdoubleArray); 
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -1640,7 +1625,7 @@ end;
 
 
 
-Procedure TPointStyle.SeticonStyler(AIndex : Integer; AValue : TStyleFunction); 
+Procedure TPointStyle.SeticonStyler(AIndex : Integer; const AValue : TStyleFunction); 
 
 begin
   If (FiconStyler=AValue) then exit;
@@ -1657,7 +1642,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPolygon.Setcoordinates(AIndex : Integer; AValue : TPolygonTypecoordinatesArray); 
+Procedure TPolygon.Setcoordinates(AIndex : Integer; const AValue : TPolygonTypecoordinatesArray); 
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -1718,7 +1703,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetfillColorStyler(AIndex : Integer; AValue : TStyleFunction); 
+Procedure TPolygonStyle.SetfillColorStyler(AIndex : Integer; const AValue : TStyleFunction); 
 
 begin
   If (FfillColorStyler=AValue) then exit;
@@ -1728,7 +1713,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetfillOpacity(AIndex : Integer; AValue : double); 
+Procedure TPolygonStyle.SetfillOpacity(AIndex : Integer; const AValue : double); 
 
 begin
   If (FfillOpacity=AValue) then exit;
@@ -1748,7 +1733,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetstrokeColorStyler(AIndex : Integer; AValue : TStyleFunction); 
+Procedure TPolygonStyle.SetstrokeColorStyler(AIndex : Integer; const AValue : TStyleFunction); 
 
 begin
   If (FstrokeColorStyler=AValue) then exit;
@@ -1758,7 +1743,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetstrokeOpacity(AIndex : Integer; AValue : double); 
+Procedure TPolygonStyle.SetstrokeOpacity(AIndex : Integer; const AValue : double); 
 
 begin
   If (FstrokeOpacity=AValue) then exit;
@@ -1768,7 +1753,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetstrokeWeight(AIndex : Integer; AValue : integer); 
+Procedure TPolygonStyle.SetstrokeWeight(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FstrokeWeight=AValue) then exit;
@@ -1778,7 +1763,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetstrokeWeightStyler(AIndex : Integer; AValue : TStyleFunction); 
+Procedure TPolygonStyle.SetstrokeWeightStyler(AIndex : Integer; const AValue : TStyleFunction); 
 
 begin
   If (FstrokeWeightStyler=AValue) then exit;
@@ -1795,7 +1780,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSqlresponse.Setcolumns(AIndex : Integer; AValue : TStringArray); 
+Procedure TSqlresponse.Setcolumns(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fcolumns=AValue) then exit;
@@ -1815,7 +1800,7 @@ end;
 
 
 
-Procedure TSqlresponse.Setrows(AIndex : Integer; AValue : TSqlresponseTyperowsArray); 
+Procedure TSqlresponse.Setrows(AIndex : Integer; const AValue : TSqlresponseTyperowsArray); 
 
 begin
   If (Frows=AValue) then exit;
@@ -1856,7 +1841,7 @@ end;
 
 
 
-Procedure TStyleFunctionTypegradientTypecolorsItem.Setopacity(AIndex : Integer; AValue : double); 
+Procedure TStyleFunctionTypegradientTypecolorsItem.Setopacity(AIndex : Integer; const AValue : double); 
 
 begin
   If (Fopacity=AValue) then exit;
@@ -1873,7 +1858,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStyleFunctionTypegradient.Setcolors(AIndex : Integer; AValue : TStyleFunctionTypegradientTypecolorsArray); 
+Procedure TStyleFunctionTypegradient.Setcolors(AIndex : Integer; const AValue : TStyleFunctionTypegradientTypecolorsArray); 
 
 begin
   If (Fcolors=AValue) then exit;
@@ -1883,7 +1868,7 @@ end;
 
 
 
-Procedure TStyleFunctionTypegradient.Setmax(AIndex : Integer; AValue : double); 
+Procedure TStyleFunctionTypegradient.Setmax(AIndex : Integer; const AValue : double); 
 
 begin
   If (Fmax=AValue) then exit;
@@ -1893,7 +1878,7 @@ end;
 
 
 
-Procedure TStyleFunctionTypegradient.Setmin(AIndex : Integer; AValue : double); 
+Procedure TStyleFunctionTypegradient.Setmin(AIndex : Integer; const AValue : double); 
 
 begin
   If (Fmin=AValue) then exit;
@@ -1923,7 +1908,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStyleFunction.Setbuckets(AIndex : Integer; AValue : TStyleFunctionTypebucketsArray); 
+Procedure TStyleFunction.Setbuckets(AIndex : Integer; const AValue : TStyleFunctionTypebucketsArray); 
 
 begin
   If (Fbuckets=AValue) then exit;
@@ -1943,7 +1928,7 @@ end;
 
 
 
-Procedure TStyleFunction.Setgradient(AIndex : Integer; AValue : TStyleFunctionTypegradient); 
+Procedure TStyleFunction.Setgradient(AIndex : Integer; const AValue : TStyleFunctionTypegradient); 
 
 begin
   If (Fgradient=AValue) then exit;
@@ -1993,7 +1978,7 @@ end;
 
 
 
-Procedure TStyleSetting.SetmarkerOptions(AIndex : Integer; AValue : TPointStyle); 
+Procedure TStyleSetting.SetmarkerOptions(AIndex : Integer; const AValue : TPointStyle); 
 
 begin
   If (FmarkerOptions=AValue) then exit;
@@ -2013,7 +1998,7 @@ end;
 
 
 
-Procedure TStyleSetting.SetpolygonOptions(AIndex : Integer; AValue : TPolygonStyle); 
+Procedure TStyleSetting.SetpolygonOptions(AIndex : Integer; const AValue : TPolygonStyle); 
 
 begin
   If (FpolygonOptions=AValue) then exit;
@@ -2023,7 +2008,7 @@ end;
 
 
 
-Procedure TStyleSetting.SetpolylineOptions(AIndex : Integer; AValue : TLineStyle); 
+Procedure TStyleSetting.SetpolylineOptions(AIndex : Integer; const AValue : TLineStyle); 
 
 begin
   If (FpolylineOptions=AValue) then exit;
@@ -2033,7 +2018,7 @@ end;
 
 
 
-Procedure TStyleSetting.SetstyleId(AIndex : Integer; AValue : integer); 
+Procedure TStyleSetting.SetstyleId(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FstyleId=AValue) then exit;
@@ -2060,7 +2045,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStyleSettingList.Setitems(AIndex : Integer; AValue : TStyleSettingListTypeitemsArray); 
+Procedure TStyleSettingList.Setitems(AIndex : Integer; const AValue : TStyleSettingListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2090,7 +2075,7 @@ end;
 
 
 
-Procedure TStyleSettingList.SettotalItems(AIndex : Integer; AValue : integer); 
+Procedure TStyleSettingList.SettotalItems(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -2140,7 +2125,7 @@ end;
 
 
 
-Procedure TTable.SetbaseTableIds(AIndex : Integer; AValue : TStringArray); 
+Procedure TTable.SetbaseTableIds(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FbaseTableIds=AValue) then exit;
@@ -2160,7 +2145,7 @@ end;
 
 
 
-Procedure TTable.Setcolumns(AIndex : Integer; AValue : TTableTypecolumnsArray); 
+Procedure TTable.Setcolumns(AIndex : Integer; const AValue : TTableTypecolumnsArray); 
 
 begin
   If (Fcolumns=AValue) then exit;
@@ -2180,7 +2165,7 @@ end;
 
 
 
-Procedure TTable.SetisExportable(AIndex : Integer; AValue : boolean); 
+Procedure TTable.SetisExportable(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisExportable=AValue) then exit;
@@ -2271,7 +2256,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTableList.Setitems(AIndex : Integer; AValue : TTableListTypeitemsArray); 
+Procedure TTableList.Setitems(AIndex : Integer; const AValue : TTableListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2341,7 +2326,7 @@ end;
 
 
 
-Procedure TTask.Setstarted(AIndex : Integer; AValue : boolean); 
+Procedure TTask.Setstarted(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fstarted=AValue) then exit;
@@ -2389,7 +2374,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskList.Setitems(AIndex : Integer; AValue : TTaskListTypeitemsArray); 
+Procedure TTaskList.Setitems(AIndex : Integer; const AValue : TTaskListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2419,7 +2404,7 @@ end;
 
 
 
-Procedure TTaskList.SettotalItems(AIndex : Integer; AValue : integer); 
+Procedure TTaskList.SettotalItems(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -2449,7 +2434,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTemplate.SetautomaticColumnNames(AIndex : Integer; AValue : TStringArray); 
+Procedure TTemplate.SetautomaticColumnNames(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FautomaticColumnNames=AValue) then exit;
@@ -2499,7 +2484,7 @@ end;
 
 
 
-Procedure TTemplate.SettemplateId(AIndex : Integer; AValue : integer); 
+Procedure TTemplate.SettemplateId(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtemplateId=AValue) then exit;
@@ -2529,7 +2514,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTemplateList.Setitems(AIndex : Integer; AValue : TTemplateListTypeitemsArray); 
+Procedure TTemplateList.Setitems(AIndex : Integer; const AValue : TTemplateListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2559,7 +2544,7 @@ end;
 
 
 
-Procedure TTemplateList.SettotalItems(AIndex : Integer; AValue : integer); 
+Procedure TTemplateList.SettotalItems(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -3368,7 +3353,7 @@ end;
 Class Function TFusiontablesAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20160317';
 end;
 
 Class Function TFusiontablesAPI.APIID : String;
@@ -3422,7 +3407,7 @@ end;
 Class Function TFusiontablesAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TFusiontablesAPI.APIbasePath : string;
@@ -3434,7 +3419,7 @@ end;
 Class Function TFusiontablesAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/fusiontables/v2/';
+  Result:='https://www.googleapis.com/fusiontables/v2/';
 end;
 
 Class Function TFusiontablesAPI.APIProtocol : string;

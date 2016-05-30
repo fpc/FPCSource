@@ -1,19 +1,4 @@
 unit googleyoutubeAnalytics;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:09
 {$MODE objfpc}
 {$H+}
 
@@ -90,8 +75,8 @@ type
     FstartTime : TDatetime;
   Protected
     //Property setters
-    Procedure SetendTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetendTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : TDatetime); virtual;
   Public
   Published
     Property endTime : TDatetime Index 0 Read FendTime Write SetendTime;
@@ -115,10 +100,10 @@ type
     //Property setters
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setoutputs(AIndex : Integer; AValue : TBatchReportTypeoutputsArray); virtual;
+    Procedure Setoutputs(AIndex : Integer; const AValue : TBatchReportTypeoutputsArray); virtual;
     Procedure SetreportId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettimeSpan(AIndex : Integer; AValue : TBatchReportTypetimeSpan); virtual;
-    Procedure SettimeUpdated(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SettimeSpan(AIndex : Integer; const AValue : TBatchReportTypetimeSpan); virtual;
+    Procedure SettimeUpdated(AIndex : Integer; const AValue : TDatetime); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -173,7 +158,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TBatchReportDefinitionListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TBatchReportDefinitionListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -196,7 +181,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TBatchReportListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TBatchReportListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -238,7 +223,7 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetpublishedAt(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -260,11 +245,11 @@ type
     Fsnippet : TGroupTypesnippet;
   Protected
     //Property setters
-    Procedure SetcontentDetails(AIndex : Integer; AValue : TGroupTypecontentDetails); virtual;
+    Procedure SetcontentDetails(AIndex : Integer; const AValue : TGroupTypecontentDetails); virtual;
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsnippet(AIndex : Integer; AValue : TGroupTypesnippet); virtual;
+    Procedure Setsnippet(AIndex : Integer; const AValue : TGroupTypesnippet); virtual;
   Public
   Published
     Property contentDetails : TGroupTypecontentDetails Index 0 Read FcontentDetails Write SetcontentDetails;
@@ -311,7 +296,7 @@ type
     Procedure SetgroupId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setresource(AIndex : Integer; AValue : TGroupItemTyperesource); virtual;
+    Procedure Setresource(AIndex : Integer; const AValue : TGroupItemTyperesource); virtual;
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -334,7 +319,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TGroupItemListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TGroupItemListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -357,11 +342,13 @@ type
     Fetag : String;
     Fitems : TGroupListResponseTypeitemsArray;
     Fkind : String;
+    FnextPageToken : String;
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TGroupListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TGroupListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -371,6 +358,7 @@ type
     Property etag : String Index 0 Read Fetag Write Setetag;
     Property items : TGroupListResponseTypeitemsArray Index 8 Read Fitems Write Setitems;
     Property kind : String Index 16 Read Fkind Write Setkind;
+    Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TGroupListResponseClass = Class of TGroupListResponse;
   
@@ -407,9 +395,9 @@ type
     Frows : TResultTableTyperowsArray;
   Protected
     //Property setters
-    Procedure SetcolumnHeaders(AIndex : Integer; AValue : TResultTableTypecolumnHeadersArray); virtual;
+    Procedure SetcolumnHeaders(AIndex : Integer; const AValue : TResultTableTypecolumnHeadersArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrows(AIndex : Integer; AValue : TResultTableTyperowsArray); virtual;
+    Procedure Setrows(AIndex : Integer; const AValue : TResultTableTyperowsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -529,6 +517,7 @@ type
     id : String;
     mine : boolean;
     onBehalfOfContentOwner : String;
+    pageToken : String;
   end;
   
   
@@ -695,7 +684,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchReportTypetimeSpan.SetendTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TBatchReportTypetimeSpan.SetendTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -705,7 +694,7 @@ end;
 
 
 
-Procedure TBatchReportTypetimeSpan.SetstartTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TBatchReportTypetimeSpan.SetstartTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -742,7 +731,7 @@ end;
 
 
 
-Procedure TBatchReport.Setoutputs(AIndex : Integer; AValue : TBatchReportTypeoutputsArray); 
+Procedure TBatchReport.Setoutputs(AIndex : Integer; const AValue : TBatchReportTypeoutputsArray); 
 
 begin
   If (Foutputs=AValue) then exit;
@@ -762,7 +751,7 @@ end;
 
 
 
-Procedure TBatchReport.SettimeSpan(AIndex : Integer; AValue : TBatchReportTypetimeSpan); 
+Procedure TBatchReport.SettimeSpan(AIndex : Integer; const AValue : TBatchReportTypetimeSpan); 
 
 begin
   If (FtimeSpan=AValue) then exit;
@@ -772,7 +761,7 @@ end;
 
 
 
-Procedure TBatchReport.SettimeUpdated(AIndex : Integer; AValue : TDatetime); 
+Procedure TBatchReport.SettimeUpdated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FtimeUpdated=AValue) then exit;
@@ -870,7 +859,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchReportDefinitionList.Setitems(AIndex : Integer; AValue : TBatchReportDefinitionListTypeitemsArray); 
+Procedure TBatchReportDefinitionList.Setitems(AIndex : Integer; const AValue : TBatchReportDefinitionListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -910,7 +899,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchReportList.Setitems(AIndex : Integer; AValue : TBatchReportListTypeitemsArray); 
+Procedure TBatchReportList.Setitems(AIndex : Integer; const AValue : TBatchReportListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -977,7 +966,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupTypesnippet.SetpublishedAt(AIndex : Integer; AValue : TDatetime); 
+Procedure TGroupTypesnippet.SetpublishedAt(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FpublishedAt=AValue) then exit;
@@ -1004,7 +993,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroup.SetcontentDetails(AIndex : Integer; AValue : TGroupTypecontentDetails); 
+Procedure TGroup.SetcontentDetails(AIndex : Integer; const AValue : TGroupTypecontentDetails); 
 
 begin
   If (FcontentDetails=AValue) then exit;
@@ -1044,7 +1033,7 @@ end;
 
 
 
-Procedure TGroup.Setsnippet(AIndex : Integer; AValue : TGroupTypesnippet); 
+Procedure TGroup.Setsnippet(AIndex : Integer; const AValue : TGroupTypesnippet); 
 
 begin
   If (Fsnippet=AValue) then exit;
@@ -1128,7 +1117,7 @@ end;
 
 
 
-Procedure TGroupItem.Setresource(AIndex : Integer; AValue : TGroupItemTyperesource); 
+Procedure TGroupItem.Setresource(AIndex : Integer; const AValue : TGroupItemTyperesource); 
 
 begin
   If (Fresource=AValue) then exit;
@@ -1155,7 +1144,7 @@ end;
 
 
 
-Procedure TGroupItemListResponse.Setitems(AIndex : Integer; AValue : TGroupItemListResponseTypeitemsArray); 
+Procedure TGroupItemListResponse.Setitems(AIndex : Integer; const AValue : TGroupItemListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1205,7 +1194,7 @@ end;
 
 
 
-Procedure TGroupListResponse.Setitems(AIndex : Integer; AValue : TGroupListResponseTypeitemsArray); 
+Procedure TGroupListResponse.Setitems(AIndex : Integer; const AValue : TGroupListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1220,6 +1209,16 @@ Procedure TGroupListResponse.Setkind(AIndex : Integer; const AValue : String);
 begin
   If (Fkind=AValue) then exit;
   Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TGroupListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1282,7 +1281,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResultTable.SetcolumnHeaders(AIndex : Integer; AValue : TResultTableTypecolumnHeadersArray); 
+Procedure TResultTable.SetcolumnHeaders(AIndex : Integer; const AValue : TResultTableTypecolumnHeadersArray); 
 
 begin
   If (FcolumnHeaders=AValue) then exit;
@@ -1302,7 +1301,7 @@ end;
 
 
 
-Procedure TResultTable.Setrows(AIndex : Integer; AValue : TResultTableTyperowsArray); 
+Procedure TResultTable.Setrows(AIndex : Integer; const AValue : TResultTableTyperowsArray); 
 
 begin
   If (Frows=AValue) then exit;
@@ -1589,6 +1588,7 @@ begin
   AddToQuery(_Q,'id',AQuery.id);
   AddToQuery(_Q,'mine',AQuery.mine);
   AddToQuery(_Q,'onBehalfOfContentOwner',AQuery.onBehalfOfContentOwner);
+  AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(_Q);
 end;
 
@@ -1687,7 +1687,7 @@ end;
 Class Function TYoutubeAnalyticsAPI.APIRevision : String;
 
 begin
-  Result:='20150304';
+  Result:='20160513';
 end;
 
 Class Function TYoutubeAnalyticsAPI.APIID : String;
@@ -1705,7 +1705,7 @@ end;
 Class Function TYoutubeAnalyticsAPI.APIDescription : String;
 
 begin
-  Result:='Retrieve your YouTube Analytics reports.';
+  Result:='Retrieves your YouTube Analytics data.';
 end;
 
 Class Function TYoutubeAnalyticsAPI.APIOwnerDomain : String;
@@ -1741,7 +1741,7 @@ end;
 Class Function TYoutubeAnalyticsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TYoutubeAnalyticsAPI.APIbasePath : string;
@@ -1753,7 +1753,7 @@ end;
 Class Function TYoutubeAnalyticsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/youtube/analytics/v1/';
+  Result:='https://www.googleapis.com/youtube/analytics/v1/';
 end;
 
 Class Function TYoutubeAnalyticsAPI.APIProtocol : string;
@@ -1785,7 +1785,7 @@ begin
   Result[2].Name:='https://www.googleapis.com/auth/youtubepartner';
   Result[2].Description:='View and manage your assets and associated content on YouTube';
   Result[3].Name:='https://www.googleapis.com/auth/yt-analytics-monetary.readonly';
-  Result[3].Description:='View YouTube Analytics monetary reports for your YouTube content';
+  Result[3].Description:='View monetary and non-monetary YouTube Analytics reports for your YouTube content';
   Result[4].Name:='https://www.googleapis.com/auth/yt-analytics.readonly';
   Result[4].Description:='View YouTube Analytics reports for your YouTube content';
   

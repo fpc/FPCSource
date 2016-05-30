@@ -1,19 +1,4 @@
 unit googlesiteVerification;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -67,7 +52,7 @@ type
     FverificationMethod : String;
   Protected
     //Property setters
-    Procedure Setsite(AIndex : Integer; AValue : TSiteVerificationWebResourceGettokenRequestTypesite); virtual;
+    Procedure Setsite(AIndex : Integer; const AValue : TSiteVerificationWebResourceGettokenRequestTypesite); virtual;
     Procedure SetverificationMethod(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -104,7 +89,7 @@ type
     Fitems : TSiteVerificationWebResourceListResponseTypeitemsArray;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TSiteVerificationWebResourceListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TSiteVerificationWebResourceListResponseTypeitemsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -147,8 +132,8 @@ type
   Protected
     //Property setters
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setowners(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setsite(AIndex : Integer; AValue : TSiteVerificationWebResourceResourceTypesite); virtual;
+    Procedure Setowners(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setsite(AIndex : Integer; const AValue : TSiteVerificationWebResourceResourceTypesite); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -270,7 +255,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSiteVerificationWebResourceGettokenRequest.Setsite(AIndex : Integer; AValue : TSiteVerificationWebResourceGettokenRequestTypesite); 
+Procedure TSiteVerificationWebResourceGettokenRequest.Setsite(AIndex : Integer; const AValue : TSiteVerificationWebResourceGettokenRequestTypesite); 
 
 begin
   If (Fsite=AValue) then exit;
@@ -324,7 +309,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSiteVerificationWebResourceListResponse.Setitems(AIndex : Integer; AValue : TSiteVerificationWebResourceListResponseTypeitemsArray); 
+Procedure TSiteVerificationWebResourceListResponse.Setitems(AIndex : Integer; const AValue : TSiteVerificationWebResourceListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -402,7 +387,7 @@ end;
 
 
 
-Procedure TSiteVerificationWebResourceResource.Setowners(AIndex : Integer; AValue : TStringArray); 
+Procedure TSiteVerificationWebResourceResource.Setowners(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fowners=AValue) then exit;
@@ -412,7 +397,7 @@ end;
 
 
 
-Procedure TSiteVerificationWebResourceResource.Setsite(AIndex : Integer; AValue : TSiteVerificationWebResourceResourceTypesite); 
+Procedure TSiteVerificationWebResourceResource.Setsite(AIndex : Integer; const AValue : TSiteVerificationWebResourceResourceTypesite); 
 
 begin
   If (Fsite=AValue) then exit;
@@ -580,7 +565,7 @@ end;
 Class Function TSiteVerificationAPI.APIRevision : String;
 
 begin
-  Result:='20131007';
+  Result:='20160228';
 end;
 
 Class Function TSiteVerificationAPI.APIID : String;
@@ -598,7 +583,7 @@ end;
 Class Function TSiteVerificationAPI.APIDescription : String;
 
 begin
-  Result:='Lets you programatically verify ownership of websites or domains with Google.';
+  Result:='Verifies ownership of websites or domains with Google.';
 end;
 
 Class Function TSiteVerificationAPI.APIOwnerDomain : String;
@@ -634,7 +619,7 @@ end;
 Class Function TSiteVerificationAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TSiteVerificationAPI.APIbasePath : string;
@@ -646,7 +631,7 @@ end;
 Class Function TSiteVerificationAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/siteVerification/v1/';
+  Result:='https://www.googleapis.com/siteVerification/v1/';
 end;
 
 Class Function TSiteVerificationAPI.APIProtocol : string;

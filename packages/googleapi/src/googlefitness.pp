@@ -1,19 +1,4 @@
 unit googlefitness;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:03
 {$MODE objfpc}
 {$H+}
 
@@ -24,7 +9,14 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
+  TAggregateBucket = Class;
+  TAggregateBy = Class;
+  TAggregateRequest = Class;
+  TAggregateResponse = Class;
   TApplication = Class;
+  TBucketByActivity = Class;
+  TBucketBySession = Class;
+  TBucketByTime = Class;
   TDataPoint = Class;
   TDataSource = Class;
   TDataType = Class;
@@ -33,9 +25,18 @@ type
   TDevice = Class;
   TListDataSourcesResponse = Class;
   TListSessionsResponse = Class;
+  TMapValue = Class;
   TSession = Class;
   TValue = Class;
+  TValueMapValEntry = Class;
+  TAggregateBucketArray = Array of TAggregateBucket;
+  TAggregateByArray = Array of TAggregateBy;
+  TAggregateRequestArray = Array of TAggregateRequest;
+  TAggregateResponseArray = Array of TAggregateResponse;
   TApplicationArray = Array of TApplication;
+  TBucketByActivityArray = Array of TBucketByActivity;
+  TBucketBySessionArray = Array of TBucketBySession;
+  TBucketByTimeArray = Array of TBucketByTime;
   TDataPointArray = Array of TDataPoint;
   TDataSourceArray = Array of TDataSource;
   TDataTypeArray = Array of TDataType;
@@ -44,15 +45,134 @@ type
   TDeviceArray = Array of TDevice;
   TListDataSourcesResponseArray = Array of TListDataSourcesResponse;
   TListSessionsResponseArray = Array of TListSessionsResponse;
+  TMapValueArray = Array of TMapValue;
   TSessionArray = Array of TSession;
   TValueArray = Array of TValue;
+  TValueMapValEntryArray = Array of TValueMapValEntry;
   //Anonymous types, using auto-generated names
+  TAggregateBucketTypedatasetArray = Array of TDataset;
+  TAggregateRequestTypeaggregateByArray = Array of TAggregateBy;
+  TAggregateResponseTypebucketArray = Array of TAggregateBucket;
   TDataPointTypevalueArray = Array of TValue;
   TDataTypeTypefieldArray = Array of TDataTypeField;
   TDatasetTypepointArray = Array of TDataPoint;
   TListDataSourcesResponseTypedataSourceArray = Array of TDataSource;
   TListSessionsResponseTypedeletedSessionArray = Array of TSession;
   TListSessionsResponseTypesessionArray = Array of TSession;
+  TValueTypemapValArray = Array of TValueMapValEntry;
+  
+  { --------------------------------------------------------------------
+    TAggregateBucket
+    --------------------------------------------------------------------}
+  
+  TAggregateBucket = Class(TGoogleBaseObject)
+  Private
+    Factivity : integer;
+    Fdataset : TAggregateBucketTypedatasetArray;
+    FendTimeMillis : String;
+    Fsession : TSession;
+    FstartTimeMillis : String;
+    F_type : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Setactivity(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setdataset(AIndex : Integer; const AValue : TAggregateBucketTypedatasetArray); virtual;
+    Procedure SetendTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsession(AIndex : Integer; const AValue : TSession); virtual;
+    Procedure SetstartTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property activity : integer Index 0 Read Factivity Write Setactivity;
+    Property dataset : TAggregateBucketTypedatasetArray Index 8 Read Fdataset Write Setdataset;
+    Property endTimeMillis : String Index 16 Read FendTimeMillis Write SetendTimeMillis;
+    Property session : TSession Index 24 Read Fsession Write Setsession;
+    Property startTimeMillis : String Index 32 Read FstartTimeMillis Write SetstartTimeMillis;
+    Property _type : String Index 40 Read F_type Write Set_type;
+  end;
+  TAggregateBucketClass = Class of TAggregateBucket;
+  
+  { --------------------------------------------------------------------
+    TAggregateBy
+    --------------------------------------------------------------------}
+  
+  TAggregateBy = Class(TGoogleBaseObject)
+  Private
+    FdataSourceId : String;
+    FdataTypeName : String;
+  Protected
+    //Property setters
+    Procedure SetdataSourceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdataTypeName(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property dataSourceId : String Index 0 Read FdataSourceId Write SetdataSourceId;
+    Property dataTypeName : String Index 8 Read FdataTypeName Write SetdataTypeName;
+  end;
+  TAggregateByClass = Class of TAggregateBy;
+  
+  { --------------------------------------------------------------------
+    TAggregateRequest
+    --------------------------------------------------------------------}
+  
+  TAggregateRequest = Class(TGoogleBaseObject)
+  Private
+    FaggregateBy : TAggregateRequestTypeaggregateByArray;
+    FbucketByActivitySegment : TBucketByActivity;
+    FbucketByActivityType : TBucketByActivity;
+    FbucketBySession : TBucketBySession;
+    FbucketByTime : TBucketByTime;
+    FendTimeMillis : String;
+    FstartTimeMillis : String;
+  Protected
+    //Property setters
+    Procedure SetaggregateBy(AIndex : Integer; const AValue : TAggregateRequestTypeaggregateByArray); virtual;
+    Procedure SetbucketByActivitySegment(AIndex : Integer; const AValue : TBucketByActivity); virtual;
+    Procedure SetbucketByActivityType(AIndex : Integer; const AValue : TBucketByActivity); virtual;
+    Procedure SetbucketBySession(AIndex : Integer; const AValue : TBucketBySession); virtual;
+    Procedure SetbucketByTime(AIndex : Integer; const AValue : TBucketByTime); virtual;
+    Procedure SetendTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property aggregateBy : TAggregateRequestTypeaggregateByArray Index 0 Read FaggregateBy Write SetaggregateBy;
+    Property bucketByActivitySegment : TBucketByActivity Index 8 Read FbucketByActivitySegment Write SetbucketByActivitySegment;
+    Property bucketByActivityType : TBucketByActivity Index 16 Read FbucketByActivityType Write SetbucketByActivityType;
+    Property bucketBySession : TBucketBySession Index 24 Read FbucketBySession Write SetbucketBySession;
+    Property bucketByTime : TBucketByTime Index 32 Read FbucketByTime Write SetbucketByTime;
+    Property endTimeMillis : String Index 40 Read FendTimeMillis Write SetendTimeMillis;
+    Property startTimeMillis : String Index 48 Read FstartTimeMillis Write SetstartTimeMillis;
+  end;
+  TAggregateRequestClass = Class of TAggregateRequest;
+  
+  { --------------------------------------------------------------------
+    TAggregateResponse
+    --------------------------------------------------------------------}
+  
+  TAggregateResponse = Class(TGoogleBaseObject)
+  Private
+    Fbucket : TAggregateResponseTypebucketArray;
+  Protected
+    //Property setters
+    Procedure Setbucket(AIndex : Integer; const AValue : TAggregateResponseTypebucketArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property bucket : TAggregateResponseTypebucketArray Index 0 Read Fbucket Write Setbucket;
+  end;
+  TAggregateResponseClass = Class of TAggregateResponse;
   
   { --------------------------------------------------------------------
     TApplication
@@ -80,6 +200,57 @@ type
   TApplicationClass = Class of TApplication;
   
   { --------------------------------------------------------------------
+    TBucketByActivity
+    --------------------------------------------------------------------}
+  
+  TBucketByActivity = Class(TGoogleBaseObject)
+  Private
+    FactivityDataSourceId : String;
+    FminDurationMillis : String;
+  Protected
+    //Property setters
+    Procedure SetactivityDataSourceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetminDurationMillis(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property activityDataSourceId : String Index 0 Read FactivityDataSourceId Write SetactivityDataSourceId;
+    Property minDurationMillis : String Index 8 Read FminDurationMillis Write SetminDurationMillis;
+  end;
+  TBucketByActivityClass = Class of TBucketByActivity;
+  
+  { --------------------------------------------------------------------
+    TBucketBySession
+    --------------------------------------------------------------------}
+  
+  TBucketBySession = Class(TGoogleBaseObject)
+  Private
+    FminDurationMillis : String;
+  Protected
+    //Property setters
+    Procedure SetminDurationMillis(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property minDurationMillis : String Index 0 Read FminDurationMillis Write SetminDurationMillis;
+  end;
+  TBucketBySessionClass = Class of TBucketBySession;
+  
+  { --------------------------------------------------------------------
+    TBucketByTime
+    --------------------------------------------------------------------}
+  
+  TBucketByTime = Class(TGoogleBaseObject)
+  Private
+    FdurationMillis : String;
+  Protected
+    //Property setters
+    Procedure SetdurationMillis(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property durationMillis : String Index 0 Read FdurationMillis Write SetdurationMillis;
+  end;
+  TBucketByTimeClass = Class of TBucketByTime;
+  
+  { --------------------------------------------------------------------
     TDataPoint
     --------------------------------------------------------------------}
   
@@ -102,7 +273,7 @@ type
     Procedure SetoriginDataSourceId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrawTimestampNanos(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTimeNanos(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : TDataPointTypevalueArray); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : TDataPointTypevalueArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -136,11 +307,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setapplication(AIndex : Integer; AValue : TApplication); virtual;
+    Procedure Setapplication(AIndex : Integer; const AValue : TApplication); virtual;
     Procedure SetdataStreamId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdataStreamName(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetdataType(AIndex : Integer; AValue : TDataType); virtual;
-    Procedure Setdevice(AIndex : Integer; AValue : TDevice); virtual;
+    Procedure SetdataType(AIndex : Integer; const AValue : TDataType); virtual;
+    Procedure Setdevice(AIndex : Integer; const AValue : TDevice); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -165,7 +336,7 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setfield(AIndex : Integer; AValue : TDataTypeTypefieldArray); virtual;
+    Procedure Setfield(AIndex : Integer; const AValue : TDataTypeTypefieldArray); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -191,7 +362,7 @@ type
     //Property setters
     Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setoptional(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setoptional(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property format : String Index 0 Read Fformat Write Setformat;
@@ -217,7 +388,7 @@ type
     Procedure SetmaxEndTimeNs(AIndex : Integer; const AValue : String); virtual;
     Procedure SetminStartTimeNs(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpoint(AIndex : Integer; AValue : TDatasetTypepointArray); virtual;
+    Procedure Setpoint(AIndex : Integer; const AValue : TDatasetTypepointArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -270,7 +441,7 @@ type
     FdataSource : TListDataSourcesResponseTypedataSourceArray;
   Protected
     //Property setters
-    Procedure SetdataSource(AIndex : Integer; AValue : TListDataSourcesResponseTypedataSourceArray); virtual;
+    Procedure SetdataSource(AIndex : Integer; const AValue : TListDataSourcesResponseTypedataSourceArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -292,9 +463,9 @@ type
     Fsession : TListSessionsResponseTypesessionArray;
   Protected
     //Property setters
-    Procedure SetdeletedSession(AIndex : Integer; AValue : TListSessionsResponseTypedeletedSessionArray); virtual;
+    Procedure SetdeletedSession(AIndex : Integer; const AValue : TListSessionsResponseTypedeletedSessionArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsession(AIndex : Integer; AValue : TListSessionsResponseTypesessionArray); virtual;
+    Procedure Setsession(AIndex : Integer; const AValue : TListSessionsResponseTypesessionArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -306,6 +477,22 @@ type
     Property session : TListSessionsResponseTypesessionArray Index 16 Read Fsession Write Setsession;
   end;
   TListSessionsResponseClass = Class of TListSessionsResponse;
+  
+  { --------------------------------------------------------------------
+    TMapValue
+    --------------------------------------------------------------------}
+  
+  TMapValue = Class(TGoogleBaseObject)
+  Private
+    FfpVal : double;
+  Protected
+    //Property setters
+    Procedure SetfpVal(AIndex : Integer; const AValue : double); virtual;
+  Public
+  Published
+    Property fpVal : double Index 0 Read FfpVal Write SetfpVal;
+  end;
+  TMapValueClass = Class of TMapValue;
   
   { --------------------------------------------------------------------
     TSession
@@ -325,8 +512,8 @@ type
   Protected
     //Property setters
     Procedure SetactiveTimeMillis(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetactivityType(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setapplication(AIndex : Integer; AValue : TApplication); virtual;
+    Procedure SetactivityType(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setapplication(AIndex : Integer; const AValue : TApplication); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetendTimeMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
@@ -355,16 +542,45 @@ type
   Private
     FfpVal : double;
     FintVal : integer;
+    FmapVal : TValueTypemapValArray;
+    FstringVal : String;
   Protected
     //Property setters
-    Procedure SetfpVal(AIndex : Integer; AValue : double); virtual;
-    Procedure SetintVal(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetfpVal(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetintVal(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetmapVal(AIndex : Integer; const AValue : TValueTypemapValArray); virtual;
+    Procedure SetstringVal(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property fpVal : double Index 0 Read FfpVal Write SetfpVal;
     Property intVal : integer Index 8 Read FintVal Write SetintVal;
+    Property mapVal : TValueTypemapValArray Index 16 Read FmapVal Write SetmapVal;
+    Property stringVal : String Index 24 Read FstringVal Write SetstringVal;
   end;
   TValueClass = Class of TValue;
+  
+  { --------------------------------------------------------------------
+    TValueMapValEntry
+    --------------------------------------------------------------------}
+  
+  TValueMapValEntry = Class(TGoogleBaseObject)
+  Private
+    Fkey : String;
+    Fvalue : TMapValue;
+  Protected
+    //Property setters
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : TMapValue); virtual;
+  Public
+  Published
+    Property key : String Index 0 Read Fkey Write Setkey;
+    Property value : TMapValue Index 8 Read Fvalue Write Setvalue;
+  end;
+  TValueMapValEntryClass = Class of TValueMapValEntry;
   
   { --------------------------------------------------------------------
     TUsersDataSourcesDatasetsResource
@@ -438,6 +654,18 @@ type
   
   
   { --------------------------------------------------------------------
+    TUsersDatasetResource
+    --------------------------------------------------------------------}
+  
+  TUsersDatasetResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Aggregate(userId: string; aAggregateRequest : TAggregateRequest) : TAggregateResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TUsersSessionsResource
     --------------------------------------------------------------------}
   
@@ -486,9 +714,11 @@ type
   Private
     FDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;
     FDataSourcesInstance : TUsersDataSourcesResource;
+    FDatasetInstance : TUsersDatasetResource;
     FSessionsInstance : TUsersSessionsResource;
     Function GetDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;virtual;
     Function GetDataSourcesInstance : TUsersDataSourcesResource;virtual;
+    Function GetDatasetInstance : TUsersDatasetResource;virtual;
     Function GetSessionsInstance : TUsersSessionsResource;virtual;
   Public
     Class Function ResourceName : String; override;
@@ -497,10 +727,13 @@ type
     Function CreateDataSourcesDatasetsResource : TUsersDataSourcesDatasetsResource;virtual;overload;
     Function CreateDataSourcesResource(AOwner : TComponent) : TUsersDataSourcesResource;virtual;overload;
     Function CreateDataSourcesResource : TUsersDataSourcesResource;virtual;overload;
+    Function CreateDatasetResource(AOwner : TComponent) : TUsersDatasetResource;virtual;overload;
+    Function CreateDatasetResource : TUsersDatasetResource;virtual;overload;
     Function CreateSessionsResource(AOwner : TComponent) : TUsersSessionsResource;virtual;overload;
     Function CreateSessionsResource : TUsersSessionsResource;virtual;overload;
     Property DataSourcesDatasetsResource : TUsersDataSourcesDatasetsResource Read GetDataSourcesDatasetsInstance;
     Property DataSourcesResource : TUsersDataSourcesResource Read GetDataSourcesInstance;
+    Property DatasetResource : TUsersDatasetResource Read GetDatasetInstance;
     Property SessionsResource : TUsersSessionsResource Read GetSessionsInstance;
   end;
   
@@ -513,10 +746,12 @@ type
   Private
     FUsersDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;
     FUsersDataSourcesInstance : TUsersDataSourcesResource;
+    FUsersDatasetInstance : TUsersDatasetResource;
     FUsersSessionsInstance : TUsersSessionsResource;
     FUsersInstance : TUsersResource;
     Function GetUsersDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;virtual;
     Function GetUsersDataSourcesInstance : TUsersDataSourcesResource;virtual;
+    Function GetUsersDatasetInstance : TUsersDatasetResource;virtual;
     Function GetUsersSessionsInstance : TUsersSessionsResource;virtual;
     Function GetUsersInstance : TUsersResource;virtual;
   Public
@@ -546,6 +781,8 @@ type
     Function CreateUsersDataSourcesDatasetsResource : TUsersDataSourcesDatasetsResource;virtual;overload;
     Function CreateUsersDataSourcesResource(AOwner : TComponent) : TUsersDataSourcesResource;virtual;overload;
     Function CreateUsersDataSourcesResource : TUsersDataSourcesResource;virtual;overload;
+    Function CreateUsersDatasetResource(AOwner : TComponent) : TUsersDatasetResource;virtual;overload;
+    Function CreateUsersDatasetResource : TUsersDatasetResource;virtual;overload;
     Function CreateUsersSessionsResource(AOwner : TComponent) : TUsersSessionsResource;virtual;overload;
     Function CreateUsersSessionsResource : TUsersSessionsResource;virtual;overload;
     Function CreateUsersResource(AOwner : TComponent) : TUsersResource;virtual;overload;
@@ -553,11 +790,250 @@ type
     //Add default on-demand instances for resources
     Property UsersDataSourcesDatasetsResource : TUsersDataSourcesDatasetsResource Read GetUsersDataSourcesDatasetsInstance;
     Property UsersDataSourcesResource : TUsersDataSourcesResource Read GetUsersDataSourcesInstance;
+    Property UsersDatasetResource : TUsersDatasetResource Read GetUsersDatasetInstance;
     Property UsersSessionsResource : TUsersSessionsResource Read GetUsersSessionsInstance;
     Property UsersResource : TUsersResource Read GetUsersInstance;
   end;
 
 implementation
+
+
+{ --------------------------------------------------------------------
+  TAggregateBucket
+  --------------------------------------------------------------------}
+
+
+Procedure TAggregateBucket.Setactivity(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Factivity=AValue) then exit;
+  Factivity:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateBucket.Setdataset(AIndex : Integer; const AValue : TAggregateBucketTypedatasetArray); 
+
+begin
+  If (Fdataset=AValue) then exit;
+  Fdataset:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateBucket.SetendTimeMillis(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FendTimeMillis=AValue) then exit;
+  FendTimeMillis:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateBucket.Setsession(AIndex : Integer; const AValue : TSession); 
+
+begin
+  If (Fsession=AValue) then exit;
+  Fsession:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateBucket.SetstartTimeMillis(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FstartTimeMillis=AValue) then exit;
+  FstartTimeMillis:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateBucket.Set_type(AIndex : Integer; const AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TAggregateBucket.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAggregateBucket.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'dataset' : SetLength(Fdataset,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TAggregateBy
+  --------------------------------------------------------------------}
+
+
+Procedure TAggregateBy.SetdataSourceId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdataSourceId=AValue) then exit;
+  FdataSourceId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateBy.SetdataTypeName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdataTypeName=AValue) then exit;
+  FdataTypeName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TAggregateRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TAggregateRequest.SetaggregateBy(AIndex : Integer; const AValue : TAggregateRequestTypeaggregateByArray); 
+
+begin
+  If (FaggregateBy=AValue) then exit;
+  FaggregateBy:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateRequest.SetbucketByActivitySegment(AIndex : Integer; const AValue : TBucketByActivity); 
+
+begin
+  If (FbucketByActivitySegment=AValue) then exit;
+  FbucketByActivitySegment:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateRequest.SetbucketByActivityType(AIndex : Integer; const AValue : TBucketByActivity); 
+
+begin
+  If (FbucketByActivityType=AValue) then exit;
+  FbucketByActivityType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateRequest.SetbucketBySession(AIndex : Integer; const AValue : TBucketBySession); 
+
+begin
+  If (FbucketBySession=AValue) then exit;
+  FbucketBySession:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateRequest.SetbucketByTime(AIndex : Integer; const AValue : TBucketByTime); 
+
+begin
+  If (FbucketByTime=AValue) then exit;
+  FbucketByTime:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateRequest.SetendTimeMillis(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FendTimeMillis=AValue) then exit;
+  FendTimeMillis:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAggregateRequest.SetstartTimeMillis(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FstartTimeMillis=AValue) then exit;
+  FstartTimeMillis:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAggregateRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'aggregateby' : SetLength(FaggregateBy,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TAggregateResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TAggregateResponse.Setbucket(AIndex : Integer; const AValue : TAggregateResponseTypebucketArray); 
+
+begin
+  If (Fbucket=AValue) then exit;
+  Fbucket:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TAggregateResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'bucket' : SetLength(Fbucket,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
 
 
 { --------------------------------------------------------------------
@@ -600,6 +1076,67 @@ Procedure TApplication.Setversion(AIndex : Integer; const AValue : String);
 begin
   If (Fversion=AValue) then exit;
   Fversion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBucketByActivity
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketByActivity.SetactivityDataSourceId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FactivityDataSourceId=AValue) then exit;
+  FactivityDataSourceId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TBucketByActivity.SetminDurationMillis(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FminDurationMillis=AValue) then exit;
+  FminDurationMillis:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBucketBySession
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketBySession.SetminDurationMillis(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FminDurationMillis=AValue) then exit;
+  FminDurationMillis:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TBucketByTime
+  --------------------------------------------------------------------}
+
+
+Procedure TBucketByTime.SetdurationMillis(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdurationMillis=AValue) then exit;
+  FdurationMillis:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -682,7 +1219,7 @@ end;
 
 
 
-Procedure TDataPoint.Setvalue(AIndex : Integer; AValue : TDataPointTypevalueArray); 
+Procedure TDataPoint.Setvalue(AIndex : Integer; const AValue : TDataPointTypevalueArray); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -712,7 +1249,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataSource.Setapplication(AIndex : Integer; AValue : TApplication); 
+Procedure TDataSource.Setapplication(AIndex : Integer; const AValue : TApplication); 
 
 begin
   If (Fapplication=AValue) then exit;
@@ -742,7 +1279,7 @@ end;
 
 
 
-Procedure TDataSource.SetdataType(AIndex : Integer; AValue : TDataType); 
+Procedure TDataSource.SetdataType(AIndex : Integer; const AValue : TDataType); 
 
 begin
   If (FdataType=AValue) then exit;
@@ -752,7 +1289,7 @@ end;
 
 
 
-Procedure TDataSource.Setdevice(AIndex : Integer; AValue : TDevice); 
+Procedure TDataSource.Setdevice(AIndex : Integer; const AValue : TDevice); 
 
 begin
   If (Fdevice=AValue) then exit;
@@ -800,7 +1337,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataType.Setfield(AIndex : Integer; AValue : TDataTypeTypefieldArray); 
+Procedure TDataType.Setfield(AIndex : Integer; const AValue : TDataTypeTypefieldArray); 
 
 begin
   If (Ffield=AValue) then exit;
@@ -860,7 +1397,7 @@ end;
 
 
 
-Procedure TDataTypeField.Setoptional(AIndex : Integer; AValue : boolean); 
+Procedure TDataTypeField.Setoptional(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Foptional=AValue) then exit;
@@ -917,7 +1454,7 @@ end;
 
 
 
-Procedure TDataset.Setpoint(AIndex : Integer; AValue : TDatasetTypepointArray); 
+Procedure TDataset.Setpoint(AIndex : Integer; const AValue : TDatasetTypepointArray); 
 
 begin
   If (Fpoint=AValue) then exit;
@@ -1015,7 +1552,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListDataSourcesResponse.SetdataSource(AIndex : Integer; AValue : TListDataSourcesResponseTypedataSourceArray); 
+Procedure TListDataSourcesResponse.SetdataSource(AIndex : Integer; const AValue : TListDataSourcesResponseTypedataSourceArray); 
 
 begin
   If (FdataSource=AValue) then exit;
@@ -1045,7 +1582,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListSessionsResponse.SetdeletedSession(AIndex : Integer; AValue : TListSessionsResponseTypedeletedSessionArray); 
+Procedure TListSessionsResponse.SetdeletedSession(AIndex : Integer; const AValue : TListSessionsResponseTypedeletedSessionArray); 
 
 begin
   If (FdeletedSession=AValue) then exit;
@@ -1065,7 +1602,7 @@ end;
 
 
 
-Procedure TListSessionsResponse.Setsession(AIndex : Integer; AValue : TListSessionsResponseTypesessionArray); 
+Procedure TListSessionsResponse.Setsession(AIndex : Integer; const AValue : TListSessionsResponseTypesessionArray); 
 
 begin
   If (Fsession=AValue) then exit;
@@ -1092,6 +1629,23 @@ end;
 
 
 { --------------------------------------------------------------------
+  TMapValue
+  --------------------------------------------------------------------}
+
+
+Procedure TMapValue.SetfpVal(AIndex : Integer; const AValue : double); 
+
+begin
+  If (FfpVal=AValue) then exit;
+  FfpVal:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TSession
   --------------------------------------------------------------------}
 
@@ -1106,7 +1660,7 @@ end;
 
 
 
-Procedure TSession.SetactivityType(AIndex : Integer; AValue : integer); 
+Procedure TSession.SetactivityType(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FactivityType=AValue) then exit;
@@ -1116,7 +1670,7 @@ end;
 
 
 
-Procedure TSession.Setapplication(AIndex : Integer; AValue : TApplication); 
+Procedure TSession.Setapplication(AIndex : Integer; const AValue : TApplication); 
 
 begin
   If (Fapplication=AValue) then exit;
@@ -1193,7 +1747,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TValue.SetfpVal(AIndex : Integer; AValue : double); 
+Procedure TValue.SetfpVal(AIndex : Integer; const AValue : double); 
 
 begin
   If (FfpVal=AValue) then exit;
@@ -1203,11 +1757,71 @@ end;
 
 
 
-Procedure TValue.SetintVal(AIndex : Integer; AValue : integer); 
+Procedure TValue.SetintVal(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FintVal=AValue) then exit;
   FintVal:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TValue.SetmapVal(AIndex : Integer; const AValue : TValueTypemapValArray); 
+
+begin
+  If (FmapVal=AValue) then exit;
+  FmapVal:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TValue.SetstringVal(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FstringVal=AValue) then exit;
+  FstringVal:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TValue.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'mapval' : SetLength(FmapVal,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TValueMapValEntry
+  --------------------------------------------------------------------}
+
+
+Procedure TValueMapValEntry.Setkey(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkey=AValue) then exit;
+  Fkey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TValueMapValEntry.Setvalue(AIndex : Integer; const AValue : TMapValue); 
+
+begin
+  If (Fvalue=AValue) then exit;
+  Fvalue:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1463,6 +2077,40 @@ end;
 
 
 { --------------------------------------------------------------------
+  TUsersDatasetResource
+  --------------------------------------------------------------------}
+
+
+Class Function TUsersDatasetResource.ResourceName : String;
+
+begin
+  Result:='dataset';
+end;
+
+Class Function TUsersDatasetResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TfitnessAPI;
+end;
+
+Function TUsersDatasetResource.Aggregate(userId: string; aAggregateRequest : TAggregateRequest) : TAggregateResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{userId}/dataset:aggregate';
+  _Methodid   = 'fitness.users.dataset.aggregate';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aAggregateRequest,TAggregateResponse) as TAggregateResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TUsersSessionsResource
   --------------------------------------------------------------------}
 
@@ -1632,6 +2280,30 @@ end;
 
 
 
+Function TUsersResource.GetDatasetInstance : TUsersDatasetResource;
+
+begin
+  if (FDatasetInstance=Nil) then
+    FDatasetInstance:=CreateDatasetResource;
+  Result:=FDatasetInstance;
+end;
+
+Function TUsersResource.CreateDatasetResource : TUsersDatasetResource;
+
+begin
+  Result:=CreateDatasetResource(Self);
+end;
+
+
+Function TUsersResource.CreateDatasetResource(AOwner : TComponent) : TUsersDatasetResource;
+
+begin
+  Result:=TUsersDatasetResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
 Function TUsersResource.GetSessionsInstance : TUsersSessionsResource;
 
 begin
@@ -1675,7 +2347,7 @@ end;
 Class Function TFitnessAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20151021';
 end;
 
 Class Function TFitnessAPI.APIID : String;
@@ -1729,7 +2401,7 @@ end;
 Class Function TFitnessAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TFitnessAPI.APIbasePath : string;
@@ -1741,7 +2413,7 @@ end;
 Class Function TFitnessAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/fitness/v1/users/';
+  Result:='https://www.googleapis.com/fitness/v1/users/';
 end;
 
 Class Function TFitnessAPI.APIProtocol : string;
@@ -1790,7 +2462,14 @@ end;
 Class Procedure TFitnessAPI.RegisterAPIResources;
 
 begin
+  TAggregateBucket.RegisterObject;
+  TAggregateBy.RegisterObject;
+  TAggregateRequest.RegisterObject;
+  TAggregateResponse.RegisterObject;
   TApplication.RegisterObject;
+  TBucketByActivity.RegisterObject;
+  TBucketBySession.RegisterObject;
+  TBucketByTime.RegisterObject;
   TDataPoint.RegisterObject;
   TDataSource.RegisterObject;
   TDataType.RegisterObject;
@@ -1799,8 +2478,10 @@ begin
   TDevice.RegisterObject;
   TListDataSourcesResponse.RegisterObject;
   TListSessionsResponse.RegisterObject;
+  TMapValue.RegisterObject;
   TSession.RegisterObject;
   TValue.RegisterObject;
+  TValueMapValEntry.RegisterObject;
 end;
 
 
@@ -1847,6 +2528,30 @@ Function TFitnessAPI.CreateUsersDataSourcesResource(AOwner : TComponent) : TUser
 
 begin
   Result:=TUsersDataSourcesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TFitnessAPI.GetUsersDatasetInstance : TUsersDatasetResource;
+
+begin
+  if (FUsersDatasetInstance=Nil) then
+    FUsersDatasetInstance:=CreateUsersDatasetResource;
+  Result:=FUsersDatasetInstance;
+end;
+
+Function TFitnessAPI.CreateUsersDatasetResource : TUsersDatasetResource;
+
+begin
+  Result:=CreateUsersDatasetResource(Self);
+end;
+
+
+Function TFitnessAPI.CreateUsersDatasetResource(AOwner : TComponent) : TUsersDatasetResource;
+
+begin
+  Result:=TUsersDatasetResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 

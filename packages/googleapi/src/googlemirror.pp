@@ -1,19 +1,4 @@
 unit googlemirror;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:06
 {$MODE objfpc}
 {$H+}
 
@@ -91,10 +76,10 @@ type
     FuserData : TAccountTypeuserDataArray;
   Protected
     //Property setters
-    Procedure SetauthTokens(AIndex : Integer; AValue : TAccountTypeauthTokensArray); virtual;
-    Procedure Setfeatures(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetauthTokens(AIndex : Integer; const AValue : TAccountTypeauthTokensArray); virtual;
+    Procedure Setfeatures(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setpassword(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetuserData(AIndex : Integer; AValue : TAccountTypeuserDataArray); virtual;
+    Procedure SetuserData(AIndex : Integer; const AValue : TAccountTypeuserDataArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -123,7 +108,7 @@ type
     Procedure SetcontentType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontentUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetisProcessingContent(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetisProcessingContent(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property contentType : String Index 0 Read FcontentType Write SetcontentType;
@@ -143,7 +128,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TAttachmentsListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAttachmentsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -214,15 +199,15 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetacceptCommands(AIndex : Integer; AValue : TContactTypeacceptCommandsArray); virtual;
-    Procedure SetacceptTypes(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetacceptCommands(AIndex : Integer; const AValue : TContactTypeacceptCommandsArray); virtual;
+    Procedure SetacceptTypes(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetimageUrls(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetimageUrls(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetphoneNumber(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpriority(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetsharingFeatures(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setpriority(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetsharingFeatures(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setsource(AIndex : Integer; const AValue : String); virtual;
     Procedure SetspeakableName(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
@@ -257,7 +242,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TContactsListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TContactsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -286,14 +271,14 @@ type
     Ftimestamp : TDatetime;
   Protected
     //Property setters
-    Procedure Setaccuracy(AIndex : Integer; AValue : double); virtual;
+    Procedure Setaccuracy(AIndex : Integer; const AValue : double); virtual;
     Procedure Setaddress(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlatitude(AIndex : Integer; AValue : double); virtual;
-    Procedure Setlongitude(AIndex : Integer; AValue : double); virtual;
-    Procedure Settimestamp(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setlatitude(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setlongitude(AIndex : Integer; const AValue : double); virtual;
+    Procedure Settimestamp(AIndex : Integer; const AValue : TDatetime); virtual;
   Public
   Published
     Property accuracy : double Index 0 Read Faccuracy Write Setaccuracy;
@@ -317,7 +302,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TLocationsListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TLocationsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -348,8 +333,8 @@ type
     Procedure Setcontextual_command(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpayload(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetremoveWhenSelected(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setvalues(AIndex : Integer; AValue : TMenuItemTypevaluesArray); virtual;
+    Procedure SetremoveWhenSelected(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setvalues(AIndex : Integer; const AValue : TMenuItemTypevaluesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -404,7 +389,7 @@ type
     Procedure Setcollection(AIndex : Integer; const AValue : String); virtual;
     Procedure SetitemId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setoperation(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetuserActions(AIndex : Integer; AValue : TNotificationTypeuserActionsArray); virtual;
+    Procedure SetuserActions(AIndex : Integer; const AValue : TNotificationTypeuserActionsArray); virtual;
     Procedure SetuserToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetverifyToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -432,7 +417,7 @@ type
     Flevel : String;
   Protected
     //Property setters
-    Procedure SetdeliveryTime(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetdeliveryTime(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Setlevel(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -484,9 +469,9 @@ type
     Procedure Setcollection(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setnotification(AIndex : Integer; AValue : TNotification); virtual;
-    Procedure Setoperation(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setnotification(AIndex : Integer; const AValue : TNotification); virtual;
+    Procedure Setoperation(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setupdated(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure SetuserToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetverifyToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -517,7 +502,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TSubscriptionsListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TSubscriptionsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -564,32 +549,32 @@ type
     Fupdated : TDatetime;
   Protected
     //Property setters
-    Procedure Setattachments(AIndex : Integer; AValue : TTimelineItemTypeattachmentsArray); virtual;
+    Procedure Setattachments(AIndex : Integer; const AValue : TTimelineItemTypeattachmentsArray); virtual;
     Procedure SetbundleId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcanonicalUrl(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setcreator(AIndex : Integer; AValue : TContact); virtual;
-    Procedure SetdisplayTime(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setcreated(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setcreator(AIndex : Integer; const AValue : TContact); virtual;
+    Procedure SetdisplayTime(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Sethtml(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinReplyTo(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetisBundleCover(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetisDeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetisPinned(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetisBundleCover(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetisDeleted(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetisPinned(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : TLocation); virtual;
-    Procedure SetmenuItems(AIndex : Integer; AValue : TTimelineItemTypemenuItemsArray); virtual;
-    Procedure Setnotification(AIndex : Integer; AValue : TNotificationConfig); virtual;
-    Procedure SetpinScore(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setrecipients(AIndex : Integer; AValue : TTimelineItemTyperecipientsArray); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : TLocation); virtual;
+    Procedure SetmenuItems(AIndex : Integer; const AValue : TTimelineItemTypemenuItemsArray); virtual;
+    Procedure Setnotification(AIndex : Integer; const AValue : TNotificationConfig); virtual;
+    Procedure SetpinScore(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setrecipients(AIndex : Integer; const AValue : TTimelineItemTyperecipientsArray); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsourceItemId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetspeakableText(AIndex : Integer; const AValue : String); virtual;
     Procedure SetspeakableType(AIndex : Integer; const AValue : String); virtual;
     Procedure Settext(AIndex : Integer; const AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setupdated(AIndex : Integer; const AValue : TDatetime); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -636,7 +621,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTimelineListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTimelineListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -886,7 +871,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccount.SetauthTokens(AIndex : Integer; AValue : TAccountTypeauthTokensArray); 
+Procedure TAccount.SetauthTokens(AIndex : Integer; const AValue : TAccountTypeauthTokensArray); 
 
 begin
   If (FauthTokens=AValue) then exit;
@@ -896,7 +881,7 @@ end;
 
 
 
-Procedure TAccount.Setfeatures(AIndex : Integer; AValue : TStringArray); 
+Procedure TAccount.Setfeatures(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Ffeatures=AValue) then exit;
@@ -916,7 +901,7 @@ end;
 
 
 
-Procedure TAccount.SetuserData(AIndex : Integer; AValue : TAccountTypeuserDataArray); 
+Procedure TAccount.SetuserData(AIndex : Integer; const AValue : TAccountTypeuserDataArray); 
 
 begin
   If (FuserData=AValue) then exit;
@@ -978,7 +963,7 @@ end;
 
 
 
-Procedure TAttachment.SetisProcessingContent(AIndex : Integer; AValue : boolean); 
+Procedure TAttachment.SetisProcessingContent(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisProcessingContent=AValue) then exit;
@@ -995,7 +980,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAttachmentsListResponse.Setitems(AIndex : Integer; AValue : TAttachmentsListResponseTypeitemsArray); 
+Procedure TAttachmentsListResponse.Setitems(AIndex : Integer; const AValue : TAttachmentsListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1101,7 +1086,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContact.SetacceptCommands(AIndex : Integer; AValue : TContactTypeacceptCommandsArray); 
+Procedure TContact.SetacceptCommands(AIndex : Integer; const AValue : TContactTypeacceptCommandsArray); 
 
 begin
   If (FacceptCommands=AValue) then exit;
@@ -1111,7 +1096,7 @@ end;
 
 
 
-Procedure TContact.SetacceptTypes(AIndex : Integer; AValue : TStringArray); 
+Procedure TContact.SetacceptTypes(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FacceptTypes=AValue) then exit;
@@ -1141,7 +1126,7 @@ end;
 
 
 
-Procedure TContact.SetimageUrls(AIndex : Integer; AValue : TStringArray); 
+Procedure TContact.SetimageUrls(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FimageUrls=AValue) then exit;
@@ -1171,7 +1156,7 @@ end;
 
 
 
-Procedure TContact.Setpriority(AIndex : Integer; AValue : integer); 
+Procedure TContact.Setpriority(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fpriority=AValue) then exit;
@@ -1181,7 +1166,7 @@ end;
 
 
 
-Procedure TContact.SetsharingFeatures(AIndex : Integer; AValue : TStringArray); 
+Procedure TContact.SetsharingFeatures(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FsharingFeatures=AValue) then exit;
@@ -1255,7 +1240,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContactsListResponse.Setitems(AIndex : Integer; AValue : TContactsListResponseTypeitemsArray); 
+Procedure TContactsListResponse.Setitems(AIndex : Integer; const AValue : TContactsListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1295,7 +1280,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocation.Setaccuracy(AIndex : Integer; AValue : double); 
+Procedure TLocation.Setaccuracy(AIndex : Integer; const AValue : double); 
 
 begin
   If (Faccuracy=AValue) then exit;
@@ -1345,7 +1330,7 @@ end;
 
 
 
-Procedure TLocation.Setlatitude(AIndex : Integer; AValue : double); 
+Procedure TLocation.Setlatitude(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flatitude=AValue) then exit;
@@ -1355,7 +1340,7 @@ end;
 
 
 
-Procedure TLocation.Setlongitude(AIndex : Integer; AValue : double); 
+Procedure TLocation.Setlongitude(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flongitude=AValue) then exit;
@@ -1365,7 +1350,7 @@ end;
 
 
 
-Procedure TLocation.Settimestamp(AIndex : Integer; AValue : TDatetime); 
+Procedure TLocation.Settimestamp(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -1382,7 +1367,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocationsListResponse.Setitems(AIndex : Integer; AValue : TLocationsListResponseTypeitemsArray); 
+Procedure TLocationsListResponse.Setitems(AIndex : Integer; const AValue : TLocationsListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1462,7 +1447,7 @@ end;
 
 
 
-Procedure TMenuItem.SetremoveWhenSelected(AIndex : Integer; AValue : boolean); 
+Procedure TMenuItem.SetremoveWhenSelected(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FremoveWhenSelected=AValue) then exit;
@@ -1472,7 +1457,7 @@ end;
 
 
 
-Procedure TMenuItem.Setvalues(AIndex : Integer; AValue : TMenuItemTypevaluesArray); 
+Procedure TMenuItem.Setvalues(AIndex : Integer; const AValue : TMenuItemTypevaluesArray); 
 
 begin
   If (Fvalues=AValue) then exit;
@@ -1569,7 +1554,7 @@ end;
 
 
 
-Procedure TNotification.SetuserActions(AIndex : Integer; AValue : TNotificationTypeuserActionsArray); 
+Procedure TNotification.SetuserActions(AIndex : Integer; const AValue : TNotificationTypeuserActionsArray); 
 
 begin
   If (FuserActions=AValue) then exit;
@@ -1619,7 +1604,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNotificationConfig.SetdeliveryTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TNotificationConfig.SetdeliveryTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FdeliveryTime=AValue) then exit;
@@ -1723,7 +1708,7 @@ end;
 
 
 
-Procedure TSubscription.Setnotification(AIndex : Integer; AValue : TNotification); 
+Procedure TSubscription.Setnotification(AIndex : Integer; const AValue : TNotification); 
 
 begin
   If (Fnotification=AValue) then exit;
@@ -1733,7 +1718,7 @@ end;
 
 
 
-Procedure TSubscription.Setoperation(AIndex : Integer; AValue : TStringArray); 
+Procedure TSubscription.Setoperation(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Foperation=AValue) then exit;
@@ -1743,7 +1728,7 @@ end;
 
 
 
-Procedure TSubscription.Setupdated(AIndex : Integer; AValue : TDatetime); 
+Procedure TSubscription.Setupdated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fupdated=AValue) then exit;
@@ -1793,7 +1778,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionsListResponse.Setitems(AIndex : Integer; AValue : TSubscriptionsListResponseTypeitemsArray); 
+Procedure TSubscriptionsListResponse.Setitems(AIndex : Integer; const AValue : TSubscriptionsListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1833,7 +1818,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimelineItem.Setattachments(AIndex : Integer; AValue : TTimelineItemTypeattachmentsArray); 
+Procedure TTimelineItem.Setattachments(AIndex : Integer; const AValue : TTimelineItemTypeattachmentsArray); 
 
 begin
   If (Fattachments=AValue) then exit;
@@ -1863,7 +1848,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setcreated(AIndex : Integer; AValue : TDatetime); 
+Procedure TTimelineItem.Setcreated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fcreated=AValue) then exit;
@@ -1873,7 +1858,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setcreator(AIndex : Integer; AValue : TContact); 
+Procedure TTimelineItem.Setcreator(AIndex : Integer; const AValue : TContact); 
 
 begin
   If (Fcreator=AValue) then exit;
@@ -1883,7 +1868,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetdisplayTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TTimelineItem.SetdisplayTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FdisplayTime=AValue) then exit;
@@ -1933,7 +1918,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetisBundleCover(AIndex : Integer; AValue : boolean); 
+Procedure TTimelineItem.SetisBundleCover(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisBundleCover=AValue) then exit;
@@ -1943,7 +1928,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetisDeleted(AIndex : Integer; AValue : boolean); 
+Procedure TTimelineItem.SetisDeleted(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisDeleted=AValue) then exit;
@@ -1953,7 +1938,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetisPinned(AIndex : Integer; AValue : boolean); 
+Procedure TTimelineItem.SetisPinned(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisPinned=AValue) then exit;
@@ -1973,7 +1958,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setlocation(AIndex : Integer; AValue : TLocation); 
+Procedure TTimelineItem.Setlocation(AIndex : Integer; const AValue : TLocation); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -1983,7 +1968,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetmenuItems(AIndex : Integer; AValue : TTimelineItemTypemenuItemsArray); 
+Procedure TTimelineItem.SetmenuItems(AIndex : Integer; const AValue : TTimelineItemTypemenuItemsArray); 
 
 begin
   If (FmenuItems=AValue) then exit;
@@ -1993,7 +1978,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setnotification(AIndex : Integer; AValue : TNotificationConfig); 
+Procedure TTimelineItem.Setnotification(AIndex : Integer; const AValue : TNotificationConfig); 
 
 begin
   If (Fnotification=AValue) then exit;
@@ -2003,7 +1988,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetpinScore(AIndex : Integer; AValue : integer); 
+Procedure TTimelineItem.SetpinScore(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FpinScore=AValue) then exit;
@@ -2013,7 +1998,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setrecipients(AIndex : Integer; AValue : TTimelineItemTyperecipientsArray); 
+Procedure TTimelineItem.Setrecipients(AIndex : Integer; const AValue : TTimelineItemTyperecipientsArray); 
 
 begin
   If (Frecipients=AValue) then exit;
@@ -2083,7 +2068,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setupdated(AIndex : Integer; AValue : TDatetime); 
+Procedure TTimelineItem.Setupdated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fupdated=AValue) then exit;
@@ -2115,7 +2100,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimelineListResponse.Setitems(AIndex : Integer; AValue : TTimelineListResponseTypeitemsArray); 
+Procedure TTimelineListResponse.Setitems(AIndex : Integer; const AValue : TTimelineListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2751,7 +2736,7 @@ end;
 Class Function TMirrorAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20151206';
 end;
 
 Class Function TMirrorAPI.APIID : String;
@@ -2805,7 +2790,7 @@ end;
 Class Function TMirrorAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TMirrorAPI.APIbasePath : string;
@@ -2817,7 +2802,7 @@ end;
 Class Function TMirrorAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/mirror/v1/';
+  Result:='https://www.googleapis.com/mirror/v1/';
 end;
 
 Class Function TMirrorAPI.APIProtocol : string;

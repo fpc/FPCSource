@@ -357,6 +357,11 @@ begin
       testStringValues[i] := TrimRight(testStringValues[i]);
     end;
 
+  if SQLServerType in [ssMSSQL, ssSQLite, ssSybase] then
+    // Some DB's do not support sql compliant boolean data type.
+    for i := 0 to testValuesCount-1 do
+      testValues[ftBoolean, i] := BoolToStr(testBooleanValues[i], '1', '0');
+
   if SQLServerType in [ssMySQL] then
     begin
     // Some DB's do not support milliseconds in datetime and time fields.
@@ -498,46 +503,35 @@ begin
           begin
           sql := sql + ',F' + Fieldtypenames[FType];
           if testValues[FType,CountID] <> '' then
-            case FType of
-              ftBlob, ftBytes, ftGraphic, ftVarBytes:
-                if SQLServerType in [ssOracle] then
-                  // Oracle does not accept string literals in blob insert statements
-                  // convert 'DEADBEEF' hex literal to binary:
-                    sql1 := sql1 + ', HEXTORAW(' + QuotedStr(String2Hex(testValues[FType,CountID])) + ') '
-                  else // other dbs have no problems with the original string values
-                    sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
-              ftCurrency:
-                sql1 := sql1 + ',' + testValues[FType,CountID];
-              ftDate:
-                // Oracle requires date conversion; otherwise
-                // ORA-01861: literal does not match format string
-                if SQLServerType in [ssOracle] then
-                  // ANSI/ISO date literal:
-                  sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID])
-                else
-                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
-              ftDateTime:
-                // similar to ftDate handling
-                if SQLServerType in [ssOracle] then
-                begin
-                  // Could be a real date+time or only date. Does not consider only time.
-                  if pos(' ',testValues[FType,CountID])>0 then
-                    sql1 := sql1 + ', TIMESTAMP ' + QuotedStr(testValues[FType,CountID])
-                  else
-                    sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID]);
-                end
-                else
-                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
-              ftTime:
-                // similar to ftDate handling
-                if SQLServerType in [ssOracle] then
-                  // More or less arbitrary default time; there is no time-only data type in Oracle.
-                  sql1 := sql1 + ', TIMESTAMP ' + QuotedStr('0001-01-01 '+testValues[FType,CountID])
-                else
-                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
-              else
-                sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID])
+            if FType in [ftBoolean, ftCurrency] then
+               sql1 := sql1 + ',' + testValues[FType,CountID]
+            else if (FType in [ftBlob, ftBytes, ftGraphic, ftVarBytes]) and
+                    (SQLServerType = ssOracle) then
+               // Oracle does not accept string literals in blob insert statements
+               // convert 'DEADBEEF' hex literal to binary:
+               sql1 := sql1 + ', HEXTORAW(' + QuotedStr(String2Hex(testValues[FType,CountID])) + ') '
+            else if (FType = ftDate) and
+                    (SQLServerType = ssOracle) then
+               // Oracle requires date conversion; otherwise
+               // ORA-01861: literal does not match format string
+               // ANSI/ISO date literal:
+               sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID])
+            else if (FType = ftDateTime) and
+                    (SQLServerType = ssOracle) then begin
+               // similar to ftDate handling
+               // Could be a real date+time or only date. Does not consider only time.
+               if pos(' ',testValues[FType,CountID])>0 then
+                  sql1 := sql1 + ', TIMESTAMP ' + QuotedStr(testValues[FType,CountID])
+               else
+                  sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID]);
             end
+            else if (FType = ftTime) and
+                    (SQLServerType = ssOracle) then
+               // similar to ftDate handling
+               // More or less arbitrary default time; there is no time-only data type in Oracle.
+               sql1 := sql1 + ', TIMESTAMP ' + QuotedStr('0001-01-01 '+testValues[FType,CountID])
+            else
+               sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID])
           else
             sql1 := sql1 + ',NULL';
           end;

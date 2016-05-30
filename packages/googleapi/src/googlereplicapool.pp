@@ -1,19 +1,4 @@
 unit googlereplicapool;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -33,6 +18,7 @@ type
   TInstanceGroupManagersSetTargetPoolsRequest = Class;
   TOperation = Class;
   TOperationList = Class;
+  TReplicaPoolAutoHealingPolicy = Class;
   TInstanceGroupManagerArray = Array of TInstanceGroupManager;
   TInstanceGroupManagerListArray = Array of TInstanceGroupManagerList;
   TInstanceGroupManagersAbandonInstancesRequestArray = Array of TInstanceGroupManagersAbandonInstancesRequest;
@@ -42,11 +28,13 @@ type
   TInstanceGroupManagersSetTargetPoolsRequestArray = Array of TInstanceGroupManagersSetTargetPoolsRequest;
   TOperationArray = Array of TOperation;
   TOperationListArray = Array of TOperationList;
+  TReplicaPoolAutoHealingPolicyArray = Array of TReplicaPoolAutoHealingPolicy;
   //Anonymous types, using auto-generated names
   TOperationTypeerrorTypeerrorsItem = Class;
   TOperationTypeerror = Class;
   TOperationTypewarningsItemTypedataItem = Class;
   TOperationTypewarningsItem = Class;
+  TInstanceGroupManagerTypeautoHealingPoliciesArray = Array of TReplicaPoolAutoHealingPolicy;
   TInstanceGroupManagerListTypeitemsArray = Array of TInstanceGroupManager;
   TOperationTypeerrorTypeerrorsArray = Array of TOperationTypeerrorTypeerrorsItem;
   TOperationTypewarningsItemTypedataArray = Array of TOperationTypewarningsItemTypedataItem;
@@ -59,6 +47,7 @@ type
   
   TInstanceGroupManager = Class(TGoogleBaseObject)
   Private
+    FautoHealingPolicies : TInstanceGroupManagerTypeautoHealingPoliciesArray;
     FbaseInstanceName : String;
     FcreationTimestamp : String;
     FcurrentSize : integer;
@@ -74,9 +63,10 @@ type
     FtargetSize : integer;
   Protected
     //Property setters
+    Procedure SetautoHealingPolicies(AIndex : Integer; const AValue : TInstanceGroupManagerTypeautoHealingPoliciesArray); virtual;
     Procedure SetbaseInstanceName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcurrentSize(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcurrentSize(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure Setgroup(AIndex : Integer; const AValue : String); virtual;
@@ -85,27 +75,28 @@ type
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettargetPools(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SettargetSize(AIndex : Integer; AValue : integer); virtual;
+    Procedure SettargetPools(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SettargetSize(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
     {$ENDIF VER2_6}
   Public
   Published
-    Property baseInstanceName : String Index 0 Read FbaseInstanceName Write SetbaseInstanceName;
-    Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property currentSize : integer Index 16 Read FcurrentSize Write SetcurrentSize;
-    Property description : String Index 24 Read Fdescription Write Setdescription;
-    Property fingerprint : String Index 32 Read Ffingerprint Write Setfingerprint;
-    Property group : String Index 40 Read Fgroup Write Setgroup;
-    Property id : String Index 48 Read Fid Write Setid;
-    Property instanceTemplate : String Index 56 Read FinstanceTemplate Write SetinstanceTemplate;
-    Property kind : String Index 64 Read Fkind Write Setkind;
-    Property name : String Index 72 Read Fname Write Setname;
-    Property selfLink : String Index 80 Read FselfLink Write SetselfLink;
-    Property targetPools : TStringArray Index 88 Read FtargetPools Write SettargetPools;
-    Property targetSize : integer Index 96 Read FtargetSize Write SettargetSize;
+    Property autoHealingPolicies : TInstanceGroupManagerTypeautoHealingPoliciesArray Index 0 Read FautoHealingPolicies Write SetautoHealingPolicies;
+    Property baseInstanceName : String Index 8 Read FbaseInstanceName Write SetbaseInstanceName;
+    Property creationTimestamp : String Index 16 Read FcreationTimestamp Write SetcreationTimestamp;
+    Property currentSize : integer Index 24 Read FcurrentSize Write SetcurrentSize;
+    Property description : String Index 32 Read Fdescription Write Setdescription;
+    Property fingerprint : String Index 40 Read Ffingerprint Write Setfingerprint;
+    Property group : String Index 48 Read Fgroup Write Setgroup;
+    Property id : String Index 56 Read Fid Write Setid;
+    Property instanceTemplate : String Index 64 Read FinstanceTemplate Write SetinstanceTemplate;
+    Property kind : String Index 72 Read Fkind Write Setkind;
+    Property name : String Index 80 Read Fname Write Setname;
+    Property selfLink : String Index 88 Read FselfLink Write SetselfLink;
+    Property targetPools : TStringArray Index 96 Read FtargetPools Write SettargetPools;
+    Property targetSize : integer Index 104 Read FtargetSize Write SettargetSize;
   end;
   TInstanceGroupManagerClass = Class of TInstanceGroupManager;
   
@@ -123,7 +114,7 @@ type
   Protected
     //Property setters
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TInstanceGroupManagerListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TInstanceGroupManagerListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
@@ -150,7 +141,7 @@ type
     Finstances : TStringArray;
   Protected
     //Property setters
-    Procedure Setinstances(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setinstances(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -170,7 +161,7 @@ type
     Finstances : TStringArray;
   Protected
     //Property setters
-    Procedure Setinstances(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setinstances(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -190,7 +181,7 @@ type
     Finstances : TStringArray;
   Protected
     //Property setters
-    Procedure Setinstances(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setinstances(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -228,7 +219,7 @@ type
   Protected
     //Property setters
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettargetPools(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SettargetPools(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -271,7 +262,7 @@ type
     Ferrors : TOperationTypeerrorTypeerrorsArray;
   Protected
     //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    Procedure Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -313,7 +304,7 @@ type
   Protected
     //Property setters
     Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -360,15 +351,15 @@ type
     Procedure SetclientOperationId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
     Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : TOperationTypeerror); virtual;
+    Procedure Seterror(AIndex : Integer; const AValue : TOperationTypeerror); virtual;
     Procedure SethttpErrorMessage(AIndex : Integer; const AValue : String); virtual;
-    Procedure SethttpErrorStatusCode(AIndex : Integer; AValue : integer); virtual;
+    Procedure SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinsertTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setprogress(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setprogress(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
@@ -377,7 +368,7 @@ type
     Procedure SettargetId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); virtual;
     Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -424,7 +415,7 @@ type
   Protected
     //Property setters
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TOperationListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
@@ -441,6 +432,25 @@ type
     Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TOperationListClass = Class of TOperationList;
+  
+  { --------------------------------------------------------------------
+    TReplicaPoolAutoHealingPolicy
+    --------------------------------------------------------------------}
+  
+  TReplicaPoolAutoHealingPolicy = Class(TGoogleBaseObject)
+  Private
+    FactionType : String;
+    FhealthCheck : String;
+  Protected
+    //Property setters
+    Procedure SetactionType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethealthCheck(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property actionType : String Index 0 Read FactionType Write SetactionType;
+    Property healthCheck : String Index 8 Read FhealthCheck Write SethealthCheck;
+  end;
+  TReplicaPoolAutoHealingPolicyClass = Class of TReplicaPoolAutoHealingPolicy;
   
   { --------------------------------------------------------------------
     TInstanceGroupManagersResource
@@ -562,6 +572,16 @@ implementation
   --------------------------------------------------------------------}
 
 
+Procedure TInstanceGroupManager.SetautoHealingPolicies(AIndex : Integer; const AValue : TInstanceGroupManagerTypeautoHealingPoliciesArray); 
+
+begin
+  If (FautoHealingPolicies=AValue) then exit;
+  FautoHealingPolicies:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TInstanceGroupManager.SetbaseInstanceName(AIndex : Integer; const AValue : String); 
 
 begin
@@ -582,7 +602,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.SetcurrentSize(AIndex : Integer; AValue : integer); 
+Procedure TInstanceGroupManager.SetcurrentSize(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FcurrentSize=AValue) then exit;
@@ -672,7 +692,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.SettargetPools(AIndex : Integer; AValue : TStringArray); 
+Procedure TInstanceGroupManager.SettargetPools(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FtargetPools=AValue) then exit;
@@ -682,7 +702,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.SettargetSize(AIndex : Integer; AValue : integer); 
+Procedure TInstanceGroupManager.SettargetSize(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtargetSize=AValue) then exit;
@@ -697,6 +717,7 @@ Procedure TInstanceGroupManager.SetArrayLength(Const AName : String; ALength : L
 
 begin
   Case AName of
+  'autohealingpolicies' : SetLength(FautoHealingPolicies,ALength);
   'targetpools' : SetLength(FtargetPools,ALength);
   else
     Inherited SetArrayLength(AName,ALength);
@@ -722,7 +743,7 @@ end;
 
 
 
-Procedure TInstanceGroupManagerList.Setitems(AIndex : Integer; AValue : TInstanceGroupManagerListTypeitemsArray); 
+Procedure TInstanceGroupManagerList.Setitems(AIndex : Integer; const AValue : TInstanceGroupManagerListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -782,7 +803,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceGroupManagersAbandonInstancesRequest.Setinstances(AIndex : Integer; AValue : TStringArray); 
+Procedure TInstanceGroupManagersAbandonInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Finstances=AValue) then exit;
@@ -812,7 +833,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceGroupManagersDeleteInstancesRequest.Setinstances(AIndex : Integer; AValue : TStringArray); 
+Procedure TInstanceGroupManagersDeleteInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Finstances=AValue) then exit;
@@ -842,7 +863,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceGroupManagersRecreateInstancesRequest.Setinstances(AIndex : Integer; AValue : TStringArray); 
+Procedure TInstanceGroupManagersRecreateInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Finstances=AValue) then exit;
@@ -899,7 +920,7 @@ end;
 
 
 
-Procedure TInstanceGroupManagersSetTargetPoolsRequest.SettargetPools(AIndex : Integer; AValue : TStringArray); 
+Procedure TInstanceGroupManagersSetTargetPoolsRequest.SettargetPools(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FtargetPools=AValue) then exit;
@@ -966,7 +987,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerror.Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); 
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1033,7 +1054,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); 
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -1103,7 +1124,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationTypeerror); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror); 
 
 begin
   If (Ferror=AValue) then exit;
@@ -1123,7 +1144,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; AValue : integer); 
+Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FhttpErrorStatusCode=AValue) then exit;
@@ -1183,7 +1204,7 @@ end;
 
 
 
-Procedure TOperation.Setprogress(AIndex : Integer; AValue : integer); 
+Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fprogress=AValue) then exit;
@@ -1273,7 +1294,7 @@ end;
 
 
 
-Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); 
+Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1323,7 +1344,7 @@ end;
 
 
 
-Procedure TOperationList.Setitems(AIndex : Integer; AValue : TOperationListTypeitemsArray); 
+Procedure TOperationList.Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1374,6 +1395,33 @@ begin
   end;
 end;
 {$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TReplicaPoolAutoHealingPolicy
+  --------------------------------------------------------------------}
+
+
+Procedure TReplicaPoolAutoHealingPolicy.SetactionType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FactionType=AValue) then exit;
+  FactionType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReplicaPoolAutoHealingPolicy.SethealthCheck(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FhealthCheck=AValue) then exit;
+  FhealthCheck:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -1667,7 +1715,7 @@ end;
 Class Function TReplicapoolAPI.APIRevision : String;
 
 begin
-  Result:='20150223';
+  Result:='20160509';
 end;
 
 Class Function TReplicapoolAPI.APIID : String;
@@ -1685,7 +1733,7 @@ end;
 Class Function TReplicapoolAPI.APIDescription : String;
 
 begin
-  Result:='The Google Compute Engine Instance Group Manager API provides groups of homogenous Compute Engine Instances.';
+  Result:='[Deprecated. Please use Instance Group Manager in Compute API] Provides groups of homogenous Compute Engine instances.';
 end;
 
 Class Function TReplicapoolAPI.APIOwnerDomain : String;
@@ -1721,7 +1769,7 @@ end;
 Class Function TReplicapoolAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TReplicapoolAPI.APIbasePath : string;
@@ -1733,7 +1781,7 @@ end;
 Class Function TReplicapoolAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/replicapool/v1beta2/projects/';
+  Result:='https://www.googleapis.com/replicapool/v1beta2/projects/';
 end;
 
 Class Function TReplicapoolAPI.APIProtocol : string;
@@ -1757,13 +1805,15 @@ end;
 Class Function TReplicapoolAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
-  SetLength(Result,3);
+  SetLength(Result,4);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  Result[1].Name:='https://www.googleapis.com/auth/compute';
-  Result[1].Description:='View and manage your Google Compute Engine resources';
-  Result[2].Name:='https://www.googleapis.com/auth/compute.readonly';
-  Result[2].Description:='View your Google Compute Engine resources';
+  Result[1].Name:='https://www.googleapis.com/auth/cloud-platform.read-only';
+  Result[1].Description:='View your data across Google Cloud Platform services';
+  Result[2].Name:='https://www.googleapis.com/auth/compute';
+  Result[2].Description:='View and manage your Google Compute Engine resources';
+  Result[3].Name:='https://www.googleapis.com/auth/compute.readonly';
+  Result[3].Description:='View your Google Compute Engine resources';
   
 end;
 
@@ -1789,6 +1839,7 @@ begin
   TOperationTypewarningsItem.RegisterObject;
   TOperation.RegisterObject;
   TOperationList.RegisterObject;
+  TReplicaPoolAutoHealingPolicy.RegisterObject;
 end;
 
 

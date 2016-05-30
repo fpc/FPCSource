@@ -1,19 +1,4 @@
 unit googlecloudmonitoring;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:00
 {$MODE objfpc}
 {$H+}
 
@@ -121,7 +106,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setmetrics(AIndex : Integer; AValue : TListMetricDescriptorsResponseTypemetricsArray); virtual;
+    Procedure Setmetrics(AIndex : Integer; const AValue : TListMetricDescriptorsResponseTypemetricsArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -166,9 +151,9 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setoldest(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Settimeseries(AIndex : Integer; AValue : TListTimeseriesDescriptorsResponseTypetimeseriesArray); virtual;
-    Procedure Setyoungest(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setoldest(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Settimeseries(AIndex : Integer; const AValue : TListTimeseriesDescriptorsResponseTypetimeseriesArray); virtual;
+    Procedure Setyoungest(AIndex : Integer; const AValue : TDatetime); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -214,9 +199,9 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setoldest(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Settimeseries(AIndex : Integer; AValue : TListTimeseriesResponseTypetimeseriesArray); virtual;
-    Procedure Setyoungest(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setoldest(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Settimeseries(AIndex : Integer; const AValue : TListTimeseriesResponseTypetimeseriesArray); virtual;
+    Procedure Setyoungest(AIndex : Integer; const AValue : TDatetime); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -245,10 +230,10 @@ type
   Protected
     //Property setters
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlabels(AIndex : Integer; AValue : TMetricDescriptorTypelabelsArray); virtual;
+    Procedure Setlabels(AIndex : Integer; const AValue : TMetricDescriptorTypelabelsArray); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setproject(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettypeDescriptor(AIndex : Integer; AValue : TMetricDescriptorTypeDescriptor); virtual;
+    Procedure SettypeDescriptor(AIndex : Integer; const AValue : TMetricDescriptorTypeDescriptor); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -317,12 +302,12 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetboolValue(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetdistributionValue(AIndex : Integer; AValue : TPointDistribution); virtual;
-    Procedure SetdoubleValue(AIndex : Integer; AValue : double); virtual;
-    Procedure Set_end(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetboolValue(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetdistributionValue(AIndex : Integer; const AValue : TPointDistribution); virtual;
+    Procedure SetdoubleValue(AIndex : Integer; const AValue : double); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Setint64Value(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure SetstringValue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -347,9 +332,9 @@ type
     FunderflowBucket : TPointDistributionUnderflowBucket;
   Protected
     //Property setters
-    Procedure Setbuckets(AIndex : Integer; AValue : TPointDistributionTypebucketsArray); virtual;
-    Procedure SetoverflowBucket(AIndex : Integer; AValue : TPointDistributionOverflowBucket); virtual;
-    Procedure SetunderflowBucket(AIndex : Integer; AValue : TPointDistributionUnderflowBucket); virtual;
+    Procedure Setbuckets(AIndex : Integer; const AValue : TPointDistributionTypebucketsArray); virtual;
+    Procedure SetoverflowBucket(AIndex : Integer; const AValue : TPointDistributionOverflowBucket); virtual;
+    Procedure SetunderflowBucket(AIndex : Integer; const AValue : TPointDistributionUnderflowBucket); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -374,8 +359,8 @@ type
   Protected
     //Property setters
     Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetlowerBound(AIndex : Integer; AValue : double); virtual;
-    Procedure SetupperBound(AIndex : Integer; AValue : double); virtual;
+    Procedure SetlowerBound(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetupperBound(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -395,7 +380,7 @@ type
   Protected
     //Property setters
     Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetlowerBound(AIndex : Integer; AValue : double); virtual;
+    Procedure SetlowerBound(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -414,7 +399,7 @@ type
   Protected
     //Property setters
     Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetupperBound(AIndex : Integer; AValue : double); virtual;
+    Procedure SetupperBound(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -432,8 +417,8 @@ type
     FtimeseriesDesc : TTimeseriesDescriptor;
   Protected
     //Property setters
-    Procedure Setpoints(AIndex : Integer; AValue : TTimeseriesTypepointsArray); virtual;
-    Procedure SettimeseriesDesc(AIndex : Integer; AValue : TTimeseriesDescriptor); virtual;
+    Procedure Setpoints(AIndex : Integer; const AValue : TTimeseriesTypepointsArray); virtual;
+    Procedure SettimeseriesDesc(AIndex : Integer; const AValue : TTimeseriesDescriptor); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -470,7 +455,7 @@ type
     Fproject : String;
   Protected
     //Property setters
-    Procedure Setlabels(AIndex : Integer; AValue : TTimeseriesDescriptorTypelabels); virtual;
+    Procedure Setlabels(AIndex : Integer; const AValue : TTimeseriesDescriptorTypelabels); virtual;
     Procedure Setmetric(AIndex : Integer; const AValue : String); virtual;
     Procedure Setproject(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -510,8 +495,8 @@ type
     FtimeseriesDesc : TTimeseriesDescriptor;
   Protected
     //Property setters
-    Procedure Setpoint(AIndex : Integer; AValue : TPoint); virtual;
-    Procedure SettimeseriesDesc(AIndex : Integer; AValue : TTimeseriesDescriptor); virtual;
+    Procedure Setpoint(AIndex : Integer; const AValue : TPoint); virtual;
+    Procedure SettimeseriesDesc(AIndex : Integer; const AValue : TTimeseriesDescriptor); virtual;
   Public
   Published
     Property point : TPoint Index 0 Read Fpoint Write Setpoint;
@@ -543,8 +528,8 @@ type
     Ftimeseries : TWriteTimeseriesRequestTypetimeseriesArray;
   Protected
     //Property setters
-    Procedure SetcommonLabels(AIndex : Integer; AValue : TWriteTimeseriesRequestTypecommonLabels); virtual;
-    Procedure Settimeseries(AIndex : Integer; AValue : TWriteTimeseriesRequestTypetimeseriesArray); virtual;
+    Procedure SetcommonLabels(AIndex : Integer; const AValue : TWriteTimeseriesRequestTypecommonLabels); virtual;
+    Procedure Settimeseries(AIndex : Integer; const AValue : TWriteTimeseriesRequestTypetimeseriesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -750,7 +735,7 @@ end;
 
 
 
-Procedure TListMetricDescriptorsResponse.Setmetrics(AIndex : Integer; AValue : TListMetricDescriptorsResponseTypemetricsArray); 
+Procedure TListMetricDescriptorsResponse.Setmetrics(AIndex : Integer; const AValue : TListMetricDescriptorsResponseTypemetricsArray); 
 
 begin
   If (Fmetrics=AValue) then exit;
@@ -827,7 +812,7 @@ end;
 
 
 
-Procedure TListTimeseriesDescriptorsResponse.Setoldest(AIndex : Integer; AValue : TDatetime); 
+Procedure TListTimeseriesDescriptorsResponse.Setoldest(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Foldest=AValue) then exit;
@@ -837,7 +822,7 @@ end;
 
 
 
-Procedure TListTimeseriesDescriptorsResponse.Settimeseries(AIndex : Integer; AValue : TListTimeseriesDescriptorsResponseTypetimeseriesArray); 
+Procedure TListTimeseriesDescriptorsResponse.Settimeseries(AIndex : Integer; const AValue : TListTimeseriesDescriptorsResponseTypetimeseriesArray); 
 
 begin
   If (Ftimeseries=AValue) then exit;
@@ -847,7 +832,7 @@ end;
 
 
 
-Procedure TListTimeseriesDescriptorsResponse.Setyoungest(AIndex : Integer; AValue : TDatetime); 
+Procedure TListTimeseriesDescriptorsResponse.Setyoungest(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fyoungest=AValue) then exit;
@@ -914,7 +899,7 @@ end;
 
 
 
-Procedure TListTimeseriesResponse.Setoldest(AIndex : Integer; AValue : TDatetime); 
+Procedure TListTimeseriesResponse.Setoldest(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Foldest=AValue) then exit;
@@ -924,7 +909,7 @@ end;
 
 
 
-Procedure TListTimeseriesResponse.Settimeseries(AIndex : Integer; AValue : TListTimeseriesResponseTypetimeseriesArray); 
+Procedure TListTimeseriesResponse.Settimeseries(AIndex : Integer; const AValue : TListTimeseriesResponseTypetimeseriesArray); 
 
 begin
   If (Ftimeseries=AValue) then exit;
@@ -934,7 +919,7 @@ end;
 
 
 
-Procedure TListTimeseriesResponse.Setyoungest(AIndex : Integer; AValue : TDatetime); 
+Procedure TListTimeseriesResponse.Setyoungest(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fyoungest=AValue) then exit;
@@ -974,7 +959,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.Setlabels(AIndex : Integer; AValue : TMetricDescriptorTypelabelsArray); 
+Procedure TMetricDescriptor.Setlabels(AIndex : Integer; const AValue : TMetricDescriptorTypelabelsArray); 
 
 begin
   If (Flabels=AValue) then exit;
@@ -1004,7 +989,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.SettypeDescriptor(AIndex : Integer; AValue : TMetricDescriptorTypeDescriptor); 
+Procedure TMetricDescriptor.SettypeDescriptor(AIndex : Integer; const AValue : TMetricDescriptorTypeDescriptor); 
 
 begin
   If (FtypeDescriptor=AValue) then exit;
@@ -1088,7 +1073,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPoint.SetboolValue(AIndex : Integer; AValue : boolean); 
+Procedure TPoint.SetboolValue(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FboolValue=AValue) then exit;
@@ -1098,7 +1083,7 @@ end;
 
 
 
-Procedure TPoint.SetdistributionValue(AIndex : Integer; AValue : TPointDistribution); 
+Procedure TPoint.SetdistributionValue(AIndex : Integer; const AValue : TPointDistribution); 
 
 begin
   If (FdistributionValue=AValue) then exit;
@@ -1108,7 +1093,7 @@ end;
 
 
 
-Procedure TPoint.SetdoubleValue(AIndex : Integer; AValue : double); 
+Procedure TPoint.SetdoubleValue(AIndex : Integer; const AValue : double); 
 
 begin
   If (FdoubleValue=AValue) then exit;
@@ -1118,7 +1103,7 @@ end;
 
 
 
-Procedure TPoint.Set_end(AIndex : Integer; AValue : TDatetime); 
+Procedure TPoint.Set_end(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (F_end=AValue) then exit;
@@ -1138,7 +1123,7 @@ end;
 
 
 
-Procedure TPoint.Setstart(AIndex : Integer; AValue : TDatetime); 
+Procedure TPoint.Setstart(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -1176,7 +1161,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPointDistribution.Setbuckets(AIndex : Integer; AValue : TPointDistributionTypebucketsArray); 
+Procedure TPointDistribution.Setbuckets(AIndex : Integer; const AValue : TPointDistributionTypebucketsArray); 
 
 begin
   If (Fbuckets=AValue) then exit;
@@ -1186,7 +1171,7 @@ end;
 
 
 
-Procedure TPointDistribution.SetoverflowBucket(AIndex : Integer; AValue : TPointDistributionOverflowBucket); 
+Procedure TPointDistribution.SetoverflowBucket(AIndex : Integer; const AValue : TPointDistributionOverflowBucket); 
 
 begin
   If (FoverflowBucket=AValue) then exit;
@@ -1196,7 +1181,7 @@ end;
 
 
 
-Procedure TPointDistribution.SetunderflowBucket(AIndex : Integer; AValue : TPointDistributionUnderflowBucket); 
+Procedure TPointDistribution.SetunderflowBucket(AIndex : Integer; const AValue : TPointDistributionUnderflowBucket); 
 
 begin
   If (FunderflowBucket=AValue) then exit;
@@ -1236,7 +1221,7 @@ end;
 
 
 
-Procedure TPointDistributionBucket.SetlowerBound(AIndex : Integer; AValue : double); 
+Procedure TPointDistributionBucket.SetlowerBound(AIndex : Integer; const AValue : double); 
 
 begin
   If (FlowerBound=AValue) then exit;
@@ -1246,7 +1231,7 @@ end;
 
 
 
-Procedure TPointDistributionBucket.SetupperBound(AIndex : Integer; AValue : double); 
+Procedure TPointDistributionBucket.SetupperBound(AIndex : Integer; const AValue : double); 
 
 begin
   If (FupperBound=AValue) then exit;
@@ -1273,7 +1258,7 @@ end;
 
 
 
-Procedure TPointDistributionOverflowBucket.SetlowerBound(AIndex : Integer; AValue : double); 
+Procedure TPointDistributionOverflowBucket.SetlowerBound(AIndex : Integer; const AValue : double); 
 
 begin
   If (FlowerBound=AValue) then exit;
@@ -1300,7 +1285,7 @@ end;
 
 
 
-Procedure TPointDistributionUnderflowBucket.SetupperBound(AIndex : Integer; AValue : double); 
+Procedure TPointDistributionUnderflowBucket.SetupperBound(AIndex : Integer; const AValue : double); 
 
 begin
   If (FupperBound=AValue) then exit;
@@ -1317,7 +1302,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeseries.Setpoints(AIndex : Integer; AValue : TTimeseriesTypepointsArray); 
+Procedure TTimeseries.Setpoints(AIndex : Integer; const AValue : TTimeseriesTypepointsArray); 
 
 begin
   If (Fpoints=AValue) then exit;
@@ -1327,7 +1312,7 @@ end;
 
 
 
-Procedure TTimeseries.SettimeseriesDesc(AIndex : Integer; AValue : TTimeseriesDescriptor); 
+Procedure TTimeseries.SettimeseriesDesc(AIndex : Integer; const AValue : TTimeseriesDescriptor); 
 
 begin
   If (FtimeseriesDesc=AValue) then exit;
@@ -1370,7 +1355,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeseriesDescriptor.Setlabels(AIndex : Integer; AValue : TTimeseriesDescriptorTypelabels); 
+Procedure TTimeseriesDescriptor.Setlabels(AIndex : Integer; const AValue : TTimeseriesDescriptorTypelabels); 
 
 begin
   If (Flabels=AValue) then exit;
@@ -1434,7 +1419,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeseriesPoint.Setpoint(AIndex : Integer; AValue : TPoint); 
+Procedure TTimeseriesPoint.Setpoint(AIndex : Integer; const AValue : TPoint); 
 
 begin
   If (Fpoint=AValue) then exit;
@@ -1444,7 +1429,7 @@ end;
 
 
 
-Procedure TTimeseriesPoint.SettimeseriesDesc(AIndex : Integer; AValue : TTimeseriesDescriptor); 
+Procedure TTimeseriesPoint.SettimeseriesDesc(AIndex : Integer; const AValue : TTimeseriesDescriptor); 
 
 begin
   If (FtimeseriesDesc=AValue) then exit;
@@ -1474,7 +1459,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWriteTimeseriesRequest.SetcommonLabels(AIndex : Integer; AValue : TWriteTimeseriesRequestTypecommonLabels); 
+Procedure TWriteTimeseriesRequest.SetcommonLabels(AIndex : Integer; const AValue : TWriteTimeseriesRequestTypecommonLabels); 
 
 begin
   If (FcommonLabels=AValue) then exit;
@@ -1484,7 +1469,7 @@ end;
 
 
 
-Procedure TWriteTimeseriesRequest.Settimeseries(AIndex : Integer; AValue : TWriteTimeseriesRequestTypetimeseriesArray); 
+Procedure TWriteTimeseriesRequest.Settimeseries(AIndex : Integer; const AValue : TWriteTimeseriesRequestTypetimeseriesArray); 
 
 begin
   If (Ftimeseries=AValue) then exit;
@@ -1744,7 +1729,7 @@ end;
 Class Function TCloudmonitoringAPI.APIRevision : String;
 
 begin
-  Result:='20150210';
+  Result:='20160415';
 end;
 
 Class Function TCloudmonitoringAPI.APIID : String;
@@ -1762,7 +1747,7 @@ end;
 Class Function TCloudmonitoringAPI.APIDescription : String;
 
 begin
-  Result:='API for accessing Google Cloud and API monitoring data.';
+  Result:='Accesses Google Cloud Monitoring data.';
 end;
 
 Class Function TCloudmonitoringAPI.APIOwnerDomain : String;
@@ -1798,7 +1783,7 @@ end;
 Class Function TCloudmonitoringAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TCloudmonitoringAPI.APIbasePath : string;
@@ -1810,7 +1795,7 @@ end;
 Class Function TCloudmonitoringAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/cloudmonitoring/v2beta2/projects/';
+  Result:='https://www.googleapis.com/cloudmonitoring/v2beta2/projects/';
 end;
 
 Class Function TCloudmonitoringAPI.APIProtocol : string;
@@ -1834,9 +1819,11 @@ end;
 Class Function TCloudmonitoringAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
-  SetLength(Result,1);
-  Result[0].Name:='https://www.googleapis.com/auth/monitoring';
-  Result[0].Description:='View and write monitoring data for all of your Google and third-party Cloud and API projects';
+  SetLength(Result,2);
+  Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
+  Result[0].Description:='View and manage your data across Google Cloud Platform services';
+  Result[1].Name:='https://www.googleapis.com/auth/monitoring';
+  Result[1].Description:='View and write monitoring data for all of your Google and third-party Cloud and API projects';
   
 end;
 

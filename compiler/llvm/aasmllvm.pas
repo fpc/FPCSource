@@ -142,11 +142,10 @@ interface
       );
 
     taillvmalias = class(tailineinfo)
-      vis: tllvmvisibility;
-      linkage: tllvmlinkage;
+      bind: tasmsymbind;
       oldsym, newsym: TAsmSymbol;
       def: tdef;
-      constructor create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _vis: tllvmvisibility; _linkage: tllvmlinkage);
+      constructor create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _bind: tasmsymbind);
     end;
 
     taillvmdeclflag =
@@ -244,7 +243,7 @@ uses
 
     { taillvmalias }
 
-    constructor taillvmalias.create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _vis: tllvmvisibility; _linkage: tllvmlinkage);
+    constructor taillvmalias.create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _bind: tasmsymbind);
       begin
         inherited Create;
         typ:=ait_llvmalias;
@@ -252,8 +251,7 @@ uses
         newsym:=current_asmdata.DefineAsmSymbol(newname,AB_GLOBAL,AT_FUNCTION);
         newsym.declared:=true;
         def:=_def;
-        vis:=_vis;
-        linkage:=_linkage;
+        bind:=_bind;
       end;
 
 
@@ -584,7 +582,7 @@ uses
           la_icmp, la_fcmp:
             begin
               case opnr of
-                0: result:=pasbool8type;
+                0: result:=llvmbool1type;
                 3,4: result:=oper[2]^.def;
                 else
                   internalerror(2013110801);

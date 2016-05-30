@@ -1,19 +1,4 @@
 unit googleadexchangeseller;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:52:57
 {$MODE objfpc}
 {$H+}
 
@@ -107,7 +92,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAccountsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAccountsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -136,11 +121,11 @@ type
     FsupportsReporting : boolean;
   Protected
     //Property setters
-    Procedure SetarcOptIn(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetarcOptIn(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetproductCode(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetsupportsReporting(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetsupportsReporting(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property arcOptIn : boolean Index 0 Read FarcOptIn Write SetarcOptIn;
@@ -164,7 +149,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAdClientsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAdClientsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -219,7 +204,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TAlertsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAlertsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -274,7 +259,7 @@ type
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettargetingInfo(AIndex : Integer; AValue : TCustomChannelTypetargetingInfo); virtual;
+    Procedure SettargetingInfo(AIndex : Integer; const AValue : TCustomChannelTypetargetingInfo); virtual;
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -298,7 +283,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TCustomChannelsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TCustomChannelsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -324,7 +309,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TMetadataTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -384,7 +369,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TPreferredDealsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TPreferredDealsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -435,13 +420,13 @@ type
     Fwarnings : TStringArray;
   Protected
     //Property setters
-    Procedure Setaverages(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setheaders(AIndex : Integer; AValue : TReportTypeheadersArray); virtual;
+    Procedure Setaverages(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setheaders(AIndex : Integer; const AValue : TReportTypeheadersArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrows(AIndex : Integer; AValue : TReportTyperowsArray); virtual;
+    Procedure Setrows(AIndex : Integer; const AValue : TReportTyperowsArray); virtual;
     Procedure SettotalMatchedRows(AIndex : Integer; const AValue : String); virtual;
-    Procedure Settotals(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Settotals(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -473,13 +458,13 @@ type
     FsupportedProducts : TStringArray;
   Protected
     //Property setters
-    Procedure SetcompatibleDimensions(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetcompatibleMetrics(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetcompatibleDimensions(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetcompatibleMetrics(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetrequiredDimensions(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetrequiredMetrics(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetsupportedProducts(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetrequiredDimensions(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetrequiredMetrics(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetsupportedProducts(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -531,7 +516,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TSavedReportsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TSavedReportsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -582,7 +567,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TUrlChannelsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TUrlChannelsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -1022,7 +1007,7 @@ end;
 
 
 
-Procedure TAccounts.Setitems(AIndex : Integer; AValue : TAccountsTypeitemsArray); 
+Procedure TAccounts.Setitems(AIndex : Integer; const AValue : TAccountsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1072,7 +1057,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdClient.SetarcOptIn(AIndex : Integer; AValue : boolean); 
+Procedure TAdClient.SetarcOptIn(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FarcOptIn=AValue) then exit;
@@ -1112,7 +1097,7 @@ end;
 
 
 
-Procedure TAdClient.SetsupportsReporting(AIndex : Integer; AValue : boolean); 
+Procedure TAdClient.SetsupportsReporting(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FsupportsReporting=AValue) then exit;
@@ -1139,7 +1124,7 @@ end;
 
 
 
-Procedure TAdClients.Setitems(AIndex : Integer; AValue : TAdClientsTypeitemsArray); 
+Procedure TAdClients.Setitems(AIndex : Integer; const AValue : TAdClientsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1257,7 +1242,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAlerts.Setitems(AIndex : Integer; AValue : TAlertsTypeitemsArray); 
+Procedure TAlerts.Setitems(AIndex : Integer; const AValue : TAlertsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1384,7 +1369,7 @@ end;
 
 
 
-Procedure TCustomChannel.SettargetingInfo(AIndex : Integer; AValue : TCustomChannelTypetargetingInfo); 
+Procedure TCustomChannel.SettargetingInfo(AIndex : Integer; const AValue : TCustomChannelTypetargetingInfo); 
 
 begin
   If (FtargetingInfo=AValue) then exit;
@@ -1411,7 +1396,7 @@ end;
 
 
 
-Procedure TCustomChannels.Setitems(AIndex : Integer; AValue : TCustomChannelsTypeitemsArray); 
+Procedure TCustomChannels.Setitems(AIndex : Integer; const AValue : TCustomChannelsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1461,7 +1446,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetadata.Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); 
+Procedure TMetadata.Setitems(AIndex : Integer; const AValue : TMetadataTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1588,7 +1573,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPreferredDeals.Setitems(AIndex : Integer; AValue : TPreferredDealsTypeitemsArray); 
+Procedure TPreferredDeals.Setitems(AIndex : Integer; const AValue : TPreferredDealsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1676,7 +1661,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReport.Setaverages(AIndex : Integer; AValue : TStringArray); 
+Procedure TReport.Setaverages(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Faverages=AValue) then exit;
@@ -1686,7 +1671,7 @@ end;
 
 
 
-Procedure TReport.Setheaders(AIndex : Integer; AValue : TReportTypeheadersArray); 
+Procedure TReport.Setheaders(AIndex : Integer; const AValue : TReportTypeheadersArray); 
 
 begin
   If (Fheaders=AValue) then exit;
@@ -1706,7 +1691,7 @@ end;
 
 
 
-Procedure TReport.Setrows(AIndex : Integer; AValue : TReportTyperowsArray); 
+Procedure TReport.Setrows(AIndex : Integer; const AValue : TReportTyperowsArray); 
 
 begin
   If (Frows=AValue) then exit;
@@ -1726,7 +1711,7 @@ end;
 
 
 
-Procedure TReport.Settotals(AIndex : Integer; AValue : TStringArray); 
+Procedure TReport.Settotals(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Ftotals=AValue) then exit;
@@ -1736,7 +1721,7 @@ end;
 
 
 
-Procedure TReport.Setwarnings(AIndex : Integer; AValue : TStringArray); 
+Procedure TReport.Setwarnings(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1770,7 +1755,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportingMetadataEntry.SetcompatibleDimensions(AIndex : Integer; AValue : TStringArray); 
+Procedure TReportingMetadataEntry.SetcompatibleDimensions(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FcompatibleDimensions=AValue) then exit;
@@ -1780,7 +1765,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetcompatibleMetrics(AIndex : Integer; AValue : TStringArray); 
+Procedure TReportingMetadataEntry.SetcompatibleMetrics(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FcompatibleMetrics=AValue) then exit;
@@ -1810,7 +1795,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetrequiredDimensions(AIndex : Integer; AValue : TStringArray); 
+Procedure TReportingMetadataEntry.SetrequiredDimensions(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FrequiredDimensions=AValue) then exit;
@@ -1820,7 +1805,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetrequiredMetrics(AIndex : Integer; AValue : TStringArray); 
+Procedure TReportingMetadataEntry.SetrequiredMetrics(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FrequiredMetrics=AValue) then exit;
@@ -1830,7 +1815,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetsupportedProducts(AIndex : Integer; AValue : TStringArray); 
+Procedure TReportingMetadataEntry.SetsupportedProducts(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FsupportedProducts=AValue) then exit;
@@ -1911,7 +1896,7 @@ end;
 
 
 
-Procedure TSavedReports.Setitems(AIndex : Integer; AValue : TSavedReportsTypeitemsArray); 
+Procedure TSavedReports.Setitems(AIndex : Integer; const AValue : TSavedReportsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2008,7 +1993,7 @@ end;
 
 
 
-Procedure TUrlChannels.Setitems(AIndex : Integer; AValue : TUrlChannelsTypeitemsArray); 
+Procedure TUrlChannels.Setitems(AIndex : Integer; const AValue : TUrlChannelsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2910,7 +2895,7 @@ end;
 Class Function TAdexchangesellerAPI.APIRevision : String;
 
 begin
-  Result:='20150401';
+  Result:='20160513';
 end;
 
 Class Function TAdexchangesellerAPI.APIID : String;
@@ -2964,7 +2949,7 @@ end;
 Class Function TAdexchangesellerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TAdexchangesellerAPI.APIbasePath : string;
@@ -2976,7 +2961,7 @@ end;
 Class Function TAdexchangesellerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/adexchangeseller/v2.0/';
+  Result:='https://www.googleapis.com/adexchangeseller/v2.0/';
 end;
 
 Class Function TAdexchangesellerAPI.APIProtocol : string;

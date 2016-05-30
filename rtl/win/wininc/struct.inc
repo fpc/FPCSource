@@ -9108,7 +9108,207 @@ type
     LPPROGRESS_ROUTINE = function(TotalFileSize,TotalBytesTransferred,StreamSize,StreamBytesTransferred:LARGE_INTEGER;dwStreamNumber,dwCallbackReason:DWord;hSourceFile,hDestinationFile :THandle;lpdata:pointer):Dword; Stdcall;
     TPROGRESS_ROUTINE = LPPROGRESS_ROUTINE;
 
+// Raw Input Messages
+//#if(_WIN32_WINNT >= 0x0501)
+{$push}{$packrecords 4}
+    tagRAWINPUTHEADER = record
+      dwType: DWORD;
+      dwSize: DWORD;
+      hDevice: HANDLE;
+      wParam: WPARAM;
+    end;
+    RAWINPUTHEADER = tagRAWINPUTHEADER;
+    TRAWINPUTHEADER = tagRAWINPUTHEADER;
+    PRAWINPUTHEADER = ^tagRAWINPUTHEADER;
+    LPRAWINPUTHEADER = ^tagRAWINPUTHEADER;
 
+(*
+ * Raw format of the mouse input
+ *)
+    tagRAWMOUSE = record
+      (*
+       * Indicator flags.
+       *)
+      usFlags: USHORT;
+
+      case longint of
+        0: (
+          (*
+           * The transition state of the mouse buttons.
+           *)
+          ulButtons: ULONG;
+
+          (*
+           * The raw state of the mouse buttons.
+           *)
+          ulRawButtons: ULONG;
+
+          (*
+           * The signed relative or absolute motion in the X direction.
+           *)
+          lLastX: LONG;
+
+          (*
+           * The signed relative or absolute motion in the Y direction.
+           *)
+          lLastY: LONG;
+
+          (*
+           * Device-specific additional information for the event.
+           *)
+          ulExtraInformation: ULONG
+        );
+        1: (
+          (*
+           * The transition state of the mouse buttons.
+           *)
+          usButtonFlags: USHORT;
+          usButtonData: USHORT
+        );
+    end;
+    RAWMOUSE = tagRAWMOUSE;
+    TRAWMOUSE = tagRAWMOUSE;
+    PRAWMOUSE = ^tagRAWMOUSE;
+    LPRAWMOUSE = ^tagRAWMOUSE;
+
+(*
+ * Raw format of the keyboard input
+ *)
+    tagRAWKEYBOARD = record
+      (*
+       * The "make" scan code (key depression).
+       *)
+      MakeCode: USHORT;
+
+      (*
+       * The flags field indicates a "break" (key release) and other
+       * miscellaneous scan code information defined in ntddkbd.h.
+       *)
+      Flags: USHORT;
+
+      Reserved: USHORT;
+
+      (*
+       * Windows message compatible information
+       *)
+      VKey: USHORT;
+      Message: UINT;
+
+      (*
+       * Device-specific additional information for the event.
+       *)
+      ExtraInformation: ULONG;
+    end;
+    RAWKEYBOARD = tagRAWKEYBOARD;
+    TRAWKEYBOARD = tagRAWKEYBOARD;
+    PRAWKEYBOARD = ^tagRAWKEYBOARD;
+    LPRAWKEYBOARD = ^tagRAWKEYBOARD;
+
+    (*
+     * Raw format of the input from Human Input Devices
+     *)
+    tagRAWHID = record
+      dwSizeHid: DWORD;    // byte size of each report
+      dwCount: DWORD;      // number of input packed
+      bRawData: array [0..0] of BYTE;
+    end;
+    RAWHID = tagRAWHID;
+    TRAWHID = tagRAWHID;
+    PRAWHID = ^tagRAWHID;
+    LPRAWHID = ^tagRAWHID;
+
+(*
+ * RAWINPUT data structure.
+ *)
+    tagRAWINPUT = record
+      header: RAWINPUTHEADER;
+      data: record
+        case longint of
+          0: (mouse: RAWMOUSE);
+          1: (keyboard: RAWKEYBOARD);
+          2: (hid: RAWHID);
+      end;
+    end;
+    RAWINPUT = tagRAWINPUT;
+    TRAWINPUT = tagRAWINPUT;
+    PRAWINPUT = ^tagRAWINPUT;
+    LPRAWINPUT = ^tagRAWINPUT;
+    PPRAWINPUT = ^PRAWINPUT;
+    LPLPRAWINPUT = ^LPRAWINPUT;
+
+    tagRID_DEVICE_INFO_MOUSE = record
+      dwId: DWORD;
+      dwNumberOfButtons: DWORD;
+      dwSampleRate: DWORD;
+      fHasHorizontalWheel: BOOL;
+    end;
+    RID_DEVICE_INFO_MOUSE = tagRID_DEVICE_INFO_MOUSE;
+    TRID_DEVICE_INFO_MOUSE = tagRID_DEVICE_INFO_MOUSE;
+    PRID_DEVICE_INFO_MOUSE = ^tagRID_DEVICE_INFO_MOUSE;
+
+    tagRID_DEVICE_INFO_KEYBOARD = record
+      dwType: DWORD;
+      dwSubType: DWORD;
+      dwKeyboardMode: DWORD;
+      dwNumberOfFunctionKeys: DWORD;
+      dwNumberOfIndicators: DWORD;
+      dwNumberOfKeysTotal: DWORD;
+    end;
+    RID_DEVICE_INFO_KEYBOARD = tagRID_DEVICE_INFO_KEYBOARD;
+    TRID_DEVICE_INFO_KEYBOARD = tagRID_DEVICE_INFO_KEYBOARD;
+    PRID_DEVICE_INFO_KEYBOARD = ^tagRID_DEVICE_INFO_KEYBOARD;
+
+    tagRID_DEVICE_INFO_HID = record
+      dwVendorId: DWORD;
+      dwProductId: DWORD;
+      dwVersionNumber: DWORD;
+
+      (*
+       * Top level collection UsagePage and Usage
+       *)
+      usUsagePage: USHORT;
+      usUsage: USHORT;
+    end;
+    RID_DEVICE_INFO_HID = tagRID_DEVICE_INFO_HID;
+    TRID_DEVICE_INFO_HID = tagRID_DEVICE_INFO_HID;
+    PRID_DEVICE_INFO_HID = ^tagRID_DEVICE_INFO_HID;
+
+    tagRID_DEVICE_INFO = record
+      cbSize: DWORD;
+      dwType: DWORD;
+      case longint of
+        0: (mouse: RID_DEVICE_INFO_MOUSE);
+        1: (keyboard: RID_DEVICE_INFO_KEYBOARD);
+        2: (hid: RID_DEVICE_INFO_HID);
+    end;
+    RID_DEVICE_INFO = tagRID_DEVICE_INFO;
+    PRID_DEVICE_INFO = ^tagRID_DEVICE_INFO;
+    LPRID_DEVICE_INFO = ^tagRID_DEVICE_INFO;
+
+(*
+ * Raw Input request APIs
+ *)
+    tagRAWINPUTDEVICE = record
+      usUsagePage: USHORT; // Toplevel collection UsagePage
+      usUsage: USHORT;     // Toplevel collection Usage
+      dwFlags: DWORD;
+      hwndTarget: HWND;    // Target hwnd. NULL = follows keyboard focus
+    end;
+    RAWINPUTDEVICE = tagRAWINPUTDEVICE;
+    TRAWINPUTDEVICE = tagRAWINPUTDEVICE;
+    PRAWINPUTDEVICE = ^tagRAWINPUTDEVICE;
+    LPRAWINPUTDEVICE = ^tagRAWINPUTDEVICE;
+    PCRAWINPUTDEVICE = ^tagRAWINPUTDEVICE;
+
+{$packrecords C}	
+    tagRAWINPUTDEVICELIST = record
+      hDevice: HANDLE;
+      dwType: DWORD;
+    end;
+    RAWINPUTDEVICELIST = tagRAWINPUTDEVICELIST;
+    PRAWINPUTDEVICELIST = ^tagRAWINPUTDEVICELIST;
+//#endif /* _WIN32_WINNT >= 0x0501 */
+{$pop}
 {$endif read_interface}
 
 

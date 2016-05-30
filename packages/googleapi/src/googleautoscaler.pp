@@ -1,19 +1,4 @@
 unit googleautoscaler;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:52:59
 {$MODE objfpc}
 {$H+}
 
@@ -51,14 +36,12 @@ type
   TOperationTypeerror = Class;
   TOperationTypewarningsItemTypedataItem = Class;
   TOperationTypewarningsItem = Class;
-  TZoneTypemaintenanceWindowsItem = Class;
   TAutoscalerListResponseTypeitemsArray = Array of TAutoscaler;
   TAutoscalingPolicyTypecustomMetricUtilizationsArray = Array of TAutoscalingPolicyCustomMetricUtilization;
   TOperationTypeerrorTypeerrorsArray = Array of TOperationTypeerrorTypeerrorsItem;
   TOperationTypewarningsItemTypedataArray = Array of TOperationTypewarningsItemTypedataItem;
   TOperationTypewarningsArray = Array of TOperationTypewarningsItem;
   TOperationListTypeitemsArray = Array of TOperation;
-  TZoneTypemaintenanceWindowsArray = Array of TZoneTypemaintenanceWindowsItem;
   TZoneListTypeitemsArray = Array of TZone;
   
   { --------------------------------------------------------------------
@@ -77,7 +60,7 @@ type
     Ftarget : String;
   Protected
     //Property setters
-    Procedure SetautoscalingPolicy(AIndex : Integer; AValue : TAutoscalingPolicy); virtual;
+    Procedure SetautoscalingPolicy(AIndex : Integer; const AValue : TAutoscalingPolicy); virtual;
     Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
@@ -109,7 +92,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TAutoscalerListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAutoscalerListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -138,12 +121,12 @@ type
     FminNumReplicas : integer;
   Protected
     //Property setters
-    Procedure SetcoolDownPeriodSec(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetcpuUtilization(AIndex : Integer; AValue : TAutoscalingPolicyCpuUtilization); virtual;
-    Procedure SetcustomMetricUtilizations(AIndex : Integer; AValue : TAutoscalingPolicyTypecustomMetricUtilizationsArray); virtual;
-    Procedure SetloadBalancingUtilization(AIndex : Integer; AValue : TAutoscalingPolicyLoadBalancingUtilization); virtual;
-    Procedure SetmaxNumReplicas(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetminNumReplicas(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcoolDownPeriodSec(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetcpuUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyCpuUtilization); virtual;
+    Procedure SetcustomMetricUtilizations(AIndex : Integer; const AValue : TAutoscalingPolicyTypecustomMetricUtilizationsArray); virtual;
+    Procedure SetloadBalancingUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyLoadBalancingUtilization); virtual;
+    Procedure SetmaxNumReplicas(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetminNumReplicas(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -168,7 +151,7 @@ type
     FutilizationTarget : double;
   Protected
     //Property setters
-    Procedure SetutilizationTarget(AIndex : Integer; AValue : double); virtual;
+    Procedure SetutilizationTarget(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property utilizationTarget : double Index 0 Read FutilizationTarget Write SetutilizationTarget;
@@ -187,7 +170,7 @@ type
   Protected
     //Property setters
     Procedure Setmetric(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetutilizationTarget(AIndex : Integer; AValue : double); virtual;
+    Procedure SetutilizationTarget(AIndex : Integer; const AValue : double); virtual;
     Procedure SetutilizationTargetType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -206,7 +189,7 @@ type
     FutilizationTarget : double;
   Protected
     //Property setters
-    Procedure SetutilizationTarget(AIndex : Integer; AValue : double); virtual;
+    Procedure SetutilizationTarget(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property utilizationTarget : double Index 0 Read FutilizationTarget Write SetutilizationTarget;
@@ -272,7 +255,7 @@ type
     Ferrors : TOperationTypeerrorTypeerrorsArray;
   Protected
     //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    Procedure Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -314,7 +297,7 @@ type
   Protected
     //Property setters
     Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -336,6 +319,7 @@ type
   Private
     FclientOperationId : String;
     FcreationTimestamp : String;
+    Fdescription : String;
     FendTime : String;
     Ferror : TOperationTypeerror;
     FhttpErrorMessage : String;
@@ -360,16 +344,17 @@ type
     //Property setters
     Procedure SetclientOperationId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : TOperationTypeerror); virtual;
+    Procedure Seterror(AIndex : Integer; const AValue : TOperationTypeerror); virtual;
     Procedure SethttpErrorMessage(AIndex : Integer; const AValue : String); virtual;
-    Procedure SethttpErrorStatusCode(AIndex : Integer; AValue : integer); virtual;
+    Procedure SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinsertTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setprogress(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setprogress(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
@@ -378,7 +363,7 @@ type
     Procedure SettargetId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); virtual;
     Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -388,26 +373,27 @@ type
   Published
     Property clientOperationId : String Index 0 Read FclientOperationId Write SetclientOperationId;
     Property creationTimestamp : String Index 8 Read FcreationTimestamp Write SetcreationTimestamp;
-    Property endTime : String Index 16 Read FendTime Write SetendTime;
-    Property error : TOperationTypeerror Index 24 Read Ferror Write Seterror;
-    Property httpErrorMessage : String Index 32 Read FhttpErrorMessage Write SethttpErrorMessage;
-    Property httpErrorStatusCode : integer Index 40 Read FhttpErrorStatusCode Write SethttpErrorStatusCode;
-    Property id : String Index 48 Read Fid Write Setid;
-    Property insertTime : String Index 56 Read FinsertTime Write SetinsertTime;
-    Property kind : String Index 64 Read Fkind Write Setkind;
-    Property name : String Index 72 Read Fname Write Setname;
-    Property operationType : String Index 80 Read FoperationType Write SetoperationType;
-    Property progress : integer Index 88 Read Fprogress Write Setprogress;
-    Property region : String Index 96 Read Fregion Write Setregion;
-    Property selfLink : String Index 104 Read FselfLink Write SetselfLink;
-    Property startTime : String Index 112 Read FstartTime Write SetstartTime;
-    Property status : String Index 120 Read Fstatus Write Setstatus;
-    Property statusMessage : String Index 128 Read FstatusMessage Write SetstatusMessage;
-    Property targetId : String Index 136 Read FtargetId Write SettargetId;
-    Property targetLink : String Index 144 Read FtargetLink Write SettargetLink;
-    Property user : String Index 152 Read Fuser Write Setuser;
-    Property warnings : TOperationTypewarningsArray Index 160 Read Fwarnings Write Setwarnings;
-    Property zone : String Index 168 Read Fzone Write Setzone;
+    Property description : String Index 16 Read Fdescription Write Setdescription;
+    Property endTime : String Index 24 Read FendTime Write SetendTime;
+    Property error : TOperationTypeerror Index 32 Read Ferror Write Seterror;
+    Property httpErrorMessage : String Index 40 Read FhttpErrorMessage Write SethttpErrorMessage;
+    Property httpErrorStatusCode : integer Index 48 Read FhttpErrorStatusCode Write SethttpErrorStatusCode;
+    Property id : String Index 56 Read Fid Write Setid;
+    Property insertTime : String Index 64 Read FinsertTime Write SetinsertTime;
+    Property kind : String Index 72 Read Fkind Write Setkind;
+    Property name : String Index 80 Read Fname Write Setname;
+    Property operationType : String Index 88 Read FoperationType Write SetoperationType;
+    Property progress : integer Index 96 Read Fprogress Write Setprogress;
+    Property region : String Index 104 Read Fregion Write Setregion;
+    Property selfLink : String Index 112 Read FselfLink Write SetselfLink;
+    Property startTime : String Index 120 Read FstartTime Write SetstartTime;
+    Property status : String Index 128 Read Fstatus Write Setstatus;
+    Property statusMessage : String Index 136 Read FstatusMessage Write SetstatusMessage;
+    Property targetId : String Index 144 Read FtargetId Write SettargetId;
+    Property targetLink : String Index 152 Read FtargetLink Write SettargetLink;
+    Property user : String Index 160 Read Fuser Write Setuser;
+    Property warnings : TOperationTypewarningsArray Index 168 Read Fwarnings Write Setwarnings;
+    Property zone : String Index 176 Read Fzone Write Setzone;
   end;
   TOperationClass = Class of TOperation;
   
@@ -425,7 +411,7 @@ type
   Protected
     //Property setters
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TOperationListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
@@ -444,31 +430,6 @@ type
   TOperationListClass = Class of TOperationList;
   
   { --------------------------------------------------------------------
-    TZoneTypemaintenanceWindowsItem
-    --------------------------------------------------------------------}
-  
-  TZoneTypemaintenanceWindowsItem = Class(TGoogleBaseObject)
-  Private
-    FbeginTime : String;
-    Fdescription : String;
-    FendTime : String;
-    Fname : String;
-  Protected
-    //Property setters
-    Procedure SetbeginTime(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-  Public
-  Published
-    Property beginTime : String Index 0 Read FbeginTime Write SetbeginTime;
-    Property description : String Index 8 Read Fdescription Write Setdescription;
-    Property endTime : String Index 16 Read FendTime Write SetendTime;
-    Property name : String Index 24 Read Fname Write Setname;
-  end;
-  TZoneTypemaintenanceWindowsItemClass = Class of TZoneTypemaintenanceWindowsItem;
-  
-  { --------------------------------------------------------------------
     TZone
     --------------------------------------------------------------------}
   
@@ -479,7 +440,6 @@ type
     Fdescription : String;
     Fid : String;
     Fkind : String;
-    FmaintenanceWindows : TZoneTypemaintenanceWindowsArray;
     Fname : String;
     Fregion : String;
     FselfLink : String;
@@ -487,19 +447,14 @@ type
   Protected
     //Property setters
     Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); virtual;
+    Procedure Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaintenanceWindows(AIndex : Integer; AValue : TZoneTypemaintenanceWindowsArray); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
-    //2.6.4. bug workaround
-    {$IFDEF VER2_6}
-    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
-    {$ENDIF VER2_6}
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -507,11 +462,10 @@ type
     Property description : String Index 16 Read Fdescription Write Setdescription;
     Property id : String Index 24 Read Fid Write Setid;
     Property kind : String Index 32 Read Fkind Write Setkind;
-    Property maintenanceWindows : TZoneTypemaintenanceWindowsArray Index 40 Read FmaintenanceWindows Write SetmaintenanceWindows;
-    Property name : String Index 48 Read Fname Write Setname;
-    Property region : String Index 56 Read Fregion Write Setregion;
-    Property selfLink : String Index 64 Read FselfLink Write SetselfLink;
-    Property status : String Index 72 Read Fstatus Write Setstatus;
+    Property name : String Index 40 Read Fname Write Setname;
+    Property region : String Index 48 Read Fregion Write Setregion;
+    Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
+    Property status : String Index 64 Read Fstatus Write Setstatus;
   end;
   TZoneClass = Class of TZone;
   
@@ -529,7 +483,7 @@ type
   Protected
     //Property setters
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TZoneListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TZoneListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
@@ -609,14 +563,15 @@ type
     filter : String;
     maxResults : integer;
     pageToken : String;
+    project : String;
   end;
   
   TZonesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function List(project: string; AQuery : string  = '') : TZoneList;
-    Function List(project: string; AQuery : TZoneslistOptions) : TZoneList;
+    Function List(AQuery : string  = '') : TZoneList;
+    Function List(AQuery : TZoneslistOptions) : TZoneList;
   end;
   
   
@@ -675,7 +630,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscaler.SetautoscalingPolicy(AIndex : Integer; AValue : TAutoscalingPolicy); 
+Procedure TAutoscaler.SetautoscalingPolicy(AIndex : Integer; const AValue : TAutoscalingPolicy); 
 
 begin
   If (FautoscalingPolicy=AValue) then exit;
@@ -762,7 +717,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalerListResponse.Setitems(AIndex : Integer; AValue : TAutoscalerListResponseTypeitemsArray); 
+Procedure TAutoscalerListResponse.Setitems(AIndex : Integer; const AValue : TAutoscalerListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -812,7 +767,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalingPolicy.SetcoolDownPeriodSec(AIndex : Integer; AValue : integer); 
+Procedure TAutoscalingPolicy.SetcoolDownPeriodSec(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FcoolDownPeriodSec=AValue) then exit;
@@ -822,7 +777,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicy.SetcpuUtilization(AIndex : Integer; AValue : TAutoscalingPolicyCpuUtilization); 
+Procedure TAutoscalingPolicy.SetcpuUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyCpuUtilization); 
 
 begin
   If (FcpuUtilization=AValue) then exit;
@@ -832,7 +787,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicy.SetcustomMetricUtilizations(AIndex : Integer; AValue : TAutoscalingPolicyTypecustomMetricUtilizationsArray); 
+Procedure TAutoscalingPolicy.SetcustomMetricUtilizations(AIndex : Integer; const AValue : TAutoscalingPolicyTypecustomMetricUtilizationsArray); 
 
 begin
   If (FcustomMetricUtilizations=AValue) then exit;
@@ -842,7 +797,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicy.SetloadBalancingUtilization(AIndex : Integer; AValue : TAutoscalingPolicyLoadBalancingUtilization); 
+Procedure TAutoscalingPolicy.SetloadBalancingUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyLoadBalancingUtilization); 
 
 begin
   If (FloadBalancingUtilization=AValue) then exit;
@@ -852,7 +807,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicy.SetmaxNumReplicas(AIndex : Integer; AValue : integer); 
+Procedure TAutoscalingPolicy.SetmaxNumReplicas(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxNumReplicas=AValue) then exit;
@@ -862,7 +817,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicy.SetminNumReplicas(AIndex : Integer; AValue : integer); 
+Procedure TAutoscalingPolicy.SetminNumReplicas(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FminNumReplicas=AValue) then exit;
@@ -892,7 +847,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalingPolicyCpuUtilization.SetutilizationTarget(AIndex : Integer; AValue : double); 
+Procedure TAutoscalingPolicyCpuUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double); 
 
 begin
   If (FutilizationTarget=AValue) then exit;
@@ -919,7 +874,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicyCustomMetricUtilization.SetutilizationTarget(AIndex : Integer; AValue : double); 
+Procedure TAutoscalingPolicyCustomMetricUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double); 
 
 begin
   If (FutilizationTarget=AValue) then exit;
@@ -946,7 +901,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalingPolicyLoadBalancingUtilization.SetutilizationTarget(AIndex : Integer; AValue : double); 
+Procedure TAutoscalingPolicyLoadBalancingUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double); 
 
 begin
   If (FutilizationTarget=AValue) then exit;
@@ -1057,7 +1012,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerror.Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); 
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1124,7 +1079,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); 
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -1184,6 +1139,16 @@ end;
 
 
 
+Procedure TOperation.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String); 
 
 begin
@@ -1194,7 +1159,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationTypeerror); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror); 
 
 begin
   If (Ferror=AValue) then exit;
@@ -1214,7 +1179,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; AValue : integer); 
+Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FhttpErrorStatusCode=AValue) then exit;
@@ -1274,7 +1239,7 @@ end;
 
 
 
-Procedure TOperation.Setprogress(AIndex : Integer; AValue : integer); 
+Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fprogress=AValue) then exit;
@@ -1364,7 +1329,7 @@ end;
 
 
 
-Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); 
+Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1414,7 +1379,7 @@ end;
 
 
 
-Procedure TOperationList.Setitems(AIndex : Integer; AValue : TOperationListTypeitemsArray); 
+Procedure TOperationList.Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1470,53 +1435,6 @@ end;
 
 
 { --------------------------------------------------------------------
-  TZoneTypemaintenanceWindowsItem
-  --------------------------------------------------------------------}
-
-
-Procedure TZoneTypemaintenanceWindowsItem.SetbeginTime(AIndex : Integer; const AValue : String); 
-
-begin
-  If (FbeginTime=AValue) then exit;
-  FbeginTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TZoneTypemaintenanceWindowsItem.Setdescription(AIndex : Integer; const AValue : String); 
-
-begin
-  If (Fdescription=AValue) then exit;
-  Fdescription:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TZoneTypemaintenanceWindowsItem.SetendTime(AIndex : Integer; const AValue : String); 
-
-begin
-  If (FendTime=AValue) then exit;
-  FendTime:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TZoneTypemaintenanceWindowsItem.Setname(AIndex : Integer; const AValue : String); 
-
-begin
-  If (Fname=AValue) then exit;
-  Fname:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-
-
-{ --------------------------------------------------------------------
   TZone
   --------------------------------------------------------------------}
 
@@ -1531,7 +1449,7 @@ end;
 
 
 
-Procedure TZone.Setdeprecated(AIndex : Integer; AValue : TDeprecationStatus); 
+Procedure TZone.Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); 
 
 begin
   If (Fdeprecated=AValue) then exit;
@@ -1566,16 +1484,6 @@ Procedure TZone.Setkind(AIndex : Integer; const AValue : String);
 begin
   If (Fkind=AValue) then exit;
   Fkind:=AValue;
-  MarkPropertyChanged(AIndex);
-end;
-
-
-
-Procedure TZone.SetmaintenanceWindows(AIndex : Integer; AValue : TZoneTypemaintenanceWindowsArray); 
-
-begin
-  If (FmaintenanceWindows=AValue) then exit;
-  FmaintenanceWindows:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1620,19 +1528,6 @@ begin
 end;
 
 
-//2.6.4. bug workaround
-{$IFDEF VER2_6}
-Procedure TZone.SetArrayLength(Const AName : String; ALength : Longint); 
-
-begin
-  Case AName of
-  'maintenancewindows' : SetLength(FmaintenanceWindows,ALength);
-  else
-    Inherited SetArrayLength(AName,ALength);
-  end;
-end;
-{$ENDIF VER2_6}
-
 
 
 
@@ -1651,7 +1546,7 @@ end;
 
 
 
-Procedure TZoneList.Setitems(AIndex : Integer; AValue : TZoneListTypeitemsArray); 
+Procedure TZoneList.Setitems(AIndex : Integer; const AValue : TZoneListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1924,23 +1819,19 @@ begin
   Result:=TautoscalerAPI;
 end;
 
-Function TZonesResource.List(project: string; AQuery : string = '') : TZoneList;
+Function TZonesResource.List(AQuery : string = '') : TZoneList;
 
 Const
   _HTTPMethod = 'GET';
-  _Path       = '{project}/zones';
+  _Path       = 'zones';
   _Methodid   = 'autoscaler.zones.list';
 
-Var
-  _P : String;
-
 begin
-  _P:=SubstitutePath(_Path,['project',project]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TZoneList) as TZoneList;
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TZoneList) as TZoneList;
 end;
 
 
-Function TZonesResource.List(project: string; AQuery : TZoneslistOptions) : TZoneList;
+Function TZonesResource.List(AQuery : TZoneslistOptions) : TZoneList;
 
 Var
   _Q : String;
@@ -1950,7 +1841,8 @@ begin
   AddToQuery(_Q,'filter',AQuery.filter);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
-  Result:=List(project,_Q);
+  AddToQuery(_Q,'project',AQuery.project);
+  Result:=List(_Q);
 end;
 
 
@@ -1974,7 +1866,7 @@ end;
 Class Function TAutoscalerAPI.APIRevision : String;
 
 begin
-  Result:='20141112';
+  Result:='20160511';
 end;
 
 Class Function TAutoscalerAPI.APIID : String;
@@ -2028,7 +1920,7 @@ end;
 Class Function TAutoscalerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TAutoscalerAPI.APIbasePath : string;
@@ -2040,7 +1932,7 @@ end;
 Class Function TAutoscalerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/autoscaler/v1beta2/';
+  Result:='https://www.googleapis.com/autoscaler/v1beta2/';
 end;
 
 Class Function TAutoscalerAPI.APIProtocol : string;
@@ -2094,7 +1986,6 @@ begin
   TOperationTypewarningsItem.RegisterObject;
   TOperation.RegisterObject;
   TOperationList.RegisterObject;
-  TZoneTypemaintenanceWindowsItem.RegisterObject;
   TZone.RegisterObject;
   TZoneList.RegisterObject;
 end;

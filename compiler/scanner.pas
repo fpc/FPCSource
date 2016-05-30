@@ -177,6 +177,7 @@ interface
           procedure recordtoken;
           procedure startrecordtokens(buf:tdynamicarray);
           procedure stoprecordtokens;
+          function is_recording_tokens:boolean;
           procedure replaytoken;
           procedure startreplaytokens(buf:tdynamicarray);
           { bit length asizeint is target depend }
@@ -2798,6 +2799,11 @@ type
         if not assigned(recordtokenbuf) then
           internalerror(200511174);
         recordtokenbuf:=nil;
+      end;
+
+    function tscannerfile.is_recording_tokens: boolean;
+      begin
+        result:=assigned(recordtokenbuf);
       end;
 
 

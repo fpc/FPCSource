@@ -1,19 +1,4 @@
 unit googledoubleclickbidmanager;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:02
 {$MODE objfpc}
 {$H+}
 
@@ -29,6 +14,8 @@ type
   TFilterPair = Class;
   TListQueriesResponse = Class;
   TListReportsResponse = Class;
+  TNote = Class;
+  TNotifyProposalChangeRequest = Class;
   TParameters = Class;
   TQuery = Class;
   TQueryMetadata = Class;
@@ -48,6 +35,8 @@ type
   TFilterPairArray = Array of TFilterPair;
   TListQueriesResponseArray = Array of TListQueriesResponse;
   TListReportsResponseArray = Array of TListReportsResponse;
+  TNoteArray = Array of TNote;
+  TNotifyProposalChangeRequestArray = Array of TNotifyProposalChangeRequest;
   TParametersArray = Array of TParameters;
   TQueryArray = Array of TQuery;
   TQueryMetadataArray = Array of TQueryMetadata;
@@ -65,6 +54,7 @@ type
   //Anonymous types, using auto-generated names
   TListQueriesResponseTypequeriesArray = Array of TQuery;
   TListReportsResponseTypereportsArray = Array of TReport;
+  TNotifyProposalChangeRequestTypenotesArray = Array of TNote;
   TParametersTypefiltersArray = Array of TFilterPair;
   TUploadStatusTyperowStatusArray = Array of TRowStatus;
   
@@ -74,12 +64,14 @@ type
   
   TDownloadLineItemsRequest = Class(TGoogleBaseObject)
   Private
+    FfileSpec : String;
     FfilterIds : TStringArray;
     FfilterType : String;
     Fformat : String;
   Protected
     //Property setters
-    Procedure SetfilterIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetfileSpec(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfilterIds(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetfilterType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -88,9 +80,10 @@ type
     {$ENDIF VER2_6}
   Public
   Published
-    Property filterIds : TStringArray Index 0 Read FfilterIds Write SetfilterIds;
-    Property filterType : String Index 8 Read FfilterType Write SetfilterType;
-    Property format : String Index 16 Read Fformat Write Setformat;
+    Property fileSpec : String Index 0 Read FfileSpec Write SetfileSpec;
+    Property filterIds : TStringArray Index 8 Read FfilterIds Write SetfilterIds;
+    Property filterType : String Index 16 Read FfilterType Write SetfilterType;
+    Property format : String Index 24 Read Fformat Write Setformat;
   end;
   TDownloadLineItemsRequestClass = Class of TDownloadLineItemsRequest;
   
@@ -141,7 +134,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setqueries(AIndex : Integer; AValue : TListQueriesResponseTypequeriesArray); virtual;
+    Procedure Setqueries(AIndex : Integer; const AValue : TListQueriesResponseTypequeriesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -164,7 +157,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setreports(AIndex : Integer; AValue : TListReportsResponseTypereportsArray); virtual;
+    Procedure Setreports(AIndex : Integer; const AValue : TListReportsResponseTypereportsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -175,6 +168,66 @@ type
     Property reports : TListReportsResponseTypereportsArray Index 8 Read Freports Write Setreports;
   end;
   TListReportsResponseClass = Class of TListReportsResponse;
+  
+  { --------------------------------------------------------------------
+    TNote
+    --------------------------------------------------------------------}
+  
+  TNote = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fmessage : String;
+    Fsource : String;
+    Ftimestamp : String;
+    Fusername : String;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsource(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property message : String Index 8 Read Fmessage Write Setmessage;
+    Property source : String Index 16 Read Fsource Write Setsource;
+    Property timestamp : String Index 24 Read Ftimestamp Write Settimestamp;
+    Property username : String Index 32 Read Fusername Write Setusername;
+  end;
+  TNoteClass = Class of TNote;
+  
+  { --------------------------------------------------------------------
+    TNotifyProposalChangeRequest
+    --------------------------------------------------------------------}
+  
+  TNotifyProposalChangeRequest = Class(TGoogleBaseObject)
+  Private
+    Faction : String;
+    Fhref : String;
+    Fid : String;
+    Fnotes : TNotifyProposalChangeRequestTypenotesArray;
+    Ftoken : String;
+  Protected
+    //Property setters
+    Procedure Setaction(AIndex : Integer; const AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; const AValue : TNotifyProposalChangeRequestTypenotesArray); virtual;
+    Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property action : String Index 0 Read Faction Write Setaction;
+    Property href : String Index 8 Read Fhref Write Sethref;
+    Property id : String Index 16 Read Fid Write Setid;
+    Property notes : TNotifyProposalChangeRequestTypenotesArray Index 24 Read Fnotes Write Setnotes;
+    Property token : String Index 32 Read Ftoken Write Settoken;
+  end;
+  TNotifyProposalChangeRequestClass = Class of TNotifyProposalChangeRequest;
   
   { --------------------------------------------------------------------
     TParameters
@@ -190,10 +243,10 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setfilters(AIndex : Integer; AValue : TParametersTypefiltersArray); virtual;
-    Procedure SetgroupBys(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetincludeInviteData(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setmetrics(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setfilters(AIndex : Integer; const AValue : TParametersTypefiltersArray); virtual;
+    Procedure SetgroupBys(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetincludeInviteData(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setmetrics(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -226,12 +279,12 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setmetadata(AIndex : Integer; AValue : TQueryMetadata); virtual;
-    Procedure Setparams(AIndex : Integer; AValue : TParameters); virtual;
+    Procedure Setmetadata(AIndex : Integer; const AValue : TQueryMetadata); virtual;
+    Procedure Setparams(AIndex : Integer; const AValue : TParameters); virtual;
     Procedure SetqueryId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreportDataEndTimeMs(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreportDataStartTimeMs(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setschedule(AIndex : Integer; AValue : TQuerySchedule); virtual;
+    Procedure Setschedule(AIndex : Integer; const AValue : TQuerySchedule); virtual;
     Procedure SettimezoneCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -271,10 +324,10 @@ type
     Procedure SetgoogleDrivePathForLatestReport(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlatestReportRunTimeMs(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocale(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetreportCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setrunning(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsendNotification(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetshareEmailAddress(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetreportCount(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setrunning(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetsendNotification(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetshareEmailAddress(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -310,7 +363,7 @@ type
     //Property setters
     Procedure SetendTimeMs(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfrequency(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnextRunMinuteOfDay(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetnextRunMinuteOfDay(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetnextRunTimezoneCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -332,9 +385,9 @@ type
     Fparams : TParameters;
   Protected
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : TReportKey); virtual;
-    Procedure Setmetadata(AIndex : Integer; AValue : TReportMetadata); virtual;
-    Procedure Setparams(AIndex : Integer; AValue : TParameters); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : TReportKey); virtual;
+    Procedure Setmetadata(AIndex : Integer; const AValue : TReportMetadata); virtual;
+    Procedure Setparams(AIndex : Integer; const AValue : TParameters); virtual;
   Public
   Published
     Property key : TReportKey Index 0 Read Fkey Write Setkey;
@@ -393,7 +446,7 @@ type
     Procedure SetgoogleCloudStoragePath(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreportDataEndTimeMs(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreportDataStartTimeMs(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : TReportStatus); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : TReportStatus); virtual;
   Public
   Published
     Property googleCloudStoragePath : String Index 0 Read FgoogleCloudStoragePath Write SetgoogleCloudStoragePath;
@@ -415,7 +468,7 @@ type
     Fstate : String;
   Protected
     //Property setters
-    Procedure Setfailure(AIndex : Integer; AValue : TReportFailure); virtual;
+    Procedure Setfailure(AIndex : Integer; const AValue : TReportFailure); virtual;
     Procedure SetfinishTimeMs(AIndex : Integer; const AValue : String); virtual;
     Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
@@ -442,12 +495,12 @@ type
     FrowNumber : integer;
   Protected
     //Property setters
-    Procedure Setchanged(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setchanged(AIndex : Integer; const AValue : boolean); virtual;
     Procedure SetentityId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetentityName(AIndex : Integer; const AValue : String); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setpersisted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetrowNumber(AIndex : Integer; AValue : integer); virtual;
+    Procedure Seterrors(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setpersisted(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetrowNumber(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -499,7 +552,7 @@ type
     FlineItems : String;
   Protected
     //Property setters
-    Procedure SetdryRun(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetdryRun(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlineItems(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -519,7 +572,7 @@ type
     FuploadStatus : TUploadStatus;
   Protected
     //Property setters
-    Procedure SetuploadStatus(AIndex : Integer; AValue : TUploadStatus); virtual;
+    Procedure SetuploadStatus(AIndex : Integer; const AValue : TUploadStatus); virtual;
   Public
   Published
     Property uploadStatus : TUploadStatus Index 0 Read FuploadStatus Write SetuploadStatus;
@@ -536,8 +589,8 @@ type
     FrowStatus : TUploadStatusTyperowStatusArray;
   Protected
     //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetrowStatus(AIndex : Integer; AValue : TUploadStatusTyperowStatusArray); virtual;
+    Procedure Seterrors(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetrowStatus(AIndex : Integer; const AValue : TUploadStatusTyperowStatusArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -591,6 +644,18 @@ type
   
   
   { --------------------------------------------------------------------
+    TRubiconResource
+    --------------------------------------------------------------------}
+  
+  TRubiconResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Notifyproposalchange(aNotifyProposalChangeRequest : TNotifyProposalChangeRequest);
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TDoubleclickbidmanagerAPI
     --------------------------------------------------------------------}
   
@@ -599,9 +664,11 @@ type
     FLineitemsInstance : TLineitemsResource;
     FQueriesInstance : TQueriesResource;
     FReportsInstance : TReportsResource;
+    FRubiconInstance : TRubiconResource;
     Function GetLineitemsInstance : TLineitemsResource;virtual;
     Function GetQueriesInstance : TQueriesResource;virtual;
     Function GetReportsInstance : TReportsResource;virtual;
+    Function GetRubiconInstance : TRubiconResource;virtual;
   Public
     //Override class functions with API info
     Class Function APIName : String; override;
@@ -631,10 +698,13 @@ type
     Function CreateQueriesResource : TQueriesResource;virtual;overload;
     Function CreateReportsResource(AOwner : TComponent) : TReportsResource;virtual;overload;
     Function CreateReportsResource : TReportsResource;virtual;overload;
+    Function CreateRubiconResource(AOwner : TComponent) : TRubiconResource;virtual;overload;
+    Function CreateRubiconResource : TRubiconResource;virtual;overload;
     //Add default on-demand instances for resources
     Property LineitemsResource : TLineitemsResource Read GetLineitemsInstance;
     Property QueriesResource : TQueriesResource Read GetQueriesInstance;
     Property ReportsResource : TReportsResource Read GetReportsInstance;
+    Property RubiconResource : TRubiconResource Read GetRubiconInstance;
   end;
 
 implementation
@@ -645,7 +715,17 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TDownloadLineItemsRequest.SetfilterIds(AIndex : Integer; AValue : TStringArray); 
+Procedure TDownloadLineItemsRequest.SetfileSpec(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FfileSpec=AValue) then exit;
+  FfileSpec:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDownloadLineItemsRequest.SetfilterIds(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FfilterIds=AValue) then exit;
@@ -760,7 +840,7 @@ end;
 
 
 
-Procedure TListQueriesResponse.Setqueries(AIndex : Integer; AValue : TListQueriesResponseTypequeriesArray); 
+Procedure TListQueriesResponse.Setqueries(AIndex : Integer; const AValue : TListQueriesResponseTypequeriesArray); 
 
 begin
   If (Fqueries=AValue) then exit;
@@ -800,7 +880,7 @@ end;
 
 
 
-Procedure TListReportsResponse.Setreports(AIndex : Integer; AValue : TListReportsResponseTypereportsArray); 
+Procedure TListReportsResponse.Setreports(AIndex : Integer; const AValue : TListReportsResponseTypereportsArray); 
 
 begin
   If (Freports=AValue) then exit;
@@ -826,11 +906,138 @@ end;
 
 
 { --------------------------------------------------------------------
+  TNote
+  --------------------------------------------------------------------}
+
+
+Procedure TNote.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNote.Setmessage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fmessage=AValue) then exit;
+  Fmessage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNote.Setsource(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fsource=AValue) then exit;
+  Fsource:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNote.Settimestamp(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ftimestamp=AValue) then exit;
+  Ftimestamp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNote.Setusername(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fusername=AValue) then exit;
+  Fusername:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TNotifyProposalChangeRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TNotifyProposalChangeRequest.Setaction(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Faction=AValue) then exit;
+  Faction:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNotifyProposalChangeRequest.Sethref(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fhref=AValue) then exit;
+  Fhref:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNotifyProposalChangeRequest.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNotifyProposalChangeRequest.Setnotes(AIndex : Integer; const AValue : TNotifyProposalChangeRequestTypenotesArray); 
+
+begin
+  If (Fnotes=AValue) then exit;
+  Fnotes:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TNotifyProposalChangeRequest.Settoken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ftoken=AValue) then exit;
+  Ftoken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TNotifyProposalChangeRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'notes' : SetLength(Fnotes,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
   TParameters
   --------------------------------------------------------------------}
 
 
-Procedure TParameters.Setfilters(AIndex : Integer; AValue : TParametersTypefiltersArray); 
+Procedure TParameters.Setfilters(AIndex : Integer; const AValue : TParametersTypefiltersArray); 
 
 begin
   If (Ffilters=AValue) then exit;
@@ -840,7 +1047,7 @@ end;
 
 
 
-Procedure TParameters.SetgroupBys(AIndex : Integer; AValue : TStringArray); 
+Procedure TParameters.SetgroupBys(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FgroupBys=AValue) then exit;
@@ -850,7 +1057,7 @@ end;
 
 
 
-Procedure TParameters.SetincludeInviteData(AIndex : Integer; AValue : boolean); 
+Procedure TParameters.SetincludeInviteData(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FincludeInviteData=AValue) then exit;
@@ -860,7 +1067,7 @@ end;
 
 
 
-Procedure TParameters.Setmetrics(AIndex : Integer; AValue : TStringArray); 
+Procedure TParameters.Setmetrics(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fmetrics=AValue) then exit;
@@ -923,7 +1130,7 @@ end;
 
 
 
-Procedure TQuery.Setmetadata(AIndex : Integer; AValue : TQueryMetadata); 
+Procedure TQuery.Setmetadata(AIndex : Integer; const AValue : TQueryMetadata); 
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -933,7 +1140,7 @@ end;
 
 
 
-Procedure TQuery.Setparams(AIndex : Integer; AValue : TParameters); 
+Procedure TQuery.Setparams(AIndex : Integer; const AValue : TParameters); 
 
 begin
   If (Fparams=AValue) then exit;
@@ -973,7 +1180,7 @@ end;
 
 
 
-Procedure TQuery.Setschedule(AIndex : Integer; AValue : TQuerySchedule); 
+Procedure TQuery.Setschedule(AIndex : Integer; const AValue : TQuerySchedule); 
 
 begin
   If (Fschedule=AValue) then exit;
@@ -1060,7 +1267,7 @@ end;
 
 
 
-Procedure TQueryMetadata.SetreportCount(AIndex : Integer; AValue : integer); 
+Procedure TQueryMetadata.SetreportCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FreportCount=AValue) then exit;
@@ -1070,7 +1277,7 @@ end;
 
 
 
-Procedure TQueryMetadata.Setrunning(AIndex : Integer; AValue : boolean); 
+Procedure TQueryMetadata.Setrunning(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Frunning=AValue) then exit;
@@ -1080,7 +1287,7 @@ end;
 
 
 
-Procedure TQueryMetadata.SetsendNotification(AIndex : Integer; AValue : boolean); 
+Procedure TQueryMetadata.SetsendNotification(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FsendNotification=AValue) then exit;
@@ -1090,7 +1297,7 @@ end;
 
 
 
-Procedure TQueryMetadata.SetshareEmailAddress(AIndex : Integer; AValue : TStringArray); 
+Procedure TQueryMetadata.SetshareEmailAddress(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FshareEmailAddress=AValue) then exit;
@@ -1150,7 +1357,7 @@ end;
 
 
 
-Procedure TQuerySchedule.SetnextRunMinuteOfDay(AIndex : Integer; AValue : integer); 
+Procedure TQuerySchedule.SetnextRunMinuteOfDay(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnextRunMinuteOfDay=AValue) then exit;
@@ -1177,7 +1384,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReport.Setkey(AIndex : Integer; AValue : TReportKey); 
+Procedure TReport.Setkey(AIndex : Integer; const AValue : TReportKey); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1187,7 +1394,7 @@ end;
 
 
 
-Procedure TReport.Setmetadata(AIndex : Integer; AValue : TReportMetadata); 
+Procedure TReport.Setmetadata(AIndex : Integer; const AValue : TReportMetadata); 
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1197,7 +1404,7 @@ end;
 
 
 
-Procedure TReport.Setparams(AIndex : Integer; AValue : TParameters); 
+Procedure TReport.Setparams(AIndex : Integer; const AValue : TParameters); 
 
 begin
   If (Fparams=AValue) then exit;
@@ -1288,7 +1495,7 @@ end;
 
 
 
-Procedure TReportMetadata.Setstatus(AIndex : Integer; AValue : TReportStatus); 
+Procedure TReportMetadata.Setstatus(AIndex : Integer; const AValue : TReportStatus); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1305,7 +1512,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportStatus.Setfailure(AIndex : Integer; AValue : TReportFailure); 
+Procedure TReportStatus.Setfailure(AIndex : Integer; const AValue : TReportFailure); 
 
 begin
   If (Ffailure=AValue) then exit;
@@ -1352,7 +1559,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRowStatus.Setchanged(AIndex : Integer; AValue : boolean); 
+Procedure TRowStatus.Setchanged(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fchanged=AValue) then exit;
@@ -1382,7 +1589,7 @@ end;
 
 
 
-Procedure TRowStatus.Seterrors(AIndex : Integer; AValue : TStringArray); 
+Procedure TRowStatus.Seterrors(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1392,7 +1599,7 @@ end;
 
 
 
-Procedure TRowStatus.Setpersisted(AIndex : Integer; AValue : boolean); 
+Procedure TRowStatus.Setpersisted(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fpersisted=AValue) then exit;
@@ -1402,7 +1609,7 @@ end;
 
 
 
-Procedure TRowStatus.SetrowNumber(AIndex : Integer; AValue : integer); 
+Procedure TRowStatus.SetrowNumber(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FrowNumber=AValue) then exit;
@@ -1479,7 +1686,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUploadLineItemsRequest.SetdryRun(AIndex : Integer; AValue : boolean); 
+Procedure TUploadLineItemsRequest.SetdryRun(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FdryRun=AValue) then exit;
@@ -1516,7 +1723,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUploadLineItemsResponse.SetuploadStatus(AIndex : Integer; AValue : TUploadStatus); 
+Procedure TUploadLineItemsResponse.SetuploadStatus(AIndex : Integer; const AValue : TUploadStatus); 
 
 begin
   If (FuploadStatus=AValue) then exit;
@@ -1533,7 +1740,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUploadStatus.Seterrors(AIndex : Integer; AValue : TStringArray); 
+Procedure TUploadStatus.Seterrors(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1543,7 +1750,7 @@ end;
 
 
 
-Procedure TUploadStatus.SetrowStatus(AIndex : Integer; AValue : TUploadStatusTyperowStatusArray); 
+Procedure TUploadStatus.SetrowStatus(AIndex : Integer; const AValue : TUploadStatusTyperowStatusArray); 
 
 begin
   If (FrowStatus=AValue) then exit;
@@ -1731,6 +1938,36 @@ end;
 
 
 { --------------------------------------------------------------------
+  TRubiconResource
+  --------------------------------------------------------------------}
+
+
+Class Function TRubiconResource.ResourceName : String;
+
+begin
+  Result:='rubicon';
+end;
+
+Class Function TRubiconResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TdoubleclickbidmanagerAPI;
+end;
+
+Procedure TRubiconResource.Notifyproposalchange(aNotifyProposalChangeRequest : TNotifyProposalChangeRequest);
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'rubicon/notifyproposalchange';
+  _Methodid   = 'doubleclickbidmanager.rubicon.notifyproposalchange';
+
+begin
+  ServiceCall(_HTTPMethod,_Path,'',aNotifyProposalChangeRequest,Nil);
+end;
+
+
+
+{ --------------------------------------------------------------------
   TDoubleclickbidmanagerAPI
   --------------------------------------------------------------------}
 
@@ -1749,7 +1986,7 @@ end;
 Class Function TDoubleclickbidmanagerAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20160426';
 end;
 
 Class Function TDoubleclickbidmanagerAPI.APIID : String;
@@ -1803,7 +2040,7 @@ end;
 Class Function TDoubleclickbidmanagerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TDoubleclickbidmanagerAPI.APIbasePath : string;
@@ -1815,7 +2052,7 @@ end;
 Class Function TDoubleclickbidmanagerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/doubleclickbidmanager/v1/';
+  Result:='https://www.googleapis.com/doubleclickbidmanager/v1/';
 end;
 
 Class Function TDoubleclickbidmanagerAPI.APIProtocol : string;
@@ -1857,6 +2094,8 @@ begin
   TFilterPair.RegisterObject;
   TListQueriesResponse.RegisterObject;
   TListReportsResponse.RegisterObject;
+  TNote.RegisterObject;
+  TNotifyProposalChangeRequest.RegisterObject;
   TParameters.RegisterObject;
   TQuery.RegisterObject;
   TQueryMetadata.RegisterObject;
@@ -1941,6 +2180,30 @@ Function TDoubleclickbidmanagerAPI.CreateReportsResource(AOwner : TComponent) : 
 
 begin
   Result:=TReportsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TDoubleclickbidmanagerAPI.GetRubiconInstance : TRubiconResource;
+
+begin
+  if (FRubiconInstance=Nil) then
+    FRubiconInstance:=CreateRubiconResource;
+  Result:=FRubiconInstance;
+end;
+
+Function TDoubleclickbidmanagerAPI.CreateRubiconResource : TRubiconResource;
+
+begin
+  Result:=CreateRubiconResource(Self);
+end;
+
+
+Function TDoubleclickbidmanagerAPI.CreateRubiconResource(AOwner : TComponent) : TRubiconResource;
+
+begin
+  Result:=TRubiconResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 

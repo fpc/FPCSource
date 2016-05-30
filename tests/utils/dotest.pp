@@ -686,11 +686,13 @@ begin
   TargetHasDosStyleDirectories :=
     (LTarget='emx') or
     (LTarget='go32v2') or
+    (LTarget='msdos') or
     (LTarget='nativent') or
     (LTarget='os2') or
     (LTarget='symbian') or
     (LTarget='watcom') or
     (LTarget='wdosx') or
+    (LTarget='win16') or
     (LTarget='win32') or
     (LTarget='win64');
   TargetAmigaLike:=

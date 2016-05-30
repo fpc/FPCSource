@@ -304,6 +304,7 @@ implementation
       symconst,defutil,defcmp,
       htypechk,pass_1,
       ncnv,nflw,nld,ninl,nadd,ncon,nmem,nset,nobjc,
+      pgenutil,
       ngenutil,objcutil,
       procinfo,cpuinfo,
       wpobase;
@@ -365,6 +366,8 @@ implementation
         restype: byte;
         selftemp: ttempcreatenode;
         selfpara: tnode;
+        vardispatchparadef: trecorddef;
+        vardispatchfield: tsym;
 
         names : ansistring;
         variantdispatch : boolean;
@@ -465,7 +468,9 @@ implementation
           end;
 
         { create a temp to store parameter values }
-        params:=ctempcreatenode.create(cformaltype,0,tt_persistent,false);
+        vardispatchparadef:=crecorddef.create_global_internal('',voidpointertype.size,voidpointertype.size,current_settings.alignment.maxCrecordalign);
+        { the size will be set once the vardistpatchparadef record has been completed }
+        params:=ctempcreatenode.create(vardispatchparadef,0,tt_persistent,false);
         addstatement(statements,params);
 
         calldescnode:=cdataconstnode.create;
@@ -518,15 +523,14 @@ implementation
             { for Variants, we always pass a pointer, RTL helpers must handle it
               depending on byref bit }
 
+            vardispatchfield:=vardispatchparadef.add_field_by_def('',assignmenttype);
             if assignmenttype=voidpointertype then
               addstatement(statements,cassignmentnode.create(
-                ctypeconvnode.create_internal(ctemprefnode.create_offset(params,paramssize),
-                  voidpointertype),
+                csubscriptnode.create(vardispatchfield,ctemprefnode.create(params)),
                 ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)))
             else
               addstatement(statements,cassignmentnode.create(
-                ctypeconvnode.create_internal(ctemprefnode.create_offset(params,paramssize),
-                  assignmenttype),
+              csubscriptnode.create(vardispatchfield,ctemprefnode.create(params)),
                 ctypeconvnode.create_internal(para.left,assignmenttype)));
 
             inc(paramssize,max(voidpointertype.size,assignmenttype.size));
@@ -535,6 +539,9 @@ implementation
             para.left:=nil;
             para:=tcallparanode(para.nextpara);
           end;
+
+        { finalize the parameter record }
+        trecordsymtable(vardispatchparadef.symtable).addalignmentpadding;
 
         { Set final size for parameter block }
         params.size:=paramssize;
@@ -3597,6 +3604,8 @@ implementation
                      { if the final procedure definition is not yet owned,
                        ensure that it is }
                      procdefinition.register_def;
+                     if procdefinition.is_specialization and (procdefinition.typ=procdef) then
+                       maybe_add_pending_specialization(procdefinition);
 
                      candidates.free;
                  end; { end of procedure to call determination }

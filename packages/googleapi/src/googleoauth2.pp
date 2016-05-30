@@ -1,19 +1,4 @@
 unit googleoauth2;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:06
 {$MODE objfpc}
 {$H+}
 
@@ -74,7 +59,7 @@ type
     Fkeys : TJwkTypekeysArray;
   Protected
     //Property setters
-    Procedure Setkeys(AIndex : Integer; AValue : TJwkTypekeysArray); virtual;
+    Procedure Setkeys(AIndex : Integer; const AValue : TJwkTypekeysArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -105,12 +90,12 @@ type
     Procedure Setaccess_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setaudience(AIndex : Integer; const AValue : String); virtual;
     Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setexpires_in(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setexpires_in(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setissued_to(AIndex : Integer; const AValue : String); virtual;
     Procedure Setscope(AIndex : Integer; const AValue : String); virtual;
     Procedure Settoken_handle(AIndex : Integer; const AValue : String); virtual;
     Procedure Setuser_id(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setverified_email(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setverified_email(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property access_type : String Index 0 Read Faccess_type Write Setaccess_type;
@@ -154,7 +139,7 @@ type
     Procedure Setlocale(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpicture(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setverified_email(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setverified_email(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property email : String Index 0 Read Femail Write Setemail;
@@ -345,7 +330,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJwk.Setkeys(AIndex : Integer; AValue : TJwkTypekeysArray); 
+Procedure TJwk.Setkeys(AIndex : Integer; const AValue : TJwkTypekeysArray); 
 
 begin
   If (Fkeys=AValue) then exit;
@@ -405,7 +390,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setexpires_in(AIndex : Integer; AValue : integer); 
+Procedure TTokeninfo.Setexpires_in(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fexpires_in=AValue) then exit;
@@ -455,7 +440,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setverified_email(AIndex : Integer; AValue : boolean); 
+Procedure TTokeninfo.Setverified_email(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fverified_email=AValue) then exit;
@@ -572,7 +557,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setverified_email(AIndex : Integer; AValue : boolean); 
+Procedure TUserinfoplus.Setverified_email(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fverified_email=AValue) then exit;
@@ -754,7 +739,7 @@ end;
 Class Function TOauth2API.APIRevision : String;
 
 begin
-  Result:='20150416';
+  Result:='20160330';
 end;
 
 Class Function TOauth2API.APIID : String;
@@ -772,7 +757,7 @@ end;
 Class Function TOauth2API.APIDescription : String;
 
 begin
-  Result:='Lets you access OAuth2 protocol related APIs.';
+  Result:='Obtains end-user authorization grants for use with other Google APIs.';
 end;
 
 Class Function TOauth2API.APIOwnerDomain : String;
@@ -808,7 +793,7 @@ end;
 Class Function TOauth2API.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TOauth2API.APIbasePath : string;
@@ -820,7 +805,7 @@ end;
 Class Function TOauth2API.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TOauth2API.APIProtocol : string;
@@ -846,7 +831,7 @@ Class Function TOauth2API.APIAuthScopes : TScopeInfoArray;
 begin
   SetLength(Result,4);
   Result[0].Name:='https://www.googleapis.com/auth/plus.login';
-  Result[0].Description:='Know your basic profile info and list of people in your circles.';
+  Result[0].Description:='Know the list of people in your circles, your age range, and language';
   Result[1].Name:='https://www.googleapis.com/auth/plus.me';
   Result[1].Description:='Know who you are on Google';
   Result[2].Name:='https://www.googleapis.com/auth/userinfo.email';

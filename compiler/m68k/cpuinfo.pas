@@ -38,6 +38,7 @@ Type
        cpu_MC68000,
        cpu_MC68020,
        cpu_MC68040,
+       cpu_MC68060,
        cpu_isa_a,
        cpu_isa_a_p,
        cpu_isa_b,
@@ -94,6 +95,7 @@ Const
      '68000',
      '68020',
      '68040',
+     '68060',
      'ISAA',
      'ISAA+',
      'ISAB',
@@ -105,6 +107,7 @@ Const
      '68000',
      '68020',
      '68040',
+     '68060',
      'isaa',
      'isaaplus',
      'isab',
@@ -142,24 +145,38 @@ type
       CPUM68K_HAS_TAS,       { CPU supports the TAS instruction                          }
       CPUM68K_HAS_BRAL,      { CPU supports the BRA.L/Bcc.L instructions                 }
       CPUM68K_HAS_ROLROR,    { CPU supports the ROL/ROR and ROXL/ROXR instructions       }
-      CPUM68K_HAS_BYTEREV    { CPU supports the BYTEREV instruction                      }
+      CPUM68K_HAS_BYTEREV,   { CPU supports the BYTEREV instruction                      }
+      CPUM68K_HAS_MVSMVZ,    { CPU supports the MVZ and MVS instructions                 }
+      CPUM68K_HAS_MOVE16,    { CPU supports the MOVE16 instruction                       }
+      CPUM68K_HAS_32BITMUL,  { CPU supports MULS/MULU 32x32 -> 32bit                     }
+      CPUM68K_HAS_64BITMUL,  { CPU supports MULS/MULU 32x32 -> 64bit                     }
+      CPUM68K_HAS_16BITDIV,  { CPU supports DIVS/DIVU 32/16 -> 16bit                     }
+      CPUM68K_HAS_32BITDIV,  { CPU supports DIVS/DIVU 32/32 -> 32bit                     }
+      CPUM68K_HAS_64BITDIV,  { CPU supports DIVS/DIVU 64/32 -> 32bit                     }
+      CPUM68K_HAS_REMSREMU,  { CPU supports the REMS/REMU instructions                   }
+      CPUM68K_HAS_UNALIGNED, { CPU supports unaligned access                             }
+      CPUM68K_HAS_BASEDISP   { CPU supports addressing with 32bit base displacements     }
      );
 
 const
   cpu_capabilities : array[tcputype] of set of tcpuflags =
     ( { cpu_none     } [],
-      { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS,CPUM68K_HAS_ROLROR],
-      { cpu_68020    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR],
-      { cpu_68040    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR],
-      { cpu_isaa     } [],
-      { cpu_isaap    } [CPUM68K_HAS_BRAL,CPUM68K_HAS_BYTEREV],
-      { cpu_isab     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
-      { cpu_isac     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV],
-      { cpu_cfv4e    } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV]
+      { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS,CPUM68K_HAS_ROLROR,CPUM68K_HAS_16BITDIV],
+      { cpu_68020    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_BASEDISP,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_64BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_64BITDIV],
+      { cpu_68040    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_BASEDISP,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_64BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_64BITDIV,CPUM68K_HAS_MOVE16],
+      { cpu_68060    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_BASEDISP,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_MOVE16],
+      { cpu_isaa     } [CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_REMSREMU],
+      { cpu_isaap    } [CPUM68K_HAS_BRAL,CPUM68K_HAS_BYTEREV,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_REMSREMU],
+      { cpu_isab     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_MVSMVZ,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_REMSREMU],
+      { cpu_isac     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV,CPUM68K_HAS_MVSMVZ,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_REMSREMU],
+      { cpu_cfv4e    } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_MVSMVZ,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_REMSREMU]
     );
 
   { all CPUs commonly called "coldfire" }
   cpu_coldfire = [cpu_isa_a,cpu_isa_a_p,cpu_isa_b,cpu_isa_c,cpu_cfv4e];
+
+  { all CPUs commonly called "68020+" }
+  cpu_mc68020p = [cpu_mc68020,cpu_mc68040,cpu_mc68060];
 
 Implementation
 

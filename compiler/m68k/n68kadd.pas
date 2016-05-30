@@ -37,6 +37,7 @@ interface
        protected
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
+          procedure second_addordinal;override;
           procedure second_cmpordinal;override;
           procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
@@ -171,23 +172,39 @@ implementation
         case current_settings.fputype of
           fpu_68881,fpu_coldfire:
             begin
-              { have left in the register, right can be a memory location }
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-
               { initialize the result }
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-              location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+
+              { have left in the register, right can be a memory location }
+              if not (current_settings.fputype = fpu_coldfire) and
+                 (left.nodetype = realconstn) then
+                begin
+                  location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(A_FMOVE,tcgsize2opsize[left.location.size],trealconstnode(left).value_real,location.register))
+                end
+              else
+                begin
+                  hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+
+                  location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                  cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
+                end;
 
               { emit the actual operation }
-              cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
               case right.location.loc of
                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregopsize,right.location.register,location.register));
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      href:=right.location.reference;
-                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
-                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[right.location.size],href,location.register));
+                      if not (current_settings.fputype = fpu_coldfire) and
+                         (right.nodetype = realconstn) then
+                        current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(op,tcgsize2opsize[right.location.size],trealconstnode(right).value_real,location.register))
+                      else
+                        begin
+                          href:=right.location.reference;
+                          tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+                          current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[right.location.size],href,location.register));
+                        end;
                     end
                 else
                   internalerror(2015021501);
@@ -214,17 +231,46 @@ implementation
           fpu_68881,fpu_coldfire:
             begin
               { force left fpureg as register, right can be reference }
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
               { emit compare }
               case right.location.loc of
                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,fpuregopsize,right.location.register,left.location.register));
+                    begin
+                      hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,fpuregopsize,right.location.register,left.location.register));
+                    end;
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      href:=right.location.reference;
-                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
-                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[right.location.size],href,left.location.register));
+                      { use FTST, if realconst is 0.0, it would be very had to do this in the
+                        optimized, because we would need to investigate the referenced value... }
+                      if (right.nodetype = realconstn) and
+                         (trealconstnode(right).value_real = 0.0) then
+                        begin
+                          if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+                            current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FTST,fpuregopsize,left.location.register))
+                          else
+                            if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                              begin
+                                href:=left.location.reference;
+                                tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+                                current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FTST,tcgsize2opsize[left.location.size],href))
+                              end
+                            else
+                              internalerror(2016051001);
+                        end
+                      else
+                        begin
+                          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                          if not (current_settings.fputype = fpu_coldfire) and
+                             (right.nodetype = realconstn) then
+                            current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(A_FCMP,tcgsize2opsize[right.location.size],trealconstnode(right).value_real,left.location.register))
+                          else
+                            begin
+                              href:=right.location.reference;
+                              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+                              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[right.location.size],href,left.location.register));
+                            end;
+                        end;
                     end
                 else
                   internalerror(2015021502);
@@ -298,6 +344,70 @@ implementation
                                 Ordinals
 *****************************************************************************}
 
+    procedure t68kaddnode.second_addordinal;
+      var
+        cgop    : topcg;
+      begin
+        { if we need to handle overflow checking, fall back to the generic cg }
+        if (nodetype in [addn,subn,muln]) and
+           (left.resultdef.typ<>pointerdef) and
+           (right.resultdef.typ<>pointerdef) and
+           (cs_check_overflow in current_settings.localswitches) then
+          begin
+            inherited;
+            exit;
+          end;
+
+        case nodetype of
+          addn: cgop:=OP_ADD;
+          xorn: cgop:=OP_XOR;
+          orn : cgop:=OP_OR;
+          andn: cgop:=OP_AND;
+          subn: cgop:=OP_SUB;
+          muln:
+            begin
+              if not(is_signed(left.resultdef)) or
+                 not(is_signed(right.resultdef)) then
+                cgop:=OP_MUL
+              else
+                cgop:=OP_IMUL;
+            end;
+          else
+            internalerror(2013120104);
+        end;
+
+        pass_left_right;
+        if (nodetype=subn) and (nf_swapped in flags) then
+          swapleftright;
+
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+
+        { initialize the result }
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register := cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
+
+        if (location.size <> right.location.size) or
+           not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
+           (not(CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]) and (nodetype = muln)) or 
+           ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,def_cgsize(resultdef))) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+
+        case right.location.loc of
+          LOC_REGISTER,
+          LOC_CREGISTER:
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.register,location.register);
+          LOC_CONSTANT:
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.value,location.register);
+          LOC_REFERENCE,
+          LOC_CREFERENCE:
+            cg.a_op_ref_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.reference,location.register);
+        else
+          internalerror(2016052101);
+        end;
+      end;
+
+
     procedure t68kaddnode.second_cmpordinal;
      var
       unsigned : boolean;
@@ -322,19 +432,25 @@ implementation
        if (right.location.loc=LOC_CONSTANT) and (right.location.value=0) then
          begin
            { Unsigned <0 or >=0 should not reach pass2, most likely }
-           case left.location.loc of
-             LOC_REFERENCE,
-             LOC_CREFERENCE:
-               begin
-                 href:=left.location.reference;
-                 tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
-                 current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,opsize,href));
-                 location_freetemp(current_asmdata.CurrAsmList,left.location);
-               end;
+           if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and not needs_unaligned(left.location.reference.alignment,cmpsize) then
+             begin
+               href:=left.location.reference;
+               tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+               current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,opsize,href));
+               location_freetemp(current_asmdata.CurrAsmList,left.location);
+             end
            else
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,opsize,left.location.register));
-           end;
+             begin
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+               if (current_settings.cputype = cpu_mc68000) and isaddressregister(left.location.register) then
+                 begin
+                   tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,cmpsize);
+                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,cmpsize,left.location.register,tmpreg);
+                 end
+               else
+                 tmpreg:=left.location.register;
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,opsize,tmpreg));
+             end;
            location.resflags := getresflags(unsigned);
            exit;
          end;
@@ -361,6 +477,10 @@ implementation
                toggleflag(nf_swapped);
              end;
          end;
+
+       if (right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,cmpsize) then
+         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+
        { left is now in register }
        case right.location.loc of
          LOC_CONSTANT:
@@ -490,26 +610,25 @@ implementation
         if (right.location.loc=LOC_CONSTANT) and (right.location.value64=0) and
           (nodetype in [equaln,unequaln]) then
           begin
-            case left.location.loc of
-              LOC_REFERENCE,
-              LOC_CREFERENCE:
-                begin
-                  href:=left.location.reference;
-                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
-                  firstjmp64bitcmp;
-                  inc(href.offset,4);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
-                  secondjmp64bitcmp;
-                  location_freetemp(current_asmdata.CurrAsmList,left.location);
-                end;
+            if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and not needs_unaligned(left.location.reference.alignment,OS_INT) then
+              begin
+                href:=left.location.reference;
+                tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+                current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
+                firstjmp64bitcmp;
+                inc(href.offset,4);
+                current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
+                secondjmp64bitcmp;
+                location_freetemp(current_asmdata.CurrAsmList,left.location);
+              end
             else
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reglo));
-              firstjmp64bitcmp;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reghi));
-              secondjmp64bitcmp;
-            end;
+              begin
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reglo));
+                firstjmp64bitcmp;
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,left.location.register64.reghi));
+                secondjmp64bitcmp;
+              end;
             exit;
           end;
 
@@ -525,6 +644,9 @@ implementation
                 toggleflag(nf_swapped);
               end;
           end;
+
+        if (right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,OS_INT) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
         { left is now in register }
         case right.location.loc of

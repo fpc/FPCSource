@@ -490,8 +490,6 @@ interface
         case tempinfo^.location.loc of
           LOC_REFERENCE:
             begin
-              inc(location.reference.offset,offset);
-              location.reference.alignment:=newalignment(location.reference.alignment,offset);
               { ti_valid should be excluded if it's a normal temp }
             end;
           LOC_REGISTER,
@@ -516,8 +514,6 @@ interface
         tg.ChangeTempType(current_asmdata.CurrAsmList,tempinfo^.location.reference,tempinfo^.temptype);
         { adapt location }
         location.reference := ref;
-        inc(location.reference.offset,offset);
-        location.reference.alignment:=newalignment(location.reference.alignment,offset);
       end;
 
 

@@ -195,6 +195,9 @@ interface
           non-generic typename and the data is a TFPObjectList of tgenericdummyentry
           instances whereby the last one is the current top most one }
         genericdummysyms: TFPHashObjectList;
+        { contains a list of specializations for which the method bodies need
+          to be generated }
+        pendingspecializations : TFPHashObjectList;
 
         { this contains a list of units that needs to be waited for until the
           unit can be finished (code generated, etc.); this is needed to handle
@@ -585,6 +588,7 @@ implementation
         checkforwarddefs:=TFPObjectList.Create(false);
         extendeddefs:=TFPHashObjectList.Create(true);
         genericdummysyms:=tfphashobjectlist.create(true);
+        pendingspecializations:=tfphashobjectlist.create(false);
         waitingforunit:=tfpobjectlist.create(false);
         waitingunits:=tfpobjectlist.create(false);
         globalsymtable:=nil;
@@ -677,6 +681,7 @@ implementation
         FImportLibraryList.Free;
         extendeddefs.Free;
         genericdummysyms.free;
+        pendingspecializations.free;
         waitingforunit.free;
         waitingunits.free;
         stringdispose(asmprefix);
@@ -774,6 +779,8 @@ implementation
         wpoinfo:=nil;
         checkforwarddefs.free;
         checkforwarddefs:=TFPObjectList.Create(false);
+        unitimportsyms.free;
+        unitimportsyms:=TFPObjectList.Create(false);
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
         if assigned(unitmap) then
@@ -806,6 +813,8 @@ implementation
         dependent_units:=TLinkedList.Create;
         resourcefiles.Free;
         resourcefiles:=TCmdStrList.Create;
+        pendingspecializations.free;
+        pendingspecializations:=tfphashobjectlist.create(false);
         linkunitofiles.Free;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs.Free;
@@ -1049,10 +1058,6 @@ implementation
             macrosymtablestack.free;
             macrosymtablestack:=nil;
           end;
-        extendeddefs.free;
-        extendeddefs:=nil;
-        genericdummysyms.free;
-        genericdummysyms:=nil;
         waitingforunit.free;
         waitingforunit:=nil;
         localmacrosymtable.free;

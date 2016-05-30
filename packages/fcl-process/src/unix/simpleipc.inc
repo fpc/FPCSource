@@ -26,10 +26,6 @@ uses sysutils, classes, simpleipc, baseunix;
 uses baseunix;
 {$endif}
 
-{$DEFINE OSNEEDIPCINITDONE}
-
-
-
 
 ResourceString
   SErrFailedToCreatePipe = 'Failed to create named pipe: %s';
@@ -57,57 +53,6 @@ Type
 {$ifdef ipcunit}
 implementation
 {$endif}
-
-Var
-  SocketFiles : TStringList;
-
-Procedure IPCInit;
-
-begin
-end;
-
-Procedure IPCDone;
-
-Var
-  I : integer;
-  
-begin
-  if Assigned(SocketFiles) then
-    try
-      For I:=0 to SocketFiles.Count-1 do
-        DeleteFile(SocketFiles[i]);
-    finally  
-      FreeAndNil(SocketFiles);  
-    end;  
-end;
-
-
-Procedure RegisterSocketFile(Const AFileName : String);
-
-begin
-  If Not Assigned(SocketFiles) then
-    begin
-    SocketFiles:=TStringList.Create;
-    SocketFiles.Sorted:=True;
-    end;
-  SocketFiles.Add(AFileName);  
-end;
-
-Procedure UnRegisterSocketFile(Const AFileName : String);
-
-Var
-  I : Integer;
-begin
-  If Assigned(SocketFiles) then
-    begin
-    I:=SocketFiles.IndexOf(AFileName);  
-    If (I<>-1) then
-      SocketFiles.Delete(I);
-    If (SocketFiles.Count=0) then
-      FreeAndNil(SocketFiles);
-    end;
-end;
-
 
 constructor TPipeClientComm.Create(AOWner: TSimpleIPCClient);
 begin
@@ -140,7 +85,6 @@ procedure TPipeClientComm.SendMessage(MsgType : TMessagetype; AStream: TStream);
 
 Var
   Hdr : TMsgHeader;
-  P,L,Count : Integer;
 
 begin
   Hdr.Version:=MsgVersion;
@@ -180,10 +124,15 @@ end;
   ---------------------------------------------------------------------}
 
 Type
+
+  { TPipeServerComm }
+
   TPipeServerComm = Class(TIPCServerComm)
   Private
     FFileName: String;
     FStream: TFileStream;
+  Protected
+    Procedure DoReadMessage; virtual;
   Public
     Constructor Create(AOWner : TSimpleIPCServer); override;
     Procedure StartServer; override;
@@ -194,6 +143,16 @@ Type
     Property FileName : String Read FFileName;
     Property Stream : TFileStream Read FStream;
   end;
+
+procedure TPipeServerComm.DoReadMessage;
+
+Var
+  Hdr : TMsgHeader;
+
+begin
+  FStream.ReadBuffer(Hdr,SizeOf(Hdr));
+  PushMessage(Hdr,FStream);
+end;
 
 constructor TPipeServerComm.Create(AOWner: TSimpleIPCServer);
 begin
@@ -218,12 +177,10 @@ begin
     If (fpmkFifo(FFileName,438)<>0) then
       DoError(SErrFailedToCreatePipe,[FFileName]);
   FStream:=TFileStream.Create(FFileName,fmOpenReadWrite+fmShareDenyNone,Rights[Owner.Global]);
-  RegisterSocketFile(FFileName);
 end;
 
 procedure TPipeServerComm.StopServer;
 begin
-  UnregisterSocketFile(FFileName);
   FreeAndNil(FStream);
   if Not DeleteFile(FFileName) then
     DoError(SErrFailedtoRemovePipe,[FFileName]);
@@ -237,40 +194,33 @@ Var
 begin
   fpfd_zero(FDS);
   fpfd_set(FStream.Handle,FDS);
-  Result:=fpSelect(FStream.Handle+1,@FDS,Nil,Nil,TimeOut)>0;
+  Result:=False;
+  While fpSelect(FStream.Handle+1,@FDS,Nil,Nil,TimeOut)>0 do
+    begin
+    DoReadMessage;
+    Result:=True;
+    end;
 end;
 
 procedure TPipeServerComm.ReadMessage;
 
-Var
-  L,P,Count : Integer;
-  Hdr : TMsgHeader;
-  M : TStream;
 begin
-  FStream.ReadBuffer(Hdr,SizeOf(Hdr));
-  SetMsgType(Hdr.MsgType);
-  Count:=Hdr.MsgLen;
-  M:=MsgData;
-  if count > 0 then
-    begin
-    M.Size:=0;
-    M.Seek(0,soFrombeginning);
-    M.CopyFrom(FStream,Count);
-    end
-  else
-    M.Size := 0;
+  DoReadMessage;
 end;
+
 
 function TPipeServerComm.GetInstanceID: String;
 begin
   Result:=IntToStr(fpGetPID);
 end;
 
+
 { ---------------------------------------------------------------------
     Set TSimpleIPCClient / TSimpleIPCServer defaults.
   ---------------------------------------------------------------------}
+
 {$ifndef ipcunit}
-Function TSimpleIPCServer.CommClass : TIPCServerCommClass;
+function TSimpleIPCServer.CommClass: TIPCServerCommClass;
 
 begin
   if (DefaultIPCServerClass<>Nil) then
@@ -288,10 +238,6 @@ begin
 end;
 
 {$else ipcunit}
-initialization
-  IPCInit;
-  
-Finalization
-  IPCDone;  
+
 end.
 {$endif}

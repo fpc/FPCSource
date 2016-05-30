@@ -143,6 +143,7 @@
      HWINSTA = HANDLE;
      HWND = HANDLE;
      HTASK = HANDLE;
+     HRAWINPUT = HANDLE;
 
      LANGID = word;
      LCID   = DWORD;

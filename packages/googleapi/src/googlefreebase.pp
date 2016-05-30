@@ -1,19 +1,4 @@
 unit googlefreebase;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:03
 {$MODE objfpc}
 {$H+}
 
@@ -67,11 +52,11 @@ type
     Fnotable : TReconcileCandidateTypenotable;
   Protected
     //Property setters
-    Procedure Setconfidence(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setconfidence(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setlang(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setnotable(AIndex : Integer; AValue : TReconcileCandidateTypenotable); virtual;
+    Procedure Setnotable(AIndex : Integer; const AValue : TReconcileCandidateTypenotable); virtual;
   Public
   Published
     Property confidence : integer Index 0 Read Fconfidence Write Setconfidence;
@@ -92,8 +77,8 @@ type
     Fms : integer;
   Protected
     //Property setters
-    Procedure Sethits(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setms(AIndex : Integer; AValue : integer); virtual;
+    Procedure Sethits(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setms(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property hits : integer Index 0 Read Fhits Write Sethits;
@@ -135,10 +120,10 @@ type
     Fwarning : TReconcileGetTypewarningArray;
   Protected
     //Property setters
-    Procedure Setcandidate(AIndex : Integer; AValue : TReconcileGetTypecandidateArray); virtual;
-    Procedure Setcosts(AIndex : Integer; AValue : TReconcileGetTypecosts); virtual;
-    Procedure Setmatch(AIndex : Integer; AValue : TReconcileCandidate); virtual;
-    Procedure Setwarning(AIndex : Integer; AValue : TReconcileGetTypewarningArray); virtual;
+    Procedure Setcandidate(AIndex : Integer; const AValue : TReconcileGetTypecandidateArray); virtual;
+    Procedure Setcosts(AIndex : Integer; const AValue : TReconcileGetTypecosts); virtual;
+    Procedure Setmatch(AIndex : Integer; const AValue : TReconcileCandidate); virtual;
+    Procedure Setwarning(AIndex : Integer; const AValue : TReconcileGetTypewarningArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -219,7 +204,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReconcileCandidate.Setconfidence(AIndex : Integer; AValue : integer); 
+Procedure TReconcileCandidate.Setconfidence(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fconfidence=AValue) then exit;
@@ -259,7 +244,7 @@ end;
 
 
 
-Procedure TReconcileCandidate.Setnotable(AIndex : Integer; AValue : TReconcileCandidateTypenotable); 
+Procedure TReconcileCandidate.Setnotable(AIndex : Integer; const AValue : TReconcileCandidateTypenotable); 
 
 begin
   If (Fnotable=AValue) then exit;
@@ -276,7 +261,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReconcileGetTypecosts.Sethits(AIndex : Integer; AValue : integer); 
+Procedure TReconcileGetTypecosts.Sethits(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fhits=AValue) then exit;
@@ -286,7 +271,7 @@ end;
 
 
 
-Procedure TReconcileGetTypecosts.Setms(AIndex : Integer; AValue : integer); 
+Procedure TReconcileGetTypecosts.Setms(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fms=AValue) then exit;
@@ -340,7 +325,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReconcileGet.Setcandidate(AIndex : Integer; AValue : TReconcileGetTypecandidateArray); 
+Procedure TReconcileGet.Setcandidate(AIndex : Integer; const AValue : TReconcileGetTypecandidateArray); 
 
 begin
   If (Fcandidate=AValue) then exit;
@@ -350,7 +335,7 @@ end;
 
 
 
-Procedure TReconcileGet.Setcosts(AIndex : Integer; AValue : TReconcileGetTypecosts); 
+Procedure TReconcileGet.Setcosts(AIndex : Integer; const AValue : TReconcileGetTypecosts); 
 
 begin
   If (Fcosts=AValue) then exit;
@@ -360,7 +345,7 @@ end;
 
 
 
-Procedure TReconcileGet.Setmatch(AIndex : Integer; AValue : TReconcileCandidate); 
+Procedure TReconcileGet.Setmatch(AIndex : Integer; const AValue : TReconcileCandidate); 
 
 begin
   If (Fmatch=AValue) then exit;
@@ -370,7 +355,7 @@ end;
 
 
 
-Procedure TReconcileGet.Setwarning(AIndex : Integer; AValue : TReconcileGetTypewarningArray); 
+Procedure TReconcileGet.Setwarning(AIndex : Integer; const AValue : TReconcileGetTypewarningArray); 
 
 begin
   If (Fwarning=AValue) then exit;
@@ -415,7 +400,7 @@ end;
 Class Function TFreebaseAPI.APIRevision : String;
 
 begin
-  Result:='20150330';
+  Result:='20150728';
 end;
 
 Class Function TFreebaseAPI.APIID : String;
@@ -469,7 +454,7 @@ end;
 Class Function TFreebaseAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TFreebaseAPI.APIbasePath : string;
@@ -481,7 +466,7 @@ end;
 Class Function TFreebaseAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/freebase/v1/';
+  Result:='https://www.googleapis.com/freebase/v1/';
 end;
 
 Class Function TFreebaseAPI.APIProtocol : string;

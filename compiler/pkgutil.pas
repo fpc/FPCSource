@@ -639,8 +639,7 @@ implementation
       module:=tmodule(loaded_units.first);
       while assigned(module) do
         begin
-          //if not assigned(module.package) then
-          if (uf_in_library and module.flags)=0 then
+          if not assigned(module.package) then
             processimportedsyms(module.unitimportsyms);
           module:=tmodule(module.next);
         end;

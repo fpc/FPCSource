@@ -926,12 +926,7 @@ implementation
                 LOC_REGISTER,
                 LOC_CREGISTER :
                   begin
-{$ifdef m68k}
-                    location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.register,location.reference.base);
-{$else m68k}
                     hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment);
-{$endif m68k}
                   end;
                 LOC_CREFERENCE,
                 LOC_REFERENCE :

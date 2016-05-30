@@ -1,19 +1,4 @@
 unit googlegroupssettings;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:05
 {$MODE objfpc}
 {$H+}
 
@@ -55,6 +40,7 @@ type
     FsendMessageDenyNotification : String;
     FshowInGroupDirectory : String;
     FspamModerationLevel : String;
+    FwhoCanAdd : String;
     FwhoCanContactOwner : String;
     FwhoCanInvite : String;
     FwhoCanJoin : String;
@@ -75,7 +61,7 @@ type
     Procedure SetincludeInGlobalAddressList(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisArchived(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaxMessageBytes(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetmaxMessageBytes(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetmembersCanPostAsTheGroup(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmessageDisplayFont(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmessageModerationLevel(AIndex : Integer; const AValue : String); virtual;
@@ -85,6 +71,7 @@ type
     Procedure SetsendMessageDenyNotification(AIndex : Integer; const AValue : String); virtual;
     Procedure SetshowInGroupDirectory(AIndex : Integer; const AValue : String); virtual;
     Procedure SetspamModerationLevel(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwhoCanAdd(AIndex : Integer; const AValue : String); virtual;
     Procedure SetwhoCanContactOwner(AIndex : Integer; const AValue : String); virtual;
     Procedure SetwhoCanInvite(AIndex : Integer; const AValue : String); virtual;
     Procedure SetwhoCanJoin(AIndex : Integer; const AValue : String); virtual;
@@ -115,13 +102,14 @@ type
     Property sendMessageDenyNotification : String Index 144 Read FsendMessageDenyNotification Write SetsendMessageDenyNotification;
     Property showInGroupDirectory : String Index 152 Read FshowInGroupDirectory Write SetshowInGroupDirectory;
     Property spamModerationLevel : String Index 160 Read FspamModerationLevel Write SetspamModerationLevel;
-    Property whoCanContactOwner : String Index 168 Read FwhoCanContactOwner Write SetwhoCanContactOwner;
-    Property whoCanInvite : String Index 176 Read FwhoCanInvite Write SetwhoCanInvite;
-    Property whoCanJoin : String Index 184 Read FwhoCanJoin Write SetwhoCanJoin;
-    Property whoCanLeaveGroup : String Index 192 Read FwhoCanLeaveGroup Write SetwhoCanLeaveGroup;
-    Property whoCanPostMessage : String Index 200 Read FwhoCanPostMessage Write SetwhoCanPostMessage;
-    Property whoCanViewGroup : String Index 208 Read FwhoCanViewGroup Write SetwhoCanViewGroup;
-    Property whoCanViewMembership : String Index 216 Read FwhoCanViewMembership Write SetwhoCanViewMembership;
+    Property whoCanAdd : String Index 168 Read FwhoCanAdd Write SetwhoCanAdd;
+    Property whoCanContactOwner : String Index 176 Read FwhoCanContactOwner Write SetwhoCanContactOwner;
+    Property whoCanInvite : String Index 184 Read FwhoCanInvite Write SetwhoCanInvite;
+    Property whoCanJoin : String Index 192 Read FwhoCanJoin Write SetwhoCanJoin;
+    Property whoCanLeaveGroup : String Index 200 Read FwhoCanLeaveGroup Write SetwhoCanLeaveGroup;
+    Property whoCanPostMessage : String Index 208 Read FwhoCanPostMessage Write SetwhoCanPostMessage;
+    Property whoCanViewGroup : String Index 216 Read FwhoCanViewGroup Write SetwhoCanViewGroup;
+    Property whoCanViewMembership : String Index 224 Read FwhoCanViewMembership Write SetwhoCanViewMembership;
   end;
   TGroupsClass = Class of TGroups;
   
@@ -294,7 +282,7 @@ end;
 
 
 
-Procedure TGroups.SetmaxMessageBytes(AIndex : Integer; AValue : integer); 
+Procedure TGroups.SetmaxMessageBytes(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxMessageBytes=AValue) then exit;
@@ -389,6 +377,16 @@ Procedure TGroups.SetspamModerationLevel(AIndex : Integer; const AValue : String
 begin
   If (FspamModerationLevel=AValue) then exit;
   FspamModerationLevel:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TGroups.SetwhoCanAdd(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FwhoCanAdd=AValue) then exit;
+  FwhoCanAdd:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -549,7 +547,7 @@ end;
 Class Function TGroupssettingsAPI.APIRevision : String;
 
 begin
-  Result:='20140428';
+  Result:='20160323';
 end;
 
 Class Function TGroupssettingsAPI.APIID : String;
@@ -603,7 +601,7 @@ end;
 Class Function TGroupssettingsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TGroupssettingsAPI.APIbasePath : string;
@@ -615,7 +613,7 @@ end;
 Class Function TGroupssettingsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/groups/v1/groups/';
+  Result:='https://www.googleapis.com/groups/v1/groups/';
 end;
 
 Class Function TGroupssettingsAPI.APIProtocol : string;

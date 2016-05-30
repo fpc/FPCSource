@@ -44,6 +44,8 @@ Function AnsiEndsStr(const ASubText, AText: string): Boolean;
 Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;inline;
 Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;inline;
 Function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
+Function MatchStr(const AText: UnicodeString; const AValues: array of UnicodeString): Boolean;
+Function IndexStr(const AText: UnicodeString; const AValues: array of UnicodeString): Integer;
 
 { ---------------------------------------------------------------------
     Miscellaneous
@@ -977,6 +979,24 @@ begin
        exit(i);                                 // make sure it is the first val.
 end;
 
+
+Function MatchStr(const AText: UnicodeString; const AValues: array of UnicodeString): Boolean;
+begin
+  Result := IndexStr(AText,AValues) <> -1;
+end;
+
+
+Function IndexStr(const AText: UnicodeString; const AValues: array of UnicodeString): Integer;
+var
+  i: longint;
+begin
+  Result := -1;
+  if (high(AValues) = -1) or (High(AValues) > MaxInt) Then
+    Exit;
+  for i := low(AValues) to High(Avalues) do
+     if (avalues[i] = AText) Then
+       exit(i);                                 // make sure it is the first val.
+end;
 
 { ---------------------------------------------------------------------
     Playthingies

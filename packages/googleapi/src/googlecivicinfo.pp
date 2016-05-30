@@ -1,19 +1,4 @@
 unit googlecivicinfo;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:00
 {$MODE objfpc}
 {$H+}
 
@@ -102,11 +87,11 @@ type
     Fsources : TAdministrationRegionTypesourcesArray;
   Protected
     //Property setters
-    Procedure SetelectionAdministrationBody(AIndex : Integer; AValue : TAdministrativeBody); virtual;
+    Procedure SetelectionAdministrationBody(AIndex : Integer; const AValue : TAdministrativeBody); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlocal_jurisdiction(AIndex : Integer; AValue : TAdministrationRegion); virtual;
+    Procedure Setlocal_jurisdiction(AIndex : Integer; const AValue : TAdministrationRegion); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsources(AIndex : Integer; AValue : TAdministrationRegionTypesourcesArray); virtual;
+    Procedure Setsources(AIndex : Integer; const AValue : TAdministrationRegionTypesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -144,16 +129,16 @@ type
     //Property setters
     Procedure SetabsenteeVotingInfoUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetballotInfoUrl(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcorrespondenceAddress(AIndex : Integer; AValue : TSimpleAddressType); virtual;
+    Procedure SetcorrespondenceAddress(AIndex : Integer; const AValue : TSimpleAddressType); virtual;
     Procedure SetelectionInfoUrl(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetelectionOfficials(AIndex : Integer; AValue : TAdministrativeBodyTypeelectionOfficialsArray); virtual;
+    Procedure SetelectionOfficials(AIndex : Integer; const AValue : TAdministrativeBodyTypeelectionOfficialsArray); virtual;
     Procedure SetelectionRegistrationConfirmationUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetelectionRegistrationUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetelectionRulesUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SethoursOfOperation(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetphysicalAddress(AIndex : Integer; AValue : TSimpleAddressType); virtual;
-    Procedure Setvoter_services(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetphysicalAddress(AIndex : Integer; const AValue : TSimpleAddressType); virtual;
+    Procedure Setvoter_services(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetvotingLocationFinderUrl(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -194,7 +179,7 @@ type
   Protected
     //Property setters
     Procedure SetcandidateUrl(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setchannels(AIndex : Integer; AValue : TCandidateTypechannelsArray); virtual;
+    Procedure Setchannels(AIndex : Integer; const AValue : TCandidateTypechannelsArray); virtual;
     Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetorderOnBallot(AIndex : Integer; const AValue : String); virtual;
@@ -254,7 +239,14 @@ type
     FnumberVotingFor : String;
     Foffice : String;
     FprimaryParty : String;
+    FreferendumBallotResponses : TStringArray;
+    FreferendumBrief : String;
+    FreferendumConStatement : String;
+    FreferendumEffectOfAbstain : String;
+    FreferendumPassageThreshold : String;
+    FreferendumProStatement : String;
     FreferendumSubtitle : String;
+    FreferendumText : String;
     FreferendumTitle : String;
     FreferendumUrl : String;
     Froles : TStringArray;
@@ -265,20 +257,27 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure SetballotPlacement(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setcandidates(AIndex : Integer; AValue : TContestTypecandidatesArray); virtual;
-    Procedure Setdistrict(AIndex : Integer; AValue : TElectoralDistrict); virtual;
+    Procedure Setcandidates(AIndex : Integer; const AValue : TContestTypecandidatesArray); virtual;
+    Procedure Setdistrict(AIndex : Integer; const AValue : TElectoralDistrict); virtual;
     Procedure SetelectorateSpecifications(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlevel(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setlevel(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetnumberElected(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnumberVotingFor(AIndex : Integer; const AValue : String); virtual;
     Procedure Setoffice(AIndex : Integer; const AValue : String); virtual;
     Procedure SetprimaryParty(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumBallotResponses(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetreferendumBrief(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumConStatement(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumEffectOfAbstain(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumPassageThreshold(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumProStatement(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreferendumSubtitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferendumText(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreferendumTitle(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreferendumUrl(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setroles(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setsources(AIndex : Integer; AValue : TContestTypesourcesArray); virtual;
+    Procedure Setroles(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setsources(AIndex : Integer; const AValue : TContestTypesourcesArray); virtual;
     Procedure Setspecial(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -297,13 +296,20 @@ type
     Property numberVotingFor : String Index 56 Read FnumberVotingFor Write SetnumberVotingFor;
     Property office : String Index 64 Read Foffice Write Setoffice;
     Property primaryParty : String Index 72 Read FprimaryParty Write SetprimaryParty;
-    Property referendumSubtitle : String Index 80 Read FreferendumSubtitle Write SetreferendumSubtitle;
-    Property referendumTitle : String Index 88 Read FreferendumTitle Write SetreferendumTitle;
-    Property referendumUrl : String Index 96 Read FreferendumUrl Write SetreferendumUrl;
-    Property roles : TStringArray Index 104 Read Froles Write Setroles;
-    Property sources : TContestTypesourcesArray Index 112 Read Fsources Write Setsources;
-    Property special : String Index 120 Read Fspecial Write Setspecial;
-    Property _type : String Index 128 Read F_type Write Set_type;
+    Property referendumBallotResponses : TStringArray Index 80 Read FreferendumBallotResponses Write SetreferendumBallotResponses;
+    Property referendumBrief : String Index 88 Read FreferendumBrief Write SetreferendumBrief;
+    Property referendumConStatement : String Index 96 Read FreferendumConStatement Write SetreferendumConStatement;
+    Property referendumEffectOfAbstain : String Index 104 Read FreferendumEffectOfAbstain Write SetreferendumEffectOfAbstain;
+    Property referendumPassageThreshold : String Index 112 Read FreferendumPassageThreshold Write SetreferendumPassageThreshold;
+    Property referendumProStatement : String Index 120 Read FreferendumProStatement Write SetreferendumProStatement;
+    Property referendumSubtitle : String Index 128 Read FreferendumSubtitle Write SetreferendumSubtitle;
+    Property referendumText : String Index 136 Read FreferendumText Write SetreferendumText;
+    Property referendumTitle : String Index 144 Read FreferendumTitle Write SetreferendumTitle;
+    Property referendumUrl : String Index 152 Read FreferendumUrl Write SetreferendumUrl;
+    Property roles : TStringArray Index 160 Read Froles Write Setroles;
+    Property sources : TContestTypesourcesArray Index 168 Read Fsources Write Setsources;
+    Property special : String Index 176 Read Fspecial Write Setspecial;
+    Property _type : String Index 184 Read F_type Write Set_type;
   end;
   TContestClass = Class of TContest;
   
@@ -318,7 +324,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setresults(AIndex : Integer; AValue : TDivisionSearchResponseTyperesultsArray); virtual;
+    Procedure Setresults(AIndex : Integer; const AValue : TDivisionSearchResponseTyperesultsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -341,7 +347,7 @@ type
     FocdId : String;
   Protected
     //Property setters
-    Procedure Setaliases(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setaliases(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetocdId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -365,16 +371,19 @@ type
     FelectionDay : String;
     Fid : String;
     Fname : String;
+    FocdDivisionId : String;
   Protected
     //Property setters
     Procedure SetelectionDay(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetocdDivisionId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property electionDay : String Index 0 Read FelectionDay Write SetelectionDay;
     Property id : String Index 8 Read Fid Write Setid;
     Property name : String Index 16 Read Fname Write Setname;
+    Property ocdDivisionId : String Index 24 Read FocdDivisionId Write SetocdDivisionId;
   end;
   TElectionClass = Class of TElection;
   
@@ -416,7 +425,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setelections(AIndex : Integer; AValue : TElectionsQueryResponseTypeelectionsArray); virtual;
+    Procedure Setelections(AIndex : Integer; const AValue : TElectionsQueryResponseTypeelectionsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -462,9 +471,9 @@ type
     FofficeIndices : TintegerArray;
   Protected
     //Property setters
-    Procedure SetalsoKnownAs(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetalsoKnownAs(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetofficeIndices(AIndex : Integer; AValue : TintegerArray); virtual;
+    Procedure SetofficeIndices(AIndex : Integer; const AValue : TintegerArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -492,11 +501,11 @@ type
   Protected
     //Property setters
     Procedure SetdivisionId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlevels(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setlevels(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetofficialIndices(AIndex : Integer; AValue : TintegerArray); virtual;
-    Procedure Setroles(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setsources(AIndex : Integer; AValue : TOfficeTypesourcesArray); virtual;
+    Procedure SetofficialIndices(AIndex : Integer; const AValue : TintegerArray); virtual;
+    Procedure Setroles(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setsources(AIndex : Integer; const AValue : TOfficeTypesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -528,14 +537,14 @@ type
     Furls : TStringArray;
   Protected
     //Property setters
-    Procedure Setaddress(AIndex : Integer; AValue : TOfficialTypeaddressArray); virtual;
-    Procedure Setchannels(AIndex : Integer; AValue : TOfficialTypechannelsArray); virtual;
-    Procedure Setemails(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setaddress(AIndex : Integer; const AValue : TOfficialTypeaddressArray); virtual;
+    Procedure Setchannels(AIndex : Integer; const AValue : TOfficialTypechannelsArray); virtual;
+    Procedure Setemails(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparty(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setphones(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setphones(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetphotoUrl(AIndex : Integer; const AValue : String); virtual;
-    Procedure Seturls(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Seturls(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -570,13 +579,13 @@ type
     FvoterServices : String;
   Protected
     //Property setters
-    Procedure Setaddress(AIndex : Integer; AValue : TSimpleAddressType); virtual;
+    Procedure Setaddress(AIndex : Integer; const AValue : TSimpleAddressType); virtual;
     Procedure SetendDate(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpollingHours(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsources(AIndex : Integer; AValue : TPollingLocationTypesourcesArray); virtual;
+    Procedure Setsources(AIndex : Integer; const AValue : TPollingLocationTypesourcesArray); virtual;
     Procedure SetstartDate(AIndex : Integer; const AValue : String); virtual;
     Procedure SetvoterServices(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -622,9 +631,9 @@ type
     Fofficials : TRepresentativeInfoDataTypeofficialsArray;
   Protected
     //Property setters
-    Procedure Setdivisions(AIndex : Integer; AValue : TRepresentativeInfoDataTypedivisions); virtual;
-    Procedure Setoffices(AIndex : Integer; AValue : TRepresentativeInfoDataTypeofficesArray); virtual;
-    Procedure Setofficials(AIndex : Integer; AValue : TRepresentativeInfoDataTypeofficialsArray); virtual;
+    Procedure Setdivisions(AIndex : Integer; const AValue : TRepresentativeInfoDataTypedivisions); virtual;
+    Procedure Setoffices(AIndex : Integer; const AValue : TRepresentativeInfoDataTypeofficesArray); virtual;
+    Procedure Setofficials(AIndex : Integer; const AValue : TRepresentativeInfoDataTypeofficialsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -664,11 +673,11 @@ type
     Fofficials : TRepresentativeInfoResponseTypeofficialsArray;
   Protected
     //Property setters
-    Procedure Setdivisions(AIndex : Integer; AValue : TRepresentativeInfoResponseTypedivisions); virtual;
+    Procedure Setdivisions(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypedivisions); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnormalizedInput(AIndex : Integer; AValue : TSimpleAddressType); virtual;
-    Procedure Setoffices(AIndex : Integer; AValue : TRepresentativeInfoResponseTypeofficesArray); virtual;
-    Procedure Setofficials(AIndex : Integer; AValue : TRepresentativeInfoResponseTypeofficialsArray); virtual;
+    Procedure SetnormalizedInput(AIndex : Integer; const AValue : TSimpleAddressType); virtual;
+    Procedure Setoffices(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypeofficesArray); virtual;
+    Procedure Setofficials(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypeofficialsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -728,7 +737,7 @@ type
   Protected
     //Property setters
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setofficial(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setofficial(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -747,6 +756,7 @@ type
     FearlyVoteSites : TVoterInfoResponseTypeearlyVoteSitesArray;
     Felection : TElection;
     Fkind : String;
+    FmailOnly : boolean;
     FnormalizedInput : TSimpleAddressType;
     FotherElections : TVoterInfoResponseTypeotherElectionsArray;
     FpollingLocations : TVoterInfoResponseTypepollingLocationsArray;
@@ -754,16 +764,17 @@ type
     Fstate : TVoterInfoResponseTypestateArray;
   Protected
     //Property setters
-    Procedure Setcontests(AIndex : Integer; AValue : TVoterInfoResponseTypecontestsArray); virtual;
-    Procedure SetdropOffLocations(AIndex : Integer; AValue : TVoterInfoResponseTypedropOffLocationsArray); virtual;
-    Procedure SetearlyVoteSites(AIndex : Integer; AValue : TVoterInfoResponseTypeearlyVoteSitesArray); virtual;
-    Procedure Setelection(AIndex : Integer; AValue : TElection); virtual;
+    Procedure Setcontests(AIndex : Integer; const AValue : TVoterInfoResponseTypecontestsArray); virtual;
+    Procedure SetdropOffLocations(AIndex : Integer; const AValue : TVoterInfoResponseTypedropOffLocationsArray); virtual;
+    Procedure SetearlyVoteSites(AIndex : Integer; const AValue : TVoterInfoResponseTypeearlyVoteSitesArray); virtual;
+    Procedure Setelection(AIndex : Integer; const AValue : TElection); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnormalizedInput(AIndex : Integer; AValue : TSimpleAddressType); virtual;
-    Procedure SetotherElections(AIndex : Integer; AValue : TVoterInfoResponseTypeotherElectionsArray); virtual;
-    Procedure SetpollingLocations(AIndex : Integer; AValue : TVoterInfoResponseTypepollingLocationsArray); virtual;
+    Procedure SetmailOnly(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetnormalizedInput(AIndex : Integer; const AValue : TSimpleAddressType); virtual;
+    Procedure SetotherElections(AIndex : Integer; const AValue : TVoterInfoResponseTypeotherElectionsArray); virtual;
+    Procedure SetpollingLocations(AIndex : Integer; const AValue : TVoterInfoResponseTypepollingLocationsArray); virtual;
     Procedure SetprecinctId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : TVoterInfoResponseTypestateArray); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : TVoterInfoResponseTypestateArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -775,11 +786,12 @@ type
     Property earlyVoteSites : TVoterInfoResponseTypeearlyVoteSitesArray Index 16 Read FearlyVoteSites Write SetearlyVoteSites;
     Property election : TElection Index 24 Read Felection Write Setelection;
     Property kind : String Index 32 Read Fkind Write Setkind;
-    Property normalizedInput : TSimpleAddressType Index 40 Read FnormalizedInput Write SetnormalizedInput;
-    Property otherElections : TVoterInfoResponseTypeotherElectionsArray Index 48 Read FotherElections Write SetotherElections;
-    Property pollingLocations : TVoterInfoResponseTypepollingLocationsArray Index 56 Read FpollingLocations Write SetpollingLocations;
-    Property precinctId : String Index 64 Read FprecinctId Write SetprecinctId;
-    Property state : TVoterInfoResponseTypestateArray Index 72 Read Fstate Write Setstate;
+    Property mailOnly : boolean Index 40 Read FmailOnly Write SetmailOnly;
+    Property normalizedInput : TSimpleAddressType Index 48 Read FnormalizedInput Write SetnormalizedInput;
+    Property otherElections : TVoterInfoResponseTypeotherElectionsArray Index 56 Read FotherElections Write SetotherElections;
+    Property pollingLocations : TVoterInfoResponseTypepollingLocationsArray Index 64 Read FpollingLocations Write SetpollingLocations;
+    Property precinctId : String Index 72 Read FprecinctId Write SetprecinctId;
+    Property state : TVoterInfoResponseTypestateArray Index 80 Read Fstate Write Setstate;
   end;
   TVoterInfoResponseClass = Class of TVoterInfoResponse;
   
@@ -915,7 +927,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAdministrationRegion.SetelectionAdministrationBody(AIndex : Integer; AValue : TAdministrativeBody); 
+Procedure TAdministrationRegion.SetelectionAdministrationBody(AIndex : Integer; const AValue : TAdministrativeBody); 
 
 begin
   If (FelectionAdministrationBody=AValue) then exit;
@@ -935,7 +947,7 @@ end;
 
 
 
-Procedure TAdministrationRegion.Setlocal_jurisdiction(AIndex : Integer; AValue : TAdministrationRegion); 
+Procedure TAdministrationRegion.Setlocal_jurisdiction(AIndex : Integer; const AValue : TAdministrationRegion); 
 
 begin
   If (Flocal_jurisdiction=AValue) then exit;
@@ -955,7 +967,7 @@ end;
 
 
 
-Procedure TAdministrationRegion.Setsources(AIndex : Integer; AValue : TAdministrationRegionTypesourcesArray); 
+Procedure TAdministrationRegion.Setsources(AIndex : Integer; const AValue : TAdministrationRegionTypesourcesArray); 
 
 begin
   If (Fsources=AValue) then exit;
@@ -1005,7 +1017,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetcorrespondenceAddress(AIndex : Integer; AValue : TSimpleAddressType); 
+Procedure TAdministrativeBody.SetcorrespondenceAddress(AIndex : Integer; const AValue : TSimpleAddressType); 
 
 begin
   If (FcorrespondenceAddress=AValue) then exit;
@@ -1025,7 +1037,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetelectionOfficials(AIndex : Integer; AValue : TAdministrativeBodyTypeelectionOfficialsArray); 
+Procedure TAdministrativeBody.SetelectionOfficials(AIndex : Integer; const AValue : TAdministrativeBodyTypeelectionOfficialsArray); 
 
 begin
   If (FelectionOfficials=AValue) then exit;
@@ -1085,7 +1097,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.SetphysicalAddress(AIndex : Integer; AValue : TSimpleAddressType); 
+Procedure TAdministrativeBody.SetphysicalAddress(AIndex : Integer; const AValue : TSimpleAddressType); 
 
 begin
   If (FphysicalAddress=AValue) then exit;
@@ -1095,7 +1107,7 @@ end;
 
 
 
-Procedure TAdministrativeBody.Setvoter_services(AIndex : Integer; AValue : TStringArray); 
+Procedure TAdministrativeBody.Setvoter_services(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fvoter_services=AValue) then exit;
@@ -1146,7 +1158,7 @@ end;
 
 
 
-Procedure TCandidate.Setchannels(AIndex : Integer; AValue : TCandidateTypechannelsArray); 
+Procedure TCandidate.Setchannels(AIndex : Integer; const AValue : TCandidateTypechannelsArray); 
 
 begin
   If (Fchannels=AValue) then exit;
@@ -1284,7 +1296,7 @@ end;
 
 
 
-Procedure TContest.Setcandidates(AIndex : Integer; AValue : TContestTypecandidatesArray); 
+Procedure TContest.Setcandidates(AIndex : Integer; const AValue : TContestTypecandidatesArray); 
 
 begin
   If (Fcandidates=AValue) then exit;
@@ -1294,7 +1306,7 @@ end;
 
 
 
-Procedure TContest.Setdistrict(AIndex : Integer; AValue : TElectoralDistrict); 
+Procedure TContest.Setdistrict(AIndex : Integer; const AValue : TElectoralDistrict); 
 
 begin
   If (Fdistrict=AValue) then exit;
@@ -1324,7 +1336,7 @@ end;
 
 
 
-Procedure TContest.Setlevel(AIndex : Integer; AValue : TStringArray); 
+Procedure TContest.Setlevel(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Flevel=AValue) then exit;
@@ -1374,11 +1386,81 @@ end;
 
 
 
+Procedure TContest.SetreferendumBallotResponses(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FreferendumBallotResponses=AValue) then exit;
+  FreferendumBallotResponses:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumBrief(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumBrief=AValue) then exit;
+  FreferendumBrief:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumConStatement(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumConStatement=AValue) then exit;
+  FreferendumConStatement:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumEffectOfAbstain(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumEffectOfAbstain=AValue) then exit;
+  FreferendumEffectOfAbstain:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumPassageThreshold(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumPassageThreshold=AValue) then exit;
+  FreferendumPassageThreshold:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumProStatement(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumProStatement=AValue) then exit;
+  FreferendumProStatement:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TContest.SetreferendumSubtitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferendumSubtitle=AValue) then exit;
   FreferendumSubtitle:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContest.SetreferendumText(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreferendumText=AValue) then exit;
+  FreferendumText:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -1404,7 +1486,7 @@ end;
 
 
 
-Procedure TContest.Setroles(AIndex : Integer; AValue : TStringArray); 
+Procedure TContest.Setroles(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Froles=AValue) then exit;
@@ -1414,7 +1496,7 @@ end;
 
 
 
-Procedure TContest.Setsources(AIndex : Integer; AValue : TContestTypesourcesArray); 
+Procedure TContest.Setsources(AIndex : Integer; const AValue : TContestTypesourcesArray); 
 
 begin
   If (Fsources=AValue) then exit;
@@ -1462,6 +1544,7 @@ begin
   Case AName of
   'candidates' : SetLength(Fcandidates,ALength);
   'level' : SetLength(Flevel,ALength);
+  'referendumballotresponses' : SetLength(FreferendumBallotResponses,ALength);
   'roles' : SetLength(Froles,ALength);
   'sources' : SetLength(Fsources,ALength);
   else
@@ -1488,7 +1571,7 @@ end;
 
 
 
-Procedure TDivisionSearchResponse.Setresults(AIndex : Integer; AValue : TDivisionSearchResponseTyperesultsArray); 
+Procedure TDivisionSearchResponse.Setresults(AIndex : Integer; const AValue : TDivisionSearchResponseTyperesultsArray); 
 
 begin
   If (Fresults=AValue) then exit;
@@ -1518,7 +1601,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDivisionSearchResult.Setaliases(AIndex : Integer; AValue : TStringArray); 
+Procedure TDivisionSearchResult.Setaliases(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Faliases=AValue) then exit;
@@ -1598,6 +1681,16 @@ end;
 
 
 
+Procedure TElection.SetocdDivisionId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FocdDivisionId=AValue) then exit;
+  FocdDivisionId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 
 
 { --------------------------------------------------------------------
@@ -1662,7 +1755,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TElectionsQueryResponse.Setelections(AIndex : Integer; AValue : TElectionsQueryResponseTypeelectionsArray); 
+Procedure TElectionsQueryResponse.Setelections(AIndex : Integer; const AValue : TElectionsQueryResponseTypeelectionsArray); 
 
 begin
   If (Felections=AValue) then exit;
@@ -1739,7 +1832,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeographicDivision.SetalsoKnownAs(AIndex : Integer; AValue : TStringArray); 
+Procedure TGeographicDivision.SetalsoKnownAs(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FalsoKnownAs=AValue) then exit;
@@ -1759,7 +1852,7 @@ end;
 
 
 
-Procedure TGeographicDivision.SetofficeIndices(AIndex : Integer; AValue : TintegerArray); 
+Procedure TGeographicDivision.SetofficeIndices(AIndex : Integer; const AValue : TintegerArray); 
 
 begin
   If (FofficeIndices=AValue) then exit;
@@ -1800,7 +1893,7 @@ end;
 
 
 
-Procedure TOffice.Setlevels(AIndex : Integer; AValue : TStringArray); 
+Procedure TOffice.Setlevels(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Flevels=AValue) then exit;
@@ -1820,7 +1913,7 @@ end;
 
 
 
-Procedure TOffice.SetofficialIndices(AIndex : Integer; AValue : TintegerArray); 
+Procedure TOffice.SetofficialIndices(AIndex : Integer; const AValue : TintegerArray); 
 
 begin
   If (FofficialIndices=AValue) then exit;
@@ -1830,7 +1923,7 @@ end;
 
 
 
-Procedure TOffice.Setroles(AIndex : Integer; AValue : TStringArray); 
+Procedure TOffice.Setroles(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Froles=AValue) then exit;
@@ -1840,7 +1933,7 @@ end;
 
 
 
-Procedure TOffice.Setsources(AIndex : Integer; AValue : TOfficeTypesourcesArray); 
+Procedure TOffice.Setsources(AIndex : Integer; const AValue : TOfficeTypesourcesArray); 
 
 begin
   If (Fsources=AValue) then exit;
@@ -1873,7 +1966,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOfficial.Setaddress(AIndex : Integer; AValue : TOfficialTypeaddressArray); 
+Procedure TOfficial.Setaddress(AIndex : Integer; const AValue : TOfficialTypeaddressArray); 
 
 begin
   If (Faddress=AValue) then exit;
@@ -1883,7 +1976,7 @@ end;
 
 
 
-Procedure TOfficial.Setchannels(AIndex : Integer; AValue : TOfficialTypechannelsArray); 
+Procedure TOfficial.Setchannels(AIndex : Integer; const AValue : TOfficialTypechannelsArray); 
 
 begin
   If (Fchannels=AValue) then exit;
@@ -1893,7 +1986,7 @@ end;
 
 
 
-Procedure TOfficial.Setemails(AIndex : Integer; AValue : TStringArray); 
+Procedure TOfficial.Setemails(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Femails=AValue) then exit;
@@ -1923,7 +2016,7 @@ end;
 
 
 
-Procedure TOfficial.Setphones(AIndex : Integer; AValue : TStringArray); 
+Procedure TOfficial.Setphones(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fphones=AValue) then exit;
@@ -1943,7 +2036,7 @@ end;
 
 
 
-Procedure TOfficial.Seturls(AIndex : Integer; AValue : TStringArray); 
+Procedure TOfficial.Seturls(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Furls=AValue) then exit;
@@ -1977,7 +2070,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPollingLocation.Setaddress(AIndex : Integer; AValue : TSimpleAddressType); 
+Procedure TPollingLocation.Setaddress(AIndex : Integer; const AValue : TSimpleAddressType); 
 
 begin
   If (Faddress=AValue) then exit;
@@ -2037,7 +2130,7 @@ end;
 
 
 
-Procedure TPollingLocation.Setsources(AIndex : Integer; AValue : TPollingLocationTypesourcesArray); 
+Procedure TPollingLocation.Setsources(AIndex : Integer; const AValue : TPollingLocationTypesourcesArray); 
 
 begin
   If (Fsources=AValue) then exit;
@@ -2100,7 +2193,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRepresentativeInfoData.Setdivisions(AIndex : Integer; AValue : TRepresentativeInfoDataTypedivisions); 
+Procedure TRepresentativeInfoData.Setdivisions(AIndex : Integer; const AValue : TRepresentativeInfoDataTypedivisions); 
 
 begin
   If (Fdivisions=AValue) then exit;
@@ -2110,7 +2203,7 @@ end;
 
 
 
-Procedure TRepresentativeInfoData.Setoffices(AIndex : Integer; AValue : TRepresentativeInfoDataTypeofficesArray); 
+Procedure TRepresentativeInfoData.Setoffices(AIndex : Integer; const AValue : TRepresentativeInfoDataTypeofficesArray); 
 
 begin
   If (Foffices=AValue) then exit;
@@ -2120,7 +2213,7 @@ end;
 
 
 
-Procedure TRepresentativeInfoData.Setofficials(AIndex : Integer; AValue : TRepresentativeInfoDataTypeofficialsArray); 
+Procedure TRepresentativeInfoData.Setofficials(AIndex : Integer; const AValue : TRepresentativeInfoDataTypeofficialsArray); 
 
 begin
   If (Fofficials=AValue) then exit;
@@ -2164,7 +2257,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRepresentativeInfoResponse.Setdivisions(AIndex : Integer; AValue : TRepresentativeInfoResponseTypedivisions); 
+Procedure TRepresentativeInfoResponse.Setdivisions(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypedivisions); 
 
 begin
   If (Fdivisions=AValue) then exit;
@@ -2184,7 +2277,7 @@ end;
 
 
 
-Procedure TRepresentativeInfoResponse.SetnormalizedInput(AIndex : Integer; AValue : TSimpleAddressType); 
+Procedure TRepresentativeInfoResponse.SetnormalizedInput(AIndex : Integer; const AValue : TSimpleAddressType); 
 
 begin
   If (FnormalizedInput=AValue) then exit;
@@ -2194,7 +2287,7 @@ end;
 
 
 
-Procedure TRepresentativeInfoResponse.Setoffices(AIndex : Integer; AValue : TRepresentativeInfoResponseTypeofficesArray); 
+Procedure TRepresentativeInfoResponse.Setoffices(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypeofficesArray); 
 
 begin
   If (Foffices=AValue) then exit;
@@ -2204,7 +2297,7 @@ end;
 
 
 
-Procedure TRepresentativeInfoResponse.Setofficials(AIndex : Integer; AValue : TRepresentativeInfoResponseTypeofficialsArray); 
+Procedure TRepresentativeInfoResponse.Setofficials(AIndex : Integer; const AValue : TRepresentativeInfoResponseTypeofficialsArray); 
 
 begin
   If (Fofficials=AValue) then exit;
@@ -2322,7 +2415,7 @@ end;
 
 
 
-Procedure TSource.Setofficial(AIndex : Integer; AValue : boolean); 
+Procedure TSource.Setofficial(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fofficial=AValue) then exit;
@@ -2339,7 +2432,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVoterInfoResponse.Setcontests(AIndex : Integer; AValue : TVoterInfoResponseTypecontestsArray); 
+Procedure TVoterInfoResponse.Setcontests(AIndex : Integer; const AValue : TVoterInfoResponseTypecontestsArray); 
 
 begin
   If (Fcontests=AValue) then exit;
@@ -2349,7 +2442,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.SetdropOffLocations(AIndex : Integer; AValue : TVoterInfoResponseTypedropOffLocationsArray); 
+Procedure TVoterInfoResponse.SetdropOffLocations(AIndex : Integer; const AValue : TVoterInfoResponseTypedropOffLocationsArray); 
 
 begin
   If (FdropOffLocations=AValue) then exit;
@@ -2359,7 +2452,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.SetearlyVoteSites(AIndex : Integer; AValue : TVoterInfoResponseTypeearlyVoteSitesArray); 
+Procedure TVoterInfoResponse.SetearlyVoteSites(AIndex : Integer; const AValue : TVoterInfoResponseTypeearlyVoteSitesArray); 
 
 begin
   If (FearlyVoteSites=AValue) then exit;
@@ -2369,7 +2462,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.Setelection(AIndex : Integer; AValue : TElection); 
+Procedure TVoterInfoResponse.Setelection(AIndex : Integer; const AValue : TElection); 
 
 begin
   If (Felection=AValue) then exit;
@@ -2389,7 +2482,17 @@ end;
 
 
 
-Procedure TVoterInfoResponse.SetnormalizedInput(AIndex : Integer; AValue : TSimpleAddressType); 
+Procedure TVoterInfoResponse.SetmailOnly(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FmailOnly=AValue) then exit;
+  FmailOnly:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TVoterInfoResponse.SetnormalizedInput(AIndex : Integer; const AValue : TSimpleAddressType); 
 
 begin
   If (FnormalizedInput=AValue) then exit;
@@ -2399,7 +2502,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.SetotherElections(AIndex : Integer; AValue : TVoterInfoResponseTypeotherElectionsArray); 
+Procedure TVoterInfoResponse.SetotherElections(AIndex : Integer; const AValue : TVoterInfoResponseTypeotherElectionsArray); 
 
 begin
   If (FotherElections=AValue) then exit;
@@ -2409,7 +2512,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.SetpollingLocations(AIndex : Integer; AValue : TVoterInfoResponseTypepollingLocationsArray); 
+Procedure TVoterInfoResponse.SetpollingLocations(AIndex : Integer; const AValue : TVoterInfoResponseTypepollingLocationsArray); 
 
 begin
   If (FpollingLocations=AValue) then exit;
@@ -2429,7 +2532,7 @@ end;
 
 
 
-Procedure TVoterInfoResponse.Setstate(AIndex : Integer; AValue : TVoterInfoResponseTypestateArray); 
+Procedure TVoterInfoResponse.Setstate(AIndex : Integer; const AValue : TVoterInfoResponseTypestateArray); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -2649,7 +2752,7 @@ end;
 Class Function TCivicinfoAPI.APIRevision : String;
 
 begin
-  Result:='20150302';
+  Result:='20150820';
 end;
 
 Class Function TCivicinfoAPI.APIID : String;
@@ -2703,7 +2806,7 @@ end;
 Class Function TCivicinfoAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TCivicinfoAPI.APIbasePath : string;
@@ -2715,7 +2818,7 @@ end;
 Class Function TCivicinfoAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/civicinfo/v2/';
+  Result:='https://www.googleapis.com/civicinfo/v2/';
 end;
 
 Class Function TCivicinfoAPI.APIProtocol : string;

@@ -1,19 +1,4 @@
 unit googleadsensehost;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:52:57
 {$MODE objfpc}
 {$H+}
 
@@ -104,7 +89,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAccountsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAccountsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -131,11 +116,11 @@ type
     FsupportsReporting : boolean;
   Protected
     //Property setters
-    Procedure SetarcOptIn(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetarcOptIn(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetproductCode(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetsupportsReporting(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetsupportsReporting(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property arcOptIn : boolean Index 0 Read FarcOptIn Write SetarcOptIn;
@@ -159,7 +144,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAdClientsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAdClientsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -253,9 +238,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setcolors(AIndex : Integer; AValue : TAdStyleTypecolors); virtual;
+    Procedure Setcolors(AIndex : Integer; const AValue : TAdStyleTypecolors); virtual;
     Procedure Setcorners(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setfont(AIndex : Integer; AValue : TAdStyleTypefont); virtual;
+    Procedure Setfont(AIndex : Integer; const AValue : TAdStyleTypefont); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -301,7 +286,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetbackupOption(AIndex : Integer; AValue : TAdUnitTypecontentAdsSettingsTypebackupOption); virtual;
+    Procedure SetbackupOption(AIndex : Integer; const AValue : TAdUnitTypecontentAdsSettingsTypebackupOption); virtual;
     Procedure Setsize(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -355,11 +340,11 @@ type
   Protected
     //Property setters
     Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcontentAdsSettings(AIndex : Integer; AValue : TAdUnitTypecontentAdsSettings); virtual;
-    Procedure SetcustomStyle(AIndex : Integer; AValue : TAdStyle); virtual;
+    Procedure SetcontentAdsSettings(AIndex : Integer; const AValue : TAdUnitTypecontentAdsSettings); virtual;
+    Procedure SetcustomStyle(AIndex : Integer; const AValue : TAdStyle); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmobileContentAdsSettings(AIndex : Integer; AValue : TAdUnitTypemobileContentAdsSettings); virtual;
+    Procedure SetmobileContentAdsSettings(AIndex : Integer; const AValue : TAdUnitTypemobileContentAdsSettings); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -388,7 +373,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TAdUnitsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAdUnitsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -424,7 +409,7 @@ type
     Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetproductCodes(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetproductCodes(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetredirectUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure SetuserLocale(AIndex : Integer; const AValue : String); virtual;
@@ -486,7 +471,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TCustomChannelsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TCustomChannelsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -540,13 +525,13 @@ type
     Fwarnings : TStringArray;
   Protected
     //Property setters
-    Procedure Setaverages(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setheaders(AIndex : Integer; AValue : TReportTypeheadersArray); virtual;
+    Procedure Setaverages(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setheaders(AIndex : Integer; const AValue : TReportTypeheadersArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrows(AIndex : Integer; AValue : TReportTyperowsArray); virtual;
+    Procedure Setrows(AIndex : Integer; const AValue : TReportTyperowsArray); virtual;
     Procedure SettotalMatchedRows(AIndex : Integer; const AValue : String); virtual;
-    Procedure Settotals(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Settotals(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -598,7 +583,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TUrlChannelsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TUrlChannelsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -1026,7 +1011,7 @@ end;
 
 
 
-Procedure TAccounts.Setitems(AIndex : Integer; AValue : TAccountsTypeitemsArray); 
+Procedure TAccounts.Setitems(AIndex : Integer; const AValue : TAccountsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1066,7 +1051,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdClient.SetarcOptIn(AIndex : Integer; AValue : boolean); 
+Procedure TAdClient.SetarcOptIn(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FarcOptIn=AValue) then exit;
@@ -1106,7 +1091,7 @@ end;
 
 
 
-Procedure TAdClient.SetsupportsReporting(AIndex : Integer; AValue : boolean); 
+Procedure TAdClient.SetsupportsReporting(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FsupportsReporting=AValue) then exit;
@@ -1133,7 +1118,7 @@ end;
 
 
 
-Procedure TAdClients.Setitems(AIndex : Integer; AValue : TAdClientsTypeitemsArray); 
+Procedure TAdClients.Setitems(AIndex : Integer; const AValue : TAdClientsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1294,7 +1279,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdStyle.Setcolors(AIndex : Integer; AValue : TAdStyleTypecolors); 
+Procedure TAdStyle.Setcolors(AIndex : Integer; const AValue : TAdStyleTypecolors); 
 
 begin
   If (Fcolors=AValue) then exit;
@@ -1314,7 +1299,7 @@ end;
 
 
 
-Procedure TAdStyle.Setfont(AIndex : Integer; AValue : TAdStyleTypefont); 
+Procedure TAdStyle.Setfont(AIndex : Integer; const AValue : TAdStyleTypefont); 
 
 begin
   If (Ffont=AValue) then exit;
@@ -1389,7 +1374,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdUnitTypecontentAdsSettings.SetbackupOption(AIndex : Integer; AValue : TAdUnitTypecontentAdsSettingsTypebackupOption); 
+Procedure TAdUnitTypecontentAdsSettings.SetbackupOption(AIndex : Integer; const AValue : TAdUnitTypecontentAdsSettingsTypebackupOption); 
 
 begin
   If (FbackupOption=AValue) then exit;
@@ -1505,7 +1490,7 @@ end;
 
 
 
-Procedure TAdUnit.SetcontentAdsSettings(AIndex : Integer; AValue : TAdUnitTypecontentAdsSettings); 
+Procedure TAdUnit.SetcontentAdsSettings(AIndex : Integer; const AValue : TAdUnitTypecontentAdsSettings); 
 
 begin
   If (FcontentAdsSettings=AValue) then exit;
@@ -1515,7 +1500,7 @@ end;
 
 
 
-Procedure TAdUnit.SetcustomStyle(AIndex : Integer; AValue : TAdStyle); 
+Procedure TAdUnit.SetcustomStyle(AIndex : Integer; const AValue : TAdStyle); 
 
 begin
   If (FcustomStyle=AValue) then exit;
@@ -1545,7 +1530,7 @@ end;
 
 
 
-Procedure TAdUnit.SetmobileContentAdsSettings(AIndex : Integer; AValue : TAdUnitTypemobileContentAdsSettings); 
+Procedure TAdUnit.SetmobileContentAdsSettings(AIndex : Integer; const AValue : TAdUnitTypemobileContentAdsSettings); 
 
 begin
   If (FmobileContentAdsSettings=AValue) then exit;
@@ -1592,7 +1577,7 @@ end;
 
 
 
-Procedure TAdUnits.Setitems(AIndex : Integer; AValue : TAdUnitsTypeitemsArray); 
+Procedure TAdUnits.Setitems(AIndex : Integer; const AValue : TAdUnitsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1672,7 +1657,7 @@ end;
 
 
 
-Procedure TAssociationSession.SetproductCodes(AIndex : Integer; AValue : TStringArray); 
+Procedure TAssociationSession.SetproductCodes(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FproductCodes=AValue) then exit;
@@ -1809,7 +1794,7 @@ end;
 
 
 
-Procedure TCustomChannels.Setitems(AIndex : Integer; AValue : TCustomChannelsTypeitemsArray); 
+Procedure TCustomChannels.Setitems(AIndex : Integer; const AValue : TCustomChannelsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1907,7 +1892,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReport.Setaverages(AIndex : Integer; AValue : TStringArray); 
+Procedure TReport.Setaverages(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Faverages=AValue) then exit;
@@ -1917,7 +1902,7 @@ end;
 
 
 
-Procedure TReport.Setheaders(AIndex : Integer; AValue : TReportTypeheadersArray); 
+Procedure TReport.Setheaders(AIndex : Integer; const AValue : TReportTypeheadersArray); 
 
 begin
   If (Fheaders=AValue) then exit;
@@ -1937,7 +1922,7 @@ end;
 
 
 
-Procedure TReport.Setrows(AIndex : Integer; AValue : TReportTyperowsArray); 
+Procedure TReport.Setrows(AIndex : Integer; const AValue : TReportTyperowsArray); 
 
 begin
   If (Frows=AValue) then exit;
@@ -1957,7 +1942,7 @@ end;
 
 
 
-Procedure TReport.Settotals(AIndex : Integer; AValue : TStringArray); 
+Procedure TReport.Settotals(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Ftotals=AValue) then exit;
@@ -1967,7 +1952,7 @@ end;
 
 
 
-Procedure TReport.Setwarnings(AIndex : Integer; AValue : TStringArray); 
+Procedure TReport.Setwarnings(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -2048,7 +2033,7 @@ end;
 
 
 
-Procedure TUrlChannels.Setitems(AIndex : Integer; AValue : TUrlChannelsTypeitemsArray); 
+Procedure TUrlChannels.Setitems(AIndex : Integer; const AValue : TUrlChannelsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2906,7 +2891,7 @@ end;
 Class Function TAdsensehostAPI.APIRevision : String;
 
 begin
-  Result:='20150505';
+  Result:='20160522';
 end;
 
 Class Function TAdsensehostAPI.APIID : String;
@@ -2924,7 +2909,7 @@ end;
 Class Function TAdsensehostAPI.APIDescription : String;
 
 begin
-  Result:='Gives AdSense Hosts access to report generation, ad code generation, and publisher management capabilities.';
+  Result:='Generates performance reports, generates ad codes, and provides publisher management capabilities for AdSense Hosts.';
 end;
 
 Class Function TAdsensehostAPI.APIOwnerDomain : String;
@@ -2960,7 +2945,7 @@ end;
 Class Function TAdsensehostAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TAdsensehostAPI.APIbasePath : string;
@@ -2972,7 +2957,7 @@ end;
 Class Function TAdsensehostAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/adsensehost/v4.1/';
+  Result:='https://www.googleapis.com/adsensehost/v4.1/';
 end;
 
 Class Function TAdsensehostAPI.APIProtocol : string;

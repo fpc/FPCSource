@@ -42,6 +42,7 @@ type
      opsize : topsize;
 
      procedure loadregset(opidx:longint; const dataregs,addrregs,fpuregs:tcpuregisterset);
+     procedure loadrealconst(opidx:longint; const value_real: bestreal);
 
      constructor op_none(op : tasmop);
      constructor op_none(op : tasmop;_size : topsize);
@@ -57,6 +58,7 @@ type
      constructor op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
      constructor op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
      constructor op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : treference);
+     constructor op_realconst_reg(op : tasmop;_size : topsize;_op1: bestreal;_op2: tregister);
 
      constructor op_ref_reg(op : tasmop;_size : topsize;_op1 : treference;_op2 : tregister);
      { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
@@ -125,29 +127,38 @@ type
          begin
            if typ<>top_regset then
              clearop(opidx);
-           new(dataregset);
-           new(addrregset);
-           new(fpuregset);
-           dataregset^:=dataregs;
-           addrregset^:=addrregs;
-           fpuregset^:=fpuregs;
+           dataregset:=dataregs;
+           addrregset:=addrregs;
+           fpuregset:=fpuregs;
            typ:=top_regset;
            for i:=RS_D0 to RS_D7 do
              begin
-               if assigned(add_reg_instruction_hook) and (i in dataregset^) then
+               if assigned(add_reg_instruction_hook) and (i in dataregset) then
                  add_reg_instruction_hook(self,newreg(R_INTREGISTER,i,R_SUBWHOLE));
              end;
            for i:=RS_A0 to RS_SP do
              begin
-               if assigned(add_reg_instruction_hook) and (i in addrregset^) then
+               if assigned(add_reg_instruction_hook) and (i in addrregset) then
                  add_reg_instruction_hook(self,newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE));
              end;
            for i:=RS_FP0 to RS_FP7 do
              begin
-               if assigned(add_reg_instruction_hook) and (i in fpuregset^) then
+               if assigned(add_reg_instruction_hook) and (i in fpuregset) then
                  add_reg_instruction_hook(self,newreg(R_FPUREGISTER,i,R_SUBWHOLE));
              end;
          end;
+      end;
+
+    procedure taicpu.loadrealconst(opidx:longint; const value_real: bestreal);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            if typ<>top_realconst then
+              clearop(opidx);
+            val_real:=value_real;
+            typ:=top_realconst;
+          end;
       end;
 
 
@@ -260,6 +271,14 @@ type
          loadref(1,_op2);
       end;
 
+    constructor taicpu.op_realconst_reg(op : tasmop;_size : topsize;_op1 : bestreal;_op2 : tregister);
+      begin
+         inherited create(op);
+         init(_size);
+         ops:=2;
+         loadrealconst(0,_op1);
+         loadreg(1,_op2);
+      end;
 
     constructor taicpu.op_ref_reg(op : tasmop;_size : topsize;_op1 : treference;_op2 : tregister);
       begin
@@ -479,7 +498,7 @@ type
           A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ, A_SUBX,
           A_AND, A_LSR, A_LSL, A_ASR, A_ASL, A_EOR, A_EORI, A_OR,
           A_ROL, A_ROR, A_ROXL, A_ROXR,
-          A_MULS, A_MULU, A_DIVS, A_DIVU, A_DIVSL, A_DIVUL,
+          A_MULS, A_MULU, A_DIVS, A_DIVU, A_DIVSL, A_DIVUL, A_REMS, A_REMU,
           A_BSET, A_BCLR:
             if opnr=1 then
               result:=operand_readwrite;

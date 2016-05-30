@@ -728,6 +728,64 @@ end;
 
 
 {****************************************************************************
+                              Stack checking
+****************************************************************************}
+
+
+procedure fpc_stackcheck_i8086;[public,alias:'FPC_STACKCHECK_I8086'];compilerproc;assembler;nostackframe;
+const
+  STACK_MARGIN=512;
+asm
+  { on entry: AX = required stack size to check if available
+                   (function is called before stack allocation) }
+{$ifdef FPC_MM_HUGE}
+  push ds
+  push ax
+  mov ax, SEG @DATA
+  mov ds, ax
+  pop ax
+{$endif FPC_MM_HUGE}
+  add ax, STACK_MARGIN
+  jc @@stack_overflow
+  add ax, word ptr [__stkbottom]
+  jc @@stack_overflow
+  cmp ax, sp
+  ja @@stack_overflow
+@@no_overflow:
+{$ifdef FPC_MM_HUGE}
+  pop ds
+{$endif FPC_MM_HUGE}
+  ret
+
+@@stack_overflow:
+  { check StackError flag, to avoid recursive calls from the exit routines }
+  cmp byte ptr [StackError], 1
+  je @@no_overflow
+  mov byte ptr [StackError], 1
+  { cleanup return address (and maybe saved ds) from call to this function }
+{$if defined(FPC_MM_HUGE)}
+  add sp, 6
+{$elseif defined(FPC_X86_CODE_FAR)}
+  pop ax
+  pop ax
+{$else}
+  pop ax
+{$endif}
+  { call HandleError(202) }
+{$ifdef CPU8086}
+  xor ax, ax
+  push ax
+  mov al, 202
+  push ax
+{$else}
+  push 0
+  push 202
+{$endif}
+  call HandleError
+end;
+
+
+{****************************************************************************
                                   BSR/BSF
 ****************************************************************************}
 
