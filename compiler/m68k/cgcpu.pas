@@ -792,7 +792,7 @@ unit cgcpu;
 
         tmpreg2:=getaddressregister(list);
         tmpref:=ref;
-        inc(tmpref.offset,tcgsize2size[tosize]);
+        inc(tmpref.offset,tcgsize2size[tosize]-1);
         a_loadaddr_ref_reg(list,ref,tmpreg2);
         reference_reset_base(tmpref,tmpreg2,0,1);
         tmpref.direction:=dir_none;
@@ -811,8 +811,8 @@ unit cgcpu;
           OS_32,OS_S32:
             begin
               list.concat(taicpu.op_reg_ref(A_MOVE,S_B,tmpreg,tmpref));
-              tmpref.direction:=dir_dec;
               list.concat(taicpu.op_const_reg(A_LSR,S_W,8,tmpreg));
+              tmpref.direction:=dir_dec;
               list.concat(taicpu.op_reg_ref(A_MOVE,S_B,tmpreg,tmpref));
               list.concat(taicpu.op_reg(A_SWAP,S_L,tmpreg));
               list.concat(taicpu.op_reg_ref(A_MOVE,S_B,tmpreg,tmpref));
