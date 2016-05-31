@@ -319,6 +319,7 @@ procedure TThread.InitSynchronizeEvent;
     New(FSynchronizeEntry);
     FillChar(FSynchronizeEntry^, SizeOf(TThreadQueueEntry), 0);
     FSynchronizeEntry^.Thread := Self;
+    FSynchronizeEntry^.ThreadID := ThreadID;
     FSynchronizeEntry^.SyncEvent := RtlEventCreate;
   end;
 
@@ -335,20 +336,34 @@ procedure TThread.DoneSynchronizeEvent;
 
 
 class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
+  var
+    syncentry: PThreadQueueEntry;
   begin
-    { ensure that we have a TThread instance }
-    if not Assigned(AThread) then
-      AThread := CurrentThread;
+    if not Assigned(AThread) then begin
+      { use a local synchronize event }
+      New(syncentry);
+      FillChar(syncentry^, SizeOf(syncentry), 0);
+      syncentry^.ThreadID := GetCurrentThreadID;
+      syncentry^.SyncEvent := RtlEventCreate;
+    end else begin
+      { the Synchronize event is instantiated on demand }
+      AThread.InitSynchronizeEvent;
 
-    { the Synchronize event is instantiated on demand }
-    AThread.InitSynchronizeEvent;
+      syncentry := AThread.FSynchronizeEntry;
+    end;
 
-    AThread.FSynchronizeEntry^.Exception := Nil;
-    AThread.FSynchronizeEntry^.Method := AMethod;
-    ThreadQueueAppend(AThread.FSynchronizeEntry);
+    syncentry^.Exception := Nil;
+    syncentry^.Method := AMethod;
+    ThreadQueueAppend(syncentry);
 
-    AThread.FSynchronizeEntry^.Method := Nil;
-    AThread.FSynchronizeEntry^.Next := Nil;
+    syncentry^.Method := Nil;
+    syncentry^.Next := Nil;
+
+    if not Assigned(AThread) then begin
+      { clean up again }
+      RtlEventDestroy(syncentry^.SyncEvent);
+      Dispose(syncentry);
+    end;
   end;
 
 
@@ -453,13 +468,10 @@ class procedure TThread.Queue(aThread: TThread; aMethod: TThreadMethod); static;
 var
   queueentry: PThreadQueueEntry;
 begin
-  { ensure that we have a valid TThread instance }
-  if not Assigned(aThread) then
-    aThread := CurrentThread;
-
   New(queueentry);
   FillChar(queueentry^, SizeOf(TThreadQueueEntry), 0);
   queueentry^.Thread := aThread;
+  queueentry^.ThreadID := GetCurrentThreadID;
   queueentry^.Method := aMethod;
 
   { the queueentry is freed by CheckSynchronize (or by RemoveQueuedEvents) }
@@ -481,7 +493,7 @@ begin
     entry := ThreadQueueHead;
     while Assigned(entry) do begin
       { first check for the thread }
-      if Assigned(aThread) and (entry^.Thread <> aThread) then begin
+      if Assigned(aThread) and (entry^.Thread <> aThread) and (entry^.ThreadID <> aThread.ThreadID) then begin
         lastentry := entry;
         entry := entry^.Next;
         Continue;

@@ -1591,6 +1591,7 @@ type
       // uncomment once closures are supported
       //ThreadProc: TThreadProcedure;
       Thread: TThread;
+      ThreadID: TThreadID;
       Exception: Exception;
       SyncEvent: PRtlEvent;
       Next: PThreadQueueEntry;
