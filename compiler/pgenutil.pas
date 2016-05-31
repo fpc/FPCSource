@@ -711,6 +711,8 @@ uses
 
         result:=nil;
 
+        pd:=nil;
+
         if not check_generic_constraints(genericdef,context.genericdeflist,context.poslist) then
           begin
             { the parameters didn't fit the constraints, so don't continue with the
