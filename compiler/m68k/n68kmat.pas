@@ -168,7 +168,7 @@ implementation
 
   procedure tm68kmoddivnode.emit_mod_reg_reg(signed: boolean;denum,num : tregister);
     const
-      remop: array[boolean,boolean] of tasmop = ((A_DIVU,A_DIVS),(A_REMU,A_REMS));
+      remop: array[boolean,boolean] of tasmop = ((A_DIVUL,A_DIVSL),(A_REMU,A_REMS));
     var
       tmpreg : tregister;
     begin
