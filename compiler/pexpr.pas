@@ -1462,8 +1462,10 @@ implementation
       var
         srsym : tsym;
         srsymtable : tsymtable;
+        erroroutresult,
         isspecialize : boolean;
         spezcontext : tspecializationcontext;
+        savedfilepos : tfileposinfo;
       begin
          spezcontext:=nil;
          if sym=nil then
@@ -1549,32 +1551,40 @@ implementation
                   end
                 else
                   isspecialize:=false;
+                erroroutresult:=true;
                 { TP allows also @TMenu.Load if Load is only }
                 { defined in an anchestor class              }
                 srsym:=search_struct_member(tabstractrecorddef(hdef),pattern);
-                if isspecialize then
+                if isspecialize and assigned(srsym) then
                   begin
                     consume(_ID);
-                    if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
-                      begin
-                        result.free;
-                        result:=cerrornode.create;
-                      end;
+                    if handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
+                      erroroutresult:=false;
                   end
                 else
                   begin
                     if assigned(srsym) then
                       begin
-                        check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                        savedfilepos:=current_filepos;
                         consume(_ID);
+                        if not (sp_generic_dummy in srsym.symoptions) or
+                            not (token in [_LT,_LSHARPBRACKET]) then
+                          check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,savedfilepos)
+                        else
+                          result:=cspecializenode.create(result,getaddr,srsym);
+                        erroroutresult:=false;
                       end
                     else
                       Message1(sym_e_id_no_member,orgpattern);
                   end;
-                if (result.nodetype<>errorn) and assigned(srsym) then
-                  do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],spezcontext)
+                if erroroutresult then
+                  begin
+                    result.free;
+                    result:=cerrornode.create;
+                  end
                 else
-                  spezcontext.free;
+                  if result.nodetype<>specializen then
+                    do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],spezcontext);
               end;
            end
          else
@@ -3964,6 +3974,7 @@ implementation
           if assigned(pload) then
             begin
               result:=pload;
+              typecheckpass(result);
               structdef:=nil;
               case result.resultdef.typ of
                 objectdef,
