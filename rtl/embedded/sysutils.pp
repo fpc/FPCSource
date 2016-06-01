@@ -33,6 +33,9 @@ interface
   { Include platform independent interface part }
   {$i sysutilh.inc}
 
+  var
+    SleepHandler: procedure(ms: cardinal) = nil;
+
 implementation
 
 uses
@@ -197,6 +200,17 @@ end;
 {****************************************************************************
                               Misc Functions
 ****************************************************************************}
+
+procedure sysBeep;
+begin
+end;
+
+
+Procedure Sleep(Milliseconds : Cardinal);
+begin
+  if assigned(SleepHandler) then
+    SleepHandler(Milliseconds);
+end;
 
 Function GetLastOSError : Integer;
 begin
