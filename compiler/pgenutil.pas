@@ -1563,7 +1563,7 @@ uses
                  continue;
                { and the body is available already (which is implicitely the
                  case if the generic routine is part of another unit) }
-               if (hmodule=current_module) and tprocdef(tprocdef(hp).genericdef).forwarddef then
+               if ((hmodule=current_module) or (hmodule.state=ms_compile)) and tprocdef(tprocdef(hp).genericdef).forwarddef then
                  begin
                    result:=false;
                    continue;
@@ -1617,7 +1617,7 @@ uses
                   { we need to check for a forward declaration only if the
                     generic was declared in the same unit (otherwise there
                     should be one) }
-                  if (hmodule=current_module) and tprocdef(def.genericdef).forwarddef then
+                  if ((hmodule=current_module) or (hmodule.state=ms_compile)) and tprocdef(def.genericdef).forwarddef then
                     begin
                       readdlist.add(def);
                       continue;
