@@ -578,17 +578,17 @@ begin
 end;
 
 
-Function Pos (Const Substr : WideString; Const Source : WideString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (Const Substr : WideString; Const Source : WideString) : SizeInt;
 var
   i,MaxLen : SizeInt;
   pc : pwidechar;
 begin
   Pos:=0;
-  if (Length(SubStr)>0) and (Offset>0) and (Offset<Length(Source)) then
+  if Length(SubStr)>0 then
    begin
-     MaxLen:=Length(source)-Length(SubStr)-(OffSet-1);
-     i:=Offset-1;
-     pc:=@source[Offset];
+     MaxLen:=Length(source)-Length(SubStr);
+     i:=0;
+     pc:=@source[1];
      while (i<=MaxLen) do
       begin
         inc(i);
@@ -605,15 +605,13 @@ end;
 
 
 { Faster version for a widechar alone }
-Function Pos (c : WideChar; Const s : WideString; Offset : Sizeint = 1) : SizeInt;
+Function Pos (c : WideChar; Const s : WideString) : SizeInt;
 var
   i: SizeInt;
   pc : pwidechar;
 begin
-  pos:=0;
-  if (Offset<1) or (Offset>Length(s)) then exit;
-  pc:=@s[Offset];
-  for i:=Offset to length(s) do
+  pc:=@s[1];
+  for i:=1 to length(s) do
    begin
      if pc^=c then
       begin
@@ -622,50 +620,47 @@ begin
       end;
      inc(pc);
    end;
+  pos:=0;
 end;
 
 { DO NOT inline these! Inlining a managed typecast creates an implicit try..finally
   block, which is significant bloat without any sensible speed improvement. }
-Function Pos (c : WideChar; Const s : RawByteString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (c : WideChar; Const s : RawByteString) : SizeInt;
   begin
-    result:=Pos(c,WideString(s),Offset);
+    result:=Pos(c,WideString(s));
   end;
 
 
-Function Pos (const c : RawByteString; Const s : WideString;Offset : SizeInt = 1) : SizeInt;
+Function Pos (const c : RawByteString; Const s : WideString) : SizeInt;
   begin
-    result:=Pos(WideString(c),s,Offset);
+    result:=Pos(WideString(c),s);
   end;
 
 
-Function Pos (const c : ShortString; Const s : WideString;Offset : SizeInt = 1) : SizeInt;
+Function Pos (const c : ShortString; Const s : WideString) : SizeInt;
   begin
-    result:=Pos(WideString(c),s,Offset);
+    result:=Pos(WideString(c),s);
   end;
 
 
-Function Pos (const c : WideString; Const s : RawByteString;Offset : SizeInt = 1) : SizeInt;
+Function Pos (const c : WideString; Const s : RawByteString) : SizeInt;
   begin
-    result:=Pos(c,WideString(s),Offset);
+    result:=Pos(c,WideString(s));
   end;
 
 { Faster version for a char alone. Must be implemented because   }
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : Char; Const s : WideString;Offset : SizeInt = 1) : SizeInt;
+Function Pos (c : Char; Const s : WideString) : SizeInt;
 var
   i: SizeInt;
   wc : widechar;
   pc : pwidechar;
 begin
-  Pos:=0;
-  if (Offset<1) or (OffSet>Length(S)) then 
-    exit;
   wc:=c;
-  
-  pc:=@s[offset];
-  for i:=Offset to length(s) do
+  pc:=@s[1];
+  for i:=1 to length(s) do
    begin
      if pc^=wc then
       begin

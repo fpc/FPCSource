@@ -2700,8 +2700,6 @@ end;
 {$define INSTRINGREPLACE}
 {$define SRString:=String}
 {$define SRUpperCase:=AnsiUppercase}
-{$define SRPCHAR:=PChar}
-{$define SRCHAR:=Char}
 
 Function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 {$i syssr.inc}
@@ -2709,8 +2707,6 @@ Function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplace
 {$undef INSTRINGREPLACE}
 {$undef SRString}
 {$undef SRUpperCase}
-{$undef SRPCHAR}
-{$undef SRCHAR}
 
 Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
 
