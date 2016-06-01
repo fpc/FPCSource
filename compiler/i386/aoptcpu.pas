@@ -2149,6 +2149,16 @@ begin
                   A_VMOVAPD:
                     if OptPass1VMOVAP(p) then
                       continue;
+                  A_VDIVSD,
+                  A_VDIVSS,
+                  A_VSUBSD,
+                  A_VSUBSS,
+                  A_VMULSD,
+                  A_VMULSS,
+                  A_VADDSD,
+                  A_VADDSS:
+                    if OptPass1VOP(p) then
+                      continue;
                 end;
             end; { if is_jmp }
           end;

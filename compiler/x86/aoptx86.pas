@@ -40,6 +40,7 @@ unit aoptx86;
       protected
         procedure PostPeepholeOptMov(const p : tai);
         function OptPass1VMOVAP(var p : tai) : boolean;
+        function OptPass1VOP(const p : tai) : boolean;
       end;
 
     function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
@@ -289,6 +290,33 @@ unit aoptx86;
                         p:=hp1;
                       end;
                   end;
+              end;
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass1VOP(const p : tai) : boolean;
+      var
+        TmpUsedRegs : TAllUsedRegs;
+        hp1 : tai;
+      begin
+        result:=false;
+        if GetNextInstruction(p,hp1) and
+          { we mix single and double opperations here because we assume that the compiler
+            generates vmovapd only after double operations and vmovaps only after single operations }
+          MatchInstruction(hp1,A_VMOVAPD,A_VMOVAPS,[S_NO]) and
+          MatchOperand(taicpu(p).oper[2]^,taicpu(hp1).oper[0]^) and
+          (taicpu(hp1).oper[1]^.typ=top_reg) then
+          begin
+            CopyUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+            if not(RegUsedAfterInstruction(taicpu(hp1).oper[0]^.reg,hp1,TmpUsedRegs)
+             ) then
+              begin
+                taicpu(p).loadoper(2,taicpu(hp1).oper[1]^);
+                asml.Remove(hp1);
+                hp1.Free;
+                result:=true;
               end;
           end;
       end;
