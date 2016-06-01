@@ -3598,12 +3598,12 @@ xmmreg,xmmreg,mem64,imm8             \333\362\370\1\xC2\75\120\27         AVX,SA
 xmmreg,xmmreg,xmmreg,imm8            \333\362\370\1\xC2\75\120\27         AVX,SANDYBRIDGE
 
 [VCOMISD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Rop2, Ch_WFlags)
 xmmreg,mem64                         \361\362\370\1\x2F\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\370\1\x2F\110               AVX,SANDYBRIDGE
 
 [VCOMISS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Rop2, Ch_WFlags)
 xmmreg,mem32                         \362\370\1\x2F\110                   AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \362\370\1\x2F\110                   AVX,SANDYBRIDGE
 
