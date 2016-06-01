@@ -13,7 +13,7 @@ implicitunits=ndk ndkutils ddk \
       ctypes strings \
 #      heaptrc
 #      initc cmem dynlibs signals \
-#      dos \
+      dos \
       rtlconsts sysconst sysutils math types \
       typinfo fgl classes \
       $(CPU_UNITS) charset getopts \
@@ -119,6 +119,9 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
 
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
         $(COMPILER) $(INC)/macpas.pp $(REDIR)
+
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
 
 extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/extpas.pp

@@ -8968,6 +8968,7 @@ rtl/nativent/classes.pp svneol=native#text/pascal
 rtl/nativent/ddk.pas svneol=native#text/pascal
 rtl/nativent/ddk/ddkex.inc svneol=native#text/plain
 rtl/nativent/ddk/ddktypes.inc svneol=native#text/plain
+rtl/nativent/dos.pp svneol=native#text/plain
 rtl/nativent/ndk.pas svneol=native#text/pascal
 rtl/nativent/ndk/iofuncs.inc svneol=native#text/plain
 rtl/nativent/ndk/iotypes.inc svneol=native#text/plain
