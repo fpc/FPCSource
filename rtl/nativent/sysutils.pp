@@ -1194,39 +1194,17 @@ begin
 end;
 
 
-function ExecuteProcess(const Path: RawByteString; const ComLine: RawByteString;
+function ExecuteProcess(const Path: AnsiString; const ComLine: AnsiString;
   Flags: TExecuteFlags = []): Integer;
 begin
   { TODO : implement }
   Result := 0;
 end;
 
-function ExecuteProcess(const Path: RawByteString;
-  const ComLine: Array of RawByteString; Flags:TExecuteFlags = []): Integer;
+function ExecuteProcess(const Path: AnsiString;
+  const ComLine: Array of AnsiString; Flags:TExecuteFlags = []): Integer;
 var
-  CommandLine: RawByteString;
-  I: integer;
-begin
-  Commandline := '';
-  for I := 0 to High (ComLine) do
-   if Pos (' ', ComLine [I]) <> 0 then
-    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
-   else
-    CommandLine := CommandLine + ' ' + Comline [I];
-  ExecuteProcess := ExecuteProcess (Path, CommandLine,Flags);
-end;
-
-function ExecuteProcess(const Path: UnicodeString; const ComLine: UnicodeString;
-  Flags: TExecuteFlags = []): Integer;
-begin
-  { TODO : implement }
-  Result := 0;
-end;
-
-function ExecuteProcess(const Path: UnicodeString;
-  const ComLine: Array of UnicodeString; Flags:TExecuteFlags = []): Integer;
-var
-  CommandLine: UnicodeString;
+  CommandLine: AnsiString;
   I: integer;
 begin
   Commandline := '';
