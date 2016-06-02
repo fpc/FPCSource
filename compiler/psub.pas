@@ -2006,6 +2006,10 @@ implementation
 
         tcgprocinfo(current_procinfo).parse_body;
 
+        { reset _FAIL as _SELF normal }
+        if (pd.proctypeoption=potype_constructor) then
+          tokeninfo^[_FAIL].keyword:=oldfailtokenmode;
+
         { We can't support inlining for procedures that have nested
           procedures because the nested procedures use a fixed offset
           for accessing locals in the parent procedure (PFV) }
@@ -2035,10 +2039,6 @@ implementation
                 tcgprocinfo(current_procinfo).generate_code_tree;
               end;
           end;
-
-        { reset _FAIL as _SELF normal }
-        if (pd.proctypeoption=potype_constructor) then
-          tokeninfo^[_FAIL].keyword:=oldfailtokenmode;
 
         { release procinfo }
         if tprocinfo(current_module.procinfo)<>current_procinfo then
