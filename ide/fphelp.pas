@@ -96,7 +96,7 @@ const
       hint_systemmenu        = 'System menu';
       hint_update            = 'Refresh and redraw display';
       hint_about             = 'Show version and copyright information';
-      hint_filemenu          = 'File managment commands (Open, New, Save, etc.)';
+      hint_filemenu          = 'File management commands (Open, New, Save, etc.)';
       hint_filenew           = 'Create a new file in a new edit window';
       hint_filenewfromtemplate='Create a new file using a code template';
       hint_fileopen          = 'Locate and open a file in an edit window';
@@ -204,7 +204,7 @@ const
       hint_openini           = 'Load a previously saved options file';
       hint_saveini           = 'Save all the changes made in the options menu';
       hint_saveasini         = 'Save all the changes made under a different name';
-      hint_windowmenu        = 'Windows managment commands';
+      hint_windowmenu        = 'Windows management commands';
       hint_tile              = 'Arrange windows on desktop by tiling';
       hint_cascade           = 'Arrange windows on desktop by cascading';
       hint_closeall          = 'Close all windows on the desktop';

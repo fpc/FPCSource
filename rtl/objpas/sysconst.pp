@@ -120,7 +120,7 @@ resourcestring
   SVarUnexpected                = 'Unexpected variant error';
   SZeroDivide                   = 'Floating point division by zero';
 
-  SFallbackError                = 'An error, whose error code is larger than can be returned to the OS, has occured';
+  SFallbackError                = 'An error, whose error code is larger than can be returned to the OS, has occurred';
 
   SNoToolserver                 = 'Toolserver is not installed, cannot execute Tool';
 

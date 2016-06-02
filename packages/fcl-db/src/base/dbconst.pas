@@ -87,7 +87,7 @@ Resourcestring
   SInvalidSearchFieldType  = 'Searching in fields of type %s is not supported';
   SDatasetEmpty            = 'The dataset is empty';
   SFieldIsNull             = 'The field is null';
-  SOnUpdateError           = 'An error occured while applying the updates in a record: %s';
+  SOnUpdateError           = 'An error occurred while applying the updates in a record: %s';
   SApplyRecNotSupported    = 'Applying updates is not supported by this TDataset descendent';
   SNoWhereFields           = 'No %s query specified and failed to generate one. (No fields for inclusion in where statement found)';
   SNoUpdateFields          = 'No %s query specified and failed to generate one. (No fields found for insert- or update-statement found)';
