@@ -52,7 +52,7 @@ unit typinfo;
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr);
 {$endif}
        TMethodKind = (mkProcedure,mkFunction,mkConstructor,mkDestructor,
-                      mkClassProcedure,mkClassFunction,mkClassConstructor, 
+                      mkClassProcedure,mkClassFunction,mkClassConstructor,
                       mkClassDestructor,mkOperatorOverload);
        TParamFlag     = (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
        TParamFlags    = set of TParamFlag;
@@ -2009,7 +2009,7 @@ end;
 Function GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant;
 
 begin
-  CheckVariantEvent(Pointer(OnGetPropValue));
+  CheckVariantEvent(CodePointer(OnGetPropValue));
   Result:=OnGetPropValue(Instance,PropInfo,PreferStrings);
 end;
 
@@ -2022,8 +2022,8 @@ end;
 Procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo;  const Value: Variant);
 
 begin
-  CheckVariantEvent(Pointer(OnSetPropValue));
-  OnSetPropValue(Instance,PropInfo,Value);   
+  CheckVariantEvent(CodePointer(OnSetPropValue));
+  OnSetPropValue(Instance,PropInfo,Value);
 end;
 
 
