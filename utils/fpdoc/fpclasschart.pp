@@ -712,7 +712,7 @@ begin
     if FileExists(MOFilename) then
       gettext.TranslateResourceStrings(MoFileName)
     else
-      writeln('NOTE: unable to find tranlation file ',MOFilename);
+      writeln('NOTE: unable to find translation file ',MOFilename);
     // Translate internal documentation strings
     TranslateDocStrings(DocLang);
     end;

@@ -525,7 +525,7 @@ BEGIN
           end;
         if ideapp.displaymode=dmUser then
           begin
-            writeln('Fatal exception occured while in user screen mode. File save message boxes');
+            writeln('Fatal exception occurred while in user screen mode. File save message boxes');
             writeln('cannot be displayed. We are sorry, but need to terminate now.');
             halt(255);
           end;

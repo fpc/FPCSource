@@ -163,7 +163,7 @@ resourcestring
   SUsageOption140  = '--lang=lng        Select output language.';
   SUsageOption150  = '--ostarget=value  Set the target OS for the scanner.';
   SUsageOption160  = '--output=name     use name as the output name.';
-  SUsageOption170  = '                  Each backend interpretes this as needed.';
+  SUsageOption170  = '                  Each backend interprets this as needed.';
   SUsageOption180  = '--package=name    Set the package name for which to create output,';
   SUsageOption190  = '                  e.g. --package=fcl';
   SUsageOption200  = '--project=file    Use file as project file';

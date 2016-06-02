@@ -117,7 +117,7 @@ resourcestring
   SERR_OperationNotAllowedOnActivePool = 'Operation not allowed on an active pool.';
   SERR_ParamaterNotFound           = 'Parameter non found : "%s".';
   SERR_Parsing                     = 'Parsing "%s" ...';
-  SERR_RecordExtendedRttiNotFound  = 'Record extended RTTI informations not found in type registry : "%s".';
+  SERR_RecordExtendedRttiNotFound  = 'Record extended RTTI information not found in type registry : "%s".';
   SERR_RootObjectCannotBeNIL       = 'The root object cannot be NIL.';
   SERR_SchemaNodeRequiredAttribute = 'The Schema node must have at least the "%s" attribute.';
   SERR_SerializerInitializationException = 'Unable to initialize the serializer of that type : "%s".';

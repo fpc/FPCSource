@@ -325,7 +325,7 @@ begin
         Exit;
       end;
   else
-    Result := 'Unknow Return Value';
+    Result := 'Unknown Return Value';
   end;
   Result := Result + ' - ' + sqlite_error_string(FReturnCode);
 end;

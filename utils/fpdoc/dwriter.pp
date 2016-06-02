@@ -28,7 +28,7 @@ interface
 uses Classes, DOM, dGlobals, PasTree, SysUtils;
 
 resourcestring
-  SErrFileWriting = 'An error occured during writing of file "%s": %s';
+  SErrFileWriting = 'An error occurred during writing of file "%s": %s';
 
   SErrInvalidShortDescr = 'Invalid short description';
   SErrInvalidDescr = 'Invalid description (illegal XML element: "%s")';
