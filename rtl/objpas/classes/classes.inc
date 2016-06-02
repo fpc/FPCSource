@@ -342,7 +342,7 @@ class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
     if not Assigned(AThread) then begin
       { use a local synchronize event }
       New(syncentry);
-      FillChar(syncentry^, SizeOf(syncentry), 0);
+      FillChar(syncentry^, SizeOf(TThreadQueueEntry), 0);
       syncentry^.ThreadID := GetCurrentThreadID;
       syncentry^.SyncEvent := RtlEventCreate;
     end else begin
