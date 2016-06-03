@@ -1076,7 +1076,7 @@ uses
             specialization_done(state);
 
             { procdefs are only added once we know which overload we use }
-            if result.typ<>procdef then
+            if not parse_generic and (result.typ<>procdef) then
               current_module.pendingspecializations.add(result.typename,result);
           end;
 
@@ -1657,6 +1657,8 @@ uses
         hmodule : tmodule;
         st : tsymtable;
       begin
+        if parse_generic then
+          exit;
         st:=def.owner;
         while st.symtabletype in [localsymtable] do
           st:=st.defowner.owner;
