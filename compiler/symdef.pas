@@ -5699,6 +5699,7 @@ implementation
       var
         s, rn : ansistring;
         t : ttoken;
+        syssym : tsyssym;
       begin
 {$ifdef EXTDEBUG}
         include(pno,pno_showhidden);
@@ -5742,7 +5743,15 @@ implementation
             if (pno_ownername in pno) and
                (owner.symtabletype in [recordsymtable,objectsymtable]) then
               s:=s+tabstractrecorddef(owner.defowner).RttiName+'.';
-            rn:=procsym.realname;
+            if (po_compilerproc in procoptions) and (extnumber<>$ffff) then
+              begin
+                syssym:=tsyssym.find_by_number(extnumber);
+                if not assigned(syssym) then
+                  internalerror(2016060305);
+                rn:=syssym.realname;
+              end
+            else
+              rn:=procsym.realname;
             if (pno_noleadingdollar in pno) and
                (rn[1]='$') then
               delete(rn,1,1);
