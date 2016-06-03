@@ -4287,6 +4287,9 @@ implementation
            procname:='fpc_widestr_insert'
          else if is_ansistring(second) then
            procname:='fpc_ansistr_insert'
+         else if second.typ=undefineddef then
+           { just pick one }
+           procname:='fpc_ansistr_insert'
          else
            begin
              CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Insert');
@@ -4316,6 +4319,9 @@ implementation
          else if is_widestring(first) then
            procname:='fpc_widestr_delete'
          else if is_ansistring(first) then
+           procname:='fpc_ansistr_delete'
+         else if first.typ=undefineddef then
+           { just pick one }
            procname:='fpc_ansistr_delete'
          else
            begin
