@@ -92,8 +92,9 @@ threadvar
   LastDosErrorModuleName: string;
 
 
-const   FindResvdMask = $00003737; {Allowed bits in attribute
-                                    specification for DosFindFirst call.}
+const
+  FindResvdMask = $00003737 {Allowed bits for DosFindFirst parameter Attribute}
+             and $000000FF; {combined with a mask for allowed attributes only}
 
 
 function GetMsCount: int64;

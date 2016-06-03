@@ -591,7 +591,7 @@ begin
   if attr=$8 then
    dosregs.cx:=8
   else
-   dosregs.cx:=attr and (not 8);
+   dosregs.cx:=attr and (not 8) and $FF; { No required attributes }
   dosregs.dx:=Ofs(path^);
   dosregs.ds:=Seg(path^);
   dosregs.di:=Ofs(w);

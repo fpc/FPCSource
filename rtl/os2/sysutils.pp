@@ -72,8 +72,8 @@ const
  faOpenReplace = $00040000; {Truncate if file exists}
  faCreate      = $00050000; {Create if file does not exist, truncate otherwise}
 
- FindResvdMask = $00003737; {Allowed bits in attribute
-                             specification for DosFindFirst call.}
+ FindResvdMask = $00003737  {Allowed bits for DosFindFirst parameter Attribute}
+             and $000000FF; {combined with a mask for allowed attributes only}
 
 function FileOpen (const FileName: rawbytestring; Mode: integer): THandle;
 Var
