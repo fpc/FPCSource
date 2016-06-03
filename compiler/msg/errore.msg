@@ -417,7 +417,7 @@ scan_e_illegal_asmcpu_specifier=02099_E_Illegal assembler CPU instruction set sp
 #
 # Parser
 #
-# 03345 is the last used one
+# 03346 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1553,6 +1553,9 @@ parser_e_packages_not_supported=03344_E_Dynamic packages not supported for targe
 % or it is at least not tested and thus disabled.
 parser_e_cannot_use_hardfloat_in_a_softfloat_environment=03345_E_The HardFloat directive cannot be used if soft float code is generated or fpu emulation is turned on
 % The \var{HardFloat} directive can only be used if an instruction set is used which supports floating point operations.
+parser_e_invalid_internal_function_index=03346_E_Index $1 is not a valid internal function index
+% The index specified for the \var{compilerproc} directive is not an index that's recognized
+% by the compiler.
 %
 %
 % \end{description}

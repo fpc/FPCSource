@@ -1652,6 +1652,23 @@ implementation
                         Procedure directive handlers
 ****************************************************************************}
 
+procedure pd_compilerproc(pd:tabstractprocdef);
+var
+  v : Tconstexprint;
+begin
+  { check for optional syssym index }
+  if try_to_consume(_COLON) then
+    begin
+      v:=get_intconst;
+      if (v<int64(low(longint))) or (v>int64(high(longint))) then
+        message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
+      else if not assigned(tsyssym.find_by_number(longint(v.svalue))) then
+        message1(parser_e_invalid_internal_function_index,tostr(v))
+      else
+        tprocdef(pd).extnumber:=longint(v.svalue);
+    end;
+end;
+
 procedure pd_far(pd:tabstractprocdef);
 begin
   pd.declared_far;
@@ -2723,7 +2740,7 @@ const
     ),(
       idtok:_COMPILERPROC;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
-      handler  : nil;
+      handler  : @pd_compilerproc;
       pocall   : pocall_none;
       pooption : [po_compilerproc];
       mutexclpocall : [];
