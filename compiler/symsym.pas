@@ -426,6 +426,7 @@ interface
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
+          class function find_by_number(l:longint):tsyssym;
        end;
        tsyssymclass = class of tsyssym;
 
@@ -2634,17 +2635,34 @@ implementation
                                   TSYSSYM
 ****************************************************************************}
 
+
+    var
+      syssym_list : TFPHashObjectList;
+
+
     constructor tsyssym.create(const n : string;l : longint);
+      var
+        s : shortstring;
       begin
          inherited create(syssym,n,true);
          number:=l;
+         str(l,s);
+         if assigned(syssym_list.find(s)) then
+           internalerror(2016060303);
+         syssym_list.add(s,self);
       end;
 
     constructor tsyssym.ppuload(ppufile:tcompilerppufile);
+      var
+        s : shortstring;
       begin
          inherited ppuload(syssym,ppufile);
          number:=ppufile.getlongint;
          ppuload_platform(ppufile);
+         str(number,s);
+         if assigned(syssym_list.find(s)) then
+           internalerror(2016060304);
+         syssym_list.add(s,self);
       end;
 
     destructor tsyssym.destroy;
@@ -2659,6 +2677,14 @@ implementation
          writeentry(ppufile,ibsyssym);
       end;
 
+
+    class function tsyssym.find_by_number(l:longint):tsyssym;
+      var
+        s : shortstring;
+      begin
+        str(l,s);
+        result:=tsyssym(syssym_list.find(s));
+      end;
 
 {*****************************************************************************
                                  TMacro
@@ -2728,4 +2754,18 @@ implementation
       end;
 
 
+    procedure init_symsym;
+      begin
+        syssym_list:=tfphashobjectlist.create(false);
+      end;
+
+
+    procedure done_symsym;
+      begin
+        syssym_list.free;
+      end;
+
+
+initialization
+  register_initdone_proc(@init_symsym,@done_symsym);
 end.
