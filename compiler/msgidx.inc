@@ -449,6 +449,7 @@ const
   parser_e_genfuncs_cannot_be_virtual=03343;
   parser_e_packages_not_supported=03344;
   parser_e_cannot_use_hardfloat_in_a_softfloat_environment=03345;
+  parser_e_invalid_internal_function_index=03346;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -1057,9 +1058,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 78039;
+  MsgTxtSize = 78095;
 
   MsgIdxMax : array[1..20] of longint=(
-    27,100,346,124,96,58,130,33,208,65,
+    27,100,347,124,96,58,130,33,208,65,
     58,20,29,1,1,1,1,1,1,1
   );
