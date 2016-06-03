@@ -2334,8 +2334,7 @@ begin
       Writeln([space,'------ ',s,' ------']);
      if readentry=ibstartsyms then
       begin
-        Writeln([space,'Symtable datasize : ',getlongint]);
-        Writeln([space,'Symtable alignment: ',getlongint]);
+        Writeln([space,'Symtable count: ',getlongint]);
       end
      else
       Writeln('!! ibstartsym not found');
