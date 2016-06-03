@@ -1093,11 +1093,12 @@ Procedure ReadUnitImportSyms;
 var
   c,i : longint;
 begin
-  write([space,'Imported Symbols']);
-  write([space,'----------------']);
+  writeln([space,'Imported Symbols']);
+  writeln([space,'----------------']);
   c:=ppufile.getlongint;
   for i:=0 to c-1 do
     readderef(space);
+  writeln([space]);
 end;
 
 
