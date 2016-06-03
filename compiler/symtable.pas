@@ -303,6 +303,8 @@ interface
     procedure hidesym(sym:TSymEntry);
     procedure duplicatesym(var hashedid: THashedIDString; dupsym, origsym:TSymEntry; warn: boolean);
     function handle_generic_dummysym(sym:TSymEntry;var symoptions:tsymoptions):boolean;
+    { writes all declarations for the specified system unit symbol }
+    procedure write_system_parameter_lists(const name:string);
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
@@ -2724,6 +2726,17 @@ implementation
             include(symoptions,sp_generic_dummy);
             result:=true;
           end;
+      end;
+
+
+    procedure write_system_parameter_lists(const name:string);
+      var
+        srsym:tprocsym;
+      begin
+        srsym:=tprocsym(systemunit.find(name));
+        if not assigned(srsym) or not (srsym.typ=procsym) then
+          internalerror(2016060302);
+        srsym.write_parameter_lists(nil);
       end;
 
 
