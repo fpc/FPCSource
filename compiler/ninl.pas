@@ -2337,6 +2337,10 @@ implementation
                         else if not is_dynamicstring(left.resultdef) then
                           result:=cordconstnode.create(tstringdef(left.resultdef).len,u8inttype,true)
                       end;
+                    undefineddef:
+                      begin
+                        result:=cordconstnode.create(0,u8inttype,false);
+                      end;
                   end;
                 end;
               in_exp_real :
@@ -3045,6 +3049,7 @@ implementation
               in_high_x:
                 begin
                   case left.resultdef.typ of
+                    undefineddef,
                     orddef,
                     enumdef,
                     setdef:
