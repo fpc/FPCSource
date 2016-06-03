@@ -679,7 +679,7 @@ end;
 
 
 
-Procedure Delete (Var S : WideString; Index,Size: SizeInt);
+Procedure {$ifdef VER3_0}Delete{$else}fpc_widestr_delete{$endif}(Var S : WideString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
 begin
@@ -699,7 +699,7 @@ begin
 end;
 
 
-Procedure Insert (Const Source : WideString; Var S : WideString; Index : SizeInt);
+Procedure {$ifdef VER3_0}Insert{$else}fpc_widestr_insert{$endif}(Const Source : WideString; Var S : WideString; Index : SizeInt);
 var
   Temp : WideString;
   LS : SizeInt;

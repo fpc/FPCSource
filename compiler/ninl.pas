@@ -99,6 +99,8 @@ interface
           function handle_copy: tnode;
           function handle_box: tnode;
           function handle_unbox: tnode;
+          function handle_insert:tnode;
+          function handle_delete:tnode;
        end;
        tinlinenodeclass = class of tinlinenode;
 
@@ -3286,6 +3288,14 @@ implementation
                   set_varstate(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,vs_read,[vsf_must_be_valid]);
                   resultdef:=tcallparanode(left).left.resultdef;
                 end;
+              in_delete_x_y_z:
+                begin
+                  result:=handle_delete;
+                end;
+              in_insert_x_y_z:
+                begin
+                  result:=handle_insert;
+                end;
               else
                 internalerror(8);
             end;
@@ -4253,6 +4263,72 @@ implementation
            internalerror(2011071701);
          ttypenode(tcallparanode(left).left).allowed:=true;
          resultdef:=tcallparanode(left).left.resultdef;
+       end;
+
+     function tinlinenode.handle_insert: tnode;
+       var
+         procname : String;
+         first,
+         second : tdef;
+       begin
+         { determine the correct function based on the second parameter }
+         first:=tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef;
+         second:=tcallparanode(tcallparanode(left).right).left.resultdef;
+         if is_shortstring(second) then
+           begin
+             if is_char(first) then
+               procname:='fpc_shortstr_insert_char'
+             else
+               procname:='fpc_shortstr_insert';
+           end
+         else if is_unicodestring(second) then
+           procname:='fpc_unicodestr_insert'
+         else if is_widestring(second) then
+           procname:='fpc_widestr_insert'
+         else if is_ansistring(second) then
+           procname:='fpc_ansistr_insert'
+         else
+           begin
+             CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Insert');
+             write_system_parameter_lists('fpc_shortstr_insert');
+             write_system_parameter_lists('fpc_shortstr_insert_char');
+             write_system_parameter_lists('fpc_unicodestr_insert');
+             if target_info.system in systems_windows then
+               write_system_parameter_lists('fpc_widestr_insert');
+             write_system_parameter_lists('fpc_ansistr_insert');
+             exit(cerrornode.create);
+           end;
+         result:=ccallnode.createintern(procname,left);
+         left:=nil;
+       end;
+
+     function tinlinenode.handle_delete: tnode;
+       var
+         procname : String;
+         first : tdef;
+       begin
+         { determine the correct function based on the first parameter }
+         first:=tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef;
+         if is_shortstring(first) then
+           procname:='fpc_shortstr_delete'
+         else if is_unicodestring(first) then
+           procname:='fpc_unicodestr_delete'
+         else if is_widestring(first) then
+           procname:='fpc_widestr_delete'
+         else if is_ansistring(first) then
+           procname:='fpc_ansistr_delete'
+         else
+           begin
+             CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Delete');
+             write_system_parameter_lists('fpc_shortstr_delete');
+             write_system_parameter_lists('fpc_unicodestr_delete');
+             if target_info.system in systems_windows then
+               write_system_parameter_lists('fpc_widestr_delete');
+             write_system_parameter_lists('fpc_ansistr_delete');
+             exit(cerrornode.create);
+           end;
+         result:=ccallnode.createintern(procname,left);
+         left:=nil;
        end;
 
 

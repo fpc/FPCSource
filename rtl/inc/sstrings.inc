@@ -49,7 +49,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_DELETE}
 {$define FPC_HAS_SHORTSTR_DELETE}
-procedure delete(var s : shortstring;index : SizeInt;count : SizeInt);
+procedure {$ifdef VER3_0}delete{$else}fpc_shortstr_delete{$endif}(var s : shortstring;index : SizeInt;count : SizeInt);
 begin
   if index<=0 then
      exit;
@@ -67,7 +67,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_INSERT}
 {$define FPC_HAS_SHORTSTR_INSERT}
-procedure insert(const source : shortstring;var s : shortstring;index : SizeInt);
+procedure {$ifdef ver3_0}insert{$else}fpc_shortstr_insert{$endif}(const source : shortstring;var s : shortstring;index : SizeInt);
 var
   cut,srclen,indexlen : SizeInt;
 begin
@@ -101,7 +101,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_INSERT_CHAR}
 {$define FPC_HAS_SHORTSTR_INSERT_CHAR}
-procedure insert(source : Char;var s : shortstring;index : SizeInt);
+procedure {$ifdef ver3_0}insert{$else}fpc_shortstr_insert_char{$endif}(source : Char;var s : shortstring;index : SizeInt);
 var
   indexlen : SizeInt;
 begin

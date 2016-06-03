@@ -26,8 +26,10 @@ Function Pos (const c : ShortString; Const s : WideString; Offset : SizeInt = 1)
 
 Function UpCase(const s : WideString) : WideString;
 
+{$ifdef VER3_0}
 Procedure Insert (Const Source : WideString; Var S : WideString; Index : SizeInt);
 Procedure Delete (Var S : WideString; Index,Size: SizeInt);
+{$endif VER3_0}
 Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_widestr_pwidechar{$else}SetString{$endif}(Out S : WideString; Buf : PWideChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_widestr_pansichar{$else}SetString{$endif}(Out S : WideString; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 

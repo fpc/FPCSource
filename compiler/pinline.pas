@@ -39,6 +39,8 @@ interface
     function inline_initialize : tnode;
     function inline_finalize : tnode;
     function inline_copy : tnode;
+    function inline_insert : tnode;
+    function inline_delete : tnode;
 
 
 implementation
@@ -636,7 +638,7 @@ implementation
       end;
 
 
-    function inline_copy : tnode;
+    function inline_copy_insert_delete(nr:byte;name:string) : tnode;
       var
         paras   : tnode;
         { for easy exiting if something goes wrong }
@@ -648,11 +650,30 @@ implementation
         consume(_RKLAMMER);
         if not assigned(paras) then
           begin
-            CGMessage1(parser_e_wrong_parameter_size,'Copy');
+            CGMessage1(parser_e_wrong_parameter_size,name);
             exit;
           end;
         result.free;
-        result:=cinlinenode.create(in_copy_x,false,paras);
+        result:=cinlinenode.create(nr,false,paras);
       end;
+
+
+    function inline_copy: tnode;
+      begin
+        result:=inline_copy_insert_delete(in_copy_x,'Copy');
+      end;
+
+
+    function inline_insert: tnode;
+      begin
+        result:=inline_copy_insert_delete(in_insert_x_y_z,'Insert');
+      end;
+
+
+    function inline_delete: tnode;
+      begin
+        result:=inline_copy_insert_delete(in_delete_x_y_z,'Delete');
+      end;
+
 
 end.

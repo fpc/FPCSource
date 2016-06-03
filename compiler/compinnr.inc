@@ -89,6 +89,8 @@ const
    in_popcnt_x          = 79;
    in_aligned_x         = 80;
    in_setstring_x_y_z   = 81;
+   in_insert_x_y_z      = 82;
+   in_delete_x_y_z      = 83;
 
 { Internal constant functions }
    in_const_sqr        = 100;

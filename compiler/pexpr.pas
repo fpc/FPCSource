@@ -914,6 +914,16 @@ implementation
             begin
               statement_syssym := inline_setstring;
             end;
+
+          in_delete_x_y_z:
+            begin
+              statement_syssym:=inline_delete;
+            end;
+
+          in_insert_x_y_z:
+            begin
+              statement_syssym:=inline_insert;
+            end;
           else
             internalerror(15);
 

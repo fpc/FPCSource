@@ -1350,7 +1350,7 @@ begin
 end;
 {$endif CPU16 or CPU8}
 
-Procedure Delete(Var S : RawByteString; Index,Size: SizeInt);
+Procedure {$ifdef VER3_0}Delete{$else}fpc_ansistr_delete{$endif}(Var S : RawByteString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
 begin
@@ -1369,7 +1369,7 @@ begin
 end;
 
 
-Procedure Insert(Const Source : RawByteString; Var S : RawByteString; Index : SizeInt);
+Procedure {$ifdef VER3_0}Insert{$else}fpc_ansistr_insert{$endif}(Const Source : RawByteString; Var S : RawByteString; Index : SizeInt);
 var
   Temp : RawByteString;
   LS : SizeInt;
