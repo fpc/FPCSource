@@ -404,8 +404,7 @@ Unit AoptObj;
         repeat
           while assigned(p) and
                 ((p.typ in (SkipInstr - [ait_RegAlloc])) or
-                 ((p.typ = ait_label) and
-                  labelCanBeSkipped(tai_label(p))) or
+                 (p.typ = ait_label) or
                  ((p.typ = ait_marker) and
                   (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_NoLineInfoStart,mark_NoLineInfoEnd]))) do
                p := tai(p.next);
