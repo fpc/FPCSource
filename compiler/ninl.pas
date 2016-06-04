@@ -4296,7 +4296,7 @@ implementation
              write_system_parameter_lists('fpc_shortstr_insert');
              write_system_parameter_lists('fpc_shortstr_insert_char');
              write_system_parameter_lists('fpc_unicodestr_insert');
-             if target_info.system in systems_windows then
+             if tf_winlikewidestring in target_info.flags then
                write_system_parameter_lists('fpc_widestr_insert');
              write_system_parameter_lists('fpc_ansistr_insert');
              exit(cerrornode.create);
@@ -4328,7 +4328,7 @@ implementation
              CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Delete');
              write_system_parameter_lists('fpc_shortstr_delete');
              write_system_parameter_lists('fpc_unicodestr_delete');
-             if target_info.system in systems_windows then
+             if tf_winlikewidestring in target_info.flags then
                write_system_parameter_lists('fpc_widestr_delete');
              write_system_parameter_lists('fpc_ansistr_delete');
              exit(cerrornode.create);
