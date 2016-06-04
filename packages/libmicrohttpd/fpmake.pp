@@ -24,7 +24,7 @@ begin
     P.Description := 'Event and threaded based micro-http server library interface';
     P.NeedLibC:= true;
     P.Dependencies.Add('rtl-extra');
-    P.OSes := [android,freebsd,linux,netbsd,openbsd,os2,win32,win64,symbian];
+    P.OSes := [android,freebsd,linux,netbsd,openbsd,win32,win64];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     T:=P.Targets.AddUnit('libmicrohttpd.pp');
