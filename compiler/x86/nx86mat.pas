@@ -242,7 +242,7 @@ interface
            { if it is a register variable, so we've to do      }
            { this before the case statement                    }
            secondpass(left);
-           case left.expectloc of
+           case left.location.loc of
              LOC_FLAGS :
                begin
                  location_reset(location,LOC_FLAGS,OS_NO);
