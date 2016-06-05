@@ -507,11 +507,13 @@ unit aoptx86;
       var
         hp1, hp2: tai;
         TmpUsedRegs : TAllUsedRegs;
+        GetNextIntruction_p : Boolean;
       begin
         Result:=false;
+        GetNextIntruction_p:=GetNextInstruction(p, hp1);
         if (taicpu(p).oper[1]^.typ = top_reg) and
            (getsupreg(taicpu(p).oper[1]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX, RS_ESI, RS_EDI]) and
-           GetNextInstruction(p, hp1) and
+           GetNextIntruction_p and
            MatchInstruction(hp1,A_MOV,[]) and
            MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
           begin
@@ -651,7 +653,7 @@ unit aoptx86;
             parameter or to the temporary storage room for the function
             result)
           }
-          if GetNextInstruction(p, hp1) and
+          if GetNextIntruction_p and
             (tai(hp1).typ = ait_instruction) then
             begin
               if IsExitCode(hp1) and
@@ -687,7 +689,7 @@ unit aoptx86;
             end;
 
         { Next instruction is also a MOV ? }
-        if GetNextInstruction(p, hp1) and
+        if GetNextIntruction_p and
           MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) then
           begin
             if (taicpu(hp1).oper[0]^.typ = taicpu(p).oper[1]^.typ) and
@@ -856,7 +858,7 @@ unit aoptx86;
               end
           end;
 
-        if GetNextInstruction(p, hp1) and
+        if GetNextIntruction_p and
           MatchInstruction(hp1,A_BTS,A_BTR,[Taicpu(p).opsize]) and
           GetNextInstruction(hp1, hp2) and
           MatchInstruction(hp2,A_OR,[Taicpu(p).opsize]) and
@@ -876,7 +878,7 @@ unit aoptx86;
             p:=hp1;
           end;
 
-        if GetNextInstruction(p, hp1) and
+        if GetNextIntruction_p and
            MatchInstruction(hp1,A_LEA,[S_L]) and
            MatchOpType(Taicpu(p),top_ref,top_reg) and
            ((MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(hp1).oper[1]^.reg,Taicpu(p).oper[1]^.reg) and
