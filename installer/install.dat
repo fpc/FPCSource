@@ -142,6 +142,8 @@ package=utils-lexyaccdos.zip[tplydos.zip],Compiler generator for TP and compatib
 package=units-ptcdos.zip[uptcdos.zip],Free portable framebuffer library
 # Dos-2 23
 package=utils-dxegendos.zip[dxegdos.zip],Generation of D~X~E modules loadable at runtime
+# Dos-2 24
+package=ufcl-pdfdos.zip[ufcpddos.zip],PDF generating and TTF file info library
 
 #
 # Win32 packages
@@ -365,6 +367,8 @@ package=utils-pas2fpmos2.zip[p2fmos2.zip],Generate fpmake.pp for Pascal source
 package=utils-pas2jnios2.zip[p2jnos2.zip],Generate JNI bridge for Pascal code
 # OS/2 31
 package=utils-pas2utos2.zip[p2utos2.zip],Pascal source to FPC Unit test generator
+# OS/2 32
+package=ufcl-pdfos2.zip[ufcpdos2.zip],PDF generating and TTF file info library
 
 #
 # OS/2 packages 2nd part
@@ -527,6 +531,8 @@ package=utils-pas2fpmemx.zip[p2fmemx.zip],Generate fpmake.pp for Pascal source
 package=utils-pas2jniemx.zip[p2jnemx.zip],Generate JNI bridge for Pascal code
 # EMX 31
 package=utils-pas2utemx.zip[p2utemx.zip],Pascal source to FPC Unit test generator
+# EMX 32
+package=ufcl-pdfemx.zip[ufcpdemx.zip],PDF generating and TTF file info library
 
 #
 # EMX packages 2nd part
@@ -762,6 +768,10 @@ package=units-ptc.source.zip[uptcsrc.zip],Free portable framebuffer library
 package=units-x11.source.zip[ux11src.zip],X Window (X11) interface units
 # Source-2 28
 package=units-sdl.source.zip[usdlsrc.zip],SDL (Simple DirectMedia Layer) interface units sources
+# Source-2 29
+package=units-fcl-pdf.source.zip[ufcpdsrc.zip],PDF generating and TTF file info library
+# Source-2 30
+package=units-dblib.source.zip,Headers for the MS SQL Server RDBMS
 
 
 #
