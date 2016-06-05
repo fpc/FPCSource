@@ -877,7 +877,8 @@ implementation
        if (def.typ in [recorddef,filedef,variantdef]) or
           is_object(def) or
           ((def.typ=procvardef) and
-           not tprocvardef(def).is_addressonly) then
+           not tprocvardef(def).is_addressonly and
+           not is_block(def)) then
          result:=tck_record
        else if ((def.typ=arraydef) and
            not is_dynamic_array(def)) or
