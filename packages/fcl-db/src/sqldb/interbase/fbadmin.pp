@@ -1,4 +1,4 @@
-unit fbadmin2;
+unit fbadmin;
 
 { Interbase/Firebird Administration using the service manager
 
