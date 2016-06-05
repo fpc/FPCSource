@@ -109,7 +109,7 @@ interface
           { loads the procvar code pointer into a register with type def }
           procedure load_procvar_codeptr(out reg: tregister; out callprocdef: tabstractprocdef);
 
-          procedure load_block_invoke(toreg: tregister; out callprocdef: tabstractprocdef);
+          procedure load_block_invoke(out toreg: tregister; out callprocdef: tabstractprocdef);
 
           function get_call_reg(list: TAsmList): tregister; virtual;
           procedure unget_call_reg(list: TAsmList; reg: tregister); virtual;
@@ -436,7 +436,7 @@ implementation
       end;
 
 
-    procedure tcgcallnode.load_block_invoke(toreg: tregister; out callprocdef: tabstractprocdef);
+    procedure tcgcallnode.load_block_invoke(out toreg: tregister; out callprocdef: tabstractprocdef);
       var
         href: treference;
         literaldef: trecorddef;
@@ -445,9 +445,10 @@ implementation
         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cpointerdef.getreusable(literaldef),true);
         { load the invoke pointer }
         hlcg.reference_reset_base(href,right.resultdef,right.location.register,0,right.resultdef.alignment);
-        hlcg.g_load_field_reg_by_name(current_asmdata.CurrAsmList,literaldef,procdefinition,'INVOKE',href,toreg);
-        callprocdef:=procdefinition;
-      end;
+        callprocdef:=cprocvardef.getreusableprocaddr(procdefinition);
+        toreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,callprocdef);
+        hlcg.g_load_field_reg_by_name(current_asmdata.CurrAsmList,literaldef,callprocdef,'INVOKE',href,toreg);
+     end;
 
 
     function tcgcallnode.get_call_reg(list: TAsmList): tregister;
@@ -815,10 +816,7 @@ implementation
      procedure tcgcallnode.load_procvar_codeptr(out reg: tregister; out callprocdef: tabstractprocdef);
        begin
          if po_is_block in procdefinition.procoptions then
-           begin
-             reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition);
-             load_block_invoke(reg,callprocdef);
-           end
+           load_block_invoke(reg,callprocdef)
          else if not(procdefinition.is_addressonly) then
            load_complex_procvar_codeptr(reg,callprocdef)
          else
