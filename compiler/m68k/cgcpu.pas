@@ -1059,8 +1059,6 @@ unit cgcpu;
         if use_push(cgpara) and (current_settings.fputype in [fpu_68881,fpu_coldfire]) then
           begin
             cgpara.check_simple_location;
-            { FIXME: 68k cg really needs to support 2 byte stack alignment, otherwise the "Extended"
-              floating point type cannot work (KB) }
             reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
             ref.direction := dir_dec;
             list.concat(taicpu.op_reg_ref(A_FMOVE,tcgsize2opsize[cgpara.location^.size],reg,ref));
