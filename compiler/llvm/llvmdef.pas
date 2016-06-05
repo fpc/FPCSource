@@ -118,7 +118,7 @@ implementation
     fmodule,
     symtable,symconst,symsym,
     llvmsym,hlcgobj,
-    defutil,cgbase,paramgr;
+    defutil,blockutl,cgbase,paramgr;
 
 
 {******************************************************************
@@ -468,7 +468,14 @@ implementation
                 begin
                   { in case the procvardef recursively references itself, e.g.
                     via a pointer }
-                  encodedstr:=encodedstr+llvmtypeidentifier(def)
+                  encodedstr:=encodedstr+llvmtypeidentifier(def);
+                  { blocks are implicit pointers }
+                  if is_block(def) then
+                    encodedstr:=encodedstr+'*'
+                end
+              else if is_block(def) then
+                begin
+                  llvmaddencodedtype_intern(get_block_literal_type_for_proc(tabstractprocdef(def)),flags,encodedstr);
                 end
               else
                 begin
