@@ -468,7 +468,7 @@ unit cpupara;
              begin;
                { every hfa element must be passed in a separate register }
                if (assigned(hfabasedef) and
-                   (curmmreg+(paralen div hfabasedef.size)>RS_LAST_MM_PARAM_SUPREG)) or
+                   (curmmreg+((paralen-1) div hfabasedef.size)>RS_LAST_MM_PARAM_SUPREG)) or
                   (curmmreg+((paralen-1) shr 3)>RS_LAST_MM_PARAM_SUPREG) then
                  begin
                    { not enough mm registers left -> no more register
