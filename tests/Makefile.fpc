@@ -154,7 +154,7 @@ LOGFILES=$(TEST_OUTPUTDIR)/log $(TEST_OUTPUTDIR)/longlog $(TEST_OUTPUTDIR)/faill
 LOGEXT=.testlog .tbslog .tbflog .webtbslog .webtbflog
 
 # Subdirs available in the test subdir
-TESTSUBDIRS=cg cg/variants cg/cdecl cpu16 cpu16/i8086 library opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem units/strutils units/matrix units/lineinfo units/ucomplex units/fpwidestring units/cpu
+TESTSUBDIRS=cg cg/variants cg/cdecl cpu16 cpu16/i8086 library opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem units/strutils units/matrix units/lineinfo units/ucomplex units/fpwidestring units/cpu units/fmtbcd units/windows
 TESTPACKAGESUBDIRS=packages/win-base packages/webtbs packages/hash packages/fcl-registry packages/fcl-process packages/zlib packages/fcl-db packages/fcl-base packages/fcl-xml packages/cocoaint packages/bzip2
 
 ifdef QUICKTEST
@@ -508,7 +508,8 @@ $(MAKEINC): $(GPARMAKE) $(TEST_OUTPUTDIR)
 # used subdirectory. Note also that the index must be increasing for each
 # new call with a gap insuring that all the previous files have lower index
 # even if CHUNKSIZE is equal to 1.
-	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) $(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+	$(MAKE) -s -f createlst.mak "TESTDIRS=$(TESTDIRS)" > testfilelist.lst
+	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @testfilelist.lst
 	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) $(sort $(wildcard tbs/t*.pp))
 	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) $(sort $(wildcard tbf/t*.pp))
 	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) $(sort $(wildcard webtbs/t*.pp))

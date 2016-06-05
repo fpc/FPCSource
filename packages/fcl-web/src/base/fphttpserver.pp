@@ -101,8 +101,10 @@ Type
 
   TFPCustomHttpServer = Class(TComponent)
   Private
+    FAcceptIdleTimeout: Cardinal;
     FAdminMail: string;
     FAdminName: string;
+    FOnAcceptIdle: TNotifyEvent;
     FOnAllowConnect: TConnectQuery;
     FOnRequest: THTTPServerRequestHandler;
     FOnRequestError: TRequestErrorHandler;
@@ -116,7 +118,9 @@ Type
     FThreaded: Boolean;
     FConnectionCount : Integer;
     function GetActive: Boolean;
+    procedure SetAcceptIdleTimeout(AValue: Cardinal);
     procedure SetActive(const AValue: Boolean);
+    procedure SetIdle(AValue: TNotifyEvent);
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
     procedure SetAddress(const AValue: string);
     procedure SetPort(const AValue: Word);
@@ -175,6 +179,10 @@ Type
     Property OnRequest : THTTPServerRequestHandler Read FOnRequest Write FOnRequest;
     // Called when an unexpected error occurs during handling of the request. Sender is the TFPHTTPConnection.
     Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
+    // Called when there are no connections waiting.
+    Property OnAcceptIdle : TNotifyEvent Read FOnAcceptIdle Write SetIdle;
+    // If >0, when no new connection appeared after timeout, OnAcceptIdle is called.
+    Property AcceptIdleTimeout : Cardinal Read FAcceptIdleTimeout Write SetAcceptIdleTimeout;
   published
     //aditional server information
     property AdminMail: string read FAdminMail write FAdminMail;
@@ -192,6 +200,8 @@ Type
     property Threaded;
     Property OnRequest;
     Property OnRequestError;
+    Property OnAcceptIdle;
+    Property AcceptIdleTimeout;
   end;
 
   EHTTPServer = Class(EHTTP);
@@ -420,7 +430,7 @@ begin
     Exit;
     end;
   N:=Copy(V,1,P-1);
-  Delete(V,1,P+1);
+  Delete(V,1,P);
   V:=Trim(V);
   ARequest.SetFieldByName(N,V);
 end;
@@ -448,11 +458,13 @@ begin
   Request.Method:=GetNextWord(AStartLine);
   Request.URL:=GetNextWord(AStartLine);
   S:=Request.URL;
-  If (S<>'') and (S[1]='/') then
-    Delete(S,1,1);
   I:=Pos('?',S);
   if (I>0) then
     S:=Copy(S,1,I-1);
+  If (Length(S)>1) and (S[1]<>'/') then
+    S:='/'+S
+  else if S='/' then 
+    S:='';
   Request.PathInfo:=S;
   S:=GetNextWord(AStartLine);
   If (Pos('HTTP/',S)<>1) then
@@ -636,6 +648,14 @@ begin
     Result:=Assigned(FServer);
 end;
 
+procedure TFPCustomHttpServer.SetAcceptIdleTimeout(AValue: Cardinal);
+begin
+  if FAcceptIdleTimeout=AValue then Exit;
+  FAcceptIdleTimeout:=AValue;
+  If Assigned(FServer) then
+    FServer.AcceptIdleTimeOut:=AValue;
+end;
+
 procedure TFPCustomHttpServer.StopServerSocket;
 begin
   FServer.StopAccepting(True);
@@ -655,6 +675,13 @@ begin
       end
     else
       StopServerSocket;
+end;
+
+procedure TFPCustomHttpServer.SetIdle(AValue: TNotifyEvent);
+begin
+  FOnAcceptIdle:=AValue;
+  if Assigned(FServer) then
+    FServer.OnIdle:=AValue;
 end;
 
 procedure TFPCustomHttpServer.SetOnAllowConnect(const AValue: TConnectQuery);
@@ -769,6 +796,8 @@ begin
   FServer.OnConnectQuery:=OnAllowConnect;
   FServer.OnConnect:=@DOConnect;
   FServer.OnAcceptError:=@DoAcceptError;
+  FServer.OnIdle:=OnAcceptIdle;
+  FServer.AcceptIdleTimeOut:=AcceptIdleTimeout;
 end;
 
 procedure TFPCustomHttpServer.StartServerSocket;
@@ -798,7 +827,7 @@ begin
   FServerBanner := 'Freepascal';
 end;
 
-Procedure TFPCustomHttpServer.WaitForRequests;
+procedure TFPCustomHttpServer.WaitForRequests;
 
 Var
   FLastCount,ACount : Integer;

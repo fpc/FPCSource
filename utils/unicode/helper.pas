@@ -1,6 +1,6 @@
 {   Unicode parser helper unit.
 
-    Copyright (c) 2012 by Inoussa OUEDRAOGO
+    Copyright (c) 2012-2015 by Inoussa OUEDRAOGO
 
     The source code is distributed under the Library GNU
     General Public License with the following modification:
@@ -66,6 +66,7 @@ const
     '        but WITHOUT ANY WARRANTY; without even the implied warranty of ' + sLineBreak +
     '        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. }';
 
+  WEIGHT_LEVEL_COUNT = 3;
 
 type
   // Unicode General Category
@@ -679,6 +680,14 @@ type
   procedure ReverseRecordBytes(var AItem : TSerializedCollationHeader);
   procedure ReverseBytes(var AData; const ALength : Integer);
   procedure ReverseArray(var AValue; const AArrayLength, AItemSize : PtrInt);
+
+  function CalcMaxLevel2Value(ALines : array of TUCA_LineRec) : Cardinal;
+  procedure RewriteLevel2Values(ALines : PUCA_LineRec; ALength : Integer);
+  function RewriteLevel2(
+    const ALevel1Value : Cardinal;
+          ALines       : PUCA_LineRec;
+    const ALinesLength : Integer
+  ) : Integer;
 
 resourcestring
   SInsufficientMemoryBuffer = 'Insufficient Memory Buffer';
@@ -1728,6 +1737,8 @@ var
       Inc(actualPropLen);
     end;
     locData.PropID := k;
+    if (actualDataLen >= Length(ADataLineList)) then
+      SetLength(ADataLineList,(2*Length(ADataLineList)));
     ADataLineList[actualDataLen] := locData;
     Inc(actualDataLen);
   end;
@@ -2477,7 +2488,7 @@ var
     a := LowerCase(Trim(AToken));
     b := LowerCase(Trim(NextToken()));
     if (a <> b) then
-      raise Exception.CreateFmt('Expected token "%s" but found "%s".',[a,b]);
+      raise Exception.CreateFmt('Expected token "%s" but found "%s", Line = "%s".',[a,b,line]);
   end;
 
   function ReadWeightBlock(var ADest : TUCA_WeightRec) : Boolean;
@@ -2498,7 +2509,7 @@ var
       ADest.Variable := True;
     end;
     ADest.Weights[0] := StrToInt('$'+NextToken());
-    for k := 1 to 3 do begin
+    for k := 1 to WEIGHT_LEVEL_COUNT-1 do begin
       CheckToken('.');
       ADest.Weights[k] := StrToInt('$'+NextToken());
     end;
@@ -2638,8 +2649,11 @@ begin
   exit(-1);
 end;
 
-Procedure QuickSort(var AList: TUCA_DataBookIndex; L, R : Longint;
-                     ABook : PUCA_DataBook);
+procedure QuickSort(
+  var AList : TUCA_DataBookIndex;
+      L, R  : Longint;
+      ABook : PUCA_DataBook
+);overload;
 var
   I, J : Longint;
   P, Q : Integer;
@@ -4671,6 +4685,201 @@ begin
     a := PUCA_PropItemRec(PtrUInt(a)+k);
     b := PUCA_PropItemRec(PtrUInt(b)+k);
   end;
+end;
+
+Procedure QuickSort(AList : PCardinal; L, R : Longint);overload;
+var
+  I, J : Longint;
+  P, Q : Cardinal;
+begin
+ repeat
+   I := L;
+   J := R;
+   P := AList[ (L + R) div 2 ];
+   repeat
+     while (P > AList[i]) do
+       I := I + 1;
+     while (P < AList[J]) do
+       J := J - 1;
+     If I <= J then
+     begin
+       Q := AList[I];
+       AList[I] := AList[J];
+       AList[J] := Q;
+       I := I + 1;
+       J := J - 1;
+     end;
+   until I > J;
+   if J - L < R - I then
+   begin
+     if L < J then
+       QuickSort(AList, L, J);
+     L := I;
+   end
+   else
+   begin
+     if I < R then
+       QuickSort(AList, I, R);
+     R := J;
+   end;
+ until L >= R;
+end;
+
+function CalcMaxLevel2Count(
+  const ALevel1Value : Cardinal;
+        ALines       : array of TUCA_LineRec
+) : Integer;
+var
+  i, c, k : Integer;
+  ac : Integer;
+  items : array of Cardinal;
+  p : PUCA_LineRec;
+  pw : ^TUCA_WeightRec;
+begin
+  c := Length(ALines);
+  if (c < 1) then
+    exit(0);
+  SetLength(items,0);
+  ac := 0;
+  p := @ALines[Low(ALines)];
+  for i := 0 to c-1 do begin
+    if (Length(p^.Weights) > 0) then begin
+      pw := @p^.Weights[Low(p^.Weights)];
+      for k := 0 to Length(p^.Weights)-1 do begin
+        if (pw^.Weights[0] = ALevel1Value) then begin
+          if (ac = 0) or (IndexDWord(items[0],ac,pw^.Weights[1]) < 0) then begin
+            if (ac >= Length(items)) then
+              SetLength(items,Length(items)+256);
+            items[ac] := pw^.Weights[1];
+            ac := ac+1;
+          end;
+        end;
+        Inc(pw);
+      end;
+    end;
+    Inc(p);
+  end;
+  Result := ac;
+end;
+
+function RewriteLevel2(
+  const ALevel1Value : Cardinal;
+        ALines       : PUCA_LineRec;
+  const ALinesLength : Integer
+) : Integer;
+var
+  i, c, k : Integer;
+  ac : Integer;
+  items : array of Cardinal;
+  p : PUCA_LineRec;
+  pw : ^TUCA_WeightRec;
+  newValue : Cardinal;
+begin
+  c := ALinesLength;
+  if (c < 1) then
+    exit(0);
+  SetLength(items,256);
+  ac := 0;
+  p := ALines;
+  for i := 0 to c-1 do begin
+    if (Length(p^.Weights) > 0) then begin
+      for k := 0 to Length(p^.Weights)-1 do begin
+        pw := @p^.Weights[k];
+        if (pw^.Weights[0] = ALevel1Value) then begin
+          if (ac = 0) or (IndexDWord(items[0],ac,pw^.Weights[1]) < 0) then begin
+            if (ac >= Length(items)) then
+              SetLength(items,Length(items)+256);
+            items[ac] := pw^.Weights[1];
+            ac := ac+1;
+          end;
+        end;
+      end;
+    end;
+    Inc(p);
+  end;
+  SetLength(items,ac);
+  if (ac > 1) then
+    QuickSort(@items[0],0,(ac-1));
+
+  p := ALines;
+  for i := 0 to c-1 do begin
+    if (Length(p^.Weights) > 0) then begin
+      for k := 0 to Length(p^.Weights)-1 do begin
+        pw := @p^.Weights[k];
+        if (pw^.Weights[0] = ALevel1Value) then begin
+          newValue := IndexDWord(items[0],ac,pw^.Weights[1]);
+          if (newValue < 0) then
+            raise Exception.CreateFmt('level 2 value %d missed in rewrite of level 1 value of %d.',[pw^.Weights[1],ALevel1Value]);
+          pw^.Weights[1] := newValue;//+1;
+        end;
+      end;
+    end;
+    Inc(p);
+  end;
+  if (Length(items) > 0) then
+    Result := items[Length(items)-1]
+  else
+    Result := 0;
+end;
+
+procedure RewriteLevel2Values(ALines : PUCA_LineRec; ALength : Integer);
+var
+  c, i, ac, k : Integer;
+  p : PUCA_LineRec;
+  level1List : array of Cardinal;
+  pw : ^TUCA_WeightRec;
+begin
+  c := ALength;
+  if (c < 1) then
+    exit;
+  ac := 0;
+  SetLength(level1List,c);
+  p := ALines;
+  for i := 0 to c-1 do begin
+    if (Length(p^.Weights) > 0) then begin
+      for k := 0 to Length(p^.Weights)-1 do begin
+        pw := @p^.Weights[k];
+        if (ac = 0) or (IndexDWord(level1List[0],ac,pw^.Weights[0]) < 0) then begin
+          if (ac >= Length(level1List)) then
+            SetLength(level1List,ac+1000);
+          level1List[ac] := pw^.Weights[0];
+          RewriteLevel2(level1List[ac],ALines,ALength);
+          ac := ac+1;
+        end;
+      end;
+    end;
+    Inc(p);
+  end;
+end;
+
+function CalcMaxLevel2Value(ALines : array of TUCA_LineRec) : Cardinal;
+var
+  i, c, k, tempValue : Integer;
+  p : PUCA_LineRec;
+  maxLevel : Cardinal;
+  maxValue : Integer;
+begin
+  c := Length(ALines);
+  if (c < 2) then
+    exit(0);
+  maxLevel := 0;
+  maxValue := CalcMaxLevel2Count(maxLevel,ALines);
+  p := @ALines[Low(ALines)+1];
+  for i := 1 to c-1 do begin
+    if (Length(p^.Weights) > 0) then begin
+      for k := 0 to Length(p^.Weights)-1 do begin
+        if (p^.Weights[k].Weights[0] <> maxLevel) then begin
+          tempValue := CalcMaxLevel2Count(p^.Weights[k].Weights[0],ALines);
+          if (tempValue > maxValue) then begin
+            maxLevel := p^.Weights[k].Weights[0];
+            maxValue := tempValue;
+          end;
+        end;
+      end;
+    end;
+    Inc(p);
+  end;
+  Result := maxValue;
 end;
 
 initialization

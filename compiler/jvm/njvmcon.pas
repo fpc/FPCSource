@@ -125,7 +125,7 @@ implementation
 
         { c) create loadnode of the field }
         result:=nil;
-        if not handle_staticfield_access(classfield,false,result) then
+        if not handle_staticfield_access(classfield,result) then
           internalerror(2011062606);
       end;
 

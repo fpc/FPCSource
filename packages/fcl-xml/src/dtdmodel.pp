@@ -396,7 +396,8 @@ begin
   FData^.FQName := aName;
   FData^.FColonPos := aColonPos;
   FData^.FTypeInfo := Self;
-  FIsNamespaceDecl := ((Length(aName^.Key) = 5) or (aColonPos = 6)) and
+  { aColonPos is zero-based }
+  FIsNamespaceDecl := ((Length(aName^.Key) = 5) or (aColonPos = 5)) and
     (Pos(XMLString('xmlns'), aName^.Key) = 1);
 end;
 

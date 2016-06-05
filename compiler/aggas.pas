@@ -956,6 +956,8 @@ implementation
 {$endif cpu64bitaddr}
                  aitconst_got:
                    begin
+                     if tai_const(hp).symofs<>0 then
+                       InternalError(2015091401);  // No symbol offset is allowed for GOT.
                      AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(GOT)');
                      Asmln;
                    end;
@@ -975,7 +977,7 @@ implementation
                        cpu_i386:
                          begin
                            AsmWrite(ait_const2str[aitconst_32bit]);
-                           AsmWrite(tai_const(hp).sym.name);
+                           AsmWrite(tai_const(hp).sym.name+'-_GLOBAL_OFFSET_TABLE_');
                          end;
                      else
                        InternalError(2014022602);

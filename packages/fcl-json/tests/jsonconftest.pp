@@ -1,6 +1,7 @@
 unit jsonconftest;
 
 {$mode objfpc}{$H+}
+{$codepage utf8}
 
 interface
 
@@ -13,6 +14,8 @@ type
 
   TTestJSONConfig= class(TTestCase)
   Private
+    procedure AssertStrings(Msg: String; L: TStrings;
+      const Values: array of string);
     Function CreateConf(AFileName : String) : TJSONCOnfig;
     Procedure DeleteConf(C : TJSONConfig; DeleteConfFile : Boolean = true);
   published
@@ -22,6 +25,8 @@ type
     procedure TestEnumValues;
     procedure TestClear;
     procedure TestKey;
+    procedure TestStrings;
+    procedure TestUnicodeStrings;
   end;
 
 implementation
@@ -250,6 +255,96 @@ begin
     end;
   finally
     DeleteConf(C,True);
+  end;
+end;
+
+procedure TTestJSONConfig.AssertStrings(Msg: String; L: TStrings;
+  const Values: array of string);
+
+Var
+  I : Integer;
+begin
+  Msg:=Msg+': ';
+  AssertNotNull(Msg+'Have strings',L);
+  AssertEquals(Msg+'Correct element count',Length(Values),L.Count);
+  For I:=0 to L.Count-1 do
+    AssertEquals(Msg+'element '+IntToStr(i),Values[i],l[i]);
+end;
+
+procedure TTestJSONConfig.TestStrings;
+
+Var
+  C : TJSONCOnfig;
+  L,LD : TStrings;
+
+begin
+  L:=Nil;
+  LD:=Nil;
+  C:=CreateConf('test.json');
+  try
+    L:=TStringList.Create;
+    LD:=TStringList.Create;
+    L.Add('abc');
+    C.GetValue('list',L,'');
+    AssertStrings('Clear, no default.',L,[]);
+    C.GetValue('list',L,'text');
+    AssertStrings('Use default.',L,['text']);
+    L.Clear;
+    L.Add('abc');
+    L.Add('def');
+    C.SetValue('a',L);
+    C.GetValue('a',LD,'');
+    AssertStrings('List',LD,['abc','def']);
+    L.Clear;
+    L.Add('abc=1');
+    L.Add('def=2');
+    C.SetValue('a',L,True);
+    LD.Clear;
+    C.GetValue('a',LD,'');
+    AssertStrings('List',LD,['abc=1','def=2']);
+    C.SetValue('a','abc');
+    C.GetValue('a',L,'');
+    AssertStrings('String',L,['abc']);
+    C.SetValue('a',Integer(1));
+    C.GetValue('a',L,'');
+    AssertStrings('integer',L,['1']);
+    C.SetValue('a',True);
+    C.GetValue('a',L,'');
+    AssertStrings('integer',L,['True']);
+    C.SetValue('a',Int64(1));
+    C.GetValue('a',L,'');
+    AssertStrings('int64',L,['1']);
+  finally
+    L.Free;
+    DeleteConf(C,True);
+  end;
+end;
+
+procedure TTestJSONConfig.TestUnicodeStrings;
+
+Const
+  utf8str = 'Größe ÄÜÖ ㎰ す 가';
+  utf8path = 'Größe/す가';
+
+Var
+  Co : TJSONCOnfig;
+
+
+begin
+  Co:=CreateConf('test.json');
+  try
+    Co.SetValue('a',utf8str);
+    Co.SetValue(utf8path,'something');
+    Co.Flush;
+  finally
+    co.Free;
+  end;
+  Co:=CreateConf('test.json');
+  try
+    AssertEquals('UTF8 string read/Write',utf8str,utf8encode(Co.GetValue('a','')));
+    AssertEquals('UTF8 path read/Write','something',Co.GetValue(utf8path,'something'));
+  finally
+    DeleteConf(Co,True);
   end;
 end;
 

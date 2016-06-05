@@ -2200,7 +2200,7 @@ sym_w_experimental_unit=05079_W_Unit "$1" is experimental
 % declared as \var{experimental} is used. Experimental units
 % might disappear or change semantics in future versions. Usage of this unit
 % should be avoided as much as possible.
-sym_e_formal_class_not_resolved=05080_E_No complete definition of the formally declared class "$1" is in scope
+sym_e_formal_class_not_resolved=05080_E_No full definition of the formally declared class "$1" is in scope. Add the unit containing its full definition to the uses clause.
 % Objecive-C and Java classes can be imported formally, without using the the unit in which it is fully declared.
 % This enables making forward references to such classes and breaking circular dependencies amongst units.
 % However, as soon as you wish to actually do something with an entity of this class type (such as
@@ -3633,6 +3633,7 @@ J*2Cv_Var/out parameter copy-out checking
 **2Mdelphi_Delphi 7 compatibility mode
 **2Mtp_TP/BP 7.0 compatibility mode
 **2Mmacpas_Macintosh Pascal dialects compatibility mode
+**2Miso_ISO 7185 mode
 **1n_Do not read the default config files
 **1o<x>_Change the name of the executable produced to <x>
 **1O<x>_Optimizations:

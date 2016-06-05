@@ -294,7 +294,7 @@ class function TEncoding.GetEncoding(const EncodingName: UnicodeString): TEncodi
 var
   ACodePage: TSystemCodePage;
 begin
-  ACodePage := CodePageNameToCodePage(EncodingName);
+  ACodePage := CodePageNameToCodePage(AnsiString(EncodingName));
   if ACodePage = $FFFF then
     raise EEncodingError.CreateFmt(SNotValidCodePageName, [EncodingName]);
   Result := TMBCSEncoding.Create(ACodePage);
@@ -367,7 +367,7 @@ end;
 
 function TMBCSEncoding.GetEncodingName: UnicodeString;
 begin
-  Result := CodePageToCodePageName(CodePage);
+  Result := UnicodeString(CodePageToCodePageName(CodePage));
 end;
 
 constructor TMBCSEncoding.Create;
@@ -500,7 +500,7 @@ end;
 
 function TUnicodeEncoding.GetEncodingName: UnicodeString;
 begin
-  Result := CodePageToCodePageName(CodePage);
+  Result := UnicodeString(CodePageToCodePageName(CodePage));
 end;
 
 constructor TUnicodeEncoding.Create;
@@ -578,7 +578,7 @@ end;
 
 function TBigEndianUnicodeEncoding.GetEncodingName: UnicodeString;
 begin
-  Result := CodePageToCodePageName(CodePage);
+  Result := UnicodeString(CodePageToCodePageName(CodePage));
 end;
 
 function TBigEndianUnicodeEncoding.Clone: TEncoding;

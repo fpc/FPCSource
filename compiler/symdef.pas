@@ -64,7 +64,11 @@ interface
 
        tstoreddef = class(tdef)
        private
+{$ifdef symansistr}
+          _fullownerhierarchyname : ansistring;
+{$else symansistr}
           _fullownerhierarchyname : pshortstring;
+{$endif symansistr}
           procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
        protected
           typesymderef  : tderef;
@@ -100,9 +104,9 @@ interface
           function  alignment:shortint;override;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
-          function  rtti_mangledname(rt:trttitype):string;override;
+          function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  OwnerHierarchyName: string; override;
-          function  fullownerhierarchyname:string;override;
+          function  fullownerhierarchyname:TSymStr;override;
           function  needs_separate_initrtti:boolean;override;
           function  in_currentunit: boolean;
           { regvars }
@@ -277,6 +281,8 @@ interface
           function jvm_full_typename(with_package_name: boolean): string;
           { check if the symtable contains a float field }
           function contains_float_field : boolean;
+          { check if the symtable contains a field that spans an aword boundary }
+          function contains_cross_aword_field: boolean;
        end;
 
        pvariantrecdesc = ^tvariantrecdesc;
@@ -427,7 +433,7 @@ interface
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           function  needs_separate_initrtti : boolean;override;
-          function  rtti_mangledname(rt:trttitype):string;override;
+          function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  vmt_mangledname : TSymStr;
           procedure check_forwards; override;
           procedure insertvmt;
@@ -462,7 +468,7 @@ interface
           function getcopy:tstoreddef;override;
           function GetTypeName:string;override;
           function is_publishable : boolean;override;
-          function rtti_mangledname(rt:trttitype):string;override;
+          function rtti_mangledname(rt:trttitype):TSymStr;override;
           procedure register_created_object_type;override;
        end;
        tclassrefdefclass = class of tclassrefdef;
@@ -1158,6 +1164,7 @@ implementation
     function getansistringdef:tstringdef;
       var
         symtable:tsymtable;
+        oldstack : tsymtablestack;
       begin
         { if a codepage is explicitly defined in this mudule we need to return
           a replacement for ansistring def }
@@ -1174,9 +1181,16 @@ implementation
                   symtable:=current_module.globalsymtable
                 else
                   symtable:=current_module.localsymtable;
+                { create a temporary stack as it's not good (TM) to mess around
+                  with the order if the unit contains generics or helpers; don't
+                  use a def aware symtablestack though }
+                oldstack:=symtablestack;
+                symtablestack:=tsymtablestack.create;
                 symtablestack.push(symtable);
                 current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage);
                 symtablestack.pop(symtable);
+                symtablestack.free;
+                symtablestack:=oldstack;
               end;
             result:=tstringdef(current_module.ansistrdef);
           end
@@ -1700,7 +1714,9 @@ implementation
             dispose(pderef(genericparaderefs[i]));
         genericparaderefs.free;
         genconstraintdata.free;
+{$ifndef symansistr}
         stringdispose(_fullownerhierarchyname);
+{$endif not symansistr}
         inherited destroy;
       end;
 
@@ -1768,7 +1784,7 @@ implementation
       end;
 
 
-    function tstoreddef.rtti_mangledname(rt : trttitype) : string;
+    function tstoreddef.rtti_mangledname(rt : trttitype) : TSymStr;
       var
         prefix : string[4];
       begin
@@ -1807,25 +1823,29 @@ implementation
         until tmp=nil;
       end;
 
-    function tstoreddef.fullownerhierarchyname: string;
+    function tstoreddef.fullownerhierarchyname: TSymStr;
       var
+        lastowner: tsymtable;
         tmp: tdef;
       begin
+{$ifdef symansistr}
+        if _fullownerhierarchyname<>'' then
+          exit(_fullownerhierarchyname);
+{$else symansistr}
         if assigned(_fullownerhierarchyname) then
-          begin
-            result:=_fullownerhierarchyname^;
-            exit;
-          end;
+          exit(_fullownerhierarchyname^);
+{$endif symansistr}
         { the def can only reside inside structured types or
           procedures/functions/methods }
         tmp:=self;
         result:='';
         repeat
+          lastowner:=tmp.owner;
           { can be not assigned in case of a forwarddef }
-          if not assigned(tmp.owner) then
+          if not assigned(lastowner) then
             break
           else
-            tmp:=tdef(tmp.owner.defowner);
+            tmp:=tdef(lastowner.defowner);
           if not assigned(tmp) then
             break;
           if tmp.typ in [recorddef,objectdef] then
@@ -1834,7 +1854,15 @@ implementation
             if tmp.typ=procdef then
               result:=tprocdef(tmp).customprocname([pno_paranames,pno_proctypeoption])+'.'+result;
         until tmp=nil;
+        { add the unit name }
+        if assigned(lastowner) and
+           assigned(lastowner.realname) then
+          result:=lastowner.realname^+'.'+result;
+{$ifdef symansistr}
+        _fullownerhierarchyname:=result;
+{$else symansistr}
         _fullownerhierarchyname:=stringdup(result);
+{$endif symansistr}
       end;
 
 
@@ -1963,10 +1991,7 @@ implementation
               begin
                 symderef:=pderef(genericparaderefs[i]);
                 genericparas.items[i]:=symderef^.resolve;
-                dispose(symderef);
               end;
-            genericparaderefs.free;
-            genericparaderefs:=nil;
           end;
       end;
 
@@ -2036,13 +2061,14 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                { sizeof(asizeint)*2 records in int registers is currently broken for endian_big targets }
-                (((recsize <= sizeof(asizeint)*2) and (target_info.endian=endian_little) and
+                ((recsize<=sizeof(aint)*2) and
+                 not trecorddef(self).contains_cross_aword_field and
                  { records cannot go into registers on 16 bit targets for now }
-                  (sizeof(asizeint)>2) and
-                  not trecorddef(self).contains_float_field) or
-                  (recsize <= sizeof(asizeint))) and
-                not needs_inittable;
+                 (sizeof(aint)>2) and
+                 (not trecorddef(self).contains_float_field) or
+                  (recsize <= sizeof(aint))
+                 ) and
+                 not needs_inittable;
             end;
         end;
      end;
@@ -3246,7 +3272,7 @@ implementation
       end;
 
 
-    function tclassrefdef.rtti_mangledname(rt: trttitype): string;
+    function tclassrefdef.rtti_mangledname(rt: trttitype): TSymStr;
       begin
         if (tobjectdef(pointeddef).objecttype<>odt_objcclass) then
           result:=inherited rtti_mangledname(rt)
@@ -4024,9 +4050,50 @@ implementation
           begin
             if tsym(symtable.symlist[i]).typ<>fieldvarsym then
               continue;
-            if assigned(tfieldvarsym(symtable.symlist[i]).vardef) and
-              tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).is_fpuregable then
-              exit;
+            if assigned(tfieldvarsym(symtable.symlist[i]).vardef) then
+              begin
+                if tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).is_fpuregable then
+                  exit;
+                { search recursively }
+                if (tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).typ=recorddef) and
+                  (tabstractrecorddef(tfieldvarsym(symtable.symlist[i]).vardef).contains_float_field) then
+                  exit;
+              end;
+          end;
+        result:=false;
+      end;
+
+
+    function tabstractrecorddef.contains_cross_aword_field: boolean;
+      var
+        i : longint;
+        foffset, fsize: aword;
+      begin
+        result:=true;
+        for i:=0 to symtable.symlist.count-1 do
+          begin
+            if (tsym(symtable.symlist[i]).typ<>fieldvarsym) or
+               (sp_static in tsym(symtable.symlist[i]).symoptions) then
+              continue;
+            if assigned(tfieldvarsym(symtable.symlist[i]).vardef) then
+              begin
+                if is_packed then
+                  begin
+                    foffset:=tfieldvarsym(symtable.symlist[i]).fieldoffset;
+                    fsize:=tfieldvarsym(symtable.symlist[i]).vardef.packedbitsize;
+                  end
+                else
+                  begin
+                    foffset:=tfieldvarsym(symtable.symlist[i]).fieldoffset*8;
+                    fsize:=tfieldvarsym(symtable.symlist[i]).vardef.size*8;
+                  end;
+                if (foffset div (sizeof(aword)*8)) <> ((foffset+fsize-1) div (sizeof(aword)*8)) then
+                  exit;
+                { search recursively }
+                if (tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).typ=recorddef) and
+                  (tabstractrecorddef(tfieldvarsym(symtable.symlist[i]).vardef).contains_cross_aword_field) then
+                  exit;
+              end;
           end;
         result:=false;
       end;
@@ -6577,7 +6644,7 @@ implementation
         result:=not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]);
       end;
 
-    function tobjectdef.rtti_mangledname(rt: trttitype): string;
+    function tobjectdef.rtti_mangledname(rt: trttitype): TSymStr;
       begin
         if not(objecttype in [odt_objcclass,odt_objcprotocol]) then
           result:=inherited rtti_mangledname(rt)

@@ -796,7 +796,7 @@ begin
   if attr=$8 then
    dosregs.ecx:=8
   else
-   dosregs.ecx:=attr and (not 8);
+   dosregs.ecx:=attr and (not 8) and $FF; { no required attributes }
   dosregs.edx:=tb_offset+Sizeof(LFNSearchrec)+1;
   dosmemput(tb_segment,tb_offset+Sizeof(LFNSearchrec)+1,path^,strlen(path)+1);
   dosregs.ds:=tb_segment;

@@ -564,8 +564,6 @@ const
 
 VAR
   mt : tMT19937StateArray;
-
-const
   mti: longint=MT19937N+1; // mti=MT19937N+1 means mt[] is not initialized
 
 { Initializing the array with a seed }
@@ -980,8 +978,6 @@ Begin
      exitProc:=nil;
      current_exit();
    End;
-  { Finalize units }
-  FinalizeUnits;
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { the embedded system unit itself contains no routines for console i/o
@@ -1004,6 +1000,9 @@ Begin
   SysFlushStdIO;
 {$endif EMBEDDED}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
+
+  { Finalize units }
+  FinalizeUnits;
 
 {$if defined(MSWINDOWS) or defined(OS2)}
   { finally release the heap if possible, especially
@@ -1077,6 +1076,7 @@ begin
 end;
 
 
+{$ifndef FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 function CaptureBacktrace(skipframes,count:sizeint;frames:PCodePointer):sizeint;
 var
   curr_frame,prev_frame: pointer;
@@ -1105,11 +1105,12 @@ begin
   else
     result:=i;
 end;
+{$endif FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 
 
 Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
 begin
-  If pointer(ErrorProc)<>Nil then
+  If codepointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
   errorcode:=word(Errno);
   erroraddr:=addr;
@@ -1218,6 +1219,28 @@ Begin
    end;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 End;
+
+
+procedure dump_stack(var f: text; skipframes: longint);
+var
+  i,count: longint;
+  frames: array [0..255] of codepointer;
+begin
+  if do_isdevice(textrec(f).handle) then
+    count:=max_frame_dump
+  else
+    count:=255;
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  try
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+    count:=CaptureBacktrace(skipframes+1,count,@frames[0]);
+    for i:=0 to count-1 do
+      writeln(f,BackTraceStrFunc(frames[i]));
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  except
+  end;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+end;
 
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
@@ -1399,7 +1422,7 @@ end;
 
 procedure fpc_AbstractErrorIntern;compilerproc;[public,alias : 'FPC_ABSTRACTERROR'];
 begin
-  If pointer(AbstractErrorProc)<>nil then
+  If codepointer(AbstractErrorProc)<>nil then
     AbstractErrorProc();
   HandleErrorAddrFrameInd(211,get_pc_addr,get_frame);
 end;
@@ -1408,7 +1431,7 @@ end;
 Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;
    ErrorAddr:Pointer); [Public,Alias : 'FPC_ASSERT']; compilerproc;
 begin
-  if pointer(AssertErrorProc)<>nil then
+  if codepointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
   else
     HandleErrorAddrFrameInd(227,get_pc_addr,get_frame);
@@ -1828,7 +1851,7 @@ var
   s: rawbytestring;
 begin
   Do_getdir(drivenr,s);
-  dir:=s;
+  dir:=unicodestring(s);
 end;
 {$endif FPCRTL_FILESYSTEM_TWO_BYTE_API}
 

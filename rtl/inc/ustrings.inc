@@ -2240,8 +2240,8 @@ function UCS4StringToWideString(const s : UCS4String) : WideString;
 
 {$ifndef FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 const
-  SNoUnicodestrings = 'This binary has no unicodestrings support compiled in.';
-  SRecompileWithUnicodestrings = 'Recompile the application with a unicodestrings-manager in the program uses clause.';
+  SNoUnicodestrings = 'This binary has no string conversion support compiled in.';
+  SRecompileWithUnicodestrings = 'Recompile the application with a unit that installs a unicodestring manager in the program uses clause.';
 
 procedure unimplementedunicodestring;
   begin
@@ -2291,7 +2291,7 @@ function StubUnicodeCase(const s : UnicodeString) : UnicodeString;
     unimplementedunicodestring;
   end;
 
-function StubCompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+function StubCompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
   begin
     unimplementedunicodestring;
   end;
@@ -2301,7 +2301,7 @@ function StubWideCase(const s: WideString): WideString;
     unimplementedunicodestring;
   end;
 
-function StubCompareWideString(const s1, s2 : WideString) : PtrInt;
+function StubCompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
   begin
     unimplementedunicodestring;
   end;
@@ -2324,9 +2324,8 @@ procedure initunicodestringmanager;
     widestringmanager.LowerUnicodeStringProc:=@StubUnicodeCase;
 {$endif HAS_WIDESTRINGMANAGER}
     widestringmanager.CompareWideStringProc:=@StubCompareWideString;
-    widestringmanager.CompareTextWideStringProc:=@StubCompareWideString;
+//    widestringmanager.CompareTextWideStringProc:=@StubCompareWideString;
     widestringmanager.CompareUnicodeStringProc:=@StubCompareUnicodeString;
-    widestringmanager.CompareTextUnicodeStringProc:=@StubCompareUnicodeString;
     widestringmanager.CharLengthPCharProc:=@DefaultCharLengthPChar;
     widestringmanager.CodePointLengthProc:=@DefaultCodePointLength;
     widestringmanager.GetStandardCodePageProc:=@DefaultGetStandardCodePage;

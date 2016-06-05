@@ -332,6 +332,7 @@
      NORM_IGNOREKANATYPE        = $00010000;
      NORM_IGNOREWIDTH           = $00020000;
      NORM_LINGUISTIC_CASING     = $08000000;
+     SORT_DIGITSASNUMBERS       = $00000008;
      SORT_STRINGSORT = 4096;
      LCMAP_BYTEREV = 2048;
      LCMAP_FULLWIDTH = 8388608;
@@ -650,6 +651,7 @@
      CREATE_NEW_PROCESS_GROUP = 512;
      CREATE_SEPARATE_WOW_VDM = 2048;
      CREATE_SUSPENDED = 4;
+     STACK_SIZE_PARAM_IS_A_RESERVATION = $10000;
      CREATE_UNICODE_ENVIRONMENT = 1024;
      DEBUG_PROCESS = 1;
      DEBUG_ONLY_THIS_PROCESS = 2;
@@ -6043,6 +6045,170 @@ const
       MBIFB_BAR_FOCUSED = $00000001;
       MBIFB_FOCUSED     = $00000002;
 
+
+const 
+//
+// Define possible return codes from the CopyFileEx callback routine
+//
+
+    PROGRESS_CONTINUE   = 0;
+    PROGRESS_CANCEL     = 1;
+    PROGRESS_STOP       = 2;
+    PROGRESS_QUIET      = 3;
+
+//
+// Define CopyFileEx callback routine state change values
+//
+
+    CALLBACK_CHUNK_FINISHED         = $00000000;
+    CALLBACK_STREAM_SWITCH          = $00000001;
+
+//
+// Define CopyFileEx option flags
+//
+
+    COPY_FILE_FAIL_IF_EXISTS              = $00000001;
+    COPY_FILE_RESTARTABLE                 = $00000002;
+    COPY_FILE_OPEN_SOURCE_FOR_WRITE       = $00000004;
+    COPY_FILE_ALLOW_DECRYPTED_DESTINATION = $00000008;
+
+//
+//  Gap for private copyfile flags
+//
+
+    COPY_FILE_COPY_SYMLINK                = $00000800;
+    COPY_FILE_NO_BUFFERING                = $00001000;
+
+//
+//  CopyFile2 flags
+//
+
+    COPY_FILE_REQUEST_SECURITY_PRIVILEGES        = $00002000;
+    COPY_FILE_RESUME_FROM_PAUSE                  = $00004000;
+
+
+    COPY_FILE_NO_OFFLOAD                         = $00040000;
+
+//
+// Define ReplaceFile option flags
+//
+
+    REPLACEFILE_WRITE_THROUGH       = $00000001;
+    REPLACEFILE_IGNORE_MERGE_ERRORS = $00000002;
+    REPLACEFILE_IGNORE_ACL_ERRORS   = $00000004;
+
+// WM_INPUT wParam
+(*
+ * The input is in the regular message flow,
+ * the app is required to call DefWindowProc
+ * so that the system can perform clean ups.
+ *)
+    RIM_INPUT       = 0;
+
+(*
+ * The input is sink only. The app is expected
+ * to behave nicely.
+ *)
+    RIM_INPUTSINK   = 1;
+
+(*
+ * Type of the raw input
+ *)
+  RIM_TYPEMOUSE       = 0;
+  RIM_TYPEKEYBOARD    = 1;
+  RIM_TYPEHID         = 2;
+
+(*
+ * Define the mouse button state indicators.
+ *)
+
+  RI_MOUSE_LEFT_BUTTON_DOWN   = $0001;  // Left Button changed to down.
+  RI_MOUSE_LEFT_BUTTON_UP     = $0002;  // Left Button changed to up.
+  RI_MOUSE_RIGHT_BUTTON_DOWN  = $0004;  // Right Button changed to down.
+  RI_MOUSE_RIGHT_BUTTON_UP    = $0008;  // Right Button changed to up.
+  RI_MOUSE_MIDDLE_BUTTON_DOWN = $0010;  // Middle Button changed to down.
+  RI_MOUSE_MIDDLE_BUTTON_UP   = $0020;  // Middle Button changed to up.
+
+  RI_MOUSE_BUTTON_1_DOWN      = RI_MOUSE_LEFT_BUTTON_DOWN;
+  RI_MOUSE_BUTTON_1_UP        = RI_MOUSE_LEFT_BUTTON_UP;
+  RI_MOUSE_BUTTON_2_DOWN      = RI_MOUSE_RIGHT_BUTTON_DOWN;
+  RI_MOUSE_BUTTON_2_UP        = RI_MOUSE_RIGHT_BUTTON_UP;
+  RI_MOUSE_BUTTON_3_DOWN      = RI_MOUSE_MIDDLE_BUTTON_DOWN;
+  RI_MOUSE_BUTTON_3_UP        = RI_MOUSE_MIDDLE_BUTTON_UP;
+
+  RI_MOUSE_BUTTON_4_DOWN      = $0040;
+  RI_MOUSE_BUTTON_4_UP        = $0080;
+  RI_MOUSE_BUTTON_5_DOWN      = $0100;
+  RI_MOUSE_BUTTON_5_UP        = $0200;
+
+(*
+ * If usButtonFlags has RI_MOUSE_WHEEL, the wheel delta is stored in usButtonData.
+ * Take it as a signed value.
+ *)
+  RI_MOUSE_WHEEL              = $0400;
+
+(*
+ * Define the mouse indicator flags.
+ *)
+  MOUSE_MOVE_RELATIVE      = 0;
+  MOUSE_MOVE_ABSOLUTE      = 1;
+  MOUSE_VIRTUAL_DESKTOP    = $02;  // the coordinates are mapped to the virtual desktop
+  MOUSE_ATTRIBUTES_CHANGED = $04;  // requery for mouse attributes
+//#if(WINVER >= 0x0600)
+  MOUSE_MOVE_NOCOALESCE    = $08;  // do not coalesce mouse moves
+//#endif /* WINVER >= 0x0600 */
+
+(*
+ * Define the keyboard overrun MakeCode.
+ *)
+
+  KEYBOARD_OVERRUN_MAKE_CODE    = $FF;
+
+(*
+ * Define the keyboard input data Flags.
+ *)
+  RI_KEY_MAKE             = 0;
+  RI_KEY_BREAK            = 1;
+  RI_KEY_E0               = 2;
+  RI_KEY_E1               = 4;
+  RI_KEY_TERMSRV_SET_LED  = 8;
+  RI_KEY_TERMSRV_SHADOW   = $10;
+
+(*
+ * Flags for GetRawInputData
+ *)
+
+  RID_INPUT               = $10000003;
+  RID_HEADER              = $10000005;
+
+(*
+ * Raw Input Device Information
+ *)
+  RIDI_PREPARSEDDATA      = $20000005;
+  RIDI_DEVICENAME         = $20000007;  // the return valus is the character length, not the byte size
+  RIDI_DEVICEINFO         = $2000000b;
+
+  RIDEV_REMOVE            = $00000001;
+  RIDEV_EXCLUDE           = $00000010;
+  RIDEV_PAGEONLY          = $00000020;
+  RIDEV_NOLEGACY          = $00000030;
+  RIDEV_INPUTSINK         = $00000100;
+  RIDEV_CAPTUREMOUSE      = $00000200;  // effective when mouse nolegacy is specified, otherwise it would be an error
+  RIDEV_NOHOTKEYS         = $00000200;  // effective for keyboard.
+  RIDEV_APPKEYS           = $00000400;  // effective for keyboard.
+//#if(_WIN32_WINNT >= 0x0501)
+  RIDEV_EXINPUTSINK       = $00001000;
+  RIDEV_DEVNOTIFY         = $00002000;
+//#endif /* _WIN32_WINNT >= 0x0501 */
+  RIDEV_EXMODEMASK        = $000000F0;
+
+//#if(_WIN32_WINNT >= 0x0501)
+(*
+ * Flags for the WM_INPUT_DEVICE_CHANGE message.
+ *)
+  GIDC_ARRIVAL             = 1;
+  GIDC_REMOVAL             = 2;
+//#endif /* _WIN32_WINNT >= 0x0501 */
 {$endif read_interface}
 
 {$ifdef read_implementation}

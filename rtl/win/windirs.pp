@@ -1,5 +1,18 @@
 unit windirs;
 
+{*******************************************************************************
+
+IMPORTANT NOTES:
+
+SHGetFolderPath function is deprecated. Only some CSIDL values are supported.
+
+As of Windows Vista, this function is merely a wrapper for SHGetKnownFolderPath.
+The CSIDL value is translated to its associated KNOWNFOLDERID and then SHGetKnownFolderPath
+is called. New applications should use the known folder system rather than the older
+CSIDL system, which is supported only for backward compatibility.
+
+*******************************************************************************}
+
 {$mode objfpc}
 {$H+}
 
@@ -8,7 +21,8 @@ interface
 uses
   windows;
 
-Const
+// CSIDL_* contants are also declared in "ShellApi" and "shfolder" units.
+const
   CSIDL_PROGRAMS                = $0002; { %SYSTEMDRIVE%\Program Files                                      }
   CSIDL_PERSONAL                = $0005; { %USERPROFILE%\My Documents                                       }
   CSIDL_FAVORITES               = $0006; { %USERPROFILE%\Favorites                                          }
@@ -51,68 +65,104 @@ Const
 
   CSIDL_FLAG_CREATE             = $8000; { (force creation of requested folder if it doesn't exist yet)     }
 
-Function GetWindowsSpecialDir(ID :  Integer) : String;
+
+function GetWindowsSpecialDir(ID: Integer; CreateIfNotExists: Boolean = True): String;
+function GetWindowsSpecialDirUnicode(ID: Integer; CreateIfNotExists: Boolean = True): UnicodeString;
+
+function GetWindowsSystemDirectory: String;
+function GetWindowsSystemDirectoryUnicode: UnicodeString;
 
 implementation
 
 uses
   sysutils;
 
-Type
-  PFNSHGetFolderPath = Function(Ahwnd: HWND; Csidl: Integer; Token: THandle; Flags: DWord; Path: {$ifdef FPC_UNICODE_RTL}PWideChar{$ELSE}PChar{$ENDIF}): HRESULT; stdcall;
+type
+  // HRESULT SHGetFolderPath(
+  //  _In_  HWND   hwndOwner,
+  //  _In_  int    nFolder,
+  //  _In_  HANDLE hToken,
+  //  _In_  DWORD  dwFlags,
+  //  _Out_ LPTSTR pszPath
+  // );
+  TSHGetFolderPathW = function(Ahwnd: HWND; Csidl: Integer; Token: THandle;
+    Flags: DWORD; Path: PWideChar): HRESULT; stdcall;
+
+const
+  SSHGetFolderPathW = 'SHGetFolderPathW';
+  SLibName = 'shell32.dll';
 
 var
-  SHGetFolderPath : PFNSHGetFolderPath = Nil;
-  CFGDLLHandle : THandle = 0;
+  _SHGetFolderPathW : TSHGetFolderPathW = nil;
+  DLLHandle: THandle = 0;
 
-Procedure InitDLL;
-
-Var
-  pathBuf: array[0..MAX_PATH-1] of {$ifdef FPC_UNICODE_RTL}WideChar{$else}Ansichar{$endif};
-  pathLength: Integer;
+procedure InitDLL;
+var
+  DLLPath: UnicodeString;
 begin
-  { Load shfolder.dll using a full path, in order to prevent spoofing (Mantis #18185)
-    Don't bother loading shell32.dll because shfolder.dll itself redirects SHGetFolderPath
-    to shell32.dll whenever possible. }
-  pathLength:=GetSystemDirectory(pathBuf, MAX_PATH);
-  if (pathLength>0) and (pathLength<MAX_PATH-14) then { 14=length('\shfolder.dll'#0) }
+  if DLLHandle = 0 then
   begin
-    StrLCopy(@pathBuf[pathLength],'\shfolder.dll',MAX_PATH-pathLength-1);
-    CFGDLLHandle:=LoadLibrary(pathBuf);
-
-    if (CFGDLLHandle<>0) then
+    // Load DLL using a full path, in order to prevent spoofing (Mantis #18185)
+    DLLPath := GetWindowsSystemDirectoryUnicode;
+    if Length(DLLPath) > 0 then
     begin
-      Pointer(ShGetFolderPath):=GetProcAddress(CFGDLLHandle,{$ifdef FPC_UNICODE_RTL}'SHGetFolderPathW'{$else}'SHGetFolderPathA'{$endif});
-      If @ShGetFolderPath=nil then
-      begin
-        FreeLibrary(CFGDLLHandle);
-        CFGDllHandle:=0;
-      end;
+      DLLPath := IncludeTrailingPathDelimiter(DLLPath) + SLibName;
+      DLLHandle := LoadLibraryW(PWideChar(DLLPath));
+      if DLLHandle <> 0 then
+        Pointer(_SHGetFolderPathW) := GetProcAddress(DLLHandle, SSHGetFolderPathW);
     end;
   end;
-  If (@ShGetFolderPath=Nil) then
-    Raise Exception.Create('Could not determine SHGetFolderPath Function');
+  if @_SHGetFolderPathW = nil then
+    raise Exception.Create('Could not locate SHGetFolderPath function');
 end;
 
-Function GetWindowsSpecialDir(ID :  Integer) : String;
-
-Var
-  APath : Array[0..MAX_PATH] of char;
-
+procedure FinitDLL;
 begin
-  Result:='';
-  if (CFGDLLHandle=0) then
-    InitDLL;
-  If (SHGetFolderPath<>Nil) then
-    begin
-    if SHGetFolderPath(0,ID or CSIDL_FLAG_CREATE,0,0,@APATH[0])=S_OK then
-      Result:=IncludeTrailingPathDelimiter(StrPas(@APath[0]));
-    end;
+  if DLLHandle <> 0 then
+  begin
+    FreeLibrary(DLLHandle);
+    DLLHandle := 0;
+  end;
 end;
 
-Initialization
-Finalization
-  if CFGDLLHandle<>0 then
-   FreeLibrary(CFGDllHandle);
+function GetWindowsSystemDirectoryUnicode: UnicodeString;
+var
+  Buffer: array [0..MAX_PATH] of WideChar;
+  CharCount: Integer;
+begin
+  CharCount := GetSystemDirectoryW(@Buffer[0], MAX_PATH);
+  // CharCount is length in TCHARs not including the terminating null character.
+  // If result did not fit, CharCount will be bigger than buffer size.
+  if (CharCount > 0) and (CharCount < MAX_PATH) then
+    Result := StrPas(Buffer)
+  else
+    Result := '';
+end;
+
+function GetWindowsSystemDirectory: String;
+begin
+  Result := String(GetWindowsSystemDirectoryUnicode);
+end;
+
+function GetWindowsSpecialDirUnicode(ID: Integer; CreateIfNotExists: Boolean = True): UnicodeString;
+var
+  Buffer: array [0..MAX_PATH] of WideChar;
+begin
+  InitDLL;
+  Result := '';
+  if CreateIfNotExists then
+    ID := ID or CSIDL_FLAG_CREATE;
+  if _SHGetFolderPathW(0, ID, 0, 0, @Buffer[0]) = S_OK then
+    Result := IncludeTrailingPathDelimiter(StrPas(Buffer));
+end;
+
+function GetWindowsSpecialDir(ID: Integer; CreateIfNotExists: Boolean = True): String;
+begin
+  Result := String(GetWindowsSpecialDirUnicode(ID, CreateIfNotExists));
+end;
+
+finalization
+  FinitDLL;
+
 end.
 

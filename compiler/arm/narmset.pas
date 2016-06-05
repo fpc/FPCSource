@@ -51,7 +51,7 @@ interface
 implementation
 
     uses
-      verbose,globals,constexp,defutil,
+      verbose,globals,constexp,defutil,systems,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cpubase,cpuinfo,
       cgutils,cgobj,ncgutil,
@@ -72,7 +72,8 @@ implementation
         if not(assigned(result)) then
           begin
             if not(checkgenjumps(setparts,numparts,use_small)) and
-              use_small then
+              use_small and
+              (target_info.endian=endian_little) then
               expectloc:=LOC_FLAGS;
           end;
       end;
@@ -82,6 +83,14 @@ implementation
         so : tshifterop;
         hregister : tregister;
       begin
+        { the code below needs changes for big endian targets (they start
+          counting from the most significant bit)
+        }
+        if target_info.endian=endian_big then
+          begin
+            inherited;
+            exit;
+          end;
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=F_NE;
         if (left.location.loc=LOC_CONSTANT) and not(GenerateThumbCode) then

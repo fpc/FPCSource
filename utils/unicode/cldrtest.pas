@@ -1,6 +1,6 @@
 {   CLDR collation Algorithm test routines.
 
-    Copyright (c) 2013 by Inoussa OUEDRAOGO
+    Copyright (c) 2013-2015 by Inoussa OUEDRAOGO
 
     The source code is distributed under the Library GNU
     General Public License with the following modification:
@@ -29,7 +29,7 @@ interface
 
 uses
   Classes, SysUtils,
-  helper, cldrhelper, unicodedata;
+  unicodeset, helper, cldrhelper, unicodedata, cldrtxt, cldrxml;
 
   function ToAnsiChars(const AValue : array of TUnicodeCodePoint) : string;
   function DumpSequenceAnsi(const ASequence : TOrderedCharacters) : string;
@@ -42,7 +42,7 @@ uses
   function ToWeight(const APrimary, ASecondary, ATertiary : Cardinal) : TUCA_WeightRecArray;overload;
   function ToWeight(const AWeigths : array of Cardinal) : TUCA_WeightRecArray;overload;
 
-  procedure exec_tests();
+  procedure exec_tests(const APropagateException : Boolean = True);
 
   procedure test1();
   procedure test2();
@@ -59,41 +59,363 @@ uses
   procedure test13();
   procedure test14();
   procedure test15();
+  procedure test16a();
+  procedure test16b();
+  procedure test16c();
+  procedure test16d();
+  procedure test16e();
+
+  procedure test_parser_1();
+  procedure test_parser_2();
+  procedure test_parser_3();
+  procedure test_parser_4();
+  procedure test_parser_5();
+  procedure test_parser_6();
+  procedure test_parser_7();
+  procedure test_parser_8();
+  procedure test_parser_9();
+  procedure test_parser_abreviating_1();
+  procedure test_parser_abreviating_2();
+  procedure test_parser_abreviating_3();
+  procedure test_parser_abreviating_4();
+  procedure test_parser_abreviating_5();
+  procedure test_parser_abreviating_6();
+  procedure test_parser_abreviating_7();
+  procedure test_parser_abreviating_8();
+  procedure test_parser_abreviating_9();
+  procedure test_parser_abreviating_10();
+  procedure test_parser_contraction_1();
+  procedure test_parser_contraction_2();
+  procedure test_parser_expansion_1();
+  procedure test_parser_special_char_1();
+  procedure test_parser_special_char_2();
+  procedure test_parser_special_char_3();
+  procedure test_parser_special_char_4();
+  procedure test_parser_special_char_5();
+  procedure test_parser_special_char_6();
+  procedure test_parser_special_char_7();
+  procedure test_parser_skip_comment_1();
+  procedure test_parser_skip_comment_2();
+  procedure test_parser_skip_comment_3();
+  procedure test_parser_quoted_string_1();
+  procedure test_parser_quoted_string_2();
+  procedure test_parser_quoted_string_3();
+  procedure test_parser_quoted_string_4();
+  procedure test_parser_quoted_string_5();
+  procedure test_parser_quoted_string_6();
+  procedure test_parser_quoted_string_7();
+  procedure test_parser_quoted_string_8();
+  procedure test_parser_contexte_before_1();
+  procedure test_parser_contexte_before_2();
+  procedure test_parser_contexte_before_3();
+  procedure test_parser_contexte_before_4();
+  procedure test_parser_placement_before_1();
+  procedure test_parser_placement_before_2();
+  procedure test_parser_placement_before_3();
+  procedure test_parser_multi_unit_statement_line_1();
+  procedure test_parser_multi_unit_statement_line_2();
+  procedure test_parser_multi_unit_statement_line_3();
+  procedure test_parser_multi_statement_line_1();
+  procedure test_parser_multi_statement_line_2();
+  procedure test_parser_multi_statement_line_3();
+  procedure test_parser_multi_statement_line_4();
+
+  procedure test_parser_multi_line_statements_1();
+
+  procedure test_collation_parser_HeaderParsing();
+  procedure test_collation_parser_HeaderParsing_2();
+  procedure test_collation_parser_FullParsing();
+  procedure test_collation_parser_FullParsing_2();
+  procedure test_collation_parser_complete_rules();
+  procedure test_collation_parser_complete_rules_2();
+
+  procedure test_unicode_set_1();
+  procedure test_unicode_set_2();
+  procedure test_unicode_set_3();
 
 implementation
+uses
+  typinfo;
 
-procedure exec_tests();
+procedure do_exec_test(ATest : TProcedure; const APropagateException : Boolean);
 begin
+  if APropagateException then begin
+    ATest();
+  end else begin
+    try
+      ATest();
+    except
+      on e : Exception do begin
+        writeln(e.Message);
+      end;
+    end;
+  end;
+end;
+
+procedure exec_utils_tests(const APropagateException : Boolean);
+begin
+  WriteLn;WriteLn;WriteLn;WriteLn;
+  WriteLn('UTILITIES TESTS - START');
+  WriteLn('***************************** TEST UNICODESET 1 ******************');
+  do_exec_test(@test_unicode_set_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST UNICODESET 2 ******************');
+  do_exec_test(@test_unicode_set_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST UNICODESET 3 ******************');
+  do_exec_test(@test_unicode_set_3,APropagateException);
+  WriteLn;
+  WriteLn('UTILITIES TESTS - START');
+  WriteLn;
+  WriteLn;
+end;
+
+procedure exec_parser_tests(const APropagateException : Boolean);
+begin
+  WriteLn;WriteLn;WriteLn;WriteLn;
+  WriteLn('PARSER TESTS');
+  WriteLn('***************************** TEST PARSER 1 ******************');
+  do_exec_test(@test_parser_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST PARSER 2 ******************');
+  do_exec_test(@test_parser_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST PARSER 3 ******************');
+  do_exec_test(@test_parser_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST PARSER 4 ******************');
+  do_exec_test(@test_parser_4,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST PARSER 5 ******************');
+  do_exec_test(@test_parser_5,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST PARSER 6 ******************');
+  do_exec_test(@test_parser_6,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST PARSER 7 ******************');
+  do_exec_test(@test_parser_7,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST PARSER 8 ******************');
+  do_exec_test(@test_parser_7,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST PARSER 9 ******************');
+  do_exec_test(@test_parser_9,APropagateException);
+  WriteLn;
+  WriteLn;
+  WriteLn('***************************** TEST ABREVIATING 1 ******************');
+  do_exec_test(@test_parser_abreviating_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST ABREVIATING 2 ******************');
+  do_exec_test(@test_parser_abreviating_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST ABREVIATING 3 ******************');
+  do_exec_test(@test_parser_abreviating_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST ABREVIATING 4 ******************');
+  do_exec_test(@test_parser_abreviating_4,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST ABREVIATING 5 ******************');
+  do_exec_test(@test_parser_abreviating_5,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST ABREVIATING 6 ******************');
+  do_exec_test(@test_parser_abreviating_6,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST ABREVIATING 7 ******************');
+  do_exec_test(@test_parser_abreviating_7,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST ABREVIATING 8 ******************');
+  do_exec_test(@test_parser_abreviating_8,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST ABREVIATING 9 ******************');
+  do_exec_test(@test_parser_abreviating_9,APropagateException);
+  WriteLn;
+  WriteLn;
+  WriteLn('***************************** TEST ABREVIATING 10 ******************');
+  do_exec_test(@test_parser_abreviating_10,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST CONTRACTION 1 ******************');
+  do_exec_test(@test_parser_contraction_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST CONTRACTION 2 ******************');
+  do_exec_test(@test_parser_contraction_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST EXPANSION 1 ******************');
+  do_exec_test(@test_parser_expansion_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SPECIAL CHAR 1 ******************');
+  do_exec_test(@test_parser_special_char_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SPECIAL CHAR 2 ******************');
+  do_exec_test(@test_parser_special_char_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SPECIAL CHAR 3 ******************');
+  do_exec_test(@test_parser_special_char_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SPECIAL CHAR 4 ******************');
+  do_exec_test(@test_parser_special_char_4,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SPECIAL CHAR 5 ******************');
+  do_exec_test(@test_parser_special_char_5,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SPECIAL CHAR 6 ******************');
+  do_exec_test(@test_parser_special_char_6,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SPECIAL CHAR 7 ******************');
+  do_exec_test(@test_parser_special_char_7,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SKIP COMMENT 1 ******************');
+  do_exec_test(@test_parser_skip_comment_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SKIP COMMENT 2 ******************');
+  do_exec_test(@test_parser_skip_comment_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SKIP COMMENT 3 ******************');
+  do_exec_test(@test_parser_skip_comment_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST QUOTED STRING 1 ******************');
+  do_exec_test(@test_parser_quoted_string_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST QUOTED STRING 2 ******************');
+  do_exec_test(@test_parser_quoted_string_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST QUOTED STRING 3 ******************');
+  do_exec_test(@test_parser_quoted_string_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST QUOTED STRING 4 ******************');
+  do_exec_test(@test_parser_quoted_string_4,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST QUOTED STRING 5 ******************');
+  do_exec_test(@test_parser_quoted_string_5,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST QUOTED STRING 6 ******************');
+  do_exec_test(@test_parser_quoted_string_6,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST QUOTED STRING 7 ******************');
+  do_exec_test(@test_parser_quoted_string_7,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST QUOTED STRING 8 ******************');
+  do_exec_test(@test_parser_quoted_string_8,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST CONTEXT BEFORE 1 ******************');
+  do_exec_test(@test_parser_contexte_before_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST CONTEXT BEFORE 2 ******************');
+  do_exec_test(@test_parser_contexte_before_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST CONTEXT BEFORE 3 ******************');
+  do_exec_test(@test_parser_contexte_before_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST CONTEXT BEFORE 4 ******************');
+  do_exec_test(@test_parser_contexte_before_4,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST PLACEMENT BEFORE 1 ******************');
+  do_exec_test(@test_parser_placement_before_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST PLACEMENT BEFORE 2 ******************');
+  do_exec_test(@test_parser_placement_before_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST PLACEMENT BEFORE 3 ******************');
+  do_exec_test(@test_parser_placement_before_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST MULTI UNIT STATEMENT LINE 1 ******************');
+  do_exec_test(@test_parser_multi_unit_statement_line_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST MULTI UNIT STATEMENT LINE 2 ******************');
+  do_exec_test(@test_parser_multi_unit_statement_line_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST MULTI UNIT STATEMENT LINE 3 ******************');
+  do_exec_test(@test_parser_multi_unit_statement_line_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST MULTI STATEMENT LINE 1 ******************');
+  do_exec_test(@test_parser_multi_statement_line_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST MULTI STATEMENT LINE 2 ******************');
+  do_exec_test(@test_parser_multi_statement_line_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST MULTI STATEMENT LINE 3 ******************');
+  do_exec_test(@test_parser_multi_statement_line_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST MULTI STATEMENT LINE 4 ******************');
+  do_exec_test(@test_parser_multi_statement_line_4,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST MULTI LINE STATEMENTS 1 ******************');
+  do_exec_test(@test_parser_multi_line_statements_1,APropagateException);
+  WriteLn;
+  WriteLn;
+  WriteLn('***************************** TEST REPOSITORY 1 ******************');
+  do_exec_test(@test_collation_parser_HeaderParsing,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST REPOSITORY 2 ******************');
+  do_exec_test(@test_collation_parser_FullParsing,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST REPOSITORY 3 ******************');
+  do_exec_test(@test_collation_parser_complete_rules,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST REPOSITORY 4 ******************');
+  do_exec_test(@test_collation_parser_HeaderParsing_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST REPOSITORY 5 ******************');
+  do_exec_test(@test_collation_parser_FullParsing_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST REPOSITORY 6 ******************');
+  do_exec_test(@test_collation_parser_complete_rules_2,APropagateException);
+  WriteLn;
+
+  WriteLn;
+  WriteLn;
+end;
+
+procedure exec_tests(const APropagateException : Boolean);
+begin
+  exec_utils_tests(APropagateException);
+
+  exec_parser_tests(APropagateException);
+
+  WriteLn('END PARSER TESTS');
+  WriteLn('*******************************************************');
+
   WriteLn('***************************** TEST 1 ******************');
-  test1();
+  do_exec_test(@test1,APropagateException);
   WriteLn('***************************** TEST 2 ******************');
-  test2();
+  do_exec_test(@test2,APropagateException);
   WriteLn('***************************** TEST 3 ******************');
-  test3();
+  do_exec_test(@test3,APropagateException);
   WriteLn('***************************** TEST 4 ******************');
-  test4();
+  do_exec_test(@test4,APropagateException);
   WriteLn('***************************** TEST 5 ******************');
-  test5();
+  do_exec_test(@test5,APropagateException);
   WriteLn('***************************** TEST 6 ******************');
-  test6();
+  do_exec_test(@test6,APropagateException);
   WriteLn('***************************** TEST 7 ******************');
-  test7();
+  do_exec_test(@test7,APropagateException);
   WriteLn('***************************** TEST 8 ******************');
-  test8();
+  do_exec_test(@test8,APropagateException);
   WriteLn('***************************** TEST 9 ******************');
-  test9();
+  do_exec_test(@test9,APropagateException);
   WriteLn('***************************** TEST 10 ******************');
-  test10();
+  do_exec_test(@test10,APropagateException);
   WriteLn('***************************** TEST 11 ******************');
-  test11();
+  do_exec_test(@test11,APropagateException);
   WriteLn('***************************** TEST 12 ******************');
-  test12();
+  do_exec_test(@test12,APropagateException);
   WriteLn('***************************** TEST 13 ******************');
-  test13();
+  do_exec_test(@test13,APropagateException);
   WriteLn('***************************** TEST 14 ******************');
-  test14();
+  do_exec_test(@test14,APropagateException);
   WriteLn('***************************** TEST 15 ******************');
-  test15();
+  do_exec_test(@test15,APropagateException);
+  WriteLn('***************************** TEST 16 A ******************');
+  do_exec_test(@test16a,APropagateException);
+  WriteLn('***************************** TEST 16 B ******************');
+  do_exec_test(@test16b,APropagateException);
+  WriteLn('***************************** TEST 16 C ******************');
+  do_exec_test(@test16c,APropagateException);
+  WriteLn('***************************** TEST 16 D ******************');
+  do_exec_test(@test16d,APropagateException);
+  WriteLn('***************************** TEST 16 E ******************');
+  do_exec_test(@test16e,APropagateException);
+
+  WriteLn('****  END TESTS');
 end;
 
 function ToAnsiChars(const AValue : array of TUnicodeCodePoint) : string;
@@ -140,7 +462,10 @@ begin
     Inc(p);
     for i := i to ASequence.ActualLength - 1 do begin
       //WriteStr(s,s,AnsiChar(p^.Characters[0]),' <',(1+Ord(p^.WeigthKind)),' ');
-      WriteStr(s,s,'<',(1+Ord(p^.WeigthKind)),' ',ToAnsiChars(p^.Characters),' ');
+      if p^.IsVirtual() then
+        WriteStr(s,s,' [',GetEnumName(TypeInfo(TReorderLogicalReset),Ord(p^.VirtualPosition)),'] ')
+      else
+        WriteStr(s,s,'<',(1+Ord(p^.WeigthKind)),' ',ToAnsiChars(p^.Characters),' ');
       Inc(p);
     end;
   end;
@@ -478,7 +803,7 @@ begin
 
   SetLength(statement.Reset,1);
   statement.Reset[0] := Ord('a');
-  SetLength(statement.Elements,1);
+  statement.SetElementCount(1);
   statement.Elements[0] := TReorderUnit.From(Ord('g'),TReorderWeigthKind.Primary,0);
   sequence.ApplyStatement(@statement);
   WriteLn('Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
@@ -491,7 +816,7 @@ begin
 
   SetLength(statement.Reset,1);
   statement.Reset[0] := Ord('a');
-  SetLength(statement.Elements,2);
+  statement.SetElementCount(2);
   statement.Elements[0] := TReorderUnit.From(Ord('h'),TReorderWeigthKind.Primary,0);
   statement.Elements[1] := TReorderUnit.From(Ord('k'),TReorderWeigthKind.Primary,0);
   sequence.ApplyStatement(@statement);
@@ -504,7 +829,7 @@ begin
 
   SetLength(statement.Reset,1);
   statement.Reset[0] := Ord('h');
-  SetLength(statement.Elements,1);
+  statement.SetElementCount(1);
   statement.Elements[0] := TReorderUnit.From(Ord('g'),TReorderWeigthKind.Secondary,0);
   sequence.ApplyStatement(@statement);
   WriteLn('Statement #3 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence));
@@ -3262,6 +3587,1918 @@ begin
     WriteLn('    -- test 8 - ok');
     WriteLn;
 
+end;
+
+procedure test16_prepareWeigth(var AData : TUCA_LineRecArray);
+var
+  p : PUCA_LineRec;
+begin
+  SetLength(AData,3);
+  p := @AData[Low(AData)];
+    p^.CodePoints := CodePointToArray(Ord('a'));
+    p^.Weights := ToWeight($15EF,$0020,$0002);
+  Inc(p);
+    p^.CodePoints := CodePointToArray(Ord('b'));
+    p^.Weights := ToWeight($1605,$0020,$0002);
+  Inc(p);
+    p^.CodePoints := CodePointToArray(Ord('c'));
+    p^.Weights := ToWeight($161D,$0020,$0002);
+end;
+
+procedure test16a();
+var
+  sequence : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  i : Integer;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  statement.Clear();
+  test16_prepareWeigth(wfirst);
+  sequence := TOrderedCharacters.Create();
+  sequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  sequence.Append(TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,2));
+  sequence.Append(TReorderUnit.From(TReorderLogicalReset.LastRegular));
+  sequence.Append(TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,3));
+  for i := 0 to sequence.ActualLength - 1 do
+    sequence.Data[i].Changed := False;
+  WriteLn('Initial = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wfirst,'test1','first',nil,unicodeBook1);
+  CheckInf(['a','b','c'],@unicodeBook1);
+
+  // --- test 1
+  SetLength(statement.Reset,1);
+  statement.LogicalPosition := TReorderLogicalReset.LastRegular;
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('x'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wresult,'test1','1',@unicodeBook1,unicodeBook2);
+  CheckInf(['a','b','x'{*},'c'],@unicodeBook2);
+    WriteLn('    -- test 1 - ok');
+end;
+
+procedure test16b();
+var
+  sequence : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  i : Integer;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  statement.Clear();
+  test16_prepareWeigth(wfirst);
+  sequence := TOrderedCharacters.Create();
+  sequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  sequence.Append(TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,2));
+  sequence.Append(TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,3));
+  for i := 0 to sequence.ActualLength - 1 do
+    sequence.Data[i].Changed := False;
+  WriteLn('Initial = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wfirst,'test1','first',nil,unicodeBook1);
+  CheckInf(['a','b','c'],@unicodeBook1);
+
+  // --- test 1
+  SetLength(statement.Reset,1);
+  statement.LogicalPosition := TReorderLogicalReset.LastRegular;
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('x'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wresult,'test1','1',@unicodeBook1,unicodeBook2);
+  CheckInf(['a','b','c','x'{*}],@unicodeBook2);
+    WriteLn('    -- test 1 - ok');
+  writeln;
+  writeln;
+
+  // test 2
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('x');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('y'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('Statement #2 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wresult,'test2','2',@unicodeBook1,unicodeBook2);
+  CheckInf(['a','b','c','x'{*},'y'{*}],@unicodeBook2);
+    WriteLn('    -- test 2 - ok');
+end;
+
+procedure test16c();
+var
+  sequence : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  i : Integer;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  statement.Clear();
+  test16_prepareWeigth(wfirst);
+  sequence := TOrderedCharacters.Create();
+  sequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  sequence.Append(TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,2));
+  sequence.Append(TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,3));
+  for i := 0 to sequence.ActualLength - 1 do
+    sequence.Data[i].Changed := False;
+  WriteLn('Initial = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wfirst,'test1','first',nil,unicodeBook1);
+  CheckInf(['a','b','c'],@unicodeBook1);
+
+  // --- test 1
+  SetLength(statement.Reset,1);
+  statement.LogicalPosition := TReorderLogicalReset.LastRegular;
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('x'),TReorderWeigthKind.Secondary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wresult,'test1','1',@unicodeBook1,unicodeBook2);
+  CheckInf(['a','b','c','x'{*}],@unicodeBook2);
+    WriteLn('    -- test 1 - ok');
+  writeln;
+  writeln;
+
+  // test 2
+  statement.Clear();
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('x');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('y'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('Statement #2 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wresult,'test2','2',@unicodeBook1,unicodeBook2);
+  CheckInf(['a','b','c','x'{*},'y'{*}],@unicodeBook2);
+    WriteLn('    -- test 2 - ok');
+end;
+
+procedure test16d();
+var
+  sequence : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  i : Integer;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  statement.Clear();
+  test16_prepareWeigth(wfirst);
+  sequence := TOrderedCharacters.Create();
+  sequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  sequence.Append(TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,2));
+  sequence.Append(TReorderUnit.From(TReorderLogicalReset.LastRegular));
+  sequence.Append(TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,3));
+  for i := 0 to sequence.ActualLength - 1 do
+    sequence.Data[i].Changed := False;
+  WriteLn('Initial = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wfirst,'test1','first',nil,unicodeBook1);
+  CheckInf(['a','b','c'],@unicodeBook1);
+
+  // --- test 1
+  SetLength(statement.Reset,1);
+  statement.LogicalPosition := TReorderLogicalReset.LastRegular;
+  statement.Before := True;
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('x'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wresult,'test1','1',@unicodeBook1,unicodeBook2);
+  CheckInf(['a','x'{*},'b','c'],@unicodeBook2);
+    WriteLn('    -- test 1 - ok');
+end;
+
+procedure test16e_prepareWeigth(var AData : TUCA_LineRecArray);
+var
+  p : PUCA_LineRec;
+begin
+  SetLength(AData,5);
+  p := @AData[Low(AData)];
+    p^.CodePoints := CodePointToArray(Ord('a'));
+    p^.Weights := ToWeight(1,10,10);
+  Inc(p);
+    p^.CodePoints := CodePointToArray(Ord('b'));
+    p^.Weights := ToWeight(2,10,10);
+  Inc(p);
+    p^.CodePoints := CodePointToArray([Ord('b'),Ord('2')]);
+    p^.Weights := ToWeight(2,20,10);
+  Inc(p);
+    p^.CodePoints := CodePointToArray([Ord('b'),Ord('3')]);
+    p^.Weights := ToWeight(2,20,20);
+  Inc(p);
+    p^.CodePoints := CodePointToArray(Ord('c'));
+    p^.Weights := ToWeight(3,10,10);
+end;
+
+procedure test16e();
+var
+  sequence : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  i : Integer;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  statement.Clear();
+  test16e_prepareWeigth(wfirst);
+  sequence := TOrderedCharacters.Create();
+  sequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  sequence.Append(TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,2));
+  sequence.Append(TReorderUnit.From([Ord('b'),Ord('2')],TReorderWeigthKind.Secondary,3));
+  sequence.Append(TReorderUnit.From([Ord('b'),Ord('3')],TReorderWeigthKind.Tertiary,4));
+  sequence.Append(TReorderUnit.From(TReorderLogicalReset.LastRegular));
+  sequence.Append(TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,5));
+  for i := 0 to sequence.ActualLength - 1 do
+    sequence.Data[i].Changed := False;
+  WriteLn('Initial = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wfirst,'test1','first',nil,unicodeBook1);
+  CheckInf(['a','b','b2','b3','c'],@unicodeBook1);
+
+  // --- test 1
+  SetLength(statement.Reset,1);
+  statement.LogicalPosition := TReorderLogicalReset.LastRegular;
+  statement.Before := True;
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('x'),TReorderWeigthKind.Secondary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wresult,'test1','1',@unicodeBook1,unicodeBook2);
+  CheckInf(['a','b','x'{*},'b2','b3','c'],@unicodeBook2);
+    WriteLn('    -- test 1 - ok');
+end;
+
+procedure CheckEqual(A,B : array of TUnicodeCodePoint; const AMsg : string);overload;
+var
+  i : Integer;
+begin
+  Check((Length(A)=Length(B)),'Length() <>');
+  if (Length(A) > 0) then begin
+    for i := Low(A) to High(A) do
+      Check(A[i] = B[i],'%s, A[%d] <>',[AMsg,i]);
+  end;
+end;
+
+procedure CheckEqual(A,B : TReorderUnit; const AMsg : string);overload;
+var
+  i : Integer;
+begin
+  Check((A.VirtualPosition=B.VirtualPosition),'VirtualPosition <>');
+  Check((A.InitialPosition=B.InitialPosition),'InitialPosition <>');
+  Check((A.Changed=B.Changed),'Changed <>');
+  Check((A.WeigthKind=B.WeigthKind),'WeigthKind <>');
+  CheckEqual(A.Context,B.Context,'Context');
+  CheckEqual(A.ExpansionChars,B.ExpansionChars,'ExpansionChars');
+  CheckEqual(A.Characters,B.Characters,'Characters');
+  CheckEqual(A.Context,B.Context,'Context');
+end;
+
+procedure CheckEqual(A,B : TReorderSequence);overload;
+var
+  i : Integer;
+begin
+  Check((A.LogicalPosition=B.LogicalPosition),'LogicalPosition <>');
+  Check((A.Before=B.Before),'Before <>');
+  CheckEqual(A.Reset,B.Reset,'Reset');
+  Check((Length(A.Elements)=Length(B.Elements)),'Length(Elements) <>');
+  for i := Low(A.Elements) to High(A.Elements) do
+    CheckEqual(A.Elements[i],B.Elements[i],Format('Elements[%d]',[i]));
+end;
+
+function CountLines(const AStr : ansistring) : Integer;
+var
+  c, i : Integer;
+begin
+  c := 0;
+  for i := 1 to Length(AStr) do begin
+    if (AStr[i] = #10) then
+      c := c+1;
+  end;
+  if (c = 0) and (AStr <> '') then
+    c := c+1;
+  Result := c;
+end;
+
+procedure do_test_parser(
+        AText      : ansistring;
+  const AExpected  : TReorderSequence;
+  const ALineCount : Integer
+);overload;
+var
+  locText : UTF8String;
+  locTextPointer : PAnsiChar;
+  locStartPosition,
+  locMaxLen        : Integer;
+  locStatement     : TReorderSequence;
+  locNextPos,
+  locLineCount     : Integer;
+begin
+  locText := AText;
+  WriteLn('Parsing "',locText,'" ...');
+  locTextPointer := @locText[1];
+  locMaxLen := Length(locText);
+  locStartPosition := 0;
+  locNextPos := 0;
+  locLineCount := 0;
+  locStatement.Clear();
+  Check(
+    ParseStatement(
+      locTextPointer,locStartPosition,locMaxLen,@locStatement,locNextPos,locLineCount
+    ),
+    'Fail to Parse : "%s".', [locText]
+  );
+  if (locLineCount > 1) then
+    WriteLn;
+  WriteLn('    Next Position : ',locNextPos);
+  WriteLn('    Line Count : ',locLineCount);
+  if (CountLines(locText) = 1) then
+    Check((locNextPos>=locMaxLen),'Next Position');
+  if (ALineCount > 0) then
+    Check((locLineCount=ALineCount),'Line Count');
+  CheckEqual(locStatement,AExpected);
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure do_test_parser(AText : ansistring; const AExpected : TReorderSequence);inline;overload;
+begin
+  do_test_parser(AText,AExpected,1);
+end;
+
+procedure test_parser_1();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  locStatement.LogicalPosition := TReorderLogicalReset.LastTertiaryIgnorable;
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Identity,0);
+  do_test_parser('& [last tertiary ignorable] = a',locStatement);
+end;
+
+procedure test_parser_2();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  locStatement.LogicalPosition := TReorderLogicalReset.LastTertiaryIgnorable;
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,0);
+  do_test_parser('& [last tertiary ignorable] < b',locStatement);
+end;
+
+procedure test_parser_3();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  locStatement.LogicalPosition := TReorderLogicalReset.LastTertiaryIgnorable;
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Secondary,0);
+  do_test_parser('& [last tertiary ignorable] << c',locStatement);
+end;
+
+procedure test_parser_4();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  locStatement.LogicalPosition := TReorderLogicalReset.LastTertiaryIgnorable;
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('d'),TReorderWeigthKind.Tertiary,0);
+  do_test_parser('& [last tertiary ignorable] <<< d',locStatement);
+end;
+
+procedure test_parser_5();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  locStatement.LogicalPosition := TReorderLogicalReset.LastTertiaryIgnorable;
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(1,TReorderWeigthKind.Primary,0);
+  do_test_parser('& [last tertiary ignorable] < ''\u0001''',locStatement);
+end;
+
+procedure test_parser_6();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  locStatement.LogicalPosition := TReorderLogicalReset.LastTertiaryIgnorable;
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(7,TReorderWeigthKind.Secondary,0);
+  do_test_parser('& [last tertiary ignorable] << ''\u0007''',locStatement);
+end;
+
+procedure test_parser_7();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  locStatement.LogicalPosition := TReorderLogicalReset.LastTertiaryIgnorable;
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(9,TReorderWeigthKind.Secondary,0);
+  do_test_parser('& [last tertiary ignorable] << ''\u0009''',locStatement);
+end;
+
+procedure test_parser_8();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  locStatement.LogicalPosition := TReorderLogicalReset.LastTertiaryIgnorable;
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From($000110BD,TReorderWeigthKind.Primary,0);
+  do_test_parser('& [last tertiary ignorable] < ''\U000110BD''',locStatement);
+end;
+
+procedure test_parser_9();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < a',locStatement);
+end;
+
+procedure test_parser_abreviating_1();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(3);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x <* abc',locStatement);
+end;
+
+procedure test_parser_abreviating_2();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(7);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[3] := TReorderUnit.From(Ord('d'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[4] := TReorderUnit.From(Ord('e'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[5] := TReorderUnit.From(Ord('f'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[6] := TReorderUnit.From(Ord('g'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x <* abcd-g',locStatement);
+end;
+
+procedure test_parser_abreviating_3();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(8);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[3] := TReorderUnit.From(Ord('d'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[4] := TReorderUnit.From(Ord('e'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[5] := TReorderUnit.From(Ord('f'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[6] := TReorderUnit.From(Ord('g'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[7] := TReorderUnit.From(Ord('p'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x <* abcd-gp',locStatement);
+end;
+
+procedure test_parser_abreviating_4();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(11);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[3] := TReorderUnit.From(Ord('d'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[4] := TReorderUnit.From(Ord('e'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[5] := TReorderUnit.From(Ord('f'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[6] := TReorderUnit.From(Ord('g'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[7] := TReorderUnit.From(Ord('p'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[8] := TReorderUnit.From(Ord('q'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[9] := TReorderUnit.From(Ord('r'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[10] := TReorderUnit.From(Ord('s'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x <* abcd-gp-s',locStatement);
+end;
+
+procedure test_parser_abreviating_5();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(3);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Secondary,0);
+  do_test_parser('&x <<* abc',locStatement);
+end;
+
+procedure test_parser_abreviating_6();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(11);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[3] := TReorderUnit.From(Ord('d'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[4] := TReorderUnit.From(Ord('e'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[5] := TReorderUnit.From(Ord('f'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[6] := TReorderUnit.From(Ord('g'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[7] := TReorderUnit.From(Ord('p'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[8] := TReorderUnit.From(Ord('q'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[9] := TReorderUnit.From(Ord('r'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[10] := TReorderUnit.From(Ord('s'),TReorderWeigthKind.Secondary,0);
+  do_test_parser('&x <<* abcd-gp-s',locStatement);
+end;
+
+procedure test_parser_abreviating_7();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(3);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Tertiary,0);
+  do_test_parser('&x <<<* abc',locStatement);
+end;
+
+procedure test_parser_abreviating_8();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(11);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[3] := TReorderUnit.From(Ord('d'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[4] := TReorderUnit.From(Ord('e'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[5] := TReorderUnit.From(Ord('f'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[6] := TReorderUnit.From(Ord('g'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[7] := TReorderUnit.From(Ord('p'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[8] := TReorderUnit.From(Ord('q'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[9] := TReorderUnit.From(Ord('r'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[10] := TReorderUnit.From(Ord('s'),TReorderWeigthKind.Tertiary,0);
+  do_test_parser('&x <<<* abcd-gp-s',locStatement);
+end;
+
+procedure test_parser_abreviating_9();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(3);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Identity,0);
+  do_test_parser('&x =* abc',locStatement);
+end;
+
+procedure test_parser_abreviating_10();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(11);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[3] := TReorderUnit.From(Ord('d'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[4] := TReorderUnit.From(Ord('e'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[5] := TReorderUnit.From(Ord('f'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[6] := TReorderUnit.From(Ord('g'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[7] := TReorderUnit.From(Ord('p'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[8] := TReorderUnit.From(Ord('q'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[9] := TReorderUnit.From(Ord('r'),TReorderWeigthKind.Identity,0);
+  locStatement.Elements[10] := TReorderUnit.From(Ord('s'),TReorderWeigthKind.Identity,0);
+  do_test_parser('&x =* abcd-gp-s',locStatement);
+end;
+
+procedure test_parser_contraction_1();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('k');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From([Ord('c'),Ord('h')],TReorderWeigthKind.Primary,0);
+  do_test_parser('&k < ch',locStatement);
+end;
+
+procedure test_parser_contraction_2();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,3);
+  locStatement.Reset[0] := Ord('a');
+  locStatement.Reset[1] := Ord('b');
+  locStatement.Reset[2] := Ord('c');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From([Ord('c'),Ord('h')],TReorderWeigthKind.Primary,0);
+  do_test_parser('&abc < ch',locStatement);
+end;
+
+procedure test_parser_expansion_1();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('a');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('z'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[0].ExpansionChars := CodePointToArray(Ord('e'));
+  do_test_parser('&a < z/e',locStatement);
+end;
+
+procedure test_parser_special_char_1();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('/'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < ''/''',locStatement);
+end;
+
+procedure test_parser_special_char_2();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('&'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < ''&''',locStatement);
+end;
+
+procedure test_parser_special_char_3();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('<'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < ''<''',locStatement);
+end;
+
+procedure test_parser_special_char_4();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('|'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < ''|''',locStatement);
+end;
+
+procedure test_parser_special_char_5();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('*'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < ''*''',locStatement);
+end;
+
+procedure test_parser_special_char_6();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('['),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < ''[''',locStatement);
+end;
+
+procedure test_parser_special_char_7();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord(']'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < '']''',locStatement);
+end;
+
+procedure test_parser_skip_comment_1();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  do_test_parser(
+    '&x  #' + sLineBreak +
+    '   < a',
+    locStatement, 2
+  );
+end;
+
+procedure test_parser_skip_comment_2();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  do_test_parser(
+    '&x  # hello' + sLineBreak +
+    '   < a',
+    locStatement, 2
+  );
+end;
+
+procedure test_parser_skip_comment_3();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  do_test_parser(
+    '&x  # hello' + sLineBreak +
+    sLineBreak +
+    #9#9'   ' + sLineBreak +
+    '   < a',
+    locStatement, 4
+  );
+end;
+
+procedure test_parser_quoted_string_1();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From(
+      [Ord('<'),Ord('#'),Ord('|'),Ord('/'),Ord('!')],
+      TReorderWeigthKind.Primary,0
+    );
+  do_test_parser('&x < ''<#|/!''',locStatement);
+end;
+
+procedure test_parser_quoted_string_2();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From(
+      [Ord('<'),Ord('#'),Ord('|'),Ord('/'),Ord('!'),Ord('A')],
+      TReorderWeigthKind.Primary,0
+    );
+  do_test_parser('&x < ''<#|/!''A',locStatement);
+end;
+
+procedure test_parser_quoted_string_3();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From(
+      [Ord('<'),Ord('#'),Ord('|'),Ord('/'),Ord('!')],
+      TReorderWeigthKind.Primary,0
+    );
+  do_test_parser('&x < ''<#|/!''#',locStatement);
+end;
+
+procedure test_parser_quoted_string_4();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From(
+      [Ord('<'),Ord('#'),Ord('|'),Ord('/'),Ord('!'),Ord('A')],
+      TReorderWeigthKind.Primary,0
+    );
+  do_test_parser('&x < ''<#|/!''A#',locStatement);
+end;
+
+procedure test_parser_quoted_string_5();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,3);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.Reset[1] := Ord('-');
+  locStatement.Reset[2] := Ord('y');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From(Ord('k'),TReorderWeigthKind.Tertiary,0);
+  do_test_parser('&''x''-''y''<<<k',locStatement);
+end;
+
+procedure test_parser_quoted_string_6();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From(Ord('|'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < ''|''',locStatement);
+end;
+
+procedure test_parser_quoted_string_7();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From([Ord('a'),Ord('|')],TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < a''|''',locStatement);
+end;
+
+procedure test_parser_quoted_string_8();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From([Ord('a'),Ord('|'),Ord('c')],TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < a''|''c',locStatement);
+end;
+
+procedure test_parser_contexte_before_1();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From(Ord('-'),[Ord('a')],TReorderWeigthKind.Secondary,0);
+  do_test_parser('&x << a|-',locStatement);
+end;
+
+procedure test_parser_contexte_before_2();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('a');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From(Ord('-'),[Ord('a')],TReorderWeigthKind.Tertiary,0);
+  do_test_parser('&a <<< a|-',locStatement);
+end;
+
+procedure test_parser_contexte_before_3();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From(
+      Ord('-'),[Ord('a'),Ord('z'),Ord('k')],TReorderWeigthKind.Secondary,0
+    );
+  do_test_parser('&x << azk|-',locStatement);
+end;
+
+procedure test_parser_contexte_before_4();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From(
+      [Ord('a'),Ord(':')],[Ord('a'),Ord('z'),Ord('k')],
+      TReorderWeigthKind.Secondary,0
+    );
+  do_test_parser('&x << azk|a:',locStatement);
+end;
+
+procedure test_parser_placement_before_1();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.Before := True;
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('k'),TReorderWeigthKind.Secondary,0);
+  do_test_parser('&[before 2] x << k',locStatement);
+end;
+
+procedure test_parser_placement_before_2();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.Before := True;
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] :=
+    TReorderUnit.From([Ord('z'),Ord('k')],TReorderWeigthKind.Tertiary,0);
+  do_test_parser('&[before 3] x <<< zk',locStatement);
+end;
+
+procedure test_parser_placement_before_3();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.Before := True;
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('z'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&[before 1] x < z',locStatement);
+end;
+
+procedure test_parser_multi_unit_statement_line_1();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(3);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  do_test_parser('&x < a < b < c',locStatement);
+  do_test_parser('&x <a <b <c',locStatement);
+  do_test_parser('&x <a<b<c',locStatement);
+end;
+
+procedure test_parser_multi_unit_statement_line_2();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(3);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Tertiary,0);
+  do_test_parser('&x < a << b <<< c',locStatement);
+  do_test_parser('&x <a <<b <<<c',locStatement);
+  do_test_parser('&x <a<<b<<<c',locStatement);
+end;
+
+procedure test_parser_multi_unit_statement_line_3();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('x');
+  locStatement.SetElementCount(3);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Tertiary,0);
+  locStatement.Elements[1] := TReorderUnit.From(Ord('b'),TReorderWeigthKind.Secondary,0);
+  locStatement.Elements[2] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Tertiary,0);
+  do_test_parser('&x <<< a << b <<< c',locStatement);
+  do_test_parser('&x <<<a <<b <<<c',locStatement);
+  do_test_parser('&x <<<a<<b<<<c',locStatement);
+end;
+
+procedure test_parser_multi_statement_line_1();
+const STATEMENT_BUFFER : UTF8String = '&r <<a &s <<< b';
+var
+  locStatements : array of TReorderSequence;
+  locStatement : PReorderSequence;
+  locExpectedStatement : TReorderSequence;
+  lineCount, i, bufferLength, k, nextPost : Integer;
+  buffer : PAnsiChar;
+begin
+  buffer := @STATEMENT_BUFFER[1];
+  WriteLn('Parsing "',buffer,'" ...');
+  bufferLength := Length(buffer);
+  SetLength(locStatements,10);
+  lineCount := 0;
+  nextPost := 0;
+  i := 0;
+  k := 0;
+  while (i < bufferLength) do begin
+    locStatement := @locStatements[k];
+    locStatement^.Clear();
+    if not ParseStatement(buffer,i,bufferLength,locStatement,nextPost,lineCount) then
+      Break;
+    i := nextPost;
+    k := k+1;
+    if (k > 2) then
+      raise Exception.Create('2 Statements expected, more was parsed.');
+  end;
+  Check((k=2), 'Statement Count');
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('r');
+  locExpectedStatement.SetElementCount(1);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('a'),TReorderWeigthKind.Secondary,0);
+  CheckEqual(locStatements[0],locExpectedStatement);
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('s');
+  locExpectedStatement.SetElementCount(1);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('b'),TReorderWeigthKind.Tertiary,0);
+  CheckEqual(locStatements[1],locExpectedStatement);
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure test_parser_multi_statement_line_2();
+const STATEMENT_BUFFER : UTF8String = '&r <a <b <<B &s <<< b <c';
+var
+  locStatements : array of TReorderSequence;
+  locStatement : PReorderSequence;
+  locExpectedStatement : TReorderSequence;
+  lineCount, i, bufferLength, k, nextPost : Integer;
+  buffer : PAnsiChar;
+begin
+  buffer := @STATEMENT_BUFFER[1];
+  WriteLn('Parsing "',buffer,'" ...');
+  bufferLength := Length(buffer);
+  SetLength(locStatements,10);
+  lineCount := 0;
+  nextPost := 0;
+  i := 0;
+  k := 0;
+  while (i < bufferLength) do begin
+    locStatement := @locStatements[k];
+    locStatement^.Clear();
+    if not ParseStatement(buffer,i,bufferLength,locStatement,nextPost,lineCount) then
+      Break;
+    i := nextPost;
+    k := k+1;
+    if (k > 2) then
+      raise Exception.Create('2 Statements expected, more was parsed.');
+  end;
+  Check((k=2), 'Statement Count');
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('r');
+  locExpectedStatement.SetElementCount(3);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  locExpectedStatement.Elements[1] :=
+    TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,0);
+  locExpectedStatement.Elements[2] :=
+    TReorderUnit.From(Ord('B'),TReorderWeigthKind.Secondary,0);
+  CheckEqual(locStatements[0],locExpectedStatement);
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('s');
+  locExpectedStatement.SetElementCount(2);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('b'),TReorderWeigthKind.Tertiary,0);
+  locExpectedStatement.Elements[1] :=
+    TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  CheckEqual(locStatements[1],locExpectedStatement);
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure test_parser_multi_statement_line_3();
+const STATEMENT_BUFFER : UTF8String = '&r <a <b <<B &s <<< b <c &x <A <W';
+var
+  locStatements : array of TReorderSequence;
+  locStatement : PReorderSequence;
+  locExpectedStatement : TReorderSequence;
+  lineCount, i, bufferLength, k, nextPost : Integer;
+  buffer : PAnsiChar;
+begin
+  buffer := @STATEMENT_BUFFER[1];
+  WriteLn('Parsing "',buffer,'" ...');
+  bufferLength := Length(buffer);
+  SetLength(locStatements,10);
+  lineCount := 0;
+  nextPost := 0;
+  i := 0;
+  k := 0;
+  while (i < bufferLength) do begin
+    locStatement := @locStatements[k];
+    locStatement^.Clear();
+    if not ParseStatement(buffer,i,bufferLength,locStatement,nextPost,lineCount) then
+      Break;
+    i := nextPost;
+    k := k+1;
+    if (k > 3) then
+      raise Exception.Create('3 Statements expected, more was parsed.');
+  end;
+  Check((k=3), 'Statement Count');
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('r');
+  locExpectedStatement.SetElementCount(3);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  locExpectedStatement.Elements[1] :=
+    TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,0);
+  locExpectedStatement.Elements[2] :=
+    TReorderUnit.From(Ord('B'),TReorderWeigthKind.Secondary,0);
+  CheckEqual(locStatements[0],locExpectedStatement);
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('s');
+  locExpectedStatement.SetElementCount(2);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('b'),TReorderWeigthKind.Tertiary,0);
+  locExpectedStatement.Elements[1] :=
+    TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  CheckEqual(locStatements[1],locExpectedStatement);
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('x');
+  locExpectedStatement.SetElementCount(2);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('A'),TReorderWeigthKind.Primary,0);
+  locExpectedStatement.Elements[1] :=
+    TReorderUnit.From(Ord('W'),TReorderWeigthKind.Primary,0);
+  CheckEqual(locStatements[2],locExpectedStatement);
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure test_parser_multi_statement_line_4();
+const STATEMENT_BUFFER : UTF8String =
+        '        &r <a <b    <<B      &s <<< b    <c &x <A <W';
+var
+  locStatements : array of TReorderSequence;
+  locStatement : PReorderSequence;
+  locExpectedStatement : TReorderSequence;
+  lineCount, i, bufferLength, k, nextPost : Integer;
+  buffer : PAnsiChar;
+begin
+  buffer := @STATEMENT_BUFFER[1];
+  WriteLn('Parsing "',buffer,'" ...');
+  bufferLength := Length(buffer);
+  SetLength(locStatements,10);
+  lineCount := 0;
+  nextPost := 0;
+  i := 0;
+  k := 0;
+  while (i < bufferLength) do begin
+    locStatement := @locStatements[k];
+    locStatement^.Clear();
+    if not ParseStatement(buffer,i,bufferLength,locStatement,nextPost,lineCount) then
+      Break;
+    i := nextPost;
+    k := k+1;
+    if (k > 3) then
+      raise Exception.Create('3 Statements expected, more was parsed.');
+  end;
+  Check((k=3), 'Statement Count');
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('r');
+  locExpectedStatement.SetElementCount(3);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  locExpectedStatement.Elements[1] :=
+    TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,0);
+  locExpectedStatement.Elements[2] :=
+    TReorderUnit.From(Ord('B'),TReorderWeigthKind.Secondary,0);
+  CheckEqual(locStatements[0],locExpectedStatement);
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('s');
+  locExpectedStatement.SetElementCount(2);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('b'),TReorderWeigthKind.Tertiary,0);
+  locExpectedStatement.Elements[1] :=
+    TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,0);
+  CheckEqual(locStatements[1],locExpectedStatement);
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('x');
+  locExpectedStatement.SetElementCount(2);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('A'),TReorderWeigthKind.Primary,0);
+  locExpectedStatement.Elements[1] :=
+    TReorderUnit.From(Ord('W'),TReorderWeigthKind.Primary,0);
+  CheckEqual(locStatements[2],locExpectedStatement);
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure test_parser_multi_line_statements_1();
+const STATEMENT_BUFFER : UTF8String =
+        '&r <a #123'#10 +
+        '&s <<< b ';
+var
+  locStatements : array of TReorderSequence;
+  locStatement : PReorderSequence;
+  locExpectedStatement : TReorderSequence;
+  lineCount, i, bufferLength, k, nextPost : Integer;
+  buffer : PAnsiChar;
+begin
+  buffer := @STATEMENT_BUFFER[1];
+  WriteLn('Parsing "',buffer,'" ...');
+  bufferLength := Length(buffer);
+  SetLength(locStatements,10);
+  lineCount := 0;
+  nextPost := 0;
+  i := 0;
+  k := 0;
+  while (i < bufferLength) do begin
+    locStatement := @locStatements[k];
+    locStatement^.Clear();
+    if not ParseStatement(buffer,i,bufferLength,locStatement,nextPost,lineCount) then
+      Break;
+    i := nextPost;
+    k := k+1;
+    if (k > 2) then
+      raise Exception.Create('2 Statements expected, more was parsed.');
+  end;
+  Check((k=2), 'Statement Count');
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('r');
+  locExpectedStatement.SetElementCount(1);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,0);
+  CheckEqual(locStatements[0],locExpectedStatement);
+
+  locExpectedStatement.Clear();
+  SetLength(locExpectedStatement.Reset,1);
+  locExpectedStatement.Reset[0] := Ord('s');
+  locExpectedStatement.SetElementCount(1);
+  locExpectedStatement.Elements[0] :=
+    TReorderUnit.From(Ord('b'),TReorderWeigthKind.Tertiary,0);
+  CheckEqual(locStatements[1],locExpectedStatement);
+
+  WriteLn('    -- test  ok');
+end;
+
+//----------------------------------------------------------------------------//
+const
+  UNICODE_LINE_BREAK = #10;
+  COLLATION_XML_TEXT =
+    '<ldml>' + UNICODE_LINE_BREAK +
+    '	<identity>' + UNICODE_LINE_BREAK +
+    '		<version number="1.2.3"/>' + UNICODE_LINE_BREAK +
+    '		<generation date="$Date: 2014-07-08 21:39:31 -0500 (Tue, 08 Jul 2014) $"/>' + UNICODE_LINE_BREAK +
+    '		<language type="xy" />' + UNICODE_LINE_BREAK +
+    '	</identity>' + UNICODE_LINE_BREAK +
+    '	<collations  >' + UNICODE_LINE_BREAK +
+    '		<defaultCollation>one</defaultCollation>' + UNICODE_LINE_BREAK +
+    '		<collation type="abc" >' + UNICODE_LINE_BREAK +
+    '			<import source="xy" type="private-two"/>' + UNICODE_LINE_BREAK +
+    '			<import source="xy" type="one"/>' + UNICODE_LINE_BREAK +
+    '                   <suppress_contractions>[qh]</suppress_contractions>' + UNICODE_LINE_BREAK +
+    '			<cr><![CDATA[' + UNICODE_LINE_BREAK +
+    '				&w<u<v' + UNICODE_LINE_BREAK +
+    '			]]></cr>' + UNICODE_LINE_BREAK +
+    '		</collation>' + UNICODE_LINE_BREAK +
+    '		<collation type="one" >' + UNICODE_LINE_BREAK +
+    '			<cr><![CDATA[' + UNICODE_LINE_BREAK +
+    '				&h<z<b' + UNICODE_LINE_BREAK +
+    '			]]></cr>' + UNICODE_LINE_BREAK +
+    '		</collation>' + UNICODE_LINE_BREAK +
+    '		<collation type="private-two" >' + UNICODE_LINE_BREAK +
+    '			<cr><![CDATA[' + UNICODE_LINE_BREAK +
+    '				&f<c<<<ce' + UNICODE_LINE_BREAK +
+    '				&q<qh<<<p' + UNICODE_LINE_BREAK +
+    '			]]></cr>' + UNICODE_LINE_BREAK +
+    '		</collation  >' + UNICODE_LINE_BREAK +
+    '		<collation type="three" >' + UNICODE_LINE_BREAK +
+    '			<cr><![CDATA[' + UNICODE_LINE_BREAK +
+    '				&d<c<b<a' + UNICODE_LINE_BREAK +
+    '			]]></cr>' + UNICODE_LINE_BREAK +
+    '		</collation>' + UNICODE_LINE_BREAK +
+    '	</collations>' + UNICODE_LINE_BREAK +
+    '</ldml>';
+  COLLATION_XML_TEXT2 =
+    '<ldml>' + UNICODE_LINE_BREAK +
+    '	<identity>' + UNICODE_LINE_BREAK +
+    '		<version number="1.2.3"/>' + UNICODE_LINE_BREAK +
+    '		<generation date="$Date: 2014-07-08 21:39:31 -0500 (Tue, 08 Jul 2014) $"/>' + UNICODE_LINE_BREAK +
+    '		<language type="kw" />' + UNICODE_LINE_BREAK +
+    '	</identity>' + UNICODE_LINE_BREAK +
+    '	<collations  >' + UNICODE_LINE_BREAK +
+    '		<defaultCollation>wend</defaultCollation>' + UNICODE_LINE_BREAK +
+    '		<collation type="kis" >' + UNICODE_LINE_BREAK +
+    '			<cr><![CDATA[' + UNICODE_LINE_BREAK +
+    '				&x<c<v' + UNICODE_LINE_BREAK +
+    '			]]></cr>' + UNICODE_LINE_BREAK +
+    '		</collation>' + UNICODE_LINE_BREAK +
+    '		<collation type="wend" >' + UNICODE_LINE_BREAK +
+    '			<import source="xy" type="one"/>' + UNICODE_LINE_BREAK +
+    '			<cr><![CDATA[' + UNICODE_LINE_BREAK +
+    '				&F<<P<<<C' + UNICODE_LINE_BREAK +
+    '				&L<a<<<Z' + UNICODE_LINE_BREAK +
+    '			]]></cr>' + UNICODE_LINE_BREAK +
+    '		</collation>' + UNICODE_LINE_BREAK +
+    '	</collations>' + UNICODE_LINE_BREAK +
+    '</ldml>';
+
+function PrepareCollationStream(const AText : string) : TStream;
+begin
+  Result := TMemoryStream.Create();
+  if (AText <> '') then
+    Result.Write(AText[1],(Length(AText)*SizeOf(Char)));
+end;
+
+function PrepareRepositoryLoader() : ICldrCollationLoader;
+var
+  s : array of TStream;
+begin
+  SetLength(s,2);
+  s[0] := PrepareCollationStream(COLLATION_XML_TEXT);
+  s[1] := PrepareCollationStream(COLLATION_XML_TEXT2);
+  Result := TCldrCollationStreamLoader.Create(['xy','kw'],s) as ICldrCollationLoader;
+end;
+
+procedure test_collation_parser_HeaderParsing();
+var
+  rep : TCldrCollationRepository;
+  col : TCldrCollation;
+  typ : TCldrCollationItem;
+  imp : TCldrImport;
+begin
+  rep := TCldrCollationRepository.Create(PrepareRepositoryLoader());
+  try
+    Check(rep.Find('xy')=nil, 'Find() before load.');
+    Check(rep.Find('ab')=nil, 'Find() before load.');
+    col := rep.Load('xy',TCldrParserMode.HeaderParsing);
+    Check(col <> nil, 'load()');
+    Check(col.Mode=TCldrParserMode.HeaderParsing, 'Mode');
+    Check(rep.Find('xy') <> nil, 'Find() after load.');
+    Check(rep.Find('ab')=nil);
+    WriteLn('  - Step 1 ok');
+
+    Check(col.DefaultType='one', 'DefaultType');
+    Check(col.ItemCount=4, 'col.ItemCount');
+    Check(col.Find('one')<>nil, 'col.Find()');
+    Check(col.Find('private-two')<>nil, 'col.Find()');
+    Check(col.Find('three')<>nil, 'col.Find()');
+    Check(col.Find('abc')<>nil, 'col.Find()');
+
+    WriteLn('  - Step 2 ok');
+
+    typ := col.Find('private-two');
+    check(typ.IsPrivate(),'IsPrivate()');
+
+    WriteLn('  - Step 3 ok');
+
+    Check(col.Find('one').Imports.Count=0, 'one.imports=0');
+    Check(col.Find('private-two').Imports.Count=0, 'private-two.imports=0');
+    Check(col.Find('three').Imports.Count=0, 'three.imports=0');
+
+    WriteLn('  - Step 4 ok');
+
+    typ := col.Find('abc');
+    check(typ.Imports.Count=2,'abc.imports=2');
+    imp := typ.Imports[0];
+      check(imp<>nil, 'abc.Imports[0]');
+      check(
+        (imp.Source = 'xy') and (imp.TypeName = 'private-two'),
+        'abc.Imports[0]'
+      );
+    imp := typ.Imports[1];
+      check(imp<>nil, 'abc.Imports[1]');
+      check(
+        (imp.Source = 'xy') and (imp.TypeName = 'one'),
+        'abc.Imports[1]'
+      );
+
+    WriteLn('  - Step 5 ok');
+  finally
+    rep.Free();
+  end;
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure test_collation_parser_HeaderParsing_2();
+var
+  rep : TCldrCollationRepository;
+  col : TCldrCollation;
+  typ : TCldrCollationItem;
+  imp : TCldrImport;
+begin
+  rep := TCldrCollationRepository.Create(PrepareRepositoryLoader());
+  try
+    Check(rep.Find('kw')=nil, 'Find() before load.');
+    Check(rep.Find('xy')=nil, 'Find() before load.');
+    col := rep.Load('kw',TCldrParserMode.HeaderParsing);
+    Check(col <> nil, 'load()');
+    Check(col.Mode=TCldrParserMode.HeaderParsing, 'Mode');
+    Check(rep.Find('kw') <> nil, 'Find() after load.');
+    WriteLn('  - Step 1 ok');
+
+    Check(rep.Find('xy')=nil, 'Find(xy) after load.');
+    WriteLn('  - Step 2 ok');
+
+    typ := col.Find('wend');
+    check(typ.Imports.Count=1,'wend.imports=1');
+    imp := typ.Imports[0];
+      check(imp<>nil, 'wend.Imports[0]');
+      check(
+        (imp.Source = 'xy') and (imp.TypeName = 'one'),
+        'wend.Imports[0]'
+      );
+
+    WriteLn('  - Step 3 ok');
+  finally
+    rep.Free();
+  end;
+
+  WriteLn('    -- test  ok');
+end;
+
+function ParseSingleStatement(
+  const AText       : UnicodeString;
+        AStatement  : PReorderSequence
+) : Boolean;
+var
+  np, lc : Integer;
+  u8 : UTF8String;
+begin
+  u8 := UTF8Encode(AText);
+  np := 0;
+  lc := 0;
+  Result := ParseStatement(@u8[1],0,Length(u8),AStatement,np,lc);
+end;
+
+function ParseMultiStatements(
+        AText           : UnicodeString;
+        AStatementList  : PReorderSequence;
+  const AListLength     : Integer
+) : Integer;
+var
+  c, nextPos, lineCount, i : Integer;
+  u8 : UTF8String;
+  buffer : PAnsiChar;
+  statement, lastStatement : PReorderSequence;
+begin
+  u8 := UTF8Encode(AText);
+  c := Length(u8);
+  buffer := @u8[1];
+  nextPos := 0;
+  i := 0;
+  lineCount := 0;
+  statement := AStatementList;
+  lastStatement := AStatementList+AListLength;
+  while (i < c) and (statement < lastStatement) do begin
+    statement^.Clear();
+    if not ParseStatement(buffer,i,c,statement,nextPos,lineCount) then
+      Break;
+    i := nextPos;
+    Inc(statement);
+  end;
+  Result := statement-AStatementList;
+end;
+
+type
+  TReorderSequenceArrayRec = record
+    Data        : TReorderSequenceArray;
+    ActualLengh : Integer;
+  end;
+  PReorderSequenceArrayRec = ^TReorderSequenceArrayRec;
+
+function CopyVisitorFunc(
+  ARule  : PReorderSequence;
+  AOwner : TCldrCollationItem;
+  AData  : Pointer
+) : Boolean;
+var
+  p : PReorderSequenceArrayRec;
+begin
+  p := PReorderSequenceArrayRec(AData);
+  Result := (p^.ActualLengh < Length(p^.Data));
+  if Result then begin
+    p^.Data[p^.ActualLengh].Assign(ARule);
+    p^.ActualLengh := p^.ActualLengh+1;
+  end;
+end;
+
+procedure test_collation_parser_FullParsing();
+var
+  rep : TCldrCollationRepository;
+  col : TCldrCollation;
+  typ : TCldrCollationItem;
+  imp : TCldrImport;
+  locStatement : TReorderSequence;
+  locStatementList : TReorderSequenceArray;
+  c, i : Integer;
+begin
+  rep := TCldrCollationRepository.Create(PrepareRepositoryLoader());
+  try
+    Check(rep.Find('xy')=nil, 'Find() before load.');
+    Check(rep.Find('ab')=nil, 'Find() before load.');
+    col := rep.Load('xy',TCldrParserMode.FullParsing);
+    Check(col <> nil, 'load()');
+    Check(col.Mode=TCldrParserMode.FullParsing, 'Mode');
+    Check(rep.Find('xy') <> nil, 'Find() after load.');
+    Check(rep.Find('ab')=nil);
+    WriteLn('  - Step 1 ok');
+
+    Check(col.DefaultType='one', 'DefaultType');
+    Check(col.ItemCount=4, 'col.ItemCount');
+    Check(col.Find('one')<>nil, 'col.Find()');
+    Check(col.Find('private-two')<>nil, 'col.Find()');
+    Check(col.Find('three')<>nil, 'col.Find()');
+    Check(col.Find('abc')<>nil, 'col.Find()');
+
+    WriteLn('  - Step 2 ok');
+
+    typ := col.Find('private-two');
+    check(typ.IsPrivate(),'IsPrivate()');
+
+    WriteLn('  - Step 3 ok');
+
+    Check(col.Find('one').Imports.Count=0, 'one.imports=0');
+    Check(col.Find('private-two').Imports.Count=0, 'private-two.imports=0');
+    Check(col.Find('three').Imports.Count=0, 'three.imports=0');
+
+    WriteLn('  - Step 4 ok');
+
+    typ := col.Find('abc');
+    check(typ.Imports.Count=2,'abc.imports=2');
+    imp := typ.Imports[0];
+      check(imp<>nil, 'abc.Imports[0]');
+      check(
+        (imp.Source = 'xy') and (imp.TypeName = 'private-two'),
+        'abc.Imports[0]'
+      );
+    imp := typ.Imports[1];
+      check(imp<>nil, 'abc.Imports[1]');
+      check(
+        (imp.Source = 'xy') and (imp.TypeName = 'one'),
+        'abc.Imports[1]'
+      );
+    Check(Length(typ.Rules)=2,'Length(abc.Rules)=2');
+    Check(Length(typ.Rules[0].Elements)=2,'Length(typ.Rules[0].Elements)=2');
+    Check(typ.Rules[0].Elements[0].WeigthKind=TReorderWeigthKind.Deletion,'typ.Rules[0].Elements[0].WeigthKind=TReorderWeigthKind.Deletion');
+    Check(Length(typ.Rules[0].Elements[0].Characters)=1,'Length(typ.Rules[0].Elements[0].Characters)=1');
+    Check(typ.Rules[0].Elements[0].Characters[0]=Ord('h'),'typ.Rules[0].Elements[0].Characters[0]=h');
+    Check(typ.Rules[0].Elements[1].Characters[0]=Ord('q'),'typ.Rules[0].Elements[1].Characters[0]=q');
+    WriteLn('  - Step 5 ok');
+
+    typ := col.Find('one');
+    Check(Length(typ.Rules)>0, 'one.Rules <> nil');
+    locStatement.Clear();
+    Check(ParseSingleStatement('&h<z<b',@locStatement));
+    CheckEqual(locStatement,typ.Rules[0]);
+    WriteLn('  - Step 6 ok');
+
+    typ := col.Find('private-two');
+    Check(Length(typ.Rules)>0, 'private-two.Rules <> nil');
+    c := 2;
+    SetLength(locStatementList,5);
+    Check(
+      ParseMultiStatements(
+        '&f<c<<<ce' + UNICODE_LINE_BREAK+'&q<qh<<<p ',
+        @locStatementList[0],
+        Length(locStatementList)
+      ) = c
+    );
+    for i := 0 to c-1 do
+      CheckEqual(locStatementList[i],typ.Rules[i]);
+    WriteLn('  - Step 7 ok');
+
+    typ := col.Find('three');
+    Check(Length(typ.Rules)>0, 'three.Rules <> nil');
+    locStatement.Clear();
+    Check(ParseSingleStatement('&d<c<b<a',@locStatement));
+    CheckEqual(locStatement,typ.Rules[0]);
+    WriteLn('  - Step 8 ok');
+  finally
+    rep.Free();
+  end;
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure test_collation_parser_FullParsing_2();
+var
+  rep : TCldrCollationRepository;
+  col : TCldrCollation;
+  typ : TCldrCollationItem;
+  imp : TCldrImport;
+  locStatementList : TReorderSequenceArray;
+  c, i : Integer;
+begin
+  rep := TCldrCollationRepository.Create(PrepareRepositoryLoader());
+  try
+    Check(rep.Find('kw')=nil, 'Find() before load.');
+    Check(rep.Find('xy')=nil, 'Find() before load.');
+    col := rep.Load('kw',TCldrParserMode.FullParsing);
+    Check(col <> nil, 'load()');
+    Check(col.Mode=TCldrParserMode.FullParsing, 'Mode');
+    Check(rep.Find('kw') <> nil, 'Find() after load.');
+    WriteLn('  - Step 1 ok');
+
+    typ := col.Find('wend');
+    check(typ.Imports.Count=1,'wend.imports=1');
+    imp := typ.Imports[0];
+      check(imp<>nil, 'wend.Imports[0]');
+      check(
+        (imp.Source = 'xy') and (imp.TypeName = 'one'),
+        'wend.Imports[0]'
+      );
+    Check(Length(typ.Rules)>0, 'wend.Rules <> nil');
+    c := 2;
+    SetLength(locStatementList,5);
+    Check(
+      ParseMultiStatements(
+        '&F<<P<<<C' + UNICODE_LINE_BREAK+'&L<a<<<Z ',
+        @locStatementList[0],
+        Length(locStatementList)
+      ) = c
+    );
+    for i := 0 to c-1 do
+      CheckEqual(locStatementList[i],typ.Rules[i]);
+    WriteLn('  - Step 2 ok');
+
+  finally
+    rep.Free();
+  end;
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure test_collation_parser_complete_rules();
+var
+  rep : TCldrCollationRepository;
+  col : TCldrCollation;
+  typ, xtyp : TCldrCollationItem;
+  c, i : Integer;
+  locData : TReorderSequenceArrayRec;
+begin
+  rep := TCldrCollationRepository.Create(PrepareRepositoryLoader());
+  try
+    col := rep.Load('xy',TCldrParserMode.FullParsing);
+    SetLength(locData.Data,23);
+
+    typ := col.Find('one');
+    locData.ActualLengh := 0;
+    Check(ForEachRule(typ,@CopyVisitorFunc,@locData), 'ForEachRule(one) - 1');
+    Check(locData.ActualLengh = 1, 'ForEachRule(one) - 2');
+    CheckEqual(locData.Data[0],typ.Rules[0]);
+    WriteLn('  - Step 1 ok');
+
+    typ := col.Find('private-two');
+    locData.ActualLengh := 0;
+    Check(ForEachRule(typ,@CopyVisitorFunc,@locData), 'ForEachRule(private-two) - 1');
+    Check(locData.ActualLengh = 2, 'ForEachRule(private-two) - 2');
+    for i := 0 to locData.ActualLengh-1 do
+      CheckEqual(locData.Data[i],typ.Rules[i]);
+    WriteLn('  - Step 2 ok');
+
+    typ := col.Find('abc');
+    locData.ActualLengh := 0;
+    SetLength(locData.Data,23);
+    Check(ForEachRule(typ,@CopyVisitorFunc,@locData), 'ForEachRule(abc) - 1');
+    Check(locData.ActualLengh = 2+2{private-two}+1{one}, 'ForEachRule(abc) - 2');
+    xtyp := col.Find('private-two');
+    c := 0;
+    for i := 0 to Length(xtyp.Rules)-1 do
+      CheckEqual(locData.Data[c+i],xtyp.Rules[i]);
+    c := c+Length(xtyp.Rules);
+    xtyp := col.Find('one');
+    for i := 0 to Length(xtyp.Rules)-1 do
+      CheckEqual(locData.Data[c+i],xtyp.Rules[i]);
+    c := c+Length(xtyp.Rules);
+    for i := 0 to Length(typ.Rules)-1 do
+      CheckEqual(locData.Data[c+i],typ.Rules[i]);
+    WriteLn('  - Step 2 ok');
+  finally
+    rep.Free();
+  end;
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure test_collation_parser_complete_rules_2();
+var
+  rep : TCldrCollationRepository;
+  col, xcol : TCldrCollation;
+  typ, xtyp : TCldrCollationItem;
+  locData : TReorderSequenceArrayRec;
+  c, i : Integer;
+begin
+  rep := TCldrCollationRepository.Create(PrepareRepositoryLoader());
+  try
+    col := rep.Load('kw',TCldrParserMode.FullParsing);
+    SetLength(locData.Data,23);
+
+    typ := col.Find('wend');
+    locData.ActualLengh := 0;
+    Check(ForEachRule(typ,@CopyVisitorFunc,@locData), 'ForEachRule(wend) - 1');
+    Check(locData.ActualLengh = 2+1{one}, 'ForEachRule(wend) - 2');
+    xcol := rep.Find('xy');
+    Check(xcol <> nil);
+    xtyp := xcol.Find('one');
+    Check(xtyp <> nil);
+    Check(Length(xtyp.Rules)=1);
+    c := 0;
+    for i := 0 to Length(xtyp.Rules)-1 do
+      CheckEqual(locData.Data[c+i],xtyp.Rules[i]);
+    c := c+Length(xtyp.Rules);
+    for i := 0 to Length(typ.Rules)-1 do
+      CheckEqual(locData.Data[c+i],typ.Rules[i]);
+    WriteLn('  - Step 1 ok');
+
+  finally
+    rep.Free();
+  end;
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure test_unicode_set_1();
+var
+  x : TUnicodeSet;
+  i : Integer;
+  s : string;
+begin
+  x := TUnicodeSet.Create();
+  try
+    for i := 0 to 256-1 do
+      Check(not x.Contains(AnsiChar(i)));
+    WriteLn(' - Stept 1 ok');
+
+    s := 'azerty';
+    x.AddPattern(Format('[%s]',[s]));
+    for i := 1 to Length(s) do
+      Check(x.Contains(s[i]));
+    WriteLn(' - Stept 2 ok');
+  finally
+    x.Free();
+  end;
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure test_unicode_set_2();
+var
+  x : TUnicodeSet;
+  i : Integer;
+begin
+  x := TUnicodeSet.Create();
+  try
+    x.AddPattern('[d-h]');
+    for i := Ord('d') to Ord('h') do
+      Check(x.Contains(Char(i)));
+    WriteLn(' - Stept 1 ok');
+
+    for i := Ord('a') to Ord('d')-1 do
+      Check(not x.Contains(Char(i)));
+    WriteLn(' - Stept 2 ok');
+
+    for i := Ord('h')+1 to 256-1 do
+      Check(not x.Contains(Char(i)));
+    WriteLn(' - Stept 3 ok');
+  finally
+    x.Free();
+  end;
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure test_unicode_set_3();
+var
+  x : TUnicodeSet;
+  s, s1 : string;
+begin
+  x := TUnicodeSet.Create();
+  try
+    s := 'azerty';
+    x.AddPattern(Format('[{%s}]',[s]));
+    Check(x.Contains(s));
+    WriteLn(' - Stept 1 ok');
+
+    Check(not x.Contains(s+'12'));
+    WriteLn(' - Stept 2 ok');
+
+    Check(not x.Contains('qs'+s));
+    WriteLn(' - Stept 3 ok');
+
+    s1 := s+'x';
+    x.AddPattern(Format('[{%s}]',[s1]));
+    Check(x.Contains(s));
+    Check(x.Contains(s1));
+    WriteLn(' - Stept 4 ok');
+  finally
+    x.Free();
+  end;
+
+  WriteLn('    -- test  ok');
 end;
 
 end.

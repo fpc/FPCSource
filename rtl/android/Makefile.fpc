@@ -83,6 +83,7 @@ OBJPASDIR=$(RTL)/objpas
 # SYSINCNAMES
 include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+SYSINCDEPS:=$(SYSINCDEPS) sysandroid.inc
 
 # Get the processor dependent include file names.
 # This will set the following variables :

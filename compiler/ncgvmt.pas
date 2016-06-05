@@ -982,14 +982,16 @@ implementation
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
+            { skip generics and generic constraints }
+            if [df_generic,df_genconstraint]*def.defoptions<>[] then
+              continue;
             case def.typ of
               recorddef :
                 do_write_persistent_type_info(trecorddef(def).symtable,is_global);
               objectdef :
                 begin
-                  { Skip generics and forward defs }
-                  if ([df_generic,df_genconstraint]*def.defoptions<>[]) or
-                     (oo_is_forward in tobjectdef(def).objectoptions) then
+                  { Skip forward defs }
+                  if (oo_is_forward in tobjectdef(def).objectoptions) then
                     continue;
                   do_write_persistent_type_info(tobjectdef(def).symtable,is_global);
                   { Write also VMT if not done yet }

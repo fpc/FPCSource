@@ -176,11 +176,19 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         s := 'finishing externally started thread'#10;
         fpwrite(0,s[1],length(s));
 {$endif DEBUG_MT}
+        { Restore tlskey value as it may already have been set to null,
+          in which case
+            a) DoneThread can't release the memory
+            b) accesses to threadvars from DoneThread or anything it
+               calls would allocate new threadvar memory
+        }
+        pthread_setspecific(tlskey,p);
         { clean up }
         DoneThread;
         { the pthread routine that calls us is supposed to do this, but doesn't
           at least on Mac OS X 10.6 }
         pthread_setspecific(CleanupKey,nil);
+        pthread_setspecific(tlskey,nil);
       end;
 
 
@@ -192,8 +200,12 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         { we cannot know the stack size of the current thread, so pretend it
           is really large to prevent spurious stack overflow errors }
         InitThread(1000000000);
-        { instruct the pthreads system to clean up this thread when it exits }
-        pthread_setspecific(CleanupKey,pointer(1));
+        { instruct the pthreads system to clean up this thread when it exits.
+          Use current tlskey as value so that if tlskey is cleared before
+          CleanupKey is called, we still know its value (the order in which
+          pthread tls data is zeroed by pthreads is undefined, and under some
+          systems the tlskey is cleared first) }
+        pthread_setspecific(CleanupKey,pthread_getspecific(tlskey));
       end;
 
 

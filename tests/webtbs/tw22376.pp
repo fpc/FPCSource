@@ -11,7 +11,7 @@ end;
 
 function foo: pointer; assembler; nostackframe;
 asm
-{$ifdef x86_64}
+{$ifdef cpux86_64}
         lea  rax,[bar+rip]
 {$else}
         lea  eax,[bar]

@@ -450,7 +450,7 @@ begin
           if IsConsole then
             Writeln( '### Program exited with exit code ' + s)
           else if macosHasSysDebugger then
-            DebugStr('A possible error occured, exit code: ' + s + '. Type "g" and return to continue.')
+            DebugStr('A possible error occurred, exit code: ' + s + '. Type "g" and return to continue.')
           else
             {Be quiet}
         end;

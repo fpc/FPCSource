@@ -214,6 +214,13 @@ type
 
    EArgumentException = class(Exception);
    EArgumentOutOfRangeException = class(EArgumentException);
+   EArgumentNilException = class(EArgumentException);
+
+   EPathTooLongException = class(Exception);
+   ENotSupportedException = class(Exception);
+   EDirectoryNotFoundException = class(Exception);
+   EFileNotFoundException = class(Exception);
+   EPathNotFoundException = class(Exception);
 
    ENoConstructException = class(Exception);
 
@@ -307,7 +314,11 @@ Type
   { read thread handling }
   {$i systhrdh.inc}
 
+  { Type Helpers}
+  {$i syshelph.inc}
+
   procedure FreeAndNil(var obj);
+  procedure FreeMemAndNil(var p);
 
   { interface handling }
   {$i intfh.inc}

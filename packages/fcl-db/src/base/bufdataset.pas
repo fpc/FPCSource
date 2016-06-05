@@ -158,7 +158,8 @@ type
     procedure StoreSpareRecIntoBookmark(const ABookmark: PBufBookmark);  virtual; abstract;
     procedure GotoBookmark(const ABookmark : PBufBookmark); virtual; abstract;
     function BookmarkValid(const ABookmark: PBufBookmark): boolean; virtual;
-    function CompareBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : boolean; virtual;
+    function CompareBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : integer; virtual;
+    function SameBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : boolean; inline;
 
     procedure InitialiseIndex; virtual; abstract;
 
@@ -226,7 +227,7 @@ type
     procedure StoreCurrentRecIntoBookmark(const ABookmark: PBufBookmark); override;
     procedure StoreSpareRecIntoBookmark(const ABookmark: PBufBookmark); override;
     procedure GotoBookmark(const ABookmark : PBufBookmark); override;
-
+    function CompareBookmarks(const ABookmark1, ABookmark2: PBufBookmark): integer; override;
     procedure InitialiseIndex; override;
 
     procedure InitialiseSpareRecord(const ASpareRecord : TRecordBuffer); override;
@@ -591,9 +592,10 @@ type
     procedure LoadFromFile(AFileName: string = ''; Format: TDataPacketFormat = dfAny);
     procedure SaveToFile(AFileName: string = ''; Format: TDataPacketFormat = dfBinary);
     procedure CreateDataset;
+    Procedure Clear; // Will close and remove all field definitions.
     function BookmarkValid(ABookmark: TBookmark): Boolean; override;
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
-
+    Procedure CopyFromDataset(DataSet : TDataSet;CopyData : Boolean=True);
     property ChangeCount : Integer read GetChangeCount;
     property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount default 2;
     property ReadOnly : Boolean read FReadOnly write SetReadOnly default false;
@@ -1245,18 +1247,20 @@ begin
   // See mantis #22030
 
   //  if Fields.Count<FieldDefs.Count then
-  if Fields.Count = 0 then
+  if (Fields.Count = 0) or (FieldDefs.Count=0) then
     DatabaseError(SErrNoDataset);
 
-  // If there is a field with FieldNo=0 then the fields are not found to the
-  // FieldDefs which is a sign that there is no dataset created. (Calculated and
-  // lookup fields have FieldNo=-1)
+  // search for autoinc field
   FAutoIncField:=nil;
-  for i := 0 to Fields.Count-1 do
-    if Fields[i].FieldNo=0 then
-      DatabaseError(SErrNoDataset)
-    else if (FAutoIncValue>-1) and (Fields[i] is TAutoIncField) and not assigned(FAutoIncField) then
-      FAutoIncField := TAutoIncField(Fields[i]);
+  if FAutoIncValue>-1 then
+  begin
+    for i := 0 to Fields.Count-1 do
+      if Fields[i] is TAutoIncField then
+      begin
+        FAutoIncField := TAutoIncField(Fields[i]);
+        Break;
+      end;
+  end;
 
   InitDefaultIndexes;
   CalcRecordSize;
@@ -1354,6 +1358,111 @@ begin
     SetToLastRecord;
 end;
 
+procedure TCustomBufDataset.CopyFromDataset(DataSet: TDataSet; CopyData: Boolean);
+
+Const
+  UseStreams = ftBlobTypes;
+
+Var
+  I  : Integer;
+  F,F1,F2 : TField;
+  L1,L2  : TList;
+  N : String;
+  OriginalPosition: TBookMark;
+  S : TMemoryStream;
+  
+begin
+  Close;
+  Fields.Clear;
+  FieldDefs.Clear;
+  For I:=0 to Dataset.FieldCount-1 do
+    begin
+    F:=Dataset.Fields[I];
+    TFieldDef.Create(FieldDefs,F.FieldName,F.DataType,F.Size,F.Required,F.FieldNo);
+    end;
+  CreateDataset;
+  L1:=Nil;
+  L2:=Nil;
+  S:=Nil;
+  If CopyData then
+    try
+      L1:=TList.Create;
+      L2:=TList.Create;
+      Open;
+      For I:=0 to FieldDefs.Count-1 do
+        begin
+        N:=FieldDefs[I].Name;
+        F1:=FieldByName(N);
+        F2:=DataSet.FieldByName(N);
+        L1.Add(F1);
+        L2.Add(F2);
+        If (FieldDefs[I].DataType in UseStreams) and (S=Nil) then
+          S:=TMemoryStream.Create;
+        end;
+      DisableControls;
+      Dataset.DisableControls;
+      OriginalPosition:=Dataset.GetBookmark;
+      Try
+        Dataset.Open;
+        Dataset.First;
+        While not Dataset.EOF do
+          begin
+          Append;
+          For I:=0 to L1.Count-1 do
+            begin
+            F1:=TField(L1[i]);
+            F2:=TField(L2[I]);
+            If Not F2.IsNull then
+              Case F1.DataType of
+                 ftFixedChar,
+                 ftString   : F1.AsString:=F2.AsString;
+                 ftFixedWideChar,
+                 ftWideString : F1.AsWideString:=F2.AsWideString;
+                 ftBoolean  : F1.AsBoolean:=F2.AsBoolean;
+                 ftFloat    : F1.AsFloat:=F2.AsFloat;
+                 ftAutoInc,
+                 ftLargeInt : F1.AsInteger:=F2.AsInteger;
+                 ftSmallInt : F1.AsInteger:=F2.AsInteger;
+                 ftInteger  : F1.AsInteger:=F2.AsInteger;
+                 ftDate     : F1.AsDateTime:=F2.AsDateTime;
+                 ftTime     : F1.AsDateTime:=F2.AsDateTime;
+                 ftTimestamp,
+                 ftDateTime : F1.AsDateTime:=F2.AsDateTime;
+                 ftCurrency : F1.AsCurrency:=F2.AsCurrency;
+                 ftBCD,
+                 ftFmtBCD   : F1.AsBCD:=F2.AsBCD;
+            else
+              if (F1.DataType in UseStreams) then
+                begin
+                S.Clear;
+                TBlobField(F2).SaveToStream(S);
+                S.Position:=0;
+                TBlobField(F1).LoadFromStream(S);
+                end
+              else  
+                F1.AsString:=F2.AsString;
+            end;
+          end;
+          Try
+            Post;
+          except
+            Cancel;
+            Raise;
+          end;
+          Dataset.Next;
+          end;
+      Finally
+        DataSet.GotoBookmark(OriginalPosition); //Return to original record
+        Dataset.EnableControls;
+        EnableControls;
+      end;
+    finally
+      L2.Free;
+      l1.Free;
+      S.Free;
+    end;
+end;
+
 { TBufIndex }
 
 constructor TBufIndex.Create(const ADataset: TCustomBufDataset);
@@ -1367,12 +1476,14 @@ begin
   Result := assigned(ABookmark) and assigned(ABookmark^.BookmarkData);
 end;
 
-function TBufIndex.CompareBookmarks(const ABookmark1, ABookmark2: PBufBookmark): boolean;
+function TBufIndex.CompareBookmarks(const ABookmark1, ABookmark2: PBufBookmark): integer;
 begin
-  if assigned(ABookmark1) and assigned(ABookmark2) then
-    Result := (ABookmark1^.BookmarkData=ABookmark2^.BookmarkData)
-  else
-    Result := False;
+  Result := 0;
+end;
+
+function TBufIndex.SameBookmarks(const ABookmark1, ABookmark2: PBufBookmark): boolean;
+begin
+  Result := Assigned(ABookmark1) and Assigned(ABookmark2) and (CompareBookmarks(ABookmark1, ABookmark2) = 0);
 end;
 
 function TBufIndex.GetRecord(ABookmark: PBufBookmark; GetMode: TGetMode): TGetResult;
@@ -1537,6 +1648,35 @@ begin
   FCurrentRecBuf := ABookmark^.BookmarkData;
 end;
 
+function TDoubleLinkedBufIndex.CompareBookmarks(const ABookmark1,ABookmark2: PBufBookmark): integer;
+var ARecord1, ARecord2 : PBufRecLinkItem;
+begin
+  // valid bookmarks expected
+  // estimate result using memory addresses of records
+  Result := ABookmark1^.BookmarkData - ABookmark2^.BookmarkData;
+  if Result = 0 then
+    Exit
+  else if Result < 0 then
+  begin
+    Result   := -1;
+    ARecord1 := ABookmark1^.BookmarkData;
+    ARecord2 := ABookmark2^.BookmarkData;
+  end
+  else
+  begin
+    Result   := +1;
+    ARecord1 := ABookmark2^.BookmarkData;
+    ARecord2 := ABookmark1^.BookmarkData;
+  end;
+  // if we need relative position of records with given bookmarks we must
+  // traverse through index until we reach lower bookmark or 1st record
+  while assigned(ARecord2) and (ARecord2 <> ARecord1) and (ARecord2 <> FFirstRecBuf) do
+    ARecord2 := ARecord2[IndNr].prior;
+  // if we found lower bookmark as first, then estimated position is correct
+  if ARecord1 <> ARecord2 then
+    Result := -Result;
+end;
+
 procedure TDoubleLinkedBufIndex.InitialiseIndex;
 begin
   // Do nothing
@@ -1564,7 +1704,7 @@ begin
   FFirstRecBuf:= nil;
 end;
 
-function TDoubleLinkedBufIndex.GetRecNo: integer;
+function TDoubleLinkedBufIndex.GetRecNo: Longint;
 var ARecord : PBufRecLinkItem;
 begin
   ARecord := FCurrentRecBuf;
@@ -2050,8 +2190,8 @@ begin
     StartBuf := 0;
   Result := False;
   for x := StartBuf to high(FUpdateBuffer) do
-   if FCurrentIndex.CompareBookmarks(@FUpdateBuffer[x].BookmarkData,@ABookmark) or
-      (IncludePrior and (FUpdateBuffer[x].UpdateKind=ukDelete) and FCurrentIndex.CompareBookmarks(@FUpdateBuffer[x].NextBookmarkData,@ABookmark)) then
+   if FCurrentIndex.SameBookmarks(@FUpdateBuffer[x].BookmarkData,@ABookmark) or
+      (IncludePrior and (FUpdateBuffer[x].UpdateKind=ukDelete) and FCurrentIndex.SameBookmarks(@FUpdateBuffer[x].NextBookmarkData,@ABookmark)) then
     begin
     FCurrentUpdateBuffer := x;
     Result := True;
@@ -2064,10 +2204,10 @@ function TCustomBufDataset.GetRecordUpdateBufferCached(const ABookmark: TBufBook
 begin
   // if the current update buffer matches, immediately return true
   if (FCurrentUpdateBuffer < length(FUpdateBuffer)) and (
-      FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@ABookmark) or
+      FCurrentIndex.SameBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@ABookmark) or
       (IncludePrior
         and (FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind=ukDelete)
-        and  FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData,@ABookmark))) then
+        and  FCurrentIndex.SameBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData,@ABookmark))) then
      begin
      Result := True;
      end
@@ -2290,7 +2430,7 @@ var StoreRecBM     : TBufBookmark;
 
           {for x := length(FUpdateBuffer)-1 downto 0 do
             begin
-            if (FUpdateBuffer[x].UpdateKind=ukDelete) and FCurrentIndex.CompareBookmarks(@FUpdateBuffer[x].NextBookmarkData,@BookmarkData) then
+            if (FUpdateBuffer[x].UpdateKind=ukDelete) and FCurrentIndex.SameBookmarks(@FUpdateBuffer[x].NextBookmarkData,@BookmarkData) then
               CancelUpdBuffer(FUpdateBuffer[x]);
             end;}
           FreeRecordBuffer(OldValuesBuffer);
@@ -2314,7 +2454,7 @@ var StoreRecBM     : TBufBookmark;
         FCurrentIndex.GotoBookmark(@Bm);
         TmpBuf:=FCurrentIndex.CurrentRecord;
         // resync won't work if the currentbuffer is freed...
-        if FCurrentIndex.CompareBookmarks(@Bm,@StoreRecBM) then with FCurrentIndex do
+        if FCurrentIndex.SameBookmarks(@Bm,@StoreRecBM) then with FCurrentIndex do
           begin
           GotoBookmark(@StoreRecBM);
           if ScrollForward = grEOF then
@@ -2880,7 +3020,7 @@ procedure TCustomBufDataset.GetDatasetPacket(AWriter: TDataPacketReader);
       if GetRecordUpdateBuffer(AUpdBuffer.BookmarkData,True,False) then
         begin
         repeat
-          if FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData, @AUpdBuffer.BookmarkData) then
+          if FCurrentIndex.SameBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData, @AUpdBuffer.BookmarkData) then
             StoreUpdateBuffer(FUpdateBuffer[FCurrentUpdateBuffer], ARowState);
         until not GetRecordUpdateBuffer(AUpdBuffer.BookmarkData,True,True)
         end;
@@ -3046,18 +3186,28 @@ begin
   end;
 end;
 
+procedure TCustomBufDataset.Clear;
+begin
+  Close;
+  FieldDefs.Clear;
+  Fields.Clear;
+end;
+
 function TCustomBufDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
 begin
   Result:=assigned(FCurrentIndex) and  FCurrentIndex.BookmarkValid(pointer(ABookmark));
 end;
 
-function TCustomBufDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark
-  ): Longint;
+function TCustomBufDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint;
 begin
-  if not assigned(Bookmark1) or not assigned(Bookmark2) then
+  if Bookmark1 = Bookmark2 then
     Result := 0
-  else if Assigned(FCurrentIndex) and FCurrentIndex.CompareBookmarks(pointer(Bookmark1),pointer(Bookmark2)) then
-    Result := 0
+  else if not assigned(Bookmark1) then
+    Result := 1
+  else if not assigned(Bookmark2) then
+    Result := -1
+  else if assigned(FCurrentIndex) then
+    Result := FCurrentIndex.CompareBookmarks(pointer(Bookmark1),pointer(Bookmark2))
   else
     Result := -1;
 end;
@@ -3148,7 +3298,7 @@ begin
       FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData);
 
       for x := FCurrentUpdateBuffer+1 to length(FUpdateBuffer)-1 do
-        if Findexes[0].CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@FUpdateBuffer[x].NextBookmarkData) then
+        if FIndexes[0].SameBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@FUpdateBuffer[x].NextBookmarkData) then
           FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[x].NextBookmarkData);
 
       AddRecordBuffer:=False;

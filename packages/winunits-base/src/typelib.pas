@@ -455,7 +455,7 @@ var
   TIref: ITypeInfo;
   BstrName,BstrNameRef,BstrDocString : WideString;
   s,sl,sPropDispIntfc,sType,sConv,sFunc,sPar,sVarName,sMethodName,
-  sPropParam,sPropParam2,sPropParam3:string;
+  sPropParam,sPropParam2,sPropParam3,tmp: string;
   sEventSignatures,sEventFunctions,sEventProperties,sEventImplementations:string;
   i,j,k:integer;
   FD: lpFUNCDESC;
@@ -466,6 +466,7 @@ var
   VD: lpVARDESC;
   aPropertyDefs:array of TPropertyDef;
   Propertycnt,iType:integer;
+  Modifier: string;
 
   function findProperty(ireqdispid:integer):integer;
   var i:integer;
@@ -545,11 +546,18 @@ begin
     OleCheck(TI.GetNames(FD^.memid,@BL,length(BL),cnt));
     // skip IUnknown and IDispatch methods
     sl:=lowercase(BL[0]);
-    if (sl='queryinterface') or (sl='addref') or (sl='release') then  //IUnknown
+    (*************************
+     * Code portion removed by José Mejuto.
+     * If the interface declaration appears in the TLB it must be imported
+     * or the sequences of functions will be broken and any function below this
+     * point would be called wrongly.
+     *************************
+    if ((sl='queryinterface') or (sl='addref') or (sl='release')) then  //IUnknown
       continue;
     if bIsDispatch and
       ((sl='gettypeinfocount') or (sl='gettypeinfo') or (sl='getidsofnames') or (sl='invoke')) then  //IDispatch
       continue;
+      *)
     // get return type
     if bIsDispatch and ((FD^.invkind=INVOKE_PROPERTYGET) or (FD^.invkind=INVOKE_FUNC)) then
       begin
@@ -761,6 +769,8 @@ begin
           begin
           //getters/setters for interface, insert in interface as they come,
           //store in aPropertyDefs to create properties at the end
+          bParamByRef:=(FD^.lprgelemdescParam[0].tdesc.vt=VT_PTR) and                         // by ref
+          not((FD^.lprgelemdescParam[0].tdesc.lptdesc^.vt=VT_USERDEFINED) and bIsInterface);// but not pointer to interface
           if bPropHasParam then
             begin
             sPropParam2:='('+sPropParam+')';
@@ -785,33 +795,41 @@ begin
             begin
             if not MakeValidId(GetName(1),sVarName) then
               AddToHeader('//  Warning: renamed parameter ''%s'' in %s.Set_%s to ''%s''',[GetName(1),iname,sMethodName,sVarName]);
-            with aPropertyDefs[findProperty(FD^.memid)] do
+            if not bParamByRef then
               begin
-              if FD^.invkind=INVOKE_PROPERTYPUT then
+              with aPropertyDefs[findProperty(FD^.memid)] do
                 begin
-                sptype:=sType;
-                bput:=true;
-                if bputref then                  //disambiguate  multiple setter
-                  sMethodName:=sMethodName+'_';
-                pname:=sMethodName;
-                end
-              else
-                begin
-                sprtype:=sType;
-                bputref:=true;
-                if bput then                     //disambiguate  multiple setter
-                  sMethodName:=sMethodName+'_';
-                prname:=sMethodName;
+                if FD^.invkind=INVOKE_PROPERTYPUT then
+                  begin
+                  sptype:=sType;
+                  bput:=true;
+                  if bputref then                  //disambiguate  multiple setter
+                    sMethodName:=sMethodName+'_';
+                  pname:=sMethodName;
+                  end
+                else
+                  begin
+                  sprtype:=sType;
+                  bputref:=true;
+                  if bput then                     //disambiguate  multiple setter
+                    sMethodName:=sMethodName+'_';
+                  prname:=sMethodName;
+                  end;
+                  sorgname:=BstrName;
+                  sdoc:=BstrDocString;
+                  sParam:=sPropParam;
+                  sDefault:=sl;
                 end;
-              sorgname:=BstrName;
-              sdoc:=BstrDocString;
-              sParam:=sPropParam;
-              sDefault:=sl;
               end;
-            if bPropHasParam then
-              s:=s+format('   procedure Set_%s(const %s:%s); %s;'#13#10,[sMethodName,sPropParam3,sType,sConv])
+            tmp:='   procedure Set_%s(%s %s:%s); %s;'#13#10;
+            if not bParamByRef then 
+              Modifier:='const'
             else
-              s:=s+format('   procedure Set_%s(const %s:%s); %s;'#13#10,[sMethodName,sVarName,sType,sConv]);
+              Modifier:='var';
+            if bPropHasParam then
+              s:=s+format(tmp,[sMethodName,Modifier,sPropParam3,sType,sConv])
+            else
+              s:=s+format(tmp,[sMethodName,Modifier,sVarName,sType,sConv]);
             end;
           end;
         end;

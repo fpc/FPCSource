@@ -167,7 +167,7 @@ begin
   writeln('  -r    Recurse into directories.');
   writeln('  -n    Do not actually delete files.');
   writeln('  -m N  Maximum depth to recurse into directories (1 based, zero is no max).');
-  writeln('  -q    Quietly perfoms deleting.');
+  writeln('  -q    Quietly performs deleting.');
   writeln('  -v    Verbose (print names of deleted files).');
   Halt(1);
 end;

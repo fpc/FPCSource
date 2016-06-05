@@ -437,6 +437,10 @@ implementation
              (lt in [pointerconstn,niln]) and
              (rt in [pointerconstn,niln]) and
              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])
+            ) or
+            (
+             (lt = ordconstn) and (ld.typ = orddef) and is_currency(ld) and
+             (rt = ordconstn) and (rd.typ = orddef) and is_currency(rd)
             ) then
           begin
              t:=nil;

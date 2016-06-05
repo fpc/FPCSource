@@ -485,9 +485,11 @@ Type
   PCardinal           = ^Cardinal;
   PQWord              = ^QWord;
   PInt64              = ^Int64;
+  PUInt64             = ^UInt64;
   PPtrInt             = ^PtrInt;
   PPtrUInt            = ^PtrUInt;
   PSizeInt            = ^SizeInt;
+  PSizeUInt           = ^SizeUInt;
 
   PPByte              = ^PByte;
   PPLongint           = ^PLongint;
@@ -1407,11 +1409,12 @@ Const
 
 Procedure Error(RunTimeError : TRunTimeError);
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
-Function  Paramcount:Longint;
+Function  ParamCount:Longint;
 Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 Procedure Dump_Stack(var f : text;fp:pointer;addr : codepointer = nil);
+procedure Dump_Stack(var f : text;skipframes : longint);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}

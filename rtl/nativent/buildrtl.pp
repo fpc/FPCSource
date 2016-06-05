@@ -5,6 +5,7 @@ unit buildrtl;
     uses
       ndk, ndkutils, ddk,
       ctypes, strings,
+      dos,
       rtlconsts, sysconst, sysutils, math, types,
       typinfo, fgl, classes,
 {$ifdef cpui386}

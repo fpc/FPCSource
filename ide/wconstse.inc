@@ -90,7 +90,7 @@
     label_name = '~N~ame';
 
     msg_searchstringnotfound = 'Search string not found.';
-    msg_replacethisoccourence = 'Replace this occurence?';
+    msg_replacethisoccourence = 'Replace this occurrence?';
     msg_fileexistsoverwrite = 'File %s already exists. Overwrite?';
     msg_readingwinclipboard = 'Reading windows clipboard';
     msg_copyingwinclipboard = 'Copying to windows clipboard';

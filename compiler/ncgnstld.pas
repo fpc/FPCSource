@@ -56,7 +56,6 @@ implementation
 
     uses
       cutils,verbose,globtype,globals,systems,constexp,
-      symnot,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
       cpuinfo,

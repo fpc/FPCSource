@@ -65,6 +65,10 @@ interface
             replace this explicit type conversion with a different node, or to
             reject it after all }
           function target_specific_explicit_typeconv: boolean;virtual;
+
+          { called when inserttypeconv is used to convert to a def that is equal
+            according to compare_defs() }
+          class function target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean; virtual;
        protected
           function typecheck_int_to_int : tnode; virtual;
           function typecheck_cord_to_pointer : tnode; virtual;
@@ -326,7 +330,8 @@ implementation
           still expects the resultdef of the node to be a stringdef) }
         if equal_defs(p.resultdef,def) and
            (p.resultdef.typ=def.typ) and
-           not is_bitpacked_access(p) then
+           not is_bitpacked_access(p) and
+           not ctypeconvnode.target_specific_need_equal_typeconv(p.resultdef,def) then
           begin
             { don't replace encoded string constants to rawbytestring encoding.
               preserve the codepage }
@@ -1429,6 +1434,8 @@ implementation
         else
           begin
             result:=cinlinenode.create(in_round_real,false,left);
+            { Internal type cast to currency }
+            result:=ctypeconvnode.create_internal(result,s64currencytype);
             left:=nil;
           end;
       end;
@@ -1989,6 +1996,12 @@ implementation
       end;
 
 
+    class function ttypeconvnode.target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean;
+      begin
+        result:=false;
+      end;
+
+
     function ttypeconvnode.typecheck_proc_to_procvar : tnode;
       var
         pd : tabstractprocdef;
@@ -2137,7 +2150,8 @@ implementation
             cdoptions:=[cdo_allow_variant,cdo_warn_incompatible_univ];
             { overloaded operators require calls, which is not possible inside
               a constant declaration }
-            if block_type<>bt_const then
+            if (block_type<>bt_const) and
+               not(nf_internal in flags) then
               include(cdoptions,cdo_check_operator);
             if nf_explicit in flags then
               include(cdoptions,cdo_explicit);
@@ -2507,8 +2521,11 @@ implementation
                 result:=
                   (docheckremove64bittypeconvs(tbinarynode(n).left) and
                    docheckremove64bittypeconvs(tbinarynode(n).right)) or
-                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).left)) or
-                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).right));
+                  { in case of div/mod, the result of that division/modulo can
+                    usually be different in 32 and 64 bit }
+                  (not gotdivmod and
+                   (((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).left)) or
+                    ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).right))));
               end;
           end;
         end;
@@ -2551,8 +2568,12 @@ implementation
             end;
           typeconvn:
             begin
-              n.resultdef:=todef;
               ttypeconvnode(n).totypedef:=todef;
+              { may change the type conversion, e.g. if the old conversion was
+                from 64 bit to a 64 bit, and now becomes 64 bit to 32 bit }
+              n.resultdef:=nil;
+              ttypeconvnode(n).convtype:=tc_none;
+              typecheckpass(n);
             end;
           else
             inserttypeconv_internal(n,todef);

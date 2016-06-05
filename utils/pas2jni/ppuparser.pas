@@ -36,9 +36,13 @@ type
   TPPUParser = class
   private
     FOnCheckItem: TOnCheckItem;
+    FDefaultSearchPathAdded: boolean;
     function FindUnit(const AName: string): string;
     function ReadUnit(const AName: string): string;
     function InternalParse(const AUnitName: string): TUnitDef;
+    procedure AddSearchPath(const ASearchPath: string);
+    function ReadProcessOutput(const AExeName, AParams: string; var AOutput, AError: string): integer;
+    procedure AddDefaultSearchPath(const ACPU, AOS: string);
   public
     SearchPath: TStringList;
     Units: TDef;
@@ -55,7 +59,7 @@ var
 
 implementation
 
-uses process, pipes, fpjson, jsonparser;
+uses process, pipes, fpjson, jsonparser, jsonscanner;
 
 const
   OnExceptionProcName = 'JNI_OnException';
@@ -112,32 +116,10 @@ end;
 { TPPUParser }
 
 constructor TPPUParser.Create(const ASearchPath: string);
-var
-  i, j: integer;
-  s, d: string;
-  sr: TSearchRec;
 begin
   SearchPath:=TStringList.Create;
-  SearchPath.Delimiter:=';';
-  SearchPath.DelimitedText:=ASearchPath;
-  i:=0;
-  while i < SearchPath.Count do begin
-    s:=SearchPath[i];
-    if (Pos('*', s) > 0) or (Pos('?', s) > 0) then begin
-      d:=ExtractFilePath(s);
-      j:=FindFirst(s, faDirectory, sr);
-      while j = 0 do begin
-        if (sr.Name <> '.') and (sr.Name <> '..') then
-          SearchPath.Add(d + sr.Name);
-        j:=FindNext(sr);
-      end;
-      FindClose(sr);
-      SearchPath.Delete(i);
-    end
-    else
-      Inc(i);
-  end;
-  Units:=TDef.Create(nil, dtNone);
+  AddSearchPath(ASearchPath);
+  Units:=TDef.Create;
 end;
 
 destructor TPPUParser.Destroy;
@@ -171,68 +153,31 @@ begin
 end;
 
 function TPPUParser.ReadUnit(const AName: string): string;
-
-  procedure _ReadOutput(o: TInputPipeStream; var s: string);
-  var
-    i, j: integer;
-  begin
-    with o do
-      while NumBytesAvailable > 0 do begin
-        i:=NumBytesAvailable;
-        j:=Length(s);
-        SetLength(s, j + i);
-        ReadBuffer(s[j + 1], i);
-      end;
-  end;
-
 var
-  p: TProcess;
   s, un, err: ansistring;
   ec: integer;
 begin
   un:=FindUnit(AName);
-  p:=TProcess.Create(nil);
-  try
-    if ppudumpprog = '' then begin
-      ppudumpprog:='ppudump';
-      // Check for ppudump in the same folder as pas2jni
-      s:=ExtractFilePath(ParamStr(0));
-      if s <> '' then begin
-        s:=s + ppudumpprog + ExtractFileExt(ParamStr(0));
-        if FileExists(s) then
-          ppudumpprog:=s;
-      end;
+  if ppudumpprog = '' then begin
+    ppudumpprog:='ppudump';
+    // Check for ppudump in the same folder as pas2jni
+    s:=ExtractFilePath(ParamStr(0));
+    if s <> '' then begin
+      s:=s + ppudumpprog + ExtractFileExt(ParamStr(0));
+      if FileExists(s) then
+        ppudumpprog:=s;
     end;
-    p.Executable:=ppudumpprog;
-    p.Parameters.Add('-Fj');
-    p.Parameters.Add(un);
-    p.Options:=[poUsePipes, poNoConsole];
-    p.ShowWindow:=swoHIDE;
-    p.StartupOptions:=[suoUseShowWindow];
-    try
-      p.Execute;
-    except
-      raise Exception.CreateFmt('Unable to run "%s".'+LineEnding+'%s', [p.Executable, Exception(ExceptObject).Message]);
-    end;
-    s:='';
-    err:='';
-    repeat
-      _ReadOutput(p.Output, s);
-      _ReadOutput(p.Stderr, err);
-    until not p.Running and (p.Output.NumBytesAvailable = 0) and (p.Stderr.NumBytesAvailable = 0);
-    ec:=p.ExitStatus;
-    if Copy(s, 1, 1) <> '[' then begin
-      ec:=-1;
-      err:='Output of ppudump is not in JSON format.' + LineEnding + 'Probably old version of ppudump has been used.';
-    end;
-    if ec <> 0 then begin
-      if err = '' then
-        if Length(s) < 300 then
-          err:=s;
-      raise Exception.CreateFmt('Error reading contents of unit "%s" using "%s".'+LineEnding+'Error code: %d'+LineEnding+'%s', [un, ppudumpprog, ec, err]);
-    end;
-  finally
-    p.Free;
+  end;
+  ec:=ReadProcessOutput(ppudumpprog, '-Fj' + LineEnding + un, s, err);
+  if Copy(s, 1, 1) <> '[' then begin
+    ec:=-1;
+    err:='Output of ppudump is not in JSON format.' + LineEnding + 'Probably old version of ppudump has been used.';
+  end;
+  if ec <> 0 then begin
+    if err = '' then
+      if Length(s) < 300 then
+        err:=s;
+    raise Exception.CreateFmt('Error reading contents of unit "%s" using "%s".'+LineEnding+'Error code: %d'+LineEnding+'%s', [un, ppudumpprog, ec, err]);
   end;
   Result:=s;
 {$ifopt D+}
@@ -243,7 +188,6 @@ end;
 function TPPUParser.InternalParse(const AUnitName: string): TUnitDef;
 var
   junit: TJSONObject;
-  jp: TJSONParser;
   deref: array of TUnitDef;
   CurUnit: TUnitDef;
   IsSystemUnit: boolean;
@@ -300,6 +244,7 @@ var
     d: TDef;
     it: TJSONObject;
     jarr, arr: TJSONArray;
+    ct: TClassType;
   begin
     jarr:=jobj.Get(ItemsName, TJSONArray(nil));
     if jarr = nil then
@@ -310,9 +255,19 @@ var
         CurObjName:=it.Get('Name', '');
         jt:=it.Strings['Type'];
         if jt = 'obj' then begin
-          if it.Strings['ObjType'] <> 'class' then
+          s:=it.Strings['ObjType'];
+          if s = 'class' then
+            ct:=ctClass
+          else
+          if s = 'interface' then
+            ct:=ctInterface
+          else
+          if s = 'object' then
+            ct:=ctObject
+          else
             continue;
           d:=TClassDef.Create(CurDef, dtClass);
+          TClassDef(d).CType:=ct;
         end
         else
         if jt = 'rec' then begin
@@ -320,8 +275,10 @@ var
             d:=TTypeDef.Create(CurDef, dtType);
             TTypeDef(d).BasicType:=btGuid;
           end
-          else
-            d:=TRecordDef.Create(CurDef, dtRecord);
+          else begin
+            d:=TClassDef.Create(CurDef, dtClass);
+            TClassDef(d).CType:=ctRecord;
+          end;
         end
         else
         if jt = 'proc' then
@@ -419,16 +376,18 @@ var
           d:=TSetDef.Create(CurDef, dtSet)
         else
         if jt = 'ptr' then begin
-          d:=TTypeDef.Create(CurDef, dtType);
-          TTypeDef(d).BasicType:=btPointer;
+          d:=TPointerDef.Create(CurDef, dtPointer);
         end
         else
         if jt = 'const' then
           d:=TConstDef.Create(CurDef, dtConst)
         else
+        if jt = 'array' then
+          d:=TArrayDef.Create(CurDef, dtArray)
+        else
           continue;
 
-        if (CurObjName = '') and (d.DefType <> dtEnum) then begin
+        if (CurObjName = '') and not (d.DefType in [dtEnum, dtArray]) then begin
           d.Free;
           continue;
         end;
@@ -446,12 +405,10 @@ var
         case d.DefType of
           dtClass:
             with TClassDef(d) do begin
-              AncestorClass:=TClassDef(_GetRef(it.Get('Ancestor', TJSONObject(nil)), TClassDef));
-              _ReadDefs(d, it, 'Fields');
-            end;
-          dtRecord:
-            with TRecordDef(d) do begin
-              Size:=it.Integers['Size'];
+              if CType <> ctRecord then
+                AncestorClass:=TClassDef(_GetRef(it.Get('Ancestor', TJSONObject(nil)), TClassDef));
+              if CType in [ctObject, ctRecord] then
+                Size:=it.Integers['Size'];
               _ReadDefs(d, it, 'Fields');
             end;
           dtProc, dtProcType:
@@ -499,6 +456,15 @@ var
                   Name:='Int';
 
               _ReadDefs(d, it, 'Params');
+
+              for j:=0 to d.Count - 1 do
+                with d[j] do begin
+                  if DefType <> dtParam then
+                    continue;
+                  s:=Name;
+                  Name:=Format('p%d', [j + 1]);
+                  AliasName:=s;
+                end;
               // Check for user exception handler proc
               if AMainUnit and (Parent = CurUnit) and (OnExceptionProc = nil) and (AnsiCompareText(Name, OnExceptionProcName) = 0) then
                 OnExceptionProc:=TProcDef(d);
@@ -561,6 +527,20 @@ var
               else
                 FreeAndNil(d);
             end;
+          dtPointer:
+            with TPointerDef(d) do begin
+              PtrType:=_GetRef(it.Get('Ptr', TJSONObject(nil)));;
+              if AMainUnit and (Parent = CurUnit) and (CompareText(Name, 'TJavaObject') = 0) then
+                DefType:=dtJniObject;
+            end;
+          dtArray:
+            with TArrayDef(d) do begin
+              _ReadDefs(d, it, 'Types');
+              RangeLow:=it.Get('Low', -1);
+              RangeHigh:=it.Get('High', -1);
+              RangeType:=_GetRef(it.Get('RangeType', TJSONObject(nil)));
+              ElType:=_GetRef(it.Get('ElType', TJSONObject(nil)));
+            end;
         end;
       end;
   end;
@@ -568,6 +548,9 @@ var
 var
   i, j: integer;
   s: string;
+  chkres: TCheckItemResult;
+  jp: TJSONParser;
+  jdata: TJSONData;
 begin
   Result:=nil;
   for i:=0 to Units.Count - 1 do
@@ -576,20 +559,24 @@ begin
       exit;
     end;
 
-  AMainUnit:=FOnCheckItem(AUnitName) = crInclude;
-
-  if not AMainUnit and ( (CompareText(AUnitName, 'windows') = 0) or (CompareText(AUnitName, 'unix') = 0) ) then begin
-    Result:=nil;
+  chkres:=FOnCheckItem(AUnitName);
+  if chkres = crExclude then
     exit;
-  end;
+
+  AMainUnit:=chkres = crInclude;
+
+  if not AMainUnit and ( (CompareText(AUnitName, 'windows') = 0) or (CompareText(AUnitName, 'unix') = 0) ) then
+    exit;
 
   s:=ReadUnit(AUnitName);
   try
-    junit:=nil;
+    jdata:=nil;
     try
-      jp:=TJSONParser.Create(s);
+      jp:=TJSONParser.Create(s, [joUTF8]);
       try
-        junit:=TJSONObject(jp.Parse.Items[0]);
+        s:='';
+        jdata:=jp.Parse;
+        junit:=TJSONObject(jdata.Items[0]);
       finally
         jp.Free;
       end;
@@ -602,7 +589,18 @@ begin
       Result.PPUVer:=junit.Integers['Version'];
       Result.CPU:=junit.Strings['TargetCPU'];
       Result.OS:=junit.Strings['TargetOS'];
+      j:=Length(Result.CPU);
+      if AnsiLowerCase(Copy(Result.OS, Length(Result.OS) - j, j + 1)) =  AnsiLowerCase('-' + Result.CPU) then
+        Result.OS:=Copy(Result.OS, 1, Length(Result.OS) - j - 1);
       Result.IntfCRC:=junit.Strings['InterfaceCRC'];
+
+      if IsSystemUnit then
+        Result.IsUsed:=True;
+
+      if not FDefaultSearchPathAdded then begin
+        FDefaultSearchPathAdded:=True;
+        AddDefaultSearchPath(AnsiLowerCase(Result.CPU), AnsiLowerCase(Result.OS));
+      end;
 
       if junit.Find('Units') <> nil then
         with junit.Arrays['Units'] do begin
@@ -618,6 +616,13 @@ begin
 
       Result.ResolveDefs;
 
+      if CompareText(AUnitName, 'jni') = 0 then begin
+        for i:=0 to Result.Count - 1 do
+          with Result[i] do
+            if CompareText(Name, 'PJNIEnv') = 0 then
+              DefType:=dtJniEnv;
+      end;
+
       if AMainUnit then
         Result.IsUsed:=True;
 
@@ -632,12 +637,136 @@ begin
         end;
       SetLength(Result.UsedUnits, j);
     finally
-      junit.Free;
+      jdata.Free;
     end;
   except
     if CurObjName <> '' then
       CurObjName:=Format('; Object: "%s"', [CurObjName]);
     raise Exception.CreateFmt('%s' + LineEnding + 'Unit: "%s"%s', [Exception(ExceptObject).Message, AUnitName, CurObjName]);
+  end;
+end;
+
+procedure TPPUParser.AddSearchPath(const ASearchPath: string);
+var
+  i, j: integer;
+  s, d: string;
+  sr: TSearchRec;
+  sl: TStringList;
+begin
+  sl:=TStringList.Create;
+  try
+    sl.Delimiter:=';';
+    sl.DelimitedText:=ASearchPath;
+    i:=0;
+    while i < sl.Count do begin
+      s:=sl[i];
+      if (Pos('*', s) > 0) or (Pos('?', s) > 0) then begin
+        d:=ExtractFilePath(s);
+        j:=FindFirst(s, faDirectory, sr);
+        while j = 0 do begin
+          if (sr.Name <> '.') and (sr.Name <> '..') then
+            sl.Add(d + sr.Name);
+          j:=FindNext(sr);
+        end;
+        FindClose(sr);
+        sl.Delete(i);
+      end
+      else
+        Inc(i);
+    end;
+    SearchPath.AddStrings(sl);
+  finally
+    sl.Free;
+  end;
+end;
+
+function TPPUParser.ReadProcessOutput(const AExeName, AParams: string; var AOutput, AError: string): integer;
+
+  procedure _ReadOutput(o: TInputPipeStream; var s: string; var idx: integer);
+  var
+    i: integer;
+  begin
+    with o do
+      while NumBytesAvailable > 0 do begin
+        i:=NumBytesAvailable;
+        if idx + i > Length(s) then
+          SetLength(s, idx + i*10 + idx div 10);
+        ReadBuffer(s[idx + 1], i);
+        Inc(idx, i);
+      end;
+  end;
+
+var
+  p: TProcess;
+  oidx, eidx: integer;
+begin
+  AOutput:='';
+  AError:='';
+  oidx:=0;
+  eidx:=0;
+  p:=TProcess.Create(nil);
+  try
+    p.Executable:=AExeName;
+    p.Parameters.Text:=AParams;
+    p.Options:=[poUsePipes, poNoConsole];
+    p.ShowWindow:=swoHIDE;
+    p.StartupOptions:=[suoUseShowWindow];
+    try
+      p.Execute;
+    except
+      raise Exception.CreateFmt('Unable to run "%s".'+LineEnding+'%s', [p.Executable, Exception(ExceptObject).Message]);
+    end;
+    repeat
+      if p.Output.NumBytesAvailable = 0 then
+        TThread.Yield;
+      _ReadOutput(p.Output, AOutput, oidx);
+      _ReadOutput(p.Stderr, AError, eidx);
+    until not p.Running and (p.Output.NumBytesAvailable = 0) and (p.Stderr.NumBytesAvailable = 0);
+    SetLength(AOutput, oidx);
+    SetLength(AError, eidx);
+    Result:=p.ExitStatus;
+  finally
+    p.Free;
+  end;
+end;
+
+procedure TPPUParser.AddDefaultSearchPath(const ACPU, AOS: string);
+var
+  fpc, s, e: string;
+  sl: TStringList;
+  i, j: integer;
+begin
+  try
+    fpc:=ExtractFilePath(ppudumpprog) + 'fpc' + ExtractFileExt(ParamStr(0));
+    if not FileExists(fpc) then
+      exit;
+    // Find the compiler binary
+    if ReadProcessOutput(fpc, '-P' + ACPU + LineEnding + '-T' + AOS + LineEnding + '-PB', s, e) <> 0 then
+      exit;
+    fpc:=Trim(s);
+    // Get units path from the compiler output
+    ReadProcessOutput(fpc, '-P' + ACPU + LineEnding + '-T' + AOS + LineEnding + '-vt' + LineEnding + '.', s, e);
+    sl:=TStringList.Create;
+    try
+      sl.Text:=s;
+      s:='';
+      for i:=0 to sl.Count - 1 do begin
+        s:=sl[i];
+        j:=Pos(':', s);
+        if j > 0 then begin
+          s:=Trim(Copy(s, j + 1, MaxInt));
+          s:=ExcludeTrailingPathDelimiter(s);
+          if (Copy(s, Length(s) - 3, 4) = DirectorySeparator + 'rtl') and DirectoryExists(s) then begin
+            AddSearchPath(ExtractFilePath(s) + '*');
+            exit;
+          end;
+        end;
+      end;
+    finally
+      sl.Free;
+    end;
+  except
+    // Ignore exceptions
   end;
 end;
 

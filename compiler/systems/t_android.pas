@@ -328,6 +328,8 @@ begin
     Message1(exec_i_linking, outname);
 
   opts:='';
+  if not IsSharedLib and (cs_create_pic in current_settings.moduleswitches) then
+    opts:=opts + ' --pic-executable';
   if (cs_link_strip in current_settings.globalswitches) and
      not (cs_link_separate_dbg_file in current_settings.globalswitches) then
     opts:=opts + ' -s';

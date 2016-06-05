@@ -142,7 +142,8 @@ const
    ColormapNotify = 32;
    ClientMessage = 33;
    MappingNotify = 34;
-   LASTEvent = 35;
+   GenericEvent = 35;
+   LASTEvent = 36;
    ShiftMask = 1 shl 0;
    LockMask = 1 shl 1;
    ControlMask = 1 shl 2;

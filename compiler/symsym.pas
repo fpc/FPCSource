@@ -33,7 +33,7 @@ interface
        symconst,symbase,symtype,symdef,defcmp,
        { ppu }
        ppu,finput,
-       cclasses,symnot,
+       cclasses,
        { aasm }
        aasmbase,
        cpuinfo,cpubase,cgbase,cgutils,parabase
@@ -88,6 +88,17 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
        end;
        tunitsymclass = class of tunitsym;
+
+       tprogramparasym = class(Tstoredsym)
+          isoindex : dword;
+          constructor create(const n : string;i : dword);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
+          destructor destroy;override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
+       end;
+       tprogramparasymclass = class of tprogramparasym;
 
        tnamespacesym = class(Tstoredsym)
           unitsym:tsym;
@@ -157,7 +168,6 @@ interface
 
        tabstractvarsym = class(tstoredsym)
           varoptions    : tvaroptions;
-          notifications : Tlinkedlist;
           varspez       : tvarspez;  { sets the type of access }
           varregable    : tvarregable;
           varstate      : tvarstate;
@@ -168,24 +178,21 @@ interface
           addr_taken     : boolean;
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
-          destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
           function  getsize : asizeint;
           function  getpackedbitsize : longint;
           function  is_regvar(refpara: boolean):boolean;
-          procedure trigger_notifications(what:Tnotification_flag);
-          function register_notification(flags:Tnotification_flags;
-                                         callback:Tnotification_callback):cardinal;
-          procedure unregister_notification(id:cardinal);
         private
           _vardef     : tdef;
           vardefderef : tderef;
 
-          procedure setvardef(def:tdef);
+          procedure setregable;
+          procedure setvardef(const def: tdef);
+          procedure setvardef_and_regable(def:tdef);
         public
-          property vardef: tdef read _vardef write setvardef;
+          property vardef: tdef read _vardef write setvardef_and_regable;
       end;
 
       tfieldvarsym = class(tabstractvarsym)
@@ -448,6 +455,7 @@ interface
 
        clabelsym: tlabelsymclass;
        cunitsym: tunitsymclass;
+       cprogramparasym: tprogramparasymclass;
        cnamespacesym: tnamespacesymclass;
        cprocsym: tprocsymclass;
        ctypesym: ttypesymclass;
@@ -521,7 +529,6 @@ implementation
         if sp_hint_unimplemented in symoptions then
           Message1(sym_w_non_implemented_symbol,srsym.realname);
       end;
-
 
 {****************************************************************************
                           TSYM (base for all symtypes)
@@ -680,6 +687,34 @@ implementation
          inherited ppuwrite(ppufile);
          writeentry(ppufile,ibunitsym);
       end;
+
+{****************************************************************************
+                             TPROGRAMPARASYM
+****************************************************************************}
+
+    constructor tprogramparasym.create(const n : string; i : dword);
+      begin
+         inherited create(programparasym,n);
+         isoindex:=i;
+      end;
+
+    constructor tprogramparasym.ppuload(ppufile : tcompilerppufile);
+      begin
+        { program parameter syms (iso pascal style) might be never written to a ppu }
+        internalerror(2015050102);
+      end;
+
+    destructor tprogramparasym.destroy;
+      begin
+       inherited destroy;
+      end;
+
+    procedure tprogramparasym.ppuwrite(ppufile : tcompilerppufile);
+      begin
+        { program parameter syms (iso pascal style) might be never written to a ppu }
+        internalerror(2015050101);
+      end;
+
 
 {****************************************************************************
                                 TNAMESPACESYM
@@ -1534,14 +1569,6 @@ implementation
       end;
 
 
-    destructor tabstractvarsym.destroy;
-      begin
-        if assigned(notifications) then
-          notifications.destroy;
-        inherited destroy;
-      end;
-
-
     procedure tabstractvarsym.buildderef;
       begin
         vardefderef.build(vardef);
@@ -1549,16 +1576,12 @@ implementation
 
 
     procedure tabstractvarsym.deref;
-      var
-        oldvarregable: tvarregable;
       begin
-        { setting the vardef also updates varregable. We just loaded this }
+        { assigning vardef also updates varregable. We just loaded this   }
         { value from a ppu, so it must not be changed (e.g. tw7817a.pp/   }
         { tw7817b.pp: the address is taken of a local variable in an      }
         { inlined procedure -> must remain non-regable when inlining)     }
-        oldvarregable:=varregable;
-        vardef:=tdef(vardefderef.resolve);
-        varregable:=oldvarregable;
+        setvardef(tdef(vardefderef.resolve));
       end;
 
 
@@ -1624,67 +1647,18 @@ implementation
       end;
 
 
-    procedure tabstractvarsym.trigger_notifications(what:Tnotification_flag);
-
-    var n:Tnotification;
-
-    begin
-        if assigned(notifications) then
-          begin
-            n:=Tnotification(notifications.first);
-            while assigned(n) do
-              begin
-                if what in n.flags then
-                  n.callback(what,self);
-                n:=Tnotification(n.next);
-              end;
-          end;
-    end;
-
-    function Tabstractvarsym.register_notification(flags:Tnotification_flags;callback:
-                                           Tnotification_callback):cardinal;
-
-    var n:Tnotification;
-
-    begin
-      if not assigned(notifications) then
-        notifications:=Tlinkedlist.create;
-      n:=Tnotification.create(flags,callback);
-      register_notification:=n.id;
-      notifications.concat(n);
-    end;
-
-    procedure Tabstractvarsym.unregister_notification(id:cardinal);
-
-    var n:Tnotification;
-
-    begin
-      if not assigned(notifications) then
-        internalerror(200212311)
-      else
-        begin
-            n:=Tnotification(notifications.first);
-            while assigned(n) do
-              begin
-                if n.id=id then
-                  begin
-                    notifications.remove(n);
-                    n.destroy;
-                    exit;
-                  end;
-                n:=Tnotification(n.next);
-              end;
-            internalerror(200212311)
-        end;
-    end;
-
-
-    procedure tabstractvarsym.setvardef(def:tdef);
+    procedure tabstractvarsym.setvardef_and_regable(def:tdef);
       begin
-        _vardef := def;
+        setvardef(def);
+         setregable;
+      end;
+
+
+    procedure tabstractvarsym.setregable;
+      begin
          { can we load the value into a register ? }
         if not assigned(owner) or
-           (owner.symtabletype in [localsymtable,parasymtable]) or
+           (owner.symtabletype in [localsymtable, parasymtable]) or
            (
             (owner.symtabletype=staticsymtable) and
             not(cs_create_pic in current_settings.moduleswitches)
@@ -1707,20 +1681,20 @@ implementation
                 (typ=paravarsym) and
                 (varspez=vs_const)) then
               varregable:=vr_intreg
-            else
-{ $warning TODO: no fpu regvar in staticsymtable yet, need initialization with 0 }
-              if {(
-                  not assigned(owner) or
-                  (owner.symtabletype<>staticsymtable)
-                 ) and }
-                 tstoreddef(vardef).is_fpuregable then
-                 begin
-                   if use_vectorfpu(vardef) then
-                     varregable:=vr_mmreg
-                   else
-                     varregable:=vr_fpureg;
-                 end;
+            else if tstoreddef(vardef).is_fpuregable then
+              begin
+                if use_vectorfpu(vardef) then
+                  varregable:=vr_mmreg
+                else
+                  varregable:=vr_fpureg;
+              end;
           end;
+      end;
+
+
+    procedure tabstractvarsym.setvardef(const def: tdef);
+      begin
+        _vardef := def;
       end;
 
 
@@ -2378,6 +2352,7 @@ implementation
            conststring,
            constresourcestring :
              begin
+               ppufile.getderef(constdefderef);
                value.len:=ppufile.getlongint;
                getmem(pc,value.len+1);
                ppufile.getdata(pc^,value.len);
@@ -2400,10 +2375,12 @@ implementation
              end;
            constguid :
              begin
+               ppufile.getderef(constdefderef);
                new(pguid(value.valueptr));
                ppufile.getdata(value.valueptr^,sizeof(tguid));
              end;
-           constnil : ;
+           constnil :
+             ppufile.getderef(constdefderef);
            else
              Message1(unit_f_ppu_invalid_entry,tostr(ord(consttyp)));
          end;
@@ -2432,15 +2409,27 @@ implementation
 
     procedure tconstsym.buildderef;
       begin
-        if consttyp in [constord,constreal,constpointer,constset] then
-          constdefderef.build(constdef);
+        case consttyp  of
+          constnil,constord,constreal,constpointer,constset,conststring,constresourcestring,constguid:
+            constdefderef.build(constdef);
+          constwstring:
+            ;
+          else
+            internalerror(2015120802);
+        end;
       end;
 
 
     procedure tconstsym.deref;
       begin
-        if consttyp in [constord,constreal,constpointer,constset] then
-          constdef:=tdef(constdefderef.resolve);
+        case consttyp of
+          constnil,constord,constreal,constpointer,constset,conststring,constresourcestring,constguid:
+            constdef:=tdef(constdefderef.resolve);
+          constwstring:
+            constdef:=getarraydef(cwidechartype,getlengthwidestring(pcompilerwidestring(value.valueptr)));
+          else
+            internalerror(2015120801);
+        end
       end;
 
 
@@ -2449,7 +2438,8 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(consttyp));
          case consttyp of
-           constnil : ;
+           constnil :
+             ppufile.putderef(constdefderef);
            constord :
              begin
                ppufile.putderef(constdefderef);
@@ -2462,12 +2452,14 @@ implementation
              end;
            constwstring :
              begin
+               { no need to store the def, we can reconstruct it }
                ppufile.putlongint(getlengthwidestring(pcompilerwidestring(value.valueptr)));
                ppufile.putdata(pcompilerwidestring(value.valueptr)^.data^,pcompilerwidestring(value.valueptr)^.len*sizeof(tcompilerwidechar));
              end;
            conststring,
            constresourcestring :
              begin
+               ppufile.putderef(constdefderef);
                ppufile.putlongint(value.len);
                ppufile.putdata(pchar(value.valueptr)^,value.len);
              end;
@@ -2482,7 +2474,10 @@ implementation
                ppufile.putnormalset(value.valueptr^);
              end;
            constguid :
-             ppufile.putdata(value.valueptr^,sizeof(tguid));
+             begin
+               ppufile.putderef(constdefderef);
+               ppufile.putdata(value.valueptr^,sizeof(tguid));
+             end;
          else
            internalerror(13);
          end;

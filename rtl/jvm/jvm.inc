@@ -188,8 +188,8 @@ function  IndexByte(const buf: array of jbyte;len:SizeInt;b:jbyte):SizeInt;
     i: SizeInt;
   begin
     if len<0 then
-      len:=high(buf);
-    for i:=0 to len do
+      len:=high(buf)+1;
+    for i:=0 to len-1 do
       if buf[i]=b then
         exit(i);
     IndexByte:=-1;
@@ -201,8 +201,8 @@ var
   i: SizeInt;
 begin
   if len<0 then
-    len:=high(buf);
-  for i:=0 to len do
+    len:=high(buf)+1;
+  for i:=0 to len-1 do
     if jbyte(buf[i])=b then
       exit(i);
   IndexByte:=-1;
@@ -227,8 +227,8 @@ function  IndexWord(const buf: array of jshort;len:SizeInt;b:jshort):SizeInt;
     i: SizeInt;
   begin
     if len<0 then
-      len:=high(buf);
-    for i:=0 to len do
+      len:=high(buf)+1;
+    for i:=0 to len-1 do
       if buf[i]=b then
         exit(i);
     IndexWord:=-1;
@@ -240,8 +240,8 @@ function  IndexWord(const buf: array of jchar;len:SizeInt;b:jchar):SizeInt;
     i: SizeInt;
   begin
     if len<0 then
-      len:=high(buf);
-    for i:=0 to len do
+      len:=high(buf)+1;
+    for i:=0 to len-1 do
       if buf[i]=b then
         exit(i);
     IndexWord:=-1;
@@ -254,8 +254,8 @@ function  IndexWord(const buf: array of jchar;len:SizeInt;b:jshort):SizeInt;
   begin
     c:=jchar(b);
     if len<0 then
-      len:=high(buf);
-    for i:=0 to len do
+      len:=high(buf)+1;
+    for i:=0 to len-1 do
       if buf[i]=c then
         exit(i);
     IndexWord:=-1;

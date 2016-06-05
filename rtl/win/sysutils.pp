@@ -21,6 +21,8 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 uses
   windows;
@@ -76,6 +78,7 @@ function CheckWin32Version(Major : Integer): Boolean;
 Procedure RaiseLastWin32Error;
 
 function GetFileVersion(const AFileName: string): Cardinal;
+function GetFileVersion(const AFileName: UnicodeString): Cardinal;
 
 procedure GetFormatSettings;
 procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings); platform;
@@ -153,6 +156,39 @@ function GetFileVersion(const AFileName:string):Cardinal;
       end;
   end;
 
+function GetFileVersion(const AFileName:UnicodeString):Cardinal;
+  var
+    { useful only as long as we don't need to touch different stack pages }
+    buf : array[0..3071] of byte;
+    bufp : pointer;
+    fn : unicodestring;
+    valsize,
+    size : DWORD;
+    h : DWORD;
+    valrec : PVSFixedFileInfo;
+  begin
+    result:=$fffffff;
+    fn:=AFileName;
+    UniqueString(fn);
+    size:=GetFileVersionInfoSizeW(pwidechar(fn),@h);
+    if size>sizeof(buf) then
+      begin
+        getmem(bufp,size);
+        try
+          if GetFileVersionInfoW(pwidechar(fn),h,size,bufp) then
+            if VerQueryValue(bufp,'\',valrec,valsize) then
+              result:=valrec^.dwFileVersionMS;
+        finally
+          freemem(bufp);
+        end;
+      end
+    else
+      begin
+        if GetFileVersionInfoW(pwidechar(fn),h,size,@buf) then
+          if VerQueryValueW(@buf,'\',valrec,valsize) then
+            result:=valrec^.dwFileVersionMS;
+      end;
+  end;
 
 {$define HASCREATEGUID}
 {$define HASEXPANDUNCFILENAME}
@@ -219,7 +255,7 @@ begin
         rc := WNetGetUniversalNameW (pwidechar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
       end;
     if rc = NO_ERROR then
-      Result := PRemoteNameInfo(buf)^.lpUniversalName
+      Result := PRemoteNameInfoW(buf)^.lpUniversalName
     else if rc = ERROR_NOT_CONNECTED then
       Result := filename
     else
@@ -954,7 +990,7 @@ begin
                  MaxMsgSize,                           { Maximum message size }
                  nil);
   SysErrorMessage := MsgBuffer;
-  FreeMem(MsgBuffer, MaxMsgSize);
+  FreeMem(MsgBuffer, MaxMsgSize*2);
 end;
 
 {****************************************************************************
@@ -1249,10 +1285,25 @@ function DoCompareStringW(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): Ptr
       RaiseLastOSError;
   end;
 
-function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
-  begin
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
-  end;
+const
+  WinAPICompareFlags : array [TCompareOption] of LongWord 
+    = (LINGUISTIC_IGNORECASE,  LINGUISTIC_IGNOREDIACRITIC, NORM_IGNORECASE, 
+       NORM_IGNOREKANATYPE, NORM_IGNORENONSPACE, NORM_IGNORESYMBOLS, NORM_IGNOREWIDTH,
+       NORM_LINGUISTIC_CASING, SORT_DIGITSASNUMBERS, SORT_STRINGSORT);
+       
+function Win32CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+
+Var
+  O : LongWord;              
+  CO : TCompareOption;
+   
+begin
+  O:=0;  
+  for CO in TCompareOption do
+    if CO in Options then
+      O:=O or WinAPICompareFlags[CO];
+  Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), O);
+end;
 
 
 function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
@@ -1338,10 +1389,19 @@ function Win32AnsiStrUpper(Str: PChar): PChar;
     result:=str;
   end;
 
-function Win32CompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
-  begin
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
-  end;
+function Win32CompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
+
+Var
+  O : LongWord;              
+  CO : TCompareOption;
+   
+begin
+  O:=0;  
+  for CO in TCompareOption do
+    if CO in Options then
+      O:=O or WinAPICompareFlags[CO];
+    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), O);
+end;
 
 
 function Win32CompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
@@ -1365,7 +1425,6 @@ procedure InitWin32Widestrings;
       > 0 if that's the length in bytes of the code point }
 //!!!!    CodePointLengthProc : function(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
-    widestringmanager.CompareTextWideStringProc:=@Win32CompareTextWideString;
     widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@Win32AnsiLowerCase;
     widestringmanager.CompareStrAnsiStringProc:=@Win32AnsiCompareStr;
@@ -1377,7 +1436,6 @@ procedure InitWin32Widestrings;
     widestringmanager.StrLowerAnsiStringProc:=@Win32AnsiStrLower;
     widestringmanager.StrUpperAnsiStringProc:=@Win32AnsiStrUpper;
     widestringmanager.CompareUnicodeStringProc:=@Win32CompareUnicodeString;
-    widestringmanager.CompareTextUnicodeStringProc:=@Win32CompareTextUnicodeString;
   end;
 
 { Platform-specific exception support }

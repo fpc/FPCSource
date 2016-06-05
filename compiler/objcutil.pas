@@ -45,6 +45,10 @@ interface
     { Exports all assembler symbols related to the obj-c class }
     procedure exportobjcclass(def: tobjectdef);
 
+    { loads a field of an Objective-C root class (such as ISA) }
+    function objcloadbasefield(n: tnode; const fieldname: string): tnode;
+
+
 implementation
 
     uses
@@ -112,12 +116,23 @@ end;
       var
         vs         : tsym;
       begin
-        result:=cderefnode.create(ctypeconvnode.create_internal(n,objc_idtype));
         vs:=tsym(tabstractrecorddef(objc_objecttype).symtable.Find(fieldname));
         if not assigned(vs) or
            (vs.typ<>fieldvarsym) then
           internalerror(200911301);
-        result:=csubscriptnode.create(vs,result);
+        if fieldname='ISA' then
+          result:=ctypeconvnode.create_internal(
+            cderefnode.create(
+              ctypeconvnode.create_internal(n,
+                getpointerdef(getpointerdef(voidpointertype))
+              )
+            ),tfieldvarsym(vs).vardef
+          )
+        else
+          begin
+            result:=cderefnode.create(ctypeconvnode.create_internal(n,objc_idtype));
+            result:=csubscriptnode.create(vs,result);
+          end;
       end;
 
 
@@ -147,10 +162,7 @@ end;
 {$endif onlymacosx10_6 or arm aarch64}
                   result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
                 tloadvmtaddrnode(result).forcall:=true;
-                if target_info.system<>system_aarch64_darwin then
-                  result:=objcloadbasefield(result,'ISA')
-                else
-                  result:=cloadvmtaddrnode.create(result);
+                result:=cloadvmtaddrnode.create(result);
                 typecheckpass(result);
                 { we're done }
                 exit;

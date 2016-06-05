@@ -318,7 +318,7 @@ end;
 function TCGIRequest.DoGetCGIVar(AVarName : String) : String;
 
 begin
-  GetEnvironmentVariable(AVarName);
+  Result := GetEnvironmentVariable(AVarName);
 end;
 
 function TCGIRequest.GetCGIVar(Index: integer): String;
@@ -353,7 +353,7 @@ procedure TCGIRequest.InitFromEnvironment;
 
 Var
   I : Integer;
-  V,OV : String;
+  R,V,OV : String;
   M : TMap;
   
 begin
@@ -373,7 +373,12 @@ begin
         end;
       end;
     end;
-  ReadContent;
+  // Microsoft-IIS hack. IIS includes the script name in the PATH_INFO
+  if Pos('IIS', ServerSoftware) > 0 then
+    SetHTTPVariable(hvPathInfo,StringReplace(PathInfo, ScriptName, '', [rfReplaceAll, rfIgnoreCase]));
+  R:=UpCase(Method);
+  if (R='POST') or (R='PUT') or (ContentLength>0) then
+    ReadContent;
 end;
 
 procedure TCGIRequest.ReadContent;

@@ -36,7 +36,8 @@ unit i_android;
             shortname    : 'Android';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment, tf_safecall_exceptions,
-                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+                            tf_pic_uses_got, tf_pic_default,
+                            tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'ANDROIDUNITS';
             extradefines : 'UNIX;HASUNIX;CPUARMEL';
@@ -98,10 +99,10 @@ unit i_android;
             system       : system_i386_ANDROID;
             name         : 'Android for i386';
             shortname    : 'Android';
-            flags        : [tf_needs_symbol_size,tf_pic_uses_got,tf_smartlink_sections,
-                            tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_smartlink_library,tf_needs_dwarf_cfi,tf_has_winlike_resources,
-                            tf_safecall_exceptions, tf_safecall_clearstack];
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_needs_dwarf_cfi,tf_has_winlike_resources,
+                            tf_pic_uses_got, tf_pic_default, tf_smartlink_sections,
+                            tf_safecall_exceptions];
             cpu          : cpu_i386;
             unit_env     : 'ANDROIDUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -165,7 +166,7 @@ unit i_android;
             shortname    : 'Android';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_pic_default,tf_safecall_exceptions,
-                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_mipsel;
             unit_env     : 'ANDROIDUNITS';
             extradefines : 'UNIX;HASUNIX';

@@ -96,7 +96,7 @@ procedure define_start_state ( symbol : String; pos : Integer );
 {$else}
     with sym_table^[key(symbol, max_keys, lookup, entry)] do
 {$endif}
-      if sym_type=none then
+      if sym_type=none_sym then
         begin
           inc(n_start_states);
           if n_start_states>max_start_states then
@@ -119,7 +119,7 @@ procedure define_macro ( symbol, replacement : String );
 {$else}
     with sym_table^[key('{'+symbol+'}', max_keys, lookup, entry)] do
 {$endif}
-      if sym_type=none then
+      if sym_type=none_sym then
         begin
           sym_type := macro_sym;
           subst    := newStr(strip(replacement));

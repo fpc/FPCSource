@@ -323,6 +323,7 @@ implementation
         paraloc1 : tcgpara;
         tmpref: treference;
         sref: tsubsetreference;
+        awordoffset,
         offsetcorrection : aint;
         pd : tprocdef;
         sym : tsym;
@@ -449,13 +450,18 @@ implementation
                        offsetcorrection:=0;
                        if (left.location.size in [OS_PAIR,OS_SPAIR]) then
                          begin
-                           if (vs.fieldoffset>=sizeof(aword)) then
-                             begin
-                               location.sreg.subsetreg := left.location.registerhi;
-                               offsetcorrection:=sizeof(aword)*8;
-                             end
+                           if not is_packed_record_or_object(left.resultdef) then
+                             awordoffset:=sizeof(aword)
+                           else
+                             awordoffset:=sizeof(aword)*8;
+
+                           if (vs.fieldoffset>=awordoffset) xor (target_info.endian=endian_big) then
+                             location.sreg.subsetreg := left.location.registerhi
                            else
                              location.sreg.subsetreg := left.location.register;
+
+                           if vs.fieldoffset>=awordoffset then
+                             offsetcorrection := sizeof(aword)*8;
 
                            location.sreg.subsetregsize := OS_INT;
                          end
@@ -955,8 +961,10 @@ implementation
            begin
               { may happen in case of function results }
               case left.location.loc of
+                LOC_CSUBSETREG,
                 LOC_CREGISTER,
                 LOC_CMMREGISTER,
+                LOC_SUBSETREG,
                 LOC_REGISTER,
                 LOC_MMREGISTER:
                   hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);

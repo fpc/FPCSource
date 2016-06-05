@@ -73,9 +73,9 @@ interface
          function  typesymbolprettyname:string;virtual;
          function  mangledparaname:string;
          function  getmangledparaname:TSymStr;virtual;
-         function  rtti_mangledname(rt:trttitype):string;virtual;abstract;
+         function  rtti_mangledname(rt:trttitype):TSymStr;virtual;abstract;
          function  OwnerHierarchyName: string; virtual; abstract;
-         function  fullownerhierarchyname:string;virtual;abstract;
+         function  fullownerhierarchyname:TSymStr;virtual;abstract;
          function  size:asizeint;virtual;abstract;
          function  packedbitsize:asizeint;virtual;
          function  alignment:shortint;virtual;abstract;

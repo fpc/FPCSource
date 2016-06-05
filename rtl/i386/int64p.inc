@@ -70,7 +70,7 @@
             xchgl %ecx,%eax
             divl %ebx
             movl %ecx,%edx
-            jmp .Lexit
+            jmp .Lmake_sign
 .Lbigdivisor:
             subl $12,%esp
             movl %eax,(%esp)

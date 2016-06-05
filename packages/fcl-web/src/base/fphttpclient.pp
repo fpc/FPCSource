@@ -42,6 +42,28 @@ Type
   // Use this to set up a socket handler. UseSSL is true if protocol was https
   TGetSocketHandlerEvent = Procedure (Sender : TObject; Const UseSSL : Boolean; Out AHandler : TSocketHandler) of object;
 
+  TFPCustomHTTPClient = Class;
+
+  { TProxyData }
+
+  TProxyData = Class (TPersistent)
+  private
+    FHost: string;
+    FPassword: String;
+    FPort: Word;
+    FUserName: String;
+    FHTTPClient : TFPCustomHTTPClient;
+  Protected
+    Function GetProxyHeaders : String; virtual;
+    Property HTTPClient : TFPCustomHTTPClient Read FHTTPClient;
+  Public
+    Procedure Assign(Source: TPersistent); override;
+    Property Host: string Read FHost Write FHost;
+    Property Port: Word Read FPort Write FPort;
+    Property UserName : String Read FUserName Write FUserName;
+    Property Password : String Read FPassword Write FPassword;
+  end;
+
   { TFPCustomHTTPClient }
   TFPCustomHTTPClient = Class(TComponent)
   private
@@ -54,6 +76,7 @@ Type
     FOnPassword: TPasswordEvent;
     FOnRedirect: TRedirectEvent;
     FPassword: String;
+    FIOTimeout: Integer;
     FSentCookies,
     FCookies: TStrings;
     FHTTPVersion: String;
@@ -67,13 +90,21 @@ Type
     FBuffer : Ansistring;
     FUserName: String;
     FOnGetSocketHandler : TGetSocketHandlerEvent;
+    FProxy : TProxyData;
     function CheckContentLength: Int64;
     function CheckTransferEncoding: string;
     function GetCookies: TStrings;
+    function GetProxy: TProxyData;
     Procedure ResetResponse;
     Procedure SetCookies(const AValue: TStrings);
+    procedure SetProxy(AValue: TProxyData);
     Procedure SetRequestHeaders(const AValue: TStrings);
+    procedure SetIOTimeout(AValue: Integer);
   protected
+    // True if we need to use a proxy: ProxyData Assigned and Hostname Set
+    Function ProxyActive : Boolean;
+    // Override this if you want to create a custom instance of proxy.
+    Function CreateProxyData : TProxyData;
     // Called whenever data is read.
     Procedure DoDataRead; virtual;
     // Parse response status line. Saves status text and protocol, returns numerical code. Exception if invalid line.
@@ -211,6 +242,8 @@ Type
     // Simple form of Posting a file
     Class Procedure SimpleFileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
   Protected
+    // Timeouts
+    Property IOTimeout : Integer read FIOTimeout write SetIOTimeout;
     // Before request properties.
     // Additional headers for request. Host; and Authentication are automatically added.
     Property RequestHeaders : TStrings Read FRequestHeaders Write SetRequestHeaders;
@@ -237,6 +270,8 @@ Type
     // Called On redirect. Dest URL can be edited.
     // If The DEST url is empty on return, the method is aborted (with redirect status).
     Property OnRedirect : TRedirectEvent Read FOnRedirect Write FOnRedirect;
+    // Proxy support
+    Property Proxy : TProxyData Read GetProxy Write SetProxy;
     // Authentication.
     // When set, they override the credentials found in the URI.
     // They also override any Authenticate: header in Requestheaders.
@@ -251,11 +286,13 @@ Type
     Property OnHeaders : TNotifyEvent Read FOnHeaders Write FOnHeaders;
     // Called to create socket handler. If not set, or Nil is returned, a standard socket handler is created.
     Property OnGetSocketHandler : TGetSocketHandlerEvent Read FOnGetSocketHandler Write FOnGetSocketHandler;
+
   end;
 
 
   TFPHTTPClient = Class(TFPCustomHTTPClient)
-  Public
+  Published
+    Property IOTimeout;
     Property RequestHeaders;
     Property RequestBody;
     Property ResponseHeaders;
@@ -273,6 +310,7 @@ Type
     Property OnDataReceived;
     Property OnHeaders;
     Property OnGetSocketHandler;
+    Property Proxy;
   end;
 
   EHTTPClient = Class(EHTTP);
@@ -376,12 +414,57 @@ begin
   SetLength(Result, P-Pchar(Result));
 end;
 
+{ TProxyData }
+
+function TProxyData.GetProxyHeaders: String;
+begin
+  Result:='';
+  if (UserName<>'') then
+   Result:='Proxy-Authorization: Basic ' + EncodeStringBase64(UserName+':'+UserName);
+end;
+
+procedure TProxyData.Assign(Source: TPersistent);
+
+Var
+  D : TProxyData;
+
+begin
+  if Source is TProxyData then
+    begin
+    D:=Source as TProxyData;
+    Host:=D.Host;
+    Port:=D.Port;
+    UserName:=D.UserName;
+    Password:=D.Password;
+    end
+  else
+    inherited Assign(Source);
+end;
+
 { TFPCustomHTTPClient }
 
 procedure TFPCustomHTTPClient.SetRequestHeaders(const AValue: TStrings);
 begin
   if FRequestHeaders=AValue then exit;
   FRequestHeaders.Assign(AValue);
+end;
+
+procedure TFPCustomHTTPClient.SetIOTimeout(AValue: Integer);
+begin
+  if AValue=FIOTimeout then exit;
+  FIOTimeout:=AValue;
+  if Assigned(FSocket) then
+    FSocket.IOTimeout:=AValue;
+end;
+
+function TFPCustomHTTPClient.ProxyActive: Boolean;
+begin
+  Result:=Assigned(FProxy) and (FProxy.Host<>'') and (FProxy.Port>0);
+end;
+
+function TFPCustomHTTPClient.CreateProxyData: TProxyData;
+begin
+  Result:=TProxyData.Create;
 end;
 
 procedure TFPCustomHTTPClient.DoDataRead;
@@ -424,6 +507,13 @@ begin
   Result:=D+URI.Document;
   if (URI.Params<>'') then
     Result:=Result+'?'+URI.Params;
+  if ProxyActive then
+    begin
+    if URI.Port>0 then
+      Result:=':'+IntToStr(URI.Port)+Result;
+    Result:=URI.Protocol+'://'+URI.Host+Result;
+    end;
+  Writeln('Doing URL : ',Result);
 end;
 
 function TFPCustomHTTPClient.GetSocketHandler(const UseSSL: Boolean): TSocketHandler;
@@ -457,6 +547,8 @@ begin
   G:=GetSocketHandler(UseSSL);    
   FSocket:=TInetSocket.Create(AHost,APort,G);
   try
+    if FIOTimeout<>0 then
+      FSocket.IOTimeout:=FIOTimeout;
     FSocket.Connect;
   except
     FreeAndNil(FSocket);
@@ -479,7 +571,7 @@ end;
 procedure TFPCustomHTTPClient.SendRequest(const AMethod: String; URI: TURI);
 
 Var
-  UN,PW,S,L : String;
+  PH,UN,PW,S,L : String;
   I : Integer;
 
 begin
@@ -497,6 +589,12 @@ begin
     I:=IndexOfHeader('Authorization');
     If I<>-1 then
       RequestHeaders.Delete(i);
+    end;
+  if Assigned(FProxy) and (FProxy.Host<>'') then
+    begin
+    PH:=FProxy.GetProxyHeaders;
+    if (PH<>'') then
+      S:=S+PH+CRLF;
     end;
   S:=S+'Host: '+URI.Host;
   If (URI.Port<>0) then
@@ -758,10 +856,26 @@ begin
   Result:=FCookies;
 end;
 
+function TFPCustomHTTPClient.GetProxy: TProxyData;
+begin
+  If not Assigned(FProxy) then
+    begin
+    FProxy:=CreateProxyData;
+    FProxy.FHTTPClient:=Self;
+    end;
+  Result:=FProxy;
+end;
+
 procedure TFPCustomHTTPClient.SetCookies(const AValue: TStrings);
 begin
   if GetCookies=AValue then exit;
   GetCookies.Assign(AValue);
+end;
+
+procedure TFPCustomHTTPClient.SetProxy(AValue: TProxyData);
+begin
+  if (AValue=FProxy) then exit;
+  Proxy.Assign(AValue);
 end;
 
 procedure TFPCustomHTTPClient.ReadResponse(Stream: TStream;
@@ -936,7 +1050,8 @@ procedure TFPCustomHTTPClient.DoMethod(const AMethod, AURL: String;
 
 Var
   URI : TURI;
-  P : String;
+  P,CHost : String;
+  CPort : Word;
 
 begin
   ResetResponse;
@@ -944,7 +1059,17 @@ begin
   p:=LowerCase(URI.Protocol);
   If Not ((P='http') or (P='https')) then
    Raise EHTTPClient.CreateFmt(SErrInvalidProtocol,[URI.Protocol]);
-  ConnectToServer(URI.Host,URI.Port,P='https');
+  if ProxyActive then
+    begin
+    CHost:=Proxy.Host;
+    CPort:=Proxy.Port;
+    end
+  else
+    begin
+    CHost:=URI.Host;
+    CPort:=URI.Port;
+    end;
+  ConnectToServer(CHost,CPort,P='https');
   try
     SendRequest(AMethod,URI);
     ReadResponse(Stream,AllowedResponseCodes,CompareText(AMethod,'HEAD')=0);
@@ -956,6 +1081,8 @@ end;
 constructor TFPCustomHTTPClient.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  // Infinite timeout on most platforms
+  FIOTimeout:=0;
   FRequestHeaders:=TStringList.Create;
   FResponseHeaders:=TStringList.Create;
   FHTTPVersion:='1.1';
@@ -964,6 +1091,7 @@ end;
 
 destructor TFPCustomHTTPClient.Destroy;
 begin
+  FreeAndNil(FProxy);
   FreeAndNil(FCookies);
   FreeAndNil(FSentCookies);
   FreeAndNil(FRequestHeaders);

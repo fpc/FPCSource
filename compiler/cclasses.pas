@@ -2900,7 +2900,7 @@ end;
           end
         else
           begin
-            New(Result);
+            GetMem(Result,SizeOfItem);
             if FOwnsKeys then
             begin
               GetMem(Result^.Key, KeyLen);
@@ -2924,7 +2924,7 @@ end;
         i: Integer;
         e, n: PHashSetItem;
       begin
-        p := AllocMem(NewCapacity * SizeOfItem);
+        p := AllocMem(NewCapacity * SizeOf(PHashSetItem));
         for i := 0 to FBucketCount-1 do
           begin
             e := FBucket[i];
@@ -3007,7 +3007,7 @@ end;
           end
         else
           begin
-            New(Result);
+            Getmem(Result,SizeOfItem);
             if FOwnsKeys then
             begin
               GetMem(Result^.Key, KeyLen);

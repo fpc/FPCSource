@@ -2659,6 +2659,7 @@ begin
                if (s='WRITE') then
                 begin
                   Delete(opts,1,1);
+                  DefaultReplacements(opts);
                   WriteLn(opts);
                   Option_read:=true;
                 end
@@ -2666,6 +2667,7 @@ begin
                if (s='INCLUDE') then
                 begin
                   Delete(opts,1,1);
+                  DefaultReplacements(opts);
                   Interpret_file(opts);
                   Option_read:=true;
                 end
@@ -3092,7 +3094,7 @@ end;
                               Callable Routines
 ****************************************************************************}
 
-function check_configfile(const fn:string;var foundfn:string):boolean;
+function check_configfile(fn:string; var foundfn:string):boolean;
 
   function CfgFileExists(const fn:string):boolean;
   begin
@@ -3402,7 +3404,6 @@ begin
 {$ifdef i8086}
   def_system_macro('CPU86');  { Borland compatibility }
   def_system_macro('CPU87');  { Borland compatibility }
-  def_system_macro('CPU8086');
   def_system_macro('CPUI8086');
   def_system_macro('CPU16');
   def_system_macro('FPC_HAS_TYPE_EXTENDED');

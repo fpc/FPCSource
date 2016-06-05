@@ -9,6 +9,6 @@ begin
   if InitSSLInterface then
     Writeln('Success')
   else
-    Writeln('Holy shit!');
+    Writeln('Load failed, missing functions: ',OpenSSL_unavailable_functions);
 end.
 

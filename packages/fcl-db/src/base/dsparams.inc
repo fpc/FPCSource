@@ -257,14 +257,17 @@ begin
         if p^='*' then // /* */ comment
         begin
           Result := True;
-          repeat
-            Inc(p);
+          Inc(p);
+          while p^ <> #0 do
+          begin
             if p^='*' then // possible end of comment
             begin
               Inc(p);
               if p^='/' then Break; // end of comment
-            end;
-          until p^=#0;
+            end
+            else
+              Inc(p);
+          end;
           if p^='/' then Inc(p); // skip final /
         end;
       end;
@@ -1104,7 +1107,7 @@ Var
 
 begin
   SetLength(Temp,ASize);
-  Move(Buffer^,Temp,ASize);
+  Move(Buffer^,Temp[1],ASize);
   AsBlob:=Temp;
 end;
 

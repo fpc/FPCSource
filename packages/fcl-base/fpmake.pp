@@ -52,8 +52,11 @@ begin
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('contnrs.pp');
       T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('singleinstance.pp');
     T:=P.Targets.AddUnit('custapp.pp');
       T.ResourceStrings:=true;
+    with T.Dependencies do
+      AddUnit('singleinstance');
     T:=P.Targets.AddUnit('eventlog.pp');
       T.ResourceStrings:=true;
       with T.Dependencies do
@@ -63,7 +66,9 @@ begin
     T:=P.Targets.AddUnit('fptimer.pp',AllWindowsOSes+AllUnixOSes);
     T:=P.Targets.AddUnit('gettext.pp');
     T:=P.Targets.AddUnit('idea.pp');
+
     T:=P.Targets.AddUnit('inicol.pp');
+
       T.ResourceStrings:=true;
       with T.Dependencies do
         begin
@@ -117,6 +122,10 @@ begin
       AddUnit('csvreadwrite');
       AddUnit('contnrs');
       end;
+    T:=P.Targets.addUnit('advancedipc.pp');
+      T.ResourceStrings:=true;
+    T:=P.Targets.addUnit('advancedsingleinstance.pp');
+      T.ResourceStrings:=true;	  
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*', P.Directory);
     // Install windows resources

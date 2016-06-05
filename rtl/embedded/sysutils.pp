@@ -20,6 +20,11 @@ unit sysutils;
 
 interface
 
+{$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
+
 { used OS file system APIs use ansistring }
 {$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
 { OS has an ansistring/single byte environment variable API }
@@ -27,6 +32,9 @@ interface
 
   { Include platform independent interface part }
   {$i sysutilh.inc}
+
+  var
+    SleepHandler: procedure(ms: cardinal) = nil;
 
 implementation
 
@@ -192,6 +200,17 @@ end;
 {****************************************************************************
                               Misc Functions
 ****************************************************************************}
+
+procedure sysBeep;
+begin
+end;
+
+
+Procedure Sleep(Milliseconds : Cardinal);
+begin
+  if assigned(SleepHandler) then
+    SleepHandler(Milliseconds);
+end;
 
 Function GetLastOSError : Integer;
 begin

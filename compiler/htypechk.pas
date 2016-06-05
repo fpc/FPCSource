@@ -2377,7 +2377,7 @@ implementation
             while assigned(pt) do
               begin
                 if (pt.resultdef.typ=recorddef) and
-                    (sto_has_operator in tabstractrecorddef(pt.resultdef).owner.tableoptions) then
+                    (sto_has_operator in tabstractrecorddef(pt.resultdef).symtable.tableoptions) then
                   collect_overloads_in_struct(tabstractrecorddef(pt.resultdef),ProcdefOverloadList,searchhelpers,anoninherited);
                 pt:=tcallparanode(pt.right);
               end;

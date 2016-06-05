@@ -319,15 +319,22 @@ asm
 end;
 
 const
-  moveproc : pointer = @move_blended;
+  moveproc : procedure(const source;var dest;count:longint) = @move_blended;
 
-procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE']; {$ifndef FPC_PIC} assembler;nostackframe; {$endif FPC_PIC}
+{$ifdef FPC_PIC}
+begin
+  moveproc(source,dest,count);
+end;
+{$else FPC_PIC}
 asm
   ldr ip,.Lmoveproc
   ldr pc,[ip]
 .Lmoveproc:
   .long moveproc
 end;
+{$endif FPC_PIC}
+
 {$endif CPUARM_HAS_EDSP}
 
 {$endif FPC_SYSTEM_HAS_MOVE}
@@ -539,10 +546,49 @@ asm
   // Jump without a link, so freemem directly returns to our caller
   b       FPC_FREEMEM
 end;
+
+{$define FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
+Procedure fpc_ansistr_incr_ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];assembler;nostackframe; compilerproc;
+asm
+  // Null string?
+  cmp     r0, #0
+  // Load reference counter
+  ldrne   r1, [r0, #-8]
+  // pointer to counter, calculate here for delay slot utilization
+  subne   r0, r0, #8
+{$ifdef CPUARM_HAS_BX}
+  bxeq    lr
+{$else}
+  moveq   pc,lr
+{$endif}
+  // Check for a constant string
+  cmp     r1, #0
+  // Tailcall
+  // Hopefully the linker will place InterLockedIncrement as layed out here
+  bge     InterLockedIncrement
+  // Freepascal will generate a proper return here, save some cachespace
+end;
 {$endif not darwin}
 
-var
-  fpc_system_lock: longint; export name 'fpc_system_lock';
+// --- InterLocked functions begin
+
+{$if not defined(CPUARM_HAS_LDREX) and not defined(SYSTEM_HAS_KUSER_CMPXCHG) }
+  // Use generic interlock implementation
+
+  var
+    fpc_system_lock: longint;
+
+  {$ifdef FPC_PIC}
+     // Use generic interlock implementation with PIC
+
+     // A helper function to get a pointer to fpc_system_lock in the PIC compatible way.
+     function get_fpc_system_lock_ptr: pointer;
+     begin
+       get_fpc_system_lock_ptr:=@fpc_system_lock;
+     end;
+
+  {$endif FPC_PIC}
+{$endif}
 
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
@@ -592,7 +638,18 @@ asm
 
 {$else}
 // lock
-  ldr r3, .Lfpc_system_lock
+  {$ifdef FPC_PIC}
+    push {r0,lr}
+    {$ifdef CPUARM_HAS_BLX}
+      blx get_fpc_system_lock_ptr
+    {$else}
+      bl get_fpc_system_lock_ptr
+    {$endif CPUARM_HAS_BLX}
+    mov r3,r0
+    pop {r0,lr}
+  {$else FPC_PIC}
+    ldr r3, .Lfpc_system_lock
+  {$endif FPC_PIC}
   mov r1, #1
 .Lloop:
   swp r2, r1, [r3]
@@ -611,37 +668,14 @@ asm
   mov pc,lr
 {$endif}
 
+{$ifndef FPC_PIC}
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif FPC_PIC}
+
 {$endif}
 {$endif}
 end;
-
-
-{$ifndef darwin}
-{$define FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
-
-Procedure fpc_ansistr_incr_ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];assembler;nostackframe; compilerproc;
-asm
-  // Null string?
-  cmp     r0, #0
-  // Load reference counter
-  ldrne   r1, [r0, #-8]
-  // pointer to counter, calculate here for delay slot utilization
-  subne   r0, r0, #8
-{$ifdef CPUARM_HAS_BX}
-  bxeq    lr
-{$else}
-  moveq   pc,lr
-{$endif}
-  // Check for a constant string
-  cmp     r1, #0
-  // Tailcall
-  // Hopefully the linker will place InterLockedIncrement as layed out here
-  bge     InterLockedIncrement
-  // Freepascal will generate a proper return here, save some cachespace
-end;
-{$endif not darwin}
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
@@ -689,7 +723,18 @@ asm
 
 {$else}
 // lock
-  ldr r3, .Lfpc_system_lock
+  {$ifdef FPC_PIC}
+    push {r0,lr}
+    {$ifdef CPUARM_HAS_BLX}
+      blx get_fpc_system_lock_ptr
+    {$else}
+      bl get_fpc_system_lock_ptr
+    {$endif CPUARM_HAS_BLX}
+    mov r3,r0
+    pop {r0,lr}
+  {$else FPC_PIC}
+    ldr r3, .Lfpc_system_lock
+  {$endif FPC_PIC}
   mov r1, #1
 .Lloop:
   swp r2, r1, [r3]
@@ -708,12 +753,14 @@ asm
   mov pc,lr
 {$endif}
 
+{$ifndef FPC_PIC}
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif FPC_PIC}
+
 {$endif}
 {$endif}
 end;
-
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
@@ -761,7 +808,18 @@ asm
   b .Latomic_add_loop // kuser_cmpxchg failed, loop back
 {$else}
 // lock
-  ldr r3, .Lfpc_system_lock
+  {$ifdef FPC_PIC}
+    push {r0,r1,lr}
+    {$ifdef CPUARM_HAS_BLX}
+      blx get_fpc_system_lock_ptr
+    {$else}
+      bl get_fpc_system_lock_ptr
+    {$endif CPUARM_HAS_BLX}
+    mov r3,r0
+    pop {r0,r1,lr}
+  {$else FPC_PIC}
+    ldr r3, .Lfpc_system_lock
+  {$endif FPC_PIC}
   mov r2, #1
 .Lloop:
   swp r2, r2, [r3]
@@ -780,8 +838,11 @@ asm
   mov pc,lr
 {$endif}
 
+{$ifndef FPC_PIC}
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif FPC_PIC}
+
 {$endif}
 {$endif}
 end;
@@ -837,7 +898,18 @@ asm
 
 {$else}
 // lock
-  ldr r3, .Lfpc_system_lock
+  {$ifdef FPC_PIC}
+    push {r0,r1,lr}
+    {$ifdef CPUARM_HAS_BLX}
+      blx get_fpc_system_lock_ptr
+    {$else}
+      bl get_fpc_system_lock_ptr
+    {$endif CPUARM_HAS_BLX}
+    mov r3,r0
+    pop {r0,r1,lr}
+  {$else FPC_PIC}
+    ldr r3, .Lfpc_system_lock
+  {$endif FPC_PIC}
   mov r2, #1
 .Lloop:
   swp r2, r2, [r3]
@@ -857,8 +929,11 @@ asm
   mov pc,lr
 {$endif}
 
+{$ifndef FPC_PIC}
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif FPC_PIC}
+
 {$endif}
 {$endif}
 end;
@@ -916,7 +991,18 @@ asm
 
 {$else}
 // lock
-  ldr r12, .Lfpc_system_lock
+  {$ifdef FPC_PIC}
+    push {r0,r1,r2,lr}
+    {$ifdef CPUARM_HAS_BLX}
+      blx get_fpc_system_lock_ptr
+    {$else}
+      bl get_fpc_system_lock_ptr
+    {$endif CPUARM_HAS_BLX}
+    mov r12,r0
+    pop {r0,r1,r2,lr}
+  {$else FPC_PIC}
+    ldr r12, .Lfpc_system_lock
+  {$endif FPC_PIC}
   mov r3, #1
 .Lloop:
   swp r3, r3, [r12]
@@ -936,8 +1022,11 @@ asm
   mov pc,lr
 {$endif}
 
+{$ifndef FPC_PIC}
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif FPC_PIC}
+
 {$endif}
 {$endif}
 end;
@@ -953,6 +1042,8 @@ procedure inclocked(var l: longint); inline;
 begin
   InterLockedIncrement(l);
 end;
+
+// --- InterLocked functions end
 
 procedure fpc_cpucodeinit;
 begin
@@ -1075,12 +1166,29 @@ asm
   // assembler settings 
 {$ifdef CPUARM_HAS_DMB}
   .long 0xf57ff05f  // dmb sy
-{$else}
+{$else CPUARM_HAS_DMB}
 {$ifdef CPUARMV6}
   mov r0, #0
   .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5}
-{$endif}
-{$endif}
+{$else CPUARMV6}
+{$ifdef SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+  stmfd r13!, {lr}
+  mvn   r0, #0x0000f000
+  sub   r0, r0, #0x5F
+{$ifdef CPUARM_HAS_BLX}
+  blx r0       // Call kuser_memory_barrier at address 0xffff0fa0
+{$else CPUARM_HAS_BLX}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r0
+{$else CPUARM_HAS_BX}
+  mov pc, r0
+{$endif CPUARM_HAS_BX}
+{$endif CPUARM_HAS_BLX}
+  ldmfd r13!, {pc}
+{$endif SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+{$endif CPUARMV6}
+{$endif CPUARM_HAS_DMB}
 end;
 
 procedure ReadBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1104,12 +1212,29 @@ asm
   // "dmb st" may be more optimal than the more generic "dmb sy"
 {$ifdef CPUARM_HAS_DMB}
   .long 0xf57ff05e  // dmb st
-{$else}
+{$else CPUARM_HAS_DMB}
 {$ifdef CPUARMV6}
   mov r0, #0
   .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5} 
-{$endif}
-{$endif}
+{$else CPUARMV6}
+{$ifdef SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+  stmfd r13!, {lr}
+  mvn   r0, #0x0000f000
+  sub   r0, r0, #0x5F
+{$ifdef CPUARM_HAS_BLX}
+  blx r0       // Call kuser_memory_barrier at address 0xffff0fa0
+{$else CPUARM_HAS_BLX}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r0
+{$else CPUARM_HAS_BX}
+  mov pc, r0
+{$endif CPUARM_HAS_BX}
+{$endif CPUARM_HAS_BLX}
+  ldmfd r13!, {pc}
+{$endif SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+{$endif CPUARMV6}
+{$endif CPUARM_HAS_DMB}
 end;
 
 {$endif}

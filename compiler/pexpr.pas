@@ -1164,7 +1164,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if not handle_staticfield_access(sym,false,p1) then
+                         if not handle_staticfield_access(sym,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
@@ -1194,7 +1194,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if not handle_staticfield_access(sym,false,p1) then
+                         if not handle_staticfield_access(sym,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          { catch expressions like "(propx):=1;" }
@@ -1297,7 +1297,7 @@ implementation
                    end;
                  fieldvarsym:
                    begin
-                      if not handle_staticfield_access(sym,true,p1) then
+                      if not handle_staticfield_access(sym,p1) then
                         begin
                           if isclassref then
                             if assigned(p1) and
@@ -2172,12 +2172,13 @@ implementation
                            end;
                        end
                      else
-                       begin
-                         Message(parser_e_invalid_qualifier);
-                         p1.destroy;
-                         p1:=cerrornode.create;
-                         consume(_ID);
-                       end;
+                       if (token<>_ID) or not try_type_helper(p1,nil) then
+                         begin
+                           Message(parser_e_invalid_qualifier);
+                           p1.destroy;
+                           p1:=cerrornode.create;
+                           consume(_ID);
+                         end;
                    end;
                   variantdef:
                     begin
@@ -2722,7 +2723,11 @@ implementation
                           { it as a class member                                }
                           if (assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
                              (assigned(current_procinfo) and current_procinfo.get_normal_proc.procdef.no_self_node) then
-                            p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
+                            begin
+                              p1:=ctypenode.create(hdef);
+                              if not is_record(hdef) then
+                                p1:=cloadvmtaddrnode.create(p1);
+                            end
                           else
                             p1:=load_self_node;
                         { not srsymtable.symtabletype since that can be }

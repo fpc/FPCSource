@@ -146,9 +146,11 @@ begin
 {$endif}
 {$endif arm}
 {$ifdef x86_64}
-  if not Dontlinkstdlibpath Then
     LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/x86_64-linux-gnu',true);
 {$endif x86_64}
+{$ifdef i386}
+    LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/i386-linux-gnu',true);
+{$endif i386}
 end;
 
 {$ifdef m68k}

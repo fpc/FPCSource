@@ -20,6 +20,8 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 {$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC)}
 {$define USE_VFORK}
@@ -869,7 +871,7 @@ Type
     DirPtr     : Pointer;     {directory pointer for reading directory}
     SearchSpec : RawbyteString;
     SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
-    SearchAttr : Byte;        {attribute we are searching for}
+    SearchAttr : Longint;     {attribute we are searching for}
   End;
   PUnixFindData = ^TUnixFindData;
 

@@ -162,7 +162,7 @@ begin
     end;
   If (N<>Nil) then
     Result:=N as TDomElement
-  else
+  else if AElement.Name<>'' then
     begin // N=NIL, PE might be nil.
     Inc(ACount);
     Result:=FClassTree.CreateElement(AElement.Name);

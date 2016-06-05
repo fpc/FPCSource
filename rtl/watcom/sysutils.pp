@@ -23,6 +23,8 @@ interface
 {$modeswitch out}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 uses
   watcom,dos;

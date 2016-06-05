@@ -1,6 +1,6 @@
 {   Parser of the CLDR collation xml files.
 
-    Copyright (c) 2013 by Inoussa OUEDRAOGO
+    Copyright (c) 2013, 2014, 2015 by Inoussa OUEDRAOGO
 
     The source code is distributed under the Library GNU
     General Public License with the following modification:
@@ -19,6 +19,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{ The procedure whoses names lasted by 'XML' (ParseInitialDocumentXML,
+  ParseCollationDocumentXML, ...) are for older CLDR versions (CDLR <= 23); The
+  old version was unsing a XML syntax for collation's rules specifications.
+  The new versions (and going forward) will be using the text syntax.
+}
+
 unit cldrxml;
 
 {$mode objfpc}{$H+}
@@ -29,49 +35,123 @@ uses
   Classes, SysUtils, DOM,
   cldrhelper;
 
-  procedure ParseInitialDocument(ASequence : POrderedCharacters; ADoc : TDOMDocument);overload;
-  procedure ParseInitialDocument(ASequence : POrderedCharacters; AFileName : string);overload;
+type
 
-  procedure ParseCollationDocument(
+  { TCldrCollationFileLoader }
+
+  TCldrCollationFileLoader = class(TInterfacedObject,ICldrCollationLoader)
+  private
+    FPath : string;
+  private
+    procedure SetPath(APath : string);
+    function BuildFileName(ALanguage  : string) : string;
+    procedure CheckFile(AFileName : string);
+  protected
+    procedure LoadCollation(
+      const ALanguage  : string;
+            ACollation : TCldrCollation;
+            AMode      : TCldrParserMode
+    );
+    procedure LoadCollationType(
+      const ALanguage,
+            ATypeName : string;
+            AType     : TCldrCollationItem
+    );
+  public
+    constructor Create(APath : string);
+  end;
+
+  { TCldrCollationStreamLoader }
+
+  TCldrCollationStreamLoader = class(TInterfacedObject,ICldrCollationLoader)
+  private
+    FLanguages : array of string;
+    FStreams   : array of TStream;
+  private
+    procedure CheckContent(ALanguage : string);
+    function IndexOf(ALanguage : string) : Integer;
+  protected
+    procedure LoadCollation(
+      const ALanguage  : string;
+            ACollation : TCldrCollation;
+            AMode      : TCldrParserMode
+    );
+    procedure LoadCollationType(
+      const ALanguage,
+            ATypeName : string;
+            AType     : TCldrCollationItem
+    );
+  public
+    constructor Create(
+      const ALanguages : array of string;
+      const AStreams   : array of TStream
+    );
+    destructor Destroy();override;
+  end;
+
+  procedure ParseInitialDocumentXML(ASequence : POrderedCharacters; ADoc : TDOMDocument);overload;
+  procedure ParseInitialDocumentXML(ASequence : POrderedCharacters; AFileName : string);overload;
+
+  procedure ParseCollationDocumentXML(
     ADoc       : TDOMDocument;
     ACollation : TCldrCollation;
     AMode      : TCldrParserMode
   );overload;
-  procedure ParseCollationDocument(
-    const AFileName  : string;
-          ACollation : TCldrCollation;
-          AMode      : TCldrParserMode
-  );overload;
-
-  procedure ParseCollationDocument(
-    const AFileName  : string;
-          ACollation : TCldrCollationItem;
-          AType      : string
-  );overload;
-  procedure ParseCollationDocument(
+  procedure ParseCollationDocumentXML(
     ADoc       : TDOMDocument;
     ACollation : TCldrCollationItem;
     AType      : string
   );overload;
+  procedure ParseCollationDocumentXML(
+    const AFileName  : string;
+          ACollation : TCldrCollation;
+          AMode      : TCldrParserMode
+  );overload;
+  procedure ParseCollationDocumentXML(
+    const AFileName  : string;
+          ACollation : TCldrCollationItem;
+          AType      : string
+  );overload;
 
-resourcestring
-  sCaseNothandled = 'This case is not handled : "%s", Position = %d.';
-  sCodePointExpected = 'Code Point node expected as child at this position "%d".';
-  sCollationsNodeNotFound = '"collations" node not found.';
-  sCollationTypeNotFound = 'collation "Type" not found : "%s".';
-  sHexAttributeExpected = '"hex" attribute expected at this position "%d".';
-  sInvalidResetClause = 'Invalid "Reset" clause.';
-  sNodeNameAssertMessage = 'Expected NodeName "%s", got "%s".';
-  sRulesNodeNotFound = '"rules" node not found.';
-  sTextNodeChildExpected = '(Child) text node expected at this position "%d", but got "%s".';
-  sUniqueChildNodeExpected = 'Unique child node expected at this position "%d".';
-  sUnknownResetLogicalPosition = 'Unknown reset logical position : "%s".';
+  //-----------------------------------------------------
+  procedure ParseCollationDocument2(
+    ADoc       : TDOMDocument;
+    ACollation : TCldrCollation;
+    AMode      : TCldrParserMode
+  );overload;
+  procedure ParseCollationDocument2(
+    const AFileName  : string;
+          ACollation : TCldrCollation;
+          AMode      : TCldrParserMode
+  );overload;
+  procedure ParseCollationDocument2(
+    AStream    : TStream;
+    ACollation : TCldrCollation;
+    AMode      : TCldrParserMode
+  );overload;
+
+  procedure ParseCollationDocument2(
+    const AFileName  : string;
+          ACollation : TCldrCollationItem;
+          AType      : string
+  );overload;
+  procedure ParseCollationDocument2(
+    ADoc       : TDOMDocument;
+    ACollation : TCldrCollationItem;
+    AType      : string
+  );overload;
+  procedure ParseCollationDocument2(
+    AStream    : TStream;
+    ACollation : TCldrCollationItem;
+    AType      : string
+  );overload;
 
 implementation
 uses
-  typinfo, XMLRead, XPath, Helper, unicodeset;
+  typinfo, RtlConsts, XMLRead, XPath, Helper, unicodeset, cldrtxt;
 
 const
+  s_ALT    = 'alt';
   s_AT     = 'at';
   //s_BEFORE = 'before';
   s_CODEPOINT = 'codepoint';
@@ -81,11 +161,15 @@ const
   //s_DEFAULT    = 'default';
   s_EXTEND = 'extend';
   s_HEX       = 'hex';
+  s_IMPORT = 'import';
   s_POSITION = 'position';
   s_RESET = 'reset';
   s_RULES = 'rules';
+  s_SOURCE = 'source';
   //s_STANDART = 'standard';
   s_TYPE     = 'type';
+
+  s_CR = 'cr';
 
 procedure CheckNodeName(ANode : TDOMNode; const AExpectedName : DOMString);
 begin
@@ -124,23 +208,7 @@ begin
   end;
 end;
 
-function TryStrToLogicalReorder(
-  const AValue  : string;
-  out   AResult : TReorderLogicalReset
-) : Boolean;
-var
-  s : string;
-  i : Integer;
-begin
-  s := StringReplace(AValue,' ','',[rfReplaceAll]);
-  s := StringReplace(s,'_','',[rfReplaceAll]);
-  i := GetEnumValue(TypeInfo(TReorderLogicalReset),s);
-  Result := (i > -1);
-  if Result then
-    AResult := TReorderLogicalReset(i);
-end;
-
-function ParseStatement(
+function ParseStatementXML(
       ARules         : TDOMElement;
       AStartPosition : Integer;
       AStatement     : PReorderSequence;
@@ -393,7 +461,7 @@ begin
     ANextPos := i;
 end;
 
-procedure ParseInitialDocument(ASequence : POrderedCharacters; ADoc : TDOMDocument);
+procedure ParseInitialDocumentXML(ASequence : POrderedCharacters; ADoc : TDOMDocument);
 var
   n : TDOMNode;
   rulesElement : TDOMElement;
@@ -412,7 +480,7 @@ begin
   i := 0;
   while (i < c) do begin
     statement.Clear();
-    if not ParseStatement(rulesElement,i,@statement,nextPost) then
+    if not ParseStatementXML(rulesElement,i,@statement,nextPost) then
       Break;
     i := nextPost;
     try
@@ -433,13 +501,13 @@ begin
   end;
 end;
 
-procedure ParseInitialDocument(ASequence : POrderedCharacters; AFileName : string);
+procedure ParseInitialDocumentXML(ASequence : POrderedCharacters; AFileName : string);
 var
   doc : TXMLDocument;
 begin
   ReadXMLFile(doc,AFileName);
   try
-    ParseInitialDocument(ASequence,doc);
+    ParseInitialDocumentXML(ASequence,doc);
   finally
     doc.Free();
   end;
@@ -500,10 +568,10 @@ begin
     it.Free();
     uset.Free();
   end;
-  SetLength(r,0);
+  r := nil;
 end;
 
-procedure ParseCollationItem(
+procedure ParseCollationItemXML(
   ACollationNode : TDOMElement;
   AItem          : TCldrCollationItem;
   AMode          : TCldrParserMode
@@ -544,7 +612,7 @@ begin
       i := 0;
       while (i < c) do begin
         statement^.Clear();
-        if not ParseStatement(rulesElement,i,statement,nextPos) then
+        if not ParseStatementXML(rulesElement,i,statement,nextPos) then
           Break;
         i := nextPos;
         Inc(statement);
@@ -560,7 +628,105 @@ begin
   end;
 end;
 
-procedure ParseCollationDocument(
+procedure ParseImports(ACollationNode : TDOMElement; AItem : TCldrCollationItem);
+var
+  locList : TXPathVariable;
+  i : Integer;
+  nd, locAtt : TDOMNode;
+  locSource, locType : string;
+begin
+  locList := EvaluateXPathExpression(s_IMPORT,ACollationNode);
+  try
+    if not locList.InheritsFrom(TXPathNodeSetVariable) then
+      exit;
+    for i := 0 to locList.AsNodeSet.Count-1 do begin
+      nd := TDOMNode(locList.AsNodeSet[i]);
+      if (nd.Attributes <> nil) then begin
+        locSource := '';
+        locType := '';
+        locAtt := nd.Attributes.GetNamedItem(s_SOURCE);
+        if (locAtt <> nil) then
+          locSource := locAtt.NodeValue;
+        locAtt := nd.Attributes.GetNamedItem(s_TYPE);
+        if (locAtt <> nil) then
+          locType := locAtt.NodeValue;
+      end;
+      if (locType <> '') then
+        AItem.Imports.Add(locSource,locType);
+    end;
+  finally
+    locList.Free();
+  end;
+end;
+
+procedure ParseCollationItem2(
+  ACollationNode : TDOMElement;
+  AItem          : TCldrCollationItem;
+  AMode          : TCldrParserMode
+);
+var
+  n : TDOMNode;
+  rulesElement : TDOMCDATASection;
+  i, c, nextPos : Integer;
+  statementList : TReorderSequenceArray;
+  sal : Integer;//statement actual length
+  statement : PReorderSequence;
+  s : DOMString;
+  u8 : UTF8String;
+  buffer : PAnsiChar;
+  lineCount : Integer;
+begin
+  AItem.TypeName := ACollationNode.GetAttribute(s_TYPE);
+  AItem.Alt := ACollationNode.GetAttribute(s_ALT);
+  AItem.Base := EvaluateXPathStr('base',ACollationNode);
+  AItem.Backwards := (EvaluateXPathStr('settings/@backwards',ACollationNode) = 'on');
+  if AItem.Backwards then
+    AItem.ChangedFields := AItem.ChangedFields + [TCollationField.BackWard];
+  ParseImports(ACollationNode,AItem);
+  AItem.Rules := nil;
+  if (AMode = TCldrParserMode.FullParsing) then begin
+    SetLength(statementList,15);
+    sal := 0;
+    statement := @statementList[0];
+    s := EvaluateXPathStr('suppress_contractions',ACollationNode);
+    if (s <> '') then begin
+      if (ParseDeletion(s,statement) > 0) then begin
+        Inc(sal);
+        Inc(statement);
+      end else begin
+        statement^.Clear();
+      end;
+    end;
+    n := ACollationNode.FindNode(s_CR);
+    if (n <> nil) then begin
+      n := (n as TDOMElement).FirstChild;
+      rulesElement := n as TDOMCDATASection;
+      s := rulesElement.Data;
+      u8 := UTF8Encode(s);
+      c := Length(u8);
+      buffer := @u8[1];
+      nextPos := 0;
+      i := 0;
+      lineCount := 0;
+      while (i < c) do begin
+        statement^.Clear();
+        if not ParseStatement(buffer,i,c,statement,nextPos,lineCount) then
+          Break;
+        i := nextPos;
+        Inc(statement);
+        Inc(sal);
+        if (sal >= Length(statementList)) then begin
+          SetLength(statementList,(sal*2));
+          statement := @statementList[(sal-1)];
+        end;
+      end;
+    end;
+    SetLength(statementList,sal);
+    AItem.Rules := statementList;
+  end;
+end;
+
+procedure ParseCollationDocumentXML(
   ADoc       : TDOMDocument;
   ACollation : TCldrCollation;
   AMode      : TCldrParserMode
@@ -577,6 +743,7 @@ begin
     raise Exception.Create(sCollationsNodeNotFound);
   collationsElement := n as TDOMElement;
   ACollation.Clear();
+  ACollation.Mode := AMode;
   ACollation.Language := EvaluateXPathStr('identity/language/@type',ADoc.DocumentElement);
   ACollation.Version := EvaluateXPathStr('identity/version/@number',ADoc.DocumentElement);
   ACollation.DefaultType := EvaluateXPathStr('collations/default/@type',ADoc.DocumentElement);
@@ -589,7 +756,7 @@ begin
         n := nl[i];
         if (n.NodeName = s_COLLATION) then begin
           item := TCldrCollationItem.Create();
-          ParseCollationItem((n as TDOMElement),item,AMode);
+          ParseCollationItemXML((n as TDOMElement),item,AMode);
           ACollation.Add(item);
           item := nil;
         end
@@ -601,7 +768,7 @@ begin
   end;
 end;
 
-procedure ParseCollationDocument(
+procedure ParseCollationDocumentXML(
   ADoc       : TDOMDocument;
   ACollation : TCldrCollationItem;
   AType      : string
@@ -614,7 +781,68 @@ begin
     if (xv.AsNodeSet.Count = 0) then
       raise Exception.CreateFmt(sCollationTypeNotFound,[AType]);
     ACollation.Clear();
-    ParseCollationItem((TDOMNode(xv.AsNodeSet[0]) as TDOMElement),ACollation,TCldrParserMode.FullParsing);
+    ParseCollationItemXML((TDOMNode(xv.AsNodeSet[0]) as TDOMElement),ACollation,TCldrParserMode.FullParsing);
+  finally
+    xv.Free();
+  end
+end;
+
+procedure ParseCollationDocument2(
+  ADoc       : TDOMDocument;
+  ACollation : TCldrCollation;
+  AMode      : TCldrParserMode
+);
+var
+  n : TDOMNode;
+  collationsElement : TDOMElement;
+  i, c : Integer;
+  item : TCldrCollationItem;
+  nl : TDOMNodeList;
+begin
+  n := ADoc.DocumentElement.FindNode(s_COLLATIONS);
+  if (n = nil) then
+    raise Exception.Create(sCollationsNodeNotFound);
+  collationsElement := n as TDOMElement;
+  ACollation.Clear();
+  ACollation.Mode := AMode;
+  ACollation.Language := EvaluateXPathStr('identity/language/@type',ADoc.DocumentElement);
+  ACollation.Version := EvaluateXPathStr('identity/version/@number',ADoc.DocumentElement);
+  ACollation.DefaultType := EvaluateXPathStr('collations/defaultCollation',ADoc.DocumentElement);
+  if collationsElement.HasChildNodes() then begin
+    nl := collationsElement.ChildNodes;
+    c := nl.Count;
+    item := nil;
+    try
+      for i := 0 to c - 1 do begin
+        n := nl[i];
+        if (n.NodeName = s_COLLATION) then begin
+          item := TCldrCollationItem.Create();
+          ParseCollationItem2((n as TDOMElement),item,AMode);
+          ACollation.Add(item);
+          item := nil;
+        end
+      end;
+    except
+      FreeAndNil(item);
+      raise;
+    end;
+  end;
+end;
+
+procedure ParseCollationDocument2(
+  ADoc       : TDOMDocument;
+  ACollation : TCldrCollationItem;
+  AType      : string
+);
+var
+  xv : TXPathVariable;
+begin
+  xv := EvaluateXPathExpression(Format('collations/collation[@type=%s]',[QuotedStr(AType)]),ADoc.DocumentElement);
+  try
+    if (xv.AsNodeSet.Count = 0) then
+      raise Exception.CreateFmt(sCollationTypeNotFound,[AType]);
+    ACollation.Clear();
+    ParseCollationItem2((TDOMNode(xv.AsNodeSet[0]) as TDOMElement),ACollation,TCldrParserMode.FullParsing);
   finally
     xv.Free();
   end
@@ -650,7 +878,7 @@ begin
   end;
 end;
 
-procedure ParseCollationDocument(
+procedure ParseCollationDocumentXML(
   const AFileName  : string;
         ACollation : TCldrCollation;
         AMode      : TCldrParserMode
@@ -660,14 +888,14 @@ var
 begin
   doc := ReadXMLFile(AFileName);
   try
-    ParseCollationDocument(doc,ACollation,AMode);
+    ParseCollationDocumentXML(doc,ACollation,AMode);
     ACollation.LocalID := ExtractFileName(ChangeFileExt(AFileName,''));
   finally
     doc.Free();
   end;
 end;
 
-procedure ParseCollationDocument(
+procedure ParseCollationDocumentXML(
   const AFileName  : string;
         ACollation : TCldrCollationItem;
         AType      : string
@@ -677,10 +905,214 @@ var
 begin
   doc := ReadXMLFile(AFileName);
   try
-    ParseCollationDocument(doc,ACollation,AType);
+    ParseCollationDocumentXML(doc,ACollation,AType);
   finally
     doc.Free();
   end;
+end;
+
+procedure ParseCollationDocument2(
+  const AFileName  : string;
+        ACollation : TCldrCollation;
+        AMode      : TCldrParserMode
+);
+var
+  doc : TXMLDocument;
+begin
+  doc := ReadXMLFile(AFileName);
+  try
+    ParseCollationDocument2(doc,ACollation,AMode);
+    ACollation.LocalID := ExtractFileName(ChangeFileExt(AFileName,''));
+  finally
+    doc.Free();
+  end;
+end;
+
+procedure ParseCollationDocument2(
+  AStream    : TStream;
+  ACollation : TCldrCollation;
+  AMode      : TCldrParserMode
+);
+var
+  doc : TXMLDocument;
+begin
+  doc := ReadXMLFile(AStream);
+  try
+    ParseCollationDocument2(doc,ACollation,AMode);
+  finally
+    doc.Free();
+  end;
+end;
+
+procedure ParseCollationDocument2(
+  const AFileName  : string;
+        ACollation : TCldrCollationItem;
+        AType      : string
+);
+var
+  doc : TXMLDocument;
+begin
+  doc := ReadXMLFile(AFileName);
+  try
+    ParseCollationDocument2(doc,ACollation,AType);
+  finally
+    doc.Free();
+  end;
+end;
+
+procedure ParseCollationDocument2(
+  AStream    : TStream;
+  ACollation : TCldrCollationItem;
+  AType      : string
+);
+var
+  doc : TXMLDocument;
+begin
+  doc := ReadXMLFile(AStream);
+  try
+    ParseCollationDocument2(doc,ACollation,AType);
+  finally
+    doc.Free();
+  end;
+end;
+
+{ TCldrCollationStreamLoader }
+
+procedure TCldrCollationStreamLoader.CheckContent(ALanguage: string);
+begin
+  if not FileExists(ALanguage) then
+    raise EFOpenError.CreateFmt(SFOpenError,[ALanguage]);
+end;
+
+function TCldrCollationStreamLoader.IndexOf(ALanguage: string): Integer;
+var
+  i : Integer;
+begin
+  for i := Low(FLanguages) to High(FLanguages) do begin
+    if (FLanguages[i] = ALanguage) then begin
+      Result := i;
+      exit;
+    end;
+  end;
+  Result := -1;
+end;
+
+procedure TCldrCollationStreamLoader.LoadCollation(
+  const ALanguage  : string;
+        ACollation : TCldrCollation;
+        AMode      : TCldrParserMode
+);
+var
+  i : Integer;
+  locStream : TStream;
+begin
+  i := IndexOf(ALanguage);
+  if (i < 0) then
+    CheckContent(ALanguage);
+  locStream := FStreams[i];
+  locStream.Position := 0;
+  ParseCollationDocument2(locStream,ACollation,AMode);
+end;
+
+procedure TCldrCollationStreamLoader.LoadCollationType(
+  const ALanguage,
+        ATypeName  : string;
+        AType      : TCldrCollationItem
+);
+var
+  i : Integer;
+  locStream : TStream;
+begin
+  i := IndexOf(ALanguage);
+  if (i < 0) then
+    CheckContent(ALanguage);
+  locStream := FStreams[i];
+  locStream.Position := 0;
+  ParseCollationDocument2(locStream,AType,ATypeName);
+end;
+
+constructor TCldrCollationStreamLoader.Create(
+  const ALanguages : array of string;
+  const AStreams   : array of TStream
+);
+var
+  c, i : Integer;
+begin
+  c := Length(ALanguages);
+  if (Length(AStreams) < c) then
+    c := Length(AStreams);
+  SetLength(FLanguages,c);
+  SetLength(FStreams,c);
+  for i := Low(ALanguages) to High(ALanguages) do begin
+    FLanguages[i] := ALanguages[i];
+    FStreams[i] := AStreams[i];
+  end;
+end;
+
+destructor TCldrCollationStreamLoader.Destroy();
+var
+  i : Integer;
+begin
+  for i := Low(FStreams) to High(FStreams) do
+    FreeAndNil(FStreams[i]);
+end;
+
+{ TCldrCollationFileLoader }
+
+procedure TCldrCollationFileLoader.SetPath(APath: string);
+var
+  s : string;
+begin
+  if (APath = '') then
+    s := ''
+  else
+    s := IncludeLeadingPathDelimiter(APath);
+  if (s <> FPath) then
+    FPath := s;
+end;
+
+function TCldrCollationFileLoader.BuildFileName(ALanguage: string): string;
+begin
+  Result := Format('%s%s.xml',[FPath,ALanguage]);
+end;
+
+procedure TCldrCollationFileLoader.CheckFile(AFileName: string);
+begin
+  if not FileExists(AFileName) then
+    raise EFOpenError.CreateFmt(SFOpenError,[AFileName]);
+end;
+
+procedure TCldrCollationFileLoader.LoadCollation(
+  const ALanguage  : string;
+        ACollation : TCldrCollation;
+        AMode      : TCldrParserMode
+);
+var
+  locFileName : string;
+begin
+  locFileName := BuildFileName(ALanguage);
+  CheckFile(locFileName);
+  ACollation.Clear();
+  ParseCollationDocument2(locFileName,ACollation,AMode);
+end;
+
+procedure TCldrCollationFileLoader.LoadCollationType(
+  const ALanguage,
+        ATypeName : string;
+        AType     : TCldrCollationItem
+);
+var
+  locFileName : string;
+begin
+  locFileName := BuildFileName(ALanguage);
+  CheckFile(locFileName);
+  AType.Clear();
+  ParseCollationDocument2(locFileName,AType,ATypeName);
+end;
+
+constructor TCldrCollationFileLoader.Create(APath: string);
+begin
+  SetPath(APath);
 end;
 
 end.

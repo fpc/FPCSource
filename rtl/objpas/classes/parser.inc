@@ -293,7 +293,7 @@ begin
           // to ansistring does not give the original ansistring.
           // See bug http://bugs.freepascal.org/view.php?id=15841
           s:=HandleQuotedString;
-          fLastTokenWStr:=fLastTokenWStr+s;
+          fLastTokenWStr:=fLastTokenWStr+UnicodeString(s);
           fLastTokenStr:=fLastTokenStr+s;
         end;
       '#'  :
@@ -476,7 +476,7 @@ end;
 function TParser.TokenString: string;
 begin
   case fToken of
-    toWString : Result:=fLastTokenWStr;
+    toWString : Result:=string(fLastTokenWStr);
     toFloat : if fFloatType<>#0 then
                 Result:=fLastTokenStr+fFloatType
               else Result:=fLastTokenStr
@@ -490,7 +490,7 @@ begin
   if fToken=toWString then
     Result:=fLastTokenWStr
   else
-    Result:=fLastTokenStr;
+    Result:=WideString(fLastTokenStr);
 end;
 
 function TParser.TokenSymbolIs(const S: string): Boolean;

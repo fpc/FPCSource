@@ -8,7 +8,7 @@ interface
 
 uses
 {$IFDEF FPC}
-  fpcunit, testregistry,
+  testregistry,
 {$ELSE FPC}
   TestFramework,
 {$ENDIF FPC}
@@ -117,7 +117,6 @@ type
     procedure TestIndexEditRecord;
     procedure TestIndexAppendRecord;
   end;
-
 {$endif fpc}
 
   TTestUniDirectionalDBBasics = class(TTestDBBasics)
@@ -131,6 +130,7 @@ type
     procedure FTestDelete1(TestCancelUpdate : boolean);
     procedure FTestDelete2(TestCancelUpdate : boolean);
   published
+    procedure TestCancel;
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
 
@@ -138,6 +138,7 @@ type
 
     procedure TestBookmarks;
     procedure TestBookmarkValid;
+    procedure TestCompareBookmarks;
 
     procedure TestDelete1;
     procedure TestDelete2;
@@ -802,7 +803,7 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestBookmarkValid;
-var BM1,BM2,BM3,BM4,BM5 : TBookmark;
+var BM1,BM2,BM3,BM4,BM5,BM6 : TBookmark;
 begin
   with DBConnector.GetNDataset(true,14) do
     begin
@@ -834,7 +835,37 @@ begin
     CheckTrue(BookmarkValid(BM3));
     CheckTrue(BookmarkValid(BM2));
     CheckTrue(BookmarkValid(BM1));
+    Append;
+    BM6 := GetBookmark;
+    CheckFalse(BookmarkValid(BM6));
     end;
+end;
+
+procedure TTestCursorDBBasics.TestCompareBookmarks;
+var
+  FirstBookmark, LastBookmark, EditBookmark, PostEditBookmark: TBookmark;
+begin
+  with DBConnector.GetNDataset(true,14) do
+  begin
+    Open;
+    FirstBookmark := GetBookmark;
+
+    Edit;
+    EditBookmark := GetBookmark;
+    Post;
+    PostEditBookmark := GetBookmark;
+
+    Last;
+    LastBookmark := GetBookmark;
+
+    CheckEquals(0, CompareBookmarks(FirstBookmark, EditBookmark));
+    CheckEquals(0, CompareBookmarks(EditBookmark, PostEditBookmark));
+    CheckTrue(CompareBookmarks(FirstBookmark, LastBookmark) < 0, 'b1<b2');
+    CheckTrue(CompareBookmarks(LastBookmark, FirstBookmark) > 0, 'b1>b2');
+    CheckEquals(0, CompareBookmarks(nil, nil), '(nil,nil)');
+    CheckEquals(-1, CompareBookmarks(FirstBookmark, nil), '(b1,nil)');
+    CheckEquals(+1, CompareBookmarks(nil, FirstBookmark), '(nil,b2)');
+  end;
 end;
 
 procedure TTestCursorDBBasics.TestLocate;
@@ -1259,6 +1290,18 @@ begin
       end;
     end;
 {$endif fpc}
+end;
+
+procedure TTestCursorDBBasics.TestCancel;
+begin
+  with DBConnector.GetNDataset(1) do
+  begin
+    Open;
+    Edit;
+    FieldByName('name').AsString := 'EditName1';
+    Cancel;
+    CheckEquals('TestName1', FieldByName('name').AsString, 'Cancel did not restored previous value');
+  end;
 end;
 
 procedure TTestCursorDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
