@@ -6227,7 +6227,7 @@ end;
 
 function roundAndPackFloatx80(roundingPrecision: int8; zSign: flag; zExp: int32; zSig0: bits64; zSig1: bits64): floatx80;
 var
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     roundNearestEven, increment, isTiny: flag;
     roundIncrement, roundMask, roundBits: int64;
 label
@@ -6786,7 +6786,7 @@ var
     aSign: flag;
     aExp: int32;
     lastBitMask, roundBitsMask: bits64;
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     z: floatx80;
 begin
     aExp := extractFloatx80Exp( a );
@@ -7751,7 +7751,7 @@ end;
 
 function roundAndPackFloat128(zSign: flag; zExp: int32; zSig0: bits64; zSig1: bits64; zSig2: bits64): float128;
 var
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     roundNearestEven, increment, isTiny: flag;
 begin
     roundingMode := softfloat_rounding_mode;
@@ -8238,7 +8238,7 @@ var
     aSign: flag;
     aExp: int32;
     lastBitMask, roundBitsMask: bits64;
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     z: float128;
 begin
     aExp := extractFloat128Exp( a );
