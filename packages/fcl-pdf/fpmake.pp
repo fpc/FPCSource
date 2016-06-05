@@ -12,6 +12,7 @@ begin
     begin
 {$endif ALLPACKAGES}
     P:=AddPackage('fcl-pdf');
+    P.ShortName:='fcpd';
 
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
