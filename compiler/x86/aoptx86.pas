@@ -47,8 +47,8 @@ unit aoptx86;
         procedure DebugMsg(const s : string; p : tai);inline;
 
         procedure AllocRegBetween(reg : tregister; p1,p2 : tai;var initialusedregs : TAllUsedRegs);
-        function IsExitCode(p : tai) : boolean;
-        function isFoldableArithOp(hp1 : taicpu; reg : tregister) : boolean;
+        class function IsExitCode(p : tai) : boolean;
+        class function isFoldableArithOp(hp1 : taicpu; reg : tregister) : boolean;
         procedure RemoveLastDeallocForFuncRes(p : tai);
       end;
 
@@ -329,7 +329,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.IsExitCode(p : tai) : boolean;
+    class function TX86AsmOptimizer.IsExitCode(p : tai) : boolean;
       var
         hp2,hp3 : tai;
       begin
@@ -358,7 +358,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.isFoldableArithOp(hp1: taicpu; reg: tregister): boolean;
+    class function TX86AsmOptimizer.isFoldableArithOp(hp1: taicpu; reg: tregister): boolean;
       begin
         isFoldableArithOp := False;
         case hp1.opcode of

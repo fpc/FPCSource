@@ -61,7 +61,7 @@ unit aoptbase;
         { gets the next tai object after current that contains info relevant }
         { to the optimizer in p1. If there is none, it returns false and     }
         { sets p1 to nil                                                     }
-        Function GetNextInstruction(Current: tai; Var Next: tai): Boolean;
+        class Function GetNextInstruction(Current: tai; Var Next: tai): Boolean;
         { gets the previous tai object after current that contains info  }
         { relevant to the optimizer in last. If there is none, it retuns }
         { false and sets last to nil                                     }
@@ -175,7 +175,7 @@ unit aoptbase;
   end;
 
 
-  Function TAOptBase.GetNextInstruction(Current: tai; Var Next: tai): Boolean;
+  class Function TAOptBase.GetNextInstruction(Current: tai; Var Next: tai): Boolean;
   Begin
     Repeat
       Current := tai(Current.Next);

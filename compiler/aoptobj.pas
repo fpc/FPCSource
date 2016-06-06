@@ -265,12 +265,12 @@ Unit AoptObj;
         Procedure CreateUsedRegs(var regs: TAllUsedRegs);
         Procedure ClearUsedRegs;
         Procedure UpdateUsedRegs(p : Tai);
-        procedure UpdateUsedRegs(var Regs: TAllUsedRegs; p: Tai);
+        class procedure UpdateUsedRegs(var Regs: TAllUsedRegs; p: Tai);
         Function CopyUsedRegs(var dest : TAllUsedRegs) : boolean;
-        Procedure ReleaseUsedRegs(const regs : TAllUsedRegs);
-        Function RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean;
-        Procedure IncludeRegInUsedRegs(reg : TRegister;var regs : TAllUsedRegs);
-        Procedure ExcludeRegFromUsedRegs(reg: TRegister;var regs : TAllUsedRegs);
+        class Procedure ReleaseUsedRegs(const regs : TAllUsedRegs);
+        class Function RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean;
+        class Procedure IncludeRegInUsedRegs(reg : TRegister;var regs : TAllUsedRegs);
+        class Procedure ExcludeRegFromUsedRegs(reg: TRegister;var regs : TAllUsedRegs);
 
         Function GetAllocationString(const regs : TAllUsedRegs) : string;
 
@@ -893,7 +893,7 @@ Unit AoptObj;
         end;
 
 
-      procedure TAOptObj.UpdateUsedRegs(var Regs : TAllUsedRegs;p : Tai);
+      class procedure TAOptObj.UpdateUsedRegs(var Regs : TAllUsedRegs;p : Tai);
         var
           i : TRegisterType;
         begin
@@ -912,7 +912,7 @@ Unit AoptObj;
       end;
 
 
-      procedure TAOptObj.ReleaseUsedRegs(const regs: TAllUsedRegs);
+      class procedure TAOptObj.ReleaseUsedRegs(const regs: TAllUsedRegs);
         var
           i : TRegisterType;
       begin
@@ -921,20 +921,20 @@ Unit AoptObj;
       end;
 
 
-      Function TAOptObj.RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean;
+      class Function TAOptObj.RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean;
       begin
         result:=regs[getregtype(reg)].IsUsed(reg);
       end;
 
 
-      procedure TAOptObj.IncludeRegInUsedRegs(reg: TRegister;
+      class procedure TAOptObj.IncludeRegInUsedRegs(reg: TRegister;
        var regs: TAllUsedRegs);
       begin
         include(regs[getregtype(reg)].UsedRegs,getsupreg(Reg));
       end;
 
 
-      procedure TAOptObj.ExcludeRegFromUsedRegs(reg: TRegister;
+      class procedure TAOptObj.ExcludeRegFromUsedRegs(reg: TRegister;
        var regs: TAllUsedRegs);
       begin
         exclude(regs[getregtype(reg)].UsedRegs,getsupreg(Reg));
