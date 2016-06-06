@@ -936,7 +936,7 @@ unit aoptx86;
                       std_op2str[taicpu(p).opcode]+gas_opsize2str[taicpu(p).opsize]+' '+
                       std_op2str[taicpu(hp1).opcode]+gas_opsize2str[taicpu(hp1).opsize]+' '+
                       std_op2str[taicpu(hp2).opcode]+gas_opsize2str[taicpu(hp2).opsize],p);
-                taicpu(hp1).changeopsize(taicpu(p).opsize);
+                taicpu(hp1).changeopsize(taicpu(hp2).opsize);
                 {
                   ->
                     movswl  %si,%eax        movswl  %si,%eax      p
@@ -948,7 +948,7 @@ unit aoptx86;
                     begin
                       taicpu(hp1).loadoper(0, taicpu(hp2).oper[1]^);
                       if taicpu(hp1).oper[0]^.typ=top_reg then
-                        setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(p).oper[1]^.reg));
+                        setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
                     end;
                   2:
                     begin
@@ -957,7 +957,7 @@ unit aoptx86;
                         (taicpu(hp1).opcode<>A_SHL) and
                         (taicpu(hp1).opcode<>A_SHR) and
                         (taicpu(hp1).opcode<>A_SAR) then
-                        setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(p).oper[1]^.reg));
+                        setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
                     end;
                   else
                     internalerror(2008042701);
