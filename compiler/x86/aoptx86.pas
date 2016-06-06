@@ -44,6 +44,8 @@ unit aoptx86;
         function OptPass1VOP(const p : tai) : boolean;
         function OptPass1MOV(var p : tai) : boolean;
 
+        function OptPass2MOV(var p : tai) : boolean;
+
         procedure DebugMsg(const s : string; p : tai);inline;
 
         procedure AllocRegBetween(reg : tregister; p1,p2 : tai;var initialusedregs : TAllUsedRegs);
@@ -1022,6 +1024,91 @@ unit aoptx86;
                 asml.remove(p);
                 p.free;
                 p:=hp1;
+              end;
+            ReleaseUsedRegs(TmpUsedRegs);
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass2MOV(var p : tai) : boolean;
+      var
+       TmpUsedRegs : TAllUsedRegs;
+       hp1,hp2: tai;
+      begin
+        Result:=false;
+        if MatchOpType(taicpu(p),top_reg,top_reg) and
+          GetNextInstruction(p, hp1) and
+          MatchInstruction(hp1,A_MOV,A_MOVZX,A_MOVSX,[]) and
+          MatchOpType(taicpu(hp1),top_ref,top_reg) and
+          ((taicpu(hp1).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg)
+           or
+           (taicpu(hp1).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg)
+            ) and
+          (getsupreg(taicpu(hp1).oper[1]^.reg) = getsupreg(taicpu(p).oper[1]^.reg)) then
+          { mov reg1, reg2
+            mov/zx/sx (reg2, ..), reg2      to   mov/zx/sx (reg1, ..), reg2}
+          begin
+            if (taicpu(hp1).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg) then
+              taicpu(hp1).oper[0]^.ref^.base := taicpu(p).oper[0]^.reg;
+            if (taicpu(hp1).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) then
+              taicpu(hp1).oper[0]^.ref^.index := taicpu(p).oper[0]^.reg;
+            asml.remove(p);
+            p.free;
+            p := hp1;
+            Result:=true;
+            exit;
+          end
+        else if (taicpu(p).oper[0]^.typ = top_ref) and
+          GetNextInstruction(p,hp1) and
+          (hp1.typ = ait_instruction) and
+          (IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) or
+           ((taicpu(hp1).opcode=A_LEA) and
+            (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
+            ((MatchReference(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) and
+             (taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg)
+              ) or
+             (MatchReference(taicpu(hp1).oper[0]^.ref^,NR_INVALID,
+              taicpu(p).oper[1]^.reg) and
+             (taicpu(hp1).oper[0]^.ref^.base<>taicpu(p).oper[1]^.reg))
+            )
+           )
+          ) and
+          GetNextInstruction(hp1,hp2) and
+          MatchInstruction(hp2,A_MOV,[]) and
+          MatchOperand(taicpu(p).oper[1]^,taicpu(hp2).oper[0]^) and
+          (taicpu(hp2).oper[1]^.typ = top_ref) then
+          begin
+            CopyUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs,tai(hp1.next));
+            if (RefsEqual(taicpu(hp2).oper[1]^.ref^, taicpu(p).oper[0]^.ref^) and
+              not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2, TmpUsedRegs))) then
+              { change   mov            (ref), reg
+                         add/sub/or/... reg2/$const, reg
+                         mov            reg, (ref)
+                         # release reg
+                to       add/sub/or/... reg2/$const, (ref)    }
+              begin
+                case taicpu(hp1).opcode of
+                  A_INC,A_DEC,A_NOT,A_NEG :
+                    taicpu(hp1).loadRef(0,taicpu(p).oper[0]^.ref^);
+                  A_LEA :
+                    begin
+                      taicpu(hp1).opcode:=A_ADD;
+                      if taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg then
+                        taicpu(hp1).loadreg(0,taicpu(hp1).oper[0]^.ref^.index)
+                      else
+                        taicpu(hp1).loadreg(0,taicpu(hp1).oper[0]^.ref^.base);
+                      taicpu(hp1).loadRef(1,taicpu(p).oper[0]^.ref^);
+                      DebugMsg('Peephole FoldLea done',hp1);
+                    end
+                  else
+                    taicpu(hp1).loadRef(1,taicpu(p).oper[0]^.ref^);
+                end;
+                asml.remove(p);
+                asml.remove(hp2);
+                p.free;
+                hp2.free;
+                p := hp1
               end;
             ReleaseUsedRegs(TmpUsedRegs);
           end;

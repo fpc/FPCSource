@@ -32,6 +32,7 @@ uses cgbase, cpubase, aasmtai, aopt, aoptx86, aoptcpub;
 type
   TCpuAsmOptimizer = class(TX86AsmOptimizer)
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
+    function PeepHoleOptPass2Cpu(var p: tai): boolean; override;
     function PostPeepHoleOptsCpu(var p : tai) : boolean; override;
   end;
 
@@ -438,6 +439,21 @@ begin
     end;
   end;
 end;
+
+
+    function TCpuAsmOptimizer.PeepHoleOptPass2Cpu(var p : tai) : boolean;
+      begin
+        Result := False;
+        case p.typ of
+          ait_instruction:
+            begin
+              case taicpu(p).opcode of
+                A_MOV:
+                  Result:=OptPass2MOV(p);
+              end;
+            end;
+        end;
+      end;
 
 
     function TCpuAsmOptimizer.PostPeepHoleOptsCpu(var p: tai): boolean;
