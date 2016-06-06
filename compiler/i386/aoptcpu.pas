@@ -61,25 +61,6 @@ unit aoptcpu;
       { units we should get rid off: }
       symsym,symconst;
 
-    function isFoldableArithOp(hp1: taicpu; reg: tregister): boolean;
-    begin
-      isFoldableArithOp := False;
-      case hp1.opcode of
-        A_ADD,A_SUB,A_OR,A_XOR,A_AND,A_SHL,A_SHR,A_SAR:
-          isFoldableArithOp :=
-            ((taicpu(hp1).oper[0]^.typ = top_const) or
-             ((taicpu(hp1).oper[0]^.typ = top_reg) and
-              (taicpu(hp1).oper[0]^.reg <> reg))) and
-            (taicpu(hp1).oper[1]^.typ = top_reg) and
-            (taicpu(hp1).oper[1]^.reg = reg);
-        A_INC,A_DEC,A_NEG,A_NOT:
-          isFoldableArithOp :=
-            (taicpu(hp1).oper[0]^.typ = top_reg) and
-            (taicpu(hp1).oper[0]^.reg = reg);
-      end;
-    end;
-
-
     function TCPUAsmoptimizer.DoFpuLoadStoreOpt(var p: tai): boolean;
     { returns true if a "continue" should be done after this optimization }
     var hp1, hp2: tai;

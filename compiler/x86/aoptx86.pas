@@ -30,7 +30,7 @@ unit aoptx86;
     uses
       globtype,
       cpubase,
-      aasmtai,
+      aasmtai,aasmcpu,
       cgbase,cgutils,
       aopt,aoptobj;
 
@@ -48,6 +48,7 @@ unit aoptx86;
 
         procedure AllocRegBetween(reg : tregister; p1,p2 : tai;var initialusedregs : TAllUsedRegs);
         function IsExitCode(p : tai) : boolean;
+        function isFoldableArithOp(hp1 : taicpu; reg : tregister) : boolean;
         procedure RemoveLastDeallocForFuncRes(p : tai);
       end;
 
@@ -71,9 +72,9 @@ unit aoptx86;
     uses
       cutils,
       verbose,
-      aasmcpu,
       procinfo,
-      symconst,symsym;
+      symconst,symsym,
+      itcpugas;
 
     function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
       begin
@@ -354,6 +355,25 @@ unit aoptx86;
           (taicpu(hp3).opcode=A_RET)
          )
         );
+      end;
+
+
+    function TX86AsmOptimizer.isFoldableArithOp(hp1: taicpu; reg: tregister): boolean;
+      begin
+        isFoldableArithOp := False;
+        case hp1.opcode of
+          A_ADD,A_SUB,A_OR,A_XOR,A_AND,A_SHL,A_SHR,A_SAR:
+            isFoldableArithOp :=
+              ((taicpu(hp1).oper[0]^.typ = top_const) or
+               ((taicpu(hp1).oper[0]^.typ = top_reg) and
+                (taicpu(hp1).oper[0]^.reg <> reg))) and
+              (taicpu(hp1).oper[1]^.typ = top_reg) and
+              (taicpu(hp1).oper[1]^.reg = reg);
+          A_INC,A_DEC,A_NEG,A_NOT:
+            isFoldableArithOp :=
+              (taicpu(hp1).oper[0]^.typ = top_reg) and
+              (taicpu(hp1).oper[0]^.reg = reg);
+        end;
       end;
 
 
@@ -714,8 +734,8 @@ unit aoptx86;
                    mov mem2, reg2            mov reg2, mem2}
               begin
                 if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) then
-                  {mov reg1, mem1     or     mov mem1, reg1
-                   mov mem2, reg1            mov reg2, mem1}
+                  { mov reg1, mem1     or     mov mem1, reg1
+                    mov mem2, reg1            mov reg2, mem1}
                   begin
                     if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
                       { Removes the second statement from
@@ -724,8 +744,11 @@ unit aoptx86;
                       begin
                         if (taicpu(p).oper[0]^.typ = top_reg) then
                           AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
+                        DebugMsg('PeepHole Optimization,MovMov2Mov1',p);
                         asml.remove(hp1);
                         hp1.free;
+                        Result:=true;
+                        exit;
                       end
                     else
                       begin
@@ -756,6 +779,12 @@ unit aoptx86;
                           end;
                         ReleaseUsedRegs(TmpUsedRegs);
                       end;
+                  end
+                else if (taicpu(p).oper[1]^.typ=top_ref) and
+                  OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
+                  begin
+                    taicpu(hp1).loadreg(0,taicpu(p).oper[0]^.reg);
+                    DebugMsg('PeepHole Optimization,MovMov2MovMov1',p);
                   end
                 else
                   begin
@@ -872,6 +901,78 @@ unit aoptx86;
                 taicpu(p).loadReg(1,taicpu(hp1).oper[0]^.reg);
                 taicpu(hp1).fileinfo := taicpu(p).fileinfo;
               end
+          end
+
+        else if (taicpu(p).oper[1]^.typ = top_reg) and
+          GetNextIntruction_p and
+          (hp1.typ = ait_instruction) and
+          GetNextInstruction(hp1, hp2) and
+          MatchInstruction(taicpu(hp2),A_MOV,[]) and
+          OpsEqual(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^) and
+          (IsFoldableArithOp(taicpu(hp1), taicpu(p).oper[1]^.reg) or
+           ((taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and
+            IsFoldableArithOp(taicpu(hp1), newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[1]^.reg),R_SUBQ)))
+          ) then
+          { change   movsX/movzX    reg/ref, reg2
+                     add/sub/or/... reg3/$const, reg2
+                     mov            reg2 reg/ref
+            to       add/sub/or/... reg3/$const, reg/ref      }
+          begin
+            CopyUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+            UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
+            If not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
+              begin
+                { by example:
+                    movswl  %si,%eax        movswl  %si,%eax      p
+                    decl    %eax            addl    %edx,%eax     hp1
+                    movw    %ax,%si         movw    %ax,%si       hp2
+                  ->
+                    movswl  %si,%eax        movswl  %si,%eax      p
+                    decw    %eax            addw    %edx,%eax     hp1
+                    movw    %ax,%si         movw    %ax,%si       hp2
+                }
+                DebugMsg('PeepHole Optimization '+
+                      std_op2str[taicpu(p).opcode]+gas_opsize2str[taicpu(p).opsize]+' '+
+                      std_op2str[taicpu(hp1).opcode]+gas_opsize2str[taicpu(hp1).opsize]+' '+
+                      std_op2str[taicpu(hp2).opcode]+gas_opsize2str[taicpu(hp2).opsize],p);
+                taicpu(hp1).changeopsize(taicpu(p).opsize);
+                {
+                  ->
+                    movswl  %si,%eax        movswl  %si,%eax      p
+                    decw    %si             addw    %dx,%si       hp1
+                    movw    %ax,%si         movw    %ax,%si       hp2
+                }
+                case taicpu(hp1).ops of
+                  1:
+                    begin
+                      taicpu(hp1).loadoper(0, taicpu(hp2).oper[1]^);
+                      if taicpu(hp1).oper[0]^.typ=top_reg then
+                        setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(p).oper[1]^.reg));
+                    end;
+                  2:
+                    begin
+                      taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
+                      if (taicpu(hp1).oper[0]^.typ=top_reg) and
+                        (taicpu(hp1).opcode<>A_SHL) and
+                        (taicpu(hp1).opcode<>A_SHR) and
+                        (taicpu(hp1).opcode<>A_SAR) then
+                        setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(p).oper[1]^.reg));
+                    end;
+                  else
+                    internalerror(2008042701);
+                end;
+                {
+                  ->
+                    decw    %si             addw    %dx,%si       p
+                }
+                asml.remove(p);
+                asml.remove(hp2);
+                p.Free;
+                hp2.Free;
+                p := hp1;
+              end;
+            ReleaseUsedRegs(TmpUsedRegs);
           end;
 
         if GetNextIntruction_p and
