@@ -39,9 +39,9 @@ unit aoptx86;
         function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
       protected
         procedure PostPeepholeOptMov(const p : tai);
+
         function OptPass1VMOVAP(var p : tai) : boolean;
         function OptPass1VOP(const p : tai) : boolean;
-
         function OptPass1MOV(var p : tai) : boolean;
 
         procedure DebugMsg(const s : string; p : tai);inline;
@@ -511,11 +511,27 @@ unit aoptx86;
       begin
         Result:=false;
         GetNextIntruction_p:=GetNextInstruction(p, hp1);
-        if (taicpu(p).oper[1]^.typ = top_reg) and
-           (getsupreg(taicpu(p).oper[1]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX, RS_ESI, RS_EDI]) and
-           GetNextIntruction_p and
-           MatchInstruction(hp1,A_MOV,[]) and
-           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
+        if GetNextIntruction_p and
+          MatchInstruction(hp1,A_AND,[]) and
+          (taicpu(p).oper[1]^.typ = top_reg) and
+          MatchOpType(taicpu(hp1),top_const,top_reg) and
+          MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) then
+          case taicpu(p).opsize Of
+            S_L:
+              if (taicpu(hp1).oper[0]^.val = $ffffffff) then
+                begin
+                  DebugMsg('PeepHole Optimization,MovAnd2Mov',p);
+                  asml.remove(hp1);
+                  hp1.free;
+                  Result:=true;
+                  exit;
+                end;
+          end
+        else if GetNextIntruction_p and
+          MatchInstruction(hp1,A_MOV,[]) and
+          (taicpu(p).oper[1]^.typ = top_reg) and
+          (getsupreg(taicpu(p).oper[1]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX, RS_ESI, RS_EDI]) and
+          MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
           begin
             CopyUsedRegs(TmpUsedRegs);
             { we have
