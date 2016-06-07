@@ -1119,12 +1119,13 @@ unit aoptx86;
     function TX86AsmOptimizer.OptPass1AND(var p : tai) : boolean;
       var
         hp1 : tai;
-        GetNextIntruction_p : Boolean;
       begin
         Result:=false;
-        GetNextIntruction_p:=GetNextInstruction(p, hp1);
-        if GetNextIntruction_p and
-          MatchOpType(p,top_const,top_reg) and
+
+        if not(GetNextInstruction(p, hp1)) then
+          exit;
+
+        if MatchOpType(p,top_const,top_reg) and
           MatchInstruction(hp1,A_AND,[]) and
           MatchOpType(hp1,top_const,top_reg) and
           (getsupreg(taicpu(p).oper[1]^.reg) = getsupreg(taicpu(hp1).oper[1]^.reg)) and
@@ -1146,8 +1147,7 @@ unit aoptx86;
             Result:=true;
             exit;
           end
-        else if GetNextIntruction_p and
-          MatchOpType(p,top_const,top_reg) and
+        else if MatchOpType(p,top_const,top_reg) and
           MatchInstruction(hp1,A_MOVZX,[]) and
           (taicpu(hp1).oper[0]^.typ = top_reg) and
           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
@@ -1174,8 +1174,7 @@ unit aoptx86;
                     hp1.free;
                   end;
               end
-        else if GetNextIntruction_p and
-          MatchOpType(p,top_const,top_reg) and
+        else if MatchOpType(p,top_const,top_reg) and
           MatchInstruction(hp1,A_MOVSX,A_MOVSXD,[]) and
           (taicpu(hp1).oper[0]^.typ = top_reg) and
           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
@@ -1203,18 +1202,22 @@ unit aoptx86;
                      asml.remove(hp1);
                      hp1.free;
                    end;
-              end;
-
-   (*                      else
-   {change "and x, reg; jxx" to "test x, reg", if reg is deallocated before the
-   jump, but only if it's a conditional jump (PFV) }
-                    if (taicpu(p).oper[1]^.typ = top_reg) and
-                       GetNextInstruction(p, hp1) and
-                       (hp1.typ = ait_instruction) and
-                       (taicpu(hp1).is_jmp) and
-                       (taicpu(hp1).opcode<>A_JMP) and
-                       not(getsupreg(taicpu(p).oper[1]^.reg) in UsedRegs) then
-                      taicpu(p).opcode := A_TEST;*)
+              end
+        else if (taicpu(p).oper[1]^.typ = top_reg) and
+          (hp1.typ = ait_instruction) and
+          (taicpu(hp1).is_jmp) and
+          (taicpu(hp1).opcode<>A_JMP) and
+          not(RegInUsedRegs(taicpu(p).oper[1]^.reg,UsedRegs)) then
+          { change
+              and x, reg
+              jxx
+            to
+              test x, reg
+              jxx
+            if reg is deallocated before the
+            jump, but only if it's a conditional jump (PFV)
+          }
+          taicpu(p).opcode := A_TEST;
        end;
 
 
