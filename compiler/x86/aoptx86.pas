@@ -40,6 +40,7 @@ unit aoptx86;
       protected
         procedure PostPeepholeOptMov(const p : tai);
 
+        function OptPass1AND(var p : tai) : boolean;
         function OptPass1VMOVAP(var p : tai) : boolean;
         function OptPass1VOP(const p : tai) : boolean;
         function OptPass1MOV(var p : tai) : boolean;
@@ -1113,6 +1114,108 @@ unit aoptx86;
             ReleaseUsedRegs(TmpUsedRegs);
           end;
       end;
+
+
+    function TX86AsmOptimizer.OptPass1AND(var p : tai) : boolean;
+      var
+        hp1 : tai;
+        GetNextIntruction_p : Boolean;
+      begin
+        Result:=false;
+        GetNextIntruction_p:=GetNextInstruction(p, hp1);
+        if GetNextIntruction_p and
+          MatchOpType(p,top_const,top_reg) and
+          MatchInstruction(hp1,A_AND,[]) and
+          MatchOpType(hp1,top_const,top_reg) and
+          (getsupreg(taicpu(p).oper[1]^.reg) = getsupreg(taicpu(hp1).oper[1]^.reg)) and
+          { the second register must contain the first one, so compare their subreg types }
+          (getsubreg(taicpu(p).oper[1]^.reg)<=getsubreg(taicpu(hp1).oper[1]^.reg)) and
+          (abs(taicpu(p).oper[0]^.val and taicpu(hp1).oper[0]^.val)<$80000000) then
+          { change
+              and const1, reg
+              and const2, reg
+            to
+              and (const1 and const2), reg
+          }
+          begin
+            taicpu(hp1).loadConst(0, taicpu(p).oper[0]^.val and taicpu(hp1).oper[0]^.val);
+            DebugMsg('Peephole AndAnd2And done',hp1);
+            asml.remove(p);
+            p.Free;
+            p:=hp1;
+            Result:=true;
+            exit;
+          end
+        else if GetNextIntruction_p and
+          MatchOpType(p,top_const,top_reg) and
+          MatchInstruction(hp1,A_MOVZX,[]) and
+          (taicpu(hp1).oper[0]^.typ = top_reg) and
+          MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
+          (getsubreg(taicpu(hp1).oper[0]^.reg)=getsubreg(taicpu(hp1).oper[1]^.reg)) and
+           (((taicpu(p).opsize=S_W) and
+             (taicpu(hp1).opsize=S_BW)) or
+            ((taicpu(p).opsize=S_L) and
+             (taicpu(hp1).opsize in [S_WL,S_BL])) or
+             ((taicpu(p).opsize=S_Q) and
+             (taicpu(hp1).opsize in [S_BQ,S_WQ,S_LQ]))
+            ) then
+              begin
+                if (((taicpu(hp1).opsize) in [S_BW,S_BL,S_BQ]) and
+                    ((taicpu(p).oper[0]^.val and $ff)=taicpu(p).oper[0]^.val)
+                     ) or
+                   (((taicpu(hp1).opsize) in [S_WL,S_WQ]) and
+                    ((taicpu(p).oper[0]^.val and $ffff)=taicpu(p).oper[0]^.val)) or
+                   (((taicpu(hp1).opsize)=S_LQ) and
+                    ((taicpu(p).oper[0]^.val and $ffffffff)=taicpu(p).oper[0]^.val)
+                   ) then
+                  begin
+                    DebugMsg('Peephole AndMovzToAnd done',p);
+                    asml.remove(hp1);
+                    hp1.free;
+                  end;
+              end
+        else if GetNextIntruction_p and
+          MatchOpType(p,top_const,top_reg) and
+          MatchInstruction(hp1,A_MOVSX,A_MOVSXD,[]) and
+          (taicpu(hp1).oper[0]^.typ = top_reg) and
+          MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
+          (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg)) and
+           (((taicpu(p).opsize=S_W) and
+             (taicpu(hp1).opsize=S_BW)) or
+            ((taicpu(p).opsize=S_L) and
+             (taicpu(hp1).opsize in [S_WL,S_BL])) or
+             ((taicpu(p).opsize=S_Q) and
+             (taicpu(hp1).opsize in [S_BQ,S_WQ,S_LQ]))
+            ) then
+              begin
+                if (((taicpu(hp1).opsize) in [S_BW,S_BL,S_BQ]) and
+                    ((taicpu(p).oper[0]^.val and $7f)=taicpu(p).oper[0]^.val)
+                     ) or
+                   (((taicpu(hp1).opsize) in [S_WL,S_WQ]) and
+                    ((taicpu(p).oper[0]^.val and $7fff)=taicpu(p).oper[0]
+                     ^.val)) or
+                   (((taicpu(hp1).opsize)=S_LQ) and
+                    ((taicpu(p).oper[0]^.val and $7fffffff)=taicpu(p).oper[0]
+                     ^.val)
+                   ) then
+                   begin
+                     DebugMsg('PeepHole Optimization,AndMovsxToAnd',p);
+                     asml.remove(hp1);
+                     hp1.free;
+                   end;
+              end;
+
+   (*                      else
+   {change "and x, reg; jxx" to "test x, reg", if reg is deallocated before the
+   jump, but only if it's a conditional jump (PFV) }
+                    if (taicpu(p).oper[1]^.typ = top_reg) and
+                       GetNextInstruction(p, hp1) and
+                       (hp1.typ = ait_instruction) and
+                       (taicpu(hp1).is_jmp) and
+                       (taicpu(hp1).opcode<>A_JMP) and
+                       not(getsupreg(taicpu(p).oper[1]^.reg) in UsedRegs) then
+                      taicpu(p).opcode := A_TEST;*)
+       end;
 
 
     procedure TX86AsmOptimizer.PostPeepholeOptMov(const p : tai);
