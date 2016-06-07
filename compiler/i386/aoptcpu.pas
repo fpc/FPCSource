@@ -835,34 +835,8 @@ begin
                       end;
                 case taicpu(p).opcode Of
                   A_AND:
-                    begin
-                      if (taicpu(p).oper[0]^.typ = top_const) and
-                         (taicpu(p).oper[1]^.typ = top_reg) and
-                         GetNextInstruction(p, hp1) and
-                         (tai(hp1).typ = ait_instruction) and
-                         (taicpu(hp1).opcode = A_AND) and
-                         (taicpu(hp1).oper[0]^.typ = top_const) and
-                         (taicpu(hp1).oper[1]^.typ = top_reg) and
-                         (getsupreg(taicpu(p).oper[1]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg)) and
-                         (getsubreg(taicpu(p).oper[1]^.reg)<=getsubreg(taicpu(hp1).oper[1]^.reg)) then
-    {change "and const1, reg; and const2, reg" to "and (const1 and const2), reg"}
-                        begin
-                          taicpu(hp1).loadConst(0,taicpu(p).oper[0]^.val and taicpu(hp1).oper[0]^.val);
-                          asml.remove(p);
-                          p.free;
-                          p:=hp1;
-                        end
-                      else
-    {change "and x, reg; jxx" to "test x, reg", if reg is deallocated before the
-    jump, but only if it's a conditional jump (PFV) }
-                        if (taicpu(p).oper[1]^.typ = top_reg) and
-                           GetNextInstruction(p, hp1) and
-                           (hp1.typ = ait_instruction) and
-                           (taicpu(hp1).is_jmp) and
-                           (taicpu(hp1).opcode<>A_JMP) and
-                           not(RegInUsedRegs(taicpu(p).oper[1]^.reg,UsedRegs)) then
-                          taicpu(p).opcode := A_TEST;
-                    end;
+                    if OptPass1And(p) then
+                      continue;
                   A_CMP:
                     begin
                       { cmp register,$8000                neg register

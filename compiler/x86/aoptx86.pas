@@ -1155,19 +1155,26 @@ unit aoptx86;
            (((taicpu(p).opsize=S_W) and
              (taicpu(hp1).opsize=S_BW)) or
             ((taicpu(p).opsize=S_L) and
-             (taicpu(hp1).opsize in [S_WL,S_BL])) or
+             (taicpu(hp1).opsize in [S_WL,S_BL]))
+{$ifdef x86_64}
+              or
              ((taicpu(p).opsize=S_Q) and
-             (taicpu(hp1).opsize in [S_BQ,S_WQ,S_LQ]))
+              (taicpu(hp1).opsize in [S_BQ,S_WQ,S_LQ]))
+{$endif x86_64}
             ) then
               begin
-                if (((taicpu(hp1).opsize) in [S_BW,S_BL,S_BQ]) and
+                if (((taicpu(hp1).opsize) in [S_BW,S_BL{$ifdef x86_64},S_BQ{$endif x86_64}]) and
                     ((taicpu(p).oper[0]^.val and $ff)=taicpu(p).oper[0]^.val)
                      ) or
-                   (((taicpu(hp1).opsize) in [S_WL,S_WQ]) and
-                    ((taicpu(p).oper[0]^.val and $ffff)=taicpu(p).oper[0]^.val)) or
+                   (((taicpu(hp1).opsize) in [S_WL{$ifdef x86_64},S_WQ{$endif x86_64}]) and
+                    ((taicpu(p).oper[0]^.val and $ffff)=taicpu(p).oper[0]^.val))
+{$ifdef x86_64}
+                    or
                    (((taicpu(hp1).opsize)=S_LQ) and
                     ((taicpu(p).oper[0]^.val and $ffffffff)=taicpu(p).oper[0]^.val)
-                   ) then
+                   )
+{$endif x86_64}
+                  then
                   begin
                     DebugMsg('Peephole AndMovzToAnd done',p);
                     asml.remove(hp1);
@@ -1175,28 +1182,33 @@ unit aoptx86;
                   end;
               end
         else if MatchOpType(p,top_const,top_reg) and
-          MatchInstruction(hp1,A_MOVSX,A_MOVSXD,[]) and
+          MatchInstruction(hp1,A_MOVSX{$ifdef x86_64},A_MOVSXD{$endif x86_64},[]) and
           (taicpu(hp1).oper[0]^.typ = top_reg) and
           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
           (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg)) and
            (((taicpu(p).opsize=S_W) and
              (taicpu(hp1).opsize=S_BW)) or
             ((taicpu(p).opsize=S_L) and
-             (taicpu(hp1).opsize in [S_WL,S_BL])) or
+             (taicpu(hp1).opsize in [S_WL,S_BL]))
+{$ifdef x86_64}
+             or
              ((taicpu(p).opsize=S_Q) and
              (taicpu(hp1).opsize in [S_BQ,S_WQ,S_LQ]))
+{$endif x86_64}
             ) then
               begin
-                if (((taicpu(hp1).opsize) in [S_BW,S_BL,S_BQ]) and
+                if (((taicpu(hp1).opsize) in [S_BW,S_BL{$ifdef x86_64},S_BQ{$endif x86_64}]) and
                     ((taicpu(p).oper[0]^.val and $7f)=taicpu(p).oper[0]^.val)
                      ) or
-                   (((taicpu(hp1).opsize) in [S_WL,S_WQ]) and
-                    ((taicpu(p).oper[0]^.val and $7fff)=taicpu(p).oper[0]
-                     ^.val)) or
+                   (((taicpu(hp1).opsize) in [S_WL{$ifdef x86_64},S_WQ{$endif x86_64}]) and
+                    ((taicpu(p).oper[0]^.val and $7fff)=taicpu(p).oper[0]^.val))
+{$ifdef x86_64}
+                   or
                    (((taicpu(hp1).opsize)=S_LQ) and
-                    ((taicpu(p).oper[0]^.val and $7fffffff)=taicpu(p).oper[0]
-                     ^.val)
-                   ) then
+                    ((taicpu(p).oper[0]^.val and $7fffffff)=taicpu(p).oper[0]^.val)
+                   )
+{$endif x86_64}
+                   then
                    begin
                      DebugMsg('PeepHole Optimization,AndMovsxToAnd',p);
                      asml.remove(hp1);
