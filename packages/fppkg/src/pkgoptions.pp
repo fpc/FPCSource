@@ -150,6 +150,7 @@ var
   FPMakeCompilerOptions : TCompilerOptions;
 
 procedure LoadGlobalDefaults(CfgFile: string);
+procedure ClearCompilerDefaults;
 procedure LoadCompilerDefaults;
 
 Implementation
@@ -246,6 +247,13 @@ begin
   GlobalOptions.LogValues(llDebug);
 end;
 
+procedure ClearCompilerDefaults;
+begin
+  CompilerOptions.Free;
+  FPMakeCompilerOptions.Free;
+  CompilerOptions:=TCompilerOptions.Create;
+  FPMakeCompilerOptions:=TCompilerOptions.Create;
+end;
 
 procedure LoadCompilerDefaults;
 var
