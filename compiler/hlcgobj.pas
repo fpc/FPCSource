@@ -3934,7 +3934,10 @@ implementation
         LOC_JUMP :
           begin
             a_label(list,l.truelabel);
-            a_load_const_reg(list,dst_size,1,hregister);
+            if is_cbool(src_size) then
+              a_load_const_reg(list,dst_size,-1,hregister)
+            else
+              a_load_const_reg(list,dst_size,1,hregister);
             current_asmdata.getjumplabel(hl);
             a_jmp_always(list,hl);
             a_label(list,l.falselabel);
