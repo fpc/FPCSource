@@ -1030,13 +1030,6 @@ implementation
                   update_reference_offset(location.reference,extraoffset,bytemulsize);
                   { adjust alignment after this change }
                   location.reference.alignment:=newalignment(location.reference.alignment,extraoffset*bytemulsize);
-                  { don't do this for floats etc.; needed to properly set the }
-                  { size for bitpacked arrays (e.g. a bitpacked array of      }
-                  { enums who are size 2 but fit in one byte -> in the array  }
-                  { they will be one byte and have to be stored like that)    }
-                  if is_packed_array(left.resultdef) and
-                     (tcgsize2size[newsize] <> bytemulsize) then
-                    newsize:=int_cgsize(bytemulsize);
                 end
               else
                 begin

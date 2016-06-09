@@ -1037,6 +1037,19 @@ implementation
                          hightree.free;
                        end;
                    end;
+               { in case of a bitpacked array of enums that are size 2 (due to
+                 packenum 2) but whose values all fit in one byte, the size of
+                 bitpacked array elements will be 1 byte while the resultdef of
+                 will currently say it's two bytes) -> create a temp enumdef
+                 with packenum=1 for the resultdef as subtype of the main
+                 enumdef }
+               if is_enum(resultdef) and
+                  is_packed_array(left.resultdef) and
+                  ((tarraydef(left.resultdef).elepackedbitsize div 8) <> resultdef.size) then
+                 begin
+                   resultdef:=cenumdef.create_subrange(tenumdef(resultdef),tenumdef(resultdef).min,tenumdef(resultdef).max);
+                   tenumdef(resultdef).calcsavesize(1);
+                 end
              end;
            pointerdef :
              begin
