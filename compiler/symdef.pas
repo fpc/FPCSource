@@ -910,7 +910,7 @@ interface
           procedure deref;override;
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
-          procedure calcsavesize;
+          procedure calcsavesize(packenum: shortint);
           function  packedbitsize: asizeint; override;
           procedure setmax(_max:asizeint);
           procedure setmin(_min:asizeint);
@@ -2501,7 +2501,7 @@ implementation
          inherited create(enumdef,true);
          minval:=0;
          maxval:=0;
-         calcsavesize;
+         calcsavesize(current_settings.packenum);
          has_jumps:=false;
          basedef:=nil;
          symtable:=tenumsymtable.create(self);
@@ -2514,7 +2514,7 @@ implementation
          minval:=_min;
          maxval:=_max;
          basedef:=_basedef;
-         calcsavesize;
+         calcsavesize(current_settings.packenum);
          has_jumps:=false;
          symtable:=basedef.symtable.getcopy;
          include(defoptions, df_copied_def);
@@ -2571,19 +2571,19 @@ implementation
       end;
 
 
-    procedure tenumdef.calcsavesize;
+    procedure tenumdef.calcsavesize(packenum: shortint);
       begin
 {$IFNDEF cpu64bitaddr} {$push}{$warnings off} {$ENDIF} //comparison always false warning
-        if (current_settings.packenum=8) or (min<low(longint)) or (int64(max)>high(cardinal)) then
+        if (packenum=8) or (min<low(longint)) or (int64(max)>high(cardinal)) then
          savesize:=8
 {$IFNDEF cpu64bitaddr} {$pop} {$ENDIF}
         else
 {$IFDEF cpu16bitaddr} {$push}{$warnings off} {$ENDIF} //comparison always false warning
-         if (current_settings.packenum=4) or (min<low(smallint)) or (max>high(word)) then
+         if (packenum=4) or (min<low(smallint)) or (max>high(word)) then
           savesize:=4
 {$IFDEF cpu16bitaddr} {$pop} {$ENDIF}
         else
-         if (current_settings.packenum=2) or (min<low(shortint)) or (max>high(byte)) then
+         if (packenum=2) or (min<low(shortint)) or (max>high(byte)) then
           savesize:=2
         else
          savesize:=1;
@@ -2616,14 +2616,14 @@ implementation
     procedure tenumdef.setmax(_max:asizeint);
       begin
         maxval:=_max;
-        calcsavesize;
+        calcsavesize(current_settings.packenum);
       end;
 
 
     procedure tenumdef.setmin(_min:asizeint);
       begin
         minval:=_min;
-        calcsavesize;
+        calcsavesize(current_settings.packenum);
       end;
 
 
