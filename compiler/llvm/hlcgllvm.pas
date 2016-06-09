@@ -1244,7 +1244,12 @@ implementation
             LOC_FPUREGISTER,
             LOC_MMREGISTER:
               begin
-                list.concat(taillvm.op_reg_size_undef(la_bitcast,resloc.location^.register,llvmgetcgparadef(resloc,true)));
+                if not llvmaggregatetype(resdef) then
+                  list.concat(taillvm.op_reg_size_undef(la_bitcast,resloc.location^.register,llvmgetcgparadef(resloc,true)))
+                else
+                  { bitcast doesn't work for aggregates -> just load from the
+                    (uninitialised) function result memory location }
+                  gen_load_loc_function_result(list,resdef,tabstractnormalvarsym(pd.funcretsym).localloc)
               end;
             { for empty record returns }
             LOC_VOID:
