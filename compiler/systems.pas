@@ -544,12 +544,15 @@ end;
 function set_target_dbg(t:tdbg):boolean;
 begin
   result:=false;
+{ no debugging support for llvm yet }
+{$ifndef llvm}
   if assigned(dbginfos[t]) then
    begin
      target_dbg:=dbginfos[t]^;
      result:=true;
      exit;
    end;
+{$endif}
 end;
 
 
