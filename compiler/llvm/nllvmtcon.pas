@@ -671,7 +671,7 @@ implementation
       if (fromdef.typ=procdef) and
          (todef.typ<>procdef) then
         fromdef:=cprocvardef.getreusableprocaddr(tprocdef(fromdef));
-      op:=llvmconvop(fromdef,todef);
+      op:=llvmconvop(fromdef,todef,false);
       case op of
         la_ptrtoint_to_x,
         la_x_to_inttoptr:

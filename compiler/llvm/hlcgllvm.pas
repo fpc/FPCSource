@@ -494,7 +494,7 @@ implementation
 
   procedure thlcgllvm.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
     begin
-      list.concat(taillvm.op_reg_size_const_size(llvmconvop(ptrsinttype,tosize),register,ptrsinttype,a,tosize))
+      list.concat(taillvm.op_reg_size_const_size(llvmconvop(ptrsinttype,tosize,false),register,ptrsinttype,a,tosize))
     end;
 
 
@@ -604,7 +604,7 @@ implementation
       tmpreg: tregister;
       tmpintdef: tdef;
     begin
-      op:=llvmconvop(fromsize,tosize);
+      op:=llvmconvop(fromsize,tosize,true);
       { converting from pointer to something else and vice versa is only
         possible via an intermediate pass to integer. Same for "something else"
         to pointer. }
@@ -656,7 +656,7 @@ implementation
               tg.ungettemp(list,tmpref);
             end
           else
-            list.concat(taillvm.op_reg_size_ref_size(llvmconvop(fromsize,tosize),register,fromsize,sref,tosize))
+            list.concat(taillvm.op_reg_size_ref_size(llvmconvop(fromsize,tosize,false),register,fromsize,sref,tosize))
         end
       else
         begin
@@ -1124,31 +1124,8 @@ implementation
   procedure thlcgllvm.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
     var
       op: tllvmop;
-      intfromsize,
-      inttosize: longint;
     begin
-      { treat comp and currency as extended in registers (see comment at start
-        of a_loadfpu_ref_reg) }
-      if tfloatdef(fromsize).floattype in [s64comp,s64currency] then
-        fromsize:=sc80floattype;
-      if tfloatdef(tosize).floattype in [s64comp,s64currency] then
-        tosize:=sc80floattype;
-      { at the value level, s80real and sc80real are the same }
-      if fromsize<>s80floattype then
-        intfromsize:=fromsize.size
-      else
-        intfromsize:=sc80floattype.size;
-      if tosize<>s80floattype then
-        inttosize:=tosize.size
-      else
-        inttosize:=sc80floattype.size;
-
-      if intfromsize<inttosize then
-        op:=la_fpext
-       else if intfromsize>inttosize then
-        op:=la_fptrunc
-      else
-        op:=la_bitcast;
+      op:=llvmconvop(fromsize,tosize,true);
       { reg2 = bitcast fromllsize reg1 to tollsize }
       list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize));
     end;

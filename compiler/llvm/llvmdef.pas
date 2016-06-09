@@ -100,7 +100,7 @@ interface
       (struct, array) }
     function llvmaggregatetype(def: tdef): boolean;
 
-    function llvmconvop(fromsize, tosize: tdef): tllvmop;
+    function llvmconvop(var fromsize, tosize: tdef; inregs: boolean): tllvmop;
 
     { mangle a global identifier so that it's recognised by LLVM as a global
       (in the sense of module-global) label and so that it won't mangle the
@@ -148,7 +148,7 @@ implementation
     end;
 
 
-  function llvmconvop(fromsize, tosize: tdef): tllvmop;
+  function llvmconvop(var fromsize, tosize: tdef; inregs: boolean): tllvmop;
     var
       fromregtyp,
       toregtyp: tregistertype;
@@ -182,8 +182,35 @@ implementation
         end
       else
         begin
-          frombytesize:=fromsize.size;
-          tobytesize:=tosize.size;
+          { treat comp and currency as extended in registers (see comment at start
+            of thlgcobj.a_loadfpu_ref_reg) }
+          if inregs and
+             (fromsize.typ=floatdef) then
+            begin
+              if tfloatdef(fromsize).floattype in [s64comp,s64currency] then
+                fromsize:=sc80floattype;
+              { at the value level, s80real and sc80real are the same }
+              if tfloatdef(fromsize).floattype<>s80real then
+                frombytesize:=fromsize.size
+              else
+                frombytesize:=sc80floattype.size;
+            end
+          else
+            frombytesize:=fromsize.size;
+
+          if inregs and
+             (tosize.typ=floatdef) then
+            begin
+              if tfloatdef(tosize).floattype in [s64comp,s64currency] then
+                tosize:=sc80floattype;
+              if tfloatdef(tosize).floattype<>s80real then
+                tobytesize:=tosize.size
+              else
+                tobytesize:=sc80floattype.size;
+            end
+          else
+            tobytesize:=tosize.size;
+
           { need zero/sign extension, float truncation or plain bitcast? }
           if tobytesize<>frombytesize then
             begin
