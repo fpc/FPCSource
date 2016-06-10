@@ -20,12 +20,17 @@ type
   pdynarrayindex = ^tdynarrayindex;
 
   pdynarraytypeinfo = ^tdynarraytypeinfo;
+  ppdynarraytypeinfo = ^pdynarraytypeinfo;
   tdynarraytypeinfo = packed record
     kind : byte;
     namelen : byte;
     { here the chars follow, we've to skip them }
     elesize : sizeint;
+    {$ifdef VER3_0}
     eletype : pdynarraytypeinfo;
+    {$else}
+    eletype : ppdynarraytypeinfo;
+    {$endif}
     vartype : longint;
   end;
   

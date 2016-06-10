@@ -30,7 +30,11 @@ type
   packed
 {$endif USE_PACKED}
   record
+    {$ifdef VER3_0}
     TypeInfo: Pointer;
+    {$else}
+    TypeInfo: PPointer;
+    {$endif}
     {$ifdef VER2_6}
     Offset: Longint;
     {$else}
@@ -57,7 +61,11 @@ type
   record
     Size: SizeInt;
     ElCount: SizeInt;
+{$ifdef VER3_0}
     ElInfo: Pointer;
+{$else}
+    ElInfo: PPointer;
+{$endif}
     DimCount: Byte;
     Dims:array[0..255] of Pointer;
   end;
@@ -109,7 +117,7 @@ begin
   { Process elements }
   for i:=1 to count Do
     begin
-      rttiproc(Data+PRecordElement(typeInfo)^.Offset,PRecordElement(typeInfo)^.TypeInfo);
+      rttiproc(Data+PRecordElement(typeInfo)^.Offset,PRecordElement(typeInfo)^.TypeInfo{$ifndef VER3_0}^{$endif});
       Inc(PRecordElement(typeInfo));
     end;
 end;
@@ -138,7 +146,7 @@ begin
   if Count = 0 then
     Exit;
   ElSize:=PArrayInfo(typeInfo)^.Size div Count;
-  Info:=PArrayInfo(typeInfo)^.ElInfo;
+  Info:=PArrayInfo(typeInfo)^.ElInfo{$ifndef VER3_0}^{$endif};
   { Process elements }
   for I:=0 to Count-1 do
     rttiproc(Data+(I*ElSize),Info);
@@ -287,7 +295,7 @@ begin
         { no elements to process => exit }
         if Count = 0 then
           Exit;
-        Info:=PArrayInfo(Temp)^.ElInfo;
+        Info:=PArrayInfo(Temp)^.ElInfo{$ifndef VER3_0}^{$endif};
         copiedsize:=Result div Count;
         Offset:=0;
         { Process elements }
@@ -312,7 +320,7 @@ begin
         { Process elements with rtti }
         for i:=1 to count Do
           begin
-            Info:=PRecordElement(Temp)^.TypeInfo;
+            Info:=PRecordElement(Temp)^.TypeInfo{$ifndef VER3_0}^{$endif};
             Offset:=PRecordElement(Temp)^.Offset;
             Inc(PRecordElement(Temp));
             if Offset>expectedoffset then

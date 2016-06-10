@@ -31,9 +31,17 @@ type
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    record
      elSize : SizeUInt;
+     {$ifdef VER3_0}
      elType2 : Pointer;
+     {$else}
+     elType2 : PPointer;
+     {$endif}
      varType : Longint;
+     {$ifdef VER3_0}
      elType : Pointer;
+     {$else}
+     elType : PPointer;
+     {$endif}
    end;
 
 procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex);[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; compilerproc;
@@ -75,7 +83,7 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
       begin
         ti:=aligntoptr(ti+2+PByte(ti)[1]);
         if assigned(pdynarraytypedata(ti)^.elType) then
-          int_finalizearray(p,pdynarraytypedata(ti)^.elType,realp^.high+1);
+          int_finalizearray(p,pdynarraytypedata(ti)^.elType{$ifndef VER3_0}^{$endif},realp^.high+1);
         freemem(realp);
       end;
     p:=nil;
@@ -141,9 +149,20 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
 
      elesize:=pdynarraytypedata(ti)^.elSize;
+     {$ifdef VER3_0}
      eletype:=pdynarraytypedata(ti)^.elType2;
+     {$else}
+     eletype:=pdynarraytypedata(ti)^.elType2^;
+     {$endif}
      { only set if type needs finalization }
+     {$ifdef VER3_0}
      eletypemngd:=pdynarraytypedata(ti)^.elType;
+     {$else}
+     if assigned(pdynarraytypedata(ti)^.elType) then
+       eletypemngd:=pdynarraytypedata(ti)^.elType^
+     else
+       eletypemngd:=nil;
+     {$endif}
 
      { determine new memory size }
      size:=elesize*dims[0]+sizeof(tdynarray);
@@ -293,7 +312,14 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
 
      elesize:=pdynarraytypedata(ti)^.elSize;
      { only set if type needs finalization }
+     {$ifdef VER3_0}
      eletype:=pdynarraytypedata(ti)^.elType;
+     {$else}
+     if assigned(pdynarraytypedata(ti)^.elType) then
+       eletype:=pdynarraytypedata(ti)^.elType^
+     else
+       eletype:=nil;
+     {$endif}
 
      { create new array }
      size:=elesize*count;

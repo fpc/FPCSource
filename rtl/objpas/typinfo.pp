@@ -23,6 +23,7 @@ unit typinfo;
 {$MODE objfpc}
 {$MODESWITCH AdvancedRecords}
 {$inline on}
+{$macro on}
 {$h+}
 
   uses SysUtils;
@@ -113,6 +114,14 @@ unit typinfo;
       PTypeInfo = ^TTypeInfo;
       PPTypeInfo = ^PTypeInfo;
 
+{ Note: these are only for backwards compatibility. New type references should
+        only use PPTypeInfo directly! }
+{$ifdef ver3_0}
+{$define TypeInfoPtr := PTypeInfo}
+{$else}
+{$define TypeInfoPtr := PPTypeInfo}
+{$endif}
+
 {$PACKRECORDS C}
       // members of TTypeData
       TArrayTypeData =
@@ -120,11 +129,18 @@ unit typinfo;
       packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+      private
+        function GetElType: PTypeInfo; inline;
+        function GetDims(aIndex: Byte): PTypeInfo; inline;
+      public
+        property ElType: PTypeInfo read GetElType;
+        property Dims[Index: Byte]: PTypeInfo read GetDims;
+      public
         Size: SizeInt;
         ElCount: SizeInt;
-        ElType: PTypeInfo;
+        ElTypeRef: TypeInfoPtr;
         DimCount: Byte;
-        Dims: array[0..255] of PTypeInfo;
+        DimsRef: array[0..255] of TypeInfoPtr;
       end;
 
       PManagedField = ^TManagedField;
@@ -133,7 +149,12 @@ unit typinfo;
       packed
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
-        TypeRef: PTypeInfo;
+      private
+        function GetTypeRef: PTypeInfo; inline;
+      public
+        property TypeRef: PTypeInfo read GetTypeRef;
+      public
+        TypeRefRef: TypeInfoPtr;
         FldOffset: SizeInt;
       end;
 
@@ -143,8 +164,13 @@ unit typinfo;
       packed
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+      private
+        function GetParamType: PTypeInfo; inline;
+      public
+        property ParamType: PTypeInfo read GetParamType;
+      public
         Flags: Byte;
-        ParamType: PTypeInfo;
+        ParamTypeRef: TypeInfoPtr;
         Name: ShortString;
       end;
 
@@ -153,9 +179,14 @@ unit typinfo;
       packed
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+      private
+        function GetResultType: PTypeInfo; inline;
+      public
+        property ResultType: PTypeInfo read GetResultType;
+      public
         Flags: Byte;
         CC: TCallConv;
-        ResultType: PTypeInfo;
+        ResultTypeRef: TypeInfoPtr;
         ParamCount: Byte;
         {Params: array[0..ParamCount - 1] of TProcedureParam;}
         function GetParam(ParamIndex: Integer): PProcedureParam;
@@ -167,6 +198,40 @@ unit typinfo;
       packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+      private
+        function GetBaseType: PTypeInfo; inline;
+        function GetCompType: PTypeInfo; inline;
+        function GetParentInfo: PTypeInfo; inline;
+        function GetHelperParent: PTypeInfo; inline;
+        function GetExtendedInfo: PTypeInfo; inline;
+        function GetIntfParent: PTypeInfo; inline;
+        function GetRawIntfParent: PTypeInfo; inline;
+        function GetElType: PTypeInfo; inline;
+        function GetElType2: PTypeInfo; inline;
+        function GetInstanceType: PTypeInfo; inline;
+        function GetRefType: PTypeInfo; inline;
+      public
+        { tkEnumeration }
+        property BaseType: PTypeInfo read GetBaseType;
+        { tkSet }
+        property CompType: PTypeInfo read GetCompType;
+        { tkClass }
+        property ParentInfo: PTypeInfo read GetParentInfo;
+        { tkHelper }
+        property HelperParent: PTypeInfo read GetHelperParent;
+        property ExtendedInfo: PTypeInfo read GetExtendedInfo;
+        { tkInterface }
+        property IntfParent: PTypeInfo read GetIntfParent;
+        { tkInterfaceRaw }
+        property RawIntfParent: PTypeInfo read GetRawIntfParent;
+        { tkDynArray }
+        property ElType2: PTypeInfo read GetElType2;
+        property ElType: PTypeInfo read GetElType;
+        { tkClassRef }
+        property InstanceType: PTypeInfo read GetInstanceType;
+        { tkPointer }
+        property RefType: PTypeInfo read GetRefType;
+      public
          case TTypeKind of
             tkUnKnown,tkLString,tkWString,tkVariant,tkUString:
               ();
@@ -180,12 +245,12 @@ unit typinfo;
                     case TTypeKind of
                       tkEnumeration:
                         (
-                        BaseType : PTypeInfo;
+                        BaseTypeRef : TypeInfoPtr;
                         NameList : ShortString;
                         {EnumUnitName: ShortString;})
                     );
                   tkSet:
-                    (CompType : PTypeInfo)
+                    (CompTypeRef : TypeInfoPtr)
               );
 {$ifndef FPUNONE}
             tkFloat:
@@ -195,7 +260,7 @@ unit typinfo;
               (MaxLength : Byte);
             tkClass:
               (ClassType : TClass;
-               ParentInfo : PTypeInfo;
+               ParentInfoRef : TypeInfoPtr;
                PropCount : SmallInt;
                UnitName : ShortString
                // here the properties follow as array of TPropInfo
@@ -207,8 +272,8 @@ unit typinfo;
                 {ManagedFields: array[1..ManagedFldCount] of TManagedField}
               );
             tkHelper:
-              (HelperParent : PTypeInfo;
-               ExtendedInfo : PTypeInfo;
+              (HelperParentRef : TypeInfoPtr;
+               ExtendedInfoRef : TypeInfoPtr;
                HelperProps : SmallInt;
                HelperUnit : ShortString
                // here the properties follow as array of TPropInfo
@@ -225,9 +290,9 @@ unit typinfo;
                   end;
               followed by
                   ResultType : ShortString     // for mkFunction, mkClassFunction only
-                  ResultTypeRef : PTypeInfo;  // for mkFunction, mkClassFunction only
+                  ResultTypeRef : PPTypeInfo;  // for mkFunction, mkClassFunction only
                   CC : TCallConv;
-                  ParamTypeRefs : array[1..ParamCount] of PTypeInfo;}
+                  ParamTypeRefs : array[1..ParamCount] of PPTypeInfo;}
               );
             tkProcVar:
               (ProcSig: TProcedureSignature);
@@ -237,7 +302,7 @@ unit typinfo;
               (MinQWordValue, MaxQWordValue: QWord);
             tkInterface:
               (
-               IntfParent: PTypeInfo;
+               IntfParentRef: TypeInfoPtr;
                IntfFlags : TIntfFlagsBase;
                GUID: TGUID;
                IntfUnit: ShortString;
@@ -245,7 +310,7 @@ unit typinfo;
               );
             tkInterfaceRaw:
               (
-               RawIntfParent: PTypeInfo;
+               RawIntfParentRef: TypeInfoPtr;
                RawIntfFlags : TIntfFlagsBase;
                IID: TGUID;
                RawIntfUnit: ShortString;
@@ -257,15 +322,15 @@ unit typinfo;
             tkDynArray:
               (
               elSize     : PtrUInt;
-              elType2    : PTypeInfo;
+              elType2Ref : TypeInfoPtr;
               varType    : Longint;
-              elType     : PTypeInfo;
+              elTypeRef  : TypeInfoPtr;
               DynUnitName: ShortStringBase
               );
             tkClassRef:
-              (InstanceType: PTypeInfo);
+              (InstanceTypeRef: TypeInfoPtr);
             tkPointer:
-              (RefType: PTypeInfo);
+              (RefTypeRef: TypeInfoPtr);
       end;
 
       TPropData =
@@ -280,7 +345,10 @@ unit typinfo;
 
       PPropInfo = ^TPropInfo;
       TPropInfo = packed record
-        PropType : PTypeInfo;
+      private
+        function GetPropType: PTypeInfo; inline;
+      public
+        PropTypeRef : TypeInfoPtr;
         GetProc : CodePointer;
         SetProc : CodePointer;
         StoredProc : CodePointer;
@@ -296,6 +364,7 @@ unit typinfo;
         PropProcs : Byte;
 
         Name : ShortString;
+        property PropType: PTypeInfo read GetPropType;
       end;
 
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
@@ -452,6 +521,9 @@ Const
   OnGetVariantprop : TGetVariantProp = Nil;
   OnSetVariantprop : TSetVariantProp = Nil;
 
+{ for inlining }
+function DerefTypeInfoPtr(Info: TypeInfoPtr): PTypeInfo; inline;
+
 Implementation
 
 uses rtlconsts;
@@ -471,6 +543,19 @@ function aligntoptr(p : pointer) : pointer;inline;
      result:=p;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    end;
+
+
+function DerefTypeInfoPtr(Info: TypeInfoPtr): PTypeInfo; inline;
+begin
+{$ifdef ver3_0}
+  Result := Info;
+{$else}
+  if not Assigned(Info) then
+    Result := Nil
+  else
+    Result := Info^;
+{$endif}
+end;
 
 
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
@@ -2068,7 +2153,38 @@ begin
   Result:=IsStoredProp(instance,FindPropInfo(Instance,PropName));
 end;
 
+{ TProcedureParam }
+
+function TProcedureParam.GetParamType: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(ParamTypeRef);
+end;
+
+{ TManagedField }
+
+function TManagedField.GetTypeRef: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(TypeRefRef);
+end;
+
+{ TArrayTypeData }
+
+function TArrayTypeData.GetElType: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(ElTypeRef);
+end;
+
+function TArrayTypeData.GetDims(aIndex: Byte): PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(DimsRef[aIndex]);
+end;
+
 { TProcedureSignature }
+
+function TProcedureSignature.GetResultType: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(ResultTypeRef);
+end;
 
 function TProcedureSignature.GetParam(ParamIndex: Integer): PProcedureParam;
 begin
@@ -2080,6 +2196,70 @@ begin
       Result := PProcedureParam(aligntoptr((PByte(@Result^.Name) + (Length(Result^.Name) + 1) * SizeOf(AnsiChar))));
       dec(ParamIndex);
     end;
+end;
+
+{ TTypeData }
+
+function TTypeData.GetBaseType: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(BaseTypeRef);
+end;
+
+function TTypeData.GetCompType: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(CompTypeRef);
+end;
+
+function TTypeData.GetParentInfo: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(ParentInfoRef);
+end;
+
+function TTypeData.GetHelperParent: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(HelperParentRef);
+end;
+
+function TTypeData.GetExtendedInfo: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(ExtendedInfoRef);
+end;
+
+function TTypeData.GetIntfParent: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(IntfParentRef);
+end;
+
+function TTypeData.GetRawIntfParent: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(RawIntfParentRef);
+end;
+
+function TTypeData.GetElType: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(elTypeRef);
+end;
+
+function TTypeData.GetElType2: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(elType2Ref);
+end;
+
+function TTypeData.GetInstanceType: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(InstanceTypeRef);
+end;
+
+function TTypeData.GetRefType: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(RefTypeRef);
+end;
+
+{ TPropInfo }
+
+function TPropInfo.GetPropType: PTypeInfo;
+begin
+  Result := DerefTypeInfoPtr(PropTypeRef);
 end;
 
 end.

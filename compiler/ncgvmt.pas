@@ -1170,10 +1170,10 @@ implementation
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
             { pointer to type info of published section }
-            tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,fullrtti)),voidpointertype);
+            tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,fullrtti,false)),voidpointertype);
             { inittable for con-/destruction }
             if _class.members_need_inittable then
-              tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,initrtti)),voidpointertype)
+              tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,initrtti,false)),voidpointertype)
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
             { auto table }
