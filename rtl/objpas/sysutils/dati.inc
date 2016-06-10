@@ -167,7 +167,7 @@ begin
     if Date>MaxDateTime then
       Date:=MaxDateTime;
 //       Raise EConvertError.CreateFmt('%f is not a valid TDatetime encoding, maximum value is %f.',[Date,MaxDateTime]);
-    j := pred((Trunc(System.Int(Date)) + 693900) SHL 2);
+    j := pred((longint(Trunc(System.Int(Date))) + 693900) SHL 2);
     ly:= j DIV 146097;
     j:= j - 146097 * cardinal(ly);
     ld := j SHR 2;
