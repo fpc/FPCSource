@@ -69,6 +69,7 @@ implementation
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
       procedure LoadPredefinedLibraryOrder; override;
+      procedure InitSysInitUnitName; override;
     end;
 
 
@@ -224,6 +225,15 @@ else
           LinkLibraryOrder.add('c','',50);
    end;
 End;
+
+
+procedure TLinkerBSD.InitSysInitUnitName;
+begin
+  if target_info.system in systems_darwin then
+    SysInitUnit:='sysinit'
+  else
+    inherited InitSysInitUnitName;
+end;
 
 
 function TLinkerBSD.GetDarwinCrt1ObjName(isdll: boolean): TCmdStr;

@@ -32,7 +32,6 @@ Interface
 {$define FPC_USE_SYSCALL}
 {$endif}
 
-
 {$define FPC_IS_SYSTEM}
 
 {$I sysunixh.inc}
@@ -77,7 +76,22 @@ Implementation
 {$endif defined(CPUARM) or defined(CPUM68K)}
 
 
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
+procedure OsSetupEntryInformation(const info: TEntryInformation); forward;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
 {$I system.inc}
+
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+procedure OsSetupEntryInformation(const info: TEntryInformation);
+begin
+  argc := info.OS.argc;
+  argv := info.OS.argv;
+  envp := info.OS.envp;
+  initialstklen := info.OS.stklen;
+end;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 
 {$ifdef FPC_HAS_SETSYSNR_INC}
 {$I setsysnr.inc}
@@ -296,6 +310,19 @@ end;
 
 {$ifdef Darwin}
 
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
+procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
+begin
+  SetupEntryInformation(info);
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);
+{$endif cpui386}
+  info.PascalMain();
+end;
+
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
 procedure pascalmain;external name '_PASCALMAIN';
 
 procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
@@ -309,6 +336,7 @@ begin
 {$endif cpui386}
   pascalmain;  {run the pascal main program}
 end;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 {$endif Darwin}
 {$endif FPC_USE_LIBC}
 

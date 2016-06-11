@@ -318,11 +318,14 @@ interface
        { all systems that reference symbols in other binaries using indirect imports }
        systems_indirect_var_imports = systems_all_windows+[system_i386_nativent];
 
+       { all systems that support indirect entry information }
+       systems_indirect_entry_information = systems_darwin;
+
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
 
        systems_internal_sysinit = [system_i386_linux,system_i386_win32,
-                                   system_powerpc64_linux];
+                                   system_powerpc64_linux]+systems_darwin;
 
        { all systems that use garbage collection for reference-counted types }
        systems_garbage_collected_managed_types = [
