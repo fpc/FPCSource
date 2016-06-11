@@ -114,7 +114,7 @@ var
   FPCSysInstance : PLongint;public name '_FPC_SysInstance';
 
 {$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
-procedure OsSetupEntryInformation(const info: TEntryInformation); forward;
+procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
 
 {$ifdef FPC_USE_WIN32_SEH}
 function main_wrapper(arg: Pointer; proc: Pointer): ptrint; forward;
@@ -133,7 +133,7 @@ end;
 { include code common with win64 }
 {$I syswin.inc}
 
-procedure OsSetupEntryInformation(const info: TEntryInformation);
+procedure OsSetupEntryInformation(constref info: TEntryInformation);
 begin
   TlsKey := info.OS.TlsKeyAddr;
   FPCSysInstance := info.OS.SysInstance;
@@ -191,7 +191,7 @@ var
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
 
-procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entry'];
+procedure Exe_entry(constref info : TEntryInformation);[public,alias:'_FPC_EXE_Entry'];
   var
     xframe: TEXCEPTION_FRAME;
   begin

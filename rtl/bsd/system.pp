@@ -78,13 +78,13 @@ Implementation
 
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
-procedure OsSetupEntryInformation(const info: TEntryInformation); forward;
+procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 {$I system.inc}
 
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
-procedure OsSetupEntryInformation(const info: TEntryInformation);
+procedure OsSetupEntryInformation(constref info: TEntryInformation);
 begin
   argc := info.OS.argc;
   argv := info.OS.argv;

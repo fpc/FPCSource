@@ -356,7 +356,7 @@ Var
   DLLInitState : Longint = -1;
   DLLBuf : Jmp_buf;
 
-function Dll_entry{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
+function Dll_entry{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}(constref info : TEntryInformation){$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
   begin
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
      SetupEntryInformation(info);

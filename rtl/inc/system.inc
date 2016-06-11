@@ -121,7 +121,7 @@ var
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
-procedure SetupEntryInformation(const info: TEntryInformation);[public,alias:'_FPC_SetupEntryInformation'];
+procedure SetupEntryInformation(constref info: TEntryInformation);[public,alias:'_FPC_SetupEntryInformation'];
 begin
   EntryInformation := info;
   FPCResStrInitTables := info.ResStrInitTables;

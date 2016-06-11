@@ -42,8 +42,8 @@
       tls_callback: pointer; external name '__FPC_tls_callbacks';
 {$endif FPC_USE_TLS_DIRECTORY}
 
-    procedure EXE_Entry(const info : TEntryInformation); external name '_FPC_EXE_Entry';
-    function DLL_Entry(const info : TEntryInformation) : longbool; external name '_FPC_DLL_Entry';
+    procedure EXE_Entry(constref info : TEntryInformation); external name '_FPC_EXE_Entry';
+    function DLL_Entry(constref info : TEntryInformation) : longbool; external name '_FPC_DLL_Entry';
     procedure PascalMain;external name 'PASCALMAIN';
 
     function GetStdHandle(nStdHandle:DWORD) : THandle; stdcall; external 'kernel32' name 'GetStdHandle';

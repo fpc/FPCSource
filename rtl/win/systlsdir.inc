@@ -52,7 +52,7 @@ procedure SysAllocateThreadVars; external name '_FPC_SysAllocateThreadVars';
 procedure InitHeap; external name '_FPC_InitHeap';
 
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
-procedure SetupEntryInformation(const info: TEntryInformation); external name '_FPC_SetupEntryInformation';
+procedure SetupEntryInformation(constref info: TEntryInformation); external name '_FPC_SetupEntryInformation';
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 {$endif FPC_INSSIDE_SYSINIT}
