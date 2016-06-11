@@ -20,7 +20,7 @@ unit testexprpars;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry,fpexprpars;
+  Classes, SysUtils, fpcunit, testutils, testregistry, fpexprpars;
 
 type
 
@@ -701,6 +701,12 @@ type
   TTestParserVariables = Class(TTestExpressionParser)
   private
     FAsWrongType : TResultType;
+    FEventName: String;
+    FBoolValue : Boolean;
+    FTest33 : TFPExprIdentifierDef;
+    procedure DoGetBooleanVar(var Res: TFPExpressionResult; ConstRef AName: ShortString);
+    procedure DoGetBooleanVarWrong(var Res: TFPExpressionResult; ConstRef AName: ShortString);
+    procedure DoTestVariable33;
     procedure TestAccess(Skip: TResultType);
   Protected
     procedure AddVariabletwice;
@@ -741,6 +747,10 @@ type
     procedure TestVariable28;
     procedure TestVariable29;
     procedure TestVariable30;
+    procedure TestVariable31;
+    procedure TestVariable32;
+    procedure TestVariable33;
+    procedure TestVariable34;
   end;
 
   { TTestParserFunctions }
@@ -4194,6 +4204,114 @@ begin
   I:=FP.Identifiers.AddBooleanVariable('a',True);
   I.AsBoolean:=False;
   AssertEquals('Correct value',False,I.AsBoolean);
+end;
+
+procedure TTestParserVariables.DoGetBooleanVar(var Res: TFPExpressionResult;
+  ConstRef AName: ShortString);
+
+begin
+  FEventName:=AName;
+  Res.ResBoolean:=FBoolValue;
+end;
+
+procedure TTestParserVariables.TestVariable31;
+
+Var
+  I : TFPExprIdentifierDef;
+
+begin
+  I:=FP.Identifiers.AddVariable('a',rtBoolean,@DoGetBooleanVar);
+  AssertEquals('Correct name','a',i.Name);
+  AssertEquals('Correct type',Ord(rtBoolean),Ord(i.ResultType));
+  AssertSame(TMethod(I.OnGetVariableValue).Code,TMethod(@DoGetBooleanVar).Code);
+  FBoolValue:=True;
+  FEventName:='';
+  AssertEquals('Correct value 1',True,I.AsBoolean);
+  AssertEquals('Correct name passed','a',FEventName);
+  FBoolValue:=False;
+  FEventName:='';
+  AssertEquals('Correct value 2',False,I.AsBoolean);
+  AssertEquals('Correct name passed','a',FEventName);
+end;
+
+Var
+  FVarCallBackName:String;
+  FVarBoolValue : Boolean;
+
+procedure DoGetBooleanVar2(var Res: TFPExpressionResult; ConstRef AName: ShortString);
+
+begin
+  FVarCallBackName:=AName;
+  Res.ResBoolean:=FVarBoolValue;
+end;
+
+procedure TTestParserVariables.DoGetBooleanVarWrong(var Res: TFPExpressionResult; ConstRef AName: ShortString);
+
+begin
+  FEventName:=AName;
+  Res.ResultType:=rtInteger;
+  Res.ResInteger:=33;
+end;
+
+procedure TTestParserVariables.TestVariable32;
+Var
+  I : TFPExprIdentifierDef;
+
+begin
+  I:=FP.Identifiers.AddVariable('a',rtBoolean,@DoGetBooleanVar2);
+  AssertEquals('Correct name','a',i.Name);
+  AssertEquals('Correct type',Ord(rtBoolean),Ord(i.ResultType));
+  AssertSame(I.OnGetVariableValueCallBack,@DoGetBooleanVar2);
+  FVarBoolValue:=True;
+  FVarCallBackName:='';
+  AssertEquals('Correct value 1',True,I.AsBoolean);
+  AssertEquals('Correct name passed','a',FVarCallBackName);
+  FVarBoolValue:=False;
+  FVarCallBackName:='';
+  AssertEquals('Correct value 2',False,I.AsBoolean);
+  AssertEquals('Correct name passed','a',FVarCallBackName);
+end;
+
+procedure TTestParserVariables.DoTestVariable33;
+
+Var
+  B : Boolean;
+
+begin
+  B:=FTest33.AsBoolean;
+end;
+
+procedure TTestParserVariables.TestVariable33;
+
+Var
+  I : TFPExprIdentifierDef;
+
+begin
+  I:=FP.Identifiers.AddVariable('a',rtBoolean,@DoGetBooleanVarWrong);
+  FTest33:=I;
+  AssertException('Changing type results in exception',EExprParser,@DoTestVariable33);
+  AssertEquals('Type is unchanged',Ord(rtBoolean),Ord(i.ResultType));
+end;
+
+
+procedure DoGetBooleanVar2Wrong(var Res: TFPExpressionResult; ConstRef AName: ShortString);
+
+begin
+  FVarCallBackName:=AName;
+  Res.ResultType:=rtInteger;
+  Res.ResInteger:=34;
+end;
+
+procedure TTestParserVariables.TestVariable34;
+
+Var
+  I : TFPExprIdentifierDef;
+
+begin
+  I:=FP.Identifiers.AddVariable('a',rtBoolean,@DoGetBooleanVar2Wrong);
+  FTest33:=I;
+  AssertException('Changing type results in exception',EExprParser,@DoTestVariable33);
+  AssertEquals('Type is unchanged',Ord(rtBoolean),Ord(i.ResultType));
 end;
 
 

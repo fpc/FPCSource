@@ -404,11 +404,15 @@ Type
   TIdentifierType = (itVariable,itFunctionCallBack,itFunctionHandler);
   TFPExprFunctionCallBack = Procedure (Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
   TFPExprFunctionEvent = Procedure (Var Result : TFPExpressionResult; Const Args : TExprParameterArray) of object;
+  TFPExprVariableCallBack = Procedure (Var Result : TFPExpressionResult; ConstRef AName : ShortString);
+  TFPExprVariableEvent = Procedure (Var Result : TFPExpressionResult; ConstRef AName : ShortString) of Object;
 
   { TFPExprIdentifierDef }
 
   TFPExprIdentifierDef = Class(TCollectionItem)
   private
+    FOnGetVarValue: TFPExprVariableEvent;
+    FOnGetVarValueCB: TFPExprVariableCallBack;
     FStringValue : String;
     FValue : TFPExpressionResult;
     FArgumentTypes: String;
@@ -435,15 +439,18 @@ Type
   Protected
     Procedure CheckResultType(Const AType : TResultType);
     Procedure CheckVariable;
+    Procedure FetchValue;
   Public
     Function ArgumentCount : Integer;
     Procedure Assign(Source : TPersistent); override;
+    Function EventBasedVariable : Boolean; Inline;
     Property AsFloat : TExprFloat Read GetAsFloat Write SetAsFloat;
     Property AsInteger : Int64 Read GetAsInteger Write SetAsInteger;
     Property AsString : String Read GetAsString Write SetAsString;
     Property AsBoolean : Boolean Read GetAsBoolean Write SetAsBoolean;
     Property AsDateTime : TDateTime Read GetAsDateTime Write SetAsDateTime;
     Property OnGetFunctionValueCallBack : TFPExprFunctionCallBack Read FOnGetValueCB Write FOnGetValueCB;
+    Property OnGetVariableValueCallBack : TFPExprVariableCallBack Read FOnGetVarValueCB Write FOnGetVarValueCB;
   Published
     Property IdentifierType : TIdentifierType Read FIDType Write FIDType;
     Property Name : ShortString Read FName Write SetName;
@@ -451,6 +458,7 @@ Type
     Property ParameterTypes : String Read FArgumentTypes Write SetArgumentTypes;
     Property ResultType : TResultType Read GetResultType Write SetResultType;
     Property OnGetFunctionValue : TFPExprFunctionEvent Read FOnGetValue Write FOnGetValue;
+    Property OnGetVariableValue : TFPExprVariableEvent Read FOnGetVarValue Write FOnGetVarValue;
   end;
 
 
@@ -482,6 +490,8 @@ Type
     Function IndexOfIdentifier(Const AName : ShortString) : Integer;
     Function FindIdentifier(Const AName : ShortString) : TFPExprIdentifierDef;
     Function IdentifierByName(Const AName : ShortString) : TFPExprIdentifierDef;
+    Function AddVariable(Const AName : ShortString; AResultType : TResultType; ACallback : TFPExprVariableCallBack) : TFPExprIdentifierDef;
+    Function AddVariable(Const AName : ShortString; AResultType : TResultType; ACallback : TFPExprVariableEvent) : TFPExprIdentifierDef;
     Function AddVariable(Const AName : ShortString; AResultType : TResultType; AValue : String) : TFPExprIdentifierDef;
     Function AddBooleanVariable(Const AName : ShortString; AValue : Boolean) : TFPExprIdentifierDef;
     Function AddIntegerVariable(Const AName : ShortString; AValue : Integer) : TFPExprIdentifierDef;
@@ -1601,7 +1611,29 @@ begin
     RaiseParserError(SErrUnknownIdentifier,[AName]);
 end;
 
-function TFPExprIdentifierDefs.AddVariable(Const AName: ShortString;
+function TFPExprIdentifierDefs.AddVariable(const AName: ShortString;
+  AResultType: TResultType; ACallback: TFPExprVariableCallBack
+  ): TFPExprIdentifierDef;
+begin
+  Result:=Add as TFPExprIdentifierDef;
+  Result.IdentifierType:=itVariable;
+  Result.Name:=AName;
+  Result.ResultType:=AResultType;
+  Result.OnGetVariableValueCallBack:=ACallBack
+end;
+
+function TFPExprIdentifierDefs.AddVariable(const AName: ShortString;
+  AResultType: TResultType; ACallback: TFPExprVariableEvent
+  ): TFPExprIdentifierDef;
+begin
+  Result:=Add as TFPExprIdentifierDef;
+  Result.IdentifierType:=itVariable;
+  Result.Name:=AName;
+  Result.ResultType:=AResultType;
+  Result.OnGetVariableValue:=ACallBack
+end;
+
+function TFPExprIdentifierDefs.AddVariable(const AName: ShortString;
   AResultType: TResultType; AValue: String): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
@@ -1611,8 +1643,8 @@ begin
   Result.Value:=AValue;
 end;
 
-function TFPExprIdentifierDefs.AddBooleanVariable(Const AName: ShortString; AValue: Boolean
-  ): TFPExprIdentifierDef;
+function TFPExprIdentifierDefs.AddBooleanVariable(const AName: ShortString;
+  AValue: Boolean): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -1621,8 +1653,8 @@ begin
   Result.FValue.ResBoolean:=AValue;
 end;
 
-function TFPExprIdentifierDefs.AddIntegerVariable(Const AName: ShortString; AValue: Integer
-  ): TFPExprIdentifierDef;
+function TFPExprIdentifierDefs.AddIntegerVariable(const AName: ShortString;
+  AValue: Integer): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -1631,8 +1663,8 @@ begin
   Result.FValue.ResInteger:=AValue;
 end;
 
-function TFPExprIdentifierDefs.AddFloatVariable(Const AName: ShortString; AValue: TExprFloat
-  ): TFPExprIdentifierDef;
+function TFPExprIdentifierDefs.AddFloatVariable(const AName: ShortString;
+  AValue: TExprFloat): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -1641,8 +1673,8 @@ begin
   Result.FValue.ResFloat:=AValue;
 end;
 
-function TFPExprIdentifierDefs.AddStringVariable(Const AName: ShortString; AValue: String
-  ): TFPExprIdentifierDef;
+function TFPExprIdentifierDefs.AddStringVariable(const AName: ShortString;
+  AValue: String): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -1651,8 +1683,8 @@ begin
   Result.FValue.ResString:=AValue;
 end;
 
-function TFPExprIdentifierDefs.AddDateTimeVariable(Const AName: ShortString; AValue: TDateTime
-  ): TFPExprIdentifierDef;
+function TFPExprIdentifierDefs.AddDateTimeVariable(const AName: ShortString;
+  AValue: TDateTime): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -1739,6 +1771,8 @@ procedure TFPExprIdentifierDef.CheckVariable;
 begin
   If Identifiertype<>itvariable then
     RaiseParserError(SErrNotVariable,[Name]);
+  if EventBasedVariable then
+    FetchValue;
 end;
 
 function TFPExprIdentifierDef.ArgumentCount: Integer;
@@ -1762,6 +1796,8 @@ begin
     FName:=EID.FName;
     FOnGetValue:=EID.FOnGetValue;
     FOnGetValueCB:=EID.FOnGetValueCB;
+    FOnGetVarValue:=EID.FOnGetVarValue;
+    FOnGetVarValueCB:=EID.FOnGetVarValueCB;
     end
   else
     inherited Assign(Source);
@@ -1826,6 +1862,35 @@ begin
     rtDateTime : Result:=FormatDateTime('cccc',FValue.ResDateTime);
     rtString   : Result:=FValue.ResString;
   end;
+end;
+
+procedure TFPExprIdentifierDef.FetchValue;
+
+Var
+  RT,RT2 : TResultType;
+
+begin
+  RT:=FValue.ResultType;
+  if Assigned(FOnGetVarValue) then
+    FOnGetVarValue(FValue,FName)
+  else
+    FOnGetVarValueCB(FValue,FName);
+  RT2:=FValue.ResultType;
+  if RT2<>RT then
+    begin
+    // Restore
+    FValue.ResultType:=RT;
+    Raise EExprParser.CreateFmt('Value handler for variable %s returned wrong type, expected "%s", got "%s"',[
+      FName,
+      GetEnumName(TypeInfo(TResultType),Ord(rt)),
+      GetEnumName(TypeInfo(TResultType),Ord(rt2))
+    ]);
+    end;
+end;
+
+function TFPExprIdentifierDef.EventBasedVariable: Boolean;
+begin
+  Result:=Assigned(FOnGetVarValue) or Assigned(FOnGetVarValueCB);
 end;
 
 function TFPExprIdentifierDef.GetResultType: TResultType;
