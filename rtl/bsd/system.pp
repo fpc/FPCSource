@@ -76,14 +76,14 @@ Implementation
 {$endif defined(CPUARM) or defined(CPUM68K)}
 
 
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
 procedure OsSetupEntryInformation(const info: TEntryInformation); forward;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 {$I system.inc}
 
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 procedure OsSetupEntryInformation(const info: TEntryInformation);
 begin
   argc := info.OS.argc;
@@ -91,7 +91,7 @@ begin
   envp := info.OS.envp;
   initialstklen := info.OS.stklen;
 end;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 {$ifdef FPC_HAS_SETSYSNR_INC}
 {$I setsysnr.inc}
@@ -310,7 +310,7 @@ end;
 
 {$ifdef Darwin}
 
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
 begin
@@ -321,7 +321,7 @@ begin
   info.PascalMain();
 end;
 
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 procedure pascalmain;external name '_PASCALMAIN';
 
@@ -336,7 +336,7 @@ begin
 {$endif cpui386}
   pascalmain;  {run the pascal main program}
 end;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$endif Darwin}
 {$endif FPC_USE_LIBC}
 

@@ -23,7 +23,7 @@
 {$ifdef FPC_INSSIDE_SYSINIT}
 
 {$ifdef win32}
-{$define FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$define FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$endif win32}
 
 Const
@@ -51,9 +51,9 @@ procedure InitSystemThreads; external name '_FPC_InitSystemThreads';
 procedure SysAllocateThreadVars; external name '_FPC_SysAllocateThreadVars';
 procedure InitHeap; external name '_FPC_InitHeap';
 
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 procedure SetupEntryInformation(const info: TEntryInformation); external name '_FPC_SetupEntryInformation';
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 {$endif FPC_INSSIDE_SYSINIT}
 
@@ -77,12 +77,12 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
          and the EntryInformation is a constant which sholud prevent troubles }
        DLL_PROCESS_ATTACH:
          begin
-           {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+           {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
            { since this procedure is called before SetupEntryInformation and thus
              before EXE_Entry we need to setup the entry information here so that
              the threadvar handling can be correctly initialized }
            SetupEntryInformation(SysInitEntryInformation);
-           {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+           {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
            InitHeap;
            InitSystemThreads;
          end;

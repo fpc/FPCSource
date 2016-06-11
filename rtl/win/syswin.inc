@@ -356,11 +356,11 @@ Var
   DLLInitState : Longint = -1;
   DLLBuf : Jmp_buf;
 
-function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
+function Dll_entry{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
   begin
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
      SetupEntryInformation(info);
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
      IsLibrary:=true;
      DllInitState:=DLLreason;
      Dll_entry:=false;  { return value is ignored, except when DLLreason=DLL_PROCESS_ATTACH }
@@ -371,11 +371,11 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
 
            If SetJmp(DLLBuf) = 0 then
              begin
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
                EntryInformation.PascalMain();
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
                PascalMain;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
                Dll_entry:=true;
              end
            else
@@ -660,12 +660,12 @@ type
   end;
 
 var
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   WStrInitTablesTable: PWStrInitTablesTable;
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   WStrInitTablesTableVar: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
   WStrInitTablesTable: PWStrInitTablesTable = @WStrInitTablesTableVar;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 function GetACP:UINT; stdcall; external 'kernel32' name 'GetACP';
 function GetConsoleCP:UINT; stdcall; external 'kernel32' name 'GetConsoleCP';

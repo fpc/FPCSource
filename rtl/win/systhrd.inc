@@ -94,12 +94,12 @@ var
     var
       // public names are used by heaptrc unit
       threadvarblocksize : dword; public name '_FPC_TlsSize';
-      {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+      {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
       TLSKey : PDword = nil; public name '_FPC_TlsKey';
-      {$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+      {$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
       TLSKeyVar : DWord = $ffffffff;
       TLSKey : PDWord = @TLSKeyVar; public name '_FPC_TlsKey';
-      {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+      {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
     var
       MainThreadIdWin32 : DWORD;

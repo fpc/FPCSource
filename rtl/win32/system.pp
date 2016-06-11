@@ -20,7 +20,7 @@ interface
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
 
-{$define FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$define FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 {$ifdef cpui386}
   {$define Set_i386_Exception_handler}

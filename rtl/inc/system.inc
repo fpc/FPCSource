@@ -98,29 +98,29 @@ var
 {$ifndef FPC_NO_GENERIC_STACK_CHECK}
   { if the OS does the stack checking, we don't need any stklen from the
     main program }
-  initialstklen : SizeUint{$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}; external name '__stklen';{$else} = 0;{$endif}
+  initialstklen : SizeUint{$ifndef FPC_HAS_INDIRECT_ENTRY_INFORMATION}; external name '__stklen';{$else} = 0;{$endif}
 {$endif FPC_NO_GENERIC_STACK_CHECK}
 
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   EntryInformation: TEntryInformation;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 var
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$ifdef FPC_HAS_RESSTRINITS}
   FPCResStrInitTables : Pointer;public name '_FPC_ResStrInitTables';
 {$endif FPC_HAS_RESSTRINITS}
   FPCResourceStringTables : Pointer;public name '_FPC_ResourceStringTables';
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$ifdef FPC_HAS_RESSTRINITS}
   FPCResStrInitTablesVar : record end; external name 'FPC_RESSTRINITTABLES';
   FPCResStrInitTables : Pointer = @FPCResStrInitTablesVar;public name '_FPC_ResStrInitTables';
 {$endif FPC_HAS_RESSTRINITS}
   FPCResourceStringTablesVar : record end; External Name 'FPC_RESOURCESTRINGTABLES';
   FPCResourceStringTables : Pointer = @FPCResourceStringTablesVar;public name '_FPC_ResourceStringTables';
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 procedure SetupEntryInformation(const info: TEntryInformation);[public,alias:'_FPC_SetupEntryInformation'];
 begin
   EntryInformation := info;
@@ -130,7 +130,7 @@ begin
   OSSetupEntryInformation(info);
 {$endif FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
 end;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 { checks whether the given suggested size for the stack of the current
  thread is acceptable. If this is the case, returns it unaltered.
@@ -872,10 +872,10 @@ type
   PInitFinalTable = ^TInitFinalTable;
 
 
-{$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifndef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 var
   InitFinalTable : TInitFinalTable;external name 'INITFINAL';
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
@@ -887,17 +887,17 @@ var
 begin
   { call cpu/fpu initialisation routine }
   fpc_cpuinit;
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$ifdef DEBUG}
   pt := PInitFinalTable(EntryInformation.InitFinalTable);
 {$endif}
   with PInitFinalTable(EntryInformation.InitFinalTable)^ do
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$ifdef DEBUG}
   pt := @InitFinalTable;
 {$endif}
   with InitFinalTable do
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
    begin
      for i:=1 to ALUUInt(TableCount) do
       begin
@@ -930,11 +930,11 @@ procedure FinalizeUnits; external name 'FPC_FINALIZE_FUNC_TABLE';
 {$else CPUAVR}
 procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
 begin
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with PInitFinalTable(EntryInformation.InitFinalTable)^ do
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with InitFinalTable do
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
    begin
      while (InitCount>0) do
       begin

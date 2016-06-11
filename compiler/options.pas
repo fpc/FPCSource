@@ -4072,7 +4072,7 @@ begin
   set_system_macro('FPC_FULLVERSION',Format('%d%.02d%.02d',[StrToInt(version_nr),StrToInt(release_nr),StrToInt(patch_nr)]));
 
   if target_info.system in systems_indirect_entry_information then
-    def_system_macro('FPC_HAS_INDIRECT_MAIN_INFORMATION');
+    def_system_macro('FPC_HAS_INDIRECT_ENTRY_INFORMATION');
 
   if not (tf_winlikewidestring in target_info.flags) then
     def_system_macro('FPC_WIDESTRING_EQUAL_UNICODESTRING');

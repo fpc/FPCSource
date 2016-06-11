@@ -33,10 +33,10 @@ type
   end;
   PltvInitTablesTable = ^TltvInitTablesTable;
 
-{$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifndef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 var
   ThreadvarTablesTable : TltvInitTablesTable; external name 'FPC_THREADVARTABLES';
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 procedure init_unit_threadvars (tableEntry : pltvInitEntry);
 begin
@@ -52,11 +52,11 @@ procedure init_all_unit_threadvars;
 var
   i : longint;
 begin
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with PltvInitTablesTable(EntryInformation.ThreadvarTablesTable)^ do
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with ThreadvarTablesTable do
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   begin
 {$ifdef DEBUG_MT}
     WriteLn ('init_all_unit_threadvars (',count,') units');
@@ -86,11 +86,11 @@ procedure copy_all_unit_threadvars;
 var
   i: longint;
 begin
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with PltvInitTablesTable(EntryInformation.ThreadvarTablesTable)^ do
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with ThreadvarTablesTable do
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   begin
 {$ifdef DEBUG_MT}
     WriteLn ('copy_all_unit_threadvars (',count,') units');

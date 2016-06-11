@@ -875,10 +875,10 @@ type
   PInitFinalTable = ^TInitFinalTable;
 
 
-{$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifndef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 var
   InitFinalTable : TInitFinalTable;external name 'INITFINAL';
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
@@ -890,17 +890,17 @@ var
 begin
   { call cpu/fpu initialisation routine }
   fpc_cpuinit;
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$ifdef DEBUG}
   pt := PInitFinalTable(EntryInformation.InitFinalTable);
 {$endif}
   with PInitFinalTable(EntryInformation.InitFinalTable)^ do
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$ifdef DEBUG}
   pt := @InitFinalTable;
 {$endif}
   with InitFinalTable do
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
    begin
      for i:=1 to TableCount do
       begin
@@ -929,11 +929,11 @@ end;
 
 procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
 begin
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with PInitFinalTable(EntryInformation.InitFinalTable)^ do
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with InitFinalTable do
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
    begin
      while (InitCount>0) do
       begin
