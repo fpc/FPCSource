@@ -786,6 +786,7 @@ unit aoptx86;
                 else if (taicpu(p).oper[1]^.typ=top_ref) and
                   OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
                   begin
+                    AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,UsedRegs);
                     taicpu(hp1).loadreg(0,taicpu(p).oper[0]^.reg);
                     DebugMsg('PeepHole Optimization,MovMov2MovMov1',p);
                   end
