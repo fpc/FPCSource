@@ -108,6 +108,7 @@ interface
             if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
                (ressize<leftsize) then
               begin
+                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef),cpointerdef.getreusable(resultdef),location.reference);
                 location.size:=newsize;
                 if (target_info.endian = ENDIAN_BIG) then
                   begin
@@ -115,7 +116,7 @@ interface
                     location.reference.alignment:=newalignment(location.reference.alignment,leftsize-ressize);
                   end;
               end
-{$if not defined(cpu16bitalu) and not defined(cpu8bitalu) and not defined(m68k)}
+{$if not defined(cpu16bitalu) and not defined(cpu8bitalu) and not defined(m68k) and not defined(cpuhighleveltarget)}
             { FIXME: reg_cgsize incorrectly identifies m68k as "without subregisters" }
             { On targets without 8/16 bit register components, 8/16-bit operations
               always adjust high bits of result, see 'maybeadjustresult' method in
@@ -149,7 +150,14 @@ interface
                 location.register := cg.getintregister(current_asmdata.CurrAsmList,newsize);
                 location.loc := LOC_REGISTER;
                 hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
-              end;
+              end
+            else if location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef),cpointerdef.getreusable(resultdef),location.reference)
+{$ifdef cpuhighleveltarget}
+            { high level targets require the types to be correct in all cases }
+            else if left.resultdef<>resultdef then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,false);
+{$endif cpuhighleveltarget}
           end;
       end;
 

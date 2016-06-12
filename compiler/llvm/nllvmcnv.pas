@@ -37,7 +37,7 @@ interface
           function first_int_to_real: tnode; override;
           function first_int_to_bool: tnode; override;
           function first_nil_to_methodprocvar: tnode; override;
-          procedure second_int_to_int;override;
+         { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
          { procedure second_string_to_chararray;override; }
@@ -111,32 +111,6 @@ function tllvmtypeconvnode.first_nil_to_methodprocvar: tnode;
     if assigned(result) then
       exit;
     expectloc:=LOC_REFERENCE;
-  end;
-
-
-procedure tllvmtypeconvnode.second_int_to_int;
-  var
-    fromsize, tosize: tcgint;
-    hreg: tregister;
-  begin
-    if not(nf_explicit in flags) then
-      hlcg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
-    fromsize:=left.resultdef.size;
-    tosize:=resultdef.size;
-    location_copy(location,left.location);
-    if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) or
-       ((fromsize<>tosize) and
-        not is_void(left.resultdef)) then
-      begin
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,left.location.loc=LOC_CREGISTER);
-      end
-    else if left.resultdef<>resultdef then
-      begin
-        { just typecast the pointer type }
-        hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
-        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),left.location.reference,hreg);
-        hlcg.reference_reset_base(location.reference,cpointerdef.getreusable(resultdef),hreg,0,location.reference.alignment);
-      end;
   end;
 
 
