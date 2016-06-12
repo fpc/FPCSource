@@ -4077,6 +4077,12 @@ begin
   if not (tf_winlikewidestring in target_info.flags) then
     def_system_macro('FPC_WIDESTRING_EQUAL_UNICODESTRING');
 
+  if tf_supports_packages in target_info.flags then
+    def_system_macro('FPC_HAS_DYNAMIC_PACKAGES');
+
+  if target_info.system in systems_indirect_var_imports then
+    def_system_marco('FPC_HAS_INDIRECT_VAR_ACCESS');
+
   for i:=low(tfeature) to high(tfeature) do
     if i in features then
       def_system_macro('FPC_HAS_FEATURE_'+featurestr[i]);
