@@ -1919,7 +1919,8 @@ implementation
         i:=0;
         while (i<equivst.symlist.count) do
           begin
-            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) then
+            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) or
+               (sp_static in tsym(equivst.symlist[i]).symoptions) then
               begin
                 inc(i);
                 continue;
@@ -1978,6 +1979,7 @@ implementation
                         inc(i);
                         while (i<equivst.symlist.count) and
                               ((tsym(equivst.symlist[i]).typ<>fieldvarsym) or
+                               (sp_static in tsym(equivst.symlist[i]).symoptions) or
                                (tfieldvarsym(equivst.symlist[i]).fieldoffset>sym.fieldoffset)) do
                           inc(i);
                         continue;
@@ -2004,7 +2006,8 @@ implementation
         lastvaroffsetprocessed:=-1;
         while (i<equivcount) do
           begin
-            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) then
+            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) or
+               (sp_static in tsym(equivst.symlist[i]).symoptions) then
               begin
                 inc(i);
                 continue;
@@ -2045,7 +2048,8 @@ implementation
         i:=0;
         while (i < equivcount) do
           begin
-            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) then
+            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) or
+               (sp_static in tsym(equivst.symlist[i]).symoptions) then
               begin
                 inc(i);
                 continue;
