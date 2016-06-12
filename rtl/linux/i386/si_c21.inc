@@ -39,7 +39,6 @@ procedure __libc_csu_init; cdecl; external;
 procedure __libc_csu_fini; cdecl; external;
 procedure libc_start_main; external name '__libc_start_main';
 procedure libc_exit(code: longint); cdecl; external name 'exit';
-procedure PASCALMAIN; external name 'PASCALMAIN';
 
 
 {******************************************************************************

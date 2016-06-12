@@ -1,7 +1,7 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2005 by Michael Van Canneyt, Peter Vreman,
-    & Daniel Mantione, members of the Free Pascal development team.
+    Copyright (c) 2015 by Sven Barth, member of the Free Pascal development
+    team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,16 +12,4 @@
 
  **********************************************************************}
 
-unit si_g;
-
-interface
-
-{$i si_intf.inc}
-
-implementation
-
-{$i sysnr.inc}
-{$i si_impl.inc}
-{$i si_g.inc}
-
-end.
+procedure PascalMain; external name 'PASCALMAIN';

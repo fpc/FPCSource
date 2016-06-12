@@ -14,8 +14,6 @@
 
 {$asmmode gas}
 
-procedure PASCALMAIN; external name 'PASCALMAIN';
-
 procedure _FPC_shared_lib_start(argc:dword; argv,envp:pointer); cdecl; public name 'FPC_SHARED_LIB_START'; public name '_start';
 begin
   operatingsystem_parameter_argc:=argc;

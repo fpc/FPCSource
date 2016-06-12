@@ -657,8 +657,6 @@ _restvr_31: addi r12,r0,-16
                           Process start/halt
  ******************************************************************************}
 
-procedure PASCALMAIN; external name 'PASCALMAIN';
-
 procedure __libc_csu_init; cdecl; external;
 procedure __libc_csu_fini; cdecl; external;
 

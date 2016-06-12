@@ -45,7 +45,6 @@ procedure libc_init; external name '__libc_init';
 procedure libc_setfpucw; external name '__setfpucw';
 procedure libc_start_main; external name '__libc_start_main';
 
-procedure PASCALMAIN; external name 'PASCALMAIN';
 Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
 
 {******************************************************************************

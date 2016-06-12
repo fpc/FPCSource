@@ -21,6 +21,7 @@ interface
 implementation
 
 {$i sysnr.inc}
+{$i si_impl.inc}
 {$i si_c21.inc}
 
 var

@@ -9130,6 +9130,7 @@ rtl/linux/si_c21.pp svneol=native#text/plain
 rtl/linux/si_c21g.pp svneol=native#text/plain
 rtl/linux/si_dll.pp svneol=native#text/plain
 rtl/linux/si_g.pp svneol=native#text/plain
+rtl/linux/si_impl.inc svneol=native#text/plain
 rtl/linux/si_intf.inc svneol=native#text/plain
 rtl/linux/si_prc.pp svneol=native#text/plain
 rtl/linux/si_uc.pp svneol=native#text/plain

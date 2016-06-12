@@ -50,8 +50,6 @@ procedure libc_init; external name '__libc_init';
 procedure libc_setfpucw; external name '__setfpucw';
 procedure libc_start_main; external name '__libc_start_main';
 
-procedure PASCALMAIN; external name 'PASCALMAIN';
-
 procedure main_stub; assembler; nostackframe;
   asm
     { save return address }

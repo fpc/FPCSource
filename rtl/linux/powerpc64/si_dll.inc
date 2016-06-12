@@ -628,8 +628,6 @@ _restvr_31: addi r12,r0,-16
 var
   TOCSTART: pointer; external name '.TOC.';
 
-procedure PASCALMAIN; external name 'PASCALMAIN';
-
 
 procedure save_argc_argv_envp_stkptr_fpcret(argc: longint; argv, envp: ppchar; stkptr: pointer);
   begin
