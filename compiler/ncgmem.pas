@@ -852,20 +852,18 @@ implementation
               paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,2,paraloc2);
               if pd.is_pushleftright then
                 begin
-                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
-                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+                  hlcg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location,paraloc1);
+                  hlcg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.resultdef,right.location,paraloc2);
                 end
               else
                 begin
-                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
-                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+                  hlcg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.resultdef,right.location,paraloc2);
+                  hlcg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location,paraloc1);
                 end;
 
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,helpername,false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,pd,[@paraloc1,@paraloc2],nil).resetiftemp;
             end;
 
           st_shortstring:
