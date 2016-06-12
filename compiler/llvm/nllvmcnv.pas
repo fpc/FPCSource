@@ -259,6 +259,8 @@ procedure tllvmtypeconvnode.second_nothing;
         if not is_void(left.resultdef) and
            not(nf_absolute in flags) and
            (left.resultdef.typ<>formaldef) and
+           not is_open_array(resultdef) and
+           not is_open_array(left.resultdef) and
           (left.resultdef.size<>resultdef.size) then
           internalerror(2014012216);
         hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
