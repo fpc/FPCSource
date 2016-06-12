@@ -56,16 +56,14 @@
  * This is the namespace for the special xml: prefix predefined in the
  * XML Namespace specification.
  *)
-  __LIBXML_XML_NAMESPACE: String = 'http://www.w3.org/XML/1998/namespace';
-  LIBXML_XML_NAMESPACE: xmlCharPtr = @__LIBXML_XML_NAMESPACE[1];
+  LIBXML_XML_NAMESPACE: xmlCharPtr = 'http://www.w3.org/XML/1998/namespace';
 
 (**
  * XML_XML_ID:
  *
  * This is the name for the special xml:id attribute
  *)
-  __LIBXML_XML_ID: String = 'xml:id';
-  LIBXML_XML_ID: xmlCharPtr = @__LIBXML_XML_ID[1];
+  LIBXML_XML_ID: xmlCharPtr = 'xml:id';
 {$ENDIF}
 
 {$IFDEF TYPE}
