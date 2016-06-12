@@ -1272,11 +1272,14 @@ implementation
     var
       tcb: ttai_typedconstbuilder;
     begin
-      if (target_res.id in [res_elf,res_macho,res_xcoff]) then
+      if (target_res.id in [res_elf,res_macho,res_xcoff]) or
+         { generate the FPC_RESLOCATION symbol even when using external resources,
+           because in SysInit we can only reference it unconditionally }
+         ((target_res.id=res_ext) and (target_info.system in systems_darwin)) then
         begin
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
 
-          if ResourcesUsed then
+          if ResourcesUsed and (target_res.id<>res_ext) then
             tcb.emit_tai(Tai_const.Createname('FPC_RESSYMBOL',0),voidpointertype)
           else
             { Nil pointer to resource information }

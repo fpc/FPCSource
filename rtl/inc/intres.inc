@@ -28,14 +28,21 @@ type
     handles     : PPtrUint;     //pointer to handles
   end;
   PResHdr = ^TResHdr;
+  PPResHdr = ^PResHdr;
 
   TLibGetResHdr=function():PResHdr;
 
 var
 {$ifdef FPC_HAS_WINLIKERESOURCES}
-  ResHeader : PResHdr; external name 'FPC_RESLOCATION';
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+  ResHeader : PPResHdr; external name '_FPC_ResLocation';
 {$else}
-  ResHeader : PResHdr= nil;
+  ResHeaderVar : PResHdr; external name 'FPC_RESLOCATION';
+  ResHeader : PPResHdr = @ResHeaderVar;
+{$endif}
+{$else}
+  ResHeaderVar : PResHdr = nil;
+  ResHeader : PPResHdr= @ResHeaderVar;
 {$endif}
 
 (*****************************************************************************
@@ -49,7 +56,7 @@ var
 begin
   ExtGetResHdr:=nil;
   if ModuleHandle=0 then
-    ExtGetResHdr:=ResHeader // internal
+    ExtGetResHdr:=ResHeader^ // internal
   else
   begin
     // 1-st way to get resource location
@@ -351,18 +358,18 @@ end;
 Function IntLockResource(ResData: TFPResourceHGLOBAL): Pointer;
 begin
   IntLockResource:=Nil;
-  if ResHeader=nil then exit;
+  if ResHeader^=nil then exit;
   IntLockResource:=Pointer(ResData);
 end;
 
 Function IntUnlockResource(ResData: TFPResourceHGLOBAL): LongBool;
 begin
-  IntUnlockResource:=(ResHeader<>nil);
+  IntUnlockResource:=(ResHeader^<>nil);
 end;
 
 Function IntFreeResource(ResData: TFPResourceHGLOBAL): LongBool;
 begin
-  IntFreeResource:=(ResHeader<>nil);
+  IntFreeResource:=(ResHeader^<>nil);
 end;
 
 const
