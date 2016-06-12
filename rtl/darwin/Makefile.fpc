@@ -123,6 +123,8 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
 
+sysinit$(PPUEXT) : sysinit.pas $(SYSTEMUNIT)$(PPUEXT)
+
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 fpintres$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT)
