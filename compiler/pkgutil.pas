@@ -181,10 +181,7 @@ implementation
           begin
             if publiconly and not (vo_is_public in tstaticvarsym(sym).varoptions) then
               exit;
-            if target_info.system in systems_indirect_var_imports then
-              varexport(tsym(sym).mangledname)
-            else
-              varexport(tsym(sym).mangledname+suffix_indirect);
+            varexport(tsym(sym).mangledname);
           end;
         else
           begin
