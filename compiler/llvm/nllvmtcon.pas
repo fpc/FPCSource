@@ -583,10 +583,14 @@ implementation
       ai: taillvm;
       aityped: tai;
       eledef: tdef;
+      vecindex: asizeint;
     begin
       { update range checking info }
       inherited;
-      ai:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,ptrsinttype,index.svalue,true);
+      vecindex:=index.svalue;
+      if def.typ=arraydef then
+        dec(vecindex,tarraydef(def).lowrange);
+      ai:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,ptrsinttype,vecindex,true);
       case def.typ of
         arraydef:
           eledef:=tarraydef(def).elementdef;
