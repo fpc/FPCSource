@@ -4081,7 +4081,7 @@ begin
     def_system_macro('FPC_HAS_DYNAMIC_PACKAGES');
 
   if target_info.system in systems_indirect_var_imports then
-    def_system_marco('FPC_HAS_INDIRECT_VAR_ACCESS');
+    def_system_macro('FPC_HAS_INDIRECT_VAR_ACCESS');
 
   for i:=low(tfeature) to high(tfeature) do
     if i in features then
