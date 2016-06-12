@@ -3030,12 +3030,6 @@ begin
              write  ([space,'       SymOptions : ']);
              readsymoptions(space+'       ');
              writeln  ([space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte)]);
-             if tsystemcpu(ppufile.header.common.cpu)=cpu_powerpc then
-               begin
-                 { library symbol for AmigaOS/MorphOS }
-                 write  ([space,'   Library symbol : ']);
-                 readderef('');
-               end;
              if (po_has_importdll in procoptions) then
                writeln([space,'      Import DLL : ',getstring]);
              if (po_has_importname in procoptions) then
@@ -3073,6 +3067,15 @@ begin
                  tokenbuf:=allocmem(tokenbufsize);
                  ppufile.getdata(tokenbuf^,tokenbufsize);
                  freemem(tokenbuf);
+               end;
+             if tsystemcpu(ppufile.header.common.cpu)=cpu_powerpc then
+               begin
+                 if po_syscall_has_libsym in procoptions then
+                   begin
+                     { library symbol for AmigaOS/MorphOS }
+                     write  ([space,'   Library symbol : ']);
+                     readderef('');
+                   end;
                end;
              if not EndOfEntry then
                HasMoreInfos;
