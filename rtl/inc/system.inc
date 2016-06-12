@@ -111,6 +111,7 @@ var
   FPCResStrInitTables : Pointer;public name '_FPC_ResStrInitTables';
 {$endif FPC_HAS_RESSTRINITS}
   FPCResourceStringTables : Pointer;public name '_FPC_ResourceStringTables';
+  FPCResLocation : Pointer;public name'_FPC_ResLocation';
 {$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$ifdef FPC_HAS_RESSTRINITS}
   FPCResStrInitTablesVar : record end; external name 'FPC_RESSTRINITTABLES';
@@ -118,6 +119,12 @@ var
 {$endif FPC_HAS_RESSTRINITS}
   FPCResourceStringTablesVar : record end; External Name 'FPC_RESOURCESTRINGTABLES';
   FPCResourceStringTables : Pointer = @FPCResourceStringTablesVar;public name '_FPC_ResourceStringTables';
+{$ifdef FPC_HAS_WINLIKERESOURCES}
+  FPCResLocationVar: record end; external name 'FPC_RESLOCATION';
+{$else FPC_HAS_WINLIKERESOURCES}
+  FPCResLocationVar : Pointer = Nil;
+{$endif FPC_HAS_WINLIKERESOURCES}
+  FPCResLocation : Pointer = @FPCResLocationVar;public name '_FPC_ResLocation';
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
@@ -126,6 +133,7 @@ begin
   EntryInformation := info;
   FPCResStrInitTables := info.ResStrInitTables;
   FPCResourceStringTables := info.ResourceStringTables;
+  FPCResLocation := info.ResLocation;
 {$ifdef FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
   OSSetupEntryInformation(info);
 {$endif FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
