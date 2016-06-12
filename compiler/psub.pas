@@ -2211,6 +2211,17 @@ implementation
                end;
            end;
 
+         { always register public functions that are only declared in the
+           implementation section as they might be called using an external
+           declaration from another unit }
+         if (po_global in pd.procoptions) and
+             not pd.interfacedef and
+             ([df_generic,df_specialization]*pd.defoptions=[]) then
+           begin
+             pd.register_def;
+             pd.procsym.register_sym;
+           end;
+
          { make sure that references to forward-declared functions are not }
          { treated as references to external symbols, needed for darwin.   }
 
