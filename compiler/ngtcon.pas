@@ -919,7 +919,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                        case hp.nodetype of
                          vecn :
                            begin
-                             if is_constintnode(tvecnode(hp).right) then
+                             if is_constintnode(tvecnode(hp).right) and
+                                not is_ansistring(tvecnode(hp).left.resultdef) and
+                                not is_wide_or_unicode_string(tvecnode(hp).left.resultdef) then
                                ftcb.queue_vecn(tvecnode(hp).left.resultdef,get_ordinal_value(tvecnode(hp).right))
                              else
                                Message(parser_e_illegal_expression);
