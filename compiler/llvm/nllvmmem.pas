@@ -237,6 +237,11 @@ implementation
       hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,ptruinttype,tarraydef(left.resultdef).lowrange-constarrayoffset,maybe_const_reg,hreg);
       constarrayoffset:=0;
 
+      { multiply index with bitsize of every element }
+      hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_MUL,ptruinttype,l,hreg,hreg2);
+      hreg:=hreg2;
+
       { keep alignment for index }
       sref.ref.alignment:=left.resultdef.alignment;
       intloadsize:=packedbitsloadsize(l);
@@ -256,14 +261,11 @@ implementation
         sref.ref,ptruinttype,offsetreg,true));
       arraytopointerconverted:=true;
       reference_reset_base(sref.ref,basereg,0,sref.ref.alignment);
-      { calculate the bit index inside that chunk }
+      { calculate the bit index inside that chunk: mask out
+        the chunk index part }
       hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-      { multiple index with bitsize of every element }
-      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_MUL,ptruinttype,l,hreg,hreg2);
-      hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-      { mask out the chunk index part }
-      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,ptruinttype,(1 shl (3+alignpower))-1,hreg2,hreg);
-      sref.bitindexreg:=hreg;
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,ptruinttype,(1 shl (3+alignpower))-1,hreg,hreg2);
+      sref.bitindexreg:=hreg2;
       sref.startbit:=0;
       sref.bitlen:=resultdef.packedbitsize;
       if (left.location.loc=LOC_REFERENCE) then
