@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 33053
+#   Based on errore.msg of SVN revision 33890
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2016 by the Free Pascal Development team
@@ -30,6 +30,7 @@
 #   general_  general info
 #   exec_     calls to assembler, external linker, binder
 #   link_     internal linker
+#   package_  package handling
 #
 # <type> the type of the message it should normally used for
 #   f_   fatal error
@@ -56,6 +57,7 @@
 # 01026 is the last used one
 #
 # BeginOfTeX
+%
 % \section{General compiler messages}
 % This section gives the compiler messages which are not fatal, but which
 % display useful information. The number of such messages can be
@@ -145,8 +147,10 @@ general_e_exception_raised=01026_E_Kompilieren verursachte interne Ausnahme (exc
 #
 # Scanner
 #
-# 02098 is the last used one
+# 02099 is the last used one
 #
+# BeginOfTeX
+%
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
 % care of the lexical structure of the pascal file, i.e. it tries to find
@@ -416,6 +420,9 @@ scan_w_heapmax_lessthan_heapmin=02097_W_Die spezifizierte Größe des HeapMax is
 scan_e_illegal_hugepointernormalization=02098_E_Illegales Argument für HUGEPOINTERNORMALIZATION
 % The only allowed values for HUGEPOINTERNORMALIZATION are BORLANDC, MICROSOFTC
 % and WATCOMC.%
+scan_e_illegal_asmcpu_specifier=02099_E_Ungültiger Assembler-CPU-Befehlssatz "$1" angegeben
+% When you specify an assembler CPU with the \var{\{\$ASMCPU xxx\}} directive,
+% the compiler didn't recognize the CPU you specified.
 %
 % \end{description}
 # EndOfTeX
@@ -423,8 +430,10 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegales Argument für HUGEPOIN
 #
 # Parser
 #
-# 03344 is the last used one
+# 03346 is the last used one
 #
+# BeginOfTeX
+%
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
 % semantics of you language, i.e. it determines if your Pascal constructs
@@ -1558,6 +1567,11 @@ parser_e_genfuncs_cannot_be_virtual=03343_E_Generische Methoden können nicht vi
 parser_e_packages_not_supported=03344_E_Dynamische Pakete werden für das Ziel-OS nicht unterstützt
 % Support for dynamic packages is not implemented for the specified target OS
 % or it is at least not tested and thus disabled.
+parser_e_cannot_use_hardfloat_in_a_softfloat_environment=03345_E_Die Direktive "HardFloat" kann nicht verwendet werden, wenn  "soft float code" erzeugt wird oder die fpu-Emulation eingeschaltet ist
+% The \var{HardFloat} directive can only be used if an instruction set is used which supports floating point operations.
+parser_e_invalid_internal_function_index=03346_E_Index $1 ist kein gültiger interner Funktionenindex
+% The index specified for the \var{compilerproc} directive is not an index that's recognized
+% by the compiler.
 %
 % \end{description}
 # EndOfTeX
@@ -1567,6 +1581,8 @@ parser_e_packages_not_supported=03344_E_Dynamische Pakete werden für das Ziel-O
 #
 # 04123 is the last used one
 #
+# BeginOfTeX
+%
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
 % performed.
@@ -2007,6 +2023,8 @@ type_e_function_reference_kind=04123_E_Unterprogrammreferenzen können nicht als
 #
 # 05095 is the last used one
 #
+# BeginOfTeX
+%
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
 % This means all things that have to do with procedure and variable names.
@@ -2323,6 +2341,8 @@ sym_w_duplicate_id=05095_W_Duplikat des Bezeichners "$1"
 #
 # 06057 is the last used one
 #
+# BeginOfTeX
+%
 % \section{Code generator messages}
 % This section lists all messages that can be displayed if the code
 % generator encounters an error condition.
@@ -2465,7 +2485,7 @@ cg_e_mod_only_defined_for_pos_quotient=06054_E_Im ISO-Modus ist der Operator mod
 % In ISO pascal, only positive values are allowed for the quotient: \var{n mod m} is only valid if \var{m>0}.
 cg_d_autoinlining=06055_DL_Automatisches inlining: $1
 % Due to auto inlining turned on, the compiler auto inlines this subroutine.
-cg_e_function_not_support_by_selected_instruction_set=06056_E_Die verwendete Funktion wird vom ausgewählten Instruktionen-Satz nicht unterstützt: $1
+cg_e_function_not_support_by_selected_instruction_set=06056_E_Die verwendete Funktion wird vom ausgewählten Befehlssatz nicht unterstützt: $1
 % Some functions cannot be implemented efficiently for certain instruction sets, one example is fused multiply/add.
 % To avoid very inefficient code, the compiler complains in this case, so either select another instruction set
 % or replace the function call by alternative code
@@ -2851,7 +2871,7 @@ asmw_h_changing_bind_type=08028_H_Änderung des Bind-Typs des Symbols $1 von $2 
 asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit Referenzen werden nicht unterstützt
 asmw_f_code_segment_too_large=08030_F_Code-Segment zu groß
 asmw_f_data_segment_too_large=08031_F_Data-Segment zu groß
-asmw_e_instruction_not_supported_by_cpu=08032_E_Instruktion wird vom ausgewählten Instruktionen-Satz nicht unterstützt
+asmw_e_instruction_not_supported_by_cpu=08032_E_Befehl wird vom ausgewählten Befehlssatz nicht unterstützt
 %
 % \end{description}
 # EndOfTeX
@@ -2967,6 +2987,7 @@ exec_e_static_lib_not_supported=09035_E_Statische Bibliotheken nicht unterstütz
 # 09134 is the last used one
 #
 # BeginOfTeX
+%
 % \section{Executable information messages.}
 % This section lists all messages that the compiler emits when an executable program is produced,
 % and only when the internal linker is used.
@@ -2995,6 +3016,7 @@ execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
 # 09207 is the last used one
 #
 # BeginOfTeX
+%
 % \section{Linker messages}
 % This section lists messages produced by internal linker.
 % \begin{description}
@@ -3028,9 +3050,10 @@ link_e_com_program_uses_segment_relocations=09207_E_Eine .COM-Datei kann nicht e
 #
 # Unit loading
 #
-# 10063 is the last used one
+# 10064 is the last used one
 #
 # BeginOfTeX
+%
 % \section{Unit loading messages.}
 % This section lists all messages that can occur when the compiler is
 % loading a unit from disk into memory. Many of these mesages are
@@ -3233,6 +3256,8 @@ unit_u_indirect_crc_changed=10062_U_Die CRC des indirekten Interface (Objekte/Kl
 unit_u_ppu_invalid_memory_model=10063_U_PPU ist für ein anderes i8086 Speichermodell kompiliert
 % This unit file was compiled for a different i8086 memory model and
 % cannot be read.
+unit_u_loading_from_package=10064_U_Unit $1 wird von Paket $2 geladen
+% The unit is loaded from a package.
 %
 % \end{description}
 # EndOfTeX
@@ -3463,6 +3488,97 @@ wpo_symbol_live_info_needs_smart_linking=12018_E_Die Sammlung der "symbol livene
 % actually used or not. So in that case all symbols will be seen as live, which makes this optimization ineffective.
 wpo_cant_create_feedback_file=12019_E_Die angegebene Feedback-Eingabe-Datei "$1" für die Gesamtprogramm-Optimierung kann nicht erzeugt werden
 % The compiler is unable to create the file specified using the -FW parameter to store the whole program optimisation information.
+%\end{description}
+%
+# EndOfTeX
+
+#
+# Package loading and handling
+#
+# 13028 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Package loading messages.}
+% This section lists all messages that can occur when the compiler is
+% loading a package from disk into memory, saving a package from memory
+% to disk or when parsing packages in general. Many of these messages are
+% informational messages.
+% \begin{description}
+package_f_cant_find_pcp=13001_F_Kann Paket $1 nicht finden
+% You tried to use a package of which the PCP file isn't found by the
+% compiler. Check your configuration file for the package paths.
+package_u_pcp_found=13002_U_PCP-Datei für Paket $1 gefunden
+% The PCP file for the specified package was found.
+package_e_duplicate_package=13003_E_Das Paket $1 darf nicht mehrmals spezifiziert werden
+% The package was already specified as required package and may not be specified
+% a second time.
+package_e_unit_deny_package=13004_E_Unit $1 kann nicht Teil eines Pakets sein
+% The unit can not be part of a package because the DenyPackageUnit directive is enabled for the unit.
+package_n_implicit_unit_import=13005_N_Unit $1 wird implizit in Paket $2 importiert
+% The unit was not specified as part of the \var{contains} section and is also not included in one of the
+% required packages. Add the unit to the \var{contains} section to increase compatibility with other packages.
+package_f_cant_create_pcp=13006_F_PCP-Datei $2 für Paket $1 konnte nicht erzeugt werden
+% The PCP file for the package could not be created.
+package_f_cant_read_pcp=13007_F_PCP-Datei für Paket $1 konnte nicht gelesen werden
+% The PCP file for the package could not be read.
+package_t_pcp_loading=13008_T_PCP lädt $1
+% When the \var{-vt} switch is used, the compiler tells you
+% what packages it loads.
+package_u_pcp_name=13009_U_PCP-Name: $1
+% When you use the \var{-vu} flag, the package name is shown.
+package_u_pcp_flags=13010_U_PCP-Flags: $1
+% When you use the \var{-vu} flag, the package flags are shown.
+package_u_pcp_crc=13011_U_PCP-CRC: $1
+% When you use the \var{-vu} flag, the package CRC check is shown.
+package_u_pcp_time=13012_U_PCP-Erstell-Zeit: $1
+% When you use the \var{-vu} flag, the time the package was compiled is shown.
+package_u_pcp_file_too_short=13013_U_PCP-Datei ist zu kurz
+% The PCP file is too short, not all declarations are present.
+package_u_pcp_invalid_header=13014_U_Ungültiger PCP-Header (Am Anfang fehlt PCP)
+% A package file contains as the first three bytes the ASCII codes of the characters \var{PCP}.
+package_u_pcp_invalid_version=13015_U_Ungültige PCP-Version $1
+% This package file was compiled with a different version of the compiler, and
+% cannot be read.
+package_u_pcp_invalid_processor=13016_U_PCP ist für einen anderen Prozessor kompiliert
+% This package file was compiled for a different processor type, and
+% cannot be read.
+package_u_pcp_invalid_target=13017_U_PCP ist für ein anderes Zielsystem kompiliert
+% This package file was compiled for a different target, and
+% cannot be read.
+package_u_pcp_write=13018_U_$1 schreiben
+% When you specify the \var{-vu} switch, the compiler will tell you where it
+% writes the package file.
+package_f_pcp_cannot_write=13019_F_PCP-Datei kann nicht geschrieben werden
+% An error occurred when writing the package file.
+package_f_pcp_read_error=13020_F_Fehler beim Lesen der PCP-Datei
+% This means that the package file was corrupted, and contains invalid
+% information. Recompilation will be necessary.
+package_f_pcp_read_unexpected_end=13021_F_Unerwartetes Ende der PCP-Datei
+% Unexpected end of file. This may mean that the PCP file is
+% corrupted.
+package_f_pcp_invalid_entry=13022_F_Ungültiger Eintrag in der PCP-Datei: $1
+% The unit the compiler is trying to read is corrupted, or generated with a
+% newer version of the compiler.
+package_u_pcp_invalid_fpumode=13023_U_Versuche eine Unit zu nutzen, die mit einem andern FPU-Modus kompiliert wurde
+% Trying to compile code while using units which were not compiled with
+% the same floating point format mode. Either all code should be compiled
+% with FPU emulation on, or with FPU emulation off.
+package_t_packagesearch=13024_T_Paketsuche: $1
+% When you use the \var{-vt} option, the compiler tells you where it tries to find
+% package files.
+package_u_required_package=13025_U_Benötigtes Paket $1
+% When you specify the \var{-vu} switch, the compiler will tell you which
+% packages a package requires.
+package_u_contained_unit=13026_U_Enthält Unit $1
+% When you specify the \var{-vu} switch, the compiler will tell you which
+% units a package contains.
+package_e_unit_already_contained_in_package=13027_E_Unit $1 ist bereits in Paket $2 enthalten
+% A unit specified in a contains sections must not be part of a required package. Note that
+% a unit might have become part of another package by indirectly including it.
+package_w_unit_from_indirect_package=13028_W_Unit $1 wird vom indirekt benötigtem Paket $2 importiert
+% If a unit from a package that is not part of the \var{requires} section is used then the package
+% should require this unit directly to avoid confusion.
 %
 % \end{description}
 # EndOfTeX
@@ -3613,17 +3729,17 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2Cc<x>_Setze "default calling convention" zu <x>
 **2CD_Erzeuge auch eine dynamische Bibliothek (nicht unterstützt)
 **2Ce_Übersetze mit emulierten Fliesskomma opcodes
-**2Cf<x>_Wähle den Fliesskomma-Instruktionen-Satz aus; fpc -i oder fpc -if geben die möglichen Werte aus
+**2Cf<x>_Wähle den Fliesskomma-Befehlssatz aus; fpc -i oder fpc -if geben die möglichen Werte aus
 **2CF<x>_Minimale Präzission von Fliesskommakonstanten (default, 32, 64)
 **2Cg_Erzeuge PIC code
 **2Ch<n>_<n> Bytes Heap (zwischen 1023 und 67107840)
 **2Ci_I/O-Prüfung
-A*2CI<x>_Wähle den Instruktionen-Satz für ARM aus: ARM oder THUMB
+A*2CI<x>_Wähle den Befehlssatz für ARM aus: ARM oder THUMB
 **2Cn_Lasse die Linkstufe aus
 P*2CN_Erzeuge Überprüfungen auf Nil-Zeiger (nur AIX)
 **2Co_Prüfe auf Überlauf von Integer-Operationen
 **2CO_Prüfe auf möglichen Überlauf von Integer-Operationen
-**2Cp<x>_Wähle Instruktionen-Satz aus; fpc -i oder fpc -ic geben die möglichen Werte aus
+**2Cp<x>_Wähle Befehlssatz aus; fpc -i oder fpc -ic geben die möglichen Werte aus
 **2CP<x>=<y>_ Einstellungen für packing
 **3CPPACKSET=<y>_ <y> Belegung von Sets: 0, 1 oder DEFAULT oder NORMAL, 2, 4 und 8
 **3CPPACKENUM=<y>_ <y> Packen von Aufzählungen: 0, 1, 2 und 4 oder DEFAULT oder NORMAL
@@ -3708,8 +3824,8 @@ J*2Cv_Var/out Parameter copy-out Überprüfung
 **2iV_Zeige kurze Compilerversion
 **2iW_Zeige vollständige Compilerversion
 **2ia_Zeige Liste der unterstützten ABI-Ziele
-**2ic_Zeige Liste der unterstützten CPU-Instruktionen-Satz
-**2if_Zeige Liste der unterstützten Fliesskomma-Instruktionen-Satz
+**2ic_Zeige Liste der unterstützten CPU-Befehlssatz
+**2if_Zeige Liste der unterstützten Fliesskomma-Befehlssatz
 **2ii_Zeige Liste der unterstützten Inline-Assembler-Modi
 **2io_Zeige Liste der unterstützten Optimierungen
 **2ir_Zeige Liste der erkannten Compiler- und RTL-Feature
