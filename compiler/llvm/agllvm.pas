@@ -1006,7 +1006,7 @@ implementation
                   if not assigned(taillvmdecl(hp).initdata) then
                     begin
                       writer.AsmWrite(llvmencodetypename(taillvmdecl(hp).def));
-                      if not(taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL]) then
+                      if not(taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL,AB_EXTERNAL_INDIRECT]) then
                         writer.AsmWrite(' zeroinitializer');
                     end
                   else
