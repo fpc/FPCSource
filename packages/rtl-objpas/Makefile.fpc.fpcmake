@@ -8,34 +8,34 @@ version=3.1.1
 
 # all Unices support everything except QNX(nothing)
 [target]
-units_android=convutils dateutils fmtbcd stdconv variants varutils
-units_aix=convutils dateutils fmtbcd stdconv variants varutils
-units_linux=convutils dateutils fmtbcd stdconv variants varutils
-units_solaris=convutils dateutils fmtbcd stdconv variants varutils
-units_freebsd=convutils dateutils fmtbcd stdconv variants varutils
-units_netbsd=convutils dateutils fmtbcd stdconv variants varutils
-units_openbsd=convutils dateutils fmtbcd stdconv variants varutils
-units_darwin=convutils dateutils fmtbcd stdconv variants varutils
-units_iphonesim=convutils dateutils fmtbcd stdconv variants varutils
-units_beos=dateutils fmtbcd stdconv variants varutils
-units_haiku=convutils dateutils fmtbcd stdconv variants varutils
+units_android=convutils dateutils fmtbcd stdconvs variants varutils
+units_aix=convutils dateutils fmtbcd stdconvs variants varutils
+units_linux=convutils dateutils fmtbcd stdconvs variants varutils
+units_solaris=convutils dateutils fmtbcd stdconvs variants varutils
+units_freebsd=convutils dateutils fmtbcd stdconvs variants varutils
+units_netbsd=convutils dateutils fmtbcd stdconvs variants varutils
+units_openbsd=convutils dateutils fmtbcd stdconvs variants varutils
+units_darwin=convutils dateutils fmtbcd stdconvs variants varutils
+units_iphonesim=convutils dateutils fmtbcd stdconvs variants varutils
+units_beos=dateutils fmtbcd stdconvs variants varutils
+units_haiku=convutils dateutils fmtbcd stdconvs variants varutils
 
-units_amiga=convutils dateutils fmtbcd stdconv variants varutils
-units_emx=convutil dateutil fmtbcd stdconv variants
+units_amiga=convutils dateutils fmtbcd stdconvs variants varutils
+units_emx=convutil dateutil fmtbcd stdconvs variants
 units_gba= dateutils fmtbcd variants varutils
-units_go32v2=convutil dateutil fmtbcd stdconv variants varutils
-units_morphos=convutils dateutils fmtbcd stdconv variants varutils
-units_msdos=convutil dateutil fmtbcd stdconv variants
+units_go32v2=convutil dateutil fmtbcd stdconvs variants varutils
+units_morphos=convutils dateutils fmtbcd stdconvs variants varutils
+units_msdos=convutil dateutil fmtbcd stdconvs variants
 units_nds=dateutils fmtbcd varutils
 units_nativent=convutils dateutils fmtbcd variants varutils
 units_netware=convutils dateutils fmtbcd variants varutils
 units_netwlibc=convutils dateutils fmtbcd variants varutils
-units_os2=convutil dateutil fmtbcd stdconv variants varutils
+units_os2=convutil dateutil fmtbcd stdconvs variants varutils
 units_watcom=variants varutils
 units_wii=dateuils variants varutils
-units_win32=convutils dateutils fmtbcd stdconv variants varutils
-units_win64=convutils dateutils fmtbcd stdconv variants varutils
-units_wince=convutils dateutils fmtbcd stdconv variants varutils
+units_win32=convutils dateutils fmtbcd stdconvs variants varutils
+units_win64=convutils dateutils fmtbcd stdconvs variants varutils
+units_wince=convutils dateutils fmtbcd stdconvs variants varutils
 
 [compiler]
 includedir=src/$(OS_TARGET) src/inc
@@ -82,3 +82,7 @@ fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
+
+variants$(PPUEXT): varutils$(PPUEXT)
+
+fmtbcd$(PPUEXT): variants$(PPUEXT)
