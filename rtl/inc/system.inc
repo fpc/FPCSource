@@ -119,11 +119,11 @@ var
 {$endif FPC_HAS_RESSTRINITS}
   FPCResourceStringTablesVar : record end; External Name 'FPC_RESOURCESTRINGTABLES';
   FPCResourceStringTables : Pointer = @FPCResourceStringTablesVar;public name '_FPC_ResourceStringTables';
-{$ifdef FPC_HAS_WINLIKERESOURCES}
+{$if defined(FPC_HAS_WINLIKERESOURCES) and not defined(WINDOWS)}
   FPCResLocationVar: record end; external name 'FPC_RESLOCATION';
-{$else FPC_HAS_WINLIKERESOURCES}
+{$else FPC_HAS_WINLIKERESOURCES and not WINDOWS}
   FPCResLocationVar : Pointer = Nil;
-{$endif FPC_HAS_WINLIKERESOURCES}
+{$endif FPC_HAS_WINLIKERESOURCES and not WINDOWS}
   FPCResLocation : Pointer = @FPCResLocationVar;public name '_FPC_ResLocation';
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
