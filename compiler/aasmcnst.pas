@@ -1788,7 +1788,7 @@ implementation
      begin
        { pointerdef because we are emitting a pointer to the staticvarsym
          data, not the data itself }
-       emit_tai(Tai_const.Createname(vs.mangledname,fqueue_offset),cpointerdef.getreusable(vs.vardef));
+       emit_tai(Tai_const.Createname(vs.mangledname,AT_DATA,fqueue_offset),cpointerdef.getreusable(vs.vardef));
        fqueue_offset:=low(fqueue_offset);
      end;
 
