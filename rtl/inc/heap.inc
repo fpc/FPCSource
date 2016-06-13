@@ -70,7 +70,7 @@ const
   {$define SHOW_MEM_USAGE}
 {$endif}
 
-{$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_MEMORYMANAGER}
 const
 {$ifdef CPU64}
   blocksize    = 32;  { at least size of freerecord }
@@ -366,7 +366,8 @@ end;
 {$endif FPC_IN_HEAPMGR}
 
 {$if defined(FPC_HAS_FEATURE_HEAP) or defined(FPC_IN_HEAPMGR)}
-{$ifndef FPC_NO_DEFAULT_HEAP}
+{$ifndef HAS_MEMORYMANAGER}
+
 
 {*****************************************************************************
                                GetHeapStatus
@@ -1636,8 +1637,8 @@ begin
 {$endif}
 end;
 
-{$endif ndef FPC_NO_DEFAULT_HEAP}
+{$endif ndef HAS_MEMORYMANAGER}
 
-{$endif HAS_MEMORYMANAGER}
+{$endif ndef FPC_NO_DEFAULT_MEMORYMANAGER}
 {$endif defined(FPC_HAS_FEATURE_HEAP) or defined(FPC_IN_HEAPMGR)}
 

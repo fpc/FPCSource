@@ -3,7 +3,7 @@ unit system;
 interface
 
 {$DEFINE FPC_NO_DEFAULT_HEAP}
-{$DEFINE FPC_NO_DEFAULT_MEMORYMANAGER}
+{$DEFINE HAS_MEMORYMANAGER}
 
 {$DEFINE FPC_INCLUDE_SOFTWARE_MUL}
 {$DEFINE FPC_INCLUDE_SOFTWARE_MOD_DIV}
@@ -89,6 +89,10 @@ var
   SelectorInc: Word;public name '__fpc_SelectorInc';
 
 {  SaveInt00: FarPointer;public name '__SaveInt00';}
+
+  { Required for i8086.inc Stack check code }
+  __stkbottom : pointer;public name '__stkbottom';
+
 
   AllFilesMask: string [3];
 {$ifndef RTLLITE}
@@ -453,6 +457,7 @@ begin
       StackLength := pStackBot-pStackTop;
     end;
 {$endif}
+  __stkbottom := StackBottom;
   { To be set if this is a GUI or console application }
   IsConsole := FALSE;
   { To be set if this is a library and not a program  }

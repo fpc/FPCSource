@@ -2,8 +2,11 @@ unit System;
 
 interface
 
-{$DEFINE FPC_NO_DEFAULT_HEAP}
-{$define FPC_NO_DEFAULT_MEMORYMANAGER}
+{ The heap for MSDOS is implemented
+  in tinyheap.inc include file,
+  but it uses default SysGetMem names }
+
+{$define HAS_MEMORYMANAGER}
 
 {$DEFINE FPC_INCLUDE_SOFTWARE_MUL}
 {$DEFINE FPC_INCLUDE_SOFTWARE_MOD_DIV}
@@ -74,6 +77,8 @@ var
   PrefixSeg:Word;public name '__fpc_PrefixSeg';
 
   SaveInt00: FarPointer;public name '__SaveInt00';
+  SaveInt10: FarPointer;public name '__SaveInt10';
+  SaveInt75: FarPointer;public name '__SaveInt75';
 
   AllFilesMask: string [3];
 {$ifndef RTLLITE}
@@ -489,7 +494,6 @@ type
   TPointerArithmeticType = Pointer;
 {$endif}
 begin
-  SetMemoryManager(TinyHeapMemoryManager);
   RegisterTinyHeapBlock_Simple_Prealigned(__nearheap_start, TPointerArithmeticType(__nearheap_end) - TPointerArithmeticType(__nearheap_start));
 end;
 

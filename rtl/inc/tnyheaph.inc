@@ -31,6 +31,9 @@
     function MaxAvail: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif};
     procedure Mark(var p: Pointer);
     procedure Release(var p: Pointer);
+(*
+    Obsolete, renamed without the Tiny
+    to have the same names as in heap.inc
     function SysTinyGetMem(Size: ptruint): pointer;
     function SysTinyFreeMem(Addr: Pointer): ptruint;
     function SysTinyFreeMemSize(Addr: Pointer; Size: Ptruint): ptruint;
@@ -38,3 +41,5 @@
     function SysTinyGetFPCHeapStatus : TFPCHeapStatus;
     function SysTinyGetHeapStatus : THeapStatus;
     function SysTinyTryResizeMem(var p: pointer; size: ptruint) : boolean;
+
+    *)
