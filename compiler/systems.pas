@@ -319,7 +319,7 @@ interface
        systems_indirect_var_imports = systems_all_windows+[system_i386_nativent];
 
        { all systems that support indirect entry information }
-       systems_indirect_entry_information = systems_darwin;
+       systems_indirect_entry_information = systems_darwin+[system_i386_win32];
 
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;

@@ -20,7 +20,10 @@ interface
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
 
+{$ifdef VER3_0}
+{ 3.1.1+ do not require this anymore }
 {$define FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+{$endif VER3_0}
 
 {$ifdef cpui386}
   {$define Set_i386_Exception_handler}
