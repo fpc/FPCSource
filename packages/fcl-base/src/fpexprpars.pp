@@ -2836,6 +2836,8 @@ end;
 
 Procedure TFPExprIdentifierNode.GetNodeValue(var Result : TFPExpressionResult);
 begin
+  if Identifier.EventBasedVariable then
+    Identifier.FetchValue;
   Result:=PResult^;
   Result.ResultType:=FResultType;
 end;
@@ -2861,7 +2863,9 @@ Var
 
 begin
   For I:=0 to Length(FArgumentParams)-1 do
+    begin
     FArgumentNodes[i].GetNodeValue(FArgumentParams[i]);
+    end;
 end;
 
 procedure TFPExprFunction.Check;
@@ -2942,6 +2946,7 @@ Procedure TFPFunctionCallBack.GetNodeValue(var Result : TFPExpressionResult);
 begin
   If Length(FArgumentParams)>0 then
     CalcParams;
+
   FCallBack(Result,FArgumentParams);
   Result.ResultType:=NodeType;
 end;
