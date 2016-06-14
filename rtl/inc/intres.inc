@@ -34,7 +34,12 @@ type
 
 var
 {$ifdef FPC_HAS_WINLIKERESOURCES}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   ResHeader : PPResHdr; external name '_FPC_ResLocation';
+{$else}
+  ResHeaderVar: PResHdr; external name 'FPC_RESLOCATION';
+  ResHeader : PPResHdr = @ResHeaderVar;
+{$endif}
 {$else}
   ResHeaderVar : PResHdr = nil;
   ResHeader : PPResHdr= @ResHeaderVar;
