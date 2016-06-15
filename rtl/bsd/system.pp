@@ -315,9 +315,6 @@ end;
 procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
 begin
   SetupEntryInformation(info);
-{$ifdef cpui386}
-  Set8087CW(Default8087CW);
-{$endif cpui386}
   info.PascalMain();
 end;
 
