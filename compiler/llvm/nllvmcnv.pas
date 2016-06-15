@@ -233,6 +233,7 @@ procedure tllvmtypeconvnode.second_nothing;
         if not is_void(left.resultdef) and
            not(nf_absolute in flags) and
            (left.resultdef.typ<>formaldef) and
+           (resultdef.typ<>formaldef) and
            not is_open_array(resultdef) and
            not is_open_array(left.resultdef) and
           (left.resultdef.size<>resultdef.size) then
