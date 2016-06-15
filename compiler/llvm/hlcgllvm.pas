@@ -131,6 +131,8 @@ uses
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint); override;
       procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint); override;
       procedure g_local_unwind(list: TAsmList; l: TAsmLabel); override;
+      procedure gen_stack_check_size_para(list: TAsmList); override;
+      procedure gen_stack_check_call(list: TAsmList); override;
 
       procedure varsym_set_localloc(list: TAsmList; vs: tabstractnormalvarsym); override;
       procedure paravarsym_set_initialloc_to_paraloc(vs: tparavarsym); override;
@@ -1649,6 +1651,25 @@ implementation
   procedure thlcgllvm.g_local_unwind(list: TAsmList; l: TAsmLabel);
     begin
       internalerror(2012090206);
+    end;
+
+
+  procedure thlcgllvm.gen_stack_check_size_para(list: TAsmList);
+    begin
+      { this is implemented in a very hackish way, whereby first the call
+        to fpc_stackcheck() is emitted, then the prolog is generated and
+        registers are allocated, and finally the code to load the parameter
+        is inserted before the call to fpc_stackcheck(). Since parameters are
+        explicitly passed to call instructions for llvm, that does not work
+        here. It could be solved by patching the call instruction later, but
+        that's a lot of engineering for functionality that's only marginally
+        useful at best.
+    end;
+
+
+  procedure thlcgllvm.gen_stack_check_call(list: TAsmList);
+    begin
+      { see explanation in thlcgllvm.gen_stack_check_size_para() }
     end;
 
 
