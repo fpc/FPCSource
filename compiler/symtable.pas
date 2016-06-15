@@ -1082,7 +1082,8 @@ implementation
     destructor tabstractrecordsymtable.destroy;
       begin
 {$ifdef llvm}
-        fllvmst.free;
+        if refcount=1 then
+          fllvmst.free;
 {$endif llvm}
         inherited destroy;
       end;
