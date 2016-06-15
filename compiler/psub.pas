@@ -1556,7 +1556,7 @@ implementation
                (procdef.proctypeoption<>potype_proginit) then
               begin
                 current_filepos:=entrypos;
-                gen_stack_check_call(templist);
+                hlcg.gen_stack_check_call(templist);
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
 
@@ -1627,7 +1627,7 @@ implementation
                (procdef.proctypeoption<>potype_proginit) then
               begin
                 current_filepos:=entrypos;
-                gen_stack_check_size_para(templist);
+                hlcg.gen_stack_check_size_para(templist);
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
             { Add entry code (stack allocation) after header }

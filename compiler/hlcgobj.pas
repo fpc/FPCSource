@@ -631,6 +631,8 @@ unit hlcgobj;
           procedure gen_load_return_value(list:TAsmList);virtual;
 
           { extras refactored from other units }
+          procedure gen_stack_check_size_para(list:TAsmList); virtual;
+          procedure gen_stack_check_call(list:TAsmList); virtual;
 
           { queue the code/data generated for a procedure for writing out to
             the assembler/object file }
@@ -5189,6 +5191,35 @@ implementation
         end
       else
         gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,current_procinfo.procdef.funcretloc[calleeside])
+    end;
+
+  procedure thlcgobj.gen_stack_check_size_para(list: TAsmList);
+    var
+      paraloc1 : tcgpara;
+      pd       : tprocdef;
+    begin
+      pd:=search_system_proc('fpc_stackcheck');
+      paraloc1.init;
+      paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+      hlcg.a_load_const_cgpara(list,paraloc1.def,current_procinfo.calc_stackframe_size,paraloc1);
+      paramanager.freecgpara(list,paraloc1);
+      paraloc1.done;
+    end;
+
+  procedure thlcgobj.gen_stack_check_call(list: TAsmList);
+    var
+      paraloc1 : tcgpara;
+      pd       : tprocdef;
+    begin
+      pd:=search_system_proc('fpc_stackcheck');
+      paraloc1.init;
+      { The parameter to fpc_stackcheck is loaded seperately via
+        gen_stack_check_size_para() }
+      paramanager.getintparaloc(list,pd,1,paraloc1);
+      paramanager.freecgpara(list,paraloc1);
+      { Call the helper }
+      hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
+      paraloc1.done;
     end;
 
   procedure thlcgobj.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);

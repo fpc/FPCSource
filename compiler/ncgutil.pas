@@ -79,8 +79,6 @@ interface
     procedure release_proc_symbol(pd:tprocdef);
     procedure gen_proc_entry_code(list:TAsmList);
     procedure gen_proc_exit_code(list:TAsmList);
-    procedure gen_stack_check_size_para(list:TAsmList);
-    procedure gen_stack_check_call(list:TAsmList);
     procedure gen_save_used_regs(list:TAsmList);
     procedure gen_restore_used_regs(list:TAsmList);
     procedure gen_load_para_value(list:TAsmList);
@@ -1464,38 +1462,6 @@ implementation
 
         { end of frame marker for call frame info }
         current_asmdata.asmcfi.end_frame(list);
-      end;
-
-
-    procedure gen_stack_check_size_para(list:TAsmList);
-      var
-        paraloc1 : tcgpara;
-        pd       : tprocdef;
-      begin
-        pd:=search_system_proc('fpc_stackcheck');
-        paraloc1.init;
-        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-        cg.a_load_const_cgpara(list,OS_INT,current_procinfo.calc_stackframe_size,paraloc1);
-        paramanager.freecgpara(list,paraloc1);
-        paraloc1.done;
-      end;
-
-
-    procedure gen_stack_check_call(list:TAsmList);
-      var
-        paraloc1 : tcgpara;
-        pd       : tprocdef;
-      begin
-        pd:=search_system_proc('fpc_stackcheck');
-        paraloc1.init;
-        { Also alloc the register needed for the parameter }
-        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-        paramanager.freecgpara(list,paraloc1);
-        { Call the helper }
-        cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_STACKCHECK',false);
-        cg.deallocallcpuregisters(list);
-        paraloc1.done;
       end;
 
 
