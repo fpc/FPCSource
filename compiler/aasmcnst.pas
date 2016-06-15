@@ -682,7 +682,8 @@ implementation
            begin
              if tai_const(othertai).size<>1 then
                internalerror(2014070101);
-             strtai.str:=reallocmem(strtai.str,strtai.len+1);
+             { it was already len+1 to hold the #0 -> realloc to len+2 }
+             strtai.str:=reallocmem(strtai.str,strtai.len+2);
              strtai.str[strtai.len]:=ansichar(tai_const(othertai).value);
              strtai.str[strtai.len+1]:=#0;
              inc(strtai.len);
