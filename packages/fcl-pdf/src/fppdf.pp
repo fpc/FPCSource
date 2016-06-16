@@ -49,7 +49,11 @@ type
   TPDFOptions = set of TPDFOption;
 
   EPDF = Class(Exception);
-  TPDFDocument = Class;
+
+  // forward declarations
+  TPDFDocument = class;
+  TPDFAnnotList = class;
+
   TARGBColor = Cardinal;
   TPDFFloat = Single;
 
@@ -209,6 +213,18 @@ type
     constructor Create(Const ADocument : TPDFDocument; const AValue: UTF8String; const AFontIndex: integer); overload;
   end;
 
+  { Is useful to populate an array with free-form space separated values. This
+    class is similar to TPDFString, except it doesn't wrap the string content with
+    '(' and ')' symbols and doesn't escape the content. }
+  TPDFFreeFormString = class(TPDFAbstractString)
+  private
+    FValue: string;
+  protected
+    procedure   Write(const AStream: TStream); override;
+  public
+    constructor Create(Const ADocument: TPDFDocument; const AValue: string); overload;
+  end;
+
 
   TPDFArray = class(TPDFDocumentObject)
   private
@@ -218,6 +234,7 @@ type
     procedure AddItem(const AValue: TPDFObject);
     // Add integers in S as TPDFInteger elements to the array
     Procedure AddIntArray(S : String);
+    procedure AddFreeFormArrayValues(S: string);
   public
     constructor Create(Const ADocument : TPDFDocument); override;
     destructor Destroy; override;
@@ -500,9 +517,11 @@ type
     FFontIndex: integer;
     FUnitOfMeasure: TPDFUnitOfMeasure;
     FMatrix: TPDFMatrix;
+    FAnnots: TPDFAnnotList;
     procedure CalcPaperSize;
     function GetO(AIndex : Integer): TPDFObject;
     function GetObjectCount: Integer;
+    function CreateAnnotList: TPDFAnnotList; virtual;
     procedure SetOrientation(AValue: TPDFPaperOrientation);
     procedure SetPaperType(AValue: TPDFPaperType);
     procedure AddTextToLookupLists(AText: UTF8String);
@@ -542,13 +561,15 @@ type
       cause the ellpise to draw to the left of the origin point. }
     Procedure DrawEllipse(const APosX, APosY, AWidth, AHeight, ALineWidth: TPDFFloat; const AFill: Boolean = True; AStroke: Boolean = True); overload;
     Procedure DrawEllipse(const APos: TPDFCoord; const AWidth, AHeight, ALineWidth: TPDFFloat; const AFill: Boolean = True; AStroke: Boolean = True); overload;
+    { Define a rectangle that becomes a clickable hotspot, referencing the URI argument. }
+    Procedure AddExternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat; const AURI: string; ABorder: boolean = false);
     { This returns the paper height, converted to whatever UnitOfMeasure is set too }
     function GetPaperHeight: TPDFFloat;
     Function HasImages : Boolean;
     // Quick settings for Paper.
     Property PaperType : TPDFPaperType Read FPaperType Write SetPaperType default ptA4;
     Property Orientation : TPDFPaperOrientation Read FOrientation Write SetOrientation;
-    // Set this if you want custom paper size.
+    // Set this if you want custom paper size. You must set this before setting PaperType = ptCustom.
     Property Paper : TPDFPaper Read FPaper Write FPaper;
     // Unit of Measure - how the PDF Page should convert the coordinates and dimensions
     property UnitOfMeasure: TPDFUnitOfMeasure read FUnitOfMeasure write SetUnitOfMeasure default uomMillimeters;
@@ -558,6 +579,7 @@ type
     property FontIndex: integer read FFontIndex;
     { A 3x3 matrix used to translate the PDF Cartesian coordinate system to an Image coordinate system. }
     property Matrix: TPDFMatrix read FMatrix write FMatrix;
+    property Annots: TPDFAnnotList read FAnnots;
   end;
 
 
@@ -665,16 +687,48 @@ type
 
   TPDFPages = Class(TPDFDocumentObject)
   private
-    FList : TFPObjectList;
-    function GetP(AIndex : Integer): TPDFPage;
+    FList: TFPObjectList;
+    function    GetP(AIndex: Integer): TPDFPage;
+    function    GetPageCount: integer;
   public
-    Destructor Destroy; override;
-    Function AddPage : TPDFPage;
-    procedure Add(APage: TPDFPage);
-    Property Pages[AIndex : Integer] : TPDFPage Read GetP; Default;
+    destructor  Destroy; override;
+    function    AddPage: TPDFPage;
+    procedure   Add(APage: TPDFPage);
+    property    Count: integer read GetPageCount;
+    property    Pages[AIndex: Integer]: TPDFPage read GetP; default;
   end;
 
+
+  TPDFAnnot = class(TPDFObject)
+  private
+    FLeft: TPDFFloat;
+    FBottom: TPDFFloat;
+    FWidth: TPDFFloat;
+    FHeight: TPDFFloat;
+    FURI: string;
+    FBorder: boolean;
+  public
+    constructor Create(const ADocument: TPDFDocument); override; overload;
+    constructor Create(const ADocument: TPDFDocument; const ALeft, ABottom, AWidth, AHeight: TPDFFloat; const AURI: String; const ABorder: Boolean = false); overload;
+  end;
+
+
+  TPDFAnnotList = class(TPDFDocumentObject)
+  private
+    FList: TFPObjectList;
+    procedure   CheckList;
+    function    GetAnnot(AIndex: integer): TPDFAnnot;
+  public
+    destructor  Destroy; override;
+    function    AddAnnot: TPDFAnnot;
+    function    Count: integer;
+    procedure   Add(AAnnot: TPDFAnnot);
+    property    Annots[AIndex: integer]: TPDFAnnot read GetAnnot; default;
+  end;
+
+
   TPDFImageCompression = (icNone, icDeflate, icJPEG);
+
 
   TPDFImageItem = Class(TCollectionItem)
   private
@@ -753,15 +807,13 @@ type
   end;
 
 
-  { TPDFDocument }
-
   TPDFDocument = class(TComponent)
   private
     FCatalogue: integer;
     FCurrentColor: string;
     FCurrentWidth: string;
     FDefaultOrientation: TPDFPaperOrientation;
-    FDefaultPaperType: TPDFPaperTYpe;
+    FDefaultPaperType: TPDFPaperType;
     FFontDirectory: string;
     FFontFiles: TStrings;
     FFonts: TPDFFontDefs;
@@ -779,6 +831,7 @@ type
     FGlobalXRefs: TFPObjectList; // list of TPDFXRef
     function GetX(AIndex : Integer): TPDFXRef;
     function GetXC: Integer;
+    function GetTotalAnnotsCount: integer;
     procedure SetFontFiles(AValue: TStrings);
     procedure SetFonts(AValue: TPDFFontDefs);
     procedure SetInfos(AValue: TPDFInfos);
@@ -802,7 +855,8 @@ type
     procedure CreateTrailer;virtual;
     procedure CreateFontEntries; virtual;
     procedure CreateImageEntries; virtual;
-    function CreateContentsEntry: integer;virtual;
+    procedure CreateAnnotEntries(const APageNum: integer; const APageDict: TPDFDictionary); virtual;
+    function CreateContentsEntry(const APageNum: integer): integer;virtual;
     function CreateCatalogEntry: integer;virtual;
     procedure CreateInfoEntry;virtual;
     procedure CreatePreferencesEntry;virtual;
@@ -820,6 +874,7 @@ type
     procedure CreateToUnicode(const EmbeddedFontNum: integer);virtual;
     procedure CreateFontFileEntry(const EmbeddedFontNum: integer);virtual;
     procedure CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer);virtual;
+    function CreateAnnotEntry(const APageNum, AnnotNum: integer): integer; virtual;
     procedure CreatePageStream(APage : TPDFPage; PageNum: integer);
     Function CreateString(Const AValue : String) : TPDFString;
     Function CreateUTF8String(Const AValue : UTF8String; const AFontIndex: integer) : TPDFUTF8String;
@@ -834,8 +889,8 @@ type
     Property CurrentWidth: string Read FCurrentWidth Write FCurrentWidth;
   public
     constructor Create(AOwner : TComponent); override;
-    procedure StartDocument;
     destructor Destroy; override;
+    procedure StartDocument;
     procedure SaveToStream(const AStream: TStream);
     // Create objects, owned by this document.
     Function CreateEmbeddedFont(AFontIndex, AFontSize : Integer) : TPDFEmbeddedFont;
@@ -938,6 +993,7 @@ Resourcestring
   SerrInvalidSectionPage = 'Error: Invalid section page index.';
   SErrNoGlobalDict = 'Error: no global XRef named "%s".';
   SErrInvalidPageIndex = 'Invalid page index: %d';
+  SErrInvalidAnnotIndex = 'Invalid annot index: %d';
   SErrNoFontIndex = 'No FontIndex was set - please use SetFont() first.';
 
 type
@@ -1105,14 +1161,6 @@ end;
 function PDFtoInches(APixels: TPDFFloat): single;
 begin
   Result := APixels / cDefaultDPI;
-end;
-
-{ TPDFInfos }
-
-constructor TPDFInfos.Create;
-begin
-  inherited Create;
-  FProducer := 'fpGUI Toolkit 0.8';
 end;
 
 { TPDFMatrix }
@@ -1519,6 +1567,11 @@ begin
     Raise EListError.CreateFmt(SErrInvalidPageIndex,[AIndex]);
 end;
 
+function TPDFPages.GetPageCount: integer;
+begin
+  result := FList.Count;
+end;
+
 destructor TPDFPages.Destroy;
 begin
   FreeAndNil(FList);
@@ -1540,6 +1593,69 @@ begin
   FList.Add(APage);
 end;
 
+{ TPDFAnnot }
+
+constructor TPDFAnnot.Create(const ADocument: TPDFDocument);
+begin
+  inherited Create(ADocument);
+end;
+
+constructor TPDFAnnot.Create(const ADocument: TPDFDocument; const ALeft, ABottom, AWidth, AHeight: TPDFFloat;
+  const AURI: String; const ABorder: Boolean);
+begin
+  Create(ADocument);
+  FLeft := ALeft;
+  FBottom := ABottom;
+  FWidth := AWidth;
+  FHeight := AHeight;
+  FURI := AURI;
+  FBorder := ABorder;
+end;
+
+{ TPDFAnnotList }
+
+procedure TPDFAnnotList.CheckList;
+begin
+  if (FList = nil) then
+    FList := TFPObjectList.Create;
+end;
+
+function TPDFAnnotList.GetAnnot(AIndex: integer): TPDFAnnot;
+begin
+  if Assigned(FList) then
+    Result := TPDFAnnot(FList[AIndex])
+  else
+    raise EListError.CreateFmt(SErrInvalidAnnotIndex, [AIndex]);
+end;
+
+destructor TPDFAnnotList.Destroy;
+begin
+  FreeAndNil(FList);
+  inherited Destroy;
+end;
+
+function TPDFAnnotList.AddAnnot: TPDFAnnot;
+begin
+  CheckList;
+  Result := TPDFAnnot.Create(Document);
+  FList.Add(Result);
+end;
+
+function TPDFAnnotList.Count: integer;
+begin
+  if Assigned(FList) then
+    result := FList.Count
+  else
+    result := 0;
+end;
+
+procedure TPDFAnnotList.Add(AAnnot: TPDFAnnot);
+begin
+  CheckList;
+  FList.Add(AAnnot);
+end;
+
+
 { TPDFPage }
 
 function TPDFPage.GetO(AIndex : Integer): TPDFObject;
@@ -1553,6 +1669,11 @@ begin
     Result:=0
   else
     Result:=FObjects.Count;
+end;
+
+function TPDFPage.CreateAnnotList: TPDFAnnotList;
+begin
+  result := TPDFAnnotList.Create(Document);
 end;
 
 procedure TPDFPage.SetOrientation(AValue: TPDFPaperOrientation);
@@ -1672,11 +1793,14 @@ begin
   FMatrix._20 := 0;
   FMatrix._11 := -1;  // flip coordinates
   AdjustMatrix;       // sets FMatrix._21 value
+
+  FAnnots := CreateAnnotList;
 end;
 
 destructor TPDFPage.Destroy;
 begin
   FreeAndNil(FObjects);
+  FreeAndNil(FAnnots);
   inherited Destroy;
 end;
 
@@ -1837,6 +1961,21 @@ procedure TPDFPage.DrawEllipse(const APos: TPDFCoord; const AWidth, AHeight, ALi
     const AFill: Boolean; AStroke: Boolean);
 begin
   DrawEllipse(APos.X, APos.Y, AWidth, AHeight, ALineWidth, AFill, AStroke);
+end;
+
+procedure TPDFPage.AddExternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat;
+    const AURI: string; ABorder: boolean);
+var
+  an: TPDFAnnot;
+  p1, p2: TPDFCoord;
+begin
+  p1 := Matrix.Transform(APosX, APosY);
+  DoUnitConversion(p1);
+  p2.X := AWidth;
+  p2.Y := AHeight;
+  DoUnitConversion(p2);
+  an := TPDFAnnot.Create(Document, p1.X, p1.Y, p2.X, p2.Y, AURI, ABorder);
+  Annots.Add(an);
 end;
 
 function TPDFPage.GetPaperHeight: TPDFFloat;
@@ -2123,7 +2262,7 @@ begin
   Result := True;
   for x := 0 to Image.Width-1 do
     for y := 0 to Image.Height-1 do
-      if Image.Pixels[x, y] <> AImage.Pixels[x, y] then
+      if Image.Colors[x, y] <> AImage.Colors[x, y] then
       begin
         Result := False;
         Exit;
@@ -2447,6 +2586,23 @@ begin
   FFontIndex := AFontIndex;
 end;
 
+{ TPDFFreeFormString }
+
+procedure TPDFFreeFormString.Write(const AStream: TStream);
+var
+  s: AnsiString;
+begin
+  s := Utf8ToAnsi(FValue);
+  WriteString(s, AStream);
+end;
+
+constructor TPDFFreeFormString.Create(const ADocument: TPDFDocument; const AValue: string);
+begin
+  inherited Create(ADocument);
+  FValue := AValue;
+end;
+
+
 { TPDFArray }
 
 procedure TPDFArray.Write(const AStream: TStream);
@@ -2483,6 +2639,11 @@ begin
   end;
   if S <> '' then
     AddItem(Document.CreateInteger(StrToInt(S)));
+end;
+
+procedure TPDFArray.AddFreeFormArrayValues(S: string);
+begin
+  AddItem(TPDFFreeFormString.Create(nil, S));
 end;
 
 constructor TPDFArray.Create(const ADocument: TPDFDocument);
@@ -3028,6 +3189,15 @@ begin
   inherited;
 end;
 
+{ TPDFInfos }
+
+constructor TPDFInfos.Create;
+begin
+  inherited Create;
+  FProducer := 'fpGUI Toolkit 0.8';
+end;
+
+
 { TPDFToUnicode }
 
 procedure TPDFToUnicode.Write(const AStream: TStream);
@@ -3100,6 +3270,15 @@ end;
 function TPDFDocument.GetXC: Integer;
 begin
   Result:=FGlobalXRefs.Count;
+end;
+
+function TPDFDocument.GetTotalAnnotsCount: integer;
+var
+  i: integer;
+begin
+  Result := 0;
+  for i := 0 to Pages.Count-1 do
+    Result := Result + Pages[i].Annots.Count;
 end;
 
 function TPDFDocument.IndexOfGlobalXRef(const AValue: string): integer;
@@ -3255,22 +3434,25 @@ var
   PDict,ADict: TPDFDictionary;
   Arr : TPDFArray;
   PP : TPDFPage;
+  AnnotArr: TPDFArray;
 
 begin
   // add xref entry
   PP:=Pages[PageNum];
   PDict:=CreateGlobalXRef.Dict;
+
   PDict.AddName('Type','Page');
   PDict.AddReference('Parent',Parent);
   ADict:=GlobalXRefs[Parent].Dict;
   (ADict.ValueByName('Count') as TPDFInteger).Inc;
-  (ADict.ValueByName('Kids') as TPDFArray).AddItem(CreateReference(GLobalXRefCount-1));
+  (ADict.ValueByName('Kids') as TPDFArray).AddItem(CreateReference(GlobalXRefCount-1));
   Arr:=CreateArray;
   Arr.AddItem(CreateInteger(0));
   Arr.AddItem(CreateInteger(0));
   Arr.AddItem(CreateInteger(PP.Paper.W));
   Arr.AddItem(CreateInteger(PP.Paper.H));
   PDict.AddElement('MediaBox',Arr);
+  CreateAnnotEntries(PageNum, PDict);
   ADict:=CreateDictionary;
   PDict.AddElement('Resources',ADict);
   Arr:=CreateArray; // procset
@@ -3282,7 +3464,8 @@ begin
     ADict.AddElement('Font',CreateDictionary);
   if PP.HasImages then
     ADict.AddElement('XObject', CreateDictionary);
-  Result:=GLobalXRefCount-1;
+
+  Result:=GlobalXRefCount-1;
 end;
 
 function TPDFDocument.CreateOutlines: integer;
@@ -3517,15 +3700,64 @@ begin
     end;
 end;
 
-function TPDFDocument.CreateContentsEntry: integer;
+function TPDFDocument.CreateAnnotEntry(const APageNum, AnnotNum: integer): integer;
+var
+  lDict, ADict: TPDFDictionary;
+  an: TPDFAnnot;
+  ar: TPDFArray;
+  lXRef: TPDFXRef;
+  s: string;
+begin
+  an := Pages[APageNum].Annots[AnnotNum];
+  lXRef := CreateGlobalXRef;
+  lDict := lXRef.Dict;
+  lDict.AddName('Type', 'Annot');
+  lDict.AddName('Subtype', 'Link');
+  { Invert link on click - PDF 1.3 spec pg.410. It is the default value, but
+    some PDF viewers don't apply that if not explicity specified. }
+  lDict.AddName('H', 'I');
+
+  { Border array consists of 3 or 4 values. The first three elements describe
+    the horizontal corner radius, the vertical corner radius and the border
+    width. A 0 border width means no border is drawn. The optional 4th element
+    is an array defining a dash pattern. For example:  /Border [16 16 2 [2 1]] }
+  ar := CreateArray;
+  lDict.AddElement('Border', ar);
+  if an.FBorder then
+    s := '1'
+  else
+    s := '0';
+  ar.AddFreeFormArrayValues('0 0 ' + s);
+
+  ar := CreateArray;
+  lDict.AddElement('Rect', ar);
+  s := ar.FloatStr(an.FLeft);
+  s := s + ' ' + ar.FloatStr(an.FBottom);
+  s := s + ' ' + ar.FloatStr(an.FLeft + an.FWidth);
+  s := s + ' ' + ar.FloatStr(an.FBottom + an.FHeight);
+  ar.AddFreeFormArrayValues(s);
+
+  ADict := CreateDictionary;
+  lDict.AddElement('A', ADict);
+  ADict.AddName('Type', 'Action');
+  ADict.AddName('S', 'URI');
+  ADict.AddString('URI', an.FURI);
+
+  result := GlobalXRefCount-1;
+end;
+
+function TPDFDocument.CreateContentsEntry(const APageNum: integer): integer;
 var
   Contents: TPDFXRef;
-
+  i: integer;
 begin
   Contents:=CreateGlobalXRef;
   Contents.FStream:=CreateStream(False);
   Result:=GlobalXRefCount-1;
-  GlobalXrefs[GlobalXRefCount-2].Dict.AddReference('Contents',Result);
+  { TODO: This is terrible code. See if we can make a better plan getting hold
+          of the reference to the Page dictionary. }
+  i := 2 + Pages[APageNum].Annots.Count; // + GetTotalAnnotsCount;
+  GlobalXrefs[GlobalXRefCount-i].Dict.AddReference('Contents',Result);
 end;
 
 procedure TPDFDocument.CreatePageStream(APage : TPDFPage; PageNum: integer);
@@ -3553,7 +3785,6 @@ begin
   Result:=FGlobalXRefs.Add(AXRef);
 end;
 
-
 function TPDFDocument.GlobalXRefByName(const AName: String): TPDFXRef;
 begin
   Result:=FindGlobalXRef(AName);
@@ -3561,38 +3792,32 @@ begin
     Raise EPDF.CreateFmt(SErrNoGlobalDict,[AName]);
 end;
 
-Function TPDFDocument.CreateLineStyles : TPDFLineStyleDefs;
-
+function TPDFDocument.CreateLineStyles: TPDFLineStyleDefs;
 begin
   Result:=TPDFLineStyleDefs.Create(TPDFLineStyleDef);
 end;
 
-Function TPDFDocument.CreateSectionList : TPDFSectionList;
-
+function TPDFDocument.CreateSectionList: TPDFSectionList;
 begin
   Result:=TPDFSectionList.Create(TPDFSection)
 end;
 
-Function TPDFDocument.CreateFontDefs : TPDFFontDefs;
-
+function TPDFDocument.CreateFontDefs: TPDFFontDefs;
 begin
   Result := TPDFFontDefs.Create(TPDFFont);
 end;
 
-Function TPDFDocument.CreatePDFInfos : TPDFInfos;
-
+function TPDFDocument.CreatePDFInfos: TPDFInfos;
 begin
   Result:=TPDFInfos.Create;
 end;
 
-Function TPDFDocument.CreatePDFImages : TPDFImages;
-
+function TPDFDocument.CreatePDFImages: TPDFImages;
 begin
   Result:=TPDFImages.Create(Self,TPDFImageItem);
 end;
 
-Function TPDFDocument.CreatePDFPages : TPDFPages;
-
+function TPDFDocument.CreatePDFPages: TPDFPages;
 begin
   Result:=TPDFPages.Create(Self);
 end;
@@ -3764,7 +3989,7 @@ begin
         Arr.AddItem(CreateReference(GLobalXRefCount-1));
         Arr.AddItem(CreateName('XYZ null null '+TPDFObject.FloatStr(StrToInt(FZoomValue) / 100), False));
         end;
-      PageNum:=CreateContentsEntry; // pagenum = object number in the pdf file
+      PageNum:=CreateContentsEntry(k); // pagenum = object number in the pdf file
       CreatePageStream(S.Pages[k],PageNum);
       if (Sections.Count>1) and (poOutline in Options) then
         begin
@@ -3818,6 +4043,23 @@ Var
 begin
   for i:=0 to Images.Count-1 do
     CreateImageEntry(Images[i].Width,Images[i].Height,i);
+end;
+
+procedure TPDFDocument.CreateAnnotEntries(const APageNum: integer; const APageDict: TPDFDictionary);
+var
+  i: integer;
+  refnum: integer;
+  ar: TPDFArray;
+begin
+  if GetTotalAnnotsCount = 0 then
+    Exit;
+  ar := CreateArray;
+  APageDict.AddElement('Annots', ar);
+  for i := 0 to Pages[APageNum].Annots.Count-1 do
+  begin
+    refnum := CreateAnnotEntry(APageNum, i);
+    ar.AddItem(CreateReference(refnum));
+  end;
 end;
 
 procedure TPDFDocument.SaveToStream(const AStream: TStream);

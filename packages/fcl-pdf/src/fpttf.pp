@@ -65,8 +65,11 @@ type
   end;
 
 
+  { TFPFontCacheList }
+
   TFPFontCacheList = class(TObject)
   private
+    FBuildFontFacheIgnoresErrors: Boolean;
     FList: TObjectList;
     FSearchPath: TStringList;
     FDPI: integer;
@@ -95,6 +98,7 @@ type
     property    Items[AIndex: Integer]: TFPFontCacheItem read GetItem write SetItem; default;
     property    SearchPath: TStringList read FSearchPath;
     property    DPI: integer read FDPI write SetDPI;
+    Property    BuildFontFacheIgnoresErrors : Boolean Read FBuildFontFacheIgnoresErrors Write FBuildFontFacheIgnoresErrors;
   end;
 
 
@@ -309,8 +313,13 @@ begin
         if (lowercase(ExtractFileExt(s)) = '.ttf') or
            (lowercase(ExtractFileExt(s)) = '.otf') then
         begin
-          lFont := TFPFontCacheItem.Create(AFontPath + s);
-          Add(lFont);
+          try
+            lFont := TFPFontCacheItem.Create(AFontPath + s);
+            Add(lFont);
+          except
+            if not FBuildFontFacheIgnoresErrors then
+              Raise;
+          end;
         end;
       end;
     until FindNext(sr) <> 0;

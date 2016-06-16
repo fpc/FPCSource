@@ -145,6 +145,9 @@ begin
   P.SetFont(FtTitle, 12);
   P.SetColor(clBlue, false);
   P.WriteText(25, 50, '(25mm,50mm) Helvetica: The quick brown fox jumps over the lazy dog.');
+  P.SetColor(clBlack, false);
+  P.WriteText(25, 57, 'Click the URL:  http://www.freepascal.org');
+  P.AddExternalLink(54, 58, 49, 5, 'http://www.freepascal.org', false);
 
   P.SetFont(ftText2,16);
   P.SetColor($c00000, false);
