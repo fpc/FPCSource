@@ -911,7 +911,7 @@ unit aoptx86;
           GetNextIntruction_p and
           (hp1.typ = ait_instruction) and
           GetNextInstruction(hp1, hp2) and
-          MatchInstruction(taicpu(hp2),A_MOV,[]) and
+          MatchInstruction(hp2,A_MOV,[]) and
           OpsEqual(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^) and
           (IsFoldableArithOp(taicpu(hp1), taicpu(p).oper[1]^.reg) or
            ((taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and
