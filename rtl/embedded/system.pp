@@ -38,6 +38,11 @@ Unit System;
 
 {$define FPC_ANSI_TEXTFILEREC}
 
+{$ifdef CPUI8086}
+  {$DEFINE FPC_INCLUDE_SOFTWARE_MUL}
+  {$DEFINE FPC_INCLUDE_SOFTWARE_MOD_DIV}
+{$endif CPUI8086}
+
 {$I check.inc}
 
 {$I systemh.inc}
@@ -80,6 +85,11 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCrLF;
 {$endif FPC_HAS_FEATURE_TEXTIO}
+{$ifdef CPUI8086}
+{ The value that needs to be added to the segment to move the pointer by
+  64K bytes (BP7 compatibility) }
+  SelectorInc: Word = $1000;
+{$endif CPUI8086}
 
 type
   trtl_do_close = procedure (handle : longint);
@@ -127,9 +137,35 @@ var
 {$endif FPC_HAS_FEATURE_SOFTFPU}
 {$endif FPUNONE}
 
+{$ifdef CPUI8086}
+var
+{ Mem[] support }
+  mem  : array[0..$7fff-1] of byte absolute $0:$0;
+  memw : array[0..($7fff div sizeof(word))-1] of word absolute $0:$0;
+  meml : array[0..($7fff div sizeof(longint))-1] of longint absolute $0:$0;
+  __stkbottom : pointer;public name '__stkbottom';
+{$endif CPUI8086}
+
 {*****************************************************************************}
                                  implementation
 {*****************************************************************************}
+
+{$ifdef CPUI8086}
+  { used for an offset fixup for accessing the proc parameters in asm routines
+    that use nostackframe. We can't use the parameter name directly, because
+    i8086 doesn't support sp relative addressing. }
+  const
+  {$ifdef FPC_X86_CODE_FAR}
+    extra_param_offset = 2;
+  {$else FPC_X86_CODE_FAR}
+    extra_param_offset = 0;
+  {$endif FPC_X86_CODE_FAR}
+  {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    extra_data_offset = 2;
+  {$else}
+    extra_data_offset = 0;
+  {$endif}
+{$endif CPUI8086}
 
 { Include ELF resources }
 
