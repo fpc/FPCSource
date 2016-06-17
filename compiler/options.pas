@@ -2248,7 +2248,7 @@ begin
                     'm':
                       begin
 {$if defined(i8086)}
-                        if (target_info.system in [system_i8086_msdos,system_i8086_win16]) then
+                        if (target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) then
                           begin
                             case Upper(Copy(More,j+1,255)) of
                               'TINY':    init_settings.x86memorymodel:=mm_tiny;
@@ -2323,7 +2323,7 @@ begin
                     't':
                       begin
 {$if defined(i8086)}
-                        if (target_info.system in [system_i8086_msdos]) then
+                        if (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
                           begin
                             case Upper(Copy(More,j+1,255)) of
                               'EXE': SetAppType(app_cui);
@@ -3085,7 +3085,7 @@ begin
 {$endif i8086}
 
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
-     not(target_info.system in (systems_darwin+[system_i8086_msdos])) then
+     not(target_info.system in (systems_darwin+[system_i8086_msdos,system_i8086_embedded])) then
     begin
       { smartlink creation does not yet work with DWARF
         debug info on most targets, but it works in internal assembler }

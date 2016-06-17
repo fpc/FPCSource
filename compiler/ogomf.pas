@@ -2723,7 +2723,7 @@ implementation
             idtxt  : 'OMF';
             asmbin : '';
             asmcmd : '';
-            supported_targets : [system_i8086_msdos];
+            supported_targets : [system_i8086_msdos,system_i8086_embedded];
             flags : [af_outputbinary,af_no_debug];
             labelprefix : '..@';
             comment : '; ';

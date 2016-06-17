@@ -2080,7 +2080,7 @@ implementation
                          begin
                            p2:=comp_expr([ef_accept_equal]);
                            { support SEG:OFS for go32v2/msdos Mem[] }
-                           if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16]) and
+                           if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
                               (p1.nodetype=loadn) and
                               assigned(tloadnode(p1).symtableentry) and
                               assigned(tloadnode(p1).symtableentry.owner.name) and

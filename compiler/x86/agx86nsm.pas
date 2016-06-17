@@ -581,7 +581,7 @@ interface
         else if (atype=sec_threadvar) and
           (target_info.system in (systems_windows+systems_wince)) then
           writer.AsmWrite('.tls'#9'bss')
-        else if target_info.system in [system_i8086_msdos,system_i8086_win16] then
+        else if target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded] then
           begin
             if secnames[atype]='.text' then
               secname:=CodeSectionName(aname)
@@ -643,7 +643,7 @@ interface
       {$endif i8086}
       begin
 {$ifdef i8086}
-        if target_info.system in [system_i8086_msdos,system_i8086_win16] then
+        if target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded] then
           begin
             if current_settings.x86memorymodel=mm_huge then
               WriteSection(sec_data,'',2);
@@ -1251,7 +1251,8 @@ interface
 {$ifdef i8086}
         case target_info.system of
           system_i8086_msdos,
-          system_i8086_win16:
+          system_i8086_win16,
+          system_i8086_embedded:
             FormatName:='obj';
           else
             internalerror(2014082060);
@@ -1304,7 +1305,7 @@ interface
             idtxt  : 'NASM';
             asmbin : 'nasm';
             asmcmd : '-f $FORMAT -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
-            supported_targets : [system_i8086_msdos,system_i8086_win16];
+            supported_targets : [system_i8086_msdos,system_i8086_win16,system_i8086_embedded];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
@@ -1316,7 +1317,7 @@ interface
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
-            supported_targets : [system_i8086_msdos,system_i8086_win16];
+            supported_targets : [system_i8086_msdos,system_i8086_win16,system_i8086_embedded];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';

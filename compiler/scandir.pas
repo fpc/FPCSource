@@ -282,7 +282,8 @@ unit scandir;
       begin
         if not (target_info.system in systems_all_windows + [system_i386_os2,
                                        system_i386_emx, system_powerpc_macos,
-                                       system_arm_nds, system_i8086_msdos] +
+                                       system_arm_nds, system_i8086_msdos,
+                                       system_i8086_embedded] +
                                        systems_nativent) then
           begin
             if m_delphi in current_settings.modeswitches then
@@ -298,9 +299,9 @@ unit scandir;
               begin
                  current_scanner.skipspace;
                  hs:=current_scanner.readid;
-                 if (hs='GUI') and not (target_info.system in [system_i8086_msdos]) then
+                 if (hs='GUI') and not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_gui)
-                 else if (hs='CONSOLE') and not (target_info.system in [system_i8086_msdos]) then
+                 else if (hs='CONSOLE') and not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_cui)
                  else if (hs='NATIVE') and (target_info.system in systems_windows + systems_nativent) then
                    SetApptype(app_native)
@@ -313,9 +314,9 @@ unit scandir;
                    SetApptype(app_arm9)
                  else if (hs='ARM7') and (target_info.system in [system_arm_nds]) then
                    SetApptype(app_arm7)
-                 else if (hs='COM') and (target_info.system in [system_i8086_msdos]) then
+                 else if (hs='COM') and (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_com)
-                 else if (hs='EXE') and (target_info.system in [system_i8086_msdos]) then
+                 else if (hs='EXE') and (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_cui)
                  else
                    Message1(scan_w_unsupported_app_type,hs);
@@ -438,7 +439,7 @@ unit scandir;
 
     procedure dir_forcefarcalls;
       begin
-        if (target_info.system<>system_i8086_msdos)
+        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded])
 {$ifdef i8086}
            or (current_settings.x86memorymodel in x86_near_code_models)
 {$endif i8086}
@@ -1258,7 +1259,7 @@ unit scandir;
       begin
         do_moduleswitch(cs_create_smart);
         if (target_dbg.id in [dbg_dwarf2,dbg_dwarf3]) and
-            not(target_info.system in (systems_darwin+[system_i8086_msdos])) and
+            not(target_info.system in (systems_darwin+[system_i8086_msdos,system_i8086_embedded])) and
             { smart linking does not yet work with DWARF debug info on most targets }
             (cs_create_smart in current_settings.moduleswitches) and
             not (af_outputbinary in target_asm.flags) then
@@ -1626,7 +1627,7 @@ unit scandir;
 
     procedure dir_hugecode;
       begin
-        if (target_info.system<>system_i8086_msdos)
+        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded])
 {$ifdef i8086}
            or (current_settings.x86memorymodel in x86_near_code_models)
 {$endif i8086}
@@ -1642,7 +1643,7 @@ unit scandir;
       var
         hs : string;
       begin
-        if target_info.system<>system_i8086_msdos then
+        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
             Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERNORMALIZATION');
             exit;
@@ -1672,7 +1673,7 @@ unit scandir;
 
     procedure dir_hugepointerarithmeticnormalization;
       begin
-        if target_info.system<>system_i8086_msdos then
+        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
             Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERARITHMETICNORMALIZATION');
             exit;
@@ -1682,7 +1683,7 @@ unit scandir;
 
     procedure dir_hugepointercomparisonnormalization;
       begin
-        if target_info.system<>system_i8086_msdos then
+        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
             Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERCOMPARISONNORMALIZATION');
             exit;

@@ -173,7 +173,8 @@ const
   { 86 }  'Darwin-AArch64',
   { 87 }  'iPhoneSim-x86-64',
   { 88 }  'Linux-AArch64',
-  { 89 }  'Win16'
+  { 89 }  'Win16',
+  { 90 }  'Embedded-i8086'
   );
 
 const

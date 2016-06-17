@@ -701,16 +701,16 @@ implementation
     procedure SetAppType(NewAppType:tapptype);
       begin
 {$ifdef i8086}
-        if (target_info.system=system_i8086_msdos) and (apptype<>NewAppType) then
+        if (target_info.system in [system_i8086_msdos,system_i8086_embedded]) and (apptype<>NewAppType) then
           begin
             if NewAppType=app_com then
               begin
-                targetinfos[system_i8086_msdos]^.exeext:='.com';
+                targetinfos[target_info.system]^.exeext:='.com';
                 target_info.exeext:='.com';
               end
             else
               begin
-                targetinfos[system_i8086_msdos]^.exeext:='.exe';
+                targetinfos[target_info.system]^.exeext:='.exe';
                 target_info.exeext:='.exe';
               end;
           end;

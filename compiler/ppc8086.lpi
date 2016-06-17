@@ -28,7 +28,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="239">
+    <Units Count="241">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -833,6 +833,7 @@
       <Unit200>
         <Filename Value="rautils.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="RAUtils"/>
       </Unit200>
       <Unit201>
         <Filename Value="regvars.pas"/>
@@ -986,6 +987,14 @@
         <Filename Value="systems\t_win16.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit238>
+      <Unit239>
+        <Filename Value="systems\i_embed.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit239>
+      <Unit240>
+        <Filename Value="systems\t_embed.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit240>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

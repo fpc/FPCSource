@@ -22,6 +22,13 @@ unit i_embed;
 
 {$i fpcdefs.inc}
 
+{$ifdef go32v2}
+  { As wlib uses a different Dos-Extender, long-command line
+    encoding for DJGPP does not work here.
+    Put all inside a script file instead }
+  {$define USE_SCRIPTED_WLIB}
+{$endif}
+
   interface
 
     uses
@@ -348,6 +355,75 @@ unit i_embed;
             llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
          );
 
+       system_i8086_embedded_info : tsysteminfo =
+          (
+            system       : system_i8086_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_use_8_3,tf_smartlink_library,
+                            tf_no_objectfiles_when_smartlinking,tf_cld,
+                            tf_no_generic_stackcheck,tf_emit_stklen];
+            cpu          : cpu_i8086;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '.exe';
+            defext       : '.def';
+            scriptext    : '.bat';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            staticlibprefix : '';
+            sharedlibprefix : '';
+            sharedClibext : '.dll';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : '';
+            importlibprefix : '';
+            importlibext : '.al';
+            Cprefix      : '_';
+            newline      : #13#10;
+            dirsep       : '\';
+            assem        : as_i8086_omf;
+            assemextern  : as_i8086_nasmobj;
+            link         : ld_int_msdos;
+            linkextern   : ld_msdos;
+{$ifdef USE_SCRIPTED_WLIB}
+            ar           : ar_watcom_wlib_omf_scripted;
+{$else}
+            ar           : ar_watcom_wlib_omf;
+{$endif}
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_dos;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 1;
+                loopalign       : 1;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 2;
+                varalignmin     : 0;
+                varalignmax     : 2;
+                localalignmin   : 0;
+                localalignmax   : 2;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 2
+              );
+            first_parm_offset : 4;
+            stacksize    : 0;
+            stackalign   : 2;
+            abi          : abi_default;
+            llvmdatalayout : 'todo';
+          );
+
   implementation
 
 initialization
@@ -376,4 +452,9 @@ initialization
     set_source_info(system_x86_64_embedded_info);
   {$endif embedded}
 {$endif CPUX86_64}
+{$ifdef cpu8086}
+  {$ifdef embedded}
+    set_source_info(system_i8086_embedded_info);
+  {$endif embedded}
+{$endif cpu8086}
 end.

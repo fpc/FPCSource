@@ -1487,6 +1487,14 @@ initialization
   RegisterTarget(system_x86_64_embedded_info);
 {$endif x86_64}
 
+{$ifdef i8086}
+  { no need to register linker ld_embedded, because i8086_embedded uses the
+    regular msdos linker. In case a flat binary, relocated for a specific
+    segment address is needed (e.g. for a BIOS or a real mode bootloader), it
+    can be produced post-compilation with exe2bin or a similar tool. }
+  RegisterTarget(system_i8086_embedded_info);
+{$endif i8086}
+
 {$ifdef mipsel}
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_mipsel_embedded_info);
