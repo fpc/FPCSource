@@ -177,7 +177,6 @@ const calculated_cmdline:Pchar=nil;
 {$define fpc_softfpu_implementation}
 {$i softfpu.pp}
 {$undef fpc_softfpu_implementation}
-{$endif FPUNONE}
 
 { we get these functions and types from the softfpu code }
 {$define FPC_SYSTEM_HAS_float64}
@@ -193,6 +192,7 @@ const calculated_cmdline:Pchar=nil;
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
 
 {$endif FPC_HAS_FEATURE_SOFTFPU}
+{$endif FPUNONE}
 
 {$I system.inc}
 
