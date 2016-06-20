@@ -1,3 +1,8 @@
+{ This test explicity generates overflow and range check error
+  Thus, we need explicit $Q- and $R- }
+{$Q-}
+{$R-}
+
 program tw25081;
 
 {$APPTYPE CONSOLE}

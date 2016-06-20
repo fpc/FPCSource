@@ -1,3 +1,8 @@
+{ Explictly disable range check as the test
+  is not about this but does generate a range check error
+  for the index of rasteriso array }
+{$R-}
+
 { Source provided for Free Pascal Bug Report 3864 }
 { Submitted by "Jernej" on  2005-04-01 }
 { e-mail: jernejcoder@gmail.com }

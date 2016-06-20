@@ -1402,9 +1402,14 @@ begin
           SetLength(LineBuffer2,4096);
 
           tmpwide:=UTF8Decode(LineBuffer);
-          
+
           // UnicodeToUTF8 includes terminating #0 -> length-1
-          setlength(LineBuffer2,UnicodeToUTF8(@LineBuffer2[1],length(LineBuffer2),punicodechar(@tmpwide[1]),length(tmpwide))-1);
+
+          if length(tmpwide)>0 then
+            setlength(LineBuffer2,UnicodeToUTF8(@LineBuffer2[1],length(LineBuffer2),punicodechar(@tmpwide[1]),length(tmpwide))-1)
+          else
+            setlength(LineBuffer2,0);
+
           cnvwide:=UTF8Decode(LineBuffer2);
           if (cnvwide <> tmpwide) then
             begin

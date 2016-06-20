@@ -1,3 +1,7 @@
+{ This test explicity generates overflow.
+  Thus, we need explicit $Q- }
+{$Q-}
+
 var
   i : longint;
 

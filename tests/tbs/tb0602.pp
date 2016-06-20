@@ -1,3 +1,8 @@
+{ This test explicity generates
+  dec(w,2) with w=1 of unsigned type word,
+  this generates range check error.
+  Thus, we need an explicit $R- }
+{$R-}
 {$ifdef fpc}
 {$mode delphi}
 {$endif}

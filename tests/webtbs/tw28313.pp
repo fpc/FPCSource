@@ -1,3 +1,8 @@
+{ This test explicity generates a range check error
+  in Tab.Count (which is zero) -1
+  as upper range in set.
+  Thus, we need an explicit $R- }
+{$R-}
 program project1;
 
 {$mode delphi}{$H+}
