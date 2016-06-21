@@ -1,6 +1,8 @@
-{ This test explicity generates overflow.
-  Thus, we need explicit $Q- }
+{ This test explicity generates overflow errors for 32-bit processors
+  or range check errors for 64-bit processors.
+  Thus, we need explicit $Q- and $R- }
 {$Q-}
+{$R-}
 
 var
   i : longint;
