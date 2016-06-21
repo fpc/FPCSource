@@ -1,3 +1,7 @@
+{ Explicitly disable overflow and range checks }
+{$Q-}
+{$R-}
+
 var
    l : longint;
    d : dword;
