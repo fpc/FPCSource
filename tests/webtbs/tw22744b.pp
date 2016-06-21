@@ -1,8 +1,8 @@
-{ Original test is about $Q option only,
-  so we explicitly disabled $R,
-  adding a new tw22744b.pp }
-
-{$R-}
+{ The original test is about $Q option only,
+  ifor which we explicitly disabled $R.
+  Here use both $Q and $R,
+  as 64-bit CPU rather generate range check errors
+  on that code. }
 
 {$mode objfpc}
 
@@ -14,14 +14,14 @@ const
   exception_seen : boolean = false;
 
 begin
-  {$Q+}
+  {$Q+,R+}
   i:=$78000000;
   j:=$20000000;
   l:=i-j;
-  {$push} {$q-}
+  {$push} {$q-,r-}
   l:=i+j; {$pop}
   try
-  {$push} {$q-}
+  {$push} {$q-,r-}
   l:=i+j{$pop};
   except on E : Exception do
     begin
@@ -30,14 +30,14 @@ begin
     end;
   end;
   try
-  {$q-} {$push}
-  l:=i+j{$q+}{$push};
+  {$q-,r-} {$push}
+  l:=i+j{$q+,r+}{$push};
   l:=0;
   {$pop}
   {$pop}
   except on E : Exception do
     begin
-      writeln('Convoluted {$Q+}{$Push} Exception ',E.Message);
+      writeln('Convoluted {$Q+,R+}{$Push} Exception ',E.Message);
       exception_seen:=true;
     end;
   end;
