@@ -1952,9 +1952,16 @@ begin
                            inc(j);
                            if more[j]='-' then
                              begin
-                               features:=[];
                                if length(more)>j then
-                                 IllegalPara(opt);
+                                 begin
+                                 inc(j);
+                                   if (ExcludeFeature(upper(copy(more,j,length(more)-j+1)))) then
+                                     j:=length(more)
+                                   else
+                                     IllegalPara(opt);
+                                 end
+                               else
+                                 features:=[];
                              end
                            else
                              begin
@@ -3730,6 +3737,9 @@ begin
    begin
      Message(option_switch_bin_to_src_assembler);
      set_target_asm(target_info.assemextern);
+     { At least i8086 needs that for nasm and -CX
+       which is incompatible with internal linker }
+     option.checkoptionscompatibility;
    end;
 
   { Force use of external linker if there is no
@@ -3915,7 +3925,7 @@ begin
 
   { Use init_settings cpu type for asm cpu type,
     if asmcputype is cpu_none,
-    at least as long as there is no explicit 
+    at least as long as there is no explicit
     option to set it on command line PM }
   if init_settings.asmcputype = cpu_none then
     init_settings.asmcputype:=init_settings.cputype;
