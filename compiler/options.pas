@@ -1953,19 +1953,13 @@ begin
                            if more[j]='-' then
                              begin
                                if length(more)>j then
-                                 begin
-                                 inc(j);
-                                   if (ExcludeFeature(upper(copy(more,j,length(more)-j+1)))) then
-                                     j:=length(more)
-                                   else
-                                     IllegalPara(opt);
-                                 end
+                                 IllegalPara(opt)
                                else
                                  features:=[];
                              end
                            else
                              begin
-                               if (IncludeFeature(upper(copy(more,j,length(more)-j+1)))) then
+                               if (HandleFeature(upper(copy(more,j,length(more)-j+1)))) then
                                  j:=length(more)
                                else
                                  IllegalPara(opt);

@@ -555,7 +555,7 @@ interface
     function Setcputype(const s:string;var a:tsettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
-    function IncludeFeature(const s : string) : boolean;
+    function HandleFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
     {# Routine to get the required alignment for size of data, which will
@@ -1232,7 +1232,7 @@ implementation
       end;
 
 
-    function IncludeFeature(const s : string) : boolean;
+    function HandleFeature(const s : string) : boolean;
       var
         i : tfeature;
       begin
@@ -1243,6 +1243,14 @@ implementation
               include(features,i);
               exit;
             end;
+        { Also support -Sfnoheap to exclude heap }
+        if Copy(S,1,2)='NO' then
+          for i:=low(tfeature) to high(tfeature) do
+            if s='NO'+featurestr[i] then
+              begin
+                exclude(features,i);
+                exit;
+              end;
         result:=false;
       end;
 
