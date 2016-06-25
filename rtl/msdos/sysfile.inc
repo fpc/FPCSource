@@ -24,8 +24,6 @@
       free_closed_names : boolean = true;
       verbose_files : boolean = true;
 
-      { we cannot allocate memory using SysGetMem, as we use tinyheap code,
-        but tinyheap.inc source in inserted later, so we need a forward declaration }
 {$endif SYSTEMDEBUG}
 
 
@@ -50,7 +48,7 @@ begin
             if verbose_files then
               Writeln(stderr,'file ',opennames[handle],' closed');
 
-            systinyfreememsize(opennames[handle],strlen(opennames[handle])+1);
+            sysfreememsize(opennames[handle],strlen(opennames[handle])+1);
             opennames[handle]:=nil;
          end;
 {$endif SYSTEMDEBUG}
@@ -397,12 +395,12 @@ begin
           assigned(opennames[regs.AX]) then
          begin
             Writeln(stderr,'file ',opennames[regs.AX],'(',regs.AX,') not closed but handle reused!');
-            systinyfreememsize(opennames[regs.AX],strlen(opennames[regs.AX])+1);
+            sysfreememsize(opennames[regs.AX],strlen(opennames[regs.AX])+1);
          end;
 {$endif SYSTEMDEBUG}
        openfiles[regs.AX]:=true;
 {$ifdef SYSTEMDEBUG}
-       opennames[regs.AX] := systinygetmem(strlen(p)+1);
+       opennames[regs.AX] := sysgetmem(strlen(p)+1);
        move(p^,opennames[regs.AX]^,strlen(p)+1);
        if verbose_files then
          Writeln(stderr,'file ',opennames[regs.AX],' opened');
