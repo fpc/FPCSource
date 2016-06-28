@@ -9,7 +9,7 @@ uses
 Type
    PS=^String;
 var
-  mem : ptrint;
+  mem : sizeint;
 
 
 procedure test;
