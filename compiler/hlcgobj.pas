@@ -4449,7 +4449,12 @@ implementation
              (target_info.system in systems_darwin) then
             list.concat(tai_directive.create(asd_reference,item.str));
           if (cs_profile in current_settings.moduleswitches) or
-            (po_global in current_procinfo.procdef.procoptions) then
+             { smart linking using a library requires to promote
+               all non-nested procedures to AB_GLOBAL
+               otherwise you get undefined symbol error at linking
+               for msdos  target with -CX option for instance }
+             (create_smartlink_library and not is_nested_pd(current_procinfo.procdef)) or
+             (po_global in current_procinfo.procdef.procoptions) then
             list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0))
           else
             list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0));
