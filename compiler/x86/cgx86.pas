@@ -1688,7 +1688,7 @@ unit cgx86;
               which might trigger a range check error as
               reference_reset_base expects a longint value. }
 {$push} {$R-}{$Q-}
-            al := longint (a); 
+            al := longint (a);
 {$pop}
             reference_reset_base(href,src,al,0);
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
@@ -3091,8 +3091,18 @@ unit cgx86;
                   list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_DS));
                   reference_reset(fardataseg,0);
                   fardataseg.refaddr:=addr_fardataseg;
-                  list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,fardataseg,NR_AX));
-                  list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+                  if current_procinfo.procdef.proccalloption=pocall_register then
+                    begin
+                      { Use BX register if using register convention
+                        as it is not a register used to store parameters }
+                      list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,fardataseg,NR_BX));
+                      list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_BX,NR_DS));
+                    end
+                  else
+                    begin
+                      list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,fardataseg,NR_AX));
+                      list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
+                    end;
                 end;
             { SI and DI are volatile in the BP7 and FPC's pascal calling convention,
               but must be preserved in Microsoft C's pascal calling convention, and
