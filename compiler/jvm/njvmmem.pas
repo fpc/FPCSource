@@ -57,6 +57,9 @@ interface
        end;
 
        tjvmvecnode = class(tcgvecnode)
+        protected
+          function gen_array_rangecheck: tnode; override;
+        public
          function pass_1: tnode; override;
          procedure pass_generate_code;override;
        end;
@@ -354,6 +357,13 @@ implementation
 {*****************************************************************************
                              TJVMVECNODE
 *****************************************************************************}
+
+    function tjvmvecnode.gen_array_rangecheck: tnode;
+      begin
+        { JVM does the range checking for us }
+        result:=nil;
+      end;
+
 
     function tjvmvecnode.pass_1: tnode;
       var

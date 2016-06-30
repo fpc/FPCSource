@@ -117,6 +117,7 @@ interface
        tvecnode = class(tbinarynode)
        protected
           function first_arraydef: tnode; virtual;
+          function gen_array_rangecheck: tnode; virtual;
        public
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
@@ -154,7 +155,7 @@ implementation
       globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symbase,defutil,defcmp,
-      nbas,ninl,nutils,objcutil,
+      nadd,nbas,nflw,ninl,nutils,objcutil,
       wpobase,
 {$ifdef i8086}
       cpuinfo,
@@ -867,7 +868,6 @@ implementation
 
     function tvecnode.pass_typecheck:tnode;
       var
-         hightree: tnode;
          htype,elementdef,elementptrdef : tdef;
          newordtyp: tordtype;
          valid : boolean;
@@ -920,6 +920,23 @@ implementation
                     handle_variantarray in pexpr.pas. Therefore, encountering a variant array is an
                     internal error... }
                    internalerror(200707031)
+                 { open array and array constructor range checking is handled
+                   below at the node level, where the validity of the index
+                   will be checked -> use a regular type conversion to either
+                   the signed or unsigned native int type to prevent another
+                   range check from getting inserted here (unless the type is
+                   larger than the int type). Exception: if it's an ordinal
+                   constant, because then this check should be performed at
+                   compile time }
+                 else if is_open_array(left.resultdef) or
+                    is_array_constructor(left.resultdef) then
+                   begin
+                     if is_signed(right.resultdef) and
+                        not is_constnode(right) then
+                       inserttypeconv(right,sinttype)
+                     else
+                       inserttypeconv(right,uinttype)
+                   end
                  else if is_special_array(left.resultdef) then
                    {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
                     convert indexes into these arrays to aword.}
@@ -1010,33 +1027,10 @@ implementation
                else
                  resultdef:=Tarraydef(left.resultdef).elementdef;
 
-               { if we are range checking an open array or array of const, we }
-               { need to load the high parameter. If the current procedure is }
-               { nested inside the procedure to which the open array/of const }
-               { was passed, then the high parameter must not be a regvar.    }
-               { So create a loadnode for the high parameter here and         }
-               { typecheck it, then the loadnode will make the high parameter }
-               { not regable. Otherwise this would only happen inside pass_2, }
-               { which is too late since by then the regvars are already      }
-               { assigned (pass_1 is also already too late, because then the  }
-               { regvars of the parent are also already assigned).            }
-               { webtbs/tw8975                                                }
-               if (cs_check_range in current_settings.localswitches) and
-                  (is_open_array(left.resultdef) or
-                   is_array_of_const(left.resultdef)) then
-                   begin
-                     { expect to find the load node }
-                     if get_open_const_array(left).nodetype<>loadn then
-                       internalerror(2014040601);
-                     { cdecl functions don't have high() so we can not check the range }
-                     { (can't use current_procdef, since it may be a nested procedure) }
-                     if not(tprocdef(tparasymtable(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
-                       begin
-                         { load_high_value_node already typechecks }
-                         hightree:=load_high_value_node(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry));
-                         hightree.free;
-                       end;
-                   end;
+               result:=gen_array_rangecheck;
+               if assigned(result) then
+                 exit;
+
                { in case of a bitpacked array of enums that are size 2 (due to
                  packenum 2) but whose values all fit in one byte, the size of
                  bitpacked array elements will be 1 byte while the resultdef of
@@ -1185,6 +1179,81 @@ implementation
           else
             expectloc:=LOC_SUBSETREF;
       end;
+
+    function tvecnode.gen_array_rangecheck: tnode;
+    var
+      htype: tdef;
+      temp: ttempcreatenode;
+      stat: tstatementnode;
+      indextree: tnode;
+      hightree: tnode;
+    begin
+      result:=nil;
+
+      { Range checking an array of const/open array/dynamic array is
+        more complicated than regular arrays, because the bounds must
+        be checked dynamically. Additionally, in case of array of const
+        and open array we need the high parameter, which must not be
+        made a regvar in case this is a nested rountine relative to the
+        array parameter -> generate te check at the node tree level
+        rather than in the code generator }
+      if (cs_check_range in current_settings.localswitches) and
+         (is_open_array(left.resultdef) or
+          is_array_of_const(left.resultdef)) and
+         (right.nodetype<>rangen) then
+        begin
+          { expect to find the load node }
+          if get_open_const_array(left).nodetype<>loadn then
+            internalerror(2014040601);
+          { cdecl functions don't have high() so we can not check the range }
+          { (can't use current_procdef, since it may be a nested procedure) }
+          if not(tprocdef(tparasymtable(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
+            begin
+              temp:=nil;
+              result:=internalstatements(stat);
+              { can't use node_complexity here, assumes that the code has
+                already been firstpassed }
+              if not is_const(right) then
+                begin
+                  temp:=ctempcreatenode.create(right.resultdef,right.resultdef.size,tt_persistent,true);
+                  addstatement(stat,temp);
+                  { needed so we can typecheck its temprefnodes }
+                  typecheckpass(tnode(temp));
+                  addstatement(stat,cassignmentnode.create(
+                    ctemprefnode.create(temp),right)
+                  );
+                  right:=ctemprefnode.create(temp);
+                  { right.resultdef is used below }
+                  typecheckpass(right);
+                end;
+              { range check will be made explicit here }
+              exclude(localswitches,cs_check_range);
+              hightree:=load_high_value_node(tparavarsym(tloadnode(
+                get_open_const_array(left)).symtableentry));
+              { make index unsigned so we only need one comparison;
+                lower bound is always zero for these arrays, but
+                hightree can be -1 in case the array was empty ->
+                add 1 before comparing (ignoring overflows) }
+              htype:=get_unsigned_inttype(right.resultdef);
+              inserttypeconv_explicit(hightree,htype);
+              hightree:=caddnode.create(addn,hightree,genintconstnode(1));
+              hightree.localswitches:=hightree.localswitches-[cs_check_range,
+                cs_check_overflow];
+              indextree:=ctypeconvnode.create_explicit(right.getcopy,htype);
+              { range error if index >= hightree+1 }
+              addstatement(stat,
+                cifnode.create_internal(
+                  caddnode.create_internal(gten,indextree,hightree),
+                  ccallnode.createintern('fpc_rangeerror',nil),
+                  nil
+                )
+              );
+              if assigned(temp) then
+                addstatement(stat,ctempdeletenode.create_normal_temp(temp));
+              addstatement(stat,self.getcopy);
+            end;
+        end;
+    end;
 
 
 {*****************************************************************************

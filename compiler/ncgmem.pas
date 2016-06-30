@@ -767,43 +767,7 @@ implementation
            exit;
          paraloc1.init;
          paraloc2.init;
-         if is_open_array(left.resultdef) or
-            is_array_of_const(left.resultdef) then
-          begin
-            { cdecl functions don't have high() so we can not check the range }
-            { (can't use current_procdef, since it may be a nested procedure) }
-            if not(tprocdef(tparasymtable(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
-             begin
-               { Get high value }
-               hightree:=load_high_value_node(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry));
-               { it must be available }
-               if not assigned(hightree) then
-                 internalerror(200212201);
-               firstpass(hightree);
-               secondpass(hightree);
-               { generate compares }
-{$ifndef cpuhighleveltarget}
-               if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                 hreg:=cg.makeregsize(current_asmdata.CurrAsmList,right.location.register,OS_INT)
-               else
-{$endif not cpuhighleveltarget}
-                 begin
-                   hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ossinttype);
-                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,ossinttype,right.location,hreg);
-                 end;
-               current_asmdata.getjumplabel(neglabel);
-               current_asmdata.getjumplabel(poslabel);
-               hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,ossinttype,OC_LT,0,hreg,poslabel);
-               hlcg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,osuinttype,OC_BE,hightree.location,hreg,neglabel);
-               hlcg.a_label(current_asmdata.CurrAsmList,poslabel);
-               hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_rangeerror',[],nil).resetiftemp;
-               hlcg.a_label(current_asmdata.CurrAsmList,neglabel);
-               { release hightree }
-               hightree.free;
-             end;
-          end
-         else
-          if is_dynamic_array(left.resultdef) then
+         if is_dynamic_array(left.resultdef) then
             begin
                pd:=search_system_proc('fpc_dynarray_rangecheck');
                paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
