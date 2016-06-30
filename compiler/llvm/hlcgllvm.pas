@@ -64,6 +64,7 @@ uses
 
      protected
       procedure gen_load_refaddrfull_anyreg(list: TAsmList; fromsize, tosize : tdef; const simpleref: treference; register: tregister; shuffle: pmmshuffle);
+      function  handle_agg_load_ref_anyreg(list: TasmList; var fromsize, tosize: tdef; var simpleref: treference; register: tregister; shuffle: pmmshuffle): boolean;
      public
       procedure a_load_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;register : tregister);override;
       procedure a_load_ref_ref(list: TAsmList; fromsize, tosize: tdef; const sref: treference; const dref: treference); override;
@@ -681,13 +682,64 @@ implementation
     end;
 
 
-  procedure thlcgllvm.a_load_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; register: tregister);
+  function thlcgllvm.handle_agg_load_ref_anyreg(list: TasmList; var fromsize, tosize: tdef; var simpleref: treference; register: tregister; shuffle: pmmshuffle): boolean;
     var
       tmpref,
-      tmpref2,
+      tmpref2: treference;
+      firstshuffle: pmmshuffle;
+    begin
+      if fromsize.size<tosize.size then
+        begin
+          { allocate a temp of size tosize, typecast it to the
+            (smaller) fromsize, load the source in it, and then
+            load the destination from it. The extra bits will contain
+            garbage, but they should never be used. }
+          tg.gethltemp(list,tosize,tosize.size,tt_persistent,tmpref);
+          tmpref2:=tmpref;
+          g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize),cpointerdef.getreusable(fromsize),tmpref2);
+          case getregtype(register) of
+            R_INTREGISTER,
+            R_ADDRESSREGISTER:
+              begin
+                a_load_ref_ref(list,fromsize,fromsize,simpleref,tmpref2);
+                a_load_ref_reg(list,tosize,tosize,tmpref,register);
+              end;
+            R_FPUREGISTER:
+              begin
+                a_loadfpu_ref_ref(list,fromsize,fromsize,simpleref,tmpref2);
+                a_loadfpu_ref_reg(list,tosize,tosize,tmpref,register);
+              end;
+            R_MMREGISTER:
+              begin
+                { don't shuffle twice }
+                if shuffle=mms_movescalar then
+                  firstshuffle:=shuffle
+                else
+                  firstshuffle:=nil;
+                a_loadmm_ref_ref(list,fromsize,fromsize,simpleref,tmpref2,firstshuffle);
+                a_loadmm_ref_reg(list,tosize,tosize,tmpref,register,shuffle);
+              end;
+          end;
+          tg.ungettemp(list,tmpref);
+          result:=true;
+        end
+      else
+        begin
+          (* typecast the pointer to the value instead of the value
+             itself if tosize<=fromsize but they are of different
+             kinds, because we can't e.g. bitcast a loaded <{i32, i32}>
+             to an i64 *)
+          g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(tosize),simpleref);
+          fromsize:=tosize;
+          result:=false;
+        end;
+    end;
+
+
+  procedure thlcgllvm.a_load_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; register: tregister);
+    var
       sref: treference;
       hreg: tregister;
-      tmpsize: tdef;
     begin
       sref:=make_simple_ref(list,ref,fromsize);
       { "named register"? }
@@ -699,29 +751,8 @@ implementation
               (tosize.typ in [arraydef,recorddef])) and
              (fromsize<>tosize) then
             begin
-              if fromsize.size<tosize.size then
-                begin
-                  { allocate a temp of size tosize, typecast it to the
-                    (smaller) fromsize, load the source in it, and then
-                    load the destination from it. The extra bits will contain
-                    garbage, but they should never be used. }
-                  tg.gethltemp(list,tosize,tosize.size,tt_persistent,tmpref);
-                  tmpref2:=tmpref;
-                  g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize),cpointerdef.getreusable(fromsize),tmpref2);
-                  a_load_ref_ref(list,fromsize,fromsize,sref,tmpref2);
-                  a_load_ref_reg(list,tosize,tosize,tmpref,register);
-                  tg.ungettemp(list,tmpref);
-                  exit;
-                end
-              else
-                begin
-                  (* typecast the pointer to the value instead of the value
-                     itself if tosize<=fromsize but they are of different
-                     kinds, because we can't e.g. bitcast a loaded <{i32, i32}>
-                     to an i64 *)
-                  g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(tosize),sref);
-                  fromsize:=tosize;
-                end;
+              if handle_agg_load_ref_anyreg(list,fromsize,tosize,sref,register,nil) then
+                exit;
             end;
           hreg:=register;
           if fromsize<>tosize then
@@ -1092,6 +1123,14 @@ implementation
          tmpreg:=getfpuregister(list,fromsize)
        else
          tmpreg:=reg;
+       { handle aggregate loads (happens if a struct needs to be passed in a
+         floating point register) }
+       if (fromsize.typ in [arraydef,recorddef]) or
+          (tosize.typ in [arraydef,recorddef]) then
+         begin
+           if handle_agg_load_ref_anyreg(list,fromsize,tosize,href,reg,mms_movescalar) then
+             exit;
+         end;
        { %tmpreg = load size* %ref }
        list.concat(taillvm.op_reg_size_ref(la_load,tmpreg,cpointerdef.getreusable(fromsize),href));
        if tmpreg<>reg then
@@ -1395,6 +1434,14 @@ implementation
             gen_load_refaddrfull_anyreg(list,fromsize,tosize,href,reg,shuffle)
           else
             begin
+              { handle aggregate loads (happens if a struct needs to be passed
+                in an mmregister) }
+              if (fromsize.typ in [arraydef,recorddef]) or
+                 (tosize.typ in [arraydef,recorddef]) then
+                begin
+                  if handle_agg_load_ref_anyreg(list,fromsize,tosize,href,reg,mms_movescalar) then
+                    exit;
+                end;
               if fromsize<>tosize then
                 g_ptrtypecast_ref(list,cpointerdef.create(fromsize),cpointerdef.create(tosize),href);
               { %reg = load size* %ref }
