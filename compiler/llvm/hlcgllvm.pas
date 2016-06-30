@@ -1663,7 +1663,7 @@ implementation
         explicitly passed to call instructions for llvm, that does not work
         here. It could be solved by patching the call instruction later, but
         that's a lot of engineering for functionality that's only marginally
-        useful at best.
+        useful at best. }
     end;
 
 
