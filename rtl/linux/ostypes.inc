@@ -121,9 +121,9 @@ type
            { Still old one. This is a userland struct}
 
    Dir       = record
-                dd_fd     : integer;
+                dd_fd     : longint;
                 dd_loc    : longint;
-                dd_size   : integer;
+                dd_size   : longint;
                 dd_buf    : pdirent;
                 {The following are used in libc, but NOT in the linux kernel sources ??}
                 dd_nextoff: cardinal;
