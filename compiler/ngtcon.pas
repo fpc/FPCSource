@@ -414,6 +414,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       begin
         if not(def.elementdef.typ in [orddef,enumdef]) then
           internalerror(2007022010);
+        ftcb.maybe_begin_aggregate(def);
         { begin of the array }
         consume(_LKLAMMER);
         initbitpackval(bp,def.elepackedbitsize);
@@ -434,6 +435,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { flush final incomplete value if necessary }
         if (bp.curbitoffset <> 0) then
           flush_packed_value(bp);
+        ftcb.maybe_end_aggregate(def);
         consume(_RKLAMMER);
       end;
 
