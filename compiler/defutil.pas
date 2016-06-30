@@ -103,6 +103,10 @@ interface
     }
     function is_signed(def : tdef) : boolean;
 
+    {# Returns an unsigned integer type of the same size as def; def must be
+       an ordinal or enum }
+    function get_unsigned_inttype(def: tdef): torddef;
+
     {# Returns whether def_from's range is comprised in def_to's if both are
       orddefs, false otherwise                                              }
     function is_in_limit(def_from,def_to : tdef) : boolean;
@@ -605,6 +609,18 @@ implementation
            else
              result:=false;
          end;
+      end;
+
+
+    function get_unsigned_inttype(def: tdef): torddef;
+      begin
+        case def.typ of
+          orddef,
+          enumdef:
+            result:=cgsize_orddef(tcgsize2unsigned[def_cgsize(def)]);
+          else
+            internalerror(2016062001);
+        end;
       end;
 
 
