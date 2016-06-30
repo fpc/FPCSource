@@ -708,9 +708,7 @@ implementation
                       { typecast the pointer to the struct into a pointer to an
                         integer of equal size }
                       tmpsize:=def2intdef(fromsize,tosize);
-                      hreg:=getaddressregister(list,cpointerdef.getreusable(tmpsize));
-                      a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tmpsize),sref,hreg);
-                      reference_reset_base(sref,cpointerdef.getreusable(tmpsize),hreg,0,sref.alignment);
+                      g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(tmpsize),sref);
                       { load that integer }
                       a_load_ref_reg(list,tmpsize,tosize,sref,register);
                     end
@@ -735,12 +733,10 @@ implementation
               else
                 begin
                   (* typecast the pointer to the value instead of the value
-                     itself if they have the same size but are of different
-                     kinds, because we can't e.g. typecast a loaded <{i32, i32}>
+                     itself if tosize<=fromsize but they are of different
+                     kinds, because we can't e.g. bitcast a loaded <{i32, i32}>
                      to an i64 *)
-                  hreg:=getaddressregister(list,cpointerdef.getreusable(tosize));
-                  a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tosize),sref,hreg);
-                  reference_reset_base(sref,cpointerdef.getreusable(tosize),hreg,0,sref.alignment);
+                  g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(tosize),sref);
                   fromsize:=tosize;
                 end;
             end;
