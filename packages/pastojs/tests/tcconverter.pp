@@ -102,6 +102,7 @@ type
     Procedure TestMemberExpressionArrayTwoDim;
     Procedure TestVariable;
     Procedure TestArrayVariable;
+    procedure TestClassDecleration;
   end;
 
   { TTestStatementConverter }
@@ -1156,7 +1157,26 @@ begin
   A:=TJSArrayLiteral(AssertElement('Init is array literal',TJSArrayLiteral,VD.Init));
   AssertEquals('No elements',0,A.Elements.Count);
 end;
-
+procedure TTestExpressionConverter.TestClassDecleration;
+var
+  C: TPasClassType;
+  Decl: TPasDeclarations;
+  Sl: TJSStatementList;
+  Uni: TJSUnary;
+  Asi: TJSSimpleAssignStatement;
+  pex: TJSPrimaryExpressionIdent;
+  Call: TJSCallExpression;
+begin
+  Decl:=TPasDeclarations.Create('',Nil);
+  C:=TPasClassType.Create('myclass',Nil);
+  Decl.Declarations.Add(c);
+  Sl:=TJSStatementList(Convert(Decl,TJSStatementList));
+  Uni:=TJSUnary(AssertElement('Sl.A is TJSUnary',TJSUnary,Sl.A));
+  Asi:=TJSSimpleAssignStatement(AssertElement('Sl.A is TJSUnary',TJSSimpleAssignStatement,Uni.A));
+  pex:=TJSPrimaryExpressionIdent(AssertElement('Asi.LHS is TJSPrimaryExpressionIdent',TJSPrimaryExpressionIdent,Asi.LHS));
+  AssertEquals('Correct name','myclass',pex.Name);
+  Call:=TJSCallExpression(AssertElement('Asi.Expr is TJSCallExpression',TJSCallExpression,Asi.Expr));
+end;
 procedure TTestTestConverter.TestEmpty;
 begin
   AssertNotNull('Have converter',Converter);
