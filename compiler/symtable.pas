@@ -153,7 +153,6 @@ interface
         private
          equivst: tabstractrecordsymtable;
          curroffset: aint;
-         recordalignmin: shortint;
          function get(f: tfieldvarsym): tllvmshadowsymtableentry;
          function get_by_llvm_index(index: longint): tllvmshadowsymtableentry;
         public
