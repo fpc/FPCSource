@@ -684,6 +684,7 @@ implementation
   procedure thlcgllvm.a_load_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; register: tregister);
     var
       tmpref,
+      tmpref2,
       sref: treference;
       hreg: tregister;
       tmpsize: tdef;
@@ -700,34 +701,16 @@ implementation
             begin
               if fromsize.size<tosize.size then
                 begin
-                  { if the target size is larger than the source size, we
-                    have to perform the zero-extension using an integer type
-                    (can't zero-extend a record/array) }
-                  if fromsize.typ in [arraydef,recorddef] then
-                    begin
-                      { typecast the pointer to the struct into a pointer to an
-                        integer of equal size }
-                      tmpsize:=def2intdef(fromsize,tosize);
-                      g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(tmpsize),sref);
-                      { load that integer }
-                      a_load_ref_reg(list,tmpsize,tosize,sref,register);
-                    end
-                  else
-                    begin
-                      { load the integer into an integer memory location with
-                        the same size as the struct (the integer should be
-                        unsigned, we don't want sign extensions here) }
-                      if is_signed(fromsize) then
-                        internalerror(2014012309);
-                      tmpsize:=def2intdef(tosize,fromsize);
-                      tg.gethltemp(list,tmpsize,tmpsize.size,tt_normal,tmpref);
-                      { typecast the struct-sized integer location into the
-                        struct type }
-                      a_load_ref_ref(list,fromsize,tmpsize,sref,tmpref);
-                      { load the struct in the register }
-                      a_load_ref_reg(list,tmpsize,tosize,tmpref,register);
-                      tg.ungettemp(list,tmpref);
-                    end;
+                  { allocate a temp of size tosize, typecast it to the
+                    (smaller) fromsize, load the source in it, and then
+                    load the destination from it. The extra bits will contain
+                    garbage, but they should never be used. }
+                  tg.gethltemp(list,tosize,tosize.size,tt_persistent,tmpref);
+                  tmpref2:=tmpref;
+                  g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize),cpointerdef.getreusable(fromsize),tmpref2);
+                  a_load_ref_ref(list,fromsize,fromsize,sref,tmpref2);
+                  a_load_ref_reg(list,tosize,tosize,tmpref,register);
+                  tg.ungettemp(list,tmpref);
                   exit;
                 end
               else
