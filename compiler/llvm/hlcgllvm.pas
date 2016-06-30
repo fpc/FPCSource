@@ -61,6 +61,10 @@ uses
       procedure a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);override;
       procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
       procedure a_load_reg_reg(list : TAsmList;fromsize, tosize : tdef;reg1,reg2 : tregister);override;
+
+     protected
+      procedure gen_load_refaddrfull_anyreg(list: TAsmList; fromsize, tosize : tdef; const simpleref: treference; register: tregister; shuffle: pmmshuffle);
+     public
       procedure a_load_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;register : tregister);override;
       procedure a_load_ref_ref(list: TAsmList; fromsize, tosize: tdef; const sref: treference; const dref: treference); override;
      protected
@@ -636,6 +640,47 @@ implementation
     end;
 
 
+  procedure thlcgllvm.gen_load_refaddrfull_anyreg(list: TAsmList; fromsize, tosize: tdef; const simpleref: treference; register: tregister; shuffle: pmmshuffle);
+    var
+      tmpref,
+      tmpref2: treference;
+    begin
+      { can't bitcast records/arrays }
+      if (llvmaggregatetype(fromsize) or
+          llvmaggregatetype(tosize)) and
+         (fromsize<>tosize) then
+        begin
+          if fromsize.size>tosize.size then
+            begin
+              tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
+              tmpref2:=tmpref;
+              g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(tosize),tmpref2);
+            end
+          else
+            begin
+              tg.gethltemp(list,tosize,tosize.size,tt_normal,tmpref);
+              tmpref2:=tmpref;
+              g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize),cpointerdef.getreusable(fromsize),tmpref);
+            end;
+          list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,simpleref,cpointerdef.getreusable(fromsize),tmpref));
+          case getregtype(register) of
+            R_INTREGISTER,
+            R_ADDRESSREGISTER:
+              a_load_ref_reg(list,tosize,tosize,tmpref2,register);
+            R_FPUREGISTER:
+              a_loadfpu_ref_reg(list,tosize,tosize,tmpref2,register);
+            R_MMREGISTER:
+              a_loadmm_ref_reg(list,tosize,tosize,tmpref2,register,shuffle);
+            else
+              internalerror(2016061901);
+          end;
+          tg.ungettemp(list,tmpref);
+        end
+      else
+        list.concat(taillvm.op_reg_size_ref_size(llvmconvop(fromsize,tosize,false),register,fromsize,simpleref,tosize))
+    end;
+
+
   procedure thlcgllvm.a_load_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; register: tregister);
     var
       tmpref,
@@ -646,20 +691,7 @@ implementation
       sref:=make_simple_ref(list,ref,fromsize);
       { "named register"? }
       if sref.refaddr=addr_full then
-        begin
-          { can't bitcast records/arrays }
-          if (llvmaggregatetype(fromsize) or
-              llvmaggregatetype(tosize)) and
-             (fromsize<>tosize) then
-            begin
-              tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
-              list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,cpointerdef.getreusable(fromsize),tmpref));
-              a_load_ref_reg(list,fromsize,tosize,tmpref,register);
-              tg.ungettemp(list,tmpref);
-            end
-          else
-            list.concat(taillvm.op_reg_size_ref_size(llvmconvop(fromsize,tosize,false),register,fromsize,sref,tosize))
-        end
+        gen_load_refaddrfull_anyreg(list,fromsize,tosize,sref,register,nil)
       else
         begin
           if ((fromsize.typ in [arraydef,recorddef]) or
@@ -1059,10 +1091,11 @@ implementation
        fromcompcurr,
        tocompcurr: boolean;
      begin
+       href:=make_simple_ref(list,ref,fromsize);
        { named register -> use generic code }
        if ref.refaddr=addr_full then
          begin
-           a_load_ref_reg(list,fromsize,tosize,ref,reg);
+           gen_load_refaddrfull_anyreg(list,fromsize,tosize,href,reg,mms_movescalar);
            exit
          end;
        { comp and currency are handled by the x87 in this case. They cannot
@@ -1074,7 +1107,6 @@ implementation
        tocompcurr:=tfloatdef(tosize).floattype in [s64comp,s64currency];
        if tocompcurr then
          tosize:=s80floattype;
-       href:=make_simple_ref(list,ref,fromsize);
        { don't generate different code for loading e.g. extended into cextended,
          but to take care of loading e.g. comp (=int64) into double }
        if (fromsize.size<>tosize.size) then
@@ -1375,18 +1407,20 @@ implementation
     var
       href: treference;
     begin
-      { named register -> use generic code }
-      if ref.refaddr=addr_full then
-        a_load_ref_reg(list,fromsize,tosize,ref,reg)
-      else if shuffle=mms_movescalar then
+      if shuffle=mms_movescalar then
         a_loadfpu_ref_reg(list,fromsize,tosize,ref,reg)
       else
         begin
           href:=make_simple_ref(list,ref,fromsize);
-          if fromsize<>tosize then
-            g_ptrtypecast_ref(list,cpointerdef.create(fromsize),cpointerdef.create(tosize),href);
-          { %reg = load size* %ref }
-          list.concat(taillvm.op_reg_size_ref(la_load,reg,cpointerdef.getreusable(tosize),href));
+          if ref.refaddr=addr_full then
+            gen_load_refaddrfull_anyreg(list,fromsize,tosize,href,reg,shuffle)
+          else
+            begin
+              if fromsize<>tosize then
+                g_ptrtypecast_ref(list,cpointerdef.create(fromsize),cpointerdef.create(tosize),href);
+              { %reg = load size* %ref }
+              list.concat(taillvm.op_reg_size_ref(la_load,reg,cpointerdef.getreusable(tosize),href));
+            end;
         end;
     end;
 
