@@ -1563,7 +1563,11 @@ uses
                  continue;
                { and the body is available already (which is implicitely the
                  case if the generic routine is part of another unit) }
-               if ((hmodule=current_module) or (hmodule.state=ms_compile)) and tprocdef(tprocdef(hp).genericdef).forwarddef then
+               if ((hmodule=current_module) or (hmodule.state=ms_compile)) and
+                  { may not be assigned in case it's a synthetic procdef that
+                    still needs to be generated }
+                  assigned(tprocdef(hp).genericdef) and
+                  tprocdef(tprocdef(hp).genericdef).forwarddef then
                  begin
                    result:=false;
                    continue;
