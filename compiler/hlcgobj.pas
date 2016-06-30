@@ -2551,7 +2551,7 @@ implementation
           begin
             cgpara.check_simple_location;
             paramanager.alloccgpara(list,cgpara);
-            a_loadfpu_ref_reg(list,fromsize,cgpara.def,ref,cgpara.location^.register);
+            a_loadfpu_ref_reg(list,fromsize,cgpara.location^.def,ref,cgpara.location^.register);
           end;
         LOC_REFERENCE,LOC_CREFERENCE:
           begin
