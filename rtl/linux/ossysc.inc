@@ -166,7 +166,7 @@ end;
 function Fpopendir(dirname : pchar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
 
 var
-  fd:integer;
+  fd:cint;
   st:stat;
   ptr:pdir;
 
