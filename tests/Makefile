@@ -2416,10 +2416,14 @@ $(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
 $(MAKEINC): $(GPARMAKE) $(TEST_OUTPUTDIR)
 	$(MAKE) -s --no-print-directory -f createlst.mak "TESTDIRS=$(TESTDIRS)" > testfilelist.lst
 	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @testfilelist.lst
-	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) $(sort $(wildcard tbs/t*.pp))
-	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) $(sort $(wildcard tbf/t*.pp))
-	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) $(sort $(wildcard webtbs/t*.pp))
-	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbf 30000 $(CHUNKSIZE) $(sort $(wildcard webtbf/t*.pp))
+	$(MAKE) -s --no-print-directory -f createlst.mak "TESTDIRS=tbs" > tbsfilelist.lst
+	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) @tbsfilelist.lst
+	$(MAKE) -s --no-print-directory -f createlst.mak "TESTDIRS=tbf" > tbffilelist.lst
+	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) @tbffilelist.lst
+	$(MAKE) -s --no-print-directory -f createlst.mak "TESTDIRS=webtbs" > webtbsfilelist.lst
+	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) @webtbsfilelist.lst
+	$(MAKE) -s --no-print-directory -f createlst.mak "TESTDIRS=webtbf" > webtbffilelist.lst
+	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbf 30000 $(CHUNKSIZE) @webtbffilelist.lst
 ifeq (,$(findstring clean,$(firstword $(MAKECMDGOALS))))
 ifneq (,$(findstring all,$(MAKECMDGOALS)))
 ifneq (,$(wildcard $(MAKEINC)))
