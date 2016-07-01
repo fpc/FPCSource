@@ -22,6 +22,7 @@
 
 type
   pltvInitEntry = ^ltvInitEntry;
+  ppltvInitEntry = ^pltvInitEntry;
   ltvInitEntry = packed record
      varaddr : {$ifdef cpu16}pword{$else}pdword{$endif};
      size    : longint;
@@ -29,7 +30,7 @@ type
 
   TltvInitTablesTable = packed record
     count  : dword;
-    tables : packed array [1..{$ifdef cpu16}16{$else}32767{$endif}] of pltvInitEntry;
+    tables : packed array [1..{$ifdef cpu16}16{$else}32767{$endif}] of {$ifdef ver3_0}pltvInitEntry{$else}ppltvInitEntry{$endif};
   end;
   PltvInitTablesTable = ^TltvInitTablesTable;
 
@@ -62,7 +63,7 @@ begin
     WriteLn ('init_all_unit_threadvars (',count,') units');
 {$endif}
     for i := 1 to count do
-      init_unit_threadvars (tables[i]);
+      init_unit_threadvars (tables[i]{$ifndef ver3_0}^{$endif});
   end;
 end;
 
@@ -96,7 +97,7 @@ begin
     WriteLn ('copy_all_unit_threadvars (',count,') units');
 {$endif}
     for i := 1 to count do
-      copy_unit_threadvars (tables[i]);
+      copy_unit_threadvars (tables[i]{$ifndef ver3_0}^{$endif});
   end;
 end;
 

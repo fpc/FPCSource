@@ -1037,8 +1037,9 @@ implementation
        begin
          if (hp.u.flags and uf_threadvars)=uf_threadvars then
            begin
+             sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),AT_DATA,true);
              tcb.emit_tai(
-               tai_const.Createname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),0),
+               tai_const.Create_sym(sym),
                voidpointertype);
              inc(count);
            end;
@@ -1047,8 +1048,9 @@ implementation
       { Add program threadvars, if any }
       if (current_module.flags and uf_threadvars)=uf_threadvars then
         begin
+          sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',current_module.localsymtable,''),AT_DATA,true);
           tcb.emit_tai(
-            Tai_const.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,''),0),
+            Tai_const.Create_sym(sym),
             voidpointertype);
           inc(count);
         end;
@@ -1094,6 +1096,7 @@ implementation
       tcb: ttai_typedconstbuilder;
       sym: tasmsymbol;
       tabledef: trecorddef;
+      add : boolean;
     begin
        if (tf_section_threadvars in target_info.flags) then
          exit;
@@ -1108,15 +1111,28 @@ implementation
          { terminator }
          tcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype);
        tcb.end_anonymous_record;
-       if trecordsymtable(tabledef.symtable).datasize<>0 then
+       add:=trecordsymtable(tabledef.symtable).datasize<>0;
+       if add then
          begin
            s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
            sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA);
            current_asmdata.asmlists[al_globals].concatlist(
              tcb.get_final_asmlist(sym,tabledef,sec_data,s,sizeof(pint)));
            current_module.flags:=current_module.flags or uf_threadvars;
-         end;
+         end
+       else
+         s:='';
        tcb.Free;
+       if add then
+         begin
+           { write indirect symbol }
+           tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+           sym:=current_asmdata.DefineAsmSymbol(s,AB_INDIRECT,AT_DATA);
+           tcb.emit_tai(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(s,AT_DATA,false)),voidpointertype);
+           current_asmdata.AsmLists[al_globals].concatList(
+             tcb.get_final_asmlist(sym,voidpointertype,sec_rodata,sym.name,const_align(sizeof(pint))));
+           tcb.free;
+         end;
     end;
 
 
