@@ -1282,19 +1282,29 @@ unit cgcpu;
             case fromsize of
               OS_8:
                 begin
-                  reg := makeregsize(list, reg, OS_8);
-                  list.concat(taicpu.op_ref_reg(A_MOV, S_B, tmpref, reg));
-                  setsubreg(reg, R_SUBH);
-                  list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg));
-                  makeregsize(list, reg, OS_16);
+                  if current_settings.cputype>=cpu_386 then
+                    list.concat(taicpu.op_ref_reg(A_MOVZX, S_BW, tmpref, reg))
+                  else
+                    begin
+                      reg := makeregsize(list, reg, OS_8);
+                      list.concat(taicpu.op_ref_reg(A_MOV, S_B, tmpref, reg));
+                      setsubreg(reg, R_SUBH);
+                      list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg));
+                      makeregsize(list, reg, OS_16);
+                    end;
                 end;
               OS_S8:
                 begin
-                  getcpuregister(list, NR_AX);
-                  list.concat(taicpu.op_ref_reg(A_MOV, S_B, tmpref, NR_AL));
-                  list.concat(taicpu.op_none(A_CBW));
-                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
-                  ungetcpuregister(list, NR_AX);
+                  if current_settings.cputype>=cpu_386 then
+                    list.concat(taicpu.op_ref_reg(A_MOVSX, S_BW, tmpref, reg))
+                  else
+                    begin
+                      getcpuregister(list, NR_AX);
+                      list.concat(taicpu.op_ref_reg(A_MOV, S_B, tmpref, NR_AL));
+                      list.concat(taicpu.op_none(A_CBW));
+                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
+                      ungetcpuregister(list, NR_AX);
+                    end;
                 end;
               OS_16,OS_S16:
                 list.concat(taicpu.op_ref_reg(A_MOV, S_W, tmpref, reg));
@@ -1306,11 +1316,16 @@ unit cgcpu;
               OS_8:
                 begin
                   list.concat(taicpu.op_const_reg(A_MOV,S_W,0,GetNextReg(reg)));
-                  reg := makeregsize(list, reg, OS_8);
-                  list.concat(taicpu.op_ref_reg(A_MOV, S_B, tmpref, reg));
-                  setsubreg(reg, R_SUBH);
-                  list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg));
-                  makeregsize(list, reg, OS_16);
+                  if current_settings.cputype>=cpu_386 then
+                    list.concat(taicpu.op_ref_reg(A_MOVZX, S_BW, tmpref, reg))
+                  else
+                    begin
+                      reg := makeregsize(list, reg, OS_8);
+                      list.concat(taicpu.op_ref_reg(A_MOV, S_B, tmpref, reg));
+                      setsubreg(reg, R_SUBH);
+                      list.concat(taicpu.op_const_reg(A_MOV, S_B, 0, reg));
+                      makeregsize(list, reg, OS_16);
+                    end;
                 end;
               OS_S8:
                 begin
