@@ -414,6 +414,8 @@ implementation
             typeconvn,
             subscriptn :
               hp:=tunarynode(hp).left;
+            blockn:
+              hp:=laststatement(tblocknode(hp)).left
             else
               break;
           end;
