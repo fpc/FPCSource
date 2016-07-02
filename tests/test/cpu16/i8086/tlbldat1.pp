@@ -4,6 +4,10 @@
 
 { this test is Turbo Pascal 7 compatible }
 
+{$ifdef FPC}
+  {$goto on}
+{$endif}
+
 program tlbldat1;
 label
   lbl;
