@@ -6,7 +6,12 @@
 
 program tprcdat1;
 
-procedure TestProc; far; assembler;
+{$ifdef FPC}
+  {$ifdef FPC_MM_HUGE}
+    {$warning This test only works if TestProc uses NoStackFrame modifier}
+  {$endif}
+{$endif}
+procedure TestProc; far; assembler; {$ifdef FPC_MM_HUGE} nostackframe;{$endif}
 asm
   dw $1234
   dw $4321
