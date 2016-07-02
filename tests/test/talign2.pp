@@ -25,6 +25,20 @@ uses
 {$endif}
 {$endif}
 
+{$ifdef CPUI8086}
+  { The pointer size is either 2 or 4
+    depending on memory model, but
+    there is no point in having better
+    alignment than 2 for a pointer,
+    as 4 byte pointer are in fact
+    2 byte offset and 2 byte segment/selector }
+const
+  pointer_alignment = 2;
+{$else}
+const
+  pointer_alignment = sizeof(pointer);
+{$endif}
+
 
 procedure test(b : boolean);
 begin
@@ -51,17 +65,17 @@ begin
   test(length(shortstr)=18);
   { verify if the address are correctly aligned! }
   pt:=@shortstr;
-  test((ptruint(pt) mod sizeof(pointer))=0);
+  test((ptruint(pt) mod pointer_alignment)=0);
   pt:=p;
-  test((ptruint(pt) mod sizeof(pointer))=0);
+  test((ptruint(pt) mod pointer_alignment)=0);
   pt:=pchar(ansistr);
-  test((ptruint(pt) mod sizeof(pointer))=0);
+  test((ptruint(pt) mod pointer_alignment)=0);
 {$ifdef haswidestring}
   pt:=pchar(widestr);
 {$ifdef FPC_WINLIKEWIDESTRING}
   test((ptruint(pt) mod 4)=0);
 {$else FPC_WINLIKEWIDESTRING}
-  test((ptruint(pt) mod sizeof(pointer))=0);
+  test((ptruint(pt) mod pointer_alignment)=0);
 {$endif FPC_WINLIKEWIDESTRING}
 {$endif}
 end.
