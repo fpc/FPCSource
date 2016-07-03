@@ -856,7 +856,8 @@ implementation
                    is_record(vardef)) then
                 begin
                   case paraloc^.loc of
-                    LOC_REGISTER:
+                    LOC_REGISTER,
+                    LOC_MMREGISTER:
                       begin
                         if not assigned(paraloc^.next) then
                           internalerror(200410104);
