@@ -761,6 +761,10 @@ implementation
     procedure Tsubscriptnode.mark_write;
       begin
         include(flags,nf_write);
+        { if an element of a record is written, then the whole record is changed/it is written to it,
+          for data types being implicit pointers this does not apply as the object itself does not change }
+        if not(is_implicit_pointer_object_type(left.resultdef)) then
+          left.mark_write;
       end;
 
 
@@ -1064,6 +1068,9 @@ implementation
     procedure Tvecnode.mark_write;
       begin
         include(flags,nf_write);
+        { see comment in tsubscriptnode.mark_write }
+        if not(is_implicit_pointer_object_type(left.resultdef)) then
+          left.mark_write;
       end;
 
 
