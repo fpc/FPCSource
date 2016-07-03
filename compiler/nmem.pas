@@ -933,9 +933,9 @@ implementation
                    begin
                      if is_signed(right.resultdef) and
                         not is_constnode(right) then
-                       inserttypeconv(right,sinttype)
+                       inserttypeconv(right,ptrsinttype)
                      else
-                       inserttypeconv(right,uinttype)
+                       inserttypeconv(right,ptruinttype)
                    end
                  else if is_special_array(left.resultdef) then
                    {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
