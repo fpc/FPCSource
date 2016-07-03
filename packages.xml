@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<repository>
+  <packages>
+    <package name="googleapi">
+      <version major="3" micro="1" minor="1"/>
+      <author>Michael Van Canneyt</author>
+      <homepageurl>www.freepascal.org</homepageurl>
+      <downloadurl></downloadurl>
+      <filename>googleapi-3.1.1.zip</filename>
+      <email>www.freepascal.org</email>
+      <description>Google API client libraries.</description>
+      <license>LGPL with modification, </license>
+      <oses>
+        <os name="linux"/>
+        <os name="win32"/>
+        <os name="freebsd"/>
+        <os name="beos"/>
+        <os name="netbsd"/>
+        <os name="amiga"/>
+        <os name="solaris"/>
+        <os name="openbsd"/>
+        <os name="darwin"/>
+        <os name="morphos"/>
+        <os name="win64"/>
+        <os name="wince"/>
+        <os name="haiku"/>
+        <os name="iphonesim"/>
+        <os name="aix"/>
+        <os name="aros"/>
+        <os name="dragonfly"/>
+      </oses>
+      <dependencies>
+        <dependency>
+          <package packagename="rtl"/>
+        </dependency>
+        <dependency>
+          <package packagename="fcl-base"/>
+        </dependency>
+        <dependency>
+          <package packagename="rtl-extra"/>
+        </dependency>
+        <dependency>
+          <package packagename="rtl-objpas"/>
+        </dependency>
+        <dependency>
+          <package packagename="fcl-json"/>
+        </dependency>
+        <dependency>
+          <package packagename="fcl-web"/>
+        </dependency>
+      </dependencies>
+    </package>
+  </packages>
+</repository>
