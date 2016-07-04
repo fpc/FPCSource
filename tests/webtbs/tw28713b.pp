@@ -4,7 +4,7 @@
 
 type
   PWordArray = ^TWordArray;
-  TWordArray = array [0..1023]of LongWord;
+  TWordArray = array [0..1023] of PtrUInt;
 
   TMyclass = class
     LoByte,HiByte:Byte
