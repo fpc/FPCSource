@@ -34,6 +34,9 @@ type
   TSmallintArray = Packed Array of Int16;
   TWordArray = Packed Array of UInt16;
 
+  { Signed Fixed 16.16 Float }
+  TF16Dot16 = type Int32;
+
   TFixedVersionRec = packed record
     case Integer of
       0:  (Minor, Major: Word);
@@ -65,7 +68,7 @@ type
 Type
   TPostScript = Packed Record
     Format : TFixedVersionRec;
-    ItalicAngle : LongWord;
+    ItalicAngle : TF16Dot16;
     UnderlinePosition : SmallInt;
     underlineThickness : SmallInt;
     isFixedPitch : Cardinal;
@@ -288,7 +291,7 @@ Type
     Function CapHeight: SmallInt;
     { Returns the glyph advance width, based on the AIndex (glyph index) value. The result is in font units. }
     function GetAdvanceWidth(AIndex: word): word;
-    function ItalicAngle: LongWord;
+    function ItalicAngle: single;
     { max glyph bounding box values - as space separated values }
     function BBox: string;
     property MissingWidth: Integer read GetMissingWidth;
@@ -898,9 +901,9 @@ begin
   Result := Widths[AIndex].AdvanceWidth;
 end;
 
-function TTFFileInfo.ItalicAngle: LongWord;
+function TTFFileInfo.ItalicAngle: single;
 begin
-  Result := FPostScript.ItalicAngle;
+  Result := FPostScript.ItalicAngle / 65536.0;
 end;
 
 function TTFFileInfo.BBox: string;

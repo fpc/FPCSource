@@ -59,8 +59,11 @@ implementation
 uses
   fpparsettf;
 
+const
+  cFontCount = 5;
+
 resourcestring
-  cErrFontCountWrong =   ' - make sure you only have the 4 test fonts in the "fonts" directory.';
+  cErrFontCountWrong =   ' - make sure you only have the 5 test fonts in the "fonts" directory.';
 
 { TFPFontCacheItemTest }
 
@@ -192,7 +195,7 @@ begin
   FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
   AssertEquals('Failed on 2', 0, FC.Count);
   FC.BuildFontCache;
-  AssertEquals('Failed on 3' + cErrFontCountWrong, 4, FC.Count);
+  AssertEquals('Failed on 3' + cErrFontCountWrong, cFontCount, FC.Count);
 end;
 
 procedure TFPFontCacheListTest.TestBuildFontCache;
@@ -211,7 +214,7 @@ begin
   FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
   AssertEquals('Failed on 4', 0, FC.Count);
   FC.BuildFontCache;
-  AssertEquals('Failed on 5' + cErrFontCountWrong, 4, FC.Count);
+  AssertEquals('Failed on 5' + cErrFontCountWrong, cFontCount, FC.Count);
 end;
 
 procedure TFPFontCacheListTest.TestBuildFontCache_tests_for_bug;
@@ -227,7 +230,7 @@ begin
   AssertEquals('Failed on 1', 0, FC.Count);
   FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
   FC.BuildFontCache;
-  AssertEquals('Failed on 2', 4, FC.Count);
+  AssertEquals('Failed on 2' + cErrFontCountWrong, cFontCount, FC.Count);
   FC.Clear;
   AssertEquals('Failed on 3', 0, FC.Count);
 end;
@@ -242,7 +245,7 @@ begin
   AssertTrue('Failed on 2', lCI = nil);
   FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
   FC.BuildFontCache;
-  AssertEquals('Failed on 3' + cErrFontCountWrong, 4, FC.Count);
+  AssertEquals('Failed on 3' + cErrFontCountWrong, cFontCount, FC.Count);
   lCI := FC.Find('Ubuntu');
   AssertTrue('Failed on 4', Assigned(lCI));
 
@@ -272,7 +275,7 @@ begin
   AssertTrue('Failed on 2', lCI = nil);
   FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
   FC.BuildFontCache;
-  AssertEquals('Failed on 3' + cErrFontCountWrong, 4, FC.Count);
+  AssertEquals('Failed on 3' + cErrFontCountWrong, cFontCount, FC.Count);
   lCI := FC.Find('Ubuntu');
   AssertTrue('Failed on 4', Assigned(lCI));
 
@@ -301,9 +304,9 @@ begin
     AssertEquals('Failed on 1', 0, FC.Count);
     FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
     FC.BuildFontCache;
-    AssertEquals('Failed on 2', 4, FC.Count);
+    AssertEquals('Failed on 2' + cErrFontCountWrong, cFontCount, FC.Count);
     FC.AssignFontList(sl);
-    AssertEquals('Failed on 3', 4, sl.Count);
+    AssertEquals('Failed on 3', cFontCount, sl.Count);
   finally
     sl.Free;
   end;

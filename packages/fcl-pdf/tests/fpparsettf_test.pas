@@ -196,6 +196,15 @@ type
   end;
 
 
+  TTestLiberationItalicFont = class(TBaseTestParseTTF)
+  protected
+    procedure SetUp; override;
+  published
+    { PostScript data structure }
+    procedure TestPostScript_ItalicAngle;
+  end;
+
+
   TTestFreeSansFont = class(TBaseTestParseTTF)
   protected
     procedure SetUp; override;
@@ -361,6 +370,7 @@ uses
 const
   cFont1 = 'fonts' + PathDelim + 'LiberationSans-Regular.ttf';
   cFont2 = 'fonts' + PathDelim + 'FreeSans.ttf';
+  cFont3 = 'fonts' + PathDelim + 'LiberationSans-Italic.ttf';
 
 { TTestEmptyParseTTF }
 
@@ -1150,6 +1160,23 @@ begin
   AssertEquals('Failed on 12', 1139, FI.GetAdvanceWidth(20));  // '1'
 end;
 
+{ TTestLiberationItalicFont }
+
+procedure TTestLiberationItalicFont.SetUp;
+begin
+  inherited SetUp;
+  AssertTrue('Failed to find TTF font file <' + cFont3 + '>' + LineEnding +
+    'You can download it from [https://fedorahosted.org/releases/l/i/liberation-fonts/liberation-fonts-ttf-2.00.1.tar.gz]',
+    FileExists(cFont3) = True);
+  LoadFont(cFont3);
+end;
+
+procedure TTestLiberationItalicFont.TestPostScript_ItalicAngle;
+begin
+  AssertEquals('Failed on 1', -12.0, FI.PostScript.ItalicAngle / 65536.0);
+  AssertEquals('Failed on 2', -12.0, FI.ItalicAngle);
+end;
+
 { TTestFreeSansFont }
 
 procedure TTestFreeSansFont.SetUp;
@@ -1900,6 +1927,7 @@ initialization
   RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestEmptyParseTTF{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestLiberationFont{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestFreeSansFont{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestLiberationItalicFont{$ifdef fptest}.Suite{$endif});
 
 end.
 

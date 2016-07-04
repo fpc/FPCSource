@@ -2188,7 +2188,6 @@ begin
 end;
 
 procedure TPDFImageItem.CreateStreamedData(AUseCompression: Boolean);
-
 Var
   X,Y : Integer;
   C : TFPColor;
@@ -2237,10 +2236,8 @@ begin
 end;
 
 function TPDFImageItem.WriteImageStream(AStream: TStream): int64;
-
 var
   Img : TBytes;
-
 begin
   TPDFObject.WriteString(CRLF+'stream'+CRLF,AStream);
   Img:=StreamedData;
@@ -2259,7 +2256,12 @@ begin
     Result := False;
     exit;
   end;
-  Result := True;
+
+  { if dimensions don't match, we know we can exit early }
+  Result := (Image.Width = AImage.Width) and (Image.Height = AImage.Height);
+  if not Result then
+    Exit;
+
   for x := 0 to Image.Width-1 do
     for y := 0 to Image.Height-1 do
       if Image.Colors[x, y] <> AImage.Colors[x, y] then
@@ -2268,8 +2270,6 @@ begin
         Exit;
       end;
 end;
-
-
 
 { TPDFImages }
 
@@ -3639,7 +3639,7 @@ begin
   Arr:=CreateArray;
   FDict.AddElement('FontBBox',Arr);
   Arr.AddIntArray(Fonts[EmbeddedFontNum].FTrueTypeFile.BBox);
-  FDict.AddInteger('ItalicAngle',Fonts[EmbeddedFontNum].FTrueTypeFile.ItalicAngle);
+  FDict.AddInteger('ItalicAngle', trunc(Fonts[EmbeddedFontNum].FTrueTypeFile.ItalicAngle));
   FDict.AddInteger('StemV', Fonts[EmbeddedFontNum].FTrueTypeFile.StemV);
   FDict.AddInteger('MissingWidth', Fonts[EmbeddedFontNum].FTrueTypeFile.MissingWidth);
   CreateFontFileEntry(EmbeddedFontNum);
