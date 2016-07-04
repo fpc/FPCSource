@@ -113,7 +113,7 @@ Type
     Class Function GetParentPropCount : Integer; virtual;
     Class Function ExportPropertyName(Const AName : String) : string; virtual;
     Class Function CleanPropertyName(Const AName : String) : string;
-    Class Function CreateObject(Const AKind : String) : TBaseObject;
+    Class Function CreateObject(Const AKind : String; AClass: TClass = Nil) : TBaseObject;
     Class Procedure RegisterObject;
     Class Function ObjectRestKind : String; virtual;
     Procedure LoadPropertyFromJSON(Const AName : String; JSON : TJSONData); virtual;
@@ -689,15 +689,16 @@ begin
     Case ET^.Kind of
       tkClass :
         begin
-        // Writeln(ClassName,' Adding instance of type: ',AN);
-        TObjectArray(AP)[I]:=CreateObject(AN);
+        TObjectArray(AP)[I]:=CreateObject(AN,GetTypeData(ET)^.ClassType);
         TObjectArray(AP)[I].LoadFromJSON(AValue.Objects[i]);
         end;
       tkFloat :
         if IsDateTimeProp(ET) then
           TDateTimeArray(AP)[I]:=RFC3339ToDateTime(AValue.Strings[i])
         else
+          begin
           TFloatArray(AP)[I]:=AValue.Floats[i];
+          end;
       tkInt64 :
         TInt64Array(AP)[I]:=AValue.Int64s[i];
       tkBool :
@@ -713,7 +714,6 @@ begin
       tkAstring,
       tkLString :
         begin
-        // Writeln('Setting String ',i,': ',AValue.Strings[i]);
         TStringArray(AP)[I]:=AValue.Strings[i];
         end;
     else
@@ -792,6 +792,7 @@ begin
 {$else}
     DynArraySetLength(AP,P^.PropType,1,@i);
     I:=Length(TObjectArray(AP));
+//    Writeln('Array length : ',I);
     SetDynArrayProp(P,AP);
 {$endif}
     try
@@ -1222,13 +1223,15 @@ begin
    Result:='_'+Result
 end;
 
-class function TBaseObject.CreateObject(const AKind: String): TBaseObject;
+class function TBaseObject.CreateObject(const AKind: String; AClass: TClass = Nil): TBaseObject;
 
 Var
   C : TBaseObjectClass;
 
 begin
   C:=RESTFactory.GetObjectClass(AKind);
+  if (C=Nil) and Assigned(AClass) and AClass.InheritsFrom(TBaseObject) then
+   C:=TBaseObjectClass(AClass);
   if C<>Nil then
     Result:=C.Create
   else
