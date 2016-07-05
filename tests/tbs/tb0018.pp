@@ -23,7 +23,7 @@ constructor tobject.c;
   end;
 
 var
-   p : pointer;
+   p : codepointer;
 
 begin
    p:=@a;
