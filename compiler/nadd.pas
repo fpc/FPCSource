@@ -697,8 +697,12 @@ implementation
           an slash expresion would be first converted into a multiplication and later
           folded }
         if (nodetype=slashn) and
-          { do not mess with currency types }
-          (not(is_currency(right.resultdef))) and
+          { do not mess with currency and comp types }
+          (not(is_currency(right.resultdef)) and
+           not((right.resultdef.typ=floatdef) and
+               (tfloatdef(right.resultdef).floattype=s64comp)
+              )
+          ) and
           (((cs_opt_fastmath in current_settings.optimizerswitches) and (rt=ordconstn)) or
            ((cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and
             (bestrealrec(trealconstnode(right).value_real).SpecialType in [fsPositive,fsNegative])
