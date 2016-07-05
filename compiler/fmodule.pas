@@ -815,6 +815,11 @@ implementation
         resourcefiles:=TCmdStrList.Create;
         pendingspecializations.free;
         pendingspecializations:=tfphashobjectlist.create(false);
+        if assigned(waitingforunit) and
+          (waitingforunit.count<>0) then
+          internalerror(2016070501);
+        waitingforunit.free;
+        waitingforunit:=tfpobjectlist.create(false);;
         linkunitofiles.Free;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs.Free;
@@ -842,6 +847,16 @@ implementation
         stringdispose(namespace);
         tcinitcode.free;
         tcinitcode:=nil;
+        localunitsearchpath.Free;
+        localunitsearchpath:=TSearchPathList.Create;
+        localobjectsearchpath.free;
+        localobjectsearchpath:=TSearchPathList.Create;
+        localincludesearchpath.free;
+        localincludesearchpath:=TSearchPathList.Create;
+        locallibrarysearchpath.free;
+        locallibrarysearchpath:=TSearchPathList.Create;
+        localframeworksearchpath.free;
+        localframeworksearchpath:=TSearchPathList.Create;
         moduleoptions:=[];
         is_dbginfo_written:=false;
         crc:=0;
