@@ -219,7 +219,7 @@ var
 begin
    crc:=cardinal($ffffffff);
    crc:=UpdateCrc32(crc,p^.size,sizeof(ptruint));
-   crc:=UpdateCrc32(crc,p^.calls,tracesize*sizeof(ptruint));
+   crc:=UpdateCrc32(crc,p^.calls,tracesize*sizeof(codepointer));
    if p^.extra_info_size>0 then
      crc:=UpdateCrc32(crc,p^.extra_info^,p^.exact_info_size);
    if add_tail then
@@ -239,7 +239,7 @@ var
 begin
    crc:=$ffffffff;
    crc:=UpdateCrc32(crc,p^.size,sizeof(ptruint));
-   crc:=UpdateCrc32(crc,p^.calls,tracesize*sizeof(ptruint));
+   crc:=UpdateCrc32(crc,p^.calls,tracesize*sizeof(codepointer));
    if p^.extra_info_size>0 then
      crc:=UpdateCrc32(crc,p^.extra_info^,p^.exact_info_size);
    { Check the whole of the whole allocation }
