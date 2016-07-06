@@ -3634,7 +3634,11 @@ S*2Aas_ensamblar usando GNU AS
 **2Rdefault_usar ensamblador por defecto
 3*2Ratt_leer ensamblador estilo AT&T
 3*2Rintel_leer ensamblador estilo Intel
-6*2RMOT_leer ensamblador estilo motorola
+4*2Ratt_leer ensamblador estilo AT&T
+4*2Rintel_leer ensamblador estilo Intel
+8*2Ratt_leer ensamblador estilo AT&T
+8*2Rintel_leer ensamblador estilo Intel
+6*2RMOT_leer ensamblador estilo Motorola
 **1S<x>_opciones de sintaxis:
 **2S2_igual que -Mobjfpc
 **2Sc_soportar operadores estilo C (*=,+=,/= and -=)

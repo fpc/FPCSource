@@ -2895,8 +2895,12 @@ S*2Aas_Assembla con GNU AS
 **1R<x>_Stile di lettura assembler:
 **2Rdefault_Usa assembler di default per la destinazione
 3*2Ratt_Leggi assembler stile AT&T
-3*2Rintel_Leggi assembler stile Intel 
-6*2RMOT_Leggi assembler stile motorola
+3*2Rintel_Leggi assembler stile Intel
+4*2Ratt_Leggi assembler stile AT&T
+4*2Rintel_Leggi assembler stile Intel
+8*2Ratt_Leggi assembler stile AT&T
+8*2Rintel_Leggi assembler stile Intel
+6*2RMOT_Leggi assembler stile Motorola
 **1S<x>_Opzioni di sintassi:
 **2S2_Come -Mobjfpc
 **2Sc_Supporta operatori simil-C (*=,+=,/= e -=)

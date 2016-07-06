@@ -3625,6 +3625,10 @@ option_help_pages=11025_[
 3*1R<x>_Geef de grammatica voor de assemblerlezer op:
 3*2Ratt_Lees assembler in AT&T-stijl
 3*2Rintel_Lees assembler in Intelstijl
+4*2Ratt_Lees assembler in AT&T-stijl
+4*2Rintel_Lees assembler in Intelstijl
+8*2Ratt_Lees assembler in AT&T-stijl
+8*2Rintel_Lees assembler in Intelstijl
 3*2Rdirect_Kopieer assemblercode rechtstreeks naar assemblerbestand
 **1O<x>_optimalisaties
 **2O1_Niveau 1 optimalisaties (snel en debug-vriendelijk )
@@ -3658,7 +3662,7 @@ option_help_pages=11025_[
 6*2Ox_Optimizeer maximaal (nog steeds BUGGY!!!)
 6*2O2_Stel doelprocessor in op MC68020+
 6*1R<x>_assembler reading style:
-6*2RMOT_read motorola style assembler
+6*2RMOT_read Motorola style assembler
 6*1T<x>_Target operating system:
 6*2TAMIGA_Commodore Amiga
 6*2TATARI_Atari ST/STe/TT

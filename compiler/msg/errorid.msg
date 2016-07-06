@@ -3675,6 +3675,10 @@ S*2Aas_Rangkai menggunakan GNU AS
 **2Rdefault_Gunakan assembler standar untuk target
 3*2Ratt_Baca gaya assembler AT&T
 3*2Rintel_Baca gaya assembler Intel
+4*2Ratt_Baca gaya assembler AT&T
+4*2Rintel_Baca gaya assembler Intel
+8*2Ratt_Baca gaya assembler AT&T
+8*2Rintel_Baca gaya assembler Intel
 6*2RMOT_Baca gaya assembler Motorola
 **1S<x>_Opsi sintaks:
 **2S2_Sama seperti -Mobjfpc

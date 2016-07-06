@@ -3821,7 +3821,11 @@ F*2P<x>_Set target CPU (arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,powerpc6
 **2Rdefault_Use default assembler for target
 3*2Ratt_Read AT&T style assembler
 3*2Rintel_Read Intel style assembler
-6*2RMOT_Read motorola style assembler
+4*2Ratt_Read AT&T style assembler
+4*2Rintel_Read Intel style assembler
+8*2Ratt_Read AT&T style assembler
+8*2Rintel_Read Intel style assembler
+6*2RMOT_Read Motorola style assembler
 **1S<x>_Syntax options:
 **2S2_Same as -Mobjfpc
 **2Sc_Support operators like C (*=,+=,/= and -=)

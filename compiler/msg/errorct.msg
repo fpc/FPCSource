@@ -2259,6 +2259,10 @@ S*2Aas_assemblar utilitzant GNU AS
 **2Rdefault_utilitza l'assemblador predeterminat
 3*2Ratt_llegeix assemblador d'estil AT&T
 3*2Rintel_llegeix assemblador d'estil Intel
+4*2Ratt_llegeix assemblador d'estil AT&T
+4*2Rintel_llegeix assemblador d'estil Intel
+8*2Ratt_llegeix assemblador d'estil AT&T
+8*2Rintel_llegeix assemblador d'estil Intel
 6*2RMOT_llegeix assemblador d'estil Motorola
 **1S<x>_Opcions de sintaxi:
 **2S2_Igual que -Mobjfpc

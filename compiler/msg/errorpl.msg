@@ -2282,6 +2282,10 @@ S*2Aas_asemblacja przy u¾yciu GNU AS
 **2Rdefault_u¾ycie domy˜lnego asemblera
 3*2Ratt_styl AT&T
 3*2Rintel_styl Intel
+4*2Ratt_styl AT&T
+4*2Rintel_styl Intel
+8*2Ratt_styl AT&T
+8*2Rintel_styl Intel
 6*2RMOT_styl Motorola
 **1S<x>_opcje skˆadni:
 **2S2_to samo co -Mobjfpc

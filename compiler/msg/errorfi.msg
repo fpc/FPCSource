@@ -3727,7 +3727,11 @@ S*2Aas_assembler avec GNU AS
 3*1R<x>_type lecture assembleur :
 3*2Ratt_lit l'assembleur AT&T
 3*2Rintel_lit l'assembleur Intel
-6*2RMOT_lire l'assembleur type motorola
+4*2Ratt_lit l'assembleur AT&T
+4*2Rintel_lit l'assembleur Intel
+8*2Ratt_lit l'assembleur AT&T
+8*2Rintel_lit l'assembleur Intel
+6*2RMOT_lire l'assembleur type Motorola
 **1S<x>_options de syntaxe :
 **2S2_identique à -Mobjfpc
 **2Sa_include assertion code.

@@ -3867,6 +3867,10 @@ F*2P<x>_Setze die Ziel-CPU (arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,powe
 **2Rdefault_Benutze den voreingestellten Assembler
 3*2Ratt_Lese Assembler Code im AT&T-Format
 3*2Rintel_Lese Assembler im Intel-Format
+4*2Ratt_Lese Assembler Code im AT&T-Format
+4*2Rintel_Lese Assembler im Intel-Format
+8*2Ratt_Lese Assembler Code im AT&T-Format
+8*2Rintel_Lese Assembler im Intel-Format
 6*2RMOT_Lese Assembler im Motorola-Format
 **1S<x>_Syntax-Optionen:
 **2S2_Schalte einige der Delphi 2 Erweiterungen ein (wie -Mobjfpc)

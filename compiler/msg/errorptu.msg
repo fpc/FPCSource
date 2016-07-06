@@ -3715,7 +3715,11 @@ S*2Aas_Monta usando o GNU AS
 **2Rdefault_Use assembler padrão para alvo
 3*2Ratt_Leia assembler estilo AT&T
 3*2Rintel_Leia assembler estilo Intel
-6*2RMOT_Leia assembler estilo motorola
+4*2Ratt_Leia assembler estilo AT&T
+4*2Rintel_Leia assembler estilo Intel
+8*2Ratt_Leia assembler estilo AT&T
+8*2Rintel_Leia assembler estilo Intel
+6*2RMOT_Leia assembler estilo Motorola
 **1S<x>_Opções sintaxe:
 **2S2_Mesmo que -Mobjfpc
 **2Sc_Suporte operadores similares C (*=,+=,/= and -=)

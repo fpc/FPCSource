@@ -3700,6 +3700,10 @@ option_help_pages=11025_[
 3*1R<x>_Læsestil for assembler:
 3*2Ratt_Læs assemblerkode i AT&T-stil
 3*2Rintel_Læs assemblerkode i Intel-stil
+4*2Ratt_Læs assemblerkode i AT&T-stil
+4*2Rintel_Læs assemblerkode i Intel-stil
+8*2Ratt_Læs assemblerkode i AT&T-stil
+8*2Rintel_Læs assemblerkode i Intel-stil
 3*2Rdirect_Kopier assemblerkoden direkte ind i assemblerkildefilen
 3*1O<x>_Optimeringer:
 3*2Og_generér lille kode
@@ -3745,7 +3749,7 @@ option_help_pages=11025_[
 6*2O0_sæt målprocessor til MC68000
 6*2O2_sæt målprocessor til MC68020+ (standard)
 6*1R<x>_Læsestil for assembleren:
-6*2RMOT_Læs assemblerkode i motorola-stil
+6*2RMOT_Læs assemblerkode i Motorola-stil
 6*1T<x>_Mål-operativsystem:
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT

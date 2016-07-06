@@ -2579,6 +2579,10 @@ S*2Aas_אסוף עם GNU AS
 **2Rdefault_השתמש במאסף ברירת מחדל
 3*2Ratt_קרא סגנון מקשר של AT&T
 3*2Rintel_קרא סגנון מקשר של Intel
+4*2Ratt_קרא סגנון מקשר של AT&T
+4*2Rintel_קרא סגנון מקשר של Intel
+8*2Ratt_קרא סגנון מקשר של AT&T
+8*2Rintel_קרא סגנון מקשר של Intel
 6*2RMOT_קרא סגנון מקשר של Motorola
 **1S<x>_אפשרויות תחביר:
 **2S2_זהה ל -Mobjfpc
