@@ -255,54 +255,6 @@ interface
       end;
 
 
-    type
-      PExternChain = ^TExternChain;
-
-      TExternChain = Record
-        psym : pshortstring;
-        is_defined : boolean;
-        next : PExternChain;
-      end;
-
-    const
-      FEC : PExternChain = nil;
-
-    procedure AddSymbol(symname : string; defined : boolean);
-    var
-       EC : PExternChain;
-    begin
-      EC:=FEC;
-      while assigned(EC) do
-        begin
-          if EC^.psym^=symname then
-            begin
-              if defined then
-                EC^.is_defined:=true;
-              exit;
-            end;
-          EC:=EC^.next;
-        end;
-      New(EC);
-      EC^.next:=FEC;
-      FEC:=EC;
-      FEC^.psym:=stringdup(symname);
-      FEC^.is_defined := defined;
-    end;
-
-    procedure FreeExternChainList;
-    var
-       EC : PExternChain;
-    begin
-      EC:=FEC;
-      while assigned(EC) do
-        begin
-          FEC:=EC^.next;
-          stringdispose(EC^.psym);
-          Dispose(EC);
-          EC:=FEC;
-        end;
-    end;
-
 {****************************************************************************
                                TX86NasmAssembler
  ****************************************************************************}
@@ -419,6 +371,8 @@ interface
               else if o.ref^.refaddr=addr_dgroup then
                 begin
                   writer.AsmWrite('DGROUP');
+                  { Make sure GROUP DGROUP is generated }
+                  FSectionsInDGROUP.Add('',Pointer(self));
                 end
               else if o.ref^.refaddr=addr_fardataseg then
                 begin
@@ -478,7 +432,7 @@ interface
                 if ai.opsize=S_FAR then
                   writer.AsmWrite('far ');
                 { else
-                   writer.AsmWrite('near ') just disables short branches, increasing code size. 
+                   writer.AsmWrite('near ') just disables short branches, increasing code size.
                    Omitting it does not cause any bad effects, tested with nasm 2.11. }
 
                 writer.AsmWrite(o.ref^.symbol.name);
@@ -648,10 +602,13 @@ interface
             if current_settings.x86memorymodel=mm_huge then
               WriteSection(sec_data,'',2);
             writer.AsmLn;
-            writer.AsmWrite('GROUP DGROUP');
-            for i:=0 to FSectionsInDGROUP.Count-1 do
-              writer.AsmWrite(' '+FSectionsInDGROUP.NameOfIndex(i));
-            writer.AsmLn;
+            if FSectionsInDGROUP.Count>0 then
+              begin
+                writer.AsmWrite('GROUP DGROUP');
+                for i:=0 to FSectionsInDGROUP.Count-1 do
+                  writer.AsmWrite(' '+FSectionsInDGROUP.NameOfIndex(i));
+                writer.AsmLn;
+              end;
           end;
 {$endif i8086}
       end;
@@ -675,10 +632,15 @@ interface
       prefix, LastSecName  : string;
       LastAlign : Byte;
       cpu: tcputype;
+      prevfileinfo : tfileposinfo;
+      previnfile : tinputfile;
+      NewObject :  boolean;
     begin
       if not assigned(p) then
        exit;
       InlineLevel:=0;
+      NewObject:=true;
+
       { lineinfo is only needed for al_procedures (PFV) }
       do_line:=(cs_asm_source in current_settings.globalswitches) or
                ((cs_lineinfo in current_settings.moduleswitches)
@@ -689,10 +651,25 @@ interface
          prefetch(pointer(hp.next)^);
          if not(hp.typ in SkipLineInfo) then
           begin
+            previnfile:=lastinfile;
+            prevfileinfo:=lastfileinfo;
             current_filepos:=tailineinfo(hp).fileinfo;
+
             { no line info for inlined code }
             if do_line and (inlinelevel=0) then
               WriteSourceLine(hp as tailineinfo);
+            if (lastfileinfo.line<>prevfileinfo.line) or
+               (previnfile<>lastinfile) then
+              begin
+                { +0 postfix means no line increment per assembler instruction }
+                writer.AsmWrite('%LINE '+tostr(current_filepos.line)+'+0');
+                if assigned(lastinfile) and ((previnfile<>lastinfile) or NewObject) then
+                  writer.AsmWriteLn(' '+lastinfile.name)
+                else
+                  writer.AsmLn;
+                NewObject:=false;
+              end;
+
           end;
 
          case hp.typ of
@@ -970,8 +947,8 @@ interface
                writer.AsmWrite(tai_symbol(hp).sym.name);
                if SmartAsm then
                  AddSymbol(tai_symbol(hp).sym.name,true);
-               if assigned(hp.next) and not(tai(hp.next).typ in
-                  [ait_const,ait_realconst,ait_string]) then
+               if (not assigned(hp.next)) or (assigned(hp.next) and not(tai(hp.next).typ in
+                  [ait_const,ait_realconst,ait_string])) then
                 writer.AsmWriteLn(':')
              end;
 
@@ -1096,6 +1073,7 @@ interface
                  if LastSecType<>sec_none then
                    WriteSection(LastSecType,LastSecName,LastAlign);
                  writer.MarkEmpty;
+                 NewObject:=true;
                end;
              end;
 
@@ -1253,7 +1231,14 @@ interface
           system_i8086_msdos,
           system_i8086_win16,
           system_i8086_embedded:
-            FormatName:='obj';
+            begin
+              FormatName:='obj';
+              if (cs_debuginfo in current_settings.moduleswitches) or
+                 (cs_asm_source in current_settings.globalswitches) then
+                Replace(result,'$DEBUG','-g')
+              else
+                Replace(result,'$DEBUG','');
+            end
           else
             internalerror(2014082060);
         end;
@@ -1304,7 +1289,7 @@ interface
             id           : as_i8086_nasm;
             idtxt  : 'NASM';
             asmbin : 'nasm';
-            asmcmd : '-f $FORMAT -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
+            asmcmd : '-f $FORMAT $DEBUG -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i8086_msdos,system_i8086_win16,system_i8086_embedded];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
