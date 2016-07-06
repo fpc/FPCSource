@@ -18,8 +18,8 @@ x2 := x1 / 4;
 writeln('x2 = x1/4 should be 2 but is : ', x2);
 if x2<>2 then
   halt(2);
-x2 := x1 / 8.0;
-writeln('x2 = x1/8.0 should be 1 and is : ', x2);
+x2 := x1 / 8;
+writeln('x2 = x1/8 should be 1 and is : ', x2);
 if x2<>1 then
   halt(3);
 
