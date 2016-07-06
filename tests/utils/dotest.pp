@@ -20,6 +20,7 @@
 program dotest;
 uses
   sysutils,
+  strutils,
   dos,
 {$ifdef macos}
   macutils,
@@ -119,6 +120,22 @@ const
   TargetAmigaLike : boolean = false;
   TargetIsMacOS : boolean = false;
   TargetIsUnix : boolean = false;
+
+
+const
+  NoSharedLibSupportPattern='$nosharedlib';
+  TargetHasNoSharedLibSupport = 'msdos,go32v2';
+  NoWorkingUnicodeSupport='$nounicode';
+  TargetHasNoWorkingUnicodeSupport = 'msdos';
+  NoWorkingThread='$nothread';
+  TargetHasNoWorkingThreadSupport = 'go32v2,msdos';
+
+procedure TranslateConfig(var AConfig: TConfig);
+begin
+  AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoSharedLibSupportPattern, TargetHasNoSharedLibSupport);
+  AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingUnicodeSupport, TargetHasNoWorkingUnicodeSupport);
+  AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingThread, TargetHasNoWorkingThreadSupport);
+end;
 
 { extracted from rtl/macos/macutils.inc }
 
@@ -1833,6 +1850,7 @@ var
   Res : boolean;
 begin
   Res:=GetConfig(PPFile[current],Config);
+  TranslateConfig(Config);
 
   if Res then
     begin
