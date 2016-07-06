@@ -619,7 +619,7 @@ implementation
                 move (b^, s[1],l*SizeOf(char));
               l:=length(Strings);
               setlength(Strings,l+1);
-              Strings[l]:=S;  
+              Strings[l]:=S;
               inc (result);
             end;
         end;
@@ -1027,6 +1027,7 @@ begin
   begin
     Clear;
     FList.Destroy;
+    FList:=nil;
   end;
   inherited Destroy;
 end;
@@ -1842,6 +1843,7 @@ begin
     begin
       Clear;
       FHashList.Destroy;
+      FHashList:=nil;
     end;
   inherited Destroy;
 end;
