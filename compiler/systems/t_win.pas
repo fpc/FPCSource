@@ -97,7 +97,11 @@ implementation
     SysUtils,
     cfileutl,
     cpuinfo,cgutils,dbgbase,
-    owar,ogbase,ogcoff;
+    owar,ogbase
+{$ifdef SUPPORT_OMF}
+    ,ogomf
+{$endif SUPPORT_OMF}
+    ,ogcoff;
 
 
   const
