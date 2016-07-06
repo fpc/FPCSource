@@ -266,7 +266,9 @@ begin
   LinkRes.Add('option quiet');
 
   if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
-    LinkRes.Add('debug dwarf');
+    LinkRes.Add('debug dwarf')
+  else if cs_debuginfo in current_settings.moduleswitches then
+    LinkRes.Add('debug watcom all');
 
   { add objectfiles, start with prt0 always }
   case current_settings.x86memorymodel of
