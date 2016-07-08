@@ -4306,8 +4306,6 @@ implementation
               (rr.sym.currentregloc.registerhi<>rr.newhi)) then
             begin
               varloc:=tai_varloc.create128(rr.sym,rr.new,rr.newhi);
-              varloc.oldlocation:=rr.sym.currentregloc.register;
-              varloc.oldlocationhi:=rr.sym.currentregloc.registerhi;
               rr.sym.currentregloc.register:=rr.new;
               rr.sym.currentregloc.registerHI:=rr.newhi;
               list.concat(varloc);
@@ -4324,8 +4322,6 @@ implementation
               (rr.sym.currentregloc.registerhi<>rr.newhi)) then
             begin
               varloc:=tai_varloc.create64(rr.sym,rr.new,rr.newhi);
-              varloc.oldlocation:=rr.sym.currentregloc.register;
-              varloc.oldlocationhi:=rr.sym.currentregloc.registerhi;
               rr.sym.currentregloc.register:=rr.new;
               rr.sym.currentregloc.registerHI:=rr.newhi;
               list.concat(varloc);
@@ -4338,7 +4334,6 @@ implementation
           if assigned(rr.sym) and (rr.sym.currentregloc.register<>rr.new) then
             begin
               varloc:=tai_varloc.create(rr.sym,rr.new);
-              varloc.oldlocation:=rr.sym.currentregloc.register;
               rr.sym.currentregloc.register:=rr.new;
               list.concat(varloc);
             end;

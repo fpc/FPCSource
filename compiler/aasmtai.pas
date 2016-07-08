@@ -821,8 +821,6 @@ interface
         tai_align_class = class of tai_align_abstract;
 
         tai_varloc = class(tai)
-           oldlocation,
-           oldlocationhi,
            newlocation,
            newlocationhi : tregister;
            varsym : tsym;
@@ -1051,7 +1049,6 @@ implementation
         newlocation:=loc;
         newlocationhi:=NR_NO;
         varsym:=sym;
-        oldlocationhi:=NR_NO;
       end;
 
 
