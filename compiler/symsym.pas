@@ -235,8 +235,6 @@ interface
           localloc      : TLocation;
           { initial location so it can still be initialized later after the location was changed by SSA }
           initialloc    : TLocation;
-          { current registers for register variables with moving register numbers }
-          currentregloc  : TLocation;
           { migrated to a parentfpstruct because of nested access (not written to ppu, because not important and would change interface crc) }
           inparentfpstruct : boolean;
           { the variable is not living at entry of the scope, so it does not need to be initialized if it is a reg. var
@@ -1838,7 +1836,6 @@ implementation
       begin
          inherited create(st,n,vsp,def,vopts,doregister);
          fillchar(localloc,sizeof(localloc),0);
-         fillchar(currentregloc,sizeof(localloc),0);
          fillchar(initialloc,sizeof(initialloc),0);
          defaultconstsym:=nil;
       end;
@@ -1848,7 +1845,6 @@ implementation
       begin
          inherited ppuload(st,ppufile);
          fillchar(localloc,sizeof(localloc),0);
-         fillchar(currentregloc,sizeof(localloc),0);
          fillchar(initialloc,sizeof(initialloc),0);
          ppufile.getderef(defaultconstsymderef);
       end;

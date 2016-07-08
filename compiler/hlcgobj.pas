@@ -4301,13 +4301,9 @@ implementation
         begin
           n.location.register128.reglo := rr.new;
           n.location.register128.reghi := rr.newhi;
-          if assigned(rr.sym) and
-             ((rr.sym.currentregloc.register<>rr.new) or
-              (rr.sym.currentregloc.registerhi<>rr.newhi)) then
+          if assigned(rr.sym) then
             begin
               varloc:=tai_varloc.create128(rr.sym,rr.new,rr.newhi);
-              rr.sym.currentregloc.register:=rr.new;
-              rr.sym.currentregloc.registerHI:=rr.newhi;
               list.concat(varloc);
             end;
         end
@@ -4317,13 +4313,9 @@ implementation
         begin
           n.location.register64.reglo := rr.new;
           n.location.register64.reghi := rr.newhi;
-          if assigned(rr.sym) and
-             ((rr.sym.currentregloc.register<>rr.new) or
-              (rr.sym.currentregloc.registerhi<>rr.newhi)) then
+          if assigned(rr.sym) then
             begin
               varloc:=tai_varloc.create64(rr.sym,rr.new,rr.newhi);
-              rr.sym.currentregloc.register:=rr.new;
-              rr.sym.currentregloc.registerHI:=rr.newhi;
               list.concat(varloc);
             end;
         end
@@ -4331,10 +4323,9 @@ implementation
 {$endif cpu64bitalu}
         begin
           n.location.register := rr.new;
-          if assigned(rr.sym) and (rr.sym.currentregloc.register<>rr.new) then
+          if assigned(rr.sym) then
             begin
               varloc:=tai_varloc.create(rr.sym,rr.new);
-              rr.sym.currentregloc.register:=rr.new;
               list.concat(varloc);
             end;
         end;
@@ -4581,7 +4572,6 @@ implementation
           end;
         end;
       vs.localloc:=vs.initialloc;
-      FillChar(vs.currentregloc,sizeof(vs.currentregloc),0);
     end;
 
   procedure thlcgobj.paravarsym_set_initialloc_to_paraloc(vs: tparavarsym);

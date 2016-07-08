@@ -1943,7 +1943,6 @@ implementation
           end;
         end;
       vs.localloc:=vs.initialloc;
-      FillChar(vs.currentregloc,sizeof(vs.currentregloc),0);
     end;
 
 
