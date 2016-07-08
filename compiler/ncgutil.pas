@@ -690,6 +690,7 @@ implementation
     procedure gen_alloc_regvar(list:TAsmList;sym: tabstractnormalvarsym; allocreg: boolean);
       var
         usedef: tdef;
+        varloc: tai_varloc;
       begin
         if allocreg then
           begin
@@ -762,6 +763,16 @@ implementation
 {$endif}
              cg.a_reg_sync(list,sym.initialloc.register);
           end;
+{$ifdef cpu64bitalu}
+        if (sym.initialloc.size in [OS_128,OS_S128]) then
+          varloc:=tai_varloc.create128(sym,sym.initialloc.register,sym.initialloc.registerhi)
+{$else cpu64bitalu}
+        if (sym.initialloc.size in [OS_64,OS_S64]) then
+          varloc:=tai_varloc.create64(sym,sym.initialloc.register,sym.initialloc.registerhi)
+{$endif cpu64bitalu}
+        else
+          varloc:=tai_varloc.create(sym,sym.initialloc.register);
+        list.concat(varloc);
         sym.localloc:=sym.initialloc;
       end;
 
