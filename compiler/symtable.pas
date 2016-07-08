@@ -453,12 +453,14 @@ implementation
     procedure tstoredsymtable.insert(sym:TSymEntry;checkdup:boolean=true);
       begin
         inherited insert(sym,checkdup);
+        init_final_check_done:=false;
       end;
 
 
     procedure tstoredsymtable.delete(sym:TSymEntry);
       begin
         inherited delete(sym);
+        init_final_check_done:=false;
       end;
 
 
