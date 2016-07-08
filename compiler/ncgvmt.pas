@@ -818,15 +818,18 @@ implementation
         datatcb.emit_tai(Tai_const.Create_pint(_class.ImplementedInterfaces.count),search_system_type('SIZEUINT').typedef);
         interfaceentrydef:=search_system_type('TINTERFACEENTRY').typedef;
         interfaceentrytypedef:=search_system_type('TINTERFACEENTRYTYPE').typedef;
-        interfacearray:=carraydef.getreusable(interfaceentrydef,_class.ImplementedInterfaces.count);
-        datatcb.maybe_begin_aggregate(interfacearray);
-        { Write vtbl references }
-        for i:=0 to _class.ImplementedInterfaces.count-1 do
+        if _class.ImplementedInterfaces.count>0 then
           begin
-            ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
-            intf_gen_intf_ref(datatcb,ImplIntf,i,interfaceentrydef,interfaceentrytypedef);
+            interfacearray:=carraydef.getreusable(interfaceentrydef,_class.ImplementedInterfaces.count);
+            datatcb.maybe_begin_aggregate(interfacearray);
+            { Write vtbl references }
+            for i:=0 to _class.ImplementedInterfaces.count-1 do
+              begin
+                ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+                intf_gen_intf_ref(datatcb,ImplIntf,i,interfaceentrydef,interfaceentrytypedef);
+              end;
+            datatcb.maybe_end_aggregate(interfacearray);
           end;
-        datatcb.maybe_end_aggregate(interfacearray);
         intftabledef:=datatcb.end_anonymous_record;
         tcb.finish_internal_data_builder(datatcb,lab,intftabledef,intftabledef.alignment);
 
@@ -1084,7 +1087,7 @@ implementation
             tcb.finish_internal_data_builder(datatcb,classnamelabel,classnamedef,sizeof(pint));
 
             { interface table }
-            if _class.ImplementedInterfaces.count>0 then
+            if _class.implements_any_interfaces then
               intf_write_table(tcb,interfacetable,interfacetabledef);
 
             genpublishedmethodstable(tcb,methodnametable,methodnametabledef);
@@ -1180,18 +1183,13 @@ implementation
             tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
             { interface table }
             pinterfacetabledef:=search_system_type('PINTERFACETABLE').typedef;
-            if _class.ImplementedInterfaces.count>0 then
+            if _class.implements_any_interfaces then
               begin
                 tcb.queue_init(pinterfacetabledef);
                 tcb.queue_emit_asmsym(interfacetable,interfacetabledef)
               end
-            else if _class.implements_any_interfaces then
-              tcb.emit_tai(Tai_const.Create_nil_dataptr,pinterfacetabledef)
             else
-              begin
-                tcb.queue_init(pinterfacetabledef);
-                tcb.queue_emit_asmsym(current_asmdata.RefAsmSymbol('FPC_EMPTYINTF',AT_DATA),ptruinttype);
-              end;
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,pinterfacetabledef);
             { table for string messages }
             pstringmessagetabledef:=search_system_type('PSTRINGMESSAGETABLE').typedef;
             if (oo_has_msgstr in _class.objectoptions) then

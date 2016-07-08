@@ -294,8 +294,10 @@
            InstanceSize := PVmt(Self)^.vInstanceSize;
         end;
 
+      {$ifdef VER3_0}
       var
         emptyintf: ptruint; public name 'FPC_EMPTYINTF';
+      {$endif VER3_0}
 
       procedure InitInterfacePointers(objclass: tclass;instance : pointer);
 
@@ -306,10 +308,12 @@
           Res: pinterfaceentry;
         begin
           ovmt := PVmt(objclass);
-          while assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
+          while assigned(ovmt) and {$ifdef VER3_0}(ovmt^.vIntfTable <> @emptyintf){$else}assigned(ovmt^.vIntfTable){$endif} do
             begin
               intftable:=ovmt^.vIntfTable;
+              {$ifdef VER3_0}
               if assigned(intftable) then
+              {$endif VER3_0}
               begin
                 i:=intftable^.EntryCount;
                 Res:=@intftable^.Entries[0];
@@ -333,7 +337,7 @@
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
            ppointer(instance)^:=pointer(self);
-           if PVmt(self)^.vIntfTable <> @emptyintf then
+           if {$ifdef VER3_0}PVmt(self)^.vIntfTable <> @emptyintf{$else}assigned(PVmt(self)^.vIntfTable){$endif} then
              InitInterfacePointers(self,instance);
            InitInstance:=TObject(Instance);
         end;
@@ -844,10 +848,12 @@
           ovmt: PVmt;
         begin
           ovmt := PVmt(Self);
-          while Assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
+          while Assigned(ovmt) and {$ifdef VER3_0}(ovmt^.vIntfTable <> @emptyintf){$else}Assigned(ovmt^.vIntftable){$endif} do
           begin
             intftable:=ovmt^.vIntfTable;
+            {$ifdef VER3_0}
             if assigned(intftable) then
+            {$endif VER3_0}
             begin
               for i:=0 to intftable^.EntryCount-1 do
               begin
@@ -868,10 +874,12 @@
           ovmt: PVmt;
         begin
           ovmt := PVmt(Self);
-          while Assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
+          while Assigned(ovmt) and {$ifdef VER3_0}(ovmt^.vIntfTable <> @emptyintf){$else}Assigned(ovmt^.vIntfTable){$endif} do
           begin
             intftable:=ovmt^.vIntfTable;
+            {$ifdef VER3_0}
             if assigned(intftable) then
+            {$endif VER3_0}
             begin
               for i:=0 to intftable^.EntryCount-1 do
               begin
