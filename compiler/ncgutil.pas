@@ -773,7 +773,6 @@ implementation
         else
           varloc:=tai_varloc.create(sym,sym.initialloc.register);
         list.concat(varloc);
-        sym.localloc:=sym.initialloc;
       end;
 
 
@@ -1324,7 +1323,10 @@ implementation
             { gen_load_cgpara_loc() already allocated the initialloc
               -> don't allocate again }
             if currpara.initialloc.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER] then
-              gen_alloc_regvar(list,currpara,false);
+              begin
+                gen_alloc_regvar(list,currpara,false);
+                hlcg.varsym_set_localloc(list,currpara);
+              end;
           end;
 
         { generate copies of call by value parameters, must be done before
