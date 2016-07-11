@@ -233,6 +233,8 @@ var
 { === in fe-auth.c === }
   PQencryptPassword : function (passwd:Pcchar; user:Pcchar):Pcchar;cdecl;
 
+{ === in encnames.c === }
+  pg_encoding_to_char: function (encoding:cint):Pcchar;cdecl;
 
 Function InitialisePostgres3(Const libpath : ansistring) : integer;
 Procedure InitialisePostgres3;
@@ -398,6 +400,7 @@ begin
       pointer(PQmblen) := GetProcedureAddress(Postgres3LibraryHandle,'PQmblen');
       pointer(PQenv2encoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQenv2encoding');
       pointer(PQencryptPassword) := GetProcedureAddress(Postgres3LibraryHandle,'PQencryptPassword');
+      pointer(pg_encoding_to_char) := GetProcedureAddress(Postgres3LibraryHandle,'pg_encoding_to_char');
 
       InitialiseDllist(libpath);
       end
