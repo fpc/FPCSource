@@ -80,25 +80,33 @@ end;
 function TJSValue.GetAsNumber: TJSNumber;
 begin
   If (ValueType=jstNumber) then
-    Result:=FValue.F;
+    Result:=FValue.F
+  else
+    Result:=0.0;
 end;
 
 function TJSValue.GetAsObject: TObject;
 begin
   If (ValueType=jstObject) then
-    Result:=TObject(FValue.P);
+    Result:=TObject(FValue.P)
+  else
+    Result:=nil;
 end;
 
 function TJSValue.GetAsReference: TObject;
 begin
   If (ValueType=jstReference) then
-    Result:=TObject(FValue.P);
+    Result:=TObject(FValue.P)
+  else
+    Result:=nil;
 end;
 
 function TJSValue.GetAsString: TJSString;
 begin
   If (ValueType=jstString) then
-    Result:=String(FValue.P);
+    Result:=String(FValue.P)
+  else
+    Result:='';
 end;
 
 function TJSValue.GetIsNull: Boolean;
