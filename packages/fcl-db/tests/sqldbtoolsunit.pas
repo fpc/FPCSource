@@ -196,6 +196,7 @@ begin
     UserName := dbuser;
     Password := dbpassword;
     HostName := dbhostname;
+    CharSet := dbcharset;
     if dblogfilename<>'' then
     begin
       LogEvents:=[detCustom,detCommit,detExecute,detRollBack];
