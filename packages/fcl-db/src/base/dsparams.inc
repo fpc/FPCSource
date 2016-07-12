@@ -528,7 +528,7 @@ begin
     Result:=FValue;
 end;
 
-function TParam.GetAsBytes: TBytes;
+Function TParam.GetAsBytes: TBytes;
 begin
   if IsNull then
     Result:=nil
@@ -607,7 +607,28 @@ begin
     Result:=FValue;
 end;
 
-function TParam.GetAsWideString: WideString;
+Function TParam.GetAsAnsiString: AnsiString;
+begin
+  Result := GetAsString;
+end;
+
+Function TParam.GetAsUnicodeString: UnicodeString;
+begin
+  if IsNull then
+    Result := ''
+  else
+    Result := FValue;
+end;
+
+Function TParam.GetAsUTF8String: UTF8String;
+begin
+  if IsNull then
+    Result := ''
+  else
+    Result := FValue;
+end;
+
+Function TParam.GetAsWideString: WideString;
 begin
   if IsNull then
     Result := ''
@@ -623,7 +644,7 @@ begin
     Result:=FValue;
 end;
 
-function TParam.GetAsFMTBCD: TBCD;
+Function TParam.GetAsFMTBCD: TBCD;
 begin
   If IsNull then
     Result:=0
@@ -655,7 +676,7 @@ begin
           and (FValue=AValue.FValue);
 end;
 
-procedure TParam.SetAsBCD(const AValue: Currency);
+Procedure TParam.SetAsBCD(const AValue: Currency);
 begin
   FDataType:=ftBCD;
   Value:=AValue;
@@ -673,7 +694,7 @@ begin
   Value:=AValue;
 end;
 
-procedure TParam.SetAsBytes(const AValue: TBytes);
+Procedure TParam.SetAsBytes(const AValue: TBytes);
 begin
   FDataType:=ftVarBytes;
   Value:=AValue;
@@ -735,11 +756,32 @@ begin
   Value:=AValue;
 end;
 
-procedure TParam.SetAsWideString(const aValue: WideString);
+Procedure TParam.SetAsAnsiString(const AValue: AnsiString);
+begin
+  if FDataType <> ftFixedChar then
+    FDataType := ftString;
+  Value:=AValue;
+end;
+
+Procedure TParam.SetAsUTF8String(const AValue: UTF8String);
+begin
+  if FDataType <> ftFixedChar then
+    FDataType := ftString;
+  Value:=AValue;
+end;
+
+Procedure TParam.SetAsUnicodeString(const AValue: UnicodeString);
 begin
   if FDataType <> ftFixedWideChar then
     FDataType := ftWideString;
-  Value := aValue;
+  Value := AValue;
+end;
+
+Procedure TParam.SetAsWideString(const AValue: WideString);
+begin
+  if FDataType <> ftFixedWideChar then
+    FDataType := ftWideString;
+  Value := AValue;
 end;
 
 
@@ -786,7 +828,7 @@ begin
   Value:=AValue;
 end;
 
-procedure TParam.SetAsFMTBCD(const AValue: TBCD);
+Procedure TParam.SetAsFMTBCD(const AValue: TBCD);
 begin
   FDataType:=ftFMTBcd;
   FValue:=VarFmtBCDCreate(AValue);
@@ -859,7 +901,7 @@ begin
     end
 end;
 
-procedure TParam.AssignToField(Field : TField);
+Procedure TParam.AssignToField(Field : TField);
 
 begin
   if Assigned(Field) then
@@ -888,13 +930,15 @@ begin
       ftBytes,
       ftVarBytes : Field.AsVariant:=Value;
       ftFmtBCD   : Field.AsBCD:=AsFMTBCD;
+      ftFixedWideChar,
+      ftWideString: Field.AsWideString:=AsWideString;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
         DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
     end;
 end;
 
-procedure TParam.AssignFromField(Field : TField);
+Procedure TParam.AssignFromField(Field : TField);
 
 begin
   if Assigned(Field) then
@@ -926,6 +970,8 @@ begin
       ftBytes,
       ftVarBytes : Value:=Field.AsVariant;
       ftFmtBCD   : AsFMTBCD:=Field.AsBCD;
+      ftFixedWideChar,
+      ftWideString: AsWideString:=Field.AsWideString;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
         DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
@@ -989,7 +1035,7 @@ begin
     ftFixedChar:
       begin
       S:=AsString;
-      StrMove(PChar(Buffer),Pchar(S),Length(S)+1);
+      StrMove(PChar(Buffer),PChar(S),Length(S)+1);
       end;
     ftWideString,
     ftWideMemo: begin

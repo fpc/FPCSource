@@ -2149,9 +2149,9 @@ begin
     ftUnknown    : result := 0;
     ftString,
       ftGuid,
-      ftFixedChar: result := FieldDef.Size + 1;
+      ftFixedChar: result := FieldDef.Size*FieldDef.CharSize + 1;
     ftFixedWideChar,
-      ftWideString:result := (FieldDef.Size + 1)*2;
+      ftWideString:result := (FieldDef.Size + 1)*FieldDef.CharSize;
     ftSmallint,
       ftInteger,
       ftAutoInc,
