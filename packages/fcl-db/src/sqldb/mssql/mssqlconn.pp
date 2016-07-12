@@ -46,35 +46,34 @@ uses
 
 type
 
-  TServerInfo = record
-    ServerVersion: string;
-    ServerVersionString: string;
-    UserName: string;
-  end;
-
-  TClientCharset = (ccNone, ccUTF8, ccISO88591, ccUnknown);
-
   { TMSSQLConnection }
 
   TMSSQLConnection = class(TSQLConnection)
   private
-    FDBLogin: PLOGINREC;
-    FDBProc : PDBPROCESS;
-    Ftds    : integer;     // TDS protocol version
-    Fstatus : STATUS;      // current result/rows fetch status
-    FServerInfo: TServerInfo;
+    type
+      TServerInfo = record
+        ServerVersion: string;
+        ServerVersionString: string;
+        UserName: string;
+      end;
+    var
+      FDBLogin: PLOGINREC;
+      FDBProc : PDBPROCESS;
+      Ftds    : integer;     // TDS protocol version
+      Fstatus : STATUS;      // current result/rows fetch status
+      FServerInfo: TServerInfo;
     function CheckError(const Ret: RETCODE): RETCODE;
     procedure Execute(const cmd: string); overload;
     procedure ExecuteDirectSQL(const Query: string);
     procedure GetParameters(cursor: TSQLCursor; AParams: TParams);
     function TranslateFldType(SQLDataType: integer): TFieldType;
-    function ClientCharset: TClientCharset;
     function AutoCommit: boolean;
     function IsSybase: boolean;
   protected
     // Overrides from TSQLConnection
     function GetHandle:pointer; override;
     function GetAsSQLText(Param : TParam) : string; overload; override;
+    function GetConnectionCharSet: string; override;
     // - Connect/disconnect
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -201,10 +200,10 @@ const
 
 
 var
-  DBErrorStr, DBMsgStr: string;
+  DBErrorStr, DBMsgStr: AnsiString;
   DBErrorNo, DBMsgNo: integer;
 
-function DBErrHandler(dbproc: PDBPROCESS; severity, dberr, oserr:INT; dberrstr, oserrstr:PChar):INT; cdecl;
+function DBErrHandler(dbproc: PDBPROCESS; severity, dberr, oserr:INT; dberrstr, oserrstr:PAnsiChar):INT; cdecl;
 begin
   DBErrorStr:=DBErrorStr+LineEnding+dberrstr;
   DBErrorNo :=dberr;
@@ -212,7 +211,7 @@ begin
   // for server messages with severity greater than 10 error handler is also called
 end;
 
-function DBMsgHandler(dbproc: PDBPROCESS; msgno: DBINT; msgstate, severity:INT; msgtext, srvname, procname:PChar; line:DBUSMALLINT):INT; cdecl;
+function DBMsgHandler(dbproc: PDBPROCESS; msgno: DBINT; msgstate, severity:INT; msgtext, srvname, procname:PAnsiChar; line:DBUSMALLINT):INT; cdecl;
 begin
   DBMsgStr:=DBMsgStr+LineEnding+msgtext;
   DBMsgNo :=msgno;
@@ -375,13 +374,7 @@ begin
         //if IsBinary(Param.AsString) then
         //  Result := '0x' + StrToHex(Param.AsString)
         //else
-        begin
-          Result := QuotedStr(Param.AsString);
-          if (Ftds >= DBTDS_70) then
-            Result := 'N' + Result
-          else if (Ftds = 0) and (ClientCharset = ccUTF8) then //hack: Microsoft DB-Lib used
-            Result := UTF8Decode(Result);
-        end;
+        Result := 'N' + inherited GetAsSQLText(Param);
       ftBlob, ftBytes, ftVarBytes:
         Result := '0x' + StrToHex(Param.AsString);
       else
@@ -389,6 +382,14 @@ begin
     end
   else
     Result:=inherited GetAsSQLText(Param);
+end;
+
+function TMSSQLConnection.GetConnectionCharSet: string;
+begin
+  if CharSet = '' then
+    Result := 'utf-8'
+  else
+    Result := CharSet;
 end;
 
 procedure TMSSQLConnection.DoInternalConnect;
@@ -425,22 +426,22 @@ begin
     dbsetlsecure(FDBLogin)
   else
   begin
-    dbsetlname(FDBLogin, PChar(UserName), DBSETUSER);
-    dbsetlname(FDBLogin, PChar(Password), DBSETPWD);
+    dbsetlname(FDBLogin, PAnsiChar(UserName), DBSETUSER);
+    dbsetlname(FDBLogin, PAnsiChar(Password), DBSETPWD);
   end;
 
   if CharSet = '' then
     dbsetlcharset(FDBLogin, 'UTF-8')
   else
-    dbsetlcharset(FDBLogin, PChar(CharSet));
+    dbsetlcharset(FDBLogin, PAnsiChar(CharSet));
 
   if Params.IndexOfName(SAppName) <> -1 then
-    dbsetlname(FDBLogin, PChar(Params.Values[SAppName]), DBSETAPP);
+    dbsetlname(FDBLogin, PAnsiChar(Params.Values[SAppName]), DBSETAPP);
 
-  //dbsetlname(FDBLogin, PChar(TIMEOUT_IGNORE), DBSET_LOGINTIME);
+  //dbsetlname(FDBLogin, PAnsiChar(TIMEOUT_IGNORE), DBSET_LOGINTIME);
   dbsetlogintime(10);
 
-  FDBProc := dbopen(FDBLogin, PChar(HostName));
+  FDBProc := dbopen(FDBLogin, PAnsiChar(HostName));
   if FDBProc=nil then CheckError(FAIL);
 
   Ftds := dbtds(FDBProc);
@@ -465,7 +466,7 @@ begin
     Execute(IMPLICIT_TRANSACTIONS_OFF[IsSybase]); //set connection to autocommit mode - default
 
   if DatabaseName <> '' then
-    CheckError( dbuse(FDBProc, PChar(DatabaseName)) );
+    CheckError( dbuse(FDBProc, PAnsiChar(DatabaseName)) );
 
   with TDBLibCursor.Create(Self) do
   begin
@@ -562,27 +563,6 @@ begin
   Result := StrToBoolDef(Params.Values[SAutoCommit], False);
 end;
 
-function TMSSQLConnection.ClientCharset: TClientCharset;
-begin
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>4)}
-  case CharSet of
-    ''           : Result := ccNone;
-    'UTF-8'      : Result := ccUTF8;
-    'ISO-8859-1' : Result := ccISO88591;
-    else           Result := ccUnknown;
-  end;
-{$ELSE}
-  if CharSet = '' then
-    Result := ccNone
-  else if CharSet = 'UTF-8' then
-    Result := ccUTF8
-  else if CharSet = 'ISO-8859-1' then
-    Result := ccISO88591
-  else
-    Result := ccUnknown;
-{$ENDIF}
-end;
-
 procedure TMSSQLConnection.PrepareStatement(cursor: TSQLCursor;
    ATransaction: TSQLTransaction; buf: string; AParams: TParams);
 begin
@@ -599,7 +579,7 @@ procedure TMSSQLConnection.Execute(const cmd: string);
 begin
   DBErrorStr:='';
   DBMsgStr  :='';
-  CheckError( dbcmd(FDBProc, PChar(cmd)) );
+  CheckError( dbcmd(FDBProc, PAnsiChar(cmd)) );
   CheckError( dbsqlexec(FDBProc) );
   CheckError( dbresults(FDBProc) );
 end;
@@ -731,7 +711,6 @@ begin
         FieldSize := col.MaxLength;
         if FieldSize >= $3FFFFFFF then // varchar(max)
            FieldType := ftMemo;
-
         end;
       ftBytes, ftVarBytes:
         begin
@@ -753,15 +732,8 @@ begin
           FieldType := ftAutoInc;
     end;
 
-    with FieldDefs.Add(FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, (col.Null=0) and (not col.Identity), i) do
-    begin
-      // identity, timestamp and calculated column are not updatable
-      if col.Updatable = 0 then Attributes := Attributes + [faReadonly];
-      case FieldType of
-        ftBCD,
-        ftFmtBCD: Precision := col.Precision;
-      end;
-    end;
+    // identity, timestamp and calculated column are not updatable
+    AddFieldDef(FieldDefs, i, FieldName, FieldType, FieldSize, col.Precision, True, (col.Null=0) and (not col.Identity), col.Updatable=0);
   end;
 end;
 
@@ -787,7 +759,7 @@ var i: integer;
     dbdt: DBDATETIME;
     dbdr: DBDATEREC;
     dbdta: DBDATETIMEALL;
-    bcdstr: array[0..MaxFmtBCDFractionSize+2] of char;
+    bcdstr: array[0..MaxFmtBCDFractionSize+2] of AnsiChar;
 begin
   CreateBlob:=false;
   i:=FieldDef.FieldNo;
@@ -803,7 +775,10 @@ begin
   destlen:=FieldDef.Size;
   case FieldDef.DataType of
     ftString, ftFixedChar:
+      begin
       desttype:=SQLCHAR;
+      destlen:=FieldDef.Size*FieldDef.CharSize;
+      end;
     ftBytes:
       desttype:=SQLBINARY;
     ftVarBytes:
@@ -893,12 +868,7 @@ begin
 
   case FieldDef.DataType of
     ftString, ftFixedChar:
-      begin
-        PChar(dest + datalen)^ := #0; //strings must be null-terminated
-        if ((Ftds = 0) and (ClientCharset = ccUTF8)) {hack: MS DB-Lib used} or
-            (ClientCharset = ccISO88591) {hack: FreeTDS} then
-          StrPLCopy(PChar(dest), UTF8Encode(PChar(dest)), destlen);
-      end;
+      PAnsiChar(dest + datalen)^ := #0; //strings must be null-terminated
     ftDate, ftTime, ftDateTime:
       if desttype = SYBMSDATETIME2 then
         PDateTime(buffer)^ := dbdatetimeallcrack(@dbdta)

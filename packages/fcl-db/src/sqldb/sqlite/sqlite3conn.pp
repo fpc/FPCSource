@@ -53,7 +53,8 @@ type
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
- 
+    function GetConnectionCharSet: string; override;
+
     Function AllocateCursorHandle : TSQLCursor; override;
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
@@ -148,7 +149,7 @@ type
 
 procedure freebindstring(astring: pointer); cdecl;
 begin
-  StrDispose(AString);
+  StrDispose(astring);
 end;
 
 procedure TSQLite3Cursor.checkerror(const aerror: integer);
@@ -158,8 +159,7 @@ end;
 
 Procedure TSQLite3Cursor.bindparams(AParams : TParams);
 
-  Function PCharStr(Const S : String) : PChar;
-  
+  Function PAllocStr(Const S : RawByteString) : PAnsiChar;
   begin
     Result:=StrAlloc(Length(S)+1);
     If (Result<>Nil) then
@@ -168,9 +168,10 @@ Procedure TSQLite3Cursor.bindparams(AParams : TParams);
   
 Var
   I : Integer;
-  P : TParam;  
-  str1: string;
-  wstr1: widestring;
+  P : TParam;
+  astr: AnsiString;
+  ustr: UTF8String;
+  wstr: WideString;
   
 begin
   for I:=1 to high(fparambinding)+1 do
@@ -194,25 +195,27 @@ begin
         ftTime:     checkerror(sqlite3_bind_double(fstatement, I, P.AsFloat - JulianEpoch));
         ftFMTBcd:
                 begin
-                str1:=BCDToStr(P.AsFMTBCD, Fconnection.FSQLFormatSettings);
-                checkerror(sqlite3_bind_text(fstatement, I, PChar(str1), length(str1), sqlite3_destructor_type(SQLITE_TRANSIENT)));
+                astr:=BCDToStr(P.AsFMTBCD, Fconnection.FSQLFormatSettings);
+                checkerror(sqlite3_bind_text(fstatement, I, PAnsiChar(astr), length(astr), sqlite3_destructor_type(SQLITE_TRANSIENT)));
                 end;
         ftString,
         ftFixedChar,
         ftMemo: begin // According to SQLite documentation, CLOB's (ftMemo) have the Text affinity
-                str1:= p.asstring;
-                checkerror(sqlite3_bind_text(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
+                ustr:= P.AsUTF8String;
+                checkerror(sqlite3_bind_text(fstatement,I, PAllocStr(ustr), length(ustr), @freebindstring));
                 end;
         ftBytes,
         ftVarBytes,
         ftBlob: begin
-                str1:= P.asstring;
-                checkerror(sqlite3_bind_blob(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
+                astr:= P.AsAnsiString;
+                checkerror(sqlite3_bind_blob(fstatement,I, PAllocStr(astr), length(astr), @freebindstring));
                 end; 
-        ftWideString, ftFixedWideChar, ftWideMemo:
+        ftWideString,
+        ftFixedWideChar,
+        ftWideMemo:
         begin
-          wstr1:=P.AsWideString;
-          checkerror(sqlite3_bind_text16(fstatement,I, PWideChar(wstr1), length(wstr1)*sizeof(WideChar), sqlite3_destructor_type(SQLITE_TRANSIENT)));
+          wstr:=P.AsWideString;
+          checkerror(sqlite3_bind_text16(fstatement,I, PWideChar(wstr), length(wstr)*sizeof(WideChar), sqlite3_destructor_type(SQLITE_TRANSIENT)));
         end
       else 
         DatabaseErrorFmt(SUnsupportedParameter, [Fieldtypenames[P.DataType], Self]);
@@ -240,21 +243,8 @@ end;
 
 Procedure TSQLite3Cursor.Execute;
 
-var
- wo1: word;
-
 begin
-{$ifdef i386}
-  wo1:= get8087cw;
-  set8087cw(wo1 or $1f);             //mask exceptions, Sqlite3 has overflow
-  Try  // Why do people always forget this ??
-{$endif}
-    fstate:= sqlite3_step(fstatement);
-{$ifdef i386}
-  finally  
-    set8087cw(wo1);                    //restore
-  end;
-{$endif}
+  fstate:= sqlite3_step(fstatement);
   if (fstate<=sqliteerrormax) then
     checkerror(sqlite3_reset(fstatement));
   FSelectable :=sqlite3_column_count(fstatement)>0;
@@ -296,7 +286,7 @@ var
 
 begin
   st:=TSQLite3Cursor(cursor).fstatement;
-  fnum:= FieldDef.fieldno - 1;
+  fnum:= FieldDef.FieldNo - 1;
 
   case FieldDef.DataType of
     ftWideMemo:
@@ -510,7 +500,7 @@ begin
                end;
       ftUnknown : DatabaseErrorFmt('Unknown or unsupported data type %s of column %s', [FD, FN]);
     end; // Case
-    FieldDefs.Add(FieldDefs.MakeNameUnique(FN),ft1,size1,false,i+1);
+    FieldDefs.Add(FieldDefs.MakeNameUnique(FN), ft1, size1, false, i+1, CP_UTF8);
     end;
 end;
 
@@ -666,8 +656,8 @@ begin
     ftFixedChar,
     ftString: begin
               int1:= sqlite3_column_bytes(st,fnum);
-              if int1>FieldDef.Size then 
-                int1:=FieldDef.Size;
+              if int1>FieldDef.Size*FieldDef.CharSize then 
+                int1:=FieldDef.Size*FieldDef.CharSize;
               if int1 > 0 then 
                  move(sqlite3_column_text(st,fnum)^,buffer^,int1);
               PAnsiChar(buffer + int1)^ := #0;
@@ -797,6 +787,11 @@ end;
 function TSQLite3Connection.GetHandle: pointer;
 begin
   result:= fhandle;
+end;
+
+function TSQLite3Connection.GetConnectionCharSet: string;
+begin
+  Result:='utf8';
 end;
 
 procedure TSQLite3Connection.checkerror(const aerror: integer);

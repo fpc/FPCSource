@@ -190,6 +190,7 @@ type
     FUserName            : string;
     FHostName            : string;
     FCharSet             : string;
+    FCodePage            : TSystemCodePage;
     FRole                : String;
     FStatements          : TFPList;
     FLogEvents: TDBEventTypes;
@@ -218,9 +219,12 @@ type
     procedure ApplyRecUpdate(Query : TCustomSQLQuery; UpdateKind : TUpdateKind); virtual;
     function RefreshLastInsertID(Query : TCustomSQLQuery; Field : TField): Boolean; virtual;
     procedure GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
+    function GetConnectionCharSet: string; virtual;
     procedure SetTransaction(Value : TSQLTransaction); virtual;
+    procedure DoConnect; override;
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
+    function GetAsString(Param: TParam): RawByteString;
     function GetAsSQLText(Field : TField) : string; overload; virtual;
     function GetAsSQLText(Param : TParam) : string; overload; virtual;
     function GetHandle : pointer; virtual;
@@ -229,6 +233,7 @@ type
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
     Procedure RegisterStatement(S : TCustomSQLStatement);
     Procedure UnRegisterStatement(S : TCustomSQLStatement);
+
     Function AllocateCursorHandle : TSQLCursor; virtual; abstract;
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); virtual; abstract;
     function StrToStatementType(s : string) : TStatementType; virtual;
@@ -237,7 +242,8 @@ type
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); virtual; abstract;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
     function Fetch(cursor : TSQLCursor) : boolean; virtual; abstract;
-    procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); virtual; abstract;
+    procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TFieldDefs); virtual; abstract;
+    function AddFieldDef(AFieldDefs: TFieldDefs; AFieldNo: Longint; const AName: string; ADataType: TFieldType; ASize, APrecision: Integer; AByteSize, ARequired, AReadOnly: Boolean): TFieldDef;
     function LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
     procedure FreeFldBuffers(cursor : TSQLCursor); virtual;
@@ -697,8 +703,8 @@ type
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
     Property Transaction : TDBTransaction Read FTransaction Write SetTransaction;
     property OnDirective: TSQLScriptDirectiveEvent read FOnDirective write FOnDirective;
-    Property UseDollarString; 
-    Property DollarStrings;     
+    Property UseDollarString;
+    Property DollarStrings;
     property Directives;
     property Defines;
     property Script;
@@ -1213,16 +1219,40 @@ begin
     end;
 end;
 
-
 procedure TSQLConnection.UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string);
 begin
   // Empty abstract
 end;
 
+procedure TSQLConnection.DoConnect;
+var ConnectionCharSet: string;
+begin
+  inherited;
+
+  // map connection CharSet to corresponding local CodePage
+  // do not set FCodePage to CP_ACP if FCodePage = DefaultSystemCodePage
+  // aliases listed here are commonly used, but not recognized by CodePageNameToCodePage()
+  ConnectionCharSet := LowerCase(GetConnectionCharSet);
+  case ConnectionCharSet of
+    'utf8','utf-8':
+      FCodePage := CP_UTF8;
+    'win1250','cp1250':
+      FCodePage := 1250;
+    'win1252','cp1252','latin1','iso8859_1':
+      FCodePage := 1252;
+    else
+      begin
+      FCodePage := CodePageNameToCodePage(ConnectionCharSet);
+      if FCodePage = CP_NONE then
+        FCodePage := CP_ACP;
+      end;
+  end;
+end;
+
 procedure TSQLConnection.DoInternalConnect;
 begin
   if (DatabaseName = '') and not(sqSupportEmptyDatabaseName in FConnOptions) then
-    DatabaseError(SErrNoDatabaseName,self);
+    DatabaseError(SErrNoDatabaseName,Self);
 end;
 
 procedure TSQLConnection.DoInternalDisconnect;
@@ -1366,11 +1396,43 @@ begin
   end;  
 end;
 
+function TSQLConnection.GetConnectionCharSet: string;
+begin
+  // default implementation returns user supplied FCharSet
+  // (can be overriden by descendants, which are able retrieve current connection charset using client API)
+  Result := FCharSet;
+end;
+
 function TSQLConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
 begin
   Result := -1;
 end;
 
+function TSQLConnection.AddFieldDef(AFieldDefs: TFieldDefs; AFieldNo: Longint;
+  const AName: string; ADataType: TFieldType; ASize, APrecision: Integer;
+  AByteSize, ARequired, AReadOnly: Boolean): TFieldDef;
+var
+  ACodePage: TSystemCodePage;
+begin
+  // helper function used by descendants
+  if ADataType in [ftString, ftFixedChar, ftMemo] then
+  begin
+    ACodePage := FCodePage;
+    // if ASize of character data is passed as "byte length",
+    //  translate it to "character length" as expected by TFieldDef
+    if AByteSize and (ACodePage = CP_UTF8) then
+      ASize := ASize div 4;
+  end
+  else
+    ACodePage := 0;
+  Result := AFieldDefs.Add(AFieldDefs.MakeNameUnique(AName), ADataType, ASize, ARequired, AFieldNo, ACodePage);
+  if AReadOnly then
+    Result.Attributes := Result.Attributes + [faReadOnly];
+  case ADataType of
+    ftBCD, ftFmtBCD:
+      Result.Precision := APrecision;
+  end;
+end;
 
 procedure TSQLConnection.GetTableNames(List: TStrings; SystemTables: Boolean);
 begin
@@ -1623,6 +1685,20 @@ begin
   until CurrentP^=#0;
 end;
 
+function TSQLConnection.GetAsString(Param: TParam): RawByteString;
+begin
+  // converts parameter value to connection charset
+  if FCodePage = CP_UTF8 then
+    Result := Param.AsUTF8String
+  else if FCodePage in [DefaultSystemCodePage, CP_ACP] then
+    Result := Param.AsAnsiString
+  else
+  begin
+    Result := Param.AsAnsiString;
+    SetCodePage(Result, FCodePage, True);
+  end;
+end;
+
 function TSQLConnection.GetAsSQLText(Field : TField) : string;
 begin
   if (not assigned(Field)) or Field.IsNull then Result := 'Null'
@@ -1643,14 +1719,14 @@ begin
     ftGuid,
     ftMemo,
     ftFixedChar,
-    ftString   : Result := QuotedStr(Param.AsString);
+    ftString   : Result := QuotedStr(GetAsString(Param));
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Param.AsDateTime,FSQLFormatSettings) + '''';
     ftTime     : Result := QuotedStr(TimeIntervalToString(Param.AsDateTime));
     ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', Param.AsDateTime, FSQLFormatSettings) + '''';
     ftCurrency,
     ftBcd      : Result := CurrToStr(Param.AsCurrency, FSQLFormatSettings);
     ftFloat    : Result := FloatToStr(Param.AsFloat, FSQLFormatSettings);
-    ftFMTBcd   : Result := stringreplace(Param.AsString, DefaultFormatSettings.DecimalSeparator, FSQLFormatSettings.DecimalSeparator, []);
+    ftFMTBcd   : Result := StringReplace(Param.AsString, DefaultFormatSettings.DecimalSeparator, FSQLFormatSettings.DecimalSeparator, []);
   else
     Result := Param.AsString;
   end; {case}
