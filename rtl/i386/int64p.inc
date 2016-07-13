@@ -197,7 +197,7 @@
             andl %eax,%edx
             andl 4(%esp),%eax
             addl %ebx,%eax
-            addl %ecx,%edx
+            adcl %ecx,%edx
             addl $16,%esp
 
 .Lmake_sign:
