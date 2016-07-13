@@ -513,7 +513,6 @@ begin
       Result:=':'+IntToStr(URI.Port)+Result;
     Result:=URI.Protocol+'://'+URI.Host+Result;
     end;
-  Writeln('Doing URL : ',Result);
 end;
 
 function TFPCustomHTTPClient.GetSocketHandler(const UseSSL: Boolean): TSocketHandler;
