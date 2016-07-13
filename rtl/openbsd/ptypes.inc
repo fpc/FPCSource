@@ -33,7 +33,7 @@ type
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
 
-    ino_t    = cuint32;         { used for file serial numbers }
+    ino_t    = cuint64;         { used for file serial numbers }
     TIno     = ino_t;
     pIno     = ^ino_t;
 
@@ -73,11 +73,11 @@ type
     wchar_t  = cint32;
     pwchar_t = ^wchar_t;
 
-    clock_t  = culong;
+    clock_t  = cint64;
     TClock   = clock_t;
     pClock   = ^clock_t;
 
-    time_t   = clong;           { used for returning the time  }
+    time_t   = cint64;           { used for returning the time  }
     // TTime    = time_t;    // Not allowed in system unit, -> unixtype
     pTime    = ^time_t;
     ptime_t  = ^time_t;
@@ -87,7 +87,7 @@ type
     pSocklen = ^socklen_t;
 
     timeval = packed record
-                tv_sec,
+                tv_sec : time_t;
                 tv_usec : clong;
                 end;
     ptimeval= ^timeval;
