@@ -110,6 +110,9 @@ Type
     FHostInfo: String;
     FServerInfo: String;
     FMySQL : PMySQL;
+{$IFDEF MYSQL50_UP}
+    FConnectionCharsetInfo: MY_CHARSET_INFO;
+{$ENDIF}
     function GetClientInfo: string;
     function GetServerStatus: String;
     procedure ConnectMySQL(var HMySQL: PMySQL);
@@ -125,8 +128,8 @@ Type
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
+    function GetConnectionCharSet: string; override;
 
-    function GetAsSQLText(Field : TField) : string; overload; override;
     function GetAsSQLText(Param : TParam) : string; overload; override;
 
     Function AllocateCursorHandle : TSQLCursor; override;
@@ -412,26 +415,17 @@ begin
         MySQLError(HMySQL,SErrExecuting,Self);
 end;
 
-function TConnectionName.GetAsSQLText(Field : TField) : string;
-
-begin
-  if (not assigned(Field)) or Field.IsNull then
-    Result := 'Null'
-  else if Field.DataType = ftString then
-    Result := '''' + EscapeString(Field.AsString) + ''''
-  else
-    Result := inherited GetAsSqlText(Field);
-end;
-
 function TConnectionName.GetAsSQLText(Param: TParam) : string;
 
 begin
   if (not assigned(Param)) or Param.IsNull then
     Result := 'Null'
-  else if Param.DataType in [ftString,ftFixedChar,ftBlob,ftMemo,ftBytes,ftVarBytes] then
+  else if Param.DataType in [ftString,ftFixedChar,ftMemo] then
+    Result := '''' + EscapeString(GetAsString(Param)) + ''''
+  else if Param.DataType in [ftBlob,ftBytes,ftVarBytes] then
     Result := '''' + EscapeString(Param.AsString) + ''''
   else
-    Result := inherited GetAsSqlText(Param);
+    Result := inherited GetAsSQLText(Param);
 end;
 
 
@@ -440,7 +434,11 @@ begin
   ConnectMySQL(FMySQL);
   FServerInfo := strpas(mysql_get_server_info(FMYSQL));
   FHostInfo := strpas(mysql_get_host_info(FMYSQL));
+{$IFDEF MYSQL50_UP}
+  mysql_get_character_set_info(FMYSQL, @FConnectionCharsetInfo);
+{$ENDIF}
 end;
+
 
 Procedure TConnectionName.SelectDatabase;
 begin
@@ -525,6 +523,11 @@ end;
 function TConnectionName.GetHandle: pointer;
 begin
   Result:=FMySQL;
+end;
+
+function TConnectionName.GetConnectionCharSet: string;
+begin
+  Result:=StrPas(mysql_character_set_name(FMySQL));
 end;
 
 Function TConnectionName.AllocateCursorHandle: TSQLCursor;
@@ -753,8 +756,10 @@ begin
           NewType := ftBytes
         else
           NewType := ftVarBytes;
-{$ENDIF}
+      NewSize := ASize div FConnectionCharsetInfo.mbmaxlen;
+{$ELSE}
       NewSize := ASize;
+{$ENDIF}
       end;
     FIELD_TYPE_TINY_BLOB..FIELD_TYPE_BLOB:
       begin
@@ -781,7 +786,7 @@ procedure TConnectionName.AddFieldDefs(cursor: TSQLCursor;
 
 var
   C : TCursorName;
-  I, TF, FC: Integer;
+  I, FC: Integer;
   field: PMYSQL_FIELD;
   DFT: TFieldType;
   DFS: Integer;
@@ -798,19 +803,18 @@ begin
   FC:=mysql_num_fields(C.FRes);
   SetLength(c.MapDSRowToMSQLRow,FC);
 
-  TF := 1;
-  For I:= 0 to FC-1 do
+  For I := 0 to FC-1 do
     begin
     field := mysql_fetch_field_direct(C.FRES, I);
 //    Writeln('MySQL: creating fielddef ',I+1);
 
     if MySQLDataType(field, DFT, DFS) then
       begin
-      FieldDefs.Add(FieldDefs.MakeNameUnique(field^.name), DFT, DFS,
+      AddFieldDef(FieldDefs, I+1, field^.name, DFT, DFS, -1,
+                    False,
                     (field^.flags and (AUTO_INCREMENT_FLAG or NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF})) = (NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF}),
-                    TF);
-      c.MapDSRowToMSQLRow[TF-1] := I;
-      inc(TF);
+                    False);
+      c.MapDSRowToMSQLRow[I] := I;
       end
     end;
 //  Writeln('MySQL: Finished adding fielddefs');

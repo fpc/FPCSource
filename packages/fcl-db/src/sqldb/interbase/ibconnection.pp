@@ -75,7 +75,7 @@ type
 
     // conversion methods
     procedure TranslateFldType(SQLType, SQLSubType, SQLLen, SQLScale : integer;
-      var TrType : TFieldType; var TrLen : word);
+      out TrType : TFieldType; out TrLen, TrPrec : word);
     procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
     procedure SetDateTime(CurrBuff: pointer; PTime : TDateTime; AType : integer);
     procedure GetFloat(CurrBuff, Buffer : pointer; Size : Byte);
@@ -99,7 +99,7 @@ type
     procedure UnPrepareStatement(cursor : TSQLCursor); override;
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); override;
-    procedure AddFieldDefs(cursor: TSQLCursor;FieldDefs : TfieldDefs); override;
+    procedure AddFieldDefs(cursor: TSQLCursor;FieldDefs : TFieldDefs); override;
     function Fetch(cursor : TSQLCursor) : boolean; override;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
@@ -266,7 +266,7 @@ function TIBConnection.StartDBTransaction(trans: TSQLHandle; AParams: string
 
 Var
   DBHandle:pointer;
-  I,T :integer;
+  I : integer;
   S :string;
   tpbv,version : ansichar;
   prVal :String;
@@ -662,17 +662,25 @@ begin
 end;
 
 procedure TIBConnection.TranslateFldType(SQLType, SQLSubType, SQLLen, SQLScale : integer;
-           var TrType : TFieldType; var TrLen : word);
+           out TrType : TFieldType; out TrLen, TrPrec : word);
 begin
   TrLen := 0;
+  TrPrec := 0;
   if SQLScale < 0 then
-    begin
+  begin
     TrLen := abs(SQLScale);
     if (TrLen <= MaxBCDScale) then //Note: NUMERIC(18,3) or (17,2) must be mapped to ftFmtBCD, but we do not know Precision
       TrType := ftBCD
     else
       TrType := ftFMTBcd;
-    end
+    case (SQLType and not 1) of
+      SQL_SHORT : TrPrec := 4;
+      SQL_LONG  : TrPrec := 9;
+      SQL_DOUBLE,
+      SQL_INT64 : TrPrec := 18;
+      else        TrPrec := SQLLen;
+    end;
+  end
   else case (SQLType and not 1) of
     SQL_VARYING :
       begin
@@ -930,12 +938,12 @@ begin
 end;
 
 
-procedure TIBConnection.AddFieldDefs(cursor: TSQLCursor;FieldDefs : TfieldDefs);
+procedure TIBConnection.AddFieldDefs(cursor: TSQLCursor;FieldDefs : TFieldDefs);
 var
   x         : integer;
-  TransLen  : word;
+  TransLen,
+  TransPrec : word;
   TransType : TFieldType;
-  FD        : TFieldDef;
 
 begin
   {$push}
@@ -946,20 +954,11 @@ begin
     for x := 0 to SQLDA^.SQLD - 1 do
       begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].sqlsubtype, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
-        TransType, TransLen);
+        TransType, TransLen, TransPrec);
 
-      FD := FieldDefs.Add(FieldDefs.MakeNameUnique(SQLDA^.SQLVar[x].AliasName), TransType,
-         TransLen, (SQLDA^.SQLVar[x].sqltype and 1)=0, (x + 1));
-      if TransType in [ftBCD, ftFmtBCD] then
-        case (SQLDA^.SQLVar[x].sqltype and not 1) of
-          SQL_SHORT : FD.precision := 4;
-          SQL_LONG  : FD.precision := 9;
-          SQL_DOUBLE,
-          SQL_INT64 : FD.precision := 18;
-          else FD.precision := SQLDA^.SQLVar[x].SQLLen;
-        end;
-//      FD.DisplayName := SQLDA^.SQLVar[x].AliasName;
-      FieldBinding[FD.FieldNo-1] := x;
+      AddFieldDef(FieldDefs, x+1, SQLDA^.SQLVar[x].AliasName, TransType, TransLen, TransPrec, True, (SQLDA^.SQLVar[x].sqltype and 1)=0, False);
+
+      FieldBinding[x] := x;
       end;
     end;
   {$pop}
@@ -1009,13 +1008,10 @@ end;
 
 procedure TIBConnection.SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
 
-var ParNr,SQLVarNr : integer;
-    s               : string;
-    i               : integer;
-    si              : smallint;
-    li              : LargeInt;
-    currbuff        : pchar;
-    w               : word;
+var SQLVarNr : integer;
+    AParam   : TParam;
+    s        : rawbytestring;
+    i        : integer;
 
     TransactionHandle : pointer;
     blobId            : ISC_QUAD;
@@ -1035,7 +1031,7 @@ var ParNr,SQLVarNr : integer;
       if isc_create_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
        CheckError('TIBConnection.CreateBlobStream', FStatus);
 
-      s := AParams[ParNr].AsString;
+      s := GetAsString(AParam);
       BlobSize := length(s);
 
       BlobBytesWritten := 0;
@@ -1059,25 +1055,22 @@ var ParNr,SQLVarNr : integer;
       {$pop}
   end;
 
-Const
-  DateF = 'yyyy-mm-dd';
-  TimeF = 'hh:nn:ss';
-  DateTimeF = DateF+' '+TimeF;
-
 var
-  // This should be a pointer, because the ORIGINAL variables must
-  // be modified.
-  VSQLVar: ^XSQLVAR;
-  P: TParam;
-  ft : TFieldType;
+  // This should be a pointer, because the ORIGINAL variables must be modified.
+  VSQLVar  : ^XSQLVAR;
+  si       : smallint;
+  li       : LargeInt;
+  CurrBuff : pchar;
+  w        : word;
+
 begin
   {$push}
   {$R-}
   with cursor as TIBCursor do for SQLVarNr := 0 to High(ParamBinding){AParams.count-1} do
     begin
-    ParNr := ParamBinding[SQLVarNr];
+    AParam := AParams[ParamBinding[SQLVarNr]];
     VSQLVar := @in_sqlda^.SQLvar[SQLVarNr];
-    if AParams[ParNr].IsNull then
+    if AParam.IsNull then
       VSQLVar^.SQLInd^ := -1
     else
       begin
@@ -1087,50 +1080,47 @@ begin
         SQL_SHORT, SQL_BOOLEAN_INTERBASE :
           begin
             if VSQLVar^.sqlscale = 0 then
-              si := AParams[ParNr].AsSmallint
+              si := AParam.AsSmallint
             else
-              si := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
+              si := Round(AParam.AsCurrency * IntPower10(-VSQLVar^.sqlscale));
             i := si;
             Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
         SQL_LONG :
           begin
             if VSQLVar^.sqlscale = 0 then
-              i := AParams[ParNr].AsInteger
+              i := AParam.AsInteger
             else
-              i := Round(AParams[ParNr].AsFloat * IntPower10(-VSQLVar^.sqlscale)); //*any number of digits
+              i := Round(AParam.AsFloat * IntPower10(-VSQLVar^.sqlscale)); //*any number of digits
             Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
         SQL_INT64:
           begin
             if VSQLVar^.sqlscale = 0 then
-              li := AParams[ParNr].AsLargeInt
-            else if AParams[ParNr].DataType = ftFMTBcd then
-              li := AParams[ParNr].AsFMTBCD * IntPower10(-VSQLVar^.sqlscale)
+              li := AParam.AsLargeInt
+            else if AParam.DataType = ftFMTBcd then
+              li := AParam.AsFMTBCD * IntPower10(-VSQLVar^.sqlscale)
             else
-              li := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
+              li := Round(AParam.AsCurrency * IntPower10(-VSQLVar^.sqlscale));
             Move(li, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
         SQL_DOUBLE, SQL_FLOAT:
-          SetFloat(VSQLVar^.SQLData, AParams[ParNr].AsFloat, VSQLVar^.SQLLen);
+          SetFloat(VSQLVar^.SQLData, AParam.AsFloat, VSQLVar^.SQLLen);
         SQL_BLOB :
           SetBlobParam;
         SQL_VARYING, SQL_TEXT :
           begin
-          P:=AParams[ParNr];
-          ft:=P.DataType;
-          if Not (ft in [ftDate,ftTime,ftDateTime,ftTimeStamp]) then
-            S:=P.AsString
-          else
-            begin
-            Case ft of
-              ftDate : S:=DateF;
-              ftTime : S:=TimeF;
-              ftDateTime,
-              ftTimeStamp : S:=DateTimeF;
-            end;
-            S:=FormatDateTime(S,P.AsDateTime);
-            end;
+          Case AParam.DataType of
+            ftDate :
+              s := FormatDateTime('yyyy-mm-dd', AParam.AsDateTime);
+            ftTime :
+              s := FormatDateTime('hh":"nn":"ss', AParam.AsDateTime);
+            ftDateTime,
+            ftTimeStamp :
+              s := FormatDateTime('yyyy-mm-dd hh":"nn":"ss', AParam.AsDateTime);
+            else
+              s := GetAsString(AParam);
+          end;
           w := length(s); // a word is enough, since the max-length of a string in interbase is 32k
           if ((VSQLVar^.SQLType and not 1) = SQL_VARYING) then
             begin
@@ -1138,7 +1128,7 @@ begin
             ReAllocMem(VSQLVar^.SQLData, VSQLVar^.SQLLen+2);
             CurrBuff := VSQLVar^.SQLData;
             move(w,CurrBuff^,sizeof(w));
-            inc(CurrBuff,2);
+            inc(CurrBuff,sizeof(w));
             end
           else
             begin
@@ -1152,11 +1142,11 @@ begin
           Move(s[1], CurrBuff^, w);
           end;
         SQL_TYPE_DATE, SQL_TYPE_TIME, SQL_TIMESTAMP :
-          SetDateTime(VSQLVar^.SQLData, AParams[ParNr].AsDateTime, VSQLVar^.SQLType);
+          SetDateTime(VSQLVar^.SQLData, AParam.AsDateTime, VSQLVar^.SQLType);
         SQL_BOOLEAN_FIREBIRD:
-          PByte(VSQLVar^.SQLData)^ := Byte(AParams[ParNr].AsBoolean);
+          PByte(VSQLVar^.SQLData)^ := Byte(AParam.AsBoolean);
       else
-        DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[ParNr].DataType]],self);
+        DatabaseErrorFmt(SUnsupportedParameter,[FieldTypeNames[AParam.DataType]],self);
       end {case}
       end;
     end;
