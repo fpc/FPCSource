@@ -4,7 +4,7 @@
 
 [package]
 name=numlib
-version=3.0.1
+version=3.0.2rc1
 
 [target]
 # warning, tpnumlib is a library, not a unit.

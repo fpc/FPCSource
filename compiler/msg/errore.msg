@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2013 by the Free Pascal Development team
+#   Copyright (c) 1999-2016 by the Free Pascal Development team
 #
 #   English (default) Language File for Free Pascal
 #
@@ -3383,7 +3383,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2015 by Florian Klaempfl and others
+Copyright (c) 1993-2016 by Florian Klaempfl and others
 ]
 
 #
