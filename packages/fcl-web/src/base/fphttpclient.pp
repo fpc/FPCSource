@@ -101,6 +101,7 @@ Type
     Procedure SetRequestHeaders(const AValue: TStrings);
     procedure SetIOTimeout(AValue: Integer);
   protected
+    Function NoContentAllowed(ACode : Integer) : Boolean;
     // True if we need to use a proxy: ProxyData Assigned and Hostname Set
     Function ProxyActive : Boolean;
     // Override this if you want to create a custom instance of proxy.
@@ -455,6 +456,11 @@ begin
   FIOTimeout:=AValue;
   if Assigned(FSocket) then
     FSocket.IOTimeout:=AValue;
+end;
+
+function TFPCustomHTTPClient.NoContentAllowed(ACode: Integer): Boolean;
+begin
+  Result:=((ACode div 100)=1) or ((ACode=204) or (ACode=304))
 end;
 
 function TFPCustomHTTPClient.ProxyActive: Boolean;
@@ -1034,7 +1040,7 @@ begin
         L:=L-R;
       until (L=0) or (R=0);
       end
-    else if L<0 then
+    else if (L<0) and (Not NoContentAllowed(ResponseStatusCode)) then
       begin
       // No content-length, so we read till no more data available.
       Repeat
