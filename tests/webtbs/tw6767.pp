@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 { %OPT=-gl -gh }
 program t3;
 

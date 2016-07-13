@@ -1,4 +1,4 @@
-{%skiptarget=go32v2}
+{%skiptarget=$nothread }
 { Source provided for Free Pascal Bug Report 3695 }
 { Submitted by "Pedro Lopez-Cabanillas" on  2005-02-25 }
 { e-mail: plcl@telefonica.net }

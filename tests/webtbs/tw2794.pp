@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 { Source provided for Free Pascal Bug Report 2794 }
 { Submitted by "Johannes Berg" on  2003-11-17 }
 { e-mail: bugs@johannes.sipsolutions.de }
