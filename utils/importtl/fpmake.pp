@@ -28,7 +28,7 @@ begin
     P.Dependencies.Add('fcl-registry');
 
     P.Directory:=ADirectory;
-    P.Version:='3.0.1';
+    P.Version:='3.0.2rc1';
 
     P.OSes:=[win32,win64];
 

@@ -29,7 +29,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('paszlib');
-    P.Version:='3.1.1';
+    P.Version:='3.0.2rc1';
     T:=P.Targets.AddUnit('src/fpttfencodings.pp');
     T:=P.Targets.AddUnit('src/fpparsettf.pp');
     With T do

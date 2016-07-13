@@ -18,7 +18,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.1';
+    P.Version:='3.0.2rc1';
     P.OSes:=P.OSes-[embedded];
     P.Dependencies.Add('rtl-objpas');
     P.SourcePath.Add('src');
