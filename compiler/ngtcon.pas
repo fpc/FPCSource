@@ -1307,7 +1307,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     procedure tasmlisttypedconstbuilder.parse_procvardef(def:tprocvardef);
       var
         tmpn,n : tnode;
-        pd   : tprocdef;
+        pd : tprocdef;
+        procaddrdef: tprocvardef;
         havepd,
         haveblock: boolean;
       begin
@@ -1349,7 +1350,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { in case of a nested procdef initialised with a global routine }
         ftcb.maybe_begin_aggregate(def);
         { to handle type conversions }
-        ftcb.queue_init(def);
+        procaddrdef:=cprocvardef.getreusableprocaddr(def);
+        ftcb.queue_init(procaddrdef);
         { remove typeconvs, that will normally insert a lea
           instruction which is not necessary for us }
         while n.nodetype=typeconvn do
@@ -1403,7 +1405,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           end
         else if n.nodetype=pointerconstn then
           begin
-            ftcb.queue_emit_ordconst(tpointerconstnode(n).value,def);
+            ftcb.queue_emit_ordconst(tpointerconstnode(n).value,procaddrdef);
             if not def.is_addressonly then
               ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
           end
