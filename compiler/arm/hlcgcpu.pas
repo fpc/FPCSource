@@ -29,6 +29,7 @@ unit hlcgcpu;
 interface
 
   uses
+    globtype,
     aasmdata,
     symdef,
     hlcg2ll;
@@ -42,7 +43,7 @@ interface
     end;
 
     tthumbhlcgcpu = class(tbasehlcgarm)
-      procedure g_external_wrapper(list : TAsmList; procdef : tprocdef; const externalname : string); override;
+      procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr); override;
     end;
 
   procedure create_hlcodegen;
@@ -50,7 +51,7 @@ interface
 implementation
 
   uses
-    globals,globtype,verbose,
+    globals,verbose,
     procinfo,fmodule,
     symconst,
     aasmbase,aasmtai,aasmcpu, cpuinfo,
@@ -229,7 +230,7 @@ implementation
 
   { tthumbhlcgcpu }
 
-  procedure tthumbhlcgcpu.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+  procedure tthumbhlcgcpu.a_jmp_external_name(list: TAsmList; const externalname: TSymStr);
     var
       tmpref : treference;
       l : tasmlabel;

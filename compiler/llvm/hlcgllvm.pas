@@ -145,7 +145,7 @@ uses
       procedure varsym_set_localloc(list: TAsmList; vs: tabstractnormalvarsym); override;
       procedure paravarsym_set_initialloc_to_paraloc(vs: tparavarsym); override;
 
-      procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string); override;
+      procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const wrappername, externalname: string; global: boolean); override;
 
      { def is a pointerdef or implicit pointer type (class, classref, procvar,
        dynamic array, ...).  }
@@ -2002,14 +2002,14 @@ implementation
     end;
 
 
-  procedure thlcgllvm.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+  procedure thlcgllvm.g_external_wrapper(list: TAsmList; procdef: tprocdef; const wrappername, externalname: string; global: boolean);
     var
       asmsym: TAsmSymbol;
     begin
       if po_external in procdef.procoptions then
         exit;
       asmsym:=current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION);
-      list.concat(taillvmalias.create(asmsym,procdef.mangledname,procdef,asmsym.bind));
+      list.concat(taillvmalias.create(asmsym,wrappername,procdef,asmsym.bind));
     end;
 
 

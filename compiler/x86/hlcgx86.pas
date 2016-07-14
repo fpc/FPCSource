@@ -29,6 +29,7 @@ interface
 {$i fpcdefs.inc}
 
   uses
+    globtype,
     aasmdata,
     symtype,symdef,
     parabase,
@@ -41,14 +42,13 @@ interface
     thlcgx86 = class(thlcg2ll)
      protected
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
-     public
-      procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string); override;
+      procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr); override;
     end;
 
 implementation
 
   uses
-    globtype,globals,systems,
+    globals,systems,
     aasmbase,
     cgbase,cgutils,
     cpubase,aasmcpu;
@@ -64,7 +64,7 @@ implementation
     end;
 
 
-  procedure thlcgx86.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+  procedure thlcgx86.a_jmp_external_name(list: TAsmList; const externalname: TSymStr);
     var
       ref : treference;
       sym : tasmsymbol;
@@ -72,7 +72,7 @@ implementation
      if (target_info.system = system_i386_darwin) then
        begin
          { a_jmp_name jumps to a stub which is always pic-safe on darwin }
-         inherited g_external_wrapper(list,procdef,externalname);
+         inherited;
          exit;
        end;
 

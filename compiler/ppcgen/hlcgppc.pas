@@ -28,7 +28,7 @@ unit hlcgppc;
 interface
 
 uses
-  globals,
+  globtype,globals,
   aasmdata,
   symtype,symdef,
   cgbase,cgutils,hlcgobj,hlcg2ll;
@@ -39,7 +39,7 @@ type
     procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
    public
     procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-    procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
+    procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr); override;
     procedure gen_load_para_value(list: TAsmList); override;
   end;
 
@@ -50,7 +50,7 @@ implementation
     systems,fmodule,
     symconst,
     aasmbase,aasmtai,aasmcpu,
-    cpubase,globtype,
+    cpubase,
     procinfo,cpupi,cgobj,cgppc,
     defutil;
 
@@ -193,7 +193,7 @@ implementation
     end;
 
 
-  procedure thlcgppcgen.g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string);
+  procedure thlcgppcgen.a_jmp_external_name(list: TAsmList; const externalname: TSymStr);
     var
       href : treference;
     begin

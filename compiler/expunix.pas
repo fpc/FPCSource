@@ -60,6 +60,9 @@ uses
   fmodule,
   cgbase,cgutils,cpubase,cgobj,
   cgcpu,hlcgobj,hlcgcpu,
+{$ifdef llvm}
+  hlcgllvm,
+{$endif llvm}
   ncgutil,
   verbose;
 
@@ -161,28 +164,7 @@ begin
               break;
           end;
         if not anyhasalias then
-         begin
-           { place jump in al_procedures }
-           current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
-           current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           if (cs_create_pic in current_settings.moduleswitches) and
-             { other targets need to be checked how it works }
-             (target_info.system in [system_i386_freebsd,system_x86_64_freebsd,system_x86_64_linux,system_i386_linux,system_x86_64_solaris,system_i386_solaris,system_i386_android,system_x86_64_dragonfly]) then
-             begin
-{$ifdef x86}
-               sym:=current_asmdata.RefAsmSymbol(pd.mangledname);
-               reference_reset_symbol(r,sym,0,sizeof(pint));
-               if cs_create_pic in current_settings.moduleswitches then
-                 r.refaddr:=addr_pic
-               else
-                 r.refaddr:=addr_full;
-               current_asmdata.asmlists[al_procedures].concat(taicpu.op_ref(A_JMP,S_NO,r));
-{$endif x86}
-             end
-           else
-             hlcg.g_external_wrapper(current_asmdata.asmlists[al_procedures],pd,pd.mangledname);
-           current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
-         end;
+          hlcg.g_external_wrapper(current_asmdata.asmlists[al_procedures],pd,hp2.name^,pd.mangledname,true);
         exportedsymnames.insert(hp2.name^);
       end
      else

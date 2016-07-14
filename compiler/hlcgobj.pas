@@ -513,11 +513,14 @@ unit hlcgobj;
           procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual; abstract;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);virtual; abstract;
 
+         protected
+          procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr); virtual;
+         public
           { generate a stub which only purpose is to pass control the given external method,
           setting up any additional environment before doing so (if required).
 
           The default implementation issues a jump instruction to the external name. }
-          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
+          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const wrappername, externalname: string; global: boolean); virtual;
 
          protected
           procedure g_allocload_reg_reg(list: TAsmList; regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
@@ -3772,9 +3775,29 @@ implementation
     begin
     end;
 
-  procedure thlcgobj.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+  procedure thlcgobj.a_jmp_external_name(list: TAsmList; const externalname: TSymStr);
     begin
       cg.a_jmp_name(list,externalname);
+    end;
+
+  procedure thlcgobj.g_external_wrapper(list: TAsmList; procdef: tprocdef; const wrappername, externalname: string; global: boolean);
+    var
+      sym: tasmsymbol;
+    begin
+      maybe_new_object_file(list);
+      new_section(list,sec_code,wrappername,target_info.alignment.procalign);
+      if global then
+        begin
+          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_GLOBAL,AT_FUNCTION);
+          list.concat(Tai_symbol.Create_global(sym,0));
+        end
+      else
+        begin
+          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_LOCAL,AT_FUNCTION);
+          list.concat(Tai_symbol.Create(sym,0));
+        end;
+      a_jmp_external_name(list,externalname);
+      list.concat(Tai_symbol_end.Create(sym));
     end;
 
   procedure thlcgobj.g_allocload_reg_reg(list: TAsmList; regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
@@ -4490,14 +4513,7 @@ implementation
           if importname<>'' then
             begin
              { add the procedure to the al_procedures }
-             maybe_new_object_file(list);
-             new_section(list,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
-             if (po_global in pd.procoptions) then
-               list.concat(Tai_symbol.createname_global(pd.mangledname,AT_FUNCTION,0))
-             else
-               list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
-
-             g_external_wrapper(list,pd,importname);
+             g_external_wrapper(list,pd,pd.mangledname,importname,true);
             end;
           { remove the external stuff, so that the interface crc
             doesn't change. This makes the function calls less

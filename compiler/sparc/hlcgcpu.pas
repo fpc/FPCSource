@@ -29,6 +29,7 @@ unit hlcgcpu;
 interface
 
   uses
+    globtype,
     aasmdata,
     symdef,
     hlcg2ll;
@@ -36,7 +37,7 @@ interface
   type
     thlcgcpu = class(thlcg2ll)
      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-     procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
+     procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr);override;
     end;
 
   procedure create_hlcodegen;
@@ -44,7 +45,7 @@ interface
 implementation
 
   uses
-    verbose,globtype,fmodule,
+    verbose,fmodule,
     aasmbase,aasmtai,aasmcpu,
     parabase,
     symconst,symtype,symsym,
@@ -118,12 +119,12 @@ implementation
           list.Concat(TAiCpu.Op_none(A_NOP));
         end
       else
-        g_external_wrapper(list,procdef,procdef.mangledname);
+        a_jmp_external_name(list,procdef.mangledname);
       List.concat(Tai_symbol_end.Createname(labelname));
     end;
 
 
-  procedure thlcgcpu.g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);
+  procedure thlcgcpu.a_jmp_external_name(list: TAsmList; const externalname: TSymStr);
     begin
       { CALL overwrites %o7 with its own address, we use delay slot to restore it. }
       list.concat(taicpu.op_reg_reg(A_MOV,NR_O7,NR_G1));

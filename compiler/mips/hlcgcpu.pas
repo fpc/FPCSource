@@ -43,7 +43,7 @@ uses
       procedure a_load_regconst_subsetreg_intern(list: TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
     public
       procedure g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint); override;
-      procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
+      procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr);override;
   end;
 
   procedure create_hlcodegen;
@@ -148,7 +148,7 @@ implementation
     end;
 
 
-  procedure thlcgmips.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+  procedure thlcgmips.a_jmp_external_name(list: TAsmList; const externalname: TSymStr);
     var
       href: treference;
     begin
