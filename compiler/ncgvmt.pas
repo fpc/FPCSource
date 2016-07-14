@@ -117,7 +117,10 @@ implementation
       aasmtai,
       wpobase,
       nobj,
-      cgbase,parabase,paramgr,cgobj,cgcpu,hlcgobj,hlcgcpu,
+      cgbase,parabase,paramgr,
+{$ifndef cpuhighleveltarget}
+      cgobj,cgcpu,hlcgobj,hlcgcpu,
+{$endif not cpuhighleveltarget}
       ncgrtti;
 
 
@@ -971,23 +974,13 @@ implementation
         if (po_global in pd.procoptions) and
            (pd.owner.defowner<>self._class) then
           exit;
-        sym:=current_asmdata.GetAsmSymbol(pd.mangledname);
-        if assigned(sym) and (sym.bind<>AB_EXTERNAL) then
-          exit;
-        maybe_new_object_file(list);
-        new_section(list,sec_code,lower(pd.mangledname),target_info.alignment.procalign);
-        if (po_global in pd.procoptions) then
-          begin
-            sym:=current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION);
-            list.concat(Tai_symbol.Create_global(sym,0));
-          end
-        else
-          begin
-            sym:=current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
-            list.concat(Tai_symbol.Create(sym,0));
-          end;
-        hlcg.g_external_wrapper(list,pd,'FPC_ABSTRACTERROR');
-        list.concat(Tai_symbol_end.Create(sym));
+        pd.synthetickind:=tsk_call_no_parameters;
+        pd.skpara:=search_system_proc('ABSTRACTERROR');
+        { abstract methods are not marked as forwarddef, because otherwise
+          the compiler would accept implementations for them (and complain if
+          they were missing); we are now after parsing the user code, so we can
+          mark them again as forwarddef to indicate they need to be parsed }
+        pd.forwarddef:=true;
       end;
 
 
@@ -1348,9 +1341,13 @@ implementation
 
     procedure write_vmts(st:tsymtable;is_global:boolean);
       begin
+{$ifndef cpuhighleveltarget}
         create_hlcodegen;
+{$endif}
         do_write_vmts(st,is_global);
+{$ifndef cpuhighleveltarget}
         destroy_hlcodegen;
+{$endif}
       end;
 
 end.

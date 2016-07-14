@@ -977,6 +977,28 @@ implementation
       pd.skpara:=nil;
     end;
 
+
+  procedure implement_call_no_parameters(pd: tprocdef);
+    var
+      callpd: tprocdef;
+      str: ansistring;
+      isclassmethod: boolean;
+    begin
+      str:='begin ';
+      callpd:=tprocdef(pd.skpara);
+      str:=str+def_unit_name_prefix_if_toplevel(callpd)+callpd.procsym.realname+'; ';
+      { avoid warnings about unset function results }
+      if (pd.proctypeoption<>potype_constructor) and
+         not is_void(pd.returndef) then
+        str:=str+'result:=system.default('+def_unit_name_prefix_if_toplevel(pd.returndef)+pd.returndef.typename+'); ';
+      str:=str+'end;';
+      isclassmethod:=
+        (po_classmethod in pd.procoptions) and
+        not(pd.proctypeoption in [potype_constructor,potype_destructor]);
+      str_parse_method_impl(str,pd,isclassmethod);
+    end;
+
+
   procedure add_synthetic_method_implementations_for_st(st: tsymtable);
     var
       i   : longint;
@@ -1051,6 +1073,8 @@ implementation
               implement_block_invoke_procvar(pd);
             tsk_interface_wrapper:
               implement_interface_wrapper(pd);
+            tsk_call_no_parameters:
+              implement_call_no_parameters(pd);
             else
               internalerror(2011032801);
           end;
@@ -1078,9 +1102,9 @@ implementation
              { not true for the "main" procedure, whose localsymtable is the staticsymtable }
              (tprocdef(def).localst.symtabletype=localsymtable) then
             add_synthetic_method_implementations(tprocdef(def).localst)
-          else if (is_javaclass(def) and
-              not(oo_is_external in tobjectdef(def).objectoptions)) or
-              (def.typ=recorddef) then
+          else if ((def.typ=objectdef) and
+                   not(oo_is_external in tobjectdef(def).objectoptions)) or
+                  (def.typ=recorddef) then
            begin
             { also complete nested types }
             add_synthetic_method_implementations(tabstractrecorddef(def).symtable);

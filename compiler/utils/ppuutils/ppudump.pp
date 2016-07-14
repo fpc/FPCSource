@@ -542,7 +542,7 @@ const
       'jvm enum bitset2set', 'jvm enum set2set',
       'jvm procvar invoke', 'jvm procvar intf constructor',
       'jvm virtual class method', 'jvm field getter', 'jvm field setter',
-      'block invoke','interface wrapper');
+      'block invoke','interface wrapper','call parameterless routine');
 begin
   if w<=ord(high(syntheticName)) then
     result:=syntheticName[tsynthetickind(w)]
