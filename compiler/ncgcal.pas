@@ -35,6 +35,8 @@ interface
     type
        tcgcallparanode = class(tcallparanode)
        protected
+          function push_zero_sized_value_para: boolean; virtual;
+
           procedure push_addr_para;
           procedure push_value_para;virtual;
           procedure push_formal_para;virtual;
@@ -153,6 +155,13 @@ implementation
       end;
 
 
+    function tcgcallparanode.push_zero_sized_value_para: boolean;
+      begin
+        { nothing to push by default }
+        result:=false;
+      end;
+
+
     procedure tcgcallparanode.push_addr_para;
       begin
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
@@ -234,10 +243,10 @@ implementation
     procedure tcgcallparanode.push_value_para;
       begin
         { we've nothing to push when the size of the parameter is 0
-          -- except in case of the self parameter of an emptry record on e.g.
-             the JVM target }
+          -- except on platforms where the parameters are part of the signature
+             and checked by the runtime/backend compiler (e.g. JVM, LLVM) }
         if (left.resultdef.size=0) and
-           not(vo_is_self in parasym.varoptions) then
+           not push_zero_sized_value_para then
           exit;
 
         { Move flags and jump in register to make it less complex }

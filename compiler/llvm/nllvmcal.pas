@@ -31,6 +31,11 @@ interface
       cgutils;
 
     type
+      tllvmcallparanode = class(tcgcallparanode)
+       protected
+        function push_zero_sized_value_para: boolean; override;
+      end;
+
       tllvmcallnode = class(tcgcallnode)
        protected
         function can_call_ref(var ref: treference): boolean; override;
@@ -44,6 +49,20 @@ implementation
        verbose,
        ncal;
 
+{*****************************************************************************
+                          TLLVMCALLPARANODE
+ *****************************************************************************}
+
+    function tllvmcallparanode.push_zero_sized_value_para: boolean;
+      begin
+        { part of the signature -> need to be pushed }
+        result:=true;
+      end;
+
+
+{*****************************************************************************
+                           TLLVMCALLNODE
+ *****************************************************************************}
 
     function tllvmcallnode.can_call_ref(var ref: treference): boolean;
       begin
