@@ -71,7 +71,7 @@ interface
       tbitpackedval = record
         curval, nextval: aword;
         curbitoffset: smallint;
-        loadbitsize,packedbitsize: byte;
+        packedbitsize: byte;
       end;
 
       tasmlisttypedconstbuilder = class(ttypedconstbuilder)
@@ -320,7 +320,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         bp.nextval:=0;
         bp.curbitoffset:=0;
         bp.packedbitsize:=packedbitsize;
-        bp.loadbitsize:=packedbitsloadsize(bp.packedbitsize)*8;
       end;
 
 
@@ -366,8 +365,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       begin
         if (bp.curbitoffset < AIntBits) then
           begin
-            { forced flush -> write multiple of loadsize }
-            bitstowrite:=align(bp.curbitoffset,bp.loadbitsize);
+            { forced flush -> write multiple of a byte }
+            bitstowrite:=align(bp.curbitoffset,8);
             bp.curbitoffset:=0;
           end
         else
@@ -375,29 +374,24 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             bitstowrite:=AIntBits;
             dec(bp.curbitoffset,AIntBits);
           end;
-        while (bitstowrite>=bp.loadbitsize) do
+        while (bitstowrite>=8) do
           begin
             if (target_info.endian=endian_little) then
               begin
-                { write lowest "loadbitsize" bits }
-                writeval:=bp.curval and (aint(-1) shr ((sizeof(aint)*8)-bp.loadbitsize));
-                bp.curval:=bp.curval shr bp.loadbitsize;
+                { write lowest byte }
+                writeval:=byte(bp.curval);
+                bp.curval:=bp.curval shr 8;
               end
             else
               begin
-                { write highest "loadbitsize" bits }
-                writeval:=bp.curval shr (AIntBits-bp.loadbitsize);
-                bp.curval:=bp.curval shl bp.loadbitsize;
+                { write highest byte }
+                writeval:=bp.curval shr (AIntBits-8);
+{$push}{$r-,q-}
+                bp.curval:=bp.curval shl 8;
+{$pop}
               end;
-            case bp.loadbitsize of
-              8: ftcb.emit_tai(tai_const.create_8bit(writeval),u8inttype);
-              16: ftcb.emit_tai(tai_const.create_16bit(writeval),u16inttype);
-              32: ftcb.emit_tai(tai_const.create_32bit(writeval),u32inttype);
-              64: ftcb.emit_tai(tai_const.create_64bit(writeval),u64inttype);
-              else
-                internalerror(2013111101);
-            end;
-            dec(bitstowrite,bp.loadbitsize);
+            ftcb.emit_tai(tai_const.create_8bit(writeval),u8inttype);
+            dec(bitstowrite,8);
           end;
         bp.curval:=bp.nextval;
         bp.nextval:=0;
@@ -1477,13 +1471,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { bitpacked record? }
         is_packed:=is_packed_record_or_object(def);
         if (is_packed) then
-          begin
-            { loadbitsize = 8, bitpacked records are always padded to    }
-            { a multiple of a byte. packedbitsize will be set separately }
-            { for each field                                             }
-            initbitpackval(bp,0);
-            bp.loadbitsize:=8;
-          end;
+          { packedbitsize will be set separately for each field }
+          initbitpackval(bp,0);
         { normal record }
         consume(_LKLAMMER);
         recoffset:=0;

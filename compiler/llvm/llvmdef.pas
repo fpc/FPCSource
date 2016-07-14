@@ -308,8 +308,6 @@ implementation
     tllvmencodeflags = set of tllvmencodeflag;
 
     procedure llvmaddencodedtype_intern(def: tdef; const flags: tllvmencodeflags; var encodedstr: TSymStr);
-      var
-        elesize: asizeint;
       begin
         case def.typ of
           stringdef :
@@ -465,11 +463,13 @@ implementation
               else if is_packed_array(def) and
                       (tarraydef(def).elementdef.typ in [enumdef,orddef]) then
                 begin
-                  elesize:=packedbitsloadsize(tarraydef(def).elementdef.packedbitsize);
-                  encodedstr:=encodedstr+'['+tostr(tarraydef(def).size div elesize)+' x ';
-                  { encode as an array of integers with the size on which we
-                    perform the packedbits operations }
-                  llvmaddencodedtype_intern(cgsize_orddef(int_cgsize(elesize)),[lef_inaggregate],encodedstr);
+                  { encode as an array of bytes rather than as an array of
+                    packedbitsloadsize(elesize), because even if the load size
+                    is e.g. 2 bytes, the array may only be 1 or 3 bytes long
+                    (and if this array is inside a record, it must not be
+                     encoded as a type that is too long) }
+                  encodedstr:=encodedstr+'['+tostr(tarraydef(def).size)+' x ';
+                  llvmaddencodedtype_intern(u8inttype,[lef_inaggregate],encodedstr);
                   encodedstr:=encodedstr+']';
                 end
               else

@@ -106,6 +106,7 @@ implementation
       locref: preference;
       hreg: tregister;
       arrptrelementdef: tdef;
+      packedloadsize: aint;
       indirect: boolean;
 
     procedure getarrelementptrdef;
@@ -169,6 +170,21 @@ implementation
          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,arrptrelementdef,cpointerdef.getreusable(resultdef),locref^.base,hreg);
          locref^.base:=hreg;
        end;
+
+      { packed arrays are represented by an array of byte, but when we operate
+        on them we treat them as arrays of elements of packedbitsloadsize()
+        -> typecast }
+      if is_packed_array(left.resultdef) and
+         (tarraydef(left.resultdef).elementdef.typ in [enumdef,orddef]) then
+        begin
+          getarrelementptrdef;
+          packedloadsize:=packedbitsloadsize(tarraydef(left.resultdef).elementdef.packedbitsize);
+          arrptrelementdef:=cpointerdef.getreusable(cgsize_orddef(int_cgsize(packedloadsize)));
+          hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
+            cpointerdef.getreusable(u8inttype),
+            arrptrelementdef,
+            locref^);
+        end;
     end;
 
 
@@ -253,8 +269,10 @@ implementation
         value: divide the index by 8 (we're working with a bitpacked array here,
         all quantities are expressed in bits), and then by the size of the
         chunks (alignpower) }
+      hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,ptruinttype,3+alignpower,hreg,hreg2);
       offsetreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,ptruinttype,3+alignpower,hreg,offsetreg);
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,ptruinttype,alignpower,hreg2,offsetreg);
       { index the array using this chunk index }
       basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(defloadsize));
       current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(basereg,cpointerdef.getreusable(left.resultdef),
@@ -278,7 +296,11 @@ implementation
 
   procedure tllvmvecnode.update_reference_offset(var ref: treference; index, mulsize: aint);
     begin
-      inc(constarrayoffset,index);
+      if not is_packed_array(left.resultdef) or
+         not (tarraydef(left.resultdef).elementdef.typ in [enumdef,orddef]) then
+        inc(constarrayoffset,index)
+      else
+        inc(constarrayoffset,index*mulsize)
     end;
 
 
