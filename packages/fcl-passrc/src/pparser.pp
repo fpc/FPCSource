@@ -41,8 +41,6 @@ resourcestring
   SErrUnknownOperatorType = 'Unknown operator type: %s';
   SParserOnlyOneArgumentCanHaveDefault = 'A default value can only be assigned to 1 parameter';
   SParserExpectedLBracketColon = 'Expected "(" or ":"';
-  SParserExpectedLBracketSemicolon = 'Expected "(" or ";"';
-  SParserExpectedColonSemicolon = 'Expected ":" or ";"';
   SParserExpectedSemiColonEnd = 'Expected ";" or "End"';
   SParserExpectedConstVarID = 'Expected "const", "var" or identifier';
   SParserExpectedNested = 'Expected nested keyword';
@@ -50,9 +48,6 @@ resourcestring
   SParserSyntaxError = 'Syntax error';
   SParserTypeSyntaxError = 'Syntax error in type';
   SParserArrayTypeSyntaxError = 'Syntax error in array type';
-  SParserInterfaceTokenError = 'Invalid token in interface section of unit';
-  SParserImplementationTokenError = 'Invalid token in implementation section of unit';
-  SParserInvalidTypeDef = 'Invalid type definition';
   SParserExpectedIdentifier = 'Identifier expected';
   SParserNotAProcToken = 'Not a procedure or function token';
   SRangeExpressionExpected = 'Range expression expected';
@@ -60,7 +55,6 @@ resourcestring
   SParserHelperNotAllowed = 'Helper objects not allowed for "%s"';
   SLogStartImplementation = 'Start parsing implementation section.';
   SLogStartInterface = 'Start parsing interface section';
-  SParsingUsedUnit = 'Parsing used unit "%s" with commandLine "%s"';
   SParserNoConstructorAllowed = 'Constructors or Destructors are not allowed in Interfaces or Record helpers';
   SParserNoFieldsAllowed = 'Fields are not allowed in Interfaces';
   SParserInvalidRecordVisibility = 'Records can only have public and (strict) private as visibility specifiers';
