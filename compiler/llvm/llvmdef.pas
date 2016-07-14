@@ -459,7 +459,7 @@ implementation
                 end
               else if is_dynamic_array(def) then
                 begin
-                  llvmaddencodedtype_intern(tarraydef(def).elementdef,[],encodedstr);
+                  llvmaddencodedtype_intern(tarraydef(def).elementdef,[lef_inaggregate],encodedstr);
                   encodedstr:=encodedstr+'*';
                 end
               else if is_packed_array(def) and
