@@ -1851,8 +1851,8 @@ implementation
           a_load_reg_reg(list,ptrdef,ptruinttype,ref.base,hreg1);
         end
       else
-        { todo: support for absolute addresses on embedded platforms }
-        internalerror(2012111302);
+        { for absolute addresses }
+        a_load_const_reg(list,ptruinttype,0,hreg1);
       if ref.index<>NR_NO then
         begin
           { SSA... }
