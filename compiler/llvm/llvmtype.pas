@@ -626,6 +626,8 @@ implementation
         i: longint;
         hal: tasmlisttype;
       begin
+        if cs_no_regalloc in current_settings.globalswitches then
+          exit;
         storefilepos:=current_filepos;
         current_filepos:=current_module.mainfilepos;
 
