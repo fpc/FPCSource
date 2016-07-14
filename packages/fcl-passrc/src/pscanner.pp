@@ -23,6 +23,24 @@ interface
 
 uses SysUtils, Classes;
 
+// message numbers
+const
+  nErrInvalidCharacter = 1001;
+  nErrOpenString = 1002;
+  nErrIncludeFileNotFound = 1003;
+  nErrIfXXXNestingLimitReached = 1004;
+  nErrInvalidPPElse = 1005;
+  nErrInvalidPPEndif = 1006;
+  nLogOpeningFile = 1007;
+  nLogLineNumber = 1008;
+  nLogIFDefAccepted = 1009;
+  nLogIFDefRejected = 1010;
+  nLogIFNDefAccepted = 1011;
+  nLogIFNDefRejected = 1012;
+  nLogIFOPTIgnored = 1013;
+  nLogIFIgnored = 1014;
+
+// resourcestring patterns of messages
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
   SErrOpenString = 'string exceeds end of line';
@@ -40,6 +58,18 @@ resourcestring
   SLogIFIgnored = 'IF %s found, ignoring (rejected).';
 
 type
+  TMessageType = (
+    mtFatal,
+    mtError,
+    mtWarning,
+    mtNote,
+    mtHint,
+    mtInfo,
+    mtDebug
+    );
+  TMessageTypes = set of TMessageType;
+
+  TMessageArgs = array of string;
 
   TToken = (
     tkEOF,
@@ -305,6 +335,11 @@ type
 
   TPascalScanner = class
   private
+    FLastMsg: string;
+    FLastMsgArgs: TMessageArgs;
+    FLastMsgNumber: integer;
+    FLastMsgPattern: string;
+    FLastMsgType: TMessageType;
     FFileResolver: TBaseFileResolver;
     FCurSourceFile: TLineReader;
     FCurFilename: string;
@@ -332,10 +367,11 @@ type
     function GetCurColumn: Integer;
     procedure SetOptions(AValue: TPOptions);
   protected
-    Procedure DoLog(Const Msg : String; SkipSourceInfo : Boolean = False);overload;
-    Procedure DoLog(Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
-    procedure Error(const Msg: string);overload;
-    procedure Error(const Msg: string; Args: array of Const);overload;
+    procedure SetCurMsg(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const);
+    Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Msg : String; SkipSourceInfo : Boolean = False);overload;
+    Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
+    procedure Error(MsgNumber: integer; const Msg: string);overload;
+    procedure Error(MsgNumber: integer; const Fmt: string; Args: array of Const);overload;
     procedure HandleDefine(Param: String); virtual;
     procedure HandleIncludeFile(Param: String); virtual;
     procedure HandleUnDefine(Param: String);virtual;
@@ -372,6 +408,12 @@ type
     Property Options : TPOptions Read FOptions Write SetOptions;
     Property LogEvents : TPScannerLogEvents Read FLogEvents Write FLogEvents;
     Property OnLog : TPScannerLogHandler Read FOnLog Write FOnLog;
+
+    property LastMsg: string read FLastMsg write FLastMsg;
+    property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
+    property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
+    property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
+    property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
   end;
 
 const
@@ -1020,7 +1062,7 @@ begin
   Clearfiles;
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
   if LogEvent(sleFile) then
-    DoLog(SLogOpeningFile,[AFileName],True);
+    DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[AFileName],True);
   FCurFilename := AFilename;
   FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(AFilename));
 end;
@@ -1069,14 +1111,17 @@ begin
 //  Writeln(Result, '(',CurTokenString,')');
 end;
 
-procedure TPascalScanner.Error(const Msg: string);
+procedure TPascalScanner.Error(MsgNumber: integer; const Msg: string);
 begin
+  SetCurMsg(mtError,MsgNumber,Msg,[]);
   raise EScannerError.Create(Msg);
 end;
 
-procedure TPascalScanner.Error(const Msg: string; Args: array of Const);
+procedure TPascalScanner.Error(MsgNumber: integer; const Fmt: string;
+  Args: array of const);
 begin
-  raise EScannerError.CreateFmt(Msg, Args);
+  SetCurMsg(mtError,MsgNumber,Fmt,Args);
+  raise EScannerError.CreateFmt(Fmt, Args);
 end;
 
 function TPascalScanner.DoFetchTextToken:TToken;
@@ -1122,7 +1167,7 @@ begin
                 break;
 
             if TokenStr[0] = #0 then
-              Error(SErrOpenString);
+              Error(nErrOpenString,SErrOpenString);
 
             Inc(TokenStr);
           end;
@@ -1141,7 +1186,7 @@ begin
 
 end;
 
-Procedure TPascalScanner.PushStackItem;
+procedure TPascalScanner.PushStackItem;
 
 Var
   SI: TIncludeStackItem;
@@ -1160,7 +1205,7 @@ begin
   FCurRow := 0;
 end;
 
-Procedure TPascalScanner.HandleIncludeFile(Param : String);
+procedure TPascalScanner.HandleIncludeFile(Param: String);
 
 begin
   PushStackItem;
@@ -1171,12 +1216,12 @@ begin
     end;
   FCurSourceFile := FileResolver.FindIncludeFile(Param);
   if not Assigned(FCurSourceFile) then
-    Error(SErrIncludeFileNotFound, [Param]);
+    Error(nErrIncludeFileNotFound, SErrIncludeFileNotFound, [Param]);
   FCurFilename := Param;
   if FCurSourceFile is TFileLineReader then
     FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages
   If LogEvent(sleFile) then
-    DoLog(SLogOpeningFile,[FCurFileName],True);
+    DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FCurFileName],True);
 end;
 
 function TPascalScanner.HandleMacro(AIndex : integer) : TToken;
@@ -1196,7 +1241,7 @@ begin
 //  Writeln(Result,Curtoken);
 end;
 
-Procedure TPascalScanner.HandleDefine(Param : String);
+procedure TPascalScanner.HandleDefine(Param: String);
 
 Var
   Index : Integer;
@@ -1220,7 +1265,7 @@ begin
     end;
 end;
 
-Procedure TPascalScanner.HandleUnDefine(Param : String);
+procedure TPascalScanner.HandleUnDefine(Param: String);
 
 Var
   Index : integer;
@@ -1257,7 +1302,7 @@ function TPascalScanner.DoFetchToken: TToken;
       Result := true;
       Inc(FCurRow);
       if LogEvent(sleLineNumber) and ((FCurRow Mod 100) = 0) then
-        DoLog(SLogLineNumber,[FCurRow],True);
+        DoLog(mtInfo,nLogLineNumber,SLogLineNumber,[FCurRow],True);
     end;
   end;
 
@@ -1660,7 +1705,7 @@ begin
             if (Directive = 'IFDEF') then
               begin
               if PPSkipStackIndex = High(PPSkipModeStack) then
-                Error(SErrIfXXXNestingLimitReached);
+                Error(nErrIfXXXNestingLimitReached,SErrIfXXXNestingLimitReached);
               PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
               PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
               Inc(PPSkipStackIndex);
@@ -1682,14 +1727,14 @@ begin
                   PPSkipMode := ppSkipElseBranch;
                 If LogEvent(sleConditionals) then
                   if PPSkipMode=ppSkipElseBranch then
-                    DoLog(SLogIFDefAccepted,[Param])
+                    DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[Param])
                   else
-                    DoLog(SLogIFDefRejected,[Param])
+                    DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[Param])
               end;
             end else if Directive = 'IFNDEF' then
             begin
               if PPSkipStackIndex = High(PPSkipModeStack) then
-                Error(SErrIfXXXNestingLimitReached);
+                Error(nErrIfXXXNestingLimitReached,sErrIfXXXNestingLimitReached);
               PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
               PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
               Inc(PPSkipStackIndex);
@@ -1709,14 +1754,14 @@ begin
                   PPSkipMode := ppSkipElseBranch;
                 If LogEvent(sleConditionals) then
                   if PPSkipMode=ppSkipElseBranch then
-                    DoLog(SLogIFNDefAccepted,[Param])
+                    DoLog(mtInfo,nLogIFNDefAccepted,sLogIFNDefAccepted,[Param])
                   else
-                    DoLog(SLogIFNDefRejected,[Param])
+                    DoLog(mtInfo,nLogIFNDefRejected,sLogIFNDefRejected,[Param])
               end;
             end else if Directive = 'IFOPT' then
             begin
               if PPSkipStackIndex = High(PPSkipModeStack) then
-                Error(SErrIfXXXNestingLimitReached);
+                Error(nErrIfXXXNestingLimitReached,sErrIfXXXNestingLimitReached);
               PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
               PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
               Inc(PPSkipStackIndex);
@@ -1732,11 +1777,11 @@ begin
                 PPIsSkipping := true;
               end;
               If LogEvent(sleConditionals) then
-                DoLog(SLogIFOPTIgnored,[Uppercase(Param)])
+                DoLog(mtInfo,nLogIFOPTIgnored,sLogIFOPTIgnored,[Uppercase(Param)])
             end else if Directive = 'IF' then
             begin
               if PPSkipStackIndex = High(PPSkipModeStack) then
-                Error(SErrIfXXXNestingLimitReached);
+                Error(nErrIfXXXNestingLimitReached,sErrIfXXXNestingLimitReached);
               PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
               PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
               Inc(PPSkipStackIndex);
@@ -1751,12 +1796,12 @@ begin
                 PPSkipMode := ppSkipIfBranch;
                 PPIsSkipping := true;
               If LogEvent(sleConditionals) then
-                 DoLog(SLogIFIgnored,[Uppercase(Param)])
+                 DoLog(mtInfo,nLogIFIgnored,sLogIFIgnored,[Uppercase(Param)])
               end;
             end else if Directive = 'ELSE' then
             begin
               if PPSkipStackIndex = 0 then
-                Error(SErrInvalidPPElse);
+                Error(nErrInvalidPPElse,sErrInvalidPPElse);
               if PPSkipMode = ppSkipIfBranch then
                 PPIsSkipping := false
               else if PPSkipMode = ppSkipElseBranch then
@@ -1764,7 +1809,7 @@ begin
             end else if ((Directive = 'ENDIF') or (Directive='IFEND')) then
             begin
               if PPSkipStackIndex = 0 then
-                Error(SErrInvalidPPEndif);
+                Error(nErrInvalidPPEndif,sErrInvalidPPEndif);
               Dec(PPSkipStackIndex);
               PPSkipMode := PPSkipModeStack[PPSkipStackIndex];
               PPIsSkipping := PPIsSkippingStack[PPSkipStackIndex];
@@ -1800,7 +1845,7 @@ begin
     if PPIsSkipping then
       Inc(TokenStr)
     else
-      Error(SErrInvalidCharacter, [TokenStr[0]]);
+      Error(nErrInvalidCharacter, SErrInvalidCharacter, [TokenStr[0]]);
   end;
 
   FCurToken := Result;
@@ -1819,18 +1864,21 @@ begin
     Result:=0;
 end;
 
-procedure TPascalScanner.DoLog(const Msg: String;SkipSourceInfo : Boolean = False);
+procedure TPascalScanner.DoLog(MsgType: TMessageType; MsgNumber: integer;
+  const Msg: String; SkipSourceInfo: Boolean);
 begin
-  If Assigned(FOnLog) then
-    if SkipSourceInfo then
-      FOnLog(Self,Msg)
-    else
-      FOnLog(Self,Format('%s(%d) : %s',[FCurFileName,FCurRow,Msg]));
+  DoLog(MsgType,MsgNumber,Msg,[],SkipSourceInfo);
 end;
 
-procedure TPascalScanner.DoLog(const Fmt: String; Args: array of const;SkipSourceInfo : Boolean = False);
+procedure TPascalScanner.DoLog(MsgType: TMessageType; MsgNumber: integer;
+  const Fmt: String; Args: array of const; SkipSourceInfo: Boolean);
 begin
-  DoLog(Format(Fmt,Args),SkipSourceInfo);
+  SetCurMsg(MsgType,MsgNumber,Fmt,Args);
+  If Assigned(FOnLog) then
+    if SkipSourceInfo then
+      FOnLog(Self,FLastMsg)
+    else
+      FOnLog(Self,Format('%s(%d) : %s',[FCurFileName,FCurRow,FLastMsg]));
 end;
 
 procedure TPascalScanner.SetOptions(AValue: TPOptions);
@@ -1839,14 +1887,52 @@ begin
   FOptions:=AValue;
 end;
 
-Procedure TPascalScanner.AddDefine(S : String);
+procedure TPascalScanner.SetCurMsg(MsgType: TMessageType; MsgNumber: integer;
+  const Fmt: String; Args: array of const);
+var
+  i: Integer;
+begin
+  FLastMsgType := MsgType;
+  FLastMsgNumber := MsgNumber;
+  FLastMsgPattern := Fmt;
+  FLastMsg := Format(Fmt,Args);
+  SetLength(FLastMsgArgs, High(Args)-Low(Args)+1);
+  for i:=Low(Args) to High(Args) do
+  begin
+    case Args[i].VType of
+      vtInteger:      FLastMsgArgs[i] := IntToStr(Args[i].VInteger);
+      vtBoolean:      FLastMsgArgs[i] := BoolToStr(Args[i].VBoolean);
+      vtChar:         FLastMsgArgs[i] := Args[i].VChar;
+      {$ifndef FPUNONE}
+      vtExtended:     ; //  Args[i].VExtended^;
+      {$ENDIF}
+      vtString:       FLastMsgArgs[i] := Args[i].VString^;
+      vtPointer:      ; //  Args[i].VPointer;
+      vtPChar:        FLastMsgArgs[i] := Args[i].VPChar;
+      vtObject:       ; //  Args[i].VObject;
+      vtClass:        ; //  Args[i].VClass;
+      vtWideChar:     FLastMsgArgs[i] := AnsiString(Args[i].VWideChar);
+      vtPWideChar:    FLastMsgArgs[i] := Args[i].VPWideChar;
+      vtAnsiString:   FLastMsgArgs[i] := AnsiString(Args[i].VAnsiString);
+      vtCurrency:     ; //  Args[i].VCurrency^);
+      vtVariant:      ; //  Args[i].VVariant^);
+      vtInterface:    ; //  Args[i].VInterface^);
+      vtWidestring:   FLastMsgArgs[i] := AnsiString(WideString(Args[i].VWideString));
+      vtInt64:        FLastMsgArgs[i] := IntToStr(Args[i].VInt64^);
+      vtQWord:        FLastMsgArgs[i] := IntToStr(Args[i].VQWord^);
+      vtUnicodeString:FLastMsgArgs[i] := AnsiString(UnicodeString(Args[i].VUnicodeString));
+    end;
+  end;
+end;
+
+procedure TPascalScanner.AddDefine(S: String);
 
 begin
   If FDefines.IndexOf(S)=-1 then
     FDefines.Add(S);
 end;
 
-Procedure TPascalScanner.RemoveDefine(S : String);
+procedure TPascalScanner.RemoveDefine(S: String);
 
 Var
   I : Integer;
