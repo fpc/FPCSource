@@ -282,6 +282,19 @@ implementation
     end;
 
 
+  function def_unit_name_prefix_if_toplevel(def: tdef): TSymStr;
+    begin
+      result:='';
+      { if the routine is a global routine in a unit, explicitly use this unit
+        name to avoid accidentally calling other same-named routines that may be
+        in scope }
+      if not assigned(def.owner.defowner) and
+         assigned(def.owner.realname) and
+         (def.owner.moduleid<>0) then
+        result:=def.owner.realname^+'.';
+    end;
+
+
   procedure add_missing_parent_constructors_intf(obj: tobjectdef; addvirtclassmeth: boolean; forcevis: tvisibility);
     var
       parent: tobjectdef;
@@ -519,7 +532,10 @@ implementation
       str:='begin ';
       if pd.returndef<>voidtype then
         str:=str+'result:=';
-      str:=str+callpd.procsym.realname+'(';
+      { if the routine is a global routine in a unit/program, explicitly
+        mnetion this program/unit name to avoid accidentally calling other
+        same-named routines that may be in scope }
+      str:=str+def_unit_name_prefix_if_toplevel(callpd)+callpd.procsym.realname+'(';
       addvisibibleparameters(str,pd);
       str:=str+') end;';
       str_parse_method_impl(str,pd,isclassmethod);
