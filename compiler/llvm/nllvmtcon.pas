@@ -675,6 +675,14 @@ implementation
       if (fromdef.typ=procdef) and
          (todef.typ<>procdef) then
         fromdef:=cprocvardef.getreusableprocaddr(tprocdef(fromdef));
+      { typecasting a pointer-sized entity to a complex procvardef -> convert
+        to the pointer-component of the complex procvardef (not always, because
+        e.g. a tmethod to complex procvar initialises the entire complex
+        procvar) }
+      if (todef.typ=procvardef) and
+         not tprocvardef(todef).is_addressonly and
+         (fromdef.size<todef.size) then
+        todef:=cprocvardef.getreusableprocaddr(tprocvardef(todef));
       op:=llvmconvop(fromdef,todef,false);
       case op of
         la_ptrtoint_to_x,
