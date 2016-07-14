@@ -856,8 +856,13 @@ implementation
         { single location }
         if not assigned(cgpara.location^.next) then
           begin
-            { def of the location, except in case of zero/sign-extension }
-            usedef:=cgpara.location^.def;
+            { def of the location, except in case of zero/sign-extension and
+              zero-sized records }
+            if not is_special_array(cgpara.def) and
+               (cgpara.def.size=0) then
+              usedef:=cgpara.def
+            else
+              usedef:=cgpara.location^.def;
             if beforevalueext then
               llvmextractvalueextinfo(cgpara.def,usedef,valueext);
             { comp and currency are handled by the x87 in this case. They cannot
