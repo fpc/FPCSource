@@ -392,7 +392,11 @@ type
     { procvar is a function reference }
     po_is_function_ref,
     { procvar is a block (http://en.wikipedia.org/wiki/Blocks_(C_language_extension) ) }
-    po_is_block
+    po_is_block,
+    { procedure is an automatically generated property getter }
+    po_is_auto_getter,
+    { procedure is an automatically generated property setter }
+    po_is_auto_setter
   );
   tprocoptions=set of tprocoption;
 

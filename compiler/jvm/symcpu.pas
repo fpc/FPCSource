@@ -241,7 +241,7 @@ implementation
       accessorname: string;
       callthroughprop: tpropertysym;
       accesstyp: tpropaccesslisttypes;
-      sktype: tsynthetickind;
+      accessortyp: tprocoption;
       procoptions: tprocoptions;
       paranr: word;
       explicitwrapper: boolean;
@@ -273,7 +273,11 @@ implementation
           (not getter and
            (prop_auto_setter_prefix<>''));
         sym:=nil;
-        procoptions:=[];
+        if getter then
+          accessortyp:=po_is_auto_getter
+        else
+          accessortyp:=po_is_auto_setter;
+        procoptions:=[accessortyp];
         if explicitwrapper then
           begin
             if getter then
@@ -281,15 +285,11 @@ implementation
             else
               accessorname:=prop_auto_setter_prefix+realname;
             sym:=search_struct_member_no_helper(obj,upper(accessorname));
-            if getter then
-              sktype:=tsk_field_getter
-            else
-              sktype:=tsk_field_setter;
             if assigned(sym) then
               begin
                 if ((sym.typ<>procsym) or
                     (tprocsym(sym).procdeflist.count<>1) or
-                    (tprocdef(tprocsym(sym).procdeflist[0]).synthetickind<>sktype)) and
+                    not(accessortyp in tprocdef(tprocsym(sym).procdeflist[0]).procoptions)) and
                    (not assigned(orgaccesspd) or
                     (sym<>orgaccesspd.procsym)) then
                   begin

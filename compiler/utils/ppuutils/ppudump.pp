@@ -1859,7 +1859,9 @@ const
      (mask:po_far;             str: 'Far'),
      (mask:po_noreturn;        str: 'No return'),
      (mask:po_is_function_ref; str: 'Function reference'),
-     (mask:po_is_block;        str: 'C "Block"')
+     (mask:po_is_block;        str: 'C "Block"'),
+     (mask:po_is_auto_getter;  str: 'Automatically generated getter'),
+     (mask:po_is_auto_setter;  str: 'Automatically generated setter')
   );
 var
   proctypeoption  : tproctypeoption;
