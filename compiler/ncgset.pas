@@ -407,7 +407,7 @@ implementation
                       a_bit_test_reg_loc_reg() properly takes into account the
                       size of the set to adjust the register index to test }
                      hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,
-                       left.resultdef,right.resultdef,uopdef,
+                       uopdef,right.resultdef,uopdef,
                        left.location.register,right.location,location.register);
 
                      { now zero the result if left > nr_of_bits_in_right_register }
