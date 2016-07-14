@@ -71,6 +71,9 @@ interface
         { dst = bitcast size undef to size }
         constructor op_reg_size_undef(op: tllvmop; dst: tregister; size: tdef);
 
+        { return size undef }
+        constructor op_size_undef(op: tllvmop; size: tdef);
+
         { e.g. dst = bitcast fromsize src to tosize }
         constructor op_reg_size_ref_size(op:tllvmop;dst:tregister;fromsize:tdef;const src:treference;tosize:tdef);
         { e.g. store fromsize src, ptrsize toref}
@@ -760,6 +763,14 @@ uses
         loaddef(1,size);
         loadundef(2);
         loaddef(3,size);
+      end;
+
+    constructor taillvm.op_size_undef(op: tllvmop; size: tdef);
+      begin
+        create_llvm(op);
+        ops:=2;
+        loaddef(0,size);
+        loadundef(1);
       end;
 
 

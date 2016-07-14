@@ -1277,6 +1277,12 @@ implementation
                       end;
                    end;
                 list.concat(taillvm.op_size_reg(la_ret,retdef,retreg))
+              end;
+            LOC_VOID:
+              begin
+                { zero-sized records: return an undefined zero-sized record of
+                  the correct type }
+                list.concat(taillvm.op_size_undef(la_ret,retdef));
               end
             else
               { todo: complex returns }
