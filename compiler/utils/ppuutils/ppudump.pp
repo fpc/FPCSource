@@ -530,26 +530,6 @@ begin
 end;
 
 
-Function Synthetic2Str(w: byte): string;
-const
-   syntheticName : array[tsynthetickind] of string[length('jvm procvar intf constructor')] = (
-      '<none>','anon inherited','jvm clone','record deep copy',
-      'record initilializer', 'empty routine', 'typed const initializer',
-      'callthough', 'callthrough if not abstract', 'jvm enum values',
-      'jvm enum valueof', 'jvm enum class constructor',
-      'jvm enum jumps constructor', 'jvm enum fpcordinal',
-      'jvm enum fpcvalueof', 'jvm enum long2set',
-      'jvm enum bitset2set', 'jvm enum set2set',
-      'jvm procvar invoke', 'jvm procvar intf constructor',
-      'jvm virtual class method', 'jvm field getter', 'jvm field setter',
-      'block invoke','interface wrapper','call parameterless routine');
-begin
-  if w<=ord(high(syntheticName)) then
-    result:=syntheticName[tsynthetickind(w)]
-  else
-    result:=Unknown('synthetickind',w);
-end;
-
 function PPUFlags2Str(flags:longint):string;
 type
   tflagopt=record
@@ -3032,7 +3012,6 @@ begin
              readvisibility(def);
              write  ([space,'       SymOptions : ']);
              readsymoptions(space+'       ');
-             writeln  ([space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte)]);
              if (po_has_importdll in procoptions) then
                writeln([space,'      Import DLL : ',getstring]);
              if (po_has_importname in procoptions) then

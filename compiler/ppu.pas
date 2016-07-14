@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 183;
+  CurrentPPUVersion = 184;
 
   ppubufsize   = 16384;
 
