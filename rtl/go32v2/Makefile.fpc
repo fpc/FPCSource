@@ -11,8 +11,8 @@ units=system uuchar objpas macpas iso7185 extpas strings \
       sysutils classes math typinfo \
       cpu mmx getopts heaptrc lineinfo lnfodwrf ctypes fgl \
       msmouse charset cpall \
-      types \
-      sysconst rtlconst 
+      character fpwidestring unicodedata unicodenumtable \
+      types sysconst rtlconst
 rsts=math typinfo classes sysconst
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -227,6 +227,19 @@ matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/ucomplex.pp
 	$(EXECPPAS)
+
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp charset$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
+
+character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/character.pas
+
+unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas
+
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
+
 
 #
 # Other system-dependent RTL Units
