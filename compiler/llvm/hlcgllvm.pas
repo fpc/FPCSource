@@ -436,8 +436,7 @@ implementation
     for i:=0 to high(paras) do
       begin
         paraloc:=paras[i]^.location;
-        while assigned(paraloc) and
-              (paraloc^.loc<>LOC_VOID) do
+        while assigned(paraloc) do
           begin
             new(callpara);
             callpara^.def:=paraloc^.def;
@@ -476,6 +475,10 @@ implementation
                         end;
                         callpara^.reg:=paraloc^.register
                     end;
+                  { empty records }
+                  LOC_VOID:
+                    begin
+                    end
                   else
                     internalerror(2014010605);
                 end;

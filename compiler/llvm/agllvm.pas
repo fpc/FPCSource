@@ -251,6 +251,9 @@ implementation
                result:=result+' '+getregisterstring(para^.reg);
              LOC_CONSTANT:
                result:=result+' '+tostr(int64(para^.value));
+             { empty records }
+             LOC_VOID:
+               result:=result+' undef';
              else
                internalerror(2014010801);
            end;
