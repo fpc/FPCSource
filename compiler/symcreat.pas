@@ -982,20 +982,21 @@ implementation
     var
       callpd: tprocdef;
       str: ansistring;
+      warningson,
       isclassmethod: boolean;
     begin
+      { avoid warnings about unset function results in these abstract wrappers }
+      warningson:=(status.verbosity and V_Warning)<>0;
+      setverbosity('W-');
       str:='begin ';
       callpd:=tprocdef(pd.skpara);
-      str:=str+def_unit_name_prefix_if_toplevel(callpd)+callpd.procsym.realname+'; ';
-      { avoid warnings about unset function results }
-      if (pd.proctypeoption<>potype_constructor) and
-         not is_void(pd.returndef) then
-        str:=str+'result:=system.default('+def_unit_name_prefix_if_toplevel(pd.returndef)+pd.returndef.typename+'); ';
-      str:=str+'end;';
+      str:=str+def_unit_name_prefix_if_toplevel(callpd)+callpd.procsym.realname+'; end;';
       isclassmethod:=
         (po_classmethod in pd.procoptions) and
         not(pd.proctypeoption in [potype_constructor,potype_destructor]);
       str_parse_method_impl(str,pd,isclassmethod);
+      if warningson then
+        setverbosity('W+');
     end;
 
 
