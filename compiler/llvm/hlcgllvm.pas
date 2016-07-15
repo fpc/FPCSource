@@ -810,6 +810,11 @@ implementation
           sdref:=make_simple_ref(list,dref,tosize);
           list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,cpointerdef.getreusable(tosize),sdref));
         end
+      else if (fromsize=tosize) and
+              not(fromsize.typ in [orddef,floatdef,enumdef]) and
+              (sref.refaddr<>addr_full) and
+              (fromsize.size>2*sizeof(aint)) then
+         g_concatcopy(list,fromsize,sref,dref)
       else
         inherited
     end;
