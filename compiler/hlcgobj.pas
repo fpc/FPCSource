@@ -4479,26 +4479,9 @@ implementation
     end;
 
   procedure thlcgobj.gen_proc_symbol_end(list: TAsmList);
-    var
-      initname : tsymstr;
     begin
       list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
-
       current_procinfo.procdef.procendtai:=tai(list.last);
-
-      if (current_module.islibrary) then
-        if (current_procinfo.procdef.proctypeoption = potype_proginit) then
-          begin
-            { ToDo: systems that use indirect entry info, but check back with Windows! }
-            if target_info.system in systems_darwin then
-              { we need to call FPC_LIBMAIN in sysinit which in turn will call PascalMain }
-              initname:=target_info.cprefix+'FPC_LIBMAIN'
-            else
-              initname:=current_procinfo.procdef.mangledname;
-            { setinitname may generate a new section -> don't add to the
-              current list, because we assume this remains a text section }
-            exportlib.setinitname(current_asmdata.AsmLists[al_exports],initname);
-          end;
     end;
 
 

@@ -1808,6 +1808,7 @@ type
          main_procinfo : tcgprocinfo;
          force_init_final : boolean;
          resources_used : boolean;
+         initname,
          program_name : ansistring;
          consume_semicolon_after_uses : boolean;
          ps : tprogramparasym;
@@ -2023,7 +2024,19 @@ type
             if not(target_info.system in (systems_darwin+systems_aix)) then
               main_procinfo.procdef.aliasnames.insert('PASCALMAIN')
             else
-              main_procinfo.procdef.aliasnames.insert(target_info.Cprefix+'PASCALMAIN')
+              main_procinfo.procdef.aliasnames.insert(target_info.Cprefix+'PASCALMAIN');
+
+            { ToDo: systems that use indirect entry info, but check back with Windows! }
+            if target_info.system in systems_darwin then
+              { we need to call FPC_LIBMAIN in sysinit which in turn will call PascalMain }
+              initname:=target_info.cprefix+'FPC_LIBMAIN'
+            else
+              initname:=current_procinfo.procdef.mangledname;
+            { setinitname may generate a new section -> don't add to the
+              current list, because we assume this remains a text section
+              -- add to pure assembler section, so in case of special directives
+                they are directly added to the assembler output by llvm }
+            exportlib.setinitname(current_asmdata.AsmLists[al_pure_assembler],initname);
           end
          else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macos]+systems_darwin+systems_aix)) then
            begin
@@ -2087,8 +2100,10 @@ type
 
           { the finalization routine of libraries is generic (and all libraries need to }
           { be finalized, so they can finalize any units they use                       }
+          { Place in "pure assembler" list so that the llvm assembler writer
+            directly emits the generated directives }
           if (islibrary) then
-            exportlib.setfininame(current_asmdata.asmlists[al_procedures],'FPC_LIB_EXIT');
+            exportlib.setfininame(current_asmdata.asmlists[al_pure_assembler],'FPC_LIB_EXIT');
 
          { all labels must be defined before generating code }
          if Errorcount=0 then

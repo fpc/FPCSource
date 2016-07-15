@@ -96,7 +96,6 @@ uses
       procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister); override;
 
       procedure gen_proc_symbol(list: TAsmList); override;
-      procedure gen_proc_symbol_end(list: TAsmList); override;
       procedure handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr); override;
       procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean); override;
       procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean); override;
@@ -1244,13 +1243,6 @@ implementation
           item:=TCmdStrListItem(item.next);
         end;
       list.concat(taillvmdecl.createdef(asmsym,current_procinfo.procdef,nil,sec_code,current_procinfo.procdef.alignment));
-    end;
-
-
-  procedure thlcgllvm.gen_proc_symbol_end(list: TAsmList);
-    begin
-      list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
-      { todo: darwin main proc, or handle in other way? }
     end;
 
 
