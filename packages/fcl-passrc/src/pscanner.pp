@@ -538,6 +538,8 @@ function FilenameIsWinAbsolute(const TheFilename: string): boolean;
 function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
 function IsNamedToken(Const AToken : String; Out T : TToken) : Boolean;
 
+procedure CreateMsgArgs(var MsgArgs: TMessageArgs; Args: array of const);
+
 implementation
 
 Var
@@ -616,6 +618,39 @@ begin
   Result:=I<>-1;
   If Result then
     T:=SortedTokens[I];
+end;
+
+procedure CreateMsgArgs(var MsgArgs: TMessageArgs; Args: array of const);
+var
+  i: Integer;
+begin
+  SetLength(MsgArgs, High(Args)-Low(Args)+1);
+  for i:=Low(Args) to High(Args) do
+  begin
+    case Args[i].VType of
+      vtInteger:      MsgArgs[i] := IntToStr(Args[i].VInteger);
+      vtBoolean:      MsgArgs[i] := BoolToStr(Args[i].VBoolean);
+      vtChar:         MsgArgs[i] := Args[i].VChar;
+      {$ifndef FPUNONE}
+      vtExtended:     ; //  Args[i].VExtended^;
+      {$ENDIF}
+      vtString:       MsgArgs[i] := Args[i].VString^;
+      vtPointer:      ; //  Args[i].VPointer;
+      vtPChar:        MsgArgs[i] := Args[i].VPChar;
+      vtObject:       ; //  Args[i].VObject;
+      vtClass:        ; //  Args[i].VClass;
+      vtWideChar:     MsgArgs[i] := AnsiString(Args[i].VWideChar);
+      vtPWideChar:    MsgArgs[i] := Args[i].VPWideChar;
+      vtAnsiString:   MsgArgs[i] := AnsiString(Args[i].VAnsiString);
+      vtCurrency:     ; //  Args[i].VCurrency^);
+      vtVariant:      ; //  Args[i].VVariant^);
+      vtInterface:    ; //  Args[i].VInterface^);
+      vtWidestring:   MsgArgs[i] := AnsiString(WideString(Args[i].VWideString));
+      vtInt64:        MsgArgs[i] := IntToStr(Args[i].VInt64^);
+      vtQWord:        MsgArgs[i] := IntToStr(Args[i].VQWord^);
+      vtUnicodeString:MsgArgs[i] := AnsiString(UnicodeString(Args[i].VUnicodeString));
+    end;
+  end;
 end;
 
 type
@@ -1209,6 +1244,7 @@ procedure TPascalScanner.HandleIncludeFile(Param: String);
 
 begin
   PushStackItem;
+  writeln('TPascalScanner.HandleIncludeFile AAA1 Param="',Param,'"');
   if Length(Param)>1 then
     begin
       if (Param[1]=#39) and (Param[length(Param)]=#39) then
@@ -1889,40 +1925,12 @@ end;
 
 procedure TPascalScanner.SetCurMsg(MsgType: TMessageType; MsgNumber: integer;
   const Fmt: String; Args: array of const);
-var
-  i: Integer;
 begin
   FLastMsgType := MsgType;
   FLastMsgNumber := MsgNumber;
   FLastMsgPattern := Fmt;
   FLastMsg := Format(Fmt,Args);
-  SetLength(FLastMsgArgs, High(Args)-Low(Args)+1);
-  for i:=Low(Args) to High(Args) do
-  begin
-    case Args[i].VType of
-      vtInteger:      FLastMsgArgs[i] := IntToStr(Args[i].VInteger);
-      vtBoolean:      FLastMsgArgs[i] := BoolToStr(Args[i].VBoolean);
-      vtChar:         FLastMsgArgs[i] := Args[i].VChar;
-      {$ifndef FPUNONE}
-      vtExtended:     ; //  Args[i].VExtended^;
-      {$ENDIF}
-      vtString:       FLastMsgArgs[i] := Args[i].VString^;
-      vtPointer:      ; //  Args[i].VPointer;
-      vtPChar:        FLastMsgArgs[i] := Args[i].VPChar;
-      vtObject:       ; //  Args[i].VObject;
-      vtClass:        ; //  Args[i].VClass;
-      vtWideChar:     FLastMsgArgs[i] := AnsiString(Args[i].VWideChar);
-      vtPWideChar:    FLastMsgArgs[i] := Args[i].VPWideChar;
-      vtAnsiString:   FLastMsgArgs[i] := AnsiString(Args[i].VAnsiString);
-      vtCurrency:     ; //  Args[i].VCurrency^);
-      vtVariant:      ; //  Args[i].VVariant^);
-      vtInterface:    ; //  Args[i].VInterface^);
-      vtWidestring:   FLastMsgArgs[i] := AnsiString(WideString(Args[i].VWideString));
-      vtInt64:        FLastMsgArgs[i] := IntToStr(Args[i].VInt64^);
-      vtQWord:        FLastMsgArgs[i] := IntToStr(Args[i].VQWord^);
-      vtUnicodeString:FLastMsgArgs[i] := AnsiString(UnicodeString(Args[i].VUnicodeString));
-    end;
-  end;
+  CreateMsgArgs(FLastMsgArgs,Args);
 end;
 
 procedure TPascalScanner.AddDefine(S: String);
