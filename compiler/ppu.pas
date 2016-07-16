@@ -78,6 +78,7 @@ const
   uf_i8086_cs_equals_ds = $10000000; { this unit uses an i8086 memory model with CS=DS (i.e. tiny) }
   uf_package_deny       = $20000000; { this unit must not be part of a package }
   uf_package_weak       = $40000000; { this unit may be completely contained in a package }
+  uf_i8086_ss_equals_ds = $80000000; { this unit uses an i8086 memory model with SS=DS (i.e. tiny, small or medium) }
 
 type
   { bestreal is defined based on the target architecture }
