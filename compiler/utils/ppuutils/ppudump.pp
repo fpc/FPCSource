@@ -537,7 +537,7 @@ type
     str  : string[30];
   end;
 const
-  flagopts=28;
+  flagopts=30;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $1    ;str:'init'),
     (mask: $2    ;str:'final'),
@@ -568,7 +568,9 @@ const
     (mask: $2000000 ;str:'i8086_far_code'),
     (mask: $4000000 ;str:'i8086_far_data'),
     (mask: $8000000 ;str:'i8086_huge_data'),
-    (mask: $10000000;str:'i8086_cs_equals_ds')
+    (mask: $10000000;str:'i8086_cs_equals_ds'),
+    (mask: $20000000;str:'package_deny'),
+    (mask: $40000000;str:'package_weak')
   );
 var
   i,ntflags : longint;
