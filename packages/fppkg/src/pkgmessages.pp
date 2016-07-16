@@ -31,7 +31,7 @@ Resourcestring
   SErrNoFTPDownload          = 'This binary has no support for FTP downloads.';
   SErrNoHTTPDownload         = 'This binary has no support for HTTP downloads.';
   SErrBackupFailed           = 'Backup of file "%s" to file "%s" failed.';
-  SErrUnknownProtocol        = 'Unknown download protocol: "%s"';
+  SErrUnknownProtocol        = 'Unknown download protocol "%s" in url "%s"';
   SErrNoSuchFile             = 'File "%s" does not exist.';
   SErrDownloadFailed         = '%s Download of "%s" failed: %s';
   SErrInvalidLogLevels       = 'Invalid verbosity string: "%s"';
