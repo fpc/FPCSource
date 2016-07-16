@@ -214,10 +214,14 @@ begin
     If Not Assigned(Parent) then
       Parent:=XML;
     Parent.AppendChild(Result);
-    Result[SAttrMajor]:=IntToStr(V.Major);
-    Result[SAttrMinor]:=IntToStr(V.Minor);
+    if V.Major > -1 then
+      Result[SAttrMajor]:=IntToStr(V.Major);
+    if V.Minor > -1 then
+      Result[SAttrMinor]:=IntToStr(V.Minor);
+    if V.Micro > -1 then
     Result[SAttrMicro]:=IntToStr(V.Micro);
-    Result[SAttrBuild]:=IntToStr(V.Build);
+    if V.Build > -1 then
+      Result[SAttrBuild]:=IntToStr(V.Build);
   except
     Parent.RemoveChild(Result);
     Result.Free;
@@ -532,11 +536,22 @@ end;
 
 
 procedure TFPXMLRepositoryHandler.DoXMLToVersion(E: TDomElement; V: TFPVersion);
+
+  function ReadPart(AttrName: string): Integer;
+  var
+    i: Longint;
+  begin
+    if TryStrToInt(E[AttrName], i) then
+      Result := Abs(i)
+    else
+      Result := -1;
+  end;
+
 begin
-  V.Major:=Abs(StrToIntDef(E[SAttrMajor],0));
-  V.Minor:=Abs(StrToIntDef(E[SAttrMinor],0));
-  V.Micro:=Abs(StrToIntDef(E[SAttrMicro],0));
-  V.Build:=Abs(StrToIntDef(E[SAttrBuild],0));
+  V.Major := ReadPart(SAttrMajor);
+  V.Minor := ReadPart(SAttrMinor);
+  V.Micro := ReadPart(SAttrMicro);
+  V.Build := ReadPart(SAttrBuild);
 end;
 
 
