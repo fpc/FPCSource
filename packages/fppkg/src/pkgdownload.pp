@@ -153,7 +153,7 @@ begin
   else if CompareText(P,'file')=0 then
     FileDownload(URL,Dest)
   else
-    Error(SErrUnknownProtocol,[P]);
+    Error(SErrUnknownProtocol,[P, URL]);
 end;
 
 
@@ -170,6 +170,11 @@ begin
     try
       Log(llCommands,SLogDownloading,[PackageRemoteArchive(P),PackageLocalArchive(P)]);
       pkgglobals.log(llProgres,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
+
+      // Force the existing of the archives-directory if it is being used
+      if (P.Name<>CurrentDirPackageName) and (P.Name<>CmdLinePackageName) then
+        ForceDirectories(GlobalOptions.ArchivesDir);
+
       Download(PackageRemoteArchive(P),PackageLocalArchive(P));
     finally
       Free;
