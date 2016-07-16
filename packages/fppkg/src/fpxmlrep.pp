@@ -199,7 +199,9 @@ begin
   While (N<>Nil) and (N.NodeType<>TEXT_NODE) do
     N:=N.NextSibling;
   If (N<>Nil) then
-    Result:=N.NodeValue;
+    Result:=N.NodeValue
+  else
+    Result:='';
 end;
 
 
