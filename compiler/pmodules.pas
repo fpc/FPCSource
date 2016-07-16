@@ -2031,7 +2031,7 @@ type
               { we need to call FPC_LIBMAIN in sysinit which in turn will call PascalMain }
               initname:=target_info.cprefix+'FPC_LIBMAIN'
             else
-              initname:=current_procinfo.procdef.mangledname;
+              initname:=main_procinfo.procdef.mangledname;
             { setinitname may generate a new section -> don't add to the
               current list, because we assume this remains a text section
               -- add to pure assembler section, so in case of special directives
