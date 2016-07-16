@@ -28,6 +28,7 @@ procedure ListPackages(const ShowGlobalAndLocal: boolean);
 procedure ListRemoteRepository;
 procedure RebuildRemoteRepository;
 procedure SaveRemoteRepository;
+procedure ClearRemoteRepository;
 
 procedure SetDefaultRepositoryClass(ARepositoryClass: TFPRepositoryClass);
 
@@ -701,6 +702,11 @@ begin
     finally
       Free;
     end;
+end;
+
+procedure ClearRemoteRepository;
+begin
+  CurrentRemoteRepositoryURL := '';
 end;
 
 initialization
