@@ -1111,7 +1111,8 @@ begin
           begin
             P.Terminate(255);
             if TerminateSentCount=0 then
-              Writeln(stderr,'Terminate requested for ',Path);
+              { also write ComLine in order to know which test is not ended in time }
+              Writeln(stderr,'Terminate requested for ',Path,' ',ComLine);
             Inc(TerminateSentCount);
           end;
 
