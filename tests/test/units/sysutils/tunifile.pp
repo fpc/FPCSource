@@ -36,7 +36,7 @@ begin
   if r=u then
     begin
       f:=FileCreate(u,fmShareDenyNone,(6 shl 6) or (4 shl 3) or 4);
-      if f=-1 then
+      if f=THandle(-1) then
         Error('Creating utf8string');
       FileClose(f);
 	  DeleteFile(u);
@@ -50,7 +50,7 @@ begin
   if r=c then
     begin
       f:=FileCreate(c,fmShareDenyNone,(6 shl 6) or (4 shl 3) or 4);
-      if f=-1 then
+      if f=THandle(-1) then
         Error('Creating tcpstr866');
       FileClose(f);
 	  DeleteFile(c);
@@ -71,7 +71,7 @@ begin
   if r=u then
     begin
       f:=FileCreate(u,fmShareDenyNone,(6 shl 6) or (4 shl 3) or 4);
-      if f=-1 then
+      if f=THandle(-1) then
         Error('Creating unicodestring 1');
       FileClose(f);
 	  DeleteFile(u);
@@ -83,7 +83,7 @@ begin
   if r=u then
     begin
       f:=FileCreate(u,fmShareDenyNone,(6 shl 6) or (4 shl 3) or 4);
-      if f=-1 then
+      if f=THandle(-1) then
         Error('Creating unicodestring 2');
       FileClose(f);
 	  DeleteFile(u);
