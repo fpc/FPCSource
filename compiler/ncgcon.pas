@@ -32,10 +32,6 @@ interface
        node,ncon;
 
     type
-       tcgdataconstnode = class(tdataconstnode)
-          procedure pass_generate_code;override;
-       end;
-
        tcgrealconstnode = class(trealconstnode)
           procedure pass_generate_code;override;
        end;
@@ -83,30 +79,6 @@ implementation
       ncgutil,hlcgobj,cclasses,tgobj
       ;
 
-
-{*****************************************************************************
-                           TCGDATACONSTNODE
-*****************************************************************************}
-
-    procedure tcgdataconstnode.pass_generate_code;
-      var
-        l : tasmlabel;
-        i : longint;
-        b : byte;
-      begin
-        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(maxalign));
-        current_asmdata.getglobaldatalabel(l);
-        maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l.name,const_align(maxalign));
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
-        data.seek(0);
-        for i:=0 to data.size-1 do
-          begin
-            data.read(b,1);
-            current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(b));
-          end;
-        location.reference.symbol:=l;
-      end;
 
 {*****************************************************************************
                            TCGREALCONSTNODE
@@ -576,7 +548,6 @@ implementation
 
 
 begin
-   cdataconstnode:=tcgdataconstnode;
    crealconstnode:=tcgrealconstnode;
    cordconstnode:=tcgordconstnode;
    cpointerconstnode:=tcgpointerconstnode;
