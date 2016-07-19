@@ -571,7 +571,7 @@ const
     (mask: $10000000;str:'i8086_cs_equals_ds'),
     (mask: $20000000;str:'package_deny'),
     (mask: $40000000;str:'package_weak'),
-    (mask: $80000000;str:'i8086_ss_equals_ds')
+    (mask: longint($80000000);str:'i8086_ss_equals_ds')
   );
 var
   i,ntflags : longint;
