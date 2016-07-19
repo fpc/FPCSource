@@ -708,7 +708,8 @@ type
     itb_objc_fr_protocol,
     itb_objc_fr_category,
     itb_objc_fr_meta_class,
-    itb_objc_fr_class
+    itb_objc_fr_class,
+    itp_vardisp_calldesc
   );
 
   { The order is from low priority to high priority,
@@ -844,7 +845,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$objc_fr_protocol$',
        '$objc_fr_category$',
        '$objc_fr_meta_class$',
-       '$objc_fr_class$'
+       '$objc_fr_class$',
+       '$itp_vardisp_calldesc$'
      );
 
 

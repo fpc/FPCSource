@@ -300,12 +300,13 @@ implementation
 
     uses
       systems,
-      verbose,globals,
+      verbose,globals,fmodule,
+      aasmbase,aasmdata,
       symconst,defutil,defcmp,
       htypechk,pass_1,
       ncnv,nflw,nld,ninl,nadd,ncon,nmem,nset,nobjc,
       pgenutil,
-      ngenutil,objcutil,
+      ngenutil,objcutil,aasmcnst,
       procinfo,cpuinfo,
       wpobase;
 
@@ -354,7 +355,6 @@ implementation
         result_data,
         params : ttempcreatenode;
         paramssize : cardinal;
-        calldescnode : tdataconstnode;
         resultvalue : tnode;
         para : tcallparanode;
         namedparacount,
@@ -368,7 +368,8 @@ implementation
         selfpara: tnode;
         vardispatchparadef: trecorddef;
         vardispatchfield: tsym;
-
+        tcb: ttai_typedconstbuilder;
+        calldescsym: tstaticvarsym;
         names : ansistring;
         variantdispatch : boolean;
 
@@ -473,28 +474,29 @@ implementation
         params:=ctempcreatenode.create(vardispatchparadef,0,tt_persistent,false);
         addstatement(statements,params);
 
-        calldescnode:=cdataconstnode.create;
+        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+        tcb.begin_anonymous_record('',1,sizeof(pint),1,1);
 
         if not variantdispatch then  { generate a tdispdesc record }
         begin
           { dispid  }
-          calldescnode.append(dispid,sizeof(dispid));
+          tcb.emit_ord_const(dispid,s32inttype);
           { restype }
           if useresult then
             restype:=getvardef(resultdef)
           else
             restype:=0;
-          calldescnode.appendbyte(restype);
+          tcb.emit_ord_const(restype,u8inttype);
         end;
 
-        calldescnode.appendbyte(calltypes[calltype]);
-        calldescnode.appendbyte(paracount);
-        calldescnode.appendbyte(namedparacount);
+        tcb.emit_ord_const(calltypes[calltype],u8inttype);
+        tcb.emit_ord_const(paracount,u8inttype);
+        tcb.emit_ord_const(namedparacount,u8inttype);
 
         { build up parameters and description }
         para:=tcallparanode(parametersnode);
         paramssize:=0;
-        names := '';
+        names := #0;
         while assigned(para) do
           begin
             { Skipped parameters are actually (varType=varError, vError=DISP_E_PARAMNOTFOUND).
@@ -502,7 +504,7 @@ implementation
             if para.left.nodetype=nothingn then
             begin
               if variantdispatch then
-                calldescnode.appendbyte(varError);
+                tcb.emit_ord_const(varError,u8inttype);
               para:=tcallparanode(para.nextpara);
               continue;
             end;
@@ -534,7 +536,7 @@ implementation
                 ctypeconvnode.create_internal(para.left,assignmenttype)));
 
             inc(paramssize,max(voidpointertype.size,assignmenttype.size));
-            calldescnode.appendbyte(restype);
+            tcb.emit_ord_const(restype,u8inttype);
 
             para.left:=nil;
             para:=tcallparanode(para.nextpara);
@@ -558,10 +560,32 @@ implementation
 
         if variantdispatch then
           begin
-            calldescnode.append(pointer(methodname)^,length(methodname));
-            calldescnode.appendbyte(0);
-            calldescnode.append(pointer(names)^,length(names));
+            tcb.emit_pchar_const(pchar(methodname),length(methodname),true);
+            { length-1 because we added a null terminator to the string itself
+              already }
+            tcb.emit_pchar_const(pchar(names),length(names)-1,true);
+          end;
 
+        { may be referred from other units in case of inlining -> global
+          -> must have unique name in entire progream }
+        calldescsym:=cstaticvarsym.create(
+          internaltypeprefixName[itp_vardisp_calldesc]+current_module.modulename^+'$'+tostr(current_module.localsymtable.SymList.count),
+          vs_const,tcb.end_anonymous_record,[vo_is_public,vo_is_typed_const],
+          false);
+        calldescsym.varstate:=vs_initialised;
+        current_module.localsymtable.insert(calldescsym);
+        current_asmdata.AsmLists[al_typedconsts].concatList(
+          tcb.get_final_asmlist(
+            current_asmdata.DefineAsmSymbol(calldescsym.mangledname,AB_GLOBAL,AT_DATA),
+            calldescsym.vardef,sec_rodata_norel,
+            lower(calldescsym.mangledname),sizeof(pint)
+          )
+        );
+        tcb.free;
+        // todo: indirect?
+
+        if variantdispatch then
+          begin
             { actual call }
             vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
 
@@ -580,7 +604,7 @@ implementation
             addstatement(statements,ccallnode.createintern('fpc_dispinvoke_variant',
               { parameters are passed always reverted, i.e. the last comes first }
               ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
-              ccallparanode.create(caddrnode.create(calldescnode),
+              ccallparanode.create(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable)),
               ccallparanode.create(ctypeconvnode.create_internal(selfpara,vardatadef),
               ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef),nil)))))
             );
@@ -592,7 +616,7 @@ implementation
             addstatement(statements,ccallnode.createintern('fpc_dispatch_by_id',
               { parameters are passed always reverted, i.e. the last comes first }
               ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
-              ccallparanode.create(caddrnode.create(calldescnode),
+              ccallparanode.create(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable)),
               ccallparanode.create(ctypeconvnode.create_internal(selfnode,voidpointertype),
               ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef),nil)))))
             );
