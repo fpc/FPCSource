@@ -332,7 +332,7 @@ type
      { emit a shortstring constant, and return its def }
      function emit_shortstring_const(const str: shortstring): tdef;
      { emit a pchar string constant (the characters, not a pointer to them), and return its def }
-     function emit_pchar_const(str: pchar; len: pint): tdef;
+     function emit_pchar_const(str: pchar; len: pint; copypchar: boolean): tdef;
      { emit a guid constant }
      procedure emit_guid_const(const guid: tguid);
      { emit a procdef constant }
@@ -1526,14 +1526,26 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.emit_pchar_const(str: pchar; len: pint): tdef;
+   function ttai_typedconstbuilder.emit_pchar_const(str: pchar; len: pint; copypchar: boolean): tdef;
+     var
+       newstr: pchar;
      begin
        result:=carraydef.getreusable(cansichartype,len+1);
        maybe_begin_aggregate(result);
-       if len=0 then
+       if (len=0) and
+          (not assigned(str) or
+           copypchar) then
          emit_tai(Tai_const.Create_8bit(0),cansichartype)
        else
-         emit_tai(Tai_string.Create_pchar(str,len+1),result);
+         begin
+           if copypchar then
+             begin
+               getmem(newstr,len+1);
+               move(str^,newstr^,len+1);
+               str:=newstr;
+             end;
+           emit_tai(Tai_string.Create_pchar(str,len+1),result);
+         end;
        maybe_end_aggregate(result);
      end;
 

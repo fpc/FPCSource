@@ -166,7 +166,7 @@ procedure objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tcons
 
         { add the string to the approriate section }
         tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
-        def:=tcb.emit_pchar_const(pc,entry^.keylength);
+        def:=tcb.emit_pchar_const(pc,entry^.keylength,false);
         current_asmdata.asmlists[al_objc_pools].concatList(
           tcb.get_final_asmlist(strlab,def,stringsec,strlab.name,1)
         );
