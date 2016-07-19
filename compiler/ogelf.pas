@@ -1011,7 +1011,8 @@ implementation
             case objsym.typ of
               AT_FUNCTION :
                 elfsym.st_info:=elfsym.st_info or STT_FUNC;
-              AT_DATA :
+              AT_DATA,
+              AT_METADATA:
                 elfsym.st_info:=elfsym.st_info or STT_OBJECT;
               AT_TLS:
                 elfsym.st_info:=elfsym.st_info or STT_TLS;

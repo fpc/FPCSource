@@ -558,7 +558,7 @@ uses
               end
             else if Assigned(ro.symbol.objsection) and
                     (ro.symbol.bind=AB_LOCAL) and
-                    (ro.symbol.typ=AT_DATA) then
+                    (ro.symbol.typ in [AT_DATA,AT_METADATA]) then
               begin
                 relextern:=false;
                 symnum:=TMachoObjSection(ro.symbol.objsection).inSegIdx;

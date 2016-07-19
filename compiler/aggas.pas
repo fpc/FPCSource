@@ -563,7 +563,7 @@ implementation
                 assigned(hp.next) and
                  (tai(hp.next).typ in [ait_const,ait_datablock,ait_realconst])
               ) or
-              (hp.sym.typ=AT_DATA);
+              (hp.sym.typ in [AT_DATA,AT_METADATA]);
 
         end;
 

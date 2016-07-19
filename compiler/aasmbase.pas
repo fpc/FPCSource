@@ -54,6 +54,8 @@ interface
            so it must be taken care of it when creating pic
          }
          AT_ADDR,
+         { Label for debug or other non-program information }
+         AT_METADATA,
          { Thread-local symbol (ELF targets) }
          AT_TLS,
          { GNU indirect function (ELF targets) }
