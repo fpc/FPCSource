@@ -44,7 +44,7 @@ unit cpunode;
        ngppcinl,
 //       nppcopt,
        nppcmat,
-       nppccnvn,
+       nppccnv,
 //       nppcld
        { symtable }
        symcpu
