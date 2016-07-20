@@ -238,8 +238,6 @@ uses
     { inserts pc relative symbols at places where they are reachable
       and transforms special instructions to valid instruction encodings }
     procedure finalizearmcode(list,listtoinsert : TAsmList);
-    { inserts .pdata section and dummy function prolog needed for arm-wince exception handling }
-    procedure InsertPData;
 
     procedure InitAsm;
     procedure DoneAsm;
@@ -1193,24 +1191,6 @@ implementation
     procedure finalizearmcode(list, listtoinsert: TAsmList);
       begin
         insertpcrelativedata(list, listtoinsert);
-      end;
-
-    procedure InsertPData;
-      var
-        prolog: TAsmList;
-      begin
-        prolog:=TAsmList.create;
-        new_section(prolog,sec_code,'FPC_EH_PROLOG',sizeof(pint),secorder_begin);
-        prolog.concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
-        prolog.concat(Tai_const.Create_32bit(0));
-        prolog.concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_DATA,0));
-        { dummy function }
-        prolog.concat(taicpu.op_reg(A_BR,NR_X29));
-        current_asmdata.asmlists[al_start].insertList(prolog);
-        prolog.Free;
-        new_section(current_asmdata.asmlists[al_end],sec_pdata,'',sizeof(pint));
-        current_asmdata.asmlists[al_end].concat(Tai_const.Createname('FPC_EH_CODE_START', 0));
-        current_asmdata.asmlists[al_end].concat(Tai_const.Create_32bit(longint($ffffff01)));
       end;
 
 (*
