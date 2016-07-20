@@ -1858,7 +1858,7 @@ begin
   symname := '_$' + current_asmdata.name^ + '$toc$' + hexstr(a, sizeof(a)*2);
   l:=current_asmdata.getasmsymbol(symname);
   if not(assigned(l)) then begin
-    l:=current_asmdata.DefineAsmSymbol(symname,AB_GLOBAL, AT_DATA);
+    l:=current_asmdata.DefineAsmSymbol(symname,AB_GLOBAL, AT_METADATA, voidpointertype);
     new_section(current_asmdata.asmlists[al_picdata],sec_toc, '.toc', 8);
     current_asmdata.asmlists[al_picdata].concat(tai_symbol.create_global(l,0));
     current_asmdata.asmlists[al_picdata].concat(tai_directive.create(asd_toc_entry, symname + '[TC], ' + inttostr(a)));

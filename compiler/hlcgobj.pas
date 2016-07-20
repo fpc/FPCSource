@@ -3788,12 +3788,12 @@ implementation
       new_section(list,sec_code,wrappername,target_info.alignment.procalign);
       if global then
         begin
-          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_GLOBAL,AT_FUNCTION);
+          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_GLOBAL,AT_FUNCTION,procdef);
           list.concat(Tai_symbol.Create_global(sym,0));
         end
       else
         begin
-          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_LOCAL,AT_FUNCTION);
+          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_LOCAL,AT_FUNCTION,procdef);
           list.concat(Tai_symbol.Create(sym,0));
         end;
       a_jmp_external_name(list,externalname);
@@ -4464,9 +4464,9 @@ implementation
                for msdos  target with -CX option for instance }
              (create_smartlink_library and not is_nested_pd(current_procinfo.procdef)) or
              (po_global in current_procinfo.procdef.procoptions) then
-            list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0))
+            list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,current_procinfo.procdef))
           else
-            list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0));
+            list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0,current_procinfo.procdef));
           if assigned(previtem) and
              (target_info.system in systems_darwin) then
             list.concat(tai_directive.create(asd_reference,previtem.str));

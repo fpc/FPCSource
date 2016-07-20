@@ -993,7 +993,7 @@ implementation
          end
        else if tcalo_vectorized_dead_strip_item in options then
          begin
-           sym:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,itemname),AB_GLOBAL,AT_DATA);
+           sym:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,itemname),AB_GLOBAL,AT_DATA,def);
            if not customsecname then
              secname:=make_mangledname(basename,st,'2_'+itemname);
            exclude(options,tcalo_vectorized_dead_strip_item);
@@ -1382,7 +1382,7 @@ implementation
        else
          name:=make_mangledname(basename,st,'END');
        if define then
-         result:=current_asmdata.DefineAsmSymbol(name,AB_GLOBAL,AT_DATA)
+         result:=current_asmdata.DefineAsmSymbol(name,AB_GLOBAL,AT_DATA,voidpointertype)
        else
          result:=current_asmdata.RefAsmSymbol(name,AT_DATA)
      end;

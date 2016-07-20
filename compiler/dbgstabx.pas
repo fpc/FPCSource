@@ -254,7 +254,7 @@ implementation
       result:=inherited gen_procdef_endsym_stabs(def);
       if not assigned(def.procstarttai) then
         exit;
-      procendsymbol:=current_asmdata.DefineAsmSymbol('LT..'+ReplaceForbiddenAsmSymbolChars(def.mangledname),AB_LOCAL,AT_ADDR);
+      procendsymbol:=current_asmdata.DefineAsmSymbol('LT..'+ReplaceForbiddenAsmSymbolChars(def.mangledname),AB_LOCAL,AT_ADDR,voidpointertype);
       current_asmdata.asmlists[al_procedures].insertbefore(tai_symbol.create(procendsymbol,0),def.procendtai);
     end;
 

@@ -197,7 +197,7 @@ unit llvmpara;
       paralocnr:=0;
       repeat
         paraloc^.llvmloc.loc:=LOC_REFERENCE;
-        paraloc^.llvmloc.sym:=current_asmdata.DefineAsmSymbol(llvmparaname(hp,paralocnr),AB_TEMP,AT_DATA);
+        paraloc^.llvmloc.sym:=current_asmdata.DefineAsmSymbol(llvmparaname(hp,paralocnr),AB_TEMP,AT_DATA,paraloc^.def);
         { byval: a pointer to a type that should actually be passed by
             value (e.g. a record that should be passed on the stack) }
         paraloc^.llvmvalueloc:=

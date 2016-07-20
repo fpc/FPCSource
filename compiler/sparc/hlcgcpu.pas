@@ -74,9 +74,9 @@ implementation
         make_global:=true;
 
       if make_global then
-        List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+        List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
       else
-        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0,procdef));
 
       { set param1 interface to self  }
       procdef.init_paraloc_info(callerside);

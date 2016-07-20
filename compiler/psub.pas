@@ -2225,9 +2225,9 @@ implementation
            begin
              if (po_global in pd.procoptions) or
                 (cs_profile in current_settings.moduleswitches) then
-               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
+               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION,pd)
              else
-               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
+               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION,pd);
            end;
 
          current_structdef:=old_current_structdef;

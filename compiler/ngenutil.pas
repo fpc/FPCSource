@@ -730,19 +730,18 @@ implementation
              (cs_debuginfo in current_settings.moduleswitches) and
              not assigned(current_asmdata.GetAsmSymbol(sym.name)) then
             begin
-              list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA),0));
+              list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA,sym.vardef),0));
               list.concat(tai_directive.Create(asd_reference,sym.name));
             end;
-          list.concat(Tai_datablock.create_global(sym.mangledname,size));
+          list.concat(Tai_datablock.create_global(sym.mangledname,size,sym.vardef));
         end
       else
-        list.concat(Tai_datablock.create(sym.mangledname,size));
-
+        list.concat(Tai_datablock.create(sym.mangledname,size,sym.vardef));
       if (tf_supports_packages in target_info.flags) then
         begin
           { add the indirect symbol if needed }
           new_section(list,sec_rodata,lower(sym.mangledname),const_align(sym.vardef.alignment));
-          symind:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_INDIRECT,AT_DATA);
+          symind:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_INDIRECT,AT_DATA,cpointerdef.getreusable(sym.vardef));
           list.concat(Tai_symbol.Create_Global(symind,0));
           list.concat(Tai_const.Createname(sym.mangledname,AT_DATA,0));
           list.concat(tai_symbol_end.Create(symind));
@@ -855,6 +854,7 @@ implementation
       count : aint;
       tablecountplaceholder: ttypedconstplaceholder;
       nameinit,namefini : TSymStr;
+      tabledef: tdef;
 
       procedure write_struct_inits(u: tmodule);
         var
@@ -1002,10 +1002,11 @@ implementation
       tablecountplaceholder.free;
       { Add to data segment }
 
+      tabledef:=unitinits.end_anonymous_record;
       current_asmdata.asmlists[al_globals].concatlist(
         unitinits.get_final_asmlist(
-          current_asmdata.DefineAsmSymbol('INITFINAL',AB_GLOBAL,AT_DATA),
-          unitinits.end_anonymous_record,
+          current_asmdata.DefineAsmSymbol('INITFINAL',AB_GLOBAL,AT_DATA,tabledef),
+          tabledef,
           sec_data,'INITFINAL',sizeof(pint)
         )
       );
@@ -1021,6 +1022,7 @@ implementation
       count: longint;
       sym: tasmsymbol;
       placeholder: ttypedconstplaceholder;
+      tabledef: tdef;
     begin
       if (tf_section_threadvars in target_info.flags) then
         exit;
@@ -1058,10 +1060,11 @@ implementation
       placeholder.replace(tai_const.Create_32bit(count),u32inttype);
       placeholder.free;
       { insert in data segment }
-      sym:=current_asmdata.DefineAsmSymbol('FPC_THREADVARTABLES',AB_GLOBAL,AT_DATA);
+      tabledef:=tcb.end_anonymous_record;
+      sym:=current_asmdata.DefineAsmSymbol('FPC_THREADVARTABLES',AB_GLOBAL,AT_DATA,tabledef);
       current_asmdata.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(
-          sym,tcb.end_anonymous_record,sec_data,'FPC_THREADVARTABLES',sizeof(pint)
+          sym,tabledef,sec_data,'FPC_THREADVARTABLES',sizeof(pint)
         )
       );
       tcb.free;
@@ -1115,7 +1118,7 @@ implementation
        if add then
          begin
            s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
-           sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA);
+           sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,tabledef);
            current_asmdata.asmlists[al_globals].concatlist(
              tcb.get_final_asmlist(sym,tabledef,sec_data,s,sizeof(pint)));
            current_module.flags:=current_module.flags or uf_threadvars;
@@ -1127,10 +1130,10 @@ implementation
          begin
            { write indirect symbol }
            tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
-           sym:=current_asmdata.DefineAsmSymbol(s,AB_INDIRECT,AT_DATA);
-           tcb.emit_tai(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(s,AT_DATA,false)),voidpointertype);
+           tcb.emit_tai(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(s,AT_DATA,false)),cpointerdef.getreusable(tabledef));
+           sym:=current_asmdata.DefineAsmSymbol(s,AB_INDIRECT,AT_DATA,voidpointertype);
            current_asmdata.AsmLists[al_globals].concatList(
-             tcb.get_final_asmlist(sym,voidpointertype,sec_rodata,sym.name,const_align(sizeof(pint))));
+             tcb.get_final_asmlist(sym,cpointerdef.getreusable(tabledef),sec_rodata,sym.name,const_align(sizeof(pint))));
            tcb.free;
          end;
     end;
@@ -1141,6 +1144,7 @@ implementation
       hp: tused_unit;
       tcb: ttai_typedconstbuilder;
       countplaceholder: ttypedconstplaceholder;
+      tabledef: tdef;
       count: longint;
     begin
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
@@ -1175,10 +1179,11 @@ implementation
       countplaceholder.replace(Tai_const.Create_pint(count),ptruinttype);
       countplaceholder.free;
       { insert in data segment }
+      tabledef:=tcb.end_anonymous_record;
       current_asmdata.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(
-          current_asmdata.DefineAsmSymbol(tablename,AB_GLOBAL,AT_DATA),
-          tcb.end_anonymous_record,
+          current_asmdata.DefineAsmSymbol(tablename,AB_GLOBAL,AT_DATA,tabledef),
+          tabledef,
           sec_data,tablename,sizeof(pint)
         )
       );
@@ -1197,7 +1202,9 @@ implementation
       s:=make_mangledname(prefix,current_module.localsymtable,'');
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(pint));
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
+      { TODO: def of the symbol to be fixed when this is converted to to the
+          typed constant builder }
+      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0,voidpointertype));
       repeat
         { optimize away unused local/static symbols }
         if (item.sym.refs>0) or (item.sym.owner.symtabletype=globalsymtable) then
@@ -1246,6 +1253,7 @@ implementation
       count : longint;
       tcb : ttai_typedconstbuilder;
       countplaceholder : ttypedconstplaceholder;
+      tabledef: tdef;
     begin
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
       count:=0;
@@ -1274,10 +1282,11 @@ implementation
       countplaceholder.replace(Tai_const.Create_pint(count),ptruinttype);
       countplaceholder.free;
       { Add to data segment }
+      tabledef:=tcb.end_anonymous_record;
       current_asmdata.AsmLists[al_globals].concatList(
         tcb.get_final_asmlist(
-          current_asmdata.DefineAsmSymbol('FPC_RESOURCESTRINGTABLES',AB_GLOBAL,AT_DATA),
-          tcb.end_anonymous_record,sec_rodata,'FPC_RESOURCESTRINGTABLES',sizeof(pint)
+          current_asmdata.DefineAsmSymbol('FPC_RESOURCESTRINGTABLES',AB_GLOBAL,AT_DATA,tabledef),
+          tabledef,sec_rodata,'FPC_RESOURCESTRINGTABLES',sizeof(pint)
         )
       );
       tcb.free;
@@ -1302,7 +1311,7 @@ implementation
             tcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype);
           current_asmdata.asmlists[al_globals].concatList(
             tcb.get_final_asmlist(
-              current_asmdata.DefineAsmSymbol('FPC_RESLOCATION',AB_GLOBAL,AT_DATA),
+              current_asmdata.DefineAsmSymbol('FPC_RESLOCATION',AB_GLOBAL,AT_DATA,voidpointertype),
               voidpointertype,
               sec_rodata,
               'FPC_RESLOCATION',
@@ -1330,7 +1339,7 @@ implementation
       tcb.maybe_begin_aggregate(def);
       tcb.emit_tai(Tai_string.Create(s),def);
       tcb.maybe_end_aggregate(def);
-      sym:=current_asmdata.DefineAsmSymbol('__fpc_ident',AB_LOCAL,AT_DATA);
+      sym:=current_asmdata.DefineAsmSymbol('__fpc_ident',AB_LOCAL,AT_DATA,def);
       current_asmdata.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(sym,def,sec_fpc,'version',const_align(32))
       );
@@ -1342,7 +1351,7 @@ implementation
           { stacksize can be specified and is now simulated }
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
           tcb.emit_tai(Tai_const.Create_pint(stacksize),ptruinttype);
-          sym:=current_asmdata.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA);
+          sym:=current_asmdata.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA,ptruinttype);
           current_asmdata.asmlists[al_globals].concatlist(
             tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__stklen',sizeof(pint))
           );
@@ -1362,7 +1371,7 @@ implementation
          tcb.maybe_begin_aggregate(def);
          tcb.emit_tai(Tai_string.Create(s),def);
          tcb.maybe_end_aggregate(def);
-         sym:=current_asmdata.DefineAsmSymbol('__stack_cookie',AB_GLOBAL,AT_DATA);
+         sym:=current_asmdata.DefineAsmSymbol('__stack_cookie',AB_GLOBAL,AT_DATA,def);
          current_asmdata.asmlists[al_globals].concatlist(
            tcb.get_final_asmlist(sym,def,sec_data,'__stack_cookie',sizeof(pint))
          );
@@ -1372,7 +1381,7 @@ implementation
       { Initial heapsize }
       tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
       tcb.emit_tai(Tai_const.Create_pint(heapsize),ptruinttype);
-      sym:=current_asmdata.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA);
+      sym:=current_asmdata.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA,ptruinttype);
       current_asmdata.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__heapsize',sizeof(pint))
       );
@@ -1386,13 +1395,13 @@ implementation
             is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
           new_section(current_asmdata.asmlists[al_globals],sec_bss,'__fpc_initialheap',current_settings.alignment.varalignmax);
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize,carraydef.getreusable(u8inttype,heapsize)));
         end;
 
       { Valgrind usage }
       tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
       tcb.emit_ord_const(byte(cs_gdb_valgrind in current_settings.globalswitches),u8inttype);
-      sym:=current_asmdata.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA);
+      sym:=current_asmdata.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA,u8inttype);
       current_asmdata.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__fpc_valgrind',sizeof(pint))
       );

@@ -54,7 +54,7 @@ uses
   { aasm }
   cpubase, aasmbase, aasmtai,aasmdata, aasmcpu,
   { symtable }
-  symconst, symsym,
+  symconst, symsym, symdef,
   { parser }
   procinfo,
   rabase, rautils,
@@ -361,7 +361,7 @@ var
             if (oper.opr.val<>0) then
               Message(asmr_e_wrong_sym_type);
             oper.opr.typ:=OPR_SYMBOL;
-            oper.opr.symbol:=current_asmdata.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION);
+            oper.opr.symbol:=current_asmdata.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION,voidcodepointertype);
           end
         else
           inc(oper.opr.val,l);
@@ -767,12 +767,12 @@ begin
       Message(asmr_e_syn_operand);
     if use_dotted_functions and
        assigned(instr.Operands[1].opr.ref.symbol) then
-      instr.Operands[1].opr.ref.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.ref.symbol.name,instr.Operands[1].opr.ref.symbol.bind,AT_FUNCTION);
+      instr.Operands[1].opr.ref.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.ref.symbol.name,instr.Operands[1].opr.ref.symbol.bind,AT_FUNCTION,voidcodepointertype);
   end;
   if use_dotted_functions and
      (instr.Operands[1].opr.typ = OPR_SYMBOL) and
      (instr.Operands[1].opr.symbol.typ=AT_FUNCTION) then
-    instr.Operands[1].opr.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.symbol.name,instr.Operands[1].opr.symbol.bind,AT_FUNCTION);
+    instr.Operands[1].opr.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.symbol.name,instr.Operands[1].opr.symbol.bind,AT_FUNCTION,voidcodepointertype);
 end;
 
 function tppcattreader.is_targetdirective(const s: string): boolean;

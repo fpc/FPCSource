@@ -576,7 +576,7 @@ implementation
         current_module.localsymtable.insert(calldescsym);
         current_asmdata.AsmLists[al_typedconsts].concatList(
           tcb.get_final_asmlist(
-            current_asmdata.DefineAsmSymbol(calldescsym.mangledname,AB_GLOBAL,AT_DATA),
+            current_asmdata.DefineAsmSymbol(calldescsym.mangledname,AB_GLOBAL,AT_DATA,calldescsym.vardef),
             calldescsym.vardef,sec_rodata_norel,
             lower(calldescsym.mangledname),sizeof(pint)
           )

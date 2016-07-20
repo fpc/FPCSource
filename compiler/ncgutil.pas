@@ -1381,9 +1381,9 @@ implementation
               erroneous code (at least for targets using GOT) } 
             if (cs_profile in current_settings.moduleswitches) or
                (po_global in current_procinfo.procdef.procoptions) then
-              current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION)
+              current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION,pd)
             else
-              current_asmdata.DefineAsmSymbol(item.str,AB_LOCAL,AT_FUNCTION);
+              current_asmdata.DefineAsmSymbol(item.str,AB_LOCAL,AT_FUNCTION,pd);
            item := TCmdStrListItem(item.next);
          end;
       end;

@@ -1225,7 +1225,8 @@ unit raatt;
                commname:=actasmpattern;
                Consume(AS_ID);
                Consume(AS_COMMA);
-               curList.concat(Tai_datablock.Create(commname,BuildConstExpression(false,false)));
+               symofs:=BuildConstExpression(false,false);
+               curList.concat(Tai_datablock.Create(commname,symofs,carraydef.getreusable(u8inttype,symofs)));
                if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
              end;
@@ -1236,7 +1237,8 @@ unit raatt;
                commname:=actasmpattern;
                Consume(AS_ID);
                Consume(AS_COMMA);
-               curList.concat(Tai_datablock.Create_global(commname,BuildConstExpression(false,false)));
+               symofs:=BuildConstExpression(false,false);
+               curList.concat(Tai_datablock.Create_global(commname,symofs,carraydef.getreusable(u8inttype,symofs)));
                if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
              end;

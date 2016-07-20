@@ -251,7 +251,7 @@ uses
         inherited Create;
         typ:=ait_llvmalias;
         oldsym:=_oldsym;
-        newsym:=current_asmdata.DefineAsmSymbol(newname,AB_GLOBAL,AT_FUNCTION);
+        newsym:=current_asmdata.DefineAsmSymbol(newname,AB_GLOBAL,AT_FUNCTION,_def);
         newsym.declared:=true;
         def:=_def;
         bind:=_bind;

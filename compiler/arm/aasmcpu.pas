@@ -311,7 +311,7 @@ implementation
 
   uses
     itcpugas,aoptcpu,
-    systems;
+    systems,symdef;
 
 
     procedure taicpu.loadshifterop(opidx:longint;const so:tshifterop);
@@ -1747,7 +1747,7 @@ implementation
         new_section(prolog,sec_code,'FPC_EH_PROLOG',sizeof(pint),secorder_begin);
         prolog.concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
         prolog.concat(Tai_const.Create_32bit(0));
-        prolog.concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_DATA,0));
+        prolog.concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_METADATA,0,voidpointertype));
         { dummy function }
         prolog.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14));
         current_asmdata.asmlists[al_start].insertList(prolog);

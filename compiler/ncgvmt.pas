@@ -909,7 +909,7 @@ implementation
           tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
           tcb.emit_guid_const(_class.iidguid^);
           list.concatlist(tcb.get_final_asmlist(
-            current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
+            current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rec_tguid),
             rec_tguid,
             sec_rodata,
             s,
@@ -920,7 +920,7 @@ implementation
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
       def:=tcb.emit_shortstring_const(_class.iidstr^);
       list.concatlist(tcb.get_final_asmlist(
-        current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
+        current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,def),
         def,
         sec_rodata,
         s,
@@ -1017,7 +1017,7 @@ implementation
            tcb.emit_tai(Tai_const.Createname(procname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(vmtpd));
 {$ifdef vtentry}
            hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(pint));
-           current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
+           current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0,voidpointerdef));
 {$endif vtentry}
          end;
       end;
@@ -1202,7 +1202,7 @@ implementation
          { concatenate the VMT to the asmlist }
          current_asmdata.asmlists[al_globals].concatlist(
            tcb.get_final_asmlist(
-             current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA),
+             current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA,vmtdef),
              vmtdef,sec_rodata,_class.vmt_mangledname,const_align(sizeof(pint))
            )
          );
@@ -1214,7 +1214,7 @@ implementation
            hs:=hs+_class.childof.vmt_mangledname
          else
            hs:=hs+_class.vmt_mangledname;
-         current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
+         current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0,voidpointerdef));
 {$endif vtentry}
         symtablestack.pop(current_module.localsymtable);
 
@@ -1224,8 +1224,8 @@ implementation
         tcb.emit_tai(Tai_const.Createname(hs,AT_DATA,0),voidpointertype);
         current_asmdata.AsmLists[al_globals].concatList(
           tcb.get_final_asmlist(
-            current_asmdata.DefineAsmSymbol(hs,AB_INDIRECT,AT_DATA),
-            voidpointertype,sec_rodata,hs,const_align(sizeof(pint))));
+            current_asmdata.DefineAsmSymbol(hs,AB_INDIRECT,AT_DATA,cpointerdef.getreusable(vmtdef)),
+            cpointerdef.getreusable(vmtdef),sec_rodata,hs,const_align(sizeof(pint))));
         tcb.free;
       end;
 

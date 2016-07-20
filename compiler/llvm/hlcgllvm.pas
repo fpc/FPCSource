@@ -1241,9 +1241,9 @@ implementation
         refer to the symbol and get the binding correct }
       if (cs_profile in current_settings.moduleswitches) or
          (po_global in current_procinfo.procdef.procoptions) then
-        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION)
+        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION,current_procinfo.procdef)
       else
-        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION);
+        asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_LOCAL,AT_FUNCTION,current_procinfo.procdef);
       while assigned(item) do
         begin
           if mangledname<>item.Str then

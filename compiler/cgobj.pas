@@ -2392,7 +2392,7 @@ implementation
               if not(assigned(l)) then
                 begin
                   new_section(current_asmdata.asmlists[al_picdata],sec_data_nonlazy,'',sizeof(pint));
-                  l:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA);
+                  l:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA,voidpointertype);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
                   if not(is_weak in flags) then
                     current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,current_asmdata.RefAsmSymbol(symname).Name))

@@ -515,9 +515,9 @@ implementation
                     { place jump in al_procedures }
                     new_section(current_asmdata.asmlists[al_imports],sec_code,'',0);
                     if ImportSymbol.Name <> '' then
-                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_FUNCTION,0))
+                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_FUNCTION,0,voidcodepointertype))
                     else
-                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ExtractFileName(ImportLibrary.Name)+'_index_'+tostr(ImportSymbol.ordnr),AT_FUNCTION,0));
+                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ExtractFileName(ImportLibrary.Name)+'_index_'+tostr(ImportSymbol.ordnr),AT_FUNCTION,0,voidcodepointertype));
                     current_asmdata.asmlists[al_imports].concat(tai_function_name.create(''));
                   {$ifdef ARM}
                     reference_reset_symbol(href,l5,0,sizeof(pint));
@@ -549,7 +549,7 @@ implementation
                                 inc(suffix);
                                 importname:='__imp_'+ImportSymbol.MangledName+'_'+tostr(suffix);
                               end;
-                            current_asmdata.asmlists[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
+                            current_asmdata.asmlists[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4,voidcodepointertype));
                           end
                         else
                           begin
@@ -560,13 +560,13 @@ implementation
                                 inc(suffix);
                                 importname:='__imp_by_ordinal'+tostr(ImportSymbol.ordnr)+'_'+tostr(suffix);
                               end;
-                            current_asmdata.asmlists[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
+                            current_asmdata.asmlists[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4,voidcodepointertype));
                           end;
                       end;
                      current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l4));
                   end
                 else
-                  current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_DATA,0));
+                  current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_DATA,0,voidpointertype));
                 current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(TAsmLabel(Importlabels[j])));
                 if target_info.system=system_x86_64_win64 then
                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
@@ -788,7 +788,7 @@ implementation
          new_section(current_asmdata.asmlists[al_exports],sec_edata,'',0);
          { create label to reference from main so smartlink will include
            the .edata section }
-         current_asmdata.asmlists[al_exports].concat(Tai_symbol.Createname_global(make_mangledname('EDATA',current_module.localsymtable,''),AT_DATA,0));
+         current_asmdata.asmlists[al_exports].concat(Tai_symbol.Createname_global(make_mangledname('EDATA',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
          { export flags }
          current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(0));
          { date/time stamp }
