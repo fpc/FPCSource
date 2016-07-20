@@ -582,7 +582,6 @@ implementation
           )
         );
         tcb.free;
-        // todo: indirect?
 
         if variantdispatch then
           begin

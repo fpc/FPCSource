@@ -60,7 +60,8 @@ unit cpunode;
 {$endif TEST_WIN32_SEH}
        n386mat,
        { symtable }
-       symcpu
+       symcpu,
+       aasmdef
        ;
 
 end.

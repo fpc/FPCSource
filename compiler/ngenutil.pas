@@ -737,15 +737,6 @@ implementation
         end
       else
         list.concat(Tai_datablock.create(sym.mangledname,size,sym.vardef));
-      if (tf_supports_packages in target_info.flags) then
-        begin
-          { add the indirect symbol if needed }
-          new_section(list,sec_rodata,lower(sym.mangledname),const_align(sym.vardef.alignment));
-          symind:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_INDIRECT,AT_DATA,cpointerdef.getreusable(sym.vardef));
-          list.concat(Tai_symbol.Create_Global(symind,0));
-          list.concat(Tai_const.Createname(sym.mangledname,AT_DATA,0));
-          list.concat(tai_symbol_end.Create(symind));
-        end;
     end;
 
 
@@ -1118,7 +1109,7 @@ implementation
        if add then
          begin
            s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
-           sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,tabledef);
+           sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,tabledef);
            current_asmdata.asmlists[al_globals].concatlist(
              tcb.get_final_asmlist(sym,tabledef,sec_data,s,sizeof(pint)));
            current_module.flags:=current_module.flags or uf_threadvars;
@@ -1126,16 +1117,6 @@ implementation
        else
          s:='';
        tcb.Free;
-       if add then
-         begin
-           { write indirect symbol }
-           tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
-           tcb.emit_tai(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(s,AT_DATA,false)),cpointerdef.getreusable(tabledef));
-           sym:=current_asmdata.DefineAsmSymbol(s,AB_INDIRECT,AT_DATA,voidpointertype);
-           current_asmdata.AsmLists[al_globals].concatList(
-             tcb.get_final_asmlist(sym,cpointerdef.getreusable(tabledef),sec_rodata,sym.name,const_align(sizeof(pint))));
-           tcb.free;
-         end;
     end;
 
 

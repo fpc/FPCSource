@@ -49,6 +49,7 @@ compiler/aarch64/symcpu.pas svneol=native#text/plain
 compiler/aasmbase.pas svneol=native#text/plain
 compiler/aasmcnst.pas svneol=native#text/plain
 compiler/aasmdata.pas svneol=native#text/plain
+compiler/aasmdef.pas svneol=native#text/plain
 compiler/aasmsym.pas svneol=native#text/plain
 compiler/aasmtai.pas svneol=native#text/plain
 compiler/aggas.pas svneol=native#text/plain

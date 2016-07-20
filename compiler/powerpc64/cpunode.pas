@@ -33,6 +33,7 @@ uses
   ncgobjc,
   { symtable }
   symcpu,
+  aasmdef,
   { to be able to only parts of the generic code,
     the processor specific nodes must be included
     after the generic one (FK)

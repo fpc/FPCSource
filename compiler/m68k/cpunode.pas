@@ -47,7 +47,8 @@ unit cpunode;
          n68kmat,
          n68kcnv,
          { symtable }
-         symcpu
+         symcpu,
+         aasmdef
          ;
 
 end.

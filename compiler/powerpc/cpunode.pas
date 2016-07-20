@@ -47,7 +47,8 @@ unit cpunode;
        nppccnv,
 //       nppcld
        { symtable }
-       symcpu
+       symcpu,
+       aasmdef
        ;
 
 end.

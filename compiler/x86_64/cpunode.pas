@@ -45,6 +45,7 @@ unit cpunode;
        ncgobjc,
        { symtable }
        symcpu,
+       aasmdef,
 {$ifndef llvm}
        { the cpu specific node units must be used after the generic ones to
          get the correct class pointer }

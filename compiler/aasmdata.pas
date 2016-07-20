@@ -210,8 +210,8 @@ interface
         constructor Create(asym: tsym; aoffset: aint; alabel: TAsmSymbol);
       end;
 
-    const
-      casmdata: TAsmDataClass = TAsmData;
+    var
+      casmdata: TAsmDataClass;
 
 
     var
@@ -352,6 +352,10 @@ implementation
         hp : TAsmSymbol;
         namestr : TSymStr;
       begin
+        { this difference is only necessary to determine whether we always need
+          indirect references or not }
+        if _typ=AT_DATA_FORCEINDIRECT then
+          _typ:=AT_DATA;
         namestr:=s;
         if _bind in asmsymbindindirect then
           namestr:=namestr+suffix_indirect;

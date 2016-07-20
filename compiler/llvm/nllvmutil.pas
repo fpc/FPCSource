@@ -51,8 +51,7 @@ implementation
 
   class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
     var
-      asmsym,
-      symind: tasmsymbol;
+      asmsym: tasmsymbol;
       field1, field2: tsym;
       tcb: ttai_typedconstbuilder;
     begin
@@ -68,15 +67,6 @@ implementation
         list.concat(taillvmdecl.createdef(asmsym,
           get_threadvar_record(sym.vardef,field1,field2),
           nil,sec_data,varalign));
-      symind:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_INDIRECT,AT_DATA,cpointerdef.getreusable(sym.vardef));
-      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
-      tcb.emit_tai(Tai_const.Create_sym_offset(asmsym,0),cpointerdef.getreusable(sym.vardef));
-      list.concatlist(tcb.get_final_asmlist(
-        symind,cpointerdef.getreusable(sym.vardef),
-        sec_rodata,
-        lower(sym.mangledname),
-        const_align(sym.vardef.alignment)));
-      tcb.free;
     end;
 
 

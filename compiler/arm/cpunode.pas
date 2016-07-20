@@ -43,7 +43,8 @@ unit cpunode;
        narmset,
        narmmem,
        { symtable }
-       symcpu
+       symcpu,
+       aasmdef
        ;
 
 
