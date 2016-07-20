@@ -48,10 +48,6 @@ implementation
     end;
 
     texportlibsolaris=class(texportlibunix)
-(*
-      procedure setinitname(list: TAsmList; const s: string); override;
-      procedure setfininame(list: TAsmList; const s: string); override;
-*)
     end;
 
     tlinkersolaris=class(texternallinker)
@@ -86,31 +82,6 @@ implementation
       end;
 
 
-{*****************************************************************************
-                               TEXPORTLIBsolaris
-*****************************************************************************}
-(*
-    procedure texportlibsolaris.setinitname(list: TAsmList; const s: string);
-      begin
-        inherited setinitname(list,s);
-{$ifdef sparc}
-        new_section(list,sec_init,'',4);
-        list.concat(tai_symbol.createname_global('_init',AT_FUNCTION,0));
-        list.concat(taicpu.op_reg_const_reg(A_SAVE,NR_STACK_POINTER_REG,-96,NR_STACK_POINTER_REG));
-{$endif sparc}
-      end;
-
-
-    procedure texportlibsolaris.setfininame(list: TAsmList; const s: string);
-      begin
-        inherited setfininame(list,s);
-{$ifdef sparc}
-        new_section(list,sec_fini,'',4);
-        list.concat(tai_symbol.createname_global('_fini',AT_FUNCTION,0));
-        list.concat(taicpu.op_reg_const_reg(A_SAVE,NR_STACK_POINTER_REG,-96,NR_STACK_POINTER_REG));
-{$endif sparc}
-      end;
-*)
 {*****************************************************************************
                                   TLINKERsolaris
 *****************************************************************************}
