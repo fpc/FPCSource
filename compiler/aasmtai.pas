@@ -911,9 +911,6 @@ interface
 
     procedure maybe_new_object_file(list:TAsmList);
     procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
-    procedure section_symbol_start(list:TAsmList;const Aname:string;Asymtyp:Tasmsymtype;
-                                   Aglobal:boolean;Asectype:TAsmSectiontype;Aalign:byte);
-    procedure section_symbol_end(list:TAsmList;const Aname:string);
 
     function ppuloadai(ppufile:tcompilerppufile):tai;
     procedure ppuwriteai(ppufile:tcompilerppufile;n:tai);
@@ -945,25 +942,6 @@ implementation
       begin
         list.concat(tai_section.create(Asectype,Aname,Aalign,Asecorder));
         list.concat(cai_align.create(Aalign));
-      end;
-
-
-    procedure section_symbol_start(list:TAsmList;const Aname:string;Asymtyp:Tasmsymtype;
-                                   Aglobal:boolean;Asectype:TAsmSectiontype;Aalign:byte);
-      begin
-        maybe_new_object_file(list);
-        new_section(list,Asectype,Aname,Aalign);
-        if Aglobal or
-           create_smartlink then
-          list.concat(tai_symbol.createname_global(Aname,Asymtyp,0))
-        else
-          list.concat(tai_symbol.createname(Aname,Asymtyp,0));
-      end;
-
-
-    procedure section_symbol_end(list:TAsmList;const Aname:string);
-      begin
-        list.concat(tai_symbol_end.createname(Aname));
       end;
 
 
