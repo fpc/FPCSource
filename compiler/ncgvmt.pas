@@ -1045,6 +1045,7 @@ implementation
          pstringmessagetabledef: tdef;
          vmttypesym: ttypesym;
          vmtdef: tdef;
+         sym : TAsmSymbol;
       begin
 {$ifdef WITHDMT}
          dmtlabel:=gendmt;
@@ -1199,10 +1200,13 @@ implementation
 
          tcb.maybe_end_aggregate(vmtdef);
 
+         sym:=current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA_FORCEINDIRECT,vmtdef);
+         current_module.add_public_asmsym(sym);
+
          { concatenate the VMT to the asmlist }
          current_asmdata.asmlists[al_globals].concatlist(
            tcb.get_final_asmlist(
-             current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA_FORCEINDIRECT,vmtdef),
+             sym,
              vmtdef,sec_rodata,_class.vmt_mangledname,const_align(sizeof(pint))
            )
          );

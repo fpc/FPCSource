@@ -104,6 +104,8 @@ implementation
        globtype,globals,verbose,constexp,
        systems,
        cpuinfo,
+       { assembler }
+       aasmbase,
        { symtable }
        symbase,symcpu,symtable,defutil,defcmp,
        { parameter handling }
@@ -3455,6 +3457,7 @@ const
         paracompopt: tcompare_paras_options;
         forwardfound : boolean;
         symentry: TSymEntry;
+        item : tlinkedlistitem;
       begin
         forwardfound:=false;
 
@@ -3715,7 +3718,19 @@ const
                      it immediately, because then the implementation symbol
                      won't be matched) }
                    if po_compilerproc in fwpd.procoptions then
-                     compilerproc_set_symbol_name(fwpd);
+                     begin
+                       compilerproc_set_symbol_name(fwpd);
+                       current_module.add_public_asmsym(fwpd.procsym.realname,AB_GLOBAL,AT_FUNCTION);
+                     end;
+                   if po_public in fwpd.procoptions then
+                     begin
+                       item:=fwpd.aliasnames.first;
+                       while assigned(item) do
+                         begin
+                           current_module.add_public_asmsym(TCmdStrListItem(item).str,AB_GLOBAL,AT_FUNCTION);
+                           item:=item.next;
+                         end;
+                     end;
 
                    { Release current procdef }
                    currpd.owner.deletedef(currpd);
@@ -3781,6 +3796,15 @@ const
                is_void(currpd.returndef) then
               MessagePos1(currpd.fileinfo,parser_e_no_funcret_specified,currpd.procsym.realname);
             tprocsym(currpd.procsym).ProcdefList.Add(currpd);
+            if not currpd.forwarddef and (po_public in currpd.procoptions) then
+              begin
+                item:=currpd.aliasnames.first;
+                while assigned(item) do
+                  begin
+                    current_module.add_public_asmsym(TCmdStrListItem(item).str,AB_GLOBAL,AT_FUNCTION);
+                    item:=item.next;
+                  end;
+              end;
           end;
 
         proc_add_definition:=forwardfound;

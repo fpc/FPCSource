@@ -1113,6 +1113,7 @@ implementation
            current_asmdata.asmlists[al_globals].concatlist(
              tcb.get_final_asmlist(sym,tabledef,sec_data,s,sizeof(pint)));
            current_module.flags:=current_module.flags or uf_threadvars;
+           current_module.add_public_asmsym(sym);
          end
        else
          s:='';

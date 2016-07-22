@@ -1371,6 +1371,8 @@ implementation
               rttilab,tabledef,sec_rodata,
               rttilab.name,const_align(sizeof(pint))));
             tcb.free;
+
+            current_module.add_public_asmsym(rttilab);
         end;
 
 
@@ -1416,6 +1418,8 @@ implementation
             rttilab,tabledef,sec_rodata,
             rttilab.name,const_align(sizeof(pint))));
           tcb.free;
+
+          current_module.add_public_asmsym(rttilab);
         end;
 
         procedure enumdef_rtti_extrasyms(def:Tenumdef);
@@ -1558,6 +1562,9 @@ implementation
         current_asmdata.AsmLists[al_rtti].concatList(
           tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,const_align(sizeof(pint))));
         tcb.free;
+
+        current_module.add_public_asmsym(rttilab);
+
         { write additional data }
         write_rtti_extrasyms(def,rt,rttilab);
       end;
