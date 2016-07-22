@@ -355,7 +355,11 @@ function DynArrayDim(typeInfo: Pointer): Integer;
       typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
 
       { element type info}
+      {$ifdef VER3_0}
       typeInfo:=pdynarraytypedata(typeInfo)^.elType2;
+      {$else VER3_0}
+      typeInfo:=pdynarraytypedata(typeInfo)^.elType2^;
+      {$endif VER3_0}
 
       Inc(result);
     end;
@@ -410,7 +414,11 @@ function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Po
       { skip kind and name }
       typeInfo:=(typeInfo+2+PByte(typeInfo)[1]);
       { element type info}
+      {$ifdef VER3_0}
       typeInfo:=pdynarraytypedata(typeInfo)^.elType2;
+      {$else VER3_0}
+      typeInfo:=pdynarraytypedata(typeInfo)^.elType2^;
+      {$endif VER3_0}
 
       if typeInfo=nil then
         exit(nil);
