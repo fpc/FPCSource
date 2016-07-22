@@ -1034,6 +1034,7 @@ implementation
              tcb.emit_tai(
                tai_const.Create_sym(sym),
                voidpointertype);
+             current_module.add_extern_asmsym(sym);
              inc(count);
            end;
          hp:=tused_unit(hp.next);

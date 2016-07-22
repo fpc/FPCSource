@@ -1527,6 +1527,8 @@ implementation
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
+        if def.owner.moduleid<>current_module.moduleid then
+          current_module.add_extern_asmsym(result);
       end;
 
 

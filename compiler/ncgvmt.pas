@@ -1011,7 +1011,11 @@ implementation
                generate_abstract_stub(current_asmdata.AsmLists[al_procedures],vmtpd);
              end
            else if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
-             procname:='FPC_EMPTYMETHOD'
+             begin
+               procname:='FPC_EMPTYMETHOD';
+               if current_module.globalsymtable<>systemunit then
+                 current_module.add_extern_asmsym(procname,AB_GLOBAL,AT_FUNCTION);
+             end
            else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
              procname:=vmtpd.mangledname;
            tcb.emit_tai(Tai_const.Createname(procname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(vmtpd));
@@ -1129,9 +1133,12 @@ implementation
             (oo_has_vmt in _class.childof.objectoptions) then
            begin
              tcb.queue_init(parentvmtdef);
+             sym:=current_asmdata.RefAsmSymbol(_class.childof.vmt_mangledname,AT_DATA,true);
              tcb.queue_emit_asmsym(
-               current_asmdata.RefAsmSymbol(_class.childof.vmt_mangledname,AT_DATA,true),
+               sym,
                tfieldvarsym(_class.childof.vmt_field).vardef);
+             if _class.childof.owner.moduleid<>current_module.moduleid then
+               current_module.add_extern_asmsym(sym);
            end
          else
            tcb.emit_tai(Tai_const.Create_nil_dataptr,parentvmtdef);

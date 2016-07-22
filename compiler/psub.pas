@@ -2238,6 +2238,8 @@ implementation
 
 
     procedure import_external_proc(pd:tprocdef);
+      var
+        name : string;
       begin
         if not (po_external in pd.procoptions) then
           internalerror(2015121101);
@@ -2256,9 +2258,12 @@ implementation
           end
         else
           begin
+            name:=proc_get_importname(pd);
             { add import name to external list for DLL scanning }
             if tf_has_dllscanner in target_info.flags then
-              current_module.dllscannerinputlist.Add(proc_get_importname(pd),pd);
+              current_module.dllscannerinputlist.Add(name,pd);
+            { needed for units that use functions in packages this way }
+            current_module.add_extern_asmsym(name,AB_EXTERNAL,AT_FUNCTION);
           end;
       end;
 
