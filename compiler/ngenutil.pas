@@ -1250,11 +1250,11 @@ implementation
           If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
             begin
               tcb.emit_tai(Tai_const.Create_sym(
-                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',hp.localsymtable,[])),
+                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',hp.localsymtable,[tcdssso_use_indirect])),
                 voidpointertype
               );
               tcb.emit_tai(Tai_const.Create_sym(
-                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',hp.localsymtable,[])),
+                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',hp.localsymtable,[tcdssso_use_indirect])),
                 voidpointertype
               );
               inc(count);
