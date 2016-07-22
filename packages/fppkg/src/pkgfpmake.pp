@@ -406,8 +406,21 @@ end;
 
 
 procedure TFPMakeRunnerArchive.Execute;
+var
+  StoredLocalPrefix: string;
+  StoredGlobalPrefix: string;
 begin
-  RunFPMake('archive');
+  // In most (all?) cases we do not want a prefix in the archive.
+  StoredGlobalPrefix := CompilerOptions.GlobalPrefix;
+  StoredLocalPrefix := CompilerOptions.LocalPrefix;
+  CompilerOptions.GlobalPrefix := '';
+  CompilerOptions.LocalPrefix := '';
+  try
+    RunFPMake('archive');
+  finally
+    CompilerOptions.GlobalPrefix := StoredGlobalPrefix;
+    CompilerOptions.LocalPrefix := StoredLocalPrefix;
+  end;
 end;
 
 
