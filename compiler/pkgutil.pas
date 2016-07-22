@@ -172,11 +172,15 @@ implementation
         { ignore: }
         unitsym,
         syssym,
-        constsym,
         namespacesym,
         propertysym,
         enumsym:
           ;
+        constsym:
+          begin
+            if tconstsym(sym).consttyp=constresourcestring then
+              varexport(make_mangledname('RESSTR',tsym(sym).owner,tsym(sym).name));
+          end;
         typesym:
           begin
             case ttypesym(sym).typedef.typ of
@@ -657,6 +661,13 @@ implementation
                   staticvarsym:
                     if tstaticvarsym(psym).mangledname=symname then
                       found:=true;
+                  constsym:
+                    begin
+                      if tconstsym(psym).consttyp<>constresourcestring then
+                        internalerror(2016072202);
+                      if make_mangledname('RESSTR',psym.owner,psym.name)=symname then
+                        found:=true;
+                    end;
                   else
                     internalerror(2014101003);
                 end;
@@ -720,7 +731,11 @@ implementation
         for i:=0 to syms.count-1 do
           begin
             sym:=tsymentry(syms[i]);
-            if not (sym.typ in [staticvarsym,procsym]) then
+            if not (sym.typ in [staticvarsym,procsym,constsym]) or
+                (
+                  (sym.typ=constsym) and
+                  (tconstsym(sym).consttyp<>constresourcestring)
+                ) then
               continue;
             if alreadyloaded.indexof(sym)>=0 then
               continue;
@@ -750,6 +765,13 @@ implementation
                     if unitentry^.module=module then
                       begin
                         case sym.typ of
+                          constsym:
+                            begin
+                              if tconstsym(sym).consttyp<>constresourcestring then
+                                internalerror(2016072201);
+                              name:=make_mangledname('RESSTR',sym.owner,sym.name);
+                              current_module.addexternalimport(pkgentry^.package.pplfilename,name,name+suffix_indirect,0,true,false);
+                            end;
                           staticvarsym:
                             begin
                               name:=tstaticvarsym(sym).mangledname;
