@@ -1244,7 +1244,6 @@ procedure TPascalScanner.HandleIncludeFile(Param: String);
 
 begin
   PushStackItem;
-  writeln('TPascalScanner.HandleIncludeFile AAA1 Param="',Param,'"');
   if Length(Param)>1 then
     begin
       if (Param[1]=#39) and (Param[length(Param)]=#39) then
