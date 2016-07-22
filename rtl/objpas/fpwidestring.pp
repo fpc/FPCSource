@@ -24,7 +24,7 @@ uses
   unixcp,
 {$endif}
   charset;
-  
+
 procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 {$ifdef MSWINDOWS}
   function GetACP:UINT; external 'kernel32' name 'GetACP';
@@ -268,7 +268,7 @@ begin
       DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
       exit;
     end;
-    
+
   destLen:=3*len;
   SetLength(dest,destLen);
   destBuffer:=@dest[1];
@@ -331,9 +331,9 @@ begin
       exit;
     end;
 
-  destLen:=getunicode(source,len,locMap,nil);   
+  destLen:=getunicode(source,len,locMap,nil);
   SetLength(dest,destLen);
-  getunicode(source,len,locMap,tunicodestring(@dest[1]));   
+  getunicode(source,len,locMap,tunicodestring(@dest[1]));
 end;
 
 {$ifdef MSWINDOWS}
@@ -355,9 +355,9 @@ begin
       exit;
     end;
 
-  destLen:=getunicode(source,len,locMap,nil);   
+  destLen:=getunicode(source,len,locMap,nil);
   SetLength(dest,destLen);
-  getunicode(source,len,locMap,tunicodestring(@dest[1])); 
+  getunicode(source,len,locMap,tunicodestring(@dest[1]));
 end;
 {$endif MSWINDOWS}
 
@@ -412,7 +412,7 @@ Var
 begin
   if (current_Collation=nil) then
     exit(OldManager.CompareUnicodeStringProc(s1,s2,Options));
-  if (coIgnoreCase in Options) then  
+  if (coIgnoreCase in Options) then
     begin
     us1:=UpperUnicodeString(s1);
     us2:=UpperUnicodeString(s2);
@@ -421,11 +421,11 @@ begin
     begin
     us1:=S1;
     us2:=S2;
-    end;  
+    end;
   Result:=CompareUnicodeString(
-            PUnicodeChar(Pointer(s1)),
-            PUnicodeChar(Pointer(s2)),
-            Length(s1),Length(s2)
+            PUnicodeChar(Pointer(us1)),
+            PUnicodeChar(Pointer(us2)),
+            Length(us1),Length(us2)
           );
 end;
 
@@ -433,11 +433,11 @@ function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions)
 
 Var
   us1,us2 : WideString;
-   
+
 begin
   if (current_Collation=nil) then
     exit(OldManager.CompareWideStringProc(s1,s2,Options));
-  if (coIgnoreCase in Options) then  
+  if (coIgnoreCase in Options) then
     begin
     us1:=UpperWideString(s1);
     us2:=UpperWideString(s2);
@@ -446,7 +446,7 @@ begin
     begin
     us1:=S1;
     us2:=S2;
-    end;  
+    end;
   Result:=CompareUnicodeString(
             PUnicodeChar(Pointer(us1)),
             PUnicodeChar(Pointer(us2)),
@@ -494,7 +494,7 @@ var
 begin
   if (Length(s)=0) then
     exit('');
-  if (DefaultSystemCodePage=CP_UTF8) then 
+  if (DefaultSystemCodePage=CP_UTF8) then
     begin
       //convert to UnicodeString,uppercase,convert back to utf8
       ulen:=Utf8ToUnicode(nil,@s[1],Length(s));
@@ -502,12 +502,12 @@ begin
         SetLength(us,ulen-1);
       Utf8ToUnicode(@us[1],@s[1],Length(s));
       us:=UpperUnicodeString(us);
-      
+
       ulen:=Length(us);
       slen:=UnicodeToUtf8(nil,0,@us[1],ulen);
       SetLength(Result,slen);
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
-      exit;    
+      exit;
     end;
 
   locMap:=FindMap(DefaultSystemCodePage);
@@ -561,7 +561,7 @@ var
 begin
   if (Length(s)=0) then
     exit('');
-  if (DefaultSystemCodePage=CP_UTF8) then 
+  if (DefaultSystemCodePage=CP_UTF8) then
     begin
       //convert to UnicodeString,lowercase,convert back to utf8
       ulen:=Utf8ToUnicode(nil,@s[1],Length(s));
@@ -569,12 +569,12 @@ begin
         SetLength(us,ulen-1);
       Utf8ToUnicode(@us[1],@s[1],Length(s));
       us:=LowerUnicodeString(us);
-      
+
       ulen:=Length(us);
       slen:=UnicodeToUtf8(nil,0,@us[1],ulen);
       SetLength(Result,slen);
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
-      exit;    
+      exit;
     end;
   locMap:=FindMap(DefaultSystemCodePage);
   if (locMap=nil) then
