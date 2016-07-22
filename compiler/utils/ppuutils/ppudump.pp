@@ -879,19 +879,35 @@ const
   );
 type
   { Copied from aasmbase.pas }
-  TAsmsymbind=(
-    AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL,
-    { global in the current program/library, but not visible outside it }
-    AB_PRIVATE_EXTERN,AB_LAZY,AB_IMPORT);
+       TAsmsymbind=(
+         AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL,
+         { global in the current program/library, but not visible outside it }
+         AB_PRIVATE_EXTERN,AB_LAZY,AB_IMPORT,
+         { a symbol that's internal to the compiler and used as a temp }
+         AB_TEMP,
+         { a global symbol that points to another global symbol and is only used
+           to allow indirect loading in case of packages and indirect imports }
+         AB_INDIRECT,AB_EXTERNAL_INDIRECT);
 
-  TAsmsymtype=(
-    AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
-    {
-      the address of this code label is taken somewhere in the code
-      so it must be taken care of it when creating pic
-    }
-    AT_ADDR
-    );
+       TAsmsymtype=(
+         AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
+         {
+           the address of this code label is taken somewhere in the code
+           so it must be taken care of it when creating pic
+         }
+         AT_ADDR,
+         { Label for debug or other non-program information }
+         AT_METADATA,
+         { label for data that must always be accessed indirectly, because it
+           is handled explcitely in the system unit or (e.g. RTTI and threadvar
+           tables) -- never seen in an assembler/assembler writer, always
+           changed to AT_DATA }
+         AT_DATA_FORCEINDIRECT,
+         { Thread-local symbol (ELF targets) }
+         AT_TLS,
+         { GNU indirect function (ELF targets) }
+         AT_GNU_IFUNC
+         );
 
 var
   s,
@@ -930,6 +946,12 @@ begin
          bindstr:='Lazy';
        AB_IMPORT :
          bindstr:='Import';
+       AB_TEMP :
+         bindstr:='Temp';
+       AB_INDIRECT :
+         bindstr:='Indirect';
+       AB_EXTERNAL_INDIRECT :
+         bindstr:='Indirect external';
        else
          begin
            bindstr:='<Error !!>';
@@ -947,6 +969,14 @@ begin
          typestr:='Label';
        AT_ADDR :
          typestr:='Label (with address taken)';
+       AT_METADATA :
+         typestr:='Metadata';
+       AT_DATA_FORCEINDIRECT :
+         typestr:='Data (ForceIndirect)';
+       AT_TLS :
+         typestr:='TLS';
+       AT_GNU_IFUNC :
+         typestr:='GNU IFUNC';
        else
          begin
            typestr:='<Error !!>';
