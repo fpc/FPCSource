@@ -1017,7 +1017,11 @@ implementation
                  current_module.add_extern_asmsym(procname,AB_GLOBAL,AT_FUNCTION);
              end
            else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
-             procname:=vmtpd.mangledname;
+             begin
+               procname:=vmtpd.mangledname;
+               if current_module.moduleid<>vmtpd.owner.moduleid then
+                 current_module.addimportedsym(vmtpd.procsym);
+             end;
            tcb.emit_tai(Tai_const.Createname(procname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(vmtpd));
 {$ifdef vtentry}
            hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(pint));
