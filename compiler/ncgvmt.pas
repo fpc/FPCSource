@@ -1129,7 +1129,7 @@ implementation
            begin
              tcb.queue_init(parentvmtdef);
              tcb.queue_emit_asmsym(
-               current_asmdata.RefAsmSymbol(_class.childof.vmt_mangledname,AT_DATA),
+               current_asmdata.RefAsmSymbol(_class.childof.vmt_mangledname,AT_DATA,true),
                tfieldvarsym(_class.childof.vmt_field).vardef);
            end
          else

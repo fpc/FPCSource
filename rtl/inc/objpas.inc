@@ -267,6 +267,23 @@
           fpc_class_as_corbaintf:=nil;
       end;
 
+{****************************************************************************
+                               TVMT
+****************************************************************************}
+
+
+    function TVmt.GetvParent: PVmt;
+      begin
+        {$ifdef VER3_0}
+        GetvParent:=vParentRef;
+        {$else VER3_0}
+        if Assigned(vParentRef) then
+          GetvParent:=vParentRef^
+        else
+          GetvParent:=Nil;
+        {$endif VER3_0}
+      end;
+
 
 {****************************************************************************
                                TOBJECT

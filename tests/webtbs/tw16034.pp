@@ -77,11 +77,12 @@ enD;
 
 type
   pObjVMT = ^TObjVMT;
+  ppObjVMT = ^pObjVMT;
   TObjVMT =
     record
       fInstanceSize: UInt;
       fInstanceSize2: Int;
-      fParent: pObjVMT;
+      fParent: ppObjVMT;
     enD;
 
 Function GetInstanceSize(AVMT: pObjVMT): UInt;
@@ -93,7 +94,7 @@ Function GetVMTPtrOffset(AVMT: pObjVMT): UInt;
 begin
   if (AVMT.fParent = nil) then
     Result := GetInstanceSize(AVMT) - SizeOf(ptr) else
-    Result := GetVMTPtrOffset(AVMT.fParent);
+    Result := GetVMTPtrOffset(AVMT.fParent^);
 enD;
 
 Function SetVMT(Obj: ptr; AVMT: ptr): Bool;
