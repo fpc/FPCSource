@@ -653,7 +653,7 @@ implementation
                     if tstaticvarsym(psym).mangledname=symname then
                       found:=true;
                   else
-                    internalerror(2014101005);
+                    internalerror(2014101003);
                 end;
                 if found then
                   break;
@@ -764,7 +764,7 @@ implementation
                                 end;
                             end;
                           else
-                            internalerror(2014101001);
+                            internalerror(2014101002);
                         end;
                         alreadyloaded.add(sym);
                       end;
