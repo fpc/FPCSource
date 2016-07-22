@@ -45,7 +45,7 @@ implementation
     globtype,systems,
     cutils,
     globals,verbose,
-    aasmbase,aasmdata,
+    aasmbase,aasmdata,aasmcnst,
     symtype,symconst,symsym,symdef,symbase,symtable,
     psub,pdecsub,
     ncgutil,
@@ -216,6 +216,11 @@ implementation
         procexport(make_mangledname('FINALIZE$',u.globalsymtable,''));
       if (u.flags and uf_threadvars)=uf_threadvars then
         varexport(make_mangledname('THREADVARLIST',u.globalsymtable,''));
+      if (u.flags and uf_has_resourcestrings)<>0 then
+        begin
+          varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',u.localsymtable,[]).name);
+          varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',u.localsymtable,[]).name);
+        end;
     end;
 
   Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
