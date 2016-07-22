@@ -379,6 +379,8 @@ implementation
         href : treference;
         newsize : tcgsize;
         vd : tdef;
+        indirect : boolean;
+        name : TSymStr;
       begin
         { we don't know the size of all arrays }
         newsize:=def_cgsize(resultdef);
@@ -402,7 +404,14 @@ implementation
                 if tconstsym(symtableentry).consttyp=constresourcestring then
                   begin
                      location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size);
-                     location.reference.symbol:=current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name),AT_DATA);
+                     indirect:=(tf_supports_packages in target_info.flags) and
+                                 (target_info.system in systems_indirect_var_imports) and
+                                 (cs_imported_data in current_settings.localswitches) and
+                                 (symtableentry.owner.moduleid<>current_module.moduleid);
+                     name:=make_mangledname('RESSTR',symtableentry.owner,symtableentry.name);
+                     location.reference.symbol:=current_asmdata.RefAsmSymbol(name,AT_DATA,indirect);
+                     if symtableentry.owner.moduleid<>current_module.moduleid then
+                       current_module.addimportedsym(symtableentry);
                      vd:=search_system_type('TRESOURCESTRINGRECORD').typedef;
                      hlcg.g_set_addr_nonbitpacked_field_ref(
                        current_asmdata.CurrAsmList,
