@@ -600,6 +600,9 @@ begin
       ct_arduino_due,
       ct_flip_n_click,
       
+      { Nordic Semiconductor }
+      ct_nrf52832,
+      
       ct_sc32442b,
       ct_thumb2bare:
         begin

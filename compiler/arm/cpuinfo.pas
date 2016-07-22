@@ -462,6 +462,9 @@ Type
       ct_sam3x8e,
       ct_arduino_due,
       ct_flip_n_click,
+      
+      { Nordic Semiconductor }
+      ct_nrf52832,
 
       // generic Thumb2 target
       ct_thumb2bare
@@ -962,6 +965,9 @@ Const
       (controllertypestr:'ATSAM3X8E';     controllerunitstr:'SAM3X8E'; cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00080000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'ARDUINO_DUE';   controllerunitstr:'SAM3X8E'; cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00080000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'FLIP_N_CLICK';  controllerunitstr:'SAM3X8E'; cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00080000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
+      
+      { Nordic Semiconductor }
+      (controllertypestr:'NRF52832'; controllerunitstr:'NRF52832'; cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$00000000; flashsize:$00080000; srambase:$20000000; sramsize:$00010000),
 
       { Bare bones }
       (controllertypestr:'THUMB2_BARE';	controllerunitstr:'THUMB2_BARE';	cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00000000;	flashsize:$00002000;	srambase:$20000000;	sramsize:$00000400)

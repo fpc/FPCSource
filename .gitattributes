@@ -8533,6 +8533,7 @@ rtl/embedded/arm/mk20d5.pp svneol=native#text/pascal
 rtl/embedded/arm/mk20d7.pp svneol=native#text/plain
 rtl/embedded/arm/mk22f51212.pp svneol=native#text/pascal
 rtl/embedded/arm/mk64f12.pp svneol=native#text/pascal
+rtl/embedded/arm/nrf52832.pp svneol=native#text/pascal
 rtl/embedded/arm/sam3x8e.pp svneol=native#text/pascal
 rtl/embedded/arm/sc32442b.pp svneol=native#text/pascal
 rtl/embedded/arm/stm32f0xx.pp svneol=native#text/plain
