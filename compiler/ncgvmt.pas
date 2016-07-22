@@ -1202,7 +1202,7 @@ implementation
          { concatenate the VMT to the asmlist }
          current_asmdata.asmlists[al_globals].concatlist(
            tcb.get_final_asmlist(
-             current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA,vmtdef),
+             current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA_FORCEINDIRECT,vmtdef),
              vmtdef,sec_rodata,_class.vmt_mangledname,const_align(sizeof(pint))
            )
          );
