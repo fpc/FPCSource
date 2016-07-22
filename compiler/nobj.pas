@@ -837,15 +837,17 @@ implementation
                 easily triggered in case the definition of the VMT would
                 change) }
               if (systemvmt.typ<>recorddef) or
-                 (trecorddef(systemvmt).symtable.SymList.count<>25) then
+                 (trecorddef(systemvmt).symtable.SymList.count<>27) then
                 internalerror(2015052601);
               { system.tvmt is a record that represents the VMT of TObject,
                 including its virtual methods. We only want the non-method
                 fields, as the methods will be added automatically based on
                 the VMT we generated here only add the 12 first fields }
-              for i:=0 to 11 do
+              for i:=0 to 13 do
                 begin
                   sym:=tsym(trecorddef(systemvmt).symtable.SymList[i]);
+                  if sym.typ in [procsym,propertysym] then
+                    continue;
                   if sym.typ<>fieldvarsym then
                     internalerror(2015052602);
                   vmtdef.add_field_by_def('',tfieldvarsym(sym).vardef);
