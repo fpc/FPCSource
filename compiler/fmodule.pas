@@ -158,6 +158,8 @@ interface
         procinfo      : TObject;  { current procedure being compiled }
         asmdata       : TObject;  { Assembler data }
         asmprefix     : pshortstring;  { prefix for the smartlink asmfiles }
+        publicasmsyms : TFPHashObjectList; { contains the assembler symbols which need to be exported from a package }
+        externasmsyms : TFPHashObjectList; { contains the assembler symbols which are imported from another unit }
         unitimportsyms : tfpobjectlist; { list of symbols that are imported from other units }
         debuginfo     : TObject;
         loaded_from   : tmodule;
@@ -237,6 +239,10 @@ interface
         procedure end_of_parsing;virtual;
         procedure setmodulename(const s:string);
         procedure AddExternalImport(const libname,symname,symmangledname:string;OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
+        procedure add_public_asmsym(sym:TAsmSymbol);
+        procedure add_public_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
+        procedure add_extern_asmsym(sym:TAsmSymbol);
+        procedure add_extern_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
       end;
 
@@ -618,6 +624,8 @@ implementation
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=casmdata.create(modulename);
         unitimportsyms:=TFPObjectList.Create(false);
+        publicasmsyms:=TFPHashObjectList.Create(true);
+        externasmsyms:=TFPHashObjectList.Create(true);
         InitDebugInfo(self,false);
       end;
 
@@ -677,6 +685,8 @@ implementation
         linkothersharedlibs.Free;
         linkotherframeworks.Free;
         stringdispose(mainname);
+        externasmsyms.Free;
+        publicasmsyms.Free;
         unitimportsyms.Free;
         FImportLibraryList.Free;
         extendeddefs.Free;
@@ -779,6 +789,10 @@ implementation
         wpoinfo:=nil;
         checkforwarddefs.free;
         checkforwarddefs:=TFPObjectList.Create(false);
+        publicasmsyms.free;
+        publicasmsyms:=TFPHashObjectList.Create(true);
+        externasmsyms.free;
+        externasmsyms:=TFPHashObjectList.Create(true);
         unitimportsyms.free;
         unitimportsyms:=TFPObjectList.Create(false);
         derefdata.free;
@@ -1150,6 +1164,50 @@ implementation
             ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,
               symname,symmangledname,OrdNr,isvar);
           end;
+      end;
+
+
+    procedure tmodule.add_public_asmsym(sym:TAsmSymbol);
+      begin
+        add_public_asmsym(sym.name,sym.bind,sym.typ);
+      end;
+
+
+    procedure tmodule.add_public_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
+      var
+        sym : tasmsymbol;
+      begin
+        { ToDo: check for AB_GLOBAL, AB_EXTERNAL? }
+        sym:=tasmsymbol(publicasmsyms.find(name));
+        if assigned(sym) then
+          begin
+            if (sym.bind<>bind) or (sym.typ<>typ) then
+              internalerror(2016070101);
+            exit;
+          end;
+        tasmsymbol.create(publicasmsyms,name,bind,typ);
+      end;
+
+
+    procedure tmodule.add_extern_asmsym(sym:TAsmSymbol);
+      begin
+        add_extern_asmsym(sym.name,sym.bind,sym.typ);
+      end;
+
+
+    procedure tmodule.add_extern_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
+      var
+        sym : tasmsymbol;
+      begin
+        { ToDo: check for AB_EXTERNAL? }
+        sym:=tasmsymbol(externasmsyms.find(name));
+        if assigned(sym) then
+          begin
+            if (sym.bind<>bind) or (sym.typ<>typ) then
+              internalerror(2016070102);
+            exit;
+          end;
+        tasmsymbol.create(externasmsyms,name,bind,typ);
       end;
 
 

@@ -872,6 +872,11 @@ end;
 
 
 Procedure ReadAsmSymbols;
+const
+  unitasmlisttype: array[tunitasmlisttype] of string[6]=(
+    'PUBLIC',
+    'EXTERN'
+  );
 type
   { Copied from aasmbase.pas }
   TAsmsymbind=(
@@ -893,8 +898,17 @@ var
   bindstr,
   typestr  : string;
   i : longint;
+  t: tunitasmlisttype;
 begin
-  writeln([space,'Number of AsmSymbols: ',ppufile.getlongint]);
+  writeln([space,'Assembler Symbols']);
+  writeln([space,'-----------------']);
+  t:=tunitasmlisttype(ppufile.getbyte);
+  if (t>=Low(tunitasmlisttype)) and (t<=High(tunitasmlisttype)) then
+    typestr:=unitasmlisttype[t]
+  else
+    typestr:='UNKNOWN';
+  writeln([space,'Type: ',typestr]);
+  writeln([space,'Count: ',ppufile.getlongint]);
   i:=0;
   while (not ppufile.endofentry) and (not ppufile.error) do
    begin
@@ -942,6 +956,7 @@ begin
      Writeln([space,'  ',i,' : ',s,' [',bindstr,',',typestr,']']);
      inc(i);
    end;
+  writeln([space]);
 end;
 
 function getexprint:Tconstexprint;

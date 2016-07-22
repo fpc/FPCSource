@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 184;
+  CurrentPPUVersion = 185;
 
   ppubufsize   = 16384;
 
@@ -96,6 +96,8 @@ type
   end;
 
   tppuentry=tentry;
+
+  tunitasmlisttype=(ualt_public,ualt_extern);
 
   { tppufile }
 
