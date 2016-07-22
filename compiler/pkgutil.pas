@@ -139,12 +139,22 @@ implementation
       if df_generic in def.defoptions then
         exit;
       def.symtable.SymList.ForEachCall(@exportabstractrecordsymproc,def.symtable);
-      if (def.typ=objectdef) and (oo_has_vmt in tobjectdef(def).objectoptions) then
+      if def.typ=objectdef then
         begin
-          hp:=texported_item.create;
-          hp.name:=stringdup(tobjectdef(def).vmt_mangledname);
-          hp.options:=hp.options+[eo_name];
-          exportlib.exportvar(hp);
+          if (oo_has_vmt in tobjectdef(def).objectoptions) then
+            begin
+              hp:=texported_item.create;
+              hp.name:=stringdup(tobjectdef(def).vmt_mangledname);
+              hp.options:=hp.options+[eo_name];
+              exportlib.exportvar(hp);
+            end;
+          if is_class(def) then
+            begin
+              hp:=texported_item.create;
+              hp.name:=stringdup(tobjectdef(def).rtti_mangledname(fullrtti));
+              hp.options:=hp.options+[eo_name];
+              exportlib.exportvar(hp);
+            end;
         end;
     end;
 
