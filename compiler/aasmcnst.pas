@@ -992,6 +992,8 @@ implementation
        dsopts:=[tcdssso_define];
        if tcalo_is_public_asm in options then
          include(dsopts,tcdssso_register_asmsym);
+       if tcalo_data_force_indirect in options then
+         include(dsopts,tcdssso_use_indirect);
        if tcalo_vectorized_dead_strip_start in options then
          begin
            { the start and end names are predefined }
@@ -1401,6 +1403,7 @@ implementation
    class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol;
      var
        name: TSymStr;
+       asmtype : TAsmsymtype;
      begin
        if start then
          name:=make_mangledname(basename,st,'START')
@@ -1408,7 +1411,11 @@ implementation
          name:=make_mangledname(basename,st,'END');
        if tcdssso_define in options then
          begin
-           result:=current_asmdata.DefineAsmSymbol(name,AB_GLOBAL,AT_DATA,voidpointertype);
+           if tcdssso_use_indirect in options then
+             asmtype:=AT_DATA_FORCEINDIRECT
+           else
+             asmtype:=AT_DATA;
+           result:=current_asmdata.DefineAsmSymbol(name,AB_GLOBAL,asmtype,voidpointertype);
            if tcdssso_register_asmsym in options then
              current_module.add_public_asmsym(result);
          end
