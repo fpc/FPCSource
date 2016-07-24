@@ -858,7 +858,7 @@ begin
        if assigned(pobjectvmt(vmt)^.parent) then
          vmt:=pobjectvmt(vmt)^.parent^
        else
-         exit;
+         vmt:=nil;
        {$endif}
    RunError(219);
 end;
