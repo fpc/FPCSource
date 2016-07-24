@@ -114,6 +114,7 @@ type
     Procedure TestStaticArrayTypedIndex;
     Procedure TestDynamicArray;
     Procedure TestDynamicArrayComment;
+    Procedure TestGenericArray;
     Procedure TestSimpleEnumerated;
     Procedure TestSimpleEnumeratedComment;
     Procedure TestSimpleEnumeratedComment2;
@@ -2835,6 +2836,20 @@ begin
   DoParseArray('array of integer','',Nil);
   AssertEquals('Array type','',TPasArrayType(TheType).IndexRange);
   AssertComment;
+end;
+
+procedure TTestTypeParser.TestGenericArray;
+begin
+  Add('Type');
+  Add('generic TArray<T> = array of T;');
+//  Writeln(source.text);
+  ParseDeclarations;
+  AssertEquals('One type definition',1,Declarations.Types.Count);
+  AssertEquals('First declaration is type definition.',TPasArrayType,TObject(Declarations.Types[0]).ClassType);
+  AssertEquals('First declaration has correct name.','TArray',TPasType(Declarations.Types[0]).Name);
+  FType:=TPasType(Declarations.Types[0]);
+  AssertEquals('Array type','',TPasArrayType(TheType).IndexRange);
+  AssertEquals('Generic Array type',True,TPasArrayType(TheType).IsGenericArray);
 end;
 
 procedure TTestTypeParser.TestSimpleEnumerated;

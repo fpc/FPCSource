@@ -68,6 +68,9 @@ const
   nParserArrayPropertiesCannotHaveDefaultValue = 2041;
   nParserDefaultPropertyMustBeArray = 2042;
   nParserUnknownProcedureType = 2043;
+  nParserGenericArray1Element = 2044;
+  nParserGenericClassOrArray = 2045;
+
 
 // resourcestring patterns of messages
 resourcestring
@@ -114,6 +117,8 @@ resourcestring
   SParserArrayPropertiesCannotHaveDefaultValue = 'Array properties cannot have default value';
   SParserDefaultPropertyMustBeArray = 'The default property must be an array property';
   SParserUnknownProcedureType = 'Unknown procedure type "%d"';
+  SParserGenericArray1Element = 'Generic arrays can have only 1 template element';
+  SParserGenericClassOrArray = 'Generic can only be used with classes or arrays';
 
 type
   TPasParserLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
@@ -2064,12 +2069,13 @@ var
   ResStrEl: TPasResString;
   TypeEl: TPasType;
   ClassEl: TPasClassType;
+  ArrEl : TPasArrayType;
   List: TFPList;
   i,j: Integer;
   VarEl: TPasVariable;
   ExpEl: TPasExportSymbol;
   PropEl : TPasProperty;
-  TypeName: String;
+  TypeName,ETN: String;
   PT : TProcType;
 
 begin
@@ -2255,21 +2261,44 @@ begin
           if CurBlock <> declType then
             ParseExcSyntaxError;
           TypeName := ExpectIdentifier;
-          ClassEl := TPasClassType(Engine.CreateElement(TPasClassType,TypeName,Declarations, Scanner.CurFilename, Scanner.CurRow));
-          ClassEl.ObjKind:=okGeneric;
+          List:=TFPList.Create;
           try
-            ReadGenericArguments(ClassEl.GenericTemplateTypes,ClassEl);
-          Except
+            ReadGenericArguments(List,Nil);
+            ExpectToken(tkEqual);
+            NextToken;
+            Case CurToken of
+              tkClass :
+                 begin
+                 ClassEl := TPasClassType(Engine.CreateElement(TPasClassType,TypeName,Declarations, Scanner.CurFilename, Scanner.CurRow));
+                 ClassEl.ObjKind:=okGeneric;
+                 For I:=0 to List.Count-1 do
+                   begin
+                   TPasElement(List[i]).Parent:=ClassEl;
+                   ClassEl.GenericTemplateTypes.Add(List[i]);
+                   end;
+                 NextToken;
+                 DoParseClassType(ClassEl);
+                 Declarations.Declarations.Add(ClassEl);
+                 Declarations.Classes.Add(ClassEl);
+                 CheckHint(classel,True);
+                 end;
+              tkArray:
+                 begin
+                 if List.Count<>1 then
+                   ParseExc(nParserGenericArray1Element,sParserGenericArray1Element);
+                 ArrEl:=TPasArrayType(ParseArrayType(Declarations,TypeName,pmNone));
+                 CheckHint(ArrEl,True);
+                 ArrEl.ElType.Release;
+                 ArrEl.elType:=TPasGenericTemplateType(List[0]);
+                 Declarations.Declarations.Add(ArrEl);
+                 Declarations.Types.Add(ArrEl);
+                 end;
+            else
+              ParseExc(nParserGenericClassOrArray,SParserGenericClassOrArray);
+            end;
+          finally
             List.Free;
-            Raise;
           end;
-          ExpectToken(tkEqual);
-          ExpectToken(tkClass);
-          NextToken;
-          DoParseClassType(ClassEl);
-          Declarations.Declarations.Add(ClassEl);
-          Declarations.Classes.Add(ClassEl);
-          CheckHint(classel,True);
         end;
       tkbegin:
         begin

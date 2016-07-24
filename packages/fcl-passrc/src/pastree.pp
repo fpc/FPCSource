@@ -134,7 +134,7 @@ type
     procedure Accept(Visitor: TPassTreeVisitor); override;
     property RefCount: LongWord read FRefCount;
     property Name: string read FName write FName;
-    property Parent: TPasElement read FParent;
+    property Parent: TPasElement read FParent Write FParent;
     Property Hints : TPasMemberHints Read FHints Write FHints;
     Property CustomData : TObject Read FData Write FData;
     Property HintMessage : String Read FHintMessage Write FHintMessage;
@@ -428,6 +428,7 @@ type
     IndexRange : string;
     PackMode : TPackMode;
     ElType: TPasType;
+    Function IsGenericArray : Boolean;
     Function IsPacked : Boolean;
   end;
 
@@ -512,7 +513,7 @@ type
     Function IsAdvancedRecord : Boolean;
   end;
 
-  TPasGenericTemplateType = Class(TPasElement);
+  TPasGenericTemplateType = Class(TPasType);
   TPasObjKind = (okObject, okClass, okInterface, okGeneric, okSpecialize,
                  okClassHelper,okRecordHelper,okTypeHelper);
 
@@ -2559,6 +2560,11 @@ begin
     Result:=Name+' = '+Result;
     ProcessHints(False,Result);
     end;
+end;
+
+function TPasArrayType.IsGenericArray: Boolean;
+begin
+  Result:=elType is TPasGenericTemplateType;
 end;
 
 function TPasArrayType.IsPacked: Boolean;
