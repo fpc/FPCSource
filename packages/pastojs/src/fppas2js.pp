@@ -23,6 +23,7 @@ uses
 
 Type
   EPas2JS = Class(Exception);
+
   { TPasToJSConverter }
   TConvertContext = Class(TObject)
 
@@ -59,7 +60,7 @@ Type
     Function CreateProcedureDeclaration(const El: TPasElement):TJSFunctionDeclarationStatement;
     Function CreateUnary(ms: array of string; E: TJSElement): TJSUnary;
     Function CreateMemberExpression(ms: array of string): TJSDotMemberExpression;
-    Procedure Addproceduretoclass(sl: TJSStatementList; E: TJSElement;const P: TPasProcedure);
+    Procedure AddProcedureToClass(sl: TJSStatementList; E: TJSElement;const P: TPasProcedure);
     Function GetFunctionDefinitionInUnary(const fd: TJSFunctionDeclarationStatement;const funname: string; inunary: boolean): TJSFunctionDeclarationStatement;
     Function GetFunctionUnaryName(var je: TJSElement;var fundec: TJSFunctionDeclarationStatement): TJSString;
     // Statements
@@ -141,7 +142,8 @@ Var
   A : TJSElement;
 
 begin
-  Repeat
+  While El<>nil do
+  begin
     if Not (EL is TJSStatementList) then
       begin
       A:=EL;
@@ -157,13 +159,12 @@ begin
       FreeAndNil(L);
       end;
     Src.Statements.AddNode.Node:=A;
-  until (El=Nil);
+  end;
 end;
 
 Function TPasToJSConverter.ConvertModule(El: TPasModule; AContext : TConvertContext): TJSElement;
 
 Var
-  I : Integer;
   Src : TJSSourceElements;
 
 begin
@@ -201,7 +202,6 @@ end;
 Function TPasToJSConverter.ConvertUnaryExpression(El: TUnaryExpr; AContext : TConvertContext): TJSElement;
 
 Var
-  C : TJSElementClass;
   U : TJSUnaryExpression;
   E : TJSElement;
 
@@ -225,29 +225,9 @@ end;
 
 Function TPasToJSConverter.ConvertCallExpression(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
-Var
-  C : TJSElementClass;
-  U : TJSUnaryExpression;
-  E : TJSElement;
-  Id : TJSPrimaryExpressionIdent;
-
 begin
   Raise EPasToJS.CreateFmt(SErrUnexpected,[EL.ClassName]);
-  Result:=Nil;
-  ID:=TJSPrimaryExpressionIdent(CreateElement(TJSPrimaryExpressionIdent,EL));
-  Case el.OpCode of
-    eopAdd:
-      begin
-      U:=TJSUnaryPlusExpression(CreateElement(TJSUnaryPlusExpression,El));
-      U.A:=E;
-      end;
-    eopSubtract:
-      begin
-      U:=TJSUnaryPlusExpression(CreateElement(TJSUnaryMinusExpression,El));
-      U.A:=E;
-      end;
-  end;
-  Result:=U;
+  Result:=nil;
 end;
 
 Function TPasToJSConverter.TransFormStringLiteral(S: String): String;
@@ -540,7 +520,7 @@ end;
 Function TPasToJSConverter.ConvertParamsExpression(El: TParamsExpr; AContext : TConvertContext): TJSElement;
 
 Var
-  b,B2 : TJSBracketMemberExpression;
+  b: TJSBracketMemberExpression;
   C : TJSCallExpression;
   I : Integer;
   E : TJSElement;
@@ -705,6 +685,9 @@ Var
   end;
 
 begin
+  if (El.Declarations.Count=0) then
+    exit(nil);
+
   SL:=TJSStatementList(CreateElement(TJSStatementList,El));
   Result:=SL;
   For I:=0 to El.Declarations.Count-1 do
@@ -722,7 +705,7 @@ begin
     else
       DoError('Unknown class: "%s" ',[P.ClassName]);
     if (Pos('.', P.Name) > 0) then
-      Addproceduretoclass(TJSStatementList(Result), E, P as TPasProcedure)
+      AddProcedureToClass(TJSStatementList(Result), E, P as TPasProcedure)
     else
     AddToSL;
     end;
@@ -784,13 +767,11 @@ var
   FD: TJSFuncDef;
   cons: TJSFunctionDeclarationStatement;
   FS: TJSFunctionDeclarationStatement;
-  memname: string;
-  ctname: string;
   tmember: TPasElement;
   j: integer;
   ret: TJSReturnStatement;
 begin
-  ctname := El.FullName;
+  //ctname := El.FullName;
   unary := TJSUnary(CreateElement(TJSUnary,El));
   asi := TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
   unary.A := asi;
@@ -827,7 +808,7 @@ begin
   for j := 0 to El.Members.Count - 1 do
   begin
     tmember := TPasElement(El.Members[j]);
-    memname := tmember.FullName;
+    //memname := tmember.FullName;
     je := ConvertClassMember(tmember, AContext);
     if Assigned(je) then
       TJSSourceElements(FD.Body.A).Statements.AddNode.Node := je;
@@ -846,7 +827,6 @@ function TPasToJSConverter.ConvertClassMember(El: TPasElement;
   AContext: TConvertContext): TJSElement;
 var
   FS: TJSFunctionDeclarationStatement;
-  par: string;
 begin
   Result := nil;
   if (El is TPasProcedure) and (not (El is TPasConstructor)) then
@@ -1116,8 +1096,6 @@ Function TPasToJSConverter.ConvertVariable(El: TPasVariable; AContext : TConvert
 Var
   V : TJSVarDeclaration;
   T : TPasType;
-  L : TJSLiteral;
-
 begin
   V:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
   V.Name:=TransFormVariableName(EL,AContext);
@@ -1441,7 +1419,6 @@ function TPasToJSConverter.CreateUnary(ms: array of string; E: TJSElement): TJSU
 var
   unary: TJSUnary;
   asi: TJSSimpleAssignStatement;
-  mem1: TJSDotMemberExpression;
 begin
   unary := TJSUnary.Create(0, 0, '');
   //mainbody.A:=unary;
@@ -1455,31 +1432,28 @@ end;
 function TPasToJSConverter.CreateMemberExpression(ms: array of string): TJSDotMemberExpression;
 var
   pex: TJSPrimaryExpressionIdent;
-  mem2: TJSDotMemberExpression;
-  mem1: TJSDotMemberExpression;
+  MExpr: TJSDotMemberExpression;
+  LastMExpr: TJSDotMemberExpression;
   k: integer;
-  m: string;
 begin
   if Length(ms) < 2 then
-    DoError('member exprision with les than two member');
-  k := 0;
-  for m in ms do
+    DoError('member expression with less than two members');
+  LastMExpr := nil;
+  for k:=Low(ms) to High(ms)-1 do
   begin
-    mem1 := mem2;
-    mem2 := TJSDotMemberExpression.Create(0, 0, '');
-    mem2.Name := ms[k];
+    MExpr := TJSDotMemberExpression.Create(0, 0, '');
+    MExpr.Name := ms[k];
     if k = 0 then
-      Result := mem2
+      Result := MExpr
     else
-      mem1.Mexpr := mem2;
-    Inc(k);
+      LastMExpr.Mexpr := MExpr;
+    LastMExpr := MExpr;
   end;
-  mem2.Free;
   pex := TJSPrimaryExpressionIdent.Create(0, 0, '');
-  pex.Name := ms[k - 1];
-  mem1.Mexpr := pex;
+  pex.Name := ms[High(ms)];
+  LastMExpr.Mexpr := pex;
 end;
-Procedure TPasToJSConverter.Addproceduretoclass(sl: TJSStatementList;
+Procedure TPasToJSConverter.AddProcedureToClass(sl: TJSStatementList;
   E: TJSElement; const P: TPasProcedure);
 var
   clname, funname, varname: string;
@@ -1693,7 +1667,9 @@ begin
   else if (EL is TPasImplCommands) then
     Result:=ConvertCommands(TPasImplCommands(El),AContext)
   else if (EL is TPasImplLabelMark) then
-    Result:=ConvertLabelMark(TPasImplLabelMark(El),AContext);
+    Result:=ConvertLabelMark(TPasImplLabelMark(El),AContext)
+  else
+    Result:=nil;
 end;
 
 Procedure TPasToJSConverter.DoError(Const Msg: String);
