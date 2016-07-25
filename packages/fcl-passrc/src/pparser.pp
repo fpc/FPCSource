@@ -305,6 +305,7 @@ type
     procedure ParseUnit(var Module: TPasModule);
     procedure ParseProgram(var Module: TPasModule; SkipHeader : Boolean = False);
     procedure ParseLibrary(var Module: TPasModule);
+    procedure ParseOptionalUsesList(ASection: TPasSection);
     procedure ParseUsesList(ASection: TPasSection);
     procedure ParseInterface;
     procedure ParseImplementation;
@@ -1920,6 +1921,7 @@ begin
       end;
     Section := TProgramSection(CreateElement(TProgramSection, '', CurModule));
     PP.ProgramSection := Section;
+    ParseOptionalUsesList(Section);
     ParseDeclarations(Section);
   finally
     FCurModule:=nil;
@@ -1947,10 +1949,21 @@ begin
         ParseExcTokenError(';');
     Section := TLibrarySection(CreateElement(TLibrarySection, '', CurModule));
     PP.LibrarySection := Section;
+    ParseOptionalUsesList(Section);
     ParseDeclarations(Section);
   finally
     FCurModule:=nil;
   end;
+end;
+
+procedure TPasParser.ParseOptionalUsesList(ASection: TPasSection);
+// checks if next token is Uses keyword and read uses list
+begin
+  NextToken;
+  if CurToken=tkuses then
+    ParseUsesList(ASection)
+  else
+    UngetToken;
 end;
 
 // Starts after the "interface" token
@@ -1960,6 +1973,7 @@ var
 begin
   Section := TInterfaceSection(CreateElement(TInterfaceSection, '', CurModule));
   CurModule.InterfaceSection := Section;
+  ParseOptionalUsesList(Section);
   ParseDeclarations(Section);
 end;
 
@@ -1970,6 +1984,7 @@ var
 begin
   Section := TImplementationSection(CreateElement(TImplementationSection, '', CurModule));
   CurModule.ImplementationSection := Section;
+  ParseOptionalUsesList(Section);
   ParseDeclarations(Section);
 end;
 
@@ -2118,8 +2133,10 @@ begin
           break;
           end;
       tkUses:
-        if Declarations is TPasSection then
-          ParseUsesList(TPasSection(Declarations))
+        if Declarations.ClassType=TInterfaceSection then
+          ParseExcTokenError(TokenInfos[tkimplementation])
+        else if Declarations is TPasSection then
+          ParseExcTokenError(TokenInfos[tkend])
         else
           ParseExcSyntaxError;
       tkConst:
