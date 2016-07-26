@@ -70,6 +70,7 @@ const
   nParserUnknownProcedureType = 2043;
   nParserGenericArray1Element = 2044;
   nParserGenericClassOrArray = 2045;
+  nParserDuplicateIdentifier = 2046;
 
 
 // resourcestring patterns of messages
@@ -119,6 +120,7 @@ resourcestring
   SParserUnknownProcedureType = 'Unknown procedure type "%d"';
   SParserGenericArray1Element = 'Generic arrays can have only 1 template element';
   SParserGenericClassOrArray = 'Generic can only be used with classes or arrays';
+  SParserDuplicateIdentifier = 'Duplicate identifier "%s"';
 
 type
   TPasParserLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
@@ -600,6 +602,7 @@ end;
 
 function TPasTreeContainer.FindModule(const AName: String): TPasModule;
 begin
+  if AName='' then ;
   Result := nil;
 end;
 
@@ -2347,8 +2350,24 @@ end;
 // Starts after the "uses" token
 procedure TPasParser.ParseUsesList(ASection: TPasSection);
 
+  procedure CheckDuplicateInUsesList(AUnitName : string; UsesList: TFPList);
+  var
+    i: Integer;
+  begin
+    if UsesList=nil then exit;
+    for i:=0 to UsesList.Count-1 do
+      if CompareText(AUnitName,TPasModule(UsesList[i]).Name)=0 then
+        ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
+  end;
+
   function CheckUnit(AUnitName : string):TPasElement;
   begin
+    if CompareText(AUnitName,CurModule.Name)=0 then
+      ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
+    CheckDuplicateInUsesList(AUnitName,ASection.UsesList);
+    if ASection.ClassType=TImplementationSection then
+      CheckDuplicateInUsesList(AUnitName,CurModule.InterfaceSection.UsesList);
+
     result := Engine.FindModule(AUnitName);  // should we resolve module here when "IN" filename is not known yet?
     if Assigned(result) then
       result.AddRef
@@ -2371,7 +2390,7 @@ begin
     end;
 
   Repeat
-    AUnitName := ExpectIdentifier; 
+    AUnitName := ExpectIdentifier;
     NextToken;
     while CurToken = tkDot do
     begin
