@@ -620,7 +620,7 @@ begin
         else
           begin
             if Status.CurrentSource='' then
-              StatusS:=''
+              StatusS:='      '
             else
               begin
                 StatusS:=ShrinkPath(SmartPath(DirAndNameOf(Status.Currentsourcepath+Status.CurrentSource)),
