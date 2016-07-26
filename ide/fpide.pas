@@ -794,14 +794,14 @@ end;
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean;
 begin
-  IDEUseSyntaxHighlight:=(Editor^.IsFlagSet(efSyntaxHighlight)) and ((Editor^.FileName='') or MatchesFileList(NameAndExtOf(Editor^.FileName),HighlightExts));
+  IDEUseSyntaxHighlight:=(Editor^.IsFlagSet(efSyntaxHighlight)) and ((Editor^.FileName='') or MatchesMaskList(NameAndExtOf(Editor^.FileName),HighlightExts));
 end;
 
 function IDEUseTabsPattern(Editor: PFileEditor): boolean;
 begin
   { the commented code lead all new files
     to become with TAB use enabled which is wrong in my opinion PM }
-  IDEUseTabsPattern:={(Editor^.FileName='') or }MatchesFileList(NameAndExtOf(Editor^.FileName),TabsPattern);
+  IDEUseTabsPattern:={(Editor^.FileName='') or }MatchesMaskList(NameAndExtOf(Editor^.FileName),TabsPattern);
 end;
 
 constructor TIDEApp.Init;

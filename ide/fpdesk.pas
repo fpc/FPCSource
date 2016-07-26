@@ -356,7 +356,8 @@ end;
 function DeskUseSyntaxHighlight(Editor: PFileEditor): boolean;
 var b : boolean;
 begin
-  b:= (*(Editor^.IsFlagSet(efSyntaxHighlight)) and *) ((Editor^.FileName='') or MatchesFileList(NameAndExtOf(Editor^.FileName),HighlightExts));
+  b:= (*(Editor^.IsFlagSet(efSyntaxHighlight)) and *) ((Editor^.FileName='') or
+      MatchesMaskList(NameAndExtOf(Editor^.FileName),HighlightExts));
   DeskUseSyntaxHighlight:=b;
 end;
 
