@@ -4272,7 +4272,11 @@ begin
   if pos('Fake',GDBVersion)=0 then
     begin
       R2.Move(0,1);
+      {$ifdef GDBMI}
+      Insert(New(PStaticText, Init(R2, FormatStrStr2(^C'(%s %s, using MI interface)',label_about_debugger,GDBVersion))));
+      {$else}
       Insert(New(PStaticText, Init(R2, FormatStrStr2(^C'(%s %s)',label_about_debugger,GDBVersion))));
+      {$endif}
       R2.Move(0,1);
     end
   else
