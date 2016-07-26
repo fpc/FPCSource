@@ -4,7 +4,7 @@ program testjs;
 
 uses
   cwstring,Classes, consoletestrunner, tcscanner, jsparser, jsscanner, jstree, jsbase,
-  tcparser, jswriter, tctextwriter, tcwriter, jstoken;
+  tcparser, jswriter, tcwriter, jstoken;
 
 var
   Application: TTestRunner;

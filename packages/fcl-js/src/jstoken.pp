@@ -8,7 +8,7 @@ type
 
   TJSToken = (tjsUnknown,
      // Specials
-     tjsEOF,tjsWhiteSpace,tjsChar,tjsString, tjsIdentifier,tjsNumber, tjsComment,tjsREGEX, tjsRESERVED,
+     tjsEOF,tjsWhiteSpace,tjsChar,tjsString{this bites TJSString}, tjsIdentifier,tjsNumber, tjsComment,tjsREGEX, tjsRESERVED,
      tjsANDAND, tjsANDEQ,
      tjsBraceOpen,tjsBraceClose,tjsSQuaredBraceOpen,tjsSQuaredBraceClose,tjsCurlyBraceOpen,tjsCurlyBraceClose,
      tjsCOMMA,tjsCOLON,  tjsDOT,tjsSEMICOLON, tjsASSIGN,tjsGT,tjsLT, tjsConditional,

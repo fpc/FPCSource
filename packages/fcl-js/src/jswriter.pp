@@ -622,13 +622,10 @@ end;
 
 Procedure TJSWriter.WriteMemberExpression(el : TJSMemberExpression);
 
-Var
-  I : integer;
-  A : TJSArguments;
 begin
   if el is TJSNewMemberExpression then
     Write('new ');
-  WriteJS(el.mexpr);
+  WriteJS(el.MExpr);
   if el is TJSDotMemberExpression then
     begin
     write('.');
@@ -651,9 +648,6 @@ end;
 
 Procedure TJSWriter.WriteCallExpression(El : TJSCallExpression);
 
-Var
-  I : integer;
-  A : TJSArguments;
 begin
   WriteJS(El.Expr);
   if Assigned(El.Args) then
@@ -743,21 +737,19 @@ Procedure TJSWriter.WriteBinary(El : TJSBinary);
 
 Var
   S : AnsiString;
-  B : Boolean;
-  T : TJSToken;
-
+  AllowCompact : Boolean;
 begin
   Write('(');
   WriteJS(EL.A);
-  B:=False;
+  AllowCompact:=False;
   if (el is TJSBinaryExpression) then
     begin
     S:=TJSBinaryExpression(El).OperatorString;
-    B:=TJSBinaryExpression(El).AllowCompact;
+    AllowCompact:=TJSBinaryExpression(El).AllowCompact;
     end;
-  If Not (B and (woCompact in Options)) then
+  If Not (AllowCompact and (woCompact in Options)) then
     S:=' '+S+' ';
-  Write(s);
+  Write(S);
   WriteJS(EL.B);
   Write(')');
 end;
@@ -778,7 +770,6 @@ Procedure TJSWriter.WriteAssignStatement(El : TJSAssignStatement);
 
 Var
   S : AnsiString;
-  T : TJSToken;
 begin
   WriteJS(EL.LHS);
   S:=El.OperatorString;
@@ -823,7 +814,7 @@ begin
   if Assigned(El.List) then
     WriteJS(El.List);
   Write(') ');
-  if Assigned(El.body) then
+  if Assigned(El.Body) then
     WriteJS(El.Body);
 end;
 
@@ -840,7 +831,7 @@ begin
   if Assigned(El.Incr) then
     WriteJS(El.Incr);
   Write(') ');
-  if Assigned(El.body) then
+  if Assigned(El.Body) then
     WriteJS(El.Body);
 end;
 
@@ -851,7 +842,7 @@ begin
   if El is TJSDoWhileStatement then
     begin
     Write('do ');
-    if Assigned(El.body) then
+    if Assigned(El.Body) then
       WriteJS(El.Body);
     Write(' while (');
     If Assigned(El.Cond) then
@@ -864,7 +855,7 @@ begin
     If Assigned(El.Cond) then
       WriteJS(EL.Cond);
     Write(') ');
-    if Assigned(El.body) then
+    if Assigned(El.Body) then
       WriteJS(El.Body);
     end;
 end;
