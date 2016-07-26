@@ -4802,8 +4802,13 @@ begin
 end;
 
 procedure TCustomCodeEditor.BreakLine;
+var
+  SCP: TPoint;
 begin
-  NotImplemented; Exit;
+  { Like insert new line, but leave current pos unchanged }
+  SCP:=CurPos;
+  InsertNewLine;
+  SetCurPtr(SCP.X,SCP.Y);
 end;
 
 procedure TCustomCodeEditor.BackSpace;
