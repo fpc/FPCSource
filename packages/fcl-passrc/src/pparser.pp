@@ -257,6 +257,8 @@ type
     function DoParseExpression(Aparent : TPaselement;InitExpr: TPasExpr=nil): TPasExpr;
     function DoParseConstValueExpression(AParent : TPasElement): TPasExpr;
     function CheckPackMode: TPackMode;
+    function CheckUseUnit(ASection: TPasSection; AUnitName : string): TPasElement;
+    procedure CheckImplicitUsedUnits(ASection: TPasSection);
     // Overload handling
     procedure AddProcOrFunction(Decs: TPasDeclarations; AProc: TPasProcedure);
     function  CheckIfOverloaded(AParent: TPasElement; const AName: String): TPasElement;
@@ -1965,8 +1967,10 @@ begin
   NextToken;
   if CurToken=tkuses then
     ParseUsesList(ASection)
-  else
+  else begin
+    CheckImplicitUsedUnits(ASection);
     UngetToken;
+  end;
 end;
 
 // Starts after the "interface" token
@@ -2347,8 +2351,8 @@ begin
   end;
 end;
 
-// Starts after the "uses" token
-procedure TPasParser.ParseUsesList(ASection: TPasSection);
+function TPasParser.CheckUseUnit(ASection: TPasSection; AUnitName: string
+  ): TPasElement;
 
   procedure CheckDuplicateInUsesList(AUnitName : string; UsesList: TFPList);
   var
@@ -2360,34 +2364,41 @@ procedure TPasParser.ParseUsesList(ASection: TPasSection);
         ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
   end;
 
-  function CheckUnit(AUnitName : string):TPasElement;
-  begin
-    if CompareText(AUnitName,CurModule.Name)=0 then
-      ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
-    CheckDuplicateInUsesList(AUnitName,ASection.UsesList);
-    if ASection.ClassType=TImplementationSection then
-      CheckDuplicateInUsesList(AUnitName,CurModule.InterfaceSection.UsesList);
+begin
+  if CompareText(AUnitName,CurModule.Name)=0 then
+    ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
+  CheckDuplicateInUsesList(AUnitName,ASection.UsesList);
+  if ASection.ClassType=TImplementationSection then
+    CheckDuplicateInUsesList(AUnitName,CurModule.InterfaceSection.UsesList);
 
-    result := Engine.FindModule(AUnitName);  // should we resolve module here when "IN" filename is not known yet?
-    if Assigned(result) then
-      result.AddRef
-    else
-      Result := TPasType(CreateElement(TPasUnresolvedUnitRef, AUnitName,
-        ASection));
-    ASection.UsesList.Add(Result);
-  end;
+  result := Engine.FindModule(AUnitName);  // should we resolve module here when "IN" filename is not known yet?
+  if Assigned(result) then
+    result.AddRef
+  else
+    Result := TPasType(CreateElement(TPasUnresolvedUnitRef, AUnitName,
+      ASection));
+  ASection.UsesList.Add(Result);
+end;
 
+procedure TPasParser.CheckImplicitUsedUnits(ASection: TPasSection);
 var
-  AUnitName: String;
-  Element: TPasElement;
   i: Integer;
 begin
-  If not (Asection.ClassType=TImplementationSection) Then // interface,program,library,package
+  If not (ASection.ClassType=TImplementationSection) Then // interface,program,library,package
     begin
     // load implicit units, like 'System'
     for i:=0 to ImplicitUses.Count-1 do
-      CheckUnit(ImplicitUses[i]);
+      CheckUseUnit(ASection,ImplicitUses[i]);
     end;
+end;
+
+// Starts after the "uses" token
+procedure TPasParser.ParseUsesList(ASection: TPasSection);
+var
+  AUnitName: String;
+  Element: TPasElement;
+begin
+  CheckImplicitUsedUnits(ASection);
 
   Repeat
     AUnitName := ExpectIdentifier;
@@ -2398,7 +2409,7 @@ begin
       AUnitName := AUnitName + '.' + CurTokenString;
       NextToken;
     end;
-    Element := CheckUnit(AUnitName);
+    Element := CheckUseUnit(ASection,AUnitName);
     if (CurToken=tkin) then
       begin
       ExpectToken(tkString);
