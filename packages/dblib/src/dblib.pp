@@ -22,6 +22,7 @@
                     7.1 - MS SQL Server 2000 (*default*)
                     7.2 - MS SQL Server 2005
                     7.3 - MS SQL Server 2008
+                    7.4 - MS SQL Server 2012/2014
       tds version can be set using env.var. TDSVER or in freetds.conf or .freetds.conf
 }
 unit dblib;
@@ -59,6 +60,7 @@ const
   DBVERSION_71 = 5;
   DBVERSION_72 = 6;
   DBVERSION_73 = 7;
+  DBVERSION_74 = 8;
 
   //DBTDS_xxx are returned by DBTDS()
   DBTDS_UNKNOWN= 0;
@@ -68,6 +70,7 @@ const
   DBTDS_71     = 9;  // Microsoft SQL Server 2000
   DBTDS_72     = 10; // Microsoft SQL Server 2005
   DBTDS_73     = 11; // Microsoft SQL Server 2008
+  DBTDS_74     = 12; // Microsoft SQL Server 2012/2014
 
   //from sqlfront.h , sybdb.h for FreeTDS
   DBSETHOST=1;
@@ -102,6 +105,9 @@ const
   DBANSItoOEM  = 14;
   DBOEMtoANSI  = 15;
   DBQUOTEDIDENT= {$IFDEF freetds}35{$ELSE}18{$ENDIF};
+  // settings from here are purely FreeTDS extensions:
+  DBSETUTF16   = 1001;
+  DBSETNTLMV2  = 1002;
 
   TIMEOUT_IGNORE=-1;
   TIMEOUT_INFINITE=0;
@@ -195,6 +201,9 @@ type
   DBSMALLINT=smallint;   // 16-bit int (short)
   DBUSMALLINT=word;      // 16-bit unsigned int (unsigned short)
   DBINT=longint;         // 32-bit int (int)
+  DBUINT=longword;       // 32-bit unsigned int
+  DBBIGINT=int64;        // 64-bit integer
+  DBUBIGINT=qword;       // 64-bit unsigned
   DBFLT8=double;         // 64-bit real (double)
   DBBINARY=byte;
 
@@ -206,9 +215,9 @@ type
   PDBDATETIME=^DBDATETIME;
 
   DBDATETIMEALL=record
-    time: qword;         // time, 7 digit precision (64-bit unsigned)
-    date: longint;       // date, 0 = 1900-01-01 (32-bit int)
-    offset: smallint;    // time offset (16-bit int)
+    time: DBUBIGINT;     // time, 7 digit precision (64-bit unsigned)
+    date: DBINT;         // date, 0 = 1900-01-01 (32-bit int)
+    offset: DBSMALLINT;  // time offset (16-bit int)
     info: word;          // unsigned short time_prec:3;
                          // unsigned short _res:10;
                          // unsigned short has_time:1;
@@ -249,10 +258,26 @@ type
       minute: INT;      // 0 - 59
       second: INT;      // 0 - 59
       millisecond: INT; // 0 - 999
-      tzone: INT;       // 0 - 127 (Sybase only!)
+      tzone: INT;       // -840 - 840
     );
   end;
   PDBDATEREC=^DBDATEREC;
+
+  DBDATEREC2 = record
+    year: DBINT;        // 1753 - 9999
+    quarter: DBINT;     // 1 - 4
+    month: DBINT;       // 1 - 12
+    day: DBINT;         // 1 - 31
+    dayofyear: DBINT;   // 1 - 366
+    week: DBINT;        // 1 - 54 (for leap years)
+    weekday: DBINT;     // 1 - 7 (Mon. - Sun.)
+    hour: DBINT;        // 0 - 23
+    minute: DBINT;      // 0 - 59
+    second: DBINT;      // 0 - 59
+    nanosecond: DBINT;  // 0 - 999999999
+    tzone: DBINT;       // 0 - 127  (Sybase only)
+  end;
+  PDBDATEREC2=^DBDATEREC2;
 
   DBMONEY=record
     mnyhigh: DBINT;
@@ -396,6 +421,7 @@ var
   {$ENDIF}
   {$IFDEF freetds}
   tdsdbopen: function(login:PLOGINREC; servername:PAnsiChar; msdblib:INT):PDBPROCESS; cdecl;
+  dbanydatecrack: function(dbproc:PDBPROCESS; di: PDBDATEREC2; typ: INT; data: pointer):RETCODE; cdecl;
   dbtablecolinfo: function(dbproc:PDBPROCESS; column:DBINT; dbcol:PDBCOL):RETCODE; cdecl;
   dbtds: function(dbproc:PDBPROCESS):INT; cdecl;
   dbsetlversion: function(login:PLOGINREC; version:BYTE):RETCODE; cdecl;
