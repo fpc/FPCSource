@@ -37,10 +37,12 @@ Type
     FNameSpace: TJSString;
     Procedure AddToSourceElements(Src: TJSSourceElements; El: TJSElement);
     Function CreateConstDecl(El: TPasConst; AContext: TConvertContext): TJSElement;
-    Function CreateIdentifierExpr(AName: string; El: TPasElement; AContext: TConvertContext): TJSElement;
+    Function CreateBuiltInIdentifierExpr(AName: string): TJSPrimaryExpressionIdent;
+    Function CreateIdentifierExpr(AName: string; El: TPasElement; AContext: TConvertContext): TJSPrimaryExpressionIdent;
     Function CreateTypeDecl(El: TPasType; AContext: TConvertContext): TJSElement;
     Function CreateVarDecl(El: TPasVariable; AContext: TConvertContext): TJSElement;
     procedure SetCurrentContext(AValue: TJSElement);
+    procedure RaiseNotYetImplemented(El: TPasElement; AContext: TConvertContext);
   protected
     // helper functions
     Procedure DoError(Const Msg : String);
@@ -48,22 +50,23 @@ Type
     // Never create an element manually, always use the below function
     Function CreateElement(C: TJSElementClass; Src: TPasElement): TJSElement; virtual;
     Function GetExpressionValueType(El: TPasExpr; AContext: TConvertContext ): TJSType; virtual;
-    Function GetIdentValueType(AName: String; AContext: TConvertContext): TJSType; virtual;
-    Function TransFormIdent(El: TJSPrimaryExpressionIdent; AContext : TConvertContext): TJSElement;virtual;
+    Function GetPasIdentValueType(AName: String; AContext: TConvertContext): TJSType; virtual;
+    Function TransFormIdent(El: TJSPrimaryExpressionIdent; AContext : TConvertContext): TJSPrimaryExpressionIdent;virtual;
     Function CreateJSContext(AContext : TConvertContext): TJSElement;virtual;
     Function TransformVariableName(Const AName :  String; AContext : TConvertContext) : String;
     Function TransformVariableName(El : TPasElement; AContext : TConvertContext) : String;
     Function TransformFunctionName(El : TPasElement; AContext : TConvertContext) : String;
     Function GetExceptionObjectName(AContext : TConvertContext) : string;
     Function ResolveType(El : TPasElement; AContext : TConvertContext) : TPasType;
-    Function CreateCallStatement(const CallName: string;para: array of string): TJSCallExpression;
-    Function CreateCallStatement(const pex2: TJSElement;para: array of string): TJSCallExpression;
+    Function CreateCallStatement(const JSCallName: string; JSArgs: array of string): TJSCallExpression;
+    Function CreateCallStatement(const FunNameEx: TJSElement; JSArgs: array of string): TJSCallExpression;
     Function CreateProcedureDeclaration(const El: TPasElement):TJSFunctionDeclarationStatement;
     Function CreateUnary(ms: array of string; E: TJSElement): TJSUnary;
-    Function CreateMemberExpression(ms: array of string): TJSDotMemberExpression;
+    Function CreateMemberExpression(ReversedValues: array of string): TJSDotMemberExpression;
     Procedure AddProcedureToClass(sl: TJSStatementList; E: TJSElement;const P: TPasProcedure);
     Function GetFunctionDefinitionInUnary(const fd: TJSFunctionDeclarationStatement;const funname: TJSString; inunary: boolean): TJSFunctionDeclarationStatement;
     Function GetFunctionUnaryName(var je: TJSElement;out fundec: TJSFunctionDeclarationStatement): TJSString;
+    Function CreateUsesList(UsesList: TFPList; AContext : TConvertContext): TJSArrayLiteral;
     // Statements
     Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext): TJSElement;virtual;
     Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext): TJSElement;virtual;
@@ -184,24 +187,86 @@ function TPasToJSConverter.ConvertModule(El: TPasModule;
 *)
 Var
   Src : TJSSourceElements;
+  RegModuleCall: TJSCallExpression;
+  ArgArray: TJSArguments;
+  UsesList: TFPList;
+  FunDef: TJSFuncDef;
+  FunBody: TJSFunctionBody;
+  FunDecl: TJSFunctionDeclarationStatement;
+  ArgEx: TJSLiteral;
 begin
   Result:=Nil;
-  Src:=TJSSourceElements(CreateElement(TJSSourceElements,El));
-  Result:=Src;
-  if Assigned(El.InterfaceSection) then
-    AddToSourceElements(Src,ConvertElement(El.InterfaceSection,AContext));
-  if assigned(El.ImplementationSection) then
-    AddToSourceElements(Src,ConvertElement(El.ImplementationSection,AContext));
-  if (El is TPasProgram) then
+  if (El.ClassType=TPasModule) or (El is TPasUnitModule) then
     begin
-    if Assigned(TPasProgram(El).ProgramSection) then
-      AddToSourceElements(Src,ConvertElement(TPasProgram(El).ProgramSection,AContext));
+      // create 'rtl.module(...)'
+      // ToDo: fix missing semicolon
+      RegModuleCall:=TJSCallExpression(CreateElement(TJSCallExpression,El));
+      Result:=RegModuleCall;
+      RegModuleCall.Expr:=CreateMemberExpression(['module','rtl']);
+      ArgArray := TJSArguments.Create(0, 0, '');
+      RegModuleCall.Args:=ArgArray;
+
+      // add parameter: unitname
+      ArgEx := TJSLiteral.Create(0,0,'');
+      ArgEx.Value.AsString:=TJSString(TransformVariableName(El.Name,AContext));
+      ArgArray.Elements.AddElement.Expr:=ArgEx;
+
+      // add parameter: [<interface uses1>,<uses2>, ...]
+      UsesList:=nil;
+      if Assigned(El.InterfaceSection) then
+        UsesList:=El.InterfaceSection.UsesList;
+      ArgArray.Elements.AddElement.Expr:=CreateUsesList(UsesList,AContext);
+
+      // add parameter: function(uses, unit){}
+      FunDecl:=TJSFunctionDeclarationStatement.Create(0,0,'');
+      ArgArray.Elements.AddElement.Expr:=FunDecl;
+      FunDef:=TJSFuncDef.Create;
+      FunDecl.AFunction:=FunDef;
+      FunDef.Name:='';
+      FunDef.Params.Add('uses');
+      FunDef.Params.Add('unit');
+      FunBody:=TJSFunctionBody.Create(0,0,'');
+      FunDef.Body:=FunBody;
+      Src:=TJSSourceElements(CreateElement(TJSSourceElements, El));
+      FunBody.A:=Src;
+
+      // add interface
+      if Assigned(El.InterfaceSection) then
+        AddToSourceElements(Src,ConvertElement(El.InterfaceSection,AContext));
+      // ToDo: prefix/enclose implementation section
+      if Assigned(El.ImplementationSection) then
+        AddToSourceElements(Src,ConvertElement(El.ImplementationSection,AContext));
+      // ToDo: prefix/enclose initialization section
+      if Assigned(El.InitializationSection) then
+        AddToSourceElements(Src,ConvertElement(El.InitializationSection,AContext));
+      if Assigned(El.FinalizationSection) then
+        raise Exception.Create('TPasToJSConverter.ConvertModule: finalization section is not supported');
+
+      // add parameter: [<implementation uses1>,<uses2>, ...]
+      UsesList:=nil;
+      if Assigned(El.ImplementationSection) then
+        UsesList:=El.ImplementationSection.UsesList;
+      ArgArray.Elements.AddElement.Expr:=CreateUsesList(UsesList,AContext);
+    end
+  else
+    begin
+      Src:=TJSSourceElements(CreateElement(TJSSourceElements,El));
+      Result:=Src;
+      if Assigned(El.InterfaceSection) then
+        AddToSourceElements(Src,ConvertElement(El.InterfaceSection,AContext));
+      if assigned(El.ImplementationSection) then
+        AddToSourceElements(Src,ConvertElement(El.ImplementationSection,AContext));
+      if (El is TPasProgram) then
+        begin
+        if Assigned(TPasProgram(El).ProgramSection) then
+          AddToSourceElements(Src,ConvertElement(TPasProgram(El).ProgramSection,AContext));
+        end;
+      if Assigned(El.InitializationSection) then
+        AddToSourceElements(Src,ConvertElement(El.InitializationSection,AContext));
+      if Assigned(El.FinalizationSection) then
+        //AddToSourceElements(Src,ConvertElement(El.FinalizationSection,AContext));
+        raise Exception.Create('TPasToJSConverter.ConvertModule: finalization section is not supported');
     end;
-  if Assigned(El.InitializationSection) then
-    AddToSourceElements(Src,ConvertElement(El.InitializationSection,AContext));
-  if Assigned(El.FinalizationSection) then
-    //AddToSourceElements(Src,ConvertElement(El.FinalizationSection,AContext));
-    raise Exception.Create('TPasToJSConverter.ConvertModule: finalization section is not supported');
 {
 TPasUnitModule = Class(TPasModule)
 TPasLibrary = class(TPasModule)
@@ -226,6 +291,7 @@ Var
   E : TJSElement;
 
 begin
+  if AContext=nil then ;
   Result:=Nil;
   E:=ConvertElement(El.Operand);
   Case El.OpCode of
@@ -249,6 +315,7 @@ end;
 function TPasToJSConverter.ConvertCallExpression(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 begin
+  if AContext=nil then ;
   // ToDo: call function
   Raise EPasToJS.CreateFmt(SErrUnexpected,[EL.ClassName]);
   Result:=nil;
@@ -262,10 +329,12 @@ begin
 end;
 
 
-function TPasToJSConverter.GetIdentValueType(AName: String;
+function TPasToJSConverter.GetPasIdentValueType(AName: String;
   AContext: TConvertContext): TJSType;
 
 begin
+  if AContext=nil then ;
+  if AName='' then ;
   Result:=jstUNDEFINED;
 end;
 
@@ -290,10 +359,10 @@ Var
 begin
   if (El is TBoolConstExpr) then
     Result:=jstBoolean
-  else  If (EL is TPrimitiveExpr) then
+  else  If (El is TPrimitiveExpr) then
     begin
-    Case EL.Kind of
-      pekIdent : Result:=GetIdentValueType(El.Name,AContext);
+    Case El.Kind of
+      pekIdent : Result:=GetPasIdentValueType(El.Name,AContext);
       pekNumber : Result:=jstNumber;
       pekString : Result:=jstString;
       pekSet : Result:=jstUNDEFINED;
@@ -307,9 +376,9 @@ begin
       pekSelf : Result:=jstObject;
     end
     end
-  else if (EL is TUnaryExpr) then
+  else if (El is TUnaryExpr) then
     Result:=GetExpressionValueType(TUnaryExpr(El).Operand,AContext)
-  else if (EL is TBinaryExpr) then
+  else if (El is TBinaryExpr) then
     begin
     A:=GetExpressionValueType(TBinaryExpr(El).Left,AContext);
     B:=GetExpressionValueType(TBinaryExpr(El).Right,AContext);
@@ -361,7 +430,6 @@ Var
   C : TJSBinaryClass;
   A,B : TJSElement;
   funname: string;
-  pex : TJSPrimaryExpressionIdent;
   ok: Boolean;
 begin
   Result:=Nil;
@@ -425,9 +493,8 @@ begin
         begin
           Result := B;
           funname := String(TJSPrimaryExpressionIdent(TJSCallExpression(b).Expr).Name);
-          pex := TJSPrimaryExpressionIdent.Create(0, 0, '');
-          pex.Name := 'self';
-          TJSCallExpression(b).Args.Elements.AddElement.Expr := pex;
+          TJSCallExpression(b).Args.Elements.AddElement.Expr :=
+                                            CreateBuiltInIdentifierExpr('self');
           if TJSCallExpression(b).Args.Elements.Count > 1 then
             TJSCallExpression(b).Args.Elements.Exchange(
               0, TJSCallExpression(b).Args.Elements.Count - 1);
@@ -458,16 +525,17 @@ begin
 end;
 
 function TPasToJSConverter.TransFormIdent(El: TJSPrimaryExpressionIdent;
-  AContext: TConvertContext): TJSElement;
+  AContext: TConvertContext): TJSPrimaryExpressionIdent;
 
 begin
+  if AContext=nil then ;
   EL.Name:=LowerCase(EL.Name);
   Result:=El;
 end;
 
 
 function TPasToJSConverter.CreateIdentifierExpr(AName: string; El: TPasElement;
-  AContext: TConvertContext): TJSElement;
+  AContext: TConvertContext): TJSPrimaryExpressionIdent;
 
 Var
   I : TJSPrimaryExpressionIdent;
@@ -519,6 +587,7 @@ Var
   L : TJSLiteral;
 
 begin
+  if AContext=nil then ;
   Result:=Nil;
   L:=TJSLiteral(CreateElement(TJSLiteral,El));
   L.Value.AsBoolean:=EL.Value;
@@ -532,6 +601,7 @@ Var
   L : TJSLiteral;
 
 begin
+  if AContext=nil then ;
   L:=TJSLiteral(CreateElement(TJSLiteral,El));
   L.Value.IsNull:=True;
   Result:=L;
@@ -542,16 +612,18 @@ function TPasToJSConverter.ConvertInheritedExpression(El: TInheritedExpr;
 var
    je: TJSPrimaryExpressionIdent;
 begin
- je := TJSPrimaryExpressionIdent.Create(0, 0, '');
-  je.Name := '_super';
+  if AContext=nil then ;
+  if El=nil then;
+  je := CreateIdentifierExpr('_super',El,AContext);
   Result := je;
-//  TInheritedExpr = class(TPasExpr)
+  // ToDo: TInheritedExpr = class(TPasExpr)
 end;
 
 function TPasToJSConverter.ConvertSelfExpression(El: TSelfExpr;
   AContext: TConvertContext): TJSElement;
 
 begin
+  if AContext=nil then ;
   Result:=TJSPrimaryExpressionThis(CreateElement(TJSPrimaryExpressionThis,El));
 end;
 
@@ -682,6 +754,16 @@ begin
   Result:=V;
 end;
 
+function TPasToJSConverter.CreateBuiltInIdentifierExpr(AName: string
+  ): TJSPrimaryExpressionIdent;
+var
+  Ident: TJSPrimaryExpressionIdent;
+begin
+  Ident:=TJSPrimaryExpressionIdent.Create(0,0,'');
+  Ident.Name:=TJSString(AName);
+  Result:=Ident;
+end;
+
 function TPasToJSConverter.CreateTypeDecl(El: TPasType;
   AContext: TConvertContext): TJSElement;
 
@@ -778,9 +860,10 @@ function TPasToJSConverter.ConvertType(El: TPasElement;
   AContext: TConvertContext): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
 {
-
+  ToDo:
 TPasType = class(TPasElement)
 TPasPointerType = class(TPasType)
 TPasAliasType = class(TPasType)
@@ -809,7 +892,6 @@ function TPasToJSConverter.ConvertClassType(const El: TPasClassType;
   const AContext: TConvertContext): TJSElement;
 var
   call: TJSCallExpression;
-  pex: TJSPrimaryExpressionIdent;
   asi: TJSSimpleAssignStatement;
   unary2: TJSUnary;
   unary: TJSUnary;
@@ -820,14 +902,14 @@ var
   tmember: TPasElement;
   j: integer;
   ret: TJSReturnStatement;
+  jsName: String;
 begin
   //ctname := El.FullName;
+  jsName:=TransformVariableName(El.Name,AContext);
   unary := TJSUnary(CreateElement(TJSUnary,El));
   asi := TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
   unary.A := asi;
-  pex := TJSPrimaryExpressionIdent(CreateElement(TJSPrimaryExpressionIdent,El));
-  pex.Name := TJSString(El.Name);
-  asi.LHS := pex;
+  asi.LHS := CreateIdentifierExpr(El.Name,El,AContext);
   FS := TJSFunctionDeclarationStatement(
     CreateElement(TJSFunctionDeclarationStatement, El));
   call := CreateCallStatement(FS, []);
@@ -839,20 +921,18 @@ begin
   FD.Body.A := TJSSourceElements(CreateElement(TJSSourceElements, El));
   if Assigned(El.AncestorType) then
   begin
-    pex := TJSPrimaryExpressionIdent(CreateElement(TJSPrimaryExpressionIdent, El));
     call.Args := TJSArguments(CreateElement(TJSArguments, El));
-    pex.Name := TJSString(El.AncestorType.Name);
-    call.Args.Elements.AddElement.Expr := pex;
+    call.Args.Elements.AddElement.Expr := CreateIdentifierExpr(El.AncestorType.Name,El,AContext);
     FD.Params.Add('_super');
     unary2 := TJSUnary(CreateElement(TJSUnary, El));
-    call := CreateCallStatement('__extends', [El.Name, '_super']);
+    call := CreateCallStatement('__extends', [jsName, '_super']);
     unary2.A := call;
     TJSSourceElements(FD.Body.A).Statements.AddNode.Node := unary2;
   end;
   //create default onstructor
   cons := CreateProcedureDeclaration(El);
   TJSSourceElements(FD.Body.A).Statements.AddNode.Node := cons;
-  cons.AFunction.Name := TJSString(El.Name);
+  cons.AFunction.Name := TJSString(jsName);
 
   //convert class member
   for j := 0 to El.Members.Count - 1 do
@@ -864,12 +944,10 @@ begin
       TJSSourceElements(FD.Body.A).Statements.AddNode.Node := je;
   end;
 
-  //add return statment
+  //add return statement
   ret := TJSReturnStatement(CreateElement(TJSReturnStatement, El));
   TJSSourceElements(FD.Body.A).Statements.AddNode.Node := ret;
-  pex := TJSPrimaryExpressionIdent(CreateElement(TJSPrimaryExpressionIdent, El));
-  ret.Expr := pex;
-  pex.Name := TJSString(El.Name);
+  ret.Expr := CreateIdentifierExpr(El.Name,El,AContext);
   Result := unary;
 end;
 
@@ -901,8 +979,9 @@ var
   fun1sourceele: TJSSourceElements;
   ret: TJSReturnStatement;
   nmem: TJSNewMemberExpression;
-  pex: TJSPrimaryExpressionIdent;
+  Arg: TPasArgument;
 begin
+  if AContext=nil then ;
   FS := CreateProcedureDeclaration(El);
   FS.AFunction.Name := TJSString(El.Name);
   Fs.AFunction.Body := TJSFunctionBody(CreateElement(TJSFunctionBody, EL.Body));
@@ -912,17 +991,14 @@ begin
   fun1sourceele.Statements.AddNode.Node := ret;
   nmem := TJSNewMemberExpression.Create(0, 0, '');
   ret.Expr := nmem;
-  pex := TJSPrimaryExpressionIdent.Create(0, 0, '');
-  nmem.MExpr := pex;
-  pex.Name := TJSString(El.Parent.FullName);
+  nmem.MExpr := CreateIdentifierExpr(El.Parent.FullName,El.Parent,AContext);
   for n := 0 to El.ProcType.Args.Count - 1 do
   begin
     if n = 0 then
       nmem.Args := TJSArguments.Create(0, 0, '');
     fs.AFunction.Params.Add(TPasArgument(El.ProcType.Args[n]).Name);
-    pex := TJSPrimaryExpressionIdent.Create(0, 0, '');
-    pex.Name := TJSString(TPasArgument(El.ProcType.Args[n]).Name);
-    nmem.Args.Elements.AddElement.Expr := pex;
+    Arg := TPasArgument(El.ProcType.Args[n]);
+    nmem.Args.Elements.AddElement.Expr := CreateIdentifierExpr(Arg.Name,Arg,AContext);
   end;
   Result := CreateUnary([TPasProcedure(El).Name, El.Parent.FullName], FS);
 end;
@@ -1126,6 +1202,7 @@ function TPasToJSConverter.ConvertPackage(El: TPasPackage;
   AContext: TConvertContext): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
   // ToDo TPasPackage = class(TPasElement)
 end;
@@ -1134,6 +1211,7 @@ function TPasToJSConverter.ConvertResString(El: TPasResString;
   AContext: TConvertContext): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
   // ToDo: TPasResString
 end;
@@ -1142,6 +1220,7 @@ function TPasToJSConverter.ConvertArgument(El: TPasArgument;
   AContext: TConvertContext): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
   // ToDo: TPasArgument
 end;
@@ -1150,6 +1229,7 @@ function TPasToJSConverter.ConvertResultElement(El: TPasResultElement;
   AContext: TConvertContext): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
   // ToDo: TPasResultElement
 end;
@@ -1181,6 +1261,7 @@ function TPasToJSConverter.ConvertConst(El: TPasConst; AContext: TConvertContext
   ): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
   // ToDo: TPasConst
 end;
@@ -1189,6 +1270,7 @@ function TPasToJSConverter.ConvertProperty(El: TPasProperty;
   AContext: TConvertContext): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
   // ToDo: TPasProperty = class(TPasVariable)
 end;
@@ -1197,6 +1279,7 @@ function TPasToJSConverter.ConvertExportSymbol(El: TPasExportSymbol;
   AContext: TConvertContext): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
   // ToDo: TPasExportSymbol
 end;
@@ -1205,6 +1288,7 @@ function TPasToJSConverter.ConvertLabels(El: TPasLabels;
   AContext: TConvertContext): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
   // ToDo: TPasLabels = class(TPasImplElement)
 end;
@@ -1235,6 +1319,7 @@ Var
   ok: Boolean;
 
 begin
+  if AContext=nil then ;
   LHS:=ConvertElement(El.left);
   ok:=false;
   try
@@ -1254,6 +1339,7 @@ function TPasToJSConverter.ConvertCommand(El: TPasImplCommand;
   AContext: TConvertContext): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
   // ToDo: TPasImplCommand = class(TPasImplElement)
 end;
@@ -1267,6 +1353,7 @@ Var
   ok: Boolean;
 
 begin
+  if AContext=nil then ;
   C:=Nil;
   BThen:=Nil;
   BElse:=Nil;
@@ -1473,48 +1560,50 @@ end;
 function TPasToJSConverter.GetExceptionObjectName(AContext: TConvertContext
   ): string;
 begin
+  if AContext=nil then ;
   Result:='ExceptObject'; // use the same as the FPC RTL
 end;
 
 function TPasToJSConverter.ResolveType(El: TPasElement;
   AContext: TConvertContext): TPasType;
 begin
+  if AContext=nil then ;
   if EL is TPasType then
     Result:=TPasType(El) // TPasUnresolvedTypeRef needs handling here
   else
     Result:=Nil;
 end;
-function TPasToJSConverter.CreateCallStatement(const CallName: string;
-  para: array of string): TJSCallExpression;
+function TPasToJSConverter.CreateCallStatement(const JSCallName: string;
+  JSArgs: array of string): TJSCallExpression;
 var
   Call: TJSCallExpression;
   Ident: TJSPrimaryExpressionIdent;
 begin
   Ident := TJSPrimaryExpressionIdent.Create(0, 0, '');
-  Ident.Name := TJSString(CallName);
-  Call := CreateCallStatement(Ident, para);
+  Ident.Name := TJSString(JSCallName);
+  Call := CreateCallStatement(Ident, JSArgs);
   Result := Call;
 end;
 
-function TPasToJSConverter.CreateCallStatement(const pex2: TJSElement;
-  para: array of string): TJSCallExpression;
+function TPasToJSConverter.CreateCallStatement(const FunNameEx: TJSElement;
+  JSArgs: array of string): TJSCallExpression;
 var
   p: string;
-  pex3: TJSPrimaryExpressionIdent;
-  call: TJSCallExpression;
-  argarray: TJSArguments;
+  ArgEx: TJSPrimaryExpressionIdent;
+  Call: TJSCallExpression;
+  ArgArray: TJSArguments;
 begin
-  call := TJSCallExpression.Create(0, 0, '');
-  call.Expr := pex2;
-  argarray := TJSArguments.Create(0, 0, '');
-  call.Args := argarray;
-  for p in para do
+  Call := TJSCallExpression.Create(0, 0, '');
+  Call.Expr := FunNameEx;
+  ArgArray := TJSArguments.Create(0, 0, '');
+  Call.Args := ArgArray;
+  for p in JSArgs do
   begin
-    pex3 := TJSPrimaryExpressionIdent.Create(0, 0, '');
-    pex3.Name := TJSString(p);
-    argarray.Elements.AddElement.Expr := pex3;
+    ArgEx := TJSPrimaryExpressionIdent.Create(0, 0, '');
+    ArgEx.Name := TJSString(p);
+    ArgArray.Elements.AddElement.Expr := ArgEx;
   end;
-  Result := call;
+  Result := Call;
 end;
 
 function TPasToJSConverter.CreateUnary(ms: array of string; E: TJSElement): TJSUnary;
@@ -1530,20 +1619,20 @@ begin
   Result := unary;
 end;
 
-function TPasToJSConverter.CreateMemberExpression(ms: array of string): TJSDotMemberExpression;
+function TPasToJSConverter.CreateMemberExpression(ReversedValues: array of string): TJSDotMemberExpression;
 var
   pex: TJSPrimaryExpressionIdent;
   MExpr: TJSDotMemberExpression;
   LastMExpr: TJSDotMemberExpression;
   k: integer;
 begin
-  if Length(ms) < 2 then
+  if Length(ReversedValues) < 2 then
     DoError('member expression with less than two members');
   LastMExpr := nil;
-  for k:=Low(ms) to High(ms)-1 do
+  for k:=Low(ReversedValues) to High(ReversedValues)-1 do
   begin
     MExpr := TJSDotMemberExpression.Create(0, 0, '');
-    MExpr.Name := TJSString(ms[k]);
+    MExpr.Name := TJSString(ReversedValues[k]);
     if k = 0 then
       Result := MExpr
     else
@@ -1551,7 +1640,7 @@ begin
     LastMExpr := MExpr;
   end;
   pex := TJSPrimaryExpressionIdent.Create(0, 0, '');
-  pex.Name := TJSString(ms[High(ms)]);
+  pex.Name := TJSString(ReversedValues[High(ReversedValues)]);
   LastMExpr.MExpr := pex;
 end;
 
@@ -1653,6 +1742,29 @@ begin
   Result := cname;
 end;
 
+function TPasToJSConverter.CreateUsesList(UsesList: TFPList;
+  AContext: TConvertContext): TJSArrayLiteral;
+var
+  ArgArray: TJSArrayLiteral;
+  k: Integer;
+  El: TPasElement;
+  anUnitName: String;
+  ArgEx: TJSLiteral;
+begin
+  ArgArray:=TJSArrayLiteral.Create(0,0,'');
+  if UsesList<>nil then
+    for k:=0 to UsesList.Count-1 do
+      begin
+      El:=TPasElement(UsesList[k]);
+      if not (El is TPasModule) then continue;
+      anUnitName := TransformVariableName(TPasModule(El).Name,AContext);
+      ArgEx := TJSLiteral.Create(0,0,'');
+      ArgEx.Value.AsString:=TJSString(anUnitName);
+      ArgArray.Elements.AddElement.Expr := ArgEx;
+      end;
+  Result:=ArgArray;
+end;
+
 function TPasToJSConverter.CreateProcedureDeclaration(const El: TPasElement):
 TJSFunctionDeclarationStatement;
 var
@@ -1725,16 +1837,18 @@ function TPasToJSConverter.ConvertCommands(El: TPasImplCommands;
   AContext: TConvertContext): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
-  //  TPasImplCommands = class(TPasImplElement)
+  // ToDo: TPasImplCommands = class(TPasImplElement)
 end;
 
 function TPasToJSConverter.ConvertLabelMark(El: TPasImplLabelMark;
   AContext: TConvertContext): TJSElement;
 
 begin
+  RaiseNotYetImplemented(El,AContext);
   Result:=Nil;
- //    TPasImplLabelMark = class(TPasImplLabelMark) then
+  // ToDo:   TPasImplLabelMark = class(TPasImplLabelMark) then
 end;
 
 function TPasToJSConverter.ConvertElement(El: TPasElement;
@@ -1799,22 +1913,32 @@ begin
   FCurrentContext:=AValue;
 end;
 
+procedure TPasToJSConverter.RaiseNotYetImplemented(El: TPasElement;
+  AContext: TConvertContext);
+begin
+  if AContext=nil then ;
+  raise EPas2JS.Create('conversion not yet implemented for "'+El.ClassName+'"');
+end;
+
 function TPasToJSConverter.CreateJSContext(AContext: TConvertContext
   ): TJSElement;
 
 begin
+  if AContext=nil then ;
   Result:=TJSObjectLiteral.Create(0,0);
 end;
 
 function TPasToJSConverter.TransformVariableName(const AName: String;
   AContext: TConvertContext): String;
 begin
+  if AContext=nil then ;
   Result:=LowerCase(AName);
 end;
 
 function TPasToJSConverter.TransformVariableName(El: TPasElement;
   AContext: TConvertContext): String;
 begin
+  if AContext=nil then ;
   Result:=TransformVariableName(EL.Name,AContext);
   // Add to context.
 end;
@@ -1822,6 +1946,7 @@ end;
 function TPasToJSConverter.TransformFunctionName(El: TPasElement;
   AContext: TConvertContext): String;
 begin
+  if AContext=nil then ;
   Result:=LowerCase(EL.Name);
 end;
 
