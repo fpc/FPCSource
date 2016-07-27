@@ -104,7 +104,7 @@ end;
 function TJSValue.GetAsString: TJSString;
 begin
   If (ValueType=jstString) then
-    Result:=String(FValue.P)
+    Result:=TJSString(FValue.P)
   else
     Result:='';
 end;
@@ -164,7 +164,7 @@ end;
 procedure TJSValue.SetAsString(const AValue: TJSString);
 begin
   ClearValue(jstString);
-  String(FValue.P):=AValue;
+  TJSString(FValue.P):=AValue;
 end;
 
 procedure TJSValue.SetIsNull(const AValue: Boolean);
@@ -199,7 +199,7 @@ end;
 
 Constructor TJSValue.Create(AString: TJSString);
 begin
-  AsString:=AString
+  AsString:=AString;
 end;
 
 Destructor TJSValue.Destroy;
