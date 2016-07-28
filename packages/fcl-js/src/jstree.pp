@@ -422,7 +422,6 @@ Type
   end;
 
 
-
   { TJSBinary - base class }
 
   TJSBinary = Class(TJSElement)
@@ -436,7 +435,7 @@ Type
   end;
   TJSBinaryClass = Class of TJSBinary;
 
-  { TJSStatementList }
+  { TJSStatementList - a list of statements enclosed in curly brackets }
 
   TJSStatementList = Class(TJSBinary); // A->first statement, B->next in list, chained.
 
@@ -935,7 +934,7 @@ Type
     Property Node : TJSElement Read FNode Write FNode;
   end;
 
-  { TJSElementNodes -  }
+  { TJSElementNodes - see TJSSourceElements }
 
   TJSElementNodes = Class(TCollection)
   private
@@ -945,7 +944,8 @@ Type
     Property Nodes[AIndex : Integer] : TJSElementNode Read GetN ; default;
   end;
 
-  { TJSSourceElements }
+  { TJSSourceElements - a list of elements, every element ends in semicolon,
+    first Vars, then Functions, finally Statements }
 
   TJSSourceElements = Class(TJSElement)
   private
@@ -955,9 +955,9 @@ Type
   Public
     Constructor Create(ALine,ARow : Integer; const ASource : String = ''); override;
     Destructor Destroy; override;
-    Property Statements : TJSElementNodes Read FStatements;
-    Property Functions : TJSElementNodes Read FFunctions;
     Property Vars : TJSElementNodes Read FVars;
+    Property Functions : TJSElementNodes Read FFunctions;
+    Property Statements : TJSElementNodes Read FStatements;
   end;
 
 implementation

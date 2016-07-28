@@ -127,7 +127,7 @@ Type
     Procedure WriteWithStatement(El: TJSWithStatement);virtual;
     Procedure WriteVarDeclarationList(El: TJSVariableDeclarationList);virtual;
     Procedure WriteConditionalExpression(El: TJSConditionalExpression);virtual;
-    Procedure WriteFunctionBody(el: TJSFunctionBody);virtual;
+    Procedure WriteFunctionBody(El: TJSFunctionBody);virtual;
     Procedure WriteFunctionDeclarationStatement(El: TJSFunctionDeclarationStatement);virtual;
     Procedure WriteLabeledStatement(El: TJSLabeledStatement);virtual;
     Procedure WriteReturnStatement(EL: TJSReturnStatement);virtual;
@@ -480,7 +480,10 @@ begin
     begin
     FSkipBrackets:=True;
     WriteJS(FD.Body);
-    If not (FD.Body.A is TJSStatementList) then
+    If (Assigned(FD.Body.A))
+    and (not (FD.Body.A is TJSStatementList))
+    and (not (FD.Body.A is TJSSourceElements))
+    then
       if C then
         Write('; ')
       else
@@ -1039,11 +1042,11 @@ begin
     end;
 end;
 
-procedure TJSWriter.WriteFunctionBody(el: TJSFunctionBody);
+procedure TJSWriter.WriteFunctionBody(El: TJSFunctionBody);
 
 begin
-  if Assigned(EL.A) then
-    WriteJS(EL.A);
+  if Assigned(El.A) then
+    WriteJS(El.A);
 end;
 
 procedure TJSWriter.WriteFunctionDeclarationStatement(
@@ -1057,26 +1060,34 @@ end;
 procedure TJSWriter.WriteSourceElements(El: TJSSourceElements);
 
 Var
-  I : Integer;
   C : Boolean;
-  E : TJSElement;
+
+  Procedure WriteElements(Elements: TJSElementNodes);
+  Var
+    I : Integer;
+    E : TJSElement;
+  begin
+    if Elements=nil then exit;
+    For I:=0 to Elements.Count-1 do
+      begin
+      E:=Elements.Nodes[i].Node;
+      WriteJS(E);
+      if Not C then
+        WriteLn(';')
+      else
+        if I<Elements.Count-1 then
+          Write('; ')
+        else
+          Write(';')
+      end;
+  end;
 
 begin
   C:=(woCompact in Options);
-  For I:=0 to EL.Statements.Count-1 do
-    begin
-    E:=EL.Statements.Nodes[i].Node;
-    WriteJS(E);
-    if Not C then
-      WriteLn(';')
-    else
-      if I<EL.Statements.Count-1 then
-        Write('; ')
-      else
-        Write(';')
-    end;
+  WriteElements(El.Vars);
+  WriteElements(El.Functions);
+  WriteElements(El.Statements);
 end;
-
 
 procedure TJSWriter.WriteVariableStatement(el: TJSVariableStatement);
 
@@ -1094,62 +1105,62 @@ begin
     system.Writeln('WriteJS : El = Nil');
 {$ENDIF}
   if (El is TJSEmptyBlockStatement ) then
-    WriteEmptyBlockStatement(TJSEmptyBlockStatement(el))
+    WriteEmptyBlockStatement(TJSEmptyBlockStatement(El))
   else if (El is TJSEmptyStatement) then
-    WriteEmptyStatement(TJSEmptyStatement(el))
-  else if (el is TJSLiteral) then
-    WriteLiteral(TJSLiteral(el))
-  else if (el is TJSPrimaryExpression) then
-    WritePrimaryExpression(TJSPrimaryExpression(el))
-  else if (el is TJSArrayLiteral) then
-    WriteArrayLiteral(TJSArrayLiteral(el))
-  else if (el is TJSObjectLiteral) then
-    WriteObjectLiteral(TJSObjectLiteral(el))
-  else if (el is TJSMemberExpression) then
-    WriteMemberExpression(TJSMemberExpression(el))
-  else if (el is TJSRegularExpressionLiteral) then
+    WriteEmptyStatement(TJSEmptyStatement(El))
+  else if (El is TJSLiteral) then
+    WriteLiteral(TJSLiteral(El))
+  else if (El is TJSPrimaryExpression) then
+    WritePrimaryExpression(TJSPrimaryExpression(El))
+  else if (El is TJSArrayLiteral) then
+    WriteArrayLiteral(TJSArrayLiteral(El))
+  else if (El is TJSObjectLiteral) then
+    WriteObjectLiteral(TJSObjectLiteral(El))
+  else if (El is TJSMemberExpression) then
+    WriteMemberExpression(TJSMemberExpression(El))
+  else if (El is TJSRegularExpressionLiteral) then
     WriteRegularExpressionLiteral(TJSRegularExpressionLiteral(El))
-  else if (el is TJSCallExpression) then
-    WriteCallExpression(TJSCallExpression(el))
-  else if (el is TJSLabeledStatement) then // Before unary
-    WriteLabeledStatement(TJSLabeledStatement(el))
-  else if (el is TJSFunctionBody) then // Before unary
-    WriteFunctionBody(TJSFunctionBody(el))
-  else if (el is TJSVariableStatement) then // Before unary
-    WriteVariableStatement(TJSVariableStatement(el))
-  else if (el is TJSUNary) then
-    WriteUnary(TJSUnary(el))
-  else if (el is TJSVariableDeclarationList) then
-    WriteVarDeclarationList(TJSVariableDeclarationList(el)) // Must be before binary
-  else if (el is TJSStatementList) then
-    WriteStatementList(TJSStatementList(el)) // Must be before binary
-  else if (el is TJSWithStatement) then
+  else if (El is TJSCallExpression) then
+    WriteCallExpression(TJSCallExpression(El))
+  else if (El is TJSLabeledStatement) then // Before unary
+    WriteLabeledStatement(TJSLabeledStatement(El))
+  else if (El is TJSFunctionBody) then // Before unary
+    WriteFunctionBody(TJSFunctionBody(El))
+  else if (El is TJSVariableStatement) then // Before unary
+    WriteVariableStatement(TJSVariableStatement(El))
+  else if (El is TJSUNary) then
+    WriteUnary(TJSUnary(El))
+  else if (El is TJSVariableDeclarationList) then
+    WriteVarDeclarationList(TJSVariableDeclarationList(El)) // Must be before binary
+  else if (El is TJSStatementList) then
+    WriteStatementList(TJSStatementList(El)) // Must be before binary
+  else if (El is TJSWithStatement) then
     WriteWithStatement(TJSWithStatement(El)) // Must be before binary
-  else if (el is TJSBinary) then
-    WriteBinary(TJSBinary(el))
-  else if (el is TJSConditionalExpression) then
-    WriteConditionalExpression(TJSConditionalExpression(el))
-  else if (el is TJSAssignStatement) then
-    WriteAssignStatement(TJSAssignStatement(el))
-  else if (el is TJSVarDeclaration) then
-    WriteVarDeclaration(TJSVarDeclaration(el))
-  else if (el is TJSIfStatement) then
-    WriteIfStatement(TJSIfStatement(el))
-  else if (el is TJSTargetStatement) then
-    WriteTargetStatement(TJSTargetStatement(el))
-  else if (el is TJSReturnStatement) then
-    WriteReturnStatement(TJSReturnStatement(el))
-  else if (el is TJSTryStatement) then
-    WriteTryStatement(TJSTryStatement(el))
-  else if (el is TJSFunctionDeclarationStatement) then
-    WriteFunctionDeclarationStatement(TJSFunctionDeclarationStatement(el))
-  else if (el is TJSSourceElements) then
-    WriteSourceElements(TJSSourceElements(el))
-  else if EL=Nil then
+  else if (El is TJSBinary) then
+    WriteBinary(TJSBinary(El))
+  else if (El is TJSConditionalExpression) then
+    WriteConditionalExpression(TJSConditionalExpression(El))
+  else if (El is TJSAssignStatement) then
+    WriteAssignStatement(TJSAssignStatement(El))
+  else if (El is TJSVarDeclaration) then
+    WriteVarDeclaration(TJSVarDeclaration(El))
+  else if (El is TJSIfStatement) then
+    WriteIfStatement(TJSIfStatement(El))
+  else if (El is TJSTargetStatement) then
+    WriteTargetStatement(TJSTargetStatement(El))
+  else if (El is TJSReturnStatement) then
+    WriteReturnStatement(TJSReturnStatement(El))
+  else if (El is TJSTryStatement) then
+    WriteTryStatement(TJSTryStatement(El))
+  else if (El is TJSFunctionDeclarationStatement) then
+    WriteFunctionDeclarationStatement(TJSFunctionDeclarationStatement(El))
+  else if (El is TJSSourceElements) then
+    WriteSourceElements(TJSSourceElements(El))
+  else if El=Nil then
     Error(SErrNilNode)
   else
     Error(SErrUnknownJSClass,[El.ClassName]);
-//  Write('/* '+EL.ClassName+' */');
+//  Write('/* '+El.ClassName+' */');
   FSkipBrackets:=False;
 end;
 
