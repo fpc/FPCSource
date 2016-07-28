@@ -130,6 +130,9 @@ Type
   end;
   EPasToJS = Class(Exception);
 
+var
+  DefaultJSExceptionObject: string = 'exceptObject';
+
 implementation
 
 resourcestring
@@ -149,20 +152,20 @@ Var
 begin
   While El<>nil do
   begin
-    if EL is TJSStatementList then
+    if El is TJSStatementList then
       begin
-      List:=EL as TJSStatementList;
+      List:=El as TJSStatementList;
       // List.A is first statement, List.B is next in list, chained.
       // -> add A, continue with B and free List
       AddEl:=List.A;
-      EL:=List.B;
+      El:=List.B;
       List.A:=Nil;
       List.B:=Nil;
       FreeAndNil(List);
       end
     else
       begin
-      AddEl:=EL;
+      AddEl:=El;
       El:=Nil;
       end;
     Src.Statements.AddNode.Node:=AddEl;
@@ -176,17 +179,16 @@ function TPasToJSConverter.ConvertModule(El: TPasModule;
       [<interface uses1>,<uses2>, ...],
       function(uses,unit){
         <interface>
-        this.impl={
-            <implementation>
-            $<unitname>_init:function(){
-              <initialization>
-              }
+        <implementation>
+        $<unitname>_init:function(){
+          <initialization>
           };
+        this.impl=$impl;
       },
       [<implementation uses1>,<uses2>, ...]);
 *)
 Var
-  Src : TJSSourceElements;
+  Src , UnitSrc: TJSSourceElements;
   RegModuleCall: TJSCallExpression;
   ArgArray: TJSArguments;
   UsesList: TFPList;
@@ -198,10 +200,12 @@ begin
   Result:=Nil;
   if (El.ClassType=TPasModule) or (El is TPasUnitModule) then
     begin
+      Src:=TJSSourceElements(CreateElement(TJSSourceElements, El));
+      Result:=Src;
+
       // create 'rtl.module(...)'
-      // ToDo: fix missing semicolon
       RegModuleCall:=TJSCallExpression(CreateElement(TJSCallExpression,El));
-      Result:=RegModuleCall;
+      AddToSourceElements(Src,RegModuleCall);
       RegModuleCall.Expr:=CreateMemberExpression(['module','rtl']);
       ArgArray := TJSArguments.Create(0, 0, '');
       RegModuleCall.Args:=ArgArray;
@@ -227,18 +231,18 @@ begin
       FunDef.Params.Add('unit');
       FunBody:=TJSFunctionBody.Create(0,0,'');
       FunDef.Body:=FunBody;
-      Src:=TJSSourceElements(CreateElement(TJSSourceElements, El));
-      FunBody.A:=Src;
+      UnitSrc:=TJSSourceElements(CreateElement(TJSSourceElements, El));
+      FunBody.A:=UnitSrc;
 
-      // add interface
+      // add interface section
       if Assigned(El.InterfaceSection) then
-        AddToSourceElements(Src,ConvertElement(El.InterfaceSection,AContext));
-      // ToDo: prefix/enclose implementation section
+        AddToSourceElements(UnitSrc,ConvertElement(El.InterfaceSection,AContext));
+      // add implementation section
       if Assigned(El.ImplementationSection) then
-        AddToSourceElements(Src,ConvertElement(El.ImplementationSection,AContext));
-      // ToDo: prefix/enclose initialization section
+        AddToSourceElements(UnitSrc,ConvertElement(El.ImplementationSection,AContext));
+      // add initialization section
       if Assigned(El.InitializationSection) then
-        AddToSourceElements(Src,ConvertElement(El.InitializationSection,AContext));
+        AddToSourceElements(UnitSrc,ConvertElement(El.InitializationSection,AContext));
       if Assigned(El.FinalizationSection) then
         raise Exception.Create('TPasToJSConverter.ConvertModule: finalization section is not supported');
 
@@ -529,7 +533,10 @@ function TPasToJSConverter.TransFormIdent(El: TJSPrimaryExpressionIdent;
 
 begin
   if AContext=nil then ;
-  EL.Name:=LowerCase(EL.Name);
+  if CompareText(String(El.Name),DefaultJSExceptionObject)=0 then
+    El.Name:=TJSString(DefaultJSExceptionObject)
+  else
+    El.Name:=LowerCase(El.Name);
   Result:=El;
 end;
 
@@ -1101,6 +1108,7 @@ end;
 function TPasToJSConverter.ConvertInitializationSection(
   El: TInitializationSection; AContext: TConvertContext): TJSElement;
 begin
+  // ToDo: enclose in a function $init_unitname
   Result:=ConvertImplBlockElements(El,AContext);
 end;
 
@@ -1561,7 +1569,7 @@ function TPasToJSConverter.GetExceptionObjectName(AContext: TConvertContext
   ): string;
 begin
   if AContext=nil then ;
-  Result:='ExceptObject'; // use the same as the FPC RTL
+  Result:=DefaultJSExceptionObject; // use the same as the FPC RTL
 end;
 
 function TPasToJSConverter.ResolveType(El: TPasElement;
@@ -1932,14 +1940,17 @@ function TPasToJSConverter.TransformVariableName(const AName: String;
   AContext: TConvertContext): String;
 begin
   if AContext=nil then ;
-  Result:=LowerCase(AName);
+  if CompareText(AName,DefaultJSExceptionObject)=0 then
+    Result:=DefaultJSExceptionObject
+  else
+    Result:=LowerCase(AName);
 end;
 
 function TPasToJSConverter.TransformVariableName(El: TPasElement;
   AContext: TConvertContext): String;
 begin
   if AContext=nil then ;
-  Result:=TransformVariableName(EL.Name,AContext);
+  Result:=TransformVariableName(El.Name,AContext);
   // Add to context.
 end;
 
@@ -1947,7 +1958,10 @@ function TPasToJSConverter.TransformFunctionName(El: TPasElement;
   AContext: TConvertContext): String;
 begin
   if AContext=nil then ;
-  Result:=LowerCase(EL.Name);
+  if CompareText(El.Name,DefaultJSExceptionObject)=0 then
+    Result:=DefaultJSExceptionObject
+  else
+    Result:=LowerCase(El.Name);
 end;
 
 function TPasToJSConverter.ConvertElement(El: TPasElement): TJSElement;

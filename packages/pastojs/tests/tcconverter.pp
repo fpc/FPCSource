@@ -575,12 +575,12 @@ begin
   F:=T.AddExcept;
   F.AddElement(CreateAssignStatement('b','c'));
   El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
-  L:=AssertListStatement('try..except block is statement list',EL.Block);
+  L:=AssertListStatement('try..except block is statement list',El.Block);
   AssertAssignStatement('Correct assignment in try..except block',L.A,'a','b');
   AssertNull('No second statement',L.B);
   L:=AssertListStatement('try..except block is statement list',El.BCatch);
   AssertAssignStatement('Correct assignment in except..end block',L.A,'b','c');
-  AssertEquals('Correct exception object name','jsexception',EL.Ident);
+  AssertEquals('Correct exception object name',DefaultJSExceptionObject,El.Ident);
   AssertNull('No second statement',L.B);
 end;
 
@@ -603,9 +603,9 @@ begin
     Becomes:
     try {
      a=b;
-    } catch (jsexception) {
-      if jsexception instanceof exception {
-        var e = jsexception;
+    } catch (ExceptObject) {
+      if (ExceptObject instanceof exception) {
+        var e = ExceptObject;
         b = c;
       }
     }
@@ -617,18 +617,18 @@ begin
   O.Body:=CreateAssignStatement('b','c');
   // Convert
   El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
-  AssertEquals('Correct exception object name','jsexception',EL.Ident);
+  AssertEquals('Correct exception object name',DefaultJSExceptionObject,EL.Ident);
   L:=AssertListStatement('try..except block is statement list',El.BCatch);
   AssertNull('No second statement',L.B);
   I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,L.A));
   Ic:=TJSRelationalExpressionInstanceOf(AssertElement('If condition is InstanceOf expression',TJSRelationalExpressionInstanceOf,I.Cond));
-  Assertidentifier('InstanceOf left is exception object',Ic.A,'jsexception');
+  Assertidentifier('InstanceOf left is exception object',Ic.A,DefaultJSExceptionObject);
   // Lowercased exception - May need checking
   Assertidentifier('InstanceOf right is original exception type',Ic.B,'exception');
   L:=AssertListStatement('On block is always a list',i.btrue);
   V:=TJSVarDeclaration(AssertElement('First statement in list is a var declaration',TJSVarDeclaration,L.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',v.init,'jsexception');
+  Assertidentifier('Variable init is exception object',v.init,DefaultJSExceptionObject);
   L:=AssertListStatement('Second statement is again list',L.B);
   AssertAssignStatement('Original assignment in second statement',L.A,'b','c');
 end;
@@ -665,20 +665,20 @@ begin
   O.Body:=TPasImplRaise.Create('',Nil);
   // Convert
   El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
-  AssertEquals('Correct exception object name','jsexception',EL.Ident);
+  AssertEquals('Correct exception object name',DefaultJSExceptionObject,EL.Ident);
   L:=AssertListStatement('try..except block is statement list',El.BCatch);
   AssertNull('No second statement',L.B);
   I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,L.A));
   Ic:=TJSRelationalExpressionInstanceOf(AssertElement('If condition is InstanceOf expression',TJSRelationalExpressionInstanceOf,I.Cond));
-  Assertidentifier('InstanceOf left is exception object',Ic.A,'jsexception');
+  Assertidentifier('InstanceOf left is exception object',Ic.A,DefaultJSExceptionObject);
   // Lowercased exception - May need checking
   L:=AssertListStatement('On block is always a list',i.btrue);
   V:=TJSVarDeclaration(AssertElement('First statement in list is a var declaration',TJSVarDeclaration,L.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',v.init,'jsexception');
+  Assertidentifier('Variable init is exception object',v.init,DefaultJSExceptionObject);
   L:=AssertListStatement('Second statement is again list',L.B);
   R:=TJSThrowStatement(AssertElement('On block is throw statement',TJSThrowStatement,L.A));
-  Assertidentifier('R expression is original exception ',R.A,'jsexception');
+  Assertidentifier('R expression is original exception ',R.A,DefaultJSExceptionObject);
 end;
 
 Procedure TTestStatementConverter.TestVariableStatement;
