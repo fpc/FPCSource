@@ -1522,13 +1522,16 @@ implementation
 
 
     function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
+      var
+        s : TSymStr;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt),AT_DATA,true);
+        s:=def.rtti_mangledname(rt);
+        result:=current_asmdata.RefAsmSymbol(s,AT_DATA,true);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
         if def.owner.moduleid<>current_module.moduleid then
-          current_module.add_extern_asmsym(result);
+          current_module.add_extern_asmsym(s,AB_EXTERNAL,AT_DATA);
       end;
 
 
