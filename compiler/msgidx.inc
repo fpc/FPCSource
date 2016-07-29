@@ -1054,13 +1054,14 @@ const
   package_u_contained_unit=13026;
   package_e_unit_already_contained_in_package=13027;
   package_w_unit_from_indirect_package=13028;
+  package_u_ppl_filename=13029;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 78237;
+  MsgTxtSize = 78261;
 
   MsgIdxMax : array[1..20] of longint=(
     27,100,347,124,96,58,130,33,208,65,
-    58,20,29,1,1,1,1,1,1,1
+    58,20,30,1,1,1,1,1,1,1
   );
