@@ -30,7 +30,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestProcedureFunction.TestOperatorTokens"/>
+        <CommandLineParams Value="--suite=TTestTypeParser.TestGenericArray"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">

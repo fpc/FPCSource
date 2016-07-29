@@ -2097,7 +2097,7 @@ var
   VarEl: TPasVariable;
   ExpEl: TPasExportSymbol;
   PropEl : TPasProperty;
-  TypeName,ETN: String;
+  TypeName: String;
   PT : TProcType;
 
 begin

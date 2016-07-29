@@ -1,3 +1,7 @@
+{
+  Examples:
+    ./testpassrc --suite=TTestStatementParser.TestCallQualified2
+}
 unit tcstatements;
 
 {$mode objfpc}{$H+}
@@ -382,10 +386,10 @@ begin
   S:=Statement as TPasImplSimple;
   AssertExpression('Doit call',S.Expr,pekBinary,TBinaryExpr);
   B:=S.Expr as TBinaryExpr;
-  AssertExpression('Unit name',B.Left,pekIdent,'Unita');
-  AssertExpression('Doit call',B.Right,pekBinary,TBinaryExpr);
-  B:=B.Right  as TBinaryExpr;
-  AssertExpression('Unit name',B.Left,pekIdent,'ClassB');
+  AssertExpression('Unit name part 1',B.Left,pekIdent,'Unita');
+  AssertExpression('Second part of unit name',B.Right,pekBinary,TBinaryExpr);
+  B:=B.Right as TBinaryExpr;
+  AssertExpression('Unit name part 2',B.Left,pekIdent,'ClassB');
   AssertExpression('Doit call',B.Right,pekIdent,'Doit');
 end;
 
@@ -979,9 +983,6 @@ procedure TTestStatementParser.TestCaseOtherwiseBlockEmpty;
 
 Var
   C : TPasImplCaseOf;
-  S : TPasImplCaseStatement;
-  B : TPasImplbeginBlock;
-
 begin
   DeclareVar('integer');
   TestStatement(['case a of','1 : begin end;','otherwise',' end;']);

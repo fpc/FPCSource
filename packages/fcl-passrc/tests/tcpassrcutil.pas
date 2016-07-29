@@ -5,7 +5,7 @@ unit tcpassrcutil;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils,passrcutil, testregistry;
+  Classes, SysUtils, fpcunit,passrcutil, testregistry;
 
 type
 
@@ -78,7 +78,7 @@ begin
   StartImplementation;
   EndSource;
   Analyser.GetInterfaceUnits(List);
-  AssertList('0 interface units',[]);
+  AssertList('1 interface unit',['System']);
 end;
 
 procedure TPasSrcUtilTest.TestGetImplementationUses;

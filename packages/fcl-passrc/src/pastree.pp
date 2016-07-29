@@ -158,7 +158,7 @@ type
 
   TPasExpr = class(TPasElement)
     Kind      : TPasExprKind;
-    OpCode    : TexprOpcode;
+    OpCode    : TExprOpCode;
     constructor Create(AParent : TPasElement; AKind: TPasExprKind; AOpCode: TexprOpcode); virtual; overload;
   end;
 
@@ -614,9 +614,9 @@ type
   { TPasUnresolvedUnitRef }
 
   TPasUnresolvedUnitRef = Class(TPasUnresolvedSymbolRef)
-    function ElementTypeName: string; override;
-  Public
+  public
     FileName : string;
+    function ElementTypeName: string; override;
   end;
 
   { TPasStringType }
@@ -630,7 +630,6 @@ type
   { TPasTypeRef }
 
   TPasTypeRef = class(TPasUnresolvedTypeRef)
-  public
   public
     RefType: TPasType;
   end;
@@ -657,6 +656,7 @@ type
   { TPasExportSymbol }
 
   TPasExportSymbol = class(TPasElement)
+  public
     ExportName : TPasExpr;
     Exportindex : TPasExpr;
     Destructor Destroy; override;
@@ -668,14 +668,13 @@ type
 
   TPasConst = class(TPasVariable)
   public
-  public
     function ElementTypeName: string; override;
   end;
 
   { TPasProperty }
 
   TPasProperty = class(TPasVariable)
-  Public
+  public
     FResolvedType : TPasType;
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
@@ -864,7 +863,6 @@ Type
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
   public
-
     Labels: TFPList;
     Body: TPasImplBlock;
   end;
