@@ -3452,7 +3452,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 # Package loading and handling
 #
-# 13028 is the last used one
+# 13029 is the last used one
 #
 # BeginOfTeX
 % \section{Package loading messages.}
@@ -3535,6 +3535,9 @@ package_e_unit_already_contained_in_package=13027_E_Unit $1 is already contained
 package_w_unit_from_indirect_package=13028_W_Unit $1 is imported from indirectly required package $2
 % If a unit from a package that is not part of the \var{requires} section is used then the package
 % should require this unit directly to avoid confusion.
+package_u_ppl_filename=13029_U_PPL filename $1
+% The name of the binary package library that is stored in the PCP.
+%
 % \end{description}
 # EndOfTeX
 
