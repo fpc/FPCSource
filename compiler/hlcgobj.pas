@@ -469,6 +469,12 @@ unit hlcgobj;
           procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);virtual;
           procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation;
             const name: string);virtual;
+         protected
+          { helper called by g_incrrefcount, g_initialize, g_finalize and
+            g_array_rtti_helper to determine whether the RTTI symbol representing
+            t needs to be loaded using the indirect symbol }
+          function def_needs_indirect(t:tdef):boolean;
+         public
 
           {# Generates range checking code. It is to note
              that this routine does not need to be overridden,
@@ -3285,7 +3291,7 @@ implementation
           paramanager.getintparaloc(list,pd,2,cgpara2);
           if is_open_array(t) then
             InternalError(201103054);
-          reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,false),0,sizeof(pint));
+          reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint));
           if pd.is_pushleftright then
             begin
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
@@ -3333,7 +3339,7 @@ implementation
             pd:=search_system_proc('fpc_initialize');
             paramanager.getintparaloc(list,pd,1,cgpara1);
             paramanager.getintparaloc(list,pd,2,cgpara2);
-            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,false),0,sizeof(pint));
+            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint));
             if pd.is_pushleftright then
               begin
                 a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
@@ -3383,7 +3389,7 @@ implementation
             pd:=search_system_proc('fpc_finalize');
           paramanager.getintparaloc(list,pd,1,cgpara1);
           paramanager.getintparaloc(list,pd,2,cgpara2);
-          reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,false),0,sizeof(pint));
+          reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint));
           if pd.is_pushleftright then
             begin
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
@@ -3425,7 +3431,7 @@ implementation
       paramanager.getintparaloc(list,pd,2,cgpara2);
       paramanager.getintparaloc(list,pd,3,cgpara3);
 
-      reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,false),0,sizeof(pint));
+      reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint));
       { if calling convention is left to right, push parameters 1 and 2 }
       if pd.is_pushleftright then
         begin
@@ -3465,6 +3471,14 @@ implementation
       cgpara3.done;
       cgpara2.done;
       cgpara1.done;
+    end;
+
+  function thlcgobj.def_needs_indirect(t:tdef):boolean;
+    begin
+      result:=(tf_supports_packages in target_info.flags) and
+                (target_info.system in systems_indirect_var_imports) and
+                (cs_imported_data in current_settings.localswitches) and
+                (t.owner.moduleid<>current_module.moduleid);
     end;
 
   procedure thlcgobj.g_rangecheck(list: TAsmList; const l: tlocation; fromdef, todef: tdef);
