@@ -332,7 +332,7 @@ implementation
         end;
       pplfilename:=pcpfile.getstring;
 
-      writeln('PPL filename: ',pplfilename);
+      message1(package_u_ppl_filename,pplfilename);
     end;
 
   procedure tpcppackage.readcontainedunits;
@@ -373,20 +373,20 @@ implementation
     begin
       if pcpfile.readentry<>ibstartrequireds then
         begin
-          Writeln('Error reading pcp file');
+          message(package_f_pcp_read_error);
           internalerror(2014110901);
         end;
       cnt:=pcpfile.getlongint;
       if pcpfile.readentry<>ibendrequireds then
         begin
-          Writeln('Error reading pcp file');
+          message(package_f_pcp_read_error);
           internalerror(2014110902);
         end;
       for i:=0 to cnt-1 do
         begin
           name:=pcpfile.getstring;
           requiredpackages.add(name,nil);
-          Writeln('Found required package ',name);
+          message1(package_u_required_package,name);
         end;
     end;
 
