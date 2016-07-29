@@ -605,6 +605,8 @@ end;
 
 {$include rtl-extra/fpmake.pp}
 
+{$include rtl-generics/fpmake.pp}
+
 {$include rtl-objpas/fpmake.pp}
 
 {$include rtl-unicode/fpmake.pp}
