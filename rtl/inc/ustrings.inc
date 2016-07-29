@@ -392,7 +392,10 @@ begin
     exit;
   Size := IndexWord(p^, -1, 0);
   if Size>0 then
+  begin
+    cp:=TranslatePlaceholderCP(cp);
     widestringmanager.Wide2AnsiMoveProc(P,result,cp,Size);
+  end;
 end;
 {$endif FPC_HAS_PWIDECHAR_TO_ANSISTR}
 
@@ -759,7 +762,13 @@ begin
     end
   else
     i := high(arr)+1;
-  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),RawByteString(fpc_WideCharArray_To_AnsiStr),cp,i);
+  if i > 0 then
+  begin
+    cp:=TranslatePlaceholderCP(cp);
+    widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),RawByteString(fpc_WideCharArray_To_AnsiStr),cp,i);
+  end
+  else
+    fpc_WideCharArray_To_AnsiStr:='';
 end;
 {$endif FPC_HAS_WIDECHARARRAY_TO_ANSISTR}
 

@@ -12126,6 +12126,7 @@ tests/test/tcpstr26a.pp svneol=native#text/plain
 tests/test/tcpstr26b.pp svneol=native#text/plain
 tests/test/tcpstr26c.pp svneol=native#text/plain
 tests/test/tcpstr26d.pp svneol=native#text/plain
+tests/test/tcpstr27.pp svneol=native#text/plain
 tests/test/tcpstr2a.pp svneol=native#text/plain
 tests/test/tcpstr3.pp svneol=native#text/plain
 tests/test/tcpstr4.pp svneol=native#text/plain
