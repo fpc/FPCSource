@@ -99,11 +99,6 @@
        PVmt = ^TVmt;
        PPVmt = ^PVmt;
        TVmt = record
-       private
-         function GetvParent: PVmt; inline;
-       public
-         property vParent: PVmt read GetvParent;
-       public
          vInstanceSize: SizeInt;
          vInstanceSize2: SizeInt;
          vParentRef: {$ifdef VER3_0}PVmt{$else}PPVmt{$endif};
@@ -129,6 +124,10 @@
          vEquals: CodePointer;
          vGetHashCode: CodePointer;
          vToString: CodePointer;
+       private
+         function GetvParent: PVmt; inline;
+       public
+         property vParent: PVmt read GetvParent;
        end;
 
        PGuid = ^TGuid;

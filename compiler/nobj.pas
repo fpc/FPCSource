@@ -843,7 +843,7 @@ implementation
                 including its virtual methods. We only want the non-method
                 fields, as the methods will be added automatically based on
                 the VMT we generated here only add the 12 first fields }
-              for i:=0 to 13 do
+              for i:=0 to 11 do
                 begin
                   sym:=tsym(trecorddef(systemvmt).symtable.SymList[i]);
                   if sym.typ in [procsym,propertysym] then
