@@ -411,7 +411,8 @@ implementation
     constructor tpcppackage.create(const pn: string);
     begin
       inherited create(pn);
-      setfilename(pn,true);
+
+      setfilename(pn+'.ppk',true);
     end;
 
   destructor tpcppackage.destroy;
