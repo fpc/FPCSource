@@ -44,7 +44,7 @@ var
 
   fpc_ret,fpc_ret_rbp : pointer;
 
-procedure libc_atexit; external name '__libc_atexit';
+procedure libc_atexit; external name 'atexit';
 procedure libc_exit; external name '__libc_exit';
 procedure libc_init; external name '__libc_init';
 procedure libc_setfpucw; external name '__setfpucw';
@@ -155,7 +155,7 @@ procedure main_stub; assembler; nostackframe;
     movq    gmon_mcleanup@GOTPCREL(%rip),%rdi
     call    libc_atexit@PLT
     { Save initial stackpointer }
-    movq    initialstkptr(%rip),%rax
+    movq    initialstkptr@GOTPCREL(%rip),%rax
     movq    %rsp,(%rax)
 
     { start the program }
