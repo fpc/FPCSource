@@ -11,7 +11,11 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- **********************************************************************}
+ **********************************************************************
+
+ Examples:
+    ./testpas2js --suite=TTestExpressionConverter.TestVariable
+}
 unit tcconverter;
 
 {$mode objfpc}{$H+}
@@ -19,7 +23,7 @@ unit tcconverter;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, fppas2js, jsbase, jstree, pastree;
+  Classes, SysUtils, fpcunit, testregistry, fppas2js, jsbase, jstree, pastree;
 
 type
 
@@ -599,7 +603,7 @@ Var
 begin
   // Try a:=B except on E : exception do  b:=c end;
   // Try a:=B except on E : exception do  b:=c end;
-  {
+  (*
     Becomes:
     try {
      a=b;
@@ -609,7 +613,7 @@ begin
         b = c;
       }
     }
-  }
+  *)
   T:=TPasImplTry.Create('',Nil);
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddExcept;
@@ -647,7 +651,7 @@ Var
 
 begin
   // Try a:=B except on E : exception do  b:=c end;
-  {
+  (*
     Becomes:
     try {
      a=b;
@@ -657,7 +661,7 @@ begin
         throw jsexception;
       }
     }
-  }
+  *)
   T:=TPasImplTry.Create('',Nil);
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddExcept;
@@ -1119,8 +1123,6 @@ end;
 Procedure TTestExpressionConverter.TestMemberExpressionArrayTwoDim;
 Var
   B : TParamsExpr;
-  E : TJSBracketMemberExpression;
-
 begin
   // a[b,c];
   B:=TParamsExpr.Create(Nil,pekArrayParams,eopNone);
@@ -1140,7 +1142,7 @@ begin
   R:=TPasVariable.Create('A',Nil);
   VD:=TJSVarDeclaration(Convert(R,TJSVarDeclaration));
   AssertEquals('Correct name, lowercased','a',VD.Name);
-  AssertNull('No init',VD.Init);
+  AssertNotNull('No init',VD.Init);
 end;
 
 Procedure TTestExpressionConverter.TestArrayVariable;
@@ -1176,6 +1178,7 @@ begin
   pex:=TJSPrimaryExpressionIdent(AssertElement('Asi.LHS is TJSPrimaryExpressionIdent',TJSPrimaryExpressionIdent,Asi.LHS));
   AssertEquals('Correct name','myclass',pex.Name);
   Call:=TJSCallExpression(AssertElement('Asi.Expr is TJSCallExpression',TJSCallExpression,Asi.Expr));
+  if Call=nil then ;
 end;
 procedure TTestTestConverter.TestEmpty;
 begin
