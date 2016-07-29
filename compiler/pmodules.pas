@@ -1617,14 +1617,10 @@ type
 
          if target_info.system in systems_windows then
            begin
-             new_section(current_asmdata.asmlists[al_globals],sec_data,'_FPCDummy',4);
-             current_asmdata.asmlists[al_globals].concat(tai_symbol.createname_global('_FPCDummy',AT_DATA,0,u32inttype));
-             current_asmdata.asmlists[al_globals].concat(tai_const.create_32bit(0));
-
+             { ToDo: generate an entry dummy using higher level functionality }
              new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
              current_asmdata.asmlists[al_procedures].concat(tai_symbol.createname_global('_DLLMainCRTStartup',AT_FUNCTION,0,voidcodepointertype));
              gen_fpc_dummy(current_asmdata.asmlists[al_procedures]);
-             current_asmdata.asmlists[al_procedures].concat(tai_const.createname('_FPCDummy',0));
            end;
 
          { leave when we got an error }
