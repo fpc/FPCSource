@@ -1456,15 +1456,22 @@ implementation
 *****************************************************************************}
 
     procedure tcgrttinode.pass_generate_code;
+      var
+        indirect : boolean;
       begin
+        indirect := (tf_supports_packages in target_info.flags) and
+                      (target_info.system in systems_indirect_var_imports) and
+                      (cs_imported_data in current_settings.localswitches) and
+                      (rttidef.owner.moduleid<>current_module.moduleid);
+
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,sizeof(pint));
         case rttidatatype of
           rdt_normal:
-            location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype,false);
+            location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype,indirect);
           rdt_ord2str:
-            location.reference.symbol:=RTTIWriter.get_rtti_label_ord2str(rttidef,rttitype,false);
+            location.reference.symbol:=RTTIWriter.get_rtti_label_ord2str(rttidef,rttitype,indirect);
           rdt_str2ord:
-            location.reference.symbol:=RTTIWriter.get_rtti_label_str2ord(rttidef,rttitype,false);
+            location.reference.symbol:=RTTIWriter.get_rtti_label_str2ord(rttidef,rttitype,indirect);
         end;
       end;
 
