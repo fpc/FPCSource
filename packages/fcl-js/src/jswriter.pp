@@ -494,7 +494,7 @@ begin
   else
     begin
     undent;
-    Writeln('}');
+    Write('}'); // do not writeln
     end;
 end;
 
@@ -694,6 +694,7 @@ procedure TJSWriter.WriteStatementList(El: TJSStatementList);
 Var
   C : Boolean;
   B : Boolean;
+  LastEl: TJSElement;
 
 begin
   C:=(woCompact in Options);
@@ -703,19 +704,25 @@ begin
     Write('{');
     if not C then writeln('');
     end;
-  if Assigned(EL.A) then
+  if Assigned(El.A) then
     begin
-    WriteJS(EL.A);
-    if Assigned(EL.B) then
+    WriteJS(El.A);
+    LastEl:=El.A;
+    if Assigned(El.B) then
       begin
-      if C then
-        Write('; ')
-      else
-        Writeln(';');
+      if not (LastEl is TJSStatementList) then
+        begin
+        if C then
+          Write('; ')
+        else
+          Writeln(';');
+        end;
       FSkipBrackets:=True;
-      WriteJS(EL.B);
+      WriteJS(El.B);
+      LastEl:=El.B;
       end;
-    if not C then writeln(';');
+    if (not C) and not (LastEl is TJSStatementList) then
+      writeln(';');
     end;
   if B then
     begin

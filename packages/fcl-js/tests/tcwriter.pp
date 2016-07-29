@@ -5,7 +5,7 @@ unit tcwriter;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, jsbase, jstree, jswriter;
+  Classes, SysUtils, fpcunit, testregistry, jsbase, jstree, jswriter;
 
 type
 
@@ -801,8 +801,6 @@ Procedure TTestStatementWriter.TestVarDeclaration;
 
 Var
   V : TJSVarDeclaration;
-  L : TJSPrimaryExpressionIdent;
-
 begin
   V:=TJSVarDeclaration.Create(0,0);
   V.Name:='a';
@@ -812,8 +810,6 @@ end;
 Procedure TTestStatementWriter.TestVarDeclarationInit;
 Var
   V : TJSVarDeclaration;
-  L : TJSLiteral;
-
 begin
   V:=TJSVarDeclaration.Create(0,0);
   V.Name:='a';
@@ -864,8 +860,6 @@ Procedure TTestStatementWriter.TestVarDeclarationStatement;
 Var
   S : TJSVariableStatement;
   V : TJSVarDeclaration;
-  L : TJSPrimaryExpressionIdent;
-
 begin
   S:=TJSVariableStatement.Create(0,0);
   V:=TJSVarDeclaration.Create(0,0);
@@ -1131,7 +1125,6 @@ Var
   S : TJSForStatement;
   UPP : TJSUnaryPostPlusPlusExpression;
   CL : TJSRelationalExpressionLT;
-  L : TJSLiteral;
   sa : TJSSimpleAssignStatement;
 
 begin
@@ -1156,7 +1149,6 @@ Var
   S : TJSForStatement;
   UPP : TJSUnaryPostPlusPlusExpression;
   CL : TJSRelationalExpressionLT;
-  L : TJSLiteral;
   sa : TJSSimpleAssignStatement;
 
 begin
@@ -1476,7 +1468,7 @@ begin
   FD:=TJSFunctionDeclarationStatement.Create(0,0);
   FD.AFunction:=TJSFuncDef.Create;
   FD.AFunction.Name:='a';
-  AssertWrite('Empty function','function a() {'+sLineBreak+'}'+sLineBreak,FD);
+  AssertWrite('Empty function','function a() {'+sLineBreak+'}',FD);
 end;
 
 Procedure TTestStatementWriter.TestEmptyFunctionDefCompact;
@@ -1505,7 +1497,7 @@ begin
   FD.AFunction.Params.Add('c');
   FD.AFunction.Params.Add('d');
 
-  AssertWrite('Empty function, 3 params','function a(b, c, d) {'+sLineBreak+'}'+sLineBreak,FD);
+  AssertWrite('Empty function, 3 params','function a(b, c, d) {'+sLineBreak+'}',FD);
 end;
 
 Procedure TTestStatementWriter.TestFunctionDefParamsCompact;
@@ -1540,7 +1532,7 @@ begin
   R:=TJSReturnStatement.Create(0,0);
   R.Expr:=CreateLiteral(0);
   FD.AFunction.Body.A:=R;
-  AssertWrite('1 statement, ','function a() {'+sLineBreak+'  return 0;'+sLineBreak+'}'+sLineBreak,FD);
+  AssertWrite('1 statement, ','function a() {'+sLineBreak+'  return 0;'+sLineBreak+'}',FD);
 end;
 
 Procedure TTestStatementWriter.TestFunctionDefBody1Compact;
@@ -1589,7 +1581,7 @@ begin
   L.A:=A;
   L.B:=R;
   FD.AFunction.Body.A:=L;
-  AssertWrite('Function, 2 statements','function a(b) {'+sLineBreak+'  b = (b * 10);'+sLineBreak+'  return b;'+sLineBreak+'}'+sLineBreak,FD);
+  AssertWrite('Function, 2 statements','function a(b) {'+sLineBreak+'  b = (b * 10);'+sLineBreak+'  return b;'+sLineBreak+'}',FD);
 end;
 
 Procedure TTestStatementWriter.TestFunctionDefBody2Compact;
@@ -2400,7 +2392,7 @@ end;
 Function TTestJSWriter.CreateIdent(Const AName: String): TJSPrimaryExpressionIdent;
 begin
   Result:=TJSPrimaryExpressionIdent.Create(0,0);
-  Result.Name:=AName;
+  Result.Name:=TJSString(AName);
 end;
 
 Function TTestJSWriter.CreateLiteral(Const AValue: TJSString): TJSLiteral;
