@@ -1218,6 +1218,7 @@ implementation
          pd : tprocdef;
          fpc_catches_res: TCGPara;
          fpc_catches_resloc: tlocation;
+         indirect : boolean;
       begin
          paraloc1.init;
          location_reset(location,LOC_VOID,OS_NO);
@@ -1230,9 +1231,14 @@ implementation
          flowcontrol:=[fc_inflowcontrol];
          current_asmdata.getjumplabel(nextonlabel);
 
+         indirect:=(tf_supports_packages in target_info.flags) and
+                     (target_info.system in systems_indirect_var_imports) and
+                     (cs_imported_data in current_settings.localswitches) and
+                     (excepttype.owner.moduleid<>current_procinfo.procdef.owner.moduleid);
+
          { send the vmt parameter }
          pd:=search_system_proc('fpc_catches');
-         reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname,AT_DATA),0,sizeof(pint));
+         reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname,AT_DATA,indirect),0,sizeof(pint));
          paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
          hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,excepttype.vmt_def,href2,paraloc1);
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
