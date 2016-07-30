@@ -1,3 +1,7 @@
+{$ifdef unix}
+uses
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
+{$endif}
 
 var
   data: array[0..3] of widechar;
