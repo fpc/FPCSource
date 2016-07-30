@@ -1337,55 +1337,55 @@ end;
  
 function TPasParser.ParseExpIdent(AParent : TPasElement):TPasExpr;
 var
-  x       : TPasExpr;
+  Last    , Expr: TPasExpr;
   prm     : TParamsExpr;
-  u       : TUnaryExpr;
   b       : TBinaryExpr;
   optk    : TToken;
+  ok: Boolean;
 begin
   Result:=nil;
   case CurToken of
-    tkString:           x:=TPrimitiveExpr.Create(AParent,pekString, CurTokenString);
-    tkChar:             x:=TPrimitiveExpr.Create(AParent,pekString, CurTokenText);
-    tkNumber:           x:=TPrimitiveExpr.Create(AParent,pekNumber, CurTokenString);
-    tkIdentifier:       x:=TPrimitiveExpr.Create(AParent,pekIdent, CurTokenText);
-    tkfalse, tktrue:    x:=TBoolConstExpr.Create(Aparent,pekBoolConst, CurToken=tktrue);
-    tknil:              x:=TNilExpr.Create(Aparent);
-    tkSquaredBraceOpen: x:=ParseParams(AParent,pekSet);
+    tkString:           Last:=TPrimitiveExpr.Create(AParent,pekString, CurTokenString);
+    tkChar:             Last:=TPrimitiveExpr.Create(AParent,pekString, CurTokenText);
+    tkNumber:           Last:=TPrimitiveExpr.Create(AParent,pekNumber, CurTokenString);
+    tkIdentifier:       Last:=TPrimitiveExpr.Create(AParent,pekIdent, CurTokenText);
+    tkfalse, tktrue:    Last:=TBoolConstExpr.Create(Aparent,pekBoolConst, CurToken=tktrue);
+    tknil:              Last:=TNilExpr.Create(Aparent);
+    tkSquaredBraceOpen: Last:=ParseParams(AParent,pekSet);
     tkinherited:
       begin
       //inherited; inherited function
-      x:=TInheritedExpr.Create(AParent);
+      Last:=TInheritedExpr.Create(AParent);
       NextToken;
       if (CurToken=tkIdentifier) then
         begin
-        b:=TBinaryExpr.Create(AParent,x, DoParseExpression(AParent), eopNone);
+        b:=TBinaryExpr.Create(AParent,Last, DoParseExpression(AParent), eopNone);
         if not Assigned(b.right) then
           begin
           B.Free;
           Exit; // error
           end;
-        x:=b;
+        Last:=b;
         UngetToken;
         end
       else
         UngetToken;
       end;
     tkself: begin
-      //x:=TPrimitiveExpr.Create(AParent,pekString, CurTokenText); //function(self);
-      x:=TSelfExpr.Create(AParent);
+      //Last:=TPrimitiveExpr.Create(AParent,pekString, CurTokenText); //function(self);
+      Last:=TSelfExpr.Create(AParent);
       NextToken;
       if CurToken = tkDot then
         begin // self.Write(EscapeText(AText));
         optk:=CurToken;
         NextToken;
-        b:=TBinaryExpr.Create(AParent,x, ParseExpIdent(AParent), TokenToExprOp(optk));
+        b:=TBinaryExpr.Create(AParent,Last, ParseExpIdent(AParent), TokenToExprOp(optk));
         if not Assigned(b.right) then
           begin
           B.Free;
           Exit; // error
           end;
-         x:=b;
+         Last:=b;
         end;
       UngetToken;
     end;
@@ -1396,7 +1396,7 @@ begin
         UngetToken;
         ParseExcExpectedIdentifier;
       end;
-      x:=TPrimitiveExpr.Create(AParent,pekString, '@'+CurTokenText);
+      Last:=TPrimitiveExpr.Create(AParent,pekString, '@'+CurTokenText);
     end;
     tkCaret: begin
       // ^A..^_ characters. See #16341
@@ -1405,23 +1405,27 @@ begin
         UngetToken;
         ParseExcExpectedIdentifier;
       end;
-      x:=TPrimitiveExpr.Create(AParent,pekString, '^'+CurTokenText);
+      Last:=TPrimitiveExpr.Create(AParent,pekString, '^'+CurTokenText);
     end;
   else
     ParseExcExpectedIdentifier;
   end;
 
-  if x.Kind<>pekSet then NextToken;
+  Result:=Last;
 
+  if Last.Kind<>pekSet then NextToken;
+
+  ok:=false;
   try
-    if x.Kind=pekIdent then
+    if Last.Kind=pekIdent then
       begin
       while CurToken in [tkDot] do
         begin
         NextToken;
         if CurToken=tkIdentifier then
           begin
-          b:=TBinaryExpr.Create(AParent,x, TPrimitiveExpr.Create(AParent,pekIdent, CurTokenText), eopSubIdent);
+          TBinaryExpr.AddToChain(Result,Last,
+            TPrimitiveExpr.Create(AParent,pekIdent, CurTokenText), AParent, eopSubIdent);
           NextToken;
           end
         else
@@ -1429,7 +1433,6 @@ begin
           UngetToken;
           ParseExcExpectedIdentifier;
           end;
-        x:=b;
         end;
       while CurToken in [tkBraceOpen, tkSquaredBraceOpen, tkCaret] do
         case CurToken of
@@ -1437,20 +1440,22 @@ begin
             begin
             prm:=ParseParams(AParent,pekFuncParams);
             if not Assigned(prm) then Exit;
-            prm.Value:=x;
-            x:=prm;
+            prm.Value:=Last;
+            Result:=prm;
+            Last:=prm;
             end;
           tkSquaredBraceOpen:
             begin
             prm:=ParseParams(AParent,pekArrayParams);
             if not Assigned(prm) then Exit;
-            prm.Value:=x;
-            x:=prm;
+            prm.Value:=Last;
+            Result:=prm;
+            Last:=prm;
             end;
           tkCaret:
             begin
-            u:=TUnaryExpr.Create(AParent,x, TokenToExprOp(CurToken));
-            x:=u;
+            Result:=TUnaryExpr.Create(AParent,Result,TokenToExprOp(CurToken));
+            Last:=Result;
             NextToken;
             end;
         end;
@@ -1459,19 +1464,16 @@ begin
         begin
         optk:=CurToken;
         NextToken;
-        b:=TBinaryExpr.Create(AParent,x, ParseExpIdent(AParent), TokenToExprOp(optk));
-        if not Assigned(b.right) then
-          begin
-          b.free;
+        Expr:=ParseExpIdent(AParent);
+        if Expr=nil then
           Exit; // error
-          end;
-        x:=b;
+        TBinaryExpr.AddToChain(Result,Last,Expr,AParent,TokenToExprOp(optk));
       end;
     end;
-
-    Result:=x;
+    ok:=true;
   finally
-    if not Assigned(Result) then x.Free;
+    if not ok then
+      FreeAndNil(Result);
   end;
 end;
 
