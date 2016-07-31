@@ -16,7 +16,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('rtl-generics');
-    P.ShortName:='rtlgen';
+    P.ShortName:='rtlg';
     P.Author := 'Maciej Izak';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
