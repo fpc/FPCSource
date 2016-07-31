@@ -178,8 +178,6 @@ type
     constructor CreateRange(AParent : TPasElement; xleft, xright: TPasExpr); overload;
     function GetDeclaration(full : Boolean) : string; override;
     destructor Destroy; override;
-    class procedure AddToChain(var ChainFirst, ChainLast: TPasExpr;
-      Element: TPasExpr; AParent : TPasElement; AOpCode: TExprOpCode);
   end;
 
   TPrimitiveExpr = class(TPasExpr)
@@ -3599,48 +3597,6 @@ begin
   left.Free;
   right.Free;
   inherited Destroy;
-end;
-
-class procedure TBinaryExpr.AddToChain(var ChainFirst, ChainLast: TPasExpr;
-  Element: TPasExpr; AParent: TPasElement; AOpCode: TExprOpCode);
-
-  procedure RaiseInternal;
-  begin
-    raise Exception.Create('TBinaryExpr.AddToChain: internal error');
-  end;
-
-var
-  Last: TBinaryExpr;
-begin
-  if Element=nil then
-    exit
-  else if ChainFirst=nil then
-    begin
-    // empty chain => simply add element, no need to create TBinaryExpr
-    if (ChainLast<>nil) then
-      RaiseInternal;
-    ChainFirst:=Element;
-    ChainLast:=Element;
-    end
-  else if ChainLast is TBinaryExpr then
-    begin
-    // add a new TBinaryExpr at the end of the chain
-    Last:=TBinaryExpr(ChainLast);
-    if (Last.left=nil) or (Last.right=nil) then
-      // chain not yet full => inconsistency
-      RaiseInternal;
-    Last.right:=TBinaryExpr.Create(AParent,Last.right,Element,AOpCode);
-    Last.right.Parent:=last;
-    ChainLast:=Last;
-    end
-  else
-    begin
-    // one element => create a TBinaryExpr with two elements
-    if ChainFirst<>ChainLast then
-      RaiseInternal;
-    ChainLast:=TBinaryExpr.Create(AParent,ChainLast,Element,AOpCode);
-    ChainFirst:=ChainLast;
-    end;
 end;
 
 { TParamsExpr }
