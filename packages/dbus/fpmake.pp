@@ -49,6 +49,8 @@ begin
           AddInclude('dbus-threads.inc');
           AddInclude('dbus-misc.inc');
         end;
+    T:=P.Targets.AddUnit('dbuscomp.pp');
+    T.Dependencies.AddUnit('dbus');
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('busexample.pp');

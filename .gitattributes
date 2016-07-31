@@ -1895,6 +1895,7 @@ packages/dbus/src/dbus-threads.inc svneol=native#text/plain
 packages/dbus/src/dbus-types.inc svneol=native#text/plain
 packages/dbus/src/dbus.pas svneol=native#text/plain
 packages/dbus/src/dbus_arch_deps.inc svneol=native#text/plain
+packages/dbus/src/dbuscomp.pp svneol=native#text/plain
 packages/dts/Makefile svneol=native#text/plain
 packages/dts/Makefile.fpc svneol=native#text/plain
 packages/dts/Makefile.fpc.fpcmake svneol=native#text/plain
