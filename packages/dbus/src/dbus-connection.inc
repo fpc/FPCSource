@@ -89,6 +89,8 @@ procedure dbus_connection_unref(connection: PDBusConnection); cdecl; external Li
 procedure dbus_connection_close(connection: PDBusConnection); cdecl; external LibDBus;
 function dbus_connection_get_is_connected(connection: PDBusConnection): dbus_bool_t; cdecl; external LibDBus;
 function dbus_connection_get_is_authenticated(connection: PDBusConnection): dbus_bool_t; cdecl; external LibDBus;
+function dbus_connection_get_is_anonymous(connection: PDBusConnection): dbus_bool_t; cdecl; external LibDBus;
+
 procedure dbus_connection_set_exit_on_disconnect(connection: PDBusConnection;
  exit_on_disconnect: dbus_bool_t); cdecl; external LibDBus;
 procedure dbus_connection_flush(connection: PDBusConnection); cdecl; external LibDBus;
