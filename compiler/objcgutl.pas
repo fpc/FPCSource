@@ -1100,7 +1100,6 @@ procedure tobjcrttiwriter_fragile.gen_objc_info_sections(list: tasmlist);
     { version number = 7 (always, both for gcc and clang) }
     tcb.emit_ord_const(7,ptruinttype);
     { sizeof(objc_module): 4 pointer-size entities }
-    list.Concat(Tai_const.Create_pint(sizeof(pint)*4));
     tcb.emit_ord_const(sizeof(pint)*4,ptruinttype);
     { used to be file name, now unused (points to empty string) }
     objcreatestringpoolentry('',sp_objcclassnames,sec_objc_class_names,lab,def);
