@@ -97,7 +97,7 @@ implementation
         end
       else
         begin
-          sym:=current_asmdata.RefAsmSymbol(procdef.mangledname);
+          sym:=current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION);
           reference_reset_symbol(r,sym,0,sizeof(pint));
           if (cs_create_pic in current_settings.moduleswitches) and
              { darwin/x86_64's assembler doesn't want @PLT after call symbols }

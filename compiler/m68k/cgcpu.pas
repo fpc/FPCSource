@@ -602,9 +602,9 @@ unit cgcpu;
         sym: tasmsymbol;
       begin
         if not(weak) then
-          sym:=current_asmdata.RefAsmSymbol(s)
+          sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION)
         else
-          sym:=current_asmdata.WeakRefAsmSymbol(s);
+          sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION);
 
         list.concat(taicpu.op_sym(A_JSR,S_NO,sym));
       end;
@@ -1599,7 +1599,7 @@ unit cgcpu;
       var
        ai: taicpu;
       begin
-         ai := Taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s));
+         ai := Taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
          ai.is_jmp := true;
          list.concat(ai);
       end;

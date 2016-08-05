@@ -790,7 +790,7 @@ unit cgx86;
         r: treference;
       begin
         if (target_info.system <> system_i386_darwin) then
-          list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s)))
+          list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
         else
           begin
             reference_reset_symbol(r,get_darwin_call_stub(s,false),0,sizeof(pint));
@@ -823,7 +823,7 @@ unit cgx86;
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         { register as a weak symbol if necessary }
         if weak then
-          current_asmdata.weakrefasmsymbol(s);
+          current_asmdata.weakrefasmsymbol(s,AT_FUNCTION);
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
         current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
@@ -848,9 +848,9 @@ unit cgx86;
         if (target_info.system <> system_i386_darwin) then
           begin
             if not(weak) then
-              sym:=current_asmdata.RefAsmSymbol(s)
+              sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION)
             else
-              sym:=current_asmdata.WeakRefAsmSymbol(s);
+              sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION);
             reference_reset_symbol(r,sym,0,sizeof(pint));
             if (cs_create_pic in current_settings.moduleswitches) and
                { darwin's assembler doesn't want @PLT after call symbols }
@@ -884,7 +884,7 @@ unit cgx86;
         sym : tasmsymbol;
         r : treference;
       begin
-        sym:=current_asmdata.RefAsmSymbol(s);
+        sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
         reference_reset_symbol(r,sym,0,sizeof(pint));
         r.refaddr:=addr_full;
         list.concat(taicpu.op_ref(A_CALL,S_NO,r));
@@ -1147,7 +1147,7 @@ unit cgx86;
                       system_i386_linux,system_i386_android:
                         if segment=NR_GS then
                           begin
-                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset'),0,dirref.alignment);
+                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset',AT_DATA),0,dirref.alignment);
                             tmpref.segment:=NR_GS;
                             list.concat(Taicpu.op_ref_reg(A_ADD,tcgsize2opsize[OS_ADDR],tmpref,r));
                           end

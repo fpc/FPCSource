@@ -571,7 +571,7 @@ unit cgcpu;
                     current_module.requires_ecx_pic_helper:=true;
                     a_call_name_static(list,'fpc_geteipasecx');
                   end;
-                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,tmpreg));
+                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),0,tmpreg));
                 list.concat(taicpu.op_reg_reg(A_MOV,S_L,tmpreg,current_procinfo.got));
 
                 { Deallocate parameter registers }

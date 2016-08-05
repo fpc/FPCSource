@@ -346,7 +346,7 @@ unit cgppc;
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         { register as a weak symbol if necessary }
         if weak then
-          current_asmdata.weakrefasmsymbol(s);
+          current_asmdata.weakrefasmsymbol(s,AT_FUNCTION);
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         l1 := current_asmdata.DefineAsmSymbol('L'+s+'$lazy_ptr',AB_LOCAL,AT_DATA,voidpointertype);
         reference_reset_symbol(href,l1,0,sizeof(pint));
@@ -823,11 +823,11 @@ unit cgppc;
                 to define the symbol that's being accessed as either weak or
                 not }
               if not(is_weak in flags) then
-                current_asmdata.RefAsmSymbol(symname)
+                current_asmdata.RefAsmSymbol(symname,AT_DATA)
               else if is_data in flags then
-                current_asmdata.WeakRefAsmSymbol(symname)
+                current_asmdata.WeakRefAsmSymbol(symname,AT_DATA)
               else
-                current_asmdata.WeakRefAsmSymbol('.'+symname);
+                current_asmdata.WeakRefAsmSymbol('.'+symname,AT_DATA);
               newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
               current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
             end;
@@ -852,17 +852,17 @@ unit cgppc;
                 end;
               { add the reference to the actual symbol inside the tocsubtable }
               if not(is_weak in flags) then
-                current_asmdata.RefAsmSymbol(symname)
+                current_asmdata.RefAsmSymbol(symname,AT_DATA)
               else if is_data in flags then
-                current_asmdata.WeakRefAsmSymbol(symname)
+                current_asmdata.WeakRefAsmSymbol(symname,AT_DATA)
               else
-                current_asmdata.WeakRefAsmSymbol('.'+symname);
+                current_asmdata.WeakRefAsmSymbol('.'+symname,AT_DATA);
               tocsym:=TTOCAsmSymbol(current_asmdata.DefineAsmSymbolByClass(TTOCAsmSymbol,nlsymname,AB_LOCAL,AT_DATA,voidpointertype));
               ref.symbol:=tocsym;
               tocsym.ftocsecnr:=tocnr;
               current_asmdata.asmlists[al_indirectpicdata].concat(tai_symbol.create(tocsym,0));
               newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
-              sym:=current_asmdata.RefAsmSymbol(newsymname);
+              sym:=current_asmdata.RefAsmSymbol(newsymname,AT_DATA);
               current_asmdata.asmlists[al_indirectpicdata].concat(tai_const.Create_sym(sym));
             end;
           { first load the address of the table from the TOC }

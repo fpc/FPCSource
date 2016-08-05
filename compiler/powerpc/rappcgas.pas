@@ -232,7 +232,7 @@ Unit rappcgas;
                     if (relsym<>'') then
                       begin
                         if (oper.opr.typ = OPR_REFERENCE) then
-                          oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym)
+                          oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym,asmsymtyp)
                         else
                           begin
                             Message(asmr_e_invalid_reference_syntax);

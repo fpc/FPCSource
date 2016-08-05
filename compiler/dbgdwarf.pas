@@ -2229,15 +2229,15 @@ implementation
             else
               procentry := def.mangledname;
 
-            append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
+            append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry,AT_FUNCTION));
             append_labelentry(DW_AT_high_pc,procendlabel);
 
             if not(target_info.system in systems_darwin) then
               begin
                 current_asmdata.asmlists[al_dwarf_aranges].Concat(
-                  tai_const.create_type_sym(aitconst_ptr_unaligned,current_asmdata.RefAsmSymbol(procentry)));
+                  tai_const.create_type_sym(aitconst_ptr_unaligned,current_asmdata.RefAsmSymbol(procentry,AT_FUNCTION)));
                 current_asmdata.asmlists[al_dwarf_aranges].Concat(
-                  tai_const.Create_rel_sym(aitconst_ptr_unaligned,current_asmdata.RefAsmSymbol(procentry),procendlabel));
+                  tai_const.Create_rel_sym(aitconst_ptr_unaligned,current_asmdata.RefAsmSymbol(procentry,AT_FUNCTION),procendlabel));
               end;
           end;
 

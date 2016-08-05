@@ -89,14 +89,14 @@ implementation
             pd:=tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
             if assigned(pd) then
               begin
-                InitList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(pd.mangledname)));
+                InitList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(pd.mangledname,AT_FUNCTION)));
                 inc(initCount);
               end;
 
             pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
             if assigned(pd) then
               begin
-                FinalizeList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(pd.mangledname)));
+                FinalizeList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(pd.mangledname,AT_FUNCTION)));
                 inc(finalCount);
               end;
           end;
@@ -127,13 +127,13 @@ implementation
             begin
               if (hp.u.flags and uf_init)<>0 then
                 begin
-                  initList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('INIT$',hp.u.globalsymtable,''))));
+                  initList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_DATA)));
                   inc(initCount);
                 end;
 
               if (hp.u.flags and uf_finalize)<>0 then
                 begin
-                  finalList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('FINALIZE$',hp.u.globalsymtable,''))));
+                  finalList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_DATA)));
                   inc(finalCount);
                 end;
             end;
@@ -150,13 +150,13 @@ implementation
         begin
           if (current_module.flags and uf_init)<>0 then
             begin
-              initList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('INIT$',current_module.localsymtable,''))));
+              initList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('INIT$',current_module.localsymtable,''),AT_DATA)));
               inc(initCount);
             end;
 
           if (current_module.flags and uf_finalize)<>0 then
             begin
-              finalList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('FINALIZE$',current_module.localsymtable,''))));
+              finalList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('FINALIZE$',current_module.localsymtable,''),AT_DATA)));
               inc(finalCount);
             end;
         end;

@@ -147,7 +147,7 @@ implementation
                (location.reference.index<>NR_NO) or
                assigned(location.reference.symbol) then
               internalerror(2011011301);
-            location.reference.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+            location.reference.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_METADATA);
             result:=true;
           end
       end;
@@ -346,7 +346,7 @@ implementation
     procedure tjvmloadvmtaddrnode.pass_generate_code;
       begin
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(
-          tabstractrecorddef(tclassrefdef(resultdef).pointeddef).jvm_full_typename(true))));
+          tabstractrecorddef(tclassrefdef(resultdef).pointeddef).jvm_full_typename(true),AT_METADATA)));
         thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
         location_reset(location,LOC_REGISTER,OS_ADDR);
         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);

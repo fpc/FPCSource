@@ -293,9 +293,9 @@ begin
   if (prependDot) then
     s := '.' + s;
   if not(weak) then
-    list.concat(taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s)))
+    list.concat(taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
   else
-    list.concat(taicpu.op_sym(opc, current_asmdata.WeakRefAsmSymbol(s)));
+    list.concat(taicpu.op_sym(opc, current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
   if (addNOP) then
     list.concat(taicpu.op_none(A_NOP));
 
@@ -965,7 +965,7 @@ var
 begin
   if (prependDot) then
     s := '.' + s;
-  p := taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s));
+  p := taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
   p.is_jmp := true;
   list.concat(p)
 end;

@@ -878,14 +878,14 @@ implementation
               if assigned(hp.sym) and not (eo_no_sym_name in hp.options) then
                 case hp.sym.typ of
                   staticvarsym :
-                    asmsym:=current_asmdata.RefAsmSymbol(tstaticvarsym(hp.sym).mangledname);
+                    asmsym:=current_asmdata.RefAsmSymbol(tstaticvarsym(hp.sym).mangledname,AT_DATA);
                   procsym :
-                    asmsym:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname)
+                    asmsym:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname,AT_FUNCTION)
                   else
                     internalerror(200709272);
                 end
               else
-                asmsym:=current_asmdata.RefAsmSymbol(hp.name^);
+                asmsym:=current_asmdata.RefAsmSymbol(hp.name^,AT_DATA);
               address_table.concat(Tai_const.Create_rva_sym(asmsym));
               inc(current_index);
               hp:=texported_item(hp.next);

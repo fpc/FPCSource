@@ -47,7 +47,7 @@ implementation
       systems,verbose,cutils,
       cpubase,cgbase,cgutils,cgobj,
       symsym,symcpu,nld,
-      aasmtai,aasmdata,aasmcpu;
+      aasmbase,aasmtai,aasmdata,aasmcpu;
 
 {    uses
       globtype,systems,
@@ -70,7 +70,7 @@ implementation
               // one syscall convention for AROS
               current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
               reference_reset(tmpref,sizeof(pint));
-              tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tcpuprocdef(procdefinition).libsym).mangledname);
+              tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tcpuprocdef(procdefinition).libsym).mangledname,AT_FUNCTION);
               cg.getcpuregister(current_asmdata.CurrAsmList,NR_RAX);
               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_RAX);
               reference_reset_base(tmpref,NR_RAX,-tprocdef(procdefinition).extnumber,sizeof(pint));

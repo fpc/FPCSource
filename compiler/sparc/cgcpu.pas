@@ -378,9 +378,9 @@ implementation
     procedure TCgSparc.a_call_name(list:TAsmList;const s:string; weak: boolean);
       begin
         if not weak then
-          list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(s)))
+          list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
         else
-          list.concat(taicpu.op_sym(A_CALL,current_asmdata.WeakRefAsmSymbol(s)));
+          list.concat(taicpu.op_sym(A_CALL,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
         { Delay slot }
         list.concat(taicpu.op_none(A_NOP));
       end;
@@ -876,7 +876,7 @@ implementation
 
     procedure TCgSparc.a_jmp_always(List:TAsmList;l:TAsmLabel);
       begin
-        List.Concat(TAiCpu.op_sym(A_BA,current_asmdata.RefAsmSymbol(l.name)));
+        List.Concat(TAiCpu.op_sym(A_BA,current_asmdata.RefAsmSymbol(l.name,AT_FUNCTION)));
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
@@ -884,7 +884,7 @@ implementation
 
     procedure tcgsparc.a_jmp_name(list : TAsmList;const s : string);
       begin
-        List.Concat(TAiCpu.op_sym(A_BA,current_asmdata.RefAsmSymbol(s)));
+        List.Concat(TAiCpu.op_sym(A_BA,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)));
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
@@ -1022,7 +1022,7 @@ implementation
                  sethi  %hi(_GLOBAL_OFFSET_TABLE_+(.-1b)), %l7
             2:   or     %l7, %lo(_GLOBAL_OFFSET_TABLE_+(.-1b)), %l7
                  add    %l7, %o7, %l7 }
-            reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),4,sizeof(pint));
+            reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),4,sizeof(pint));
             ref.refaddr:=addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,ref,NR_L7));
             cg.a_label(list,hl);

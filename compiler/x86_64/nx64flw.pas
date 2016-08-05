@@ -345,7 +345,7 @@ procedure tx64tryfinallynode.pass_generate_code;
 
     { generate the scope record in .xdata }
     tx86_64procinfo(current_procinfo).add_finally_scope(trylabel,endtrylabel,
-      current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname),catch_frame);
+      current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION),catch_frame);
 
     if implicitframe then
       current_procinfo.CurrExitLabel:=oldexitlabel;

@@ -97,7 +97,7 @@ implementation
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
 
                   reference_reset(tmpref,sizeof(pint));
-                  tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tcpuprocdef(procdefinition).libsym).mangledname);
+                  tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tcpuprocdef(procdefinition).libsym).mangledname,AT_DATA);
                   tmpref.refaddr:=addr_higha;
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LIS,NR_R12,tmpref));
                   tmpref.base:=NR_R12;

@@ -2378,6 +2378,7 @@ implementation
         l: tasmsymbol;
         ref: treference;
         nlsymname: string;
+        symtyp: TAsmsymtype;
       begin
         result := NR_NO;
         case target_info.system of
@@ -2391,13 +2392,17 @@ implementation
               l:=current_asmdata.getasmsymbol(nlsymname);
               if not(assigned(l)) then
                 begin
+                  if is_data in flags then
+                    symtyp:=AT_DATA
+                  else
+                    symtyp:=AT_FUNCTION;
                   new_section(current_asmdata.asmlists[al_picdata],sec_data_nonlazy,'',sizeof(pint));
                   l:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA,voidpointertype);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
                   if not(is_weak in flags) then
-                    current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,current_asmdata.RefAsmSymbol(symname).Name))
+                    current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,current_asmdata.RefAsmSymbol(symname,symtyp).Name))
                   else
-                    current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,current_asmdata.WeakRefAsmSymbol(symname).Name));
+                    current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,current_asmdata.WeakRefAsmSymbol(symname,symtyp).Name));
 {$ifdef cpu64bitaddr}
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_64bit(0));
 {$else cpu64bitaddr}

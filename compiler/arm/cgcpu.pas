@@ -655,9 +655,9 @@ unit cgcpu;
           generating BL is also what clang and gcc do by default }
           branchopcode:=A_BL;
         if not(weak) then
-          sym:=current_asmdata.RefAsmSymbol(s)
+          sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION)
         else
-          sym:=current_asmdata.WeakRefAsmSymbol(s);
+          sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION);
         reference_reset_symbol(r,sym,0,sizeof(pint));
 
         if (tf_pic_uses_got in target_info.flags) and
@@ -1813,9 +1813,9 @@ unit cgcpu;
       begin
         { generate far jump, leave it to the optimizer to get rid of it }
         if GenerateThumbCode then
-          ai:=taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s))
+          ai:=taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s,AT_FUNCTION))
         else
-          ai:=taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s));
+          ai:=taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
         ai.is_jmp:=true;
         list.concat(ai);
       end;
@@ -2370,7 +2370,7 @@ unit cgcpu;
             ref.symboldata:=current_procinfo.aktlocaldata.last;
             list.concat(Taicpu.op_reg_ref(A_LDR,NR_R12,ref));
             current_asmdata.getaddrlabel(l);
-            current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),-8));
+            current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),-8));
             cg.a_label(list,l);
             list.concat(Taicpu.op_reg_reg_reg(A_ADD,NR_R12,NR_PC,NR_R12));
             list.concat(Taicpu.op_reg_reg(A_MOV,current_procinfo.got,NR_R12));

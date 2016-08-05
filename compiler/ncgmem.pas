@@ -539,7 +539,7 @@ implementation
                classes can be changed without breaking programs compiled against
                earlier versions)
              }
-             asmsym:=current_asmdata.RefAsmSymbol(vs.mangledname);
+             asmsym:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
              reference_reset_symbol(tmpref,asmsym,0,sizeof(pint));
              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),location.reference);
              location.reference.index:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);

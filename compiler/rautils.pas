@@ -849,7 +849,7 @@ Begin
           staticvarsym :
             begin
               initref;
-              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(sym).mangledname);
+              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(sym).mangledname,AT_DATA);
             end;
           paravarsym,
           localvarsym :
@@ -914,7 +914,7 @@ Begin
         case opr.typ of
           OPR_REFERENCE:
             begin
-              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname,AT_FUNCTION);
 {$ifdef i8086}
               opr.ref_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
                         and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
@@ -923,7 +923,7 @@ Begin
           OPR_NONE:
             begin
               opr.typ:=OPR_SYMBOL;
-              opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+              opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname,AT_FUNCTION);
 {$ifdef i8086}
               opr.sym_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
                         and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
@@ -943,7 +943,7 @@ Begin
         case opr.typ of
           OPR_REFERENCE:
             begin
-              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tlabelsym(sym).mangledname);
+              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tlabelsym(sym).mangledname,AT_FUNCTION);
               if opr.ref.segment=NR_NO then
                 opr.ref.segment:=NR_CS;
             end;

@@ -62,7 +62,7 @@ implementation
 
     uses
       verbose,cutils,globtype,globals,constexp,fmodule,
-      aasmdata,aasmtai,cpubase,aasmcpu,
+      aasmdata,aasmtai,cpubase,aasmbase,aasmcpu,
       symbase,symcpu,symtable,defutil,jvmdef,
       ncnv,ncon,ninl,ncal,nld,nmem,
       ppu,
@@ -405,7 +405,7 @@ implementation
                   replace(unitclassname,'.','/');
                 end;
               unitclassname:=unitclassname+hp.u.realmodulename^;
-              unitinits.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(unitclassname)));
+              unitinits.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(unitclassname,AT_METADATA)));
               unitinits.concat(taicpu.op_none(a_pop));
             end;
           hp:=tused_unit(hp.next);

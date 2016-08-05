@@ -187,7 +187,7 @@ implementation
         end
       { case 0 }
       else
-        list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(procdef.mangledname)));
+        list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
 
       List.concat(Tai_symbol_end.Createname(labelname));
     end;

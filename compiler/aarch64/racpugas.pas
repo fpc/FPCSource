@@ -620,7 +620,7 @@ Unit racpugas;
                     if (oper.opr.val<>0) then
                       Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
-                    oper.opr.symbol:=current_asmdata.RefAsmSymbol(mangledname);
+                    oper.opr.symbol:=current_asmdata.RefAsmSymbol(mangledname,AT_FUNCTION);
                   end
                 else
                   inc(oper.opr.val,l);

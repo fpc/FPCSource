@@ -139,18 +139,18 @@ implementation
             paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
             segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-            reference_reset_symbol(segref,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,0);
+            reference_reset_symbol(segref,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,0);
             segref.refaddr:=addr_seg;
             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,pvd.size);
+            reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.size);
             href.segment:=segreg;
             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
             { don't save the allocated register else the result will be destroyed later }
             if not(vo_is_weak_external in gvs.varoptions) then
-              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
+              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint))
             else
-              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
+              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint));
             cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_16,href,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
@@ -168,9 +168,9 @@ implementation
                 0 - Threadvar index
                 4 - Threadvar value in single threading }
             if not(vo_is_weak_external in gvs.varoptions) then
-              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint))
+              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),sizeof(pint))
             else
-              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint));
+              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),sizeof(pint));
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,href,hregister);
             cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
             hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment);
@@ -223,9 +223,9 @@ implementation
                       if gvs.localloc.loc=LOC_INVALID then
                         begin
                           if not(vo_is_weak_external in gvs.varoptions) then
-                            refsym:=current_asmdata.RefAsmSymbol(gvs.mangledname)
+                            refsym:=current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA)
                           else
-                            refsym:=current_asmdata.WeakRefAsmSymbol(gvs.mangledname);
+                            refsym:=current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA);
 
                           segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
 

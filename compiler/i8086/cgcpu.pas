@@ -190,9 +190,9 @@ unit cgcpu;
         sym : tasmsymbol;
       begin
         if not(weak) then
-          sym:=current_asmdata.RefAsmSymbol(s)
+          sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION)
         else
-          sym:=current_asmdata.WeakRefAsmSymbol(s);
+          sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION);
         list.concat(taicpu.op_sym(A_CALL,S_FAR,sym));
       end;
 
@@ -210,7 +210,7 @@ unit cgcpu;
       var
         sym : tasmsymbol;
       begin
-        sym:=current_asmdata.RefAsmSymbol(s);
+        sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
         list.concat(taicpu.op_sym(A_CALL,S_FAR,sym));
       end;
 

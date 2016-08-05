@@ -128,7 +128,7 @@ implementation
     begin
       { CALL overwrites %o7 with its own address, we use delay slot to restore it. }
       list.concat(taicpu.op_reg_reg(A_MOV,NR_O7,NR_G1));
-      list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(externalname)));
+      list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION)));
       list.concat(taicpu.op_reg_reg(A_MOV,NR_G1,NR_O7));
     end;
 

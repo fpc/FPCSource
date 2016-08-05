@@ -387,9 +387,9 @@ begin
     InternalError(2013022101);
 
   if weak then
-    sym:=current_asmdata.WeakRefAsmSymbol(s)
+    sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)
   else
-    sym:=current_asmdata.RefAsmSymbol(s);
+    sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
 
   if (cs_create_pic in current_settings.moduleswitches) then
     a_call_sym_pic(list,sym)
@@ -1069,7 +1069,7 @@ end;
 
 procedure TCGMIPS.a_jmp_name(list: tasmlist; const s: string);
 begin
-  List.Concat(TAiCpu.op_sym(A_BA, current_asmdata.RefAsmSymbol(s)));
+  List.Concat(TAiCpu.op_sym(A_BA, current_asmdata.RefAsmSymbol(s,AT_FUNCTION)));
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;
@@ -1666,12 +1666,12 @@ procedure TCGMIPS.g_profilecode(list:TAsmList);
   begin
     if not (cs_create_pic in current_settings.moduleswitches) then
       begin
-        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('_gp'),0,sizeof(pint));
+        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(pint));
         a_loadaddr_ref_reg(list,href,NR_GP);
       end;
     list.concat(taicpu.op_reg_reg(A_MOVE,NR_R1,NR_RA));
     list.concat(taicpu.op_reg_reg_const(A_ADDIU,NR_SP,NR_SP,-8));
-    a_call_sym_pic(list,current_asmdata.RefAsmSymbol('_mcount'));
+    a_call_sym_pic(list,current_asmdata.RefAsmSymbol('_mcount',AT_FUNCTION));
   end;
 
 

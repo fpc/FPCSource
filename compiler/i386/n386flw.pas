@@ -359,14 +359,14 @@ procedure ti386tryfinallynode.pass_generate_code;
 
         current_asmdata.getjumplabel(exceptlabel);
         emit_scope_start(
-          current_asmdata.RefAsmSymbol('__FPC_except_safecall'),
+          current_asmdata.RefAsmSymbol('__FPC_except_safecall',AT_FUNCTION),
           exceptlabel
         );
       end
     else
       emit_scope_start(
-        current_asmdata.RefAsmSymbol('__FPC_finally_handler'),
-        current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname)
+        current_asmdata.RefAsmSymbol('__FPC_finally_handler',AT_FUNCTION),
+        current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION)
       );
 
     { try code }
@@ -537,12 +537,12 @@ procedure ti386tryexceptnode.pass_generate_code;
       begin
         current_asmdata.getaddrlabel(filterlabel);
         emit_scope_start(
-          current_asmdata.RefAsmSymbol('__FPC_on_handler'),
+          current_asmdata.RefAsmSymbol('__FPC_on_handler',AT_FUNCTION),
           filterlabel);
       end
     else
       emit_scope_start(
-        current_asmdata.RefAsmSymbol('__FPC_except_handler'),
+        current_asmdata.RefAsmSymbol('__FPC_except_handler',AT_FUNCTION),
         exceptlabel);
 
     { set control flow labels for the try block }

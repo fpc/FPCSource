@@ -826,7 +826,7 @@ implementation
         else
           opc:=a_anewarray;
         { doesn't change stack height: one int replaced by one reference }
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname)));
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname,AT_METADATA)));
         { store the data in the newly created array }
         basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,java_jlobject,basereg);

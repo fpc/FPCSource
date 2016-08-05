@@ -561,9 +561,9 @@ implementation
     procedure tcgaarch64.a_call_name(list: TAsmList; const s: string; weak: boolean);
       begin
         if not weak then
-          list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+          list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
         else
-          list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)));
+          list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
       end;
 
 
@@ -1438,7 +1438,7 @@ implementation
       var
         ai: taicpu;
       begin
-        ai:=TAiCpu.op_sym(A_B,current_asmdata.RefAsmSymbol(l.name));
+        ai:=TAiCpu.op_sym(A_B,current_asmdata.RefAsmSymbol(l.name,AT_FUNCTION));
         ai.is_jmp:=true;
         list.Concat(ai);
       end;
@@ -1448,7 +1448,7 @@ implementation
       var
         ai: taicpu;
       begin
-        ai:=TAiCpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s));
+        ai:=TAiCpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
         ai.is_jmp:=true;
         list.Concat(ai);
       end;

@@ -56,7 +56,7 @@ unit tgcpu;
        verbose,
        cgbase,
        symconst,symtable,symdef,symsym,symcpu,defutil,
-       cpubase,aasmcpu,
+       cpubase,aasmbase,aasmcpu,
        hlcgobj,hlcgcpu;
 
 
@@ -68,7 +68,7 @@ unit tgcpu;
         pd: tprocdef;
       begin
         gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
-        list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(def).jvm_full_typename(true))));
+        list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(def).jvm_full_typename(true),AT_METADATA)));
         { the constructor doesn't return anything, so put a duplicate of the
           self pointer on the evaluation stack for use as function result
           after the constructor has run }
@@ -135,7 +135,7 @@ unit tgcpu;
               if tsetdef(def).elementdef.typ=enumdef then
                 begin
                   { load enum class type }
-                  list.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(tcpuenumdef(tenumdef(tsetdef(def).elementdef).getbasedef).classdef.jvm_full_typename(true))));
+                  list.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(tcpuenumdef(tenumdef(tsetdef(def).elementdef).getbasedef).classdef.jvm_full_typename(true),AT_METADATA)));
                   thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
                   { call tenumset.noneOf() class method }
                   sym:=tsym(tobjectdef(java_juenumset).symtable.find('NONEOF'));
@@ -152,7 +152,7 @@ unit tgcpu;
                 end
               else
                 begin
-                  list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(java_jubitset.jvm_full_typename(true))));
+                  list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(java_jubitset.jvm_full_typename(true),AT_METADATA)));
                   { the constructor doesn't return anything, so put a duplicate of the
                     self pointer on the evaluation stack for use as function result
                     after the constructor has run }

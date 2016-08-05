@@ -665,7 +665,7 @@ implementation
         begin
           { multianewarray typedesc ndim }
           list.concat(taicpu.op_sym_const(a_multianewarray,
-            current_asmdata.RefAsmSymbol(jvmarrtype(elemdef,primitivetype)),initdim));
+            current_asmdata.RefAsmSymbol(jvmarrtype(elemdef,primitivetype),AT_METADATA),initdim));
           { has to be a multi-dimensional array type }
           if primitivetype then
             internalerror(2011012207);
@@ -684,7 +684,7 @@ implementation
             opc:=a_newarray
           else
             opc:=a_anewarray;
-          list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname)));
+          list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname,AT_METADATA)));
         end;
       { all dimensions are removed from the stack, an array reference is
         added }
@@ -1325,7 +1325,7 @@ implementation
 
   procedure thlcgjvm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
-      list.concat(taicpu.op_sym(a_goto,current_asmdata.RefAsmSymbol(l.name)));
+      list.concat(taicpu.op_sym(a_goto,current_asmdata.RefAsmSymbol(l.name,AT_METADATA)));
     end;
 
   procedure thlcgjvm.concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
@@ -2294,7 +2294,7 @@ implementation
     var
       tmpref: treference;
     begin
-      ref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+      ref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
       tg.gethltemp(list,vs.vardef,vs.vardef.size,tt_persistent,tmpref);
       { only copy the reference, not the actual data }
       a_load_ref_ref(list,java_jlobject,java_jlobject,tmpref,ref);
@@ -2306,7 +2306,7 @@ implementation
 
   procedure thlcgjvm.allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
     begin
-      destbaseref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+      destbaseref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
       { only copy the reference, not the actual data }
       a_load_ref_ref(list,java_jlobject,java_jlobject,initref,destbaseref);
     end;
@@ -2321,7 +2321,7 @@ implementation
       { no enum with ordinal value 0 -> exit }
       if not assigned(sym) then
         exit;
-      reference_reset_symbol(ref,current_asmdata.RefAsmSymbol(sym.mangledname),0,4);
+      reference_reset_symbol(ref,current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),0,4);
       result:=true;
     end;
 
@@ -2449,11 +2449,11 @@ implementation
       else if is_shortstring(checkdef) then
         checkdef:=java_shortstring;
       if checkdef.typ in [objectdef,recorddef] then
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true))))
+        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true),AT_METADATA)))
       else if checkdef.typ=classrefdef then
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol('java/lang/Class')))
+        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol('java/lang/Class',AT_METADATA)))
       else
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef,false))));
+        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef,false),AT_METADATA)));
     end;
 
   procedure thlcgjvm.resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
@@ -2544,11 +2544,11 @@ implementation
           internalerror(2010122602);
       end;
       if (opc<>a_invokeinterface) then
-        list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(s)))
+        list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
       else
         begin
           pd.init_paraloc_info(calleeside);
-          list.concat(taicpu.op_sym_const(opc,current_asmdata.RefAsmSymbol(s),pd.calleeargareasize));
+          list.concat(taicpu.op_sym_const(opc,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),pd.calleeargareasize));
         end;
       result:=get_call_result_cgpara(pd,forceresdef);
     end;

@@ -432,7 +432,7 @@ implementation
         begin
           if (target_info.system <> system_i386_darwin) then
             begin
-              lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
+              lab:=current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION);
               list.concat(taicpu.op_sym(A_JMP,S_NO,lab))
             end
           else

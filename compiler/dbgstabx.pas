@@ -276,7 +276,7 @@ implementation
       ismem:=not(sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]);
       isglobal:=false;
       if ismem then
-        isglobal:=current_asmdata.RefAsmSymbol(sym.mangledname).bind=AB_GLOBAL;
+        isglobal:=current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA).bind=AB_GLOBAL;
 
       { put extra ss/es markers in place }
       if ismem then

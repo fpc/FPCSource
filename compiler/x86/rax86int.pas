@@ -1553,7 +1553,7 @@ Unit Rax86int;
                     Message(asmr_e_only_add_relocatable_symbol);
                    if not assigned(oper.opr.ref.symbol) then
                      begin
-                       oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr);
+                       oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
 {$ifdef i8086}
                        if isseg then
                          begin
@@ -1656,7 +1656,7 @@ Unit Rax86int;
           begin
             oper.opr.typ:=OPR_SYMBOL;
             oper.opr.symofs:=l;
-            oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr);
+            oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
             oper.opr.symseg:=isseg;
             oper.opr.sym_farproc_entry:=is_farproc_entry;
           end
@@ -1741,7 +1741,7 @@ Unit Rax86int;
                         if (hs <> '') then
                           begin
                             oper.opr.typ:=OPR_SYMBOL;
-                            oper.opr.symbol:=current_asmdata.RefAsmSymbol(hs);
+                            oper.opr.symbol:=current_asmdata.RefAsmSymbol(hs,AT_FUNCTION);
                           end
                         else
                           begin

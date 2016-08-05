@@ -658,7 +658,7 @@ implementation
       { case 0 }
       else
         begin
-          lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
+          lab:=current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION);
 
           if current_settings.x86memorymodel in x86_far_code_models then
             list.concat(taicpu.op_sym(A_JMP,S_FAR,lab))

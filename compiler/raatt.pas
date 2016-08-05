@@ -1708,7 +1708,7 @@ unit raatt;
          begin
            oper.opr.typ:=OPR_SYMBOL;
            oper.opr.symofs:=l;
-           oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr);
+           oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
          end
         else
          begin
@@ -1735,7 +1735,7 @@ unit raatt;
                 BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp);
                 if asmsym<>'' then
                  begin
-                   ai:=tai_const.create_type_sym(aitconst_rva_symbol,current_asmdata.RefAsmSymbol(asmsym));
+                   ai:=tai_const.create_type_sym(aitconst_rva_symbol,current_asmdata.RefAsmSymbol(asmsym,asmsymtyp));
                    ai.value:=value;
                    curlist.concat(ai);
                  end

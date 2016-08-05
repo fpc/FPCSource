@@ -668,7 +668,7 @@ const
          if (target_info.system = system_powerpc_darwin) then
            p := taicpu.op_sym(A_B,get_darwin_call_stub(s,false))
         else
-          p := taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s));
+          p := taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
         p.is_jmp := true;
         list.concat(p)
       end;
@@ -997,7 +997,7 @@ const
              list.concat(taicpu.op_reg_reg_const(A_ADDI,r,r,(ord(R_F31)-ord(firstregfpu.enum)+1)*8));
              {
              if (pi_do_call in current_procinfo.flags) then
-               a_call_name(current_asmdata.RefAsmSymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_x'))
+               a_call_name(current_asmdata.RefAsmSymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_x',AT_FUNCTION))
              else
                { leaf node => lr haven't to be restored }
                a_call_name('_restfpr_'+tostr(ord(firstregfpu.enum)-ord(R_F14)+14)+'_l');

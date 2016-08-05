@@ -208,7 +208,7 @@ implementation
           current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
           cg.a_label(current_procinfo.aktlocaldata,l);
           tmpref.symboldata:=current_procinfo.aktlocaldata.last;
-          current_procinfo.aktlocaldata.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(procdef.mangledname)));
+          current_procinfo.aktlocaldata.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
 
           tmpref.symbol:=l;
           tmpref.base:=NR_PC;
@@ -218,7 +218,7 @@ implementation
           list.concat(taicpu.op_reg(A_BX,NR_R12));
         end
       else
-        list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
+        list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
       list.concatlist(current_procinfo.aktlocaldata);
 
       current_procinfo.Free;
@@ -252,7 +252,7 @@ implementation
       { append const entry }
       list.Concat(tai_align.Create(4));
       list.Concat(tai_label.create(l));
-      list.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(externalname)));
+      list.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION)));
     end;
 
 

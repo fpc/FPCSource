@@ -4714,7 +4714,7 @@ implementation
              begin
                { initialize fpu regvar by loading from memory }
                reference_reset_symbol(href,
-                 current_asmdata.RefAsmSymbol(tstaticvarsym(p).mangledname), 0,
+                 current_asmdata.RefAsmSymbol(tstaticvarsym(p).mangledname,AT_DATA), 0,
                  var_align(tstaticvarsym(p).vardef.alignment));
                a_loadfpu_ref_reg(TAsmList(arg), tstaticvarsym(p).vardef,
                  tstaticvarsym(p).vardef, href, tstaticvarsym(p).initialloc.register);

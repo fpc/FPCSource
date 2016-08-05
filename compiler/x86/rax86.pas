@@ -299,7 +299,7 @@ begin
 {$ifdef i8086}
   opr.typ:=OPR_SYMBOL;
   opr.symofs:=0;
-  opr.symbol:=current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname);
+  opr.symbol:=current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname,AT_FUNCTION);
   opr.symseg:=true;
   opr.sym_farproc_entry:=false;
 {$else i8086}

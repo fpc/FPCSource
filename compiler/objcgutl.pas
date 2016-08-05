@@ -243,7 +243,7 @@ procedure objcfinishclassrefnfpoolentry(entry: phashsetitem; classdef: tobjectde
         entry^.Data:=reflab;
 
         { add a pointer to the class }
-        classym:=current_asmdata.RefAsmSymbol(classdef.rtti_mangledname(objcclassrtti));
+        classym:=current_asmdata.RefAsmSymbol(classdef.rtti_mangledname(objcclassrtti),AT_DATA);
 
         tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
         tcb.emit_tai(Tai_const.Create_sym(classym),voidpointertype);
@@ -1415,7 +1415,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_category_sections(list:TAsmList; o
     objcreatestringpoolentry(objccat.objextname^,sp_objcclassnames,sec_objc_class_names,catstrsym,catstrdef);
 
     { the class it extends }
-    clssym:=current_asmdata.RefAsmSymbol(objccat.childof.rtti_mangledname(objcclassrtti));
+    clssym:=current_asmdata.RefAsmSymbol(objccat.childof.rtti_mangledname(objcclassrtti),AT_DATA);
 
     { generate the methods lists }
     gen_objc_methods(list,objccat,instmthdlist,false,true);
@@ -1724,8 +1724,8 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; ob
     { 2) the superclass and meta superclass }
     if assigned(objclss.childof) then
       begin
-        superSym:=current_asmdata.RefAsmSymbol(objclss.childof.rtti_mangledname(objcclassrtti));
-        superMetaSym:=current_asmdata.RefAsmSymbol(objclss.childof.rtti_mangledname(objcmetartti));
+        superSym:=current_asmdata.RefAsmSymbol(objclss.childof.rtti_mangledname(objcclassrtti),AT_DATA);
+        superMetaSym:=current_asmdata.RefAsmSymbol(objclss.childof.rtti_mangledname(objcmetartti),AT_DATA);
       end
     else
       begin
@@ -1739,7 +1739,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; ob
     root:=objclss;
     while assigned(root.childof) do
       root:=root.childof;
-    metaisaSym:=current_asmdata.RefAsmSymbol(root.rtti_mangledname(objcmetartti));
+    metaisaSym:=current_asmdata.RefAsmSymbol(root.rtti_mangledname(objcmetartti),AT_DATA);
 
     { 4) the implemented protocols (same for metaclass and regular class) }
     gen_objc_protocol_list(list,objclss.ImplementedInterfaces,protolistsym);
@@ -1759,12 +1759,12 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; ob
     metatcb.emit_tai(Tai_const.Create_sym(superMetaSym),voidpointertype);
     { pointer to cache }
     if not assigned(ObjCEmptyCacheVar) then
-      ObjCEmptyCacheVar:=current_asmdata.RefAsmSymbol(target_info.Cprefix+'_objc_empty_cache');
+      ObjCEmptyCacheVar:=current_asmdata.RefAsmSymbol(target_info.Cprefix+'_objc_empty_cache',AT_DATA);
     metatcb.emit_tai(Tai_const.Create_sym(ObjCEmptyCacheVar),voidpointertype);
     { pointer to vtable }
     if not assigned(ObjCEmptyVtableVar) and
        not(target_info.system in [system_arm_darwin,system_aarch64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
-      ObjCEmptyVtableVar:=current_asmdata.RefAsmSymbol(target_info.Cprefix+'_objc_empty_vtable');
+      ObjCEmptyVtableVar:=current_asmdata.RefAsmSymbol(target_info.Cprefix+'_objc_empty_vtable',AT_DATA);
     ConcatSymOrNil(metatcb,ObjCEmptyVtableVar,voidpointertype);
     { the read-only part }
     metatcb.emit_tai(Tai_const.Create_sym(metarosym),voidpointertype);
@@ -1817,7 +1817,7 @@ procedure tobjcrttiwriter_nonfragile.addclasslist(list: tasmlist; section: tasms
     tcb.maybe_begin_aggregate(arrdef);
     for i:=0 to classes.count-1 do
       tcb.emit_tai(
-        tai_const.Create_sym(current_asmdata.RefAsmSymbol(tobjectdef(classes[i]).rtti_mangledname(objcclassrtti))),
+        tai_const.Create_sym(current_asmdata.RefAsmSymbol(tobjectdef(classes[i]).rtti_mangledname(objcclassrtti),AT_DATA)),
         voidpointertype
       );
     tcb.maybe_end_aggregate(arrdef);
