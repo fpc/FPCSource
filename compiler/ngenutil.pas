@@ -865,7 +865,7 @@ implementation
               begin
                 unitinits.emit_procdef_const(pd);
                 if u<>current_module then
-                  u.addimportedsym(pd.procsym);
+                  current_module.addimportedsym(pd.procsym);
               end
             else
               unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
@@ -874,7 +874,7 @@ implementation
               begin
                 unitinits.emit_procdef_const(pd);
                 if u<>current_module then
-                  u.addimportedsym(pd.procsym);
+                  current_module.addimportedsym(pd.procsym);
               end
             else
               unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
