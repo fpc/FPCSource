@@ -199,6 +199,8 @@ implementation
               exit;
             varexport(tsym(sym).mangledname);
           end;
+        absolutevarsym:
+          ;
         else
           begin
             writeln('unknown: ',TSym(sym).typ);
