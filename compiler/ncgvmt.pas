@@ -902,30 +902,35 @@ implementation
       s : string;
       tcb : ttai_typedconstbuilder;
       def : tdef;
+      sym : tasmsymbol;
     begin
       if assigned(_class.iidguid) then
         begin
           s:=make_mangledname('IID',_class.owner,_class.objname^);
           tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
           tcb.emit_guid_const(_class.iidguid^);
+          sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rec_tguid);
           list.concatlist(tcb.get_final_asmlist(
-            current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rec_tguid),
+            sym,
             rec_tguid,
             sec_rodata,
             s,
             const_align(sizeof(pint))));
           tcb.free;
+          current_module.add_public_asmsym(sym);
         end;
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
       def:=tcb.emit_shortstring_const(_class.iidstr^);
+      sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,def);
       list.concatlist(tcb.get_final_asmlist(
-        current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,def),
+        sym,
         def,
         sec_rodata,
         s,
         sizeof(pint)));
       tcb.free;
+      current_module.add_public_asmsym(sym);
     end;
 
 

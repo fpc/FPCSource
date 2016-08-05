@@ -131,6 +131,17 @@ implementation
 
 
   procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
+
+    procedure exportname(const s:tsymstr);
+      var
+        hp : texported_item;
+      begin
+        hp:=texported_item.create;
+        hp.name:=stringdup(s);
+        hp.options:=hp.options+[eo_name];
+        exportlib.exportvar(hp);
+      end;
+
     var
       hp : texported_item;
     begin
@@ -144,18 +155,14 @@ implementation
       if def.typ=objectdef then
         begin
           if (oo_has_vmt in tobjectdef(def).objectoptions) then
-            begin
-              hp:=texported_item.create;
-              hp.name:=stringdup(tobjectdef(def).vmt_mangledname);
-              hp.options:=hp.options+[eo_name];
-              exportlib.exportvar(hp);
-            end;
+            exportname(tobjectdef(def).vmt_mangledname);
           if is_class(def) then
+              exportname(tobjectdef(def).rtti_mangledname(fullrtti));
+          if is_interface(def) then
             begin
-              hp:=texported_item.create;
-              hp.name:=stringdup(tobjectdef(def).rtti_mangledname(fullrtti));
-              hp.options:=hp.options+[eo_name];
-              exportlib.exportvar(hp);
+              if assigned(tobjectdef(def).iidguid) then
+                exportname(make_mangledname('IID',def.owner,def.objname^));
+              exportname(make_mangledname('IIDSTR',def.owner,def.objname^));
             end;
         end;
     end;
