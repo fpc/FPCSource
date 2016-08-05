@@ -174,7 +174,7 @@ implementation
         CheckResourcesUsed:=found;
       end;
 
-    function AddUnit(const s:string): tppumodule;
+    function AddUnit(const s:string;addasused:boolean): tppumodule;
       var
         hp : tppumodule;
         unitsym : tunitsym;
@@ -192,9 +192,16 @@ implementation
         unitsym:=cunitsym.create(s,hp);
         inc(unitsym.refs);
         tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
-        { add to used units }
-        current_module.addusedunit(hp,false,unitsym);
+        if addasused then
+          { add to used units }
+          current_module.addusedunit(hp,false,unitsym);
         result:=hp;
+      end;
+
+
+    function AddUnit(const s:string):tppumodule;
+      begin
+        result:=AddUnit(s,true);
       end;
 
 
@@ -1501,6 +1508,15 @@ type
          { now load all packages, so that we can determine whether a unit is
            already provided by one of the loaded packages }
          load_packages;
+
+         if packagelist.Count>0 then
+           begin
+             { this means the SYSTEM unit *must* be part of one of the required
+               packages, so load it }
+             AddUnit('system',false);
+             systemunit:=tglobalsymtable(symtablestack.top);
+             load_intern_types;
+           end;
 
          {Load the units used by the program we compile.}
          if (token=_ID) and (idtoken=_CONTAINS) then
