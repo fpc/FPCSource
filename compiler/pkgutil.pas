@@ -203,7 +203,8 @@ implementation
           ;
         else
           begin
-            writeln('unknown: ',TSym(sym).typ);
+            //writeln('unknown: ',TSym(sym).typ);
+            internalerror(2016080501);
           end;
       end;
     end;
