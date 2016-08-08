@@ -1313,21 +1313,18 @@ var
 begin
   if RemoteAddr='' then
     begin
-      If UniqueSuffix<>'' then
+      FileList:=BuildFileList;
+      if assigned(FileList) then
         begin
-          FileList:=BuildFileList;
-          if assigned(FileList) then
+          LocalPath:=SplitPath(PPFile[current]);
+          if Length(LocalPath) > 0 then
+            LocalPath:=LocalPath+'/';
+          for i:=0 to FileList.count-1 do
             begin
-              LocalPath:=SplitPath(PPFile[current]);
-              if Length(LocalPath) > 0 then
-                LocalPath:=LocalPath+'/';
-              for i:=0 to FileList.count-1 do
-                begin
-                  LocalFile:=FileList[i];
-                  CopyFile(LocalPath+LocalFile,TestOutputDir+'/'+LocalFile,false);
-                end;
-              FileList.Free;
+              LocalFile:=FileList[i];
+              CopyFile(LocalPath+LocalFile,TestOutputDir+'/'+LocalFile,false);
             end;
+          FileList.Free;
         end;
       exit(true);
     end;
