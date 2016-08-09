@@ -147,8 +147,11 @@ _haltproc:
         lw      $sp,%lo(__fpc_ret_sp)($v0)
         lui     $v0,%hi(__fpc_ret_ra)
         lw      $ra,%lo(__fpc_ret_ra)($v0)
+	/* $a0 contains exitcode, we need to move it to $v0,
+	   as it would be at return of C main unction.  */
+        move	$v0,$a0
         jr      $ra
-        nop
+	nop
 hlt:
         b hlt
         .end _haltproc
