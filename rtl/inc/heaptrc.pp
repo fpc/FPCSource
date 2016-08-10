@@ -12,6 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$checkpointer off}
+
 unit heaptrc;
 interface
 
@@ -22,7 +25,6 @@ interface
   {$inline off}
 {$endif FPC_HEAPTRC_EXTRA}
 
-{$checkpointer off}
 {$TYPEDADDRESS on}
 
 {$if defined(win32) or defined(wince)}
@@ -988,12 +990,8 @@ begin
   if (ptruint(p)>ptruint(get_frame)) and
      (p<StackTop) then
     exit;
-  { inside data ? }
-  if (ptruint(p)>=ptruint(@sdata)) and (ptruint(p)<ptruint(@edata)) then
-    exit;
-
-  { inside bss ? }
-  if (ptruint(p)>=ptruint(@sbss)) and (ptruint(p)<ptruint(@ebss)) then
+  { inside data, rdata ... bss }
+  if (ptruint(p)>=ptruint(@sdata)) and (ptruint(p)<ptruint(@ebss)) then
     exit;
   { is program multi-threaded and p inside Threadvar range? }
   if TlsKey^<>-1 then
