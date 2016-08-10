@@ -349,7 +349,9 @@ implementation
                AddUnit('fpextres')
              else
                AddUnit('fpintres');
-         end;
+         end
+        else if (cs_checkpointer in current_settings.localswitches) then
+          AddUnit('heaptrc');
         { Objpas unit? }
         if m_objpas in current_settings.modeswitches then
           AddUnit('objpas');
