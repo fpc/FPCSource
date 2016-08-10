@@ -104,6 +104,9 @@ const
   { indicates where the output will be redirected }
   { only set using environment variables          }
   outputstr : shortstring = '';
+  ReleaseSig = $AAAAAAAA;
+  AllocateSig = $DEADBEEF;
+  CheckSig = $12345678;
 
 type
   pheap_extra_info = ^theap_extra_info;
@@ -179,6 +182,9 @@ threadvar
 
 var
   Crc32Tbl : array[0..255] of longword;
+const
+  Crc32Seed = $ffffffff;
+  Crc32Pattern = $edb88320;
 
 procedure MakeCRC32Tbl;
 var
@@ -190,7 +196,7 @@ begin
      crc:=i;
      for n:=1 to 8 do
       if odd(crc) then
-       crc:=(crc shr 1) xor $edb88320
+       crc:=(crc shr 1) xor longword(CRC32Pattern)
       else
        crc:=crc shr 1;
      Crc32Tbl[i]:=crc;
@@ -217,7 +223,7 @@ var
    crc : longword;
    pl : pptruint;
 begin
-   crc:=cardinal($ffffffff);
+   crc:=longword(CRC32Seed);
    crc:=UpdateCrc32(crc,p^.size,sizeof(ptruint));
    crc:=UpdateCrc32(crc,p^.calls,tracesize*sizeof(codepointer));
    if p^.extra_info_size>0 then
@@ -237,7 +243,7 @@ var
    crc : longword;
    pl : pptruint;
 begin
-   crc:=$ffffffff;
+   crc:=longword(CRC32Seed);
    crc:=UpdateCrc32(crc,p^.size,sizeof(ptruint));
    crc:=UpdateCrc32(crc,p^.calls,tracesize*sizeof(codepointer));
    if p^.extra_info_size>0 then
@@ -310,7 +316,7 @@ begin
 
   { the check is done to be sure that the procvar is not overwritten }
   if assigned(pp^.extra_info) and
-     (pp^.extra_info^.check=$12345678) and
+     (pp^.extra_info^.check=cardinal(CheckSig)) and
      assigned(pp^.extra_info^.displayproc) then
    pp^.extra_info^.displayproc(ptext,@pp^.extra_info^.data);
 end;
@@ -330,7 +336,7 @@ begin
      writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
   { the check is done to be sure that the procvar is not overwritten }
   if assigned(pp^.extra_info) and
-     (pp^.extra_info^.check=$12345678) and
+     (pp^.extra_info^.check=cardinal(CheckSig)) and
      assigned(pp^.extra_info^.displayproc) then
    pp^.extra_info^.displayproc(ptext,@pp^.extra_info^.data);
 end;
@@ -379,7 +385,7 @@ begin
   dump_stack(ptext,1);
   { the check is done to be sure that the procvar is not overwritten }
   if assigned(p^.extra_info) and
-     (p^.extra_info^.check=$12345678) and
+     (p^.extra_info^.check=cardinal(CheckSig)) and
      assigned(p^.extra_info^.displayproc) then
    p^.extra_info^.displayproc(ptext,@p^.extra_info^.data);
   call_stack(p,ptext);
@@ -395,9 +401,9 @@ begin
   i:=0;
   while pp<>nil do
    begin
-     if ((pp^.sig<>$DEADBEEF) or usecrc) and
+     if ((pp^.sig<>longword(AllocateSig)) or usecrc) and
         ((pp^.sig<>calculate_sig(pp)) or not usecrc) and
-        (pp^.sig <>$AAAAAAAA) then
+        (pp^.sig <>longword(ReleaseSig)) then
       begin
         if useownfile then
           writeln(ownfile,'error in linked list of heap_mem_info')
@@ -478,7 +484,7 @@ begin
   pp:=pheap_mem_info(p);
   inc(p,sizeof(theap_mem_info));
 { Create the info block }
-  pp^.sig:=$DEADBEEF;
+  pp^.sig:=longword(AllocateSig);
   pp^.todolist:=@loc_info^.heap_free_todo;
   pp^.todonext:=nil;
   pp^.size:=size;
@@ -493,7 +499,7 @@ begin
    begin
      pp^.extra_info:=pointer(pp)+allocsize-extra_info_size;
      fillchar(pp^.extra_info^,extra_info_size,0);
-     pp^.extra_info^.check:=$12345678;
+     pp^.extra_info^.check:=cardinal(CheckSig);
      pp^.extra_info^.fillproc:=fill_extra_info_proc;
      pp^.extra_info^.displayproc:=display_extra_info_proc;
      if assigned(fill_extra_info_proc) then
@@ -508,7 +514,7 @@ begin
   if add_tail then
     begin
       pl:=pointer(pp)+allocsize-pp^.extra_info_size-sizeof(ptruint);
-      unaligned(pl^):=$DEADBEEF;
+      unaligned(pl^):=longword(AllocateSig);
     end;
   { clear the memory }
   fillchar(p^,size,#255);
@@ -561,13 +567,13 @@ begin
       if not(is_in_getmem_list(loc_info, pp)) then
        RunError(204);
     end;
-  if (pp^.sig=$AAAAAAAA) and not usecrc then
+  if (pp^.sig=longword(ReleaseSig)) then
     begin
        loc_info^.error_in_heap:=true;
        dump_already_free(pp,ptext^);
        if haltonerror then halt(1);
     end
-  else if ((pp^.sig<>$DEADBEEF) or usecrc) and
+  else if ((pp^.sig<>longword(AllocateSig)) or usecrc) and
         ((pp^.sig<>calculate_sig(pp)) or not usecrc) then
     begin
        loc_info^.error_in_heap:=true;
@@ -591,7 +597,7 @@ begin
        exit;
     end;
   { now it is released !! }
-  pp^.sig:=$AAAAAAAA;
+  pp^.sig:=longword(ReleaseSig);
   if not keepreleased then
     begin
        if pp^.next<>nil then
@@ -784,7 +790,7 @@ begin
   loc_info:=@heap_info;
   pp:=pheap_mem_info(p-sizeof(theap_mem_info));
   { test block }
-  if ((pp^.sig<>$DEADBEEF) or usecrc) and
+  if ((pp^.sig<>longword(AllocateSig)) or usecrc) and
      ((pp^.sig<>calculate_sig(pp)) or not usecrc) then
    begin
      loc_info^.error_in_heap:=true;
@@ -840,7 +846,7 @@ begin
      exit;
    end;
 { Recreate the info block }
-  pp^.sig:=$DEADBEEF;
+  pp^.sig:=longword(AllocateSig);
   pp^.size:=size;
   pp^.extra_info_size:=oldextrasize;
   pp^.exact_info_size:=oldexactsize;
@@ -849,7 +855,7 @@ begin
    begin
      pp^.extra_info:=pointer(pp)+allocsize-pp^.extra_info_size;
      fillchar(pp^.extra_info^,extra_info_size,0);
-     pp^.extra_info^.check:=$12345678;
+     pp^.extra_info^.check:=cardinal(CheckSig);
      pp^.extra_info^.fillproc:=old_fill_extra_info_proc;
      pp^.extra_info^.displayproc:=old_display_extra_info_proc;
      if assigned(pp^.extra_info^.fillproc) then
@@ -860,7 +866,7 @@ begin
   if add_tail then
     begin
       pl:=pointer(pp)+allocsize-pp^.extra_info_size-sizeof(ptruint);
-      unaligned(pl^):=$DEADBEEF;
+      unaligned(pl^):=longword(AllocateSig);
     end;
   { adjust like a freemem and then a getmem, so you get correct
     results in the summary display }
@@ -1051,10 +1057,10 @@ begin
         (ptruint(p)<=ptruint(pp)+sizeof(theap_mem_info)+extra_info_size+pp^.size) then
        begin
           { check allocated block }
-          if ((pp^.sig=$DEADBEEF) and not usecrc) or
+          if ((pp^.sig=longword(AllocateSig)) and not usecrc) or
              ((pp^.sig=calculate_sig(pp)) and usecrc) or
           { special case of the fill_extra_info call }
-             ((pp=loc_info^.heap_valid_last) and usecrc and (pp^.sig=$DEADBEEF)
+             ((pp=loc_info^.heap_valid_last) and usecrc and (pp^.sig=longword(AllocateSig))
               and loc_info^.inside_trace_getmem) then
             exit
           else
@@ -1082,7 +1088,7 @@ begin
      if (ptruint(p)>=ptruint(pp)+sizeof(theap_mem_info)+ptruint(extra_info_size)) and
         (ptruint(p)<=ptruint(pp)+sizeof(theap_mem_info)+ptruint(extra_info_size)+ptruint(pp^.size)) then
         { allocated block }
-       if ((pp^.sig=$DEADBEEF) and not usecrc) or
+       if ((pp^.sig=longword(AllocateSig)) and not usecrc) or
           ((pp^.sig=calculate_sig(pp)) and usecrc) then
           exit
        else
@@ -1160,7 +1166,7 @@ begin
           Writeln(ptext^,'More memory blocks than expected');
           exit;
        end;
-     if ((pp^.sig=$DEADBEEF) and not usecrc) or
+     if ((pp^.sig=longword(AllocateSig)) and not usecrc) or
         ((pp^.sig=calculate_sig(pp)) and usecrc) then
        begin
           { this one was not released !! }
@@ -1168,7 +1174,7 @@ begin
             call_stack(pp,ptext^);
           dec(i);
        end
-     else if pp^.sig<>$AAAAAAAA then
+     else if pp^.sig<>longword(ReleaseSig) then
        begin
           dump_error(pp,ptext^);
 {$ifdef EXTRA}
