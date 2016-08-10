@@ -19,7 +19,7 @@ end;
 
 
 const
-  saveexit : pointer = nil;
+  saveexit : codepointer = nil;
   x : longint = 0;
 
 {$S-}
