@@ -1,4 +1,5 @@
 { %target=linux,android }
+{ %skiptarget=$nosharedlib }
 { %needlibrary }
 { %delfiles=tlib2a }
 

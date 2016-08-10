@@ -1,4 +1,4 @@
-{ %skiptarget=go32v2 }
+{ %skiptarget=$nothread }
 { %version=1.1 }
 
 {$mode objfpc}

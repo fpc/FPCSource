@@ -1,4 +1,4 @@
-{ %skiptarget=go32v2,os2 }
+{ %skiptarget=$nosharedlib,os2 }
 { %opt=-gl -O- win32,win64%-WN }
 { %delopt=-XX }
 { %norun }

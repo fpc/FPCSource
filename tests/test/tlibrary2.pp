@@ -1,4 +1,4 @@
-{ %skiptarget=go32v2 }
+{ %skiptarget=$nosharedlib }
 { %NEEDLIBRARY }
 { %delfiles=tlibrary1 }
 

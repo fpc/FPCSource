@@ -1,4 +1,5 @@
 { %norun }
+{ %skiptarget=$nosharedlib }
 
 {$ifdef CPUX86_64}
 {$ifndef WINDOWS}

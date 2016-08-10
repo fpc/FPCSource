@@ -1,5 +1,5 @@
 { %NORUN }
-{ %SKIPTARGET=macos, go32v2, win64 }
+{ %SKIPTARGET=macos, $nosharedlib, win64 }
 { %delfiles=tlibrary3 }
 
 {$ifdef darwin}
