@@ -3073,27 +3073,29 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 system$(PPUEXT) : system.pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg system.pp -Fi../win
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/heaptrc.pp
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp heaptrc$(PPUEXT)
 	$(COMPILER) $(INC)/uuchar.pp
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp
-iso7185$(PPUEXT) : $(INC)/iso7185.pp buildrtl$(PPUEXT)
+iso7185$(PPUEXT) : $(INC)/iso7185.pp buildrtl$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) $(INC)/iso7185.pp
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) $(INC)/extpas.pp
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) $(INC)/lineinfo.pp
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) $(INC)/lnfodwrf.pp
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -I$(WININC) -Fu$(WININC) -Fu$(WINDIR) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT)
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-softfpu$(PPUEXT) : ../inc/softfpu.pp system$(PPUEXT)
+softfpu$(PPUEXT) : ../inc/softfpu.pp system$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) ../inc/softfpu.pp
-sfpu128$(PPUEXT) : ../inc/sfpu128.pp system$(PPUEXT)
+sfpu128$(PPUEXT) : ../inc/sfpu128.pp system$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) ../inc/sfpu128.pp
-sfpux80$(PPUEXT) : ../inc/sfpux80.pp system$(PPUEXT)
+sfpux80$(PPUEXT) : ../inc/sfpux80.pp system$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) ../inc/sfpux80.pp
