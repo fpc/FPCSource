@@ -745,13 +745,23 @@ cvstest:
 #    current PPC_TARGET which was already build
 # unless FPC_SUPPORT_X87_TYPES_ON_WIN64 is set,
 # win64 cannot compile i386 or i8086 compiler
+# This is also the case for other CPUs that don't support
+# 80bit real type.
+
+ifeq ($(OS_SOURCE),win64)
+  EXCLUDE_80BIT_TARGETS=1
+endif
+
+ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel powerpc powerpc64 sparc),)
+  EXCLUDE_80BIT_TARGETS=1
+endif
 
 full: fullcycle
 
 fullcycle:
         $(MAKE) cycle
         $(MAKE) ppuclean
-ifneq ($(OS_SOURCE),win64)
+ifndef EXCLUDE_80BIT_TARGETS
         $(MAKE) $(filter-out $(PPC_TARGET),$(CYCLETARGETS)) 'FPC=$(BASEDIR)/$(EXENAME)'
 else
         $(MAKE) $(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))) 'FPC=$(BASEDIR)/$(EXENAME)'
@@ -801,7 +811,7 @@ endif
 endif
 
 fullinstall:
-ifneq ($(OS_SOURCE),win64)
+ifndef EXCLUDE_80BIT_TARGETS
         $(MAKE) $(addsuffix _exe_install,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))
 else
         $(MAKE) $(addsuffix _exe_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))))
@@ -826,7 +836,7 @@ ifneq ($(PPCCPULOCATION),$(INSTALL_BINDIR))
 endif
 
 fullinstallsymlink: fullinstall
-ifneq ($(OS_SOURCE),win64)
+ifndef EXCLUDE_80BIT_TARGETS
         $(MAKE) $(addsuffix _symlink_install,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))
 else
         $(MAKE) $(addsuffix _symlink_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))))
