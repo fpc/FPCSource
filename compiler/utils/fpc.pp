@@ -190,7 +190,16 @@ program fpc;
                        { report the full name of the ppcbin }
                        if versionstr<>'' then
                          ppcbin:=ppcbin+'-'+versionstr;
-                       findexe(ppcbin);
+                       if not findexe(ppcbin) then
+                         begin
+                           if cpusuffix<>'' Then
+                             begin
+                               ppcbin:='ppc'+cpusuffix;
+                               if versionstr<>'' then
+                                 ppcbin:=ppcbin+'-'+versionstr;
+                               findexe(ppcbin);
+                             end;
+                         end;
                        writeln(ppcbin);
                        halt(0);
                      end
