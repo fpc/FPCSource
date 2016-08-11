@@ -1170,19 +1170,30 @@ begin
       s:='double';
   end
   else begin
-    s:=DefToJavaType(d.VarType);
-    if d.VarType.DefType = dtType then
-      case TTypeDef(d.VarType).BasicType of
-        btLongWord, btInt64:
-          v:=v + 'L';
-        btBoolean:
-          if v = '1' then
-            v:='true'
-          else
-            v:='false';
-      end;
+    s:='';
+    case d.VarType.DefType of
+      dtType:
+        case TTypeDef(d.VarType).BasicType of
+          btLongWord, btInt64:
+            v:=v + 'L';
+          btBoolean:
+            if v = '1' then
+              v:='true'
+            else
+              v:='false';
+        end;
+      dtArray:
+        with TArrayDef(d.VarType) do
+          if (ElType.DefType = dtType) and (TTypeDef(ElType).BasicType in [btChar, btWideChar]) then
+            s:='String';
+    end;
+    if s = '' then
+      s:=DefToJavaType(d.VarType);
   end;
-  Fjs.WriteLn(Format('public static final %s %s = %s;', [s, d.Name, v]));
+  v:=Format('public static final %s %s = %s;', [s, d.Name, v]);
+  if s = SUnsupportedType then
+    v:='// ' + v;
+  Fjs.WriteLn(v);
 end;
 
 procedure TWriter.WriteEnum(d: TDef);
