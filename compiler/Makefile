@@ -3983,11 +3983,14 @@ INSTALLEXEFILE=$(EXENAME)
 endif
 PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
-.PHONY: $(PPC_TARGETS) $(INSTALL_TARGETS)
+SYMLINKINSTALL_TARGETS=$(addsuffix _symlink_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
+.PHONY: $(PPC_TARGETS) $(INSTALL_TARGETS)$(SYMLINKINSTALL_TARGETS)
 $(PPC_TARGETS):
 	$(MAKE) PPC_TARGET=$@ CPU_UNITDIR=$@ all
 $(INSTALL_TARGETS):
-	$(MAKE) all exeinstall PPC_TARGET=$(subst _exe_install,,$@) CPU_UNITDIR=$(subst _exe_install,,$@)
+	$(MAKE) all install PPC_TARGET=$(subst _exe_install,,$@) CPU_UNITDIR=$(subst _exe_install,,$@)
+$(SYMLINKINSTALL_TARGETS):
+	$(MAKE) all installsymlink PPC_TARGET=$(subst _symlink_install,,$@) CPU_UNITDIR=$(subst _symlink_install,,$@)
 alltargets: $(ALLTARGETS)
 .NOTPARALLEL:
 .PHONY: all compiler echotime ppuclean execlean clean distclean
@@ -4102,6 +4105,7 @@ endif
 	$(COMPILER) pp.pas
 	$(EXECPPAS)
 	$(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(EXENAME)
+.PHONY: cycle fullcycle wpocycle
 ifeq ($(CPU_SOURCE),$(PPC_TARGET))
 ifeq ($(OS_SOURCE),$(OS_TARGET))
 ifndef NOWPOCYCLE
@@ -4208,7 +4212,7 @@ else
 endif
 htmldocs:
 	$(PASDOC) -p -h -o html$(PATHSEP)$(PPC_TARGET) -d fpc -d gdb -d $(PPC_TARGET) -u $(PPC_TARGET) $(PPC_TARGET)$(PATHSEP)*.pas systems$(PATHSEP)*.pas *.pas
-.PHONY: quickinstall exeinstall install installsym
+.PHONY: quickinstall exeinstall install installsymlink fullinstall fullinstallsymlink
 MSGINSTALLDIR=$(INSTALL_BASEDIR)/msg
 override PPEXEFILE:=$(wildcard $(EXENAME))
 ifdef UNIXHier
@@ -4249,6 +4253,12 @@ installsymlink: install
 ifneq ($(PPCCPULOCATION),$(INSTALL_BINDIR))
 	$(MKDIR) $(INSTALL_BINDIR)
 	ln -sf $(INSTALL_BASEDIR)/$(EXENAME) $(INSTALL_BINDIR)/$(EXENAME)
+endif
+fullinstallsymlink: fullinstall
+ifneq ($(OS_SOURCE),win64)
+	$(MAKE) $(addsuffix _symlink_install,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))
+else
+	$(MAKE) $(addsuffix _symlink_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))))
 endif
 .PHONY: rtl rtlclean rtlinstall
 rtl:
