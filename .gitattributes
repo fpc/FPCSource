@@ -8548,7 +8548,6 @@ rtl/haiku/suuid.inc svneol=native#text/plain
 rtl/haiku/syscall.inc svneol=native#text/plain
 rtl/haiku/syscallh.inc svneol=native#text/plain
 rtl/haiku/sysconst.inc svneol=native#text/plain
-rtl/haiku/sysheap.inc svneol=native#text/plain
 rtl/haiku/sysnr.inc svneol=native#text/plain
 rtl/haiku/sysos.inc svneol=native#text/plain
 rtl/haiku/sysosh.inc svneol=native#text/plain
