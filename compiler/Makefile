@@ -4201,11 +4201,17 @@ extcycle:
 	$(MAKE) cycle OPT="$(OPT) -n -OG2p3 -glttt -CRriot -dEXTDEBUG" ALLOW_WARNINGS=1
 cvstest:
 	$(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPT=-n -Se'
+ifeq ($(OS_SOURCE),win64)
+  EXCLUDE_80BIT_TARGETS=1
+endif
+ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel powerpc powerpc64 sparc),)
+  EXCLUDE_80BIT_TARGETS=1
+endif
 full: fullcycle
 fullcycle:
 	$(MAKE) cycle
 	$(MAKE) ppuclean
-ifneq ($(OS_SOURCE),win64)
+ifndef EXCLUDE_80BIT_TARGETS
 	$(MAKE) $(filter-out $(PPC_TARGET),$(CYCLETARGETS)) 'FPC=$(BASEDIR)/$(EXENAME)'
 else
 	$(MAKE) $(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))) 'FPC=$(BASEDIR)/$(EXENAME)'
@@ -4235,7 +4241,7 @@ endif
 	$(INSTALLEXE) $(INSTALLEXEFILE) $(PPCCPULOCATION)/$(INSTALLEXEFILE)
 endif
 fullinstall:
-ifneq ($(OS_SOURCE),win64)
+ifndef EXCLUDE_80BIT_TARGETS
 	$(MAKE) $(addsuffix _exe_install,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))
 else
 	$(MAKE) $(addsuffix _exe_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))))
@@ -4255,7 +4261,7 @@ ifneq ($(PPCCPULOCATION),$(INSTALL_BINDIR))
 	ln -sf $(INSTALL_BASEDIR)/$(EXENAME) $(INSTALL_BINDIR)/$(EXENAME)
 endif
 fullinstallsymlink: fullinstall
-ifneq ($(OS_SOURCE),win64)
+ifndef EXCLUDE_80BIT_TARGETS
 	$(MAKE) $(addsuffix _symlink_install,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))
 else
 	$(MAKE) $(addsuffix _symlink_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))))
