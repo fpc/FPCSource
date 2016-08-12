@@ -4513,9 +4513,10 @@ implementation
             { statics can only be modified by functions in the same unit }
              ((tloadnode(n).symtable.symtabletype = staticsymtable) and
               (tloadnode(n).symtable = TSymtable(arg))) or
-              { if the addr of the symbol is taken somewhere, it can be also non-local }
-              (tabstractvarsym(tloadnode(n).symtableentry).addr_taken)
-           )) or
+             { if the addr of the symbol is taken somewhere, it can be also non-local }
+             (tabstractvarsym(tloadnode(n).symtableentry).addr_taken)
+            )
+           ) or
            ((n.nodetype = subscriptn) and
             (tsubscriptnode(n).vs.owner.symtabletype = ObjectSymtable)) then
           result := fen_norecurse_true;
