@@ -34,6 +34,8 @@ interface
        { tcgtypeconvnode }
 
        tcgtypeconvnode = class(ttypeconvnode)
+       private
+         function needs_indirect:boolean;
        protected
 {$ifdef cpuflags}
          { CPUs without flags need a specific implementation of int -> bool }
@@ -69,15 +71,27 @@ interface
 
     uses
       cutils,verbose,globtype,globals,
-      aasmbase,aasmtai,aasmdata,aasmcpu,symconst,symdef,paramgr,
+      aasmbase,aasmtai,aasmdata,aasmcpu,symconst,symdef,symtable,paramgr,
       nutils,ncon,ncal,
       cpubase,systems,
       procinfo,pass_2,
       cgbase,
       cgutils,cgobj,hlcgobj,
+      fmodule,
       ncgutil,
       tgobj
       ;
+
+
+    function tcgtypeconvnode.needs_indirect:boolean;
+      begin
+        result:=(tf_supports_packages in target_info.flags) and
+                  (target_info.system in systems_indirect_var_imports) and
+                  (
+                    not assigned(current_module) or
+                    (current_module.globalsymtable<>systemunit)
+                  );
+      end;
 
 
     procedure tcgtypeconvnode.second_int_to_int;
@@ -303,7 +317,8 @@ interface
                 begin
                   { FPC_EMPTYCHAR is a widechar -> 2 bytes }
                   reference_reset(hr,2);
-                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA);
+                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
+                  current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
                   location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                   hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
                 end
@@ -688,7 +703,8 @@ interface
          hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,0,location.register,l1);
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2);
-         hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA);
+         hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA,needs_indirect);
+         current_module.add_extern_asmsym('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
          hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
          hlcg.a_label(current_asmdata.CurrAsmList,l1);
       end;
