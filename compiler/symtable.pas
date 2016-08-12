@@ -864,12 +864,14 @@ implementation
             { also don't claim for high param of open parameters    (PM)     }
             { also don't complain about unused symbols in generic procedures }
             { and methods                                                    }
+            { and neither in abstract methods                                }
             if (Errorcount<>0) or
                ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(sym).varoptions = [vo_is_hidden_para]) or
                (sp_internal in tsym(sym).symoptions) or
                ((assigned(tsym(sym).owner.defowner) and
                 (tsym(sym).owner.defowner.typ=procdef) and
-                (df_generic in tprocdef(tsym(sym).owner.defowner).defoptions))) then
+                ((df_generic in tprocdef(tsym(sym).owner.defowner).defoptions) or
+                 (po_abstractmethod in tprocdef(tsym(sym).owner.defowner).procoptions)))) then
               exit;
             if (tstoredsym(sym).refs=0) then
               begin
