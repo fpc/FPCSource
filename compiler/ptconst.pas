@@ -124,6 +124,9 @@ implementation
               end;
           end;
 
+        if vo_is_public in sym.varoptions then
+          current_module.add_public_asmsym(sym.mangledname,AB_GLOBAL,AT_DATA);
+
         if not(target_info.system in systems_typed_constants_node_init) then
           begin
             { only now get the final asmlist, because inserting the symbol

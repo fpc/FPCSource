@@ -60,7 +60,7 @@ implementation
 {$endif}
        fmodule,htypechk,
        { pass 1 }
-       node,pass_1,aasmdata,
+       node,pass_1,aasmbase,aasmdata,
        ncon,nmat,nadd,ncal,nset,ncnv,ninl,nld,nflw,nmem,nutils,
        { codegen }
        ncgutil,ngenutil,
@@ -1498,6 +1498,8 @@ implementation
                     not(vo_is_typed_const in vs.varoptions) and
                     not(vo_is_external in vs.varoptions) then
                    cnodeutils.insertbssdata(tstaticvarsym(vs));
+                 if vo_is_public in vs.varoptions then
+                   current_module.add_public_asmsym(vs.mangledname,AB_GLOBAL,AT_DATA);
                end;
 
              first:=false;
