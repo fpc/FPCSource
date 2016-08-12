@@ -1157,8 +1157,12 @@ implementation
          (since that's their storage size and internally they also are int64).
          Solve this by changing the type to s80real once they are loaded into
          a register. }
-       fromcompcurr:=tfloatdef(fromsize).floattype in [s64comp,s64currency];
-       tocompcurr:=tfloatdef(tosize).floattype in [s64comp,s64currency];
+       fromcompcurr:=
+         (fromsize.typ=floatdef) and
+         (tfloatdef(fromsize).floattype in [s64comp,s64currency]);
+       tocompcurr:=
+         (tosize.typ=floatdef) and
+         (tfloatdef(tosize).floattype in [s64comp,s64currency]);
        if tocompcurr then
          tosize:=s80floattype;
        { don't generate different code for loading e.g. extended into cextended,
@@ -1194,8 +1198,12 @@ implementation
        tocompcurr: boolean;
      begin
        { see comment in a_loadfpu_ref_reg }
-       fromcompcurr:=tfloatdef(fromsize).floattype in [s64comp,s64currency];
-       tocompcurr:=tfloatdef(tosize).floattype in [s64comp,s64currency];
+       fromcompcurr:=
+         (fromsize.typ=floatdef) and
+         (tfloatdef(fromsize).floattype in [s64comp,s64currency]);
+       tocompcurr:=
+         (tosize.typ=floatdef) and
+         (tfloatdef(tosize).floattype in [s64comp,s64currency]);
        if fromcompcurr then
          fromsize:=s80floattype;
        href:=make_simple_ref(list,ref,tosize);
