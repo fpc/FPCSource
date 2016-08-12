@@ -540,6 +540,19 @@ interface
 
         location_reset(location,LOC_VOID,OS_NO);
 
+        { see comments at ti_const declaration: if we initialised this temp with
+          the value of another temp, that other temp was not freed because the
+          ti_const flag was set }
+        if (ti_const in tempinfo^.flags) and
+           assigned(tempinfo^.tempinitcode) then
+          begin
+            if tempinfo^.tempinitcode.nodetype<>assignn then
+              internalerror(2016081201);
+            if tbinarynode(tempinfo^.tempinitcode).right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              tg.ungetiftemp(current_asmdata.CurrAsmList,tbinarynode(tempinfo^.tempinitcode).right.location.reference);
+          end;
+
+
         case tempinfo^.location.loc of
           LOC_REFERENCE:
             begin

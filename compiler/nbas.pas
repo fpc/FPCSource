@@ -153,7 +153,12 @@ interface
          }
          ti_nofini,
          { the value described by this temp. node is const/immutable, this is important for
-           managed types like ansistrings where temp. refs are pointers to the actual value }
+           managed types like ansistrings where temp. refs are pointers to the actual value
+           -- in this case, assignments to the temp do not increase the
+             reference count, and if the assigned value was a temp itself then
+             that temp is not deallocated until this temp is deleted (since
+             otherwise the assigned value may be freed before the last use of
+             the temp) }
          ti_const
          );
        ttempinfoflags = set of ttempinfoflag;

@@ -809,6 +809,7 @@ implementation
             (left.resultdef.typ in [arraydef,objectdef,recorddef]) and
             not is_interfacecom_or_dispinterface(left.resultdef) and
             not is_dynamic_array(left.resultdef) and
+            not is_const(left) and
             not(target_info.system in systems_garbage_collected_managed_types) then
          begin
            hp:=ccallparanode.create(caddrnode.create_internal(

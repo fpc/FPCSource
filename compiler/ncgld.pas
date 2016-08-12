@@ -703,7 +703,9 @@ implementation
              exit;
          end;
 
-        releaseright:=true;
+        releaseright:=
+          (left.nodetype<>temprefn) or
+          not(ti_const in ttemprefnode(left).tempinfo^.flags);
 
         { shortstring assignments are handled separately }
         if is_shortstring(left.resultdef) then
