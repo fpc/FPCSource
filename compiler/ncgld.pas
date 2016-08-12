@@ -1165,6 +1165,7 @@ implementation
 
     procedure tcgarrayconstructornode.advancearrayoffset(var ref: treference; elesize: asizeint);
       begin
+        ref.alignment:=newalignment(ref.alignment,elesize);
         inc(ref.offset,elesize);
       end;
 
