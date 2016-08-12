@@ -99,7 +99,14 @@ interface
           inlinelocals            : TFPObjectList;
           inlineinitstatement,
           inlinecleanupstatement  : tstatementnode;
-          procedure maybecreateinlineparatemp(para: tcallparanode);
+          { checks whether we have to create a temp to store the value of a
+            parameter passed to an inline routine to preserve correctness.
+            On exit, complexpara contains true if the parameter is a complex
+            expression and for which we can try to create a temp (even though
+            it's not strictly necessary) for speed and code size reasons.
+            Returns true if the temp creation has been handled, false otherwise
+          }
+          function maybecreateinlineparatemp(para: tcallparanode; out complexpara: boolean): boolean;
           procedure createinlineparas;
           procedure wrapcomplexinlinepara(para: tcallparanode); virtual;
           function  replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
@@ -4515,14 +4522,14 @@ implementation
       end;
 
 
-    procedure tcallnode.maybecreateinlineparatemp(para: tcallparanode);
+    function tcallnode.maybecreateinlineparatemp(para: tcallparanode; out complexpara: boolean): boolean;
       var
         tempnode: ttempcreatenode;
         realtarget: tnode;
         paracomplexity: longint;
         pushconstaddr: boolean;
-        trytotakeaddress : boolean;
       begin
+        result:=false;
         { determine how a parameter is passed to the inlined body
           There are three options:
             - insert the node tree of the callparanode directly
@@ -4550,7 +4557,7 @@ implementation
           occurrences of the parameter with dereferencings of this
           temp
         }
-        trytotakeaddress:=
+        complexpara:=
           { don't create a temp. for function results }
           not(nf_is_funcret in realtarget.flags) and
           { this makes only sense if the parameter is reasonable complex else inserting directly is a better solution }
@@ -4573,8 +4580,8 @@ implementation
           ((para.parasym.vardef.typ<>formaldef) and
            (
             { can we take the address of the argument? }
-            (trytotakeaddress and not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE])) or
-            (trytotakeaddress and
+            (complexpara and not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE])) or
+            (complexpara and
              (not valid_for_addr(para.left,false) or
               (para.left.nodetype = calln) or
               is_constnode(para.left))) or
@@ -4663,9 +4670,8 @@ implementation
                 if (tabstractvarsym(para.parasym).addr_taken) then
                   include(tempnode.tempinfo^.flags,ti_addr_taken);
               end;
+            result:=true;
           end
-        else if trytotakeaddress then
-          wrapcomplexinlinepara(para);
       end;
 
 
@@ -4673,6 +4679,7 @@ implementation
       var
         para: tcallparanode;
         n: tnode;
+        complexpara: boolean;
       begin
         { parameters }
         para := tcallparanode(left);
@@ -4693,7 +4700,9 @@ implementation
 
                 firstpass(para.left);
 
-                maybecreateinlineparatemp(para);
+                if not maybecreateinlineparatemp(para,complexpara) and
+                   complexpara then
+                  wrapcomplexinlinepara(para);
               end;
             para := tcallparanode(para.right);
           end;
