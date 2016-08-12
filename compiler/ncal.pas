@@ -4686,11 +4686,25 @@ implementation
             addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
 
             addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                para.left));
+              para.left));
+
             para.left := ctemprefnode.create(tempnode);
             { inherit addr_taken flag }
             if (tabstractvarsym(para.parasym).addr_taken) then
               include(tempnode.tempinfo^.flags,ti_addr_taken);
+
+            { inherit const }
+            if tabstractvarsym(para.parasym).varspez=vs_const then
+              begin
+                include(tempnode.tempinfo^.flags,ti_const);
+
+                { apply less strict rules for the temp. to be a register than
+                  ttempcreatenode does
+
+                  this way, dyn. array, ansistrings etc. can be put into registers as well }
+                if tparavarsym(para.parasym).is_regvar(false) then
+                  include(tempnode.tempinfo^.flags,ti_may_be_in_reg);
+              end;
 
             result:=true;
           end
