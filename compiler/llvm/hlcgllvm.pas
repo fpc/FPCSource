@@ -1798,6 +1798,8 @@ implementation
       tmpref: treference;
       pointedsize: asizeint;
     begin
+      if ref.alignment=0 then
+        internalerror(2016072203);
       { already simple? }
       if (not assigned(ref.symbol) or
           (ref.base=NR_NO)) and
