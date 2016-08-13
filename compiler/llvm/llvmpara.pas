@@ -123,6 +123,9 @@ unit llvmpara;
                     end;
                     paraloc^.register:=hlcg.getregisterfordef(list,paraloc^.def);
                     paraloc^.llvmvalueloc:=true;
+                    { paraloc^.reference overlaid this field, so zero it now
+                      that we turned it into a register location }
+                    paraloc^.shiftval:=0;
                   end;
                 LOC_REGISTER,
                 LOC_FPUREGISTER,
