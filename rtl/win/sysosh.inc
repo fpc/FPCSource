@@ -49,15 +49,17 @@ type
   end;
 {$endif WINCE}
 
-{$ifdef Win32}
+{$if defined(WIN32) or defined(WIN64)}
   {$define HAS_ENTRYINFORMATION_OS}
   TEntryInformationOS = record
+    {$ifdef WIN32}
     asm_exit : Procedure;stdcall;
+    {$endif WIN32}
     TlsKeyAddr : PDWord;
-    SysInstance: PLongInt;
+    SysInstance: {$ifdef CPU64}PQWord{$else}PLongInt{$endif};
     WideInitTables : Pointer;
   end;
-{$endif Win32}
+{$endif WIN32 or WIN64}
 
 const
 {$ifdef WINCE}

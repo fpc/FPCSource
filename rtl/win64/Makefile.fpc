@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=system uuchar objpas macpas iso7185 buildrtl cpall lineinfo lnfodwrf
-implicitunits=ctypes strings \
+implicitunits=sysinit ctypes strings \
       extpas \
       heaptrc \
       dos messages \

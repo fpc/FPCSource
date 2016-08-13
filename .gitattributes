@@ -10016,6 +10016,7 @@ rtl/win64/classes.pp svneol=native#text/plain
 rtl/win64/rtldefs.inc svneol=native#text/plain
 rtl/win64/seh64.inc svneol=native#text/plain
 rtl/win64/signals.pp svneol=native#text/plain
+rtl/win64/sysinit.pp svneol=native#text/plain
 rtl/win64/system.pp svneol=native#text/plain
 rtl/win64/windows.pp svneol=native#text/plain
 rtl/wince/Makefile svneol=native#text/plain
