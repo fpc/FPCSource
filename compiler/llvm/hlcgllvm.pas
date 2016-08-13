@@ -1124,7 +1124,7 @@ implementation
       a_loadaddr_ref_cgpara(list,size,dest,destpara);
       a_loadaddr_ref_cgpara(list,size,source,sourcepara);
       a_load_const_cgpara(list,u64inttype,size.size,sizepara);
-      maxalign:=newalignment(source.alignment,dest.alignment);
+      maxalign:=newalignment(max(source.alignment,dest.alignment),min(source.alignment,dest.alignment));
       a_load_const_cgpara(list,u32inttype,maxalign,alignpara);
       { we don't know anything about volatility here, should become an extra
         parameter to g_concatcopy }
