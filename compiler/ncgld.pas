@@ -752,6 +752,7 @@ implementation
                     hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef),tpointerdef(charpointertype),href);
                     hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cansichartype,1,href);
                     inc(href.offset,1);
+                    href.alignment:=1;
                     case right.location.loc of
                       LOC_REGISTER,
                       LOC_CREGISTER :
