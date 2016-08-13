@@ -2413,6 +2413,7 @@ implementation
     begin
       result.ref:=ref;
       inc(result.ref.offset,bitnumber div 8);
+      result.ref.alignment:=newalignment(result.ref.alignment,bitnumber div 8);
       result.bitindexreg:=NR_NO;
       result.startbit:=bitnumber mod 8;
       result.bitlen:=1;
