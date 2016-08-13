@@ -601,8 +601,8 @@ begin
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
   if not IsLibrary then
-    SysInstance:=getmodulehandle(nil);
-  MainInstance:=SysInstance;
+    FPCSysInstance^:=getmodulehandle(nil);
+  MainInstance:=FPCSysInstance^;
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap and threading, these may be already initialized from TLS callback }
   if not Assigned(CurrentTM.BeginThread) then
