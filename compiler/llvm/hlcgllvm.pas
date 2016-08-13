@@ -1416,6 +1416,7 @@ implementation
       subscriptdef,
       currentstructdef,
       llvmfielddef: tdef;
+      llvmfield: tllvmshadowsymtableentry;
       newbase: tregister;
       implicitpointer: boolean;
     begin
@@ -1446,29 +1447,28 @@ implementation
           { go to the parent }
           currentstructdef:=parentdef;
         end;
-      { get the type of the corresponding field in the llvm shadow
-        definition }
-      llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(currentstructdef).symtable).llvmst[field].def;
+      { get the corresponding field in the llvm shadow symtable }
+      llvmfield:=tabstractrecordsymtable(tabstractrecorddef(currentstructdef).symtable).llvmst[field];
       if implicitpointer then
         subscriptdef:=currentstructdef
       else
         subscriptdef:=cpointerdef.getreusable(currentstructdef);
       { load the address of that shadow field }
-      newbase:=getaddressregister(list,cpointerdef.getreusable(llvmfielddef));
+      newbase:=getaddressregister(list,cpointerdef.getreusable(llvmfield.def));
       recref:=make_simple_ref(list,recref,recdef);
       list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,field.llvmfieldnr,true));
-      reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,newalignment(recref.alignment,field.fieldoffset+field.offsetfromllvmfield));
+      reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,newalignment(recref.alignment,llvmfield.fieldoffset+field.offsetfromllvmfield));
       { in case of an 80 bits extended type, typecast from an array of 10
         bytes (used because otherwise llvm will allocate the ABI-defined
         size for extended, which is usually larger) into an extended }
-      if (llvmfielddef.typ=floatdef) and
-         (tfloatdef(llvmfielddef).floattype=s80real) then
+      if (llvmfield.def.typ=floatdef) and
+         (tfloatdef(llvmfield.def).floattype=s80real) then
         g_ptrtypecast_ref(list,cpointerdef.getreusable(carraydef.getreusable(u8inttype,10)),cpointerdef.getreusable(s80floattype),recref);
       { if it doesn't match the requested field exactly (variant record),
         adjust the type of the pointer }
       if (field.offsetfromllvmfield<>0) or
-         (llvmfielddef<>field.vardef) then
-        g_ptrtypecast_ref(list,cpointerdef.getreusable(llvmfielddef),cpointerdef.getreusable(field.vardef),recref);
+         (llvmfield.def<>field.vardef) then
+        g_ptrtypecast_ref(list,cpointerdef.getreusable(llvmfield.def),cpointerdef.getreusable(field.vardef),recref);
     end;
 
 
