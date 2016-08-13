@@ -49,7 +49,8 @@ unit parabase;
 
          { true if the llvmloc symbol is the value itself, rather than a
            pointer to the value (~ named register) }
-         llvmvalueloc: boolean;
+         llvmvalueloc,
+         retvalloc: boolean;
          llvmloc: record
            case loc: TCGLoc of
              { nil if none corresponding to this particular paraloc }

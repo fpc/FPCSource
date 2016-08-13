@@ -99,6 +99,8 @@ unit llvmpara;
         paralocs }
       while assigned(paraloc) do
         begin
+          if vo_is_funcret in parasym.varoptions then
+            paraloc^.retvalloc:=true;
           { varargs parameters do not have a parasym.owner, but they're always
             by value }
           if (assigned(parasym.owner) and

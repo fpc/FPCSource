@@ -442,7 +442,16 @@ implementation
             callpara^.def:=paraloc^.def;
             { if the paraloc doesn't contain the value itself, it's a byval
               parameter }
-            callpara^.byval:=not paraloc^.llvmvalueloc;
+            if paraloc^.retvalloc then
+              begin
+                callpara^.sret:=true;
+                callpara^.byval:=false;
+              end
+            else
+              begin
+                callpara^.sret:=false;
+                callpara^.byval:=not paraloc^.llvmvalueloc;
+              end;
             llvmextractvalueextinfo(paras[i]^.def, callpara^.def, callpara^.valueext);
             if paraloc^.llvmloc.loc=LOC_CONSTANT then
               begin
