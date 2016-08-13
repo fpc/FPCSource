@@ -440,6 +440,9 @@ implementation
           begin
             new(callpara);
             callpara^.def:=paraloc^.def;
+            { if the paraloc doesn't contain the value itself, it's a byval
+              parameter }
+            callpara^.byval:=not paraloc^.llvmvalueloc;
             llvmextractvalueextinfo(paras[i]^.def, callpara^.def, callpara^.valueext);
             if paraloc^.llvmloc.loc=LOC_CONSTANT then
               begin
