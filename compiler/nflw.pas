@@ -242,7 +242,7 @@ implementation
       globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symtable,paramgr,defcmp,defutil,htypechk,pass_1,
-      ncal,nadd,ncon,nmem,nld,ncnv,nbas,cgobj,nutils,ninl,nset,
+      ncal,nadd,ncon,nmem,nld,ncnv,nbas,cgobj,nutils,ninl,nset,ngenutil,
       pdecsub,
     {$ifdef state_tracking}
       nstate,
@@ -1597,15 +1597,40 @@ implementation
 
     function texitnode.pass_typecheck:tnode;
       var
+        pd: tprocdef;
         newstatement : tstatementnode;
       begin
         result:=nil;
+        newstatement:=nil;
         if assigned(left) then
           begin
              result:=internalstatements(newstatement);
              addstatement(newstatement,left);
              left:=nil;
-             addstatement(newstatement,self.getcopy);
+          end;
+        { if the function result has been migrated to the parentfpstruct,
+          we have to load it back to the original location (from which the
+          code generator will load it into the function result location),
+          because the code to this that we add in tnodeutils.wrap_proc_body()
+          gets inserted before the exit label to which this node will jump }
+        if (target_info.system in systems_fpnestedstruct) and
+           not(nf_internal in flags) then
+          begin
+            pd:=current_procinfo.procdef;
+            if assigned(pd.funcretsym) and
+               tabstractnormalvarsym(pd.funcretsym).inparentfpstruct then
+              begin
+                if not assigned(result) then
+                  result:=internalstatements(newstatement);
+                cnodeutils.load_parentfpstruct_nested_funcret(current_procinfo.procdef,newstatement);
+              end;
+          end;
+        if assigned(result) then
+          begin
+            addstatement(newstatement,self.getcopy);
+            { ensure we don't insert the function result loading code again for
+              this node }
+            include(newstatement.left.flags,nf_internal);
           end;
         resultdef:=voidtype;
       end;
