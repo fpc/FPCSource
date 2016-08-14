@@ -76,7 +76,7 @@ procedure DownloadFile(const RemoteFile,LocalFile:String);
 var
   DownloaderClass : TBaseDownloaderClass;
 begin
-  DownloaderClass:=GetDownloader(GlobalOptions.Downloader);
+  DownloaderClass:=GetDownloader(GlobalOptions.GlobalSection.Downloader);
   with DownloaderClass.Create(nil) do
     try
       Download(RemoteFile,LocalFile);
@@ -165,7 +165,7 @@ var
   P : TFPPackage;
 begin
   P:=AvailableRepository.PackageByName(PackageName);
-  DownloaderClass:=GetDownloader(GlobalOptions.Downloader);
+  DownloaderClass:=GetDownloader(GlobalOptions.GlobalSection.Downloader);
   with DownloaderClass.Create(nil) do
     try
       Log(llCommands,SLogDownloading,[PackageRemoteArchive(P),PackageLocalArchive(P)]);
@@ -173,7 +173,7 @@ begin
 
       // Force the existing of the archives-directory if it is being used
       if (P.Name<>CurrentDirPackageName) and (P.Name<>CmdLinePackageName) then
-        ForceDirectories(GlobalOptions.ArchivesDir);
+        ForceDirectories(GlobalOptions.GlobalSection.ArchivesDir);
 
       Download(PackageRemoteArchive(P),PackageLocalArchive(P));
     finally

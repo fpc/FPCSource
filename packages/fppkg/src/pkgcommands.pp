@@ -240,17 +240,17 @@ var
 begin
   // Download and load mirrors.xml
   // This can be skipped when a custom RemoteRepository is configured
-  if (GlobalOptions.RemoteMirrorsURL<>'') and
-     (GlobalOptions.RemoteRepository='auto') then
+  if (GlobalOptions.GlobalSection.RemoteMirrorsURL<>'') and
+     (GlobalOptions.GlobalSection.RemoteRepository='auto') then
     begin
-      Log(llCommands,SLogDownloading,[GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile]);
-      DownloadFile(GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile);
+      Log(llCommands,SLogDownloading,[GlobalOptions.GlobalSection.RemoteMirrorsURL,GlobalOptions.GlobalSection.LocalMirrorsFile]);
+      DownloadFile(GlobalOptions.GlobalSection.RemoteMirrorsURL,GlobalOptions.GlobalSection.LocalMirrorsFile);
       LoadLocalAvailableMirrors;
     end;
   // Download packages.xml
   PackagesURL:=GetRemoteRepositoryURL(PackagesFileName);
-  Log(llCommands,SLogDownloading,[PackagesURL,GlobalOptions.LocalPackagesFile]);
-  DownloadFile(PackagesURL,GlobalOptions.LocalPackagesFile);
+  Log(llCommands,SLogDownloading,[PackagesURL,GlobalOptions.GlobalSection.LocalPackagesFile]);
+  DownloadFile(PackagesURL,GlobalOptions.GlobalSection.LocalPackagesFile);
   // Read the repository again
   LoadLocalAvailableRepository;
   // no need to log errors again
@@ -260,7 +260,7 @@ end;
 
 procedure TCommandListPackages.Execute;
 begin
-  ListPackages(GlobalOptions.ShowLocation);
+  ListPackages(GlobalOptions.CommandLineSection.ShowLocation);
 end;
 
 
@@ -395,7 +395,7 @@ var
       end
     else
       begin
-        if (IsSuperUser or GlobalOptions.InstallGlobal) then
+        if (IsSuperUser or GlobalOptions.CommandLineSection.InstallGlobal) then
           Result:=CompilerOptions.GlobalUnitDir
         else
           Result:=CompilerOptions.LocalUnitDir;
@@ -420,7 +420,7 @@ var
       end
     else
       begin
-        if (IsSuperUser or GlobalOptions.InstallGlobal) then
+        if (IsSuperUser or GlobalOptions.CommandLineSection.InstallGlobal) then
           Result:=CompilerOptions.GlobalInstallDir
         else
           Result:=CompilerOptions.LocalInstallDir;

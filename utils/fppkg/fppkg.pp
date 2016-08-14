@@ -56,11 +56,18 @@ begin
   // Default verbosity
   LogLevels:=DefaultLogLevels;
   for i:=1 to ParamCount do
-    if (ParamStr(i)='-d') or (ParamStr(i)='--debug') then
-      begin
-        LogLevels:=AllLogLevels+[llDebug];
-        break;
-      end;
+    begin
+      if (ParamStr(i)='-d') or (ParamStr(i)='--debug') then
+        begin
+          LogLevels:=AllLogLevels+[llDebug];
+          break;
+        end;
+      if (ParamStr(i)='-v') or (ParamStr(i)='--verbose') then
+        begin
+          LogLevels:=AllLogLevels+[llDebug];
+          break;
+        end;
+    end;
   // First try config file from command line
   if HasOption('C','config-file') then
     cfgfile:=GetOptionValue('C','config-file')
@@ -72,9 +79,9 @@ end;
 
 procedure TMakeTool.MaybeCreateLocalDirs;
 begin
-  ForceDirectories(GlobalOptions.BuildDir);
-  ForceDirectories(GlobalOptions.ArchivesDir);
-  ForceDirectories(GlobalOptions.CompilerConfigDir);
+  ForceDirectories(GlobalOptions.GlobalSection.BuildDir);
+  ForceDirectories(GlobalOptions.GlobalSection.ArchivesDir);
+  ForceDirectories(GlobalOptions.GlobalSection.CompilerConfigDir);
 end;
 
 
@@ -203,23 +210,23 @@ begin
           OptionArg(I);
         end
       else if CheckOption(I,'c','config') then
-        GlobalOptions.CompilerConfig:=OptionArg(I)
+        GlobalOptions.CommandLineSection.CompilerConfig:=OptionArg(I)
       else if CheckOption(I,'v','verbose') then
         LogLevels:=AllLogLevels
       else if CheckOption(I,'d','debug') then
         LogLevels:=AllLogLevels+[llDebug]
       else if CheckOption(I,'g','global') then
-        GlobalOptions.InstallGlobal:=true
+        GlobalOptions.CommandLineSection.InstallGlobal:=true
       else if CheckOption(I,'r','recovery') then
-        GlobalOptions.RecoveryMode:=true
+        GlobalOptions.CommandLineSection.RecoveryMode:=true
       else if CheckOption(I,'n','') then
-        GlobalOptions.SkipConfigurationFiles:=true
+        GlobalOptions.CommandLineSection.SkipConfigurationFiles:=true
       else if CheckOption(I,'b','broken') then
-        GlobalOptions.AllowBroken:=true
+        GlobalOptions.CommandLineSection.AllowBroken:=true
       else if CheckOption(I,'l','showlocation') then
-        GlobalOptions.ShowLocation:=true
+        GlobalOptions.CommandLineSection.ShowLocation:=true
       else if CheckOption(I,'s','skipbroken') then
-        GlobalOptions.SkipFixBrokenAfterInstall:=true
+        GlobalOptions.CommandLineSection.SkipFixBrokenAfterInstall:=true
       else if CheckOption(I,'o','options') and FirstPass then
         begin
           OptString := OptionArg(I);
@@ -284,6 +291,10 @@ begin
     LoadGlobalDefaults;
     ProcessCommandLine(true);
 
+    SetLength(FPMKUnitDeps,FPMKUnitDepDefaultCount);
+    for i := 0 to FPMKUnitDepDefaultCount-1 do
+      FPMKUnitDeps[i]:=FPMKUnitDepsDefaults[i];
+
     // Scan is special, it doesn't need a valid local setup
     if (ParaAction='scan') then
       begin
@@ -294,7 +305,7 @@ begin
       end;
 
     MaybeCreateLocalDirs;
-    if not GlobalOptions.SkipConfigurationFiles then
+    if not GlobalOptions.CommandLineSection.SkipConfigurationFiles then
       LoadCompilerDefaults
     else
       begin
@@ -316,7 +327,7 @@ begin
     // Load local repository, update first if this is a new installation
     // errors will only be reported as warning. The user can be bootstrapping
     // and do an update later
-    if not FileExists(GlobalOptions.LocalPackagesFile) then
+    if not FileExists(GlobalOptions.GlobalSection.LocalPackagesFile) then
       begin
         try
           pkghandler.ExecuteAction('','update');
@@ -331,14 +342,14 @@ begin
     // We only need to reload the status when we use a different
     // configuration for compiling fpmake or when the CPU, OS or compiler
     // are set in the command-line
-    if (GlobalOptions.CompilerConfig<>GlobalOptions.FPMakeCompilerConfig) or
+    if (GlobalOptions.GlobalSection.CompilerConfig<>GlobalOptions.GlobalSection.FPMakeCompilerConfig) or
        (CompilerOptions.CompilerCPU<>FPMakeCompilerOptions.CompilerCPU) or
        (CompilerOptions.CompilerOS<>FPMakeCompilerOptions.CompilerOS) or
        (CompilerOptions.Compiler<>FPMakeCompilerOptions.Compiler) then
       FindInstalledPackages(CompilerOptions,true);
 
     // Check for broken dependencies
-    if not GlobalOptions.AllowBroken and
+    if not GlobalOptions.CommandLineSection.AllowBroken and
        (((ParaAction='fixbroken') and (ParaPackages.Count>0)) or
         (ParaAction='compile') or
         (ParaAction='build') or
@@ -377,7 +388,7 @@ begin
       end;
 
     // Recompile all packages dependent on this package
-    if (ParaAction='install') and not GlobalOptions.SkipFixBrokenAfterInstall then
+    if (ParaAction='install') and not GlobalOptions.CommandLineSection.SkipFixBrokenAfterInstall then
       pkghandler.ExecuteAction('','fixbroken');
 
     Terminate;

@@ -241,7 +241,7 @@ begin
       // Call compiler
       If ExecuteProcess(FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
         begin
-          if not GlobalOptions.RecoveryMode then
+          if not GlobalOptions.CommandLineSection.RecoveryMode then
             Error(SErrCompileFailureFPMakeTryRecovery)
           else
             Error(SErrCompileFailureFPMake);
@@ -336,10 +336,10 @@ begin
       if CompilerOptions.HasOptions then
         AddOption('--options='+CompilerOptions.Options.DelimitedText);
 
-      if GlobalOptions.CustomFPMakeOptions<>'' then
+      if GlobalOptions.GlobalSection.CustomFPMakeOptions<>'' then
         begin
         AddOption('--ignoreinvalidoption');
-        AddOption(GlobalOptions.CustomFPMakeOptions);
+        AddOption(GlobalOptions.GlobalSection.CustomFPMakeOptions);
         end;
     end;
 
@@ -347,7 +347,7 @@ begin
   AddOption('--compiler='+CompilerOptions.Compiler);
   AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
   AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
-  if IsSuperUser or GlobalOptions.InstallGlobal then
+  if IsSuperUser or GlobalOptions.CommandLineSection.InstallGlobal then
     begin
       CondAddOption('--prefix',CompilerOptions.GlobalPrefix);
       CondAddOption('--baseinstalldir',CompilerOptions.GlobalInstallDir);

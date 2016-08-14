@@ -81,7 +81,7 @@ begin
   AvailableMirrors:=TFPMirrors.Create(TFPMirror);
 
   // Repository
-  S:=GlobalOptions.LocalMirrorsFile;
+  S:=GlobalOptions.GlobalSection.LocalMirrorsFile;
   log(llDebug,SLogLoadingMirrorsFile,[S]);
   if not FileExists(S) then
     exit;
@@ -150,10 +150,10 @@ function GetRemoteRepositoryURL(const AFileName:string):string;
 begin
   if CurrentRemoteRepositoryURL='' then
     begin
-      if GlobalOptions.RemoteRepository='auto' then
+      if GlobalOptions.GlobalSection.RemoteRepository='auto' then
         CurrentRemoteRepositoryURL:=SelectRemoteMirror
       else
-        CurrentRemoteRepositoryURL:=GlobalOptions.RemoteRepository;
+        CurrentRemoteRepositoryURL:=GlobalOptions.GlobalSection.RemoteRepository;
     end;
   result := CurrentRemoteRepositoryURL;
   if result[length(result)]<>'/' then
@@ -410,7 +410,7 @@ begin
     FPMKUnitDeps[i].available:=false;
   // Not version check needed in Recovery mode, we always need to use
   // the internal bootstrap procedure
-  if GlobalOptions.RecoveryMode then
+  if GlobalOptions.CommandLineSection.RecoveryMode then
     exit;
   // Check for fpmkunit dependencies
   for i:=0 to high(FPMKUnitDeps) do
@@ -454,7 +454,7 @@ begin
     AvailableRepository.Free;
   AvailableRepository:=GetDefaultRepositoryClass.Create(Nil);
   // Repository
-  S:=GlobalOptions.LocalPackagesFile;
+  S:=GlobalOptions.GlobalSection.LocalPackagesFile;
   log(llDebug,SLogLoadingPackagesFile,[S]);
   if not FileExists(S) then
     exit;
