@@ -10,7 +10,7 @@ fpcdir=..
 rule=allexectests
 
 [target]
-programs=gparmake
+programs=gparmake createlst
 
 [rules]
 unexport FPC_VERSION
@@ -203,6 +203,10 @@ endif
 
 ifndef PREPUP
 PREPUP=utils/prepup
+endif
+
+ifndef CREATELST
+CREATELST=./createlst$(EXEEXT)
 endif
 
 
@@ -499,6 +503,9 @@ MAKEINC=$(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
 $(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
         $(FPC) $(FPCOPT) -FE. utils/gparmake.pp $(OPT)
 
+$(CREATELST): $(COMPILER_UNITTARGETDIR) utils/createlst.pp
+        $(FPC) $(FPCOPT) -FE. utils/createlst.pp $(OPT)
+
 # Can't have testprep as prerequisite, because that is a phony target and
 # phony targets are always remade. Since the makefile will be reparsed
 # after making the MakeChunks file (because it has to be included) and all
@@ -511,21 +518,21 @@ $(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
 # As a result, we list TEST_OUTPUTDIR as a dependency (that just creates
 # the directory) and have an explicit rule to build GPARMAKE rather than
 # building it via the utils Makefile
-$(MAKEINC): $(GPARMAKE) $(TEST_OUTPUTDIR)
+$(MAKEINC): $(GPARMAKE) $(CREATELST) $(TEST_OUTPUTDIR)
 # generate rules for parallel executions of dotest
 # gparmake now also needs an additional parameter for the name of the
 # used subdirectory. Note also that the index must be increasing for each
 # new call with a gap insuring that all the previous files have lower index
 # even if CHUNKSIZE is equal to 1.
-	$(MAKE) -s --no-print-directory -f createlst.mak "TESTDIRS=$(TESTDIRS)" > testfilelist.lst
+	$(Q)$(CREATELST) $(TESTDIRS) > testfilelist.lst
 	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @testfilelist.lst
-	$(MAKE) -s --no-print-directory -f createlst.mak "TESTDIRS=tbs" > tbsfilelist.lst
+	$(Q)$(CREATELST) tbs > tbsfilelist.lst
 	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) @tbsfilelist.lst
-	$(MAKE) -s --no-print-directory -f createlst.mak "TESTDIRS=tbf" > tbffilelist.lst
+	$(Q)$(CREATELST) tbf > tbffilelist.lst
 	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) @tbffilelist.lst
-	$(MAKE) -s --no-print-directory -f createlst.mak "TESTDIRS=webtbs" > webtbsfilelist.lst
+	$(Q)$(CREATELST) webtbs > webtbsfilelist.lst
 	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) @webtbsfilelist.lst
-	$(MAKE) -s --no-print-directory -f createlst.mak "TESTDIRS=webtbf" > webtbffilelist.lst
+	$(Q)$(CREATELST) webtbf > webtbffilelist.lst
 	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbf 30000 $(CHUNKSIZE) @webtbffilelist.lst
 
 

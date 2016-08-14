@@ -10143,7 +10143,6 @@ tests/bench/shortbench.pp svneol=native#text/plain
 tests/bench/stream.pp svneol=native#text/plain
 tests/bench/timer.pas svneol=native#text/plain
 tests/bench/whet.pas svneol=native#text/plain
-tests/createlst.mak svneol=native#text/plain
 tests/dbdigest.cfg.example -text
 tests/readme.txt svneol=native#text/plain
 tests/tbf/tb0001.pp svneol=native#text/plain
@@ -13444,6 +13443,7 @@ tests/utils/avx/options.pas svneol=native#text/plain
 tests/utils/avx/readme.txt svneol=native#text/plain
 tests/utils/bench.pp svneol=native#text/plain
 tests/utils/concat.pp svneol=native#text/plain
+tests/utils/createlst.pp svneol=native#text/pascal
 tests/utils/dbconfig.pp svneol=native#text/plain
 tests/utils/dbdigest.pp svneol=native#text/plain
 tests/utils/dbtests.pp svneol=native#text/plain
