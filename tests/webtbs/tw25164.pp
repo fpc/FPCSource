@@ -1,5 +1,5 @@
 { %opt=-Cg }
-{ %target=-linux,freebsd,darwin }
+{ %target=-linux,freebsd,darwin,haiku }
 { %norun }
 {$mode objfpc}
 

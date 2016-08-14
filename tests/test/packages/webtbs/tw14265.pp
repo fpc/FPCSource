@@ -1,4 +1,4 @@
-{ %target=linux }
+{ %target=linux,haiku }
 { %opt=-Xt }
 
 program phello;

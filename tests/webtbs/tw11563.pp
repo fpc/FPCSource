@@ -1,4 +1,4 @@
-{ %target=linux}
+{ %target=linux,haiku}
 { %result=216 }
 
 program ExecStack;

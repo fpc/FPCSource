@@ -1,4 +1,4 @@
-{ %target=linux }
+{ %target=linux,haiku }
 
 { Source provided for Free Pascal Bug Report 3161 }
 { Submitted by "Michalis Kamburelis" on  2004-06-12 }

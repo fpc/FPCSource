@@ -1,5 +1,5 @@
 { %norun }
-{ %target=linux }
+{ %target=linux,haiku }
 
 program test;
 

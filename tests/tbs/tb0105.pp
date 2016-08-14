@@ -1,4 +1,4 @@
-{ %TARGET=linux,go32v2 }
+{ %TARGET=linux,go32v2,haiku }
 { %CPU=i386 }
 { %OPT= -Aas -Cg- }
 
