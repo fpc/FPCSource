@@ -1265,6 +1265,7 @@ begin
     Fps.WriteLn('var');
     Fps.IncI;
     Fps.WriteLn('_env: PJNIEnv;');
+    Fps.WriteLn('_new_env: boolean;');
     Fps.WriteLn('_mpi: _TMethodPtrInfo;');
     if d.Count > 0 then begin
       Fps.WriteLn(Format('_args: array[0..%d] of jvalue;', [d.Count - 1]));
@@ -1281,6 +1282,8 @@ begin
     Fps.WriteLn('begin');
     Fps.IncI;
     Fps.WriteLn('CurJavaVM^^.GetEnv(CurJavaVM, @_env, JNI_VERSION_1_6);');
+    Fps.WriteLn('_new_env:=_env = nil;');
+    Fps.WriteLn('if _new_env then CurJavaVM^^.AttachCurrentThread(CurJavaVM, @_env, nil);');
     Fps.WriteLn('_env^^.PushLocalFrame(_env, 100);');
     Fps.WriteLn('try');
     Fps.IncI;
@@ -1347,6 +1350,7 @@ begin
     Fps.DecI;
     Fps.WriteLn('finally');
     Fps.WriteLn('_env^^.PopLocalFrame(_env, nil);', 1);
+    Fps.WriteLn('if _new_env then CurJavaVM^^.DetachCurrentThread(CurJavaVM);', 1);
     Fps.WriteLn('end;');
     Fps.DecI;
     Fps.WriteLn('end;');
