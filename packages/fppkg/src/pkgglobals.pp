@@ -63,7 +63,7 @@ Type
 
 const
   DefaultLogLevels = [llError,llWarning, llProgres];
-  AllLogLevels = [llError,llWarning,llCommands,llInfo];
+  AllLogLevels = [llError,llWarning,llCommands,llInfo,llProgres];
 
 type
   EPackagerError = class(Exception);
