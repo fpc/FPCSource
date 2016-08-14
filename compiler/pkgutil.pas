@@ -218,6 +218,9 @@ implementation
 
 
   procedure export_unit(u: tmodule);
+    var
+      i : longint;
+      sym : tasmsymbol;
     begin
       u.globalsymtable.symlist.ForEachCall(@insert_export,u.globalsymtable);
       { check localsymtable for exports too to get public symbols }
@@ -235,6 +238,14 @@ implementation
           varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',u.localsymtable,[]).name);
           varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',u.localsymtable,[]).name);
         end;
+
+      if not (target_info.system in systems_indirect_var_imports) then
+        for i:=0 to u.publicasmsyms.count-1 do
+          begin
+            sym:=tasmsymbol(u.publicasmsyms[i]);
+            if sym.bind=AB_INDIRECT then
+              varexport(sym.name);
+          end;
     end;
 
   Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;

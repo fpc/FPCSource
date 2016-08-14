@@ -42,7 +42,8 @@ implementation
 uses
   globals,cutils,systems,
   aasmtai,aasmcnst,
-  symdef;
+  symdef,
+  fmodule;
 
 
 function TAsmDataDef.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: TSymStr; _bind: TAsmSymBind; _typ: Tasmsymtype; def: tdef): TAsmSymbol;
@@ -73,6 +74,8 @@ function TAsmDataDef.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: 
           lower(symind.name),
           const_align(ptrdef.alignment)));
         tcb.free;
+        if _typ=AT_DATA_FORCEINDIRECT then
+          current_module.add_public_asmsym(symind.name,AB_INDIRECT,AT_DATA);
       end;
   end;
 
