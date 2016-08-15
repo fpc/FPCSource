@@ -130,18 +130,18 @@ implementation
     end;
 
 
+  procedure exportname(const s:tsymstr);
+    var
+      hp : texported_item;
+    begin
+      hp:=texported_item.create;
+      hp.name:=stringdup(s);
+      hp.options:=hp.options+[eo_name];
+      exportlib.exportvar(hp);
+    end;
+
+
   procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
-
-    procedure exportname(const s:tsymstr);
-      var
-        hp : texported_item;
-      begin
-        hp:=texported_item.create;
-        hp.name:=stringdup(s);
-        hp.options:=hp.options+[eo_name];
-        exportlib.exportvar(hp);
-      end;
-
     var
       hp : texported_item;
     begin
@@ -156,8 +156,6 @@ implementation
         begin
           if (oo_has_vmt in tobjectdef(def).objectoptions) then
             exportname(tobjectdef(def).vmt_mangledname);
-          if is_class(def) then
-              exportname(tobjectdef(def).rtti_mangledname(fullrtti));
           if is_interface(def) then
             begin
               if assigned(tobjectdef(def).iidguid) then
@@ -168,8 +166,15 @@ implementation
     end;
 
 
-  procedure export_typedef(def:tdef;symtable:tsymtable);
+  procedure export_typedef(def:tdef;symtable:tsymtable;global:boolean);
     begin
+      if not (global or is_class(def)) or (df_internal in def.defoptions) then
+        exit;
+      if ds_rtti_table_written in def.defstates then
+        exportname(def.rtti_mangledname(fullrtti));
+      if (ds_init_table_written in def.defstates) and
+          def.needs_separate_initrtti then
+        exportname(def.rtti_mangledname(initrtti));
       case def.typ of
         recorddef,
         objectdef:
@@ -182,9 +187,11 @@ implementation
     var
       i : longint;
       item : TCmdStrListItem;
+      isglobal,
       publiconly : boolean;
     begin
       publiconly:=tsymtable(arg).symtabletype=staticsymtable;
+      isglobal:=tsymtable(arg).symtabletype=globalsymtable;
       case TSym(sym).typ of
         { ignore: }
         unitsym,
@@ -200,7 +207,7 @@ implementation
           end;
         typesym:
           begin
-            export_typedef(ttypesym(sym).typedef,tsymtable(arg));
+            export_typedef(ttypesym(sym).typedef,tsymtable(arg),isglobal);
           end;
         procsym:
           begin
