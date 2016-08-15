@@ -221,7 +221,9 @@ type
     df_not_registered_no_free,
     { don't pack this record at the llvm level -- can't do this via symllvm
       because we have to access this information in the symtable unit }
-    df_llvm_no_struct_packing
+    df_llvm_no_struct_packing,
+    { internal def that's not for any export }
+    df_internal
   );
   tdefoptions=set of tdefoption;
 

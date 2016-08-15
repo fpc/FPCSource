@@ -4362,6 +4362,7 @@ implementation
         symtablestack:=oldsymtablestack;
         { don't create RTTI for internal types, these are not exported }
         defstates:=defstates+[ds_rtti_table_written,ds_init_table_written];
+        include(defoptions,df_internal);
       end;
 
 
