@@ -168,6 +168,16 @@ implementation
     end;
 
 
+  procedure export_typedef(def:tdef;symtable:tsymtable);
+    begin
+      case def.typ of
+        recorddef,
+        objectdef:
+          exportabstractrecorddef(tabstractrecorddef(def),symtable);
+      end;
+    end;
+
+
   procedure insert_export(sym : TObject;arg:pointer);
     var
       i : longint;
@@ -190,11 +200,7 @@ implementation
           end;
         typesym:
           begin
-            case ttypesym(sym).typedef.typ of
-              recorddef,
-              objectdef:
-                exportabstractrecorddef(tabstractrecorddef(ttypesym(sym).typedef),tsymtable(arg));
-            end;
+            export_typedef(ttypesym(sym).typedef,tsymtable(arg));
           end;
         procsym:
           begin
