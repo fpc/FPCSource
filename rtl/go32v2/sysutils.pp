@@ -755,7 +755,8 @@ begin
     DosMemGet(CountryInfo.UpperCaseTable shr 16, 2 + CountryInfo.UpperCaseTable and 65535, UpperCaseTable[128], 128);
     for i := 128 to 255 do
        begin
-       if UpperCaseTable[i] <> chr(i) then
+       { Never modify the lowercase of any char if ord(char) < 127 }
+       if (UpperCaseTable[i] <> chr(i)) and (ord(UpperCaseTable[i])>=128) then
           LowerCaseTable[ord(UpperCaseTable[i])] := chr(i);
        end;
     end;
