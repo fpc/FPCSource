@@ -2414,7 +2414,7 @@ allexectests:  $(TEST_OUTPUTDIR)/log.testlog $(TEST_OUTPUTDIR)/log.tbslog \
 else
 .PHONY: allexectests gparmake_allexectests
 MAKEINC=$(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
-$(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
+$(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp $(CREATELST)
 	$(FPC) $(FPCOPT) -FE. utils/gparmake.pp $(OPT)
 $(CREATELST): $(COMPILER_UNITTARGETDIR) utils/createlst.pp
 	$(FPC) $(FPCOPT) -FE. utils/createlst.pp $(OPT)
