@@ -606,9 +606,13 @@ end;
 
 
 function mtwist_u32rand: cardinal;
+var
+  l_index :cardinal;
 begin
+  l_index:=mt_index;
+  inc(mt_index);
   if (RandSeed<>OldRandSeed) or
-     (mt_index=MTWIST_N+1) then
+     (l_index>=MTWIST_N+1) then
     begin
       mtwist_init(RandSeed);
       { Detect resets of randseed
@@ -619,11 +623,14 @@ begin
       }
       RandSeed:=not(RandSeed);
       OldRandSeed:=RandSeed;
+      l_index:=MTWIST_N;
     end;
   if mt_index=MTWIST_N then
-    mtwist_update_state;
-  result:=mt_state[mt_index];
-  inc(mt_index);
+    begin
+      mtwist_update_state;
+      l_index:=0;
+    end;
+  result:=mt_state[l_index];
   result:=result xor (result shr 11);
   result:=result xor ((result shl 7) and cardinal($9D2C5680));
   result:=result xor ((result shl 15) and cardinal($EFC60000));
