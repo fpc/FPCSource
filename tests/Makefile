@@ -2186,6 +2186,8 @@ export CHUNKSIZE:=100
 endif
 TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
 .PHONY: utils tstunits copyfiles testprep
+$(TEST_OUTPUTDIR):
+	$(MKDIRTREE) $(TEST_OUTPUTDIR)
 utils:
 	$(MAKE) -C utils utils
 utilsdb:
@@ -2249,7 +2251,7 @@ $(C_OBJECTS) : %.o: %.c
 		$(TEST_CCOMPILER) -c $(TEST_CFLAGS) $< -o $@
 $(CPP_OBJECTS) : %.o: %.cpp
 		$(TEST_CCOMPILER) -c $(TEST_CFLAGS) $< -o $@
-copyfiles: $(TEST_OUTPUTDIR)
+copyfiles:
 	-$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/cg
 	-$(COPY) $(C_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
 	-$(COPY) $(CPP_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
@@ -2258,8 +2260,6 @@ copyfiles: $(TEST_OUTPUTDIR)
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
 testprep-stamp.$(TEST_FULL_TARGET): utils tstunits copyfiles
 	$(ECHOREDIR) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
-$(TEST_OUTPUTDIR):
-	$(MKDIRTREE) $@
 ifneq ($(TEST_FPC),ppc386$(EXEEXT))
 ifeq ($(findstring -c$(TEST_FPC),$(DOTESTOPT)),)
 override DOTESTOPT+=-c$(TEST_FPC)
@@ -2414,11 +2414,14 @@ allexectests:  $(TEST_OUTPUTDIR)/log.testlog $(TEST_OUTPUTDIR)/log.tbslog \
 else
 .PHONY: allexectests gparmake_allexectests
 MAKEINC=$(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
-$(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp $(CREATELST)
+$(GPARMAKE): utils/gparmake.pp $(CREATELST)
+	$(Q)$(MAKE)  $(COMPILER_UNITTARGETDIR)
 	$(FPC) $(FPCOPT) -FE. utils/gparmake.pp $(OPT)
-$(CREATELST): $(COMPILER_UNITTARGETDIR) utils/createlst.pp
+$(CREATELST): utils/createlst.pp
+	$(Q)$(MAKE)  $(COMPILER_UNITTARGETDIR)
 	$(FPC) $(FPCOPT) -FE. utils/createlst.pp $(OPT)
-$(MAKEINC): $(GPARMAKE) $(CREATELST) $(TEST_OUTPUTDIR)
+$(MAKEINC): $(GPARMAKE) $(CREATELST)
+	$(Q)$(MAKE) $(TEST_OUTPUTDIR)
 	$(Q)$(CREATELST) $(TESTDIRS) > testfilelist.lst
 	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @testfilelist.lst
 	$(Q)$(CREATELST) tbs > tbsfilelist.lst
