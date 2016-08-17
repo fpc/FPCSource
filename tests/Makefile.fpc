@@ -179,6 +179,9 @@ TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
 # Utilities
 #
 
+$(TEST_OUTPUTDIR):
+	$(MKDIRTREE) $(TEST_OUTPUTDIR)
+
 utils:
         $(MAKE) -C utils utils
 
@@ -267,7 +270,7 @@ $(C_OBJECTS) : %.o: %.c
 $(CPP_OBJECTS) : %.o: %.cpp
 		$(TEST_CCOMPILER) -c $(TEST_CFLAGS) $< -o $@
 		
-copyfiles: $(TEST_OUTPUTDIR)
+copyfiles:
         -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/cg
         -$(COPY) $(C_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
         -$(COPY) $(CPP_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
@@ -282,9 +285,6 @@ copyfiles: $(TEST_OUTPUTDIR)
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
 testprep-stamp.$(TEST_FULL_TARGET): utils tstunits copyfiles
         $(ECHOREDIR) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
-
-$(TEST_OUTPUTDIR):
-        $(MKDIRTREE) $@
 
 ################################
 # Dotest options
@@ -500,11 +500,13 @@ else
 
 MAKEINC=$(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
 
-$(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp $(CREATELST)
-        $(FPC) $(FPCOPT) -FE. utils/gparmake.pp $(OPT)
+$(GPARMAKE): utils/gparmake.pp $(CREATELST)
+	$(Q)$(MAKE)  $(COMPILER_UNITTARGETDIR)
+	$(FPC) $(FPCOPT) -FE. utils/gparmake.pp $(OPT)
 
-$(CREATELST): $(COMPILER_UNITTARGETDIR) utils/createlst.pp
-        $(FPC) $(FPCOPT) -FE. utils/createlst.pp $(OPT)
+$(CREATELST): utils/createlst.pp
+	$(Q)$(MAKE)  $(COMPILER_UNITTARGETDIR)
+	$(FPC) $(FPCOPT) -FE. utils/createlst.pp $(OPT)
 
 # Can't have testprep as prerequisite, because that is a phony target and
 # phony targets are always remade. Since the makefile will be reparsed
@@ -518,12 +520,13 @@ $(CREATELST): $(COMPILER_UNITTARGETDIR) utils/createlst.pp
 # As a result, we list TEST_OUTPUTDIR as a dependency (that just creates
 # the directory) and have an explicit rule to build GPARMAKE rather than
 # building it via the utils Makefile
-$(MAKEINC): $(GPARMAKE) $(CREATELST) $(TEST_OUTPUTDIR)
+$(MAKEINC): $(GPARMAKE) $(CREATELST)
 # generate rules for parallel executions of dotest
 # gparmake now also needs an additional parameter for the name of the
 # used subdirectory. Note also that the index must be increasing for each
 # new call with a gap insuring that all the previous files have lower index
 # even if CHUNKSIZE is equal to 1.
+	$(Q)$(MAKE) $(TEST_OUTPUTDIR)
 	$(Q)$(CREATELST) $(TESTDIRS) > testfilelist.lst
 	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @testfilelist.lst
 	$(Q)$(CREATELST) tbs > tbsfilelist.lst
