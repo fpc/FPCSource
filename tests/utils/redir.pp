@@ -1112,7 +1112,12 @@ begin
             P.Terminate(255);
             if TerminateSentCount=0 then
               { also write ComLine in order to know which test is not ended in time }
-              Writeln(stderr,'Terminate requested for ',Path,' ',ComLine);
+              begin
+                Writeln(stderr,'Terminate requested for ',Path,' ',ComLine);
+                { Issue it also to output, so it gets added to log file
+                  if ExecuteRedir is in use }
+                Writeln('Terminate requested for ',Path,' ',ComLine);
+              end;
             Inc(TerminateSentCount);
           end;
 
@@ -1120,7 +1125,11 @@ begin
         inc(counter);
       end;
 
-    result := P.ExitStatus;
+    { Be sure to return a non-zero value if Terminate was requested }
+    if (TerminateSentCount>0) and (P.ExitStatus>=0) then
+      result := 1000 + P.ExitStatus
+    else
+      result := P.ExitStatus;
   finally
     P.Free;
   end;
