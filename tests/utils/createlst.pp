@@ -4,10 +4,10 @@ uses
   SysUtils, Classes;
 
 var
-  i,ioerror : LongInt;
+  i, j, ioerror : LongInt;
   outfile : text;
   sr: TSearchRec;
-  path: String;
+  path, path2: String;
   sl: TStringList;
 begin
   if ParamCount < 2 then
@@ -32,10 +32,18 @@ begin
   for i := 2 to ParamCount do
     begin
       path := IncludeTrailingPathDelimiter(ParamStr(i));
+      { Generate path2, with all DirectorySeparators
+        converted to / to get same output as with
+        script before }
+      path2:=path;
+      if DirectorySeparator<>'/' then
+        for j:=1 to length(path2) do
+          if path2[j]=DirectorySeparator then
+            path2[j]:='/';
       if FindFirst(path + 't*.pp', 0, sr) = 0 then
         begin
           repeat
-            sl.Add(path + sr.Name);
+            sl.Add(path2 + sr.Name);
           until FindNext(sr) <> 0;
           FindClose(sr);
         end;
