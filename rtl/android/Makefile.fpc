@@ -139,7 +139,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  $(LINUXINC)/unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-                 $(LINUXINC)/unxfunc.inc
+                 $(LINUXINC)/unxfunc.inc unixandroid.inc
         $(COMPILER) $(UNIXINC)/unix.pp
 
 syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc $(SYSTEMUNIT)$(PPUEXT)

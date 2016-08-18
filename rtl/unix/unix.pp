@@ -57,6 +57,10 @@ var
 
 {************     Procedure/Functions     ************}
 
+{$ifdef android}
+  {$define DONT_READ_TIMEZONE}
+{$endif android}
+
 {$IFNDEF DONT_READ_TIMEZONE}  // allows to disable linking in and trying for platforms
                        // it doesn't (yet) work for.
 
@@ -1219,10 +1223,18 @@ begin
   FSearch:=FSearch(ToSingleByteFileSystemEncodedFileName(path),ToSingleByteFileSystemEncodedFileName(dirlist),CurrentDirectoryFirst);
 end;
 
+{$ifdef android}
+  {$I unixandroid.inc}
+{$endif android}
+
 Initialization
 {$IFNDEF DONT_READ_TIMEZONE}
   InitLocalTime;
 {$endif}
+{$ifdef android}
+  InitLocalTime;
+{$endif android}
+
 finalization
 {$IFNDEF DONT_READ_TIMEZONE}
   DoneLocalTime;
