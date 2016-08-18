@@ -527,16 +527,16 @@ $(MAKEINC): $(GPARMAKE) $(CREATELST)
 # new call with a gap insuring that all the previous files have lower index
 # even if CHUNKSIZE is equal to 1.
 	$(Q)$(MAKE) $(TEST_OUTPUTDIR)
-	$(Q)$(CREATELST) $(TESTDIRS) > testfilelist.lst
-	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @testfilelist.lst
-	$(Q)$(CREATELST) tbs > tbsfilelist.lst
-	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) @tbsfilelist.lst
-	$(Q)$(CREATELST) tbf > tbffilelist.lst
-	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) @tbffilelist.lst
-	$(Q)$(CREATELST) webtbs > webtbsfilelist.lst
-	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) @webtbsfilelist.lst
-	$(Q)$(CREATELST) webtbf > webtbffilelist.lst
-	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbf 30000 $(CHUNKSIZE) @webtbffilelist.lst
+	$(CREATELST) filelisttest.lst $(TESTDIRS)
+	$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @filelisttest.lst
+	$(CREATELST) filelisttbs.lst tbs
+	$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) @filelisttbs.lst
+        $(CREATELST) filelisttbf.lst tbf
+	$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) @filelisttbf.lst
+        $(CREATELST) filelistwebtbs.lst webtbs
+	$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) @filelistwebtbs.lst
+        $(CREATELST) filelistwebtbf.lst webtbf
+	$(GPARMAKE) -a $(MAKEINC) webtbf 30000 $(CHUNKSIZE) @filelistwebtbf.lst
 
 
 # only include the targets to compile/run the tests when we want to
