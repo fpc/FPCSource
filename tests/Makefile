@@ -2422,16 +2422,16 @@ $(CREATELST): utils/createlst.pp
 	$(FPC) $(FPCOPT) -FE. utils/createlst.pp $(OPT)
 $(MAKEINC): $(GPARMAKE) $(CREATELST)
 	$(Q)$(MAKE) $(TEST_OUTPUTDIR)
-	$(Q)$(CREATELST) $(TESTDIRS) > testfilelist.lst
-	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @testfilelist.lst
-	$(Q)$(CREATELST) tbs > tbsfilelist.lst
-	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) @tbsfilelist.lst
-	$(Q)$(CREATELST) tbf > tbffilelist.lst
-	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) @tbffilelist.lst
-	$(Q)$(CREATELST) webtbs > webtbsfilelist.lst
-	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) @webtbsfilelist.lst
-	$(Q)$(CREATELST) webtbf > webtbffilelist.lst
-	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbf 30000 $(CHUNKSIZE) @webtbffilelist.lst
+	$(Q)$(CREATELST) filelisttest.lst $(TESTDIRS)
+	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @filelisttest.lst
+	$(Q)$(CREATELST) filelisttbs.lst tbs
+	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) @filelisttbs.lst
+	$(Q)$(CREATELST) filelisttbf.lst tbf
+	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) @filelisttbf.lst
+	$(Q)$(CREATELST) filelistwebtbs.lst webtbs
+	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) @filelistwebtbs.lst
+	$(Q)$(CREATELST) filelistwebtbf.lst webtbf
+	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbf 30000 $(CHUNKSIZE) @filelistwebtbf.lst
 ifeq (,$(findstring clean,$(firstword $(MAKECMDGOALS))))
 ifneq (,$(findstring all,$(MAKECMDGOALS)))
 ifneq (,$(wildcard $(MAKEINC)))
