@@ -30,12 +30,12 @@ type
           true  : (__tm_gmtoff : longint;__tm_zone : Pchar);
 	 end;
 
-function localtime(t: PLongInt): Ptm; cdecl; external;
+function localtime(t: PLongInt): Ptm; cdecl; external 'c' name 'localtime';
 
 var
-  c_tzname: array[0..1] of PAnsiChar; external name 'tzname';
-  c_timezone: longint; external name 'timezone';
-  c_daylignt: shortint; external name 'daylight';
+  c_tzname: array[0..1] of PAnsiChar; external 'c' name 'tzname';
+  c_timezone: longint; external 'c' name 'timezone';
+  c_daylignt: shortint; external 'c' name 'daylight';
 
 procedure InitLocalTime;
 var
@@ -46,12 +46,14 @@ begin
   tt:=localtime(@t);
   tzname[false]:=c_tzname[0];
   tzname[true]:=c_tzname[1];
-  if tt <> nil then begin
-    tzdaylight:=tt^.tm_isdst <> 0;
-    tzseconds:=tt^.tm_gmtoff;
-  end
-  else begin
-    tzdaylight:=c_daylignt <> 0;
-    tzseconds:=-c_timezone;
-  end;
+  if tt <> nil then
+    begin
+      tzdaylight:=tt^.tm_isdst <> 0;
+      tzseconds:=tt^.tm_gmtoff;
+    end
+  else
+    begin
+      tzdaylight:=c_daylignt <> 0;
+      tzseconds:=-c_timezone;
+    end;
 end;
