@@ -106,6 +106,8 @@ implementation
         href    : treference;
         pool    : THashSet;
         entry   : PHashSetItem;
+        vmtname : tsymstr;
+        otherunit,
         indirect : boolean;
       begin
          location_reset(location,LOC_REGISTER,def_cgsize(voidpointertype));
@@ -118,17 +120,17 @@ implementation
                    - the target does not support packages
                    - the target does not use indirect references
                    - the class is located inside the same unit }
+                 otherunit:=findunitsymtable(left.resultdef.owner).moduleid<>current_module.moduleid;
                  indirect:=(tf_supports_packages in target_info.flags) and
                            (target_info.system in systems_indirect_var_imports) and
-                           not sym_is_owned_by(left.resultdef.typesym,current_module.globalsymtable) and
-                           (
-                             (current_module.globalsymtable=current_module.localsymtable) or
-                             not sym_is_owned_by(left.resultdef.typesym,current_module.localsymtable)
-                           );
+                           otherunit;
+                 vmtname:=tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname;
                  reference_reset_symbol(href,
-                   current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname,AT_DATA,indirect),0,
+                   current_asmdata.RefAsmSymbol(vmtname,AT_DATA,indirect),0,
                    voidpointertype.size);
                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,href,location.register);
+                 if otherunit then
+                   current_module.add_extern_asmsym(vmtname,AB_EXTERNAL,AT_DATA);
                end
              else
                begin
