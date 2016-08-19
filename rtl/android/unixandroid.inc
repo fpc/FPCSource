@@ -126,7 +126,8 @@ end;
 
 procedure InitLocalTime;
 begin
-  ReadTimeZoneFromLibC;
+  if SystemApiLevel > 10 then
+    ReadTimeZoneFromLibC;
   // If cuurent Android version is too old and does not support timezone
   // in libc, use ICU library.
   if tzname[false] = nil then
