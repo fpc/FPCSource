@@ -38,6 +38,8 @@ type
 var
   hlibICU: TLibHandle;
   hlibICUi18n: TLibHandle;
+  LibVer: ansistring;
+
   ucnv_open: function (converterName: PAnsiChar; var pErrorCode: UErrorCode): PUConverter; cdecl;
   ucnv_close: procedure (converter: PUConverter); cdecl;
   ucnv_setSubstChars: procedure (converter: PUConverter; subChars: PAnsiChar; len: byte; var pErrorCode: UErrorCode); cdecl;
@@ -456,44 +458,43 @@ end;
 
 procedure UnloadICU;
 begin
-  if hlibICUi18n <> 0 then begin
-    if DefColl <> nil then
-      ucol_close(DefColl);
-    UnloadLibrary(hlibICUi18n);
-    hlibICUi18n:=0;
-  end;
+  if DefColl <> nil then
+    ucol_close(DefColl);
+  if DefConv <> nil then
+    ucnv_close(DefConv);
+  if LastConv <> nil then
+    ucnv_close(LastConv);
+
   if hlibICU <> 0 then begin
-    if DefConv <> nil then
-      ucnv_close(DefConv);
-    if LastConv <> nil then
-      ucnv_close(LastConv);
     UnloadLibrary(hlibICU);
     hlibICU:=0;
   end;
+  if hlibICUi18n <> 0 then begin
+    UnloadLibrary(hlibICUi18n);
+    hlibICUi18n:=0;
+  end;
+end;
+
+function GetIcuProc(const Name: AnsiString; out ProcPtr; libId: longint = 0): boolean; [public, alias: 'CWSTRING_GET_ICU_PROC'];
+var
+  p: pointer;
+  hLib: TLibHandle;
+begin
+  Result:=False;
+  if libId = 0 then
+    hLib:=hlibICU
+  else
+    hLib:=hlibICUi18n;
+  if hLib = 0 then
+    exit;
+  p:=GetProcedureAddress(hlib, Name + LibVer);
+  if p = nil then
+    exit;
+  pointer(ProcPtr):=p;
+  Result:=True;
 end;
 
 procedure LoadICU;
-var
-  LibVer: ansistring;
-
-  function _GetProc(const Name: AnsiString; out ProcPtr; hLib: TLibHandle = 0): boolean;
-  var
-    p: pointer;
-  begin
-    if hLib = 0 then
-      hLib:=hlibICU;
-    p:=GetProcedureAddress(hlib, Name + LibVer);
-    if p = nil then begin
-      // unload lib on failure
-      UnloadICU;
-      Result:=False;
-    end
-    else begin
-      pointer(ProcPtr):=p;
-      Result:=True;
-    end;
-  end;
-
 const
   ICUver: array [1..9] of ansistring = ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55');
   TestProcName = 'ucnv_open';
@@ -502,8 +503,14 @@ var
   i: longint;
   s: ansistring;
 begin
+{$ifdef android}
   hlibICU:=LoadLibrary('libicuuc.so');
   hlibICUi18n:=LoadLibrary('libicui18n.so');
+{$else}
+  hlibICU:=LoadLibrary('icuuc40.dll');
+  hlibICUi18n:=LoadLibrary('icuin40.dll');
+  LibVer:='_4_0';
+{$endif android}
   if (hlibICU = 0) or (hlibICUi18n = 0) then begin
     UnloadICU;
     exit;
@@ -540,33 +547,39 @@ begin
     end;
   end;
 
-  if not _GetProc('ucnv_open', ucnv_open) then exit;
-  if not _GetProc('ucnv_close', ucnv_close) then exit;
-  if not _GetProc('ucnv_setSubstChars', ucnv_setSubstChars) then exit;
-  if not _GetProc('ucnv_setFallback', ucnv_setFallback) then exit;
-  if not _GetProc('ucnv_fromUChars', ucnv_fromUChars) then exit;
-  if not _GetProc('ucnv_toUChars', ucnv_toUChars) then exit;
-  if not _GetProc('u_strToUpper', u_strToUpper) then exit;
-  if not _GetProc('u_strToLower', u_strToLower) then exit;
-  if not _GetProc('u_strCompare', u_strCompare) then exit;
-  if not _GetProc('u_strCaseCompare', u_strCaseCompare) then exit;
+  if not GetIcuProc('ucnv_open', ucnv_open) then exit;
+  if not GetIcuProc('ucnv_close', ucnv_close) then exit;
+  if not GetIcuProc('ucnv_setSubstChars', ucnv_setSubstChars) then exit;
+  if not GetIcuProc('ucnv_setFallback', ucnv_setFallback) then exit;
+  if not GetIcuProc('ucnv_fromUChars', ucnv_fromUChars) then exit;
+  if not GetIcuProc('ucnv_toUChars', ucnv_toUChars) then exit;
+  if not GetIcuProc('u_strToUpper', u_strToUpper) then exit;
+  if not GetIcuProc('u_strToLower', u_strToLower) then exit;
+  if not GetIcuProc('u_strCompare', u_strCompare) then exit;
+  if not GetIcuProc('u_strCaseCompare', u_strCaseCompare) then exit;
 
-  if not _GetProc('u_errorName', u_errorName) then exit;
+  if not GetIcuProc('u_errorName', u_errorName) then exit;
 
-  if not _GetProc('ucol_open', ucol_open, hlibICUi18n) then exit;
-  if not _GetProc('ucol_close', ucol_close, hlibICUi18n) then exit;
-  if not _GetProc('ucol_strcoll', ucol_strcoll, hlibICUi18n) then exit;
-  if not _GetProc('ucol_setStrength', ucol_setStrength, hlibICUi18n) then exit;
+  if not GetIcuProc('ucol_open', ucol_open, 1) then exit;
+  if not GetIcuProc('ucol_close', ucol_close, 1) then exit;
+  if not GetIcuProc('ucol_strcoll', ucol_strcoll, 1) then exit;
+  if not GetIcuProc('ucol_setStrength', ucol_setStrength, 1) then exit;
 end;
 
+var
+  oldm: TUnicodeStringManager;
 initialization
+  GetUnicodeStringManager(oldm);
   DefaultSystemCodePage:=GetStandardCodePage(scpAnsi);
   DefaultUnicodeCodePage:=CP_UTF16;
   LoadICU;
   SetCWideStringManager;
+{$ifdef android}
   SetStdIOCodePages;
+{$endif android}
 
 finalization
+  SetUnicodeStringManager(oldm);
   UnloadICU;
 
 end.
