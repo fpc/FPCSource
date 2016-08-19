@@ -3479,7 +3479,7 @@ implementation
       result:=(tf_supports_packages in target_info.flags) and
                 (target_info.system in systems_indirect_var_imports) and
                 (cs_imported_data in current_settings.localswitches) and
-                (t.owner.moduleid<>current_module.moduleid);
+                (findunitsymtable(t.owner).moduleid<>current_module.moduleid);
     end;
 
   procedure thlcgobj.g_rangecheck(list: TAsmList; const l: tlocation; fromdef, todef: tdef);
