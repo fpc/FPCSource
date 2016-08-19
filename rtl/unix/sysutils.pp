@@ -1424,9 +1424,51 @@ end;
     Application config files
   ---------------------------------------------------------------------}
 
+{$ifdef android}
+
+var
+  _HomeDir: string;
+  IsNDKLib: boolean;
 
 Function GetHomeDir : String;
+var
+  h: longint;
+  i: longint;
+begin
+  Result:=_HomeDir;
+  if Result <> '' then
+    exit;
+  if IsLibrary then
+    begin
+      // For shared library get the package name of a host Java application
+      h:=FileOpen('/proc/self/cmdline', fmOpenRead or fmShareDenyNone);
+      if h >= 0 then
+        begin
+          SetLength(Result, MAX_PATH);
+          SetLength(Result, FileRead(h, Result[1], Length(Result)));
+          SetLength(Result, strlen(PChar(Result)));
+          FileClose(h);
+          Result:='/data/data/' + Result;
+          IsNDKLib:=DirectoryExists(Result);
+          if IsNDKLib then
+            Result:=Result + '/files/'
+          else
+            Result:='';  // No package
+        end;
+    end;
+  if Result = '' then
+    Result:='/data/local/tmp/';
+  _HomeDir:=Result;
+end;
 
+Function XdgConfigHome : String;
+begin
+  Result:=GetHomeDir;
+end;
+
+{$else}
+
+Function GetHomeDir : String;
 begin
   Result:=GetEnvironmentVariable('HOME');
   If (Result<>'') then
@@ -1445,6 +1487,8 @@ begin
     Result:=IncludeTrailingPathDelimiter(Result);
 end;
 
+{$endif android}
+
 Function GetAppConfigDir(Global : Boolean) : String;
 
 begin
@@ -1452,6 +1496,10 @@ begin
     Result:=IncludeTrailingPathDelimiter(SysConfigDir)
   else
     Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
+{$ifdef android}
+  if IsNDKLib then
+    exit;
+{$endif android}
   if VendorName<>'' then
     Result:=IncludeTrailingPathDelimiter(Result+VendorName);
   Result:=IncludeTrailingPathDelimiter(Result+ApplicationName);
@@ -1464,6 +1512,13 @@ begin
     Result:=IncludeTrailingPathDelimiter(SysConfigDir)
   else
     Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
+{$ifdef android}
+  if IsNDKLib then
+    begin
+      Result:=Result+'config'+ConfigExtension;
+      exit;
+    end;
+{$endif android}
   if SubDir then
     begin
       if VendorName<>'' then
@@ -1486,20 +1541,18 @@ begin
     Result:=OnGetTempDir(Global)
   else
     begin
-    Result:=GetEnvironmentVariable('TEMP');
-    If (Result='') Then
-      Result:=GetEnvironmentVariable('TMP');
-    If (Result='') Then
-      Result:=GetEnvironmentVariable('TMPDIR');
-    if (Result='') then
-      begin
-      // fallback.
-      {$ifdef android}
-        Result:='/data/local/tmp/';
-      {$else}
-        Result:='/tmp/';
-      {$endif android}
-      end;
+{$ifdef android}
+      Result:=GetHomeDir + 'tmp';
+      ForceDirectories(Result);
+{$else}
+      Result:=GetEnvironmentVariable('TEMP');
+      If (Result='') Then
+        Result:=GetEnvironmentVariable('TMP');
+      If (Result='') Then
+        Result:=GetEnvironmentVariable('TMPDIR');
+      if (Result='') then
+        Result:='/tmp/'; // fallback.
+{$endif android}
     end;
   if (Result<>'') then
     Result:=IncludeTrailingPathDelimiter(Result);
@@ -1517,7 +1570,11 @@ Function GetUserDir : String;
 begin
   If (TheUserDir='') then
     begin
-    TheUserDir:=GetEnvironmentVariable('HOME'); 
+{$ifdef android}
+    TheUserDir:=GetHomeDir;
+{$else}
+    TheUserDir:=GetEnvironmentVariable('HOME');
+{$endif android}
     if (TheUserDir<>'') then
       TheUserDir:=IncludeTrailingPathDelimiter(TheUserDir)
     else
