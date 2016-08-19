@@ -83,7 +83,7 @@ OBJPASDIR=$(RTL)/objpas
 # SYSINCNAMES
 include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
-SYSINCDEPS:=$(SYSINCDEPS) sysandroid.inc
+SYSINCDEPS:=$(SYSINCDEPS) sysandroidh.inc sysandroid.inc
 
 # Get the processor dependent include file names.
 # This will set the following variables :
@@ -139,7 +139,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  $(LINUXINC)/unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-                 $(LINUXINC)/unxfunc.inc unixandroid.inc
+                 $(LINUXINC)/unxfunc.inc unixandroid.inc cwstring$(PPUEXT)
         $(COMPILER) $(UNIXINC)/unix.pp
 
 syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc $(SYSTEMUNIT)$(PPUEXT)
@@ -158,7 +158,7 @@ baseunix$(PPUEXT) : $(UNIXINC)/baseunix.pp $(LINUXINC)/errno.inc $(LINUXINC)/pty
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/baseunix.pp
 
-dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT) dlandroid.inc
+dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) dlandroid.inc
         $(COMPILER) $(UNIXINC)/dl.pp
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)

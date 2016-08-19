@@ -3572,7 +3572,7 @@ endif
 .NOTPARALLEL:
 include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
-SYSINCDEPS:=$(SYSINCDEPS) sysandroid.inc
+SYSINCDEPS:=$(SYSINCDEPS) sysandroidh.inc sysandroid.inc
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
@@ -3598,7 +3598,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 	$(COMPILER) $(INC)/strings.pp
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
 		 $(LINUXINC)/unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-		 $(LINUXINC)/unxfunc.inc unixandroid.inc
+		 $(LINUXINC)/unxfunc.inc unixandroid.inc cwstring$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unix.pp
 syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/syscall.pp
@@ -3612,7 +3612,7 @@ baseunix$(PPUEXT) : $(UNIXINC)/baseunix.pp $(LINUXINC)/errno.inc $(LINUXINC)/pty
   $(LINUXINC)/ostypes.inc $(LINUXINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/baseunix.pp
-dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT) dlandroid.inc
+dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) dlandroid.inc
 	$(COMPILER) $(UNIXINC)/dl.pp
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
 	$(COMPILER) $(INC)/dynlibs.pas
