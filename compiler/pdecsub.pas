@@ -2876,7 +2876,7 @@ const
             { parsing a procvar type the name can be any
               next variable !! }
             if ((pdflags * [pd_procvar,pd_object,pd_record,pd_objcclass,pd_objcprot])=[]) and
-               not(idtoken=_PROPERTY) then
+               not(idtoken in [_PROPERTY,_GENERIC]) then
               Message1(parser_w_unknown_proc_directive_ignored,pattern);
             exit;
          end;

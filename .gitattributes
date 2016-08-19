@@ -12471,6 +12471,7 @@ tests/test/tgenfunc12.pp svneol=native#text/pascal
 tests/test/tgenfunc13.pp svneol=native#text/pascal
 tests/test/tgenfunc14.pp svneol=native#text/pascal
 tests/test/tgenfunc15.pp svneol=native#text/pascal
+tests/test/tgenfunc16.pp svneol=native#text/pascal
 tests/test/tgenfunc2.pp svneol=native#text/pascal
 tests/test/tgenfunc3.pp svneol=native#text/pascal
 tests/test/tgenfunc4.pp svneol=native#text/pascal
