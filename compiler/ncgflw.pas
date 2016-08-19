@@ -92,8 +92,9 @@ implementation
 
     uses
       verbose,globals,systems,globtype,constexp,
-      symconst,symdef,symsym,symtable,aasmtai,aasmdata,aasmcpu,defutil,
+      symconst,symdef,symsym,symtable,symtype,aasmtai,aasmdata,aasmcpu,defutil,
       procinfo,cgbase,pass_2,parabase,
+      fmodule,
       cpubase,ncon,
       tgobj,paramgr,
       cgutils,cgobj,hlcgobj,nutils
@@ -1218,6 +1219,7 @@ implementation
          pd : tprocdef;
          fpc_catches_res: TCGPara;
          fpc_catches_resloc: tlocation;
+         otherunit,
          indirect : boolean;
       begin
          paraloc1.init;
@@ -1231,14 +1233,17 @@ implementation
          flowcontrol:=[fc_inflowcontrol];
          current_asmdata.getjumplabel(nextonlabel);
 
+         otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
          indirect:=(tf_supports_packages in target_info.flags) and
                      (target_info.system in systems_indirect_var_imports) and
                      (cs_imported_data in current_settings.localswitches) and
-                     (excepttype.owner.moduleid<>current_procinfo.procdef.owner.moduleid);
+                     otherunit;
 
          { send the vmt parameter }
          pd:=search_system_proc('fpc_catches');
          reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname,AT_DATA,indirect),0,sizeof(pint));
+         if otherunit then
+           current_module.add_extern_asmsym(excepttype.vmt_mangledname,AB_EXTERNAL,AT_DATA);
          paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
          hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,excepttype.vmt_def,href2,paraloc1);
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
