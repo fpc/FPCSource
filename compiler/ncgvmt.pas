@@ -924,7 +924,7 @@ implementation
           s:=make_mangledname('IID',_class.owner,_class.objname^);
           tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
           tcb.emit_guid_const(_class.iidguid^);
-          sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rec_tguid);
+          sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,rec_tguid);
           list.concatlist(tcb.get_final_asmlist(
             sym,
             rec_tguid,
@@ -937,7 +937,7 @@ implementation
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
       def:=tcb.emit_shortstring_const(_class.iidstr^);
-      sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,def);
+      sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,def);
       list.concatlist(tcb.get_final_asmlist(
         sym,
         def,
