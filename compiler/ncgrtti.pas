@@ -1591,27 +1591,42 @@ implementation
 
 
     function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+      var
+        name : tsymstr;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt),AT_DATA,indirect);
+        name:=def.rtti_mangledname(rt);
+        result:=current_asmdata.RefAsmSymbol(name,AT_DATA,indirect);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
+        if assigned(current_module) and (findunitsymtable(def.owner).moduleid<>current_module.moduleid) then
+          current_module.add_extern_asmsym(name,AB_EXTERNAL,AT_DATA);
       end;
 
     function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+      var
+        name : tsymstr;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_o2s',AT_DATA,indirect);
+        name:=def.rtti_mangledname(rt)+'_o2s';
+        result:=current_asmdata.RefAsmSymbol(name,AT_DATA,indirect);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
+        if assigned(current_module) and (findunitsymtable(def.owner).moduleid<>current_module.moduleid) then
+          current_module.add_extern_asmsym(name,AB_EXTERNAL,AT_DATA);
       end;
 
     function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+      var
+        name : tsymstr;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o',AT_DATA,indirect);
+        name:=def.rtti_mangledname(rt)+'_s2o';
+        result:=current_asmdata.RefAsmSymbol(name,AT_DATA,indirect);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
+        if assigned(current_module) and (findunitsymtable(def.owner).moduleid<>current_module.moduleid) then
+          current_module.add_extern_asmsym(name,AB_EXTERNAL,AT_DATA);
       end;
 
 end.
