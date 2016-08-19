@@ -269,6 +269,8 @@ implementation
         tv_index_field,
         tv_non_mt_data_field: tsym;
         tmpresloc: tlocation;
+        issystemunit,
+        indirect : boolean;
       begin
          if (tf_section_threadvars in target_info.flags) then
            begin
@@ -298,10 +300,25 @@ implementation
                internalerror(2012120901);
 
              { FPC_THREADVAR_RELOCATE is nil? }
+             issystemunit:=not current_module.is_unit or
+                             (
+                               assigned(current_module.globalsymtable) and
+                               (current_module.globalsymtable=systemunit)
+                             ) or
+                             (
+                               not assigned(current_module.globalsymtable) and
+                               (current_module.localsymtable=systemunit)
+                             );
+             indirect:=(tf_supports_packages in target_info.flags) and
+                         (target_info.system in systems_indirect_var_imports) and
+                         (cs_imported_data in current_settings.localswitches) and
+                         not issystemunit;
              paraloc1.init;
              paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
-             reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.size);
+             reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA,indirect),0,pvd.size);
+             if not issystemunit then
+               current_module.add_extern_asmsym('FPC_THREADVAR_RELOCATE',AB_EXTERNAL,AT_DATA);
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
              { no, call it with the index of the threadvar as parameter }
