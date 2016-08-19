@@ -168,7 +168,10 @@ implementation
 
   procedure export_typedef(def:tdef;symtable:tsymtable;global:boolean);
     begin
-      if not (global or is_class(def)) or (df_internal in def.defoptions) then
+      if not (global or is_class(def)) or
+          (df_internal in def.defoptions) or
+          { happens with type renaming declarations ("abc = xyz") }
+          (def.owner<>symtable) then
         exit;
       if ds_rtti_table_written in def.defstates then
         exportname(def.rtti_mangledname(fullrtti));
