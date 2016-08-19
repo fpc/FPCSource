@@ -378,6 +378,9 @@ begin
   InitSystemThreads;
   { dynamic libraries }
   InitSystemDynLibs;
+{$ifdef android}
+  InitAndroid;
+{$endif android}
   { restore original signal handlers in case this is a library }
   if IsLibrary then
     RestoreOldSignalHandlers;

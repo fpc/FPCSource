@@ -83,3 +83,147 @@ begin
     end;
   Result:=_ApiLevel;
 end;
+
+// ************* Android log
+
+var
+  DefaultLogTag: string[20];
+
+function __android_log_write(prio: longint; tag, text: pchar): longint; cdecl; external 'log' name '__android_log_write';
+
+procedure SysLogWrite(Priority: longint; Tag, Msg: PAnsiChar);
+begin
+  __android_log_write(Priority, Tag, Msg);
+end;
+
+procedure SysLogWrite(Priority: longint; Msg: PAnsiChar);
+begin
+  SysLogWrite(Priority, @DefaultLogTag[1], Msg);
+end;
+
+procedure SysLogWrite(Msg: PAnsiChar);
+begin
+  SysLogWrite(DefaultSysLogPriority, @DefaultLogTag[1], Msg);
+end;
+
+// ************* STDIO redirection to Android log
+
+const
+  IOBufferLength = 512;
+var
+  IOBuf : array[0..IOBufferLength] of char;
+  IOLen : SizeInt;
+  IORedirected: boolean;
+
+procedure OutputIOBuffer(Var F: TextRec);
+var
+  p: longint;
+begin
+  if (@F = @ErrOutput) or (@F = @StdErr) then
+    p:=ANDROID_LOG_ERROR
+  else
+    p:=DefaultSysLogPriority;
+  SysLogWrite(p, IOBuf);
+  IOLen:=0;
+end;
+
+procedure IOWrite(Var F: TextRec);
+var
+  i, len : SizeInt;
+Begin
+  while F.BufPos>0 do
+    begin
+      begin
+        if F.BufPos + IOLen > IOBufferLength then
+          len:=IOBufferLength - IOLen
+        else
+          len:=F.BufPos;
+        i:=0;
+        while i < len do
+          begin
+            if F.bufptr^[i] in [#10, #13] then
+              begin
+                IOBuf[IOLen]:=#0;
+                OutputIOBuffer(F);
+                Inc(i);
+                if (i < len) and (F.bufptr^[i - 1] = #13) and (F.bufptr^[i] = #10) then
+                  Inc(i);
+              end
+            else
+              begin
+                IOBuf[IOLen]:=F.bufptr^[i];
+                Inc(IOLen);
+                Inc(i);
+              end;
+          end;
+        IOBuf[IOLen]:=#0;
+      end;
+      if IOLen = IOBufferLength then
+        OutputIOBuffer(F);
+      Dec(F.BufPos, len);
+    end;
+End;
+
+procedure IOClose(Var F: TextRec);
+begin
+  if IOLen > 0 then
+    OutputIOBuffer(F);
+end;
+
+procedure IOOpen(Var F: TextRec);
+Begin
+  TextRec(F).InOutFunc:=@IOWrite;
+  TextRec(F).FlushFunc:=@IOWrite;
+  TextRec(F).CloseFunc:=@IOClose;
+  IOLen:=0;
+End;
+
+procedure RedirectFile(Var T: Text);
+begin
+  Assign(T,'');
+  TextRec(T).OpenFunc:=@IOOpen;
+  Rewrite(T);
+end;
+
+procedure RedirectOutputToSysLog;
+begin
+  if IORedirected then exit;
+  IORedirected:=True;
+  RedirectFile(Output);
+  RedirectFile(StdOut);
+  RedirectFile(ErrOutput);
+  RedirectFile(StdErr);
+end;
+
+procedure SetDefaultSysLogTag(const Tag: string);
+var
+  len: longint;
+begin
+  DefaultLogTag:=Tag;
+  len:=Length(DefaultLogTag);
+  if len = High(DefaultLogTag) then
+    Dec(len);
+  DefaultLogTag[len + 1]:=#0;
+end;
+
+procedure InitAndroid;
+var
+  i: integer;
+  s: string;
+begin
+  IsJniLibrary:=IsLibrary and (Pos('/system/', ParamStr(0)) = 1);
+  if IsJniLibrary then
+    begin
+      // The library is loaded by a Java app. The proper tag will be set by SysUtils.
+      SetDefaultSysLogTag('FPC');
+      RedirectOutputToSysLog;
+    end
+  else
+    begin
+      s:=ParamStr(0);
+      i:=Length(s);
+      while (i > 0) and (s[i] <> '/') do
+        Dec(i);
+      SetDefaultSysLogTag(Copy(s, i + 1, MaxInt));
+    end;
+end;

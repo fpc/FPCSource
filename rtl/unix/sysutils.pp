@@ -80,6 +80,9 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 implementation
 
 Uses
+{$ifdef android}
+  dl,
+{$endif android}
   {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF}, Baseunix, unixutil;
 
 type
@@ -1428,7 +1431,6 @@ end;
 
 var
   _HomeDir: string;
-  IsNDKLib: boolean;
 
 Function GetHomeDir : String;
 var
@@ -1438,7 +1440,7 @@ begin
   Result:=_HomeDir;
   if Result <> '' then
     exit;
-  if IsLibrary then
+  if IsJniLibrary then
     begin
       // For shared library get the package name of a host Java application
       h:=FileOpen('/proc/self/cmdline', fmOpenRead or fmShareDenyNone);
@@ -1449,8 +1451,8 @@ begin
           SetLength(Result, strlen(PChar(Result)));
           FileClose(h);
           Result:='/data/data/' + Result;
-          IsNDKLib:=DirectoryExists(Result);
-          if IsNDKLib then
+          IsJniLibrary:=DirectoryExists(Result);
+          if IsJniLibrary then
             Result:=Result + '/files/'
           else
             Result:='';  // No package
@@ -1497,7 +1499,7 @@ begin
   else
     Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
 {$ifdef android}
-  if IsNDKLib then
+  if IsJniLibrary then
     exit;
 {$endif android}
   if VendorName<>'' then
@@ -1513,7 +1515,7 @@ begin
   else
     Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
 {$ifdef android}
-  if IsNDKLib then
+  if IsJniLibrary then
     begin
       Result:=Result+'config'+ConfigExtension;
       exit;
@@ -1596,6 +1598,26 @@ begin
  Result := -Tzseconds div 60; 
 end;
 
+{$ifdef android}
+
+procedure InitAndroid;
+var
+  dlinfo: dl_info;
+  s: string;
+begin
+  if IsJniLibrary then
+    begin
+      FillChar(dlinfo, sizeof(dlinfo), 0);
+      dladdr(@InitAndroid, @dlinfo);
+      s:=dlinfo.dli_fname;
+      if s <> '' then
+        SetDefaultSysLogTag(ExtractFileName(s));
+    end;
+end;
+
+{$endif android}
+
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -1605,7 +1627,10 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
   SysConfigDir:='/etc'; { Initialize system config dir }
   OnBeep:=@SysBeep;
-  
+{$ifdef android}
+  InitAndroid;
+{$endif android}
+
 Finalization
   FreeDriveStr;
   DoneExceptions;
