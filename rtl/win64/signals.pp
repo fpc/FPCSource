@@ -488,7 +488,7 @@ var
                  inc(except_level);
                  {dec(excep^.ContextRecord^.Esp,4);
                  plongint (excep^.ContextRecord^.Esp)^ := longint(excep^.ContextRecord^.rip);}
-                 excep_ContextRecord^.rip:=longint(@JumpToHandleSignal);
+                 excep_ContextRecord^.rip:=ptruint(@JumpToHandleSignal);
                  excep_ExceptionRecord^.ExceptionCode:=0;
                  CallSignal:=0;
 {$ifdef SIGNALS_DEBUG}
