@@ -58,3 +58,28 @@ begin
   // Register the finalization routine
   atexit(@SysAndroidLibExit);
 end;
+
+function __system_property_get(name:Pchar; value:Pchar):longint;cdecl;external 'c' name '__system_property_get';
+
+function GetSystemProperty(Name: PAnsiChar): shortstring;
+begin
+  SetLength(Result, __system_property_get(Name, @Result[1]));
+end;
+
+var
+  _ApiLevel: shortint = -1;
+
+function SystemApiLevel: shortint;
+var
+  s: string;
+  c: integer;
+begin
+  if _ApiLevel < 0 then
+    begin
+      s:=GetSystemProperty('ro.build.version.sdk');
+      Val(s, _ApiLevel, c);
+      if c <> 0 then
+        _ApiLevel:=0;
+    end;
+  Result:=_ApiLevel;
+end;

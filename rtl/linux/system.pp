@@ -44,6 +44,10 @@ property cmdline:Pchar read get_cmdline;
 
 {$endif defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
+{$ifdef android}
+  {$I sysandroidh.inc}
+{$endif android}
+
 {*****************************************************************************}
                                  implementation
 {*****************************************************************************}
@@ -78,7 +82,7 @@ const calculated_cmdline:Pchar=nil;
 {$I system.inc}
 
 {$ifdef android}
-{$I sysandroid.inc}
+  {$I sysandroid.inc}
 {$endif android}
 
 {*****************************************************************************
