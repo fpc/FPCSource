@@ -286,6 +286,37 @@
 
 
 {****************************************************************************
+                           TINTERFACEENTRY
+****************************************************************************}
+
+
+    function tinterfaceentry.GetIID: pguid;
+      begin
+        {$ifdef VER3_0}
+        GetIID:=IIDRef;
+        {$else VER3_0}
+        if Assigned(IIDRef) then
+          GetIID:=IIDRef^
+        else
+          GetIID:=Nil;
+        {$endif VER3_0}
+      end;
+
+
+    function tinterfaceentry.GetIIDStr: pshortstring;
+      begin
+        {$ifdef VER3_0}
+        GetIIDStr:=IIDStrRef;
+        {$else VER3_0}
+        if Assigned(IIDStrRef) then
+          GetIIDStr:=IIDStrRef^
+        else
+          GetIIDStr:=Nil;
+        {$endif VER3_0}
+      end;
+
+
+{****************************************************************************
                                TOBJECT
 ****************************************************************************}
 

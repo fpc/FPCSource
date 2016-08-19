@@ -167,10 +167,17 @@
 
        pinterfaceentry = ^tinterfaceentry;
        tinterfaceentry = record
-         IID         : pguid; { if assigned(IID) then Com else Corba}
+       private
+         function GetIID: pguid; inline;
+         function GetIIDStr: pshortstring; inline;
+       public
+         property IID: pguid read GetIID;
+         property IIDStr: pshortstring read GetIIDStr;
+       public
+         IIDRef      : {$IFNDEF VER3_0}^{$ENDIF}pguid; { if assigned(IID) then Com else Corba}
          VTable      : Pointer;
          IOffset     : sizeuint;
-         IIDStr      : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
+         IIDStrRef   : {$IFNDEF VER3_0}^{$ENDIF}pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
 {$ifdef VER2_6}
          case boolean of
 {$ifdef ENDIAN_BIG}

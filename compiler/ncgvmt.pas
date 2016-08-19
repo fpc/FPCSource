@@ -742,12 +742,18 @@ implementation
     procedure TVMTWriter.intf_gen_intf_ref(tcb: ttai_typedconstbuilder; AImplIntf: TImplementedInterface; intfindex: longint; interfaceentrydef, interfaceentrytypedef: tdef);
       var
         pd: tprocdef;
+        siid,
+        siidstr: tsymstr;
       begin
         tcb.maybe_begin_aggregate(interfaceentrydef);
         { GUID (or nil for Corba interfaces) }
+        siid:='';
         if AImplIntf.IntfDef.objecttype in [odt_interfacecom] then
-          tcb.emit_tai(Tai_const.CreateName(
-            make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0),cpointerdef.getreusable(rec_tguid))
+          begin
+            siid:=make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^);
+            tcb.emit_tai(Tai_const.Create_sym_offset(
+              current_asmdata.RefAsmSymbol(siid,AT_DATA,true),0),cpointerdef.getreusable(rec_tguid));
+          end
         else
           tcb.emit_tai(Tai_const.Create_nil_dataptr,cpointerdef.getreusable(rec_tguid));
 
@@ -775,15 +781,24 @@ implementation
         end;
 
         { IIDStr }
+        siidstr:=make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^);
         tcb.queue_init(cpointerdef.getreusable(cshortstringtype));
         tcb.queue_emit_asmsym(
           current_asmdata.RefAsmSymbol(
-            make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),
-            AT_DATA),
+            siidstr,
+            AT_DATA,
+            true),
           cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(AImplIntf.IntfDef.iidstr^)+1)));
         { IType }
         tcb.emit_ord_const(aint(AImplIntf.VtblImplIntf.IType),interfaceentrytypedef);
         tcb.maybe_end_aggregate(interfaceentrydef);
+
+        if findunitsymtable(AImplIntf.IntfDef.owner).moduleid<>findunitsymtable(_Class.owner).moduleid then
+          begin
+            if siid<>'' then
+              current_module.add_extern_asmsym(siid,AB_EXTERNAL,AT_DATA);
+            current_module.add_extern_asmsym(siidstr,AB_EXTERNAL,AT_DATA);
+          end;
       end;
 
 
