@@ -103,6 +103,9 @@ Resourcestring
   SLogCompilerCfgLocalInstallDir  = ' LocalInstallDir:  "%s" -> "%s"';
   SLogCompilerCfgGlobalPrefix     = ' GlobalPrefix:     "%s" -> "%s"';
   SLogCompilerCfgLocalPrefix      = ' LocalPrefix:      "%s" -> "%s"';
+  SLogRepositoryName              = '  Name:             %s';
+  SLogRepositoryDescription       = '  Description:      "%s"';
+  SLogRepositoryPath              = '  Dir:              "%s" -> "%s"';
 
   SLogPackageInfoName             = 'Package:        %s';
   SLogPackageInfoVersion          = 'Version:        %s';
