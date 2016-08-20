@@ -131,8 +131,11 @@ Var
   CheckHostsFileAge     : Boolean; 
   TimeOutS,TimeOutMS    : Longint;
   
-  
+{$ifdef android}
+Function GetDNSServers : Integer;
+{$else}
 Function GetDNSServers(FN : String) : Integer;
+{$endif android}
 
 Function ResolveName(HostName : String; Var Addresses : Array of THostAddr) : Integer;
 Function ResolveName6(HostName : String; Var Addresses : Array of THostAddr6) : Integer;
@@ -463,6 +466,54 @@ end;
    Resolve.conf handling
   ---------------------------------------------------------------------}
 
+{$ifdef android}
+
+Function GetDNSServers: Integer;
+var
+  i: integer;
+  s: string;
+  H : THostAddr;
+begin
+  Result:=0;
+  SetLength(DNSServers, 9);
+  for i:=1 to 9 do
+    begin
+      s:=GetSystemProperty(PAnsiChar('net.dns' + IntToStr(i)));
+      if s = '' then
+        break;
+      H:=StrToNetAddr(s);
+      if H.s_bytes[1] <> 0 then
+        begin
+          DNSServers[Result]:=H;
+          Inc(Result);
+        end;
+    end;
+  SetLength(DNSServers, Result);
+end;
+
+var
+  LastChangeProp: string;
+
+Procedure CheckResolveFile;
+var
+  n, v: string;
+begin
+  if not CheckResolveFileAge then
+    exit;
+  n:=GetSystemProperty('net.change');
+  if n <> '' then
+    v:=GetSystemProperty(PAnsiChar(n))
+  else
+    v:='';
+  n:=n + '=' + v;
+  if LastChangeProp = n then
+    exit;
+  LastChangeProp:=n;
+  GetDNSServers;
+end;
+
+{$else}
+
 Var
   ResolveFileAge  : Longint;
   ResolveFileName : String;
@@ -549,6 +600,8 @@ begin
       GetDnsServers(N);
     end;  
 end;
+
+{$endif android}
 
 { ---------------------------------------------------------------------
     Payload handling functions.
@@ -1443,9 +1496,6 @@ end;
 
 Procedure InitResolver;
 
-//Var
-//  I : Integer;
-
 begin
   TimeOutS :=5;
   TimeOutMS:=0;
@@ -1464,9 +1514,14 @@ begin
 {$ENDIF UNIX_ETC}
   If FileExists (EtcPath + SHostsFile) then
     HostsList := ProcessHosts (EtcPath + SHostsFile);
+{$ifdef android}
+  CheckResolveFileAge:=True;
+  CheckResolveFile;
+{$else}
   CheckResolveFileAge:=False;
   If FileExists(EtcPath + SResolveFile) then
     GetDNsservers(EtcPath + SResolveFile)
+{$endif android}
 {$IFDEF OS2}
   else if FileExists(EtcPath + SResolveFile2) then
     GetDNsservers(EtcPath + SResolveFile2)
