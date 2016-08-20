@@ -1453,7 +1453,10 @@ begin
           Result:='/data/data/' + Result;
           IsJniLibrary:=DirectoryExists(Result);
           if IsJniLibrary then
-            Result:=Result + '/files/'
+            begin
+              Result:=Result + '/files/';
+              ForceDirectories(Result);
+            end
           else
             Result:='';  // No package
         end;
