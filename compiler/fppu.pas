@@ -88,6 +88,7 @@ interface
           procedure queuecomment(const s:TMsgStr;v,w:longint);
           procedure buildderefunitimportsyms;
           procedure derefunitimportsyms;
+          procedure freederefunitimportsyms;
           procedure writesourcefiles;
           procedure writeusedunit(intf:boolean);
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
@@ -155,6 +156,9 @@ var
         ppufile:=nil;
         comments.free;
         comments:=nil;
+        { all derefs allocated with new
+          are dispose'd inside this method }
+        freederefunitimportsyms;
         unitimportsymsderefs.free;
         unitimportsymsderefs:=nil;
         inherited Destroy;
@@ -639,6 +643,18 @@ var
           begin
             sym:=tsym(pderef(unitimportsymsderefs[i])^.resolve);
             unitimportsyms.add(sym);
+          end;
+      end;
+
+    procedure tppumodule.freederefunitimportsyms;
+      var
+        i : longint;
+        deref : pderef;
+      begin
+        for i:=0 to unitimportsymsderefs.count-1 do
+          begin
+            deref:=pderef(unitimportsymsderefs[i]);
+            system.dispose(deref);
           end;
       end;
 
