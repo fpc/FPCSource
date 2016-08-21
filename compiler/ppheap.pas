@@ -44,6 +44,9 @@ implementation
                             Filename registration
 *****************************************************************************}
 
+
+    { We need to avoid using memory allocation here
+      and thus use a fixed size static array }
     const
       MaxFiles = 1024;
       MaxNameLength = 39;
@@ -62,11 +65,24 @@ implementation
 
 
     procedure ppheap_register_file(name : string;index : longint);
+      var
+        len,pos : longint;
       begin
         inc(last_index);
         if last_index <= MaxFiles then
           begin
-            fileinfoarray[last_index].name:=copy(name,1,MaxNameLength);
+            { Keep last part of name if too long }
+            len:=length(name);
+            if len>MaxNameLength then
+              begin
+                pos:=len-MaxNameLength+4;
+                fileinfoarray[last_index].name:='...'+copy(name,pos,MaxNameLength);
+              end
+            else
+              begin
+                pos:=1;
+                fileinfoarray[last_index].name:=copy(name,pos,MaxNameLength);
+              end;
             fileinfoarray[last_index].index:=index;
           end
         else
