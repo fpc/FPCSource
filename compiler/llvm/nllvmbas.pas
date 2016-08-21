@@ -29,6 +29,11 @@ interface
        nbas,ncgbas;
 
     type
+      tllvmtempinfoaccessor = class(ttempinfoaccessor)
+       protected
+        class procedure settempinfoflags(tempinfo: ptempinfo; const flags: ttempinfoflags); override;
+      end;
+
        tllvmtempcreatenode = class(tcgtempcreatenode)
           procedure pass_generate_code;override;
        end;
@@ -40,6 +45,23 @@ interface
       cgbase,cgutils,
       llvmbase,aasmllvm
       ;
+
+{*****************************************************************************
+                          TLLVMTEMPINFOACCESSOR
+*****************************************************************************}
+
+    class procedure tllvmtempinfoaccessor.settempinfoflags(tempinfo: ptempinfo; const flags: ttempinfoflags);
+        begin
+          { it is not possible to typecast between e.g. an integer and a record
+            in a register, which is a problem if such a typecast is performed on
+            an lvalue (since we then have to store it first to a temp in memory,
+            which means we no longer have an lvalue).
+
+            Disable regvars altogether since LLVM will put the values in registers
+            anyway if possible/useful. }
+          inherited settempinfoflags(tempinfo,flags-[ti_may_be_in_reg]);
+        end;
+
 
 {*****************************************************************************
                           TTEMPCREATENODE
@@ -63,5 +85,6 @@ interface
 
 
 begin
+   ctempinfoaccessor:=tllvmtempinfoaccessor;
    ctempcreatenode:=tllvmtempcreatenode;
 end.
