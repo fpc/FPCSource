@@ -205,6 +205,8 @@ begin
   ParseConst('1 + 2');
   CheckExprNameKindClass(pekBinary,TBinaryExpr);
   B:=TBinaryExpr(TheExpr);
+  TAssert.AssertSame('B.Left.Parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.Parent=B',B,B.right.Parent);
   AssertExpression('Left expression',B.Left,pekNumber,'1');
   AssertExpression('Right expression',B.Right,pekNumber,'2');
 end;
@@ -547,24 +549,33 @@ begin
 end;
 
 procedure TTestResourcestringParser.DoTestSum;
+var
+  B: TBinaryExpr;
 begin
   ParseResourcestring('''Something''+'' else''');
   CheckExprNameKindClass(pekBinary,TBinaryExpr);
-  AssertEquals('Correct left',TPrimitiveExpr,TBinaryExpr(TheExpr).Left.ClassType);
-  AssertEquals('Correct right',TPrimitiveExpr,TBinaryExpr(TheExpr).Right.ClassType);
-  AssertEquals('Correct left expression value','''Something''',TPrimitiveExpr(TBinaryExpr(TheExpr).Left).Value);
-  AssertEquals('Correct right expression value',''' else''',TPrimitiveExpr(TBinaryExpr(TheExpr).Right).Value);
+  B:=TBinaryExpr(TheExpr);
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  AssertEquals('Correct left',TPrimitiveExpr,B.Left.ClassType);
+  AssertEquals('Correct right',TPrimitiveExpr,B.Right.ClassType);
+  AssertEquals('Correct left expression value','''Something''',TPrimitiveExpr(B.Left).Value);
+  AssertEquals('Correct right expression value',''' else''',TPrimitiveExpr(B.Right).Value);
 end;
 
 procedure TTestResourcestringParser.DoTestSum2;
+var
+  B: TBinaryExpr;
 begin
   ParseResourcestring('''Something''+different');
   CheckExprNameKindClass(pekBinary,TBinaryExpr);
-  AssertEquals('Correct left',TPrimitiveExpr,TBinaryExpr(TheExpr).Left.ClassType);
-  AssertEquals('Correct right',TPrimitiveExpr,TBinaryExpr(TheExpr).Right.ClassType);
-  AssertEquals('Correct left expression value','''Something''',TPrimitiveExpr(TBinaryExpr(TheExpr).Left).Value);
-  AssertEquals('Correct right expression value','different',TPrimitiveExpr(TBinaryExpr(TheExpr).Right).Value);
-
+  B:=TBinaryExpr(TheExpr);
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  AssertEquals('Correct left',TPrimitiveExpr,B.Left.ClassType);
+  AssertEquals('Correct right',TPrimitiveExpr,B.Right.ClassType);
+  AssertEquals('Correct left expression value','''Something''',TPrimitiveExpr(B.Left).Value);
+  AssertEquals('Correct right expression value','different',TPrimitiveExpr(B.Right).Value);
 end;
 
 procedure TTestResourcestringParser.TestSimple;

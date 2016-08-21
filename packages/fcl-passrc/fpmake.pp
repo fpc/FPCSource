@@ -39,6 +39,13 @@ begin
           AddUnit('pastree');
           AddUnit('pscanner');
         end;
+    T:=P.Targets.AddUnit('pasresolver.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('pastree');
+          AddUnit('pscanner');
+          AddUnit('pparser');
+        end;
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('pastounittest.pp');
       with T.Dependencies do

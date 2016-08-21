@@ -121,7 +121,7 @@ procedure TTestStatementParser.AddStatements(ASource: array of string);
 Var
   I :Integer;
 begin
-  StartProgram('afile');
+  StartProgram(ExtractFileUnitName(MainFilename));
   if FVariables.Count>0 then
     begin
     Add('Var');
@@ -369,9 +369,10 @@ begin
   S:=Statement as TPasImplSimple;
   AssertExpression('Doit call',S.Expr,pekBinary,TBinaryExpr);
   B:=S.Expr as TBinaryExpr;
+  TAssert.AssertSame('B.left.Parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.Parent=B',B,B.right.Parent);
   AssertExpression('Unit name',B.Left,pekIdent,'Unita');
   AssertExpression('Doit call',B.Right,pekIdent,'Doit');
-
 end;
 
 procedure TTestStatementParser.TestCallQualified2;

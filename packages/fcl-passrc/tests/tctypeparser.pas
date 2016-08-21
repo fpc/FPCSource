@@ -695,6 +695,8 @@ begin
   AssertNotNull('have right expr', B.Right);
   AssertEquals('argument right expr type', TPrimitiveExpr, B.right.ClassType);
   AssertEquals('argument right expr value', '2', TPrimitiveExpr(B.right).Value);
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
 end;
 
 procedure TTestProcedureTypeParser.DoTestProcedureOneArgDefaultSet(

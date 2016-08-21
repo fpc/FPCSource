@@ -7,6 +7,8 @@ interface
 uses
   Classes, SysUtils, fpcunit, pastree, pscanner, pparser, testregistry;
 
+const
+  MainFilename = 'afile.pp';
 Type
   { TTestEngine }
 
@@ -29,7 +31,7 @@ Type
   Private
     FDeclarations: TPasDeclarations;
     FDefinition: TPasElement;
-    FEngine : TTestEngine;
+    FEngine : TPasTreeContainer;
     FModule: TPasModule;
     FParseResult: TPasElement;
     FScanner : TPascalScanner;
@@ -48,6 +50,7 @@ Type
   protected
     procedure SetUp; override;
     procedure TearDown; override;
+    procedure CreateEngine(var TheEngine: TPasTreeContainer); virtual;
     Procedure StartUnit(AUnitName : String);
     Procedure StartProgram(AFileName : String; AIn : String = ''; AOut : String = '');
     Procedure StartLibrary(AFileName : String);
@@ -78,10 +81,11 @@ Type
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TAssignKind); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureMessageType); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TOperatorType); overload;
+    Procedure AssertSame(Const Msg : String; AExpected, AActual: TPasElement); overload;
     Procedure HaveHint(AHint : TPasMemberHint; AHints : TPasMemberHints);
     Property Resolver : TStreamResolver Read FResolver;
     Property Scanner : TPascalScanner Read FScanner;
-    Property Engine : TTestEngine read FEngine;
+    Property Engine : TPasTreeContainer read FEngine;
     Property Parser : TTestPasParser read FParser ;
     Property Source : TStrings Read FSource;
     Property Module : TPasModule Read FModule;
@@ -94,9 +98,37 @@ Type
     Property UseImplementation : Boolean Read FUseImplementation Write FUseImplementation;
   end;
 
+function ExtractFileUnitName(aFilename: string): string;
+function GetPasElementDesc(El: TPasElement): string;
+
 implementation
 
 uses typinfo;
+
+function ExtractFileUnitName(aFilename: string): string;
+var
+  p: Integer;
+begin
+  Result:=ExtractFileName(aFilename);
+  if Result='' then exit;
+  for p:=length(Result) downto 1 do
+    case Result[p] of
+    '/','\': exit;
+    '.':
+      begin
+      Delete(Result,p,length(Result));
+      exit;
+      end;
+    end;
+end;
+
+function GetPasElementDesc(El: TPasElement): string;
+begin
+  if El=nil then exit('nil');
+  Result:=El.Name+':'+El.ClassName+'['+El.SourceFilename+','+IntToStr(El.SourceLinenumber)+']';
+end;
+
+
 { TTestEngine }
 
 destructor TTestEngine.Destroy;
@@ -158,7 +190,7 @@ begin
   FResolver:=TStreamResolver.Create;
   FResolver.OwnsStreams:=True;
   FScanner:=TPascalScanner.Create(FResolver);
-  FEngine:=TTestEngine.Create;
+  CreateEngine(FEngine);
   FParser:=TTestPasParser.Create(FScanner,FResolver,FEngine);
   FSource:=TStringList.Create;
   FModule:=Nil;
@@ -178,7 +210,11 @@ begin
   FImplementation:=False;
   FEndSource:=False;
   FIsUnit:=False;
-  FreeAndNil(FModule);
+  if Assigned(FModule) then
+    begin
+    FModule.Release;
+    FModule:=nil;
+    end;
   FreeAndNil(FSource);
   FreeAndNil(FParseResult);
   FreeAndNil(FParser);
@@ -206,11 +242,16 @@ begin
   Inherited;
 end;
 
+procedure TTestParser.CreateEngine(var TheEngine: TPasTreeContainer);
+begin
+  TheEngine:=TTestEngine.Create;
+end;
+
 procedure TTestParser.StartUnit(AUnitName: String);
 begin
   FIsUnit:=True;
   If (AUnitName='') then
-    AUnitName:='afile';
+    AUnitName:=ExtractFileUnitName(MainFilename);
   Add('unit '+aUnitName+';');
   Add('');
   Add('interface');
@@ -228,7 +269,7 @@ begin
     begin
     AFileName:=AFileName+'('+AIn;
     if (AOut<>'') then
-      AFileName:=AFIleName+','+AOut;
+      AFileName:=AFileName+','+AOut;
     AFileName:=AFileName+')';
     end;
   Add('program '+AFileName+';');
@@ -304,8 +345,8 @@ begin
     StartImplementation;
   EndSource;
   If (FFileName='') then
-    FFileName:='afile.pp';
-  FResolver.AddStream(FFileName,TStringStream.Create(FSource.text));
+    FFileName:=MainFilename;
+  FResolver.AddStream(FFileName,TStringStream.Create(FSource.Text));
   FScanner.OpenFile(FFileName);
   Writeln('// Test : ',Self.TestName);
   Writeln(FSource.Text);
@@ -521,7 +562,14 @@ procedure TTestParser.AssertEquals(const Msg: String; AExpected,
   AActual: TOperatorType);
 begin
   AssertEquals(Msg,GetEnumName(TypeInfo(TOperatorType),Ord(AExpected)),
-                   GetEnumName(TypeInfo(TOperatorType),Ord(AExpected)));
+                   GetEnumName(TypeInfo(TOperatorType),Ord(AActual)));
+end;
+
+procedure TTestParser.AssertSame(const Msg: String; AExpected,
+  AActual: TPasElement);
+begin
+  if AExpected=AActual then exit;
+  AssertEquals(Msg,GetPasElementDesc(AExpected),GetPasElementDesc(AActual));
 end;
 
 procedure TTestParser.HaveHint(AHint: TPasMemberHint; AHints: TPasMemberHints);

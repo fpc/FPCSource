@@ -63,6 +63,8 @@ type
     Class Function CreateCondition: TPasExpr;
   end;
 
+  { TTestTestConverter }
+
   TTestTestConverter = class(TTestConverter)
   published
     procedure TestEmpty;
@@ -584,7 +586,7 @@ begin
   AssertNull('No second statement',L.B);
   L:=AssertListStatement('try..except block is statement list',El.BCatch);
   AssertAssignStatement('Correct assignment in except..end block',L.A,'b','c');
-  AssertEquals('Correct exception object name',DefaultJSExceptionObject,El.Ident);
+  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),El.Ident);
   AssertNull('No second statement',L.B);
 end;
 
@@ -621,18 +623,18 @@ begin
   O.Body:=CreateAssignStatement('b','c');
   // Convert
   El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
-  AssertEquals('Correct exception object name',DefaultJSExceptionObject,EL.Ident);
+  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),EL.Ident);
   L:=AssertListStatement('try..except block is statement list',El.BCatch);
   AssertNull('No second statement',L.B);
   I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,L.A));
   Ic:=TJSRelationalExpressionInstanceOf(AssertElement('If condition is InstanceOf expression',TJSRelationalExpressionInstanceOf,I.Cond));
-  Assertidentifier('InstanceOf left is exception object',Ic.A,DefaultJSExceptionObject);
+  Assertidentifier('InstanceOf left is exception object',Ic.A,lowercase(DefaultJSExceptionObject));
   // Lowercased exception - May need checking
   Assertidentifier('InstanceOf right is original exception type',Ic.B,'exception');
   L:=AssertListStatement('On block is always a list',i.btrue);
   V:=TJSVarDeclaration(AssertElement('First statement in list is a var declaration',TJSVarDeclaration,L.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',v.init,DefaultJSExceptionObject);
+  Assertidentifier('Variable init is exception object',v.init,lowercase(DefaultJSExceptionObject));
   L:=AssertListStatement('Second statement is again list',L.B);
   AssertAssignStatement('Original assignment in second statement',L.A,'b','c');
 end;
@@ -669,20 +671,20 @@ begin
   O.Body:=TPasImplRaise.Create('',Nil);
   // Convert
   El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
-  AssertEquals('Correct exception object name',DefaultJSExceptionObject,EL.Ident);
+  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),EL.Ident);
   L:=AssertListStatement('try..except block is statement list',El.BCatch);
   AssertNull('No second statement',L.B);
   I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,L.A));
   Ic:=TJSRelationalExpressionInstanceOf(AssertElement('If condition is InstanceOf expression',TJSRelationalExpressionInstanceOf,I.Cond));
-  Assertidentifier('InstanceOf left is exception object',Ic.A,DefaultJSExceptionObject);
+  Assertidentifier('InstanceOf left is exception object',Ic.A,lowercase(DefaultJSExceptionObject));
   // Lowercased exception - May need checking
   L:=AssertListStatement('On block is always a list',i.btrue);
   V:=TJSVarDeclaration(AssertElement('First statement in list is a var declaration',TJSVarDeclaration,L.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',v.init,DefaultJSExceptionObject);
+  Assertidentifier('Variable init is exception object',v.init,lowercase(DefaultJSExceptionObject));
   L:=AssertListStatement('Second statement is again list',L.B);
   R:=TJSThrowStatement(AssertElement('On block is throw statement',TJSThrowStatement,L.A));
-  Assertidentifier('R expression is original exception ',R.A,DefaultJSExceptionObject);
+  Assertidentifier('R expression is original exception ',R.A,lowercase(DefaultJSExceptionObject));
 end;
 
 Procedure TTestStatementConverter.TestVariableStatement;
@@ -1206,7 +1208,7 @@ Function TTestConverter.Convert(AElement: TPasElement; AClass: TJSElementClass
   ): TJSElement;
 begin
   FSource:=AElement;
-  Result:=FConverter.ConvertElement(AElement);
+  Result:=FConverter.ConvertPasElement(AElement,nil);
   FRes:=Result;
   if (AClass<>Nil) then
     begin

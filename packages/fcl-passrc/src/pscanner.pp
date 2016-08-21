@@ -324,7 +324,11 @@ type
 
   TPascalScannerPPSkipMode = (ppSkipNone, ppSkipIfBranch, ppSkipElseBranch, ppSkipAll);
 
-  TPOption = (po_delphi,po_cassignments);
+  TPOption = (
+    po_delphi, // Delphi mode: forbid nested comments
+    po_cassignments,  // allow C-operators += -= *= /=
+    po_resolvestandardtypes // search for 'longint', 'string', etc., do not use dummies, TPasResolver sets this to use its declarations
+    );
   TPOptions = set of TPOption;
 
   { TPascalScanner }
