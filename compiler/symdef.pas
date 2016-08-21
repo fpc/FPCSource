@@ -4450,7 +4450,27 @@ implementation
 
 
     destructor trecorddef.destroy;
+
+      procedure free_variantrecdesc(var variantrecdesc : pvariantrecdesc);
+        var
+          i : longint;
+        begin
+         while assigned(variantrecdesc) do
+           begin
+             for i:=0 to high(variantrecdesc^.branches) do
+               begin
+                 free_variantrecdesc(variantrecdesc^.branches[i].nestedvariant);
+                 SetLength(variantrecdesc^.branches[i].values,0);
+               end;
+             SetLength(variantrecdesc^.branches,0);
+             dispose(variantrecdesc);
+             variantrecdesc:=nil;
+           end;
+        end;
+
       begin
+         if assigned(variantrecdesc) then
+           free_variantrecdesc(variantrecdesc);
          if assigned(symtable) then
            begin
              symtable.free;
