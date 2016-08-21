@@ -418,23 +418,23 @@ interface
         location_reset(location,LOC_VOID,OS_NO);
 
         { if we're secondpassing the same tcgtempcreatenode twice, we have a bug }
-        if (ti_valid in tempinfo^.flags) then
+        if (ti_valid in tempflags) then
           internalerror(200108222);
 
         { in case of ti_reference, the location will be initialised using the
           location of the tempinitnode once the first temprefnode is processed }
-        if not(ti_reference in tempinfo^.flags) then
+        if not(ti_reference in tempflags) then
           begin
             { get a (persistent) temp }
             if is_managed_type(tempinfo^.typedef) and
-              not(ti_const in tempinfo^.flags) then
+              not(ti_const in tempflags) then
               begin
                 location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
                 tg.gethltempmanaged(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
-                if not(ti_nofini in tempinfo^.flags) then
+                if not(ti_nofini in tempflags) then
                   hlcg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
               end
-            else if (ti_may_be_in_reg in tempinfo^.flags) then
+            else if (ti_may_be_in_reg in tempflags) then
               begin
                 location_allocate_register(current_asmdata.CurrAsmList,tempinfo^.location,tempinfo^.typedef,tempinfo^.temptype = tt_persistent);
               end
@@ -444,9 +444,9 @@ interface
                 tg.gethltemp(current_asmdata.CurrAsmList,tempinfo^.typedef,size,tempinfo^.temptype,tempinfo^.location.reference);
               end;
           end;
-        include(tempinfo^.flags,ti_valid);
+        includetempflag(ti_valid);
         if assigned(tempinfo^.tempinitcode) then
-          include(tempinfo^.flags,ti_executeinitialisation);
+          includetempflag(ti_executeinitialisation);
       end;
 
 
@@ -456,12 +456,12 @@ interface
 
     procedure tcgtemprefnode.pass_generate_code;
       begin
-        if ti_executeinitialisation in tempinfo^.flags then
+        if ti_executeinitialisation in tempflags then
           begin
             { avoid recursion }
-            exclude(tempinfo^.flags, ti_executeinitialisation);
+            excludetempflag(ti_executeinitialisation);
             secondpass(tempinfo^.tempinitcode);
-            if (ti_reference in tempinfo^.flags) then
+            if (ti_reference in tempflags) then
               begin
                 case tempinfo^.tempinitcode.location.loc of
                   LOC_CREGISTER,
@@ -473,7 +473,7 @@ interface
                         for reading, it's not in case of writing (because the
                         register could change due to SSA -> storing to the saved
                         register afterwards would be wrong). }
-                      if not(ti_readonly in tempinfo^.flags) then
+                      if not(ti_readonly in tempflags) then
                         internalerror(2011031407);
                     end;
                   { in case reference contains CREGISTERS, that doesn't matter:
@@ -484,7 +484,7 @@ interface
               end;
           end;
         { check if the temp is valid }
-        if not(ti_valid in tempinfo^.flags) then
+        if not(ti_valid in tempflags) then
           internalerror(200108231);
         location:=tempinfo^.location;
         case tempinfo^.location.loc of
@@ -495,7 +495,7 @@ interface
           LOC_REGISTER,
           LOC_FPUREGISTER,
           LOC_MMREGISTER :
-            exclude(tempinfo^.flags,ti_valid);
+            excludetempflag(ti_valid);
         end;
       end;
 
@@ -503,7 +503,7 @@ interface
     procedure tcgtemprefnode.changelocation(const ref: treference);
       begin
         { check if the temp is valid }
-        if not(ti_valid in tempinfo^.flags) then
+        if not(ti_valid in tempflags) then
           internalerror(200306081);
         if (tempinfo^.location.loc<>LOC_REFERENCE) then
           internalerror(2004020203);
@@ -523,7 +523,7 @@ interface
 
     procedure tcgtempdeletenode.pass_generate_code;
       begin
-        if ti_reference in tempinfo^.flags then
+        if ti_reference in tempflags then
           begin
             { release_to_normal means that the temp will be freed the next
               time it's used. However, reference temps reference some other
@@ -534,7 +534,7 @@ interface
             { so we only mark this temp location as "no longer valid" when
               it's deleted (ttempdeletenodes are also used during getcopy, so
               we really do need one) }
-            exclude(tempinfo^.flags,ti_valid);
+            excludetempflag(ti_valid);
             exit;
           end;
 
@@ -543,7 +543,7 @@ interface
         { see comments at ti_const declaration: if we initialised this temp with
           the value of another temp, that other temp was not freed because the
           ti_const flag was set }
-        if (ti_const in tempinfo^.flags) and
+        if (ti_const in tempflags) and
            assigned(tempinfo^.tempinitcode) then
           begin
             if tempinfo^.tempinitcode.nodetype<>assignn then
@@ -561,7 +561,7 @@ interface
               else
                 begin
                   tg.UnGetTemp(current_asmdata.CurrAsmList,tempinfo^.location.reference);
-                  exclude(tempinfo^.flags,ti_valid);
+                  excludetempflag(ti_valid);
                 end;
             end;
           LOC_CREGISTER,
@@ -627,7 +627,7 @@ interface
               if release_to_normal then
                 tempinfo^.location.loc := LOC_REGISTER
               else
-                exclude(tempinfo^.flags,ti_valid);
+                excludetempflag(ti_valid);
             end;
           LOC_CFPUREGISTER,
           LOC_FPUREGISTER:
@@ -642,7 +642,7 @@ interface
               if release_to_normal then
                 tempinfo^.location.loc := LOC_FPUREGISTER
               else
-                exclude(tempinfo^.flags,ti_valid);
+                excludetempflag(ti_valid);
             end;
           LOC_CMMREGISTER,
           LOC_MMREGISTER:
@@ -657,7 +657,7 @@ interface
               if release_to_normal then
                 tempinfo^.location.loc := LOC_MMREGISTER
               else
-                exclude(tempinfo^.flags,ti_valid);
+                excludetempflag(ti_valid);
             end;
           else
             internalerror(200507161);

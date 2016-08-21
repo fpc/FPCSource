@@ -171,7 +171,10 @@ interface
        { already been disposed and to make sure the coherency between temps and     }
        { temp references is kept after a getcopy                                    }
        ptempinfo = ^ttempinfo;
-       ttempinfo = record
+       ttempinfo = object
+        private
+         flags                      : ttempinfoflags;
+        public
          { set to the copy of a tempcreate pnode (if it gets copied) so that the }
          { refs and deletenode can hook to this copy once they get copied too    }
          hookoncopy                 : ptempinfo;
@@ -181,15 +184,32 @@ interface
          owner                      : ttempcreatenode;
          withnode                   : tnode;
          location                   : tlocation;
-         flags                      : ttempinfoflags;
          tempinitcode               : tnode;
+       end;
+
+       ttempinfoaccessor = class
+         class procedure settempinfoflags(tempinfo: ptempinfo; const flags: ttempinfoflags); virtual;
+         class function gettempinfoflags(tempinfo: ptempinfo): ttempinfoflags; static; inline;
+       end;
+       ttempinfoaccessorclass = class of ttempinfoaccessor;
+
+       ttempbasenode = class(tnode)
+        protected
+          class var tempinfoaccessor: ttempinfoaccessorclass;
+        protected
+          procedure settempinfoflags(const tempflags: ttempinfoflags); inline;
+          function gettempinfoflags: ttempinfoflags; inline;
+        public
+          tempinfo: ptempinfo;
+          procedure includetempflag(flag: ttempinfoflag); inline;
+          procedure excludetempflag(flag: ttempinfoflag); inline;
+          property tempflags: ttempinfoflags read gettempinfoflags write settempinfoflags;
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
        { size (the size is separate to allow creating "void" temps with a custom size) }
-       ttempcreatenode = class(tnode)
+       ttempcreatenode = class(ttempbasenode)
           size: tcgint;
-          tempinfo: ptempinfo;
           ftemplvalue : tnode;
           { * persistent temps are used in manually written code where the temp }
           { be usable among different statements and where you can manually say }
@@ -215,9 +235,7 @@ interface
        ttempcreatenodeclass = class of ttempcreatenode;
 
         { a node which is a reference to a certain temp }
-        ttemprefnode = class(tnode)
-          tempinfo: ptempinfo;
-
+        ttemprefnode = class(ttempbasenode)
           constructor create(const temp: ttempcreatenode); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -234,8 +252,7 @@ interface
        ttemprefnodeclass = class of ttemprefnode;
 
         { a node which removes a temp }
-        ttempdeletenode = class(tnode)
-          tempinfo: ptempinfo;
+        ttempdeletenode = class(ttempbasenode)
           constructor create(const temp: ttempcreatenode); virtual;
           { this will convert the persistant temp to a normal temp
             for returning to the other nodes }
@@ -263,6 +280,7 @@ interface
        casmnode : tasmnodeclass = tasmnode;
        cstatementnode : tstatementnodeclass = tstatementnode;
        cblocknode : tblocknodeclass = tblocknode;
+       ctempinfoaccessor : ttempinfoaccessorclass = ttempinfoaccessor;
        ctempcreatenode : ttempcreatenodeclass = ttempcreatenode;
        ctemprefnode : ttemprefnodeclass = ttemprefnode;
        ctempdeletenode : ttempdeletenodeclass = ttempdeletenode;
@@ -819,6 +837,53 @@ implementation
 
 
 {*****************************************************************************
+                          TEMPBASENODE
+*****************************************************************************}
+
+    class procedure ttempinfoaccessor.settempinfoflags(tempinfo: ptempinfo; const flags: ttempinfoflags);
+      begin
+        tempinfo^.flags:=flags;
+      end;
+
+
+    class function ttempinfoaccessor.gettempinfoflags(tempinfo: ptempinfo): ttempinfoflags;
+      begin
+        result:=tempinfo^.flags;
+      end;
+
+
+{*****************************************************************************
+                          TEMPBASENODE
+*****************************************************************************}
+
+    procedure ttempbasenode.settempinfoflags(const tempflags: ttempinfoflags);
+      begin
+        ctempinfoaccessor.settempinfoflags(tempinfo,tempflags);
+      end;
+
+
+    function ttempbasenode.gettempinfoflags: ttempinfoflags;
+      begin
+        result:=ctempinfoaccessor.gettempinfoflags(tempinfo);
+      end;
+
+
+    procedure ttempbasenode.includetempflag(flag: ttempinfoflag);
+      begin
+        { go through settempinfoflags() so it can filter out unsupported tempflags }
+        settempinfoflags(gettempinfoflags+[flag])
+      end;
+
+
+    procedure ttempbasenode.excludetempflag(flag: ttempinfoflag);
+      begin
+        { go through settempinfoflags() so it can prevent required tempflags from
+          being removed (if any) }
+        settempinfoflags(gettempinfoflags-[flag])
+      end;
+
+
+{*****************************************************************************
                           TEMPCREATENODE
 *****************************************************************************}
 
@@ -841,7 +906,7 @@ implementation
            (def_cgsize(_typedef)<>OS_NO) and
            { no init/final needed }
            not is_managed_type(_typedef) then
-          include(tempinfo^.flags,ti_may_be_in_reg);
+          includetempflag(ti_may_be_in_reg);
       end;
 
 
@@ -869,9 +934,9 @@ implementation
         ftemplvalue:=templvalue;
         // no assignment node, just the tempvalue
         tempinfo^.tempinitcode:=ftemplvalue;
-        include(tempinfo^.flags,ti_reference);
+        includetempflag(ti_reference);
         if readonly then
-          include(tempinfo^.flags,ti_readonly);
+          includetempflag(ti_readonly);
       end;
 
 
@@ -887,7 +952,7 @@ implementation
         n.tempinfo^.owner:=n;
         n.tempinfo^.typedef := tempinfo^.typedef;
         n.tempinfo^.temptype := tempinfo^.temptype;
-        n.tempinfo^.flags := tempinfo^.flags * tempinfostoreflags;
+        n.tempflags := n.tempflags * tempinfostoreflags;
 
         { when the tempinfo has already a hookoncopy then it is not
           reset by a tempdeletenode }
@@ -897,7 +962,7 @@ implementation
         { so that if the refs get copied as well, they can hook themselves }
         { to the copy of the temp                                          }
         tempinfo^.hookoncopy := n.tempinfo;
-        exclude(tempinfo^.flags,ti_nextref_set_hookoncopy_nil);
+        excludetempflag(ti_nextref_set_hookoncopy_nil);
 
         if assigned(tempinfo^.withnode) then
           n.tempinfo^.withnode := tempinfo^.withnode.getcopy
@@ -971,7 +1036,7 @@ implementation
         result := nil;
         expectloc:=LOC_VOID;
         { temps which are immutable do not need to be initialized/finalized }
-        if (tempinfo^.typedef.needs_inittable) and not(ti_const in tempinfo^.flags) then
+        if (tempinfo^.typedef.needs_inittable) and not(ti_const in tempflags) then
           include(current_procinfo.flags,pi_needs_implicit_finally);
         if (cs_create_pic in current_settings.moduleswitches) and
            (tf_pic_uses_got in target_info.flags) and
@@ -1002,7 +1067,7 @@ implementation
         result :=
           inherited docompare(p) and
           (ttempcreatenode(p).size = size) and
-          (ttempcreatenode(p).tempinfo^.flags*tempinfostoreflags=tempinfo^.flags*tempinfostoreflags) and
+          (ttempcreatenode(p).tempflags*tempinfostoreflags=tempflags*tempinfostoreflags) and
           equal_defs(ttempcreatenode(p).tempinfo^.typedef,tempinfo^.typedef) and
           (ttempcreatenode(p).tempinfo^.withnode.isequal(tempinfo^.withnode)) and
           (ttempcreatenode(p).tempinfo^.tempinitcode.isequal(tempinfo^.tempinitcode));
@@ -1045,7 +1110,7 @@ implementation
             { from a persistent one into a normal one, we must be  }
             { the last reference (since our parent should free the }
             { temp (JM)                                            }
-            if (ti_nextref_set_hookoncopy_nil in tempinfo^.flags) then
+            if (ti_nextref_set_hookoncopy_nil in tempflags) then
               tempinfo^.hookoncopy := nil;
           end
         else
@@ -1091,7 +1156,7 @@ implementation
       begin
         expectloc := LOC_REFERENCE;
         if not tempinfo^.typedef.needs_inittable and
-           (ti_may_be_in_reg in tempinfo^.flags) then
+           (ti_may_be_in_reg in tempflags) then
           begin
             if tempinfo^.typedef.typ=floatdef then
               begin
@@ -1191,7 +1256,7 @@ implementation
             if (not release_to_normal) then
               tempinfo^.hookoncopy:=nil
             else
-              include(tempinfo^.flags,ti_nextref_set_hookoncopy_nil);
+              includetempflag(ti_nextref_set_hookoncopy_nil);
           end
         else
           { if the temp we refer to hasn't been copied, we have a }

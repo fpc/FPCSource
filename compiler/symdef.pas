@@ -4921,7 +4921,7 @@ implementation
                       hs:='<set>';
                   end;
                   if hs<>'' then
-                   s:=s+'="'+hs+'"';
+                   s:=s+'='+hs;
                 end;
                if vo_is_hidden_para in hp.varoptions then
                  s:=s+'>';

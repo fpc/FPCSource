@@ -121,13 +121,13 @@ implementation
             end;
           temprefn:
             begin
-              if (ti_valid in ttemprefnode(n).tempinfo^.flags) and
+              if (ti_valid in ttemprefnode(n).tempflags) and
                  { memory temp... }
                  (ttemprefnode(n).tempinfo^.location.loc in [LOC_REFERENCE]) and
                  { ... at the place we are looking for }
                  references_equal(ttemprefnode(n).tempinfo^.location.reference,rr^.old^) and
                  { its address cannot have escaped the current routine }
-                 not(ti_addr_taken in ttemprefnode(n).tempinfo^.flags) then
+                 not(ti_addr_taken in ttemprefnode(n).tempflags) then
                 begin
                   { relocate the temp }
                   tcgtemprefnode(n).changelocation(rr^.new^);
@@ -722,7 +722,7 @@ implementation
 
         releaseright:=
           (left.nodetype<>temprefn) or
-          not(ti_const in ttemprefnode(left).tempinfo^.flags);
+          not(ti_const in ttemprefnode(left).tempflags);
 
         { shortstring assignments are handled separately }
         if is_shortstring(left.resultdef) then

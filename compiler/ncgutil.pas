@@ -1728,7 +1728,7 @@ implementation
             { tempinfo^.valid will be false and so we do not add            }
             { unnecessary registers. This way, we don't have to look at     }
             { tempcreate and tempdestroy nodes to get this info (JM)        }
-            if (ti_valid in ttemprefnode(n).tempinfo^.flags) then
+            if (ti_valid in ttemprefnode(n).tempflags) then
               add_regvars(rv^,ttemprefnode(n).tempinfo^.location);
           loadn:
             if (tloadnode(n).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) then

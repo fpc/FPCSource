@@ -1355,7 +1355,7 @@ implementation
     function is_const(node : tnode) : boolean;
       begin
         result:=is_constnode(node) or
-          ((node.nodetype=temprefn) and (ti_const in ttemprefnode(node).tempinfo^.flags)) or
+          ((node.nodetype=temprefn) and (ti_const in ttemprefnode(node).tempflags)) or
           ((node.nodetype=loadn) and (tloadnode(node).symtableentry.typ=paravarsym) and (tparavarsym(tloadnode(node).symtableentry).varspez in [vs_const,vs_constref]));
       end;
 

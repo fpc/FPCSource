@@ -1954,7 +1954,7 @@ implementation
             loadn:
               result:=(tabstractvarsym(tloadnode(hp).symtableentry).varregable in [vr_none,vr_addr]);
             temprefn:
-              result:=not(ti_may_be_in_reg in ttemprefnode(hp).tempinfo^.flags);
+              result:=not(ti_may_be_in_reg in ttemprefnode(hp).tempflags);
           end;
       end;
 
@@ -2943,8 +2943,8 @@ implementation
           substituted function result may not be in a register, as we cannot
           take its address in that case                                      }
         if (realassignmenttarget.nodetype=temprefn) and
-           not(ti_addr_taken in ttemprefnode(realassignmenttarget).tempinfo^.flags) and
-           not(ti_may_be_in_reg in ttemprefnode(realassignmenttarget).tempinfo^.flags) then
+           not(ti_addr_taken in ttemprefnode(realassignmenttarget).tempflags) and
+           not(ti_may_be_in_reg in ttemprefnode(realassignmenttarget).tempflags) then
           begin
             result:=true;
             exit;
@@ -3041,7 +3041,7 @@ implementation
                   to the result on the caller side will take care of decreasing
                   the reference count }
                 if paramanager.ret_in_param(resultdef,procdefinition) then
-                  include(temp.tempinfo^.flags,ti_nofini);
+                  temp.includetempflag(ti_nofini);
                 add_init_statement(temp);
                 { When the function result is not used in an inlined function
                   we need to delete the temp. This can currently only be done by
@@ -4496,7 +4496,7 @@ implementation
             addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
             { inherit addr_taken flag }
             if (tabstractvarsym(p).addr_taken) then
-              include(tempnode.tempinfo^.flags,ti_addr_taken);
+              tempnode.includetempflag(ti_addr_taken);
             inlinelocals[indexnr] := ctemprefnode.create(tempnode);
           end;
       end;
@@ -4670,9 +4670,9 @@ implementation
           the routine cannot be (e.g., because its address is taken in the
           routine), or if the temp is a const and the parameter gets modified }
         if (para.left.nodetype=temprefn) and
-           (not(ti_may_be_in_reg in ttemprefnode(para.left).tempinfo^.flags) or
+           (not(ti_may_be_in_reg in ttemprefnode(para.left).tempflags) or
             not(tparavarsym(para.parasym).varregable in [vr_none,vr_addr])) and
-           (not(ti_const in ttemprefnode(para.left).tempinfo^.flags) or
+           (not(ti_const in ttemprefnode(para.left).tempflags) or
             (tparavarsym(para.parasym).varstate in [vs_initialised,vs_declared,vs_read])) then
           exit;
 
@@ -4693,19 +4693,19 @@ implementation
             para.left := ctemprefnode.create(tempnode);
             { inherit addr_taken flag }
             if (tabstractvarsym(para.parasym).addr_taken) then
-              include(tempnode.tempinfo^.flags,ti_addr_taken);
+              tempnode.includetempflag(ti_addr_taken);
 
             { inherit const }
             if tabstractvarsym(para.parasym).varspez=vs_const then
               begin
-                include(tempnode.tempinfo^.flags,ti_const);
+                tempnode.includetempflag(ti_const);
 
                 { apply less strict rules for the temp. to be a register than
                   ttempcreatenode does
 
                   this way, dyn. array, ansistrings etc. can be put into registers as well }
                 if tparavarsym(para.parasym).is_regvar(false) then
-                  include(tempnode.tempinfo^.flags,ti_may_be_in_reg);
+                  tempnode.includetempflag(ti_may_be_in_reg);
               end;
 
             result:=true;
@@ -4765,10 +4765,10 @@ implementation
         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
         { inherit addr_taken flag }
         if (tabstractvarsym(para.parasym).addr_taken) then
-          include(tempnode.tempinfo^.flags,ti_addr_taken);
+          tempnode.includetempflag(ti_addr_taken);
         { inherit read only }
         if tabstractvarsym(para.parasym).varspez=vs_const then
-          include(tempnode.tempinfo^.flags,ti_const);
+          tempnode.includetempflag(ti_const);
         paraaddr:=caddrnode.create_internal(para.left);
         include(paraaddr.flags,nf_typedaddr);
         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),

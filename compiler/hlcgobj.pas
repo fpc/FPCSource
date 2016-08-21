@@ -4413,7 +4413,7 @@ implementation
           end;
         temprefn:
           begin
-            if (ti_valid in ttemprefnode(n).tempinfo^.flags) and
+            if (ti_valid in ttemprefnode(n).tempflags) and
                (ttemprefnode(n).tempinfo^.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
                (ttemprefnode(n).tempinfo^.location.register = rr^.old) then
               begin

@@ -387,7 +387,7 @@ implementation
         para.left:=ctemprefnode.create(tempnode);
         { inherit addr_taken flag }
         if (tabstractvarsym(para.parasym).addr_taken) then
-          include(tempnode.tempinfo^.flags,ti_addr_taken);
+          tempnode.includetempflag(ti_addr_taken);
       end;
 
 

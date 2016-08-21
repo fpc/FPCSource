@@ -407,8 +407,8 @@ unit optcse;
 
                           ttempcreatenode.create normally takes care of the register location but it does not
                           know about immutability so it cannot take care of managed types }
-                        include(ttempcreatenode(templist[i]).tempinfo^.flags,ti_const);
-                        include(ttempcreatenode(templist[i]).tempinfo^.flags,ti_may_be_in_reg);
+                        ttempcreatenode(templist[i]).includetempflag(ti_const);
+                        ttempcreatenode(templist[i]).includetempflag(ti_may_be_in_reg);
 
                         { make debugging easier and set temp. location to the original location }
                         tnode(templist[i]).fileinfo:=tnode(lists.nodelist[i]).fileinfo;

@@ -1029,11 +1029,11 @@ implementation
             temprefn :
               begin
                 if (ra_addr_taken in how) then
-                  include(ttemprefnode(p).tempinfo^.flags,ti_addr_taken);
-                if (ti_may_be_in_reg in ttemprefnode(p).tempinfo^.flags) and
+                  ttemprefnode(p).includetempflag(ti_addr_taken);
+                if (ti_may_be_in_reg in ttemprefnode(p).tempflags) and
                    ((not records_only) or
                     (ttemprefnode(p).tempinfo^.typedef.typ = recorddef)) then
-                  exclude(ttemprefnode(p).tempinfo^.flags,ti_may_be_in_reg);
+                  ttemprefnode(p).excludetempflag(ti_may_be_in_reg);
                 break;
               end;
             else
@@ -1453,7 +1453,7 @@ implementation
            case hp.nodetype of
              temprefn :
                begin
-                 valid_for_assign := not(ti_readonly in ttemprefnode(hp).tempinfo^.flags);
+                 valid_for_assign := not(ti_readonly in ttemprefnode(hp).tempflags);
                  mayberesettypeconvs;
                  exit;
                end;
