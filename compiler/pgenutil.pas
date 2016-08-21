@@ -880,7 +880,6 @@ uses
 
                 { First a new sym so we can reuse this specialization and
                   references to this specialization can be handled }
-                srsym:=ctypesym.create(finalspecializename,generrordef,true);
                 if genericdef.typ=procdef then
                   srsym:=cprocsym.create(finalspecializename)
                 else
