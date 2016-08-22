@@ -157,6 +157,9 @@ begin
 {$ifdef aarch64}
       LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/aarch64-linux-gnu',true);
 {$endif aarch64}
+{$ifdef powerpc}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/powerpc-linux-gnu',true);
+{$endif powerpc}
     end;
 end;
 
