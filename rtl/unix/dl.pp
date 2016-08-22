@@ -31,7 +31,7 @@ const
   {$define ELF} // ELF symbol versioning.
 {$endif}
 
-{$if defined(linux) and (defined(cpuarm) or defined(powerpc))}
+{$if defined(linux) and (defined(cpuarm) or defined(cpupowerpc))}
 { some linux targets seem to require this, if libc is not linked
   the wrong start up code is used }
 {$linklib c}
