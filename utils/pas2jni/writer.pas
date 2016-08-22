@@ -1433,13 +1433,12 @@ begin
   Fjs.WriteLn(Format('/* Pascal prototype: %s */', [GetProcDeclaration(d, 'Execute')]));
   Fjs.WriteLn(Format('/* Java prototype: %s */', [GetJavaProcDeclaration(d, 'Execute')]));
 
-  Fjs.WriteLn(Format('public static class %s extends %s.system.MethodPtr {', [d.Name, JavaPackage]));
+  Fjs.WriteLn(Format('public static abstract class %s extends %s.system.MethodPtr {', [d.Name, JavaPackage]));
   Fjs.IncI;
   Fjs.WriteLn(Format('{ mSignature = "%s"; }', [GetProcSignature(d)]));
   Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { _pasobj=objptr; }', [d.Name]));
-  Fjs.WriteLn(Format('public %s(Object Obj, String MethodName) { mObject=Obj; mName=MethodName; }', [d.Name]));
   Fjs.WriteLn(Format('public %s() { mObject=this; mName="Execute"; }', [d.Name]));
-  Fjs.WriteLn(Format('protected %s throws NoSuchMethodException { throw new NoSuchMethodException(); }', [GetJavaProcDeclaration(d, 'Execute')]));
+  Fjs.WriteLn(Format('protected abstract %s;', [GetJavaProcDeclaration(d, 'Execute')]));
   Fjs.DecI;
   Fjs.WriteLn('}');
   Fjs.WriteLn;
