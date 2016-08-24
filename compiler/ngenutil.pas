@@ -203,35 +203,51 @@ implementation
 
   class function tnodeutils.initialize_data_node(p:tnode; force: boolean):tnode;
     begin
-      if not assigned(p.resultdef) then
-        typecheckpass(p);
-      if is_ansistring(p.resultdef) or
-         is_wide_or_unicode_string(p.resultdef) or
-         is_interfacecom_or_dispinterface(p.resultdef) or
-         is_dynamic_array(p.resultdef) then
+      { prevent initialisation of hidden syms that were moved to
+        parentfpstructs: the original symbol isn't used anymore, the version
+        in parentfpstruct will be initialised when that struct gets initialised,
+        and references to it will actually be translated into references to the
+        field in the parentfpstruct (so we'll initialise it twice) }
+      if (target_info.system in systems_fpnestedstruct) and
+         (p.nodetype=loadn) and
+         (tloadnode(p).symtableentry.typ=localvarsym) and
+         (tloadnode(p).symtableentry.visibility=vis_hidden) then
         begin
-          result:=cassignmentnode.create(
-             ctypeconvnode.create_internal(p,voidpointertype),
-             cnilnode.create
-             );
-        end
-      else if (p.resultdef.typ=variantdef) then
-        begin
-          result:=ccallnode.createintern('fpc_variant_init',
-            ccallparanode.create(
-              ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
-            nil));
+          p.free;
+          result:=cnothingnode.create;
         end
       else
         begin
-          result:=ccallnode.createintern('fpc_initialize',
+          if not assigned(p.resultdef) then
+            typecheckpass(p);
+          if is_ansistring(p.resultdef) or
+             is_wide_or_unicode_string(p.resultdef) or
+             is_interfacecom_or_dispinterface(p.resultdef) or
+             is_dynamic_array(p.resultdef) then
+            begin
+              result:=cassignmentnode.create(
+                 ctypeconvnode.create_internal(p,voidpointertype),
+                 cnilnode.create
+                 );
+            end
+          else if (p.resultdef.typ=variantdef) then
+            begin
+              result:=ccallnode.createintern('fpc_variant_init',
                 ccallparanode.create(
-                    caddrnode.create_internal(
-                        crttinode.create(
-                            tstoreddef(p.resultdef),initrtti,rdt_normal)),
-                ccallparanode.create(
-                    caddrnode.create_internal(p),
-                nil)));
+                  ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
+                nil));
+            end
+          else
+            begin
+              result:=ccallnode.createintern('fpc_initialize',
+                    ccallparanode.create(
+                        caddrnode.create_internal(
+                            crttinode.create(
+                                tstoreddef(p.resultdef),initrtti,rdt_normal)),
+                    ccallparanode.create(
+                        caddrnode.create_internal(p),
+                    nil)));
+            end;
         end;
     end;
 
@@ -240,41 +256,53 @@ implementation
     var
       hs : string;
     begin
-      if not assigned(p.resultdef) then
-        typecheckpass(p);
-      { 'decr_ref' suffix is somewhat misleading, all these helpers
-        set the passed pointer to nil now }
-      if is_ansistring(p.resultdef) then
-        hs:='fpc_ansistr_decr_ref'
-      else if is_widestring(p.resultdef) then
-        hs:='fpc_widestr_decr_ref'
-      else if is_unicodestring(p.resultdef) then
-        hs:='fpc_unicodestr_decr_ref'
-      else if is_interfacecom_or_dispinterface(p.resultdef) then
-        hs:='fpc_intf_decr_ref'
-      else
-        hs:='';
-      if hs<>'' then
-        result:=ccallnode.createintern(hs,
-           ccallparanode.create(
-             ctypeconvnode.create_internal(p,voidpointertype),
-             nil))
-      else if p.resultdef.typ=variantdef then
+      { see comment in initialize_data_node above }
+      if (target_info.system in systems_fpnestedstruct) and
+         (p.nodetype=loadn) and
+         (tloadnode(p).symtableentry.typ=localvarsym) and
+         (tloadnode(p).symtableentry.visibility=vis_hidden) then
         begin
-          result:=ccallnode.createintern('fpc_variant_clear',
-            ccallparanode.create(
-              ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
-            nil));
+          p.free;
+          result:=cnothingnode.create;
         end
       else
-        result:=ccallnode.createintern('fpc_finalize',
-              ccallparanode.create(
-                  caddrnode.create_internal(
-                      crttinode.create(
-                          tstoreddef(p.resultdef),initrtti,rdt_normal)),
-              ccallparanode.create(
-                  caddrnode.create_internal(p),
-              nil)));
+        begin
+          if not assigned(p.resultdef) then
+            typecheckpass(p);
+          { 'decr_ref' suffix is somewhat misleading, all these helpers
+            set the passed pointer to nil now }
+          if is_ansistring(p.resultdef) then
+            hs:='fpc_ansistr_decr_ref'
+          else if is_widestring(p.resultdef) then
+            hs:='fpc_widestr_decr_ref'
+          else if is_unicodestring(p.resultdef) then
+            hs:='fpc_unicodestr_decr_ref'
+          else if is_interfacecom_or_dispinterface(p.resultdef) then
+            hs:='fpc_intf_decr_ref'
+          else
+            hs:='';
+          if hs<>'' then
+            result:=ccallnode.createintern(hs,
+               ccallparanode.create(
+                 ctypeconvnode.create_internal(p,voidpointertype),
+                 nil))
+          else if p.resultdef.typ=variantdef then
+            begin
+              result:=ccallnode.createintern('fpc_variant_clear',
+                ccallparanode.create(
+                  ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
+                nil));
+            end
+          else
+            result:=ccallnode.createintern('fpc_finalize',
+                  ccallparanode.create(
+                      caddrnode.create_internal(
+                          crttinode.create(
+                              tstoreddef(p.resultdef),initrtti,rdt_normal)),
+                  ccallparanode.create(
+                      caddrnode.create_internal(p),
+                  nil)));
+        end;
     end;
 
 
