@@ -95,8 +95,6 @@ implementation
       var
         stringtype: tstringtype;
         strrecdef: trecorddef;
-        srsym: tsym;
-        srsymtable: tsymtable;
         offset: pint;
         field: tfieldvarsym;
         llvmfield: tllvmshadowsymtableentry;
@@ -115,9 +113,7 @@ implementation
             internalerror(2014040804);
         end;
         { get the recorddef for this string constant }
-        if not searchsym_type(ctai_typedconstbuilder.get_dynstring_rec_name(stringtype,winlikewidestring,len),srsym,srsymtable) then
-          internalerror(2014080405);
-        strrecdef:=trecorddef(ttypesym(srsym).typedef);
+        strrecdef:=ctai_typedconstbuilder.get_dynstring_rec(stringtype,winlikewidestring,len);
         { offset in the record of the the string data }
         offset:=ctai_typedconstbuilder.get_string_symofs(stringtype,winlikewidestring);
         { field corresponding to this offset }
