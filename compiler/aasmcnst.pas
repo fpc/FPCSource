@@ -336,6 +336,7 @@ type
      class function get_vectorized_dead_strip_section_symbol_end(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
 
      class function get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): TSymStr;
+     class function get_dynstring_rec(typ: tstringtype; winlike: boolean; len: asizeint): trecorddef;
      { the datalist parameter specifies where the data for the string constant
        will be emitted (via an internal data builder) }
      function emit_ansistring_const(datalist: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding): tasmlabofs;
@@ -1462,6 +1463,72 @@ implementation
            internalerror(2014080402);
        end;
        result:=result+tostr(len);
+     end;
+
+
+   class function ttai_typedconstbuilder.get_dynstring_rec(typ: tstringtype; winlike: boolean; len: asizeint): trecorddef;
+     var
+       name: TSymStr;
+       streledef: tdef;
+       strtypesym: ttypesym;
+       srsym: tsym;
+       srsymtable: tsymtable;
+     begin
+       name:=get_dynstring_rec_name(typ,winlike,len);
+       { search in the interface of all units for the type to reuse it }
+       if searchsym_type(name,srsym,srsymtable) then
+         begin
+           result:=trecorddef(ttypesym(srsym).typedef);
+           exit;
+         end
+       else
+         begin
+           { also search the implementation of the current unit }
+           strtypesym:=try_search_current_module_type(name);
+           if assigned(strtypesym) then
+             begin
+               result:=trecorddef(strtypesym.typedef);
+               exit;
+             end;
+         end;
+       if (typ<>st_widestring) or
+          not winlike then
+         begin
+           result:=crecorddef.create_global_internal('$'+name,1,1,1);
+           { encoding }
+           result.add_field_by_def('',u16inttype);
+           { element size }
+           result.add_field_by_def('',u16inttype);
+           { elements }
+           case typ of
+             st_ansistring:
+               streledef:=cansichartype;
+             st_unicodestring:
+               streledef:=cwidechartype;
+             else
+               internalerror(2016082301);
+           end;
+{$ifdef cpu64bitaddr}
+           { dummy for alignment }
+           result.add_field_by_def('',u32inttype);
+{$endif cpu64bitaddr}
+           { reference count }
+           result.add_field_by_def('',ptrsinttype);
+           { length in elements }
+           result.add_field_by_def('',ptrsinttype);
+         end
+       else
+         begin
+           result:=crecorddef.create_global_internal('$'+name,4,
+             targetinfos[target_info.system]^.alignment.recordalignmin,
+             targetinfos[target_info.system]^.alignment.maxCrecordalign);
+           { length in bytes }
+           result.add_field_by_def('',s32inttype);
+           streledef:=cwidechartype;
+         end;
+       { data (include zero terminator) }
+       result.add_field_by_def('',carraydef.getreusable(streledef,len+1));
+       trecordsymtable(trecorddef(result).symtable).addalignmentpadding;
      end;
 
 
