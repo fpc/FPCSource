@@ -81,6 +81,8 @@ function TAsmDataDef.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: 
 
 
 begin
-  casmdata:=TAsmDataDef;
+  { Do not overwrite if already set, by powerpc specific code for example }
+  if not assigned(casmdata) then
+    casmdata:=TAsmDataDef;
 end.
 
