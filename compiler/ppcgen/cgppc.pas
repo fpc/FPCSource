@@ -27,7 +27,7 @@ unit cgppc;
     uses
        globtype,symtype,symdef,
        cgbase,cgobj,
-       aasmbase,aasmcpu,aasmtai,aasmdata,
+       aasmbase,aasmdef,aasmcpu,aasmtai,aasmdata,
        cpubase,cpuinfo,cgutils,rgcpu,
        parabase;
 
@@ -95,7 +95,7 @@ unit cgppc;
      end;
 
 
-  TPPCAsmData = class(TAsmData)
+  TPPCAsmData = class(TAsmDataDef)
    private
     { number of entries in the TOC }
     fdirecttocentries,
