@@ -589,7 +589,7 @@ implementation
         pu:=tused_unit(hp.used_units.first);
         while assigned(pu) do
           begin
-            if not pu.u.is_dbginfo_written then
+            if not pu.u.is_dbginfo_written and not assigned(pu.u.package) then
               begin
                 { prevent infinte loop for circular dependencies }
                 pu.u.is_dbginfo_written:=true;

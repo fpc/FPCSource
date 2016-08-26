@@ -1854,7 +1854,7 @@ implementation
         hp:=tmodule(loaded_units.first);
         while assigned(hp) do
           begin
-            If (hp.flags and uf_has_stabs_debuginfo)=uf_has_stabs_debuginfo then
+            If ((hp.flags and uf_has_stabs_debuginfo)=uf_has_stabs_debuginfo) and not assigned(hp.package) then
               begin
                 list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',hp.localsymtable,''),0));
                 list.concat(Tai_const.Createname(make_mangledname('DEBUGSTART',hp.localsymtable,''),0));
