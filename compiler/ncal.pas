@@ -4850,6 +4850,36 @@ implementation
       end;
 
 
+    { reference symbols that are imported from another unit }
+    function importglobalsyms(var n:tnode; arg:pointer):foreachnoderesult;
+      var
+        sym : tsym;
+      begin
+        result:=fen_false;
+        if n.nodetype=loadn then
+          begin
+            sym:=tloadnode(n).symtableentry;
+            if sym.typ=staticvarsym then
+              begin
+                if FindUnitSymtable(tloadnode(n).symtable).moduleid<>current_module.moduleid then
+                  current_module.addimportedsym(sym);
+              end
+            else if (sym.typ=constsym) and (tconstsym(sym).consttyp=constresourcestring) then
+              begin
+                if tloadnode(n).symtableentry.owner.moduleid<>current_module.moduleid then
+                  current_module.addimportedsym(sym);
+              end;
+          end
+        else if (n.nodetype=calln) then
+          begin
+            if (assigned(tcallnode(n).procdefinition)) and
+               (tcallnode(n).procdefinition.typ=procdef) and
+               (findunitsymtable(tcallnode(n).procdefinition.owner).moduleid<>current_module.moduleid) then
+              current_module.addimportedsym(tprocdef(tcallnode(n).procdefinition).procsym);
+          end;
+      end;
+
+
     function tcallnode.pass1_inline:tnode;
       var
         n,
@@ -4887,6 +4917,7 @@ implementation
         { create a copy of the body and replace parameter loads with the parameter values }
         body:=tprocdef(procdefinition).inlininginfo^.code.getcopy;
         foreachnodestatic(pm_postprocess,body,@removeusercodeflag,nil);
+        foreachnodestatic(pm_postprocess,body,@importglobalsyms,nil);
         foreachnode(pm_preprocess,body,@replaceparaload,@fileinfo);
 
         { Concat the body and finalization parts }
