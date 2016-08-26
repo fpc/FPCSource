@@ -45,8 +45,6 @@ type
 const
   CurrentPPUVersion = 185;
 
-  ppubufsize   = 16384;
-
 { unit flags }
   uf_init                = $000001; { unit has initialization section }
   uf_finalize            = $000002; { unit has finalization section   }
@@ -238,24 +236,12 @@ begin
   header.indirect_checksum := swapendian(header.indirect_checksum);
   header.deflistsize:=swapendian(header.deflistsize);
   header.symlistsize:=swapendian(header.symlistsize);
-{$ENDIF}
+
   { the PPU DATA is stored in native order }
-  if (header.common.flags and uf_big_endian) = uf_big_endian then
-   Begin
-{$IFDEF ENDIAN_LITTLE}
-     change_endian := TRUE;
-{$ELSE}
-     change_endian := FALSE;
+  change_endian := (header.common.flags and uf_little_endian) = uf_little_endian;
+{$ELSE not ENDIAN_BIG}
+  change_endian := (header.common.flags and uf_big_endian) = uf_big_endian;
 {$ENDIF}
-   End
-  else if (header.common.flags and uf_little_endian) = uf_little_endian then
-   Begin
-{$IFDEF ENDIAN_BIG}
-     change_endian := TRUE;
-{$ELSE}
-     change_endian := FALSE;
-{$ENDIF}
-   End;
 end;
 
 function tppufile.outputallowed: boolean;
