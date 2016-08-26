@@ -873,14 +873,12 @@ implementation
     function tcasenode.simplify(forinline:boolean):tnode;
       var
         tmp: pcaselabel;
-        walkup: boolean;
       begin
         result:=nil;
         if left.nodetype=ordconstn then
           begin
             tmp:=labels;
             { check all case labels until we find one that fits }
-            walkup:=assigned(tmp^.greater);
             while assigned(tmp) do
               begin
                 if (tmp^._low<=tordconstnode(left).value) and
@@ -895,7 +893,7 @@ implementation
                     exit;
                   end;
 
-                if walkup then
+                if tmp^._high<tordconstnode(left).value then
                   tmp:=tmp^.greater
                 else
                   tmp:=tmp^.less;
