@@ -1456,10 +1456,13 @@ implementation
                     spezdef:=generate_specialization_phase2(spezcontext,tstoreddef(spezdef),false,'');
                     spezcontext.free;
                     spezcontext:=nil;
-                    srsym:=spezdef.typesym;
-                    srsymtable:=srsym.owner;
-                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                    result:=true;
+                    if spezdef<>generrordef then
+                      begin
+                        srsym:=spezdef.typesym;
+                        srsymtable:=srsym.owner;
+                        check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                        result:=true;
+                      end;
                   end;
                 else
                   internalerror(2015070302);

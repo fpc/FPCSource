@@ -13730,6 +13730,7 @@ tests/webtbf/tw2996.pp svneol=native#text/plain
 tests/webtbf/tw3000.pp svneol=native#text/plain
 tests/webtbf/tw30022.pp svneol=native#text/plain
 tests/webtbf/tw3047.pp svneol=native#text/plain
+tests/webtbf/tw30494.pp svneol=native#text/pascal
 tests/webtbf/tw3114.pp svneol=native#text/plain
 tests/webtbf/tw3116.pp svneol=native#text/plain
 tests/webtbf/tw3126.pp svneol=native#text/plain
