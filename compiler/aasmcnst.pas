@@ -1367,7 +1367,9 @@ implementation
        { if we're starting an anonymous record, we can't align it yet because
          the alignment depends on the fields that will be added -> we'll do
          it at the end }
-       else if not anonymous then
+       else if not anonymous or
+          ((def.typ<>recorddef) and
+           not is_object(def)) then
          begin
            { add padding if necessary, and update the current field/offset }
            info:=curagginfo;
