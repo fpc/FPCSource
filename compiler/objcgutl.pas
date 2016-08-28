@@ -200,7 +200,7 @@ procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpo
         entry^.Data:=reflab;
 
         { add a pointer to the string in the string references section }
-        tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
+        tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section,tcalo_no_dead_strip]);
 
         tcb.emit_tai(Tai_const.Create_sym(strlab),strdef);
         current_asmdata.asmlists[al_objc_pools].concatList(
@@ -283,6 +283,9 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
     SectName : array [Boolean, Boolean] of string[20] =
       (('_OBJC_INST_METH','_OBJC_CLS_METH'),
        ('_OBJC_CAT_INST_METH','_OBJC_CAT_CLS_METH'));
+                   {frag/non-frag ABI}
+    SectFlags : array [Boolean] of ttcasmlistoptions =
+     ([tcalo_new_section],[tcalo_new_section,tcalo_no_dead_strip]);
                         {inst/cls}
     instclsName : array [Boolean] of string = ('INSTANCE','CLASS');
   type
@@ -321,7 +324,7 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
     if mcnt=0 then
       exit;
 
-    tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+    tcb:=ctai_typedconstbuilder.create(SectFlags[target_info.system in systems_objc_nfabi]);
     tcb.begin_anonymous_record(internaltypeprefixName[itp_objc_method_list]+tostr(mcnt),
       C_alignment,1,
       targetinfos[target_info.system]^.alignment.recordalignmin,
@@ -698,7 +701,7 @@ function tobjcrttiwriter_fragile.gen_objc_protocol_ext(list: TAsmList; optinstsy
        assigned(optclssym) then
       begin
         current_asmdata.getlabel(Result,alt_data);
-        tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+        tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
         tcb.begin_anonymous_record(
           internaltypeprefixName[itb_objc_fr_protocol_ext],
           C_alignment,1,
@@ -746,7 +749,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_protocol(list:TAsmList; protocol: tob
     current_asmdata.getlabel(lbl,alt_data);
     protocollabel:=lbl;
 
-    tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);;
+    tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
     tcb.begin_anonymous_record(
       internaltypeprefixName[itb_objc_fr_protocol],
       C_alignment,1,
@@ -817,7 +820,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_category_sections(list:TAsmList; objc
     gen_objc_protocol_list(list,objccat.ImplementedInterfaces,protolistsym);
 
     { category declaration section }
-    tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+    tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
     tcb.begin_anonymous_record(
       internaltypeprefixName[itb_objc_fr_category],
       C_alignment,1,
@@ -935,7 +938,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
     { class declaration section }
 
     { 1) meta-class declaration  }
-    tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+    tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
     tcb.begin_anonymous_record(internaltypeprefixName[itb_objc_fr_meta_class],
       C_alignment,1,
       targetinfos[target_info.system]^.alignment.recordalignmin,
@@ -991,7 +994,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
     { generate the instance variables list }
     gen_objc_ivars(list,objclss,ivarslist);
 
-    tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+    tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
     tcb.begin_anonymous_record(internaltypeprefixName[itb_objc_fr_class],
       C_alignment,1,
       targetinfos[target_info.system]^.alignment.recordalignmin,
@@ -1060,7 +1063,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_info_sections(list: tasmlist);
     if (classsyms.count<>0) or
        (catsyms.count<>0) then
       begin
-        tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+        tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
         tcb.begin_anonymous_record('',
           C_alignment,1,
           targetinfos[target_info.system]^.alignment.recordalignmin,
@@ -1092,7 +1095,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_info_sections(list: tasmlist);
         symsdef:=nil;
       end;
 
-    tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+    tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
     tcb.begin_anonymous_record('',
       C_alignment,1,
       targetinfos[target_info.system]^.alignment.recordalignmin,
@@ -1252,7 +1255,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tob
     if vcnt=0 then
       exit;
 
-    tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
+    tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section,tcalo_no_dead_strip]);
 
     current_asmdata.getlabel(ivarslabel,alt_data);
 
@@ -1377,7 +1380,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
     { also add an entry to the __DATA, __objc_protolist section, required to
       register the protocol with the runtime }
     listsym:=current_asmdata.DefineAsmSymbol(protocol.rtti_mangledname(objcmetartti),AB_PRIVATE_EXTERN,AT_DATA,cpointerdef.getreusable(prottype));
-    tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_weak]);
+    tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_weak,tcalo_no_dead_strip]);
     tcb.emit_tai(tai_const.Create_sym(lbl),cpointerdef.getreusable(prottype));
     list.concatList(
       tcb.get_final_asmlist(
@@ -1811,7 +1814,7 @@ procedure tobjcrttiwriter_nonfragile.addclasslist(list: tasmlist; section: tasms
   begin
     if classes.count=0 then
       exit;
-    tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+    tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
     arrdef:=carraydef.getreusable(voidpointertype,classes.count);
     sym:=current_asmdata.DefineAsmSymbol(symname,AB_LOCAL,AT_DATA,arrdef);
     tcb.maybe_begin_aggregate(arrdef);
@@ -1910,7 +1913,7 @@ procedure MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
           next 4 bytes contain flags (currently only regarding whether the code in the object
           file supports or requires garbage collection)
         }
-        tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+        tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
         tcb.emit_ord_const(0,u64inttype);
         current_asmdata.asmlists[al_objc_data].concatList(
           tcb.get_final_asmlist(
