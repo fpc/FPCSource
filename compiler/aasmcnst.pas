@@ -949,8 +949,15 @@ implementation
          kept via the linker script) }
        if tcalo_no_dead_strip in options then
          begin
-           if target_info.system in systems_darwin then
-             prelist.concat(tai_directive.Create(asd_reference,sym.name))
+           if (target_info.system in systems_darwin) then
+             begin
+              { Objective-C section declarations contain "no_dead_strip"
+                attributes if none of their symbols need to be stripped -> don't
+                add extra ".reference" statement for their symbols (gcc/clang
+                don't either) }
+              if not(section in [low(TObjCAsmSectionType)..high(TObjCAsmSectionType)]) then
+                prelist.concat(tai_directive.Create(asd_reference,sym.name))
+             end
            else if section<>sec_fpc then
              internalerror(2015101402);
          end;
