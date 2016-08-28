@@ -1136,13 +1136,16 @@ implementation
        options: ttcasmlistoptions;
        foundsec: longint;
      begin
-       options:=[tcalo_is_lab];
-       { Add a section header if the previous one was different. We'll use the
-         same section name in case multiple items are added to the same kind of
-         section (rodata, rodata_no_rel, ...), so that everything will still
-         end up in the same section even if there are multiple section headers }
-       if finternal_data_current_section<>sectype then
-         include(options,tcalo_new_section);
+       { you can't start multiple concurrent internal data builders for the
+         same tcb, finish the first before starting another }
+       if finternal_data_current_section<>sec_none then
+         internalerror(2016082801);
+       { we don't know what was previously added to this list, so always add
+         a section header. We'll use the same section name in case multiple
+         items are added to the same kind of section (rodata, rodata_no_rel,
+         ...), so that everything will still end up in the same section even if
+         there are multiple section headers }
+       options:=[tcalo_is_lab,tcalo_new_section];
        finternal_data_current_section:=sectype;
        l:=nil;
        { did we already create a section of this type for the internal data of
@@ -1217,6 +1220,7 @@ implementation
          alignment));
        tcb.free;
        tcb:=nil;
+       finternal_data_current_section:=sec_none;
      end;
 
 
