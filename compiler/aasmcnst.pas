@@ -384,7 +384,7 @@ type
        filled in with the actual data (via ttypedconstplaceholder.replace)
 
        useful in case you have table preceded by the number of elements, and
-       you cound the elements while building the table }
+       you count the elements while building the table }
      function emit_placeholder(def: tdef): ttypedconstplaceholder; virtual; abstract;
     protected
      { common code to check whether a placeholder can be added at the current
