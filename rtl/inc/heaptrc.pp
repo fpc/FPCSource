@@ -82,6 +82,8 @@ const
   { add a small footprint at the end of memory blocks, this
     can check for memory overwrites at the end of a block }
   add_tail : boolean = true;
+  tail_size : longint = sizeof(ptruint);
+
   { put crc in sig
     this allows to test for writing into that part }
   usecrc : boolean = true;
@@ -233,8 +235,8 @@ begin
    if add_tail then
      begin
         { Check also 4 bytes just after allocation !! }
-        pl:=pointer(p)+p^.extra_info_size+sizeof(theap_mem_info)+p^.size;
-        crc:=UpdateCrc32(crc,pl^,sizeof(ptruint));
+        pl:=pointer(p)+sizeof(theap_mem_info)+p^.size;
+        crc:=UpdateCrc32(crc,pl^,tail_size);
      end;
    calculate_sig:=crc;
 end;
@@ -258,7 +260,7 @@ begin
      begin
         { Check also 4 bytes just after allocation !! }
         pl:=pointer(p)+p^.extra_info_size+sizeof(theap_mem_info)+p^.size;
-        crc:=UpdateCrc32(crc,pl^,sizeof(ptruint));
+        crc:=UpdateCrc32(crc,pl^,tail_size);
      end;
    calculate_release_sig:=crc;
 end;
@@ -364,6 +366,40 @@ begin
   dump_stack(ptext,1);
 end;
 
+function released_modified(p : pheap_mem_info;var ptext : text) : boolean;
+ var pl : pdword;
+     pb : pbyte;
+     i : longint;
+begin
+  released_modified:=false; 
+  { Check tail_size bytes just after allocation !! }
+  pl:=pointer(p)+sizeof(theap_mem_info)+p^.size;
+  pb:=pointer(p)+sizeof(theap_mem_info);
+  for i:=0 to p^.size-1 do
+    if pb[i]<>$F0 then
+      begin
+        Writeln(ptext,'offset',i,':$',hexstr(i,2*sizeof(pointer)),'"',hexstr(pb[i],2),'"');
+        released_modified:=true; 
+      end;
+  for i:=1 to (tail_size div sizeof(dword)) do
+    begin
+      if unaligned(pl^) <> AllocateSig then
+        begin
+          released_modified:=true; 
+          writeln(ptext,'Tail modified after release at pos ',i*sizeof(ptruint));
+          printhex(pointer(p)+p^.extra_info_size+sizeof(theap_mem_info)+p^.size,tail_size,ptext);
+          break;
+        end;
+      inc(pointer(pl),sizeof(dword));
+    end;
+  if released_modified then
+    begin
+      dump_already_free(p,ptext);
+      if @stderr<>@ptext then
+        dump_already_free(p,stderr);
+    end;
+end;
+
 {$ifdef EXTRA}
 procedure dump_change_after(p : pheap_mem_info;var ptext : text);
  var pp : pchar;
@@ -457,7 +493,7 @@ end;
 
 Function TraceGetMem(size:ptruint):pointer;
 var
-  allocsize : ptruint;
+  i, allocsize : ptruint;
   pl : pdword;
   p  : pointer;
   pp : pheap_mem_info;
@@ -474,7 +510,7 @@ begin
   allocsize:=size+sizeof(theap_mem_info)+extra_info_size;
 {$endif cpuarm}
   if add_tail then
-    inc(allocsize,sizeof(ptruint));
+    inc(allocsize,tail_size);
   { if ReturnNilIfGrowHeapFails is true
     SysGetMem can return nil }
   p:=SysGetMem(allocsize);
@@ -515,8 +551,12 @@ begin
    pp^.extra_info:=nil;
   if add_tail then
     begin
-      pl:=pointer(pp)+allocsize-pp^.extra_info_size-sizeof(ptruint);
-      unaligned(pl^):=longword(AllocateSig);
+      pl:=pointer(pp)+allocsize-pp^.extra_info_size-tail_size;
+      for i:=1 to tail_size div sizeof(dword) do
+        begin
+          unaligned(pl^):=dword(AllocateSig);
+          inc(pointer(pl),sizeof(dword));
+        end;
     end;
   { clear the memory }
   fillchar(p^,size,#255);
@@ -658,7 +698,7 @@ begin
   extra_size:=pp^.extra_info_size;
   ppsize:= size+sizeof(theap_mem_info)+pp^.extra_info_size;
   if add_tail then
-    inc(ppsize,sizeof(ptruint));
+    inc(ppsize,tail_size);
   { do various checking }
   release_mem := CheckFreeMemSize(loc_info, pp, size, ppsize);
   if release_todo_lock then
@@ -670,7 +710,7 @@ begin
     { return the correct size }
     dec(i,sizeof(theap_mem_info)+extra_size);
     if add_tail then
-      dec(i,sizeof(ptruint));
+      dec(i,tail_size);
     InternalFreeMemSize:=i;
   end else
     InternalFreeMemSize:=size;
@@ -737,7 +777,7 @@ begin
   l:=SysMemSize(pp);
   dec(l,sizeof(theap_mem_info)+pp^.extra_info_size);
   if add_tail then
-   dec(l,sizeof(ptruint));
+   dec(l,tail_size);
   { this can never happend normaly }
   if pp^.size>l then
    begin
@@ -761,7 +801,7 @@ end;
 function TraceReAllocMem(var p:pointer;size:ptruint):Pointer;
 var
   newP: pointer;
-  allocsize,
+  i, allocsize,
   movesize  : ptruint;
   pl : pdword;
   pp : pheap_mem_info;
@@ -823,7 +863,7 @@ begin
   allocsize:=size+sizeof(theap_mem_info)+pp^.extra_info_size;
 {$endif cpuarm}
   if add_tail then
-   inc(allocsize,sizeof(ptruint));
+   inc(allocsize,tail_size);
   { Try to resize the block, if not possible we need to do a
     getmem, move data, freemem }
   if not SysTryResizeMem(pp,allocsize) then
@@ -867,9 +907,13 @@ begin
    pp^.extra_info:=nil;
   if add_tail then
     begin
-      pl:=pointer(pp)+allocsize-pp^.extra_info_size-sizeof(ptruint);
-      unaligned(pl^):=longword(AllocateSig);
-    end;
+      pl:=pointer(pp)+allocsize-pp^.extra_info_size-tail_size;
+      for i:=1 to tail_size div sizeof(dword) do
+        begin
+          unaligned(pl^):=dword(AllocateSig);
+          inc(pointer(pl),sizeof(dword));
+        end;
+   end;
   { adjust like a freemem and then a getmem, so you get correct
     results in the summary display }
   inc(loc_info^.freemem_size,oldsize);
@@ -1175,6 +1219,8 @@ begin
      else if pp^.sig<>longword(ReleaseSig) then
        begin
           dump_error(pp,ptext^);
+          if @stderr<>ptext then
+            dump_error(pp,stderr);
 {$ifdef EXTRA}
           dump_error(pp,error_file);
 {$endif EXTRA}
@@ -1187,6 +1233,12 @@ begin
           dump_change_after(pp,error_file);
           loc_info^.error_in_heap:=true;
        end
+{$else not EXTRA}
+     else
+       begin
+         if released_modified(pp,ptext^) then
+           exitcode:=203;
+       end;
 {$endif EXTRA}
        ;
      pp:=pp^.previous;
@@ -1364,6 +1416,9 @@ const
     GetFPCHeapStatus : @TraceGetFPCHeapStatus;
   );
 
+var
+  PrevMemoryManager : TMemoryManager;
+
 procedure TraceInit;
 begin
   textoutput := @stderr;
@@ -1372,6 +1427,7 @@ begin
   main_orig_todolist := @heap_info.heap_free_todo;
   main_relo_todolist := nil;
   TraceInitThread;
+  GetMemoryManager(PrevMemoryManager);
   SetMemoryManager(TraceManager);
   useownfile:=false;
   if outputstr <> '' then
@@ -1421,6 +1477,8 @@ begin
          end;
        exit;
     end;
+  { Disable heaptrc memory manager to avoid problems }
+  GetMemoryManager(PrevMemoryManager);
   move_heap_info(@orphaned_info, @heap_info);
   dumpheap;
   if heap_info.error_in_heap and (exitcode=0) then
@@ -1559,7 +1617,8 @@ end;
 procedure LoadEnvironment;
 var
   i,j : ptruint;
-  s   : string;
+  s,s2   : string;
+  err : word;
 begin
   s:=Getenv('HEAPTRC');
   if pos('keepreleased',s)>0 then
@@ -1572,6 +1631,22 @@ begin
    HaltOnNotReleased :=true;
   if pos('skipifnoleaks',s)>0 then
    GlobalSkipIfNoLeaks :=true;
+  if pos('tail_size=',s)>0 then
+    begin
+      i:=pos('tail_size=',s)+length('tail_size=');
+      s2:='';
+      while (i<=length(s)) and (s[i] in ['0'..'9']) do
+        begin
+          s2:=s2+s[i];
+          inc(i);
+        end;
+      val(s2,tail_size,err);
+      if err=0 then
+        tail_size:=((tail_size + sizeof(ptruint)-1) div sizeof(ptruint)) * sizeof(ptruint)
+      else
+        tail_size:=sizeof(ptruint);
+      add_tail:=(tail_size > 0);
+    end;
   i:=pos('log=',s);
   if i>0 then
    begin
