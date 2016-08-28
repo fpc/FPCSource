@@ -17,6 +17,12 @@
   dependent on objpas unit.
 }
 
+{ Disable checks of pointers explictly,
+  as we are dealing here with special pointer that
+  might be seen as invalid by heaptrc unit CheckPointer function }
+
+{$checkpointer off}
+
 {$mode objfpc}
 
 unit exeinfo;
