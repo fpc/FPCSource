@@ -1564,15 +1564,13 @@ end;
         expansion under linux }
 {$ifdef hasunix}
       begin
-        if do_checkverbosity(V_Used) then
-          do_comment(V_Executable,'Executing "'+Command+'" with fpSystem call');
+        do_comment(V_Executable,'Executing "'+Command+'" with fpSystem call');
         result := Unix.fpsystem(command);
       end;
 {$else hasunix}
   {$ifdef hasamiga}
       begin
-        if do_checkverbosity(V_Used) then
-          do_comment(V_Executable,'Executing "'+Command+'" using RequotedExecuteProcess');
+        do_comment(V_Executable,'Executing "'+Command+'" using RequotedExecuteProcess');
         result := RequotedExecuteProcess('',command);
       end;
   {$else hasamiga}
@@ -1580,8 +1578,7 @@ end;
         comspec : string;
       begin
         comspec:=GetEnvironmentVariable('COMSPEC');
-        if do_checkverbosity(V_Used) then
-          do_comment(V_Executable,'Executing "'+Command+'" using comspec "'
+        do_comment(V_Executable,'Executing "'+Command+'" using comspec "'
             +ComSpec+'"');
         result := RequotedExecuteProcess(comspec,' /C '+command);
       end;
