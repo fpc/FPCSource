@@ -562,7 +562,10 @@ implementation
           { align; the named fields are so that we can let the compiler
             calculate the string offsets later on }
           tcb.next_field_name:='size_start_rec';
-          tcb.begin_anonymous_record('',defaultpacking,reqalign,
+          { add a typename so that it can be reused when writing the the s2o
+            and o2s arrays for llvm (otherwise we have to write out the entire
+            type definition every time we access an element from this record) }
+          tcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_enum_size_start_rec]+def.unique_id_str,defaultpacking,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
           case longint(def.size) of
@@ -581,7 +584,7 @@ implementation
 
             We need to adhere to this, otherwise things will break. }
           tcb.next_field_name:='min_max_rec';
-          tcb.begin_anonymous_record('',defaultpacking,reqalign,
+          tcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_enum_min_max_rec]+def.unique_id_str,defaultpacking,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
           tcb.emit_ord_const(def.min,s32inttype);
@@ -589,7 +592,7 @@ implementation
           tcb.next_field_name:='basetype_array_rec';
           { all strings must appear right after each other -> from now on
             packrecords 1 (but the start must still be aligned) }
-          tcb.begin_anonymous_record('',1,reqalign,
+          tcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_enum_basetype_array_rec]+def.unique_id_str,1,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
           { write base type }
