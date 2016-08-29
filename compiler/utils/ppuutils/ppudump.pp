@@ -1438,6 +1438,72 @@ begin
 end;
 
 
+procedure readcgpara(const space:string);
+{ this is originally in cgbase.pas }
+type
+  TCGLoc=(LOC_INVALID, LOC_VOID, LOC_CONSTANT, LOC_JUMP, LOC_FLAGS,
+          LOC_REGISTER, LOC_CREGISTER, LOC_FPUREGISTER, LOC_CFPUREGISTER,
+          LOC_MMXREGISTER, LOC_CMMXREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
+          LOC_SUBSETREG, LOC_CSUBSETREG, LOC_SUBSETREF, LOC_CSUBSETREF,
+          LOC_CREFERENCE, LOC_REFERENCE);
+
+const
+  tcgloc2str : array[TCGLoc] of string[12] = (
+         'LOC_INVALID', 'LOC_VOID', 'LOC_CONST', 'LOC_JUMP', 'LOC_FLAGS',
+         'LOC_REG', 'LOC_CREG', 'LOC_FPUREG', 'LOC_CFPUREG',
+         'LOC_MMXREG', 'LOC_CMMXREG', 'LOC_MMREG', 'LOC_CMMREG',
+         'LOC_SSETREG', 'LOC_CSSETREG', 'LOC_SSETREF', 'LOC_CSSETREF',
+         'LOC_CREF', 'LOC_REF');
+var
+  i: byte;
+  ii: longint;
+  np: byte;
+  loc: tcgloc;
+begin
+  i:=ppufile.getbyte;
+  writeln([space,'   Alignment : ',i]);
+  i:=ppufile.getbyte;
+  writeln([space,'        Size : ',i]);
+  ii:=ppufile.getaint;
+  writeln([space,'     IntSize : ',ii]);
+  readderef(space+'  ');
+  np:=ppufile.getbyte;
+  writeln([space,'  NumParaloc : ',np]);
+  while np > 0 do
+    begin
+      i:=ppufile.getbyte;
+      writeln([space,'     Paraloc Size : ',i]);
+      loc:=tcgloc(ppufile.getbyte);
+      if loc > high(tcgloc) then
+        begin
+          WriteError('!! Location is out of range! '+IntToStr(ord(loc)));
+          loc:=LOC_INVALID;
+        end;
+      writeln([space,'     Paraloc Loc  : (',ord(loc),') ',tcgloc2str[loc]]);
+      case loc of
+        LOC_REFERENCE:
+          begin
+            writeln([space,'     RegIndex : $',hexstr(ppufile.getdword,8)]);
+            writeln([space,'       Offset : ',ppufile.getaint]);
+          end;
+        LOC_FPUREGISTER,
+        LOC_CFPUREGISTER,
+        LOC_MMREGISTER,
+        LOC_CMMREGISTER,
+        LOC_REGISTER,
+        LOC_CREGISTER :
+          begin
+            writeln([space,'     ShiftVal : ',ppufile.getbyte]);
+            writeln([space,'     Register : $',hexstr(ppufile.getdword,8)]);
+          end;
+        LOC_VOID:
+          begin end
+        else
+          WriteError('!! Invalid location error')
+      end;
+      dec(np);
+    end;
+end;
 
 var
   { needed during tobjectdef parsing... }
@@ -1949,11 +2015,8 @@ begin
    end;
   if (po_explicitparaloc in procoptions) then
     begin
-      i:=ppufile.getbyte;
-      ppufile.getdata(tempbuf,i);
+      readcgpara(space);
     end;
-  if po_syscall_has_libsym in procoptions then
-      readderef(space);
 end;
 
 
@@ -2659,8 +2722,7 @@ begin
              writeln([space,'         Refs : ',getbyte]);
              if (vo_has_explicit_paraloc in varoptions) then
                begin
-                 i:=getbyte;
-                 getdata(tempbuf,i);
+                 readcgpara(space+'   ');
                end;
            end;
 
@@ -3099,14 +3161,11 @@ begin
                  ppufile.getdata(tokenbuf^,tokenbufsize);
                  freemem(tokenbuf);
                end;
-             if tsystemcpu(ppufile.header.common.cpu)=cpu_powerpc then
+             if po_syscall_has_libsym in procoptions then
                begin
-                 if po_syscall_has_libsym in procoptions then
-                   begin
-                     { library symbol for AmigaOS/MorphOS }
-                     write  ([space,'   Library symbol : ']);
-                     readderef('');
-                   end;
+                 { library symbol for AmigaOS/MorphOS/AROS }
+                 write  ([space,'   Library symbol : ']);
+                 readderef('');
                end;
              if not EndOfEntry then
                HasMoreInfos;
