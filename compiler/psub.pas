@@ -872,6 +872,7 @@ implementation
         { Generate procedure by combining init+body+final,
           depending on the implicit finally we need to add
           an try...finally...end wrapper }
+        current_filepos:=entrypos;
         newblock:=internalstatements(newstatement);
         { initialization is common for all cases }
         addstatement(newstatement,loadpara_asmnode);
@@ -925,7 +926,9 @@ implementation
               have managed variables/temps }
             maybe_add_constructor_wrapper(code,
               cs_implicit_exceptions in current_settings.moduleswitches);
+            current_filepos:=entrypos;
             addstatement(newstatement,code);
+            current_filepos:=exitpos;
             if assigned(nestedexitlabel) then
               addstatement(newstatement,clabelnode.create(cnothingnode.create,nestedexitlabel));
             addstatement(newstatement,exitlabel_asmnode);
@@ -938,7 +941,10 @@ implementation
               end;
           end;
         if not final_used then
-          cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
+          begin
+            current_filepos:=exitpos;
+            cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
+          end;
         do_firstpass(newblock);
         code:=newblock;
         current_filepos:=oldfilepos;
