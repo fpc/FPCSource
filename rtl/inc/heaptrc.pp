@@ -1478,7 +1478,7 @@ begin
        exit;
     end;
   { Disable heaptrc memory manager to avoid problems }
-  GetMemoryManager(PrevMemoryManager);
+  SetMemoryManager(PrevMemoryManager);
   move_heap_info(@orphaned_info, @heap_info);
   dumpheap;
   if heap_info.error_in_heap and (exitcode=0) then
