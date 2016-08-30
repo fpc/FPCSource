@@ -2832,6 +2832,12 @@ procedure TCompileWorkerThread.execute;
 begin
   while not Terminated do
     begin
+    { Make sure all of our results are committed before we set (F)Done to true.
+      While RTLeventSetEvent implies a barrier, once the main thread is notified
+      it will walk over all threads and look for those that have Done=true -> it
+      can look at a thread between that thread setting FDone to true and it
+      calling RTLEventSetEvent }
+    WriteBarrier;
     FDone:=true;
     RTLeventSetEvent(FNotifyMainThreadEvent);
     RTLeventWaitFor(FNotifyStartTask,500);
@@ -7486,6 +7492,8 @@ Var
   begin
     if AThread.Done then
       begin
+        { synchronise with the WriteBarrier in the thread }
+        ReadBarrier;
         if assigned(AThread.APackage) then
           begin
             // The thread has completed compiling the package
