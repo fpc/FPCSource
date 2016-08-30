@@ -62,6 +62,7 @@ begin
     T.ResourceStrings:=true;
 
     T:=P.Targets.AddUnit('pkgoptions.pp');
+    T:=P.Targets.AddUnit('pkgfppkg.pp');
     T:=P.Targets.AddUnit('pkgglobals.pp');
     T:=P.Targets.AddUnit('pkghandler.pp');
     T:=P.Targets.AddUnit('pkgmkconv.pp');

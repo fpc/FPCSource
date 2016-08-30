@@ -226,16 +226,6 @@ Type
     Property CompilerCPU : TCPU Read FCompilerCPU Write SetCompilerCPU;
   end;
 
-var
-  GlobalOptions : TFppkgOptions;
-
-  CompilerOptions : TCompilerOptions;
-  FPMakeCompilerOptions : TCompilerOptions;
-
-procedure LoadGlobalDefaults(CfgFile: string);
-procedure ClearCompilerDefaults;
-procedure LoadCompilerDefaults;
-
 Implementation
 
 uses
@@ -283,109 +273,6 @@ Const
   KeyCompilerOS            = 'OS';
   KeyCompilerCPU           = 'CPU';
   KeyCompilerVersion       = 'Version';
-
-
-procedure LoadGlobalDefaults(CfgFile: string);
-var
-  i : integer;
-  GeneratedConfig,
-  UseGlobalConfig : boolean;
-begin
-  GeneratedConfig:=false;
-  UseGlobalConfig:=false;
-  // First try specified config file
-  if (CfgFile<>'') then
-    begin
-      if not FileExists(cfgfile) then
-        Error(SErrNoSuchFile,[cfgfile]);
-    end
-  else
-    begin
-      // Now try if a local config-file exists
-      cfgfile:=GetAppConfigFile(False,False);
-      if not FileExists(cfgfile) then
-        begin
-          // If not, try to find a global configuration file
-          cfgfile:=GetAppConfigFile(True,False);
-          if FileExists(cfgfile) then
-            UseGlobalConfig := true
-          else
-            begin
-              // Create a new configuration file
-              if not IsSuperUser then // Make a local, not global, configuration file
-                cfgfile:=GetAppConfigFile(False,False);
-              ForceDirectories(ExtractFilePath(cfgfile));
-              GlobalOptions.SaveToFile(cfgfile);
-              GeneratedConfig:=true;
-            end;
-        end;
-    end;
-  // Load file or create new default configuration
-  if not GeneratedConfig then
-    begin
-      GlobalOptions.LoadFromFile(cfgfile);
-    end;
-  GlobalOptions.CommandLineSection.CompilerConfig:=GlobalOptions.GlobalSection.CompilerConfig;
-  // Tracing of what we've done above, need to be done after the verbosity is set
-  if GeneratedConfig then
-    pkgglobals.Log(llDebug,SLogGeneratingGlobalConfig,[cfgfile])
-  else
-    pkgglobals.Log(llDebug,SLogLoadingGlobalConfig,[cfgfile]);
-  // Log configuration
-  GlobalOptions.LogValues(llDebug);
-end;
-
-procedure ClearCompilerDefaults;
-begin
-  CompilerOptions.Free;
-  FPMakeCompilerOptions.Free;
-  CompilerOptions:=TCompilerOptions.Create;
-  FPMakeCompilerOptions:=TCompilerOptions.Create;
-end;
-
-procedure LoadCompilerDefaults;
-var
-  S : String;
-begin
-  // Load default compiler config
-  S:=GlobalOptions.GlobalSection.CompilerConfigDir+GlobalOptions.GlobalSection.CompilerConfig;
-  CompilerOptions.UpdateLocalRepositoryOption(GlobalOptions);
-  if FileExists(S) then
-    begin
-      pkgglobals.Log(llDebug,SLogLoadingCompilerConfig,[S]);
-      CompilerOptions.LoadCompilerFromFile(S)
-    end
-  else
-    begin
-      // Generate a default configuration if it doesn't exists
-      if GlobalOptions.GlobalSection.CompilerConfig='default' then
-        begin
-          pkgglobals.Log(llDebug,SLogGeneratingCompilerConfig,[S]);
-          CompilerOptions.InitCompilerDefaults;
-          CompilerOptions.SaveCompilerToFile(S);
-          if CompilerOptions.SaveInifileChanges then
-            CompilerOptions.SaveCompilerToFile(S);
-        end
-      else
-        Error(SErrMissingCompilerConfig,[S]);
-    end;
-  // Log compiler configuration
-  CompilerOptions.LogValues(llDebug,'');
-  // Load FPMake compiler config, this is normally the same config as above
-  S:=GlobalOptions.GlobalSection.CompilerConfigDir+GlobalOptions.GlobalSection.FPMakeCompilerConfig;
-  FPMakeCompilerOptions.UpdateLocalRepositoryOption(GlobalOptions);
-  if FileExists(S) then
-    begin
-      pkgglobals.Log(llDebug,SLogLoadingFPMakeCompilerConfig,[S]);
-      FPMakeCompilerOptions.LoadCompilerFromFile(S);
-      if FPMakeCompilerOptions.SaveInifileChanges then
-        FPMakeCompilerOptions.SaveCompilerToFile(S);
-    end
-  else
-    Error(SErrMissingCompilerConfig,[S]);
-  // Log compiler configuration
-  FPMakeCompilerOptions.LogValues(llDebug,'fpmake-building ');
-end;
 
 { TFppkgRepositoryOptionSection }
 
@@ -1109,13 +996,4 @@ begin
   log(ALogLevel,SLogCompilerCfgOptions,[Options.DelimitedText]);
 end;
 
-
-initialization
-  GlobalOptions:=TFppkgOptions.Create;
-  CompilerOptions:=TCompilerOptions.Create;
-  FPMakeCompilerOptions:=TCompilerOptions.Create;
-finalization
-  FreeAndNil(GlobalOptions);
-  FreeAndNil(CompilerOptions);
-  FreeAndNil(FPMakeCompilerOptions);
 end.

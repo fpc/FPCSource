@@ -138,16 +138,16 @@ var
   function CheckUnitDir(const AUnitName:string;Out AUnitDir:string):boolean;
   begin
     Result:=false;
-    if FPMakeCompilerOptions.LocalUnitDir<>'' then
+    if GFPpkg.FpmakeCompilerOptions.LocalUnitDir<>'' then
       begin
-        AUnitDir:=IncludeTrailingPathDelimiter(FPMakeCompilerOptions.LocalUnitDir+AUnitName);
+        AUnitDir:=IncludeTrailingPathDelimiter(GFPpkg.FPMakeCompilerOptions.LocalUnitDir+AUnitName);
         if DirectoryExistsLog(AUnitDir) then
           begin
             Result:=true;
             exit;
           end;
       end;
-    AUnitDir:=IncludeTrailingPathDelimiter(FPMakeCompilerOptions.GlobalUnitDir+AUnitName);
+    AUnitDir:=IncludeTrailingPathDelimiter(GFPpkg.FPMakeCompilerOptions.GlobalUnitDir+AUnitName);
     if DirectoryExistsLog(AUnitDir) then
       begin
         Result:=true;
@@ -239,9 +239,9 @@ begin
       if NeedFPMKUnitSource then
         CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
       // Call compiler
-      If ExecuteProcess(FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
+      If ExecuteProcess(GFPpkg.FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
         begin
-          if not GlobalOptions.CommandLineSection.RecoveryMode then
+          if not GFPpkg.Options.CommandLineSection.RecoveryMode then
             Error(SErrCompileFailureFPMakeTryRecovery)
           else
             Error(SErrCompileFailureFPMake);
@@ -313,9 +313,9 @@ begin
   if assigned(P) then
     begin
       if (command<>'archive') and (command<>'manifest') and
-         (not(CompilerOptions.CompilerOS in P.OSes) or
-          not(CompilerOptions.CompilerCPU in P.CPUs)) then
-        Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
+         (not(GFPpkg.CompilerOptions.CompilerOS in P.OSes) or
+          not(GFPpkg.CompilerOptions.CompilerCPU in P.CPUs)) then
+        Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(GFPpkg.CompilerOptions.CompilerCPU,GFPpkg.CompilerOptions.CompilerOS)]);
     end;
   { Maybe compile fpmake executable? }
   ExecuteAction(PackageName,'compilefpmake');
@@ -333,32 +333,32 @@ begin
     end
   else
     begin
-      if CompilerOptions.HasOptions then
-        AddOption('--options='+CompilerOptions.Options.DelimitedText);
+      if GFPpkg.CompilerOptions.HasOptions then
+        AddOption('--options='+GFPpkg.CompilerOptions.Options.DelimitedText);
 
-      if GlobalOptions.GlobalSection.CustomFPMakeOptions<>'' then
+      if GFPpkg.Options.GlobalSection.CustomFPMakeOptions<>'' then
         begin
         AddOption('--ignoreinvalidoption');
-        AddOption(GlobalOptions.GlobalSection.CustomFPMakeOptions);
+        AddOption(GFPpkg.Options.GlobalSection.CustomFPMakeOptions);
         end;
     end;
 
   AddOption('--nofpccfg');
-  AddOption('--compiler='+CompilerOptions.Compiler);
-  AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
-  AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
-  if IsSuperUser or GlobalOptions.CommandLineSection.InstallGlobal then
+  AddOption('--compiler='+GFPpkg.CompilerOptions.Compiler);
+  AddOption('--cpu='+CPUToString(GFPpkg.CompilerOptions.CompilerCPU));
+  AddOption('--os='+OSToString(GFPpkg.CompilerOptions.CompilerOS));
+  if IsSuperUser or GFPpkg.Options.CommandLineSection.InstallGlobal then
     begin
-      CondAddOption('--prefix',CompilerOptions.GlobalPrefix);
-      CondAddOption('--baseinstalldir',CompilerOptions.GlobalInstallDir);
+      CondAddOption('--prefix',GFPpkg.CompilerOptions.GlobalPrefix);
+      CondAddOption('--baseinstalldir',GFPpkg.CompilerOptions.GlobalInstallDir);
     end
   else
     begin
-      CondAddOption('--prefix',CompilerOptions.LocalPrefix);
-      CondAddOption('--baseinstalldir',CompilerOptions.LocalInstallDir);
+      CondAddOption('--prefix',GFPpkg.CompilerOptions.LocalPrefix);
+      CondAddOption('--baseinstalldir',GFPpkg.CompilerOptions.LocalInstallDir);
     end;
-  CondAddOption('--localunitdir',CompilerOptions.LocalInstallDir);
-  CondAddOption('--globalunitdir',CompilerOptions.GlobalInstallDir);
+  CondAddOption('--localunitdir',GFPpkg.CompilerOptions.LocalInstallDir);
+  CondAddOption('--globalunitdir',GFPpkg.CompilerOptions.GlobalInstallDir);
 
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
@@ -411,15 +411,15 @@ var
   StoredGlobalPrefix: string;
 begin
   // In most (all?) cases we do not want a prefix in the archive.
-  StoredGlobalPrefix := CompilerOptions.GlobalPrefix;
-  StoredLocalPrefix := CompilerOptions.LocalPrefix;
-  CompilerOptions.GlobalPrefix := '';
-  CompilerOptions.LocalPrefix := '';
+  StoredGlobalPrefix := GFPpkg.CompilerOptions.GlobalPrefix;
+  StoredLocalPrefix := GFPpkg.CompilerOptions.LocalPrefix;
+  GFPpkg.CompilerOptions.GlobalPrefix := '';
+  GFPpkg.CompilerOptions.LocalPrefix := '';
   try
     RunFPMake('archive');
   finally
-    CompilerOptions.GlobalPrefix := StoredGlobalPrefix;
-    CompilerOptions.LocalPrefix := StoredLocalPrefix;
+    GFPpkg.CompilerOptions.GlobalPrefix := StoredGlobalPrefix;
+    GFPpkg.CompilerOptions.LocalPrefix := StoredLocalPrefix;
   end;
 end;
 

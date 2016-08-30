@@ -7,6 +7,7 @@ interface
 uses
   SysUtils,Classes,
   fprepos,pkgoptions,
+  pkgFppkg,
   fpmkunit;
 
 function GetRemoteRepositoryURL(const AFileName:string):string;
@@ -24,6 +25,7 @@ function  PackageInstalledStateStr(const AName:String):string;
 function  PackageAvailableVersionStr(const AName:String):string;
 procedure ListAvailablePackages;
 procedure ListPackages(const ShowGlobalAndLocal: boolean);
+procedure InitializeFppkg;
 
 procedure ListRemoteRepository;
 procedure RebuildRemoteRepository;
@@ -36,6 +38,7 @@ var
   AvailableMirrors    : TFPMirrors;
   AvailableRepository,
   InstalledRepository : TFPRepository;
+  GFPpkg: TpkgFppkg;
 
 
 implementation
@@ -81,7 +84,7 @@ begin
   AvailableMirrors:=TFPMirrors.Create(TFPMirror);
 
   // Repository
-  S:=GlobalOptions.GlobalSection.LocalMirrorsFile;
+  S:=GFPpkg.Options.GlobalSection.LocalMirrorsFile;
   log(llDebug,SLogLoadingMirrorsFile,[S]);
   if not FileExists(S) then
     exit;
@@ -150,15 +153,15 @@ function GetRemoteRepositoryURL(const AFileName:string):string;
 begin
   if CurrentRemoteRepositoryURL='' then
     begin
-      if GlobalOptions.GlobalSection.RemoteRepository='auto' then
+      if GFPpkg.Options.GlobalSection.RemoteRepository='auto' then
         CurrentRemoteRepositoryURL:=SelectRemoteMirror
       else
-        CurrentRemoteRepositoryURL:=GlobalOptions.GlobalSection.RemoteRepository;
+        CurrentRemoteRepositoryURL:=GFPpkg.Options.GlobalSection.RemoteRepository;
     end;
   result := CurrentRemoteRepositoryURL;
   if result[length(result)]<>'/' then
     result := result + '/';
-  Result:=Result+CompilerOptions.CompilerVersion+'/'+AFileName;
+  Result:=Result+GFPpkg.CompilerOptions.CompilerVersion+'/'+AFileName;
 end;
 
 
@@ -336,8 +339,8 @@ begin
   for j:=0 to APackage.Dependencies.Count-1 do
     begin
       D:=APackage.Dependencies[j];
-      if (CompilerOptions.CompilerOS in D.OSes) and
-         (CompilerOptions.CompilerCPU in D.CPUs) then
+      if (GFPpkg.CompilerOptions.CompilerOS in D.OSes) and
+         (GFPpkg.CompilerOptions.CompilerCPU in D.CPUs) then
         begin
           DepPackage:=InstalledRepository.FindPackage(D.PackageName);
           // Don't stop on missing dependencies
@@ -410,7 +413,7 @@ begin
     FPMKUnitDeps[i].available:=false;
   // Not version check needed in Recovery mode, we always need to use
   // the internal bootstrap procedure
-  if GlobalOptions.CommandLineSection.RecoveryMode then
+  if GFPpkg.Options.CommandLineSection.RecoveryMode then
     exit;
   // Check for fpmkunit dependencies
   for i:=0 to high(FPMKUnitDeps) do
@@ -454,7 +457,7 @@ begin
     AvailableRepository.Free;
   AvailableRepository:=GetDefaultRepositoryClass.Create(Nil);
   // Repository
-  S:=GlobalOptions.GlobalSection.LocalPackagesFile;
+  S:=GFPpkg.Options.GlobalSection.LocalPackagesFile;
   log(llDebug,SLogLoadingPackagesFile,[S]);
   if not FileExists(S) then
     exit;
@@ -573,6 +576,14 @@ begin
         end;
     end;
   FreeAndNil(SL);
+end;
+
+
+procedure InitializeFppkg;
+begin
+  if Assigned(GFPpkg) then
+    GFPpkg.Free;
+  GFPpkg := TpkgFPpkg.Create(nil);
 end;
 
 
@@ -710,6 +721,7 @@ begin
 end;
 
 initialization
+  GFPpkg := nil;
   AvailableRepository := nil;
   InstalledRepository := nil;
   AvailableMirrors := nil;
@@ -717,4 +729,5 @@ finalization
   AvailableRepository.Free;
   InstalledRepository.Free;
   AvailableMirrors.Free;
+  GFPpkg.Free;
 end.

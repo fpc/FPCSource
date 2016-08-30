@@ -138,11 +138,11 @@ begin
         Result:=CurrentDir;
     end
   else if (APackage.Name=CmdLinePackageName) or (APackage.Name=URLPackageName) then
-    Result:=GlobalOptions.GlobalSection.BuildDir+ChangeFileExt(ExtractFileName(APackage.LocalFileName),'')
+    Result:=GFPpkg.Options.GlobalSection.BuildDir+ChangeFileExt(ExtractFileName(APackage.LocalFileName),'')
   else if (APackage.RecompileBroken) and (APackage.SourcePath<>'') then
     Result:=APackage.SourcePath
   else
-    Result:=GlobalOptions.GlobalSection.BuildDir+APackage.Name;
+    Result:=GFPpkg.Options.GlobalSection.BuildDir+APackage.Name;
 end;
 
 
@@ -166,7 +166,7 @@ begin
   else if APackage.Name=CmdLinePackageName then
     Result:=APackage.LocalFileName
   else
-    Result:=GlobalOptions.GlobalSection.ArchivesDir+APackage.FileName;
+    Result:=GFPpkg.Options.GlobalSection.ArchivesDir+APackage.FileName;
 end;
 
 

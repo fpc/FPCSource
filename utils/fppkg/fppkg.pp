@@ -73,15 +73,15 @@ begin
     cfgfile:=GetOptionValue('C','config-file')
   else
     cfgfile:='';
-  pkgoptions.LoadGlobalDefaults(cfgfile);
+  GFPpkg.InitializeGlobalOptions(CfgFile);
 end;
 
 
 procedure TMakeTool.MaybeCreateLocalDirs;
 begin
-  ForceDirectories(GlobalOptions.GlobalSection.BuildDir);
-  ForceDirectories(GlobalOptions.GlobalSection.ArchivesDir);
-  ForceDirectories(GlobalOptions.GlobalSection.CompilerConfigDir);
+  ForceDirectories(GFPpkg.Options.GlobalSection.BuildDir);
+  ForceDirectories(GFPpkg.Options.GlobalSection.ArchivesDir);
+  ForceDirectories(GFPpkg.Options.GlobalSection.CompilerConfigDir);
 end;
 
 
@@ -210,45 +210,45 @@ begin
           OptionArg(I);
         end
       else if CheckOption(I,'c','config') then
-        GlobalOptions.CommandLineSection.CompilerConfig:=OptionArg(I)
+        GFPpkg.Options.CommandLineSection.CompilerConfig:=OptionArg(I)
       else if CheckOption(I,'v','verbose') then
         LogLevels:=AllLogLevels
       else if CheckOption(I,'d','debug') then
         LogLevels:=AllLogLevels+[llDebug]
       else if CheckOption(I,'g','global') then
-        GlobalOptions.CommandLineSection.InstallGlobal:=true
+        GFPpkg.Options.CommandLineSection.InstallGlobal:=true
       else if CheckOption(I,'r','recovery') then
-        GlobalOptions.CommandLineSection.RecoveryMode:=true
+        GFPpkg.Options.CommandLineSection.RecoveryMode:=true
       else if CheckOption(I,'n','') then
-        GlobalOptions.CommandLineSection.SkipConfigurationFiles:=true
+        GFPpkg.Options.CommandLineSection.SkipConfigurationFiles:=true
       else if CheckOption(I,'b','broken') then
-        GlobalOptions.CommandLineSection.AllowBroken:=true
+        GFPpkg.Options.CommandLineSection.AllowBroken:=true
       else if CheckOption(I,'l','showlocation') then
-        GlobalOptions.CommandLineSection.ShowLocation:=true
+        GFPpkg.Options.CommandLineSection.ShowLocation:=true
       else if CheckOption(I,'s','skipbroken') then
-        GlobalOptions.CommandLineSection.SkipFixBrokenAfterInstall:=true
+        GFPpkg.Options.CommandLineSection.SkipFixBrokenAfterInstall:=true
       else if CheckOption(I,'o','options') and FirstPass then
         begin
           OptString := OptionArg(I);
           while OptString <> '' do
-            CompilerOptions.Options.Add(SplitSpaces(OptString));
+            GFPpkg.CompilerOptions.Options.Add(SplitSpaces(OptString));
         end
       else if CheckOption(I,'p','prefix') then
         begin
-          CompilerOptions.GlobalPrefix := OptionArg(I);
-          CompilerOptions.LocalPrefix := OptionArg(I);
-          FPMakeCompilerOptions.GlobalPrefix := OptionArg(I);
-          FPMakeCompilerOptions.LocalPrefix := OptionArg(I);
+          GFPpkg.CompilerOptions.GlobalPrefix := OptionArg(I);
+          GFPpkg.CompilerOptions.LocalPrefix := OptionArg(I);
+          GFPpkg.FPMakeCompilerOptions.GlobalPrefix := OptionArg(I);
+          GFPpkg.FPMakeCompilerOptions.LocalPrefix := OptionArg(I);
         end
       else if CheckOption(I,'','compiler') then
         begin
-          CompilerOptions.Compiler := OptionArg(I);
-          FPMakeCompilerOptions.Compiler := OptionArg(I);
+          GFPpkg.CompilerOptions.Compiler := OptionArg(I);
+          GFPpkg.FPMakeCompilerOptions.Compiler := OptionArg(I);
         end
       else if CheckOption(I,'','os') then
-        CompilerOptions.CompilerOS := StringToOS(OptionArg(I))
+        GFPpkg.CompilerOptions.CompilerOS := StringToOS(OptionArg(I))
       else if CheckOption(I,'','cpu') then
-        CompilerOptions.CompilerCPU := StringToCPU(OptionArg(I))
+        GFPpkg.CompilerOptions.CompilerCPU := StringToCPU(OptionArg(I))
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;
@@ -288,6 +288,7 @@ var
 begin
   OldCurrDir:=GetCurrentDir;
   Try
+    InitializeFppkg;
     LoadGlobalDefaults;
     ProcessCommandLine(true);
 
@@ -305,12 +306,12 @@ begin
       end;
 
     MaybeCreateLocalDirs;
-    if not GlobalOptions.CommandLineSection.SkipConfigurationFiles then
-      LoadCompilerDefaults
+    if not GFPpkg.Options.CommandLineSection.SkipConfigurationFiles then
+      GFPpkg.InitializeCompilerOptions
     else
       begin
-        FPMakeCompilerOptions.InitCompilerDefaults;
-        CompilerOptions.InitCompilerDefaults;
+        GFPpkg.FPMakeCompilerOptions.InitCompilerDefaults;
+        GFPpkg.CompilerOptions.InitCompilerDefaults;
       end;
 
     // The command-line is parsed for the second time, to make it possible
@@ -319,15 +320,15 @@ begin
 
     // If CompilerVersion, CompilerOS or CompilerCPU is still empty, use the
     // compiler-executable to get them
-    FPMakeCompilerOptions.CheckCompilerValues;
-    CompilerOptions.CheckCompilerValues;
+    GFPpkg.FPMakeCompilerOptions.CheckCompilerValues;
+    GFPpkg.CompilerOptions.CheckCompilerValues;
 
     LoadLocalAvailableMirrors;
 
     // Load local repository, update first if this is a new installation
     // errors will only be reported as warning. The user can be bootstrapping
     // and do an update later
-    if not FileExists(GlobalOptions.GlobalSection.LocalPackagesFile) then
+    if not FileExists(GFPpkg.Options.GlobalSection.LocalPackagesFile) then
       begin
         try
           pkghandler.ExecuteAction('','update');
@@ -337,19 +338,19 @@ begin
         end;
       end;
     LoadLocalAvailableRepository;
-    FindInstalledPackages(FPMakeCompilerOptions,true);
+    FindInstalledPackages(GFPpkg.FPMakeCompilerOptions,true);
     CheckFPMakeDependencies;
     // We only need to reload the status when we use a different
     // configuration for compiling fpmake or when the CPU, OS or compiler
     // are set in the command-line
-    if (GlobalOptions.GlobalSection.CompilerConfig<>GlobalOptions.GlobalSection.FPMakeCompilerConfig) or
-       (CompilerOptions.CompilerCPU<>FPMakeCompilerOptions.CompilerCPU) or
-       (CompilerOptions.CompilerOS<>FPMakeCompilerOptions.CompilerOS) or
-       (CompilerOptions.Compiler<>FPMakeCompilerOptions.Compiler) then
-      FindInstalledPackages(CompilerOptions,true);
+    if (GFPpkg.Options.GlobalSection.CompilerConfig<>GFPpkg.Options.GlobalSection.FPMakeCompilerConfig) or
+       (GFPpkg.CompilerOptions.CompilerCPU<>GFPpkg.FPMakeCompilerOptions.CompilerCPU) or
+       (GFPpkg.CompilerOptions.CompilerOS<>GFPpkg.FPMakeCompilerOptions.CompilerOS) or
+       (GFPpkg.CompilerOptions.Compiler<>GFPpkg.FPMakeCompilerOptions.Compiler) then
+      FindInstalledPackages(GFPpkg.CompilerOptions,true);
 
     // Check for broken dependencies
-    if not GlobalOptions.CommandLineSection.AllowBroken and
+    if not GFPpkg.Options.CommandLineSection.AllowBroken and
        (((ParaAction='fixbroken') and (ParaPackages.Count>0)) or
         (ParaAction='compile') or
         (ParaAction='build') or
@@ -388,7 +389,7 @@ begin
       end;
 
     // Recompile all packages dependent on this package
-    if (ParaAction='install') and not GlobalOptions.CommandLineSection.SkipFixBrokenAfterInstall then
+    if (ParaAction='install') and not GFPpkg.Options.CommandLineSection.SkipFixBrokenAfterInstall then
       pkghandler.ExecuteAction('','fixbroken');
 
     Terminate;

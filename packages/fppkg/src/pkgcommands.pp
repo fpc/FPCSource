@@ -218,9 +218,9 @@ end;
 
 procedure TCommandListSettings.Execute;
 begin
-  GlobalOptions.LogValues(llProgres);
-  CompilerOptions.LogValues(llProgres,'');
-  FPMakeCompilerOptions.LogValues(llProgres,'fpmake-building ');
+  GFPpkg.Options.LogValues(llProgres);
+  GFPpkg.CompilerOptions.LogValues(llProgres,'');
+  GFPpkg.FPMakeCompilerOptions.LogValues(llProgres,'fpmake-building ');
 end;
 
 
@@ -240,27 +240,27 @@ var
 begin
   // Download and load mirrors.xml
   // This can be skipped when a custom RemoteRepository is configured
-  if (GlobalOptions.GlobalSection.RemoteMirrorsURL<>'') and
-     (GlobalOptions.GlobalSection.RemoteRepository='auto') then
+  if (GFPpkg.Options.GlobalSection.RemoteMirrorsURL<>'') and
+     (GFPpkg.Options.GlobalSection.RemoteRepository='auto') then
     begin
-      Log(llCommands,SLogDownloading,[GlobalOptions.GlobalSection.RemoteMirrorsURL,GlobalOptions.GlobalSection.LocalMirrorsFile]);
-      DownloadFile(GlobalOptions.GlobalSection.RemoteMirrorsURL,GlobalOptions.GlobalSection.LocalMirrorsFile);
+      Log(llCommands,SLogDownloading,[GFPpkg.Options.GlobalSection.RemoteMirrorsURL,GFPpkg.Options.GlobalSection.LocalMirrorsFile]);
+      DownloadFile(GFPpkg.Options.GlobalSection.RemoteMirrorsURL,GFPpkg.Options.GlobalSection.LocalMirrorsFile);
       LoadLocalAvailableMirrors;
     end;
   // Download packages.xml
   PackagesURL:=GetRemoteRepositoryURL(PackagesFileName);
-  Log(llCommands,SLogDownloading,[PackagesURL,GlobalOptions.GlobalSection.LocalPackagesFile]);
-  DownloadFile(PackagesURL,GlobalOptions.GlobalSection.LocalPackagesFile);
+  Log(llCommands,SLogDownloading,[PackagesURL,GFPpkg.Options.GlobalSection.LocalPackagesFile]);
+  DownloadFile(PackagesURL,GFPpkg.Options.GlobalSection.LocalPackagesFile);
   // Read the repository again
   LoadLocalAvailableRepository;
   // no need to log errors again
-  FindInstalledPackages(CompilerOptions,False);
+  FindInstalledPackages(GFPpkg.CompilerOptions,False);
 end;
 
 
 procedure TCommandListPackages.Execute;
 begin
-  ListPackages(GlobalOptions.CommandLineSection.ShowLocation);
+  ListPackages(GFPpkg.Options.CommandLineSection.ShowLocation);
 end;
 
 
@@ -385,9 +385,9 @@ var
         // If the package is recompiled, the installation-location is dependent on where
         // the package was installed originally.
         if P.InstalledLocally then
-          Result:=CompilerOptions.LocalUnitDir
+          Result:=GFPpkg.CompilerOptions.LocalUnitDir
         else
-          Result:=CompilerOptions.GlobalUnitDir;
+          Result:=GFPpkg.CompilerOptions.GlobalUnitDir;
         // Setting RecompileBroken to false is in a strict sense not needed. But it is better
         // to clean this temporary flag, to avoid problems with changes in the future
         P.RecompileBroken := false;
@@ -395,10 +395,10 @@ var
       end
     else
       begin
-        if (IsSuperUser or GlobalOptions.CommandLineSection.InstallGlobal) then
-          Result:=CompilerOptions.GlobalUnitDir
+        if (IsSuperUser or GFPpkg.Options.CommandLineSection.InstallGlobal) then
+          Result:=GFPpkg.CompilerOptions.GlobalUnitDir
         else
-          Result:=CompilerOptions.LocalUnitDir;
+          Result:=GFPpkg.CompilerOptions.LocalUnitDir;
       end;
     Result:=IncludeTrailingPathDelimiter(Result)+S+PathDelim+UnitConfigFileName;
   end;
@@ -410,9 +410,9 @@ var
         // If the package is recompiled, the installation-location is dependent on where
         // the package was installed originally.
         if P.InstalledLocally then
-          Result:=CompilerOptions.LocalInstallDir
+          Result:=GFPpkg.CompilerOptions.LocalInstallDir
         else
-          Result:=CompilerOptions.GlobalInstallDir;
+          Result:=GFPpkg.CompilerOptions.GlobalInstallDir;
         // Setting RecompileBroken to false is in a strict sense not needed. But it is better
         // to clean this temporary flag, to avoid problems with changes in the future
         P.RecompileBroken := false;
@@ -420,12 +420,12 @@ var
       end
     else
       begin
-        if (IsSuperUser or GlobalOptions.CommandLineSection.InstallGlobal) then
-          Result:=CompilerOptions.GlobalInstallDir
+        if (IsSuperUser or GFPpkg.Options.CommandLineSection.InstallGlobal) then
+          Result:=GFPpkg.CompilerOptions.GlobalInstallDir
         else
-          Result:=CompilerOptions.LocalInstallDir;
+          Result:=GFPpkg.CompilerOptions.LocalInstallDir;
       end;
-    Result:=IncludeTrailingPathDelimiter(Result)+'fpmkinst'+PathDelim+CompilerOptions.CompilerTarget+PathDelim+s+FpmkExt;
+    Result:=IncludeTrailingPathDelimiter(Result)+'fpmkinst'+PathDelim+GFPpkg.CompilerOptions.CompilerTarget+PathDelim+s+FpmkExt;
   end;
 
 
@@ -530,8 +530,8 @@ begin
       for i:=0 to P.Dependencies.Count-1 do
         begin
           D:=P.Dependencies[i];
-          if not ((CompilerOptions.CompilerOS in D.OSes) and (CompilerOptions.CompilerCPU in D.CPUs)) then
-            Log(llDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)])
+          if not ((GFPpkg.CompilerOptions.CompilerOS in D.OSes) and (GFPpkg.CompilerOptions.CompilerCPU in D.CPUs)) then
+            Log(llDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(GFPpkg.CompilerOptions.CompilerCPU,GFPpkg.CompilerOptions.CompilerOS)])
           // Skip dependencies that are available within the fpmake-file itself
           else if not (assigned(ManifestPackages) and assigned(ManifestPackages.FindPackage(D.PackageName))) then
             begin
