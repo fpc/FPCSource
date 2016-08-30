@@ -365,7 +365,15 @@ implementation
 
                { process methodpointer/framepointer }
                if assigned(left) then
-                 typecheckpass(left);
+                 begin
+                   typecheckpass(left);
+                   if (po_classmethod in fprocdef.procoptions) and
+                      is_class(left.resultdef) then
+                     begin
+                       left:=cloadvmtaddrnode.create(left);
+                       typecheckpass(left);
+                     end
+                 end;
              end;
            labelsym:
              begin
