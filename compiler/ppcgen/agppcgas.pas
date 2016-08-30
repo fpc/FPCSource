@@ -401,6 +401,8 @@ unit agppcgas;
     constructor TPPCGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
         inherited;
+        if assigned(InstrWriter) then
+          InstrWriter.free;
         InstrWriter := TPPCInstrWriter.create(self);
       end;
 
@@ -441,6 +443,8 @@ unit agppcgas;
     constructor TPPCAppleGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
         inherited;
+        if assigned(InstrWriter) then
+          InstrWriter.free;
         InstrWriter := TPPCInstrWriter.create(self);
       end;
 
