@@ -34,18 +34,8 @@ function MessageBox(const tit,txt,gad:pchar): LongInt;
 
 implementation
 
-type
- pEasyStruct = ^tEasyStruct;
-   tEasyStruct = record
-    es_StructSize   : longint;  { should be sizeof (struct EasyStruct )}
-    es_Flags        : longint;  { should be 0 for now                  }
-    es_Title        : pchar;   { title of requester window            }
-    es_TextFormat   : pchar;   { 'printf' style formatting string     }
-    es_GadgetFormat : pchar;   { 'printf' style formatting string   }
-   END;
-
-
-FUNCTION EasyRequestArgs(window : pointer location 'a0'; easyStruct : pEasyStruct location 'a1'; idcmpPtr : longint location 'a2'; args : POINTER location 'a3') : LONGINT; syscall _IntuitionBase 588;
+uses
+  intuition;
 
 FUNCTION MessageBox(const tit,txt,gad:RawByteString): LongInt;
 begin
@@ -66,7 +56,7 @@ BEGIN
   MyStruct.es_Title:=(tit);
   MyStruct.es_TextFormat:=(txt);
   MyStruct.es_GadgetFormat:=(gad);
-  MessageBox := EasyRequestArgs(nil,@MyStruct,0,NIL);
+  MessageBox := EasyRequestArgs(nil,@MyStruct,NIL,NIL);
 END;
 
 end.
