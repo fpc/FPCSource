@@ -21,7 +21,6 @@
 
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
-{$PACKRECORDS 2}
 
 unit AMsgBox;
 

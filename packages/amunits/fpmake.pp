@@ -33,7 +33,6 @@ begin
     P.SourcePath.Add('src/utilunits');
     P.IncludePath.Add('src');
 
-    T:=P.Targets.AddUnit('amsgbox.pas');
     T:=P.Targets.AddUnit('amigautils.pas');
     T:=P.Targets.AddUnit('wbargs.pas');
     T:=P.Targets.AddUnit('vartags.pas');

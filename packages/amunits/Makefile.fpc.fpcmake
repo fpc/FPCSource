@@ -7,7 +7,7 @@ name=amunits
 version=3.1.1
 
 [target]
-units= amsgbox amigautils wbargs vartags pastoc tagsarray deadkeys \
+units= amigautils wbargs vartags pastoc tagsarray deadkeys \
        deadkeys consoleio linklist hisoft exec timerutils easyasl \
        doublebuffer intuition agraphics amigalib nonvolatile iffparse hardware  \
        expansion diskfont conunit amigados configvars keyboard bootblock icon  \
