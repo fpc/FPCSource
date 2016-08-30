@@ -6763,7 +6763,11 @@ Var
           try
             Compile(APackage,APackage.FBUTarget);
           except
-            Compilationfailed:=true;
+            on E: Exception do
+              begin
+                Log(vlError,E.Message);
+                Compilationfailed:=true;
+              end;
           end;
         finally
           if CompilationFailed then
