@@ -2843,6 +2843,8 @@ begin
     RTLeventWaitFor(FNotifyStartTask,500);
     if not FDone then
       begin
+      { synchronise with WriteBarrier in mainthread for same reason as above }
+      ReadBarrier;
       FBuildEngine.log(vlInfo,'Compiling: '+APackage.Name);
       FCompilationOK:=false;
       try
@@ -7525,6 +7527,11 @@ Var
           // Instruct thread to compile package
           AThread.APackage := CompilePackage;
           AThread.APackage.FProcessing := true;
+          { Commit changes before setting FDone to false, because the threads
+            only wait for an event 500ms at a time and hence way wake up
+            and see that FDone=false before the event is sent and the changes
+            are all committed by the event code }
+          WriteBarrier;
           AThread.FDone:=False;
           RTLeventSetEvent(AThread.NotifyStartTask);
           end;
