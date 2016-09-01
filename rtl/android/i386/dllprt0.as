@@ -51,7 +51,7 @@ env_ok:
         popl    %ebx
 
         /* Call main */
-        call    PASCALMAIN@PLT
+        call    FPC_LIB_MAIN_ANDROID@PLT
         /* Call library init */
         call    FPC_LIB_INIT_ANDROID@PLT
 

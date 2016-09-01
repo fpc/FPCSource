@@ -49,7 +49,7 @@ begin
   { Starting from Android 4.4 stdio handles are closed by libc prior to calling
     finalization routines of shared libraries. This causes a error while trying to
     writeln during library finalization and finally a crash because the error can
-    not be printer too.
+    not be printed too.
     It is needed to save stdout and stderr handles by duplicating them and restore
     them before library finalization.
   }
@@ -206,12 +206,34 @@ begin
   DefaultLogTag[len + 1]:=#0;
 end;
 
+// ************* JNI init
+
+function JNI_OnLoad_Real(vm: pointer; reserved: pointer): longint;{$ifdef windows} stdcall {$else} cdecl {$endif}; external name 'FPC_JNI_ON_LOAD';
+procedure PascalMain; external name 'PASCALMAIN';
+
+// This proxy function is called when JVM calls the JNI_OnLoad() exported function
+function JNI_OnLoad_Proxy(vm: pointer; reserved: pointer): longint;{$ifdef windows} stdcall {$else} cdecl {$endif}; [public, alias:'FPC_JNI_ON_LOAD_PROXY'];
+begin
+  IsJniLibrary:=True;
+  // Call library initialization
+  PascalMain;
+  // Call user's JNI_OnLoad().
+  Result:=JNI_OnLoad_Real(vm, reserved);
+end;
+
+// This procedure is called instead of library initialization when JNI_OnLoad is exported
+procedure JniLibMain; [public, alias:'FPC_JNI_LIB_MAIN_ANDROID'];
+begin
+  // Must be empty.
+end;
+
+// ************* System init
+
 procedure InitAndroid;
 var
   i: integer;
   s: string;
 begin
-  IsJniLibrary:=IsLibrary and (Pos('/system/', ParamStr(0)) = 1);
   if IsJniLibrary then
     begin
       // The library is loaded by a Java app. The proper tag will be set by SysUtils.

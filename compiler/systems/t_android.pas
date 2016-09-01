@@ -36,8 +36,13 @@ interface
       procedure generatelib;override;
     end;
 
+    { texportlibandroid }
+
     texportlibandroid=class(texportlibunix)
+    public
       procedure setfininame(list: TAsmList; const s: string); override;
+      procedure exportprocedure(hp: texported_item); override;
+      procedure generatelib; override;
     end;
 
     { tlinkerandroid }
@@ -46,6 +51,7 @@ interface
     private
       prtobj  : string[80];
       reorder : boolean;
+      FJNIOnLoadDef: tprocdef;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
       function DoLink(IsSharedLib: boolean): boolean;
     public
@@ -66,11 +72,14 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,
-    aasmbase,aasmtai,aasmcpu,cpubase,
+    aasmbase,aasmtai,aasmcpu,cpubase,hlcgcpu,hlcgobj,
     cgbase,cgobj,cgutils,ogbase,ncgutil,
     comprsrc,
     rescmn, i_android
     ;
+
+const
+  SJNI_OnLoad = 'JNI_OnLoad';
 
 {*****************************************************************************
                                TIMPORTLIBANDROID
@@ -101,6 +110,44 @@ implementation
         new_section(list,sec_fpc,'links',0);
         list.concat(Tai_const.Createname(s,0));
         inherited setfininame(list,s);
+      end;
+
+    procedure texportlibandroid.exportprocedure(hp: texported_item);
+      begin
+        {
+          Android versions prior to 4.1 do not support recursive dlopen() calls.
+          Therefore if a shared library is loaded by JVM ( using dlopen() ),
+          it is not possible to use dlopen() in a units initialization code -
+          dlopen() simply hangs.
+          To workaround this issue, if a library exports JNI_OnLoad(), then
+          no unit initialization is performed during library load.
+          The initialization is called when JVM has loaded the library and calls
+          JNI_OnLoad().
+        }
+        // Check for the JNI_OnLoad export
+        if current_module.islibrary and not hp.is_var and assigned(hp.sym) and
+           (hp.sym.typ = procsym) and (eo_name in hp.options) and
+           (hp.name^ = SJNI_OnLoad) and (tprocsym(hp.sym).procdeflist.count = 1) then
+          begin
+            // Save the JNI_OnLoad procdef
+            tlinkerandroid(Linker).FJNIOnLoadDef:=tprocdef(tprocsym(hp.sym).procdeflist[0]);;
+            hp.Free;
+            exit;
+          end;
+        inherited exportprocedure(hp);
+      end;
+
+    procedure texportlibandroid.generatelib;
+      begin
+        inherited generatelib;
+        if tlinkerandroid(Linker).FJNIOnLoadDef = nil then
+          exit;
+        // If JNI_OnLoad is exported, export a system proxy function instead
+        create_hlcodegen;
+        new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
+        hlcg.g_external_wrapper(current_asmdata.asmlists[al_procedures],nil,SJNI_OnLoad,'FPC_JNI_ON_LOAD_PROXY',true);
+        destroy_hlcodegen;
+        exportedsymnames.insert(SJNI_OnLoad);
       end;
 
 {*****************************************************************************
@@ -303,6 +350,20 @@ begin
       add('  }');
       add('}');
       add('INSERT BEFORE .data1');
+
+      // Define different aliases for normal and JNI libraries
+      if FJNIOnLoadDef <> nil then
+        begin
+          s:=FJNIOnLoadDef.mangledname;
+          s1:='FPC_JNI_LIB_MAIN_ANDROID';
+        end
+      else
+        begin
+          s:='0';
+          s1:='PASCALMAIN';
+        end;
+      add('FPC_JNI_ON_LOAD = ' + s + ';');
+      add('FPC_LIB_MAIN_ANDROID = ' + s1 + ';');
 
       { Write and Close response }
       writetodisk;

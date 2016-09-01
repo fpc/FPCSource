@@ -47,7 +47,7 @@ FPC_SHARED_LIB_START:
         str r0,[ip]
 
         /* Call main */
-        blx PASCALMAIN
+        blx FPC_LIB_MAIN_ANDROID
         /* Call library init */
         blx FPC_LIB_INIT_ANDROID
 

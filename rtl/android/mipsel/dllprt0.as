@@ -44,7 +44,7 @@ GotEnv:
     sw $t0, ($t1)
 
     /* Call main */
-    jal PASCALMAIN
+    jal FPC_LIB_MAIN_ANDROID
     nop
     /* Call library init */
     jal FPC_LIB_INIT_ANDROID
