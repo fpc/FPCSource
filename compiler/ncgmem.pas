@@ -756,10 +756,6 @@ implementation
 
      procedure tcgvecnode.rangecheck_array;
        var
-         hightree : tnode;
-         poslabel,
-         neglabel : tasmlabel;
-         hreg : tregister;
          paraloc1,paraloc2 : tcgpara;
          pd : tprocdef;
        begin

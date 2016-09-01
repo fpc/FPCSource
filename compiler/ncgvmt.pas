@@ -986,8 +986,6 @@ implementation
 
 
     procedure TVMTWriter.generate_abstract_stub(list:TAsmList;pd:tprocdef);
-      var
-        sym: TAsmSymbol;
       begin
         { Generate stubs for abstract methods, so their symbols are present and
           can be used e.g. to take address (see issue #24536). }
@@ -1056,7 +1054,9 @@ implementation
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel,
          fieldtablelabel : tasmlabel;
+{$ifdef vtentry}
          hs: string;
+{$endif vtentry}
 {$ifdef WITHDMT}
          dmtlabel : tasmlabel;
 {$endif WITHDMT}

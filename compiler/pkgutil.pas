@@ -77,7 +77,6 @@ implementation
   procedure exportprocsym(sym:tprocsym;symtable:tsymtable);
     var
       i : longint;
-      item : TCmdStrListItem;
       pd : tprocdef;
     begin
       for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
@@ -103,8 +102,6 @@ implementation
 
 
   procedure exportabstractrecordsymproc(sym:tobject;arg:pointer);
-    var
-      def : tabstractrecorddef;
     begin
       case tsym(sym).typ of
         typesym:
@@ -142,8 +139,6 @@ implementation
 
 
   procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
-    var
-      hp : texported_item;
     begin
       { for cross unit type aliases this might happen }
       if def.owner<>symtable then
@@ -188,8 +183,6 @@ implementation
 
   procedure insert_export(sym : TObject;arg:pointer);
     var
-      i : longint;
-      item : TCmdStrListItem;
       isglobal,
       publiconly : boolean;
     begin
@@ -274,7 +267,6 @@ implementation
       b,
       untilb : byte;
       l,m    : longint;
-      f      : file;
       ext,
       s      : string;
       ppuversion : dword;
@@ -645,8 +637,6 @@ implementation
         i,j,k : longint;
         sym : tasmsymbol;
         cacheentry : pcacheentry;
-        list : TAsmList;
-        labind : tasmsymbol;
         psym : tsymentry;
         pd : tprocdef;
         found : boolean;
@@ -839,7 +829,6 @@ implementation
 
 
     var
-      unitentry : pcontainedunit;
       module : tmodule;
       i : longint;
     begin

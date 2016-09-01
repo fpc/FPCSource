@@ -752,8 +752,6 @@ implementation
 
 
   class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
-    var
-      symind : tasmsymbol;
     begin
       if sym.globalasmsym then
         begin

@@ -289,7 +289,7 @@ implementation
     const
       align: array[0..15] of byte = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
     var
-      i,j,
+      i,
       pos,
       rem : longint;
       module : pcontainedunit;

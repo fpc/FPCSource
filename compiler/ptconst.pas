@@ -50,7 +50,6 @@ implementation
         datalist     : tasmlist;
         restree,
         previnit     : tnode;
-        symind       : tasmsymbol;
       begin
         { mark the staticvarsym as typedconst }
         include(sym.varoptions,vo_is_typed_const);
