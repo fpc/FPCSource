@@ -494,7 +494,7 @@ begin
   Result:=True;
 end;
 
-procedure LoadICU;
+function LoadICU: boolean;
 const
   ICUver: array [1..9] of ansistring = ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55');
   TestProcName = 'ucnv_open';
@@ -503,6 +503,7 @@ var
   i: longint;
   s: ansistring;
 begin
+  Result:=False;
 {$ifdef android}
   hlibICU:=LoadLibrary('libicuuc.so');
   hlibICUi18n:=LoadLibrary('libicui18n.so');
@@ -564,19 +565,22 @@ begin
   if not GetIcuProc('ucol_close', ucol_close, 1) then exit;
   if not GetIcuProc('ucol_strcoll', ucol_strcoll, 1) then exit;
   if not GetIcuProc('ucol_setStrength', ucol_setStrength, 1) then exit;
+  Result:=True;
 end;
 
 var
   oldm: TUnicodeStringManager;
+
 initialization
   GetUnicodeStringManager(oldm);
   DefaultSystemCodePage:=GetStandardCodePage(scpAnsi);
   DefaultUnicodeCodePage:=CP_UTF16;
-  LoadICU;
-  SetCWideStringManager;
-{$ifdef android}
-  SetStdIOCodePages;
-{$endif android}
+  if LoadICU then begin
+    SetCWideStringManager;
+    {$ifdef android}
+    SetStdIOCodePages;
+    {$endif android}
+  end;
 
 finalization
   SetUnicodeStringManager(oldm);
