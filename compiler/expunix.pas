@@ -136,10 +136,6 @@ var
   pd  : tprocdef;
   anyhasalias : boolean;
   i : longint;
-{$ifdef x86}
-  sym : tasmsymbol;
-  r : treference;
-{$endif x86}
 begin
   pd:=nil;
   create_hlcodegen;

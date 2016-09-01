@@ -179,9 +179,6 @@ unit cpugas;
         Op: TAsmOp;
         s:  string;
         i:  integer;
-        tmpfpu: string;
-        //tmpfpu_len: longint;
-        r: TRegister;
       begin
         if hp.typ <> ait_instruction then
           exit;

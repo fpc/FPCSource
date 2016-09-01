@@ -584,8 +584,6 @@ var
 
   TmpRef: TReference;
 
-  TmpUsedRegs: TAllUsedRegs;
-
   TmpBool1, TmpBool2: Boolean;
 
   function GetFinalDestination(asml: TAsmList; hp: taicpu; level: longint): boolean;

@@ -50,8 +50,6 @@ uses
 function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
 var
   hp1, hp2: tai;
-  GetNextIntruction_p : boolean;
-  TmpUsedRegs : TAllUsedRegs;
 begin
   Result := False;
   case p.typ of
