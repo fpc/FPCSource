@@ -2768,8 +2768,10 @@ implementation
                  internalerror(200501152);
                { unit uses count }
                inc(current_module.unitmap[tglobalsymtable(owner).moduleid].refs);
-               { symbol is imported from another unit }
-               if current_module.globalsymtable<>owner then
+               { Note: don't check the symtable directly as owner might be
+                       a specialize symtable which is a globalsymtable as well }
+               if current_module.globalsymtable.moduleid<>owner.moduleid then
+                 { symbol is imported from another unit }
                  current_module.addimportedsym(sym);
              end;
        end;
