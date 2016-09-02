@@ -2770,7 +2770,13 @@ implementation
                inc(current_module.unitmap[tglobalsymtable(owner).moduleid].refs);
                { Note: don't check the symtable directly as owner might be
                        a specialize symtable which is a globalsymtable as well }
-               if current_module.globalsymtable.moduleid<>owner.moduleid then
+               if (
+                     assigned(current_module.globalsymtable) and
+                     (current_module.globalsymtable.moduleid<>owner.moduleid)
+                  ) or (
+                     assigned(current_module.localsymtable) and
+                     (current_module.localsymtable.moduleid<>owner.moduleid)
+                  ) then
                  { symbol is imported from another unit }
                  current_module.addimportedsym(sym);
              end;
