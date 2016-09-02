@@ -751,7 +751,7 @@ implementation
                  tsym(s).register_sym;
                st:=FindUnitSymtable(tsym(s).owner)
              end
-           else
+           else if s is tdef then
              begin
                { same as above }
                if tdef(s).defid=defid_registered_nost then
@@ -759,7 +759,9 @@ implementation
                if not tdef(s).registered then
                  tdef(s).register_def;
                st:=FindUnitSymtable(tdef(s).owner);
-             end;
+             end
+           else
+             internalerror(2016090201);
            if not st.iscurrentunit then
              begin
                { register that the unit is needed for resolving }
