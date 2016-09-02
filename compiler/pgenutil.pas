@@ -765,7 +765,11 @@ uses
                   result:=def;
                   break;
                 end;
-              def:=tstoreddef(def.owner.defowner);
+              if assigned(def.owner) then
+                def:=tstoreddef(def.owner.defowner)
+              else
+                { this can happen when specializing a generic function }
+                def:=nil;
             until not assigned(def) or not (df_specialization in def.defoptions);
           end;
 
