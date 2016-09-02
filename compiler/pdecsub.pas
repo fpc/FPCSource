@@ -1253,23 +1253,37 @@ implementation
             { Add ObjectSymtable to be able to find generic type definitions }
             popclass:=0;
             old_current_structdef:=nil;
-            old_current_genericdef:=nil;
-            old_current_specializedef:=nil;
+            old_current_genericdef:=current_genericdef;
+            old_current_specializedef:=current_specializedef;
+            current_genericdef:=nil;
+            current_specializedef:=nil;
             if assigned(pd.struct) and
                (pd.parast.symtablelevel>=normal_function_level) and
                not (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
-                parse_generic:=(df_generic in pd.struct.defoptions);
                 old_current_structdef:=current_structdef;
-                old_current_genericdef:=current_genericdef;
-                old_current_specializedef:=current_specializedef;
                 current_structdef:=pd.struct;
-                if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
-                  current_genericdef:=current_structdef;
-                if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
-                  current_specializedef:=current_structdef;
               end;
+            if df_generic in pd.defoptions then
+              begin
+                if pd.is_generic then
+                  current_genericdef:=pd
+                else if assigned(pd.struct) then
+                  current_genericdef:=pd.struct
+                else
+                  internalerror(2016090202);
+              end;
+            if df_specialization in pd.defoptions then
+              begin
+                if pd.is_specialization then
+                  current_specializedef:=pd
+                else if assigned(pd.struct) then
+                  current_specializedef:=pd.struct
+                else
+                  internalerror(2016090203);
+              end;
+            parse_generic:=(df_generic in pd.defoptions);
             if pd.is_generic or pd.is_specialization then
               symtablestack.push(pd.parast);
             single_type(pd.returndef,[stoAllowSpecialization]);
@@ -1289,12 +1303,12 @@ implementation
             if popclass>0 then
               begin
                 current_structdef:=old_current_structdef;
-                current_genericdef:=old_current_genericdef;
-                current_specializedef:=old_current_specializedef;
                 dec(popclass,pop_nested_hierarchy(pd.struct));
                 if popclass<>0 then
                   internalerror(201012020);
               end;
+            current_genericdef:=old_current_genericdef;
+            current_specializedef:=old_current_specializedef;
             parse_generic:=old_parse_generic;
           end;
 
