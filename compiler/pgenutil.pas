@@ -702,6 +702,7 @@ uses
         i,
         replaydepth : longint;
         item : tobject;
+        allequal,
         hintsprocessed : boolean;
         pd : tprocdef;
         pdflags : tpdflags;
@@ -782,10 +783,33 @@ uses
             def:=current_genericdef;
             while assigned(def) and (def.typ in [recorddef,objectdef]) do
               begin
-                if def=genericdef then
+                if (df_generic in def.defoptions) and (def=genericdef) then
                   begin
                     result:=def;
                     break;
+                  end;
+                { the following happens when a routine with its parent struct
+                  as parameter is specialized as a parameter or result of a
+                  generic function }
+                if (df_specialization in def.defoptions) and (tstoreddef(def).genericdef=genericdef) then
+                  begin
+                    if tstoreddef(def).genericparas.count=generictypelist.count then
+                      begin
+                        allequal:=true;
+                        for i:=0 to generictypelist.count-1 do
+                          begin
+                            if not equal_defs(ttypesym(generictypelist[i]).typedef,ttypesym(tstoreddef(def).genericparas[i]).typedef) then
+                              begin
+                                allequal:=false;
+                                break;
+                              end;
+                          end;
+                        if allequal then
+                          begin
+                            result:=def;
+                            break;
+                          end;
+                      end;
                   end;
                 def:=tstoreddef(def.owner.defowner);
               end;
