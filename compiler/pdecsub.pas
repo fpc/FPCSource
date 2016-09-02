@@ -3434,8 +3434,14 @@ const
           if compare_paras(fwpd.paras,currpd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv,cpo_generic])<>te_exact then
             exit;
           if not foundretdef then
-            { the returndef isn't a type parameter, so compare as usual }
-            result:=compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact
+            begin
+              if tstoreddef(fwpd.returndef).is_specialization and tstoreddef(currpd.returndef).is_specialization then
+                { for specializations we're happy with equal defs instead of exactly the same defs }
+                result:=equal_defs(fwpd.returndef,currpd.returndef)
+              else
+                { the returndef isn't a type parameter, so compare as usual }
+                result:=compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact;
+            end
           else
             result:=true;
         end;
