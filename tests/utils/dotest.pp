@@ -835,7 +835,6 @@ function ExitWithInternalError(const OutName:string):boolean;
 var
   t : text;
   s : string;
-  error_or_fatal_seen : boolean;
 begin
   ExitWithInternalError:=false;
   { open logfile }
@@ -845,20 +844,15 @@ begin
   {$I+}
   if ioresult<>0 then
    exit;
-  error_or_fatal_seen:=false;
   while not eof(t) do
    begin
      readln(t,s);
      if (pos('Fatal: Internal error ',s)>0) or
-        ((pos('Error: Compilation raised exception internally',s)>0)
-         and not error_or_fatal_seen) then
+        (pos('Error: Compilation raised exception internally',s)>0) then
       begin
         ExitWithInternalError:=true;
         break;
       end;
-     if (pos('Error:',s)>0) or
-        (pos('Error:',s)>0) then
-       error_or_fatal_seen:=true;
    end;
   close(t);
 end;
