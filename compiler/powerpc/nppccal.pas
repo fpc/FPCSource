@@ -75,6 +75,7 @@ implementation
     procedure tppccallnode.do_syscall;
       var
         tmpref: treference;
+        libparaloc: pcgparalocation;
       begin
         case target_info.system of
           system_powerpc_amiga:
@@ -90,39 +91,40 @@ implementation
             end;
           system_powerpc_morphos:
             begin
-              if (po_syscall_sysv in tprocdef(procdefinition).procoptions) or
-                (po_syscall_sysvbase in tprocdef(procdefinition).procoptions) then
+              { all conventions but legacy }
+              if ([po_syscall_basesysv,po_syscall_sysv,
+                   po_syscall_sysvbase,po_syscall_r12base] * tprocdef(procdefinition).procoptions) <> [] then
                 begin
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
 
-                  reference_reset(tmpref,sizeof(pint));
-                  tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tcpuprocdef(procdefinition).libsym).mangledname,AT_DATA);
-                  tmpref.refaddr:=addr_higha;
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LIS,NR_R12,tmpref));
-                  tmpref.base:=NR_R12;
-                  tmpref.refaddr:=addr_low;
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R12,tmpref));
+                  if (po_syscall_sysvbase in tprocdef(procdefinition).procoptions) then
+                    begin
+                      { for sysvbase, find the last para, and get the libbase from there }
+                      libparaloc:=paralocs[procdefinition.paras.count-1]^.location;
+                      if libparaloc^.loc = LOC_REGISTER then
+                        reference_reset_base(tmpref,libparaloc^.register,-tprocdef(procdefinition).extnumber,sizeof(pint))
+                      else if libparaloc^.loc = LOC_REFERENCE then
+                        begin
+                          reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint));
+                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
+                          reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint));
+                        end
+                      else
+                        internalerror(2016090202);
+                    end
+                  else
+                    if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) then
+                      reference_reset_base(tmpref,NR_R3,-tprocdef(procdefinition).extnumber,sizeof(pint))
+                    else
+                      { other calling conventions expect the base in R12 at this point }
+                      reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint));
 
-                  reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint));
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR,NR_R0));
                   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTRL));
 
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
-                end
-              else if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) or
-                (po_syscall_r12base in tprocdef(procdefinition).procoptions) then
-                begin
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
-                  if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) then
-                    reference_reset_base(tmpref,NR_R3,-tprocdef(procdefinition).extnumber,sizeof(pint))
-                  else
-                    reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint));
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR,NR_R0));
-                  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTRL));
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
                 end
               else if po_syscall_legacy in tprocdef(procdefinition).procoptions then

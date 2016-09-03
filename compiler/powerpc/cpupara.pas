@@ -664,8 +664,10 @@ unit cpupara;
       var
         paraloc : pcgparalocation;
         paracgsize : tcgsize;
+        offset : aint;
       begin
         result:=false;
+        offset:=-1;
         case target_info.system of
           system_powerpc_morphos:
             begin
@@ -674,58 +676,34 @@ unit cpupara;
               p.paraloc[callerside].size:=paracgsize;
               p.paraloc[callerside].intsize:=tcgsize2size[paracgsize];
               paraloc:=p.paraloc[callerside].add_location;
-              paraloc^.loc:=LOC_REFERENCE;
+
               { The OS side should be zero extended and the entire "virtual"
                 68k register should be overwritten. This is what the C ppcinline
                 macros do as well, by casting all arguments to ULONG. A call
                 which breaks w/o this is for example exec/RawPutChar (KB) }
               paraloc^.size:=OS_ADDR;
               paraloc^.def:=p.vardef;
-              paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
-              { pattern is always uppercase'd }
-              if s='D0' then
-                paraloc^.reference.offset:=0
-              else if s='D1' then
-                paraloc^.reference.offset:=4
-              else if s='D2' then
-                paraloc^.reference.offset:=8
-              else if s='D3' then
-                paraloc^.reference.offset:=12
-              else if s='D4' then
-                paraloc^.reference.offset:=16
-              else if s='D5' then
-                paraloc^.reference.offset:=20
-              else if s='D6' then
-                paraloc^.reference.offset:=24
-              else if s='D7' then
-                paraloc^.reference.offset:=28
-              else if s='A0' then
-                paraloc^.reference.offset:=32
-              else if s='A1' then
-                paraloc^.reference.offset:=36
-              else if s='A2' then
-                paraloc^.reference.offset:=40
-              else if s='A3' then
-                paraloc^.reference.offset:=44
-              else if s='A4' then
-                paraloc^.reference.offset:=48
-              else if s='A5' then
-                paraloc^.reference.offset:=52
-              { 'A6' (offset 56) is used by mossyscall as libbase, so API
-                never passes parameters in it,
-                Indeed, but this allows to declare libbase either explicitly
-                or let the compiler insert it }
-              else if s='A6' then
-                paraloc^.reference.offset:=56
-              { 'A7' is the stack pointer on 68k, can't be overwritten
-                by API calls, so it has no offset }
-              { 'R12' is special, used internally to support r12base sysv
+
+              { convert d0-d7/a0-a6 virtual 68k reg patterns into offsets }
+              if length(s) = 2 then
+                begin
+                  if (s[1] = 'D') and (s[2] in ['0'..'7']) then
+                    offset:=(ord(s[2]) - ord('0')) * sizeof(pint)
+                  else if (s[1] = 'A') and (s[2] in ['0'..'6']) then
+                    offset:=(ord(s[2]) - ord('0') + 8) * sizeof(pint);
+
+                  if offset < 0 then
+                    exit;
+
+                  paraloc^.loc:=LOC_REFERENCE;
+                  paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
+                  paraloc^.reference.offset:=offset;
+                end
+              { 'R12' is special, used internally to support r12base and sysv
                 calling convention }
               else if s='R12' then
                 begin
                   paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.size:=OS_ADDR;
-                  paraloc^.def:=voidpointertype;
                   paraloc^.register:=NR_R12;
                 end
               else
