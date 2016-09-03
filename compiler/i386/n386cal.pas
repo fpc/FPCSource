@@ -50,7 +50,8 @@ implementation
       cpubase,paramgr,
       aasmtai,aasmdata,aasmcpu,
       nbas,nmem,nld,ncnv,
-      symdef,symsym,symcpu,
+      parabase,
+      symdef,symsym,symcpu,symconst,
       cga,cgobj,cpuinfo;
 
 
@@ -62,30 +63,42 @@ implementation
     procedure ti386callnode.do_syscall;
       var
         tmpref: treference;
+        libparaloc: pcgparalocation;
       begin
         case target_info.system of
           system_i386_aros:
             begin
-              // one syscall convention for AROS
-              current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
-              reference_reset(tmpref,sizeof(pint));
-              { re-read the libbase pushed first on the stack, instead of just trusting the
-                mangledname will work. this is important for example for threadvar libbases.
-                and this way they also don't need to be resolved twice then. (KB) }
-              tmpref.base:=NR_ESP;
-              tmpref.offset:=pushedparasize-sizeof(pint);
-              cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_EAX);
-              reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint));
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_EAX);
-              cg.a_call_reg(current_asmdata.CurrAsmList,NR_EAX);
-              cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+              if (po_syscall_stackbase in tprocdef(procdefinition).procoptions) then
+                begin
+                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall - StackBase')));
+                  { re-read the libbase pushed first on the stack, instead of just trusting the
+                    mangledname will work. this is important for example for threadvar libbases.
+                    and this way they also don't need to be resolved twice then. (KB) }
+                  libparaloc:=paralocs[procdefinition.paras.count-1]^.location;
+                  if libparaloc^.loc <> LOC_REFERENCE then
+                    internalerror(2016090203);
+                  reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint));
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_EAX);
+                  reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint));
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                  exit;
+                end;
+             if (po_syscall_eaxbase in tprocdef(procdefinition).procoptions) then
+                begin
+                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall - EAXBase')));
+                  { libbase must be in EAX already, so just piggyback that, and dereference it }
+                  reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint));
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
+                  exit;
+                end;
+              internalerror(2016090104);
             end;
           else
             internalerror(2014081801);
         end;
       end;
-
 
     procedure ti386callnode.gen_syscall_para(para: tcallparanode);
       begin

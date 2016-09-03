@@ -192,6 +192,7 @@ type
     _CPPDECL,
     _DEFAULT,
     _DYNAMIC,
+    _EAXBASE,
     _EXPORTS,
     _FINALLY,
     _FORWARD,
@@ -261,6 +262,7 @@ type
     _PUBLISHED,
     _REFERENCE,
     _SOFTFLOAT,
+    _STACKBASE,
     _THREADVAR,
     _WRITEONLY,
     _BITWISEAND,
@@ -513,6 +515,7 @@ const
       (str:'CPPDECL'       ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'DEFAULT'       ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'DYNAMIC'       ;special:false;keyword:[m_none];op:NOTOKEN),
+      (str:'EAXBASE'       ;special:false;keyword:[m_none];op:NOTOKEN),   { Syscall variation on AROS }
       (str:'EXPORTS'       ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'FINALLY'       ;special:false;keyword:[m_except];op:NOTOKEN),
       (str:'FORWARD'       ;special:false;keyword:[m_none];op:NOTOKEN),
@@ -582,6 +585,7 @@ const
       (str:'PUBLISHED'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'REFERENCE'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'SOFTFLOAT'     ;special:false;keyword:[m_none];op:NOTOKEN),
+      (str:'STACKBASE'     ;special:false;keyword:[m_none];op:NOTOKEN), { Syscall variation on AROS }
       (str:'THREADVAR'     ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'WRITEONLY'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'BITWISEAND'    ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }

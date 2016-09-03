@@ -115,6 +115,7 @@ implementation
        objcutil,
        { parser }
        scanner,
+       syscinfo,
        pbase,pexpr,ptype,pdecl,pparautl,pgenutil
 {$ifdef jvm}
        ,pjvm
@@ -2044,209 +2045,113 @@ end;
 
 
 procedure pd_syscall(pd:tabstractprocdef);
+
+    procedure include_po_syscall;
+      var
+        syscall: psyscallinfo;
+      begin
+        case target_info.system of
+          system_m68k_amiga,
+          system_powerpc_amiga:
+              include(pd.procoptions,get_default_syscall);
+          system_powerpc_morphos,
+          system_i386_aros,
+          system_x86_64_aros:
+              begin
+                syscall:=get_syscall_by_token(idtoken);
+                if assigned(syscall) then
+                  begin
+                    if target_info.system in syscall^.validon then
+                      begin
+                        consume(idtoken);
+                        include(pd.procoptions,syscall^.procoption);
+                      end
+                  end
+                else
+                  include(pd.procoptions,get_default_syscall);
+              end;
+        end;
+      end;
+
+      function po_syscall_to_varoptions: tvaroptions;
+        begin
+          result:=[vo_is_syscall_lib,vo_is_hidden_para];
+          if ([po_syscall_legacy,po_syscall_r12base,po_syscall_sysv,po_syscall_eaxbase] * tprocdef(pd).procoptions) <> [] then
+            include(result,vo_has_explicit_paraloc);
+        end;
+
+      function po_syscall_to_regname: string;
+        begin
+          if po_syscall_legacy in tprocdef(pd).procoptions then
+            result:='A6'
+          else if po_syscall_r12base in tprocdef(pd).procoptions then
+            result:='R12'
+          { let sysv store the libbase in r12 as well, because we will
+            need the libbase anyway during the call generation }
+          else if po_syscall_sysv in tprocdef(pd).procoptions then
+            result:='R12'
+          else if po_syscall_eaxbase in tprocdef(pd).procoptions then
+            begin
+              if target_info.system = system_i386_aros then
+                result:='EAX'
+              else if target_info.system = system_x86_64_aros then
+                result:='RAX'
+              else
+                internalerror(2016090201);
+            end
+          else
+            internalerror(2016090101);
+        end;
+
 {$if defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
+const
+  syscall_paranr: array[boolean] of aint =
+      ( paranr_syscall_lib_last, paranr_syscall_lib_first );
 var
   vs  : tparavarsym;
   sym : tsym;
   symtable : TSymtable;
   v: Tconstexprint;
+  vo: tvaroptions;
+  paranr: aint;
 {$endif defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
 begin
   if (pd.typ<>procdef) and (target_info.system <> system_powerpc_amiga) then
     internalerror(2003042614);
   tprocdef(pd).forwarddef:=false;
-{$ifdef m68k}
-   if target_info.system in [system_m68k_amiga] then
-    begin
-      include(pd.procoptions,po_syscall_legacy);
+{$if defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
+  include_po_syscall;
 
-      if consume_sym(sym,symtable) then
-        begin
-          if (sym.typ=staticvarsym) and
-             (
-              (tabstractvarsym(sym).vardef.typ=pointerdef) or
-              is_32bitint(tabstractvarsym(sym).vardef)
-             ) then
-            begin
-              include(pd.procoptions,po_syscall_has_libsym);
-              tcpuprocdef(pd).libsym:=sym;
-              if po_syscall_legacy in tprocdef(pd).procoptions then
-                begin
-                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
-                  paramanager.parseparaloc(vs,'A6');
-                  pd.parast.insert(vs);
-                end
-            end
-          else
-            Message(parser_e_32bitint_or_pointer_variable_expected);
-        end;
-      paramanager.create_funcretloc_info(pd,calleeside);
-      paramanager.create_funcretloc_info(pd,callerside);
+  if consume_sym(sym,symtable) then
+    if (sym.typ=staticvarsym) and
+       ((tabstractvarsym(sym).vardef.typ=pointerdef) or
+        is_32bitint(tabstractvarsym(sym).vardef)) then
+      begin
+        include(pd.procoptions,po_syscall_has_libsym);
+        tcpuprocdef(pd).libsym:=sym;
 
-      v:=get_intconst;
-      if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
-        message3(type_e_range_check_error_bounds,tostr(v),tostr(low(Tprocdef(pd).extnumber)),tostr(high(Tprocdef(pd).extnumber)))
-      else
-        Tprocdef(pd).extnumber:=v.uvalue;
-    end;
-{$endif m68k}
-{$ifdef powerpc}
-   if target_info.system = system_powerpc_amiga then
-    begin
-      include(pd.procoptions,po_syscall_basesysv);
+        vo:=po_syscall_to_varoptions;
+        paranr:=syscall_paranr[po_syscall_basesysv in tprocdef(pd).procoptions];
+        vs:=cparavarsym.create('$syscalllib',paranr,vs_value,tabstractvarsym(sym).vardef,vo);
+        if vo_has_explicit_paraloc in vo then
+          paramanager.parseparaloc(vs,po_syscall_to_regname);
+        pd.parast.insert(vs);
+      end
+    else
+      Message(parser_e_32bitint_or_pointer_variable_expected);
 
-      if consume_sym(sym,symtable) then
-        begin
-          if (sym.typ=staticvarsym) and
-             (
-              (tabstractvarsym(sym).vardef.typ=pointerdef) or
-              is_32bitint(tabstractvarsym(sym).vardef)
-             ) then
-            begin
-              include(pd.procoptions,po_syscall_has_libsym);
-              tcpuprocdef(pd).libsym:=sym;
-              vs:=cparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
-              pd.parast.insert(vs);
-            end
-          else
-            Message(parser_e_32bitint_or_pointer_variable_expected);
-        end;
+  paramanager.create_funcretloc_info(pd,calleeside);
+  paramanager.create_funcretloc_info(pd,callerside);
 
-      paramanager.create_funcretloc_info(pd,calleeside);
-      paramanager.create_funcretloc_info(pd,callerside);
-
-      v:=get_intconst;
-      if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
-        message(parser_e_range_check_error)
-      else
-        Tprocdef(pd).extnumber:=v.uvalue;
-    end else
-
-   if target_info.system = system_powerpc_morphos then
-    begin
-      if idtoken=_LEGACY then
-        begin
-          consume(_LEGACY);
-          include(pd.procoptions,po_syscall_legacy);
-        end
-      else if idtoken=_SYSV then
-        begin
-          consume(_SYSV);
-          include(pd.procoptions,po_syscall_sysv);
-        end
-      else if idtoken=_BASESYSV then
-        begin
-          consume(_BASESYSV);
-          include(pd.procoptions,po_syscall_basesysv);
-        end
-      else if idtoken=_SYSVBASE then
-        begin
-          consume(_SYSVBASE);
-          include(pd.procoptions,po_syscall_sysvbase);
-        end
-      else if idtoken=_R12BASE then
-        begin
-          consume(_R12BASE);
-          include(pd.procoptions,po_syscall_r12base);
-        end
-      else
-        if syscall_convention='LEGACY' then
-          include(pd.procoptions,po_syscall_legacy)
-        else if syscall_convention='SYSV' then
-          include(pd.procoptions,po_syscall_sysv)
-        else if syscall_convention='BASESYSV' then
-          include(pd.procoptions,po_syscall_basesysv)
-        else if syscall_convention='SYSVBASE' then
-          include(pd.procoptions,po_syscall_sysvbase)
-        else if syscall_convention='R12BASE' then
-          include(pd.procoptions,po_syscall_r12base)
-        else
-          internalerror(2005010404);
-
-      if consume_sym(sym,symtable) then
-        begin
-          if (sym.typ=staticvarsym) and
-             (
-              (tabstractvarsym(sym).vardef.typ=pointerdef) or
-              is_32bitint(tabstractvarsym(sym).vardef)
-             ) then
-            begin
-              include(pd.procoptions,po_syscall_has_libsym);
-              tcpuprocdef(pd).libsym:=sym;
-              if po_syscall_legacy in tprocdef(pd).procoptions then
-                begin
-                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
-                  paramanager.parseparaloc(vs,'A6');
-                  pd.parast.insert(vs);
-                end
-              else if po_syscall_sysv in tprocdef(pd).procoptions then
-                begin
-                  { Nothing to be done for sysv here for now, but this might change }
-                end
-              else if po_syscall_basesysv in tprocdef(pd).procoptions then
-                begin
-                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
-                  pd.parast.insert(vs);
-                end
-              else if po_syscall_sysvbase in tprocdef(pd).procoptions then
-                begin
-                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_sysvbase,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
-                  pd.parast.insert(vs);
-                end
-              else if po_syscall_r12base in tprocdef(pd).procoptions then
-                begin
-                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_r12base,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
-                  paramanager.parseparaloc(vs,'R12');
-                  pd.parast.insert(vs);
-                end
-              else
-                internalerror(2005010501);
-            end
-          else
-            Message(parser_e_32bitint_or_pointer_variable_expected);
-        end;
-      paramanager.create_funcretloc_info(pd,calleeside);
-      paramanager.create_funcretloc_info(pd,callerside);
-
-      v:=get_intconst;
-      if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
-        message(parser_e_range_check_error)
-      else
-        Tprocdef(pd).extnumber:=v.uvalue;
-    end;
-{$endif powerpc}
-{$if defined(i386) or defined(x86_64)}
-   if target_info.system in [system_i386_aros,system_x86_64_aros] then
-    begin
-      include(pd.procoptions,po_syscall_sysvbase);
-
-      if consume_sym(sym,symtable) then
-        begin
-          if (sym.typ=staticvarsym) and
-             (
-              (tabstractvarsym(sym).vardef.typ=pointerdef) or
-              is_32bitint(tabstractvarsym(sym).vardef)
-             ) then
-            begin
-              include(pd.procoptions,po_syscall_has_libsym);
-              tcpuprocdef(pd).libsym:=sym;
-              vs:=cparavarsym.create('$syscalllib',paranr_syscall_sysvbase,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
-              pd.parast.insert(vs);
-            end
-          else
-            Message(parser_e_32bitint_or_pointer_variable_expected);
-        end;
-
-      paramanager.create_funcretloc_info(pd,calleeside);
-      paramanager.create_funcretloc_info(pd,callerside);
-
-      v:=get_intconst;
-      if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
-        message(parser_e_range_check_error)
-      else
-        Tprocdef(pd).extnumber:=v.uvalue * sizeof(pint);
-    end;
-{$endif}
+  v:=get_intconst;
+  if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
+    message3(type_e_range_check_error_bounds,tostr(v),tostr(low(Tprocdef(pd).extnumber)),tostr(high(Tprocdef(pd).extnumber)))
+  else
+    if target_info.system in [system_i386_aros,system_x86_64_aros] then
+      Tprocdef(pd).extnumber:=v.uvalue * sizeof(pint)
+    else
+      Tprocdef(pd).extnumber:=v.uvalue;
+{$endif defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
 end;
 
 

@@ -1935,6 +1935,8 @@ const
      (mask:po_syscall_basesysv;str:'SyscallBaseSysV'),
      (mask:po_syscall_sysvbase;str:'SyscallSysVBase'),
      (mask:po_syscall_r12base; str:'SyscallR12Base'),
+     (mask:po_syscall_stackbase;str:'SyscallStackBase'),
+     (mask:po_syscall_eaxbase; str:'SyscallEAXBase'),
      (mask:po_syscall_has_libsym; str:'Has LibSym'),
      (mask:po_inline;          str:'Inline'),
      (mask:po_compilerproc;    str:'CompilerProc'),

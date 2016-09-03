@@ -368,11 +368,6 @@ interface
        palmos_applicationid : string[4] = 'FPCA';
 {$endif defined(m68k) or defined(arm)}
 
-{$ifdef powerpc}
-       { default calling convention used on MorphOS }
-       syscall_convention : string = 'LEGACY';
-{$endif powerpc}
-
        { default name of the C-style "main" procedure of the library/program }
        { (this will be prefixed with the target_info.cprefix)                }
        defaultmainaliasname = 'main';

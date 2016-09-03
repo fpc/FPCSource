@@ -44,6 +44,7 @@ unit cpupara;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;override;
+          function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
        private
           procedure create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parasize:longint);
           procedure create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parareg,parasize:longint);
@@ -53,7 +54,7 @@ unit cpupara;
   implementation
 
     uses
-       cutils,
+       cutils,sysutils,
        systems,verbose,
        symtable,
        defutil;
@@ -286,6 +287,32 @@ unit cpupara;
       end;
 
 
+    function tcpuparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
+      var
+        paraloc : pcgparalocation;
+      begin
+        result:=false;
+        case target_info.system of
+          system_i386_aros:
+            begin
+              p.paraloc[callerside].alignment:=4;
+              paraloc:=p.paraloc[callerside].add_location;
+              paraloc^.loc:=LOC_REGISTER;
+              paraloc^.size:=def_cgsize(p.vardef);
+              paraloc^.def:=p.vardef;
+              paraloc^.register:=std_regnum_search(lowercase(s));
+              if paraloc^.register = NR_NO then
+                exit;
+
+              { copy to callee side }
+              p.paraloc[calleeside].add_location^:=paraloc^;
+            end;
+          else
+            internalerror(2016090103);
+        end;
+        result:=true;
+      end;
+
     function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;
       var
         retcgsize  : tcgsize;
@@ -417,6 +444,19 @@ unit cpupara;
           begin
             hp:=tparavarsym(paras[i]);
             paradef:=hp.vardef;
+
+            { syscall for AROS can have already a paraloc set }
+            if (vo_has_explicit_paraloc in hp.varoptions) then
+              begin
+                if not(vo_is_syscall_lib in hp.varoptions) then
+                  internalerror(2016090105);
+                if p.proccalloption in pushleftright_pocalls then
+                  dec(i)
+                else
+                  inc(i);
+                continue;
+              end;
+
             pushaddr:=push_addr_param(hp.varspez,paradef,p.proccalloption);
             if pushaddr then
               begin

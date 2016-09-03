@@ -134,11 +134,11 @@ const
     after the hidden result parameter }
   paranr_objc_self = 5;
   paranr_objc_cmd = 6;
-  { Required to support variations of syscalls on MorphOS }
-  paranr_syscall_basesysv    = 9;
-  paranr_syscall_sysvbase    = high(word)-5;
-  paranr_syscall_r12base     = high(word)-4;
-  paranr_syscall_legacy      = high(word)-3;
+
+  { Required to support variations of syscalls on Amiga-likes }
+  paranr_syscall_lib_first   = 9;             { for basesysv on MorphOS/ppc and AmigaOS4/ppc }
+  paranr_syscall_lib_last    = high(word)-3;  { everything else }
+
   paranr_result_leftright    = high(word)-2;
   paranr_parentfp_delphi_cc  = high(word)-1;
 
@@ -338,13 +338,16 @@ type
     po_has_public_name,
     po_forward,
     po_global,
-    { The different kind of syscalls on MorphOS }
+    { The different kind of syscalls on AmigaOS and MorphOS, m68k and PPC }
     po_syscall_legacy,
     po_syscall_sysv,
     po_syscall_basesysv,
     po_syscall_sysvbase,
     po_syscall_r12base,
-    { Used to record the fact that a symbol is asociated to this syscall }
+    { The different kind of syscalls on AROS, i386/x86_64 }
+    po_syscall_stackbase,
+    po_syscall_eaxbase,
+    { Used to record the fact that a symbol is associated to this syscall }
     po_syscall_has_libsym,
     { Procedure can be inlined }
     po_inline,

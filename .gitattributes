@@ -705,6 +705,7 @@ compiler/symsym.pas svneol=native#text/plain
 compiler/symtable.pas svneol=native#text/plain
 compiler/symtype.pas svneol=native#text/plain
 compiler/symutil.pas svneol=native#text/plain
+compiler/syscinfo.pas svneol=native#text/plain
 compiler/systems.inc svneol=native#text/plain
 compiler/systems.pas svneol=native#text/plain
 compiler/systems/i_aix.pas svneol=native#text/plain

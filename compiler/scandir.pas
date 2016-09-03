@@ -58,6 +58,7 @@ unit scandir;
       fmodule,
       defutil,
       dirparse,link,
+      syscinfo,
       symconst,symtable,symbase,symtype,symsym,
       rabase;
 
@@ -1299,27 +1300,25 @@ unit scandir;
         // different places. Skip it for now.
       end;
 
-{$ifdef powerpc}
     procedure dir_syscall;
       var
         sctype : string;
+        syscall : psyscallinfo;
       begin
-        { not needed on amiga/m68k for now, because there's only one }
-        { syscall convention (legacy) (KB) }
-        { not needed on amiga/powerpc because there's only one }
-        { syscall convention (sysv) (KB) }
-        if not (target_info.system in [system_powerpc_morphos]) then
-          comment (V_Warning,'Syscall directive is useless on this target.');
         current_scanner.skipspace;
-
         sctype:=current_scanner.readid;
-        if (sctype='LEGACY') or (sctype='SYSV') or (sctype='SYSVBASE') or
-          (sctype='BASESYSV') or (sctype='R12BASE') then
-          syscall_convention:=sctype
-        else
-          comment (V_Warning,'Invalid Syscall directive ignored.');
+
+        syscall:=get_syscall_by_name(sctype);
+        if assigned(syscall) then
+          begin
+            if not (target_info.system in syscall^.validon) then
+              Message(scan_w_syscall_convention_not_useable_on_target)
+            else
+              set_default_syscall(syscall^.procoption);
+            exit;
+          end;
+        Message(scan_w_syscall_convention_invalid);
       end;
-{$endif}
 
     procedure dir_targetswitch;
       var
@@ -1861,9 +1860,7 @@ unit scandir;
         AddDirective('STACKFRAMES',directive_all, @dir_stackframes);
         AddDirective('STOP',directive_all, @dir_stop);
         AddDirective('STRINGCHECKS', directive_all, @dir_stringchecks);
-{$ifdef powerpc}
         AddDirective('SYSCALL',directive_all, @dir_syscall);
-{$endif powerpc}
         AddDirective('TARGETSWITCH',directive_all, @dir_targetswitch);
         AddDirective('THREADNAME',directive_all, @dir_threadname);
         AddDirective('TYPEDADDRESS',directive_all, @dir_typedaddress);

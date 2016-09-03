@@ -139,7 +139,7 @@ general_e_exception_raised=01026_E_Compilation raised exception internally
 #
 # Scanner
 #
-# 02099 is the last used one
+# 02101 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -413,6 +413,11 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTER
 scan_e_illegal_asmcpu_specifier=02099_E_Illegal assembler CPU instruction set specified "$1"
 % When you specify an assembler CPU with the \var{\{\$ASMCPU xxx\}} directive,
 % the compiler didn't recognize the CPU you specified.
+scan_w_syscall_convention_not_useable_on_target=02100_W_Specified syscall convention is not useable on this target
+% The specified syscall convention using the \var{\{\$SYSCALL xxx\}} directive,
+% is not useable on the current target system.
+scan_w_syscall_convention_invalid=02101_W_Invalid syscall convention specified
+% The compiler did not recognize the syscall convention specified by the \var{\{\$SYSCALL xxx\}} directive.
 % \end{description}
 #
 # Parser
