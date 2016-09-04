@@ -857,6 +857,7 @@ type
     FM : TExprBuiltInManager;
     FExpr : String;
     procedure DoAverage(Var Result : TFPExpressionResult; ConstRef AName : ShortString);
+    procedure DoSeries(var Result: TFPExpressionResult; ConstRef AName: ShortString);
   Protected
     procedure Setup; override;
     procedure Teardown; override;
@@ -939,6 +940,8 @@ type
     Procedure TestFunctionAggregateSum;
     Procedure TestFunctionAggregateCount;
     Procedure TestFunctionAggregateAvg;
+    Procedure TestFunctionAggregateMin;
+    Procedure TestFunctionAggregateMax;
   end;
 
 implementation
@@ -6088,10 +6091,36 @@ begin
   Result.ResultType:=rtInteger;
 end;
 
+procedure TTestBuiltins.DoSeries(var Result: TFPExpressionResult; ConstRef
+  AName: ShortString);
+
+Const
+  Values : Array[1..10] of double =
+  (1.3,1.8,1.1,9.9,1.4,2.4,5.8,6.5,7.8,8.1);
+
+
+begin
+  Inc(FValue);
+  Result.ResFloat:=Values[FValue];
+  Result.ResultType:=rtFloat;
+end;
+
 procedure TTestBuiltins.TestFunctionAggregateAvg;
 begin
   FP.Identifiers.AddVariable('S',rtInteger,@DoAverage);
   AssertAggregateExpression('avg(S)',5.5,10);
+end;
+
+procedure TTestBuiltins.TestFunctionAggregateMin;
+begin
+  FP.Identifiers.AddVariable('S',rtFloat,@DoSeries);
+  AssertAggregateExpression('Min(S)',1.1,10);
+end;
+
+procedure TTestBuiltins.TestFunctionAggregateMax;
+begin
+  FP.Identifiers.AddVariable('S',rtFloat,@DoSeries);
+  AssertAggregateExpression('Max(S)',9.9,10);
 end;
 
 { TTestNotNode }

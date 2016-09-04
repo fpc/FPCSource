@@ -571,6 +571,26 @@ Type
     Procedure GetNodeValue(var Result : TFPExpressionResult);  override;
   end;
 
+  { TAggregateMin }
+
+  TAggregateMin = Class(TAggregateExpr)
+  Public
+    FFirst: Boolean;
+  Public
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
+  end;
+
+  { TAggregateMax }
+
+  TAggregateMax = Class(TAggregateExpr)
+  Public
+    FFirst: Boolean;
+  Public
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
+  end;
+
   { TAggregateSum }
 
   TAggregateSum = Class(TAggregateExpr)
@@ -839,6 +859,78 @@ Procedure FreeBuiltIns;
 
 begin
   FreeAndNil(Builtins);
+end;
+
+{ TAggregateMax }
+
+procedure TAggregateMax.InitAggregate;
+begin
+  inherited InitAggregate;
+  FFirst:=True;
+  FResult.ResultType:=rtFloat;
+  FResult.resFloat:=0;
+end;
+
+procedure TAggregateMax.UpdateAggregate;
+
+Var
+  OK : Boolean;
+  N : TFPExpressionResult;
+
+begin
+  FArgumentNodes[0].GetNodeValue(N);
+  if FFirst then
+    begin
+    FFirst:=False;
+    OK:=True;
+    end
+  else
+    Case N.ResultType of
+      rtFloat: OK:=N.ResFloat>FResult.ResFloat;
+      rtinteger: OK:=N.ResInteger>FResult.ResFloat;
+    end;
+  if OK then
+    Case N.ResultType of
+      rtFloat: FResult.ResFloat:=N.ResFloat;
+      rtinteger: FResult.ResFloat:=N.ResInteger;
+    end;
+end;
+
+{ TAggregateMin }
+
+procedure TAggregateMin.InitAggregate;
+begin
+  inherited InitAggregate;
+  FFirst:=True;
+  FResult.ResultType:=rtFloat;
+  FResult.resFloat:=0;
+end;
+
+procedure TAggregateMin.UpdateAggregate;
+
+Var
+  OK : Boolean;
+  N : TFPExpressionResult;
+
+begin
+  FArgumentNodes[0].GetNodeValue(N);
+  if FFirst then
+    begin
+    FResult.ResultType:=N.ResultType;
+    FFirst:=False;
+    OK:=True;
+    end
+  else
+    Case N.ResultType of
+      rtFloat: OK:=N.ResFloat<FResult.ResFloat;
+      rtinteger: OK:=N.ResInteger<FResult.ResFloat;
+    end;
+  if OK then
+    Case FResult.ResultType of
+      rtFloat: FResult.ResFloat:=N.ResFloat;
+      rtinteger: FResult.ResFloat:=N.ResInteger;
+    end;
+  inherited UpdateAggregate;
 end;
 
 { TAggregateAvg }
@@ -2050,6 +2142,7 @@ procedure TFPExprIdentifierDef.FetchValue;
 
 Var
   RT,RT2 : TResultType;
+  I : Integer;
 
 begin
   RT:=FValue.ResultType;
@@ -2060,13 +2153,23 @@ begin
   RT2:=FValue.ResultType;
   if RT2<>RT then
     begin
-    // Restore
-    FValue.ResultType:=RT;
-    Raise EExprParser.CreateFmt('Value handler for variable %s returned wrong type, expected "%s", got "%s"',[
-      FName,
-      GetEnumName(TypeInfo(TResultType),Ord(rt)),
-      GetEnumName(TypeInfo(TResultType),Ord(rt2))
-    ]);
+    // Automatically convert integer to float.
+    if (rt2=rtInteger) and (rt=rtFLoat) then
+      begin
+      FValue.ResultType:=RT;
+      I:=FValue.resInteger;
+      FValue.resFloat:=I;
+      end
+    else
+      begin
+      // Restore
+      FValue.ResultType:=RT;
+      Raise EExprParser.CreateFmt('Value handler for variable %s returned wrong type, expected "%s", got "%s"',[
+        FName,
+        GetEnumName(TypeInfo(TResultType),Ord(rt)),
+        GetEnumName(TypeInfo(TResultType),Ord(rt2))
+        ]);
+      end;
     end;
 end;
 
@@ -3819,6 +3922,8 @@ begin
       AddFunction(bcAggregate,'count','I','',TAggregateCount);
       AddFunction(bcAggregate,'sum','F','F',TAggregateSum);
       AddFunction(bcAggregate,'avg','F','F',TAggregateAvg);
+      AddFunction(bcAggregate,'min','F','F',TAggregateMin);
+      AddFunction(bcAggregate,'max','F','F',TAggregateMax);
       end;
     end;
 end;
