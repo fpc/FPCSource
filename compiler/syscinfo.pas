@@ -80,7 +80,7 @@ var
 
 function get_syscall_by_token(const token: ttoken): psyscallinfo;
 var
-  i: aint;
+  i: longint;
 begin
   result:=nil;
   for i:=low(syscall_conventions) to high(syscall_conventions) do
@@ -93,7 +93,7 @@ end;
 
 function get_syscall_by_name(const name: string): psyscallinfo;
 var
-  i: aint;
+  i: longint;
 begin
   result:=nil;
   for i:=low(syscall_conventions) to high(syscall_conventions) do
@@ -106,7 +106,7 @@ end;
 
 function get_default_syscall: tprocoption;
 var
-  i: aint;
+  i: longint;
 begin
   if not (default_syscall_convention in syscall_conventions_po) then
     begin
