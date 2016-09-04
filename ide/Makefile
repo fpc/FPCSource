@@ -346,7 +346,7 @@ endif
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 override NOCPUDEF=1
-GDBMI_DEFAULT_OS_LIST=darwin freebsd haiku linux netbsd openbsd solaris win32 win64
+GDBMI_DEFAULT_OS_LIST=aix darwin freebsd haiku linux netbsd openbsd solaris win32 win64
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=ide
 ifdef REQUIRE_UNITSDIR
