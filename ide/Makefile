@@ -346,6 +346,7 @@ endif
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 override NOCPUDEF=1
+GDBMI_DEFAULT_OS_LIST=darwin freebsd haiku linux netbsd openbsd solaris win32 win64
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=ide
 ifdef REQUIRE_UNITSDIR
@@ -2292,8 +2293,14 @@ endif
 ifdef NOGDB
 FPMAKE_OPT+=--NoGDB=1
 endif
+ifndef NOGDBMI
+ifneq ($(findstring $(OS_TARGET),$(GDBMI_DEFAULT_OS_LIST)),)
+FPMAKE_OPT+=--GDBMI=1
+endif
+else
 ifdef GDBMI
 FPMAKE_OPT+=--GDBMI=1
+endif
 endif
 ifdef PPC_TARGET
 FPMAKE_OPT+=--CompilerTarget=$(PPC_TARGET)
