@@ -80,9 +80,9 @@ begin
       begin
         BuildEngine.log(vlCommand, 'Compiling IDE with GDB/MI debugger support, LibGDB is not needed');
         P.Options.Add('-dGDBMI');
-        { AIX also requires -bbigtoc for gdbmi }
+        { AIX also requires -CTsmalltoc for gdbmi }
         if Defaults.OS=aix then
-          P.Options.Add('-k-bbigtoc');
+          P.Options.Add('-CTsmalltoc');
       end
     else if not (NoGDBOption) then
       begin
