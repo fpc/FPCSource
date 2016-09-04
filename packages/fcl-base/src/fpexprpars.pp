@@ -781,6 +781,7 @@ Resourcestring
   SErrCommaExpected =  'Expected comma (,) at position %d, but got %s';
   SErrInvalidNumberChar = 'Unexpected character in number : %s';
   SErrInvalidNumber = 'Invalid numerical value : %s';
+  SErrUnterminatedIdentifier = 'Unterminated quoted identifier: %s';
   SErrNoOperand = 'No operand for unary operation %s';
   SErrNoleftOperand = 'No left operand for binary operation %s';
   SErrNoRightOperand = 'No right operand for binary operation %s';
@@ -1195,7 +1196,19 @@ begin
   C:=CurrentChar;
   while (not IsWordDelim(C)) and (C<>cNull) do
     begin
-    FToken:=FToken+C;
+    if (C<>'"') then
+      FToken:=FToken+C
+    else
+      begin
+      C:=NextPos;
+      While Not (C in [cNull,'"']) do
+        begin
+        FToken:=FToken+C;
+        C:=NextPos;
+        end;
+      if (C<>'"') then
+        ScanError(Format(SErrUnterminatedIdentifier,[FToken]));
+      end;
     C:=NextPos;
     end;
   S:=LowerCase(Token);
@@ -1236,7 +1249,7 @@ begin
     Result:=DoString
   else if IsDigit(C) then
     Result:=DoNumber
-  else if IsAlpha(C) then
+  else if IsAlpha(C) or (C='"') then
     Result:=DoIdentifier
   else
     ScanError(Format(SErrUnknownCharacter,[FPos,C]))  ;

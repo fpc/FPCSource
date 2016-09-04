@@ -31,6 +31,7 @@ type
     FP : TFPExpressionScanner;
     FInvalidString : String;
     procedure DoInvalidNumber(AString: String);
+    procedure TestIdentifier(const ASource, ATokenName: string);
     procedure TestInvalidNumber;
   protected
     procedure SetUp; override; 
@@ -46,6 +47,7 @@ type
     Procedure TestInvalidCharacter;
     Procedure TestUnterminatedString;
     Procedure TestQuotesInString;
+    Procedure TestIdentifiers;
   end;
 
   { TMyFPExpressionParser }
@@ -1320,7 +1322,7 @@ procedure TTestExpressionScanner.DoInvalidNumber(AString : String);
 
 begin
   FInvalidString:=AString;
-  AssertException('Invalid number "'+AString+'"',EExprScanner,@TestInvalidNumber);
+  AssertException('Invalid number "'+AString+'" ',EExprScanner,@TestInvalidNumber);
 end;
 
 procedure TTestExpressionScanner.TestNumber;
@@ -1354,6 +1356,27 @@ begin
   TestString('''That''''s it''',ttString);
   TestString('''''''s it''',ttString);
   TestString('''s it''''''',ttString);
+end;
+
+procedure TTestExpressionScanner.TestIdentifier(Const ASource,ATokenName : string);
+
+begin
+  FP.Source:=ASource;
+  AssertEquals('Token type',ttIdentifier,FP.GetToken);
+  AssertEquals('Token name',ATokenName,FP.Token);
+end;
+
+procedure TTestExpressionScanner.TestIdentifiers;
+begin
+  TestIdentifier('a','a');
+  TestIdentifier(' a','a');
+  TestIdentifier('a ','a');
+  TestIdentifier('a^b','a');
+  TestIdentifier('a-b','a');
+  TestIdentifier('a.b','a.b');
+  TestIdentifier('"a b"','a b');
+  TestIdentifier('c."a b"','c.a b');
+  TestIdentifier('c."ab"','c.ab');
 end;
 
 procedure TTestExpressionScanner.SetUp; 
