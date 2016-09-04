@@ -31,7 +31,7 @@ FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 # do not add -d$(CPU_TARGET)
 override NOCPUDEF=1
-GDBMI_DEFAULT_OS_LIST=darwin freebsd haiku linux netbsd openbsd solaris win32 win64
+GDBMI_DEFAULT_OS_LIST=aix darwin freebsd haiku linux netbsd openbsd solaris win32 win64
 
 [rules]
 # Do not pass the Makefile's unit and binary target locations. Fpmake uses it's own.
