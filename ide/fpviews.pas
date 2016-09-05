@@ -4245,7 +4245,7 @@ end;
 constructor TFPAboutDialog.Init;
 var R,R2: TRect;
     C: PUnsortedStringCollection;
-    I: integer;
+    I,nblines: integer;
     OSStr: string;
 procedure AddLine(S: string);
 begin
@@ -4272,12 +4272,23 @@ begin
   if pos('Fake',GDBVersion)=0 then
     begin
       R2.Move(0,1);
+      nblines:=1;
+      for i:=1 to length(GDBVersion) do
+        if GDBVersion[i]=#13 then
+          inc(nblines);
+      R2.B.Y:=R2.A.Y+nblines;
+      if nblines>1 then
+        GrowTo(Size.X,Size.Y+nblines-1);
       {$ifdef GDBMI}
-      Insert(New(PStaticText, Init(R2, FormatStrStr2(^C'(%s %s, using MI interface)',label_about_debugger,GDBVersion))));
+      if GDBVersionOK then
+        Insert(New(PStaticText, Init(R2, FormatStrStr2(^C'(%s %s, using MI interface)',label_about_debugger,GDBVersion))))
+      else
+        Insert(New(PStaticText, Init(R2, FormatStrStr(^C'%s',GDBVersion))));
       {$else}
       Insert(New(PStaticText, Init(R2, FormatStrStr2(^C'(%s %s)',label_about_debugger,GDBVersion))));
       {$endif}
-      R2.Move(0,1);
+      R2.Move(0,nblines);
+      R2.B.Y:=R2.A.Y+1;
     end
   else
 {$endif NODEBUG}
@@ -4310,6 +4321,9 @@ begin
   AddLine(^C'B‚rczi G bor');
   AddLine(^C'Peter Vreman');
   AddLine(^C'Pierre Muller');
+  AddLine('');
+  AddLine(^C'< GDBMI development >');
+  AddLine(^C'Nikolay Nikolov');
   AddLine('');
 
   GetExtent(R);
