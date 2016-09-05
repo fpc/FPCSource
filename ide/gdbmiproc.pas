@@ -47,6 +47,9 @@ var
 
 implementation
 
+uses
+  fputils;
+
 var
   DebugLogEnabled: Boolean = False;
 
@@ -92,7 +95,10 @@ begin
   end;
   FProcess := TProcess.Create(nil);
   FProcess.Options := [poUsePipes, poStdErrToOutput];
-  FProcess.Executable := GdbProgramName;
+  if (ExeExt<>'') and (pos(ExeExt,LowerCaseStr(GdbProgramName))=0) then
+    FProcess.Executable := GdbProgramName+ExeExt
+  else
+    FProcess.Executable := GdbProgramName;
   FProcess.Parameters.Add('--interpreter=mi');
   try
     FProcess.Execute;
