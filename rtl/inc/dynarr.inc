@@ -28,6 +28,15 @@ type
    tdynarraytypedata =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
    packed
+{$else}
+  {$ifdef powerpc64}
+    { 3.0.0 does not align elType field on a 8-byte boundary,
+      thus use packed also in this case }
+    {$ifdef VER3_0_0}
+      packed
+    {$endif VER"_0_0}
+  {$endif powerpc64}
+
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    record
      elSize : SizeUInt;
