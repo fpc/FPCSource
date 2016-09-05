@@ -131,6 +131,7 @@ var
   gdb_file: Text;
 
 function GDBVersion: string;
+function GDBVersionOK: boolean;
 function inferior_pid : longint;
 
 {$ifdef windows}
@@ -589,6 +590,7 @@ end;
 
 var
   CachedGDBVersion: string;
+  CachedGDBVersionOK : boolean;
 
 function GDBVersion: string;
 var
@@ -624,9 +626,25 @@ begin
   GDB.Free;
   CachedGDBVersion := GDBVersion;
   if GDBVersion = '' then
-    GDBVersion := 'GDB missing or does not work';
+    begin
+      GDBVersion := 'GDB missing or does not work'#13
+                   +#3'Consider using -G command line option'#13
+                   +#3'or set FPIDE_GDBPROC environment variable'#13
+                   +#3'to specify full path to GDB';
+      CachedGDBVersionOK := false;
+    end;
+end;
+
+function GDBVersionOK: boolean;
+var
+  S : string;
+begin
+  { Be sure GDBVersion is called }
+  S:=GDBVersion;
+  GDBVersionOK := CachedGDBVersionOK;
 end;
 
 begin
   CachedGDBVersion := '';
+  CachedGDBVersionOK := true;
 end.
