@@ -25,12 +25,14 @@
    - procs, params, local vars
    - assign statements
    - function results
+   - for loop
 
  ToDos:
    - many statements started, needs testing
    - rename overloaded procs, append $0, $1, ...
    - records
    - arrays
+   - access JavaScript from Pascal
    - Optional: put implementation into $impl
    - library
 
@@ -65,6 +67,8 @@ resourcestring
   sInitializedArraysNotSupported = 'Initialized array variables not yet supported';
   sMemberExprMustBeIdentifier = 'Member expression must be an identifier';
 
+const
+  LoopEndVar = '$loopend';
 
 Type
 
@@ -1704,54 +1708,67 @@ end;
 
 function TPasToJSConverter.ConvertForStatement(El: TPasImplForLoop;
   AContext: TConvertContext): TJSElement;
+// Creates the following code:
+//   LoopVar=<StartExpr>;
+//   for(var $loopend=<EndExpr>; LoopVar<=$loopend; LoopVar++){}
+//
+// The StartExpr must be executed exactly once at beginning.
+// The EndExpr must be executed exactly once at beginning.
+// The $loopend variable is local to the FOR block. It's only used within
+// the for header, so the name can be the same in other for loops.
+// LoopVar can be a varname or programname.varname
 
 Var
-  F : TJSForStatement;
-  L : TJSStatementList;
-  I : TJSSimpleAssignStatement;
-  V : TJSVarDeclaration;
-  VD : TJSVariableStatement;
-  u : TJSUNaryExpression;
-  B : TJSBinaryExpression;
-  MV : String;
+  ForSt : TJSForStatement;
+  List : TJSStatementList;
+  SimpleAss : TJSSimpleAssignStatement;
+  VarDecl : TJSVarDeclaration;
+  Incr : TJSUNaryExpression;
+  BinExp : TJSBinaryExpression;
   ok: Boolean;
+  VarStat: TJSVariableStatement;
 
 begin
   Result:=Nil;
-  B:=Nil;
-  L:=TJSStatementList(CreateElement(TJSStatementList,El));
-  Result:=L;
+  BinExp:=Nil;
+  // loopvar:=
+  // for (statementlist...
+  List:=TJSStatementList(CreateElement(TJSStatementList,El));
+  Result:=List;
   ok:=false;
   try
-    VD:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
-    L.A:=VD;
-    V:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
-    VD.A:=V;
-    MV:=TransformVariableName(El.VariableName,AContext)+'$endloopvalue';
-    V.Name:=MV;
-    V.Init:=ConvertElement(El.EndExpr,AContext);
-    F:=TJSForStatement(CreateElement(TJSForStatement,El));
-    L.B:=F;
-    I:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El.StartExpr));
-    F.Init:=I;
-    I.LHS:=CreateIdentifierExpr(El.VariableName,El);
-    I.Expr:=ConvertElement(El.StartExpr,AContext);
+    // add "LoopVar:=<StartExpr>;"
+    SimpleAss:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El.StartExpr));
+    SimpleAss.LHS:=ConvertElement(El.VariableName,AContext);
+    SimpleAss.Expr:=ConvertElement(El.StartExpr,AContext);
+    List.A:=SimpleAss;
+    // add "for()"
+    ForSt:=TJSForStatement(CreateElement(TJSForStatement,El));
+    List.B:=ForSt;
+    // add "var $loopend=<EndExpr>"
+    VarStat:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
+    VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
+    VarStat.A:=VarDecl;
+    VarDecl.Name:=LoopEndVar;
+    VarDecl.Init:=ConvertElement(El.EndExpr,AContext);
+    ForSt.Init:=VarStat;
+    // add "LoopVar<=$loopend"
     If El.Down then
-      begin
-      U:=TJSUnaryPostMinusMinusExpression(CreateElement(TJSUnaryPostMinusMinusExpression,El));
-      B:=TJSRelationalExpressionGE(CreateElement(TJSRelationalExpressionGE,El.EndExpr));
-      end
+      BinExp:=TJSRelationalExpressionGE(CreateElement(TJSRelationalExpressionGE,El.EndExpr))
     else
-      begin
-      U:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El));
-      B:=TJSRelationalExpressionLE(CreateElement(TJSRelationalExpressionLE,El.EndExpr));
-      end;
-    F.Incr:=U;
-    F.Cond:=B;
-    U.A:=CreateIdentifierExpr(El.VariableName,El);
-    B.A:=CreateIdentifierExpr(El.VariableName,El);
-    B.B:=CreateIdentifierExpr(MV,El.EndExpr);
-    F.Body:=ConvertElement(El.Body,AContext);
+      BinExp:=TJSRelationalExpressionLE(CreateElement(TJSRelationalExpressionLE,El.EndExpr));
+    BinExp.A:=ConvertElement(El.VariableName,AContext);
+    BinExp.B:=CreateIdentifierExpr(LoopEndVar,El.EndExpr);
+    ForSt.Cond:=BinExp;
+    // add "LoopVar++"
+    If El.Down then
+      Incr:=TJSUnaryPostMinusMinusExpression(CreateElement(TJSUnaryPostMinusMinusExpression,El))
+    else
+      Incr:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El));
+    Incr.A:=ConvertElement(El.VariableName,AContext);
+    ForSt.Incr:=Incr;
+    // add body
+    ForSt.Body:=ConvertElement(El.Body,AContext);
     ok:=true;
   finally
     if not ok then
