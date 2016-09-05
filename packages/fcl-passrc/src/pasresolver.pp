@@ -31,32 +31,46 @@
   - alias types, 'type a=b'
   - type alias type 'type a=type b'
   - choose the compatible overloaded procedure
+  - while do
+  - repeat until
+  - if then else
+  - binary operators
+  - case of
+  - try..finally..except, on, else, raise
+  - for loop
 
  ToDo:
   - spot duplicates
   - check if types only refer types
+  - nested forward procs, nested must be resolved before proc body
+  - program/library/implementation forward procs
   - check if constant is longint or int64
   - built-in functions
-  - enums, propagate to parent scopes
-  - records
-  - arrays
-  - pointer
+  - enums - TPasEnumType, TPasEnumValue
+    - propagate to parent scopes
+  - ranges TPasRangeType
+  - records - TPasRecordType,
+    - variant - TPasVariant
+    - const  TRecordValues
+  - arrays  TPasArrayType
+    - const TArrayValues
+  - pointer TPasPointerType
   - untyped parameters
-  - ranges
-  - sets
+  - sets - TPasSetType
   - forwards of ^pointer and class of - must be queued and resolved at end of type section
-  - with
-  - classes
+  - with - TPasImplWithDo
+  - classes - TPasClassType
   - interfaces
-  - properties
-    - read
-    - write
-    - index properties
+  - properties - TPasProperty
+    - read, write, index properties, implements, stored
   - default property
+  - TPasResString
+  - TPasFileType
   - generics, nested param lists
   - visibility (private, protected, strict private, strict protected)
   - check const expression types, e.g. bark on "const c:string=3;"
   - dotted unitnames
+  - labels
   - helpers
   - generics
   - many more: search for "ToDo:"
@@ -372,7 +386,11 @@ type
   { TPasProcedureScope }
 
   TPasProcedureScope = Class(TPasIdentifierScope)
-  public
+  end;
+
+  { TPasExceptOnScope }
+
+  TPasExceptOnScope = Class(TPasIdentifierScope)
   end;
 
   { TPasSubScope - base class for sub scopes }
@@ -474,19 +492,6 @@ type
   protected
     procedure SetCurrentParser(AValue: TPasParser); override;
     procedure CheckTopScope(ExpectedClass: TPasScopeClass);
-    procedure FinishModule;
-    procedure FinishUsesList;
-    procedure FinishTypeSection;
-    procedure FinishProcedure;
-    procedure FinishProcedureHeader;
-    procedure ResolveImplBlock(Block: TPasImplBlock);
-    procedure ResolveImplElement(El: TPasImplElement);
-    procedure ResolveImplCaseOf(CaseOf: TPasImplCaseOf);
-    procedure ResolveImplForLoop(Loop: TPasImplForLoop);
-    procedure ResolveExpr(El: TPasExpr);
-    procedure ResolveBinaryExpr(El: TBinaryExpr);
-    procedure ResolveSubIdent(El: TBinaryExpr);
-    procedure ResolveParamsExpr(Params: TParamsExpr);
     procedure AddModule(El: TPasModule);
     procedure AddSection(El: TPasSection);
     procedure AddType(El: TPasType);
@@ -494,7 +499,24 @@ type
     procedure AddProcedure(El: TPasProcedure);
     procedure AddArgument(El: TPasArgument);
     procedure AddFunctionResult(El: TPasResultElement);
+    procedure AddExceptOn(El: TPasImplExceptOn);
     procedure StartProcedureBody(El: TProcedureBody);
+    procedure FinishModule;
+    procedure FinishUsesList;
+    procedure FinishTypeSection;
+    procedure FinishProcedure;
+    procedure FinishProcedureHeader;
+    procedure FinishExceptOnExpr;
+    procedure FinishExceptOnStatement;
+    procedure ResolveImplBlock(Block: TPasImplBlock);
+    procedure ResolveImplElement(El: TPasImplElement);
+    procedure ResolveImplCaseOf(CaseOf: TPasImplCaseOf);
+    procedure ResolveImplLabelMark(Mark: TPasImplLabelMark);
+    procedure ResolveImplForLoop(Loop: TPasImplForLoop);
+    procedure ResolveExpr(El: TPasExpr);
+    procedure ResolveBinaryExpr(El: TBinaryExpr);
+    procedure ResolveSubIdent(El: TBinaryExpr);
+    procedure ResolveParamsExpr(Params: TParamsExpr);
     procedure WriteScopes;
   public
     constructor Create;
@@ -502,6 +524,10 @@ type
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
       const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
+      overload; override;
+    function CreateElement(AClass: TPTreeElement; const AName: String;
+      AParent: TPasElement; AVisibility: TPasMemberVisibility;
+      const ASrcPos: TPasSourcePos): TPasElement;
       overload; override;
     function FindElement(const AName: String): TPasElement; override;
     function FindFirstElement(const AName: String; ErrorPosEl: TPasElement): TPasElement;
@@ -1220,6 +1246,34 @@ begin
   // ToDo: check class
 end;
 
+procedure TPasResolver.FinishExceptOnExpr;
+var
+  El: TPasImplExceptOn;
+  Expr: TPrimitiveExpr;
+begin
+  CheckTopScope(TPasExceptOnScope);
+  El:=TPasImplExceptOn(FTopScope.Element);
+  if El.VarExpr<>nil then
+    begin
+    if El.VarExpr.ClassType<>TPrimitiveExpr then
+      RaiseNotYetImplemented(El.VarExpr);
+    Expr:=TPrimitiveExpr(El.VarExpr);
+    if Expr.Kind<>pekIdent then
+      RaiseNotYetImplemented(Expr);
+    TPasExceptOnScope(FTopScope).AddIdentifier(Expr.Value,Expr,pikSimple);
+    end;
+  if El.TypeExpr<>nil then
+    ResolveExpr(El.TypeExpr);
+end;
+
+procedure TPasResolver.FinishExceptOnStatement;
+begin
+  //writeln('TPasResolver.FinishExceptOnStatement START');
+  CheckTopScope(TPasExceptOnScope);
+  ResolveImplElement(TPasImplExceptOn(FTopScope.Element).Body);
+  PopScope;
+end;
+
 procedure TPasResolver.ResolveImplBlock(Block: TPasImplBlock);
 var
   i: Integer;
@@ -1260,6 +1314,8 @@ begin
     end
   else if El.ClassType=TPasImplCaseOf then
     ResolveImplCaseOf(TPasImplCaseOf(El))
+  else if El.ClassType=TPasImplLabelMark then
+    ResolveImplLabelMark(TPasImplLabelMark(El))
   else if El.ClassType=TPasImplForLoop then
     ResolveImplForLoop(TPasImplForLoop(El))
   else if El.ClassType=TPasImplTry then
@@ -1269,11 +1325,7 @@ begin
     ResolveImplBlock(TPasImplTry(El).ElseBranch);
     end
   else if El.ClassType=TPasImplExceptOn then
-    begin
-    ResolveExpr(TPasImplExceptOn(El).VarExpr);
-    ResolveExpr(TPasImplExceptOn(El).TypeExpr);
-    ResolveImplElement(TPasImplExceptOn(El).Body);
-    end
+    // handled in FinishExceptOnStatement
   else if El.ClassType=TPasImplRaise then
     begin
     ResolveExpr(TPasImplRaise(El).ExceptObject);
@@ -1291,26 +1343,43 @@ end;
 procedure TPasResolver.ResolveImplCaseOf(CaseOf: TPasImplCaseOf);
 var
   i, j: Integer;
+  El: TPasElement;
   Stat: TPasImplCaseStatement;
 begin
   ResolveExpr(CaseOf.CaseExpr);
   for i:=0 to CaseOf.Elements.Count-1 do
     begin
-    Stat:=TPasImplCaseStatement(CaseOf.Elements[i]);
-    for j:=0 to Stat.Expressions.Count-1 do
-      ResolveExpr(TPasExpr(Stat.Expressions[j]));
-    ResolveImplElement(Stat.Body);
+    El:=TPasElement(CaseOf.Elements[i]);
+    if El.ClassType=TPasImplCaseStatement then
+      begin
+      Stat:=TPasImplCaseStatement(El);
+      for j:=0 to Stat.Expressions.Count-1 do
+        begin
+        //writeln('TPasResolver.ResolveImplCaseOf Stat.Expr[',j,']=',GetObjName(El));
+        ResolveExpr(TPasExpr(Stat.Expressions[j]));
+        end;
+      ResolveImplElement(Stat.Body);
+      end
+    else if El.ClassType=TPasImplCaseElse then
+      ResolveImplBlock(TPasImplCaseElse(El))
+    else
+      RaiseNotYetImplemented(El);
     end;
-  ResolveImplBlock(CaseOf.ElseBranch);
+  // CaseOf.ElseBranch was already resolved via Elements
 end;
 
-procedure TPasResolver.ResolveImplForLoop(Loop: TPasImplForLoop);
+procedure TPasResolver.ResolveImplLabelMark(Mark: TPasImplLabelMark);
 var
   DeclEl: TPasElement;
 begin
-  DeclEl:=FindFirstElement(Loop.VariableName,Loop);
-  //writeln('TPasResolver.ResolveImplForLoop Ref=',GetObjName(Loop)+' Decl='+GetObjName(DeclEl));
-  CreateReference(DeclEl,Loop);
+  DeclEl:=FindFirstElement(Mark.LabelId,Mark);
+  // ToDo: check if DeclEl is a label and check duplicate
+  CreateReference(DeclEl,Mark);
+end;
+
+procedure TPasResolver.ResolveImplForLoop(Loop: TPasImplForLoop);
+begin
+  ResolveExpr(Loop.VariableName);
   ResolveExpr(Loop.StartExpr);
   ResolveExpr(Loop.EndExpr);
   ResolveImplElement(Loop.Body);
@@ -1324,7 +1393,8 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveExpr ',GetObjName(El));
   {$ENDIF}
-  if El.ClassType=TPrimitiveExpr then
+  if El=nil then
+  else if El.ClassType=TPrimitiveExpr then
     begin
     Primitive:=TPrimitiveExpr(El);
     case Primitive.Kind of
@@ -1589,6 +1659,11 @@ begin
   TPasProcedureScope(TopScope).AddIdentifier(ResolverResultVar,El,pikSimple);
 end;
 
+procedure TPasResolver.AddExceptOn(El: TPasImplExceptOn);
+begin
+  PushScope(El,TPasExceptOnScope);
+end;
+
 procedure TPasResolver.StartProcedureBody(El: TProcedureBody);
 begin
   if El=nil then ;
@@ -1621,34 +1696,48 @@ function TPasResolver.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility: TPasMemberVisibility;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 var
-  SrcFile: String;
   aScanner: TPascalScanner;
-  SrcY, SrcX: Integer;
+  SrcPos: TPasSourcePos;
+begin
+  // get source position for good error messages
+  aScanner:=CurrentParser.Scanner;
+  if (ASourceFilename='') or StoreSrcColumns then
+    begin
+    SrcPos.FileName:=aScanner.CurFilename;
+    SrcPos.Row:=aScanner.CurRow;
+    SrcPos.Column:=aScanner.CurColumn;
+    end
+  else
+    begin
+    SrcPos.FileName:=ASourceFilename;
+    SrcPos.Row:=ASourceLinenumber;
+    SrcPos.Column:=0;
+    end;
+  Result:=CreateElement(AClass,AName,AParent,AVisibility,SrcPos);
+end;
+
+function TPasResolver.CreateElement(AClass: TPTreeElement; const AName: String;
+  AParent: TPasElement; AVisibility: TPasMemberVisibility;
+  const ASrcPos: TPasSourcePos): TPasElement;
+var
   El: TPasElement;
+  SrcY: integer;
 begin
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.CreateElement ',AClass.ClassName,' Name=',AName,' Parent=',GetObjName(AParent));
+  writeln('TPasResolver.CreateElement ',AClass.ClassName,' Name=',AName,' Parent=',GetObjName(AParent),' (',ASrcPos.Row,',',ASrcPos.Column,')');
   {$ENDIF}
   if (AParent=nil) and (FRootElement<>nil)
   and (not AClass.InheritsFrom(TPasUnresolvedTypeRef)) then
     RaiseInternalError('TPasResolver.CreateElement more than one root element Class="'+AClass.ClassName+'" Root='+GetObjName(FRootElement));
 
-  // get source position for good error messages
-  aScanner:=CurrentParser.Scanner;
-  SrcFile:=ASourceFilename;
-  SrcY:=ASourceLinenumber;
-  if (SrcFile='') or StoreSrcColumns then
-    begin
-    SrcFile:=aScanner.CurFilename;
-    SrcY:=aScanner.CurRow;
-    end;
-  if SrcFile='' then
+  if ASrcPos.FileName='' then
     RaiseInternalError('TPasResolver.CreateElement missing filename');
+  SrcY:=ASrcPos.Row;
   if StoreSrcColumns then
     begin
-    SrcX:=aScanner.CurColumn;
-    if (SrcX<ParserMaxEmbeddedColumn) and (SrcY<ParserMaxEmbeddedRow) then
-      SrcY:=-(SrcY*ParserMaxEmbeddedColumn+SrcX);
+    if (ASrcPos.Column<ParserMaxEmbeddedColumn)
+        and (SrcY<ParserMaxEmbeddedRow) then
+      SrcY:=-(SrcY*ParserMaxEmbeddedColumn+ASrcPos.Column);
     end;
 
   // create element
@@ -1656,7 +1745,7 @@ begin
   FLastElement:=El;
   Result:=FLastElement;
   El.Visibility:=AVisibility;
-  El.SourceFilename:=SrcFile;
+  El.SourceFilename:=ASrcPos.FileName;
   El.SourceLinenumber:=SrcY;
   if FRootElement=nil then
     FRootElement:=Result;
@@ -1681,7 +1770,10 @@ begin
   else if AClass.InheritsFrom(TPasModule) then
     AddModule(TPasModule(El))
   else if AClass.InheritsFrom(TPasExpr) then
+  else if AClass.ClassType=TPasImplExceptOn then
+    AddExceptOn(TPasImplExceptOn(El))
   else if AClass.InheritsFrom(TPasImplBlock) then
+  else if AClass.ClassType=TPasImplLabelMark then
   else if AClass.ClassType=TPasOverloadedProc then
   else
     RaiseNotYetImplemented(El);
@@ -1735,6 +1827,10 @@ begin
   stTypeDef: ;
   stProcedure: FinishProcedure;
   stProcedureHeader: FinishProcedureHeader;
+  stExceptOnExpr: FinishExceptOnExpr;
+  stExceptOnStatement: FinishExceptOnStatement;
+  else
+    RaiseMsg(nNotYetImplemented,sNotYetImplemented+' FinishScope',[IntToStr(ord(ScopeType))],nil);
   end;
 end;
 
@@ -1786,9 +1882,28 @@ end;
 
 function TPasResolver.CreateReference(DeclEl, RefEl: TPasElement
   ): TResolvedReference;
+
+  procedure RaiseAlreadySet;
+  var
+    aLine, aCol: integer;
+    FormerDeclEl: TPasElement;
+  begin
+    writeln('RaiseAlreadySet RefEl=',GetObjName(RefEl),' DeclEl=',GetObjName(DeclEl));
+    UnmangleSourceLineNumber(RefEl.SourceLinenumber,aLine,aCol);
+    writeln('  RefEl at ',RefEl.SourceFilename,'(',aLine,',',aCol,')');
+    writeln('  RefEl.CustomData=',GetObjName(RefEl.CustomData));
+    if RefEl.CustomData is TResolvedReference then
+      begin
+        FormerDeclEl:=TResolvedReference(RefEl.CustomData).Declaration;
+      writeln('  TResolvedReference(RefEl.CustomData).Declaration=',GetObjName(FormerDeclEl),
+       ' IsSame=',FormerDeclEl=DeclEl);
+      end;
+    RaiseInternalError('TPasResolver.CreateReference customdata<>nil');
+  end;
+
 begin
   if RefEl.CustomData<>nil then
-    raise EPasResolve.Create('TPasResolver.CreateReference customdata<>nil');
+    RaiseAlreadySet;
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CreateReference RefEl=',GetObjName(RefEl),' DeclEl=',GetObjName(DeclEl));
   {$ENDIF}
@@ -1912,7 +2027,7 @@ procedure TPasResolver.RaiseIdentifierNotFound(Identifier: string;
   El: TPasElement);
 begin
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.RaiseIdentifierNotFound START');
+  writeln('TPasResolver.RaiseIdentifierNotFound START "',Identifier,'"');
   WriteScopes;
   {$ENDIF}
   RaiseMsg(nIdentifierNotFound,sIdentifierNotFound,[Identifier],El);

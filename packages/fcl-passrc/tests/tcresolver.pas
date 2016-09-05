@@ -2,6 +2,15 @@
   Examples:
     ./testpassrc --suite=TTestResolver.TestEmpty
 }
+(*
+  CheckReferenceDirectives:
+    {#a} label "a", labels all elements at the following token
+    {@a} reference "a", search at next token for an element e with
+           TResolvedReference(e.CustomData).Declaration points to an element
+           labeled "a".
+    {=a} is "a", search at next token for a TPasAliasType t with t.DestType
+           points to an element labeled "a"
+*)
 unit tcresolver;
 
 {$mode objfpc}{$H+}
@@ -40,6 +49,15 @@ Type
     property Module: TPasModule read FModule write SetModule;
   end;
 
+  TTestResolverReferenceData = record
+    Filename: string;
+    Line: integer;
+    StartCol: integer;
+    EndCol: integer;
+    Found: TFPList; // list of TPasElement at this token
+  end;
+  PTestResolverReferenceData = ^TTestResolverReferenceData;
+
   { TTestResolver }
 
   TTestResolver = Class(TTestParser)
@@ -50,12 +68,14 @@ Type
     function GetModuleCount: integer;
     function GetModules(Index: integer): TTestEnginePasResolver;
     function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
+    procedure OnFindReference(Element, FindData: pointer);
   Protected
     Procedure SetUp; override;
     Procedure TearDown; override;
     procedure CreateEngine(var TheEngine: TPasTreeContainer); override;
     procedure ParseProgram;
     procedure ParseUnit;
+    procedure CheckReferenceDirectives;
   Public
     function FindModuleWithFilename(aFilename: string): TTestEnginePasResolver;
     function AddModule(aFilename: string): TTestEnginePasResolver;
@@ -71,17 +91,24 @@ Type
     Procedure TestEmpty;
     Procedure TestAliasType;
     Procedure TestAlias2Type;
+    Procedure TestAliasTypeRefs;
     Procedure TestVarLongint;
     Procedure TestVarInteger;
     Procedure TestConstInteger;
     Procedure TestPrgAssignment;
     Procedure TestPrgProcVar;
     Procedure TestUnitProcVar;
+    Procedure TestForLoop;
     Procedure TestStatements;
+    Procedure TestCaseStatement;
+    Procedure TestTryStatement;
+    Procedure TestStatementsRefs;
     Procedure TestUnitRef;
     Procedure TestProcParam;
     Procedure TestFunctionResult;
     Procedure TestProcOverload;
+    Procedure TestProcOverloadRefs;
+    Procedure TestNestedProc;
     property PasResolver: TTestEnginePasResolver read FPasResolver;
   end;
 
@@ -124,6 +151,7 @@ end;
 constructor TTestEnginePasResolver.Create;
 begin
   inherited Create;
+  StoreSrcColumns:=true;
 end;
 
 destructor TTestEnginePasResolver.Destroy;
@@ -211,6 +239,7 @@ begin
   if (PasProgram.InitializationSection.Elements.Count>0) then
     if TObject(PasProgram.InitializationSection.Elements[0]) is TPasImplBlock then
       FFirstStatement:=TPasImplBlock(PasProgram.InitializationSection.Elements[0]);
+  CheckReferenceDirectives;
 end;
 
 procedure TTestResolver.ParseUnit;
@@ -253,6 +282,411 @@ begin
   and (Module.InitializationSection.Elements.Count>0) then
     if TObject(Module.InitializationSection.Elements[0]) is TPasImplBlock then
       FFirstStatement:=TPasImplBlock(Module.InitializationSection.Elements[0]);
+  CheckReferenceDirectives;
+end;
+
+procedure TTestResolver.CheckReferenceDirectives;
+type
+  TMarkerKind = (
+    mkLabel,
+    mkResolverReference,
+    mkDirectReference
+    );
+  PMarker = ^TMarker;
+  TMarker = record
+    Kind: TMarkerKind;
+    Filename: string;
+    LineNumber: integer;
+    StartCol, EndCol: integer; // token start, end column
+    Identifier: string;
+    Next: PMarker;
+  end;
+
+var
+  FirstMarker, LastMarker: PMarker;
+  Filename: string;
+  LineNumber: Integer;
+  SrcLine: String;
+  CommentStartP, CommentEndP: PChar;
+  FoundRefs: TTestResolverReferenceData;
+
+  procedure GetSrc(Index: integer; out SrcLines: TStringList; out aFilename: string);
+  var
+    aStream: TStream;
+  begin
+    SrcLines:=TStringList.Create;
+    aStream:=Resolver.Streams.Objects[Index] as TStream;
+    aStream.Position:=0;
+    SrcLines.LoadFromStream(aStream);
+    aFilename:=Resolver.Streams[Index];
+  end;
+
+  procedure RaiseErrorAt(Msg: string; const aFilename: string; aLine, aCol: integer);
+  var
+    s, SrcFilename: String;
+    i, j: Integer;
+    SrcLines: TStringList;
+  begin
+    // write all source files
+    for i:=0 to Resolver.Streams.Count-1 do
+      begin
+      GetSrc(i,SrcLines,SrcFilename);
+      writeln('Testcode:-File="',SrcFilename,'"----------------------------------:');
+      for j:=1 to SrcLines.Count do
+        writeln(Format('%:4d: ',[j]),SrcLines[j-1]);
+      SrcLines.Free;
+      end;
+    s:=Msg+' at '+aFilename+' line='+IntToStr(aLine)+', col='+IntToStr(aCol);
+    writeln('ERROR: TTestResolver.CheckReferenceDirectives: ',s);
+    raise Exception.Create('TTestResolver.CheckReferenceDirectives: '+s);
+  end;
+
+  procedure RaiseErrorAt(Msg: string; aMarker: PMarker);
+  begin
+    RaiseErrorAt(Msg,aMarker^.Filename,aMarker^.LineNumber,aMarker^.StartCol);
+  end;
+
+  procedure RaiseError(Msg: string; p: PChar);
+  begin
+    RaiseErrorAt(Msg,Filename,LineNumber,p-PChar(SrcLine)+1);
+  end;
+
+  procedure AddMarker(Marker: PMarker);
+  begin
+    if LastMarker<>nil then
+      LastMarker^.Next:=Marker
+    else
+      FirstMarker:=Marker;
+    LastMarker:=Marker;
+  end;
+
+  function AddMarker(Kind: TMarkerKind; const aFilename: string;
+    aLine, aStartCol, aEndCol: integer; const Identifier: string): PMarker;
+  begin
+    New(Result);
+    Result^.Kind:=Kind;
+    Result^.Filename:=aFilename;
+    Result^.LineNumber:=aLine;
+    Result^.StartCol:=aStartCol;
+    Result^.EndCol:=aEndCol;
+    Result^.Identifier:=Identifier;
+    Result^.Next:=nil;
+    //writeln('AddMarker Line="',SrcLine,'" Identifier=',Identifier,' Col=',aStartCol,'-',aEndCol,' "',copy(SrcLine,aStartCol,aEndCol-aStartCol),'"');
+    AddMarker(Result);
+  end;
+
+  function AddMarkerForTokenBehindComment(Kind: TMarkerKind;
+    const Identifer: string): PMarker;
+  var
+    TokenStart, p: PChar;
+  begin
+    p:=CommentEndP;
+    ReadNextPascalToken(p,TokenStart,false,false);
+    Result:=AddMarker(Kind,Filename,LineNumber,
+      CommentEndP-PChar(SrcLine)+1,p-PChar(SrcLine)+1,Identifer);
+  end;
+
+  function FindLabel(const Identifier: string): PMarker;
+  begin
+    Result:=FirstMarker;
+    while Result<>nil do
+      begin
+      if (Result^.Kind=mkLabel)
+      and (CompareText(Result^.Identifier,Identifier)=0) then
+        exit;
+      Result:=Result^.Next;
+      end;
+  end;
+
+  function ReadIdentifier(var p: PChar): string;
+  var
+    StartP: PChar;
+  begin
+    if not (p^ in ['a'..'z','A'..'Z','_']) then
+      RaiseError('identifier expected',p);
+    StartP:=p;
+    inc(p);
+    while p^ in ['a'..'z','A'..'Z','_','0'..'9'] do inc(p);
+    SetLength(Result,p-StartP);
+    Move(StartP^,Result[1],length(Result));
+  end;
+
+  procedure AddLabel;
+  var
+    Identifier: String;
+    p: PChar;
+  begin
+    p:=CommentStartP+2;
+    Identifier:=ReadIdentifier(p);
+    //writeln('TTestResolver.CheckReferenceDirectives.AddLabel ',Identifier);
+    if FindLabel(Identifier)<>nil then
+      RaiseError('duplicate label "'+Identifier+'"',p);
+    AddMarkerForTokenBehindComment(mkLabel,Identifier);
+  end;
+
+  procedure AddResolverReference;
+  var
+    Identifier: String;
+    p: PChar;
+  begin
+    p:=CommentStartP+2;
+    Identifier:=ReadIdentifier(p);
+    //writeln('TTestResolver.CheckReferenceDirectives.AddReference ',Identifier);
+    AddMarkerForTokenBehindComment(mkResolverReference,Identifier);
+  end;
+
+  procedure AddDirectReference;
+  var
+    Identifier: String;
+    p: PChar;
+  begin
+    p:=CommentStartP+2;
+    Identifier:=ReadIdentifier(p);
+    //writeln('TTestResolver.CheckReferenceDirectives.AddPointer ',Identifier);
+    AddMarkerForTokenBehindComment(mkDirectReference,Identifier);
+  end;
+
+  procedure ParseCode(SrcLines: TStringList; aFilename: string);
+  var
+    p: PChar;
+    IsDirective: Boolean;
+  begin
+    //writeln('TTestResolver.CheckReferenceDirectives.ParseCode File=',aFilename);
+    Filename:=aFilename;
+    // parse code, find all labels
+    LineNumber:=0;
+    while LineNumber<SrcLines.Count do
+      begin
+      inc(LineNumber);
+      SrcLine:=SrcLines[LineNumber-1];
+      if SrcLine='' then continue;
+      //writeln('TTestResolver.CheckReferenceDirectives Line=',SrcLine);
+      p:=PChar(SrcLine);
+      repeat
+        case p^ of
+          #0: if (p-PChar(SrcLine)=length(SrcLine)) then break;
+          '{':
+            begin
+            CommentStartP:=p;
+            inc(p);
+            IsDirective:=p^ in ['#','@','='];
+
+            // skip to end of comment
+            repeat
+              case p^ of
+              #0:
+                if (p-PChar(SrcLine)=length(SrcLine)) then
+                  begin
+                  // multi line comment
+                  if IsDirective then
+                    RaiseError('directive missing closing bracket',CommentStartP);
+                  repeat
+                    inc(LineNumber);
+                    if LineNumber>SrcLines.Count then exit;
+                    SrcLine:=SrcLines[LineNumber-1];
+                    //writeln('TTestResolver.CheckReferenceDirectives Comment Line=',SrcLine);
+                  until SrcLine<>'';
+                  p:=PChar(SrcLine);
+                  continue;
+                  end;
+              '}':
+                begin
+                inc(p);
+                break;
+                end;
+              end;
+              inc(p);
+            until false;
+
+            CommentEndP:=p;
+            case CommentStartP[1] of
+            '#': AddLabel;
+            '@': AddResolverReference;
+            '=': AddDirectReference;
+            end;
+            p:=CommentEndP;
+            continue;
+
+            end;
+          '/':
+            if p[1]='/' then
+              break; // rest of line is comment -> skip
+        end;
+        inc(p);
+      until false;
+      end;
+  end;
+
+  function FindElementsAt(aFilename: string; aLine, aStartCol, aEndCol: integer): TFPList;
+  var
+    ok: Boolean;
+  begin
+    FoundRefs.Filename:=aFilename;
+    FoundRefs.Line:=aLine;
+    FoundRefs.StartCol:=aStartCol;
+    FoundRefs.EndCol:=aEndCol;
+    FoundRefs.Found:=TFPList.Create;
+    ok:=false;
+    try
+      Module.ForEachCall(@OnFindReference,@FoundRefs);
+      ok:=true;
+    finally
+      if not ok then
+        FreeAndNil(FoundRefs.Found);
+    end;
+    Result:=FoundRefs.Found;
+    FoundRefs.Found:=nil;
+  end;
+
+  procedure CheckResolverReference(aMarker: PMarker);
+  // check if one element at {@a} has a TResolvedReference to an element labeled {#a}
+  var
+    aLabel: PMarker;
+    ReferenceElements, LabelElements: TFPList;
+    i, j, aLine, aCol: Integer;
+    El, LabelEl: TPasElement;
+    Ref: TResolvedReference;
+  begin
+    //writeln('CheckReference searching reference: ',aMarker^.Filename,' Line=',aMarker^.LineNumber,' Col=',aMarker^.StartCol,'-',aMarker^.EndCol,' Label="',aMarker^.Identifier,'"');
+    aLabel:=FindLabel(aMarker^.Identifier);
+    if aLabel=nil then
+      RaiseErrorAt('label "'+aMarker^.Identifier+'" not found',aMarker^.Filename,aMarker^.LineNumber,aMarker^.StartCol);
+
+    LabelElements:=nil;
+    ReferenceElements:=nil;
+    try
+      LabelElements:=FindElementsAt(aLabel^.Filename,aLabel^.LineNumber,aLabel^.StartCol,aLabel^.EndCol);
+      if LabelElements.Count=0 then
+        RaiseErrorAt('label "'+aLabel^.Identifier+'" has no elements',aLabel);
+
+      ReferenceElements:=FindElementsAt(aMarker^.Filename,aMarker^.LineNumber,aMarker^.StartCol,aMarker^.EndCol);
+      if ReferenceElements.Count=0 then
+        RaiseErrorAt('reference "'+aMarker^.Identifier+'" has no elements',aMarker);
+
+      for i:=0 to ReferenceElements.Count-1 do
+        begin
+        El:=TPasElement(ReferenceElements[i]);
+        if El.CustomData is TResolvedReference then
+          begin
+          Ref:=TResolvedReference(El.CustomData);
+          for j:=0 to LabelElements.Count-1 do
+            begin
+            LabelEl:=TPasElement(LabelElements[j]);
+            if Ref.Declaration=LabelEl then
+              exit; // success
+            end;
+          end;
+        end;
+
+      // failure write candidates
+      for i:=0 to ReferenceElements.Count-1 do
+        begin
+        El:=TPasElement(ReferenceElements[i]);
+        write('Reference candidate for "',aMarker^.Identifier,'" at reference ',aMarker^.Filename,'(',aMarker^.LineNumber,',',aMarker^.StartCol,'-',aMarker^.EndCol,')');
+        write(' El=',GetObjName(El));
+        if El.CustomData is TResolvedReference then
+          begin
+          Ref:=TResolvedReference(El.CustomData);
+          write(' Decl=',GetObjName(Ref.Declaration));
+          PasResolver.UnmangleSourceLineNumber(Ref.Declaration.SourceLinenumber,aLine,aCol);
+          write(Ref.Declaration.SourceFilename,'(',aLine,',',aCol,')');
+          end
+        else
+          write(' has no TResolvedReference');
+        writeln;
+        end;
+      for i:=0 to LabelElements.Count-1 do
+        begin
+        El:=TPasElement(LabelElements[i]);
+        write('Label candidate for "',aLabel^.Identifier,'" at reference ',aLabel^.Filename,'(',aLabel^.LineNumber,',',aLabel^.StartCol,'-',aLabel^.EndCol,')');
+        write(' El=',GetObjName(El));
+        writeln;
+        end;
+
+      RaiseErrorAt('wrong resolved reference "'+aMarker^.Identifier+'"',aMarker);
+    finally
+      LabelElements.Free;
+      ReferenceElements.Free;
+    end;
+  end;
+
+  procedure CheckDirectReference(aMarker: PMarker);
+  // check if one element at {=a} is a TPasAliasType pointing to an element labeled {#a}
+  var
+    aLabel: PMarker;
+    ReferenceElements: TFPList;
+    i, LabelLine, LabelCol: Integer;
+    El: TPasElement;
+    DeclEl: TPasType;
+  begin
+    //writeln('CheckPointer searching pointer: ',aMarker^.Filename,' Line=',aMarker^.LineNumber,' Col=',aMarker^.StartCol,'-',aMarker^.EndCol,' Label="',aMarker^.Identifier,'"');
+    aLabel:=FindLabel(aMarker^.Identifier);
+    if aLabel=nil then
+      RaiseErrorAt('label "'+aMarker^.Identifier+'" not found',aMarker^.Filename,aMarker^.LineNumber,aMarker^.StartCol);
+
+    ReferenceElements:=nil;
+    try
+      ReferenceElements:=FindElementsAt(aMarker^.Filename,aMarker^.LineNumber,aMarker^.StartCol,aMarker^.EndCol);
+      if ReferenceElements.Count=0 then
+        RaiseErrorAt('reference "'+aMarker^.Identifier+'" has no elements',aMarker);
+
+      for i:=0 to ReferenceElements.Count-1 do
+        begin
+        El:=TPasElement(ReferenceElements[i]);
+        if El.ClassType=TPasAliasType then
+          begin
+          DeclEl:=TPasAliasType(El).DestType;
+          PasResolver.UnmangleSourceLineNumber(DeclEl.SourceLinenumber,LabelLine,LabelCol);
+          if (aLabel^.Filename=DeclEl.SourceFilename)
+          and (aLabel^.LineNumber=LabelLine)
+          and (aLabel^.StartCol<=LabelCol)
+          and (aLabel^.EndCol>=LabelCol) then
+            exit; // success
+          writeln('CheckDirectReference Decl at ',DeclEl.SourceFilename,'(',LabelLine,',',LabelCol,')');
+          RaiseErrorAt('wrong direct reference "'+aMarker^.Identifier+'"',aMarker);
+          end;
+        end;
+    finally
+    end;
+
+  end;
+
+var
+  aMarker: PMarker;
+  i: Integer;
+  SrcLines: TStringList;
+begin
+  FirstMarker:=nil;
+  LastMarker:=nil;
+  FoundRefs:=Default(TTestResolverReferenceData);
+  try
+    // find all markers
+    for i:=0 to Resolver.Streams.Count-1 do
+      begin
+      GetSrc(i,SrcLines,Filename);
+      ParseCode(SrcLines,Filename);
+      SrcLines.Free;
+      end;
+
+    // check references
+    aMarker:=FirstMarker;
+    while aMarker<>nil do
+      begin
+      case aMarker^.Kind of
+      mkResolverReference: CheckResolverReference(aMarker);
+      mkDirectReference: CheckDirectReference(aMarker);
+      end;
+      aMarker:=aMarker^.Next;
+      end;
+
+  finally
+    while FirstMarker<>nil do
+      begin
+      aMarker:=FirstMarker;
+      FirstMarker:=FirstMarker^.Next;
+      Dispose(aMarker);
+      end;
+  end;
 end;
 
 function TTestResolver.FindModuleWithFilename(aFilename: string
@@ -401,6 +835,22 @@ begin
   raise Exception.Create('can''t find unit "'+aUnitName+'"');
 end;
 
+procedure TTestResolver.OnFindReference(Element, FindData: pointer);
+var
+  El: TPasElement absolute Element;
+  Data: PTestResolverReferenceData absolute FindData;
+  Line, Col: integer;
+begin
+  PasResolver.UnmangleSourceLineNumber(El.SourceLinenumber,Line,Col);
+  //writeln('TTestResolver.OnFindReference ',GetObjName(El),' ',El.SourceFilename,' Line=',Line,',Col=',Col,' SearchFile=',Data^.Filename,',Line=',Data^.Line,',Col=',Data^.StartCol,'-',Data^.EndCol);
+  if (Data^.Filename=El.SourceFilename)
+  and (Data^.Line=Line)
+  and (Data^.StartCol<=Col)
+  and (Data^.EndCol>=Col)
+  then
+    Data^.Found.Add(El);
+end;
+
 function TTestResolver.GetModules(Index: integer): TTestEnginePasResolver;
 begin
   Result:=TTestEnginePasResolver(FModules[Index]);
@@ -467,6 +917,19 @@ begin
   DestT2:=T2.DestType;
   AssertEquals('points to alias type',TPasAliasType,DestT2.ClassType);
   AssertEquals('points to tint1','tint1',DestT2.Name);
+end;
+
+procedure TTestResolver.TestAliasTypeRefs;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#a}a=longint;');
+  Add('  {#b}{=a}b=a;');
+  Add('var');
+  Add('  {=a}c: a;');
+  Add('  {=b}d: b;');
+  Add('begin');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestVarLongint;
@@ -662,6 +1125,18 @@ begin
   AssertSame('proc sub var type is proc sub t1',ProcSubType1,ProcSubVar1Type);
 end;
 
+procedure TTestResolver.TestForLoop;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  {#v1}v1,{#v2}v2,{#v3}v3:longint;');
+  Add('begin');
+  Add('  for {@v1}v1:=');
+  Add('    {@v2}v2');
+  Add('    to {@v3}v3 do ;');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestStatements;
 begin
   StartProgram(false);
@@ -678,6 +1153,86 @@ begin
   Add('    v1:=v1-v2;');
   Add('  for v1:=v2 to v3 do v2:=v1;');
   Add('  if v1<v2 then v3:=v1 else v3:=v2;');
+  ParseProgram;
+  AssertEquals('3 declarations',3,PasProgram.ProgramSection.Declarations.Count);
+end;
+
+procedure TTestResolver.TestCaseStatement;
+begin
+  StartProgram(false);
+  Add('const');
+  Add('  {#c1}c1=1;');
+  Add('  {#c2}c2=1;');
+  Add('var');
+  Add('  {#v1}v1,{#v2}v2,{#v3}v3:longint;');
+  Add('begin');
+  Add('  Case {@v1}v1+{@v2}v2 of');
+  Add('  {@c1}c1:');
+  Add('    {@v2}v2:={@v3}v3;');
+  Add('  {@c1}c1,{@c2}c2: ;');
+  Add('  {@c1}c1..{@c2}c2: ;');
+  Add('  {@c1}c1+{@c2}c2: ;');
+  Add('  else');
+  Add('    {@v1}v1:=3;');
+  Add('  end;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTryStatement;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#Exec}Exception = longint;');
+  Add('var');
+  Add('  {#v1}v1,{#e1}e:longint;');
+  Add('begin');
+  Add('  try');
+  Add('    {@v1}v1:={@e1}e;');
+  Add('  finally');
+  Add('    {@v1}v1:={@e1}e;');
+  Add('  end');
+  Add('  try');
+  Add('    {@v1}v1:={@e1}e;');
+  Add('  except');
+  Add('    {@v1}v1:={@e1}e;');
+  Add('  end');
+  Add('  try');
+  Add('    {@v1}v1:={@e1}e;');
+  Add('  except');
+  Add('    on {#e2}E: {@Exec}Exception do');
+  Add('      if {@e2}e=nil then ;');
+  Add('    on {#e3}E: {@Exec}Exception do');
+  Add('      raise {@e3}e;');
+  Add('    else');
+  Add('      {@v1}v1:={@e1}e;');
+  Add('  end');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestStatementsRefs;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  {#v1}v1,{#v2}v2,{#v3}v3:longint;');
+  Add('begin');
+  Add('  {@v1}v1:=1;');
+  Add('  {@v2}v2:=');
+  Add('    {@v1}v1+');
+  Add('    {@v1}v1*{@v1}v1');
+  Add('    +{@v1}v1 div {@v1}v1;');
+  Add('  {@v3}v3:=');
+  Add('    -{@v1}v1;');
+  Add('  repeat');
+  Add('    {@v1}v1:=');
+  Add('      {@v1}v1+1;');
+  Add('  until {@v1}v1>=5;');
+  Add('  while {@v1}v1>=0 do');
+  Add('    {@v1}v1');
+  Add('    :={@v1}v1-{@v2}v2;');
+  Add('  if {@v1}v1<{@v2}v2 then');
+  Add('    {@v3}v3:={@v1}v1');
+  Add('  else {@v3}v3:=');
+  Add('    {@v2}v2;');
   ParseProgram;
   AssertEquals('3 declarations',3,PasProgram.ProgramSection.Declarations.Count);
 end;
@@ -799,6 +1354,8 @@ begin
 end;
 
 procedure TTestResolver.TestProcOverload;
+var
+  El: TPasElement;
 begin
   StartProgram(false);
   Add('function Func1(i: longint; j: longint = 0): longint; overload;');
@@ -811,6 +1368,52 @@ begin
   Add('end;');
   Add('begin');
   Add('  Func1(3);');
+  ParseProgram;
+  AssertEquals('1 declarations',1,PasProgram.ProgramSection.Declarations.Count);
+
+  El:=TPasElement(PasProgram.ProgramSection.Declarations[0]);
+  AssertEquals('overloaded proc',TPasOverloadedProc,El.ClassType);
+
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+end;
+
+procedure TTestResolver.TestProcOverloadRefs;
+begin
+  StartProgram(false);
+  Add('function {#A}Func1(i: longint; j: longint = 0): longint; overload;');
+  Add('begin');
+  Add('  Result:=1;');
+  Add('end;');
+  Add('function {#B}Func1(s: string): longint; overload;');
+  Add('begin');
+  Add('  Result:=2;');
+  Add('end;');
+  Add('begin');
+  Add('  {@A}Func1(3);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestNestedProc;
+begin
+  StartProgram(false);
+  Add('function DoIt({#a1}a,{#d1}d: longint): longint;');
+  Add('var');
+  Add('  {#b1}b: longint;');
+  Add('  {#c1}c: longint;');
+  Add('  function {#Nesty1}Nesty({#a2}a: longint): longint; ');
+  Add('  var {#b2}b: longint;');
+  Add('  begin');
+  Add('    Result:={@a2}a');
+  Add('      +{@b2}b');
+  Add('      +{@c1}c');
+  Add('      +{@d1}d;');
+  Add('  end;');
+  Add('begin');
+  Add('  Result:={@a1}a');
+  Add('      +{@b1}b');
+  Add('      +{@c1}c;');
+  Add('end;');
+  Add('begin');
   ParseProgram;
 end;
 

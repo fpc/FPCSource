@@ -317,6 +317,7 @@ type
     function FindSourceFile(const AName: string): TLineReader; override;
     function FindIncludeFile(const AName: string): TLineReader; override;
     Property OwnsStreams : Boolean Read FOwnsStreams write SetOwnsStreams;
+    Property Streams: TStringList read FStreams;
   end;
 
   EScannerError       = class(Exception);
@@ -331,6 +332,13 @@ type
     );
   TPOptions = set of TPOption;
 
+type
+  TPasSourcePos = Record
+    FileName: String;
+    Row, Column: Cardinal;
+  end;
+
+type
   { TPascalScanner }
 
   TPScannerLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
@@ -394,6 +402,7 @@ type
     function FetchToken: TToken;
     Procedure AddDefine(S : String);
     Procedure RemoveDefine(S : String);
+    function CurSourcePos: TPasSourcePos;
 
     property FileResolver: TBaseFileResolver read FFileResolver;
     property CurSourceFile: TLineReader read FCurSourceFile;
@@ -755,7 +764,7 @@ begin
     While (I=-1) and (J<IncludePaths.Count-1) do
       begin
       FN:=IncludeTrailingPathDelimiter(IncludePaths[i])+AName;
-      I:=FStreams.INdexOf(FN);
+      I:=FStreams.IndexOf(FN);
       Inc(J);
       end;
     end;
@@ -1952,6 +1961,13 @@ begin
   I:=FDefines.IndexOf(S);
   if (I<>-1) then
     FDefines.Delete(I);
+end;
+
+function TPascalScanner.CurSourcePos: TPasSourcePos;
+begin
+  Result.FileName:=CurFilename;
+  Result.Row:=CurRow;
+  Result.Column:=CurColumn;
 end;
 
 end.

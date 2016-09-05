@@ -334,13 +334,13 @@ type
     Filename   : String;  // the IN filename, only written when not empty.
   end;
 
-  { TPasProgram }
-
   { TPasUnitModule }
 
   TPasUnitModule = Class(TPasModule)
     function ElementTypeName: string; override;
   end;
+
+  { TPasProgram }
 
   TPasProgram = class(TPasModule)
   Public
@@ -689,7 +689,7 @@ type
     function ElementTypeName: string; override;
   end;
 
-  { TPasTypeRef }
+  { TPasTypeRef  - not used by TPasParser }
 
   TPasTypeRef = class(TPasUnresolvedTypeRef)
   public
@@ -984,7 +984,7 @@ Type
 
   TPasImplCommand = class(TPasImplElement)
   public
-    Command: string;
+    Command: string; // never set by TPasParser
   end;
 
   { TPasImplCommands - used by mkxmlrpc, not used by pparser }
@@ -1037,7 +1037,7 @@ Type
     function AddCaseOf(const Expression: TPasExpr): TPasImplCaseOf;
     function AddForLoop(AVar: TPasVariable;
       const AStartValue, AEndValue: TPasExpr): TPasImplForLoop;
-    function AddForLoop(const AVarName : String; AStartValue, AEndValue: TPasExpr;
+    function AddForLoop(AVarName : TPasExpr; AStartValue, AEndValue: TPasExpr;
       ADownTo: Boolean = false): TPasImplForLoop;
     function AddTry: TPasImplTry;
     function AddExceptOn(const VarName, TypeName: TPasExpr): TPasImplExceptOn;
@@ -1049,7 +1049,7 @@ Type
     procedure ForEachCall(const aMethodCall: TListCallback;
       const Arg: Pointer); override;
   public
-    Elements: TFPList;    // TPasImplElement objects
+    Elements: TFPList;    // list of TPasImplElement and maybe one TPasImplCaseElse
   end;
 
   { TPasImplStatement }
@@ -1156,7 +1156,7 @@ Type
       const Arg: Pointer); override;
   public
     CaseExpr : TPasExpr;
-    ElseBranch: TPasImplCaseElse;
+    ElseBranch: TPasImplCaseElse; // this is also in Elements
     function Expression: string;
   end;
 
@@ -1189,7 +1189,7 @@ Type
     procedure ForEachCall(const aMethodCall: TListCallback;
       const Arg: Pointer); override;
   public
-    VariableName : String;
+    VariableName : TPasExpr;
     LoopType : TLoopType;
     StartExpr : TPasExpr;
     EndExpr : TPasExpr;
@@ -1295,7 +1295,7 @@ Type
 
   TPasImplLabelMark = class(TPasImplElement)
   public
-    LabelId:  AnsiString;
+    LabelId: AnsiString;
   end;
 
 const
@@ -1363,9 +1363,18 @@ const
                    'static','inline','assembler','varargs', 'public',
                    'compilerproc','external','forward');
 
+procedure ReleaseAndNil(var El: TPasElement); overload;
+
 implementation
 
 uses SysUtils;
+
+procedure ReleaseAndNil(var El: TPasElement);
+begin
+  if El=nil then exit;
+  El.Release;
+  El:=nil;
+end;
 
 { TPasTypeRef }
 
@@ -1410,8 +1419,8 @@ end;
 
 destructor TPasImplRaise.Destroy;
 begin
-  FreeAndNil(ExceptObject);
-  FreeAndNil(ExceptAddr);
+  ReleaseAndNil(TPasElement(ExceptObject));
+  ReleaseAndNil(TPasElement(ExceptAddr));
   Inherited;
 end;
 
@@ -1429,7 +1438,7 @@ end;
 
 destructor TPasImplRepeatUntil.Destroy;
 begin
-  FreeAndNil(ConditionExpr);
+  ReleaseAndNil(TPasElement(ConditionExpr));
   inherited Destroy;
 end;
 
@@ -1453,7 +1462,7 @@ end;
 
 destructor TPasImplSimple.Destroy;
 begin
-  FreeAndNil(Expr);
+  ReleaseAndNil(TPasElement(Expr));
   inherited Destroy;
 end;
 
@@ -1469,8 +1478,8 @@ end;
 
 destructor TPasImplAssign.Destroy;
 begin
-  FreeAndNil(Left);
-  FreeAndNil(Right);
+  ReleaseAndNil(TPasElement(Left));
+  ReleaseAndNil(TPasElement(Right));
   inherited Destroy;
 end;
 
@@ -1488,8 +1497,8 @@ end;
 
 destructor TPasExportSymbol.Destroy;
 begin
-  FreeAndNil(ExportName);
-  FreeAndNil(ExportIndex);
+  ReleaseAndNil(TPasElement(ExportName));
+  ReleaseAndNil(TPasElement(ExportIndex));
   inherited Destroy;
 end;
 
@@ -1528,7 +1537,7 @@ end;
 
 destructor TPasLibrary.Destroy;
 begin
-  FreeAndNil(LibrarySection);
+  ReleaseAndNil(TPasElement(LibrarySection));
   inherited Destroy;
 end;
 
@@ -1540,16 +1549,16 @@ end;
 procedure TPasLibrary.ForEachCall(const aMethodCall: TListCallback;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   if LibrarySection<>nil then
     LibrarySection.ForEachCall(aMethodCall,Arg);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 { TPasProgram }
 
 destructor TPasProgram.Destroy;
 begin
-  FreeAndNil(ProgramSection);
+  ReleaseAndNil(TPasElement(ProgramSection));
   inherited Destroy;
 end;
 
@@ -1561,9 +1570,9 @@ end;
 procedure TPasProgram.ForEachCall(const aMethodCall: TListCallback;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   if ProgramSection<>nil then
     ProgramSection.ForEachCall(aMethodCall,Arg);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 { TPasUnitModule }
@@ -1647,7 +1656,7 @@ end;
 
 destructor TPasEnumValue.Destroy;
 begin
-  FreeAndNil(Value);
+  ReleaseAndNil(TPasElement(Value));
   inherited Destroy;
 end;
 
@@ -1984,8 +1993,8 @@ begin
     InterfaceSection.Release;
   if Assigned(ImplementationSection) then
     ImplementationSection.Release;
-  FreeAndNil(InitializationSection);
-  FreeAndNil(FinalizationSection);
+  ReleaseAndNil(TPasElement(InitializationSection));
+  ReleaseAndNil(TPasElement(FinalizationSection));
   inherited Destroy;
 end;
 
@@ -2203,7 +2212,7 @@ begin
     AncestorType.Release;
   if Assigned(HelperForType) then
     HelperForType.Release;
-  FreeAndNil(GUIDExpr);
+  ReleaseAndNil(TPasElement(GUIDExpr));
   Modifiers.Free;
   Interfaces.Free;
   for i := 0 to GenericTemplateTypes.Count - 1 do
@@ -2307,9 +2316,8 @@ end;
 
 destructor TPasArgument.Destroy;
 begin
-  if Assigned(ArgType) then
-    ArgType.Release;
-  FreeAndNil(ValueExpr);
+  ReleaseAndNil(TPasElement(ArgType));
+  ReleaseAndNil(TPasElement(ValueExpr));
   inherited Destroy;
 end;
 
@@ -2390,10 +2398,8 @@ begin
 //  FreeAndNil(Expr);
   { Attention, in derived classes, VarType isn't necessarily set!
     (e.g. in Constants) }
-  if Assigned(VarType) then
-    VarType.Release;
-  if Assigned(Expr) then
-    Expr.Release;
+  ReleaseAndNil(TPasElement(VarType));
+  ReleaseAndNil(TPasElement(Expr));
   inherited Destroy;
 end;
 
@@ -2411,8 +2417,8 @@ begin
   for i := 0 to Args.Count - 1 do
     TPasArgument(Args[i]).Release;
   Args.Free;
-  FreeAndNil(DefaultExpr);
-  FreeAndNil(IndexExpr);
+  ReleaseAndNil(TPasElement(DefaultExpr));
+  ReleaseAndNil(TPasElement(IndexExpr));
   inherited Destroy;
 end;
 
@@ -2443,9 +2449,12 @@ end;
 
 procedure TPasOverloadedProc.ForEachCall(
   const aMethodCall: TListCallback; const Arg: Pointer);
+var
+  i: Integer;
 begin
   inherited ForEachCall(aMethodCall, Arg);
-  // Overloads are only references
+  for i:=0 to Overloads.Count-1 do
+    TPasProcedure(Overloads[i]).ForEachCall(aMethodCall,Arg);
 end;
 
 function TPasProcedure.GetCallingConvention: TCallingConvention;
@@ -2467,9 +2476,9 @@ begin
     ProcType.Release;
   if Assigned(Body) then
     Body.Release;
-  FreeAndNil(PublicName);
-  FreeAndNil(LibraryExpr);
-  FreeAndNil(LibrarySymbolName);
+  ReleaseAndNil(TPasElement(PublicName));
+  ReleaseAndNil(TPasElement(LibraryExpr));
+  ReleaseAndNil(TPasElement(LibrarySymbolName));
   inherited Destroy;
 end;
 
@@ -2533,11 +2542,9 @@ end;
 
 destructor TPasImplIfElse.Destroy;
 begin
-  FreeAndNil(ConditionExpr);
-  if Assigned(IfBranch) then
-    IfBranch.Release;
-  if Assigned(ElseBranch) then
-    ElseBranch.Release;
+  ReleaseAndNil(TPasElement(ConditionExpr));
+  ReleaseAndNil(TPasElement(IfBranch));
+  ReleaseAndNil(TPasElement(ElseBranch));
   inherited Destroy;
 end;
 
@@ -2583,12 +2590,11 @@ end;
 
 destructor TPasImplForLoop.Destroy;
 begin
-  FreeAndNil(StartExpr);
-  FreeAndNil(EndExpr);
-  if Assigned(Variable) then
-    Variable.Release;
-  if Assigned(Body) then
-    Body.Release;
+  ReleaseAndNil(TPasElement(VariableName));
+  ReleaseAndNil(TPasElement(StartExpr));
+  ReleaseAndNil(TPasElement(EndExpr));
+  ReleaseAndNil(TPasElement(Variable));
+  ReleaseAndNil(TPasElement(Body));
   inherited Destroy;
 end;
 
@@ -2608,6 +2614,8 @@ procedure TPasImplForLoop.ForEachCall(const aMethodCall: TListCallback;
   const Arg: Pointer);
 begin
   inherited ForEachCall(aMethodCall, Arg);
+  if VariableName<>nil then
+    VariableName.ForEachCall(aMethodCall,Arg);
   if Variable<>nil then
     Variable.ForEachCall(aMethodCall,Arg);
   if StartExpr<>nil then
@@ -2723,7 +2731,7 @@ begin
   AddElement(Result);
 end;
 
-function TPasImplBlock.AddForLoop(const AVarName: String; AStartValue,
+function TPasImplBlock.AddForLoop(AVarName: TPasExpr; AStartValue,
   AEndValue: TPasExpr; ADownTo: Boolean): TPasImplForLoop;
 begin
   Result := TPasImplForLoop.Create('', Self);
@@ -2916,7 +2924,7 @@ end;
 
 destructor TPasRangeType.Destroy;
 begin
-  FreeAndNil(RangeExpr);
+  ReleaseAndNil(TPasElement(RangeExpr));
   inherited Destroy;
 end;
 
@@ -3756,9 +3764,8 @@ end;
 
 destructor TPasImplWhileDo.Destroy;
 begin
-  FreeAndNil(ConditionExpr);
-  if Assigned(Body) then
-    Body.Release;
+  ReleaseAndNil(TPasElement(ConditionExpr));
+  ReleaseAndNil(TPasElement(Body));
   inherited Destroy;
 end;
 
@@ -3794,9 +3801,8 @@ end;
 
 destructor TPasImplCaseOf.Destroy;
 begin
-  FreeAndNil(CaseExpr);
-  if Assigned(ElseBranch) then
-    ElseBranch.Release;
+  ReleaseAndNil(TPasElement(CaseExpr));
+  ReleaseAndNil(TPasElement(ElseBranch));
   inherited Destroy;
 end;
 
@@ -3858,8 +3864,7 @@ begin
   For I:=0 to Expressions.Count-1 do
     TPasExpr(Expressions[i]).Release;
   FreeAndNil(Expressions);
-  if Assigned(Body) then
-    Body.Release;
+  ReleaseAndNil(TPasElement(Body));
   inherited Destroy;
 end;
 
@@ -3980,10 +3985,9 @@ end;
 
 destructor TPasImplExceptOn.Destroy;
 begin
-  FreeAndNil(VarExpr);
-  FreeAndNil(TypeExpr);
-  if Assigned(Body) then
-    Body.Release;
+  ReleaseAndNil(TPasElement(VarExpr));
+  ReleaseAndNil(TPasElement(TypeExpr));
+  ReleaseAndNil(TPasElement(Body));
   inherited Destroy;
 end;
 
@@ -4236,7 +4240,7 @@ destructor TParamsExpr.Destroy;
 var
   i : Integer;
 begin
-  FreeAndNil(Value);
+  ReleaseAndNil(TPasElement(Value));
   for i:=0 to length(Params)-1 do Params[i].Release;
   inherited Destroy;
 end;

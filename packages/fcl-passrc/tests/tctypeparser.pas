@@ -1746,6 +1746,7 @@ procedure TTestRecordTypeParser.TestTwoFieldPrivateNoDelphi;
 Var
   EC : TClass;
 begin
+  EC:=nil;
   try
     TestFields(['private','x : integer'],'',False);
     Fail('Need po_Delphi for visibility specifier');
@@ -1761,16 +1762,22 @@ end;
 procedure TTestRecordTypeParser.TestTwoFieldProtected;
 Var
   B : Boolean;
+  EName: String;
 begin
+  B:=false;
+  EName:='';
   try
     TestFields(['protected','x : integer'],'',False);
     Fail('Protected not allowed as record visibility specifier')
   except
     on E : Exception do
+      begin
+      EName:=E.ClassName;
       B:=E is EParserError;
+      end;
   end;
   If not B then
-    Fail('Wrong exception class.');
+    Fail('Wrong exception class "'+EName+'".');
 end;
 
 procedure TTestRecordTypeParser.TestTwoFieldPrivate;
