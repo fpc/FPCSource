@@ -293,14 +293,14 @@ const
           op := loadinstr[fromsize,ref2.index<>NR_NO,false];
           a_load_store(list,op,reg,ref2);
           { sign extend shortint if necessary (because there is
-	   no load instruction to sign extend an 8 bit value automatically)
-	   and mask out extra sign bits when loading from a smaller signed
-	   to a larger unsigned type }
+           no load instruction to sign extend an 8 bit value automatically)
+           and mask out extra sign bits when loading from a smaller signed
+           to a larger unsigned type }
           if fromsize = OS_S8 then
-	    begin
-	      a_load_reg_reg(list, OS_8, OS_S8, reg, reg);
-	      a_load_reg_reg(list, OS_S8, tosize, reg, reg);
-	    end;
+            begin
+              a_load_reg_reg(list, OS_8, OS_S8, reg, reg);
+              a_load_reg_reg(list, OS_S8, tosize, reg, reg);
+            end;
        end;
 
 
@@ -532,20 +532,20 @@ const
               if (a shr 5) <> 0 then
                 internalError(68991);
             end;
-	  OP_ROL:
-	    begin
-	      if (not (size in [OS_32, OS_S32])) then begin
-	        internalerror(2008091307);
-	      end;
-	      list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, a and 31, 0, 31));
-	    end;
-	  OP_ROR:
-	    begin
-	      if (not (size in [OS_32, OS_S32])) then begin
-		internalerror(2008091308);
-	      end;
-	      list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, (32 - a) and 31, 0, 31));
-	    end
+          OP_ROL:
+            begin
+              if (not (size in [OS_32, OS_S32])) then begin
+                internalerror(2008091307);
+              end;
+              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, a and 31, 0, 31));
+            end;
+          OP_ROR:
+            begin
+              if (not (size in [OS_32, OS_S32])) then begin
+                internalerror(2008091308);
+              end;
+              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, (32 - a) and 31, 0, 31));
+            end
           else
             internalerror(200109091);
         end;
@@ -583,22 +583,22 @@ const
                  { zero/sign extend result again }
                  a_load_reg_reg(list,OS_32,size,dst,dst);
               end;
-	   OP_ROL:
-	     begin
-	       if (not (size in [OS_32, OS_S32])) then begin
-	         internalerror(2008091305);
-	       end;
-	       list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, src1, 0, 31));
-	     end;
-	   OP_ROR:
-	     begin
-	       if (not (size in [OS_32, OS_S32])) then begin
-	         internalerror(2008091306);
-	       end;
-	       tmpreg := getintregister(list, OS_INT);
-	       list.concat(taicpu.op_reg_reg(A_NEG, tmpreg, src1));
-	       list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, tmpreg, 0, 31));
-	     end;	
+           OP_ROL:
+             begin
+               if (not (size in [OS_32, OS_S32])) then begin
+                 internalerror(2008091305);
+               end;
+               list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, src1, 0, 31));
+             end;
+           OP_ROR:
+             begin
+               if (not (size in [OS_32, OS_S32])) then begin
+                 internalerror(2008091306);
+               end;
+               tmpreg := getintregister(list, OS_INT);
+               list.concat(taicpu.op_reg_reg(A_NEG, tmpreg, src1));
+               list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, tmpreg, 0, 31));
+             end;       
            else
              list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
          end;
