@@ -192,7 +192,7 @@ BUILDOPTS=FPC=$(PPNEW) FPCFPMAKE=$(FPCFPMAKENEW) RELEASE=1 'OPT=$(OPTNEW)'
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 
 # This list should be the same as in fpcbuild/Makefile.fpc and in ide/Makefile.fpc
-GDBMI_DEFAULT_OS_LIST=aix darwin freebsd haiku linux netbsd openbsd solaris win32 win64
+GDBMI_DEFAULT_OS_LIST=aix freebsd haiku linux netbsd openbsd solaris win32 win64
 #  Determine if we should use GDBMI for Text Mode IDE compilation
 ifndef NOGDBMI
 ifneq ($(findstring $(OS_TARGET),$(GDBMI_DEFAULT_OS_LIST)),)
