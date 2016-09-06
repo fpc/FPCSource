@@ -465,7 +465,7 @@ endif
 CLEANOPTS=FPC=$(PPNEW)
 BUILDOPTS=FPC=$(PPNEW) FPCFPMAKE=$(FPCFPMAKENEW) RELEASE=1 'OPT=$(OPTNEW)'
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
-GDBMI_DEFAULT_OS_LIST=aix darwin freebsd haiku linux netbsd openbsd solaris win32 win64
+GDBMI_DEFAULT_OS_LIST=aix freebsd haiku linux netbsd openbsd solaris win32 win64
 ifndef NOGDBMI
 ifneq ($(findstring $(OS_TARGET),$(GDBMI_DEFAULT_OS_LIST)),)
 export GDBMI=1
