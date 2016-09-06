@@ -13399,6 +13399,7 @@ tests/test/units/variants/tcustomvariant.pp svneol=native#text/plain
 tests/test/units/variants/tvararrayofintf.pp svneol=native#text/plain
 tests/test/units/variants/tw26370.pp svneol=native#text/plain
 tests/test/units/variants/tw27044.pp svneol=native#text/plain
+tests/test/units/variants/tw30546.pp svneol=native#text/plain
 tests/test/units/windows/twinrawinput32.pp svneol=native#text/plain
 tests/test/units/windows/twinrawinput64.pp svneol=native#text/plain
 tests/test/uobjc24.pp svneol=native#text/plain

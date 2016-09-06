@@ -836,6 +836,7 @@ implementation
         { call helpers for variant, they can contain non ref. counted types like
           vararrays which must be really copied }
         else if (left.resultdef.typ=variantdef) and
+            not(is_const(left)) and
             not(target_info.system in systems_garbage_collected_managed_types)  then
          begin
            { remove property flag to avoid errors, see comments for }
