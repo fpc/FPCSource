@@ -191,7 +191,22 @@ CLEANOPTS=FPC=$(PPNEW)
 BUILDOPTS=FPC=$(PPNEW) FPCFPMAKE=$(FPCFPMAKENEW) RELEASE=1 'OPT=$(OPTNEW)'
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 
-# Compile also IDE (check for ide and fv dir)
+# This list should be the same as in fpcbuild/Makefile.fpc and in ide/Makefile.fpc
+GDBMI_DEFAULT_OS_LIST=aix darwin freebsd haiku linux netbsd openbsd solaris win32 win64
+#  Determine if we should use GDBMI for Text Mode IDE compilation
+ifndef NOGDBMI
+ifneq ($(findstring $(OS_TARGET),$(GDBMI_DEFAULT_OS_LIST)),)
+export GDBMI=1
+endif
+endif
+
+# Compile also IDE now enabled even for cross-compilation
+# if GDBMI is set
+ifdef GDBMI
+ifneq ($(GDBMI),0)
+IDE=1
+endif
+else # not GDBMI
 # Skipped by default for cross compiles, because it depends on libc
 ifndef CROSSCOMPILE
 ifneq ($(wildcard ide),)
@@ -201,6 +216,7 @@ IDE=1
 endif
 endif
 endif
+endif # not GDBMI
 
 # CPU targets for which we only build the compiler/rtl
 BuildOnlyBaseCPUs=jvm

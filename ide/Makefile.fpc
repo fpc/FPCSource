@@ -31,6 +31,7 @@ FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 # do not add -d$(CPU_TARGET)
 override NOCPUDEF=1
+# This list should be the same as in fpcbuild/Makefile.fpc and in fpcsrc/Makefile.fpc
 GDBMI_DEFAULT_OS_LIST=aix darwin freebsd haiku linux netbsd openbsd solaris win32 win64
 
 [rules]
@@ -54,7 +55,7 @@ FPMAKE_OPT+=-sp
 endif
 ifdef NOGDB
 FPMAKE_OPT+=--NoGDB=1
-endif
+else
 ifndef NOGDBMI
 ifneq ($(findstring $(OS_TARGET),$(GDBMI_DEFAULT_OS_LIST)),)
 FPMAKE_OPT+=--GDBMI=1
@@ -62,6 +63,7 @@ endif
 else
 ifdef GDBMI
 FPMAKE_OPT+=--GDBMI=1
+endif
 endif
 endif
 
