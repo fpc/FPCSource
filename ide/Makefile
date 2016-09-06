@@ -2292,7 +2292,7 @@ FPMAKE_OPT+=-sp
 endif
 ifdef NOGDB
 FPMAKE_OPT+=--NoGDB=1
-endif
+else
 ifndef NOGDBMI
 ifneq ($(findstring $(OS_TARGET),$(GDBMI_DEFAULT_OS_LIST)),)
 FPMAKE_OPT+=--GDBMI=1
@@ -2300,6 +2300,7 @@ endif
 else
 ifdef GDBMI
 FPMAKE_OPT+=--GDBMI=1
+endif
 endif
 endif
 ifdef PPC_TARGET

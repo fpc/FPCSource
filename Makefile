@@ -465,6 +465,17 @@ endif
 CLEANOPTS=FPC=$(PPNEW)
 BUILDOPTS=FPC=$(PPNEW) FPCFPMAKE=$(FPCFPMAKENEW) RELEASE=1 'OPT=$(OPTNEW)'
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
+GDBMI_DEFAULT_OS_LIST=aix darwin freebsd haiku linux netbsd openbsd solaris win32 win64
+ifndef NOGDBMI
+ifneq ($(findstring $(OS_TARGET),$(GDBMI_DEFAULT_OS_LIST)),)
+export GDBMI=1
+endif
+endif
+ifdef GDBMI
+ifneq ($(GDBMI),0)
+IDE=1
+endif
+else # not GDBMI
 ifndef CROSSCOMPILE
 ifneq ($(wildcard ide),)
 IDETARGETS=go32v2 win32 win64 linux freebsd os2 emx beos haiku
@@ -473,6 +484,7 @@ IDE=1
 endif
 endif
 endif
+endif # not GDBMI
 BuildOnlyBaseCPUs=jvm
 ifneq ($(wildcard utils),)
 NOUTILSTARGETS=embedded gba nds msdos win16 $(BuildOnlyBaseCPUs)
