@@ -1042,14 +1042,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                         ftcb.emit_tai(tai_const.create_8bit(setval),def);
                       2:
                         begin
-                          if source_info.endian<>target_info.endian then
+                          if target_info.endian=endian_big then
                             setval:=swap(word(setval));
                           ftcb.emit_tai(tai_const.create_16bit(setval),def);
                         end;
                       4:
                         begin
-                          if source_info.endian<>target_info.endian then
-                            setval:=swap(setval);
+                          if target_info.endian=endian_big then
+                            setval:=swap(word(setval)) shl 16 or (swap(word(setval shr 16)));
                           ftcb.emit_tai(tai_const.create_32bit(setval),def);
                         end;
                       else
