@@ -1212,30 +1212,40 @@ implementation
     var
       s: string;
       item: TTCInitItem;
+      tcb: ttai_typedconstbuilder;
+      rawdatadef: tdef;
     begin
       item:=TTCInitItem(list.First);
       if item=nil then
         exit;
       s:=make_mangledname(prefix,current_module.localsymtable,'');
-      maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(pint));
-      { TODO: def of the symbol to be fixed when this is converted to to the
-          typed constant builder }
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0,voidpointertype));
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+      tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
+        targetinfos[target_info.system]^.alignment.recordalignmin,
+        targetinfos[target_info.system]^.alignment.maxCrecordalign  );
       repeat
         { optimize away unused local/static symbols }
         if (item.sym.refs>0) or (item.sym.owner.symtabletype=globalsymtable) then
           begin
             { address to initialize }
-            current_asmdata.asmlists[al_globals].concat(Tai_const.createname(item.sym.mangledname, item.offset));
+            tcb.queue_init(voidpointertype);
+            rawdatadef:=carraydef.getreusable(cansichartype,tstaticvarsym(item.sym).vardef.size);
+            tcb.queue_vecn(rawdatadef,item.offset);
+            tcb.queue_typeconvn(cpointerdef.getreusable(tstaticvarsym(item.sym).vardef),cpointerdef.getreusable(rawdatadef));
+            tcb.queue_emit_staticvar(tstaticvarsym(item.sym));
             { value with which to initialize }
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(item.datalabel));
+            tcb.emit_tai(Tai_const.Create_sym(item.datalabel),item.datadef)
           end;
         item:=TTCInitItem(item.Next);
       until item=nil;
       { end-of-list marker }
-      current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(s));
+      tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+      rawdatadef:=tcb.end_anonymous_record;
+      current_asmdata.asmlists[al_globals].concatList(
+        tcb.get_final_asmlist(
+          current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rawdatadef),
+          rawdatadef,sec_data,s,sizeof(pint)));
+      tcb.free;
       current_module.flags:=current_module.flags or unitflag;
     end;
 

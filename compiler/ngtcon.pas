@@ -511,7 +511,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 current_asmdata.ResStrInits.Concat(
                   TTCInitItem.Create(tcsym,curoffset,
-                  current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name),AT_DATA))
+                  current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name),AT_DATA),charpointertype)
                 );
                 Include(tcsym.varoptions,vo_force_finalize);
               end;
@@ -583,7 +583,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                            if ll.ofs<>0 then
                              internalerror(2012051704);
                            current_asmdata.WideInits.Concat(
-                              TTCInitItem.Create(tcsym,curoffset,ll.lab)
+                              TTCInitItem.Create(tcsym,curoffset,ll.lab,widecharpointertype)
                            );
                            ll.lab:=nil;
                            ll.ofs:=0;
