@@ -2892,6 +2892,17 @@ implementation
       end;
 
 
+    function check_funcret_temp_used_as_para(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        tempinfo : ptempinfo absolute arg;
+      begin
+        result := fen_false;
+        if (n.nodetype=temprefn) and
+           (ttemprefnode(n).tempinfo = tempinfo) then
+          result := fen_norecurse_true;
+      end;
+
+
     function tcallnode.funcret_can_be_reused:boolean;
       var
         realassignmenttarget: tnode;
@@ -2946,7 +2957,7 @@ implementation
            not(ti_addr_taken in ttemprefnode(realassignmenttarget).tempflags) and
            not(ti_may_be_in_reg in ttemprefnode(realassignmenttarget).tempflags) then
           begin
-            result:=true;
+            result:=not foreachnodestatic(left,@check_funcret_temp_used_as_para,ttemprefnode(realassignmenttarget).tempinfo);
             exit;
           end;
 
