@@ -719,7 +719,7 @@ implementation
       var
         oldlocalswitches: tlocalswitches;
         srsym: tsym;
-        afterconstructionblock,
+        constructionblock,
         exceptblock,
         newblock: tblocknode;
         newstatement: tstatementnode;
@@ -744,7 +744,7 @@ implementation
                    (srsym.typ=procsym) then
                   begin
                     current_filepos:=exitpos;
-                    afterconstructionblock:=internalstatements(newstatement);
+                    constructionblock:=internalstatements(newstatement);
                     { first execute all constructor code. If no exception
                       occurred then we will execute afterconstruction,
                       otherwise we won't (the exception will jump over us) }
@@ -773,7 +773,7 @@ implementation
                           cnilnode.create)),
                         ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                         nil));
-                    tocode:=afterconstructionblock;
+                    tocode:=constructionblock;
                   end
                 else
                   internalerror(200305106);
