@@ -137,7 +137,6 @@ begin
   CheckArray(a, [0, 1, 2, 3, 4], next);
   a := CreateArray(5);
   Delete(a, -1, 2);
-  PrintArray(a);
   CheckArray(a, [0, 1, 2, 3, 4], next);
   a := CreateArray(5);
   Delete(a, -1, -1);
