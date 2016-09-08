@@ -484,7 +484,7 @@ var
   entry, tmpentry, lastentry: PThreadQueueEntry;
 begin
   { anything to do at all? }
-  if not Assigned(aThread) or not Assigned(aMethod) then
+  if not Assigned(aThread) and not Assigned(aMethod) then
     Exit;
 
   System.EnterCriticalSection(ThreadQueueLock);
