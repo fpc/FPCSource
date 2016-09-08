@@ -346,6 +346,103 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
   end;
 
 
+{$ifndef VER3_0}
+procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : pointer);
+   var
+      newhigh,
+      i : tdynarrayindex;
+      size : sizeint;
+      { contains the "fixed" pointers where the refcount }
+      { and high are at positive offsets                 }
+      realp,newp : pdynarray;
+      ti : pointer;
+      elesize : sizeint;
+      eletype,eletypemngd : pointer;
+
+   begin
+     { if source > high then nothing to do }
+     if not assigned(p) or
+         (source>pdynarray(p-sizeof(tdynarray))^.high) or
+         (count<=0) or
+         (source<=0) then
+       exit;
+     { cap count }
+     if source+count-1>pdynarray(p-sizeof(tdynarray))^.high then
+       count:=pdynarray(p-sizeof(tdynarray))^.high-count+1;
+
+     { fast path: delete whole array }
+     if (source=0) and (count=pdynarray(p-sizeof(tdynarray))^.high+1) then
+       begin
+         fpc_dynarray_clear(p,pti);
+         exit;
+       end;
+
+     { skip kind and name }
+     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+
+     elesize:=pdynarraytypedata(ti)^.elSize;
+     eletype:=pdynarraytypedata(ti)^.elType2^;
+     { only set if type needs finalization }
+     if assigned(pdynarraytypedata(ti)^.elType) then
+       eletypemngd:=pdynarraytypedata(ti)^.elType^
+     else
+       eletypemngd:=nil;
+
+     realp:=pdynarray(p-sizeof(tdynarray));
+     newp:=realp;
+
+     { determine new memory size }
+     newhigh:=realp^.high-count;
+     size:=elesize*(newhigh+1)+sizeof(tdynarray);
+
+     if realp^.refcount<>1 then
+       begin
+          { make an unique copy }
+          getmem(newp,size);
+          fillchar(newp^,sizeof(tdynarray),0);
+          { copy the elements that we still need }
+          if source>0 then
+            move(p^,(pointer(newp)+sizeof(tdynarray))^,source*elesize);
+          if source+count-1<realp^.high then
+            move((p+(source+count)*elesize)^,(pointer(newp)+sizeof(tdynarray)+source*elesize)^,(realp^.high-(source+count)+1)*elesize);
+
+          { increment ref. count of managed members }
+          if assigned(eletypemngd) then
+            for i:=0 to newhigh do
+              int_addref(pointer(newp)+sizeof(tdynarray)+elesize*i,eletypemngd);
+
+          { a declock(ref. count) isn't enough here }
+          { it could be that the in MT environments  }
+          { in the mean time the refcount was       }
+          { decremented                             }
+
+          { it is, because it doesn't really matter }
+          { if the array is now removed             }
+          fpc_dynarray_clear(p,pti);
+        end
+      else
+        begin
+          { finalize the elements that will be removed }
+          if assigned(eletypemngd) then
+            begin
+              for i:=source to source+count-1 do
+                int_finalize(p+i*elesize,eletype);
+            end;
+
+          { close the gap by moving the trailing elements to the front }
+          move((p+(source+count)*elesize)^,(p+source*elesize)^,(realp^.high-(source+count)+1)*elesize);
+
+          { resize the array }
+          reallocmem(realp,size);
+          newp:=realp;
+        end;
+    p:=pointer(newp)+sizeof(tdynarray);
+    newp^.refcount:=1;
+    newp^.high:=newhigh;
+  end;
+{$endif VER3_0}
+
+
 procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
   external name 'FPC_DYNARR_SETLENGTH';
 

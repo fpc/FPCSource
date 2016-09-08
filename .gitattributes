@@ -11958,6 +11958,7 @@ tests/test/targ1a.pp svneol=native#text/plain
 tests/test/targ1b.pp svneol=native#text/plain
 tests/test/tarray1.pp svneol=native#text/plain
 tests/test/tarray10.pp svneol=native#text/plain
+tests/test/tarray11.pp svneol=native#text/pascal
 tests/test/tarray2.pp svneol=native#text/plain
 tests/test/tarray3.pp svneol=native#text/plain
 tests/test/tarray4.pp svneol=native#text/plain

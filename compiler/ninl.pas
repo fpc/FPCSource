@@ -4309,9 +4309,12 @@ implementation
        var
          procname : String;
          first : tdef;
+         firstn,
+         newn : tnode;
        begin
          { determine the correct function based on the first parameter }
-         first:=tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef;
+         firstn:=tcallparanode(tcallparanode(tcallparanode(left).right).right).left;
+         first:=firstn.resultdef;
          if is_shortstring(first) then
            procname:='fpc_shortstr_delete'
          else if is_unicodestring(first) then
@@ -4320,6 +4323,21 @@ implementation
            procname:='fpc_widestr_delete'
          else if is_ansistring(first) then
            procname:='fpc_ansistr_delete'
+         else if is_dynamic_array(first) then
+           begin
+             procname:='fpc_dynarray_delete';
+             { recreate the parameters as array pointer, src, count, typeinfo }
+             newn:=ccallparanode.create(caddrnode.create_internal
+                  (crttinode.create(tstoreddef(first),initrtti,rdt_normal)),
+                    ccallparanode.create(tcallparanode(left).left,
+                      ccallparanode.create(tcallparanode(tcallparanode(left).right).left,
+                        ccallparanode.create(ctypeconvnode.create_internal(firstn,voidpointertype),nil))));
+             tcallparanode(tcallparanode(tcallparanode(left).right).right).left:=nil;
+             tcallparanode(tcallparanode(left).right).left:=nil;
+             tcallparanode(left).left:=nil;
+             left.free;
+             left:=newn;
+           end
          else if first.typ=undefineddef then
            { just pick one }
            procname:='fpc_ansistr_delete'
@@ -4331,6 +4349,7 @@ implementation
              if tf_winlikewidestring in target_info.flags then
                write_system_parameter_lists('fpc_widestr_delete');
              write_system_parameter_lists('fpc_ansistr_delete');
+             MessagePos1(fileinfo,sym_e_param_list,'Delete(var Dynamic Array;'+sinttype.typename+';'+sinttype.typename+');');
              exit(cerrornode.create);
            end;
          result:=ccallnode.createintern(procname,left);

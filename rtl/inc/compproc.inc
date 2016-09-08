@@ -76,6 +76,10 @@ procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_incr_ref(p : pointer); compilerproc;
 procedure fpc_dynarray_setlength(var p : pointer;pti : pointer; dimcount : sizeint;dims : pdynarrayindex); compilerproc;
 procedure fpc_dynarray_assign(var dest : pointer; src : pointer; ti: pointer); compilerproc;
+{$ifndef VER3_0}
+{ no reference to the Delete() intrinsic, due to typeinfo parameter }
+procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : pointer);compilerproc;
+{$endif VER3_0}
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
 
 { Str() support }
