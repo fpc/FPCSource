@@ -2840,8 +2840,16 @@ implementation
                                hdef:=generate_specialization_phase2(spezcontext,tstoreddef(hdef),false,'');
                                spezcontext.free;
                                spezcontext:=nil;
-                               srsym:=hdef.typesym;
-                               srsymtable:=srsym.owner;
+                               if hdef<>generrordef then
+                                 begin
+                                   srsym:=hdef.typesym;
+                                   srsymtable:=srsym.owner;
+                                 end
+                               else
+                                 begin
+                                   srsym:=generrorsym;
+                                   srsymtable:=nil;
+                                 end;
                              end
                            else
                              if hdef.typ=procdef then
