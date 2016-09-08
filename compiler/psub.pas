@@ -743,12 +743,13 @@ implementation
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
-                    current_filepos:=exitpos;
+                    current_filepos:=entrypos;
                     constructionblock:=internalstatements(newstatement);
                     { first execute all constructor code. If no exception
                       occurred then we will execute afterconstruction,
                       otherwise we won't (the exception will jump over us) }
                     addstatement(newstatement,tocode);
+                    current_filepos:=exitpos;
                     { if implicit finally node wasn't created, then exit label and
                       finalization code must be handled here and placed before
                       afterconstruction }
