@@ -724,6 +724,7 @@ implementation
         newblock: tblocknode;
         newstatement: tstatementnode;
         pd: tprocdef;
+        constructionsuccessful: tlocalvarsym;
       begin
         if assigned(procdef.struct) and
            (procdef.proctypeoption=potype_constructor) then
@@ -737,8 +738,11 @@ implementation
             current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
 
             { call AfterConstruction for classes }
+            constructionsuccessful:=nil;
             if is_class(procdef.struct) then
               begin
+                constructionsuccessful:=clocalvarsym.create(internaltypeprefixName[itp_vmt_afterconstruction_local],vs_value,ptrsinttype,[],false);
+                procdef.localst.insert(constructionsuccessful,false);
                 srsym:=search_struct_member(procdef.struct,'AFTERCONSTRUCTION');
                 if not assigned(srsym) or
                    (srsym.typ<>procsym) then
@@ -746,6 +750,14 @@ implementation
 
                 current_filepos:=entrypos;
                 constructionblock:=internalstatements(newstatement);
+                { initialise constructionsuccessful with -1, indicating that
+                  the construction was not successful and hence
+                  beforedestruction should not be called if a destructor is
+                  called from the constructor }
+                addstatement(newstatement,cassignmentnode.create(
+                  cloadnode.create(constructionsuccessful,procdef.localst),
+                  genintconstnode(-1))
+                );
                 { first execute all constructor code. If no exception
                   occurred then we will execute afterconstruction,
                   otherwise we won't (the exception will jump over us) }
@@ -763,6 +775,12 @@ implementation
                     final_used:=true;
                   end;
 
+                { construction successful -> beforedestruction should be called
+                  if an exception happens now }
+                addstatement(newstatement,cassignmentnode.create(
+                  cloadnode.create(constructionsuccessful,procdef.localst),
+                  genintconstnode(1))
+                );
                 { Self can be nil when fail is called }
                 { if self<>nil and vmt<>nil then afterconstruction }
                 addstatement(newstatement,cifnode.create(

@@ -1469,6 +1469,9 @@ implementation
  ****************************************************************************}
 
     constructor tcallnode.create(l:tnode;v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext);
+      var
+        srsym: tsym;
+        srsymtable: tsymtable;
       begin
          inherited create(calln,l,nil);
          spezcontext:=sc;
@@ -1487,10 +1490,16 @@ implementation
            begin
             { only needed when calling a destructor from an exception block in a
               contructor of a TP-style object }
-            if is_object(current_structdef) and
-               (current_procinfo.procdef.proctypeoption=potype_constructor) and
+            if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                (cnf_create_failed in callflags) then
-              call_vmt_node:=load_vmt_pointer_node;
+              if is_object(current_structdef) then
+                call_vmt_node:=load_vmt_pointer_node
+              else if is_class(current_structdef) then
+                begin
+                  if not searchsym(copy(internaltypeprefixName[itp_vmt_afterconstruction_local],2,255),srsym,srsymtable) then
+                    internalerror(2016090801);
+                  call_vmt_node:=cloadnode.create(srsym,srsymtable);
+                end;
            end;
       end;
 
@@ -2798,7 +2807,8 @@ implementation
             { normal call to method like cl1.proc }
               begin
                 { destructor:
-                     if not called from exception block in constructor
+                     if not(called from exception block in constructor) or
+                        (called from afterconstruction)
                        call beforedestruction and release instance, vmt=1
                      else
                        don't call beforedestruction and release instance, vmt=-1
@@ -2808,7 +2818,10 @@ implementation
                     else
                       call afterconstruction, vmt=1 }
                 if (procdefinition.proctypeoption=potype_destructor) then
-                  if not(cnf_create_failed in callnodeflags) then
+                  if (cnf_create_failed in callnodeflags) and
+                     is_class(methodpointer.resultdef) then
+                    vmttree:=call_vmt_node.getcopy
+                  else if not(cnf_create_failed in callnodeflags) then
                     vmttree:=cpointerconstnode.create(1,voidpointertype)
                   else
                     vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype)
