@@ -740,44 +740,42 @@ implementation
             if is_class(procdef.struct) then
               begin
                 srsym:=search_struct_member(procdef.struct,'AFTERCONSTRUCTION');
-                if assigned(srsym) and
-                   (srsym.typ=procsym) then
-                  begin
-                    current_filepos:=entrypos;
-                    constructionblock:=internalstatements(newstatement);
-                    { first execute all constructor code. If no exception
-                      occurred then we will execute afterconstruction,
-                      otherwise we won't (the exception will jump over us) }
-                    addstatement(newstatement,tocode);
-                    current_filepos:=exitpos;
-                    { if implicit finally node wasn't created, then exit label and
-                      finalization code must be handled here and placed before
-                      afterconstruction }
-                    if not ((pi_needs_implicit_finally in flags) and
-                      (cs_implicit_exceptions in current_settings.moduleswitches)) then
-                      begin
-                        include(tocode.flags,nf_block_with_exit);
-                        addstatement(newstatement,final_asmnode);
-                        cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
-                        final_used:=true;
-                      end;
-
-                    { Self can be nil when fail is called }
-                    { if self<>nil and vmt<>nil then afterconstruction }
-                    addstatement(newstatement,cifnode.create(
-                      caddnode.create(andn,
-                        caddnode.create(unequaln,
-                          load_self_node,
-                          cnilnode.create),
-                        caddnode.create(unequaln,
-                          load_vmt_pointer_node,
-                          cnilnode.create)),
-                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
-                        nil));
-                    tocode:=constructionblock;
-                  end
-                else
+                if not assigned(srsym) or
+                   (srsym.typ<>procsym) then
                   internalerror(200305106);
+
+                current_filepos:=entrypos;
+                constructionblock:=internalstatements(newstatement);
+                { first execute all constructor code. If no exception
+                  occurred then we will execute afterconstruction,
+                  otherwise we won't (the exception will jump over us) }
+                addstatement(newstatement,tocode);
+                current_filepos:=exitpos;
+                { if implicit finally node wasn't created, then exit label and
+                  finalization code must be handled here and placed before
+                  afterconstruction }
+                if not ((pi_needs_implicit_finally in flags) and
+                  (cs_implicit_exceptions in current_settings.moduleswitches)) then
+                  begin
+                    include(tocode.flags,nf_block_with_exit);
+                    addstatement(newstatement,final_asmnode);
+                    cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
+                    final_used:=true;
+                  end;
+
+                { Self can be nil when fail is called }
+                { if self<>nil and vmt<>nil then afterconstruction }
+                addstatement(newstatement,cifnode.create(
+                  caddnode.create(andn,
+                    caddnode.create(unequaln,
+                      load_self_node,
+                      cnilnode.create),
+                    caddnode.create(unequaln,
+                      load_vmt_pointer_node,
+                      cnilnode.create)),
+                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
+                    nil));
+                tocode:=constructionblock;
               end;
 
             if withexceptblock and (procdef.struct.typ=objectdef) then
