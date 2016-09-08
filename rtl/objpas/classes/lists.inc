@@ -175,10 +175,11 @@ var
   IncSize : Longint;
 begin
   if FCount < FCapacity then exit(self);
-  IncSize := 4;
-  if FCapacity > 3 then IncSize := IncSize + 4;
-  if FCapacity > 8 then IncSize := IncSize+8;
-  if FCapacity > 127 then Inc(IncSize, FCapacity shr 2);
+  if FCapacity > 128*1024*1024 then IncSize := 16*1024*1024
+  else if FCapacity > 8*1024*1024 then IncSize := FCapacity shr 3
+  else if FCapacity > 128 then IncSize := FCapacity shr 2
+  else if FCapacity > 8 then IncSize := 16
+  else IncSize := 4; 
   SetCapacity(FCapacity + IncSize);
   Result := Self;
 end;
