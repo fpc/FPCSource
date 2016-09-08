@@ -1635,7 +1635,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_class_ro_part(list: tasmlist; objc
     { class declaration section }
     tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
     tcb.begin_anonymous_record(
-      internaltypeprefixName[itb_obcj_nf_class_ro_part],
+      internaltypeprefixName[itb_objc_nf_class_ro_part],
       C_alignment,1,
       targetinfos[target_info.system]^.alignment.recordalignmin,
       targetinfos[target_info.system]^.alignment.maxCrecordalign);
