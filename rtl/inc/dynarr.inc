@@ -364,11 +364,11 @@ procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : point
      if not assigned(p) or
          (source>pdynarray(p-sizeof(tdynarray))^.high) or
          (count<=0) or
-         (source<=0) then
+         (source<0) then
        exit;
      { cap count }
      if source+count-1>pdynarray(p-sizeof(tdynarray))^.high then
-       count:=pdynarray(p-sizeof(tdynarray))^.high-count+1;
+       count:=pdynarray(p-sizeof(tdynarray))^.high-source+1;
 
      { fast path: delete whole array }
      if (source=0) and (count=pdynarray(p-sizeof(tdynarray))^.high+1) then
