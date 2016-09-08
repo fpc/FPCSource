@@ -1347,7 +1347,7 @@ implementation
               begin
                 Message(parser_e_forward_mismatch);
                 { recover }
-                current_structdef:=cobjectdef.create(current_objectdef.objecttype,n,nil,true);
+                current_structdef:=cobjectdef.create(objecttype,n,nil,true);
                 include(current_structdef.objectoptions,oo_is_forward);
               end
             else
