@@ -1486,7 +1486,8 @@ implementation
          paralength:=-1;
          varargsparas:=nil;
          if assigned(current_structdef) and
-            assigned(mp) then
+            assigned(mp) and
+            assigned(current_procinfo) then
            begin
             { only needed when calling a destructor from an exception block in a
               contructor of a TP-style object }
