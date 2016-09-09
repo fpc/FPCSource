@@ -211,7 +211,7 @@ var
     if (FInfo.out_color_space = JCS_GRAYSCALE) then 
       begin
       FInfo.quantize_colors := True;
-      FInfo.desired_number_of_colors := 236;
+      FInfo.desired_number_of_colors := 256;
       end;
 
     if FPerformance = jpBestSpeed then 
