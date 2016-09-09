@@ -652,7 +652,7 @@ procedure RegisterDatapacketReader(ADatapacketReaderClass : TDatapacketReaderCla
 
 implementation
 
-uses variants, dbconst, FmtBCD;
+uses variants, dbconst, FmtBCD, strutils;
 
 Type TDatapacketReaderRegistration = record
                                        ReaderClass : TDatapacketReaderClass;
@@ -2035,23 +2035,56 @@ begin
   FIndexDefs.Updated:=false;
 end;
 
+const
+  Desc=' DESC';     //leading space is important
+  LenDesc:integer=Length(Desc);
+  Limiter=';';
+
 procedure TCustomBufDataset.SetIndexFieldNames(const AValue: String);
+var
+  i, p: integer;
+  s: string;
+  SortFields, DescFields: string;
+
 begin
   if AValue<>'' then
-    begin
+  begin
     if FIndexesCount=0 then
       InitDefaultIndexes;
-    FIndexes[1].FieldsName:=AValue;
-    FCurrentIndex:=FIndexes[1];
+
+    SortFields := '';
+    DescFields := '';
+    for i := 1 to WordCount(AValue, [Limiter]) do
+    begin
+      s := ExtractDelimited(i, AValue, [Limiter]);
+      p := Pos(Desc, s);
+      if p>0 then
+      begin
+        system.Delete(s, p, LenDesc);
+        DescFields := DescFields + Limiter + s;
+      end;
+      SortFields := SortFields + Limiter + s;
+    end;
+
+    if (Length(SortFields)>0) and (SortFields[1]=Limiter) then
+      system.Delete(SortFields,1,1);
+    if (Length(DescFields)>0) and (DescFields[1]=Limiter) then
+      system.Delete(DescFields,1,1);
+
+    FIndexes[1].FieldsName := SortFields;
+    FIndexes[1].Options := [];
+    FIndexes[1].DescFields := DescFields;
+
+    FCurrentIndex := FIndexes[1];
     if Active then
       begin
       FetchAll;
       BuildIndex(FIndexes[1]);
       Resync([rmCenter]);
       end;
-    FPacketRecords:=-1;
-    FIndexDefs.Updated:=false;
-    end
+    FPacketRecords := -1;
+    FIndexDefs.Updated := false;
+  end
   else
     SetIndexName('');
 end;
@@ -2744,11 +2777,24 @@ begin
 end;
 
 function TCustomBufDataset.GetIndexFieldNames: String;
+var
+  i, p: integer;
+  s: string;
+
 begin
+  Result := '';
   if (FIndexesCount=0) or (FCurrentIndex<>FIndexes[1]) then
-    result := ''
-  else
-    result := FCurrentIndex.FieldsName;
+    Exit;
+  for i := 1 to WordCount(FCurrentIndex.FieldsName, [Limiter]) do
+  begin
+    s := ExtractDelimited(i, FCurrentIndex.FieldsName, [Limiter]);
+    p := Pos(s, FCurrentIndex.DescFields);
+    if p>0 then
+      s := s + Desc;
+    Result := Result + Limiter + s;
+  end;
+  if (Length(Result)>0) and (Result[1]=Limiter) then
+    system.Delete(Result, 1, 1);
 end;
 
 function TCustomBufDataset.GetIndexName: String;
