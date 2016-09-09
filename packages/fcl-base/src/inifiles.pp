@@ -165,7 +165,7 @@ type
     procedure WriteString(const Section, Ident, Value: String); virtual; abstract;
     function ReadInteger(const Section, Ident: string; Default: Longint): Longint; virtual;
     procedure WriteInteger(const Section, Ident: string; Value: Longint); virtual;
-    function ReadInt64(const Section, Ident: string; Default: Int64): Longint; virtual;
+    function ReadInt64(const Section, Ident: string; Default: Int64): Int64; virtual;
     procedure WriteInt64(const Section, Ident: string; Value: Int64); virtual;
     function ReadBool(const Section, Ident: string; Default: Boolean): Boolean; virtual;
     procedure WriteBool(const Section, Ident: string; Value: Boolean); virtual;
@@ -608,7 +608,7 @@ begin
 end;
 
 function TCustomIniFile.ReadInt64(const Section, Ident: string; Default: Int64
-  ): Longint;
+  ): Int64;
 begin
   Result := StrToInt64Def(ReadString(Section, Ident, ''), Default);
 end;
