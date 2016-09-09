@@ -337,7 +337,10 @@ begin
   if not FValueHashValid then
     UpdateValueHash;
 
-  I := FValueHash.FindIndexOf(S);
+  if CaseSensitive then
+    I := FValueHash.FindIndexOf(S)
+  else
+    I := FValueHash.FindIndexOf(AnsiUpperCase(S));
   if I >= 0 then
     Result := Integer(FValueHash[I])-1
   else
@@ -351,7 +354,10 @@ begin
   if not FNameHashValid then
     UpdateNameHash;
 
-  I := FNameHash.FindIndexOf(Name);
+  if CaseSensitive then
+    I := FNameHash.FindIndexOf(Name)
+  else
+    I := FNameHash.FindIndexOf(AnsiUpperCase(Name));
   if I >= 0 then
     Result := Integer(FNameHash[I])-1
   else
@@ -374,7 +380,10 @@ begin
   else
     FValueHash.Clear;
   for I := 0 to Count - 1 do
-    FValueHash.Add(Strings[I], Pointer(I+1));
+    if CaseSensitive then
+      FValueHash.Add(Strings[I], Pointer(I+1))
+    else
+      FValueHash.Add(AnsiUpperCase(Strings[I]), Pointer(I+1));
   FValueHashValid := True;
 end;
 
@@ -387,7 +396,10 @@ begin
   else
     FNameHash.Clear;
   for I := 0 to Count - 1 do
-    FNameHash.Add(Names[I], Pointer(I+1));
+    if CaseSensitive then
+      FNameHash.Add(Names[I], Pointer(I+1))
+    else
+      FNameHash.Add(AnsiUpperCase(Names[I]), Pointer(I+1));
   FNameHashValid := True;
 end;
 
