@@ -354,6 +354,9 @@ begin
     else
       NameValueList.Add(Name+'='+Value)
     end;
+  // Microsoft-IIS hack. IIS includes the script name in the PATH_INFO
+  if Pos('IIS', ServerSoftware) > 0 then
+    SetHTTPVariable(hvPathInfo,StringReplace(PathInfo, ScriptName, '', [rfReplaceAll, rfIgnoreCase]));
 end;
 
 procedure TFCGIRequest.Log(EventType: TEventType; const Msg: String);
