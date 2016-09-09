@@ -345,30 +345,37 @@ uses
                     parampos^:=tmpparampos;
                     poslist.add(parampos);
                   end;
-                genericdeflist.Add(typeparam.resultdef);
-                if not assigned(typeparam.resultdef.typesym) then
-                  message(type_e_generics_cannot_reference_itself)
+                if typeparam.resultdef.typ<>errordef then
+                  begin
+                    if not assigned(typeparam.resultdef.typesym) then
+                      message(type_e_generics_cannot_reference_itself)
+                    else if (typeparam.resultdef.typ<>errordef) then
+                      begin
+                        genericdeflist.Add(typeparam.resultdef);
+                        { we use the full name of the type to uniquely identify it }
+                        if (symtablestack.top.symtabletype=parasymtable) and
+                            (symtablestack.top.defowner.typ=procdef) and
+                            (typeparam.resultdef.owner=symtablestack.top) then
+                          begin
+                            { special handling for specializations inside generic function declarations }
+                            namepart:=tdef(symtablestack.top.defowner).unique_id_str;
+                            namepart:='genproc'+namepart+'_'+tdef(symtablestack.top.defowner).fullownerhierarchyname+'_'+tprocdef(symtablestack.top.defowner).procsym.realname+'_'+typeparam.resultdef.typename;
+                            prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname+tprocdef(symtablestack.top.defowner).procsym.prettyname;
+                          end
+                        else
+                          begin
+                            namepart:=typeparam.resultdef.fulltypename;
+                            prettynamepart:=typeparam.resultdef.fullownerhierarchyname;
+                          end;
+                        specializename:=specializename+'$'+namepart;
+                        if not first then
+                          prettyname:=prettyname+',';
+                        prettyname:=prettyname+prettynamepart+typeparam.resultdef.typesym.prettyname;
+                      end;
+                  end
                 else
                   begin
-                    { we use the full name of the type to uniquely identify it }
-                    if (symtablestack.top.symtabletype=parasymtable) and
-                        (symtablestack.top.defowner.typ=procdef) and
-                        (typeparam.resultdef.owner=symtablestack.top) then
-                      begin
-                        { special handling for specializations inside generic function declarations }
-                        namepart:=tdef(symtablestack.top.defowner).unique_id_str;
-                        namepart:='genproc'+namepart+'_'+tdef(symtablestack.top.defowner).fullownerhierarchyname+'_'+tprocdef(symtablestack.top.defowner).procsym.realname+'_'+typeparam.resultdef.typename;
-                        prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname+tprocdef(symtablestack.top.defowner).procsym.prettyname;
-                      end
-                    else
-                      begin
-                        namepart:=typeparam.resultdef.fulltypename;
-                        prettynamepart:=typeparam.resultdef.fullownerhierarchyname;
-                      end;
-                    specializename:=specializename+'$'+namepart;
-                    if not first then
-                      prettyname:=prettyname+',';
-                    prettyname:=prettyname+prettynamepart+typeparam.resultdef.typesym.prettyname;
+                    result:=false;
                   end;
               end
             else
