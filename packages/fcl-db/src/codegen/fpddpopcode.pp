@@ -371,7 +371,9 @@ begin
     If DoSequence(S) then
       CreateSequenceCode(S,Lines);
     end;
+
   If (dcoProcedurePerTable in Options) then
+
     EndProcedure(Lines);
 end;
 
@@ -396,7 +398,7 @@ begin
   If (dcoUseWith in Options) then
      begin
      AddLine('end;',Lines);
-     Indent;
+     Undent;
      end;
 end;
 
