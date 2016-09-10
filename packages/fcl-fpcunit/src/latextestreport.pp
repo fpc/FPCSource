@@ -51,7 +51,7 @@ type
     procedure EndTest(ATest: TTest); override;
   end;
 
-function TestSuiteAsLatex(aSuite:TTestSuite): string;
+function TestSuiteAsLatex(aSuite:TTest): string;
 function GetSuiteAsLatex(aSuite: TTestSuite): string;
 
 implementation
@@ -250,27 +250,26 @@ begin
   
 end;
 
-function TestSuiteAsLatex(aSuite:TTestSuite): string;
+function TestSuiteAsLatex(aSuite:TTest): string;
 var
   i,j: integer;
   s: TTestSuite;
 begin
-  Result := TLatexResultsWriter.EscapeText(aSuite.TestSuiteName) + System.sLineBreak;
-  Result := Result + '\begin{itemize}'+ System.sLineBreak;
-  for i := 0 to aSuite.ChildTestCount - 1 do
-    if ASuite.Test[i] is TTestSuite then
-      begin
-      Result:=Result + '\item[-] ';
-      Result := Result + '\flushleft' + System.sLineBreak;
-      Result:=Result+TestSuiteAsLatex(TTestSuite(ASuite.Test[i]))+System.sLineBreak;
-      end
-    else   
-      begin
-      Result := Result + '\item[-] ' + 
-               TLatexResultsWriter.EscapeText(TTestcase(aSuite.Test[i]).TestName)
-               + System.sLineBreak;
-      end;    
-  Result := Result +'\end{itemize}' + System.sLineBreak;
+  Result:='';
+  if (aSuite.TestName<>'') then
+    begin
+    Result:=Result + '\item[-] ';
+    Result:=Result+TLatexResultsWriter.EscapeText(ASuite.TestName)+slineBreak
+    end;
+  if aSuite.GetChildTestCount>0 then
+    begin
+    Result := Result + '\begin{itemize}'+ System.sLineBreak;
+    for i:=0 to Pred(aSuite.GetChildTestCount) do
+      Result:=Result+TestSuiteAsLatex(aSuite.GetChildTest(i));
+    if (aSuite.TestName<>'') then
+      Result := Result +'\end{itemize}' + System.sLineBreak;
+    end
+
 end;
 
 
@@ -284,7 +283,9 @@ begin
       Result := Result + '\begin{document}' + System.sLineBreak + System.sLineBreak;
       if aSuite.TestName = '' then
         aSuite.TestName := 'Test Suite';
+      Result := Result + '\begin{itemize}'+ System.sLineBreak;
       Result := Result + TestSuiteAsLatex(aSuite);
+      Result := Result +'\end{itemize}' + System.sLineBreak;
       Result := Result + '\end{document}';
     end
   else

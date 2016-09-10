@@ -54,7 +54,11 @@ type
   TTestSuite = class;
 
   {$M+}
+
+  { TTest }
+
   TTest = class(TObject)
+  private
   protected
     FLastStep: TTestStep;
     function GetTestName: string; virtual;
@@ -64,6 +68,10 @@ type
     procedure SetEnableIgnores(Value: boolean); virtual; abstract;
   public
     function CountTestCases: integer; virtual;
+    Function GetChildTestCount : Integer; virtual;
+    Function GetChildTest(AIndex : Integer) : TTest; virtual;
+    function FindChildTest(const AName: String): TTest;
+    Function FindTest(Const AName : String) : TTest;
     procedure Run(AResult: TTestResult); virtual;
     procedure Ignore(const AMessage: string);
   published
@@ -240,8 +248,6 @@ type
     FName: string;
     FTestSuiteName: string;
     FEnableIgnores: boolean;
-    function GetTest(Index: integer): TTest;
-    function GetTestCount: Integer;
   protected
     Function DoAddTest(ATest : TTest) : Integer;
     function GetTestName: string; override;
@@ -258,13 +264,15 @@ type
     constructor Create; reintroduce; overload; virtual;
     destructor Destroy; override;
     function CountTestCases: integer; override;
+    Function GetChildTestCount : Integer; override;
+    Function GetChildTest(AIndex : Integer) : TTest; override;
     procedure Run(AResult: TTestResult); override;
     procedure RunTest(ATest: TTest; AResult: TTestResult); virtual;
     procedure AddTest(ATest: TTest); overload; virtual;
     procedure AddTestSuiteFromClass(ATestClass: TClass); virtual;
     class function Warning(const aMessage: string): TTestCase;
-    property Test[Index: integer]: TTest read GetTest; default;
-    Property ChildTestCount : Integer Read GetTestCount;
+    property Test[Index: integer]: TTest read GetChildTest; default;
+    Property ChildTestCount : Integer Read GetChildTestCount;
     property TestSuiteName: string read GetTestSuiteName write SetTestSuiteName;
     property TestName: string read GetTestName write SetTestName;
     // Only for backwards compatibility. Use Test and ChildTestCount.
@@ -538,6 +546,65 @@ begin
   Result := 0;
 end;
 
+function TTest.GetChildTestCount: Integer;
+begin
+  Result:=0;
+end;
+
+function TTest.GetChildTest(AIndex: Integer): TTest;
+begin
+  Result:=Nil;
+end;
+
+function TTest.FindChildTest(const AName: String): TTest;
+
+Var
+  I : Integer;
+
+begin
+  Result:=Nil;
+  I:=GetChildTestCount-1;
+  While (Result=Nil) and (I>=0) do
+    begin
+    Result:=GetChildTest(I);
+    if CompareText(Result.TestName,AName)<>0 then
+      Result:=Nil;
+    Dec(I);
+    end;
+end;
+
+function TTest.FindTest(const AName: String): TTest;
+
+Var
+  S : String;
+  I,P : Integer;
+
+begin
+  Result:=Nil;
+  S:=AName;
+  if S='' then exit;
+  P:=Pos('.',S);
+  If (P=0) then
+    P:=Length(S)+1;
+  Result:=FindChildTest(Copy(S,1,P-1));
+  if (Result<>Nil) then
+    begin
+    Delete(S,1,P);
+    If (S<>'') then
+      Result:=Result.FindTest(S);
+    end
+  else
+    begin
+    P:=GetChildTestCount;
+    I:=0;
+    While (Result=Nil) and (I<P) do
+      begin
+      Result:=GetChildTest(I).FindTest(Aname);
+      Inc(I);
+      end;
+    end;
+end;
+
 function TTest.GetEnableIgnores: boolean;
 begin
   Result := True;
@@ -548,7 +615,7 @@ begin
   { do nothing }
 end;
 
-procedure TTest.Ignore(const AMessage: String);
+procedure TTest.Ignore(const AMessage: string);
 begin
   if EnableIgnores then raise EIgnoredTest.Create(AMessage);
 end;
@@ -1197,12 +1264,12 @@ begin
 end;
 
 
-function TTestSuite.GetTest(Index: integer): TTest;
+function TTestSuite.GetChildTest(AIndex: integer): TTest;
 begin
-  Result := TTestItem(FTests[Index]).Test;
+  Result := TTestItem(FTests[AIndex]).Test;
 end;
 
-function TTestSuite.GetTestCount: Integer;
+function TTestSuite.GetChildTestCount: Integer;
 begin
   Result:=FTests.Count;
 end;

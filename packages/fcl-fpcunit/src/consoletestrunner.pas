@@ -314,60 +314,11 @@ end;
 procedure TTestRunner.DoRun;
 
 
-  procedure CheckTestRegistry (test:TTest; ATestName:string; res : TTestSuite);
-  var s, c : string;
-      I, p : integer;
-      ds : TTestSuite;
-      D : TTestDecorator;
-
-  begin
-    if (test is TTestSuite) or (test is TTestDecorator) then
-      begin
-      p := pos ('.', ATestName);
-      if p > 0 then
-        begin
-        s := copy (ATestName, 1, p-1);
-        c := copy (ATestName, p+1, maxint);
-        end
-      else
-        begin
-        s := '';
-        c := ATestName;
-        end;
-      if comparetext(c, test.TestName) = 0 then
-        res.AddTest(test)
-      else if (CompareText( s, Test.TestName) = 0) or (s = '') then
-        begin
-        if (test is ttestsuite) then
-          begin
-          for I := 0 to TTestSuite(test).ChildTestCount - 1 do
-             CheckTestRegistry ((test as TTestSuite).Test[I], c, res)
-          end
-        else if (test is TTestDecorator) then
-          begin
-          DS:=TDecoratorTestSuite.Create;
-          CheckTestRegistry(TTest((test as TTestDecorator).Test), c, ds);
-          if (ds.CountTestCases>0) then
-            begin
-            D:=TTestDecoratorClass(Test.ClassType).Create(DS);
-            Res.AddTest(D);
-            end
-          else
-            DS.free;
-          end;
-        end;
-      end
-    else // if test is TTestCase then
-      begin
-      if comparetext(test.TestName, ATestName) = 0 then
-        res.AddTest(test);
-      end;
-  end;
-
 var
   I,P : integer;
-  S : string;
+  S,TN : string;
   TS : TDecoratorTestSuite;
+  T : TTest;
   
 begin
   S := CheckOptions(GetShortOpts, LongOpts);
@@ -383,7 +334,7 @@ begin
       fPlain:         Write(GetSuiteAsPlain(GetTestRegistry));
       fPlainNoTiming: Write(GetSuiteAsPlain(GetTestRegistry));
     else
-      Write(GetSuiteAsXml(GetTestRegistry));;
+      Write(GetSuiteAsXml(GetTestRegistry));
     end;
 
   //run the tests
@@ -400,19 +351,17 @@ begin
         try
         while Not(S = '') Do
           begin
-            P:=Pos(',',S);
-            if P = 0 Then
-              begin
-                for I := 0 to GetTestRegistry.ChildTestCount-1 do
-                  CheckTestRegistry (GetTestregistry[I], S, TS);
-                S := '';
-              end
-            else
-              begin
-                for I := 0 to GetTestRegistry.ChildTestCount-1 do
-                  CheckTestRegistry (GetTestregistry[I],Copy(S, 1,P - 1), TS);
-                Delete(S, 1, P);
-              end;
+          P:=Pos(',',S);
+          If P=0 then
+            P:=Length(S)+1;
+          TN:=Copy(S,1,P-1);
+          Delete(S,1,P);
+          if (TN<>'') then
+            begin
+            T:=GetTestRegistry.FindTest(TN);
+            if Assigned(T) then
+              TS.AddTest(T);
+            end;
           end;
           if (TS.CountTestCases>1) then
             DoTestRun(TS)

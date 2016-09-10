@@ -70,7 +70,7 @@ type
   end;
 
 function GetSuiteAsXML(aSuite: TTestSuite): string;
-function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTestSuite): string;
+function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTest): string;
 
 implementation
 
@@ -93,35 +93,37 @@ begin
 
     stream := TStringStream.Create('');
     WriteXMLFile(FDoc, stream);
-    writeln(stream.DataString);
+    Result:=stream.DataString;
     stream.Free;
   end;
 end;
 
-function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTestSuite): string;
+function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTest): string;
 var
   i: integer;
   E,T : TDomElement;
   
 begin
-  if aSuite.TestName<>'' then
+  Result:='';
+  if aSuite.GetChildTestCount>0 then
     begin
-    E:=FDoc.CreateElement('Suite');
-    E['Name']:=aSuite.TestName;
-    N.AppendChild(E);
+    if (aSuite.TestName='') then
+      E:=N
+    else
+      begin
+      E:=FDoc.CreateElement('Suite');
+      E['Name']:=aSuite.TestName;
+      N.AppendChild(E);
+      end;
+    for i:=0 to Pred(aSuite.GetChildTestCount) do
+      TestSuiteAsXML(E,FDoc,aSuite.GetChildTest(i));
     end
   else
-    E:=N;
-  for i:=0 to Pred(aSuite.ChildTestCount) do
-    if TTest(aSuite.Test[i]) is TTestSuite then
-      TestSuiteAsXML(E, FDoc, TTestSuite(aSuite.Test[i]))
-    else
-      if TTest(aSuite.Test[i]) is TTestCase then
-        begin
-        T:=FDoc.CreateElement('Test');
-        T['name']:=TTestCase(aSuite.Test[i]).TestName;
-        E.AppendChild(T);
-        end;
+    begin
+    T:=FDoc.CreateElement('Test');
+    T['name']:=aSuite.TestName;
+    N.AppendChild(T);
+    end;
 end;
 
 
