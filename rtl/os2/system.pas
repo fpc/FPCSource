@@ -241,6 +241,10 @@ var
   SysLastOSError: cardinal;
 {$ENDIF SYSTEMDEBUG}
 
+function GetDynLibsError: longint;
+
+function GetDynLibsErrPath: PChar;
+
 
 
 implementation

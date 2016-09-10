@@ -83,6 +83,11 @@ begin
  GetDynLibsError := DynLibErrNo;
 end;
 
+function GetDynLibsErrPath: PChar;
+begin
+ GetDynLibsErrPath := @DynLibErrPath [0];
+end;
+
 function SysGetDynLibsErrorStr: string;
 const
  SysMsgFile: array [0..10] of char = 'OSO001.MSG'#0;
@@ -91,6 +96,8 @@ var
  OutBuf: array [0..999] of char;
  RetMsgSize: cardinal;
  RC: cardinal;
+ I: cardinal;
+ AErr: ansistring;
 begin
  if DynLibErrNo = 0 then
   SysGetDynLibsErrorStr := ''
@@ -104,6 +111,14 @@ begin
     begin
      SetLength (Result, RetMsgSize);
      Move (OutBuf [0], Result [1], RetMsgSize);
+     AErr := ansistring (PChar (@DynlibErrPath [0]));
+     if (AErr <> '') and (Pos (AErr, Result) = 0) then
+      begin
+       if Result [Length (Result)] in [#13, #10, ' '] then
+        Result := Result + '(' + AErr + ')'
+       else
+        Result := Result + ' (' + AErr + ')';
+     end
     end
    else
     begin
