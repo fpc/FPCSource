@@ -6663,6 +6663,7 @@ packages/paszlib/src/ziputils.pas svneol=native#text/plain
 packages/paszlib/src/zstream.pp svneol=native#text/plain
 packages/paszlib/src/zuncompr.pas svneol=native#text/plain
 packages/paszlib/tests/tczipper.pp svneol=native#text/plain
+packages/paszlib/tests/tczstreamseek.pp svneol=native#text/plain
 packages/pcap/Makefile svneol=native#text/plain
 packages/pcap/Makefile.fpc svneol=native#text/plain
 packages/pcap/Makefile.fpc.fpcmake svneol=native#text/plain
