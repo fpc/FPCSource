@@ -557,6 +557,7 @@ unit aoptx86;
           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
           begin
             CopyUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
             { we have
                 mov x, %treg
                 mov %treg, y
@@ -913,6 +914,7 @@ unit aoptx86;
           GetNextInstruction(hp1, hp2) and
           MatchInstruction(hp2,A_MOV,[]) and
           OpsEqual(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^) and
+          OpsEqual(taicpu(hp2).oper[0]^, taicpu(p).oper[1]^) and
           (IsFoldableArithOp(taicpu(hp1), taicpu(p).oper[1]^.reg) or
            ((taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and
             IsFoldableArithOp(taicpu(hp1), newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[1]^.reg),R_SUBQ)))
