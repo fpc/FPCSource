@@ -294,7 +294,7 @@ Var
   Node  : TDomElement;
   DataNode : TDomNode;
   ND : Integer;
-  S : AnsiString;
+  S : UTF8String;
   HasData: Boolean;
   IntValue: Integer;
 begin
@@ -322,7 +322,7 @@ begin
         dtString : begin  // DataNode is optional
                    if HasData then
                      begin
-                     S:=DataNode.NodeValue; // Convert to ansistring
+                     S:=UTF8Encode(DataNode.NodeValue); // Convert to ansistring
                      DataSize:=Length(S);
                      if (DataSize>0) then
                        Move(S[1],Data,DataSize);
@@ -353,7 +353,7 @@ Type
 Var
   Node  : TDomElement;
   DataNode : TDomNode;
-  S : String;
+  SW : Widestring;
 begin
   Node:=FindValueKey(Name);
   If Node=Nil then
@@ -365,23 +365,26 @@ begin
     DataNode:=Node.FirstChild;
 
     Case DataType of
-      dtDWORD : S:=IntToStr(PCardinal(@Data)^);
-      dtString : SetString(S, PAnsiChar(@Data), DataSize);
-      dtBinary : S:=BufToHex(Data,DataSize);
+      dtDWORD : SW:=IntToStr(PCardinal(@Data)^);
+      dtString : begin
+                   SW:=WideString(PAnsiChar(@Data));
+                   //S:=UTF8Encode(SW);
+                 end;
+      dtBinary : SW:=BufToHex(Data,DataSize);
     else
-      s:='';
+      sw:='';
     end;
-    if s <> '' then
+    if sw <> '' then
       begin
       if DataNode=nil then
         begin
         // may happen if previous value was empty;
         // XML does not handle empty textnodes.
-        DataNode:=FDocument.CreateTextNode(s);
+        DataNode:=FDocument.CreateTextNode(sw);
         Node.AppendChild(DataNode);
         end
       else
-        DataNode.NodeValue:=s;
+        DataNode.NodeValue:=sw;
       end
     else
       DataNode.Free;
@@ -613,7 +616,7 @@ begin
     begin
     DN:=N.FirstChild;
     if Assigned(DN) and (DN.NodeType=TEXT_NODE) then begin
-      S := DN.NodeValue;
+      S := UTF8Encode(DN.NodeValue);
       L:=Length(S);
     end else
       L:=0;
@@ -666,7 +669,7 @@ begin
               Case TDataType(StrToIntDef(TDomElement(Node)[SType],0)) of
                 dtUnknown : L:=0;
                 dtDWord   : L:=4;
-                DtString  : L:=Length(DataNode.NodeValue);
+                DtString  : L:=Length(UTF8Encode(DataNode.NodeValue));
                 dtBinary  : L:=Length(DataNode.NodeValue) div 2;
               end
             else
