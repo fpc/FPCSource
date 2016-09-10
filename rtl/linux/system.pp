@@ -162,10 +162,15 @@ var
   buf    : pchar;
 
   procedure AddBuf;
+  var
+    p : Pchar;
   begin
-    sysreallocmem(calculated_cmdline,size+bufsize);
-    move(buf^,calculated_cmdline[size],bufsize);
+    p:=SysGetmem(size+bufsize);
+    move(calculated_cmdline^,p^,size);
+    move(buf^,p[size],bufsize);
     inc(size,bufsize);
+    sysfreemem(calculated_cmdline);
+    calculated_cmdline:=p;
     bufsize:=0;
   end;
 
