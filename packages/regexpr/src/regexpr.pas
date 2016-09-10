@@ -99,6 +99,7 @@ interface
 {$IFDEF UseSetOfChar}
  {$DEFINE UseFirstCharSet} // Fast skip between matches for r.e. that starts with determined set of chars
 {$ENDIF}
+{$DEFINE UseOsLineEndOnReplace} // On Replace if replace-with has "\n", use System.LineEnding (#10 #13 or #13#10); else use #10
 
 // ======== Define Pascal-language options
 // Define 'UseAsserts' option (do not edit this definitions).
@@ -3741,7 +3742,7 @@ var
   n : PtrInt;
   Ch : REChar;
   Mode: TSubstMode;
-  LineEnd: String = LineEnding;
+  LineEnd: String = {$ifdef UseOsLineEndOnReplace} System.LineEnding {$else} Chr(10) {$endif};
 
   function ParseVarName (var APtr : PRegExprChar) : PtrInt;
   // extract name of variable (digits, may be enclosed with
@@ -3813,7 +3814,7 @@ begin
         Ch := p^;
         inc (p);
         case Ch of
-          'n' : inc(ResultLen, Length(LineEnding));
+          'n' : inc(ResultLen, Length(LineEnd));
           'u', 'l', 'U', 'L': {nothing};
           else inc(ResultLen);
         end;
@@ -3854,7 +3855,7 @@ begin
         case Ch of
           'n' : begin
               p0 := @LineEnd[1];
-              p1 := p0 + Length(LineEnding);
+              p1 := p0 + Length(LineEnd);
             end;
           'l' : begin
               Mode := smodeOneLower;
