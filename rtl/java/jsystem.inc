@@ -78,7 +78,6 @@ Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
 Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer); forward;
 Procedure HandleErrorAddrFrameInd (Errno : longint;addr : CodePointer; frame : Pointer); forward;
 
-
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 type
   FileFunc = Procedure(var t : TextRec);

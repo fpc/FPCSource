@@ -19322,7 +19322,7 @@
     constructor create(); overload;
     function getStatus(): AOAsyncTask.InnerStatus; overload; virtual; final;
   strict protected
-//    function doInBackground(para1: Arr1JLObject): JLObject; overload; virtual; abstract;
+    function doInBackground(para1: Arr1JLObject): JLObject; overload; virtual; abstract;
     function doInBackground(const para1: array of JLObject): JLObject; overload; virtual; abstract;
     procedure onPreExecute(); overload; virtual;
     procedure onPostExecute(para1: JLObject); overload; virtual;

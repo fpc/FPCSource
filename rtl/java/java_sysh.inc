@@ -443,7 +443,7 @@ type
   Arr2JNIntBuffer = array of Arr1JNIntBuffer;
   Arr3JNIntBuffer = array of Arr2JNIntBuffer;
 
-  JIInputStream = class;
+  JIInputStream = class external 'java.io' name 'InputStream';
   Arr1JIInputStream = array of JIInputStream;
   Arr2JIInputStream = array of Arr1JIInputStream;
   Arr3JIInputStream = array of Arr2JIInputStream;
@@ -478,7 +478,7 @@ type
   Arr2JURandom = array of Arr1JURandom;
   Arr3JURandom = array of Arr2JURandom;
 
-  JIOutputStream = class;
+  JIOutputStream = class external 'java.io' name 'OutputStream';
   Arr1JIOutputStream = array of JIOutputStream;
   Arr2JIOutputStream = array of Arr1JIOutputStream;
   Arr3JIOutputStream = array of Arr2JIOutputStream;
@@ -488,6 +488,10 @@ type
   Arr2JLStackTraceElement = array of Arr1JLStackTraceElement;
   Arr3JLStackTraceElement = array of Arr2JLStackTraceElement;
 
+  JIFile = class external 'java.io' name 'File';
+  Arr1JIFile = array of JIFile;
+  Arr2JIFile = array of Arr1JIFile;
+  Arr3JIFile = array of Arr2JIFile;
 
   JUProperties = class external 'java.util' name 'Properties';
   Arr1JUProperties = array of JUProperties;
@@ -509,7 +513,7 @@ type
   Arr2JSProtectionDomain = array of Arr1JSProtectionDomain;
   Arr3JSProtectionDomain = array of Arr2JSProtectionDomain;
 
-  JIPrintStream = class ;
+  JIPrintStream = class external 'java.io' name 'PrintStream';
   Arr1JIPrintStream = array of JIPrintStream;
   Arr2JIPrintStream = array of Arr1JIPrintStream;
   Arr3JIPrintStream = array of Arr2JIPrintStream;
@@ -559,14 +563,7 @@ type
   Arr2JLAAnnotation = array of Arr1JLAAnnotation;
   Arr3JLAAnnotation = array of Arr2JLAAnnotation;
 
-  JICloseable = interface external 'java.io' name 'Closeable'
-    procedure close(); overload;  // throws java.io.IOException
-  end;
-
-  JNCChannel = interface external 'java.nio.channels' name 'Channel' (JICloseable)
-    function isOpen(): jboolean; overload;
-    procedure close(); overload;  // throws java.io.IOException
-  end;
+  JNCChannel = interface external 'java.nio.channels' name 'Channel';
   Arr1JNCChannel = array of JNCChannel;
   Arr2JNCChannel = array of Arr1JNCChannel;
   Arr3JNCChannel = array of Arr2JNCChannel;
@@ -581,76 +578,4 @@ type
   Arr2JUSortedMap = array of Arr1JUSortedMap;
   Arr3JUSortedMap = array of Arr2JUSortedMap;
 
-  JIFile = Class;
-  Arr1JIFile = array of JIFile;
-  Arr2JIFile = array of Arr1JIFile;
-  Arr3JIFile = array of Arr2JIFile;
-
-  JNCFileChannel = class;
-
-  JNCSAbstractInterruptibleChannel = class;
-
-  JNCInterruptibleChannel = interface external 'java.nio.channels' name 'InterruptibleChannel' (JNCChannel)
-    procedure close(); overload;  // throws java.io.IOException
-  end;
-
-  JIFilenameFilter = interface external 'java.io' name 'FilenameFilter'
-    function accept(para1: JIFile; para2: JLString): jboolean; overload;
-  end;
-
-  JIFileFilter = interface external 'java.io' name 'FileFilter'
-    function accept(para1: JIFile): jboolean; overload;
-  end;
-
-
-  JNCReadableByteChannel = interface external 'java.nio.channels' name 'ReadableByteChannel' (JNCChannel)
-    function read(para1: JNByteBuffer): jint; overload;  // throws java.io.IOException
-  end;
-
-  JNCWritableByteChannel = interface external 'java.nio.channels' name 'WritableByteChannel' (JNCChannel)
-    function write(para1: JNByteBuffer): jint; overload;  // throws java.io.IOException
-  end;
-
-  JIFlushable = interface external 'java.io' name 'Flushable'
-    procedure flush(); overload;  // throws java.io.IOException
-  end;
-
-  JIDataInput = interface external 'java.io' name 'DataInput'
-    procedure readFully(para1: Arr1jbyte); overload;  // throws java.io.IOException
-    procedure readFully(var para1: array of jbyte); overload;  // throws java.io.IOException
-    procedure readFully(para1: Arr1jbyte; para2: jint; para3: jint); overload;  // throws java.io.IOException
-    procedure readFully(var para1: array of jbyte; para2: jint; para3: jint); overload;  // throws java.io.IOException
-    function skipBytes(para1: jint): jint; overload;  // throws java.io.IOException
-    function readBoolean(): jboolean; overload;  // throws java.io.IOException
-    function readByte(): jbyte; overload;  // throws java.io.IOException
-    function readUnsignedByte(): jint; overload;  // throws java.io.IOException
-    function readShort(): jshort; overload;  // throws java.io.IOException
-    function readUnsignedShort(): jint; overload;  // throws java.io.IOException
-    function readChar(): jchar; overload;  // throws java.io.IOException
-    function readInt(): jint; overload;  // throws java.io.IOException
-    function readLong(): jlong; overload;  // throws java.io.IOException
-    function readFloat(): jfloat; overload;  // throws java.io.IOException
-    function readDouble(): jdouble; overload;  // throws java.io.IOException
-    function readLine(): JLString; overload;  // throws java.io.IOException
-    function readUTF(): JLString; overload;  // throws java.io.IOException
-  end;
-
-  JIDataOutput = interface external 'java.io' name 'DataOutput'
-    procedure write(para1: jint); overload;  // throws java.io.IOException
-    procedure write(para1: Arr1jbyte); overload;  // throws java.io.IOException
-    procedure write(var para1: array of jbyte); overload;  // throws java.io.IOException
-    procedure write(para1: Arr1jbyte; para2: jint; para3: jint); overload;  // throws java.io.IOException
-    procedure write(var para1: array of jbyte; para2: jint; para3: jint); overload;  // throws java.io.IOException
-    procedure writeBoolean(para1: jboolean); overload;  // throws java.io.IOException
-    procedure writeByte(para1: jint); overload;  // throws java.io.IOException
-    procedure writeShort(para1: jint); overload;  // throws java.io.IOException
-    procedure writeChar(para1: jint); overload;  // throws java.io.IOException
-    procedure writeInt(para1: jint); overload;  // throws java.io.IOException
-    procedure writeLong(para1: jlong); overload;  // throws java.io.IOException
-    procedure writeFloat(para1: jfloat); overload;  // throws java.io.IOException
-    procedure writeDouble(para1: jdouble); overload;  // throws java.io.IOException
-    procedure writeBytes(para1: JLString); overload;  // throws java.io.IOException
-    procedure writeChars(para1: JLString); overload;  // throws java.io.IOException
-    procedure writeUTF(para1: JLString); overload;  // throws java.io.IOException
-  end;
 

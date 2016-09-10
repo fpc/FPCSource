@@ -9062,7 +9062,6 @@ rtl/java/objpash.inc svneol=native#text/plain
 rtl/java/rtl.cfg svneol=native#text/plain
 rtl/java/rtldefs.inc svneol=native#text/plain
 rtl/java/rtti.inc svneol=native#text/plain
-rtl/java/sysfile.inc svneol=native#text/plain
 rtl/java/sysos.inc svneol=native#text/plain
 rtl/java/sysosh.inc svneol=native#text/plain
 rtl/java/sysres.inc svneol=native#text/plain

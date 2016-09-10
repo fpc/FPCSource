@@ -23,7 +23,6 @@ Unit System;
 {*****************************************************************************}
 
 {$define FPC_IS_SYSTEM}
-{$define FPC_HAS_FEATURE_TEXTIO}
 
 {$I-,Q-,H-,R-,V-,P+,T+}
 {$implicitexceptions off}
@@ -117,22 +116,8 @@ const
 {$i jastringh.inc}
 {$i justringh.inc}
 
-Type
-  THandle = JLObject;
-{$i textrec.inc}
-   PText = ^TextRec;
-Var
-  { Standard In- and Output }
-  ErrOutput,
-  Output,
-  Input,
-  StdOut,
-  StdErr      : Text;
-  InOutRes    : Word;
-
 {$i jsystemh.inc}
 {$i jtconh.inc}
-
 
 
 {*****************************************************************************}
@@ -147,8 +132,6 @@ function min(a,b : longint) : longint;
        min:=b;
   end;
 
-
-
 {$i jtcon.inc}
 {$i jtvar.inc}
 {$i jsstrings.inc}
@@ -158,7 +141,6 @@ function min(a,b : longint) : longint;
 {$i jset.inc}
 {$i jpvar.inc}
 {$i jdynarr.inc}
-{$i sysfile.inc}
 {$i jsystem.inc}
 
 
@@ -194,8 +176,6 @@ procedure fpc_var_copyout_mismatch(line,column: longint); compilerproc;
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
-
-
 
 begin
  initunicodestringmanager

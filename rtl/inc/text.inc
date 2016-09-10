@@ -77,13 +77,7 @@ End;
 Procedure InitText(Var t : Text);
 
 begin
-{$IFDEF CPUJVM}
-  TextRec(t).bufend:=0;
-  TextRec(t).bufpos:=0;
-  TextRec(t).Handle:=Nil;
-{$ELSE}
   FillChar(t,SizeOf(TextRec),0);
-{$ENDIF}
 { only set things that are not zero }
   TextRec(t).Handle:=UnusedHandle;
   TextRec(t).mode:=fmClosed;
@@ -299,11 +293,7 @@ Begin
   If InOutRes=0 then
      TextRec(t).Name:=fs
 {$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
-{$IFDEF CPUJVM}
-  Do_Rename(PFileTextRecChar(@TextRec(t).Name),S,false,false);
-{$ELSE}
   Do_Rename(PFileTextRecChar(@TextRec(t).Name),PUnicodeChar(S),false,false);
-{$ENDIF}
   If InOutRes=0 then
 {$ifdef FPC_ANSI_TEXTTextRec}
     TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(s);
@@ -324,11 +314,7 @@ var
   pdst: PAnsiChar;
 {$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   fs: UnicodeString;
-{$IFDEF CPUJVM}
-  pdst: Unicodestring;
-{$else}
   pdst: PUnicodeChar;
-{$ENDIF}
 {$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   dstchangeable: boolean;
 Begin
@@ -353,12 +339,8 @@ Begin
 {$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
    { it's slightly faster to convert the rawbytestring here to unicodestring
      than doing it in do_rename, because here we still know the length }
-{$IFNDEF CPUJVM}
    fs:=unicodestring(s);
    pdst:=PUnicodeChar(fs);
-{$ELSE}
-   pdst:=unicodestring(s);
-{$ENDIF CPUJVM}
    dstchangeable:=true;
 {$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   Do_Rename(PFileTextRecChar(@TextRec(t).Name),pdst,false,dstchangeable);
