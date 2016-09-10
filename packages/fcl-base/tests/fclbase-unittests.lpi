@@ -33,7 +33,7 @@
         <CommandLineParams Value="--suite=TTestExpressionScanner.TestNumber"/>
       </local>
     </RunParams>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
         <Filename Value="fclbase-unittests.pp"/>
         <IsPartOfProject Value="True"/>
@@ -47,6 +47,10 @@
         <Filename Value="testexprpars.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="tcmaskutils.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
