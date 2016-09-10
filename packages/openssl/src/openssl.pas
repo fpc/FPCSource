@@ -207,7 +207,8 @@ type
     aux: pointer;  // ^X509_CERT_AUX
   end;
   pX509 = ^X509;
-
+  PPX509 = ^PX509;
+  
   DSA = record
 	pad: integer;
 	version: integer;
@@ -908,6 +909,7 @@ var
   function X509print(b: PBIO; a: PX509): cInt;
   function X509SetVersion(x: PX509; version: cInt): cInt;
   function X509SetPubkey(x: PX509; pkey: PEVP_PKEY): cInt;
+  function X509GetPubkey(x: PX509): PEVP_PKEY;
   function X509SetIssuerName(x: PX509; name: PX509_NAME): cInt;
   function X509NameAddEntryByTxt(name: PX509_NAME; field: string; _type: cInt;
     bytes: string; len, loc, _set: cInt): cInt;
@@ -1071,7 +1073,8 @@ var
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
                u: pointer): integer;	
   function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer;
-
+  function PEM_read_bio_X509(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: pointer): PX509;
+  
   // BIO Functions - bio.h
   function BioNew(b: PBIO_METHOD): PBIO;
   procedure BioFreeAll(b: PBIO);
@@ -1299,6 +1302,7 @@ type
   TX509print = function(b: PBIO; a: PX509): cInt; cdecl;
   TX509SetVersion = function(x: PX509; version: cInt): cInt; cdecl;
   TX509SetPubkey = function(x: PX509; pkey: PEVP_PKEY): cInt; cdecl;
+  TX509GetPubkey = function(x: PX509): PEVP_PKEY; cdecl;
   TX509SetIssuerName = function(x: PX509; name: PX509_NAME): cInt; cdecl;
   TX509NameAddEntryByTxt = function(name: PX509_NAME; field: PChar; _type: cInt;
     bytes: PChar; len, loc, _set: cInt): cInt; cdecl;
@@ -1447,6 +1451,7 @@ type
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
                u: pointer): integer; cdecl;	
   TPEM_write_bio_PUBKEY = function(bp: pBIO; x: pEVP_PKEY): integer; cdecl;
+  TPEM_read_bio_X509 = function(bp: pBIO; x: PPX509; cb: Ppem_password_cb; u: pointer): px509; cdecl;
 
   // BIO Functions
 
@@ -1511,6 +1516,7 @@ var
   _X509print: TX509print = nil;
   _X509SetVersion: TX509SetVersion = nil;
   _X509SetPubkey: TX509SetPubkey = nil;
+  _X509GetPubkey: TX509GetPubkey = nil;
   _X509SetIssuerName: TX509SetIssuerName = nil;
   _X509NameAddEntryByTxt: TX509NameAddEntryByTxt = nil;
   _X509Sign: TX509Sign = nil;
@@ -1663,7 +1669,7 @@ var
   _PEM_read_bio_PUBKEY: TPEM_read_bio_PUBKEY = nil; 
   _PEM_write_bio_PrivateKey: TPEM_write_bio_PrivateKey = nil;	
   _PEM_write_bio_PUBKEY: TPEM_write_bio_PUBKEY = nil;
-
+  _PEM_read_bio_X509: TPEM_read_bio_X509 = nil;
   // BIO Functions
 
   _BIO_ctrl: TBIO_ctrl = nil;
@@ -2314,6 +2320,15 @@ begin
   else
     Result := 0;
 end;
+
+function X509GetPubkey(x: PX509): PEVP_PKEY;
+begin
+  if InitSSLInterface and Assigned(_X509GetPubkey) then
+    Result := _X509GetPubkey(x)
+  else
+   Result := 0;
+end;
+
 
 function X509SetIssuerName(x: PX509; name: PX509_NAME): cInt;
 begin
@@ -3112,6 +3127,15 @@ Begin
     Result := -1;
 end; 
 
+function PEM_read_bio_X509(bp: pBIO;  x: ppx509; cb: Ppem_password_cb; u: pointer): px509;
+begin
+  if InitSSLInterface and Assigned(_PEM_read_bio_X509) then
+    Result := _PEM_read_bio_X509(bp, x, cb, u)
+  else
+    Result := nil;
+end;
+
+
 // BIO Functions
 
 function BIO_ctrl(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong;
@@ -3823,6 +3847,7 @@ begin
   _X509print := GetProcAddr(SSLUtilHandle, 'X509_print');
   _X509SetVersion := GetProcAddr(SSLUtilHandle, 'X509_set_version');
   _X509SetPubkey := GetProcAddr(SSLUtilHandle, 'X509_set_pubkey');
+  _X509GetPubkey := GetProcAddr(SSLUtilHandle, 'X509_get_pubkey');
   _X509SetIssuerName := GetProcAddr(SSLUtilHandle, 'X509_set_issuer_name');
   _X509NameAddEntryByTxt := GetProcAddr(SSLUtilHandle, 'X509_NAME_add_entry_by_txt');
   _X509Sign := GetProcAddr(SSLUtilHandle, 'X509_sign');
@@ -3952,6 +3977,8 @@ begin
   _PEM_read_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_PUBKEY');
   _PEM_write_bio_PrivateKey := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PrivateKey');
   _PEM_write_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PUBKEY');
+  _PEM_read_bio_X509 := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_X509');
+  
   // BIO
   _BIO_ctrl := GetProcAddr(SSLUtilHandle, 'BIO_ctrl');
   _BIO_s_file := GetProcAddr(SSLUtilHandle, 'BIO_s_file');
@@ -4181,6 +4208,7 @@ begin
   _X509print := nil;
   _X509SetVersion := nil;
   _X509SetPubkey := nil;
+  _X509GetPubkey := nil;
   _X509SetIssuerName := nil;
   _X509NameAddEntryByTxt := nil;
   _X509Sign := nil;
@@ -4304,10 +4332,10 @@ begin
   // PEM
 
   _PEM_read_bio_PrivateKey := nil;
-      _PEM_read_bio_PrivateKey := nil;
+  _PEM_read_bio_PrivateKey := nil;
   _PEM_read_bio_PUBKEY := nil;
-      _PEM_write_bio_PrivateKey := nil;
-      _PEM_write_bio_PUBKEY := nil;
+  _PEM_write_bio_PrivateKey := nil;
+  _PEM_read_bio_X509 := nil;
 
   // BIO
 
