@@ -26,12 +26,16 @@ interface
 {$H+}
 
 {$ifndef FPUNONE}
+uses
+  sysutils;
+
 Type TConvType        = type Integer;
      TConvFamily      = type Integer;
      TConvFamilyArray = array of TConvFamily;
      TConvTypeArray   = array of TConvType;
      TConversionProc  = function(const AValue: Double): Double;
      TConvUtilFloat   = double;
+     EConversionError = class(EConvertError);
 
 Function RegisterConversionFamily(Const S : String):TConvFamily;
 Function RegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFloat):TConvType;
@@ -83,6 +87,9 @@ Type
   end;
 
 Implementation
+
+uses
+  RtlConsts;
 
 Type ResourceData = record
                       Description : String;
@@ -176,7 +183,8 @@ Function RegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFl
 var l1 : Longint;
 
 begin
-  If NOT CheckFamily(Fam) Then exit(-1); // family not registered.
+  If NOT CheckFamily(Fam) Then
+    raise EConversionError.CreateFmt(SConvUnknownFamily, [IntToStr(Fam)]);
   if (value+1.0)<macheps then            // not properly defined yet.
     exit(-1);
   l1:=length(theunits);
@@ -206,11 +214,14 @@ var
 
 begin
   if not SearchConvert(fromtype,fromrec) then
-   exit(-1.0);                                  // raise exception?
+    raise EConversionError.CreateFmt(SConvUnknownType, [IntToStr(FromType)]);
   if not SearchConvert(totype,torec) then
-   exit(-1.0);                                  // raise except?
+    raise EConversionError.CreateFmt(SConvUnknownType, [IntToStr(ToType)]);
   if fromrec.fam<>torec.fam then
-   exit(-1.0);
+    raise EConversionError.CreateFmt(SConvIncompatibleTypes2,[
+      ConvFamilyToDescription(fromrec.fam),
+      ConvFamilyToDescription(torec.fam)
+    ]);
   result:=Measurement*fromrec.value/torec.value;
 end;
 
@@ -221,15 +232,20 @@ var
 
 begin
   if not SearchConvert(fromtype1,fromrec1) then
-   exit(-1.0);                                  // raise exception?
+    raise EConversionError.CreateFmt(SConvUnknownType, [IntToStr(fromtype1)]);
   if not SearchConvert(totype1,torec1) then
-   exit(-1.0);                                  // raise except?
+    raise EConversionError.CreateFmt(SConvUnknownType, [IntToStr(totype1)]);
   if not SearchConvert(fromtype2,fromrec2) then
-   exit(-1.0);                                  // raise exception?
+    raise EConversionError.CreateFmt(SConvUnknownType, [IntToStr(fromtype2)]);
   if not SearchConvert(totype2,torec2) then
-   exit(-1.0);                                  // raise except?
-  if (fromrec1.fam<>torec1.fam) or (fromrec1.fam<>torec1.fam) then
-   exit(-1.0);
+    raise EConversionError.CreateFmt(SConvUnknownType, [IntToStr(totype2)]);
+  if (fromrec1.fam<>torec1.fam) or (fromrec2.fam<>torec2.fam) then
+    raise EConversionError.CreateFmt(SConvIncompatibleTypes4,[
+      ConvFamilyToDescription(fromrec1.fam),
+      ConvFamilyToDescription(torec1.fam),
+      ConvFamilyToDescription(fromrec2.fam),
+      ConvFamilyToDescription(torec2.fam)
+    ]);
   result:=Measurement*(fromrec1.value/fromrec2.value)/(torec1.value/torec2.value);
 end;
 
