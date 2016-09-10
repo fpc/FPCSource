@@ -58,6 +58,7 @@ Type
     FCompilerConfigDir: string;
     FConfigVersion: integer;
     FCompilerConfig: string;
+    FInstallRepository: string;
     FDownloader: string;
     FFPMakeCompilerConfig: string;
     FLocalRepository: string;
@@ -97,6 +98,7 @@ Type
     property Downloader: string read FDownloader write SetDownloader;
     property CompilerConfig: string read FCompilerConfig write SetCompilerConfig;
     property FPMakeCompilerConfig: string read FFPMakeCompilerConfig write SetFPMakeCompilerConfig;
+    property InstallRepository: string read FInstallRepository write FInstallRepository;
     property RemoteRepository: string read FRemoteRepository write SetRemoteRepository;
     property RemoteMirrorsURL: string read FRemoteMirrorsURL write SetRemoteMirrorsURL;
     Property CustomFPMakeOptions: string read FCustomFPMakeOptions Write SetCustomFPMakeOptions;
@@ -112,9 +114,12 @@ Type
   private
     FDescription: string;
     FPath: string;
+    FPrefix: string;
     FRepositoryName: string;
     function GetPath: string;
+    function GetPrefix: string;
     procedure SetDescription(AValue: string);
+    procedure SetPrefix(AValue: string);
     procedure SetRepositoryName(AValue: string);
     procedure SetPath(AValue: string);
   public
@@ -125,6 +130,7 @@ Type
     property RepositoryName: string read FRepositoryName write SetRepositoryName;
     property Description: string read FDescription write SetDescription;
     property Path: string read GetPath write SetPath;
+    property Prefix: string read GetPrefix write SetPrefix;
   end;
 
   { TFppkgCommandLineOptionSection }
@@ -133,7 +139,7 @@ Type
   private
     FAllowBroken: Boolean;
     FCompilerConfig: string;
-    FInstallGlobal: Boolean;
+    FInstallRepository: string;
     FRecoveryMode: Boolean;
     FShowLocation: Boolean;
     FSkipConfigurationFiles: Boolean;
@@ -141,9 +147,9 @@ Type
   public
     constructor Create(AnOptionParser: TTemplateParser); override;
     property RecoveryMode: Boolean read FRecoveryMode write FRecoveryMode;
-    property InstallGlobal: Boolean read FInstallGlobal write FInstallGlobal;
     property ShowLocation: Boolean read FShowLocation write FShowLocation;
     property CompilerConfig : string read FCompilerConfig write FCompilerConfig;
+    property InstallRepository: string read FInstallRepository write FInstallRepository;
     property SkipConfigurationFiles: Boolean read FSkipConfigurationFiles write FSkipConfigurationFiles;
     property AllowBroken : Boolean read FAllowBroken write FAllowBroken;
     property SkipFixBrokenAfterInstall: Boolean read FSkipFixBrokenAfterInstall write FSkipFixBrokenAfterInstall;
@@ -170,6 +176,7 @@ Type
     procedure LogValues(ALogLevel: TLogLevel);
 
     procedure BindToCompilerOptions(ACompilerOptions: TCompilerOptions);
+    procedure AddRepositoriesForCompilerSettings(ACompilerOptions: TCompilerOptions);
 
     property SectionList: TFppkgOptionSectionList read GetSectionList;
     property GlobalSection: TFppkgGLobalOptionSection read GetGlobalSection;
@@ -207,8 +214,6 @@ Type
     procedure LogValues(ALogLevel: TLogLevel; const ACfgName:string);
     procedure UpdateLocalRepositoryOption(FppkgOptions: TFppkgOptions);
     procedure CheckCompilerValues;
-    Function LocalUnitDir:string;
-    Function GlobalUnitDir:string;
     Function HasOptions: boolean;
     // Is set when the inifile has an old version number (which is also the case when a new file is generated)
     Property SaveInifileChanges : Boolean Read FSaveInifileChanges;
@@ -217,8 +222,8 @@ Type
     Property Compiler : String Index 1 Read GetOptString Write SetOptString;
     Property CompilerTarget : String Index 2 Read GetOptString Write SetOptString;
     Property CompilerVersion : String Index 3 Read GetOptString Write SetOptString;
-    Property GlobalInstallDir : String Index 4 Read GetOptString Write SetOptString;
-    Property LocalInstallDir : String Index 5 Read GetOptString Write SetOptString;
+    Property GlobalInstallDir : String Index 4 Read GetOptString Write SetOptString; deprecated;
+    Property LocalInstallDir : String Index 5 Read GetOptString Write SetOptString; deprecated;
     Property GlobalPrefix : String Index 6 Read GetOptString Write SetOptString;
     Property LocalPrefix : String Index 7 Read GetOptString Write SetOptString;
     Property Options : TStrings read GetOptions;
@@ -259,10 +264,12 @@ Const
   KeyFPMakeCompilerConfig  = 'FPMakeCompilerConfig';
   KeyDownloader            = 'Downloader';
   KeyCustomFPMakeOptions   = 'FPMakeOptions';
+  KeyInstallRepository     = 'InstallRepository';
 
   KeyRepositoryName        = 'Name';
   KeyRepositoryDescription = 'Description';
   KeyRepositoryPath        = 'Path';
+  KeyRepositoryPrefix      = 'Prefix';
 
   // Compiler dependent config
   KeyGlobalPrefix          = 'GlobalPrefix';
@@ -282,9 +289,20 @@ begin
   FDescription := AValue;
 end;
 
+procedure TFppkgRepositoryOptionSection.SetPrefix(AValue: string);
+begin
+  if FPrefix = AValue then Exit;
+  FPrefix := AValue;
+end;
+
 function TFppkgRepositoryOptionSection.GetPath: string;
 begin
   Result := OptionParser.ParseString(FPath);
+end;
+
+function TFppkgRepositoryOptionSection.GetPrefix: string;
+begin
+  Result := OptionParser.ParseString(FPrefix);
 end;
 
 procedure TFppkgRepositoryOptionSection.SetRepositoryName(AValue: string);
@@ -307,6 +325,8 @@ begin
     Description := AValue
   else if SameText(AKey,KeyRepositoryPath) then
     Path := AValue
+  else if SameText(AKey,KeyRepositoryPrefix) then
+    Prefix := AValue
 end;
 
 procedure TFppkgRepositoryOptionSection.LogValues(ALogLevel: TLogLevel);
@@ -315,6 +335,7 @@ begin
   log(ALogLevel,SLogRepositoryName,[FRepositoryName]);
   log(ALogLevel,SLogRepositoryDescription,[FDescription]);
   log(ALogLevel,SLogRepositoryPath,[FPath,Path]);
+  log(ALogLevel,SLogRepositoryPrefix,[FPrefix,Prefix]);
 end;
 
 function TFppkgRepositoryOptionSection.AllowDuplicate: Boolean;
@@ -328,7 +349,6 @@ constructor TFppkgCommandLineOptionSection.Create(AnOptionParser: TTemplateParse
 begin
   inherited Create(AnOptionParser);
   // Parameter defaults
-  FInstallGlobal:=False;
   FRecoveryMode:=False;
   FAllowBroken:=False;
 end;
@@ -524,6 +544,8 @@ begin
     LocalRepository := AValue
   else if SameText(AKey,KeyArchivesDir) then
     ArchivesDir := AValue
+  else if SameText(AKey,KeyInstallRepository) then
+    InstallRepository := AValue
   else if SameText(AKey,KeyCustomFPMakeOptions) then
     CustomFPMakeOptions := AValue
 end;
@@ -668,9 +690,6 @@ procedure TFppkgOptions.SaveToFile(const AFileName: string);
 var
   IniFile: TStringList;
   CurrentSection: TFppkgOptionSection;
-  s: String;
-  i: Integer;
-  j: SizeInt;
 begin
   IniFile:=TStringList.Create;
   try
@@ -712,6 +731,32 @@ end;
 procedure TFppkgOptions.BindToCompilerOptions(ACompilerOptions: TCompilerOptions);
 begin
   FOptionParser.Values['CompilerVersion'] := ACompilerOptions.CompilerVersion;
+end;
+
+procedure TFppkgOptions.AddRepositoriesForCompilerSettings(
+  ACompilerOptions: TCompilerOptions);
+var
+  CurrentSection: TFppkgRepositoryOptionSection;
+begin
+  CurrentSection := TFppkgRepositoryOptionSection.Create(FOptionParser);
+  CurrentSection.RepositoryName:='global';
+  CurrentSection.Description:='global';
+  CurrentSection.Path:=ACompilerOptions.GlobalInstallDir;
+  FSectionList.Add(CurrentSection);
+
+  CurrentSection := TFppkgRepositoryOptionSection.Create(FOptionParser);
+  CurrentSection.RepositoryName:='local';
+  CurrentSection.Description:='local';
+  CurrentSection.Path:=ACompilerOptions.LocalInstallDir;
+  FSectionList.Add(CurrentSection);
+
+  if CommandLineSection.InstallRepository='' then
+    begin
+      if IsSuperUser then
+        CommandLineSection.InstallRepository:='global'
+      else
+        CommandLineSection.InstallRepository:='local';
+    end;
 end;
 
 {*****************************************************************************
@@ -836,31 +881,6 @@ begin
     exit;
   FCompilerOS:=AValue;
 end;
-
-
-function TCompilerOptions.LocalUnitDir:string;
-var ALocalInstallDir: string;
-begin
-  ALocalInstallDir:=LocalInstallDir;
-
-  if ALocalInstallDir<>'' then
-    result:=ALocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
-  else
-    result:='';
-end;
-
-
-function TCompilerOptions.GlobalUnitDir:string;
-var AGlobalInstallDir: string;
-begin
-  AGlobalInstallDir:=GlobalInstallDir;
-
-  if AGlobalInstallDir<>'' then
-    result:=AGlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
-  else
-    result:='';
-end;
-
 
 function TCompilerOptions.HasOptions: boolean;
 begin

@@ -18,10 +18,14 @@ Resourcestring
   SErrMissingMakefilefpc     = 'Missing configuration Makefile.fpc';
   SErrMissingDirectory       = 'Missing directory "%s"';
   SErrMissingCompilerConfig  = 'Could not find compiler configuration "%s"';
-  SErrMissingInstallPackage  = 'Could not find package "%s"';
+  SErrMissingInstallPackage  = 'Package "%s" is not installed';
+  SErrMissingAvailablePackage= 'Package "%s" is not available';
+  SErrMissingPackage         = 'Could not fin package "%s"';
+  SErrMissingInstallRepo     = 'Could not find repository "%s"';
   SErrNoPackageSpecified     = 'No package specified';
   SErrNoPackageAvailable     = 'Package %s %s is not available';
   SErrOnlyLocalDir           = 'The specified command "%s" works only on current dir, not on a (remote) package';
+  SErrIllConfRepository      = 'Invalid configured repository "%s"';
   SErrExecutionFPMake        = 'Execution of FPMake %s failed';
   SErrException              = 'The FPC Package tool encountered the following error:';
   SErrActionAlreadyRegistered= 'Action "%s" is already registered';
@@ -106,6 +110,7 @@ Resourcestring
   SLogRepositoryName              = '  Name:             %s';
   SLogRepositoryDescription       = '  Description:      "%s"';
   SLogRepositoryPath              = '  Dir:              "%s" -> "%s"';
+  SLogRepositoryPrefix            = '  Prefix:           "%s" -> "%s"';
 
   SLogPackageInfoName             = 'Package:        %s';
   SLogPackageInfoVersion          = 'Version:        %s';

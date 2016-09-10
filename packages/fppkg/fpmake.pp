@@ -70,6 +70,7 @@ begin
     T:=P.Targets.AddUnit('pkgfpmake.pp');
     T.Dependencies.AddInclude('fpmkunitsrc.inc');
     T:=P.Targets.AddUnit('pkgcommands.pp');
+    T:=P.Targets.AddUnit('pkgpackagesstructure.pp');
 
     T:=P.Targets.AddUnit('pkgwget.pp', TargetsWithWGet);
     T:=P.Targets.AddUnit('pkgfphttp.pp', TargetsWithfpWeb);

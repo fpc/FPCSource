@@ -16,6 +16,7 @@ uses
   pkgglobals,
   pkgmessages,
   pkgrepos,
+  pkgFppkg,
   fpxmlrep;
 
 type
@@ -135,25 +136,17 @@ Procedure TFPMakeCompiler.Execute;
 var
   OOptions : string;
 
-  function CheckUnitDir(const AUnitName:string;Out AUnitDir:string):boolean;
+  function CheckUnitDir(const APackageName:string;Out AUnitDir:string):boolean;
+  var
+    P: TFPPackage;
   begin
     Result:=false;
-    if GFPpkg.FpmakeCompilerOptions.LocalUnitDir<>'' then
+    P := GFPpkg.FPMakeRepoFindPackage(APackageName, pkgpkInstalled);
+    if Assigned(P) then
       begin
-        AUnitDir:=IncludeTrailingPathDelimiter(GFPpkg.FPMakeCompilerOptions.LocalUnitDir+AUnitName);
-        if DirectoryExistsLog(AUnitDir) then
-          begin
-            Result:=true;
-            exit;
-          end;
+        AUnitDir := P.PackagesStructure.GetUnitDirectory(P);
+        Result := DirectoryExistsLog(AUnitDir);
       end;
-    AUnitDir:=IncludeTrailingPathDelimiter(GFPpkg.FPMakeCompilerOptions.GlobalUnitDir+AUnitName);
-    if DirectoryExistsLog(AUnitDir) then
-      begin
-        Result:=true;
-        exit;
-      end;
-    AUnitDir:='';
   end;
 
   procedure AddOption(const s:string);
@@ -173,7 +166,7 @@ Var
   HaveFpmake : boolean;
   P : TFPPackage;
 begin
-  P:=AvailableRepository.PackageByName(PackageName);
+  P:=GFPpkg.PackageByName(PackageName, pkgpkAvailable);
   NeedFPMKUnitSource:=false;
   OOptions:='';
   SetCurrentDir(PackageBuildPath(P));
@@ -258,10 +251,11 @@ end;
 
 Function TFPMakeRunner.RunFPMake(const Command:string) : Integer;
 Var
-  ManifestPackage,
   P : TFPPackage;
   FPMakeBin,
   OOptions : string;
+  InstallRepo: TFPRepository;
+  i: Integer;
 
   procedure AddOption(const s:string);
   begin
@@ -304,7 +298,7 @@ begin
   // Does the current package support this CPU-OS?
   if PackageName<>'' then
     begin
-      P:=AvailableRepository.PackageByName(PackageName);
+      P:=GFPpkg.PackageByName(PackageName, pkgpkAvailable);
       if (PackageName=CurrentDirPackageName) and (FileExists(ManifestFileName)) then
         ObtainSupportedTargetsFromManifest(p);
     end
@@ -347,18 +341,22 @@ begin
   AddOption('--compiler='+GFPpkg.CompilerOptions.Compiler);
   AddOption('--cpu='+CPUToString(GFPpkg.CompilerOptions.CompilerCPU));
   AddOption('--os='+OSToString(GFPpkg.CompilerOptions.CompilerOS));
-  if IsSuperUser or GFPpkg.Options.CommandLineSection.InstallGlobal then
+
+  InstallRepo := GFPpkg.RepositoryByName(GFPpkg.Options.CommandLineSection.InstallRepository);
+
+  if not Assigned(InstallRepo.DefaultPackagesStructure) then
     begin
-      CondAddOption('--prefix',GFPpkg.CompilerOptions.GlobalPrefix);
-      CondAddOption('--baseinstalldir',GFPpkg.CompilerOptions.GlobalInstallDir);
-    end
-  else
-    begin
-      CondAddOption('--prefix',GFPpkg.CompilerOptions.LocalPrefix);
-      CondAddOption('--baseinstalldir',GFPpkg.CompilerOptions.LocalInstallDir);
+      Error(SErrIllConfRepository,[InstallRepo.RepositoryName]);
+      Exit;
     end;
-  CondAddOption('--localunitdir',GFPpkg.CompilerOptions.LocalInstallDir);
-  CondAddOption('--globalunitdir',GFPpkg.CompilerOptions.GlobalInstallDir);
+  CondAddOption('--prefix',InstallRepo.DefaultPackagesStructure.GetPrefix);
+  CondAddOption('--baseinstalldir',InstallRepo.DefaultPackagesStructure.GetBaseInstallDir);
+
+  for i := GFPpkg.Options.SectionList.Count -1 downto 0 do
+    begin
+      if GFPpkg.Options.SectionList[ i ] is TFppkgRepositoryOptionSection then
+        CondAddOption('--searchpath', TFppkgRepositoryOptionSection(GFPpkg.Options.SectionList[ i ]).Path);
+    end;
 
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;

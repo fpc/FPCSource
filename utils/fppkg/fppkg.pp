@@ -18,6 +18,7 @@ uses
   // Package Handler components
   pkghandler,pkgmkconv, pkgdownload,
   pkgfpmake, pkgcommands,
+  pkgPackagesStructure,
   fpmkunit
   // Downloaders
 {$if (defined(unix) and not defined(android)) or defined(windows)}
@@ -94,15 +95,15 @@ begin
   Writeln('  -h --help          This help');
   Writeln('  -v --verbose       Show more information');
   Writeln('  -d --debug         Show debugging information');
-  Writeln('  -g --global        Force installation to global (system-wide) directory');
   Writeln('  -f --force         Force installation also if the package is already installed');
   Writeln('  -r --recovery      Recovery mode, use always internal fpmkunit');
   Writeln('  -b --broken        Do not stop on broken packages');
-  Writeln('  -l --showlocation  Show if the packages are installed globally or locally');
+  Writeln('  -l --showlocation  Show in which repository the the packages are installed');
   Writeln('  -o --options=value Pass extra options to the compiler');
   Writeln('  -n                 Do not read the default configuration files');
   Writeln('  -p --prefix=value  Specify the prefix');
   Writeln('  -s --skipbroken    Skip the rebuild of depending packages after installation');
+  Writeln('  -i --installlocation Specify the repository to install packages into');
   Writeln('  --compiler=value   Specify the compiler-executable');
   Writeln('  --cpu=value        Specify the target cpu to compile for');
   Writeln('  --os=value         Specify the target operating system to compile for');
@@ -215,8 +216,8 @@ begin
         LogLevels:=AllLogLevels
       else if CheckOption(I,'d','debug') then
         LogLevels:=AllLogLevels+[llDebug]
-      else if CheckOption(I,'g','global') then
-        GFPpkg.Options.CommandLineSection.InstallGlobal:=true
+      else if CheckOption(I,'i','installrepository') then
+        GFPpkg.Options.CommandLineSection.InstallRepository:=OptionArg(I)
       else if CheckOption(I,'r','recovery') then
         GFPpkg.Options.CommandLineSection.RecoveryMode:=true
       else if CheckOption(I,'n','') then
@@ -281,10 +282,11 @@ end;
 
 procedure TMakeTool.DoRun;
 var
-  ActionPackage : TFPPackage;
   OldCurrDir : String;
   i      : Integer;
   SL     : TStringList;
+  Repo: TFPRepository;
+  InstPackages: TFPCurrentDirectoryPackagesStructure;
 begin
   OldCurrDir:=GetCurrentDir;
   Try
@@ -296,18 +298,17 @@ begin
     for i := 0 to FPMKUnitDepDefaultCount-1 do
       FPMKUnitDeps[i]:=FPMKUnitDepsDefaults[i];
 
-    // Scan is special, it doesn't need a valid local setup
-    if (ParaAction='scan') then
-      begin
-        RebuildRemoteRepository;
-        ListRemoteRepository;
-        SaveRemoteRepository;
-        halt(0);
-      end;
-
     MaybeCreateLocalDirs;
     if not GFPpkg.Options.CommandLineSection.SkipConfigurationFiles then
-      GFPpkg.InitializeCompilerOptions
+      begin
+        GFPpkg.InitializeCompilerOptions;
+        if GFPpkg.Options.GlobalSection.ConfigVersion = 4 then
+          begin
+            // This version did not have any repository configured, but used a
+            // 'local' and 'global' compiler-setting.
+            GFPpkg.Options.AddRepositoriesForCompilerSettings(GFPpkg.CompilerOptions);
+          end;
+      end
     else
       begin
         GFPpkg.FPMakeCompilerOptions.InitCompilerDefaults;
@@ -337,7 +338,6 @@ begin
             pkgglobals.Log(llWarning,E.Message);
         end;
       end;
-    LoadLocalAvailableRepository;
     FindInstalledPackages(GFPpkg.FPMakeCompilerOptions,true);
     CheckFPMakeDependencies;
     // We only need to reload the status when we use a different
@@ -364,9 +364,25 @@ begin
         FreeAndNil(SL);
       end;
 
+    if (ParaAction='install') or (ParaAction='uninstall') or
+      (ParaAction='fixbroken') then
+      GFPpkg.ScanInstalledPackagesForAvailablePackages;
+
     if ParaPackages.Count=0 then
       begin
-        ActionPackage:=AvailableRepository.AddPackage(CurrentDirPackageName);
+        // Do not add the fake-repository with the contents of the current directory
+        // when a list of packages is shown. (The fake repository should not be shown)
+        if ParaAction<>'list' then
+          begin
+            Repo := TFPRepository.Create(GFPpkg);
+            GFPpkg.RepositoryList.Add(Repo);
+            Repo.RepositoryType := fprtAvailable;
+            Repo.RepositoryName := 'CurrentDirectory';
+            Repo.Description := 'Package in current directory';
+            InstPackages := TFPCurrentDirectoryPackagesStructure.Create(GFPpkg, '', GFPpkg.CompilerOptions);
+            InstPackages.AddPackagesToRepository(Repo);
+            Repo.DefaultPackagesStructure := InstPackages;
+          end;
         pkghandler.ExecuteAction(CurrentDirPackageName,ParaAction);
       end
     else
@@ -376,8 +392,6 @@ begin
           begin
             if sametext(ExtractFileExt(ParaPackages[i]),'.zip') and FileExists(ParaPackages[i]) then
               begin
-                ActionPackage:=AvailableRepository.AddPackage(CmdLinePackageName);
-                ActionPackage.LocalFileName:=ExpandFileName(ParaPackages[i]);
                 pkghandler.ExecuteAction(CmdLinePackageName,ParaAction);
               end
             else

@@ -48,7 +48,8 @@ uses
   pkgglobals,
   pkgoptions,
   pkgmessages,
-  pkgrepos;
+  pkgrepos,
+  pkgFppkg;
 
 var
   DownloaderList  : TFPHashList;
@@ -164,7 +165,7 @@ var
   DownloaderClass : TBaseDownloaderClass;
   P : TFPPackage;
 begin
-  P:=AvailableRepository.PackageByName(PackageName);
+  P:=GFPpkg.PackageByName(PackageName, pkgpkAvailable);
   DownloaderClass:=GetDownloader(GFPpkg.Options.GlobalSection.Downloader);
   with DownloaderClass.Create(nil) do
     try

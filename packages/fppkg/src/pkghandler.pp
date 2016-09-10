@@ -139,8 +139,8 @@ begin
     end
   else if (APackage.Name=CmdLinePackageName) or (APackage.Name=URLPackageName) then
     Result:=GFPpkg.Options.GlobalSection.BuildDir+ChangeFileExt(ExtractFileName(APackage.LocalFileName),'')
-  else if (APackage.RecompileBroken) and (APackage.SourcePath<>'') then
-    Result:=APackage.SourcePath
+  else if Assigned(APackage.PackagesStructure) and (APackage.PackagesStructure.GetBuildPathDirectory(APackage)<>'') then
+    Result:=APackage.PackagesStructure.GetBuildPathDirectory(APackage)
   else
     Result:=GFPpkg.Options.GlobalSection.BuildDir+APackage.Name;
 end;

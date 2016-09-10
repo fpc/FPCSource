@@ -28,6 +28,21 @@ Const
 
 
 type
+  TFPRepositoryType = (fprtUnknown, fprtInstalled, fprtAvailable);
+  TFPRepository = class;
+  TFPPackage = class;
+
+  { TFPCustomPackagesStructure }
+
+  TFPCustomPackagesStructure = Class(TComponent)
+  public
+    function AddPackagesToRepository(ARepository: TFPRepository): Boolean; virtual; abstract;
+    function GetUnitDirectory(APackage: TFPPackage): string; virtual;
+    function GetBuildPathDirectory(APackage: TFPPackage): string; virtual;
+    function GetPrefix: string; virtual;
+    function GetBaseInstallDir: string; virtual;
+    function UnzipBeforeUse: Boolean; virtual;
+  end;
 
   { TFPDependency }
 
@@ -76,7 +91,6 @@ type
     FKeywords: String;
     FRecompileBroken: boolean;
     FSourcePath: string;
-    FInstalledLocally: boolean;
     FIsFPMakeAddIn: boolean;
     FLicense: String;
     FName: String;
@@ -92,6 +106,7 @@ type
     // Installation info
     FChecksum : cardinal;
     FLocalFileName : String;
+    FPackagesStructure: TFPCustomPackagesStructure;
     function GetFileName: String;
     procedure SetName(const AValue: String);
     procedure SetUnusedVersion(const AValue: TFPVersion);
@@ -107,9 +122,6 @@ type
     Procedure Assign(Source : TPersistent); override;
     Function AddDependency(Const APackageName : String; const AMinVersion : String = '') : TFPDependency;
     Property Dependencies : TFPDependencies Read FDependencies;
-    // Only for installed packages: (is false for packages which are installed globally)
-    Property InstalledLocally : boolean read FInstalledLocally write FInstalledLocally;
-    Property UnusedVersion : TFPVersion Read FUnusedVersion Write SetUnusedVersion;
     Property RecompileBroken : boolean read FRecompileBroken write FRecompileBroken;
     Property OSes : TOSes Read FOSes Write FOses;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
@@ -133,6 +145,7 @@ type
     Property FPMakeOptionsString : string read FFPMakeOptionsString write FFPMakeOptionsString;
     // Manual package from commandline not in official repository
     Property LocalFileName : String Read FLocalFileName Write FLocalFileName;
+    Property PackagesStructure: TFPCustomPackagesStructure read FPackagesStructure write FPackagesStructure;
   end;
 
   { TFPPackages }
@@ -158,9 +171,13 @@ type
 
   TFPRepository = Class(TComponent)
   Private
+    FDefaultPackagesStructure: TFPCustomPackagesStructure;
     FMaxDependencyLevel : Integer;
     FBackUpFiles: Boolean;
     FFileName: String;
+    FDescription: string;
+    FRepositoryName: string;
+    FRepositoryType: TFPRepositoryType;
     function GetPackage(Index : Integer): TFPPackage;
     function GetPackageCount: Integer;
   Protected
@@ -193,6 +210,11 @@ type
     Property BackupFiles : Boolean Read FBackUpFiles Write FBackupFiles;
     Property MaxDependencyLevel : Integer Read FMaxDependencyLevel Write FMaxDependencyLevel;
     Property PackageCollection : TFPPackages Read FPackages;
+
+    Property RepositoryName: string read FRepositoryName write FRepositoryName;
+    Property Description: string read FDescription write FDescription;
+    Property RepositoryType: TFPRepositoryType read FRepositoryType write FRepositoryType;
+    Property DefaultPackagesStructure: TFPCustomPackagesStructure read FDefaultPackagesStructure write FDefaultPackagesStructure;
   end;
   TFPRepositoryClass = class of TFPRepository;
 
@@ -298,6 +320,32 @@ begin
   OS:=StringToOs(Copy(S,P+1,Length(S)-P));
 end;
 
+{ TFPCustomPackagesStructure }
+
+function TFPCustomPackagesStructure.GetUnitDirectory(APackage: TFPPackage): string;
+begin
+  raise Exception.Create('There is no unit-directory available for this package.');
+end;
+
+function TFPCustomPackagesStructure.GetBuildPathDirectory(APackage: TFPPackage): string;
+begin
+  Result := '';
+end;
+
+function TFPCustomPackagesStructure.GetPrefix: string;
+begin
+  raise Exception.Create('There is no prefix for this repository.');
+end;
+
+function TFPCustomPackagesStructure.GetBaseInstallDir: string;
+begin
+  raise Exception.Create('It is not possible to install into this repository.');
+end;
+
+function TFPCustomPackagesStructure.UnzipBeforeUse: Boolean;
+begin
+  Result := False;
+end;
 
 { TFPPackage }
 
@@ -528,7 +576,6 @@ begin
       DownloadURL:=P.DownloadURL;
       SourcePath:=P.SourcePath;
       FPMakeOptionsString:=P.FPMakeOptionsString;
-      InstalledLocally:=P.InstalledLocally;
       OSes:=P.OSes;
       CPUs:=P.CPUs;
       FileName:=P.FileName;
