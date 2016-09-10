@@ -22,6 +22,29 @@ begin
   Result := FStandardEncodings[seAnsi];
 end;
 
+function TEncoding.GetAnsiBytes(const S: string): TBytes;
+begin
+  Result := GetAnsiBytes(S, 1, Length(S));
+end;
+
+function TEncoding.GetAnsiBytes(const S: string; CharIndex, CharCount: Integer
+  ): TBytes;
+begin
+  Result := GetAnsiBytes(Pointer(@S[CharIndex]), CharCount);
+end;
+
+function TEncoding.GetAnsiString(const Bytes: TBytes): string;
+begin
+  Result := GetAnsiString(Bytes, 0, Length(Bytes));
+end;
+
+function TEncoding.GetAnsiString(const Bytes: TBytes; ByteIndex,
+  ByteCount: Integer): string;
+begin
+  Result := GetAnsiString(Pointer(@Bytes[ByteIndex]), ByteCount);
+  SetCodePage(RawByteString(Result), DefaultSystemCodePage, False);
+end;
+
 class function TEncoding.GetASCII: TEncoding;
 begin
   if not Assigned(FStandardEncodings[seAscii]) then
@@ -393,6 +416,25 @@ begin
   Result := TMBCSEncoding.Create(FCodePage, FMBToWCharFlags, FWCharToMBFlags);
 end;
 
+function TMBCSEncoding.GetAnsiBytes(Chars: PChar; CharCount: Integer): TBytes;
+var
+  S: RawByteString;
+begin
+  SetString(S, Chars, CharCount);
+  SetCodePage(S, DefaultSystemCodePage, False);
+  SetCodePage(S, GetCodePage, True);
+  SetLength(Result, Length(S));
+  if Length(S)>0 then
+    Move(S[1], Result[0], Length(S));
+end;
+
+function TMBCSEncoding.GetAnsiString(Bytes: PByte; ByteCount: Integer): string;
+begin
+  SetString(Result, Pointer(Bytes), ByteCount);
+  SetCodePage(RawByteString(Result), GetCodePage, False);
+  SetCodePage(RawByteString(Result), DefaultSystemCodePage, True);
+end;
+
 function TMBCSEncoding.GetMaxByteCount(CharCount: Integer): Integer;
 begin
   Result := CharCount;
@@ -515,6 +557,23 @@ begin
   Result := TUnicodeEncoding.Create;
 end;
 
+function TUnicodeEncoding.GetAnsiBytes(Chars: PChar; CharCount: Integer
+  ): TBytes;
+var
+  U: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(Chars, DefaultSystemCodePage, U, CharCount);
+  SetLength(Result, Length(U)*SizeOf(UnicodeChar));
+  if Length(Result)>0 then
+    Move(U[1], Result[0], Length(Result));
+end;
+
+function TUnicodeEncoding.GetAnsiString(Bytes: PByte; ByteCount: Integer
+  ): string;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Bytes), RawByteString(Result), DefaultSystemCodePage, ByteCount div SizeOf(UnicodeChar));
+end;
+
 function TUnicodeEncoding.GetMaxByteCount(CharCount: Integer): Integer;
 begin
   Result := CharCount * SizeOf(UnicodeChar);
@@ -586,10 +645,49 @@ begin
   Result := TBigEndianUnicodeEncoding.Create;
 end;
 
+function TBigEndianUnicodeEncoding.GetAnsiBytes(Chars: PChar; CharCount: Integer
+  ): TBytes;
+begin
+  Result := TEncoding.Unicode.GetAnsiBytes(Chars, CharCount);
+  Swap(Result);
+end;
+
+function TBigEndianUnicodeEncoding.GetAnsiString(Bytes: PByte;
+  ByteCount: Integer): string;
+var
+  B: TBytes;
+begin
+  if ByteCount=0 then
+    Exit('');
+
+  SetLength(B, ByteCount);
+  Move(Bytes^, B[0], ByteCount);
+  Swap(B);
+
+  Result := TEncoding.Unicode.GetAnsiString(PByte(@B[0]), ByteCount);
+end;
+
 function TBigEndianUnicodeEncoding.GetPreamble: TBytes;
 begin
   SetLength(Result, 2);
   Result[0] := $FE;
   Result[1] := $FF;
 end;
+
+procedure TBigEndianUnicodeEncoding.Swap(var B: TBytes);
+var
+  LastB, I: Integer;
+  C: Byte;
+begin
+  LastB := Length(B)-1;
+  I := 0;
+  while I < LastB do
+    begin
+      C := B[I];
+      B[I] := B[I+1];
+      B[I+1] := C;
+      Inc(I, 2);
+    end;
+end;
+
 {$endif VER2_4}
