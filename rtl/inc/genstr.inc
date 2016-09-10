@@ -18,9 +18,14 @@
   counter: SizeInt;
  begin
    counter := 0;
-   while P[counter] <> #0 do
-      Inc(counter);
-   StrEnd := @(P[Counter]);
+   if not Assigned(P) then
+     StrEnd:=Nil
+   else  
+     begin
+     while P[counter] <> #0 do
+        Inc(counter);
+     StrEnd := @(P[Counter]);
+     end;
  end;
 {$endif FPC_UNIT_HAS_STREND}
 
