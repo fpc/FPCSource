@@ -643,8 +643,6 @@ begin
           begin
           HaveArg:=(I<ParamCount) and (Length(ParamStr(I+1))>0) and (ParamStr(I+1)[1]<>FOptionChar);
           UsedArg:=False;
-          If HaveArg then
-            OV:=Paramstr(I+1);
           If Not CaseSensitiveOptions then
             O:=LowerCase(O);
           L:=Length(O);
@@ -668,10 +666,11 @@ begin
               end;
             Inc(J);
             end;
-          If HaveArg and UsedArg then
+          HaveArg:=HaveArg and UsedArg;
+          If HaveArg then
             begin
             Inc(I); // Skip argument.
-            O:=O[Length(O)]; // O is added to arguments !
+            OV:=Paramstr(I);
             end;
           end;
         If HaveArg and ((Result='') or AllErrors) then
