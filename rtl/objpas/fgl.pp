@@ -114,7 +114,6 @@ type
       TTypeList = array[0..MaxGListSize] of T;
       PTypeList = ^TTypeList;
       PT = ^T;
-      TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
   {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
@@ -128,6 +127,8 @@ type
     function GetFirst: T; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure SetFirst(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
   public
+    Type
+      TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
     constructor Create;
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
