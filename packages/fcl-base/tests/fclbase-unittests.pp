@@ -4,7 +4,7 @@ program fclbase_unittests;
 
 uses
   Classes, consoletestrunner, tests_fptemplate, tchashlist,
-  testexprpars;
+  testexprpars, tcmaskutils;
 
 var
   Application: TTestRunner;

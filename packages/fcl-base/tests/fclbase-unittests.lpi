@@ -30,7 +30,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestParserVariables.TestVariable31"/>
+        <CommandLineParams Value="--suite=TTestExpressionScanner.TestNumber"/>
       </local>
     </RunParams>
     <Units Count="3">
