@@ -33,7 +33,7 @@ Unit System;
 
 {$I sysunixh.inc}
 
-function get_cmdline:Pchar; 
+function get_cmdline:Pchar; deprecated 'use paramstr' ;
 property cmdline:Pchar read get_cmdline;
 
 {$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
@@ -57,7 +57,8 @@ var
   sysenter_supported: LongInt = 0;
 {$endif}
 
-const calculated_cmdline:Pchar=nil;
+const 
+  calculated_cmdline:Pchar=nil;
 
 {$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
@@ -162,7 +163,7 @@ var
 
   procedure AddBuf;
   begin
-    reallocmem(calculated_cmdline,size+bufsize);
+    sysreallocmem(calculated_cmdline,size+bufsize);
     move(buf^,calculated_cmdline[size],bufsize);
     inc(size,bufsize);
     bufsize:=0;
@@ -171,7 +172,7 @@ var
 begin
   if argc<=0 then
     exit;
-  GetMem(buf,ARG_MAX);
+  Buf:=SysGetMem(ARG_MAX);
   size:=0;
   bufsize:=0;
   i:=0;
@@ -213,7 +214,7 @@ begin
      inc(i);
    end;
   AddBuf;
-  FreeMem(buf,ARG_MAX);
+  SysFreeMem(buf);
 end;
 
 function get_cmdline:Pchar;
