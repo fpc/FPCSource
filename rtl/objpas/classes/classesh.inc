@@ -599,6 +599,8 @@ type
 
   TStrings = class(TPersistent)
   private
+    FDefaultEncoding: TEncoding;
+    FEncoding: TEncoding;
     FSpecialCharsInited : boolean;
     FQuoteChar : Char;
     FDelimiter : Char;
@@ -609,10 +611,13 @@ type
     FSkipLastLineBreak : Boolean;
     FStrictDelimiter : Boolean;
     FLineBreak : String;
+    FWriteBOM: Boolean;
     function GetCommaText: string;
     function GetName(Index: Integer): string;
     function GetValue(const Name: string): string;
     Function GetLBS : TTextLineBreakStyle;
+    procedure SetDefaultEncoding(const ADefaultEncoding: TEncoding);
+    procedure SetEncoding(const AEncoding: TEncoding);
     Procedure SetLBS (AValue : TTextLineBreakStyle);
     procedure ReadData(Reader: TReader);
     procedure SetCommaText(const Value: string);
@@ -654,6 +659,7 @@ type
     Class Function GetNextLine (Const Value : String; Var S : String; Var P : Integer) : Boolean;
     Function GetNextLinebreak (Const Value : String; Var S : String; Var P : Integer) : Boolean;
   public
+    constructor Create;
     destructor Destroy; override;
     function Add(const S: string): Integer; virtual; overload;
     function AddObject(const S: string; AObject: TObject): Integer; virtual; overload;
@@ -681,17 +687,23 @@ type
     procedure Insert(Index: Integer; const S: string); virtual; abstract;
     procedure InsertObject(Index: Integer; const S: string;
       AObject: TObject);
-    procedure LoadFromFile(const FileName: string); virtual;
-    procedure LoadFromStream(Stream: TStream); virtual;
+    procedure LoadFromFile(const FileName: string); overload; virtual;
+    procedure LoadFromFile(const FileName: string; AEncoding: TEncoding); overload; virtual;
+    procedure LoadFromStream(Stream: TStream); overload; virtual;
+    procedure LoadFromStream(Stream: TStream; AEncoding: TEncoding); overload; virtual;
     procedure Move(CurIndex, NewIndex: Integer); virtual;
-    procedure SaveToFile(const FileName: string); virtual;
-    procedure SaveToStream(Stream: TStream); virtual;
+    procedure SaveToFile(const FileName: string); overload; virtual;
+    procedure SaveToFile(const FileName: string; AEncoding: TEncoding); overload; virtual;
+    procedure SaveToStream(Stream: TStream); overload; virtual;
+    procedure SaveToStream(Stream: TStream; AEncoding: TEncoding); overload; virtual;
     procedure SetText(TheText: PChar); virtual;
     procedure GetNameValue(Index : Integer; Out AName,AValue : String);
     function  ExtractName(Const S:String):String;
     Property TextLineBreakStyle : TTextLineBreakStyle Read GetLBS Write SetLBS;
     property Delimiter: Char read GetDelimiter write SetDelimiter;
     property DelimitedText: string read GetDelimitedText write SetDelimitedText;
+    property DefaultEncoding: TEncoding read FDefaultEncoding write SetDefaultEncoding;
+    property Encoding: TEncoding read FEncoding;
     property LineBreak : string Read GetLineBreak write SetLineBreak;
     Property StrictDelimiter : Boolean Read FStrictDelimiter Write FStrictDelimiter;
     property QuoteChar: Char read GetQuoteChar write SetQuoteChar;
@@ -707,6 +719,7 @@ type
     property Text: string read GetTextStr write SetTextStr;
     property StringsAdapter: IStringsAdapter read FAdapter write SetStringsAdapter;
     Property SkipLastLineBreak : Boolean Read GetSkipLastLineBreak Write SetSkipLastLineBreak;
+    property WriteBOM: Boolean read FWriteBOM write FWriteBOM;
   end;
 
 { TStringList class }

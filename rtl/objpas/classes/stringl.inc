@@ -112,6 +112,19 @@ begin
   FDelimiter:=c;
 end;
 
+Procedure TStrings.SetEncoding(const AEncoding: TEncoding);
+begin
+  if (FEncoding<>nil) and not TEncoding.IsStandardEncoding(FEncoding) then
+    FEncoding.Free;
+
+  if TEncoding.IsStandardEncoding(AEncoding) then
+    FEncoding:=AEncoding
+  else if AEncoding<>nil then
+    FEncoding:=AEncoding.Clone
+  else
+    FEncoding:=nil;
+end;
+
 Function TStrings.GetDelimiter : Char;
 begin
   CheckSpecialChars;
@@ -434,6 +447,21 @@ end;
 
 
 
+Procedure TStrings.SetDefaultEncoding(const ADefaultEncoding: TEncoding);
+begin
+  if (FDefaultEncoding<>nil) and not TEncoding.IsStandardEncoding(FDefaultEncoding) then
+    FDefaultEncoding.Free;
+
+  if TEncoding.IsStandardEncoding(ADefaultEncoding) then
+    FDefaultEncoding:=ADefaultEncoding
+  else if ADefaultEncoding<>nil then
+    FDefaultEncoding:=ADefaultEncoding.Clone
+  else
+    FDefaultEncoding:=TEncoding.Default;
+end;
+
+
+
 Procedure TStrings.SetValue(const Name, Value: string);
 
 Var L : longint;
@@ -679,10 +707,22 @@ end;
 destructor TSTrings.Destroy;
 
 begin
+  if (FEncoding<>nil) and not TEncoding.IsStandardEncoding(FEncoding) then
+    FreeAndNil(FEncoding);
+  if (FDefaultEncoding<>nil) and not TEncoding.IsStandardEncoding(FDefaultEncoding) then
+    FreeAndNil(FDefaultEncoding);
+
   inherited destroy;
 end;
 
 
+constructor TStrings.Create;
+begin
+  inherited Create;
+  FDefaultEncoding:=TEncoding.Default;
+  FEncoding:=nil;
+  FWriteBOM:=True;
+end;
 
 Function TStrings.Add(const S: string): Integer;
 
@@ -784,6 +824,9 @@ begin
       FNameValueSeparator:=S.FNameValueSeparator;
       FLBS:=S.FLBS;
       FLineBreak:=S.FLineBreak;
+      FWriteBOM:=S.FWriteBOM;
+      DefaultEncoding:=S.DefaultEncoding;
+      SetEncoding(S.Encoding);
       AddStrings(S);
     finally
       EndUpdate;
@@ -939,6 +982,20 @@ end;
 
 
 
+Procedure TStrings.LoadFromFile(const FileName: string; AEncoding: TEncoding);
+Var
+        TheStream : TFileStream;
+begin
+  TheStream:=TFileStream.Create(FileName,fmOpenRead or fmShareDenyWrite);
+  try
+    LoadFromStream(TheStream,AEncoding);
+  finally
+    TheStream.Free;
+  end;
+end;
+
+
+
 Procedure TStrings.LoadFromStream(Stream: TStream);
 {
    Borlands method is no good, since a pipe for
@@ -972,6 +1029,50 @@ begin
     SetLength(Buffer, BufLen-BufDelta+BytesRead);
     SetTextStr(Buffer);
     SetLength(Buffer,0);
+  finally
+    EndUpdate;
+  end;
+end;
+
+
+Procedure TStrings.LoadFromStream(Stream: TStream; AEncoding: TEncoding);
+{
+   Borlands method is no good, since a pipe for
+   instance doesn't have a size.
+   So we must do it the hard way.
+}
+Const
+  BufSize = 1024;
+  MaxGrow = 1 shl 29;
+
+Var
+  Buffer         : TBytes;
+  T              : string;
+  BytesRead,
+  BufLen,
+  I,BufDelta,
+  PreambleLength : Longint;
+begin
+  // reread into a buffer
+  beginupdate;
+  try
+    SetLength(Buffer,0);
+    BufLen:=0;
+    I:=1;
+    Repeat
+      BufDelta:=BufSize*I;
+      SetLength(Buffer,BufLen+BufDelta);
+      BytesRead:=Stream.Read(Buffer[BufLen],BufDelta);
+      inc(BufLen,BufDelta);
+      If I<MaxGrow then
+        I:=I shl 1;
+    Until BytesRead<>BufDelta;
+    SetLength(Buffer,BufLen-BufDelta+BytesRead);
+    PreambleLength:=TEncoding.GetBufferEncoding(Buffer,AEncoding,FDefaultEncoding);
+    T:=AEncoding.GetAnsiString(Buffer,PreambleLength,Length(Buffer)-PreambleLength);
+    SetEncoding(AEncoding);
+    SetLength(Buffer,0);
+    SetTextStr(T);
   finally
     EndUpdate;
   end;
@@ -1012,13 +1113,54 @@ end;
 
 
 
+Procedure TStrings.SaveToFile(const FileName: string; AEncoding: TEncoding);
+
+Var TheStream : TFileStream;
+
+begin
+  TheStream:=TFileStream.Create(FileName,fmCreate);
+  try
+    SaveToStream(TheStream,AEncoding);
+  finally
+    TheStream.Free;
+  end;
+end;
+
+
+
 Procedure TStrings.SaveToStream(Stream: TStream);
 Var
   S : String;
 begin
-  S:=Text;
-  if S = '' then Exit;
-  Stream.WriteBuffer(Pointer(S)^,Length(S));
+  if Encoding<>nil then
+    SaveToStream(Stream,Encoding)
+  else
+  begin
+    S:=Text;
+    if S = '' then Exit;
+    Stream.WriteBuffer(Pointer(S)^,Length(S));
+  end;
+end;
+
+
+
+
+Procedure TStrings.SaveToStream(Stream: TStream; AEncoding: TEncoding);
+
+Var B : TBytes;
+
+begin
+  if AEncoding=nil then
+    AEncoding:=FDefaultEncoding;
+  if FWriteBOM then
+    begin
+      B:=AEncoding.GetPreamble;
+      if Length(B)>0 then
+        Stream.WriteBuffer(B[0],Length(B));
+    end;
+  B:=AEncoding.GetAnsiBytes(Text);
+  if Length(B)>0 then
+    Stream.WriteBuffer(B[0],Length(B));
 end;
 
 
