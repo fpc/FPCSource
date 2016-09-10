@@ -17,8 +17,13 @@
 
 class function TEncoding.GetANSI: TEncoding;
 begin
-  if not Assigned(FStandardEncodings[seAnsi]) then
-    FStandardEncodings[seAnsi] := TMBCSEncoding.Create(DefaultSystemCodePage);
+  EnterCriticalSection(FLock);
+  try
+    if not Assigned(FStandardEncodings[seAnsi]) then
+      FStandardEncodings[seAnsi] := TMBCSEncoding.Create(DefaultSystemCodePage);
+  finally
+    LeaveCriticalSection(FLock);
+  end;
   Result := FStandardEncodings[seAnsi];
 end;
 
@@ -47,15 +52,25 @@ end;
 
 class function TEncoding.GetASCII: TEncoding;
 begin
-  if not Assigned(FStandardEncodings[seAscii]) then
-    FStandardEncodings[seAscii] := TMBCSEncoding.Create(CP_ASCII);
+  EnterCriticalSection(FLock);
+  try
+    if not Assigned(FStandardEncodings[seAscii]) then
+      FStandardEncodings[seAscii] := TMBCSEncoding.Create(CP_ASCII);
+  finally
+    LeaveCriticalSection(FLock);
+  end;
   Result := FStandardEncodings[seAscii];
 end;
 
 class function TEncoding.GetBigEndianUnicode: TEncoding;
 begin
-  if not Assigned(FStandardEncodings[seBigEndianUnicode]) then
-    FStandardEncodings[seBigEndianUnicode] := TBigEndianUnicodeEncoding.Create;
+  EnterCriticalSection(FLock);
+  try
+    if not Assigned(FStandardEncodings[seBigEndianUnicode]) then
+      FStandardEncodings[seBigEndianUnicode] := TBigEndianUnicodeEncoding.Create;
+  finally
+    LeaveCriticalSection(FLock);
+  end;
   Result := FStandardEncodings[seBigEndianUnicode];
 end;
 
@@ -66,22 +81,37 @@ end;
 
 class function TEncoding.GetUnicode: TEncoding;
 begin
-  if not Assigned(FStandardEncodings[seUnicode]) then
-    FStandardEncodings[seUnicode] := TUnicodeEncoding.Create;
+  EnterCriticalSection(FLock);
+  try
+    if not Assigned(FStandardEncodings[seUnicode]) then
+      FStandardEncodings[seUnicode] := TUnicodeEncoding.Create;
+  finally
+    LeaveCriticalSection(FLock);
+  end;
   Result := FStandardEncodings[seUnicode];
 end;
 
 class function TEncoding.GetUTF7: TEncoding;
 begin
-  if not Assigned(FStandardEncodings[seUTF7]) then
-    FStandardEncodings[seUTF7] := TUTF7Encoding.Create;
+  EnterCriticalSection(FLock);
+  try
+    if not Assigned(FStandardEncodings[seUTF7]) then
+      FStandardEncodings[seUTF7] := TUTF7Encoding.Create;
+  finally
+    LeaveCriticalSection(FLock);
+  end;
   Result := FStandardEncodings[seUTF7];
 end;
 
 class function TEncoding.GetUTF8: TEncoding;
 begin
-  if not Assigned(FStandardEncodings[seUTF8]) then
-    FStandardEncodings[seUTF8] := TUTF8Encoding.Create;
+  EnterCriticalSection(FLock);
+  try
+    if not Assigned(FStandardEncodings[seUTF8]) then
+      FStandardEncodings[seUTF8] := TUTF8Encoding.Create;
+  finally
+    LeaveCriticalSection(FLock);
+  end;
   Result := FStandardEncodings[seUTF8];
 end;
 
@@ -89,8 +119,13 @@ class procedure TEncoding.FreeEncodings;
 var
   E: TStandardEncoding;
 begin
-  for E := Low(FStandardEncodings) to High(FStandardEncodings) do
-    FStandardEncodings[E].Free;
+  EnterCriticalSection(FLock);
+  try
+    for E := Low(FStandardEncodings) to High(FStandardEncodings) do
+      FStandardEncodings[E].Free;
+  finally
+    LeaveCriticalSection(FLock);
+  end;
 end;
 
 class constructor TEncoding.Create;
@@ -99,11 +134,13 @@ var
 begin
   for E := Low(FStandardEncodings) to High(FStandardEncodings) do
     FStandardEncodings[E] := nil;
+  InitCriticalSection(FLock);
 end;
 
 class destructor TEncoding.Destroy;
 begin
   FreeEncodings;
+  DoneCriticalSection(FLock);
 end;
 
 function TEncoding.Clone: TEncoding;

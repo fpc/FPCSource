@@ -30,7 +30,8 @@ type
         seUTF8);
     var
       FStandardEncodings: array[TStandardEncoding] of TEncoding; static;
-
+    Class Var
+      FLock : TRTLCriticalSection;
     class function GetANSI: TEncoding; static;
     class function GetASCII: TEncoding; static;
     class function GetBigEndianUnicode: TEncoding; static;
