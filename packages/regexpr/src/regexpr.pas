@@ -122,7 +122,7 @@ uses
 type
  {$IFDEF UniCode}
  PRegExprChar = PWideChar;
- RegExprString = WideString;
+ RegExprString = UnicodeString;
  REChar = WideChar;
  {$ELSE}
  PRegExprChar = PChar;
