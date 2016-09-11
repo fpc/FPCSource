@@ -666,6 +666,18 @@ implementation
             is_managed_type(tarraydef(resultdef).elementdef)) and
            not(target_info.system in systems_garbage_collected_managed_types) then
           begin
+            { after converting a parameter to an open array, its resultdef is
+              set back to its original resultdef so we can get the value of the
+              "high" parameter correctly, even though we already inserted a
+              type conversion to "open array". Since here we work on this
+              converted parameter, set it back to the type to which it was
+              converted in order to avoid type mismatches at the LLVM level }
+            if is_open_array(parasym.vardef) and
+               is_dynamic_array(orgparadef) then
+              begin
+                left.resultdef:=resultdef;
+                orgparadef:=resultdef;
+              end;
             paraaddrtype:=cpointerdef.getreusable(orgparadef);
             { create temp with address of the parameter }
             temp:=ctempcreatenode.create(
