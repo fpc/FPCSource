@@ -99,7 +99,7 @@ interface
 {$IFDEF UseSetOfChar}
  {$DEFINE UseFirstCharSet} // Fast skip between matches for r.e. that starts with determined set of chars
 {$ENDIF}
-{ $DEFINE UseOsLineEndOnReplace} // On Replace if replace-with has "\n", use System.LineEnding (#10 #13 or #13#10); else use #10
+{$DEFINE UseOsLineEndOnReplace} // On Replace if replace-with has "\n", use System.LineEnding (#10 #13 or #13#10); else use #10
 
 // ======== Define Pascal-language options
 // Define 'UseAsserts' option (do not edit this definitions).
