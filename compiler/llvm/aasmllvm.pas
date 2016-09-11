@@ -256,6 +256,17 @@ uses
         newsym:=current_asmdata.DefineAsmSymbol(newname,AB_GLOBAL,AT_FUNCTION,_def);
         newsym.declared:=true;
         def:=_def;
+        { alias cannot be external }
+        case _bind of
+          { weak external should actually become weak, but we don't support that
+            yet }
+          AB_WEAK_EXTERNAL:
+            internalerror(2016071203);
+          AB_EXTERNAL:
+            _bind:=AB_GLOBAL;
+          AB_EXTERNAL_INDIRECT:
+            _bind:=AB_INDIRECT;
+        end;
         bind:=_bind;
       end;
 
