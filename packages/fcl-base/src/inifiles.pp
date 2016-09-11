@@ -139,7 +139,9 @@ type
                     ifoEscapeLineFeeds, // Escape linefeeds when reading file.
                     ifoCaseSensitive,   // Use Case sensitive section/key names
                     ifoStripQuotes,     // Strip quotes when reading string values.
-                    ifoFormatSettingsActive); // Use format settings when writing date/float etc.
+                    ifoFormatSettingsActive, // Use format settings when writing date/float etc.
+                    ifoWriteStringBoolean // Write booleans as string
+                    );
   TIniFileOptions = Set of TIniFileOption;
 
   TSectionValuesOption = (svoIncludeComments,svoIncludeInvalid, svoIncludeQuotes);
@@ -149,6 +151,8 @@ type
 
   TCustomIniFile = class
   Private
+    FBoolFalseStrings: TStringArray;
+    FBoolTrueStrings: TStringArray;
     FFileName: string;
     FOptions: TIniFileOptions;
     FSectionList: TIniFileSectionList;
@@ -160,6 +164,7 @@ type
     constructor Create(const AFileName: string; AOptions : TIniFileOptions = []); virtual;
     constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean); virtual;
     destructor Destroy; override;
+    Procedure SetBoolStringValues(ABoolValue : Boolean; Values : Array of string);
     function SectionExists(const Section: string): Boolean; virtual;
     function ReadString(const Section, Ident, Default: string): string; virtual; abstract;
     procedure WriteString(const Section, Ident, Value: String); virtual; abstract;
@@ -193,6 +198,8 @@ type
     Property CaseSensitive : Boolean index ifoCaseSensitive Read GetOption Write SetOption; deprecated  'Use options instead';
     Property StripQuotes : Boolean index ifoStripQuotes Read GetOption Write SetOption; deprecated 'Use options instead';
     Property FormatSettingsActive : Boolean index ifoFormatSettingsActive Read GetOption Write SetOption;deprecated  'Use options instead';
+    Property BoolTrueStrings : TStringArray Read FBoolTrueStrings Write FBoolTrueStrings;
+    Property BoolFalseStrings : TStringArray Read FBoolFalseStrings Write FBoolFalseStrings;
   end;
 
   { TIniFile }
@@ -598,6 +605,23 @@ begin
   inherited Destroy;
 end;
 
+procedure TCustomIniFile.SetBoolStringValues(ABoolValue: Boolean;
+  Values: array of string);
+
+Var
+  A : TstringArray;
+  I : Integer;
+
+begin
+  SetLength(A,Length(Values));
+  For I:=0 to length(Values)-1 do
+    A[i]:=Values[i];
+  If AboolValue then
+    FBoolTrueStrings:=A
+  else
+    FBoolFalseStrings:=A;
+end;
+
 function TCustomIniFile.SectionExists(const Section: string): Boolean;
 
 Var
@@ -630,19 +654,59 @@ begin
   WriteString(Section, Ident, IntToStr(Value));
 end;
 
+function IndexOfString(A : TStringArray; S : String) : integer;
+
+begin
+  Result:=Length(A)-1;
+  While (Result>=0) and (CompareText(A[Result],S)<>0) do
+    Dec(Result);
+end;
+
 function TCustomIniFile.ReadBool(const Section, Ident: string; Default: Boolean): Boolean;
+
 var
   s: string;
 begin
   Result := Default;
-  s := ReadString(Section, Ident, '');
+  s:=ReadString(Section, Ident, '');
   if s > '' then
-    Result := CharToBool(s[1]);
+    if (Length(FBoolTrueStrings)>0) or (Length(FBoolFalseStrings)>0) then
+      begin
+      if IndexOfString(FBoolTrueStrings,S)>=0 then
+        Result:=True
+      else if IndexOfString(FBoolFalseStrings,S)>=0 then
+        Result:=False
+      end
+    else
+      Result := CharToBool(s[1]);
 end;
 
 procedure TCustomIniFile.WriteBool(const Section, Ident: string; Value: Boolean);
+
+Var
+  S : String;
+
 begin
-  WriteString(Section, Ident, BoolToChar(Value));
+  if (ifoWriteStringBoolean in options) then
+    begin
+    if Value then
+      begin
+      if Length(BoolTrueStrings)>0 then
+        S:=BoolTrueStrings[0]
+      else
+        S:='true';
+      end
+    else
+      begin
+      if Length(BoolFalseStrings)>0 then
+        S:=BoolFalseStrings[0]
+      else
+        S:='false';
+      end;
+    end
+  else
+    S:=BoolToChar(Value);
+  WriteString(Section, Ident, S);
 end;
 
 function TCustomIniFile.ReadDate(const Section, Ident: string; Default: TDateTime): TDateTime;
