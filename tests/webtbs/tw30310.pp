@@ -1,5 +1,5 @@
 { %opt=-gh }
 
 begin
-  get_cmdline;
+  writeln(cmdline);
 end.
