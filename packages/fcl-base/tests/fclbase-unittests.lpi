@@ -30,10 +30,10 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestExpressionScanner.TestNumber"/>
+        <CommandLineParams Value="--suite=TTestCSVReadWrite.TestInlineQuotedLine"/>
       </local>
     </RunParams>
-    <Units Count="5">
+    <Units Count="6">
       <Unit0>
         <Filename Value="fclbase-unittests.pp"/>
         <IsPartOfProject Value="True"/>
@@ -55,6 +55,10 @@
         <Filename Value="tcinifile.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit4>
+      <Unit5>
+        <Filename Value="tccsvreadwrite.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

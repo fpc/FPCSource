@@ -396,15 +396,17 @@ end;
 
 procedure TCSVParser.ParseValue;
 begin
-  while not ((FCurrentChar = FDelimiter) or EndOfLine or EndOfFile) do
+  while not ((FCurrentChar = FDelimiter) or EndOfLine or EndOfFile or (FCurrentChar = FQuoteChar)) do
   begin
-    AppendStr(FWhitespaceBuffer, FCurrentChar);
+    AppendStr(FCellBuffer, FCurrentChar);
     NextChar;
   end;
+  if FCurrentChar = FQuoteChar then
+    ParseQuotedValue;
   // merge whitespace buffer
   if FIgnoreOuterWhitespace then
     RemoveTrailingChars(FWhitespaceBuffer, WhitespaceChars);
-  AppendStr(FCellBuffer, FWhitespaceBuffer);
+  AppendStr(FWhitespaceBuffer,FCellBuffer);
   FWhitespaceBuffer := '';
 end;
 
