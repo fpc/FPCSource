@@ -47,6 +47,7 @@ unit iso7185;
 
   implementation
 
+{$IFDEF UNIX}
   function getTempDir: string;
     var
       key: string;
@@ -54,13 +55,8 @@ unit iso7185;
       i_env, i_key, i_value: integer;
       pd : char; // Pathdelim not available ?
     begin
-    {$IFDEF HASUNIX}
       value := '/tmp/';  (** default for UNIX **)
       pd:='/';
-    {$ELSE}
-      value := '';
-      pd:='\';
-    {$ENDIF}
       while (envp <> NIL) and assigned(envp^) do
       begin
         i_env := 0;
@@ -91,7 +87,12 @@ unit iso7185;
        value:=value+pd;
       getTempDir := value;
     end;
-  
+{$else}    
+  function getTempDir: string;
+  begin
+    getTempDir:='';
+  end;
+{$ENDIF}  
 
 {$i-}
     procedure DoAssign(var t : Text);
