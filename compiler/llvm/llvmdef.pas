@@ -823,12 +823,9 @@ implementation
                   else
                     { other types should not appear currently, add as needed }
                     internalerror(2014012008);
-                  end;
-              pointerdef:
-                typename:='p'+tostr(hdef.deflist_index);
+                end;
               else
-                { other types should not appear currently, add as needed }
-                internalerror(2014012009);
+                typename:=typename+'d'+hdef.unique_id_str;
             end;
           end;
         if not assigned(current_module) then
