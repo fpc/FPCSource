@@ -1832,7 +1832,8 @@ uses
 Function InitialiseMysql(Const LibraryName : AnsiString) : Integer;
 Function InitialiseMysql(Const LibraryName : AnsiString; argc: cint; argv:PPchar = Nil; groups:PPchar = nil) : Integer;
 Function InitialiseMysql(argc:cint = -1; argv:PPchar = nil; groups:PPchar = nil) : Integer;
-Function ReleaseMysql : Integer;
+Procedure ReleaseMySQL;
+Function DoReleaseMysql : Integer;
 
 var MysqlLibraryHandle : TLibHandle;
   MysqlLoadedLibrary : String;
@@ -2015,7 +2016,13 @@ begin
     end;
 end;
 
-Function ReleaseMysql : Integer;
+Procedure ReleaseMySQL;
+
+begin
+  DoReleaseMysql;
+end;
+
+Function DoReleaseMysql : Integer;
 
 begin
   if RefCount> 1 then
