@@ -4,10 +4,10 @@
 {$mode objfpc}
 
 uses
-  sysutils
 {$ifdef unix}
-  ,cthreads
+  cthreads,
 {$endif}
+  sysutils
   ;
 
 const
