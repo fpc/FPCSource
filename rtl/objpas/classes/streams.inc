@@ -667,14 +667,18 @@ end;
 
 function TMemoryStream.Realloc(var NewCapacity: PtrInt): Pointer;
 
+Var
+  GC : PtrInt;
+
 begin
   If NewCapacity<0 Then
     NewCapacity:=0
   else
     begin
+      GC:=FCapacity + (FCapacity div 4);
       // if growing, grow at least a quarter
-      if (NewCapacity>FCapacity) and (NewCapacity < (5*FCapacity) div 4) then
-        NewCapacity := (5*FCapacity) div 4;
+      if (NewCapacity>FCapacity) and (NewCapacity < GC) then
+        NewCapacity := GC;
       // round off to block size.
       NewCapacity := (NewCapacity + (TMSGrow-1)) and not (TMSGROW-1);
     end;
