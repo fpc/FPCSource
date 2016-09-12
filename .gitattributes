@@ -1185,6 +1185,7 @@ packages/arosunits/src/inputevent.pas svneol=native#text/plain
 packages/arosunits/src/intuition.pas svneol=native#text/plain
 packages/arosunits/src/keymap.pas svneol=native#text/plain
 packages/arosunits/src/layers.pas svneol=native#text/plain
+packages/arosunits/src/locale.pas svneol=native#text/pascal
 packages/arosunits/src/longarray.pas svneol=native#text/plain
 packages/arosunits/src/mui.pas svneol=native#text/plain
 packages/arosunits/src/tagsarray.pas svneol=native#text/plain

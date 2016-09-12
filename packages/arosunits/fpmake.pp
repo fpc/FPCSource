@@ -52,6 +52,7 @@ begin
     T:=P.Targets.AddUnit('asl.pas');
     T:=P.Targets.AddUnit('mui.pas');
     T:=P.Targets.AddUnit('cybergraphics.pas');
+    T:=P.Targets.AddUnit('locale.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
