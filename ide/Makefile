@@ -2287,22 +2287,26 @@ FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
 FPMAKE_OPT+=-bu
-ifndef BUILDFULLNATIVE
-FPMAKE_OPT+=-sp
-endif
 ifdef NOGDB
 FPMAKE_OPT+=--NoGDB=1
 else
 ifndef NOGDBMI
 ifneq ($(findstring $(OS_TARGET),$(GDBMI_DEFAULT_OS_LIST)),)
-FPMAKE_OPT+=--GDBMI=1
+GDBMI=1
 endif
-else
+endif # NOGDBMI
 ifdef GDBMI
 FPMAKE_OPT+=--GDBMI=1
+ifeq ($(findstring $(OS_TARGET),aix beos darwin haiku solaris),)
+GDBMI_IS_STATIC=1
 endif
 endif
+endifa # NOGDB
+ifndef GDBMI_IS_STATIC
+ifndef BUILDFULLNATIVE
+FPMAKE_OPT+=-sp
 endif
+endif # GDBMI_IS_STATIC
 ifdef PPC_TARGET
 FPMAKE_OPT+=--CompilerTarget=$(PPC_TARGET)
 endif
