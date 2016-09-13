@@ -120,7 +120,7 @@ Type
     Constructor Create;
     Destructor Destroy; override;
     Property Params : TStrings Read FParams Write SetParams;
-    Property Body : TJSFunctionBody Read FBody Write FBody;
+    Property Body : TJSFunctionBody Read FBody Write FBody; // can be nil
     Property Name : TJSString Read FName Write FName;
     Property IsEmpty : Boolean Read FIsEmpty Write FIsEmpty;
   end;

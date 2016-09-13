@@ -64,7 +64,7 @@ Type
   Private
     FFirstStatement: TPasImplBlock;
     FModules: TObjectList;// list of TTestEnginePasResolver
-    FPasResolver: TTestEnginePasResolver;
+    FResolverEngine: TTestEnginePasResolver;
     function GetModuleCount: integer;
     function GetModules(Index: integer): TTestEnginePasResolver;
     function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
@@ -109,7 +109,11 @@ Type
     Procedure TestProcOverload;
     Procedure TestProcOverloadRefs;
     Procedure TestNestedProc;
-    property PasResolver: TTestEnginePasResolver read FPasResolver;
+    Procedure TestDuplicateVar;
+    Procedure TestRecord;
+    Procedure TestRecordVariant;
+    Procedure TestRecordVariantNested;
+    property ResolverEngine: TTestEnginePasResolver read FResolverEngine;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -182,22 +186,22 @@ end;
 
 procedure TTestResolver.TearDown;
 begin
-  PasResolver.Clear;
+  ResolverEngine.Clear;
   if FModules<>nil then
     begin
     FModules.OwnsObjects:=false;
-    FModules.Remove(PasResolver); // remove reference
+    FModules.Remove(ResolverEngine); // remove reference
     FModules.OwnsObjects:=true;
     FreeAndNil(FModules);// free all other modules
     end;
   inherited TearDown;
-  FPasResolver:=nil;
+  FResolverEngine:=nil;
 end;
 
 procedure TTestResolver.CreateEngine(var TheEngine: TPasTreeContainer);
 begin
-  FPasResolver:=AddModule(MainFilename);
-  TheEngine:=PasResolver;
+  FResolverEngine:=AddModule(MainFilename);
+  TheEngine:=ResolverEngine;
 end;
 
 procedure TTestResolver.ParseProgram;
@@ -232,7 +236,7 @@ begin
       raise E;
       end;
   end;
-  TAssert.AssertSame('Has resolver',PasResolver,Parser.Engine);
+  TAssert.AssertSame('Has resolver',ResolverEngine,Parser.Engine);
   AssertEquals('Has program',TPasProgram,Module.ClassType);
   AssertNotNull('Has program section',PasProgram.ProgramSection);
   AssertNotNull('Has initialization section',PasProgram.InitializationSection);
@@ -274,7 +278,7 @@ begin
       raise E;
       end;
   end;
-  TAssert.AssertSame('Has resolver',PasResolver,Parser.Engine);
+  TAssert.AssertSame('Has resolver',ResolverEngine,Parser.Engine);
   AssertEquals('Has unit',TPasModule,Module.ClassType);
   AssertNotNull('Has interface section',Module.InterfaceSection);
   AssertNotNull('Has implementation section',Module.ImplementationSection);
@@ -588,7 +592,7 @@ var
           begin
           Ref:=TResolvedReference(El.CustomData);
           write(' Decl=',GetObjName(Ref.Declaration));
-          PasResolver.UnmangleSourceLineNumber(Ref.Declaration.SourceLinenumber,aLine,aCol);
+          ResolverEngine.UnmangleSourceLineNumber(Ref.Declaration.SourceLinenumber,aLine,aCol);
           write(Ref.Declaration.SourceFilename,'(',aLine,',',aCol,')');
           end
         else
@@ -636,7 +640,7 @@ var
         if El.ClassType=TPasAliasType then
           begin
           DeclEl:=TPasAliasType(El).DestType;
-          PasResolver.UnmangleSourceLineNumber(DeclEl.SourceLinenumber,LabelLine,LabelCol);
+          ResolverEngine.UnmangleSourceLineNumber(DeclEl.SourceLinenumber,LabelLine,LabelCol);
           if (aLabel^.Filename=DeclEl.SourceFilename)
           and (aLabel^.LineNumber=LabelLine)
           and (aLabel^.StartCol<=LabelCol)
@@ -841,7 +845,7 @@ var
   Data: PTestResolverReferenceData absolute FindData;
   Line, Col: integer;
 begin
-  PasResolver.UnmangleSourceLineNumber(El.SourceLinenumber,Line,Col);
+  ResolverEngine.UnmangleSourceLineNumber(El.SourceLinenumber,Line,Col);
   //writeln('TTestResolver.OnFindReference ',GetObjName(El),' ',El.SourceFilename,' Line=',Line,',Col=',Col,' SearchFile=',Data^.Filename,',Line=',Data^.Line,',Col=',Data^.StartCol,'-',Data^.EndCol);
   if (Data^.Filename=El.SourceFilename)
   and (Data^.Line=Line)
@@ -1414,6 +1418,87 @@ begin
   Add('      +{@c1}c;');
   Add('end;');
   Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestDuplicateVar;
+var
+  ok: Boolean;
+begin
+  StartProgram(false);
+  Add('var a: longint;');
+  Add('var a: string;');
+  Add('begin');
+  ok:=false;
+  try
+    ParseModule;
+  except
+    on E: EPasResolve do
+      begin
+      AssertEquals('Expected duplicate identifier, but got msg number "'+E.Message+'"',
+        PasResolver.nDuplicateIdentifier,E.MsgNumber);
+      ok:=true;
+      end;
+  end;
+  AssertEquals('duplicate identifier spotted',true,ok);
+end;
+
+procedure TTestResolver.TestRecord;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#TRec}TRec = record');
+  Add('    {#Size}Size: longint;');
+  Add('  end;');
+  Add('var');
+  Add('  {#r}{=TRec}r: TRec;');
+  Add('begin');
+  Add('  {@r}r.{@Size}Size:=3;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordVariant;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#TRec}TRec = record');
+  Add('    {#Size}Size: longint;');
+  Add('    case {#vari}vari: longint of');
+  Add('    0: ({#b}b: longint)');
+  Add('  end;');
+  Add('var');
+  Add('  {#r}{=TRec}r: TRec;');
+  Add('begin');
+  Add('  {@r}r.{@Size}Size:=3;');
+  Add('  {@r}r.{@vari}vari:=4;');
+  Add('  {@r}r.{@b}b:=5;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordVariantNested;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#TRec}TRec = record');
+  Add('    {#Size}Size: longint;');
+  Add('    case {#vari}vari: longint of');
+  Add('    0: ({#b}b: longint)');
+  Add('    1: ({#c}c:');
+  Add('          record');
+  Add('            {#d}d: longint;');
+  Add('            case {#e}e: longint of');
+  Add('            0: ({#f}f: longint)');
+  Add('          end)');
+  Add('  end;');
+  Add('var');
+  Add('  {#r}{=TRec}r: TRec;');
+  Add('begin');
+  Add('  {@r}r.{@Size}Size:=3;');
+  Add('  {@r}r.{@vari}vari:=4;');
+  Add('  {@r}r.{@b}b:=5;');
+  Add('  {@r}r.{@c}c.{@d}d:=6;');
+  Add('  {@r}r.{@c}c.{@e}e:=7;');
+  Add('  {@r}r.{@c}c.{@f}f:=8;');
   ParseProgram;
 end;
 

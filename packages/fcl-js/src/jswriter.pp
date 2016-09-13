@@ -474,15 +474,17 @@ begin
   if Not (C or FD.IsEmpty) then
     begin
     Writeln('');
-    indent;
+    Indent;
     end;
   if Assigned(FD.Body) then
     begin
     FSkipBrackets:=True;
+    //writeln('TJSWriter.WriteFuncDef '+FD.Body.ClassName);
     WriteJS(FD.Body);
     If (Assigned(FD.Body.A))
     and (not (FD.Body.A is TJSStatementList))
     and (not (FD.Body.A is TJSSourceElements))
+    and (not (FD.Body.A is TJSEmptyBlockStatement))
     then
       if C then
         Write('; ')
@@ -493,7 +495,7 @@ begin
     Write('}')
   else
     begin
-    undent;
+    Undent;
     Write('}'); // do not writeln
     end;
 end;
@@ -697,14 +699,20 @@ Var
   LastEl: TJSElement;
 
 begin
+  //write('TJSWriter.WriteStatementList '+BoolToStr(FSkipBrackets,true));
+  //if El.A<>nil then write(' El.A='+El.A.ClassName) else write(' El.A=nil');
+  //if El.B<>nil then write(' El.B='+El.B.ClassName) else write(' El.B=nil');
+  //writeln(' ');
+
   C:=(woCompact in Options);
   B:= Not FSkipBrackets;
   if B then
     begin
     Write('{');
+    Indent;
     if not C then writeln('');
     end;
-  if Assigned(El.A) then
+  if Assigned(El.A) and (El.A.ClassType<>TJSEmptyBlockStatement) then
     begin
     WriteJS(El.A);
     LastEl:=El.A;
@@ -726,8 +734,8 @@ begin
     end;
   if B then
     begin
-    Write('}');
-    if not C then writeln('');
+    Undent;
+    Write('}'); // do not writeln
     end;
 end;
 
@@ -865,7 +873,10 @@ begin
     begin
     Write('do ');
     if Assigned(El.Body) then
+      begin
+      FSkipBrackets:=false;
       WriteJS(El.Body);
+      end;
     Write(' while (');
     If Assigned(El.Cond) then
       WriteJS(EL.Cond);
@@ -1052,7 +1063,8 @@ end;
 procedure TJSWriter.WriteFunctionBody(El: TJSFunctionBody);
 
 begin
-  if Assigned(El.A) then
+  //writeln('TJSWriter.WriteFunctionBody '+El.A.ClassName+' FSkipBrackets='+BoolToStr(FSkipBrackets,'true','false'));
+  if Assigned(El.A) and (not (El.A is TJSEmptyBlockStatement)) then
     WriteJS(El.A);
 end;
 

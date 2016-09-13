@@ -558,8 +558,7 @@ type
   public
     PackMode: TPackMode;
     Members: TFPList;     // array of TPasVariable elements
-    VariantName: string;
-    VariantType: TPasType;
+    VariantEl: TPasElement; // TPasVariable or TPasType
     Variants: TFPList;	// array of TPasVariant elements, may be nil!
     Function IsPacked: Boolean;
     Function IsBitPacked : Boolean;
@@ -2173,8 +2172,8 @@ begin
     TPasVariable(Members[i]).Release;
   Members.Free;
 
-  if Assigned(VariantType) then
-    VariantType.Release;
+  if Assigned(VariantEl) then
+    VariantEl.Release;
 
   if Assigned(Variants) then
   begin
@@ -3125,10 +3124,10 @@ begin
   if Variants<>nil then
     begin
     temp:='case ';
-    if (VariantName<>'') then
-      temp:=Temp+variantName+' : ';
-    if (VariantType<>Nil) then
-      temp:=temp+VariantType.Name;
+    if (VariantEl is TPasVariable) then
+      temp:=Temp+VariantEl.Name+' : '+TPasVariable(VariantEl).VarType.Name
+    else if (VariantEl<>Nil) then
+      temp:=temp+VariantEl.Name;
     S.Add(temp+' of');
     T.Clear;
     For I:=0 to Variants.Count-1 do
@@ -3175,8 +3174,8 @@ begin
   inherited ForEachCall(aMethodCall, Arg);
   for i:=0 to Members.Count-1 do
     TPasElement(Members[i]).ForEachCall(aMethodCall,Arg);
-  if VariantType<>nil then
-    VariantType.ForEachCall(aMethodCall,Arg);
+  if VariantEl<>nil then
+    VariantEl.ForEachCall(aMethodCall,Arg);
   if Variants<>nil then
     for i:=0 to Variants.Count-1 do
       TPasElement(Variants[i]).ForEachCall(aMethodCall,Arg);

@@ -1938,6 +1938,8 @@ var
   TREl, TDEl: TDOMElement;
   CurVariant: TPasVariant;
   isExtended : Boolean;
+  VariantEl: TPasElement;
+  VariantType: TPasType;
 
 begin
   if not (Element.Parent is TPasVariant) then
@@ -1972,18 +1974,21 @@ begin
       AppendSym(CodeEl, ';');
     end;
 
-  if Assigned(Element.VariantType) then
+  if Assigned(Element.VariantEl) then
   begin
     TREl := CreateTR(TableEl);
     CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
     AppendNbSp(CodeEl, NestingLevel * 2 + 2);
     AppendKw(CodeEl, 'case ');
-    if TPasRecordType(Element).VariantName <> '' then
+    VariantEl:=TPasRecordType(Element).VariantEl;
+    if VariantEl is TPasVariable then
     begin
-      AppendText(CodeEl, TPasRecordType(Element).VariantName);
+      AppendText(CodeEl, TPasVariable(VariantEl).Name);
       AppendSym(CodeEl, ': ');
-    end;
-    CodeEl := AppendType(CodeEl, TableEl, TPasRecordType(Element).VariantType, True);
+      VariantType:=TPasVariable(VariantEl).VarType;
+    end else
+      VariantType:=VariantEl as TPasType;
+    CodeEl := AppendType(CodeEl, TableEl, VariantType, True);
     AppendKw(CodeEl, ' of');
     for i := 0 to TPasRecordType(Element).Variants.Count - 1 do
     begin

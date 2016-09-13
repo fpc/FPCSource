@@ -176,7 +176,7 @@ type
     function CreateFunctionType(const AName, AResultName: String; AParent: TPasElement;
       UseParentAsResultParent: Boolean; const ASrcPos: TPasSourcePos): TPasFunctionType;
     function FindElement(const AName: String): TPasElement; virtual; abstract;
-    procedure FinishScope(ScopeType: TPasScopeType); virtual;
+    procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
     function FindModule(const AName: String): TPasModule; virtual;
     property Package: TPasPackage read FPackage;
     property InterfaceOnly : Boolean Read FInterfaceOnly Write FInterFaceOnly;
@@ -239,7 +239,6 @@ type
     function GetVariableModifiers(Out VarMods : TVariableModifiers; Out Libname,ExportName : string): string;
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
-    procedure ParseAsmBlock(AsmBlock: TPasImplAsmStatement);
     procedure ParseClassLocalConsts(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseClassLocalTypes(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
@@ -251,6 +250,7 @@ type
     Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Msg : String; SkipSourceInfo : Boolean = False);overload;
     Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
     function GetProcTypeFromToken(tk: TToken; IsClass: Boolean=False ): TProcType;
+    procedure ParseAsmBlock(AsmBlock: TPasImplAsmStatement); virtual;
     procedure ParseRecordFieldList(ARec: TPasRecordType; AEndToken: TToken; AllowMethods : Boolean);
     procedure ParseRecordVariantParts(ARec: TPasRecordType; AEndToken: TToken);
     function GetProcedureClass(ProcType : TProcType): TPTreeElement;
@@ -658,9 +658,11 @@ begin
     visDefault, ASrcPos));
 end;
 
-procedure TPasTreeContainer.FinishScope(ScopeType: TPasScopeType);
+procedure TPasTreeContainer.FinishScope(ScopeType: TPasScopeType;
+  El: TPasElement);
 begin
   if ScopeType=stModule then ;
+  if El=nil then ;
 end;
 
 function TPasTreeContainer.FindModule(const AName: String): TPasModule;
@@ -901,7 +903,7 @@ begin
   if result and (pm in [pmPublic,pmForward]) then
     begin
     While (Parent<>Nil) and Not ((Parent is TPasClassType) or (Parent is TPasRecordType)) do
-     Parent:=Parent.Parent;
+      Parent:=Parent.Parent;
     Result:=Not Assigned(Parent);
     end;
 end;
@@ -1826,7 +1828,7 @@ begin
       tkColon: // record field (a:xxx;b:yyy;c:zzz);
         begin
           n:=GetExprIdent(x);
-          x.Free;
+          x.Release;
           r:=CreateRecordValues(AParent);
           NextToken;
           x:=DoParseConstValueExpression(AParent);
@@ -1850,7 +1852,8 @@ begin
         Result:=DoParseExpression(AParent,Result);
       Exit;
     end;
-    if CurToken<>tkBraceClose then ParseExc(nParserExpectedCommaRBracket,SParserExpectedCommaRBracket);
+    if CurToken<>tkBraceClose then
+      ParseExc(nParserExpectedCommaRBracket,SParserExpectedCommaRBracket);
     NextToken;
   end;
 end;
@@ -1984,7 +1987,7 @@ begin
     If LogEvent(pleInterface) then
       DoLog(mtInfo,nLogStartInterface,SLogStartInterface);
     ParseInterface;
-    Engine.FinishScope(stModule);
+    Engine.FinishScope(stModule,Module);
   finally
     FCurModule:=nil;
   end;
@@ -2034,7 +2037,7 @@ begin
     PP.ProgramSection := Section;
     ParseOptionalUsesList(Section);
     ParseDeclarations(Section);
-    Engine.FinishScope(stModule);
+    Engine.FinishScope(stModule,Module);
   finally
     FCurModule:=nil;
   end;
@@ -2063,7 +2066,7 @@ begin
     PP.LibrarySection := Section;
     ParseOptionalUsesList(Section);
     ParseDeclarations(Section);
-    Engine.FinishScope(stModule);
+    Engine.FinishScope(stModule,Module);
   finally
     FCurModule:=nil;
   end;
@@ -2077,7 +2080,7 @@ begin
     ParseUsesList(ASection)
   else begin
     CheckImplicitUsedUnits(ASection);
-    Engine.FinishScope(stUsesList);
+    Engine.FinishScope(stUsesList,ASection);
     UngetToken;
   end;
 end;
@@ -2201,7 +2204,7 @@ var
   begin
     if CurBlock=NewBlock then exit;
     if CurBlock=declType then
-      Engine.FinishScope(stTypeDef);
+      Engine.FinishScope(stTypeSection,Declarations);
     CurBlock:=NewBlock;
   end;
 
@@ -2540,7 +2543,7 @@ begin
       ParseExc(nParserExpectedCommaSemicolon,SParserExpectedCommaSemicolon);
   Until (CurToken=tkSemicolon);
 
-  Engine.FinishScope(stUsesList);
+  Engine.FinishScope(stUsesList,ASection);
 end;
 
 // Starts after the variable name
@@ -2823,6 +2826,7 @@ begin
   ok:=false;
   try
     D:=SaveComments; // This means we support only one comment per 'list'.
+    VarEl:=nil;
     Repeat
       // create the TPasVariable here, so that SourceLineNumber is correct
       VarEl:=TPasVariable(CreateElement(TPasVariable,CurTokenString,Parent,AVisibility));
@@ -2835,13 +2839,13 @@ begin
     Until (CurToken=tkColon);
 
     // read type
-    VarType := ParseComplexType(Parent);
+    VarType := ParseComplexType(VarEl);
     for i := OldListCount to VarList.Count - 1 do
       begin
       VarEl:=TPasVariable(VarList[i]);
       // Writeln(VarEl.Name, AVisibility);
       VarEl.VarType := VarType;
-      VarType.Parent := VarEl;
+      //VarType.Parent := VarEl; // this is wrong for references types
       if (i>=OldListCount) then
         VarType.AddRef;
       end;
@@ -3231,6 +3235,7 @@ Var
   CC : TCallingConvention;
   PM : TProcedureModifier;
   Done: Boolean;
+  ResultEl: TPasResultElement;
 
 begin
   // Element must be non-nil. Removed all checks for not-nil.
@@ -3240,22 +3245,24 @@ begin
     ptFunction,ptClassFunction:
       begin
       ExpectToken(tkColon);
-      TPasFunctionType(Element).ResultEl.ResultType := ParseType(Parent,Scanner.CurSourcePos);
+      ResultEl:=TPasFunctionType(Element).ResultEl;
+      ResultEl.ResultType := ParseType(ResultEl,Scanner.CurSourcePos);
       end;
     ptOperator,ptClassOperator:
       begin
       NextToken;
+      ResultEl:=TPasFunctionType(Element).ResultEl;
       if (CurToken=tkIdentifier) then
         begin
-        TPasFunctionType(Element).ResultEl.Name := CurTokenName;
+        ResultEl.Name := CurTokenName;
         ExpectToken(tkColon);
         end
       else
         if (CurToken=tkColon) then
-          TPasFunctionType(Element).ResultEl.Name := 'Result'
+          ResultEl.Name := 'Result'
         else
           ParseExc(nParserExpectedColonID,SParserExpectedColonID);
-        TPasFunctionType(Element).ResultEl.ResultType := ParseType(Parent,Scanner.CurSourcePos)
+        ResultEl.ResultType := ParseType(ResultEl,Scanner.CurSourcePos)
       end;
   end;
   if OfObjectPossible then
@@ -3343,7 +3350,7 @@ begin
     ConsumeSemi;
   if (ProcType in [ptOperator,ptClassOperator]) and (Parent is TPasOperator) then
     TPasOperator(Parent).CorrectName;
-  Engine.FinishScope(stProcedureHeader);
+  Engine.FinishScope(stProcedureHeader,Element);
   if (Parent is TPasProcedure)
   and (not TPasProcedure(Parent).IsForward)
   and (not TPasProcedure(Parent).IsExternal)
@@ -3351,7 +3358,7 @@ begin
      or (Parent.Parent is TProcedureBody))
   then
     ParseProcedureBody(Parent);
-  Engine.FinishScope(stProcedure);
+  Engine.FinishScope(stProcedure,Parent);
 end;
 
 // starts after the semicolon
@@ -3527,13 +3534,45 @@ begin
 end;
 
 procedure TPasParser.ParseAsmBlock(AsmBlock : TPasImplAsmStatement);
-
 begin
-  NextToken;
-  While CurToken<>tkEnd do
+  if po_asmwhole in Options then
     begin
-    AsmBlock.Tokens.Add(CurTokenText);
+    FTokenBufferIndex:=1;
+    FTokenBufferSize:=1;
+    FCommentsBuffer[0].Clear;
+    repeat
+      Scanner.ReadNonPascalTilEndToken(true);
+      case Scanner.CurToken of
+      tkLineEnding:
+        AsmBlock.Tokens.Add(Scanner.CurTokenString);
+      tkend:
+        begin
+        FTokenBuffer[0] := tkend;
+        FTokenStringBuffer[0] := Scanner.CurTokenString;
+        break;
+        end
+      else
+        begin
+        // missing end
+        FTokenBuffer[0] := tkEOF;
+        FTokenStringBuffer[0] := '';
+        end;
+      end;
+    until false;
+    FCurToken := FTokenBuffer[0];
+    FCurTokenString := FTokenStringBuffer[0];
+    FCurComments:=FCommentsBuffer[0];
+    CheckToken(tkend);
+    end
+  else
+    begin
     NextToken;
+    While CurToken<>tkEnd do
+      begin
+      // ToDo: allow @@end
+      AsmBlock.Tokens.Add(CurTokenText);
+      NextToken;
+      end;
     end;
   // NextToken; // Eat end.
   // Do not consume end. Current token will normally be end;
@@ -3563,7 +3602,7 @@ var
   function CloseBlock: boolean; // true if parent reached
   begin
     if CurBlock.ClassType=TPasImplExceptOn then
-      Engine.FinishScope(stExceptOnStatement);
+      Engine.FinishScope(stExceptOnStatement,CurBlock);
     CurBlock:=CurBlock.Parent as TPasImplBlock;
     Result:=CurBlock=Parent;
   end;
@@ -3897,7 +3936,7 @@ begin
           El:=TPasImplExceptOn(CreateElement(TPasImplExceptOn,'',CurBlock));
           TPasImplExceptOn(El).VarExpr:=Left;
           TPasImplExceptOn(El).TypeExpr:=Right;
-          Engine.FinishScope(stExceptOnExpr);
+          Engine.FinishScope(stExceptOnExpr,El);
           CurBlock.AddElement(El);
           CurBlock:=TPasImplExceptOn(El);
           ExpectToken(tkDo);
@@ -4184,14 +4223,14 @@ procedure TPasParser.ParseRecordFieldList(ARec: TPasRecordType;
   AEndToken: TToken; AllowMethods: Boolean);
 
 Var
-  VN : String;
+  VariantName : String;
   v : TPasmemberVisibility;
   Proc: TPasProcedure;
   ProcType: TProcType;
   Prop : TPasProperty;
   Cons : TPasConst;
   isClass : Boolean;
-
+  NamePos: TPasSourcePos;
 begin
   v:=visDefault;
   isClass:=False;
@@ -4256,16 +4295,20 @@ begin
         begin
         ARec.Variants:=TFPList.Create;
         NextToken;
-        VN:=CurTokenString;
+        VariantName:=CurTokenString;
+        NamePos:=Scanner.CurSourcePos;
         NextToken;
         If CurToken=tkColon then
-          ARec.VariantName:=VN
+          begin
+          ARec.VariantEl:=TPasVariable(CreateElement(TPasVariable,VariantName,ARec,NamePos));
+          TPasVariable(ARec.VariantEl).VarType:=ParseType(ARec,Scanner.CurSourcePos);
+          end
         else
           begin
           UnGetToken;
           UnGetToken;
+          ARec.VariantEl:=ParseType(ARec,Scanner.CurSourcePos);
           end;
-        ARec.VariantType:=ParseType(ARec,Scanner.CurSourcePos);
         ExpectToken(tkOf);
         ParseRecordVariantParts(ARec,AEndToken);
         end;
@@ -4293,6 +4336,7 @@ begin
     Result.PackMode:=PackMode;
     NextToken;
     ParseRecordFieldList(Result,tkEnd,true);
+    Engine.FinishScope(stTypeDef,Result);
     ok:=true;
   finally
     if not ok then

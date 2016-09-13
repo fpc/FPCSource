@@ -328,7 +328,8 @@ type
   TPOption = (
     po_delphi, // Delphi mode: forbid nested comments
     po_cassignments,  // allow C-operators += -= *= /=
-    po_resolvestandardtypes // search for 'longint', 'string', etc., do not use dummies, TPasResolver sets this to use its declarations
+    po_resolvestandardtypes, // search for 'longint', 'string', etc., do not use dummies, TPasResolver sets this to use its declarations
+    po_asmwhole  // store whole text between asm..end in TPasImplAsmStatement.Tokens
     );
   TPOptions = set of TPOption;
 
@@ -379,6 +380,7 @@ type
     function GetCurColumn: Integer;
     procedure SetOptions(AValue: TPOptions);
   protected
+    function FetchLine: boolean;
     procedure SetCurMsg(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const);
     Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Msg : String; SkipSourceInfo : Boolean = False);overload;
     Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
@@ -400,6 +402,7 @@ type
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
     function FetchToken: TToken;
+    function ReadNonPascalTilEndToken(StopAtLineEnd: boolean): TToken;
     Procedure AddDefine(S : String);
     Procedure RemoveDefine(S : String);
     function CurSourcePos: TPasSourcePos;
@@ -1159,6 +1162,84 @@ begin
 //  Writeln(Result, '(',CurTokenString,')');
 end;
 
+function TPascalScanner.ReadNonPascalTilEndToken(StopAtLineEnd: boolean
+  ): TToken;
+var
+  StartPos: PChar;
+
+  Procedure Add;
+  var
+    AddLen: PtrInt;
+    OldLen: Integer;
+  begin
+    AddLen:=TokenStr-StartPos;
+    if AddLen=0 then exit;
+    OldLen:=length(FCurTokenString);
+    SetLength(FCurTokenString,OldLen+AddLen);
+    Move(StartPos^,PChar(PChar(FCurTokenString)+OldLen)^,AddLen);
+    StartPos:=TokenStr;
+  end;
+
+begin
+  FCurTokenString := '';
+  if (TokenStr = nil) or (TokenStr^ = #0) then
+    if not FetchLine then
+    begin
+      Result := tkEOF;
+      FCurToken := Result;
+      exit;
+    end;
+
+  StartPos:=TokenStr;
+  repeat
+    case TokenStr[0] of
+      #0: // end of line
+        begin
+          Add;
+          if StopAtLineEnd then
+            begin
+            Result := tkLineEnding;
+            FCurToken := Result;
+            exit;
+            end;
+          if not FetchLine then
+            begin
+            Result := tkEOF;
+            FCurToken := Result;
+            exit;
+            end;
+          StartPos:=TokenStr;
+        end;
+      '0'..'9', 'A'..'Z', 'a'..'z','_':
+        begin
+          // number or identifier
+          if (TokenStr[0] in ['e','E'])
+              and (TokenStr[1] in ['n','N'])
+              and (TokenStr[2] in ['d','D'])
+              and not (TokenStr[3] in ['0'..'9', 'A'..'Z', 'a'..'z','_']) then
+            begin
+            // 'end' found
+            Add;
+            Result := tkend;
+            SetLength(FCurTokenString, 3);
+            Move(TokenStr^, FCurTokenString[1], 3);
+            inc(TokenStr,3);
+            FCurToken := Result;
+            exit;
+            end
+          else
+            begin
+            // skip identifier
+            while TokenStr[0] in ['0'..'9', 'A'..'Z', 'a'..'z','_'] do
+              inc(TokenStr);
+            end;
+        end;
+      else
+        inc(TokenStr);
+    end;
+  until false;
+end;
+
 procedure TPascalScanner.Error(MsgNumber: integer; const Msg: string);
 begin
   SetCurMsg(mtError,MsgNumber,Msg,[]);
@@ -1335,25 +1416,6 @@ begin
 end;
 
 function TPascalScanner.DoFetchToken: TToken;
-
-  function FetchLine: Boolean;
-  begin
-    if CurSourceFile.IsEOF then
-    begin
-      FCurLine := '';
-      TokenStr := nil;
-      Result := false;
-    end else
-    begin
-      FCurLine := CurSourceFile.ReadLine;
-      TokenStr := PChar(CurLine);
-      Result := true;
-      Inc(FCurRow);
-      if LogEvent(sleLineNumber) and ((FCurRow Mod 100) = 0) then
-        DoLog(mtInfo,nLogLineNumber,SLogLineNumber,[FCurRow],True);
-    end;
-  end;
-
 var
   TokenStart, CurPos: PChar;
   i: TToken;
@@ -1933,6 +1995,24 @@ procedure TPascalScanner.SetOptions(AValue: TPOptions);
 begin
   if FOptions=AValue then Exit;
   FOptions:=AValue;
+end;
+
+function TPascalScanner.FetchLine: boolean;
+begin
+  if CurSourceFile.IsEOF then
+  begin
+    FCurLine := '';
+    TokenStr := nil;
+    Result := false;
+  end else
+  begin
+    FCurLine := CurSourceFile.ReadLine;
+    TokenStr := PChar(CurLine);
+    Result := true;
+    Inc(FCurRow);
+    if LogEvent(sleLineNumber) and ((FCurRow Mod 100) = 0) then
+      DoLog(mtInfo,nLogLineNumber,SLogLineNumber,[FCurRow],True);
+  end;
 end;
 
 procedure TPascalScanner.SetCurMsg(MsgType: TMessageType; MsgNumber: integer;

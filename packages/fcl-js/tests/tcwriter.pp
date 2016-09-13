@@ -1399,7 +1399,7 @@ Var
 begin
 //  Writer.Options:=[woCompact,woUseUTF8];
   S:=TJSStatementList.Create(0,0);
-  AssertWrite('Statement list','{'+sLineBreak+'}'+sLineBreak,S);
+  AssertWrite('Statement list','{'+sLineBreak+'}',S);
 end;
 
 Procedure TTestStatementWriter.TestStatementListEmptyCompact;
@@ -1420,7 +1420,7 @@ begin
 //  Writer.Options:=[woCompact,woUseUTF8];
   S:=TJSStatementList.Create(0,0);
   S.A:=CreateAssignment(nil);
-  AssertWrite('Statement list','{'+sLineBreak+'a = b;'+sLineBreak+'}'+sLineBreak,S);
+  AssertWrite('Statement list','{'+sLineBreak+'a = b;'+sLineBreak+'}',S);
 end;
 
 Procedure TTestStatementWriter.TestStatementListOneStatementCompact;
@@ -1444,7 +1444,7 @@ begin
   S:=TJSStatementList.Create(0,0);
   S.A:=CreateAssignment(nil);
   S.B:=CreateAssignment(nil);
-  AssertWrite('Statement list','{'+sLineBreak+'a = b;'+sLineBreak+'a = b;'+sLineBreak+'}'+sLineBreak,S);
+  AssertWrite('Statement list','{'+sLineBreak+'a = b;'+sLineBreak+'a = b;'+sLineBreak+'}',S);
 end;
 
 Procedure TTestStatementWriter.TestStatementListTwoStatementsCompact;

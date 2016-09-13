@@ -6627,6 +6627,7 @@ packages/pastojs/Makefile.fpc svneol=native#text/plain
 packages/pastojs/fpmake.pp svneol=native#text/plain
 packages/pastojs/src/fppas2js.pp svneol=native#text/plain
 packages/pastojs/tests/tcconverter.pp svneol=native#text/plain
+packages/pastojs/tests/tcmodules.pas svneol=native#text/plain
 packages/pastojs/tests/testpas2js.lpi svneol=native#text/plain
 packages/pastojs/tests/testpas2js.pp svneol=native#text/plain
 packages/pastojs/todo.txt svneol=native#text/plain
