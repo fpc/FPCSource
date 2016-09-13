@@ -2301,7 +2301,7 @@ ifeq ($(findstring $(OS_TARGET),aix beos darwin haiku solaris),)
 GDBMI_IS_STATIC=1
 endif
 endif
-endifa # NOGDB
+endif # NOGDB
 ifndef GDBMI_IS_STATIC
 ifndef BUILDFULLNATIVE
 FPMAKE_OPT+=-sp
