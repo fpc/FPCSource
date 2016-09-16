@@ -1305,7 +1305,7 @@ implementation
         if not assigned(st) then
          internalerror(200204212);
         { sub procedures }
-        while (st.symtabletype=localsymtable) do
+        while (st.symtabletype in [localsymtable,parasymtable]) do
          begin
            if st.defowner.typ<>procdef then
             internalerror(200204173);
