@@ -39,6 +39,7 @@ uses
     procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string;parsedpos:tfileposinfo);inline;
     procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string);inline;
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef):tdef;inline;
+    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;symname:string):tdef;inline;
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;parsedtype:tdef;symname:string;parsedpos:tfileposinfo):tdef;
     function generate_specialization_phase2(context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;_prettyname:ansistring):tdef;
     function check_generic_constraints(genericdef:tstoreddef;paradeflist:tfpobjectlist;poslist:tfplist):boolean;
@@ -415,6 +416,17 @@ uses
 {$warn 5036 off}
       begin
         result:=generate_specialization_phase1(context,genericdef,nil,'',dummypos);
+      end;
+{$pop}
+
+
+    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;symname:string):tdef;
+      var
+        dummypos : tfileposinfo;
+{$push}
+{$warn 5036 off}
+      begin
+        result:=generate_specialization_phase1(context,genericdef,nil,symname,dummypos);
       end;
 {$pop}
 
