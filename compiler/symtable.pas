@@ -2830,7 +2830,7 @@ implementation
               exit;
             end;
           def:=tdef(def.owner.defowner);
-        until not (def.typ in [recorddef,objectdef]);
+        until not assigned(def) or not (def.typ in [recorddef,objectdef]);
         result:=nil;
       end;
 
