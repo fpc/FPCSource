@@ -13734,6 +13734,7 @@ tests/webtbf/tw2853.pp svneol=native#text/plain
 tests/webtbf/tw2853a.pp svneol=native#text/plain
 tests/webtbf/tw2853b.pp svneol=native#text/plain
 tests/webtbf/tw2853c.pp svneol=native#text/plain
+tests/webtbf/tw28753.pp svneol=native#text/pascal
 tests/webtbf/tw2878.pp svneol=native#text/plain
 tests/webtbf/tw2972.pp svneol=native#text/plain
 tests/webtbf/tw2972b.pp svneol=native#text/plain

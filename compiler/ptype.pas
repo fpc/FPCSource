@@ -588,26 +588,33 @@ implementation
                   end;
               end
             else if (def.typ=undefineddef) and
-                (sp_generic_dummy in srsym.symoptions) and
-                parse_generic and
-                (current_genericdef.typ in [recorddef,objectdef]) and
-                (Pos(upper(srsym.realname),tabstractrecorddef(current_genericdef).objname^)=1) then
+                (sp_generic_dummy in srsym.symoptions) then
               begin
-                if m_delphi in current_settings.modeswitches then
+                if parse_generic and
+                    (current_genericdef.typ in [recorddef,objectdef]) and
+                    (Pos(upper(srsym.realname),tabstractrecorddef(current_genericdef).objname^)=1) then
                   begin
-                    srsym:=resolve_generic_dummysym(srsym.name);
-                    if assigned(srsym) and
-                        not (sp_generic_dummy in srsym.symoptions) and
-                        (srsym.typ=typesym) then
-                      def:=ttypesym(srsym).typedef
-                    else
+                    if m_delphi in current_settings.modeswitches then
                       begin
-                        Message(parser_e_no_generics_as_types);
-                        def:=generrordef;
-                      end;
+                        srsym:=resolve_generic_dummysym(srsym.name);
+                        if assigned(srsym) and
+                            not (sp_generic_dummy in srsym.symoptions) and
+                            (srsym.typ=typesym) then
+                          def:=ttypesym(srsym).typedef
+                        else
+                          begin
+                            Message(parser_e_no_generics_as_types);
+                            def:=generrordef;
+                          end;
+                      end
+                    else
+                      def:=current_genericdef;
                   end
                 else
-                  def:=current_genericdef;
+                  begin
+                    Message(parser_e_no_generics_as_types);
+                    def:=generrordef;
+                  end;
               end
             else if is_classhelper(def) and
                 not (stoParseClassParent in options) then
