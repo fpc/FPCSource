@@ -275,20 +275,33 @@ implementation
            end
          else
            begin
-             { undefined defs or defs with generic constraints are
-               considered equal to everything }
-             if (
-                   (def_from.typ=undefineddef) or
-                   assigned(tstoreddef(def_from).genconstraintdata)
-                 ) or (
-                   (def_to.typ=undefineddef) or
-                   assigned(tstoreddef(def_to).genconstraintdata)
-                 ) then
-              begin
-                doconv:=tc_equal;
-                compare_defs_ext:=te_exact;
-                exit;
-              end;
+             { undefined defs are considered equal to everything }
+             if (def_from.typ=undefineddef) or
+                 (def_to.typ=undefineddef) then
+               begin
+                 doconv:=tc_equal;
+                 compare_defs_ext:=te_exact;
+                 exit;
+               end;
+
+             { either type has constraints }
+             if assigned(tstoreddef(def_from).genconstraintdata) or
+                 assigned(tstoreddef(def_to).genconstraintdata) then
+               begin
+                 if def_from.typ<>def_to.typ then
+                   begin
+                     { not compatible anyway }
+                     doconv:=tc_not_possible;
+                     compare_defs_ext:=te_incompatible;
+                     exit;
+                   end;
+
+                 { one is definitely a constraint, for the other we don't
+                   care right now }
+                 doconv:=tc_equal;
+                 compare_defs_ext:=te_exact;
+                 exit;
+               end;
            end;
 
          { two specializations are considered equal if they specialize the same
