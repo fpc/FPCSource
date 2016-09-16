@@ -522,7 +522,7 @@ begin
   end;
 end;
 
-function TEnumerable<T>.GetEnumerator: TEnumerator;
+function TEnumerable<T>.GetEnumerator: TEnumerator<T>;
 begin
   Exit(DoGetEnumerator);
 end;
