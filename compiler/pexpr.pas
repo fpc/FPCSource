@@ -2882,7 +2882,13 @@ implementation
                if assigned(srsym) and
                    not (
                      (srsym.typ=typesym) and
-                     (ttypesym(srsym).typedef.typ in [recorddef,objectdef,arraydef,procvardef,undefineddef]) and
+                     (
+                       (ttypesym(srsym).typedef.typ in [recorddef,objectdef,arraydef,procvardef,undefineddef]) or
+                       (
+                         (ttypesym(srsym).typedef.typ=errordef) and
+                         (sp_generic_dummy in srsym.symoptions)
+                       )
+                     ) and
                      not (sp_generic_para in srsym.symoptions) and
                      (token in [_LT, _LSHARPBRACKET])
                    ) then
