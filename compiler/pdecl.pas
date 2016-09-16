@@ -647,6 +647,8 @@ implementation
                         declaration, reuse it }
                       newtype:=ttypesym(sym);
                       newtype.typedef:=hdef;
+                      { use the correct casing }
+                      newtype.RealName:=genorgtypename;
                       sym:=nil;
                     end;
 
