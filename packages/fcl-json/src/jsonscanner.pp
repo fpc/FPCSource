@@ -208,7 +208,7 @@ var
   TokenStart, CurPos: PChar;
   it : TJSONToken;
   I : Integer;
-  OldLength, SectionLength, Index: Integer;
+  OldLength, SectionLength, Index, tstart,tcol: Integer;
   C : char;
   S : String;
   IsStar,EOC: Boolean;
@@ -433,6 +433,8 @@ begin
       end;
     'a'..'z','A'..'Z','_':
       begin
+        tstart:=CurRow;
+        Tcol:=CurColumn;
         TokenStart := TokenStr;
         repeat
           Inc(TokenStr);
@@ -448,7 +450,7 @@ begin
             exit;
             end;
         if (joStrict in Options) then
-          Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]])
+          Error(SErrInvalidCharacter, [tStart,tcol,TokenStart[0]])
         else
           Result:=tkIdentifier;
       end;
