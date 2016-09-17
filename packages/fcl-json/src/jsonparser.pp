@@ -148,6 +148,7 @@ begin
       tkSQuaredBraceClose : DoError(SErrUnexpectedToken);
       tkNumber : Result:=ParseNumber;
       tkComma : DoError(SErrUnexpectedToken);
+      tkIdentifier : DoError(SErrUnexpectedToken);
     end;
   except
     FreeAndNil(Result);
