@@ -406,7 +406,6 @@ Var
   PI : PPropInfo;
   TI : PTypeInfo;
   I,J,S : Integer;
-  D : Double;
   A : TJSONArray;
   JS : TJSONStringType;
 begin
@@ -551,8 +550,6 @@ procedure TJSONDeStreamer.JSONToCollection(const JSON: TJSONData;
 Var
   I : integer;
   A : TJSONArray;
-  O : TJSONObject;
-
 begin
   If (JSON.JSONType=jtArray) then
     A:=JSON As TJSONArray
@@ -979,10 +976,6 @@ begin
 end;
 
 function TJSONStreamer.StreamClassProperty(const AObject: TObject): TJSONData;
-
-Var
-  C : TCollection;
-  I : integer;
 
 begin
   Result:=Nil;

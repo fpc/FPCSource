@@ -65,7 +65,6 @@ Resourcestring
   SErrUnexpectedEOF   = 'Unexpected EOF encountered.';
   SErrUnexpectedToken = 'Unexpected token (%s) encountered.';
   SErrExpectedColon   = 'Expected colon (:), got token "%s".';
-  SErrUnexpectedComma = 'Invalid comma encountered.';
   SErrEmptyElement = 'Empty element encountered.';
   SErrExpectedElementName    = 'Expected element name, got token "%s"';
   SExpectedCommaorBraceClose = 'Expected , or ], got token "%s".';

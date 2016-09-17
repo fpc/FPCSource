@@ -19,7 +19,7 @@ unit testjsonparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry,fpjson,
+  Classes, SysUtils, fpcunit, testregistry,fpjson,
   jsonscanner,jsonParser,testjsondata;
 
 Const

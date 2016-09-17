@@ -117,7 +117,6 @@ type
     FDS : TJSONDeStreamer;
     FJD : TJSONData;
     FToFree : TObject;
-    FCalled : Boolean;
     procedure DeStream(JSON: TJSONStringType; AObject: TObject);
     procedure DeStream(JSON: TJSONObject; AObject: TObject);
     procedure DoDateTimeFormat;
@@ -1021,7 +1020,6 @@ procedure TTestJSONStreamer.TestCollectionProp2;
 
 Var
   C : TCollectionComponent;
-  F : TJSONObject;
   A : TJSONArray;
 
 begin
@@ -1057,8 +1055,6 @@ end;
 
 procedure TTestJSONStreamer.TestStringsProp1;
 
-Var
-  A : TJSONArray;
 begin
   RJ.Options:=[jsoTstringsAsArray];
   StreamObject(TStringsCOmponent.Create(Nil));
@@ -1068,8 +1064,6 @@ end;
 
 procedure TTestJSONStreamer.TestStringsProp2;
 
-Var
-  A : TJSONArray;
 begin
   StreamObject(TStringsCOmponent.Create(Nil));
   AssertPropCount(1);
@@ -1267,7 +1261,6 @@ end;
 
 procedure TTestJSONStreamer.TestStringsStream4;
 Var
-  O : TJSONObject;
   S : TStringList;
 
 begin
@@ -1598,7 +1591,7 @@ begin
   AssertEquals('Variant type',VarTypeAsText(varSingle),VarTypeAsText(VarType(C.VariantProp)));
   StreamObject(FTofree);
   AssertPropCount(1);
-  AssertProp('VariantProp',3.14);
+  AssertProp('VariantProp',i);
 end;
 
 procedure TTestJSONStreamer.TestVariantdouble;

@@ -19,7 +19,7 @@ unit testjsondata;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, fpjson;
+  Classes, SysUtils, fpcunit, testregistry, fpjson;
 
 type
    TMyNull     = Class(TJSONNull);
@@ -204,6 +204,7 @@ type
     Procedure TestClone;
     Procedure TestMyClone;
     Procedure TestFormat;
+    Procedure TestFormatNil;
   end;
   
   { TTestObject }
@@ -252,6 +253,7 @@ type
     procedure TestExtract;
     Procedure TestNonExistingAccessError;
     Procedure TestFormat;
+    Procedure TestFormatNil;
     Procedure TestFind;
   end;
 
@@ -1002,7 +1004,6 @@ end;
 
 procedure TTestJSONPath.TestDeepRecursive;
 Var
-  O : TJSONObject;
   A : TJSONArray;
   D : TJSONData;
 begin
@@ -2563,7 +2564,6 @@ procedure TTestArray.TestAddString;
 Var
   J : TJSONArray;
   S : String;
-  F : TJSONFloat;
   
 begin
   S:='A string';
@@ -2585,8 +2585,6 @@ procedure TTestArray.TestAddNull;
 
 Var
   J : TJSONArray;
-  S : String;
-  F : TJSONFloat;
 
 begin
   J:=TJSonArray.Create;
@@ -2720,7 +2718,6 @@ procedure TTestArray.TestInsertString;
 Var
   J : TJSONArray;
   S : String;
-  F : TJSONFloat;
 
 begin
   S:='A string';
@@ -2742,8 +2739,6 @@ end;
 procedure TTestArray.TestInsertNull;
 Var
   J : TJSONArray;
-  S : String;
-  F : TJSONFloat;
 
 begin
   J:=TJSonArray.Create;
@@ -2825,11 +2820,8 @@ end;
 procedure TTestArray.TestMove;
 Var
   J : TJSONArray;
-  S : String;
-  F : TJSONFloat;
 
 begin
-  S:='A string';
   J:=TJSonArray.Create;
   try
     J.Add('First string');
@@ -2849,11 +2841,8 @@ end;
 procedure TTestArray.TestExchange;
 Var
   J : TJSONArray;
-  S : String;
-  F : TJSONFloat;
 
 begin
-  S:='A string';
   J:=TJSonArray.Create;
   try
     J.Add('First string');
@@ -2987,7 +2976,7 @@ end;
 
 procedure TTestArray.TestMyClone;
 Var
-  J,J2 : TMyArray;
+  J : TMyArray;
   D : TJSONData;
 
 begin
@@ -3010,7 +2999,6 @@ end;
 procedure TTestArray.TestFormat;
 Var
   J : TJSONArray;
-  I : TJSONData;
 
 begin
   J:=TJSonArray.Create;
@@ -3030,6 +3018,23 @@ begin
     AssertEquals('FormatJSON, use tab indentsize 1','['+sLinebreak+#9'0,'+sLinebreak+#9'1,'+sLinebreak+#9'2,'+sLinebreak+#9'{'+sLineBreak+#9#9'"x" : 1,'+sLineBreak+#9#9'"y" : 2'+sLinebreak+#9'}'+sLineBreak+']',J.FormatJSON([foUseTabChar],1));
   finally
     J.Free
+  end;
+end;
+
+procedure TTestArray.TestFormatNil;
+
+Var
+  J : TJSONArray;
+
+begin
+  J:=TJSonArray.Create;
+  try
+    J.Add(1);
+    J.Add(TJSONObject(Nil));
+    TestJSON(J,'[1, null]');
+    AssertEquals('FormatJSON, single line',J.AsJSON,J.FormatJSON([foSingleLineArray],1));
+  finally
+    J.Free;
   end;
 end;
 
@@ -3199,7 +3204,6 @@ Const
 Var
   J : TJSONObject;
   S : String;
-  F : TJSONFloat;
 
 begin
   S:='A string';
@@ -3224,8 +3228,6 @@ Const
 
 Var
   J : TJSONObject;
-  S : String;
-  F : TJSONFloat;
 
 begin
   J:=TJSonObject.Create;
@@ -3479,6 +3481,23 @@ begin
     AssertEquals('Format 1','{'+sLineBreak+#9'x : 1,'+sLineBreak+#9'y : 2,'+sLineBreak+#9's : {'+sLineBreak+#9#9'w : 10,'+sLineBreak+#9#9'h : 20'+sLineBreak+#9'}'+sLineBreak+'}',O.FormatJSON([foUseTabChar,foDoNotQuoteMembers],1));
   finally
     O.Free;
+  end;
+end;
+
+procedure TTestObject.TestFormatNil;
+
+Var
+  J : TJSONObject;
+
+begin
+  J:=TJSONObject.Create;
+  try
+    J.Add('a',1);
+    J.Add('b',TJSONObject(Nil));
+    TestJSON(J,'{ "a" : 1, "b" : null }');
+    AssertEquals('FormatJSON, single line',J.AsJSON,J.FormatJSON([foSingleLineObject],1));
+  finally
+    J.Free;
   end;
 end;
 

@@ -205,10 +205,10 @@ function TJSONScanner.DoFetchToken: TJSONToken;
   end;
 
 var
-  TokenStart, CurPos: PChar;
+  TokenStart: PChar;
   it : TJSONToken;
   I : Integer;
-  OldLength, SectionLength, Index, tstart,tcol: Integer;
+  OldLength, SectionLength,  tstart,tcol: Integer;
   C : char;
   S : String;
   IsStar,EOC: Boolean;
