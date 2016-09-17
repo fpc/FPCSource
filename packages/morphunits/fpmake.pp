@@ -59,6 +59,7 @@ begin
     T:=P.Targets.AddUnit('gadtools.pas');
     T:=P.Targets.AddUnit('workbench.pas');
     T:=P.Targets.AddUnit('icon.pas');
+    T:=P.Targets.AddUnit('locale.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

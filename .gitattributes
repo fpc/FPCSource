@@ -5928,6 +5928,7 @@ packages/morphunits/src/inputevent.pas svneol=native#text/plain
 packages/morphunits/src/intuition.pas svneol=native#text/plain
 packages/morphunits/src/keymap.pas svneol=native#text/plain
 packages/morphunits/src/layers.pas svneol=native#text/plain
+packages/morphunits/src/locale.pas svneol=native#text/pascal
 packages/morphunits/src/mui.pas svneol=native#text/plain
 packages/morphunits/src/muihelper.pas svneol=native#text/plain
 packages/morphunits/src/timer.pas svneol=native#text/plain
