@@ -527,18 +527,19 @@ implementation
              if UseAVX then
                case tfloatdef(resultdef).floattype of
                  s32real:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSS,S_XMM,left.location.register,location.register,location.register));
+                   { we use S_NO instead of S_XMM here, regardless of the register size, as the size of the memory location is 32/64 bit }
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSS,S_NO,left.location.register,location.register,location.register));
                  s64real:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSD,S_XMM,left.location.register,location.register,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSD,S_NO,left.location.register,location.register,location.register));
                  else
                    internalerror(200510031);
                end
              else
                case tfloatdef(resultdef).floattype of
                  s32real:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSS,S_XMM,left.location.register,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSS,S_NO,left.location.register,location.register));
                  s64real:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSD,S_XMM,left.location.register,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSD,S_NO,left.location.register,location.register));
                  else
                    internalerror(200510031);
                end;
