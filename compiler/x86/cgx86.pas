@@ -457,18 +457,18 @@ unit cgx86;
             else
               begin
                 { don't use add, as the flags may contain a value }
-                reference_reset_base(href,ref.base,0,8);
+                reference_reset_base(href,ref.base,0,ref.alignment);
                 href.index:=hreg;
                 if ref.scalefactor<>0 then
                   begin
-                    reference_reset_base(href,ref.base,0,8);
+                    reference_reset_base(href,ref.base,0,ref.alignment);
                     href.index:=hreg;
                     list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
                     ref.base:=hreg;
                   end
                 else
                   begin
-                    reference_reset_base(href,ref.index,0,8);
+                    reference_reset_base(href,ref.index,0,ref.alignment);
                     href.index:=hreg;
                     list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.index,hreg));
                     ref.index:=hreg;
@@ -521,7 +521,7 @@ unit cgx86;
                 else
                   begin
                     { don't use add, as the flags may contain a value }
-                    reference_reset_base(href,ref.base,0,8);
+                    reference_reset_base(href,ref.base,0,ref.alignment);
                     href.index:=hreg;
                     ref.base:=getaddressregister(list);
                     list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,ref.base));
@@ -556,7 +556,7 @@ unit cgx86;
                       else
                         begin
                           { don't use add, as the flags may contain a value }
-                          reference_reset_base(href,ref.base,0,8);
+                          reference_reset_base(href,ref.base,0,ref.alignment);
                           href.index:=hreg;
                           ref.base:=getaddressregister(list);
                           list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,ref.base));
@@ -615,7 +615,7 @@ unit cgx86;
             else
               begin
                 { don't use add, as the flags may contain a value }
-                reference_reset_base(href,ref.base,0,8);
+                reference_reset_base(href,ref.base,0,ref.alignment);
                 href.index:=hreg;
                 list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
                 ref.base:=hreg;
@@ -1083,12 +1083,12 @@ unit cgx86;
                             then
                       begin
 {$ifdef x86_64}
-                        reference_reset_symbol(tmpref,dirref.symbol,0,dirref.alignment);
+                        reference_reset_symbol(tmpref,dirref.symbol,0,sizeof(pint));
                         tmpref.refaddr:=addr_pic;
                         tmpref.base:=NR_RIP;
                         list.concat(taicpu.op_ref_reg(A_MOV,S_Q,tmpref,r));
 {$else x86_64}
-                        reference_reset_symbol(tmpref,dirref.symbol,0,dirref.alignment);
+                        reference_reset_symbol(tmpref,dirref.symbol,0,sizeof(pint));
                         tmpref.refaddr:=addr_pic;
                         tmpref.base:=current_procinfo.got;
                         include(current_procinfo.flags,pi_needs_got);
@@ -1147,7 +1147,7 @@ unit cgx86;
                       system_i386_linux,system_i386_android:
                         if segment=NR_GS then
                           begin
-                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset',AT_DATA),0,dirref.alignment);
+                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset',AT_DATA),0,sizeof(pint));
                             tmpref.segment:=NR_GS;
                             list.concat(Taicpu.op_ref_reg(A_ADD,tcgsize2opsize[OS_ADDR],tmpref,r));
                           end

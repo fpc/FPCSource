@@ -689,7 +689,7 @@ implementation
           else
             internalerror(2014052202);
 
-          location_reset_ref(l,LOC_REFERENCE,l.size,0);
+          location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment);
           l.reference:=r;
         end
       else if is_fourbyterecord(size) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -704,7 +704,7 @@ implementation
           else
             cg.a_load_reg_ref(list,OS_16,OS_16,GetNextReg(l.register),tmpref);
 
-          location_reset_ref(l,LOC_REFERENCE,l.size,0);
+          location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment);
           l.reference:=r;
         end
       else

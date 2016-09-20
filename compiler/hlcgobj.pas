@@ -4043,7 +4043,7 @@ implementation
           begin
             tg.gethltemp(list,size,size.size,tt_normal,r);
             a_loadfpu_reg_ref(list,size,size,l.register,r);
-            location_reset_ref(l,LOC_REFERENCE,l.size,0);
+            location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment);
             l.reference:=r;
           end;
         LOC_MMREGISTER,
@@ -4054,7 +4054,7 @@ implementation
               internalerror(2012062301);
             tg.gethltemp(list,size,size.size,tt_normal,r);
             a_loadmm_reg_ref(list,size,size,l.register,r,mms_movescalar);
-            location_reset_ref(l,LOC_REFERENCE,l.size,0);
+            location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment);
             l.reference:=r;
           end;
         LOC_CONSTANT,
@@ -4072,7 +4072,7 @@ implementation
               forcesize:=sizeof(pint);
             tg.gethltemp(list,size,forcesize,tt_normal,r);
             a_load_loc_ref(list,size,size,l,r);
-            location_reset_ref(l,LOC_REFERENCE,l.size,0);
+            location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment);
             l.reference:=r;
           end;
         LOC_CREFERENCE,
@@ -4096,7 +4096,7 @@ implementation
             begin
               tg.gethltemp(list,size,-1,tt_normal,href);
               hlcg.a_loadfpu_reg_ref(list,size,size,l.register,href);
-              location_reset_ref(l,LOC_REFERENCE,l.size,0);
+              location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment);
               l.reference:=href;
             end;
           { on ARM, CFP values may be located in integer registers,

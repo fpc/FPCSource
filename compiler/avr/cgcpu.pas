@@ -2027,8 +2027,8 @@ unit cgcpu;
           begin
             current_asmdata.getjumplabel(l);
 
-            reference_reset(srcref,0);
-            reference_reset(dstref,0);
+            reference_reset(srcref,source.alignment);
+            reference_reset(dstref,dest.alignment);
             srcref.base:=NR_R30;
             srcref.addressmode:=AM_POSTINCREMENT;
             dstref.base:=NR_R26;

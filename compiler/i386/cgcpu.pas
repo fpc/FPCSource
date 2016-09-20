@@ -257,7 +257,7 @@ unit cgcpu;
                               end
                             else
                               begin
-                                reference_reset_symbol(tmpref,dirref.symbol,0,dirref.alignment);
+                                reference_reset_symbol(tmpref,dirref.symbol,0,sizeof(pint));
                                 tmpref.refaddr:=addr_pic;
                                 tmpref.base:=current_procinfo.got;
 {$ifdef EXTDEBUG}
