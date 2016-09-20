@@ -658,7 +658,11 @@ unit cgx86;
             reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
             a_op_ref_reg(list,OP_MOVE,OS_ADDR,href,hreg);
             if ref.base<>NR_NO then
-              a_op_reg_reg(list,OP_ADD,OS_ADDR,ref.base,hreg);
+              begin
+                { don't use ADD, the flags may contain a value }
+                reference_reset_base(href,ref.base,0,ref.alignment);
+                a_loadaddr_ref_reg(list,href,hreg);
+              end;
             ref.symbol:=nil;
             ref.base:=hreg;
           end;
