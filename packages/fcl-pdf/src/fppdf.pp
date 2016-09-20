@@ -33,10 +33,23 @@ uses
   fpparsettf;
 
 Const
-  clBlack = $000000;
-  clBlue  = $0000FF;
-  clGreen = $00FF00;
-  clRed   = $FF0000;
+  { Some popular predefined colors. Channel format is: RRGGBB }
+  clBlack   = $000000;
+  clWhite   = $FFFFFF;
+  clBlue    = $0000FF;
+  clGreen   = $008000;
+  clRed     = $FF0000;
+  clAqua    = $00FFFF;
+  clMagenta = $FF00FF;
+  clYellow  = $FFFF00;
+  clLtGray  = $C0C0C0;
+  clMaroon  = $800000;
+  clOlive   = $808000;
+  clDkGray  = $808080;
+  clTeal    = $008080;
+  clNavy    = $000080;
+  clPurple  = $800080;
+  clLime    = $00FF00;
 
 type
   TPDFPaperType = (ptCustom, ptA4, ptA5, ptLetter, ptLegal, ptExecutive, ptComm10, ptMonarch, ptDL, ptC5, ptB5);
@@ -45,7 +58,7 @@ type
   TPDFPageLayout = (lSingle, lTwo, lContinuous);
   TPDFUnitOfMeasure = (uomInches, uomMillimeters, uomCentimeters, uomPixels);
 
-  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG);
+  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts);
   TPDFOptions = set of TPDFOption;
 
   EPDF = Class(Exception);
@@ -3430,12 +3443,9 @@ end;
 
 function TPDFDocument.CreatePageEntry(Parent, PageNum: integer): integer;
 var
-
   PDict,ADict: TPDFDictionary;
   Arr : TPDFArray;
   PP : TPDFPage;
-  AnnotArr: TPDFArray;
-
 begin
   // add xref entry
   PP:=Pages[PageNum];
@@ -3579,9 +3589,16 @@ begin
   CreateTTFDescendantFont(EmbeddedFontNum);
   Arr := CreateArray;
   FDict.AddElement('DescendantFonts', Arr);
-  Arr.AddItem(TPDFReference.Create(self, GlobalXRefCount-4));
-  CreateToUnicode(EmbeddedFontNum);
-  FDict.AddReference('ToUnicode', GlobalXRefCount-1);
+  if (poNoEmbeddedFonts in Options) then
+  begin
+    Arr.AddItem(TPDFReference.Create(self, GlobalXRefCount-3));
+  end
+  else
+  begin
+    Arr.AddItem(TPDFReference.Create(self, GlobalXRefCount-4));
+    CreateToUnicode(EmbeddedFontNum);
+    FDict.AddReference('ToUnicode', GlobalXRefCount-1);
+  end;
   FontFiles.Add(Fonts[EmbeddedFontNum].FTrueTypeFile.Filename);
 end;
 
@@ -3601,7 +3618,10 @@ begin
 
   // add fontdescriptor reference to font dictionary
   CreateFontDescriptor(EmbeddedFontNum);
-  FDict.AddReference('FontDescriptor',GlobalXRefCount-2);
+  if (poNoEmbeddedFonts in Options) then
+    FDict.AddReference('FontDescriptor',GlobalXRefCount-1)
+  else
+    FDict.AddReference('FontDescriptor',GlobalXRefCount-2);
 
   Arr := CreateArray;
   FDict.AddElement('W',Arr);
@@ -3642,8 +3662,16 @@ begin
   FDict.AddInteger('ItalicAngle', trunc(Fonts[EmbeddedFontNum].FTrueTypeFile.ItalicAngle));
   FDict.AddInteger('StemV', Fonts[EmbeddedFontNum].FTrueTypeFile.StemV);
   FDict.AddInteger('MissingWidth', Fonts[EmbeddedFontNum].FTrueTypeFile.MissingWidth);
-  CreateFontFileEntry(EmbeddedFontNum);
-  FDict.AddReference('FontFile2',GlobalXRefCount-1);
+  if (poNoEmbeddedFonts in Options) then
+  begin
+    //CreateFontFileEntry(EmbeddedFontNum);
+    //FDict.AddReference('FontFile2',GlobalXRefCount-1);
+  end
+  else
+  begin
+    CreateFontFileEntry(EmbeddedFontNum);
+    FDict.AddReference('FontFile2',GlobalXRefCount-1);
+  end;
 end;
 
 procedure TPDFDocument.CreateToUnicode(const EmbeddedFontNum: integer);
