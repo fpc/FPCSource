@@ -98,11 +98,6 @@ type
     RTLEventResetEvent     : TRTLEventHandler;
     RTLEventWaitFor        : TRTLEventHandler;
     RTLEventWaitForTimeout : TRTLEventHandlerTimeout;
-    // semaphores stuff
-    SemaphoreInit          : TSempahoreInitHandler;
-    SemaphoreDestroy       : TSemaphoreDestroyHandler;
-    SemaphorePost          : TSemaphorePostHandler;
-    SemaphoreWait          : TSemaphoreWaitHandler;
   end;
 
 {*****************************************************************************
@@ -174,9 +169,4 @@ procedure RTLeventSetEvent(state:pRTLEvent);
 procedure RTLeventResetEvent(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
-
-function SemaphoreInit: Pointer;
-procedure SemaphoreDestroy(const sem: Pointer);
-procedure SemaphoreWait(const sem: Pointer);
-procedure SemaphorePost(const sem: Pointer);
 

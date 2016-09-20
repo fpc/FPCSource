@@ -853,24 +853,6 @@ begin
 end;
 
 
-function ASemaphoreInit: Pointer;
-begin
-  result:=nil;
-end;
-
-procedure ASemaphoreDestroy(const FSem: Pointer);
-begin
-end;
-
-procedure ASemaphoreWait(const FSem: Pointer);
-begin
-end;
-
-procedure ASemaphorePost(const FSem: Pointer);
-begin
-end;
-
-
 function AInitThreads : Boolean;
 begin
 {$ifdef DEBUG_MT}
@@ -926,11 +908,6 @@ begin
     rtlEventResetEvent     :=@intrtlEventResetEvent;
     rtleventWaitForTimeout :=@intrtleventWaitForTimeout;
     rtleventWaitFor        :=@intrtleventWaitFor;
-    // semaphores
-    SemaphoreInit          :=@ASemaphoreInit;
-    SemaphoreDestroy       :=@ASemaphoreDestroy;
-    SemaphoreWait          :=@ASemaphoreWait;
-    SemaphorePost          :=@ASemaphorePost;
   end;
   SetThreadManager(AThreadManager);
 end;

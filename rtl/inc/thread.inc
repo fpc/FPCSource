@@ -330,26 +330,6 @@ begin
   currenttm.rtleventWaitForTimeout(state,timeout);
 end;
 
-function SemaphoreInit: pointer;
-begin
-  result:=currenttm.SemaphoreInit();
-end;
-
-procedure SemaphoreDestroy(const sem: pointer);
-begin
-  currenttm.SemaphoreDestroy(sem);
-end;
-
-procedure SemaphoreWait(const sem: pointer);
-begin
-  currenttm.SemaphoreWait(sem);
-end;
-
-procedure SemaphorePost(const sem: pointer);
-begin
-  currenttm.SemaphorePost(sem);
-end;
-
 { ---------------------------------------------------------------------
     ThreadManager which gives run-time error. Use if no thread support.
   ---------------------------------------------------------------------}
@@ -513,28 +493,6 @@ begin
 end;
 
 
-function NoSemaphoreInit: Pointer;
-begin
-  if IsMultiThread then
-    NoThreadError
-  else
-    ThreadingAlreadyUsed:=true;
-  result:=nil;
-end;
-
-procedure NoSemaphoreWait(const FSem: Pointer);
-begin
-  NoThreadError;
-end;
-
-procedure NoSemaphore(const FSem: Pointer);
-begin
-  if IsMultiThread then
-    NoThreadError
-  else
-    ThreadingAlreadyUsed:=true;
-end;
-
 const
   NoThreadManager : TThreadManager = (
          InitManager            : Nil;
@@ -573,10 +531,6 @@ const
          rtleventResetEvent     : TRTLEventHandler(@NoThreadError);
          rtleventWaitFor        : TRTLEventHandler(@NoThreadError);
          rtleventwaitfortimeout : TRTLEventHandlerTimeout(@NoThreadError);
-         SemaphoreInit          : TSempahoreInitHandler(@NoThreadError);
-         SemaphoreDestroy       : TSemaphoreDestroyHandler(@NoThreadError);
-         SemaphorePost          : TSemaphorePostHandler(@NoThreadError);
-         SemaphoreWait          : TSemaphoreWaitHandler(@NoThreadError)
 {$else EMBEDDED}
          BeginThread            : @NoBeginThread;
          EndThread              : @NoEndThread;
@@ -609,10 +563,6 @@ const
          rtleventResetEvent     : @NoRTLEvent;
          rtleventWaitFor        : @NoRTLEvent;
          rtleventwaitfortimeout : @NoRTLEventWaitForTimeout;
-         SemaphoreInit          : @NoSemaphoreInit;
-         SemaphoreDestroy       : @NoSemaphore;
-         SemaphorePost          : @NoSemaphore;
-         SemaphoreWait          : @NoSemaphoreWait
 {$endif EMBEDDED}
       );
 
