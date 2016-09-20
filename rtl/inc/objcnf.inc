@@ -240,7 +240,7 @@ type
   function class_respondsToSelector(cls:pobjc_class; sel:SEL):BOOL; cdecl; external libname;
   function class_copyMethodList(cls:pobjc_class; outCount:pdword):PMethod; cdecl; external libname;
 
-  function class_conformsToProtocol(cls:pobjc_class; var protocol: pobjc_protocol):BOOL; cdecl; external libname;
+  function class_conformsToProtocol(cls:pobjc_class; protocol: pobjc_protocol):BOOL; cdecl; external libname;
   function class_copyProtocolList(cls:pobjc_class; var outCount: dword):ppobjc_protocol; cdecl; external libname;
 
   function class_createInstance(cls:pobjc_class; extraBytes:size_t):id; cdecl; external libname;
