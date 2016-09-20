@@ -867,10 +867,10 @@ implementation
 
          newsize:=def_cgsize(resultdef);
          secondpass(left);
-         if left.location.loc=LOC_CREFERENCE then
-           location_reset_ref(location,LOC_CREFERENCE,newsize,left.location.reference.alignment)
+         if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
+           location_reset_ref(location,left.location.loc,newsize,left.location.reference.alignment)
          else
-           location_reset_ref(location,LOC_REFERENCE,newsize,left.location.reference.alignment);
+           location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment);
 
          { an ansistring needs to be dereferenced }
          if is_ansistring(left.resultdef) or
