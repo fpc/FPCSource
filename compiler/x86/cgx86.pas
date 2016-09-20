@@ -457,22 +457,12 @@ unit cgx86;
             else
               begin
                 { don't use add, as the flags may contain a value }
-                reference_reset_base(href,ref.base,0,ref.alignment);
-                href.index:=hreg;
-                if ref.scalefactor<>0 then
-                  begin
-                    reference_reset_base(href,ref.base,0,ref.alignment);
-                    href.index:=hreg;
-                    list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
-                    ref.base:=hreg;
-                  end
-                else
-                  begin
-                    reference_reset_base(href,ref.index,0,ref.alignment);
-                    href.index:=hreg;
-                    list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.index,hreg));
-                    ref.index:=hreg;
-                  end;
+                reference_reset_base(href,hreg,0,ref.alignment);
+                href.index:=ref.index;
+                href.scalefactor:=ref.scalefactor;
+                list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
+                ref.index:=hreg;
+                ref.scalefactor:=1;
                end;
           end;
 
