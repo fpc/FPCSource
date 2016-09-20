@@ -69,7 +69,8 @@ interface
          addr_no,
          addr_full,
          addr_pic,
-         addr_pic_no_got
+         addr_pic_no_got,
+         addr_load_indirect    // only load symbol address via indirect symbol, not actual symbol data
          {$IF defined(POWERPC) or defined(POWERPC64) or defined(SPARC) or defined(MIPS)}
          ,
          addr_low,         // bits 48-63

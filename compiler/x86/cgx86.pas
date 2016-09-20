@@ -132,8 +132,6 @@ unit cgx86;
 
         procedure generate_leave(list : TAsmList);
       protected
-        in_make_direct_ref : boolean;
-
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure check_register_size(size:tcgsize;reg:tregister);
 
@@ -428,7 +426,8 @@ unit cgx86;
           exit;
 
         { handle indirect symbols first }
-        make_direct_ref(list,ref);
+        if ref.refaddr<>addr_load_indirect then
+            make_direct_ref(list,ref);
 
 {$if defined(x86_64)}
         { Only 32bit is allowed }
@@ -649,13 +648,13 @@ unit cgx86;
         href : treference;
         hreg : tregister;
       begin
-        if in_make_direct_ref then
-          exit;
-        in_make_direct_ref:=true;
         if assigned(ref.symbol) and (ref.symbol.bind in asmsymbindindirect) then
           begin
             hreg:=getaddressregister(list);
             reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
+            { tell make_simple_ref that we are loading the symbol address via an indirect
+              symbol and that hence it should not call make_direct_ref() again }
+            href.refaddr:=addr_load_indirect;
             a_op_ref_reg(list,OP_MOVE,OS_ADDR,href,hreg);
             if ref.base<>NR_NO then
               begin
@@ -666,7 +665,6 @@ unit cgx86;
             ref.symbol:=nil;
             ref.base:=hreg;
           end;
-        in_make_direct_ref:=false;
       end;
 
 
@@ -1040,7 +1038,8 @@ unit cgx86;
 
         { this could probably done in a more optimized way, but for now this
           is sufficent }
-        make_direct_ref(list,dirref);
+        if dirref.refaddr<>addr_load_indirect then
+          make_direct_ref(list,dirref);
 
         with dirref do
           begin
