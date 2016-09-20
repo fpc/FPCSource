@@ -225,7 +225,7 @@ begin
   // fieldno is 1 based !
   BeginUpdate;
   try
-    Add(AName,ADataType,ASize,Arequired,Count+1);
+    Add(AName,ADataType,ASize,ARequired,Count+1);
   finally
     EndUpdate;
   end;
@@ -252,9 +252,16 @@ begin
   Inherited Create(ADataset, Owner, FieldDefClass);
 end;
 
-function TFieldDefs.Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Integer; ACodePage: TSystemCodePage): TFieldDef;
+function TFieldDefs.Add(const AName: string; ADataType: TFieldType; ASize, APrecision: Integer;
+  ARequired, AReadOnly: Boolean; AFieldNo: Integer; ACodePage: TSystemCodePage): TFieldDef;
 begin
-  Result:=FieldDefClass.Create(Self,AName,ADataType,ASize,ARequired,AFieldNo,ACodePage);
+  Result:=FieldDefClass.Create(Self, MakeNameUnique(AName), ADataType, ASize, ARequired, AFieldNo, ACodePage);
+  case ADataType of
+    ftBCD, ftFmtBCD:
+      Result.Precision := APrecision;
+  end;
+  if AReadOnly then
+    Result.Attributes := Result.Attributes + [faReadOnly];
 end;
 
 function TFieldDefs.Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Integer): TFieldDef;

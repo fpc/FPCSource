@@ -454,7 +454,6 @@ begin
     FN:=sqlite3_column_name(st,i);
     FD:=uppercase(sqlite3_column_decltype(st,i));
     ft1:= ftUnknown;
-    size1:= 0;
     for fi := 1 to FieldMapCount do if pos(FieldMap[fi].N,FD)=1 then
       begin
       ft1:=FieldMap[fi].t;
@@ -476,6 +475,7 @@ begin
       end;
     // handle some specials.
     size1:=0;
+    size2:=0;
     case ft1 of
       ftString,
       ftFixedChar,
@@ -500,7 +500,7 @@ begin
                end;
       ftUnknown : DatabaseErrorFmt('Unknown or unsupported data type %s of column %s', [FD, FN]);
     end; // Case
-    FieldDefs.Add(FieldDefs.MakeNameUnique(FN), ft1, size1, false, i+1, CP_UTF8);
+    FieldDefs.Add(FN, ft1, size1, size2, false, false, i+1, CP_UTF8);
     end;
 end;
 

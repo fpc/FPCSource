@@ -1428,13 +1428,7 @@ begin
   end
   else
     ACodePage := 0;
-  Result := AFieldDefs.Add(AFieldDefs.MakeNameUnique(AName), ADataType, ASize, ARequired, AFieldNo, ACodePage);
-  if AReadOnly then
-    Result.Attributes := Result.Attributes + [faReadOnly];
-  case ADataType of
-    ftBCD, ftFmtBCD:
-      Result.Precision := APrecision;
-  end;
+  Result := AFieldDefs.Add(AName, ADataType, ASize, APrecision, ARequired, AReadOnly, AFieldNo, ACodePage);
 end;
 
 procedure TSQLConnection.GetTableNames(List: TStrings; SystemTables: Boolean);

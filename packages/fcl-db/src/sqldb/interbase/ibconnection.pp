@@ -939,6 +939,9 @@ end;
 
 
 procedure TIBConnection.AddFieldDefs(cursor: TSQLCursor;FieldDefs : TFieldDefs);
+const
+  CS_NONE=0;
+  CS_BINARY=1;
 var
   x         : integer;
   TransLen,
@@ -956,7 +959,11 @@ begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].sqlsubtype, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
         TransType, TransLen, TransPrec);
 
-      AddFieldDef(FieldDefs, x+1, SQLDA^.SQLVar[x].AliasName, TransType, TransLen, TransPrec, True, (SQLDA^.SQLVar[x].sqltype and 1)=0, False);
+      // column character set NONE or OCTETS overrides connection charset
+      if (TransType in [ftString, ftFixedChar]) and (SQLDA^.SQLVar[x].sqlsubtype and $FF in [CS_NONE,CS_BINARY]) then
+        FieldDefs.Add(SQLDA^.SQLVar[x].AliasName, TransType, TransLen, TransPrec, (SQLDA^.SQLVar[x].sqltype and 1)=0, False, x+1, CP_NONE)
+      else
+        AddFieldDef(FieldDefs, x+1, SQLDA^.SQLVar[x].AliasName, TransType, TransLen, TransPrec, True, (SQLDA^.SQLVar[x].sqltype and 1)=0, False);
 
       FieldBinding[x] := x;
       end;
