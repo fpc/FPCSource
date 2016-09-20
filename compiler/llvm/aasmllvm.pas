@@ -200,7 +200,7 @@ implementation
 uses
   cutils, strings,
   symconst,
-  aasmcpu;
+  aasmcnst,aasmcpu;
 
     { taillvmprocdecl }
 
@@ -553,13 +553,42 @@ uses
                   internalerror(2013110104);
               end;
             end;
-          la_load,
-          la_getelementptr:
+          la_load:
             begin
               { dst = load ptrdef srcref }
               case opnr of
                 0: result:=tpointerdef(oper[1]^.def).pointeddef;
                 2: result:=oper[1]^.def;
+                else
+                  internalerror(2013110105);
+              end;
+            end;
+          la_getelementptr:
+            begin
+              { dst = getelementptr ref ... }
+              case opnr of
+                0:
+                  begin
+                    case oper[1]^.typ of
+                      top_def:
+                        result:=oper[1]^.def;
+                      top_tai:
+                        begin
+                          case oper[1]^.ai.typ of
+                            ait_llvmins:
+                              result:=taillvm(oper[1]^.ai).spilling_get_reg_type(0);
+                            ait_typedconst:
+                              result:=tai_abstracttypedconst(oper[1]^.ai).def
+                            else
+                              internalerror(2016071202);
+                          end
+                        end
+                      else
+                        internalerror(2016071201);
+                    end
+                  end;
+                2:
+                  result:=oper[1]^.def;
                 else
                   internalerror(2013110105);
               end;

@@ -390,9 +390,11 @@ implementation
   procedure TLLVMInstrWriter.WriteInstruction(hp: tai);
     var
       op: tllvmop;
+      tmpstr,
       sep: TSymStr;
       i, opstart: byte;
       nested: boolean;
+      opdone,
       done: boolean;
     begin
       op:=taillvm(hp).llvmopcode;
@@ -403,6 +405,7 @@ implementation
       if owner.fdecllevel=0 then
         owner.writer.AsmWrite(#9);
       sep:=' ';
+      opdone:=false;
       done:=false;
       opstart:=0;
       nested:=false;
@@ -414,6 +417,41 @@ implementation
              owner.writer.AsmWrite(llvmencodetypedecl(taillvm(hp).oper[0]^.def));
              done:=true;
            end;
+        la_load,
+        la_getelementptr:
+          begin
+            if (taillvm(hp).oper[0]^.typ<>top_reg) or
+               (taillvm(hp).oper[0]^.reg<>NR_NO) then
+              owner.writer.AsmWrite(getopstr(taillvm(hp).oper[0]^,false)+' = ')
+            else
+              nested:=true;
+            opstart:=1;
+            if llvmflag_load_getelptr_type in llvmversion_properties[current_settings.llvmversion] then
+              begin
+                owner.writer.AsmWrite(llvm_op2str[op]);
+                opdone:=true;
+                if nested then
+                  owner.writer.AsmWrite(' (')
+                else
+                  owner.writer.AsmWrite(' ');
+                { can't just dereference the type, because it may be an
+                  implicit pointer type such as a class -> resort to string
+                  manipulation... Not very clean :( }
+                tmpstr:=llvmencodetypename(taillvm(hp).spilling_get_reg_type(0));
+                if op=la_getelementptr then
+                  begin
+                    if tmpstr[length(tmpstr)]<>'*' then
+                      begin
+                        writeln(tmpstr);
+                        internalerror(2016071101);
+                      end
+                    else
+                      setlength(tmpstr,length(tmpstr)-1);
+                  end;
+                owner.writer.AsmWrite(tmpstr);
+                owner.writer.AsmWrite(',');
+              end
+          end;
         la_ret, la_br, la_switch, la_indirectbr,
         la_invoke, la_resume,
         la_unreachable,
@@ -428,8 +466,22 @@ implementation
           begin
             if taillvm(hp).oper[1]^.reg<>NR_NO then
               owner.writer.AsmWrite(getregisterstring(taillvm(hp).oper[1]^.reg)+' = ');
-            sep:=' ';
             opstart:=2;
+            if llvmflag_call_no_ptr in llvmversion_properties[current_settings.llvmversion] then
+              begin
+                owner.writer.AsmWrite(llvm_op2str[op]);
+                opdone:=true;
+                tmpstr:=llvmencodetypename(taillvm(hp).oper[2]^.def);
+                if tmpstr[length(tmpstr)]<>'*' then
+                  begin
+                    writeln(tmpstr);
+                    internalerror(2016071102);
+                  end
+                else
+                  setlength(tmpstr,length(tmpstr)-1);
+                owner.writer.AsmWrite(tmpstr);
+                opstart:=3;
+              end;
           end;
         la_blockaddress:
           begin
@@ -495,9 +547,12 @@ implementation
       { process operands }
       if not done then
         begin
-          owner.writer.AsmWrite(llvm_op2str[op]);
-          if nested then
-            owner.writer.AsmWrite(' (');
+          if not opdone then
+            begin
+              owner.writer.AsmWrite(llvm_op2str[op]);
+              if nested then
+                owner.writer.AsmWrite(' (');
+            end;
           if taillvm(hp).ops<>0 then
             begin
               for i:=opstart to taillvm(hp).ops-1 do
