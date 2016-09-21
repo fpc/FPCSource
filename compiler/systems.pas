@@ -374,7 +374,7 @@ interface
          and can never work for libc-based targets or any other program
          linking to an external library)
        }
-       systems_support_checkpointer = [system_i386_linux,system_powerpc_linux]
+       systems_support_checkpointer = systems_linux
                              + [system_i386_win32]
                              + [system_i386_GO32V2]
                              + [system_i386_os2]
