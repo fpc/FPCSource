@@ -1060,7 +1060,7 @@ begin
 {$ifdef linux}
   { inside stack ? }
   if (ptruint(p)>ptruint(get_frame)) and
-     (ptruint(p)<$c0000000) then      //todo: 64bit!
+     (ptruint(p)<ptruint(StackTop)) then
     exit;
   { inside data or bss ? }
   if (ptruint(p)>=ptruint(@etext)) and (ptruint(p)<ptruint(@eend)) then
