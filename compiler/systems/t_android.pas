@@ -27,6 +27,7 @@ unit t_android;
 interface
 
   uses
+    globtype,
     aasmdata,
     symsym,symdef,ppu,
     import,export,expunix,link;
@@ -51,7 +52,7 @@ interface
     private
       prtobj  : string[80];
       reorder : boolean;
-      FJNIOnLoadDef: tprocdef;
+      FJNIOnLoadName: TSymStr;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
       function DoLink(IsSharedLib: boolean): boolean;
     public
@@ -69,7 +70,7 @@ implementation
   uses
     SysUtils,
     cutils,cfileutl,cclasses,
-    verbose,systems,globtype,globals,
+    verbose,systems,globals,
     symconst,script,
     fmodule,
     aasmbase,aasmtai,aasmcpu,cpubase,hlcgcpu,hlcgobj,
@@ -130,7 +131,7 @@ const
            (hp.name^ = SJNI_OnLoad) and (tprocsym(hp.sym).procdeflist.count = 1) then
           begin
             // Save the JNI_OnLoad procdef
-            tlinkerandroid(Linker).FJNIOnLoadDef:=tprocdef(tprocsym(hp.sym).procdeflist[0]);;
+            tlinkerandroid(Linker).FJNIOnLoadName:=tprocdef(tprocsym(hp.sym).procdeflist[0]).mangledname;
             hp.Free;
             exit;
           end;
@@ -140,7 +141,7 @@ const
     procedure texportlibandroid.generatelib;
       begin
         inherited generatelib;
-        if tlinkerandroid(Linker).FJNIOnLoadDef = nil then
+        if tlinkerandroid(Linker).FJNIOnLoadName = '' then
           exit;
         // If JNI_OnLoad is exported, export a system proxy function instead
         create_hlcodegen;
@@ -352,9 +353,9 @@ begin
       add('INSERT BEFORE .data1');
 
       // Define different aliases for normal and JNI libraries
-      if FJNIOnLoadDef <> nil then
+      if FJNIOnLoadName <> '' then
         begin
-          s:=FJNIOnLoadDef.mangledname;
+          s:=FJNIOnLoadName;
           s1:='FPC_JNI_LIB_MAIN_ANDROID';
         end
       else
