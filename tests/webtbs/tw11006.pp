@@ -26,7 +26,7 @@ end;
 procedure tmythread.execute;
 begin
   sleep(60);
-  writeln('done');
+//  writeln('done');
 end;
 
 var
