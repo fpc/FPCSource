@@ -154,6 +154,7 @@ type
     Procedure TestReferenceFile;
     Procedure TestReferenceArray;
     Procedure TestReferencePointer;
+    Procedure TestInvalidColon;
   end;
 
   { TTestRecordTypeParser }
@@ -3183,6 +3184,19 @@ begin
   AssertSame('Second declaration references first.',Declarations.Types[0],TPasPointerType(Declarations.Types[1]).DestType);
 end;
 
+procedure TTestTypeParser.TestInvalidColon;
+var
+  ok: Boolean;
+begin
+  ok:=false;
+  try
+    ParseType(':1..2',TPasSetType);
+  except
+    on E: EParserError do
+      ok:=true;
+  end;
+  AssertEquals('wrong colon in type raised an error',true,ok);
+end;
 
 initialization
   RegisterTests([TTestTypeParser,TTestRecordTypeParser,TTestProcedureTypeParser]);

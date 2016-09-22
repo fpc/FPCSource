@@ -581,7 +581,7 @@ type
   public
     PackMode: TPackMode;
     ObjKind: TPasObjKind;
-    AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
+    AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef or TPasAliasType or TPasTypeAliasType
     HelperForType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
     IsForward: Boolean;
     IsShortDefinition: Boolean;//class(anchestor); without end
@@ -752,10 +752,14 @@ type
     procedure ForEachCall(const aMethodCall: TListCallback;
       const Arg: Pointer); override;
   public
-    IndexExpr,
-    DefaultExpr : TPasExpr;
+    IndexExpr: TPasExpr;
+    ReadAccessor: TPasExpr;
+    WriteAccessor: TPasExpr;
+    ImplementsFunc: TPasExpr;
+    StoredAccessor: TPasExpr; // can be nil, if StoredAccessorName is 'True' or 'False'
+    DefaultExpr: TPasExpr;
     Args: TFPList;        // List of TPasArgument objects
-    ReadAccessorName, WriteAccessorName,ImplementsName,
+    ReadAccessorName, WriteAccessorName, ImplementsName,
       StoredAccessorName: string;
     IsClass, IsDefault, IsNodefault: Boolean;
     Function ResolvedType : TPasType;
@@ -2415,9 +2419,13 @@ var
 begin
   for i := 0 to Args.Count - 1 do
     TPasArgument(Args[i]).Release;
-  Args.Free;
-  ReleaseAndNil(TPasElement(DefaultExpr));
+  FreeAndNil(Args);
   ReleaseAndNil(TPasElement(IndexExpr));
+  ReleaseAndNil(TPasElement(ReadAccessor));
+  ReleaseAndNil(TPasElement(WriteAccessor));
+  ReleaseAndNil(TPasElement(ImplementsFunc));
+  ReleaseAndNil(TPasElement(StoredAccessor));
+  ReleaseAndNil(TPasElement(DefaultExpr));
   inherited Destroy;
 end;
 
@@ -3386,6 +3394,14 @@ begin
     IndexExpr.ForEachCall(aMethodCall,Arg);
   for i:=0 to Args.Count-1 do
     TPasElement(Args[i]).ForEachCall(aMethodCall,Arg);
+  if ReadAccessor<>nil then
+    ReadAccessor.ForEachCall(aMethodCall,Arg);
+  if WriteAccessor<>nil then
+    WriteAccessor.ForEachCall(aMethodCall,Arg);
+  if ImplementsFunc<>nil then
+    ImplementsFunc.ForEachCall(aMethodCall,Arg);
+  if StoredAccessor<>nil then
+    StoredAccessor.ForEachCall(aMethodCall,Arg);
   if DefaultExpr<>nil then
     DefaultExpr.ForEachCall(aMethodCall,Arg);
 end;
@@ -3880,6 +3896,7 @@ end;
 procedure TPasImplCaseStatement.AddExpression(const Expr: TPasExpr);
 begin
   Expressions.Add(Expr);
+  Expr.Parent:=Self;
 end;
 
 procedure TPasImplCaseStatement.ForEachCall(
