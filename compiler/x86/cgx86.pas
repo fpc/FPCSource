@@ -650,6 +650,7 @@ unit cgx86;
       begin
         if assigned(ref.symbol) and (ref.symbol.bind in asmsymbindindirect) then
           begin
+            { load the symbol into a register }
             hreg:=getaddressregister(list);
             reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
             { tell make_simple_ref that we are loading the symbol address via an indirect
@@ -658,10 +659,13 @@ unit cgx86;
             a_op_ref_reg(list,OP_MOVE,OS_ADDR,href,hreg);
             if ref.base<>NR_NO then
               begin
-                { don't use ADD, the flags may contain a value }
-                reference_reset_base(href,ref.base,0,ref.alignment);
+                { fold symbol register into base register }
+                reference_reset_base(href,hreg,0,sizeof(pint));
+                href.index:=ref.base;
+                hreg:=getaddressregister(list);
                 a_loadaddr_ref_reg(list,href,hreg);
               end;
+            { we're done }
             ref.symbol:=nil;
             ref.base:=hreg;
           end;
