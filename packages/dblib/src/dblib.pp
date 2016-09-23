@@ -179,7 +179,9 @@ const
 
   // Error codes:
   SYBEFCON = 20002;      // SQL Server connection failed
+  SYBEWRIT = 20006;      // Write to SQL Server failed.
   SYBESMSG = 20018;      // General SQL Server error: Check messages from the SQL Server.
+  SYBEDDNE = 20047;      // DBPROCESS is dead or not enabled.
 
 type
   PLOGINREC=Pointer;
@@ -361,6 +363,7 @@ var
   function dbiscount(dbproc:PDBPROCESS):BOOL; cdecl; external DBLIBDLL;
   function dbcancel(dbproc:PDBPROCESS):RETCODE; cdecl; external DBLIBDLL;
   function dbcanquery(dbproc:PDBPROCESS):RETCODE; cdecl; external DBLIBDLL;
+  function dbdead(dbproc:PDBPROCESS):DBBOOL; cdecl; external DBLIBDLL;
   function dbhasretstat(dbproc:PDBPROCESS):DBBOOL; cdecl; external DBLIBDLL;
   function dbretstatus(dbproc:PDBPROCESS):DBINT; cdecl; external DBLIBDLL;
   procedure dbfreelogin(login:PLOGINREC); cdecl; external DBLIBDLL {$IFDEF freetds}name 'dbloginfree'{$ENDIF};
@@ -410,6 +413,7 @@ var
   dbiscount: function(dbproc:PDBPROCESS):BOOL; cdecl;
   dbcancel: function(dbproc:PDBPROCESS):RETCODE; cdecl;
   dbcanquery: function(dbproc:PDBPROCESS):RETCODE; cdecl;
+  dbdead: function(dbproc:PDBPROCESS):DBBOOL; cdecl;
   dbhasretstat: function(dbproc:PDBPROCESS):DBBOOL; cdecl;
   dbretstatus: function(dbproc:PDBPROCESS):DBINT; cdecl;
   dbexit: procedure(); cdecl;
@@ -510,6 +514,7 @@ begin
    pointer(dbiscount) := GetProcedureAddress(DBLibLibraryHandle,'dbiscount');
    pointer(dbcancel) := GetProcedureAddress(DBLibLibraryHandle,'dbcancel');
    pointer(dbcanquery) := GetProcedureAddress(DBLibLibraryHandle,'dbcanquery');
+   pointer(dbdead) := GetProcedureAddress(DBLibLibraryHandle,'dbdead');
    pointer(dbhasretstat) := GetProcedureAddress(DBLibLibraryHandle,'dbhasretstat');
    pointer(dbretstatus) := GetProcedureAddress(DBLibLibraryHandle,'dbretstatus');
    pointer(dbexit) := GetProcedureAddress(DBLibLibraryHandle,'dbexit');
