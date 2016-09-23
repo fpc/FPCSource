@@ -338,6 +338,8 @@ interface
         generated_lineinfo: boolean;
 
         vardatadef: trecorddef;
+        // Use various workarounds to make the debug info compatible with LLDB.
+        lldb_compatible: boolean;
 
         procedure set_use_64bit_headers(state: boolean);
         property use_64bit_headers: Boolean read _use_64bit_headers write set_use_64bit_headers;
@@ -1041,6 +1043,10 @@ implementation
         AbbrevSearchTree:=AllocateNewAiSearchItem;
 
         vardatadef := nil;
+
+        // Be LLDB compatible for Android
+        if target_info.system in systems_android then
+          lldb_compatible := true;
       end;
 
 
@@ -3166,6 +3172,7 @@ implementation
         dbgname: string;
         vardatatype: ttypesym;
         bind: tasmsymbind;
+        lang: tdwarf_source_language;
       begin
         current_module.flags:=current_module.flags or uf_has_dwarf_debuginfo;
         storefilepos:=current_filepos;
@@ -3256,12 +3263,16 @@ implementation
         { address size }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(pint)));
 
+        if lldb_compatible then
+          lang:=DW_LANG_C_plus_plus  // Pascal is not supported by LLDB. Use C++
+        else
+          lang:=DW_LANG_Pascal83;
         { first manadatory compilation unit TAG }
         append_entry(DW_TAG_compile_unit,true,[
           DW_AT_name,DW_FORM_string,relative_dwarf_path(current_module.sourcefiles.get_file(1).path+current_module.sourcefiles.get_file(1).name)+#0,
           DW_AT_producer,DW_FORM_string,'Free Pascal '+full_version_string+' '+date_string+#0,
           DW_AT_comp_dir,DW_FORM_string,BSToSlash(FixPath(GetCurrentDir,false))+#0,
-          DW_AT_language,DW_FORM_data1,DW_LANG_Pascal83,
+          DW_AT_language,DW_FORM_data1,lang,
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
 
         { reference to line info section }
@@ -4094,8 +4105,15 @@ implementation
 
     procedure TDebugInfoDwarf3.appenddef_formal(list:TAsmList;def: tformaldef);
       begin
-        append_entry(DW_TAG_unspecified_type,false,[
-          ]);
+        if lldb_compatible then
+          begin
+            // Do not use DW_TAG_unspecified_type for LLDB to avoid LLDB crash.
+            // Call the inherited DWARF 2 implementation, which works fine.
+            inherited;
+            exit;
+          end;
+
+        append_entry(DW_TAG_unspecified_type,false,[]);
         finish_entry;
       end;
 
