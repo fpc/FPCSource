@@ -205,8 +205,14 @@ implementation
      procedure tgppcinlinenode.second_prefetch;
        var
          r: tregister;
+         checkpointer_used : boolean;
        begin
+         { do not call Checkpointer for left node }
+         checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
+         exclude(current_settings.localswitches,cs_checkpointer);
          secondpass(left);
+         if checkpointer_used then
+           include(current_settings.localswitches,cs_checkpointer);
          case left.location.loc of
            LOC_CREFERENCE,
            LOC_REFERENCE:

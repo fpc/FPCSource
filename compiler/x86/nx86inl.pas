@@ -591,12 +591,18 @@ implementation
        var
          ref : treference;
          r : tregister;
+         checkpointer_used : boolean;
        begin
 {$if defined(i386) or defined(i8086)}
          if current_settings.cputype>=cpu_Pentium3 then
 {$endif i386 or i8086}
            begin
+             { do not call Checkpointer for left node }
+             checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
+             exclude(current_settings.localswitches,cs_checkpointer);
              secondpass(left);
+             if checkpointer_used then
+               include(current_settings.localswitches,cs_checkpointer);
              case left.location.loc of
                LOC_CREFERENCE,
                LOC_REFERENCE:
