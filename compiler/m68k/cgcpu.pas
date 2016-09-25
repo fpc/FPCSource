@@ -99,6 +99,9 @@ unit cgcpu;
         function fixref(list: TAsmList; var ref: treference; fullyresolve: boolean): boolean;
         function force_to_dataregister(list: TAsmList; size: TCGSize; reg: TRegister): TRegister;
         procedure move_if_needed(list: TAsmList; size: TCGSize; src: TRegister; dest: TRegister);
+
+        { optimize mul with const to a sequence of shifts and subs/adds, mainly for the '000 to '030 }
+        function optimize_const_mul_to_shift_sub_add(list: TAsmList; maxops: longint; a: tcgint; size: tcgsize; reg: TRegister): boolean;
      protected
         procedure call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
         procedure call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
@@ -1183,6 +1186,8 @@ unit cgcpu;
                     else
                       { Fallback branch, plain 68000 for now }
                       { FIX ME: this is slow as hell, but original 68000 doesn't have 32x32 -> 32bit MUL (KB) }
+                      { TODO: verify mul to shift+sub/add results and enable this }
+                      // if not optimize_const_mul_to_shift_sub_add(list, 5, a, size, reg) then
                       if op = OP_MUL then
                         call_rtl_mul_const_reg(list, size, a, reg,'fpc_mul_dword')
                       else
@@ -2248,6 +2253,69 @@ unit cgcpu;
       begin
         if TCGSize2OpSize[size]<>TCGSize2OpSize[reg_cgsize(reg)] then
           internalerror(201512131);
+      end;
+
+
+    function tcg68k.optimize_const_mul_to_shift_sub_add(list: TAsmList; maxops: longint; a: tcgint; size: tcgsize; reg: TRegister): boolean;
+      var
+        i: longint;
+        nextpower: tcgint;
+        powerbit: longint;
+        submask: tcgint;
+        lastshift: longint;
+        hreg: tregister;
+        firstmov: boolean;
+      begin
+        nextpower:=nextpowerof2(a,powerbit);
+        submask:=nextpower-a;
+        result:=not ((popcnt(qword(a)) > maxops) and ((popcnt(qword(submask))+1) > maxops));
+        if not result then
+          exit;
+
+        list.concat(tai_comment.create(strpnew('optimize_const_mul_to_shift_sub_add, multiplier: '+tostr(a))));
+
+        lastshift:=0;
+        hreg:=getintregister(list,OS_INT);
+        if (popcnt(qword(a)) < (popcnt(qword(submask))+1)) then
+          begin
+            { doing additions }
+            firstmov:=(a and 1) = 0;
+
+            if not firstmov then
+              a_load_reg_reg(list,size,OS_INT,reg,hreg);
+
+            for i:=1 to bsrqword(a) do
+              if ((a >> i) and 1) = 1 then
+                begin
+                  if firstmov then
+                    begin
+                      a_op_const_reg(list,OP_SHL,OS_INT,i-lastshift,reg);
+                      a_load_reg_reg(list,OS_INT,OS_INT,reg,hreg);
+                      firstmov:=false;
+                    end
+                  else
+                    begin
+                      a_op_const_reg(list,OP_SHL,OS_INT,i-lastshift,hreg);
+                      a_op_reg_reg(list,OP_ADD,OS_INT,hreg,reg);
+                    end;
+                  lastshift:=i;
+                end;
+          end
+        else
+          begin
+            { doing subtractions }
+            a_load_const_reg(list,OS_INT,0,hreg);
+            for i:=0 to bsrqword(submask) do
+              if ((submask >> i) and 1) = 1 then
+                begin
+                  a_op_const_reg(list,OP_SHL,OS_INT,i-lastshift,reg);
+                  a_op_reg_reg(list,OP_SUB,OS_INT,reg,hreg);
+                  lastshift:=i;
+                end;
+            a_op_const_reg(list,OP_SHL,OS_INT,powerbit-lastshift,reg);
+            a_op_reg_reg(list,OP_ADD,OS_INT,hreg,reg);
+          end;
+        result:=true;
       end;
 
 
