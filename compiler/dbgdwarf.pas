@@ -338,8 +338,6 @@ interface
         generated_lineinfo: boolean;
 
         vardatadef: trecorddef;
-        // Use various workarounds to make the debug info compatible with LLDB.
-        lldb_compatible: boolean;
 
         procedure set_use_64bit_headers(state: boolean);
         property use_64bit_headers: Boolean read _use_64bit_headers write set_use_64bit_headers;
@@ -1043,10 +1041,6 @@ implementation
         AbbrevSearchTree:=AllocateNewAiSearchItem;
 
         vardatadef := nil;
-
-        // Be LLDB compatible for Android
-        if target_info.system in systems_android then
-          lldb_compatible := true;
       end;
 
 
@@ -3263,8 +3257,8 @@ implementation
         { address size }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(pint)));
 
-        if lldb_compatible then
-          lang:=DW_LANG_C_plus_plus  // Pascal is not supported by LLDB. Use C++
+        if (ds_dwarf_cpp in current_settings.debugswitches) then
+          lang:=DW_LANG_C_plus_plus
         else
           lang:=DW_LANG_Pascal83;
         { first manadatory compilation unit TAG }
@@ -4105,9 +4099,10 @@ implementation
 
     procedure TDebugInfoDwarf3.appenddef_formal(list:TAsmList;def: tformaldef);
       begin
-        if lldb_compatible then
+        if (ds_dwarf_cpp in current_settings.debugswitches) then
           begin
-            // Do not use DW_TAG_unspecified_type for LLDB to avoid LLDB crash.
+            // Do not use DW_TAG_unspecified_type for C++ simulation.
+            // At least LLDB 3.9.0 crashes in such case.
             // Call the inherited DWARF 2 implementation, which works fine.
             inherited;
             exit;

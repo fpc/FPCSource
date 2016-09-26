@@ -226,7 +226,10 @@ interface
           { for Stabs); not enabled by default, because otherwise once  }
           { support for calling methods has been added to gdb, you'd    }
           { always have to type classinstance.classname__methodname()   }
-          ds_dwarf_method_class_prefix
+          ds_dwarf_method_class_prefix,
+          { Simulate C++ debug information in DWARF. It can be used for }
+          { debuggers, which do not support Pascal.                     }
+          ds_dwarf_cpp
        );
        tdebugswitches = set of tdebugswitch;
 
@@ -343,7 +346,7 @@ interface
        );
 
        DebugSwitchStr : array[tdebugswitch] of string[22] = ('',
-         'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
+         'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX','DWARFCPP');
 
        TargetSwitchStr : array[ttargetswitch] of ttargetswitchinfo = (
          (name: '';                    hasvalue: false; isglobal: true ; define: ''),
