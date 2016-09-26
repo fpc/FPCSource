@@ -655,7 +655,7 @@ var
   s8: UTF8String;
 begin
   PDF.Options := []; // disable all compression
-  fnt := PDF.AddFont(cFont1, 'Liberation Sans', clBlack);
+  fnt := PDF.AddFont(cFont1, 'Liberation Sans');
   o := TPDFUTF8String.Create(PDF, 'TestT', fnt);
   try
     AssertEquals('Failed on 1', '', S.DataString);
@@ -685,7 +685,7 @@ var
   o: TPDFUTF8String;
   fnt: integer;
 begin
-  fnt := PDF.AddFont(cFont1, 'Liberation Sans', clBlack);
+  fnt := PDF.AddFont(cFont1, 'Liberation Sans');
   o := TPDFUTF8String.Create(PDF, 'a(b)c\def/g', fnt);
   try
     AssertEquals('Failed on 1', '', S.DataString);

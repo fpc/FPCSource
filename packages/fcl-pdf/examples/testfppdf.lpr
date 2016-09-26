@@ -1,5 +1,5 @@
 { This program generates a multi-page PDF document and tests various
-  functionality on each of the 5 pages.
+  functionality on each of the pages.
 
   You can also specify to generate single pages by using the -p <n>
   command line parameter.
@@ -54,6 +54,8 @@ type
 var
   Application: TPDFTestApp;
 
+const
+  cPageCount: integer = 7;
 
 function TPDFTestApp.SetUpDocument: TPDFDocument;
 var
@@ -83,7 +85,7 @@ begin
 
   Result.StartDocument;
   S := Result.Sections.AddSection; // we always need at least one section
-  lPageCount := 7;
+  lPageCount := cPageCount;
   if Fpg <> -1 then
     lPageCount := 1;
   for i := 1 to lPageCount do
@@ -129,9 +131,9 @@ begin
   P := D.Pages[APage];
 
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('Helvetica', clRed);
-  FtText1 := D.AddFont('FreeSans.ttf', 'FreeSans', clGreen); // TODO: this color value means nothing - not used at all
-  FtText2 := D.AddFont('Times-BoldItalic', clBlack);
+  FtTitle := D.AddFont('Helvetica');
+  FtText1 := D.AddFont('FreeSans.ttf', 'FreeSans'); // TODO: this color value means nothing - not used at all
+  FtText2 := D.AddFont('Times-BoldItalic');
   // FtText3 := D.AddFont('arial.ttf', 'Arial', clBlack);
   FtText3 := FtText1; // to reduce font dependecies, but above works too if you have arial.ttf available
 
@@ -150,7 +152,7 @@ begin
   P.AddExternalLink(54, 58, 49, 5, 'http://www.freepascal.org', false);
 
   P.SetFont(ftText2,16);
-  P.SetColor($c00000, false);
+  P.SetColor($C00000, false);
   P.WriteText(60, 100, '(60mm,100mm) Times-BoldItalic: Big text at absolute position');
 
   // -----------------------------------
@@ -184,7 +186,7 @@ var
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('Helvetica', clBlack);
+  FtTitle := D.AddFont('Helvetica');
 
   { Page title }
   P.SetFont(FtTitle,23);
@@ -227,7 +229,7 @@ var
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('Helvetica', clRed);
+  FtTitle := D.AddFont('Helvetica');
 
   { Page title }
   P.SetFont(FtTitle,23);
@@ -265,7 +267,7 @@ Var
 begin
   P := D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('Helvetica', clBlack);
+  FtTitle := D.AddFont('Helvetica');
 
   { Page title }
   P.SetFont(FtTitle,23);
@@ -299,7 +301,7 @@ var
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('Helvetica', clBlack);
+  FtTitle := D.AddFont('Helvetica');
 
   { Page title }
   P.SetFont(FtTitle,23);
@@ -415,7 +417,7 @@ var
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('Helvetica', clBlack);
+  FtTitle := D.AddFont('Helvetica');
 
   { Page title }
   P.SetFont(FtTitle,23);
@@ -451,7 +453,7 @@ begin
   P.Orientation := ppoLandscape;
 
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('Helvetica', clBlack);
+  FtTitle := D.AddFont('Helvetica');
 
   { Page title }
   P.SetFont(FtTitle,23);
@@ -515,9 +517,9 @@ begin
   if HasOption('p', '') then
   begin
     Fpg := StrToInt(GetOptionValue('p', ''));
-    if (Fpg < 1) or (Fpg > 7) then
+    if (Fpg < 1) or (Fpg > cPageCount) then
     begin
-      Writeln('Error in -p parameter. Valid range is 1-7.');
+      Writeln(Format('Error in -p parameter. Valid range is 1-%d.', [cPageCount]));
       Writeln('');
       Terminate;
       Exit;
@@ -569,9 +571,10 @@ procedure TPDFTestApp.WriteHelp;
 begin
   writeln('Usage:');
   writeln('    -h          Show this help.');
-  writeln('    -p <n>      Generate only one page. Valid range is 1-7.' + LineEnding +
-          '                If this option is not specified, then all 7 pages are' + LineEnding +
-          '                generated.');
+  writeln(Format(
+          '    -p <n>      Generate only one page. Valid range is 1-%d.' + LineEnding +
+          '                If this option is not specified, then all %0:d pages are' + LineEnding +
+          '                generated.', [cPageCount]));
   writeln('    -f <0|1>    Toggle embedded font compression. A value of 0' + LineEnding +
           '                disables compression. A value of 1 enables compression.');
   writeln('    -t <0|1>    Toggle text compression. A value of 0' + LineEnding +

@@ -1,11 +1,22 @@
 {
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 2015 by Graeme Geldenhuys
+
     Description:
       This is a homegrown font cache. The fpReport reports can reference
       a font by its name. The job of the font cache is to look through
       its cached fonts to match the font name, and which *.ttf file it
       relates too. The reporting code can then extract font details
       correctly (eg: font width, height etc).
-}
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit fpTTF;
 
 {$mode objfpc}{$H+}
@@ -64,8 +75,6 @@ type
     property    IsBold: boolean read GetIsBold;
   end;
 
-
-  { TFPFontCacheList }
 
   TFPFontCacheList = class(TObject)
   private
