@@ -83,7 +83,7 @@ begin
 
     // Add clocale for Android first in order to compile the source file
     // from the 'android' dir, not the 'unix' dir.
-    T:=P.Targets.AddUnit('real48utils.pp');
+    T:=P.Targets.AddUnit('real48utils.pp',AllTargetsextra-[msdos]);  { msdos excluded temporarily, until bitpacked records containing longints on 16-bit targets are fixed }
     T:=P.Targets.AddUnit('clocale.pp',[android]);
 
     T:=P.Targets.AddUnit('ucomplex.pp',UComplexOSes);
