@@ -319,6 +319,7 @@ implementation
             hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
             hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[@paraloc1],nil,false);
             hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+            include(current_settings.moduleswitches,cs_checkpointer_called);
           end;
       end;
 
@@ -407,6 +408,7 @@ implementation
                     hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
                     hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[@paraloc1],nil,false);
                     hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+                    system.include(current_settings.moduleswitches,cs_checkpointer_called);
                   end;
                end
              else

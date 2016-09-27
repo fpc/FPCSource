@@ -1822,6 +1822,7 @@ type
          main_procinfo : tcgprocinfo;
          force_init_final : boolean;
          resources_used : boolean;
+         program_uses_checkpointer : boolean;
          initname,
          program_name : ansistring;
          consume_semicolon_after_uses : boolean;
@@ -2303,6 +2304,8 @@ type
                    assembler startup files }
                  if assigned(sysinitmod) then
                    linker.AddModuleFiles(sysinitmod);
+                 { Does any unit use checkpointer function }
+                 program_uses_checkpointer:=false;
                  { insert all .o files from all loaded units and
                    unload the units, we don't need them anymore.
                    Keep the current_module because that is still needed }
@@ -2310,7 +2313,11 @@ type
                  while assigned(hp) do
                   begin
                     if (hp<>sysinitmod) and (hp.flags and uf_in_library=0) then
-                      linker.AddModuleFiles(hp);
+                      begin
+                        linker.AddModuleFiles(hp);
+                        if (hp.flags and uf_checkpointer_called)<>0 then
+                          program_uses_checkpointer:=true;
+                      end;
                     hp2:=tmodule(hp.next);
                     if assigned(hp.package) then
                       add_package_unit_ref(hp.package);
@@ -2325,6 +2332,10 @@ type
                  { free also unneeded units we didn't free before }
                  if not needsymbolinfo then
                    unloaded_units.Clear;
+                 { Does any unit use checkpointer function }
+                 if program_uses_checkpointer then
+                   Message1(link_w_program_uses_checkpointer,current_module.modulename^);
+
                  { add all directly used packages as libraries }
                  add_package_libs(linker);
                  { finally we can create a executable }

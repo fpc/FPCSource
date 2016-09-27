@@ -537,7 +537,7 @@ type
     str  : string[30];
   end;
 const
-  flagopts=31;
+  flagopts=32;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $1    ;str:'init'),
     (mask: $2    ;str:'final'),
@@ -548,7 +548,7 @@ const
     (mask: $40   ;str:'smart_linked'),
     (mask: $80   ;str:'static_linked'),
     (mask: $100  ;str:'shared_linked'),
-//    (mask: $200  ;str:'local_browser'),
+    (mask: $200  ;str:'uses_checkpointer'),
     (mask: $400  ;str:'no_link'),
     (mask: $800  ;str:'has_resources'),
     (mask: $1000  ;str:'little_endian'),

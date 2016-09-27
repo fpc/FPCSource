@@ -1627,7 +1627,12 @@ begin
                          if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_checkpointer)
                          else if (target_info.system in systems_support_checkpointer) then
-                           include(init_settings.localswitches,cs_checkpointer)
+                           begin
+                             if do_release then
+                               Message(option_gc_incompatible_with_release_flag)
+                             else
+                               include(init_settings.localswitches,cs_checkpointer);
+                           end
                          else
                            UnsupportedPara('-gc');
                        end;
@@ -2090,7 +2095,14 @@ begin
                          break;
                        end;
                     'r' :
-                      do_release:=true;
+                      begin
+                        do_release:=true;
+                        if (cs_checkpointer in init_settings.localswitches) then
+                          begin
+                            Message(option_gc_incompatible_with_release_flag);
+                            exclude(init_settings.localswitches,cs_checkpointer);
+                          end;
+                      end;
                     's' :
                       include(init_settings.moduleswitches,cs_compilesystem);
                     '-' :

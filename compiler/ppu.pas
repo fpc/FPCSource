@@ -55,6 +55,7 @@ const
   uf_static_linked       = $000080; { the ppu can be linked static }
   uf_shared_linked       = $000100; { the ppu can be linked shared }
 //uf_local_browser       = $000200;
+  uf_checkpointer_called = $000200; { Unit uses experimental checkpointer test code }
   uf_no_link             = $000400; { unit has no .o generated, but can still have external linking! }
   uf_has_resourcestrings = $000800; { unit has resource string section }
   uf_little_endian       = $001000;

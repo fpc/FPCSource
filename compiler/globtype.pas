@@ -178,7 +178,9 @@ interface
          cs_executable_stack,
          { i8086 specific }
          cs_huge_code,
-         cs_win16_smartcallbacks
+         cs_win16_smartcallbacks,
+         { Record usage of checkpointer experimental feature }
+         cs_checkpointer_called
        );
        tmoduleswitches = set of tmoduleswitch;
 

@@ -1356,6 +1356,8 @@ var
           flags:=flags or uf_release;
          if assigned(localsymtable) then
            flags:=flags or uf_local_symtable;
+         if (cs_checkpointer_called in current_settings.moduleswitches) then
+           flags:=flags or uf_checkpointer_called;
 {$ifdef i8086}
          if current_settings.x86memorymodel in [mm_medium,mm_large,mm_huge] then
            flags:=flags or uf_i8086_far_code;
