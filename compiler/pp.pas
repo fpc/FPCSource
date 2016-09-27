@@ -223,6 +223,11 @@ end;
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
+{$ifdef EXTDEBUG}
+{ Increase the maximum stack trace depth, since the default 8 is often not
+  enough for debugging the compiler }
+  Max_Frame_Dump:=50;
+{$endif EXTDEBUG}
 { Call the compiler with empty command, so it will take the parameters }
   Halt(compiler.Compile(''));
 end.
