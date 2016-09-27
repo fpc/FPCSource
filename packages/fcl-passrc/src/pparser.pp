@@ -73,6 +73,7 @@ const
   nParserDuplicateIdentifier = 2046;
   nParserDefaultParameterRequiredFor = 2047;
   nParserOnlyOneVariableCanBeInitialized = 2048;
+  nParserExpectedTypeButGot = 2049;
 
 
 // resourcestring patterns of messages
@@ -125,6 +126,7 @@ resourcestring
   SParserDuplicateIdentifier = 'Duplicate identifier "%s"';
   SParserDefaultParameterRequiredFor = 'Default parameter required for "%s"';
   SParserOnlyOneVariableCanBeInitialized = 'Only one variable can be initialized';
+  SParserExpectedTypeButGot = 'Expected type, but got %s';
 
 type
   TPasScopeType = (
@@ -1088,7 +1090,21 @@ begin
       Ref:=Nil;
       SS:=(not (po_resolvestandardtypes in FOptions)) and isSimpleTypeToken(Name);
       if not SS then
+        begin
         Ref:=Engine.FindElement(Name);
+        if Ref=nil then
+          begin
+          {$IFDEF VerbosePasResolver}
+          if po_resolvestandardtypes in FOptions then
+            begin
+            writeln('ERROR: TPasParser.ParseSimpleType resolver failed to raise an error');
+            ParseExcExpectedIdentifier;
+            end;
+          {$ENDIF}
+          end
+        else if not (Ref is TPasType) then
+          ParseExc(nParserExpectedTypeButGot,SParserExpectedTypeButGot,[Ref.ElementTypeName]);
+        end;
       if (Ref=Nil) then
         Ref:=TPasUnresolvedTypeRef(CreateElement(TPasUnresolvedTypeRef,Name,Parent))
       else
@@ -2341,7 +2357,8 @@ begin
                 if Assigned(TypeEl) then        // !!!
                 begin
                   Declarations.Declarations.Add(TypeEl);
-                  if TypeEl.ClassType = TPasClassType then
+                  if (TypeEl.ClassType = TPasClassType)
+                      and (not (po_keepclassforward in Options)) then
                   begin
                     // Remove previous forward declarations, if necessary
                     for i := 0 to Declarations.Classes.Count - 1 do
@@ -2407,7 +2424,7 @@ begin
               begin
               PropEl:=ParseProperty(Declarations,CurtokenString,visDefault);
               Declarations.Declarations.Add(PropEl);
-              Declarations.properties.add(PropEl);
+              Declarations.properties.Add(PropEl);
               end;
           else
             ParseExcSyntaxError;
@@ -3666,6 +3683,9 @@ var
   ak : TAssignKind;
   lt : TLoopType;
   ok: Boolean;
+  SrcPos: TPasSourcePos;
+  Name: String;
+  TypeEl: TPasType;
 
 begin
   NewImplElement:=nil;
@@ -3819,10 +3839,11 @@ begin
       begin
         // with Expr do
         // with Expr, Expr do
+        SrcPos:=Scanner.CurSourcePos;
         NextToken;
         Left:=DoParseExpression(Parent);
         //writeln(i,'WITH Expr="',Expr,'" Token=',CurTokenText);
-        El:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock));
+        El:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock,SrcPos));
         TPasImplWithDo(El).AddExpression(Left);
         CreateBlock(TPasImplWithDo(El));
         repeat
@@ -3955,23 +3976,28 @@ begin
         // on Exception do
         if CurBlock is TPasImplTryExcept then
         begin
+          ExpectIdentifier;
+          El:=TPasImplExceptOn(CreateElement(TPasImplExceptOn,'',CurBlock));
+          SrcPos:=Scanner.CurSourcePos;
+          Name:=CurTokenString;
           NextToken;
-          Left:=Nil;
-          Right:=DoParseExpression(Parent);
-          //writeln(i,'ON t=',TypeName,' Token=',CurTokenText);
-  //        NextToken;
+          //writeln('ON t=',Name,' Token=',CurTokenText);
           if CurToken=tkColon then
             begin
+            // the first expression was the variable name
             NextToken;
-            Left:=Right;
-            Right:=DoParseExpression(Parent);
-            //writeln(i,'ON v=',VarName,' t=',TypeName,' Token=',CurTokenText);
+            TypeEl:=ParseSimpleType(El,SrcPos,'');
+            TPasImplExceptOn(El).TypeEl:=TypeEl;
+            TPasImplExceptOn(El).VarEl:=TPasVariable(CreateElement(TPasVariable,
+                                  Name,El,SrcPos));
+            TPasImplExceptOn(El).VarEl.VarType:=TypeEl;
+            TypeEl.AddRef;
+            end
+          else
+            begin
+            UngetToken;
+            TPasImplExceptOn(El).TypeEl:=ParseSimpleType(El,SrcPos,'');
             end;
-//          else
-          UngetToken;
-          El:=TPasImplExceptOn(CreateElement(TPasImplExceptOn,'',CurBlock));
-          TPasImplExceptOn(El).VarExpr:=Left;
-          TPasImplExceptOn(El).TypeExpr:=Right;
           Engine.FinishScope(stExceptOnExpr,El);
           CurBlock.AddElement(El);
           CurBlock:=TPasImplExceptOn(El);

@@ -644,7 +644,7 @@ begin
   T:=TPasImplTry.Create('',Nil);
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddExcept;
-  O:=F.AddExceptOn(CreateIdent('E'),CreateIdent('Exception'));
+  O:=F.AddExceptOn('E','Exception');
   O.Body:=CreateAssignStatement('b','c');
   // Convert
   El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
@@ -692,7 +692,7 @@ begin
   T:=TPasImplTry.Create('',Nil);
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddExcept;
-  O:=F.AddExceptOn(CreateIdent('E'),CreateIdent('Exception'));
+  O:=F.AddExceptOn('E','Exception');
   O.Body:=TPasImplRaise.Create('',Nil);
   // Convert
   El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));

@@ -599,6 +599,8 @@ end;
 
 procedure TTestParser.StartParsing;
 
+var
+  i: Integer;
 begin
   If FIsUnit then
     StartImplementation;
@@ -608,7 +610,8 @@ begin
   FResolver.AddStream(FFileName,TStringStream.Create(FSource.Text));
   FScanner.OpenFile(FFileName);
   Writeln('// Test : ',Self.TestName);
-  Writeln(FSource.Text);
+  for i:=0 to FSource.Count-1 do
+    Writeln(Format('%:4d: ',[i+1]),FSource[i]);
 end;
 
 procedure TTestParser.ParseDeclarations;

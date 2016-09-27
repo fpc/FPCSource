@@ -763,28 +763,28 @@ procedure TTestClassType.TestConstructor;
 begin
   AddMember('Constructor Create');
   ParseClass;
-  AssertEquals('1 members',1,TheClass.members.Count);
-  AssertEquals('1 class procedure',TPasConstructor,members[0].ClassType);
+  AssertEquals('1 members',1,TheClass.Members.Count);
+  AssertEquals('1 class procedure',TPasConstructor,Members[0].ClassType);
   AssertEquals('Default visibility',visDefault,Members[0].Visibility);
   AssertMemberName('Create');
-  AssertEquals('No modifiers',[],TPasClassProcedure(Members[0]).Modifiers);
-  AssertEquals('Default calling convention',ccDefault, TPasClassProcedure(Members[0]).ProcType.CallingConvention);
-  AssertNotNull('Method proc type',TPasClassProcedure(Members[0]).ProcType);
-  AssertEquals('No arguments',0,TPasClassProcedure(Members[0]).ProcType.Args.Count)
+  AssertEquals('No modifiers',[],TPasConstructor(Members[0]).Modifiers);
+  AssertEquals('Default calling convention',ccDefault, TPasConstructor(Members[0]).ProcType.CallingConvention);
+  AssertNotNull('Method proc type',TPasConstructor(Members[0]).ProcType);
+  AssertEquals('No arguments',0,TPasConstructor(Members[0]).ProcType.Args.Count)
 end;
 
 procedure TTestClassType.TestClassConstructor;
 begin
   AddMember('Class Constructor Create');
   ParseClass;
-  AssertEquals('1 members',1,TheClass.members.Count);
-  AssertEquals('1 class procedure',TPasClassConstructor,members[0].ClassType);
+  AssertEquals('1 members',1,TheClass.Members.Count);
+  AssertEquals('1 class procedure',TPasClassConstructor,Members[0].ClassType);
   AssertEquals('Default visibility',visDefault,Members[0].Visibility);
   AssertMemberName('Create');
-  AssertEquals('No modifiers',[],TPasClassProcedure(Members[0]).Modifiers);
-  AssertEquals('Default calling convention',ccDefault, TPasClassProcedure(Members[0]).ProcType.CallingConvention);
-  AssertNotNull('Method proc type',TPasClassProcedure(Members[0]).ProcType);
-  AssertEquals('No arguments',0,TPasClassProcedure(Members[0]).ProcType.Args.Count)
+  AssertEquals('No modifiers',[],TPasClassConstructor(Members[0]).Modifiers);
+  AssertEquals('Default calling convention',ccDefault, TPasClassConstructor(Members[0]).ProcType.CallingConvention);
+  AssertNotNull('Method proc type',TPasClassConstructor(Members[0]).ProcType);
+  AssertEquals('No arguments',0,TPasClassConstructor(Members[0]).ProcType.Args.Count)
 end;
 
 procedure TTestClassType.TestDestructor;
@@ -795,24 +795,24 @@ begin
   AssertEquals('1 class procedure',TPasDestructor,members[0].ClassType);
   AssertEquals('Default visibility',visDefault,Members[0].Visibility);
   AssertMemberName('Destroy');
-  AssertEquals('No modifiers',[],TPasClassProcedure(Members[0]).Modifiers);
-  AssertEquals('Default calling convention',ccDefault, TPasClassProcedure(Members[0]).ProcType.CallingConvention);
-  AssertNotNull('Method proc type',TPasClassProcedure(Members[0]).ProcType);
-  AssertEquals('No arguments',0,TPasClassProcedure(Members[0]).ProcType.Args.Count)
+  AssertEquals('No modifiers',[],TPasDestructor(Members[0]).Modifiers);
+  AssertEquals('Default calling convention',ccDefault, TPasDestructor(Members[0]).ProcType.CallingConvention);
+  AssertNotNull('Method proc type',TPasDestructor(Members[0]).ProcType);
+  AssertEquals('No arguments',0,TPasDestructor(Members[0]).ProcType.Args.Count)
 end;
 
 procedure TTestClassType.TestClassDestructor;
 begin
   AddMember('Class Destructor Destroy');
   ParseClass;
-  AssertEquals('1 members',1,TheClass.members.Count);
-  AssertEquals('1 class procedure',TPasClassDestructor,members[0].ClassType);
+  AssertEquals('1 members',1,TheClass.Members.Count);
+  AssertEquals('1 class procedure',TPasClassDestructor,Members[0].ClassType);
   AssertEquals('Default visibility',visDefault,Members[0].Visibility);
   AssertMemberName('Destroy');
-  AssertEquals('No modifiers',[],TPasClassProcedure(Members[0]).Modifiers);
-  AssertEquals('Default calling convention',ccDefault, TPasClassProcedure(Members[0]).ProcType.CallingConvention);
-  AssertNotNull('Method proc type',TPasClassProcedure(Members[0]).ProcType);
-  AssertEquals('No arguments',0,TPasClassProcedure(Members[0]).ProcType.Args.Count)
+  AssertEquals('No modifiers',[],TPasClassDestructor(Members[0]).Modifiers);
+  AssertEquals('Default calling convention',ccDefault, TPasClassDestructor(Members[0]).ProcType.CallingConvention);
+  AssertNotNull('Method proc type',TPasClassDestructor(Members[0]).ProcType);
+  AssertEquals('No arguments',0,TPasClassDestructor(Members[0]).ProcType.Args.Count)
 end;
 
 procedure TTestClassType.TestFunctionMethodSimple;

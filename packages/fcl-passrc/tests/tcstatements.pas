@@ -1326,8 +1326,8 @@ begin
   O:=TPasImplExceptOn(E.Elements[0]);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   S:=TPasImplSimple(O.Elements[0]);
   AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse');
 //  AssertEquals('Variable name',
@@ -1364,8 +1364,8 @@ begin
   O:=TPasImplExceptOn(E.Elements[0]);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   S:=TPasImplSimple(O.Elements[0]);
   AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse');
   // Exception handler 2
@@ -1373,8 +1373,8 @@ begin
   O:=TPasImplExceptOn(E.Elements[1]);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'Y');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception2');
+  AssertEquals('Exception Variable name','Y',O.VariableName);
+  AssertEquals('Exception Type name','Exception2',O.TypeName);
   S:=TPasImplSimple(O.Elements[0]);
   AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse2');
 end;
@@ -1407,8 +1407,8 @@ begin
   AssertEquals(1,E.Elements.Count);
   AssertEquals('Except on handler',TPasImplExceptOn,TPasElement(E.Elements[0]).ClassType);
   O:=TPasImplExceptOn(E.Elements[0]);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplIfElse,TPasElement(O.Elements[0]).ClassType);
   I:=TPasImplIfElse(O.Elements[0]);
@@ -1450,8 +1450,8 @@ begin
   AssertEquals(1,E.Elements.Count);
   AssertEquals('Except on handler',TPasImplExceptOn,TPasElement(E.Elements[0]).ClassType);
   O:=TPasImplExceptOn(E.Elements[0]);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
   S:=TPasImplSimple(O.Elements[0]);
