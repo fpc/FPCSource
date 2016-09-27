@@ -1142,8 +1142,8 @@ begin
     Position:=0;
     SetLength(Temp,Size);
     ReadBuffer(Pointer(Temp)^,Size);
-    FValue:=Temp;
     end;
+  Value:=Temp;
 end;
 
 Procedure TParam.SetBlobData(Buffer: Pointer; ASize: Integer);
