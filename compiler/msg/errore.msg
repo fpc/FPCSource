@@ -2978,7 +2978,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Internal linker messages
 #
-# 09207 is the last used one
+# 09208 is the last used one
 #
 # BeginOfTeX
 % \section{Linker messages}
@@ -3007,6 +3007,7 @@ link_e_com_program_uses_segment_relocations=09207_E_Cannot create a .COM file, b
 % might be caused by the use of the Seg() function or by the SEG assembler
 % directive (either in pascal's built-in inline assembler, or in an externally
 % linked assembly module).
+link_w_program_uses_checkpointer=09208_W_Program "$1" uses experimental CheckPointer function
 %\end{description}
 # EndOfTeX
 
@@ -3226,7 +3227,7 @@ unit_u_loading_from_package=10064_U_Loading unit $1 from package $2
 #
 #  Options
 #
-# 11057 is the last used one
+# 11058 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -3372,7 +3373,8 @@ option_malformed_para=11055_E_malformed parameter: $1
 % Given argument is not valid for parameter.
 option_smart_link_requires_external_linker=11056_W_Smart linking requires external linker
 option_com_files_require_tiny_model=11057_E_Creating .COM files is not supported in the current memory model. Only the tiny memory model supports making .COM files.
-
+% Do not enable experimental -gc option if -Ur option is given.
+option_gc_incompatible_with_release_flag=11058_W_Experimental CheckPointer option not enabled because it is incomptatible with -Ur option.
 
 %\end{description}
 # EndOfTeX
@@ -3762,7 +3764,7 @@ J*2Cv_Var/out parameter copy-out checking
 **2FW<x>_Store generated whole-program optimization feedback in <x>
 **2Fw<x>_Load previously stored whole-program optimization feedback from <x>
 *g1g_Generate debug information (default format for target)
-*g2gc_Generate checks for pointers
+*g2gc_Generate checks for pointers (experimental, only available on some targets, might generate false positive)
 *g2gh_Use heaptrace unit (for memory leak/corruption debugging)
 *g2gl_Use line info unit (show more info with backtraces)
 *g2go<x>_Set debug information options
