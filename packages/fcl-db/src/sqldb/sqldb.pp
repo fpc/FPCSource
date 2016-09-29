@@ -1747,7 +1747,7 @@ Var
   P : TParam;
 
 begin
-  if not LogEvent(detParamValue) then
+  if not LogEvent(detParamValue) or not Assigned(AParams) then
     Exit;
   For P in AParams do
     begin
