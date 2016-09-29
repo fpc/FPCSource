@@ -148,6 +148,9 @@ interface
     { excludes the flags passed in nf from the node tree passed }
     procedure node_reset_flags(p : tnode;nf : tnodeflags);
 
+    { include or exclude cs from p.localswitches }
+    procedure node_change_local_switch(p : tnode;cs : tlocalswitch;enable : boolean);
+
 implementation
 
     uses
@@ -1402,6 +1405,32 @@ implementation
     procedure node_reset_flags(p : tnode; nf : tnodeflags);
       begin
         foreachnodestatic(p,@do_node_reset_flags,@nf);
+      end;
+
+    type
+       tlocalswitchchange = record
+         cs : tlocalswitch;
+         enable : boolean;
+       end;
+       plocalswitchchange = ^tlocalswitchchange;
+
+
+    function do_change_local_settings(var p : tnode;plsc : pointer) : foreachnoderesult;
+      begin
+        if plocalswitchchange(plsc)^.enable then
+          include(p.localswitches, plocalswitchchange(plsc)^.cs)
+        else
+          exclude(p.localswitches, plocalswitchchange(plsc)^.cs);
+        result:=fen_true;
+     end;
+   
+    procedure node_change_local_switch(p : tnode;cs : tlocalswitch;enable : boolean);
+      var
+        lsc : tlocalswitchchange;
+      begin
+        lsc.cs:=cs;
+        lsc.enable:=enable;
+        foreachnodestatic(p,@do_change_local_settings,@lsc);
       end;
 
 end.

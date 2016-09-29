@@ -64,7 +64,7 @@ implementation
       cpuinfo, defutil,symdef,aasmdata,aasmcpu,
       cgbase,cgutils,pass_1,pass_2,
       cpubase,ncgutil,cgobj,cgcpu, hlcgobj,
-      ncal;
+      nutils,ncal;
 
 {*****************************************************************************
                               tarminlinenode
@@ -384,12 +384,13 @@ implementation
       begin
         if not(GenerateThumbCode) and (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) then
           begin
-            { do not call Checkpointer for left node }
-            checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
-            exclude(current_settings.localswitches,cs_checkpointer);
-            secondpass(left);
-            if checkpointer_used then
-              include(current_settings.localswitches,cs_checkpointer);
+             { do not call Checkpointer for left node }
+             checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
+             if checkpointer_used then
+               node_change_local_switch(left,cs_checkpointer,false);
+             secondpass(left);
+             if checkpointer_used then
+               node_change_local_switch(left,cs_checkpointer,false);
             case left.location.loc of
               LOC_CREFERENCE,
               LOC_REFERENCE:

@@ -59,7 +59,7 @@ implementation
       symconst,symdef,
       defutil,
       cgbase,pass_2,
-      cpuinfo,ncgutil,
+      cpuinfo,ncgutil,nutils,
       hlcgobj,cgutils,cgobj,rgobj,tgobj;
 
 
@@ -209,10 +209,11 @@ implementation
        begin
          { do not call Checkpointer for left node }
          checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
-         exclude(current_settings.localswitches,cs_checkpointer);
+         if checkpointer_used then
+           node_change_local_switch(left,cs_checkpointer,false);
          secondpass(left);
          if checkpointer_used then
-           include(current_settings.localswitches,cs_checkpointer);
+           node_change_local_switch(left,cs_checkpointer,false);
          case left.location.loc of
            LOC_CREFERENCE,
            LOC_REFERENCE:
