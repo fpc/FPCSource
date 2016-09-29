@@ -92,8 +92,15 @@ type
 
     fib_OwnerUID    : Word;
     fib_OwnerGID    : Word;
-
-    fib_Reserved    : Array[0..31] Of Char;
+    case SmallInt of
+      0: (
+        fib_Reserved    : Array[0..31] Of Char;
+        );
+      1: (
+        // 64bit DOS extensions V51 filled by Examine64, ExNext64, ExamineFH64 with ACTION_EXAMINE_OBJECT64
+        fib_Size64: QWord;
+        fib_NumBlocks64: QWord;
+      );
   end;
 
 const
@@ -115,26 +122,25 @@ const
   FIBB_DELETE      = 0;
 
 const
-  FIBF_OTR_READ    = (1 Shl FIBB_OTR_READ);
-  FIBF_OTR_WRITE   = (1 Shl FIBB_OTR_WRITE);
-  FIBF_OTR_EXECUTE = (1 Shl FIBB_OTR_EXECUTE);
-  FIBF_OTR_DELETE  = (1 Shl FIBB_OTR_DELETE);
-  FIBF_GRP_READ    = (1 Shl FIBB_GRP_READ);
-  FIBF_GRP_WRITE   = (1 Shl FIBB_GRP_WRITE);
-  FIBF_GRP_EXECUTE = (1 Shl FIBB_GRP_EXECUTE);
-  FIBF_GRP_DELETE  = (1 Shl FIBB_GRP_DELETE);
+  FIBF_OTR_READ    = 1 Shl FIBB_OTR_READ;
+  FIBF_OTR_WRITE   = 1 Shl FIBB_OTR_WRITE;
+  FIBF_OTR_EXECUTE = 1 Shl FIBB_OTR_EXECUTE;
+  FIBF_OTR_DELETE  = 1 Shl FIBB_OTR_DELETE;
+  FIBF_GRP_READ    = 1 Shl FIBB_GRP_READ;
+  FIBF_GRP_WRITE   = 1 Shl FIBB_GRP_WRITE;
+  FIBF_GRP_EXECUTE = 1 Shl FIBB_GRP_EXECUTE;
+  FIBF_GRP_DELETE  = 1 Shl FIBB_GRP_DELETE;
 
-  FIBF_SCRIPT      = (1 Shl FIBB_SCRIPT);
-  FIBF_PURE        = (1 Shl FIBB_PURE);
-  FIBF_ARCHIVE     = (1 Shl FIBB_ARCHIVE);
-  FIBF_READ        = (1 Shl FIBB_READ);
-  FIBF_WRITE       = (1 Shl FIBB_WRITE);
-  FIBF_EXECUTE     = (1 Shl FIBB_EXECUTE);
-  FIBF_DELETE      = (1 Shl FIBB_DELETE);
+  FIBF_SCRIPT      = 1 Shl FIBB_SCRIPT;
+  FIBF_PURE        = 1 Shl FIBB_PURE;
+  FIBF_ARCHIVE     = 1 Shl FIBB_ARCHIVE;
+  FIBF_READ        = 1 Shl FIBB_READ;
+  FIBF_WRITE       = 1 Shl FIBB_WRITE;
+  FIBF_EXECUTE     = 1 Shl FIBB_EXECUTE;
+  FIBF_DELETE      = 1 Shl FIBB_DELETE;
 
 const
   FAULT_MAX = 82;
-
 
 type
   BPTR = LongInt;
@@ -150,7 +156,7 @@ type
     id_NumBlocksUsed: LongInt;
     id_BytesPerBlock: LongInt;
     id_DiskType     : LongInt;
-    id_VolumeNode   : LongInt; {BPTR}
+    id_VolumeNode   : BPTR;
     id_InUse        : LongInt;
   end;
 
@@ -173,6 +179,11 @@ const
   ID_NOT_REALLY_DOS   = $4E444F53;
   ID_KICKSTART_DISK   = $4B49434B;
   ID_MSDOS_DISK       = $4d534400;
+  ID_CDFS_DISK        = $43444653; // CDFS - Built-in CDROM
+  ID_CDROM_ISO_DISK   = $43443031; // CD01
+  ID_CDROM_HSF_DISK   = $43443030; // CD00
+  ID_CDROM_CDDA_DISK  = $43444441; // CDDA
+  ID_SFS_DISK         = $53465300; // SFS#0
 
 const
   ERROR_NO_FREE_STORE            = 103;
@@ -234,10 +245,10 @@ const
   SIGBREAKB_CTRL_E = 14;
   SIGBREAKB_CTRL_F = 15;
 
-  SIGBREAKF_CTRL_C = (1 Shl SIGBREAKB_CTRL_C);
-  SIGBREAKF_CTRL_D = (1 Shl SIGBREAKB_CTRL_D);
-  SIGBREAKF_CTRL_E = (1 Shl SIGBREAKB_CTRL_E);
-  SIGBREAKF_CTRL_F = (1 Shl SIGBREAKB_CTRL_F);
+  SIGBREAKF_CTRL_C = 1 Shl SIGBREAKB_CTRL_C;
+  SIGBREAKF_CTRL_D = 1 Shl SIGBREAKB_CTRL_D;
+  SIGBREAKF_CTRL_E = 1 Shl SIGBREAKB_CTRL_E;
+  SIGBREAKF_CTRL_F = 1 Shl SIGBREAKB_CTRL_F;
 
 const
   LOCK_DIFFERENT    = -1;
@@ -260,6 +271,7 @@ const
   ITEM_UNQUOTED =  1;
   ITEM_QUOTED   =  2;
 
+// AllocDosObject(), FreeDosObject() Types
 const
   DOS_FILEHANDLE   = 0;
   DOS_EXALLCONTROL = 1;
@@ -267,8 +279,11 @@ const
   DOS_STDPKT       = 3;
   DOS_CLI          = 4;
   DOS_RDARGS       = 5;
-
-
+  // V51
+  DOS_DEVICENODE   = 6;
+  DOS_FSCONTEXT    = 7;
+  DOS_VOLUMENODE   = 8;
+  DOS_ASSIGNNODE   = 9;
 
 { * dos date/time definitions
   *********************************************************************
@@ -282,9 +297,9 @@ type
     dat_Stamp  : TDateStamp;
     dat_Format : Byte;
     dat_Flags  : Byte;
-    dat_StrDay : Pointer;
-    dat_StrDate: Pointer;
-    dat_StrTime: Pointer;
+    dat_StrDay : PChar;
+    dat_StrDate: PChar;
+    dat_StrTime: PChar;
   end;
 
 const
@@ -292,9 +307,9 @@ const
 
 const
   DTB_SUBST  = 0;
-  DTF_SUBST  = (1 Shl DTB_SUBST);
+  DTF_SUBST  = 1 Shl DTB_SUBST;
   DTB_FUTURE = 1;
-  DTF_FUTURE = (1 Shl DTB_FUTURE);
+  DTF_FUTURE = 1 Shl DTB_FUTURE;
 
 const
   FORMAT_DOS = 0;
@@ -317,68 +332,78 @@ type
     pr_Task          : TTask;
     pr_MsgPort       : TMsgPort;
     pr_Pad           : Word;
-    pr_SegList       : DWord;    { BPTR }
+    pr_SegList       : BPTR;
     pr_StackSize     : LongInt;  { 68k stacksize! }
-    pr_GlobVec       : Pointer;
+    pr_GlobVec       : APTR;
     pr_TaskNum       : LongInt;
-    pr_StackBase     : DWord;    { BPTR }
+    pr_StackBase     : BPTR;
     pr_Result2       : LongInt;
-    pr_CurrentDir    : DWord;    { BPTR }
-    pr_CIS           : DWord;    { BPTR }
-    pr_COS           : DWord;    { BPTR }
-    pr_ConsoleTask   : Pointer;
-    pr_FileSystemTask: Pointer;
-    pr_CLI           : DWord;    { BPTR }
-    pr_ReturnAddr    : Pointer;
-    pr_PktWait       : Pointer;
-    pr_WindowPtr     : Pointer;
-    pr_HomeDir       : DWord;    { BPTR }
+    pr_CurrentDir    : BPTR;
+    pr_CIS           : BPTR;
+    pr_COS           : BPTR;
+    pr_ConsoleTask   : APTR;
+    pr_FileSystemTask: APTR;
+    pr_CLI           : BPTR;
+    pr_ReturnAddr    : APTR;
+    pr_PktWait       : APTR;
+    pr_WindowPtr     : APTR;
+    pr_HomeDir       : BPTR;
     pr_Flags         : LongInt;
     pr_ExitCode      : Pointer;  { Procedure }
     pr_ExitData      : LongInt;
-    pr_Arguments     : PChar;
+    pr_Arguments     : STRPTR;
     pr_LocalVars     : TMinList;
-    pr_ShellPrivate  : DWord;
-    pr_CES           : DWord;    { BPTR }
+    pr_ShellPrivate  : LongWord;
+    pr_CES           : BPTR;
   end;
 
 const
   PRB_FREESEGLIST = 0;
-  PRF_FREESEGLIST = (1 Shl PRB_FREESEGLIST);
+  PRF_FREESEGLIST = 1 Shl PRB_FREESEGLIST;
 
   PRB_FREECURRDIR = 1;
-  PRF_FREECURRDIR = (1 Shl PRB_FREECURRDIR);
+  PRF_FREECURRDIR = 1 Shl PRB_FREECURRDIR;
 
   PRB_FREECLI     = 2;
-  PRF_FREECLI     = (1 Shl PRB_FREECLI);
+  PRF_FREECLI     = 1 Shl PRB_FREECLI;
 
   PRB_CLOSEINPUT  = 3;
-  PRF_CLOSEINPUT  = (1 Shl PRB_CLOSEINPUT);
+  PRF_CLOSEINPUT  = 1 Shl PRB_CLOSEINPUT;
 
   PRB_CLOSEOUTPUT = 4;
-  PRF_CLOSEOUTPUT = (1 Shl PRB_CLOSEOUTPUT);
+  PRF_CLOSEOUTPUT = 1 Shl PRB_CLOSEOUTPUT;
 
   PRB_FREEARGS    = 5;
-  PRF_FREEARGS    = (1 Shl PRB_FREEARGS);
+  PRF_FREEARGS    = 1 Shl PRB_FREEARGS;
+
+  PRB_CLOSEERROR  = 6;
+  PRF_CLOSEERROR  = 1 Shl PRB_CLOSEERROR;
 
 
 type
   PFileHandle = ^TFileHandle;
   TFileHandle = packed record
-    fh_Flags      : DWord;
-    fh_Interactive: LongInt;
-    fh_Type       : PMsgPort;
-    fh_Buf        : LongInt;
-    fh_Pos        : LongInt;
-    fh_End        : LongInt;
-    fh_Func1      : LongInt;
-    fh_Func2      : LongInt;
-    fh_Func3      : LongInt;
-    fh_Arg1       : LongInt;
-    fh_Arg2       : LongInt;
-    { *** V50 MorphOS *** }
-    fh_BufSize    : LongInt;
-    fh_OrigBuf    : LongInt;
+    case Byte of
+      0: (
+        fh_Link      : LongWord;
+        fh_Port      : LongInt;
+        );
+      1: (
+        fh_Flags      : LongWord;
+        fh_Interactive: LongInt;
+        fh_Type       : PMsgPort;
+        fh_Buf        : LongInt;
+        fh_Pos        : LongInt;
+        fh_End        : LongInt;
+        fh_Func1      : LongInt;
+        fh_Func2      : LongInt;
+        fh_Func3      : LongInt;
+        fh_Arg1       : LongInt;
+        fh_Arg2       : LongInt;
+        { *** V50 MorphOS *** }
+        fh_BufSize    : LongInt;
+        fh_OrigBuf    : LongInt;
+      );
   end;
 
 type
@@ -490,26 +515,52 @@ const
   ACTION_GET_DISK_FSSM   = 4201;
   ACTION_FREE_DISK_FSSM  = 4202;
 
+  // 64bit DOS extensions - V51
+  ACTION_SEEK64           = 26400; // dp_Arg1 - LongInt fh_Arg1, dp_Arg2 - PInt64 position, dp_Arg3 - LongInt mode, dp_Arg4 - PInt64 oldposition
+  ACTION_SET_FILE_SIZE64  = 26401; // dp_Arg1 - LongInt fh_Arg1, dp_Arg2 - PInt64 position, dp_Arg3 - LongInt mode, dp_Arg4 - PInt64 newsize
+  ACTION_LOCK_RECORD64    = 26402; // dp_Arg1 - LongInt fh_Arg1, dp_Arg2 - PQWord offset, dp_Arg3 - PQWord length, dp_Arg4 - LongWord mode, dp_Arg5 - LongWord timeout
+  ACTION_FREE_RECORD64    = 26403; // dp_Arg1 - LongInt fh_Arg1, dp_Arg2 - PQWord offset, dp_Arg3 - PQWord length
+  ACTION_RESERVED_1       = 26404; // reserved, do not use
+  ACTION_RESERVED_2       = 26405; // reserved, do not use
+  ACTION_NEW_READ_LINK    = 26406; // dp_Arg1 - BPTR lock, lock on directory that dp_Arg2 is relative to, dp_Arg2 - UBYTE *name, path and name of link (relative to dp_Arg1), dp_Arg3 - PByte buffer, dp_Arg4 - LongInt buffersize
+  ACTION_QUERY_ATTR       = 26407; // dp_Arg1 - LongInt attr, which attribute you want to know about, dp_Arg2 - Pointer storage, memory to hold the return value, dp_Arg3 - LongInt storagesize, size of storage reserved for,
+  ACTION_EXAMINE_OBJECT64 = 26408; // dp_Arg1 - BPTR to lock to examine, dp_Arg2 - BPTR to TFileInfoBlock
+  ACTION_EXAMINE_NEXT64   = 26409; // dp_Arg1 - BPTR to lock to examine, dp_Arg2 - BPTR to TFileInfoBlock
+  ACTION_EXAMINE_FH64     = 26410; // dp_Arg1 - LongInt fh_Arg1, dp_Arg2 - BPTR to TFileInfoBlock
+
+  FQA_MaxFileNameLength   = 0; // LongInt - Return the maximum length of a file name (in characters), excluding terminating '\0' char.
+  FQA_MaxVolumeNameLength = 1; // LongInt - Return the maximum length of the volume name (in characters), excluding terminating '\0' char
+  FQA_MaxFileSize         = 2; // Int64 - Returns maximum size of the file the filesystem supports.
+  FQA_IsCaseSensitive     = 3; // LongInt - If the filesystem names are case sensitive, this attribute must return DOSTrue.
+  FQA_DeviceType          = 4; // LongInt - Return the type of the medium the filesystem is using, if known. Value is one of DG_*
+  FQA_ReservedAttr1       = 5; // reserved - do not use
+  FQA_NumBlocks           = 6; // Int64 - Return the total number of blocks on the filesystem.
+  FQA_NumBlocksUsed       = 7; // Int64 - Return the total number of used blocks on the filesystem.
+
+// Packets to get and set filesystem options runtime
+  ACTION_GET_PREFS_TEMPLATE = 26500; // arg1 - STRPTR dest_buff, arg2 - LongInt buffer_size
+  ACTION_GET_CURRENT_PREFS  = 26501; // arg1 - STRPTR dest_buff, arg2 - LongInt buffer_size
+  ACTION_SET_PREFS          = 26502; // arg1 - STRPTR prefs_string
 
 type
   PErrorString = ^TErrorString;
   TErrorString = packed record
-    estr_Nums: Pointer; { ^LongInt }
-    estr_Byte: Pointer; { ^Byte    }
+    estr_Nums: PLongInt;
+    estr_Byte: PByte;
   end;
 
 type
   PRootNode = ^TRootNode;
   TRootNode = packed record
-    rn_TaskArray         : DWord;      { BPTR }
-    rn_ConsoleSegment    : DWord;      { BPTR }
+    rn_TaskArray         : BPTR;
+    rn_ConsoleSegment    : BPTR;
     rn_Time              : TDateStamp;
     rn_RestartSeg        : LongInt;
-    rn_Info              : DWord;      { BPTR }
-    rn_FileHandlerSegment: DWord;      { BPTR }
+    rn_Info              : BPTR;
+    rn_FileHandlerSegment: BPTR;
     rn_CliList           : TMinList;
     rn_BootProc          : PMsgPort;
-    rn_ShellSegment      : DWord;      { BPTR }
+    rn_ShellSegment      : BPTR;
     rn_Flags             : LongInt;
   end;
 
@@ -518,7 +569,7 @@ type
   TDOSLibrary = packed record
     dl_Lib          : TLibrary;
     dl_Root         : PRootNode;
-    dl_GU           : Pointer;
+    dl_GU           : APTR;
     dl_A2           : LongInt;
     dl_A5           : LongInt;
     dl_A6           : LongInt;
@@ -531,10 +582,10 @@ type
 
 const
   RNB_WILDSTAR = 24;
-  RNF_WILDSTAR = (1 Shl RNB_WILDSTAR);
+  RNF_WILDSTAR = 1 Shl RNB_WILDSTAR;
 
   RNB_PRIVATE1 = 1;
-  RNF_PRIVATE1 = (1 Shl RNB_PRIVATE1);
+  RNF_PRIVATE1 = 1 Shl RNB_PRIVATE1;
 
 
 type
@@ -549,13 +600,13 @@ type
   PDOSInfo = ^TDOSInfo;
   TDOSInfo = packed record
     case Byte of
-    0 : ( di_ResList: DWord; { BPTR }
+    0 : ( di_ResList: BPTR;
         );
-    1 : ( di_McName    : DWord; { BPTR }
-          di_DevInfo   : DWord; { BPTR }
-          di_Devices   : DWord; { BPTR }
-          di_Handlers  : DWord; { BPTR }
-          di_NetHand   : Pointer;
+    1 : ( di_McName    : BPTR;
+          di_DevInfo   : BPTR;
+          di_Devices   : BPTR;
+          di_Handlers  : BPTR;
+          di_NetHand   : APTR;
           di_DevLock   : TSignalSemaphore;
           di_EntryLock : TSignalSemaphore;
           di_DeleteLock: TSignalSemaphore;
@@ -565,9 +616,9 @@ type
 type
   PSegment = ^TSegment;
   TSegment = packed record
-    seg_Next : DWord;   { BPTR }
+    seg_Next : BPTR;
     seg_UC   : LongInt;
-    seg_Seg  : DWord;   { BPTR }
+    seg_Seg  : BPTR;
     seg_Name : Array[0..3] Of Byte;
     { * seg_Name continues * }
   end;
@@ -584,80 +635,80 @@ type
   PCommandLineInterface = ^TCommandLineInterface;
   TCommandLineInterface = packed record
     cli_Result2       : LongInt;
-    cli_SetName       : DWord;   { BSTR }
-    cli_CommandDir    : DWord;   { BPTR }
+    cli_SetName       : BSTR;
+    cli_CommandDir    : BPTR;
     cli_ReturnCode    : LongInt;
-    cli_CommandName   : DWord;   { BSTR }
+    cli_CommandName   : BSTR;
     cli_FailLevel     : LongInt;
-    cli_Prompt        : DWord;   { BSTR }
-    cli_StandardInput : DWord;   { BPTR }
-    cli_CurrentInput  : DWord;   { BPTR }
-    cli_CommandFile   : DWord;   { BSTR }
+    cli_Prompt        : BSTR;
+    cli_StandardInput : BPTR;
+    cli_CurrentInput  : BPTR;
+    cli_CommandFile   : BSTR;
     cli_Interactive   : LongInt;
     cli_Background    : LongInt;
-    cli_CurrentOutput : DWord;   { BPTR }
+    cli_CurrentOutput : BPTR;
     cli_DefaultStack  : LongInt;
-    cli_StandardOutput: DWord;   { BPTR }
-    cli_Module        : DWord;   { BPTR }
+    cli_StandardOutput: BPTR;
+    cli_Module        : BPTR;
   end;
 
 type
   PDeviceList = ^TDeviceList;
   TDeviceList = packed record
-    dl_Next      : DWord;      { BPTR }
+    dl_Next      : BPTR;
     dl_Type      : LongInt;
     dl_Task      : PMsgPort;
-    dl_Lock      : DWord;      { BPTR }
+    dl_Lock      : BPTR;
     dl_VolumeDate: TDateStamp;
-    dl_LockList  : DWord;      { BPTR }
+    dl_LockList  : BPTR;
     dl_DiskType  : LongInt;
     dl_unused    : LongInt;
-    dl_Name      : DWord;      { BSTR }
+    dl_Name      : BSTR;
   end;
 
 type
   PDevInfo = ^TDevInfo;
   TDevInfo = packed record
-    dvi_Next     : DWord; { BPTR }
+    dvi_Next     : BPTR;
     dvi_Type     : LongInt;
     dvi_Task     : Pointer;
-    dvi_Lock     : DWord; { BPTR }
-    dvi_Handler  : DWord; { BSTR }
+    dvi_Lock     : BPTR;
+    dvi_Handler  : BSTR;
     dvi_StackSize: LongInt;
     dvi_Priority : LongInt;
     dvi_Startup  : LongInt;
-    dvi_SegList  : DWord; { BPTR }
-    dvi_GlobVec  : DWord; { BPTR }
-    dvi_Name     : DWord; { BSTR }
+    dvi_SegList  : BPTR;
+    dvi_GlobVec  : BPTR;
+    dvi_Name     : BSTR;
   end;
 
 type
   PAssignList = ^TAssignList;
   TAssignList = packed record
     al_Next: PAssignList;
-    al_Lock: DWord;       { BPTR }
+    al_Lock: BPTR;
   end;
 
 type
   PDOSList = ^TDOSList;
   TDOSList = packed record
-    dol_Next: DWord;    { BPTR }
+    dol_Next: BPTR;
     dol_Type: LongInt;
     dol_Task: PMsgPort;
-    dol_Lock: DWord;    { BPTR }
+    dol_Lock: BPTR;
     case Byte of
     0: ( dol_handler : record
-           dol_Handler  : DWord;    { BSTR }
+           dol_Handler  : BSTR;
            dol_StackSize: LongInt;
            dol_Priority : LongInt;
-           dol_Startup  : DWord;
-           dol_SegList  : DWord;    { BPTR }
-           dol_GlobVec  : DWord;    { BPTR }
+           dol_Startup  : LongWord;
+           dol_SegList  : BPTR;
+           dol_GlobVec  : BPTR;
          end;
        );
     1: ( dol_volume : record
            dol_VolumeDate: TDateStamp;
-           dol_LockList  : DWord;   { BPTR }
+           dol_LockList  : BPTR;
            dol_DiskType  : LongInt;
          end;
        );
@@ -667,7 +718,7 @@ type
          end;
        );
     3: ( dol_Misc: array[0..23] of Byte;
-         dol_Name: DWord;    { BPTR }
+         dol_Name: BPTR;
        );
   end;
 
@@ -679,58 +730,62 @@ const
   DLT_LATE       = 3;
   DLT_NONBINDING = 4;
   DLT_PRIVATE    = -1;
-
+// V51 (MorphOS)
+  DLT_FSCONTEXT  = 5;
 
 type
   PDevProc = ^TDevProc;
   TDevProc = packed record
     dvp_Port   : PMsgPort;
-    dvp_Lock   : DWord;    { BPTR }
-    dvp_Flags  : DWord;
+    dvp_Lock   : BPTR;
+    dvp_Flags  : LongWord;
     dvp_DevNode: PDOSList;
   end;
 
 
 const
   DVPB_UNLOCK = 0;
-  DVPF_UNLOCK = (1 Shl DVPB_UNLOCK);
+  DVPF_UNLOCK = 1 Shl DVPB_UNLOCK;
 
   DVPB_ASSIGN = 1;
-  DVPF_ASSIGN = (1 Shl DVPB_ASSIGN);
+  DVPF_ASSIGN = 1 Shl DVPB_ASSIGN;
+  // V51 (MorphOS)
+  DVPB_FSCONTEXT = 2;
+  DVPF_FSCONTEXT = 1 Shl DVPB_FSCONTEXT;
 
 const
   LDB_READ    = 0;
-  LDF_READ    = (1 Shl LDB_READ);
+  LDF_READ    = 1 Shl LDB_READ;
 
   LDB_WRITE   = 1;
-  LDF_WRITE   = (1 Shl LDB_WRITE);
+  LDF_WRITE   = 1 Shl LDB_WRITE;
 
   LDB_DEVICES = 2;
-  LDF_DEVICES = (1 Shl LDB_DEVICES);
+  LDF_DEVICES = 1 Shl LDB_DEVICES;
 
   LDB_VOLUMES = 3;
-  LDF_VOLUMES = (1 Shl LDB_VOLUMES);
+  LDF_VOLUMES = 1 Shl LDB_VOLUMES;
 
   LDB_ASSIGNS = 4;
-  LDF_ASSIGNS = (1 Shl LDB_ASSIGNS);
+  LDF_ASSIGNS = 1 Shl LDB_ASSIGNS;
 
   LDB_ENTRY   = 5;
-  LDF_ENTRY   = (1 Shl LDB_ENTRY);
+  LDF_ENTRY   = 1 Shl LDB_ENTRY;
 
   LDB_DELETE  = 6;
-  LDF_DELETE  = (1 Shl LDB_DELETE);
+  LDF_DELETE  = 1 Shl LDB_DELETE;
 
-  LDF_ALL     = (LDF_DEVICES Or LDF_VOLUMES Or LDF_ASSIGNS);
+  LDF_ALL     = LDF_DEVICES Or LDF_VOLUMES Or LDF_ASSIGNS;
 
 
 type
   PFileLock = ^TFileLock;
   TFileLock = packed record
-    fl_Link  : DWord;   { BPTR }
+    fl_Link  : BPTR;
     fl_Key   : LongInt;
     fl_Access: LongInt;
     fl_Task  : PMsgPort;
-    fl_Volume: DWord;   { BPTR }
+    fl_Volume: BPTR;
   end;
 
 
@@ -771,7 +826,7 @@ type
   TAChain = packed record
     an_Child : PAChain;
     an_Parent: PAChain;
-    an_Lock  : DWord;   { BPTR }
+    an_Lock  : BPTR;
     an_Info  : TFileInfoBlock;
     an_Flags : ShortInt;
     an_String: Array[0..0] Of Char;
@@ -784,6 +839,10 @@ type
     case Byte of
     0 : ( ap_First: PAChain;
           ap_Last : PAChain;
+          ap_BreakBits_1 : LongInt; // just as placeholder
+          ap_FoundBreak_1: LongInt; // just as placeholder
+          ap_Length      : ShortInt;
+          ap_Extended    : ShortInt;
         );
     1 : ( ap_Base      : PAChain;
           ap_Current   : PAChain;
@@ -801,54 +860,62 @@ type
 
 const
   APB_DOWILD       = 0;
-  APF_DOWILD       = (1 Shl APB_DOWILD);
+  APF_DOWILD       = 1 Shl APB_DOWILD;
 
   APB_ITSWILD      = 1;
-  APF_ITSWILD      = (1 Shl APB_ITSWILD);
+  APF_ITSWILD      = 1 Shl APB_ITSWILD;
 
   APB_DODIR        = 2;
-  APF_DODIR        = (1 Shl APB_DODIR);
+  APF_DODIR        = 1 Shl APB_DODIR;
 
   APB_DIDDIR       = 3;
-  APF_DIDDIR       = (1 Shl APB_DIDDIR);
+  APF_DIDDIR       = 1 Shl APB_DIDDIR;
 
   APB_NOMEMERR     = 4;
-  APF_NOMEMERR     = (1 Shl APB_NOMEMERR);
+  APF_NOMEMERR     = 1 Shl APB_NOMEMERR;
 
   APB_DODOT        = 5;
-  APF_DODOT        = (1 Shl APB_DODOT);
+  APF_DODOT        = 1 Shl APB_DODOT;
 
   APB_DirChanged   = 6;
-  APF_DirChanged   = (1 Shl APB_DirChanged);
+  APF_DirChanged   = 1 Shl APB_DirChanged;
 
   APB_FollowHLinks = 7;
-  APF_FollowHLinks = (1 Shl APB_FollowHLinks);
+  APF_FollowHLinks = 1 Shl APB_FollowHLinks;
 
 const
   APSB_EXTENDED        = 15;
-  APSF_EXTENDED        = (1 Shl APSB_EXTENDED);
+  APSF_EXTENDED        = 1 Shl APSB_EXTENDED;
 
-  APEB_DoMultiAssigns  = 0;
-  APEF_DoMultiAssigns  = (1 Shl APEB_DoMultiAssigns);
+// Following are ap_Extended flags, only enabled when ap_StrLen has
+//   APSF_EXTENDED set. Added in dos.library 50.67.
+
+// Return literal softlink names instead of the link destination
+  APEB_LiteralSLinks   = 1;
+  APEF_LiteralSLinks   = 1 shl APEB_LiteralSLinks;
+
+// Don't follow softlink directories, implies APEF_LiteralSLinks
+  APEB_DontFollowSLinks = 2;
+  APEF_DontFollowSLinks = 1 shl APEB_DontFollowSLinks;
 
   APEB_FutureExtension = 7;
-  APEF_FutureExtension = (1 Shl APEB_FutureExtension);
+  APEF_FutureExtension = 1 Shl APEB_FutureExtension;
 
 const
   DDB_PatternBit  = 0;
-  DDF_PatternBit  = (1 Shl DDB_PatternBit);
+  DDF_PatternBit  = 1 Shl DDB_PatternBit;
 
   DDB_ExaminedBit = 1;
-  DDF_ExaminedBit = (1 Shl DDB_ExaminedBit);
+  DDF_ExaminedBit = 1 Shl DDB_ExaminedBit;
 
   DDB_Completed   = 2;
-  DDF_Completed   = (1 Shl DDB_Completed);
+  DDF_Completed   = 1 Shl DDB_Completed;
 
   DDB_AllBit      = 3;
-  DDF_AllBit      = (1 Shl DDB_AllBit);
+  DDF_AllBit      = 1 Shl DDB_AllBit;
 
   DDB_Single      = 4;
-  DDF_Single      = (1 Shl DDB_Single);
+  DDF_Single      = 1 Shl DDB_Single;
 
 const
   P_ANY      = $80;
@@ -874,11 +941,9 @@ const
   ERROR_NOT_EXECUTABLE  = 305;
 
 
-
 { * dos hunk definitions
   *********************************************************************
   * }
-
 
 const
   HUNK_UNIT         = 999;
@@ -922,9 +987,9 @@ const
   HUNKB_CHIP     = 30;
   HUNKB_FAST     = 31;
 
-  HUNKF_ADVISORY = (1 Shl HUNKB_ADVISORY);
-  HUNKF_CHIP     = (1 Shl HUNKB_CHIP);
-  HUNKF_FAST     = (1 Shl HUNKB_FAST);
+  HUNKF_ADVISORY = 1 Shl HUNKB_ADVISORY;
+  HUNKF_CHIP     = 1 Shl HUNKB_CHIP;
+  HUNKF_FAST     = 1 Shl HUNKB_FAST;
 
 const
   EXT_SYMB      = 0;
@@ -956,11 +1021,9 @@ const
   EXT_ABSREF8   = 139;
 
 
-
 { * dos ExAll definitions
   *********************************************************************
   * }
-
 
 const
   ED_NAME       = 1;
@@ -970,7 +1033,9 @@ const
   ED_DATE       = 5;
   ED_COMMENT    = 6;
   ED_OWNER      = 7;
-
+  // 64bit DOS extensions - V51
+  // The ExAllData ed_Size64 field is filled. For files larger than 2^31-1 bytes, ed_Size is 0.
+  ED_SIZE64     = 8;
 
 type
   PExAllData = ^TExAllData;
@@ -978,21 +1043,22 @@ type
     ed_Next    : PExAllData;
     ed_Name    : PChar;
     ed_Type    : LongInt;
-    ed_Size    : Cardinal;
-    ed_Prot    : Cardinal;
-    ed_Days    : Cardinal;
-    ed_Mins    : Cardinal;
-    ed_Ticks   : Cardinal;
+    ed_Size    : LongWord;
+    ed_Prot    : LongWord;
+    ed_Days    : LongWord;
+    ed_Mins    : LongWord;
+    ed_Ticks   : LongWord;
     ed_Comment : PChar;
     ed_OwnerUID: Word;
     ed_OwnerGID: Word;
+    ed_Size64: QWord;
   end;
 
 type
   PExAllControl = ^TExAllControl;
   TexAllControl = packed record
-    eac_Entries    : Cardinal;
-    eac_LastKey    : Cardinal;
+    eac_Entries    : LongWord;
+    eac_LastKey    : LongWord;
     eac_MatchString: PChar;
     eac_MatchFunc  : PHook;
 
@@ -1015,12 +1081,20 @@ const
 type
   PRecordLock = ^TRecordLock;
   TRecordLock = packed record
-    rec_FH    : LongInt;
-    rec_Offset: Cardinal;
-    rec_Length: Cardinal;
-    rec_Mode  : Cardinal;
+    rec_FH: BPTR;
+    rec_Offset: LongWord;
+    rec_Length: LongWord;
+    rec_Mode: LongWord;
   end;
 
+  // 64bit DOS extensions - V51
+  PRecordLock64 = ^TRecordLock64;
+  TRecordLock64 = packed record
+    rec_FH: BPTR;
+    rec_Offset: QWord;
+    rec_Length: QWord;
+    rec_Mode: LongWord;
+  end;
 
 
 { * dos tag definitions (V50)
@@ -1029,91 +1103,207 @@ type
 
 
 const
-  SYS_Dummy       = (TAG_USER + 32);
-  SYS_Input       = (SYS_Dummy + 1);
-  SYS_Output      = (SYS_Dummy + 2);
-  SYS_Asynch      = (SYS_Dummy + 3);
-  SYS_UserShell   = (SYS_Dummy + 4);
-  SYS_CustomShell = (SYS_Dummy + 5);
+  SYS_Dummy       = TAG_USER + 32;
+  SYS_Input       = SYS_Dummy + 1;
+  SYS_Output      = SYS_Dummy + 2;
+  SYS_Asynch      = SYS_Dummy + 3;
+  SYS_UserShell   = SYS_Dummy + 4;
+  SYS_CustomShell = SYS_Dummy + 5;
 
   { *** V50 *** }
-  SYS_FilterTags  = (SYS_Dummy + 6);   { * filters the tags passed down to CreateNewProc(), default: TRUE * }
+  SYS_FilterTags  = SYS_Dummy + 6;   { * filters the tags passed down to CreateNewProc(), default: TRUE * }
 
 const
-  NP_Dummy         = (TAG_USER + 1000);
-  NP_Seglist       = (NP_Dummy + 1);
-  NP_FreeSeglist   = (NP_Dummy + 2);
-  NP_Entry         = (NP_Dummy + 3);
-  NP_Input         = (NP_Dummy + 4);
-  NP_Output        = (NP_Dummy + 5);
-  NP_CloseInput    = (NP_Dummy + 6);
-  NP_CloseOutput   = (NP_Dummy + 7);
-  NP_Error         = (NP_Dummy + 8);
-  NP_CloseError    = (NP_Dummy + 9);
-  NP_CurrentDir    = (NP_Dummy + 10);
-  NP_StackSize     = (NP_Dummy + 11);
-  NP_Name          = (NP_Dummy + 12);
-  NP_Priority      = (NP_Dummy + 13);
-  NP_ConsoleTask   = (NP_Dummy + 14);
-  NP_WindowPtr     = (NP_Dummy + 15);
-  NP_HomeDir       = (NP_Dummy + 16);
-  NP_CopyVars      = (NP_Dummy + 17);
-  NP_Cli           = (NP_Dummy + 18);
-  NP_Path          = (NP_Dummy + 19);
-  NP_CommandName   = (NP_Dummy + 20);
-  NP_Arguments     = (NP_Dummy + 21);
+  NP_Dummy         = TAG_USER + 1000;
+  NP_Seglist       = NP_Dummy + 1;
+  NP_FreeSeglist   = NP_Dummy + 2;
+  NP_Entry         = NP_Dummy + 3;
+  NP_Input         = NP_Dummy + 4;
+  NP_Output        = NP_Dummy + 5;
+  NP_CloseInput    = NP_Dummy + 6;
+  NP_CloseOutput   = NP_Dummy + 7;
+  NP_Error         = NP_Dummy + 8;
+  NP_CloseError    = NP_Dummy + 9;
+  NP_CurrentDir    = NP_Dummy + 10;
+  NP_StackSize     = NP_Dummy + 11;
+  NP_Name          = NP_Dummy + 12;
+  NP_Priority      = NP_Dummy + 13;
+  NP_ConsoleTask   = NP_Dummy + 14;
+  NP_WindowPtr     = NP_Dummy + 15;
+  NP_HomeDir       = NP_Dummy + 16;
+  NP_CopyVars      = NP_Dummy + 17;
+  NP_Cli           = NP_Dummy + 18;
+  NP_Path          = NP_Dummy + 19;
+  NP_CommandName   = NP_Dummy + 20;
+  NP_Arguments     = NP_Dummy + 21;
 
-  NP_NotifyOnDeath = (NP_Dummy + 22);
-  NP_Synchronous   = (NP_Dummy + 23);
-  NP_ExitCode      = (NP_Dummy + 24);
-  NP_ExitData      = (NP_Dummy + 25);
+  NP_NotifyOnDeath = NP_Dummy + 22;
+  NP_Synchronous   = NP_Dummy + 23;
+  NP_ExitCode      = NP_Dummy + 24;
+  NP_ExitData      = NP_Dummy + 25;
 
   { *** V50 *** }
-  NP_SeglistArray  = (NP_Dummy + 26);
-  NP_UserData      = (NP_Dummy + 27);
-  NP_StartupMsg    = (NP_Dummy + 28);  { * PMessage, ReplyMsg'd at exit * }
-  NP_TaskMsgPort   = (NP_Dummy + 29);  { * ^PMsgPort, create MsgPort, automagic delete * }
+  NP_SeglistArray  = NP_Dummy + 26;
+  NP_UserData      = NP_Dummy + 27;
+  NP_StartupMsg    = NP_Dummy + 28;  { * PMessage, ReplyMsg'd at exit * }
+  NP_TaskMsgPort   = NP_Dummy + 29;  { * ^PMsgPort, create MsgPort, automagic delete * }
 
-  NP_CodeType      = (NP_Dummy + 100);
-  NP_PPC_Arg1      = (NP_Dummy + 101);
-  NP_PPC_Arg2      = (NP_Dummy + 102);
-  NP_PPC_Arg3      = (NP_Dummy + 103);
-  NP_PPC_Arg4      = (NP_Dummy + 104);
-  NP_PPC_Arg5      = (NP_Dummy + 105);
-  NP_PPC_Arg6      = (NP_Dummy + 106);
-  NP_PPC_Arg7      = (NP_Dummy + 107);
-  NP_PPC_Arg8      = (NP_Dummy + 108);
-  NP_PPCStackSize  = (NP_Dummy + 109);
+  NP_CodeType      = NP_Dummy + 100;
+  NP_PPC_Arg1      = NP_Dummy + 101;
+  NP_PPC_Arg2      = NP_Dummy + 102;
+  NP_PPC_Arg3      = NP_Dummy + 103;
+  NP_PPC_Arg4      = NP_Dummy + 104;
+  NP_PPC_Arg5      = NP_Dummy + 105;
+  NP_PPC_Arg6      = NP_Dummy + 106;
+  NP_PPC_Arg7      = NP_Dummy + 107;
+  NP_PPC_Arg8      = NP_Dummy + 108;
+  NP_PPCStackSize  = NP_Dummy + 109;
 
 const
-  ADO_Dummy       = (TAG_USER + 2000);
-  ADO_FH_Mode     = (ADO_Dummy + 1);
+  ADO_Dummy       = TAG_USER + 2000;
+  ADO_FH_Mode     = ADO_Dummy + 1;
 
-  ADO_DirLen      = (ADO_Dummy + 2);
-  ADO_CommNameLen = (ADO_Dummy + 3);
-  ADO_CommFileLen = (ADO_Dummy + 4);
-  ADO_PromptLen   = (ADO_Dummy + 5);
+  ADO_DirLen      = ADO_Dummy + 2;
+  ADO_CommNameLen = ADO_Dummy + 3;
+  ADO_CommFileLen = ADO_Dummy + 4;
+  ADO_PromptLen   = ADO_Dummy + 5;
 
   { *** V50 *** }
-  ADDS_Dummy      = (TAG_USER + 3000);
-  ADDS_Name       = (ADDS_Dummy + 1);  { * Segment name * }
-  ADDS_Seglist    = (ADDS_Dummy + 2);  { * Seglist for this segment * }
-  ADDS_Filename   = (ADDS_Dummy + 3);  { * Name of the file to load when needed. Ignored if Seglist is given. * }
-  ADDS_Type       = (ADDS_Dummy + 4);  { * Segment type * }
+  ADDS_Dummy       = TAG_USER + 3000;
+  ADDS_Name        = ADDS_Dummy + 1;  // Segment name
+  ADDS_Seglist     = ADDS_Dummy + 2;  // Seglist for this segment
+  ADDS_Filename    = ADDS_Dummy + 3;  // Name of the file to load when needed. Ignored if Seglist is given.
+  ADDS_Type        = ADDS_Dummy + 4;  // Segment type
+
+  ADO_CLI_Dir          = ADO_Dummy + 20; // BSTR fixed
+  ADO_CLI_CommName     = ADO_Dummy + 21; // BSTR fixed
+  ADO_CLI_CommFile     = ADO_Dummy + 22; // BSTR fixed
+  ADO_CLI_Prompt       = ADO_Dummy + 23; // BSTR fixed
+  ADO_CLI_Result2      = ADO_Dummy + 24; // LongInt
+  ADO_CLI_ReturnCode   = ADO_Dummy + 25; // LongInt
+  ADO_CLI_FailLevel    = ADO_Dummy + 26; // LongInt
+  ADO_CLI_Interactive  = ADO_Dummy + 27; // LongInt
+  ADO_CLI_Background   = ADO_Dummy + 28; // LongInt
+  ADO_CLI_DefaultStack = ADO_Dummy + 29; // LongInt
+
+// DOS_DEVICENODE tags
+  ADO_DN_Name          = ADO_Dummy + 30; // BSTR
+  ADO_DN_MsgPort       = ADO_Dummy + 31; // PMsgPort
+  ADO_DN_Lock          = ADO_Dummy + 32; // BPTR
+  ADO_DN_Handler       = ADO_Dummy + 33; // BSTR
+  ADO_DN_Seglist       = ADO_Dummy + 34; // BPTR
+  ADO_DN_StackSize     = ADO_Dummy + 35; // LongWord Default: 4096
+  ADO_DN_Priority      = ADO_Dummy + 36; // LongInt
+  ADO_DN_Startup       = ADO_Dummy + 37; // BSTR
+  ADO_DN_GlobalVec     = ADO_Dummy + 38; // BPTR
+
+// Only for new devicenodes created by AllocDosObject
+  ADO_DN_SerialID      = ADO_Dummy + 39; // BPTR
+// Value < $100 as startup argument
+  ADO_DN_StartupValue  = ADO_Dummy + 40; // LongWord
+
+// New = dos.lib 51.40+; tags
+  ADO_DN_Flags         = ADO_Dummy + 41; // LongWord
+  ADO_DN_Status        = ADO_Dummy + 42; // LongWord
+  ADO_DN_ExitNotifyMsg = ADO_Dummy + 43; // PMsg
+
+// Run handler only once, do not reload after exit
+  DNF_STARTONCE     = 1 shl 0;
+// Free handler seglist after handler exit
+  DNF_UNLOADSEGLIST = 1 shl 1;
+// Remove doslist entry after handler exit
+  DNF_REMDOSLIST    = 1 shl 2;
+
+// Only useful for GetDosObjectAttr
+  ADO_FSSM             = ADO_Dummy + 50; // PFileSysStartupMsg
+  ADO_FSSM_Device      = ADO_Dummy + 51; // BSTR
+  ADO_FSSM_Unit        = ADO_Dummy + 52; // LongWord
+  ADO_FSSM_Flags       = ADO_Dummy + 53; // LongWord
+
+// Only useful for GetDosObjectAttr
+  ADO_DE               = ADO_Dummy + 60; // PDosEnvec
+  ADO_DE_TableSize     = ADO_Dummy + 61; // LongWord Default: DE_BOOTBLOCKS
+  ADO_DE_SizeBlock     = ADO_Dummy + 62; // LongWord Default: 512
+  ADO_DE_SecOrg        = ADO_Dummy + 63; // LongWord
+  ADO_DE_NumHeads      = ADO_Dummy + 64; // LongWord
+  ADO_DE_Surfaces      = ADO_DE_NumHeads;
+  ADO_DE_SecsPerBlk    = ADO_Dummy + 65; // LongWord Default: 1
+  ADO_DE_BlksPerTrack  = ADO_Dummy + 66; // LongWord
+  ADO_DE_ReservedBlks  = ADO_Dummy + 67; // LongWord
+  ADO_DE_PreFac        = ADO_Dummy + 68; // LongWord
+  ADO_DE_PreAlloc      = ADO_DE_PreFac;
+  ADO_DE_Interleave    = ADO_Dummy + 69; // LongWord
+  ADO_DE_LowCyl        = ADO_Dummy + 70; // LongWord
+  ADO_DE_UpperCyl      = ADO_Dummy + 71; // LongWord
+  ADO_DE_HighCyl       = ADO_DE_UpperCyl;
+  ADO_DE_NumBuffers    = ADO_Dummy + 72; // LongWord
+  ADO_DE_BufMemType    = ADO_Dummy + 73; // LongWord
+  ADO_DE_MaxTransfer   = ADO_Dummy + 74; // LongWord Default: $ffffffff
+  ADO_DE_Mask          = ADO_Dummy + 75; // LongWord Default: $ffffffff
+  ADO_DE_BootPri       = ADO_Dummy + 76; // LongInt
+  ADO_DE_DosType       = ADO_Dummy + 77; // LongWord
+  ADO_DE_Baud          = ADO_Dummy + 78; // LongWord
+  ADO_DE_Control       = ADO_Dummy + 79; // BSTR
+  ADO_DE_BootBlocks    = ADO_Dummy + 80; // LongWord
+
+// Used by AllocDosObject
+  ADO_FS_DosType       = ADO_Dummy + 90; // LongWord
+
+  ADO_VN_Name          = ADO_Dummy + 100; // BSTR
+  ADO_VN_MsgPort       = ADO_Dummy + 101; // PMsgPort
+  ADO_VN_Lock          = ADO_Dummy + 102; // BPTR
+  ADO_VN_LockList      = ADO_Dummy + 103; // PLock
+  ADO_VN_Date          = ADO_Dummy + 104; // PDateStamp
+  ADO_VN_DiskType      = ADO_Dummy + 105; // LongWord
+
+
+  ADO_AN_Name          = ADO_Dummy + 120; // BSTR
+  ADO_AN_MsgPort       = ADO_Dummy + 121; // PMsgPort
+  ADO_AN_Lock          = ADO_Dummy + 122; // BPTR
+  ADO_AN_Type          = ADO_Dummy + 123; // LongWord
+  ADO_AN_AssignName    = ADO_Dummy + 124; // PChar
+  ADO_AN_AssignList    = ADO_Dummy + 125; // PAssignList
+
+// GetDosObjectAttr uses this to store variable size entries.
+type
+  TDosAttrBuffer = record
+    dab_Ptr: APTR;
+    dab_Len: LongWord;
+  end;
+  PDosAttrBuffer = ^TDosAttrBuffer;
 
 const
-  FNDS_Dummy      = (TAG_USER + 3100);
-  FNDS_Name       = (FNDS_Dummy + 1);  { * Segment name * }
-  FNDS_From       = (FNDS_Dummy + 2);  { * Segment to start from * }
-  FNDS_System     = (FNDS_Dummy + 3);  { * Look for a system segment ? * }
-  FNDS_Load       = (FNDS_Dummy + 4);  { * Load the seglist if needed ? (Default: TRUE) * }
+  FNDS_Dummy      = TAG_USER + 3100;
+  FNDS_Name       = FNDS_Dummy + 1;  { * Segment name * }
+  FNDS_From       = FNDS_Dummy + 2;  { * Segment to start from * }
+  FNDS_System     = FNDS_Dummy + 3;  { * Look for a system segment ? * }
+  FNDS_Load       = FNDS_Dummy + 4;  { * Load the seglist if needed ? (Default: TRUE) * }
 
+  // V51
+  FSCONTEXTTAG_Dummy = TAG_USER + 3200;
+
+// Pass a custom handler seglist. This handler MUST be able to handle the fscontext filesystem extension
+
+  FSCONTEXTTAG_SEGLIST            = FSCONTEXTTAG_Dummy + $1;
+  FSCONTEXTTAG_PRIORITY           = FSCONTEXTTAG_Dummy + $2;
+  FSCONTEXTTAG_STACKSIZE          = FSCONTEXTTAG_Dummy + $3;
+  FSCONTEXTTAG_STARTUPSTRING      = FSCONTEXTTAG_Dummy + $4;
+  FSCONTEXTTAG_STARTUPVALUE       = FSCONTEXTTAG_Dummy + $5;
+  FSCONTEXTTAG_FSSM               = FSCONTEXTTAG_Dummy + $6;
+  // A matching filesystem is searched through query.library
+  FSCONTEXTTAG_DOSTYPE            = FSCONTEXTTAG_Dummy + $7;
+
+  FSCONTEXTINFOTAG_Dummy          = TAG_USER + 3300;
+  FSCONTEXTINFOTAG_NAME           = FSCONTEXTINFOTAG_Dummy + $1;
+
+  SEGLISTTAG_Dummy                = TAG_USER + 3400;
+  // return the ObjData object when it exists or nil.
+  SEGLISTTAG_OBJDATA              = SEGLISTTAG_Dummy + $1;
 
 
 { * dos stdio definitions
   *********************************************************************
   * }
-
 
 const
  BUF_LINE = 0;
@@ -1136,7 +1326,7 @@ type
     lv_Node : TNode;
     lv_Flags: Word;
     lv_Value: PChar;
-    lv_Len  : Cardinal;
+    lv_Len  : LongWord;
   end;
 
 
@@ -1146,22 +1336,22 @@ const
 
 const
   LVB_IGNORE         = 7;
-  LVF_IGNORE         = (1 Shl LVB_IGNORE);
+  LVF_IGNORE         = 1 Shl LVB_IGNORE;
 
   GVB_GLOBAL_ONLY    = 8;
-  GVF_GLOBAL_ONLY    = (1 Shl GVB_GLOBAL_ONLY);
+  GVF_GLOBAL_ONLY    = 1 Shl GVB_GLOBAL_ONLY;
 
   GVB_LOCAL_ONLY     = 9;
-  GVF_LOCAL_ONLY     = (1 Shl GVB_LOCAL_ONLY);
+  GVF_LOCAL_ONLY     = 1 Shl GVB_LOCAL_ONLY;
 
   GVB_BINARY_VAR     = 10;
-  GVF_BINARY_VAR     = (1 Shl GVB_BINARY_VAR);
+  GVF_BINARY_VAR     = 1 Shl GVB_BINARY_VAR;
 
   GVB_DONT_NULL_TERM = 11;
-  GVF_DONT_NULL_TERM = (1 Shl GVB_DONT_NULL_TERM);
+  GVF_DONT_NULL_TERM = 1 Shl GVB_DONT_NULL_TERM;
 
   GVB_SAVE_VAR       = 12;
-  GVF_SAVE_VAR       = (1 Shl GVB_SAVE_VAR);
+  GVF_SAVE_VAR       = 1 Shl GVB_SAVE_VAR;
 
 
 
@@ -1192,13 +1382,13 @@ type
 
 const
   RDAB_STDIN    = 0;
-  RDAF_STDIN    = (1 Shl RDAB_STDIN);
+  RDAF_STDIN    = 1 Shl RDAB_STDIN;
 
   RDAB_NOALLOC  = 1;
-  RDAF_NOALLOC  = (1 Shl RDAB_NOALLOC);
+  RDAF_NOALLOC  = 1 Shl RDAB_NOALLOC;
 
   RDAB_NOPROMPT = 2;
-  RDAF_NOPROMPT = (1 Shl RDAB_NOPROMPT);
+  RDAF_NOPROMPT = 1 Shl RDAB_NOPROMPT;
 
 const
   MAX_TEMPLATE_ITEMS = 100;
@@ -1214,26 +1404,26 @@ const
 type
   PDosEnvec = ^TDosEnvec;
   TDosEnvec = packed record
-    de_TableSize     : Cardinal;
-    de_SizeBlock     : Cardinal;
-    de_SecOrg        : Cardinal;
-    de_Surfaces      : Cardinal;
-    de_SectorPerBlock: Cardinal;
-    de_BlocksPerTrack: Cardinal;
-    de_Reserved      : Cardinal;
-    de_PreAlloc      : Cardinal;
-    de_Interleave    : Cardinal;
-    de_LowCyl        : Cardinal;
-    de_HighCyl       : Cardinal;
-    de_NumBuffers    : Cardinal;
-    de_BufMemType    : Cardinal;
-    de_MaxTransfer   : Cardinal;
-    de_Mask          : Cardinal;
+    de_TableSize     : LongWord;
+    de_SizeBlock     : LongWord;
+    de_SecOrg        : LongWord;
+    de_Surfaces      : LongWord;
+    de_SectorPerBlock: LongWord;
+    de_BlocksPerTrack: LongWord;
+    de_Reserved      : LongWord;
+    de_PreAlloc      : LongWord;
+    de_Interleave    : LongWord;
+    de_LowCyl        : LongWord;
+    de_HighCyl       : LongWord;
+    de_NumBuffers    : LongWord;
+    de_BufMemType    : LongWord;
+    de_MaxTransfer   : LongWord;
+    de_Mask          : LongWord;
     de_BootPri       : LongInt;
-    de_DosType       : Cardinal;
-    de_Baud          : Cardinal;
-    de_Control       : Cardinal;
-    de_BootBlocks    : Cardinal;
+    de_DosType       : LongWord;
+    de_Baud          : LongWord;
+    de_Control       : LongWord;
+    de_BootBlocks    : LongWord;
   end;
 
 
@@ -1264,26 +1454,26 @@ const
 type
   PFileSysStartupMsg = ^TFileSysStartupMsg;
   TFileSysStartupMsg = packed record
-    fssm_Unit   : Cardinal;
-    fssm_Device : LongInt;
-    fssm_Environ: LongInt;
-    fssm_Flags  : Cardinal;
+    fssm_Unit   : LongWord;
+    fssm_Device : BSTR;
+    fssm_Environ: BPTR;
+    fssm_Flags  : LongWord;
   end;
 
 type
   PDeviceNode = ^TDeviceNode;
   TDeviceNode = packed record
-    dn_Next     : LongInt;
-    dn_Type     : Cardinal;
+    dn_Next     : BPTR;
+    dn_Type     : LongWord;
     dn_Task     : PMsgPort;
-    dn_Lock     : LongInt;
-    dn_Handler  : LongInt;
-    dn_StackSize: Cardinal;
+    dn_Lock     : BPTR;
+    dn_Handler  : BSTR;
+    dn_StackSize: LongWord;
     dn_Priority : LongInt;
-    dn_Startup  : LongInt;
-    dn_SegList  : LongInt;
-    dn_GlobalVec: LongInt;
-    dn_Name     : LongInt;
+    dn_Startup  : BPTR;
+    dn_SegList  : BPTR;
+    dn_GlobalVec: BPTR;
+    dn_Name     : BSTR;
   end;
 
 
@@ -1303,8 +1493,8 @@ type
   TNotifyRequest = packed record
     nr_Name    : PChar;
     nr_FullName: PChar;
-    nr_UserData: Cardinal;
-    nr_Flags   : Cardinal;
+    nr_UserData: LongWord;
+    nr_Flags   : LongWord;
     nr_stuff : record
       case Byte of
       0 : ( nr_Msg : record
@@ -1316,8 +1506,8 @@ type
               nr_pad      : Array[0..2] Of Byte;
             end );
     end;
-    nr_Reserved: Array[0..3] Of Cardinal;
-    nr_MsgCount: Cardinal;
+    nr_Reserved: Array[0..3] Of LongWord;
+    nr_MsgCount: LongWord;
     nr_Handler : PMsgPort;
   end;
 
@@ -1325,11 +1515,11 @@ type
   PNotifyMessage = ^TNotifyMessage;
   TNotifyMessage = packed record
     nm_ExecMessage: TMessage;
-    nm_Class      : Cardinal;
+    nm_Class      : LongWord;
     nm_Code       : Word;
     nm_NReq       : PNotifyRequest;
-    nm_DoNotTouch : Cardinal;
-    nm_DoNotTouch2: Cardinal;
+    nm_DoNotTouch : LongWord;
+    nm_DoNotTouch2: LongWord;
   end;
 
 
@@ -1342,12 +1532,12 @@ const
   NRB_MAGIC          = 31;
 
 const
-  NRF_SEND_MESSAGE   = (1 Shl NRB_SEND_MESSAGE);
-  NRF_SEND_SIGNAL    = (1 Shl NRB_SEND_SIGNAL);
-  NRF_WAIT_REPLY     = (1 Shl NRB_WAIT_REPLY);
-  NRF_NOTIFY_INITIAL = (1 Shl NRB_NOTIFY_INITIAL);
+  NRF_SEND_MESSAGE   = 1 Shl NRB_SEND_MESSAGE;
+  NRF_SEND_SIGNAL    = 1 Shl NRB_SEND_SIGNAL;
+  NRF_WAIT_REPLY     = 1 Shl NRB_WAIT_REPLY;
+  NRF_NOTIFY_INITIAL = 1 Shl NRB_NOTIFY_INITIAL;
 
-  NRF_MAGIC          = (1 Shl NRB_MAGIC);
+  NRF_MAGIC          = 1 Shl NRB_MAGIC;
 
 const
   NR_HANDLER_FLAGS = $ffff0000;
@@ -2055,8 +2245,25 @@ SysCall MOS_DOSBase 1002;
 function FindSegmentTagList(tags: PTagItem location 'a0'): PSegment;
 SysCall MOS_DOSBase 1008;
 
+// MorphOS Specific
 
-
+function Seek64(fh: BPTR; Position: Int64; Mode: LongInt): Int64; syscall BaseSysV MOS_DOSBase 1066;
+function SetFileSize64(fh: BPTR; Pos: Int64; Mode: LongInt): Int64; syscall BaseSysV MOS_DOSBase 1072;
+function LockRecord64(fh: BPTR; Offset, Length: QWord; Mode, TimeOut: LongWord): LongInt; syscall BaseSysV MOS_DOSBase 1078;
+function LockRecords64(RecArray: TRecordLock64; TimeOut: LongWord): LongInt; syscall BaseSysV MOS_DOSBase 1084;
+function UnLockRecord64(Fh: BPTR; Offset, Length: QWord): LongInt; syscall BaseSysV MOS_DOSBase 1090;
+function UnLockRecords64(RecArray: TRecordLock64): LongInt; syscall BaseSysV MOS_DOSBase 1096;
+function NewReadLink(Port: PMsgPort; Lock: BPTR; Path: STRPTR; Buffer: PByte; Size: LongInt): LongInt; syscall BaseSysV MOS_DOSBase 1114;
+function GetFileSysAttr(DeviceName: STRPTR; Attr: LongInt; Storage: APTR; StorageSize: LongInt): LongInt; syscall BaseSysV MOS_DOSBase 1120;
+function GetSegListAttr(SegList: BPTR; Attr: LongInt; Storage: APTR; StorageSize: LongInt): LongInt; syscall BaseSysV MOS_DOSBase 1126;
+function SetDosObjectAttr(Type_: LongWord; Ptr: APTR; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1132;
+function GetDosObjectAttr(Type_: LongWord; Ptr: APTR; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1138;
+function Examine64(Lock: BPTR; Fib: PFileInfoBlock; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1144;
+function Examine64TagList(Lock: BPTR; Fib: PFileInfoBlock; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1144;
+function ExNext64(Lock: BPTR; Fib: PFileInfoBlock; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1150;
+function ExNext64TagList(Lock: BPTR; Fib: PFileInfoBlock; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1150;
+function ExamineFH64(Fh: BPTR; Fib: PFileInfoBlock; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1156;
+function ExamineFH64TagList(Fh: BPTR; Fib: PFileInfoBlock; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1156;
 
 
 { * dos global definitions (V50)
@@ -2087,6 +2294,12 @@ procedure VWritef(format: PChar; argv: Pointer); Inline;
 function CreateNewProcTags(tags: array of dword): PProcess; Inline;
 function AllocDosObjectTags(type1: Cardinal; Tags: array of DWord): Pointer; inline;
 function SystemTags(command: PChar; Tags: array of DWord): LongInt; Inline;
+
+function SetDosObjectAttrTagList(Type_: LongWord; Ptr: APTR; const Tags: array of PtrUInt): LongInt; inline;
+function GetDosObjectAttrTagList(Type_: LongWord; Ptr: APTR; const Tags: array of PtrUInt): LongInt; inline;
+function Examine64Tags(Lock: BPTR; Fib: PFileInfoBlock; const Tags: array of PtrUInt): LongInt; inline;
+function ExNext64Tags(Lock: BPTR; Fib: PFileInfoBlock; const Tags: array of PtrUInt): LongInt; inline;
+function ExamineFH64Tags(Fh: BPTR; Fib: PFileInfoBlock; const Tags: array of PtrUInt): LongInt; inline;
 
 implementation
 
@@ -2166,6 +2379,31 @@ end;
 function SystemTags(command: PChar; Tags: array of DWord): LongInt;
 begin
   SystemTags := SystemTagList(Command, @Tags);
+end;
+
+function SetDosObjectAttrTagList(Type_: LongWord; Ptr: APTR; const Tags: array of PtrUInt): LongInt;
+begin
+  SetDosObjectAttrTagList := SetDosObjectAttr(Type_, Ptr, @Tags);
+end;
+
+function GetDosObjectAttrTagList(Type_: LongWord; Ptr: APTR; const Tags: array of PtrUInt): LongInt;
+begin
+  GetDosObjectAttrTagList := GetDosObjectAttr(Type_, Ptr, @Tags);
+end;
+
+function Examine64Tags(Lock: BPTR; Fib: PFileInfoBlock; const Tags: array of PtrUInt): LongInt;
+begin
+  Examine64Tags := Examine64(Lock, Fib, @Tags);
+end;
+
+function ExNext64Tags(Lock: BPTR; Fib: PFileInfoBlock; const Tags: array of PtrUInt): LongInt;
+begin
+  ExNext64Tags := ExNext64(Lock, Fib, @Tags);
+end;
+
+function ExamineFH64Tags(Fh: BPTR; Fib: PFileInfoBlock; const Tags: array of PtrUInt): LongInt;
+begin
+  ExamineFH64Tags := ExamineFH64(Fh, Fib, @Tags);
 end;
 
 begin
