@@ -42,6 +42,10 @@ type
   PAPTR     = ^APTR;
   PLONG     = ^LONG;
 
+  // some AROS stuff
+  IPTR  = PtrUInt;
+  SIPTR = PtrInt;
+
 { Some constants for classic Amiga and AROS compatibility }
 const
   LTrue  : Longint = 1;
@@ -214,6 +218,516 @@ type
 
 
 
+{ * exec error definitions (V50)
+  *********************************************************************
+  * }
+
+const
+  IOERR_OPENFAIL      = -1;
+  IOERR_ABORTED       = -2;
+  IOERR_NOCMD         = -3;
+  IOERR_BADLENGTH     = -4;
+  IOERR_BADADDRESS    = -5;
+  IOERR_UNITBUSY      = -6;
+  IOERR_SELFTEST      = -7;
+  IOERR_NOMEMORY      = -8;
+
+{ * exec resident definitions (V50)
+  *********************************************************************
+  * }
+
+type
+  PResident = ^TResident;
+  TResident = packed record
+    rt_MatchWord: Word;
+    rt_MatchTag : PResident;
+    rt_EndSkip  : APTR;
+    rt_Flags    : Byte;
+    rt_Version  : Byte;
+    rt_Type     : Byte;
+    rt_Pri      : ShortInt;
+    rt_Name     : PChar;
+    rt_IdString : PChar;
+    rt_Init     : APTR;
+    // Only valid when RTF_EXTENDED is set
+    rt_Revision : Word; // Revision Entry
+    rt_Tags     : PTagItem;
+  end;
+
+
+const
+  RTC_MATCHWORD = $4AFC;
+
+  RTF_AUTOINIT   = 1 Shl 7;
+  RTF_EXTENDED   = 1 Shl 6;   { * structure extension is valid * }
+  { rt_Init points to a PPC function which must be defined as
+      function LIB_Init(MyLibBase: PLibrary, SegList: BPTR; SysBase: PExecBase): PLibrary;}
+  RTF_PPC        = 1 Shl 3;
+  RTF_AFTERDOS   = 1 Shl 2;
+  RTF_SINGLETASK = 1 Shl 1;
+  RTF_COLDSTART  = 1 Shl 0;
+
+  RTW_NEVER      = 0;
+  RTW_COLDSTART  = 1;
+
+{ * exec memory definitions (V50)
+  *********************************************************************
+  * }
+
+
+type
+  PMemChunk = ^TMemChunk;
+  TMemChunk = packed record
+    mc_Next : PMemChunk;
+    mc_Bytes: LongWord;
+  end;
+
+type
+  PMemHeader = ^TMemHeader;
+  TMemHeader = packed record
+    mh_Node      : TNode;
+    mh_Attributes: Word;
+    mh_First     : PMemChunk;
+    mh_Lower     : APTR;
+    mh_Upper     : APTR;
+    mh_Free      : LongWord;
+  end;
+
+type
+  PMemEntry = ^TMemEntry;
+  TMemEntry = packed record
+    me_Un: packed record
+    case Byte of
+      0 : (meu_Reqs: LongWord);
+      1 : (meu_Addr: APTR)
+    end;
+    me_Length: LongWord;
+  end;
+
+type
+  PMemList = ^TMemList;
+  TMemList = packed record
+    ml_Node      : TNode;
+    ml_NumEntries: Word;
+    ml_ME        : array [0..0] of TMemEntry;
+  end;
+
+
+const
+  MEMF_ANY           = 0;
+  MEMF_PUBLIC        = 1 Shl 0;
+  MEMF_CHIP          = 1 Shl 1;
+  MEMF_FAST          = 1 Shl 2;
+  MEMF_LOCAL         = 1 Shl 8;
+  MEMF_24BITDMA      = 1 Shl 9;
+  MEMF_KICK          = 1 Shl 10;
+  MEMF_SWAP          = 1 Shl 11; // Memory that can be swapped out to disk
+  MEMF_31BIT         = 1 Shl 12; // Memory that is in <2GiB area (V51)
+
+  MEMF_CLEAR         = 1 Shl 16;
+  MEMF_LARGEST       = 1 Shl 17;
+  MEMF_REVERSE       = 1 Shl 18;
+  MEMF_TOTAL         = 1 Shl 19;
+  MEMF_SEM_PROTECTED = 1 Shl 20; // Pools: semaphore protection
+  MEMF_NO_EXPUNGE    = 1 Shl 31;
+
+  MEM_BLOCKSIZE      = 8;
+  MEM_BLOCKMASK      = MEM_BLOCKSIZE - 1;
+
+
+type
+  PMemHandlerData = ^TMemHandlerData;
+  TMemHandlerData = packed record
+    memh_RequestSize : LongWord;
+    memh_RequestFlags: LongWord;
+    memh_Flags       : LongWord;
+  end;
+
+
+const
+  MEMHF_RECYCLE   = 1 Shl 0;
+
+  MEM_DID_NOTHING = 0;
+  MEM_ALL_DONE    = -1;
+  MEM_TRY_AGAIN   = 1;
+
+type
+  TFreeBlocksData = record
+    fbd_NumBlocks: LongWord;
+    fbd_Blocks: array[0..0] of TMemEntry; // fbd_NumBlocks entries
+  end;
+  PFreeBlocksData = ^TFreeBlocksData;
+
+
+{ * exec port definitions (V50)
+  *********************************************************************
+  * }
+
+
+type
+  PMsgPort = ^TMsgPort;
+  TMsgPort = packed record
+    mp_Node   : TNode;
+    mp_Flags  : Byte;
+    mp_SigBit : Byte;
+    mp_SigTask: Pointer;
+    mp_MsgList: TList;
+  end;
+
+
+const
+  PF_ACTION  = 3;
+  PA_SIGNAL  = 0;
+  PA_SOFTINT = 1;
+  PA_IGNORE  = 2;
+
+
+type
+  PMessage = ^TMessage;
+  TMessage = packed record
+    mn_Node     : TNode;
+    mn_ReplyPort: PMsgPort;
+    mn_Length   : Word;
+  end;
+
+
+type
+  PTask = ^TTask;
+  PETask = ^TETask;
+  PTaskTrapMessage = ^TTaskTrapMessage;
+  TTask = packed record
+    tc_Node     : TNode;
+    tc_Flags    : Byte;
+    tc_State    : Byte;
+    tc_IDNestCnt: ShortInt;
+    tc_TDNestCnt: ShortInt;
+    tc_SigAlloc : LongWord;
+    tc_SigWait  : LongWord;
+    tc_SigRecvd : LongWord;
+    tc_SigExcept: LongWord;
+    {$IF 0}
+      tc_TrapAlloc: Word;
+      tc_TrapAble : Word;
+    {$ELSE}
+      tc_ETask: PETask;
+    {$ENDIF}
+    tc_ExceptData: APTR;
+    tc_ExceptCode: APTR;
+    tc_TrapData  : APTR;
+    tc_TrapCode  : APTR;
+    tc_SPReg     : APTR;
+    tc_SPLower   : APTR;
+    tc_SPUpper   : APTR;
+    tc_Switch    : Pointer; { *** OBSOLETE *** }
+    tc_Launch    : Pointer; { *** OBSOLETE *** }
+    tc_MemEntry  : TList;
+    tc_UserData  : APTR;
+  end;
+
+  TETask = packed record
+    Message  : TMessage;
+    Parent   : PTask;
+    UniqueID : LongWord;
+    Children : TMinList;
+    TrapAlloc: Word;
+    TrapAble : Word;
+    Result1  : LongWord;
+    Result2  : Pointer;
+    MsgPort  : TMsgPort;
+
+    { * Don't touch!!!!!!!!!..there'll be an interface
+      * sooner than later.
+      * New Entries...most of the above entries
+      * are only their for structure compatability.
+      * They have no meaning as the OS never supported
+      * them.
+      * }
+
+    { * A Task Pool for the task.
+      * }
+    MemPool: Pointer;
+
+    { * PPC's Stack Lower Ptr
+      * The initial stack is allocated through
+      * AllocVec, so a FreeVec(ETask^.PPCSPLower);
+      * would work.
+      * If you use PPCStackSwap you must allocate
+      * your stack block with AllocVec();
+      * }
+    PPCSPLower: Pointer;
+
+    { * PPC's Stack Upper Ptr
+      * }
+    PPCSPUpper : Pointer;
+    PPCRegFrame: Pointer;
+    PPCLibData : Pointer;
+
+    { * On a PPC exception this msgport
+      * is sent an exception msg...
+      * the task is stopped until somebody
+      * wakes it up again.
+      * (asynchron exception interface)
+      * If this Port is NULL the message is
+      * sent to SysBase->ex_PPCTrapMsgPort.
+      * }
+    PPCTrapMsgPort: PMsgPort;
+    PPCTrapMessage: PTaskTrapMessage;
+
+    { * This is undiscovered land...
+      * never assume a size of this structure
+      * }
+  end;
+
+  TTaskTrapMessage = packed record
+    Message: TMessage;  // Message Header
+    Task: TTask;        // connected Task
+    Version: LongWord;  // version of the structure VERSION_TASKTRAPMESSAGE
+    TType: LongWord;    // Exception Type
+    DAR:   LongWord;    // Exception Address Register
+    DSISR: LongWord;    // Exception DSISR Reg
+    // This is undiscovered land... never assume a size of this structure
+  end;
+
+type
+  PTaskInitExtension = ^TTaskInitExtension;
+  TTaskInitExtension = packed record
+    // Must be filled with TRAP_PPCTASK
+    Trap     : Word;
+    Extension: Word; // Must be set to 0
+    Tags     : Pointer;
+  end;
+
+{ * This is normally in utility headers, but in Pascal that would
+  * cause a circular dependency, so have it duplicated here... (KB) }
+const
+  TAG_USER   = 1 Shl 31;
+
+const
+  TASKTAG_DUMMY          = TAG_USER + $100000;
+  TASKTAG_ERROR          = TASKTAG_DUMMY + $0; // Ptr to an ULONG Errorfield where a better error description can be stored.
+  TASKTAG_CODETYPE       = TASKTAG_DUMMY + $1; // Code type can be stored.
+  TASKTAG_PC             = TASKTAG_DUMMY + $2; // Start PC code must be of TASKTAG_CODETYPE
+  TASKTAG_FINALPC        = TASKTAG_DUMMY + $3; // Final PC code must be of TASKTAG_CODETYPE
+  TASKTAG_STACKSIZE      = TASKTAG_DUMMY + $4; // Stacksize...Default 8192
+  TASKTAG_STACKSIZE_M68K = TASKTAG_DUMMY + $5; // Std Stacksize... Default(use the stack defined by tc_SPLower..tc_SPUpper)
+  TASKTAG_NAME           = TASKTAG_DUMMY + $6; // specify task name, name is copied
+  TASKTAG_USERDATA       = TASKTAG_DUMMY + $7; // tc_UserData
+  TASKTAG_PRI            = TASKTAG_DUMMY + $8; // Task priority
+  TASKTAG_POOLPUDDLE     = TASKTAG_DUMMY + $9; // Pool's Puddlesize
+  TASKTAG_POOLTHRESH     = TASKTAG_DUMMY + $a; // Pool's ThreshSize
+  TASKTAG_PPC_ARG1       = TASKTAG_DUMMY + $10; // PPC First Argument..gpr3
+  TASKTAG_PPC_ARG2       = TASKTAG_DUMMY + $11; // PPC First Argument..gpr4
+  TASKTAG_PPC_ARG3       = TASKTAG_DUMMY + $12; // PPC First Argument..gpr5
+  TASKTAG_PPC_ARG4       = TASKTAG_DUMMY + $13; // PPC First Argument..gpr6
+  TASKTAG_PPC_ARG5       = TASKTAG_DUMMY + $14; // PPC First Argument..gpr7
+  TASKTAG_PPC_ARG6       = TASKTAG_DUMMY + $15; // PPC First Argument..gpr8
+  TASKTAG_PPC_ARG7       = TASKTAG_DUMMY + $16; // PPC First Argument..gpr9
+  TASKTAG_PPC_ARG8       = TASKTAG_DUMMY + $17; // PPC First Argument..gpr10
+  TASKTAG_STARTUPMSG     = TASKTAG_DUMMY + $18; // Startup message to be passed to task/process, ReplyMsg'd at RemTask() ti_Data: PMessage
+  TASKTAG_TASKMSGPORT    = TASKTAG_DUMMY + $19; // Create internal MsgPort for task/process, deleted at RemTask() ti_Data: PPMsgPort, can be nil
+  TASKTAG_FLAGS          = TASKTAG_DUMMY + $1a; // Set unitial tc_Flags ti_Data: Byte
+  TASKTAG_TCBEXTRASIZE   = TASKTAG_DUMMY + $1c; // Extra memory to allocate after task structure, the extra memory is cleared ti_Data: LongWord
+
+const
+  CODETYPE_M68K = $0;
+  // System V4 ABI
+  CODETYPE_PPC  = $1;
+
+const
+  TASKERROR_OK       = 0;
+  TASKERROR_NOMEMORY = 1;
+
+{ * exec task definitions (V50)
+  *********************************************************************
+  * }
+
+const
+  TB_PROCTIME = 0;
+  TB_ETASK    = 3;
+  TB_STACKCHK = 4;
+  TB_EXCEPT   = 5;
+  TB_SWITCH   = 6;
+  TB_LAUNCH   = 7;
+
+  TF_PROCTIME = 1 Shl TB_PROCTIME;
+  TF_ETASK    = 1 Shl TB_ETASK;
+  TF_STACKCHK = 1 Shl TB_STACKCHK;
+  TF_EXCEPT   = 1 Shl TB_EXCEPT;
+  TF_SWITCH   = 1 Shl TB_SWITCH;
+  TF_LAUNCH   = 1 Shl TB_LAUNCH;
+
+  TS_INVALID  = 0;
+  TS_ADDED    = 1;
+  TS_RUN      = 2;
+  TS_READY    = 3;
+  TS_WAIT     = 4;
+  TS_EXCEPT   = 5;
+  TS_REMOVED  = 6;
+
+  SIGB_ABORT     = 0;
+  SIGB_CHILD     = 1;
+  SIGB_BLIT      = 4;
+  SIGB_SINGLE    = 4;
+  SIGB_INTUITION = 5;
+  SIGB_NET       = 7;
+  SIGB_DOS       = 8;
+
+  SIGF_ABORT      = 1 Shl SIGB_ABORT;
+  SIGF_CHILD      = 1 Shl SIGB_CHILD;
+  SIGF_BLIT       = 1 Shl SIGB_BLIT;
+  SIGF_SINGLE     = 1 Shl SIGB_SINGLE;
+  SIGF_INTUITION  = 1 Shl SIGB_INTUITION;
+  SIGF_NET        = 1 Shl SIGB_NET;
+  SIGF_DOS        = 1 Shl SIGB_DOS;
+
+  // Added in exec 50.67
+  // Exec has now a more sophisticated 68k(emulation) trap management.
+  // In reality it's just a new system wide traphandler who sends logserver
+  // the msg and if this msg is replied it uses the new emulation state.
+type
+  PTaskTrapMessage_68k = ^TTaskTrapMessage_68k;
+  TTaskTrapMessage_68k = packed record
+    Message: TMessage;  // Message Header
+    Task: TTask;        // connected Task
+    Version: LongWord;  // version of the structure VERSION_TASKTRAPMESSAGE_68k
+    TType: LongWord;    // Exception Type
+    Format: LongWord;   // Exception Stackframe Format
+    Address: Pointer;   // Hit Address
+    FLSW: LongWord;
+    MyEmulHandle: PEmulHandle;
+  end;
+
+const
+  VERSION_TASKTRAPMESSAGE_68k = $0;
+  VERSION_TASKTRAPMESSAGE = $0;
+
+  { *
+    * Stack swap structure as passed to StackSwap() and PPCStackSwap()
+    * }
+type
+  PStackSwapStruct = ^TStackSwapStruct;
+  TStackSwapStruct = packed record
+    stk_Lower  : APTR;     // Lowest byte of stack
+    stk_Upper  : LongWord; // Upper end of stack (size + Lowert)
+    stk_Pointer: APTR;     // Stack pointer at switch point
+  end;
+
+type
+  PPPCStackSwapArgs = ^TPPCStackSwapArgs;
+  TPPCStackSwapArgs = packed record
+    Args: Array[0..7] Of LongWord; // The C register arguments from gpr3..gpr11
+  end;
+
+
+  { *
+    * NewGetTaskAttrsA(),  NewSetTaskAttrsA() tags
+    * }
+const
+  TASKINFOTYPE_ALLTASK            = $0;
+  TASKINFOTYPE_NAME               = $1;
+  TASKINFOTYPE_PRI                = $2;
+  TASKINFOTYPE_TYPE               = $3;
+  TASKINFOTYPE_STATE              = $4;
+  TASKINFOTYPE_FLAGS              = $5;
+  TASKINFOTYPE_SIGALLOC           = $6;
+  TASKINFOTYPE_SIGWAIT            = $7;
+  TASKINFOTYPE_SIGRECVD           = $8;
+  TASKINFOTYPE_SIGEXCEPT          = $9;
+  TASKINFOTYPE_EXCEPTDATA         = $a;
+  TASKINFOTYPE_EXCEPTCODE         = $b;
+  TASKINFOTYPE_TRAPDATA           = $c;
+  TASKINFOTYPE_TRAPCODE           = $d;
+  TASKINFOTYPE_STACKSIZE_M68K     = $e;
+  TASKINFOTYPE_STACKSIZE          = $f;
+  TASKINFOTYPE_USEDSTACKSIZE_M68K = $10;
+  TASKINFOTYPE_USEDSTACKSIZE      = $11;
+  TASKINFOTYPE_TRAPMSGPORT        = $12;
+  TASKINFOTYPE_STARTUPMSG         = $13;
+  TASKINFOTYPE_TASKMSGPORT        = $14;
+  TASKINFOTYPE_POOLPTR            = $15;
+  TASKINFOTYPE_POOLMEMFLAGS       = $16;
+  TASKINFOTYPE_POOLPUDDLESIZE     = $17;
+  TASKINFOTYPE_POOLTHRESHSIZE     = $18;
+
+  { *
+    * Task Scheduler statistics (exec 50.42)
+    * }
+  TASKINFOTYPE_NICE                  = $19;
+  TASKINFOTYPE_AGETICKS              = $1a;
+  TASKINFOTYPE_CPUTIME               = $1b;
+  TASKINFOTYPE_LASTSECCPUTIME        = $1c;
+  TASKINFOTYPE_RECENTCPUTIME         = $1d;
+  TASKINFOTYPE_VOLUNTARYCSW          = $1e;
+  TASKINFOTYPE_INVOLUNTARYCSW        = $1f;
+  TASKINFOTYPE_LASTSECVOLUNTARYCSW   = $20;
+  TASKINFOTYPE_LASTSECINVOLUNTARYCSW = $21;
+  // Added in exec 50.45
+  TASKINFOTYPE_LAUNCHTIMETICKS       = $22;
+  TASKINFOTYPE_LAUNCHTIMETICKS1978   = $23;
+  TASKINFOTYPE_PID_CLI               = $24;
+  // Added in exec 50.54
+  TASKINFOTYPE_SPLOWER               = $26;
+  TASKINFOTYPE_SPUPPER               = $27;
+  TASKINFOTYPE_SPLOWER_M68K          = $28;
+  TASKINFOTYPE_SPUPPER_M68K          = $29;
+  TASKINFOTYPE_NAMECOPY              = $2a;
+  // Added in exec 50.63
+  TASKINFOTYPE_USERDATA              = $2b; // Get/Set task tc_UserData (LongWord)
+  TASKINFOTYPE_RESURRECT_TASK        = $2c; // Tag used to restart a suspended task (LongWord)
+  TASKINFOTYPE_EMULHANDLE            = $2d; // Get/Set task emulhandle (APTR)
+  TASKINFOTYPE_EXCEPTIONCOUNT        = $2e; // Get task exception count (LongWord)
+  TASKINFOTYPE_HITCOUNT              = $2f; // Get task hit count (LongWord)
+  TASKINFOTYPE_MAXHITCOUNT           = $30; // Get/Set task max hit count. If more hits happen the task is put to sleep. (LongWord)
+  TASKINFOTYPE_ALERTCOUNT            = $31; // Get task alert count (LongWord)
+  TASKINFOTYPE_MAXALERTCOUNT         = $32; // Get/Set task max alert count. If more alerts happen the task is put to sleep. (LongWord)
+  TASKINFOTYPE_PID                   = $33; // Get task unique ID. This ID is unique to every task. (LongWord)
+
+  TASKINFOTYPE_68K_NEWFRAME  = $50;
+
+  TASKINFOTYPE_PPC_SRR0      = $100;
+  TASKINFOTYPE_PPC_SRR1      = $101;
+  TASKINFOTYPE_PPC_LR        = $102;
+  TASKINFOTYPE_PPC_CTR       = $103;
+  TASKINFOTYPE_PPC_CR        = $104;
+  TASKINFOTYPE_PPC_XER       = $105;
+  TASKINFOTYPE_PPC_GPR       = $106;
+  TASKINFOTYPE_PPC_FPR       = $107;
+  TASKINFOTYPE_PPC_FPSCR     = $108;
+  TASKINFOTYPE_PPC_VSCR      = $109;
+  TASKINFOTYPE_PPC_VMX       = $10a;
+  TASKINFOTYPE_PPC_VSAVE     = $10b;
+  TASKINFOTYPE_PPC_FRAME     = $10c;
+  TASKINFOTYPE_PPC_FRAMESIZE = $10d;
+  TASKINFOTYPE_PPC_NEWFRAME  = $10e;
+
+  TASKINFOTAG_DUMMY       = (TAG_USER + $110000);
+  TASKINFOTAG_HOOK        = (TASKINFOTAG_DUMMY + $0); // Used with TASKINFOTYPE_ALLTASK
+  TASKINFOTAG_REGSTART    = (TASKINFOTAG_DUMMY + $1); // Used with TASKINFOTYPE_PPC_GPR,TASKINFOTYPE_PPC_FPR,TASKINFOTYPE_PPC_VMX to define the copy area
+  TASKINFOTAG_REGCOUNT    = (TASKINFOTAG_DUMMY + $2); // Used with TASKINFOTYPE_PPC_GPR,TASKINFOTYPE_PPC_FPR,TASKINFOTYPE_PPC_VMX to define the copy area
+
+  { *
+    * NewSetTaskAttrsA(..,@TaskFrame68k, sizeof(TTaskFrame68k), TASKINFOTYPE_68K_NEWFRAME,...);
+    * }
+type
+  PTaskFrame68k = ^TTaskFrame68k;
+  TTaskFrame68k = packed record
+    PC: Pointer;
+    SR: Word;
+    Xn: Array[0..14] Of LongWord;
+  end;
+
+
+  { *
+    * Don't depend on these
+    * }
+const
+  DEFAULT_PPCSTACKSIZE   = 32768;
+  DEFAULT_M68KSTACKSIZE  =  2048;
+  DEFAULT_TASKPUDDLESIZE =  4096;
+  DEFAULT_TASKTHRESHSIZE =  4096;
+
+  PID_CURRENT = 0;
+
 { * exec alert definitions (V50)
   *********************************************************************
   * }
@@ -286,11 +800,7 @@ const
   AO_GadTools             = $00008033;
   AO_Unknown              = $00008035;
 
-
-  { *
-    * exec.library
-    * }
-const
+// exec.library
   AN_ExecLib              = $01000000;
   AN_ExcptVect            = $01000001;
   AN_BaseChkSum           = $01000002;
@@ -311,10 +821,7 @@ const
   AN_BadFreeAddr          = $0100000F;
   AN_BadSemaphore         = $01000010;
 
-  { *
-    * graphics.library
-    * }
-const
+// graphics.library
   AN_GraphicsLib          = $02000000;
   AN_GfxNoMem             = $82010000;
   AN_GfxNoMemMspc         = $82010001;
@@ -331,17 +838,11 @@ const
 
   AN_ObsoleteFont         = $02000401;
 
-  { *
-    * layers.library
-    * }
-const
+// layers.library
   AN_LayersLib            = $03000000;
   AN_LayersNoMem          = $83010000;
 
-  { *
-    * intuition.library
-    * }
-const
+// intuition.library
   AN_Intuition            = $04000000;
   AN_GadgetType           = $84000001;
   AN_BadGadget            = $04000001;
@@ -362,16 +863,10 @@ const
   AN_NoISem               = $04000010;
   AN_ISemOrder            = $04000011;
 
-  { *
-    * math.library
-    * }
-const
+// math.library
   AN_MathLib              = $05000000;
 
-  { *
-    * dos.library
-    * }
-const
+// dos.library
   AN_DOSLib               = $07000000;
   AN_StartMem             = $07010001;
   AN_EndTask              = $07000002;
@@ -388,104 +883,59 @@ const
   AN_BadInitFunc          = $0700000D;
   AN_FileReclosed         = $0700000E;
 
-  { *
-    * ramlib.library
-    * }
-const
+// ramlib.library
   AN_RAMLib               = $08000000;
   AN_BadSegList           = $08000001;
 
-  { *
-    * icon.library
-    * }
-const
+// icon.library
   AN_IconLib              = $09000000;
 
-  { *
-    * expansion.library
-    * }
-const
+// expansion.library
   AN_ExpansionLib         = $0A000000;
   AN_BadExpansionFree     = $0A000001;
 
-  { *
-    * diskfont.library
-    * }
-const
+// diskfont.library
   AN_DiskfontLib          = $0B000000;
 
-  { *
-    * audio.device
-    * }
-const
+// audio.device
   AN_AudioDev             = $10000000;
 
-  { *
-    * console.device
-    * }
-const
+// console.device
   AN_ConsoleDev           = $11000000;
   AN_NoWindow             = $11000001;
 
-  { *
-    * gameport.device
-    * }
-const
+// gameport.device
   AN_GamePortDev          = $12000000;
 
-  { *
-    * keyboard.device
-    * }
-const
+// keyboard.device
   AN_KeyboardDev          = $13000000;
 
-  { *
-    * trackdisk.device
-    * }
-const
+// trackdisk.device
   AN_TrackDiskDev         = $14000000;
   AN_TDCalibSeek          = $14000001;
   AN_TDDelay              = $14000002;
 
-  { *
-    * timer.device
-    * }
-const
+// timer.device
   AN_TimerDev             = $15000000;
   AN_TMBadReq             = $15000001;
   AN_TMBadSupply          = $15000002;
 
-  { *
-    * cia.resource
-    * }
-const
+// cia.resource
   AN_CIARsrc              = $20000000;
 
-  { *
-    * disk.resource
-    * }
-const
+// disk.resource
   AN_DiskRsrc             = $21000000;
   AN_DRHasDisk            = $21000001;
   AN_DRIntNoAct           = $21000002;
 
-  { *
-    * misc.resource
-    * }
-const
+// misc.resource
   AN_MiscRsrc             = $22000000;
 
-  { *
-    * bootstrap
-    * }
-const
+// bootstrap
   AN_BootStrap            = $30000000;
   AN_BootError            = $30000001;
 
-  { *
-    * Workbench
-    * }
-const
+// Workbench
   AN_Workbench            = $31000000;
   AN_NoFonts              = $B1000001;
   AN_WBBadStartupMsg1     = $31000001;
@@ -493,643 +943,61 @@ const
   AN_WBBadIOMsg           = $31000003;
   AN_WBReLayoutToolMenu   = $B1010009;
 
-  { *
-    * DiskCopy
-    * }
-const
+// DiskCopy
   AN_DiskCopy             = $32000000;
 
-  { *
-    * toolkit for Intuition
-    * }
-const
+// toolkit for Intuition
   AN_GadTools             = $33000000;
 
-  { *
-    * System utility library
-    * }
-const
+// System utility library
   AN_UtilityLib           = $34000000;
 
-  { *
-    * For use by any application that needs it
-    * }
-const
+// For use by any application that needs it
   AN_Unknown              = $35000000;
 
-
-
-{ * exec error definitions (V50)
-  *********************************************************************
-  * }
-
+type
+  TAlertMessage = packed record
+    Message: TMessage; // Message Header
+    Task: PTask;       // connected Task
+    Version: LongWord; // version of the structure
+    ID: LongWord;      // AlertID
+    // some more things following, do not assume size of structure
+  end;
 
 const
-  IOERR_OPENFAIL      = (-1);
-  IOERR_ABORTED       = (-2);
-  IOERR_NOCMD         = (-3);
-  IOERR_BADLENGTH     = (-4);
-  IOERR_BADADDRESS    = (-5);
-  IOERR_UNITBUSY      = (-6);
-  IOERR_SELFTEST      = (-7);
-  IOERR_NOMEMORY      = (-8);
-
-
-
-{ * exec resident definitions (V50)
-  *********************************************************************
-  * }
-
-
-type
-  PResident = ^TResident;
-  TResident = packed record
-    rt_MatchWord: Word;
-    rt_MatchTag : PResident;
-    rt_EndSkip  : Pointer;
-    rt_Flags    : Byte;
-    rt_Version  : Byte;
-    rt_Type     : Byte;
-    rt_Pri      : Byte;
-    rt_Name     : PChar;
-    rt_IdString : PChar;
-    rt_Init     : Pointer;
-    { * Only valid when RTF_EXTENDED is set
-      * }
-    rt_Revision : Word; { * Revision Entry * }
-    rt_Tags     : Pointer;
-  end;
-
-
-const
-  RTC_MATCHWORD = $4AFC;
-
-  RTF_AUTOINIT   = (1 Shl 7);
-  RTF_EXTENDED   = (1 Shl 6);   { * structure extension is valid * }
-  { * rt_Init points to a PPC function which must be defined as
-    *
-    * struct Library* LIB_Init(struct Library  *MyLibBase,
-    *                          BPTR             SegList,
-    *                          struct ExecBase *SysBase)
-    * }
-  RTF_PPC        = (1 Shl 3);
-  RTF_AFTERDOS   = (1 Shl 2);
-  RTF_SINGLETASK = (1 Shl 1);
-  RTF_COLDSTART  = (1 Shl 0);
-
-  RTW_NEVER      = 0;
-  RTW_COLDSTART  = 1;
-
-
-
-{ * exec memory definitions (V50)
-  *********************************************************************
-  * }
-
-
-type
-  PMemChunk = ^TMemChunk;
-  TMemChunk = packed record
-    mc_Next : PMemChunk;
-    mc_Bytes: DWord;
-  end;
-
-type
-  PMemHeader = ^TMemHeader;
-  TMemHeader = packed record
-    mh_Node      : TNode;
-    mh_Attributes: Word;
-    mh_First     : PMemChunk;
-    mh_Lower     : Pointer;
-    mh_Upper     : Pointer;
-    mh_Free      : DWord;
-  end;
-
-type
-  PMemEntry = ^TMemEntry;
-  TMemEntry = packed record
-    me_Un: packed record
-    case Byte of
-      0 : (meu_Reqs: DWord);
-      1 : (meu_Addr: Pointer)
-    end;
-    me_Length: DWord;
-  end;
-
-type
-  PMemList = ^TMemList;
-  TMemList = packed record
-    ml_Node      : TNode;
-    ml_NumEntries: Word;
-    ml_ME        : array [0..0] of TMemEntry;
-  end;
-
-
-const
-  MEMF_ANY           = 0;
-  MEMF_PUBLIC        = (1 Shl 0);
-  MEMF_CHIP          = (1 Shl 1);
-  MEMF_FAST          = (1 Shl 2);
-  MEMF_LOCAL         = (1 Shl 8);
-  MEMF_24BITDMA      = (1 Shl 9);
-  MEMF_KICK          = (1 Shl 10);
-  MEMF_SWAP          = (1 Shl 11); { * Memory that can be swapped out to disk * }
-
-  MEMF_CLEAR         = (1 Shl 16);
-  MEMF_LARGEST       = (1 Shl 17);
-  MEMF_REVERSE       = (1 Shl 18);
-  MEMF_TOTAL         = (1 Shl 19);
-  MEMF_SEM_PROTECTED = (1 Shl 20); { * Pools: semaphore protection * }
-  MEMF_NO_EXPUNGE    = (1 Shl 31);
-
-  MEM_BLOCKSIZE      = 8;
-  MEM_BLOCKMASK      = (MEM_BLOCKSIZE - 1);
-
-
-type
-  PMemHandlerData = ^TMemHandlerData;
-  TMemHandlerData = packed record
-    memh_RequestSize : DWord;
-    memh_RequestFlags: DWord;
-    memh_Flags       : DWord;
-  end;
-
-
-const
-  MEMHF_RECYCLE   = (1 Shl 0);
-
-  MEM_DID_NOTHING = 0;
-  MEM_ALL_DONE    = -1;
-  MEM_TRY_AGAIN   = 1;
-
-
-
-{ * exec port definitions (V50)
-  *********************************************************************
-  * }
-
-
-type
-  PMsgPort = ^TMsgPort;
-  TMsgPort = packed record
-    mp_Node   : TNode;
-    mp_Flags  : Byte;
-    mp_SigBit : Byte;
-    mp_SigTask: Pointer;
-    mp_MsgList: TList;
-  end;
-
-
-const
-  PF_ACTION  = 3;
-  PA_SIGNAL  = 0;
-  PA_SOFTINT = 1;
-  PA_IGNORE  = 2;
-
-
-type
-  PMessage = ^TMessage;
-  TMessage = packed record
-    mn_Node     : TNode;
-    mn_ReplyPort: PMsgPort;
-    mn_Length   : Word;
-  end;
-
-
-
-{ * exec task definitions (V50)
-  *********************************************************************
-  * }
-
-
-type
-  PTask = ^TTask;
-  TTask = packed record
-    tc_Node     : TNode;
-    tc_Flags    : Byte;
-    tc_State    : Byte;
-    tc_IDNestCnt: ShortInt;
-    tc_TDNestCnt: ShortInt;
-    tc_SigAlloc : DWord;
-    tc_SigWait  : DWord;
-    tc_SigRecvd : DWord;
-    tc_SigExcept: DWord;
-    {$IF 0}
-      tc_TrapAlloc: Word;
-      tc_TrapAble : Word;
-    {$ELSE}
-      tc_ETask: Pointer;
-    {$ENDIF}
-    tc_ExceptData: Pointer;
-    tc_ExceptCode: Pointer;
-    tc_TrapData  : Pointer;
-    tc_TrapCode  : Pointer;
-    tc_SPReg     : Pointer;
-    tc_SPLower   : Pointer;
-    tc_SPUpper   : Pointer;
-    tc_Switch    : Pointer; { *** OBSOLETE *** }
-    tc_Launch    : Pointer; { *** OBSOLETE *** }
-    tc_MemEntry  : TList;
-    tc_UserData  : Pointer;
-  end;
-
-
-const
-  TB_PROCTIME = 0;
-  TB_ETASK    = 3;
-  TB_STACKCHK = 4;
-  TB_EXCEPT   = 5;
-  TB_SWITCH   = 6;
-  TB_LAUNCH   = 7;
-
-  TF_PROCTIME = (1 Shl TB_PROCTIME);
-  TF_ETASK    = (1 Shl TB_ETASK);
-  TF_STACKCHK = (1 Shl TB_STACKCHK);
-  TF_EXCEPT   = (1 Shl TB_EXCEPT);
-  TF_SWITCH   = (1 Shl TB_SWITCH);
-  TF_LAUNCH   = (1 Shl TB_LAUNCH);
-
-  TS_INVALID  = 0;
-  TS_ADDED    = 1;
-  TS_RUN      = 2;
-  TS_READY    = 3;
-  TS_WAIT     = 4;
-  TS_EXCEPT   = 5;
-  TS_REMOVED  = 6;
-
-  SIGB_ABORT     = 0;
-  SIGB_CHILD     = 1;
-  SIGB_BLIT      = 4;
-  SIGB_SINGLE    = 4;
-  SIGB_INTUITION = 5;
-  SIGB_NET       = 7;
-  SIGB_DOS       = 8;
-
-  SIGF_ABORT      = (1 Shl SIGB_ABORT);
-  SIGF_CHILD      = (1 Shl SIGB_CHILD);
-  SIGF_BLIT       = (1 Shl SIGB_BLIT);
-  SIGF_SINGLE     = (1 Shl SIGB_SINGLE);
-  SIGF_INTUITION  = (1 Shl SIGB_INTUITION);
-  SIGF_NET        = (1 Shl SIGB_NET);
-  SIGF_DOS        = (1 Shl SIGB_DOS);
-
-
-type
-  PTaskTrapMessage = ^TTaskTrapMessage;
-  TTaskTrapMessage = packed record
-    Message: TMessage;    { * Message Header * }
-    Task   : TTask;       { * connected Task * }
-    Version: DWord;       { * version of the structure * }
-    TType   : DWord;      { * Exception Type * }
-    DAR    : DWord;       { * Exception Address Register * }
-    DSISR  : DWord;       { * Exception DSISR Reg * }
-
-    { * This is undiscovered land...
-      * never assume a size of this structure
-      * }
-  end;
-
-
-const
-  VERSION_TASKTRAPMESSAGE = $0;
-
-
-type
-  PETask = ^TETask;
-  TETask = packed record
-    Message  : TMessage;
-    Parent   : PTask;
-    UniqueID : DWord;
-    Children : TMinList;
-    TrapAlloc: Word;
-    TrapAble : Word;
-    Result1  : DWord;
-    Result2  : Pointer;
-    MsgPort  : TMsgPort;
-
-    { * Don't touch!!!!!!!!!..there'll be an interface
-      * sooner than later.
-      * New Entries...most of the above entries
-      * are only their for structure compatability.
-      * They have no meaning as the OS never supported
-      * them.
-      * }
-
-    { * A Task Pool for the task.
-      * }
-    MemPool: Pointer;
-
-    { * PPC's Stack Lower Ptr
-      * The initial stack is allocated through
-      * AllocVec, so a FreeVec(ETask^.PPCSPLower);
-      * would work.
-      * If you use PPCStackSwap you must allocate
-      * your stack block with AllocVec();
-      * }
-    PPCSPLower: Pointer;
-
-    { * PPC's Stack Upper Ptr
-      * }
-    PPCSPUpper : Pointer;
-    PPCRegFrame: Pointer;
-    PPCLibData : Pointer;
-
-    { * On a PPC exception this msgport
-      * is sent an exception msg...
-      * the task is stopped until somebody
-      * wakes it up again.
-      * (asynchron exception interface)
-      * If this Port is NULL the message is
-      * sent to SysBase->ex_PPCTrapMsgPort.
-      * }
-    PPCTrapMsgPort: PMsgPort;
-    PPCTrapMessage: PTaskTrapMessage;
-
-    { * This is undiscovered land...
-      * never assume a size of this structure
-      * }
-  end;
-
-
-type
-  PTaskInitExtension = ^TTaskInitExtension;
-  TTaskInitExtension = packed record
-    { * Must be filled with TRAP_PPCTASK
-      * }
-    Trap     : Word;
-    Extension: Word; { * Must be set to 0 * }
-    Tags     : Pointer;
-  end;
-
-{ * This is normally in utility headers, but in Pascal that would
-  * cause a circular dependency, so have it duplicated here... (KB) }
-const
-  TAG_USER   = 1 Shl 31;
-
-const
-  TASKTAG_DUMMY          = (TAG_USER + $100000);
-
-  { * Ptr to an ULONG Errorfield where a better error description
-    * can be stored.
-    * }
-  TASKTAG_ERROR          = (TASKTAG_DUMMY + $0);
-
-  { * Code type
-    * can be stored.
-    * }
-  TASKTAG_CODETYPE       = (TASKTAG_DUMMY + $1);
-
-  { * Start PC
-    * code must be of TASKTAG_CODETYPE
-    * }
-  TASKTAG_PC             = (TASKTAG_DUMMY + $2);
-
-  { * Final PC
-    * code must be of TASKTAG_CODETYPE
-    * }
-  TASKTAG_FINALPC        = (TASKTAG_DUMMY + $3);
-
-  { * Stacksize...Default 8192
-    * }
-  TASKTAG_STACKSIZE      = (TASKTAG_DUMMY + $4);
-
-  { * Std Stacksize...
-    * Default(use the stack defined by tc_SPLower..tc_SPUpper)
-    * }
-  TASKTAG_STACKSIZE_M68K = (TASKTAG_DUMMY + $5);
-
-  { * specify task name, name is copied
-    * }
-  TASKTAG_NAME           = (TASKTAG_DUMMY + $6);
-
-  { * tc_UserData
-    * }
-  TASKTAG_USERDATA       = (TASKTAG_DUMMY + $7);
-
-  { * Task priority
-    * }
-  TASKTAG_PRI            = (TASKTAG_DUMMY + $8);
-
-  { * Pool's Puddlesize
-    * }
-  TASKTAG_POOLPUDDLE     = (TASKTAG_DUMMY + $9);
-
-  { * Pool's ThreshSize
-    * }
-  TASKTAG_POOLTHRESH     = (TASKTAG_DUMMY + $a);
-
-  { * PPC First Argument..gpr3
-    * }
-  TASKTAG_PPC_ARG1       = (TASKTAG_DUMMY + $10);
-
-  { * PPC First Argument..gpr4
-    * }
-  TASKTAG_PPC_ARG2       = (TASKTAG_DUMMY + $11);
-
-  { * PPC First Argument..gpr5
-    * }
-  TASKTAG_PPC_ARG3       = (TASKTAG_DUMMY + $12);
-
-  { * PPC First Argument..gpr6
-    * }
-  TASKTAG_PPC_ARG4       = (TASKTAG_DUMMY + $13);
-
-  { * PPC First Argument..gpr7
-    * }
-  TASKTAG_PPC_ARG5       = (TASKTAG_DUMMY + $14);
-
-  { * PPC First Argument..gpr8
-    * }
-  TASKTAG_PPC_ARG6       = (TASKTAG_DUMMY + $15);
-
-  { * PPC First Argument..gpr9
-    * }
-  TASKTAG_PPC_ARG7       = (TASKTAG_DUMMY + $16);
-
-  { * PPC First Argument..gpr10
-    * }
-  TASKTAG_PPC_ARG8       = (TASKTAG_DUMMY + $17);
-
-  { *
-    * Startup message to be passed to task/process, ReplyMsg'd at RemTask()
-    * ti_Data: struct Message *
-    * }
-  TASKTAG_STARTUPMSG     = (TASKTAG_DUMMY + $18);
-
-  { *
-    * Create internal MsgPort for task/process, deleted at RemTask()
-    * ti_Data: struct MsgPort **, can be NULL
-    * }
-  TASKTAG_TASKMSGPORT    = (TASKTAG_DUMMY + $19);
-
-
-const
-  CODETYPE_M68K = $0;
-  { *
-    * System V4 ABI
-    * }
-  CODETYPE_PPC  = $1;
-
-const
-  TASKERROR_OK       = 0;
-  TASKERROR_NOMEMORY = 1;
-
-
-  { *
-    * Stack swap structure as passed to StackSwap() and PPCStackSwap()
-    * }
-type
-  PStackSwapStruct = ^TStackSwapStruct;
-  TStackSwapStruct = packed record
-    stk_Lower  : Pointer; { * Lowest byte of stack * }
-    stk_Upper  : Pointer; { * Upper end of stack (size + Lowert) * }
-    stk_Pointer: Pointer; { * Stack pointer at switch point * }
-  end;
-
-type
-  PPPCStackSwapArgs = ^TPPCStackSwapArgs;
-  TPPCStackSwapArgs = packed record
-    Args: Array[0..7] Of DWord; { * The C register arguments from gpr3..gpr11 * }
-  end;
-
-
-  { *
-    * NewGetTaskAttrsA(),  NewSetTaskAttrsA() tags
-    * }
-const
-  TASKINFOTYPE_ALLTASK            = $0;
-  TASKINFOTYPE_NAME               = $1;
-  TASKINFOTYPE_PRI                = $2;
-  TASKINFOTYPE_TYPE               = $3;
-  TASKINFOTYPE_STATE              = $4;
-  TASKINFOTYPE_FLAGS              = $5;
-  TASKINFOTYPE_SIGALLOC           = $6;
-  TASKINFOTYPE_SIGWAIT            = $7;
-  TASKINFOTYPE_SIGRECVD           = $8;
-  TASKINFOTYPE_SIGEXCEPT          = $9;
-  TASKINFOTYPE_EXCEPTDATA         = $a;
-  TASKINFOTYPE_EXCEPTCODE         = $b;
-  TASKINFOTYPE_TRAPDATA           = $c;
-  TASKINFOTYPE_TRAPCODE           = $d;
-  TASKINFOTYPE_STACKSIZE_M68K     = $e;
-  TASKINFOTYPE_STACKSIZE          = $f;
-  TASKINFOTYPE_USEDSTACKSIZE_M68K = $10;
-  TASKINFOTYPE_USEDSTACKSIZE      = $11;
-  TASKINFOTYPE_TRAPMSGPORT        = $12;
-  TASKINFOTYPE_STARTUPMSG         = $13;
-  TASKINFOTYPE_TASKMSGPORT        = $14;
-  TASKINFOTYPE_POOLPTR            = $15;
-  TASKINFOTYPE_POOLMEMFLAGS       = $16;
-  TASKINFOTYPE_POOLPUDDLESIZE     = $17;
-  TASKINFOTYPE_POOLTHRESHSIZE     = $18;
-
-  { *
-    * Task Scheduler statistics (exec 50.42)
-    * }
-  TASKINFOTYPE_NICE                  = $19;
-  TASKINFOTYPE_AGETICKS              = $1a;
-  TASKINFOTYPE_CPUTIME               = $1b;
-  TASKINFOTYPE_LASTSECCPUTIME        = $1c;
-  TASKINFOTYPE_RECENTCPUTIME         = $1d;
-  TASKINFOTYPE_VOLUNTARYCSW          = $1e;
-  TASKINFOTYPE_INVOLUNTARYCSW        = $1f;
-  TASKINFOTYPE_LASTSECVOLUNTARYCSW   = $20;
-  TASKINFOTYPE_LASTSECINVOLUNTARYCSW = $21;
-  { * Added in exec 50.45 * }
-  TASKINFOTYPE_LAUNCHTIMETICKS       = $22;
-  TASKINFOTYPE_LAUNCHTIMETICKS1978   = $23;
-  TASKINFOTYPE_PID                   = $24;
-
-  TASKINFOTYPE_68K_NEWFRAME  = $50;
-
-  TASKINFOTYPE_PPC_SRR0      = $100;
-  TASKINFOTYPE_PPC_SRR1      = $101;
-  TASKINFOTYPE_PPC_LR        = $102;
-  TASKINFOTYPE_PPC_CTR       = $103;
-  TASKINFOTYPE_PPC_CR        = $104;
-  TASKINFOTYPE_PPC_XER       = $105;
-  TASKINFOTYPE_PPC_GPR       = $106;
-  TASKINFOTYPE_PPC_FPR       = $107;
-  TASKINFOTYPE_PPC_FPSCR     = $108;
-  TASKINFOTYPE_PPC_VSCR      = $109;
-  TASKINFOTYPE_PPC_VMX       = $10a;
-  TASKINFOTYPE_PPC_VSAVE     = $10b;
-  TASKINFOTYPE_PPC_FRAME     = $10c;
-  TASKINFOTYPE_PPC_FRAMESIZE = $10d;
-  TASKINFOTYPE_PPC_NEWFRAME  = $10e;
-
-  TASKINFOTAG_DUMMY       = (TAG_USER + $110000);
-  { * Used with TASKINFOTYPE_ALLTASK
-    * }
-  TASKINFOTAG_HOOK        = (TASKINFOTAG_DUMMY + $0);
-  { * Used with TASKINFOTYPE_PPC_GPR,TASKINFOTYPE_PPC_FPR,TASKINFOTYPE_PPC_VMX
-    * to define the copy area
-    * }
-  TASKINFOTAG_REGSTART    = (TASKINFOTAG_DUMMY + $1);
-  { * Used with TASKINFOTYPE_PPC_GPR,TASKINFOTYPE_PPC_FPR,TASKINFOTYPE_PPC_VMX
-    * to define the copy area
-    * }
-  TASKINFOTAG_REGCOUNT    = (TASKINFOTAG_DUMMY + $2);
-
-
-  { *
-    * NewSetTaskAttrsA(..,@TaskFrame68k,sizeof(TTaskFrame68k),TASKINFOTYPE_68K_NEWFRAME,...);
-    * }
-type
-  PTaskFrame68k = ^TTaskFrame68k;
-  TTaskFrame68k = packed record
-    PC: Pointer;
-    SR: Word;
-    Xn: Array[0..14] Of LongInt;
-  end;
-
-
-  { *
-    * Don't depend on these
-    * }
-const
-  DEFAULT_PPCSTACKSIZE   = 32768;
-  DEFAULT_M68KSTACKSIZE  =  2048;
-  DEFAULT_TASKPUDDLESIZE =  4096;
-  DEFAULT_TASKTHRESHSIZE =  4096;
+  VERSION_ALERTMESSAGE = 0;
 
 
 { * exec interrupt definitions (V50)
   *********************************************************************
   * }
 
-
 type
   PInterrupt = ^TInterrupt;
   TInterrupt = packed record
     is_Node: TNode;
-    is_Data: Pointer;
+    is_Data: APTR;
     is_Code: Pointer;
   end;
 
-type
   PIntVector = ^TIntVector;
   TIntVector = packed record
-    iv_Data: Pointer;
+    iv_Data: APTR;
     iv_Code: Pointer;
     iv_Node: PNode;
   end;
 
-type
   PSoftIntList = ^TSoftIntList;
   TSoftIntList = packed record
     sh_List: TList;
-    sh_Pad : Word;
+    sh_Pad: Word;
   end;
-
 
 const
   SIH_PRIMASK = $f0;
 
   INTB_NMI = 15;
-  INTF_NMI = (1 Shl INTB_NMI);
-
-
+  INTF_NMI = 1 Shl INTB_NMI;
 
 { * exec semaphore definitions (V50)
   *********************************************************************
@@ -1146,7 +1014,6 @@ type
     sr_Waiter: PTask;
   end;
 
-type
   PSignalSemaphore = ^TSignalSemaphore;
   TSignalSemaphore = packed record
     ss_Link        : TNode;
@@ -1157,24 +1024,19 @@ type
     ss_QueueCount  : SmallInt;
   end;
 
-type
   PSemaphoreMessage = ^TSemaphoreMessage;
   TSemaphoreMessage = packed record
     ssm_Message  : TMessage;
     ssm_Semaphore: PSignalSemaphore;
   end;
 
-
 const
   SM_SHARED    = 1;
   SM_EXCLUSIVE = 0;
 
-
-
 { * exec machine definitions (V50)
   *********************************************************************
   * }
-
 
 const
   MACHINE_M68k  = $0;
@@ -1191,9 +1053,9 @@ const
 const
   LIB_VECTSIZE  = 6;
   LIB_RESERVED  = 4;
-  LIB_BASE      = (-LIB_VECTSIZE);
-  LIB_USERDEF   = (LIB_BASE - (LIB_RESERVED * LIB_VECTSIZE));
-  LIB_NONSTD    = (LIB_USERDEF);
+  LIB_BASE      = -LIB_VECTSIZE;
+  LIB_USERDEF   = LIB_BASE - (LIB_RESERVED * LIB_VECTSIZE);
+  LIB_NONSTD    = LIB_USERDEF;
 
   LIB_OPEN         = -6;
   LIB_CLOSE        = -12;
@@ -1213,85 +1075,39 @@ type
     lib_Version : Word;
     lib_Revision: Word;
     lib_IdString: PChar;
-    lib_Sum     : DWord;
+    lib_Sum     : LongWord;
     lib_OpenCnt : Word;
   end;
 
 
 const
-  LIBF_SUMMING   = (1 Shl 0);
-  LIBF_CHANGED   = (1 Shl 1);
-  LIBF_SUMUSED   = (1 Shl 2);
-  LIBF_DELEXP    = (1 Shl 3);
-  { *
-    * private
-    * }
-  LIBF_RAMLIB    = (1 Shl 4);
-  { *
-    * Needs to be set if the GetQueryAttr function is legal
-    * }
-  LIBF_QUERYINFO = (1 Shl 5);
-  { *
-    * The remaining bits are reserved and aren`t allowed to be touched
-    * }
+  LIBF_SUMMING   = 1 Shl 0;
+  LIBF_CHANGED   = 1 Shl 1;
+  LIBF_SUMUSED   = 1 Shl 2;
+  LIBF_DELEXP    = 1 Shl 3;
+  // private
+  LIBF_RAMLIB    = 1 Shl 4;
+  // Needs to be set if the GetQueryAttr function is legal
+  LIBF_QUERYINFO = 1 Shl 5;
+  // The remaining bits are reserved and aren`t allowed to be touched
 
-
-  { * NewSetFunction extensions
-    * }
 const
-  SETFUNCTAG_Dummy    = (TAG_USER +$01000000);
+  // NewSetFunction extensions
+  SETFUNCTAG_Dummy    = TAG_USER +$01000000;
+  SETFUNCTAG_MACHINE  = SETFUNCTAG_Dummy + $1; // Set the machine type of the function Default is 68k
+  SETFUNCTAG_TYPE     = SETFUNCTAG_Dummy + $2; // Function type specifier
+  SETFUNCTAG_IDNAME   = SETFUNCTAG_Dummy + $3; // ID String
+  SETFUNCTAG_DELETE   = SETFUNCTAG_Dummy + $4; // Set to TRUE if the replaced function will never be used again.
 
-  { * Set the machine type of the function
-    * Default is 68k
-    * }
-  SETFUNCTAG_MACHINE  = (SETFUNCTAG_Dummy + $1);
-
-  { * Function type specifier
-    * }
-  SETFUNCTAG_TYPE     = (SETFUNCTAG_Dummy + $2);
-
-  { * ID String
-    * }
-  SETFUNCTAG_IDNAME   = (SETFUNCTAG_Dummy + $3);
-
-  { *
-    * Set to TRUE if the replaced function will never be used
-    * again.
-    * }
-  SETFUNCTAG_DELETE   = (SETFUNCTAG_Dummy + $4);
-
-
-  { * See emul/emulinterface.h for more informations
-    * }
-
-  { * Save Emulation PPC Registers
-    * Call Function
-    * Restore Emulation PPC Registers
-    * REG_D0 = Result
-    * }
-const
-  SETFUNCTYPE_NORMAL           = 0;
-  { * Call Function
-    * Must use the global register settings of the emulation
-    * REG_D0 = Result
-    * }
-  SETFUNCTYPE_QUICK            = 1;
-  { * Save Emulation PPC Registers
-    * Call Function
-    * Restore Emulation PPC Registers
-    * No Result
-    * Needed to replace functions like
-    * forbid,obtainsemaphores which are
-    * defined as trashing no registers
-    * }
+  SETFUNCTYPE_NORMAL           = 0; // Save Emulation PPC Registers, Call Function, Restore Emulation PPC Registers, REG_D0 = Result
+  SETFUNCTYPE_QUICK            = 1; // Call Function, Must use the global register settings of the emulation,  REG_D0 = Result
+  { Save Emulation PPC Registers, Call Function, Restore Emulation PPC Registers
+    No Result, Needed to replace functions like, forbid,obtainsemaphores which are
+    defined as trashing no registers}
   SETFUNCTYPE_NORMALNR         = 2;
-  { * Call Function
-    * Must use the global register settings of the emulation
-    * No Result
-    * Needed to replace functions like
-    * forbid,obtainsemaphores which are
-    * defined as trashing no registers
-    * }
+  { Call Function, Must use the global register settings of the emulation
+    No Result, Needed to replace functions like forbid,obtainsemaphores which are
+    defined as trashing no registers }
   SETFUNCTYPE_QUICKNR          = 3;
   SETFUNCTYPE_NORMALSR         = 4;
   SETFUNCTYPE_NORMALSRNR       = 5;
@@ -1301,84 +1117,29 @@ const
   SETFUNCTYPE_NORMALD0D1SR     = 9;
   SETFUNCTYPE_NORMALD0D1A0A1SR = 10;
 
+  // CreateLibrary extensions
+  LIBTAG_BASE         = TAG_USER + $01000100;
+  LIBTAG_FUNCTIONINIT = LIBTAG_BASE+$0; //  Function/Vector Array
+  LIBTAG_STRUCTINIT   = LIBTAG_BASE+$1; // Struct Init
+  LIBTAG_LIBRARYINIT  = LIBTAG_BASE+$2; // Library Init
+  LIBTAG_MACHINE      = LIBTAG_BASE+$3; // Init Code Type
+  LIBTAG_BASESIZE     = LIBTAG_BASE+$4; // Library Base Size
+  LIBTAG_SEGLIST      = LIBTAG_BASE+$5; // SegList Ptr
+  LIBTAG_PRI          = LIBTAG_BASE+$6; // Library Priority
+  LIBTAG_TYPE         = LIBTAG_BASE+$7; // Library Type..Library,Device,Resource,whatever
+  LIBTAG_VERSION      = LIBTAG_BASE+$8; // Library Version (LongWord)
+  LIBTAG_FLAGS        = LIBTAG_BASE+$9; // Library Flags
+  LIBTAG_NAME         = LIBTAG_BASE+$a; // Library Name
+  LIBTAG_IDSTRING     = LIBTAG_BASE+$b; // Library IDString
+  { AddDevice(),AddLibrary(),AddResource()..
+    depends on LibNode.ln_Type field which can be set by some Init function, Struct Scripts
+    or LIBTAG_TYPE. If you set LIBTAG_PUBLIC the library is added to the right system list.}
+  LIBTAG_PUBLIC       = LIBTAG_BASE+$c;
+  LIBTAG_REVISION     = (LIBTAG_BASE+$d); // Library Revision (LongWord)
+  LIBTAG_QUERYINFO    = (LIBTAG_BASE+$e); // Library QueryInfo Flag (Boolean)
 
-  { * CreateLibrary extensions
-    * }
-  LIBTAG_BASE         = (TAG_USER + $01000100);
-
-  { *
-    * Function/Vector Array
-    * }
-  LIBTAG_FUNCTIONINIT = (LIBTAG_BASE+$0);
-  { *
-    * Struct Init
-    * }
-  LIBTAG_STRUCTINIT   = (LIBTAG_BASE+$1);
-  { *
-    * Library Init
-    * }
-  LIBTAG_LIBRARYINIT  = (LIBTAG_BASE+$2);
-  { *
-    * Init Code Type
-    * }
-  LIBTAG_MACHINE      = (LIBTAG_BASE+$3);
-  { *
-    * Library Base Size
-    * }
-  LIBTAG_BASESIZE     = (LIBTAG_BASE+$4);
-  { *
-    * SegList Ptr
-    * }
-  LIBTAG_SEGLIST      = (LIBTAG_BASE+$5);
-  { *
-    * Library Priority
-    * }
-  LIBTAG_PRI          = (LIBTAG_BASE+$6);
-  { *
-    * Library Type..Library,Device,Resource,whatever
-    * }
-  LIBTAG_TYPE         = (LIBTAG_BASE+$7);
-  { *
-    * Library Version
-    * (UWORD)
-    * }
-  LIBTAG_VERSION      = (LIBTAG_BASE+$8);
-  { *
-    * Library Flags
-    * }
-  LIBTAG_FLAGS        = (LIBTAG_BASE+$9);
-  { *
-    * Library Name
-    * }
-  LIBTAG_NAME         = (LIBTAG_BASE+$a);
-  { *
-    * Library IDString
-    * }
-  LIBTAG_IDSTRING     = (LIBTAG_BASE+$b);
-  { *
-    * AddDevice(),AddLibrary(),AddResource()..
-    * depends on LibNode.ln_Type field which
-    * can be set by some Init function, Struct Scripts
-    * or LIBTAG_TYPE.
-    * If you set LIBTAG_PUBLIC the library
-    * is added to the right system list.
-    * }
-  LIBTAG_PUBLIC       = (LIBTAG_BASE+$c);
-  { *
-    * Library Revision
-    * (UWORD)
-    * }
-  LIBTAG_REVISION     = (LIBTAG_BASE+$d);
-  { *
-    * Library QueryInfo Flag
-    * (Boolean)
-    * }
-  LIBTAG_QUERYINFO    = (LIBTAG_BASE+$e);
-
-  { * Private
-    * don`t touch...floating design
-    * }
 type
+  // Private don`t touch...floating design
   PFuncEntry = ^TFuncEntry;
   TFuncEntry = packed record
     EmulLibEntry : TEmulLibEntry;
@@ -1392,23 +1153,21 @@ type
   end;
 
 
-  { *
-    * EmulLibEntry.Extension
-    * }
+// EmulLibEntry.Extension
 const
-  FUNCENTRYEXTF_LIBRARY          = $1; { * Entry created by the OS * }
-
+  FUNCENTRYEXTF_LIBRARY          = $1; // Entry created by the OS
+  FUNCENTRYEXTF_SETFUNCTION      = $2; // Entry created by SetFunction, otherwise MakeFunction
   { *
     * Functionarray first ULONG ID defines the format
     * of the functionarray for MakeFunctions()/MakeLibrary().
     *
     * If there`s not such id the functionarray is a
     * 32Bit 68k function ptr array.
-    * (ULONG) $ffffffff stops it
+    * (LongWord) $ffffffff stops it
     * }
 
   { * 68k 16bit relative functionarray ptrs
-    * (UWORD) $ffff stops it
+    * (Word) $ffff stops it
     * }
 
   FUNCARRAY_16BIT_OLD             = $ffffffff;
@@ -1533,7 +1292,6 @@ const
   *********************************************************************
   * }
 
-
 type
   PDevice = ^TDevice;
   TDevice = packed record
@@ -1551,8 +1309,8 @@ type
 
 
 const
-  UNITF_ACTIVE = (1 Shl 0);
-  UNITF_INTASK = (1 Shl 1);
+  UNITF_ACTIVE = 1 Shl 0;
+  UNITF_INTASK = 1 Shl 1;
 
 
 
@@ -1593,7 +1351,7 @@ const
   DEV_ABORTIO  = -36;
 
   IOB_QUICK  = 0;
-  IOF_QUICK  = (1 Shl IOB_QUICK);
+  IOF_QUICK  = 1 Shl IOB_QUICK;
 
   CMD_INVALID = 0;
   CMD_RESET   = 1;
@@ -1611,7 +1369,8 @@ const
 { * exec include (V50)
   *********************************************************************
   * }
-
+const
+  CPUTBSTACKTRACECOUNT  = 16;
 
 type
   PExecBase = ^TExecBase;
@@ -1619,22 +1378,22 @@ type
     LIbNode     : TLibrary;
     SoftVer     : Word;
     LowMemChkSum: SmallInt;
-    ChkBase     : DWord;
-    ColdCapture : Pointer;
-    CoolCapture : Pointer;
-    WarmCapture : Pointer;
-    SysStkUpper : Pointer;
-    SysStkLower : Pointer;
-    MaxLocMem   : DWord;
-    DebugEntry  : Pointer;
-    DebugData   : Pointer;
-    AlertData   : Pointer;
-    MaxExtMem   : Pointer;
+    ChkBase     : LongWord;
+    ColdCapture : APTR;
+    CoolCapture : APTR;
+    WarmCapture : APTR;
+    SysStkUpper : APTR;
+    SysStkLower : APTR;
+    MaxLocMem   : LongWord;
+    DebugEntry  : APTR;
+    DebugData   : APTR;
+    AlertData   : APTR;
+    MaxExtMem   : APTR;
     ChkSum      : Word;
     IntVects    : Array[0..15] Of TIntVector;
     ThisTask    : PTask;
-    IdleCount   : DWord;
-    DispCount   : DWord;
+    IdleCount   : LongWord;
+    DispCount   : LongWord;
     Quantum     : Word;
     Elapsed     : Word;
     SysFlags    : Word;
@@ -1642,12 +1401,12 @@ type
     TDNestCnt   : ShortInt;
     AttnFlags   : Word;
     AttnResched : Word;
-    ResModules  : Pointer;
+    ResModules  : APTR;
 
-    TaskTrapCode  : Pointer;
-    TaskExceptCode: Pointer;
-    TaskExitCode  : Pointer;
-    TaskSigAlloc  : DWord;
+    TaskTrapCode  : APTR;
+    TaskExceptCode: APTR;
+    TaskExitCode  : APTR;
+    TaskSigAlloc  : LongWord;
     TaskTrapAlloc : Word;
 
     MemList     : TList;
@@ -1664,28 +1423,28 @@ type
     VBlankFrequency     : Byte;
     PowerSupplyFrequency: Byte;
     SemaphoreList       : TList;
-    KickMemPtr          : Pointer;
-    KickTagPtr          : Pointer;
-    KickCheckSum        : Pointer;
+    KickMemPtr          : APTR;
+    KickTagPtr          : APTR;
+    KickCheckSum        : APTR;
     ex_Pad0             : Word;
-    ex_LaunchPoint      : DWord;
-    ex_RamLibPrivate    : Pointer;
-    ex_EClockFrequency  : DWord;
-    ex_CacheControl     : DWord;
-    ex_TaskID           : DWord;
+    ex_LaunchPoint      : LongWord;
+    ex_RamLibPrivate    : APTR;
+    ex_EClockFrequency  : LongWord;
+    ex_CacheControl     : LongWord;
+    ex_TaskID           : LongWord;
 
     { * New ABox Emulation Entries
       * }
-    ex_EmulHandleSize    : DWord;    { * PPC EmulHandleSize..*private* * }
+    ex_EmulHandleSize    : LongWord;    { * PPC EmulHandleSize..*private* * }
     ex_PPCTrapMsgPort    : PMsgPort; { * PPC ABox Exception MsgPort..*private* * }
-    ex_Reserved1         : Array[0..2] Of DWord;
-    ex_MMULock           : Pointer;
-    ex_PatchPool         : Pointer;  { * PatchPool Ptr needed by SetFunction..*private* * }
-    ex_PPCTaskExitCode   : Pointer;  { * PPC Task exit function * }
-    ex_DebugFlags        : DWord;    { * Exec Debug Flags..*private* * }
+    ex_Reserved1         : Array[0..2] Of LongWord;
+    ex_MMULock           : APTR;
+    ex_PatchPool         : APTR;  { * PatchPool Ptr needed by SetFunction..*private* * }
+    ex_PPCTaskExitCode   : APTR;  { * PPC Task exit function * }
+    ex_DebugFlags        : LongWord;    { * Exec Debug Flags..*private* * }
 
     ex_MemHandlers       : TMinList;
-    ex_MemHandler        : Pointer;
+    ex_MemHandler        : APTR;
   end;
 
 
@@ -1704,44 +1463,44 @@ const
   AFB_68060   = 7;
   AFB_PRIVATE = 15;
 
-  AFF_68010   = (1 Shl AFB_68010);
-  AFF_68020   = (1 Shl AFB_68020);
-  AFF_68030   = (1 Shl AFB_68030);
-  AFF_68040   = (1 Shl AFB_68040);
-  AFF_68881   = (1 Shl AFB_68881);
-  AFF_68882   = (1 Shl AFB_68882);
-  AFF_FPU40   = (1 Shl AFB_FPU40);
-  AFF_68060   = (1 Shl AFB_68060);
-  AFF_PRIVATE = (1 Shl AFB_PRIVATE);
+  AFF_68010   = 1 Shl AFB_68010;
+  AFF_68020   = 1 Shl AFB_68020;
+  AFF_68030   = 1 Shl AFB_68030;
+  AFF_68040   = 1 Shl AFB_68040;
+  AFF_68881   = 1 Shl AFB_68881;
+  AFF_68882   = 1 Shl AFB_68882;
+  AFF_FPU40   = 1 Shl AFB_FPU40;
+  AFF_68060   = 1 Shl AFB_68060;
+  AFF_PRIVATE = 1 Shl AFB_PRIVATE;
 
   { *
     * Outdated 68k cache functionality
     * Mostly without function.
     * }
 const
-  CACRF_EnableI       = (1 Shl 0);
-  CACRF_FreezeI       = (1 Shl 1);
-  CACRF_ClearI        = (1 Shl 3);
-  CACRF_IBE           = (1 Shl 4);
-  CACRF_EnableD       = (1 Shl 8);
-  CACRF_FreezeD       = (1 Shl 9);
-  CACRF_ClearD        = (1 Shl 11);
-  CACRF_DBE           = (1 Shl 12);
-  CACRF_WriteAllocate = (1 Shl 13);
-  CACRF_EnableE       = (1 Shl 30);
-  CACRF_CopyBack      = (1 Shl 31);
+  CACRF_EnableI       = 1 Shl 0;
+  CACRF_FreezeI       = 1 Shl 1;
+  CACRF_ClearI        = 1 Shl 3;
+  CACRF_IBE           = 1 Shl 4;
+  CACRF_EnableD       = 1 Shl 8;
+  CACRF_FreezeD       = 1 Shl 9;
+  CACRF_ClearD        = 1 Shl 11;
+  CACRF_DBE           = 1 Shl 12;
+  CACRF_WriteAllocate = 1 Shl 13;
+  CACRF_EnableE       = 1 Shl 30;
+  CACRF_CopyBack      = 1 Shl 31;
 
-  DMA_Continue        = (1 Shl 1);
-  DMA_NoModify        = (1 Shl 2);
-  DMA_ReadFromRAM     = (1 Shl 3);
+  DMA_Continue        = 1 Shl 1;
+  DMA_NoModify        = 1 Shl 2;
+  DMA_ReadFromRAM     = 1 Shl 3;
 
   SB_SAR  = 15;
   SB_TQE  = 14;
   SB_SINT = 13;
 
-  SF_SAR  = (1 Shl SB_SAR);
-  SF_TQE  = (1 Shl SB_TQE);
-  SF_SINT = (1 Shl SB_SINT);
+  SF_SAR  = 1 Shl SB_SAR;
+  SF_TQE  = 1 Shl SB_TQE;
+  SF_SINT = 1 Shl SB_SINT;
 
 
   { ****** Debug Flags...(don`t depend on them) ********** }
@@ -1829,26 +1588,164 @@ const
 type
   PExecNotifyMessage = ^TExecNotifyMessage;
   TExecNotifyMessage = packed record
-    MType    : DWord;
-    Flags    : DWord;
-    Extra    : DWord;
-    Extension: Pointer;
+    MType    : LongWord;
+    Flags    : LongWord;
+    Extra    : LongWord;
+    Extension: PTagItem;
   end;
 
 
 const
-  EXECNOTIFYF_REMOVE = (1 Shl 0);  { * if clear, is ADD * }
-  EXECNOTIFYF_POST   = (1 Shl 1);  { * if clear, is PRE * }
+  EXECNOTIFYF_REMOVE = 1 Shl 0;  { * if clear, is ADD * }
+  EXECNOTIFYF_POST   = 1 Shl 1;  { * if clear, is PRE * }
 
 
   { *
     * AddExecNodeTagList tags
     * }
 const
-  SAL_Dummy    = (TAG_USER + 1000);
-  SAL_Type     = (SAL_Dummy + 1);
-  SAL_Priority = (SAL_Dummy + 2);
-  SAL_Name     = (SAL_Dummy + 3);
+  SAL_Dummy    = TAG_USER + 1000;
+  SAL_Type     = SAL_Dummy + 1;
+  SAL_Priority = SAL_Dummy + 2;
+  SAL_Name     = SAL_Dummy + 3;
+
+// exec rawfmt (V50)
+  RAWFMTFUNC_STRING  = 0; // Used to act like sprintf
+  RAWFMTFUNC_SERIAL  = 1; // Used to act like kprintf
+  RAWFMTFUNC_COUNT   = 2; // Used to count the chars needed. PutChData = PLongWord to the counter
+
+// exec system definitions (V50)
+  SYSTEMINFOTYPE_SYSTEM               = $0;
+  SYSTEMINFOTYPE_MACHINE              = $1;
+
+  SYSTEMINFOTYPE_PPC_CPUVERSION       = $2;
+  SYSTEMINFOTYPE_PPC_CPUREVISION      = $3;
+  SYSTEMINFOTYPE_PPC_CPUCLOCK         = $4;
+  SYSTEMINFOTYPE_PPC_BUSCLOCK         = $5;
+
+  SYSTEMINFOTYPE_PPC_ICACHEL1SIZE     = $10;
+  SYSTEMINFOTYPE_PPC_ICACHEL1LINES    = $11;
+  SYSTEMINFOTYPE_PPC_ICACHEL1LINESIZE = $12;
+  SYSTEMINFOTYPE_PPC_DCACHEL1SIZE     = $13;
+  SYSTEMINFOTYPE_PPC_DCACHEL1LINES    = $14;
+  SYSTEMINFOTYPE_PPC_DCACHEL1LINESIZE = $15;
+  SYSTEMINFOTYPE_PPC_CACHEL1TYPE      = $16;
+  SYSTEMINFOTYPE_PPC_CACHEL1FLAGS     = $17;
+
+  SYSTEMINFOTYPE_PPC_ICACHEL2SIZE     = $20;
+  SYSTEMINFOTYPE_PPC_ICACHEL2LINES    = $21;
+  SYSTEMINFOTYPE_PPC_ICACHEL2LINESIZE = $22;
+  SYSTEMINFOTYPE_PPC_DCACHEL2SIZE     = $23;
+  SYSTEMINFOTYPE_PPC_DCACHEL2LINES    = $24;
+  SYSTEMINFOTYPE_PPC_DCACHEL2LINESIZE = $25;
+  SYSTEMINFOTYPE_PPC_CACHEL2TYPE      = $26;
+  SYSTEMINFOTYPE_PPC_CACHEL2FLAGS     = $27;
+
+  SYSTEMINFOTYPE_PPC_ICACHEL3SIZE     = $30;
+  SYSTEMINFOTYPE_PPC_ICACHEL3LINES    = $31;
+  SYSTEMINFOTYPE_PPC_ICACHEL3LINESIZE = $32;
+  SYSTEMINFOTYPE_PPC_DCACHEL3SIZE     = $33;
+  SYSTEMINFOTYPE_PPC_DCACHEL3LINES    = $34;
+  SYSTEMINFOTYPE_PPC_DCACHEL3LINESIZE = $35;
+  SYSTEMINFOTYPE_PPC_CACHEL3TYPE      = $36;
+  SYSTEMINFOTYPE_PPC_CACHEL3FLAGS     = $37;
+
+  SYSTEMINFOTYPE_PPC_TLBENTRIES       = $40;
+  SYSTEMINFOTYPE_PPC_TLBSETS          = $41;
+  SYSTEMINFOTYPE_PPC_FPU              = $50; // PowerPC has a FPU
+  SYSTEMINFOTYPE_PPC_ALTIVEC          = $51; // PowerPC has an Altivec unit
+  SYSTEMINFOTYPE_PPC_PERFMONITOR      = $52; // PowerPC has performance measurement cpu extension
+  SYSTEMINFOTYPE_PPC_DATASTREAM       = $53; // PowerPC has datastream cpu extension.
+  SYSTEMINFOTYPE_PPC_RESERVATIONSIZE  = $60; // Reservation Size
+  SYSTEMINFOTYPE_PPC_BUSTICKS         = $61; // Bus Timer Ticks
+  SYSTEMINFOTYPE_PPC_CPUTEMP          = $62; // CPU Temperature in 8.24 fixedpoint, degrees celcius
+  SYSTEMINFOTYPE_PPC_DABR             = $63; // PowerPC has Data Address Breakpoint Register (DABR)
+  SYSTEMINFOTYPE_PAGESIZE             = $100; // MMU Page Size
+  SYSTEMINFOTYPE_CPUCOUNT             = $101; // Number of CPUs, doesn't mean they are all supported by exec
+
+  // Global Scheduler statistics = exec 50.42;
+  SYSTEMINFOTYPE_TBCLOCKFREQUENCY         = $200;
+  SYSTEMINFOTYPE_UPTIMETICKS              = $201;
+  SYSTEMINFOTYPE_LASTSECTICKS             = $202;
+  SYSTEMINFOTYPE_RECENTTICKS              = $203;
+  SYSTEMINFOTYPE_CPUTIME                  = $204;
+  SYSTEMINFOTYPE_LASTSECCPUTIME           = $205;
+  SYSTEMINFOTYPE_RECENTCPUTIME            = $206;
+  SYSTEMINFOTYPE_VOLUNTARYCSW             = $207;
+  SYSTEMINFOTYPE_INVOLUNTARYCSW           = $208;
+  SYSTEMINFOTYPE_LASTSECVOLUNTARYCSW      = $209;
+  SYSTEMINFOTYPE_LASTSECINVOLUNTARYCSW    = $20a;
+  SYSTEMINFOTYPE_LOADAVG1                 = $20b;
+  SYSTEMINFOTYPE_LOADAVG2                 = $20c;
+  SYSTEMINFOTYPE_LOADAVG3                 = $20d;
+  // Added in exec 50.45
+  SYSTEMINFOTYPE_TASKSCREATED             = $20e;
+  SYSTEMINFOTYPE_TASKSFINISHED            = $20f;
+  SYSTEMINFOTYPE_LAUNCHTIMETICKS          = $210;
+  SYSTEMINFOTYPE_LAUNCHTIMETICKS1978      = $211;
+  SYSTEMINFOTYPE_TASKSRUNNING             = $212;
+  SYSTEMINFOTYPE_TASKSSLEEPING            = $213;
+
+  // Added in exec 50.54
+  SYSTEMINFOTYPE_EMULHANDLESIZE           = $217; // read only
+  SYSTEMINFOTYPE_EXCEPTIONMSGPORT         = $218; // The system's global native exception handler's msgport. Is overruled by task's native exception handler msgports.
+  SYSTEMINFOTYPE_TASKEXITCODE             = $219; // The system's global task exit code. Is overruled by a custom exitcode in task generation.
+  SYSTEMINFOTYPE_TASKEXITCODE_M68K        = $21a; // The system's global 68k task exit code. Is overruled by a custom exitcode in task generation.
+
+  // Added in exec 50.58
+  SYSTEMINFOTYPE_EMULATION_START          = $230; // emulation area start read only
+  SYSTEMINFOTYPE_EMULATION_SIZE           = $231; // emulation area size read only
+  SYSTEMINFOTYPE_MODULE_START             = $232; // module area address read only
+  SYSTEMINFOTYPE_MODULE_SIZE              = $233; // module area size read only
+
+  // Added in exec 50.67
+  SYSTEMINFOTYPE_EXCEPTIONMSGPORT_68K     = $234; // The system's global 68k exception handler's msgport.
+                                                  //   Is overruled by task's native exception 68k handler msgports
+                                                  //   and that's overruled by the task's 68k traphandler
+  SYSTEMINFOTYPE_ALERTMSGPORT             = $235; // The system's global alert handler's msgport.
+
+  // Added in exec 50.68
+  SYSTEMINFOTYPE_VENDOR                   = $236; // The system vendor string
+  SYSTEMINFOTYPE_REVISION                 = $237; // The system revision string
+
+  // Added in exec 50.73
+  SYSTEMINFOTYPE_MAGIC1                   = $238; // Magic fields in execbase
+  SYSTEMINFOTYPE_MAGIC2                   = $239;
+  // Added in exec 51.3
+  SYSTEMINFOTYPE_MAXHITCOUNT              = $23a;
+  // Added in exec 51.13
+  SYSTEMINFOTYPE_MAXALERTCOUNT            = $23b;
+  // Added in exec 51.25
+  SYSTEMINFOTYPE_REGUSER                  = $23c;
+
+{
+  Fills 'struct FreeBlocksData' structure, with each struct MemEntry
+  representing single free block. Normally all free blocks in all memory
+  headers are scanned, but SYSTEMINFOTAG_MEMHEADER can be used to limit
+  the scanning to a single memory header. If successfull,
+  NewGetSystemAttrs return TRUE, and then fbd_NumBlocks contains the
+  number of struct MemEntry entries filled.
+
+  You can also use SYSTEMINFOTAG_HOOK to have your custom hook called
+  rather than having array being filled. The hook is called within
+  Forbid() and the forbid must NOT be broken. The hook is called with:
+   A0 - PHook
+   A1 - PMemEntry
+   A2 - PMemHeader
+  The hook must return success/failure indicator, returning FALSE causes
+  the NewGetSystemAttrs call to abort instantly and return FALSE.
+ }
+  // Added in exec 51.32
+  SYSTEMINFOTYPE_FREEBLOCKS               = $23d;
+  // Added in exec 51.38
+  SYSTEMINFOTYPE_CPUNAME                  = $23e; // CPU name as a string e.g. "603E", "7448", "970FX", "Unknown" read only
+  SYSTEMINFOTYPE_CPUFAMILYNAME            = $23f; // CPU family name as a string e.g. "G1", "G2", "G4", "G5", "Unknown" read only
+
+  SYSTEMINFOTAG_DUMMY     = TAG_USER + $112000;
+  SYSTEMINFOTAG_CPUINDEX  = SYSTEMINFOTAG_DUMMY + $0;
+  SYSTEMINFOTAG_MEMHEADER = SYSTEMINFOTAG_DUMMY + $1;
+  SYSTEMINFOTAG_HOOK      = SYSTEMINFOTAG_DUMMY + $2;
+
 
 
 function Supervisor(userFunction: Pointer location 'a5'): Cardinal;
