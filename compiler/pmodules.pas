@@ -1145,8 +1145,10 @@ type
            is it needed at all? (Sergei) }
          { it's needed in case cnodeutils.force_init = true }
          if (force_init_final or cnodeutils.force_init) and
-            assigned(init_procinfo) and
-            has_no_code(init_procinfo.code) then
+            (
+              not assigned(init_procinfo) or
+              has_no_code(init_procinfo.code)
+            ) then
            begin
              { first release the not used init procinfo }
              if assigned(init_procinfo) then
