@@ -2150,17 +2150,17 @@ procedure StackSwap(newStack: PStackSwapStruct location 'a0');
 SysCall MOS_ExecBase 732;
 
 function NewGetTaskAttrsA(Task    : PTask    location 'a0';
-                          Data    : Pointer  location 'a1';
-                          DataSize: Cardinal location 'd0';
-                          TType   : Cardinal location 'd1';
-                          Tags    : PTagItem location 'a2'): Cardinal;
+                          Data    : APTR     location 'a1';
+                          DataSize: LongWord location 'd0';
+                          TType   : LongWord location 'd1';
+                          Tags    : PTagItem location 'a2'): LongWord;
 SysCall MOS_ExecBase 738;
 
 function NewSetTaskAttrsA(Task    : PTask    location 'a0';
-                          Data    : Pointer  location 'a1';
-                          DataSize: Cardinal location 'd0';
-                          TType   : Cardinal location 'd1';
-                          Tags    : PTagItem location 'a2'): Cardinal;
+                          Data    : APTR     location 'a1';
+                          DataSize: LongWord location 'd0';
+                          TType   : LongWord location 'd1';
+                          Tags    : PTagItem location 'a2'): LongWord;
 SysCall MOS_ExecBase 744;
 
 function CachePreDMA(address   : Pointer  location 'a0';
@@ -2188,7 +2188,7 @@ function NewSetFunction(libHandle  : PLibrary location 'a0';
                         tags       : PTagItem location 'a2'): Pointer;
 SysCall MOS_ExecBase 792;
 
-function NewCreateLibrary(tags: PTagItem location 'a0'): PLibrary;
+function NewCreateLibrary(Tags: PTagItem location 'a0'): PLibrary;
 SysCall MOS_ExecBase 798;
 
 function NewPPCStackSwap(newStack : PStackSwapStruct  location 'a0';
@@ -2247,9 +2247,14 @@ SysCall MOS_ExecBase 882;
 procedure FlushTaskPool;
 SysCall MOS_ExecBase 888;
 
-function AllocVecPooled(poolHeader: Pointer  location 'a0';
-                        memSize   : Cardinal location 'd0'): Pointer;
+function AllocVecPooled(poolHeader: APTR     location 'a0';
+                        memSize   : LongWord location 'd0'): Pointer;
 SysCall MOS_ExecBase 894;
+
+function FreeVecPooled(poolHeader: APTR  location 'a0';
+                        memory   : APTR  location 'd0'): Pointer;
+SysCall MOS_ExecBase 900;
+
 
 function NewGetSystemAttrsA(Data    : Pointer  location 'a0';
                             DataSize: Cardinal location 'd0';
@@ -2317,21 +2322,70 @@ SysCall BaseSysV MOS_ExecBase 990;
 function FindTaskByPID(processID: Cardinal): PTask;
 SysCall BaseSysV MOS_ExecBase 996;
 
-function NewGetTaskAttrs(Task    : PTask;
-                         Data    : Pointer;
-                         DataSize: Cardinal;
-                         TType   : Cardinal;
-                         Tags    : array of DWord): Cardinal; Inline;
+procedure DumpTaskState(Task: PTask location 'a0') syscall MOS_ExecBase 1026;
+procedure AddExecNotifyType(Hook: PHook; Type_: LongInt); SysCall BaseSysV MOS_ExecBase 1030;
+function ShutdownA(MyTags: PTagItem): LongWord; SysCall BaseSysV MOS_ExecBase 1036;
+function AvailPool(PoolHeader: APTR; Flags: LongWord): LongWord; SysCall BaseSysV MOS_ExecBase 1048;
+procedure PutMsgHead(Port: PMsgPort; Message: PMessage); SysCall BaseSysV MOS_ExecBase 1060;
+function NewGetTaskPIDAttrsA(PID: LongWord location 'd0'; Data: APTR location 'a0'; DataSize: LongWord location 'd1'; Type_: LongWord location 'd2'; Tags: PTagItem location 'a1'): LongWord; SysCall MOS_ExecBase 1068;
+function NewSetTaskPIDAttrsA(PID: LongWord location 'd0'; Data: APTR location 'a0'; DataSize: LongWord location 'd1'; Type_: LongWord location 'd2'; Tags: PTagItem location 'a1'): LongWord; SysCall MOS_ExecBase 1074;
+
+
+function NewGetTaskAttrs(Task: PTask; Data: APTR; DataSize, TType: LongWord; const Tags: array of PtrUInt): LongWord; Inline;
+function NewSetTaskAttrs(Task: PTask; Data: APTR; DataSize, TType: Cardinal; const Tags: array of PtrUInt): LongWord; Inline;
+function NewCreateLibraryTags(const Tags: array of PtrUInt): PLibrary; inline;
+function NewGetSystemAttrs(Data: APTR; DataSize, MyType: LongWord; const Tags: array of PtrUInt): LongWord;
+function NewSetSystemAttrs(Data: APTR; DataSize, MyType: LongWord; const Tags: array of PtrUInt): LongWord;
+function NewCreateTask(const Tags: array of PtrUInt): PTask; inline;
+function AddExecNode(InNode: APTR; const Tags: array of PtrUInt): APTR; inline;
+function NewGetTaskPIDAttrs(PID: LongWord; Data: APTR; DataSize, Type_: LongWord; const Tags: array of PtrUInt): LongWord; inline;
+function NewSetTaskPIDAttrs(PID: LongWord; Data: APTR; DataSize, Type_: LongWord; const Tags: array of PtrUInt): LongWord; inline;
 
 implementation
 
-function NewGetTaskAttrs(Task    : PTask;
-                         Data    : Pointer;
-                         DataSize: Cardinal;
-                         TType   : Cardinal;
-                         Tags    : array of DWord): Cardinal; Inline;
+function NewGetTaskAttrs(Task: PTask; Data: APTR; DataSize, TType: LongWord; const Tags: array of PtrUInt): LongWord; Inline;
 begin
-  NewGetTaskAttrs:=NewGetTaskAttrsA(Task,Data,DataSize,TType,@Tags);
+  NewGetTaskAttrs := NewGetTaskAttrsA(Task, Data, DataSize, TType, @Tags);
+end;
+
+function NewSetTaskAttrs(Task: PTask; Data: APTR; DataSize, TType: LongWord; const Tags: array of DWord): LongWord; Inline;
+begin
+  NewSetTaskAttrs := NewSetTaskAttrsA(Task, Data, DataSize, TType, @Tags);
+end;
+
+function NewCreateLibraryTags(const Tags: array of PtrUInt): PLibrary; inline;
+begin
+  NewCreateLibraryTags := NewCreateLibrary(@Tags);
+end;
+
+function NewGetSystemAttrs(Data: APTR; DataSize: LongWord; MyType: LongWord; const Tags: array of PtrUInt): LongWord;
+begin
+  NewGetSystemAttrs := NewGetSystemAttrsA(Data, DataSize, MyType, @Tags);
+end;
+
+function NewSetSystemAttrs(Data: APTR; DataSize: LongWord; MyType: LongWord; const Tags: array of PtrUInt): LongWord;
+begin
+  NewSetSystemAttrs := NewSetSystemAttrsA(Data, DataSize, MyType, @Tags);
+end;
+
+function NewCreateTask(const Tags: array of PtrUInt): PTask; inline;
+begin
+  NewCreateTask := NewCreateTaskA(@Tags);
+end;
+
+function AddExecNode(InNode: APTR; const Tags: array of PtrUInt): APTR; inline;
+begin
+  AddExecNode := AddExecNodeA(InNode, @Tags);
+end;
+
+function NewGetTaskPIDAttrs(PID: LongWord; Data: APTR; DataSize: LongWord; Type_: LongWord; const Tags: array of PtrUInt): LongWord; inline;
+begin
+  NewGetTaskPIDAttrs := NewGetTaskPIDAttrsA(PID, Data, DataSize, Type_, @Tags);
+end;
+
+function NewSetTaskPIDAttrs(PID: LongWord; Data: APTR; DataSize: LongWord; Type_: LongWord; const Tags: array of PtrUInt): LongWord; inline;
+begin
+  NewSetTaskPIDAttrs := NewSetTaskPIDAttrsA(PID, Data, DataSize, Type_, @Tags);
 end;
 
 function GetEmulHandle: PEmulHandle; assembler; nostackframe;
