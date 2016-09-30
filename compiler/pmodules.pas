@@ -783,6 +783,7 @@ implementation
 type
     tfinishstate=record
       init_procinfo:tcgprocinfo;
+      finalize_procinfo:tcgprocinfo;
     end;
     pfinishstate=^tfinishstate;
 
@@ -792,6 +793,7 @@ type
       var
          main_file: tinputfile;
          s1,s2  : ^string; {Saves stack space}
+         finalize_procinfo,
          init_procinfo : tcgprocinfo;
          unitname : ansistring;
          unitname8 : string[8];
@@ -803,6 +805,7 @@ type
          result:=true;
 
          init_procinfo:=nil;
+         finalize_procinfo:=nil;
 
          if m_mac in current_settings.modeswitches then
            current_module.mode_switch_allowed:= false;
@@ -1023,6 +1026,15 @@ type
              init_procinfo.parse_body;
              { save file pos for debuginfo }
              current_module.mainfilepos:=init_procinfo.entrypos;
+
+             { parse finalization section }
+             if token=_FINALIZATION then
+               begin
+                 { Compile the finalize }
+                 finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
+                 finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
+                 finalize_procinfo.parse_body;
+               end
            end;
 
          { remove all units that we are waiting for that are already waiting for
@@ -1041,6 +1053,7 @@ type
          { save all information that is needed for finishing the unit }
          New(finishstate);
          finishstate^.init_procinfo:=init_procinfo;
+         finishstate^.finalize_procinfo:=finalize_procinfo;
          current_module.finishstate:=finishstate;
 
          if result then
@@ -1115,8 +1128,7 @@ type
            internalerror(2012091801);
          finishstate:=pfinishstate(current_module.finishstate)^;
 
-         finalize_procinfo:=nil;
-
+         finalize_procinfo:=finishstate.finalize_procinfo;
          init_procinfo:=finishstate.init_procinfo;
 
          { Generate specializations of objectdefs methods }
@@ -1158,16 +1170,20 @@ type
                end;
              init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable);
            end;
-         { finalize? }
-         if not current_module.interface_only and (token=_FINALIZATION) then
+         if (force_init_final or cnodeutils.force_final) and
+            (
+              not assigned(finalize_procinfo) or
+              has_no_code(finalize_procinfo.code)
+            ) then
            begin
-              { Compile the finalize }
-              finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
-              finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
-              finalize_procinfo.parse_body;
-           end
-         else if force_init_final or cnodeutils.force_final then
-           finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
+             { first release the not used finalize procinfo }
+             if assigned(finalize_procinfo) then
+               begin
+                 release_proc_symbol(finalize_procinfo.procdef);
+                 release_main_proc(finalize_procinfo);
+               end;
+             finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
+           end;
 
          { Now both init and finalize bodies are read and it is known
            which variables are used in both init and finalize we can now
@@ -2079,6 +2095,16 @@ type
          { save file pos for debuginfo }
          current_module.mainfilepos:=main_procinfo.entrypos;
 
+         { finalize? }
+         if token=_FINALIZATION then
+           begin
+              { Parse the finalize }
+              finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
+              finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
+              finalize_procinfo.procdef.aliasnames.insert('PASCALFINALIZE');
+              finalize_procinfo.parse_body;
+           end;
+
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
 
@@ -2102,18 +2128,20 @@ type
             ((current_module.flags and uf_has_exports)<>0) then
            current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',current_module.localsymtable,''),0));
 
-         { finalize? }
-         if token=_FINALIZATION then
+         if (force_init_final or cnodeutils.force_final) and
+            (
+              not assigned(finalize_procinfo)
+              or has_no_code(finalize_procinfo.code)
+            ) then
            begin
-              { Parse the finalize }
-              finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
-              finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
-              finalize_procinfo.procdef.aliasnames.insert('PASCALFINALIZE');
-              finalize_procinfo.parse_body;
-           end
-         else
-           if force_init_final or cnodeutils.force_final then
+             { first release the not used finalize procinfo }
+             if assigned(finalize_procinfo) then
+               begin
+                 release_proc_symbol(finalize_procinfo.procdef);
+                 release_main_proc(finalize_procinfo);
+               end;
              finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
+           end;
 
           { the finalization routine of libraries is generic (and all libraries need to }
           { be finalized, so they can finalize any units they use                       }

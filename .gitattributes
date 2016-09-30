@@ -12382,6 +12382,7 @@ tests/test/tgeneric10.pp svneol=native#text/plain
 tests/test/tgeneric100.pp svneol=native#text/pascal
 tests/test/tgeneric101.pp svneol=native#text/pascal
 tests/test/tgeneric102.pp svneol=native#text/pascal
+tests/test/tgeneric103.pp svneol=native#text/pascal
 tests/test/tgeneric11.pp svneol=native#text/plain
 tests/test/tgeneric12.pp svneol=native#text/plain
 tests/test/tgeneric13.pp svneol=native#text/plain
