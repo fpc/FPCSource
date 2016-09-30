@@ -77,7 +77,8 @@ unit cgx86;
         procedure a_load_const_reg(list : TAsmList; tosize: tcgsize; a : tcgint;reg : tregister);override;
         procedure a_load_const_ref(list : TAsmList; tosize: tcgsize; a : tcgint;const ref : treference);override;
         procedure a_load_reg_ref(list : TAsmList;fromsize,tosize: tcgsize; reg : tregister;const ref : treference);override;
-        procedure a_load_ref_reg(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister);override;
+        { final as a_load_ref_reg_internal() should be overridden instead }
+        procedure a_load_ref_reg(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister);override;final;
         procedure a_load_reg_reg(list : TAsmList;fromsize,tosize: tcgsize;reg1,reg2 : tregister);override;
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
 
@@ -125,13 +126,15 @@ unit cgx86;
 
         procedure g_overflowcheck(list: TAsmList; const l:tlocation;def:tdef);override;
 
-        procedure make_simple_ref(list:TAsmList;var ref: treference);
+        procedure make_simple_ref(list:TAsmList;var ref: treference);inline;
         procedure make_direct_ref(list:TAsmList;var ref: treference);
 
         function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
 
         procedure generate_leave(list : TAsmList);
       protected
+        procedure a_load_ref_reg_internal(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister;isdirect:boolean);virtual;
+
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure check_register_size(size:tcgsize;reg:tregister);
 
@@ -146,6 +149,8 @@ unit cgx86;
         procedure floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
 
         procedure internal_restore_regs(list: TAsmList; use_pop: boolean);
+
+        procedure make_simple_ref(list:TAsmList;var ref: treference;isdirect:boolean);
       end;
 
    const
@@ -412,6 +417,12 @@ unit cgx86;
 
 
     procedure tcgx86.make_simple_ref(list:TAsmList;var ref: treference);
+      begin
+        make_simple_ref(list,ref,false);
+      end;
+
+
+    procedure tcgx86.make_simple_ref(list:TAsmList;var ref: treference;isdirect:boolean);
       var
         hreg : tregister;
         href : treference;
@@ -426,7 +437,7 @@ unit cgx86;
           exit;
 
         { handle indirect symbols first }
-        if ref.refaddr<>addr_load_indirect then
+        if not isdirect then
             make_direct_ref(list,ref);
 
 {$if defined(x86_64)}
@@ -655,8 +666,7 @@ unit cgx86;
             reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
             { tell make_simple_ref that we are loading the symbol address via an indirect
               symbol and that hence it should not call make_direct_ref() again }
-            href.refaddr:=addr_load_indirect;
-            a_op_ref_reg(list,OP_MOVE,OS_ADDR,href,hreg);
+            a_load_ref_reg_internal(list,OS_ADDR,OS_ADDR,href,hreg,true);
             if ref.base<>NR_NO then
               begin
                 { fold symbol register into base register }
@@ -973,13 +983,19 @@ unit cgx86;
 
 
     procedure tcgx86.a_load_ref_reg(list : TAsmList;fromsize,tosize : tcgsize;const ref: treference;reg : tregister);
+      begin
+        a_load_ref_reg_internal(list,fromsize,tosize,ref,reg,false);
+      end;
+
+
+    procedure tcgx86.a_load_ref_reg_internal(list : TAsmList;fromsize,tosize : tcgsize;const ref: treference;reg : tregister;isdirect:boolean);
       var
         op: tasmop;
         s: topsize;
         tmpref  : treference;
       begin
         tmpref:=ref;
-        make_simple_ref(list,tmpref);
+        make_simple_ref(list,tmpref,isdirect);
         check_register_size(tosize,reg);
         sizes2load(fromsize,tosize,op,s);
  {$ifdef x86_64}
@@ -1042,8 +1058,7 @@ unit cgx86;
 
         { this could probably done in a more optimized way, but for now this
           is sufficent }
-        if dirref.refaddr<>addr_load_indirect then
-          make_direct_ref(list,dirref);
+        make_direct_ref(list,dirref);
 
         with dirref do
           begin

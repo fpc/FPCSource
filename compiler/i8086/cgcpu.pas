@@ -68,7 +68,8 @@ unit cgcpu;
         procedure a_load_const_reg(list : TAsmList; tosize: tcgsize; a : tcgint;reg : tregister);override;
         procedure a_load_const_ref(list : TAsmList; tosize: tcgsize; a : tcgint;const ref : treference);override;
         procedure a_load_reg_ref(list : TAsmList;fromsize,tosize: tcgsize; reg : tregister;const ref : treference);override;
-        procedure a_load_ref_reg(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister);override;
+        { use a_load_ref_reg_internal() instead }
+        //procedure a_load_ref_reg(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : TAsmList;fromsize,tosize: tcgsize;reg1,reg2 : tregister);override;
 
         {  comparison operations }
@@ -96,6 +97,8 @@ unit cgcpu;
         procedure get_32bit_ops(op: TOpCG; out op1,op2: TAsmOp);
 
         procedure add_move_instruction(instr:Taicpu);override;
+     protected
+        procedure a_load_ref_reg_internal(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister;isdirect:boolean);override;
      end;
 
       tcg64f8086 = class(tcg64f32)
@@ -1249,7 +1252,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg8086.a_load_ref_reg(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister);
+    procedure tcg8086.a_load_ref_reg_internal(list : TAsmList;fromsize,tosize: tcgsize;const ref : treference;reg : tregister;isdirect:boolean);
 
         procedure add_mov(instr: Taicpu);
           begin
@@ -1264,7 +1267,7 @@ unit cgcpu;
         tmpref  : treference;
       begin
         tmpref:=ref;
-        make_simple_ref(list,tmpref);
+        make_simple_ref(list,tmpref,isdirect);
         check_register_size(tosize,reg);
 
         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
