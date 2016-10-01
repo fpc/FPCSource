@@ -191,7 +191,7 @@ var
 begin
   Result:=false;
   FpmkDir:=IncludeTrailingPathDelimiter(FPath)+'fpmkinst'+PathDelim+FCompilerOptions.CompilerTarget+PathDelim;
-  if FindFirst(IncludeTrailingPathDelimiter(FpmkDir)+PathDelim+'*'+FpmkExt,faDirectory,SR)=0 then
+  if FindFirst(IncludeTrailingPathDelimiter(FpmkDir)+'*'+FpmkExt,faDirectory,SR)=0 then
     begin
       log(llDebug,SLogFindInstalledPackages,[FpmkDir]);
       repeat
