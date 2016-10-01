@@ -796,7 +796,7 @@ unit cgcpu;
         tmpreg2:=getaddressregister(list);
         tmpref:=ref;
         inc(tmpref.offset,tcgsize2size[tosize]-1);
-        a_loadaddr_ref_reg(list,ref,tmpreg2);
+        a_loadaddr_ref_reg(list,tmpref,tmpreg2);
         reference_reset_base(tmpref,tmpreg2,0,1);
         tmpref.direction:=dir_none;
 
