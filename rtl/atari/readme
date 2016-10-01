@@ -1,4 +1,0 @@
-For the moment there is no makefile for the atari system unit, therefore 
-to compile you must copy all files from the inc and m68k directories into 
-the same directory as the files here.
-

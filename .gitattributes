@@ -8398,7 +8398,6 @@ rtl/aros/x86_64/prt0.as svneol=native#text/plain
 rtl/atari/Makefile svneol=native#text/plain
 rtl/atari/Makefile.fpc svneol=native#text/plain
 rtl/atari/prt0.as svneol=native#text/plain
-rtl/atari/readme -text
 rtl/atari/rtldefs.inc svneol=native#text/plain
 rtl/atari/sysdir.inc svneol=native#text/plain
 rtl/atari/sysfile.inc svneol=native#text/plain
