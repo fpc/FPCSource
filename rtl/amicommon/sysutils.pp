@@ -764,7 +764,7 @@ end;
 function SysErrorMessage(ErrorCode: Integer): String;
 
 begin
-{  Result:=StrError(ErrorCode);}
+  Result:=Format(SUnknownErrorCode,[ErrorCode]);
 end;
 
 function GetLastOSError: Integer;
