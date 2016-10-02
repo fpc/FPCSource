@@ -410,7 +410,7 @@ type
 	CFPropertyListRef = CFTypeRef;
 
 { Values returned from comparison functions }
-	CFComparisonResult = SInt32;
+	CFComparisonResult = CFIndex;
 const
 	kCFCompareLessThan = -1;
 	kCFCompareEqualTo = 0;
