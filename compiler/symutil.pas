@@ -30,7 +30,7 @@ interface
 
     function is_funcret_sym(p:TSymEntry):boolean;
 
-    function equal_constsym(sym1,sym2:tconstsym):boolean;
+    function equal_constsym(sym1,sym2:tconstsym; nanequal: boolean):boolean;
 
 
 implementation
@@ -48,7 +48,7 @@ implementation
       end;
 
 
-    function equal_constsym(sym1,sym2:tconstsym):boolean;
+    function equal_constsym(sym1,sym2:tconstsym; nanequal: boolean):boolean;
       var
         p1,p2,pend : pchar;
       begin
@@ -85,7 +85,10 @@ implementation
                  equal_constsym:=true;
              end;
            constreal :
-             equal_constsym:=(pbestreal(sym1.value.valueptr)^=pbestreal(sym2.value.valueptr)^);
+             if nanequal then
+               equal_constsym:=CompareByte(pbestreal(sym1.value.valueptr)^,pbestreal(sym2.value.valueptr)^,sizeof(pbestreal^))=0
+             else
+               equal_constsym:=pbestreal(sym1.value.valueptr)^=pbestreal(sym2.value.valueptr)^;
            constset :
              equal_constsym:=(pnormalset(sym1.value.valueptr)^=pnormalset(sym2.value.valueptr)^);
            constnil :

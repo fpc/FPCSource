@@ -2181,7 +2181,7 @@ implementation
                   if assigned(currpara1.defaultconstsym) and
                      assigned(currpara2.defaultconstsym) then
                     begin
-                      if not equal_constsym(tconstsym(currpara1.defaultconstsym),tconstsym(currpara2.defaultconstsym)) then
+                      if not equal_constsym(tconstsym(currpara1.defaultconstsym),tconstsym(currpara2.defaultconstsym),true) then
                         exit;
                     end
                   { cannot have that the second (= implementation) has a default value declared and the
