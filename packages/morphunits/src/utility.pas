@@ -26,40 +26,30 @@ uses
 var
   UtilityBase: Pointer;
 
-
-{ * utility.library date defines
-  *********************************************************************
-  * }
-
-
+// utility.library date defines
 type
   PClockData = ^TClockData;
   TClockData = packed record
-    sec  : Word;
-    min  : Word;
-    hour : Word;
-    mday : Word;
-    month: Word;
-    year : Word;
-    wday : Word;
+    Sec: Word;
+    Min: Word;
+    Hour: Word;
+    MDay: Word;
+    Month: Word;
+    Year: Word;
+    WDay: Word;
   end;
 
 
-
-{ * utility.library tagitem defines
-  *********************************************************************
-  * }
-
-
+// utility.library tagitem defines
 type
-  Tag = Cardinal;
+  Tag = LongWord;
+  PTag = ^Tag;
 
-type
   PPTagItem = ^PTagItem;
   PTagItem = ^TTagItem;
   TTagItem = packed record
     ti_Tag : Tag;
-    ti_Data: Cardinal;
+    ti_Data: LongWord;
   end;
 
 
@@ -70,30 +60,20 @@ const
   TAG_MORE   = 2;
   TAG_SKIP   = 3;
 
-const
   TAG_USER   = 1 Shl 31;
 
-const
   TAGFILTER_AND = 0;
   TAGFILTER_NOT = 1;
 
-const
   MAP_REMOVE_NOT_FOUND = 0;
   MAP_KEEP_NOT_FOUND   = 1;
 
-
-
-{ * utility.library namespace defines
-  *********************************************************************
-  * }
-
-
+// utility.library namespace defines
 type
   PNamedObject = ^TNamedObject;
   TNamedObject = packed record
-    no_Object: Pointer;
+    no_Object: APTR;
   end;
-
 
 const
   ANO_NameSpace  = 4000;
@@ -107,23 +87,17 @@ const
   NSF_NODUPS = 1 Shl NSB_NODUPS;
   NSF_CASE   = 1 Shl NSB_CASE;
 
-
-
-{ * utility.library pack attributes and macros
-  *********************************************************************
-  * }
-
-
+// utility.library pack attributes and macros
 const
   PSTB_SIGNED = 31;
   PSTB_UNPACK = 30;
   PSTB_PACK   = 29;
   PSTB_EXISTS = 26;
 
-  PSTF_SIGNED = (1 Shl PSTB_SIGNED);
-  PSTF_UNPACK = (1 Shl PSTB_UNPACK);
-  PSTF_PACK   = (1 Shl PSTB_PACK);
-  PSTF_EXISTS = (1 Shl PSTB_EXISTS);
+  PSTF_SIGNED = 1 Shl PSTB_SIGNED;
+  PSTF_UNPACK = 1 Shl PSTB_UNPACK;
+  PSTF_PACK   = 1 Shl PSTB_PACK;
+  PSTF_EXISTS = 1 Shl PSTB_EXISTS;
 
 const
   PKCTRL_PACKUNPACK = $00000000;
@@ -160,11 +134,7 @@ const
   PACK_LONGBIT(tagbase,tag,type,field,control,flags) (control | ((tag-tagbase) << 16L) | (PK_CALCOFFSET(type,field) + PK_LONGOFFSET(flags)) | ((PK_BITNUM(flags) & 7) << 13L))
 }
 
-{ * utility.library include
-  *********************************************************************
-  * }
-
-
+// utility.library include
 const
   UtilityName = 'utility.library';
 
@@ -177,234 +147,133 @@ type
     ub_Reserved: Byte;
   end;
 
-
-
-{ * utility.library hook defines
-  *********************************************************************
-  * }
-
-
+// utility.library hook defines
 type
   PHook = ^THook;
   THook = packed record
     h_MinNode : TMinNode;
     h_Entry   : Pointer;
     h_SubEntry: Pointer;
-    h_Data    : Pointer;
+    h_Data    : APTR;
   end;
 
 
-function FindTagItem(tagVal : Cardinal location 'd0';
-                     tagList: PTagItem location 'a0'): PTagItem;
-SysCall MOS_UtilityBase 030;
+function FindTagItem(TagVal: Tag location 'd0'; TagList: PTagItem location 'a0'): PTagItem; SysCall MOS_UtilityBase 030;
+function GetTagData(TagValue: Tag location 'd0'; DefaultVal: LongWord location 'd1'; TagList: PTagItem location 'a0'): LongWord; SysCall MOS_UtilityBase 036;
+function PackBoolTags(InitialFlags: LongWord location 'd0'; TagList: PTagItem location 'a0'; BoolMap: PTagItem location 'a1'): LongWord; SysCall MOS_UtilityBase 042;
+function NextTagItem(TagListPtr: PPTagItem location 'a0'): PTagItem; overload; SysCall MOS_UtilityBase 048;
+function NextTagItem(var TagList: PTagItem location 'a0'): PTagItem; overload; SysCall MOS_UtilityBase 048;
+procedure FilterTagChanges(ChangeList: PTagItem location 'a0'; OriginalList: PTagItem location 'a1'; Apply: LongWord location 'd0'); SysCall MOS_UtilityBase 054;
+procedure MapTags(TagList: PTagItem location 'a0'; MapList: PTagItem location 'a1'; MapType: Cardinal location 'd0'); SysCall MOS_UtilityBase 060;
+function AllocateTagItems(NumTags: Cardinal location 'd0'): PTagItem; SysCall MOS_UtilityBase 066;
+function CloneTagItems(TagList: PTagItem location 'a0'): PTagItem; SysCall MOS_UtilityBase 072;
+procedure FreeTagItems(TagList: PTagItem location 'a0'); SysCall MOS_UtilityBase 078;
+procedure RefreshTagItemClones(Clone: PTagItem location 'a0'; Original: PTagItem location 'a1'); SysCall MOS_UtilityBase 084;
+function TagInArray(TagValue: Tag location 'd0'; TagArray: PTag location 'a0'): LongBool; SysCall MOS_UtilityBase 090;
+function FilterTagItems(TagList: PTagItem location 'a0'; FilterArray: PTag location 'a1'; Logic: LongWord location 'd0'): LongWord; SysCall MOS_UtilityBase 096;
 
-function GetTagData(tagValue  : Cardinal location 'd0';
-                    defaultVal: Cardinal location 'd1';
-                    tagList   : PTagItem location 'a0'): Cardinal;
-SysCall MOS_UtilityBase 036;
+function CallHookPkt(Hook: PHook location 'a0'; HObject: APTR location 'a2'; ParamPacket: APTR location 'a1'): LongWord; SysCall MOS_UtilityBase 102;
 
-function PackBoolTags(initialFlags: Cardinal location 'd0';
-                      tagList     : PTagItem location 'a0';
-                      boolMap     : PTagItem location 'a1'): Cardinal;
-SysCall MOS_UtilityBase 042;
+procedure Amiga2Date(Seconds: LongWord location 'd0'; Result: PClockData location 'a0'); SysCall MOS_UtilityBase 120;
+function Date2Amiga(Date: PClockData location 'a0'): LongWord; SysCall MOS_UtilityBase 126;
+function CheckDate(Date: PClockData location 'a0'): LongWord; SysCall MOS_UtilityBase 132;
 
-function NextTagItem(tagListPtr: pPTagItem location 'a0'): PTagItem; overload;
-SysCall MOS_UtilityBase 048;
+function SMult32(Arg1: LongInt location 'd0'; Arg2: LongInt location 'd1'): LongInt; SysCall MOS_UtilityBase 138;
+function UMult32(Arg1: LongWord location 'd0'; Arg2: LongWord location 'd1'): LongWord; SysCall MOS_UtilityBase 144;
 
-function NextTagItem(var tagList: PTagItem location 'a0'): PTagItem; overload;
-SysCall MOS_UtilityBase 048;
+function SDivMod32(Dividend: LongInt location 'd0'; Divisor: LongInt location 'd1'): LongInt; SysCall MOS_UtilityBase 150;
+function UDivMod32(Dividend: LongWord location 'd0'; Divisor: LongWord location 'd1'): LongWord; SysCall MOS_UtilityBase 156;
 
-procedure FilterTagChanges(changeList  : PTagItem location 'a0';
-                           originalList: PTagItem location 'a1';
-                           apply       : Cardinal location 'd0');
-SysCall MOS_UtilityBase 054;
+function Stricmp(String1: STRPTR location 'a0'; String2: STRPTR location 'a1'): LongInt; SysCall MOS_UtilityBase 162;
+function Strnicmp(String1: STRPTR location 'a0'; String2: STRPTR location 'a1'; Length: LongInt location 'd0'): LongInt; SysCall MOS_UtilityBase 168;
+function ToUpper(Character: LongWord location 'd0'): Char; SysCall MOS_UtilityBase 174;
+function ToLower(character: LongWord location 'd0'): Char; SysCall MOS_UtilityBase 180;
 
-procedure MapTags(tagList: PTagItem location 'a0';
-                  mapList: PTagItem location 'a1';
-                  mapType: Cardinal location 'd0');
-SysCall MOS_UtilityBase 060;
+procedure ApplyTagChanges(List: PTagItem location 'a0'; ChangeList: PTagItem location 'a1'); SysCall MOS_UtilityBase 186;
 
-function AllocateTagItems(numTags: Cardinal location 'd0'): PTagItem;
-SysCall MOS_UtilityBase 066;
+function SMult64(Arg1: LongInt location 'd0'; Arg2: LongInt location 'd1'): LongInt; SysCall MOS_UtilityBase 198;
+function UMult64(Arg1: LongWord location 'd0'; Arg2: LongWord location 'd1'): LongWord; SysCall MOS_UtilityBase 204;
 
-function CloneTagItems(tagList: PTagItem location 'a0'): PTagItem;
-SysCall MOS_UtilityBase 072;
+function PackStructureTags(Pack: APTR location 'a0'; PackTable: PLongWord location 'a1'; TagList: PTagItem location 'a2'): LongWord; SysCall MOS_UtilityBase 210;
+function UnpackStructureTags(Pack: APTR location 'a0'; PackTable: PLongWord location 'a1'; TagList: PTagItem location 'a2'): LongWord; SysCall MOS_UtilityBase 216;
 
-procedure FreeTagItems(tagList: PTagItem location 'a0');
-SysCall MOS_UtilityBase 078;
+function AddNamedObject(NameSpace: PNamedObject location 'a0'; NObject: PNamedObject location 'a1'): LongBool; SysCall MOS_UtilityBase 222;
+function AllocNamedObjectA(Name: STRPTR location 'a0'; TagList: PTagItem location 'a1'): PNamedObject; SysCall MOS_UtilityBase 228;
+function AttemptRemNamedObject(NObject: PNamedObject location 'a0'): LongInt; SysCall MOS_UtilityBase 234;
+function FindNamedObject(NameSpace: PNamedObject location 'a0'; Name: STRPTR location 'a1'; LastObject: PNamedObject location 'a2'): PNamedObject; SysCall MOS_UtilityBase 240;
+procedure FreeNamedObject(NObject: PNamedObject location 'a0'); SysCall MOS_UtilityBase 246;
+function NamedObjectName(NObject: PNamedObject location 'a0'): STRPTR; SysCall MOS_UtilityBase 252;
+procedure ReleaseNamedObject(NObject: PNamedObject location 'a0'); SysCall MOS_UtilityBase 258;
+procedure RemNamedObject(NObject: PNamedObject location 'a0'; Message: PMessage location 'a1'); SysCall MOS_UtilityBase 264;
 
-procedure RefreshTagItemClones(clone   : PTagItem location 'a0';
-                               original: PTagItem location 'a1');
-SysCall MOS_UtilityBase 084;
+function GetUniqueID: LongWord; SysCall MOS_UtilityBase 270;
 
-function TagInArray(tagValue    : Cardinal location 'd0';
-                    var tagArray: Cardinal location 'a0'): LongBool;
-SysCall MOS_UtilityBase 090;
+// varargs version
+function AllocNamedObject(Name: STRPTR; const Tags: array of PtrUInt): PNamedObject; inline;
 
-function FilterTagItems(tagList        : PTagItem location 'a0';
-                        var filterArray: Cardinal location 'a1';
-                        logic          : Cardinal location 'd0'): Cardinal;
-SysCall MOS_UtilityBase 096;
+function TAG_(Value: Pointer): LongWord; overload; inline;
+function TAG_(Value: PChar): LongWord; overload; inline;
+function TAG_(Value: Boolean): LongWord; overload; inline;
+function TAG_(Value: LongInt): LongWord; overload; inline;
 
-function CallHookPkt(hook       : PHook   location 'a0';
-                     hobject    : Pointer location 'a2';
-                     paramPacket: Pointer location 'a1'): Cardinal;
-SysCall MOS_UtilityBase 102;
-
-procedure Amiga2Date(seconds: Cardinal   location 'd0';
-                     result : PClockData location 'a0');
-SysCall MOS_UtilityBase 120;
-
-function Date2Amiga(date: PClockData location 'a0'): Cardinal;
-SysCall MOS_UtilityBase 126;
-
-function CheckDate(date: PClockData location 'a0'): Cardinal;
-SysCall MOS_UtilityBase 132;
-
-function SMult32(arg1: LongInt location 'd0';
-                 arg2: LongInt location 'd1'): LongInt;
-SysCall MOS_UtilityBase 138;
-
-function UMult32(arg1: Cardinal location 'd0';
-                 arg2: Cardinal location 'd1'): Cardinal;
-SysCall MOS_UtilityBase 144;
-
-function SDivMod32(dividend: LongInt location 'd0';
-                    divisor: LongInt location 'd1'): LongInt;
-SysCall MOS_UtilityBase 150;
-
-function UDivMod32(dividend: Cardinal location 'd0';
-                   divisor : Cardinal location 'd1'): Cardinal;
-SysCall MOS_UtilityBase 156;
-
-function Stricmp(string1: PChar location 'a0';
-                 string2: PChar location 'a1'): LongInt;
-SysCall MOS_UtilityBase 162;
-
-function Strnicmp(string1: PChar   location 'a0';
-                  string2: PChar   location 'a1';
-                  length : LongInt location 'd0'): LongInt;
-SysCall MOS_UtilityBase 168;
-
-function ToUpper(character: Cardinal location 'd0'): Char;
-SysCall MOS_UtilityBase 174;
-
-function ToLower(character: Cardinal location 'd0'): Char;
-SysCall MOS_UtilityBase 180;
-
-procedure ApplyTagChanges(list      : PTagItem location 'a0';
-                          changeList: PTagItem location 'a1');
-SysCall MOS_UtilityBase 186;
-
-function SMult64(arg1: LongInt location 'd0';
-                 arg2: LongInt location 'd1'): LongInt;
-SysCall MOS_UtilityBase 198;
-
-function UMult64(arg1: Cardinal location 'd0';
-                 arg2: Cardinal location 'd1'): Cardinal;
-SysCall MOS_UtilityBase 204;
-
-function PackStructureTags(pack         : Pointer  location 'a0';
-                           var packTable: Cardinal location 'a1';
-                           tagList      : PTagItem location 'a2'): Cardinal;
-SysCall MOS_UtilityBase 210;
-
-function UnpackStructureTags(pack         : Pointer  location 'a0';
-                             var packTable: Cardinal location 'a1';
-                             tagList      : PTagItem location 'a2'): Cardinal;
-SysCall MOS_UtilityBase 216;
-
-function AddNamedObject(nameSpace: PNamedObject location 'a0';
-                        nobject  : PNamedObject location 'a1'): LongBool;
-SysCall MOS_UtilityBase 222;
-
-function AllocNamedObjectA(name   : PChar    location 'a0';
-                           tagList: PTagItem location 'a1'): PNamedObject;
-SysCall MOS_UtilityBase 228;
-
-function AttemptRemNamedObject(nobject: PNamedObject location 'a0'): LongInt;
-SysCall MOS_UtilityBase 234;
-
-function FindNamedObject(nameSpace : PNamedObject location 'a0';
-                         name      : PChar        location 'a1';
-                         lastObject: PNamedObject location 'a2'): PNamedObject;
-SysCall MOS_UtilityBase 240;
-
-procedure FreeNamedObject(nobject: PNamedObject location 'a0');
-SysCall MOS_UtilityBase 246;
-
-function NamedObjectName(nobject: PNamedObject location 'a0'): PChar;
-SysCall MOS_UtilityBase 252;
-
-procedure ReleaseNamedObject(nobject: pNamedObject location 'a0');
-SysCall MOS_UtilityBase 258;
-
-procedure RemNamedObject(nobject: PNamedObject location 'a0';
-                         message: PMessage     location 'a1');
-SysCall MOS_UtilityBase 264;
-
-function GetUniqueID: Cardinal;
-SysCall MOS_UtilityBase 270;
-
-
-function TAG_(value: pointer): longword; overload; inline;
-function TAG_(value: pchar): longword; overload; inline;
-function TAG_(value: boolean): longword; overload; inline;
-function TAG_(value: LongInt): longword; overload; inline;
-
-function AsTag(value: pointer): longword; overload; inline;
-function AsTag(value: pchar): longword; overload; inline;
-function AsTag(value: boolean): longword; overload; inline;
-function AsTag(value: LongInt): longword; overload; inline;
+function AsTag(Value: Pointer): LongWord; overload; inline;
+function AsTag(Value: PChar): LongWord; overload; inline;
+function AsTag(Value: Boolean): LongWord; overload; inline;
+function AsTag(Value: LongInt): LongWord; overload; inline;
 
 implementation
 
-function TAG_(value: pointer): longword; inline;
+function AllocNamedObject(Name: STRPTR; const Tags: array of PtrUInt): PNamedObject; inline;
 begin
-  TAG_:=longword(value);
+  AllocNamedObject := AllocNamedObjectA(Name, @Tags);
 end;
 
-function TAG_(value: pchar): longword; inline;
+function TAG_(Value: Pointer): LongWord; inline;
 begin
-  TAG_:=longword(value);
+  TAG_ := LongWord(Value);
 end;
 
-function TAG_(value: boolean): longword; inline;
+function TAG_(Value: PChar): LongWord; inline;
 begin
-  if value then
+  TAG_ := LongWord(Value);
+end;
+
+function TAG_(Value: Boolean): LongWord; inline;
+begin
+  if Value then
     TAG_ := LTrue
   else
     TAG_ := LFalse;
 end;
 
-function TAG_(value: LongInt): longword; inline;
+function TAG_(Value: LongInt): LongWord; inline;
 begin
-  TAG_:=longword(value);
+  TAG_ := LongWord(Value);
 end;
 
-function AsTag(value: pointer): longword; inline;
+function AsTag(Value: Pointer): LongWord; inline;
 begin
-  AsTag:=longword(value);
+  AsTag := LongWord(Value);
 end;
 
-function AsTag(value: pchar): longword; inline;
+function AsTag(Value: PChar): LongWord; inline;
 begin
-  AsTag:=longword(value);
+  AsTag := LongWord(Value);
 end;
 
-function AsTag(value: boolean): longword; inline;
+function AsTag(Value: Boolean): LongWord; inline;
 begin
-  if value then
+  if Value then
     AsTag := LTrue
   else
     AsTag := LFalse;
 end;
 
-function AsTag(value: LongInt): longword; inline;
+function AsTag(Value: LongInt): LongWord; inline;
 begin
-  AsTag:=longword(value);
+  AsTag := LongWord(Value);
 end;
 
 begin
-  UtilityBase:=MOS_UtilityBase;
+  UtilityBase := MOS_UtilityBase;
 end.
