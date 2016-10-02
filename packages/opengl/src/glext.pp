@@ -5299,10 +5299,7 @@ begin
 end;
 
 procedure Load_GL_version_1_3x(var allOK: Boolean);
-var
-  extstring: String;
 begin
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
   glActiveTexture := wglGetProcAddress('glActiveTexture');
   if not Assigned(glActiveTexture) then allOK := false;
   glClientActiveTexture := wglGetProcAddress('glClientActiveTexture');
@@ -10491,10 +10488,7 @@ begin
 end;
 
 procedure Load_GL_version_1_4x (var allOK: Boolean);
-var
-  extstring: String;
 begin
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
   glBlendFuncSeparate := wglGetProcAddress('glBlendFuncSeparate');
   if not Assigned(glBlendFuncSeparate) then allOK := false;
   glFogCoordf := wglGetProcAddress('glFogCoordf');
@@ -10595,10 +10589,7 @@ begin
 end;
 
 procedure Load_GL_version_1_5x (var allOK: Boolean);
-var
-  extstring: string;
 begin
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
   glGenQueries := wglGetProcAddress('glGenQueries');
   if not Assigned(glGenQueries) then allOK := false;
   glDeleteQueries := wglGetProcAddress('glDeleteQueries');
@@ -10648,10 +10639,7 @@ begin
 end;
 
 procedure Load_GL_version_2_0x (var allOK: Boolean);
-var
-  extstring: String;
 begin
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
   glBlendEquationSeparate := wglGetProcAddress('glBlendEquationSeparate');
   if not Assigned(glBlendEquationSeparate) then allOK := false;
   glDrawBuffers := wglGetProcAddress('glDrawBuffers');
