@@ -27,174 +27,130 @@ interface
 uses exec, agraphics, utility;
 
 const
-  LAYERSIMPLE         = 1;
-  LAYERSMART          = 2;
-  LAYERSUPER          = 4;
-  LAYERUPDATING       = $10;
-  LAYERBACKDROP       = $40;
-  LAYERREFRESH        = $80;
-  LAYER_CLIPRECTS_LOST = $100;          { during BeginUpdate }
-                                        { or during layerop }
-                                        { this happens if out of memory }
-  LMN_REGION          = -1;
+  LAYERSIMPLE          = 1;
+  LAYERSMART           = 2;
+  LAYERSUPER           = 4;
+  LAYERUPDATING        = $10;
+  LAYERBACKDROP        = $40;
+  LAYERREFRESH         = $80;
+  LAYER_CLIPRECTS_LOST = $100; // during BeginUpdate or during layerop this happens if out of memory
+  LAYERIREFRESH        = $200;
+  LAYERIREFRESH2       = $400;
 
 type
-  pLayer_Info = ^tLayer_Info;
-  tLayer_Info = packed record
-    top_layer           : pLayer;
-    check_lp            : pLayer;                { !! Private !! }
-    obs                 : pClipRect;
-    FreeClipRects       : pClipRect;             { !! Private !! }
-    PrivateReserve1,                             { !! Private !! }
-    PrivateReserve2     : Longint;               { !! Private !! }
-    Lock                : tSignalSemaphore;      { !! Private !! }
-    gs_Head             : tMinList;              { !! Private !! }
-    PrivateReserve3     : smallint;              { !! Private !! }
-    PrivateReserve4     : Pointer;               { !! Private !! }
-    Flags               : WORD;
-    fatten_count        : Shortint;              { !! Private !! }
-    LockLayersCount     : Shortint;              { !! Private !! }
-    PrivateReserve5     : smallint;              { !! Private !! }
-    BlankHook,                                   { !! Private !! }
-    LayerInfo_extra     : Pointer;               { !! Private !! }
+  PLayer_Info = ^TLayer_Info;
+  TLayer_Info = packed record
+    top_layer        : PLayer;
+    check_lp         : PLayer;                // Private
+    obs              : PClipRect;
+    FreeClipRects    : PClipRect;             // Private
+    PrivateReserve1,                          // Private
+    PrivateReserve2  : LongInt;               // Private
+    Lock             : TSignalSemaphore;      // Private
+    gs_Head          : TMinList;              // Private
+    PrivateReserve3  : SmallInt;              // Private
+    PrivateReserve4  : APTR;                  // Private
+    Flags            : Word;
+    fatten_count     : ShortInt;              // Private
+    LockLayersCount  : ShortInt;              // Private
+    PrivateReserve5  : SmallInt;              // Private
+    BlankHook,                                // Private
+    LayerInfo_extra  : APTR;                  // Private
   end;
 
 const
   NEWLAYERINFO_CALLED = 1;
 
-{
- * LAYERS_NOBACKFILL is the value needed to get no backfill hook
- * LAYERS_BACKFILL is the value needed to get the default backfill hook
- }
- LAYERS_NOBACKFILL      = 1;
- LAYERS_BACKFILL        = 0;
+// LAYERS_NEVERBACKFILL, available since v52.22
+// unlike with NOBACKFILL, the new layer will not be filled with contents
+// of layers underneath it, contents is lost after resize
+  LAYERS_NEVERBACKFILL   = 2;
+  LAYERS_NOBACKFILL      = 1;
+  LAYERS_BACKFILL        = 0;
 
- LAYERSNAME : PChar = 'layers.library';
+// Tags for Create#?LayerTagList
+  LA_Dummy        = TAG_USER + 1024;
+  LA_BackfillHook = LA_Dummy + $0001;
+  LA_TransRegion  = LA_Dummy + $0002;
+  LA_TransHook    = LA_Dummy + $0003;
+  LA_WindowPtr    = LA_Dummy + $0004;
+  LA_SuperBitMap  = LA_Dummy + $0005; // replaces bm2 in function call
+
+  LR_Dummy = TAG_USER + 1150;
+  LR_Destination_RastPort = LR_Dummy + 1; // PRastPort to render in
+  LR_Destination_BitMap   = LR_Dummy + 2; // PBitMap to render in. mutually exclusive with LR_Destination_RastPort. Do note that the destination
+    // bitmap (or the rastport's bitmap) MUST be in the same format as the source you want to render from!
+  LR_Destination_Bounds   = LR_Dummy + 3; // PRectangle. the graphics will be rendered inside of the given boundaries. if not passed, the call assumes the buffer has at least the same size as LayerInfo
+  LR_LayerInfo_Bounds     = LR_Dummy + 4; // PRectangle. limits the portion of a LayerInfo to draw
+  LR_Erase                = LR_Dummy + 5; // LongBool. setting to FALSE will make the layers be drawn without the background being cleared with the screen's backfill hook TRUE by default
+  LR_RenderList           = LR_Dummy + 6; // PPLayer. a nil terminated list of PLayer pointers to render if they are within given bounds
+  LR_IgnoreList           = LR_Dummy + 7; // PPLayer. a nil terminated list of PLayer pointers to ommit when rendering the layerinfo. mutually exclusive with LR_RenderList!
+
+  LAYERSNAME: PChar = 'layers.library';
 
 var
-  LayersBase : PLibrary = nil;
+  LayersBase: PLibrary = nil;
 
-procedure InitLayers(li : pLayer_Info location 'a0');
-SysCall LayersBase 030;
+procedure InitLayers(Li: PLayer_Info location 'a0'); SysCall LayersBase 030;
+function CreateUpfrontLayer(Li: PLayer_Info location 'a0'; Bm: PBitmap location 'a1'; X0: LongInt location 'd0'; Y0: LongInt location 'd1'; X1: LongInt location 'd2'; Y1: LongInt location 'd3'; Flags: LongInt location 'd4'; Bm2: PBitmap location 'a2'): PLayer; SysCall LayersBase 036;
+function CreateBehindLayer(Li: PLayer_Info location 'a0'; Bm: PBitmap location 'a1'; X0: LongInt location 'd0'; Y0: LongInt location 'd1'; X1: LongInt location 'd2'; Y1: LongInt location 'd3'; Flags: LongInt location 'd4'; Bm2: PBitmap location 'a2'): PLayer; SysCall LayersBase 042;
+function UpfrontLayer(Dummy: LongInt location 'a0'; Layer: PLayer location 'a1'): LongInt; SysCall LayersBase 048;
+function BehindLayer(Dummy: LongInt location 'a0'; Layer: PLayer location 'a1'): LongInt; SysCall LayersBase 054;
+function MoveLayer(Dummy: LongInt location 'a0'; Layer: PLayer location 'a1'; Dx: LongInt location 'd0'; Dy: LongInt location 'd1'): LongInt; SysCall LayersBase 060;
+function SizeLayer(Dummy: LongInt location 'a0'; Layer: PLayer location 'a1'; Dx: LongInt location 'd0'; Dy: LongInt location 'd1'): LongInt; SysCall LayersBase 066;
+procedure ScrollLayer(Dummy: LongInt location 'a0'; Layer: PLayer location 'a1'; Dx: LongInt location 'd0'; Dy: LongInt location 'd1'); SysCall LayersBase 072;
+function BeginUpdate(L: PLayer location 'a0'): LongInt; SysCall LayersBase 078;
+procedure EndUpdate(Layer: PLayer location 'a0'; Flag: LongWord location 'd0'); SysCall LayersBase 084;
+function DeleteLayer(Dummy: LongInt location 'a0'; Layer: PLayer location 'a1'): LongInt; SysCall LayersBase 090;
+procedure LockLayer(Dummy: LongInt location 'a0'; Layer: PLayer location 'a1'); SysCall LayersBase 096;
+procedure UnlockLayer(Layer: PLayer location 'a0'); SysCall LayersBase 102;
+procedure LockLayers(Li: PLayer_Info location 'a0'); SysCall LayersBase 108;
+procedure UnlockLayers(Li: PLayer_Info location 'a0'); SysCall LayersBase 114;
+procedure LockLayerInfo(Li: PLayer_Info location 'a0'); SysCall LayersBase 120;
+procedure SwapBitsRastPortClipRect(Rp: PRastPort location 'a0'; Cr: PClipRect location 'a1'); SysCall LayersBase 126;
+function WhichLayer(Li: PLayer_Info location 'a0'; X: LongInt location 'd0'; Y: LongInt location 'd1'): PLayer; SysCall LayersBase 132;
+procedure UnlockLayerInfo(Li: PLayer_Info location 'a0'); SysCall LayersBase 138;
+function NewLayerInfo: PLayer_Info; SysCall LayersBase 144;
+procedure DisposeLayerInfo(Li: PLayer_Info location 'a0'); SysCall LayersBase 150;
+function FattenLayerInfo(Li: PLayer_Info location 'a0'): LongInt; SysCall LayersBase 156;
+procedure ThinLayerInfo(Li: PLayer_Info location 'a0'); SysCall LayersBase 162;
+function MoveLayerInFrontOf(Layer_To_Move: PLayer location 'a0'; Other_Layer: PLayer location 'a1'): LongInt; SysCall LayersBase 168;
+function InstallClipRegion(Layer: PLayer location 'a0'; const Region: PRegion location 'a1'): PRegion; SysCall LayersBase 174;
+function MoveSizeLayer(Layer: PLayer location 'a0'; Dx: LongInt location 'd0'; Dy: LongInt location 'd1'; Dw: LongInt location 'd2'; Dh: LongInt location 'd3'): LongInt; SysCall LayersBase 180;
+function CreateUpfrontHookLayer(Li: PLayer_Info location 'a0'; Bm: PBitmap location 'a1'; X0: LongInt location 'd0'; Y0: LongInt location 'd1'; X1: LongInt location 'd2'; Y1: LongInt location 'd3'; Flags: LongInt location 'd4'; Hook: PHook location 'a3'; Bm2: PBitmap location 'a2'): PLayer; SysCall LayersBase 186;
+function CreateBehindHookLayer(Li: PLayer_Info location 'a0'; Bm: PBitmap location 'a1'; X0: LongInt location 'd0'; Y0: LongInt location 'd1'; X1: LongInt location 'd2'; Y1: LongInt location 'd3'; Flags: LongInt location 'd4'; Hook: PHook location 'a3'; Bm2: PBitmap location 'a2'): PLayer; SysCall LayersBase 192;
+function InstallLayerHook(Layer: PLayer location 'a0'; Hook: PHook location 'a1'): PHook; SysCall LayersBase 198;
+function InstallLayerInfoHook(Li: PLayer_Info location 'a0'; const Hook: PHook location 'a1'): PHook; SysCall LayersBase 204;
+procedure SortLayerCR(Layer: PLayer location 'a0'; Dx: LongInt location 'd0'; Dy: LongInt location 'd1'); SysCall LayersBase 210;
+procedure DoHookClipRects(Hook: PHook location 'a0'; RPort: PRastPort location 'a1'; const Rect: PRectangle location 'a2'); SysCall LayersBase 216;
 
-function CreateUpfrontLayer(li : pLayer_Info location 'a0'; bm : pBitMap location 'a1'; x0 : LongInt location 'd0'; y0 : LongInt location 'd1'; x1 : LongInt location 'd2'; y1 : LongInt location 'd3'; flags : LongInt location 'd4'; bm2 : pBitMap location 'a2') : pLayer;
-SysCall LayersBase 036;
+// V50 (MorphOS)
+function CreateUpfrontLayerTagList(Li: PLayer_Info location 'a0'; Bm: PBitmap location 'a1'; X0: LongInt location 'd0'; Y0: LongInt location 'd1'; X1: LongInt location 'd2'; Y1: LongInt location 'd3'; Flags: LongInt location 'd4'; Taglist: PTagItem location 'a2'): PLayer; SysCall LayersBase 234;
+function CreateBehindLayerTagList(Li: PLayer_Info location 'a0'; Bm: PBitmap location 'a1'; X0: LongInt location 'd0'; Y0: LongInt location 'd1'; X1: LongInt location 'd2'; Y1: LongInt location 'd3'; Flags: LongInt location 'd4'; Taglist: PTagItem location 'a2'): PLayer; SysCall LayersBase 240;
 
-function CreateBehindLayer(li : pLayer_Info location 'a0'; bm : pBitMap location 'a1'; x0 : LongInt location 'd0'; y0 : LongInt location 'd1'; x1 : LongInt location 'd2'; y1 : LongInt location 'd3'; flags : LongInt location 'd4'; bm2 : pBitMap location 'a2') : pLayer;
-SysCall LayersBase 042;
+// V52 (MorphOS)
+function WhichLayerBehindLayer(L: PLayer location 'a0'; X: LongInt location 'd0'; Y: LongInt location 'd1'): PLayer; SysCall LayersBase 252;
+function IsLayerVisible(L: PLayer location 'a0'): LongBool; SysCall LayersBase 258;
+function RenderLayerInfoTagList(Li: PLayer_Info location 'a0'; Tags: PTagItem location 'a1'): LongBool; SysCall LayersBase 282;
 
-function UpfrontLayer(dummy : LongInt location 'a0'; layer : pLayer location 'a1') : LongInt;
-SysCall LayersBase 048;
+procedure LockLayerUpdates(L: PLayer location 'a0'); SysCall LayersBase 288;
+procedure UnlockLayerUpdates(L: PLayer location 'a0'); SysCall LayersBase 294;
 
-function BehindLayer(dummy : LongInt location 'a0'; layer : pLayer location 'a1') : LongInt;
-SysCall LayersBase 054;
+function IsVisibleInLayer(L: PLayer location 'a0'; X0: LongInt location 'd0'; Y0: LongInt location 'd1'; X1: LongInt location 'd2'; Y1: LongInt location 'd3'): LongBool; SysCall LayersBase 300;
+function IsLayerHitable(L: PLayer location 'a0'): LongBool; SysCall LayersBase 306;
 
-function MoveLayer(dummy : LongInt location 'a0'; layer : pLayer location 'a1'; dx : LongInt location 'd0'; dy : LongInt location 'd1') : LongInt;
-SysCall LayersBase 060;
-
-function SizeLayer(dummy : LongInt location 'a0'; layer : pLayer location 'a1'; dx : LongInt location 'd0'; dy : LongInt location 'd1') : LongInt;
-SysCall LayersBase 066;
-
-procedure ScrollLayer(dummy : LongInt location 'a0'; layer : pLayer location 'a1'; dx : LongInt location 'd0'; dy : LongInt location 'd1');
-SysCall LayersBase 072;
-
-function BeginUpdate(l : pLayer location 'a0') : LongInt;
-SysCall LayersBase 078;
-
-procedure EndUpdate(layer : pLayer location 'a0'; flag : CARDINAL location 'd0');
-SysCall LayersBase 084;
-
-function DeleteLayer(dummy : LongInt location 'a0'; layer : pLayer location 'a1') : LongInt;
-SysCall LayersBase 090;
-
-procedure LockLayer(dummy : LongInt location 'a0'; layer : pLayer location 'a1');
-SysCall LayersBase 096;
-
-procedure UnlockLayer(layer : pLayer location 'a0');
-SysCall LayersBase 102;
-
-procedure LockLayers(li : pLayer_Info location 'a0');
-SysCall LayersBase 108;
-
-procedure UnlockLayers(li : pLayer_Info location 'a0');
-SysCall LayersBase 114;
-
-procedure LockLayerInfo(li : pLayer_Info location 'a0');
-SysCall LayersBase 120;
-
-procedure SwapBitsRastPortClipRect(rp : pRastPort location 'a0'; cr : pClipRect location 'a1');
-SysCall LayersBase 126;
-
-function WhichLayer(li : pLayer_Info location 'a0'; x : LongInt location 'd0'; y : LongInt location 'd1') : pLayer;
-SysCall LayersBase 132;
-
-procedure UnlockLayerInfo(li : pLayer_Info location 'a0');
-SysCall LayersBase 138;
-
-function NewLayerInfo : pLayer_Info;
-SysCall LayersBase 144;
-
-procedure DisposeLayerInfo(li : pLayer_Info location 'a0');
-SysCall LayersBase 150;
-
-function FattenLayerInfo(li : pLayer_Info location 'a0') : LongInt;
-SysCall LayersBase 156;
-
-procedure ThinLayerInfo(li : pLayer_Info location 'a0');
-SysCall LayersBase 162;
-
-function MoveLayerInFrontOf(layer_to_move : pLayer location 'a0'; other_layer : pLayer location 'a1') : LongInt;
-SysCall LayersBase 168;
-
-function InstallClipRegion(layer : pLayer location 'a0'; CONST region : pRegion location 'a1') : pRegion;
-SysCall LayersBase 174;
-
-function MoveSizeLayer(layer : pLayer location 'a0'; dx : LongInt location 'd0'; dy : LongInt location 'd1'; dw : LongInt location 'd2'; dh : LongInt location 'd3') : LongInt;
-SysCall LayersBase 180;
-
-function CreateUpfrontHookLayer(li : pLayer_Info location 'a0'; bm : pBitMap location 'a1'; x0 : LongInt location 'd0'; y0 : LongInt location 'd1'; x1 : LongInt location 'd2'; y1 : LongInt location 'd3'; flags : LongInt location 'd4'; hook : pHook location 'a3'; bm2 : pBitMap location 'a2') : pLayer;
-SysCall LayersBase 186;
-
-function CreateBehindHookLayer(li : pLayer_Info location 'a0'; bm : pBitMap location 'a1'; x0 : LongInt location 'd0'; y0 : LongInt location 'd1'; x1 : LongInt location 'd2'; y1 : LongInt location 'd3'; flags : LongInt location 'd4'; hook : pHook location 'a3'; bm2 : pBitMap location 'a2') : pLayer;
-SysCall LayersBase 192;
-
-function InstallLayerHook(layer : pLayer location 'a0'; hook : pHook location 'a1') : pHook;
-SysCall LayersBase 198;
-
-function InstallLayerInfoHook(li : pLayer_Info location 'a0'; CONST hook : pHook location 'a1') : pHook;
-SysCall LayersBase 204;
-
-procedure SortLayerCR(layer : pLayer location 'a0'; dx : LongInt location 'd0'; dy : LongInt location 'd1');
-SysCall LayersBase 210;
-
-procedure DoHookClipRects(hook : pHook location 'a0'; rport : pRastPort location 'a1'; CONST rect : pRectangle location 'a2');
-SysCall LayersBase 216;
-
-function InstallTransparentRegion(l : pLayer location 'a0'; r : pRegion location 'a1') : pRegion;
-SysCall LayersBase 222;
-
-function InstallTransparentRegionHook(l : pLayer location 'a0'; h : pHook location 'a1') : pHook;
-SysCall LayersBase 228;
-
-function CreateUpfrontLayerTagList(li : pLayer_Info location 'a0'; bm : pBitMap location 'a1'; x0 : LongInt location 'd0'; y0 : LongInt location 'd1'; x1 : LongInt location 'd2'; y1 : LongInt location 'd3'; flags : LongInt location 'd4'; taglist : pTagItem location 'a2') : pLayer;
-SysCall LayersBase 234;
-
-function CreateBehindLayerTagList(li : pLayer_Info location 'a0'; bm : pBitMap location 'a1'; x0 : LongInt location 'd0'; y0 : LongInt location 'd1'; x1 : LongInt location 'd2'; y1 : LongInt location 'd3'; flags : LongInt location 'd4'; taglist : pTagItem location 'a2') : pLayer;
-SysCall LayersBase 240;
-
-{
- Functions and procedures with array of const go here
-}
-{
-function CreateUpfrontLayerTags(li : pLayer_Info; bm : pBitMap; x0 : LongInt; y0 : LongInt; x1 : LongInt; y1 : LongInt; flags : LongInt; const taglist : Array Of Const) : pLayer;
-function CreateBehindLayerTags(li : pLayer_Info; bm : pBitMap; x0 : LongInt; y0 : LongInt; x1 : LongInt; y1 : LongInt; flags : LongInt; const taglist : Array Of Const) : pLayer;
-}
-
+// Var args Version
+function RenderLayerInfoTags(Li: PLayer_Info; const Tags: array of PtrUInt): LongBool; inline;
 
 { Helper func }
 function InitLayersLibrary : boolean;
 
 implementation
+
+function RenderLayerInfoTags(Li: PLayer_Info; const Tags: array of PtrUInt): LongBool; inline;
+begin
+  RenderLayerInfoTags := RenderLayerInfoTagList(Li, @Tags);
+end;
 
 const
   { Change VERSION and LIBVERSION to proper values }
