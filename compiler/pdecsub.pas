@@ -2051,6 +2051,7 @@ procedure pd_syscall(pd:tabstractprocdef);
         syscall: psyscallinfo;
       begin
         case target_info.system of
+          system_m68k_atari,
           system_m68k_amiga,
           system_powerpc_amiga:
               include(pd.procoptions,get_default_syscall);
@@ -2121,6 +2122,23 @@ begin
   tprocdef(pd).forwarddef:=false;
 {$if defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
   include_po_syscall;
+
+  if target_info.system = system_m68k_atari then
+    begin
+      v:=get_intconst;
+      if ((v<0) or (v>15)) then
+        message(parser_e_range_check_error)
+      else
+        tprocdef(pd).extnumber:=longint(v.svalue);
+
+      v:=get_intconst;
+      if ((v<0) or (v>high(smallint))) then
+        message(parser_e_range_check_error)
+      else
+          tprocdef(pd).import_nr:=longint(v.svalue);
+
+      exit;
+    end;
 
   if consume_sym(sym,symtable) then
     if (sym.typ=staticvarsym) and

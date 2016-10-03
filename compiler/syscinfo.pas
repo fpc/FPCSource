@@ -37,7 +37,8 @@ type
   psyscallinfo = ^tsyscallinfo;
 
 const
-  syscall_conventions: array[1..7] of tsyscallinfo = (
+  syscall_conventions: array[1..8] of tsyscallinfo = (
+      ( token: NOTOKEN;    procoption: po_syscall;           validon: [system_m68k_atari] ),
       ( token: _LEGACY;    procoption: po_syscall_legacy;    validon: [system_powerpc_morphos,system_m68k_amiga] ),
       ( token: _SYSV;      procoption: po_syscall_sysv;      validon: [system_powerpc_morphos] ),
       ( token: _SYSVBASE;  procoption: po_syscall_sysvbase;  validon: [system_powerpc_morphos] ),
@@ -58,8 +59,9 @@ uses
   verbose;
 
 const
-  syscall_conventions_po = [ po_syscall_legacy, po_syscall_sysv, po_syscall_sysvbase, po_syscall_basesysv,
-                             po_syscall_r12base, po_syscall_stackbase, po_syscall_eaxbase ];
+  syscall_conventions_po = [ po_syscall, po_syscall_legacy, po_syscall_sysv,
+                             po_syscall_sysvbase, po_syscall_basesysv, po_syscall_r12base,
+                             po_syscall_stackbase, po_syscall_eaxbase ];
 
 type
   tsyscalldefaultinfo = record
@@ -68,7 +70,8 @@ type
   end;
 
 const
-  default_syscall_conventions: array[0..4] of tsyscalldefaultinfo = (
+  default_syscall_conventions: array[0..5] of tsyscalldefaultinfo = (
+      ( system: system_m68k_atari;      procoption: po_syscall ),
       ( system: system_m68k_amiga;      procoption: po_syscall_legacy ),
       ( system: system_powerpc_amiga;   procoption: po_syscall_basesysv ),
       ( system: system_powerpc_morphos; procoption: po_syscall_legacy ),

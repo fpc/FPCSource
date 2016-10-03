@@ -1930,6 +1930,7 @@ const
      (mask:po_has_public_name; str:'HasPublicName'),
      (mask:po_forward;         str:'Forward'),
      (mask:po_global;          str:'Global'),
+     (mask:po_syscall;         str:'Syscall'),
      (mask:po_syscall_legacy;  str:'SyscallLegacy'),
      (mask:po_syscall_sysv;    str:'SyscallSysV'),
      (mask:po_syscall_basesysv;str:'SyscallBaseSysV'),

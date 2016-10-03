@@ -338,6 +338,8 @@ type
     po_has_public_name,
     po_forward,
     po_global,
+    { Generic syscall procoption, for systems like Atari, Palm, etc }
+    po_syscall,
     { The different kind of syscalls on AmigaOS and MorphOS, m68k and PPC }
     po_syscall_legacy,
     po_syscall_sysv,
