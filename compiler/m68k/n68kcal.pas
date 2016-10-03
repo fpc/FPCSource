@@ -70,6 +70,19 @@ implementation
         tmpref: treference;
       begin
         case target_info.system of
+          system_m68k_atari:
+            begin
+              if po_syscall in tprocdef(procdefinition).procoptions then
+                begin
+                  reference_reset_base(tmpref,NR_SP,0,2);
+                  tmpref.direction:=dir_dec;
+                  current_asmdata.CurrAsmList.concat(taicpu.op_const_ref(A_MOVE,S_W,tprocdef(procdefinition).import_nr,tmpref));
+                  current_asmdata.CurrAsmList.concat(taicpu.op_const(A_TRAP,S_NO,tprocdef(procdefinition).extnumber));
+                  inc(pushedparasize,2); { kludge, trap code should be a hidden para instead... }
+                end
+              else
+                internalerror(2016100301);
+            end;
           system_m68k_amiga:
             begin
               if po_syscall_legacy in tprocdef(procdefinition).procoptions then
