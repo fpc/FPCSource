@@ -38,7 +38,7 @@ unit i_atari;
             cpu          : cpu_m68k;
             unit_env     : '';
             extradefines : '';
-            exeext       : '.tpp';
+            exeext       : '.ttp';
             defext       : '';
             scriptext    : '';
             smartext     : '.sl';
