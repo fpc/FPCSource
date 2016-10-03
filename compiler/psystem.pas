@@ -117,23 +117,15 @@ implementation
 {$ifdef cpu64bitaddr}
         uinttype:=u64inttype;
         sinttype:=s64inttype;
-        ptruinttype:=u64inttype;
-        ptrsinttype:=s64inttype;
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
         uinttype:=u32inttype;
         sinttype:=s32inttype;
-        ptruinttype:=u32inttype;
-        ptrsinttype:=s32inttype;
 {$endif cpu32bitaddr}
 {$ifdef cpu32bitalu}
         uinttype:=u32inttype;
         sinttype:=s32inttype;
 {$endif cpu32bitalu}
-{$ifdef cpu16bitaddr}
-        ptruinttype:=u16inttype;
-        ptrsinttype:=s16inttype;
-{$endif cpu16bitaddr}
 {$ifdef cpu16bitalu}
         uinttype:=u16inttype;
         sinttype:=s16inttype;
@@ -178,6 +170,25 @@ implementation
             end;
           else
             Internalerror(2015112106);
+        end;
+        case voidpointertype.size of
+          2:
+            begin
+              ptruinttype:=u16inttype;
+              ptrsinttype:=s16inttype;
+            end;
+          4:
+            begin
+              ptruinttype:=u32inttype;
+              ptrsinttype:=s32inttype;
+            end;
+          8:
+            begin
+              ptruinttype:=u64inttype;
+              ptrsinttype:=s64inttype;
+            end;
+          else
+            Internalerror(2016100301);
         end;
       end;
 
@@ -314,8 +325,6 @@ implementation
 {$endif jvm}
         set_default_int_types;
         { some other definitions }
-        openchararraytype:=carraydef.create(0,-1,ptrsinttype);
-        tarraydef(openchararraytype).elementdef:=cansichartype;
         charpointertype:=cpointerdef.create(cansichartype);
         widecharpointertype:=cpointerdef.create(cwidechartype);
 {$ifdef i8086}
@@ -343,6 +352,8 @@ implementation
   {$endif i8086}
 {$endif x86}
         set_default_ptr_types;
+        openchararraytype:=carraydef.create(0,-1,ptrsinttype);
+        tarraydef(openchararraytype).elementdef:=cansichartype;
         cfiletype:=cfiledef.createuntyped;
         cvarianttype:=cvariantdef.create(vt_normalvariant);
         colevarianttype:=cvariantdef.create(vt_olevariant);
