@@ -1477,6 +1477,10 @@ implementation
               code of the ppc (and possibly other processors)               }
             procdef.init_paraloc_info(callerside);
 
+            { Print the node to tree.log }
+            if paraprintnodetree=1 then
+              printproc( 'right before code generation');
+
             { generate code for the node tree }
             do_secondpass(code);
             aktproccode.concatlist(current_asmdata.CurrAsmList);
