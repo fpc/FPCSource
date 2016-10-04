@@ -423,10 +423,21 @@ implementation
 
     function tcpupointerdef.pointer_arithmetic_int_type:tdef;
       begin
-        if x86pointertyp=x86pt_huge then
-          result:=s32inttype
-        else
-          result:=inherited;
+        case x86pointertyp of
+          x86pt_huge:
+            result:=s32inttype;
+          x86pt_far,
+          x86pt_near,
+          x86pt_near_cs,
+          x86pt_near_ds,
+          x86pt_near_ss,
+          x86pt_near_es,
+          x86pt_near_fs,
+          x86pt_near_gs:
+            result:=s16inttype;
+          else
+            internalerror(2016100403);
+        end;
       end;
 
 
@@ -437,8 +448,16 @@ implementation
             result:=s32inttype;
           x86pt_far:
             result:=u16inttype;
+          x86pt_near,
+          x86pt_near_cs,
+          x86pt_near_ds,
+          x86pt_near_ss,
+          x86pt_near_es,
+          x86pt_near_fs,
+          x86pt_near_gs:
+            result:=s16inttype;
           else
-            result:=inherited;
+            internalerror(2016100402);
         end;
       end;
 
