@@ -17,13 +17,15 @@
       OS Memory allocation / deallocation
  ****************************************************************************}
 
+
 function SysOSAlloc(size: ptruint): pointer;
 begin
-  Result:=nil;
+  Result:=gemdos_malloc(size);
 end;
 
 {$define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
+  gemdos_free(p);
 end;
