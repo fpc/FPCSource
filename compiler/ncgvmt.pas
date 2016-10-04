@@ -675,7 +675,7 @@ implementation
                       packed
                      $endif FPC_REQUIRES_PROPER_ALIGNMENT
                       record
-                        FieldOffset: PtrUInt;
+                        FieldOffset: SizeUInt;
                         ClassTypeIndex: Word;
                         Name: ShortString;
                       end;
@@ -683,7 +683,7 @@ implementation
                     datatcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords,1,
                       targetinfos[target_info.system]^.alignment.recordalignmin,
                       targetinfos[target_info.system]^.alignment.maxCrecordalign);
-                    datatcb.emit_tai(Tai_const.Create_pint(tfieldvarsym(sym).fieldoffset),ptruinttype);
+                    datatcb.emit_tai(Tai_const.Create_sizeint(tfieldvarsym(sym).fieldoffset),sizeuinttype);
                     classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                     if classindex=-1 then
                       internalerror(200611033);

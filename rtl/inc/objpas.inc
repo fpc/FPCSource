@@ -496,7 +496,7 @@
            packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
            record
-             FieldOffset: PtrUInt;
+             FieldOffset: SizeUInt;
              ClassTypeIndex: Word;
              Name: ShortString;
            end;
