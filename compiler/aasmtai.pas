@@ -160,12 +160,18 @@ interface
 {$if defined(cpu64bitaddr)}
        aitconst_ptr = aitconst_64bit;
        aitconst_ptr_unaligned = aitconst_64bit_unaligned;
+       aitconst_sizeint = aitconst_64bit;
+       aitconst_sizeint_unaligned = aitconst_64bit_unaligned;
 {$elseif defined(cpu32bitaddr)}
        aitconst_ptr = aitconst_32bit;
        aitconst_ptr_unaligned = aitconst_32bit_unaligned;
+       aitconst_sizeint = aitconst_32bit;
+       aitconst_sizeint_unaligned = aitconst_32bit_unaligned;
 {$elseif defined(cpu16bitaddr)}
        aitconst_ptr = aitconst_16bit;
        aitconst_ptr_unaligned = aitconst_16bit_unaligned;
+       aitconst_sizeint = aitconst_16bit;
+       aitconst_sizeint_unaligned = aitconst_16bit_unaligned;
 {$endif}
 
 {$if defined(cpu64bitalu)}
@@ -611,6 +617,8 @@ interface
           constructor Create_aint(_value : aint);
           constructor Create_pint(_value : pint);
           constructor Create_pint_unaligned(_value : pint);
+          constructor Create_sizeint(_value : asizeint);
+          constructor Create_sizeint_unaligned(_value : asizeint);
           constructor Create_sym(_sym:tasmsymbol);
 {$ifdef i8086}
           constructor Create_sym_near(_sym:tasmsymbol);
@@ -1571,6 +1579,28 @@ implementation
          value:=_value;
          sym:=nil;
          endsym:=nil;
+      end;
+
+
+    constructor tai_const.Create_sizeint(_value : asizeint);
+      begin
+        inherited Create;
+        typ:=ait_const;
+        consttype:=aitconst_sizeint;
+        value:=_value;
+        sym:=nil;
+        endsym:=nil;
+      end;
+
+
+    constructor tai_const.Create_sizeint_unaligned(_value : asizeint);
+      begin
+        inherited Create;
+        typ:=ait_const;
+        consttype:=aitconst_sizeint_unaligned;
+        value:=_value;
+        sym:=nil;
+        endsym:=nil;
       end;
 
 
