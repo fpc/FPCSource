@@ -1077,8 +1077,11 @@ implementation
 
 
    class function ttai_typedconstbuilder.get_string_header_size(typ: tstringtype; winlikewidestring: boolean): pint;
-     const
-       ansistring_header_size =
+     var
+       ansistring_header_size: pint;
+       unicodestring_header_size: pint;
+     begin
+       ansistring_header_size:=
          { encoding }
          2 +
          { elesize }
@@ -1088,11 +1091,10 @@ implementation
          4 +
 {$endif cpu64bitaddr}
          { reference count }
-         sizeof(pint) +
+         sizesinttype.size +
          { length }
-         sizeof(pint);
-       unicodestring_header_size = ansistring_header_size;
-     begin
+         sizesinttype.size;
+       unicodestring_header_size:=ansistring_header_size;
        case typ of
          st_ansistring:
            result:=ansistring_header_size;
@@ -1322,10 +1324,10 @@ implementation
        emit_tai(tai_const.create_32bit(0),u32inttype);
        inc(result.ofs,4);
 {$endif cpu64bitaddr}
-       emit_tai(tai_const.create_pint(-1),ptrsinttype);
-       inc(result.ofs,sizeof(pint));
-       emit_tai(tai_const.create_pint(len),ptrsinttype);
-       inc(result.ofs,sizeof(pint));
+       emit_tai(tai_const.create_sizeint(-1),sizesinttype);
+       inc(result.ofs,sizesinttype.size);
+       emit_tai(tai_const.create_sizeint(len),sizesinttype);
+       inc(result.ofs,sizesinttype.size);
        if string_symofs=0 then
          begin
            { results in slightly more efficient code }
