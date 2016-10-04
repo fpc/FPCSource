@@ -60,6 +60,7 @@ type
     function alignment:shortint;override;
     function pointer_arithmetic_int_type:tdef; override;
     function pointer_subtraction_result_type:tdef; override;
+    function converted_pointer_to_array_range_type: tdef; override;
   end;
   tcpupointerdefclass = class of tcpupointerdef;
 
@@ -275,19 +276,8 @@ implementation
 
   constructor tcpuarraydef.create_from_pointer(def: tpointerdef);
     begin
-      if tcpupointerdef(def).x86pointertyp=x86pt_huge then
-        begin
-          huge:=true;
-          { use -1 so that the elecount will not overflow }
-          self.create(0,high(asizeint)-1,s32inttype);
-          arrayoptions:=[ado_IsConvertedPointer];
-          setelementdef(def.pointeddef);
-        end
-      else
-        begin
-          huge:=false;
-          inherited create_from_pointer(def);
-        end;
+      huge:=tcpupointerdef(def).x86pointertyp=x86pt_huge;
+      inherited create_from_pointer(def);
     end;
 
 
@@ -449,6 +439,26 @@ implementation
             result:=u16inttype;
           else
             result:=inherited;
+        end;
+      end;
+
+
+    function tcpupointerdef.converted_pointer_to_array_range_type: tdef;
+      begin
+        case x86pointertyp of
+          x86pt_huge:
+            result:=s32inttype;
+          x86pt_far,
+          x86pt_near,
+          x86pt_near_cs,
+          x86pt_near_ds,
+          x86pt_near_ss,
+          x86pt_near_es,
+          x86pt_near_fs,
+          x86pt_near_gs:
+            result:=s16inttype;
+          else
+            internalerror(2016100401);
         end;
       end;
 
