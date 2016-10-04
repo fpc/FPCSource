@@ -1072,6 +1072,9 @@ interface
        { integer types corresponding to OS_SINT/OS_INT }
        ossinttype,
        osuinttype,
+       { integer types corresponding to SizeInt and SizeUInt for the target platform }
+       sizeuinttype,
+       sizesinttype,
        { unsigned and signed ord type with the same size as a pointer }
        ptruinttype,
        ptrsinttype,

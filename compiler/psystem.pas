@@ -115,10 +115,14 @@ implementation
     procedure set_default_int_types;
       begin
 {$ifdef cpu64bitaddr}
+        sizeuinttype:=u64inttype;
+        sizesinttype:=s64inttype;
         uinttype:=u64inttype;
         sinttype:=s64inttype;
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
+        sizeuinttype:=u32inttype;
+        sizesinttype:=s32inttype;
         uinttype:=u32inttype;
         sinttype:=s32inttype;
 {$endif cpu32bitaddr}
@@ -126,6 +130,10 @@ implementation
         uinttype:=u32inttype;
         sinttype:=s32inttype;
 {$endif cpu32bitalu}
+{$ifdef cpu16bitaddr}
+        sizeuinttype:=u16inttype;
+        sizesinttype:=s16inttype;
+{$endif cpu16bitaddr}
 {$ifdef cpu16bitalu}
         uinttype:=u16inttype;
         sinttype:=s16inttype;
