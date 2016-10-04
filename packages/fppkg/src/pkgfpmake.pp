@@ -342,15 +342,21 @@ begin
   AddOption('--cpu='+CPUToString(GFPpkg.CompilerOptions.CompilerCPU));
   AddOption('--os='+OSToString(GFPpkg.CompilerOptions.CompilerOS));
 
-  InstallRepo := GFPpkg.RepositoryByName(GFPpkg.Options.CommandLineSection.InstallRepository);
-
-  if not Assigned(InstallRepo.DefaultPackagesStructure) then
+  // While scanning a source-repository it could be necessary to create manifest
+  // files. At this moment the InstallRepo could not be initialized yet. And the
+  // manifest command does not use the --prefix and --baseinstalldir parameters.
+  if (command<>'manifest') then
     begin
-      Error(SErrIllConfRepository,[InstallRepo.RepositoryName]);
-      Exit;
+      InstallRepo := GFPpkg.RepositoryByName(GFPpkg.Options.CommandLineSection.InstallRepository);
+
+      if not Assigned(InstallRepo.DefaultPackagesStructure) then
+        begin
+          Error(SErrIllConfRepository,[InstallRepo.RepositoryName]);
+          Exit;
+        end;
+      CondAddOption('--prefix',InstallRepo.DefaultPackagesStructure.GetPrefix);
+      CondAddOption('--baseinstalldir',InstallRepo.DefaultPackagesStructure.GetBaseInstallDir);
     end;
-  CondAddOption('--prefix',InstallRepo.DefaultPackagesStructure.GetPrefix);
-  CondAddOption('--baseinstalldir',InstallRepo.DefaultPackagesStructure.GetBaseInstallDir);
 
   for i := GFPpkg.Options.SectionList.Count -1 downto 0 do
     begin

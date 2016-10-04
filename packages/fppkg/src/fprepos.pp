@@ -194,6 +194,9 @@ type
     Procedure LoadFromFile(const AFileName : String);
     Procedure SaveToFile(const AFileName : String);
     Procedure Save;
+    // Load packages from Manifest-format
+    Procedure AddPackagesFromManifestFile(const AFileName: String);
+    Procedure AddPackagesFromManifestStream(Stream: TStream);
     // Package management
     Function IndexOfPackage(const APackageName : String) : Integer;
     Function FindPackage(const APackageName : String) : TFPPackage;
@@ -274,6 +277,7 @@ Implementation
 uses
   typinfo,
   pkgglobals,
+  fpxmlrep,
   uriparser;
 
 const
@@ -763,6 +767,30 @@ begin
   If (FFileName='') then
      Raise EPackage.Create(SErrNoFileName);
   SaveToFile(FFileName);
+end;
+
+procedure TFPRepository.AddPackagesFromManifestFile(const AFileName: String);
+var
+  X: TFPXMLRepositoryHandler;
+begin
+  X:=TFPXMLRepositoryHandler.Create;
+  try
+    X.LoadFromXml(FPackages, AFileName);
+  finally
+    X.Free;
+  end;
+end;
+
+procedure TFPRepository.AddPackagesFromManifestStream(Stream: TStream);
+var
+  X: TFPXMLRepositoryHandler;
+begin
+  X:=TFPXMLRepositoryHandler.Create;
+  try
+    X.LoadFromXml(FPackages, Stream);
+  finally
+    X.Free;
+  end;
 end;
 
 

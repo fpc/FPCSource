@@ -83,8 +83,6 @@ procedure TpkgFPpkg.ScanPackagesOnDisk(ACompilerOptions: TCompilerOptions;
   ARepositoryList: TComponentList);
 var
   i: Integer;
-  InstPackages: TFPInstalledPackagesStructure;
-  Path: string;
   RepoOption: TFppkgRepositoryOptionSection;
   Repo: TFPRepository;
 begin
@@ -94,18 +92,11 @@ begin
       if FOptions.SectionList[i] is TFppkgRepositoryOptionSection then
         begin
           RepoOption := TFppkgRepositoryOptionSection(FOptions.SectionList[i]);
-          Path := RepoOption.Path;
-          if Path <> '' then
+          Repo := RepoOption.InitRepository(Self, ACompilerOptions);
+          if Assigned(Repo) then
             begin
-              Repo := TFPRepository.Create(Self);
               ARepositoryList.Add(Repo);
-              Repo.RepositoryType := fprtInstalled;
-              Repo.RepositoryName := RepoOption.RepositoryName;
-              Repo.Description := RepoOption.Description;
-              InstPackages := TFPInstalledPackagesStructure.Create(Self, Path, ACompilerOptions);
-              InstPackages.AddPackagesToRepository(Repo);
-              InstPackages.Prefix:=RepoOption.Prefix;
-              Repo.DefaultPackagesStructure := InstPackages;
+              Repo.DefaultPackagesStructure.AddPackagesToRepository(Repo);
             end;
         end;
     end;

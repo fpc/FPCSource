@@ -86,6 +86,7 @@ Resourcestring
   SLogPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
   SLogPackageChecksumChanged = 'Package %s needs to be rebuild, dependency %s is modified';
   SLogCheckBrokenDependenvies= 'Checking for broken dependencies';
+  SLogFailedToCreateManifest = 'Failed to create manifest from fpmake.pp-file (%s) while scanning for available packages: %s';
 
   SLogCfgHeader                      = 'Settings from configuration-files:';
   SLogCfgSectionHeader               = ' %s-section:';

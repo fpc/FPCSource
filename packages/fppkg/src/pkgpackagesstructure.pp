@@ -67,6 +67,20 @@ type
     function GetBuildPathDirectory(APackage: TFPPackage): string; override;
   end;
 
+  { TFPTemporaryDirectoryPackagesStructure }
+
+  TFPTemporaryDirectoryPackagesStructure = class(TFPCustomFileSystemPackagesStructure)
+  private
+    FPackage: TFPPackage;
+    function GetTempPackageName: string;
+    procedure SetTempPackageName(AValue: string);
+  public
+    function AddPackagesToRepository(ARepository: TFPRepository): Boolean; override;
+    function GetBuildPathDirectory(APackage: TFPPackage): string; override;
+    procedure SetTempPath(APath: string);
+    property TempPackageName: string read GetTempPackageName write SetTempPackageName;
+  end;
+
 implementation
 
 uses
@@ -74,6 +88,35 @@ uses
   pkgmessages,
   pkgrepos,
   pkgglobals;
+
+{ TFPTemporaryDirectoryPackagesStructure }
+
+function TFPTemporaryDirectoryPackagesStructure.GetTempPackageName: string;
+begin
+  Result := FPackage.Name;
+end;
+
+procedure TFPTemporaryDirectoryPackagesStructure.SetTempPackageName(AValue: string);
+begin
+  FPackage.Name := AValue;
+end;
+
+function TFPTemporaryDirectoryPackagesStructure.AddPackagesToRepository(ARepository: TFPRepository): Boolean;
+begin
+  Result := True;
+  FPackage := ARepository.AddPackage('');
+  FPackage.PackagesStructure := Self;
+end;
+
+function TFPTemporaryDirectoryPackagesStructure.GetBuildPathDirectory(APackage: TFPPackage): string;
+begin
+  Result := FPath;
+end;
+
+procedure TFPTemporaryDirectoryPackagesStructure.SetTempPath(APath: string);
+begin
+  FPath := APath;
+end;
 
 { TFPOriginalSourcePackagesStructure }
 
@@ -274,7 +317,7 @@ constructor TFPCustomFileSystemPackagesStructure.Create(AOwner: TComponent; APat
   ACompilerOptions: TCompilerOptions);
 begin
   Inherited Create(AOwner);
-  FPath := APath;
+  FPath := IncludeTrailingPathDelimiter(APath);
   FCompilerOptions := ACompilerOptions;
 end;
 

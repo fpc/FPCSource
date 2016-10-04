@@ -31,6 +31,7 @@ Type
 
   { TFppkgOptionSection }
 
+  TCompilerOptions = class;
   TFppkgOptionSection = class(TPersistent)
   private
     FOptionParser: TTemplateParser;
@@ -127,6 +128,8 @@ Type
     procedure LogValues(ALogLevel: TLogLevel); override;
     function AllowDuplicate: Boolean; override;
 
+    function InitRepository(AParent: TComponent; ACompilerOptions: TCompilerOptions): TFPRepository; virtual;
+
     property RepositoryName: string read FRepositoryName write SetRepositoryName;
     property Description: string read FDescription write SetDescription;
     property Path: string read GetPath write SetPath;
@@ -158,7 +161,6 @@ Type
 
   { TFppkgOptions }
 
-  TCompilerOptions = class;
   TFppkgOptions = class(TPersistent)
   private
     FOptionParser: TTemplateParser;
@@ -234,6 +236,8 @@ Type
 Implementation
 
 uses
+  pkgUninstalledSourcesRepository,
+  pkgPackagesStructure,
   pkgmessages;
 
 Const
@@ -254,6 +258,7 @@ Const
   KeyDeprGlobalSection     = 'Defaults';
   KeyGlobalSection         = 'Global';
   KeyRepositorySection     = 'Repository';
+  KeySrcRepositorySection  = 'UninstalledSourceRepository';
   KeyRemoteMirrorsURL      = 'RemoteMirrors';
   KeyRemoteRepository      = 'RemoteRepository';
   KeyLocalRepository       = 'LocalRepository';
@@ -314,7 +319,7 @@ end;
 procedure TFppkgRepositoryOptionSection.SetPath(AValue: string);
 begin
   if FPath = AValue then Exit;
-  FPath := AValue;
+  FPath := fpmkunit.FixPath(AValue, True);
 end;
 
 procedure TFppkgRepositoryOptionSection.AddKeyValue(const AKey, AValue: string);
@@ -341,6 +346,23 @@ end;
 function TFppkgRepositoryOptionSection.AllowDuplicate: Boolean;
 begin
   Result := True;
+end;
+
+function TFppkgRepositoryOptionSection.InitRepository(AParent: TComponent;
+  ACompilerOptions: TCompilerOptions): TFPRepository;
+var
+  InstPackages: TFPInstalledPackagesStructure;
+begin
+  if Path <> '' then
+    begin
+      Result := TFPRepository.Create(AParent);
+      Result.RepositoryType := fprtInstalled;
+      Result.RepositoryName := RepositoryName;
+      Result.Description := Description;
+      InstPackages := TFPInstalledPackagesStructure.Create(AParent, Path, ACompilerOptions);
+      Result.DefaultPackagesStructure := InstPackages;
+      InstPackages.Prefix:=Prefix;
+    end;
 end;
 
 { TFppkgCommandLineOptionSection }
@@ -667,6 +689,8 @@ begin
                   CurrentSection := TFppkgGlobalOptionSection.Create(FOptionParser)
                 else if SameText(s, KeyRepositorySection) then
                   CurrentSection := TFppkgRepositoryOptionSection.Create(FOptionParser)
+                else if SameText(s, KeySrcRepositorySection) then
+                  CurrentSection := TFppkgUninstalledSourceRepositoryOptionSection.Create(FOptionParser)
                 else
                   CurrentSection := TFppkgCustomOptionSection.Create(FOptionParser);
                 FSectionList.Add(CurrentSection);
