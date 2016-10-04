@@ -859,8 +859,8 @@ implementation
           odt_object:
             begin
               { size, -size, parent vmt [, dmt ] (same names as for class) }
-              vmtdef.add_field_by_def('vInstanceSize',ptrsinttype);
-              vmtdef.add_field_by_def('vInstanceSize2',ptrsinttype);
+              vmtdef.add_field_by_def('vInstanceSize',sizesinttype);
+              vmtdef.add_field_by_def('vInstanceSize2',sizesinttype);
               vmtdef.add_field_by_def('vParent',voidpointertype);
 {$ifdef WITHDMT}
               vmtdef.add_field_by_def('',voidpointertype);
