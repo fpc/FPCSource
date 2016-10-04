@@ -1072,6 +1072,9 @@ interface
        { integer types corresponding to OS_SINT/OS_INT }
        ossinttype,
        osuinttype,
+       { integer types corresponding to the ALU size, sizeof(aint) and the ALUSInt/ALUUInt types in the system unit }
+       alusinttype,
+       aluuinttype,
        { integer types corresponding to SizeInt and SizeUInt for the target platform }
        sizeuinttype,
        sizesinttype,
