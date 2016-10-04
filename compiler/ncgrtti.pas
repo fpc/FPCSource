@@ -1332,7 +1332,7 @@ implementation
                 begin
                   while o<tenumsym(syms[i]).value do
                     begin
-                      tcb.emit_tai(Tai_const.create_pint(0),ptruinttype);
+                      tcb.emit_tai(Tai_const.create_nil_dataptr,ptruinttype);
                       inc(o);
                     end;
                   inc(o);
