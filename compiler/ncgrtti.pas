@@ -781,9 +781,9 @@ implementation
                  targetinfos[target_info.system]^.alignment.recordalignmin,
                  targetinfos[target_info.system]^.alignment.maxCrecordalign);
                { total size = elecount * elesize of the first arraydef }
-               tcb.emit_tai(Tai_const.Create_pint(def.elecount*def.elesize),ptruinttype);
+               tcb.emit_tai(Tai_const.Create_sizeint(def.elecount*def.elesize),sizeuinttype);
                { total element count }
-               tcb.emit_tai(Tai_const.Create_pint(pint(totalcount)),ptruinttype);
+               tcb.emit_tai(Tai_const.Create_sizeint(asizeint(totalcount)),sizeuinttype);
                { last dimension element type }
                tcb.emit_tai(Tai_const.Create_sym(ref_rtti(curdef.elementdef,rt)),voidpointertype);
                { dimension count }
@@ -812,7 +812,7 @@ implementation
                  targetinfos[target_info.system]^.alignment.recordalignmin,
                  targetinfos[target_info.system]^.alignment.maxCrecordalign);
                { size of elements }
-               tcb.emit_tai(Tai_const.Create_pint(def.elesize),ptruinttype);
+               tcb.emit_tai(Tai_const.Create_sizeint(def.elesize),sizeuinttype);
                { element type }
                write_rtti_reference(tcb,def.elementdef,rt);
                { variant type }
