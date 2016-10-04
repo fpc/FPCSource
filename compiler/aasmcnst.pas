@@ -1528,9 +1528,9 @@ implementation
            result.add_field_by_def('',u32inttype);
 {$endif cpu64bitaddr}
            { reference count }
-           result.add_field_by_def('',ptrsinttype);
+           result.add_field_by_def('',sizesinttype);
            { length in elements }
-           result.add_field_by_def('',ptrsinttype);
+           result.add_field_by_def('',sizesinttype);
          end
        else
          begin
