@@ -134,7 +134,7 @@ type
     stUsesList,
     stTypeSection,
     stTypeDef, // e.g. the B in 'type A=B;'
-    //stConstDef, // e.g. the B in 'const A=B;'
+    stConstDef, // e.g. the B in 'const A=B;'
     stProcedure, // also method, procedure, constructor, destructor, ...
     stProcedureHeader,
     stExceptOnExpr,
@@ -1192,6 +1192,7 @@ begin
     if not ok then
       Result.Release;
   end;
+  Engine.FinishScope(stTypeDef,Result);
 end;
 
 function TPasParser.ParseSetType(Parent: TPasElement;
@@ -1210,6 +1211,7 @@ begin
     if not ok then
       Result.Release;
   end;
+  Engine.FinishScope(stTypeDef,Result);
 end;
 
 function TPasParser.ParseType(Parent: TPasElement;
@@ -1494,7 +1496,8 @@ begin
       else
         UngetToken;
       end;
-    tkself: begin
+    tkself:
+      begin
       //Last:=CreatePrimitiveExpr(AParent,pekString, CurTokenText); //function(self);
       Last:=CreateSelfExpr(AParent);
       NextToken;
@@ -1508,28 +1511,32 @@ begin
           B.Release;
           Exit; // error
           end;
-         Last:=b;
+        Last:=b;
         end;
       UngetToken;
-    end;
-    tkAt: begin
+      end;
+    tkAt:
+      begin
       // P:=@function;
       NextToken;
-      if (length(CurTokenText)=0) or not (CurTokenText[1] in ['A'..'_']) then begin
+      if (length(CurTokenText)=0) or not (CurTokenText[1] in ['A'..'_']) then
+        begin
         UngetToken;
         ParseExcExpectedIdentifier;
-      end;
+        end;
       Last:=CreatePrimitiveExpr(AParent,pekString, '@'+CurTokenText);
-    end;
-    tkCaret: begin
+      end;
+    tkCaret:
+      begin
       // ^A..^_ characters. See #16341
       NextToken;
-      if not (length(CurTokenText)=1) or not (CurTokenText[1] in ['A'..'_']) then begin
+      if not (length(CurTokenText)=1) or not (CurTokenText[1] in ['A'..'_']) then
+        begin
         UngetToken;
         ParseExcExpectedIdentifier;
-      end;
+        end;
       Last:=CreatePrimitiveExpr(AParent,pekString, '^'+CurTokenText);
-    end;
+      end;
   else
     ParseExcExpectedIdentifier;
   end;
@@ -1695,7 +1702,7 @@ begin
       if not Assigned(InitExpr) then
         begin
         // the first part of the expression has been parsed externally.
-        // this is used by Constant Expresion parser (CEP) parsing only,
+        // this is used by Constant Expression parser (CEP) parsing only,
         // whenever it makes a false assuming on constant expression type.
         // i.e: SI_PAD_SIZE = ((128/sizeof(longint)) - 3);
         //
@@ -2251,6 +2258,7 @@ var
   TypeName: String;
   PT : TProcType;
   NamePos: TPasSourcePos;
+  ok: Boolean;
 
 begin
   CurBlock := declNone;
@@ -2388,12 +2396,14 @@ begin
               begin
               List := TFPList.Create;
               try
+                ok:=false;
                 try
                   ParseExportDecl(Declarations, List);
-                except
-                  for i := 0 to List.Count - 1 do
-                    TPasExportSymbol(List[i]).Release;
-                  raise;
+                  ok:=true;
+                finally
+                  if not ok then
+                    for i := 0 to List.Count - 1 do
+                      TPasExportSymbol(List[i]).Release;
                 end;
                 for i := 0 to List.Count - 1 do
                 begin
@@ -2585,9 +2595,12 @@ end;
 
 // Starts after the variable name
 function TPasParser.ParseConstDecl(Parent: TPasElement): TPasConst;
+var
+  ok: Boolean;
 begin
   SaveComments;
   Result := TPasConst(CreateElement(TPasConst, CurTokenString, Parent));
+  ok:=false;
   try
     NextToken;
     if CurToken = tkColon then
@@ -2599,26 +2612,32 @@ begin
     Result.Expr:=DoParseConstValueExpression(Result);
     UngetToken;
     CheckHint(Result,True);
-  except
-    Result.Free;
-    raise;
+    ok:=true;
+  finally
+    if not ok then
+      ReleaseAndNil(TPasElement(Result));
   end;
+  Engine.FinishScope(stConstDef,Result);
 end;
 
 // Starts after the variable name
 function TPasParser.ParseResourcestringDecl(Parent: TPasElement): TPasResString;
+var
+  ok: Boolean;
 begin
   SaveComments;
   Result := TPasResString(CreateElement(TPasResString, CurTokenString, Parent));
+  ok:=false;
   try
     ExpectToken(tkEqual);
     NextToken; // skip tkEqual
     Result.Expr:=DoParseConstValueExpression(Result);
     UngetToken;
     CheckHint(Result,True);
-  except
-    Result.Free;
-    raise;
+    ok:=true;
+  finally
+    if not ok then
+      ReleaseAndNil(TPasElement(Result));
   end;
 end;
 
@@ -2671,6 +2690,7 @@ begin
     if not ok then
       Result.Release;
   end;
+  Engine.FinishScope(stTypeDef,Result);
 end;
 
 // Starts after Exports, on first identifier.

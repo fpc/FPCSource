@@ -231,12 +231,12 @@ type
 
   TPasExprArray = array of TPasExpr;
 
-  { TParamsExpr }
+  { TParamsExpr - source position is the opening bracket }
 
   TParamsExpr = class(TPasExpr)
     Value     : TPasExpr;
     Params    : TPasExprArray;
-    {pekArray, pekFuncCall, pekSet}
+    {pekArrayParams, pekFuncParams, pekSet}
     constructor Create(AParent : TPasElement; AKind: TPasExprKind); overload;
     function GetDeclaration(full : Boolean) : string; override;
     destructor Destroy; override;
@@ -456,7 +456,7 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    RangeExpr : TBinaryExpr;
+    RangeExpr : TBinaryExpr; // Kind=pekRange
     Destructor Destroy; override;
     Function RangeStart : String;
     Function RangeEnd : String;
@@ -1365,9 +1365,11 @@ const
            'leftshift','logicalor','bitwiseand','bitwisexor','logicaland','logicalnot','logicalxor',
            'rightshift');
 
-  cPasMemberHint : array[TPasMemberHint] of string =
+  AssignKindNames : Array[TAssignKind] of string = (':=','+=','-=','*=','/=' );
+
+  cPasMemberHint : Array[TPasMemberHint] of string =
       ( 'deprecated', 'library', 'platform', 'experimental', 'unimplemented' );
-  cCallingConventions : array[TCallingConvention] of string =
+  cCallingConventions : Array[TCallingConvention] of string =
       ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall','SysCall');
 
   ModifierNames : Array[TProcedureModifier] of string
