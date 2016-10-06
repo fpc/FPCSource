@@ -1851,6 +1851,7 @@ begin
       Fjs.WriteLn('public int Value;');
       Fjs.WriteLn('public int Ord() { return Value; }');
       Fjs.WriteLn('@Override public boolean equals(Object o) { return (o instanceof Integer) && Value == (Integer)o; }');
+      Fjs.WriteLn('public boolean equals(int v) { return Value == v; }');
       Fjs.WriteLn('@Override public int hashCode() { return Value; }');
       Fjs.DecI;
       Fjs.WriteLn('}');
