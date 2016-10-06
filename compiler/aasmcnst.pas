@@ -132,7 +132,9 @@ type
      { symbol should be registered with the unit's public assembler symbols }
      tcalo_is_public_asm,
      { symbol should be declared with AT_DATA_FORCEINDIRECT }
-     tcalo_data_force_indirect
+     tcalo_data_force_indirect,
+     { apply const_align() to the alignment, for user-defined data }
+     tcalo_apply_constalign
    );
    ttcasmlistoptions = set of ttcasmlistoption;
 
@@ -911,6 +913,8 @@ implementation
      var
        prelist: tasmlist;
      begin
+       if tcalo_apply_constalign in options then
+         alignment:=const_align(alignment);
        { have we finished all aggregates? }
        if (getcurragginfo<>nil) and
           { in case of syntax errors, the aggregate may not have been finished }
@@ -937,12 +941,12 @@ implementation
            { we always need a new section here, since if we started a new
              object file then we have to say what the section is, and otherwise
              we need a new section because that's how the dead stripping works }
-           new_section(prelist,section,secname,const_align(alignment));
+           new_section(prelist,section,secname,alignment);
          end
        else if tcalo_new_section in options then
-         new_section(prelist,section,secname,const_align(alignment))
+         new_section(prelist,section,secname,alignment)
        else
-         prelist.concat(cai_align.Create(const_align(alignment)));
+         prelist.concat(cai_align.Create(alignment));
 
        { On Darwin, use .reference to ensure the data doesn't get dead stripped.
          On other platforms, the data must be in the .fpc section (which is
