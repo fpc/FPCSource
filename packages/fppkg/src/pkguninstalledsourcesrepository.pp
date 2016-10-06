@@ -122,6 +122,9 @@ begin
                       end;
                     end;
                   ARepository.AddPackagesFromManifestFile(AManifestFile);
+                  for i := 0 to ARepository.PackageCount -1 do
+                    if ARepository.Packages[i].SourcePath = '' then
+                      ARepository.Packages[i].SourcePath := SR.Name;
                 end
             end;
         until FindNext(SR)<>0;
@@ -140,7 +143,10 @@ end;
 
 function TFPUninstalledSourcesAvailablePackagesStructure.GetBuildPathDirectory(APackage: TFPPackage): string;
 begin
-  Result := FPath+APackage.Name;
+  if APackage.SourcePath<>'' then
+    Result := FPath+APackage.SourcePath
+  else
+    Result := FPath+APackage.Name
 end;
 
 
