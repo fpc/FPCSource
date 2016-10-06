@@ -170,7 +170,7 @@ uses
                 valuelab.lab:=nil;
                 valuelab.ofs:=0;
               end;
-            current_asmdata.asmlists[al_const].concat(cai_align.Create(const_align(sizeof(pint))));
+            current_asmdata.asmlists[al_const].concat(cai_align.Create(sizeof(pint)));
             namelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@R.Name[1],length(R.name),getansistringcodepage);
             {
               Resourcestring index:

@@ -445,7 +445,7 @@ implementation
            begin
               current_asmdata.getglobaldatalabel(r);
               gendmt:=r;
-              al_globals.concat(cai_align.create(const_align(sizeof(pint))));
+              al_globals.concat(cai_align.create(sizeof(pint)));
               al_globals.concat(Tai_label.Create(r));
               { entries for caching }
               al_globals.concat(Tai_const.Create_ptr(0));
@@ -930,7 +930,7 @@ implementation
             rec_tguid,
             sec_rodata,
             s,
-            const_align(sizeof(pint))));
+            sizeof(pint)));
           tcb.free;
           current_module.add_public_asmsym(sym);
         end;
@@ -1238,7 +1238,7 @@ implementation
          current_asmdata.asmlists[al_globals].concatlist(
            tcb.get_final_asmlist(
              sym,
-             vmtdef,sec_rodata,_class.vmt_mangledname,const_align(sizeof(pint))
+             vmtdef,sec_rodata,_class.vmt_mangledname,sizeof(pint)
            )
          );
          tcb.free;

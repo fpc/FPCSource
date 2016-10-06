@@ -1372,7 +1372,7 @@ implementation
             rttilab:=current_asmdata.DefineAsmSymbol(Tstoreddef(def).rtti_mangledname(rt)+'_o2s',AB_GLOBAL,AT_DATA_FORCEINDIRECT,tabledef);
             current_asmdata.asmlists[al_rtti].concatlist(tcb.get_final_asmlist(
               rttilab,tabledef,sec_rodata,
-              rttilab.name,const_align(sizeof(pint))));
+              rttilab.name,sizeof(pint)));
             tcb.free;
 
             current_module.add_public_asmsym(rttilab);
@@ -1419,7 +1419,7 @@ implementation
           rttilab:=current_asmdata.DefineAsmSymbol(Tstoreddef(def).rtti_mangledname(rt)+'_s2o',AB_GLOBAL,AT_DATA_FORCEINDIRECT,tabledef);
           current_asmdata.asmlists[al_rtti].concatlist(tcb.get_final_asmlist(
             rttilab,tabledef,sec_rodata,
-            rttilab.name,const_align(sizeof(pint))));
+            rttilab.name,sizeof(pint)));
           tcb.free;
 
           current_module.add_public_asmsym(rttilab);
@@ -1568,7 +1568,7 @@ implementation
         rttidef:=tcb.end_anonymous_record;
         rttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_GLOBAL,AT_DATA_FORCEINDIRECT,rttidef);
         current_asmdata.AsmLists[al_rtti].concatList(
-          tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,const_align(sizeof(pint))));
+          tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,sizeof(pint)));
         tcb.free;
 
         current_module.add_public_asmsym(rttilab);

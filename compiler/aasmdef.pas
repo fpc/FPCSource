@@ -72,7 +72,7 @@ function TAsmDataDef.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: 
           symind,ptrdef,
           sec_rodata,
           lower(symind.name),
-          const_align(ptrdef.alignment)));
+          ptrdef.alignment));
         tcb.free;
         if (_typ=AT_DATA_FORCEINDIRECT) and not (target_info.system in systems_indirect_var_imports) then
           current_module.add_public_asmsym(symind.name,AB_INDIRECT,AT_DATA);
