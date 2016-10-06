@@ -178,17 +178,7 @@
          VTable      : Pointer;
          IOffset     : sizeuint;
          IIDStrRef   : {$IFNDEF VER3_0}^{$ENDIF}pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
-{$ifdef VER2_6}
-         case boolean of
-{$ifdef ENDIAN_BIG}
-           true      : ({$IFDEF CPU64}__pad: longint;{$ENDIF}IType : tinterfaceentrytype);
-{$else ENDIAN_BIG}
-           true      : (IType       : tinterfaceentrytype);
-{$endif ENDIAN_BIG}
-           false     : (__pad_dummy : sizeint);
-{$else  VER2_6}
          IType       : tinterfaceentrytype;
-{$endif VER2_6}
        end;
 
        tinterfacetable = record
