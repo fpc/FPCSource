@@ -1170,7 +1170,7 @@ implementation
         targetinfos[target_info.system]^.alignment.maxCrecordalign
       );
       { placeholder for the count }
-      countplaceholder:=tcb.emit_placeholder(ptruinttype);
+      countplaceholder:=tcb.emit_placeholder(sizesinttype);
       count:=0;
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
@@ -1193,7 +1193,7 @@ implementation
          inc(count);
        end;
       { Insert TableCount at start }
-      countplaceholder.replace(Tai_const.Create_pint(count),ptruinttype);
+      countplaceholder.replace(Tai_const.Create_sizeint(count),sizesinttype);
       countplaceholder.free;
       { insert in data segment }
       tabledef:=tcb.end_anonymous_record;
