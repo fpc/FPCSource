@@ -230,7 +230,10 @@ begin
       AddOption('-XXs');
       // Create fpmkunit.pp if needed
       if NeedFPMKUnitSource then
-        CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
+        begin
+          Log(llWarning,SLogUseInternalFpmkunit);
+          CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
+        end;
       // Call compiler
       If ExecuteProcess(GFPpkg.FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
         begin

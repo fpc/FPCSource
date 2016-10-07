@@ -87,6 +87,7 @@ Resourcestring
   SLogPackageChecksumChanged = 'Package %s needs to be rebuild, dependency %s is modified';
   SLogCheckBrokenDependenvies= 'Checking for broken dependencies';
   SLogFailedToCreateManifest = 'Failed to create manifest from fpmake.pp-file (%s) while scanning for available packages: %s';
+  SLogUseInternalFpmkunit    = 'Fpmkunit not available, fallback to internal version.';
 
   SLogCfgHeader                      = 'Settings from configuration-files:';
   SLogCfgSectionHeader               = ' %s-section:';
