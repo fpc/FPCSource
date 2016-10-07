@@ -358,10 +358,16 @@ begin
       CondAddOption('--baseinstalldir',InstallRepo.DefaultPackagesStructure.GetBaseInstallDir);
     end;
 
-  for i := GFPpkg.Options.SectionList.Count -1 downto 0 do
+  for i := GFPpkg.RepositoryList.Count-1 downto 0 do
     begin
-      if GFPpkg.Options.SectionList[ i ] is TFppkgRepositoryOptionSection then
-        CondAddOption('--searchpath', TFppkgRepositoryOptionSection(GFPpkg.Options.SectionList[ i ]).Path);
+      if GFPpkg.RepositoryList[i] is TFPRepository then
+        begin
+          InstallRepo := TFPRepository(GFPpkg.RepositoryList[i]);
+          if (InstallRepo.RepositoryType = fprtInstalled) and Assigned(InstallRepo.DefaultPackagesStructure) then
+            begin
+              CondAddOption('--searchpath', InstallRepo.DefaultPackagesStructure.GetBaseInstallDir);
+            end;
+        end;
     end;
 
   { Run FPMake }
