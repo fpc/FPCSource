@@ -747,6 +747,7 @@ implementation
       begin
         tcb.maybe_begin_aggregate(interfaceentrydef);
         { GUID (or nil for Corba interfaces) }
+        tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IIDREF') as tfieldvarsym;
         siid:='';
         if AImplIntf.IntfDef.objecttype in [odt_interfacecom] then
           begin
@@ -758,29 +759,36 @@ implementation
           tcb.emit_tai(Tai_const.Create_nil_dataptr,cpointerdef.getreusable(rec_tguid));
 
         { VTable }
+        tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('VTABLE') as tfieldvarsym;
         tcb.queue_init(voidpointertype);
         tcb.queue_emit_asmsym(fintfvtablelabels[intfindex],AImplIntf.VtblImplIntf.IntfDef);
         { IOffset field }
         case AImplIntf.VtblImplIntf.IType of
           etFieldValue, etFieldValueClass,
           etStandard:
-            tcb.emit_tai(Tai_const.Create_pint(AImplIntf.VtblImplIntf.IOffset),ptruinttype);
+            begin
+              tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IOFFSET') as tfieldvarsym;
+              tcb.emit_tai(Tai_const.Create_sizeint(AImplIntf.VtblImplIntf.IOffset),sizeuinttype);
+            end;
           etStaticMethodResult, etStaticMethodClass:
             begin
+              tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IOFFSETASCODEPTR') as tfieldvarsym;
               pd:=tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef);
-              tcb.queue_init(ptruinttype);
+              tcb.queue_init(codeptruinttype);
               tcb.queue_emit_proc(pd);
             end;
           etVirtualMethodResult, etVirtualMethodClass:
             begin
+              tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IOFFSET') as tfieldvarsym;
               pd:=tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef);
-              tcb.emit_tai(Tai_const.Create_pint(tobjectdef(pd.struct).vmtmethodoffset(pd.extnumber)),ptruinttype);
+              tcb.emit_tai(Tai_const.Create_sizeint(tobjectdef(pd.struct).vmtmethodoffset(pd.extnumber)),sizeuinttype);
             end;
           else
             internalerror(200802162);
         end;
 
         { IIDStr }
+        tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IIDSTRREF') as tfieldvarsym;
         siidstr:=make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^);
         tcb.queue_init(cpointerdef.getreusable(cshortstringtype));
         tcb.queue_emit_asmsym(
@@ -790,6 +798,7 @@ implementation
             true),
           cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(AImplIntf.IntfDef.iidstr^)+1)));
         { IType }
+        tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('ITYPE') as tfieldvarsym;
         tcb.emit_ord_const(aint(AImplIntf.VtblImplIntf.IType),interfaceentrytypedef);
         tcb.maybe_end_aggregate(interfaceentrydef);
 

@@ -779,12 +779,12 @@
                 end;
               etStaticMethodResult:
                 begin
-                  Getter.code := CodePointer(IEntry^.IOffset);
+                  Getter.code := IEntry^.IOffsetAsCodePtr;
                   TInterfaceGetter(Getter)(obj);
                 end;
               etStaticMethodClass:
                 begin
-                  Getter.code := CodePointer(IEntry^.IOffset);
+                  Getter.code := IEntry^.IOffsetAsCodePtr;
                   TObject(obj) := TClassGetter(Getter)();
                 end;
             end;

@@ -176,9 +176,15 @@
        public
          IIDRef      : {$IFNDEF VER3_0}^{$ENDIF}pguid; { if assigned(IID) then Com else Corba}
          VTable      : Pointer;
-         IOffset     : sizeuint;
-         IIDStrRef   : {$IFNDEF VER3_0}^{$ENDIF}pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
-         IType       : tinterfaceentrytype;
+         case integer of
+           1 : (
+                IOffset: sizeuint;
+               );
+           2 : (
+                IOffsetAsCodePtr: CodePointer;
+                IIDStrRef   : {$IFNDEF VER3_0}^{$ENDIF}pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
+                IType       : tinterfaceentrytype;
+               );
        end;
 
        tinterfacetable = record
