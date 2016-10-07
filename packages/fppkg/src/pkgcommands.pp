@@ -413,7 +413,7 @@ begin
       InstallRepo := GFPpkg.RepositoryByName(GFPpkg.Options.CommandLineSection.InstallRepository);
       if Assigned(InstallRepo) then
         begin
-          P := InstallRepo.PackageByName(S);
+          P := InstallRepo.FindPackage(S);
           if not Assigned(P) then
             P := InstallRepo.AddPackage(S);
           if Assigned(P) then
