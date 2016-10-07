@@ -234,7 +234,14 @@ begin
                 end;
             end
           else
-            log(llDebug,SDbgObsoleteDependency,[D.PackageName]);
+            begin
+              log(llDebug,SDbgObsoleteDependency,[APackage.Name,D.PackageName]);
+              result:=true;
+              if MarkForReInstall then
+                begin
+                  APackage.RecompileBroken:=true;
+                end;
+            end;
         end;
     end;
 end;
@@ -313,14 +320,14 @@ end;
 
 procedure ListPackages(const ShowGlobalAndLocal: boolean);
 
-  procedure AddPackageToLine(APackage: TFPPackage; var Line: string);
+  procedure AddPackageToLine(APackage: TFPPackage; CheckIsBroken: Boolean; var Line: string);
   var
     PackageVersion: string;
   begin
     if Assigned(APackage) then
       begin
         PackageVersion := APackage.Version.AsString;
-        if PackageIsBroken(APackage, False) then
+        if CheckIsBroken and PackageIsBroken(APackage, False) then
           PackageVersion := PackageVersion + ' (B)';
       end
     else
@@ -368,15 +375,15 @@ begin
                 begin
                   Repo := TFPRepository(GFPpkg.RepositoryList[j]);
                   Package := Repo.FindPackage(PackageName);
-                  AddPackageToLine(Package, Line);
+                  AddPackageToLine(Package, Repo.RepositoryType = fprtInstalled, Line);
                 end
             end
           else
             begin
               Package := GFPpkg.FindPackage(PackageName, pkgpkInstalled);
-              AddPackageToLine(Package, Line);
+              AddPackageToLine(Package, True, Line);
               Package := GFPpkg.FindPackage(PackageName, pkgpkAvailable);
-              AddPackageToLine(Package, Line);
+              AddPackageToLine(Package, False, Line);
             end;
         end;
       WriteLn(Line);
