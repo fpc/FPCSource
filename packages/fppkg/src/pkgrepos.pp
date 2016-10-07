@@ -288,7 +288,7 @@ begin
   // Check for fpmkunit dependencies
   for i:=0 to high(FPMKUnitDeps) do
     begin
-      P:=GFPpkg.FindPackage(FPMKUnitDeps[i].package, pkgpkInstalled);
+      P:=GFPpkg.FPMakeRepoFindPackage(FPMKUnitDeps[i].package, pkgpkInstalled);
       if P<>nil then
         begin
           AvailP:=GFPpkg.FindPackage(FPMKUnitDeps[i].package, pkgpkAvailable);
