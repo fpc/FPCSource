@@ -1377,7 +1377,7 @@ implementation
         begin
           { stacksize can be specified and is now simulated }
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
-          tcb.emit_tai(Tai_const.Create_pint(stacksize),ptruinttype);
+          tcb.emit_tai(Tai_const.Create_int_dataptr(stacksize),ptruinttype);
           sym:=current_asmdata.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA,ptruinttype);
           current_asmdata.asmlists[al_globals].concatlist(
             tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__stklen',sizeof(pint))
@@ -1407,7 +1407,7 @@ implementation
 {$ENDIF POWERPC}
       { Initial heapsize }
       tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
-      tcb.emit_tai(Tai_const.Create_pint(heapsize),ptruinttype);
+      tcb.emit_tai(Tai_const.Create_int_dataptr(heapsize),ptruinttype);
       sym:=current_asmdata.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA,ptruinttype);
       current_asmdata.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__heapsize',sizeof(pint))
