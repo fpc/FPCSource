@@ -127,6 +127,7 @@ Type
     procedure AddKeyValue(const AKey, AValue: string); override;
     procedure LogValues(ALogLevel: TLogLevel); override;
     function AllowDuplicate: Boolean; override;
+    function GetRepositoryType: TFPRepositoryType; virtual;
 
     function InitRepository(AParent: TComponent; ACompilerOptions: TCompilerOptions): TFPRepository; virtual;
 
@@ -348,6 +349,11 @@ begin
   Result := True;
 end;
 
+function TFppkgRepositoryOptionSection.GetRepositoryType: TFPRepositoryType;
+begin
+  result := fprtInstalled;
+end;
+
 function TFppkgRepositoryOptionSection.InitRepository(AParent: TComponent;
   ACompilerOptions: TCompilerOptions): TFPRepository;
 var
@@ -356,7 +362,7 @@ begin
   if Path <> '' then
     begin
       Result := TFPRepository.Create(AParent);
-      Result.RepositoryType := fprtInstalled;
+      Result.RepositoryType := GetRepositoryType;
       Result.RepositoryName := RepositoryName;
       Result.Description := Description;
       InstPackages := TFPInstalledPackagesStructure.Create(AParent, Path, ACompilerOptions);

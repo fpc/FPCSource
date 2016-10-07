@@ -26,7 +26,9 @@ type
     FOptions: TFppkgOptions;
     FCompilerOptions: TCompilerOptions;
     FFpmakeCompilerOptions: TCompilerOptions;
-    procedure ScanPackagesOnDisk(ACompilerOptions: TCompilerOptions; ARepositoryList: TComponentList);
+    function IncludeRepositoryTypeForPackageKind(ARepositoryType: TFPRepositoryType;
+      APackageKind: TpkgPackageKind): Boolean;
+    procedure ScanPackagesOnDisk(ACompilerOptions: TCompilerOptions; APackageKind: TpkgPackageKind; ARepositoryList: TComponentList);
     function  FindPackage(ARepositoryList: TComponentList; APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
   public
     constructor Create(AOwner: TComponent); override;
@@ -57,6 +59,9 @@ type
 
 implementation
 
+uses
+  pkgrepos;
+
 { TpkgFPpkg }
 
 constructor TpkgFPpkg.Create(AOwner: TComponent);
@@ -79,8 +84,16 @@ begin
   inherited Destroy;
 end;
 
+function TpkgFPpkg.IncludeRepositoryTypeForPackageKind(ARepositoryType: TFPRepositoryType;
+  APackageKind: TpkgPackageKind): Boolean;
+begin
+  Result := ((APackageKind=pkgpkInstalled) and (ARepositoryType = fprtInstalled)) or
+    ((APackageKind=pkgpkAvailable) and (ARepositoryType = fprtAvailable)) or
+    (APackageKind=pkgpkBoth);
+end;
+
 procedure TpkgFPpkg.ScanPackagesOnDisk(ACompilerOptions: TCompilerOptions;
-  ARepositoryList: TComponentList);
+  APackageKind: TpkgPackageKind; ARepositoryList: TComponentList);
 var
   i: Integer;
   RepoOption: TFppkgRepositoryOptionSection;
@@ -92,11 +105,14 @@ begin
       if FOptions.SectionList[i] is TFppkgRepositoryOptionSection then
         begin
           RepoOption := TFppkgRepositoryOptionSection(FOptions.SectionList[i]);
-          Repo := RepoOption.InitRepository(Self, ACompilerOptions);
-          if Assigned(Repo) then
+          if IncludeRepositoryTypeForPackageKind(RepoOption.GetRepositoryType, APackageKind) then
             begin
-              ARepositoryList.Add(Repo);
-              Repo.DefaultPackagesStructure.AddPackagesToRepository(Repo);
+              Repo := RepoOption.InitRepository(Self, ACompilerOptions);
+              if Assigned(Repo) then
+                begin
+                  ARepositoryList.Add(Repo);
+                  Repo.DefaultPackagesStructure.AddPackagesToRepository(Repo);
+                end;
             end;
         end;
     end;
@@ -229,8 +245,15 @@ end;
 
 procedure TpkgFPpkg.ScanPackages;
 begin
-  ScanPackagesOnDisk(FFpmakeCompilerOptions, FPMakeRepositoryList);
-  ScanPackagesOnDisk(FCompilerOptions, RepositoryList);
+  // There is no need to scan for available packages and add them to the
+  // FPMakeRepositoryList. Beside that it could lead to problems
+  // when the scan of one of the available-repositories tries to compile an
+  // fpmake-executable. (Like TFPUninstalledSourcesAvailablePackagesStructure does)
+  ScanPackagesOnDisk(FFpmakeCompilerOptions, pkgpkInstalled, FPMakeRepositoryList);
+
+  CheckFPMakeDependencies;
+
+  ScanPackagesOnDisk(FCompilerOptions, pkgpkBoth, RepositoryList);
   ScanAvailablePackages;
 end;
 
@@ -255,9 +278,7 @@ begin
   for i := ARepositoryList.Count-1 downto 0 do
     begin
       Repo := ARepositoryList.Items[i] as TFPRepository;
-      if ((APackageKind=pkgpkInstalled) and (Repo.RepositoryType = fprtInstalled)) or
-        ((APackageKind=pkgpkAvailable) and (Repo.RepositoryType = fprtAvailable)) or
-        (APackageKind=pkgpkBoth) then
+      if IncludeRepositoryTypeForPackageKind(Repo.RepositoryType, APackageKind) then
         begin
           Result := repo.FindPackage(APackageName);
           if Assigned(Result) then

@@ -27,6 +27,8 @@ type
     constructor Create(AnOptionParser: TTemplateParser); override;
     procedure AddKeyValue(const AKey, AValue: string); override;
     function InitRepository(AParent: TComponent; ACompilerOptions: TCompilerOptions): TFPRepository; override;
+
+    function GetRepositoryType: TFPRepositoryType; override;
   end;
 
   { TFPUninstalledSourcesAvailablePackagesStructure }
@@ -63,12 +65,17 @@ begin
   if Path <> '' then
     begin
       Result := TFPRepository.Create(AParent);
-      Result.RepositoryType := fprtAvailable;
+      Result.RepositoryType := GetRepositoryType;
       Result.RepositoryName := RepositoryName;
       Result.Description := Description;
       InstPackages := TFPUninstalledSourcesAvailablePackagesStructure.Create(AParent, Path, ACompilerOptions);
       Result.DefaultPackagesStructure := InstPackages;
     end;
+end;
+
+function TFppkgUninstalledSourceRepositoryOptionSection.GetRepositoryType: TFPRepositoryType;
+begin
+  Result := fprtAvailable;
 end;
 
 { TFPUninstalledSourcesPackagesStructure }

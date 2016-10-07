@@ -339,7 +339,6 @@ begin
         end;
       end;
     FindInstalledPackages(GFPpkg.FPMakeCompilerOptions,true);
-    CheckFPMakeDependencies;
     // We only need to reload the status when we use a different
     // configuration for compiling fpmake or when the CPU, OS or compiler
     // are set in the command-line
