@@ -1288,7 +1288,7 @@ implementation
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
         targetinfos[target_info.system]^.alignment.recordalignmin,
         targetinfos[target_info.system]^.alignment.maxCrecordalign);
-      countplaceholder:=tcb.emit_placeholder(ptruinttype);
+      countplaceholder:=tcb.emit_placeholder(sizesinttype);
       while assigned(hp) do
         begin
           If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
@@ -1306,7 +1306,7 @@ implementation
           hp:=tmodule(hp.next);
         end;
       { Insert TableCount at start }
-      countplaceholder.replace(Tai_const.Create_pint(count),ptruinttype);
+      countplaceholder.replace(Tai_const.Create_sizeint(count),sizesinttype);
       countplaceholder.free;
       { Add to data segment }
       tabledef:=tcb.end_anonymous_record;
