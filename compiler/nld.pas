@@ -368,7 +368,8 @@ implementation
                  begin
                    typecheckpass(left);
                    if (po_classmethod in fprocdef.procoptions) and
-                      is_class(left.resultdef) then
+                      is_class(left.resultdef) and
+                      (left.nodetype<>niln) then
                      begin
                        left:=cloadvmtaddrnode.create(left);
                        typecheckpass(left);
