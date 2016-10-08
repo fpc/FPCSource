@@ -178,6 +178,7 @@ type
     procedure AssertField1(Hints: TPasMemberHints);
     procedure AssertField2(Hints: TPasMemberHints);
     procedure AssertMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
+    procedure AssertConstructor2(Hints: TPasMemberHints; isClass : Boolean = False);
     procedure AssertOperatorMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
     procedure AssertVariant1(Hints: TPasMemberHints);
     procedure AssertVariant1(Hints: TPasMemberHints; VariantLabels : Array of string);
@@ -186,6 +187,7 @@ type
     procedure AssertOneIntegerField(Hints: TPasMemberHints);
     procedure AssertTwoIntegerFields(Hints1, Hints2: TPasMemberHints);
     procedure AssertIntegerFieldAndMethod(Hints1, Hints2: TPasMemberHints);
+    procedure AssertIntegerFieldAndConstructor(Hints1, Hints2: TPasMemberHints);
     procedure AssertRecordField(AIndex: Integer;Hints: TPasMemberHints);
     procedure AssertRecordVariant(AIndex: Integer;Hints: TPasMemberHints; VariantLabels : Array of string);
     Procedure AssertRecordVariantVariant(AIndex: Integer;Const AFieldName,ATypeName: string;Hints: TPasMemberHints; VariantLabels : Array of string);
@@ -252,6 +254,7 @@ type
     Procedure TestTwoDeprecatedFieldsCombined;
     Procedure TestTwoDeprecatedFieldsCombinedDeprecated;
     Procedure TestTwoDeprecatedFieldsCombinedPlatform;
+    procedure TestFieldAndConstructor;
     Procedure TestFieldAndMethod;
     Procedure TestFieldAnd2Methods;
     Procedure TestFieldAndProperty;
@@ -1522,6 +1525,21 @@ begin
   AssertTrue('Method hints match',P.Hints=Hints)
 end;
 
+procedure TTestRecordTypeParser.AssertConstructor2(Hints: TPasMemberHints;
+  isClass: Boolean);
+Var
+  P : TPasProcedure;
+
+begin
+  if IsClass then
+    AssertEquals('Member 2 type',TPasClassConstructor,TObject(TheRecord.Members[1]).ClassType)
+  else
+    AssertEquals('Member 2 type',TPasConstructor,TObject(TheRecord.Members[1]).ClassType);
+  P:=TPasProcedure(TheRecord.Members[1]);
+  AssertEquals('Constructor name','create',P.Name);
+  AssertTrue('Constructor hints match',P.Hints=Hints)
+end;
+
 procedure TTestRecordTypeParser.AssertOperatorMethod2(Hints: TPasMemberHints;
   isClass: Boolean);
 Var
@@ -1559,6 +1577,14 @@ begin
   AssertEquals('Two members',2,TheRecord.Members.Count);
   AssertField1(Hints1);
   AssertMethod2(Hints2);
+end;
+
+procedure TTestRecordTypeParser.AssertIntegerFieldAndConstructor(Hints1,
+  Hints2: TPasMemberHints);
+begin
+  AssertEquals('Two members',2,TheRecord.Members.Count);
+  AssertField1(Hints1);
+  AssertConstructor2(Hints2);
 end;
 
 procedure TTestRecordTypeParser.AssertRecordField(AIndex: Integer;
@@ -1906,6 +1932,14 @@ procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombinedPlatform;
 begin
   TestFields(['x,y : integer deprecated;'],'platform',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndConstructor;
+
+begin
+  Parser.Options:=[po_delphi];
+  TestFields(['x : integer;','constructor create;'],'',False);
+  AssertIntegerFieldAndConstructor([],[]);
 end;
 
 procedure TTestRecordTypeParser.TestFieldAndMethod;

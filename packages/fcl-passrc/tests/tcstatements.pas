@@ -97,6 +97,7 @@ Type
     Procedure TestTryExceptOn2;
     Procedure TestTryExceptOnElse;
     Procedure TestTryExceptOnIfElse;
+    procedure TestTryExceptRaise;
     Procedure TestAsm;
   end;
 
@@ -1463,6 +1464,29 @@ begin
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(EE.Elements[0]).ClassType);
   S:=TPasImplSimple(EE.Elements[0]);
   AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomethingMore');
+end;
+
+procedure TTestStatementParser.TestTryExceptRaise;
+Var
+  T : TPasImplTry;
+  S : TPasImplSimple;
+  E : TPasImplTryExcept;
+
+begin
+  TestStatement(['Try','  DoSomething;','except','  raise','end']);
+  T:=AssertStatement('Try statement',TPasImplTry) as TPasImplTry;
+  AssertEquals(1,T.Elements.Count);
+  AssertNotNull(T.FinallyExcept);
+  AssertNull(T.ElseBranch);
+  AssertNotNull(T.Elements[0]);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  S:=TPasImplSimple(T.Elements[0]);
+  AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomething');
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  AssertEquals('Except statement',TPasImplTryExcept,T.FinallyExcept.ClassType);
+  E:=TPasImplTryExcept(T.FinallyExcept);
+  AssertEquals(1,E.Elements.Count);
+  AssertEquals('Raise statement',TPasImplRaise,TPasElement(E.Elements[0]).ClassType);
 end;
 
 procedure TTestStatementParser.TestAsm;

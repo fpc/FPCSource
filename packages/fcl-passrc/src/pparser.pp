@@ -2541,7 +2541,12 @@ function TPasParser.CheckUseUnit(ASection: TPasSection; AUnitName: string
 
 begin
   if CompareText(AUnitName,CurModule.Name)=0 then
+    begin
+    // System is implicit, except when parsing system unit.
+    if CompareText(AUnitName,'System')=0 then
+      exit;
     ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
+    end;
   CheckDuplicateInUsesList(AUnitName,ASection.UsesList);
   if ASection.ClassType=TImplementationSection then
     CheckDuplicateInUsesList(AUnitName,CurModule.InterfaceSection.UsesList);
@@ -4039,7 +4044,7 @@ begin
       El:=TPasImplRaise(CreateElement(TPasImplRaise,'',CurBlock));
       CreateBlock(TPasImplRaise(El));
       NextToken;
-      If Curtoken=tkSemicolon then
+      If Curtoken in [tkEnd,tkSemicolon] then
         UnGetToken
       else
         begin
@@ -4357,6 +4362,7 @@ begin
         end;
       tkOperator,
       tkProcedure,
+      tkConstructor,
       tkFunction :
         begin
         if Not AllowMethods then
