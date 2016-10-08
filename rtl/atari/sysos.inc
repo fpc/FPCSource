@@ -15,6 +15,9 @@
 
  **********************************************************************}
 
+{$include xbios.inc}
+{$include gemdos.inc}
+
 procedure Error2InOutRes(errno: longint);
 begin
   if (errno <= -2) and (errno >= -11) then
