@@ -295,7 +295,7 @@ unit cpupara;
                   end;
               end;
 
-            hp.paraloc[side].alignment:=std_param_align;
+            hp.paraloc[side].alignment:=target_info.stackalign;  //std_param_align;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].def:=paradef;
@@ -316,7 +316,8 @@ unit cpupara;
 
                 paraloc^.loc:=LOC_REFERENCE;
                 paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
-                if (paradef.typ=floatdef) then
+                if (not (cs_fp_emulation in current_settings.moduleswitches)) and
+                   (paradef.typ=floatdef) then
                   paraloc^.size:=int_float_cgsize(paralen)
                 else
                   paraloc^.size:=int_cgsize(paralen);
@@ -329,10 +330,10 @@ unit cpupara;
                     paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                     inc(paraloc^.reference.offset,target_info.first_parm_offset);
                     { M68K is a big-endian target }
-                    if (paralen<tcgsize2size[OS_INT]) then
-                      inc(paraloc^.reference.offset,4-paralen);
+                    if (paralen<target_info.stackalign{tcgsize2size[OS_INT]}) then
+                      inc(paraloc^.reference.offset,target_info.stackalign-paralen);
                   end;
-                inc(cur_stack_offset,align(paralen,4));
+                inc(cur_stack_offset,align(paralen,target_info.stackalign));
                 paralen := 0;
 
                 firstparaloc:=false;
