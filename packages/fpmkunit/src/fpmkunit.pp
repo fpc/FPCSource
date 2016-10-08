@@ -950,14 +950,13 @@ Type
     FMode : TCompilerMode;
     FCompilerVersion : String;
     FPrefix: String;
-    FLocalUnitDir,
-    FGlobalUnitDir,
     FBaseInstallDir,
     FUnitInstallDir,
     FUnitConfigFilesInstallDir,
     FBinInstallDir,
     FDocInstallDir,
     FExamplesInstallDir : String;
+    FSearchPath: TStrings;
     FSkipCrossPrograms: boolean;
     FThreadsAmount: integer;
     FRemoveTree: String;
@@ -969,6 +968,7 @@ Type
     FUseEnvironment: Boolean;
     FZipPrefix: String;
     FExplicitOSNone: Boolean;
+    function SafeExpandFileName(const AFileName: string): string;
     function GetBuildCPU: TCpu;
     function GetBuildOS: TOS;
     function GetBuildString: String;
@@ -983,6 +983,7 @@ Type
     function GetExamplesInstallDir: String;
     function GetOptions: TStrings;
     function GetPrefix: String;
+    function GetSearchPath: TStrings;
     function GetUnitInstallDir: String;
     function GetUnitConfigFilesInstallDir: String;
     procedure SetLocalUnitDir(const AValue: String);
@@ -993,6 +994,7 @@ Type
     procedure SetOptions(const AValue: TStrings);
     procedure SetOS(const AValue: TOS);
     procedure SetPrefix(const AValue: String);
+    procedure SetSearchPath(AValue: TStrings);
     procedure SetTarget(const AValue: String);
     procedure SetUnitInstallDir(const AValue: String);
     procedure SetUnitConfigFilesInstallDir(const AValue: String);
@@ -1002,6 +1004,7 @@ Type
     Function CmdLineOptions : String;
   Public
     Constructor Create;
+    Destructor Destroy; override;
     Procedure InitDefaults;
     Function HaveOptions: Boolean;
     function IsBuildDifferentFromTarget: boolean;
@@ -1041,6 +1044,9 @@ Type
     // paths etc.
     Property LocalUnitDir : String Read GetLocalUnitDir Write SetLocalUnitDir;
     Property GlobalUnitDir : String Read GetGlobalUnitDir Write SetGlobalUnitDir;
+    // The SearchPath contains a list of directories in which packages are
+    // installed. Packages are searched for in order of this list.
+    Property SearchPath: TStrings read GetSearchPath write SetSearchPath;
     Property Prefix : String Read GetPrefix Write SetPrefix;
     Property ZipPrefix : String Read FZipPrefix Write SetZipPrefix;
     Property BaseInstallDir : String Read GetBaseInstallDir Write SetBaseInstallDir;
@@ -1598,6 +1604,7 @@ ResourceString
   SWarngcclibpath         = 'Warning: Unable to determine the libgcc path.';
   SWarnNoFCLProcessSupport= 'No FCL-Process support';
   SWarnRetryRemDirectory     = 'Failed to remove directory "%s". Retry after a short delay';
+  SWarnCombinedPathAndUDir= 'Warning: SearchPath and Global/Local-UnitDir setting are better not be combined';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -1687,6 +1694,7 @@ ResourceString
   SHelpBaseInstallDir = 'Use indicated directory as base install dir.';
   SHelpLocalUnitDir   = 'Use indicated directory as local (user) unit dir.';
   SHelpGlobalUnitDir  = 'Use indicated directory as global unit dir.';
+  SHelpSearchPath     = 'Add search directory for packages.';
   SHelpUnitInstallDir = 'Use indicated directory to install units into.';
   SHelpCompiler       = 'Use indicated binary as compiler';
   SHelpConfig         = 'Use indicated config file when compiling.';
@@ -4024,6 +4032,12 @@ begin
 end;
 
 
+function TCustomDefaults.GetSearchPath: TStrings;
+begin
+  Result := FSearchPath;
+end;
+
+
 function TCustomDefaults.GetUnitInstallDir: String;
 begin
   result := FUnitInstallDir;
@@ -4038,7 +4052,10 @@ end;
 
 function TCustomDefaults.GetLocalUnitDir: String;
 begin
-  Result:=FLocalUnitDir;
+  if FSearchPath.Count>0 then
+    Result:=FSearchPath[0]
+  else
+    Result:='';
 end;
 
 function TCustomDefaults.GetFPDocOutputDir: String;
@@ -4055,6 +4072,14 @@ begin
     result := FFPUnitSourcePath
   else
     Result:=FixPath(FFPUnitSourcePath, True);
+end;
+
+function TCustomDefaults.SafeExpandFileName(const AFileName: string): string;
+begin
+  if AFileName<>'' then
+    Result:=IncludeTrailingPathDelimiter(ExpandFileName(AFileName))
+  else
+    Result:='';
 end;
 
 function TCustomDefaults.GetBuildCPU: TCpu;
@@ -4074,30 +4099,34 @@ end;
 
 function TCustomDefaults.GetGlobalUnitDir: String;
 begin
-  If (FGlobalUnitDir<>'') then
-    Result:=FGlobalUnitDir
+  if FSearchPath.Count>1 then
+    Result:=FSearchPath[1]
   else
-    Result:=UnitInstallDir;
+    Result:='';
 end;
 
 
 procedure TCustomDefaults.SetLocalUnitDir(const AValue: String);
 begin
   // Use ExpandFileName to support ~/ expansion
-  if AValue<>'' then
-    FLocalUnitDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue))
+  if FSearchPath.Count=0 then
+    FSearchPath.Add(SafeExpandFileName(AValue))
   else
-    FLocalUnitDir:='';
+    FSearchPath[0]:=SafeExpandFileName(AValue);
 end;
 
 
 procedure TCustomDefaults.SetGlobalUnitDir(const AValue: String);
 begin
   // Use ExpandFileName to support ~/ expansion
-  if AValue<>'' then
-    FGlobalUnitDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue))
+  if FSearchPath.Count<2 then
+    begin
+      if FSearchPath.Count<1 then
+        FSearchPath.Add('');
+      FSearchPath.Add(SafeExpandFileName(AValue));
+    end
   else
-    FGlobalUnitDir:='';
+    FSearchPath[1]:=SafeExpandFileName(AValue);
 end;
 
 procedure TCustomDefaults.IntSetBaseInstallDir(const AValue: String);
@@ -4140,6 +4169,11 @@ begin
   GlobalDictionary.AddVariable('prefix',Prefix);
   GlobalDictionary.AddVariable('bininstalldir',BinInstallDir);
   BaseInstallDir:='';
+end;
+
+procedure TCustomDefaults.SetSearchPath(AValue: TStrings);
+begin
+  FSearchPath.Assign(AValue);
 end;
 
 
@@ -4201,7 +4235,14 @@ end;
 
 constructor TCustomDefaults.Create;
 begin
+  FSearchPath:=TStringList.Create;
   InitDefaults;
+end;
+
+destructor TCustomDefaults.Destroy;
+begin
+  FSearchPath.Free;
+  inherited;
 end;
 
 
@@ -4342,8 +4383,8 @@ begin
       Values[KeyCPU]:=CPUToString(FCPU);
       Values[KeyOS]:=OSToString(FOS);
       Values[KeyMode]:=ModeToString(FMode);
-      Values[KeyLocalUnitDir]:=FLocalUnitDir;
-      Values[KeyGlobalUnitDir]:=FGlobalUnitDir;
+      Values[KeyLocalUnitDir]:=LocalUnitDir;
+      Values[KeyGlobalUnitDir]:=GlobalUnitDir;
       Values[KeyPrefix]:=FPrefix;
       Values[KeyBaseInstallDir]:=FBaseInstallDir;
       Values[KeyUnitInstallDir]:=FUnitInstallDir;
@@ -4411,8 +4452,8 @@ begin
       If (Line<>'') then
         FMode:=StringToMode(Line);
       FTarget:=Values[KeyTarget];
-      FLocalUnitDir:=Values[KeyLocalUnitDir];
-      FGlobalUnitDir:=Values[KeyGlobalUnitDir];
+      LocalUnitDir:=Values[KeyLocalUnitDir];
+      GlobalUnitDir:=Values[KeyGlobalUnitDir];
       FPrefix:=Values[KeyPrefix];
       FBaseInstallDir:=Values[KeyBaseInstallDir];
       FUnitInstallDir:=Values[KeyUnitInstallDir];
@@ -4469,10 +4510,6 @@ begin
   // Where to install by default
   if (FBaseInstallDir='') and (FPrefix='') then
     BaseInstallDir:=BD;
-
-  // Where to find the units by default
-  if (FGlobalUnitDir='') then
-    GlobalUnitDir:=IncludeTrailingPathDelimiter(BD)+'units'+PathDelim+Target;
 end;
 
 
@@ -4695,9 +4732,13 @@ Var
   DefaultsFileName : string;
   OptString : string;
   CustOptName : string;
+  UnitDirSet: Boolean;
+  SearchPathSet: Boolean;
 begin
   I:=0;
   FListMode:=False;
+  UnitDirSet:=False;
+  SearchPathSet:=False;
   FLogLevels:=DefaultMessages;
   While (I<ParamCount) do
     begin
@@ -4762,9 +4803,26 @@ begin
     else if CheckOption(I,'U','unitinstalldir') then
       Defaults.UnitInstallDir:=OptionArg(I)
     else if CheckOption(I,'UL','localunitdir') then
-      Defaults.LocalUnitDir:=OptionArg(I)
+      begin
+        UnitDirSet:=true;
+        if SearchPathSet then
+          Log(vlWarning,SWarnCombinedPathAndUDir);
+        Defaults.LocalUnitDir:=OptionArg(I)
+      end
     else if CheckOption(I,'UG','globalunitdir') then
-      Defaults.GlobalUnitDir:=OptionArg(I)
+      begin
+        UnitDirSet:=true;
+        if SearchPathSet then
+          Log(vlWarning,SWarnCombinedPathAndUDir);
+        Defaults.GlobalUnitDir:=OptionArg(I)
+      end
+    else if CheckOption(I,'sp','searchpath') then
+      begin
+        SearchPathSet:=true;
+        if UnitDirSet then
+          Log(vlWarning,SWarnCombinedPathAndUDir);
+        Defaults.SearchPath.Add(OptionArg(I, true));
+      end
     else if CheckOption(I,'o','options', true) then
       begin
         OptString := OptionArg(I, true);
@@ -4862,6 +4920,7 @@ begin
   LogArgOption('B','baseinstalldir',SHelpBaseInstalldir);
   LogArgOption('UL','localunitdir',SHelpLocalUnitdir);
   LogArgOption('UG','globalunitdir',SHelpGlobalUnitdir);
+  LogArgOption('sp','searchpath',SHelpSearchPath);
   LogArgOption('U','unitinstalldir',SHelpUnitInstallDir);
   LogArgOption('r','compiler',SHelpCompiler);
   LogArgOption('f','config',SHelpConfig);
@@ -6006,23 +6065,27 @@ procedure TBuildEngine.ResolvePackagePaths(APackage:TPackage);
       end;
   end;
 
+var
+  i: Integer;
 begin
   if APackage.UnitDir='' then
     begin
       // Retrieve Full directory name where to find the units.
       // The search order is:
       //  - Package in this fpmake.pp
-      //  - LocalUnitDir
-      //  - GlobalUnitDir
+      //  - SearchPath, first paths first.
       if (APackage.State in [tsCompiled, tsNoCompile, tsInstalled]) then
         ResolveUnitConfigFilenameForBasePath(FStartDir);
-      if (APackage.UnitDir='') and
-         (Defaults.LocalUnitDir<>'') then
-        ResolveUnitConfigFilenameForBasePath(Defaults.LocalUnitDir);
-      if (APackage.UnitDir='') and
-         (Defaults.GlobalUnitDir<>'') then
-        ResolveUnitConfigFilenameForBasePath(Defaults.GlobalUnitDir);
-
+      if (APackage.UnitDir='') then
+        begin
+          for I := 0 to Defaults.SearchPath.Count-1 do
+            begin
+              if Defaults.SearchPath[i]<>'' then
+                ResolveUnitConfigFilenameForBasePath(Defaults.SearchPath[i]);
+              if (APackage.UnitDir<>'') then
+                Break
+            end;
+        end;
       if (APackage.UnitDir='') then
         APackage.UnitDir:=DirNotFound;
     end;
