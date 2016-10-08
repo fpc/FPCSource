@@ -2926,9 +2926,9 @@ implementation
                                              goes wrong when they have to be multiplied with the size of the elements
                                              to which the pointer points in ncginl (mantis #17342) }
                                            if is_signed(tcallparanode(tcallparanode(left).right).left.resultdef) then
-                                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptrsinttype)
+                                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,tpointerdef(tcallparanode(left).left.resultdef).pointer_arithmetic_int_type)
                                            else
-                                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptruinttype)
+                                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,tpointerdef(tcallparanode(left).left.resultdef).pointer_arithmetic_uint_type)
                                          end
                                        else if is_integer(tcallparanode(left).left.resultdef) then
                                          inserttypeconv(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef)
