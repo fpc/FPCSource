@@ -59,6 +59,7 @@ type
     class function default_x86_data_pointer_type: tx86pointertyp; override;
     function alignment:shortint;override;
     function pointer_arithmetic_int_type:tdef; override;
+    function pointer_arithmetic_uint_type:tdef; override;
     function pointer_subtraction_result_type:tdef; override;
     function converted_pointer_to_array_range_type: tdef; override;
   end;
@@ -435,6 +436,26 @@ implementation
           x86pt_near_fs,
           x86pt_near_gs:
             result:=s16inttype;
+          else
+            internalerror(2016100403);
+        end;
+      end;
+
+
+    function tcpupointerdef.pointer_arithmetic_uint_type:tdef;
+      begin
+        case x86pointertyp of
+          x86pt_huge:
+            result:=u32inttype;
+          x86pt_far,
+          x86pt_near,
+          x86pt_near_cs,
+          x86pt_near_ds,
+          x86pt_near_ss,
+          x86pt_near_es,
+          x86pt_near_fs,
+          x86pt_near_gs:
+            result:=u16inttype;
           else
             internalerror(2016100403);
         end;

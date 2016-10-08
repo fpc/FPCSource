@@ -255,6 +255,8 @@ interface
              Normally, this is sinttype, except on i8086, where it takes into account the
              special i8086 pointer types (near, far, huge). }
           function pointer_arithmetic_int_type:tdef;virtual;
+          {# the unsigned version of pointer_arithmetic_int_type. Used with inc/dec. }
+          function pointer_arithmetic_uint_type:tdef;virtual;
           {# returns the int type produced when subtracting two pointers of the given type.
              Normally, this is sinttype, except on i8086, where it takes into account the
              special i8086 pointer types (near, far, huge). }
@@ -3373,6 +3375,12 @@ implementation
     function tpointerdef.pointer_arithmetic_int_type:tdef;
       begin
         result:=ptrsinttype;
+      end;
+
+
+    function tpointerdef.pointer_arithmetic_uint_type:tdef;
+      begin
+        result:=ptruinttype;
       end;
 
 
