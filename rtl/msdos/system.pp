@@ -569,4 +569,7 @@ begin
    AllFilesMask := '*.*';
 { Reset IO Error }
   InOutRes:=0;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  InitSystemThreads;
+{$endif}
 end.
