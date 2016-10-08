@@ -63,9 +63,6 @@ FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
 FPMAKE_OPT+=-bu
-ifndef BUILDFULLNATIVE
-FPMAKE_OPT+=-sp
-endif
 .NOTPARALLEL:
 
 fpmkunit_clean_bootstrap:
