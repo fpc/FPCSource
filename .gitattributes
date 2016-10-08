@@ -8412,6 +8412,7 @@ rtl/atari/sysosh.inc svneol=native#text/plain
 rtl/atari/system.pp svneol=native#text/plain
 rtl/atari/sysutils.pp svneol=native#text/plain
 rtl/atari/tthread.inc svneol=native#text/plain
+rtl/atari/xbios.inc svneol=native#text/plain
 rtl/avr/avr.inc svneol=native#text/plain
 rtl/avr/int64p.inc svneol=native#text/plain
 rtl/avr/makefile.cpu svneol=native#text/plain
