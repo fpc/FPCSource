@@ -1249,7 +1249,7 @@ begin
       tkType:
         begin
         NextToken;
-        isHelper:=Curtoken=tkHelper;
+        isHelper:=CurTokenIsIdentifier('helper');
         UnGetToken;
         if isHelper then
           Result:=ParseClassDecl(Parent,NamePos,TypeName,okTypeHelper,PM)
@@ -1268,7 +1268,7 @@ begin
       tkRecord:
         begin
         NextToken;
-        if (Curtoken=tkHelper) then
+        if CurTokenIsIdentifier('Helper') then
           begin
           UnGetToken;
           Result:=ParseClassDecl(Parent,NamePos,TypeName,okRecordHelper,PM);
@@ -4676,7 +4676,7 @@ begin
         break;
       UngetToken;
       ExpectToken(tkComma);
-      Element:=ParseType(AType,Scanner.CurSourcePos); // search interface.
+      Element:=ParseType(AType,Scanner.CurSourcePos,'',False); // search interface.
       if assigned(element) then
         AType.Interfaces.add(element);
       end;
@@ -4727,7 +4727,7 @@ begin
     TPasClassOfType(Result).DestType := ParseType(Result,Scanner.CurSourcePos);
     exit;
     end;
-  if (CurToken = tkHelper) then
+  if (CurTokenIsIdentifier('Helper')) then
     begin
     if Not (AObjKind in [okClass,okTypeHelper,okRecordHelper]) then
       ParseExc(nParserHelperNotAllowed,SParserHelperNotAllowed,[ObjKindNames[AObjKind]]);

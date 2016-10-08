@@ -73,6 +73,7 @@ type
     Procedure TestOneField;
     Procedure TestOneFieldComment;
     procedure TestOneFieldStatic;
+    Procedure TestOneHelperField;
     Procedure TestOneVarField;
     Procedure TestOneClassField;
     Procedure TestOneFieldVisibility;
@@ -522,6 +523,15 @@ begin
   AssertMemberName('a');
   AssertVisibility;
   AssertTrue('Have static field',vmStatic in TPasVariable(Field1).VarModifiers);
+end;
+
+procedure TTestClassType.TestOneHelperField;
+begin
+  AddMember('helper : integer');
+  ParseClass;
+  AssertNotNull('Have 1 field',Field1);
+  AssertMemberName('helper');
+  AssertVisibility;
 end;
 
 procedure TTestClassType.TestOneFieldComment;

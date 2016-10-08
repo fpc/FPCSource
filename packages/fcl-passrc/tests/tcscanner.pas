@@ -895,7 +895,7 @@ end;
 
 procedure TTestScanner.TestHelper;
 begin
-  TestToken(tkHelper,'helper');
+  TestToken(tkIdentifier,'helper');
 end;
 
 
