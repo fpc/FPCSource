@@ -339,14 +339,6 @@ begin
         end;
       end;
     FindInstalledPackages(GFPpkg.FPMakeCompilerOptions,true);
-    // We only need to reload the status when we use a different
-    // configuration for compiling fpmake or when the CPU, OS or compiler
-    // are set in the command-line
-    if (GFPpkg.Options.GlobalSection.CompilerConfig<>GFPpkg.Options.GlobalSection.FPMakeCompilerConfig) or
-       (GFPpkg.CompilerOptions.CompilerCPU<>GFPpkg.FPMakeCompilerOptions.CompilerCPU) or
-       (GFPpkg.CompilerOptions.CompilerOS<>GFPpkg.FPMakeCompilerOptions.CompilerOS) or
-       (GFPpkg.CompilerOptions.Compiler<>GFPpkg.FPMakeCompilerOptions.Compiler) then
-      FindInstalledPackages(GFPpkg.CompilerOptions,true);
 
     // Check for broken dependencies
     if not GFPpkg.Options.CommandLineSection.AllowBroken and
