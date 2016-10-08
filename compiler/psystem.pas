@@ -370,7 +370,7 @@ implementation
   {$endif i8086}
 {$endif x86}
         set_default_ptr_types;
-        openchararraytype:=carraydef.create(0,-1,ptrsinttype);
+        openchararraytype:=carraydef.create(0,-1,sizesinttype);
         tarraydef(openchararraytype).elementdef:=cansichartype;
         cfiletype:=cfiledef.createuntyped;
         cvarianttype:=cvariantdef.create(vt_normalvariant);

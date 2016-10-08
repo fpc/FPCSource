@@ -933,9 +933,9 @@ implementation
                    begin
                      if is_signed(right.resultdef) and
                         not is_constnode(right) then
-                       inserttypeconv(right,ptrsinttype)
+                       inserttypeconv(right,sizesinttype)
                      else
-                       inserttypeconv(right,ptruinttype)
+                       inserttypeconv(right,sizeuinttype)
                    end
                  else if is_special_array(left.resultdef) then
                    {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
@@ -980,7 +980,7 @@ implementation
                         then
                        newordtyp:=Torddef(right.resultdef).ordtype
                      else
-                       newordtyp:=torddef(ptrsinttype).ordtype;
+                       newordtyp:=torddef(sizesinttype).ordtype;
                      inserttypeconv(right,corddef.create(newordtyp,
                                                          int64(Tarraydef(left.resultdef).lowrange),
                                                          int64(Tarraydef(left.resultdef).highrange),

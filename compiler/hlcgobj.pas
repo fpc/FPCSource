@@ -3442,20 +3442,20 @@ implementation
 
       { push parameter 3 }
       if highloc.loc=LOC_CONSTANT then
-        a_load_const_cgpara(list,ptrsinttype,highloc.value+1,cgpara3)
+        a_load_const_cgpara(list,sizesinttype,highloc.value+1,cgpara3)
       else
         begin
           if highloc.loc in [LOC_REGISTER,LOC_CREGISTER] then
             hreg:=highloc.register
           else
             begin
-              hreg:=getintregister(list,ptrsinttype);
-              a_load_loc_reg(list,ptrsinttype,ptrsinttype,highloc,hreg);
+              hreg:=getintregister(list,sizesinttype);
+              a_load_loc_reg(list,sizesinttype,sizesinttype,highloc,hreg);
             end;
           { increment, converts high(x) to length(x) }
-          lenreg:=getintregister(list,ptrsinttype);
-          a_op_const_reg_reg(list,OP_ADD,ptrsinttype,1,hreg,lenreg);
-          a_load_reg_cgpara(list,ptrsinttype,lenreg,cgpara3);
+          lenreg:=getintregister(list,sizesinttype);
+          a_op_const_reg_reg(list,OP_ADD,sizesinttype,1,hreg,lenreg);
+          a_load_reg_cgpara(list,sizesinttype,lenreg,cgpara3);
         end;
 
       { if calling convention is right to left, push parameters 2 and 1 }
@@ -3749,12 +3749,12 @@ implementation
           { load destination }
           a_load_reg_cgpara(list,ptrarrdef,destreg,cgpara2);
           { load size }
-          a_load_reg_cgpara(list,ptrsinttype,sizereg,cgpara3);
+          a_load_reg_cgpara(list,sizesinttype,sizereg,cgpara3);
         end
       else
         begin
           { load size }
-          a_load_reg_cgpara(list,ptrsinttype,sizereg,cgpara3);
+          a_load_reg_cgpara(list,sizesinttype,sizereg,cgpara3);
           { load destination }
           a_load_reg_cgpara(list,ptrarrdef,destreg,cgpara2);
           { load source }

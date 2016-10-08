@@ -696,10 +696,10 @@ implementation
     { true, if p points to an open array def }
     function is_open_array(p : tdef) : boolean;
       begin
-         { check for ptrsinttype is needed, because for unsigned the high
+         { check for sizesinttype is needed, because for unsigned the high
            range is also -1 ! (PFV) }
          result:=(p.typ=arraydef) and
-                 (tarraydef(p).rangedef=ptrsinttype) and
+                 (tarraydef(p).rangedef=sizesinttype) and
                  (tarraydef(p).lowrange=0) and
                  (tarraydef(p).highrange=-1) and
                  ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])=[]);

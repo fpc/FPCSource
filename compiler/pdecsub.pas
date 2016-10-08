@@ -410,7 +410,7 @@ implementation
                 consume(_ARRAY);
                 consume(_OF);
                 { define range and type of range }
-                hdef:=carraydef.create(0,-1,ptrsinttype);
+                hdef:=carraydef.create(0,-1,sizesinttype);
                 { array of const ? }
                 if (token=_CONST) and (m_objpas in current_settings.modeswitches) then
                  begin

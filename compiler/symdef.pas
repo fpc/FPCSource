@@ -3641,7 +3641,7 @@ implementation
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
-            result:=carraydef.create(0,elems-1,ptrsinttype);
+            result:=carraydef.create(0,elems-1,sizesinttype);
             result.elementdef:=def;
             setup_reusable_def(def,result,res,oldsymtablestack);
             { res^.Data may still be nil -> don't overwrite result }
