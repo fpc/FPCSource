@@ -112,11 +112,28 @@ Function UpperCase(Const S : AnsiString) : AnsiString;
   end;
 
 
+function UpperCase(const s: string; LocaleOptions: TLocaleOptions): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    case LocaleOptions of
+      loInvariantLocale: Result:=UpperCase(s);
+      loUserLocale: Result:=AnsiUpperCase(s);
+    end;
+  end;
+
 {   LowerCase returns a copy of S where all uppercase characters ( from A to Z )
     have been converted to lowercase  }
 Function Lowercase(Const S : AnsiString) : AnsiString;
   begin
     Result:=InternalChangeCase(S,['A'..'Z'],32);
+  end;
+
+
+function LowerCase(const s: string; LocaleOptions: TLocaleOptions): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    case LocaleOptions of
+      loInvariantLocale: Result:=LowerCase(s);
+      loUserLocale: Result:=AnsiLowerCase(s);
+    end;
   end;
 
 
@@ -165,6 +182,14 @@ begin
     result:=CAPSIZEINT(Count1-Count2);
 end;
 
+function CompareStr(const S1, S2: string; LocaleOptions: TLocaleOptions): Integer; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+begin
+  case LocaleOptions of
+    loInvariantLocale: Result:=CompareStr(S1,S2);
+    loUserLocale: Result:=AnsiCompareStr(S1,S2);
+  end;
+end;
+
 {   CompareMemRange returns the result of comparison of Length bytes at P1 and P2
     case       result
     P1 < P2    < 0
@@ -190,7 +215,7 @@ end;
     S1 > S2  > 0
     S1 = S2  = 0     }
 
-function CompareText(const S1, S2: string): Integer;
+function CompareText(const S1, S2: string): Integer; overload;
 
 var
   i, count, count1, count2: sizeint; 
@@ -231,16 +256,43 @@ begin
     result:=CAPSIZEINT(Count1-Count2);
 end;
 
-function SameText(const s1,s2:String):Boolean;
+function CompareText(const S1, S2: string; LocaleOptions: TLocaleOptions): Integer; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+
+begin
+  case LocaleOptions of
+    loInvariantLocale: Result:=CompareText(S1,S2);
+    loUserLocale: Result:=AnsiCompareText(S1,S2);
+  end;
+end;
+
+function SameText(const s1,s2:String):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 begin
  Result:=CompareText(S1,S2)=0;
 end;
 
-function SameStr(const s1,s2:String):Boolean;
+function SameText(const s1,s2:String; LocaleOptions: TLocaleOptions):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+
+begin
+  case LocaleOptions of
+    loInvariantLocale: Result:=SameText(S1,S2);
+    loUserLocale: Result:=AnsiSameText(S1,S2);
+  end;
+end;
+
+function SameStr(const s1,s2:String):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 begin
  Result:=CompareStr(S1,S2)=0;
+end;
+
+function SameStr(const s1,s2:String; LocaleOptions: TLocaleOptions):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+
+begin
+  case LocaleOptions of
+    loInvariantLocale: Result:=SameStr(S1,S2);
+    loUserLocale: Result:=AnsiSameStr(S1,S2);
+  end;
 end;
 
 {$ifndef FPC_NOGENERICANSIROUTINES}

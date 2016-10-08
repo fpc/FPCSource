@@ -20,6 +20,7 @@
 
 type
    PString = ObjPas.PString;
+   TLocaleOptions = (loInvariantLocale, loUserLocale);
 
    { For FloatToText }
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
@@ -69,16 +70,22 @@ procedure DisposeStr(S: PShortString); overload;
 procedure AssignStr(var P: PString; const S: string);
 procedure AppendStr(var Dest: String; const S: string);
 function UpperCase(const s: string): string; overload;
+function UpperCase(const s: string; LocaleOptions: TLocaleOptions): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function LowerCase(const s: string): string; overload;
+function LowerCase(const s: string; LocaleOptions: TLocaleOptions): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 { the compiler can't decide else if it should use the char or the ansistring
   version for a variant }
 function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function CompareStr(const S1, S2: string): Integer; overload;
+function CompareStr(const S1, S2: string; LocaleOptions: TLocaleOptions): Integer; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function CompareMemRange(P1, P2: Pointer; Length: PtrUInt): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function CompareMem(P1, P2: Pointer; Length: PtrUInt): Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function CompareText(const S1, S2: string): Integer;
-function SameText(const s1,s2:String):Boolean;
-function SameStr(const s1,s2:String):Boolean;
+function CompareText(const S1, S2: string): Integer; overload;
+function CompareText(const S1, S2: string; LocaleOptions: TLocaleOptions): Integer; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function SameText(const s1,s2:String):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function SameText(const s1,s2:String; LocaleOptions: TLocaleOptions):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function SameStr(const s1,s2:String):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function SameStr(const s1,s2:String; LocaleOptions: TLocaleOptions):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 function AnsiUpperCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
