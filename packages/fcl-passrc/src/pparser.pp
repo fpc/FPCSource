@@ -1279,7 +1279,7 @@ begin
           Result := ParseRecordDecl(Parent,NamePos,TypeName,PM);
           end;
         end;
-      tkNumber,tkMinus:
+      tkNumber,tkMinus,tkChar:
         begin
         UngetToken;
         Result:=ParseRangeType(Parent,NamePos,TypeName,Full);

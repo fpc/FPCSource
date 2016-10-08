@@ -30,7 +30,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestStatementParser.TestTryExceptRaise"/>
+        <CommandLineParams Value="--suite=TTestTypeParser.TestCharRangeType"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">

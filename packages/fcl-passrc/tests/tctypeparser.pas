@@ -128,6 +128,7 @@ type
     Procedure TestFileTypeDeprecated;
     Procedure TestFileTypePlatform;
     Procedure TestRangeType;
+    Procedure TestCharRangeType;
     Procedure TestRangeTypeDeprecated;
     Procedure TestRangeTypePlatform;
     Procedure TestIdentifierRangeType;
@@ -3020,6 +3021,11 @@ end;
 procedure TTestTypeParser.TestRangeType;
 begin
   DoTestRangeType('1','4','');
+end;
+
+procedure TTestTypeParser.TestCharRangeType;
+begin
+  DoTestRangeType('#1','#4','');
 end;
 
 procedure TTestTypeParser.TestRangeTypeDeprecated;
