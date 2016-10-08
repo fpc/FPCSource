@@ -1057,7 +1057,7 @@ begin
       else
         ParseExcSyntaxError;
       end
-    else if CurToken=tkDotDot then // Type A = A..B;
+    else if (CurToken in [tkBraceOpen,tkDotDot]) then // Type A = B..C;
       K:=stkRange
     else
       ParseExcTokenError(';');

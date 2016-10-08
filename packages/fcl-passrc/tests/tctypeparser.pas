@@ -3099,6 +3099,8 @@ end;
 procedure TTestTypeParser.TestRangeLowHigh;
 
 begin
+   TShortCut = Low(Word)..High(Word);
+
   DoParseRangeSet('low(TRange)..high(TRange)','');
 end;
 
