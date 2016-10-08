@@ -3715,7 +3715,7 @@ begin
     SourcePath.AddList(PackageVariants.ActivePackageVariant.SourcePath);
     Dictionary.AddVariable(PackageVariants.Name,PackageVariants.ActivePackageVariantName);
     SetUnitsOutputDir(IncludeTrailingPathDelimiter(FUnitsOutputDir)+'$('+PackageVariants.name+')');
-    SetPackageUnitInstallDir(IncludeTrailingPathDelimiter(FPackageUnitInstallDir)+'$('+PackageVariants.Name+')');
+    SetPackageUnitInstallDir(FixPath(FPackageUnitInstallDir, True)+'$('+PackageVariants.Name+')');
     // Do not add targets f the package is inherited
     if PackageVariants.MasterPackage=Self then
       for j := 0 to PackageVariants.ActivePackageVariant.Targets.count -1 do
@@ -7152,7 +7152,7 @@ begin
     // target
     if InstallPackageFiles(APackage,[],D, imInstall) then
       B:=true;
-    D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), True)+APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS);
+    D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), True)+ExcludeLeadingPathDelimiter(APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS));
     if InstallPackageFiles(APackage,[ttUnit, ttImplicitUnit],D, imInstall) then
       B:=true;
     // By default do not install the examples. Maybe add an option for this later
