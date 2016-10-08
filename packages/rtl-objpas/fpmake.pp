@@ -15,18 +15,18 @@ Const
 //  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
 //    unixlikes-[beos];
 // 
-  StrUtilsOSes  = [amiga,aros,emx,gba,go32v2,msdos,nds,netware,wince,morphos,nativent,os2,netwlibc,win32,win64]+UnixLikes;
-  VarUtilsOSes  = [amiga,aros,emx,gba,go32v2,msdos,nds,netware,wince,morphos,nativent,os2,netwlibc,watcom,wii,win32,win64]+UnixLikes;
-  ConvUtilsOSes = [nativent,netware,netwlibc,win32,win64,wince]+UnixLikes-[BeOS];
-  ConvUtilOSes  = [Go32v2,msdos,os2,emx];
-  DateUtilsOSes = [Amiga,aros,gba,morphos,nativent,nds,netware,netwlibc,wii,win32,win64,wince]+UnixLikes;
-  DateUtilOSes  = [Go32v2,msdos,os2,emx];
+  StrUtilsOSes  = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,win32,win64]+UnixLikes+AllAmigaLikeOSes;
+  VarUtilsOSes  = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,watcom,wii,win32,win64]+UnixLikes+AllAmigaLikeOSes;
+  ConvUtilsOSes = [nativent,netware,netwlibc,win32,win64,wince]+AllAmigaLikeOSes+UnixLikes-[BeOS];
+  ConvUtilOSes  = [atari,Go32v2,msdos,os2,emx];
+  DateUtilsOSes = [gba,nativent,nds,netware,netwlibc,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
+  DateUtilOSes  = [atari,Go32v2,msdos,os2,emx];
   StdConvsOSes  = [NativeNT,Win32,win64,os2,msdos,go32v2]+UnixLikes-[BeOS];
-  FmtBCDOSes    = [amiga,aros,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
-  VariantsOSes  = [amiga,aros,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,win32,win64,wince]+UnixLikes;
+  FmtBCDOSes    = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
+  VariantsOSes  = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
   AllTargetsObjPas = DateUtilsOses +DateUtilOSes+
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+
-		  FmtBCDOSes + StrUtilsOSes;
+                  FmtBCDOSes + StrUtilsOSes;
 
 Var
   P : TPackage;
@@ -53,12 +53,13 @@ begin
     P.SourcePath.Add('src/unix',AllUnixOSes);
     P.SourcePath.Add('src/os2commn',[os2,emx]);
     P.SourcePath.Add('src/win',[win32,win64]);
+    P.SourcePath.Add('src/common',AllAmigaLikeOSes+[atari]);
 
     P.IncludePath.Add('src/inc');
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/darwin',[iphonesim]);
-
+    P.IncludePath.Add('src/common',AllAmigaLikeOSes+[atari]);
 
     T:=P.Targets.AddUnit('strutils.pp',StrUtilsOses);
     T:=P.Targets.AddUnit('widestrutils.pp',StrUtilsOses-ConvUtilOSes);
