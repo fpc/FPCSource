@@ -182,6 +182,7 @@ stkerr:                                 | not enough memory for stack
 stkovf:                                 | impending stack overflow
 	.ascii   "Stack overflow"
    .byte     0x0d,0x0a,0x00
+.even
 _errno:                                 | system error number
 	.word   0
 __ARGC:                                 | number of command line args
