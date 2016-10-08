@@ -80,6 +80,7 @@ type
     Procedure TestFunctionOneArgDefaultExpr;
     procedure TestProcedureTwoArgsDefault;
     Procedure TestFunctionTwoArgsDefault;
+    procedure TestFunctionOneArgEnumeratedExplicit;
     procedure TestProcedureOneUntypedVarArg;
     Procedure TestFunctionOneUntypedVarArg;
     procedure TestProcedureTwoUntypedVarArgs;
@@ -560,6 +561,13 @@ begin
   ParseFunction('(B : Integer = 1)');
   AssertFunc([],ccDefault,1);
   AssertArg(FuncType,0,'B',argDefault,'Integer','1');
+end;
+
+procedure TTestProcedureFunction.TestFunctionOneArgEnumeratedExplicit;
+begin
+  ParseFunction('(B : TSomeEnum = TSomeEnum.False)');
+  AssertFunc([],ccDefault,1);
+  AssertArg(FuncType,0,'B',argDefault,'TSomeEnum','TSomeEnum.False');
 end;
 
 procedure TTestProcedureFunction.TestProcedureOneArgDefaultSet;

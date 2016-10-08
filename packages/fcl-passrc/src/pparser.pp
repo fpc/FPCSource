@@ -1063,7 +1063,7 @@ begin
       ParseExcTokenError(';');
     UnGetToken;
     end
-  else if (CurToken=tkDotDot) then // A: B..C;
+  else if (CurToken in [tkBraceOpen,tkDotDot]) then // A: B..C;
     begin
     K:=stkRange;
     UnGetToken;
@@ -1225,7 +1225,7 @@ Const
   NoHintTokens = [tkProcedure,tkFunction];
 var
   PM : TPackMode;
-  CH , ok: Boolean; // Check hint ?
+  CH , isHelper,ok: Boolean; // Check hint ?
 begin
   Result := nil;
   // NextToken and check pack mode
@@ -1246,7 +1246,16 @@ begin
       tkInterface: Result := ParseClassDecl(Parent, NamePos, TypeName, okInterface);
       tkSpecialize: Result:=ParseSpecializeType(Parent,TypeName);
       tkClass: Result := ParseClassDecl(Parent, NamePos, TypeName, okClass, PM);
-      tkType: Result:=ParseAliasType(Parent,NamePos,TypeName);
+      tkType:
+        begin
+        NextToken;
+        isHelper:=Curtoken=tkHelper;
+        UnGetToken;
+        if isHelper then
+          Result:=ParseClassDecl(Parent,NamePos,TypeName,okTypeHelper,PM)
+        else
+          Result:=ParseAliasType(Parent,NamePos,TypeName);
+        end;
       // Always allowed
       tkIdentifier: Result:=ParseSimpleType(Parent,NamePos,TypeName,Full);
       tkCaret: Result:=ParsePointerType(Parent,NamePos,TypeName);
@@ -1552,7 +1561,7 @@ begin
       while CurToken in [tkDot] do
         begin
         NextToken;
-        if CurToken=tkIdentifier then
+        if CurToken in [tkIdentifier,tktrue,tkfalse] then // true and false are also identifiers
           begin
           AddToBinaryExprChain(Result,Last,
             CreatePrimitiveExpr(AParent,pekIdent,CurTokenString), eopSubIdent);
@@ -4498,17 +4507,32 @@ Var
   VarList: TFPList;
   Element: TPasElement;
   I : Integer;
+  isStatic : Boolean;
 
 begin
   VarList := TFPList.Create;
   try
     ParseInlineVarDecl(AType, VarList, AVisibility, False);
+    if CurToken=tkSemicolon then
+      begin
+      NextToken;
+      isStatic:=CurTokenIsIdentifier('static');
+      if isStatic then
+        ExpectToken(tkSemicolon)
+      else
+        UngetToken;
+      end;
     for i := 0 to VarList.Count - 1 do
       begin
       Element := TPasElement(VarList[i]);
       Element.Visibility := AVisibility;
-      if IsClassField and (Element is TPasVariable) then
-        TPasVariable(Element).VarModifiers:=TPasVariable(Element).VarModifiers+[vmClass];
+      if (Element is TPasVariable) then
+        begin
+        if IsClassField then
+          TPasVariable(Element).VarModifiers:=TPasVariable(Element).VarModifiers+[vmClass];
+        if isStatic then
+          TPasVariable(Element).VarModifiers:=TPasVariable(Element).VarModifiers+[vmStatic];
+        end;
       AType.Members.Add(Element);
       end;
   finally
@@ -4689,10 +4713,11 @@ function TPasParser.ParseClassDecl(Parent: TPasElement;
 
 Var
   ok: Boolean;
+  FT : TPasType;
 
 begin
   NextToken;
-
+  FT:=Nil;
   if (AObjKind = okClass) and (CurToken = tkOf) then
     begin
     Result := TPasClassOfType(CreateElement(TPasClassOfType, AClassName,
@@ -4704,15 +4729,22 @@ begin
     end;
   if (CurToken = tkHelper) then
     begin
-    if Not (AObjKind in [okClass,okRecordHelper]) then
+    if Not (AObjKind in [okClass,okTypeHelper,okRecordHelper]) then
       ParseExc(nParserHelperNotAllowed,SParserHelperNotAllowed,[ObjKindNames[AObjKind]]);
-    if (AObjKind = okClass)  then
-      AObjKind:=okClassHelper;
+    Case AObjKind of
+     okClass:
+        AObjKind:=okClassHelper;
+     okTypeHelper:
+       begin
+       ExpectToken(tkFor);
+       FT:=ParseType(Parent,Scanner.CurSourcePos,'',False);
+       end
+    end;
     NextToken;
     end;
   Result := TPasClassType(CreateElement(TPasClassType, AClassName,
     Parent, NamePos));
-
+  TPasClassType(Result).HelperForType:=FT;
   ok:=false;
   try
     TPasClassType(Result).ObjKind := AObjKind;

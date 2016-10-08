@@ -705,7 +705,7 @@ type
   end;
 
   { TPasVariable }
-  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass);
+  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass,vmStatic);
   TVariableModifiers = set of TVariableModifier;
 
   TPasVariable = class(TPasElement)
@@ -4138,7 +4138,11 @@ begin
   If Kind=pekRange then
     Result:='..'
   else
-    Result:=' '+OpcodeStrings[Opcode]+' ';
+    begin
+    Result:=OpcodeStrings[Opcode];
+    if Not (OpCode in [eopAddress,eopDeref,eopSubIdent]) then
+      Result:=' '+Result+' ';
+    end;
   If Assigned(Left) then
   begin
     op := Left.GetDeclaration(Full);

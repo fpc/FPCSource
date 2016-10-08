@@ -33,6 +33,7 @@ type
   TTestTypeParser = Class(TBaseTestTypeParser)
   private
   Protected
+    procedure StartTypeHelper(ForType: String; AParent: String);
     Procedure DoTestAliasType(Const AnAliasType : String; Const AHint : String);
     procedure DoTestStringType(const AnAliasType: String; const AHint: String);
     procedure DoTypeError(Const AMsg,ASource : string);
@@ -139,6 +140,7 @@ type
     Procedure TestComplexSet;
     Procedure TestComplexSetDeprecated;
     Procedure TestComplexSetPlatform;
+    procedure TestRangeLowHigh;
     Procedure TestRangeSet;
     Procedure TestSubRangeSet;
     Procedure TestRangeSetDeprecated;
@@ -155,6 +157,7 @@ type
     Procedure TestReferenceArray;
     Procedure TestReferencePointer;
     Procedure TestInvalidColon;
+    Procedure TestTypeHelper;
   end;
 
   { TTestRecordTypeParser }
@@ -2326,6 +2329,7 @@ Function TBaseTestTypeParser.ParseType(ASource: String; ATypeClass: TClass;
 
 Var
   D : String;
+
 begin
   Hint:=AHint;
   Add('Type');
@@ -2340,11 +2344,19 @@ begin
   Add('  '+D+';');
 //  Writeln(source.text);
   ParseDeclarations;
-  AssertEquals('One type definition',1,Declarations.Types.Count);
+  if ATypeClass.InHeritsFrom(TPasClassType) then
+    AssertEquals('One type definition',1,Declarations.Classes.Count)
+  else
+    AssertEquals('One type definition',1,Declarations.Types.Count);
   If (AtypeClass<>Nil) then
-    AssertEquals('First declaration is type definition.',ATypeClass,TObject(Declarations.Types[0]).ClassType);
-  AssertEquals('First declaration has correct name.','A',TPasType(Declarations.Types[0]).Name);
-  Result:=TPasType(Declarations.Types[0]);
+    begin
+    if ATypeClass.InHeritsFrom(TPasClassType) then
+      Result:=TPasType(Declarations.Classes[0])
+    else
+      Result:=TPasType(Declarations.Types[0]);
+    AssertEquals('First declaration is type definition.',ATypeClass,Result.ClassType);
+    end;
+  AssertEquals('First declaration has correct name.','A',Result.Name);
   FType:=Result;
   Definition:=Result;
   if (Hint<>'') then
@@ -3044,6 +3056,13 @@ begin
   DoTestComplexSet;
 end;
 
+procedure TTestTypeParser.TestRangeLowHigh;
+
+begin
+  DoParseRangeSet('low(TRange)..high(TRange)','');
+end;
+
+
 procedure TTestTypeParser.TestRangeSet;
 begin
   // TRange = (rLow, rMiddle, rHigh);
@@ -3196,6 +3215,28 @@ begin
       ok:=true;
   end;
   AssertEquals('wrong colon in type raised an error',true,ok);
+end;
+
+
+procedure TTestTypeParser.StartTypeHelper(ForType: String; AParent: String);
+Var
+  S : String;
+begin
+
+  S:='TMyClass = Type Helper';
+  if (AParent<>'') then
+    begin
+    S:=S+'('+AParent;
+    S:=S+')';
+    end;
+  S:=S+' for '+ForType;
+  Add(S);
+
+end;
+
+procedure TTestTypeParser.TestTypeHelper;
+begin
+  ParseType('Type Helper for AnsiString end',TPasClassType,'');
 end;
 
 initialization

@@ -30,7 +30,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestTypeParser.TestGenericArray"/>
+        <CommandLineParams Value="--suite=TTestTypeParser.TestRangeLowHigh"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">
