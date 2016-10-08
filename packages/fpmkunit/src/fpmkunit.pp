@@ -3611,7 +3611,7 @@ begin
     Add(' ' + GetXMLVersionString(FVersion.Major,FVersion.Minor,FVersion.Micro,FVersion.Build));
     AddOSes(' ',OSes);
     AddCPUs(' ',CPUs);
-    Add(Format(' <filename>%s</filename>',[QuoteXml(FileName + ZipExt)]));
+    Add(Format(' <filename>%s</filename>',[QuoteXml(FileName + MakeZipSuffix(cpuNone, osNone) + ZipExt)]));
     Add(Format(' <author>%s</author>',[QuoteXml(Author)]));
     Add(Format(' <license>%s</license>',[QuoteXml(License)]));
     if HomepageURL<>'' then
