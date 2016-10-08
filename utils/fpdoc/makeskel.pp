@@ -132,8 +132,8 @@ Var
 begin
   If Assigned(FModules) then 
     begin
-    For I:=0 to FModules.Count-1 do
-      FModules.Objects[i].Free;
+   { For I:=0 to FModules.Count-1 do
+      FModules.Objects[i].Release;}
     FreeAndNil(FModules);    
     end;
 end;
@@ -145,7 +145,7 @@ Var
   PT,PP : TPasElement;
 begin
   ParentVisible:=True;
-  If (El is TPasArgument) or (El is TPasResultElement) then
+  If (El is TPasArgument) or (El is TPasResultElement) or (el is TPasExpr)  then
     begin
     PT:=El.Parent;
     // Skip ProcedureType or PasFunctionType
@@ -165,10 +165,11 @@ begin
       end;
     end;
   Result:=Assigned(El.Parent) and (Length(El.Name) > 0) and
+          (Not (El is TPasExpr)) and
           (ParentVisible and (not DisableArguments or (El.ClassType <> TPasArgument))) and
           (ParentVisible and (not DisableFunctionResults or (El.ClassType <> TPasResultElement))) and
-          (not DisablePrivate or (el.Visibility<>visPrivate)) and
-          (not DisableProtected or (el.Visibility<>visProtected));
+          (not DisablePrivate or (Not (el.Visibility in [visPrivate,visStrictPrivate]))) and
+          (not DisableProtected or (Not (el.Visibility in [visProtected,visStrictProtected])));
   If Result and Full then
     begin
     Result:=(Not Assigned(FEmittedList) or (FEmittedList.IndexOf(El.FullName)=-1));
