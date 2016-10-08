@@ -99,6 +99,8 @@ function gemdos_getdta: PDTA; syscall 1 47;
 
 function gemdos_dfree(buf: PDISKINFO; driveno: smallint): smallint; syscall 1 54;
 
+function gemdos_dcreate(const path: pchar): longint; syscall 1 57;
+function gemdos_ddelete(const path: pchar): longint; syscall 1 58;
 function gemdos_dsetpath(path: pchar): smallint; syscall 1 59;
 
 function gemdos_fcreate(fname: pchar; attr: smallint): smallint; syscall 1 60;
