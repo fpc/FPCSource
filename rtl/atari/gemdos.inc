@@ -116,6 +116,8 @@ function gemdos_dgetpath(path: pchar; driveno: smallint): smallint; syscall 1 71
 function gemdos_malloc(number: dword): pointer; syscall 1 72;
 function gemdos_free(block: pointer): dword; syscall 1 73;
 
+procedure gemdos_pterm(returncode: smallint); syscall 1 76;
+
 function gemdos_fsfirst(filename: pchar; attr: smallint): longint; syscall 1 78;
 function gemdos_fsnext: smallint; syscall 1 79;
 
