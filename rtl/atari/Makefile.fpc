@@ -7,11 +7,12 @@ main=rtl
 
 [target]
 loaders=prt0
-units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings \
-      dos heaptrc lineinfo ctypes \
+units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
+      heaptrc lineinfo ctypes \
       sysutils fgl classes math typinfo \
       charset cpall getopts  \
       types rtlconsts sysconst
+# dos extpas
 implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
 # \
@@ -103,8 +104,8 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
 
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/extpas.pp
+#extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#        $(COMPILER) $(INC)/extpas.pp
 
 #
 # System Dependent Units
@@ -118,13 +119,13 @@ extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) dos.pp
+#dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
+#               $(SYSTEMUNIT)$(PPUEXT)
+#	$(COMPILER) dos.pp
 
 #crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
@@ -135,7 +136,7 @@ objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT)
+                    objpas$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
@@ -203,44 +204,3 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
-#
-# Other system-dependent RTL Units
-#
-
-#exec$(PPUEXT)    : exec.pp execf.inc execd.inc
-
-#timer$(PPUEXT)   : timer.pp timerd.inc timerf.inc
-
-#utility$(PPUEXT) : utility.pp exec$(PPUEXT) utilf.inc utild1.inc utild2.inc
-
-#doslib$(PPUEXT)  : doslib.pp exec$(PPUEXT) timer$(PPUEXT) doslibd.inc doslibf.inc
-
-#hardware$(PPUEXT): hardware.pas exec$(PPUEXT)
-
-#inputevent$(PPUEXT): inputevent.pas exec$(PPUEXT) timer$(PPUEXT) utility$(PPUEXT)
-
-#graphics$(PPUEXT): graphics.pas exec$(PPUEXT) utility$(PPUEXT) hardware$(PPUEXT)
-
-#layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
-
-#intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
-#                    inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
-
-#aboxlib$(PPUEXT): aboxlib.pas
-
-#clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
-
-#datatype$(PPUEXT): datatypes.pas exec$(PPUEXT) doslib$(PPUEXT) intuition$(PPUEXT) \
-#                   utility$(PPUEXT) graphics$(PPUEXT)
-
-#asl$(PPUEXT): asl.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
-
-#ahi$(PPUEXT): ahi.pas exec$(PPUEXT) utility$(PPUEXT)
-
-#mui$(PPUEXT): mui.pas exec$(PPUEXT) utility$(PPUEXT) intuition$(PPUEXT) graphics$(PPUEXT)
-
-#tinygl$(PPUEXT): tinygl.pp exec$(PPUEXT)
-
-#get9$(PPUEXT): get9.pas exec$(PPUEXT)
-
-#muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
