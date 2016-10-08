@@ -32,7 +32,7 @@ type
     FPath: string;
     FCompilerOptions: TCompilerOptions;
   public
-    constructor Create(AOwner: TComponent; APath: string; ACompilerOptions: TCompilerOptions);
+    constructor Create(AOwner: TComponent; APath: string; ACompilerOptions: TCompilerOptions); virtual;
   end;
 
   { TFPInstalledPackagesStructure }
@@ -53,7 +53,9 @@ type
 
   TFPCurrentDirectoryPackagesStructure = class(TFPCustomFileSystemPackagesStructure)
   public
+    constructor Create(AOwner: TComponent; APath: string; ACompilerOptions: TCompilerOptions); override;
     function AddPackagesToRepository(ARepository: TFPRepository): Boolean; override;
+    function GetBuildPathDirectory(APackage: TFPPackage): string; override;
   end;
 
   { TFPOriginalSourcePackagesStructure }
@@ -155,11 +157,27 @@ end;
 
 { TFPCurrentDirectoryPackagesStructure }
 
+constructor TFPCurrentDirectoryPackagesStructure.Create(AOwner: TComponent; APath: string;
+  ACompilerOptions: TCompilerOptions);
+begin
+  if APath = '' then
+    APath := GetCurrentDir;
+  inherited Create(AOwner, APath, ACompilerOptions);
+end;
+
 function TFPCurrentDirectoryPackagesStructure.AddPackagesToRepository(
   ARepository: TFPRepository): Boolean;
+var
+  Package: TFPPackage;
 begin
   Result := True;
-  ARepository.AddPackage(CurrentDirPackageName);
+  Package := ARepository.AddPackage(CurrentDirPackageName);
+  Package.PackagesStructure := Self;
+end;
+
+function TFPCurrentDirectoryPackagesStructure.GetBuildPathDirectory(APackage: TFPPackage): string;
+begin
+  Result := FPath;
 end;
 
 { TFPRemotePackagesStructure }

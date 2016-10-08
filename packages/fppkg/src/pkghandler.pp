@@ -124,20 +124,7 @@ end;
 
 function PackageBuildPath(APackage:TFPPackage):String;
 begin
-  if APackage.Name=CurrentDirPackageName then
-    begin
-      // It could be that to resolve some dependencies, the current directory changes. The first time
-      // PackageBuildPath is called the dependencies are not resolved yet, so store the current directory
-      // for later calls.
-      if CurrentDir='' then
-        begin
-          Result:='.';
-          CurrentDir := SysUtils.GetCurrentDir;
-        end
-      else
-        Result:=CurrentDir;
-    end
-  else if (APackage.Name=CmdLinePackageName) or (APackage.Name=URLPackageName) then
+  if (APackage.Name=CmdLinePackageName) or (APackage.Name=URLPackageName) then
     Result:=GFPpkg.Options.GlobalSection.BuildDir+ChangeFileExt(ExtractFileName(APackage.LocalFileName),'')
   else if Assigned(APackage.PackagesStructure) and (APackage.PackagesStructure.GetBuildPathDirectory(APackage)<>'') then
     Result:=APackage.PackagesStructure.GetBuildPathDirectory(APackage)
