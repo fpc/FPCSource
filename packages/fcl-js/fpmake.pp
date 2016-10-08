@@ -25,6 +25,8 @@ begin
     P.Description := 'Javascript scanner/parser/syntax tree units';
     P.OSes:=AllOSes-[embedded,msdos,win16];
 
+    P.Dependencies.Add('fcl-base');
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
