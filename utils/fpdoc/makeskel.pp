@@ -50,12 +50,15 @@ type
     Property DocNode : TDocNode Read FNode;
   end;
 
+  { TSkelEngine }
+
   TSkelEngine = class(TFPDocEngine)
   Private
     FEmittedList, 
     FNodeList,
     FModules : TStringList;
     Procedure  DoWriteUnReferencedNodes(N : TDocNode; NodePath : String);
+    function EffectiveVisibility(El: TPasElement): TPasMemberVisibility;
   public
     Destructor Destroy; override;
     Function MustWriteElement(El : TPasElement; Full : Boolean) : Boolean;
@@ -138,38 +141,50 @@ begin
     end;
 end;
 
+Function TSkelEngine.EffectiveVisibility (El : TPasElement) :  TPasMemberVisibility;
+
+Var
+  V : TPasMemberVisibility;
+
+begin
+  Result:=EL.Visibility;
+  El:=el.Parent;
+  While Assigned(El) do
+    begin
+    V:=EL.Visibility;
+    if V=visStrictPrivate then
+      V:=visPrivate
+    else if V=visStrictProtected then
+      V:=visProtected;
+    if (V<>visDefault) and ((V<Result) or (Result=visDefault)) then
+      Result:=V;
+    EL:=el.Parent;
+    end;
+end;
+
 Function TSkelEngine.MustWriteElement(El : TPasElement; Full : Boolean) : Boolean;
 
 Var
-  ParentVisible:Boolean;
-  PT,PP : TPasElement;
+  VisibilityOK : Boolean;
+  V : TPasMemberVisibility;
+
+
 begin
-  ParentVisible:=True;
-  If (El is TPasArgument) or (El is TPasResultElement) or (el is TPasExpr)  then
-    begin
-    PT:=El.Parent;
-    // Skip ProcedureType or PasFunctionType
-    If (PT<>Nil) then
-      begin
-      if (PT is TPasProcedureType) or (PT is TPasFunctionType) then
-        PT:=PT.Parent;
-      If (PT<>Nil) and ((PT is TPasProcedure) or (PT is TPasProcedure))   then
-        PP:=PT.Parent
-      else
-        PP:=Nil;
-      If (PP<>Nil) and (PP is TPasClassType) then
-        begin
-        ParentVisible:=((not DisablePrivate or (PT.Visibility<>visPrivate)) and
-                       (not DisableProtected or (PT.Visibility<>visProtected)));
-        end;
-      end;
-    end;
-  Result:=Assigned(El.Parent) and (Length(El.Name) > 0) and
-          (Not (El is TPasExpr)) and
-          (ParentVisible and (not DisableArguments or (El.ClassType <> TPasArgument))) and
-          (ParentVisible and (not DisableFunctionResults or (El.ClassType <> TPasResultElement))) and
-          (not DisablePrivate or (Not (el.Visibility in [visPrivate,visStrictPrivate]))) and
-          (not DisableProtected or (Not (el.Visibility in [visProtected,visStrictProtected])));
+  V:=EffectiveVisibility(El);
+  Case V of
+    visPrivate,visStrictPrivate:
+      VisibilityOK:= not DisablePrivate;
+    visProtected,visStrictProtected:
+      VisibilityOK:= not DisableProtected;
+  else
+    VisibilityOK:=True;
+  end;
+  Result:= Assigned(el.Parent)
+           and (Length(El.Name) > 0)
+           and VisibilityOK
+           and (Not (El is TPasExpr))
+           and (not DisableArguments or (El.ClassType <> TPasArgument))
+           and (not DisableFunctionResults or (El.ClassType <> TPasResultElement));
   If Result and Full then
     begin
     Result:=(Not Assigned(FEmittedList) or (FEmittedList.IndexOf(El.FullName)=-1));
