@@ -1320,7 +1320,8 @@ const
       visPublished, visAutomated];
 
   VisibilityNames: array[TPasMemberVisibility] of string = (
-    'default', 'private', 'protected', 'public', 'published', 'automated','strict private', 'strict protected');
+    'default','private', 'protected', 'public', 'published', 'automated',
+    'strict private', 'strict protected');
 
   ObjKindNames: array[TPasObjKind] of string = (
     'object', 'class', 'interface','class','class','class helper','record helper','type helper');
