@@ -161,6 +161,7 @@ type
     Procedure TestFunctionCdeclExternalName;
     Procedure TestOperatorTokens;
     procedure TestOperatorNames;
+    Procedure TestFunctionNoResult;
   end;
 
 implementation
@@ -1204,6 +1205,21 @@ begin
       else
         AssertEquals('Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
       end;
+end;
+
+procedure TTestProcedureFunction.TestFunctionNoResult;
+begin
+  Add('unit afile;');
+  Add('{$mode delphi}');
+  Add('interface');
+  Add('function TestDelphiModeFuncs(d:double):string;');
+  Add('implementation');
+  Add('function TestDelphiModeFuncs;');
+  Add('begin');
+  Add('end;');
+  EndSource;
+  Parser.Options:=[po_delphi];
+  ParseModule;
 end;
 
 procedure TTestProcedureFunction.SetUp;

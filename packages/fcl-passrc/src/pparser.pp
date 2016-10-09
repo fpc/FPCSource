@@ -1072,11 +1072,6 @@ begin
     K:=stkRange;
     UnGetToken;
     end
-  else if (CurToken = tkLessThan) then // A = B<t>;
-    begin
-    K:=stkSpecialize;
-    UnGetToken;
-    end
   else
     begin
     UnGetToken;
@@ -3359,6 +3354,7 @@ Var
   PM : TProcedureModifier;
   Done: Boolean;
   ResultEl: TPasResultElement;
+  I : Integer;
 
 begin
   // Element must be non-nil. Removed all checks for not-nil.
@@ -3367,9 +3363,36 @@ begin
   case ProcType of
     ptFunction,ptClassFunction:
       begin
-      ExpectToken(tkColon);
-      ResultEl:=TPasFunctionType(Element).ResultEl;
-      ResultEl.ResultType := ParseType(ResultEl,Scanner.CurSourcePos);
+      NextToken;
+      if CurToken = tkColon then
+        begin
+        ResultEl:=TPasFunctionType(Element).ResultEl;
+        ResultEl.ResultType := ParseType(ResultEl,Scanner.CurSourcePos);
+        end
+      // In Delphi mode, the implementation in the implementation section can be without result as it was declared
+      // We actually check if the function exists in the interface section.
+      else if (po_delphi in Options) and Assigned(CurModule.ImplementationSection) then
+        begin
+        I:=-1;
+        if Assigned(CurModule.InterfaceSection) then
+          begin
+          I:=CurModule.InterfaceSection.Functions.Count-1;
+          While (I>=0) and (CompareText(TPasElement(CurModule.InterfaceSection.Functions[i]).Name,Parent.Name)<>0) do
+            Dec(I);
+          end;
+        if (I=-1) then
+          CheckToken(tkColon)
+        else
+          begin
+          CheckToken(tkSemiColon);
+          UngetToken;
+          end;
+        end
+      else
+        begin
+        // Raise error
+        CheckToken(tkColon);
+        end;
       end;
     ptOperator,ptClassOperator:
       begin
