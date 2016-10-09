@@ -14,7 +14,7 @@ Const
 
 //  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
 //    unixlikes-[beos];
-// 
+//
   StrUtilsOSes  = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,win32,win64]+UnixLikes+AllAmigaLikeOSes;
   VarUtilsOSes  = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,watcom,wii,win32,win64]+UnixLikes+AllAmigaLikeOSes;
   ConvUtilsOSes = [nativent,netware,netwlibc,win32,win64,wince]+AllAmigaLikeOSes+UnixLikes-[BeOS];
@@ -27,6 +27,8 @@ Const
   AllTargetsObjPas = DateUtilsOses +DateUtilOSes+
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+
                   FmtBCDOSes + StrUtilsOSes;
+
+  CommonSrcOSes = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,watcom,wii]+UnixLikes+AllAmigaLikeOSes;
 
 Var
   P : TPackage;
@@ -49,17 +51,12 @@ begin
 
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');
-    P.SourcePath.Add('src/darwin',[iphonesim]);
-    P.SourcePath.Add('src/unix',AllUnixOSes);
-    P.SourcePath.Add('src/os2commn',[os2,emx]);
     P.SourcePath.Add('src/win',[win32,win64]);
-    P.SourcePath.Add('src/common',AllAmigaLikeOSes+[atari]);
+    P.SourcePath.Add('src/common',CommonSrcOSes);
 
     P.IncludePath.Add('src/inc');
-    P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/$(OS)');
-    P.IncludePath.Add('src/darwin',[iphonesim]);
-    P.IncludePath.Add('src/common',AllAmigaLikeOSes+[atari]);
+    P.IncludePath.Add('src/common',CommonSrcOSes);
 
     T:=P.Targets.AddUnit('strutils.pp',StrUtilsOses);
     T:=P.Targets.AddUnit('widestrutils.pp',StrUtilsOses-ConvUtilOSes);
