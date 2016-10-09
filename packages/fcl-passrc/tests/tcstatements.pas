@@ -19,6 +19,8 @@ Type
   private
     FStatement: TPasImplBlock;
     FVariables : TStrings;
+    procedure DoTestCallOtherFormat;
+    procedure TestCallFormat(FN: String; Two: Boolean);
   Protected
     Procedure SetUp; override;
     Procedure TearDown; override;
@@ -48,6 +50,13 @@ Type
     Procedure TestCallQualified2;
     Procedure TestCallNoArgs;
     Procedure TestCallOneArg;
+    procedure TestCallWriteFormat1;
+    procedure TestCallWriteFormat2;
+    procedure TestCallWritelnFormat1;
+    procedure TestCallWritelnFormat2;
+    procedure TestCallStrFormat1;
+    procedure TestCallStrFormat2;
+    procedure TestCallOtherFormat;
     Procedure TestIf;
     Procedure TestIfBlock;
     Procedure TestIfAssignment;
@@ -413,6 +422,7 @@ begin
 end;
 
 procedure TTestStatementParser.TestCallOneArg;
+
 Var
   S : TPasImplSimple;
   P : TParamsExpr;
@@ -427,6 +437,76 @@ begin
   AssertExpression('Correct function call name',P.Value,pekIdent,'Doit');
   AssertEquals('One param',1,Length(P.Params));
   AssertExpression('Parameter is constant',P.Params[0],pekNumber,'1');
+end;
+
+procedure TTestStatementParser.TestCallFormat(FN : String; Two : Boolean);
+
+Var
+  S : TPasImplSimple;
+  P : TParamsExpr;
+  N : String;
+begin
+  N:=fn+'(a:3';
+  if Two then
+    N:=N+':2';
+  N:=N+');';
+  TestStatement(N);
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+  AssertEquals('Simple statement',TPasImplSimple,Statement.ClassType);
+  S:=Statement as TPasImplSimple;
+  AssertExpression('Doit call',S.Expr,pekFuncParams,TParamsExpr);
+  P:=S.Expr as TParamsExpr;
+  AssertExpression('Correct function call name',P.Value,pekIdent,FN);
+  AssertEquals('One param',1,Length(P.Params));
+  AssertExpression('Parameter is identifier',P.Params[0],pekIdent,'a');
+  AssertExpression('Parameter has formatting constant 1' ,P.Params[0].format1,pekNumber,'3');
+  if Two then
+    AssertExpression('Parameter has formatting constant 2',P.Params[0].format2,pekNumber,'2');
+end;
+
+procedure TTestStatementParser.TestCallWriteFormat1;
+
+begin
+  TestCalLFormat('write',False);
+end;
+
+procedure TTestStatementParser.TestCallWriteFormat2;
+
+begin
+  TestCalLFormat('write',True);
+end;
+
+procedure TTestStatementParser.TestCallWritelnFormat1;
+begin
+  TestCalLFormat('writeln',False);
+
+end;
+
+procedure TTestStatementParser.TestCallWritelnFormat2;
+begin
+  TestCalLFormat('writeln',True);
+end;
+
+procedure TTestStatementParser.TestCallStrFormat1;
+begin
+  TestCalLFormat('str',False);
+end;
+
+procedure TTestStatementParser.TestCallStrFormat2;
+begin
+  TestCalLFormat('str',True);
+end;
+
+procedure TTestStatementParser.DoTestCallOtherFormat;
+
+begin
+  TestCalLFormat('nono',False);
+end;
+
+procedure TTestStatementParser.TestCallOtherFormat;
+
+begin
+  AssertException('Only Write(ln) and str allow format',EParserError,@DoTestCallOtherFormat);
 end;
 
 procedure TTestStatementParser.TestIf;

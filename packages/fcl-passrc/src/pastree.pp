@@ -168,7 +168,9 @@ type
   TPasExpr = class(TPasElement)
     Kind      : TPasExprKind;
     OpCode    : TExprOpCode;
+    format1,format2 : TPasExpr;
     constructor Create(AParent : TPasElement; AKind: TPasExprKind; AOpCode: TExprOpCode); virtual; overload;
+    destructor destroy; override;
   end;
 
   { TUnaryExpr }
@@ -4045,11 +4047,19 @@ end;
 
 { TPasExpr }
 
-constructor TPasExpr.Create(AParent : TPasElement; AKind: TPasExprKind; AOpCode: TexprOpcode);
+constructor TPasExpr.Create(AParent: TPasElement; AKind: TPasExprKind;
+  AOpCode: TExprOpCode);
 begin
   inherited Create(ClassName, AParent);
   Kind:=AKind;
   OpCode:=AOpCode;
+end;
+
+destructor TPasExpr.destroy;
+begin
+  FreeAndNil(Format1);
+  FreeAndNil(Format2);
+  inherited destroy;
 end;
 
 { TPrimitiveExpr }

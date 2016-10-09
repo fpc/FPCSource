@@ -295,7 +295,7 @@ type
     Function TokenIsCallingConvention(S : String; out CC : TCallingConvention) : Boolean; virtual;
     Function TokenIsProcedureModifier(Parent : TPasElement; S : String; Out Pm : TProcedureModifier) : Boolean; virtual;
     Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
-    function ParseParams(AParent : TPasElement;paramskind: TPasExprKind): TParamsExpr;
+    function ParseParams(AParent : TPasElement;paramskind: TPasExprKind; AllowFormatting : Boolean = False): TParamsExpr;
     function ParseExpIdent(AParent : TPasElement): TPasExpr;
     procedure DoParseClassType(AType: TPasClassType);
     function DoParseExpression(AParent: TPaselement;InitExpr: TPasExpr=nil): TPasExpr;
@@ -1389,11 +1389,13 @@ begin
   Result:=(CurToken in EndExprToken) or IsCurTokenHint;
 end;
 
-function TPasParser.ParseParams(AParent: TPasElement;paramskind: TPasExprKind): TParamsExpr;
+function TPasParser.ParseParams(AParent: TPasElement; paramskind: TPasExprKind;
+  AllowFormatting: Boolean = False): TParamsExpr;
 var
   params  : TParamsExpr;
   p       : TPasExpr;
   PClose  : TToken;
+
 begin
   Result:=nil;
   if paramskind in [pekArrayParams, pekSet] then begin
@@ -1413,7 +1415,19 @@ begin
         p:=DoParseExpression(params);
         if not Assigned(p) then Exit; // bad param syntax
         params.AddParam(p);
-
+        if (CurToken=tkColon) then
+          if Not AllowFormatting then
+            ParseExcSyntaxError
+          else
+            begin
+            NextToken;
+            p.format1:=DoParseExpression(p);
+            if (CurToken=tkColon) then
+              begin
+              NextToken;
+              p.format2:=DoParseExpression(p);
+              end;
+            end;
         if not (CurToken in [tkComma, PClose]) then begin
           Exit;
         end;
@@ -1470,12 +1484,27 @@ begin
 end;
  
 function TPasParser.ParseExpIdent(AParent: TPasElement): TPasExpr;
+
+  Function IsWriteOrstr(P : TPasExpr) : boolean;
+
+  Var
+    N : String;
+  begin
+    Result:=P is TPrimitiveExpr;
+    if Result then
+      begin
+      N:=LowerCase(TPrimitiveExpr(P).Value);
+      // We should actually resolve this to system.NNN
+      Result:=(N='write') or (N='str') or (N='writeln');
+      end;
+  end;
 var
   Last    , Expr: TPasExpr;
   prm     : TParamsExpr;
   b       : TBinaryExpr;
   optk    : TToken;
   ok: Boolean;
+
 begin
   Result:=nil;
   case CurToken of
@@ -1578,7 +1607,7 @@ begin
           tkBraceOpen,tkSquaredBraceOpen:
             begin
             if CurToken=tkBraceOpen then
-              prm:=ParseParams(AParent,pekFuncParams)
+              prm:=ParseParams(AParent,pekFuncParams,isWriteOrStr(Last))
             else
               prm:=ParseParams(AParent,pekArrayParams);
             if not Assigned(prm) then Exit;
