@@ -4270,11 +4270,12 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement; ProcType: 
     if Parent is TImplementationSection then
     begin
       NextToken;
-      if CurToken=tkDot then
-      begin
+      While CurToken=tkDot do
+        begin
         Result:=Result+'.'+ExpectIdentifier;
-      end else
-        UngetToken;
+        NextToken;
+        end;
+      UngetToken;
     end;
   end;
 
