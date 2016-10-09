@@ -78,8 +78,12 @@ begin
       F:=TFreeTypeFont.Create;
       F.Angle:=StrToFloatDef(ParamStr(1),0);
       Font:=F;
+{$IFDEF UNIX}      
       Font.Name:='/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf';
-//      Font.Name:='/home/michael/Documents/arial.ttf';
+{$ELSE}      
+      // On windows, this should be present
+      Font.Name:='arial.ttf';
+{$ENDIF}
       Font.Size:=10;
       Font.FPColor:=colWhite;
 //      Font.Orientation:=StrToIntDef(ParamStr(1),0);
