@@ -1028,13 +1028,15 @@ function TPasParser.ParseSimpleType(Parent: TPasElement;
   ): TPasType;
 
 Type
-  TSimpleTypeKind = (stkAlias,stkString,stkRange);
+  TSimpleTypeKind = (stkAlias,stkString,stkRange,stkSpecialize);
 
 Var
   Ref: TPasElement;
   K : TSimpleTypeKind;
   Name : String;
   SS : Boolean;
+  CT : TPasClassType;
+
 begin
   Name := CurTokenString;
   NextToken;
@@ -1059,6 +1061,8 @@ begin
       end
     else if (CurToken in [tkBraceOpen,tkDotDot]) then // Type A = B..C;
       K:=stkRange
+    else if (CurToken = tkLessThan) then // A = B<t>;
+      K:=stkSpecialize
     else
       ParseExcTokenError(';');
     UnGetToken;
@@ -1066,6 +1070,11 @@ begin
   else if (CurToken in [tkBraceOpen,tkDotDot]) then // A: B..C;
     begin
     K:=stkRange;
+    UnGetToken;
+    end
+  else if (CurToken = tkLessThan) then // A = B<t>;
+    begin
+    K:=stkSpecialize;
     UnGetToken;
     end
   else
@@ -1079,6 +1088,20 @@ begin
     stkString:
       begin
       Result:=ParseStringType(Parent,NamePos,TypeName);
+      end;
+    stkSpecialize:
+      begin
+      CT := TPasClassType(CreateElement(TPasClassType, TypeName, Parent, Scanner.CurSourcePos));
+      try
+        CT.ObjKind := okSpecialize;
+        CT.AncestorType := TPasUnresolvedTypeRef.Create(Name,Parent);
+        CT.IsShortDefinition:=True;
+        ReadGenericArguments(CT.GenericTemplateTypes,CT);
+        Result:=CT;
+        CT:=Nil;
+      Finally
+        FreeAndNil(CT);
+      end;
       end;
     stkRange:
       begin
