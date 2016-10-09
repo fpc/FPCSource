@@ -34,7 +34,7 @@ unit i_atari;
             system       : system_m68k_Atari;
             name         : 'Atari ST/STE';
             shortname    : 'atari';
-            flags        : [tf_use_8_3];
+            flags        : [tf_use_8_3,tf_requires_proper_alignment];
             cpu          : cpu_m68k;
             unit_env     : '';
             extradefines : '';
