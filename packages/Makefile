@@ -1696,6 +1696,9 @@ FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
 FPMAKE_OPT+=-bu
+ifndef BUILDFULLNATIVE
+FPMAKE_OPT+=-scp
+endif
 .NOTPARALLEL:
 fpmkunit_clean_bootstrap:
 	$(MAKE) -C fpmkunit clean_bootstrap

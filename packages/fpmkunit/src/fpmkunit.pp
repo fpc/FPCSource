@@ -4835,7 +4835,7 @@ begin
       DefaultsFileName:=OptionArg(I)
     else if CheckOption(I,'ie','installexamples') then
       Defaults.InstallExamples:=true
-    else if CheckOption(I,'sp','skipcrossprograms') then
+    else if CheckOption(I,'scp','skipcrossprograms') then
       Defaults.SkipCrossPrograms:=true
     else if CheckOption(I,'bu','buildunit') then
       Defaults.BuildMode:=bmBuildUnit
