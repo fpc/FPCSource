@@ -1096,6 +1096,10 @@ implementation
             propnamelist:=TFPHashObjectList.Create;
             collect_propnamelist(propnamelist,def);
 
+            tcb.begin_anonymous_record('',defaultpacking,reqalign,
+              targetinfos[target_info.system]^.alignment.recordalignmin,
+              targetinfos[target_info.system]^.alignment.maxCrecordalign);
+
             { write parent typeinfo }
             write_rtti_reference(tcb,def.childof,fullrtti);
 
@@ -1112,10 +1116,8 @@ implementation
               {
               ifDispatch, }
             tcb.emit_ord_const(IntfFlags,u8inttype);
-            tcb.begin_anonymous_record('',defaultpacking,reqalign,
-              targetinfos[target_info.system]^.alignment.recordalignmin,
-              targetinfos[target_info.system]^.alignment.maxCrecordalign);
 
+            { write GUID }
             tcb.emit_guid_const(def.iidguid^);
 
             { write unit name }
