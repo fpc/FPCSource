@@ -1808,6 +1808,16 @@ begin
                   exit;
                   end
                 end
+              else if (Directive = 'MODE')then
+                begin
+                Param:=UpperCase(Param);
+                // Eventually, we'll need to make the distinction...
+                // For now, treat OBJFPC as Delphi mode.
+                if (Param='DELPHI') or (Param='OBJFPC') then
+                  Options:=Options+[po_delphi]
+                else
+                  Options:=Options-[po_delphi]
+                end
               else if (Directive = 'DEFINE') then
                 HandleDefine(Param)
               else if (Directive = 'UNDEF') then
