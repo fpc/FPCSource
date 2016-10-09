@@ -267,9 +267,9 @@ begin
   SysInitStdIO;
 { Reset IO Error }
   InOutRes:=0;
-(* This should be changed to a real value during *)
-(* thread driver initialization if appropriate.  *)
-  ThreadID := 1;
 { Setup command line arguments }
 //  argc:=GetParamCount(args);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  InitSystemThreads;
+{$endif}
 end.
