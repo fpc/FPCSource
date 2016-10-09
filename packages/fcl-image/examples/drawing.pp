@@ -15,6 +15,7 @@ var canvas : TFPcustomCAnvas;
     reader : TFPCustomImageReader;
     f : TFreeTypeFont;
 begin
+  f:=Nil;
   image := TFPMemoryImage.Create (100,100);
   ci := TFPMemoryImage.Create (20,20);
   Canvas := TFPImageCanvas.Create (image);
@@ -31,6 +32,8 @@ begin
 //    ci.LoadFromFile ('test.png', reader);
     with Canvas as TFPImageCanvas do
       begin
+      brush.FPcolor:=colwhite;
+      brush.style:=bsSolid;
       pen.mode := pmCopy;
       pen.style := psSolid;
       pen.width := 1;
@@ -73,19 +76,20 @@ begin
 
       InitEngine;
       F:=TFreeTypeFont.Create;
-      F.Angle:=0.15;
+      F.Angle:=StrToFloatDef(ParamStr(1),0);
       Font:=F;
-//      Font.Name:='/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf';
-      Font.Name:='/home/michael/Documents/arial.ttf';
+      Font.Name:='/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf';
+//      Font.Name:='/home/michael/Documents/arial.ttf';
       Font.Size:=10;
       Font.FPColor:=colWhite;
-//      Font.Orientation:=900;
+//      Font.Orientation:=StrToIntDef(ParamStr(1),0);
       
-      Canvas.TextOut(10,90,'o');
+      Canvas.TextOut(10,90,'abc');
       end;
-      writeln ('Saving to inspect !');
+      writeln ('Saving to "DrawTest.png" for inspection !');
     image.SaveToFile ('DrawTest.png', writer);
   finally
+    F.Free;
     Canvas.Free;
     image.Free;
     writer.Free;
