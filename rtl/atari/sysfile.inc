@@ -222,13 +222,19 @@ begin
   if (flags and $1000)<>0 then
     dosResult:=gemdos_fcreate(p,0)
   else
-    dosResult:=gemdos_fopen(p,filerec(f).mode);
+    dosResult:=gemdos_fopen(p,flags and 3);
 
   if oldp<>p then
     freemem(p);
 
   if dosResult < 0 then
-    Error2InOutRes(dosResult);
+    begin
+      Error2InOutRes(dosResult);
+      filerec(f).mode:=fmClosed;
+      exit;
+    end
+  else
+    filerec(f).handle:=handle;
 
   { append mode }
   if ((Flags and $100)<>0) and
