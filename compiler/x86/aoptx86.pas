@@ -582,6 +582,7 @@ unit aoptx86;
                         mov %reg, y
                     }
                     taicpu(p).loadOper(1,taicpu(hp1).oper[1]^);
+                    DebugMsg('PeepHole Optimization,MovMov2Mov 2',p);
                     asml.remove(hp1);
                     hp1.free;
                     ReleaseUsedRegs(TmpUsedRegs);
@@ -599,6 +600,7 @@ unit aoptx86;
                            mov mem, %reg"
                       }
                       taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
+                      DebugMsg('PeepHole Optimization,MovMov2Mov 3',p);
                       asml.remove(hp1);
                       hp1.free;
                       ReleaseUsedRegs(TmpUsedRegs);
@@ -748,7 +750,7 @@ unit aoptx86;
                       begin
                         if (taicpu(p).oper[0]^.typ = top_reg) then
                           AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
-                        DebugMsg('PeepHole Optimization,MovMov2Mov1',p);
+                        DebugMsg('PeepHole Optimization,MovMov2Mov 1',p);
                         asml.remove(hp1);
                         hp1.free;
                         Result:=true;
