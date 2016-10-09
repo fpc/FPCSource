@@ -6044,7 +6044,7 @@ procedure TBuildEngine.ResolvePackagePaths(APackage:TPackage);
       end
     else
       begin
-        PackageBaseDir:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath));
+        PackageBaseDir:=IncludeTrailingPathDelimiter(ABasePath);
         AnUnitConfigFileName:=IncludeTrailingPathDelimiter(GetUnitConfigFilesInstallDir(ABasePath))+APackage.Name+FpmkExt;
         PackageBaseDir:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath)+APackage.GetUnitsOutputDir(Defaults.CPU, Defaults.OS))+APackage.Name;
       end;
@@ -6691,7 +6691,7 @@ begin
           Log(vlDebug, Format(SDbgLoading, [F]));
           Result.LoadUnitConfigFromFile(F);
           result.SetDefaultPackageVariant;
-          result.UnitDir:=result.UnitDir+Result.GetPackageUnitInstallDir(Defaults.CPU, Defaults.OS);
+          result.UnitDir:=ConcatPaths([result.UnitDir,Result.GetPackageUnitInstallDir(Defaults.CPU, Defaults.OS)]);
         end;
       // Check recursive implicit dependencies
       CompileDependencies(Result);
