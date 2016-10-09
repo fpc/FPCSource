@@ -1781,22 +1781,24 @@ begin
           begin
           NextToken;
           x:=DoParseExpression(AParent);
-          if CurToken<>tkBraceClose then
+          if (CurToken<>tkBraceClose) then
             begin
             x.Release;
             Exit;
             end;
           NextToken;
-          //     DumpCurToken('Here 1');
-               // for the expression like  (TObject(m)).Free;
-               if (x<>Nil) and (CurToken=tkDot) then
-                 begin
-                 NextToken;
-          //       DumpCurToken('Here 2');
-                 x:=CreateBinaryExpr(AParent,x, ParseExpIdent(AParent), TokenToExprOp(tkDot));
-          //       DumpCurToken('Here 3');
-                 end;
-
+          // for expressions like (ppdouble)^^;
+          while (x<>Nil) and (CurToken=tkCaret) do
+            begin
+            NextToken;
+            x:=CreateUnaryExpr(AParent,x, TokenToExprOp(tkCaret));
+            end;
+          // for expressions like (TObject(m)).Free;
+          if (x<>Nil) and (CurToken=tkDot) then
+            begin
+            NextToken;
+            x:=CreateBinaryExpr(AParent,x, ParseExpIdent(AParent), TokenToExprOp(tkDot));
+            end;
           end
         else
           begin

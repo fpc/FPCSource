@@ -62,6 +62,8 @@ type
     Procedure TestUnaryAddress;
     Procedure TestUnaryNot;
     Procedure TestUnaryDeref;
+    Procedure TestUnaryDoubleDeref;
+    Procedure TestUnaryDoubleDeref2;
     Procedure TestBinaryAdd;
     Procedure TestBinarySubtract;
     Procedure TestBinaryMultiply;
@@ -550,8 +552,28 @@ begin
   DeclareVar('integer','a');
   DeclareVar('pinteger','b');
   ParseExpression('b^');
-  AssertUnaryExpr('Simple address unary',eopDeref,FLeft);
+  AssertUnaryExpr('Simple deref unary',eopDeref,FLeft);
   AssertExpression('Simple identifier',theLeft,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestUnaryDoubleDeref;
+begin
+  DeclareVar('integer','a');
+  DeclareVar('ppinteger','b');
+  ParseExpression('(b)^^');
+  AssertExpression('Deref expression 1',TheExpr,pekUnary,TUnaryExpr);
+  AssertExpression('Deref expression 2',TUnaryExpr(TheExpr).Operand,pekUnary,TUnaryExpr);
+  AssertExpression('Deref expression 3',TUnaryExpr(TUnaryExpr(TheExpr).Operand).Operand,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestUnaryDoubleDeref2;
+begin
+  DeclareVar('integer','a');
+  DeclareVar('ppinteger','b');
+  ParseExpression('b^^');
+  AssertExpression('Deref expression 1',TheExpr,pekUnary,TUnaryExpr);
+  AssertExpression('Deref expression 2',TUnaryExpr(TheExpr).Operand,pekUnary,TUnaryExpr);
+  AssertExpression('Deref expression 3',TUnaryExpr(TUnaryExpr(TheExpr).Operand).Operand,pekIdent,'b');
 end;
 
 procedure TTestExpressions.TestBinaryAdd;
