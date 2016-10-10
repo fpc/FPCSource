@@ -475,7 +475,7 @@ procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; protolist: tfpo
 
     if (abi=oa_fragile) then
       { From Clang: next, always nil}
-      tcb.emit_tai(tai_const.Create_pint(0),ptruinttype);
+      tcb.emit_tai(tai_const.Create_nil_dataptr,ptruinttype);
     { From Clang: protocols count}
     tcb.emit_tai(Tai_const.Create_pint(protolist.Count),ptruinttype);
     for i:=0 to protolist.Count-1 do
