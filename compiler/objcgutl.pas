@@ -541,7 +541,7 @@ begin
       tcb.emit_tai(Tai_const.Create_sym(lab),ldef);
       { placeholder for address of implementation? }
       if (abi=oa_nonfragile) then
-        tcb.emit_tai(Tai_const.Create_pint(0),ptruinttype);
+        tcb.emit_tai(Tai_const.Create_nil_codeptr,codeptruinttype);
     end;
   list.concatList(
     tcb.get_final_asmlist(
