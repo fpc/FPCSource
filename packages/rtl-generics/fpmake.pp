@@ -23,7 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Generic collection library.';
     P.NeedLibC:= false;
-    P.OSes := AllOSes-[embedded];
+    P.OSes := AllOSes-[embedded,win16];
     P.Directory:=ADirectory;
     P.Version:='3.1.1';
     P.Dependencies.Add('rtl-objpas');
