@@ -258,6 +258,9 @@ Var
   FPMakeBin,
   OOptions : string;
   InstallRepo: TFPRepository;
+  GlobalUnitDir,
+  LocalUnitDir: string;
+  BaseInstDir: string;
   i: Integer;
 
   procedure AddOption(const s:string);
@@ -368,10 +371,19 @@ begin
           InstallRepo := TFPRepository(GFPpkg.RepositoryList[i]);
           if (InstallRepo.RepositoryType = fprtInstalled) and Assigned(InstallRepo.DefaultPackagesStructure) then
             begin
-              CondAddOption('--searchpath', InstallRepo.DefaultPackagesStructure.GetBaseInstallDir);
+              BaseInstDir := InstallRepo.DefaultPackagesStructure.GetBaseInstallDir;
+              CondAddOption('--searchpath', BaseInstDir);
+              if LocalUnitDir='' then
+                LocalUnitDir := BaseInstDir
+              else if GlobalUnitDir='' then;
+                GlobalUnitDir := BaseInstDir;
             end;
         end;
     end;
+  if GlobalUnitDir<>'' then
+    CondAddOption('--globalunitdir', GlobalUnitDir);
+  if LocalUnitDir<>'' then
+    CondAddOption('--localunitdir', LocalUnitDir);
 
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
