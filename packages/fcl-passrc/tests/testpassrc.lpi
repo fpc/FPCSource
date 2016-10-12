@@ -30,7 +30,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestTypeParser.TestCharRangeType"/>
+        <CommandLineParams Value="--suite=TTestExpressions.TestUnaryDoubleDeref"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">

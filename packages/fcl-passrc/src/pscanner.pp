@@ -330,7 +330,8 @@ type
     po_resolvestandardtypes, // search for 'longint', 'string', etc., do not use dummies, TPasResolver sets this to use its declarations
     po_asmwhole,  // store whole text between asm..end in TPasImplAsmStatement.Tokens
     po_nooverloadedprocs,  // do not create TPasOverloadedProc for procs with same name
-    po_keepclassforward    // default: delete class fowards when there is a class declaration
+    po_keepclassforward,   // disabled: delete class fowards when there is a class declaration
+    po_arrayrangeexpr    // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
     );
   TPOptions = set of TPOption;
 

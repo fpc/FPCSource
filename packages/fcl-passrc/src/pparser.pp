@@ -74,7 +74,7 @@ const
   nParserDefaultParameterRequiredFor = 2047;
   nParserOnlyOneVariableCanBeInitialized = 2048;
   nParserExpectedTypeButGot = 2049;
-
+  nParserPropertyArgumentsCanNotHaveDefaultValues = 2050;
 
 // resourcestring patterns of messages
 resourcestring
@@ -127,20 +127,20 @@ resourcestring
   SParserDefaultParameterRequiredFor = 'Default parameter required for "%s"';
   SParserOnlyOneVariableCanBeInitialized = 'Only one variable can be initialized';
   SParserExpectedTypeButGot = 'Expected type, but got %s';
+  SParserPropertyArgumentsCanNotHaveDefaultValues = 'Property arguments can not have default values';
 
 type
   TPasScopeType = (
     stModule,  // e.g. unit, program, library
     stUsesList,
     stTypeSection,
-    stTypeDef, // e.g. the B in 'type A=B;'
-    stConstDef, // e.g. the B in 'const A=B;'
+    stTypeDef, // e.g. a TPasType
+    stConstDef, // e.g. a TPasConst
     stProcedure, // also method, procedure, constructor, destructor, ...
     stProcedureHeader,
     stExceptOnExpr,
     stExceptOnStatement,
-    stDeclaration, // e.g. a TPasType, TPasProperty
-    //stStatement,
+    stDeclaration, // e.g. a TPasProperty
     stAncestors // the list of ancestors and interfaces of a class
     );
   TPasScopeTypes = set of TPasScopeType;
@@ -339,7 +339,7 @@ type
     function ParseSetType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName: String ): TPasSetType;
     function ParseSpecializeType(Parent: TPasElement; Const TypeName: String): TPasClassType;
     Function ParseClassDecl(Parent: TPasElement; Const NamePos: TPasSourcePos; Const AClassName: String; AObjKind: TPasObjKind; PackMode : TPackMode= pmNone): TPasType;
-    Function ParseProperty(Parent : TPasElement; Const AName : String; AVisibility : TPasMemberVisibility) : TPasProperty;
+    Function ParseProperty(Parent : TPasElement; Const AName : String; AVisibility : TPasMemberVisibility; IsClassField: boolean) : TPasProperty;
     function ParseRangeType(AParent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; Full: Boolean = True): TPasRangeType;
     procedure ParseExportDecl(Parent: TPasElement; List: TFPList);
     // Constant declarations
@@ -1346,6 +1346,7 @@ function TPasParser.ParseArrayType(Parent: TPasElement;
 Var
   S : String;
   ok: Boolean;
+  RangeExpr: TPasExpr;
 
 begin
   Result := TPasArrayType(CreateElement(TPasArrayType, TypeName, Parent, NamePos));
@@ -1359,9 +1360,20 @@ begin
         begin
           repeat
             NextToken;
-            if CurToken<>tkSquaredBraceClose then
-              S:=S+CurTokenText;
-          until CurToken = tkSquaredBraceClose;
+            if po_arrayrangeexpr in Options then
+              begin
+              RangeExpr:=DoParseExpression(Result);
+              Result.AddRange(RangeExpr);
+              end
+            else if CurToken<>tkSquaredBraceClose then
+               S:=S+CurTokenText;
+            if CurToken=tkSquaredBraceClose then
+              break
+            else if CurToken=tkComma then
+              continue
+            else if po_arrayrangeexpr in Options then
+              ParseExcTokenError(']');
+          until false;
           Result.IndexRange:=S;
           ExpectToken(tkOf);
           Result.ElType := ParseType(Result,Scanner.CurSourcePos);
@@ -1384,6 +1396,7 @@ begin
     if not ok then
       Result.Release;
   end;
+  Engine.FinishScope(stTypeDef,Result);
 end;
 
 function TPasParser.ParseFileType(Parent: TPasElement;
@@ -2490,9 +2503,9 @@ begin
               end;
             declProperty:
               begin
-              PropEl:=ParseProperty(Declarations,CurtokenString,visDefault);
+              PropEl:=ParseProperty(Declarations,CurtokenString,visDefault,false);
               Declarations.Declarations.Add(PropEl);
-              Declarations.properties.Add(PropEl);
+              Declarations.Properties.Add(PropEl);
               end;
           else
             ParseExcSyntaxError;
@@ -2982,7 +2995,10 @@ begin
     if Full then
       Mods:=GetVariableModifiers(VarMods,aLibName,aExpName)
     else
+      begin
       NextToken;
+      VarMods:=[];
+      end;
     SaveComments(D);
 
     // connect
@@ -3160,6 +3176,9 @@ begin
             ArgType:=nil;
             ParseExc(nParserOnlyOneArgumentCanHaveDefault,SParserOnlyOneArgumentCanHaveDefault);
             end;
+          if Parent is TPasProperty then
+            ParseExc(nParserPropertyArgumentsCanNotHaveDefaultValues,
+              SParserPropertyArgumentsCanNotHaveDefaultValues);
           NextToken;
           Value := DoParseExpression(Parent,Nil);
           // After this, we're on ), which must be unget.
@@ -3523,7 +3542,7 @@ end;
 
 
 function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
-  AVisibility: TPasMemberVisibility): TPasProperty;
+  AVisibility: TPasMemberVisibility; IsClassField: boolean): TPasProperty;
 
   function GetAccessorName(aParent: TPasElement; out Expr: TPasExpr): String;
   var
@@ -3576,6 +3595,8 @@ var
 
 begin
   Result:=TPasProperty(CreateElement(TPasProperty,AName,Parent,AVisibility));
+  if IsClassField then
+    Result.VarModifiers:=Result.VarModifiers+[vmClass];
   ok:=false;
   try
     NextToken;
@@ -3637,6 +3658,8 @@ begin
     else if CurtokenIsIdentifier('NODEFAULT') then
       begin
       Result.IsNodefault:=true;
+      if Result.DefaultExpr<>nil then
+        ParseExcSyntaxError;
       NextToken;
       end;
     // Here the property ends. There can still be a 'default'
@@ -4434,8 +4457,7 @@ begin
         if Not AllowMethods then
           ParseExc(nErrRecordPropertiesNotAllowed,SErrRecordPropertiesNotAllowed);
         ExpectToken(tkIdentifier);
-        Prop:=ParseProperty(ARec,CurtokenString,v);
-        Prop.isClass:=isClass;
+        Prop:=ParseProperty(ARec,CurtokenString,v,isClass);
         Arec.Members.Add(Prop);
         end;
       tkOperator,
@@ -4706,7 +4728,7 @@ begin
         begin
          SaveComments;
          NextToken;
-         if CurToken in [tkConstructor,tkDestructor,tkprocedure,tkFunction] then
+         if CurToken in [tkConstructor,tkDestructor,tkProcedure,tkFunction] then
            ProcessMethod(AType,True,CurVisibility)
          else if CurToken = tkVar then
            begin
@@ -4716,7 +4738,7 @@ begin
          else if CurToken=tkProperty then
            begin
            ExpectToken(tkIdentifier);
-           AType.Members.Add(ParseProperty(AType,CurtokenString,CurVisibility));
+           AType.Members.Add(ParseProperty(AType,CurtokenString,CurVisibility,true));
            end
          else
            ParseExc(nParserTypeSyntaxError,SParserTypeSyntaxError)
@@ -4725,7 +4747,7 @@ begin
         begin
         SaveComments;
         ExpectIdentifier;
-        AType.Members.Add(ParseProperty(AType,CurtokenString,CurVisibility));
+        AType.Members.Add(ParseProperty(AType,CurtokenString,CurVisibility,false));
         end;
     end;
     NextToken;
@@ -4809,6 +4831,7 @@ begin
     ExpectIdentifier;
     UngetToken;                // Only names are allowed as following type
     TPasClassOfType(Result).DestType := ParseType(Result,Scanner.CurSourcePos);
+    Engine.FinishScope(stTypeDef,Result);
     exit;
     end;
   if (CurTokenIsIdentifier('Helper')) then
