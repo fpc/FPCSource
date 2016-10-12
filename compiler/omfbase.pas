@@ -46,7 +46,7 @@ interface
       'stabstr',
       'idata2','idata4','idata5','idata6','idata7','edata',
       'eh_frame',
-      'debug_frame','debug_info','debug_line','debug_abbrev','debug_aranges','debug_ranges',
+      '.debug_frame','.debug_info','.debug_line','.debug_abbrev','.debug_aranges','.debug_ranges',
       'fpc',
       '',
       'init',
