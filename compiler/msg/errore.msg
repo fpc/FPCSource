@@ -2004,7 +2004,7 @@ type_e_function_reference_kind=04123_E_Subroutine references cannot be declared 
 #
 # Symtable
 #
-# 05097 is the last used one
+# 05095 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2313,12 +2313,6 @@ sym_w_duplicate_id=05095_W_Duplicate identifier "$1"
 % same scope as the current identifier. This is a warning instead of an error,
 % because while this hides the identifier from the category, there are often
 % many unused categories in scope.
-sym_e_class_constructor_must_be_create=05096_E_Class constructor must be named "Create"
-% The name of a class constructor must be "Create" (case insensitive of course)
-% as there can be only one per class anyway.
-sym_e_class_destructor_must_be_destroy=05097_E_Class destructor must be named "Destroy"
-% The name of a class destructor must be "Destroy" (case insensitive of cours)
-% as there can be only one per class anyway.
 % \end{description}
 #
 # Codegenerator
