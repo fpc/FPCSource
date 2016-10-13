@@ -928,6 +928,11 @@ begin
   if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
 end;
 
+function StrToUInt64(const s: string): UInt64;
+begin
+  result:=StrToQWord(s);
+end;
+
 function StrToDWord(const s: string): DWord;
 var Error: word;
 begin
@@ -947,6 +952,11 @@ var Error : word;
 begin
   Val(s, Q, Error);
   TryStrToQWord:=Error=0
+end;
+
+function TryStrToUInt64(const s: string; Out u: UInt64): boolean;
+begin
+  result:=TryStrToQWord(s,u);
 end;
 
 {   StrToIntDef converts the string S to an integer value,
@@ -987,6 +997,11 @@ var Error: word;
 begin
   Val(S, result, Error);
   if Error <> 0 then result := Default;
+end;
+
+function StrToUInt64Def(const S: string; Default: UInt64): UInt64;
+begin
+  result:=StrToQWordDef(S,Default);
 end;
 
 {   LoadStr returns the string resource Ident.   }
