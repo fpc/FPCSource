@@ -1604,7 +1604,7 @@ ResourceString
   SWarngcclibpath         = 'Warning: Unable to determine the libgcc path.';
   SWarnNoFCLProcessSupport= 'No FCL-Process support';
   SWarnRetryRemDirectory     = 'Failed to remove directory "%s". Retry after a short delay';
-  SWarnCombinedPathAndUDir= 'Warning: SearchPath and Global/Local-UnitDir setting are better not be combined';
+  SWarnCombinedPathAndUDir= 'Warning: Better do not combine the SearchPath and Global/Local-UnitDir parameters';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -4805,14 +4805,20 @@ begin
     else if CheckOption(I,'UL','localunitdir') then
       begin
         UnitDirSet:=true;
-        if SearchPathSet then
+        // Do not warn against the combination of SearchPath and
+        // localunitdir when they are the same. (This is done to be able
+        // to call both older and newer versions of fpmake)
+        if SearchPathSet and (Defaults.LocalUnitDir<>OptionArg(I)) then
           Log(vlWarning,SWarnCombinedPathAndUDir);
         Defaults.LocalUnitDir:=OptionArg(I)
       end
     else if CheckOption(I,'UG','globalunitdir') then
       begin
         UnitDirSet:=true;
-        if SearchPathSet then
+        // Do not warn against the combination of SearchPath and
+        // localunitdir when they are the same. (This is done to be able
+        // to call both older and newer versions of fpmake)
+        if SearchPathSet and (Defaults.GlobalUnitDir<>OptionArg(I)) then
           Log(vlWarning,SWarnCombinedPathAndUDir);
         Defaults.GlobalUnitDir:=OptionArg(I)
       end
