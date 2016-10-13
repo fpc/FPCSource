@@ -1053,7 +1053,14 @@ implementation
                   end
                 else
                 if (potype in [potype_class_constructor,potype_class_destructor]) then
-                  aprocsym:=cprocsym.create('$'+lower(sp))
+                  begin
+                    sp:=lower(sp);
+                    if (potype=potype_class_constructor) and (sp<>'create') then
+                      message(sym_e_class_constructor_must_be_create);
+                    if (potype=potype_class_destructor) and (sp<>'destroy') then
+                      message(sym_e_class_destructor_must_be_destroy);
+                    aprocsym:=cprocsym.create('$'+sp)
+                  end
                 else
                   aprocsym:=cprocsym.create(orgsp);
                 symtablestack.top.insert(aprocsym);
