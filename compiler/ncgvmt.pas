@@ -886,7 +886,7 @@ implementation
         fields.add(countdef);
         if count>0 then
           begin
-            arrdef:=carraydef.create(0,count-1,ptruinttype);
+            arrdef:=carraydef.create(0,count-1,sizeuinttype);
             arrdef.elementdef:=elementdef;
             fields.add(arrdef);
           end
