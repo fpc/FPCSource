@@ -113,7 +113,8 @@ Type
     Procedure TestVarOfVarFail;
     Procedure TestConstOfVarFail;
     Procedure TestTypedConstWrongExprFail;
-    //Procedure TestVarWrongExprFail;
+    Procedure TestVarWrongExprFail;
+    Procedure TestArgWrongExprFail;
     Procedure TestIncDec;
     Procedure TestIncStringFail;
 
@@ -122,7 +123,7 @@ Type
     Procedure TestSets;
     Procedure TestEnumParams;
     Procedure TestSetParams;
-    // test high, low
+    Procedure TestEnumHighLow;
 
     // operators
     Procedure TestPrgAssignment;
@@ -144,6 +145,7 @@ Type
     Procedure TestTypeCastIntToStrFail;
     Procedure TestTypeCastDoubleToStrFail;
     Procedure TestTypeCastDoubleToIntFail;
+    Procedure TestHighLow;
 
     // statements
     Procedure TestForLoop;
@@ -194,7 +196,6 @@ Type
     Procedure TestAssignProcResultFail;
     Procedure TestFunctionResultInCondition;
     Procedure TestExit;
-    // test high low integer
 
     // record
     Procedure TestRecord;
@@ -240,7 +241,12 @@ Type
     Procedure TestClass_FuncReturningObjectMember;
     Procedure TestClass_StaticWithoutClassFail;
     Procedure TestClass_SelfInStaticFail;
-    // ToDo: visibility
+    Procedure TestClass_PrivateProtectedInSameUnit;
+    Procedure TestClass_PrivateInMainBeginFail;
+    Procedure TestClass_PrivateInDescendantFail;
+    Procedure TestClass_ProtectedInDescendant;
+    Procedure TestClass_StrictPrivateInMainBeginFail;
+    Procedure TestClass_StrictProtectedInMainBeginFail;
 
     // class of
     Procedure TestClassOf;
@@ -296,15 +302,16 @@ Type
     Procedure TestStaticArray;
     Procedure TestArrayOfArray;
     Procedure TestFunctionReturningArray;
-    // test high, low
+    Procedure TestLowHighArray;
 
     // procedure types
-    // ToDo: test proc type
-    // ToDo: test func type
-    // ToDo: test method type
-    // ToDo: test Assigned
-    // ToDo: test equal, notequal
-    // ToDo: test proc type as parameter
+    Procedure TestProcTypesAssignObjFPC;
+    Procedure TestMethodTypesAssignObjFPC;
+    Procedure TestAssignProcToMethodFail;
+    Procedure TestAssignMethodToProcFail;
+    Procedure TestAssignProcToFunctionFail;
+    Procedure TestAssignProcWrongArgsFail;
+    Procedure TestArrayOfProc;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -951,12 +958,12 @@ begin
   except
     on E: EPasResolve do
       begin
-      AssertEquals('Expected '+Msg+', but got msg "'+E.Message+'" number',
+      AssertEquals('Expected {'+Msg+'}, but got msg {'+E.Message+'} number',
         MsgNumber,E.MsgNumber);
       ok:=true;
       end;
   end;
-  AssertEquals('Missing resolver error '+Msg+' ('+IntToStr(MsgNumber)+')',true,ok);
+  AssertEquals('Missing resolver error {'+Msg+'} ('+IntToStr(MsgNumber)+')',true,ok);
 end;
 
 procedure TTestResolver.CheckParserException(Msg: string; MsgNumber: integer);
@@ -1213,6 +1220,17 @@ begin
       if SubEl.Parent<>El then
         E('TPasExpr(TPasImplWithDo(El).Expressions[i]).Parent='+GetObjName(SubEl.Parent)+'<>El');
       end;
+    end
+  else if El is TPasProcedure then
+    begin
+    if TPasProcedure(El).ProcType.Parent<>El then
+      E('TPasProcedure(El).ProcType.Parent='+GetObjName(TPasProcedure(El).ProcType.Parent)+'<>El');
+    end
+  else if El is TPasProcedureType then
+    begin
+    for i:=0 to TPasProcedureType(El).Args.Count-1 do
+      if TPasArgument(TPasProcedureType(El).Args[i]).Parent<>El then
+        E('TPasArgument(TPasProcedureType(El).Args[i]).Parent='+GetObjName(TPasArgument(TPasProcedureType(El).Args[i]).Parent)+'<>El');
     end;
 end;
 
@@ -1418,7 +1436,29 @@ begin
   Add('const');
   Add('  a: string = 1;');
   Add('begin');
-  CheckResolverException('Expected type, but got variable',PasResolver.nXExpectedButYFound);
+  CheckResolverException('Incompatible types: got "Longint" expected "String"',
+    PasResolver.nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestVarWrongExprFail;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  a: string = 1;');
+  Add('begin');
+  CheckResolverException('Incompatible types: got "Longint" expected "String"',
+    PasResolver.nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestArgWrongExprFail;
+begin
+  StartProgram(false);
+  Add('procedure ProcA(a: string = 1);');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  CheckResolverException('Incompatible types: got "Longint" expected "String"',
+    PasResolver.nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestIncDec;
@@ -1572,6 +1612,17 @@ begin
   Add('  f:={@A1}FuncA();');
   Add('  f:={@A2}FuncA(f);');
   Add('  f:={@A2}FuncA([green]);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestEnumHighLow;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red, green, blue);');
+  Add('var f: TFlag;');
+  Add('begin');
+  Add('  for f:=low(TFlag) to high(TFlag) do ;');
   ParseProgram;
 end;
 
@@ -1982,6 +2033,20 @@ begin
   Add('begin');
   Add('  i:=longint(d);');
   CheckResolverException('illegal type conversion: double to longint',PasResolver.nIllegalTypeConversionTo);
+end;
+
+procedure TTestResolver.TestHighLow;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  bo: boolean;');
+  Add('  by: byte;');
+  Add('  ch: char;');
+  Add('begin');
+  Add('  for bo:=low(boolean) to high(boolean) do;');
+  Add('  for by:=low(byte) to high(byte) do;');
+  Add('  for ch:=low(char) to high(char) do;');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestForLoop;
@@ -3559,6 +3624,150 @@ begin
   CheckResolverException('identifier not found "Self"',PasResolver.nIdentifierNotFound);
 end;
 
+procedure TTestResolver.TestClass_PrivateProtectedInSameUnit;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  strict private {#vstrictprivate}vstrictprivate: longint;');
+  Add('  strict protected {#vstrictprotected}vstrictprotected: longint;');
+  Add('  private {#vprivate}vprivate: longint;');
+  Add('  protected {#vprotected}vprotected: longint;');
+  Add('  public {#vpublic}vpublic: longint;');
+  Add('    procedure ProcA;');
+  Add('  automated {#vautomated}vautomated: longint;');
+  Add('  published {#vpublished}vpublished: longint;');
+  Add('  end;');
+  Add('procedure TObject.ProcA;');
+  Add('begin');
+  Add('  if {@vstrictprivate}vstrictprivate=1 then ;');
+  Add('  if {@vstrictprotected}vstrictprotected=2 then ;');
+  Add('  if {@vprivate}vprivate=3 then ;');
+  Add('  if {@vprotected}vprotected=4 then ;');
+  Add('  if {@vpublic}vpublic=5 then ;');
+  Add('  if {@vautomated}vautomated=6 then ;');
+  Add('  if {@vpublished}vpublished=7 then ;');
+  Add('end;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  if o.vprivate=10 then ;');
+  Add('  if o.vprotected=11 then ;');
+  Add('  if o.vpublic=12 then ;');
+  Add('  if o.vautomated=13 then ;');
+  Add('  if o.vpublished=14 then ;');
+end;
+
+procedure TTestResolver.TestClass_PrivateInMainBeginFail;
+begin
+  AddModuleWithSrc('unit1.pas',
+    LinesToStr([
+      'unit unit1;',
+      'interface',
+      'type',
+      '  TObject = class',
+      '  private v: longint;',
+      '  end;',
+      'implementation',
+      'end.'
+      ]));
+  StartProgram(true);
+  Add('uses unit1;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  if o.v=3 then ;');
+  CheckResolverException('Can''t access private member v',
+    PasResolver.nCantAccessPrivateMember);
+end;
+
+procedure TTestResolver.TestClass_PrivateInDescendantFail;
+begin
+  AddModuleWithSrc('unit1.pas',
+    LinesToStr([
+      'unit unit1;',
+      'interface',
+      'type',
+      '  TObject = class',
+      '  private v: longint;',
+      '  end;',
+      'implementation',
+      'end.'
+      ]));
+  StartProgram(true);
+  Add('uses unit1;');
+  Add('type');
+  Add('  TClassA = class(TObject)');
+  Add('    procedure ProcA;');
+  Add('  end;');
+  Add('procedure TClassA.ProcA;');
+  Add('begin');
+  Add('  if v=3 then ;');
+  Add('end;');
+  Add('begin');
+  CheckResolverException('Can''t access private member v',
+    PasResolver.nCantAccessPrivateMember);
+end;
+
+procedure TTestResolver.TestClass_ProtectedInDescendant;
+begin
+  AddModuleWithSrc('unit1.pas',
+    LinesToStr([
+      'unit unit1;',
+      'interface',
+      'type',
+      '  TObject = class',
+      '  protected vprotected: longint;',
+      '  strict protected vstrictprotected: longint;',
+      '  end;',
+      'implementation',
+      'end.'
+      ]));
+  StartProgram(true);
+  Add('uses unit1;');
+  Add('type');
+  Add('  TClassA = class(TObject)');
+  Add('    procedure ProcA;');
+  Add('  end;');
+  Add('procedure TClassA.ProcA;');
+  Add('begin');
+  Add('  if vprotected=3 then ;');
+  Add('  if vstrictprotected=4 then ;');
+  Add('end;');
+  Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_StrictPrivateInMainBeginFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  strict private v: longint;');
+  Add('  end;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  if o.v=3 then ;');
+  CheckResolverException('Can''t access strict private member v',
+    PasResolver.nCantAccessPrivateMember);
+end;
+
+procedure TTestResolver.TestClass_StrictProtectedInMainBeginFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  strict protected v: longint;');
+  Add('  end;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  if o.v=3 then ;');
+  CheckResolverException('Can''t access strict protected member v',
+    PasResolver.nCantAccessPrivateMember);
+end;
+
 procedure TTestResolver.TestClassOf;
 begin
   StartProgram(false);
@@ -4483,6 +4692,210 @@ begin
   Add('begin');
   Add('  FuncC[2,4]:=6;');
   Add('  FuncC()[1,3]:=5;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestLowHighArray;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrA = array[char] of longint;');
+  Add('  TArrB = array of TArrA;');
+  Add('var');
+  Add('  c: char;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  for c:=low(TArrA) to High(TArrA) do ;');
+  Add('  for i:=low(TArrB) to High(TArrB) do ;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcTypesAssignObjFPC;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TProcedure = procedure;');
+  Add('  TFunctionInt = function:longint;');
+  Add('  TFunctionIntFunc = function:TFunctionInt;');
+  Add('  TFunctionIntFuncFunc = function:TFunctionIntFunc;');
+  Add('function GetNumber: longint;');
+  Add('begin');
+  Add('  Result:=3;');
+  Add('end;');
+  Add('function GetNumberFunc: TFunctionInt;');
+  Add('begin');
+  Add('  Result:=@GetNumber;');
+  Add('end;');
+  Add('function GetNumberFuncFunc: TFunctionIntFunc;');
+  Add('begin');
+  Add('  Result:=@GetNumberFunc;');
+  Add('end;');
+  Add('var');
+  Add('  i: longint;');
+  Add('  f: TFunctionInt;');
+  Add('  ff: TFunctionIntFunc;');
+  Add('begin');
+  Add('  i:=GetNumber;');
+  Add('  i:=GetNumber();');
+  Add('  i:=GetNumberFunc()();');
+  Add('  i:=GetNumberFuncFunc()()();');
+  Add('  if i=GetNumberFunc()() then ;');
+  Add('  if GetNumberFunc()()=i then ;');
+  Add('  if i=GetNumberFuncFunc()()() then ;');
+  Add('  if GetNumberFuncFunc()()()=i then ;');
+  Add('  f:=nil;');
+  Add('  if f=nil then ;');
+  Add('  if nil=f then ;');
+  Add('  if Assigned(f) then ;');
+  Add('  f:=f;');
+  Add('  f:=@GetNumber;');
+  Add('  f:=GetNumberFunc; // not in Delphi');
+  Add('  f:=GetNumberFunc(); // not in Delphi');
+  Add('  f:=GetNumberFuncFunc()();');
+  Add('  if f=f then ;');
+  Add('  if i=f() then ;');
+  Add('  if f()=i then ;');
+  Add('  if f()=f() then ;');
+  Add('  if f=@GetNumber then ;');
+  Add('  if @GetNumber=f then ;');
+  Add('  if f=GetNumberFunc then ;');
+  Add('  if f=GetNumberFunc() then ;');
+  Add('  if f=GetNumberFuncFunc()() then ;');
+  Add('  ff:=nil;');
+  Add('  if ff=nil then ;');
+  Add('  if nil=ff then ;');
+  Add('  ff:=ff;');
+  Add('  if ff=ff then ;');
+  Add('  ff:=@GetNumberFunc;');
+  Add('  ff:=GetNumberFuncFunc; // not in Delphi');
+  Add('  ff:=GetNumberFuncFunc();');
+  Add('  // forbidden: f:=GetNumberFuncFunc;');
+  Add('  // forbidden: f:=GetNumberFuncFunc();');
+  Add('  // fpc crash: f:=GetNumberFuncFunc()();');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestMethodTypesAssignObjFPC;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class;');
+  Add('  TNotifyEvent = procedure(Sender: TObject) of object;');
+  Add('  TObject = class');
+  Add('    FOnClick: TNotifyEvent;');
+  Add('    procedure SetOnClick(const Value: TNotifyEvent);');
+  Add('    procedure Notify(Sender: TObject);');
+  Add('    property OnClick: TNotifyEvent read FOnClick write SetOnClick;');
+  Add('  end;');
+  Add('procedure TObject.SetOnClick(const Value: TNotifyEvent);');
+  Add('begin');
+  Add('  if FOnClick=Value then exit;');
+  Add('  FOnClick:=Value;');
+  Add('end;');
+  Add('procedure TObject.Notify(Sender: TObject);');
+  Add('begin');
+  Add('  if Assigned(OnClick) and (OnClick<>@Notify) then begin');
+  Add('    OnClick(Sender);');
+  Add('    OnClick(Self);');
+  Add('    Self.OnClick(nil);');
+  Add('  end;');
+  Add('  if Self.OnClick=@Self.Notify then ;');
+  Add('end;');
+  Add('var o: TObject;');
+  Add('begin');
+  Add('  o.OnClick:=@o.Notify');
+  Add('  o.OnClick(nil);');
+  Add('  o.OnClick(o);');
+  Add('  o.SetOnClick(@o.Notify);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAssignProcToMethodFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('  TNotifyEvent = procedure(Sender: TObject) of object;');
+  Add('procedure ProcA(Sender: TObject);');
+  Add('begin end;');
+  Add('var n: TNotifyEvent;');
+  Add('begin');
+  Add('  n:=@ProcA;');
+  CheckResolverException('Incompatible types: got "procedure(class TObject)" expected "n:procedure(class TObject) of object"',
+    PasResolver.nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestAssignMethodToProcFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure ProcA(Sender: TObject);');
+  Add('  end;');
+  Add('  TNotifyProc = procedure(Sender: TObject);');
+  Add('procedure TObject.ProcA(Sender: TObject);');
+  Add('begin end;');
+  Add('var');
+  Add('  n: TNotifyProc;');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  n:=@o.ProcA;');
+  CheckResolverException('Incompatible types: got "procedure(class TObject) of object" expected "n:procedure(class TObject)"',
+    PasResolver.nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestAssignProcToFunctionFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFuncInt = function(i: longint): longint;');
+  Add('procedure ProcA(i: longint);');
+  Add('begin end;');
+  Add('var p: TFuncInt;');
+  Add('begin');
+  Add('  p:=@ProcA;');
+  CheckResolverException('Incompatible types: got "procedure(Longint)" expected "p:function(Longint)"',
+    PasResolver.nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestAssignProcWrongArgsFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TProcInt = procedure(i: longint);');
+  Add('procedure ProcA(i: string);');
+  Add('begin end;');
+  Add('var p: TProcInt;');
+  Add('begin');
+  Add('  p:=@ProcA;');
+  CheckResolverException('Incompatible types: got "procedure(String)" expected "p:procedure(Longint)"',
+    PasResolver.nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestArrayOfProc;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('  TNotifyProc = function(Sender: TObject): longint;');
+  Add('  TProcArray = array of TNotifyProc;');
+  Add('function ProcA(Sender: TObject): longint;');
+  Add('begin end;');
+  Add('var');
+  Add('  a: TProcArray;');
+  Add('  p: TNotifyProc;');
+  Add('begin');
+  Add('  a[0]:=@ProcA;');
+  Add('  if a[1]=@ProcA then ;');
+  Add('  if @ProcA=a[2] then ;');
+  Add('  a[3](nil);');
+  Add('  if a[4](nil)=5 then ;');
+  Add('  if 6=a[7](nil) then ;');
+  Add('  a[8]:=a[9];');
+  Add('  p:=a[10];');
+  Add('  a[11]:=p;');
+  Add('  if a[12]=p then ;');
+  Add('  if p=a[13] then ;');
   ParseProgram;
 end;
 

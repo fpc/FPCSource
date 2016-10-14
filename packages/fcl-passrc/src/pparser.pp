@@ -140,7 +140,7 @@ type
     stProcedureHeader,
     stExceptOnExpr,
     stExceptOnStatement,
-    stDeclaration, // e.g. a TPasProperty
+    stDeclaration, // e.g. a TPasProperty, TPasVariable, TPasArgument
     stAncestors // the list of ancestors and interfaces of a class
     );
   TPasScopeTypes = set of TPasScopeType;
@@ -3017,6 +3017,8 @@ begin
       VarEl.LibraryName:=aLibName;
       VarEl.ExportName:=aExpName;
       end;
+    for i := OldListCount to VarList.Count - 1 do
+      Engine.FinishScope(stDeclaration,TPasVariable(VarList[i]));
     ok:=true;
   finally
     if not ok then
@@ -3208,6 +3210,9 @@ begin
       Value:=Nil; // Only the first gets a value. OK, since Var A,B : Integer = 1 is not allowed.
     end;
 
+    for i := OldArgCount to Args.Count - 1 do
+      Engine.FinishScope(stDeclaration,TPasArgument(Args[i]));
+
     NextToken;
     if (CurToken = tkIdentifier) and (LowerCase(CurTokenString) = 'location') then
       begin
@@ -3252,7 +3257,7 @@ Var
   E : TPasExpr;
 
 begin
-  if parent is TPasProcedure then
+  if Parent is TPasProcedure then
     P:=TPasProcedure(Parent);
   if Assigned(P) then
     P.AddModifier(pm);
@@ -3307,7 +3312,7 @@ begin
       if not (CurToken in [tkString,tkIdentifier]) then
         ParseExcTokenError(TokenInfos[tkString]);
       E:=DoParseExpression(Parent);
-      if parent is TPasProcedure then
+      if Parent is TPasProcedure then
         TPasProcedure(Parent).PublicName:=E;
       if (CurToken <> tkSemicolon) then
         ParseExcTokenError(TokenInfos[tkSemicolon]);
@@ -3327,9 +3332,9 @@ begin
       NextToken;
       If CurToken<>tkSemicolon then
         begin
-        if parent is TPasProcedure then
+        if Parent is TPasProcedure then
           TPasProcedure(Parent).MessageName:=CurtokenString;
-        If (CurToken=tkString) and (parent is TPasProcedure) then
+        If (CurToken=tkString) and (Parent is TPasProcedure) then
           TPasProcedure(Parent).Messagetype:=pmtString;
         end;
     until CurToken = tkSemicolon;
@@ -3345,8 +3350,8 @@ procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
   procedure ConsumeSemi;
   begin
     NextToken;
-    if (CurToken <> tksemicolon) and IsCurTokenHint then
-      ungettoken;
+    if (CurToken <> tkSemicolon) and IsCurTokenHint then
+      UngetToken;
   end;
 
   function DoCheckHint : Boolean;
@@ -3357,14 +3362,14 @@ procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
   Result:= IsCurTokenHint(ahint);
   if Result then  // deprecated,platform,experimental,library, unimplemented etc
     begin
-    element.hints:=element.hints+[ahint];
+    Element.Hints:=Element.Hints+[ahint];
     if aHint=hDeprecated then
       begin
-      nextToken;
+      NextToken;
       if (CurToken<>tkString) then
-        UnGetToken
+        UngetToken
       else
-        element.HintMessage:=curtokenstring;
+        Element.HintMessage:=CurTokenString;
       end;
     end;
   end;
@@ -3397,6 +3402,7 @@ begin
         I:=-1;
         if Assigned(CurModule.InterfaceSection) then
           begin
+          // ToDo: add an event for the resolver to use a faster lookup
           I:=CurModule.InterfaceSection.Functions.Count-1;
           While (I>=0) and (CompareText(TPasElement(CurModule.InterfaceSection.Functions[i]).Name,Parent.Name)<>0) do
             Dec(I);
@@ -3445,7 +3451,7 @@ begin
       expectToken(tkIdentifier);
       if (lowerCase(CurTokenString)<>'nested') then
         ParseExc(nParserExpectedNested,SParserExpectedNested);
-      Element.isNested:=True;
+      Element.IsNested:=True;
       end
     else
       UnGetToken;  
@@ -3495,7 +3501,7 @@ begin
         end;
       end
     else if DoCheckHint then
-      consumesemi
+      ConsumeSemi
     else if (CurToken = tkSquaredBraceOpen) then
       begin
       repeat
@@ -3525,7 +3531,8 @@ begin
      or (Parent.Parent is TProcedureBody))
   then
     ParseProcedureBody(Parent);
-  Engine.FinishScope(stProcedure,Parent);
+  if Parent is TPasProcedure then
+    Engine.FinishScope(stProcedure,Parent);
 end;
 
 // starts after the semicolon

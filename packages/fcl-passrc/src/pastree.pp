@@ -1880,7 +1880,7 @@ procedure TPasElement.ForEachChildCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer; Child: TPasElement; CheckParent: boolean);
 begin
   if (Child=nil) then exit;
-  if  CheckParent and (not Child.HasParent(Self)) then exit;
+  if CheckParent and (not Child.HasParent(Self)) then exit;
   Child.ForEachCall(aMethodCall,Arg);
 end;
 
@@ -3736,7 +3736,7 @@ procedure TPasArgument.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
   inherited ForEachCall(aMethodCall, Arg);
-  ForEachChildCall(aMethodCall,Arg,ArgType,false);
+  ForEachChildCall(aMethodCall,Arg,ArgType,true);
   ForEachChildCall(aMethodCall,Arg,ValueExpr,false);
 end;
 
