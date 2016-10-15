@@ -179,6 +179,7 @@ Type
 
 {$IFDEF FPC_HAS_TYPE_SINGLE}
   TSingleHelper = Type Helper for Single
+  Private
     Function GetB(AIndex: Cardinal): Byte;
     Function GetW(AIndex: Cardinal): Word;
     Function GetE: QWord; inline;
