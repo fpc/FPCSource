@@ -143,7 +143,7 @@ unit aoptbase;
   Function TAOptBase.RegInOp(Reg: TRegister; const op: toper): Boolean;
     Begin
       Case op.typ Of
-        Top_Reg: RegInOp := Reg = op.reg;
+        Top_Reg: RegInOp := SuperRegistersEqual(Reg,op.reg);
         Top_Ref: RegInOp := RegInRef(Reg, op.ref^);
         {$ifdef arm}
         Top_Shifterop: RegInOp := op.shifterop^.rs = Reg;
