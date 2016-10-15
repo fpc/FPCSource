@@ -728,9 +728,10 @@ unit aoptx86;
                 begin
                   asml.remove(p);
                   p.free;
-                  p := hp1;
+                  p:=hp1;
                   DebugMsg('Peephole removed deadstore before leave/ret',p);
                   RemoveLastDeallocForFuncRes(p);
+                  exit;
                 end
               { change
                   mov reg1, mem1
@@ -1004,9 +1005,9 @@ unit aoptx86;
                 p := hp1;
               end;
             ReleaseUsedRegs(TmpUsedRegs);
-          end;
+          end
 
-        if GetNextIntruction_p and
+        else if GetNextIntruction_p and
           MatchInstruction(hp1,A_BTS,A_BTR,[Taicpu(p).opsize]) and
           GetNextInstruction(hp1, hp2) and
           MatchInstruction(hp2,A_OR,[Taicpu(p).opsize]) and
@@ -1024,9 +1025,9 @@ unit aoptx86;
             asml.remove(p);
             p.free;
             p:=hp1;
-          end;
+          end
 
-        if GetNextIntruction_p and
+        else if GetNextIntruction_p and
            MatchInstruction(hp1,A_LEA,[S_L]) and
            MatchOpType(Taicpu(p),top_ref,top_reg) and
            ((MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(hp1).oper[1]^.reg,Taicpu(p).oper[1]^.reg) and
