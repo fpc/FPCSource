@@ -937,7 +937,8 @@ unit aoptx86;
           GetNextInstruction(hp1, hp2) and
           MatchInstruction(hp2,A_MOV,[]) and
           OpsEqual(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^) and
-          OpsEqual(taicpu(hp2).oper[0]^, taicpu(p).oper[1]^) and
+          (taicpu(hp2).oper[0]^.typ=top_reg) and
+          (SuperRegistersEqual(taicpu(hp2).oper[0]^.reg,taicpu(p).oper[1]^.reg)) and
           (IsFoldableArithOp(taicpu(hp1), taicpu(p).oper[1]^.reg) or
            ((taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and
             IsFoldableArithOp(taicpu(hp1), newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[1]^.reg),R_SUBQ)))
@@ -961,7 +962,7 @@ unit aoptx86;
                     decw    %eax            addw    %edx,%eax     hp1
                     movw    %ax,%si         movw    %ax,%si       hp2
                 }
-                DebugMsg('PeepHole Optimization '+
+                DebugMsg('Peephole Optimization MovOpMov2Op ('+
                       std_op2str[taicpu(p).opcode]+gas_opsize2str[taicpu(p).opsize]+' '+
                       std_op2str[taicpu(hp1).opcode]+gas_opsize2str[taicpu(hp1).opsize]+' '+
                       std_op2str[taicpu(hp2).opcode]+gas_opsize2str[taicpu(hp2).opsize],p);
