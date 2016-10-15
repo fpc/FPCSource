@@ -494,7 +494,6 @@ compiler/nobjc.pas svneol=native#text/plain
 compiler/node.pas svneol=native#text/plain
 compiler/nopt.pas svneol=native#text/plain
 compiler/nset.pas svneol=native#text/plain
-compiler/nstate.pas svneol=native#text/plain
 compiler/nutils.pas svneol=native#text/plain
 compiler/objcasm.pas svneol=native#text/plain
 compiler/objcdef.pas svneol=native#text/plain
