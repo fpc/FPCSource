@@ -32,6 +32,7 @@ Type
   { TFppkgOptionSection }
 
   TCompilerOptions = class;
+  TFppkgOptions = class;
   TFppkgOptionSection = class(TPersistent)
   private
     FOptionParser: TTemplateParser;
@@ -135,6 +136,25 @@ Type
     property Description: string read FDescription write SetDescription;
     property Path: string read GetPath write SetPath;
     property Prefix: string read GetPrefix write SetPrefix;
+  end;
+
+  { TFppkgIncludeFilesOptionSection }
+
+  TFppkgIncludeFilesOptionSection = class(TFppkgOptionSection)
+  private
+    FOptions: TFppkgOptions;
+    // Only used for logging
+    FOptionCache: TStringList;
+    FCurrentDir: String;
+
+    procedure IncludeFile(AFileName: string);
+    procedure IncludeFileMask(AFileNameMask: string);
+  public
+    constructor Create(AnOptionParser: TTemplateParser; AnOptions: TFppkgOptions; ACurrentDir: string);
+    destructor Destroy; override;
+    procedure AddKeyValue(const AKey, AValue: string); override;
+    procedure LogValues(ALogLevel: TLogLevel); override;
+    function AllowDuplicate: Boolean; override;
   end;
 
   { TFppkgCommandLineOptionSection }
@@ -260,6 +280,7 @@ Const
   KeyGlobalSection         = 'Global';
   KeyRepositorySection     = 'Repository';
   KeySrcRepositorySection  = 'UninstalledSourceRepository';
+  KeyIncludeFilesSection   = 'IncludeFiles';
   KeyRemoteMirrorsURL      = 'RemoteMirrors';
   KeyRemoteRepository      = 'RemoteRepository';
   KeyLocalRepository       = 'LocalRepository';
@@ -277,6 +298,9 @@ Const
   KeyRepositoryPath        = 'Path';
   KeyRepositoryPrefix      = 'Prefix';
 
+  KeyIncludeFile           = 'File';
+  KeyIncludeFileMask       = 'FileMask';
+
   // Compiler dependent config
   KeyGlobalPrefix          = 'GlobalPrefix';
   KeyLocalPrefix           = 'LocalPrefix';
@@ -286,6 +310,91 @@ Const
   KeyCompilerOS            = 'OS';
   KeyCompilerCPU           = 'CPU';
   KeyCompilerVersion       = 'Version';
+
+{ TFppkgIncludeFilesOptionSection }
+
+procedure TFppkgIncludeFilesOptionSection.IncludeFile(AFileName: string);
+begin
+  AFileName := FOptionParser.ParseString(AFileName);
+  if FileExists(AFileName) then
+    begin
+      FOptions.LoadFromFile(AFileName);
+    end
+  else
+    log(llWarning, SLogIncludeFileDoesNotExist, [AFileName]);
+end;
+
+procedure TFppkgIncludeFilesOptionSection.IncludeFileMask(AFileNameMask: string);
+var
+  FileDir: string;
+  SR: TSearchRec;
+begin
+  AFileNameMask := FOptionParser.ParseString(AFileNameMask);
+  FileDir := IncludeTrailingPathDelimiter(ExtractFileDir(AFileNameMask));
+
+  if IsRelativePath(AFileNameMask) then
+    FileDir := ConcatPaths([FCurrentDir, FileDir]);
+
+  if DirectoryExists(FileDir) then
+    begin
+      if IsRelativePath(AFileNameMask) then
+        AFileNameMask := ConcatPaths([FCurrentDir, AFileNameMask]);
+
+      if FindFirst(AFileNameMask, faAnyFile-faDirectory, SR)=0 then
+        begin
+          repeat
+            IncludeFile(FileDir+SR.Name);
+          until FindNext(SR)<>0;
+        end;
+    end
+  else
+    log(llWarning, SLogIncludeFileMaskDoesNotExist, [FileDir, AFileNameMask]);
+end;
+
+constructor TFppkgIncludeFilesOptionSection.Create(AnOptionParser: TTemplateParser;
+  AnOptions: TFppkgOptions; ACurrentDir: string);
+begin
+  inherited Create(AnOptionParser);
+  FOptions := AnOptions;
+  FCurrentDir := ACurrentDir;
+  FOptionCache := TStringList.Create;
+end;
+
+destructor TFppkgIncludeFilesOptionSection.Destroy;
+begin
+  FOptionCache.Free;
+  inherited Destroy;
+end;
+
+procedure TFppkgIncludeFilesOptionSection.AddKeyValue(const AKey, AValue: string);
+begin
+  if SameText(AKey,KeyIncludeFile) then
+    begin
+      FOptionCache.Append(SLogIncludeFile + '=' + AValue);
+      IncludeFile(AValue);
+    end
+  else if SameText(AKey,KeyIncludeFileMask) then
+    begin
+      FOptionCache.Append(SLogIncludeFileMask + '=' + AValue);
+      IncludeFileMask(AValue);
+    end;
+end;
+
+procedure TFppkgIncludeFilesOptionSection.LogValues(ALogLevel: TLogLevel);
+var
+  i: Integer;
+begin
+  inherited LogValues(ALogLevel);
+  for i := 0 to FOptionCache.Count -1 do
+    begin
+      log(ALogLevel, FOptionCache.Names[i], [FOptionCache.ValueFromIndex[i], FOptionParser.ParseString(FOptionCache.ValueFromIndex[i])]);
+    end;
+end;
+
+function TFppkgIncludeFilesOptionSection.AllowDuplicate: Boolean;
+begin
+  Result := inherited AllowDuplicate;
+end;
 
 { TFppkgRepositoryOptionSection }
 
@@ -697,6 +806,8 @@ begin
                   CurrentSection := TFppkgRepositoryOptionSection.Create(FOptionParser)
                 else if SameText(s, KeySrcRepositorySection) then
                   CurrentSection := TFppkgUninstalledSourceRepositoryOptionSection.Create(FOptionParser)
+                else if SameText(s, KeyIncludeFilesSection) then
+                  CurrentSection := TFppkgIncludeFilesOptionSection.Create(FOptionParser, Self, ExtractFileDir(AFileName))
                 else
                   CurrentSection := TFppkgCustomOptionSection.Create(FOptionParser);
                 FSectionList.Add(CurrentSection);

@@ -114,6 +114,11 @@ Resourcestring
   SLogRepositoryPath              = '  Dir:              "%s" -> "%s"';
   SLogRepositoryPrefix            = '  Prefix:           "%s" -> "%s"';
 
+  SLogIncludeFile                 = '  IncludeFile:           "%s" -> "\%s"';
+  SLogIncludeFileMask             = '  IncludeFileMask:       "%s" -> "\%s"';
+  SLogIncludeFileDoesNotExist     = 'The log-file "%s" does not exist';
+  SLogIncludeFileMaskDoesNotExist = 'The directory "%s" of the include-mask "%s" does not exist';
+
   SLogPackageInfoName             = 'Package:        %s';
   SLogPackageInfoVersion          = 'Version:        %s';
   SLogPackageInfoAuthor           = 'Author:         %s %s';
