@@ -23,7 +23,7 @@ unit aoptx86;
 
 {$i fpcdefs.inc}
 
-{ $define DEBUG_AOPTCPU}
+{$define DEBUG_AOPTCPU}
 
   interface
 
@@ -241,6 +241,16 @@ unit aoptx86;
           ' till here...'));
         insertllitem(asml,p2,p2.next,hp);
 {$endif allocregdebug}
+        { do it the safe way: always allocate the full super register,
+          as we do no register re-allocation in the peephole optimizer,
+          this does not hurt
+        }
+        case getregtype(reg) of
+          R_MMREGISTER:
+            reg:=newreg(R_MMREGISTER,getsupreg(reg),R_SUBMMWHOLE);
+          R_INTREGISTER:
+            reg:=newreg(R_INTREGISTER,getsupreg(reg),R_SUBWHOLE);
+        end;
         if not(RegInUsedRegs(reg,initialusedregs)) then
           begin
             hp := tai_regalloc.alloc(reg,nil);
@@ -261,20 +271,31 @@ unit aoptx86;
               { remove all allocation/deallocation info about the register in between }
               if assigned(p1) and
                  (p1.typ = ait_regalloc) then
-                if tai_regalloc(p1).reg=reg then
-                  begin
-                    if not removedSomething then
-                      begin
-                        firstRemovedWasAlloc := tai_regalloc(p1).ratype=ra_alloc;
-                        removedSomething := true;
-                      end;
-                    lastRemovedWasDealloc := (tai_regalloc(p1).ratype=ra_dealloc);
-                    hp := tai(p1.Next);
-                    asml.Remove(p1);
-                    p1.free;
-                    p1 := hp;
-                  end
-                else p1 := tai(p1.next);
+                begin
+                  if (getregtype(reg)=getregtype(tai_regalloc(p1).reg)) and
+                    (getsupreg(tai_regalloc(p1).reg)=getsupreg(reg)) and (tai_regalloc(p1).reg<>reg) then
+                    begin
+                      if (getsubreg(tai_regalloc(p1).reg)>getsubreg(reg)) or (getsubreg(reg)=R_SUBH) then
+                        internalerror(2016101501);
+                      tai_regalloc(p1).reg:=reg;
+                    end;
+
+                  if tai_regalloc(p1).reg=reg then
+                    begin
+                      if not removedSomething then
+                        begin
+                          firstRemovedWasAlloc := tai_regalloc(p1).ratype=ra_alloc;
+                          removedSomething := true;
+                        end;
+                      lastRemovedWasDealloc := (tai_regalloc(p1).ratype=ra_dealloc);
+                      hp := tai(p1.Next);
+                      asml.Remove(p1);
+                      p1.free;
+                      p1 := hp;
+                    end
+                  else
+                    p1 := tai(p1.next);
+                end;
             until not(assigned(p1)) or
                   not(p1.typ in SkipInstr);
           end;
@@ -748,7 +769,7 @@ unit aoptx86;
                         mov reg1, mem1/reg2
                         mov mem1/reg2, reg1 }
                       begin
-                        if (taicpu(p).oper[0]^.typ = top_reg) then
+                        if taicpu(p).oper[0]^.typ=top_reg then
                           AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
                         DebugMsg('PeepHole Optimization,MovMov2Mov 1',p);
                         asml.remove(hp1);
@@ -902,7 +923,7 @@ unit aoptx86;
                  RefsEqual(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.ref^) and
                  not(RegInRef(taicpu(hp1).oper[1]^.reg,taicpu(hp1).oper[0]^.ref^)) then
               begin
-                allocregbetween(taicpu(hp1).oper[1]^.reg,p,hp1,usedregs);
+                AllocRegBetween(taicpu(hp1).oper[1]^.reg,p,hp1,usedregs);
                 taicpu(hp1).loadReg(0,taicpu(hp1).oper[1]^.reg);
                 taicpu(hp1).loadRef(1,taicpu(p).oper[1]^.ref^);
                 taicpu(p).loadReg(1,taicpu(hp1).oper[0]^.reg);
