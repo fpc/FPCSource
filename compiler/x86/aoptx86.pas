@@ -1089,8 +1089,16 @@ unit aoptx86;
         else if (taicpu(p).oper[0]^.typ = top_ref) and
           GetNextInstruction(p,hp1) and
           (hp1.typ = ait_instruction) and
-          (IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) or
+          { while the GetNextInstruction(hp1,hp2) call could be factored out,
+            doing it separately in both branches allows to do the cheap checks
+            with low probability earlier }
+          ((IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) and
+            GetNextInstruction(hp1,hp2) and
+            MatchInstruction(hp2,A_MOV,[])
+           ) or
            ((taicpu(hp1).opcode=A_LEA) and
+             GetNextInstruction(hp1,hp2) and
+             MatchInstruction(hp2,A_MOV,[]) and
             (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
             ((MatchReference(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) and
              (taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg)
@@ -1098,18 +1106,17 @@ unit aoptx86;
              (MatchReference(taicpu(hp1).oper[0]^.ref^,NR_INVALID,
               taicpu(p).oper[1]^.reg) and
              (taicpu(hp1).oper[0]^.ref^.base<>taicpu(p).oper[1]^.reg))
-            )
+            ) and
+            ((MatchOperand(taicpu(p).oper[1]^,taicpu(hp2).oper[0]^)) or not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,UsedRegs)))
            )
           ) and
-          GetNextInstruction(hp1,hp2) and
-          MatchInstruction(hp2,A_MOV,[]) and
           MatchOperand(taicpu(p).oper[1]^,taicpu(hp2).oper[0]^) and
           (taicpu(hp2).oper[1]^.typ = top_ref) then
           begin
             CopyUsedRegs(TmpUsedRegs);
             UpdateUsedRegs(TmpUsedRegs,tai(hp1.next));
             if (RefsEqual(taicpu(hp2).oper[1]^.ref^, taicpu(p).oper[0]^.ref^) and
-              not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2, TmpUsedRegs))) then
+              not(RegUsedAfterInstruction(taicpu(hp2).oper[0]^.reg,hp2, TmpUsedRegs))) then
               { change   mov            (ref), reg
                          add/sub/or/... reg2/$const, reg
                          mov            reg, (ref)
