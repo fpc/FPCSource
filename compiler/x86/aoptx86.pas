@@ -834,6 +834,7 @@ unit aoptx86;
                             mov reg2, mem2}
                         begin
                           AllocRegBetween(taicpu(hp2).oper[1]^.reg,p,hp2,usedregs);
+                          DebugMsg('PeepHole Optimization,MovMovMov2MovMov 1',p);
                           taicpu(p).loadoper(1,taicpu(hp2).oper[1]^);
                           taicpu(hp1).loadoper(0,taicpu(hp2).oper[1]^);
                           asml.remove(hp2);
