@@ -103,6 +103,7 @@ type
    private
      FBufferRead: Integer;
      FBufferPosition: Integer;
+     FClosed,
      FOwnsStream: Boolean;
      FStream: TStream;
      FBuffer: array of Byte;
@@ -348,6 +349,7 @@ begin
     raise EArgumentException.CreateFmt(SParamIsNil, ['AStream']);
   FStream := AStream;
   FOwnsStream := AOwnsStream;
+  FClosed:=False;
   if ABufferSize >= MIN_BUFFER_SIZE then
     SetLength(FBuffer, ABufferSize)
   else
@@ -367,9 +369,17 @@ end;
 
 procedure TStreamReader.FillBuffer;
 begin
-  FBufferRead := FStream.Read(FBuffer[0], Pred(Length(FBuffer)));
-  FBuffer[FBufferRead] := 0;
-  FBufferPosition := 0;
+  if FClosed then 
+    begin
+    FBufferRead:=0;
+    FBufferPosition:=0;
+    end
+  else  
+    begin
+    FBufferRead := FStream.Read(FBuffer[0], Pred(Length(FBuffer)));
+    FBuffer[FBufferRead] := 0;
+    FBufferPosition := 0;
+    end;
 end;
 
 procedure TStreamReader.Reset;
@@ -383,15 +393,13 @@ end;
 procedure TStreamReader.Close;
 begin
   if FOwnsStream then
-  begin
-    FStream.Free;
-    FStream := nil;
-  end;
+    FreeAndNil(FStream);
+  FClosed:=True;
 end;
 
 function TStreamReader.IsEof: Boolean;
 begin
-  if not Assigned(FStream) then
+  if FClosed or not Assigned(FStream) then
     Exit(True);
   Result := FBufferPosition >= FBufferRead;
   if Result then
@@ -408,6 +416,7 @@ var
 begin
   VPosition := FBufferPosition;
   SetLength(AString, 0);
+  if FClosed then exit;
   repeat
     VPByte := @FBuffer[FBufferPosition];
     while (FBufferPosition < FBufferRead) and not (VPByte^ in [10, 13]) do
