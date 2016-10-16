@@ -23,7 +23,7 @@ unit aoptx86;
 
 {$i fpcdefs.inc}
 
-{$define DEBUG_AOPTCPU}
+{ $define DEBUG_AOPTCPU}
 
   interface
 
@@ -930,6 +930,7 @@ unit aoptx86;
                 taicpu(hp1).loadRef(1,taicpu(p).oper[1]^.ref^);
                 taicpu(p).loadReg(1,taicpu(hp1).oper[0]^.reg);
                 taicpu(hp1).fileinfo := taicpu(p).fileinfo;
+                DebugMsg('PeepHole Optimization,MovMov2MovMov 1',p);
               end
           end
 
