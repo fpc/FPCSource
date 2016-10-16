@@ -611,19 +611,19 @@ end;
 
 function  TStreamHelper.ReadSingle:Single;
 begin
-  self.Read(result,sizeof(result));
+  self.ReadBuffer(result,sizeof(result));
 end;
 function  TStreamHelper.ReadDouble:Double;
 begin
-  self.Read(result,sizeof(result));
+  self.ReadBuffer(result,sizeof(result));
 end;
 procedure TStreamHelper.WriteSingle(s:Single);
 begin
-  self.Write(s,sizeof(s));
+  self.WriteBuffer(s,sizeof(s));
 end;
 procedure TStreamHelper.WriteDouble(d:double);
 begin
-  self.Write(d,sizeof(d));
+  self.WriteBuffer(d,sizeof(d));
 end;
 
 
@@ -631,32 +631,32 @@ end;
 // there can only be one helper per class, and I use these in Delphi for FPC compatibility.
 function TStreamHelper.ReadByte: Byte;
 begin
- self.Read(result,sizeof(result));
+ self.ReadBuffer(result,sizeof(result));
 end;
 
 function TStreamHelper.ReadDWord: DWord;
 begin
- self.Read(result,sizeof(result));
+ self.ReadBuffer(result,sizeof(result));
 end;
 
 function TStreamHelper.ReadWord: Word;
 begin
- self.Read(result,sizeof(result));
+ self.ReadBuffer(result,sizeof(result));
 end;
 
 procedure TStreamHelper.WriteByte(b: Byte);
 begin
- self.Write(b,sizeof(b));
+ self.WriteBuffer(b,sizeof(b));
 end;
 
 procedure TStreamHelper.WriteDWord(b: DWord);
 begin
- self.Write(b,sizeof(b));
+ self.WriteBuffer(b,sizeof(b));
 end;
 
 procedure TStreamHelper.WriteWord(b: Word);
 begin
- self.Write(b,sizeof(b));
+ self.WriteBuffer(b,sizeof(b));
 end;
 {$endif}
 
