@@ -479,6 +479,8 @@ begin
     ScanCode := #0;
   end;
 end;
+
+{$ifndef win64}
 //----Windows 9x Sound Helper ---
 {$ASMMODE INTEL}
 function InPort(PortAddr:word): byte; assembler; stdcall;
@@ -493,6 +495,7 @@ asm
   mov dx,PortAddr
   out dx,al
 end;
+{$endif win64}
 
 //----Windows 2000/XP Sound Helper ---
 const IOCTL_BEEP_SET={CTL_CODE(FILE_DEVICE_BEEP, 0, METHOD_BUFFERED, FILE_ANY_ACCESS)}1 shl 16;
@@ -542,10 +545,12 @@ begin
     opt.Duration:=-1; //very long
     DeviceIoControl(beeperDevice,IOCTL_BEEP_SET,@opt,sizeof(opt),nil,0,@result,nil);
   end else begin
+{$ifndef win64}
     OutPort($43,182);
     OutPort($61,InPort($61) or 3);
     OutPort($42,lo(1193180 div hz));
     OutPort($42, hi(1193180 div hz));
+{$endif win64}
   end;
 end;
 
@@ -560,8 +565,10 @@ begin
     opt.Duration:=0;
     DeviceIoControl(beeperDevice,IOCTL_BEEP_SET,@opt,sizeof(opt),nil,0,@result,nil);
   end else begin
+{$ifndef win64}
     OutPort($43,182);
     OutPort($61,InPort($61) and 3);
+{$endif win64}
   end;
 end;
 
