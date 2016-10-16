@@ -952,7 +952,7 @@ implementation
         n.tempinfo^.owner:=n;
         n.tempinfo^.typedef := tempinfo^.typedef;
         n.tempinfo^.temptype := tempinfo^.temptype;
-        n.tempflags := n.tempflags * tempinfostoreflags;
+        n.tempflags := tempflags * tempinfostoreflags;
 
         { when the tempinfo has already a hookoncopy then it is not
           reset by a tempdeletenode }
@@ -1202,16 +1202,28 @@ implementation
 
 
     procedure ttemprefnode.mark_write;
+      begin
+        include(flags,nf_write);
+      end;
 
-    begin
-      include(flags,nf_write);
-    end;
 
     procedure ttemprefnode.printnodedata(var t:text);
+      var
+        f : ttempinfoflag;
+        notfirst : Boolean;
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
-          tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
+        write(t,printnodeindention,'temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
+          tempinfo^.typedef.GetTypeName,'", (tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2),' flags = [');
+        notfirst:=false;
+        for f in tempinfo^.flags do
+          begin
+            if notfirst then
+              write(',');
+            write(f);
+            notfirst:=true;
+          end;
+        writeln('])');
       end;
 
 
