@@ -92,6 +92,8 @@ const
    fpc_in_setstring_x_y_z   = 81;
    fpc_in_insert_x_y_z      = 82;
    fpc_in_delete_x_y_z      = 83;
+   fpc_in_reset_typedfile_name   = 84;
+   fpc_in_rewrite_typedfile_name = 85;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;

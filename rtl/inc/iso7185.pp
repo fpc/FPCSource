@@ -29,6 +29,11 @@ unit iso7185;
     Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
     Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 
+    Procedure Rewrite(var t : Text;const filename : string);
+    Procedure Reset(var t : Text;const filename : string);
+    Procedure Reset(var f : TypedFile;const filename : string);   [INTERNPROC: fpc_in_Reset_TypedFile_Name];
+    Procedure Rewrite(var f : TypedFile;const filename : string); [INTERNPROC: fpc_in_Rewrite_TypedFile_Name];
+
     Function Eof(Var t: Text): Boolean;
     Function Eof:Boolean;
     Function Eoln(Var t: Text): Boolean;
@@ -126,6 +131,30 @@ unit iso7185;
           { create file name? }
           0:
             DoAssign(t);
+          fmOutput:
+            Write(t,#26);
+        end;
+
+        System.Reset(t);
+      End;
+
+
+    Procedure Rewrite(var t : Text;const filename : string);[IOCheck];
+      Begin
+        { create file name? }
+        if Textrec(t).mode=0 then
+          Assign(t,filename);
+
+        System.Rewrite(t);
+      End;
+
+
+    Procedure Reset(var t : Text;const filename : string);[IOCheck];
+      Begin
+        case Textrec(t).mode of
+          { create file name? }
+          0:
+            Assign(t,filename);
           fmOutput:
             Write(t,#26);
         end;

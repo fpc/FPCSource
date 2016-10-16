@@ -534,19 +534,37 @@ implementation
         { a typed file as argument and we don't have to check it again (JM) }
 
         { add the recsize parameter }
-        { note: for some reason, the parameter of intern procedures with only one }
-        {   parameter is gets lifted out of its original tcallparanode (see round }
-        {   line 1306 of ncal.pas), so recreate a tcallparanode here (JM)         }
-        left := ccallparanode.create(cordconstnode.create(
-          tfiledef(left.resultdef).typedfiledef.size,s32inttype,true),
-          ccallparanode.create(left,nil));
+
+        { iso mode extension with name? }
+        if inlinenumber in [in_reset_typedfile_name,in_rewrite_typedfile_name] then
+          begin
+            left := ccallparanode.create(cordconstnode.create(
+              tfiledef(tcallparanode(tcallparanode(left).nextpara).paravalue.resultdef).typedfiledef.size,s32inttype,true),left);
+          end
+        else
+          begin
+            { note: for some reason, the parameter of intern procedures with only one }
+            {   parameter is gets lifted out of its original tcallparanode (see round }
+            {   line 1306 of ncal.pas), so recreate a tcallparanode here (JM)         }
+            left := ccallparanode.create(cordconstnode.create(
+              tfiledef(left.resultdef).typedfiledef.size,s32inttype,true),
+              ccallparanode.create(left,nil));
+          end;
         { create the correct call }
         if m_isolike_io in current_settings.modeswitches then
           begin
-            if inlinenumber=in_reset_typedfile then
-              result := ccallnode.createintern('fpc_reset_typed_iso',left)
-            else
-              result := ccallnode.createintern('fpc_rewrite_typed_iso',left);
+            case inlinenumber of
+              in_reset_typedfile:
+                result := ccallnode.createintern('fpc_reset_typed_iso',left);
+              in_reset_typedfile_name:
+                result := ccallnode.createintern('fpc_reset_typed_name_iso',left);
+              in_rewrite_typedfile:
+                result := ccallnode.createintern('fpc_rewrite_typed_iso',left);
+              in_rewrite_typedfile_name:
+                result := ccallnode.createintern('fpc_rewrite_typed_name_iso',left);
+              else
+                internalerror(2016101501);
+            end;
           end
         else
           begin
@@ -2990,7 +3008,9 @@ implementation
 
               { the firstpass of the arg has been done in firstcalln ? }
               in_reset_typedfile,
-              in_rewrite_typedfile :
+              in_rewrite_typedfile,
+              in_reset_typedfile_name,
+              in_rewrite_typedfile_name :
                 begin
                   result := handle_reset_rewrite_typed;
                 end;
@@ -3596,6 +3616,8 @@ implementation
           in_settextbuf_file_x,
           in_reset_typedfile,
           in_rewrite_typedfile,
+          in_reset_typedfile_name,
+          in_rewrite_typedfile_name,
           in_str_x_string,
           in_val_x,
           in_read_x,

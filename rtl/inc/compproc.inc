@@ -760,6 +760,9 @@ Procedure fpc_reset_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_reset_typed_iso(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_rewrite_typed_iso(var f : TypedFile;Size : Longint); compilerproc;
+Procedure fpc_reset_typed_name_iso(var f : TypedFile;const FileName : String;Size : Longint); compilerproc;
+Procedure fpc_rewrite_typed_name_iso(var f : TypedFile;const FileName : String;Size : Longint); compilerproc;
+
 Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf); compilerproc;
 Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;out Buf); compilerproc;
 Procedure fpc_typed_read_iso(TypeSize : Longint;var f : TypedFile;out Buf); compilerproc;

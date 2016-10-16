@@ -118,6 +118,33 @@ Begin
 End;
 
 
+Procedure fpc_reset_typed_name_iso(var f : TypedFile;const FileName : String;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED_NAME_ISO']; compilerproc;
+Begin
+  If InOutRes <> 0 then
+   exit;
+
+  { create file name? }
+  if FileRec(f).mode=0 then
+    Assign(f,FileName);
+
+  Reset(UnTypedFile(f),Size);
+  BlockRead(UntypedFile(f),(pbyte(@f)+sizeof(FileRec))^,1);
+End;
+
+
+Procedure fpc_rewrite_typed_name_iso(var f : TypedFile;const FileName : String;Size : Longint);[Public,IOCheck, Alias:'FPC_REWRITE_TYPED_NAME_ISO']; compilerproc;
+Begin
+  If InOutRes <> 0 then
+   exit;
+
+  { create file name? }
+  if FileRec(f).mode=0 then
+    Assign(f,FileName);
+
+  Rewrite(UnTypedFile(f),Size);
+End;
+
+
 Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf);[IOCheck, Public, Alias :'FPC_TYPED_WRITE']; compilerproc;
 Begin
   If InOutRes <> 0 then

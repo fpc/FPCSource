@@ -91,6 +91,8 @@ const
    in_setstring_x_y_z   = 81;
    in_insert_x_y_z      = 82;
    in_delete_x_y_z      = 83;
+   in_reset_typedfile_name   = 84;
+   in_rewrite_typedfile_name = 85;
 
 { Internal constant functions }
    in_const_sqr        = 100;
