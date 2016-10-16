@@ -13,6 +13,8 @@ if [ $# = 0 ]; then
   echo 'samplecfg fpcdir confdir'
   echo 'fpcdir = Path where FPC is installed'
   echo 'confdir = Path to /etc'
+  echo 'Example :'
+  echo 'samplecfg /usr/local/lib/fpc/3.0.2'
   exit 1
 fi
 if [ "$2" ]; then
