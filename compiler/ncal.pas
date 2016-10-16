@@ -156,9 +156,10 @@ interface
           { varargs parasyms }
           varargsparas : tvarargsparalist;
 
-          { separately specified resultdef for some compilerprocs (e.g. }
-          { you can't have a function with an "array of char" resultdef }
-          { the RTL) (JM)                                                }
+          { separately specified resultdef for some compilerprocs (e.g.
+            you can't have a function with an "array of char" resultdef
+            the RTL) (JM)
+          }
           typedef: tdef;
           callnodeflags : tcallnodeflags;
 
