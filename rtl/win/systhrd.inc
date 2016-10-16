@@ -414,10 +414,15 @@ type Tbasiceventstate=record
 
 function intBasicEventCreate(EventAttributes : Pointer;
 AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
-
+var
+  n : PChar;
 begin
   new(plocaleventrec(result));
-  plocaleventrec(result)^.FHandle := CreateEvent(EventAttributes, AManualReset, InitialState,PChar(Name));
+  if Length(Name) = 0 then
+    n := Nil
+  else
+    n := PChar(Name);
+  plocaleventrec(result)^.FHandle := CreateEvent(EventAttributes, AManualReset, InitialState,n);
 end;
 
 procedure intbasiceventdestroy(state:peventstate);
