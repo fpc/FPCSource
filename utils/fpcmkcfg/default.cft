@@ -1,7 +1,5 @@
 [Defaults]
-ConfigVersion=4
-GlobalPrefix=%GlobalPrefix%
-LocalPrefix={LocalRepository}
+ConfigVersion=5
 Compiler=%fpcbin%
 OS=%fpctargetos%
 CPU=%fpctarget%
