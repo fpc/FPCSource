@@ -659,7 +659,7 @@ begin
   if CharCount < Result then
     Result := CharCount;
   LastChar := @Chars[Result];
-  while Chars <= LastChar do
+  while Chars < LastChar do
   begin
     Chars^ := UnicodeChar(Bytes[1] + Bytes[0] shl 8);
     inc(Bytes, SizeOf(UnicodeChar));
