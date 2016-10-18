@@ -37,8 +37,8 @@ Procedure fpc_freemem(p:pointer);compilerproc;
 {$endif FPC_HAS_FEATURE_HEAP}
 
 { used by Default() in code blocks }
-procedure fpc_zeromem(p:pointer;len:ptruint);inline;compilerproc;
-procedure fpc_fillmem(out data;len:ptruint;b : byte);inline;compilerproc;
+procedure fpc_zeromem(p:pointer;len:sizeuint);inline;compilerproc;
+procedure fpc_fillmem(out data;len:sizeuint;b : byte);inline;compilerproc;
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
 procedure fpc_shortstr_assign(len:{$ifdef cpu16}smallint{$else}longint{$endif};sstr,dstr:pointer); compilerproc;

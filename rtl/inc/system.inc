@@ -335,13 +335,13 @@ begin
 end;
 
 
-procedure fpc_zeromem(p:pointer;len:ptruint);
+procedure fpc_zeromem(p:pointer;len:sizeuint);
 begin
   FillChar(p^,len,0);
 end;
 
 
-procedure fpc_fillmem(out data;len:ptruint;b : byte);
+procedure fpc_fillmem(out data;len:sizeuint;b : byte);
 begin
   FillByte(data,len,b);
 end;

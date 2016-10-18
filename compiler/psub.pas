@@ -238,7 +238,7 @@ implementation
                b.left:=cstatementnode.create(
                          ccallnode.createintern('fpc_zeromem',
                            ccallparanode.create(
-                             cordconstnode.create(vardef.size,ptruinttype,false),
+                             cordconstnode.create(vardef.size,sizeuinttype,false),
                              ccallparanode.create(
                                caddrnode.create_internal(
                                  cloadnode.create(tsym(p),tsym(p).owner)),
