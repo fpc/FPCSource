@@ -324,8 +324,7 @@ begin
     AddOption('--debug')
   else if llInfo in LogLevels then
     AddOption('--verbose');
-  if P.RecompileBroken and
-     (P.FPMakeOptionsString<>'') then // Check for a empty FPMakeOptionString for packages being installed with an old fpmkunit
+  if (P.FPMakeOptionsString<>'') then
     begin
       // When the package is being reinstalled because of broken dependencies, use the same fpmake-options
       // as were used to compile the package in the first place.

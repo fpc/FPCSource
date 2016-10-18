@@ -89,7 +89,6 @@ type
     FEmail: String;
     FFPMakeOptionsString: string;
     FKeywords: String;
-    FRecompileBroken: boolean;
     FSourcePath: string;
     FIsFPMakeAddIn: boolean;
     FLicense: String;
@@ -108,6 +107,7 @@ type
     FLocalFileName : String;
     FPackagesStructure: TFPCustomPackagesStructure;
     function GetFileName: String;
+    function GetRepository: TFPRepository;
     procedure SetName(const AValue: String);
     procedure SetUnusedVersion(const AValue: TFPVersion);
     procedure SetVersion(const AValue: TFPVersion);
@@ -121,10 +121,11 @@ type
     procedure LoadUnitConfigFromFile(Const AFileName: String);
     Procedure Assign(Source : TPersistent); override;
     Function AddDependency(Const APackageName : String; const AMinVersion : String = '') : TFPDependency;
+    Function IsPackageBroken: Boolean;
     Property Dependencies : TFPDependencies Read FDependencies;
-    Property RecompileBroken : boolean read FRecompileBroken write FRecompileBroken;
     Property OSes : TOSes Read FOSes Write FOses;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
+    Property Repository: TFPRepository read GetRepository;
   Published
     Property Name : String Read FName Write SetName;
     Property Author : String Read FAuthor Write FAuthor;
@@ -152,9 +153,11 @@ type
 
   TFPPackages = Class(TStreamCollection)
   private
+    FRepository: TFPRepository;
     FVersion : Integer;
     function GetPackage(Index : Integer): TFPPackage;
     procedure SetPackage(Index : Integer; const AValue: TFPPackage);
+    procedure SetRepository(AValue: TFPRepository);
   Protected
     Function CurrentStreamVersion : Integer; override;
   Public
@@ -164,6 +167,7 @@ type
     Function AddPackage(const APackageName : string) : TFPPackage;
     Property StreamVersion : Integer Read FVersion Write FVersion;
     Property Packages [Index : Integer] : TFPPackage Read GetPackage Write SetPackage; default;
+    Property Repository: TFPRepository read FRepository write SetRepository;
   end;
   TFPPackagesClass = class of TFPPackages;
 
@@ -206,6 +210,7 @@ type
     Function AddPackage(const APackageName : string) : TFPPackage;
     // Dependencies
     Procedure GetPackageDependencies(const APackageName : String; List : TObjectList; Recurse : Boolean);
+    function PackageIsBroken(APackage: TFPPackage): Boolean;
     // Properties
     Property FileName : String Read FFileName;
     Property Packages[Index : Integer] : TFPPackage Read GetPackage; default;
@@ -277,6 +282,8 @@ Implementation
 uses
   typinfo,
   pkgglobals,
+  pkgmessages,
+  pkgrepos,
   fpxmlrep,
   uriparser;
 
@@ -415,6 +422,14 @@ begin
     end
   else
     Result:=FFileName;
+end;
+
+function TFPPackage.GetRepository: TFPRepository;
+begin
+  if Assigned(Collection) and (Collection is TFPPackages) then
+    Result := TFPPackages(Collection).Repository
+  else
+    Result := nil;
 end;
 
 
@@ -592,9 +607,17 @@ begin
 end;
 
 
-function TFPPackage.AddDependency(Const APackageName : String; const AMinVersion : String = ''): TFPDependency;
+function TFPPackage.AddDependency(Const APackageName : String; const AMinVersion: String = ''): TFPDependency;
 begin
   Result:=Dependencies.AddDependency(APackageName,AMinVersion);
+end;
+
+function TFPPackage.IsPackageBroken: Boolean;
+begin
+  if Assigned(Repository) then
+    Result := Repository.PackageIsBroken(Self)
+  else
+    raise Exception.Create(SErrRepositoryNotAssigned);
 end;
 
 
@@ -608,6 +631,15 @@ end;
 procedure TFPPackages.SetPackage(Index : Integer; const AValue: TFPPackage);
 begin
    Items[Index]:=AValue;
+end;
+
+procedure TFPPackages.SetRepository(AValue: TFPRepository);
+begin
+  if FRepository = AValue then Exit;
+  if Assigned(FRepository) then
+    raise Exception.Create(SErrCannotModifyRepository)
+  else
+    FRepository := AValue;
 end;
 
 function TFPPackages.CurrentStreamVersion: Integer;
@@ -670,6 +702,57 @@ begin
   Result:=FPackages.Count;
 end;
 
+function TFPRepository.PackageIsBroken(APackage: TFPPackage): Boolean;
+var
+  j, i, ThisRepositoryIndex: Integer;
+  Dependency: TFPDependency;
+  Repository: TFPRepository;
+  DepPackage: TFPPackage;
+begin
+  result:=false;
+
+  // We should only check for dependencies in this repository, or repositories
+  // with a lower priority.
+  ThisRepositoryIndex := -1;
+  for i := GFPpkg.RepositoryList.Count -1 downto 0 do
+    begin
+      if GFPpkg.RepositoryList.Items[i] = Self then
+        ThisRepositoryIndex := i;
+    end;
+
+  for j:=0 to APackage.Dependencies.Count-1 do
+    begin
+      Dependency:=APackage.Dependencies[j];
+      if (GFPpkg.CompilerOptions.CompilerOS in Dependency.OSes) and
+         (GFPpkg.CompilerOptions.CompilerCPU in Dependency.CPUs) then
+        begin
+          for i := ThisRepositoryIndex downto 0 do
+            begin
+              Repository := GFPpkg.RepositoryList.Items[i] as TFPRepository;
+              DepPackage := Repository.FindPackage(Dependency.FPackageName);
+              if Assigned(DepPackage) then
+                Break;
+            end;
+
+          if assigned(DepPackage) then
+            begin
+              if (Dependency.RequireChecksum<>$ffffffff) and (DepPackage.Checksum<>Dependency.RequireChecksum) then
+                begin
+                  log(llInfo,SLogPackageChecksumChanged,[APackage.Name,Self.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
+                  result:=true;
+                  exit;
+                end;
+            end
+          else
+            begin
+              log(llDebug,SDbgObsoleteDependency,[APackage.Name,Dependency.PackageName]);
+              result:=true;
+              exit;
+            end;
+        end;
+    end;
+end;
+
 constructor TFPRepository.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -682,6 +765,7 @@ procedure TFPRepository.CreatePackages;
 begin
   FPackages:=TFPPackages.Create(TFPPackage);
   FPackages.StreamVersion:=StreamVersion;
+  FPackages.Repository:=Self;
 end;
 
 procedure TFPRepository.BackupFile(const AFileName: String);

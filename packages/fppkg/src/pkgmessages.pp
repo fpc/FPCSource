@@ -54,6 +54,8 @@ Resourcestring
   SErrGETFailed              = 'FTP GET "%s" command failed.';
   SErrBrokenPackagesFound    = 'Found broken packages, run "fppkg fixbroken" first';
   SErrManifestNoSinglePackage = 'Manifest file "%s" does not contain exactly one package';
+  SErrCannotModifyRepository = 'The repository of an TFPPackages-instance can not be changed.';
+  SErrRepositoryNotAssigned  = 'Repository not assigned';
 
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogNotCompilingFPMake     = 'Skipping compiling of fpmake.pp, fpmake executable already exists';
@@ -84,7 +86,7 @@ Resourcestring
   SLogUpgradingConfig        = 'Configuration file "%s" is updated with new configuration settings';
   SLogOldConfigFileFormat    = 'Configuration file is in an old format';
   SLogPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
-  SLogPackageChecksumChanged = 'Package %s needs to be rebuild, dependency %s is modified';
+  SLogPackageChecksumChanged = 'Package %s (%s) needs to be rebuild, dependency %s (%s) is modified';
   SLogCheckBrokenDependenvies= 'Checking for broken dependencies';
   SLogFailedToCreateManifest = 'Failed to create manifest from fpmake.pp-file (%s) while scanning for available packages: %s';
   SLogUseInternalFpmkunit    = 'Fpmkunit not available, fallback to internal version.';

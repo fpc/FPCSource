@@ -16,7 +16,6 @@ procedure LoadLocalAvailableMirrors;
 function LoadManifestFromFile(const AManifestFN:string):TFPPackage;
 procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
 Procedure AddFPMakeAddIn(APackage: TFPPackage);
-function  PackageIsBroken(APackage:TFPPackage; MarkForReInstall: boolean):boolean;
 function  FindBrokenPackages(SL:TStrings):Boolean;
 procedure CheckFPMakeDependencies;
 procedure ListPackages(const ShowGlobalAndLocal: boolean);
@@ -204,68 +203,34 @@ begin
 end;
 
 
-function PackageIsBroken(APackage:TFPPackage; MarkForReInstall: boolean):boolean;
-var
-  j : integer;
-  D : TFPDependency;
-  DepPackage : TFPPackage;
-  AvailP: TFPPackage;
-begin
-  result:=false;
-  for j:=0 to APackage.Dependencies.Count-1 do
-    begin
-      D:=APackage.Dependencies[j];
-      if (GFPpkg.CompilerOptions.CompilerOS in D.OSes) and
-         (GFPpkg.CompilerOptions.CompilerCPU in D.CPUs) then
-        begin
-          DepPackage:=GFPpkg.FindPackage(D.PackageName, pkgpkInstalled);
-          // Don't stop on missing dependencies
-          if assigned(DepPackage) then
-            begin
-              if (D.RequireChecksum<>$ffffffff) and (DepPackage.Checksum<>D.RequireChecksum) then
-                begin
-                  log(llInfo,SLogPackageChecksumChanged,[APackage.Name,D.PackageName]);
-                  result:=true;
-                  if MarkForReInstall then
-                    begin
-                      APackage.RecompileBroken:=true;
-                    end;
-                  exit;
-                end;
-            end
-          else
-            begin
-              log(llDebug,SDbgObsoleteDependency,[APackage.Name,D.PackageName]);
-              result:=true;
-              if MarkForReInstall then
-                begin
-                  APackage.RecompileBroken:=true;
-                end;
-            end;
-        end;
-    end;
-end;
-
-
 function FindBrokenPackages(SL:TStrings):Boolean;
 var
-  i,j : integer;
+  i,j,k : integer;
   P : TFPPackage;
   Repo: TFPRepository;
 begin
   SL.Clear;
-  for i:= 0 to GFPpkg.RepositoryList.Count-1 do
+  for i:=0 to GFPpkg.RepositoryList.Count-1 do
     begin
-      Repo := GFPpkg.RepositoryList.Items[i] as TFPRepository;
-      if Repo.RepositoryType=fprtInstalled then
-        for j:=0 to Repo.PackageCount-1 do
-          begin
-            P:=Repo.Packages[j];
-            if PackageIsBroken(P,True) then
-              begin
-                SL.Add(P.Name);
-              end;
-          end;
+      Repo := TFPRepository(GFPpkg.RepositoryList[i]);
+      if Repo.RepositoryType = fprtInstalled then
+        begin
+          for j := 0 to Repo.PackageCount-1 do
+            begin
+              P := Repo.Packages[j];
+              if P.IsPackageBroken then
+                SL.Add(P.Name)
+              else
+                begin
+                  // It could be that a package is broken in one repository,
+                  // but that this problem is 'fixed' in a repository with an higher
+                  // priority
+                  k := SL.IndexOf(P.Name);
+                  if k > -1 then
+                    SL.Delete(k);
+                end;
+            end;
+        end;
     end;
   Result:=(SL.Count>0);
 end;
@@ -327,7 +292,7 @@ procedure ListPackages(const ShowGlobalAndLocal: boolean);
     if Assigned(APackage) then
       begin
         PackageVersion := APackage.Version.AsString;
-        if CheckIsBroken and PackageIsBroken(APackage, False) then
+        if CheckIsBroken and APackage.IsPackageBroken then
           PackageVersion := PackageVersion + ' (B)';
       end
     else

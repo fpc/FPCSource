@@ -531,7 +531,7 @@ begin
                 end
               else
                 begin
-                  if PackageIsBroken(InstalledP, True) then
+                  if InstalledP.IsPackageBroken then
                     begin
                       status:='Broken, recompiling';
                       L.Add(D.PackageName);

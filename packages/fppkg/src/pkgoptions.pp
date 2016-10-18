@@ -738,7 +738,7 @@ end;
 function TFppkgOptions.GetGlobalSection: TFppkgGLobalOptionSection;
 begin
   Result := GetSectionByName(KeyGlobalSection) as TFppkgGlobalOptionSection;
-  // Below version 5 the glolbal-section was called 'Defaults'
+  // Below version 5 the global-section was called 'Defaults'
   if not Assigned(Result) then
     Result := GetSectionByName(KeyDeprGlobalSection) as TFppkgGlobalOptionSection;
 
