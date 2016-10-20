@@ -586,7 +586,7 @@ begin
     //get calling convention
     if FD^.callconv=CC_STDCALL then
       begin
-      if lowercase(BstrNameRef)='iunknown' then
+      if not (bIsDispatch or ((TA^.wTypeFlags and TYPEFLAG_FDUAL)=TYPEFLAG_FDUAL)) then
         sConv:='stdcall'
       else
         sConv:='safecall';
