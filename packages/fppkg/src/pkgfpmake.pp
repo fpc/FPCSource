@@ -374,7 +374,7 @@ begin
               CondAddOption('--searchpath', BaseInstDir);
               if LocalUnitDir='' then
                 LocalUnitDir := BaseInstDir
-              else if GlobalUnitDir='' then;
+              else if GlobalUnitDir='' then
                 GlobalUnitDir := BaseInstDir;
             end;
         end;
