@@ -272,8 +272,8 @@ unit aoptx86;
               if assigned(p1) and
                  (p1.typ = ait_regalloc) then
                 begin
-                  if (getregtype(reg)=getregtype(tai_regalloc(p1).reg)) and
-                    (getsupreg(tai_regalloc(p1).reg)=getsupreg(reg)) and (tai_regalloc(p1).reg<>reg) then
+                  { same super register, different sub register? }
+                  if SuperRegistersEqual(reg,tai_regalloc(p1).reg) and (tai_regalloc(p1).reg<>reg) then
                     begin
                       if (getsubreg(tai_regalloc(p1).reg)>getsubreg(reg)) or (getsubreg(reg)=R_SUBH) then
                         internalerror(2016101501);
@@ -342,14 +342,14 @@ unit aoptx86;
             (p.opcode = A_MOVAPD) or
             (p.opcode = A_MOVAPS)) and
            (p.oper[1]^.typ = top_reg) and
-           (getsupreg(p.oper[1]^.reg) = getsupreg(reg)) and
+           (SuperRegistersEqual(p.oper[1]^.reg,reg)) and
            ((p.oper[0]^.typ = top_const) or
             ((p.oper[0]^.typ = top_reg) and
-             (getsupreg(p.oper[0]^.reg) <> getsupreg(reg))) or
+             not(SuperRegistersEqual(p.oper[0]^.reg,reg))) or
             ((p.oper[0]^.typ = top_ref) and
              not RegInRef(reg,p.oper[0]^.ref^)))) or
           ((p.opcode = A_POP) and
-           (getsupreg(p.oper[0]^.reg) = getsupreg(reg)));
+           (SuperRegistersEqual(p.oper[0]^.reg,reg)));
       end;
 
 
