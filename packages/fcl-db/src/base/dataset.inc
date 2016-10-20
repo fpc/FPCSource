@@ -902,30 +902,30 @@ begin
   else
     Insert;
 
-  for i := 0 to ValuesSize-1 do with values[i] do
-    fields[i].AssignValue(values[i]);
+  for i := 0 to ValuesSize-1 do
+    Fields[i].AssignValue(Values[i]);
   Post;
 
 end;
 
-procedure TDataSet.InitFieldDefsFromfields;
+procedure TDataSet.InitFieldDefsFromFields;
 var i : integer;
 
 begin
-  if FieldDefs.count = 0 then
+  if FieldDefs.Count = 0 then
     begin
     FieldDefs.BeginUpdate;
     try
-      for i := 0 to Fields.Count-1 do with fields[i] do
+      for i := 0 to Fields.Count-1 do with Fields[i] do
         if not (FieldKind in [fkCalculated,fkLookup]) then // Do not add fielddefs for calculated/lookup fields.
           begin
           FFieldDef:=FieldDefs.FieldDefClass.Create(FieldDefs,FieldName,DataType,Size,Required,FieldDefs.Count+1);
           with FFieldDef do
             begin
-            if Required then Attributes := attributes + [faRequired];
-            if ReadOnly then Attributes := attributes + [faReadOnly];
-            if DataType = ftBCD then precision := (fields[i] as TBCDField).Precision
-            else if DataType = ftFMTBcd then precision := (fields[i] as TFMTBCDField).Precision;
+            if Required then Attributes := Attributes + [faRequired];
+            if ReadOnly then Attributes := Attributes + [faReadOnly];
+            if DataType = ftBCD then Precision := (Fields[i] as TBCDField).Precision
+            else if DataType = ftFMTBcd then Precision := (Fields[i] as TFMTBCDField).Precision;
             end;
           end;
     finally
