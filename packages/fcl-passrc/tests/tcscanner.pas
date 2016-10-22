@@ -120,6 +120,7 @@ type
     procedure TestConst;
     procedure TestConstructor;
     procedure TestDestructor;
+    procedure TestDispinterface;
     procedure TestDiv;
     procedure TestDo;
     procedure TestDownto;
@@ -794,6 +795,10 @@ begin
   TestToken(tkdestructor,'destructor');
 end;
 
+procedure TTestScanner.TestDispinterface;
+begin
+  TestToken(tkdispinterface,'dispinterface');
+end;
 
 procedure TTestScanner.TestDiv;
 

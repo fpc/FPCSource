@@ -31,7 +31,7 @@ type
   protected
     Procedure StartClass (AParent : String = 'TObject'; InterfaceList : String = '');
     Procedure StartClassHelper (ForType : String = 'TOriginal'; AParent : String = 'TObject');
-    Procedure StartInterface (AParent : String = 'IInterface'; UUID : String = '');
+    Procedure StartInterface (AParent : String = 'IInterface'; UUID : String = ''; Disp : Boolean = False);
     Procedure StartRecordHelper (ForType : String = 'TOriginal'; AParent : String = 'TObject');
     Procedure StartVisibility(A : TPasMemberVisibility);
     Procedure EndClass(AEnd : String = 'end');
@@ -146,8 +146,11 @@ type
     procedure TestClassHelperParentedEmpty;
     procedure TestClassHelperOneMethod;
     procedure TestInterfaceEmpty;
+    procedure TestInterfaceDisp;
     procedure TestInterfaceParentedEmpty;
     procedure TestInterfaceOneMethod;
+    procedure TestInterfaceProperty;
+    procedure TestInterfaceDispProperty;
     procedure TestInterfaceNoConstructor;
     procedure TestInterfaceNoDestructor;
     procedure TestInterfaceNoFields;
@@ -259,12 +262,16 @@ begin
   FParent:=AParent;
 end;
 
-procedure TTestClassType.StartInterface(AParent: String; UUID: String);
+procedure TTestClassType.StartInterface(AParent: String; UUID: String;
+  Disp: Boolean = False);
 Var
   S : String;
 begin
   FStarted:=True;
-  S:='TMyClass = Interface';
+  if Disp then
+    S:='TMyClass = DispInterface'
+  else
+    S:='TMyClass = Interface';
   if (AParent<>'') then
     S:=S+' ('+AParent+')';
   if (UUID<>'') then
@@ -1567,6 +1574,17 @@ begin
   AssertNull('No UUID',TheClass.GUIDExpr);
 end;
 
+procedure TTestClassType.TestInterfaceDisp;
+
+begin
+  StartInterface('','',true);
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okDispInterface,TheClass.ObjKind);
+  AssertEquals('No members',0,TheClass.Members.Count);
+  AssertNull('No UUID',TheClass.GUIDExpr);
+end;
+
 procedure TTestClassType.TestInterfaceParentedEmpty;
 begin
   StartInterface('IInterface','');
@@ -1589,6 +1607,44 @@ begin
   AssertEquals('No modifiers',[],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertNull('No UUID',TheClass.GUIDExpr);
+end;
+
+procedure TTestClassType.TestInterfaceProperty;
+begin
+  StartInterface('IInterface','');
+  AddMember('Function GetS : Integer');
+  AddMember('Property S : Integer Read GetS');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okInterface,TheClass.ObjKind);
+  if TheClass.members.Count<1 then
+    Fail('No members for method');
+  AssertNotNull('Have method',FunctionMethod1);
+  AssertNotNull('Method proc type',FunctionMethod1.ProcType);
+  AssertMemberName('GetS');
+  AssertEquals('0 arguments',0,FunctionMethod1.ProcType.Args.Count) ;
+  AssertEquals('Default visibility',visDefault,FunctionMethod1.Visibility);
+  AssertEquals('No modifiers',[],FunctionMethod1.Modifiers);
+  AssertEquals('Default calling convention',ccDefault, FunctionMethod1.ProcType.CallingConvention);
+  AssertNull('No UUID',TheClass.GUIDExpr);
+  AssertNotNull('Have property',Property2);
+  AssertMemberName('S',Property2);
+end;
+
+procedure TTestClassType.TestInterfaceDispProperty;
+begin
+  StartInterface('IInterface','',True);
+  AddMember('Property S : Integer DispID 1');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okDispInterface,TheClass.ObjKind);
+  if TheClass.members.Count<1 then
+    Fail('No members for method');
+  AssertNotNull('Have property',Property1);
+  AssertMemberName('S',Property1);
+  AssertNotNull('Have property dispID',Property1.DispIDExpr);
+  AssertEquals('Have number',pekNumber,Property1.DispIDExpr.Kind);
+  AssertEquals('Have number','1', (Property1.DispIDExpr as TPrimitiveExpr).Value);
 end;
 
 procedure TTestClassType.TestInterfaceNoConstructor;

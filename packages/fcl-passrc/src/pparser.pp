@@ -1238,7 +1238,7 @@ function TPasParser.ParseType(Parent: TPasElement;
 
 Const
   // These types are allowed only when full type declarations
-  FullTypeTokens = [tkGeneric,{tkSpecialize,}tkClass,tkInterface,tkType];
+  FullTypeTokens = [tkGeneric,{tkSpecialize,}tkClass,tkInterface,tkDispInterface,tkType];
   // Parsing of these types already takes care of hints
   NoHintTokens = [tkProcedure,tkFunction];
 var
@@ -1261,7 +1261,10 @@ begin
     case CurToken of
       // types only allowed when full
       tkObject: Result := ParseClassDecl(Parent, NamePos, TypeName, okObject,PM);
-      tkInterface: Result := ParseClassDecl(Parent, NamePos, TypeName, okInterface);
+      tkDispInterface:
+        Result := ParseClassDecl(Parent, NamePos, TypeName, okDispInterface);
+      tkInterface:
+        Result := ParseClassDecl(Parent, NamePos, TypeName, okInterface);
       tkSpecialize: Result:=ParseSpecializeType(Parent,TypeName);
       tkClass: Result := ParseClassDecl(Parent, NamePos, TypeName, okClass, PM);
       tkType:
@@ -3633,6 +3636,12 @@ begin
       Result.WriteAccessorName := GetAccessorName(Result,Result.WriteAccessor);
       NextToken;
       end;
+    if CurTokenIsIdentifier('DISPID') then
+      begin
+      NextToken;
+      Result.DispIDExpr := DoParseExpression(Result,Nil);
+      NextToken;
+      end;
     if CurTokenIsIdentifier('IMPLEMENTS') then
       begin
       Result.ImplementsName := GetAccessorName(Result,Result.ImplementsFunc);
@@ -4716,7 +4725,7 @@ begin
       tkVar,
       tkIdentifier:
         begin
-        if (AType.ObjKind=okInterface) then
+        if (AType.ObjKind in [okInterface,okDispInterface]) then
           ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowed);
         if CurToken=tkVar then
           ExpectToken(tkIdentifier);
@@ -4727,7 +4736,7 @@ begin
       tkProcedure,tkFunction,tkConstructor,tkDestructor:
         begin
         SaveComments;
-        if (Curtoken in [tkConstructor,tkDestructor]) and (AType.ObjKind in [okInterface,okRecordHelper]) then
+        if (Curtoken in [tkConstructor,tkDestructor]) and (AType.ObjKind in [okInterface,okDispInterface,okRecordHelper]) then
           ParseExc(nParserNoConstructorAllowed,SParserNoConstructorAllowed);
         ProcessMethod(AType,False,CurVisibility);
         end;
@@ -4808,7 +4817,7 @@ begin
     UngetToken
   else
     begin
-    if (AType.ObjKind=okInterface) and (CurToken = tkSquaredBraceOpen) then
+    if (AType.ObjKind in [okInterface,okDispInterface]) and (CurToken = tkSquaredBraceOpen) then
       begin
       NextToken;
       AType.GUIDExpr:=DoParseExpression(AType);

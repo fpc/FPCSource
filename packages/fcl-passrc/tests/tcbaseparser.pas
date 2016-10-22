@@ -710,8 +710,8 @@ end;
 procedure TTestParser.AssertEquals(const Msg: String; AExpected,
   AActual: TPasObjKind);
 begin
-  AssertEquals(Msg,GetEnumName(TypeInfo(TexprOpcode),Ord(AExpected)),
-                   GetEnumName(TypeInfo(TexprOpcode),Ord(AActual)));
+  AssertEquals(Msg,GetEnumName(TypeInfo(TPasObjKind),Ord(AExpected)),
+                   GetEnumName(TypeInfo(TPasObjKind),Ord(AActual)));
 end;
 
 procedure TTestParser.AssertEquals(const Msg: String; AExpected,

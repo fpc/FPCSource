@@ -577,7 +577,7 @@ type
 
   TPasGenericTemplateType = Class(TPasType);
   TPasObjKind = (okObject, okClass, okInterface, okGeneric, okSpecialize,
-                 okClassHelper,okRecordHelper,okTypeHelper);
+                 okClassHelper,okRecordHelper,okTypeHelper, okDispInterface);
 
   { TPasClassType }
 
@@ -768,6 +768,8 @@ type
     ReadAccessor: TPasExpr;
     WriteAccessor: TPasExpr;
     ImplementsFunc: TPasExpr;
+    DispIDExpr : TPasexpr;   // Can be nil.
+
     StoredAccessor: TPasExpr; // can be nil, if StoredAccessorName is 'True' or 'False'
     DefaultExpr: TPasExpr;
     Args: TFPList;        // List of TPasArgument objects
@@ -1329,7 +1331,7 @@ const
     'strict private', 'strict protected');
 
   ObjKindNames: array[TPasObjKind] of string = (
-    'object', 'class', 'interface','class','class','class helper','record helper','type helper');
+    'object', 'class', 'interface','class','class','class helper','record helper','type helper','dispinterface');
 
   ExprKindNames : Array[TPasExprKind] of string = (
       'Ident',
@@ -2466,6 +2468,7 @@ begin
   ReleaseAndNil(TPasElement(ImplementsFunc));
   ReleaseAndNil(TPasElement(StoredAccessor));
   ReleaseAndNil(TPasElement(DefaultExpr));
+  ReleaseAndNil(TPasElement(DispIDExpr));
   inherited Destroy;
 end;
 
