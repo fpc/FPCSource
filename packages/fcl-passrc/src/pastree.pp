@@ -866,7 +866,7 @@ type
                    otGreaterThan, otAssign,otNotEqual,otLessEqualThan,otGreaterEqualThan,otPower,
                    otSymmetricalDifference, otInc, otDec, otMod, otNegative, otPositive, otBitWiseOr, otDiv,
                    otLeftShift, otLogicalOr, otBitwiseAnd, otbitwiseXor,otLogicalAnd,otLogicalNot,otLogicalXor,
-                   otRightShift);
+                   otRightShift,otEnumerator);
   TOperatorTypes = set of TOperatorType;
 
   TPasOperator = class(TPasFunction)
@@ -887,7 +887,7 @@ type
     function TypeName: string; override;
     function GetDeclaration (full : boolean) : string; override;
     Property OperatorType : TOperatorType Read FOperatorType Write FOperatorType;
-    // True if the declaration was using a token instead of a
+    // True if the declaration was using a token instead of an identifier
     Property TokenBased : Boolean Read FTokenBased Write FTokenBased;
   end;
 
@@ -1365,13 +1365,13 @@ const
            '>',':=','<>','<=','>=','**',
            '><','Inc','Dec','mod','-','+','Or','div',
            'shl','or','and','xor','and','not','xor',
-           'shr');
+           'shr','enumerator');
   OperatorNames : Array[TOperatorType] of string
        =  ('','implicit','explicit','multiply','add','subtract','divide','lessthan','equal',
            'greaterthan','assign','notequal','lessthanorequal','greaterthanorequal','power',
            'symmetricaldifference','inc','dec','modulus','negative','positive','bitwiseor','intdivide',
            'leftshift','logicalor','bitwiseand','bitwisexor','logicaland','logicalnot','logicalxor',
-           'rightshift');
+           'rightshift','enumerator');
 
   AssignKindNames : Array[TAssignKind] of string = (':=','+=','-=','*=','/=' );
 
