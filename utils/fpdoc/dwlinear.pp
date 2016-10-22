@@ -396,10 +396,12 @@ var
   Member: TPasElement;
   i: Integer;
 begin
+  DocNode := Engine.FindDocNode(ClassDecl);
+  if Assigned(DocNode) and DocNode.IsSkipped then
+    Exit;
   StartSection(ClassDecl.Name);
   WriteLabel(ClassDecl);
   WriteIndex(ClassDecl);
-  DocNode := Engine.FindDocNode(ClassDecl);
   if Assigned(DocNode) and ((not IsDescrNodeEmpty(DocNode.Descr)) or
     (not IsDescrNodeEmpty(DocNode.ShortDescr))) then
   begin
@@ -482,6 +484,8 @@ begin
         L:=StripText(GetLabel(Member));
         N:=EscapeText(Member.Name);
         DocNode := Engine.FindDocNode(Member);
+        if Assigned(DocNode) and DocNode.IsSkipped then
+          Continue;
         if Assigned(DocNode) then
         begin
           if FDupLinkedDoc and (DocNode.Link <> '') then
@@ -544,6 +548,8 @@ begin
         L := StripText(GetLabel(lInterface));
         N := EscapeText(lInterface.Name);
         DocNode := Engine.FindDocNode(lInterface);
+        if Assigned(DocNode) and DocNode.IsSkipped then
+          Continue;
         if Assigned(DocNode) then
         begin
           if FDupLinkedDoc and (DocNode.Link <> '') then
@@ -595,7 +601,7 @@ begin
   If (Engine.OutPut='') then
     Engine.Output:=PackageName+FileNameExtension
   else if (ExtractFileExt(Engine.output)='') and (FileNameExtension<>'') then
-    Engine.Output:=ChangeFileExt(Engine.output,FileNameExtension);  
+    Engine.Output:=ChangeFileExt(Engine.output,FileNameExtension);
   FStream:=TFileStream.Create(Engine.Output,fmCreate);
   try
     WriteBeginDocument;
@@ -875,12 +881,14 @@ begin
     for i := 0 to ASection.Types.Count - 1 do
       begin
       TypeDecl := TPasType(ASection.Types[i]);
+      DocNode := Engine.FindDocNode(TypeDecl);
+      if Assigned(DocNode) and DocNode.IsSkipped then
+        Continue;
       if not ((TypeDecl is TPasRecordType) and TPasRecordType(TypeDecl).IsAdvancedRecord) then
         begin
         DescrBeginParagraph;
         WriteTypeDecl(TypeDecl);
         StartListing(False,'');
-        DocNode := Engine.FindDocNode(TypeDecl);
         If Assigned(DocNode) and
            Assigned(DocNode.Node) and
            (Docnode.Node['opaque']='1') then
@@ -953,6 +961,9 @@ var
 begin
   With ProcDecl do
     begin
+    DocNode := Engine.FindDocNode(ProcDecl);
+    if Assigned(DocNode) and DocNode.IsSkipped then
+      Exit;
     if Not (Assigned(Parent) and ((Parent.InheritsFrom(TPasClassType)) or Parent.InheritsFrom(TPasRecordType))) then
       begin
       StartSubSection(Name);
@@ -966,7 +977,6 @@ begin
       WriteIndex(Parent.Name+'.'+Name);
       end;
     StartProcedure;
-    DocNode := Engine.FindDocNode(ProcDecl);
     if Assigned(DocNode) and Assigned(DocNode.ShortDescr) then
       begin
       StartSynopsis;
@@ -1065,11 +1075,13 @@ var
 begin
   With PropDecl do
     begin
+    DocNode := Engine.FindDocNode(PropDecl);
+    if Assigned(DocNode) and DocNode.IsSkipped then
+      Exit;
     StartSubSection(Parent.Name+'.'+Name);
     WriteLabel(PropDecl);
     WriteIndex(Parent.Name+'.'+Name);
     StartProperty;
-    DocNode := Engine.FindDocNode(PropDecl);
     if Assigned(DocNode) then
     begin
       if FDupLinkedDoc and (DocNode.Link <> '') then
@@ -1288,6 +1300,8 @@ begin
         L:=StripText(GetLabel(Member));
         N:=EscapeText(Member.Name);
         DocNode := Engine.FindDocNode(Member);
+        if Assigned(DocNode) and DocNode.IsSkipped then
+          Continue;
         If Assigned(DocNode) then
           S:=GetDescrString(Member, DocNode.ShortDescr)
         else
