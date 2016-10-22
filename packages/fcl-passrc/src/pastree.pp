@@ -1358,7 +1358,7 @@ const
         '.');
 
 
-  UnaryOperators = [otImplicit,otExplicit,otAssign,otNegative,otPositive];
+  UnaryOperators = [otImplicit,otExplicit,otAssign,otNegative,otPositive,otEnumerator];
 
   OperatorTokens : Array[TOperatorType] of string
        =  ('','','','*','+','-','/','<','=',
