@@ -161,6 +161,7 @@ resourcestring
   SUsageOption120  = '                  At least one input option is required.';
   SUsageOption130  = '--input-dir=Dir   Add All *.pp and *.pas files in Dir to list of input files';
   SUsageOption140  = '--lang=lng        Select output language.';
+  SUsageOption145  = '--macro=name=value Define a macro to preprocess the project file with.';
   SUsageOption150  = '--ostarget=value  Set the target OS for the scanner.';
   SUsageOption160  = '--output=name     use name as the output name.';
   SUsageOption170  = '                  Each backend interprets this as needed.';
@@ -183,6 +184,7 @@ resourcestring
   SUsageFormats        = 'The following output formats are supported by this fpdoc:';
   SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
   SUsageFormatSpecific = 'Output format "%s" supports the following options:';
+  SCmdLineErrInvalidMacro     = 'Macro needs to be in the form name=value';
 
   SCmdLineInvalidOption       = 'Ignoring unknown option "%s"';
   SCmdLineInvalidFormat       = 'Invalid format "%s" specified';
