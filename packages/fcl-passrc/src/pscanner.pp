@@ -1676,14 +1676,21 @@ begin
       begin
         Inc(TokenStr);
         if TokenStr[0] = '>' then
-        begin
+          begin
           Inc(TokenStr);
           Result := tkNotEqual;
-        end else if TokenStr[0] = '=' then
-        begin
+          end
+        else if TokenStr[0] = '=' then
+          begin
           Inc(TokenStr);
           Result := tkLessEqualThan;
-        end else
+          end
+        else if TokenStr[0] = '<' then
+          begin
+          Inc(TokenStr);
+          Result := tkshl;
+          end
+        else
           Result := tkLessThan;
       end;
     '=':
@@ -1695,14 +1702,20 @@ begin
       begin
         Inc(TokenStr);
         if TokenStr[0] = '=' then
-        begin
+          begin
           Inc(TokenStr);
           Result := tkGreaterEqualThan;
             end else if TokenStr[0] = '<' then
             begin
           Inc(TokenStr);
           Result := tkSymmetricalDifference;
-        end else
+          end
+        else if TokenStr[0] = '>' then
+          begin
+          Inc(TokenStr);
+          Result := tkshr;
+          end
+        else
           Result := tkGreaterThan;
       end;
     '@':

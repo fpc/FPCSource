@@ -166,6 +166,8 @@ type
     procedure TestSet;
     procedure TestShl;
     procedure TestShr;
+    procedure TestShlC;
+    procedure TestShrC;
     procedure TestSpecialize;
     procedure TestThen;
     procedure TestThreadvar;
@@ -199,6 +201,7 @@ type
     Procedure TestDefine10;
     Procedure TestDefine11;
     Procedure TestDefine12;
+    Procedure TestDefine13;
     Procedure TestInclude;
     Procedure TestInclude2;
     Procedure TestUnDefine1;
@@ -359,11 +362,13 @@ begin
   if DoClear then
     FResolver.Clear;
   FResolver.AddStream('afile.pp',TStringStream.Create(Source));
+  Writeln('// TestName');
+  Writeln(Source);
   FScanner.OpenFile('afile.pp');
 end;
 
 procedure TTestScanner.DoTestToken(t: TToken; const ASource: String;
-  Const CheckEOF: Boolean);
+  const CheckEOF: Boolean);
 
 Var
   tk : ttoken;
@@ -381,7 +386,8 @@ begin
     end;
 end;
 
-procedure TTestScanner.TestToken(t: TToken; const ASource: String; Const CheckEOF: Boolean);
+procedure TTestScanner.TestToken(t: TToken; const ASource: String;
+  const CheckEOF: Boolean);
 Var
   S : String;
 begin
@@ -397,7 +403,7 @@ begin
 end;
 
 procedure TTestScanner.TestTokens(t: array of TToken; const ASource: String;
-  const CheckEOF: Boolean;Const DoClear : Boolean = True);
+  const CheckEOF: Boolean; const DoClear: Boolean);
 Var
   tk : ttoken;
   i : integer;
@@ -1108,6 +1114,16 @@ begin
   TestToken(tkshr,'shr');
 end;
 
+procedure TTestScanner.TestShlC;
+begin
+  TestToken(tkshl,'<<');
+end;
+
+procedure TTestScanner.TestShrC;
+begin
+  TestToken(tkshr,'>>');
+end;
+
 
 procedure TTestScanner.TestSpecialize;
 
@@ -1326,6 +1342,13 @@ begin
   FScanner.SkipComments:=True;
   FScanner.SkipWhiteSpace:=True;
   TestTokens([tkin],'{$IFDEF ALWAYS} of {$ELSE} in {$ENDIF}');
+end;
+
+procedure TTestScanner.TestDefine13;
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  TestTokens([tkin],'{$IFDEF ALWAYS} }; ą è {$ELSE} in {$ENDIF}');
 end;
 
 procedure TTestScanner.TestInclude;
