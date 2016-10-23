@@ -65,12 +65,15 @@ type
     Procedure TestToken(t : TToken; Const ASource : String; Const CheckEOF : Boolean = True);
     Procedure TestTokens(t : array of TToken; Const ASource : String; Const CheckEOF : Boolean = True;Const DoClear : Boolean = True);
     Property LastIDentifier : String Read FLI Write FLi;
+    Property Scanner : TPascalScanner Read FScanner;
   published
     procedure TestEOF;
     procedure TestWhitespace;
     procedure TestComment1;
     procedure TestComment2;
     procedure TestComment3;
+    procedure TestComment4;
+    procedure TestComment5;
     procedure TestNestedComment1;
     procedure TestNestedComment2;
     procedure TestNestedComment3;
@@ -190,8 +193,11 @@ type
     Procedure TestTokenSeriesComments;
     Procedure TestTokenSeriesNoComments;
     Procedure TestDefine0;
+    procedure TestDefine01;
     Procedure TestDefine1;
     Procedure TestDefine2;
+    Procedure TestDefine21;
+    procedure TestDefine22;
     Procedure TestDefine3;
     Procedure TestDefine4;
     Procedure TestDefine5;
@@ -458,6 +464,20 @@ procedure TTestScanner.TestComment3;
 
 begin
   TestToken(tkComment,'//');
+end;
+
+procedure TTestScanner.TestComment4;
+
+begin
+  DoTestToken(tkComment,'(* abc *)',False);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment5;
+
+begin
+  DoTestToken(tkComment,'(* abc'+LineEnding+'def *)',False);
+  AssertEquals('Correct comment',' abc'+LineEnding+'def ',Scanner.CurTokenString);
 end;
 
 procedure TTestScanner.TestNestedComment1;
@@ -1270,6 +1290,13 @@ begin
     Fail('Define not defined');
 end;
 
+procedure TTestScanner.TestDefine01;
+begin
+  TestTokens([tkComment],'(*$DEFINE NEVER*)');
+  If FSCanner.Defines.IndexOf('NEVER')=-1 then
+    Fail('Define not defined');
+end;
+
 procedure TTestScanner.TestDefine1;
 begin
   TestTokens([tkComment],'{$IFDEF NEVER} of {$ENDIF}');
@@ -1280,6 +1307,19 @@ procedure TTestScanner.TestDefine2;
 begin
   FSCanner.Defines.Add('ALWAYS');
   TestTokens([tkComment,tkWhitespace,tkOf,tkWhitespace,tkcomment],'{$IFDEF ALWAYS} of {$ENDIF}');
+end;
+
+procedure TTestScanner.TestDefine21;
+begin
+  FSCanner.Defines.Add('ALWAYS');
+  TestTokens([tkComment,tkWhitespace,tkOf,tkWhitespace,tkcomment],'(*$IFDEF ALWAYS*) of (*$ENDIF*)');
+end;
+
+procedure TTestScanner.TestDefine22;
+begin
+  FSCanner.Defines.Add('ALWAYS');
+  // No whitespace. Test border of *)
+  TestTokens([tkComment,tkOf,tkWhitespace,tkcomment],'(*$IFDEF ALWAYS*)of (*$ENDIF*)');
 end;
 
 procedure TTestScanner.TestDefine3;
