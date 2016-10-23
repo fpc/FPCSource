@@ -1740,7 +1740,7 @@ begin
               if SectionLength > 1 then
                 Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength - 1);
               Inc(OldLength, SectionLength);
-              FCurTokenString[OldLength] := LineEnding;
+              FCurTokenString[OldLength] := #10;
               if not FetchLine then
                 begin
                 Result := tkEOF;
