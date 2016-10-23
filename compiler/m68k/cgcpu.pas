@@ -944,8 +944,15 @@ unit cgcpu;
            end
          else
            begin
+             if needsext and (fromsize in [OS_8,OS_16]) then
+               begin
+                 //list.concat(tai_comment.create(strpnew('a_load_ref_reg: zero ext')));
+                 a_load_const_reg(list,OS_32,0,hreg);
+                 needsext:=false;
+               end;
              list.concat(taicpu.op_ref_reg(A_MOVE,opsize,href,hreg));
-             sign_extend(list,size,hreg);
+             if needsext then
+               sign_extend(list,size,hreg);
            end;
 
          if hreg<>register then
