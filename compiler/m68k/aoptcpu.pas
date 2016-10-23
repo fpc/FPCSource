@@ -43,7 +43,7 @@ unit aoptcpu;
   Implementation
 
     uses
-      cutils, aasmcpu, cgutils;
+      cutils, aasmcpu, cgutils, globals, cpuinfo;
 
 {$ifdef DEBUG_AOPTCPU}
   procedure TCpuAsmOptimizer.DebugMsg(const s: string; p : tai);
@@ -122,6 +122,20 @@ unit aoptcpu;
                     taicpu(p).opcode:=A_SUBA;
                     taicpu(p).opsize:=S_L; { otherwise it will be .W -> BOOM }
                     taicpu(p).loadoper(0,taicpu(p).oper[1]^);
+                    result:=true;
+                  end;
+              { CLR.L Dx on a 68000 is slower than MOVEQ #0,Dx }
+              A_CLR:
+                if (current_settings.cputype in [cpu_mc68000]) and
+                   (taicpu(p).oper[0]^.typ = top_reg) and
+                   (taicpu(p).opsize = S_L) and
+                   isintregister(taicpu(p).oper[0]^.reg) then
+                  begin
+                    //DebugMsg('Optimizer: CLR.L Dx to MOVEQ #0,Dx',p);
+                    taicpu(p).opcode:=A_MOVEQ;
+                    taicpu(p).loadoper(1,taicpu(p).oper[0]^);
+                    taicpu(p).loadconst(0,0);
+                    taicpu(p).ops:=2;
                     result:=true;
                   end;
               { CMP #0,<ea> equals to TST <ea>, just shorter and TST is more flexible anyway }
