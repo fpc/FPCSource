@@ -29,7 +29,7 @@ type
   ETTF = Class(Exception);
 
   // Tables recognized in this unit.
-  TTTFTableType = (ttUnknown,ttHead,tthhea,ttmaxp,tthmtx,ttcmap,ttname,ttOS2,ttpost);
+  TTTFTableType = (ttUnknown,ttHead,tthhea,ttmaxp,tthmtx,ttcmap,ttname,ttOS2,ttpost {,ttglyph});
 
   TSmallintArray = Packed Array of Int16;
   TWordArray = Packed Array of UInt16;
@@ -39,177 +39,177 @@ type
 
   TFixedVersionRec = packed record
     case Integer of
-      0:  (Minor, Major: Word);
-      1:  (Version: Cardinal);
+      0:  (Minor, Major: UInt16);
+      1:  (Version: UInt32);
   end;
 
   TTableDirectory = Packed Record
-    FontVersion : TFixedVersionRec;
-    Numtables : Word;
-    SearchRange : Word;
-    EntrySelector : Word;
-    RangeShift : Word;
+    FontVersion : TFixedVersionRec; { UInt32}
+    Numtables : UInt16;
+    SearchRange : UInt16;
+    EntrySelector : UInt16;
+    RangeShift : UInt16;
   end;
 
   TTableDirectoryEntry = Packed Record
-    Tag: Array[1..4] of char;
-    checkSum : Cardinal;
-    offset : Cardinal;
-    Length : Cardinal;
+    Tag: Array[1..4] of AnsiChar;
+    checkSum : UInt32;
+    offset : UInt32;
+    Length : UInt32;
   end;
   TTableDirectoryEntries = Array of TTableDirectoryEntry;
 
   TLongHorMetric = Packed record
-    AdvanceWidth : Word;
-    LSB: Smallint;              { leftSideBearing }
+    AdvanceWidth : UInt16;
+    LSB: Int16;              { leftSideBearing }
   end;
   TLongHorMetrics = Packed Array of TLongHorMetric;
 
 Type
   TPostScript = Packed Record
-    Format : TFixedVersionRec;
-    ItalicAngle : TF16Dot16;
-    UnderlinePosition : SmallInt;
-    underlineThickness : SmallInt;
-    isFixedPitch : Cardinal;
-    minMemType42 : Cardinal;
-    maxMemType42 : Cardinal;
-    minMemType1 : Cardinal;
-    maxMemType1 : Cardinal;
+    Format : TFixedVersionRec;  { UInt32 }
+    ItalicAngle : TF16Dot16;  { Int32 }
+    UnderlinePosition : Int16;
+    underlineThickness : Int16;
+    isFixedPitch : UInt32;
+    minMemType42 : UInt32;
+    maxMemType42 : UInt32;
+    minMemType1 : UInt32;
+    maxMemType1 : UInt32;
   end;
 
   TMaxP = Packed Record
-    VersionNumber : TFixedVersionRec;
-    numGlyphs : Word;
-    maxPoints : Word;
-    maxContours : Word;
-    maxCompositePoints : word;
-    maxCompositeContours : word;
-    maxZones : Word;
-    maxTwilightPoints : word;
-    maxStorage : Word;
-    maxFunctionDefs : Word;
-    maxInstructionDefs : Word;
-    maxStackElements : Word;
-    maxSizeOfInstructions : word;
-    maxComponentElements : Word;
-    maxComponentDepth : Word;
+    VersionNumber : TFixedVersionRec;  { UInt32 }
+    numGlyphs : UInt16;
+    maxPoints : UInt16;
+    maxContours : UInt16;
+    maxCompositePoints : UInt16;
+    maxCompositeContours : UInt16;
+    maxZones : UInt16;
+    maxTwilightPoints : UInt16;
+    maxStorage : UInt16;
+    maxFunctionDefs : UInt16;
+    maxInstructionDefs : UInt16;
+    maxStackElements : UInt16;
+    maxSizeOfInstructions : UInt16;
+    maxComponentElements : UInt16;
+    maxComponentDepth : UInt16;
   end;
 
   TOS2Data = Packed Record
-    version : Word;
-    xAvgCharWidth : SmallInt;
-    usWeightClass : Word;
-    usWidthClass : Word;
-    fsType : SmallInt;
-    ySubscriptXSize : SmallInt;
-    ySubscriptYSize : SmallInt;
-    ySubscriptXOffset : SmallInt;
-    ySubscriptYOffset : Smallint;
-    ySuperscriptXSize : Smallint;
-    ySuperscriptYSize : Smallint;
-    ySuperscriptXOffset : Smallint;
-    ySuperscriptYOffset : Smallint;
-    yStrikeoutSize : SmallInt;
-    yStrikeoutPosition : Smallint;
-    sFamilyClass : SmallInt;    // we could split this into a record of Class & SubClass values.
+    version : UInt16;
+    xAvgCharWidth : Int16;
+    usWeightClass : UInt16;
+    usWidthClass : UInt16;
+    fsType : Int16;
+    ySubscriptXSize : Int16;
+    ySubscriptYSize : Int16;
+    ySubscriptXOffset : Int16;
+    ySubscriptYOffset : Int16;
+    ySuperscriptXSize : Int16;
+    ySuperscriptYSize : Int16;
+    ySuperscriptXOffset : Int16;
+    ySuperscriptYOffset : Int16;
+    yStrikeoutSize : Int16;
+    yStrikeoutPosition : Int16;
+    sFamilyClass : Int16;    // we could split this into a record of Class & SubClass values.
     panose : Array[0..9] of byte;
-    ulUnicodeRange1 : Cardinal;
-    ulUnicodeRange2 : Cardinal;
-    ulUnicodeRange3 : Cardinal;
-    ulUnicodeRange4 : Cardinal;
-    achVendID : Array[0..3] of char;
-    fsSelection : word;
-    usFirstCharIndex : Word;
-    usLastCharIndex : Word;
-    sTypoAscender: Smallint;
-    sTypoDescender : Smallint;
-    sTypoLineGap : Smallint;
-    usWinAscent : Word;
-    usWinDescent : Word;
-    ulCodePageRange1 : Cardinal;
-    ulCodePageRange2 : Cardinal;
-    sxHeight : smallint;
-    sCapHeight : smallint;
-    usDefaultChar : word;
-    usBreakChar : word;
-    usMaxContext  : word;
+    ulUnicodeRange1 : UInt32;
+    ulUnicodeRange2 : UInt32;
+    ulUnicodeRange3 : UInt32;
+    ulUnicodeRange4 : UInt32;
+    achVendID : Array[0..3] of AnsiChar;
+    fsSelection : UInt16;
+    usFirstCharIndex : UInt16;
+    usLastCharIndex : UInt16;
+    sTypoAscender: Int16;
+    sTypoDescender : Int16;
+    sTypoLineGap : Int16;
+    usWinAscent : UInt16;
+    usWinDescent : UInt16;
+    ulCodePageRange1 : UInt32;
+    ulCodePageRange2 : UInt32;
+    sxHeight : Int16;
+    sCapHeight : Int16;
+    usDefaultChar : UInt16;
+    usBreakChar : UInt16;
+    usMaxContext  : UInt16;
   end;
 
   { Nicely described at [https://www.microsoft.com/typography/otspec/head.htm] }
   THead = Packed record
-    FileVersion : TFixedVersionRec;
-    FontRevision : TFixedVersionRec;
-    CheckSumAdjustment : Cardinal;
-    MagicNumber : Cardinal;
-    Flags : Word;
-    UnitsPerEm: word;
+    FileVersion : TFixedVersionRec;  { UInt32 }
+    FontRevision : TFixedVersionRec;  { UInt32 }
+    CheckSumAdjustment : UInt32;
+    MagicNumber : UInt32;
+    Flags : UInt16;
+    UnitsPerEm: UInt16;
     Created : Int64;
     Modified : Int64;
-    BBox: Packed array[0..3] of Smallint;
-    MacStyle : word;
-    LowestRecPPEM : word;
-    FontDirectionHint : smallint;
-    IndexToLocFormat : Smallint;
-    glyphDataFormat : Smallint;
+    BBox: Packed array[0..3] of Int16;
+    MacStyle : UInt16;
+    LowestRecPPEM : UInt16;
+    FontDirectionHint : Int16;
+    IndexToLocFormat : Int16;
+    glyphDataFormat : Int16;
   end;
 
   { structure described at [https://www.microsoft.com/typography/otspec/hhea.htm] }
   THHead = packed record
-    TableVersion : TFixedVersionRec;
-    Ascender : Smallint;
-    Descender : Smallint;
-    LineGap : Smallint;
-    AdvanceWidthMax : Word;
-    MinLeftSideBearing : Smallint;
-    MinRightSideBearing : Smallint;
-    XMaxExtent : Smallint;
-    CaretSlopeRise : Smallint;
-    CaretSlopeRun : Smallint;
-    Reserved : Array[0..4] of Smallint;
-    metricDataFormat : Smallint;
-    numberOfHMetrics : Word;
+    TableVersion : TFixedVersionRec;  { UInt32 }
+    Ascender : Int16;
+    Descender : Int16;
+    LineGap : Int16;
+    AdvanceWidthMax : UInt16;
+    MinLeftSideBearing : Int16;
+    MinRightSideBearing : Int16;
+    XMaxExtent : Int16;
+    CaretSlopeRise : Int16;
+    CaretSlopeRun : Int16;
+    Reserved : Array[0..4] of Int16;
+    metricDataFormat : Int16;
+    numberOfHMetrics : UInt16;
   end;
 
   { Character to glyph mapping
     Structure described at [https://www.microsoft.com/typography/otspec/cmap.htm] }
   TCmapHeader = packed record
-    Version: word;
-    SubTableCount: word;
+    Version: UInt16;
+    SubTableCount: UInt16;
   end;
 
   TCmapSubTableEntry = packed record
-    PlatformID: word;
-    EncodingID: word;
-    Offset: Cardinal;
+    PlatformID: UInt16;
+    EncodingID: UInt16;
+    Offset: UInt32;
   end;
   TCmapSubTables = Array of TCmapSubTableEntry;
 
   TCmapFmt4 = packed record
-    Format: word;
-    Length: word;
-    LanguageID: word;
-    SegmentCount2: word;
-    SearchRange: word;
-    EntrySelector: word;
-    RangeShift: word;
+    Format: UInt16;
+    Length: UInt16;
+    LanguageID: UInt16;
+    SegmentCount2: UInt16;
+    SearchRange: UInt16;
+    EntrySelector: UInt16;
+    RangeShift: UInt16;
   end;
 
   TUnicodeMapSegment = Packed Record
-    StartCode : Word;
-    EndCode : Word;
-    IDDelta : Smallint;
-    IDRangeOffset : Word;
+    StartCode : UInt16;
+    EndCode : UInt16;
+    IDDelta : Int16;
+    IDRangeOffset : UInt16;
   end;
   TUnicodeMapSegmentArray = Array of TUnicodeMapSegment;
 
   TNameRecord = Packed Record
-    PlatformID : Word;
-    EncodingID : Word;
-    LanguageID : Word;
-    NameID : Word;
-    StringLength : Word;
-    StringOffset : Word;
+    PlatformID : UInt16;
+    EncodingID : UInt16;
+    LanguageID : UInt16;
+    NameID : UInt16;
+    StringLength : UInt16;
+    StringOffset : UInt16;
   end;
 
   TNameEntry = Packed Record
@@ -242,11 +242,11 @@ Type
     function FixMinorVersion(const AMinor: word): word;
     function GetMissingWidth: integer;
   Protected
-    // Stream reading functions.
     Function IsNativeData : Boolean; virtual;
-    function ReadShort(AStream: TStream): Smallint; inline;
-    function ReadULong(AStream: TStream): Longword; inline;
-    function ReadUShort(AStream: TStream): Word; inline;
+    // Stream reading functions.
+    function ReadInt16(AStream: TStream): Int16; inline;
+    function ReadUInt32(AStream: TStream): UInt32; inline;
+    function ReadUInt16(AStream: TStream): UInt16; inline;
     // Parse the various well-known tables
     procedure ParseHead(AStream : TStream); virtual;
     procedure ParseHhea(AStream : TStream); virtual;
@@ -359,7 +359,6 @@ implementation
 
 resourcestring
   rsFontEmbeddingNotAllowed = 'Font licence does not allow embedding';
-  rsErrNoFormat4MapTable = 'No Format 4 map (unicode) table found <%s - %s>';
   rsErrUnexpectedUnicodeSubtable = 'Unexpected unicode subtable format, expected 4, got %s';
 
 Function GetTableType(Const AName : String) : TTTFTableType;
@@ -390,7 +389,7 @@ begin
   FillChar(Dest^, Size, Data);
 end;
 
-function TTFFileInfo.ReadULong(AStream: TStream): Longword;inline;
+function TTFFileInfo.ReadUInt32(AStream: TStream): UInt32;
 begin
   Result:=0;
   AStream.ReadBuffer(Result,SizeOf(Result));
@@ -398,7 +397,7 @@ begin
     Result:=BEtoN(Result);
 end;
 
-function TTFFileInfo.ReadUShort(AStream: TStream): Word;inline;
+function TTFFileInfo.ReadUInt16(AStream: TStream): UInt16;
 begin
   Result:=0;
   AStream.ReadBuffer(Result,SizeOf(Result));
@@ -406,9 +405,9 @@ begin
     Result:=BEtoN(Result);
 end;
 
-function TTFFileInfo.ReadShort(AStream: TStream): Smallint;inline;
+function TTFFileInfo.ReadInt16(AStream: TStream): Int16;
 begin
-  Result:=SmallInt(ReadUShort(AStream));
+  Result:=Int16(ReadUInt16(AStream));
 end;
 
 procedure TTFFileInfo.ParseHead(AStream : TStream);
@@ -514,52 +513,55 @@ var
 
 begin
   TableStartPos:=AStream.Position;
-  FCMapH.Version:=ReadUShort(AStream);
-  FCMapH.SubtableCount:=ReadUShort(AStream);
+  FCMapH.Version:=ReadUInt16(AStream);
+  FCMapH.SubtableCount:=ReadUInt16(AStream);
   SetLength(FSubtables,CMapH.SubtableCount);
   for I:= 0 to FCMapH.SubtableCount-1 do
     begin
-    FSubtables[i].PlatformID:=ReadUShort(AStream);
-    FSubtables[i].EncodingID:=ReadUShort(AStream);
-    FSubtables[i].Offset:=ReadULong(AStream); // 4 bytes - Offset of subtable
+    FSubtables[i].PlatformID:=ReadUInt16(AStream);
+    FSubtables[i].EncodingID:=ReadUInt16(AStream);
+    FSubtables[i].Offset:=ReadUInt32(AStream); // 4 bytes - Offset of subtable
     end;
   UE:=FCMapH.SubtableCount-1;
+  if UE=0 then
+    // No CMap subtable entries, this is not an error, just exit.
+    exit;
   While (UE>=0) and ((FSubtables[UE].PlatformID<>3) or (FSubtables[UE].EncodingID<> 1)) do
     Dec(UE);
   if (UE=-1) then
-    Raise ETTF.CreateFmt(rsErrNoFormat4MapTable, [FFileName, PostScriptName]);
+    exit;
   TT:=TableStartPos+FSubtables[UE].Offset;
   AStream.Position:=TT;
-  FUnicodeMap.Format:= ReadUShort(AStream);               // 2 bytes - Format of subtable
+  FUnicodeMap.Format:= ReadUInt16(AStream);               // 2 bytes - Format of subtable
   if (FUnicodeMap.Format<>4) then
     Raise ETTF.CreateFmt(rsErrUnexpectedUnicodeSubtable, [FUnicodeMap.Format]);
-  FUnicodeMap.Length:=ReadUShort(AStream);
+  FUnicodeMap.Length:=ReadUInt16(AStream);
   S:=TMemoryStream.Create;
   try
     // Speed up the process, read everything in a single mem block.
     S.CopyFrom(AStream,Int64(FUnicodeMap.Length)-4);
     S.Position:=0;
-    FUnicodeMap.LanguageID:=ReadUShort(S);
-    FUnicodeMap.SegmentCount2:=ReadUShort(S);            // 2 bytes - Segments count
-    FUnicodeMap.SearchRange:=ReadUShort(S);
-    FUnicodeMap.EntrySelector:=ReadUShort(S);
-    FUnicodeMap.RangeShift:=ReadUShort(S);
+    FUnicodeMap.LanguageID:=ReadUInt16(S);
+    FUnicodeMap.SegmentCount2:=ReadUInt16(S);            // 2 bytes - Segments count
+    FUnicodeMap.SearchRange:=ReadUInt16(S);
+    FUnicodeMap.EntrySelector:=ReadUInt16(S);
+    FUnicodeMap.RangeShift:=ReadUInt16(S);
     SegCount:=FUnicodeMap.SegmentCount2 div 2;
     SetLength(FUnicodeMapSegments,SegCount);
     for i:=0 to SegCount-1 do
-      FUnicodeMapSegments[i].EndCode:=ReadUShort(S);
-    ReadUShort(S);
+      FUnicodeMapSegments[i].EndCode:=ReadUInt16(S);
+    ReadUInt16(S);
     for i:=0 to SegCount-1 do
-      FUnicodeMapSegments[i].StartCode:=ReadUShort(S);
+      FUnicodeMapSegments[i].StartCode:=ReadUInt16(S);
     for i:=0 to SegCount-1 do
-      FUnicodeMapSegments[i].IDDelta:=ReadShort(S);
+      FUnicodeMapSegments[i].IDDelta:=ReadInt16(S);
     for i:=0 to SegCount-1 do
-      FUnicodeMapSegments[i].IDRangeOffset:=ReadUShort(S);
+      FUnicodeMapSegments[i].IDRangeOffset:=ReadUInt16(S);
     UE:=S.Position;
     UE:=(S.Size-UE) div 2;
     SetLength(GlyphIDArray,UE);
     For J:=0 to UE-1 do
-      GlyphIDArray[J]:=ReadUShort(S);
+      GlyphIDArray[J]:=ReadUInt16(S);
     J:=0;
     for i:=0 to SegCount-1 do
       With FUnicodeMapSegments[i] do
@@ -606,9 +608,9 @@ var
 
 begin
   TableStartPos:= AStream.Position;                   // memorize Table start position
-  ReadUShort(AStream);                  // skip 2 bytes - Format
-  Count:=ReadUShort(AStream);                        // 2 bytes
-  StringOffset:=ReadUShort(AStream);                 // 2 bytes
+  ReadUInt16(AStream);                  // skip 2 bytes - Format
+  Count:=ReadUInt16(AStream);                        // 2 bytes
+  StringOffset:=ReadUInt16(AStream);                 // 2 bytes
   E := FNameEntries;
   SetLength(E,Count);
   FillMem(@N, SizeOf(TNameRecord), 0);
@@ -706,16 +708,16 @@ begin
     // Read remaining 7 fields' data depending on version
     if Version>=1 then
       begin
-      ulCodePageRange1:=ReadULong(AStream);
-      ulCodePageRange2:=ReadULong(AStream);
+      ulCodePageRange1:=ReadUInt32(AStream);
+      ulCodePageRange2:=ReadUInt32(AStream);
       end;
     if Version>=2 then
       begin
-      sxHeight:=ReadShort(AStream);
-      sCapHeight:=ReadShort(AStream);
-      usDefaultChar:=ReadUShort(AStream);
-      usBreakChar:=ReadUShort(AStream);
-      usMaxContext:=ReadUShort(AStream);
+      sxHeight:=ReadInt16(AStream);
+      sCapHeight:=ReadInt16(AStream);
+      usDefaultChar:=ReadUInt16(AStream);
+      usBreakChar:=ReadUInt16(AStream);
+      usMaxContext:=ReadUInt16(AStream);
       end;
     end;
 end;

@@ -141,7 +141,7 @@ type
   end;
 
 
-  TPDFBoolean = class(TPDFObject)
+  TPDFBoolean = class(TPDFDocumentObject)
   private
     FValue: Boolean;
   protected
@@ -151,7 +151,7 @@ type
   end;
 
 
-  TPDFMoveTo = class(TPDFObject)
+  TPDFMoveTo = class(TPDFDocumentObject)
   private
     FPos : TPDFCoord;
   protected
@@ -164,7 +164,31 @@ type
   end;
 
 
-  TPDFInteger = class(TPDFObject)
+  TPDFResetPath = class(TPDFDocumentObject)
+  protected
+    procedure   Write(const AStream: TStream); override;
+  public
+    class function Command: string;
+  end;
+
+
+  TPDFClosePath = class(TPDFDocumentObject)
+  protected
+    procedure   Write(const AStream: TStream); override;
+  public
+    class function Command: string;
+  end;
+
+
+  TPDFStrokePath = class(TPDFDocumentObject)
+  protected
+    procedure   Write(const AStream: TStream); override;
+  public
+    class function Command: string;
+  end;
+
+
+  TPDFInteger = class(TPDFDocumentObject)
   private
     FInt: integer;
   protected
@@ -176,7 +200,7 @@ type
   end;
 
 
-  TPDFReference = class(TPDFObject)
+  TPDFReference = class(TPDFDocumentObject)
   private
     FValue: integer;
   protected
@@ -187,7 +211,7 @@ type
   end;
 
 
-  TPDFName = class(TPDFObject)
+  TPDFName = class(TPDFDocumentObject)
   private
     FName : string;
     FMustEscape: boolean;
@@ -260,7 +284,7 @@ type
   end;
 
 
-  TPDFStream = class(TPDFObject)
+  TPDFStream = class(TPDFDocumentObject)
   private
     FItems: TFPObjectList;
   protected
@@ -272,7 +296,7 @@ type
   end;
 
 
-  TPDFEmbeddedFont = class(TPDFObject)
+  TPDFEmbeddedFont = class(TPDFDocumentObject)
   private
     FTxtFont: integer;
     FTxtSize: string;
@@ -284,7 +308,7 @@ type
   end;
 
 
-  TPDFText = class(TPDFObject)
+  TPDFText = class(TPDFDocumentObject)
   private
     FX: TPDFFloat;
     FY: TPDFFloat;
@@ -302,7 +326,7 @@ type
   end;
 
 
-  TPDFUTF8Text = class(TPDFObject)
+  TPDFUTF8Text = class(TPDFDocumentObject)
   private
     FX: TPDFFloat;
     FY: TPDFFloat;
@@ -323,13 +347,15 @@ type
   TPDFLineSegment = class(TPDFDocumentObject)
   private
     FWidth: TPDFFloat;
+    FStroke: boolean;
     P1, p2: TPDFCoord;
   protected
     procedure Write(const AStream: TStream); override;
   public
-    Class Function Command(APos : TPDFCoord) : String;
-    Class Function Command(APos1,APos2 : TPDFCoord) : String;
-    constructor Create(Const ADocument : TPDFDocument; const AWidth, X1,Y1, X2,Y2: TPDFFloat);overload;
+    Class Function Command(APos : TPDFCoord) : String; overload;
+    Class Function Command(x1, y1 : TPDFFloat) : String; overload;
+    Class Function Command(APos1, APos2 : TPDFCoord) : String; overload;
+    constructor Create(Const ADocument : TPDFDocument; const AWidth, X1,Y1, X2,Y2: TPDFFloat; const AStroke: Boolean = True); overload;
   end;
 
 
@@ -347,18 +373,33 @@ type
   end;
 
 
+  TPDFRoundedRectangle = class(TPDFDocumentObject)
+  private
+    FWidth: TPDFFloat;
+    FBottomLeft: TPDFCoord;
+    FDimensions: TPDFCoord;
+    FFill: Boolean;
+    FStroke: Boolean;
+    FRadius: TPDFFloat;
+  protected
+    procedure   Write(const AStream: TStream); override;
+  public
+    constructor Create(const ADocument: TPDFDocument; const APosX, APosY, AWidth, AHeight, ARadius, ALineWidth: TPDFFloat; const AFill, AStroke: Boolean);overload;
+  end;
+
+
   TPDFCurveC = class(TPDFDocumentObject)
   private
-    FP1,FP2,FP3: TPDFCoord;
+    FCtrl1, FCtrl2, FTo: TPDFCoord;
     FWidth: TPDFFloat;
     FStroke: Boolean;
   protected
-    Class Function Command(Const X1,Y1,X2,Y2,X3,Y3 : TPDFFloat) : String; overload;
-    Class Function Command(Const AP1,AP2,AP3: TPDFCoord) : String; overload;
+    Class Function Command(Const xCtrl1, yCtrl1, xCtrl2, yCtrl2, xTo, yTo: TPDFFloat): String; overload;
+    Class Function Command(Const ACtrl1, ACtrl2, ATo3: TPDFCoord): String; overload;
     procedure Write(const AStream: TStream); override;
   public
-    constructor Create(Const ADocument : TPDFDocument; const X1,Y1,X2,Y2,X3,Y3,AWidth : TPDFFloat;AStroke: Boolean = True);overload;
-    constructor Create(Const ADocument : TPDFDocument; const AP1,AP2,AP3 : TPDFCoord; AWidth: TPDFFloat; AStroke: Boolean = True);overload;
+    constructor Create(Const ADocument : TPDFDocument; const xCtrl1, yCtrl1, xCtrl2, yCtrl2, xTo, yTo, AWidth: TPDFFloat; AStroke: Boolean = True);overload;
+    constructor Create(Const ADocument : TPDFDocument; const ACtrl1, ACtrl2, ATo3: TPDFCoord; AWidth: TPDFFloat; AStroke: Boolean = True);overload;
   end;
 
 
@@ -402,7 +443,7 @@ type
   end;
 
 
-  TPDFSurface = class(TPDFObject)
+  TPDFSurface = class(TPDFDocumentObject)
   private
     FPoints: TPDFCoordArray;
     FFill : Boolean;
@@ -426,7 +467,7 @@ type
   end;
 
 
-  TPDFLineStyle = class(TPDFObject)
+  TPDFLineStyle = class(TPDFDocumentObject)
   private
     FStyle: TPDFPenStyle;
     FPhase: integer;
@@ -450,7 +491,7 @@ type
   end;
 
 
-  TPDFDictionaryItem = class(TPDFObject)
+  TPDFDictionaryItem = class(TPDFDocumentObject)
   private
     FKey: TPDFName;
     FObj: TPDFObject;
@@ -493,7 +534,7 @@ type
   end;
 
 
-  TPDFXRef = class(TPDFObject)
+  TPDFXRef = class(TPDFDocumentObject)
   private
     FOffset: integer;
     FDict: TPDFDictionary;
@@ -562,13 +603,15 @@ type
     { output coordinate is the font baseline. }
     Procedure WriteText(X, Y: TPDFFloat; AText : UTF8String); overload;
     Procedure WriteText(APos: TPDFCoord; AText : UTF8String); overload;
-    procedure DrawLine(X1, Y1, X2, Y2, ALineWidth : TPDFFloat); overload;
-    procedure DrawLine(APos1: TPDFCoord; APos2: TPDFCoord; ALineWidth: TPDFFloat); overload;
+    procedure DrawLine(X1, Y1, X2, Y2, ALineWidth : TPDFFloat; const AStroke: Boolean = True); overload;
+    procedure DrawLine(APos1: TPDFCoord; APos2: TPDFCoord; ALineWidth: TPDFFloat; const AStroke: Boolean = True); overload;
     Procedure DrawLineStyle(X1, Y1, X2, Y2: TPDFFloat; AStyle: Integer); overload;
     Procedure DrawLineStyle(APos1: TPDFCoord; APos2: TPDFCoord; AStyle: Integer); overload;
     { X, Y coordinates are the bottom-left coordinate of the rectangle. The W and H parameters are in the UnitOfMeasure units. }
     Procedure DrawRect(const X, Y, W, H, ALineWidth: TPDFFloat; const AFill, AStroke : Boolean); overload;
     Procedure DrawRect(const APos: TPDFCoord; const W, H, ALineWidth: TPDFFloat; const AFill, AStroke : Boolean); overload;
+    { X, Y coordinates are the bottom-left coordinate of the rectangle. The W and H parameters are in the UnitOfMeasure units. }
+    procedure DrawRoundedRect(const X, Y, W, H, ARadius, ALineWidth: TPDFFloat; const AFill, AStroke : Boolean);
     { X, Y coordinates are the bottom-left coordinate of the image. AWidth and AHeight are in image pixels. }
     Procedure DrawImageRawSize(const X, Y: TPDFFloat; const APixelWidth, APixelHeight, ANumber: integer); overload;
     Procedure DrawImageRawSize(const APos: TPDFCoord; const APixelWidth, APixelHeight, ANumber: integer); overload;
@@ -580,6 +623,34 @@ type
       cause the ellpise to draw to the left of the origin point. }
     Procedure DrawEllipse(const APosX, APosY, AWidth, AHeight, ALineWidth: TPDFFloat; const AFill: Boolean = True; AStroke: Boolean = True); overload;
     Procedure DrawEllipse(const APos: TPDFCoord; const AWidth, AHeight, ALineWidth: TPDFFloat; const AFill: Boolean = True; AStroke: Boolean = True); overload;
+    procedure DrawPolyLine(const APoints: array of TPDFCoord; const ALineWidth: TPDFFloat);
+    { start a new subpath }
+    procedure ResetPath;
+    { Close the current subpath by appending a straight line segment from the current point to the starting point of the subpath. }
+    procedure ClosePath;
+    { render the actual path }
+    procedure StrokePath;
+    { Move the current drawing position to (x, y) }
+    procedure MoveTo(x, y: TPDFFloat); overload;
+    procedure MoveTo(APos: TPDFCoord); overload;
+    { Append a cubic Bezier curve to the current path
+      - The curve extends from the current point to the point (xTo, yTo),
+        using (xCtrl1, yCtrl1) and (xCtrl2, yCtrl2) as the Bezier control points
+      - The new current point is (xTo, yTo) }
+    procedure CubicCurveTo(const xCtrl1, yCtrl1, xCtrl2, yCtrl2, xTo, yTo, ALineWidth: TPDFFloat; AStroke: Boolean = True); overload;
+    procedure CubicCurveTo(ACtrl1, ACtrl2, ATo: TPDFCoord; const ALineWidth: TPDFFloat; AStroke: Boolean = True); overload;
+    { Append a cubic Bezier curve to the current path
+      - The curve extends from the current point to the point (xTo, yTo),
+        using the current point and (xCtrl2, yCtrl2) as the Bezier control points
+      - The new current point is (xTo, yTo) }
+    procedure CubicCurveToV(xCtrl2, yCtrl2, xTo, yTo: TPDFFloat; const ALineWidth: TPDFFloat; AStroke: Boolean = True); overload;
+    procedure CubicCurveToV(ACtrl2, ATo: TPDFCoord; const ALineWidth: TPDFFloat; AStroke: Boolean = True); overload;
+    { Append a cubic Bezier curve to the current path
+      - The curve extends from the current point to the point (xTo, yTo),
+        using (xCtrl1, yCtrl1) and (xTo, yTo) as the Bezier control points
+      - The new current point is (xTo, yTo) }
+    procedure CubicCurveToY(xCtrl1, yCtrl1, xTo, yTo: TPDFFloat; const ALineWidth: TPDFFloat; AStroke: Boolean = True); overload;
+    procedure CubicCurveToY(ACtrl1, ATo: TPDFCoord; const ALineWidth: TPDFFloat; AStroke: Boolean = True); overload;
     { Define a rectangle that becomes a clickable hotspot, referencing the URI argument. }
     Procedure AddExternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat; const AURI: string; ABorder: boolean = false);
     { This returns the paper height, converted to whatever UnitOfMeasure is set too }
@@ -914,6 +985,7 @@ type
     Function CreateText(X,Y : TPDFFloat; AText : AnsiString; const AFontIndex: integer) : TPDFText; overload;
     Function CreateText(X,Y : TPDFFloat; AText : UTF8String; const AFontIndex: integer) : TPDFUTF8Text; overload;
     Function CreateRectangle(const X,Y,W,H, ALineWidth: TPDFFloat; const AFill, AStroke: Boolean) : TPDFRectangle;
+    function CreateRoundedRectangle(const X, Y, W, H, ARadius, ALineWidth: TPDFFloat; const AFill, AStroke: Boolean): TPDFRoundedRectangle;
     Function CreateColor(AColor : TARGBColor; AStroke : Boolean) : TPDFColor;
     Function CreateBoolean(AValue : Boolean) : TPDFBoolean;
     Function CreateInteger(AValue : Integer) : TPDFInteger;
@@ -1036,6 +1108,10 @@ const
   // mm = (pixels * 25.4) / dpi
   // pixels = (mm * dpi) / 25.4
   // cm = ((pixels * 25.4) / dpi) / 10
+
+const
+  // see http://paste.lisp.org/display/1105
+  BEZIER: single = 0.5522847498; // = 4/3 * (sqrt(2) - 1);
 
 
 function DateToPdfDate(const ADate: TDateTime): string;
@@ -1396,6 +1472,43 @@ begin
   FPos:=APos;
 end;
 
+{ TPDFResetPath }
+
+procedure TPDFResetPath.Write(const AStream: TStream);
+begin
+  WriteString(Command, AStream);
+end;
+
+class function TPDFResetPath.Command: string;
+begin
+  Result := 'n' + CRLF;
+end;
+
+{ TPDFClosePath }
+
+procedure TPDFClosePath.Write(const AStream: TStream);
+begin
+  WriteString(Command, AStream);
+end;
+
+class function TPDFClosePath.Command: string;
+begin
+  Result := 'h' + CRLF;
+end;
+
+{ TPDFStrokePath }
+
+procedure TPDFStrokePath.Write(const AStream: TStream);
+begin
+  WriteString(Command, AStream);
+end;
+
+class function TPDFStrokePath.Command: string;
+begin
+  Result := 'S' + CRLF;
+end;
+
+
 { TPDFEllipse }
 
 procedure TPDFEllipse.Write(const AStream: TStream);
@@ -1409,8 +1522,8 @@ begin
   Y:=FCenter.Y;
   W2:=FDimensions.X/2;
   H2:=FDimensions.Y/2;
-  WS:=W2*11/20;
-  HS:=H2*11/20;
+  WS:=W2*BEZIER;
+  HS:=H2*BEZIER;
   // Starting point
   WriteString(TPDFMoveTo.Command(X,Y+H2),AStream);
   WriteString(TPDFCurveC.Command(X, Y+H2-HS, X+W2-WS, Y, X+W2, Y),AStream);
@@ -1517,49 +1630,50 @@ end;
 
 { TPDFCurveC }
 
-class function TPDFCurveC.Command(const X1, Y1, X2, Y2, X3, Y3: TPDFFloat
-  ): String;
+class function TPDFCurveC.Command(const xCtrl1, yCtrl1, xCtrl2, yCtrl2, xTo, yTo: TPDFFloat): String;
 begin
-  Result:=FloatStr(X1)+' '+FloatStr(Y1)+' '+
-          FloatStr(X2)+' '+FloatStr(Y2)+' '+
-          FloatStr(X3)+' '+FloatStr(Y3)+' c'+CRLF
+  Result:=FloatStr(xCtrl1)+' '+FloatStr(yCtrl1)+' '+
+          FloatStr(xCtrl2)+' '+FloatStr(yCtrl2)+' '+
+          FloatStr(xTo)+' '+FloatStr(yTo)+' c'+CRLF
 end;
 
-class function TPDFCurveC.Command(const AP1, AP2, AP3: TPDFCoord): String;
+class function TPDFCurveC.Command(const ACtrl1, ACtrl2, ATo3: TPDFCoord): String;
 begin
-  Result:=Command(AP1.X,AP1.Y,AP2.X,AP2.Y,AP3.X,AP3.Y);
+  Result := Command(ACtrl1.X, ACtrl1.Y, ACtrl2.X, ACtrl2.Y, ATo3.X, ATo3.Y);
 end;
 
 procedure TPDFCurveC.Write(const AStream: TStream);
 begin
   if FStroke then
-    SetWidth(FWidth,AStream);
-  WriteString(Command(FP1,FP2,FP3),AStream);
+    SetWidth(FWidth, AStream);
+  WriteString(Command(FCtrl1, FCtrl2, FTo), AStream);
   if FStroke then
     WriteString('S'+CRLF, AStream);
 end;
 
-constructor TPDFCurveC.Create(const ADocument: TPDFDocument; const X1, Y1, X2, Y2, X3, Y3,AWidth: TPDFFloat;AStroke: Boolean = True);
+constructor TPDFCurveC.Create(const ADocument: TPDFDocument; const xCtrl1, yCtrl1, xCtrl2, yCtrl2, xTo, yTo,
+  AWidth: TPDFFloat; AStroke: Boolean);
 begin
   Inherited Create(ADocument);
-  FP1.X:=X1;
-  FP1.Y:=Y1;
-  FP2.X:=X2;
-  FP2.Y:=Y2;
-  FP3.X:=X3;
-  FP3.Y:=Y3;
-  FWidth:=AWidth;
-  FStroke:=AStroke;
+  FCtrl1.X := xCtrl1;
+  FCtrl1.Y := yCtrl1;
+  FCtrl2.X := xCtrl2;
+  FCtrl2.Y := yCtrl2;
+  FTo.X := xTo;
+  FTo.Y := yTo;
+  FWidth := AWidth;
+  FStroke := AStroke;
 end;
 
-constructor TPDFCurveC.Create(const ADocument: TPDFDocument; const AP1, AP2, AP3: TPDFCoord; AWidth: TPDFFloat;AStroke: Boolean = True);
+constructor TPDFCurveC.Create(const ADocument: TPDFDocument; const ACtrl1, ACtrl2, ATo3: TPDFCoord;
+    AWidth: TPDFFloat; AStroke: Boolean);
 begin
   Inherited Create(ADocument);
-  FP1:=AP1;
-  FP2:=AP2;
-  FP3:=AP3;
-  FWidth:=AWidth;
-  FStroke:=AStroke;
+  FCtrl1 := ACtrl1;
+  FCtrl2 := ACtrl2;
+  FTo := ATo3;
+  FWidth := AWidth;
+  FStroke := AStroke;
 end;
 
 { TPDFLineStyleDefs }
@@ -1878,7 +1992,7 @@ begin
   WriteText(APos.X, APos.Y, AText);
 end;
 
-procedure TPDFPage.DrawLine(X1, Y1, X2, Y2, ALineWidth: TPDFFloat);
+procedure TPDFPage.DrawLine(X1, Y1, X2, Y2, ALineWidth: TPDFFloat; const AStroke: Boolean = True);
 var
   L : TPDFLineSegment;
   p1, p2: TPDFCoord;
@@ -1887,13 +2001,13 @@ begin
   p2 := Matrix.Transform(X2, Y2);
   DoUnitConversion(p1);
   DoUnitConversion(p2);
-  L := TPDFLineSegment.Create(Document, ALineWidth, p1.X, p1.Y, p2.X, p2.Y);
+  L := TPDFLineSegment.Create(Document, ALineWidth, p1.X, p1.Y, p2.X, p2.Y, AStroke);
   AddObject(L);
 end;
 
-procedure TPDFPage.DrawLine(APos1: TPDFCoord; APos2: TPDFCoord; ALineWidth: TPDFFloat);
+procedure TPDFPage.DrawLine(APos1: TPDFCoord; APos2: TPDFCoord; ALineWidth: TPDFFloat; const AStroke: Boolean = True);
 begin
-  DrawLine(APos1.X, APos1.Y, APos2.X, APos2.Y, ALineWidth);
+  DrawLine(APos1.X, APos1.Y, APos2.X, APos2.Y, ALineWidth, AStroke);
 end;
 
 procedure TPDFPage.DrawLineStyle(X1, Y1, X2, Y2: TPDFFloat; AStyle: Integer);
@@ -1928,6 +2042,23 @@ end;
 procedure TPDFPage.DrawRect(const APos: TPDFCoord; const W, H, ALineWidth: TPDFFloat; const AFill, AStroke: Boolean);
 begin
   DrawRect(APos.X, APos.Y, W, H, ALineWidth, AFill, AStroke);
+end;
+
+procedure TPDFPage.DrawRoundedRect(const X, Y, W, H, ARadius, ALineWidth: TPDFFloat; const AFill, AStroke: Boolean);
+var
+  R: TPDFRoundedRectangle;
+  p1, p2, p3: TPDFCoord;
+begin
+  p1 := Matrix.Transform(X, Y);
+  DoUnitConversion(p1);
+  p2.X := W;
+  p2.Y := H;
+  DoUnitConversion(p2);
+  p3.X := ARadius;
+  p3.Y := 0;
+  DoUnitConversion(p3);
+  R := Document.CreateRoundedRectangle(p1.X, p1.Y, p2.X, p2.Y, p3.X, ALineWidth, AFill, AStroke);
+  AddObject(R);
 end;
 
 procedure TPDFPage.DrawImageRawSize(const X, Y: TPDFFloat; const APixelWidth, APixelHeight, ANumber: integer);
@@ -1978,6 +2109,95 @@ procedure TPDFPage.DrawEllipse(const APos: TPDFCoord; const AWidth, AHeight, ALi
     const AFill: Boolean; AStroke: Boolean);
 begin
   DrawEllipse(APos.X, APos.Y, AWidth, AHeight, ALineWidth, AFill, AStroke);
+end;
+
+procedure TPDFPage.DrawPolyLine(const APoints: array of TPDFCoord; const ALineWidth: TPDFFloat);
+var
+  i: integer;
+begin
+  if Length(APoints) < 2 then
+    Exit; { not enough points to draw a line. Should this raise an exception? }
+  for i := Low(APoints)+1 to High(APoints) do
+    DrawLine(APoints[i-1].X, APoints[i-1].Y, APoints[i].X, APoints[i].Y, ALineWidth, False);
+end;
+
+procedure TPDFPage.ResetPath;
+begin
+  AddObject(TPDFResetPath.Create(Document));
+end;
+
+procedure TPDFPage.ClosePath;
+begin
+  AddObject(TPDFClosePath.Create(Document));
+end;
+
+procedure TPDFPage.StrokePath;
+begin
+  AddObject(TPDFStrokePath.Create(Document));
+end;
+
+procedure TPDFPage.MoveTo(x, y: TPDFFloat);
+var
+  p1: TPDFCoord;
+begin
+  p1 := Matrix.Transform(x, y);
+  DoUnitConversion(p1);
+  AddObject(TPDFMoveTo.Create(Document, p1.x, p1.y));
+end;
+
+procedure TPDFPage.MoveTo(APos: TPDFCoord);
+begin
+  MoveTo(APos.X, APos.Y);
+end;
+
+procedure TPDFPage.CubicCurveTo(const xCtrl1, yCtrl1, xCtrl2, yCtrl2, xTo, yTo, ALineWidth: TPDFFloat; AStroke: Boolean);
+var
+  p1, p2, p3: TPDFCoord;
+begin
+  p1 := Matrix.Transform(xCtrl1, yCtrl1);
+  DoUnitConversion(p1);
+  p2 := Matrix.Transform(xCtrl2, yCtrl2);
+  DoUnitConversion(p2);
+  p3 := Matrix.Transform(xTo, yTo);
+  DoUnitConversion(p3);
+  AddObject(TPDFCurveC.Create(Document, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, ALineWidth, AStroke));
+end;
+
+procedure TPDFPage.CubicCurveTo(ACtrl1, ACtrl2, ATo: TPDFCoord; const ALineWidth: TPDFFloat; AStroke: Boolean);
+begin
+  CubicCurveTo(ACtrl1.X, ACtrl1.Y, ACtrl2.X, ACtrl2.Y, ATo.X, ATo.Y, ALineWidth, AStroke);
+end;
+
+procedure TPDFPage.CubicCurveToV(xCtrl2, yCtrl2, xTo, yTo: TPDFFloat; const ALineWidth: TPDFFloat; AStroke: Boolean);
+var
+  p2, p3: TPDFCoord;
+begin
+  p2 := Matrix.Transform(xCtrl2, yCtrl2);
+  DoUnitConversion(p2);
+  p3 := Matrix.Transform(xTo, yTo);
+  DoUnitConversion(p3);
+  AddObject(TPDFCurveV.Create(Document, p2.x, p2.y, p3.x, p3.y, ALineWidth, AStroke));
+end;
+
+procedure TPDFPage.CubicCurveToV(ACtrl2, ATo: TPDFCoord; const ALineWidth: TPDFFloat; AStroke: Boolean);
+begin
+  CubicCurveToV(ACtrl2.X, ACtrl2.Y, ATo.X, ATo.Y, ALineWidth, AStroke);
+end;
+
+procedure TPDFPage.CubicCurveToY(xCtrl1, yCtrl1, xTo, yTo: TPDFFloat; const ALineWidth: TPDFFloat; AStroke: Boolean);
+var
+  p1, p3: TPDFCoord;
+begin
+  p1 := Matrix.Transform(xCtrl1, yCtrl1);
+  DoUnitConversion(p1);
+  p3 := Matrix.Transform(xTo, yTo);
+  DoUnitConversion(p3);
+  AddObject(TPDFCurveY.Create(Document, p1.x, p1.y, p3.x, p3.y, ALineWidth, AStroke));
+end;
+
+procedure TPDFPage.CubicCurveToY(ACtrl1, ATo: TPDFCoord; const ALineWidth: TPDFFloat; AStroke: Boolean);
+begin
+  CubicCurveToY(ACtrl1.X, ACtrl1.Y, ATo.X, ATo.Y, ALineWidth, AStroke);
 end;
 
 procedure TPDFPage.AddExternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat;
@@ -2558,13 +2778,7 @@ var
   s: AnsiString;
 begin
   s := Utf8ToAnsi(FValue);
-  if poCompressText in Document.Options then
-  begin
-    // TODO: Implement text compression
-    WriteString('('+s+')', AStream);
-  end
-  else
-    WriteString('('+s+')', AStream);
+  WriteString('('+s+')', AStream);
 end;
 
 constructor TPDFString.Create(Const ADocument : TPDFDocument; const AValue: string);
@@ -2587,13 +2801,7 @@ end;
 
 procedure TPDFUTF8String.Write(const AStream: TStream);
 begin
-  if poCompressText in Document.Options then
-  begin
-    // TODO: Implement text compression
-    WriteString('<'+RemapedText+'>', AStream)
-  end
-  else
-    WriteString('<'+RemapedText+'>', AStream);
+  WriteString('<'+RemapedText+'>', AStream);
 end;
 
 constructor TPDFUTF8String.Create(const ADocument: TPDFDocument; const AValue: UTF8String; const AFontIndex: integer);
@@ -2800,7 +3008,8 @@ begin
   SetWidth(FWidth,AStream);
   WriteString(TPDFMoveTo.Command(P1), AStream);
   WriteString(Command(P2),AStream);
-  WriteString('S'+CRLF, AStream);
+  if FStroke then
+    WriteString('S'+CRLF, AStream);
 end;
 
 class function TPDFLineSegment.Command(APos: TPDFCoord): String;
@@ -2808,13 +3017,18 @@ begin
   Result:=FloatStr(APos.X)+' '+FloatStr(APos.Y)+' l'+CRLF
 end;
 
+class function TPDFLineSegment.Command(x1, y1: TPDFFloat): String;
+begin
+  Result := FloatStr(x1)+' '+FloatStr(y1)+' l'+CRLF
+end;
+
 class function TPDFLineSegment.Command(APos1, APos2: TPDFCoord): String;
 begin
   Result:=TPDFMoveTo.Command(APos1)+Command(APos2);
 end;
 
-constructor TPDFLineSegment.Create(const ADocument: TPDFDocument; const AWidth,
-  X1, Y1, X2, Y2: TPDFFloat);
+constructor TPDFLineSegment.Create(const ADocument: TPDFDocument; const AWidth, X1, Y1, X2, Y2: TPDFFloat;
+  const AStroke: Boolean);
 begin
   inherited Create(ADocument);
   FWidth:=AWidth;
@@ -2822,7 +3036,10 @@ begin
   P1.Y:=Y1;
   P2.X:=X2;
   P2.Y:=Y2;
+  FStroke := AStroke;
 end;
+
+{ TPDFRectangle }
 
 procedure TPDFRectangle.Write(const AStream: TStream);
 begin
@@ -2854,6 +3071,67 @@ begin
   FFill := AFill;
   FStroke := AStroke;
 end;
+
+{ TPDFRoundedRectangle }
+
+procedure TPDFRoundedRectangle.Write(const AStream: TStream);
+var
+  c: TPDFFloat;
+  x1, y1, x2, y2: TPDFFloat;
+begin
+  if FStroke then
+    SetWidth(FWidth, AStream);
+
+  // bottom left
+  x1 := FBottomLeft.X;
+  y1 := FBottomLeft.Y;
+
+  // top right
+  x2 := FBottomLeft.X + FDimensions.X;
+  y2 := FBottomLeft.Y + FDimensions.Y;
+
+  // radius
+  c := FRadius;
+
+  // Starting point is bottom left, then drawing anti-clockwise
+  WriteString(TPDFMoveTo.Command(x1+c, y1), AStream);
+  WriteString(TPDFLineSegment.Command(x2-c, y1), AStream);
+
+  WriteString(TPDFCurveC.Command(x2-c+BEZIER*c, y1,   x2, y1+c-BEZIER*c,   x2, y1+c), AStream);
+  WriteString(TPDFLineSegment.Command(x2, y2-c), AStream);
+
+  WriteString(TPDFCurveC.Command(x2, y2-c+BEZIER*c, x2-c+BEZIER*c, y2, x2-c, y2), AStream);
+  WriteString(TPDFLineSegment.Command(x1+c, y2), AStream);
+
+  WriteString(TPDFCurveC.Command(x1+c-BEZIER*c, y2, x1, y2-c+BEZIER*c, x1, y2-c), AStream);
+  WriteString(TPDFLineSegment.Command(x1, y1+c), AStream);
+
+  WriteString(TPDFCurveC.Command(x1, y1+c-BEZIER*c, x1+c-BEZIER*c, y1, x1+c, y1), AStream);
+  WriteString('h'+CRLF, AStream);
+
+  if FStroke and FFill then
+    WriteString('b'+CRLF, AStream)
+  else if FFill then
+    WriteString('f'+CRLF, AStream)
+  else if FStroke then
+    WriteString('S'+CRLF, AStream);
+end;
+
+constructor TPDFRoundedRectangle.Create(const ADocument: TPDFDocument; const APosX, APosY, AWidth, AHeight, ARadius,
+  ALineWidth: TPDFFloat; const AFill, AStroke: Boolean);
+begin
+  inherited Create(ADocument);
+  FBottomLeft.X := APosX;
+  FBottomLeft.Y := APosY;
+  FDimensions.X := AWidth;
+  FDimensions.Y := AHeight;
+  FWidth := ALineWidth;
+  FFill := AFill;
+  FStroke := AStroke;
+  FRadius := ARadius;
+end;
+
+{ TPDFSurface }
 
 procedure TPDFSurface.Write(const AStream: TStream);
 var
@@ -3339,31 +3617,48 @@ end;
 procedure TPDFDocument.WriteObject(const AObject: integer; const AStream: TStream);
 var
   M : TMemoryStream;
+  MCompressed: TMemoryStream;
   X : TPDFXRef;
+  PS: UInt64;
 begin
   TPDFObject.WriteString(IntToStr(AObject)+' 0 obj'+CRLF, AStream);
   X:=GlobalXRefs[AObject];
   if X.FStream = nil then
     X.Dict.WriteDictionary(AObject, AStream)
   else
+  begin
+    CurrentColor := '';
+    CurrentWidth := '';
+
+    M := TMemoryStream.Create;
+    X.FStream.Write(M);
+    X.Dict.AddInteger('Length', M.Size);
+
+    if poCompressText in Options then
     begin
-    M:=TMemoryStream.Create;
-    try
-      CurrentColor:='';
-      CurrentWidth:='';
-      X.FStream.Write(M);
-      X.Dict.AddInteger('Length',M.Size);
-    finally
-      M.Free;
+      MCompressed := TMemoryStream.Create;
+      CompressStream(M, MCompressed);
+      MCompressed.Position := 0;
+      X.Dict.AddName('Filter', 'FlateDecode');
+      X.Dict.AddInteger('Length1', MCompressed.Size);
     end;
+
     X.Dict.Write(AStream);
+    M.Free;
+
     // write stream in contents dictionary
     CurrentColor:='';
     CurrentWidth:='';
     TPDFObject.WriteString(CRLF+'stream'+CRLF, AStream);
-    X.FStream.Write(AStream);
+    if poCompressText in Options then
+    begin
+      MCompressed.SaveToStream(AStream);
+      MCompressed.Free;
+    end
+    else
+      X.FStream.Write(AStream);
     TPDFObject.WriteString('endstream', AStream);
-    end;
+  end;
   TPDFObject.WriteString(CRLF+'endobj'+CRLF+CRLF, AStream);
 end;
 
@@ -4147,6 +4442,12 @@ begin
   Result:=TPDFRectangle.Create(Self,X,Y,W,H,ALineWidth,AFill, AStroke);
 end;
 
+function TPDFDocument.CreateRoundedRectangle(const X, Y, W, H, ARadius, ALineWidth: TPDFFloat;
+    const AFill, AStroke: Boolean): TPDFRoundedRectangle;
+begin
+  Result := TPDFRoundedRectangle.Create(Self, X, Y, W, H, ARadius, ALineWidth, AFill, AStroke);
+end;
+
 function TPDFDocument.CreateColor(AColor: TARGBColor; AStroke: Boolean): TPDFColor;
 begin
   Result:=TPDFColor.Create(Self,AStroke,AColor);
@@ -4274,6 +4575,7 @@ begin
   F.PenStyle:=APenStyle;
   Result:=FLineStyleDefs.Count-1;
 end;
+
 
 
 end.

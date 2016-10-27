@@ -478,22 +478,17 @@ var
 begin
   // LONGDATETIME: Date represented in number of seconds since 12:00 midnight,
   //              January 1, 1904. The value is represented as a signed 64-bit integer.
-  //dt := EncodeDateTime(1904, 1, 1, 0, 0, 0, 0);
-  //s := FormatDateTime('yyyy-mm-dd hh:nn:ss', dt);
-  //AssertEquals('Failed on 1', '1904-01-01 00:00:00', s);
 
-  //dt := IncSecond(dt, FI.Head.Created);
-
-  // The above code equates to using MacToDateTime()
   dt := MacToDateTime(FI.Head.Created);
 
-  // We don't use this AssertEquals() because it shows a huge Double data-type
-  // value as the result.
-  //AssertEquals('Failed on 1', EncodeDateTime(2012, 10, 4, 20, 2, 31, 0), dt);
+  // value verified with Microsoft's ttfdump tool and GMT timezone (no daylight saving applied).
+  //    created:             Thu Oct 04 11:02:31 2012
+  //    modified:            Thu Oct 04 11:02:31 2012
+  AssertEquals('Failed on 1', EncodeDateTime(2012, 10, 4, 11, 2, 31, 0), dt);
 
   // Instead we use this - which shows human readable dates.
   s := FormatDateTime('yyyy-mm-dd hh:nn:ss', dt);
-  AssertEquals('Failed on 2', '2012-10-04 20:02:31', s);
+  AssertEquals('Failed on 2', '2012-10-04 11:02:31', s);
 end;
 
 procedure TTestLiberationFont.TestHead_Modified;
@@ -501,9 +496,13 @@ var
   dt: TDateTime;
   s: string;
 begin
+  // value verified with Microsoft's ttfdump tool and GMT timezone (no daylight saving applied).
+  //    created:             Thu Oct 04 11:02:31 2012
+  //    modified:            Thu Oct 04 11:02:31 2012
+
   dt := MacToDateTime(FI.Head.Modified);
   s := FormatDateTime('yyyy-mm-dd hh:nn:ss', dt);
-  AssertEquals('Failed on 2', '2012-10-04 20:02:31', s);
+  AssertEquals('Failed on 2', '2012-10-04 11:02:31', s);
 end;
 
 procedure TTestLiberationFont.TestHead_BBox_xMin;
@@ -1259,22 +1258,20 @@ var
 begin
   // LONGDATETIME: Date represented in number of seconds since 12:00 midnight,
   //              January 1, 1904. The value is represented as a signed 64-bit integer.
-  //dt := EncodeDateTime(1904, 1, 1, 0, 0, 0, 0);
-  //s := FormatDateTime('yyyy-mm-dd hh:nn:ss', dt);
-  //AssertEquals('Failed on 1', '1904-01-01 00:00:00', s);
 
-  //dt := IncSecond(dt, FI.Head.Created);
+  // value verified with Microsoft's ttfdump tool and GMT timezone (no daylight saving applied).
+  //  created:             Thu May 03 13:34:25 2012
+  //  modified:            Thu May 03 13:34:25 2012
 
-  // The above code equates to using MacToDateTime()
   dt := MacToDateTime(FI.Head.Created);
 
   // We don't use this AssertEquals() because it shows a huge Double data-type
   // value as the result.
-  //AssertEquals('Failed on 1', EncodeDateTime(2012, 10, 4, 20, 2, 31, 0), dt);
+  AssertEquals('Failed on 1', EncodeDateTime(2012, 5, 3, 13, 34, 25, 0), dt);
 
   // Instead we use this - which shows human readable dates.
   s := FormatDateTime('yyyy-mm-dd hh:nn:ss', dt);
-  AssertEquals('Failed on 2', '2012-05-02 22:34:25', s);
+  AssertEquals('Failed on 2', '2012-05-03 13:34:25', s);
 end;
 
 procedure TTestFreeSansFont.TestHead_Modified;
@@ -1282,9 +1279,12 @@ var
   dt: TDateTime;
   s: string;
 begin
+  // value verified with Microsoft's ttfdump tool and GMT timezone (no daylight saving applied).
+  //  created:             Thu May 03 13:34:25 2012
+  //  modified:            Thu May 03 13:34:25 2012
   dt := MacToDateTime(FI.Head.Modified);
   s := FormatDateTime('yyyy-mm-dd hh:nn:ss', dt);
-  AssertEquals('Failed on 2', '2012-05-02 22:34:25', s);
+  AssertEquals('Failed on 2', '2012-05-03 13:34:25', s);
 end;
 
 procedure TTestFreeSansFont.TestHead_BBox_xMin;
