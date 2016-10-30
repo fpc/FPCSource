@@ -126,35 +126,32 @@ var
 const
   COMMODITIESNAME: PChar = 'commodities.library';
 
-function CreateCxObj(Typ: LongWord; Arg1: IPTR; Arg2: IPTR): PCxObj; syscall CxBase 5;
-function CxBroker(Nb: PNewBroker; var Error: LongInt): PCxObj; syscall CxBase 6;
-function ActivateCxObj(Co: PCxObj; Tru: LongInt): LongInt; syscall CxBase 7;
-procedure DeleteCxObj(Co: PCxObj); syscall CxBase 8;
-procedure DeleteCxObjAll(Co: PCxObj); syscall CxBase 9;
-function CxObjType(Co: PCxObj): LongWord; syscall CxBase 10;
-function CxObjError(Co: PCxObj): LongInt; syscall CxBase 11;
-procedure ClearCxObjError(Co: PCxObj); syscall CxBase 12;
-function SetCxObjPri(Co: PCxObj; Pri: LongInt): LongInt; syscall CxBase 13;
-procedure AttachCxObj(HeadObj: PCxObj; Co: PCxObj); syscall CxBase 14;
-procedure EnqueueCxObj(HeadObj: PCxObj; Co: PCxObj); syscall CxBase 15;
-procedure InsertCxObj(HeadObj: PCxObj; Co: PCxObj; Pred: PCxObj); syscall CxBase 16;
-procedure RemoveCxObj(Co: PCxObj); syscall CxBase 17;
-procedure SetTranslate(Translator: PCxObj; Events: PInputEvent); syscall CxBase 19;
-procedure SetFilter(Filter: PCxObj; Text: STRPTR); syscall CxBase 20;
-procedure SetFilterIX(Filter: PCxObj; Ix: PInputXpression); syscall CxBase 21;
-function ParseIX(Description: STRPTR; Ix: PInputXpression): LongInt; syscall CxBase 22;
-function CxMsgType(Cxm: PCxMsg): LongWord; syscall CxBase 23;
-function CxMsgData(Cxm: PCxMsg): APTR; syscall CxBase 24;
-function CxMsgID(Cxm: PCxMsg): LongInt; syscall CxBase 25;
-procedure DivertCxMsg(Cxm: PCxMsg; HeadObj: PCxObj; ReturnObj: PCxObj); syscall CxBase 26;
-procedure RouteCxMsg(Cxm: PCxMsg; Co: PCxObj); syscall CxBase 27;
-procedure DisposeCxMsg(Cxm: PCxMsg); syscall CxBase 28;
-function InvertKeyMap(AnsiCode: LongWord; Event: PInputEvent; Km: PKeyMap): LongBool; syscall CxBase 29;
-procedure AddIEvents(Events: PInputEvent); syscall CxBase 30;
-function CopyBrokerList(CopyOfList: PList): LongInt; syscall CxBase 31;
-procedure FreeBrokerList(BrokerList: PList); syscall CxBase 32;
-function BrokerCommand(Name: STRPTR; Command: LongWord): LongWord; syscall CxBase 33;
-function MatchIX(Event: PInputEvent; Ix: PInputXpression): LongBool; syscall CxBase 34;
+function CreateCxObj(Typ: LongWord location 'd0'; Arg1: LongInt location 'a0'; Arg2: LongInt location 'a1'): PCxObj; syscall CxBase 30;
+function CxBroker(Nb: PNewBroker location 'a0'; var Error: LongInt location 'd0'): PCxObj; syscall CxBase 36;
+function ActivateCxObj(Co: PCxObj location 'a0'; Tru: LongInt location 'd0'): LongInt; syscall CxBase 42;
+procedure DeleteCxObj(Co: PCxObj location 'a0'); syscall CxBase 48;
+procedure DeleteCxObjAll(Co: PCxObj location 'a0'); syscall CxBase 54;
+function CxObjType(Co: PCxObj location 'a0'): LongWord; syscall CxBase 60;
+function CxObjError(Co: PCxObj location 'a0'): LongInt; syscall CxBase 66;
+procedure ClearCxObjError(Co: PCxObj location 'a0'); syscall CxBase 72;
+function SetCxObjPri(Co: PCxObj location 'a0'; Pri: LongInt location 'd0'): LongInt; syscall CxBase 78;
+procedure AttachCxObj(HeadObj: PCxObj location 'a0'; Co: PCxObj location 'a1'); syscall CxBase 84;
+procedure EnqueueCxObj(HeadObj: PCxObj location 'a0'; Co: PCxObj location 'a1'); syscall CxBase 90;
+procedure InsertCxObj(HeadObj: PCxObj location 'a0'; Co: PCxObj location 'a1'; Pred: PCxObj location 'a2'); syscall CxBase 96;
+procedure RemoveCxObj(Co: PCxObj location 'a0'); syscall CxBase 102;
+procedure SetTranslate(Translator: PCxObj location 'a0'; Events: PInputEvent location 'a1'); syscall CxBase 114;
+procedure SetFilter(Filter: PCxObj location 'a0'; Text: STRPTR location 'a1'); syscall CxBase 120;
+procedure SetFilterIX(Filter: PCxObj location 'a0'; Ix: PInputXpression location 'a1'); syscall CxBase 126;
+function ParseIX(Description: STRPTR location 'a0'; Ix: PInputXpression location 'a1'): LongInt; syscall CxBase 132;
+function CxMsgType(Cxm: PCxMsg location 'a0'): LongWord; syscall CxBase 138;
+function CxMsgData(Cxm: PCxMsg location 'a0'): APTR; syscall CxBase 144;
+function CxMsgID(Cxm: PCxMsg location 'a0'): LongInt; syscall CxBase 150;
+procedure DivertCxMsg(Cxm: PCxMsg location 'a0'; HeadObj: PCxObj location 'a1'; ReturnObj: PCxObj location 'a2'); syscall CxBase 156;
+procedure RouteCxMsg(Cxm: PCxMsg location 'a0'; Co: PCxObj location 'a1'); syscall CxBase 162;
+procedure DisposeCxMsg(Cxm: PCxMsg location 'a0'); syscall CxBase 168;
+function InvertKeyMap(AnsiCode: LongWord location 'd0'; Event: PInputEvent location 'a0'; Km: PKeyMap location 'a1'): LongBool; syscall CxBase 174;
+procedure AddIEvents(Events: PInputEvent location 'a0'); syscall CxBase 180;
+function MatchIX(Event: PInputEvent location 'a0'; Ix: PInputXpression location 'a1'): LongBool; syscall CxBase 204;
 
 // macros
 
