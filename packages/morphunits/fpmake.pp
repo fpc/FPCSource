@@ -60,6 +60,7 @@ begin
     T:=P.Targets.AddUnit('workbench.pas');
     T:=P.Targets.AddUnit('icon.pas');
     T:=P.Targets.AddUnit('locale.pas');
+    T:=P.Targets.AddUnit('commodities.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
