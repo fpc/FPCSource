@@ -16,111 +16,132 @@
 {$PACKRECORDS 2}
 unit keymap;
 
-INTERFACE
+interface
 
-uses exec, inputevent;
+uses
+  exec, inputevent;
 
-Type
+type
+  PKeyMap = ^TKeyMap;
+  TKeyMap = record
+    km_LoKeyMapTypes: PByte;
+    km_LoKeyMap: PLongWord;
+    km_LoCapsable: PByte;
+    km_LoRepeatable: PByte;
+    km_HiKeyMapTypes: PByte;
+    km_HiKeyMap: PLongWord;
+    km_HiCapsable: PByte;
+    km_HiRepeatable: PByte;
+  end;
 
-    pKeyMap = ^tKeyMap;
-    tKeyMap = record
-        km_LoKeyMapTypes        : Pointer;
-        km_LoKeyMap             : Pointer;
-        km_LoCapsable           : Pointer;
-        km_LoRepeatable         : Pointer;
-        km_HiKeyMapTypes        : Pointer;
-        km_HiKeyMap             : Pointer;
-        km_HiCapsable           : Pointer;
-        km_HiRepeatable         : Pointer;
-    end;
+  PKeymapNode = ^TKeyMapNode;
+  TKeyMapNode = record
+    kn_Node: TNode;      // including name of keymap
+    kn_KeyMap: TKeyMap;
+  end;
 
+{$PACKRECORDS 4}
+  PExtendedKeyMapNode = ^TExtendedKeyMapNode;
+  TExtendedKeyMapNode = record
+    ekn_Node: TNode;
+    ekn_KeyMap: TKeyMap;
+    ekn_Seglist: BPTR;
+    ekn_Resident: PResident;
+    ekn_Future0: APTR;        // keep 0 for now
+  end;
+{$PACKRECORDS 2}
 
-    pKeymapNode = ^tKeyMapNode;
-    tKeyMapNode = record
-        kn_Node         : tNode;         { including name of keymap }
-        kn_KeyMap       : tKeyMap;
-    end;
-
-{ the structure of keymap.resource }
-
-    pKeyMapResource = ^tKeyMapResource;
-    tKeyMapResource = record
-        kr_Node         : tNode;
-        kr_List         : tList;         { a list of KeyMapNodes }
-    end;
-
-
-Const
-
-{ Key Map Types }
-
-    KC_NOQUAL           = 0;
-    KC_VANILLA          = 7;    { note that SHIFT+ALT+CTRL is VANILLA }
-    KCB_SHIFT           = 0;
-    KCF_SHIFT           = $01;
-    KCB_ALT             = 1;
-    KCF_ALT             = $02;
-    KCB_CONTROL         = 2;
-    KCF_CONTROL         = $04;
-    KCB_DOWNUP          = 3;
-    KCF_DOWNUP          = $08;
-
-    KCB_DEAD            = 5;    { may be dead or modified by dead key:  }
-    KCF_DEAD            = $20;  {   use dead prefix bytes               }
-
-    KCB_STRING          = 6;
-    KCF_STRING          = $40;
-
-    KCB_NOP             = 7;
-    KCF_NOP             = $80;
-
-
-{ Dead Prefix Bytes }
-
-    DPB_MOD             = 0;
-    DPF_MOD             = $01;
-    DPB_DEAD            = 3;
-    DPF_DEAD            = $08;
-
-    DP_2DINDEXMASK      = $0f;  { mask for index for 1st of two dead keys }
-    DP_2DFACSHIFT       = 4;    { shift for factor for 1st of two dead keys }
-
-var
-  KeymapBase : pLibrary = nil;
+// the structure of keymap.resource
+  PKeyMapResource = ^TKeyMapResource;
+  TKeyMapResource = record
+    kr_Node: TNode;
+    kr_List: TList;  // a list of KeyMapNodes
+  end;
 
 const
-    KEYMAPNAME : PChar = 'keymap.library';
+// Key Map Types
+  KC_NOQUAL   = 0;
+  KC_VANILLA  = 7;   // note that SHIFT+ALT+CTRL is VANILLA
 
-procedure SetKeyMapDefault(CONST keyMap : pKeyMap location 'a0');
-SysCall KeymapBase 030;
+  KCB_SHIFT   = 0;
+  KCF_SHIFT   = 1 shl KCB_SHIFT;
+  KCB_ALT     = 1;
+  KCF_ALT     = 1 shl KCB_ALT;
+  KCB_CONTROL = 2;
+  KCF_CONTROL = 1 shl KCB_CONTROL;
+  KCB_DOWNUP  = 3;
+  KCF_DOWNUP  = 1 shl KCB_DOWNUP;
 
-function AskKeyMapDefault : pKeyMap;
-SysCall KeymapBase 036;
+  KCB_DEAD    = 5;              // may be dead or modified by dead key:
+  KCF_DEAD    = 1 shl KCB_DEAD; // use dead prefix bytes
 
-function MapRawKey(CONST event : pInputEvent location 'a0'; buffer : PChar location 'a1'; length : longint location 'd1'; CONST keyMap : pKeyMap location 'a2') : INTEGER;
-SysCall KeymapBase 042;
+  KCB_STRING  = 6;
+  KCF_STRING  = 1 shl KCB_STRING;
 
-function MapANSI(CONST strg : PChar location 'a0'; count : longint location 'd0'; buffer : PChar location 'a1'; length : longint location 'd1'; CONST keyMap : pKeyMap location 'a2') : longint;
-SysCall KeymapBase 048;
+  KCB_NOP     = 7;
+  KCF_NOP     = 1 shl KCB_NOP;
 
-{ Helper calls }
+  // Dead Prefix Bytes
+  DPB_MOD  = 0;
+  DPF_MOD  = 1 shl DPB_MOD;
+  DPB_DEAD = 3;
+  DPF_DEAD = 1 shl DPB_DEAD;
+
+  DP_2DINDEXMASK = $0f; // mask for index for 1st of two dead keys
+  DP_2DFACSHIFT  = 4;   // shift for factor for 1st of two dead keys
+
+type
+  PUCS4_ConvTable = ^TUCS4_ConvTable;
+  TUCS4_ConvTable = record
+    FirstChar: Word;
+    LastChar: Word;
+    ConvTable: APTR; // Either pointer to Byte or LongWord
+  end;
+
+  PUCS4_CharsetCode = ^TUCS4_CharsetCode;
+  TUCS4_CharsetCode = record
+    UCS4: LongWord;
+    CharsetCode: LongWord;
+  end;
+
+  PUCS4_CharsetConvTable = ^TUCS4_CharsetConvTable;
+  TUCS4_CharsetConvTable = record
+    Mapping: PUCS4_CharsetCode;  // An optional array, terminated with  (0, 0) entry
+    ConvTables: array[0..0] of TUCS4_ConvTable; // 0 sized array
+  end;
+
+var
+  KeyMapBase: PLibrary = nil;
+
+const
+  KEYMAPNAME: PChar = 'keymap.library';
+
+procedure SetKeyMapDefault(const KeyMap: PKeyMap location 'a0'); SysCall KeyMapBase 030;
+function AskKeyMapDefault: PKeyMap; SysCall KeyMapBase 036;
+function MapRawKey(const Event: PInputEvent location 'a0'; Buffer: STRPTR location 'a1'; Length: LongInt location 'd1'; const KeyMap: PKeyMap location 'a2'): LongInt; SysCall KeyMapBase 042;
+function MapANSI(const Strg: STRPTR location 'a0'; Count: LongInt location 'd0'; Buffer: STRPTR location 'a1'; Length: LongInt location 'd1'; const KeyMap: PKeyMap location 'a2'): LongInt; SysCall KeyMapBase 048;
+function MapRawKeyUCS4(const Event: PInputEvent location 'a0'; Buffer: WSTRPTR location 'a1'; Length: LongInt location 'd1'; const KeyMap: PKeyMap location 'a2'): LongInt; SysCall KeyMapBase 54;
+function MapUCS4(const Strg: WSTRPTR location 'a0'; Count: LongInt location 'd0'; Buffer: STRPTR location 'a1'; Length: LongInt location 'd1'; const KeyMap: PKeyMap location 'a2'): LongInt; SysCall KeyMapBase 60;
+function ToANSI(UCS4Char: WideChar location 'a0'; const KeyMap: PKeyMap location 'a1'): Char; SysCall KeyMapBase 66;
+function ToUCS4(ASCIIChar: Char location 'a0'; const KeyMap: PKeyMap location 'a1'): WideChar; SysCall KeyMapBase 72;
+function GetKeyMapCodePage(const KeyMap: PKeyMap location 'a0'): STRPTR; SysCall KeyMapBase 78;
+
+// Helper calls
 function InitKeymapLibrary : boolean;
 
 implementation
 
 const
-  { Change VERSION and LIBVERSION to proper values }
-  VERSION : string[2] = '50';
-  LIBVERSION : longword = 50;
+  LIBVERSION: LongWord = 50;
 
-function InitKeymapLibrary : boolean;
+function InitKeymapLibrary: boolean;
 begin
-  InitKeymapLibrary := Assigned(KeymapBase);
+  InitKeyMapLibrary := Assigned(KeyMapBase);
 end;
 
 initialization
-  KeymapBase := OpenLibrary(KEYMAPNAME,LIBVERSION);
+  KeyMapBase := OpenLibrary(KEYMAPNAME, LIBVERSION);
 finalization
-  if Assigned(KeymapBase) then
-    CloseLibrary(PLibrary(KeymapBase));
+  if Assigned(KeyMapBase) then
+    CloseLibrary(PLibrary(KeyMapBase));
 end.

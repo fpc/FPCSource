@@ -21,9 +21,6 @@ interface
 uses
   exec, amigados, utility;
 
-type
-  WSTRPTR = PWideChar;
-
 const
   // Internal String-Numbers GetLocaleStr()
   // Days of Week

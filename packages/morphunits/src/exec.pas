@@ -27,6 +27,7 @@ var
 { Some types for classic Amiga and AROS compatibility }
 type
   STRPTR    = PChar;
+  WSTRPTR   = PWideChar;
   ULONG     = Longword;
   LONG      = Longint;
   APTR      = Pointer;
