@@ -181,6 +181,7 @@ begin
     if GDBMIOption then
       P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('graph',[go32v2]);
+    P.Dependencies.Add('ami-extra',AllAmigaLikeOSes);
 
     P.SupportBuildModes:=[bmOneByOne];
 
