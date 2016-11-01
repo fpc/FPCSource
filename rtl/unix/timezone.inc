@@ -55,9 +55,13 @@ begin
    end
   else
    begin
-     for i:=1 to num_transitions-1 do
-      if (timer<transitions[i]) then
-       break;
+     i:=1;
+     while i<=num_transitions-1 do
+       begin
+         if (timer<transitions[i]) then
+           break;
+         inc(i);
+       end;
      i:=type_idxs[i-1];
    end;
   find_transition:=@types[i];
