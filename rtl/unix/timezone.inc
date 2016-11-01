@@ -55,7 +55,7 @@ begin
    end
   else
    begin
-     for i:=1 to num_transitions do
+     for i:=1 to num_transitions-1 do
       if (timer<transitions[i]) then
        break;
      i:=type_idxs[i-1];
