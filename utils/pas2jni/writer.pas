@@ -54,12 +54,45 @@ type
     property SIndent: string read FIndStr;
   end;
 
+  { TClassInfo }
+
+  TClassInfo = class
+  public
+    Def: TDef;
+    Funcs: TObjectList;
+    IsCommonClass: boolean;
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+  { TProcInfo }
+
+  TProcInfo = class
+  public
+    Name: string;
+    JniName: string;
+    JniSignature: string;
+  end;
+
+  { TClassList }
+
+  TClassList = class(TStringList)
+  private
+    function GetFullName(const AName: string; Def: TDef): string;
+  public
+    constructor Create;
+    function Add(const AName: string; Def: TDef; Info: TClassInfo): integer;
+    function IndexOf(const AName: string; Def: TDef): integer; reintroduce;
+    function GetClassName(Index: integer): string;
+    function GetClassInfo(Index: integer): TClassInfo;
+  end;
+
   { TWriter }
 
   TWriter = class
   private
     Fjs, Fps: TTextOutStream;
-    FClasses: TStringList;
+    FClasses: TClassList;
     FPkgDir: string;
     FUniqueCnt: integer;
     FThisUnit: TUnitDef;
@@ -169,6 +202,50 @@ begin
   Result:='{$ifdef windows} stdcall {$else} cdecl {$endif};';
 end;
 
+{ TClassList }
+
+function TClassList.IndexOf(const AName: string; Def: TDef): integer;
+begin
+  Result:=inherited IndexOf(GetFullName(AName, Def));
+end;
+
+function TClassList.GetClassName(Index: integer): string;
+var
+  i: integer;
+begin
+  Result:=Strings[Index];
+  i:=Pos('.', Result);
+  if i > 0 then
+    System.Delete(Result, 1, i);
+end;
+
+function TClassList.GetClassInfo(Index: integer): TClassInfo;
+begin
+  Result:=TClassInfo(Objects[Index]);
+end;
+
+function TClassList.GetFullName(const AName: string; Def: TDef): string;
+begin
+  if (Def = nil) or (Def.DefType = dtUnit) then
+    Result:=AName
+  else begin
+    while (Def.Parent <> nil) and (Def.DefType <> dtUnit) do
+      Def:=Def.Parent;
+    Result:=Def.Name + '.' + AName;
+  end;
+end;
+
+constructor TClassList.Create;
+begin
+  inherited Create;
+  Sorted:=True;
+end;
+
+function TClassList.Add(const AName: string; Def: TDef; Info: TClassInfo): integer;
+begin
+  Result:=AddObject(GetFullName(AName, Def), Info);
+end;
+
 { TTextOutStream }
 
 procedure TTextOutStream.SetIndednt(const AValue: integer);
@@ -209,24 +286,6 @@ begin
   if Indent > 0  then
     Indent:=Indent - 1;
 end;
-
-type
-  { TClassInfo }
-  TClassInfo = class
-  public
-    Def: TDef;
-    Funcs: TObjectList;
-    IsCommonClass: boolean;
-    constructor Create;
-    destructor Destroy; override;
-  end;
-
-  TProcInfo = class
-  public
-    Name: string;
-    JniName: string;
-    JniSignature: string;
-  end;
 
 { TClassInfo }
 
@@ -705,9 +764,9 @@ begin
     pi.JniSignature:=GetProcSignature(d);
     if AParent = nil then begin
       // Checking duplicate proc name and duplicate param types
-      ClassIdx:=FClasses.IndexOf(GetJavaClassName(d.Parent, ItemDef));
+      ClassIdx:=FClasses.IndexOf(GetJavaClassName(d.Parent, ItemDef), d.Parent);
       if ClassIdx >= 0 then begin
-        ci:=TClassInfo(FClasses.Objects[ClassIdx]);
+        ci:=FClasses.GetClassInfo(ClassIdx);
         j:=1;
         ss:=Copy(pi.JniSignature, 1, Pos(')', pi.JniSignature));
         repeat
@@ -973,16 +1032,16 @@ begin
       AParent:=d.Parent;
     end
     else
-      ClassIdx:=FClasses.IndexOf(GetJavaClassName(AParent, ItemDef));
+      ClassIdx:=FClasses.IndexOf(GetJavaClassName(AParent, ItemDef), AParent);
 
     if ClassIdx < 0 then begin
       ci:=TClassInfo.Create;
       ci.Def:=AParent;
       s:=GetJavaClassName(AParent, ItemDef);
       ci.IsCommonClass:=s <> AParent.Name;
-      ClassIdx:=FClasses.AddObject(s, ci);
+      ClassIdx:=FClasses.Add(s, AParent, ci);
     end;
-    TClassInfo(FClasses.Objects[ClassIdx]).Funcs.Add(pi);
+    FClasses.GetClassInfo(ClassIdx).Funcs.Add(pi);
     pi:=nil;
 
     // Java part
@@ -1170,19 +1229,30 @@ begin
       s:='double';
   end
   else begin
-    s:=DefToJavaType(d.VarType);
-    if d.VarType.DefType = dtType then
-      case TTypeDef(d.VarType).BasicType of
-        btLongWord, btInt64:
-          v:=v + 'L';
-        btBoolean:
-          if v = '1' then
-            v:='true'
-          else
-            v:='false';
-      end;
+    s:='';
+    case d.VarType.DefType of
+      dtType:
+        case TTypeDef(d.VarType).BasicType of
+          btLongWord, btInt64:
+            v:=v + 'L';
+          btBoolean:
+            if v = '1' then
+              v:='true'
+            else
+              v:='false';
+        end;
+      dtArray:
+        with TArrayDef(d.VarType) do
+          if (ElType.DefType = dtType) and (TTypeDef(ElType).BasicType in [btChar, btWideChar]) then
+            s:='String';
+    end;
+    if s = '' then
+      s:=DefToJavaType(d.VarType);
   end;
-  Fjs.WriteLn(Format('public static final %s %s = %s;', [s, d.Name, v]));
+  v:=Format('public static final %s %s = %s;', [s, d.Name, v]);
+  if s = SUnsupportedType then
+    v:='// ' + v;
+  Fjs.WriteLn(v);
 end;
 
 procedure TWriter.WriteEnum(d: TDef);
@@ -1254,6 +1324,7 @@ begin
     Fps.WriteLn('var');
     Fps.IncI;
     Fps.WriteLn('_env: PJNIEnv;');
+    Fps.WriteLn('_new_env: boolean;');
     Fps.WriteLn('_mpi: _TMethodPtrInfo;');
     if d.Count > 0 then begin
       Fps.WriteLn(Format('_args: array[0..%d] of jvalue;', [d.Count - 1]));
@@ -1270,6 +1341,11 @@ begin
     Fps.WriteLn('begin');
     Fps.IncI;
     Fps.WriteLn('CurJavaVM^^.GetEnv(CurJavaVM, @_env, JNI_VERSION_1_6);');
+    Fps.WriteLn('_new_env:=_env = nil;');
+    Fps.WriteLn('if _new_env then CurJavaVM^^.AttachCurrentThread(CurJavaVM, @_env, nil);');
+    Fps.WriteLn('_env^^.PushLocalFrame(_env, 100);');
+    Fps.WriteLn('try');
+    Fps.IncI;
     Fps.WriteLn('_MethodPointersCS.Enter;');
     Fps.WriteLn('try');
     Fps.WriteLn('_mpi:=_TMethodPtrInfo(_MethodPointers[-integer(ptruint(Self)) - 1]);', 1);
@@ -1331,6 +1407,11 @@ begin
     end;
 
     Fps.DecI;
+    Fps.WriteLn('finally');
+    Fps.WriteLn('_env^^.PopLocalFrame(_env, nil);', 1);
+    Fps.WriteLn('if _new_env then CurJavaVM^^.DetachCurrentThread(CurJavaVM);', 1);
+    Fps.WriteLn('end;');
+    Fps.DecI;
     Fps.WriteLn('end;');
 
     // Get handler proc
@@ -1356,7 +1437,7 @@ begin
   Fjs.IncI;
   Fjs.WriteLn(Format('{ mSignature = "%s"; }', [GetProcSignature(d)]));
   Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { _pasobj=objptr; }', [d.Name]));
-  Fjs.WriteLn(Format('public %s(Object Obj, String MethodName) { mObject=Obj; mName=MethodName; }', [d.Name]));
+  Fjs.WriteLn(Format('@Deprecated public %s(Object Obj, String MethodName) { mObject=Obj; mName=MethodName; }', [d.Name]));
   Fjs.WriteLn(Format('public %s() { mObject=this; mName="Execute"; }', [d.Name]));
   Fjs.WriteLn(Format('protected %s throws NoSuchMethodException { throw new NoSuchMethodException(); }', [GetJavaProcDeclaration(d, 'Execute')]));
   Fjs.DecI;
@@ -1770,6 +1851,7 @@ begin
       Fjs.WriteLn('public int Value;');
       Fjs.WriteLn('public int Ord() { return Value; }');
       Fjs.WriteLn('@Override public boolean equals(Object o) { return (o instanceof Integer) && Value == (Integer)o; }');
+      Fjs.WriteLn('public boolean equals(int v) { return Value == v; }');
       Fjs.WriteLn('@Override public int hashCode() { return Value; }');
       Fjs.DecI;
       Fjs.WriteLn('}');
@@ -1891,10 +1973,10 @@ begin
 
   Fps.WriteLn('const');
   for i:=0 to FClasses.Count - 1 do begin
-    ci:=TClassInfo(FClasses.Objects[i]);
+    ci:=FClasses.GetClassInfo(i);
     if ci.Funcs.Count = 0 then
       continue;
-    Fps.WriteLn(Format('  _%sNativeMethods: array[0..%d] of JNINativeMethod = (', [GetClassPrefix(ci.Def, FClasses[i]), ci.Funcs.Count - 1]));
+    Fps.WriteLn(Format('  _%sNativeMethods: array[0..%d] of JNINativeMethod = (', [GetClassPrefix(ci.Def, FClasses.GetClassName(i)), ci.Funcs.Count - 1]));
     for j:=0 to ci.Funcs.Count - 1 do begin
       with TProcInfo(ci.Funcs[j]) do
         Fps.Write(Format('    (name: ''%s''; signature: ''%s''; fnPtr: @%s)', [Name, JniSignature, JniName]));
@@ -1953,7 +2035,7 @@ begin
   end;
 
   for i:=0 to FClasses.Count - 1 do begin
-    ci:=TClassInfo(FClasses.Objects[i]);
+    ci:=FClasses.GetClassInfo(i);
     s:=GetTypeInfoVar(ci.Def);
     if (s = '') or (ci.IsCommonClass) then
       s:='nil'
@@ -1962,13 +2044,13 @@ begin
     if ci.Funcs.Count = 0 then
       ss:='nil'
     else
-      ss:=Format('@_%sNativeMethods', [GetClassPrefix(ci.Def, FClasses[i])]);
+      ss:=Format('@_%sNativeMethods', [GetClassPrefix(ci.Def, FClasses.GetClassName(i))]);
     fn:='';
     if ci.Def <> nil then
       if ci.Def.DefType in [dtSet, dtEnum] then
         fn:=', ''Value'', ''I''';
     Fps.WriteLn(Format('if not _Reg(''%s'', %s, %d, %s%s) then exit;',
-                       [GetJavaClassPath(ci.Def, FClasses[i]), ss, ci.Funcs.Count, s, fn]));
+                       [GetJavaClassPath(ci.Def, FClasses.GetClassName(i)), ss, ci.Funcs.Count, s, fn]));
   end;
 
   Fps.WriteLn('Result:=JNI_VERSION_1_6;');
@@ -2249,10 +2331,10 @@ procedure TWriter.RegisterPseudoClass(d: TDef);
 var
   ci: TClassInfo;
 begin
-  if FClasses.IndexOf(d.Name) < 0 then begin
+  if FClasses.IndexOf(d.Name, d) < 0 then begin
     ci:=TClassInfo.Create;
     ci.Def:=d;
-    FClasses.AddObject(d.Name, ci);
+    FClasses.Add(d.Name, d, ci);
   end;
 end;
 
@@ -2305,13 +2387,13 @@ begin
   pi.Name:=Name;
   pi.JniName:=JniName;
   pi.JniSignature:=Signature;
-  i:=FClasses.IndexOf(ParentDef.AliasName);
+  i:=FClasses.IndexOf(ParentDef.AliasName, ParentDef);
   if i < 0 then begin
     ci:=TClassInfo.Create;
     ci.Def:=ParentDef;
-    i:=FClasses.AddObject(ParentDef.AliasName, ci);
+    i:=FClasses.Add(ParentDef.AliasName, ParentDef, ci);
   end;
-  TClassInfo(FClasses.Objects[i]).Funcs.Add(pi);
+  FClasses.GetClassInfo(i).Funcs.Add(pi);
 end;
 
 function TWriter.GetProcSignature(d: TProcDef): string;
@@ -2398,8 +2480,7 @@ var
   i: integer;
 begin
   Units:=TStringList.Create;
-  FClasses:=TStringList.Create;
-  FClasses.Sorted:=True;
+  FClasses:=TClassList.Create;
   JavaPackage:='pas';
   IncludeList:=TStringList.Create;
   IncludeList.Duplicates:=dupIgnore;
