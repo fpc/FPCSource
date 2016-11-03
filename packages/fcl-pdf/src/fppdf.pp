@@ -907,6 +907,8 @@ type
     FColor: TARGBColor;
     FLineWidth: TPDFFloat;
     FPenStyle: TPDFPenStyle;
+  Public
+    Procedure Assign(Source : TPersistent); override;  
   Published
     Property LineWidth : TPDFFloat Read FLineWidth Write FLineWidth;
     Property Color : TARGBColor Read FColor Write FColor Default clBlack;
@@ -1007,7 +1009,8 @@ type
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
     procedure StartDocument;
-    procedure SaveToStream(const AStream: TStream);
+    procedure SaveToStream(const AStream: TStream); virtual;
+    Procedure SaveToFile(Const AFileName : String); 
     // Create objects, owned by this document.
     Function CreateEmbeddedFont(AFontIndex, AFontSize : Integer) : TPDFEmbeddedFont;
     Function CreateText(X,Y : TPDFFloat; AText : AnsiString; const AFontIndex: integer) : TPDFText; overload;
@@ -1028,11 +1031,7 @@ type
     Function AddFont(AName : String) : Integer; overload;
     Function AddFont(AFontFile: String; AName : String) : Integer; overload;
     Function AddLineStyleDef(ALineWidth : TPDFFloat; AColor : TARGBColor = clBlack; APenStyle : TPDFPenStyle = ppsSolid) : Integer;
-    Property Options : TPDFOptions Read FOptions Write FOPtions;
-    property PageLayout: TPDFPageLayout read FPageLayout write FPageLayout default lSingle;
-    Property Infos : TPDFInfos Read FInfos Write SetInfos;
     Property Fonts : TPDFFontDefs Read FFonts Write SetFonts;
-    Property LineStyles : TPDFLineStyleDefs Read FLineStyleDefs Write SetLineStyles;
     Property Pages : TPDFPages Read FPages;
     Property Images : TPDFImages Read FImages;
     Property Catalogue: integer Read FCatalogue;
@@ -1040,9 +1039,14 @@ type
     Property FontFiles : TStrings Read FFontFiles Write SetFontFiles;
     Property FontDirectory: string Read FFontDirectory Write FFontDirectory;
     Property Sections : TPDFSectionList Read FSections;
+    Property ObjectCount : Integer Read FObjectCount;
+  Published  
+    Property Options : TPDFOptions Read FOptions Write FOPtions;
+    Property LineStyles : TPDFLineStyleDefs Read FLineStyleDefs Write SetLineStyles;
+    property PageLayout: TPDFPageLayout read FPageLayout write FPageLayout default lSingle;
+    Property Infos : TPDFInfos Read FInfos Write SetInfos;
     Property DefaultPaperType : TPDFPaperTYpe Read FDefaultPaperType Write FDefaultPaperType;
     Property DefaultOrientation : TPDFPaperOrientation Read FDefaultOrientation Write FDefaultOrientation;
-    Property ObjectCount : Integer Read FObjectCount;
   end;
 
 
@@ -1726,6 +1730,26 @@ begin
   FWidth := AWidth;
   FStroke := AStroke;
 end;
+
+{ TPDFLineStyleDef }
+
+Procedure TPDFLineStyleDef.Assign(Source : TPersistent);
+
+Var
+ L : TPDFLineStyleDef;
+
+begin
+  if Source is TPDFLineStyleDef then
+    begin
+    L:=Source as TPDFLineStyleDef;
+    LineWidth:=L.LineWidth;
+    Color:=L.Color;
+    PenStyle:=L.PenStyle;
+    end
+  else
+    Inherited;  
+end;
+
 
 { TPDFLineStyleDefs }
 
@@ -4502,6 +4526,20 @@ begin
   // write offset of last xref table
   TPDFObject.WriteString(CRLF+'startxref'+CRLF+IntToStr(XRefPos)+CRLF, AStream);
   TPDFObject.WriteString(PDF_FILE_END, AStream);
+end;
+
+Procedure TPDFDocument.SaveToFile(Const AFileName : String); 
+
+Var
+  F : TFileStream;
+
+begin
+  F:=TFileStream.Create(AFileName,fmCreate);
+  try
+    SaveToStream(F);
+  finally
+    F.Free;
+  end;  
 end;
 
 function TPDFDocument.CreateEmbeddedFont(AFontIndex, AFontSize : Integer): TPDFEmbeddedFont;
