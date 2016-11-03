@@ -76,7 +76,7 @@ begin
   Result.Infos.ApplicationName := ApplicationName;
   Result.Infos.CreationDate := Now;
 
-  lOpts := [];
+  lOpts := [poPageOriginAtTop];
   if FNoFontEmbedding then
     Include(lOpts, poNoEmbeddedFonts);
   if FFontCompression then
@@ -439,13 +439,13 @@ begin
   P.DrawLine(100, 205, 140, 205, 5);
 
 
-  // ========== PolyLines ============
-  P.Matrix.SetYTranslation(60);
+  // ========== PolyLines and Polygons ============
+  P.Matrix.SetYTranslation(70);
   P.Matrix.SetXTranslation(20);
 
   P.SetPenStyle(ppsSolid);
   P.SetColor(clBlack, true);
-  P.DrawRect(0, 0, 50, -50, 1, false, true);
+  P.DrawRect(0, 10, 50, -50, 1, false, true);
 
   P.SetColor($c00000, true);
   P.ResetPath;
@@ -453,10 +453,44 @@ begin
   for i := 0 to 9 do
   begin
     lPoints[i].X := Random(50);
-    lPoints[i].Y := Random(50);
+    lPoints[i].Y := Random(50) + 10.5;
   end;
   P.DrawPolyLine(lPoints, 1);
   P.StrokePath;
+
+
+  P.Matrix.SetXTranslation(80);
+  P.SetPenStyle(ppsSolid);
+  P.SetColor(clBlack, true);
+  P.DrawRect(0, 10, 50, -50, 1, false, true);
+
+  P.SetColor($ffff80, false); // pastel yellow
+  P.SetColor(clBlue, true);
+  P.ResetPath;
+  P.DrawPolygon(lPoints, 1);
+  P.FillStrokePath;
+
+  p.SetPenStyle(ppsSolid);
+  P.SetFont(FtTitle, 8);
+  P.SetColor(clBlack, false);
+  P.WriteText(0, 8, 'Fill using the nonzero winding number rule');
+
+
+  P.Matrix.SetXTranslation(140);
+  P.SetPenStyle(ppsSolid);
+  P.SetColor(clBlack, true);
+  P.DrawRect(0, 10, 50, -50, 1, false, true);
+
+  P.SetColor($ffff80, false); // pastel yellow
+  P.SetColor(clBlue, true);
+  P.ResetPath;
+  P.DrawPolygon(lPoints, 1);
+  P.FillEvenOddStrokePath;
+
+  p.SetPenStyle(ppsSolid);
+  P.SetFont(FtTitle, 8);
+  P.SetColor(clBlack, false);
+  P.WriteText(0, 8, 'Fill using the even-odd rule');
 end;
 
 { Each curve uses the exact same four coordinates, just with different CubicCurveToXXX
@@ -689,10 +723,8 @@ end;
 procedure TPDFTestApp.DoRun;
 
   Function BoolFlag(C : Char;ADefault : Boolean) : Boolean;
-
   Var
     V : Integer;
-
   begin
     Result:=ADefault;
     if HasOption(C, '') then
@@ -706,7 +738,6 @@ procedure TPDFTestApp.DoRun;
 
 var
   ErrorMsg: String;
-
 begin
   StopOnException:=True;
   inherited DoRun;
@@ -808,7 +839,6 @@ begin
           '                disables use of JPEG images. A value of 1 writes jpeg file as-is');
   writeln('');
 end;
-
 
 
 begin

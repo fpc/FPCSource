@@ -64,7 +64,7 @@ type
   TPDFPageLayout = (lSingle, lTwo, lContinuous);
   TPDFUnitOfMeasure = (uomInches, uomMillimeters, uomCentimeters, uomPixels);
 
-  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts);
+  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts, poPageOriginAtTop);
   TPDFOptions = set of TPDFOption;
 
   EPDF = Class(Exception);
@@ -181,6 +181,22 @@ type
 
 
   TPDFStrokePath = class(TPDFDocumentObject)
+  protected
+    procedure   Write(const AStream: TStream); override;
+  public
+    class function Command: string;
+  end;
+
+
+  TPDFPushGraphicsStack = class(TPDFDocumentObject)
+  protected
+    procedure   Write(const AStream: TStream); override;
+  public
+    class function Command: string;
+  end;
+
+
+  TPDFPopGraphicsStack = class(TPDFDocumentObject)
   protected
     procedure   Write(const AStream: TStream); override;
   public
@@ -586,8 +602,8 @@ type
     procedure SetPaperType(AValue: TPDFPaperType);
     procedure AddTextToLookupLists(AText: UTF8String);
     procedure SetUnitOfMeasure(AValue: TPDFUnitOfMeasure);
-    procedure AdjustMatrix;
   protected
+    procedure AdjustMatrix; virtual;
     procedure DoUnitConversion(var APoint: TPDFCoord); virtual;
     procedure CreateStdFontText(X, Y: TPDFFloat; AText: AnsiString; AFontIndex: integer); virtual;
     procedure CreateTTFFontText(X, Y: TPDFFloat; AText: UTF8String; AFontIndex: integer); virtual;
@@ -623,13 +639,19 @@ type
       cause the ellpise to draw to the left of the origin point. }
     Procedure DrawEllipse(const APosX, APosY, AWidth, AHeight, ALineWidth: TPDFFloat; const AFill: Boolean = True; AStroke: Boolean = True); overload;
     Procedure DrawEllipse(const APos: TPDFCoord; const AWidth, AHeight, ALineWidth: TPDFFloat; const AFill: Boolean = True; AStroke: Boolean = True); overload;
+    procedure DrawPolygon(const APoints: array of TPDFCoord; const ALineWidth: TPDFFloat);
     procedure DrawPolyLine(const APoints: array of TPDFCoord; const ALineWidth: TPDFFloat);
     { start a new subpath }
     procedure ResetPath;
     { Close the current subpath by appending a straight line segment from the current point to the starting point of the subpath. }
     procedure ClosePath;
+    procedure ClosePathStroke;
     { render the actual path }
     procedure StrokePath;
+    { Fill using the nonzero winding number rule. }
+    procedure FillStrokePath;
+    { Fill using the Even-Odd rule. }
+    procedure FillEvenOddStrokePath;
     { Move the current drawing position to (x, y) }
     procedure MoveTo(x, y: TPDFFloat); overload;
     procedure MoveTo(APos: TPDFCoord); overload;
@@ -671,6 +693,9 @@ type
     property Matrix: TPDFMatrix read FMatrix write FMatrix;
     property Annots: TPDFAnnotList read FAnnots;
   end;
+
+
+  TPDFPageClass = class of TPDFPage;
 
 
   TPDFSection = Class(TCollectionItem)
@@ -776,14 +801,17 @@ type
   TPDFPages = Class(TPDFDocumentObject)
   private
     FList: TFPObjectList;
+    FPageClass: TPDFPageClass;
     function    GetP(AIndex: Integer): TPDFPage;
     function    GetPageCount: integer;
   public
+    constructor Create(const ADocument: TPDFDocument); override; overload;
     destructor  Destroy; override;
     function    AddPage: TPDFPage;
     procedure   Add(APage: TPDFPage);
     property    Count: integer read GetPageCount;
     property    Pages[AIndex: Integer]: TPDFPage read GetP; default;
+    property    PageClass: TPDFPageClass read FPageClass write FPageClass;
   end;
 
 
@@ -1508,6 +1536,29 @@ begin
   Result := 'S' + CRLF;
 end;
 
+{ TPDFPushGraphicsStack }
+
+procedure TPDFPushGraphicsStack.Write(const AStream: TStream);
+begin
+  WriteString(Command, AStream);
+end;
+
+class function TPDFPushGraphicsStack.Command: string;
+begin
+  Result := 'q'+CRLF;
+end;
+
+{ TPDFPopGraphicsStack }
+
+procedure TPDFPopGraphicsStack.Write(const AStream: TStream);
+begin
+  WriteString(Command, AStream);
+end;
+
+class function TPDFPopGraphicsStack.Command: string;
+begin
+  Result := 'Q' + CRLF;
+end;
 
 { TPDFEllipse }
 
@@ -1703,6 +1754,12 @@ begin
   result := FList.Count;
 end;
 
+constructor TPDFPages.Create(const ADocument: TPDFDocument);
+begin
+  inherited Create(ADocument);
+  FPageClass := TPDFPage;
+end;
+
 destructor TPDFPages.Destroy;
 begin
   FreeAndNil(FList);
@@ -1713,7 +1770,7 @@ function TPDFPages.AddPage: TPDFPage;
 begin
   if (FList=Nil) then
     FList:=TFPObjectList.Create;
-  Result:=TPDFPage.Create(Document);
+  Result := PageClass.Create(Document);
   FList.Add(Result);
 end;
 
@@ -1904,7 +1961,16 @@ end;
 
 procedure TPDFPage.AdjustMatrix;
 begin
-  FMatrix._21 := GetPaperHeight;
+  if poPageOriginAtTop in Document.Options then
+  begin
+    FMatrix._11 := -1;
+    FMatrix._21 := GetPaperHeight;
+  end
+  else
+  begin
+    FMatrix._11 := 1;
+    FMatrix._21 := 0;
+  end;
 end;
 
 constructor TPDFPage.Create(const ADocument: TPDFDocument);
@@ -1922,8 +1988,7 @@ begin
 
   FMatrix._00 := 1;
   FMatrix._20 := 0;
-  FMatrix._11 := -1;  // flip coordinates
-  AdjustMatrix;       // sets FMatrix._21 value
+  AdjustMatrix;
 
   FAnnots := CreateAnnotList;
 end;
@@ -2111,12 +2176,19 @@ begin
   DrawEllipse(APos.X, APos.Y, AWidth, AHeight, ALineWidth, AFill, AStroke);
 end;
 
+procedure TPDFPage.DrawPolygon(const APoints: array of TPDFCoord; const ALineWidth: TPDFFloat);
+begin
+  DrawPolyLine(APoints, ALineWidth);
+  ClosePath;
+end;
+
 procedure TPDFPage.DrawPolyLine(const APoints: array of TPDFCoord; const ALineWidth: TPDFFloat);
 var
   i: integer;
 begin
   if Length(APoints) < 2 then
     Exit; { not enough points to draw a line. Should this raise an exception? }
+  MoveTo(APoints[0].X, APoints[0].Y);
   for i := Low(APoints)+1 to High(APoints) do
     DrawLine(APoints[i-1].X, APoints[i-1].Y, APoints[i].X, APoints[i].Y, ALineWidth, False);
 end;
@@ -2131,9 +2203,24 @@ begin
   AddObject(TPDFClosePath.Create(Document));
 end;
 
+procedure TPDFPage.ClosePathStroke;
+begin
+  AddObject(TPDFFreeFormString.Create(Document, 's'+CRLF));
+end;
+
 procedure TPDFPage.StrokePath;
 begin
   AddObject(TPDFStrokePath.Create(Document));
+end;
+
+procedure TPDFPage.FillStrokePath;
+begin
+  AddObject(TPDFFreeFormString.Create(Document, 'B'+CRLF));
+end;
+
+procedure TPDFPage.FillEvenOddStrokePath;
+begin
+  AddObject(TPDFFreeFormString.Create(Document, 'B*'+CRLF));
 end;
 
 procedure TPDFPage.MoveTo(x, y: TPDFFloat);
@@ -3006,7 +3093,8 @@ procedure TPDFLineSegment.Write(const AStream: TStream);
 
 begin
   SetWidth(FWidth,AStream);
-  WriteString(TPDFMoveTo.Command(P1), AStream);
+  if FStroke then
+    WriteString(TPDFMoveTo.Command(P1), AStream);
   WriteString(Command(P2),AStream);
   if FStroke then
     WriteString('S'+CRLF, AStream);
@@ -3156,10 +3244,10 @@ end;
 
 procedure TPDFImage.Write(const AStream: TStream);
 begin
-  WriteString('q'+CRLF, AStream);   // save graphics state
+  WriteString(TPDFPushGraphicsStack.Command, AStream);   // save graphics state
   WriteString(FloatStr(FSize.X)+' 0 0 '+FloatStr(FSize.Y)+' '+FloatStr( FPos.X)+' '+FloatStr( FPos.Y)+' cm'+CRLF, AStream);
   WriteString('/I'+IntToStr(FNumber)+' Do'+CRLF, AStream);
-  WriteString('Q'+CRLF, AStream);   // restore graphics state
+  WriteString(TPDFPopGraphicsStack.Command, AStream);   // restore graphics state
 end;
 
 constructor TPDFImage.Create(const ADocument: TPDFDocument; const ALeft, ABottom, AWidth, AHeight: TPDFFloat; ANumber: integer);
