@@ -228,6 +228,7 @@ unit rgobj;
         extended_backwards,
         backwards_was_first : tbitset;
         has_usedmarks: boolean;
+        has_directalloc: boolean;
 
         { Disposes of the reginfo array.}
         procedure dispose_reginfo;
@@ -523,7 +524,7 @@ unit rgobj;
 
     function trgobj.uses_registers:boolean;
       begin
-        result:=(maxreg>first_imaginary) or has_usedmarks;
+        result:=(maxreg>first_imaginary) or has_usedmarks or has_directalloc;
       end;
 
 
@@ -543,6 +544,7 @@ unit rgobj;
         if supreg>=first_imaginary then
           internalerror(2003121503);
         include(used_in_proc,supreg);
+        has_directalloc:=true;
         list.concat(Tai_regalloc.alloc(r,nil));
       end;
 
