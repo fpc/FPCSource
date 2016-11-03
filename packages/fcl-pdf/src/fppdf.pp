@@ -947,6 +947,7 @@ type
     FTrailer: TPDFDictionary;
     FZoomValue: string;
     FGlobalXRefs: TFPObjectList; // list of TPDFXRef
+    FUnitOfMeasure: TPDFUnitOfMeasure;
     function GetX(AIndex : Integer): TPDFXRef;
     function GetXC: Integer;
     function GetTotalAnnotsCount: integer;
@@ -1047,6 +1048,8 @@ type
     Property Infos : TPDFInfos Read FInfos Write SetInfos;
     Property DefaultPaperType : TPDFPaperTYpe Read FDefaultPaperType Write FDefaultPaperType;
     Property DefaultOrientation : TPDFPaperOrientation Read FDefaultOrientation Write FDefaultOrientation;
+    property DefaultUnitOfMeasure: TPDFUnitOfMeasure read FUnitOfMeasure write FUnitOfMeasure default uomMillimeters;
+    
   end;
 
 
@@ -2008,6 +2011,7 @@ begin
   begin
     PaperType := ADocument.DefaultPaperType;
     Orientation := ADocument.DefaultOrientation;
+    FUnitOfMeasure:=ADocument.DefaultUnitOfMeasure;
   end;
 
   FMatrix._00 := 1;
@@ -4274,6 +4278,7 @@ begin
   FDefaultOrientation:=ppoPortrait;
   FZoomValue:='100';
   FOptions := [poCompressFonts, poCompressImages];
+  FUnitOfMeasure:=uomMillimeters;
 end;
 
 procedure TPDFDocument.StartDocument;
