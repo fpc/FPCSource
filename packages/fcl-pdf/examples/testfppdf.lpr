@@ -148,6 +148,7 @@ begin
   P.SetColor(clBlack, false);
   P.WriteText(25, 20, 'Sample Text');
 
+
   // -----------------------------------
   // Write text using PDF standard fonts
   P.SetFont(FtTitle, 12);
@@ -157,9 +158,14 @@ begin
   P.WriteText(25, 57, 'Click the URL:  http://www.freepascal.org');
   P.AddExternalLink(54, 58, 49, 5, 'http://www.freepascal.org', false);
 
+  // rotated text
+  P.SetColor(clBlue, false);
+  P.WriteText(25, 100, 'Rotated text at 30 degrees', 30);
+
   P.SetFont(ftText2,16);
   P.SetColor($C00000, false);
   P.WriteText(50, 100, '(50mm,100mm) Times-BoldItalic: Big text at absolute position');
+
 
   // -----------------------------------
   // TrueType testing purposes
@@ -297,13 +303,17 @@ begin
   P.DrawImageRawSize(25, 130, W, H, IDX);  // left-bottom coordinate of image
   P.WriteText(145, 90, '[Full size (defined in pixels)]');
 
-  { half size image }
+  { quarter size image }
   P.DrawImageRawSize(25, 190, W shr 1, H shr 1, IDX); // could also have used: Integer(W div 2), Integer(H div 2)
-  P.WriteText(90, 165, '[Quarter size (defined in pixels)]');
+  P.WriteText(85, 180, '[Quarter size (defined in pixels)]');
+  { rotated image }
+  P.DrawImageRawSize(150, 190, W shr 1, H shr 1, IDX, 30);
 
   { scalled image to 2x2 centimeters }
   P.DrawImage(25, 230, 20.0, 20.0, IDX); // left-bottom coordinate of image
   P.WriteText(50, 220, '[2x2 cm scaled image]');
+  { rotatedd image }
+  P.DrawImage(120, 230, 20.0, 20.0, IDX, 30);
 end;
 
 procedure TPDFTestApp.SimpleShapes(D: TPDFDocument; APage: integer);
@@ -313,6 +323,7 @@ var
   lPt1: TPDFCoord;
   lPoints: array of TPDFCoord;
   i: integer;
+  lLineWidth: TPDFFloat;
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
@@ -350,6 +361,10 @@ begin
   P.SetColor($c00000, true);
   P.DrawRect(90, 65, 40, 20, 4, false, true);
 
+  P.SetPenStyle(ppsSolid);
+  P.SetColor(clBlack, true);
+  P.DrawRect(170, 75, 30, 15, 1, false, true, 30);
+
 
   // ========== Rounded Rectangle ===========
   lPt1.X := 30;
@@ -376,6 +391,10 @@ begin
   P.SetColor($c00000, true);
   P.DrawRoundedRect(90, 110, 40, 20, 5, 3, false, true);
 
+  P.SetPenStyle(ppsSolid);
+  P.SetColor(clBlack, true);
+  P.DrawRoundedRect(170, 120, 30, 15, 5, 1, false, true, 30);
+
 
   // ========== Ellipses ============
 
@@ -393,28 +412,33 @@ begin
   P.SetColor($b737b3, True);
   P.DrawEllipse(73, 150, 10, 20, 1, False, True);
 
+  P.SetPenStyle(ppsSolid);
+  P.SetColor(clBlack, True);
+  P.DrawEllipse(170, 150, 30, 15, 1, False, True, 30);
 
   // ========== Lines Pen Styles ============
 
-  P.SetPenStyle(ppsSolid);
-  P.SetColor(clBlack, True);
-  P.DrawLine(30, 170, 70, 170, 1);
+  lLineWidth := 1;
 
-  P.SetPenStyle(ppsDash);
+  P.SetPenStyle(ppsSolid, lLineWidth);
   P.SetColor(clBlack, True);
-  P.DrawLine(30, 175, 70, 175, 1);
+  P.DrawLine(30, 170, 70, 170, lLineWidth);
 
-  P.SetPenStyle(ppsDot);
+  P.SetPenStyle(ppsDash, lLineWidth);
   P.SetColor(clBlack, True);
-  P.DrawLine(30, 180, 70, 180, 1);
+  P.DrawLine(30, 175, 70, 175, lLineWidth);
 
-  P.SetPenStyle(ppsDashDot);
+  P.SetPenStyle(ppsDot, lLineWidth);
   P.SetColor(clBlack, True);
-  P.DrawLine(30, 185, 70, 185, 1);
+  P.DrawLine(30, 180, 70, 180, lLineWidth);
 
-  P.SetPenStyle(ppsDashDotDot);
+  P.SetPenStyle(ppsDashDot, lLineWidth);
   P.SetColor(clBlack, True);
-  P.DrawLine(30, 190, 70, 190, 1);
+  P.DrawLine(30, 185, 70, 185, lLineWidth);
+
+  P.SetPenStyle(ppsDashDotDot, lLineWidth);
+  P.SetColor(clBlack, True);
+  P.DrawLine(30, 190, 70, 190, lLineWidth);
 
 
   // ========== Line Attribute ============
