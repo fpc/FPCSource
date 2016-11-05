@@ -1446,20 +1446,20 @@ implementation
     function tfornode.simplify(forinline : boolean) : tnode;
       begin
         result:=nil;
-         { Can we spare the first comparision? }
-         if (t1.nodetype=ordconstn) and
-            (right.nodetype=ordconstn) and
+        { Can we spare the first comparision? }
+        if (t1.nodetype=ordconstn) and
+           (right.nodetype=ordconstn) and
+           (
             (
-             (
-              (lnf_backward in loopflags) and
-              (Tordconstnode(right).value>=Tordconstnode(t1).value)
-             ) or
-             (
-               not(lnf_backward in loopflags) and
-               (Tordconstnode(right).value<=Tordconstnode(t1).value)
-             )
-            ) then
-           exclude(loopflags,lnf_testatbegin);
+             (lnf_backward in loopflags) and
+             (Tordconstnode(right).value>=Tordconstnode(t1).value)
+            ) or
+            (
+              not(lnf_backward in loopflags) and
+              (Tordconstnode(right).value<=Tordconstnode(t1).value)
+            )
+           ) then
+          exclude(loopflags,lnf_testatbegin);
 
         if (t1.nodetype=ordconstn) and
            (right.nodetype=ordconstn) and
@@ -1473,7 +1473,7 @@ implementation
               (tordconstnode(right).value>tordconstnode(t1).value)
             )
            ) then
-        result:=cnothingnode.create;
+          result:=cnothingnode.create;
       end;
 
 
@@ -1520,6 +1520,7 @@ implementation
 
          if assigned(t2) then
            typecheckpass(t2);
+         result:=simplify(false);
       end;
 
 
@@ -2250,6 +2251,7 @@ implementation
         if has_no_code(left) then
           result:=cnothingnode.create;
       end;
+
 
     procedure ttryexceptnode.adjust_estimated_stack_size;
       begin
