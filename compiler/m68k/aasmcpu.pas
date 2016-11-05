@@ -42,6 +42,7 @@ type
      opsize : topsize;
 
      procedure loadregset(opidx:longint; const dataregs,addrregs,fpuregs:tcpuregisterset);
+     procedure loadregpair(opidx:longint; const _reghi,_reglo: tregister);
      procedure loadrealconst(opidx:longint; const value_real: bestreal);
 
      constructor op_none(op : tasmop);
@@ -147,6 +148,19 @@ type
                  add_reg_instruction_hook(self,newreg(R_FPUREGISTER,i,R_SUBWHOLE));
              end;
          end;
+      end;
+
+    procedure taicpu.loadregpair(opidx:longint; const _reghi,_reglo: tregister);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            if typ<>top_regpair then
+              clearop(opidx);
+            typ:=top_regpair;
+            reghi:=_reghi;
+            reglo:=_reglo;
+          end;
       end;
 
     procedure taicpu.loadrealconst(opidx:longint; const value_real: bestreal);

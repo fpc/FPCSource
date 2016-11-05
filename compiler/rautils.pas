@@ -43,7 +43,9 @@ Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 
 type
   TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
-            OPR_REFERENCE,OPR_REGISTER,OPR_COND,OPR_REGSET,OPR_SHIFTEROP,OPR_MODEFLAGS,OPR_SPECIALREG);
+            OPR_REFERENCE,OPR_REGISTER,OPR_COND,OPR_REGSET,
+            OPR_SHIFTEROP,OPR_MODEFLAGS,OPR_SPECIALREG,
+            OPR_REGPAIR);
 
   TOprRec = record
     case typ:TOprType of
@@ -54,7 +56,8 @@ type
       OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
-      OPR_REGSET   : (regsetdata,regsetaddr,regsetfpu : tcpuregisterset);
+      OPR_REGSET    : (regsetdata,regsetaddr,regsetfpu : tcpuregisterset);
+      OPR_REGPAIR   : (reghi,reglo: tregister);
 {$endif m68k}
 {$ifdef powerpc}
       OPR_COND      : (cond : tasmcond);
@@ -1108,6 +1111,8 @@ end;
 {$ifdef m68k}
               OPR_REGSET:
                 ai.loadregset(i-1,regsetdata,regsetaddr,regsetfpu);
+              OPR_REGPAIR:
+                ai.loadregpair(i-1,reghi,reglo);
 {$endif}
 {$ifdef ARM}
               OPR_REGSET:

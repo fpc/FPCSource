@@ -178,6 +178,8 @@ interface
                 end;
               delete(getopstr,length(getopstr),1);
             end;
+          top_regpair:
+            getopstr:=gas_regname(o.reghi)+':'+gas_regname(o.reglo);
           top_const:
             getopstr:='#'+tostr(longint(o.val));
           top_realconst:

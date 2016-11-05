@@ -236,6 +236,7 @@ interface
 {$ifdef m68k}
        { m68k only }
        ,top_regset
+       ,top_regpair
        ,top_realconst
 {$endif m68k}
 {$ifdef jvm}
@@ -427,6 +428,7 @@ interface
         {$endif defined(arm) or defined(aarch64)}
         {$ifdef m68k}
             top_regset : (dataregset,addrregset,fpuregset: tcpuregisterset);
+            top_regpair : (reghi,reglo: tregister);
             top_realconst : (val_real:bestreal);
         {$endif m68k}
         {$ifdef jvm}
