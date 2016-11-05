@@ -2791,6 +2791,26 @@ implementation
                        { swap value back, but according to new type }
                        if (target_info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,resultdef.size);
+
+                       { cut off the new value? }
+                       if resultdef.size<left.resultdef.size then
+                         case resultdef.size of
+                           1:
+                             if is_signed(resultdef) then
+                               tordconstnode(left).value:=tordconstnode(left).value and shortint($ff)
+                             else
+                               tordconstnode(left).value:=tordconstnode(left).value and byte($ff);
+                           2:
+                             if is_signed(resultdef) then
+                               tordconstnode(left).value:=tordconstnode(left).value and smallint($ffff)
+                             else
+                               tordconstnode(left).value:=tordconstnode(left).value and word($ffff);
+                           4:
+                             if is_signed(resultdef) then
+                               tordconstnode(left).value:=tordconstnode(left).value and longint($ffffffff)
+                             else
+                               tordconstnode(left).value:=tordconstnode(left).value and dword($ffffffff);
+                         end;
                      end;
                    left.resultdef:=resultdef;
                    tordconstnode(left).typedef:=resultdef;
