@@ -1069,123 +1069,95 @@ const
   { ERROR RECOVERY: Tries to find COMMA or SEPARATOR token by consuming }
   {  invalid tokens.                                                    }
   {*********************************************************************}
-  var tempstr: string;
-      expr: string;
+  var
+    tempstr: string;
+    expr: string;
     l : longint;
     errorflag : boolean;
   begin
+    BuildRefExpression := 0;
     errorflag := FALSE;
-    tempstr := '';
     expr := '';
-    Repeat
-      Case actasmtoken of
-      AS_RPAREN: begin
-                   Message(asmr_e_syntax_error);
-                  Consume(AS_RPAREN);
-                end;
-      AS_SHL:    begin
-                  Consume(AS_SHL);
-                  expr := expr + '<';
-                end;
-      AS_SHR:    begin
-                  Consume(AS_SHR);
-                  expr := expr + '>';
-                end;
-      AS_SLASH:  begin
-                  Consume(AS_SLASH);
-                  expr := expr + '/';
-                end;
-      AS_MOD:    begin
-                  Consume(AS_MOD);
-                  expr := expr + '%';
-                end;
-      AS_STAR:   begin
-                  Consume(AS_STAR);
-                  expr := expr + '*';
-                end;
-      AS_PLUS:   begin
-                  Consume(AS_PLUS);
-                  expr := expr + '+';
-                end;
-      AS_MINUS:  begin
-                  Consume(AS_MINUS);
-                  expr := expr + '-';
-                end;
-      AS_AND:    begin
-                  Consume(AS_AND);
-                  expr := expr + '&';
-                end;
-      AS_NOT:    begin
-                  Consume(AS_NOT);
-                  expr := expr + '~';
-                end;
-      AS_XOR:    begin
-                  Consume(AS_XOR);
-                  expr := expr + '^';
-                end;
-      AS_OR:     begin
-                  Consume(AS_OR);
-                  expr := expr + '|';
-                end;
-      { End of reference }
-      AS_LPAREN: begin
-                     if not ErrorFlag then
-                        BuildRefExpression := CalculateExpression(expr)
-                     else
-                        BuildRefExpression := 0;
-                     { no longer in an expression }
-                     exit;
-                  end;
-      AS_ID:
-                begin
-                  if NOT SearchIConstant(actasmpattern,l) then
-                  begin
-                    Message(asmr_e_syn_constant);
-                    l := 0;
-                  end;
-                  str(l, tempstr);
-                  expr := expr + tempstr;
-                  Consume(AS_ID);
-                end;
-      AS_INTNUM:  begin
-                   expr := expr + actasmpattern;
-                   Consume(AS_INTNUM);
-                 end;
-      AS_BINNUM:  begin
-                      tempstr := Tostr(ParseVal(actasmpattern,2));
-                      if tempstr = '' then
-                       Message(asmr_e_error_converting_binary);
-                      expr:=expr+tempstr;
-                      Consume(AS_BINNUM);
-                 end;
 
-      AS_HEXNUM: begin
-                    tempstr := Tostr(ParseVal(actasmpattern,16));
-                    if tempstr = '' then
-                     Message(asmr_e_error_converting_hexadecimal);
-                    expr:=expr+tempstr;
-                    Consume(AS_HEXNUM);
+    repeat
+      tempstr := '';
+      case actasmtoken of
+        AS_RPAREN:
+            Message(asmr_e_syntax_error);
+        AS_SHL:
+            tempstr := '<';
+        AS_SHR:
+            tempstr := '>';
+        AS_SLASH:
+            tempstr := '/';
+        AS_MOD:
+            tempstr := '%';
+        AS_STAR:
+            tempstr := '*';
+        AS_PLUS:
+            tempstr := '+';
+        AS_MINUS:
+            tempstr := '-';
+        AS_AND:
+            tempstr := '&';
+        AS_NOT:
+            tempstr := '~';
+        AS_XOR:
+            tempstr := '^';
+        AS_OR:
+            tempstr := '|';
+
+        { End of reference }
+        AS_LPAREN:
+            begin
+              if not ErrorFlag then
+                BuildRefExpression := CalculateExpression(expr);
+              { no longer in an expression }
+              exit;
+            end;
+        AS_ID:
+            begin
+              if not SearchIConstant(actasmpattern,l) then
+                begin
+                  Message(asmr_e_syn_constant);
+                  l := 0;
                 end;
-      AS_OCTALNUM: begin
-                    tempstr := Tostr(ParseVal(actasmpattern,8));
-                    if tempstr = '' then
-                     Message(asmr_e_error_converting_octal);
-                    expr:=expr+tempstr;
-                    Consume(AS_OCTALNUM);
-                  end;
-      else
-        begin
-          { write error only once. }
-          if not errorflag then
-           Message(asmr_e_invalid_constant_expression);
-          BuildRefExpression := 0;
-          if actasmtoken in [AS_COMMA,AS_SEPARATOR] then exit;
-          { consume tokens until we find COMMA or SEPARATOR }
-          Consume(actasmtoken);
-          errorflag := TRUE;
+              str(l, tempstr);
+            end;
+        AS_INTNUM:
+            tempstr := actasmpattern;
+        AS_BINNUM:
+            begin
+              tempstr := Tostr(ParseVal(actasmpattern,2));
+              if tempstr = '' then
+                Message(asmr_e_error_converting_binary);
+            end;
+        AS_HEXNUM:
+            begin
+              tempstr := Tostr(ParseVal(actasmpattern,16));
+              if tempstr = '' then
+                Message(asmr_e_error_converting_hexadecimal);
+            end;
+        AS_OCTALNUM:
+            begin
+              tempstr := Tostr(ParseVal(actasmpattern,8));
+              if tempstr = '' then
+                Message(asmr_e_error_converting_octal);
+            end;
+        else
+          begin
+            { write error only once. }
+            if not errorflag then
+              Message(asmr_e_invalid_constant_expression);
+            if actasmtoken in [AS_COMMA,AS_SEPARATOR] then exit;
+            { consume tokens until we find COMMA or SEPARATOR }
+            errorflag := true;
         end;
       end;
-    Until false;
+      if tempstr <> '' then
+        expr := expr + tempstr;
+      Consume(actasmtoken);
+    until false;
   end;
 
 
