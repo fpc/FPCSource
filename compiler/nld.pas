@@ -563,6 +563,25 @@ implementation
            is_constrealnode(right) and
            not equal_defs(right.resultdef,left.resultdef) then
           inserttypeconv(right,left.resultdef);
+
+        { replace i:=succ/pred(i) by inc/dec(i)? }
+        if (right.nodetype=inlinen) and
+          ((tinlinenode(right).inlinenumber=in_succ_x) or (tinlinenode(right).inlinenumber=in_pred_x)) and
+          (tinlinenode(right).left.isequal(left)) and
+          ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+          ((right.localswitches*[cs_check_overflow,cs_check_range])=[])
+           then
+          begin
+            if tinlinenode(right).inlinenumber=in_succ_x then
+              result:=cinlinenode.create(
+                in_inc_x,false,ccallparanode.create(
+                left.getcopy,nil))
+            else
+              result:=cinlinenode.create(
+                in_dec_x,false,ccallparanode.create(
+                left.getcopy,nil));
+            exit;
+          end;
       end;
 
 
