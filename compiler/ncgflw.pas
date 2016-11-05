@@ -88,6 +88,7 @@ interface
 implementation
 
     uses
+      cutils,
       verbose,globals,systems,globtype,constexp,
       symconst,symdef,symsym,symtable,symtype,aasmtai,aasmdata,aasmcpu,defutil,
       procinfo,cgbase,pass_2,parabase,
@@ -168,14 +169,12 @@ implementation
          current_procinfo.CurrContinueLabel:=lcont;
          current_procinfo.CurrBreakLabel:=lbreak;
 
+         { calc register weight }
+         oldexecutionweight:=cg.executionweight;
+         cg.executionweight:=max(cg.executionweight,1)*8;
+
          if assigned(right) then
-           begin
-             { calc register weight }
-             oldexecutionweight:=cg.executionweight;
-             cg.executionweight:=cg.executionweight*8;
-             secondpass(right);
-             cg.executionweight:=oldexecutionweight;
-           end;
+           secondpass(right);
 
 {$ifdef OLDREGVARS}
          load_all_regvars(current_asmdata.CurrAsmList);
@@ -195,6 +194,7 @@ implementation
          secondpass(left);
 
          hlcg.maketojumpboollabels(current_asmdata.CurrAsmList,left,truelabel,falselabel);
+         cg.executionweight:=oldexecutionweight;
          hlcg.a_label(current_asmdata.CurrAsmList,lbreak);
 
          sync_regvars(false);
