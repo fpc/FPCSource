@@ -159,12 +159,16 @@ interface
              that temp is not deallocated until this temp is deleted (since
              otherwise the assigned value may be freed before the last use of
              the temp) }
-         ti_const
+         ti_const,
+         { the temp. needs no final sync instruction if it is located in a register,
+           so there are no loops involved in the usage of the temp.
+         }
+         ti_no_final_regsync
          );
        ttempinfoflags = set of ttempinfoflag;
 
      const
-       tempinfostoreflags = [ti_may_be_in_reg,ti_addr_taken,ti_reference,ti_readonly];
+       tempinfostoreflags = [ti_may_be_in_reg,ti_addr_taken,ti_reference,ti_readonly,ti_no_final_regsync];
 
      type
        { to allow access to the location by temp references even after the temp has }

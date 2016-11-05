@@ -567,8 +567,8 @@ interface
           LOC_CREGISTER,
           LOC_REGISTER:
             begin
-              if not(cs_opt_regvar in current_settings.optimizerswitches) or
-                 (pi_has_label in current_procinfo.flags) then
+              if (not(cs_opt_regvar in current_settings.optimizerswitches) or
+                 (pi_has_label in current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }
@@ -632,8 +632,8 @@ interface
           LOC_CFPUREGISTER,
           LOC_FPUREGISTER:
             begin
-              if not(cs_opt_regvar in current_settings.optimizerswitches) or
-                 (pi_has_label in current_procinfo.flags) then
+              if (not(cs_opt_regvar in current_settings.optimizerswitches) or
+                 (pi_has_label in current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }
@@ -647,8 +647,8 @@ interface
           LOC_CMMREGISTER,
           LOC_MMREGISTER:
             begin
-              if not(cs_opt_regvar in current_settings.optimizerswitches) or
-                 (pi_has_label in current_procinfo.flags) then
+              if (not(cs_opt_regvar in current_settings.optimizerswitches) or
+                 (pi_has_label in current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }
