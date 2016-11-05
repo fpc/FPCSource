@@ -2489,6 +2489,8 @@ type
                inc(current_scanner.inputfilecount);
                { we need to reread the current char }
                dec(current_scanner.inputpointer);
+               { reset c }
+               c:=#0;
                { shutdown current file }
                current_scanner.tempcloseinputfile;
                { load new file }
