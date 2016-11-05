@@ -947,6 +947,7 @@ implementation
         printnodeinfo(t);
         writeln(t);
         printnode(t,left);
+        i:=0;
         for i:=0 to blocks.count-1 do
           begin
             writeln(t,printnodeindention,'(caseblock blockid: ',i);
