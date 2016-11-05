@@ -3938,22 +3938,40 @@ implementation
            hpp := caddnode.create_internal(addn,hp,hpp)
          else
            hpp := caddnode.create_internal(subn,hp,hpp);
+
          { assign result of addition }
+
+         { inherit internal flag }
          if not(is_integer(resultnode.resultdef)) then
-           inserttypeconv(hpp,corddef.create(
+           begin
+             if nf_internal in flags then
+               inserttypeconv_internal(hpp,corddef.create(
 {$ifdef cpu64bitaddr}
-             s64bit,
+                 s64bit,
 {$else cpu64bitaddr}
-             s32bit,
+                 s32bit,
 {$endif cpu64bitaddr}
-             get_min_value(resultnode.resultdef),
-             get_max_value(resultnode.resultdef),
-             true))
+                 get_min_value(resultnode.resultdef),
+                 get_max_value(resultnode.resultdef),
+                 true))
+             else
+               inserttypeconv(hpp,corddef.create(
+{$ifdef cpu64bitaddr}
+                 s64bit,
+{$else cpu64bitaddr}
+                 s32bit,
+{$endif cpu64bitaddr}
+                 get_min_value(resultnode.resultdef),
+                 get_max_value(resultnode.resultdef),
+                 true))
+           end
          else
-           if nf_internal in flags then
-             inserttypeconv_internal(hpp,resultnode.resultdef)
-           else
-             inserttypeconv(hpp,resultnode.resultdef);
+           begin
+             if nf_internal in flags then
+               inserttypeconv_internal(hpp,resultnode.resultdef)
+             else
+               inserttypeconv(hpp,resultnode.resultdef);
+           end;
 
          { avoid any possible warnings }
          inserttypeconv_internal(hpp,resultnode.resultdef);
