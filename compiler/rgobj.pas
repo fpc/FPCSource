@@ -23,6 +23,10 @@
 
 { $define DEBUG_REGALLOC}
 
+{$ifdef DEBUG_REGALLOC}
+{$define EXTDEBUG}
+{$endif DEBUG_REGALLOC}
+
 { Allow duplicate allocations, can be used to get the .s file written }
 { $define ALLOWDUPREG}
 
@@ -681,19 +685,20 @@ unit rgobj;
       assign(f,'igraph'+tostr(loopidx));
       rewrite(f);
       writeln(f,'Interference graph');
+      writeln(f,'First imaginary register is ',first_imaginary);
       writeln(f);
-      write(f,'    ');
+      write(f,'                  ');
       for i:=0 to maxreg div 16 do
         for j:=0 to 15 do
           write(f,hexstr(i,1));
       writeln(f);
-      write(f,'    ');
+      write(f,'Weight Degree     ');
       for i:=0 to maxreg div 16 do
         write(f,'0123456789ABCDEF');
       writeln(f);
       for i:=0 to maxreg-1 do
         begin
-          write(f,hexstr(i,2):4);
+          write(f,reginfo[i].weight:5,'  ',reginfo[i].degree:5,'  ',hexstr(i,2):4);
           for j:=0 to maxreg-1 do
             if ibitmap[i,j] then
               write(f,'*')
