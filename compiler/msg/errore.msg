@@ -2670,8 +2670,8 @@ asmr_w_align_not_supported=07093_W_ALIGN not supported
 asmr_e_no_inc_and_dec_together=07094_E_Inc and Dec cannot be together
 % Trying to use an increment and a decrement within the same
 % opcode on the 680x0. This is impossible.
-asmr_e_invalid_reg_list_in_movem=07095_E_Invalid reglist for movem
-% Trying to use the \var{movem} opcode with invalid registers
+asmr_e_invalid_reg_list_in_movem_or_fmovem=07095_E_Invalid register list for MOVEM or FMOVEM
+% Trying to use the \var{movem} or \var{fmovem} opcode with invalid registers
 % to save or restore.
 asmr_e_invalid_reg_list_for_opcode=07096_E_Reglist invalid for opcode
 asmr_e_higher_cpu_mode_required=07097_E_Higher cpu mode required ($1)

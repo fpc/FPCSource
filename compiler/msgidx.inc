@@ -773,7 +773,7 @@ const
   asmr_e_invalid_char_greater=07090;
   asmr_w_align_not_supported=07093;
   asmr_e_no_inc_and_dec_together=07094;
-  asmr_e_invalid_reg_list_in_movem=07095;
+  asmr_e_invalid_reg_list_in_movem_or_fmovem=07095;
   asmr_e_invalid_reg_list_for_opcode=07096;
   asmr_e_higher_cpu_mode_required=07097;
   asmr_w_unable_to_determine_reference_size_using_dword=07098;
@@ -1063,7 +1063,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 78689;
+  MsgTxtSize = 78705;
 
   MsgIdxMax : array[1..20] of longint=(
     27,102,347,124,96,58,130,33,209,65,
