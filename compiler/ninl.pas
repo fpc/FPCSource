@@ -117,7 +117,7 @@ implementation
     uses
       verbose,globals,systems,constexp,
       globtype,cutils,fmodule,
-      symconst,symdef,symsym,symcpu,symtable,paramgr,defutil,symbase,
+      symconst,symdef,symsym,symcpu,symtable,paramgr,defcmp,defutil,symbase,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
       nobjc,objcdef,
@@ -2309,21 +2309,53 @@ implementation
               in_pred_x,
               in_succ_x:
                 begin
-                  if (left.nodetype=ordconstn) then
-                    begin
-                      if (inlinenumber=in_succ_x) then
-                        vl:=tordconstnode(left).value+1
-                      else
-                        vl:=tordconstnode(left).value-1;
-                      if is_integer(left.resultdef) then
-                      { the type of the original integer constant is irrelevant,
-                        it should be automatically adapted to the new value
-                        (except when inlining) }
-                        result:=create_simplified_ord_const(vl,resultdef,forinline)
-                      else
-                        { check the range for enums, chars, booleans }
-                        result:=cordconstnode.create(vl,left.resultdef,not(nf_internal in flags))
-                    end
+                  case left.nodetype of
+                    ordconstn:
+                      begin
+                        if inlinenumber=in_succ_x then
+                          vl:=tordconstnode(left).value+1
+                        else
+                          vl:=tordconstnode(left).value-1;
+                        if is_integer(left.resultdef) then
+                        { the type of the original integer constant is irrelevant,
+                          it should be automatically adapted to the new value
+                          (except when inlining) }
+                          result:=create_simplified_ord_const(vl,resultdef,forinline)
+                        else
+                          { check the range for enums, chars, booleans }
+                          result:=cordconstnode.create(vl,left.resultdef,not(nf_internal in flags))
+                      end;
+                    addn,
+                    subn:
+                      begin
+                        { fold succ/pred in child add/sub nodes with a constant if possible:
+                           - no overflow/range checking
+                           - equal types
+                        }
+                        if ([cs_check_overflow,cs_check_range]*current_settings.localswitches)=[] then
+                          begin
+                            if inlinenumber=in_succ_x then
+                              vl:=1
+                            else
+                              vl:=-1;
+                            if (taddnode(left).left.nodetype=ordconstn) and equal_defs(resultdef,taddnode(left).left.resultdef) then
+                              begin
+                                tordconstnode(taddnode(left).left).value:=tordconstnode(taddnode(left).left).value+vl;
+                                result:=left;
+                                left:=nil;
+                              end
+                            else if (taddnode(left).right.nodetype=ordconstn) and equal_defs(resultdef,taddnode(left).right.resultdef) then
+                              begin
+                                if left.nodetype=subn then
+                                  tordconstnode(taddnode(left).right).value:=tordconstnode(taddnode(left).right).value-vl
+                                else
+                                  tordconstnode(taddnode(left).right).value:=tordconstnode(taddnode(left).right).value+vl;
+                                result:=left;
+                                left:=nil;
+                              end;
+                          end;
+                      end;
+                  end;
                 end;
               in_low_x,
               in_high_x:
