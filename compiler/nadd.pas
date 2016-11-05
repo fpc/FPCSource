@@ -560,6 +560,7 @@ implementation
                else
                  internalerror(2008022101);
              end;
+             include(t.flags,nf_internal);
              result:=t;
              exit;
           end
