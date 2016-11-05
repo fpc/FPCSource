@@ -577,7 +577,7 @@ implementation
                 in_inc_x,false,ccallparanode.create(
                 left.getcopy,nil))
             else
-              result:=cinlinenode.create(
+              result:=cinlinenode.createintern(
                 in_dec_x,false,ccallparanode.create(
                 left.getcopy,nil));
             exit;

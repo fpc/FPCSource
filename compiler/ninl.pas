@@ -3457,6 +3457,7 @@ implementation
                     hp:=caddnode.create(addn,left,hp)
                   else
                     hp:=caddnode.create(subn,left,hp);
+
                   { assign result of addition }
                   if not(is_integer(resultdef)) then
                     inserttypeconv(hp,corddef.create(
@@ -3470,6 +3471,9 @@ implementation
                       true))
                   else
                     inserttypeconv(hp,resultdef);
+
+                  if nf_internal in flags then
+                    include(hp.flags,nf_internal);
 
                   { avoid any possible errors/warnings }
                   inserttypeconv_internal(hp,resultdef);
@@ -3899,9 +3903,9 @@ implementation
 
          { addition/substraction depending on inc/dec }
          if inlinenumber = in_inc_x then
-           hpp := caddnode.create(addn,hp,hpp)
+           hpp := caddnode.create_internal(addn,hp,hpp)
          else
-           hpp := caddnode.create(subn,hp,hpp);
+           hpp := caddnode.create_internal(subn,hp,hpp);
          { assign result of addition }
          if not(is_integer(resultnode.resultdef)) then
            inserttypeconv(hpp,corddef.create(
@@ -3914,7 +3918,10 @@ implementation
              get_max_value(resultnode.resultdef),
              true))
          else
-           inserttypeconv(hpp,resultnode.resultdef);
+           if nf_internal in flags then
+             inserttypeconv_internal(hpp,resultnode.resultdef)
+           else
+             inserttypeconv(hpp,resultnode.resultdef);
 
          { avoid any possible warnings }
          inserttypeconv_internal(hpp,resultnode.resultdef);

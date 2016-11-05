@@ -1685,7 +1685,7 @@ implementation
             else
               toexpr:=t1.getcopy;
 
-            addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create(cond,left.getcopy,toexpr),loopblock,false,true));
+            addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(cond,left.getcopy,toexpr),loopblock,false,true));
 
             if usefromtemp then
               fromexpr:=ctemprefnode.create(fromtemp)
@@ -1698,10 +1698,10 @@ implementation
               toexpr:=t1.getcopy;
 
             if lnf_backward in loopflags then
-              addstatement(statements,cifnode.create(caddnode.create(gten,
+              addstatement(statements,cifnode.create(caddnode.create_internal(gten,
                 fromexpr,toexpr),ifblock,nil))
             else
-              addstatement(statements,cifnode.create(caddnode.create(lten,
+              addstatement(statements,cifnode.create(caddnode.create_internal(lten,
                 fromexpr,toexpr),ifblock,nil));
 
             if usetotemp then
@@ -1711,7 +1711,7 @@ implementation
           end
         else
           begin
-            addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create(cond,left.getcopy,t1.getcopy),loopblock,false,true));
+            addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(cond,left.getcopy,t1.getcopy),loopblock,false,true));
             addstatement(statements,ifblock);
           end;
       end;

@@ -103,8 +103,8 @@ interface
       begin
         newsize:=def_cgsize(resultdef);
 
-        { insert range check if not explicit conversion }
-        if not(nf_explicit in flags) then
+        { insert range check if not explicit or interally generated conversion }
+        if (flags*[nf_explicit,nf_internal])=[] then
           hlcg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
 
         { is the result size smaller? when typecasting from void

@@ -2785,8 +2785,9 @@ implementation
                        { for constant values on absolute variables, swaping is required }
                        if (target_info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,tordconstnode(left).resultdef.size);
-                       testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags)
-                                 or (nf_absolute in flags),false);
+                       if not(nf_internal in flags) then
+                         testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags)
+                                   or (nf_absolute in flags),false);
                        { swap value back, but according to new type }
                        if (target_info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,resultdef.size);
