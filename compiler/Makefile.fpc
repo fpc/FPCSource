@@ -495,13 +495,6 @@ insdatx86 : $(COMPILER_UNITTARGETDIR) x86/x86ins.dat
         cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86ins$(SRCEXEEXT) i8086 && mv -f *.inc ../i8086
         cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86ins$(SRCEXEEXT) && mv -f *.inc ../i386
         cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86ins$(SRCEXEEXT) x86_64 && mv -f *.inc ../x86_64
-	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86reg.pp
-        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86reg$(SRCEXEEXT) i8086
-        mv -f x86/r8086*.inc i8086
-        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86reg$(SRCEXEEXT)
-        mv -f x86/r386*.inc i386
-        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86reg$(SRCEXEEXT) x86_64
-        mv -f x86/r8664*.inc x86_64
 
 insdatarm : arm/armins.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmins.pp
@@ -512,6 +505,15 @@ insdataarch64 : aarch64/a64ins.dat
         cd aarch64 && ..$(PATHSEP)utils$(PATHSEP)mka64ins$(SRCEXEEXT)
 
 insdat: insdatx86 insdatarm insdataarch64
+
+regdatx86 : x86/x86reg.dat
+	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86reg.pp
+        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86reg$(SRCEXEEXT) i8086
+        mv -f x86/r8086*.inc i8086
+        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86reg$(SRCEXEEXT)
+        mv -f x86/r386*.inc i386
+        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86reg$(SRCEXEEXT) x86_64
+        mv -f x86/r8664*.inc x86_64
 
 regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
@@ -528,6 +530,12 @@ regdatavr : avr/avrreg.dat
 regdataarch64 : aarch64/a64reg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mka64reg.pp
         cd aarch64 && ..$(PATHSEP)utils$(PATHSEP)mka64reg$(SRCEXEEXT)
+
+regdatmips : mips/mipsreg.dat
+	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkmpsreg.pp
+        cd mips && ..$(PATHSEP)utils$(PATHSEP)mkmpsreg$(SRCEXEEXT)
+
+regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips
 
 # revision.inc rule
 revision.inc :
