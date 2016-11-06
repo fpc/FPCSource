@@ -222,7 +222,7 @@ Const
     { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
     { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false),
     { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false, false),
-    { aros }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false),
+    { aros }    ( true,  false, false, false, false, false, true,  false, false, false, false, false, false, false, false),
     { dragonfly}( false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false),
     { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false)
   );
