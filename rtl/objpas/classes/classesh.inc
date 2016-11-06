@@ -763,6 +763,7 @@ type
     procedure SetCaseSensitive(b : boolean);
     procedure SetSortStyle(AValue: TStringsSortStyle);
   protected
+    Procedure CheckIndex(AIndex : Integer); inline;
     procedure ExchangeItems(Index1, Index2: Integer); virtual;
     procedure Changed; virtual;
     procedure Changing; virtual;

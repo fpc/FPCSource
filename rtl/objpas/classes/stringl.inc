@@ -1358,8 +1358,7 @@ end;
 function TStringList.Get(Index: Integer): string;
 
 begin
-  If (Index<0) or (INdex>=Fcount)  then
-    Error (SListIndexError,Index);
+  CheckIndex(Index);
   Result:=Flist^[Index].FString;
 end;
 
@@ -1384,8 +1383,7 @@ end;
 function TStringList.GetObject(Index: Integer): TObject;
 
 begin
-  If (Index<0) or (INdex>=Fcount)  then
-    Error (SListIndexError,Index);
+  CheckIndex(Index);
   Result:=Flist^[Index].FObject;
 end;
 
@@ -1396,8 +1394,7 @@ procedure TStringList.Put(Index: Integer; const S: string);
 begin
   If Sorted then
     Error(SSortedListError,0);
-  If (Index<0) or (INdex>=Fcount)  then
-    Error (SListIndexError,Index);
+  CheckIndex(Index);
   Changing;
   Flist^[Index].FString:=S;
   Changed;
@@ -1408,8 +1405,7 @@ end;
 procedure TStringList.PutObject(Index: Integer; AObject: TObject);
 
 begin
-  If (Index<0) or (INdex>=Fcount)  then
-    Error (SListIndexError,Index);
+  CheckIndex(Index);
   Changing;
   Flist^[Index].FObject:=AObject;
   Changed;
@@ -1508,8 +1504,7 @@ end;
 procedure TStringList.Delete(Index: Integer);
 
 begin
-  If (Index<0) or (Index>=FCount) then
-    Error(SlistINdexError,Index);
+  CheckIndex(Index);
   Changing;
   Flist^[Index].FString:='';
   if FOwnsObjects then
@@ -1527,10 +1522,8 @@ end;
 procedure TStringList.Exchange(Index1, Index2: Integer);
 
 begin
-  If (Index1<0) or (Index1>=FCount) then
-    Error(SListIndexError,Index1);
-  If (Index2<0) or (Index2>=FCount) then
-    Error(SListIndexError,Index2);
+  CheckIndex(Index1);
+  CheckIndex(Index2);
   Changing;
   ExchangeItemsInt(Index1,Index2);
   changed;
@@ -1559,6 +1552,12 @@ begin
   if (AValue=sslAuto) then
     Sort;
   FSortStyle:=AValue;
+end;
+
+procedure TStringList.CheckIndex(AIndex: Integer);
+begin
+  If (AIndex<0) or (AIndex>=FCount) then
+    Error(SListIndexError,AIndex);
 end;
 
 
@@ -1629,10 +1628,10 @@ begin
   If SortStyle=sslAuto then
     Error (SSortedListError,0)
   else
-    If (Index<0) or (Index>FCount) then
-      Error (SListIndexError,Index)
-    else
-      InsertItem (Index,S);
+    begin
+    CheckIndex(Index);
+    InsertItem (Index,S);
+    end;
 end;
 
 
