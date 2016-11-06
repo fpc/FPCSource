@@ -36,7 +36,7 @@ type
 
   TTestJSONString = Class(TTestCase)
   Private
-    Procedure TestTo(Const Src,Dest : String);
+    Procedure TestTo(Const Src,Dest : String; Strict : Boolean = False);
     Procedure TestFrom(Const Src,Dest : String);
   Published
     Procedure TestJSONStringToString;
@@ -147,6 +147,7 @@ type
   published
     procedure TestString;
     procedure TestControlString;
+    procedure TestSolidus;
     procedure TestInteger;
     procedure TestNegativeInteger;
     procedure TestFloat;
@@ -1501,7 +1502,6 @@ Var
   T : String;
 
 begin
-
   J:=TJSONString.Create('');
   try
     For I:=0 to 31 do
@@ -1518,6 +1518,23 @@ begin
       end;
       AssertEquals('Control char','"-->'+T+'<--"',J.AsJSON);
       end;
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestString.TestSolidus;
+Var
+  J : TJSONString;
+
+begin
+  J:=TJSONString.Create('');
+  try
+    J.AsString:='http://www.json.org/';
+    TJSONString.StrictEscaping:=True;
+    TestJSON(J,'"http:\/\/www.json.org\/"');
+    TJSONString.StrictEscaping:=False;
+    TestJSON(J,'"http://www.json.org/"');
   finally
     FreeAndNil(J);
   end;
@@ -4026,14 +4043,14 @@ end;
 
 { TTestJSONString }
 
-procedure TTestJSONString.TestTo(const Src, Dest: String);
+procedure TTestJSONString.TestTo(const Src, Dest: String; Strict : Boolean = False);
 
 Var
   S : String;
 
 begin
   S:='StringToJSONString('''+Src+''')='''+Dest+'''';
-  AssertEquals(S,Dest,StringToJSONString(Src));
+  AssertEquals(S,Dest,StringToJSONString(Src,Strict));
 end;
 
 procedure TTestJSONString.TestFrom(const Src, Dest: String);
@@ -4092,7 +4109,8 @@ begin
   TestTo('AB','AB');
   TestTo('ABC','ABC');
   TestTo('\','\\');
-  TestTo('/','\/');
+  TestTo('/','/');
+  TestTo('/','\/',True);
   TestTo('"','\"');
   TestTo(#8,'\b');
   TestTo(#9,'\t');
@@ -4115,7 +4133,8 @@ begin
   TestTo('A'#12'BC','A\fBC');
   TestTo('A'#13'BC','A\rBC');
   TestTo('\\','\\\\');
-  TestTo('//','\/\/');
+  TestTo('//','//');
+  TestTo('//','\/\/',true);
   TestTo('""','\"\"');
   TestTo(#8#8,'\b\b');
   TestTo(#9#9,'\t\t');

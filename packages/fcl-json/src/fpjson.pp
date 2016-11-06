@@ -283,6 +283,8 @@ Type
     function GetAsJSON: TJSONStringType; override;
     function GetAsString: TJSONStringType; override;
     procedure SetAsString(const AValue: TJSONStringType); override;
+  Public
+    Class var StrictEscaping : Boolean;
   public
     Constructor Create(const AValue : TJSONStringType); reintroduce;
     Constructor Create(const AValue : TJSONUnicodeStringType); reintroduce;
@@ -588,7 +590,7 @@ Type
 Function SetJSONInstanceType(AType : TJSONInstanceType; AClass : TJSONDataClass) : TJSONDataClass;
 Function GetJSONInstanceType(AType : TJSONInstanceType) : TJSONDataClass;
 
-Function StringToJSONString(const S : TJSONStringType) : TJSONStringType;
+Function StringToJSONString(const S : TJSONStringType; Strict : Boolean = False) : TJSONStringType;
 Function JSONStringToString(const S : TJSONStringType) : TJSONStringType;
 Function JSONTypeName(JSONType : TJSONType) : String;
 
@@ -662,7 +664,7 @@ begin
   Result:=DefaultJSONInstanceTypes[AType]
 end;
 
-function StringToJSONString(const S: TJSONStringType): TJSONStringType;
+function StringToJSONString(const S: TJSONStringType; Strict : Boolean = False): TJSONStringType;
 
 Var
   I,J,L : Integer;
@@ -683,7 +685,10 @@ begin
       Result:=Result+Copy(S,J,I-J);
       Case C of
         '\' : Result:=Result+'\\';
-        '/' : Result:=Result+'\/';
+        '/' : if Strict then
+                Result:=Result+'\/'
+              else
+                Result:=Result+'/';
         '"' : Result:=Result+'\"';
         #8  : Result:=Result+'\b';
         #9  : Result:=Result+'\t';
@@ -1087,7 +1092,7 @@ begin
         if (I>0) then
           W(',');
         W('"');
-        W(StringToJSONString(O.Names[i]));
+        W(StringToJSONString(O.Names[i],False));
         W('":');
         O.Items[I].DumpJSON(S);
         end;
@@ -1304,7 +1309,7 @@ end;
 
 function TJSONString.GetAsJSON: TJSONStringType;
 begin
-  Result:='"'+StringToJSONString(FValue)+'"';
+  Result:='"'+StringToJSONString(FValue,StrictEscaping)+'"';
 end;
 
 function TJSONString.GetAsString: TJSONStringType;
