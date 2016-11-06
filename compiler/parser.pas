@@ -119,6 +119,7 @@ implementation
            system_powerpc_amiga,
            system_powerpc_morphos,
            system_m68k_amiga,
+           system_arm_aros,
            system_i386_aros,
            system_x86_64_aros:
              include(supported_calling_conventions,pocall_syscall);

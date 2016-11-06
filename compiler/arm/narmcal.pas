@@ -30,17 +30,72 @@ interface
 
     type
        tarmcallnode = class(tcgcallnode)
+         procedure gen_syscall_para(para: tcallparanode); override;
          procedure set_result_location(realresdef: tstoreddef);override;
+       public
+         procedure do_syscall;override;
        end;
 
 implementation
 
   uses
-    verbose,globtype,globals,aasmdata,
-    symconst,
-    cgbase,cgutils,cpuinfo,
-    ncgutil,tgobj,
+    verbose,globtype,globals,aasmdata,aasmtai,
+    symconst,symtype,symbase,symsym,symcpu,parabase,paramgr,
+    cgbase,cgobj,cgutils,cpuinfo,cpubase,cutils,
+    ncgutil,tgobj,nld,
     systems;
+
+  procedure tarmcallnode.gen_syscall_para(para: tcallparanode);
+    begin
+      { lib parameter has no special type but proccalloptions must be a syscall }
+      para.left:=cloadnode.create(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner);
+    end;
+
+  procedure tarmcallnode.do_syscall;
+    var
+      tmpref: treference;
+      libparaloc: pcgparalocation;
+      hsym: tsym;
+    begin
+      case target_info.system of
+        system_arm_aros:
+            begin
+              if (po_syscall_baselast in tprocdef(procdefinition).procoptions) then
+                begin
+                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall - BaseLast')));
+
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  hsym:=tsym(procdefinition.parast.Find('syscalllib'));
+                  if not assigned(hsym) then
+                    internalerror(2016110605);
+                  libparaloc:=tparavarsym(hsym).paraloc[callerside].location;
+                  if not assigned(libparaloc) then
+                    internalerror(2016110604);
+
+                  case libparaloc^.loc of
+                    LOC_REGISTER:
+                      reference_reset_base(tmpref,libparaloc^.register,-tprocdef(procdefinition).extnumber,sizeof(pint));
+                    LOC_REFERENCE:
+                      begin
+                        reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint));
+                        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
+                        reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint));
+                      end;
+                    else
+                      internalerror(2016110603);
+                  end;
+
+                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
+                  cg.a_call_reg(current_asmdata.CurrAsmList,NR_R12);
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  exit;
+                end;
+              internalerror(2016110601);
+            end;
+        else
+          internalerror(2016110602);
+      end;
+    end;
 
   procedure tarmcallnode.set_result_location(realresdef: tstoreddef);
     begin
@@ -75,6 +130,8 @@ implementation
       else
         inherited;
     end;
+
+
 
 
 begin

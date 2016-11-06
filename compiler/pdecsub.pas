@@ -2108,7 +2108,7 @@ procedure pd_syscall(pd:tabstractprocdef);
             internalerror(2016090101);
         end;
 
-{$if defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
+{$if defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64) or defined(arm)}
 const
   syscall_paranr: array[boolean] of aint =
       ( paranr_syscall_lib_last, paranr_syscall_lib_first );
@@ -2119,12 +2119,12 @@ var
   v: Tconstexprint;
   vo: tvaroptions;
   paranr: aint;
-{$endif defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
+{$endif defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64) or defined(arm)}
 begin
   if (pd.typ<>procdef) and (target_info.system <> system_powerpc_amiga) then
     internalerror(2003042614);
   tprocdef(pd).forwarddef:=false;
-{$if defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
+{$if defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64) or defined(arm)}
   include_po_syscall;
 
   if target_info.system = system_m68k_atari then
@@ -2173,7 +2173,7 @@ begin
       Tprocdef(pd).extnumber:=v.uvalue * sizeof(pint)
     else
       Tprocdef(pd).extnumber:=v.uvalue;
-{$endif defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64)}
+{$endif defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64) or defined(arm)}
 end;
 
 
