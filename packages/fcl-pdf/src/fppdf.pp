@@ -73,6 +73,7 @@ type
   // forward declarations
   TPDFDocument = class;
   TPDFAnnotList = class;
+  TPDFLineStyleDef = class;
 
   TARGBColor = Cardinal;
   TPDFFloat = Single;
@@ -590,6 +591,9 @@ type
 
   { When the WriteXXX() and DrawXXX() methods specify coordinates, they do it as
     per the PDF specification, from the bottom-left. }
+
+  { TPDFPage }
+
   TPDFPage = Class(TPDFDocumentObject)
   private
     FObjects : TObjectList;
@@ -622,13 +626,16 @@ type
     // used for stroking and nonstroking colors - purpose determined by the AStroke parameter
     Procedure SetColor(AColor : TARGBColor; AStroke : Boolean = True); virtual;
     Procedure SetPenStyle(AStyle : TPDFPenStyle; const ALineWidth: TPDFFloat = 1.0); virtual;
+    // Set color and pen style from line style
+    Procedure SetLineStyle(AIndex : Integer; AStroke : Boolean = True); overload;
+    Procedure SetLineStyle(S : TPDFLineStyleDef; AStroke : Boolean = True); overload;
     { output coordinate is the font baseline. }
     Procedure WriteText(X, Y: TPDFFloat; AText : UTF8String; const ADegrees: single = 0.0); overload;
     Procedure WriteText(APos: TPDFCoord; AText : UTF8String; const ADegrees: single = 0.0); overload;
     procedure DrawLine(X1, Y1, X2, Y2, ALineWidth : TPDFFloat; const AStroke: Boolean = True); overload;
-    procedure DrawLine(APos1: TPDFCoord; APos2: TPDFCoord; ALineWidth: TPDFFloat; const AStroke: Boolean = True); overload;
+    procedure DrawLine(APos1, APos2: TPDFCoord; ALineWidth: TPDFFloat; const AStroke: Boolean = True); overload;
     Procedure DrawLineStyle(X1, Y1, X2, Y2: TPDFFloat; AStyle: Integer); overload;
-    Procedure DrawLineStyle(APos1: TPDFCoord; APos2: TPDFCoord; AStyle: Integer); overload;
+    Procedure DrawLineStyle(APos1, APos2: TPDFCoord; AStyle: Integer); overload;
     { X, Y coordinates are the bottom-left coordinate of the rectangle. The W and H parameters are in the UnitOfMeasure units. }
     Procedure DrawRect(const X, Y, W, H, ALineWidth: TPDFFloat; const AFill, AStroke : Boolean; const ADegrees: single = 0.0); overload;
     Procedure DrawRect(const APos: TPDFCoord; const W, H, ALineWidth: TPDFFloat; const AFill, AStroke : Boolean; const ADegrees: single = 0.0); overload;
@@ -931,6 +938,8 @@ type
   end;
 
 
+  { TPDFDocument }
+
   TPDFDocument = class(TComponent)
   private
     FCatalogue: integer;
@@ -1016,6 +1025,7 @@ type
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
     procedure StartDocument;
+    procedure Reset;
     procedure SaveToStream(const AStream: TStream); virtual;
     Procedure SaveToFile(Const AFileName : String); 
     // Create objects, owned by this document.
@@ -1109,8 +1119,11 @@ procedure CompressString(const AFrom: string; var ATo: string);
 procedure DecompressStream(AFrom: TStream; ATo: TStream);
 
 function mmToPDF(mm: single): TPDFFloat;
+function PDFTomm(APixels : TPDFFloat) : Single;
 function cmToPDF(cm: single): TPDFFloat;
+function PDFtoCM(APixels: TPDFFloat): single;
 function InchesToPDF(Inches: single): TPDFFloat;
+function PDFtoInches(APixels: TPDFFloat): single;
 
 function PDFCoord(x, y: TPDFFloat): TPDFCoord;
 
@@ -1270,7 +1283,7 @@ begin
   Result := mm * (cDefaultDPI / cInchToMM);
 end;
 
-function PDFtoMM(APixels: TPDFFloat): single;
+function PDFTomm(APixels: TPDFFloat): Single;
 begin
   Result := (APixels * cInchToMM) / cDefaultDPI;
 end;
@@ -2076,6 +2089,18 @@ begin
   AddObject(L);
 end;
 
+procedure TPDFPage.SetLineStyle(AIndex: Integer; AStroke : Boolean = True);
+
+begin
+  SetLineStyle(Document.LineStyles[Aindex]);
+end;
+
+procedure TPDFPage.SetLineStyle(S: TPDFLineStyleDef; AStroke: Boolean = True);
+begin
+  SetColor(S.Color,AStroke);
+  SetPenStyle(S.PenStyle,S.LineWidth);
+end;
+
 procedure TPDFPage.WriteText(X, Y: TPDFFloat; AText: UTF8String; const ADegrees: single);
 var
   p: TPDFCoord;
@@ -2108,7 +2133,8 @@ begin
   AddObject(L);
 end;
 
-procedure TPDFPage.DrawLine(APos1: TPDFCoord; APos2: TPDFCoord; ALineWidth: TPDFFloat; const AStroke: Boolean = True);
+procedure TPDFPage.DrawLine(APos1, APos2: TPDFCoord; ALineWidth: TPDFFloat;
+  const AStroke: Boolean);
 begin
   DrawLine(APos1.X, APos1.Y, APos2.X, APos2.Y, ALineWidth, AStroke);
 end;
@@ -2118,12 +2144,11 @@ var
   S: TPDFLineStyleDef;
 begin
   S := Document.LineStyles[AStyle];
-  SetColor(S.Color, True);
-  SetPenStyle(S.PenStyle);
+  SetLineStyle(S);
   DrawLine(X1, Y1, X2, Y2, S.LineWidth);
 end;
 
-procedure TPDFPage.DrawLineStyle(APos1: TPDFCoord; APos2: TPDFCoord; AStyle: Integer);
+procedure TPDFPage.DrawLineStyle(APos1, APos2: TPDFCoord; AStyle: Integer);
 begin
   DrawLineStyle(APos1.X, APos1.Y, APos2.X, APos2.Y, AStyle);
 end;
@@ -4457,6 +4482,7 @@ end;
 procedure TPDFDocument.StartDocument;
 
 begin
+  Reset;
   CreateRefTable;
   CreateTrailer;
   FCatalogue:=CreateCatalogEntry;
@@ -4464,6 +4490,18 @@ begin
   CreatePreferencesEntry;
   if (FontDirectory = '') then
     FontDirectory:=ExtractFilePath(ParamStr(0));
+end;
+
+procedure TPDFDocument.Reset;
+begin
+  FLineStyleDefs.Clear;
+  FFonts.Clear;
+  FImages.Clear;
+  FFontFiles.Clear;
+  FreeAndNil(FPages);
+  FPages:=CreatePDFPages;
+  FreeAndNil(FSections);
+  FSections:=CreateSectionList;
 end;
 
 destructor TPDFDocument.Destroy;
