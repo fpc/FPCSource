@@ -358,6 +358,18 @@ unit cpubase;
       end;      
       function findreg_by_number(r:Tregister):tregisterindex;
       begin
+        { the register table for MIPS cpu only contains 
+          R_SUBFS and R_SUBD register types.
+          This function is called by dbgstabs unit,
+          here were are only interested in register,
+          not its subtype, thus we change subreg to
+          R_SUBFS or R_SUBD.  }
+        case getsubreg(r) of
+          R_SUBFD:
+            setsubreg(r, R_SUBFS);
+          R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
+            setsubreg(r, R_SUBD);
+        end;
         result:=rgBase.findreg_by_number_table(r,regnumber_index);
       end;
 
@@ -397,6 +409,12 @@ unit cpubase;
 
     function dwarf_reg(r:tregister):shortint;
       begin
+        case getsubreg(r) of
+          R_SUBFD:
+            setsubreg(r, R_SUBFS);
+          R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
+            setsubreg(r, R_SUBD);
+        end;
         result:=regdwarf_table[findreg_by_number(r)];
         if result=-1 then
           internalerror(200603251);
