@@ -165,6 +165,7 @@
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}
   {$define cpuneedsdivhelper}
+  {$define cpu_uses_separate_address_registers}
 {$endif m68k}
 
 {$ifdef avr}

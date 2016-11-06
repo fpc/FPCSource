@@ -53,7 +53,9 @@ unit cpupara;
           function get_volatile_registers_fpu(calloption:tproccalloption):tcpuregisterset;override;
          private
           function parse_loc_string_to_register(var locreg: tregister; const s : string): boolean;
-          function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
+          function create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
+                                                var cur_stack_offset: aword):longint;
+          function create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                                 var cur_stack_offset: aword):longint;
        end;
 
@@ -64,7 +66,14 @@ unit cpupara;
        globals,
        systems,
        cpuinfo,
-       defutil;
+       defutil,
+       cutils,
+       hlcgobj;
+
+    const
+      intparasupregs : array[0..1] of tsuperregister = (RS_D0,RS_D1);
+      addrparasupregs : array[0..1] of tsuperregister = (RS_A0,RS_A1);
+      floatparasupregs : array[0..1] of tsuperregister = (RS_FP0,RS_FP1);
 
 
     function tcpuparamanager.get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;
@@ -227,12 +236,17 @@ unit cpupara;
         cur_stack_offset: aword;
       begin
         cur_stack_offset:=0;
-        result:=create_paraloc_info_intern(p,side,p.paras,cur_stack_offset);
+        case p.proccalloption of
+          pocall_register :
+            result:=create_register_paraloc_info(p,side,p.paras,cur_stack_offset);
+          else
+            result:=create_stdcall_paraloc_info(p,side,p.paras,cur_stack_offset);
+        end;
 
         create_funcretloc_info(p,side);
       end;
 
-    function tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
+    function tcpuparamanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                var cur_stack_offset: aword):longint;
       var
         paraloc      : pcgparalocation;
@@ -342,10 +356,216 @@ unit cpupara;
          result:=cur_stack_offset;
       end;
 
+    function tcpuparamanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
+                                                            var cur_stack_offset: aword): longint;
+      var
+        hp : tparavarsym;
+        paradef : tdef;
+        paraloc : pcgparalocation;
+        paracgsize : tcgsize;
+        i : integer;
+        l,
+        paralen,
+        parareg: longint;
+        addrparareg: longint;
+        floatparareg: longint;
+        varalign : longint;
+        paraalign : shortint;
+        pass : byte;
+        firstparaloc,
+        pushaddr : boolean;
+        rt: tregistertype;
+      begin
+        result:=0;
+        parareg:=0;
+        addrparareg:=0;
+        floatparareg:=0;
+
+        if paras.count=0 then
+          exit;
+        paraalign:=get_para_align(p.proccalloption);
+
+        { clean up here so we can later detect properly if a parameter has been
+          assigned or not
+        }
+        for i:=0 to paras.count-1 do
+          tparavarsym(paras[i]).paraloc[side].reset;
+        { Register parameters are assigned from left to right,
+          stack parameters from right to left so assign first the
+          register parameters in a first pass, in the second
+          pass all unhandled parameters are done }
+        for pass:=1 to 2 do
+          begin
+            if pass=1 then
+              i:=0
+            else
+              i:=paras.count-1;
+            while true do
+              begin
+                hp:=tparavarsym(paras[i]);
+                paradef:=hp.vardef;
+                if not(assigned(hp.paraloc[side].location)) then
+                  begin
+                    pushaddr:=push_addr_param(hp.varspez,hp.vardef,p.proccalloption);
+                    if pushaddr then
+                      begin
+                        paralen:=sizeof(aint);
+                        paracgsize:=OS_ADDR;
+                        paradef:=cpointerdef.getreusable_no_free(paradef);
+                      end
+                    else
+                      begin
+                        paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
+                        paracgsize:=def_cgsize(hp.vardef);
+                      end;
+                    hp.paraloc[side].size:=paracgsize;
+                    hp.paraloc[side].intsize:=paralen;
+                    hp.paraloc[side].Alignment:=paraalign;
+                    hp.paraloc[side].def:=paradef;
+                    {
+                      In case of po_delphi_nested_cc, the parent frame pointer
+                      is also always passed on the stack.
+                    }
+                    rt:=chlcgobj.def2regtyp(paradef);
+                    if (rt=R_FPUREGISTER) and
+                       (floatparareg<=high(floatparasupregs)) and
+                       (not pushaddr) then
+                      begin
+                        if pass=1 then
+                          begin
+                            paraloc:=hp.paraloc[side].add_location;
+                            paraloc^.size:=paracgsize;
+                            paraloc^.def:=paradef;
+                            paraloc^.loc:=LOC_FPUREGISTER;
+                            paraloc^.register:=newreg(R_FPUREGISTER,floatparasupregs[floatparareg],R_SUBWHOLE);
+                            inc(floatparareg);
+                          end;
+                      end
+                    else
+                    if (((rt=R_INTREGISTER) and (parareg<=high(intparasupregs))) or
+                        ((rt=R_ADDRESSREGISTER) and (addrparareg<=high(addrparasupregs)))) and
+                       (paralen<=sizeof(aint)) and
+                       (not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
+                        pushaddr or
+                        is_dynamic_array(hp.vardef)) and
+                       (not(vo_is_parentfp in hp.varoptions) or
+                        not(po_delphi_nested_cc in p.procoptions)) then
+                      begin
+                        if pass=1 then
+                          begin
+                            paraloc:=hp.paraloc[side].add_location;
+                            paraloc^.size:=paracgsize;
+                            paraloc^.def:=paradef;
+                            paraloc^.loc:=LOC_REGISTER;
+                            if (rt=R_ADDRESSREGISTER) and (addrparareg<=high(addrparasupregs)) then
+                              begin
+                                paraloc^.register:=newreg(R_ADDRESSREGISTER,addrparasupregs[addrparareg],R_SUBWHOLE);
+                                inc(addrparareg);
+                              end
+                            else
+                              if (rt=R_INTREGISTER) and (parareg<=high(intparasupregs)) then
+                                begin
+                                  paraloc^.register:=newreg(R_INTREGISTER,intparasupregs[parareg],cgsize2subreg(R_INTREGISTER,paracgsize));
+                                  inc(parareg);
+                                end
+                              else
+                                internalerror(2016051801);
+                          end;
+                      end
+                    else
+                      if pass=2 then
+                        begin
+                          { Copy to stack? }
+                          if (use_fixed_stack) or
+                             (paracgsize=OS_NO) then
+                            begin
+                              paraloc:=hp.paraloc[side].add_location;
+                              paraloc^.loc:=LOC_REFERENCE;
+                              paraloc^.size:=paracgsize;
+                              paraloc^.def:=paradef;
+                              if side=callerside then
+                                paraloc^.reference.index:=NR_STACK_POINTER_REG
+                              else
+                                paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                              varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
+                              paraloc^.reference.offset:=cur_stack_offset;
+                              if side=calleeside then
+                                inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                              cur_stack_offset:=align(cur_stack_offset+paralen,varalign);
+                            end
+                          else
+                            begin
+                              if paralen=0 then
+                                internalerror(200501163);
+                              firstparaloc:=true;
+                              while (paralen>0) do
+                                begin
+                                  paraloc:=hp.paraloc[side].add_location;
+                                  paraloc^.loc:=LOC_REFERENCE;
+                                  { Extended and double need a single location }
+                                  if (paracgsize in [OS_F64,OS_F32]) then
+                                    begin
+                                      paraloc^.size:=paracgsize;
+                                      paraloc^.def:=paradef;
+                                      l:=paralen;
+                                    end
+                                  else
+                                    begin
+                                      { We can allocate at maximum 32 bits per location }
+                                      if paralen>sizeof(aint) then
+                                        begin
+                                          l:=sizeof(aint);
+                                          paraloc^.def:=uinttype;
+                                        end
+                                      else
+                                        begin
+                                          l:=paralen;
+                                          paraloc^.def:=get_paraloc_def(paradef,l,firstparaloc);
+                                        end;
+                                      paraloc^.size:=int_cgsize(l);
+                                    end;
+                                  if side=callerside then
+                                    paraloc^.reference.index:=NR_STACK_POINTER_REG
+                                  else
+                                    paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                                  varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                                  paraloc^.reference.offset:=cur_stack_offset;
+                                  { M68K is a big-endian target }
+                                  if (paralen<tcgsize2size[OS_INT]) then
+                                    inc(paraloc^.reference.offset,4-paralen);
+                                  if side=calleeside then
+                                    inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                                  cur_stack_offset:=align(cur_stack_offset+l,varalign);
+                                  dec(paralen,l);
+                                  firstparaloc:=false;
+                                end;
+                            end;
+                        end;
+                  end;
+                case pass of
+                  1:
+                    begin
+                      if i=paras.count-1 then
+                        break;
+                      inc(i);
+                    end;
+                  2:
+                    begin
+                      if i=0 then
+                        break;
+                      dec(i);
+                    end;
+                end;
+              end;
+          end;
+        result:=cur_stack_offset;
+      end;
+
+
 
     function tcpuparamanager.parse_loc_string_to_register(var locreg: tregister; const s : string): boolean;
       begin
-        locreg:=std_regnum_search(lowercase(s));
+        locreg:=std_regnum_search(lower(s));
         result:=(locreg <> NR_NO) and (locreg <> NR_SP);
       end;
 
@@ -401,10 +621,10 @@ unit cpupara;
       begin
         cur_stack_offset:=0;
 
-        result:=create_paraloc_info_intern(p,callerside,p.paras,cur_stack_offset);
+        result:=create_stdcall_paraloc_info(p,callerside,p.paras,cur_stack_offset);
         if (p.proccalloption in cstylearrayofconst) then
           { just continue loading the parameters in the registers }
-          result:=create_paraloc_info_intern(p,callerside,varargspara,cur_stack_offset)
+          result:=create_stdcall_paraloc_info(p,callerside,varargspara,cur_stack_offset)
         else
           internalerror(200410231);
       end;
