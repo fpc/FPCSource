@@ -2924,7 +2924,8 @@ implementation
                      begin
                        if (resultdef.typ=enumdef) and
                           (tenumdef(resultdef).has_jumps) and
-                          not(m_delphi in current_settings.modeswitches) then
+                          not(m_delphi in current_settings.modeswitches) and
+                          not(nf_internal in flags) then
                          CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible);
                      end
                    else
