@@ -15,10 +15,11 @@
           Declarations for SetJmp/LongJmp
  **********************************************************************}
 
-type
 {$if defined(fpu68881)}
+type
   Tsizefpureg = packed array[0..11] of byte;
 {$elseif defined(fpucoldfire)}
+type
   Tsizefpureg = double;
 {$endif}
 
