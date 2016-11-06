@@ -1933,7 +1933,7 @@ const
      (mask:po_global;          str:'Global'),
      (mask:po_syscall;         str:'Syscall'),
      (mask:po_syscall_legacy;  str:'SyscallLegacy'),
-     (mask:po_syscall_basenone;str:'SyscallBaseNone');
+     (mask:po_syscall_basenone;str:'SyscallBaseNone'),
      (mask:po_syscall_basefirst;str:'SyscallBaseFirst'),
      (mask:po_syscall_baselast;str:'SyscallBaseLast'),
      (mask:po_syscall_basereg; str:'SyscallBaseReg'),
