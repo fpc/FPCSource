@@ -2056,6 +2056,7 @@ procedure pd_syscall(pd:tabstractprocdef);
           system_powerpc_amiga:
               include(pd.procoptions,get_default_syscall);
           system_powerpc_morphos,
+          system_arm_aros,
           system_i386_aros,
           system_x86_64_aros:
               begin
@@ -2077,7 +2078,7 @@ procedure pd_syscall(pd:tabstractprocdef);
       function po_syscall_to_varoptions: tvaroptions;
         begin
           result:=[vo_is_syscall_lib,vo_is_hidden_para];
-          if ([po_syscall_legacy,po_syscall_r12base,po_syscall_sysv,po_syscall_eaxbase] * tprocdef(pd).procoptions) <> [] then
+          if ([po_syscall_legacy,po_syscall_basereg,po_syscall_basenone] * tprocdef(pd).procoptions) <> [] then
             include(result,vo_has_explicit_paraloc);
         end;
 
@@ -2085,20 +2086,23 @@ procedure pd_syscall(pd:tabstractprocdef);
         begin
           if po_syscall_legacy in tprocdef(pd).procoptions then
             result:='A6'
-          else if po_syscall_r12base in tprocdef(pd).procoptions then
-            result:='R12'
-          { let sysv store the libbase in r12 as well, because we will
-            need the libbase anyway during the call generation }
-          else if po_syscall_sysv in tprocdef(pd).procoptions then
-            result:='R12'
-          else if po_syscall_eaxbase in tprocdef(pd).procoptions then
+          { let no base on MorphOS store the libbase in r12 as well, because 
+            we will need the libbase anyway during the call generation }
+          else if (po_syscall_basenone in tprocdef(pd).procoptions) and
+                  (target_info.system = system_powerpc_morphos) then
+                 result:='R12'
+          else if po_syscall_basereg in tprocdef(pd).procoptions then
             begin
-              if target_info.system = system_i386_aros then
-                result:='EAX'
-              else if target_info.system = system_x86_64_aros then
-                result:='RAX'
-              else
-                internalerror(2016090201);
+              case target_info.system of
+                system_i386_aros:
+                    result:='EAX';
+                system_x86_64_aros:
+                    result:='RAX';
+                system_powerpc_morphos:
+                    result:='R12';
+                else
+                  internalerror(2016090201);
+              end;
             end
           else
             internalerror(2016090101);
@@ -2149,7 +2153,7 @@ begin
         tcpuprocdef(pd).libsym:=sym;
 
         vo:=po_syscall_to_varoptions;
-        paranr:=syscall_paranr[po_syscall_basesysv in tprocdef(pd).procoptions];
+        paranr:=syscall_paranr[po_syscall_basefirst in tprocdef(pd).procoptions];
         vs:=cparavarsym.create('$syscalllib',paranr,vs_value,tabstractvarsym(sym).vardef,vo);
         if vo_has_explicit_paraloc in vo then
           paramanager.parseparaloc(vs,po_syscall_to_regname);
@@ -2165,7 +2169,7 @@ begin
   if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(Tprocdef(pd).extnumber)),tostr(high(Tprocdef(pd).extnumber)))
   else
-    if target_info.system in [system_i386_aros,system_x86_64_aros] then
+    if target_info.system in [system_arm_aros,system_i386_aros,system_x86_64_aros] then
       Tprocdef(pd).extnumber:=v.uvalue * sizeof(pint)
     else
       Tprocdef(pd).extnumber:=v.uvalue;
