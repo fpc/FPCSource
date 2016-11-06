@@ -172,7 +172,8 @@
              system_x86_64_iphonesim,   { 87 }
              system_aarch64_linux,      { 88 }
              system_i8086_win16,        { 89 }
-             system_i8086_embedded      { 90 }
+             system_i8086_embedded,     { 90 }
+             system_arm_aros            { 91 }
        );
 
      type

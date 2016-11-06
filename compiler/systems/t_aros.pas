@@ -260,5 +260,9 @@ initialization
   RegisterLinker(ld_aros,TLinkeraros);
   RegisterTarget(system_x86_64_aros_info);
 {$endif x86_64}
+{$ifdef arm}
+  RegisterLinker(ld_aros,TLinkeraros);
+  RegisterTarget(system_arm_aros_info);
+{$endif arm}
   RegisterRes(res_elf_info, TWinLikeResourceFile);
 end.

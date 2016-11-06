@@ -62,6 +62,9 @@ implementation
     {$ifndef NOTARGETBSD}
       ,t_bsd
     {$endif}
+    {$ifndef NOTARGETAROS}
+      ,t_aros
+    {$endif}
 
 {**************************************
              Assemblers
