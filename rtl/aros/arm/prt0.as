@@ -19,20 +19,20 @@ _start:
 	push {r0-r12,r14}
 	ldr ip,=_Backjump
 	str lr,[ip]
-	// ExecBase
+	/* ExecBase */
 	ldr ip,=_ExecBase
-	str r5, [ip]  // Execbase seems to be in r5 ;-)
+	str r5, [ip]  /* Execbase seems to be in r5 ;-)*/
 
-  // Save initial stackpointer 
+	/* Save initial stackpointer*/
 	ldr ip,=__stkptr
 	str sp,[ip]
 	
 	bl PASCALMAIN
 
-	//mov r0,#71
-	//bl _RawCharS
-	//mov r0,#10
-	//bl _RawCharS
+	/*mov r0,#71
+	bl _RawCharS
+	mov r0,#10
+	bl _RawCharS*/
 
 	.globl  _haltproc
 	.type   _haltproc,#function
@@ -43,7 +43,9 @@ _haltproc:
 
 	pop {r0-r12,r14}
 
-  // TODO: exitcode should be r0
+	/* exitcode should be r0*/
+	ldr ip,=operatingsystem_result
+	ldr r0,[ip]
 
 	ldr ip,=_Backjump
 	ldr lr,[ip]
@@ -62,5 +64,3 @@ __data_start:
   .comm __stkptr,4
 	.comm _ExecBase,4
 	.comm _Backjump,4
-
-
