@@ -22,10 +22,10 @@ begin
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'A set of units for AROS. Currently i386 only';
+    P.Description := 'A set of units for AROS.';
     P.NeedLibC:= false;
 
-    P.CPUs:=[i386,x86_64];
+    P.CPUs:=[arm,i386,x86_64];
     P.OSes:=[aros];
 
     P.SourcePath.Add('src');
