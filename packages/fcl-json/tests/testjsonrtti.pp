@@ -5,7 +5,7 @@ unit testjsonrtti;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, typinfo, fpjson,
+  Classes, SysUtils, fpcunit, testregistry, typinfo, fpjson,
   dateutils, testcomps, testjsondata, fpjsonrtti;
 
 type
