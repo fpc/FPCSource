@@ -44,7 +44,7 @@ uses
   cutils, verbose, globals,
   symconst, symdef, paramgr,
   aasmbase, aasmtai,aasmdata, aasmcpu, defutil, htypechk,
-  cgbase, cpuinfo, pass_1, pass_2, regvars,
+  cgbase, cpuinfo, pass_1, pass_2,
   cpupara, cgcpu, cgutils,procinfo,
   ncon, nset,
   ncgutil, tgobj, rgobj, rgcpu, cgobj;

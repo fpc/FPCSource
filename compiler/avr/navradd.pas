@@ -48,7 +48,7 @@ interface
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
       cgbase,cgutils,cgcpu,
-      cpuinfo,pass_1,pass_2,regvars,procinfo,
+      cpuinfo,pass_1,pass_2,procinfo,
       cpupara,
       ncon,nset,nadd,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32,

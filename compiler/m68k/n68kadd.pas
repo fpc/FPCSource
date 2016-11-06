@@ -51,7 +51,7 @@ implementation
       cutils,verbose,globals,
       symconst,symdef,paramgr,symtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
-      cpuinfo,pass_1,pass_2,regvars,
+      cpuinfo,pass_1,pass_2,
       cpupara,cgutils,procinfo,
       ncon,nset,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cgcpu,hlcgobj,cg64f32;

@@ -47,7 +47,7 @@ implementation
       cpuinfo,
       pass_2,cgcpu,
       ncon,
-      tgobj,ncgutil,regvars,rgobj,aasmcpu,
+      tgobj,ncgutil,rgobj,aasmcpu,
       procinfo,
       cgutils;
 

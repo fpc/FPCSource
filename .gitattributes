@@ -651,7 +651,6 @@ compiler/raatt.pas svneol=native#text/plain
 compiler/rabase.pas svneol=native#text/plain
 compiler/rasm.pas svneol=native#text/plain
 compiler/rautils.pas svneol=native#text/plain
-compiler/regvars.pas svneol=native#text/plain
 compiler/rescmn.pas svneol=native#text/plain
 compiler/rgbase.pas svneol=native#text/plain
 compiler/rgobj.pas svneol=native#text/plain

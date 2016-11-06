@@ -136,7 +136,7 @@ implementation
     globals,systems,verbose,export,
     ppu,defutil,
     procinfo,paramgr,fmodule,
-    regvars,dbgbase,
+    dbgbase,
     pass_1,pass_2,
     nbas,ncon,nld,nmem,nutils,ngenutil,
     tgobj,cgobj,hlcgobj,hlcgcpu

@@ -123,7 +123,7 @@ implementation
       { override create_hlcodegen from hlcgcpu }
       hlcgllvm,
 {$endif}
-       ncgutil,regvars,
+       ncgutil,
        optbase,
        opttail,
        optcse,

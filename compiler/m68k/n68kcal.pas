@@ -47,7 +47,7 @@ implementation
       cgbase,pass_2,
       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       nmem,nld,ncnv,
-      ncgutil,cgutils,cgobj,tgobj,regvars,rgobj,rgcpu,
+      ncgutil,cgutils,cgobj,tgobj,rgobj,rgcpu,
       cg64f32,cgcpu,cpupi,procinfo;
 
 
