@@ -37,16 +37,19 @@ type
   psyscallinfo = ^tsyscallinfo;
 
 const
-  syscall_conventions: array[1..8] of tsyscallinfo = (
+  syscall_conventions: array[1..10] of tsyscallinfo = (
       ( token: NOTOKEN;    procoption: po_syscall;           validon: [system_m68k_atari] ),
       ( token: _LEGACY;    procoption: po_syscall_legacy;    validon: [system_powerpc_morphos,system_m68k_amiga] ),
-      ( token: _SYSV;      procoption: po_syscall_sysv;      validon: [system_powerpc_morphos] ),
-      ( token: _SYSVBASE;  procoption: po_syscall_sysvbase;  validon: [system_powerpc_morphos] ),
-      ( token: _BASESYSV;  procoption: po_syscall_basesysv;  validon: [system_powerpc_morphos,system_powerpc_amiga] ),
-      ( token: _R12BASE;   procoption: po_syscall_r12base;   validon: [system_powerpc_morphos] ),
-      ( token: _STACKBASE; procoption: po_syscall_stackbase; validon: [system_i386_aros,system_x86_64_aros] ),
-      ( token: _EAXBASE;   procoption: po_syscall_eaxbase;   validon: [system_i386_aros,system_x86_64_aros] ));
-
+      // old sysv naming, for compatibility only (on MorphOS/OS4)
+      ( token: _SYSV;      procoption: po_syscall_basenone;  validon: [system_powerpc_morphos] ),
+      ( token: _SYSVBASE;  procoption: po_syscall_baselast;  validon: [system_powerpc_morphos] ),
+      ( token: _BASESYSV;  procoption: po_syscall_basefirst; validon: [system_powerpc_morphos,system_powerpc_amiga] ),
+      ( token: _R12BASE;   procoption: po_syscall_basereg;   validon: [system_powerpc_morphos] ),
+      // new base naming, which should cover all "next-gen" Amiga-like systems
+      ( token: _BASENONE;  procoption: po_syscall_basenone;  validon: [system_powerpc_morphos] ),
+      ( token: _BASEFIRST; procoption: po_syscall_basefirst; validon: [system_powerpc_morphos,system_powerpc_amiga] ),
+      ( token: _BASELAST;  procoption: po_syscall_baselast;  validon: [system_powerpc_morphos,system_i386_aros,system_x86_64_aros,system_arm_aros] ),
+      ( token: _BASEREG;   procoption: po_syscall_basereg;   validon: [system_powerpc_morphos,system_i386_aros,system_x86_64_aros] ));
 
 function get_syscall_by_token(const token: ttoken): psyscallinfo;
 function get_syscall_by_name(const name: string): psyscallinfo;
@@ -59,9 +62,8 @@ uses
   verbose;
 
 const
-  syscall_conventions_po = [ po_syscall, po_syscall_legacy, po_syscall_sysv,
-                             po_syscall_sysvbase, po_syscall_basesysv, po_syscall_r12base,
-                             po_syscall_stackbase, po_syscall_eaxbase ];
+  syscall_conventions_po = [ po_syscall, po_syscall_legacy, po_syscall_basenone,
+                             po_syscall_baselast, po_syscall_basefirst, po_syscall_basereg ];
 
 type
   tsyscalldefaultinfo = record
@@ -70,13 +72,14 @@ type
   end;
 
 const
-  default_syscall_conventions: array[0..5] of tsyscalldefaultinfo = (
+  default_syscall_conventions: array[0..6] of tsyscalldefaultinfo = (
       ( system: system_m68k_atari;      procoption: po_syscall ),
       ( system: system_m68k_amiga;      procoption: po_syscall_legacy ),
-      ( system: system_powerpc_amiga;   procoption: po_syscall_basesysv ),
+      ( system: system_powerpc_amiga;   procoption: po_syscall_basefirst ),
       ( system: system_powerpc_morphos; procoption: po_syscall_legacy ),
-      ( system: system_i386_aros;       procoption: po_syscall_stackbase ),
-      ( system: system_x86_64_aros;     procoption: po_syscall_stackbase ));
+      ( system: system_arm_aros;        procoption: po_syscall_baselast ),
+      ( system: system_i386_aros;       procoption: po_syscall_baselast ),
+      ( system: system_x86_64_aros;     procoption: po_syscall_baselast ));
 
 var
   default_syscall_convention: tprocoption = po_none;

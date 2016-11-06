@@ -90,15 +90,15 @@ implementation
           system_powerpc_amiga:
             begin
               { one syscall convention for AmigaOS/PowerPC
-                which is very similar to basesysv on MorphOS }
+                which is very similar to basesysv (a.k.a basefirst) on MorphOS }
               reference_reset_base(tmpref,NR_R3,tprocdef(procdefinition).extnumber,sizeof(pint));
               do_call_ref(tmpref);
             end;
           system_powerpc_morphos:
             begin
               { all conventions but legacy }
-              if ([po_syscall_basesysv,po_syscall_sysv,
-                   po_syscall_sysvbase,po_syscall_r12base] * tprocdef(procdefinition).procoptions) <> [] then
+              if ([po_syscall_basefirst,po_syscall_basenone,
+                   po_syscall_baselast,po_syscall_basereg] * tprocdef(procdefinition).procoptions) <> [] then
                 begin
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
 

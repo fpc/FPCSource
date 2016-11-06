@@ -136,7 +136,7 @@ const
   paranr_objc_cmd = 6;
 
   { Required to support variations of syscalls on Amiga-likes }
-  paranr_syscall_lib_first   = 9;             { for basesysv on MorphOS/ppc and AmigaOS4/ppc }
+  paranr_syscall_lib_first   = 9;             { for basefirst on MorphOS/ppc and AmigaOS4/ppc }
   paranr_syscall_lib_last    = high(word)-3;  { everything else }
 
   paranr_result_leftright    = high(word)-2;
@@ -340,15 +340,12 @@ type
     po_global,
     { Generic syscall procoption, for systems like Atari, Palm, etc }
     po_syscall,
-    { The different kind of syscalls on AmigaOS and MorphOS, m68k and PPC }
+    { The different kind of syscalls on Amiga-like systems }
     po_syscall_legacy,
-    po_syscall_sysv,
-    po_syscall_basesysv,
-    po_syscall_sysvbase,
-    po_syscall_r12base,
-    { The different kind of syscalls on AROS, i386/x86_64 }
-    po_syscall_stackbase,
-    po_syscall_eaxbase,
+    po_syscall_basenone,
+    po_syscall_basefirst,
+    po_syscall_baselast,
+    po_syscall_basereg,
     { Used to record the fact that a symbol is associated to this syscall }
     po_syscall_has_libsym,
     { Procedure can be inlined }
