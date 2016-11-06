@@ -17,10 +17,13 @@
 
 {$warning Fix register handling in case of nostackframe }
 
-Function fpc_SetJmp (Var S : Jmp_buf) : longint;assembler;stdcall;nostackframe;[Public, alias : 'FPC_SETJMP'];compilerproc;
+Function fpc_SetJmp (Var S : Jmp_buf) : longint;assembler;nostackframe;[Public, alias : 'FPC_SETJMP'];compilerproc;
 asm
+{$ifndef REGCALL}
   // load S to a0
+  // with register convention S is in a0 already
   move.l 4(sp),a0
+{$endif}
 
   // Save nonvolatile registers
 {$if defined(amiga)}
@@ -35,12 +38,16 @@ asm
   fmovem.d  fp2-fp7,52(a0)
 {$endif}
 
+  // save FP
+  move.l fp,(a0)
+{$ifndef REGCALL}
   // save return address (PC) and pop S off the stack
   move.l (sp)+,d0
   move.l d0,(sp)
+{$else}
+  move.l (sp),d0
+{$endif}
   move.l d0,8(a0)
-  // save FP
-  move.l fp,(a0)
   // save SP
   move.l sp,d0
   // 4 bytes already popped, 4 to go.
@@ -51,12 +58,18 @@ asm
   clr.l d0
 end;
 
-Procedure fpc_longJmp (Var S : Jmp_buf; value : longint); assembler;stdcall;nostackframe;[Public, alias : 'FPC_LONGJMP'];compilerproc;
+Procedure fpc_longJmp (Var S : Jmp_buf; value : longint); assembler;nostackframe;[Public, alias : 'FPC_LONGJMP'];compilerproc;
 asm
+{$ifndef REGCALL}
   // load S to a0
   move.l 4(sp),a0
   // load 'value' to d0
   move.l 8(sp),d0
+{$else}
+  // with register calling convention
+  // S is in a0 and value is in d0 already
+  tst.l d0
+{$endif}
   // don't return zero
   bne @valueok
   moveq.l #1,d0
