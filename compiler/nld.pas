@@ -569,8 +569,9 @@ implementation
           ((tinlinenode(right).inlinenumber=in_succ_x) or (tinlinenode(right).inlinenumber=in_pred_x)) and
           (tinlinenode(right).left.isequal(left)) and
           ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
-          ((right.localswitches*[cs_check_overflow,cs_check_range])=[])
-           then
+          ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+          valid_for_var(tinlinenode(right).left,false) and
+          not(might_have_sideeffects(tinlinenode(right).left)) then
           begin
             if tinlinenode(right).inlinenumber=in_succ_x then
               result:=cinlinenode.create(
