@@ -676,7 +676,11 @@ begin
     ctObject, ctRecord:
       begin
         Fjs.WriteLn('private native void __Destroy(long pasobj);');
-        Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { __Init(objptr, cleanup); }', [d.Name]));
+        if d.AncestorClass = nil then
+          s:='__Init'
+        else
+          s:='super';
+        Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { %s(objptr, cleanup); }', [d.Name, s]));
         Fjs.WriteLn(Format('public %s() { __Init(0, true); }', [d.Name]));
         Fjs.WriteLn(Format('public void __Release() { __Destroy(_pasobj); _pasobj=0; }', [d.Name]));
         Fjs.WriteLn(Format('public int __Size() { return __Size(%d); }', [FRecords.Add(d)]));
