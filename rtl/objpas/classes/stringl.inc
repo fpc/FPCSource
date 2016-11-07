@@ -1629,7 +1629,8 @@ begin
     Error (SSortedListError,0)
   else
     begin
-    CheckIndex(Index);
+    If (Index<0) or (Index>FCount) then
+      Error(SListIndexError,Index); // Cannot use CheckIndex, because there >= FCount...
     InsertItem (Index,S);
     end;
 end;
