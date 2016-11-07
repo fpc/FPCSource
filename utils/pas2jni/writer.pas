@@ -1775,8 +1775,8 @@ begin
       Fps.WriteLn('else begin');
       Fps.WriteLn('mpi:=_TMethodPtrInfo.Create(env, nil, '''', '''');', 1);
       Fps.WriteLn('mpi.RealMethod:=m;', 1);
-      Fps.WriteLn('InterlockedIncrement(mpi.RefCnt);', 1);
       Fps.WriteLn('end;');
+      Fps.WriteLn('InterlockedIncrement(mpi.RefCnt);');
       Fps.WriteLn('finally', -1);
       Fps.WriteLn('_MethodPointersCS.Leave;');
       Fps.DecI;
