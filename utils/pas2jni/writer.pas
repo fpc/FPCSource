@@ -1640,7 +1640,7 @@ begin
       Fjs.WriteLn('protected void __Init(long objptr, boolean cleanup) { _pasobj=objptr; _cleanup=cleanup; if (_pasobj==0 && __Size() != 0) _pasobj=AllocMemory(__Size()); }');
       Fjs.WriteLn('protected Record(PascalObject obj) { super(obj); _objref=obj; }');
       Fjs.WriteLn('protected Record(long objptr) { super(objptr); }');
-      Fjs.WriteLn('protected final int __Size(int index) { return GetRecordSize(index); };');
+      Fjs.WriteLn('protected final int __Size(int index) { return GetRecordSize(index); }');
       Fjs.WriteLn('public Record() { }');
       Fjs.WriteLn('public int __Size() { return 0; }');
       Fjs.DecI;
