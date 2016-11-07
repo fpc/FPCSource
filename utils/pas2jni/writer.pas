@@ -97,6 +97,7 @@ type
     FUniqueCnt: integer;
     FThisUnit: TUnitDef;
     FIntegerType: TDef;
+    FRecords: TObjectList;
 
     function DoCheckItem(const ItemName: string): TCheckItemResult;
 
@@ -140,6 +141,7 @@ type
     procedure WritePointer(d: TPointerDef; PreInfo: boolean);
     procedure WriteUnit(u: TUnitDef);
     procedure WriteOnLoad;
+    procedure WriteRecordSizes;
   public
     SearchPath: string;
     LibName: string;
@@ -677,7 +679,7 @@ begin
         Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { __Init(objptr, cleanup); }', [d.Name]));
         Fjs.WriteLn(Format('public %s() { __Init(0, true); }', [d.Name]));
         Fjs.WriteLn(Format('public void __Release() { __Destroy(_pasobj); _pasobj=0; }', [d.Name]));
-        Fjs.WriteLn(Format('public int __Size() { return %d; }', [d.Size]));
+        Fjs.WriteLn(Format('public int __Size() { return __Size(%d); }', [FRecords.Add(d)]));
       end;
     ctInterface:
       begin
@@ -1629,10 +1631,15 @@ begin
       Fjs.WriteLn('protected void __Init(long objptr, boolean cleanup) { _pasobj=objptr; _cleanup=cleanup; if (_pasobj==0 && __Size() != 0) _pasobj=AllocMemory(__Size()); }');
       Fjs.WriteLn('protected Record(PascalObject obj) { super(obj); _objref=obj; }');
       Fjs.WriteLn('protected Record(long objptr) { super(objptr); }');
+      Fjs.WriteLn('protected final int __Size(int index) { return GetRecordSize(index); };');
       Fjs.WriteLn('public Record() { }');
       Fjs.WriteLn('public int __Size() { return 0; }');
       Fjs.DecI;
       Fjs.WriteLn('}');
+
+      Fjs.WriteLn;
+      Fjs.WriteLn('private native static int GetRecordSize(int index);');
+      AddNativeMethod(u, '_GetRecordSize', 'GetRecordSize', '(I)I');
 
       // Method pointer base class
       d:=TClassDef.Create(FThisUnit, dtClass);
@@ -2058,6 +2065,40 @@ begin
   Fps.WriteLn('end;');
   Fps.WriteLn;
   Fps.WriteLn('exports JNI_OnLoad;');
+end;
+
+procedure TWriter.WriteRecordSizes;
+var
+  i, j: integer;
+  s: string;
+begin
+  Fps.WriteLn;
+  Fps.WriteLn('function _GetRecordSize(env: PJNIEnv; jobj: jobject; index: jint): jint;' + JniCaliing);
+  if FRecords.Count > 0 then begin
+    Fps.WriteLn(Format('const sizes: array[0..%d] of longint =', [FRecords.Count - 1]));
+    Fps.IncI;
+    s:='(';
+    j:=0;
+    for i:=0 to FRecords.Count - 1 do begin
+      if i > 0 then
+        s:=s + ',';
+      Inc(j);
+      if j > 20 then begin
+        Fps.WriteLn(s);
+        s:='';
+      end;
+      s:=s + IntToStr(TClassDef(FRecords[i]).Size);
+    end;
+    Fps.WriteLn(s + ');');
+    Fps.DecI;
+  end;
+  Fps.WriteLn('begin');
+  if FRecords.Count > 0 then
+    s:='sizes[index]'
+  else
+    s:='0';
+  Fps.WriteLn('Result:=' + s + ';', 1);
+  Fps.WriteLn('end;');
 end;
 
 function TWriter.JniToPasType(d: TDef; const v: string; CheckNil: boolean): string;
@@ -2493,6 +2534,7 @@ begin
     ExcludeList.Add(ExcludeDelphi7[i]);
 
   FThisUnit:=TUnitDef.Create(nil, dtUnit);
+  FRecords:=TObjectList.Create(False);
 end;
 
 destructor TWriter.Destroy;
@@ -2506,6 +2548,7 @@ begin
   IncludeList.Free;
   ExcludeList.Free;
   FThisUnit.Free;
+  FRecords.Free;
   inherited Destroy;
 end;
 
@@ -2734,6 +2777,8 @@ begin
       with TUnitDef(p.Units[i]) do begin
         WriteUnit(TUnitDef(p.Units[i]));
       end;
+
+    WriteRecordSizes;
 
     WriteOnLoad;
 
