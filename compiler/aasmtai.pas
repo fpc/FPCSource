@@ -637,9 +637,13 @@ interface
           constructor Create_type_name(_typ:taiconst_type;const name:string;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Create_nil_codeptr;
+          constructor Create_nil_codeptr_unaligned;
           constructor Create_nil_dataptr;
+          constructor Create_nil_dataptr_unaligned;
           constructor Create_int_codeptr(_value: int64);
+          constructor Create_int_codeptr_unaligned(_value: int64);
           constructor Create_int_dataptr(_value: int64);
+          constructor Create_int_dataptr_unaligned(_value: int64);
 {$ifdef i8086}
           constructor Create_seg_name(const name:string);
           constructor Create_dgroup;
@@ -1755,9 +1759,21 @@ implementation
       end;
 
 
+    constructor tai_const.Create_nil_codeptr_unaligned;
+      begin
+        self.Create_int_codeptr_unaligned(0);
+      end;
+
+
     constructor tai_const.Create_nil_dataptr;
       begin
         self.Create_int_dataptr(0);
+      end;
+
+
+    constructor tai_const.Create_nil_dataptr_unaligned;
+      begin
+        self.Create_int_dataptr_unaligned(0);
       end;
 
 
@@ -1782,6 +1798,27 @@ implementation
       end;
 
 
+    constructor tai_const.Create_int_codeptr_unaligned(_value: int64);
+      begin
+        inherited Create;
+        typ:=ait_const;
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_code_models then
+          consttype:=aitconst_farptr
+        else
+{$endif i8086}
+{$ifdef avr}
+          consttype:=aitconst_gs;
+{$else avr}
+          consttype:=aitconst_ptr_unaligned;
+{$endif avr}
+        sym:=nil;
+        endsym:=nil;
+        symofs:=0;
+        value:=_value;
+      end;
+
+
     constructor tai_const.Create_int_dataptr(_value: int64);
       begin
         inherited Create;
@@ -1792,6 +1829,23 @@ implementation
         else
 {$endif i8086}
           consttype:=aitconst_ptr;
+        sym:=nil;
+        endsym:=nil;
+        symofs:=0;
+        value:=_value;
+      end;
+
+
+    constructor tai_const.Create_int_dataptr_unaligned(_value: int64);
+      begin
+        inherited Create;
+        typ:=ait_const;
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          consttype:=aitconst_farptr
+        else
+{$endif i8086}
+          consttype:=aitconst_ptr_unaligned;
         sym:=nil;
         endsym:=nil;
         symofs:=0;
