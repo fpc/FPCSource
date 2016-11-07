@@ -617,8 +617,6 @@ interface
           constructor Create_sleb128bit(_value : int64);
           constructor Create_uleb128bit(_value : qword);
           constructor Create_aint(_value : aint);
-          constructor Create_pint(_value : pint);
-          constructor Create_pint_unaligned(_value : pint);
           constructor Create_sizeint(_value : asizeint);
           constructor Create_sizeint_unaligned(_value : asizeint);
           constructor Create_sym(_sym:tasmsymbol);
@@ -1560,28 +1558,6 @@ implementation
          inherited Create;
          typ:=ait_const;
          consttype:=aitconst_aint;
-         value:=_value;
-         sym:=nil;
-         endsym:=nil;
-      end;
-
-
-    constructor tai_const.Create_pint(_value : pint);
-      begin
-         inherited Create;
-         typ:=ait_const;
-         consttype:=aitconst_ptr;
-         value:=_value;
-         sym:=nil;
-         endsym:=nil;
-      end;
-
-
-    constructor tai_const.Create_pint_unaligned(_value: pint);
-      begin
-         inherited Create;
-         typ:=ait_const;
-         consttype:=aitconst_ptr_unaligned;
          value:=_value;
          sym:=nil;
          endsym:=nil;
