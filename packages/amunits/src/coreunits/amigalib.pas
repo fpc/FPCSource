@@ -103,6 +103,7 @@ function SetSuperAttrsA(cl : pIClass; obj: pObject_; msg : APTR): ulong;
 function DoMethod(obj: PObject_; Params: array of DWord): LongWord; inline;
 
 procedure HookEntry;
+procedure HookEntryPas;
 
 {
 
