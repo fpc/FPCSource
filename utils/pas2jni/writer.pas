@@ -201,7 +201,7 @@ const
 
 function JniCaliing: string;
 begin
-  Result:='{$ifdef windows} stdcall {$else} cdecl {$endif};';
+  Result:='{$ifdef mswindows} stdcall {$else} cdecl {$endif};';
 end;
 
 { TClassList }
