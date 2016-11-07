@@ -621,7 +621,7 @@ begin
       Fps.WriteLn(Format('var pr: ^%s;', [s]));
       Fps.WriteLn('begin');
       Fps.IncI;
-      Fps.WriteLn('New(pr); pr^:=r;');
+      Fps.WriteLn(Format('pr:=AllocMem(SizeOf(%s)); pr^:=r;', [s]));
       Fps.WriteLn(Format('Result:=_CreateJavaObj(env, pr, %s);', [GetTypeInfoVar(d)]));
       Fps.DecI;
       Fps.WriteLn('end;');
@@ -632,7 +632,7 @@ begin
       Fps.WriteLn(Format('var pr: ^%s;', [s]));
       Fps.WriteLn('begin');
       Fps.WriteLn('pr:=pointer(ptruint(r));', 1);
-      Fps.WriteLn('Dispose(pr);', 1);
+      Fps.WriteLn('system.Dispose(pr);', 1);
       Fps.WriteLn('end;');
 
       AddNativeMethod(d, ss, '__Destroy', '(J)V');
@@ -681,14 +681,14 @@ begin
         else
           s:='super';
         Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { %s(objptr, cleanup); }', [d.Name, s]));
-        Fjs.WriteLn(Format('public %s() { __Init(0, true); }', [d.Name]));
-        Fjs.WriteLn(Format('public void __Release() { __Destroy(_pasobj); _pasobj=0; }', [d.Name]));
-        Fjs.WriteLn(Format('public int __Size() { return __Size(%d); }', [FRecords.Add(d)]));
+        Fjs.WriteLn(Format('public %s() { %s(0, true); }', [d.Name, s]));
+        Fjs.WriteLn(Format('@Override public void __Release() { __Destroy(_pasobj); _pasobj=0; }', [d.Name]));
+        Fjs.WriteLn(Format('@Override public int __Size() { return __Size(%d); }', [FRecords.Add(d)]));
       end;
     ctInterface:
       begin
         if d.AncestorClass = nil then begin
-          Fjs.WriteLn('public void __Release() { if (_pasobj != 0) _Release(); _pasobj = 0; }');
+          Fjs.WriteLn('@Override public void __Release() { if (_pasobj != 0) _Release(); _pasobj = 0; }');
           Fjs.WriteLn('public void __Init() { _cleanup=true; if (_pasobj != 0) _AddRef(); }');
           s:='_pasobj=objptr; __Init();';
         end
@@ -980,8 +980,9 @@ begin
       else
       if IsObj and (ProcType = ptDestructor) then begin
         Fps.WriteLn(TempRes + ':=@' + JniToPasType(d.Parent, '_jobj', True) + ';');
-        s:=Format('system.Dispose(%s, %s);', [TempRes, s]);
-        Fps.WriteLn(s);
+        Fps.WriteLn(Format('%s^.%s;', [TempRes, s]));
+//        Fps.WriteLn(Format('system.Finalize(%s^); system.FreeMem(%s);', [TempRes, TempRes]));
+        Fps.WriteLn(Format('_env^^.SetLongField(_env, _jobj, %s.ObjFieldId, -jlong(ptruint(%s)));', [GetTypeInfoVar(d.Parent), TempRes]));
       end
       else begin
         if ProcType in [ptFunction, ptConstructor] then
@@ -1004,8 +1005,9 @@ begin
         end;
       end;
 
-      if IsTObject and ( (ProcType = ptDestructor) or (CompareText(Name, 'Free') = 0) ) then
-        Fps.WriteLn(Format('_env^^.SetLongField(_env, _jobj, %s.ObjFieldId, 0);', [GetTypeInfoVar(d.Parent)]));
+      if not IsObj then
+        if IsTObject and ( (ProcType = ptDestructor) or (CompareText(Name, 'Free') = 0) ) then
+          Fps.WriteLn(Format('_env^^.SetLongField(_env, _jobj, %s.ObjFieldId, 0);', [GetTypeInfoVar(d.Parent)]));
 
       if tf then begin
         Fps.WriteLn('finally', -1);
@@ -1602,6 +1604,7 @@ begin
       Fjs.WriteLn('protected PascalObject() { }');
       Fjs.WriteLn('protected PascalObject(PascalObject obj) { if (obj == null) _pasobj=0; else _pasobj=obj._pasobj; }');
       Fjs.WriteLn('protected PascalObject(long objptr) { _pasobj=objptr; }');
+      Fjs.WriteLn('protected void finalize() { }');
       Fjs.WriteLn('@Override public boolean equals(Object o) { return ((o instanceof PascalObject) && _pasobj == ((PascalObject)o)._pasobj); }');
       Fjs.WriteLn('@Override public int hashCode() { return (int)_pasobj; }');
       Fjs.DecI;
@@ -1614,11 +1617,12 @@ begin
       Fjs.WriteLn('public static class PascalObjectEx extends PascalObject {');
       Fjs.IncI;
       Fjs.WriteLn('protected boolean _cleanup = false;');
-      Fjs.WriteLn('protected void finalize() { ');
+      Fjs.WriteLn('@Override protected void finalize() { ');
 {$ifdef DEBUG}
       Fjs.WriteLn('String s = "finalize(): " + getClass().getName(); if (_cleanup) s=s+". Need __Release(). ptr="+_pasobj; System.out.println(s);', 1);
 {$endif DEBUG}
       Fjs.WriteLn('if (_cleanup) __Release();', 1);
+      Fjs.WriteLn('super.finalize();', 1);
       Fjs.WriteLn('}');
       Fjs.WriteLn('protected PascalObjectEx() { }');
       Fjs.WriteLn('protected PascalObjectEx(PascalObject obj) { super(obj); }');
@@ -1632,6 +1636,7 @@ begin
       Fjs.WriteLn('public static class Record extends PascalObjectEx {');
       Fjs.IncI;
       Fjs.WriteLn('protected PascalObject _objref;');
+      Fjs.WriteLn('@Override protected void finalize() { if (_pasobj < 0) { _pasobj=-_pasobj; _cleanup=true; } super.finalize(); }');
       Fjs.WriteLn('protected void __Init(long objptr, boolean cleanup) { _pasobj=objptr; _cleanup=cleanup; if (_pasobj==0 && __Size() != 0) _pasobj=AllocMemory(__Size()); }');
       Fjs.WriteLn('protected Record(PascalObject obj) { super(obj); _objref=obj; }');
       Fjs.WriteLn('protected Record(long objptr) { super(objptr); }');
@@ -2635,18 +2640,20 @@ begin
 
     Fps.WriteLn;
     Fps.WriteLn('uses');
-    Fps.WriteLn('{$ifndef FPC} Windows, {$endif} {$ifdef unix} cthreads, {$endif} SysUtils, SyncObjs,', 1);
     s:='';
     for i:=0 to p.Units.Count - 1 do begin
       ProcessRules(p.Units[i]);
       ss:=LowerCase(p.Units[i].Name);
-      if (ss ='system') or (ss = 'objpas') or (ss = 'sysutils') or (ss = 'syncobjs') or (ss = 'jni') then
+      if (ss ='system') or (ss = 'objpas') or (ss = 'sysutils') or (ss = 'syncobjs') or (ss = 'jni')
+         or (ss = 'cthreads') or (ss = 'windows')
+      then
         continue;
       if s <> '' then
         s:=s + ', ';
       s:=s + p.Units[i].Name;
     end;
-    Fps.WriteLn(s + ', jni;', 1);
+    Fps.WriteLn(s + ',', 1);
+    Fps.WriteLn('{$ifndef FPC} Windows, {$endif} {$ifdef unix} cthreads, {$endif} SysUtils, SyncObjs, jni;', 1);
 
     // Types
     Fps.WriteLn;
@@ -2719,7 +2726,7 @@ begin
     Fps.WriteLn('pasobj:=env^^.GetLongField(env, jobj, ci.ObjFieldId)', 1);
     Fps.WriteLn('else');
     Fps.WriteLn('pasobj:=0;', 1);
-    Fps.WriteLn('if CheckNil and (pasobj = 0) then');
+    Fps.WriteLn('if CheckNil and (pasobj <= 0) then');
     Fps.WriteLn('raise Exception.Create(''Attempt to access a released Pascal object.'');', 1);
     Fps.WriteLn('Result:=pointer(ptruint(pasobj));');
     Fps.DecI;
