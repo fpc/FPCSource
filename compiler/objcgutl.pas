@@ -477,7 +477,7 @@ procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; protolist: tfpo
       { From Clang: next, always nil}
       tcb.emit_tai(tai_const.Create_nil_dataptr,ptruinttype);
     { From Clang: protocols count}
-    tcb.emit_tai(Tai_const.Create_pint(protolist.Count),ptruinttype);
+    tcb.emit_tai(Tai_const.Create_int_dataptr(protolist.Count),ptruinttype);
     for i:=0 to protolist.Count-1 do
       begin
         protodef:=(protolist[i] as TImplementedInterface).IntfDef;
@@ -1238,7 +1238,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tob
               else
                 vis:=AB_GLOBAL;
               vars[vcnt].offssym:=current_asmdata.DefineAsmSymbol(prefix+vf.RealName,vis,AT_DATA,ptruinttype);
-              tcb.emit_tai(tai_const.create_pint(vf.fieldoffset),ptruinttype);
+              tcb.emit_tai(tai_const.Create_int_dataptr(vf.fieldoffset),ptruinttype);
               list.concatList(
                 tcb.get_final_asmlist(
                   vars[vcnt].offssym,ptruinttype,
