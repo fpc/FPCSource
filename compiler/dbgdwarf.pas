@@ -2923,7 +2923,7 @@ implementation
                  end;
                *)
                templist.concat(tai_const.create_8bit(3));
-               templist.concat(tai_const.create_pint_unaligned(sym.addroffset));
+               templist.concat(tai_const.create_int_dataptr_unaligned(sym.addroffset));
                blocksize:=1+sizeof(puint);
             end;
           toasm :
