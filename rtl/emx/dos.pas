@@ -145,7 +145,7 @@ procedure syscall;external name '___SYSCALL';
 
 function fsearch(path:pathstr;dirlist:string):pathstr;
 
-var i,p1:longint;
+var p1:longint;
     newdir:pathstr;
 
 {$ASMMODE INTEL}
@@ -169,40 +169,40 @@ end ['eax', 'ecx', 'edx'];
 {$ASMMODE ATT}
 
 begin
+{ No wildcards allowed in these things }
+    if (Pos ('?', Path) <> 0) or (Pos ('*', Path) <> 0) then
+        begin
+            FSearch := '';
+            Exit;
+        end;
 { check if the file specified exists }
     if CheckFile (Path + #0) then
         FSearch := Path
     else
         begin
-            {No wildcards allowed in these things:}
-            if (pos('?',path)<>0) or (pos('*',path)<>0) then
-                fsearch:=''
-            else
-                begin
-                    { allow slash as backslash }
-                    DoDirSeparators(dirlist);
-                    repeat
-                        p1:=pos(';',dirlist);
-                        if p1<>0 then
-                            begin
-                                newdir:=copy(dirlist,1,p1-1);
-                                delete(dirlist,1,p1);
-                            end
-                        else
-                            begin
-                                newdir:=dirlist;
-                                dirlist:='';
-                            end;
-                        if (newdir<>'') and
-                         not (newdir[length(newdir)] in AllowDirectorySeparators+AllowDriveSeparators) then
-                            newdir:=newdir+DirectorySeparator;
-                        if CheckFile (NewDir + Path + #0) then
-                            NewDir := NewDir + Path
-                        else
-                            NewDir := '';
-                    until (DirList = '') or (NewDir <> '');
-                    FSearch := NewDir;
-                end;
+            { allow slash as backslash }
+            DoDirSeparators(dirlist);
+            repeat
+                p1:=pos(';',dirlist);
+                if p1<>0 then
+                    begin
+                        newdir:=copy(dirlist,1,p1-1);
+                        delete(dirlist,1,p1);
+                    end
+                else
+                    begin
+                        newdir:=dirlist;
+                        dirlist:='';
+                    end;
+                if (newdir<>'') and
+                      not (newdir[length(newdir)] in AllowDirectorySeparators+DriveSeparator) then
+                    newdir:=newdir+DirectorySeparator;
+                if CheckFile (NewDir + Path + #0) then
+                    NewDir := NewDir + Path
+                else
+                    NewDir := '';
+            until (DirList = '') or (NewDir <> '');
+            FSearch := NewDir;
         end;
 end;
 
