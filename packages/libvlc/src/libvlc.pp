@@ -32,9 +32,10 @@ Const
   libname = 'libvlc.so.5';
 {$else}
 {$ifdef windows}
-  DefaultlibPath = 'C:\Program files\Videolan\VLC\';
   corelibname    = 'libvlccore.dll';
   libname        = 'libvlc.dll';
+var
+  DefaultlibPath: String;
 {$endif}
 {$endif}
 
@@ -617,11 +618,18 @@ Var
 
 Procedure Freelibvlc;
 Procedure Loadlibvlc(lib : AnsiString; CheckProcNames : Boolean = False);
+{$IFDEF WINDOWS}
+function GetVLCLibPath: String;
+{$ENDIF WINDOWS}
 
 implementation
 
 uses
-  SysUtils, dynlibs;
+  SysUtils, 
+ {$IFDEF WINDOWS}
+  windows,
+ {$ENDIF}
+  dynlibs;
 
 var
   hlib : tlibhandle;
@@ -876,6 +884,34 @@ begin
   libvlc_playlist_play:=nil;
 end;
 
+{$IFDEF WINDOWS}
+function GetVLCLibPath: String;
+var
+  Handle: HKEY;
+  RegType: Integer;
+  DataSize: Cardinal;
+  Key: PWideChar;
+  res: WideString;
+begin
+  Result := '';
+  try
+    Key := 'Software\VideoLAN\VLC';
+    if RegOpenKeyExW(HKEY_LOCAL_MACHINE, Key, 0, KEY_READ, Handle) = ERROR_SUCCESS then
+    begin
+      if RegQueryValueExW(Handle, 'InstallDir', nil, @RegType, nil, @DataSize) = ERROR_SUCCESS then
+        begin
+        SetLength(res, DataSize div 2);
+        RegQueryValueExW(Handle, 'InstallDir', nil, @RegType, PByte(@res[1]), @DataSize);
+        res[DataSize div 2] := '\';
+        end;
+      RegCloseKey(Handle);
+      Result := UTF8Encode(res);
+    end;
+  except
+    // Ignore errors.
+  end;
+end;
+{$ENDIF}
 
 Procedure Loadlibvlc(lib : AnsiString; CheckProcNames : Boolean = False);
 
@@ -897,35 +933,38 @@ Procedure Loadlibvlc(lib : AnsiString; CheckProcNames : Boolean = False);
     {$endif}
   end;
   
-  
-  
+
+{$IFDEF WINDOWS}  
 Var
   D : String;
-  
+{$endif}  
+
 begin
   if (hLib<>NilHandle) then
     begin
     Inc(LibRefCount);
     Exit;
     end;
-  D:=ExtractFilePath(lib);
-  {$ifdef windows}
-  if (LoadLibrary(d+corelibname)=NilHandle) then
-    if (d='') and (LoadLibrary(DefaultlibPath+corelibname)=NilHandle) then
-      EM(DefaultlibPath+corelibname);
-  {$endif}
   hlib:=LoadLibrary(lib);
+{$IFDEF WINDOWS}  
+  // MVC: This automatism is highly questionable; The end user should in fact determine the library.
   if (hlib=NilHandle) then
-{$ifndef windows}
-    EM(Lib);
-{$else}
-    if (d='') then
+    begin
+    D:=ExtractFilePath(lib);
+    // Try default name in same directiory.
+    hlib:=LoadLibrary(d+corelibname);
+    if (hLib=NilHandle) and (d='') then
       begin
-      hlib:=LoadLibrary(DefaultlibPath+ExtractFileName(Lib));
-      if (hlib=NilHandle) then
-        EM(Lib);
-      end;
+      // No directory specified, try default name in installation directory.
+      if (DefaultlibPath='') then
+        DefaultLibPath:=GetVLCLibPath;
+      if (DefaultLibPath<>'') then
+        hLib:=LoadLibrary(IncludeTrailingPathDelimiter(DefaultlibPath)+corelibname);
+      end;  
+    end;  
 {$endif}
+  if (hLib=NilHandle) then
+    EM(Lib);
   Inc(LibRefCount);
   pointer(libvlc_errmsg):=GetProcAddress(hlib,'libvlc_errmsg');
   pointer(libvlc_clearerr):=GetProcAddress(hlib,'libvlc_clearerr');
