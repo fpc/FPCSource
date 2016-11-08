@@ -94,6 +94,7 @@ type
     HasReplacedItems: boolean;
     ImplementsReplacedItems: boolean;
     Size: integer;
+    IID: string;
     procedure ResolveDefs; override;
   end;
 

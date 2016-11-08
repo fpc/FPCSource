@@ -598,12 +598,20 @@ var
         s:='protected'
       else
         s:='public';
-      if (CType = ctInterface) and (AncestorClass = nil) then
-        ss:=' __Init();'
-      else
-        ss:='';
-      Fjs.WriteLn(Format('%s %s(PascalObject obj) { super(obj);%s }', [s, AName, ss]));
-      Fjs.WriteLn(Format('%s %s(long objptr) { super(objptr);%s }', [s, AName, ss]));
+      if CType = ctInterface then begin
+        Fjs.WriteLn('private native long __AsIntf(long objptr);');
+        ss:=IID;
+        if ss = '' then
+          ss:='null'
+        else
+          ss:='"' + ss + '"';
+        Fjs.WriteLn(Format('%s %s(PascalObject obj) { super(0, true); __TypeCast(obj, %s); }', [s, AName, ss]));
+        Fjs.WriteLn(Format('%s %s(long objptr) { super(objptr, true); }', [s, AName]));
+      end
+      else begin
+        Fjs.WriteLn(Format('%s %s(PascalObject obj) { super(obj); }', [s, AName]));
+        Fjs.WriteLn(Format('%s %s(long objptr) { super(objptr); }', [s, AName]));
+      end;
     end;
   end;
 
@@ -666,7 +674,7 @@ begin
         s:=s + Format('%s.system.Record', [JavaPackage])
       else
         if d.CType = ctInterface then
-          s:=s + 'PascalObjectEx'
+          s:=s + 'PascalInterface'
         else
           s:=s + 'PascalObject';
   end;
@@ -689,12 +697,9 @@ begin
       begin
         if d.AncestorClass = nil then begin
           Fjs.WriteLn('@Override public void __Release() { if (_pasobj != 0) _Release(); _pasobj = 0; }');
-          Fjs.WriteLn('public void __Init() { _cleanup=true; if (_pasobj != 0) _AddRef(); }');
-          s:='_pasobj=objptr; __Init();';
-        end
-        else
-          s:='super(objptr, cleanup);';
-        Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { %s }', [d.Name, s]));
+          Fjs.WriteLn('@Override protected void __Init() { _cleanup=true; if (_pasobj != 0) _AddRef(); }');
+        end;
+        Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { super(objptr, cleanup); }', [d.Name]));
       end;
   end;
 
@@ -1602,7 +1607,7 @@ begin
       Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
       Fjs.WriteLn('protected long _pasobj = 0;');
       Fjs.WriteLn('protected PascalObject() { }');
-      Fjs.WriteLn('protected PascalObject(PascalObject obj) { if (obj == null) _pasobj=0; else _pasobj=obj._pasobj; }');
+      Fjs.WriteLn('protected PascalObject(PascalObject obj) { if (obj != null) _pasobj=obj._pasobj; }');
       Fjs.WriteLn('protected PascalObject(long objptr) { _pasobj=objptr; }');
       Fjs.WriteLn('protected void finalize() { }');
       Fjs.WriteLn('@Override public boolean equals(Object o) { return ((o instanceof PascalObject) && _pasobj == ((PascalObject)o)._pasobj); }');
@@ -1922,6 +1927,52 @@ begin
       Fjs.DecI;
       Fjs.WriteLn('}');
       Fjs.WriteLn;
+
+      // Interface support
+      Fps.WriteLn;
+      Fps.WriteLn('function _IntfCast(env: PJNIEnv; _self: JObject; objptr: jlong; objid: jstring): jlong;' + JniCaliing);
+      Fps.WriteLn('var');
+      Fps.WriteLn('obj: system.TObject;', 1);
+      Fps.WriteLn('intf: IUnknown;', 1);
+      Fps.WriteLn('begin');
+      Fps.IncI;
+      Fps.WriteLn('Result:=0;');
+      EHandlerStart;
+      Fps.WriteLn('if objptr = 0 then exit;');
+      Fps.WriteLn('if objid = nil then');
+      Fps.WriteLn('raise Exception.Create(''A GUID must be assigned for the interface to allow a type cast.'');', 1);
+      Fps.WriteLn('obj:=system.TObject(pointer(ptruint(objptr)));');
+      Fps.WriteLn('if not (obj is system.TInterfacedObject) then');
+      Fps.WriteLn('raise Exception.Create(''Object must be inherited from TInterfacedObject.'');', 1);
+      Fps.WriteLn('if (system.TInterfacedObject(obj) as IUnknown).QueryInterface(StringToGUID(ansistring(_StringFromJString(env, objid))), intf) <> 0 then');
+      Fps.WriteLn('raise Exception.Create(''Invalid type cast.'');', 1);
+      Fps.WriteLn('intf._AddRef;');
+      Fps.WriteLn('Result:=ptruint(intf);');
+      EHandlerEnd('env');
+      Fps.DecI;
+      Fps.WriteLn('end;');
+
+      AddNativeMethod(u, '_IntfCast', 'InterfaceCast', '(JLjava/lang/String;)J');
+
+      Fjs.WriteLn('private native static long InterfaceCast(long objptr, String objid);');
+      Fjs.WriteLn;
+      Fjs.WriteLn('public static class PascalInterface extends PascalObjectEx {');
+      Fjs.IncI;
+      Fjs.WriteLn('protected void __Init() { }');
+      Fjs.WriteLn('public void __TypeCast(PascalObject obj, String intfId) {');
+      Fjs.WriteLn('if (obj != null) {', 1);
+      Fjs.WriteLn('if (obj instanceof PascalInterface) {', 2);
+      Fjs.WriteLn('_pasobj=obj._pasobj;',3);
+      Fjs.WriteLn('__Init();',3);
+      Fjs.WriteLn('} else',2);
+      Fjs.WriteLn('_pasobj=InterfaceCast(obj._pasobj, intfId);', 3);
+      Fjs.WriteLn('}', 1);
+      Fjs.WriteLn('}');
+      Fjs.WriteLn('protected PascalInterface(long objptr, boolean cleanup) { _pasobj=objptr; __Init(); }');
+      Fjs.DecI;
+      Fjs.WriteLn('}');
+      Fjs.WriteLn;
+
     end;
     Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
     Fjs.WriteLn;

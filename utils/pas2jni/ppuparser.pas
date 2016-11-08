@@ -268,6 +268,8 @@ var
             continue;
           d:=TClassDef.Create(CurDef, dtClass);
           TClassDef(d).CType:=ct;
+          if ct = ctInterface then
+            TClassDef(d).IID:=it.Get('IID', '');
         end
         else
         if jt = 'rec' then begin
