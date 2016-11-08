@@ -357,7 +357,7 @@ end;
 
 Type
   TFieldMap = Record
-    N : String;
+    N : AnsiString;
     T : TFieldType;
   end;
   
@@ -399,13 +399,14 @@ Const
 
 procedure TSQLite3Connection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
 var
- i, fi : integer;
- FN, FD, PrimaryKeyFields : string;
- ft1   : TFieldType;
+ st : psqlite3_stmt;
+ i, j, NotNull : integer;
+ FN, FD, PrimaryKeyFields : AnsiString;
+ FT : TFieldType;
  size1, size2 : integer;
- st    : psqlite3_stmt;
+ CN: PAnsiChar;
 
- function GetPrimaryKeyFields: string;
+ function GetPrimaryKeyFields: AnsiString;
  var IndexDefs: TServerIndexDefs;
      i: integer;
  begin
@@ -422,7 +423,7 @@ var
    Result := '';
  end;
 
- function ExtractPrecisionAndScale(decltype: string; var precision, scale: integer): boolean;
+ function ExtractPrecisionAndScale(decltype: AnsiString; var precision, scale: integer): boolean;
  var p: integer;
  begin
    p:=pos('(', decltype);
@@ -449,34 +450,34 @@ var
 begin
   PrimaryKeyFields := GetPrimaryKeyFields;
   st:=TSQLite3Cursor(cursor).fstatement;
-  for i:= 0 to sqlite3_column_count(st) - 1 do 
+  for i := 0 to sqlite3_column_count(st) - 1 do
     begin
-    FN:=sqlite3_column_name(st,i);
-    FD:=uppercase(sqlite3_column_decltype(st,i));
-    ft1:= ftUnknown;
-    for fi := 1 to FieldMapCount do if pos(FieldMap[fi].N,FD)=1 then
+    FN := sqlite3_column_name(st,i);
+    FD := uppercase(sqlite3_column_decltype(st,i));
+    FT := ftUnknown;
+    for j := 1 to FieldMapCount do if pos(FieldMap[j].N,FD)=1 then
       begin
-      ft1:=FieldMap[fi].t;
+      FT:=FieldMap[j].t;
       break;
       end;
     // Column declared as INTEGER PRIMARY KEY [AUTOINCREMENT] becomes ROWID for given table
     // declared data type must be INTEGER (not INT, BIGINT, NUMERIC etc.)
     if (FD='INTEGER') and SameText(FN, PrimaryKeyFields) then
-      ft1:=ftAutoInc;
+      FT:=ftAutoInc;
     // In case of an empty fieldtype (FD='', which is allowed and used in calculated
     // columns (aggregates) and by pragma-statements) or an unknown fieldtype,
     // use the field's affinity:
-    if ft1=ftUnknown then
+    if FT=ftUnknown then
       case TStorageType(sqlite3_column_type(st,i)) of
-        stInteger: ft1:=ftLargeInt;
-        stFloat:   ft1:=ftFloat;
-        stBlob:    ft1:=ftBlob;
-        else       ft1:=ftString;
+        stInteger: FT:=ftLargeInt;
+        stFloat:   FT:=ftFloat;
+        stBlob:    FT:=ftBlob;
+        else       FT:=ftString;
       end;
     // handle some specials.
     size1:=0;
     size2:=0;
-    case ft1 of
+    case FT of
       ftString,
       ftFixedChar,
       ftFixedWideChar,
@@ -494,13 +495,18 @@ begin
                  size1 := 0;               //sql: if a scale is omitted then scale is 0
                  ExtractPrecisionAndScale(FD, size2, size1);
                  if (size2<=18) and (size1=0) then
-                   ft1:=ftLargeInt
+                   FT:=ftLargeInt
                  else if (size2-size1>MaxBCDPrecision-MaxBCDScale) or (size1>MaxBCDScale) then
-                   ft1:=ftFmtBCD;
+                   FT:=ftFmtBCD;
                end;
       ftUnknown : DatabaseErrorFmt('Unknown or unsupported data type %s of column %s', [FD, FN]);
     end; // Case
-    FieldDefs.Add(FN, ft1, size1, size2, false, false, i+1, CP_UTF8);
+    // is column declared as NOT NULL ? (table name parameter (3rd) must be not nil)
+    // check only for physical table columns (not computed)
+    CN := sqlite3_column_origin_name(st,i);
+    if not (Assigned(CN) and (sqlite3_table_column_metadata(fhandle, sqlite3_column_database_name(st,i), sqlite3_column_table_name(st,i), CN, nil, nil, @NotNull, nil, nil) = SQLITE_OK)) then
+      NotNull := 0;
+    FieldDefs.Add(FN, FT, size1, size2, NotNull=1, false, i+1, CP_UTF8);
     end;
 end;
 
@@ -611,7 +617,7 @@ function TSQLite3Connection.LoadField(cursor : TSQLCursor; FieldDef : TFieldDef;
 var
  st1: TStorageType;
  fnum: integer;
- str1: string;
+ str1: AnsiString;
  int1 : integer;
  bcd: tBCD;
  bcdstr: FmtBCDStringtype;
