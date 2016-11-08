@@ -13224,6 +13224,7 @@ tests/test/units/dos/tenv.pp svneol=native#text/plain
 tests/test/units/dos/tfattr.pp svneol=native#text/plain
 tests/test/units/dos/tfexpand.pp svneol=native#text/plain
 tests/test/units/dos/tfsearch.pp svneol=native#text/plain
+tests/test/units/dos/tfsrch2.pp svneol=native#text/plain
 tests/test/units/dos/tidos.pp svneol=native#text/plain
 tests/test/units/dos/tidos2.pp svneol=native#text/plain
 tests/test/units/dos/tverify.pp svneol=native#text/plain
