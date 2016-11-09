@@ -26,6 +26,8 @@ unit ncgbas;
 interface
 
     uses
+       globtype,
+       aasmtai,aasmdata,
        cpubase,cgutils,
        node,nbas;
 
@@ -35,6 +37,9 @@ interface
        end;
 
        tcgasmnode = class(tasmnode)
+         protected
+          procedure ResolveRef(const filepos: tfileposinfo; var op:toper); virtual;
+         public
           procedure pass_generate_code;override;
        end;
 
@@ -66,9 +71,9 @@ interface
   implementation
 
     uses
-      globtype,globals,systems,
+      globals,systems,
       cutils,verbose,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmcpu,
       symsym,symconst,symdef,defutil,
       nflw,pass_2,ncgutil,
       cgbase,cgobj,hlcgobj,
@@ -117,6 +122,117 @@ interface
                                TASMNODE
 *****************************************************************************}
 
+
+    procedure tcgasmnode.ResolveRef(const filepos: tfileposinfo; var op:toper);
+      var
+        sym : tabstractnormalvarsym;
+{$ifdef x86}
+        scale : byte;
+{$endif x86}
+        forceref,
+        getoffset : boolean;
+        indexreg : tregister;
+        sofs : longint;
+      begin
+        if (op.typ=top_local) then
+          begin
+            sofs:=op.localoper^.localsymofs;
+            indexreg:=op.localoper^.localindexreg;
+{$ifdef x86}
+            scale:=op.localoper^.localscale;
+{$endif x86}
+            getoffset:=op.localoper^.localgetoffset;
+            forceref:=op.localoper^.localforceref;
+            sym:=tabstractnormalvarsym(pointer(op.localoper^.localsym));
+            dispose(op.localoper);
+            case sym.localloc.loc of
+              LOC_REFERENCE :
+                begin
+                  if getoffset then
+                    begin
+                      if indexreg=NR_NO then
+                        begin
+                          op.typ:=top_const;
+                          op.val:=sym.localloc.reference.offset+sofs;
+                        end
+                      else
+                        begin
+                          op.typ:=top_ref;
+                          new(op.ref);
+                          reference_reset_base(op.ref^,indexreg,sym.localloc.reference.offset+sofs,
+                            newalignment(sym.localloc.reference.alignment,sofs));
+                        end;
+                    end
+                  else
+                    begin
+                      op.typ:=top_ref;
+                      new(op.ref);
+                      reference_reset_base(op.ref^,sym.localloc.reference.base,sym.localloc.reference.offset+sofs,
+                        newalignment(sym.localloc.reference.alignment,sofs));
+                      op.ref^.index:=indexreg;
+{$ifdef x86}
+                      op.ref^.scalefactor:=scale;
+{$endif x86}
+                    end;
+                end;
+              LOC_REGISTER :
+                begin
+                  if getoffset then
+                    MessagePos(filepos,asmr_e_invalid_reference_syntax);
+                  { Subscribed access }
+                  if forceref or
+                     (sofs<>0) then
+                    begin
+                      op.typ:=top_ref;
+                      new(op.ref);
+                      { no idea about the actual alignment }
+                      reference_reset_base(op.ref^,sym.localloc.register,sofs,1);
+                      op.ref^.index:=indexreg;
+{$ifdef x86}
+                      op.ref^.scalefactor:=scale;
+{$endif x86}
+                    end
+                  else
+                    begin
+                      op.typ:=top_reg;
+                      op.reg:=sym.localloc.register;
+                    end;
+                end;
+              LOC_FPUREGISTER,
+              LOC_MMXREGISTER,
+              LOC_MMREGISTER :
+                begin
+                  op.typ:=top_reg;
+                  op.reg:=NR_NO;
+                  if getoffset then
+                    MessagePos(filepos,asmr_e_invalid_reference_syntax);
+                  { Using an MM/FPU register in a reference is not possible }
+                  if forceref or (sofs<>0) then
+                    MessagePos1(filepos,asmr_e_invalid_ref_register,std_regname(sym.localloc.register))
+                  else
+                    op.reg:=sym.localloc.register;
+                end;
+              LOC_INVALID :
+                begin
+                  { in "assembler; nostackframe;" routines, the
+                    funcret loc is set to LOC_INVALID in case the
+                    result is returned via a complex location
+                    (more than one register, ...) }
+                  if (vo_is_funcret in tabstractvarsym(sym).varoptions) then
+                    MessagePos(filepos,asmr_e_complex_function_result_location)
+                  else
+                    internalerror(2012082101);
+                  { recover }
+                  op.typ:=top_reg;
+                  op.reg:=NR_FUNCTION_RETURN_REG;
+                end;
+              else
+                internalerror(201001031);
+            end;
+          end;
+      end;
+
+
     procedure tcgasmnode.pass_generate_code;
 
       procedure ReLabel(var p:tasmsymbol);
@@ -130,115 +246,6 @@ interface
              p:=p.altsymbol;
              p.increfs;
            end;
-        end;
-
-      procedure ResolveRef(const filepos: tfileposinfo; var op:toper);
-        var
-          sym : tabstractnormalvarsym;
-{$ifdef x86}
-          scale : byte;
-{$endif x86}
-          forceref,
-          getoffset : boolean;
-          indexreg : tregister;
-          sofs : longint;
-        begin
-          if (op.typ=top_local) then
-            begin
-              sofs:=op.localoper^.localsymofs;
-              indexreg:=op.localoper^.localindexreg;
-{$ifdef x86}
-              scale:=op.localoper^.localscale;
-{$endif x86}
-              getoffset:=op.localoper^.localgetoffset;
-              forceref:=op.localoper^.localforceref;
-              sym:=tabstractnormalvarsym(pointer(op.localoper^.localsym));
-              dispose(op.localoper);
-              case sym.localloc.loc of
-                LOC_REFERENCE :
-                  begin
-                    if getoffset then
-                      begin
-                        if indexreg=NR_NO then
-                          begin
-                            op.typ:=top_const;
-                            op.val:=sym.localloc.reference.offset+sofs;
-                          end
-                        else
-                          begin
-                            op.typ:=top_ref;
-                            new(op.ref);
-                            reference_reset_base(op.ref^,indexreg,sym.localloc.reference.offset+sofs,
-                              newalignment(sym.localloc.reference.alignment,sofs));
-                          end;
-                      end
-                    else
-                      begin
-                        op.typ:=top_ref;
-                        new(op.ref);
-                        reference_reset_base(op.ref^,sym.localloc.reference.base,sym.localloc.reference.offset+sofs,
-                          newalignment(sym.localloc.reference.alignment,sofs));
-                        op.ref^.index:=indexreg;
-{$ifdef x86}
-                        op.ref^.scalefactor:=scale;
-{$endif x86}
-                      end;
-                  end;
-                LOC_REGISTER :
-                  begin
-                    if getoffset then
-                      MessagePos(filepos,asmr_e_invalid_reference_syntax);
-                    { Subscribed access }
-                    if forceref or
-                       (sofs<>0) then
-                      begin
-                        op.typ:=top_ref;
-                        new(op.ref);
-                        { no idea about the actual alignment }
-                        reference_reset_base(op.ref^,sym.localloc.register,sofs,1);
-                        op.ref^.index:=indexreg;
-{$ifdef x86}
-                        op.ref^.scalefactor:=scale;
-{$endif x86}
-                      end
-                    else
-                      begin
-                        op.typ:=top_reg;
-                        op.reg:=sym.localloc.register;
-                      end;
-                  end;
-                LOC_FPUREGISTER,
-                LOC_MMXREGISTER,
-                LOC_MMREGISTER :
-                  begin
-                    op.typ:=top_reg;
-                    op.reg:=NR_NO;
-                    if getoffset then
-                      MessagePos(filepos,asmr_e_invalid_reference_syntax);
-                    { Using an MM/FPU register in a reference is not possible }
-                    if forceref or (sofs<>0) then
-                      MessagePos1(filepos,asmr_e_invalid_ref_register,std_regname(sym.localloc.register))
-                    else
-                      op.reg:=sym.localloc.register;
-                  end;
-                LOC_INVALID :
-                  begin
-                    { in "assembler; nostackframe;" routines, the
-                      funcret loc is set to LOC_INVALID in case the
-                      result is returned via a complex location
-                      (more than one register, ...) }
-                    if (vo_is_funcret in tabstractvarsym(sym).varoptions) then
-                      MessagePos(filepos,asmr_e_complex_function_result_location)
-                    else
-                      internalerror(2012082101);
-                    { recover }
-                    op.typ:=top_reg;
-                    op.reg:=NR_FUNCTION_RETURN_REG;
-                  end;
-                else
-                  internalerror(201001031);
-              end;
-            end;
         end;
 
       var
