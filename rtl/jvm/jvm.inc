@@ -388,6 +388,7 @@ begin
   if zerobased then
     begin
       foundnull:=false;
+      index:=0;
       for index:=low(arr) to l-1 do
         if arr[index]=#0 then
           begin

@@ -384,6 +384,7 @@ begin
   if (zerobased) then
     begin
       foundnull:=false;
+      i:=0;
       for i:=low(arr) to high(arr) do
         if arr[i]=#0 then
           begin
