@@ -601,10 +601,10 @@ Function CreateJSON(Data : Integer) : TJSONIntegerNumber;
 Function CreateJSON(Data : Int64) : TJSONInt64Number;
 Function CreateJSON(Data : QWord) : TJSONQWordNumber;
 Function CreateJSON(Data : TJSONFloat) : TJSONFloatNumber;
-Function CreateJSON(Data : TJSONStringType) : TJSONString;
-Function CreateJSON(Data : TJSONUnicodeStringType) : TJSONString;
-Function CreateJSONArray(Data : Array of const) : TJSONArray;
-Function CreateJSONObject(Data : Array of const) : TJSONObject;
+Function CreateJSON(const Data : TJSONStringType) : TJSONString;
+Function CreateJSON(const Data : TJSONUnicodeStringType) : TJSONString;
+Function CreateJSONArray(const Data : Array of const) : TJSONArray;
+Function CreateJSONObject(const Data : Array of const) : TJSONObject;
 
 // These functions rely on a callback. If the callback is not set, they will raise an error.
 // When the jsonparser unit is included in the project, the callback is automatically set.
@@ -787,31 +787,30 @@ begin
   Result:=TJSONFloatNumberCLass(DefaultJSONInstanceTypes[jitNumberFloat]).Create(Data);
 end;
 
-function CreateJSON(Data: TJSONStringType): TJSONString;
+function CreateJSON(const Data: TJSONStringType): TJSONString;
 begin
   Result:=TJSONStringCLass(DefaultJSONInstanceTypes[jitString]).Create(Data);
 end;
 
-function CreateJSON(Data: TJSONUnicodeStringType): TJSONString;
+function CreateJSON(const Data: TJSONUnicodeStringType): TJSONString;
 begin
   Result:=TJSONStringCLass(DefaultJSONInstanceTypes[jitString]).Create(Data);
 end;
 
-function CreateJSONArray(Data: array of const): TJSONArray;
+function CreateJSONArray(const Data: array of const): TJSONArray;
 begin
   Result:=TJSONArrayCLass(DefaultJSONInstanceTypes[jitArray]).Create(Data);
 end;
 
-function CreateJSONObject(Data: array of const): TJSONObject;
+function CreateJSONObject(const Data: array of const): TJSONObject;
 begin
-  Result:=TJSONObjectCLass(DefaultJSONInstanceTypes[jitObject]).Create(Data);
+  Result:=TJSONObjectClass(DefaultJSONInstanceTypes[jitObject]).Create(Data);
 end;
 
 Var
   JPH : TJSONParserHandler;
 
-function GetJSON(const JSON: TJSONStringType; const UseUTF8: Boolean
-  ): TJSONData;
+function GetJSON(const JSON: TJSONStringType; const UseUTF8: Boolean): TJSONData;
 
 Var
   SS : TStringStream;
