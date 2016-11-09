@@ -567,33 +567,24 @@ Implementation
 
 
     Procedure TExternalAssemblerOutputFile.AsmLn;
+      var
+        newline: pshortstring;
       begin
         MaybeAddLinePostfix;
         if OutCnt>=AsmOutSize-2 then
          AsmFlush;
         if (cs_link_on_target in current_settings.globalswitches) then
-          begin
-            OutBuf[OutCnt]:=target_info.newline[1];
-            inc(OutCnt);
-            inc(AsmSize);
-            if length(target_info.newline)>1 then
-             begin
-               OutBuf[OutCnt]:=target_info.newline[2];
-               inc(OutCnt);
-               inc(AsmSize);
-             end;
-          end
+          newline:=@target_info.newline
         else
+          newline:=@source_info.newline;
+        OutBuf[OutCnt]:=newline^[1];
+        inc(OutCnt);
+        inc(AsmSize);
+        if length(newline^)>1 then
           begin
-            OutBuf[OutCnt]:=source_info.newline[1];
+            OutBuf[OutCnt]:=newline^[2];
             inc(OutCnt);
             inc(AsmSize);
-            if length(source_info.newline)>1 then
-             begin
-               OutBuf[OutCnt]:=source_info.newline[2];
-               inc(OutCnt);
-               inc(AsmSize);
-             end;
           end;
       end;
 
