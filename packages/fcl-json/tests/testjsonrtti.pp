@@ -366,12 +366,8 @@ Var
 
 begin
   B:=TCompComponent.Create(Nil);
-  DeStream('{ "ExtendedProp" : 5.67 }',B);
-{$ifdef CPUX86_64}
-  AssertEquals('Correct comp value',round(5.67),B.ExtendedProp);
-{$else}
-  AssertEquals('Correct extended value',5.67,B.ExtendedProp);
-{$endif}
+  DeStream('{ "CompProp" : 5.67 }',B);
+  AssertEquals('Correct comp value',round(5.67),B.CompProp);
 end;
 
 procedure TTestJSONDeStreamer.TestFloat5;
@@ -876,12 +872,7 @@ procedure TTestJSONStreamer.TestWriteFloat4;
 begin
   StreamObject(TCompComponent.Create(Nil));
   AssertPropCount(1);
-  // Extended is correct, propname is wrong
-  {$ifdef CPUX86_64}
-    AssertProp('ExtendedProp',TJSONFloat(5));
-  {$else}
-    AssertProp('ExtendedProp',4.56);
-  {$endif}
+  AssertProp('CompProp',5);
 end;
 
 procedure TTestJSONStreamer.TestWriteFloat5;

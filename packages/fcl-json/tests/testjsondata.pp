@@ -1584,7 +1584,7 @@ begin
     TestAsBoolean(J,True,False);
     TestAsInteger(J,-1,False);
     TestAsInt64(J,-1,False);
-    TestAsQWord(J,-1,True);
+    TestAsQWord(J,QWord(-1),True);
     TestAsString(J,S);
     TestAsFloat(J,-1.0,False);
   finally
@@ -1629,7 +1629,7 @@ begin
     TestAsBoolean(J,True,False);
     TestAsInteger(J,-1,True);
     TestAsInt64(J,-1,True);
-    TestAsQWord(J,-1,True);
+    TestAsQWord(J,QWord(-1),True);
     TestAsString(J,S);
     TestAsFloat(J,-1.0,True);
   finally
