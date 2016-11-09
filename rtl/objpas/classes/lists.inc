@@ -144,10 +144,12 @@ begin
     Error (SListIndexError, Index);
   FCount := FCount-1;
   System.Move (FList^[Index+1], FList^[Index], (FCount - Index) * SizeOf(Pointer));
-  // Shrink the list if appropriate
+  // Shrink the list if appropriate:
+  // If capacity>256 and the list is less than a quarter filled,  shrink to 1/2 the size.
+  // Shr is used because it is faster than div.
   if (FCapacity > 256) and (FCount < FCapacity shr 2) then
   begin
-    FCapacity := FCapacity shr 1;
+    FCapacity := FCapacity shr 1; 
     ReallocMem(FList, SizeOf(Pointer) * FCapacity);
   end;
 end;
@@ -175,6 +177,12 @@ var
   IncSize : Longint;
 begin
   if FCount < FCapacity then exit(self);
+  {
+    For really big lists, (128Mb elements), increase with fixed amount: 16Mb elements (=1/8th of 128Mb).
+    For big lists (8mb elements), increase with 1/8th of the size
+    For moderate lists (128 or more, increase with 1/4th the size
+    For smaller sizes, increase with 16 or 4  
+  }
   if FCapacity > 128*1024*1024 then IncSize := 16*1024*1024
   else if FCapacity > 8*1024*1024 then IncSize := FCapacity shr 3
   else if FCapacity > 128 then IncSize := FCapacity shr 2
