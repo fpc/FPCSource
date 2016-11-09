@@ -37,6 +37,7 @@ interface
        function LinePrefix: AnsiString;
        function LinePostfix: AnsiString;
        function LineFilter(const s: AnsiString): AnsiString;
+       function LineEnding(const deflineending: ShortString): ShortString;
       end;
 
       TLLVMAssember=class(texternalassembler)
@@ -173,6 +174,12 @@ implementation
               result:=result+s[i];
             end;
           end;
+      end;
+
+
+    function TLLVMModuleInlineAssemblyDecorator.LineEnding(const deflineending: ShortString): ShortString;
+      begin
+        result:=deflineending
       end;
 
 

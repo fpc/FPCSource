@@ -68,6 +68,7 @@ interface
         function LinePrefix: AnsiString;
         function LinePostfix: AnsiString;
         function LineFilter(const s: AnsiString): AnsiString;
+        function LineEnding(const deflineending: ShortString): ShortString;
       end;
 
       TExternalAssemblerOutputFile=class
@@ -569,23 +570,28 @@ Implementation
     Procedure TExternalAssemblerOutputFile.AsmLn;
       var
         newline: pshortstring;
+        newlineres: shortstring;
+        index: longint;
       begin
         MaybeAddLinePostfix;
-        if OutCnt>=AsmOutSize-2 then
-         AsmFlush;
         if (cs_link_on_target in current_settings.globalswitches) then
           newline:=@target_info.newline
         else
           newline:=@source_info.newline;
-        OutBuf[OutCnt]:=newline^[1];
-        inc(OutCnt);
-        inc(AsmSize);
-        if length(newline^)>1 then
+        if assigned(decorator) then
           begin
-            OutBuf[OutCnt]:=newline^[2];
-            inc(OutCnt);
-            inc(AsmSize);
+            newlineres:=decorator.LineEnding(newline^);
+            newline:=@newlineres;
           end;
+        if OutCnt>=AsmOutSize-length(newline^) then
+         AsmFlush;
+        index:=1;
+        repeat
+          OutBuf[OutCnt]:=newline^[index];
+          inc(OutCnt);
+          inc(AsmSize);
+          inc(index);
+        until index>length(newline^);
       end;
 
 
