@@ -29,13 +29,13 @@ unit ag68kvasm;
     uses
        aasmbase,systems,
        aasmtai,aasmdata,
-       aggas,ag68kgas,
+       assemble,aggas,ag68kgas,
        cpubase,cgutils,
        globtype;
 
   type
     tm68kvasm = class(Tm68kGNUassembler)
-      constructor create(info: pasminfo; smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
       function MakeCmdLine: TCmdStr; override;
     end;
 
@@ -44,7 +44,7 @@ unit ag68kvasm;
     uses
        cutils,cfileutl,globals,verbose,
        cgbase,
-       assemble,script,
+       script,
        itcpugas,cpuinfo,
        aasmcpu;
 
@@ -54,7 +54,7 @@ unit ag68kvasm;
 {****************************************************************************}
 
 
-    constructor tm68kvasm.create(info: pasminfo; smart: boolean);
+    constructor tm68kvasm.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
         InstrWriter := Tm68kInstrWriter.create(self);

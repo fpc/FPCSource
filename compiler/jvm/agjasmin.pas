@@ -69,8 +69,10 @@ interface
         procedure WriteSymtableVarSyms(st: TSymtable);
         procedure WriteSymtableProcdefs(st: TSymtable);
         procedure WriteSymtableStructDefs(st: TSymtable);
+
+        function CreateNewAsmWriter: TExternalAssemblerOutputFile; override;
        public
-        constructor Create(info: pasminfo; smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
         function MakeCmdLine: TCmdStr;override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
@@ -1083,21 +1085,17 @@ implementation
       end;
 
 
-    constructor TJasminAssembler.Create(info: pasminfo; smart: boolean);
+    function TJasminAssembler.CreateNewAsmWriter: TExternalAssemblerOutputFile;
       begin
-        { this is a bit dirty: the "main" constructor is is this one, which is
-          called by TExternalAssembler.CreateWithWriter(). That means the call
-          below to CreateWithWriter will end up here again when it calls create.
-          It will first initialise fwriter though, so we can check that field,
-          and otherwise call the inherited create }
-        if not assigned(writer) then
-          begin
-            CreateWithWriter(info,TJasminAssemblerOutputFile.Create(self),true,smart);
-            InstrWriter:=TJasminInstrWriter.Create(self);
-            asmfiles:=TCmdStrList.Create;
-          end
-        else
-          inherited;
+        Result:=TJasminAssemblerOutputFile.Create(self);
+      end;
+
+
+    constructor TJasminAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+      begin
+        inherited;
+        InstrWriter:=TJasminInstrWriter.Create(self);
+        asmfiles:=TCmdStrList.Create;
       end;
 
 

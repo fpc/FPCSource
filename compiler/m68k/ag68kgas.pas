@@ -32,7 +32,7 @@ interface
 
     type
       Tm68kGNUAssembler=class(TGNUassembler)
-        constructor create(info: pasminfo; smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
         function MakeCmdLine : TCmdStr; override;
       end;
 
@@ -58,7 +58,7 @@ interface
  {                         GNU m68k Assembler writer                          }
  {****************************************************************************}
 
- constructor Tm68kGNUAssembler.create(info: pasminfo; smart: boolean);
+ constructor Tm68kGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
    begin
      inherited;
      InstrWriter := Tm68kInstrWriter.create(self);

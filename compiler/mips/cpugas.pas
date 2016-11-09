@@ -32,7 +32,7 @@ unit cpugas;
     type
       TMIPSGNUAssembler = class(TGNUassembler)
         nomacro, noreorder, noat : boolean;
-        constructor create(info: pasminfo; smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; override;
       end;
@@ -69,7 +69,7 @@ unit cpugas;
 {                         GNU MIPS  Assembler writer                           }
 {****************************************************************************}
 
-    constructor TMIPSGNUAssembler.create(info: pasminfo; smart: boolean);
+    constructor TMIPSGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
         InstrWriter:=TMIPSInstrWriter.create(self);

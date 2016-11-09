@@ -52,7 +52,7 @@ interface
         procedure WriteOrdConst(hp: tai_const);
         procedure WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
        public
-        constructor create(info: pasminfo; smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
@@ -1210,7 +1210,7 @@ implementation
       end;
 
 
-    constructor TLLVMAssember.create(info: pasminfo; smart: boolean);
+    constructor TLLVMAssember.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
         InstrWriter:=TLLVMInstrWriter.create(self);

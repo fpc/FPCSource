@@ -32,7 +32,7 @@ interface
 
     type
       TGasSPARC=class(TGnuAssembler)
-        constructor create(info: pasminfo; smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; override;
       end;
@@ -54,7 +54,7 @@ implementation
 {                         GNU PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TGasSPARC.create(info: pasminfo; smart: boolean);
+    constructor TGasSPARC.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
         InstrWriter := TSPARCInstrWriter.create(self);

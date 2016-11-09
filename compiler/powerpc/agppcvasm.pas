@@ -33,7 +33,7 @@ unit agppcvasm;
     uses
        aasmbase,systems,
        aasmtai,aasmdata,
-       aggas,
+       assemble,aggas,
        cpubase,cgutils,
        globtype;
 
@@ -43,7 +43,7 @@ unit agppcvasm;
     end;
 
     TPPCVASM=class(TGNUassembler)
-      constructor create(info: pasminfo; smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
       function MakeCmdLine: TCmdStr; override;
     end;
 
@@ -60,7 +60,7 @@ unit agppcvasm;
     uses
        cutils,cfileutl,globals,verbose,
        cgbase,
-       assemble,script,
+       script,
        itcpugas,cpuinfo,
        aasmcpu;
 
@@ -359,7 +359,7 @@ unit agppcvasm;
 {****************************************************************************}
 
 
-    constructor TPPCVASM.create(info: pasminfo; smart: boolean);
+    constructor TPPCVASM.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
         InstrWriter := TPPCInstrWriter.create(self);

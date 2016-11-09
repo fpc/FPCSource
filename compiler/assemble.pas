@@ -156,6 +156,8 @@ interface
         function double2str(d : double) : string; virtual;
         function extended2str(e : extended) : string; virtual;
         Function DoPipe:boolean;
+
+        function CreateNewAsmWriter: TExternalAssemblerOutputFile; virtual;
       public
 
         {# Returns the complete path and executable name of the assembler
@@ -185,8 +187,8 @@ interface
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; virtual;
       public
-        Constructor Create(info: pasminfo; smart: boolean);override;
-        Constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+        Constructor Create(info: pasminfo; smart: boolean); override; final;
+        Constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); virtual;
         procedure MakeObject;override;
         destructor Destroy; override;
 
@@ -737,27 +739,28 @@ Implementation
       end;
 
 
+    function TExternalAssembler.CreateNewAsmWriter: TExternalAssemblerOutputFile;
+      begin
+        result:=TExternalAssemblerOutputFile.Create(self);
+      end;
+
+
     Constructor TExternalAssembler.Create(info: pasminfo; smart: boolean);
       begin
-        inherited;
-        if not assigned(fwriter) then
-          begin
-            fwriter:=TExternalAssemblerOutputFile.Create(self);
-            ffreewriter:=true;
-          end;
-        if SmartAsm then
-          begin
-            path:=FixPath(ChangeFileExt(AsmFileName,target_info.smartext),false);
-            CreateSmartLinkPath(path);
-          end;
+        CreateWithWriter(info,CreateNewAsmWriter,true,smart);
       end;
 
 
     constructor TExternalAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter,smart: boolean);
       begin
+        inherited Create(info,smart);
         fwriter:=wr;
         ffreewriter:=freewriter;
-        Create(info,smart);
+        if SmartAsm then
+          begin
+            path:=FixPath(ChangeFileExt(AsmFileName,target_info.smartext),false);
+            CreateSmartLinkPath(path);
+          end;
       end;
 
 

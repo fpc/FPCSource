@@ -33,7 +33,7 @@ unit agppcgas;
     uses
        systems,aasmbase,
        aasmtai,aasmdata,
-       aggas,
+       assemble,aggas,
        cpubase,cgutils,
        globtype;
 
@@ -43,18 +43,18 @@ unit agppcgas;
     end;
 
     TPPCGNUAssembler=class(TGNUassembler)
-      constructor create(info: pasminfo; smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
       function MakeCmdLine: TCmdStr; override;
       procedure WriteExtraHeader; override;
     end;
 
     TPPCAppleGNUAssembler=class(TAppleGNUassembler)
-      constructor create(info: pasminfo; smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
       function MakeCmdLine: TCmdStr; override;
     end;
 
     TPPCAIXAssembler=class(TPPCGNUAssembler)
-      constructor create(info: pasminfo; smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
      protected
       function sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string; override;
       procedure WriteExtraHeader; override;
@@ -72,7 +72,6 @@ unit agppcgas;
     uses
        cutils,globals,verbose,
        cgbase,
-       assemble,
        itcpugas,cpuinfo,
        aasmcpu;
 
@@ -398,11 +397,9 @@ unit agppcgas;
 {                         GNU PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TPPCGNUAssembler.create(info: pasminfo; smart: boolean);
+    constructor TPPCGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
-        if assigned(InstrWriter) then
-          InstrWriter.free;
         InstrWriter := TPPCInstrWriter.create(self);
       end;
 
@@ -440,11 +437,9 @@ unit agppcgas;
 {                      GNU/Apple PPC Assembler writer                        }
 {****************************************************************************}
 
-    constructor TPPCAppleGNUAssembler.create(info: pasminfo; smart: boolean);
+    constructor TPPCAppleGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
-        if assigned(InstrWriter) then
-          InstrWriter.free;
         InstrWriter := TPPCInstrWriter.create(self);
       end;
 
@@ -471,7 +466,7 @@ unit agppcgas;
 {                         AIX PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TPPCAIXAssembler.create(info: pasminfo; smart: boolean);
+    constructor TPPCAIXAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
         InstrWriter := TPPCInstrWriter.create(self);

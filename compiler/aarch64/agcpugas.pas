@@ -31,7 +31,7 @@ unit agcpugas;
     uses
        globtype,systems,
        aasmtai,
-       aggas,
+       assemble,aggas,
        cpubase,cpuinfo;
 
     type
@@ -40,11 +40,11 @@ unit agcpugas;
       end;
 
       TAArch64Assembler=class(TGNUassembler)
-        constructor create(info: pasminfo; smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
       end;
 
       TAArch64AppleAssembler=class(TAppleGNUassembler)
-        constructor create(info: pasminfo; smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
       end;
 
 
@@ -64,7 +64,6 @@ unit agcpugas;
 
     uses
        cutils,globals,verbose,
-       assemble,
        aasmcpu,
        itcpugas,
        cgbase,cgutils;
@@ -74,7 +73,7 @@ unit agcpugas;
 {                      AArch64 Assembler writer                              }
 {****************************************************************************}
 
-    constructor TAArch64Assembler.create(info: pasminfo; smart: boolean);
+    constructor TAArch64Assembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
         InstrWriter := TAArch64InstrWriter.create(self);
@@ -84,7 +83,7 @@ unit agcpugas;
 {                      Apple AArch64 Assembler writer                        }
 {****************************************************************************}
 
-    constructor TAArch64AppleAssembler.create(info: pasminfo; smart: boolean);
+    constructor TAArch64AppleAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
         InstrWriter := TAArch64InstrWriter.create(self);

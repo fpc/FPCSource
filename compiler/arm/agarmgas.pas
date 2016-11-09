@@ -31,12 +31,12 @@ unit agarmgas;
     uses
        globtype,systems,
        aasmtai,
-       aggas,
+       assemble,aggas,
        cpubase,cpuinfo;
 
     type
       TARMGNUAssembler=class(TGNUassembler)
-        constructor create(info: pasminfo; smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
         procedure WriteExtraHeader; override;
       end;
@@ -48,7 +48,7 @@ unit agarmgas;
       end;
 
       TArmAppleGNUAssembler=class(TAppleGNUassembler)
-        constructor create(info: pasminfo; smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
         procedure WriteExtraHeader; override;
       end;
 
@@ -82,7 +82,6 @@ unit agarmgas;
 
     uses
        cutils,globals,verbose,
-       assemble,
        aasmcpu,
        itcpugas,
        cgbase,cgutils;
@@ -91,7 +90,7 @@ unit agarmgas;
 {                         GNU Arm Assembler writer                           }
 {****************************************************************************}
 
-    constructor TArmGNUAssembler.create(info: pasminfo; smart: boolean);
+    constructor TArmGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
         InstrWriter := TArmInstrWriter.create(self);
@@ -139,7 +138,7 @@ unit agarmgas;
 {                      GNU/Apple ARM Assembler writer                        }
 {****************************************************************************}
 
-    constructor TArmAppleGNUAssembler.create(info: pasminfo; smart: boolean);
+    constructor TArmAppleGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
         inherited;
         InstrWriter := TArmInstrWriter.create(self);
