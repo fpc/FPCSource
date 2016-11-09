@@ -611,7 +611,7 @@ begin
   AssertNull('No second statement',L.B);
   L:=AssertListStatement('try..except block is statement list',El.BCatch);
   AssertAssignStatement('Correct assignment in except..end block',L.A,'b','c');
-  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),El.Ident);
+  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),String(El.Ident));
   AssertNull('No second statement',L.B);
 end;
 
@@ -648,7 +648,7 @@ begin
   O.Body:=CreateAssignStatement('b','c');
   // Convert
   El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
-  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),EL.Ident);
+  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),String(El.Ident));
   L:=AssertListStatement('try..except block is statement list',El.BCatch);
   AssertNull('No second statement',L.B);
   I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,L.A));
@@ -696,7 +696,7 @@ begin
   O.Body:=TPasImplRaise.Create('',Nil);
   // Convert
   El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
-  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),EL.Ident);
+  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),String(El.Ident));
   L:=AssertListStatement('try..except block is statement list',El.BCatch);
   AssertNull('No second statement',L.B);
   I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,L.A));
@@ -782,7 +782,7 @@ begin
   S:=TPrimitiveExpr.Create(Nil,pekString,'''me''');
   E:=TestLiteralExpression(S,TJSLiteral);
   AssertEquals('Correct literal type',jstString,E.Value.ValueType);
-  AssertEquals('Correct literal value','me',E.Value.AsString);
+  AssertEquals('Correct literal value','me',String(E.Value.AsString));
 end;
 
 Procedure TTestExpressionConverter.TestPrimitiveNumber;
@@ -843,7 +843,7 @@ Var
 begin
   Id:=TPrimitiveExpr.Create(Nil,pekIdent,'a');
   Res:=TJSPrimaryExpressionIdent(Convert(Id,TJSPrimaryExpressionIdent));
-  AssertEquals('Correct identifier name','a',Res.Name);
+  AssertEquals('Correct identifier name','a',String(Res.Name));
 end;
 
 Procedure TTestExpressionConverter.TestUnaryMinus;
@@ -1203,7 +1203,7 @@ begin
   Uni:=TJSUnary(AssertElement('Sl.A is TJSUnary',TJSUnary,Sl.A));
   Asi:=TJSSimpleAssignStatement(AssertElement('Sl.A is TJSUnary',TJSSimpleAssignStatement,Uni.A));
   pex:=TJSPrimaryExpressionIdent(AssertElement('Asi.LHS is TJSPrimaryExpressionIdent',TJSPrimaryExpressionIdent,Asi.LHS));
-  AssertEquals('Correct name','myclass',pex.Name);
+  AssertEquals('Correct name','myclass',String(pex.Name));
   Call:=TJSCallExpression(AssertElement('Asi.Expr is TJSCallExpression',TJSCallExpression,Asi.Expr));
   if Call=nil then ;
 end;
@@ -1264,7 +1264,7 @@ end;
 Class procedure TTestConverter.AssertLiteral(Const Msg : String; Lit: TJSElement; AValue: TJSString);
 begin
   AssertLiteral(Msg,Lit,jstString);
-  AssertEquals(Msg+': Correct value',AValue,TJSLiteral(Lit).Value.AsString);
+  AssertEquals(Msg+': Correct value',String(AValue),String(TJSLiteral(Lit).Value.AsString));
 end;
 
 Class procedure TTestConverter.AssertLiteral(Const Msg : String; Lit: TJSElement; AValue: TJSNumber);
@@ -1278,12 +1278,12 @@ Class procedure TTestConverter.AssertIdentifier(Const Msg: String;
 begin
   AssertNotNull(Msg+': Have instance',Ident);
   AssertEquals(Msg+': Correct class',TJSPrimaryExpressionIdent,Ident.ClassType);
-  AssertEquals(Msg+': Correct name',AName,TJSPrimaryExpressionIdent(Ident).Name);
+  AssertEquals(Msg+': Correct name',AName,String(TJSPrimaryExpressionIdent(Ident).Name));
 end;
 
 Class Function TTestConverter.CreateLiteral(AValue: String): TPasExpr;
 begin
-  Result:=TPrimitiveExpr.Create(Nil,pekString,'me');
+  Result:=TPrimitiveExpr.Create(Nil,pekString,AValue);
 end;
 
 Class Function TTestConverter.CreateLiteral(AValue: Double): TPasExpr;
@@ -1293,7 +1293,7 @@ Var
 
 begin
   Str(AValue,S);
-  Result:=TPrimitiveExpr.Create(Nil,pekNumber,S);
+  Result:=TPrimitiveExpr.Create(Nil,pekNumber,Trim(S));
 end;
 
 Class Function TTestConverter.CreateIdent(AName: String): TPrimitiveExpr;

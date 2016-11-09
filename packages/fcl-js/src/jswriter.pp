@@ -425,20 +425,23 @@ procedure TJSWriter.WriteValue(V: TJSValue);
 Var
   S : String;
 begin
-  Case V.ValueType of
-     jstUNDEFINED : S:='undefined';
-     jstNull : s:='null';
-     jstBoolean : if V.AsBoolean then s:='true' else s:='false';
-     jstString : S:='"'+EscapeString(V.AsString)+'"';
-     jstNumber :
-       if Frac(V.AsNumber)=0 then // this needs to be improved
-         Str(Round(V.AsNumber),S)
-       else
-         Str(V.AsNumber,S);
-     jstObject : ;
-     jstReference : ;
-     JSTCompletion : ;
-  end;
+  if V.CustomValue<>'' then
+    S:=V.CustomValue
+  else
+    Case V.ValueType of
+      jstUNDEFINED : S:='undefined';
+      jstNull : s:='null';
+      jstBoolean : if V.AsBoolean then s:='true' else s:='false';
+      jstString : S:='"'+EscapeString(V.AsString)+'"';
+      jstNumber :
+        if Frac(V.AsNumber)=0 then // this needs to be improved
+          Str(Round(V.AsNumber),S)
+        else
+          Str(V.AsNumber,S);
+      jstObject : ;
+      jstReference : ;
+      JSTCompletion : ;
+    end;
   Write(S);
 end;
 

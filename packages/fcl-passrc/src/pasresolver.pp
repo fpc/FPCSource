@@ -91,10 +91,10 @@
   - arrays TPasArrayType
   - check if var initexpr fits vartype: var a: type = expr;
   - built-in functions high, low for range type and arrays
-
- ToDo:
   - procedure type
   - method type
+
+ ToDo:
   - char constant #0, #10, #13, UTF-8 char
   - const TArrayValues
   - classes - TPasClassType
@@ -370,6 +370,7 @@ const
 
 type
   TResolverBuiltInProc = (
+    bfCustom,
     bfLength,
     bfSetLength,
     bfInclude,
@@ -385,6 +386,7 @@ type
   TResolverBuiltInProcs = set of TResolverBuiltInProc;
 const
   ResolverBuiltInProcNames: array[TResolverBuiltInProc] of shortstring = (
+    'Custom',
     'Length',
     'SetLength',
     'Include',
@@ -397,7 +399,7 @@ const
     'Low',
     'High'
     );
-  bfAllStandardProcs = [low(TResolverBuiltInProc)..high(TResolverBuiltInProc)];
+  bfAllStandardProcs = [Succ(bfCustom)..high(TResolverBuiltInProc)];
 
 const
   ResolverResultVar = 'Result';
@@ -766,12 +768,13 @@ type
   TOnGetCallResult = procedure(Proc: TResElDataBuiltInProc; Params: TParamsExpr;
     out ResolvedEl: TPasResolverResult) of object;
 
-  { TResElDataBuiltInProc - CustomData for compiler built-in procs like 'length' }
+  { TResElDataBuiltInProc - TPasUnresolvedSymbolRef(aType).CustomData for compiler built-in procs like 'length' }
 
   TResElDataBuiltInProc = Class(TResElDataBuiltInSymbol)
   public
     Proc: TPasUnresolvedSymbolRef;
     Signature: string;
+    BuiltIn: TResolverBuiltInProc;
     GetCallCompatibility: TOnGetCallCompatibility;
     GetCallResult: TOnGetCallResult;
   end;
@@ -982,7 +985,8 @@ type
     function IsBaseType(aType: TPasType; BaseType: TResolverBaseType): boolean;
     function AddBuiltInProc(aName: shortstring; Signature: string;
       const GetCallCompatibility: TOnGetCallCompatibility;
-      const GetCallResult: TOnGetCallResult): TResElDataBuiltInProc;
+      const GetCallResult: TOnGetCallResult;
+      BuiltIn: TResolverBuiltInProc = bfCustom): TResElDataBuiltInProc;
     // add extra TResolveData (E.CustomData) to free list
     procedure AddResolveData(El: TPasElement; Data: TResolveData;
       Kind: TResolveDataListKind);
@@ -6214,37 +6218,37 @@ begin
     AddBaseType(BaseTypeNames[bt],bt);
   if bfLength in BaseProcs then
     AddBuiltInProc('Length','function Length(const String or Array): sizeint',
-        @OnGetCallCompatibility_Length,@OnGetCallResult_Length);
+        @OnGetCallCompatibility_Length,@OnGetCallResult_Length,bfLength);
   if bfSetLength in BaseProcs then
     AddBuiltInProc('SetLength','procedure SetLength(var String or Array; NewLength: sizeint)',
-        @OnGetCallCompatibility_SetLength,nil);
+        @OnGetCallCompatibility_SetLength,nil,bfSetLength);
   if bfInclude in BaseProcs then
     AddBuiltInProc('Include','procedure Include(var Set of Enum; const Enum)',
-        @OnGetCallCompatibility_InExclude,nil);
+        @OnGetCallCompatibility_InExclude,nil,bfInclude);
   if bfExclude in BaseProcs then
     AddBuiltInProc('Exclude','procedure Exclude(var Set of Enum; const Enum)',
-        @OnGetCallCompatibility_InExclude,nil);
+        @OnGetCallCompatibility_InExclude,nil,bfExclude);
   if bfOrd in BaseProcs then
     AddBuiltInProc('Ord','function Ord(const Enum or Char): integer',
-        @OnGetCallCompatibility_Ord,@OnGetCallResult_Ord);
+        @OnGetCallCompatibility_Ord,@OnGetCallResult_Ord,bfOrd);
   if bfExit in BaseProcs then
     AddBuiltInProc('Exit','procedure Exit(result)',
-        @OnGetCallCompatibility_Exit,nil);
+        @OnGetCallCompatibility_Exit,nil,bfExit);
   if bfInc in BaseProcs then
     AddBuiltInProc('Inc','procedure Inc(var Integer; const Incr: Integer = 1)',
-        @OnGetCallCompatibility_IncDec,nil);
+        @OnGetCallCompatibility_IncDec,nil,bfInc);
   if bfDec in BaseProcs then
     AddBuiltInProc('Dec','procedure Dec(var Integer; const Decr: Integer = 1)',
-        @OnGetCallCompatibility_IncDec,nil);
+        @OnGetCallCompatibility_IncDec,nil,bfDec);
   if bfAssigned in BaseProcs then
     AddBuiltInProc('Assigned','function Assigned(const Pointer or Class or Class-of): boolean',
-        @OnGetCallCompatibility_Assigned,@OnGetCallResult_Assigned);
+        @OnGetCallCompatibility_Assigned,@OnGetCallResult_Assigned,bfAssigned);
   if bfLow in BaseProcs then
     AddBuiltInProc('Low','function Low(const array or ordinal): ordinal or integer',
-        @OnGetCallCompatibility_LowHigh,@OnGetCallResult_LowHigh);
+        @OnGetCallCompatibility_LowHigh,@OnGetCallResult_LowHigh,bfLow);
   if bfHigh in BaseProcs then
     AddBuiltInProc('High','function High(const array or ordinal): ordinal or integer',
-        @OnGetCallCompatibility_LowHigh,@OnGetCallResult_LowHigh);
+        @OnGetCallCompatibility_LowHigh,@OnGetCallResult_LowHigh,bfHigh);
 end;
 
 function TPasResolver.AddBaseType(aName: shortstring; Typ: TResolverBaseType
@@ -6272,7 +6276,8 @@ end;
 
 function TPasResolver.AddBuiltInProc(aName: shortstring; Signature: string;
   const GetCallCompatibility: TOnGetCallCompatibility;
-  const GetCallResult: TOnGetCallResult): TResElDataBuiltInProc;
+  const GetCallResult: TOnGetCallResult; BuiltIn: TResolverBuiltInProc
+  ): TResElDataBuiltInProc;
 var
   El: TPasUnresolvedSymbolRef;
 begin
@@ -6280,6 +6285,7 @@ begin
   Result:=TResElDataBuiltInProc.Create;
   Result.Proc:=El;
   Result.Signature:=Signature;
+  Result.BuiltIn:=BuiltIn;
   Result.GetCallCompatibility:=GetCallCompatibility;
   Result.GetCallResult:=GetCallResult;
   AddResolveData(El,Result,lkBuiltIn);
