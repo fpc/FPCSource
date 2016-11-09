@@ -145,6 +145,7 @@ Interface
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;
             l:=0;
+            mangledname:='';
             hasdot:=(actasmtoken=AS_DOT);
             if hasdot then
               begin
