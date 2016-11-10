@@ -46,6 +46,8 @@ type
     function FindRepository(ARepositoryName: string): TFPRepository;
     function RepositoryByName(ARepositoryName: string): TFPRepository;
 
+    function GetInstallRepository(APackage: TFPPackage): TFPRepository;
+
     procedure ScanInstalledPackagesForAvailablePackages;
 
     property Options: TFppkgOptions read FOptions;
@@ -325,6 +327,24 @@ begin
   Result := FindRepository(ARepositoryName);
   If Result=Nil then
     Raise EPackage.CreateFmt(SErrMissingInstallRepo,[ARepositoryName]);
+end;
+
+function TpkgFPpkg.GetInstallRepository(APackage: TFPPackage): TFPRepository;
+var
+  InstRepositoryName: string;
+  Repo: TFPRepository;
+begin
+  Result := GFPpkg.RepositoryByName(GFPpkg.Options.CommandLineSection.InstallRepository);
+  if Assigned(APackage) and Assigned(APackage.Repository) and Assigned(APackage.Repository.DefaultPackagesStructure) then
+    begin
+      InstRepositoryName := APackage.Repository.DefaultPackagesStructure.InstallRepositoryName;
+      if (InstRepositoryName<>'') then
+        begin
+          Repo := FindRepository(InstRepositoryName);
+          if Assigned(Repo) then
+            Result := Repo;
+        end;
+    end;
 end;
 
 procedure TpkgFPpkg.ScanInstalledPackagesForAvailablePackages;

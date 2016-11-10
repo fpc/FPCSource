@@ -29,19 +29,27 @@ Const
 
 type
   TFPRepositoryType = (fprtUnknown, fprtInstalled, fprtAvailable);
+  TFPInstallationNeeded = (fpinInstallationNeeded, fpinNoInstallationNeeded, fpinInstallationImpossible);
   TFPRepository = class;
   TFPPackage = class;
 
   { TFPCustomPackagesStructure }
 
   TFPCustomPackagesStructure = Class(TComponent)
+  private
+    FInstallRepositoryName: string;
+    function GetInstallRepositoryName: string;
+    procedure SetInstallRepositoryName(AValue: string);
   public
     function AddPackagesToRepository(ARepository: TFPRepository): Boolean; virtual; abstract;
     function GetUnitDirectory(APackage: TFPPackage): string; virtual;
     function GetBuildPathDirectory(APackage: TFPPackage): string; virtual;
     function GetPrefix: string; virtual;
     function GetBaseInstallDir: string; virtual;
+    function GetConfigFileForPackage(APackageName: string): string; virtual;
     function UnzipBeforeUse: Boolean; virtual;
+    function IsInstallationNeeded(APackage: TFPPackage): TFPInstallationNeeded; virtual;
+    property InstallRepositoryName: string read GetInstallRepositoryName write SetInstallRepositoryName;
   end;
 
   { TFPDependency }
@@ -353,9 +361,30 @@ begin
   raise Exception.Create('It is not possible to install into this repository.');
 end;
 
+function TFPCustomPackagesStructure.GetConfigFileForPackage(APackageName: string): string;
+begin
+  Result := IncludeTrailingPathDelimiter(GetBaseInstallDir)+
+    'fpmkinst'+PathDelim+GFPpkg.CompilerOptions.CompilerTarget+PathDelim+APackageName+FpmkExt;
+end;
+
 function TFPCustomPackagesStructure.UnzipBeforeUse: Boolean;
 begin
   Result := False;
+end;
+
+function TFPCustomPackagesStructure.IsInstallationNeeded(APackage: TFPPackage): TFPInstallationNeeded;
+begin
+  result := fpinInstallationNeeded;
+end;
+
+function TFPCustomPackagesStructure.GetInstallRepositoryName: string;
+begin
+  Result := FInstallRepositoryName;
+end;
+
+procedure TFPCustomPackagesStructure.SetInstallRepositoryName(AValue: string);
+begin
+  FInstallRepositoryName := AValue;
 end;
 
 { TFPPackage }
@@ -525,6 +554,7 @@ var
 begin
   With AStringList do
     begin
+      Name:=Values[KeyName];
       Version.AsString:=Values[KeyVersion];
       SourcePath:=Values[KeySourcePath];
       FPMakeOptionsString:=Values[KeyFPMakeOptions];

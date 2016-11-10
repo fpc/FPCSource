@@ -115,6 +115,7 @@ Type
   TFppkgRepositoryOptionSection = class(TFppkgOptionSection)
   private
     FDescription: string;
+    FInstallRepositoryName: string;
     FPath: string;
     FPrefix: string;
     FRepositoryName: string;
@@ -136,6 +137,7 @@ Type
     property Description: string read FDescription write SetDescription;
     property Path: string read GetPath write SetPath;
     property Prefix: string read GetPrefix write SetPrefix;
+    property InstallRepositoryName: string read FInstallRepositoryName write FInstallRepositoryName;
   end;
 
   { TFppkgIncludeFilesOptionSection }
@@ -280,6 +282,7 @@ Const
   KeyGlobalSection         = 'Global';
   KeyRepositorySection     = 'Repository';
   KeySrcRepositorySection  = 'UninstalledSourceRepository';
+  KeyUninstalledRepository = 'UninstalledRepository';
   KeyIncludeFilesSection   = 'IncludeFiles';
   KeyRemoteMirrorsURL      = 'RemoteMirrors';
   KeyRemoteRepository      = 'RemoteRepository';
@@ -297,6 +300,7 @@ Const
   KeyRepositoryDescription = 'Description';
   KeyRepositoryPath        = 'Path';
   KeyRepositoryPrefix      = 'Prefix';
+  KeyInstallRepositoryName = 'InstallRepository';
 
   KeyIncludeFile           = 'File';
   KeyIncludeFileMask       = 'FileMask';
@@ -442,6 +446,8 @@ begin
     Path := AValue
   else if SameText(AKey,KeyRepositoryPrefix) then
     Prefix := AValue
+  else if SameText(AKey,KeyInstallRepositoryName) then
+    InstallRepositoryName := AValue
 end;
 
 procedure TFppkgRepositoryOptionSection.LogValues(ALogLevel: TLogLevel);
@@ -451,6 +457,7 @@ begin
   log(ALogLevel,SLogRepositoryDescription,[FDescription]);
   log(ALogLevel,SLogRepositoryPath,[FPath,Path]);
   log(ALogLevel,SLogRepositoryPrefix,[FPrefix,Prefix]);
+  log(ALogLevel,SLogInstallRepository,[FInstallRepositoryName]);
 end;
 
 function TFppkgRepositoryOptionSection.AllowDuplicate: Boolean;
@@ -475,6 +482,7 @@ begin
       Result.RepositoryName := RepositoryName;
       Result.Description := Description;
       InstPackages := TFPInstalledPackagesStructure.Create(AParent, Path, ACompilerOptions);
+      InstPackages.InstallRepositoryName := InstallRepositoryName;
       Result.DefaultPackagesStructure := InstPackages;
       InstPackages.Prefix:=Prefix;
     end;
@@ -808,6 +816,8 @@ begin
                   CurrentSection := TFppkgUninstalledSourceRepositoryOptionSection.Create(FOptionParser)
                 else if SameText(s, KeyIncludeFilesSection) then
                   CurrentSection := TFppkgIncludeFilesOptionSection.Create(FOptionParser, Self, ExtractFileDir(AFileName))
+                else if SameText(s, KeyUninstalledRepository) then
+                  CurrentSection := TFppkgUninstalledRepositoryOptionSection.Create(FOptionParser)
                 else
                   CurrentSection := TFppkgCustomOptionSection.Create(FOptionParser);
                 FSectionList.Add(CurrentSection);

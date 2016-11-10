@@ -56,6 +56,7 @@ Resourcestring
   SErrManifestNoSinglePackage = 'Manifest file "%s" does not contain exactly one package';
   SErrCannotModifyRepository = 'The repository of an TFPPackages-instance can not be changed.';
   SErrRepositoryNotAssigned  = 'Repository not assigned';
+  SErrInstallationImpossible = 'It is not possible to install the package "%s" in repository "%s".';
 
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogNotCompilingFPMake     = 'Skipping compiling of fpmake.pp, fpmake executable already exists';
@@ -76,7 +77,7 @@ Resourcestring
   SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
   SLogLoadingPackagesFile    = 'Loading available packages from "%s"';
   SLogLoadingMirrorsFile     = 'Loading available mirrors from "%s"';
-  SLogFindInstalledPackages  = 'Finding installed packages in "%s"';
+  SLogFindInstalledPackages  = 'Searching for installed packages in "%s"';
   SLogFoundFPMakeAddin       = 'Found FPMake-AddIn "%s"';
   SLogSavingStatusFile       = 'Saving local status to "%s"';
   SLogFPMKUnitDepVersion     = 'Checking for %s %s, installed %s, available %s';
@@ -115,6 +116,7 @@ Resourcestring
   SLogRepositoryDescription       = '  Description:      "%s"';
   SLogRepositoryPath              = '  Dir:              "%s" -> "%s"';
   SLogRepositoryPrefix            = '  Prefix:           "%s" -> "%s"';
+  SLogInstallRepository           = '  InstallRepository:"%s"';
 
   SLogIncludeFile                 = '  IncludeFile:           "%s" -> "\%s"';
   SLogIncludeFileMask             = '  IncludeFileMask:       "%s" -> "\%s"';

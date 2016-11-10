@@ -80,9 +80,19 @@ type
   { TCommandInstall }
 
   TCommandInstall = Class(TPackagehandler)
+  protected
+    function ForceInstall: Boolean; virtual;
   Public
     Procedure Execute;override;
   end;
+
+  { TCommandInstallForced }
+
+  TCommandInstallForced = Class(TCommandInstall)
+  protected
+    function ForceInstall: Boolean; override;
+  end;
+
 
   { TCommandUnInstall }
 
@@ -135,6 +145,13 @@ type
 
 var
   DependenciesDepth: integer;
+
+{ TCommandInstallForced }
+
+function TCommandInstallForced.ForceInstall: Boolean;
+begin
+  Result := True;
+end;
 
 { TCommandInfo }
 
@@ -360,6 +377,10 @@ begin
   ExecuteAction(PackageName,'fpmakebuild');
 end;
 
+function TCommandInstall.ForceInstall: Boolean;
+begin
+  Result := False;
+end;
 
 procedure TCommandInstall.Execute;
 
@@ -375,8 +396,7 @@ var
     Result := '';
     if Assigned(InstallRepo.DefaultPackagesStructure) then
       begin
-        Result := InstallRepo.DefaultPackagesStructure.GetBaseInstallDir;
-        ConfFile := IncludeTrailingPathDelimiter(Result)+'fpmkinst'+PathDelim+GFPpkg.CompilerOptions.CompilerTarget+PathDelim+s+FpmkExt;
+        ConfFile := InstallRepo.DefaultPackagesStructure.GetConfigFileForPackage(s);
         if not FileExistsLog(ConfFile) then
           begin
             // If there is no fpm-file, search for an (obsolete, pre-2.7.x)
@@ -392,11 +412,23 @@ var
 
 var
   UFN : String;
+  AvailPackage: TFPPackage;
 begin
   if PackageName<>'' then
     begin
       ExecuteAction(PackageName,'build');
-      ExecuteAction(PackageName,'fpmakeinstall');
+
+      AvailPackage := GFPpkg.FindPackage(PackageName, pkgpkAvailable);
+      InstallRepo := GFPpkg.GetInstallRepository(AvailPackage);
+      case InstallRepo.DefaultPackagesStructure.IsInstallationNeeded(AvailPackage) of
+        fpinInstallationNeeded:
+          ExecuteAction(PackageName,'fpmakeinstall');
+        fpinInstallationImpossible:
+          Error(SErrInstallationImpossible,[PackageName, InstallRepo.RepositoryName]);
+        else if ForceInstall then
+          ExecuteAction(PackageName,'fpmakeinstall');
+      end;
+
       if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) or
          (PackageName=URLPackageName) then
         begin
@@ -410,7 +442,6 @@ begin
       else
         S:=PackageName;
 
-      InstallRepo := GFPpkg.RepositoryByName(GFPpkg.Options.CommandLineSection.InstallRepository);
       if Assigned(InstallRepo) then
         begin
           P := InstallRepo.FindPackage(S);
@@ -563,7 +594,7 @@ begin
       inc(DependenciesDepth);
 
       for i:=0 to L.Count-1 do
-        ExecuteAction(L[i],'install');
+        ExecuteAction(L[i],'install-req');
 
       dec(DependenciesDepth);
       if DependenciesDepth=0 then
@@ -589,7 +620,7 @@ begin
     for i:=0 to SL.Count-1 do
       begin
         ExecuteAction(SL[i],'build');
-        ExecuteAction(SL[i],'install');
+        ExecuteAction(SL[i],'install-req');
       end;
   until false;
   FreeAndNil(SL);
@@ -605,7 +636,8 @@ initialization
   RegisterPkgHandler('unzip',TCommandUnzip);
   RegisterPkgHandler('compile',TCommandCompile);
   RegisterPkgHandler('build',TCommandBuild);
-  RegisterPkgHandler('install',TCommandInstall);
+  RegisterPkgHandler('install',TCommandInstallForced);
+  RegisterPkgHandler('install-req',TCommandInstall);
   RegisterPkgHandler('uninstall',TCommandUnInstall);
   RegisterPkgHandler('clean',TCommandClean);
   RegisterPkgHandler('archive',TCommandArchive);
