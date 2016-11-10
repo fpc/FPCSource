@@ -72,6 +72,8 @@ type
     function FindDef(ADefId: integer; Recursive: boolean = True): TDef;
     procedure ResolveDefs; virtual;
     procedure SetNotUsed;
+    function GetRefDef: TDef; virtual;
+    function GetRefDef2: TDef; virtual;
     property Items[Index: Integer]: TDef read GetItem write SetItem; default;
     property Count: integer read GetCount;
     property IsUsed: boolean read GetIsUsed write SetIsUsed;
@@ -98,6 +100,7 @@ type
     Size: integer;
     IID: string;
     procedure ResolveDefs; override;
+    function GetRefDef: TDef; override;
   end;
 
   TBasicType = (btVoid, btByte, btShortInt, btWord, btSmallInt, btLongWord, btLongInt, btInt64,
@@ -124,6 +127,7 @@ type
     PtrType: TDef;
     procedure ResolveDefs; override;
     function IsObjPtr: boolean;
+    function GetRefDef: TDef; override;
   end;
 
   { TReplDef }
@@ -158,6 +162,7 @@ type
     procedure ResolveDefs; override;
     function IsReplacedBy(d: TReplDef): boolean; override;
     function CanReplaced: boolean; override;
+    function GetRefDef: TDef; override;
   end;
 
   TProcType = (ptProcedure, ptFunction, ptConstructor, ptDestructor);
@@ -179,6 +184,7 @@ type
     procedure ResolveDefs; override;
     function IsReplacedBy(d: TReplDef): boolean; override;
     function CanReplaced: boolean; override;
+    function GetRefDef: TDef; override;
   end;
 
   TUnitDef = class(TDef)
@@ -189,6 +195,7 @@ type
     PPUVer: integer;
     UsedUnits: array of TUnitDef;
     Processed: boolean;
+    IsUnitUsed: boolean;
   end;
 
   TConstDef = class(TVarDef)
@@ -208,6 +215,7 @@ type
     Base: integer;
     ElMax: integer;
     ElType: TTypeDef;
+    function GetRefDef: TDef; override;
   end;
 
   { TArrayDef }
@@ -222,6 +230,8 @@ type
     ElType: TDef;
     RangeType: TDef;
     RangeLow, RangeHigh: integer;
+    function GetRefDef: TDef; override;
+    function GetRefDef2: TDef; override;
   end;
 
 const
@@ -253,6 +263,16 @@ begin
   SetExtUsed(RangeType, AValue, FHasRTypeRef);
 end;
 
+function TArrayDef.GetRefDef: TDef;
+begin
+  Result:=ElType;
+end;
+
+function TArrayDef.GetRefDef2: TDef;
+begin
+  Result:=RangeType;
+end;
+
 { TPointerDef }
 
 procedure TPointerDef.SetIsUsed(const AValue: boolean);
@@ -277,6 +297,11 @@ end;
 function TPointerDef.IsObjPtr: boolean;
 begin
   Result:=(PtrType <> nil) and (PtrType.DefType in [dtClass]);
+end;
+
+function TPointerDef.GetRefDef: TDef;
+begin
+  Result:=PtrType;
 end;
 
 { TReplDef }
@@ -345,6 +370,11 @@ begin
   SetExtUsed(ElType, AValue, FHasElTypeRef);
 end;
 
+function TSetDef.GetRefDef: TDef;
+begin
+  Result:=ElType;
+end;
+
 { TTypeDef }
 
 procedure TTypeDef.SetIsUsed(const AValue: boolean);
@@ -410,6 +440,11 @@ begin
   Result:=inherited CanReplaced and (ProcType = ptFunction);
 end;
 
+function TProcDef.GetRefDef: TDef;
+begin
+  Result:=ReturnType;
+end;
+
 { TClassDef }
 
 procedure TClassDef.SetIsUsed(const AValue: boolean);
@@ -427,6 +462,11 @@ procedure TClassDef.ResolveDefs;
 begin
   inherited ResolveDefs;
   AncestorClass:=TClassDef(ResolveDef(AncestorClass, TClassDef));
+end;
+
+function TClassDef.GetRefDef: TDef;
+begin
+  Result:=AncestorClass;
 end;
 
 { TVarDef }
@@ -453,6 +493,11 @@ end;
 function TVarDef.CanReplaced: boolean;
 begin
   Result:=(voRead in VarOpt) and inherited CanReplaced;
+end;
+
+function TVarDef.GetRefDef: TDef;
+begin
+  Result:=VarType;
 end;
 
 constructor TVarDef.Create;
@@ -676,6 +721,16 @@ begin
     exit;
   FRefCnt:=1;
   IsUsed:=False;
+end;
+
+function TDef.GetRefDef: TDef;
+begin
+  Result:=nil;
+end;
+
+function TDef.GetRefDef2: TDef;
+begin
+  Result:=nil;
 end;
 
 end.

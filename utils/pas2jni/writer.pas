@@ -128,6 +128,7 @@ type
     function GetProcSignature(d: TProcDef): string;
     procedure EHandlerStart;
     procedure EHandlerEnd(const EnvVarName: string; const ExtraCode: string = '');
+    procedure UpdateUsedUnits(u: TUnitDef);
 
     procedure WriteClassInfoVar(d: TDef);
     procedure WriteComment(d: TDef; const AType: string);
@@ -986,7 +987,6 @@ begin
       if IsObj and (ProcType = ptDestructor) then begin
         Fps.WriteLn(TempRes + ':=@' + JniToPasType(d.Parent, '_jobj', True) + ';');
         Fps.WriteLn(Format('%s^.%s;', [TempRes, s]));
-//        Fps.WriteLn(Format('system.Finalize(%s^); system.FreeMem(%s);', [TempRes, TempRes]));
         Fps.WriteLn(Format('_env^^.SetLongField(_env, _jobj, %s.ObjFieldId, -jlong(ptruint(%s)));', [GetTypeInfoVar(d.Parent), TempRes]));
       end
       else begin
@@ -1279,7 +1279,7 @@ begin
   RegisterPseudoClass(d);
 
   WriteComment(d, 'enum');
-  Fjs.WriteLn(Format('public static class %s extends system.Enum {', [d.Name]));
+  Fjs.WriteLn(Format('public static class %s extends %s.system.Enum {', [d.Name, JavaPackage]));
   Fjs.IncI;
   for i:=0 to d.Count - 1 do begin
     s:=Format('public final static int %s = %s;', [d[i].Name, TConstDef(d[i]).Value]);
@@ -1536,7 +1536,7 @@ procedure TWriter.WriteUnit(u: TUnitDef);
 var
   d: TDef;
   i: integer;
-  HasSystem: boolean;
+  f: boolean;
 begin
   if u.Processed then
     exit;
@@ -1558,19 +1558,20 @@ begin
   try
     WriteFileComment(Fjs);
     Fjs.WriteLn(Format('package %s;', [JavaPackage]));
-    HasSystem:=False;
     if Length(u.UsedUnits) > 0 then begin
-      Fjs.WriteLn;
+      UpdateUsedUnits(u);
+      f:=False;
       for i:=0 to High(u.UsedUnits) do
-        if u.UsedUnits[i].IsUsed then begin
+        if u.UsedUnits[i].IsUnitUsed then begin
+          if not f then begin
+            Fjs.WriteLn;
+            f:=True;
+          end;
           Fjs.WriteLn(Format('import %s.%s.*;', [JavaPackage, LowerCase(u.UsedUnits[i].Name)]));
-          if AnsiCompareText(u.UsedUnits[i].Name, 'system') = 0 then
-            HasSystem:=True;
         end;
-      if not HasSystem then
-        Fjs.WriteLn(Format('import %s.system.*;', [JavaPackage]));
     end;
     if u.Name = 'system' then begin
+      Fjs.WriteLn;
       Fjs.WriteLn('import java.util.Date;');
       Fjs.WriteLn('import java.util.TimeZone;');
     end;
@@ -1609,7 +1610,7 @@ begin
       Fjs.WriteLn('protected PascalObject() { }');
       Fjs.WriteLn('protected PascalObject(PascalObject obj) { if (obj != null) _pasobj=obj._pasobj; }');
       Fjs.WriteLn('protected PascalObject(long objptr) { _pasobj=objptr; }');
-      Fjs.WriteLn('protected void finalize() { }');
+      Fjs.WriteLn('@Override protected void finalize() { }');
       Fjs.WriteLn('@Override public boolean equals(Object o) { return ((o instanceof PascalObject) && _pasobj == ((PascalObject)o)._pasobj); }');
       Fjs.WriteLn('@Override public int hashCode() { return (int)_pasobj; }');
       Fjs.DecI;
@@ -2532,6 +2533,42 @@ begin
     Fps.WriteLn(ExtraCode);
   Fps.DecI;
   Fps.WriteLn('end;');
+end;
+
+procedure TWriter.UpdateUsedUnits(u: TUnitDef);
+
+  procedure _CheckDef(d: TDef);
+  begin
+    if (d = nil) or not d.IsUsed then
+      exit;
+    d:=d.Parent;
+    if (d <> nil) and (d.DefType = dtUnit) then
+      with TUnitDef(d) do
+        if not IsUnitUsed and IsUsed then
+          IsUnitUsed:=True;
+  end;
+
+  procedure _ScanDef(def: TDef);
+  var
+    i: integer;
+    d: TDef;
+  begin
+    for i:=0 to def.Count - 1 do begin
+      d:=def[i];
+      if not d.IsUsed then
+        continue;
+      _CheckDef(d.GetRefDef);
+      _CheckDef(d.GetRefDef2);
+      _ScanDef(d);
+    end;
+  end;
+
+var
+  i: integer;
+begin
+  for i:=0 to High(u.UsedUnits) do
+    u.UsedUnits[i].IsUnitUsed:=False;
+  _ScanDef(u);
 end;
 
 procedure TWriter.WriteClassInfoVar(d: TDef);
