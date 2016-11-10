@@ -1495,12 +1495,12 @@ begin
   if not d.IsUsed or not d.IsObjPtr then
     exit;
   if PreInfo then begin
-    WriteComment(d, 'pointer');
     RegisterPseudoClass(d);
     WriteClassInfoVar(d);
     exit;
   end;
 
+  WriteComment(d, 'pointer');
   Fjs.WriteLn(Format('public static class %s extends %s {', [d.Name, d.PtrType.Name]));
   Fjs.IncI;
   if TClassDef(d.PtrType).CType in [ctObject, ctRecord] then
@@ -2597,6 +2597,15 @@ begin
   FRecords:=TObjectList.Create(False);
 end;
 
+function DoCanUseDef(def, refdef: TDef): boolean;
+begin
+  Result:=True;
+  if (def.DefType = dtArray) and (refdef is TVarDef) then begin
+    // Arrays are supported only for variables, fields, properties and constants
+    Result:=refdef.DefType in [dtVar, dtProp, dtField, dtConst];
+  end;
+end;
+
 destructor TWriter.Destroy;
 var
   i: integer;
@@ -2671,6 +2680,7 @@ begin
   p:=TPPUParser.Create(SearchPath);
   try
     p.OnCheckItem:=@DoCheckItem;
+    OnCanUseDef:=@DoCanUseDef;
     for i:=0 to Units.Count - 1 do
       IncludeList.Add(ChangeFileExt(ExtractFileName(Units[i]), ''));
     for i:=0 to Units.Count - 1 do

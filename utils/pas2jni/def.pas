@@ -54,6 +54,7 @@ type
     procedure AddRef;
     procedure DecRef;
     procedure SetExtUsed(ExtDef: TDef; AUsed: boolean; var HasRef: boolean);
+    function ShouldUseChild(d: TDef): boolean; virtual;
   public
     DefType: TDefType;
     DefId: integer;
@@ -87,6 +88,7 @@ type
     FHasClassRef: boolean;
   protected
     procedure SetIsUsed(const AValue: boolean); override;
+    function ShouldUseChild(d: TDef): boolean; override;
   public
     CType: TClassType;
     AncestorClass: TClassDef;
@@ -169,6 +171,7 @@ type
     FHasRetTypeRef: boolean;
   protected
     procedure SetIsUsed(const AValue: boolean); override;
+    function ShouldUseChild(d: TDef): boolean; override;
   public
     ProcType: TProcType;
     ReturnType: TDef;
@@ -223,6 +226,9 @@ type
 
 const
   ReplDefs  = [dtField, dtProp, dtProc];
+
+var
+  OnCanUseDef: function (def, refdef: TDef): boolean;
 
 implementation
 
@@ -370,6 +376,11 @@ begin
     SetExtUsed(ReturnType, AValue, FHasRetTypeRef);
 end;
 
+function TProcDef.ShouldUseChild(d: TDef): boolean;
+begin
+  Result:=d.DefType in [dtParam];
+end;
+
 procedure TProcDef.ResolveDefs;
 begin
   inherited ResolveDefs;
@@ -405,6 +416,11 @@ procedure TClassDef.SetIsUsed(const AValue: boolean);
 begin
   inherited SetIsUsed(AValue);
   SetExtUsed(AncestorClass, AValue, FHasClassRef);
+end;
+
+function TClassDef.ShouldUseChild(d: TDef): boolean;
+begin
+  Result:=d.DefType in [dtProc, dtField, dtProp];
 end;
 
 procedure TClassDef.ResolveDefs;
@@ -486,10 +502,13 @@ procedure TDef.SetIsUsed(const AValue: boolean);
 var
   i: integer;
   f: boolean;
+  d: TDef;
 begin
   if FInSetUsed or (DefType = dtNone) or IsPrivate then
     exit;
   if AValue then begin
+    if Assigned(OnCanUseDef) and not OnCanUseDef(Self, Parent) then
+      exit;
     AddRef;
     f:=FRefCnt = 1;
   end
@@ -503,8 +522,11 @@ begin
     // Update used mark of children only once
     FInSetUsed:=True;
     try
-      for i:=0 to Count - 1 do
-        Items[i].IsUsed:=AValue;
+      for i:=0 to Count - 1 do begin
+        d:=Items[i];
+        if ShouldUseChild(d) then
+          d.IsUsed:=AValue;
+      end;
     finally
       FInSetUsed:=False;
     end;
@@ -550,6 +572,8 @@ begin
   if AUsed then begin
     if HasRef then
       exit;
+    if Assigned(OnCanUseDef) and not OnCanUseDef(ExtDef, Self) then
+      exit;
     OldRefCnt:=ExtDef.RefCnt;
     ExtDef.IsUsed:=True;
     HasRef:=OldRefCnt <> ExtDef.RefCnt;
@@ -559,6 +583,11 @@ begin
       ExtDef.IsUsed:=False;
       HasRef:=False;
     end;
+end;
+
+function TDef.ShouldUseChild(d: TDef): boolean;
+begin
+  Result:=True;
 end;
 
 procedure TDef.SetItem(Index: Integer; const AValue: TDef);
