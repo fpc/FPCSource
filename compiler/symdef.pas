@@ -2584,7 +2584,7 @@ implementation
     procedure tenumdef.calcsavesize(packenum: shortint);
       begin
 {$IFNDEF cpu64bitaddr} {$push}{$warnings off} {$ENDIF} //comparison always false warning
-        if (packenum=8) or (min<low(longint)) or (int64(max)>high(cardinal)) then
+        if (packenum=8) or (int64(min)<low(longint)) or (int64(max)>high(cardinal)) then
          savesize:=8
 {$IFNDEF cpu64bitaddr} {$pop} {$ENDIF}
         else
