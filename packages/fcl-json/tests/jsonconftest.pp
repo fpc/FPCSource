@@ -179,7 +179,9 @@ begin
   C:=CreateConf('test.json');
   try
     C.SetValue('a',1);
+    C.Flush;
     C.DeleteValue('a');
+    AssertEquals('Modified set',True,C.Modified);
     AssertEquals('Delete value',0,C.GetValue('a',0));
     C.SetValue('b/a',1);
     C.SetValue('b/c',2);
@@ -187,7 +189,9 @@ begin
     AssertEquals('Delete value in subkey',0,C.GetValue('a',0));
     AssertEquals('Delete value only clears deleted value',2,C.GetValue('b/c',0));
     C.SetValue('b/a',1);
+    C.Flush;
     C.DeletePath('b');
+    AssertEquals('Modified set',True,C.Modified);
     AssertEquals('Delete path',0,C.GetValue('b/a',0));
     AssertEquals('Delete path deletes all values',0,C.GetValue('b/c',0));
     C.Clear;
