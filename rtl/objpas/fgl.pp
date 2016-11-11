@@ -61,6 +61,7 @@ type
     procedure SetLast(const Value: Pointer);
     function GetFirst: Pointer;
     procedure SetFirst(const Value: Pointer);
+    Procedure CheckIndex(AIndex : Integer); inline;
   public
     constructor Create(AItemSize: Integer = sizeof(Pointer));
     destructor Destroy; override;
@@ -466,16 +467,14 @@ end;
 
 function TFPSList.Get(Index: Integer): Pointer;
 begin
-  if (Index < 0) or (Index >= FCount) then
-    RaiseIndexError(Index);
+  CheckIndex(Index);
   Result := InternalItems[Index];
 end;
 
 procedure TFPSList.Put(Index: Integer; Item: Pointer);
 var p : Pointer;
 begin
-  if (Index < 0) or (Index >= FCount) then
-    RaiseIndexError(Index);
+  CheckIndex(Index);
   p:=InternalItems[Index];
   if assigned(p) then
     DeRef(p);	
@@ -533,6 +532,14 @@ begin
   Inc(FCount);
 end;
 
+procedure TFPSList.CheckIndex(AIndex : Integer);
+
+begin
+  if (AIndex < 0) or (AIndex >= FCount) then
+    Error(SListIndexError, AIndex);
+end;
+
+
 procedure TFPSList.Clear;
 begin
   if Assigned(FList) then
@@ -546,8 +553,7 @@ procedure TFPSList.Delete(Index: Integer);
 var
   ListItem: Pointer;
 begin
-  if (Index < 0) or (Index >= FCount) then
-    Error(SListIndexError, Index);
+  CheckIndex(Index);
   Dec(FCount);
   ListItem := InternalItems[Index];
   Deref(ListItem);
@@ -589,10 +595,8 @@ end;
 
 procedure TFPSList.Exchange(Index1, Index2: Integer);
 begin
-  if ((Index1 >= FCount) or (Index1 < 0)) then
-    Error(SListIndexError, Index1);
-  if ((Index2 >= FCount) or (Index2 < 0)) then
-    Error(SListIndexError, Index2);
+  CheckIndex(Index1);
+  CheckIndex(Index2);
   InternalExchange(Index1, Index2);
 end;
 
@@ -681,10 +685,8 @@ var
   CurItem, NewItem, TmpItem, Src, Dest: Pointer;
   MoveCount: Integer;
 begin
-  if (CurIndex < 0) or (CurIndex >= Count) then
-    Error(SListIndexError, CurIndex);
-  if (NewIndex < 0) or (NewIndex >= Count) then
-    Error(SListIndexError, NewIndex);
+  CheckIndex(CurIndex);
+  CheckIndex(NewIndex);
   if CurIndex = NewIndex then
     exit;
   CurItem := InternalItems[CurIndex];
