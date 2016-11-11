@@ -633,6 +633,9 @@ uses
 
 var
   hlib : tlibhandle;
+  {$IFDEF WINDOWS}
+  hclib : tlibhandle;
+  {$ENDIF}
   LibRefCount : Integer;
 
 procedure Freelibvlc;
@@ -643,6 +646,11 @@ begin
   if LibRefCount>0 then
     exit;
   FreeLibrary(hlib);
+  hlib:=NilHandle;
+{$IFDEF WINDOWS}
+  FreeLibrary(hclib);
+  hclib:=NilHandle;
+{$ENDIF}
   libvlc_errmsg:=nil;
   libvlc_clearerr:=nil;
   libvlc_printerr:=nil;
@@ -932,7 +940,28 @@ Procedure Loadlibvlc(lib : AnsiString; CheckProcNames : Boolean = False);
     raise Exception.CreateFmt('Could not load library "%s"',[FN]);
     {$endif}
   end;
-  
+
+  Function TryLoadLib(ALib : String) : TLibHandle;
+  // On Windows, the vlccore lib must be loaded first.
+  // If it is not in the PATH then this will fail when specifying an arbitrary path.
+  // So we load it explicitly from the same directory first
+  {$IFDEF WINDOWS}
+  Var
+    ADir : String;
+  {$endif}
+
+  begin
+    {$IFDEF WINDOWS}
+    Result:=NilHandle;
+    ADir:=ExtractFilePath(ALib);
+    if ADir<>'' then
+      ADir:=IncludeTrailingPathDelimiter(ADir);
+    hclib:=LoadLibrary(ADir+corelibname);
+    if (HCLib<>Nilhandle) then
+    {$ENDIF}
+      Result:=LoadLibrary(ALib);
+  end;
+
 
 {$IFDEF WINDOWS}  
 Var
@@ -945,21 +974,21 @@ begin
     Inc(LibRefCount);
     Exit;
     end;
-  hlib:=LoadLibrary(lib);
-{$IFDEF WINDOWS}  
+  hlib:=TryLoadLib(lib);
+{$IFDEF WINDOWS}
   // MVC: This automatism is highly questionable; The end user should in fact determine the library.
   if (hlib=NilHandle) then
     begin
     D:=ExtractFilePath(lib);
     // Try default name in same directiory.
-    hlib:=LoadLibrary(d+corelibname);
+    hlib:=TryLoadLib(d+libname);
     if (hLib=NilHandle) and (d='') then
       begin
       // No directory specified, try default name in installation directory.
       if (DefaultlibPath='') then
         DefaultLibPath:=GetVLCLibPath;
       if (DefaultLibPath<>'') then
-        hLib:=LoadLibrary(IncludeTrailingPathDelimiter(DefaultlibPath)+corelibname);
+        hLib:=TryLoadLib(IncludeTrailingPathDelimiter(DefaultlibPath)+libname);
       end;  
     end;  
 {$endif}
