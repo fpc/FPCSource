@@ -29,7 +29,7 @@ Type
   Private
     FScanner : TJSONScanner;
     function GetO(AIndex: TJSONOption): Boolean;
-    function GetOptions: TJSONOptions;
+    function GetOptions: TJSONOptions; inline;
     function ParseNumber: TJSONNumber;
     procedure SetO(AIndex: TJSONOption; AValue: Boolean);
     procedure SetOptions(AValue: TJSONOptions);
@@ -38,7 +38,7 @@ Type
     function DoParse(AtCurrent,AllowEOF: Boolean): TJSONData;
     function GetNextToken: TJSONToken;
     function CurrentTokenString: String;
-    function CurrentToken: TJSONToken;
+    function CurrentToken: TJSONToken; inline;
     function ParseArray: TJSONArray;
     function ParseObject: TJSONObject;
     Property Scanner : TJSONScanner read FScanner;
