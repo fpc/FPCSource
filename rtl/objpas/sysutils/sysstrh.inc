@@ -67,8 +67,8 @@ Var TrueBoolStrs,
 function NewStr(const S: string): PString; overload;
 procedure DisposeStr(S: PString); overload;
 procedure DisposeStr(S: PShortString); overload;
-procedure AssignStr(var P: PString; const S: string);
-procedure AppendStr(var Dest: String; const S: string);
+procedure AssignStr(var P: PString; const S: string); {$ifdef SYSUTILSINLINE}inline;{$endif}
+procedure AppendStr(var Dest: String; const S: string);{$ifdef SYSUTILSINLINE}inline;{$endif}
 function UpperCase(const s: string): string; overload;
 function UpperCase(const s: string; LocaleOptions: TLocaleOptions): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function LowerCase(const s: string): string; overload;
@@ -105,7 +105,7 @@ function AnsiStrLastChar(Str: PChar): PChar;
 function Trim(const S: string): string;
 function TrimLeft(const S: string): string;
 function TrimRight(const S: string): string;
-function QuotedStr(const S: string): string;
+function QuotedStr(const S: string): string; {$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiQuotedStr(const S: string; Quote: char): string;
 function AnsiDequotedStr(const S: string; AQuote: Char): string;
 function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
