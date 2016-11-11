@@ -45,20 +45,26 @@ Const
 
 procedure TFPList.RaiseIndexError(Index : Integer);
 begin
+  // We should be able to remove this, but unfortunately it is marked protected.
   Error(SListIndexError, Index);
+end;
+
+Procedure TFPList.CheckIndex(AIndex : Integer);
+
+begin
+  If (AIndex < 0) or (AIndex >= FCount) then
+    Error(SListIndexError, AIndex); // Don't use RaiseIndexError, exception address will be better if we use error.
 end;
 
 function TFPList.Get(Index: Integer): Pointer;
 begin
-  If (Index < 0) or (Index >= FCount) then
-    RaiseIndexError(Index);
+  CheckIndex(Index);
   Result:=FList^[Index];
 end;
 
 procedure TFPList.Put(Index: Integer; Item: Pointer);
 begin
-  if (Index < 0) or (Index >= FCount) then
-    RaiseIndexError(Index);
+  CheckIndex(Index);
   Flist^[Index] := Item;
 end;
 
@@ -140,8 +146,7 @@ end;
 
 procedure TFPList.Delete(Index: Integer);
 begin
-  If (Index<0) or (Index>=FCount) then
-    Error (SListIndexError, Index);
+  CheckIndex(Index);
   FCount := FCount-1;
   System.Move (FList^[Index+1], FList^[Index], (FCount - Index) * SizeOf(Pointer));
   // Shrink the list if appropriate:
@@ -163,10 +168,8 @@ procedure TFPList.Exchange(Index1, Index2: Integer);
 var
   Temp : Pointer;
 begin
-  If ((Index1 >= FCount) or (Index1 < 0)) then
-    Error(SListIndexError, Index1);
-  If ((Index2 >= FCount) or (Index2 < 0)) then
-    Error(SListIndexError, Index2);
+  CheckIndex(Index1);
+  CheckIndex(Index2);
   Temp := FList^[Index1];
   FList^[Index1] := FList^[Index2];
   FList^[Index2] := Temp;
@@ -256,10 +259,8 @@ procedure TFPList.Move(CurIndex, NewIndex: Integer);
 var
   Temp : Pointer;
 begin
-  if ((CurIndex < 0) or (CurIndex > Count - 1)) then
-    Error(SListIndexError, CurIndex);
-  if ((NewIndex < 0) or (NewIndex > Count -1)) then
-    Error(SlistIndexError, NewIndex);
+  CheckIndex(CurIndex);
+  CheckIndex(NewIndex);
   Temp := FList^[CurIndex];
   if NewIndex > CurIndex then
     System.Move(FList^[CurIndex+1], FList^[CurIndex], (NewIndex - CurIndex) * SizeOf(Pointer))

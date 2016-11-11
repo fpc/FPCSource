@@ -230,7 +230,8 @@ Type
     procedure Put(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
-    Procedure RaiseIndexError(Index: Integer);
+    Procedure RaiseIndexError(Index: Integer); deprecated;
+    Procedure CheckIndex(AIndex : Integer); {$ifdef CLASSESINLINE} inline;{$ENDIF}
   public
     Type
       TDirection = (FromBeginning, FromEnd);
