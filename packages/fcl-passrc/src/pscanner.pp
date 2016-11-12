@@ -1315,7 +1315,10 @@ begin
             Inc(TokenStr);
           end;
           Inc(TokenStr);
-          Result := tkString;
+          if ((TokenStr - TokenStart)=3) then // 'z'
+            Result := tkChar
+          else
+            Result := tkString;
         end;
     else
       Break;

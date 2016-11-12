@@ -82,6 +82,7 @@ type
     procedure TestString;
     procedure TestNumber;
     procedure TestChar;
+    procedure TestCharString;
     procedure TestBraceOpen;
     procedure TestBraceClose;
     procedure TestMul;
@@ -515,6 +516,11 @@ begin
   TestToken(pscanner.tkString,'''A string''');
 end;
 
+procedure TTestScanner.TestCharString;
+
+begin
+  TestToken(pscanner.tkChar,'''A''');
+end;
 
 procedure TTestScanner.TestNumber;
 

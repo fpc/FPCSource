@@ -279,10 +279,10 @@ end;
 
 procedure TTestVarParser.TestVarExternalLibName;
 begin
-  ParseVar('integer; external ''mylib'' name ''d''','');
+  ParseVar('integer; external ''mylib'' name ''de''','');
   AssertEquals('Variable modifiers',[vmexternal],TheVar.VarModifiers);
   AssertEquals('Library name','''mylib''',TheVar.LibraryName);
-  AssertEquals('Library name','''d''',TheVar.ExportName);
+  AssertEquals('Library name','''de''',TheVar.ExportName);
 end;
 
 procedure TTestVarParser.TestVarCVar;
@@ -305,9 +305,9 @@ end;
 
 procedure TTestVarParser.TestVarPublicName;
 begin
-  ParseVar('integer; public name ''c''','');
+  ParseVar('integer; public name ''ce''','');
   AssertEquals('Variable modifiers',[vmpublic],TheVar.VarModifiers);
-  AssertEquals('Public export name','''c''',TheVar.ExportName);
+  AssertEquals('Public export name','''ce''',TheVar.ExportName);
 end;
 
 procedure TTestVarParser.TestVarDeprecatedExternalName;
