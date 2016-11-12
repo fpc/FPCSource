@@ -809,7 +809,7 @@ type
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
                         pmExport, pmOverload, pmMessage, pmReintroduce,
                         pmStatic,pmInline,pmAssembler,pmVarargs, pmPublic,
-                        pmCompilerProc,pmExternal,pmForward);
+                        pmCompilerProc,pmExternal,pmForward, pmdispid);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
                         
@@ -836,6 +836,7 @@ type
     PublicName,
     LibrarySymbolName,
     LibraryExpr : TPasExpr;
+    DispIDExpr :  TPasExpr;
     Procedure AddModifier(AModifier : TProcedureModifier);
     Function IsVirtual : Boolean;
     Function IsDynamic : Boolean;
@@ -1387,7 +1388,7 @@ const
                 = ('virtual', 'dynamic','abstract', 'override',
                    'export', 'overload', 'message', 'reintroduce',
                    'static','inline','assembler','varargs', 'public',
-                   'compilerproc','external','forward');
+                   'compilerproc','external','forward','dispid');
 
 procedure ReleaseAndNil(var El: TPasElement); overload;
 

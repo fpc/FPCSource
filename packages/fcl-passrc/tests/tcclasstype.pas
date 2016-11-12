@@ -149,6 +149,8 @@ type
     procedure TestInterfaceDisp;
     procedure TestInterfaceParentedEmpty;
     procedure TestInterfaceOneMethod;
+    procedure TestInterfaceDispIDMethod;
+    procedure TestInterfaceDispIDMethod2;
     procedure TestInterfaceProperty;
     procedure TestInterfaceDispProperty;
     procedure TestInterfaceDispPropertyReadOnly;
@@ -1040,7 +1042,7 @@ begin
   ParseClass;
   DefaultMethod;
   AssertEquals('Default visibility',visDefault,Method1.Visibility);
-  AssertEquals('No modifiers',[pmMessage],Method1.Modifiers);
+  AssertEquals('message modifier',[pmMessage],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertEquals('Message name','123',Method1.MessageName);
 end;
@@ -1051,7 +1053,7 @@ begin
   ParseClass;
   DefaultMethod;
   AssertEquals('Default visibility',visDefault,Method1.Visibility);
-  AssertEquals('No modifiers',[pmMessage],Method1.Modifiers);
+  AssertEquals('message modifiers',[pmMessage],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertEquals('Message name','''aha''',Method1.MessageName);
 end;
@@ -1608,6 +1610,31 @@ begin
   AssertEquals('No modifiers',[],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertNull('No UUID',TheClass.GUIDExpr);
+end;
+
+procedure TTestClassType.TestInterfaceDispIDMethod;
+
+begin
+  StartInterface('IInterface','');
+  AddMember('Procedure DoSomething(A : Integer) dispid 12');
+  ParseClass;
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('dispid modifier',[pmDispID],Method1.Modifiers);
+  AssertNotNull('dispid expression',Method1.DispIDExpr);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+end;
+
+procedure TTestClassType.TestInterfaceDispIDMethod2;
+begin
+  StartInterface('IInterface','');
+  AddMember('Procedure DoSomething(A : Integer); dispid 12');
+  ParseClass;
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('dispid modifier',[pmDispID],Method1.Modifiers);
+  AssertNotNull('dispid expression',Method1.DispIDExpr);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
 procedure TTestClassType.TestInterfaceProperty;
