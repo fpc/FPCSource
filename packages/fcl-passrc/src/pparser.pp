@@ -4495,6 +4495,7 @@ begin
         else
           ARec.Members.Add(Proc);
         end;
+      tkGeneric, // Counts as field name
       tkIdentifier :
         begin
 //        If (po_delphi in Scanner.Options) then

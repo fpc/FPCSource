@@ -234,6 +234,7 @@ type
     Procedure TestOnePlatformFieldDeprecated;
     Procedure TestOnePlatformFieldPlatform;
     Procedure TestOneConstOneField;
+    Procedure TestOneGenericField;
     Procedure TestTwoFields;
     procedure TestTwoFieldProtected;
     procedure TestTwoFieldStrictPrivate;
@@ -1774,6 +1775,16 @@ begin
   AssertConst1([]);
   AssertEquals('Correct visibility',visPublic,TPasConst(TheRecord.Members[0]).Visibility);
   AssertField2([]);
+end;
+
+procedure TTestRecordTypeParser.TestOneGenericField;
+begin
+  TestFields(['Generic : Integer;'],'',False);
+  AssertEquals('Member 1 field type',TPasVariable,TObject(TheRecord.Members[0]).ClassType);
+  AssertEquals('Field 1 name','Generic',Field1.Name);
+  AssertNotNull('Have 1 Field type',Field1.VarType);
+  AssertEquals('Field 1 type',TPasUnresolvedTypeRef,Field1.VarType.ClassType);
+  AssertEquals('Field 1 type name','Integer',Field1.VarType.Name);
 end;
 
 procedure TTestRecordTypeParser.TestTwoFields;
