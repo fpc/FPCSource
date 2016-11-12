@@ -63,6 +63,9 @@ Type
     Procedure TestIfElse;
     Procedure TestIfElseBlock;
     Procedure TestIfSemiColonElseError;
+    procedure TestIfforElseBlock;
+    procedure TestIfRaiseElseBlock;
+    procedure TestIfWithBlock;
     Procedure TestNestedIf;
     Procedure TestNestedIfElse;
     Procedure TestWhile;
@@ -581,6 +584,41 @@ begin
   AssertEquals('begin end block',TPasImplBeginBlock,I.ifBranch.ClassType);
   AssertNotNull('Else branch',i.ElseBranch);
   AssertEquals('begin end block',TPasImplBeginBlock,I.ElseBranch.ClassType);
+end;
+
+procedure TTestStatementParser.TestIfforElseBlock;
+
+Var
+  I : TPasImplIfElse;
+
+begin
+  TestStatement(['if a then','for X := 1 downto 0 do Writeln(X)','else', 'for X := 0 to 1 do Writeln(X)']);
+  I:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
+  AssertExpression('IF condition',I.ConditionExpr,pekIdent,'a');
+  AssertEquals('For statement',TPasImplForLoop,I.ifBranch.ClassType);
+  AssertEquals('For statement',TPasImplForLoop,I.ElseBranch.ClassType);
+end;
+
+procedure TTestStatementParser.TestIfRaiseElseBlock;
+Var
+  I : TPasImplIfElse;
+begin
+  TestStatement(['if a then','raise','else', 'for X := 0 to 1 do Writeln(X)']);
+  I:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
+  AssertExpression('IF condition',I.ConditionExpr,pekIdent,'a');
+  AssertEquals('For statement',TPasImplRaise,I.ifBranch.ClassType);
+  AssertEquals('For statement',TPasImplForLoop,I.ElseBranch.ClassType);
+end;
+
+procedure TTestStatementParser.TestIfWithBlock;
+Var
+  I : TPasImplIfElse;
+begin
+  TestStatement(['if a then','with b do something','else', 'for X := 0 to 1 do Writeln(X)']);
+  I:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
+  AssertExpression('IF condition',I.ConditionExpr,pekIdent,'a');
+  AssertEquals('For statement',TPasImplWithDo,I.ifBranch.ClassType);
+  AssertEquals('For statement',TPasImplForLoop,I.ElseBranch.ClassType);
 end;
 
 procedure TTestStatementParser.TestIfSemiColonElseError;

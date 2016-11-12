@@ -3910,6 +3910,16 @@ begin
         //if .. then while .. do smt else ..
         CloseBlock;
         UngetToken;
+      end else if (CurBlock is TPasImplForLoop) then
+      begin
+        //if .. then for .. do smt else ..
+        CloseBlock;
+        UngetToken;
+      end else if (CurBlock is TPasImplWithDo) then
+      begin
+        //if .. then with .. do smt else ..
+        CloseBlock;
+        UngetToken;
       end else if (CurBlock is TPasImplRaise) then
       begin
         //if .. then Raise Exception else ..
@@ -4173,7 +4183,7 @@ begin
       El:=TPasImplRaise(CreateElement(TPasImplRaise,'',CurBlock));
       CreateBlock(TPasImplRaise(El));
       NextToken;
-      If Curtoken in [tkEnd,tkSemicolon] then
+      If Curtoken in [tkElse,tkEnd,tkSemicolon] then
         UnGetToken
       else
         begin
