@@ -3636,6 +3636,11 @@ begin
       Result.WriteAccessorName := GetAccessorName(Result,Result.WriteAccessor);
       NextToken;
       end;
+    if CurTokenIsIdentifier('READONLY') then
+      begin
+      Result.DispIDReadOnly:=True;
+      NextToken;
+      end;
     if CurTokenIsIdentifier('DISPID') then
       begin
       NextToken;

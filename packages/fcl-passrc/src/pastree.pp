@@ -775,6 +775,7 @@ type
     Args: TFPList;        // List of TPasArgument objects
     ReadAccessorName, WriteAccessorName, ImplementsName,
       StoredAccessorName: string;
+    DispIDReadOnly,
     IsDefault, IsNodefault: Boolean;
     property IsClass: boolean read GetIsClass write SetIsClass;
     Function ResolvedType : TPasType;

@@ -151,6 +151,7 @@ type
     procedure TestInterfaceOneMethod;
     procedure TestInterfaceProperty;
     procedure TestInterfaceDispProperty;
+    procedure TestInterfaceDispPropertyReadOnly;
     procedure TestInterfaceNoConstructor;
     procedure TestInterfaceNoDestructor;
     procedure TestInterfaceNoFields;
@@ -1643,6 +1644,23 @@ begin
   AssertNotNull('Have property',Property1);
   AssertMemberName('S',Property1);
   AssertNotNull('Have property dispID',Property1.DispIDExpr);
+  AssertEquals('Have number',pekNumber,Property1.DispIDExpr.Kind);
+  AssertEquals('Have number','1', (Property1.DispIDExpr as TPrimitiveExpr).Value);
+end;
+
+procedure TTestClassType.TestInterfaceDispPropertyReadOnly;
+begin
+  StartInterface('IInterface','',True);
+  AddMember('Property S : Integer readonly DispID 1');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okDispInterface,TheClass.ObjKind);
+  if TheClass.members.Count<1 then
+    Fail('No members for method');
+  AssertNotNull('Have property',Property1);
+  AssertMemberName('S',Property1);
+  AssertNotNull('Have property dispID',Property1.DispIDExpr);
+  AssertTrue('DispID property is readonly',Property1.DispIDReadOnly);
   AssertEquals('Have number',pekNumber,Property1.DispIDExpr.Kind);
   AssertEquals('Have number','1', (Property1.DispIDExpr as TPrimitiveExpr).Value);
 end;
