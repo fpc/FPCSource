@@ -520,7 +520,7 @@ interface
           checkoverflow and
           (left.resultdef.typ<>pointerdef) and
           (right.resultdef.typ<>pointerdef) and
-          (cs_check_overflow in current_settings.localswitches);
+          (cs_check_overflow in current_settings.localswitches) and not(nf_internal in flags);
 
 {$ifdef cpu64bitalu}
         case nodetype of
@@ -714,7 +714,7 @@ interface
          checkoverflow and
           (left.resultdef.typ<>pointerdef) and
           (right.resultdef.typ<>pointerdef) and
-          (cs_check_overflow in current_settings.localswitches);
+          (cs_check_overflow in current_settings.localswitches) and not(nf_internal in flags);
 
        if nodetype<>subn then
         begin

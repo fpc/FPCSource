@@ -3472,7 +3472,7 @@ implementation
                 because it's too complex to handle correctly otherwise }
 {$ifndef jvm}
               { enums are class instances in the JVM -> always need conversion }
-              if ([cs_check_overflow,cs_check_range]*current_settings.localswitches)<>[] then
+              if (([cs_check_overflow,cs_check_range]*current_settings.localswitches)<>[]) and not(nf_internal in flags) then
 {$endif}
                 begin
                   { create constant 1 }
@@ -3490,6 +3490,11 @@ implementation
                     hp:=caddnode.create(addn,left,hp)
                   else
                     hp:=caddnode.create(subn,left,hp);
+
+                  { the condition above is not tested for jvm, so we need to avoid overflow checks here
+                    by setting nf_internal for the add/sub node as well }
+                  if nf_internal in flags then
+                    include(hp.flags,nf_internal);
 
                   { assign result of addition }
                   if not(is_integer(resultdef)) then
