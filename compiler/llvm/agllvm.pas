@@ -274,17 +274,17 @@ implementation
       end;
 
 
-   function getparas(const o: toper): ansistring;
+   function getparas(const paras: tfplist): ansistring;
      var
        i: longint;
        para: pllvmcallpara;
      begin
        result:='(';
-       for i:=0 to o.paras.count-1 do
+       for i:=0 to paras.count-1 do
          begin
            if i<>0 then
              result:=result+', ';
-           para:=pllvmcallpara(o.paras[i]);
+           para:=pllvmcallpara(paras[i]);
            result:=result+llvmencodetypename(para^.def);
            if para^.valueext<>lve_none then
              result:=result+llvmvalueextension2str[para^.valueext];
@@ -405,7 +405,7 @@ implementation
            end;
          top_para:
            begin
-             result:=getparas(o);
+             result:=getparas(o.paras);
            end;
          top_tai:
            begin
