@@ -33,17 +33,15 @@ interface
     type
       TLLVMInstrWriter = class;
 
-      TLLVMBaseInlineAssemblyDecorator = class
-        function LineFilter(const s: AnsiString): AnsiString;
-      end;
-
-      TLLVMModuleInlineAssemblyDecorator = class(TLLVMBaseInlineAssemblyDecorator,IExternalAssemblerOutputFileDecorator)
+      TLLVMModuleInlineAssemblyDecorator = class(IExternalAssemblerOutputFileDecorator)
+       function LineFilter(const s: AnsiString): AnsiString;
        function LinePrefix: AnsiString;
        function LinePostfix: AnsiString;
        function LineEnding(const deflineending: ShortString): ShortString;
       end;
 
-      TLLVMFunctionInlineAssemblyDecorator = class(TLLVMBaseInlineAssemblyDecorator,IExternalAssemblerOutputFileDecorator)
+      TLLVMFunctionInlineAssemblyDecorator = class(IExternalAssemblerOutputFileDecorator)
+       function LineFilter(const s: AnsiString): AnsiString;
        function LinePrefix: AnsiString;
        function LinePostfix: AnsiString;
        function LineEnding(const deflineending: ShortString): ShortString;
@@ -151,10 +149,10 @@ implementation
       end;
 
 {****************************************************************************}
-{            Common decorator functionality for inline assembly              }
+{               Decorator for module-level inline assembly                   }
 {****************************************************************************}
 
-    function TLLVMBaseInlineAssemblyDecorator.LineFilter(const s: AnsiString): AnsiString;
+    function TLLVMModuleInlineAssemblyDecorator.LineFilter(const s: AnsiString): AnsiString;
       var
         i: longint;
       begin
@@ -175,10 +173,6 @@ implementation
           end;
         end;
 
-
-{****************************************************************************}
-{               Decorator for module-level inline assembly                   }
-{****************************************************************************}
 
     function TLLVMModuleInlineAssemblyDecorator.LinePrefix: AnsiString;
       begin
@@ -201,6 +195,35 @@ implementation
 {****************************************************************************}
 {              Decorator for function-level inline assembly                  }
 {****************************************************************************}
+
+
+    function TLLVMFunctionInlineAssemblyDecorator.LineFilter(const s: AnsiString): AnsiString;
+      var
+        i: longint;
+      begin
+        result:='';
+        for i:=1 to length(s) do
+          begin
+            case s[i] of
+              { escape dollars }
+              '$':
+                 result:=result+'$$';
+              { ^ is used as placeholder for a single dollar (reference to
+                 argument to the inline assembly) }
+              '^':
+                 result:=result+'$';
+              #0..#31,
+              #127..#255,
+              '"','\':
+                result:=result+
+                        '\'+
+                        chr((ord(s[i]) shr 4)+ord('0'))+
+                        chr((ord(s[i]) and $f)+ord('0'));
+            else
+              result:=result+s[i];
+            end;
+          end;
+        end;
 
 
     function TLLVMFunctionInlineAssemblyDecorator.LinePrefix: AnsiString;
