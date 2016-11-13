@@ -2956,17 +2956,30 @@ implementation
         { remove possible typecasts }
         realassignmenttarget:=actualtargetnode(@aktassignmentnode.left)^;
 
-        { when it is not passed in a parameter it will only be used after the
-          function call }
+        { when the result is returned by value (instead of by writing it to the
+          address passed in a hidden parameter), aktassignmentnode.left will
+          only be changed once the function has returned and we don't have to
+          perform any checks regarding whether it may alias with one of the
+          parameters -- unless this is an inline function, in which case
+          writes to the function result will directly change it and we do have
+          to check for potential aliasing }
         if not paramanager.ret_in_param(resultdef,procdefinition) then
-          begin
-            { don't replace the function result if we are inlining and if the destination is complex, this
-              could lead to lengthy code in case the function result is used often and it is assigned e.g.
-              to a threadvar }
-            result:=not(cnf_do_inline in callnodeflags) or
-              (node_complexity(aktassignmentnode.left)<=1);
-            exit;
-          end;
+           begin
+             if not(cnf_do_inline in callnodeflags) then
+                begin
+                  result:=true;
+                  exit;
+                end
+             else
+               begin
+                 { don't replace the function result if we are inlining and if
+                   the destination is complex, this could lead to lengthy
+                   code in case the function result is used often and it is
+                   assigned e.g. to a threadvar }
+                 if node_complexity(aktassignmentnode.left)>1 then
+                   exit;
+               end;
+           end;
 
         { if the result is the same as the self parameter (in case of objects),
           we can't optimise. We have to check this explicitly becaise
