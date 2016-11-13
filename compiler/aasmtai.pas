@@ -259,6 +259,7 @@ interface
        ,top_fpcond
        ,top_cond
        ,top_para
+       ,top_asmlist
 {$endif llvm}
        );
 
@@ -449,6 +450,7 @@ interface
             top_cond   : (cond: topcmp);
             top_fpcond : (fpcond: tllvmfpcmp);
             top_para   : (paras: tfplist);
+            top_asmlist : (asmlist: tasmlist);
         {$endif llvm}
         end;
         poper=^toper;

@@ -124,6 +124,7 @@ interface
         procedure loadcond(opidx: longint; _cond: topcmp);
         procedure loadfpcond(opidx: longint; _fpcond: tllvmfpcmp);
         procedure loadparas(opidx: longint; _paras: tfplist);
+        procedure loadasmlist(opidx: longint; _asmlist: tasmlist);
 
         { register spilling code }
         function spilling_get_operation_type(opnr: longint): topertype;override;
@@ -320,6 +321,8 @@ uses
             end;
           top_tai:
             oper[opidx]^.ai.free;
+          top_asmlist:
+            oper[opidx]^.asmlist.free;
         end;
         inherited;
       end;
@@ -443,6 +446,18 @@ uses
               end;
             typ:=top_para;
           end;
+      end;
+
+
+    procedure taillvm.loadasmlist(opidx: longint; _asmlist: tasmlist);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+         begin
+           clearop(opidx);
+           asmlist:=_asmlist;
+           typ:=top_asmlist;
+         end;
       end;
 
 
