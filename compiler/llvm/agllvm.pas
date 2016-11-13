@@ -495,11 +495,9 @@ implementation
               accessed from assembly code in memory }
             for i:=0 to taillvm(hp).oper[1]^.paras.Count-1 do
               begin
-                if i<>0 then
-                  owner.writer.AsmWrite(',');
-                owner.writer.AsmWrite('=*m');
+                owner.writer.AsmWrite('=*m,');
               end;
-            owner.writer.AsmWrite(',~{memory},~{fpsr},~{flags}');
+            owner.writer.AsmWrite('~{memory},~{fpsr},~{flags}');
             WriteAsmRegisterAllocationClobbers(taillvm(hp).oper[0]^.asmlist);
             owner.writer.AsmWrite('"');
             owner.writer.AsmWrite(getparas(taillvm(hp).oper[1]^.paras));
