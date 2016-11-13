@@ -544,7 +544,7 @@ type  // Checked OK 05.08.2011 ALB
   TDOSLibrary = record
     dl_Lib          : TLibrary;
     dl_Root         : PRootNode;
-    {$ifdef AROS_BINCOMPAT}
+    {$ifdef AROS_FLAVOUR_BINCOMPAT}
     dl_GV           : Pointer;
     dl_A2           : LongInt;
     dl_A5           : LongInt;

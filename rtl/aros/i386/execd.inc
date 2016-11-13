@@ -33,7 +33,7 @@ type  // Checked OK 05.08.2011 ALB
   TNode = record
     ln_Succ: PNode;
     ln_Pred: PNode;
-{$ifdef AROS_BINCOMPAT}
+{$ifdef AROS_FLAVOUR_BINCOMPAT}
     ln_Type: Byte;
     ln_Pri : ShortInt;
     ln_Name: PChar;

@@ -111,7 +111,7 @@ end;
 
 function BADDR(bval: PtrInt): Pointer; Inline;
 begin
-  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_FLAVOUR_BINCOMPAT))} 
   BADDR := Pointer(bval);
   {$else}
   BADDR:=Pointer(bval Shl 2);
@@ -120,7 +120,7 @@ end;
 
 function BSTR2STRING(s : Pointer): PChar; Inline;
 begin
-  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_FLAVOUR_BINCOMPAT))}
   BSTR2STRING:=PChar(s);
   {$else}
   BSTR2STRING:=PChar(BADDR(PtrInt(s)))+1;
@@ -129,7 +129,7 @@ end;
 
 function BSTR2STRING(s : PtrInt): PChar; Inline;
 begin
-  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_FLAVOUR_BINCOMPAT))}
   BSTR2STRING:=PChar(s);
   {$else}
   BSTR2STRING:=PChar(BADDR(s))+1;
