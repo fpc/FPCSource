@@ -351,6 +351,7 @@ begin
           nextchar:=0;
           inc(optind);
           Internal_getopt:='?';
+          exit;
         end;
        if pfound<>nil then
         begin
