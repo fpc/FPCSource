@@ -1295,6 +1295,7 @@ implementation
                 a.WriteTree(current_asmdata.asmlists[hal]);
                 writer.decorator:=nil;
                 decorator.free;
+                a.free;
               end;
             writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmlistTypeStr[hal]);
           end;
