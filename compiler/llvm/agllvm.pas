@@ -51,6 +51,7 @@ interface
 
       TLLVMAssember=class(texternalassembler)
       protected
+        ffuncinlasmdecorator: TLLVMFunctionInlineAssemblyDecorator;
         fdecllevel: longint;
 
         procedure WriteExtraHeader;virtual;
@@ -66,6 +67,7 @@ interface
         function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
+        procedure WriteFunctionInlineAsmList(list: tasmlist);
         destructor destroy; override;
        protected
         InstrWriter: TLLVMInstrWriter;
@@ -86,6 +88,7 @@ interface
         fstr: TSymStr;
 
         function getopstr(const o:toper; refwithalign: boolean) : TSymStr;
+        procedure WriteAsmRegisterAllocationClobbers(list: tasmlist);
       end;
 
 
@@ -93,7 +96,7 @@ implementation
 
     uses
       SysUtils,
-      cutils,cfileutl,
+      cutils,cclasses,cfileutl,
       fmodule,verbose,
       objcasm,
       aasmcnst,symconst,symdef,symtable,
@@ -431,12 +434,31 @@ implementation
      end;
 
 
+   procedure TLLVMInstrWriter.WriteAsmRegisterAllocationClobbers(list: tasmlist);
+     var
+       hp: tai;
+     begin
+       hp:=tai(list.first);
+       while assigned(hp) do
+         begin
+           if (hp.typ=ait_regalloc) and
+              (tai_regalloc(hp).ratype=ra_alloc) then
+             begin
+               owner.writer.AsmWrite(',~{');
+               owner.writer.AsmWrite(std_regname(tai_regalloc(hp).reg));
+               owner.writer.AsmWrite('}');
+             end;
+           hp:=tai(hp.next);
+         end;
+     end;
+
+
   procedure TLLVMInstrWriter.WriteInstruction(hp: tai);
     var
       op: tllvmop;
       tmpstr,
       sep: TSymStr;
-      i, opstart: byte;
+      i, opstart: longint;
       nested: boolean;
       opdone,
       done: boolean;
@@ -461,6 +483,28 @@ implementation
              owner.writer.AsmWrite(llvmencodetypedecl(taillvm(hp).oper[0]^.def));
              done:=true;
            end;
+        la_asmblock:
+          begin
+            owner.writer.AsmWrite('call void asm sideeffect "');
+            owner.WriteFunctionInlineAsmList(taillvm(hp).oper[0]^.asmlist);
+            owner.writer.AsmWrite('","');
+            { we pass all accessed local variables as in/out address parameters,
+              since we don't analyze the assembly code to determine what exactly
+              happens to them; this is also compatible with the regular code
+              generators, which always place local place local variables
+              accessed from assembly code in memory }
+            for i:=0 to taillvm(hp).oper[1]^.paras.Count-1 do
+              begin
+                if i<>0 then
+                  owner.writer.AsmWrite(',');
+                owner.writer.AsmWrite('=*m');
+              end;
+            owner.writer.AsmWrite(',~{memory},~{fpsr},~{flags}');
+            WriteAsmRegisterAllocationClobbers(taillvm(hp).oper[0]^.asmlist);
+            owner.writer.AsmWrite('"');
+            owner.writer.AsmWrite(getparas(taillvm(hp).oper[1]^.paras));
+            done:=true;
+          end;
         la_load,
         la_getelementptr:
           begin
@@ -627,6 +671,7 @@ implementation
     destructor TLLVMAssember.Destroy;
       begin
         InstrWriter.free;
+        ffuncinlasmdecorator.free;
         inherited destroy;
       end;
 
@@ -1301,6 +1346,22 @@ implementation
           end;
 
         writer.AsmLn;
+      end;
+
+
+    procedure TLLVMAssember.WriteFunctionInlineAsmList(list: tasmlist);
+      var
+        a: TExternalAssembler;
+      begin
+        if not assigned(ffuncinlasmdecorator) then
+          ffuncinlasmdecorator:=TLLVMFunctionInlineAssemblyDecorator.create;
+        if assigned(writer.decorator) then
+          internalerror(2016110201);
+        writer.decorator:=ffuncinlasmdecorator;
+        a:=GetExternalGnuAssemblerWithAsmInfoWriter(asminfo,writer);
+        a.WriteTree(list);
+        a.free;
+        writer.decorator:=nil;
       end;
 
 
