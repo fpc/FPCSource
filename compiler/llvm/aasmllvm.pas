@@ -111,6 +111,9 @@ interface
         { e.g. dst = call retsize reg (paras) }
         constructor call_size_reg_paras(callpd: tdef; dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
 
+        { inline function-level assembler code and parameters }
+        constructor asm_paras(asmlist: tasmlist; paras: tfplist);
+
         procedure loadoper(opidx: longint; o: toper); override;
         procedure clearop(opidx: longint); override;
         procedure loadtai(opidx: longint; _ai: tai);
@@ -1057,6 +1060,15 @@ uses
         loaddef(2,callpd);
         loadreg(3,reg);
         loadparas(4,paras);
+      end;
+
+
+    constructor taillvm.asm_paras(asmlist: tasmlist; paras: tfplist);
+      begin
+        create_llvm(la_asmblock);
+        ops:=2;
+        loadasmlist(0,asmlist);
+        loadparas(1,paras);
       end;
 
 end.

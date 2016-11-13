@@ -69,7 +69,8 @@ interface
       { fpc pseudo opcodes }
       la_type, { type definition }
       la_x_to_inttoptr, { have to convert something first to int before it can be converted to a pointer }
-      la_ptrtoint_to_x { have to convert a pointer first to int before it can be converted to something else }
+      la_ptrtoint_to_x, { have to convert a pointer first to int before it can be converted to something else }
+      la_asmblock
     );
 
     tllvmvalueextension = (lve_none, lve_zeroext, lve_signext);
