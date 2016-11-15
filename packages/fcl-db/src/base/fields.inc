@@ -1631,12 +1631,13 @@ var L : Longint;
     P : PLongint;
 
 begin
+  L:=0;
   P:=@L;
   Result:=GetData(P);
   If Result then
-    Case Datatype of
-      ftInteger,ftAutoinc  : AValue:=Plongint(P)^;
-      ftWord               : AValue:=Pword(P)^;
+    Case DataType of
+      ftInteger,ftAutoInc  : AValue:=PLongint(P)^;
+      ftWord               : AValue:=PWord(P)^;
       ftSmallint           : AValue:=PSmallint(P)^;
     end;
 end;
