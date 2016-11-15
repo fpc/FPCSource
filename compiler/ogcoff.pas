@@ -168,7 +168,7 @@ interface
          { Convert symidx -> TObjSymbol }
          FSymTbl   : ^TObjSymbolArray;
          { Convert secidx -> TObjSection }
-         FSecCount : smallint;
+         FSecCount : Longint;
          FSecTbl   : ^TObjSectionArray;
          win32     : boolean;
          function  GetSection(secidx:longint):TObjSection;
@@ -1583,6 +1583,7 @@ const pemagic : array[0..3] of byte = (
         result:=nil;
         if (secidx<1) or (secidx>FSecCount) then
           begin
+            writeln(secidx,' ',FSecCount);
             InputError('Failed reading coff file, invalid section index');
             exit;
           end;
@@ -1751,7 +1752,7 @@ const pemagic : array[0..3] of byte = (
                     else
                      begin
                        bind:=AB_GLOBAL;
-                       objsec:=GetSection(sym.section);
+                       objsec:=GetSection(word(sym.section));
                        if sym.value>=objsec.mempos then
                          address:=sym.value-objsec.mempos;
                      end;
@@ -1768,7 +1769,7 @@ const pemagic : array[0..3] of byte = (
                     { do not add constants (section=-1) }
                     if sym.section<>-1 then
                      begin
-                       objsec:=GetSection(sym.section);
+                       objsec:=GetSection(word(sym.section));
                        if sym.value>=objsec.mempos then
                          address:=sym.value-objsec.mempos;
                        objsym:=CreateSymbol(strname);
@@ -1782,7 +1783,7 @@ const pemagic : array[0..3] of byte = (
                 COFF_SYM_SECTION :
                   begin
                     { GetSection checks that index is in range }
-                    objsec:=GetSection(sym.section);
+                    objsec:=GetSection(word(sym.section));
                     if assigned(objsec) then
                       begin
                         if sym.value>=objsec.mempos then
