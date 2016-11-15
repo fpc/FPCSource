@@ -207,6 +207,7 @@ begin
     ref.base:=tmpreg1   { offset alone, weird but possible }
   else
     begin
+      tmpreg:=ref.base;
       if (not base_replaced) then
         ref.base:=getintregister(list,OS_ADDR);
       list.concat(taicpu.op_reg_reg_reg(A_ADDU,ref.base,tmpreg,tmpreg1))
