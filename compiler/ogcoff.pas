@@ -1583,7 +1583,6 @@ const pemagic : array[0..3] of byte = (
         result:=nil;
         if (secidx<1) or (secidx>FSecCount) then
           begin
-            writeln(secidx,' ',FSecCount);
             InputError('Failed reading coff file, invalid section index');
             exit;
           end;
