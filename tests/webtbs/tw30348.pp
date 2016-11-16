@@ -1,4 +1,4 @@
-{ %os=win32,win64 }
+{ %target=win32,win64 }
 program project1;
 
 {$mode objfpc}{$H+}
