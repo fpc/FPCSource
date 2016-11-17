@@ -472,6 +472,7 @@ begin
      fsearch:=path;
      exit;
     end;
+  findclose(s);
   { allow backslash as slash }
   DoDirSeparators(dirlist);
  repeat

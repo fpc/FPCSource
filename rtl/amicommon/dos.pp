@@ -804,27 +804,42 @@ var
 begin
   { No wildcards allowed in these things }
   if (pos('?',path)<>0) or (pos('*',path)<>0) or (path='') then
-    FSearch:=''
-  else begin
-    repeat
-      p1:=pos(';',dirlist);
-      if p1<>0 then begin
-        newdir:=Copy(dirlist,1,p1-1);
-        Delete(dirlist,1,p1);
-      end else begin
-        newdir:=dirlist;
-        dirlist:='';
-      end;
-      if (newdir<>'') and (not (newdir[length(newdir)] in ['/',':'])) then
-        newdir:=newdir+'/';
-      FindFirst(newdir+path,anyfile,tmpSR);
-      if doserror=0 then
-        newdir:=newdir+path
-      else
-        newdir:='';
-    until (dirlist='') or (newdir<>'');
-    FSearch:=newdir;
+  begin
+    FSearch:='';
+    exit;
   end;
+  { check if the file specified exists }
+  findfirst(path,anyfile and not(directory), tmpSR);
+  if doserror=0 then
+  begin
+    findclose(tmpSR);
+    fsearch:=path;
+    exit;
+  end;
+  findclose(tmpSR);
+
+  repeat
+    p1:=pos(';',dirlist);
+    if p1<>0 then 
+    begin
+      newdir:=Copy(dirlist,1,p1-1);
+      Delete(dirlist,1,p1);
+    end 
+    else 
+    begin
+      newdir:=dirlist;
+      dirlist:='';
+    end;
+    if (newdir<>'') and (not (newdir[length(newdir)] in [DirectorySeparator, DriveSeparator])) then 
+      newdir:=newdir+DirectorySeparator;
+    FindFirst(newdir+path,anyfile and not(directory),tmpSR);
+    if doserror=0 then
+      newdir:=newdir+path
+    else
+      newdir:='';
+    findclose(tmpSR);
+  until (dirlist='') or (newdir<>'');
+  FSearch:=newdir;
 end;
 
 
