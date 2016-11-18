@@ -1028,5 +1028,6 @@
 'xtest',
 'rdrand',
 'rdseed',
-'xgetbv'
+'xgetbv',
+'prefetchwt1'
 );

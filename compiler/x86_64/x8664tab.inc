@@ -13810,5 +13810,12 @@
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #3#15#1#208;
     flags   : if_xsave
+  ),
+  (
+    opcode  : A_PREFETCHWT1;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none,ot_none);
+    code    : #2#15#13#130;
+    flags   : if_prefetchwt1
   )
 );
