@@ -193,7 +193,7 @@ implementation
                   (left.resultdef.typ=recorddef)) then
                 begin
                   { access to the classtype while specializing? }
-                  if (df_generic in left.resultdef.defoptions) then
+                  if tstoreddef(left.resultdef).is_generic then
                     begin
                       defaultresultdef:=true;
                       if assigned(current_structdef) then
