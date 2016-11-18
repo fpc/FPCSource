@@ -1724,8 +1724,9 @@ Unit Rax86int;
                            (oper.opr.localsym.owner.symtabletype=parasymtable) and
                            (current_procinfo.procdef.proccalloption<>pocall_register) then
                           Message(asmr_e_cannot_access_field_directly_for_parameters);
-                        inc(oper.opr.localsymofs,toffset);
 
+                        oper.opr.localforceref:=true;
+                        inc(oper.opr.localsymofs,toffset);
                         oper.opr.localvarsize := tsize;
                       end;
                     OPR_CONSTANT :
