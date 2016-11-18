@@ -713,6 +713,7 @@ uses
         old_current_structdef : tabstractrecorddef;
         old_current_specializedef,
         old_current_genericdef : tstoreddef;
+        old_current_procinfo : tprocinfo;
         hmodule : tmodule;
         oldcurrent_filepos : tfileposinfo;
         recordbuf : tdynamicarray;
@@ -908,6 +909,9 @@ uses
                 old_current_specializedef:=nil;
                 old_current_genericdef:=nil;
                 old_current_structdef:=nil;
+                old_current_procinfo:=current_procinfo;
+
+                current_procinfo:=nil;
 
                 if parse_class_parent then
                   begin
@@ -1082,6 +1086,7 @@ uses
                   end;
 
                 block_type:=old_block_type;
+                current_procinfo:=old_current_procinfo;
                 if parse_class_parent then
                   begin
                     current_structdef:=old_current_structdef;
