@@ -154,14 +154,12 @@ constructor tx64tryfinallynode.create(l, r: TNode);
   begin
     inherited create(l,r);
     if (target_info.system=system_x86_64_win64) and
-       (
       { Don't create child procedures for generic methods, their nested-like
         behavior causes compilation errors because real nested procedures
         aren't allowed for generics. Not creating them doesn't harm because
         generic node tree is discarded without generating code. }
-        not assigned(current_procinfo.procdef.struct) or
-        not(df_generic in current_procinfo.procdef.struct.defoptions)
-       ) then
+       not (df_generic in current_procinfo.procdef.defoptions)
+       then
       begin
         finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
         finalizepi.force_nested;
@@ -183,8 +181,7 @@ constructor tx64tryfinallynode.create_implicit(l, r, _t1: TNode);
     inherited create_implicit(l, r, _t1);
     if (target_info.system=system_x86_64_win64) then
       begin
-        if assigned(current_procinfo.procdef.struct) and
-          (df_generic in current_procinfo.procdef.struct.defoptions) then
+        if df_generic in current_procinfo.procdef.defoptions then
           InternalError(2013012501);
 
         finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
