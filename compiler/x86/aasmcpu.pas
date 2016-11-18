@@ -3610,9 +3610,9 @@ implementation
             if current_settings.fputype in fpu_avx_instructionsets then
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_ref_reg(A_VMOVSD,reg2opsize(r),tmpref,r);
+                  result:=taicpu.op_ref_reg(A_VMOVSD,S_NO,tmpref,r);
                 R_SUBMMS:
-                  result:=taicpu.op_ref_reg(A_VMOVSS,reg2opsize(r),tmpref,r);
+                  result:=taicpu.op_ref_reg(A_VMOVSS,S_NO,tmpref,r);
                 R_SUBQ,
                 R_SUBMMWHOLE:
                   result:=taicpu.op_ref_reg(A_VMOVQ,S_NO,tmpref,r);
@@ -3668,9 +3668,9 @@ implementation
             if current_settings.fputype in fpu_avx_instructionsets then
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_reg_ref(A_VMOVSD,reg2opsize(r),r,tmpref);
+                  result:=taicpu.op_reg_ref(A_VMOVSD,S_NO,r,tmpref);
                 R_SUBMMS:
-                  result:=taicpu.op_reg_ref(A_VMOVSS,reg2opsize(r),r,tmpref);
+                  result:=taicpu.op_reg_ref(A_VMOVSS,S_NO,r,tmpref);
                 R_SUBQ,
                 R_SUBMMWHOLE:
                   result:=taicpu.op_reg_ref(A_VMOVQ,S_NO,r,tmpref);

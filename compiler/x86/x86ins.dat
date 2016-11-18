@@ -3959,9 +3959,9 @@ ymmreg,ymmrm                         \333\362\364\370\1\x12\110           AVX,SA
 ; the three ops must be handle by the compiler internally
 (Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x10\75\120            AVX,SANDYBRIDGE
-xmmreg,mem64                         \333\362\370\1\x10\110               AVX,SANDYBRIDGE
+xmmreg,mem32                         \333\362\370\1\x10\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x11\75\102            AVX,SANDYBRIDGE
-mem64,xmmreg                         \333\362\370\1\x11\101               AVX,SANDYBRIDGE
+mem32,xmmreg                         \333\362\370\1\x11\101               AVX,SANDYBRIDGE
 
 [VMOVUPD]
 (Ch_Wop2, Ch_Rop1, Ch_None)

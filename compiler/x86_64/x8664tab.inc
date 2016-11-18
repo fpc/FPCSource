@@ -10006,7 +10006,7 @@
   (
     opcode  : A_VMOVSS;
     ops     : 2;
-    optypes : (ot_xmmreg,ot_memory or ot_bits64,ot_none,ot_none);
+    optypes : (ot_xmmreg,ot_memory or ot_bits32,ot_none,ot_none);
     code    : #219#242#248#1#16#72;
     flags   : if_avx or if_sandybridge
   ),
@@ -10020,7 +10020,7 @@
   (
     opcode  : A_VMOVSS;
     ops     : 2;
-    optypes : (ot_memory or ot_bits64,ot_xmmreg,ot_none,ot_none);
+    optypes : (ot_memory or ot_bits32,ot_xmmreg,ot_none,ot_none);
     code    : #219#242#248#1#17#65;
     flags   : if_avx or if_sandybridge
   ),
