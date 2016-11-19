@@ -124,6 +124,10 @@ end;
 
 procedure GetDate(Var Year, Month, MDay, WDay: Word);
 begin
+  Year := 0;
+  Month := 0;
+  MDay := 0;
+  WDay := 0;
 end;
 
 procedure SetDate(Year, Month, Day: Word);
@@ -132,6 +136,10 @@ end;
 
 procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
 begin
+  Hour := 0;
+  Minute := 0;
+  Second := 0;
+  Sec100 := 0;
 end;
 
 Procedure SetTime(Hour, Minute, Second, Sec100: Word);
