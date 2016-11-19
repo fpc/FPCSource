@@ -87,7 +87,7 @@ end;
 function do_filesize(handle : longint) : longint;
 begin
   result := -1;
-  if assigned (@rtl_do_filesize) then
+  if assigned (rtl_do_filesize) then
     result := rtl_do_filesize(handle);
 end;
 
@@ -95,14 +95,14 @@ end;
 { truncate at a given position }
 procedure do_truncate(handle, pos: longint);
 begin
-  if assigned (@rtl_do_truncate) then
+  if assigned (rtl_do_truncate) then
     rtl_do_truncate(handle, pos);
 end;
 
 
 procedure do_open(var f;p:PFileTextRecChar;flags:longint; pchangeable: boolean);
 begin
-  if assigned (@rtl_do_open) then
+  if assigned (rtl_do_open) then
     rtl_do_open(f, p, flags);
 end;
 
@@ -110,6 +110,6 @@ end;
 function do_isdevice(handle: longint): boolean;
 begin
   result := false;
-  if assigned (@rtl_do_isdevice) then
+  if assigned (rtl_do_isdevice) then
     result := rtl_do_isdevice(handle);
 end;
