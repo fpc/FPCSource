@@ -1689,7 +1689,11 @@ implementation
            d:=1.0;
          end;
         if current_settings.fputype=fpu_none then
-          Message(parser_e_unsupported_real);
+          begin
+            Message(parser_e_unsupported_real);
+            result:=cerrornode.create;
+            exit;
+          end;
         if (current_settings.minfpconstprec=s32real) and
            (d = single(d)) then
           result:=crealconstnode.create(d,s32floattype)
