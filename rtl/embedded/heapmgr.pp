@@ -256,6 +256,18 @@ Unit heapmgr;
         InternalFreeMem(AAddress, ASize);
       end;
 
+    { avoid that programs crash due to a heap status request }
+    function SysGetFPCHeapStatus : TFPCHeapStatus;
+      begin
+        FillChar(Result,SizeOf(Result),0);
+      end;
+
+    { avoid that programs crash due to a heap status request }
+    function SysGetHeapStatus : THeapStatus;
+      begin
+        FillChar(Result,SizeOf(Result),0);
+      end;
+
     const
       MyMemoryManager: TMemoryManager = (
         NeedLock: false;  // Obsolete
@@ -268,8 +280,8 @@ Unit heapmgr;
         InitThread: nil;
         DoneThread: nil;
         RelocateHeap: nil;
-        GetHeapStatus: nil;
-        GetFPCHeapStatus: nil;
+        GetHeapStatus: @SysGetHeapStatus;
+        GetFPCHeapStatus: @SysGetFPCHeapStatus;
       );
 
 var
