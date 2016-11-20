@@ -628,43 +628,72 @@ Implementation
                       push reg1
                       pop reg3
                       pop reg2
+
                       into
+
                       movw reg2,reg0
+
+                      or
+
+                      mov  reg3,reg1
+                      mov  reg2,reg0
+
                     }
-                    if (taicpu(p).ops=1) and
-                       (taicpu(p).oper[0]^.typ=top_reg) and
-                       GetNextInstruction(p,hp1) and
-                       (hp1.typ=ait_instruction) and
-                       (taicpu(hp1).opcode=A_PUSH) and
-                       (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(p).oper[0]^.reg)+1) and
-                       ((getsupreg(taicpu(p).oper[0]^.reg) mod 2)=0) and
+                    if GetNextInstruction(p,hp1) and
+                       MatchInstruction(hp1,A_PUSH) and
 
                        GetNextInstruction(hp1,hp2) and
-                       (hp2.typ=ait_instruction) and
-                       (taicpu(hp2).opcode=A_POP) and
+                       MatchInstruction(hp2,A_POP) and
 
                        GetNextInstruction(hp2,hp3) and
-                       (hp3.typ=ait_instruction) and
-                       (taicpu(hp3).opcode=A_POP) and
-                       (getsupreg(taicpu(hp2).oper[0]^.reg)=getsupreg(taicpu(hp3).oper[0]^.reg)+1) and
-                       ((getsupreg(taicpu(hp3).oper[0]^.reg) mod 2)=0) then
+                       MatchInstruction(hp3,A_POP) then
                       begin
-                        DebugMsg('Peephole PushPushPopPop2Movw performed', p);
+                       if (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(p).oper[0]^.reg)+1) and
+                         ((getsupreg(taicpu(p).oper[0]^.reg) mod 2)=0) and
+                         (getsupreg(taicpu(hp2).oper[0]^.reg)=getsupreg(taicpu(hp3).oper[0]^.reg)+1) and
+                         ((getsupreg(taicpu(hp3).oper[0]^.reg) mod 2)=0) then
+                         begin
+                           DebugMsg('Peephole PushPushPopPop2Movw performed', p);
 
-                        taicpu(p).ops:=2;
-                        taicpu(p).opcode:=A_MOVW;
+                           taicpu(p).ops:=2;
+                           taicpu(p).opcode:=A_MOVW;
 
-                        taicpu(p).loadreg(1, taicpu(p).oper[0]^.reg);
-                        taicpu(p).loadreg(0, taicpu(hp3).oper[0]^.reg);
+                           taicpu(p).loadreg(1, taicpu(p).oper[0]^.reg);
+                           taicpu(p).loadreg(0, taicpu(hp3).oper[0]^.reg);
 
-                        asml.Remove(hp1);
-                        hp1.Free;
-                        asml.Remove(hp2);
-                        hp2.Free;
-                        asml.Remove(hp3);
-                        hp3.Free;
+                           asml.Remove(hp1);
+                           hp1.Free;
+                           asml.Remove(hp2);
+                           hp2.Free;
+                           asml.Remove(hp3);
+                           hp3.Free;
 
-                        result:=true;
+                           result:=true;
+                         end
+                       else
+                         begin
+                           DebugMsg('Peephole PushPushPopPop2MovMov performed', p);
+
+                           taicpu(p).ops:=2;
+                           taicpu(p).opcode:=A_MOV;
+
+                           taicpu(hp1).ops:=2;
+                           taicpu(hp1).opcode:=A_MOV;
+
+                           taicpu(p).loadreg(1, taicpu(p).oper[0]^.reg);
+                           taicpu(p).loadreg(0, taicpu(hp3).oper[0]^.reg);
+
+                           taicpu(hp1).loadreg(1, taicpu(hp1).oper[0]^.reg);
+                           taicpu(hp1).loadreg(0, taicpu(hp2).oper[0]^.reg);
+
+                           asml.Remove(hp2);
+                           hp2.Free;
+                           asml.Remove(hp3);
+                           hp3.Free;
+
+                           result:=true;
+                         end
+
                       end;
                   end;
                 A_MOV:
