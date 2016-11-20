@@ -696,6 +696,20 @@ Implementation
 
                       end;
                   end;
+                A_CALL:
+                  if (cs_opt_level4 in current_settings.optimizerswitches) and
+                    GetNextInstruction(p,hp1) and
+                    MatchInstruction(hp1,A_RET) then
+                    begin
+                       DebugMsg('Peephole CallReg2Jmp performed', p);
+
+                       taicpu(p).opcode:=A_JMP;
+
+                       asml.Remove(hp1);
+                       hp1.Free;
+
+                       result:=true;
+                    end;
                 A_MOV:
                   begin
                     { turn
