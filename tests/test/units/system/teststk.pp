@@ -6,6 +6,10 @@
   {$define nocheck}
 {$endif}
 
+{$ifndef FPC_HAS_FEATURE_STACKCHECK}
+  {$define nocheck}
+{$endif}
+
 {$S+}
 
 { This tests the stack checking routine on those }
