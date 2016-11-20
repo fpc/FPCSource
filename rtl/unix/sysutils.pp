@@ -1431,6 +1431,7 @@ end;
 
 var
   _HomeDir: string;
+  _HasPackageDataDir: boolean;
 
 Function GetHomeDir : String;
 var
@@ -1440,7 +1441,7 @@ begin
   Result:=_HomeDir;
   if Result <> '' then
     exit;
-  if IsJniLibrary then
+  if IsLibrary then
     begin
       // For shared library get the package name of a host Java application
       h:=FileOpen('/proc/self/cmdline', fmOpenRead or fmShareDenyNone);
@@ -1451,8 +1452,8 @@ begin
           SetLength(Result, strlen(PChar(Result)));
           FileClose(h);
           Result:='/data/data/' + Result;
-          IsJniLibrary:=DirectoryExists(Result);
-          if IsJniLibrary then
+          _HasPackageDataDir:=DirectoryExists(Result);
+          if _HasPackageDataDir then
             begin
               Result:=Result + '/files/';
               ForceDirectories(Result);
@@ -1502,7 +1503,7 @@ begin
   else
     Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
 {$ifdef android}
-  if IsJniLibrary then
+  if _HasPackageDataDir then
     exit;
 {$endif android}
   if VendorName<>'' then
@@ -1518,7 +1519,7 @@ begin
   else
     Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
 {$ifdef android}
-  if IsJniLibrary then
+  if _HasPackageDataDir then
     begin
       Result:=Result+'config'+ConfigExtension;
       exit;
@@ -1608,14 +1609,11 @@ var
   dlinfo: dl_info;
   s: string;
 begin
-  if IsJniLibrary then
-    begin
-      FillChar(dlinfo, sizeof(dlinfo), 0);
-      dladdr(@InitAndroid, @dlinfo);
-      s:=dlinfo.dli_fname;
-      if s <> '' then
-        SetDefaultSysLogTag(ExtractFileName(s));
-    end;
+  FillChar(dlinfo, sizeof(dlinfo), 0);
+  dladdr(@InitAndroid, @dlinfo);
+  s:=dlinfo.dli_fname;
+  if s <> '' then
+    SetDefaultSysLogTag(ExtractFileName(s));
 end;
 
 {$endif android}
