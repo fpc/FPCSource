@@ -2044,7 +2044,7 @@ function align(addr : PtrUInt;alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLIN
   var
     tmp: PtrUInt;
   begin
-    tmp:=addr+(alignment-1);
+    tmp:=addr+PtrUInt(alignment-1);
     result:=tmp-(tmp mod alignment)
   end;
 
