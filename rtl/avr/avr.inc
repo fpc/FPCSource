@@ -25,7 +25,6 @@ procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
 var
-  aligncount : sizeint;
   pdest,psrc,pend : pbyte;
 begin
   if (@dest=@source) or (count<=0) then
