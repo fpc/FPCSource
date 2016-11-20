@@ -2044,8 +2044,23 @@ unit cgcpu;
             countreg:=getintregister(list,countregsize);
             a_load_const_reg(list,countregsize,len,countreg);
             a_loadaddr_ref_reg(list,source,NR_R30);
-            tmpreg:=getaddressregister(list);
-            a_loadaddr_ref_reg(list,dest,tmpreg);
+
+            { only base or index register in dest? }
+            if ((dest.addressmode=AM_UNCHANGED) and (dest.offset=0) and not(assigned(dest.symbol))) and
+              ((dest.base<>NR_NO) xor (dest.index<>NR_NO)) then
+              begin
+                if dest.base<>NR_NO then
+                  tmpreg:=dest.base
+                else if dest.index<>NR_NO then
+                  tmpreg:=dest.index
+                else
+                  internalerror(2016112001);
+              end
+            else
+              begin
+                tmpreg:=getaddressregister(list);
+                a_loadaddr_ref_reg(list,dest,tmpreg);
+              end;
 
             { X is used for spilling code so we can load it
               only by a push/pop sequence, this can be
@@ -2091,7 +2106,20 @@ unit cgcpu;
               begin
                 if not(SrcQuickRef) then
                   begin
-                    tmpreg:=getaddressregister(list);
+                    { only base or index register in dest? }
+                    if ((dest.addressmode=AM_UNCHANGED) and (dest.offset=0) and not(assigned(dest.symbol))) and
+                      ((dest.base<>NR_NO) xor (dest.index<>NR_NO)) then
+                      begin
+                        if dest.base<>NR_NO then
+                          tmpreg:=dest.base
+                        else if dest.index<>NR_NO then
+                          tmpreg:=dest.index
+                        else
+                          internalerror(2016112002);
+                      end
+                    else
+                      tmpreg:=getaddressregister(list);
+
                     dstref:=normalize_ref(list,dest,tmpreg);
 
                     { X is used for spilling code so we can load it
