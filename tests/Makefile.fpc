@@ -100,6 +100,11 @@ ifeq ($(TEST_OS_TARGET),msdos)
 override TEST_OPT+=-XX
 endif
 
+# While running the tests, we need to know the features which have been used during rtl compilation
+ifeq ($(TEST_OS_TARGET),embedded)
+override TEST_OPT+=@$(realpath $(FPCDIR))/rtl/embedded/rtl.cfg
+endif
+
 # Target dir where the ppu and binaries are created
 TEST_OUTPUTDIR=output/$(TEST_TARGETSUFFIX)
 C_SUBDIR=$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)
