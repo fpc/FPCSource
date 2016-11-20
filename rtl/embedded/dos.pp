@@ -169,7 +169,6 @@ Begin
 end;
 
 
-
 Function DiskSize(Drive: Byte): int64;
 Begin
   result := -1;
@@ -178,15 +177,19 @@ end;
 
 procedure FindFirst(const Path: PathStr; Attr: Word; Var f: SearchRec);
 begin
+  DosError:=18;
 end;
 
 
 procedure FindNext(Var f: SearchRec);
 begin
+  DosError:=18;
 end;
+
 
 procedure FindClose(Var f: SearchRec);
 begin
+  DosError:=18;
 end;
 
 
