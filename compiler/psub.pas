@@ -1338,7 +1338,7 @@ implementation
           begin
             include(flags,pi_do_call);
             { the main program never returns due to the do_exit call }
-            if not(current_module.islibrary) then
+            if not(current_module.islibrary) and (procdef.proctypeoption=potype_proginit) then
               include(procdef.procoptions,po_noreturn);
           end;
 
