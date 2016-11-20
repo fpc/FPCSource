@@ -293,7 +293,6 @@ interface
        op       : tasmop;
        calljmp  : boolean;
        i        : integer;
-       sreg     : string;
       begin
         if hp.typ <> ait_instruction then
           exit;
@@ -301,27 +300,6 @@ interface
         op:=taicpu(hp).opcode;
         calljmp:=is_calljmp(op);
 
-        // BUGFIX GAS-assembler
-        // Intel "Intel 64 and IA-32 Architectures Software Developers manual 12/2011"
-        // Intel:       VCVTDQ2PD  YMMREG, YMMREG/mem128 ((intel syntax))
-        // GAS:         VCVTDQ2PD  YMMREG, XMMREG/mem128 ((intel syntax))
-        if (op = A_VCVTDQ2PD) and
-           (taicpu(hp).ops = 2) and
-           (taicpu(hp).oper[0]^.typ = top_reg) and
-           (taicpu(hp).oper[1]^.typ = top_reg) then
-        begin
-          if ((taicpu(hp).oper[0]^.ot and OT_YMMREG) = OT_YMMREG) and
-             ((taicpu(hp).oper[1]^.ot and OT_YMMREG) = OT_YMMREG) then
-          begin
-            // change registertype in oper[0] from OT_YMMREG to OT_XMMREG
-            taicpu(hp).oper[0]^.ot := taicpu(hp).oper[0]^.ot and not(OT_YMMREG) or OT_XMMREG;
-
-            sreg := gas_regname(taicpu(hp).oper[0]^.reg);
-            if (copy(sreg, 1, 2) = '%y') or
-               (copy(sreg, 1, 2) = '%Y') then
-              taicpu(hp).oper[0]^.reg := gas_regnum_search('%x' + copy(sreg, 3, length(sreg) - 2));
-          end;
-        end;
         { see fNoInterUnitMovQ declaration comment }
         if fNoInterUnitMovQ then
           begin
