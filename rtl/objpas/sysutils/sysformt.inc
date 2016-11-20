@@ -14,6 +14,28 @@
     System Utilities For Free Pascal
 }
 
+{
+
+This include file is used in 3 different places for the following functions:
+
+  Function Format (Const Fmt : AnsiString; const Args : Array of const; const FormatSettings: TFormatSettings) : AnsiString;
+  Function UnicodeFormat (Const Fmt : UnicodeString; const Args : Array of const; Const FormatSettings: TFormatSettings) : UnicodeString;
+  Function WideFormat (Const Fmt : WideString; const Args : Array of const; Const FormatSettings: TFormatSettings) : WideString;
+
+The header is different, but the function remains the same.
+It uses the following defines:
+
+  INWIDESTRING
+  INUNICODESTRING
+ (INANSISTRING is implicit)
+
+and relies on 2 macros:
+
+  TFormatString : one of unicodestring, widestring,ansistring
+  TFormatChar : one of unicodechar, widechar or ansichar
+
+}
+
 Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
     Hs,ToAdd : TFormatString;
     Index : SizeInt;
