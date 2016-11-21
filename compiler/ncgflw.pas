@@ -62,10 +62,10 @@ interface
        end;
 
        tcglabelnode = class(tlabelnode)
-       private
+       protected
           asmlabel : tasmlabel;
        public
-          function getasmlabel : tasmlabel;
+          function getasmlabel : tasmlabel; virtual;
           procedure pass_generate_code;override;
        end;
 
