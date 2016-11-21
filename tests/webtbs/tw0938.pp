@@ -25,16 +25,16 @@ end;
 
 operator * (V : Vector;Value : extended) Result : Vector;
   begin
-    Result.X:=Result.X*Value;
-    Result.Y:=Result.Y*Value;
-    Result.Z:=Result.Z*Value;
+    Result.X:=V.X*Value;
+    Result.Y:=V.Y*Value;
+    Result.Z:=V.Z*Value;
   end;
 {...}
 operator * (Value : extended;V : Vector) Result : Vector;
   begin
-    Result.X:=Result.X*Value;
-    Result.Y:=Result.Y*Value;
-    Result.Z:=Result.Z*Value;
+    Result.X:=V.X*Value;
+    Result.Y:=V.Y*Value;
+    Result.Z:=V.Z*Value;
   end;
 {...}
 
