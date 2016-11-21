@@ -3936,8 +3936,12 @@ mem128,xmmreg                        \362\370\1\x2B\101                   AVX,SA
 
 [VMOVQ]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-rm64,xmmreg                          \361\362\363\370\1\x7E\101           AVX,SANDYBRIDGE
-xmmreg,rm64                          \361\362\363\370\1\x6E\110           AVX,SANDYBRIDGE
+xmmreg,xmmreg                        \362\333\370\1\x7E\110               AVX,SANDYBRIDGE
+xmmreg,mem64                         \362\333\370\1\x7E\110               AVX,SANDYBRIDGE
+xmmreg,xmmreg                        \362\361\370\1\xD6\101               AVX,SANDYBRIDGE
+mem64,xmmreg                         \362\361\370\1\xD6\101               AVX,SANDYBRIDGE
+rm64,xmmreg                          \362\361\363\370\1\x7E\101           AVX,SANDYBRIDGE,X86_64
+xmmreg,rm64                          \362\361\363\370\1\x6E\110           AVX,SANDYBRIDGE,X86_64
 
 [VMOVSD]
 ; the three ops must be handle by the compiler internally
