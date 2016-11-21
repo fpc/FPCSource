@@ -49,10 +49,11 @@ implementation
 
      uses
        systems,
-       aasmdata,
+       aasmbase,aasmdata,aasmllvm,
        nld,
-       symtable,symconst,symdef,symsym,
-       tgobj,cgbase,hlcgobj;
+       symtable,symconst,symdef,symsym,defutil,
+       procinfo,tgobj,
+       llvmbase,cgbase,hlcgobj;
 
 function tllvmloadnode.pass_1: tnode;
   begin
@@ -75,6 +76,7 @@ procedure tllvmloadnode.pass_generate_code;
     field: tfieldvarsym;
     procreg, selfreg: tregister;
     selfdef: tdef;
+    ai: taillvm;
   begin
     inherited;
     case symtableentry.typ of
@@ -116,6 +118,18 @@ procedure tllvmloadnode.pass_generate_code;
               location_reset_ref(location,LOC_REFERENCE,location.size,href.alignment);
               location.reference:=href;
             end;
+        end;
+      labelsym:
+        begin
+          selfreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
+          ai:=taillvm.blockaddress(
+              current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname,AT_FUNCTION),
+              location.reference.symbol
+            );
+          current_asmdata.CurrAsmList.concat(
+            taillvm.op_reg_tai_size(la_bitcast,selfreg,ai,voidcodepointertype)
+          );
+          reference_reset_base(location.reference,selfreg,0,location.reference.alignment);
         end;
     end;
   end;
