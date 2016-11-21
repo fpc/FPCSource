@@ -2903,30 +2903,21 @@ implementation
           if needed_VEX_Extension then
           begin
             // VEX-Prefix-Length = 3 Bytes
-            bytes[0]:=$C4;
-            objdata.writebytes(bytes,1);
-
             {$ifdef x86_64}
               VEXmmmmm := VEXmmmmm or ((not(rex) and $07) shl 5);  // set REX.rxb
+              VEXvvvv  := VEXvvvv or ((rex and $08) shl 7);        // set REX.w
             {$else}
               VEXmmmmm := VEXmmmmm or (7 shl 5);  //
             {$endif x86_64}
 
-              bytes[0] := VEXmmmmm;
-              objdata.writebytes(bytes,1);
-
-            {$ifdef x86_64}
-              VEXvvvv  := VEXvvvv OR ((rex and $08) shl 7);   // set REX.w
-            {$endif x86_64}
-            bytes[0] := VEXvvvv;
-            objdata.writebytes(bytes,1);
+            bytes[0]:=$C4;
+            bytes[1]:=VEXmmmmm;
+            bytes[2]:=VEXvvvv;
+            objdata.writebytes(bytes,3);
           end
           else
           begin
             // VEX-Prefix-Length = 2 Bytes
-            bytes[0]:=$C5;
-            objdata.writebytes(bytes,1);
-
             {$ifdef x86_64}
               if rex and $04 = 0 then
             {$endif x86_64}
@@ -2934,8 +2925,9 @@ implementation
               VEXvvvv := VEXvvvv or (1 shl 7);
             end;
 
-            bytes[0] := VEXvvvv;
-            objdata.writebytes(bytes,1);
+            bytes[0]:=$C5;
+            bytes[1]:=VEXvvvv;
+            objdata.writebytes(bytes,2);
           end;
         end
         else
@@ -3287,48 +3279,20 @@ implementation
                   are not needed }
               end;
             &362..&364: ; // VEX flags =>> nothing todo
-            &366: begin
-                   if needed_VEX then
-                   begin
-                     if ops = 4 then
-                     begin
-                       if (oper[2]^.typ=top_reg) then
-                       begin
-                         if (oper[2]^.ot and otf_reg_xmm <> 0) or
-                            (oper[2]^.ot and otf_reg_ymm <> 0) then
-                         begin
-                           bytes[0] := ((getsupreg(oper[2]^.reg) and 15) shl 4);
-                           objdata.writebytes(bytes,1);
-                         end
-                         else Internalerror(2014032001);
-                       end
-                       else Internalerror(2014032002);
-                     end
-                     else Internalerror(2014032003);
-                   end
-                   else Internalerror(2014032004);
-                 end;
-            &367: begin
-                   if needed_VEX then
-                   begin
-                     if ops = 4 then
-                     begin
-                       if (oper[3]^.typ=top_reg) then
-                       begin
-                         if (oper[3]^.ot and otf_reg_xmm <> 0) or
-                            (oper[3]^.ot and otf_reg_ymm <> 0) then
-                         begin
-                           bytes[0] := ((getsupreg(oper[3]^.reg) and 15) shl 4);
-                           objdata.writebytes(bytes,1);
-                         end
-                         else Internalerror(2014032005);
-                       end
-                       else Internalerror(2014032006);
-                     end
-                     else Internalerror(2014032007);
-                   end
-                   else Internalerror(2014032008);
-                 end;
+            &366, &367:
+              begin
+                opidx:=c-&364;  { 0366->operand 2, 0367->operand 3 }
+                if needed_VEX and
+                  (ops=4) and
+                  (oper[opidx]^.typ=top_reg) and
+                  (oper[opidx]^.ot and (otf_reg_xmm or otf_reg_ymm)<>0) then
+                  begin
+                    bytes[0] := ((getsupreg(oper[opidx]^.reg) and 15) shl 4);
+                    objdata.writebytes(bytes,1);
+                  end
+                else
+                  Internalerror(2014032001);
+              end;
             &370..&372: ; // VEX flags =>> nothing todo
             &37:
               begin
