@@ -104,7 +104,7 @@ interface
         constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:ptrint;indirect:boolean);
         constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:tai;indextype:tdef;index1:ptrint;indirect:boolean);
 
-        constructor blockaddress(dstreg: tregister; fun, lab: tasmsymbol);
+        constructor blockaddress(fun, lab: tasmsymbol);
 
         { e.g. dst = call retsize name (paras) }
         constructor call_size_name_paras(callpd: tdef; dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
@@ -1024,13 +1024,12 @@ uses
         loadconst(index+1,index1);
       end;
 
-    constructor taillvm.blockaddress(dstreg: tregister; fun, lab: tasmsymbol);
+    constructor taillvm.blockaddress(fun, lab: tasmsymbol);
       begin
         create_llvm(la_blockaddress);
-        ops:=3;
-        loadreg(0,dstreg);
-        loadsymbol(1,fun,0);
-        loadsymbol(2,lab,0);
+        ops:=2;
+        loadsymbol(0,fun,0);
+        loadsymbol(1,lab,0);
       end;
 
 

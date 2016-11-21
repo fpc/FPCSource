@@ -594,12 +594,19 @@ implementation
           end;
         la_blockaddress:
           begin
+            owner.writer.AsmWrite('i8* blockaddress(');
             owner.writer.AsmWrite(getopstr(taillvm(hp).oper[0]^,false));
-            owner.writer.AsmWrite(' = blockaddress(');
-            owner.writer.AsmWrite(getopstr(taillvm(hp).oper[1]^,false));
-            owner.writer.AsmWrite(',');
-            owner.writer.AsmWrite(getopstr(taillvm(hp).oper[2]^,false));
-            owner.writer.AsmWrite(')');
+            { getopstr would add a "label" qualifier, which blockaddress does
+              not want }
+            owner.writer.AsmWrite(',%');
+            with taillvm(hp).oper[1]^ do
+              begin
+                if (typ<>top_ref) or
+                   (ref^.refaddr<>addr_full) then
+                  internalerror(2016112001);
+                owner.writer.AsmWrite(ref^.symbol.name);
+              end;
+            nested:=true;
             done:=true;
           end;
         la_alloca:
