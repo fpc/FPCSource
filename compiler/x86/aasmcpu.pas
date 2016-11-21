@@ -3622,9 +3622,9 @@ implementation
             else
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_ref_reg(A_MOVSD,reg2opsize(r),tmpref,r);
+                  result:=taicpu.op_ref_reg(A_MOVSD,S_NO,tmpref,r);
                 R_SUBMMS:
-                  result:=taicpu.op_ref_reg(A_MOVSS,reg2opsize(r),tmpref,r);
+                  result:=taicpu.op_ref_reg(A_MOVSS,S_NO,tmpref,r);
                 R_SUBQ,
                 R_SUBMMWHOLE:
                   result:=taicpu.op_ref_reg(A_MOVQ,S_NO,tmpref,r);
@@ -3680,9 +3680,9 @@ implementation
             else
               case getsubreg(r) of
                 R_SUBMMD:
-                  result:=taicpu.op_reg_ref(A_MOVSD,reg2opsize(r),r,tmpref);
+                  result:=taicpu.op_reg_ref(A_MOVSD,S_NO,r,tmpref);
                 R_SUBMMS:
-                  result:=taicpu.op_reg_ref(A_MOVSS,reg2opsize(r),r,tmpref);
+                  result:=taicpu.op_reg_ref(A_MOVSS,S_NO,r,tmpref);
                 R_SUBQ,
                 R_SUBMMWHOLE:
                   result:=taicpu.op_reg_ref(A_MOVQ,S_NO,r,tmpref);

@@ -6275,14 +6275,28 @@
   (
     opcode  : A_MOVSS;
     ops     : 2;
-    optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
+    optypes : (ot_xmmreg,ot_xmmreg,ot_none,ot_none);
     code    : #219#2#15#16#72;
     flags   : if_katmai or if_sse
   ),
   (
     opcode  : A_MOVSS;
     ops     : 2;
-    optypes : (ot_xmmrm,ot_xmmreg,ot_none,ot_none);
+    optypes : (ot_xmmreg,ot_memory or ot_bits32,ot_none,ot_none);
+    code    : #219#2#15#16#72;
+    flags   : if_katmai or if_sse
+  ),
+  (
+    opcode  : A_MOVSS;
+    ops     : 2;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_none,ot_none);
+    code    : #219#2#15#17#65;
+    flags   : if_katmai or if_sse
+  ),
+  (
+    opcode  : A_MOVSS;
+    ops     : 2;
+    optypes : (ot_memory or ot_bits32,ot_xmmreg,ot_none,ot_none);
     code    : #219#2#15#17#65;
     flags   : if_katmai or if_sse
   ),

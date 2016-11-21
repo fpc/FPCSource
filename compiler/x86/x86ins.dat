@@ -2305,8 +2305,10 @@ mem,xmmreg            \2\x0F\x2B\101                  KATMAI,SSE
 
 [MOVSS]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-xmmreg,xmmrm          \333\2\x0F\x10\110              KATMAI,SSE
-xmmrm,xmmreg          \333\2\x0F\x11\101              KATMAI,SSE
+xmmreg,xmmreg         \333\2\x0F\x10\110              KATMAI,SSE
+xmmreg,mem32          \333\2\x0F\x10\110              KATMAI,SSE
+xmmreg,xmmreg         \333\2\x0F\x11\101              KATMAI,SSE
+mem32,xmmreg          \333\2\x0F\x11\101              KATMAI,SSE
 
 [MOVUPS]
 (Ch_All, Ch_None, Ch_None)
