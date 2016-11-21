@@ -918,6 +918,8 @@ Implementation
                        actopsize:=att_sizefpusuffix[sufidx]
                       else if gas_needsuffix[actopcode]=attsufFPUint then
                        actopsize:=att_sizefpuintsuffix[sufidx]
+                      else if gas_needsuffix[actopcode]=attsufMM then
+                       actopsize:=att_sizemmsuffix[sufidx]
                       else
                        actopsize:=att_sizesuffix[sufidx];
                       { only accept suffix from the same category that the opcode belongs to }
@@ -942,11 +944,9 @@ Implementation
                         if Cond=Upper(cond2str[cnd]) then
                          begin
                            actopcode:=CondASmOp[j];
-                           if gas_needsuffix[actopcode]=attsufFPU then
-                            actopsize:=att_sizefpusuffix[sufidx]
-                           else if gas_needsuffix[actopcode]=attsufFPUint then
-                            actopsize:=att_sizefpuintsuffix[sufidx]
-                           else
+                           { conditional instructions (cmovcc, setcc) use only INT suffixes;
+                             other stuff like fcmovcc is represented as group of individual instructions }
+                           if gas_needsuffix[actopcode]=attsufINT then
                             actopsize:=att_sizesuffix[sufidx];
                            { only accept suffix from the same category that the opcode belongs to }
                            if (actopsize<>S_NO) or (suflen=0) then

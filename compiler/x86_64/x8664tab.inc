@@ -9091,7 +9091,7 @@
     ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_rm_gpr or ot_bits64,ot_none);
     code    : #220#242#243#248#1#42#61#80;
-    flags   : if_avx or if_sandybridge
+    flags   : if_avx or if_sandybridge or if_x86_64
   ),
   (
     opcode  : A_VCVTSI2SS;
@@ -9105,7 +9105,7 @@
     ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_rm_gpr or ot_bits64,ot_none);
     code    : #219#242#243#248#1#42#61#80;
-    flags   : if_avx or if_sandybridge
+    flags   : if_avx or if_sandybridge or if_x86_64
   ),
   (
     opcode  : A_VCVTSS2SD;

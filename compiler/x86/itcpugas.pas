@@ -63,13 +63,16 @@ interface
        '','BW','BL','WL','BQ','WQ',{'LQ',}'B','W','L','S','Q','T','X','Y'
      );
      att_sizesuffix : array[0..13] of topsize = (
-       S_NO,S_BW,S_BL,S_WL,S_BQ,S_WQ,{S_LQ,}S_B,S_W,S_L,S_NO,S_Q,S_NO,S_XMM,S_YMM
+       S_NO,S_BW,S_BL,S_WL,S_BQ,S_WQ,{S_LQ,}S_B,S_W,S_L,S_NO,S_Q,S_NO,S_NO,S_NO
      );
      att_sizefpusuffix : array[0..13] of topsize = (
        S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_FL,S_FS,S_NO,S_FX,S_NO,S_NO
      );
      att_sizefpuintsuffix : array[0..13] of topsize = (
        S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO,S_NO,S_NO
+     );
+     att_sizemmsuffix : array[0..13] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM
      );
 {$else x86_64}
      gas_opsize2str : array[topsize] of string[2] = ('',
@@ -87,7 +90,7 @@ interface
        '','BW','BL','WL','B','W','L','S','Q','T','X','Y'
      );
      att_sizesuffix : array[0..11] of topsize = (
-       S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_NO,S_NO,S_NO,S_XMM,S_YMM
+       S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_NO,S_NO,S_NO,S_NO,S_NO
      );
      att_sizefpusuffix : array[0..11] of topsize = (
        S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_FL,S_FS,S_NO,S_FX,S_NO,S_NO
@@ -95,6 +98,10 @@ interface
      att_sizefpuintsuffix : array[0..11] of topsize = (
        S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO,S_NO,S_NO
      );
+     att_sizemmsuffix : array[0..11] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM
+     );
+
 {$endif x86_64}
 
 

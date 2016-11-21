@@ -347,39 +347,7 @@ interface
                (getregtype(taicpu(hp).oper[0]^.reg)=R_FPUREGISTER)
               ) then
         begin
-          if (gas_needsuffix[op] = AttSufMM)then
-          begin
-            for i:=0 to taicpu(hp).ops-1 do
-            begin
-
-              if (taicpu(hp).oper[i]^.typ = top_ref) then
-              begin
-                case taicpu(hp).oper[i]^.ot and OT_SIZE_MASK of
-                   OT_BITS32: begin
-                                owner.writer.AsmWrite(gas_opsize2str[S_L]);
-                                break;
-                              end;
-                   OT_BITS64: begin
-                                owner.writer.AsmWrite(gas_opsize2str[S_Q]);
-                                break;
-                              end;
-                  OT_BITS128: begin
-                                owner.writer.AsmWrite(gas_opsize2str[S_XMM]);
-                                break;
-                              end;
-                  OT_BITS256: begin
-                                owner.writer.AsmWrite(gas_opsize2str[S_YMM]);
-                                break;
-                              end;
-                           0: begin
-                                owner.writer.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
-                                break;
-                              end;
-                end;
-              end;
-            end;
-          end
-          else owner.writer.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
+          owner.writer.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
         end;
 
         { process operands }
