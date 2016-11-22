@@ -1,7 +1,11 @@
+{ %norun }
 { %cpu=i386,x86_64 }
 { %opt=-Sew -vw }
 {$mode objfpc}
 {$asmmode intel}
+{ The test checks that MOVSS instruction assembles without warning.
+  Running it could be a nice bonus, but it turns out that we have no portable
+  way to detect SSE4.1 support (for DPPS), so disabled for now. }
 uses cpu;
 
 type
