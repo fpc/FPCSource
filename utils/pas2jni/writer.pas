@@ -2236,7 +2236,7 @@ begin
           btString, btWideString:
             Result:=Format('_StringToJString(_env, _JNIString(%s))', [Result]);
           btBoolean:
-            Result:=Format('jboolean(LongBool(%s))', [Result]);
+            Result:=Format('(jboolean(%s) and 1)', [Result]);
           btChar:
             Result:=Format('jchar(widechar(%s))', [Result]);
           btWideChar:
