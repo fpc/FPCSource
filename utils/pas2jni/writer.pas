@@ -2742,6 +2742,7 @@ begin
 
     Fps.WriteLn;
     Fps.WriteLn('uses');
+    Fps.WriteLn('{$ifdef unix} cthreads, {$endif}', 1);
     s:='';
     for i:=0 to p.Units.Count - 1 do begin
       ProcessRules(p.Units[i]);
@@ -2752,10 +2753,15 @@ begin
         continue;
       if s <> '' then
         s:=s + ', ';
+      if Length(s) >= 100 then begin
+        Fps.WriteLn(s, 1);
+        s:='';
+      end;
       s:=s + p.Units[i].Name;
     end;
-    Fps.WriteLn(s + ',', 1);
-    Fps.WriteLn('{$ifndef FPC} Windows, {$endif} {$ifdef unix} cthreads, {$endif} SysUtils, SyncObjs, jni;', 1);
+    if s <> '' then
+      Fps.WriteLn(s + ',', 1);
+    Fps.WriteLn('{$ifndef FPC} Windows, {$endif} SysUtils, SyncObjs, jni;', 1);
 
     // Types
     Fps.WriteLn;
