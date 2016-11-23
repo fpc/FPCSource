@@ -1893,10 +1893,14 @@ begin
       Fjs.IncI;
       Fjs.WriteLn('protected int GetMask(TE Element) { return 1 << (Element.Ord() - Base()); }');
       Fjs.WriteLn('public Set() { }');
+      Fjs.WriteLn('@SuppressWarnings({"unchecked", "varargs"})');
       Fjs.WriteLn('public Set(TE... Elements) { Include(Elements); }');
+      Fjs.WriteLn('@SuppressWarnings({"unchecked", "varargs"})');
       Fjs.WriteLn('public Set(TS... Elements) { for (TS e : Elements) Include(e); }');
+      Fjs.WriteLn('@SuppressWarnings({"unchecked", "varargs"})');
       Fjs.WriteLn('public void Include(TE... Elements) { for (TE e: Elements) Value = Value | GetMask(e); }');
       Fjs.WriteLn('public void Include(TS s) { Value=Value | s.Value; }');
+      Fjs.WriteLn('@SuppressWarnings({"unchecked", "varargs"})');
       Fjs.WriteLn('public void Exclude(TE... Elements) { for (TE e: Elements) Value = Value & ~GetMask(e); }');
       Fjs.WriteLn('public void Exclude(TS s) { Value=Value & ~s.Value; }');
       Fjs.WriteLn('public void Assign(TS s) { Value=s.Value; }');
