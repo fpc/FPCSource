@@ -151,11 +151,11 @@ unit llvmpara;
               paraloc^.register:=hlcg.getaddressregister(list,paraloc^.def);
               paraloc^.shiftval:=0;
               { remove all other paralocs }
-              nextloc:=paraloc^.next;
-              while assigned(nextloc) do
+              while assigned(paraloc^.next) do
                 begin
-                  dispose(nextloc);
                   nextloc:=paraloc^.next;
+                  paraloc^.next:=nextloc^.next;
+                  dispose(nextloc);
                 end;
             end;
           paraloc^.llvmloc.loc:=paraloc^.loc;
