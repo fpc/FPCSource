@@ -1,5 +1,12 @@
 { %TIMEOUT=20 }
 
+type
+{$if defined(CPU8) or defined(CPU16)}
+  tmoveint = integer;
+{$else}
+  tmoveint = longint;
+{$endif}
+
 const
   err: boolean = false;
 
@@ -8,8 +15,8 @@ var
 
 procedure test_forward_move;
 var
-  i, j, k: longint;
-  l: longint;
+  i, j, k: tmoveint;
+  l: tmoveint;
 begin
   for i := 0 to 512 do
     begin
@@ -60,8 +67,8 @@ end;
 
 procedure test_backward_move;
 var
-  i, j, k: longint;
-  l: longint;
+  i, j, k: tmoveint;
+  l: tmoveint;
 begin
   for i := 0 to 128 do
     begin
@@ -114,4 +121,5 @@ begin
   test_backward_move;
   if err then
     halt(1);
+  writeln('ok');
 end.
