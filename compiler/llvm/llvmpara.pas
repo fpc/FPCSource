@@ -134,7 +134,11 @@ unit llvmpara;
                     paraloc^.llvmvalueloc:=true;
                   end;
                 LOC_VOID:
-                  ;
+                  begin
+                    { for empty records, ensure these don't get a byval
+                      attribute }
+                    paraloc^.llvmvalueloc:=true;
+                  end;
                 else
                   internalerror(2014012302);
               end;
