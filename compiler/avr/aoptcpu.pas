@@ -735,7 +735,7 @@ Implementation
                        (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and  }
                        assigned(FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) then
                       begin
-                        DebugMsg('Peephole MovPush2Push performed', p);
+                        DebugMsg('Peephole MovOp2Op performed', p);
 
                         for i := 0 to taicpu(hp1).ops-1 do
                           if taicpu(hp1).oper[i]^.typ=top_reg then
