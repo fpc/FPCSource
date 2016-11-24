@@ -1395,7 +1395,7 @@ implementation
 
 
 {****************************************************************************}
-{                        Abstract Instruction Writer                         }
+{                          LLVM Instruction Writer                           }
 {****************************************************************************}
 
      constructor TLLVMInstrWriter.create(_owner: TLLVMAssember);
