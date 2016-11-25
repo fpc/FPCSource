@@ -890,8 +890,8 @@ end;
 procedure TSQLite3Connection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);
 var
   artableinfo, arindexlist, arindexinfo: TArrayStringArray;
-  il,ii: integer;
-  IndexName: string;
+  i,il,ii: integer;
+  DbName, IndexName: string;
   IndexOptions: TIndexOptions;
   PKFields, IXFields: TStrings;
 
@@ -912,14 +912,27 @@ begin
   IXFields:=TStringList.Create;
   IXFields.Delimiter:=';';
 
+  //check for multipart unquoted identifier: DatabaseName.TableName
+  if Pos('"',TableName) = 0 then
+    i := Pos('.',TableName)
+  else
+    i := 0;
+  if i>0 then
+    begin
+    DbName := Copy(TableName,1,i);
+    Delete(TableName,1,i);
+    end
+  else
+    DbName := '';
+
   //primary key fields; 5th column "pk" is zero for columns that are not part of PK
-  artableinfo := stringsquery('PRAGMA table_info('+TableName+');');
+  artableinfo := stringsquery('PRAGMA '+DbName+'table_info('+TableName+');');
   for ii:=low(artableinfo) to high(artableinfo) do
     if (high(artableinfo[ii]) >= 5) and (artableinfo[ii][5] >= '1') then
       PKFields.Add(artableinfo[ii][1]);
 
   //list of all table indexes
-  arindexlist:=stringsquery('PRAGMA index_list('+TableName+');');
+  arindexlist:=stringsquery('PRAGMA '+DbName+'index_list('+TableName+');');
   for il:=low(arindexlist) to high(arindexlist) do
     begin
     IndexName:=arindexlist[il][1];
