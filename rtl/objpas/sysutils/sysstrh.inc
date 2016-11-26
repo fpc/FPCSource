@@ -133,7 +133,7 @@ function StrToDWordDef(const S: string; Default: DWord): DWord;
 function StrToInt64Def(const S: string; Default: int64): int64;
 function StrToQWordDef(const S: string; Default: QWord): QWord;
 function StrToUInt64Def(const S: string; Default: UInt64): UInt64; inline;
-function LoadStr(Ident: integer): string;
+function LoadStr(Ident: integer): string;{$ifdef SYSUTILSINLINE}inline;{$ENDIF}
 // function FmtLoadStr(Ident: integer; const Args: array of const): string;
 Function Format (Const Fmt : String; const Args : Array of const) : String;
 Function Format (Const Fmt: string; const Args: array of const; const FormatSettings: TFormatSettings): string;
