@@ -248,11 +248,11 @@
           class function GetInterfaceTable : pinterfacetable;
 
           { new since Delphi 2009 }
-          class function UnitName : ansistring;
+          class function UnitName : {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
           class function QualifiedClassName: ansistring;
           function Equals(Obj: TObject) : boolean;virtual;
           function GetHashCode: PtrInt;virtual;
-          function ToString: ansistring;virtual;
+          function ToString: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};virtual;
        end;
 
        IUnknown = interface
