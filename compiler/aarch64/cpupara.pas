@@ -99,29 +99,23 @@ unit cpupara;
             begin
               if is_special_array(p) then
                 exit;
-              case tarraydef(p).elementdef.typ of
-                floatdef:
-                  begin
-                    { an array of empty records has no influence }
-                    if tarraydef(p).elementdef.size=0 then
-                      begin
-                        result:=true;
-                        exit
-                      end;
-                    tmpelecount:=0;
-                    if not is_hfa_internal(tarraydef(p).elementdef,basedef,tmpelecount) then
-                      exit;
-                    { tmpelecount now contains the number of hfa elements in a
-                      single array element (e.g. 2 if it's an array of a record
-                      containing two singles) -> multiply by number of elements
-                      in the array }
-                    inc(elecount,tarraydef(p).elecount*tmpelecount);
-                    if elecount>4 then
-                      exit;
-                  end;
-                else
-                  result:=is_hfa_internal(tarraydef(p).elementdef,basedef,elecount);
+              { an array of empty records has no influence }
+              if tarraydef(p).elementdef.size=0 then
+                begin
+                  result:=true;
+                  exit
                 end;
+              tmpelecount:=0;
+              if not is_hfa_internal(tarraydef(p).elementdef,basedef,tmpelecount) then
+                exit;
+              { tmpelecount now contains the number of hfa elements in a
+                single array element (e.g. 2 if it's an array of a record
+                containing two singles) -> multiply by number of elements
+                in the array }
+              inc(elecount,tarraydef(p).elecount*tmpelecount);
+              if elecount>4 then
+                exit;
+              result:=true;
             end;
           floatdef:
             begin
@@ -467,7 +461,7 @@ unit cpupara;
              begin;
                { every hfa element must be passed in a separate register }
                if (assigned(hfabasedef) and
-                   (curmmreg+(paralen div hfabasedef.size)>RS_LAST_MM_PARAM_SUPREG)) or
+                   (curmmreg+((paralen-1) div hfabasedef.size)>RS_LAST_MM_PARAM_SUPREG)) or
                   (curmmreg+((paralen-1) shr 3)>RS_LAST_MM_PARAM_SUPREG) then
                  begin
                    { not enough mm registers left -> no more register
