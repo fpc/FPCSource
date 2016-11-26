@@ -20,7 +20,7 @@ unit testexprpars;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, fpexprpars;
+  Classes, SysUtils, fpcunit, testutils, testregistry, math, fpexprpars;
 
 type
 
@@ -412,6 +412,27 @@ type
     Procedure TestCreateBoolean;
     Procedure TestDestroy;
     Procedure TestAsString;
+  end;
+
+  { TTestPowerNode }
+
+  TTestPowerNode = Class(TTestBaseParser)
+  Private
+    FN : TFPPowerOperation;
+    FE : TFPExpressionParser;
+  Protected
+    Procedure Setup; override;
+    Procedure TearDown; override;
+    procedure Calc(AExpr: String; Expected: Double = NaN);
+  Published
+    Procedure TestCreateInteger;
+    Procedure TestCreateFloat;
+    Procedure TestCreateDateTime;
+    Procedure TestCreateString;
+    Procedure TestCreateBoolean;
+    Procedure TestDestroy;
+    Procedure TestAsString;
+    Procedure TestCalc;
   end;
 
   { TTestDivideNode }
@@ -1302,7 +1323,7 @@ Const
     = ('+','-','<','>','=','/',
        '*','(',')','<=','>=',
        '<>','1','''abc''','abc',',','and',
-       'or','xor','true','false','not','if','case','');
+       'or','xor','true','false','not','if','case','^','');
 
 var
   t : TTokenType;
@@ -1327,23 +1348,22 @@ end;
 
 procedure TTestExpressionScanner.TestNumber;
 begin
-  TestString('123',ttNumber);
+  {TestString('123',ttNumber);
   TestString('123.4',ttNumber);
   TestString('123.E4',ttNumber);
   TestString('1.E4',ttNumber);
   TestString('1e-2',ttNumber);
   DoInvalidNumber('1..1');
+}
   DoInvalidNumber('1.E--1');
-  DoInvalidNumber('.E-1');
+//  DoInvalidNumber('.E-1');
 end;
 
 procedure TTestExpressionScanner.TestInvalidCharacter;
 begin
   DoInvalidNumber('~');
-  DoInvalidNumber('^');
   DoInvalidNumber('#');
   DoInvalidNumber('$');
-  DoInvalidNumber('^');
 end;
 
 procedure TTestExpressionScanner.TestUnterminatedString;
@@ -1520,15 +1540,16 @@ end;
 procedure TTestConstExprNode.TestCreateFloat;
 
 Var
-  S : String;
+  F : Double;
+  C : Integer;
 
 begin
   FN:=TFPConstExpression.CreateFloat(2.34);
   AssertEquals('Correct type',rtFloat,FN.NodeType);
   AssertEquals('Correct result',2.34,FN.ConstValue.ResFloat);
   AssertEquals('Correct result',2.34,FN.NodeValue.ResFloat);
-  Str(TExprFLoat(2.34),S);
-  AssertEquals('AsString ok',S,FN.AsString);
+  Val(FN.AsString,F,C);
+  AssertEquals('AsString ok',2.34,F,0.001);
 end;
 
 procedure TTestConstExprNode.TestCreateBoolean;
@@ -2425,6 +2446,130 @@ procedure TTestMultiplyNode.TestAsString;
 begin
   FN:=TFPMultiplyOperation.Create(CreateIntNode(1),CreateIntNode(2));
   AssertEquals('Asstring works ok','1 * 2',FN.AsString);
+end;
+
+
+{ TTestPowerNode }
+
+procedure TTestPowerNode.TearDown;
+begin
+  FreeAndNil(FN);
+  inherited TearDown;
+end;
+
+procedure TTestPowerNode.Setup;
+begin
+  inherited ;
+  FE:=TFpExpressionParser.Create(Nil);
+  FE.Builtins := [bcMath];
+end;
+
+procedure TTestPowerNode.Calc(AExpr: String; Expected: Double =NaN);
+const
+  EPS = 1e-9;
+var
+  res: TFpExpressionResult;
+  x: Double;
+begin
+  FE.Expression := AExpr;
+  res:=FE.Evaluate;
+  x:= ArgToFloat(res);
+  if not IsNaN(Expected) then 
+    AssertEquals('Expression '+AExpr+' result',Expected,X,Eps);
+end;
+
+procedure TTestPowerNode.TestCalc;
+
+begin
+  Calc('2^2', Power(2, 2));
+  Calc('2^-2', Power(2, -2));
+  Calc('2^(-2)', Power(2, -2));
+  Calc('sqrt(3)^2', Power(sqrt(3), 2));
+  Calc('-sqrt(3)^2', -Power(sqrt(3), 2));
+  Calc('-2^2', -Power(2, 2));
+  Calc('(-2.0)^2', Power(-2.0, 2));
+  Calc('(-2.0)^-2', Power(-2.0, -2));
+  // Odd integer exponent
+  Calc('2^3', Power(2, 3));
+  Calc('-2^3', -Power(2, 3));
+  Calc('-2^-3', -Power(2, -3));
+  Calc('-2^(-3)', -Power(2, -3));
+  Calc('(-2.0)^3', Power(-2.0, 3));
+  Calc('(-2.0)^-3', Power(-2.0, -3));
+  // Fractional exponent
+  Calc('10^2.5', power(10, 2.5));
+  Calc('10^-2.5', Power(10, -2.5));
+  // Expressions
+  Calc('(1+1)^3', Power(1+1, 3));
+  Calc('1+2^3', 1 + Power(2, 3));
+  calc('2^3+1', Power(2, 3) + 1);
+  Calc('2^3*2', Power(2, 3) * 2);
+  Calc('2^3*-2', Power(2, 3) * -2);
+  Calc('2^(1+1)', Power(2, 1+1));
+  Calc('2^-(1+1)', Power(2, -(1+1)));
+  WriteLn;
+  // Special cases
+  Calc('0^0', power(0, 0));
+  calc('0^1', power(0, 1));
+  Calc('0^2.5', Power(0, 2.5));
+  calc('2.5^0', power(2.5, 0));
+  calc('2^3^4', 2417851639229258349412352);  // according to Wolfram Alpha, 2^(3^4)
+
+  // These expressions should throw expections
+
+  //Calc('(-10)^2.5', NaN);  // base must be positive in case of fractional exponent
+  //Calc('0^-2', NaN);       // is 1/0^2 = 1/0
+end;
+
+procedure TTestPowerNode.TestCreateInteger;
+begin
+  FN:=TFPPowerOperation.Create(CreateIntNode(4),CreateIntNode(2));
+  AssertEquals('Power has correct type',rtfloat,FN.NodeType);
+  AssertEquals('Power has correct result',16.0,FN.NodeValue.ResFloat);
+end;
+
+procedure TTestPowerNode.TestCreateFloat;
+begin
+  FN:=TFPPowerOperation.Create(CreateFloatNode(2.0),CreateFloatNode(3.0));
+  AssertEquals('Power has correct type',rtFloat,FN.NodeType);
+  AssertEquals('Power has correct result',8.0,FN.NodeValue.ResFloat);
+end;
+
+procedure TTestPowerNode.TestCreateDateTime;
+
+Var
+  D,T : TDateTime;
+
+begin
+  D:=Date;
+  T:=Time;
+  FN:=TFPPowerOperation.Create(CreateDateTimeNode(D+T),CreateDateTimeNode(T));
+  AssertNodeNotOK('No datetime Power',FN);
+end;
+
+procedure TTestPowerNode.TestCreateString;
+begin
+  FN:=TFPPowerOperation.Create(CreateStringNode('alo'),CreateStringNode('ha'));
+  AssertNodeNotOK('No string Power',FN);
+end;
+
+procedure TTestPowerNode.TestCreateBoolean;
+begin
+  FN:=TFPPowerOperation.Create(CreateBoolNode(True),CreateBoolNode(False));
+  AssertNodeNotOK('No boolean Power',FN);
+end;
+
+procedure TTestPowerNode.TestDestroy;
+begin
+  FN:=TFPPowerOperation.Create(TMyDestroyNode.CreateTest(Self),TMyDestroyNode.CreateTest(Self));
+  FreeAndNil(FN);
+  AssertEquals('Destroy called for left and right nodes',2,self.FDestroyCalled)
+end;
+
+procedure TTestPowerNode.TestAsString;
+begin
+  FN:=TFPPowerOperation.Create(CreateIntNode(1),CreateIntNode(2));
+  AssertEquals('Asstring works ok','1^2',FN.AsString);
 end;
 
 
@@ -5575,7 +5720,7 @@ procedure TTestBuiltins.TestRegister;
 
 begin
   RegisterStdBuiltins(FM);
-  AssertEquals('Correct number of identifiers',67,FM.IdentifierCount);
+  AssertEquals('Correct number of identifiers',69,FM.IdentifierCount);
   Assertvariable('pi',rtFloat);
   AssertFunction('cos','F','F',bcMath);
   AssertFunction('sin','F','F',bcMath);
@@ -5643,6 +5788,8 @@ begin
   AssertFunction('sum','F','F',bcAggregate);
   AssertFunction('count','I','',bcAggregate);
   AssertFunction('avg','F','F',bcAggregate);
+  AssertFunction('min','F','F',bcAggregate);
+  AssertFunction('max','F','F',bcAggregate);
 end;
 
 procedure TTestBuiltins.TestVariablepi;
@@ -6586,7 +6733,7 @@ initialization
                  TTestLessThanNode,TTestLessThanEqualNode,
                  TTestLargerThanNode,TTestLargerThanEqualNode,
                  TTestAddNode,TTestSubtractNode,
-                 TTestMultiplyNode,TTestDivideNode,
+                 TTestMultiplyNode,TTestDivideNode,TTestPowerNode,
                  TTestIntToFloatNode,TTestIntToDateTimeNode,
                  TTestFloatToDateTimeNode,
                  TTestParserExpressions, TTestParserBooleanOperations,
