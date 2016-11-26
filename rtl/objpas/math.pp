@@ -192,6 +192,21 @@ procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: SmallI
 procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
 procedure DivMod(Dividend: LongInt; Divisor: LongInt; var Result, Remainder: LongInt);
 
+{ Floating point modulo}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function FMod(const a, b: Single): Single;inline;overload;
+{$endif FPC_HAS_TYPE_SINGLE}
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function FMod(const a, b: Double): Double;inline;overload;
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function FMod(const a, b: Extended): Extended;inline;overload;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+operator mod(const a,b:float) c:float;inline;
+
 // Sign functions
 Type
   TValueSign = -1..1;
@@ -2380,6 +2395,32 @@ begin
 end;
 {$endif FPC_MATH_HAS_DIVMOD}
 
+{ Floating point modulo}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function FMod(const a, b: Single): Single;inline;overload;
+begin
+  result:= a-b * trunc(a/b);
+end;
+{$endif FPC_HAS_TYPE_SINGLE}
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function FMod(const a, b: Double): Double;inline;overload;
+begin
+  result:= a-b * trunc(a/b);
+end;
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function FMod(const a, b: Extended): Extended;inline;overload;
+begin
+  result:= a-b * trunc(a/b);
+end;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+operator mod(const a,b:float) c:float;inline;
+begin
+  c:= a-b * trunc(a/b);  
+end;
 
 function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer;
 begin
