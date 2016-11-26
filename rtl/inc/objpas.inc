@@ -973,6 +973,17 @@
             result:='';
         end;
 
+      class function TObject.QualifiedClassName: ansistring;
+        var
+          uname: ansistring;
+        begin
+          uname := UnitName; //TODO: change 'UnitName' to 'UnitScope' as soon as RTL implement it
+          if uname='' then
+            result:=ClassName
+          else
+            result:=Concat(uname, '.', ClassName);
+        end;
+
       function TObject.Equals(Obj: TObject) : boolean;
         begin
           result:=Obj=Self;

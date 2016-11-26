@@ -249,6 +249,7 @@
 
           { new since Delphi 2009 }
           class function UnitName : ansistring;
+          class function QualifiedClassName: ansistring;
           function Equals(Obj: TObject) : boolean;virtual;
           function GetHashCode: PtrInt;virtual;
           function ToString: ansistring;virtual;
