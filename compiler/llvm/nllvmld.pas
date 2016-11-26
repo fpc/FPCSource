@@ -86,7 +86,9 @@ procedure tllvmloadnode.pass_generate_code;
             a single memory location, as we don't use the registerhi/register
             location hack for llvm (llvm will put it back into registers itself)
           }
-          if assigned(left) then
+          if assigned(left) and
+            (resultdef.typ in [symconst.procdef,procvardef]) and
+             not tabstractprocdef(resultdef).is_addressonly then
             begin
               pvdef:=tprocvardef(procdef.getcopyas(procvardef,pc_normal));
               { on little endian, location.register contains proc and
