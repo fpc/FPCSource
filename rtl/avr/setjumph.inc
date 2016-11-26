@@ -16,10 +16,11 @@
 
 type
    jmp_buf = packed record
+     r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13,r14,r15,r16,r17,r28,r29,splo,sphi,pclo,pchi : byte;
    end;
    pjmp_buf = ^jmp_buf;
 
-function setjmp(var S : jmp_buf) : longint;[external name 'FPC_SETJMP'];
-procedure longjmp(var S : jmp_buf;value : longint);[external name 'FPC_LONGJMP'];
+function setjmp(var S : jmp_buf) : shortint;[external name 'FPC_SETJMP'];
+procedure longjmp(var S : jmp_buf;value : shortint);[external name 'FPC_LONGJMP'];
 
 
