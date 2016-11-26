@@ -6386,9 +6386,13 @@ implementation
 
     function tprocvardef.size : asizeint;
       begin
-         if ((po_methodpointer in procoptions) or
-             is_nested_pd(self)) and
-            not(po_addressonly in procoptions) then
+         { we return false for is_addressonly for a block (because it's not a
+           simple pointer to a function), but they are handled as implicit
+           pointers to a datastructure that contains everything ->
+           voidpointertype.size instead of voidcodepointertype.size }
+         if po_is_block in procoptions then
+           size:=voidpointertype.size
+         else if not is_addressonly then
            begin
              if is_nested_pd(self) then
                size:=voidcodepointertype.size+parentfpvoidpointertype.size
