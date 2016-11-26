@@ -707,15 +707,15 @@ begin
 end ;
 
 
-{   AdjustLineBreaks returns S with all CR characters not followed by LF
-    replaced with CR/LF  }
-//  under Linux all CR characters or CR/LF combinations should be replaced with LF
+{  Change CRLF, CR or LF with the default for the current platform  }
 
 function AdjustLineBreaks(const S: string): string;
 
 begin
   Result:=AdjustLineBreaks(S,DefaultTextLineBreakStyle);
 end;
+
+{  Change CRLF, CR or LF with the indicated style }
 
 function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
 var
