@@ -30,11 +30,15 @@ unit aoptcpu;
   Interface
 
     uses
-      cpubase, aoptobj, aoptcpub, aopt, aasmtai;
+      cpubase, aoptobj, aoptcpub, aopt, aasmtai,
+      cgbase;
 
     Type
       TCpuAsmOptimizer = class(TAsmOptimizer)
+        function RegLoadedWithNewValue(reg: tregister; hp: tai): boolean; override;
         function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
+
+        function TryToOptimizeMove(var p: tai): boolean;
 
         { outputs a debug message into the assembler file }
         procedure DebugMsg(const s: string; p: tai);
@@ -43,7 +47,78 @@ unit aoptcpu;
   Implementation
 
     uses
-      cutils, aasmcpu, cgutils, globals, cpuinfo;
+      cutils, aasmcpu, cgutils, globals, verbose, cpuinfo, itcpugas;
+
+
+    function opname(var p: tai): string;
+      begin
+        result:=upcase(gas_op2str[taicpu(p).opcode]);
+      end;
+
+    function RefsEqual(const r1, r2: treference): boolean;
+      begin
+        RefsEqual :=
+          (r1.offset = r2.offset) and
+          (r1.base = r2.base) and
+          (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
+          (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
+          (r1.relsymbol = r2.relsymbol);
+      end;
+
+    function MatchOperand(const oper1: TOper; const oper2: TOper): boolean;
+      begin
+        result := oper1.typ = oper2.typ;
+
+        if result then
+          case oper1.typ of
+            top_const:
+              Result:=oper1.val = oper2.val;
+            top_reg:
+              Result:=oper1.reg = oper2.reg;
+            top_ref:
+              Result:=RefsEqual(oper1.ref^, oper2.ref^);
+            else
+              internalerror(2016112401);
+          end
+      end;
+
+    function TCpuAsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
+      var
+        p: taicpu;
+      begin
+        if not assigned(hp) or
+           (hp.typ <> ait_instruction) then
+         begin
+           Result := false;
+           exit;
+         end;
+        p := taicpu(hp);
+        Result :=
+          ((p.opcode in [A_MOVE,A_MOVEA,A_MVS,A_MVZ,A_MOVEQ,A_LEA]) and
+           (p.oper[1]^.typ = top_reg) and
+           (SuperRegistersEqual(p.oper[1]^.reg,reg)) and
+           ((p.oper[0]^.typ = top_const) or
+            ((p.oper[0]^.typ = top_reg) and
+             not(SuperRegistersEqual(p.oper[0]^.reg,reg))) or
+            ((p.oper[0]^.typ = top_ref) and
+             not RegInRef(reg,p.oper[0]^.ref^)))) or
+
+          ((p.opcode = A_FMOVE) and
+           (p.oper[1]^.typ = top_reg) and
+           (SuperRegistersEqual(p.oper[1]^.reg,reg)) and
+           ((p.oper[0]^.typ = top_realconst) or
+            ((p.oper[0]^.typ = top_reg) and
+            not(SuperRegistersEqual(p.oper[0]^.reg,reg))))) or
+
+          ((p.opcode = A_MOVEM) and
+           (p.oper[1]^.typ = top_regset) and
+           ((getsupreg(reg) in p.oper[1]^.dataregset) or
+            (getsupreg(reg) in p.oper[1]^.addrregset))) or
+
+          ((p.opcode = A_FMOVEM) and
+           (p.oper[1]^.typ = top_regset) and
+           (getsupreg(reg) in p.oper[1]^.fpuregset));
+      end;
 
 {$ifdef DEBUG_AOPTCPU}
   procedure TCpuAsmOptimizer.DebugMsg(const s: string; p : tai);
@@ -55,6 +130,112 @@ unit aoptcpu;
     begin
     end;
 {$endif DEBUG_AOPTCPU}
+
+  function TCpuAsmOptimizer.TryToOptimizeMove(var p: tai): boolean;
+    var
+      next, next2: tai;
+      opstr: string[15];
+    begin
+      result:=false;
+
+      if GetNextInstruction(p,next) and 
+         (taicpu(next).typ = ait_instruction) and
+         (taicpu(next).opcode = taicpu(p).opcode) and
+         (taicpu(p).opsize = taicpu(next).opsize) and
+         (taicpu(p).oper[1]^.typ = top_reg) and
+         MatchOperand(taicpu(p).oper[1]^,taicpu(next).oper[0]^) then
+        begin
+          if not(RegInOp(taicpu(p).oper[1]^.reg,taicpu(next).oper[1]^)) and
+             RegEndOfLife(taicpu(next).oper[0]^.reg, taicpu(next)) then
+            begin
+              opstr:=opname(p);
+              case taicpu(p).oper[0]^.typ of
+                top_reg:
+                  begin
+                    {  move %reg0, %tmpreg; move %tmpreg, <ea> -> move %reg0, <ea> }
+                    taicpu(p).loadOper(1,taicpu(next).oper[1]^);
+                    asml.remove(next);
+                    next.free;
+                    result:=true;
+                    { also remove leftover move %reg0, %reg0, which can occur as the result
+                      of the previous optimization, if %reg0 and %tmpreg was different types
+                      (addr vs. data), so these moves were left in by the cg }
+                    if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
+                      begin
+                        DebugMsg('Optimizer: '+opstr+' + '+opstr+' removed',p);
+                        asml.remove(p);
+                        p.free;
+                      end
+                    else
+                      DebugMsg('Optimizer: '+opstr+' + '+opstr+' to '+opstr+' #1',p)
+                  end;
+                top_const:
+                  begin
+                    // DebugMsg('Optimizer: '+opstr+' + '+opstr+' to '+opstr+' #2',p);
+                  end;
+                top_ref:
+                  begin
+                    { move ref, %tmpreg; move %tmpreg, <ea> -> move ref, <ea> }
+                    { we only want to do this when <ea> is a reg or a simple reference }
+                    with taicpu(next).oper[1]^ do
+                      if (taicpu(next).opcode <> A_FMOVE) and
+                         ((typ = top_reg) or
+                          ((typ = top_ref) and
+                           ((ref^.index = NR_NO) or
+                            (ref^.base = NR_NO)) and
+                           (ref^.symbol = nil) and
+                           (ref^.offset = 0))) then
+                        begin
+                          DebugMsg('Optimizer: '+opstr+' + '+opstr+' to '+opstr+' #3',p);
+                          taicpu(p).loadOper(1,taicpu(next).oper[1]^);
+                          asml.remove(next);
+                          next.free;
+                          result:=true;
+                        end;
+                  end;
+              end;
+            end;
+          exit;
+        end;
+
+      if GetNextInstruction(p,next) and
+         (taicpu(next).typ = ait_instruction) and
+         GetNextInstruction(next,next2) and
+         (taicpu(next2).typ = ait_instruction) and
+         (taicpu(next).opcode <> taicpu(p).opcode) and
+         (taicpu(next2).opcode = taicpu(p).opcode) and
+         (taicpu(p).oper[0]^.typ = top_reg) and
+         (taicpu(p).oper[1]^.typ = top_reg) and
+         (getregtype(taicpu(p).oper[0]^.reg) = getregtype(taicpu(p).oper[1]^.reg)) and
+         MatchOperand(taicpu(p).oper[1]^,taicpu(next2).oper[0]^) and
+         MatchOperand(taicpu(next2).oper[1]^,taicpu(p).oper[0]^) and
+         ((taicpu(p).opsize = taicpu(next).opsize) and
+          (taicpu(p).opsize = taicpu(next2).opsize)) then
+        begin
+          opstr:=opname(p);
+
+          if not(RegInOp(taicpu(p).oper[1]^.reg,taicpu(next2).oper[1]^)) and
+             not(RegInOp(taicpu(p).oper[1]^.reg,taicpu(next).oper[0]^)) and
+             RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(next2)) then
+            begin
+              {  move %reg0, %tmpreg
+                 op   ???, %tmpreg
+                 move %tmpreg, %reg0
+                 to:
+                 op   ???, %reg0 }
+              if MatchOperand(taicpu(p).oper[1]^,taicpu(next).oper[taicpu(next).ops-1]^) then
+                begin
+                  DebugMsg('Optimizer: '+opstr+' + OP + '+opstr+' to OP #1',next);
+                  taicpu(next).loadOper(taicpu(next).ops-1,taicpu(p).oper[0]^);
+                  asml.remove(p);
+                  asml.remove(next2);
+                  p.free;
+                  next2.free;
+                  result:=true;
+                end;
+            end;
+        end;
+    end;
 
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
@@ -69,9 +250,11 @@ unit aoptcpu;
             //asml.insertbefore(tai_comment.Create(strpnew('pass1 called for instr')), p);
 
             case taicpu(p).opcode of
+              A_MOVE:
+                result:=TryToOptimizeMove(p);
               { LEA (Ax),Ax is a NOP if src and dest reg is equal, so remove it. }
               A_LEA:
-                if GetNextInstruction(p,next) and not assigned(taicpu(p).oper[0]^.ref^.symbol) and
+                if not assigned(taicpu(p).oper[0]^.ref^.symbol) and
                    (((taicpu(p).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg) and
                    (taicpu(p).oper[0]^.ref^.index = NR_NO)) or
                    ((taicpu(p).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) and
@@ -81,7 +264,6 @@ unit aoptcpu;
                     DebugMsg('Optimizer: LEA 0(Ax),Ax removed',p);
                     asml.remove(p);
                     p.free;
-                    p:=next;
                     result:=true;
                   end;
               { Address register sub/add can be replaced with ADDQ/SUBQ or LEA if the value is in the
@@ -176,17 +358,24 @@ unit aoptcpu;
                       end;
                   end;
               A_FMOVE,A_FMUL,A_FADD,A_FSUB,A_FDIV:
-                  if (taicpu(p).oper[0]^.typ = top_realconst) then
-                    begin
-                      tmpsingle:=taicpu(p).oper[0]^.val_real;
-                      if (taicpu(p).opsize = S_FD) and
-                         ((taicpu(p).oper[0]^.val_real - tmpsingle) = 0.0) then
-                        begin
-                          DebugMsg('Optimizer: FMOVE/FMUL/FADD/FSUB/FDIV const to lesser precision',p);
-                          taicpu(p).opsize:=S_FS;
-                          result:=true;
-                        end;
-                    end;
+                  begin
+                    if (taicpu(p).opcode = A_FMOVE) and TryToOptimizeMove(p) then
+                      begin
+                        result:=true;
+                        exit;
+                      end;
+                    if (taicpu(p).oper[0]^.typ = top_realconst) then
+                      begin
+                        tmpsingle:=taicpu(p).oper[0]^.val_real;
+                        if (taicpu(p).opsize = S_FD) and
+                           ((taicpu(p).oper[0]^.val_real - tmpsingle) = 0.0) then
+                          begin
+                            DebugMsg('Optimizer: FMOVE/FMUL/FADD/FSUB/FDIV const to lesser precision',p);
+                            taicpu(p).opsize:=S_FS;
+                            result:=true;
+                          end;
+                      end;
+                  end;
             end;
           end;
       end;
