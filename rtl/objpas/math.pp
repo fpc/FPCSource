@@ -2379,7 +2379,7 @@ begin
   if Dividend < 0 then
     begin
       { Use DivMod with >=0 dividend }
-	  Dividend:=-Dividend;
+      Dividend:=-Dividend;
       { The documented behavior of Pascal's div/mod operators and DivMod
         on negative dividends is to return Result closer to zero and
         a negative Remainder. Which means that we can just negate both
@@ -2389,9 +2389,9 @@ begin
     end
   else
     begin
-	  Result:=Dividend Div Divisor;
+      Result:=Dividend Div Divisor;
       Remainder:=Dividend-(Result*Divisor);
-	end;
+    end;
 end;
 {$endif FPC_MATH_HAS_DIVMOD}
 
