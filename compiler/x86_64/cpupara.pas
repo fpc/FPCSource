@@ -713,6 +713,10 @@ unit cpupara;
               since classify_argument is called during parsing, see tw27685.pp,
               we handle undefineddef here }
             result:=0;
+          errordef:
+            { error message should have been thrown already before, so avoid only
+              an internal error }
+            result:=0;
           else
             internalerror(2010021405);
         end;
