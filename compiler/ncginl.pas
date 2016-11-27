@@ -52,6 +52,7 @@ interface
           procedure second_prefetch; virtual;
           procedure second_round_real; virtual;
           procedure second_trunc_real; virtual;
+          procedure second_int_real; virtual;
           procedure second_abs_long; virtual;
           procedure second_rox_sar; virtual;
           procedure second_bsfbsr; virtual;
@@ -121,6 +122,8 @@ implementation
               second_round_real;
             in_trunc_real:
               second_trunc_real;
+            in_int_real:
+              second_int_real;
             in_sqr_real:
               second_sqr_real;
             in_sqrt_real:
@@ -483,6 +486,11 @@ implementation
     procedure tcginlinenode.second_trunc_real;
       begin
         internalerror(20020718);
+      end;
+
+    procedure tcginlinenode.second_int_real;
+      begin
+        internalerror(2016112702);
       end;
 
     procedure tcginlinenode.second_sqr_real;
