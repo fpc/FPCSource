@@ -3482,7 +3482,8 @@ end;
 procedure TFields.Changed;
 
 begin
-  if (FDataSet <> nil) and not (csDestroying in FDataSet.ComponentState) and FDataset.Active then
+  // Removed FDataSet.Active check, needed for Persistent fields (see bug ID 30954)
+  if (FDataSet <> nil) and not (csDestroying in FDataSet.ComponentState)  then
     FDataSet.DataEvent(deFieldListChange, 0);
   If Assigned(FOnChange) then
     FOnChange(Self);
