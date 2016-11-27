@@ -123,28 +123,32 @@ procedure tllvmmoddivnode.pass_generate_code;
 
 procedure Tllvmunaryminusnode.emit_float_sign_change(r: tregister; _size : tdef);
 var
-  zeroreg: tregister;
+  minusonereg: tregister;
 begin
+  { multiply with -1 instead of subtracting from 0, because otherwise we -x
+    won't turn into -0.0 if x was 0.0 (0.0 - 0.0 = 0.0, but -1.0 * 0.0 = -0.0 }
   if _size.typ<>floatdef then
     internalerror(2014012212);
-  zeroreg:=hlcg.getfpuregister(current_asmdata.CurrAsmList,_size);
+  minusonereg:=hlcg.getfpuregister(current_asmdata.CurrAsmList,_size);
   case tfloatdef(_size).floattype of
     s32real,s64real:
-      current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst_size(la_bitcast,zeroreg,_size,0,_size));
+      current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst_size(la_bitcast,minusonereg,_size,-1.0,_size));
     { comp and currency are handled as int64 at the llvm level }
     s64comp,
     s64currency:
       begin
         { sc80floattype instead of _size, see comment in thlcgllvm.a_loadfpu_ref_reg }
         _size:=sc80floattype;
-        current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,zeroreg,s64inttype,0,_size));
+        current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,minusonereg,s64inttype,-1,_size));
       end;
 {$ifdef cpuextended}
     s80real,sc80real:
-      current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst80_size(la_bitcast,zeroreg,_size,0.0,_size));
+      current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst80_size(la_bitcast,minusonereg,_size,-1.0,_size));
 {$endif cpuextended}
+    else
+      internalerror(2016112701);
   end;
-  current_asmdata.CurrAsmList.Concat(taillvm.op_reg_size_reg_reg(la_fsub,r,_size,zeroreg,r));
+  current_asmdata.CurrAsmList.Concat(taillvm.op_reg_size_reg_reg(la_fmul,r,_size,minusonereg,r));
 end;
 
 
