@@ -521,7 +521,9 @@ implementation
               begin
                  if not assigned(procdef) then
                    internalerror(200312011);
-                 if assigned(left) then
+                 if assigned(left) and
+                   (resultdef.typ in [symconst.procdef,procvardef]) and
+                    not tabstractprocdef(resultdef).is_addressonly then
                    begin
                      location_reset(location,LOC_CREGISTER,int_cgsize(voidpointertype.size*2));
                      secondpass(left);
