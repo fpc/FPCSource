@@ -117,7 +117,7 @@ implementation
             { we don't know the size of all arrays }
             newsize:=def_cgsize(resultdef);
             { alignment is overridden per case below }
-            location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment);
+            location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment,[]);
 
             {
               Thread var loading is optimized to first check if
@@ -139,18 +139,18 @@ implementation
             paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
             segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-            reference_reset_symbol(segref,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,0);
+            reference_reset_symbol(segref,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
             segref.refaddr:=addr_seg;
             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment);
+            reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
             href.segment:=segreg;
             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
             { don't save the allocated register else the result will be destroyed later }
             if not(vo_is_weak_external in gvs.varoptions) then
-              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint))
+              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),0,2,[])
             else
-              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint));
+              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,2,[]);
             cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_16,href,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
@@ -168,12 +168,12 @@ implementation
                 0 - Threadvar index
                 4 - Threadvar value in single threading }
             if not(vo_is_weak_external in gvs.varoptions) then
-              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),sizeof(pint))
+              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[])
             else
-              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),sizeof(pint));
+              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[]);
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,href,hregister);
             cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
-            hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment);
+            hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment,[]);
           end
         else
           inherited generate_threadvar_access(gvs);
@@ -218,7 +218,7 @@ implementation
                       { we don't know the size of all arrays }
                       newsize:=def_cgsize(resultdef);
                       { alignment is overridden per case below }
-                      location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment);
+                      location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment,[]);
 
                       if gvs.localloc.loc=LOC_INVALID then
                         begin
@@ -229,11 +229,11 @@ implementation
 
                           segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
 
-                          reference_reset_symbol(segref,refsym,0,0);
+                          reference_reset_symbol(segref,refsym,0,0,[]);
                           segref.refaddr:=addr_seg;
                           cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
 
-                          reference_reset_symbol(location.reference,refsym,0,location.reference.alignment);
+                          reference_reset_symbol(location.reference,refsym,0,location.reference.alignment,[]);
                           location.reference.segment:=segreg;
                         end
                       else

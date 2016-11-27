@@ -254,7 +254,7 @@ unit cgcpu;
               begin
                 localsize:=align(localsize,target_info.stackalign)+xmmsize;
                 reference_reset_base(current_procinfo.save_regs_ref,NR_STACK_POINTER_REG,
-                  localsize-xmmsize,tcgsize2size[OS_VECTOR]);
+                  localsize-xmmsize,tcgsize2size[OS_VECTOR],[]);
               end;
 
             { allocate stackframe space }
@@ -353,7 +353,7 @@ unit cgcpu;
         var
           href : treference;
         begin
-          reference_reset_base(href,NR_STACK_POINTER_REG,a,0);
+          reference_reset_base(href,NR_STACK_POINTER_REG,a,0,[]);
           { normally, lea is a better choice than an add }
           list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
         end;
@@ -399,7 +399,7 @@ unit cgcpu;
                   'add $constant,%rsp' and 'lea offset(FPREG),%rsp' as belonging to
                   the function epilog.
                   Neither 'leave' nor even 'mov %FPREG,%rsp' are allowed. }
-                reference_reset_base(href,current_procinfo.framepointer,0,sizeof(pint));
+                reference_reset_base(href,current_procinfo.framepointer,0,sizeof(pint),[]);
                 list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],href,NR_STACK_POINTER_REG));
                 list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],current_procinfo.framepointer));
               end
@@ -447,7 +447,7 @@ unit cgcpu;
         para2.init;
         paramanager.getintparaloc(list,pd,1,para1);
         paramanager.getintparaloc(list,pd,2,para2);
-        reference_reset_symbol(href,l,0,1);
+        reference_reset_symbol(href,l,0,1,[]);
         { TODO: using RSP is correct only while the stack is fixed!!
           (true now, but will change if/when allocating from stack is implemented) }
         a_load_reg_cgpara(list,OS_ADDR,NR_STACK_POINTER_REG,para1);

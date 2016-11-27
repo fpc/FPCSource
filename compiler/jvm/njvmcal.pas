@@ -417,7 +417,7 @@ implementation
 
     procedure tjvmcallnode.set_result_location(realresdef: tstoreddef);
       begin
-        location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),1);
+        location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),1,[]);
         { in case of jvmimplicitpointertype(), the function will have allocated
           it already and we don't have to allocate it again here }
         if not jvmimplicitpointertype(realresdef) then

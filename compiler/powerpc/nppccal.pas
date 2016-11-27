@@ -91,7 +91,7 @@ implementation
             begin
               { one syscall convention for AmigaOS/PowerPC
                 which is very similar to basesysv (a.k.a basefirst) on MorphOS }
-              reference_reset_base(tmpref,NR_R3,tprocdef(procdefinition).extnumber,sizeof(pint));
+              reference_reset_base(tmpref,NR_R3,tprocdef(procdefinition).extnumber,sizeof(pint),[]);
               do_call_ref(tmpref);
             end;
           system_powerpc_morphos:
@@ -111,13 +111,13 @@ implementation
 
                   case libparaloc^.loc of
                     LOC_REGISTER:
-                      reference_reset_base(tmpref,libparaloc^.register,-tprocdef(procdefinition).extnumber,sizeof(pint));
+                      reference_reset_base(tmpref,libparaloc^.register,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
                     LOC_REFERENCE:
                       begin
                         { this can happen for sysvbase; if we run out of regs, the libbase will be passed on the stack }
-                        reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint));
+                        reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint),[]);
                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
-                        reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint));
+                        reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
                       end;
                     else
                       internalerror(2016090202);
@@ -132,7 +132,7 @@ implementation
 
                   { R3 must contain the call offset }
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI,NR_R3,-tprocdef(procdefinition).extnumber));
-                  reference_reset_base(tmpref,NR_R2,100,4); { 100 ($64) is EmulDirectCallOS offset }
+                  reference_reset_base(tmpref,NR_R2,100,4,[]); { 100 ($64) is EmulDirectCallOS offset }
 
                   do_call_ref(tmpref);
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R3);

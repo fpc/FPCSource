@@ -301,7 +301,7 @@ unit cgcpu;
             else
               pushsize:=int_cgsize(cgpara.alignment);
 
-            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
+            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment, []);
             ref.direction := dir_dec;
             list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize),ref));
           end
@@ -323,7 +323,7 @@ unit cgcpu;
             else
               pushsize:=int_cgsize(cgpara.alignment);
 
-            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
+            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment, []);
             ref.direction := dir_dec;
             a_load_const_ref(list, pushsize, a, ref);
           end
@@ -364,7 +364,7 @@ unit cgcpu;
           else
             pushsize:=int_cgsize(cgpara.alignment);
 
-          reference_reset_base(ref, NR_STACK_POINTER_REG, 0, tcgsize2size[pushsize]);
+          reference_reset_base(ref, NR_STACK_POINTER_REG, 0, tcgsize2size[pushsize], []);
           ref.direction := dir_dec;
 
           a_load_ref_ref(list,int_cgsize(tcgsize2size[paraloc^.size]),pushsize,href,ref);
@@ -384,7 +384,7 @@ unit cgcpu;
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
-                reference_reset_base(href,NR_STACK_POINTER_REG,0,cgpara.alignment);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0,cgpara.alignment,[]);
                 g_concatcopy(list,r,href,len);
               end
             else
@@ -439,7 +439,7 @@ unit cgcpu;
              //list.concat(tai_comment.create(strpnew('fixref: symbol with base or index')));
 
              hreg:=getaddressregister(list);
-             reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
+             reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
              list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
              ref.offset:=0;
              ref.symbol:=nil;
@@ -469,7 +469,7 @@ unit cgcpu;
                begin
                  //list.concat(tai_comment.create(strpnew('fixref: base is dX, resolving with reverse regs')));
 
-                 reference_reset_base(href,ref.index,0,ref.alignment);
+                 reference_reset_base(href,ref.index,0,ref.alignment,ref.volatility);
                  href.index:=ref.base;
                  { we can fold in an 8 bit offset "for free" }
                  if isvalue8bit(ref.offset) then
@@ -507,7 +507,7 @@ unit cgcpu;
 
                  if isvalue16bit(ref.offset) then
                    begin
-                     reference_reset_base(href,ref.base,ref.offset,ref.alignment);
+                     reference_reset_base(href,ref.base,ref.offset,ref.alignment,ref.volatility);
                      list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
                    end
                  else
@@ -622,13 +622,13 @@ unit cgcpu;
         if isaddressregister(reg) then
           begin
             { if we have an address register, we can jump to the address directly }
-            reference_reset_base(tmpref,reg,0,4);
+            reference_reset_base(tmpref,reg,0,4,[]);
           end
         else
           begin
             { if we have a data register, we need to move it to an address register first }
             tmpreg:=getaddressregister(list);
-            reference_reset_base(tmpref,tmpreg,0,4);
+            reference_reset_base(tmpref,tmpreg,0,4,[]);
             instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg,tmpreg);
             add_move_instruction(instr);
             list.concat(instr);
@@ -797,7 +797,7 @@ unit cgcpu;
         tmpref:=ref;
         inc(tmpref.offset,tcgsize2size[tosize]-1);
         a_loadaddr_ref_reg(list,tmpref,tmpreg2);
-        reference_reset_base(tmpref,tmpreg2,0,1);
+        reference_reset_base(tmpref,tmpreg2,0,1,ref.volatility);
         tmpref.direction:=dir_none;
 
         tmpreg:=getintregister(list,tosize);
@@ -976,7 +976,7 @@ unit cgcpu;
 
         tmpreg2:=getaddressregister(list);
         a_loadaddr_ref_reg(list,ref,tmpreg2);
-        reference_reset_base(tmpref,tmpreg2,0,1);
+        reference_reset_base(tmpref,tmpreg2,0,1,ref.volatility);
         tmpref.direction:=dir_inc;
 
         if isaddressregister(register) then
@@ -1069,7 +1069,7 @@ unit cgcpu;
         if use_push(cgpara) and (current_settings.fputype in [fpu_68881,fpu_coldfire]) then
           begin
             cgpara.check_simple_location;
-            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
+            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment, []);
             ref.direction := dir_dec;
             list.concat(taicpu.op_reg_ref(A_FMOVE,tcgsize2opsize[cgpara.location^.size],reg,ref));
           end
@@ -1104,7 +1104,7 @@ unit cgcpu;
               { fmove can't do <ea> -> <ea>, so move it to an fpreg first }
               freg:=getfpuregister(list,size);
               a_loadfpu_ref_reg(list,size,size,ref,freg);
-              reference_reset_base(href, NR_STACK_POINTER_REG, 0, cgpara.alignment);
+              reference_reset_base(href, NR_STACK_POINTER_REG, 0, cgpara.alignment, []);
               href.direction := dir_dec;
               list.concat(taicpu.op_reg_ref(A_FMOVE,tcgsize2opsize[cgpara.location^.size],freg,href));
             end
@@ -1703,12 +1703,12 @@ unit cgcpu;
          hregister := getintregister(list,OS_INT);
 
          iregister:=getaddressregister(list);
-         reference_reset_base(srcref,iregister,0,source.alignment);
+         reference_reset_base(srcref,iregister,0,source.alignment,source.volatility);
          srcrefp:=srcref;
          srcrefp.direction := dir_inc;
 
          jregister:=getaddressregister(list);
-         reference_reset_base(dstref,jregister,0,dest.alignment);
+         reference_reset_base(dstref,jregister,0,dest.alignment,dest.volatility);
          dstrefp:=dstref;
          dstrefp.direction := dir_inc;
 
@@ -1860,7 +1860,7 @@ unit cgcpu;
 
                     hregister:=NR_A0;
                     cg.a_reg_alloc(list,hregister);
-                    reference_reset_base(ref,NR_STACK_POINTER_REG,0,4);
+                    reference_reset_base(ref,NR_STACK_POINTER_REG,0,4,[]);
                     list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
 
                     { instead of using a postincrement above (which also writes the     }
@@ -1875,11 +1875,11 @@ unit cgcpu;
                        list.concat(taicpu.op_const_reg(A_ADDQ,S_L,parasize,r))
                     else { nope ... }
                        begin
-                         reference_reset_base(ref2,NR_STACK_POINTER_REG,parasize,4);
+                         reference_reset_base(ref2,NR_STACK_POINTER_REG,parasize,4,[]);
                          list.concat(taicpu.op_ref_reg(A_LEA,S_NO,ref2,r));
                        end;
 
-                    reference_reset_base(ref,hregister,0,4);
+                    reference_reset_base(ref,hregister,0,4,[]);
                     list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
                   end;
               end
@@ -1979,7 +1979,7 @@ unit cgcpu;
               begin
                 list.concat(taicpu.op_reg_reg(A_MOVE,S_L,href.base,NR_A0));
                 list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
-                reference_reset_base(href,NR_A0,0,sizeof(pint));
+                reference_reset_base(href,NR_A0,0,sizeof(pint),[]);
               end;
 
             if size > 0 then
@@ -2067,7 +2067,7 @@ unit cgcpu;
           begin
             list.concat(taicpu.op_reg_reg(A_MOVE,S_L,href.base,NR_A0));
             list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
-            reference_reset_base(href,NR_A0,0,sizeof(pint));
+            reference_reset_base(href,NR_A0,0,sizeof(pint),[]);
           end;
 
         if size > 0 then
@@ -2234,7 +2234,7 @@ unit cgcpu;
                   begin
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
-                    reference_reset_base(href,reference.index,reference.offset+sizeof(pint),sizeof(pint));
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(pint),sizeof(pint),[]);
                     { plain 68k could use SUBI on href directly, but this way it works on Coldfire too
                       and it's probably smaller code for the majority of cases (if ioffset small, the
                       load will use MOVEQ) (KB) }

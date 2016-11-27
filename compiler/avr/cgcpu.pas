@@ -214,7 +214,7 @@ unit cgcpu;
                a_load_reg_reg(list,paraloc^.size,paraloc^.size,r,paraloc^.register);
              LOC_REFERENCE,LOC_CREFERENCE:
                begin
-                  reference_reset_base(ref,paraloc^.reference.index,paraloc^.reference.offset,2);
+                  reference_reset_base(ref,paraloc^.reference.index,paraloc^.reference.offset,2,[]);
                   a_load_reg_ref(list,paraloc^.size,paraloc^.size,r,ref);
                end;
              else
@@ -334,7 +334,7 @@ unit cgcpu;
                  end;
                LOC_REFERENCE,LOC_CREFERENCE:
                  begin
-                   reference_reset(ref,paraloc.alignment);
+                   reference_reset(ref,paraloc.alignment,[]);
                    ref.base:=hp^.reference.index;
                    ref.offset:=hp^.reference.offset;
                    a_load_const_ref(list,hp^.size,a shr (8*(i-1)),ref);
@@ -366,7 +366,7 @@ unit cgcpu;
                 a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
               LOC_REFERENCE:
                 begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,paraloc.alignment);
+                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,paraloc.alignment,[]);
                   { doubles in softemu mode have a strange order of registers and references }
                   if location^.size=OS_32 then
                     g_concatcopy(list,tmpref,ref,4)
@@ -1041,7 +1041,7 @@ unit cgcpu;
           end
         else if assigned(ref.symbol) or (ref.offset<>0) then
           begin
-            reference_reset(tmpref,0);
+            reference_reset(tmpref,0,[]);
             tmpref.symbol:=ref.symbol;
             tmpref.offset:=ref.offset;
             if assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) then
@@ -1936,7 +1936,7 @@ unit cgcpu;
 
         if assigned(ref.symbol) or (ref.offset<>0) then
           begin
-            reference_reset(tmpref,0);
+            reference_reset(tmpref,0,[]);
             tmpref.symbol:=ref.symbol;
             tmpref.offset:=ref.offset;
 
@@ -2027,8 +2027,8 @@ unit cgcpu;
           begin
             current_asmdata.getjumplabel(l);
 
-            reference_reset(srcref,source.alignment);
-            reference_reset(dstref,dest.alignment);
+            reference_reset(srcref,source.alignment,source.volatility);
+            reference_reset(dstref,dest.alignment,source.volatility);
             srcref.base:=NR_R30;
             srcref.addressmode:=AM_POSTINCREMENT;
             dstref.base:=NR_R26;

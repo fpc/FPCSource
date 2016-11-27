@@ -91,7 +91,7 @@ implementation
         tl: ptemprecord;
         oldfileinfo: tfileposinfo;
       begin
-        reference_reset_base(ref,cg.gettempregister(list),0,alignment);
+        reference_reset_base(ref,cg.gettempregister(list),0,alignment,[]);
         new(tl);
 
         tl^.temptype:=temptype;

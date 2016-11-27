@@ -250,7 +250,9 @@ implementation
              lendef:=u32inttype
            else
              lendef:=ossinttype;
-           hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,lendef.alignment);
+           { volatility of the ansistring/widestring refers to the volatility of the
+             string pointer, not of the string data }
+           hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,lendef.alignment,[]);
            { if the string pointer is nil, the length is 0 -> reuse the register
              that originally held the string pointer for the length, so that we
              can keep the original nil/0 as length in that case }
@@ -601,7 +603,7 @@ implementation
         end
       else
         begin
-          location_reset_ref(location,LOC_REFERENCE,OS_ADDR,sizeof(pint));
+          location_reset_ref(location,LOC_REFERENCE,OS_ADDR,sizeof(pint),[]);
           location.reference.base:=frame_reg;
         end;
     end;
@@ -614,14 +616,14 @@ implementation
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-            reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{current_procinfo.calc_stackframe_size}tg.lasttemp,sizeof(pint));
+            reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{current_procinfo.calc_stackframe_size}tg.lasttemp,sizeof(pint),[]);
             cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
           end
         else
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-            reference_reset_base(frame_ref,current_procinfo.framepointer,sizeof(pint),sizeof(pint));
+            reference_reset_base(frame_ref,current_procinfo.framepointer,sizeof(pint),sizeof(pint),[]);
             cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
           end;
       end;

@@ -940,7 +940,7 @@ implementation
           a_load_loc_stack(list,tparavarsym(p).vardef,tparavarsym(p).initialloc);
           a_op_const_stack(list,OP_AND,tparavarsym(p).vardef,(1 shl (tparavarsym(p).vardef.size*8))-1);
           a_load_stack_ref(list,tparavarsym(p).vardef,tmpref,prepare_stack_for_ref(list,tmpref,false));
-          location_reset_ref(tparavarsym(p).localloc,LOC_REFERENCE,def_cgsize(tparavarsym(p).vardef),4);
+          location_reset_ref(tparavarsym(p).localloc,LOC_REFERENCE,def_cgsize(tparavarsym(p).vardef),4,tmpref.volatility);
           tparavarsym(p).localloc.reference:=tmpref;
         end;
 
@@ -1033,7 +1033,7 @@ implementation
               end;
             art_indexref:
               begin
-                cgutils.reference_reset_base(href,ref.indexbase,ref.indexoffset,4);
+                cgutils.reference_reset_base(href,ref.indexbase,ref.indexoffset,4,ref.volatility);
                 href.symbol:=ref.indexsymbol;
                 a_load_ref_stack(list,s32inttype,href,prepare_stack_for_ref(list,href,false));
               end;
@@ -1790,8 +1790,8 @@ implementation
             begin
               { passed by reference in array of single element; l contains the
                 base address of the array }
-              location_reset_ref(tmploc,LOC_REFERENCE,OS_ADDR,4);
-              cgutils.reference_reset_base(tmploc.reference,getaddressregister(list,java_jlobject),0,4);
+              location_reset_ref(tmploc,LOC_REFERENCE,OS_ADDR,4,ref.volatility);
+              cgutils.reference_reset_base(tmploc.reference,getaddressregister(list,java_jlobject),0,4,ref.volatility);
               tmploc.reference.arrayreftype:=art_indexconst;
               tmploc.reference.indexoffset:=0;
               a_load_loc_reg(list,java_jlobject,java_jlobject,l,tmploc.reference.base);
@@ -1834,7 +1834,7 @@ implementation
       stackslots:=prepare_stack_for_ref(list,localref,false);
       { create the local copy of the array (lenloc is invalid, get length
         directly from the array) }
-      location_reset_ref(arrloc,LOC_REFERENCE,OS_ADDR,sizeof(pint));
+      location_reset_ref(arrloc,LOC_REFERENCE,OS_ADDR,sizeof(pint),ref.volatility);
       arrloc.reference:=ref;
       g_getarraylen(list,arrloc);
       g_newarray(list,arrdef,1);
@@ -1858,7 +1858,7 @@ implementation
       case current_procinfo.procdef.proctypeoption of
         potype_unitinit:
           begin
-            cgutils.reference_reset_base(ref,NR_NO,0,1);
+            cgutils.reference_reset_base(ref,NR_NO,0,1,[]);
             if assigned(current_module.globalsymtable) then
               allocate_implicit_structs_for_st_with_base_ref(list,current_module.globalsymtable,ref,staticvarsym);
             allocate_implicit_structs_for_st_with_base_ref(list,current_module.localsymtable,ref,staticvarsym);
@@ -1868,7 +1868,7 @@ implementation
             { also initialise local variables, if any }
             inherited;
             { initialise class fields }
-            cgutils.reference_reset_base(ref,NR_NO,0,1);
+            cgutils.reference_reset_base(ref,NR_NO,0,1,[]);
             allocate_implicit_structs_for_st_with_base_ref(list,tabstractrecorddef(current_procinfo.procdef.owner.defowner).symtable,ref,staticvarsym);
           end
         else
@@ -2321,7 +2321,7 @@ implementation
       { no enum with ordinal value 0 -> exit }
       if not assigned(sym) then
         exit;
-      reference_reset_symbol(ref,current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),0,4);
+      reference_reset_symbol(ref,current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),0,4,[]);
       result:=true;
     end;
 
@@ -2418,7 +2418,7 @@ implementation
         internalerror(2011033001);
       selfreg:=getaddressregister(list,selfpara.vardef);
       a_load_loc_reg(list,obj,obj,selfpara.localloc,selfreg);
-      cgutils.reference_reset_base(ref,selfreg,0,1);
+      cgutils.reference_reset_base(ref,selfreg,0,1,[]);
       allocate_implicit_structs_for_st_with_base_ref(list,obj.symtable,ref,fieldvarsym);
     end;
 

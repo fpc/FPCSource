@@ -105,7 +105,7 @@ unit ncpuset;
         { create reference }
         current_asmdata.getjumplabel(base);
         cg.a_label(current_asmdata.CurrAsmList,base);
-        reference_reset_symbol(href,table,(-aint(min_))*4,sizeof(pint));
+        reference_reset_symbol(href,table,(-aint(min_))*4,sizeof(pint),[]);
         href.relsymbol:=base;
         { Generate the following code:
           .Lbase:
@@ -129,7 +129,7 @@ unit ncpuset;
         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,basereg,indexreg,basereg);
 
         jmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-        reference_reset_base(href,NR_O7,0,sizeof(pint));
+        reference_reset_base(href,NR_O7,0,sizeof(pint),[]);
         href.index:=basereg;
         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jmpreg);
         href.index:=jmpreg;

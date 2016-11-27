@@ -525,15 +525,15 @@ implementation
                       current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ExtractFileName(ImportLibrary.Name)+'_index_'+tostr(ImportSymbol.ordnr),AT_FUNCTION,0,voidcodepointertype));
                     current_asmdata.asmlists[al_imports].concat(tai_function_name.create(''));
                   {$ifdef ARM}
-                    reference_reset_symbol(href,l5,0,sizeof(pint));
+                    reference_reset_symbol(href,l5,0,sizeof(pint),[]);
                     current_asmdata.asmlists[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
-                    reference_reset_base(href,NR_R12,0,sizeof(pint));
+                    reference_reset_base(href,NR_R12,0,sizeof(pint),[]);
                     current_asmdata.asmlists[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R15,href));
                     current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l5));
-                    reference_reset_symbol(href,l4,0,sizeof(pint));
+                    reference_reset_symbol(href,l4,0,sizeof(pint),[]);
                     current_asmdata.asmlists[al_imports].concat(tai_const.create_sym_offset(href.symbol,href.offset));
                   {$else ARM}
-                    reference_reset_symbol(href,l4,0,sizeof(pint));
+                    reference_reset_symbol(href,l4,0,sizeof(pint),[]);
 {$ifdef X86_64}
                     href.base:=NR_RIP;
 {$endif X86_64}

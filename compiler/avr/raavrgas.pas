@@ -513,7 +513,7 @@ Unit raavrgas;
                 begin
                   oper.opr.typ:=OPR_REFERENCE;
 
-                  reference_reset_base(oper.opr.ref,tempreg,0,1);
+                  reference_reset_base(oper.opr.ref,tempreg,0,1,[]);
                   oper.opr.ref.addressmode:=AM_POSTINCREMENT;
 
                   consume(AS_PLUS);

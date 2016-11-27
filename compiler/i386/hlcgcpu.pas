@@ -90,10 +90,10 @@ implementation
                      (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                     begin
                       cg.g_stackpointer_alloc(list,stacksize);
-                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,voidstackpointertype.size);
+                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,voidstackpointertype.size,[]);
                     end
                   else
-                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment,[]);
                   cg.a_loadfpu_reg_ref(list,locsize,locsize,l.register,href);
                 end;
               LOC_FPUREGISTER:
@@ -135,10 +135,10 @@ implementation
                      (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                     begin
                       cg.g_stackpointer_alloc(list,stacksize);
-                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,voidstackpointertype.size);
+                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,voidstackpointertype.size,[]);
                     end
                   else
-                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment,[]);
                   cg.a_loadmm_reg_ref(list,locsize,locsize,l.register,href,mms_movescalar);
                 end;
               LOC_FPUREGISTER:
@@ -164,7 +164,7 @@ implementation
                     cg.a_load_ref_cgpara(list,locsize,l.reference,cgpara)
                   else
                     begin
-                      reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                      reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment,[]);
                       cg.g_concatcopy(list,l.reference,href,stacksize);
                     end;
                 end;
@@ -334,7 +334,7 @@ implementation
               selfoffsetfromsp:=2*sizeof(aint)
             else
               selfoffsetfromsp:=sizeof(aint);
-            reference_reset_base(href,voidstackpointertype,NR_ESP,selfoffsetfromsp+offs,4);
+            reference_reset_base(href,voidstackpointertype,NR_ESP,selfoffsetfromsp+offs,4,[]);
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
           end;
       end;
@@ -344,7 +344,7 @@ implementation
         href : treference;
       begin
         { mov  0(%eax),%reg ; load vmt}
-        reference_reset_base(href,voidpointertype,NR_EAX,0,4);
+        reference_reset_base(href,voidpointertype,NR_EAX,0,4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,reg);
       end;
 
@@ -355,7 +355,7 @@ implementation
         if (procdef.extnumber=$ffff) then
           Internalerror(200006139);
         { call/jmp  vmtoffs(%reg) ; method offs }
-        reference_reset_base(href,voidpointertype,reg,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
+        reference_reset_base(href,voidpointertype,reg,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4,[]);
         list.concat(taicpu.op_ref(op,S_L,href));
       end;
 
@@ -367,7 +367,7 @@ implementation
         if (procdef.extnumber=$ffff) then
           Internalerror(200006139);
         { mov vmtoffs(%eax),%eax ; method offs }
-        reference_reset_base(href,voidpointertype,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
+        reference_reset_base(href,voidpointertype,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
       end;
 
@@ -412,7 +412,7 @@ implementation
               loadvmtto(NR_EAX);
               loadmethodoffstoeax;
               { mov %eax,4(%esp) }
-              reference_reset_base(href,voidstackpointertype,NR_ESP,4,4);
+              reference_reset_base(href,voidstackpointertype,NR_ESP,4,4,[]);
               list.concat(taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
               { pop  %eax }
               list.concat(taicpu.op_reg(A_POP,S_L,NR_EAX));

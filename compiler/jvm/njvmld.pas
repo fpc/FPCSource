@@ -259,7 +259,7 @@ procedure tjvmloadnode.pass_generate_code;
         { in case of nested access, load address of field in nestedfpstruct }
         if assigned(left) then
           generate_nested_access(tabstractnormalvarsym(symtableentry));
-        location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4);
+        location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4,[]);
         location.reference.arrayreftype:=art_indexconst;
         location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
         location.reference.indexoffset:=0;
@@ -288,7 +288,7 @@ procedure tjvmarrayconstructornode.makearrayref(var ref: treference; eledef: tde
     { arrays are implicitly dereferenced }
     basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,ref,basereg);
-    reference_reset_base(ref,basereg,0,1);
+    reference_reset_base(ref,basereg,0,1,[]);
     ref.arrayreftype:=art_indexconst;
     ref.indexoffset:=0;
   end;

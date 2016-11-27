@@ -74,12 +74,12 @@ implementation
 
                   case libparaloc^.loc of
                     LOC_REGISTER:
-                      reference_reset_base(tmpref,libparaloc^.register,-tprocdef(procdefinition).extnumber,sizeof(pint));
+                      reference_reset_base(tmpref,libparaloc^.register,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
                     LOC_REFERENCE:
                       begin
-                        reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint));
+                        reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint),[]);
                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
-                        reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint));
+                        reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
                       end;
                     else
                       internalerror(2016110603);
@@ -124,7 +124,7 @@ implementation
          (location.loc=LOC_REGISTER) and
          (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
         begin
-          location_reset_ref(location,LOC_REFERENCE,location.size,resultdef.alignment);
+          location_reset_ref(location,LOC_REFERENCE,location.size,resultdef.alignment,[]);
           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
         end
       else

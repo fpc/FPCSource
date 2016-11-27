@@ -854,7 +854,7 @@ implementation
               a_load_reg_reg(list,size,cgpara.location^.size,r,cgpara.location^.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment,[]);
                  a_load_reg_ref(list,size,cgpara.location^.size,r,ref);
               end;
             LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -885,7 +885,7 @@ implementation
               a_load_const_reg(list,cgpara.location^.size,a,cgpara.location^.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment,[]);
                  a_load_const_ref(list,cgpara.location^.size,a,ref);
               end
             else
@@ -1014,7 +1014,7 @@ implementation
                 begin
                    if assigned(location^.next) then
                      internalerror(2010052906);
-                   reference_reset_base(ref,location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
+                   reference_reset_base(ref,location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
                    if (size <> OS_NO) and
                       (tcgsize2size[size] <= sizeof(aint)) then
                      a_load_ref_ref(list,size,location^.size,tmpref,ref)
@@ -1131,7 +1131,7 @@ implementation
              a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
            LOC_REFERENCE :
              begin
-               reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
+               reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align,[]);
                { use concatcopy, because it can also be a float which fails when
                  load_ref_ref is used. Don't copy data when the references are equal }
                if not((href.base=ref.base) and (href.offset=ref.offset)) then
@@ -1197,7 +1197,7 @@ implementation
              end;
            LOC_REFERENCE :
              begin
-               reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
+               reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align,[]);
                case getregtype(reg) of
                  R_ADDRESSREGISTER,
                  R_INTREGISTER :
@@ -1603,7 +1603,7 @@ implementation
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
                 cgpara.check_simple_location;
-                reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment,[]);
                 a_loadfpu_reg_ref(list,size,size,r,ref);
               end;
             LOC_REGISTER,LOC_CREGISTER:
@@ -1644,7 +1644,7 @@ implementation
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
               cgpara.check_simple_location;
-              reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+              reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment,[]);
               { concatcopy should choose the best way to copy the data }
               g_concatcopy(list,ref,href,tcgsize2size[size]);
             end;
@@ -1968,7 +1968,7 @@ implementation
             a_loadmm_reg_reg(list,size,cgpara.location^.size,reg,cgpara.location^.register,shuffle);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+              reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment,[]);
               a_loadmm_reg_ref(list,size,cgpara.location^.size,reg,href,shuffle);
             end;
           LOC_REGISTER,LOC_CREGISTER:
@@ -2009,7 +2009,7 @@ implementation
                     begin
                       if not(cgpara.location^.next^.size in [OS_32,OS_S32]) then
                         internalerror(2009112911);
-                      reference_reset_base(href,cgpara.location^.next^.reference.index,cgpara.location^.next^.reference.offset,cgpara.alignment);
+                      reference_reset_base(href,cgpara.location^.next^.reference.index,cgpara.location^.next^.reference.offset,cgpara.alignment,[]);
                       a_load_reg_ref(list,OS_32,cgpara.location^.next^.size,tmpreg,href);
                     end;
                 end
@@ -2356,7 +2356,7 @@ implementation
                   begin
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
-                    reference_reset_base(href,reference.index,reference.offset+sizeof(pint),sizeof(pint));
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(pint),sizeof(pint),[]);
                     a_op_const_ref(list,OP_SUB,size,ioffset,href);
                   end
                 else
@@ -2410,7 +2410,7 @@ implementation
 {$endif cpu64bitaddr}
                 end;
               result := getaddressregister(list);
-              reference_reset_symbol(ref,l,0,sizeof(pint));
+              reference_reset_symbol(ref,l,0,sizeof(pint),[]);
               { a_load_ref_reg will turn this into a pic-load if needed }
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
             end;

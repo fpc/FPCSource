@@ -451,7 +451,7 @@ interface
     begin
       pass_left_right;
       reg:=NR_NO;
-      reference_reset(ref,sizeof(pint));
+      reference_reset(ref,sizeof(pint),[]);
 
       { Mul supports registers and references, so if not register/reference,
         load the location into a register.

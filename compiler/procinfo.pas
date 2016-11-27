@@ -202,7 +202,7 @@ implementation
         { asmlists }
         aktproccode:=TAsmList.Create;
         aktlocaldata:=TAsmList.Create;
-        reference_reset(save_regs_ref,sizeof(aint));
+        reference_reset(save_regs_ref,sizeof(aint),[]);
         { labels }
         current_asmdata.getjumplabel(CurrExitLabel);
         current_asmdata.getjumplabel(CurrGOTLabel);

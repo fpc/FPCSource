@@ -446,7 +446,7 @@ implementation
 {$else}
          list.concat(tai_tempalloc.alloc(tl^.pos,tl^.size));
 {$endif}
-         reference_reset_base(ref,current_procinfo.framepointer,tl^.pos,alignment);
+         reference_reset_base(ref,current_procinfo.framepointer,tl^.pos,alignment,[]);
       end;
 
 

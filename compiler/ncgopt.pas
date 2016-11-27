@@ -95,7 +95,7 @@ begin
        hlcg.g_copyshortstring(current_asmdata.CurrAsmList,left.location.reference,href,tstringdef(cshortstringtype));
        location_freetemp(current_asmdata.CurrAsmList,left.location);
        { return temp reference }
-       location_reset_ref(left.location,LOC_REFERENCE,def_cgsize(resultdef),1);
+       location_reset_ref(left.location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
        left.location.reference:=href;
     end;
   secondpass(right);

@@ -260,7 +260,7 @@ procedure emit_scope_start(handler,data: TAsmSymbol);
     hreg: tregister;
   begin
     hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-    reference_reset_base(href,hreg,0,sizeof(pint));
+    reference_reset_base(href,hreg,0,sizeof(pint),[]);
     href.segment:=NR_FS;
     emit_reg_reg(A_XOR,S_L,hreg,hreg);
     emit_sym(A_PUSH,S_L,data);
@@ -277,7 +277,7 @@ procedure emit_scope_end;
   begin
     hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
     hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-    reference_reset_base(href,hreg,0,sizeof(pint));
+    reference_reset_base(href,hreg,0,sizeof(pint),[]);
     href.segment:=NR_FS;
     emit_reg_reg(A_XOR,S_L,hreg,hreg);
     emit_reg(A_POP,S_L,hreg2);

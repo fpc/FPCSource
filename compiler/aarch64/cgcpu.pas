@@ -175,7 +175,7 @@ implementation
                (ref.index=preferred_newbasereg) then
               preferred_newbasereg:=getaddressregister(list);
             { load the (GOT) page }
-            reference_reset_symbol(href,ref.symbol,0,8);
+            reference_reset_symbol(href,ref.symbol,0,8,[]);
             if ((ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) and
                 (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL])) or
                ((ref.symbol.typ=AT_DATA) and
@@ -185,7 +185,7 @@ implementation
               href.refaddr:=addr_gotpage;
             list.concat(taicpu.op_reg_ref(A_ADRP,preferred_newbasereg,href));
             { load the GOT entry (= address of the variable) }
-            reference_reset_base(href,preferred_newbasereg,0,sizeof(pint));
+            reference_reset_base(href,preferred_newbasereg,0,sizeof(pint),[]);
             href.symbol:=ref.symbol;
             { code symbols defined in the current compilation unit do not
               have to be accessed via the GOT }
@@ -245,7 +245,7 @@ implementation
                       so.shiftmode:=ref.shiftmode;
                       so.shiftimm:=ref.shiftimm;
                       list.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,preferred_newbasereg,ref.base,ref.index,so));
-                      reference_reset_base(ref,preferred_newbasereg,ref.offset,ref.alignment);
+                      reference_reset_base(ref,preferred_newbasereg,ref.offset,ref.alignment,ref.volatility);
                       { possibly still an invalid offset -> fall through }
                     end
                   else if ref.offset<>0 then
@@ -291,7 +291,7 @@ implementation
                     end
                   else
                     a_op_reg_reg_reg(list,OP_ADD,OS_ADDR,ref.index,ref.base,preferred_newbasereg);
-                  reference_reset_base(ref,preferred_newbasereg,ref.offset,ref.alignment);
+                  reference_reset_base(ref,preferred_newbasereg,ref.offset,ref.alignment,ref.volatility);
                   { fall through to the handling of base + offset, since the
                     offset may still be too big }
                 end;
@@ -379,7 +379,7 @@ implementation
                                 a_op_const_reg_reg(list,OP_ADD,OS_ADDR,ref.offset,ref.base,preferred_newbasereg);
                                 ref.offset:=0;
                               end;
-                            reference_reset_base(ref,preferred_newbasereg,ref.offset,ref.alignment);
+                            reference_reset_base(ref,preferred_newbasereg,ref.offset,ref.alignment,ref.volatility);
                           end;
                       end
                     else
@@ -407,7 +407,7 @@ implementation
                             preferred_newbasereg:=getaddressregister(list);
                       end;
                       a_op_const_reg_reg(list,OP_ADD,OS_ADDR,ref.offset,ref.base,preferred_newbasereg);
-                      reference_reset_base(ref,preferred_newbasereg,0,ref.alignment);
+                      reference_reset_base(ref,preferred_newbasereg,0,ref.alignment,ref.volatility);
                     end
                 end;
               A_LDUR,A_STUR:
@@ -429,7 +429,7 @@ implementation
         if preferred_newbasereg=NR_NO then
           preferred_newbasereg:=getaddressregister(list);
         a_load_const_reg(list,OS_ADDR,ref.offset,preferred_newbasereg);
-        reference_reset_base(ref,preferred_newbasereg,0,newalignment(8,ref.offset));
+        reference_reset_base(ref,preferred_newbasereg,0,newalignment(8,ref.offset),ref.volatility);
       end;
 
 
@@ -1522,7 +1522,7 @@ implementation
         pairreg: tregister;
       begin
         result:=0;
-        reference_reset_base(ref,NR_SP,-16,16);
+        reference_reset_base(ref,NR_SP,-16,16,[]);
         ref.addressmode:=AM_PREINDEXED;
         pairreg:=NR_NO;
         { store all used registers pairwise }
@@ -1570,7 +1570,7 @@ implementation
         localsize:=align(localsize,16);
 
         { save stack pointer and return address }
-        reference_reset_base(ref,NR_SP,-16,16);
+        reference_reset_base(ref,NR_SP,-16,16,[]);
         ref.addressmode:=AM_PREINDEXED;
         list.concat(taicpu.op_reg_reg_ref(A_STP,NR_FP,NR_LR,ref));
         { initialise frame pointer }
@@ -1646,7 +1646,7 @@ implementation
         pairreg: tregister;
         regcount: longint;
       begin
-        reference_reset_base(ref,NR_SP,16,16);
+        reference_reset_base(ref,NR_SP,16,16,[]);
         ref.addressmode:=AM_POSTINDEXED;
         { highest reg stored twice? }
         regcount:=0;
@@ -1717,7 +1717,7 @@ implementation
               a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
 
             { restore framepointer and return address }
-            reference_reset_base(ref,NR_SP,16,16);
+            reference_reset_base(ref,NR_SP,16,16,[]);
             ref.addressmode:=AM_POSTINDEXED;
             list.concat(taicpu.op_reg_reg_ref(A_LDP,NR_FP,NR_LR,ref));
           end;
@@ -1918,12 +1918,12 @@ implementation
           basereplaced:=true;
           if forcepostindexing then
             begin
-              reference_reset_base(ref,tmpreg,scaledoffset,ref.alignment);
+              reference_reset_base(ref,tmpreg,scaledoffset,ref.alignment,ref.volatility);
               ref.addressmode:=AM_POSTINDEXED;
             end
           else
             begin
-              reference_reset_base(ref,tmpreg,0,ref.alignment);
+              reference_reset_base(ref,tmpreg,0,ref.alignment,ref.volatility);
               ref.addressmode:=AM_OFFSET;
             end
         end;

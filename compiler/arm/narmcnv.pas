@@ -209,7 +209,7 @@ implementation
 
                         current_asmdata.getglobaldatalabel(l1);
                         current_asmdata.getjumplabel(l2);
-                        reference_reset_symbol(href,l1,0,const_align(8));
+                        reference_reset_symbol(href,l1,0,const_align(8),[]);
 
                         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         current_asmdata.CurrAsmList.concat(Taicpu.op_reg_const(A_CMP,left.location.register,0));

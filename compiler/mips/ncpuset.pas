@@ -105,7 +105,7 @@ begin
   indexreg := cg.getaddressregister(current_asmdata.CurrAsmList);
   cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHL, OS_ADDR, 2, hregister, indexreg);
   { create reference }
-  reference_reset_symbol(href, table, 0, sizeof(aint));
+  reference_reset_symbol(href, table, 0, sizeof(aint), []);
   href.offset := (-aint(min_)) * 4;
   href.base:=indexreg;
   jmpreg := cg.getaddressregister(current_asmdata.CurrAsmList);

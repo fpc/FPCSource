@@ -77,10 +77,10 @@ implementation
                   libparaloc:=paralocs[procdefinition.paras.count-1]^.location;
                   if libparaloc^.loc <> LOC_REFERENCE then
                     internalerror(2016090203);
-                  reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint));
+                  reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint),[]);
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
                   cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_EAX);
-                  reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint));
+                  reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
                   exit;
@@ -89,7 +89,7 @@ implementation
                 begin
                   current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall - RegBase in EAX')));
                   { libbase must be in EAX already, so just piggyback that, and dereference it }
-                  reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint));
+                  reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
                   exit;
                 end;

@@ -77,7 +77,7 @@ implementation
        end;
 
       sym:=current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION);
-      reference_reset_symbol(ref,sym,0,sizeof(pint));
+      reference_reset_symbol(ref,sym,0,sizeof(pint),[]);
 
       { create pic'ed? }
       if (cs_create_pic in current_settings.moduleswitches) and

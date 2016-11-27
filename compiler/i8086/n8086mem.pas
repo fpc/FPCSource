@@ -129,9 +129,9 @@ implementation
             { assume natural alignment, except for packed records }
             if not(resultdef.typ in [recorddef,objectdef]) or
                (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
-              location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),resultdef.alignment)
+              location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),resultdef.alignment,[])
             else
-              location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+              location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             case left.location.loc of

@@ -183,7 +183,7 @@ interface
                 internalerror(2004110215);
             end;
 
-            reference_reset_symbol(href,l1,0,resultdef.alignment);
+            reference_reset_symbol(href,l1,0,resultdef.alignment,[]);
 
             if UseAVX then
               cg.a_opmm_ref_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,left.location.register,location.register,nil)

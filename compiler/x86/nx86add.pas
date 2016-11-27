@@ -174,7 +174,7 @@ unit nx86add;
                     (power in [1..3]) and
                     not(cs_check_overflow in current_settings.localswitches) then
                   begin
-                    reference_reset_base(href,left.location.register,0,0);
+                    reference_reset_base(href,left.location.register,0,0,[]);
                     href.index:=left.location.register;
                     href.scalefactor:=int64(right.location.value)-1;
                     left.location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);

@@ -814,7 +814,7 @@ Unit raarmgas;
                   if symtype=AT_NONE then
                     sym:='';
 
-                  reference_reset(oper.opr.ref,4);
+                  reference_reset(oper.opr.ref,4,[]);
                   oper.opr.ref.base:=NR_PC;
                   oper.opr.ref.symbol:=GetConstLabel(sym,val);
                 end;

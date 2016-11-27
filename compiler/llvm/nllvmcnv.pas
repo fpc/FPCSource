@@ -122,7 +122,7 @@ procedure tllvmtypeconvnode.second_pointer_to_array;
     { insert type conversion }
     hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
     hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tpointerdef(left.resultdef).pointeddef,cpointerdef.getreusable(resultdef),location.reference,hreg);
-    reference_reset_base(location.reference,hreg,0,location.reference.alignment);
+    reference_reset_base(location.reference,hreg,0,location.reference.alignment,location.reference.volatility);
   end;
 
 
@@ -168,7 +168,7 @@ procedure tllvmtypeconvnode.second_nil_to_methodprocvar;
     href: treference;
   begin
     tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,href);
-    location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),href.alignment);
+    location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),href.alignment,href.volatility);
     location.reference:=href;
     hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(methodpointertype),href);
     hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),0,'proc',href);
@@ -241,8 +241,8 @@ procedure tllvmtypeconvnode.second_nothing;
         hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),left.location.reference,hreg);
-        location_reset_ref(location,left.location.loc,left.location.size,left.location.reference.alignment);
-        reference_reset_base(location.reference,hreg,0,location.reference.alignment);
+        location_reset_ref(location,left.location.loc,left.location.size,left.location.reference.alignment,left.location.reference.volatility);
+        reference_reset_base(location.reference,hreg,0,location.reference.alignment,location.reference.volatility);
       end
     else
       location_copy(location,left.location);

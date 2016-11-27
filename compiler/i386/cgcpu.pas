@@ -186,7 +186,7 @@ unit cgcpu;
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
-                reference_reset_base(href,NR_STACK_POINTER_REG,0,4);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0,4,[]);
                 g_concatcopy(list,r,href,len);
               end
             else
@@ -257,7 +257,7 @@ unit cgcpu;
                               end
                             else
                               begin
-                                reference_reset_symbol(tmpref,dirref.symbol,0,sizeof(pint));
+                                reference_reset_symbol(tmpref,dirref.symbol,0,sizeof(pint),[]);
                                 tmpref.refaddr:=addr_pic;
                                 tmpref.base:=current_procinfo.got;
 {$ifdef EXTDEBUG}
@@ -299,7 +299,7 @@ unit cgcpu;
         var
           href : treference;
         begin
-          reference_reset_base(href,NR_STACK_POINTER_REG,a,0);
+          reference_reset_base(href,NR_STACK_POINTER_REG,a,0,[]);
           { normally, lea is a better choice than an add }
           list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
         end;

@@ -66,7 +66,7 @@ implementation
         href : treference;
         l : TAsmLabel;
       begin
-        reference_reset_base(href,voidpointertype,NR_R0,0,sizeof(pint));
+        reference_reset_base(href,voidpointertype,NR_R0,0,sizeof(pint),[]);
         if GenerateThumbCode then
           begin
             if (href.offset in [0..124]) and ((href.offset mod 4)=0) then
@@ -80,7 +80,7 @@ implementation
               begin
                 list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
                 { create consts entry }
-                reference_reset(tmpref,4);
+                reference_reset(tmpref,4,[]);
                 current_asmdata.getjumplabel(l);
                 current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
                 cg.a_label(current_procinfo.aktlocaldata,l);
@@ -111,7 +111,7 @@ implementation
           Internalerror(200006139);
         if GenerateThumbCode then
           begin
-            reference_reset_base(href,voidpointertype,NR_R0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
+            reference_reset_base(href,voidpointertype,NR_R0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint),[]);
             if (href.offset in [0..124]) and ((href.offset mod 4)=0) then
               begin
                 list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
@@ -124,7 +124,7 @@ implementation
               begin
                 list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
                 { create consts entry }
-                reference_reset(tmpref,4);
+                reference_reset(tmpref,4,[]);
                 current_asmdata.getjumplabel(l);
                 current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
                 cg.a_label(current_procinfo.aktlocaldata,l);
@@ -144,7 +144,7 @@ implementation
           end
         else
           begin
-            reference_reset_base(href,voidpointertype,NR_R12,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
+            reference_reset_base(href,voidpointertype,NR_R12,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint),[]);
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
           end;
         if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
@@ -203,7 +203,7 @@ implementation
           list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
 
           { create consts entry }
-          reference_reset(tmpref,4);
+          reference_reset(tmpref,4,[]);
           current_asmdata.getjumplabel(l);
           current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
           cg.a_label(current_procinfo.aktlocaldata,l);
@@ -239,7 +239,7 @@ implementation
         and which allows to switch the instruction set }
 
       { create const entry }
-      reference_reset(tmpref,4);
+      reference_reset(tmpref,4,[]);
       current_asmdata.getjumplabel(l);
       tmpref.symbol:=l;
       tmpref.base:=NR_PC;

@@ -120,8 +120,8 @@ implementation
               parameters stored in nestedfpstructs, and by programmers for any
               kind of pointers) }
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4);
-            reference_reset_base(location.reference,left.location.register,0,4);
+            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4,[]);
+            reference_reset_base(location.reference,left.location.register,0,4,[]);
             location.reference.arrayreftype:=art_indexconst;
             if (left.nodetype<>addrn) and
                not(resultdef.typ in [orddef,floatdef]) and
@@ -431,9 +431,9 @@ implementation
         secondpass(left);
         newsize:=def_cgsize(resultdef);
         if left.location.loc=LOC_CREFERENCE then
-          location_reset_ref(location,LOC_CREFERENCE,newsize,left.location.reference.alignment)
+          location_reset_ref(location,LOC_CREFERENCE,newsize,left.location.reference.alignment,left.location.reference.volatility)
         else
-          location_reset_ref(location,LOC_REFERENCE,newsize,left.location.reference.alignment);
+          location_reset_ref(location,LOC_REFERENCE,newsize,left.location.reference.alignment,left.location.reference.volatility);
         { don't use left.resultdef, because it may be an open or regular array,
           and then asking for the size doesn't make any sense }
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,java_jlobject,java_jlobject,true);

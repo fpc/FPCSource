@@ -120,7 +120,7 @@ implementation
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_INT,hregister,indexreg);
         { create reference }
-        reference_reset_symbol(href,table,0,sizeof(pint));
+        reference_reset_symbol(href,table,0,sizeof(pint),[]);
         href.offset:=(-aint(min_))*sizeof(aint);
         href.index:=indexreg;
 {$ifdef i8086}

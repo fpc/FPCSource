@@ -111,7 +111,7 @@ implementation
 {$endif ARM}
 
       begin
-        location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),const_align(resultdef.alignment));
+        location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),const_align(resultdef.alignment),[]);
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resultdef).floattype];
 {$ifdef ARM}
@@ -393,7 +393,7 @@ implementation
            end
          else
            begin
-             location_reset_ref(location, LOC_CREFERENCE, def_cgsize(resultdef), const_align(strpointerdef.size));
+             location_reset_ref(location, LOC_CREFERENCE, def_cgsize(resultdef), const_align(strpointerdef.size), []);
              location.reference.symbol:=lab_str;
            end;
       end;
@@ -405,7 +405,7 @@ implementation
       begin
         reference_reset_symbol(href, lab_str,
           ctai_typedconstbuilder.get_string_symofs(tstringdef(resultdef).stringtype, winlikewidestring),
-          const_align(strpointerdef.size));
+          const_align(strpointerdef.size),[]);
         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, elementdef, strpointerdef, href, location.register)
       end;
 
@@ -445,7 +445,7 @@ implementation
       var
          entry       : PHashSetItem;
       begin
-        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8));
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8),[]);
         { const already used ? }
         if not assigned(lab_set) then
           begin
@@ -522,7 +522,7 @@ implementation
          entry       : PHashSetItem;
          datatcb     : ttai_typedconstbuilder;
       begin
-        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(16));
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(16),[]);
         lastlabel:=nil;
         { const already used ? }
         if not assigned(lab_set) then

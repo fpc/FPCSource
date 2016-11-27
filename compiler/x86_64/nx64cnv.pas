@@ -138,7 +138,7 @@ implementation
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
                    new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-                   reference_reset_symbol(href,l1,0,4);
+                   reference_reset_symbol(href,l1,0,4,[]);
                    { simplify for PIC }
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
 

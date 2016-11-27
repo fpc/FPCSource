@@ -424,7 +424,7 @@ implementation
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
-                   reference_reset_symbol(href,l1,0,4);
+                   reference_reset_symbol(href,l1,0,4,[]);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
                    current_asmdata.CurrAsmList.concat(Taicpu.Op_ref(A_FADD,S_FS,href));
                    cg.a_label(current_asmdata.CurrAsmList,l2);

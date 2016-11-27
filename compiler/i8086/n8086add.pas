@@ -998,7 +998,7 @@ interface
 
     begin
       reg:=NR_NO;
-      reference_reset(ref,sizeof(pint));
+      reference_reset(ref,sizeof(pint),[]);
 
       pass_left_right;
 

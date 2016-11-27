@@ -192,7 +192,7 @@ implementation
     begin
       { on the LLVM target, every temp is independent and encoded via a
         separate temp register whose superregister number is stored in p^.pos }
-      reference_reset_base(ref,voidstackpointertype,newreg(R_TEMPREGISTER,p^.pos,R_SUBWHOLE),0,p^.alignment);
+      reference_reset_base(ref,voidstackpointertype,newreg(R_TEMPREGISTER,p^.pos,R_SUBWHOLE),0,p^.alignment,[]);
     end;
 
 
@@ -252,7 +252,7 @@ implementation
               begin
                  if assigned(location^.next) then
                    internalerror(2010052906);
-                 reference_reset_base(ref,cpointerdef.getreusable(size),location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
+                 reference_reset_base(ref,cpointerdef.getreusable(size),location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
                  if (def_cgsize(size)<>OS_NO) and
                     (size.size=sizeleft) and
                     (sizeleft<=sizeof(aint)) then
@@ -317,7 +317,7 @@ implementation
         begin
           reg:=getaddressregister(list,cpointerdef.getreusable(newrefsize));
           a_loadaddr_ref_reg(list,refsize,cpointerdef.getreusable(newrefsize),initialref,reg);
-          reference_reset_base(newref,cpointerdef.getreusable(newrefsize),reg,0,initialref.alignment);
+          reference_reset_base(newref,cpointerdef.getreusable(newrefsize),reg,0,initialref.alignment,initialref.volatility);
           refsize:=newrefsize;
         end
       else
@@ -468,7 +468,7 @@ implementation
                         internalerror(2014012307)
                       else
                         begin
-                          reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, paraloc^.def.alignment);
+                          reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, paraloc^.def.alignment, []);
                           res:=getregisterfordef(list, paraloc^.def);
                           load_ref_anyreg(callpara^.def, href, res, callpara);
                         end;
@@ -621,7 +621,7 @@ implementation
                   { typecast pointer to memory into pointer to integer type }
                   hreg:=getaddressregister(list,cpointerdef.getreusable(tosize));
                   a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tosize),tmpref,hreg);
-                  reference_reset_base(sref,cpointerdef.getreusable(tosize),hreg,0,tmpref.alignment);
+                  reference_reset_base(sref,cpointerdef.getreusable(tosize),hreg,0,tmpref.alignment,tmpref.volatility);
                   { load the integer from the temp into the destination }
                   a_load_ref_ref(list,tosize,tosize,sref,ref);
                   tg.ungettemp(list,tmpref);
@@ -643,7 +643,7 @@ implementation
             begin
               hreg2:=getaddressregister(list,cpointerdef.getreusable(fromsize));
               a_loadaddr_ref_reg(list,tosize,cpointerdef.getreusable(fromsize),sref,hreg2);
-              reference_reset_base(sref,cpointerdef.getreusable(fromsize),hreg2,0,sref.alignment);
+              reference_reset_base(sref,cpointerdef.getreusable(fromsize),hreg2,0,sref.alignment,sref.volatility);
               tosize:=fromsize;
             end;
         end
@@ -1418,7 +1418,7 @@ implementation
     begin
       hreg:=getaddressregister(list,todef);
       a_loadaddr_ref_reg_intern(list,fromdef,todef,ref,hreg,false);
-      reference_reset_base(ref,todef,hreg,0,ref.alignment);
+      reference_reset_base(ref,todef,hreg,0,ref.alignment,ref.volatility);
     end;
 
 
@@ -1455,7 +1455,7 @@ implementation
             subscriptdef:=cpointerdef.getreusable(currentstructdef);
           { recurse into the first field }
           list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,0,true));
-          reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,newalignment(recref.alignment,field.fieldoffset));
+          reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,newalignment(recref.alignment,field.fieldoffset),recref.volatility);
           { go to the parent }
           currentstructdef:=parentdef;
         end;
@@ -1469,7 +1469,7 @@ implementation
       newbase:=getaddressregister(list,cpointerdef.getreusable(llvmfield.def));
       recref:=make_simple_ref(list,recref,recdef);
       list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,field.llvmfieldnr,true));
-      reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,newalignment(recref.alignment,llvmfield.fieldoffset+field.offsetfromllvmfield));
+      reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,newalignment(recref.alignment,llvmfield.fieldoffset+field.offsetfromllvmfield),recref.volatility);
       { in case of an 80 bits extended type, typecast from an array of 10
         bytes (used because otherwise llvm will allocate the ABI-defined
         size for extended, which is usually larger) into an extended }
@@ -1676,7 +1676,7 @@ implementation
             begin
               hreg:=getaddressregister(list,cpointerdef.getreusable(llvmparadef));
               a_loadaddr_ref_reg(list,vardef,cpointerdef.getreusable(llvmparadef),destloc.reference,hreg);
-              reference_reset_base(href,cpointerdef.getreusable(llvmparadef),hreg,0,destloc.reference.alignment);
+              reference_reset_base(href,cpointerdef.getreusable(llvmparadef),hreg,0,destloc.reference.alignment,destloc.reference.volatility);
             end;
           index:=0;
           ploc:=para.location;
@@ -1846,11 +1846,11 @@ implementation
         begin
           ptrindex:=ref.offset div pointedsize;
           if assigned(ref.symbol) then
-            reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment)
+            reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment,ref.volatility)
           else
-            reference_reset_base(tmpref,ptrdef,ref.base,0,ref.alignment);
+            reference_reset_base(tmpref,ptrdef,ref.base,0,ref.alignment,ref.volatility);
           list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg2,ptrdef,tmpref,ptruinttype,ptrindex,assigned(ref.symbol)));
-          reference_reset_base(result,ptrdef,hreg2,0,ref.alignment);
+          reference_reset_base(result,ptrdef,hreg2,0,ref.alignment,ref.volatility);
           exit;
         end;
       { for now, perform all calculations using plain pointer arithmetic. Later
@@ -1865,7 +1865,7 @@ implementation
         begin
           if ref.base<>NR_NO then
             internalerror(2012111301);
-          reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
+          reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment,ref.volatility);
           list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg1,ptrdef,tmpref,ptruinttype,0,true));
         end
       else if ref.base<>NR_NO then
@@ -1890,7 +1890,7 @@ implementation
         end;
       hreg2:=getaddressregister(list,ptrdef);
       a_load_reg_reg(list,ptruinttype,ptrdef,hreg1,hreg2);
-      reference_reset_base(result,ptrdef,hreg2,0,ref.alignment);
+      reference_reset_base(result,ptrdef,hreg2,0,ref.alignment,ref.volatility);
     end;
 
 
@@ -1954,7 +1954,7 @@ implementation
       case paraloc^.llvmloc.loc of
         LOC_REFERENCE:
           begin
-            location_reset_ref(hloc,LOC_REFERENCE,def_cgsize(paraloc^.def),paraloc^.def.alignment);
+            location_reset_ref(hloc,LOC_REFERENCE,def_cgsize(paraloc^.def),paraloc^.def.alignment,[]);
             hloc.reference.symbol:=paraloc^.llvmloc.sym;
             if paraloc^.llvmvalueloc then
               hloc.reference.refaddr:=addr_full;
@@ -1970,7 +1970,7 @@ implementation
               begin
                 if getregtype(paraloc^.llvmloc.reg)<>R_TEMPREGISTER then
                   internalerror(2014011903);
-                location_reset_ref(hloc,LOC_REFERENCE,def_cgsize(paraloc^.def),paraloc^.def.alignment);
+                location_reset_ref(hloc,LOC_REFERENCE,def_cgsize(paraloc^.def),paraloc^.def.alignment,[]);
                 hloc.reference.base:=paraloc^.llvmloc.reg;
               end;
           end;
@@ -2018,7 +2018,7 @@ implementation
       if vs.paraloc[calleeside].location^.llvmloc.loc<>LOC_REFERENCE then
         internalerror(2014010708);
       parasym:=vs.paraloc[calleeside].location^.llvmloc.sym;
-      reference_reset_symbol(vs.initialloc.reference,parasym,0,vs.paraloc[calleeside].alignment);
+      reference_reset_symbol(vs.initialloc.reference,parasym,0,vs.paraloc[calleeside].alignment,[]);
       if vs.paraloc[calleeside].location^.llvmvalueloc then
         vs.initialloc.reference.refaddr:=addr_full;
     end;

@@ -126,7 +126,7 @@ implementation
           selfoffsetfromsp:=sizeof(aint)
         else
           selfoffsetfromsp:=0;
-        reference_reset_base(href, voidstackpointertype, NR_SP,selfoffsetfromsp+offs,4);
+        reference_reset_base(href, voidstackpointertype, NR_SP,selfoffsetfromsp+offs,4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
       end;
 
@@ -135,7 +135,7 @@ implementation
         href : treference;
       begin
         { move.l  (%a0),%a0 ; load vmt}
-        reference_reset_base(href, voidpointertype, NR_A0,0,4);
+        reference_reset_base(href, voidpointertype, NR_A0,0,4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
       end;
 
@@ -145,9 +145,9 @@ implementation
       begin
         if (procdef.extnumber=$ffff) then
           Internalerror(2013100701);
-        reference_reset_base(href,voidpointertype,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
+        reference_reset_base(href,voidpointertype,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4,[]);
         list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,NR_A0));
-        reference_reset_base(href,voidpointertype,NR_A0,0,4);
+        reference_reset_base(href,voidpointertype,NR_A0,0,4,[]);
         list.concat(taicpu.op_ref(A_JMP,S_NO,href));
       end;
 

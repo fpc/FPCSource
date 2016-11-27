@@ -112,7 +112,7 @@ implementation
           begin
             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
-            reference_reset_base(location.reference,hreg,0,location.reference.alignment);
+            reference_reset_base(location.reference,hreg,0,location.reference.alignment,location.reference.volatility);
             { insert new index register }
             location.reference.index:=maybe_const_reg;
             if (scaled) then

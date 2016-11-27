@@ -465,7 +465,7 @@ implementation
         literaldef:=get_block_literal_type_for_proc(tabstractprocdef(right.resultdef));
         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cpointerdef.getreusable(literaldef),true);
         { load the invoke pointer }
-        hlcg.reference_reset_base(href,right.resultdef,right.location.register,0,right.resultdef.alignment);
+        hlcg.reference_reset_base(href,right.resultdef,right.location.register,0,right.resultdef.alignment,[]);
         callprocdef:=cprocvardef.getreusableprocaddr(procdefinition);
         toreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,callprocdef);
         hlcg.g_load_field_reg_by_name(current_asmdata.CurrAsmList,literaldef,callprocdef,'INVOKE',href,toreg);
@@ -499,7 +499,7 @@ implementation
           location_allocate_register(current_asmdata.CurrAsmList,location,realresdef,false)
         else
           begin
-            location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),0);
+            location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),0,[]);
             tg.gethltemp(current_asmdata.CurrAsmList,realresdef,retloc.intsize,tt_normal,location.reference);
           end;
       end;
@@ -763,12 +763,12 @@ implementation
                                  ((tmpparaloc^.loc<>LOC_REFERENCE) or
                                   assigned(tmpparaloc^.next)) then
                                 internalerror(200501281);
-                                reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset,calleralignment);
+                                reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset,calleralignment,[]);
                               { copy parameters in case they were moved to a temp. location because we've a fixed stack }
                               case tmpparaloc^.loc of
                               LOC_REFERENCE:
                                   begin
-                                    reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset,tmpalignment);
+                                    reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset,tmpalignment,[]);
                                     { use concatcopy, because it can also be a float which fails when
                                       load_ref_ref is used }
                                     if (ppn.tempcgpara.size <> OS_NO) then

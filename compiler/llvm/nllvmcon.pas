@@ -86,7 +86,7 @@ implementation
             resptrdef:=cpointerdef.getreusable(resultdef);
             hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resptrdef);
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,datadef,resptrdef,location.reference,hreg);
-            hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.alignment);
+            hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.alignment,location.reference.volatility);
           end;
       end;
 
@@ -125,7 +125,7 @@ implementation
         dataptrdef:=cpointerdef.getreusable(field.vardef);
         { load the address of the string data }
         reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,dataptrdef);
-        reference_reset_symbol(href,lab_str,0,const_align(strpointerdef.size));
+        reference_reset_symbol(href,lab_str,0,const_align(strpointerdef.size),[]);
         current_asmdata.CurrAsmList.concat(
           taillvm.getelementptr_reg_size_ref_size_const(reg,cpointerdef.getreusable(strrecdef),href,
           s32inttype,field.llvmfieldnr,true));

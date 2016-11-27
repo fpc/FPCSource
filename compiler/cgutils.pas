@@ -43,6 +43,17 @@ unit cgutils;
       { Set type definition for cpuregisters }
       tcpuregisterset = set of 0..maxcpuregister;
 
+{$packset 1}
+      { a reference may be volatile for reading, writing, or both. E.g., local variables
+        inside try-blocks are volatile for writes (writes must not be removed, because at
+        any point an exception may be triggered and then all previous writes to the
+        variable must have been performed), but not for reads (these variables' values
+        won't be changed behind the back of the current code just because they're in a
+        try-block) }
+      tvolatility = (vol_read,vol_write);
+      tvolatilityset = set of tvolatility;
+{$packset default}
+
       { reference record, reordered for best alignment }
       preference = ^treference;
       treference = record
@@ -84,6 +95,7 @@ unit cgutils;
          indexoffset: aint;
          checkcast: boolean;
 {$endif jvm}
+         volatility: tvolatilityset;
          alignment : byte;
       end;
 
@@ -161,12 +173,12 @@ unit cgutils;
     { trerefence handling }
 
     {# Clear to zero a treference }
-    procedure reference_reset(var ref : treference; alignment: longint);
+    procedure reference_reset(var ref : treference; alignment: longint; volatility: tvolatilityset);
     {# Clear to zero a treference, and set is base address
        to base register.
     }
-    procedure reference_reset_base(var ref : treference;base : tregister;offset, alignment : longint);
-    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset, alignment : longint);
+    procedure reference_reset_base(var ref : treference;base : tregister;offset, alignment : longint; volatility: tvolatilityset);
+    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset, alignment : longint; volatility: tvolatilityset);
     { This routine verifies if two references are the same, and
        if so, returns TRUE, otherwise returns false.
     }
@@ -177,7 +189,7 @@ unit cgutils;
     { cannot be used for loc_(c)reference, because that one requires an alignment }
     procedure location_reset(var l : tlocation;lt:TCGNonRefLoc;lsize:TCGSize);
     { for loc_(c)reference }
-    procedure location_reset_ref(var l : tlocation;lt:TCGRefLoc;lsize:TCGSize; alignment: longint);
+    procedure location_reset_ref(var l : tlocation;lt:TCGRefLoc;lsize:TCGSize; alignment: longint; volatility: tvolatilityset);
     { for loc_jump }
     procedure location_reset_jump(out l: tlocation; truelab, falselab: tasmlabel);
     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
@@ -204,27 +216,28 @@ uses
                                   TReference
 ****************************************************************************}
 
-    procedure reference_reset(var ref : treference; alignment: longint);
+    procedure reference_reset(var ref: treference; alignment: longint; volatility: tvolatilityset);
       begin
         FillChar(ref,sizeof(treference),0);
 {$ifdef arm}
         ref.signindex:=1;
 {$endif arm}
         ref.alignment:=alignment;
+        ref.volatility:=volatility;
       end;
 
 
-    procedure reference_reset_base(var ref : treference;base : tregister;offset, alignment : longint);
+    procedure reference_reset_base(var ref: treference; base: tregister; offset, alignment: longint; volatility: tvolatilityset);
       begin
-        reference_reset(ref,alignment);
+        reference_reset(ref,alignment,volatility);
         ref.base:=base;
         ref.offset:=offset;
       end;
 
 
-    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset, alignment : longint);
+    procedure reference_reset_symbol(var ref: treference; sym: tasmsymbol; offset, alignment: longint; volatility: tvolatilityset);
       begin
-        reference_reset(ref,alignment);
+        reference_reset(ref,alignment,volatility);
         ref.symbol:=sym;
         ref.offset:=offset;
       end;
@@ -257,8 +270,7 @@ uses
           internalerror(2009020705);
       end;
 
-    procedure location_reset_ref(var l: tlocation; lt: tcgrefloc; lsize: tcgsize;
-      alignment: longint);
+  procedure location_reset_ref(var l: tlocation; lt: TCGRefLoc; lsize: TCGSize; alignment: longint; volatility: tvolatilityset);
     begin
       FillChar(l,sizeof(tlocation),0);
       l.loc:=lt;
@@ -267,6 +279,7 @@ uses
       l.reference.signindex:=1;
 {$endif arm}
       l.reference.alignment:=alignment;
+      l.reference.volatility:=volatility;
     end;
 
 

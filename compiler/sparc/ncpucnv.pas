@@ -154,7 +154,7 @@ implementation
           begin
             current_asmdata.getglobaldatalabel(l1);
             current_asmdata.getjumplabel(l2);
-            reference_reset_symbol(href,l1,0,8);
+            reference_reset_symbol(href,l1,0,8,[]);
             hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,u32inttype,left.location,hregister);
 

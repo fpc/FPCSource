@@ -76,7 +76,7 @@ interface
         cgsize:TCgSize;
         opsize:topsize;
       begin
-        reference_reset(ref,0);
+        reference_reset(ref,0,[]);
         reg:=NR_NO;
 
         cgsize:=def_cgsize(resultdef);

@@ -106,7 +106,7 @@ var
   signed: boolean;
 begin
   location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
-  reference_reset(disp2,0);
+  reference_reset(disp2,0,[]);
   tempconst:=nil;
 
   { the code here comes from the PowerPC Compiler Writer's Guide }

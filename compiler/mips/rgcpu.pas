@@ -81,7 +81,7 @@ implementation
             helplist.concat(taicpu.op_reg_reg_const(A_ORI,hreg,hreg,spilltemp.offset and $FFFF));
             helplist.concat(taicpu.op_reg_reg_reg(A_ADDU,hreg,hreg,spilltemp.base));
 
-            reference_reset_base(tmpref,hreg,0,sizeof(aint));
+            reference_reset_base(tmpref,hreg,0,sizeof(aint),[]);
 
             helpins:=spilling_create_load(tmpref,tempreg);
             helplist.concat(helpins);
@@ -112,7 +112,7 @@ implementation
             helplist.concat(taicpu.op_reg_reg_const(A_ORI,hreg,hreg,spilltemp.offset and $FFFF));
             helplist.concat(taicpu.op_reg_reg_reg(A_ADDU,hreg,hreg,spilltemp.base));
 
-            reference_reset_base(tmpref,hreg,0,sizeof(aint));
+            reference_reset_base(tmpref,hreg,0,sizeof(aint),[]);
 
             helplist.concat(spilling_create_store(tempreg,tmpref));
             if getregtype(tempreg)=R_INTREGISTER then

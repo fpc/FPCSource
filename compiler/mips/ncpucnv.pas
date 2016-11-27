@@ -155,7 +155,7 @@ begin
   begin
     current_asmdata.getglobaldatalabel(l1);
     current_asmdata.getjumplabel(l2);
-    reference_reset_symbol(href, l1, 0, sizeof(aint));
+    reference_reset_symbol(href, l1, 0, sizeof(aint), []);
     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
     { Always load into 64-bit FPU register }

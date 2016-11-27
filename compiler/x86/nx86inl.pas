@@ -341,7 +341,7 @@ implementation
              case tfloatdef(resultdef).floattype of
                s32real:
                  begin
-                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_SINGLE',AT_DATA),0,4);
+                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_SINGLE',AT_DATA),0,4,[]);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
                    if UseAVX then
                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
@@ -351,7 +351,7 @@ implementation
                  end;
                s64real:
                  begin
-                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_DOUBLE',AT_DATA),0,4);
+                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_DOUBLE',AT_DATA),0,4,[]);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
                    if UseAVX then
                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
@@ -403,7 +403,7 @@ implementation
 {$endif x86_64}
           begin
             load_fpu_location(left);
-            location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
+            location_reset_ref(location,LOC_REFERENCE,OS_S64,0,[]);
             tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
             tcgx86(cg).dec_fpu_stack;
@@ -449,7 +449,7 @@ implementation
             if (current_settings.fputype>=fpu_sse3) then
               begin
                 load_fpu_location(left);
-                location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
+                location_reset_ref(location,LOC_REFERENCE,OS_S64,0,[]);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTTP,S_IQ,location.reference);
                 tcgx86(cg).dec_fpu_stack;
@@ -474,7 +474,7 @@ implementation
                 emit_const_ref(A_OR,S_W,$0f00,newcw);
                 load_fpu_location(left);
                 emit_ref(A_FLDCW,S_NO,newcw);
-                location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
+                location_reset_ref(location,LOC_REFERENCE,OS_S64,0,[]);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTP,S_IQ,location.reference);
                 tcgx86(cg).dec_fpu_stack;
@@ -610,7 +610,7 @@ implementation
                  begin
                    r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
                    cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
-                   reference_reset_base(ref,r,0,left.location.reference.alignment);
+                   reference_reset_base(ref,r,0,left.location.reference.alignment,left.location.reference.volatility);
                    current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_PREFETCHNTA,S_NO,ref));
                  end;
                else

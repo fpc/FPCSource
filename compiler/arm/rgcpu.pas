@@ -195,7 +195,7 @@ unit rgcpu;
           {$endif}
           cg.a_load_const_reg(helplist,OS_ADDR,spilltemp.offset,hreg);
           cg.a_op_reg_reg(helplist,OP_ADD,OS_ADDR,current_procinfo.framepointer,hreg);
-          reference_reset_base(tmpref,hreg,0,sizeof(aint));
+          reference_reset_base(tmpref,hreg,0,sizeof(aint),[]);
         end
       else if is_shifter_const(a and not($FFF), immshift) then
         if spilltemp.offset > 0 then
@@ -205,7 +205,7 @@ unit rgcpu;
             {$endif}
             helplist.concat(taicpu.op_reg_reg_const(A_ADD, hreg, current_procinfo.framepointer,
                                                       a and not($FFF)));
-            reference_reset_base(tmpref, hreg, a and $FFF, sizeof(aint));
+            reference_reset_base(tmpref, hreg, a and $FFF, sizeof(aint),[]);
           end
         else
           begin
@@ -214,7 +214,7 @@ unit rgcpu;
             {$endif}
             helplist.concat(taicpu.op_reg_reg_const(A_SUB, hreg, current_procinfo.framepointer,
                                                       a and not($FFF)));
-            reference_reset_base(tmpref, hreg, -(a and $FFF), sizeof(aint));
+            reference_reset_base(tmpref, hreg, -(a and $FFF), sizeof(aint),[]);
           end
       else
         begin
@@ -222,7 +222,7 @@ unit rgcpu;
           helplist.concat(tai_comment.create(strpnew('Spilling: Use a_load_const_reg to fix spill offset')));
           {$endif}
           cg.a_load_const_reg(helplist,OS_ADDR,spilltemp.offset,hreg);
-          reference_reset_base(tmpref,current_procinfo.framepointer,0,sizeof(aint));
+          reference_reset_base(tmpref,current_procinfo.framepointer,0,sizeof(aint),[]);
           tmpref.index:=hreg;
         end;
 
@@ -464,7 +464,7 @@ unit rgcpu;
         if (spilltemp.offset>4095) or (spilltemp.offset<-255) then
           begin
             helplist:=TAsmList.create;
-            reference_reset(tmpref,sizeof(aint));
+            reference_reset(tmpref,sizeof(aint),[]);
             { create consts entry }
             current_asmdata.getjumplabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
@@ -482,7 +482,7 @@ unit rgcpu;
             tmpref.base:=NR_R15;
             helplist.concat(taicpu.op_reg_ref(A_LDR,hreg,tmpref));
 
-            reference_reset_base(tmpref,current_procinfo.framepointer,0,sizeof(aint));
+            reference_reset_base(tmpref,current_procinfo.framepointer,0,sizeof(aint),[]);
             tmpref.index:=hreg;
 
             if spilltemp.index<>NR_NO then
@@ -522,7 +522,7 @@ unit rgcpu;
         if (spilltemp.offset>4095) or (spilltemp.offset<-255) then
           begin
             helplist:=TAsmList.create;
-            reference_reset(tmpref,sizeof(aint));
+            reference_reset(tmpref,sizeof(aint),[]);
             { create consts entry }
             current_asmdata.getjumplabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
@@ -542,7 +542,7 @@ unit rgcpu;
             if spilltemp.index<>NR_NO then
               internalerror(200401263);
 
-            reference_reset_base(tmpref,current_procinfo.framepointer,0,sizeof(pint));
+            reference_reset_base(tmpref,current_procinfo.framepointer,0,sizeof(pint),[]);
             tmpref.index:=hreg;
 
             helplist.concat(spilling_create_store(tempreg,tmpref));

@@ -88,7 +88,7 @@ implementation
               left.resultdef,
               cpointerdef.getreusable(fielddef),
               location.reference,newbase);
-            reference_reset_base(location.reference,newbase,0,location.reference.alignment);
+            reference_reset_base(location.reference,newbase,0,location.reference.alignment,location.reference.volatility);
             result:=false;
           end
         else
@@ -157,7 +157,7 @@ implementation
           else
             current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,left.resultdef,
               locref^,ptruinttype,constarrayoffset,false));
-          reference_reset_base(locref^,hreg,0,locref^.alignment);
+          reference_reset_base(locref^,hreg,0,locref^.alignment,locref^.volatility);
         end;
 
       { see comment in getarrelementptrdef }
@@ -216,7 +216,7 @@ implementation
         { the array is already a pointer -> just index }
         current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,left.resultdef,
           location.reference,ptruinttype,maybe_const_reg,false));
-      reference_reset_base(location.reference,hreg,0,location.reference.alignment);
+      reference_reset_base(location.reference,hreg,0,location.reference.alignment,location.reference.volatility);
       location.reference.alignment:=newalignment(location.reference.alignment,l);
     end;
 
@@ -278,7 +278,7 @@ implementation
       current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(basereg,cpointerdef.getreusable(left.resultdef),
         sref.ref,ptruinttype,offsetreg,true));
       arraytopointerconverted:=true;
-      reference_reset_base(sref.ref,basereg,0,sref.ref.alignment);
+      reference_reset_base(sref.ref,basereg,0,sref.ref.alignment,sref.ref.volatility);
       { calculate the bit index inside that chunk: mask out
         the chunk index part }
       hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);

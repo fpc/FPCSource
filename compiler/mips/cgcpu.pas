@@ -162,7 +162,7 @@ begin
   if assigned(ref.symbol) then
     begin
       ref.base:=getintregister(list,OS_ADDR);
-      reference_reset_symbol(tmpref,ref.symbol,ref.offset,ref.alignment);
+      reference_reset_symbol(tmpref,ref.symbol,ref.offset,ref.alignment,ref.volatility);
       if (cs_create_pic in current_settings.moduleswitches) then
         begin
           if not (pi_needs_got in current_procinfo.flags) then
@@ -320,7 +320,7 @@ begin
       LOC_REFERENCE:
         begin
           paraloc.check_simple_location;
-          reference_reset_base(href2,paraloc.location^.reference.index,paraloc.location^.reference.offset,paraloc.alignment);
+          reference_reset_base(href2,paraloc.location^.reference.index,paraloc.location^.reference.offset,paraloc.alignment,[]);
           { concatcopy should choose the best way to copy the data }
           g_concatcopy(list,ref,href2,tcgsize2size[size]);
         end;
@@ -353,7 +353,7 @@ procedure TCGMIPS.a_call_sym_pic(list: tasmlist; sym: tasmsymbol);
 var
   href: treference;
 begin
-  reference_reset_symbol(href,sym,0,sizeof(aint));
+  reference_reset_symbol(href,sym,0,sizeof(aint),[]);
   if (sym.bind=AB_LOCAL) then
     href.refaddr:=addr_pic
   else
@@ -608,7 +608,7 @@ begin
       exit;
     end;
 
-  reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
+  reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
   if (cs_create_pic in current_settings.moduleswitches) then
     begin
       if not (pi_needs_got in current_procinfo.flags) then
@@ -1275,7 +1275,7 @@ begin
 
   helplist:=TAsmList.Create;
 
-  reference_reset(href,0);
+  reference_reset(href,0,[]);
   href.base:=NR_STACK_POINTER_REG;
 
   fmask:=0;
@@ -1419,7 +1419,7 @@ begin
      begin
        if TMIPSProcinfo(current_procinfo).save_gp_ref.offset<>0 then
          tg.ungettemp(list,TMIPSProcinfo(current_procinfo).save_gp_ref);
-       reference_reset(href,0);
+       reference_reset(href,0,[]);
        href.base:=NR_STACK_POINTER_REG;
 
        nextoffset:=TMIPSProcInfo(current_procinfo).floatregstart;
@@ -1537,7 +1537,7 @@ begin
       src:=source
     else
       begin
-        reference_reset(src,sizeof(aint));
+        reference_reset(src,sizeof(aint),source.volatility);
         { load the address of source into src.base }
         src.base := GetAddressRegister(list);
         a_loadaddr_ref_reg(list, Source, src.base);
@@ -1546,7 +1546,7 @@ begin
       dst:=dest
     else
       begin
-        reference_reset(dst,sizeof(aint));
+        reference_reset(dst,sizeof(aint),dest.volatility);
         { load the address of dest into dst.base }
         dst.base := GetAddressRegister(list);
         a_loadaddr_ref_reg(list, dest, dst.base);
@@ -1622,8 +1622,8 @@ begin
     g_concatcopy_move(list, Source, dest, len)
   else
   begin
-    reference_reset(src,sizeof(aint));
-    reference_reset(dst,sizeof(aint));
+    reference_reset(src,sizeof(aint),source.volatility);
+    reference_reset(dst,sizeof(aint),dest.volatility);
     { load the address of source into src.base }
     src.base := GetAddressRegister(list);
     a_loadaddr_ref_reg(list, Source, src.base);
@@ -1667,7 +1667,7 @@ procedure TCGMIPS.g_profilecode(list:TAsmList);
   begin
     if not (cs_create_pic in current_settings.moduleswitches) then
       begin
-        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(pint));
+        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(pint),[]);
         a_loadaddr_ref_reg(list,href,NR_GP);
       end;
     list.concat(taicpu.op_reg_reg(A_MOVE,NR_R1,NR_RA));

@@ -216,7 +216,7 @@ implementation
             { adjust index }
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
             { create reference and generate jump table }
-            reference_reset(href,4);
+            reference_reset(href,4,[]);
             href.base:=NR_PC;
             href.index:=indexreg;
             href.shiftmode:=SM_LSL;
@@ -238,10 +238,10 @@ implementation
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,indexreg);
 
             basereg:=cg.getintregister(current_asmdata.CurrAsmList, OS_ADDR);
-            reference_reset_symbol(href,tablelabel,0,4);
+            reference_reset_symbol(href,tablelabel,0,4,[]);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, href, basereg);
 
-            reference_reset(href,0);
+            reference_reset(href,0,[]);
             href.base:=basereg;
             href.index:=indexreg;
             
@@ -264,7 +264,7 @@ implementation
               min_+ord(not(cs_create_pic in current_settings.moduleswitches)),
               indexreg,indexreg);
             { create reference and generate jump table }
-            reference_reset(href,4);
+            reference_reset(href,4,[]);
             href.base:=NR_PC;
             href.index:=indexreg;
             href.shiftmode:=SM_LSL;

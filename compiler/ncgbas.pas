@@ -160,7 +160,7 @@ interface
                           op.typ:=top_ref;
                           new(op.ref);
                           reference_reset_base(op.ref^,indexreg,sym.localloc.reference.offset+sofs,
-                            newalignment(sym.localloc.reference.alignment,sofs));
+                            newalignment(sym.localloc.reference.alignment,sofs),[]);
                         end;
                     end
                   else
@@ -168,7 +168,7 @@ interface
                       op.typ:=top_ref;
                       new(op.ref);
                       reference_reset_base(op.ref^,sym.localloc.reference.base,sym.localloc.reference.offset+sofs,
-                        newalignment(sym.localloc.reference.alignment,sofs));
+                        newalignment(sym.localloc.reference.alignment,sofs),[]);
                       op.ref^.index:=indexreg;
 {$ifdef x86}
                       op.ref^.scalefactor:=scale;
@@ -186,7 +186,7 @@ interface
                       op.typ:=top_ref;
                       new(op.ref);
                       { no idea about the actual alignment }
-                      reference_reset_base(op.ref^,sym.localloc.register,sofs,1);
+                      reference_reset_base(op.ref^,sym.localloc.register,sofs,1,[]);
                       op.ref^.index:=indexreg;
 {$ifdef x86}
                       op.ref^.scalefactor:=scale;
@@ -436,7 +436,7 @@ interface
             if is_managed_type(tempinfo^.typedef) and
               not(ti_const in tempflags) then
               begin
-                location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
+                location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0,[]);
                 tg.gethltempmanaged(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
                 if not(ti_nofini in tempflags) then
                   hlcg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
@@ -447,7 +447,7 @@ interface
               end
             else
               begin
-                location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
+                location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0,[]);
                 tg.gethltemp(current_asmdata.CurrAsmList,tempinfo^.typedef,size,tempinfo^.temptype,tempinfo^.location.reference);
               end;
           end;

@@ -106,7 +106,7 @@ implementation
            begin
              location_reset(location,LOC_REGISTER,OS_16);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-             reference_reset_symbol(segref,left.location.reference.symbol,0,0);
+             reference_reset_symbol(segref,left.location.reference.symbol,0,left.location.reference.alignment,left.location.reference.volatility);
              segref.refaddr:=addr_seg;
              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,location.register);
            end

@@ -117,7 +117,7 @@ procedure tllvmloadnode.pass_generate_code;
               hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(pvdef),cpointerdef.getreusable(methodpointertype),mpref);
               hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef),trecorddef(methodpointertype),procreg,'proc',mpref);
               hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,selfdef,trecorddef(methodpointertype),selfreg,'self',mpref);
-              location_reset_ref(location,LOC_REFERENCE,location.size,href.alignment);
+              location_reset_ref(location,LOC_REFERENCE,location.size,href.alignment,href.volatility);
               location.reference:=href;
             end;
         end;

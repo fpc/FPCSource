@@ -75,7 +75,7 @@ implementation
         begin
           if not (cs_create_pic in current_settings.moduleswitches) then
             begin
-              reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(aint));
+              reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(aint),[]);
               list.concat(tai_comment.create(strpnew('Using PIC code for a_call_name')));
               cg.a_loadaddr_ref_reg(list,ref,NR_GP);
             end;
@@ -152,7 +152,7 @@ implementation
     var
       href: treference;
     begin
-      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname,AT_DATA),0,sizeof(aint));
+      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname,AT_DATA),0,sizeof(aint),[]);
       { Always do indirect jump using $t9, it won't harm in non-PIC mode }
       if (cs_create_pic in current_settings.moduleswitches) then
         begin
@@ -245,7 +245,7 @@ implementation
     if IsVirtual then
     begin
       { load VMT pointer }
-      reference_reset_base(href,voidpointertype,paraloc^.register,0,sizeof(aint));
+      reference_reset_base(href,voidpointertype,paraloc^.register,0,sizeof(aint),[]);
       list.concat(taicpu.op_reg_ref(A_LW,NR_VMT,href));
 
       if (procdef.extnumber=$ffff) then
@@ -253,7 +253,7 @@ implementation
 
       { TODO: case of large VMT is not handled }
       { We have no reason not to use $t9 even in non-PIC mode. }
-      reference_reset_base(href, voidpointertype, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint));
+      reference_reset_base(href, voidpointertype, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint), []);
       list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
       list.concat(taicpu.op_reg(A_JR, NR_PIC_FUNC));
     end
@@ -262,7 +262,7 @@ implementation
     else
       begin
         { GAS does not expand "J symbol" into PIC sequence }
-        reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,sizeof(pint));
+        reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,sizeof(pint),[]);
         href.base:=NR_GP;
         href.refaddr:=addr_pic_call16;
         list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));

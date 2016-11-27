@@ -117,11 +117,11 @@ implementation
         current_asmdata.getjumplabel(table);
         { create reference, indexreg := indexreg * sizeof(jtentry) (= 4) }
         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, 4, indexreg);
-        reference_reset_symbol(href, table, 0, 4);
+        reference_reset_symbol(href, table, 0, 4, []);
 
         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
-        reference_reset_base(href,hregister,0,4);
+        reference_reset_base(href,hregister,0,4,[]);
         href.index:=indexreg;
         indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
         { load table entry }

@@ -244,13 +244,14 @@ implementation
           internalerror(200309286);
         if lvs.localloc.loc<>LOC_REFERENCE then
           internalerror(200409241);
-        hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,lvs.localloc.reference.offset,lvs.localloc.reference.alignment);
+        hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,lvs.localloc.reference.offset,lvs.localloc.reference.alignment,lvs.localloc.reference.volatility);
       end;
 
 
     procedure tcgloadnode.generate_absaddr_access(vs: tabsolutevarsym);
       begin
         location.reference.offset:=asizeint(vs.addroffset);
+        location.reference.volatility:=[vol_read,vol_write];
       end;
 
 
@@ -276,9 +277,9 @@ implementation
            begin
              if gvs.localloc.loc=LOC_INVALID then
                if not(vo_is_weak_external in gvs.varoptions) then
-                 reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,location.reference.alignment)
+                 reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,location.reference.alignment,[])
                else
-                 reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,location.reference.alignment)
+                 reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,location.reference.alignment,[])
              else
                location:=gvs.localloc;
            end
@@ -316,16 +317,16 @@ implementation
              paraloc1.init;
              paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
-             reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA,indirect),0,pvd.alignment);
+             reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA,indirect),0,pvd.alignment,[]);
              if not issystemunit then
                current_module.add_extern_asmsym('FPC_THREADVAR_RELOCATE',AB_EXTERNAL,AT_DATA);
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
              { no, call it with the index of the threadvar as parameter }
              if not(vo_is_weak_external in gvs.varoptions) then
-               reference_reset_symbol(tvref,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,sizeof(pint))
+               reference_reset_symbol(tvref,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,sizeof(pint),[])
              else
-               reference_reset_symbol(tvref,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint));
+               reference_reset_symbol(tvref,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint),[]);
              href:=tvref;
              hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,
                tv_rec,
@@ -360,7 +361,7 @@ implementation
              hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,fieldptrdef,href,hregister);
              hlcg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
 
-             hlcg.reference_reset_base(location.reference,fieldptrdef,hregister,0,location.reference.alignment);
+             hlcg.reference_reset_base(location.reference,fieldptrdef,hregister,0,location.reference.alignment,[]);
            end;
        end;
 
@@ -402,7 +403,7 @@ implementation
         { we don't know the size of all arrays }
         newsize:=def_cgsize(resultdef);
         { alignment is overridden per case below }
-        location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment);
+        location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment,[]);
         case symtableentry.typ of
            absolutevarsym :
               begin
@@ -420,7 +421,7 @@ implementation
              begin
                 if tconstsym(symtableentry).consttyp=constresourcestring then
                   begin
-                     location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size);
+                     location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size,[]);
                      indirect:=(tf_supports_packages in target_info.flags) and
                                  (target_info.system in systems_indirect_var_imports) and
                                  (cs_imported_data in current_settings.localswitches) and
@@ -452,7 +453,7 @@ implementation
                    else
                      location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(tstaticvarsym(symtableentry).mangledname,AT_DATA);
                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
-                   reference_reset_base(location.reference,hregister,0,location.reference.alignment);
+                   reference_reset_base(location.reference,hregister,0,location.reference.alignment,[]);
                  end
                { Thread variable }
                else if (vo_is_thread_var in gvs.varoptions) then
@@ -462,10 +463,11 @@ implementation
                  begin
                    if gvs.localloc.loc=LOC_INVALID then
                      begin
+                       { static data is currently always volatile }
                        if not(vo_is_weak_external in gvs.varoptions) then
-                         reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,location.reference.alignment)
+                         reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,location.reference.alignment,[])
                        else
-                         reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,location.reference.alignment)
+                         reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,location.reference.alignment,[])
                      end
                    else
                      location:=gvs.localloc;
@@ -504,10 +506,10 @@ implementation
                     { assume packed records may always be unaligned }
                     if not(resultdef.typ in [recorddef,objectdef]) or
                        (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
-                      location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment)
+                      location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment,[])
                     else
-                      location_reset_ref(location,LOC_REFERENCE,newsize,1);
-                    hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment);
+                      location_reset_ref(location,LOC_REFERENCE,newsize,1,[]);
+                    hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment,[]);
                   end;
 
                 { make const a LOC_CREFERENCE }
@@ -582,7 +584,7 @@ implementation
                             assigned(tobjectdef(left.resultdef).vmt_field) then
                            begin
                              { vmt pointer is a pointer to the vmt record }
-                             hlcg.reference_reset_base(href,vd,location.registerhi,0,vd.alignment);
+                             hlcg.reference_reset_base(href,vd,location.registerhi,0,vd.alignment,[]);
                              vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
                              hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,tobjectdef(left.resultdef),tfieldvarsym(tobjectdef(left.resultdef).vmt_field),href);
                              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
@@ -598,7 +600,7 @@ implementation
                          else if is_any_interface_kind(left.resultdef) then
                            begin
                              { an interface is a pointer to a pointer to a vmt }
-                             hlcg.reference_reset_base(href,vd,location.registerhi,0,vd.alignment);
+                             hlcg.reference_reset_base(href,vd,location.registerhi,0,vd.alignment,[]);
                              vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
                              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
                              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,vmtdef,vmtdef,href,hregister);
@@ -608,7 +610,7 @@ implementation
                          { load method address }
                          vmtentry:=tabstractrecordsymtable(trecorddef(vmtdef.pointeddef).symtable).findfieldbyoffset(
                            tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber));
-                         hlcg.reference_reset_base(href,vmtdef,hregister,0,vmtdef.alignment);
+                         hlcg.reference_reset_base(href,vmtdef,hregister,0,vmtdef.alignment,[]);
                          location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtentry.vardef);
                          hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,tabstractrecorddef(vmtdef.pointeddef),vmtentry,href);
                          hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,vmtentry.vardef,vmtentry.vardef,href,location.register);
@@ -616,7 +618,7 @@ implementation
                      else
                        begin
                          { load address of the function }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,procdef.address_type.alignment);
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,procdef.address_type.alignment,[]);
                          location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef));
                          hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,cprocvardef.getreusableprocaddr(procdef),href,location.register);
                        end;
@@ -904,7 +906,7 @@ implementation
                             if releaseright then
                               location_freetemp(current_asmdata.CurrAsmList,right.location);
                             releaseright:=true;
-                            location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
+                            location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0,[]);
                             right.location.reference:=href;
                             right.resultdef:=left.resultdef;
                           end;
@@ -1000,7 +1002,7 @@ implementation
                           { extended into a double/single, since sse doesn't support extended) }
                           tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef,left.resultdef.size,tt_normal,href);
                           cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,href);
-                          location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
+                          location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0,[]);
                           right.location.reference:=href;
                           right.resultdef:=left.resultdef;
                         end;
@@ -1219,7 +1221,7 @@ implementation
         else
           varvtypefield:=nil;
         { alignment is filled in by tg.gethltemp below }
-        location_reset_ref(location,LOC_CREFERENCE,OS_NO,0);
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,0,[]);
         fillchar(paraloc,sizeof(paraloc),0);
         { Allocate always a temp, also if no elements are required, to
           be sure that location is valid (PFV) }
@@ -1485,7 +1487,7 @@ implementation
                       (cs_imported_data in current_settings.localswitches) and
                       (rttidef.owner.moduleid<>current_module.moduleid);
 
-        location_reset_ref(location,LOC_CREFERENCE,OS_NO,sizeof(pint));
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,sizeof(pint),[]);
         case rttidatatype of
           rdt_normal:
             location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype,indirect);

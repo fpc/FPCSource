@@ -711,7 +711,7 @@ implementation
       begin
         tg.gethltemp(current_asmdata.currasmlist,java_jlobject,java_jlobject.size,tt_normal,r);
         hlcg.a_load_const_ref(current_asmdata.CurrAsmList,java_jlobject,0,r);
-        location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+        location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
         location.reference:=r;
       end;
 
@@ -830,11 +830,11 @@ implementation
         { store the data in the newly created array }
         basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,java_jlobject,basereg);
-        reference_reset_base(arrayref,basereg,0,4);
+        reference_reset_base(arrayref,basereg,0,4,[]);
         arrayref.arrayreftype:=art_indexconst;
         arrayref.indexoffset:=0;
         hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,arrayref);
-        location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4);
+        location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4,[]);
         tg.gethltemp(current_asmdata.CurrAsmList,java_jlobject,4,tt_normal,location.reference);
         hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,basereg,location.reference);
       end;

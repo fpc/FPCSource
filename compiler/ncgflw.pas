@@ -813,7 +813,7 @@ implementation
 
          { send the vmt parameter }
          pd:=search_system_proc('fpc_catches');
-         reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname,AT_DATA,indirect),0,sizeof(pint));
+         reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname,AT_DATA,indirect),0,sizeof(pint),[]);
          if otherunit then
            current_module.add_extern_asmsym(excepttype.vmt_mangledname,AB_EXTERNAL,AT_DATA);
          paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
@@ -835,7 +835,7 @@ implementation
 
          if assigned(exceptvarsym) then
            begin
-             location_reset_ref(exceptvarsym.localloc,LOC_REFERENCE,def_cgsize(voidpointertype),voidpointertype.alignment);
+             location_reset_ref(exceptvarsym.localloc,LOC_REFERENCE,def_cgsize(voidpointertype),voidpointertype.alignment,[]);
              tg.GetLocal(current_asmdata.CurrAsmList,exceptvarsym.vardef.size,exceptvarsym.vardef,exceptvarsym.localloc.reference);
              hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,fpc_catches_res.def,exceptvarsym.vardef,fpc_catches_resloc.register,exceptvarsym.localloc.reference);
            end;

@@ -3664,7 +3664,7 @@ implementation
       var
         r: treference;
       begin
-        reference_reset_symbol(r,s,0,1);
+        reference_reset_symbol(r,s,0,1,[]);
         r.refaddr:=addr_seg;
         loadref(opidx,r);
       end;

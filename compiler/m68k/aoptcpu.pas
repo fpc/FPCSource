@@ -288,9 +288,9 @@ unit aoptcpu;
                         begin
                           DebugMsg('Optimizer: SUB/ADD #val,Ax to LEA val(Ax),Ax',p);
                           if taicpu(p).opcode in [A_SUB,A_SUBA] then
-                            reference_reset_base(tmpref,taicpu(p).oper[1]^.reg,-taicpu(p).oper[0]^.val,0)
+                            reference_reset_base(tmpref,taicpu(p).oper[1]^.reg,-taicpu(p).oper[0]^.val,0,[])
                           else
-                            reference_reset_base(tmpref,taicpu(p).oper[1]^.reg,taicpu(p).oper[0]^.val,0);
+                            reference_reset_base(tmpref,taicpu(p).oper[1]^.reg,taicpu(p).oper[0]^.val,0,[]);
                           taicpu(p).opcode:=A_LEA;
                           taicpu(p).loadref(0,tmpref);
                           result:=true;

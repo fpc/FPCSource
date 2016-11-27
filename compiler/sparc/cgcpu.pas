@@ -182,7 +182,7 @@ implementation
             exit;
           end;
 
-        reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
+        reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
         hreg:=getintregister(list,OS_INT);
         if not (cs_create_pic in current_settings.moduleswitches) then
           begin
@@ -214,7 +214,7 @@ implementation
                 list.concat(taicpu.op_ref_reg(A_SETHI,href,hreg));
                 href.refaddr:=addr_low;
                 list.concat(taicpu.op_reg_ref_reg(A_OR,hreg,href,hreg));
-                reference_reset_base(href,hreg,0,sizeof(pint));
+                reference_reset_base(href,hreg,0,sizeof(pint),[]);
                 href.index:=current_procinfo.got;
               end
             else
@@ -340,7 +340,7 @@ implementation
                 a_load_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
               LOC_REFERENCE :
                 begin
-                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,paraloc.alignment);
+                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,paraloc.alignment,[]);
                   a_load_ref_ref(list,hloc^.size,hloc^.size,href,href2);
                 end;
               LOC_FPUREGISTER,LOC_CFPUREGISTER :
@@ -580,7 +580,7 @@ implementation
             exit;
           end;
 
-        reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
+        reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
         if (cs_create_pic in current_settings.moduleswitches) then
           begin
             include(current_procinfo.flags,pi_needs_got);
@@ -591,7 +591,7 @@ implementation
                 list.concat(taicpu.op_ref_reg(A_SETHI,href,r));
                 href.refaddr:=addr_low;
                 list.concat(taicpu.op_reg_ref_reg(A_OR,r,href,r));
-                reference_reset_base(href,r,0,sizeof(pint));
+                reference_reset_base(href,r,0,sizeof(pint),[]);
                 href.index:=current_procinfo.got;
               end
             else
@@ -1022,7 +1022,7 @@ implementation
                  sethi  %hi(_GLOBAL_OFFSET_TABLE_+(.-1b)), %l7
             2:   or     %l7, %lo(_GLOBAL_OFFSET_TABLE_+(.-1b)), %l7
                  add    %l7, %o7, %l7 }
-            reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),4,sizeof(pint));
+            reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),4,sizeof(pint),[]);
             ref.refaddr:=addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,ref,NR_L7));
             cg.a_label(list,hl);
@@ -1048,7 +1048,7 @@ implementation
       begin
         if paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
           begin
-            reference_reset(hr,sizeof(pint));
+            reference_reset(hr,sizeof(pint),[]);
             hr.offset:=12;
             hr.refaddr:=addr_full;
             if nostackframe then
@@ -1151,14 +1151,14 @@ implementation
               src:=source
             else
               begin
-                reference_reset_base(src,getintregister(list,OS_ADDR),0,sizeof(aint));
+                reference_reset_base(src,getintregister(list,OS_ADDR),0,sizeof(aint),source.volatility);
                 a_loadaddr_ref_reg(list,source,src.base);
               end;
             if (count<=4) and reference_is_reusable(dest) then
               dst:=dest
             else
               begin
-                reference_reset_base(dst,getintregister(list,OS_ADDR),0,sizeof(aint));
+                reference_reset_base(dst,getintregister(list,OS_ADDR),0,sizeof(aint),dest.volatility);
                 a_loadaddr_ref_reg(list,dest,dst.base);
               end;
             { generate a loop }
@@ -1230,8 +1230,8 @@ implementation
           g_concatcopy_move(list,source,dest,len)
         else
           begin
-            reference_reset(src,source.alignment);
-            reference_reset(dst,dest.alignment);
+            reference_reset(src,source.alignment,source.volatility);
+            reference_reset(dst,dest.alignment,dest.volatility);
             { load the address of source into src.base }
             src.base:=GetAddressRegister(list);
             a_loadaddr_ref_reg(list,source,src.base);
