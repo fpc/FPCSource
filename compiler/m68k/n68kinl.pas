@@ -144,7 +144,7 @@ implementation
                 expectloc:=LOC_FPUREGISTER;
               fpu_soft,fpu_coldfire:
                 begin
-                  result:=inherited first_sin_real;
+                  result:=inherited first_cos_real;
                   exit;
                 end;
               else
