@@ -3058,6 +3058,10 @@ reg64,reg32           \326\1\x63\110                  X86_64
 (Ch_MRAX, Ch_WRDX, Ch_None)
 void                  \326\1\x99                      X86_64
 
+[CDQE,cltq]
+(Ch_MRAX, Ch_None, Ch_None)
+void                  \326\1\x98                      X86_64
+
 [CMPXCHG16B,cmpxchg16bX]
 (Ch_All, Ch_None, Ch_None)
 mem                   \326\2\x0F\xC7\201              X86_64

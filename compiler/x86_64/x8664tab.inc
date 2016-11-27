@@ -7750,6 +7750,13 @@
     flags   : if_x86_64
   ),
   (
+    opcode  : A_CDQE;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #214#1#152;
+    flags   : if_x86_64
+  ),
+  (
     opcode  : A_CMPXCHG16B;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none,ot_none);

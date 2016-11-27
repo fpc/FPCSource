@@ -578,6 +578,7 @@
 'movabs',
 'movsxd',
 'cqo',
+'cdqe',
 'cmpxchg16b',
 'movntss',
 'movntsd',
