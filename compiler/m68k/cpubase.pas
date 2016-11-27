@@ -82,6 +82,7 @@ unit cpubase;
          a_fsflmul,a_ftst,
          a_ftrapeq,a_ftrapne,a_ftrapgt,a_ftrapngt,a_ftrapge,a_ftrapnge,
          a_ftraplt,a_ftrapnlt,a_ftraple,a_ftrapgl,a_ftrapngl,a_ftrapgle,a_ftrapngle,
+         a_fint,a_fintrz,
          { fpu instructions - indirectly supported }
          a_fsin,a_fcos,
          { protected instructions }

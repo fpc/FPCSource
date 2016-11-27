@@ -76,6 +76,7 @@ interface
          'fsflmul','ftst',
          'ftrapeq','ftrapne','ftrapgt','ftrapngt','ftrapge','ftrapnge',
          'ftraplt','ftrapnlt','ftraple','ftrapgl','ftrapngl','ftrapgle','ftrapngle',
+         'fint','fintrz',
          { fpu instructions - indirectly supported }
          'fsin','fcos',
          { protected instructions }
