@@ -1407,7 +1407,11 @@ implementation
               if pd.parast.symtablelevel>normal_function_level then
                 Message(parser_e_no_local_operator);
               if isclassmethod then
-                include(pd.procoptions,po_classmethod);
+                begin
+                  include(pd.procoptions,po_classmethod);
+                  { any class operator is also static }
+                  include(pd.procoptions,po_staticmethod);
+                end;
               if token<>_ID then
                 begin
                    if not(m_result in current_settings.modeswitches) then
