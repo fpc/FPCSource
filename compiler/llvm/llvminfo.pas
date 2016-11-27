@@ -34,6 +34,8 @@ Type
        llvmver_3_6_1,
        llvmver_3_6_2,
        llvmver_3_7_0,
+       llvmver_3_8_0,
+       llvmver_3_9_0,
        { Xcode versions use snapshots of LLVM and don't correspond to released
          versions of llvm (they don't ship with the llvm utilities either, but
          they do come with Clang, which can also be used to some extent instead
@@ -46,7 +48,8 @@ type
      llvmflag_metadata_keyword,    { use "metadata" keyword (others leave it away, except when metadata is an argument to call instructions) }
      llvmflag_linker_private,      { have linker_private linkage type (later versions use global in combination with hidden visibility) }
      llvmflag_load_getelptr_type,  { the return type of loads and the base type of getelementptr must be specified }
-     llvmflag_call_no_ptr          { with direct calls, the function type is not a function pointer }
+     llvmflag_call_no_ptr,         { with direct calls, the function type is not a function pointer }
+     llvmflag_alias_double_type    { with "alias" declarations, have to print both aliasee and aliasee* types }
    );
    tllvmversionflags = set of tllvmversionflag;
 
@@ -63,6 +66,8 @@ Const
      'LLVM-3.6.1',
      'LLVM-3.6.2',
      'LLVM-3.7.0',
+     'LLVM-3.8.0',
+     'LLVM-3.9.0',
      'LLVM-Xcode-6.4' { somewhere around LLVM 3.6.0 }
    );
 
@@ -79,6 +84,8 @@ Const
        { llvmver_3_6_1  } [],
        { llvmver_3_6_2  } [],
        { llvmver_3_7_0  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr],
+       { llvmver_3_8_0  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type],
+       { llvmver_3_9_0  } [llvmflag_load_getelptr_type,llvmflag_call_no_ptr,llvmflag_alias_double_type],
        { llvmver_xc_6_4 } [llvmflag_metadata_keyword]
      );
 

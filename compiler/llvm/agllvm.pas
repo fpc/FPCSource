@@ -1027,6 +1027,7 @@ implementation
       var
         hp2: tai;
         s: string;
+        sstr: TSymStr;
         i: longint;
         ch: ansichar;
       begin
@@ -1230,9 +1231,15 @@ implementation
               writer.AsmWrite(' = alias ');
               WriteLinkageVibilityFlags(taillvmalias(hp).bind);
               if taillvmalias(hp).def.typ=procdef then
-                writer.AsmWrite(llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def), '', lpd_alias))
+                sstr:=llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def), '', lpd_alias)
               else
-                writer.AsmWrite(llvmencodetypename(taillvmalias(hp).def));
+                sstr:=llvmencodetypename(taillvmalias(hp).def);
+              writer.AsmWrite(sstr);
+              if llvmflag_alias_double_type in llvmversion_properties[current_settings.llvmversion] then
+                begin
+                  writer.AsmWrite(', ');
+                  writer.AsmWrite(sstr);
+                end;
               writer.AsmWrite('* ');
               writer.AsmWriteln(LlvmAsmSymName(taillvmalias(hp).oldsym));
             end;
