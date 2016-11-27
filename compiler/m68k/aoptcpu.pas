@@ -209,8 +209,9 @@ unit aoptcpu;
          (getregtype(taicpu(p).oper[0]^.reg) = getregtype(taicpu(p).oper[1]^.reg)) and
          MatchOperand(taicpu(p).oper[1]^,taicpu(next2).oper[0]^) and
          MatchOperand(taicpu(next2).oper[1]^,taicpu(p).oper[0]^) and
-         ((taicpu(p).opsize = taicpu(next).opsize) and
-          (taicpu(p).opsize = taicpu(next2).opsize)) then
+         (taicpu(p).opsize = taicpu(next2).opsize) and
+         ((taicpu(p).opcode = A_FMOVE) or
+          (taicpu(p).opsize = taicpu(next).opsize)) then
         begin
           opstr:=opname(p);
 
