@@ -28,7 +28,8 @@ interface
     uses
       globtype,globals,systems,
       aasmbase,aasmtai,aasmdata,
-      assemble;
+      assemble,
+      aasmllvm;
 
     type
       TLLVMInstrWriter = class;
@@ -85,6 +86,7 @@ interface
         owner: TLLVMAssember;
         fstr: TSymStr;
 
+        function getopcodestr(hp: taillvm): TSymStr;
         function getopstr(const o:toper; refwithalign: boolean) : TSymStr;
         procedure WriteAsmRegisterAllocationClobbers(list: tasmlist);
       end;
@@ -98,7 +100,7 @@ implementation
       fmodule,verbose,
       objcasm,
       aasmcnst,symconst,symdef,symtable,
-      llvmbase,aasmllvm,itllvm,llvmdef,
+      llvmbase,itllvm,llvmdef,
       cgbase,cgutils,cpubase,llvminfo;
 
     const
@@ -537,7 +539,7 @@ implementation
             opstart:=1;
             if llvmflag_load_getelptr_type in llvmversion_properties[current_settings.llvmversion] then
               begin
-                owner.writer.AsmWrite(llvm_op2str[op]);
+                owner.writer.AsmWrite(getopcodestr(taillvm(hp)));
                 opdone:=true;
                 if nested then
                   owner.writer.AsmWrite(' (')
@@ -578,7 +580,7 @@ implementation
             opstart:=2;
             if llvmflag_call_no_ptr in llvmversion_properties[current_settings.llvmversion] then
               begin
-                owner.writer.AsmWrite(llvm_op2str[op]);
+                owner.writer.AsmWrite(getopcodestr(taillvm(hp)));
                 opdone:=true;
                 tmpstr:=llvmencodetypename(taillvm(hp).oper[2]^.def);
                 if tmpstr[length(tmpstr)]<>'*' then
@@ -627,7 +629,7 @@ implementation
               owner.writer.AsmWrite(getopstr(taillvm(hp).oper[0]^,false)+' = ')
             else
               nested:=true;
-            owner.writer.AsmWrite(llvm_op2str[op]);
+            owner.writer.AsmWrite(getopcodestr(taillvm(hp)));
             if not nested then
               owner.writer.AsmWrite(' ')
             else
@@ -665,7 +667,7 @@ implementation
         begin
           if not opdone then
             begin
-              owner.writer.AsmWrite(llvm_op2str[op]);
+              owner.writer.AsmWrite(getopcodestr(taillvm(hp)));
               if nested then
                 owner.writer.AsmWrite(' (');
             end;
@@ -689,6 +691,24 @@ implementation
         owner.writer.AsmWrite(')')
       else if owner.fdecllevel=0 then
         owner.writer.AsmLn;
+    end;
+
+
+  function TLLVMInstrWriter.getopcodestr(hp: taillvm): TSymStr;
+    begin
+      result:=llvm_op2str[hp.llvmopcode];
+      case hp.llvmopcode of
+        la_load:
+          begin
+            if vol_read in hp.oper[2]^.ref^.volatility then
+              result:=result+' volatile';
+          end;
+        la_store:
+          begin
+            if vol_write in hp.oper[3]^.ref^.volatility then
+              result:=result+' volatile';
+          end;
+      end;
     end;
 
 
