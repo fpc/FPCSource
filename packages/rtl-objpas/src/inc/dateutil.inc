@@ -2148,8 +2148,9 @@ end;
   ---------------------------------------------------------------------}
 
 Function DateTimeToUnix(const AValue: TDateTime): Int64;
+
 begin
-  Result:=Trunc(DateTimeDiff(AValue,UnixEpoch)*SecsPerDay);
+  Result:=Round(DateTimeDiff(RecodeMillisecond(AValue,0),UnixEpoch)*SecsPerDay);
 end;
 
 
