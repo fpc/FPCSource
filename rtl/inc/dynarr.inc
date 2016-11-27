@@ -34,7 +34,7 @@ type
       thus use packed also in this case }
     {$ifdef VER3_0_0}
       packed
-    {$endif VER"_0_0}
+    {$endif VER3_0_0}
   {$endif powerpc64}
 
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
