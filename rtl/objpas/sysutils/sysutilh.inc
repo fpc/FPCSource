@@ -211,6 +211,9 @@ type
    ENoThreadSupport = Class(Exception);
    ENoWideStringSupport = Class(Exception);
    ENoDynLibsSupport = class(Exception);
+
+   EProgrammerNotFound = class(Exception);
+
    ENotImplemented = class(Exception);
 
    EArgumentException = class(Exception);
@@ -222,6 +225,8 @@ type
    EDirectoryNotFoundException = class(Exception);
    EFileNotFoundException = class(Exception);
    EPathNotFoundException = class(Exception);
+
+   EInvalidOpException = class(Exception);
 
    ENoConstructException = class(Exception);
 
