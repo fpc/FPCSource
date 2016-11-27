@@ -162,7 +162,7 @@ interface
                         op.typ:=top_ref;
                         new(op.ref);
                         reference_reset_symbol(op.ref^,getllvmasmparasym(sym),sofs,
-                          newalignment(sym.localloc.reference.alignment,sofs));
+                          newalignment(sym.localloc.reference.alignment,sofs),[]);
                         op.ref^.index:=indexreg;
 {$ifdef x86}
                         op.ref^.scalefactor:=scale;
