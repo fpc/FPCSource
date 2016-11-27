@@ -2291,7 +2291,7 @@ unit cgcpu;
               a_load_reg_reg(list,size,OS_INT,reg,hreg);
 
             for i:=1 to bsrqword(a) do
-              if ((a >> i) and 1) = 1 then
+              if ((a shr i) and 1) = 1 then
                 begin
                   if firstmov then
                     begin
@@ -2312,7 +2312,7 @@ unit cgcpu;
             { doing subtractions }
             a_load_const_reg(list,OS_INT,0,hreg);
             for i:=0 to bsrqword(submask) do
-              if ((submask >> i) and 1) = 1 then
+              if ((submask shr i) and 1) = 1 then
                 begin
                   a_op_const_reg(list,OP_SHL,OS_INT,i-lastshift,reg);
                   a_op_reg_reg(list,OP_SUB,OS_INT,reg,hreg);
