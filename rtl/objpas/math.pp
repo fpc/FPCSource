@@ -747,7 +747,7 @@ function radtocycle(rad : float) : float;inline;
 Function DegNormalize(deg : single) : single; 
 
 begin
-  Result:=Deg-Trunc(Deg/360)*360;
+  Result:=Deg-Int(Deg/360)*360;
   If Result<0 then Result:=Result+360;
 end;
 {$ENDIF}
@@ -755,7 +755,7 @@ end;
 Function DegNormalize(deg : double) : double; inline;
 
 begin
-  Result:=Deg-Trunc(Deg/360)*360;
+  Result:=Deg-Int(Deg/360)*360;
   If (Result<0) then Result:=Result+360;
 end;
 {$ENDIF}
@@ -763,7 +763,7 @@ end;
 Function DegNormalize(deg : extended) : extended; inline;
 
 begin
-  Result:=Deg-Trunc(Deg/360)*360;
+  Result:=Deg-Int(Deg/360)*360;
   If Result<0 then Result:=Result+360;
 end;
 {$ENDIF}
@@ -2399,27 +2399,27 @@ end;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function FMod(const a, b: Single): Single;inline;overload;
 begin
-  result:= a-b * trunc(a/b);
+  result:= a-b * Int(a/b);
 end;
 {$endif FPC_HAS_TYPE_SINGLE}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function FMod(const a, b: Double): Double;inline;overload;
 begin
-  result:= a-b * trunc(a/b);
+  result:= a-b * Int(a/b);
 end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function FMod(const a, b: Extended): Extended;inline;overload;
 begin
-  result:= a-b * trunc(a/b);
+  result:= a-b * Int(a/b);
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
 operator mod(const a,b:float) c:float;inline;
 begin
-  c:= a-b * trunc(a/b);  
+  c:= a-b * Int(a/b);
 end;
 
 function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer;
@@ -2553,9 +2553,9 @@ var
 begin
   RV := IntPower(10, -Digits);
   if AValue < 0 then
-    Result := Trunc((AValue*RV) - 0.5)/RV
+    Result := Int((AValue*RV) - 0.5)/RV
   else
-    Result := Trunc((AValue*RV) + 0.5)/RV;
+    Result := Int((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
 
@@ -2568,9 +2568,9 @@ var
 begin
   RV := IntPower(10, -Digits);
   if AValue < 0 then
-    Result := Trunc((AValue*RV) - 0.5)/RV
+    Result := Int((AValue*RV) - 0.5)/RV
   else
-    Result := Trunc((AValue*RV) + 0.5)/RV;
+    Result := Int((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
 
@@ -2583,9 +2583,9 @@ var
 begin
   RV := IntPower(10, -Digits);
   if AValue < 0 then
-    Result := Trunc((AValue*RV) - 0.5)/RV
+    Result := Int((AValue*RV) - 0.5)/RV
   else
-    Result := Trunc((AValue*RV) + 0.5)/RV;
+    Result := Int((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
 
