@@ -129,7 +129,7 @@ implementation
     begin
       if not assigned(def.typesym) then
         internalerror(2015041901);
-      result:='%"typ.'+def.fullownerhierarchyname+def.typesym.realname+'"'
+      result:='%"typ.'+def.fullownerhierarchyname(false)+def.typesym.realname+'"'
     end;
 
 

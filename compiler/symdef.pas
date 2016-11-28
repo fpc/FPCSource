@@ -114,7 +114,7 @@ interface
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  OwnerHierarchyName: string; override;
-          function  fullownerhierarchyname:TSymStr;override;
+          function  fullownerhierarchyname(skipprocparams:boolean):TSymStr;override;
           function  needs_separate_initrtti:boolean;override;
           function  in_currentunit: boolean;
           { regvars }
@@ -1892,16 +1892,17 @@ implementation
         until tmp=nil;
       end;
 
-    function tstoreddef.fullownerhierarchyname: TSymStr;
+    function tstoreddef.fullownerhierarchyname(skipprocparams:boolean): TSymStr;
       var
         lastowner: tsymtable;
         tmp: tdef;
+        pno: tprocnameoptions;
       begin
 {$ifdef symansistr}
-        if _fullownerhierarchyname<>'' then
+        if not skipprocparams and (_fullownerhierarchyname<>'') then
           exit(_fullownerhierarchyname);
 {$else symansistr}
-        if assigned(_fullownerhierarchyname) then
+        if not skipprocparams and assigned(_fullownerhierarchyname) then
           exit(_fullownerhierarchyname^);
 {$endif symansistr}
         { the def can only reside inside structured types or
@@ -1921,16 +1922,23 @@ implementation
             result:=tabstractrecorddef(tmp).objrealname^+'.'+result
           else
             if tmp.typ=procdef then
-              result:=tprocdef(tmp).customprocname([pno_paranames,pno_proctypeoption])+'.'+result;
+              begin
+                pno:=[pno_paranames,pno_proctypeoption];
+                if skipprocparams then
+                  include(pno,pno_noparams);
+                result:=tprocdef(tmp).customprocname(pno)+'.'+result;
+              end;
         until tmp=nil;
         { add the unit name }
         if assigned(lastowner) and
            assigned(lastowner.realname) then
           result:=lastowner.realname^+'.'+result;
+        if not skipprocparams then
+          { don't store the name in this case }
 {$ifdef symansistr}
-        _fullownerhierarchyname:=result;
+          _fullownerhierarchyname:=result;
 {$else symansistr}
-        _fullownerhierarchyname:=stringdup(result);
+          _fullownerhierarchyname:=stringdup(result);
 {$endif symansistr}
       end;
 

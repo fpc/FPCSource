@@ -360,13 +360,13 @@ uses
                           begin
                             { special handling for specializations inside generic function declarations }
                             namepart:=tdef(symtablestack.top.defowner).unique_id_str;
-                            namepart:='genproc'+namepart+'_'+tdef(symtablestack.top.defowner).fullownerhierarchyname+'_'+tprocdef(symtablestack.top.defowner).procsym.realname+'_'+typeparam.resultdef.typename;
-                            prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname+tprocdef(symtablestack.top.defowner).procsym.prettyname;
+                            namepart:='genproc'+namepart+'_'+tdef(symtablestack.top.defowner).fullownerhierarchyname(false)+'_'+tprocdef(symtablestack.top.defowner).procsym.realname+'_'+typeparam.resultdef.typename;
+                            prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname(false)+tprocdef(symtablestack.top.defowner).procsym.prettyname;
                           end
                         else
                           begin
                             namepart:=typeparam.resultdef.fulltypename;
-                            prettynamepart:=typeparam.resultdef.fullownerhierarchyname;
+                            prettynamepart:=typeparam.resultdef.fullownerhierarchyname(false);
                           end;
                         specializename:=specializename+'$'+namepart;
                         if not first then

@@ -75,7 +75,7 @@ interface
          function  getmangledparaname:TSymStr;virtual;
          function  rtti_mangledname(rt:trttitype):TSymStr;virtual;abstract;
          function  OwnerHierarchyName: string; virtual; abstract;
-         function  fullownerhierarchyname:TSymStr;virtual;abstract;
+         function  fullownerhierarchyname(skipprocparams:boolean):TSymStr;virtual;abstract;
          function  unique_id_str: string;
          function  size:asizeint;virtual;abstract;
          function  packedbitsize:asizeint;virtual;
@@ -296,7 +296,7 @@ implementation
 
     function tdef.fulltypename:string;
       begin
-        result:=fullownerhierarchyname;
+        result:=fullownerhierarchyname(false);
         if assigned(typesym) and
            not(typ in [procvardef,procdef]) and
            (typesym.realname[1]<>'$') then
