@@ -1183,7 +1183,6 @@ begin
   prevC := #0;
   while (not IsWordDelim(C) or (prevC in ['E','-','+'])) and (C<>cNull) do
     begin
-    Writeln('C : ',C,' PrevC : ',PrevC);
     If Not ( IsDigit(C)
              or ((FToken<>'') and (Upcase(C)='E'))
              or ((FToken<>'') and (C in ['+','-']) and (prevC='E'))
