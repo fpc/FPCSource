@@ -295,6 +295,7 @@ uses
         tmpparampos : tfileposinfo;
         namepart : string;
         prettynamepart : ansistring;
+        module : tmodule;
       begin
         result:=true;
         if genericdeflist=nil then
@@ -310,8 +311,12 @@ uses
         if assigned(parsedtype) then
           begin
             genericdeflist.Add(parsedtype);
-            specializename:='$'+parsedtype.fulltypename;
-            prettyname:=parsedtype.typesym.prettyname;
+            module:=find_module_from_symtable(parsedtype.owner);
+            if not assigned(module) then
+              internalerror(2016112801);
+            namepart:='_$'+hexstr(module.moduleid,8)+'$$'+parsedtype.unique_id_str;
+            specializename:='$'+namepart;
+            prettyname:=parsedtype.fullownerhierarchyname(true)+parsedtype.typesym.prettyname;
             if assigned(poslist) then
               begin
                 New(parampos);
@@ -321,7 +326,7 @@ uses
           end
         else
           begin
-            specializename:='';
+            specializename:='$';
             prettyname:='';
           end;
         while not (token in [_GT,_RSHARPBRACKET]) do
@@ -353,22 +358,23 @@ uses
                     else if (typeparam.resultdef.typ<>errordef) then
                       begin
                         genericdeflist.Add(typeparam.resultdef);
+                        module:=find_module_from_symtable(typeparam.resultdef.owner);
+                        if not assigned(module) then
+                          internalerror(2016112802);
+                        namepart:='_$'+hexstr(module.moduleid,8)+'$$'+typeparam.resultdef.unique_id_str;
                         { we use the full name of the type to uniquely identify it }
                         if (symtablestack.top.symtabletype=parasymtable) and
                             (symtablestack.top.defowner.typ=procdef) and
                             (typeparam.resultdef.owner=symtablestack.top) then
                           begin
                             { special handling for specializations inside generic function declarations }
-                            namepart:=tdef(symtablestack.top.defowner).unique_id_str;
-                            namepart:='genproc'+namepart+'_'+tdef(symtablestack.top.defowner).fullownerhierarchyname(false)+'_'+tprocdef(symtablestack.top.defowner).procsym.realname+'_'+typeparam.resultdef.typename;
-                            prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname(false)+tprocdef(symtablestack.top.defowner).procsym.prettyname;
+                            prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname(true)+tprocdef(symtablestack.top.defowner).procsym.prettyname;
                           end
                         else
                           begin
-                            namepart:=typeparam.resultdef.fulltypename;
-                            prettynamepart:=typeparam.resultdef.fullownerhierarchyname(false);
+                            prettynamepart:=typeparam.resultdef.fullownerhierarchyname(true);
                           end;
-                        specializename:=specializename+'$'+namepart;
+                        specializename:=specializename+namepart;
                         if not first then
                           prettyname:=prettyname+',';
                         prettyname:=prettyname+prettynamepart+typeparam.resultdef.typesym.prettyname;

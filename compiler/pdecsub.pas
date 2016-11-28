@@ -771,11 +771,12 @@ implementation
             error : boolean;
             genname,
             ugenname : tidstring;
+            module : tmodule;
           begin
             result:=false;
             if not assigned(genericparams) then
               exit;
-            specializename:='';
+            specializename:='$';
             prettyname:='';
             error:=false;
             for i:=0 to genericparams.count-1 do
@@ -794,7 +795,10 @@ implementation
                     error:=true;
                     continue;
                   end;
-                specializename:=specializename+'$'+ttypesym(typesrsym).typedef.fulltypename;
+                module:=find_module_from_symtable(ttypesym(typesrsym).typedef.owner);
+                if not assigned(module) then
+                  internalerror(2016112803);
+                specializename:=specializename+'_$'+hexstr(module.moduleid,8)+'$$'+ttypesym(typesrsym).typedef.unique_id_str;
                 if i>0 then
                   prettyname:=prettyname+',';
                 prettyname:=prettyname+ttypesym(typesrsym).prettyname;
