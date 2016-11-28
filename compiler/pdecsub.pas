@@ -878,7 +878,14 @@ implementation
                   (ttypesym(srsym).typedef.typ=objectdef) then
                  ImplIntf:=find_implemented_interface(tobjectdef(astruct),tobjectdef(ttypesym(srsym).typedef));
                if ImplIntf=nil then
-                 Message(parser_e_interface_id_expected)
+                 begin
+                   Message(parser_e_interface_id_expected);
+                   { error recovery }
+                   consume(_ID);
+                   if try_to_consume(_EQ) then
+                     consume(_ID);
+                   exit;
+                 end
                else
                  { in case of a generic or specialized interface we need to use the
                    name of the def instead of the symbol, so that always the correct
