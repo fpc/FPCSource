@@ -56,6 +56,7 @@ unit tgllvm;
       ttgllvm = class(ttgobj)
        protected
         procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
+        procedure gethltempintern(list: TAsmList; def: tdef; alignment: shortint; forcesize: asizeint; temptype: ttemptype; out ref: treference);
        public
         alloclist: tasmlist;
 
@@ -122,6 +123,17 @@ implementation
           current_filepos:=oldfileinfo;
       end;
 
+    procedure ttgllvm.gethltempintern(list: TAsmList; def: tdef; alignment: shortint; forcesize: asizeint; temptype: ttemptype; out ref: treference);
+      begin
+        { empty array (can happen for arrayconstructors) -> don't request the
+          size, as that will internalerror }
+        if (def.typ=arraydef) and
+           (tarraydef(def).highrange<tarraydef(def).lowrange) then
+          alloctemp(list,0,alignment,temptype,def,false,ref)
+        else
+          alloctemp(list,def.size,alignment,temptype,def,false,ref);
+      end;
+
 
     function ttgllvm.istemp(const ref: treference): boolean;
       begin
@@ -153,19 +165,14 @@ implementation
 
     procedure ttgllvm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference);
       begin
-        gethltemp(list,def,size,tt_persistent,ref);
+        alignment:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
+        gethltempintern(list,def,alignment,size,tt_persistent,ref);
       end;
 
 
     procedure ttgllvm.gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference);
       begin
-        { empty array (can happen for arrayconstructors) -> don't request the
-          size, as that will internalerror }
-        if (def.typ=arraydef) and
-           (tarraydef(def).highrange<tarraydef(def).lowrange) then
-          alloctemp(list,0,def.alignment,temptype,def,false,ref)
-        else
-          alloctemp(list,def.size,def.alignment,temptype,def,false,ref);
+        gethltempintern(list,def,def.alignment,forcesize,tt_persistent,ref);
       end;
 
 
