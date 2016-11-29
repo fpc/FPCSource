@@ -2141,6 +2141,8 @@ implementation
       var
         hpnext,
         hp : pcandidate;
+        psym : tprocsym;
+        i : longint;
       begin
         FIgnoredCandidateProcs.free;
         hp:=FCandidateProcs;
@@ -2149,7 +2151,19 @@ implementation
            hpnext:=hp^.next;
            { free those procdef specializations that are not owned (thus were discarded) }
            if hp^.data.is_specialization and not hp^.data.is_registered then
-             hp^.data.free;
+             begin
+               { also remove the procdef from its symbol's procdeflist }
+               psym:=tprocsym(hp^.data.procsym);
+               for i:=0 to psym.procdeflist.count-1 do
+                 begin
+                   if psym.procdeflist[i]=hp^.data then
+                     begin
+                       psym.procdeflist.delete(i);
+                       break;
+                     end;
+                 end;
+               hp^.data.free;
+             end;
            dispose(hp);
            hp:=hpnext;
          end;
