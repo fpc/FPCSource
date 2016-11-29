@@ -236,7 +236,16 @@ procedure tllvmtypeconvnode.second_nothing;
            (resultdef.typ<>formaldef) and
            not is_open_array(resultdef) and
            not is_open_array(left.resultdef) and
-          (left.resultdef.size<>resultdef.size) then
+           (left.resultdef.size<>resultdef.size) and
+           { in case of ISO-like I/O, the typed file def includes a
+             get/put buffer of the size of the file's elements }
+           not(
+               (m_isolike_io in current_settings.modeswitches) and
+               (left.resultdef.typ=filedef) and
+               (tfiledef(left.resultdef).filetyp=ft_typed) and
+               (resultdef.typ=filedef) and
+               (tfiledef(resultdef).filetyp=ft_untyped)
+           ) then
           internalerror(2014012216);
         hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));

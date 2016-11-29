@@ -113,7 +113,7 @@ interface
 implementation
 
   uses
-    cutils,constexp,
+    globals,cutils,constexp,
     verbose,systems,
     fmodule,
     symtable,symconst,symsym,
@@ -392,7 +392,22 @@ implementation
               case tfiledef(def).filetyp of
                 ft_text    :
                   llvmaddencodedtype_intern(search_system_type('TEXTREC').typedef,[lef_inaggregate]+[lef_typedecl]*flags,encodedstr);
-                ft_typed,
+                ft_typed   :
+                  begin
+                    { in case of ISO-like I/O, the typed file def includes a
+                      get/put buffer of the size of the file's elements }
+                    if (m_isolike_io in current_settings.modeswitches) and
+                       not is_void(tfiledef(def).typedfiledef) then
+                      encodedstr:=encodedstr+'<{';
+                    llvmaddencodedtype_intern(search_system_type('FILEREC').typedef,[lef_inaggregate]+[lef_typedecl]*flags,encodedstr);
+                    if (m_isolike_io in current_settings.modeswitches) and
+                       not is_void(tfiledef(def).typedfiledef) then
+                      begin
+                        encodedstr:=encodedstr+',[';
+                        encodedstr:=encodedstr+tostr(tfiledef(def).typedfiledef.size);
+                        encodedstr:=encodedstr+' x i8]}>'
+                      end;
+                  end;
                 ft_untyped :
                   llvmaddencodedtype_intern(search_system_type('FILEREC').typedef,[lef_inaggregate]+[lef_typedecl]*flags,encodedstr);
                 else
