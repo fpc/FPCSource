@@ -1783,16 +1783,15 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 end;
           end;
         curoffset:=startoffset;
+        { add VMT pointer if we stopped writing fields before the VMT was
+          written }
         if not(m_fpc in current_settings.modeswitches) and
            (oo_has_vmt in def.objectoptions) and
            (def.vmt_offset>=objoffset) then
           begin
-            for i:=1 to def.vmt_offset-objoffset do
-              ftcb.emit_tai(tai_const.create_8bit(0),u8inttype);
-            // TODO VMT type proper tdef?
-            ftcb.emit_tai(tai_const.createname(def.vmt_mangledname,AT_DATA,0),voidpointertype);
-            { this is more general }
-            objoffset:=def.vmt_offset + sizeof(pint);
+            ftcb.next_field:=tfieldvarsym(def.vmt_field);
+            ftcb.emit_tai(tai_const.createname(def.vmt_mangledname,AT_DATA,0),tfieldvarsym(def.vmt_field).vardef);
+            objoffset:=def.vmt_offset+tfieldvarsym(def.vmt_field).vardef.size;
           end;
         ftcb.maybe_end_aggregate(def);
         consume(_RKLAMMER);
