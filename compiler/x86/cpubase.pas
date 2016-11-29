@@ -388,6 +388,10 @@ implementation
             cgsize2subreg:=R_SUBMMX;
           OS_M256,OS_MS256:
             cgsize2subreg:=R_SUBMMY;
+          OS_NO:
+            { error message should have been thrown already before, so avoid only
+              an internal error }
+            cgsize2subreg:=R_SUBNONE;
           else
             internalerror(200301231);
         end;
