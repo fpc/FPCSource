@@ -938,7 +938,10 @@ uses
                 { First a new sym so we can reuse this specialization and
                   references to this specialization can be handled }
                 if genericdef.typ=procdef then
-                  srsym:=cprocsym.create(finalspecializename)
+                  if assigned(psym) then
+                    srsym:=psym
+                  else
+                    srsym:=cprocsym.create(finalspecializename)
                 else
                   srsym:=ctypesym.create(finalspecializename,generrordef,true);
                 { insert the symbol only if we don't know already that we have
