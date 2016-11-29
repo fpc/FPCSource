@@ -301,13 +301,14 @@ implementation
             use a custom recorddef to emit this data }
           if not(info.anonrecord) and
              (info.def.typ<>procvardef) and
-             (aggregate_kind(info.def)=tck_record) then
+             (aggregate_kind(info.def)=tck_record) and
+             not info.doesnotmatchllvmdef then
             begin
-              if not info.doesnotmatchllvmdef and
-                 (info.llvmnextfieldindex<tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.symdeflist.count) and
+              if (info.llvmnextfieldindex>=tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.symdeflist.count) or
                  not equal_defs(def,tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.entries_by_llvm_index[info.llvmnextfieldindex].def) then
-                info.doesnotmatchllvmdef:=true;
-              info.llvmnextfieldindex:=info.llvmnextfieldindex+1;
+                info.doesnotmatchllvmdef:=true
+              else
+                info.llvmnextfieldindex:=info.llvmnextfieldindex+1;
             end;
           info.aggai.addvalue(stc);
         end
@@ -485,16 +486,19 @@ implementation
       inherited;
       info:=tllvmaggregateinformation(curagginfo);
       if assigned(info) and
-         was_aggregate then
+         was_aggregate and
+         not info.doesnotmatchllvmdef then
         begin
           { are we emitting data that does not match the equivalent data in
             the llvm structure? If so, record this so that we know we have to
             use a custom recorddef to emit this data }
           if not info.anonrecord and
              (aggregate_kind(info.def)=tck_record) and
-             not equal_defs(def,tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.entries_by_llvm_index[info.llvmnextfieldindex].def) then
-            info.doesnotmatchllvmdef:=true;
-          info.llvmnextfieldindex:=info.llvmnextfieldindex+1;
+             ((info.llvmnextfieldindex>=tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.symdeflist.count) or
+              not equal_defs(def,tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.entries_by_llvm_index[info.llvmnextfieldindex].def)) then
+            info.doesnotmatchllvmdef:=true
+          else
+            info.llvmnextfieldindex:=info.llvmnextfieldindex+1;
         end;
     end;
 
