@@ -708,6 +708,7 @@ uses
         ufinalspecializename : tidstring;
         prettyname : ansistring;
         generictypelist : tfphashobjectlist;
+        srsymtable,
         specializest : tsymtable;
         hashedid : thashedidstring;
         tempst : tglobalsymtable;
@@ -881,7 +882,17 @@ uses
           begin
             hashedid.id:=ufinalspecializename;
 
-            srsym:=tsym(specializest.findwithhash(hashedid));
+            if specializest.symtabletype=objectsymtable then
+              begin
+                { search also in parent classes }
+                if not assigned(current_genericdef) or (current_genericdef.typ<>objectdef) then
+                  internalerror(2016112901);
+                if not searchsym_in_class(tobjectdef(current_genericdef),tobjectdef(current_genericdef),ufinalspecializename,srsym,srsymtable,[]) then
+                  srsym:=nil;
+              end
+            else
+              srsym:=tsym(specializest.findwithhash(hashedid));
+
             if assigned(srsym) then
               begin
                 retrieve_genericdef_or_procsym(srsym,result,psym);
