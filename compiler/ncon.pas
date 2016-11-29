@@ -391,11 +391,56 @@ implementation
          dogetcopy:=n;
       end;
 
+
     function trealconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
         resultdef:=typedef;
+
+        { range checking? }
+        if floating_point_range_check_error or
+           (tfloatdef(resultdef).floattype in [s64comp,s64currency]) then
+          begin
+            { use CGMessage so that the resultdef will get set to errordef
+              by pass1.typecheckpass_internal if a range error was triggered,
+              which in turn will prevent any potential parent type conversion
+              node from creating a new realconstnode with this exact same value
+              and hence trigger the same error again }
+            case tfloatdef(resultdef).floattype of
+              s32real :
+                begin
+                  if ts32real(value_real)=MathInf.Value then
+                    CGMessage(parser_e_range_check_error);
+                end;
+              s64real:
+                begin
+                  if ts64real(value_real)=MathInf.Value then
+                    CGMessage(parser_e_range_check_error);
+                end;
+              s80real,
+              sc80real:
+                begin
+                  if ts80real(value_real)=MathInf.Value then
+                    CGMessage(parser_e_range_check_error);
+                end;
+              s64comp,
+              s64currency:
+                begin
+                  if (value_real>9223372036854775807.0) or
+                     (value_real<-9223372036854775808.0) then
+                    CGMessage(parser_e_range_check_error)
+                end;
+              s128real:
+                begin
+                  if ts128real(value_real)=MathInf.Value then
+                    CGMessage(parser_e_range_check_error);
+                end;
+              else
+                internalerror(2016112902);
+            end;
+          end;
       end;
+
 
     function trealconstnode.pass_1 : tnode;
       begin
@@ -404,6 +449,7 @@ implementation
          if (cs_create_pic in current_settings.moduleswitches) then
            include(current_procinfo.flags,pi_needs_got);
       end;
+
 
     function trealconstnode.docompare(p: tnode): boolean;
       begin

@@ -144,10 +144,6 @@ implementation
                     aitrealconst_s32bit :
                       begin
                         current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s32real(ts32real(value_real)));
-                        { range checking? }
-                        if floating_point_range_check_error and
-                           (tai_realconst(current_asmdata.asmlists[al_typedconsts].last).value.s32val=MathInf.Value) then
-                          Message(parser_e_range_check_error);
                       end;
 
                     aitrealconst_s64bit :
@@ -158,31 +154,16 @@ implementation
                         else
 {$endif ARM}
                           current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s64real(ts64real(value_real)));
-
-                        { range checking? }
-                        if floating_point_range_check_error and
-                           (tai_realconst(current_asmdata.asmlists[al_typedconsts].last).value.s64val=MathInf.Value) then
-                          Message(parser_e_range_check_error);
                      end;
 
                     aitrealconst_s80bit :
                       begin
                         current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s80real(value_real,tfloatdef(resultdef).size));
-
-                        { range checking? }
-                        if floating_point_range_check_error and
-                           (tai_realconst(current_asmdata.asmlists[al_typedconsts].last).value.s80val=MathInf.Value) then
-                          Message(parser_e_range_check_error);
                       end;
 {$ifdef cpufloat128}
                     aitrealconst_s128bit :
                       begin
                         current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s128real(value_real));
-
-                        { range checking? }
-                        if floating_point_range_check_error and
-                           (tai_realconst(current_asmdata.asmlists[al_typedconsts].last).value.s128val=MathInf.Value) then
-                          Message(parser_e_range_check_error);
                       end;
 {$endif cpufloat128}
 
