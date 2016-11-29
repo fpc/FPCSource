@@ -973,9 +973,9 @@
             result:='';
         end;
 
-      class function TObject.QualifiedClassName: ansistring;
+      class function TObject.QualifiedClassName: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
         var
-          uname: ansistring;
+          uname: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
         begin
           uname := UnitName; //TODO: change 'UnitName' to 'UnitScope' as soon as RTL implement it
           if uname='' then

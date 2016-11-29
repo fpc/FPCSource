@@ -249,7 +249,7 @@
 
           { new since Delphi 2009 }
           class function UnitName : {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
-          class function QualifiedClassName: ansistring;
+          class function QualifiedClassName: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
           function Equals(Obj: TObject) : boolean;virtual;
           function GetHashCode: PtrInt;virtual;
           function ToString: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};virtual;
@@ -454,6 +454,7 @@
                               Resourcestring support
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_RESOURCES}
   type
     PResourceStringRecord = ^TResourceStringRecord;
     TResourceStringRecord = Record
@@ -462,3 +463,4 @@
        DefaultValue : AnsiString;
        HashValue    : LongWord;
      end;
+{$endif FPC_HAS_FEATURE_RESOURCES}
