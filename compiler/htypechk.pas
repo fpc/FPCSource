@@ -2172,6 +2172,9 @@ implementation
 
     procedure tcallcandidates.collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
 
+      var
+        changedhierarchy : boolean;
+
       function processprocsym(srsym:tprocsym; out foundanything: boolean):boolean;
         var
           j  : integer;
@@ -2216,7 +2219,9 @@ implementation
                 FProcsym:=tprocsym(srsym);
               if po_overload in pd.procoptions then
                 result:=true;
-              ProcdefOverloadList.Add(pd);
+              { if the hierarchy had been changed we need to check for duplicates }
+              if not changedhierarchy or (ProcdefOverloadList.IndexOf(pd)<0) then
+                ProcdefOverloadList.Add(pd);
             end;
         end;
 
@@ -2225,6 +2230,7 @@ implementation
         hashedid   : THashedIDString;
         hasoverload,
         foundanything : boolean;
+        extendeddef : tabstractrecorddef;
         helperdef  : tobjectdef;
       begin
         if FOperator=NOTOKEN then
@@ -2232,6 +2238,8 @@ implementation
         else
           hashedid.id:=overloaded_names[FOperator];
         hasoverload:=false;
+        extendeddef:=nil;
+        changedhierarchy:=false;
         while assigned(structdef) do
          begin
            { first search in helpers for this type }
@@ -2275,6 +2283,9 @@ implementation
            if is_objectpascal_helper(structdef) and
               (tobjectdef(structdef).extendeddef.typ in [recorddef,objectdef]) then
              begin
+               { remember the first extendeddef of the hierarchy }
+               if not assigned(extendeddef) then
+                 extendeddef:=tabstractrecorddef(tobjectdef(structdef).extendeddef);
                { search methods in the extended type as well }
                srsym:=tprocsym(tabstractrecorddef(tobjectdef(structdef).extendeddef).symtable.FindWithHash(hashedid));
                if assigned(srsym) and
@@ -2293,6 +2304,13 @@ implementation
              structdef:=tobjectdef(structdef).childof
            else
              structdef:=nil;
+           { switch over to the extended def's hierarchy }
+           if not assigned(structdef) and assigned(extendeddef) then
+             begin
+               structdef:=extendeddef;
+               extendeddef:=nil;
+               changedhierarchy:=true;
+             end;
          end;
       end;
 
