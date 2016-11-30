@@ -883,7 +883,7 @@ Type
     Destructor Destroy; override;
     Property Cond : TJSelement Read FCond Write FCond;
     Property Cases : TJSCaseElements Read FCases;
-    Property TheDefault : TJSCaseElement Read FDefault Write FDefault; // one of Cases
+    Property TheDefault : TJSCaseelement Read FDefault Write FDefault; // one of Cases
   end;
 
   { TJSLabeledStatement - e.g. 'TheLabel : A' }
