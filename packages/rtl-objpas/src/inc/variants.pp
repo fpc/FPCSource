@@ -4536,6 +4536,8 @@ begin
       Result := GetInt64Prop(Instance, PropInfo);
     tkQWord:
       Result := QWord(GetInt64Prop(Instance, PropInfo));
+    tkDynArray:
+      DynArrayToVariant(Result,GetDynArrayProp(Instance, PropInfo), PropInfo^.PropType);
     else
       raise EPropertyConvertError.CreateFmt('Invalid Property Type: %s',[PropInfo^.PropType^.Name]);
   end;
@@ -4550,6 +4552,7 @@ var
  Qw: QWord;
  S: String;
  B: Boolean;
+ dynarr: Pointer;
 
 begin
    TypeData := GetTypeData(PropInfo^.PropType);
@@ -4638,7 +4641,13 @@ begin
          if (Qw<TypeData^.MinQWordValue) or (Qw>TypeData^.MaxQWordValue) then
            raise ERangeError.Create(SRangeError);
          SetInt64Prop(Instance, PropInfo,Qw);
-       end
+       end;
+     tkDynArray:
+       begin
+         dynarr:=Nil;
+         DynArrayFromVariant(dynarr, Value, PropInfo^.PropType);
+         SetDynArrayProp(Instance, PropInfo, dynarr);
+       end;
    else
      raise EPropertyConvertError.CreateFmt('SetPropValue: Invalid Property Type %s',
                                     [PropInfo^.PropType^.Name]);
