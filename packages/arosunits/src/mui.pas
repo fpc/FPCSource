@@ -3574,12 +3574,12 @@ type
 // Instance data of notify class
   TMUI_NotifyData = record
     mnd_GlobalInfo: PMUI_GlobalInfo;
-    mnd_UserData: LongWord;
+    mnd_UserData: IPTR;
     mnd_ObjectID: LongWord;
-    priv1: LongWord;
-    priv2: LongWord;
-    priv3: LongWord;
-    priv4: LongWord;
+    priv1: Pointer;
+    priv2: Pointer;
+    priv3: Pointer;
+    priv4: IPTR;
   end;
   PMUI_NotifyData = ^TMUI_NotifyData;
 
