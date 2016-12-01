@@ -2980,7 +2980,7 @@ implementation
           if upper(classname)='TAI_ALIGN_ABSTRACT' then
             internalerror(200709191);
 {$endif EXTDEBUG}
-          if b in [1,2,4,8,16,32] then
+          if b in [1,2,4,8,16,32,64] then
             aligntype := b
           else
             aligntype := 1;
