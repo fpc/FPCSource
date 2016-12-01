@@ -100,7 +100,7 @@ const
 function PathConv(path: string): string; external name 'PATHCONV';
 
 function dosLock(const name: String;
-                 accessmode: Longint) : LongInt;
+                 accessmode: Longint) : BPTR;
 var
  buffer: array[0..255] of Char;
 begin
@@ -111,7 +111,7 @@ end;
 
 function BADDR(bval: PtrInt): Pointer; Inline;
 begin
-  {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_FLAVOUR_BINCOMPAT))} 
+  {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_FLAVOUR_BINCOMPAT))}
   BADDR := Pointer(bval);
   {$else}
   BADDR:=Pointer(bval Shl 2);
@@ -491,7 +491,7 @@ procedure Exec(const Path: PathStr; const ComLine: ComStr);
 var
   tmpPath: array[0..515] of char;
   result : longint;
-  tmpLock: longint;
+  tmpLock: BPTR;
 begin
   DosError:= 0;
   LastDosExitCode:=0;
@@ -563,10 +563,10 @@ end;
 var
   DeviceList: array[0..26] of string[20];
   NumDevices: Integer = 0;
-  
+
 const
   IllegalDevices: array[0..12] of string =(
-                   'PED:',  
+                   'PED:',
                    'PRJ:',
                    'PIPE:',   // Pipes
                    'XPIPE:',  // Extented Pipe
@@ -649,7 +649,7 @@ end;
 //
 function DiskSize(Drive: AnsiString): Int64;
 var
-  DirLock: LongInt;
+  DirLock: BPTR;
   Inf: TInfoData;
   OldWinPtr: Pointer;
 begin
@@ -679,7 +679,7 @@ end;
 //
 function DiskFree(Drive: AnsiString): Int64;
 var
-  DirLock: LongInt;
+  DirLock: BPTR;
   Inf: TInfoData;
   OldWinPtr: Pointer;
 begin
@@ -820,17 +820,17 @@ begin
 
   repeat
     p1:=pos(';',dirlist);
-    if p1<>0 then 
+    if p1<>0 then
     begin
       newdir:=Copy(dirlist,1,p1-1);
       Delete(dirlist,1,p1);
-    end 
-    else 
+    end
+    else
     begin
       newdir:=dirlist;
       dirlist:='';
     end;
-    if (newdir<>'') and (not (newdir[length(newdir)] in [DirectorySeparator, DriveSeparator])) then 
+    if (newdir<>'') and (not (newdir[length(newdir)] in [DirectorySeparator, DriveSeparator])) then
       newdir:=newdir+DirectorySeparator;
     FindFirst(newdir+path,anyfile and not(directory),tmpSR);
     if doserror=0 then
@@ -851,7 +851,7 @@ Procedure getftime (var f; var time : longint);
 var
     FInfo : pFileInfoBlock;
     FTime : Longint;
-    FLock : Longint;
+    FLock : BPTR;
     Str   : String;
     i     : integer;
 begin
@@ -889,7 +889,7 @@ end;
     Str: String;
     i: Integer;
     Days, Minutes,Ticks: longint;
-    FLock: longint;
+    FLock: BPTR;
   Begin
     new(DateStamp);
 {$ifdef FPC_ANSI_TEXTFILEREC}
@@ -920,7 +920,7 @@ end;
 procedure getfattr(var f; var attr : word);
 var
     info : pFileInfoBlock;
-    MyLock : Longint;
+    MyLock : BPTR;
     flags: word;
     Str: String;
     i: integer;
@@ -968,7 +968,7 @@ begin
 procedure setfattr(var f; attr : word);
 var
   flags: longint;
-  tmpLock : longint;
+  tmpLock : BPTR;
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r : rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
@@ -1024,7 +1024,7 @@ begin
 
    { Alternatively, this could use PIPE: handler on systems which
      have this by default (not the case on classic Amiga), but then
-     the child process should be started async, which for a simple 
+     the child process should be started async, which for a simple
      Path command probably isn't worth the trouble. (KB) }
    assign(f,'T:'+HexStr(FindTask(nil))+'_path.tmp');
    rewrite(f);
@@ -1162,7 +1162,7 @@ begin
     if EnvList[Index].Local then
       EnvStr := EnvList[Index].Name + '=' + EnvList[Index].Value
     else
-      EnvStr := EnvList[Index].Name + '=' + GetEnvFromEnv(EnvList[Index].Name);  
+      EnvStr := EnvList[Index].Name + '=' + GetEnvFromEnv(EnvList[Index].Name);
   end;
 end;
 
@@ -1179,8 +1179,8 @@ begin
       StrOfPaths := GetPathString;
     GetEnv := StrOfPaths;
   end else
-  begin    
-    InitEnvironmentStrings;  
+  begin
+    InitEnvironmentStrings;
     for i := 0 to High(EnvList) do
     begin
       if EnvVarName = UpCase(EnvList[i].Name) then
@@ -1190,9 +1190,9 @@ begin
         else
           GetEnv := GetEnvFromEnv(EnvList[i].Name);
         Break;
-      end;  
+      end;
     end;
-  end;  
+  end;
 end;
 
 begin

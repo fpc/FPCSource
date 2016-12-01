@@ -17,11 +17,7 @@
 
 {Platform specific information}
 type
-{$ifdef CPU64}
-  THandle = Int64;
-{$else CPU64}
-  THandle = LongInt;
-{$endif CPU64}
+  THandle = PtrInt;
   TThreadID = THandle;
 
   PRTLCriticalSection = ^TRTLCriticalSection;

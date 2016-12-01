@@ -25,7 +25,7 @@ type
   { manually on exit.                                                  }
   PFileList = ^TFileList;
   TFileList = record { no packed, must be correctly aligned }
-    handle   : LongInt;      { Handle to file     }
+    handle   : THandle;      { Handle to file     }
     next     : PFileList;    { Next file in list  }
     buffered : boolean;      { used buffered I/O? }
   end;
@@ -37,7 +37,7 @@ var
 procedure CloseList(l: PFileList);
 var
   tmpNext   : PFileList;
-  tmpHandle : LongInt;
+  tmpHandle : THandle;
 begin
   if l=nil then exit;
   ObtainSemaphore(ASYS_fileSemaphore);
@@ -63,7 +63,7 @@ begin
 end;
 
 { Function to be called to add a file to the opened file list }
-procedure AddToList(var l: PFileList; h: LongInt); alias: 'ADDTOLIST'; [public];
+procedure AddToList(var l: PFileList; h: THandle); alias: 'ADDTOLIST'; [public];
 var
   p     : PFileList;
   inList: Boolean;
@@ -101,7 +101,7 @@ begin
 end;
 
 { Function to be called to remove a file from the list }
-function RemoveFromList(var l: PFileList; h: LongInt): boolean; alias: 'REMOVEFROMLIST'; [public];
+function RemoveFromList(var l: PFileList; h: THandle): boolean; alias: 'REMOVEFROMLIST'; [public];
 var
   p      : PFileList;
   inList : Boolean;
@@ -135,7 +135,7 @@ begin
 end;
 
 { Function to check if file is in the list }
-function CheckInList(var l: PFileList; h: LongInt): pointer; alias: 'CHECKINLIST'; [public];
+function CheckInList(var l: PFileList; h: THandle): pointer; alias: 'CHECKINLIST'; [public];
 var
   p      : PFileList;
   inList : Pointer;
@@ -169,7 +169,7 @@ end;
 ****************************************************************************}
 
 { close a file from the handle value }
-procedure do_close(handle : longint);
+procedure do_close(handle : THandle);
 begin
   if RemoveFromList(ASYS_fileList,handle) then begin
     { Do _NOT_ check CTRL_C on Close, because it will conflict
@@ -202,7 +202,7 @@ begin
     dosError2InOut(IoErr);
 end;
 
-function do_write(h: longint; addr: pointer; len: longint) : longint;
+function do_write(h: THandle; addr: pointer; len: longint) : longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
@@ -222,7 +222,7 @@ begin
   end;
 end;
 
-function do_read(h: longint; addr: pointer; len: longint) : longint;
+function do_read(h: THandle; addr: pointer; len: longint) : longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
@@ -242,7 +242,7 @@ begin
   end
 end;
 
-function do_filepos(handle: longint) : longint;
+function do_filepos(handle: THandle) : longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
@@ -259,7 +259,7 @@ begin
   end;
 end;
 
-procedure do_seek(handle, pos: longint);
+procedure do_seek(handle: THandle; pos: longint);
 begin
   checkCTRLC;
   if CheckInList(ASYS_fileList,handle)<>nil then begin
@@ -270,7 +270,7 @@ begin
   end;
 end;
 
-function do_seekend(handle: longint):longint;
+function do_seekend(handle: THandle):longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
@@ -332,7 +332,7 @@ begin
 end;
 
 { truncate at a given position }
-procedure do_truncate(handle, pos: longint);
+procedure do_truncate(handle: THandle; pos: longint);
 begin
   checkCTRLC;
   if CheckInList(ASYS_fileList,handle)<>nil then begin
@@ -352,7 +352,7 @@ procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
   when (flags and $1000) there is no check for close (needed for textfiles)
 }
 var
-  handle   : LongInt;
+  handle   : THandle;
   openflags: LongInt;
   tmpStr   : array[0..255] of Char;
 begin
@@ -419,7 +419,7 @@ begin
   end;
 end;
 
-function do_isdevice(handle: thandle): boolean;
+function do_isdevice(handle: THandle): boolean;
 begin
   if (handle=StdOutputHandle) or (handle=StdInputHandle) or
      (handle=StdErrorHandle) then

@@ -87,7 +87,7 @@ var
   ASYS_FileList: Pointer; external name 'ASYS_FILELIST';
 
 
-function BADDR(bval: LongInt): Pointer; Inline;
+function BADDR(bval: BPTR): Pointer; Inline;
 begin
   {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_FLAVOUR_BINCOMPAT))}
   BADDR := Pointer(bval);
@@ -105,7 +105,7 @@ begin
   {$endif}
 end;
 
-function BSTR2STRING(s : LongInt): PChar; Inline;
+function BSTR2STRING(s : BPTR): PChar; Inline;
 begin
   {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_FLAVOUR_BINCOMPAT))}
   BSTR2STRING:=PChar(s);
@@ -369,7 +369,7 @@ end;
 
 function FileAge (const FileName : RawByteString): Longint;
 var
-  tmpLock: Longint;
+  tmpLock: BPTR;
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;
   validFile: boolean;
@@ -397,7 +397,7 @@ end;
 
 function FileExists (const FileName : RawByteString) : Boolean;
 var
-  tmpLock: LongInt;
+  tmpLock: BPTR;
   tmpFIB : PFileInfoBlock;
   SystemFileName: RawByteString;
 begin
@@ -434,7 +434,7 @@ begin
   FillChar(Anchor^,sizeof(TAnchorPath),#0);
 
   if MatchFirst(pchar(tmpStr),Anchor)<>0 then exit;
-  Rslt.FindHandle := longint(Anchor);
+  Rslt.FindHandle := THandle(Anchor);
 
   with Anchor^.ap_Info do begin
     Name := fib_FileName;
@@ -629,7 +629,7 @@ end;
 //
 function DiskSize(Drive: AnsiString): Int64;
 var
-  DirLock: LongInt;
+  DirLock: BPTR;
   Inf: TInfoData;
   MyProc: PProcess;
   OldWinPtr: Pointer;
@@ -663,7 +663,7 @@ end;
 //
 function DiskFree(Drive: AnsiString): Int64;
 var
-  DirLock: LongInt;
+  DirLock: BPTR;
   Inf: TInfoData;
   MyProc: PProcess;
   OldWinPtr: Pointer;
@@ -695,7 +695,7 @@ end;
 
 function DirectoryExists(const Directory: RawByteString): Boolean;
 var
-  tmpLock: LongInt;
+  tmpLock: BPTR;
   FIB    : PFileInfoBlock;
   SystemDirName: RawByteString;
 begin
@@ -846,7 +846,7 @@ var
   tmpPath,
   convPath: RawByteString;
   CommandLine: AnsiString;
-  tmpLock: longint;
+  tmpLock: BPTR;
 
   E: EOSError;
 begin
