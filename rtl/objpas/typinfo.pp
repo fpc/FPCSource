@@ -206,6 +206,7 @@ unit typinfo;
         function GetExtendedInfo: PTypeInfo; inline;
         function GetIntfParent: PTypeInfo; inline;
         function GetRawIntfParent: PTypeInfo; inline;
+        function GetIIDStr: ShortString; inline;
         function GetElType: PTypeInfo; inline;
         function GetElType2: PTypeInfo; inline;
         function GetInstanceType: PTypeInfo; inline;
@@ -224,6 +225,7 @@ unit typinfo;
         property IntfParent: PTypeInfo read GetIntfParent;
         { tkInterfaceRaw }
         property RawIntfParent: PTypeInfo read GetRawIntfParent;
+        property IIDStr: ShortString read GetIIDStr;
         { tkDynArray }
         property ElType2: PTypeInfo read GetElType2;
         property ElType: PTypeInfo read GetElType;
@@ -314,7 +316,7 @@ unit typinfo;
                RawIntfFlags : TIntfFlagsBase;
                IID: TGUID;
                RawIntfUnit: ShortString;
-               IIDStr: ShortString;
+               { IIDStr: ShortString; }
                { here the properties follow as Word Count & array of TPropInfo }
               );
             tkArray:
@@ -2315,6 +2317,11 @@ end;
 function TTypeData.GetRawIntfParent: PTypeInfo;
 begin
   Result := DerefTypeInfoPtr(RawIntfParentRef);
+end;
+
+function TTypeData.GetIIDStr: ShortString;
+begin
+  Result := PShortString(Pointer(@RawIntfUnit) + Length(RawIntfUnit) + 1)^;
 end;
 
 function TTypeData.GetElType: PTypeInfo;
