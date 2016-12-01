@@ -119,7 +119,8 @@ begin
     SA_Type           , PUBLICSCREEN_F, // pubscreen
     SA_PubName        , PtrUInt(PChar(VIDEOSCREENNAME)),
     SA_Quiet          , 1,
-    SA_LikeWorkbench  , 1     // Let OS
+    SA_LikeWorkbench  , 1,     // Let OS
+    TAG_END, TAG_END
   ]);
   {$ifdef VIDEODEBUG}
   if (GetScreen <> nil) then
@@ -180,7 +181,8 @@ begin
       WA_Borderless , 1,
       WA_BackDrop   , 1,
       WA_FLAGS      , VIDEO_WFLG_DEFAULTS,
-      WA_IDCMP      , VIDEO_IDCMP_DEFAULTS
+      WA_IDCMP      , VIDEO_IDCMP_DEFAULTS,
+      TAG_END, TAG_END
     ]);
   end else
   begin      // Windowed Mode
@@ -196,7 +198,8 @@ begin
       WA_FLAGS      , (VIDEO_WFLG_DEFAULTS or
                        WFLG_DRAGBAR       or WFLG_DEPTHGADGET   or WFLG_SIZEGADGET or
                        WFLG_SIZEBBOTTOM   or WFLG_CLOSEGADGET),
-      WA_IDCMP      , VIDEO_IDCMP_DEFAULTS
+      WA_IDCMP      , VIDEO_IDCMP_DEFAULTS,
+      TAG_END, TAG_END
     ]);
   end;
 
