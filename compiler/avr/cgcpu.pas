@@ -611,7 +611,7 @@ unit cgcpu;
                    else
                      internalerror(2015061001);
                  end
-               else if size=OS_16 then
+               else if size in [OS_16,OS_S16] then
                  begin
                    if CPUAVR_HAS_MUL in cpu_capabilities[current_settings.cputype] then
                      begin
@@ -630,7 +630,10 @@ unit cgcpu;
                    else
                      begin
                        { keep code for muls with overflow checking }
-                       pd:=search_system_proc('fpc_mul_word');
+                       if size=OS_16 then
+                         pd:=search_system_proc('fpc_mul_word')
+                       else
+                          pd:=search_system_proc('fpc_mul_integer');
                        paraloc1.init;
                        paraloc2.init;
                        paraloc3.init;
@@ -644,7 +647,10 @@ unit cgcpu;
                        paramanager.freecgpara(list,paraloc2);
                        paramanager.freecgpara(list,paraloc1);
                        alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                       a_call_name(list,'FPC_MUL_WORD',false);
+                       if size=OS_16 then
+                         a_call_name(list,'FPC_MUL_WORD',false)
+                       else
+                         a_call_name(list,'FPC_MUL_INTEGER',false);
                        dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                        cg.a_reg_alloc(list,NR_R24);
                        cg.a_reg_alloc(list,NR_R25);
