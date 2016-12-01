@@ -100,7 +100,7 @@ unit i_aros;
             flags        : [tf_files_case_aware, tf_smartlink_library, tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'AROSUNITS';
-            extradefines : 'HASAMIGA';
+            extradefines : 'HASAMIGA;AROS_FLAVOUR_BINCOMPAT';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';

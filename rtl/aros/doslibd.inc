@@ -57,7 +57,7 @@ const  // Checked OK 04.08.2011 ALB
   ACCESS_WRITE   = EXCLUSIVE_LOCK;
 
 type  // Checked OK 04.08.2011 ALB
-  PDateStamp = ^TDateStamp; 
+  PDateStamp = ^TDateStamp;
   TDateStamp = record
     ds_Days  : LongInt;
     ds_Minute: LongInt;
@@ -68,12 +68,12 @@ const  // Checked OK 04.08.2011 ALB
   TICKS_PER_SECOND = 50;
 
 const  // Checked OK 04.08.2011 ALB
-  MAXFILENAMELENGTH = 108; 
-  MAXCOMMENTLENGTH = 80; 
+  MAXFILENAMELENGTH = 108;
+  MAXCOMMENTLENGTH = 80;
 
 type  // Checked OK 04.08.2011 ALB
   PFileInfoBlock = ^TFileInfoBlock;
-  TFileInfoBlock = record          
+  TFileInfoBlock = record
     fib_DiskKey     : PtrUInt;
     fib_DirEntryType: LongInt;
     fib_FileName    : array[0..MAXFILENAMELENGTH - 1] of char;
@@ -138,7 +138,7 @@ type  // Checked OK 04.08.2011 ALB
 
 type  // Checked OK 04.08.2011 ALB
   PInfoData = ^TInfoData;
-  TInfoData = record    
+  TInfoData = record
     id_NumSoftErrors: LongInt; // Number of soft errors on device.
     id_UnitNumber   : LongInt; // Unit number of device.
     id_DiskState    : LongInt; // State the current volume is in (see below).
@@ -276,7 +276,7 @@ const  // Checked OK 04.08.2011 ALB
 type  // Checked OK 04.08.2011 ALB
   { * Required to avoid conflict with default types * }
   _PDateTime = ^_TDateTime;
-  _TDateTime = record    
+  _TDateTime = record
     dat_Stamp  : TDateStamp;
     dat_Format : Byte;
     dat_Flags  : Byte;
@@ -312,12 +312,12 @@ const  // Checked OK 04.08.2011 ALB
 type  // Checked OK 04.08.2011 ALB
   PProcess = ^TProcess;
   TProcess = record
-    pr_Task          : TTask;    // Embedded task structure 
+    pr_Task          : TTask;    // Embedded task structure
     pr_MsgPort       : TMsgPort; // Processes standard message-port. Used for various puposes.
     pr_Pad           : Word;     // Private
     pr_SegList       : BPTR;     // SegList array, used by this process.
     pr_StackSize     : LongInt;  // StackSize of the current process.
-    pr_GlobVec       : Pointer;  
+    pr_GlobVec       : Pointer;
     pr_TaskNum       : LongInt;  // CLI process number. This may be 0, in which case the process is not connected to a CLI.
     pr_StackBase     : BPTR;     // Pointer to upper end of stack.
     pr_Result2       : PtrInt;   // Secondary return-value
@@ -374,7 +374,7 @@ const  // Checked OK 04.08.2011 ALB
 type  // Checked OK 04.08.2011 ALB
   PFileHandle = ^TFileHandle;
   TFileHandle = record
-    // The next three are used with packet-based filesystems 
+    // The next three are used with packet-based filesystems
     fh_Flags      : DWord;
     fh_Interactive: PMsgPort;  // packet reply port // alias -> fh_Port
     fh_Type       : PMsgPort;  // port to send packets to
@@ -509,11 +509,11 @@ const
 type   // Checked OK 04.08.2011 ALB
   PErrorString = ^TErrorString;
   TErrorString = record
-    estr_Nums: PLongInt; 
+    estr_Nums: PLongInt;
     estr_Strings: PChar;
   end;
 
-type   // Checked OK 04.08.2011 ALB 
+type   // Checked OK 04.08.2011 ALB
   PRootNode = ^TRootNode;
   TRootNode = record
     rn_TaskArray         : BPTR;      { BPTR }
@@ -530,16 +530,16 @@ type   // Checked OK 04.08.2011 ALB
     rn_RootLock          : TSignalSemaphore;
   end;
 
-type  // Checked OK 04.08.2011 ALB 
-  // AROS Specific 
+type  // Checked OK 04.08.2011 ALB
+  // AROS Specific
   PCLIInfo = ^TCLIInfo;
   TCLIInfo = record
     ci_Node: TNode;
     ci_Process: PProcess;
-  end; 
+  end;
 
 
-type  // Checked OK 05.08.2011 ALB 
+type  // Checked OK 05.08.2011 ALB
   PDOSLibrary = ^TDOSLibrary;
   TDOSLibrary = record
     dl_Lib          : TLibrary;
@@ -577,11 +577,11 @@ type  // Checked OK 05.08.2011 ALB
   end;
 
 
-const  // Checked OK 04.08.2011 ALB 
+const  // Checked OK 04.08.2011 ALB
   RNB_WILDSTAR = 24;
   RNF_WILDSTAR = (1 Shl RNB_WILDSTAR);
 
-type  // Checked OK 04.08.2011 ALB 
+type  // Checked OK 04.08.2011 ALB
   PDOSInfo = ^TDOSInfo;
   TDOSInfo = record
     di_McName    : BPTR; { BPTR }
@@ -654,8 +654,8 @@ type  // Checked OK 04.08.2011 ALB
     cli_Background    : LongInt;   // FALSE if there is no controlling terminal, otherwise TRUE.
     cli_CurrentOutput : PFileLock; // Current output file. }
     cli_DefaultStack  : LongInt;   // Default stack size as set by the command "Stack"
-    cli_StandardOutput: PFileLock; // Standard/Default output file. 
-    cli_Module        : BPTR;      // SegList of currently loaded command. 
+    cli_StandardOutput: PFileLock; // Standard/Default output file.
+    cli_Module        : BPTR;      // SegList of currently loaded command.
     // Aros Specific Part
     cli_Standard_Error: PFileLock; // Standard/Default Error file.
   end;
@@ -722,7 +722,7 @@ type  // Checked TODO 04.08.2011 ALB
        );
     // missing Aros Extension... DosListAROSExt;
   end;
-  
+
 const  // Checked OK 04.08.2011 ALB
   DLT_DEVICE     = 0;
   DLT_DIRECTORY  = 1;
@@ -820,7 +820,7 @@ type  // Checked OK 04.08.2011 ALB
 type  // Checked OK 04.08.2011 ALB
   PAnchorPath = ^TAnchorPath;
   TAnchorPath = record
-    case Byte of                        // its not defined in AROS struct just by defines... 
+    case Byte of                        // its not defined in AROS struct just by defines...
     0 : ( ap_First:  PAChain;
           ap_Last:   PAChain;
           ap_L1:     LongInt;
@@ -835,7 +835,7 @@ type  // Checked OK 04.08.2011 ALB
           ap_Reserved:   ShortInt;
           ap_Strlen:     SmallInt;
           ap_Info:       TFileInfoBlock;
-          ap_Buf:        array[0..0] of char;
+          ap_Buf:        array[0..255] of char;
           { * an_Buf continues * }
         );
   end;
@@ -843,10 +843,10 @@ type  // Checked OK 04.08.2011 ALB
 
 const  // Checked OK 04.08.2011 ALB
   // Please check for wildcards in supplied string.
-  APB_DOWILD       = 0;                     
+  APB_DOWILD       = 0;
   APF_DOWILD       = (1 Shl APB_DOWILD);
   // There is actually a wildcard in the supplied string. READ-ONLY
-  APB_ITSWILD      = 1;                     
+  APB_ITSWILD      = 1;
   APF_ITSWILD      = (1 Shl APB_ITSWILD);
   // Set, if a directory is to be entered. Applications may clear this bit to prohibit the
   // matching-functions from entering a directory.
@@ -885,16 +885,16 @@ const  // Checked OK 04.08.2011 ALB
   DDF_Single      = (1 Shl DDB_Single);
 
 const // Checked OK 04.08.2011 ALB
-  P_ANY      = $80; // Matches everything ('#?' and '*') 
+  P_ANY      = $80; // Matches everything ('#?' and '*')
   P_SINGLE   = $81; // Any character ('?')
   P_ORSTART  = $82; // Opening parenthesis for OR'ing ('(')
   P_ORNEXT   = $83; // Field delimiter for OR'ing ('|')
   P_OREND    = $84; // Closing parenthesis for OR'ing (')')
   P_NOT      = $85; // Inversion ('~')
-  P_NOTEND   = $86; // Inversion end 
-  P_NOTCLASS = $87; // Inversion class ('^') 
+  P_NOTEND   = $86; // Inversion end
+  P_NOTCLASS = $87; // Inversion class ('^')
   P_CLASS    = $88; // Class ('[' and ']')
-  P_REPBEG   = $89; // Beginning of repetition ('[') 
+  P_REPBEG   = $89; // Beginning of repetition ('[')
   P_REPEND   = $8A; // End of repetition (']')
   P_STOP     = $8B;
 
@@ -951,7 +951,7 @@ const  // Checked OK 04.08.2011 ALB
   HUNK_RELRELOC32   = 1021;
   HUNK_ABSRELOC16   = 1022;
 
-const  // Checked OK 04.08.2011 ALB  
+const  // Checked OK 04.08.2011 ALB
   HUNKB_ADVISORY = 29;
   HUNKB_CHIP     = 30;
   HUNKB_FAST     = 31;
@@ -1150,13 +1150,13 @@ type  // Checked OK 04.08.2011 ALB
 
 type  // Checked OK 04.08.2011 ALB
   PScanVarsMsg = ^TScanVarsMsg;
-  TScanVarsMsg = record 
+  TScanVarsMsg = record
     sv_SVMSize: Cardinal;  // Size of ScanVarsMsg structure
-    sv_Flags: Cardinal;    // The flags parameter given to ScanVars() 
-    sv_GDir: PChar;        // Directory patch for global variables or empty string "\0" for local variables 
-    sv_Name: PChar;        // Name of the variable 
-    sv_Var: PChar;         // Pointer to the contents of the variable 
-    sv_VarLen: Cardinal;   // Size of the variable 
+    sv_Flags: Cardinal;    // The flags parameter given to ScanVars()
+    sv_GDir: PChar;        // Directory patch for global variables or empty string "\0" for local variables
+    sv_Name: PChar;        // Name of the variable
+    sv_Var: PChar;         // Pointer to the contents of the variable
+    sv_VarLen: Cardinal;   // Size of the variable
   end;
 
 const   // Checked OK 04.08.2011 ALB

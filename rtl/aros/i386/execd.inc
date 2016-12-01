@@ -615,6 +615,9 @@ type
     {$IF 0}
       tc_TrapAlloc: Word;
       tc_TrapAble : Word;
+      {$ifdef CPU64}
+      Pad64bit: LongWord;
+      {$endif}
     {$ELSE}
       tc_ETask: Pointer;
     {$ENDIF}

@@ -661,6 +661,9 @@ type
     tc_SigExcept: ULONG;    // sigs we will take excepts for
     tc_TrapAlloc: Word;     // traps allocated
     tc_TrapAble: Word;      // traps enabled
+    {$ifdef CPU64}
+    Pad64bit: LongWord;
+    {$endif}
     tc_ExceptData: APTR;    // points to except data
     tc_ExceptCode: APTR;    // points to except code
     tc_TrapData: APTR;      // points to trap data
