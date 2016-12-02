@@ -127,7 +127,7 @@ type
      tcalo_vectorized_dead_strip_item,
      { end of the above list }
      tcalo_vectorized_dead_strip_end,
-     { symbol should be weakle defined }
+     { symbol should be weakly defined }
      tcalo_weak,
      { symbol should be registered with the unit's public assembler symbols }
      tcalo_is_public_asm,
