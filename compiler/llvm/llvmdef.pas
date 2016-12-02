@@ -264,7 +264,14 @@ implementation
   function llvmmangledname(const s: TSymStr): TSymStr;
     begin
       if copy(s,1,length('llvm.'))<>'llvm.' then
-        result:='@"\01'+s+'"'
+        if s[1]<>'"' then
+          result:='@"\01'+s+'"'
+        else
+          begin
+            { already quoted -> insert \01 and prepend @ }
+            result:='@'+s;
+            insert('\01',result,3);
+          end
       else
         result:='@'+s
     end;
