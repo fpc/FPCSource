@@ -747,7 +747,7 @@ implementation
           optstr:=optstr+' -enable-unsafe-fp-math -enable-fp-mad -fp-contract=fast';
         { smart linking }
         if cs_create_smart in current_settings.moduleswitches then
-          optstr:=optstr+' -fdata-sections -fcode-sections';
+          optstr:=optstr+' -data-sections -function-sections';
         { pic }
         if cs_create_pic in current_settings.moduleswitches then
           optstr:=optstr+' -relocation-model=pic'
