@@ -1240,9 +1240,16 @@ implementation
                         writer.AsmWrite('"');
                       end;
                   end;
-                  { alignment }
-                  writer.AsmWrite(', align ');
-                  writer.AsmWriteln(tostr(taillvmdecl(hp).alignment));
+                  { sections whose name starts with 'llvm.' are for LLVM
+                    internal use and don't have an alignment }
+                  if pos('llvm.',taillvmdecl(hp).secname)<>1 then
+                    begin
+                      { alignment }
+                      writer.AsmWrite(', align ');
+                      writer.AsmWriteln(tostr(taillvmdecl(hp).alignment));
+                    end
+                  else
+                    writer.AsmLn;
                 end;
             end;
           ait_llvmalias:
