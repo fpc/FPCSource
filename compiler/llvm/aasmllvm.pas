@@ -161,7 +161,8 @@ interface
       ldf_tls,          { tls definition }
       ldf_unnamed_addr, { address doesn't matter, only content }
       ldf_vectorized,   { vectorized, dead-strippable data }
-      ldf_weak          { weak definition }
+      ldf_weak,         { weak definition }
+      ldf_appending     { appending linkage definition }
     );
     taillvmdeclflags = set of taillvmdeclflag;
 

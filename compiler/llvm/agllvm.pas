@@ -1193,6 +1193,8 @@ implementation
                   writer.AsmWrite(' =');
                   if ldf_weak in taillvmdecl(hp).flags then
                     writer.AsmWrite(' weak');
+                  if ldf_appending in taillvmdecl(hp).flags then
+                    writer.AsmWrite(' appending');
                   WriteLinkageVibilityFlags(taillvmdecl(hp).namesym.bind);
                   writer.AsmWrite(' ');
                   if (ldf_tls in taillvmdecl(hp).flags) then
