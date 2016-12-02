@@ -63,34 +63,19 @@ implementation
     procedure ti386callnode.do_syscall;
       var
         tmpref: treference;
-        libparaloc: pcgparalocation;
       begin
         case target_info.system of
           system_i386_aros:
             begin
-              if (po_syscall_baselast in tprocdef(procdefinition).procoptions) then
+              if ([po_syscall_baselast, po_syscall_basereg] * tprocdef(procdefinition).procoptions) <> [] then
                 begin
-                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall - BaseLast on Stack')));
-                  { re-read the libbase pushed first on the stack, instead of just trusting the
-                    mangledname will work. this is important for example for threadvar libbases.
-                    and this way they also don't need to be resolved twice then. (KB) }
-                  libparaloc:=paralocs[procdefinition.paras.count-1]^.location;
-                  if libparaloc^.loc <> LOC_REFERENCE then
-                    internalerror(2016090203);
-                  reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint),[]);
+                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
+
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_EAX);
-                  reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
+                  get_syscall_call_ref(tmpref,NR_EAX);
+
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-                  exit;
-                end;
-             if (po_syscall_basereg in tprocdef(procdefinition).procoptions) then
-                begin
-                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall - RegBase in EAX')));
-                  { libbase must be in EAX already, so just piggyback that, and dereference it }
-                  reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
                   exit;
                 end;
               internalerror(2016090104);

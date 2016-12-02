@@ -79,6 +79,9 @@ interface
           procedure extra_pre_call_code;virtual;
           procedure extra_call_code;virtual;
           procedure extra_post_call_code;virtual;
+
+          function get_syscall_libbase_paraloc: pcgparalocation;virtual;
+          procedure get_syscall_call_ref(out tmpref: treference; reg: tregister);virtual;
           procedure do_syscall;virtual;abstract;
 
           { The function result is returned in a tcgpara. This tcgpara has to
@@ -436,6 +439,40 @@ implementation
       begin
       end;
 
+    function tcgcallnode.get_syscall_libbase_paraloc: pcgparalocation;
+      var
+        hsym: tsym;
+      begin
+        hsym:=tsym(procdefinition.parast.Find('syscalllib'));
+        if not assigned(hsym) then
+          internalerror(2016110605);
+        result:=tparavarsym(hsym).paraloc[callerside].location;
+        if not assigned(result) then
+          internalerror(2016110604);
+      end;
+
+    procedure tcgcallnode.get_syscall_call_ref(out tmpref: treference; reg: tregister);
+      var
+        libparaloc: pcgparalocation;
+      begin
+        libparaloc:=get_syscall_libbase_paraloc;
+
+        case libparaloc^.loc of
+          LOC_REGISTER:
+            reference_reset_base(tmpref,libparaloc^.register,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
+          LOC_REFERENCE:
+            begin
+              reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint),[]);
+              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,reg);
+              reference_reset_base(tmpref,reg,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
+            end;
+          else
+            begin
+              reference_reset(tmpref,0,[]);
+              internalerror(2016090202);
+            end;
+        end;
+      end;
 
     function tcgcallnode.can_call_ref(var ref: treference): boolean;
       begin

@@ -54,36 +54,16 @@ implementation
   procedure tarmcallnode.do_syscall;
     var
       tmpref: treference;
-      libparaloc: pcgparalocation;
-      hsym: tsym;
     begin
       case target_info.system of
         system_arm_aros:
             begin
               if (po_syscall_baselast in tprocdef(procdefinition).procoptions) then
                 begin
-                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall - BaseLast')));
+                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
 
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
-                  hsym:=tsym(procdefinition.parast.Find('syscalllib'));
-                  if not assigned(hsym) then
-                    internalerror(2016110605);
-                  libparaloc:=tparavarsym(hsym).paraloc[callerside].location;
-                  if not assigned(libparaloc) then
-                    internalerror(2016110604);
-
-                  case libparaloc^.loc of
-                    LOC_REGISTER:
-                      reference_reset_base(tmpref,libparaloc^.register,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
-                    LOC_REFERENCE:
-                      begin
-                        reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint),[]);
-                        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
-                        reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
-                      end;
-                    else
-                      internalerror(2016110603);
-                  end;
+                  get_syscall_call_ref(tmpref,NR_R12);
 
                   cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
                   cg.a_call_reg(current_asmdata.CurrAsmList,NR_R12);

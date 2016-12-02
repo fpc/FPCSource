@@ -43,7 +43,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symtype,symbase,symsym,symcpu,symtable,defutil,paramgr,parabase,
+      symconst,symbase,symsym,symcpu,symtable,defutil,paramgr,parabase,
       cgbase,pass_2,
       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       nmem,nld,ncnv,
@@ -83,8 +83,6 @@ implementation
 
       var
         tmpref: treference;
-        libparaloc: pcgparalocation;
-        hsym: tsym;
       begin
         case target_info.system of
           system_powerpc_amiga:
@@ -101,27 +99,7 @@ implementation
                    po_syscall_baselast,po_syscall_basereg] * tprocdef(procdefinition).procoptions) <> [] then
                 begin
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
-
-                  hsym:=tsym(procdefinition.parast.Find('syscalllib'));
-                  if not assigned(hsym) then
-                    internalerror(2016090501);
-                  libparaloc:=tparavarsym(hsym).paraloc[callerside].location;
-                  if not assigned(libparaloc) then
-                    internalerror(2016090502);
-
-                  case libparaloc^.loc of
-                    LOC_REGISTER:
-                      reference_reset_base(tmpref,libparaloc^.register,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
-                    LOC_REFERENCE:
-                      begin
-                        { this can happen for sysvbase; if we run out of regs, the libbase will be passed on the stack }
-                        reference_reset_base(tmpref,libparaloc^.reference.index,libparaloc^.reference.offset,sizeof(pint),[]);
-                        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_R12);
-                        reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint),[]);
-                      end;
-                    else
-                      internalerror(2016090202);
-                  end;
+                  get_syscall_call_ref(tmpref,NR_R12);
 
                   do_call_ref(tmpref);
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
