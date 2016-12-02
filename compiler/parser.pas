@@ -116,6 +116,7 @@ implementation
 
          { target specific stuff }
          case target_info.system of
+           system_m68k_atari,
            system_powerpc_amiga,
            system_powerpc_morphos,
            system_m68k_amiga,
