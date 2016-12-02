@@ -939,7 +939,7 @@ implementation
                writer.AsmWrite(' internal');
              AB_GLOBAL,
              AB_INDIRECT:
-               writer.AsmWrite('');
+               ;
              AB_WEAK_EXTERNAL:
                writer.AsmWrite(' extern_weak');
              AB_PRIVATE_EXTERN:
