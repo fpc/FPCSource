@@ -124,7 +124,7 @@ interface
 implementation
 
   uses
-    verbose,systems,
+    verbose,systems,fmodule,
     aasmdata,
     cpubase,cpuinfo,llvmbase,
     symtable,llvmdef,defutil,defcmp;
@@ -202,7 +202,18 @@ implementation
         include(decl.flags,ldf_vectorized);
       if tcalo_weak in options then
         include(decl.flags,ldf_weak);
-      { TODO: tcalo_no_dead_strip: add to @llvm.user meta-variable }
+      if tcalo_no_dead_strip in options then
+        { Objective-C section declarations already contain "no_dead_strip"
+          attributes if none of their symbols need to be stripped -> only
+          add the symbols to llvm.compiler.used (only affects compiler
+          optimisations) and not to llvm.used (also affects linker -- which in
+          this case is already taken care of by the section attribute; not sure
+          why it's done like this, but this is how Clang does it) }
+        if (target_info.system in systems_darwin) and
+           (section in [low(TObjCAsmSectionType)..high(TObjCAsmSectionType)]) then
+          current_module.llvmcompilerusedsyms.add(decl)
+        else
+          current_module.llvmusedsyms.add(decl);
       newasmlist.concat(decl);
       fasmlist:=newasmlist;
     end;

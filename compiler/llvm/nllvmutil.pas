@@ -26,7 +26,7 @@ unit nllvmutil;
 interface
 
   uses
-    globtype,
+    globtype,cclasses,
     aasmdata,ngenutil,
     symtype,symconst,symsym,symdef;
 
@@ -35,6 +35,7 @@ interface
     tllvmnodeutils = class(tnodeutils)
      strict protected
       class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); override;
+      class procedure InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymstr);
      public
       class procedure InsertObjectInfo; override;
     end;
@@ -45,7 +46,7 @@ implementation
     uses
       verbose,cutils,globals,fmodule,systems,
       aasmbase,aasmtai,cpubase,llvmbase,aasmllvm,
-      aasmcnst,
+      aasmcnst,nllvmtcon,
       symbase,symtable,defutil,
       llvmtype;
 
@@ -70,9 +71,48 @@ implementation
     end;
 
 
+  class procedure tllvmnodeutils.InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymstr);
+    var
+      useddef: tdef;
+      tcb: ttai_typedconstbuilder;
+      decl: taillvmdecl;
+      i: longint;
+    begin
+      if usedsyms.count<>0 then
+        begin
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+          tllvmtai_typedconstbuilder(tcb).appendingdef:=true;
+          useddef:=carraydef.getreusable(voidpointertype,usedsyms.count);
+          tcb.maybe_begin_aggregate(useddef);
+          for i:=0 to usedsyms.count-1 do
+            begin
+              decl:=taillvmdecl(usedsyms[i]);
+              tcb.queue_init(voidpointertype);
+              tcb.queue_emit_asmsym(decl.namesym,decl.def);
+            end;
+          tcb.maybe_end_aggregate(useddef);
+          current_asmdata.AsmLists[al_globals].concatlist(
+            tcb.get_final_asmlist(
+              current_asmdata.DefineAsmSymbol(
+                usedsymsname,AB_GLOBAL,AT_DATA,useddef),useddef,sec_user,
+                'llvm.metadata',0
+            )
+          );
+          tcb.free;
+        end;
+      usedsyms.free;
+      usedsyms:=nil;
+    end;
+
+
   class procedure tllvmnodeutils.InsertObjectInfo;
     begin
       inherited;
+
+      { add the llvm.compiler.used array }
+      InsertUsedList(current_module.llvmcompilerusedsyms,'llvm.compiler.used');
+      { add the llvm.used array }
+      InsertUsedList(current_module.llvmusedsyms,'llvm.used');
 
       { add "type xx = .." statements for all used recorddefs }
       with TLLVMTypeInfo.Create do
