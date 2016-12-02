@@ -67,6 +67,7 @@ interface
        class constructor classcreate;
      protected
       foverriding_def: tdef;
+      fappendingdef: boolean;
 
       fqueued_tai,
       flast_added_tai: tai;
@@ -115,6 +116,8 @@ interface
       function emit_placeholder(def: tdef): ttypedconstplaceholder; override;
 
       class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; override;
+
+      property appendingdef: boolean write fappendingdef;
     end;
 
 
@@ -187,6 +190,8 @@ implementation
       { llvm declaration with as initialisation data all the elements from the
         original asmlist }
       decl:=taillvmdecl.createdef(sym,def,fasmlist,section,alignment);
+      if fappendingdef then
+        include(decl.flags,ldf_appending);
       if section=sec_user then
         decl.setsecname(secname);
       if tcalo_is_lab in options then
