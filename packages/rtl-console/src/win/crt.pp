@@ -25,6 +25,9 @@ function WhereY32: DWord;
 
 implementation
 
+{$DEFINE FPC_CRT_CTRLC_TREATED_AS_KEY}
+(* Treatment of Ctrl-C as a regular key ensured during initialization (SetupConsoleInput). *)
+
 uses
   windows;
 
@@ -40,7 +43,7 @@ procedure TurnMouseOff;
 var Mode: DWORD;
 begin
   if GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), @Mode) then begin { Turn the mouse-cursor off }
-    Mode := Mode AND cardinal(NOT enable_processed_input)
+    Mode := Mode //AND cardinal(NOT enable_processed_input)
       AND cardinal(NOT enable_mouse_input);
 
     SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), Mode);
@@ -941,7 +944,48 @@ begin
   GetVersionEx(versioninfo);
   Win32Platform:=versionInfo.dwPlatformId;
 end;
+
+procedure SetupConsoleInput(ihnd: THANDLE);
+var
+  Mode : DWORD;
+begin
+  GetConsoleMode(ihnd, Mode);
+  Mode:=Mode and not ENABLE_PROCESSED_INPUT;
+  SetConsoleMode(ihnd, Mode);
+end;
+
+var
+  PrevCtrlBreakHandler: TCtrlBreakHandler;
+
+
+function CrtCtrlBreakHandler (CtrlBreak: boolean): boolean;
+begin
+(* Earlier registered handlers (e.g. FreeVision) have priority. *)
+  if Assigned (PrevCtrlBreakHandler) then
+    if PrevCtrlBreakHandler (CtrlBreak) then
+      begin
+        CrtCtrlBreakHandler := true;
+        Exit;
+      end;
+(* If Ctrl-Break was pressed, either ignore it or allow default processing. *)
+  if CtrlBreak then
+    CrtCtrlBreakHandler := not (CheckBreak)
+  else (* Ctrl-C pressed *)
+{$IFDEF FPC_CRT_CTRLC_TREATED_AS_KEY}
+ (* If Ctrl-C is really treated as a key, the following branch should never *)
+ (* be executed, but let's stay on the safe side and ensure predictability. *)
+   CrtCtrlBreakHandler := false;
+{$ELSE FPC_CRT_CTRLC_TREATED_AS_KEY}
+    begin
+      if not (SpecialKey) and (ScanCode = 0) then
+        ScanCode := 3;
+      CrtCtrlBreakHandler := true;
+    end;
+{$ENDIF FPC_CRT_CTRLC_TREATED_AS_KEY}
+end;
+
 // ts
+
 
 Initialization
   LoadVersionInfo;
@@ -983,6 +1027,14 @@ Initialization
   AssignCrt(Input);
   Reset(Input);
   TextRec(Input).Handle:= GetStdHandle(STD_INPUT_HANDLE);
+
+  SetupConsoleInput(TextRec(Input).Handle);
+
+  PrevCtrlBreakHandler := SysSetCtrlBreakHandler (@CrtCtrlBreakHandler);
+  if PrevCtrlBreakHandler = TCtrlBreakHandler (pointer (-1)) then
+   PrevCtrlBreakHandler := nil;
+  CheckBreak := true;
+
 finalization
   if beeperDevice <> INVALID_HANDLE_VALUE then begin
     nosound;
