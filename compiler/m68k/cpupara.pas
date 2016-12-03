@@ -46,7 +46,6 @@ unit cpupara;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
-          function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
           function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;override;
           function get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;override;
@@ -577,32 +576,6 @@ unit cpupara;
           else
             internalerror(2005121801);
         end;
-      end;
-
-    function tcpuparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
-      var
-        paraloc : pcgparalocation;
-      begin
-        result:=false;
-        case target_info.system of
-          system_m68k_amiga:
-            begin
-              p.paraloc[callerside].alignment:=4;
-              paraloc:=p.paraloc[callerside].add_location;
-              paraloc^.loc:=LOC_REGISTER;
-              paraloc^.size:=def_cgsize(p.vardef);
-              paraloc^.def:=p.vardef;
-
-              if not parse_loc_string_to_register(paraloc^.register, s) then
-                exit;
-
-              { copy to callee side }
-              p.paraloc[calleeside].add_location^:=paraloc^;
-            end;
-          else
-            internalerror(200405092);
-        end;
-        result:=true;
       end;
 
 

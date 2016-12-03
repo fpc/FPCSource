@@ -503,10 +503,24 @@ implementation
       end;
 
 
+    { used by syscall conventions which require explicit paralocation support }
+    { this is the standard implementation, CGs might overwrite it }
     function tparamanager.parseparaloc(parasym: tparavarsym; const s: string): boolean;
+      var
+        paraloc : pcgparalocation;
       begin
-        Result:=False;
-        internalerror(200807235);
+        parasym.paraloc[callerside].alignment:=sizeof(pint);
+        paraloc:=parasym.paraloc[callerside].add_location;
+        paraloc^.loc:=LOC_REGISTER;
+        paraloc^.size:=def_cgsize(parasym.vardef);
+        paraloc^.def:=parasym.vardef;
+        paraloc^.register:=std_regnum_search(lowercase(s));
+
+        { copy to callee side }
+        parasym.paraloc[calleeside].add_location^:=paraloc^;
+
+        result:=(paraloc^.register <> NR_NO) and
+                (paraloc^.register <> NR_STACK_POINTER_REG);
       end;
 
 

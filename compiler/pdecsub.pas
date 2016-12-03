@@ -528,7 +528,7 @@ implementation
                         Message(parser_e_paraloc_all_paras);
                       explicit_paraloc:=true;
                       include(vs.varoptions,vo_has_explicit_paraloc);
-                      if not(paramanager.parseparaloc(vs,upper(locationstr))) then
+                      if not(paramanager.parseparaloc(vs,locationstr)) then
                         message(parser_e_illegal_explicit_paraloc);
                     end
                   else
@@ -2100,21 +2100,21 @@ procedure pd_syscall(pd:tabstractprocdef);
       function po_syscall_to_regname: string;
         begin
           if po_syscall_legacy in tprocdef(pd).procoptions then
-            result:='A6'
-          { let no base on MorphOS store the libbase in r12 as well, because 
+            result:='a6'
+          { let nobase on MorphOS store the libbase in r12 as well, because
             we will need the libbase anyway during the call generation }
           else if (po_syscall_basenone in tprocdef(pd).procoptions) and
                   (target_info.system = system_powerpc_morphos) then
-                 result:='R12'
+                 result:='r12'
           else if po_syscall_basereg in tprocdef(pd).procoptions then
             begin
               case target_info.system of
                 system_i386_aros:
-                    result:='EAX';
+                    result:='eax';
                 system_x86_64_aros:
-                    result:='RAX';
+                    result:='rax';
                 system_powerpc_morphos:
-                    result:='R12';
+                    result:='r12';
                 else
                   internalerror(2016090201);
               end;
@@ -2154,7 +2154,7 @@ begin
       if ((v<0) or (v>high(smallint))) then
         message(parser_e_range_check_error)
       else
-          tprocdef(pd).import_nr:=longint(v.svalue);
+        tprocdef(pd).import_nr:=longint(v.svalue);
 
       exit;
     end;
@@ -2171,7 +2171,8 @@ begin
         paranr:=syscall_paranr[po_syscall_basefirst in tprocdef(pd).procoptions];
         vs:=cparavarsym.create('$syscalllib',paranr,vs_value,tabstractvarsym(sym).vardef,vo);
         if vo_has_explicit_paraloc in vo then
-          paramanager.parseparaloc(vs,po_syscall_to_regname);
+          if not paramanager.parseparaloc(vs,po_syscall_to_regname) then
+            internalerror(2016120301);
         pd.parast.insert(vs);
       end
     else

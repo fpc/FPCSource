@@ -44,7 +44,6 @@ unit cpupara;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;override;
-          function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
        private
           procedure create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parasize:longint);
           procedure create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parareg,parasize:longint);
@@ -286,32 +285,6 @@ unit cpupara;
         result:=[0..first_mm_imreg-1];
       end;
 
-
-    function tcpuparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
-      var
-        paraloc : pcgparalocation;
-      begin
-        result:=false;
-        case target_info.system of
-          system_i386_aros:
-            begin
-              p.paraloc[callerside].alignment:=4;
-              paraloc:=p.paraloc[callerside].add_location;
-              paraloc^.loc:=LOC_REGISTER;
-              paraloc^.size:=def_cgsize(p.vardef);
-              paraloc^.def:=p.vardef;
-              paraloc^.register:=std_regnum_search(lowercase(s));
-              if paraloc^.register = NR_NO then
-                exit;
-
-              { copy to callee side }
-              p.paraloc[calleeside].add_location^:=paraloc^;
-            end;
-          else
-            internalerror(2016090103);
-        end;
-        result:=true;
-      end;
 
     function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;
       var

@@ -687,9 +687,9 @@ unit cpupara;
               { convert d0-d7/a0-a6 virtual 68k reg patterns into offsets }
               if length(s) = 2 then
                 begin
-                  if (s[1] = 'D') and (s[2] in ['0'..'7']) then
+                  if (lowercase(s[1]) = 'd') and (s[2] in ['0'..'7']) then
                     offset:=(ord(s[2]) - ord('0')) * sizeof(pint)
-                  else if (s[1] = 'A') and (s[2] in ['0'..'6']) then
+                  else if (lowercase(s[1]) = 'a') and (s[2] in ['0'..'6']) then
                     offset:=(ord(s[2]) - ord('0') + 8) * sizeof(pint);
 
                   if offset < 0 then
@@ -699,9 +699,9 @@ unit cpupara;
                   paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
                   paraloc^.reference.offset:=offset;
                 end
-              { 'R12' is special, used internally to support r12base and sysv
+              { 'R12' is special, used internally to support regbase and nobase
                 calling convention }
-              else if s='R12' then
+              else if lowercase(s)='r12' then
                 begin
                   paraloc^.loc:=LOC_REGISTER;
                   paraloc^.register:=NR_R12;
