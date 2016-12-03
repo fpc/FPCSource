@@ -39,17 +39,6 @@ var
                            Low level Routines
 ****************************************************************************}
 
-procedure TurnMouseOff;
-var Mode: DWORD;
-begin
-  if GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), @Mode) then begin { Turn the mouse-cursor off }
-    Mode := Mode //AND cardinal(NOT enable_processed_input)
-      AND cardinal(NOT enable_mouse_input);
-
-    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), Mode);
-  end; { if }
-end; { proc. TurnMouseOff }
-
 function GetScreenHeight : DWord;
 var
   ConsoleInfo: TConsoleScreenBufferinfo;
