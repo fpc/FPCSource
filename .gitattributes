@@ -8321,6 +8321,7 @@ rtl/amicommon/sysutils.pp svneol=native#text/plain
 rtl/amicommon/tthread.inc svneol=native#text/plain
 rtl/amiga/Makefile svneol=native#text/plain
 rtl/amiga/Makefile.fpc svneol=native#text/plain
+rtl/amiga/buildrtl.pp svneol=native#text/plain
 rtl/amiga/doslibd.inc svneol=native#text/plain
 rtl/amiga/m68k/doslibf.inc svneol=native#text/plain
 rtl/amiga/m68k/execd.inc svneol=native#text/plain
