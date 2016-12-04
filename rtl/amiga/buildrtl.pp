@@ -3,7 +3,9 @@ unit buildrtl;
   interface
 
     uses
+{$ifdef cpum68k}
       si_prc,
+{$endif}
       athreads, dos, sysutils,
 
       ctypes, strings,
