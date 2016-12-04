@@ -757,10 +757,21 @@ implementation
 
 
   procedure tllvmtai_typedconstbuilder.queue_emit_ordconst(value: int64; def: tdef);
+    var
+      valuedef: tdef;
     begin
       { no offset into an ordinal constant }
       if fqueue_offset<>0 then
         internalerror(2015030702);
+      if not is_ordinal(def) then
+        begin
+          { insert an ordinal -> non-ordinal (e.g. pointer) conversion, as you
+            cannot have integer constants as pointer values in LLVM }
+          int_to_type(value,valuedef);
+          queue_typeconvn(valuedef,def);
+          { and now emit the constant as an ordinal }
+          def:=valuedef;
+        end;
       inherited;
     end;
 
