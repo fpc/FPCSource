@@ -443,9 +443,15 @@ end;
 
 Function FileOpenNoLocking (Const FileName : RawbyteString; Mode : Integer) : Longint;
 
+  Function IsHandleDirectory(Handle : Longint) : boolean;
+  Var Info : Stat;
+  begin
+    Result := (fpFStat(Handle, Info)<0) or fpS_ISDIR(info.st_mode);
+  end;
+
 Var
   SystemFileName: RawByteString;
-  LinuxFlags : longint;
+  fd,LinuxFlags : longint;
 begin
   LinuxFlags:=0;
   case (Mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) of
@@ -456,8 +462,18 @@ begin
 
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   repeat
-    FileOpenNoLocking:=fpOpen (pointer(SystemFileName),LinuxFlags);
-  until (FileOpenNoLocking<>-1) or (fpgeterrno<>ESysEINTR);
+    fd:=fpOpen (pointer(SystemFileName),LinuxFlags);
+  until (fd<>-1) or (fpgeterrno<>ESysEINTR);
+
+  { Do not allow to open directories with FileOpen.
+    This would cause weird behavior of TFileStream.Size, 
+    TMemoryStream.LoadFromFile etc. }
+  if (fd<>-1) and IsHandleDirectory(fd) then
+    begin
+    fpClose(fd);
+    fd:=feInvalidHandle;
+    end;
+  FileOpenNoLocking:=fd;  
 end;
 
 
