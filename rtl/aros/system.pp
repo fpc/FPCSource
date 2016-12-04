@@ -219,11 +219,7 @@ begin
   if AOS_wbMsg = nil then begin
     StdInputHandle := THandle(dosInput);
     StdOutputHandle := THandle(dosOutput);
-    {$ifdef CPU64}
-    StdErrorHandle := THandle(DosOutput);
-    {$else}
     StdErrorHandle := THandle(DosError1);
-    {$endif}
   end else begin
     AOS_ConHandle := Open(AOS_ConName, MODE_OLDFILE);
     if AOS_ConHandle <> 0 then begin

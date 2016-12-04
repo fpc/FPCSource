@@ -19,7 +19,9 @@ function dosRead(_file: BPTR; buffer: Pointer; length: longint): longint; syscal
 function dosWrite(_file: BPTR; buffer: Pointer; length: longint): longint;  syscall AOS_DOSBase 8;
 function dosInput: BPTR; syscall AOS_DOSBase 9;
 function dosOutput: BPTR; syscall AOS_DOSBase 10;
+{$ifdef AROS_ABIv0}
 function DosError1: BPTR;  syscall AOS_DOSBase 142;
+{$endif}
 function dosSeek(_file: BPTR; position: longint;offset: longint): longint; syscall AOS_DOSBase 11;
 function dosDeleteFile(const name: PChar): LongBool; syscall AOS_DOSBase 12;
 function dosRename(const oldName: PChar;newName: PChar): LongInt; syscall AOS_DOSBase 13;
@@ -57,3 +59,17 @@ function GetVar(name: PChar; buffer: PChar; size: longint; flags: longword): lon
 function ExamineFH(Fh: BPTR; Fib: PFileInfoBlock): LongBool; syscall AOS_DOSBase 65;
 function NameFromFH(Fh: BPTR; Buffer: PChar; Length: LongInt): LongBool; syscall AOS_DOSBase 68;
 
+
+{$ifdef AROS_ABIv1}
+function DosError1(): BPTR;
+var
+  P: PProcess;
+begin
+  DosError1 := 0;
+  P := PProcess(FindTask(nil));
+  if Assigned(P) then
+    DosError1 := P^.pr_CES;
+  if DosError1 = 0 then
+    DosError1 := DosOutput();
+end;
+{$endif}
