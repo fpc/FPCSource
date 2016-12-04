@@ -17,7 +17,6 @@
 
 {$define FGLINLINE}
 
-{ be aware, this unit is a prototype and subject to be changed heavily }
 {$ifdef FGLINLINE}
 {$inline on}
 {$endif FGLINLINE}
