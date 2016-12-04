@@ -24,7 +24,6 @@ unit System;
 interface
 
 {$define FPC_IS_SYSTEM}
-{$define PASCAL_SYSINIT}
 
 {$I systemh.inc}
 {$I osdebugh.inc}
@@ -115,18 +114,7 @@ type
                        Misc. System Dependent Functions
 *****************************************************************************}
 
-{$IFDEF PASCAL_SYSINIT}
-var
-  sysinit_jmpbuf: jmp_buf;
-
-procedure haltproc(e:longint);
-begin
-  longjmp(sysinit_jmpbuf,1);
-end;
-
-{$ELSE}
 procedure haltproc(e:longint);cdecl;external name '_haltproc';
-{$ENDIF}
 
 procedure System_exit;
 var
@@ -253,34 +241,6 @@ begin
   result := stklen;
 end;
 
-{$IFDEF PASCAL_SYSINIT}
-procedure PascalMain; external name 'PASCALMAIN';
-
-procedure PascalSysInitCallMain;
-begin
-  if setjmp(sysinit_jmpbuf) = 0 then
-    PascalMain;
-end;
-
-function PascalSysInit: LongInt; public name 'PASCALSYSINIT';
-var
-  sst: TStackSwapStruct;
-  newStack: Pointer;
-  newStackAligned: Pointer;
-begin
-  newStack:=AllocVecTaskPooled(InitialStkLen+16);
-  newStackAligned:=align(newStack,16);
-
-  sst.stk_Lower:=newStackAligned;
-  sst.stk_Upper:=newStackAligned+InitialStkLen;
-  sst.stk_Pointer:=newStackAligned+InitialStkLen;
-
-  NewPPCStackSwap(@sst,@PascalSysInitCallMain,nil);
-
-  FreeVecTaskPooled(newStack);
-  result:=ExitCode;
-end;
-{$ENDIF}
 
 begin
   IsConsole := TRUE;
