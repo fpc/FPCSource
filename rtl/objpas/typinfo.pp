@@ -1388,12 +1388,9 @@ type
   TGetInterfaceProc=function:IInterface of object;
   TGetInterfaceProcIndex=function(index:longint):IInterface of object;
 var
-  TypeInfo: PTypeInfo;
   AMethod : TMethod;
 begin
   Result:=nil;
-
-  TypeInfo := PropInfo^.PropType;
   case (PropInfo^.PropProcs) and 3 of
     ptField:
       Result:=IInterface(PPointer(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^);
