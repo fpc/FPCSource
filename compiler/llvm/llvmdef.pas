@@ -568,6 +568,8 @@ implementation
                   { opaque for now }
                   encodedstr:=encodedstr+'i8*'
                 end;
+              odt_helper:
+                llvmaddencodedtype_intern(tobjectdef(def).extendeddef,flags,encodedstr);
               else
                 internalerror(2013100601);
             end;
