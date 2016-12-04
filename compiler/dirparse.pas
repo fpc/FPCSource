@@ -137,6 +137,10 @@ implementation
             end;
           if found then
             begin
+{$ifdef llvm}
+             { -Ooregvar is not supported, llvm will take care of that }
+             if opt<>cs_opt_regvar then
+{$endif llvm}
               if doset then
                 include(a,opt)
               else
