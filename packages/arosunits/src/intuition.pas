@@ -559,7 +559,7 @@ type
     TopEdge: SmallInt;     // screen dimensions of window
     Width,
     Height: SmallInt;      // screen dimensions of window
-{$ifdef AROS_FLAVOUR_BINCOMPAT}
+{$ifdef AROS_BINCOMPAT}
     MouseY,
     MouseX: SmallInt;      // relative to upper-left of window
 {$else}
@@ -656,7 +656,7 @@ type
     Width,
     Height: SmallInt;     // parameters of the screen
 
-{$ifdef AROS_FLAVOUR_BINCOMPAT}
+{$ifdef AROS_BINCOMPAT}
     MouseY,
     MouseX: SmallInt;     // position relative to upper-left
 {$else}
@@ -1662,7 +1662,7 @@ type
     FirstScreen: PScreen; { for linked list of all screens, the FirstScreen variable points to the frontmost Screen.
                             Screens are then maintained in a front to back order using Screen.NextScreen  }
     Flags: LongWord;      // see definitions below
-{$ifdef AROS_FLAVOUR_BINCOMPAT}
+{$ifdef AROS_BINCOMPAT}
     MouseX,
     MouseY: SmallInt;      // mouse position relative to View
 {$else}

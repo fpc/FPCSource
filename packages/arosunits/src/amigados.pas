@@ -1518,7 +1518,7 @@ type
   TDosLibrary = record
     dl_lib: TLibrary;
     dl_Root: PRootNode;      // Pointer to RootNode, described below }
-{$ifdef AROS_FLAVOUR_BINCOMPAT}
+{$ifdef AROS_BINCOMPAT}
     dl_GV: APTR;             // Pointer to BCPL global vector       }
     dl_A2: LongInt;          // Private register dump of DOS        }
     dl_A5: LongInt;

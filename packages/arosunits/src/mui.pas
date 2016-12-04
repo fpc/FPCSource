@@ -401,7 +401,7 @@ const
 // one or more IDCMP flags this handler should react on.
 // MUIM_Window_AddEventHandler/RemoveEventHandler
 type
-{$ifdef AROS_FLAVOUR_BINCOMPAT}
+{$ifdef AROS_BINCOMPAT}
   TMUI_EventHandlerNode = record
     ehn_Node: TMinNode;
     ehn_Reserved: byte;
@@ -3686,6 +3686,7 @@ function MUI_CreateCustomClass(Base: PLibrary; Supername: PChar; Supermcc: PMUI_
 function MUI_DeleteCustomClass(Mcc: PMUI_CustomClass): LongBool; syscall MUIMasterBase 19;
 function MUI_MakeObjectA(Typ: LongInt; Params: PIPTR): PObject_; syscall MUIMasterBase 20;
 function MUI_Layout(Obj: PObject_; Left: LongInt; Top: LongInt; Width: LongInt; Height: LongInt; Flags: LongWord): LongBool; syscall MUIMasterBase 21;
+{$ifdef AROS_ABIv0}
 function MUI_ObtainPen(Mri: PMUI_RenderInfo; spec : pMUI_PenSpec; flags : LongWord) : LongInt; syscall MUIMasterBase 22;
 procedure MUI_ReleasePen(Mri: PMUI_RenderInfo; Pen: LongInt); syscall MUIMasterBase 23;
 function MUI_AddClipping(Mri: PMUI_RenderInfo; Left: SmallInt; Top: SmallInt; Width: SmallInt; Height: SmallInt): APTR; syscall MUIMasterBase 24;
@@ -3694,6 +3695,17 @@ function MUI_AddClipRegion(Mri: PMUI_RenderInfo; Region: PRegion): APTR; syscall
 procedure MUI_RemoveClipRegion(Mri: PMUI_RenderInfo; Handle: Pointer); syscall MUIMasterBase 27;
 function MUI_BeginRefresh(Mri: PMUI_RenderInfo; Flags: LongWord): LongBool; syscall MUIMasterBase 28;
 procedure MUI_EndRefresh(Mri: PMUI_RenderInfo; Flags: LongWord); syscall MUIMasterBase 29;
+{$endif}
+{$ifdef AROS_ABIv1}
+function MUI_ObtainPen(Mri: PMUI_RenderInfo; spec : pMUI_PenSpec; flags : LongWord) : LongInt; syscall MUIMasterBase 26;
+procedure MUI_ReleasePen(Mri: PMUI_RenderInfo; Pen: LongInt); syscall MUIMasterBase 27;
+function MUI_AddClipping(Mri: PMUI_RenderInfo; Left: SmallInt; Top: SmallInt; Width: SmallInt; Height: SmallInt): APTR; syscall MUIMasterBase 28;
+procedure MUI_RemoveClipping(Mri: PMUI_RenderInfo; Handle: APTR); syscall MUIMasterBase 29;
+function MUI_AddClipRegion(Mri: PMUI_RenderInfo; Region: PRegion): APTR; syscall MUIMasterBase 30;
+procedure MUI_RemoveClipRegion(Mri: PMUI_RenderInfo; Handle: Pointer); syscall MUIMasterBase 31;
+function MUI_BeginRefresh(Mri: PMUI_RenderInfo; Flags: LongWord): LongBool; syscall MUIMasterBase 32;
+procedure MUI_EndRefresh(Mri: PMUI_RenderInfo; Flags: LongWord); syscall MUIMasterBase 33;
+{$endif}
 
 // some procedures to get some information about our object
 
