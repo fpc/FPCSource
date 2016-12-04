@@ -343,13 +343,13 @@ AMIINC=$(RTL)/amicommon
 UNITPREFIX=rtl
 LOADERS=prt0
 SYSTEMUNIT=system
-SYSINITUNITS=si_prc
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(ARCH),m68k)
 override LOADERS=
+SYSINITUNITS=si_prc
 RESUNIT=fpextres
 endif
 ifeq ($(ARCH),powerpc)

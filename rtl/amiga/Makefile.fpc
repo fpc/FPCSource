@@ -52,7 +52,6 @@ AMIINC=$(RTL)/amicommon
 UNITPREFIX=rtl
 LOADERS=prt0
 SYSTEMUNIT=system
-SYSINITUNITS=si_prc
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -66,6 +65,7 @@ OBJPASDIR=$(RTL)/objpas
 
 ifeq ($(ARCH),m68k)
 override LOADERS=
+SYSINITUNITS=si_prc
 RESUNIT=fpextres
 endif
 
