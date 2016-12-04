@@ -501,7 +501,7 @@ type
     mh_First: PMemChunk; // first free region
     mh_Lower,            // lower memory bound
     mh_Upper: APTR;      // upper memory bound+1
-    mh_Free: ULONG;      // total number of free bytes
+    mh_Free: IPTR;       // total number of free bytes
   end;
 
 //****** MemEntry ****************************************************
@@ -512,7 +512,7 @@ type
         0: (meu_Reqs: ULONG);
         1: (meu_Addr: APTR);
       end;
-    me_Length: ULONG;
+    me_Length: IPTR;
   end;
 
 //****** MemList *****************************************************
@@ -558,9 +558,9 @@ type
 // Note:  This structure is *READ ONLY* and only EXEC can create it!
  PMemHandlerData = ^TMemHandlerData;
  TMemHandlerData = record
-        memh_RequestSize,  // Requested allocation size
-        memh_RequestFlags, // Requested allocation flags
-        memh_Flags: ULONG; // Flags (see below)
+   memh_RequestSize: IPTR;  // Requested allocation size
+   memh_RequestFlags,       // Requested allocation flags
+   memh_Flags: ULONG;       // Flags (see below)
  end;
 
 const
@@ -1010,7 +1010,7 @@ type
 { ******* Static System Variables ******* }
     SoftVer: Word;          // kickstart release number (obs.)
     LowMemChkSum: SmallInt; // checksum of 68000 trap vectors
-    ChkBase: ULONG;         // system base pointer complement
+    ChkBase: IPTR;          // system base pointer complement
     ColdCapture,            // coldstart soft capture vector
     CoolCapture,            // coolstart soft capture vector
     WarmCapture,            // warmstart soft capture vector
