@@ -28,6 +28,8 @@ defines:
 
 unit Exec;
 
+{$PACKRECORDS C}
+
 interface
 
 type
@@ -659,22 +661,24 @@ type
     tc_SigWait: ULONG;      // sigs we are waiting for
     tc_SigRecvd: ULONG;     // sigs we have received
     tc_SigExcept: ULONG;    // sigs we will take excepts for
-    tc_TrapAlloc: Word;     // traps allocated
-    tc_TrapAble: Word;      // traps enabled
-    {$ifdef CPU64}
-    Pad64bit: LongWord;
-    {$endif}
-    tc_ExceptData: APTR;    // points to except data
-    tc_ExceptCode: APTR;    // points to except code
-    tc_TrapData: APTR;      // points to trap data
-    tc_TrapCode: APTR;      // points to trap code
-    tc_SPReg: APTR;         // stack pointer
-    tc_SPLower: APTR;       // stack lower bound
-    tc_SPUpper: APTR;       // stack upper bound + 2
-    tc_Switch: Pointer;     // task losing CPU
-    tc_Launch: Pointer;     // task getting CPU
-    tc_MemEntry: TList;     // allocated memory
-    tc_UserData: APTR;      // per task data
+    case boolean of
+      True:(
+        tc_TrapAlloc: Word;     // traps allocated
+        tc_TrapAble: Word;);      // traps enabled
+      False:(
+        tc_ETask: Pointer;      // Valid if TF_ETask is set
+        tc_ExceptData: APTR;    // points to except data
+        tc_ExceptCode: APTR;    // points to except code
+        tc_TrapData: APTR;      // points to trap data
+        tc_TrapCode: APTR;      // points to trap code
+        tc_SPReg: APTR;         // stack pointer
+        tc_SPLower: APTR;       // stack lower bound
+        tc_SPUpper: APTR;       // stack upper bound + 2
+        tc_Switch: Pointer;     // task losing CPU
+        tc_Launch: Pointer;     // task getting CPU
+        tc_MemEntry: TList;     // allocated memory
+        tc_UserData: APTR;      // per task data
+      );
   end;
 
 // Stack swap structure as passed to StackSwap()
