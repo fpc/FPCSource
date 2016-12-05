@@ -2478,7 +2478,7 @@ procedure CEND(c: PUCopList); inline;
 begin
   CWAIT(c, 10000, 255);
 end;
-
+{$ifdef AROS_ABIv1}
 function CreateRastPort: PRastPort;
 var
   RP: PRastPort;
@@ -2507,7 +2507,7 @@ begin
   if Assigned(Rp) then
     FreeMem(Rp);
 end;
-
+{$endif}
 initialization
   GfxBase := PGfxBase(OpenLibrary(GRAPHICSNAME, 36));
 finalization
