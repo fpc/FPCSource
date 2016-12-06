@@ -1393,11 +1393,11 @@ parser_e_no_procvarnested_const=03296_E_Typed constants of the type 'procedure i
 % procedural variable contains a reference to a nested procedure/function.
 % Therefore such typed constants can only be initialized with global
 % functions/procedures since these do not require a parent frame pointer.
-parser_f_no_generic_inside_generic=03297_F_Declaration of generic class inside another generic class is not allowed
+parser_f_no_generic_inside_generic=03297_F_Declaration of generic inside another generic is not allowed
 % At the moment, scanner supports recording of only one token buffer at the time
 % (guarded by internal error 200511173 in tscannerfile.startrecordtokens).
 % Since generics are implemented by recording tokens, it is not possible to
-% have declaration of generic class inside another generic class.
+% have declaration of a generic (type or method) inside another generic.
 parser_e_forward_intf_declaration_must_be_resolved=03298_E_Forward declaration "$1" must be resolved before a class can conform to or implement it
 % An Objective-C protocol or Java Interface must be fully defined before classes can conform to it.
 % This error occurs in the following situation (example for Objective-C, but the same goes for Java interfaces):

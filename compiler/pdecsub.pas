@@ -911,6 +911,9 @@ implementation
                exit;
              end;
 
+            if assigned(genericparams) and assigned(current_genericdef) then
+              Message(parser_f_no_generic_inside_generic);
+
             { method  ? }
             srsym:=nil;
             if not assigned(astruct) and
