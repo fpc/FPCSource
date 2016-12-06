@@ -19,6 +19,9 @@ interface
 
 implementation
 
+const
+  amigaos4_signature: dword = 1; public name '__amigaos4__';
+
 var
   AOS_ExecBase: Pointer; public name '_ExecBase';
   IExec: Pointer; public name '_IExec';
