@@ -1562,7 +1562,6 @@ implementation
 
       const
         SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
-        SingleTypeOptionsIsDelphi:array[Boolean] of TSingleTypeOptions = ([],[stoAllowSpecialization]);
       var
         p  : tnode;
         hdef : tdef;
@@ -1695,8 +1694,7 @@ implementation
               begin
                 consume(_CARET);
                 single_type(tt2,
-                    SingleTypeOptionsInTypeBlock[block_type=bt_type]+
-                    SingleTypeOptionsIsDelphi[m_delphi in current_settings.modeswitches]
+                    SingleTypeOptionsInTypeBlock[block_type=bt_type]+[stoAllowSpecialization]
                   );
                 { in case of e.g. var or const sections we need to especially
                   check that we don't use a generic dummy symbol }
