@@ -2384,11 +2384,18 @@ implementation
            if (slopt<>SL_REGNOSRCMASK) then
             a_op_const_reg(list,OP_AND,subsetregdef,tcgint(not(bitmask)),tmpreg);
         end;
+
       if (slopt<>SL_SETMAX) and
       { the "and" is not needed if the whole register is modified (except for SL_SETZERO),
         because later on we do a move in this case instead of an or }
         ((sreg.bitlen<>AIntBits) or (slopt=SL_SETZERO)) then
-        a_op_const_reg(list,OP_AND,subsetregdef,tcgint(bitmask),sreg.subsetreg);
+          begin
+            { shl could wrap around in this case }
+            if subsetregdef.size=sizeof(aword) then
+              a_op_const_reg(list,OP_AND,subsetregdef,tcgint(bitmask),sreg.subsetreg)
+            else
+              a_op_const_reg(list,OP_AND,subsetregdef,tcgint(bitmask) and aword((aword(1) shl (subsetregdef.size*8))-1),sreg.subsetreg);
+          end;
 
       case slopt of
         SL_SETZERO : ;

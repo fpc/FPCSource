@@ -1823,16 +1823,16 @@ unit cgx86;
                   list.concat(taicpu.op_reg(A_DEC,TCgSize2OpSize[size],reg))
               end
             else
-              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],aint(a),reg));
+              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],ImmInt(a),reg));
 
           OP_AND,OP_OR:
-            list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],aint(a),reg));
+            list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],ImmInt(a),reg));
 
           OP_XOR:
             if (aword(a)=high(aword)) then
               list.concat(taicpu.op_reg(A_NOT,TCgSize2OpSize[size],reg))
             else
-              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],aint(a),reg));
+              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],ImmInt(a),reg));
 
           OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
