@@ -2,11 +2,45 @@
 { %cpu=i386,x86_64 }
 { %opt=-Sew -vw }
 {$mode objfpc}
-{$asmmode intel}
 { The test checks that MOVSS instruction assembles without warning.
   Running it could be a nice bonus, but it turns out that we have no portable
   way to detect SSE4.1 support (for DPPS), so disabled for now. }
 uses cpu;
+
+{$asmmode att}
+procedure test1; assembler;
+var
+  s: single;
+asm
+   movss  s, %xmm6
+   movss  %xmm6, s
+{$ifdef cpui386}
+   movss  (%eax, %edx), %xmm7
+   movss  %xmm7, (%eax, %edx)
+{$endif}
+{$ifdef cpux86_64}
+   movss  (%rax, %rdx), %xmm7
+   movss  %xmm7, (%rax, %rdx)
+{$endif}
+end;
+
+{$asmmode intel}
+procedure test2; assembler;
+var
+  s: single;
+asm
+  movss  [s], xmm6
+  movss  xmm6, [s]
+{$ifdef cpui386}
+  movss  [eax+edx], xmm7
+  movss  xmm7, [eax+edx]
+{$endif}
+{$ifdef cpux86_64}
+  movss  [rax+rdx], xmm7
+  movss  xmm7, [rax+rdx]
+{$endif}
+end;
+
 
 type
    TVector4 = packed record

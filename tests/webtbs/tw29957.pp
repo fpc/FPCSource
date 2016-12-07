@@ -1,7 +1,42 @@
 { %cpu=i386,x86_64 }
+{ %opt=-Sew -vw }
 {$mode objfpc}
-{$asmmode intel}
 uses cpu;
+
+{$asmmode att}
+procedure test1; assembler;
+var
+  s: single;
+asm
+   vmovss  s, %xmm6
+   vmovss  %xmm6, s
+{$ifdef cpui386}
+   vmovss  (%eax, %edx), %xmm7
+   vmovss  %xmm7, (%eax, %edx)
+{$endif}
+{$ifdef cpux86_64}
+   vmovss  (%rax, %rdx), %xmm7
+   vmovss  %xmm7, (%rax, %rdx)
+{$endif}
+end;
+
+{$asmmode intel}
+procedure test2; assembler;
+var
+  s: single;
+asm
+  vmovss  [s], xmm6
+  vmovss  xmm6, [s]
+{$ifdef cpui386}
+  vmovss  [eax+edx], xmm7
+  vmovss  xmm7, [eax+edx]
+{$endif}
+{$ifdef cpux86_64}
+  vmovss  [rax+rdx], xmm7
+  vmovss  xmm7, [rax+rdx]
+{$endif}
+end;
+
 
 type
    TVector4 = packed record
