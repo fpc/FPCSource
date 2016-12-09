@@ -2182,18 +2182,22 @@ endif
 LOGFILES=$(TEST_OUTPUTDIR)/log $(TEST_OUTPUTDIR)/longlog $(TEST_OUTPUTDIR)/faillist
 LOGEXT=.testlog .tbslog .tbflog .webtbslog .webtbflog
 TESTUNITDIRS=system dos crt objects strings sysutils math sharemem strutils matrix lineinfo ucomplex fpwidestring cpu fmtbcd windows
+TESTDIRECTDIRS=
 TESTSUBDIRS=cg cg/variants cg/cdecl cpu16 cpu16/i8086 library opt $(addprefix units/,$(TESTUNITDIRS))
 TESTPACKAGESDIRS=win-base webtbs hash fcl-registry fcl-process zlib fcl-db fcl-xml cocoaint bzip2
 TESTPACKAGESUBDIRS=$(addprefix packages/,$(TESTPACKAGESDIRS))
+TESTPACKAGESDIRECTDIRS=rtl-objpas
+TESTPACKAGESDIRECTSUBDIRS=$(addprefix ../packages/,$(addsuffix /tests,$(TESTPACKAGESDIRECTDIRS)))
 ifdef QUICKTEST
 export QUICKTEST
 else
 override TESTSUBDIRS+=$(TESTPACKAGESUBDIRS) alglib
+override TESTDIRECTDIRS+=$(TESTPACKAGESDIRECTSUBDIRS)
 endif
 ifndef CHUNKSIZE
 export CHUNKSIZE:=100
 endif
-TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
+TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS)) $(TESTDIRECTDIRS)
 .PHONY: utils tstunits copyfiles testprep
 $(TEST_OUTPUTDIR):
 	$(MKDIRTREE) $(TEST_OUTPUTDIR)
