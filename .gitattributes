@@ -2596,6 +2596,7 @@ packages/fcl-pdf/examples/testfppdf.lpr svneol=native#text/plain
 packages/fcl-pdf/fpmake.pp svneol=native#text/plain
 packages/fcl-pdf/readme.txt svneol=native#text/plain
 packages/fcl-pdf/src/fontmetrics_stdpdf.inc svneol=native#text/plain
+packages/fcl-pdf/src/fpfonttextmapping.pp svneol=native#text/plain
 packages/fcl-pdf/src/fpparsettf.pp svneol=native#text/plain
 packages/fcl-pdf/src/fppdf.pp svneol=native#text/plain
 packages/fcl-pdf/src/fpttf.pp svneol=native#text/plain
