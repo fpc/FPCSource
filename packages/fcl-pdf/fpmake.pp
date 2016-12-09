@@ -28,6 +28,7 @@ begin
     P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-image');
+    P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('paszlib');
     P.Version:='3.1.1';
     T:=P.Targets.AddUnit('src/fpttfencodings.pp');

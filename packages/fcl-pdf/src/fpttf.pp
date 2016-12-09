@@ -49,12 +49,17 @@ type
     FFileInfo: TTFFileInfo;
     FOwner: TFPFontCacheList; // reference to FontCacheList that owns this instance
     FPostScriptName: string;
+    procedure   DoLoadFileInfo;
+    procedure   LoadFileInfo;
     procedure   BuildFontCacheItem;
     procedure   SetStyleIfExists(var AText: string; var AStyleFlags: TTrueTypeFontStyles; const AStyleName: String; const AStyle: TTrueTypeFontStyle);
     function    GetIsBold: boolean;
     function    GetIsFixedWidth: boolean;
     function    GetIsItalic: boolean;
     function    GetIsRegular: boolean;
+    function    GetFamilyName: String;
+    function    GetPostScriptName: string;
+    function    GetFileInfo: TTFFileInfo;
   public
     constructor Create(const AFilename: String);
     destructor  Destroy; override;
@@ -63,9 +68,9 @@ type
     { Result is in pixels }
     function    TextHeight(const AText: utf8string; const APointSize: single; out ADescender: single): single;
     property    FileName: String read FFileName;
-    property    FamilyName: String read FFamilyName;
-    property    PostScriptName: string read FPostScriptName;
-    property    FontData: TTFFileInfo read FFileInfo;
+    property    FamilyName: String read GetFamilyName;
+    property    PostScriptName: string read GetPostScriptName;
+    property    FontData: TTFFileInfo read GetFileInfo;
     { A bitmasked value describing the full font style }
     property    StyleFlags: TTrueTypeFontStyles read FStyleFlags;
     { IsXXX properties are convenience properties, internally querying StyleFlags. }
@@ -78,7 +83,7 @@ type
 
   TFPFontCacheList = class(TObject)
   private
-    FBuildFontFacheIgnoresErrors: Boolean;
+    FBuildFontCacheIgnoresErrors: Boolean;
     FList: TObjectList;
     FSearchPath: TStringList;
     FDPI: integer;
@@ -97,6 +102,8 @@ type
     function    Add(const AObject: TFPFontCacheItem): integer;
     procedure   AssignFontList(const AStrings: TStrings);
     procedure   Clear;
+    procedure   LoadFromFile(const AFilename: string);
+    procedure   ReadStandardFonts;
     property    Count: integer read GetCount;
     function    IndexOf(const AObject: TFPFontCacheItem): integer;
     function    Find(const AFontCacheItem: TFPFontCacheItem): integer; overload;
@@ -107,7 +114,7 @@ type
     property    Items[AIndex: Integer]: TFPFontCacheItem read GetItem write SetItem; default;
     property    SearchPath: TStringList read FSearchPath;
     property    DPI: integer read FDPI write SetDPI;
-    Property    BuildFontFacheIgnoresErrors : Boolean Read FBuildFontFacheIgnoresErrors Write FBuildFontFacheIgnoresErrors;
+    Property    BuildFontCacheIgnoresErrors : Boolean Read FBuildFontCacheIgnoresErrors Write FBuildFontCacheIgnoresErrors;
   end;
 
 
@@ -115,10 +122,18 @@ function gTTFontCache: TFPFontCacheList;
 
 implementation
 
+uses
+  DOM
+  ,XMLRead
+  {$ifdef mswindows}
+  ,Windows  // for SHGetFolderPath API call used by gTTFontCache.ReadStandardFonts() method
+  {$endif}
+  ;
+
 resourcestring
   rsNoSearchPathDefined = 'No search path was defined';
   rsNoFontFileName = 'The FileName property is empty, so we can''t load font data.';
-  rsCharAboveWord = 'TextWidth doesn''t support characters higher then High(Word) - %d.';
+  rsMissingFontFile = 'The font file <%s> can''t be found.';
 
 var
   uFontCacheList: TFPFontCacheList;
@@ -134,24 +149,64 @@ end;
 
 { TFPFontCacheItem }
 
+procedure TFPFontCacheItem.DoLoadFileInfo;
+begin
+  if not Assigned(FFileInfo) then
+    LoadFileInfo;
+end;
+
+procedure TFPFontCacheItem.LoadFileInfo;
+begin
+  if FileExists(FFilename) then
+  begin
+    FFileInfo := TTFFileInfo.Create;
+    FFileInfo.LoadFromFile(FFilename);
+    BuildFontCacheItem;
+  end
+  else
+    raise ETTF.CreateFmt(rsMissingFontFile, [FFilename]);
+end;
+
 function TFPFontCacheItem.GetIsBold: boolean;
 begin
+  DoLoadFileInfo;
   Result := fsBold in FStyleFlags;
 end;
 
 function TFPFontCacheItem.GetIsFixedWidth: boolean;
 begin
+  DoLoadFileInfo;
   Result := fsFixedWidth in FStyleFlags;
 end;
 
 function TFPFontCacheItem.GetIsItalic: boolean;
 begin
+  DoLoadFileInfo;
   Result := fsItalic in FStyleFlags;
 end;
 
 function TFPFontCacheItem.GetIsRegular: boolean;
 begin
+  DoLoadFileInfo;
   Result := fsRegular in FStyleFlags;
+end;
+
+function TFPFontCacheItem.GetFamilyName: String;
+begin
+  DoLoadFileInfo;
+  Result := FFamilyName;
+end;
+
+function TFPFontCacheItem.GetPostScriptName: string;
+begin
+  DoLoadFileInfo;
+  Result := FPostScriptName;
+end;
+
+function TFPFontCacheItem.GetFileInfo: TTFFileInfo;
+begin
+  DoLoadFileInfo;
+  Result := FFileInfo;
 end;
 
 procedure TFPFontCacheItem.BuildFontCacheItem;
@@ -205,13 +260,6 @@ begin
 
   if AFileName = '' then
     raise ETTF.Create(rsNoFontFileName);
-
-  if FileExists(AFilename) then
-  begin
-    FFileInfo := TTFFileInfo.Create;
-    FFileInfo.LoadFromFile(AFilename);
-    BuildFontCacheItem;
-  end;
 end;
 
 destructor TFPFontCacheItem.Destroy;
@@ -253,6 +301,7 @@ var
   s: string;
   {$ENDIF}
 begin
+  DoLoadFileInfo;
   Result := 0;
   if Length(AStr) = 0 then
     Exit;
@@ -294,6 +343,7 @@ end;
 
 function TFPFontCacheItem.TextHeight(const AText: utf8string; const APointSize: single; out ADescender: single): single;
 begin
+  DoLoadFileInfo;
   { Both lHeight and lDescenderHeight are in pixels }
   Result := FFileInfo.CapHeight * APointSize * gTTFontCache.DPI / (72 * FFileInfo.Head.UnitsPerEm);
   ADescender := Abs(FFileInfo.Descender) * APointSize * gTTFontCache.DPI / (72 * FFileInfo.Head.UnitsPerEm);
@@ -307,7 +357,7 @@ var
   lFont: TFPFontCacheItem;
   s: String;
 begin
-  if FindFirst(AFontPath + AllFilesMask, faAnyFile, sr) = 0 then
+  if SysUtils.FindFirst(AFontPath + AllFilesMask, faAnyFile, sr) = 0 then
   begin
     repeat
       // check if special files to skip
@@ -326,14 +376,14 @@ begin
             lFont := TFPFontCacheItem.Create(AFontPath + s);
             Add(lFont);
           except
-            if not FBuildFontFacheIgnoresErrors then
+            if not FBuildFontCacheIgnoresErrors then
               Raise;
           end;
         end;
       end;
-    until FindNext(sr) <> 0;
+    until SysUtils.FindNext(sr) <> 0;
   end;
-  FindClose(sr);
+  SysUtils.FindClose(sr);
 end;
 
 procedure TFPFontCacheList.SetDPI(AValue: integer);
@@ -417,6 +467,96 @@ end;
 procedure TFPFontCacheList.Clear;
 begin
   FList.Clear;
+end;
+
+procedure TFPFontCacheList.LoadFromFile(const AFilename: string);
+var
+  sl: TStringList;
+  i: integer;
+begin
+  sl := TStringList.Create;
+  try
+    sl.LoadFromFile(AFilename);
+    for i := 0 to sl.Count-1 do
+      Add(TFPFontCacheItem.Create(sl[i]));
+  finally
+    sl.Free;
+  end;
+end;
+
+{ This is operating system dependent. Our default implementation only supports
+  Linux, FreeBSD, Windows and OSX. On other platforms, no fonts will be loaded,
+  until a implementation is created.
+
+  NOTE:
+    This is definitely not a perfect solution, especially due to the inconsistent
+    implementations and locations of files under various Linux distros. But it's
+    the best we can do for now. }
+procedure TFPFontCacheList.ReadStandardFonts;
+
+  {$ifdef linux}
+    {$define HasFontsConf}
+    const
+      cFontsConf = '/etc/fonts/fonts.conf';
+  {$endif}
+
+  {$ifdef freebsd}
+    {$define HasFontsConf}
+    const
+      cFontsConf = '/usr/local/etc/fonts/fonts.conf';
+  {$endif}
+
+  {$ifdef mswindows}
+  function GetWinDir: string;
+  var
+    dir: array [0..MAX_PATH] of Char;
+  begin
+    GetWindowsDirectory(dir, MAX_PATH);
+    Result := StrPas(dir);
+  end;
+  {$endif}
+
+{$ifdef HasFontsConf}
+var
+  doc: TXMLDocument;
+  lChild: TDOMNode;
+  lDir: string;
+{$endif}
+begin
+  {$ifdef HasFontsConf} // Linux & FreeBSD
+  ReadXMLFile(doc, cFontsConf);
+  try
+    lChild := doc.DocumentElement.FirstChild;
+    while Assigned(lChild) do
+    begin
+      if lChild.NodeName = 'dir' then
+      begin
+        if lChild.FirstChild.NodeValue = '~/.fonts' then
+          lDir := ExpandFilename(lChild.FirstChild.NodeValue)
+        else
+          lDir := lChild.FirstChild.NodeValue;
+        SearchPath.Add(lDir);
+//        writeln(lDir);
+      end;
+      lChild := lChild.NextSibling;
+    end;
+  finally
+    doc.Free;
+  end;
+  {$endif}
+
+  {$ifdef mswindows}
+  SearchPath.Add(GetWinDir);
+  {$endif}
+
+  {$ifdef darwin} // OSX
+  { As per Apple Support page: https://support.apple.com/en-us/HT201722 }
+  SearchPath.Add('/System/Library/Fonts/');
+  SearchPath.Add('/Library/Fonts/');
+  SearchPath.Add(ExpandFilename('~/Library/Fonts/'));
+  {$endif}
+
+  BuildFontCache;
 end;
 
 function TFPFontCacheList.IndexOf(const AObject: TFPFontCacheItem): integer;

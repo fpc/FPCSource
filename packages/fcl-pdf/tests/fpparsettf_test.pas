@@ -971,7 +971,7 @@ end;
 
 procedure TTestLiberationFont.TestOS2Data_ulUnicodeRange1;
 begin
-  AssertEquals('Failed on 1', '1110 0000 0000 0000 0000 1010 1111 1111', IntToBin(FI.OS2Data.ulUnicodeRange1, 32, 4));
+//  AssertEquals('Failed on 1', '1110 0000 0000 0000 0000 1010 1111 1111', IntToBin(FI.OS2Data.ulUnicodeRange1, 32, 4));
   AssertEquals('Failed on 2', 'E0000AFF', IntToHex(FI.OS2Data.ulUnicodeRange1, 8));
 end;
 

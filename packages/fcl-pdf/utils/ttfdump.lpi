@@ -32,6 +32,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="-f ../tests/fonts/FreeSans.ttf -s"/>
       </local>
     </RunParams>
     <Units Count="1">
@@ -56,6 +57,11 @@
         <AllowLabel Value="False"/>
       </SyntaxOptions>
     </Parsing>
+    <Linking>
+      <Debugging>
+        <UseHeaptrc Value="True"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

@@ -35,6 +35,7 @@ type
     FTextCompression,
     FFontCompression: boolean;
     FNoFontEmbedding: boolean;
+    FSubsetFontEmbedding: boolean;
     FDoc: TPDFDocument;
     function    SetUpDocument: TPDFDocument;
     procedure   SaveDocument(D: TPDFDocument);
@@ -77,8 +78,13 @@ begin
   Result.Infos.CreationDate := Now;
 
   lOpts := [poPageOriginAtTop];
+  if FSubsetFontEmbedding then
+    Include(lOpts, poSubsetFont);
   if FNoFontEmbedding then
+  begin
     Include(lOpts, poNoEmbeddedFonts);
+    Exclude(lOpts, poSubsetFont);
+  end;
   if FFontCompression then
     Include(lOpts, poCompressFonts);
   if FTextCompression then
@@ -132,7 +138,8 @@ end;
 procedure TPDFTestApp.SimpleText(D: TPDFDocument; APage: integer);
 var
   P : TPDFPage;
-  FtTitle, FtText1, FtText2, FtText3: integer;
+  FtTitle, FtText1, FtText2: integer;
+  FtWaterMark: integer;
 begin
   P := D.Pages[APage];
 
@@ -140,14 +147,16 @@ begin
   FtTitle := D.AddFont('Helvetica');
   FtText1 := D.AddFont('FreeSans.ttf', 'FreeSans');
   FtText2 := D.AddFont('Times-BoldItalic');
-  // FtText3 := D.AddFont('arial.ttf', 'Arial');
-  FtText3 := FtText1; // to reduce font dependecies, but above works too if you have arial.ttf available
+  FtWaterMark := D.AddFont('Helvetica-Bold');
 
   { Page title }
   P.SetFont(FtTitle, 23);
   P.SetColor(clBlack, false);
   P.WriteText(25, 20, 'Sample Text');
 
+  P.SetFont(FtWaterMark, 120);
+  P.SetColor(clWaterMark, false);
+  P.WriteText(55, 190, 'Sample', 45);
 
   // -----------------------------------
   // Write text using PDF standard fonts
@@ -157,6 +166,12 @@ begin
   P.SetColor(clBlack, false);
   P.WriteText(25, 57, 'Click the URL:  http://www.freepascal.org');
   P.AddExternalLink(54, 58, 49, 5, 'http://www.freepascal.org', false);
+
+  // strike-through text
+  P.WriteText(25, 64, 'Strike-Through text', 0, false, true);
+
+  // strike-through text
+  P.WriteText(65, 64, 'Underlined text', 0, true);
 
   // rotated text
   P.SetColor(clBlue, false);
@@ -169,17 +184,16 @@ begin
 
   // -----------------------------------
   // TrueType testing purposes
-  P.SetFont(ftText3, 13);
+  P.SetFont(FtText1, 13);
   P.SetColor(clBlack, false);
 
   P.WriteText(15, 120, 'Languages: English: Hello, World!');
-  P.WriteText(40, 130, 'Greek: Γειά σου κόσμος');
+  P.WriteText(40, 130, 'Greek: Γεια σου κόσμος');
   P.WriteText(40, 140, 'Polish: Witaj świecie');
   P.WriteText(40, 150, 'Portuguese: Olá mundo');
   P.WriteText(40, 160, 'Russian: Здравствуйте мир');
   P.WriteText(40, 170, 'Vietnamese: Xin chào thế giới');
 
-  P.SetFont(ftText1, 13);
   P.WriteText(15, 185, 'Box Drawing: ╠ ╣ ╦ ╩ ├ ┤ ┬ ┴');
 
   P.WriteText(15, 200, 'Typography: “What’s wrong?”');
@@ -213,30 +227,30 @@ begin
   P.WriteText(25, 20, 'Sample Line Drawing (DrawLine)');
 
   P.SetColor(clBlack, True);
-  P.SetPenStyle(ppsSolid);
+  P.SetPenStyle(ppsSolid, 1);
   lPt1.X := 30;   lPt1.Y := 100;
   lPt2.X := 150;  lPt2.Y := 150;
-  P.DrawLine(lPt1, lPt2, 0.2);
+  P.DrawLine(lPt1, lPt2, 1);
 
   P.SetColor(clBlue, True);
-  P.SetPenStyle(ppsDash);
+  P.SetPenStyle(ppsDash, 1);
   lPt1.X := 50;   lPt1.Y := 70;
   lPt2.X := 180;  lPt2.Y := 100;
-  P.DrawLine(lPt1, lPt2, 0.1);
+  P.DrawLine(lPt1, lPt2, 1);
 
   { we can also use coordinates directly, without TPDFCoord variables }
 
   P.SetColor(clRed, True);
-  P.SetPenStyle(ppsDashDot);
+  P.SetPenStyle(ppsDashDot, 1);
   P.DrawLine(40, 140, 160, 80, 1);
 
   P.SetColor(clBlack, True);
-  P.SetPenStyle(ppsDashDotDot);
-  P.DrawLine(60, 50, 60, 120, 1.5);
+  P.SetPenStyle(ppsDashDotDot, 1);
+  P.DrawLine(60, 50, 60, 120, 1);
 
   P.SetColor(clBlack, True);
-  P.SetPenStyle(ppsDot);
-  P.DrawLine(10, 80, 130, 130, 0.5);
+  P.SetPenStyle(ppsDot, 1);
+  P.DrawLine(10, 80, 130, 130, 1);
 end;
 
 procedure TPDFTestApp.SimpleLines(D: TPDFDocument; APage: integer);
@@ -256,11 +270,11 @@ begin
   P.WriteText(25, 20, 'Sample Line Drawing (DrawLineStyle)');
 
   // write the text at position 100 mm from left and 120 mm from top
-  TsThinBlack := D.AddLineStyleDef(0.2, clBlack, ppsSolid);
-  TsThinBlue := D.AddLineStyleDef(0.1, clBlue, ppsDash);
+  TsThinBlack := D.AddLineStyleDef(1, clBlack, ppsSolid);
+  TsThinBlue := D.AddLineStyleDef(1, clBlue, ppsDash);
   TsThinRed := D.AddLineStyleDef(1, clRed, ppsDashDot);
-  TsThick := D.AddLineStyleDef(1.5, clBlack, ppsDashDotDot);
-  TsThinBlackDot := D.AddLineStyleDef(0.5, clBlack, ppsDot);
+  TsThick := D.AddLineStyleDef(1, clBlack, ppsDashDotDot);
+  TsThinBlackDot := D.AddLineStyleDef(1, clBlack, ppsDot);
 
   lPt1.X := 30;   lPt1.Y := 100;
   lPt2.X := 150;  lPt2.Y := 150;
@@ -697,6 +711,7 @@ var
   lFontIdx: integer;
   lFC: TFPFontCacheItem;
   lHeight: single;
+  lDescenderHeight: single;
   lTextHeightInMM: single;
   lWidth: single;
   lTextWidthInMM: single;
@@ -719,20 +734,14 @@ begin
   if not Assigned(lFC) then
     raise Exception.Create(AFontName + ' font not found');
 
-  { result is in pixels }
-  lHeight := lFC.FontData.CapHeight * APointSize * gTTFontCache.DPI / (72 * lFC.FontData.Head.UnitsPerEm);
-  { convert pixels to mm as our PDFPage.UnitOfMeasure is set to mm. }
-  lTextHeightInMM :=  (lHeight * 25.4) / gTTFontCache.DPI;
+  lHeight := lFC.TextHeight(AText, APointSize, lDescenderHeight);
+  { convert the Font Units to mm as our PDFPage.UnitOfMeasure is set to mm. }
+  lTextHeightInMM := (lHeight * 25.4) / gTTFontCache.DPI;
+  lDescenderHeightInMM := (lDescenderHeight * 25.4) / gTTFontCache.DPI;
 
   lWidth := lFC.TextWidth(AText, APointSize);
-  { convert the Font Units to Millimeters }
+  { convert the Font Units to mm as our PDFPage.UnitOfMeasure is set to mm. }
   lTextWidthInMM := (lWidth * 25.4) / gTTFontCache.DPI;
-
-  { result is in pixels }
-  lHeight := Abs(lFC.FontData.Descender) * APointSize * gTTFontCache.DPI /
-      (72 * lFC.FontData.Head.UnitsPerEm);
-  { convert pixels to mm as you PDFPage.UnitOfMeasure is set to mm. }
-  lDescenderHeightInMM :=  (lHeight * 25.4) / gTTFontCache.DPI;
 
   { adjust the Y coordinate for the font Descender, because
     WriteText() draws on the baseline. Also adjust the TextHeight
@@ -766,7 +775,7 @@ begin
   StopOnException:=True;
   inherited DoRun;
   // quick check parameters
-  ErrorMsg := CheckOptions('hp:f:t:i:j:n', '');
+  ErrorMsg := CheckOptions('hp:f:t:i:j:ns', '');
   if ErrorMsg <> '' then
   begin
     WriteLn('ERROR:  ' + ErrorMsg);
@@ -797,6 +806,7 @@ begin
   end;
 
   FNoFontEmbedding := HasOption('n', '');
+  FSubsetFontEmbedding := HasOption('s', '');
   FFontCompression := BoolFlag('f',true);
   FTextCompression := BoolFlag('t',False);
   FImageCompression := BoolFlag('i',False);
@@ -852,6 +862,7 @@ begin
           '                If this option is not specified, then all %0:d pages are' + LineEnding +
           '                generated.', [cPageCount]));
   writeln('    -n          If specified, no fonts will be embedded.');
+  writeln('    -s          If specified, subset TTF font embedding will occur.');
   writeln('    -f <0|1>    Toggle embedded font compression. A value of 0' + LineEnding +
           '                disables compression. A value of 1 enables compression.' + LineEnding +
           '                If -n is specified, this option is ignored.');

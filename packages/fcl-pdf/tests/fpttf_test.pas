@@ -12,25 +12,39 @@ uses
   ,fpcunit, testregistry
   {$endif}
   ,fpttf
+  ,fpparsettf
   ;
 
 type
 
+  TMyTestFPFontCacheItem = class(TFPFontCacheItem)
+  protected
+    FFileInfo: TTFFileInfo;
+  end;
+
+
   TFPFontCacheItemTest = class(TTestCase)
   private
-    FCacheItem: TFPFontCacheItem;
+    FCacheItem: TMyTestFPFontCacheItem;
+    procedure SetupRealFont;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   public
-    property CI: TFPFontCacheItem read FCacheItem;
+    property CI: TMyTestFPFontCacheItem read FCacheItem;
   published
+    procedure TestIsRegularCantFind;
+    procedure TestIsBoldCantFind;
+    procedure TestIsItalicCantFind;
+    procedure TestIsFixedWidthCantFind;
+    procedure TestFileInfoCantFind;
     procedure TestIsRegular;
     procedure TestIsBold;
     procedure TestIsItalic;
     procedure TestIsFixedWidth;
     procedure TestRegularVsFixedWidth;
     procedure TestFileName;
+    procedure TestFontInfoAfterCreate;
     procedure TestTextWidth_FontUnits;
     procedure TestTextWidth_Pixels;
   end;
@@ -52,12 +66,11 @@ type
     procedure TestFind_FamilyName;
     procedure TestFind_PostscriptName;
     procedure TestAssignFontList;
+    procedure TestLoadFromFile;
+    procedure TestReadStandardFonts;
   end;
 
 implementation
-
-uses
-  fpparsettf;
 
 const
   cFontCount = 5;
@@ -65,12 +78,19 @@ const
 resourcestring
   cErrFontCountWrong =   ' - make sure you only have the 5 test fonts in the "fonts" directory.';
 
+
 { TFPFontCacheItemTest }
+
+procedure TFPFontCacheItemTest.SetupRealFont;
+begin
+  FCacheItem.Free;
+  FCacheItem := TMyTestFPFontCacheItem.Create('fonts' + PathDelim + 'DejaVuSans.ttf');
+end;
 
 procedure TFPFontCacheItemTest.SetUp;
 begin
   inherited SetUp;
-  FCacheItem := TFPFontCacheItem.Create('mytest.ttf');
+  FCacheItem := TMyTestFPFontCacheItem.Create('mytest.ttf');
 end;
 
 procedure TFPFontCacheItemTest.TearDown;
@@ -79,29 +99,103 @@ begin
   inherited TearDown;
 end;
 
+procedure TFPFontCacheItemTest.TestIsRegularCantFind;
+begin
+  try
+    AssertFalse(CI.IsRegular);  // this should raise an error
+    Fail('Failed on 1');
+  except
+    on E: Exception do
+      begin
+        AssertEquals('Failed on 2', 'ETTF', E.ClassName);
+        AssertEquals('Failed on 3', 'The font file <mytest.ttf> can''t be found.', E.Message);
+      end;
+  end;
+end;
+
+procedure TFPFontCacheItemTest.TestIsBoldCantFind;
+begin
+  try
+    AssertFalse(CI.IsBold);  // this should raise an error
+    Fail('Failed on 1');
+  except
+    on E: Exception do
+      begin
+        AssertEquals('Failed on 2', 'ETTF', E.ClassName);
+        AssertEquals('Failed on 3', 'The font file <mytest.ttf> can''t be found.', E.Message);
+      end;
+  end;
+end;
+
+procedure TFPFontCacheItemTest.TestIsItalicCantFind;
+begin
+  try
+    AssertFalse(CI.IsItalic);  // this should raise an error
+    Fail('Failed on 1');
+  except
+    on E: Exception do
+      begin
+        AssertEquals('Failed on 2', 'ETTF', E.ClassName);
+        AssertEquals('Failed on 3', 'The font file <mytest.ttf> can''t be found.', E.Message);
+      end;
+  end;
+end;
+
+procedure TFPFontCacheItemTest.TestIsFixedWidthCantFind;
+begin
+  try
+    AssertFalse(CI.IsFixedWidth);  // this should raise an error
+    Fail('Failed on 1');
+  except
+    on E: Exception do
+      begin
+        AssertEquals('Failed on 2', 'ETTF', E.ClassName);
+        AssertEquals('Failed on 3', 'The font file <mytest.ttf> can''t be found.', E.Message);
+      end;
+  end;end;
+
+procedure TFPFontCacheItemTest.TestFileInfoCantFind;
+begin
+  try
+    AssertFalse(CI.FontData <> nil);  // this should raise an error
+    Fail('Failed on 1');
+  except
+    on E: Exception do
+      begin
+        AssertEquals('Failed on 2', 'ETTF', E.ClassName);
+        AssertEquals('Failed on 3', 'The font file <mytest.ttf> can''t be found.', E.Message);
+      end;
+  end;
+end;
+
 procedure TFPFontCacheItemTest.TestIsRegular;
 begin
+  SetupRealFont;
   { regular should be the default flag set }
   AssertEquals('Failed on 1', True, CI.IsRegular);
 end;
 
 procedure TFPFontCacheItemTest.TestIsBold;
 begin
+  SetupRealFont;
   AssertEquals('Failed on 1', False, CI.IsBold);
 end;
 
 procedure TFPFontCacheItemTest.TestIsItalic;
 begin
+  SetupRealFont;
   AssertEquals('Failed on 1', False, CI.IsItalic);
 end;
 
 procedure TFPFontCacheItemTest.TestIsFixedWidth;
 begin
+  SetupRealFont;
   AssertEquals('Failed on 1', False, CI.IsFixedWidth);
 end;
 
 procedure TFPFontCacheItemTest.TestRegularVsFixedWidth;
 begin
+  SetupRealFont;
   AssertEquals('Failed on 1', True, CI.IsRegular);
   AssertEquals('Failed on 2', False, CI.IsFixedWidth);
 end;
@@ -109,8 +203,14 @@ end;
 procedure TFPFontCacheItemTest.TestFileName;
 begin
   AssertTrue('Failed on 1', CI.FileName <> '');
-  { FileName is a non-existing file though, so FontData should be nil }
-  AssertTrue('Failed on 2', CI.FontData = nil);
+  { The Filename property doesn't trigger the loading of font info data }
+  AssertTrue('Failed on 2', CI.FFileInfo = nil);
+end;
+
+procedure TFPFontCacheItemTest.TestFontInfoAfterCreate;
+begin
+  { Font info isn't loaded in the constructor any more - it is now loaded on demand }
+  AssertTrue('Failed on 1', CI.FFileInfo = nil);
 end;
 
 procedure TFPFontCacheItemTest.TestTextWidth_FontUnits;
@@ -310,6 +410,38 @@ begin
   finally
     sl.Free;
   end;
+end;
+
+procedure TFPFontCacheListTest.TestLoadFromFile;
+const
+  cFontListFile = 'fontlist.txt';
+var
+  s: string;
+  lCI: TFPFontCacheItem;
+begin
+  s := ExtractFilePath(ParamStr(0)) + cFontListFile;
+  AssertEquals('Failed on 1', 0, FC.Count);
+  FC.LoadFromFile(s);
+  AssertEquals('Failed on 2', 3, FC.Count);
+
+  lCI := FC.Find('DejaVuSans');
+  AssertTrue('Failed on 3', Assigned(lCI));
+  lCI := nil;
+
+  lCI := FC.Find('FreeSans');
+  AssertTrue('Failed on 4', Assigned(lCI));
+  lCI := nil;
+
+  lCI := FC.Find('LiberationSans-Italic');
+  AssertTrue('Failed on 5', Assigned(lCI));
+  lCI := nil;
+end;
+
+procedure TFPFontCacheListTest.TestReadStandardFonts;
+begin
+  AssertEquals('Failed on 1', 0, FC.Count);
+  FC.ReadStandardFonts;
+  AssertTrue('Failed on 2', FC.Count > 1);
 end;
 
 
