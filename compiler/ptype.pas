@@ -169,6 +169,21 @@ implementation
                               srsym:=tstoreddef(tmp).typesym;
                           end;
                         tabstractpointerdef(def).pointeddef:=ttypesym(srsym).typedef;
+                        { correctly set the generic/specialization flags and the genericdef }
+                        if df_generic in tstoreddef(tabstractpointerdef(def).pointeddef).defoptions then
+                          include(tstoreddef(def).defoptions,df_generic);
+                        if df_specialization in tstoreddef(tabstractpointerdef(def).pointeddef).defoptions then
+                          begin
+                            include(tstoreddef(def).defoptions,df_specialization);
+                            case def.typ of
+                              pointerdef:
+                                tstoreddef(def).genericdef:=cpointerdef.getreusable(tstoreddef(tabstractpointerdef(def).pointeddef).genericdef);
+                              classrefdef:
+                                tstoreddef(def).genericdef:=cclassrefdef.create(tstoreddef(tabstractpointerdef(def).pointeddef).genericdef);
+                              else
+                                internalerror(2016120901);
+                            end;
+                          end;
                         { avoid wrong unused warnings web bug 801 PM }
                         inc(ttypesym(srsym).refs);
                         { we need a class type for classrefdef }

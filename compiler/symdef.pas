@@ -3243,6 +3243,10 @@ implementation
       begin
         inherited create(dt,true);
         pointeddef:=def;
+        if df_generic in pointeddef.defoptions then
+          include(defoptions,df_generic);
+        if df_specialization in pointeddef.defoptions then
+          include(defoptions,df_specialization);
       end;
 
 
@@ -3294,6 +3298,8 @@ implementation
       begin
         inherited create(pointerdef,def);
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
+        if df_specialization in tstoreddef(def).defoptions then
+          genericdef:=cpointerdef.getreusable(tstoreddef(def).genericdef);
       end;
 
 
@@ -3421,6 +3427,8 @@ implementation
     constructor tclassrefdef.create(def:tdef);
       begin
          inherited create(classrefdef,def);
+         if df_specialization in tstoreddef(def).defoptions then
+           genericdef:=cclassrefdef.create(tstoreddef(def).genericdef);
       end;
 
 
