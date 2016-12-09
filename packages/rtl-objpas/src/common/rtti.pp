@@ -12,7 +12,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-unit Rtti;
+unit Rtti experimental;
 
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
