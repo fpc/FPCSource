@@ -3371,8 +3371,7 @@ const
             - proc declared in interface of unit (or in class/record/object)
               and defined in implementation; here the fwpd might contain
               constraints while currpd must only contain undefineddefs
-            - forward declaration in implementation; this case is not supported
-              right now }
+            - forward declaration in implementation }
           foundretdef:=false;
           for i:=0 to fwpd.genericparas.count-1 do
             begin
