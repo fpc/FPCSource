@@ -84,7 +84,8 @@ interface
     added earlier }
   procedure add_synthetic_method_implementations(st: tsymtable);
 
-
+  { finalize a procdef that has been copied with
+    tprocdef.getcopyas(procdef,pc_bareproc) }
   procedure finish_copied_procdef(var pd: tprocdef; const realname: string; newparentst: tsymtable; newstruct: tabstractrecorddef);
 
   { create "parent frame pointer" record skeleton for procdef, in which local
