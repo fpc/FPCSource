@@ -113,6 +113,13 @@ begin
           AddUnit('latextestreport');
           AddUnit('plaintestreport');
         end;
+    T:=P.Targets.AddUnit('simpletestrunner.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpcunit');
+          AddUnit('fpcunitreport');
+          AddUnit('plaintestreport');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;

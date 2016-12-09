@@ -2400,6 +2400,7 @@ packages/fcl-fpcunit/src/fpmake.inc svneol=native#text/plain
 packages/fcl-fpcunit/src/fpmake.pp svneol=native#text/plain
 packages/fcl-fpcunit/src/latextestreport.pp svneol=native#text/plain
 packages/fcl-fpcunit/src/plaintestreport.pp svneol=native#text/plain
+packages/fcl-fpcunit/src/simpletestrunner.pas svneol=native#text/pascal
 packages/fcl-fpcunit/src/testdecorator.pp svneol=native#text/plain
 packages/fcl-fpcunit/src/testregistry.pp svneol=native#text/plain
 packages/fcl-fpcunit/src/testreport.pp svneol=native#text/plain
