@@ -73,6 +73,7 @@ interface
         procedure collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
         procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean;spezcontext:tspecializationcontext);
         procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
+        procedure calc_distance(st_root:tsymtable;objcidcall: boolean);
         function  proc_add(st:tsymtable;pd:tprocdef;objcidcall: boolean):pcandidate;
         function  maybe_specialize(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
       public
@@ -2549,7 +2550,90 @@ implementation
               end;
           end;
 
+        calc_distance(st,objcidcall);
+
         ProcdefOverloadList.Free;
+      end;
+
+
+    procedure tcallcandidates.calc_distance(st_root: tsymtable; objcidcall: boolean);
+      var
+        pd:tprocdef;
+        candidate:pcandidate;
+        objdef: tobjectdef;
+        st: tsymtable;
+      begin
+        { Give a small penalty for overloaded methods not defined in the
+          current class/unit }
+        st:=nil;
+        if objcidcall or
+           not assigned(st_root) or
+           not assigned(st_root.defowner) or
+           (st_root.defowner.typ<>objectdef) then
+          st:=st_root
+        else
+          repeat
+            { In case of a method, st_root is the symtable of the first found
+              procsym with the called method's name, but this procsym may not
+              contain any of the overloads that match the used parameters (which
+              are the procdefs that have been collected as candidates) -> walk
+              up the class hierarchy and look for the first class that actually
+              defines at least one of the candidate procdefs.
+
+              The reason is that we will penalise methods in other classes/
+              symtables, so if we pick a symtable that does not contain any of
+              the candidates, this won't help with picking the best/
+              most-inner-scoped one (since all of them will be penalised) }
+            candidate:=FCandidateProcs;
+
+            { the current class contains one of the candidates? }
+            while assigned(candidate) do
+              begin
+                pd:=candidate^.data;
+                if pd.owner=st_root then
+                  begin
+                    { yes -> choose this class }
+                    st:=st_root;
+                    break;
+                  end;
+                candidate:=candidate^.next;
+              end;
+
+            { None found -> go to parent class }
+            if not assigned(st) then
+              begin
+                if not assigned(st_root.defowner) then
+                  internalerror(201605301);
+
+                { no more parent class -> take current class as root anyway
+                  (could maybe happen in case of a class helper?) }
+                if not assigned(tobjectdef(st_root.defowner).childof) then
+                  begin
+                    st:=st_root;
+                    break;
+                  end;
+
+                st_root:=tobjectdef(st_root.defowner).childof.symtable;
+              end;
+          until assigned(st);
+
+        candidate:=FCandidateProcs;
+        {  when calling Objective-C methods via id.method, then the found
+           procsym will be inside an arbitrary ObjectSymtable, and we don't
+           want to give the methods of that particular objcclass precedence
+           over other methods, so instead check against the symtable in
+           which this objcclass is defined }
+        if objcidcall then
+          st:=st.defowner.owner;
+        while assigned(candidate) do
+          begin
+            pd:=candidate^.data;
+
+            if st<>pd.owner then
+              candidate^.ordinal_distance:=candidate^.ordinal_distance+1.0;
+
+            candidate:=candidate^.next;
+          end;
       end;
 
 
@@ -2580,17 +2664,6 @@ implementation
                dec(result^.firstparaidx,defaultparacnt);
              end;
          end;
-        { Give a small penalty for overloaded methods not in
-          defined the current class/unit }
-        {  when calling Objective-C methods via id.method, then the found
-           procsym will be inside an arbitrary ObjectSymtable, and we don't
-           want togive the methods of that particular objcclass precedence over
-           other methods, so instead check against the symtable in which this
-           objcclass is defined }
-        if objcidcall then
-          st:=st.defowner.owner;
-        if (st<>pd.owner) then
-          result^.ordinal_distance:=result^.ordinal_distance+1.0;
       end;
 
 
