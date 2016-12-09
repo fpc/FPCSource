@@ -1293,26 +1293,15 @@ implementation
                     tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+
                       ImplIntf.IntfDef.objname^+'_$_'+tostr(j)+'_$_'+pd.mangledname);
 {$ifdef cpuhighleveltarget}
-                    { bare copy so we don't copy the aliasnames }
-                    wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc));
-                    { set the mangled name to the wrapper name }
-                    wrapperpd.setmangledname(tmps);
-                    { insert the wrapper procdef in the current unit's local
-                      symbol table, but set the owning "struct" to the current
-                      class (so self will have the correct type) }
-                    finish_copied_procdef(wrapperpd,tmps,current_module.localsymtable,_class);
-                    { now insert self/vmt }
-                    insert_self_and_vmt_para(wrapperpd);
-                    { and the function result }
-                    insert_funcret_para(wrapperpd);
-                    { recalculate the parameters now that we've added the above }
-                    wrapperpd.calcparas;
-                    { set the info required to generate the implementation }
-                    wrapperpd.synthetickind:=tsk_interface_wrapper;
                     new(wrapperinfo);
                     wrapperinfo^.pd:=pd;
                     wrapperinfo^.offset:=ImplIntf.ioffset;
-                    wrapperpd.skpara:=wrapperinfo;
+                    { insert the wrapper procdef in the current unit's local
+                      symbol table, but set the owning "struct" to the current
+                      class (so self will have the correct type) }
+                    wrapperpd:=create_procdef_alias(pd,tmps,tmps,
+                      current_module.localsymtable,_class,
+                      tsk_interface_wrapper,wrapperinfo);
 {$else cpuhighleveltarget}
                     { create wrapper code }
                     new_section(list,sec_code,tmps,target_info.alignment.procalign);

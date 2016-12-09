@@ -84,6 +84,14 @@ interface
     added earlier }
   procedure add_synthetic_method_implementations(st: tsymtable);
 
+  { create an alias for a procdef with Pascal name "newrealname",
+    mangledname "newmangledname", in symtable newparentst, part of the
+    record/class/.. "newstruct" (nil if none), and with synthetickind "sk" and
+    synthetic kind para "skpara" to create the implementation (tsk_none and nil
+    in case not necessary). Returns the new procdef; finish_copied_procdef() is
+    not required/must not be called for the result. }
+  function create_procdef_alias(pd: tprocdef; const newrealname: string; const newmangledname: TSymStr; newparentst: tsymtable; newstruct: tabstractrecorddef; sk: tsynthetickind; skpara: pointer): tprocdef;
+
   { finalize a procdef that has been copied with
     tprocdef.getcopyas(procdef,pc_bareproc) }
   procedure finish_copied_procdef(var pd: tprocdef; const realname: string; newparentst: tsymtable; newstruct: tabstractrecorddef);
@@ -1113,6 +1121,27 @@ implementation
            end;
         end;
       restore_scanner(sstate);
+    end;
+
+
+  function create_procdef_alias(pd: tprocdef; const newrealname: string; const newmangledname: TSymStr; newparentst: tsymtable; newstruct: tabstractrecorddef;
+      sk: tsynthetickind; skpara: pointer): tprocdef;
+    begin
+      { bare copy so we don't copy the aliasnames }
+      result:=tprocdef(pd.getcopyas(procdef,pc_bareproc));
+      { set the mangled name to the wrapper name }
+      result.setmangledname(newmangledname);
+      { finish creating the copy }
+      finish_copied_procdef(result,newrealname,newparentst,newstruct);
+      { now insert self/vmt }
+      insert_self_and_vmt_para(result);
+      { and the function result }
+      insert_funcret_para(result);
+      { recalculate the parameters now that we've added the missing ones }
+      result.calcparas;
+      { set the info required to generate the implementation }
+      result.synthetickind:=sk;
+      result.skpara:=skpara;
     end;
 
 
