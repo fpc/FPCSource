@@ -116,6 +116,9 @@ begin
        AddUnit('varutils');
        // AddUnit('Math');
      end;
+
+    T:=P.Targets.AddUnit('rtti.pp',CommonSrcOSes);
+    T.ResourceStrings:=true;
   end
 end;
  
