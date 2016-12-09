@@ -3395,7 +3395,7 @@ const
             exit;
           if not foundretdef then
             begin
-              if tstoreddef(fwpd.returndef).is_specialization and tstoreddef(currpd.returndef).is_specialization then
+              if (df_specialization in tstoreddef(fwpd.returndef).defoptions) and (df_specialization in tstoreddef(currpd.returndef).defoptions) then
                 { for specializations we're happy with equal defs instead of exactly the same defs }
                 result:=equal_defs(fwpd.returndef,currpd.returndef)
               else
