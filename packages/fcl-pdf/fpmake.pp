@@ -35,11 +35,15 @@ begin
     T:=P.Targets.AddUnit('src/fpparsettf.pp');
     With T do
       Dependencies.AddUnit('fpttfencodings');
+    T:=P.Targets.AddUnit('src/fpttfsubsetter.pp');
+    With T do
+      Dependencies.AddUnit('fpparsettf');
     T:=P.Targets.AddUnit('src/fpttf.pp');
     T:=P.Targets.AddUnit('src/fppdf.pp');
     With T do
       begin
       Dependencies.AddUnit('fpparsettf');
+      Dependencies.AddUnit('fpttfsubsetter');
       end;
     
     // md5.ref

@@ -2600,6 +2600,7 @@ packages/fcl-pdf/src/fpparsettf.pp svneol=native#text/plain
 packages/fcl-pdf/src/fppdf.pp svneol=native#text/plain
 packages/fcl-pdf/src/fpttf.pp svneol=native#text/plain
 packages/fcl-pdf/src/fpttfencodings.pp svneol=native#text/plain
+packages/fcl-pdf/src/fpttfsubsetter.pp svneol=native#text/plain
 packages/fcl-pdf/tests/fonts/README.txt svneol=native#text/plain
 packages/fcl-pdf/tests/fpparsettf_test.pas svneol=native#text/plain
 packages/fcl-pdf/tests/fppdf_test.pas svneol=native#text/plain
