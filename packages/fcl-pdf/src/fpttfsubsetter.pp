@@ -52,7 +52,7 @@ type
     function    ToUInt32(const ABytes: AnsiString): UInt32;
     function    GetRawTable(const ATableName: AnsiString): TMemoryStream;
     function    WriteFileHeader(AOutStream: TStream; const nTables: integer): uint32;
-    function    WriteTableHeader(AOutStream: TStream; const ATag: AnsiString; const AOffset: UInt32; const AData: TStream): uint32;
+    function    WriteTableHeader(AOutStream: TStream; const ATag: AnsiString; const AOffset: UInt32; const AData: TStream): int64;
     procedure   WriteTableBodies(AOutStream: TStream; const ATables: TStringList);
     // AGlyphID is the original GlyphID in the original TTF file
     function    GetCharIDfromGlyphID(const AGlyphID: uint32): uint32;
@@ -192,9 +192,9 @@ begin
 end;
 
 function TFontSubsetter.WriteTableHeader(AOutStream: TStream; const ATag: AnsiString; const AOffset: UInt32;
-  const AData: TStream): uint32;
+  const AData: TStream): int64;
 var
-  checksum: UInt32;
+  checksum: Int64;
   n: integer;
   lByte: Byte;
 begin
@@ -804,7 +804,12 @@ begin
 
   // idDelta
   for i := 0 to segCount-1 do
-    WriteUInt16(Result, idDelta[i]);
+  begin
+    {$IFDEF gDEBUG}
+    writeln(Format(' idDelta[%d] = %d', [i, idDelta[i]]));
+    {$ENDIF}
+    WriteInt16(Result, idDelta[i]);
+  end;
 
   // idRangeOffset
   for i := 0 to segCount-1 do
@@ -887,8 +892,8 @@ end;
 
 procedure TFontSubsetter.SaveToStream(const AStream: TStream);
 var
-  checksum: uint64;
-  offset: uint64;
+  checksum: int64;
+  offset: int64;
   head: TStream;
   hhea: TStream;
   maxp: TStream;
