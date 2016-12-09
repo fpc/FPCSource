@@ -675,7 +675,7 @@ implementation
                     for k:=0 to tprocsym(psym).procdeflist.count-1 do
                       begin
                         pd:=tprocdef(tprocsym(psym).procdeflist[k]);
-                        if has_alias_name(pd,symname) or
+                        if pd.has_alias_name(symname) or
                             (
                               ([po_external,po_has_importdll]*pd.procoptions=[po_external,po_has_importdll]) and
                               (symname=proc_get_importname(pd))

@@ -74,7 +74,6 @@ interface
     procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
 
 
-    function  has_alias_name(pd:tprocdef;const s:string):boolean;
     procedure alloc_proc_symbol(pd: tprocdef);
     procedure release_proc_symbol(pd:tprocdef);
     procedure gen_proc_entry_code(list:TAsmList);
@@ -1349,24 +1348,6 @@ implementation
 {****************************************************************************
                                 Entry/Exit
 ****************************************************************************}
-
-    function has_alias_name(pd:tprocdef;const s:string):boolean;
-      var
-        item : TCmdStrListItem;
-      begin
-        result:=true;
-        if pd.mangledname=s then
-          exit;
-        item := TCmdStrListItem(pd.aliasnames.first);
-        while assigned(item) do
-          begin
-            if item.str=s then
-              exit;
-            item := TCmdStrListItem(item.next);
-          end;
-        result:=false;
-      end;
-
 
     procedure alloc_proc_symbol(pd: tprocdef);
       var

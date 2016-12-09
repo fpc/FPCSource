@@ -155,7 +155,7 @@ begin
         for i:=0 to tprocsym(hp2.sym).procdeflist.count-1 do
           begin
             pd:=tprocdef(tprocsym(hp2.sym).procdeflist[i]);
-            anyhasalias:=has_alias_name(pd,hp2.name^);
+            anyhasalias:=pd.has_alias_name(hp2.name^);
             if anyhasalias then
               break;
           end;

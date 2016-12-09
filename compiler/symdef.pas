@@ -819,6 +819,10 @@ interface
           procedure make_external;
           procedure init_genericdecl;
 
+          { returns whether the mangled name or any of its aliases is equal to
+            s }
+          function  has_alias_name(const s: TSymStr):boolean;
+
           { aliases to fields only required when a function is implemented in
             the current unit }
           property resultname: PShortString read GetResultName write SetResultName;
@@ -5862,6 +5866,24 @@ implementation
         if assigned(genericdecltokenbuf) then
           internalerror(2015061901);
         genericdecltokenbuf:=tdynamicarray.create(256);
+      end;
+
+
+    function tprocdef.has_alias_name(const s: TSymStr): boolean;
+      var
+        item : TCmdStrListItem;
+      begin
+        result:=true;
+        if mangledname=s then
+          exit;
+        item:=TCmdStrListItem(aliasnames.first);
+        while assigned(item) do
+          begin
+            if item.str=s then
+              exit;
+            item:=TCmdStrListItem(item.next);
+          end;
+        result:=false;
       end;
 
 

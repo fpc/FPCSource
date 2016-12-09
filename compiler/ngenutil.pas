@@ -936,12 +936,12 @@ implementation
               for j:=0 to tprocsym(sym).procdeflist.count-1 do
                 begin
                   pd:=tprocdef(tprocsym(sym).procdeflist[j]);
-                  if (nameinit<>'') and not foundinit and has_alias_name(pd,nameinit) then
+                  if (nameinit<>'') and not foundinit and pd.has_alias_name(nameinit) then
                     begin
                       current_module.addimportedsym(sym);
                       foundinit:=true;
                     end;
-                  if (namefini<>'') and not foundfini and has_alias_name(pd,namefini) then
+                  if (namefini<>'') and not foundfini and pd.has_alias_name(namefini) then
                     begin
                       current_module.addimportedsym(sym);
                       foundfini:=true;
