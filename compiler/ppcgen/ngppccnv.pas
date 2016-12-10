@@ -72,6 +72,7 @@ implementation
         hreg2    : tregister;
 {$ifndef cpu64bitalu}
         href     : treference;
+        oldloc   : tlocation;
 {$endif not cpu64bitalu}
         resflags : tresflags;
         opsize   : tcgsize;
@@ -92,7 +93,30 @@ implementation
               { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
               if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                  ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+                begin
+{$ifndef cpu64bitalu}
+                   if (left.location.size in [OS_64,OS_S64]) and (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                     begin
+                       hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                       cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.reference,hreg1);
+                       hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                       href:=left.location.reference;
+                       inc(href.offset,4);
+                       cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hreg2);
+                       cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hreg1,hreg2,hreg1);
+                       if left.location.loc<>LOC_CREGISTER then
+                         location_reset(location,LOC_REGISTER,def_cgsize(resultdef))
+                       else
+                         location_reset(location,LOC_CREGISTER,def_cgsize(resultdef));
+                       location.register:=hreg1;
+                       { Release temp if it was a reference }
+                       if left.location.loc=LOC_REFERENCE then
+                         location_freetemp(current_asmdata.CurrAsmList,left.location);
+                     end
+                   else
+{$endif not cpu64bitalu}
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+                end
               else
                 location.size:=newsize;
               exit;
