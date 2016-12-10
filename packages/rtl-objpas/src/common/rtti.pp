@@ -48,7 +48,7 @@ type
       4:  (FAsClass: TClass);
       5:  (FAsSByte: Shortint);
       9:  (FAsDouble: Double);
-      10: (FAsExtenden: Extended);
+      10: (FAsExtended: Extended);
       12: (FAsCurr: Currency);
       14: (FAsSInt64: Int64);
   end;
@@ -499,7 +499,7 @@ begin
     begin
     case TypeData^.FloatType of
       ftDouble   : result := FData.FAsDouble;
-      ftExtended : result := FData.FAsExtenden;
+      ftExtended : result := FData.FAsExtended;
     else
       raise EInvalidCast.Create(SErrInvalidTypecast);
     end;
