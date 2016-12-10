@@ -432,14 +432,35 @@ begin
 end;
 
 class procedure TValue.Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue);
+type
+  PBoolean16 = ^Boolean16;
+  PBoolean32 = ^Boolean32;
+  PByteBool = ^ByteBool;
 begin
   result.FData.FTypeInfo:=ATypeInfo;
   case ATypeInfo^.Kind of
     tkSString  : result.FData.FValueData := TValueDataIntImpl.Create(@PShortString(ABuffer)^[1],Length(PShortString(ABuffer)^));
     tkAString  : result.FData.FValueData := TValueDataIntImpl.Create(@PAnsiString(ABuffer)^[1],length(PAnsiString(ABuffer)^));
     tkClass    : result.FData.FAsObject := PPointer(ABuffer)^;
-    tkInteger  : result.FData.FAsSInt64 := PInt64(ABuffer)^;
-    tkBool     : result.FData.FAsSInt64 := Int64(PBoolean(ABuffer)^);
+    tkInt64,
+    tkQWord    : result.FData.FAsSInt64 := PInt64(ABuffer)^;
+    tkInteger  : begin
+                   case GetTypeData(ATypeInfo)^.OrdType of
+                     otSByte, otUByte: result.FData.FAsSInt64 := Int64(PByte(ABuffer)^);
+                     otSWord, otUWord: result.FData.FAsSInt64 := Int64(PWord(ABuffer)^);
+                     otSLong, otULong: result.FData.FAsSInt64 := Int64(PLongWord(ABuffer)^);
+                   end;
+                 end;
+    tkBool     : begin
+                   case GetTypeData(ATypeInfo)^.OrdType of
+                     otUByte: result.FData.FAsSInt64 := Int64(PBoolean(ABuffer)^);
+                     otUWord: result.FData.FAsSInt64 := Int64(PBoolean16(ABuffer)^);
+                     otULong: result.FData.FAsSInt64 := Int64(PBoolean32(ABuffer)^);
+                     otSByte: result.FData.FAsSInt64 := Int64(PByteBool(ABuffer)^);
+                     otSWord: result.FData.FAsSInt64 := Int64(PWordBool(ABuffer)^);
+                     otSLong: result.FData.FAsSInt64 := Int64(PLongBool(ABuffer)^);
+                   end;
+                 end;
     tkFloat    : begin
                    case GetTypeData(ATypeInfo)^.FloatType of
                      ftCurr   : result.FData.FAsCurr := PCurrency(ABuffer)^;
@@ -691,10 +712,92 @@ begin
 end;
 
 function TRttiProperty.GetValue(Instance: pointer): TValue;
+
+  procedure ValueFromBool(value: Int64);
+  var
+    b8: Boolean;
+    b16: Boolean16;
+    b32: Boolean32;
+    bb: ByteBool;
+    bw: WordBool;
+    bl: LongBool;
+    td: PTypeData;
+    p: Pointer;
+  begin
+    td := GetTypeData(FPropInfo^.PropType);
+    case td^.OrdType of
+      otUByte:
+        begin
+          b8 := Boolean(value);
+          p := @b8;
+        end;
+      otUWord:
+        begin
+          b16 := Boolean16(value);
+          p := @b16;
+        end;
+      otULong:
+        begin
+          b32 := Boolean32(value);
+          p := @b32;
+        end;
+      otSByte:
+        begin
+          bb := ByteBool(value);
+          p := @bb;
+        end;
+      otSWord:
+        begin
+          bw := WordBool(value);
+          p := @bw;
+        end;
+      otSLong:
+        begin
+          bl := LongBool(value);
+          p := @bl;
+        end;
+    end;
+    TValue.Make(p, FPropInfo^.PropType, result);
+  end;
+
+  procedure ValueFromInt(value: Int64);
+  var
+    i8: UInt8;
+    i16: UInt16;
+    i32: UInt32;
+    td: PTypeData;
+    p: Pointer;
+  begin
+    td := GetTypeData(FPropInfo^.PropType);
+    case td^.OrdType of
+      otUByte,
+      otSByte:
+        begin
+          i8 := value;
+          p := @i8;
+        end;
+      otUWord,
+      otSWord:
+        begin
+          i16 := value;
+          p := @i16;
+        end;
+      otULong,
+      otSLong:
+        begin
+          i32 := value;
+          p := @i32;
+        end;
+    end;
+    TValue.Make(p, FPropInfo^.PropType, result);
+  end;
+
 var
   s: string;
   ss: ShortString;
   i: int64;
+  c: Char;
+  wc: WideChar;
 begin
   case FPropinfo^.PropType^.Kind of
     tkSString:
@@ -707,12 +810,28 @@ begin
         s := GetStrProp(TObject(Instance), FPropInfo);
         TValue.Make(@s, FPropInfo^.PropType, result);
       end;
-    tkInteger,
-    tkInt64,
-    tkQWord,
-    tkChar,
-    tkBool,
+    tkBool:
+      begin
+        i := GetOrdProp(TObject(Instance), FPropInfo);
+        ValueFromBool(i);
+      end;
+    tkInteger:
+      begin
+        i := GetOrdProp(TObject(Instance), FPropInfo);
+        ValueFromInt(i);
+      end;
+    tkChar:
+      begin
+        c := AnsiChar(GetOrdProp(TObject(Instance), FPropInfo));
+        TValue.Make(@c, FPropInfo^.PropType, result);
+      end;
     tkWChar:
+      begin
+        wc := WideChar(GetOrdProp(TObject(Instance), FPropInfo));
+        TValue.Make(@wc, FPropInfo^.PropType, result);
+      end;
+    tkInt64,
+    tkQWord:
       begin
         i := GetOrdProp(TObject(Instance), FPropInfo);
         TValue.Make(@i, FPropInfo^.PropType, result);
