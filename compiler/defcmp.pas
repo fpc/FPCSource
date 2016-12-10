@@ -2154,8 +2154,8 @@ implementation
                   else
                     { for the purpose of forward declarations two equal specializations
                       are considered as exactly equal }
-                    if tstoreddef(currpara1.vardef).is_specialization and
-                        tstoreddef(currpara2.vardef).is_specialization then
+                    if (df_specialization in tstoreddef(currpara1.vardef).defoptions) and
+                        (df_specialization in tstoreddef(currpara2.vardef).defoptions) then
                       eq:=te_exact;
                 end;
               { open strings can never match exactly, since you cannot define }
