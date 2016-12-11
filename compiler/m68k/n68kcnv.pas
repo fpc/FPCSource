@@ -182,7 +182,14 @@ implementation
                  ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
-                location.size:=newsize;
+                begin
+                  location.size:=newsize;
+                  if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                    begin
+                      inc(location.reference.offset,TCGSize2Size[left.location.size]-TCGSize2Size[location.size]);
+                      l.reference.alignment:=newalignment(l.reference.alignment,TCGSize2Size[left.location.size]-TCGSize2Size[location.size]);
+                    end;
+                end;
               exit;
            end;
 
