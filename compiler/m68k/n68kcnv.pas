@@ -280,13 +280,13 @@ implementation
                    { unsigned }
                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
                end
-            else
-              begin
-                location.register:=cg.getintregister(current_asmdata.CurrAsmList,newsize);
-                cg.g_flags2reg(current_asmdata.CurrAsmList,newsize,resflags,location.register);
-                if (is_cbool(resultdef)) then
-                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,newsize,location.register,location.register);
-              end
+             else
+               begin
+                 location.register:=cg.getintregister(current_asmdata.CurrAsmList,newsize);
+                 cg.g_flags2reg(current_asmdata.CurrAsmList,newsize,resflags,location.register);
+                 if (is_cbool(resultdef)) then
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,newsize,location.register,location.register);
+               end
            end;
       end;
 
