@@ -187,7 +187,7 @@ implementation
                   if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                     begin
                       inc(location.reference.offset,TCGSize2Size[left.location.size]-TCGSize2Size[location.size]);
-                      l.reference.alignment:=newalignment(l.reference.alignment,TCGSize2Size[left.location.size]-TCGSize2Size[location.size]);
+                      location.reference.alignment:=newalignment(location.reference.alignment,TCGSize2Size[left.location.size]-TCGSize2Size[location.size]);
                     end;
                 end;
               exit;
