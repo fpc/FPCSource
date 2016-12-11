@@ -42,8 +42,7 @@ procedure PascalMain; external name 'PASCALMAIN';
 function _FPC_proc_start: longint; cdecl; public name '_start';
 begin
   AOS_ExecBase:=realExecBase;
-  IExec:=nil;
-  newStack:=nil;
+  IExec:=PPointer(@(PByte(AOS_ExecBase)[632]))^; // iexec interface's address...
 
   { The StackCookie check is only here so the symbol is referenced and
     doesn't get striped out }
