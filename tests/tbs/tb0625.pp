@@ -20,4 +20,8 @@ begin
   b := Boolean(i);
   if not b then
     Halt(4);
+  i := $ffffffffffffff00;
+  b := Boolean(i);
+  if b then
+    Halt(5);
 end.
