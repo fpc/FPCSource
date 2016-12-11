@@ -67,8 +67,10 @@ unit ag68kvasm;
         result:=asminfo^.asmcmd;
 
         case target_info.system of
+          { a.out doesn't support named sections }
           system_m68k_amiga: objtype:='-Fhunk';
-          system_m68k_atari: objtype:='-Fvobj'; // fix me?
+          { atari never had a standard object format, a.out is limited, vasm/vlink author recommends vobj }
+          system_m68k_atari: objtype:='-Fvobj';
           system_m68k_linux: objtype:='-Felf';
         else
           internalerror(2016052601);

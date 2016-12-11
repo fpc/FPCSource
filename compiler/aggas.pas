@@ -447,9 +447,14 @@ implementation
         writer.AsmLn;
         case target_info.system of
          system_i386_OS2,
-         system_i386_EMX,
+         system_i386_EMX: ;
          system_m68k_atari, { atari tos/mint GNU AS also doesn't seem to like .section (KB) }
-         system_m68k_amiga: ; { amiga has old GNU AS (2.14), which blews up from .section (KB) }
+         system_m68k_amiga: { amiga has old GNU AS (2.14), which blews up from .section (KB) }
+           begin
+             { ... but vasm is GAS compatible on amiga/atari, and supports named sections }
+             if create_smartlink_sections then
+               writer.AsmWrite('.section ');
+           end;
          system_powerpc_darwin,
          system_i386_darwin,
          system_i386_iphonesim,

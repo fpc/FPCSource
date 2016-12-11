@@ -320,13 +320,29 @@ interface
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '$ARCH -o $OBJ $EXTRAOPT $ASM';
-            supported_targets : [system_m68k_Amiga,system_m68k_Atari,system_m68k_Mac,system_m68k_linux,system_m68k_PalmOS,system_m68k_netbsd,system_m68k_openbsd,system_m68k_embedded];
+            supported_targets : [system_m68k_Mac,system_m68k_linux,system_m68k_PalmOS,system_m68k_netbsd,system_m68k_openbsd,system_m68k_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '# ';
             dollarsign: '$';
           );
 
+       as_m68k_as_aout_info : tasminfo =
+          (
+            id     : as_m68k_as_aout;
+            idtxt  : 'AS';
+            asmbin : 'as';
+            asmcmd : '$ARCH -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_m68k_Amiga,system_m68k_Atari];
+            flags : [af_needar];
+            labelprefix : '.L';
+            comment : '# ';
+            dollarsign: '$';
+          );
+
+
+
 initialization
   RegisterAssembler(as_m68k_as_info,Tm68kGNUAssembler);
+  RegisterAssembler(as_m68k_as_aout_info,Tm68kGNUAssembler);
 end.
