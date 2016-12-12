@@ -37,6 +37,13 @@ interface
       end;
 
     type
+      Tm68kAoutGNUAssembler=class(TAoutGNUAssembler)
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        function MakeCmdLine : TCmdStr; override;
+      end;
+
+
+    type
       Tm68kInstrWriter=class(TCPUInstrWriter)
         procedure WriteInstruction(hp: tai);override;
       end;
@@ -54,6 +61,13 @@ interface
       verbose,itcpugas;
 
 
+    function GasMachineArg: string;
+      const
+        MachineArgNewOld: array[boolean] of string = ('-march=','-m');
+      begin
+        result:=MachineArgNewOld[target_info.system in [system_m68k_amiga]]+GasCpuTypeStr[current_settings.cputype];
+      end;
+
  {****************************************************************************}
  {                         GNU m68k Assembler writer                          }
  {****************************************************************************}
@@ -67,12 +81,26 @@ interface
  function Tm68kGNUAssembler.MakeCmdLine: TCmdStr;
    begin
      result:=inherited MakeCmdLine;
-     // Use old -m option for Amiga system
-     if target_info.system=system_m68k_amiga then
-       Replace(result,'$ARCH','-m'+GasCpuTypeStr[current_settings.cputype])
-     else
-       Replace(result,'$ARCH','-march='+GasCpuTypeStr[current_settings.cputype]);
+     Replace(result,'$ARCH',GasMachineArg);
    end;
+
+
+ {****************************************************************************}
+ {                         GNU m68k Aout Assembler writer                     }
+ {****************************************************************************}
+
+ constructor Tm68kAoutGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+   begin
+     inherited;
+     InstrWriter := Tm68kInstrWriter.create(self);
+   end;
+
+ function Tm68kAoutGNUAssembler.MakeCmdLine: TCmdStr;
+   begin
+     result:=inherited MakeCmdLine;
+     Replace(result,'$ARCH',GasMachineArg);
+   end;
+
 
     function getreferencestring(var ref : treference) : string;
       var
@@ -330,7 +358,7 @@ interface
        as_m68k_as_aout_info : tasminfo =
           (
             id     : as_m68k_as_aout;
-            idtxt  : 'AS';
+            idtxt  : 'AS-AOUT';
             asmbin : 'as';
             asmcmd : '$ARCH -o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_m68k_Amiga,system_m68k_Atari];
@@ -344,5 +372,5 @@ interface
 
 initialization
   RegisterAssembler(as_m68k_as_info,Tm68kGNUAssembler);
-  RegisterAssembler(as_m68k_as_aout_info,Tm68kGNUAssembler);
+  RegisterAssembler(as_m68k_as_aout_info,Tm68kAoutGNUAssembler);
 end.
