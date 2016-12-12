@@ -46,6 +46,7 @@ interface
       TGNUAssembler=class(texternalassembler)
       protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;
+        function sectionattrs(atype:TAsmSectiontype):string;virtual;
         function sectionattrs_coff(atype:TAsmSectiontype):string;virtual;
         function sectionalignment_aix(atype:TAsmSectiontype;secalign: byte):string;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:byte);
@@ -215,11 +216,7 @@ implementation
 {$else arm}
           '.data',
 {$endif arm}
-{$if defined(m68k)} { Amiga/m68k GNU AS doesn't seem to like .rodata (KB) }
-          '.data',
-{$else}
           '.rodata',
-{$endif}
           '.bss',
           '.threadvar',
           '.pdata',
@@ -342,11 +339,7 @@ implementation
           secname:=secnames_pic[atype]
         else
           secname:=secnames[atype];
-{$ifdef m68k}
-        { Amiga/Atari GNU AS doesn't support .section .fpc }
-        if (atype=sec_fpc) and (target_info.system in [system_m68k_amiga, system_m68k_atari]) then
-            secname:=secnames[sec_data];
-{$endif}
+
         if (atype=sec_fpc) and (Copy(aname,1,3)='res') then
           begin
             result:=secname+'.'+aname;
@@ -384,6 +377,14 @@ implementation
           result:=secname;
       end;
 
+    function TGNUAssembler.sectionattrs(atype:TAsmSectiontype):string;
+      begin
+        result:='';
+        if (target_info.system in [system_i386_win32,system_x86_64_win64]) then
+          begin
+            result:=sectionattrs_coff(atype);
+          end;
+      end;
 
     function TGNUAssembler.sectionattrs_coff(atype:TAsmSectiontype):string;
       begin
@@ -511,10 +512,9 @@ implementation
 
             TODO: This likely applies to all systems which smartlink without
             creating libraries }
-          if (target_info.system in [system_i386_win32,system_x86_64_win64]) and
-            is_smart_section(atype) and (aname<>'') then
+          if is_smart_section(atype) and (aname<>'') then
             begin
-              s:=sectionattrs_coff(atype);
+              s:=sectionattrs(atype);
               if (s<>'') then
                 writer.AsmWrite(',"'+s+'"');
             end
