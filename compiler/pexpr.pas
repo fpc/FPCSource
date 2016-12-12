@@ -1276,6 +1276,7 @@ implementation
     procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
       var
         isclassref:boolean;
+        isrecordtype:boolean;
       begin
          if sym=nil then
            begin
@@ -1295,9 +1296,13 @@ implementation
                  if not assigned(p1.resultdef) then
                    do_typecheckpass(p1);
                  isclassref:=(p1.resultdef.typ=classrefdef);
+                 isrecordtype:=(p1.nodetype=typen) and (p1.resultdef.typ=recorddef);
                end
               else
-                isclassref:=false;
+                begin
+                  isclassref:=false;
+                  isrecordtype:=false;
+                end;
 
               if assigned(spezcontext) and not (sym.typ=procsym) then
                 internalerror(2015091801);
@@ -1313,7 +1318,13 @@ implementation
                       { we need to know which procedure is called }
                       do_typecheckpass(p1);
                       { calling using classref? }
-                      if isclassref and
+                      if (
+                            isclassref or
+                            (
+                              isrecordtype and
+                              not (cnf_inherited in callflags)
+                            )
+                          ) and
                          (p1.nodetype=calln) and
                          assigned(tcallnode(p1).procdefinition) then
                         begin
