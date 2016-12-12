@@ -35,6 +35,9 @@ unit ag68kvasm;
 
   type
     tm68kvasm = class(Tm68kGNUassembler)
+    protected
+      function sectionattrs(atype:TAsmSectiontype):string; override;
+    public
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
       function MakeCmdLine: TCmdStr; override;
     end;
@@ -58,6 +61,24 @@ unit ag68kvasm;
       begin
         inherited;
         InstrWriter := Tm68kInstrWriter.create(self);
+      end;
+
+    function tm68kvasm.sectionattrs(atype:TAsmSectiontype):string;
+      begin
+        case atype of
+          sec_code, sec_fpc, sec_init, sec_fini:
+            result:='acrx';
+          sec_data:
+            result:='adrw';
+          sec_rodata, sec_rodata_norel:
+            result:='adr';
+          sec_bss, sec_threadvar:
+            result:='aurw';
+          sec_stab, sec_stabstr:
+            result:='dr';
+          else
+            result:='';
+        end;
       end;
 
     function tm68kvasm.MakeCmdLine: TCmdStr;
@@ -106,7 +127,7 @@ unit ag68kvasm;
          asmbin : 'vasmm68k_std';
          asmcmd:  '-quiet -elfregs -gas $OTYPE $ARCH -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_m68k_amiga,system_m68k_atari,system_m68k_linux];
-         flags : [af_needar,af_smartlink_sections];
+         flags : [af_needar{,af_smartlink_sections}];
          labelprefix : '.L';
          comment : '# ';
          dollarsign: '$';
