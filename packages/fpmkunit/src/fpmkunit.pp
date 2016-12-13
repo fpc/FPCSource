@@ -7570,7 +7570,7 @@ Var
             // The thread has completed compiling the package
             if AThread.CompilationOK then
               AThread.APackage.FTargetState:=tsCompiled
-            else // A problem occured, stop the compilation
+            else // A problem occurred, stop the compilation
               begin
               ErrorState:=true;
               ErrorMessage:=AThread.ErrorMessage;

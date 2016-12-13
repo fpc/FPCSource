@@ -2005,7 +2005,7 @@ type
 //                                                   //
 // The following structures define disk performance  //
 // statistics: specifically the locations of all the //
-// reads and writes which have occured on the disk.  //
+// reads and writes which have occurred on the disk.  //
 //                                                   //
 // To use these structures, you must issue an IOCTL_ //
 // DISK_HIST_STRUCTURE (with a DISK_HISTOGRAM) to    //
