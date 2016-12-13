@@ -1115,7 +1115,7 @@ end;
  called by the current one
 
  IMPORTANT: registers are not to be allocated through the register
- allocator here, because the register colouring has already occured !!
+ allocator here, because the register colouring has already occurred !!
 }
 procedure tcgppc.g_proc_entry(list: TAsmList; localsize: longint;
   nostackframe: boolean);
@@ -1281,7 +1281,7 @@ end;
  is called.
 
  IMPORTANT: registers are not to be allocated through the register
- allocator here, because the register colouring has already occured !!
+ allocator here, because the register colouring has already occurred !!
 }
 procedure tcgppc.g_proc_exit(list: TAsmList; parasize: longint; nostackframe:
   boolean);

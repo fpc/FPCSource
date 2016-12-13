@@ -771,7 +771,7 @@ const
      { one.                                                                     }
      { This procedure may be called before, as well as after g_return_from_proc }
      { is called. NOTE registers are not to be allocated through the register   }
-     { allocator here, because the register colouring has already occured !!    }
+     { allocator here, because the register colouring has already occurred !!    }
 
 
      var regcounter,firstregfpu,firstregint: TSuperRegister;
@@ -921,7 +921,7 @@ const
     procedure tcgppc.g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean);
      { This procedure may be called before, as well as after g_stackframe_entry }
      { is called. NOTE registers are not to be allocated through the register   }
-     { allocator here, because the register colouring has already occured !!    }
+     { allocator here, because the register colouring has already occurred !!    }
 
       var
          regcounter,firstregfpu,firstregint: TsuperRegister;

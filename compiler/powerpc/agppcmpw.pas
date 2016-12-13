@@ -127,7 +127,7 @@ interface
       t32bitarray = array[0..3] of byte;
 
     function ReplaceForbiddenChars(var s: string):Boolean;
-         {Returns wheater a replacement has occured.}
+         {Returns wheater a replacement has occurred.}
 
         var
           i:Integer;

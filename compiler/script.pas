@@ -269,10 +269,10 @@ Begin
   AddStart('@echo off');
   Add('goto end');
   Add(':asmend');
-  Add('echo An error occured while assembling %THEFILE%');
+  Add('echo An error occurred while assembling %THEFILE%');
   Add('goto end');
   Add(':linkend');
-  Add('echo An error occured while linking %THEFILE%');
+  Add('echo An error occurred while linking %THEFILE%');
   Add(':end');
   inherited WriteToDisk;
 end;
@@ -336,11 +336,11 @@ Begin
   Add('skip end');
   Add('lab asmend');
   Add('why');
-  Add('echo An error occured while assembling $THEFILE');
+  Add('echo An error occurred while assembling $THEFILE');
   Add('skip end');
   Add('lab linkend');
   Add('why');
-  Add('echo An error occured while linking $THEFILE');
+  Add('echo An error occurred while linking $THEFILE');
   Add('lab end');
   inherited WriteToDisk;
 end;
