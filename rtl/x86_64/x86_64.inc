@@ -62,7 +62,7 @@ end;
 // multiple issues with its old GNU assembler (Mantis #19188).
 // Even after fixing them, it can be enabled only for the trunk version,
 // otherwise bootstrapping won't be possible.
-// Modifed to use oldbinutils as in cpu.pp source, to allow easier use for other targets.
+// Modified to use oldbinutils as in cpu.pp source, to allow easier use for other targets.
 {$ifdef freebsd}
   {$ifndef overridebinutils}
     {$define oldbinutils}
