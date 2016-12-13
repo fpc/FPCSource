@@ -851,9 +851,30 @@ implementation
            tcb.begin_anonymous_record('',defaultpacking,reqalign,
              targetinfos[target_info.system]^.alignment.recordalignmin,
              targetinfos[target_info.system]^.alignment.maxCrecordalign);
+
+           { store special terminator for init table for more optimal rtl operations
+             strictly related to RecordRTTI procedure in rtti.inc (directly 
+             related to RTTIRecordRttiInfoToInitInfo function) }
+           if (rt=initrtti) then
+             tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
+           else
+             begin
+               { point to more optimal init table }
+               include(def.defstates,ds_init_table_used);
+               write_rtti_reference(tcb,def,initrtti);
+             end;
+
            tcb.emit_ord_const(def.size,u32inttype);
+
            fields_write_rtti_data(tcb,def,rt);
            tcb.end_anonymous_record;
+
+           { guarantee initrtti for any record for fpc_initialize, fpc_finalize }
+           if (rt=fullrtti) and
+               (ds_init_table_used in def.defstates) and
+               not (ds_init_table_written in def.defstates)
+               then
+             write_rtti(def, initrtti);
         end;
 
 
@@ -1036,6 +1057,11 @@ implementation
 
           procedure objectdef_rtti_fields(def:tobjectdef);
           begin
+            { - for compatiblity with record RTTI we need to write a terminator-
+                Nil pointer as well for objects
+              - classes are assumed to have the same INIT RTTI as records
+                (see TObject.CleanupInstance) }
+            tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
             tcb.emit_ord_const(def.size, u32inttype);
             { enclosing record takes care of alignment }
             fields_write_rtti_data(tcb,def,rt);

@@ -269,6 +269,9 @@ unit typinfo;
               );
             tkRecord:
               (
+{$ifndef VER3_0}
+                RecInitTable: PPointer;
+{$endif VER3_0}
                 RecSize: Integer;
                 ManagedFldCount: Integer;
                 {ManagedFields: array[1..ManagedFldCount] of TManagedField}
