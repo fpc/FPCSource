@@ -24,6 +24,7 @@ Const
   StdConvsOSes  = [NativeNT,Win32,win64,os2,msdos,go32v2]+UnixLikes-[BeOS];
   FmtBCDOSes    = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
   VariantsOSes  = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
+  RttiOSes      = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
   AllTargetsObjPas = DateUtilsOses +DateUtilOSes+
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+
                   FmtBCDOSes + StrUtilsOSes;
@@ -117,7 +118,7 @@ begin
        // AddUnit('Math');
      end;
 
-    T:=P.Targets.AddUnit('rtti.pp',CommonSrcOSes);
+    T:=P.Targets.AddUnit('rtti.pp',RttiOSes);
     T.ResourceStrings:=true;
   end
 end;
