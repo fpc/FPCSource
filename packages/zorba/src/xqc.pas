@@ -1990,7 +1990,7 @@ type
       * \param length The length of the buffer
       *
       * \return The number of bytes read - this will be less than length if the end of the input is reached
-      *         or -1 if an error occured
+      *         or -1 if an error occurred
       *
       *)
     read: function(stream: XQC_InputStream; const buf: pchar; length: cuint): cint; extdecl;
@@ -2035,8 +2035,8 @@ type
      *                   (e.g. for errors not defined in the spec).
      * \param description A detailed description of the error or an empty string if no description is available.
      * \param query_uri The uri of the query causing the error or an empty string if no uri is available for the query.
-     * \param line The line number of the query where the error occured.
-     * \param components The column number in the line in the query where the error occured.
+     * \param line The line number of the query where the error occurred.
+     * \param components The column number in the line in the query where the error occurred.
      *)
     error: procedure(handler: XQC_ErrorHandler; error: XQUERY_ERROR; const local_name, description,
       query_uri: pchar; line, column: cuint); extdecl;

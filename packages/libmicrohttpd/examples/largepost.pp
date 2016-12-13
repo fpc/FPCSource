@@ -40,7 +40,7 @@ var
   BusyPage: Pcchar = '<html><body>This server is busy, please try again later.</body></html>';
   CompletePage: Pcchar = '<html><body>The upload has been completed.</body></html>';
   ErrorPage: Pcchar = '<html><body>This doesn''t seem to be right.</body></html>';
-  ServerErrorPage: Pcchar = '<html><body>An internal server error has occured.</body></html>';
+  ServerErrorPage: Pcchar = '<html><body>An internal server error has occurred.</body></html>';
   FileExistsPage: Pcchar = '<html><body>This file already exists.</body></html>';
 
   function SendPage(AConnection: PMHD_Connection; APage: Pcchar; AStatusCode: cint): cint;

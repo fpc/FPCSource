@@ -29,7 +29,7 @@ interface
 
     { these procedures must be used to set the event handlers }
     { these doesn't do something, they signal only the        }
-    { the upper layer that an event occured, this event       }
+    { the upper layer that an event occurred, this event       }
     { must be handled with Win32-API function by the upper    }
     { layer                                                   }
     Procedure SetMouseEventHandler(p : TEventProcedure);

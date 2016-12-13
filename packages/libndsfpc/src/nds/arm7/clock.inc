@@ -9,8 +9,8 @@ const
   READ_STATUS_REG1   = $61;
   STATUS_POC       = (1 shl 7);  // read-only, cleared by reading (1 if just powered on)
   STATUS_BLD       = (1 shl 6);  // read-only, cleared by reading (1 if power dropped below the safety threshold)
-  STATUS_INT2      = (1 shl 5);  // read-only, INT2 has occured
-  STATUS_INT1      = (1 shl 4);  // read-only, INT1 has occured
+  STATUS_INT2      = (1 shl 5);  // read-only, INT2 has occurred
+  STATUS_INT1      = (1 shl 4);  // read-only, INT1 has occurred
   STATUS_SC1       = (1 shl 3);  // R/W scratch bit
   STATUS_SC0       = (1 shl 2);  // R/W scratch bit
   STATUS_24HRS     = (1 shl 1);  // 24 hour mode when 1, 12 hour mode when 0

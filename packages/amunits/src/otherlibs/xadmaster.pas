@@ -220,7 +220,7 @@ const
   { do not create XADERR_EMPTY (V8)  }
      XAD_NOEMPTYERROR = TAG_USER + 181;
   { tags for xadFreeHookAccess (V8)  }
-  { error occured, call abort method (V8)  }
+  { error occurred, call abort method (V8)  }
      XAD_WASERROR = TAG_USER + 190;
   { tags for miscellaneous stuff  }
   { xadArchiveInfo for stream hooks (V8)  }
@@ -314,7 +314,7 @@ const
      XADHC_INIT = 4;
   { end up hook work, free stuff  }
      XADHC_FREE = 5;
-  { an error occured, delete partial stuff  }
+  { an error occurred, delete partial stuff  }
      XADHC_ABORT = 6;
   { complete input size is needed  }
      XADHC_FULLSIZE = 7;

@@ -858,7 +858,7 @@ Procedure somBeginPersistentIds; cdecl;
 (* space *)
 (* Under normal use (where ids are static varibles) the string *)
 (* associated with an id would only be freed if the code module in *)
-(* which it occured was unloaded *)
+(* which it occurred was unloaded *)
 
 Procedure somEndPersistentIds; cdecl;
   external 'som' name 'somEndPersistentIds'; {index 29}

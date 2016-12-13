@@ -19,7 +19,7 @@ const
     AUrl: Pcchar; AMethod: Pcchar; AVersion: Pcchar; AUploadData: Pcchar;
     AUploadDataSize: Psize_t; AConCls: PPointer): cint; cdecl;
   const
-    errorstr: Pcchar = '<html><body>An internal server error has occured!</body></html>';
+    errorstr: Pcchar = '<html><body>An internal server error has occurred!</body></html>';
   var
     VFd: cint;
     VReturn: cint;

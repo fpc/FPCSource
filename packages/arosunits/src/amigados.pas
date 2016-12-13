@@ -247,7 +247,7 @@ const
   ERROR_DIRECTORY_NOT_EMPTY      = 216; // You tried to delete a directory that still contains some files. Delete these files first.
   ERROR_TOO_MANY_LEVELS          = 217; // A recursive directory search could not be performed, because the stack was too small.
   ERROR_DEVICE_NOT_MOUNTED       = 218; // You tried to access a device that is currently not mounted.
-  ERROR_SEEK_ERROR               = 219; // An error occured, while executing DosSeek().
+  ERROR_SEEK_ERROR               = 219; // An error occurred, while executing DosSeek().
   ERROR_COMMENT_TOO_BIG          = 220; // The supplied file comment was longer than the hardcoded length limit for file comments.
   ERROR_DISK_FULL                = 221; // A write-operation could not be performed, because the volume has no space left.
   ERROR_DELETE_PROTECTED         = 222; // You tried to delete a delete-protected object.
@@ -269,7 +269,7 @@ const
   ERROR_RECORD_NOT_LOCKED         = 240; // You tried to access a record that was not locked.
   ERROR_LOCK_COLLISION            = 241; // Somebody already locked a part of the record, you wanted to lock.
   ERROR_LOCK_TIMEOUT              = 242; // LockRecord() timed out.
-  ERROR_UNLOCK_ERROR              = 243; // An error occured, while unlocking a record.
+  ERROR_UNLOCK_ERROR              = 243; // An error occurred, while unlocking a record.
 
 { more error codes are defined in dosasl.h and filesystem.h }
 

@@ -221,7 +221,7 @@ correction factor *}
 
 {* Message classes *}
 CONST   TRMS_CLOSEWINDOW        = 1;  {* The window should be closed *}
-        TRMS_ERROR              = 2;  {* An error occured. Error code in trm_Data *}
+        TRMS_ERROR              = 2;  {* An error occurred. Error code in trm_Data *}
         TRMS_NEWVALUE           = 3;  {* Object's VALUE has changed. New VALUE in
 trm_Data *}
         TRMS_ACTION             = 4;  {* Object has triggered an action *}

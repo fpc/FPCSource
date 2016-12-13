@@ -1612,7 +1612,7 @@ IMPLEMENTATION
                 if p < low ( Singles )
                   then begin
                     exitloop := True;
-(* what to do if error occured? *)
+(* what to do if error occurred? *)
                     RAISE eBCDOverflowException.create ( 'in IntegerToBCD' );
                    end;
               UNTIL exitloop;
