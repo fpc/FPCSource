@@ -2329,7 +2329,7 @@
      // routine when a floating point exception is detected
      _EXCEPTION = record  //+stdlib
        type_  : Integer;  //identifier type replaced by Type_ for compilation
-       Name   : PChar;    // name of function where error occured
+       Name   : PChar;    // name of function where error occurred
        arg1   : double;   // first argument to function
        arg2   : double;   // second argument (if any) to function
        retval : double;   // value to be returned by function

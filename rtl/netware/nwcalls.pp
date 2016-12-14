@@ -2314,7 +2314,7 @@ const
   TABLE_FULL = $8851; { 81 - Attempted to add a name into the name table after it was full }
   SOCKET_NOT_OPEN = $8852; { 82 - Listen was posted on unopened socket }
   MEM_MGR_ERROR = $8853; { 83 - Attempted enhanced memory operation failed }
-  SFT3_ERROR = $8854; { 84 - An SFT3 switch occured mid-transfer }
+  SFT3_ERROR = $8854; { 84 - An SFT3 switch occurred mid-transfer }
   PREFERRED_NOT_FOUND = $8855; { 85 - the preferred directory server was not established but another directory server was returned }
   DEVICE_NOT_RECOGNIZED = $8856; { 86 - used to determine if the device is not used by VISE so pass it on to the next redirector, if any. }
   BAD_NET_TYPE = $8857; { 87 - the network type (Bind/NDS) does not match the server version }
@@ -2621,7 +2621,7 @@ const
   NWE_NAME_TABLE_FULL = $8851; { 81 - Attempted to add a name into the name table after it was full }
   NWE_SOCKET_NOT_OPEN = $8852; { 82 - Listen was posted on unopened socket }
   NWE_MEMORY_MGR_ERROR = $8853; { 83 - Attempted enhanced memory operation failed }
-  NWE_SFT3_ERROR = $8854; { 84 - An SFT3 switch occured mid-transfer }
+  NWE_SFT3_ERROR = $8854; { 84 - An SFT3 switch occurred mid-transfer }
   NWE_DS_PREFERRED_NOT_FOUND = $8855; { 85 - the preferred directory server was not established but another directory server was returned }
   NWE_DEVICE_NOT_RECOGNIZED = $8856; { 86 - used to determine if the device is not used by VISE so pass it on to the next redirector, if any. }
   NWE_NET_INVALID_TYPE = $8857; { 87 - the network type (Bind/NDS) does not match the server version }

@@ -50,7 +50,7 @@ const
   SIGPWR     = 19;      { power-fail restart }
   SIGWINCH   = 20;      { window size change }
   SIGURG     = 21;      { urgent socket condition }
-  SIGPOLL    = 22;      { pollable event occured }
+  SIGPOLL    = 22;      { pollable event occurred }
   SIGIO      = SIGPOLL;{ socket I/O possible (SIGPOLL alias) }
   SIGVTALRM  = 28;      { virtual timer expired }
   SIGPROF    = 29;      { profiling timer expired }

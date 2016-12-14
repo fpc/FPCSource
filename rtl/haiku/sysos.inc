@@ -80,7 +80,7 @@ end;
 
 {
   The lowlevel file functions should take care of setting the InOutRes to the
-  correct value if an error has occured, else leave it untouched
+  correct value if an error has occurred, else leave it untouched
 }
 
 Function PosixToRunError  (PosixErrno : longint) : longint;

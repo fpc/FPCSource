@@ -50,7 +50,7 @@ const
   SIGSYS     = 12;      { bad argument to system call }
   SIGCLD     = SIGCHLD; { child status change }
   SIGURG     = 16;      { (+) urgent contition on I/O channel  }
-  SIGPOLL    = 23;      { pollable event occured }
+  SIGPOLL    = 23;      { pollable event occurred }
   SIGXCPU    = 24;      { exceeded cpu limit }
   SIGXFSZ    = 25;
   SIGMSG     = 27;

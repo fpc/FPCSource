@@ -1245,7 +1245,7 @@ Begin
      End;
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
    except
-     { prevent endless dump if an exception occured }
+     { prevent endless dump if an exception occurred }
    end;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 End;

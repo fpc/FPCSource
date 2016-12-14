@@ -906,7 +906,7 @@ begin
 
             { Don't set Result earlier because else we would come in trouble
               with the exception recover mechanism! (Result should be NIL if
-              an error occured) }
+              an error occurred) }
             Result := NewComponent;
           end;
           Include(Result.FComponentState, csLoading);
