@@ -49,7 +49,7 @@ type
 {$endif USE_PACKED}
   record
 {$ifndef VER3_0}
-    InitTable: PPointer;
+    InitTable: Pointer;
 {$endif VER3_0}
     Size: Longint;
     Count: Longint;
@@ -116,7 +116,7 @@ begin
   { check terminator, maybe we are already in init table }
   if Assigned(PRecordInfoInit(typeInfo)^.Terminator) then
     { point to more optimal initrtti }
-    result:=PRecordInfoFull(result)^.InitTable^;
+    result:=PRecordInfoFull(result)^.InitTable;
 {$endif VER3_0}
 end;
 

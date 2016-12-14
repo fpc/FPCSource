@@ -270,7 +270,7 @@ unit typinfo;
             tkRecord:
               (
 {$ifndef VER3_0}
-                RecInitTable: PPointer;
+                RecInitTable: Pointer; { points to TTypeInfo followed by init table }
 {$endif VER3_0}
                 RecSize: Integer;
                 ManagedFldCount: Integer;

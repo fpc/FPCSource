@@ -863,7 +863,9 @@ implementation
              begin
                { point to more optimal init table }
                include(def.defstates,ds_init_table_used);
-               write_rtti_reference(tcb,def,initrtti);
+               { we use a direct reference as the init RTTI is always in the same
+                 unit as the full RTTI }
+               tcb.emit_tai(Tai_const.Create_sym(ref_rtti(def,initrtti,false)),voidpointertype);
              end;
 
            tcb.emit_ord_const(def.size,u32inttype);
