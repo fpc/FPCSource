@@ -50,7 +50,9 @@ interface
         function  published_properties_count(st:tsymtable):longint;
         procedure published_properties_write_rtti_data(tcb: ttai_typedconstbuilder; propnamelist: TFPHashObjectList; st: tsymtable);
         procedure collect_propnamelist(propnamelist:TFPHashObjectList;objdef:tobjectdef);
-        function  ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
+        { only use a direct reference if the referenced type can *only* reside
+          in the same unit as the current one }
+        function  ref_rtti(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
         procedure write_rtti_name(tcb: ttai_typedconstbuilder; def: tdef);
         procedure write_rtti_data(tcb: ttai_typedconstbuilder; def:tdef; rt: trttitype);
         procedure write_child_rtti_data(def:tdef;rt:trttitype);
@@ -785,7 +787,7 @@ implementation
                { total element count }
                tcb.emit_tai(Tai_const.Create_sizeint(asizeint(totalcount)),sizeuinttype);
                { last dimension element type }
-               tcb.emit_tai(Tai_const.Create_sym(ref_rtti(curdef.elementdef,rt)),voidpointertype);
+               tcb.emit_tai(Tai_const.Create_sym(ref_rtti(curdef.elementdef,rt,true)),voidpointertype);
                { dimension count }
                tcb.emit_ord_const(dimcount,u8inttype);
                finaldef:=def;
@@ -1548,16 +1550,16 @@ implementation
         if not assigned(def) or is_void(def) or ((rt<>initrtti) and is_objc_class_or_protocol(def)) then
           tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
         else
-          tcb.emit_tai(Tai_const.Create_sym(ref_rtti(def,rt)),voidpointertype);
+          tcb.emit_tai(Tai_const.Create_sym(ref_rtti(def,rt,true)),voidpointertype);
       end;
 
 
-    function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
+    function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
       var
         s : TSymStr;
       begin
         s:=def.rtti_mangledname(rt);
-        result:=current_asmdata.RefAsmSymbol(s,AT_DATA,true);
+        result:=current_asmdata.RefAsmSymbol(s,AT_DATA,indirect);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
