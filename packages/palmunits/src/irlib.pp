@@ -1165,7 +1165,7 @@ function IrTestReq(refNum: UInt16; devAddr: IrDeviceAddr; var con: IrConnect; va
  * rxBuff and rxLen.
  *
  * LEVENT_STATUS_IND - Indicates that a status event from the stack has
- * occured. The status field indicates the status generating the event.
+ * occurred. The status field indicates the status generating the event.
  * Possible statuses are as follows. Note this event is optional:
  *    IR_STATUS_NO_PROGRESS - means that IrLAP has no progress for 3 seconds
  *    threshold time (e.g. beam is blocked).

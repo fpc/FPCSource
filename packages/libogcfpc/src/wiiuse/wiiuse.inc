@@ -402,7 +402,7 @@ type
     btns_held : cushort;  (**< what buttons are and were held down	 *)
     btns_released : cushort;  (**< what buttons were just released		 *)
     lstate : wiimote_state_t;  (**< last saved state						 *)
-    event : WIIUSE_EVENT_TYPE;  (**< type of event that occured				 *)
+    event : WIIUSE_EVENT_TYPE;  (**< type of event that occurred				 *)
     event_buf : array [0..MAX_PAYLOAD-1] of ubyte;  (**< event buffer							 *)
     motion_plus_id : array [0..5] of ubyte;
   end;
