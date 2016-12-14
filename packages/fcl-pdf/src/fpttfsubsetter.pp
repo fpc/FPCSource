@@ -930,10 +930,10 @@ var
   n: integer;
 begin
   Result := TMemoryStream.Create;
-  for n := 0 to FGlyphIDList.Count-1 do
+  for n := 0 to FGlyphIDs.Count-1 do
   begin
-    WriteUInt16(Result, FFontInfo.Widths[FGlyphIDList[n].GlyphID].AdvanceWidth);
-    WriteInt16(Result, FFontInfo.Widths[FGlyphIDList[n].GlyphID].LSB);
+    WriteUInt16(Result, FFontInfo.Widths[FGlyphIDs[n].GID].AdvanceWidth);
+    WriteInt16(Result, FFontInfo.Widths[FGlyphIDs[n].GID].LSB);
   end;
 end;
 

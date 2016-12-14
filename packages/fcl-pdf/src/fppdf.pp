@@ -4360,9 +4360,12 @@ begin
   IDict:=CreateGlobalXRef.Dict;
   Trailer.AddReference('Info', GLobalXRefCount-1);
   (Trailer.ValueByName('Size') as TPDFInteger).Value:=GLobalXRefCount;
-  IDict.AddString('Title',Infos.Title);
-  IDict.AddString('Author',Infos.Author);
-  IDict.AddString('Creator',Infos.ApplicationName);
+  if Infos.Title <> '' then
+    IDict.AddString('Title',Infos.Title);
+  if Infos.Author <> '' then
+    IDict.AddString('Author',Infos.Author);
+  if Infos.ApplicationName <> '' then
+    IDict.AddString('Creator',Infos.ApplicationName);
   IDict.AddString('Producer',Infos.Producer);
   IDict.AddString('CreationDate',DateToPdfDate(Infos.CreationDate));
 end;
