@@ -188,7 +188,7 @@ begin
   P.SetColor(clBlack, false);
 
   P.WriteText(15, 120, 'Languages: English: Hello, World!');
-  P.WriteText(40, 130, 'Greek: Γεια σου κόσμος');
+  P.WriteText(40, 130, 'Greek: Γειά σου κόσμος');
   P.WriteText(40, 140, 'Polish: Witaj świecie');
   P.WriteText(40, 150, 'Portuguese: Olá mundo');
   P.WriteText(40, 160, 'Russian: Здравствуйте мир');

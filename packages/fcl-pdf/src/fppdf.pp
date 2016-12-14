@@ -1435,15 +1435,11 @@ begin
   for i := 1 to Length(AText) do
   begin
     c := Word(AText[i]);
-    //Result := Result + IntToHex(FTrueTypeFile.GetGlyphIndex(c), 4);
     for n := 0 to FTextMappingList.Count-1 do
     begin
       if FTextMappingList[n].CharID = c then
       begin
-        //if poSubsetFont in Document.Options then
-        //  result := Result + IntToHex(FTextMappingList[n].NewGlyphID, 4);
-        //else
-          result := Result + IntToHex(FTextMappingList[n].GlyphID, 4);
+        result := Result + IntToHex(FTextMappingList[n].GlyphID, 4);
         break;
       end;
     end;
@@ -4072,32 +4068,20 @@ begin
 
   if poSubsetFont in Document.Options then
   begin
+    { TODO: Future Improvement - We can reduce the entries in the beginbfrange
+            by actually using ranges for consecutive numbers.
+            eg:
+                 <0051> <0053> <006E>
+              vs
+                 <0051> <0051> <006E>
+                 <0052> <0052> <006F>
+                 <0053> <0053> <0070>
+    }
     // use hex values in the output
-
     WriteString(Format('%d beginbfrange', [lst.Count-1])+CRLF, AStream);
     for i := 1 to lst.Count-1 do
       WriteString(Format('<%s> <%0:s> <%s>', [IntToHex(lst[i].GlyphID, 4), IntToHex(lst[i].CharID, 4)])+CRLF, AStream);
     WriteString('endbfrange'+CRLF, AStream);
-
-//WriteString('12 beginbfrange'+CRLF, AStream);
-//WriteString('<0003> <0004> <0020>'+CRLF, AStream);
-//WriteString('<0011> <0011> <002E>'+CRLF, AStream);
-//WriteString('<002A> <002B> <0047>'+CRLF, AStream);
-//WriteString('<0037> <0037> <0054>'+CRLF, AStream);
-//WriteString('<003A> <003A> <0057>'+CRLF, AStream);
-//WriteString('<0044> <0044> <0061>'+CRLF, AStream);
-//WriteString('<0047> <0048> <0064>'+CRLF, AStream);
-//WriteString('<004B> <004C> <0068>'+CRLF, AStream);
-//WriteString('<004F> <0052> <006C>'+CRLF, AStream);
-//WriteString('<0055> <0056> <0072>'+CRLF, AStream);
-//WriteString('<0058> <0058> <0075>'+CRLF, AStream);
-//WriteString('<005C> <005C> <0079>'+CRLF, AStream);
-//WriteString('endbfrange'+CRLF, AStream);
-
-//WriteString('1 beginbfrange'+CRLF, AStream);
-//WriteString('<0000> <FFFF> <0000>'+CRLF, AStream);
-//WriteString('endbfrange'+CRLF, AStream);
-
   end
   else
   begin
