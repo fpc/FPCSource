@@ -1248,7 +1248,7 @@ const fpmkunitsrc : array[0..1137,1..240] of char=(
   'her thread'#010+
   '    // has finished it'#039's task. Compilation stops when all packages'+
   ' are compiled'#010+
-  '    // or when an error occurres.'#010+
+  '    // or when an error occures.'#010+
   '    //'#010+
   '    // When ThreadsAmount is not specif','ied (-1), all packages are co'+
   'mpiled on by one.'#010+
