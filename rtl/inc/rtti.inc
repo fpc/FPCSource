@@ -116,7 +116,7 @@ begin
   { check terminator, maybe we are already in init table }
   if Assigned(PRecordInfoInit(typeInfo)^.Terminator) then
     { point to more optimal initrtti }
-    result:=PRecordInfoFull(result)^.InitTable;
+    result:=PRecordInfoFull(typeInfo)^.InitTable;
 {$endif VER3_0}
 end;
 
