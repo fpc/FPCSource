@@ -251,16 +251,23 @@ procedure tllvmtypeconvnode.second_nothing;
   var
     hreg: tregister;
   begin
+    { insert LLVM-level type conversions for same-sized entities that are
+      nevertheless different types }
     if left.resultdef<>resultdef then
       begin
-        { handle sometype(voidptr^) and "absolute" }
+           { handle sometype(voidptr^) and "absolute" }
         if not is_void(left.resultdef) and
            not(nf_absolute in flags) and
            (left.resultdef.typ<>formaldef) and
            (resultdef.typ<>formaldef) and
+           { can't get/check the size of open arrays, and they are allowed to
+             change sizesduring conversions }
            not is_open_array(resultdef) and
            not is_open_array(left.resultdef) and
-           (left.resultdef.size<>resultdef.size) and
+           { TP-style child objects can be cast to parent objects, and their
+             sizes may differ }
+           (not is_object(resultdef) or
+            not def_is_related(left.resultdef,resultdef)) and
            { in case of ISO-like I/O, the typed file def includes a
              get/put buffer of the size of the file's elements }
            not(
@@ -269,7 +276,9 @@ procedure tllvmtypeconvnode.second_nothing;
                (tfiledef(left.resultdef).filetyp=ft_typed) and
                (resultdef.typ=filedef) and
                (tfiledef(resultdef).filetyp=ft_untyped)
-           ) then
+           ) and
+           { anything else with different size that ends up here is an error }
+           (left.resultdef.size<>resultdef.size) then
           internalerror(2014012216);
         hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
