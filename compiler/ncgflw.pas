@@ -542,7 +542,7 @@ implementation
     procedure tcgtryexceptnode.pass_generate_code;
 
       var
-         exceptlabel,doexceptlabel,oldendexceptlabel,
+         exceptlabel,oldendexceptlabel,
          lastonlabel,
          exitexceptlabel,
          continueexceptlabel,
@@ -595,7 +595,6 @@ implementation
            end;
 
          current_asmdata.getjumplabel(exceptlabel);
-         current_asmdata.getjumplabel(doexceptlabel);
          current_asmdata.getjumplabel(endexceptlabel);
          current_asmdata.getjumplabel(lastonlabel);
 
@@ -623,8 +622,6 @@ implementation
          hlcg.a_label(current_asmdata.CurrAsmList,exceptlabel);
 
          free_exception(current_asmdata.CurrAsmList, excepttemps, 0, endexceptlabel, false);
-
-         hlcg.a_label(current_asmdata.CurrAsmList,doexceptlabel);
 
          { end cleanup }
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
