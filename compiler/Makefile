@@ -496,6 +496,15 @@ endif
 endif
 endif
 override LOCALOPT+=-d$(CPC_TARGET) -dGDB -dBROWSERLOG
+ifdef LLVM
+ifeq ($(findstring $(PPC_TARGET),x86_64),)
+$(error The $(PPC_TARGET) architecture is not (yet) support by the FPC/LLVM code generator)
+endif
+ifeq ($(findstring $(OS_TARGET),darwin iphonesim linux),)
+$(error The $(PPC_TARGET) target OS is not (yet) support by the FPC/LLVM code generator)
+endif
+override LOCALOPT+=-dllvm -Fullvm
+endif
 ifeq ($(PPC_TARGET),i386)
 override LOCALOPT+=-Fux86
 endif
