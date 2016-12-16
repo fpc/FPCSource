@@ -35,7 +35,7 @@ uses
          fc_continue,
          fc_inflowcontrol,
          fc_gotolabel,
-         { in try block of try..finally }
+         { in try block of try..finally and target uses specific unwinding }
          fc_unwind_exit,
          fc_unwind_loop,
          { the left side of an expression is already handled, so we are
