@@ -626,8 +626,8 @@ implementation
           const
             trans : array[tordtype] of byte =
               (otUByte{otNone},
-               otUByte,otUWord,otULong,otUQWord{otNone},otUByte{otNone},
-               otSByte,otSWord,otSLong,otSQWord{otNone},otUByte{otNone},
+               otUByte,otUWord,otULong,otUQWord,otUByte{otNone},
+               otSByte,otSWord,otSLong,otSQWord,otUByte{otNone},
                otUByte,otUWord,otULong,otUByte,
                otSByte,otSWord,otSLong,otSByte,
                otUByte,otUWord,otUByte);
