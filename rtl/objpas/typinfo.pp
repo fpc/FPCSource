@@ -47,7 +47,7 @@ unit typinfo;
                    tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar,
                    tkHelper,tkFile,tkClassRef,tkPointer);
 
-       TOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
+       TOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong,otSQWord,otUQWord);
 
 {$ifndef FPUNONE}
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr);
@@ -261,6 +261,9 @@ unit typinfo;
               ();
             tkAString:
               (CodePage: Word);
+{$ifndef VER3_0}
+            tkInt64,tkQWord,
+{$endif VER3_0}
             tkInteger,tkChar,tkEnumeration,tkBool,tkWChar,tkSet:
               (OrdType : TOrdType;
                case TTypeKind of
@@ -273,6 +276,12 @@ unit typinfo;
                         NameList : ShortString;
                         {EnumUnitName: ShortString;})
                     );
+{$ifndef VER3_0}
+                  tkInt64:
+                    (MinInt64Value, MaxInt64Value: Int64);
+                  tkQWord:
+                    (MinQWordValue, MaxQWordValue: QWord);
+{$endif VER3_0}
                   tkSet:
                     (CompTypeRef : TypeInfoPtr)
               );
@@ -323,10 +332,12 @@ unit typinfo;
               );
             tkProcVar:
               (ProcSig: TProcedureSignature);
+{$ifdef VER3_0}
             tkInt64:
               (MinInt64Value, MaxInt64Value: Int64);
             tkQWord:
               (MinQWordValue, MaxQWordValue: QWord);
+{$endif VER3_0}
             tkInterface:
               (
                IntfParentRef: TypeInfoPtr;

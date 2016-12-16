@@ -626,8 +626,8 @@ implementation
           const
             trans : array[tordtype] of byte =
               (otUByte{otNone},
-               otUByte,otUWord,otULong,otUByte{otNone},otUByte{otNone},
-               otSByte,otSWord,otSLong,otUByte{otNone},otUByte{otNone},
+               otUByte,otUWord,otULong,otUQWord{otNone},otUByte{otNone},
+               otSByte,otSWord,otSLong,otSQWord{otNone},otUByte{otNone},
                otUByte,otUWord,otULong,otUByte,
                otSByte,otSWord,otSLong,otSByte,
                otUByte,otUWord,otUByte);
@@ -645,8 +645,21 @@ implementation
               targetinfos[target_info.system]^.alignment.recordalignmin,
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
             {Convert to longint to smuggle values in high(longint)+1..high(cardinal) into asmlist.}
-            tcb.emit_ord_const(longint(def.low.svalue),s32inttype);
-            tcb.emit_ord_const(longint(def.high.svalue),s32inttype);
+            case trans[def.ordtype] of
+              otUQWord:
+                begin
+                  tcb.emit_ord_const(def.low.uvalue,u64inttype);
+                  tcb.emit_ord_const(def.high.uvalue,u64inttype);
+                end;
+              otSQWord:
+                begin
+                  tcb.emit_ord_const(def.low.svalue,s64inttype);
+                  tcb.emit_ord_const(def.high.svalue,s64inttype);
+                end;
+              else
+                tcb.emit_ord_const(longint(def.low.svalue),s32inttype);
+                tcb.emit_ord_const(longint(def.high.svalue),s32inttype);
+            end;
             tcb.end_anonymous_record;
             tcb.end_anonymous_record;
           end;
@@ -654,35 +667,9 @@ implementation
         begin
           case def.ordtype of
             s64bit :
-              begin
-                write_header(tcb,def,tkInt64);
-                tcb.begin_anonymous_record(
-                  internaltypeprefixName[itp_rtti_ord_64bit],
-                  defaultpacking,reqalign,
-                  targetinfos[target_info.system]^.alignment.recordalignmin,
-                  targetinfos[target_info.system]^.alignment.maxCrecordalign);
-                { low }
-                tcb.emit_ord_const(def.low.svalue,s64inttype);
-                { high }
-                tcb.emit_ord_const(def.high.svalue,s64inttype);
-                tcb.end_anonymous_record;
-              end;
+                dointeger(tkInt64);
             u64bit :
-              begin
-                write_header(tcb,def,tkQWord);
-                tcb.begin_anonymous_record(
-                  internaltypeprefixName[itp_rtti_ord_64bit],
-                  defaultpacking,reqalign,
-                  targetinfos[target_info.system]^.alignment.recordalignmin,
-                  targetinfos[target_info.system]^.alignment.maxCrecordalign);
-                { use svalue because emit_ord_const accepts int64, prevents
-                  range check errors }
-                { low }
-                tcb.emit_ord_const(def.low.svalue,s64inttype);
-                { high }
-                tcb.emit_ord_const(def.high.svalue,s64inttype);
-                tcb.end_anonymous_record;
-              end;
+                dointeger(tkQWord);
             pasbool8:
                 dointeger(tkBool);
             uchar:

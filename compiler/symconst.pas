@@ -75,8 +75,8 @@ const
   otUWord     = 3;
   otSLong     = 4;
   otULong     = 5;
-  otSLongLong = 6;
-  otULongLong = 7;
+  otSQWord    = 6;
+  otUQWord    = 7;
 
   ftSingle   = 0;
   ftDouble   = 1;
