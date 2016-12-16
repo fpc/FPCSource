@@ -611,8 +611,8 @@ implementation
           is always returned in param.
           Furthermore, any managed type is returned in param, in order to avoid
           its finalization on exception at callee side. }
-        if (tf_safecall_exceptions in target_info.flags) and
-           (pd.proccalloption=pocall_safecall) or
+        if ((tf_safecall_exceptions in target_info.flags) and
+            (pd.proccalloption=pocall_safecall)) or
            (
              (pd.proctypeoption=potype_constructor)and
              (
