@@ -158,6 +158,9 @@ unit typinfo;
         FldOffset: SizeInt;
       end;
 
+      PInitManagedField = ^TInitManagedField;
+      TInitManagedField = TManagedField;
+
       PProcedureParam = ^TProcedureParam;
       TProcedureParam =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -192,6 +195,18 @@ unit typinfo;
         function GetParam(ParamIndex: Integer): PProcedureParam;
       end;
 
+      PRecInitData = ^TRecInitData;
+      TRecInitData =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Terminator: Pointer;
+        Size: Integer;
+        ManagedFieldCount: Integer;
+        { ManagedFields: array[0..ManagedFieldCount - 1] of TInitManagedField ; }
+      end;
+
       PTypeData = ^TTypeData;
       TTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -202,6 +217,9 @@ unit typinfo;
         function GetBaseType: PTypeInfo; inline;
         function GetCompType: PTypeInfo; inline;
         function GetParentInfo: PTypeInfo; inline;
+{$ifndef VER3_0}        
+        function GetRecInitData: PRecInitData; inline;
+{$endif}
         function GetHelperParent: PTypeInfo; inline;
         function GetExtendedInfo: PTypeInfo; inline;
         function GetIntfParent: PTypeInfo; inline;
@@ -218,6 +236,10 @@ unit typinfo;
         property CompType: PTypeInfo read GetCompType;
         { tkClass }
         property ParentInfo: PTypeInfo read GetParentInfo;
+        { tkRecord }
+{$ifndef VER3_0}        
+        property RecInitData: PRecInitData read GetRecInitData;
+{$endif}
         { tkHelper }
         property HelperParent: PTypeInfo read GetHelperParent;
         property ExtendedInfo: PTypeInfo read GetExtendedInfo;
@@ -270,7 +292,7 @@ unit typinfo;
             tkRecord:
               (
 {$ifndef VER3_0}
-                RecInitTable: Pointer; { points to TTypeInfo followed by init table }
+                RecInitInfo: Pointer; { points to TTypeInfo followed by init table }
 {$endif VER3_0}
                 RecSize: Integer;
                 ManagedFldCount: Integer;
@@ -2298,6 +2320,13 @@ function TTypeData.GetParentInfo: PTypeInfo;
 begin
   Result := DerefTypeInfoPtr(ParentInfoRef);
 end;
+
+{$ifndef VER3_0}
+function TTypeData.GetRecInitData: PRecInitData;
+begin
+  Result := PRecInitData(aligntoptr(PTypeData(RecInitInfo+2+PByte(RecInitInfo+1)^)));
+end;
+{$endif}
 
 function TTypeData.GetHelperParent: PTypeInfo;
 begin

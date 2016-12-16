@@ -10,6 +10,6 @@ type
   end;
 
 begin
-  if GetTypeData(TypeInfo(TFoo)).RecInitTable = nil then
+  if GetTypeData(TypeInfo(TFoo)).RecInitInfo = nil then
     Halt(1);
 end.

@@ -13008,6 +13008,7 @@ tests/test/trstr8.pp svneol=native#text/plain
 tests/test/trtti1.pp svneol=native#text/plain
 tests/test/trtti10.pp svneol=native#text/pascal
 tests/test/trtti11.pp svneol=native#text/pascal
+tests/test/trtti12.pp svneol=native#text/pascal
 tests/test/trtti2.pp svneol=native#text/plain
 tests/test/trtti3.pp svneol=native#text/plain
 tests/test/trtti4.pp svneol=native#text/plain
