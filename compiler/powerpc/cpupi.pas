@@ -33,7 +33,7 @@ unit cpupi;
        procinfo,cpuinfo,psub;
 
     type
-       tppcprocinfo = class(tcgprocinfo)
+       tcpuprocinfo = class(tcgprocinfo)
           needstackframe: boolean;
 
           { offset where the frame pointer from the outer procedure is stored. }
@@ -66,7 +66,7 @@ unit cpupi;
        verbose,
        aasmcpu;
 
-    constructor tppcprocinfo.create(aparent:tprocinfo);
+    constructor tcpuprocinfo.create(aparent:tprocinfo);
 
       begin
          inherited create(aparent);
@@ -76,7 +76,7 @@ unit cpupi;
       end;
 
 
-    procedure tppcprocinfo.set_first_temp_offset;
+    procedure tcpuprocinfo.set_first_temp_offset;
       var
          ofs : aword;
       begin
@@ -106,7 +106,7 @@ unit cpupi;
 
 
 (*
-    procedure tppcprocinfo.after_pass1;
+    procedure tcpuprocinfo.after_pass1;
       begin
          if not(po_assembler in procdef.procoptions) then
            begin
@@ -128,13 +128,13 @@ unit cpupi;
 *)
 
 
-    function tppcprocinfo.uses_stack_temps: boolean;
+    function tcpuprocinfo.uses_stack_temps: boolean;
       begin
         result := tg.firsttemp <> tg.lasttemp;
       end;
 
 
-    function tppcprocinfo.calc_stackframe_size:longint;
+    function tcpuprocinfo.calc_stackframe_size:longint;
       var
         low_nonvol_fpu_reg, regcounter: tsuperregister;
       begin
@@ -194,7 +194,7 @@ unit cpupi;
       end;
 
 
-    procedure tppcprocinfo.allocate_got_register(list: TAsmList);
+    procedure tcpuprocinfo.allocate_got_register(list: TAsmList);
       begin
         if (target_info.system = system_powerpc_darwin) and
            (cs_create_pic in current_settings.moduleswitches) then
@@ -204,13 +204,13 @@ unit cpupi;
       end;
 
 
-    procedure tppcprocinfo.postprocess_code;
+    procedure tcpuprocinfo.postprocess_code;
       begin
         fixup_jmps(aktproccode);
       end;
 
 
 begin
-   cprocinfo:=tppcprocinfo;
+   cprocinfo:=tcpuprocinfo;
 end.
 

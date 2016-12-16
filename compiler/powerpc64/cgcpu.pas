@@ -1214,7 +1214,7 @@ begin
   calcFirstUsedGPR(firstreggpr, gprcount);
 
   { calculate real stack frame size }
-  localsize := tppcprocinfo(current_procinfo).calc_stackframe_size(
+  localsize := tcpuprocinfo(current_procinfo).calc_stackframe_size(
     gprcount, fprcount);
 
   { determine whether we need to save the link register }
@@ -1235,12 +1235,12 @@ begin
   save_standard_registers;
 
   { save old stack frame pointer }
-  if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
+  if (tcpuprocinfo(current_procinfo).needs_frame_pointer) then
     list.concat(taicpu.op_reg_reg(A_MR, NR_OLD_STACK_POINTER_REG, NR_STACK_POINTER_REG));
 
   { create stack frame }
   if (not nostackframe) and (localsize > 0) and
-     tppcprocinfo(current_procinfo).needstackframe then begin
+     tcpuprocinfo(current_procinfo).needstackframe then begin
     if (localsize <= high(smallint)) then begin
       reference_reset_base(href, NR_STACK_POINTER_REG, -localsize, 8, []);
       a_load_store(list, A_STDU, NR_STACK_POINTER_REG, href);
@@ -1375,13 +1375,13 @@ begin
      ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []));
 
   { calculate stack frame }
-  localsize := tppcprocinfo(current_procinfo).calc_stackframe_size(
+  localsize := tcpuprocinfo(current_procinfo).calc_stackframe_size(
     gprcount, fprcount);
   { CR register not supported }
 
   { restore stack pointer }
   if (not nostackframe) and (localsize > 0) and
-    tppcprocinfo(current_procinfo).needstackframe then begin
+    tcpuprocinfo(current_procinfo).needstackframe then begin
     if (localsize <= high(smallint)) then begin
       list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, localsize));
     end else begin

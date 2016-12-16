@@ -32,9 +32,9 @@ interface
 
   type
 
-    { TSparcProcInfo }
+    { tcpuprocinfo }
 
-    TJVMProcInfo=class(tcgprocinfo)
+    tcpuprocinfo=class(tcgprocinfo)
     public
       procedure set_first_temp_offset;override;
     end;
@@ -45,7 +45,7 @@ implementation
       systems,globals,
       tgobj,paramgr,symconst;
 
-    procedure TJVMProcInfo.set_first_temp_offset;
+    procedure tcpuprocinfo.set_first_temp_offset;
       begin
         {
           Stackframe layout:
@@ -61,5 +61,5 @@ implementation
 
 
 begin
-  cprocinfo:=TJVMProcInfo;
+  cprocinfo:=tcpuprocinfo;
 end.

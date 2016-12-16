@@ -341,7 +341,7 @@ procedure tx64tryfinallynode.pass_generate_code;
     cg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
 
     { generate the scope record in .xdata }
-    tx86_64procinfo(current_procinfo).add_finally_scope(trylabel,endtrylabel,
+    tcpuprocinfo(current_procinfo).add_finally_scope(trylabel,endtrylabel,
       current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION),catch_frame);
 
     if implicitframe then
@@ -515,7 +515,7 @@ procedure tx64tryexceptnode.pass_generate_code;
 
     emit_nop;
     cg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
-    tx86_64procinfo(current_procinfo).add_except_scope(trylabel,exceptlabel,endexceptlabel,filterlabel);
+    tcpuprocinfo(current_procinfo).add_except_scope(trylabel,exceptlabel,endexceptlabel,filterlabel);
 
 errorexit:
     { restore all saved labels }

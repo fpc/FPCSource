@@ -372,9 +372,9 @@ begin
   { Restore GP if in PIC mode }
   if (cs_create_pic in current_settings.moduleswitches) then
     begin
-      if TMIPSProcinfo(current_procinfo).save_gp_ref.offset=0 then
+      if tcpuprocinfo(current_procinfo).save_gp_ref.offset=0 then
         InternalError(2013071001);
-      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,TMIPSProcinfo(current_procinfo).save_gp_ref));
+      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,tcpuprocinfo(current_procinfo).save_gp_ref));
     end;
 end;
 
@@ -417,9 +417,9 @@ begin
   { Restore GP if in PIC mode }
   if (cs_create_pic in current_settings.moduleswitches) then
     begin
-      if TMIPSProcinfo(current_procinfo).save_gp_ref.offset=0 then
+      if tcpuprocinfo(current_procinfo).save_gp_ref.offset=0 then
         InternalError(2013071002);
-      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,TMIPSProcinfo(current_procinfo).save_gp_ref));
+      list.concat(taicpu.op_reg_ref(A_LW,NR_GP,tcpuprocinfo(current_procinfo).save_gp_ref));
     end;
 end;
 
@@ -1279,7 +1279,7 @@ begin
   href.base:=NR_STACK_POINTER_REG;
 
   fmask:=0;
-  nextoffset:=TMIPSProcInfo(current_procinfo).floatregstart;
+  nextoffset:=tcpuprocinfo(current_procinfo).floatregstart;
   lastfpuoffset:=LocalSize;
   for reg := RS_F0 to RS_F31 do { to check: what if F30 is double? }
     begin
@@ -1301,7 +1301,7 @@ begin
     end;
 
   mask:=0;
-  nextoffset:=TMIPSProcInfo(current_procinfo).intregstart;
+  nextoffset:=tcpuprocinfo(current_procinfo).intregstart;
   saveregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
   if (current_procinfo.flags*[pi_do_call,pi_is_assembler]<>[]) then
     include(saveregs,RS_R31);
@@ -1374,10 +1374,10 @@ begin
   if (cs_create_pic in current_settings.moduleswitches) and
      (pi_needs_got in current_procinfo.flags) then
     begin
-      largeoffs:=(TMIPSProcinfo(current_procinfo).save_gp_ref.offset>simm16hi);
+      largeoffs:=(tcpuprocinfo(current_procinfo).save_gp_ref.offset>simm16hi);
       if largeoffs then
         list.concat(Taicpu.op_none(A_P_SET_MACRO));
-      list.concat(Taicpu.op_const(A_P_CPRESTORE,TMIPSProcinfo(current_procinfo).save_gp_ref.offset));
+      list.concat(Taicpu.op_const(A_P_CPRESTORE,tcpuprocinfo(current_procinfo).save_gp_ref.offset));
       if largeoffs then
         list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
@@ -1385,7 +1385,7 @@ begin
   href.base:=NR_STACK_POINTER_REG;
 
   for i:=0 to MIPS_MAX_REGISTERS_USED_IN_CALL-1 do
-    if TMIPSProcInfo(current_procinfo).register_used[i] then
+    if tcpuprocinfo(current_procinfo).register_used[i] then
       begin
         reg:=parasupregs[i];
         href.offset:=i*sizeof(aint)+LocalSize;
@@ -1417,12 +1417,12 @@ begin
      end
    else
      begin
-       if TMIPSProcinfo(current_procinfo).save_gp_ref.offset<>0 then
-         tg.ungettemp(list,TMIPSProcinfo(current_procinfo).save_gp_ref);
+       if tcpuprocinfo(current_procinfo).save_gp_ref.offset<>0 then
+         tg.ungettemp(list,tcpuprocinfo(current_procinfo).save_gp_ref);
        reference_reset(href,0,[]);
        href.base:=NR_STACK_POINTER_REG;
 
-       nextoffset:=TMIPSProcInfo(current_procinfo).floatregstart;
+       nextoffset:=tcpuprocinfo(current_procinfo).floatregstart;
        for reg := RS_F0 to RS_F31 do
          begin
            if reg in (rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall)) then
@@ -1433,7 +1433,7 @@ begin
              end;
          end;
 
-       nextoffset:=TMIPSProcInfo(current_procinfo).intregstart;
+       nextoffset:=tcpuprocinfo(current_procinfo).intregstart;
        saveregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
        if (current_procinfo.flags*[pi_do_call,pi_is_assembler]<>[]) then
          include(saveregs,RS_R31);
@@ -1520,7 +1520,7 @@ begin
   if len > high(longint) then
     internalerror(2002072704);
   { A call (to FPC_MOVE) requires the outgoing parameter area to be properly
-    allocated on stack. This can only be done before tmipsprocinfo.set_first_temp_offset,
+    allocated on stack. This can only be done before tcpuprocinfo.set_first_temp_offset,
     i.e. before secondpass. Other internal procedures request correct stack frame
     by setting pi_do_call during firstpass, but for this particular one it is impossible.
     Therefore, if the current procedure is a leaf one, we have to leave it that way. }

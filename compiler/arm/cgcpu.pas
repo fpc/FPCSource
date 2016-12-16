@@ -1898,7 +1898,7 @@ unit cgcpu;
 
         { call instruction does not put anything on the stack }
         registerarea:=0;
-        tarmprocinfo(current_procinfo).stackpaddingreg:=High(TSuperRegister);
+        tcpuprocinfo(current_procinfo).stackpaddingreg:=High(TSuperRegister);
         lastfloatreg:=RS_NO;
         if not(nostackframe) then
           begin
@@ -1971,7 +1971,7 @@ unit cgcpu;
                            begin
                              regs:=regs+[r];
                              inc(registerarea,4);
-                             tarmprocinfo(current_procinfo).stackpaddingreg:=r;
+                             tcpuprocinfo(current_procinfo).stackpaddingreg:=r;
                              break;
                            end;
                      list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_FD));
@@ -2041,10 +2041,10 @@ unit cgcpu;
                 localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
                 if stack_parameters and (pi_estimatestacksize in current_procinfo.flags) then
                   begin
-                    if localsize>tarmprocinfo(current_procinfo).stackframesize then
+                    if localsize>tcpuprocinfo(current_procinfo).stackframesize then
                       internalerror(2014030901)
                     else
-                      localsize:=tarmprocinfo(current_procinfo).stackframesize-registerarea;
+                      localsize:=tcpuprocinfo(current_procinfo).stackframesize-registerarea;
                   end;
                 if is_shifter_const(localsize,shift) then
                   begin
@@ -2071,24 +2071,24 @@ unit cgcpu;
                (firstfloatreg<>RS_NO) then
              begin
                reference_reset(ref,4,[]);
-               if (tg.direction*tarmprocinfo(current_procinfo).floatregstart>=1023) or
+               if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
                   (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16]) then
                  begin
-                   if not is_shifter_const(tarmprocinfo(current_procinfo).floatregstart,shift) then
+                   if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
                      begin
                        a_reg_alloc(list,NR_R12);
-                       a_load_const_reg(list,OS_ADDR,-tarmprocinfo(current_procinfo).floatregstart,NR_R12);
+                       a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
                        a_reg_dealloc(list,NR_R12);
                      end
                    else
-                     list.concat(taicpu.op_reg_reg_const(A_SUB,NR_R12,current_procinfo.framepointer,-tarmprocinfo(current_procinfo).floatregstart));
+                     list.concat(taicpu.op_reg_reg_const(A_SUB,NR_R12,current_procinfo.framepointer,-tcpuprocinfo(current_procinfo).floatregstart));
                    ref.base:=NR_R12;
                  end
                else
                  begin
                    ref.base:=current_procinfo.framepointer;
-                   ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+                   ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
                  end;
 
                case current_settings.fputype of
@@ -2178,24 +2178,24 @@ unit cgcpu;
                (mmregs<>[]) then
               begin
                 reference_reset(ref,4,[]);
-                if (tg.direction*tarmprocinfo(current_procinfo).floatregstart>=1023) or
+                if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
                    (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16]) then
                   begin
-                    if not is_shifter_const(tarmprocinfo(current_procinfo).floatregstart,shift) then
+                    if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
                       begin
                         a_reg_alloc(list,NR_R12);
-                        a_load_const_reg(list,OS_ADDR,-tarmprocinfo(current_procinfo).floatregstart,NR_R12);
+                        a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
                         list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
                         a_reg_dealloc(list,NR_R12);
                       end
                     else
-                      list.concat(taicpu.op_reg_reg_const(A_SUB,NR_R12,current_procinfo.framepointer,-tarmprocinfo(current_procinfo).floatregstart));
+                      list.concat(taicpu.op_reg_reg_const(A_SUB,NR_R12,current_procinfo.framepointer,-tcpuprocinfo(current_procinfo).floatregstart));
                     ref.base:=NR_R12;
                   end
                 else
                   begin
                     ref.base:=current_procinfo.framepointer;
-                    ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+                    ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
                   end;
                 case current_settings.fputype of
                   fpu_fpa,
@@ -2265,7 +2265,7 @@ unit cgcpu;
 
             { reapply the stack padding reg, in case there was one, see the complimentary
               comment in g_proc_entry() (KB) }
-            paddingreg:=tarmprocinfo(current_procinfo).stackpaddingreg;
+            paddingreg:=tcpuprocinfo(current_procinfo).stackpaddingreg;
             if paddingreg < RS_R4 then
               if paddingreg in regs then
                 internalerror(201306190)
@@ -2285,7 +2285,7 @@ unit cgcpu;
                      (po_assembler in current_procinfo.procdef.procoptions))) then
                   begin
                     if pi_estimatestacksize in current_procinfo.flags then
-                      LocalSize:=tarmprocinfo(current_procinfo).stackframesize-registerarea
+                      LocalSize:=tcpuprocinfo(current_procinfo).stackframesize-registerarea
                     else
                       localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
 
@@ -3631,14 +3631,14 @@ unit cgcpu;
                   if yes, the previously estimated stacksize must be used }
                 if stack_parameters then
                   begin
-                    if localsize>tarmprocinfo(current_procinfo).stackframesize then
+                    if localsize>tcpuprocinfo(current_procinfo).stackframesize then
                       begin
                         writeln(localsize);
-                        writeln(tarmprocinfo(current_procinfo).stackframesize);
+                        writeln(tcpuprocinfo(current_procinfo).stackframesize);
                         internalerror(2013040601);
                       end
                     else
-                      localsize:=tarmprocinfo(current_procinfo).stackframesize-registerarea;
+                      localsize:=tcpuprocinfo(current_procinfo).stackframesize-registerarea;
                   end
                 else
                   localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
@@ -3702,7 +3702,7 @@ unit cgcpu;
 
             LocalSize:=current_procinfo.calc_stackframe_size;
             if stack_parameters then
-              localsize:=tarmprocinfo(current_procinfo).stackframesize-registerarea
+              localsize:=tcpuprocinfo(current_procinfo).stackframesize-registerarea
             else
               localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
 
@@ -4851,16 +4851,16 @@ unit cgcpu;
             if firstfloatreg<>RS_NO then
               begin
                 reference_reset(ref,4,[]);
-                if tg.direction*tarmprocinfo(current_procinfo).floatregstart>=1023 then
+                if tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023 then
                   begin
-                    a_load_const_reg(list,OS_ADDR,-tarmprocinfo(current_procinfo).floatregstart,NR_R12);
+                    a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
                     list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
                     ref.base:=NR_R12;
                   end
                 else
                   begin
                     ref.base:=current_procinfo.framepointer;
-                    ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+                    ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
                   end;
                 list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                   lastfloatreg-firstfloatreg+1,ref));
@@ -4901,16 +4901,16 @@ unit cgcpu;
             if firstfloatreg<>RS_NO then
               begin
                 reference_reset(ref,4,[]);
-                if tg.direction*tarmprocinfo(current_procinfo).floatregstart>=1023 then
+                if tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023 then
                   begin
-                    a_load_const_reg(list,OS_ADDR,-tarmprocinfo(current_procinfo).floatregstart,NR_R12);
+                    a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
                     list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
                     ref.base:=NR_R12;
                   end
                 else
                   begin
                     ref.base:=current_procinfo.framepointer;
-                    ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+                    ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
                   end;
                 list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                   lastfloatreg-firstfloatreg+1,ref));

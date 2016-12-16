@@ -434,7 +434,7 @@ implementation
                     if reg_and_stack then
                       begin
                         for j:=intparareg to mips_nb_used_registers-1 do
-                          tmipsprocinfo(current_procinfo).register_used[j]:=true;
+                          tcpuprocinfo(current_procinfo).register_used[j]:=true;
                         { all registers used now }
                         intparareg:=mips_nb_used_registers;
                       end;

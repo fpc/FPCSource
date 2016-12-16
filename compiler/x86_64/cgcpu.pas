@@ -411,7 +411,7 @@ unit cgcpu;
         list.concat(Taicpu.Op_none(A_RET,S_NO));
         if (pi_has_unwind_info in current_procinfo.flags) then
           begin
-            tx86_64procinfo(current_procinfo).dump_scopes(list);
+            tcpuprocinfo(current_procinfo).dump_scopes(list);
             list.concat(cai_seh_directive.create(ash_endproc));
           end;
       end;

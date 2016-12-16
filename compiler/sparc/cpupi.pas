@@ -31,7 +31,7 @@ interface
     psub;
 
   type
-    TSparcProcInfo=class(tcgprocinfo)
+    tcpuprocinfo=class(tcgprocinfo)
     public
       constructor create(aparent:tprocinfo);override;
       function calc_stackframe_size:longint;override;
@@ -44,7 +44,7 @@ implementation
       cpubase,cgbase,
       tgobj,paramgr,symconst;
 
-    constructor tsparcprocinfo.create(aparent:tprocinfo);
+    constructor tcpuprocinfo.create(aparent:tprocinfo);
       begin
         inherited create(aparent);
         maxpushedparasize:=0;
@@ -52,7 +52,7 @@ implementation
       end;
 
 
-    function TSparcProcInfo.calc_stackframe_size:longint;
+    function tcpuprocinfo.calc_stackframe_size:longint;
       begin
         {
           Stackframe layout:
@@ -77,5 +77,5 @@ implementation
 
 
 begin
-  cprocinfo:=TSparcProcInfo;
+  cprocinfo:=tcpuprocinfo;
 end.

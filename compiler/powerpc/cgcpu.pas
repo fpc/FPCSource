@@ -826,12 +826,12 @@ const
                 end;
 *)
 
-            firstregfpu := tppcprocinfo(current_procinfo).get_first_save_fpu_reg;
-            firstregint := tppcprocinfo(current_procinfo).get_first_save_int_reg;
+            firstregfpu := tcpuprocinfo(current_procinfo).get_first_save_fpu_reg;
+            firstregint := tcpuprocinfo(current_procinfo).get_first_save_int_reg;
             usesgpr := firstregint <> 32;
             usesfpr := firstregfpu <> 32;
 
-             if tppcprocinfo(current_procinfo).needs_frame_pointer then
+             if tcpuprocinfo(current_procinfo).needs_frame_pointer then
                list.concat(taicpu.op_reg_reg(A_MR,NR_OLD_STACK_POINTER_REG,NR_STACK_POINTER_REG));
           end;
 
@@ -872,11 +872,11 @@ const
 
 {        done in ncgutil because it may only be released after the parameters }
 {        have been moved to their final resting place                         }
-{        if (tppcprocinfo(current_procinfo).needs_frame_pointer) then }
+{        if (tcpuprocinfo(current_procinfo).needs_frame_pointer) then }
 {          a_reg_dealloc(list,NR_R12); }
 
         if (not nostackframe) and
-           tppcprocinfo(current_procinfo).needstackframe and
+           tcpuprocinfo(current_procinfo).needstackframe and
            (localsize <> 0) then
           begin
             if (localsize <= high(smallint)) then
@@ -937,20 +937,20 @@ const
         usesgpr:=false;
         if not (po_assembler in current_procinfo.procdef.procoptions) then
           begin
-            firstregfpu := tppcprocinfo(current_procinfo).get_first_save_fpu_reg;
-            firstregint := tppcprocinfo(current_procinfo).get_first_save_int_reg;
+            firstregfpu := tcpuprocinfo(current_procinfo).get_first_save_fpu_reg;
+            firstregint := tcpuprocinfo(current_procinfo).get_first_save_int_reg;
             usesgpr := firstregint <> 32;
             usesfpr := firstregfpu <> 32;
           end;
 
-        localsize:= tppcprocinfo(current_procinfo).calc_stackframe_size;
+        localsize:= tcpuprocinfo(current_procinfo).calc_stackframe_size;
 
         { adjust r1 }
         { (register allocator is no longer valid at this time and an add of 0   }
         { is translated into a move, which is then registered with the register }
         { allocator, causing a crash                                            }
         if (not nostackframe) and
-           tppcprocinfo(current_procinfo).needstackframe and
+           tcpuprocinfo(current_procinfo).needstackframe and
            (localsize <> 0) then
           a_op_const_reg(list,OP_ADD,OS_ADDR,localsize,NR_R1);
 
@@ -1279,7 +1279,7 @@ const
         localsize:= align(localsize + macosLinkageAreaSize + registerSaveAreaSize, 16);
         inc(localsize,tg.lasttemp);
         localsize:=align(localsize,16);
-        //tppcprocinfo(current_procinfo).localsize:=localsize;
+        //tcpuprocinfo(current_procinfo).localsize:=localsize;
 
         if (localsize <> 0) then
           begin

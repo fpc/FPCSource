@@ -584,7 +584,7 @@ unit cpupara;
                            { create_paraloc_info_intern might be also called when being outside of
                              code generation so current_procinfo might be not set }
                            if assigned(current_procinfo) then
-                             tppcprocinfo(current_procinfo).needs_frame_pointer := true;
+                             tcpuprocinfo(current_procinfo).needs_frame_pointer := true;
                          end;
 
                        if not((target_info.system in systems_aix) and

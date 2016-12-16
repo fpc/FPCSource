@@ -30,7 +30,7 @@ interface
     psub;
 
   type
-    taarch64procinfo=class(tcgprocinfo)
+    tcpuprocinfo=class(tcgprocinfo)
       constructor create(aparent: tprocinfo); override;
       procedure set_first_temp_offset; override;
     end;
@@ -41,7 +41,7 @@ implementation
     tgobj,
     cpubase;
 
-  constructor taarch64procinfo.create(aparent: tprocinfo);
+  constructor tcpuprocinfo.create(aparent: tprocinfo);
     begin
       inherited;
       { use the stack pointer as framepointer, because
@@ -56,7 +56,7 @@ implementation
       framepointer:=NR_STACK_POINTER_REG;
     end;
 
-  procedure taarch64procinfo.set_first_temp_offset;
+  procedure tcpuprocinfo.set_first_temp_offset;
     begin
      { leave room for allocated parameters }
      tg.setfirsttemp(align(maxpushedparasize,16));
@@ -64,5 +64,5 @@ implementation
 
 
 begin
-  cprocinfo:=taarch64procinfo;
+  cprocinfo:=tcpuprocinfo;
 end.

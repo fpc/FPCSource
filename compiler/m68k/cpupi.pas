@@ -31,7 +31,7 @@ unit cpupi;
       psub;
 
     type
-      tm68kprocinfo = class(tcgprocinfo)
+      tcpuprocinfo = class(tcgprocinfo)
         procedure init_framepointer;override;
       end;
 
@@ -42,9 +42,9 @@ unit cpupi;
       cpubase,
       systems;
 
-  { tm68kprocinfo }
+  { tcpuprocinfo }
 
-    procedure tm68kprocinfo.init_framepointer;
+    procedure tcpuprocinfo.init_framepointer;
       begin
         { ToDo : what about system_m68k_embedded? }
         if target_info.system in [system_m68k_linux,system_m68k_netbsd,system_m68k_openbsd] then
@@ -60,5 +60,5 @@ unit cpupi;
       end;
 
 begin
-   cprocinfo:=tm68kprocinfo;
+   cprocinfo:=tcpuprocinfo;
 end.

@@ -31,7 +31,7 @@ unit cpupi;
        psub,procinfo,aasmdata;
 
     type
-       ti8086procinfo = class(tcgprocinfo)
+       tcpuprocinfo = class(tcgprocinfo)
        private
          procedure insert_8087_fwaits(list : TAsmList);
        public
@@ -54,14 +54,14 @@ unit cpupi;
       cgutils,
       symconst;
 
-    constructor ti8086procinfo.create(aparent:tprocinfo);
+    constructor tcpuprocinfo.create(aparent:tprocinfo);
       begin
         inherited create(aparent);
         got:=NR_EBX;
       end;
 
 
-    procedure ti8086procinfo.set_first_temp_offset;
+    procedure tcpuprocinfo.set_first_temp_offset;
       begin
         if paramanager.use_fixed_stack then
           begin
@@ -76,7 +76,7 @@ unit cpupi;
       end;
 
 
-    function ti8086procinfo.calc_stackframe_size:longint;
+    function tcpuprocinfo.calc_stackframe_size:longint;
       begin
         { ???:
           align to 4 bytes at least
@@ -90,7 +90,7 @@ unit cpupi;
       end;
 
 
-    procedure ti8086procinfo.generate_parameter_info;
+    procedure tcpuprocinfo.generate_parameter_info;
       begin
         inherited generate_parameter_info;
         { Para_stack_size is only used to determine how many bytes to remove }
@@ -101,7 +101,7 @@ unit cpupi;
       end;
 
 
-    procedure ti8086procinfo.insert_8087_fwaits(list : TAsmList);
+    procedure tcpuprocinfo.insert_8087_fwaits(list : TAsmList);
       var
         curtai: tai;
       begin
@@ -117,7 +117,7 @@ unit cpupi;
       end;
 
 
-    procedure ti8086procinfo.postprocess_code;
+    procedure tcpuprocinfo.postprocess_code;
       begin
         { nickysn note: I don't know if the 187 requires FWAIT before
           every instruction like the 8087, so I'm including it just in case }
@@ -126,5 +126,5 @@ unit cpupi;
       end;
 
 begin
-   cprocinfo:=ti8086procinfo;
+   cprocinfo:=tcpuprocinfo;
 end.

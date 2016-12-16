@@ -31,7 +31,7 @@ interface
        psub,procinfo,aasmbase,aasmdata;
 
     type
-       tx86_64procinfo = class(tcgprocinfo)
+       tcpuprocinfo = class(tcgprocinfo)
        private
          scopes: TAsmList;
          scopecount: longint;
@@ -63,7 +63,7 @@ implementation
       SCOPE_CATCHALL=1;
       SCOPE_IMPLICIT=2;
 
-    procedure tx86_64procinfo.set_first_temp_offset;
+    procedure tcpuprocinfo.set_first_temp_offset;
       begin
         if target_info.system=system_x86_64_win64 then
           begin
@@ -83,7 +83,7 @@ implementation
       end;
 
 
-    procedure tx86_64procinfo.generate_parameter_info;
+    procedure tcpuprocinfo.generate_parameter_info;
       begin
         inherited generate_parameter_info;
         if target_info.system=system_x86_64_win64 then
@@ -91,7 +91,7 @@ implementation
       end;
 
 
-    function tx86_64procinfo.calc_stackframe_size:longint;
+    function tcpuprocinfo.calc_stackframe_size:longint;
       begin
         maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,16));
         { Note 1: when tg.direction>0, tg.lasttemp is already offset by maxpushedparasize
@@ -105,7 +105,7 @@ implementation
           result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,8);
       end;
 
-    procedure tx86_64procinfo.add_finally_scope(startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
+    procedure tcpuprocinfo.add_finally_scope(startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
       begin
         unwindflags:=unwindflags or 2;
         if implicit then  { also needs catch functionality }
@@ -123,7 +123,7 @@ implementation
         scopes.concat(tai_const.create_rva_sym(handler));
       end;
 
-    procedure tx86_64procinfo.add_except_scope(trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
+    procedure tcpuprocinfo.add_except_scope(trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
       begin
         unwindflags:=unwindflags or 3;
         inc(scopecount);
@@ -139,7 +139,7 @@ implementation
         scopes.concat(tai_const.create_rva_sym(endlabel));
       end;
 
-    procedure tx86_64procinfo.dump_scopes(list: TAsmList);
+    procedure tcpuprocinfo.dump_scopes(list: TAsmList);
       var
         hdir: tai_seh_directive;
       begin
@@ -156,12 +156,12 @@ implementation
         new_section(list,sec_code,lower(procdef.mangledname),0);
       end;
 
-    destructor tx86_64procinfo.destroy;
+    destructor tcpuprocinfo.destroy;
       begin
         scopes.free;
         inherited destroy;
       end;
 
 begin
-   cprocinfo:=tx86_64procinfo;
+   cprocinfo:=tcpuprocinfo;
 end.

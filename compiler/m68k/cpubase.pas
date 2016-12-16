@@ -268,7 +268,7 @@ unit cpubase;
       NR_STACK_POINTER_REG = NR_SP;
       RS_STACK_POINTER_REG = RS_SP;
       {# Frame pointer register }
-{ Frame pointer register (initialized in tm68kprocinfo.init_framepointer) }
+{ Frame pointer register (initialized in tcpuprocinfo.init_framepointer) }
       RS_FRAME_POINTER_REG: tsuperregister = RS_NO;
       NR_FRAME_POINTER_REG: tregister = NR_NO;
 

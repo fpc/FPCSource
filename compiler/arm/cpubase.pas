@@ -302,7 +302,7 @@ unit cpubase;
       { Stack pointer register }
       NR_STACK_POINTER_REG = NR_R13;
       RS_STACK_POINTER_REG = RS_R13;
-      { Frame pointer register (initialized in tarmprocinfo.init_framepointer) }
+      { Frame pointer register (initialized in tcpuprocinfo.init_framepointer) }
       RS_FRAME_POINTER_REG: tsuperregister = RS_NO;
       NR_FRAME_POINTER_REG: tregister = NR_NO;
       { Register for addressing absolute data in a position independant way,
