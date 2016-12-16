@@ -92,31 +92,6 @@ interface
 //    procedure get_used_regvars_common(n: tnode; var rv: tusedregvarscommon);
     procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
 
-   {  Allocate the buffers for exception management and setjmp environment.
-      Return a pointer to these buffers, send them to the utility routine
-      so they are registered, and then call setjmp.
-
-      Then compare the result of setjmp with 0, and if not equal
-      to zero, then jump to exceptlabel.
-
-      Also store the result of setjmp to a temporary space by calling g_save_exception_reason
-
-      It is to note that this routine may be called *after* the stackframe of a
-      routine has been called, therefore on machines where the stack cannot
-      be modified, all temps should be allocated on the heap instead of the
-      stack. }
-    type
-      texceptiontemps=record
-        jmpbuf,
-        envbuf,
-        reasonbuf  : treference;
-      end;
-
-    procedure get_exception_temps(list:TAsmList;var t:texceptiontemps);
-    procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps);
-    procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
-    procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
-
     procedure gen_alloc_symtable(list:TAsmList;pd:tprocdef;st:TSymtable);
     procedure gen_free_symtable(list:TAsmList;st:TSymtable);
 
@@ -377,105 +352,6 @@ implementation
         end;
       end;
         *)
-
-
-{*****************************************************************************
-                            EXCEPTION MANAGEMENT
-*****************************************************************************}
-
-    procedure get_exception_temps(list:TAsmList;var t:texceptiontemps);
-     begin
-        tg.gethltemp(list,rec_exceptaddr,rec_exceptaddr.size,tt_persistent,t.envbuf);
-        tg.gethltemp(list,rec_jmp_buf,rec_jmp_buf.size,tt_persistent,t.jmpbuf);
-        tg.gethltemp(list,ossinttype,ossinttype.size,tt_persistent,t.reasonbuf);
-      end;
-
-
-    procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps);
-      begin
-        tg.Ungettemp(list,t.jmpbuf);
-        tg.ungettemp(list,t.envbuf);
-        tg.ungettemp(list,t.reasonbuf);
-      end;
-
-
-    procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
-      var
-        paraloc1, paraloc2, paraloc3, pushexceptres, setjmpres: tcgpara;
-        pd: tprocdef;
-        tmpresloc: tlocation;
-      begin
-        paraloc1.init;
-        paraloc2.init;
-        paraloc3.init;
-
-        { fpc_pushexceptaddr(exceptionframetype, setjmp_buffer, exception_address_chain_entry) }
-        pd:=search_system_proc('fpc_pushexceptaddr');
-        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,2,paraloc2);
-        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,3,paraloc3);
-        if pd.is_pushleftright then
-          begin
-            { type of exceptionframe }
-            hlcg.a_load_const_cgpara(list,paraloc1.def,1,paraloc1);
-            { setjmp buffer }
-            hlcg.a_loadaddr_ref_cgpara(list,rec_jmp_buf,t.jmpbuf,paraloc2);
-            { exception address chain entry }
-            hlcg.a_loadaddr_ref_cgpara(list,rec_exceptaddr,t.envbuf,paraloc3);
-          end
-        else
-          begin
-            hlcg.a_loadaddr_ref_cgpara(list,rec_exceptaddr,t.envbuf,paraloc3);
-            hlcg.a_loadaddr_ref_cgpara(list,rec_jmp_buf,t.jmpbuf,paraloc2);
-            hlcg.a_load_const_cgpara(list,paraloc1.def,1,paraloc1);
-          end;
-        paramanager.freecgpara(list,paraloc3);
-        paramanager.freecgpara(list,paraloc2);
-        paramanager.freecgpara(list,paraloc1);
-        { perform the fpc_pushexceptaddr call }
-        pushexceptres:=hlcg.g_call_system_proc(list,pd,[@paraloc1,@paraloc2,@paraloc3],nil);
-        paraloc1.done;
-        paraloc2.done;
-        paraloc3.done;
-
-        { get the result }
-        location_reset(tmpresloc,LOC_REGISTER,def_cgsize(pushexceptres.def));
-        tmpresloc.register:=hlcg.getaddressregister(list,pushexceptres.def);
-        hlcg.gen_load_cgpara_loc(list,pushexceptres.def,pushexceptres,tmpresloc,true);
-        pushexceptres.resetiftemp;
-
-        { fpc_setjmp(result_of_pushexceptaddr_call) }
-        pd:=search_system_proc('fpc_setjmp');
-        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-
-        hlcg.a_load_reg_cgpara(list,pushexceptres.def,tmpresloc.register,paraloc1);
-        paramanager.freecgpara(list,paraloc1);
-        { perform the fpc_setjmp call }
-        setjmpres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
-        paraloc1.done;
-        location_reset(tmpresloc,LOC_REGISTER,def_cgsize(setjmpres.def));
-        tmpresloc.register:=hlcg.getintregister(list,setjmpres.def);
-        hlcg.gen_load_cgpara_loc(list,setjmpres.def,setjmpres,tmpresloc,true);
-        hlcg.g_exception_reason_save(list,setjmpres.def,ossinttype,tmpresloc.register,t.reasonbuf);
-        { if we get 0 here in the function result register, it means that we
-          longjmp'd back here }
-        hlcg.a_cmp_const_reg_label(list,setjmpres.def,OC_NE,0,tmpresloc.register,exceptlabel);
-        setjmpres.resetiftemp;
-     end;
-
-
-    procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
-      var
-        reasonreg: tregister;
-      begin
-         hlcg.g_call_system_proc(list,'fpc_popaddrstack',[],nil);
-         if not onlyfree then
-          begin
-            reasonreg:=hlcg.getintregister(list,osuinttype);
-            hlcg.g_exception_reason_load(list,osuinttype,osuinttype,t.reasonbuf,reasonreg);
-            hlcg.a_cmp_const_reg_label(list,osuinttype,OC_EQ,a,reasonreg,endexceptlabel);
-          end;
-      end;
 
 
 {*****************************************************************************
