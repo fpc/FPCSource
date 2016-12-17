@@ -845,27 +845,29 @@ uses
         { decide in which symtable to put the specialization }
         if parse_generic and not assigned(result) then
           begin
-            if not assigned(current_genericdef) then
-              internalerror(2014050901);
             if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
               { if we are parsing the definition of a method we specialize into
                 the local symtable of it }
               specializest:=current_procinfo.procdef.getsymtable(gs_local)
             else
-              { we specialize the partial specialization into the symtable of the currently parsed
-                generic }
-              case current_genericdef.typ of
-                procvardef:
-                  specializest:=current_genericdef.getsymtable(gs_para);
-                procdef:
-                  specializest:=current_genericdef.getsymtable(gs_local);
-                objectdef,
-                recorddef:
-                  specializest:=current_genericdef.getsymtable(gs_record);
-                arraydef:
-                  specializest:=tarraydef(current_genericdef).symtable;
-                else
-                  internalerror(2014050902);
+              begin
+                if not assigned(current_genericdef) then
+                  internalerror(2014050901);
+                { we specialize the partial specialization into the symtable of the currently parsed
+                  generic }
+                case current_genericdef.typ of
+                  procvardef:
+                    specializest:=current_genericdef.getsymtable(gs_para);
+                  procdef:
+                    specializest:=current_genericdef.getsymtable(gs_local);
+                  objectdef,
+                  recorddef:
+                    specializest:=current_genericdef.getsymtable(gs_record);
+                  arraydef:
+                    specializest:=tarraydef(current_genericdef).symtable;
+                  else
+                    internalerror(2014050902);
+                end;
               end;
           end
         else
