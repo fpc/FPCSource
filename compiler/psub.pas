@@ -1813,6 +1813,7 @@ implementation
          old_current_genericdef,
          old_current_specializedef: tstoreddef;
          old_parse_generic: boolean;
+         recordtokens : boolean;
 
       begin
          old_current_procinfo:=current_procinfo;
@@ -1858,7 +1859,13 @@ implementation
          entrypos:=current_filepos;
          entryswitches:=current_settings.localswitches;
 
-         if (df_generic in procdef.defoptions) then
+         recordtokens:=procdef.is_generic or
+                         (
+                           assigned(current_procinfo.procdef.struct) and
+                           (df_generic in current_procinfo.procdef.struct.defoptions)
+                         );
+
+         if recordtokens then
            begin
              { start token recorder for generic template }
              procdef.initgeneric;
@@ -1868,7 +1875,7 @@ implementation
          { parse the code ... }
          code:=block(current_module.islibrary);
 
-         if (df_generic in procdef.defoptions) then
+         if recordtokens then
            begin
              { stop token recorder for generic template }
              current_scanner.stoprecordtokens;
@@ -2070,7 +2077,11 @@ implementation
         { For specialization we didn't record the last semicolon. Moving this parsing
           into the parse_body routine is not done because of having better file position
           information available }
-        if not(df_specialization in current_procinfo.procdef.defoptions) then
+        if not current_procinfo.procdef.is_specialization and
+            (
+              not assigned(current_procinfo.procdef.struct) or
+              not (df_specialization in current_procinfo.procdef.struct.defoptions)
+            ) then
           consume(_SEMICOLON);
 
         if not isnestedproc then
