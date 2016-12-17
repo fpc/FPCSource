@@ -101,7 +101,7 @@ implementation
        globtype,tokens,verbose,comphook,constexp,
        systems,cpubase,aasmbase,aasmtai,aasmdata,
        { symtable }
-       symconst,symbase,symsym,symtype,symtable,defutil,symcreat,
+       symconst,symbase,symsym,symtype,symtable,defutil,defcmp,symcreat,
        paramgr,
        ppu,fmodule,
        { pass 1 }
@@ -2106,7 +2106,9 @@ implementation
         old_current_genericdef,
         old_current_specializedef: tstoreddef;
         pdflags    : tpdflags;
-        pd,firstpd : tprocdef;
+        def,pd,firstpd : tprocdef;
+        srsym : tsym;
+        i : longint;
       begin
          { save old state }
          old_current_procinfo:=current_procinfo;
@@ -2196,6 +2198,41 @@ implementation
 
          { Set mangled name }
          proc_set_mangledname(pd);
+
+         { inherit generic flags from parent routine }
+         if assigned(old_current_procinfo) and
+             (old_current_procinfo.procdef.defoptions*[df_specialization,df_generic]<>[]) then
+           begin
+             if df_generic in old_current_procinfo.procdef.defoptions then
+               include(pd.defoptions,df_generic);
+             if df_specialization in old_current_procinfo.procdef.defoptions then
+               begin
+                 include(pd.defoptions,df_specialization);
+                 { find the corresponding routine in the generic routine }
+                 if not assigned(old_current_procinfo.procdef.genericdef) then
+                   internalerror(2016121701);
+                 srsym:=tsym(tprocdef(old_current_procinfo.procdef.genericdef).getsymtable(gs_local).find(pd.procsym.name));
+                 if not assigned(srsym) or (srsym.typ<>procsym) then
+                   internalerror(2016121702);
+                 { in practice the generic procdef should be at the same index
+                   as the index of the current procdef, but as there *might* be
+                   differences between the amount of defs generated for the
+                   specialization and the generic search for the def using
+                   parameter comparison }
+                 for i:=0 to tprocsym(srsym).procdeflist.count-1 do
+                   begin
+                     def:=tprocdef(tprocsym(srsym).procdeflist[i]);
+                     if (compare_paras(def.paras,pd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact) and
+                         (compare_defs(def.returndef,pd.returndef,nothingn)=te_exact) then
+                       begin
+                         pd.genericdef:=def;
+                         break;
+                       end;
+                   end;
+                 if not assigned(pd.genericdef) then
+                   internalerror(2016121703);
+               end;
+           end;
 
          { compile procedure when a body is needed }
          if (pd_body in pdflags) then
