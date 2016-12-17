@@ -2044,10 +2044,7 @@ implementation
           for accessing locals in the parent procedure (PFV) }
         if current_procinfo.has_nestedprocs then
           begin
-            if (df_generic in current_procinfo.procdef.defoptions) then
-              Comment(V_Error,'Generic methods cannot have nested procedures')
-            else
-             if (po_inline in current_procinfo.procdef.procoptions) then
+            if (po_inline in current_procinfo.procdef.procoptions) then
               begin
                 Message1(parser_h_not_supported_for_inline,'nested procedures');
                 Message(parser_h_inlining_disabled);
