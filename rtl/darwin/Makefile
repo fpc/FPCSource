@@ -2919,10 +2919,8 @@ lnfogdb$(PPUEXT) : $(UNIXINC)/lnfogdb.pp $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) 
 charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 	$(COMPILER) $<
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 	$(COMPILER) $<
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 	$(COMPILER) $<
 termio$(PPUEXT) : termio.pp baseunix$(PPUEXT)
 	$(COMPILER) $<
