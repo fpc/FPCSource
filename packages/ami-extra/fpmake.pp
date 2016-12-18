@@ -37,6 +37,7 @@ begin
     T:=P.Targets.AddUnit('amsgbox.pas');
     T:=P.Targets.AddUnit('cliputils.pas');
     T:=P.Targets.AddUnit('pcq.pas');
+    T:=P.Targets.AddUnit('muihelper.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
