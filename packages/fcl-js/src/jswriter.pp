@@ -144,7 +144,7 @@ Type
     Procedure WriteFunctionBody(El: TJSFunctionBody);virtual;
     Procedure WriteFunctionDeclarationStatement(El: TJSFunctionDeclarationStatement);virtual;
     Procedure WriteLabeledStatement(El: TJSLabeledStatement);virtual;
-    Procedure WriteReturnStatement(EL: TJSReturnStatement);virtual;
+    Procedure WriteReturnStatement(El: TJSReturnStatement);virtual;
     Procedure WriteTargetStatement(El: TJSTargetStatement);virtual;
     Procedure WriteFuncDef(FD: TJSFuncDef);virtual;
     Procedure WritePrimaryExpression(El: TJSPrimaryExpression);virtual;
@@ -222,6 +222,7 @@ Var
 
 begin
   Result:=Length(S)*SizeOf(Char);
+  if Result=0 then exit;
   MinLen:=Result+FBufPos;
   If (MinLen>Capacity) then
     begin
@@ -241,6 +242,7 @@ Var
 
 begin
   Result:=Length(S)*SizeOf(UnicodeChar);
+  if Result=0 then exit;
   MinLen:=Result+FBufPos;
   If (MinLen>Capacity) then
     begin
@@ -563,45 +565,46 @@ end;
 
 procedure TJSWriter.WriteArrayLiteral(El: TJSArrayLiteral);
 
-
-
 Var
   Chars : Array[Boolean] of string[2] = ('[]','()');
 
 Var
   i,C : Integer;
-  isArgs,WC : Boolean;
+  isArgs,WC , MultiLine: Boolean;
   BC : String[2];
 
 begin
-  isArgs:=el is TJSArguments;
+  isArgs:=El is TJSArguments;
   BC:=Chars[isArgs];
-  C:=EL.Elements.Count-1;
+  C:=El.Elements.Count-1;
   if C=-1 then
     begin
-    if isArgs then
-      Write(bc)
-    else
-      Write(bc);
+    Write(bc);
     Exit;
     end;
   WC:=(woCompact in Options) or
       ((Not isArgs) and (woCompactArrayLiterals in Options)) or
       (isArgs and (woCompactArguments in Options)) ;
-  if WC then
-    Write(Copy(BC,1,1))
-  else
+  MultiLine:=(not WC) and (C>4);
+  if MultiLine then
     begin
     Writeln(Copy(BC,1,1));
     Indent;
-    end;
+    end
+  else
+    Write(Copy(BC,1,1));
   For I:=0 to C do
-   begin
-   WriteJS(EL.Elements[i].Expr);
-   if I<C then
-     if WC then Write(', ') else Writeln(',')
-   end;
-  if not WC then
+    begin
+    WriteJS(El.Elements[i].Expr);
+    if I<C then
+      if WC then
+        Write(',')
+      else if MultiLine then
+        Writeln(',')
+      else
+        Write(', ');
+    end;
+  if MultiLine then
     begin
     Writeln('');
     Undent;
@@ -685,7 +688,7 @@ procedure TJSWriter.WriteCallExpression(El: TJSCallExpression);
 begin
   WriteJS(El.Expr);
   if Assigned(El.Args) then
-    WriteArrayLiteral(EL.Args)
+    WriteArrayLiteral(El.Args)
   else
     Write('()');
 end;
@@ -1009,11 +1012,16 @@ begin
     Error('Unknown target statement class: "%s"',[EL.ClassName])
 end;
 
-procedure TJSWriter.WriteReturnStatement(EL: TJSReturnStatement);
+procedure TJSWriter.WriteReturnStatement(El: TJSReturnStatement);
 
 begin
-  Write('return ');
-  WriteJS(EL.Expr);
+  if El.Expr=nil then
+    Write('return')
+  else
+    begin
+    Write('return ');
+    WriteJS(El.Expr);
+    end;
 end;
 
 procedure TJSWriter.WriteLabeledStatement(El: TJSLabeledStatement);

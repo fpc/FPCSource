@@ -153,7 +153,7 @@ Resourcestring
   SErrCatchFinallyExpected   = 'Unexpected token: Expected ''catch'' or ''finally''';
   SErrArgumentsExpected      = 'Unexpected token: Expected '','' or '')'', got %s';
   SErrArrayEnd               = 'Unexpected token: Expected '','' or '']'', got %s';
-  SErrObjectEnd              = 'Unexpected token: Expected '','' or ''}'', got %s';
+  //SErrObjectEnd              = 'Unexpected token: Expected '','' or ''}'', got %s';
   SErrObjectElement          = 'Unexpected token: Expected string, identifier or number after '','' got: %s';
   SErrLiteralExpected        = 'Unexpected token: Expected: null, true, false, number, string, or regex, got: %s';
   SErrInvalidnumber          = 'Invalid numerical value: %s';
@@ -188,6 +188,7 @@ begin
     FCurrent:=FScanner.FetchToken;
     FCurrentString:=FScanner.CurTokenString;
     end;
+  Result:=FCurrent;
   {$ifdef debugparser}Writeln('GetNextToken (',FScanner.CurLine,',',FScanner.CurColumn,'): ',GetEnumName(TypeInfo(TJSToken),Ord(FCurrent)), ' As string: ',FCurrentString);{$endif debugparser}
 end;
 
@@ -1816,6 +1817,7 @@ begin
         end
       else
         n:='';
+      if n='' then ; // what to do with that?
       Consume(tjsBraceOpen);
       F.AFunction:= TJSFuncDef.Create;
       Args:=ParseFormalParameterList;

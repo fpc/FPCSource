@@ -2762,7 +2762,7 @@ begin
   Add('var {#i}i: longint;');
   Add('begin');
   Add('  {@i}i:={@P}P();');
-  CheckResolverException('function expected, but procedure found',PasResolver.nXExpectedButYFound);
+  CheckResolverException('{Incompatible types: got "Procedure/Function" expected "Longint"',PasResolver.nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestFunctionResultInCondition;
@@ -4769,9 +4769,6 @@ begin
   Add('  ff:=@GetNumberFunc;');
   Add('  ff:=GetNumberFuncFunc; // not in Delphi');
   Add('  ff:=GetNumberFuncFunc();');
-  Add('  // forbidden: f:=GetNumberFuncFunc;');
-  Add('  // forbidden: f:=GetNumberFuncFunc();');
-  Add('  // fpc crash: f:=GetNumberFuncFunc()();');
   ParseProgram;
 end;
 

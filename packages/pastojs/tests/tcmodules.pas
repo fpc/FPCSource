@@ -149,15 +149,31 @@ type
     Procedure TestAliasTypeRef;
 
     // functions
+    Procedure TestProcOneParam;
+    Procedure TestFunctionWithoutParams;
+    Procedure TestProcedureWithoutParams;
     Procedure TestPrgProcVar;
     Procedure TestProcTwoArgs;
     Procedure TestUnitProcVar;
+    Procedure TestFunctionResult;
+    // ToDo: overloads
+    Procedure TestNestedProc;
+    Procedure TestForwardProc;
+    Procedure TestNestedForwardProc;
+    Procedure TestAssignFunctionResult;
+    Procedure TestFunctionResultInCondition;
+    Procedure TestExit;
+
+    // ToDo: pass by reference
+
+    // ToDo: procedure type
 
     // ToDo: enums
 
     // statements
     Procedure TestIncDec;
     Procedure TestAssignments;
+    Procedure TestOperators1;
     Procedure TestFunctionInt;
     Procedure TestFunctionString;
     Procedure TestVarRecord;
@@ -166,11 +182,27 @@ type
     Procedure TestRepeatUntil;
     Procedure TestAsmBlock;
     Procedure TestTryFinally;
+    // ToDo: try..except
     Procedure TestCaseOf;
     Procedure TestCaseOf_UseSwitch;
     Procedure TestCaseOfNoElse;
     Procedure TestCaseOfNoElse_UseSwitch;
     Procedure TestCaseOfRange;
+
+    // classes
+    // ToDo: var
+    // ToDo: inheritance
+    // ToDo: constructor
+    // ToDo: second constructor
+    // ToDo: call another constructor within a constructor
+    // ToDo: newinstance
+    // ToDo: BeforeDestruction
+    // ToDo: AfterConstruction
+    // ToDo: event
+
+    // ToDo: class of
+
+    // ToDo: arrays
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -905,6 +937,75 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestProcOneParam;
+begin
+  StartProgram(false);
+  Add('procedure ProcA(i: longint);');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  Add('  ProcA(3);');
+  ConvertProgram;
+  CheckSource('TestProcOneParam',
+    LinesToStr([ // statements
+    'this.proca = function (i) {',
+    '};'
+    ]),
+    LinesToStr([ // this.$main
+    'this.proca(3);'
+    ]));
+end;
+
+procedure TTestModule.TestFunctionWithoutParams;
+begin
+  StartProgram(false);
+  Add('function FuncA: longint;');
+  Add('begin');
+  Add('end;');
+  Add('var i: longint;');
+  Add('begin');
+  Add('  i:=FuncA();');
+  Add('  i:=FuncA;');
+  Add('  FuncA();');
+  Add('  FuncA;');
+  ConvertProgram;
+  CheckSource('TestProcWithoutParams',
+    LinesToStr([ // statements
+    'this.funca = function () {',
+    '  var result = 0;',
+    '  return result;',
+    '};',
+    'this.i=0;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.i=this.funca();',
+    'this.i=this.funca();',
+    'this.funca();',
+    'this.funca();'
+    ]));
+end;
+
+procedure TTestModule.TestProcedureWithoutParams;
+begin
+  StartProgram(false);
+  Add('procedure ProcA;');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  Add('  ProcA();');
+  Add('  ProcA;');
+  ConvertProgram;
+  CheckSource('TestProcWithoutParams',
+    LinesToStr([ // statements
+    'this.proca = function () {',
+    '};'
+    ]),
+    LinesToStr([ // this.$main
+    'this.proca();',
+    'this.proca();'
+    ]));
+end;
+
 procedure TTestModule.TestIncDec;
 begin
   StartProgram(false);
@@ -949,6 +1050,37 @@ begin
     'this.i+=4;',
     'this.i-=5;',
     'this.i*=6;'
+    ]));
+end;
+
+procedure TTestModule.TestOperators1;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  v1,v2,v3:longint;');
+  Add('begin');
+  Add('  v1:=1;');
+  Add('  v2:=v1+v1;');
+  Add('  v2:=v1+v1*v2+v1 div v2;');
+  Add('  v3:=-v1;');
+  Add('  v1:=v1-v2;');
+  Add('  v2:=v1;');
+  Add('  if v1<v2 then v3:=v1 else v3:=v2;');
+  ConvertProgram;
+  CheckSource('TestOperators1',
+    LinesToStr([ // statements
+    'this.v1 = 0;',
+    'this.v2 = 0;',
+    'this.v3 = 0;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.v1 = 1;',
+    'this.v2 = (this.v1 + this.v1);',
+    'this.v2 = ((this.v1 + (this.v1 * this.v2)) + (this.v1 / this.v2));',
+    'this.v3 = -this.v1;',
+    'this.v1 = (this.v1 - this.v2);',
+    'this.v2 = this.v1;',
+    'if ((this.v1 < this.v2)) this.v3 = this.v1 else this.v3 = this.v2;'
     ]));
 end;
 
@@ -1006,6 +1138,237 @@ begin
     );
 end;
 
+procedure TTestModule.TestFunctionResult;
+begin
+  StartProgram(false);
+  Add('function Func1: longint;');
+  Add('begin');
+  Add('  Result:=3;');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestFunctionResult',
+    LinesToStr([ // statements
+    'this.func1 = function () {',
+    '  var result = 0;',
+    '  result = 3;',
+    '  return result;',
+    '};'
+    ]),
+    '');
+end;
+
+procedure TTestModule.TestNestedProc;
+begin
+  StartProgram(false);
+  Add('function DoIt(a,d: longint): longint;');
+  Add('var');
+  Add('  b: longint;');
+  Add('  c: longint;');
+  Add('  function Nesty(a: longint): longint; ');
+  Add('  var b: longint;');
+  Add('  begin');
+  Add('    Result:=a+b+c+d;');
+  Add('  end;');
+  Add('begin');
+  Add('  Result:=a+b+c;');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestNestedProc',
+    LinesToStr([ // statements
+    'this.doit = function (a, d) {',
+    '  var result = 0;',
+    '  var b = 0;',
+    '  var c = 0;',
+    '  function nesty(a) {',
+    '    var result = 0;',
+    '    var b = 0;',
+    '    result = (((a + b) + c) + d);',
+    '    return result;',
+    '  };',
+    '  result = ((a + b) + c);',
+    '  return result;',
+    '};'
+    ]),
+    '');
+end;
+
+procedure TTestModule.TestForwardProc;
+begin
+  StartProgram(false);
+  Add('procedure FuncA(i: longint); forward;');
+  Add('procedure FuncB(i: longint);');
+  Add('begin');
+  Add('  FuncA(i);');
+  Add('end;');
+  Add('procedure FuncA(i: longint);');
+  Add('begin');
+  Add('  if i=3 then ;');
+  Add('end;');
+  Add('begin');
+  Add('  FuncA(4);');
+  Add('  FuncB(5);');
+  ConvertProgram;
+  CheckSource('TestForwardProc',
+    LinesToStr([ // statements'
+    'this.funcb = function (i) {',
+    '  this.funca(i);',
+    '};',
+    'this.funca = function (i) {',
+    '  if ((i == 3)) {',
+    '  };',
+    '};'
+    ]),
+    LinesToStr([
+    'this.funca(4);',
+    'this.funcb(5);'
+    ])
+    );
+end;
+
+procedure TTestModule.TestNestedForwardProc;
+begin
+  StartProgram(false);
+  Add('procedure FuncA;');
+  Add('  procedure FuncB(i: longint); forward;');
+  Add('  procedure FuncC(i: longint);');
+  Add('  begin');
+  Add('    FuncB(i);');
+  Add('  end;');
+  Add('  procedure FuncB(i: longint);');
+  Add('  begin');
+  Add('    if i=3 then ;');
+  Add('  end;');
+  Add('begin');
+  Add('  FuncC(4)');
+  Add('end;');
+  Add('begin');
+  Add('  FuncA;');
+  ConvertProgram;
+  CheckSource('TestNestedForwardProc',
+    LinesToStr([ // statements'
+    'this.funca = function () {',
+    '  function funcc(i) {',
+    '    funcb(i);',
+    '  };',
+    '  function funcb(i) {',
+    '    if ((i == 3)) {',
+    '    };',
+    '  };',
+    '  funcc(4);',
+    '};'
+    ]),
+    LinesToStr([
+    'this.funca();'
+    ])
+    );
+end;
+
+procedure TTestModule.TestAssignFunctionResult;
+begin
+  StartProgram(false);
+  Add('function F1: longint;');
+  Add('begin');
+  Add('end;');
+  Add('var i: longint;');
+  Add('begin');
+  Add('  i:=F1();');
+  Add('  i:=F1()+F1();');
+  ConvertProgram;
+  CheckSource('TestAssignFunctionResult',
+    LinesToStr([ // statements
+     'this.f1 = function () {',
+     '  var result = 0;',
+     '  return result;',
+     '};',
+     'this.i = 0;'
+    ]),
+    LinesToStr([
+    'this.i = this.f1();',
+    'this.i = (this.f1() + this.f1());'
+    ]));
+end;
+
+procedure TTestModule.TestFunctionResultInCondition;
+begin
+  StartProgram(false);
+  Add('function F1: longint;');
+  Add('begin');
+  Add('end;');
+  Add('function F2: boolean;');
+  Add('begin');
+  Add('end;');
+  Add('var i: longint;');
+  Add('begin');
+  Add('  if F2 then ;');
+  Add('  if i=F1() then ;');
+  Add('  if i=F1 then ;');
+  ConvertProgram;
+  CheckSource('TestFunctionResultInCondition',
+    LinesToStr([ // statements
+     'this.f1 = function () {',
+     '  var result = 0;',
+     '  return result;',
+     '};',
+     'this.f2 = function () {',
+     '  var result = false;',
+     '  return result;',
+     '};',
+     'this.i = 0;'
+    ]),
+    LinesToStr([
+    'if (this.f2()) {',
+    '};',
+    'if ((this.i == this.f1())) {',
+    '};',
+    'if ((this.i == this.f1())) {',
+    '};'
+    ]));
+end;
+
+procedure TTestModule.TestExit;
+begin
+  StartProgram(false);
+  Add('procedure ProcA;');
+  Add('begin');
+  Add('  exit;');
+  Add('end;');
+  Add('function FuncB: longint;');
+  Add('begin');
+  Add('  exit;');
+  Add('  exit(3);');
+  Add('end;');
+  Add('function FuncC: string;');
+  Add('begin');
+  Add('  exit;');
+  Add('  exit(''a'');');
+  Add('  exit(''abc'');');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestUnitImplVar',
+    LinesToStr([ // statements
+    'this.proca = function () {',
+    '  return;',
+    '};',
+    'this.funcb = function () {',
+    '  var result = 0;',
+    '  return result;',
+    '  return 3;',
+    '  return result;',
+    '};',
+    'this.funcc = function () {',
+    '  var result = "";',
+    '  return result;',
+    '  return "a";',
+    '  return "abc";',
+    '  return result;',
+    '};'
+    ]),
+    '');
+end;
+
 procedure TTestModule.TestUnitImplVars;
 begin
   StartUnit(false);
@@ -1018,7 +1381,7 @@ begin
   ConvertUnit;
   CheckSource('TestUnitImplVar',
     LinesToStr([ // statements
-    ' var $impl = {',
+    'var $impl = {',
     '};',
     'this.$impl = $impl;',
     '$impl.v1 = 0;',
@@ -1277,7 +1640,7 @@ begin
     'this.i = 0;'
     ]),
     LinesToStr([ // this.$main
-    '  this.i = 1;',
+    'this.i = 1;',
     'if (i==1) {',
     'i=2;',
     '}',
