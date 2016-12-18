@@ -39,6 +39,9 @@ begin
     T:=P.Targets.AddUnit('pcq.pas');
     T:=P.Targets.AddUnit('muihelper.pas');
 
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('muihelloworld.pas');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
