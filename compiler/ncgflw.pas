@@ -728,6 +728,7 @@ implementation
          breaktrylabel:=nil;
          continueexceptlabel:=nil;
          breakexceptlabel:=nil;
+         doobjectdestroyandreraisestate:=Default(tcgexceptionstatehandler.texceptionstate);
 
          { this can be called recursivly }
          oldBreakLabel:=nil;
