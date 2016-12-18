@@ -30,8 +30,8 @@ uses
   exec, intuition, mui, amigados, utility;
 
 type
-  THookFunc = function(Hook: PHook; Obj: PObject_; Msg: Pointer): LongInt;
-  TDispatcherFunc = function(Hook: PIClass; Obj: PObject_; Msg: Intuition.PMsg): LongWord;
+  THookFunc = function(Hook: PHook; Obj: PObject_; Msg: Pointer): PtrInt;
+  TDispatcherFunc = function(Hook: PIClass; Obj: PObject_; Msg: Intuition.PMsg): PtrUInt;
 
 const
   MUI_TRUE  = 1;
@@ -342,12 +342,12 @@ end;
 
 {$if defined(CPU86) or defined(CPUARM) or defined(CPU64)}
 {$define SetHook}
-procedure HookEntry(h: PHook; obj: PObject_; Msg: Pointer); cdecl;
+function HookEntry(h: PHook; obj: PObject_; Msg: Pointer): PtrInt; cdecl;
 var
   Proc: THookFunc;
 begin
   Proc := THookFunc(h^.h_SubEntry);
-  Proc(h, obj, msg);
+  HookEntry := Proc(h, obj, msg);
 end;
 
 procedure MH_SetHook(var Hook: THook; Func: THookFunc; Data: Pointer);
