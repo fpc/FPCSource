@@ -399,7 +399,10 @@ implementation
            if o.ref^.refaddr=addr_full then
              begin
                getopstr:='';
-               getopstr:=LlvmAsmSymName(o.ref^.symbol);
+               if assigned(o.ref^.symbol) then
+                 getopstr:=LlvmAsmSymName(o.ref^.symbol)
+               else
+                 getopstr:='null';
                if o.ref^.offset<>0 then
                  internalerror(2013060223);
              end
@@ -437,12 +440,15 @@ implementation
            end;
          top_tai:
            begin
-             tmpinline:=1;
-             tmpasmblock:=false;
-             hp:=o.ai;
-             owner.writer.AsmWrite(fstr);
-             fstr:='';
-             owner.WriteTai(false,false,tmpinline,tmpasmblock,hp);
+             if assigned(o.ai) then
+               begin
+                 tmpinline:=1;
+                 tmpasmblock:=false;
+                 hp:=o.ai;
+                 owner.writer.AsmWrite(fstr);
+                 fstr:='';
+                 owner.WriteTai(false,false,tmpinline,tmpasmblock,hp);
+               end;
              result:='';
            end;
 {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}

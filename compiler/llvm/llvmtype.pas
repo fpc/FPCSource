@@ -217,6 +217,8 @@ implementation
       var
         value: tai_abstracttypedconst;
       begin
+        if not assigned(p) then
+          exit;
         case p.typ of
           ait_llvmalias:
             begin
@@ -388,6 +390,8 @@ implementation
 
     procedure TLLVMTypeInfo.insert_tai_typeconversions(toplevellist: tasmlist; p: tai);
       begin
+        if not assigned(p) then
+          exit;
         case p.typ of
           ait_llvmins:
             insert_llvmins_typeconversions(toplevellist,taillvm(p));
