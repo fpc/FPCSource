@@ -105,6 +105,8 @@ interface
         constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:tai;indextype:tdef;index1:ptrint;indirect:boolean);
 
         constructor blockaddress(fun, lab: tasmsymbol);
+        constructor landingpad(dst:tregister;def:tdef;firstclause:taillvm);
+        constructor exceptclause(op:tllvmop;def:tdef;kind:TAsmSymbol;nextclause:taillvm);
 
         { e.g. dst = call retsize name (paras) }
         constructor call_size_name_paras(callpd: tdef; dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
@@ -1031,6 +1033,26 @@ uses
         ops:=2;
         loadsymbol(0,fun,0);
         loadsymbol(1,lab,0);
+      end;
+
+
+    constructor taillvm.landingpad(dst: tregister; def: tdef; firstclause: taillvm);
+      begin
+        create_llvm(la_landingpad);
+        ops:=3;
+        loadreg(0,dst);
+        loaddef(1,def);
+        loadtai(2,firstclause);
+      end;
+
+
+    constructor taillvm.exceptclause(op: tllvmop; def: tdef; kind: TAsmSymbol; nextclause: taillvm);
+      begin
+        create_llvm(op);
+        ops:=3;
+        loaddef(0,def);
+        loadsymbol(1,kind,0);
+        loadtai(2,nextclause);
       end;
 
 
