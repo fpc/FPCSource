@@ -623,14 +623,14 @@ implementation
         procedure orddef_rtti(def:torddef);
 
           procedure dointeger(typekind: byte);
-          const
-            trans : array[tordtype] of byte =
-              (otUByte{otNone},
-               otUByte,otUWord,otULong,otUQWord,otUByte{otNone},
-               otSByte,otSWord,otSLong,otSQWord,otUByte{otNone},
-               otUByte,otUWord,otULong,otUByte,
-               otSByte,otSWord,otSLong,otSByte,
-               otUByte,otUWord,otUByte);
+            const
+              trans : array[tordtype] of byte =
+                (otUByte{otNone},
+                 otUByte,otUWord,otULong,otUQWord,otUByte{otNone},
+                 otSByte,otSWord,otSLong,otSQWord,otUByte{otNone},
+                 otUByte,otUWord,otULong,otUByte,
+                 otSByte,otSWord,otSLong,otSByte,
+                 otUByte,otUWord,otUByte);
           begin
             write_header(tcb,def,typekind);
             tcb.begin_anonymous_record(
