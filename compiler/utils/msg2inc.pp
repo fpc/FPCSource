@@ -14,8 +14,6 @@
 
  **********************************************************************}
 program msg2inc;
-uses
-  strings;
 
 {$ifdef unix}
   {$define EOL_ONE_CHAR}
@@ -128,6 +126,8 @@ begin
               numpart:=num div 1000;
               if numpart=0 then
                err('number should be > 1000');
+              if code<>0 then
+               err('illegal number: '+s);
               numidx:=num mod 1000;
               { duplicate ? }
               if msgs[numpart,numidx] then
@@ -240,7 +240,7 @@ end;
                                WriteEnumFile
 *****************************************************************************}
 
-procedure WriteEnumFile(const fn,typename:string);
+procedure WriteEnumFile(const fn:string);
 var
   t : text;
   i : longint;
@@ -628,7 +628,7 @@ begin
         hs:=hs+'$\backslash$'
     else
       hs := hs + S[i];
-    end;  
+    end;
   EscapeString:=hs;
 end;
 
@@ -744,9 +744,8 @@ var
   end;
 
 begin
-  Mode:=M_String;
-  FIles:=0;
-  for i:=1to paramcount do
+  Files:=0;
+  for i:=1 to paramcount do
    begin
      para:=paramstr(i);
      if (para[1]='-') then
@@ -789,13 +788,16 @@ begin
         M_Tex : if Files<2 then
                  Helpscreen;
   else
-   if FIles<3 then
+   if Files<3 then
     HelpScreen;
   end;
 end;
 
 
 begin
+  Mode:=M_String;
+  OutFile:='';
+  InFile:='';
   GetPara;
   case Mode of
    M_Renumber : begin
@@ -806,17 +808,17 @@ begin
                 end;
       M_Intel : begin
                   Loadmsgfile(InFile);
-                  WriteEnumFile(OutFile+'idx.inc',OutName+'const');
+                  WriteEnumFile(OutFile+'idx.inc');
                   WriteIntelFile(OutFile+'txt.inc',OutName+'txt');
                 end;
      M_String : begin
                   Loadmsgfile(InFile);
-                  WriteEnumFile(OutFile+'idx.inc',OutName+'const');
+                  WriteEnumFile(OutFile+'idx.inc');
                   WriteStringFile(OutFile+'txt.inc',OutName+'txt');
                 end;
        M_Char : begin
                   Loadmsgfile(InFile);
-                  WriteEnumFile(OutFile+'idx.inc',OutName+'const');
+                  WriteEnumFile(OutFile+'idx.inc');
                   WriteCharFile(OutFile+'txt.inc',OutName+'txt');
                 end;
   end;
