@@ -606,7 +606,25 @@ asm
 {$endif FPC_X86_DATA_NEAR}
 end;
 
-{TODO: use smallint?}
+function InterLockedDecrement (var Target: smallint) : smallint;nostackframe;assembler;
+asm
+  mov si, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, ss:[si + 2 + extra_param_offset]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, ss:[si + 2 + extra_param_offset]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  pushf
+  cli
+  sub word [bx], 1
+  mov ax, [bx]
+  popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
+end;
+
 function InterLockedDecrement (var Target: longint) : longint;nostackframe;assembler;
 asm
   mov si, sp
@@ -628,7 +646,25 @@ asm
 {$endif}
 end;
 
-{TODO: use smallint?}
+function InterLockedIncrement (var Target: smallint) : smallint;nostackframe;assembler;
+asm
+  mov si, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, ss:[si + 2 + extra_param_offset]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, ss:[si + 2 + extra_param_offset]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  pushf
+  cli
+  add word [bx], 1
+  mov ax, [bx]
+  popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
+end;
+
 function InterLockedIncrement (var Target: longint) : longint;nostackframe;assembler;
 asm
   mov si, sp
@@ -650,7 +686,22 @@ asm
 {$endif}
 end;
 
-{TODO: use smallint?}
+function InterLockedExchange (var Target: smallint;Source : smallint) : smallint;nostackframe;assembler;
+asm
+  mov si, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, ss:[si + 4 + extra_param_offset]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, ss:[si + 4 + extra_param_offset]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  mov ax, ss:[si + 2 + extra_param_offset]  // Source
+  xchg word [bx], ax
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
+end;
+
 function InterLockedExchange (var Target: longint;Source : longint) : longint;nostackframe;assembler;
 asm
   mov si, sp
@@ -672,7 +723,26 @@ asm
 {$endif}
 end;
 
-{TODO: use smallint?}
+function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : smallint;nostackframe;assembler;
+asm
+  mov si, sp
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, ss:[si + 4 + extra_param_offset]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, ss:[si + 4 + extra_param_offset]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  mov di, ss:[si + 2 + extra_param_offset]  // Source
+  pushf
+  cli
+  mov ax, [bx]
+  add word [bx], di
+  popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
+end;
+
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;nostackframe;assembler;
 asm
   mov si, sp
@@ -696,7 +766,29 @@ asm
 {$endif}
 end;
 
-{TODO: use smallint?}
+function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Comperand: smallint): smallint;assembler;
+asm
+{$ifdef FPC_X86_DATA_NEAR}
+  mov bx, [Target]  // Target
+{$else FPC_X86_DATA_NEAR}
+  mov cx, ds
+  lds bx, [Target]  // Target
+{$endif FPC_X86_DATA_NEAR}
+  mov di, [Comperand]
+  pushf
+  cli
+  mov ax, [bx]
+  cmp ax, di
+  jne @@not_equal
+  mov di, [NewValue]
+  mov [bx], di
+@@not_equal:
+  popf
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  mov ds, cx
+{$endif}
+end;
+
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;assembler;
 asm
 {$ifdef FPC_X86_DATA_NEAR}

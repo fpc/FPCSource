@@ -1377,6 +1377,13 @@ Function GetProcessID:SizeUInt;
 Function GetThreadID:TThreadID;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_FEATURE_PROCESSES}
 
+{$ifdef cpu16}
+function InterLockedIncrement (var Target: smallint) : smallint; public name 'FPC_INTERLOCKEDINCREMENT16';
+function InterLockedDecrement (var Target: smallint) : smallint; public name 'FPC_INTERLOCKEDDECREMENT16';
+function InterLockedExchange (var Target: smallint;Source : smallint) : smallint; public name 'FPC_INTERLOCKEDEXCHANGE16';
+function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : smallint; public name 'FPC_INTERLOCKEDEXCHANGEADD16';
+function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Comperand: smallint): smallint; public name 'FPC_INTERLOCKEDCOMPAREEXCHANGE16';
+{$endif cpu16}
 function InterLockedIncrement (var Target: longint) : longint; public name 'FPC_INTERLOCKEDINCREMENT';
 function InterLockedDecrement (var Target: longint) : longint; public name 'FPC_INTERLOCKEDDECREMENT';
 function InterLockedExchange (var Target: longint;Source : longint) : longint; public name 'FPC_INTERLOCKEDEXCHANGE';
@@ -1406,6 +1413,13 @@ function InterlockedCompareExchange(var Target: Pointer; NewValue: Pointer; Comp
 function InterlockedCompareExchangePointer(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
 {$endif cpu64}
 { unsigned overloads }
+{$ifdef cpu16}
+function InterLockedIncrement (var Target: word) : word; external name 'FPC_INTERLOCKEDINCREMENT16';
+function InterLockedDecrement (var Target: word) : word; external name 'FPC_INTERLOCKEDDECREMENT16';
+function InterLockedExchange (var Target: word;Source : word) : word; external name 'FPC_INTERLOCKEDEXCHANGE16';
+function InterLockedExchangeAdd (var Target: word;Source : word) : word; external name 'FPC_INTERLOCKEDEXCHANGEADD16';
+function InterlockedCompareExchange(var Target: word; NewValue: word; Comperand: word): word; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE16';
+{$endif cpu16}
 function InterLockedIncrement (var Target: cardinal) : cardinal; external name 'FPC_INTERLOCKEDINCREMENT';
 function InterLockedDecrement (var Target: cardinal) : cardinal; external name 'FPC_INTERLOCKEDDECREMENT';
 function InterLockedExchange (var Target: cardinal;Source : cardinal) : cardinal; external name 'FPC_INTERLOCKEDEXCHANGE';
