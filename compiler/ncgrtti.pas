@@ -657,8 +657,10 @@ implementation
                   tcb.emit_ord_const(def.high.svalue,s64inttype);
                 end;
               else
-                tcb.emit_ord_const(longint(def.low.svalue),s32inttype);
-                tcb.emit_ord_const(longint(def.high.svalue),s32inttype);
+                begin
+                  tcb.emit_ord_const(longint(def.low.svalue),s32inttype);
+                  tcb.emit_ord_const(longint(def.high.svalue),s32inttype);
+                end;
             end;
             tcb.end_anonymous_record;
             tcb.end_anonymous_record;
