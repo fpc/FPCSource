@@ -584,7 +584,6 @@ implementation
       begin
         current_asmdata.getjumplabel(exceptstate.exceptionlabel);
         exceptstate.oldflowcontrol:=flowcontrol;
-        flowcontrol:=[fc_inflowcontrol];
 
         paraloc1.init;
         paraloc2.init;
@@ -642,6 +641,8 @@ implementation
           longjmp'd back here }
         hlcg.a_cmp_const_reg_label(list,setjmpres.def,OC_NE,0,tmpresloc.register,exceptstate.exceptionlabel);
         setjmpres.resetiftemp;
+
+        flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
      end;
 
 
@@ -924,7 +925,7 @@ implementation
 
          { return all used control flow statements }
          flowcontrol:=trystate.oldflowcontrol+(doobjectdestroyandreraisestate.newflowcontrol +
-           trystate.newflowcontrol - [fc_inflowcontrol]);
+           trystate.newflowcontrol - [fc_inflowcontrol,fc_catching_exceptions]);
       end;
 
 
@@ -1062,7 +1063,7 @@ implementation
 
          cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
          hlcg.a_label(current_asmdata.CurrAsmList,nextonlabel);
-         flowcontrol:=doobjectdestroyandreraisestate.oldflowcontrol+(doobjectdestroyandreraisestate.newflowcontrol-[fc_inflowcontrol]);
+         flowcontrol:=doobjectdestroyandreraisestate.oldflowcontrol+(doobjectdestroyandreraisestate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);
          paraloc1.done;
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
@@ -1252,7 +1253,7 @@ implementation
             current_procinfo.CurrContinueLabel:=oldContinueLabel;
             current_procinfo.CurrBreakLabel:=oldBreakLabel;
           end;
-         flowcontrol:=finallyexceptionstate.oldflowcontrol+(finallyexceptionstate.newflowcontrol-[fc_inflowcontrol]);
+         flowcontrol:=finallyexceptionstate.oldflowcontrol+(finallyexceptionstate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);
       end;
 
 

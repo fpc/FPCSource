@@ -293,9 +293,9 @@ procedure tx64tryfinallynode.pass_generate_code;
         { fc_unwind_xx tells exit/continue/break statements to emit special
           unwind code instead of just JMP }
         if not implicitframe then
-          flowcontrol:=flowcontrol+[fc_unwind_exit,fc_unwind_loop];
+          flowcontrol:=flowcontrol+[fc_catching_exceptions,fc_unwind_exit,fc_unwind_loop];
         secondpass(left);
-        flowcontrol:=flowcontrol-[fc_unwind_exit,fc_unwind_loop];
+        flowcontrol:=flowcontrol-[fc_catching_exceptions,fc_unwind_exit,fc_unwind_loop];
         if codegenerror then
           exit;
       end;

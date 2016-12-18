@@ -35,6 +35,9 @@ uses
          fc_continue,
          fc_inflowcontrol,
          fc_gotolabel,
+         { in block that has an exception handler associated with it
+           (try..except, try..finally, exception block of try..except, ... }
+         fc_catching_exceptions,
          { in try block of try..finally and target uses specific unwinding }
          fc_unwind_exit,
          fc_unwind_loop,
