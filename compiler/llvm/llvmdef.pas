@@ -68,7 +68,7 @@ interface
       record consisting of 4 longints must be returned as a record consisting of
       two int64's on x86-64. This function is used to create (and reuse)
       temporary recorddefs for such purposes.}
-    function llvmgettemprecorddef(fieldtypes: tfplist; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
+    function llvmgettemprecorddef(fieldtypes: array of tdef; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
 
     { get the llvm type corresponding to a parameter, e.g. a record containing
       two integer int64 for an arbitrary record split over two individual int64
@@ -804,7 +804,7 @@ implementation
       end;
 
 
-    function llvmgettemprecorddef(fieldtypes: tfplist; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
+    function llvmgettemprecorddef(fieldtypes: array of tdef; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
       var
         i: longint;
         res: PHashSetItem;
@@ -816,9 +816,9 @@ implementation
         typename: string;
       begin
         typename:=internaltypeprefixName[itp_llvmstruct];
-        for i:=0 to fieldtypes.count-1 do
+        for i:=low(fieldtypes) to high(fieldtypes) do
           begin
-            hdef:=tdef(fieldtypes[i]);
+            hdef:=fieldtypes[i];
             case hdef.typ of
               orddef:
                 case torddef(hdef).ordtype of
@@ -859,8 +859,8 @@ implementation
           begin
             res^.Data:=crecorddef.create_global_internal(typename,packrecords,
               recordalignmin,maxcrecordalign);
-            for i:=0 to fieldtypes.count-1 do
-              trecorddef(res^.Data).add_field_by_def('F'+tostr(i),tdef(fieldtypes[i]));
+            for i:=low(fieldtypes) to high(fieldtypes) do
+              trecorddef(res^.Data).add_field_by_def('F'+tostr(i),fieldtypes[i]);
           end;
         trecordsymtable(trecorddef(res^.Data).symtable).addalignmentpadding;
         result:=trecorddef(res^.Data);
@@ -869,10 +869,11 @@ implementation
 
     function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean): tdef;
       var
-        retdeflist: tfplist;
+        retdeflist: array[0..9] of tdef;
         retloc: pcgparalocation;
         usedef: tdef;
         valueext: tllvmvalueextension;
+        i: longint;
       begin
         { single location }
         if not assigned(cgpara.location^.next) then
@@ -898,13 +899,16 @@ implementation
             exit
           end;
         { multiple locations -> create temp record }
-        retdeflist:=tfplist.create;
         retloc:=cgpara.location;
+        i:=0;
         repeat
-          retdeflist.add(retloc^.def);
+          if i>high(retdeflist) then
+            internalerror(2016121801);
+          retdeflist[i]:=retloc^.def;
+          inc(i);
           retloc:=retloc^.next;
         until not assigned(retloc);
-        result:=llvmgettemprecorddef(retdeflist,C_alignment,
+        result:=llvmgettemprecorddef(slice(retdeflist,i),C_alignment,
           targetinfos[target_info.system]^.alignment.recordalignmin,
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
         include(result.defoptions,df_llvm_no_struct_packing);
