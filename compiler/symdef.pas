@@ -701,6 +701,7 @@ interface
           procstarttai,
           procendtai   : tai;
           skpara: pointer;
+          personality: tprocdef;
           forwarddef,
           interfacedef : boolean;
           hasforward  : boolean;
@@ -734,6 +735,8 @@ interface
          procedure Setprocendtai(AValue: tai);
          function Getskpara: pointer;
          procedure Setskpara(AValue: pointer);
+         function Getpersonality: tprocdef;
+         procedure Setpersonality(AValue: tprocdef);
          function Getforwarddef: boolean;
          procedure Setforwarddef(AValue: boolean);
          function Getinterfacedef: boolean;
@@ -846,6 +849,8 @@ interface
           property procendtai: tai read Getprocendtai write Setprocendtai;
           { optional parameter for the synthetic routine generation logic }
           property skpara: pointer read Getskpara write Setskpara;
+          { ABI-conformant exception handling personality function }
+          property personality: tprocdef read Getpersonality write Setpersonality;
           { true, if the procedure is only declared
             (forward procedure) }
           property forwarddef: boolean read Getforwarddef write Setforwarddef;
@@ -5328,6 +5333,22 @@ implementation
         if not assigned(implprocdefinfo) then
           internalerror(2014010311);
         implprocdefinfo^.skpara:=AValue;
+      end;
+
+
+    function tprocdef.Getpersonality: tprocdef;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2016121701);
+         result:=implprocdefinfo^.personality;
+      end;
+
+
+    procedure tprocdef.Setpersonality(AValue: tprocdef);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2016121702);
+        implprocdefinfo^.personality:=AValue;
       end;
 
 
