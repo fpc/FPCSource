@@ -27,7 +27,9 @@ unit ncgflw;
 interface
 
     uses
-      aasmbase,node,nflw,ncgutil;
+      globtype,
+      aasmbase,aasmdata,node,nflw,
+      pass_2,cgutils,ncgutil;
 
     type
        tcgwhilerepeatnode = class(twhilerepeatnode)
@@ -72,6 +74,36 @@ interface
        tcgraisenode = class(traisenode)
        end;
 
+       { Utility class for exception handling state management that is used
+         by tryexcept/tryfinally/on nodes (in a separate class so it can both
+         be shared and overridden)
+
+         Never instantiated. }
+       tcgexceptionstatehandler = class
+         type
+           texceptiontemps=record
+             jmpbuf,
+             envbuf,
+             reasonbuf  : treference;
+           end;
+
+          texceptionstate = record
+            exceptionlabel: TAsmLabel;
+            oldflowcontrol,
+            newflowcontrol: tflowcontrol;
+          end;
+
+          class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); virtual;
+          class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); virtual;
+          class procedure new_exception(list:TAsmList;const t:texceptiontemps; out exceptstate: texceptionstate); virtual;
+          class procedure emit_except_label(list: TAsmList; var exceptstate: texceptionstate); virtual;
+          class procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean); virtual;
+          class procedure cleanupobjectstack; virtual;
+          class procedure handle_nested_exception(list:TAsmList;const t:texceptiontemps;var entrystate: texceptionstate); virtual;
+       end;
+       tcgexceptionstatehandlerclass = class of tcgexceptionstatehandler;
+
+
        tcgtryexceptnode = class(ttryexceptnode)
           procedure pass_generate_code;override;
        end;
@@ -85,17 +117,21 @@ interface
           procedure pass_generate_code;override;
        end;
 
+
+     var
+       cexceptionstatehandler: tcgexceptionstatehandlerclass;
+
 implementation
 
     uses
       cutils,
-      verbose,globals,systems,globtype,constexp,
-      symconst,symdef,symsym,symtable,symtype,aasmtai,aasmdata,aasmcpu,defutil,
-      procinfo,cgbase,pass_2,parabase,
+      verbose,globals,systems,constexp,
+      symconst,symdef,symsym,symtable,symtype,aasmtai,aasmcpu,defutil,
+      procinfo,cgbase,parabase,
       fmodule,
       cpubase,ncon,
       tgobj,paramgr,
-      cgutils,cgobj,hlcgobj,nutils
+      cgobj,hlcgobj,nutils
       ;
 
 {*****************************************************************************
@@ -506,7 +542,7 @@ implementation
 
 
 {*****************************************************************************
-                   Exception management
+                     tcgexceptionstatehandler
 *****************************************************************************}
 
     {  Allocate the buffers for exception management and setjmp environment.
@@ -522,21 +558,9 @@ implementation
        routine has been called, therefore on machines where the stack cannot
        be modified, all temps should be allocated on the heap instead of the
        stack. }
-     type
-       texceptiontemps=record
-         jmpbuf,
-         envbuf,
-         reasonbuf  : treference;
-       end;
-
-      texceptionstate = record
-        exceptionlabel: TAsmLabel;
-        oldflowcontrol,
-        newflowcontrol: tflowcontrol;
-      end;
 
 
-    procedure get_exception_temps(list:TAsmList;var t:texceptiontemps);
+    class procedure tcgexceptionstatehandler.get_exception_temps(list:TAsmList;var t:texceptiontemps);
      begin
         tg.gethltemp(list,rec_exceptaddr,rec_exceptaddr.size,tt_persistent,t.envbuf);
         tg.gethltemp(list,rec_jmp_buf,rec_jmp_buf.size,tt_persistent,t.jmpbuf);
@@ -544,7 +568,7 @@ implementation
       end;
 
 
-    procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps);
+    class procedure tcgexceptionstatehandler.unget_exception_temps(list:TAsmList;const t:texceptiontemps);
       begin
         tg.Ungettemp(list,t.jmpbuf);
         tg.ungettemp(list,t.envbuf);
@@ -552,7 +576,7 @@ implementation
       end;
 
 
-    procedure new_exception(list:TAsmList;const t:texceptiontemps; out exceptstate: texceptionstate);
+    class procedure tcgexceptionstatehandler.new_exception(list:TAsmList;const t:texceptiontemps; out exceptstate: texceptionstate);
       var
         paraloc1, paraloc2, paraloc3, pushexceptres, setjmpres: tcgpara;
         pd: tprocdef;
@@ -621,15 +645,15 @@ implementation
      end;
 
 
-    procedure emit_except_label(list: TAsmList; var exceptionstate: texceptionstate);
+    class procedure tcgexceptionstatehandler.emit_except_label(list: TAsmList; var exceptstate: texceptionstate);
       begin
-        hlcg.a_label(list,exceptionstate.exceptionlabel);
-        exceptionstate.newflowcontrol:=flowcontrol;
-        flowcontrol:=exceptionstate.oldflowcontrol;
+        hlcg.a_label(list,exceptstate.exceptionlabel);
+        exceptstate.newflowcontrol:=flowcontrol;
+        flowcontrol:=exceptstate.oldflowcontrol;
       end;
 
 
-    procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
+    class procedure tcgexceptionstatehandler.free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
       var
         reasonreg: tregister;
       begin
@@ -643,25 +667,16 @@ implementation
       end;
 
 
-
-{*****************************************************************************
-                             SecondTryExcept
-*****************************************************************************}
-
-    var
-       endexceptlabel : tasmlabel;
-
-
     { does the necessary things to clean up the object stack }
     { in the except block                                    }
-    procedure cleanupobjectstack;
+    class procedure tcgexceptionstatehandler.cleanupobjectstack;
       begin
          hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil);
       end;
 
     { generates code to be executed when another exeception is raised while
       control is inside except block }
-    procedure handle_nested_exception(list:TAsmList;const t:texceptiontemps;var entrystate: texceptionstate);
+    class procedure tcgexceptionstatehandler.handle_nested_exception(list:TAsmList;const t:texceptiontemps;var entrystate: texceptionstate);
       var
          exitlabel: tasmlabel;
       begin
@@ -676,6 +691,15 @@ implementation
          hlcg.a_label(list,exitlabel);
          cleanupobjectstack;
       end;
+
+
+
+{*****************************************************************************
+                             SecondTryExcept
+*****************************************************************************}
+
+    var
+       endexceptlabel : tasmlabel;
 
 
     procedure tcgtryexceptnode.pass_generate_code;
@@ -693,8 +717,8 @@ implementation
          oldContinueLabel,
          oldBreakLabel : tasmlabel;
          destroytemps,
-         excepttemps : texceptiontemps;
-         trystate,doobjectdestroyandreraisestate: texceptionstate;
+         excepttemps : tcgexceptionstatehandler.texceptiontemps;
+         trystate,doobjectdestroyandreraisestate: tcgexceptionstatehandler.texceptionstate;
       label
          errorexit;
       begin
@@ -731,8 +755,8 @@ implementation
          current_asmdata.getjumplabel(endexceptlabel);
          current_asmdata.getjumplabel(lastonlabel);
 
-         get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-         new_exception(current_asmdata.CurrAsmList,excepttemps,trystate);
+         cexceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+         cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,trystate);
 
          { try block }
          { set control flow labels for the try block }
@@ -750,9 +774,9 @@ implementation
          { don't generate line info for internal cleanup }
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
-         emit_except_label(current_asmdata.CurrAsmList,trystate);
+         cexceptionstatehandler.emit_except_label(current_asmdata.CurrAsmList,trystate);
 
-         free_exception(current_asmdata.CurrAsmList, excepttemps, 0, endexceptlabel, false);
+         cexceptionstatehandler.free_exception(current_asmdata.CurrAsmList, excepttemps, 0, endexceptlabel, false);
 
          { end cleanup }
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
@@ -788,8 +812,8 @@ implementation
 
               if not (has_no_code(t1)) then
                begin
-                 get_exception_temps(current_asmdata.CurrAsmList,destroytemps);
-                 new_exception(current_asmdata.CurrAsmList,destroytemps,doobjectdestroyandreraisestate);
+                 cexceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,destroytemps);
+                 cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,destroytemps,doobjectdestroyandreraisestate);
                  { the flowcontrol from the default except-block must be merged
                    with the flowcontrol flags potentially set by the
                    on-statements handled above (secondpass(right)), as they are
@@ -804,15 +828,15 @@ implementation
 
                  secondpass(t1);
 
-                 handle_nested_exception(current_asmdata.CurrAsmList,destroytemps,doobjectdestroyandreraisestate);
+                 cexceptionstatehandler.handle_nested_exception(current_asmdata.CurrAsmList,destroytemps,doobjectdestroyandreraisestate);
 
-                 unget_exception_temps(current_asmdata.CurrAsmList,destroytemps);
+                 cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,destroytemps);
                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
                end
                else
                  begin
                    doobjectdestroyandreraisestate.newflowcontrol:=flowcontrol;
-                   cleanupobjectstack;
+                   cexceptionstatehandler.cleanupobjectstack;
                    hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
                  end;
            end
@@ -830,7 +854,7 @@ implementation
               { exception object                                    }
               hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
               hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-              cleanupobjectstack;
+              cexceptionstatehandler.cleanupobjectstack;
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
            end;
 
@@ -841,7 +865,7 @@ implementation
               { exception object                                    }
               hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
               hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-              cleanupobjectstack;
+              cexceptionstatehandler.cleanupobjectstack;
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
            end;
 
@@ -852,7 +876,7 @@ implementation
               { exception object                                    }
               hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
               hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-              cleanupobjectstack;
+              cexceptionstatehandler.cleanupobjectstack;
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
            end;
 
@@ -880,7 +904,7 @@ implementation
               hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
            end;
-         unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+         cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
          hlcg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
 
          { end cleanup }
@@ -913,8 +937,8 @@ implementation
          oldCurrExitLabel,
          oldContinueLabel,
          oldBreakLabel : tasmlabel;
-         doobjectdestroyandreraisestate: texceptionstate;
-         excepttemps : texceptiontemps;
+         doobjectdestroyandreraisestate: tcgexceptionstatehandler.texceptionstate;
+         excepttemps : tcgexceptionstatehandler.texceptiontemps;
          href2: treference;
          paraloc1 : tcgpara;
          exceptvarsym : tlocalvarsym;
@@ -971,8 +995,8 @@ implementation
          { in the case that another exception is risen
            we've to destroy the old one:
            call setjmp, and jump to finally label on non-zero result }
-         get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-         new_exception(current_asmdata.CurrAsmList,excepttemps,doobjectdestroyandreraisestate);
+         cexceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+         cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,doobjectdestroyandreraisestate);
 
          oldBreakLabel:=nil;
          oldContinueLabel:=nil;
@@ -994,7 +1018,7 @@ implementation
               secondpass(right);
            end;
 
-         handle_nested_exception(current_asmdata.CurrAsmList,excepttemps,doobjectdestroyandreraisestate);
+         cexceptionstatehandler.handle_nested_exception(current_asmdata.CurrAsmList,excepttemps,doobjectdestroyandreraisestate);
 
          { clear some stuff }
          if assigned(exceptvarsym) then
@@ -1036,7 +1060,7 @@ implementation
                end;
            end;
 
-         unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+         cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
          cg.a_label(current_asmdata.CurrAsmList,nextonlabel);
          flowcontrol:=doobjectdestroyandreraisestate.oldflowcontrol+(doobjectdestroyandreraisestate.newflowcontrol-[fc_inflowcontrol]);
          paraloc1.done;
@@ -1086,9 +1110,9 @@ implementation
          oldCurrExitLabel,
          oldContinueLabel,
          oldBreakLabel : tasmlabel;
-         finallyexceptionstate: texceptionstate;
+         finallyexceptionstate: tcgexceptionstatehandler.texceptionstate;
          prefinallyflowcontrol : tflowcontrol;
-         excepttemps : texceptiontemps;
+         excepttemps : tcgexceptionstatehandler.texceptiontemps;
          reasonreg : tregister;
       begin
          location_reset(location,LOC_VOID,OS_NO);
@@ -1100,8 +1124,8 @@ implementation
          current_asmdata.getjumplabel(endfinallylabel);
 
          { call setjmp, and jump to finally label on non-zero result }
-         get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-         new_exception(current_asmdata.CurrAsmList,excepttemps,finallyexceptionstate);
+         cexceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+         cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,finallyexceptionstate);
 
          { the finally block must catch break, continue and exit }
          { statements                                            }
@@ -1140,9 +1164,9 @@ implementation
          { don't generate line info for internal cleanup }
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
-         emit_except_label(current_asmdata.CurrAsmList,finallyexceptionstate);
+         cexceptionstatehandler.emit_except_label(current_asmdata.CurrAsmList,finallyexceptionstate);
          { just free the frame information }
-         free_exception(current_asmdata.CurrAsmList,excepttemps,1,finallyexceptionstate.exceptionlabel,true);
+         cexceptionstatehandler.free_exception(current_asmdata.CurrAsmList,excepttemps,1,finallyexceptionstate.exceptionlabel,true);
 
          { end cleanup }
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
@@ -1216,7 +1240,7 @@ implementation
                   hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallyexceptionstate.exceptionlabel);
                end;
            end;
-         unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+         cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
          hlcg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
 
          { end cleanup }
@@ -1245,5 +1269,6 @@ begin
    ctryexceptnode:=tcgtryexceptnode;
    ctryfinallynode:=tcgtryfinallynode;
    connode:=tcgonnode;
+   cexceptionstatehandler:=tcgexceptionstatehandler;
 end.
 
