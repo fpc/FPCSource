@@ -631,16 +631,25 @@ implementation
                  otUByte,otUWord,otULong,otUByte,
                  otSByte,otSWord,otSLong,otSByte,
                  otUByte,otUWord,otUByte);
+            var
+              elesize: string[1];
           begin
             write_header(tcb,def,typekind);
+            case trans[def.ordtype] of
+              otUQWord,
+              otSQWord:
+                elesize:='8'
+              else
+                elesize:='4'
+            end;
             tcb.begin_anonymous_record(
-              internaltypeprefixName[itp_rtti_ord_outer],
+              internaltypeprefixName[itp_rtti_ord_outer]+elesize,
               defaultpacking,reqalign,
               targetinfos[target_info.system]^.alignment.recordalignmin,
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
             tcb.emit_ord_const(byte(trans[def.ordtype]),u8inttype);
             tcb.begin_anonymous_record(
-              internaltypeprefixName[itp_rtti_ord_inner],
+              internaltypeprefixName[itp_rtti_ord_inner]+elesize,
               defaultpacking,reqalign,
               targetinfos[target_info.system]^.alignment.recordalignmin,
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
