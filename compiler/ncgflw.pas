@@ -706,7 +706,7 @@ implementation
     procedure tcgtryexceptnode.pass_generate_code;
 
       var
-         exceptlabel,oldendexceptlabel,
+         oldendexceptlabel,
          lastonlabel,
          exitexceptlabel,
          continueexceptlabel,
