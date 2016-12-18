@@ -866,7 +866,7 @@ implementation
               hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
               hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
               cexceptionstatehandler.cleanupobjectstack;
-              cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
            end;
 
          if fc_continue in doobjectdestroyandreraisestate.newflowcontrol then
@@ -894,7 +894,7 @@ implementation
               hlcg.a_label(current_asmdata.CurrAsmList,breaktrylabel);
               hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
               hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-              cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
            end;
 
          if fc_continue in trystate.newflowcontrol then
@@ -902,7 +902,7 @@ implementation
               hlcg.a_label(current_asmdata.CurrAsmList,continuetrylabel);
               hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_popaddrstack',[],nil);
               hlcg.g_exception_reason_discard(current_asmdata.CurrAsmList,osuinttype,excepttemps.reasonbuf);
-              cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
            end;
          cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
          hlcg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
@@ -1026,7 +1026,7 @@ implementation
              tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
              exceptvarsym.localloc.loc:=LOC_INVALID;
            end;
-         cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+         hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
 
          if assigned(right) then
            begin
@@ -1034,22 +1034,22 @@ implementation
               if fc_exit in doobjectdestroyandreraisestate.newflowcontrol then
                 begin
                    { the address and object pop does secondtryexcept }
-                   cg.a_label(current_asmdata.CurrAsmList,exitonlabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+                   hlcg.a_label(current_asmdata.CurrAsmList,exitonlabel);
+                   hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
                 end;
 
               if fc_break in doobjectdestroyandreraisestate.newflowcontrol then
                 begin
                    { the address and object pop does secondtryexcept }
-                   cg.a_label(current_asmdata.CurrAsmList,breakonlabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+                   hlcg.a_label(current_asmdata.CurrAsmList,breakonlabel);
+                   hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
                 end;
 
               if fc_continue in doobjectdestroyandreraisestate.newflowcontrol then
                 begin
                    { the address and object pop does secondtryexcept }
-                   cg.a_label(current_asmdata.CurrAsmList,continueonlabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+                   hlcg.a_label(current_asmdata.CurrAsmList,continueonlabel);
+                   hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
                 end;
 
               current_procinfo.CurrExitLabel:=oldCurrExitLabel;
@@ -1061,7 +1061,7 @@ implementation
            end;
 
          cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-         cg.a_label(current_asmdata.CurrAsmList,nextonlabel);
+         hlcg.a_label(current_asmdata.CurrAsmList,nextonlabel);
          flowcontrol:=doobjectdestroyandreraisestate.oldflowcontrol+(doobjectdestroyandreraisestate.newflowcontrol-[fc_inflowcontrol]);
          paraloc1.done;
          current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
