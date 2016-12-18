@@ -23,8 +23,15 @@ unit muihelper;
 
 interface
 
-uses intuition, mui, amigados, utility;
+uses
+  {$if defined(MorphOS) or defined(Amiga)}
+  amigalib,
+  {$endif}
+  exec, intuition, mui, amigados, utility;
 
+type
+  THookFunc = function(Hook: PHook; Obj: PObject_; Msg: Pointer): LongInt;
+  TDispatcherFunc = function(Hook: PIClass; Obj: PObject_; Msg: Intuition.PMsg): LongWord;
 
 const
   MUI_TRUE  = 1;
@@ -307,7 +314,87 @@ procedure MH_SetString(Obj: PObject_; s: PChar);
 procedure MH_SetCheckmark(Obj: PObject_; b: Boolean);
 procedure MH_SetSlider(Obj: PObject_; l: LongInt);
 
+function MH_NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
+function MH_NewObject(var Obj; ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
+
+// Connect a Hook to a hook function, platform specific implementation
+procedure MH_SetHook(var Hook: THook; Func: THookFunc; Data: Pointer);
+
+function MH_CreateCustomClass(Base: PLibrary; Supername: PChar; Supermcc: PMUI_CustomClass; DataSize: LongInt; Dispatcher: TDispatcherFunc): PMUI_CustomClass;
+
 implementation
+
+{$undef SetHook}
+
+{$ifdef CPU68}
+{$define SetHook}
+procedure MH_SetHook(var Hook: THook; Func: THookFunc; Data: Pointer);
+begin
+  {$if defined(VER3_0)}
+  Hook.h_Entry := @HookEntry; { is defined in AmigaLib unit now }
+  {$else}
+  Hook.h_Entry := @HookEntryPas; { is defined in AmigaLib unit now }
+  {$endif}
+  Hook.h_SubEntry := Func;
+  Hook.h_Data := Data;
+end;
+{$endif}
+
+{$if defined(CPU86) or defined(CPUARM) or defined(CPU64)}
+{$define SetHook}
+procedure HookEntry(h: PHook; obj: PObject_; Msg: Pointer); cdecl;
+var
+  Proc: THookFunc;
+begin
+  Proc := THookFunc(h^.h_SubEntry);
+  Proc(h, obj, msg);
+end;
+
+procedure MH_SetHook(var Hook: THook; Func: THookFunc; Data: Pointer);
+begin
+  Hook.h_Entry := PtrUInt(@HookEntry);
+  Hook.h_SubEntry := PtrUInt(Func);
+  Hook.h_Data := Data;
+end;
+{$endif}
+
+{$ifdef CPUPOWERPC}
+{$ifdef MorphOS}
+{$define SetHook}
+procedure MH_SetHook(var Hook: THook; Func: THookFunc; Data: Pointer);
+{ This is MorphOS magic. Basically, CallHookPkt is designed to enter 68k code
+  (remember, MorphOS is 68k AmigaOS binary compatible!) so this TRAP just
+  redirects that call back to native PPC code. HookEntry is defined in
+  AmigaLib unit }
+const
+  HOOKENTRY_TRAP: TEmulLibEntry = ( Trap: TRAP_LIB; Extension: 0; Func: @HookEntry );
+begin
+  Hook.h_Entry := @HOOKENTRY_TRAP;
+  Hook.h_SubEntry := Func;
+  Hook.h_Data := Data;
+end;
+{$endif}
+{$ifdef AMIGAOS4}
+{$define SetHook}
+procedure MH_SetHook(var Hook: THook; Func: THookFunc; Data: Pointer);
+begin
+  Hook.h_Entry := Func;
+  Hook.h_SubEntry := Func;
+  Hook.h_Data := Data;
+end;
+{$endif}
+{$endif}
+
+{$ifndef SetHook}
+{$FATAL "SetHook not implemented for this platform"}
+{$endif}
+
+function MH_CreateCustomClass(Base: PLibrary; Supername: PChar; Supermcc: PMUI_CustomClass; DataSize: LongInt; Dispatcher: TDispatcherFunc): PMUI_CustomClass;
+begin
+  MH_CreateCustomClass := MUI_CreateCustomClass(Base, Supername, Supermcc, DataSize, nil);
+  if Assigned(MH_CreateCustomClass) then
+    MH_SetHook(MH_CreateCustomClass^.mcc_Class^.cl_Dispatcher, THookFunc(Dispatcher), nil);
+end;
 
 function MAKE_ID(c1, c2, c3, c4: char): LongWord; inline;
 begin
@@ -1499,5 +1586,20 @@ begin
  PObject_(VBar) := MUI_MakeObject(MUIO_VBar, [Space]);
  MH_VBar := PObject_(VBar);
 end;
+
+// Creates a MUI object abstract
+// ************************************************************************
+function MH_NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
+begin
+  MH_NewObject := NewObject(ClassPtr, ClassID, Tags);
+end;
+
+function MH_NewObject(var Obj; ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
+begin
+  PObject_(Obj) := NewObject(ClassPtr, ClassID, Tags);
+  MH_NewObject := PObject_(Obj);
+end;
+
+
 
 end.
