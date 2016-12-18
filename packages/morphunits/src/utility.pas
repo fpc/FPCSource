@@ -211,15 +211,17 @@ function GetUniqueID: LongWord; SysCall MOS_UtilityBase 270;
 // varargs version
 function AllocNamedObject(Name: STRPTR; const Tags: array of PtrUInt): PNamedObject; inline;
 
-function TAG_(Value: Pointer): LongWord; overload; inline;
-function TAG_(Value: PChar): LongWord; overload; inline;
-function TAG_(Value: Boolean): LongWord; overload; inline;
-function TAG_(Value: LongInt): LongWord; overload; inline;
+function TAG_(Value: Pointer): PtrUInt; overload; inline;
+function TAG_(Value: PChar): PtrUInt; overload; inline;
+function TAG_(Value: Boolean): PtrUInt; overload; inline;
+function TAG_(Value: LongInt): PtrUInt; overload; inline;
+function TAG_(Value: LongWord): PtrUInt; overload; inline;
 
-function AsTag(Value: Pointer): LongWord; overload; inline;
-function AsTag(Value: PChar): LongWord; overload; inline;
-function AsTag(Value: Boolean): LongWord; overload; inline;
-function AsTag(Value: LongInt): LongWord; overload; inline;
+function AsTag(Value: Pointer): PtrUInt; overload; inline;
+function AsTag(Value: PChar): PtrUInt; overload; inline;
+function AsTag(Value: Boolean): PtrUInt; overload; inline;
+function AsTag(Value: LongInt): PtrUInt; overload; inline;
+function AsTag(Value: LongWord): PtrUInt; overload; inline;
 
 implementation
 
@@ -228,17 +230,17 @@ begin
   AllocNamedObject := AllocNamedObjectA(Name, @Tags);
 end;
 
-function TAG_(Value: Pointer): LongWord; inline;
+function TAG_(Value: Pointer): PtrUInt; inline;
 begin
-  TAG_ := LongWord(Value);
+  TAG_ := PtrUInt(Value);
 end;
 
-function TAG_(Value: PChar): LongWord; inline;
+function TAG_(Value: PChar): PtrUInt; inline;
 begin
-  TAG_ := LongWord(Value);
+  TAG_ := PtrUInt(Value);
 end;
 
-function TAG_(Value: Boolean): LongWord; inline;
+function TAG_(Value: Boolean): PtrUInt; inline;
 begin
   if Value then
     TAG_ := LTrue
@@ -246,9 +248,14 @@ begin
     TAG_ := LFalse;
 end;
 
-function TAG_(Value: LongInt): LongWord; inline;
+function TAG_(Value: LongInt): PtrUInt; inline;
 begin
-  TAG_ := LongWord(Value);
+  TAG_ := PtrUInt(Value);
+end;
+
+function TAG_(Value: LongWord): PtrUInt; inline;
+begin
+  TAG_ := PtrUInt(Value);
 end;
 
 function AsTag(Value: Pointer): LongWord; inline;
@@ -256,12 +263,12 @@ begin
   AsTag := LongWord(Value);
 end;
 
-function AsTag(Value: PChar): LongWord; inline;
+function AsTag(Value: PChar): PtrUInt; inline;
 begin
-  AsTag := LongWord(Value);
+  AsTag := PtrUInt(Value);
 end;
 
-function AsTag(Value: Boolean): LongWord; inline;
+function AsTag(Value: Boolean): PtrUInt; inline;
 begin
   if Value then
     AsTag := LTrue
@@ -269,9 +276,14 @@ begin
     AsTag := LFalse;
 end;
 
-function AsTag(Value: LongInt): LongWord; inline;
+function AsTag(Value: LongInt): PtrUInt; inline;
 begin
-  AsTag := LongWord(Value);
+  AsTag := PtrUInt(Value);
+end;
+
+function AsTag(Value: LongWord): PtrUInt; inline;
+begin
+  AsTag := PtrUInt(Value);
 end;
 
 begin

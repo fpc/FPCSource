@@ -395,11 +395,13 @@ function TAG_(value: pointer): PtrUInt; overload; inline;
 function TAG_(value: pchar): PtrUInt; overload; inline;
 function TAG_(value: boolean): PtrUInt; overload; inline;
 function TAG_(value: LongInt): PtrUInt; overload; inline;
+function TAG_(Value: LongWord): PtrUInt; overload; inline;
 
 function AsTag(value: pointer): PtrUInt; overload; inline;
 function AsTag(value: pchar): PtrUInt; overload; inline;
 function AsTag(value: boolean): PtrUInt; overload; inline;
 function AsTag(value: LongInt): PtrUInt; overload; inline;
+function AsTag(Value: LongWord): PtrUInt; overload; inline;
 
 IMPLEMENTATION
 
@@ -472,6 +474,11 @@ begin
   TAG_:=PtrUInt(value);
 end;
 
+function TAG_(Value: LongWord): PtrUInt; inline;
+begin
+  TAG_ := PtrUInt(Value);
+end;
+
 function AsTag(value: pointer): PtrUInt; inline;
 begin
   AsTag:=PtrUInt(value);
@@ -493,6 +500,11 @@ end;
 function AsTag(value: LongInt): PtrUInt; inline;
 begin
   AsTag:=PtrUInt(value);
+end;
+
+function AsTag(Value: LongWord): PtrUInt; inline;
+begin
+  AsTag := PtrUInt(Value);
 end;
 
 initialization
