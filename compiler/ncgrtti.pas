@@ -649,7 +649,7 @@ implementation
               otUQWord:
                 begin
                   tcb.emit_ord_const(def.low.uvalue,u64inttype);
-                  tcb.emit_ord_const(def.high.uvalue,u64inttype);
+                  tcb.emit_ord_const(int64(def.high.uvalue),u64inttype);
                 end;
               otSQWord:
                 begin
