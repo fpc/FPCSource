@@ -24,7 +24,7 @@ unit muihelper;
 interface
 
 uses
-  {$if defined(MorphOS) or defined(Amiga)}
+  {$if defined(MorphOS) or defined(Amiga68k)}
   amigalib,
   {$endif}
   exec, intuition, mui, amigados, utility;
