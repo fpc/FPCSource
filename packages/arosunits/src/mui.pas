@@ -1399,32 +1399,39 @@ type
   end;
   PMUI_MinMax = ^TMUI_MinMax;
 
+// packrecords to Pointer size, because they are all stack based structs
+{$ifdef CPU64}
+  {$packrecords 8}
+{$else}
+  {$packrecords 4}
+{$endif}
+
   TMUIP_AskMinMax = record
-    MethodID: LongWord;  // MUIM_AskMinMax
+    MethodID: PtrUInt;  // MUIM_AskMinMax
     MinMaxInfo: PMUI_MinMax;
   end;
   PMUIP_AskMinMax = ^TMUIP_AskMinMax;
 
   TMUIP_Cleanup = record
-    MethodID: LongWord;  // MUIM_Cleanup
+    MethodID: PtrUInt;  // MUIM_Cleanup
   end;
   PMUIP_Cleanup = ^TMUIP_Cleanup;
 
   TMUIP_ContextMenuBuild = record
-    MethodID: LongWord;  // MUIM_ContextMenuBuild
+    MethodID: PtrUInt;  // MUIM_ContextMenuBuild
     mx: LongInt;
     my: LongInt;
   end;
   PMUIP_ContextMenuBuild = ^TMUIP_ContextMenuBuild;
 
   TMUIP_ContextMenuChoice = record
-    MethodID: LongWord;  // MUIM_ContextMenuChoice
+    MethodID: PtrUInt;  // MUIM_ContextMenuChoice
     item: PObject_;
   end;
   PMUIP_ContextMenuChoice = ^TMUIP_ContextMenuChoice;
 
   TMUIP_CreateBubble = record
-    MethodID: LongWord;  // MUIM_CreateBubble
+    MethodID: PtrUInt;  // MUIM_CreateBubble
     x: LongInt;
     y: LongInt;
     txt : PChar;
@@ -1433,7 +1440,7 @@ type
   PMUIP_CreateBubble = ^TMUIP_CreateBubble;
 
   TMUIP_CreateDragImage = record
-    MethodID: LongWord;  // MUIM_CreateDragImage
+    MethodID: PtrUInt;  // MUIM_CreateDragImage
     touchx: LongInt;
     touchy: LongInt;
     flags: LongWord;
@@ -1441,14 +1448,14 @@ type
   PMUIP_CreateDragImage = ^TMUIP_CreateDragImage;
 
   TMUIP_CreateShortHelp = record
-    MethodID: LongWord;  // MUIM_CreateShortHelp
+    MethodID: PtrUInt;  // MUIM_CreateShortHelp
     mx: LongInt;
     my: LongInt;
   end;
   PMUIP_CreateShortHelp = ^TMUIP_CreateShortHelp;
 
   TMUIP_CustomBackfill = record
-    MethodID: LongWord;  // MUIM_CustomBackfill
+    MethodID: PtrUInt;  // MUIM_CustomBackfill
     left: LongInt;
     top: LongInt;
     right: LongInt;
@@ -1459,25 +1466,25 @@ type
   PMUIP_CustomBackfill = ^TMUIP_CustomBackfill;
 
   TMUIP_DeleteBubble = record
-    MethodID: LongWord;  // MUIM_DeleteBubble
+    MethodID: PtrUInt;  // MUIM_DeleteBubble
     bubble: APTR;
   end;
   PMUIP_DeleteBubble = ^TMUIP_DeleteBubble;
 
   TMUIP_DeleteDragImage = record
-    MethodID: LongWord;  // MUIM_DeleteDragImage
+    MethodID: PtrUInt;  // MUIM_DeleteDragImage
     di: PMUI_DragImage;
   end;
   PMUIP_DeleteDragImage = ^TMUIP_DeleteDragImage;
 
   TMUIP_DeleteShortHelp = record
-    MethodID: LongWord;  // MUIM_DeleteShortHelp
+    MethodID: PtrUInt;  // MUIM_DeleteShortHelp
     help: STRPTR;
   end;
   PMUIP_DeleteShortHelp = ^TMUIP_DeleteShortHelp;
 
   TMUIP_DoDrag = record
-    MethodID: LongWord;  // MUIM_DoDrag
+    MethodID: PtrUInt;  // MUIM_DoDrag
     touchx: LongInt;
     touchy: LongInt;
     flags: LongWord;
@@ -1485,19 +1492,19 @@ type
   PMUIP_DoDrag = ^TMUIP_DoDrag;
 
   TMUIP_UnknownDropDestination = record
-    MethodID: LongWord;  // MUIM_UnknownDropDestination
+    MethodID: PtrUInt;  // MUIM_UnknownDropDestination
     imsg: PIntuiMessage;
   end;
   PMUIP_UnknownDropDestination = ^TMUIP_UnknownDropDestination;
 
   TMUIP_DragBegin = record
-    MethodID: LongWord;  // MUIM_DragBegin
+    MethodID: PtrUInt;  // MUIM_DragBegin
     obj: PObject_;
   end;
   PMUIP_DragBegin = ^TMUIP_DragBegin;
 
   TMUIP_DragDrop = record
-    MethodID: LongWord;  // MUIM_DragDrop
+    MethodID: PtrUInt;  // MUIM_DragDrop
     obj: PObject_;
     x: LongInt;
     y: LongInt;
@@ -1505,19 +1512,19 @@ type
   PMUIP_DragDrop = ^TMUIP_DragDrop;
 
   TMUIP_DragFinish = record
-    MethodID: LongWord;  // MUIM_DragFinish
+    MethodID: PtrUInt;  // MUIM_DragFinish
     obj: PObject_;
   end;
   PMUIP_DragFinish = ^TMUIP_DragFinish;
 
   TMUIP_DragQuery = record
-    MethodID: LongWord;  // MUIM_DragQuery
+    MethodID: PtrUInt;  // MUIM_DragQuery
     obj: PObject_;
   end;
   PMUIP_DragQuery = ^TMUIP_DragQuery;
 
   TMUIP_DragReport = record
-    MethodID: LongWord;  // MUIM_DragReport
+    MethodID: PtrUInt;  // MUIM_DragReport
     obj: PObject_;
     x: LongInt;
     y: LongInt;
@@ -1526,13 +1533,13 @@ type
   PMUIP_DragReport = ^TMUIP_DragReport;
 
   TMUIP_Draw = record
-    MethodID: LongWord;  // MUIM_Draw
+    MethodID: PtrUInt;  // MUIM_Draw
     flags: LongWord;
   end;
   PMUIP_Draw = ^TMUIP_Draw;
 
   TMUIP_DrawBackground = record
-    MethodID: LongWord;  // MUIM_DrawBackground
+    MethodID: PtrUInt;  // MUIM_DrawBackground
     left: LongInt;
     top: LongInt;
     width: LongInt;
@@ -1544,7 +1551,7 @@ type
   PMUIP_DrawBackground = ^TMUIP_DrawBackground;
 
   TMUIP_DrawBackgroundBuffered = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     rp: PRastPort;
     left: LongInt;
     top: LongInt;
@@ -1557,52 +1564,52 @@ type
   PMUIP_DrawBackgroundBuffered = ^TMUIP_DrawBackgroundBuffered;
 
   TMUIP_GoActive = record
-    MethodID: LongWord;  // MUIM_GoActive
+    MethodID: PtrUInt;  // MUIM_GoActive
   end;
   PMUIP_GoActive = ^TMUIP_GoActive;
 
   TMUIP_GoInactive = record
-    MethodID: LongWord;  // MUIM_GoInactive
+    MethodID: PtrUInt;  // MUIM_GoInactive
   end;
   PMUIP_GoInactive = ^TMUIP_GoInactive;
 
   TMUIP_HandleEvent = record
-    MethodID: LongWord;  // MUIM_HandleEvent
+    MethodID: PtrUInt;  // MUIM_HandleEvent
     imsg: PIntuiMessage;
     muikey: LongInt;
   end;
   PMUIP_HandleEvent = ^TMUIP_HandleEvent;
 
   TMUIP_HandleInput = record
-    MethodID: LongWord;  // MUIM_HandleInput
+    MethodID: PtrUInt;  // MUIM_HandleInput
     imsg: PIntuiMessage;
     muikey: LongInt;
   end;
   PMUIP_HandleInput = ^TMUIP_HandleInput;
 
   TMUIP_Hide = record
-    MethodID: LongWord;  // MUIM_Hide
+    MethodID: PtrUInt;  // MUIM_Hide
   end;
   PMUIP_Hide = ^TMUIP_Hide;
 
   TMUIP_Setup = record
-    MethodID: LongWord;  // MUIM_Setup
+    MethodID: PtrUInt;  // MUIM_Setup
     RenderInfo: PMUI_RenderInfo;
   end;
   PMUIP_Setup = ^TMUIP_Setup;
 
   TMUIP_Show = record
-    MethodID: LongWord;  // MUIM_Show
+    MethodID: PtrUInt;  // MUIM_Show
   end;
   PMUIP_Show = ^TMUIP_Show;
 
   TMUIP_Layout = record
-    MethodID: LongWord;  // MUIM_Layout
+    MethodID: PtrUInt;  // MUIM_Layout
   end;
   PMUIP_Layout = ^TMUIP_Layout;
 
   TMUIP_DrawParentBackground = record
-    MethodID: LongWord;  // MUIM_DrawParentBackground
+    MethodID: PtrUInt;  // MUIM_DrawParentBackground
     left: LongInt;
     top: LongInt;
     width: LongInt;
@@ -1612,6 +1619,9 @@ type
     flags: LongInt;
   end;
   PMUIP_DrawParentBackground = ^TMUIP_DrawParentBackground;
+{$ifdef CPU64}
+  {$packrecords C}
+{$endif}
 
 const
   MUIF_DRAGIMAGE_HASMASK     = 1 shl 0; // Use provided mask for drawing Not supported at the moment
