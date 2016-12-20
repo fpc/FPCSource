@@ -169,10 +169,12 @@ unit typinfo;
       record
       private
         function GetParamType: PTypeInfo; inline;
+        function GetFlags: Byte; inline;
       public
         property ParamType: PTypeInfo read GetParamType;
+        property Flags: Byte read GetFlags;
       public
-        Flags: Byte;
+        ParamFlags: TParamFlags;
         ParamTypeRef: TypeInfoPtr;
         Name: ShortString;
       end;
@@ -2275,6 +2277,11 @@ end;
 function TProcedureParam.GetParamType: PTypeInfo;
 begin
   Result := DerefTypeInfoPtr(ParamTypeRef);
+end;
+
+function TProcedureParam.GetFlags: Byte;
+begin
+  Result := Byte(ParamFlags);
 end;
 
 { TManagedField }
