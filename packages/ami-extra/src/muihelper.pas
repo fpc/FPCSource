@@ -316,6 +316,44 @@ procedure MH_SetString(Obj: PObject_; s: PChar);
 procedure MH_SetCheckmark(Obj: PObject_; b: Boolean);
 procedure MH_SetSlider(Obj: PObject_; l: LongInt);
 
+// deprecated but widely used macros
+function MH_String(Contents: PChar; MaxLen: Integer): PObject_;
+function MH_String(var NString: PObject_; Contents: PChar; MaxLen: Integer): PObject_;
+
+function MH_KeyString(Contents: PChar; MaxLen: Integer; ControlChar: Char): PObject_;
+function MH_KeyString(var NString: PObject_; Contents: PChar; MaxLen: Integer; ControlChar: Char): PObject_;
+
+function MH_CheckMark(Selected: Boolean): PObject_;
+function MH_CheckMark(var CM: PObject_; Selected: Boolean): PObject_;
+
+function MH_KeyCheckMark(Selected: Boolean; ControlChar: Char): PObject_;
+function MH_KeyCheckMark(var CM: PObject_; Selected: Boolean; ControlChar: Char): PObject_;
+
+function MH_KeyButton(Name: PChar; Key: Char): PObject_;
+function MH_KeyButton(var KB: PObject_; Name: PChar; Key: Char): PObject_;
+
+function MH_Cycle(Entries: PPChar): PObject_;
+function MH_Cycle(var CY: PObject_; Entries: PPChar): PObject_;
+
+function MH_KeyCycle(Entries: PPChar; Key: Char): PObject_;
+function MH_KeyCycle(var KC: PObject_; Entries: PPChar; Key: Char): PObject_;
+
+function MH_Radio(Name: PChar; Rarray: PPChar): PObject_;
+function MH_Radio(var RA: PObject_; Name: PChar; Rarray: PPChar): PObject_;
+
+function MH_KeyRadio(Name: PChar; Rarray: PPChar; Key: Char): PObject_;
+function MH_KeyRadio(var KR: PObject_; Name: PChar; Rarray: PPChar; Key: Char): PObject_;
+
+function MH_Slider(MinS, MaxS, Level: Integer): PObject_;
+function MH_Slider(var SL: PObject_; MinS, MaxS, Level: Integer): PObject_;
+
+function MH_KeySlider(MinS, MaxS, Level: Integer; Key: Char): PObject_;
+function MH_KeySlider(var KS: PObject_; MinS, MaxS, Level: Integer; Key: Char): PObject_;
+
+
+
+
+
 function MH_NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
 function MH_NewObject(var Obj; ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
 
@@ -1613,6 +1651,185 @@ begin
   MH_NewObject := PObject_(Obj);
 end;
 
+// deprecated but widely used macros
 
+function MH_String(Contents: PChar; MaxLen: Integer): PObject_;
+begin
+  MH_String := MH_String([
+    MUIA_Frame, StringFrame,
+    MUIA_String_MaxLen, MaxLen,
+    MUIA_String_Contents, AsTag(Contents),
+    TAG_DONE]);
+end;
+
+function MH_String(var NString: PObject_; Contents: PChar; MaxLen: Integer): PObject_;
+begin
+  NString := MH_String(Contents, MAxLen);
+  MH_String := NString;
+end;
+
+function MH_KeyString(Contents: PChar; MaxLen: Integer; ControlChar: Char): PObject_;
+begin
+  MH_KeyString := MH_String([
+    MUIA_Frame, StringFrame,
+    MUIA_ControlChar, AsTag(Byte(ControlChar)),
+    MUIA_String_MaxLen, maxlen,
+    MUIA_String_Contents, AsTag(Contents),
+    TAG_DONE]);
+end;
+
+function MH_KeyString(var NString: PObject_; Contents: PChar; MaxLen: Integer; ControlChar: Char): PObject_;
+begin
+  NString := MH_KeyString(Contents, MaxLen, ControlChar);
+  MH_KeyString := NString;
+end;
+
+function MH_CheckMark(Selected: Boolean): PObject_;
+begin
+  MH_CheckMark := MH_Image([
+    MUIA_Frame, ImageButtonFrame,
+    MUIA_InputMode, MUIV_InputMode_Toggle,
+    MUIA_Image_Spec, MUII_CheckMark,
+    MUIA_Image_FreeVert, MUI_TRUE,
+    MUIA_Selected, AsTag(Selected),
+    MUIA_Background, MUII_ButtonBack,
+    MUIA_ShowSelState, MUI_FALSE,
+    TAG_DONE]);
+end;
+
+function MH_CheckMark(var CM: PObject_; Selected: Boolean): PObject_;
+begin
+  CM := MH_CheckMark(Selected);
+  MH_CheckMark := CM;
+end;
+
+function MH_KeyCheckMark(Selected: Boolean; ControlChar: Char): PObject_;
+begin
+  MH_KeyCheckMark := MH_Image([
+    MUIA_Frame, ImageButtonFrame,
+    MUIA_InputMode, MUIV_InputMode_Toggle,
+    MUIA_Image_Spec, MUII_CheckMark,
+    MUIA_Image_FreeVert, MUI_TRUE,
+    MUIA_Selected, AsTag(Selected),
+    MUIA_Background, MUII_ButtonBack,
+    MUIA_ShowSelState, MUI_FALSE,
+    MUIA_ControlChar, AsTag(Byte(ControlChar)),
+    TAG_DONE]);
+end;
+
+function MH_KeyCheckMark(var CM: PObject_; Selected: Boolean; ControlChar: Char): PObject_;
+begin
+  CM := MH_KeyCheckMark(Selected, ControlChar);
+  MH_KeyCheckMark := CM;
+end;
+
+function MH_KeyButton(Name: PChar; Key: Char): PObject_;
+begin
+  MH_KeyButton := MH_Text([
+    MUIA_Frame, ButtonFrame,
+    MUIA_Font, MUIV_Font_Button,
+    MUIA_Text_Contents, AsTag(Name),
+    MUIA_Text_PreParse, AsTag(PChar(MUIX_C)),
+    MUIA_Text_HiChar  , AsTag(Byte(Key)),
+    MUIA_ControlChar  , AsTag(Byte(Key)),
+    MUIA_InputMode    , MUIV_InputMode_RelVerify,
+    MUIA_Background   , MUII_ButtonBack,
+    TAG_DONE]);
+end;
+
+function MH_KeyButton(var KB: PObject_; Name: PChar; Key: Char): PObject_;
+begin
+  KB := MH_KeyButton(Name, Key);
+  MH_KeyButton := KB;
+end;
+
+function MH_Cycle(Entries: PPChar): PObject_;
+begin
+  MH_Cycle := MH_Cycle([
+    MUIA_Font, MUIV_Font_Button,
+    MUIA_Cycle_Entries, AsTag(entries),
+    TAG_DONE]);
+end;
+
+function MH_Cycle(var CY: PObject_; Entries: PPChar): PObject_;
+begin
+  CY := MH_Cycle(Entries);
+  MH_Cycle := CY;
+end;
+
+function MH_KeyCycle(Entries: PPChar; Key: Char): PObject_;
+begin
+  MH_KeyCycle := MH_Cycle([
+    MUIA_Font, MUIV_Font_Button,
+    MUIA_Cycle_Entries, AsTag(entries),
+    MUIA_ControlChar, AsTag(Byte(Key)),
+    TAG_DONE]);
+end;
+
+function MH_KeyCycle(var KC: PObject_; Entries: PPChar; Key: Char): PObject_;
+begin
+  KC := MH_KeyCycle(Entries, Key);
+  MH_KeyCycle := KC;
+end;
+
+function MH_Radio(Name: PChar; Rarray: PPChar): PObject_;
+begin
+  MH_Radio := MH_Radio([
+    MUIA_Frame, MUIV_Frame_Group, MUIA_FrameTitle, AsTag(Name), MUIA_Background, MUII_GroupBack,
+    MUIA_Radio_Entries, AsTag(Rarray),
+    TAG_DONE]);
+end;
+
+function MH_Radio(var RA: PObject_; Name: PChar; Rarray: PPChar): PObject_;
+begin
+  RA := MH_Radio(Name, Rarray);
+  MH_Radio := RA;
+end;
+
+function MH_KeyRadio(Name: PChar; Rarray: PPChar; Key: Char): PObject_;
+begin
+  MH_KeyRadio := MH_Radio([
+    MUIA_Frame, MUIV_Frame_Group, MUIA_FrameTitle, AsTag(Name), MUIA_Background, MUII_GroupBack,
+    MUIA_Radio_Entries, AsTag(Rarray),
+    MUIA_ControlChar, AsTag(Byte(Key)),
+    TAG_DONE]);
+end;
+
+function MH_KeyRadio(var KR: PObject_; Name: PChar; Rarray: PPChar; Key: Char): PObject_;
+begin
+  KR := MH_KeyRadio(Name, Rarray, Key);
+  MH_KeyRadio := KR;
+end;
+
+function MH_Slider(MinS, MaxS, Level: Integer): PObject_;
+begin
+  MH_Slider := MH_Slider([
+    MUIA_Numeric_Min, MinS,
+    MUIA_Numeric_Max, MaxS,
+    MUIA_Numeric_Value, level,
+    TAG_DONE]);
+end;
+
+function MH_Slider(var SL: PObject_; MinS, MaxS, Level: Integer): PObject_;
+begin
+  SL := MH_Slider(MinS, MaxS, Level);
+  MH_Slider := SL;
+end;
+
+function MH_KeySlider(MinS, MaxS, Level: Integer; Key: Char): PObject_;
+begin
+  MH_KeySlider := MH_Slider([
+    MUIA_Numeric_Min, MinS,
+    MUIA_Numeric_Max, MaxS,
+    MUIA_Numeric_Value, level,
+    MUIA_ControlChar, AsTag(Byte(Key)),
+    TAG_DONE]);
+end;
+
+function MH_KeySlider(var KS: PObject_; MinS, MaxS, Level: Integer; Key: Char): PObject_;
+begin
+  KS := MH_KeySlider(MinS, MaxS, Level, Key);
+  MH_KeySlider := KS;
+end;
 
 end.
