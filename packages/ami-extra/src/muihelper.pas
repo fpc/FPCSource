@@ -90,6 +90,8 @@ function MH_Text(Contents: PChar): PObject_;
 function MH_Text(Contents: PChar; const Tags: array of PtrUInt): PObject_;
 function MH_Text(var Text_; Contents: PChar): PObject_;
 function MH_Text(var Text_; Contents: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_Text(const Tags: array of PtrUInt): PObject_;
+function MH_Text(var NText; const Tags: array of PtrUInt): PObject_;
 // Creates a MUI Rectangle
 function MH_Rectangle(const Tags: array of PtrUInt): PObject_;
 function MH_Rectangle(var Rectangle; const Tags: array of PtrUInt): PObject_;
@@ -596,6 +598,17 @@ begin
     MUIA_Text_Contents, AsTag(Contents),
     TAG_MORE,           AsTag(@Tags)]);
   MH_Text := PObject_(Text_);
+end;
+
+function MH_Text(const Tags: array of PtrUInt): PObject_;
+begin
+  MH_Text := MUI_NewObject(MUIC_Text, Tags);
+end;
+
+function MH_Text(var NText; const Tags: array of PtrUInt): PObject_;
+begin
+ PObject_(NText) := MUI_NewObject(MUIC_Text, Tags);
+ MH_Text := PObject_(NText);
 end;
 
 // Creates a MUI Rectangle
