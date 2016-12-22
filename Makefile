@@ -334,6 +334,7 @@ endif
 override PACKAGE_NAME=fpc
 override PACKAGE_VERSION=3.1.1
 REQUIREDVERSION=3.0.0
+REQUIREDVERSION2=3.0.2
 ifndef inOS2
 override FPCDIR:=$(BASEDIR)
 export FPCDIR

@@ -21,6 +21,7 @@ rule=help
 
 [prerules]
 REQUIREDVERSION=3.0.0
+REQUIREDVERSION2=3.0.2
 
 
 # make versions < 3.77 (OS2 version) are buggy
