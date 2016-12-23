@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 33890
+#   Based on errore.msg of SVN revision 35079
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2016 by the Free Pascal Development team
@@ -147,7 +147,7 @@ general_e_exception_raised=01026_E_Kompilieren verursachte interne Ausnahme (exc
 #
 # Scanner
 #
-# 02099 is the last used one
+# 02101 is the last used one
 #
 # BeginOfTeX
 %
@@ -423,6 +423,11 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegales Argument für HUGEPOIN
 scan_e_illegal_asmcpu_specifier=02099_E_Ungültiger Assembler-CPU-Befehlssatz "$1" angegeben
 % When you specify an assembler CPU with the \var{\{\$ASMCPU xxx\}} directive,
 % the compiler didn't recognize the CPU you specified.
+scan_w_syscall_convention_not_useable_on_target=02100_W_Die angegebene SysCall-Konvention kann auf diesem Ziel nicht verwendet werden
+% The specified syscall convention using the \var{\{\$SYSCALL xxx\}} directive,
+% is not useable on the current target system.
+scan_w_syscall_convention_invalid=02101_W_Ungültige SysCall-Konvention angegeben
+% The compiler did not recognize the syscall convention specified by the \var{\{\$SYSCALL xxx\}} directive.
 %
 % \end{description}
 # EndOfTeX
@@ -1404,11 +1409,11 @@ parser_e_no_procvarnested_const=03296_E_Typisierte Konstanten des Typs 'procedur
 % procedural variable contains a reference to a nested procedure/function.
 % Therefore such typed constants can only be initialized with global
 % functions/procedures since these do not require a parent frame pointer.
-parser_f_no_generic_inside_generic=03297_F_Die Deklaration einer generischen Klasse innerhalb einer anderen generischen Klasse ist nicht erlaubt
+parser_f_no_generic_inside_generic=03297_F_Die Deklaration von etwas generischem  innerhalb etwas anderem generischen ist nicht erlaubt
 % At the moment, scanner supports recording of only one token buffer at the time
 % (guarded by internal error 200511173 in tscannerfile.startrecordtokens).
 % Since generics are implemented by recording tokens, it is not possible to
-% have declaration of generic class inside another generic class.
+% have declaration of a generic (type or method) inside another generic.
 parser_e_forward_intf_declaration_must_be_resolved=03298_E_Die Vorwärts-Deklaration "$1" muss aufgelöst sein, bevor eine Klasse ihr folgen oder sie implementieren kann
 % An Objective-C protocol or Java Interface must be fully defined before classes can conform to it.
 % This error occurs in the following situation (example for Objective-C, but the same goes for Java interfaces):
@@ -2695,8 +2700,8 @@ asmr_w_align_not_supported=07093_W_ALIGN wird nicht unterstützt
 asmr_e_no_inc_and_dec_together=07094_E_Inc und Dec können nicht gemeinsam vorkommen
 % Trying to use an increment and a decrement within the same
 % opcode on the 680x0. This is impossible.
-asmr_e_invalid_reg_list_in_movem=07095_E_Ungültige Registerliste für movem
-% Trying to use the \var{movem} opcode with invalid registers
+asmr_e_invalid_reg_list_in_movem_or_fmovem=07095_E_Ungültige Registerliste für MOVEM oder FMOVEM
+% Trying to use the \var{movem} or \var{fmovem} opcode with invalid registers
 % to save or restore.
 asmr_e_invalid_reg_list_for_opcode=07096_E_Ungültige Registerliste für diesen opcode
 asmr_e_higher_cpu_mode_required=07097_E_Höherer cpu Modus notwendig ($1)
@@ -3013,7 +3018,7 @@ execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
 #
 # Internal linker messages
 #
-# 09207 is the last used one
+# 09208 is the last used one
 #
 # BeginOfTeX
 %
@@ -3043,6 +3048,7 @@ link_e_com_program_uses_segment_relocations=09207_E_Eine .COM-Datei kann nicht e
 % might be caused by the use of the Seg() function or by the SEG assembler
 % directive (either in pascal's built-in inline assembler, or in an externally
 % linked assembly module).
+link_w_program_uses_checkpointer=09208_W_Das Programm "$1" benutzt die experimentelle CheckPointer-Option
 %
 % \end{description}
 # EndOfTeX
@@ -3265,7 +3271,7 @@ unit_u_loading_from_package=10064_U_Unit $1 wird von Paket $2 geladen
 #
 # Options
 #
-# 11057 is the last used one
+# 11058 is the last used one
 #
 # BeginOfTeX
 %
@@ -3411,6 +3417,8 @@ option_malformed_para=11055_E_Ungültiges Argument für Parameter: $1
 % Given argument is not valid for parameter.
 option_smart_link_requires_external_linker=11056_W_Smart-linking erfordert externen Linker
 option_com_files_require_tiny_model=11057_E_Das Erstellen von .COM Dateien wird für das aktuelle Speichermodell nicht unterstützt. Nur das winzige (tiny) Speichermodell unterstützt .COM Dateien
+% Do not enable experimental -gc option if -Ur option is given.
+option_gc_incompatible_with_release_flag=11058_W_Die experimentelle CheckPointer-Option wird nicht eingeschaltet, weil sie mit der Option -Ur inkompatibel ist
 %
 % \end{description}
 # EndOfTeX
@@ -3495,7 +3503,7 @@ wpo_cant_create_feedback_file=12019_E_Die angegebene Feedback-Eingabe-Datei "$1"
 #
 # Package loading and handling
 #
-# 13028 is the last used one
+# 13029 is the last used one
 #
 # BeginOfTeX
 %
@@ -3579,6 +3587,8 @@ package_e_unit_already_contained_in_package=13027_E_Unit $1 ist bereits in Paket
 package_w_unit_from_indirect_package=13028_W_Unit $1 wird vom indirekt benötigtem Paket $2 importiert
 % If a unit from a package that is not part of the \var{requires} section is used then the package
 % should require this unit directly to avoid confusion.
+package_u_ppl_filename=13029_U_PPL Dateiname $1
+% The name of the binary package library that is stored in the PCP.
 %
 % \end{description}
 # EndOfTeX
@@ -3799,14 +3809,15 @@ J*2Cv_Var/out Parameter copy-out Überprüfung
 **2FU<x>_Units werden nach <x> ausgegeben, hat Vorrang vor -FE
 **2FW<x>_Speichere das erzeugte Feedback für die Gesamtprogramm-Optimierung in <x>
 **2Fw<x>_Lade das bereits gespeicherte Feedback für die Gesamtprogramm-Optimierung aus <x>
-*g1g<x>_Erzeuge Informationen zur Fehlersuche:
-*g2gc_Zeigerüberprüfung
-*g2gh_Heaptrace-Unit einbinden
+*g1g_Erzeuge Informationen zur Fehlersuche (im für das Zielsystem voreingestellten Format):
+*g2gc_Zeigerüberprüfung (experimentell, nur auf einige Systemen, kann falschen Alarm erzeugen)
+*g2gh_Heaptrace-Unit einbinden (für Speicherlecks und -korruption)
 *g2gl_Line info Unit einbinden, um mehr backtrace Informationen anzuzeigen
 *g2go<x>_Setze Optionen für die Debug Informationen
 *g3godwarfsets_Schalte DWARF Debug Informationen für Mengen (sets) ein (verhindert debugging mit gdb < 6.5)
 *g3gostabsabsincludes_ Absolute/volle Include-Datei-Pfade in Stabs speichern
 *g3godwarfmethodclassprefix_ Stelle Methodennamen in DWARF den Namen der Klasse voran
+*g3godwarfcpp_ Simuliere C++ Debug-Informationen in DWARF
 *g2gp_Erhalte Groß/Kleinschreibung in Stabs-Symbolnamen
 *g2gs_Erzeuge Stabs-Debug-Informationen
 *g2gt_Lösche lokale Variablen (um eine Verwendung ohne Initialisierung zu finden; mehrere 't' ändern den Wert, mit dem überschrieben wird)
@@ -3862,7 +3873,7 @@ J*2Cv_Var/out Parameter copy-out Überprüfung
 F*1P<x>_Ziel CPU / Compiler bezogene Optionen:
 F*2PB_Zeige die voreingestellte Compilerbinärdatei
 F*2PP_Zeige die voreingestellte Ziel-CPU
-F*2P<x>_Setze die Ziel-CPU (arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)
+F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)
 **1R<x>_Assembler Code-Format:
 **2Rdefault_Benutze den voreingestellten Assembler
 3*2Ratt_Lese Assembler Code im AT&T-Format
@@ -3949,6 +3960,7 @@ A*2Twince_Windows CE
 J*2Tandroid_Android
 J*2Tjava_Java
 m*2Tembedded_Embedded
+m*2Tlinux_Linux
 M*2Tandroid_Android
 M*2Tembedded_Embedded
 M*2Tlinux_Linux
