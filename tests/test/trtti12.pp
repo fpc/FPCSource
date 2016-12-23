@@ -27,7 +27,7 @@ begin
   if id.Terminator <> nil then
     Halt(1);
 
-  if td.ManagedFldCount <> 6 then
+  if td.TotalFieldCount <> 6 then
     Halt(2);
 
   if id.ManagedFieldCount <> 3 then

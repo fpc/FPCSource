@@ -306,8 +306,10 @@ unit typinfo;
                 RecInitInfo: Pointer; { points to TTypeInfo followed by init table }
 {$endif VER3_0}
                 RecSize: Integer;
-                ManagedFldCount: Integer;
-                {ManagedFields: array[1..ManagedFldCount] of TManagedField}
+                case Boolean of
+                  False: (ManagedFldCount: Integer deprecated 'Use RecInitData^.ManagedFieldCount or TotalFieldCount depending on your use case');
+                  True: (TotalFieldCount: Integer);
+                {ManagedFields: array[1..TotalFieldCount] of TManagedField}
               );
             tkHelper:
               (HelperParentRef : TypeInfoPtr;
