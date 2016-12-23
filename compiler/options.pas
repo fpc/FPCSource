@@ -4103,21 +4103,21 @@ begin
     if i in features then
       def_system_macro('FPC_HAS_FEATURE_'+featurestr[i]);
 
-   if ControllerSupport and (target_info.system in systems_embedded) and
-     (init_settings.controllertype<>ct_none) then
-     begin
-       with embedded_controllers[init_settings.controllertype] do
-         begin
-           set_system_macro('FPC_FLASHBASE',tostr(flashbase));
-           set_system_macro('FPC_FLASHSIZE',tostr(flashsize));
-           set_system_macro('FPC_SRAMBASE',tostr(srambase));
-           set_system_macro('FPC_SRAMSIZE',tostr(sramsize));
-           set_system_macro('FPC_EEPROMBASE',tostr(eeprombase));
-           set_system_macro('FPC_EEPROMSIZE',tostr(eepromsize));
-           set_system_macro('FPC_BOOTBASE',tostr(bootbase));
-           set_system_macro('FPC_BOOTSIZE',tostr(bootsize));
-         end;
-     end;
+  if ControllerSupport and (target_info.system in systems_embedded) and
+    (init_settings.controllertype<>ct_none) then
+    begin
+      with embedded_controllers[init_settings.controllertype] do
+        begin
+          set_system_macro('FPC_FLASHBASE',tostr(flashbase));
+          set_system_macro('FPC_FLASHSIZE',tostr(flashsize));
+          set_system_macro('FPC_SRAMBASE',tostr(srambase));
+          set_system_macro('FPC_SRAMSIZE',tostr(sramsize));
+          set_system_macro('FPC_EEPROMBASE',tostr(eeprombase));
+          set_system_macro('FPC_EEPROMSIZE',tostr(eepromsize));
+          set_system_macro('FPC_BOOTBASE',tostr(bootbase));
+          set_system_macro('FPC_BOOTSIZE',tostr(bootsize));
+        end;
+    end;
 
   option.free;
   Option:=nil;
