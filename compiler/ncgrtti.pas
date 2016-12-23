@@ -686,15 +686,18 @@ implementation
                 dointeger(tkInt64);
             u64bit :
                 dointeger(tkQWord);
-            pasbool8:
+            pasbool8,
+            pasbool16,
+            pasbool32,
+            pasbool64:
                 dointeger(tkBool);
             { use different low/high values to be Delphi compatible }
             bool8bit,
             bool16bit,
             bool32bit:
-                doint32_64(tkInteger,longint(low(longint)),longint(high(longint)));
+                doint32_64(tkBool,longint(low(longint)),longint(high(longint)));
             bool64bit:
-                doint32_64(tkInteger,low(int64),high(int64));
+                doint32_64(tkBool,low(int64),high(int64));
             uchar:
                 dointeger(tkChar);
             uwidechar:
