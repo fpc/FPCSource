@@ -279,8 +279,10 @@ unit typinfo;
                         {EnumUnitName: ShortString;})
                     );
 {$ifndef VER3_0}
+                  {tkBool with OrdType=otSQWord }
                   tkInt64:
                     (MinInt64Value, MaxInt64Value: Int64);
+                  {tkBool with OrdType=otUQWord }
                   tkQWord:
                     (MinQWordValue, MaxQWordValue: QWord);
 {$endif VER3_0}
