@@ -622,7 +622,7 @@ implementation
 
         procedure orddef_rtti(def:torddef);
 
-          procedure dointeger(typekind: byte);
+          procedure doint32_64(typekind: byte;min,max:int64);
             const
               trans : array[tordtype] of byte =
                 (otUByte{otNone},
@@ -657,22 +657,27 @@ implementation
             case trans[def.ordtype] of
               otUQWord:
                 begin
-                  tcb.emit_ord_const(def.low.uvalue,u64inttype);
-                  tcb.emit_ord_const(int64(def.high.uvalue),u64inttype);
+                  tcb.emit_ord_const(min,u64inttype);
+                  tcb.emit_ord_const(max,u64inttype);
                 end;
               otSQWord:
                 begin
-                  tcb.emit_ord_const(def.low.svalue,s64inttype);
-                  tcb.emit_ord_const(def.high.svalue,s64inttype);
+                  tcb.emit_ord_const(min,s64inttype);
+                  tcb.emit_ord_const(max,s64inttype);
                 end;
               else
                 begin
-                  tcb.emit_ord_const(longint(def.low.svalue),s32inttype);
-                  tcb.emit_ord_const(longint(def.high.svalue),s32inttype);
+                  tcb.emit_ord_const(longint(min),s32inttype);
+                  tcb.emit_ord_const(longint(max),s32inttype);
                 end;
             end;
             tcb.end_anonymous_record;
             tcb.end_anonymous_record;
+          end;
+
+        procedure dointeger(typekind:byte);inline;
+          begin
+            doint32_64(typekind,int64(def.low.svalue),int64(def.high.svalue));
           end;
 
         begin
@@ -683,6 +688,11 @@ implementation
                 dointeger(tkQWord);
             pasbool8:
                 dointeger(tkBool);
+            { use different low/high values to be Delphi compatible }
+            bool8bit,
+            bool16bit,
+            bool32bit:
+                doint32_64(tkInteger,longint(low(longint)),longint(high(longint)));
             uchar:
                 dointeger(tkChar);
             uwidechar:
