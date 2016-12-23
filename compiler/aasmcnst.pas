@@ -1679,21 +1679,23 @@ implementation
    procedure ttai_typedconstbuilder.emit_guid_const(const guid: tguid);
      var
        i: longint;
+       field: tfieldvarsym;
      begin
        maybe_begin_aggregate(rec_tguid);
        { variant record -> must specify which fields get initialised }
-       next_field:=tfieldvarsym(rec_tguid.symtable.symlist[0]);
+       next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA1'));
        emit_tai(Tai_const.Create_32bit(longint(guid.D1)),u32inttype);
-       next_field:=tfieldvarsym(rec_tguid.symtable.symlist[1]);
+       next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA2'));
        emit_tai(Tai_const.Create_16bit(guid.D2),u16inttype);
-       next_field:=tfieldvarsym(rec_tguid.symtable.symlist[2]);
+       next_field:=tfieldvarsym(rec_tguid.symtable.Find('DATA3'));
        emit_tai(Tai_const.Create_16bit(guid.D3),u16inttype);
-       next_field:=tfieldvarsym(rec_tguid.symtable.symlist[3]);
+       field:=tfieldvarsym(rec_tguid.symtable.Find('DATA4'));
+       next_field:=field;
        { the array }
-       maybe_begin_aggregate(tfieldvarsym(rec_tguid.symtable.symlist[3]).vardef);
+       maybe_begin_aggregate(field.vardef);
        for i:=Low(guid.D4) to High(guid.D4) do
          emit_tai(Tai_const.Create_8bit(guid.D4[i]),u8inttype);
-       maybe_end_aggregate(tfieldvarsym(rec_tguid.symtable.symlist[3]).vardef);
+       maybe_end_aggregate(field.vardef);
        maybe_end_aggregate(rec_tguid);
      end;
 
