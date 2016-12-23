@@ -628,8 +628,8 @@ implementation
                 (otUByte{otNone},
                  otUByte,otUWord,otULong,otUQWord,otUByte{otNone},
                  otSByte,otSWord,otSLong,otSQWord,otUByte{otNone},
-                 otUByte,otUWord,otULong,otUByte,
-                 otSByte,otSWord,otSLong,otSByte,
+                 otUByte,otUWord,otULong,otUQWord,
+                 otSByte,otSWord,otSLong,otSQWord,
                  otUByte,otUWord,otUByte);
             var
               elesize: string[1];
@@ -693,6 +693,8 @@ implementation
             bool16bit,
             bool32bit:
                 doint32_64(tkInteger,longint(low(longint)),longint(high(longint)));
+            bool64bit:
+                doint32_64(tkInteger,low(int64),high(int64));
             uchar:
                 dointeger(tkChar);
             uwidechar:
