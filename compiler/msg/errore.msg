@@ -3007,7 +3007,7 @@ link_e_com_program_uses_segment_relocations=09207_E_Cannot create a .COM file, b
 % might be caused by the use of the Seg() function or by the SEG assembler
 % directive (either in pascal's built-in inline assembler, or in an externally
 % linked assembly module).
-link_w_program_uses_checkpointer=09208_W_Program "$1" uses experimental CheckPointer function
+link_w_program_uses_checkpointer=09208_W_Program "$1" uses experimental CheckPointer option
 %\end{description}
 # EndOfTeX
 
