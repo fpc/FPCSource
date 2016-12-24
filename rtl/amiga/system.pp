@@ -115,9 +115,6 @@ implementation
 
 {$I system.inc}
 {$I osdebug.inc}
-{$ifdef cpum68k}
-{$I m68kamiga.inc}
-{$endif}
 
 {$IFDEF AMIGAOS4}
   // Required to allow opening of utility library interface...
@@ -318,6 +315,9 @@ begin
 { Setup heap }
   InitHeap;
   SysInitExceptions;
+{$ifdef cpum68k}
+  fpc_cpucodeinit;
+{$endif}
   initunicodestringmanager;
 { Setup stdin, stdout and stderr }
   SysInitStdIO;

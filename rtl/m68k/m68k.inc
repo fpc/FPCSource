@@ -371,7 +371,7 @@ asm
 end;
 {$endif}
 
-{$IFNDEF HASAMIGA}
+{$IFNDEF FPC_SYSTEM_HAS_INTERLOCKEDFUNCS}
 function InterLockedDecrement (var Target: longint) : longint;
   begin
   {$warning FIX ME}
@@ -411,7 +411,16 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
     if Target = Comperand then
       Target := NewValue;
   end;
-{$ENDIF HASAMIGA}
+{$ENDIF FPC_SYSTEM_HAS_INTERLOCKEDFUNCS}
+
+{$ifndef FPC_SYSTEM_HAS_TEST68K}
+procedure Test68k(var CPU: byte; var FPU: byte);
+begin
+  {$warning Implement me!}
+  CPU:=0;
+  FPU:=0;
+end;
+{$endif}
 
 {$if defined(CPUM68K_HAS_BYTEREV) or defined(CPUM68K_HAS_ROLROR)}
 { Disabled for now, because not all cases below were tested. (KB) }
@@ -585,3 +594,8 @@ asm
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_SWAPENDIAN}
+
+procedure fpc_cpucodeinit;
+  begin
+    Test68k(Test68000,Test68881);
+  end;
