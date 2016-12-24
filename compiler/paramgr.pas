@@ -425,7 +425,10 @@ implementation
               LOC_REGISTER :
                 begin
                   if (vo_has_explicit_paraloc in parasym.varoptions) and (paraloc^.loc = LOC_REGISTER) then
-                    newparaloc^.register:=paraloc^.register
+                    if getregtype(paraloc^.register) = R_ADDRESSREGISTER then
+                      newparaloc^.register:=cg.getaddressregister(list)
+                    else
+                      newparaloc^.register:=cg.getintregister(list,paraloc^.size)
                   else
                     begin
                       {$ifdef cpu_uses_separate_address_registers}
