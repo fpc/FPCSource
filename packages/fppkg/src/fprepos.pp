@@ -46,7 +46,7 @@ type
     function GetBuildPathDirectory(APackage: TFPPackage): string; virtual;
     function GetPrefix: string; virtual;
     function GetBaseInstallDir: string; virtual;
-    function GetConfigFileForPackage(APackageName: string): string; virtual;
+    function GetConfigFileForPackage(APackage: TFPPackage): string; virtual;
     function UnzipBeforeUse: Boolean; virtual;
     function IsInstallationNeeded(APackage: TFPPackage): TFPInstallationNeeded; virtual;
     property InstallRepositoryName: string read GetInstallRepositoryName write SetInstallRepositoryName;
@@ -96,6 +96,7 @@ type
     FDescription: String;
     FEmail: String;
     FFPMakeOptionsString: string;
+    FFPMakePluginUnits: string;
     FKeywords: String;
     FSourcePath: string;
     FIsFPMakeAddIn: boolean;
@@ -149,6 +150,7 @@ type
     Property Email : String Read FEmail Write FEmail;
     Property Checksum : Cardinal Read FChecksum Write FChecksum;
     Property IsFPMakeAddIn : boolean read FIsFPMakeAddIn write FIsFPMakeAddIn;
+    Property FPMakePluginUnits: string read FFPMakePluginUnits write FFPMakePluginUnits;
     // These properties are used to re-compile the package, when it's dependencies are changed.
     Property SourcePath : string read FSourcePath write FSourcePath;
     Property FPMakeOptionsString : string read FFPMakeOptionsString write FFPMakeOptionsString;
@@ -303,6 +305,7 @@ const
   KeyNeedLibC = 'NeedLibC';
   KeyDepends  = 'Depends';
   KeyAddIn    = 'FPMakeAddIn';
+  KeyPluginUnits = 'PluginUnits';
   KeySourcePath = 'SourcePath';
   KeyFPMakeOptions = 'FPMakeOptions';
   KeyCPU      = 'CPU';
@@ -361,10 +364,10 @@ begin
   raise Exception.Create('It is not possible to install into this repository.');
 end;
 
-function TFPCustomPackagesStructure.GetConfigFileForPackage(APackageName: string): string;
+function TFPCustomPackagesStructure.GetConfigFileForPackage(APackage: TFPPackage): string;
 begin
   Result := IncludeTrailingPathDelimiter(GetBaseInstallDir)+
-    'fpmkinst'+PathDelim+GFPpkg.CompilerOptions.CompilerTarget+PathDelim+APackageName+FpmkExt;
+    'fpmkinst'+PathDelim+GFPpkg.CompilerOptions.CompilerTarget+PathDelim+APackage.Name+FpmkExt;
 end;
 
 function TFPCustomPackagesStructure.UnzipBeforeUse: Boolean;
@@ -591,6 +594,7 @@ begin
       FreeAndNil(L2);
       //NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
       IsFPMakeAddIn:=Upcase(Values[KeyAddIn])='Y';
+      FPMakePluginUnits:=Values[KeyPluginUnits];
     end;
 end;
 

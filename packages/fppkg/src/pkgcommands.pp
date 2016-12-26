@@ -389,19 +389,19 @@ var
   P   : TFPPackage;
   InstallRepo: TFPRepository;
 
-  function GetFpmFilename: string;
+  function GetFpmFilename(APackage: TFPPackage): string;
   var
     ConfFile: string;
   begin
     Result := '';
     if Assigned(InstallRepo.DefaultPackagesStructure) then
       begin
-        ConfFile := InstallRepo.DefaultPackagesStructure.GetConfigFileForPackage(s);
+        ConfFile := InstallRepo.DefaultPackagesStructure.GetConfigFileForPackage(APackage);
         if not FileExistsLog(ConfFile) then
           begin
             // If there is no fpm-file, search for an (obsolete, pre-2.7.x)
             // fpunits.cfg-file
-            ConfFile := IncludeTrailingPathDelimiter(Result)+S+PathDelim+UnitConfigFileName;
+            ConfFile := IncludeTrailingPathDelimiter(Result)+APackage.Name+PathDelim+UnitConfigFileName;
             if FileExistsLog(ConfFile) then
               Result := ConfFile;
           end
@@ -449,7 +449,7 @@ begin
             P := InstallRepo.AddPackage(S);
           if Assigned(P) then
             begin
-              UFN:=GetFpmFilename;
+              UFN:=GetFpmFilename(P);
               if UFN<>'' then
                 begin
                   P.LoadUnitConfigFromFile(UFN);

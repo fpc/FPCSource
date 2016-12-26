@@ -24,11 +24,12 @@ Const
 
 Type
   TFPMKUnitDep=record
-    package  : string[12];
-    reqver   : string[8];
-    undef    : string[32];
-    def      : string[32];
-    available: boolean;
+    package    : string[12];
+    reqver     : string[8];
+    undef      : string[32];
+    def        : string[32];
+    PluginUnit : string[64];
+    available  : boolean;
   end;
 
 Const

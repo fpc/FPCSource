@@ -592,6 +592,7 @@ Type
     FBeforeClean: TNotifyEvent;
     FBeforeCompile: TNotifyEvent;
     FCPUs: TCPUs;
+    FIsFPMakePlugin: Boolean;
     FOSes: TOSes;
     FMode: TCompilerMode;
     FResourceStrings: Boolean;
@@ -656,6 +657,7 @@ Type
     Property UnitPath : TConditionalStrings Read FUnitPath;
     Property IncludePath : TConditionalStrings Read FIncludePath;
     Property XML: string Read FXML Write SetXML;
+    Property IsFPMakePlugin : Boolean read FIsFPMakePlugin write FIsFPMakePlugin;
     // Events.
     Property BeforeCompile : TNotifyEvent Read FBeforeCompile Write FBeforeCompile;
     Property AfterCompile : TNotifyEvent Read FAfterCompile Write FAfterCompile;
@@ -885,7 +887,7 @@ Type
     Property CleanFiles : TConditionalStrings Read FCleanFiles;
     Property Dependencies : TDependencies Read FDependencies;
     Property Commands : TCommands Read FCommands;
-    Property State : TTargetState Read FTargetState;
+    Property State : TTargetState Read FTargetState Write FTargetState;
     Property Targets : TTargets Read FTargets;
     Property Sources : TSources Read FSources;
     Property UnitDir : String Read FUnitDir Write FUnitDir;
@@ -1332,6 +1334,46 @@ Type
 
 {$endif NO_THREADING}
 
+  { TfpmPlugin }
+
+  TfpmPlugin = class
+  protected
+    function GetName: string; virtual;
+  public
+    property Name: string read GetName;
+
+    procedure BeforeResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage; out AContinue: Boolean); virtual;
+    procedure ResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage; SearchDirectory: string; out AContinue: Boolean); virtual;
+    procedure AfterResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage; out AContinue: Boolean); virtual;
+  end;
+  TfpmPluginClass = class of TfpmPlugin;
+
+  { TfpmPluginManager }
+
+  TfpmPluginManager = class(TfpmPlugin)
+  private
+    FPlugins: array of TfpmPlugin;
+  public
+    destructor Destroy; override;
+    procedure RegisterPlugin(APlugin: TfpmPluginClass);
+
+    procedure BeforeResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage; out AContinue: Boolean); override;
+    procedure ResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage; SearchPath: string; out AContinue: Boolean); override;
+    procedure AfterResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage; out AContinue: Boolean); override;
+  end;
+
+  { TfpmResolvePackagePathsPlugin }
+
+  TfpmResolvePackagePathsPlugin = class(TfpmPlugin)
+  private
+    procedure ResolveUnitConfigFilenameForBasePath(ABuildEngine: TBuildEngine; APackage: TPackage; ABasePath: string;
+      out AContinue: Boolean);
+  public
+    procedure BeforeResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage; out AContinue: Boolean); override;
+    procedure ResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage; SearchPath: string;
+      out AContinue: Boolean); override;
+  end;
+
   ECollectionError = Class(Exception);
   EDictionaryError = Class(Exception);
   EInstallerError = Class(Exception);
@@ -1386,6 +1428,8 @@ Function GetImportLibraryFilename(const UnitName: string; AOS : TOS) : string;
 procedure SearchFiles(AFileName, ASearchPathPrefix: string; Recursive: boolean; var List: TStrings);
 function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): string;
 
+function GetPluginManager: TfpmPluginManager;
+
 Implementation
 
 uses typinfo, rtlconsts;
@@ -1400,6 +1444,10 @@ const
 {$else CREATE_TAR_FILE}
   ArchiveExtension = '.zip';
 {$endif CREATE_TAR_FILE}
+
+var
+  GPluginManager: TfpmPluginManager;
+
 
 {----------------- from strutils ---------------------}
 
@@ -1730,6 +1778,7 @@ Const
   KeyTarget   = 'Target';
   KeyNoFPCCfg = 'NoFPCCfg';
   KeyUseEnv   = 'UseEnv';
+  KeyPluginUnits        = 'PluginUnits';
   KeyLocalUnitDir       = 'LocalUnitDir';
   KeyGlobalUnitDir      = 'GlobalUnitDir';
   KeyBaseInstallDir     = 'BaseInstallDir';
@@ -2694,6 +2743,162 @@ begin
       { this target uses clang }
       aarch64:  result := ''
     end; {case}
+end;
+
+function GetPluginManager: TfpmPluginManager;
+begin
+  if not assigned(GPluginManager) then
+    GPluginManager := TfpmPluginManager.Create;
+  Result := GPluginManager;
+end;
+
+{ TfpmResolvePackagePathsPlugin }
+
+procedure TfpmResolvePackagePathsPlugin.ResolveUnitConfigFilenameForBasePath(
+  ABuildEngine: TBuildEngine; APackage: TPackage; ABasePath: string;
+  out AContinue: Boolean);
+var
+  IsPackageSourceLocation: boolean;
+  ASubDir: string;
+  AnUnitConfigFilename: string;
+  PackageBaseDir: string;
+begin
+  if APackage.State=tsNotFound then
+    // When the state is tsNotFound, the package is not part of this fpmake, and only the package-name is known.
+    // In this case search for the package-name.
+    // This is not right for packages where the package-name and directory name of the source-files are
+    // not the same. We don't have a better option, though.
+    ASubDir:=APackage.Name
+  else
+    ASubDir:=APackage.Directory;
+
+  IsPackageSourceLocation:=FileExists(IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath)+ASubDir)+FPMakePPFile);
+  if IsPackageSourceLocation then
+    begin
+      PackageBaseDir:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath)+ASubDir);
+      AnUnitConfigFileName:=PackageBaseDir+APackage.GetUnitConfigOutputFilename(Defaults.CPU,Defaults.OS);
+      PackageBaseDir:=IncludeTrailingPathDelimiter(PackageBaseDir+APackage.GetUnitsOutputDir(defaults.CPU, Defaults.OS));
+    end
+  else
+    begin
+      PackageBaseDir:=IncludeTrailingPathDelimiter(ABasePath);
+      AnUnitConfigFileName:=IncludeTrailingPathDelimiter(ABuildEngine.GetUnitConfigFilesInstallDir(ABasePath))+APackage.Name+FpmkExt;
+      PackageBaseDir:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath)+APackage.GetUnitsOutputDir(Defaults.CPU, Defaults.OS))+APackage.Name;
+    end;
+
+  if (PackageBaseDir<>'') and ABuildEngine.SysDirectoryExists(PackageBaseDir) then
+    begin
+      AContinue := False;
+      APackage.UnitDir:=PackageBaseDir;
+      if IsPackageSourceLocation then
+        // Set the state to tsNoCompile and not tsCompiled. Because packages
+        // in the tsCompiled state trigger a rebuild of packages that depend
+        // on it.
+        APackage.FTargetState:=tsNoCompile
+      else if not (APackage.FTargetState in [tsCompiled, tsNoCompile]) then
+        APackage.FTargetState:=tsInstalled; // als installed, afdwingen dat unitconfigfile bestaat! werkt niet - zie rtl
+      AnUnitConfigFilename:=APackage.Dictionary.ReplaceStrings(AnUnitConfigFilename);
+      if FileExists(AnUnitConfigFilename) then
+        APackage.UnitConfigFileName:=AnUnitConfigFilename;
+    end
+  else
+    AContinue := True;
+end;
+
+procedure TfpmResolvePackagePathsPlugin.BeforeResolvePackagePath(ABuildEngine: TBuildEngine;
+  APackage: TPackage; out AContinue: Boolean);
+begin
+  if (APackage.State in [tsCompiled, tsNoCompile, tsInstalled]) then
+    ResolveUnitConfigFilenameForBasePath(ABuildEngine, APackage, ABuildEngine.StartDir, AContinue)
+  else
+    AContinue := True;
+end;
+
+procedure TfpmResolvePackagePathsPlugin.ResolvePackagePath(ABuildEngine: TBuildEngine;
+  APackage: TPackage; SearchPath: string; out AContinue: Boolean);
+begin
+  ResolveUnitConfigFilenameForBasePath(ABuildEngine, APackage, SearchPath, AContinue)
+end;
+
+{ TfpmPlugin }
+
+function TfpmPlugin.GetName: string;
+begin
+  Result := ClassName;
+end;
+
+procedure TfpmPlugin.BeforeResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage;
+  out AContinue: Boolean);
+begin
+  AContinue := True;
+end;
+
+procedure TfpmPlugin.ResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage;
+  SearchDirectory: string; out AContinue: Boolean);
+begin
+  AContinue := True;
+end;
+
+procedure TfpmPlugin.AfterResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage;
+  out AContinue: Boolean);
+begin
+  AContinue := True;
+end;
+
+{ TfpmPluginManager }
+
+destructor TfpmPluginManager.Destroy;
+var
+  i: Integer;
+begin
+  for i := 0 to High(FPlugins) do
+    FPlugins[i].Free;
+  inherited Destroy;
+end;
+
+procedure TfpmPluginManager.RegisterPlugin(APlugin: TfpmPluginClass);
+begin
+  SetLength(FPlugins, Length(FPlugins)+1);
+  FPlugins[high(FPlugins)] := APlugin.Create;
+end;
+
+procedure TfpmPluginManager.BeforeResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage;
+  out AContinue: Boolean);
+var
+  i: Integer;
+begin
+  for i := 0 to high(FPlugins) do
+    begin
+      FPlugins[i].BeforeResolvePackagePath(ABuildEngine, APackage, AContinue);
+      if not AContinue then
+        Exit;
+    end;
+end;
+
+procedure TfpmPluginManager.ResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage;
+  SearchPath: string; out AContinue: Boolean);
+var
+  i: Integer;
+begin
+  for i := 0 to high(FPlugins) do
+    begin
+      FPlugins[i].ResolvePackagePath(ABuildEngine, APackage, SearchPath, AContinue);
+      if not AContinue then
+        Exit;
+    end;
+end;
+
+procedure TfpmPluginManager.AfterResolvePackagePath(ABuildEngine: TBuildEngine; APackage: TPackage;
+  out AContinue: Boolean);
+var
+  i: Integer;
+begin
+  for i := 0 to high(FPlugins) do
+    begin
+      FPlugins[i].AfterResolvePackagePath(ABuildEngine, APackage, AContinue);
+      if not AContinue then
+        Exit;
+    end;
 end;
 
 constructor TPackageVariant.Create(ACollection: TCollection);
@@ -3826,6 +4031,7 @@ Var
   p : TPackage;
   PackageVariants : TPackageVariants;
   PackageVariantsStr: string;
+  s: string;
 begin
   with AStringList do
     begin
@@ -3864,6 +4070,20 @@ begin
         Values[KeyAddIn]:='Y'
       else
         Values[KeyAddIn]:='N';
+
+      s := '';
+      for i := 0 to FTargets.Count-1 do
+        begin
+          if FTargets.TargetItems[i].IsFPMakePlugin then
+            begin
+              if s <> '' then
+                s := s + ',';
+              s := s + FTargets.TargetItems[i].Name;
+            end;
+        end;
+      if s<>'' then
+        Values[KeyPluginUnits]:=s;
+
       for i := 0 to FPackageVariants.Count-1 do
         begin
           PackageVariants := TPackageVariants(FPackageVariants.Items[i]);
@@ -6025,75 +6245,29 @@ end;
 
 procedure TBuildEngine.ResolvePackagePaths(APackage:TPackage);
 
-  procedure ResolveUnitConfigFilenameForBasePath(ABasePath: string);
-  var
-    IsPackageSourceLocation: boolean;
-    ASubDir: string;
-    AnUnitConfigFilename: string;
-    PackageBaseDir: string;
-  begin
-    if APackage.State=tsNotFound then
-      // When the state is tsNotFound, the package is not part of this fpmake, and only the package-name is known.
-      // In this case search for the package-name.
-      // This is not right for packages where the package-name and directory name of the source-files are
-      // not the same. We don't have a better option, though.
-      ASubDir:=APackage.Name
-    else
-      ASubDir:=APackage.Directory;
-
-    IsPackageSourceLocation:=FileExists(IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath)+ASubDir)+FPMakePPFile);
-    if IsPackageSourceLocation then
-      begin
-        PackageBaseDir:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath)+ASubDir);
-        AnUnitConfigFileName:=PackageBaseDir+APackage.GetUnitConfigOutputFilename(Defaults.CPU,Defaults.OS);
-        PackageBaseDir:=IncludeTrailingPathDelimiter(PackageBaseDir+APackage.GetUnitsOutputDir(defaults.CPU, Defaults.OS));
-      end
-    else
-      begin
-        PackageBaseDir:=IncludeTrailingPathDelimiter(ABasePath);
-        AnUnitConfigFileName:=IncludeTrailingPathDelimiter(GetUnitConfigFilesInstallDir(ABasePath))+APackage.Name+FpmkExt;
-        PackageBaseDir:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath)+APackage.GetUnitsOutputDir(Defaults.CPU, Defaults.OS))+APackage.Name;
-      end;
-
-    if (PackageBaseDir<>'') and SysDirectoryExists(PackageBaseDir) then
-      begin
-        APackage.UnitDir:=PackageBaseDir;
-        if IsPackageSourceLocation then
-          // Set the state to tsNoCompile and not tsCompiled. Because packages
-          // in the tsCompiled state trigger a rebuild of packages that depend
-          // on it.
-          APackage.FTargetState:=tsNoCompile
-        else if not (APackage.FTargetState in [tsCompiled, tsNoCompile]) then
-          APackage.FTargetState:=tsInstalled;
-        AnUnitConfigFilename:=APackage.Dictionary.ReplaceStrings(AnUnitConfigFilename);
-        if FileExists(AnUnitConfigFilename) then
-          APackage.UnitConfigFileName:=AnUnitConfigFilename;
-      end;
-  end;
-
 var
   i: Integer;
+  Continue: Boolean;
 begin
   if APackage.UnitDir='' then
     begin
-      // Retrieve Full directory name where to find the units.
-      // The search order is:
-      //  - Package in this fpmake.pp
-      //  - SearchPath, first paths first.
-      if (APackage.State in [tsCompiled, tsNoCompile, tsInstalled]) then
-        ResolveUnitConfigFilenameForBasePath(FStartDir);
-      if (APackage.UnitDir='') then
+      GetPluginManager.BeforeResolvePackagePath(Self, APackage, Continue);
+      if Continue then
         begin
-          for I := 0 to Defaults.SearchPath.Count-1 do
-            begin
-              if Defaults.SearchPath[i]<>'' then
-                ResolveUnitConfigFilenameForBasePath(Defaults.SearchPath[i]);
-              if (APackage.UnitDir<>'') then
-                Break
-            end;
+        for I := 0 to Defaults.SearchPath.Count-1 do
+          begin
+            if Defaults.SearchPath[i]<>'' then
+              GetPluginManager.ResolvePackagePath(Self, APackage, Defaults.SearchPath[i], Continue);
+            if not Continue then
+              Break
+          end;
+
+        if Continue then
+          GetPluginManager.AfterResolvePackagePath(Self, APackage, Continue);
         end;
-      if (APackage.UnitDir='') then
-        APackage.UnitDir:=DirNotFound;
+
+      if APackage.UnitDir = '' then
+        APackage.UnitDir := DirNotFound
     end;
 end;
 
@@ -8805,11 +8979,14 @@ Initialization
   CustomFpmakeCommandlineOptions:=nil;
   CustomFpMakeCommandlineValues:=nil;
 
+  GetPluginManager.RegisterPlugin(TfpmResolvePackagePathsPlugin);
+
 Finalization
   FreeAndNil(CustomFpMakeCommandlineValues);
   FreeAndNil(CustomFpmakeCommandlineOptions);
   FreeAndNil(DefInstaller);
   FreeAndNil(GlobalDictionary);
   FreeAndNil(Defaults);
+  FreeAndNil(GPluginManager);
 end.
 

@@ -61,7 +61,7 @@ type
     function AddPackagesToRepository(ARepository: TFPRepository): Boolean; override;
     function IsInstallationNeeded(APackage: TFPPackage): TFPInstallationNeeded; override;
     function GetBaseInstallDir: string; override;
-    function GetConfigFileForPackage(APackageName: string): string; override;
+    function GetConfigFileForPackage(APackage: TFPPackage): string; override;
     property SourceRepositoryName: string read FSourceRepositoryName write FSourceRepositoryName;
   end;
 
@@ -140,10 +140,14 @@ begin
   Result := FPath;
 end;
 
-function TFPUninstalledSourcesPackagesStructure.GetConfigFileForPackage(APackageName: string): string;
+function TFPUninstalledSourcesPackagesStructure.GetConfigFileForPackage(APackage: TFPPackage): string;
 begin
-  Result := IncludeTrailingPathDelimiter(GetBaseInstallDir)+
-    APackageName+PathDelim+APackageName+'-'+GFPpkg.CompilerOptions.CompilerTarget+FpmkExt;
+  if APackage.SourcePath<>'' then
+    Result := IncludeTrailingPathDelimiter(APackage.SourcePath)
+  else
+    Result := IncludeTrailingPathDelimiter(GetBaseInstallDir)+APackage.Name+PathDelim;
+
+  Result := Result +APackage.Name+'-'+GFPpkg.CompilerOptions.CompilerTarget+FpmkExt;
 end;
 
 { TFppkgUninstalledRepositoryOptionSection }

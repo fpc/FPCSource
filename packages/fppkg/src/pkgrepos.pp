@@ -199,6 +199,7 @@ begin
   FPMKUnitDeps[high(FPMKUnitDeps)].package:=APackage.Name;
   FPMKUnitDeps[high(FPMKUnitDeps)].reqver:=APackage.Version.AsString;
   FPMKUnitDeps[high(FPMKUnitDeps)].def:='HAS_PACKAGE_'+APackage.Name;
+  FPMKUnitDeps[high(FPMKUnitDeps)].PluginUnit:=APackage.FPMakePluginUnits;
   FPMKUnitDeps[high(FPMKUnitDeps)].available:=true;
 end;
 

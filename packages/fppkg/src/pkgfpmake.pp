@@ -200,6 +200,8 @@ begin
                 Error(SErrMissingInstallPackage,[FPMKUnitDeps[i].package]);
               if FPMKUnitDeps[i].def<>'' then
                 AddOption('-d'+FPMKUnitDeps[i].def);
+              if FPMKUnitDeps[i].PluginUnit<>'' then
+                AddOption('-Fa'+FPMKUnitDeps[i].PluginUnit);
             end
           else
             begin
