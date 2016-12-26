@@ -34,7 +34,7 @@ const
     LineEnding = #13#10;
     LFNSupport = false;
     CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
-    DirectorySeparator = '/';
+    DirectorySeparator = '\';
     DriveSeparator = ':';
     ExtensionSeparator = '.';
     PathSeparator = ';';
