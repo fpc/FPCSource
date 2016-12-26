@@ -121,4 +121,4 @@ procedure gemdos_pterm(returncode: smallint); syscall 1 76;
 function gemdos_fsfirst(filename: pchar; attr: smallint): longint; syscall 1 78;
 function gemdos_fsnext: smallint; syscall 1 79;
 
-function gemdos_frename(oldname: pchar; newname: pchar): longint; syscall 1 86;
+function gemdos_frename(zero: word; oldname: pchar; newname: pchar): longint; syscall 1 86;

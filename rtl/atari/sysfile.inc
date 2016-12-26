@@ -55,7 +55,7 @@ begin
   DoDirSeparators(p1,p1changeable);
   DoDirSeparators(p2,p2changeable);
 
-  dosResult:=gemdos_frename(p1,p2);
+  dosResult:=gemdos_frename(0,p1,p2);
   if dosResult < 0 then
     Error2InOutRes(dosResult);
 
