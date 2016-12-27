@@ -89,6 +89,12 @@ type
         b_clsiz: dword;       {* Sector per cluster       *}
     end;
 
+type
+    PDOSTIME = ^TDOSTIME;
+    TDOSTIME = record
+        time: word;           {* Time like Tgettime *}
+        date: word;           {* Date like Tgetdate *}
+    end;
 
 function gemdos_dsetdrv(drv: smallint): longint; syscall 1 14;
 
@@ -122,3 +128,4 @@ function gemdos_fsfirst(filename: pchar; attr: smallint): longint; syscall 1 78;
 function gemdos_fsnext: smallint; syscall 1 79;
 
 function gemdos_frename(zero: word; oldname: pchar; newname: pchar): longint; syscall 1 86;
+procedure gemdos_fdatime(timeptr: PDOSTIME; handle: smallint; wflag: smallint); syscall 1 87;

@@ -54,6 +54,7 @@ uses
 {$i sysutils.inc}
 
 
+{$i gemdos.inc}
 
 
 
@@ -67,41 +68,66 @@ uses
 
 function FileOpen(const FileName: rawbytestring; Mode: Integer): THandle;
 begin
+  { Mode has some Share modes. Maybe something for MiNT? }
+  { Lower three bits of Mode are actually TOS compatible }
+  FileOpen:=gemdos_fopen(pchar(FileName), Mode and 3);
+  if FileOpen < -1 then
+    FileOpen:=-1;
 end;
 
 
 function FileGetDate(Handle: THandle) : LongInt;
+var
+  td: TDOSTIME;
 begin
-  result:=-1;
+  { Fdatime doesn't report errors... }
+  gemdos_fdatime(@td,handle,0);
+  LongRec(result).hi:=td.date;
+  LongRec(result).lo:=td.time;
 end;
 
 
 function FileSetDate(Handle: THandle; Age: LongInt) : LongInt;
+var
+  td: TDOSTIME;
 begin
+  td.date:=LongRec(Age).hi;
+  td.time:=LongRec(Age).lo;
+  gemdos_fdatime(@td,handle,1);
+  { Fdatime doesn't report errors... }
   result:=0;
 end;
 
 
 function FileSetDate(const FileName: RawByteString; Age: LongInt) : LongInt;
+var
+  f: THandle;
 begin
-  result:=-1;
+  FileSetDate:=-1;
+  f:=FileOpen(FileName,fmOpenReadWrite);
+  if f < 0 then
+    exit;
+  FileSetDate(f,Age);
+  FileClose(f);
 end;
 
 
 function FileCreate(const FileName: RawByteString) : THandle;
 begin
-  result:=-1;
+  FileCreate:=gemdos_fcreate(pchar(FileName),0);
+  if FileCreate < -1 then
+    FileCreate:=-1;
 end;
 
 function FileCreate(const FileName: RawByteString; Rights: integer): THandle;
 begin
-  {$WARNING FIX ME! To do: FileCreate Access Modes}
+  { Rights are Un*x extension. Maybe something for MiNT? }
   FileCreate:=FileCreate(FileName);
 end;
 
 function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights : integer): THandle;
 begin
-  {$WARNING FIX ME! To do: FileCreate Access Modes}
+  { Rights and ShareMode are Un*x extension. Maybe something for MiNT? }
   FileCreate:=FileCreate(FileName);
 end;
 
@@ -109,34 +135,50 @@ end;
 function FileRead(Handle: THandle; out Buffer; Count: LongInt): LongInt;
 begin
   FileRead:=-1;
-  if (Count<=0) or (Handle=0) or (Handle=-1) then exit;
+  if (Count<=0) then
+    exit;
 
+  FileRead:=gemdos_fread(handle, count, @buffer);
+  if FileRead < -1 then
+    FileRead:=-1;
 end;
 
 
 function FileWrite(Handle: THandle; const Buffer; Count: LongInt): LongInt;
 begin
   FileWrite:=-1;
-  if (Count<=0) or (Handle=0) or (Handle=-1) then exit;
+  if (Count<=0) then 
+    exit;
 
+  FileWrite:=gemdos_fwrite(handle, count, @buffer);
+  if FileWrite < -1 then
+    FileWrite:=-1;
 end;
 
 
 function FileSeek(Handle: THandle; FOffset, Origin: LongInt) : LongInt;
+var
+  dosResult: longint;
 begin
   FileSeek:=-1;
+
+  { TOS seek mode flags are actually compatible to DOS/TP }
+  dosResult:=gemdos_fseek(FOffset, Handle, Origin);
+  if dosResult < 0 then
+    exit;
+
+  FileSeek:=dosResult;
 end;
 
 function FileSeek(Handle: THandle; FOffset: Int64; Origin: Longint): Int64;
 begin
-  FileSeek:=FileSeek(Handle,LongInt(FOffset),LongInt(Origin));
+  FileSeek:=FileSeek(Handle,LongInt(FOffset),Origin);
 end;
 
 
 procedure FileClose(Handle: THandle);
 begin
-  if (Handle=0) or (Handle=-1) then exit;
-
+  gemdos_fclose(handle);
 end;
 
 
@@ -148,11 +190,13 @@ end;
 
 function DeleteFile(const FileName: RawByteString) : Boolean;
 begin
+  DeleteFile:=gemdos_fdelete(pchar(FileName)) >= 0;
 end;
 
 
 function RenameFile(const OldName, NewName: RawByteString): Boolean;
 begin
+  RenameFile:=gemdos_frename(0,pchar(oldname),pchar(newname)) >= 0;
 end;
 
 
@@ -160,8 +204,15 @@ end;
 
 
 function FileAge (const FileName : RawByteString): Longint;
+var
+  f: THandle;
 begin
-  result:=-1;
+  FileAge:=-1;
+  f:=FileOpen(FileName,fmOpenRead);
+  if f < 0 then
+    exit;
+  FileAge:=FileGetDate(f);
+  FileClose(f);
 end;
 
 
@@ -171,20 +222,94 @@ begin
 end;
 
 
+type
+  PInternalFindData = ^TInternalFindData;
+  TInternalFindData = record
+    dta_original: pointer;
+    dta_search: TDTA;
+  end;
+
+
 Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
+var
+  dosResult: longint;
+  IFD: PInternalFindData;
 begin
   result:=-1; { We emulate Linux/Unix behaviour, and return -1 on errors. }
+
+  new(IFD);
+  IFD^.dta_original:=gemdos_getdta;
+  gemdos_setdta(@IFD^.dta_search);
+
+  Rslt.FindHandle:=nil;
+  dosResult:=gemdos_fsfirst(pchar(path), Attr and faAnyFile);
+  if dosResult < 0 then
+    begin
+      InternalFindClose(IFD);
+      exit;
+    end;
+
+  Rslt.FindHandle:=IFD;
+  with IFD^.dta_search do
+    begin
+      Name:=d_fname;
+      SetCodePage(Name,DefaultFileSystemCodePage,false);
+
+      LongRec(Rslt.Time).hi:=d_date;
+      LongRec(Rslt.Time).lo:=d_time;
+      Rslt.Size:=d_length;
+
+      { "128" is Windows "NORMALFILE" attribute. Some buggy code depend on this... :( (KB) }
+      Rslt.Attr := 128 or d_attrib;
+    end;
+
+  result:=0;
 end;
 
 
 Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
+var
+  dosResult: longint;
+  IFD: PInternalFindData;
 begin
   result:=-1;
+  IFD:=PInternalFindData(Rslt.FindHandle);
+  if not assigned(IFD) then
+    exit;
+
+  dosResult:=gemdos_fsnext;
+  if dosResult < 0 then
+    exit;
+
+  with IFD^.dta_search do
+    begin
+      Name:=d_fname;
+      SetCodePage(Name,DefaultFileSystemCodePage,false);
+
+      LongRec(Rslt.Time).hi:=d_date;
+      LongRec(Rslt.Time).lo:=d_time;
+      Rslt.Size:=d_length;
+
+      { "128" is Windows "NORMALFILE" attribute. Some buggy code depend on this... :( (KB) }
+      Rslt.Attr := 128 or d_attrib;
+    end;
+
+  result:=0;
 end;
 
 
-Procedure InternalFindClose(var Handle: THandle);
+Procedure InternalFindClose(var Handle: Pointer);
+var
+  IFD: PInternalFindData;
 begin
+  IFD:=PInternalFindData(Handle);
+  if not assigned(IFD) then
+    exit;
+
+  gemdos_setdta(IFD^.dta_original);
+
+  dispose(IFD);
+  IFD:=nil;
 end;
 
 
@@ -207,28 +332,32 @@ end;
                               Disk Functions
 ****************************************************************************}
 
-// New easier DiskSize()
-//
-function DiskSize(Drive: AnsiString): Int64;
-begin
-  DiskSize := -1;
-end;
-
 function DiskSize(Drive: Byte): Int64;
+var
+  dosResult: longint;
+  di: TDISKINFO;
 begin
   DiskSize := -1;
-end;
 
-// New easier DiskFree()
-//
-function DiskFree(Drive: AnsiString): Int64;
-begin
-  DiskFree := -1;
+  dosResult:=gemdos_dfree(@di,drive);
+  if dosResult < 0 then
+    exit;
+
+  DiskSize:=di.b_total * di.b_secsiz * di.b_clsiz;
 end;
 
 function DiskFree(Drive: Byte): Int64;
+var
+  dosResult: longint;
+  di: TDISKINFO;
 begin
   DiskFree := -1;
+
+  dosResult:=gemdos_dfree(@di,drive);
+  if dosResult < 0 then
+    exit;
+
+  DiskFree:=di.b_free * di.b_secsiz * di.b_clsiz;
 end;
 
 function DirectoryExists(const Directory: RawByteString): Boolean;
