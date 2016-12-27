@@ -217,8 +217,15 @@ end;
 
 
 function FileExists (const FileName : RawByteString) : Boolean;
+var
+  Attr: longint;
 begin
-  result:=false;
+  FileExists:=false;
+  Attr:=FileGetAttr(FileName);
+  if Attr < 0 then
+    exit;
+
+  result:=(Attr and (faVolumeID or faDirectory)) = 0;
 end;
 
 
@@ -317,13 +324,18 @@ end;
 
 Function FileGetAttr (Const FileName : RawByteString) : Longint;
 begin
-  FileGetAttr := -1
+  FileGetAttr:=gemdos_fattrib(pchar(FileName),0,0);
 end;
 
 
 Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 begin
-  FileSetAttr := -1;
+  FileSetAttr:=gemdos_fattrib(pchar(FileName),1,Attr and faAnyFile);
+
+  if FileSetAttr < -1 then
+    FileSetAttr:=-1
+  else
+    FileSetAttr:=0;
 end;
 
 
@@ -361,8 +373,15 @@ begin
 end;
 
 function DirectoryExists(const Directory: RawByteString): Boolean;
+var
+  Attr: longint;
 begin
-  result:=false;
+  DirectoryExists:=false;
+  Attr:=FileGetAttr(Directory);
+  if Attr < 0 then
+    exit;
+
+  result:=(Attr and faDirectory) <> 0;
 end;
 
 
