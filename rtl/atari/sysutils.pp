@@ -391,7 +391,12 @@ end;
 ****************************************************************************}
 
 Procedure GetLocalTime(var SystemTime: TSystemTime);
+var
+  TOSTime: Longint;
 begin
+   LongRec(TOSTime).hi:=gemdos_tgetdate;
+   LongRec(TOSTime).lo:=gemdos_tgettime;
+   DateTimeToSystemTime(FileDateToDateTime(TOSTime),SystemTime);
 end;
 
 
@@ -431,7 +436,7 @@ end;
 
 function GetLastOSError: Integer;
 begin
-    result:=-1;
+  result:=-1;
 end;
 
 {****************************************************************************
@@ -440,24 +445,33 @@ end;
 
 function GetPathString: String;
 begin
-   result := '';
+  {writeln('Unimplemented GetPathString');}
+  result := '';
 end;
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 begin
+  {writeln('Unimplemented GetEnvironmentVariable');}
+  result:='';
 end;
 
 Function GetEnvironmentVariableCount : Integer;
 begin
+  {writeln('Unimplemented GetEnvironmentVariableCount');}
+  result:=0;
 end;
 
 Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 begin
+  {writeln('Unimplemented GetEnvironmentString');}
+  result:='';
 end;
 
 function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]):
                                                                        integer;
 begin
+  {writeln('Unimplemented ExecuteProcess');}
+  result:=-1;
 end;
 
 function ExecuteProcess (const Path: RawByteString;
@@ -478,6 +492,7 @@ end;
 
 procedure Sleep(Milliseconds: cardinal);
 begin
+  {writeln('Unimplemented Sleep');}
 end;
 
 

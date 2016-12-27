@@ -128,6 +128,10 @@ function gemdos_dsetdrv(drv: smallint): longint; syscall 1 14;
 function gemdos_dgetdrv: smallint; syscall 1 25;
 procedure gemdos_setdta(buf: PDTA); syscall 1 26;
 
+function gemdos_tgetdate: longint; syscall 1 42;
+
+function gemdos_tgettime: longint; syscall 1 44;
+
 function gemdos_getdta: PDTA; syscall 1 47;
 
 function gemdos_dfree(buf: PDISKINFO; driveno: smallint): smallint; syscall 1 54;
@@ -135,7 +139,6 @@ function gemdos_dfree(buf: PDISKINFO; driveno: smallint): smallint; syscall 1 54
 function gemdos_dcreate(const path: pchar): longint; syscall 1 57;
 function gemdos_ddelete(const path: pchar): longint; syscall 1 58;
 function gemdos_dsetpath(path: pchar): smallint; syscall 1 59;
-
 function gemdos_fcreate(fname: pchar; attr: smallint): smallint; syscall 1 60;
 function gemdos_fopen(fname: pchar; mode: smallint): longint; syscall 1 61;
 function gemdos_fclose(handle: smallint): smallint; syscall 1 62;
