@@ -428,13 +428,13 @@ begin
 
   { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   Rslt.ExcludeAttr := (not Attr) and ($1e);
-  Rslt.FindHandle  := 0;
+  Rslt.FindHandle  := nil;
 
   new(Anchor);
   FillChar(Anchor^,sizeof(TAnchorPath),#0);
 
   if MatchFirst(pchar(tmpStr),Anchor)<>0 then exit;
-  Rslt.FindHandle := THandle(Anchor);
+  Rslt.FindHandle := Anchor;
 
   with Anchor^.ap_Info do begin
     Name := fib_FileName;
@@ -485,7 +485,7 @@ begin
 end;
 
 
-Procedure InternalFindClose(var Handle: THandle);
+Procedure InternalFindClose(var Handle: Pointer);
 var
   Anchor: PAnchorPath;
 begin
@@ -493,7 +493,7 @@ begin
   if not assigned(Anchor) then exit;
   MatchEnd(Anchor);
   Dispose(Anchor);
-  Handle:=THandle(nil);
+  Handle:=nil;
 end;
 
 

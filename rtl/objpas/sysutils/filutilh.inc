@@ -17,7 +17,7 @@ Type
 
 
   // Some operating systems need FindHandle to be a Pointer
-{$if defined(unix) or defined(msdos)}
+{$if defined(unix) or defined(msdos) or defined(hasamiga) or defined(atari)}
     {$define FINDHANDLE_IS_POINTER}
 {$endif}
 
