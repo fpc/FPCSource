@@ -8412,6 +8412,7 @@ rtl/atari/sysfile.inc svneol=native#text/plain
 rtl/atari/sysheap.inc svneol=native#text/plain
 rtl/atari/sysos.inc svneol=native#text/plain
 rtl/atari/sysosh.inc svneol=native#text/plain
+rtl/atari/syspara.inc svneol=native#text/plain
 rtl/atari/system.pp svneol=native#text/plain
 rtl/atari/sysutils.pp svneol=native#text/plain
 rtl/atari/tthread.inc svneol=native#text/plain
