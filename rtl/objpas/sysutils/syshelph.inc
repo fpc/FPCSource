@@ -4,10 +4,8 @@ Type
   generic TArray<T> = array of T;
   TStringArray = Array of string;
   TCharArray = Array of char;
-{$SCOPEDENUMS ON}
-  TEndian = (Little,Big);
-{$SCOPEDENUMS OFF}
-
+  TEndian = ObjPas.TEndian;
+  
 Const
   CPUEndian = {$IFDEF FPC_LITTLE_ENDIAN}TEndian.Little{$ELSE}TEndian.Big{$ENDIF};
 

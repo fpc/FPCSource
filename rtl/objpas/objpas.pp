@@ -87,6 +87,9 @@ interface
        end;
 {$endif}
 
+{$SCOPEDENUMS ON}
+  TEndian = (Little,Big);
+{$SCOPEDENUMS OFF}
 
 {$ifdef FPC_HAS_FEATURE_CLASSES}
 Var

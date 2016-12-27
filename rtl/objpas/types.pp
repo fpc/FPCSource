@@ -28,7 +28,7 @@ const
 {$endif mswindows}
 
 type
-  TEndian = (Big,Little);
+  TEndian =  Objpas.TEndian;
   TDirection = (FromBeginning, FromEnd);
   TValueRelationship = -1..1;
   
