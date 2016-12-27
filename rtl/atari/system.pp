@@ -56,7 +56,7 @@ const
     StdErrorHandle  = $ffff;
 
 var
-    args: Pointer; external name '__ARGS'; { Defined in the startup code }
+    args: PChar;
     argc: LongInt;
     argv: PPChar;
     envp: PPChar;
@@ -94,6 +94,9 @@ var
     {$endif defined(FPUSOFT)}
 
     {$I system.inc}
+
+  var
+    basepage: PPD; external name '__base';
 
 function GetProcessID:SizeUInt;
 begin
@@ -190,19 +193,16 @@ end;
     function paramstr(l : longint) : string;
       var
        p : pchar;
-       s1 : string;
       begin
-         if l = 0 then
-         Begin
-           s1 := '';
-         end
-         else
+         {$WARNING Implement query of current command name}
+         { ... as ParamStr(0) }
          if (l>0) and (l<=paramcount) then
            begin
              p:=args;
              paramstr:=GetParam(word(l),p);
            end
-         else paramstr:='';
+         else
+           paramstr:='';
       end;
 
       function paramcount : longint;
@@ -210,6 +210,11 @@ end;
         paramcount := argc;
       end;
 
+  procedure SysInitParamsAndEnv;
+  begin
+    args:=@basepage^.p_cmdlin;
+    argc:=GetParamCount(args);
+  end;
 
   { This routine is used to grow the heap.  }
   { But here we do a trick, we say that the }
@@ -268,7 +273,7 @@ begin
 { Reset IO Error }
   InOutRes:=0;
 { Setup command line arguments }
-//  argc:=GetParamCount(args);
+  SysInitParamsAndEnv;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   InitSystemThreads;
 {$endif}

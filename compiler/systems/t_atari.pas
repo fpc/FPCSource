@@ -40,6 +40,7 @@ type
     public
       constructor Create; override;
       procedure SetDefaultInfo; override;
+      procedure InitSysInitUnitName; override;
       function  MakeExecutable: boolean; override;
   end;
 
@@ -86,6 +87,12 @@ begin
 end;
 
 
+procedure TLinkerAtari.InitSysInitUnitName;
+begin
+  sysinitunit:='si_prc';
+end;
+
+
 function TLinkerAtari.WriteResponseFile(isdll: boolean): boolean;
 var
   linkres  : TLinkRes;
@@ -120,8 +127,11 @@ begin
 
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
-  s:=FindObjectFile('prt0','',false);
-  LinkRes.AddFileName(s);
+  if not (target_info.system in systems_internal_sysinit) then
+    begin
+      s:=FindObjectFile('prt0','',false);
+      LinkRes.AddFileName(maybequoted(s));
+    end;
   while not ObjectFiles.Empty do
    begin
     s:=ObjectFiles.GetFirst;

@@ -326,7 +326,8 @@ interface
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
 
        systems_internal_sysinit = [system_i386_linux,system_i386_win32,system_x86_64_win64,
-                                   system_powerpc64_linux,system_powerpc_morphos,system_m68k_amiga]+systems_darwin;
+                                   system_powerpc64_linux,system_powerpc_morphos,system_m68k_amiga,
+                                   system_m68k_atari]+systems_darwin;
 
        { all systems that use garbage collection for reference-counted types }
        systems_garbage_collected_managed_types = [

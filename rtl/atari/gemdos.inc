@@ -96,6 +96,33 @@ type
         date: word;           {* Date like Tgetdate *}
     end;
 
+type
+  PPD = ^TPD;
+  TPD = record
+      p_lowtpa: pointer;      {* Start address of the TPA            *}
+      p_hitpa: pointer;       {* First byte after the end of the TPA *}
+      p_tbase: pointer;       {* Start address of the program code   *}
+      p_tlen: longint;        {* Length of the program code          *}
+      p_dbase: pointer;       {* Start address of the DATA segment   *}
+      p_dlen: longint;        {* Length of the DATA section          *}
+      p_bbase: pointer;       {* Start address of the BSS segment    *}
+      p_blen: longint;        {* Length of the BSS section           *}
+      p_dta: PDTA;            {* Pointer to the default DTA          *}
+                              {* Warning: Points first to the        *}
+                              {* command line !                      *}
+      p_parent: PPD;          {* Pointer to the basepage of the      *}
+                              {* calling processes                   *}
+      p_resrvd0: longint;     {* Reserved                            *}
+      p_env: pchar;           {* Address of the environment string   *}
+      p_resrvd1: array[0..79] of char;   {* Reserved                            *}
+      p_cmdlin: array[0..127] of char;   {* Command line                        *}
+  end;
+  TBASEPAGE = TPD; {* alias types... *}
+  PBASEPAGE = ^TBASEPAGE;
+
+
+procedure gemdos_cconws(p: pchar); syscall 1 9;
+
 function gemdos_dsetdrv(drv: smallint): longint; syscall 1 14;
 
 function gemdos_dgetdrv: smallint; syscall 1 25;
@@ -121,6 +148,7 @@ function gemdos_fattrib(filename: pchar; wflag: smallint; attrib: smallint): sma
 function gemdos_dgetpath(path: pchar; driveno: smallint): smallint; syscall 1 71;
 function gemdos_malloc(number: dword): pointer; syscall 1 72;
 function gemdos_free(block: pointer): dword; syscall 1 73;
+function gemdos_mshrink(zero: word; block: pointer; newsiz: longint): longint; syscall 1 74;
 
 procedure gemdos_pterm(returncode: smallint); syscall 1 76;
 
