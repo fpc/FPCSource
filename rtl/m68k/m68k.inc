@@ -87,11 +87,7 @@ procedure fpc_cpuinit;
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame : pointer; assembler;nostackframe;
   asm
-{$if defined(amiga)}
-    move.l a5,d0
-{$else}
-    move.l a6,d0
-{$endif}
+    move.l fp,d0
   end;
 
 

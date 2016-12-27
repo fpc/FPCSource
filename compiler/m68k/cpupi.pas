@@ -46,8 +46,7 @@ unit cpupi;
 
     procedure tcpuprocinfo.init_framepointer;
       begin
-        { ToDo : what about system_m68k_embedded? }
-        if target_info.system in [system_m68k_linux,system_m68k_netbsd,system_m68k_openbsd] then
+        if not (target_info.system in [system_m68k_amiga]) then
           begin
             RS_FRAME_POINTER_REG:=RS_A6;
             NR_FRAME_POINTER_REG:=NR_A6;
