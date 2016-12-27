@@ -73,7 +73,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink -b ataritos $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b ataritos $FLAGS $OPT $STRIP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -224,6 +224,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+  Replace(cmdstr,'$FLAGS','-tos-flags fastload,fastram');
   Replace(cmdstr,'$STRIP',StripStr);
   if rlinkpath<>'' Then
     DynLinkStr:='--rpath-link '+rlinkpath
