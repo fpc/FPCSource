@@ -390,13 +390,15 @@ begin
   ASQLTransactionHandle := nil;
 
   CreateSQL := 'CREATE DATABASE ';
-  if HostName <> '' then CreateSQL := CreateSQL + ''''+ HostName+':'+DatabaseName + ''''
-    else CreateSQL := CreateSQL + '''' + DatabaseName + '''';
+  if HostName <> '' then
+    CreateSQL := CreateSQL + ''''+ HostName+':'+DatabaseName + ''''
+  else
+    CreateSQL := CreateSQL + '''' + DatabaseName + '''';
   if UserName <> '' then
     CreateSQL := CreateSQL + ' USER ''' + Username + '''';
   if Password <> '' then
     CreateSQL := CreateSQL + ' PASSWORD ''' + Password + '''';
-  pagesize := params.Values['PAGE_SIZE'];
+  pagesize := Params.Values['PAGE_SIZE'];
   if pagesize <> '' then
     CreateSQL := CreateSQL + ' PAGE_SIZE '+pagesize;
   if CharSet <> '' then
@@ -1015,31 +1017,36 @@ end;
 
 procedure TIBConnection.SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
 
-var SQLVarNr : integer;
-    AParam   : TParam;
-    s        : rawbytestring;
-    i        : integer;
+var
+  // This should be a pointer, because the ORIGINAL variables must be modified.
+  VSQLVar  : ^XSQLVAR;
+  AParam   : TParam;
+  s        : rawbytestring;
+  i        : integer;
 
+  procedure SetBlobParam;
+  var
     TransactionHandle : pointer;
-    blobId            : ISC_QUAD;
-    blobHandle        : Isc_blob_Handle;
+    BlobId            : ISC_QUAD;
+    BlobHandle        : Isc_blob_Handle;
     BlobSize,
     BlobBytesWritten  : longint;
-    
-  procedure SetBlobParam;
-
   begin
     {$push}
     {$R-}
     with cursor as TIBCursor do
       begin
       TransactionHandle := aTransation.Handle;
-      blobhandle := FB_API_NULLHANDLE;
-      if isc_create_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
+      BlobHandle := FB_API_NULLHANDLE;
+      if isc_create_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @BlobHandle, @BlobId) <> 0 then
        CheckError('TIBConnection.CreateBlobStream', FStatus);
 
-      s := GetAsString(AParam);
-      BlobSize := length(s);
+      if VSQLVar^.sqlsubtype = isc_blob_text then
+        s := GetAsString(AParam)
+      else
+        s := AParam.AsString; // to avoid unwanted conversions keep it synchronized with TBlobField.GetAsVariant
+                              // best would be use AsBytes, but for now let it as is
+      BlobSize := Length(s);
 
       BlobBytesWritten := 0;
       i := 0;
@@ -1048,23 +1055,23 @@ var SQLVarNr : integer;
       // We ignore BlobSegmentSize property.
       while BlobBytesWritten < (BlobSize-MAXBLOBSEGMENTSIZE) do
         begin
-        isc_put_segment(@FStatus[0], @blobHandle, MAXBLOBSEGMENTSIZE, @s[(i*MAXBLOBSEGMENTSIZE)+1]);
+        isc_put_segment(@FStatus[0], @BlobHandle, MAXBLOBSEGMENTSIZE, @s[(i*MAXBLOBSEGMENTSIZE)+1]);
         inc(BlobBytesWritten,MAXBLOBSEGMENTSIZE);
         inc(i);
         end;
       if BlobBytesWritten <> BlobSize then
-        isc_put_segment(@FStatus[0], @blobHandle, BlobSize-BlobBytesWritten, @s[(i*MAXBLOBSEGMENTSIZE)+1]);
+        isc_put_segment(@FStatus[0], @BlobHandle, BlobSize-BlobBytesWritten, @s[(i*MAXBLOBSEGMENTSIZE)+1]);
 
-      if isc_close_blob(@FStatus[0], @blobHandle) <> 0 then
+      if isc_close_blob(@FStatus[0], @BlobHandle) <> 0 then
         CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
-      Move(blobId, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
+
+      Move(BlobId, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
       end;
-      {$pop}
+    {$pop}
   end;
 
 var
-  // This should be a pointer, because the ORIGINAL variables must be modified.
-  VSQLVar  : ^XSQLVAR;
+  SQLVarNr : integer;
   si       : smallint;
   li       : LargeInt;
   CurrBuff : pchar;
@@ -1157,7 +1164,7 @@ begin
       end {case}
       end;
     end;
-{$pop}
+  {$pop}
 end;
 
 function TIBConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
