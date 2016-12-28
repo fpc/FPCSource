@@ -332,7 +332,7 @@ begin
     if not FileExists(GFPpkg.Options.GlobalSection.LocalPackagesFile) then
       begin
         try
-          pkghandler.ExecuteAction('','update');
+          pkghandler.ExecuteAction('','update', GFPpkg);
         except
           on E: Exception do
             pkgglobals.Log(llWarning,E.Message);
@@ -374,7 +374,7 @@ begin
             InstPackages.AddPackagesToRepository(Repo);
             Repo.DefaultPackagesStructure := InstPackages;
           end;
-        pkghandler.ExecuteAction(CurrentDirPackageName,ParaAction);
+        pkghandler.ExecuteAction(CurrentDirPackageName,ParaAction,GFPpkg);
       end
     else
       begin
@@ -383,19 +383,19 @@ begin
           begin
             if sametext(ExtractFileExt(ParaPackages[i]),'.zip') and FileExists(ParaPackages[i]) then
               begin
-                pkghandler.ExecuteAction(CmdLinePackageName,ParaAction);
+                pkghandler.ExecuteAction(CmdLinePackageName,ParaAction,GFPpkg);
               end
             else
               begin
                 pkgglobals.Log(llDebug,SLogCommandLineAction,['['+ParaPackages[i]+']',ParaAction]);
-                pkghandler.ExecuteAction(ParaPackages[i],ParaAction);
+                pkghandler.ExecuteAction(ParaPackages[i],ParaAction,GFPpkg);
               end;
           end;
       end;
 
     // Recompile all packages dependent on this package
     if (ParaAction='install') and not GFPpkg.Options.CommandLineSection.SkipFixBrokenAfterInstall then
-      pkghandler.ExecuteAction('','fixbroken');
+      pkghandler.ExecuteAction('','fixbroken',GFPpkg);
 
     Terminate;
 

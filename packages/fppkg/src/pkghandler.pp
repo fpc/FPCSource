@@ -23,7 +23,8 @@ uses
 {$ifdef HAS_UNIT_PROCESS}
   process,
 {$endif HAS_UNIT_PROCESS}
-  fprepos;
+  fprepos,
+  pkgFppkg;
 
 type
   { TPackageHandler }
@@ -31,6 +32,7 @@ type
   TPackageHandler = Class(TComponent)
   private
     FPackageName : string;
+    FPackageManager: tpkgFPpkg;
   Protected
     Procedure Log(Level: TLogLevel;Msg : String);
     Procedure Log(Level: TLogLevel;Fmt : String; const Args : array of const);
@@ -38,8 +40,9 @@ type
     Procedure Error(Fmt : String; const Args : array of const);
     Function ExecuteProcess(Const Prog,Args:String):Integer;
     Procedure SetCurrentDir(Const ADir:String);
+    Property PackageManager:TpkgFPpkg Read FPackageManager;
   Public
-    Constructor Create(AOwner:TComponent;const APackageName:string); virtual;
+    Constructor Create(AOwner:TComponent; APackageManager:TpkgFPpkg; const APackageName:string); virtual;
     function PackageLogPrefix:String;
     procedure ExecuteAction(const APackageName,AAction:string);
     procedure Execute; virtual; abstract;
@@ -52,7 +55,7 @@ type
 // Actions/PkgHandler
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 function GetPkgHandler(const AAction:string):TPackageHandlerClass;
-procedure ExecuteAction(const APackageName,AAction:string);
+procedure ExecuteAction(const APackageName,AAction:string; PackageManager: TpkgFPpkg);
 
 function PackageBuildPath(APackage:TFPPackage):String;
 function PackageRemoteArchive(APackage:TFPPackage): String;
@@ -94,7 +97,7 @@ begin
 end;
 
 
-procedure ExecuteAction(const APackageName,AAction:string);
+procedure ExecuteAction(const APackageName,AAction:string; PackageManager: TpkgFPpkg);
 var
   pkghandlerclass : TPackageHandlerClass;
   FullActionName : string;
@@ -111,7 +114,7 @@ begin
 
   // Create action handler class
   pkghandlerclass:=GetPkgHandler(AAction);
-  With pkghandlerclass.Create(nil,APackageName) do
+  With pkghandlerclass.Create(nil,PackageManager,APackageName) do
     try
       Log(llDebug,SLogRunAction+' start',[AAction]);
       Execute;
@@ -169,10 +172,12 @@ end;
 
 { TPackageHandler }
 
-constructor TPackageHandler.Create(AOwner:TComponent;const APackageName:string);
+Constructor TPackageHandler.Create(AOwner: TComponent; APackageManager: TpkgFPpkg;
+  const APackageName: string);
 begin
   inherited Create(AOwner);
   FPackageName:=APackageName;
+  FPackageManager:=APackageManager;
 end;
 
 {$ifdef HAS_UNIT_PROCESS}
@@ -290,8 +295,7 @@ end;
 
 procedure TPackageHandler.ExecuteAction(const APackageName,AAction:string);
 begin
-  // Needed to override TComponent.ExecuteAction method
-  pkghandler.ExecuteAction(APackageName,AAction);
+  pkghandler.ExecuteAction(APackageName,AAction,PackageManager);
 end;
 
 

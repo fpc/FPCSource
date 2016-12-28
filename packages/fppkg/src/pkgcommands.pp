@@ -163,7 +163,7 @@ var
 begin
   if PackageName='' then
     Error(SErrNoPackageSpecified);
-  P:=GFPpkg.PackageByName(PackageName, pkgpkAvailable);
+  P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
 
   log(llProgres,SLogPackageInfoName,[P.Name]);
   S := P.Email;
@@ -209,7 +209,7 @@ begin
         end
       else if (PackageName<>CurrentDirPackageName) then
         begin
-          AvailP:=GFPpkg.FindPackage(PackageName, pkgpkAvailable);
+          AvailP:=PackageManager.FindPackage(PackageName, pkgpkAvailable);
           if Assigned(AvailP) then
             begin
               if AvailP.PackagesStructure.UnzipBeforeUse then
@@ -224,9 +224,9 @@ end;
 
 procedure TCommandListSettings.Execute;
 begin
-  GFPpkg.Options.LogValues(llProgres);
-  GFPpkg.CompilerOptions.LogValues(llProgres,'');
-  GFPpkg.FPMakeCompilerOptions.LogValues(llProgres,'fpmake-building ');
+  PackageManager.Options.LogValues(llProgres);
+  PackageManager.CompilerOptions.LogValues(llProgres,'');
+  PackageManager.FPMakeCompilerOptions.LogValues(llProgres,'fpmake-building ');
 end;
 
 
@@ -246,27 +246,27 @@ var
 begin
   // Download and load mirrors.xml
   // This can be skipped when a custom RemoteRepository is configured
-  if (GFPpkg.Options.GlobalSection.RemoteMirrorsURL<>'') and
-     (GFPpkg.Options.GlobalSection.RemoteRepository='auto') then
+  if (PackageManager.Options.GlobalSection.RemoteMirrorsURL<>'') and
+     (PackageManager.Options.GlobalSection.RemoteRepository='auto') then
     begin
-      Log(llCommands,SLogDownloading,[GFPpkg.Options.GlobalSection.RemoteMirrorsURL,GFPpkg.Options.GlobalSection.LocalMirrorsFile]);
-      DownloadFile(GFPpkg.Options.GlobalSection.RemoteMirrorsURL,GFPpkg.Options.GlobalSection.LocalMirrorsFile);
+      Log(llCommands,SLogDownloading,[PackageManager.Options.GlobalSection.RemoteMirrorsURL,PackageManager.Options.GlobalSection.LocalMirrorsFile]);
+      DownloadFile(PackageManager.Options.GlobalSection.RemoteMirrorsURL,PackageManager.Options.GlobalSection.LocalMirrorsFile);
       LoadLocalAvailableMirrors;
     end;
   // Download packages.xml
   PackagesURL:=GetRemoteRepositoryURL(PackagesFileName);
-  Log(llCommands,SLogDownloading,[PackagesURL,GFPpkg.Options.GlobalSection.LocalPackagesFile]);
-  DownloadFile(PackagesURL,GFPpkg.Options.GlobalSection.LocalPackagesFile);
+  Log(llCommands,SLogDownloading,[PackagesURL,PackageManager.Options.GlobalSection.LocalPackagesFile]);
+  DownloadFile(PackagesURL,PackageManager.Options.GlobalSection.LocalPackagesFile);
   // Read the repository again
-  GFPpkg.ScanAvailablePackages;
+  PackageManager.ScanAvailablePackages;
   // no need to log errors again
-  FindInstalledPackages(GFPpkg.CompilerOptions,False);
+  FindInstalledPackages(PackageManager.CompilerOptions,False);
 end;
 
 
 procedure TCommandListPackages.Execute;
 begin
-  ListPackages(GFPpkg.Options.CommandLineSection.ShowLocation);
+  ListPackages(PackageManager.Options.CommandLineSection.ShowLocation);
 end;
 
 
@@ -283,7 +283,7 @@ var
 begin
   if PackageName='' then
     Error(SErrNoPackageSpecified);
-  P:=GFPpkg.PackageByName(PackageName, pkgpkAvailable);
+  P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
   if not FileExists(PackageLocalArchive(P)) then
     ExecuteAction(PackageName,'downloadpackage');
 end;
@@ -297,7 +297,7 @@ Var
 begin
   if PackageName='' then
     Error(SErrNoPackageSpecified);
-  P:=GFPpkg.PackageByName(PackageName, pkgpkAvailable);
+  P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
   BuildDir:=PackageBuildPath(P);
   ArchiveFile:=PackageLocalArchive(P);
   if not FileExists(ArchiveFile) then
@@ -365,7 +365,7 @@ begin
           end
       else
         begin
-          P:=GFPpkg.FindPackage(PackageName, pkgpkAvailable);
+          P:=PackageManager.FindPackage(PackageName, pkgpkAvailable);
           if Assigned(P) then
             begin
               if P.PackagesStructure.UnzipBeforeUse then
@@ -418,8 +418,8 @@ begin
     begin
       ExecuteAction(PackageName,'build');
 
-      AvailPackage := GFPpkg.FindPackage(PackageName, pkgpkAvailable);
-      InstallRepo := GFPpkg.GetInstallRepository(AvailPackage);
+      AvailPackage := PackageManager.FindPackage(PackageName, pkgpkAvailable);
+      InstallRepo := PackageManager.GetInstallRepository(AvailPackage);
       case InstallRepo.DefaultPackagesStructure.IsInstallationNeeded(AvailPackage) of
         fpinInstallationNeeded:
           ExecuteAction(PackageName,'fpmakeinstall');
@@ -526,7 +526,7 @@ begin
         end;
     end
   else
-    P:=GFPpkg.PackageByName(PackageName, pkgpkBoth);
+    P:=PackageManager.PackageByName(PackageName, pkgpkBoth);
 
   MissingDependency:=nil;
   while assigned(P) do
@@ -536,18 +536,18 @@ begin
       for i:=0 to P.Dependencies.Count-1 do
         begin
           D:=P.Dependencies[i];
-          if not ((GFPpkg.CompilerOptions.CompilerOS in D.OSes) and (GFPpkg.CompilerOptions.CompilerCPU in D.CPUs)) then
-            Log(llDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(GFPpkg.CompilerOptions.CompilerCPU,GFPpkg.CompilerOptions.CompilerOS)])
+          if not ((PackageManager.CompilerOptions.CompilerOS in D.OSes) and (PackageManager.CompilerOptions.CompilerCPU in D.CPUs)) then
+            Log(llDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(PackageManager.CompilerOptions.CompilerCPU,PackageManager.CompilerOptions.CompilerOS)])
           // Skip dependencies that are available within the fpmake-file itself
           else if not (assigned(ManifestPackages) and assigned(ManifestPackages.FindPackage(D.PackageName))) then
             begin
               AvailP := nil;
-              InstalledP:=GFPpkg.FindPackage(D.PackageName, pkgpkInstalled);
+              InstalledP:=PackageManager.FindPackage(D.PackageName, pkgpkInstalled);
               // Need installation?
               if not assigned(InstalledP) or
                  (InstalledP.Version.CompareVersion(D.MinVersion)<0) then
                 begin
-                  AvailP:=GFPpkg.FindPackage(D.PackageName, pkgpkAvailable);
+                  AvailP:=PackageManager.FindPackage(D.PackageName, pkgpkAvailable);
                   if not assigned(AvailP) or
                      (AvailP.Version.CompareVersion(D.MinVersion)<0) then
                     begin

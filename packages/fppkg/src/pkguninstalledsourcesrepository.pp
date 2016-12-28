@@ -259,7 +259,7 @@ begin
                         TempPackagesStructure.SetTempPath(FPath+SR.Name);
                         PackageName :=  SR.Name + '_create_manifest';
                         TempPackagesStructure.TempPackageName := PackageName;
-                        pkghandler.ExecuteAction(PackageName,'fpmakemanifest');
+                        pkghandler.ExecuteAction(PackageName,'fpmakemanifest',GFPpkg);
                       except
                         on E: Exception do
                           begin
