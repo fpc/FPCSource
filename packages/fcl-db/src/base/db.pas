@@ -949,6 +949,7 @@ type
     procedure SetAsUTF8String(const AValue: UTF8String); override;
   public
     constructor Create(AOwner: TComponent); override;
+    property CodePage : TSystemCodePage read FCodePage;
   published
     property Transliterate default True;
   end;
@@ -1246,7 +1247,7 @@ type
     Procedure SetBlobData(Buffer: Pointer; ASize: Integer);
     Procedure SetData(Buffer: Pointer);
     Property AsBCD : Currency read GetAsCurrency write SetAsBCD;
-    Property AsBlob : TBlobData read GetAsString write SetAsBlob;
+    Property AsBlob : TBlobData read GetAsAnsiString write SetAsBlob;
     Property AsBoolean : Boolean read GetAsBoolean write SetAsBoolean;
     Property AsBytes : TBytes read GetAsBytes write SetAsBytes;
     Property AsCurrency : Currency read GetAsCurrency write SetAsCurrency;
