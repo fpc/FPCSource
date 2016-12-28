@@ -469,9 +469,29 @@ end;
 
 function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]):
                                                                        integer;
+var
+  tmpPath: RawByteString;
+  pcmdline: ShortString;
+  CommandLine: RawByteString;
+  E: EOSError;
 begin
-  {writeln('Unimplemented ExecuteProcess');}
-  result:=-1;
+  tmpPath:=ToSingleByteFileSystemEncodedFileName(Path);
+  pcmdline:=ToSingleByteFileSystemEncodedFileName(ComLine);
+
+  { the zero offset for cmdline is actually correct here. pexec() expects
+    pascal formatted string for cmdline, so length in first byte }
+  result:=gemdos_pexec(0,PChar(tmpPath),@pcmdline[0],nil);
+
+  if result < 0 then begin
+    if ComLine = '' then
+      CommandLine := Path
+    else
+      CommandLine := Path + ' ' + ComLine;
+
+    E := EOSError.CreateFmt (SExecuteProcessFailed, [CommandLine, result]);
+    E.ErrorCode := result;
+    raise E;
+  end;
 end;
 
 function ExecuteProcess (const Path: RawByteString;

@@ -133,6 +133,7 @@ function gemdos_tgetdate: longint; syscall 1 42;
 function gemdos_tgettime: longint; syscall 1 44;
 
 function gemdos_getdta: PDTA; syscall 1 47;
+function gemdos_sversion: smallint; syscall 1 48;
 
 function gemdos_dfree(buf: PDISKINFO; driveno: smallint): smallint; syscall 1 54;
 
@@ -152,7 +153,7 @@ function gemdos_dgetpath(path: pchar; driveno: smallint): smallint; syscall 1 71
 function gemdos_malloc(number: dword): pointer; syscall 1 72;
 function gemdos_free(block: pointer): dword; syscall 1 73;
 function gemdos_mshrink(zero: word; block: pointer; newsiz: longint): longint; syscall 1 74;
-
+function gemdos_pexec(mode: word; name: pchar; cmdline: pchar; env: pchar): longint; syscall 1 75;
 procedure gemdos_pterm(returncode: smallint); syscall 1 76;
 
 function gemdos_fsfirst(filename: pchar; attr: smallint): longint; syscall 1 78;
