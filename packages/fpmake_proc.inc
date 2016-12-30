@@ -647,6 +647,12 @@ begin
 {$include tcl/fpmake.pp}
 end;
 
+procedure add_tosunits(const ADirectory: string);
+begin
+  with Installer do
+{$include tosunits/fpmake.pp}
+end;
+
 procedure add_univint(const ADirectory: string);
 begin
   with Installer do

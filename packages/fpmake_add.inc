@@ -113,6 +113,7 @@
   add_symbolic(ADirectory+IncludeTrailingPathDelimiter('symbolic'));
   add_syslog(ADirectory+IncludeTrailingPathDelimiter('syslog'));
   add_tcl(ADirectory+IncludeTrailingPathDelimiter('tcl'));
+  add_tosunits(ADirectory+IncludeTrailingPathDelimiter('tosunits'));
   add_univint(ADirectory+IncludeTrailingPathDelimiter('univint'));
   add_unixutil(ADirectory+IncludeTrailingPathDelimiter('unixutil'));
   add_unzip(ADirectory+IncludeTrailingPathDelimiter('unzip'));
