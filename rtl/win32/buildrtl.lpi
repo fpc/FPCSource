@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -37,7 +37,6 @@
       <Unit0>
         <Filename Value="buildrtl.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="buildrtl"/>
       </Unit0>
     </Units>
   </ProjectOptions>
@@ -50,11 +49,14 @@
       <UnitOutputDirectory Value="..\units\i386-win32"/>
     </SearchPaths>
     <Parsing>
-      <Style Value="2"/>
       <SyntaxOptions>
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
+    <CodeGeneration>
+      <TargetCPU Value="i386"/>
+      <TargetOS Value="win32"/>
+    </CodeGeneration>
     <Other>
       <Verbosity>
         <ShowNotes Value="False"/>
@@ -63,7 +65,6 @@
       <ConfigFile>
         <DontUseConfigFile Value="True"/>
       </ConfigFile>
-      <CompilerPath Value="$(CompPath)"/>
       <ExecuteBefore>
         <Command Value="cmd.exe /c &quot;if not exist ..\units\i386-win32 mkdir ..\units\i386-win32&quot;"/>
         <ShowAllMessages Value="True"/>
