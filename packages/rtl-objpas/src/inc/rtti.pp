@@ -927,6 +927,21 @@ function aligntoptr(p : pointer) : pointer;inline;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    end;
 
+function aligntoqword(p : pointer) : pointer;inline;
+  type
+    TAlignCheck = record
+      b : byte;
+      q : qword;
+    end;
+  begin
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    result:=align(p,PtrInt(@TAlignCheck(nil^).q))
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+    result:=p;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  end;
+
+
 function TRttiType.GetProperties: specialize TArray<TRttiProperty>;
 type
   PPropData = ^TPropData;
@@ -952,7 +967,7 @@ begin
 
         // published properties count for this object
         // skip the attribute-info if available
-        PPD := PPropData(pointer(@TD^.UnitName)+PByte(@TD^.UnitName)^+1);
+        PPD := aligntoptr(PPropData(pointer(@TD^.UnitName)+PByte(@TD^.UnitName)^+1));
         Count:=PPD^.PropCount;
         // Now point TP to first propinfo record.
         TP:=PPropInfo(@PPD^.PropList);
