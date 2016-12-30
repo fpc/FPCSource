@@ -29,6 +29,10 @@ begin
 
     T:=P.Targets.AddUnit('gemdos.pas');
     T:=P.Targets.AddUnit('xbios.pas');
+    T:=P.Targets.AddUnit('aes.pas');
+
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('higem.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
