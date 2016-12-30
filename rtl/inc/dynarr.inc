@@ -90,7 +90,11 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
 
     if declocked(realp^.refcount) then
       begin
+{$ifdef VER3_0}
         ti:=aligntoptr(ti+2+PByte(ti)[1]);
+{$else VER3_0}
+        ti:=aligntoqword(ti+2+PByte(ti)[1]);
+{$endif VER3_0}
         if assigned(pdynarraytypedata(ti)^.elType) then
           int_finalizearray(p,pdynarraytypedata(ti)^.elType{$ifndef VER3_0}^{$endif},realp^.high+1);
         freemem(realp);
@@ -155,7 +159,11 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
        HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 
      { skip kind and name }
+{$ifdef VER3_0}
      ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
+     ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
 
      elesize:=pdynarraytypedata(ti)^.elSize;
      {$ifdef VER3_0}
@@ -317,7 +325,11 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
        exit;
 
      { skip kind and name }
+{$ifdef VER3_0}
      ti:=aligntoptr(ti+2+PByte(ti)[1]);
+{$else VER3_0}
+     ti:=aligntoqword(ti+2+PByte(ti)[1]);
+{$endif VER3_0}
 
      elesize:=pdynarraytypedata(ti)^.elSize;
      { only set if type needs finalization }
@@ -378,7 +390,11 @@ procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : point
        end;
 
      { skip kind and name }
+{$ifdef VER3_0}
      ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
+     ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
 
      elesize:=pdynarraytypedata(ti)^.elSize;
      eletype:=pdynarraytypedata(ti)^.elType2^;
@@ -458,7 +474,11 @@ function DynArrayDim(typeInfo: Pointer): Integer;
     while (typeInfo <> nil) and (pdynarraytypeinfo(typeInfo)^.kind = tkDynArray) do
     begin
       { skip kind and name }
+{$ifdef VER3_0}
       typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+      typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
 
       { element type info}
       {$ifdef VER3_0}

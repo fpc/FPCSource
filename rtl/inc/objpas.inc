@@ -965,7 +965,7 @@
             // offset PTypeInfo by Length(Name) + 2 (ShortString length byte + SizeOf(Kind))
             inc(Pointer(classtypeinfo), PByte(Pointer(classtypeinfo)+1)^ + 2);
             {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-            classtypeinfo:=align(classtypeinfo,sizeof(classtypeinfo));
+            classtypeinfo:=aligntoqword(classtypeinfo);
             {$endif}
             result:=classtypeinfo^.UnitName;
           end

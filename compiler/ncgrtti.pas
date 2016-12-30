@@ -454,7 +454,7 @@ implementation
         end;
 
       begin
-        tcb.begin_anonymous_record('',defaultpacking,reqalign,
+        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
           targetinfos[target_info.system]^.alignment.recordalignmin,
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
         tcb.emit_ord_const(published_properties_count(st),u16inttype);
@@ -475,7 +475,7 @@ implementation
                   alignment), but it starts aligned }
                 tcb.begin_anonymous_record(
                   propdefname,
-                  1,reqalign,
+                  1,min(reqalign,SizeOf(PtrInt)),
                   targetinfos[target_info.system]^.alignment.recordalignmin,
                   targetinfos[target_info.system]^.alignment.maxCrecordalign);
                 if ppo_indexed in tpropertysym(sym).propoptions then
@@ -754,11 +754,12 @@ implementation
              else
                tcb.emit_ord_const(otUByte,u8inttype);
            end;
-           { since this record has an alignment of reqalign, its size will also
-             be rounded up to a multiple of reqalign -> the following value will
-             also be properly aligned without having to start an extra record }
            tcb.end_anonymous_record;
+           tcb.begin_anonymous_record('',defaultpacking,reqalign,
+            targetinfos[target_info.system]^.alignment.recordalignmin,
+            targetinfos[target_info.system]^.alignment.maxCrecordalign);
            write_rtti_reference(tcb,def.elementdef,rt);
+           tcb.end_anonymous_record;
         end;
 
 
@@ -846,15 +847,25 @@ implementation
         procedure classrefdef_rtti(def:tclassrefdef);
         begin
           write_header(tcb,def,tkClassRef);
-          { will be aligned thanks to encompassing record }
+          tcb.begin_anonymous_record(
+            '',
+            defaultpacking,reqalign,
+            targetinfos[target_info.system]^.alignment.recordalignmin,
+            targetinfos[target_info.system]^.alignment.maxCrecordalign);
           write_rtti_reference(tcb,def.pointeddef,rt);
+          tcb.end_anonymous_record;
         end;
 
         procedure pointerdef_rtti(def:tpointerdef);
         begin
           write_header(tcb,def,tkPointer);
-          { will be aligned thanks to encompassing record }
+          tcb.begin_anonymous_record(
+            '',
+            defaultpacking,reqalign,
+            targetinfos[target_info.system]^.alignment.recordalignmin,
+            targetinfos[target_info.system]^.alignment.maxCrecordalign);
           write_rtti_reference(tcb,def.pointeddef,rt);
+          tcb.end_anonymous_record;
         end;
 
         procedure recorddef_rtti(def:trecorddef);
@@ -969,7 +980,7 @@ implementation
                    { every parameter is expected to start aligned }
                    tcb.begin_anonymous_record(
                      internaltypeprefixName[itp_rtti_proc_param]+tostr(length(parasym.realname)),
-                     defaultpacking,reqalign,
+                     defaultpacking,min(reqalign,SizeOf(PtrInt)),
                      targetinfos[target_info.system]^.alignment.recordalignmin,
                      targetinfos[target_info.system]^.alignment.maxCrecordalign);
                    { write flags for current parameter }
@@ -1367,7 +1378,7 @@ implementation
           { now emit the data: first the mode }
           tcb.emit_tai(Tai_const.create_32bit(longint(mode)),u32inttype);
           { align }
-          tcb.begin_anonymous_record('',defaultpacking,reqalign,
+          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(pointer)),
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
           if mode=lookup then
@@ -1394,7 +1405,7 @@ implementation
           else
             begin
               tcb.emit_ord_const(sym_count,u32inttype);
-              tcb.begin_anonymous_record('',defaultpacking,reqalign,
+              tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(pointer)),
                 targetinfos[target_info.system]^.alignment.recordalignmin,
                 targetinfos[target_info.system]^.alignment.maxCrecordalign);
               for i:=0 to sym_count-1 do
@@ -1438,12 +1449,12 @@ implementation
           { write rtti data }
           tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
           { begin of Tstring_to_ord }
-          tcb.begin_anonymous_record('',defaultpacking,reqalign,
+          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(pointer)),
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
           tcb.emit_ord_const(syms.count,s32inttype);
           { begin of "data" array in Tstring_to_ord }
-          tcb.begin_anonymous_record('',defaultpacking,reqalign,
+          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(pointer)),
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
           for i:=0 to syms.count-1 do
@@ -1613,7 +1624,7 @@ implementation
         rttidef:=tcb.end_anonymous_record;
         rttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_GLOBAL,AT_DATA_FORCEINDIRECT,rttidef);
         current_asmdata.AsmLists[al_rtti].concatList(
-          tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,sizeof(pint)));
+          tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,min(target_info.alignment.maxCrecordalign,SizeOf(QWord))));
         tcb.free;
 
         current_module.add_public_asmsym(rttilab);
@@ -1627,7 +1638,7 @@ implementation
       begin
         if tf_requires_proper_alignment in target_info.flags then
           begin
-            reqalign:=sizeof(TConstPtrUInt);
+            reqalign:=target_info.alignment.maxCrecordalign;
             defaultpacking:=C_alignment;
           end
         else

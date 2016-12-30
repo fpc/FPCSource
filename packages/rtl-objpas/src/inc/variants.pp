@@ -389,16 +389,6 @@ begin
     DoVarClearComplex(v);
 end;
 
-function AlignToPtr(p : Pointer) : Pointer;inline;
-begin
-  {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
-  Result:=align(p,SizeOf(p));
-  {$ELSE FPC_REQUIRES_PROPER_ALIGNMENT}
-  Result:=p;
-  {$ENDIF FPC_REQUIRES_PROPER_ALIGNMENT}
-end;
-
-
 { ---------------------------------------------------------------------
     String Messages
   ---------------------------------------------------------------------}
@@ -535,7 +525,7 @@ constructor tdynarrayiter.init(d : Pointer;typeInfo : Pointer;_dims: SizeInt;b :
         if i>0 then
           positions[i]:=Pointer(positions[i-1]^);
         { skip kind and name }
-        typeInfo:=aligntoptr(typeInfo+2+Length(PTypeInfo(typeInfo)^.Name));
+        typeInfo:=AlignTypeData(typeInfo+2+Length(PTypeInfo(typeInfo)^.Name));
 
         elesize[i]:=PTypeData(typeInfo)^.elSize;
         typeInfo:=PTypeData(typeInfo)^.elType2;
@@ -814,7 +804,7 @@ begin
 
   { get TypeInfo of second level }
   { skip kind and name }
-  TypeInfo:=aligntoptr(TypeInfo+2+Length(PTypeInfo(TypeInfo)^.Name));
+  TypeInfo:=AlignTypeData(TypeInfo+2+Length(PTypeInfo(TypeInfo)^.Name));
   TypeInfo:=PTypeData(TypeInfo)^.elType2;
 
   { check recursively? }
@@ -3376,7 +3366,7 @@ function DynArrayGetVariantInfo(p : Pointer; var Dims : sizeint) : sizeint;
   begin
     Result:=varNull;
     { skip kind and name }
-    p:=aligntoptr(p+2+Length(PTypeInfo(p)^.Name));
+    p:=AlignTypeData(p+2+Length(PTypeInfo(p)^.Name));
 
     { search recursive? }
     if PTypeInfo(PTypeData(p)^.elType2)^.kind=tkDynArray then

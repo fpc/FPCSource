@@ -385,8 +385,8 @@ unit typinfo;
         PropCount : Word;
         PropList : record _alignmentdummy : ptrint; end;
       end;
-{$PACKRECORDS 1}
 
+{$PACKRECORDS 1}
       PPropInfo = ^TPropInfo;
       TPropInfo = packed record
       private
@@ -425,6 +425,7 @@ unit typinfo;
 
 // general property handling
 Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
+Function AlignTypeData(p : PTypeData) : PTypeData;
 
 Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string): PPropInfo;
 Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string; AKinds: TTypeKinds): PPropInfo;
@@ -443,7 +444,6 @@ Function GetPropList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; PropList: PProp
 Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
 function GetPropList(AClass: TClass; out PropList: PPropList): Integer;
 function GetPropList(Instance: TObject; out PropList: PPropList): Integer;
-
 
 
 // Property information routines.
@@ -802,9 +802,31 @@ begin
 end;
 
 
+Function AlignTypeData(p : PTypeData) : PTypeData;
+{$push}
+{$packrecords c}
+  type
+    TAlignCheck = record
+      b : byte;
+      q : qword;
+    end;
+{$pop}
+begin
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifdef VER3_0}
+  Result:=PTypeData(align(p,SizeOf(Pointer)));
+{$else VER3_0}
+  Result:=PTypeData(align(p,PtrInt(@TAlignCheck(nil^).q)))
+{$endif VER3_0}
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+  Result:=p;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+end;
+
+
 Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 begin
-  GetTypeData:=PTypeData(aligntoptr(PTypeData(pointer(TypeInfo)+2+PByte(pointer(TypeInfo)+1)^)));
+  GetTypeData:=AlignTypeData(pointer(TypeInfo)+2+PByte(pointer(TypeInfo)+1)^);
 end;
 
 

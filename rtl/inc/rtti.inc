@@ -91,7 +91,11 @@ type
 
 function RTTIArraySize(typeInfo: Pointer): SizeInt;
 begin
+{$ifdef VER3_0}
   typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+  typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
   {$ifdef VER2_6}
   result:=PArrayInfo(typeInfo)^.Size*PArrayInfo(typeInfo)^.ElCount;
   {$else}
@@ -101,7 +105,11 @@ end;
 
 function RTTIRecordSize(typeInfo: Pointer): SizeInt;
 begin
+{$ifdef VER3_0}
   typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+  typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
   { for size field init table is compatible with rtti table }
   result:=PRecordInfoFull(typeInfo)^.Size;
 end;
@@ -111,7 +119,7 @@ begin
   result:=typeInfo;
 {$ifndef VER3_0}
   { find init table }
-  typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+  typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
 
   { check terminator, maybe we are already in init table }
   if Assigned(PRecordInfoInit(typeInfo)^.Terminator) then
@@ -145,7 +153,11 @@ var
   count,
   i : longint;
 begin
+{$ifdef VER3_0}
   typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+  typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
   Count:=PRecordInfoInit(typeInfo)^.Count;
   Inc(PRecordInfoInit(typeInfo));
   { Process elements }
@@ -163,7 +175,11 @@ procedure ArrayRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);
 var
   i: SizeInt;
 begin
+{$ifdef VER3_0}
   typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+  typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
   { Process elements }
   for I:=0 to PArrayInfo(typeInfo)^.ElCount-1 do
     rttiproc(Data+(I*PArrayInfo(typeInfo)^.Size),PArrayInfo(typeInfo)^.ElInfo);
@@ -174,7 +190,11 @@ var
   i,Count,ElSize: SizeInt;
   Info: Pointer;
 begin
+{$ifdef VER3_0}
   typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+  typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
   Count:=PArrayInfo(typeInfo)^.ElCount;
   { no elements to process => exit }
   if Count = 0 then
@@ -326,7 +346,11 @@ begin
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray:
       begin
+{$ifdef VER3_0}
         Temp:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+        Temp:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
       {$ifdef VER2_6}
         { Process elements }
         for I:=0 to PArrayInfo(Temp)^.ElCount-1 do
@@ -355,7 +379,11 @@ begin
     tkrecord:
       begin
         typeInfo:=RTTIRecordRttiInfoToInitInfo(typeInfo);
+{$ifdef VER3_0}
         Temp:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+        Temp:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
 
         Result:=PRecordInfoInit(Temp)^.Size;
         Count:=PRecordInfoInit(Temp)^.Count;

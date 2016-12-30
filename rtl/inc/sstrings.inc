@@ -519,16 +519,27 @@ type
     chars:array[0..0] of char; { variable length with size of num_chars }
   end;
 
+{$push}
+{$packrecords c}
   Penum_typedata=^Tenum_typedata;
   Tenum_typedata={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
     ordtype:byte;
-    { this seemingly extraneous inner record is here for alignment purposes, so
-      that its data gets aligned properly (if FPC_REQUIRES_PROPER_ALIGNMENT is
-      set }
-    inner: {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-      minvalue,maxvalue:longint;
-      basetype:pointer; { required for alignment }
-    end;
+    case byte of
+      tkInteger,tkChar,tkEnumeration,tkBool,tkWChar,tkSet: (
+        MinValue,MaxValue : Longint;
+        case byte of
+          tkEnumeration: (
+            BaseTypeRef : pointer
+            );
+{$ifndef VER3_0}
+        {tkBool with OrdType=otSQWord }
+        tkInt64:
+          (MinInt64Value, MaxInt64Value: Int64);
+        {tkBool with OrdType=otUQWord }
+        tkQWord:
+          (MinQWordValue, MaxQWordValue: QWord);
+{$endif VER3_0}
+    );
     { more data here, but not needed }
   end;
 
@@ -551,7 +562,7 @@ type
       1: (num_entries:longint;
           search_data:array[0..0] of Tsearch_data);
   end;
-
+{$pop}
 var
   enum_o2s : Penum_ord_to_string;
   header:Penum_typeinfo;
@@ -575,9 +586,14 @@ begin
         enum_rtti_header, and then align. Use an alignment of 1 (which
         does nothing) in case FPC_REQUIRES_PROPER_ALIGNMENT is not set
         to avoid the need for an if in this situation }
-      body:=Penum_typedata(align(ptruint(header) + 2 * sizeof(byte) { kind, num_chars } + header^.num_chars,
-        {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT} 1 {$else} sizeof(pointer) {$endif}));
-      with (body^.inner) do
+
+{$ifdef VER3_0}
+      body:=Penum_typedata(aligntoptr(pointer(header) + 2 * sizeof(byte) { kind, num_chars } + header^.num_chars));
+{$else VER3_0}
+      body:=Penum_typedata(aligntoqword(pointer(header) + 2 * sizeof(byte) { kind, num_chars } + header^.num_chars));
+{$endif VER3_0}
+
+      with body^ do
         begin
           { Bounds check for the ordinal value for this enum }
           if (ordinal<minvalue) or (ordinal>maxvalue) then
