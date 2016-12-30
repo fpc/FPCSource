@@ -214,15 +214,20 @@ var
   CmdStr  : TCmdStr;
   StripStr: string[40];
   DynLinkStr : string;
+  ExeName: string;
 begin
   StripStr:='';
   if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
+
+  ExeName:=current_module.exefilename;
+  if apptype = app_gui then
+    Replace(ExeName,target_info.exeext,'.prg');
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   binstr:=FindUtil(utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
+  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ExeName)));
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
   Replace(cmdstr,'$FLAGS','-tos-flags fastload,fastram');
   Replace(cmdstr,'$STRIP',StripStr);

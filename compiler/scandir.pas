@@ -284,7 +284,7 @@ unit scandir;
         if not (target_info.system in systems_all_windows + [system_i386_os2,
                                        system_i386_emx, system_powerpc_macos,
                                        system_arm_nds, system_i8086_msdos,
-                                       system_i8086_embedded] +
+                                       system_i8086_embedded, system_m68k_atari] +
                                        systems_nativent) then
           begin
             if m_delphi in current_settings.modeswitches then
