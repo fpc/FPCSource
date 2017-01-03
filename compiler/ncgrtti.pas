@@ -1638,7 +1638,7 @@ implementation
       begin
         if tf_requires_proper_alignment in target_info.flags then
           begin
-            reqalign:=target_info.alignment.maxCrecordalign;
+            reqalign:=min(sizeof(qword),target_info.alignment.maxCrecordalign);
             defaultpacking:=C_alignment;
           end
         else
