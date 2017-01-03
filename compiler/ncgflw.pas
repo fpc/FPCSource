@@ -360,6 +360,7 @@ implementation
                   current_asmdata.CurrAsmList := TAsmList.create;
                 end;
 *)
+              current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
               hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
            end;
          if not(assigned(right)) then
