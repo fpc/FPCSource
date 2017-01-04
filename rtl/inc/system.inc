@@ -445,11 +445,14 @@ function aligntoptr(p : pointer) : pointer;inline;
 
 
 function aligntoqword(p : pointer) : pointer;inline;
+{$push}
+{$packrecords c}
   type
     TAlignCheck = record
       b : byte;
       q : qword;
     end;
+{$pop}
   begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
     result:=align(p,PtrInt(@TAlignCheck(nil^).q))
