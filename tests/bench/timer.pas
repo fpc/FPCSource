@@ -68,7 +68,7 @@ unit timer;
 {$ifdef USEEPIK}
            write(stderr,e:0:6,' Seconds');
 {$else USEEPIK}
-           write(stderr,s div 1000,'.',format('%03d',[s mod 1000]),' Seconds');
+           write(stderr,s div 1000,'.',format('%.3d',[s mod 1000]),' Seconds');
 {$endif USEEPIK}
       end;
 
