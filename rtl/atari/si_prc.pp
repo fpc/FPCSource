@@ -36,7 +36,7 @@ procedure PascalMain; external name 'PASCALMAIN';
 procedure _FPC_proc_start(pd: PPD); cdecl; public name '_start';
 begin
   procdesc:=pd;
-  tpasize:=sizeof(pd^) + pd^.p_tlen + pd^.p_dlen + pd^.p_blen + stklen;
+  tpasize:=align(sizeof(pd^) + pd^.p_tlen + pd^.p_dlen + pd^.p_blen + stklen, sizeof(pointer));
 
   if gemdos_mshrink(0, pd, tpasize) < 0 then
     begin
