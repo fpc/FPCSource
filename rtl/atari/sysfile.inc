@@ -173,7 +173,6 @@ procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 }
 var
   oldp     : pchar;
-  handle   : longint;
   dosResult: longint;
 begin
 { close first if opened }
@@ -234,7 +233,7 @@ begin
       exit;
     end
   else
-    filerec(f).handle:=handle;
+    filerec(f).handle:=word(dosResult);
 
   { append mode }
   if ((Flags and $100)<>0) and
