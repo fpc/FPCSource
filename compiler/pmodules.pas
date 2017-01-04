@@ -398,12 +398,14 @@ implementation
             AddUnit('fpcylix');
             AddUnit('dynlibs');
           end;
-
+{$push}
+{$warn 6018 off} { Unreachable code due to compile time evaluation }
         { CPU targets with microcontroller support can add a controller specific unit }
         if ControllerSupport and (target_info.system in systems_embedded) and
           (current_settings.controllertype<>ct_none) and
           (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') then
           AddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
+{$pop}
       end;
 
 

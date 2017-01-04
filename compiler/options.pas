@@ -2301,6 +2301,8 @@ begin
                       end;
                     'p':
                       begin
+{$push}
+{$warn 6018 off} { Unreachable code due to compile time evaluation }
                         if (target_info.system in systems_embedded) and
                                                          ControllerSupport then
                           begin
@@ -2311,6 +2313,7 @@ begin
                           end
                         else
                           IllegalPara(opt);
+{$pop}
                       end;
                     'P':
                       begin
@@ -4104,6 +4107,8 @@ begin
     if i in features then
       def_system_macro('FPC_HAS_FEATURE_'+featurestr[i]);
 
+{$push}
+{$warn 6018 off} { Unreachable code due to compile time evaluation }
   if ControllerSupport and (target_info.system in systems_embedded) and
     (init_settings.controllertype<>ct_none) then
     begin
@@ -4119,6 +4124,7 @@ begin
           set_system_macro('FPC_BOOTSIZE',tostr(bootsize));
         end;
     end;
+{$pop}
 
   option.free;
   Option:=nil;
