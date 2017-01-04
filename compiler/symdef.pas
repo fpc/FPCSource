@@ -3968,9 +3968,9 @@ implementation
     constructor tabstractrecorddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
       begin
         inherited ppuload(dt,ppufile);
-        objrealname:=stringdup(ppufile.getstring);
+        objrealname:=ppufile.getpshortstring;
         objname:=stringdup(upper(objrealname^));
-        import_lib:=stringdup(ppufile.getstring);
+        import_lib:=ppufile.getpshortstring;
         { only used for external C++ classes and Java classes/records }
         if (import_lib^='') then
           stringdispose(import_lib);
@@ -5494,7 +5494,7 @@ implementation
            _mangledname:='';
 {$else symansistr}
          if po_has_mangledname in procoptions then
-          _mangledname:=stringdup(ppufile.getstring)
+          _mangledname:=ppufile.getpshortstring
          else
           _mangledname:=nil;
 {$endif symansistr}
@@ -5506,23 +5506,23 @@ implementation
          visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
          if sp_has_deprecated_msg in symoptions then
-           deprecatedmsg:=stringdup(ppufile.getstring)
+           deprecatedmsg:=ppufile.getpshortstring
          else
            deprecatedmsg:=nil;
          { import stuff }
          if po_has_importdll in procoptions then
-           import_dll:=stringdup(ppufile.getstring)
+           import_dll:=ppufile.getpshortstring
          else
            import_dll:=nil;
          if po_has_importname in procoptions then
-           import_name:=stringdup(ppufile.getstring)
+           import_name:=ppufile.getpshortstring
          else
            import_name:=nil;
          import_nr:=ppufile.getword;
          if (po_msgint in procoptions) then
            messageinf.i:=ppufile.getlongint;
          if (po_msgstr in procoptions) then
-           messageinf.str:=stringdup(ppufile.getstring);
+           messageinf.str:=ppufile.getpshortstring;
          if (po_dispid in procoptions) then
            dispid:=ppufile.getlongint;
          { inline stuff }
@@ -6582,7 +6582,7 @@ implementation
       begin
          inherited ppuload(objectdef,ppufile);
          objecttype:=tobjecttyp(ppufile.getbyte);
-         objextname:=stringdup(ppufile.getstring);
+         objextname:=ppufile.getpshortstring;
          { only used for external Objective-C classes/protocols }
          if (objextname^='') then
            stringdispose(objextname);
@@ -6601,7 +6601,7 @@ implementation
            begin
               new(iidguid);
               ppufile.getguid(iidguid^);
-              iidstr:=stringdup(ppufile.getstring);
+              iidstr:=ppufile.getpshortstring;
            end;
          abstractcnt:=ppufile.getlongint;
 

@@ -563,7 +563,7 @@ implementation
          visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
          if sp_has_deprecated_msg in symoptions then
-           deprecatedmsg:=stringdup(ppufile.getstring)
+           deprecatedmsg:=ppufile.getpshortstring
          else
            deprecatedmsg:=nil;
       end;
@@ -1754,7 +1754,7 @@ implementation
          inherited ppuload(fieldvarsym,ppufile);
          fieldoffset:=ppufile.getaint;
          if (vo_has_mangledname in varoptions) then
-           externalname:=stringdup(ppufile.getstring)
+           externalname:=ppufile.getpshortstring
          else
            externalname:=nil;
          ppuload_platform(ppufile);
@@ -1933,7 +1933,7 @@ implementation
            _mangledname:='';
 {$else symansistr}
          if vo_has_mangledname in varoptions then
-           _mangledname:=stringdup(ppufile.getstring)
+           _mangledname:=ppufile.getpshortstring
          else
            _mangledname:=nil;
 {$endif symansistr}
@@ -2231,7 +2231,7 @@ implementation
            tovar :
              ref:=ppufile.getpropaccesslist;
            toasm :
-             asmname:=stringdup(ppufile.getstring);
+             asmname:=ppufile.getpshortstring;
            toaddr :
              addroffset:=ppufile.getaword;
          end;

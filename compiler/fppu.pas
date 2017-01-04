@@ -1124,7 +1124,7 @@ var
         getmem(derefmap,derefmapsize*sizeof(tderefmaprec));
         fillchar(derefmap^,derefmapsize*sizeof(tderefmaprec),0);
         for i:=0 to derefmapsize-1 do
-          derefmap[i].modulename:=stringdup(ppufile.getstring);
+          derefmap[i].modulename:=ppufile.getpshortstring;
       end;
 
 
@@ -1253,7 +1253,7 @@ var
            case b of
              ibjvmnamespace :
                begin
-                 namespace:=stringdup(ppufile.getstring);
+                 namespace:=ppufile.getpshortstring;
                end;
              ibmodulename :
                begin
@@ -1272,7 +1272,7 @@ var
                  if mo_has_deprecated_msg in moduleoptions then
                    begin
                      stringdispose(deprecatedmsg);
-                     deprecatedmsg:=stringdup(ppufile.getstring);
+                     deprecatedmsg:=ppufile.getpshortstring;
                    end;
                end;
              ibsourcefiles :
@@ -1299,7 +1299,7 @@ var
                readlinkcontainer(LinkOtherFrameworks);
              ibmainname:
                begin
-                 mainname:=stringdup(ppufile.getstring);
+                 mainname:=ppufile.getpshortstring;
                  if (mainaliasname<>defaultmainaliasname) then
                    Message1(scan_w_multiple_main_name_overrides,mainaliasname);
                  mainaliasname:=mainname^;

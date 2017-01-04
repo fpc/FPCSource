@@ -270,6 +270,7 @@ type
     function  getreal:entryreal;
     function  getrealsize(sizeofreal : longint):entryreal;
     function  getstring:string;
+    function  getpshortstring:pshortstring;
     function  getansistring:ansistring;
     procedure getnormalset(out b);
     procedure getsmallset(out b);
@@ -894,6 +895,22 @@ begin
   inc(entryidx,length(result));
 end;
 
+function tentryfile.getpshortstring:pshortstring;
+var
+  len: char;
+begin
+  result:=nil;
+  len:=chr(getbyte);
+  if entryidx+ord(len)>entry.size then
+   begin
+     error:=true;
+     exit;
+   end;
+  getmem(result,ord(len)+1);
+  result^[0]:=len;
+  ReadData(result^[1],ord(len));
+  inc(entryidx,ord(len));
+end;
 
 function tentryfile.getansistring:ansistring;
 var
