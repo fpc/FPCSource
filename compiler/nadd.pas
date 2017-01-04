@@ -908,6 +908,60 @@ implementation
              exit;
           end;
 
+        { in case of expressions having no side effect, we can simplify boolean expressions
+          containing constants }
+        if is_boolean(left.resultdef) and is_boolean(right.resultdef) then
+          begin
+            if is_constboolnode(left) and not(might_have_sideeffects(right)) then
+              begin
+                if ((nodetype=andn) and (tordconstnode(left).value<>0)) or
+                  ((nodetype=orn) and (tordconstnode(left).value=0)) or
+                  ((nodetype=xorn) and (tordconstnode(left).value=0)) then
+                  begin
+                    result:=right;
+                    right:=nil;
+                    exit;
+                  end
+                else if ((nodetype=orn) and (tordconstnode(left).value<>0)) or
+                  ((nodetype=andn) and (tordconstnode(left).value=0)) then
+                  begin
+                    result:=left;
+                    left:=nil;
+                    exit;
+                  end
+                else if ((nodetype=xorn) and (tordconstnode(left).value<>0)) then
+                  begin
+                    result:=cnotnode.create(right);
+                    right:=nil;
+                    exit;
+                  end
+              end
+            else if is_constboolnode(right) and not(might_have_sideeffects(left)) then
+              begin
+                if ((nodetype=andn) and (tordconstnode(right).value<>0)) or
+                  ((nodetype=orn) and (tordconstnode(right).value=0)) or
+                  ((nodetype=xorn) and (tordconstnode(right).value=0)) then
+                  begin
+                    result:=left;
+                    left:=nil;
+                    exit;
+                  end
+                else if ((nodetype=orn) and (tordconstnode(right).value<>0)) or
+                  ((nodetype=andn) and (tordconstnode(right).value=0)) then
+                  begin
+                    result:=right;
+                    right:=nil;
+                    exit;
+                  end
+                else if ((nodetype=xorn) and (tordconstnode(right).value<>0)) then
+                  begin
+                    result:=cnotnode.create(left);
+                    left:=nil;
+                    exit;
+                  end
+              end;
+          end;
+
         { slow simplifications }
         if cs_opt_level2 in current_settings.optimizerswitches then
           begin
