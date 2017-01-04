@@ -6,7 +6,7 @@
 #   Based on errore.msg of SVN revision 35079
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2016 by the Free Pascal Development team
+#   Copyright (c) 1998-2017 by the Free Pascal Development team
 #
 #   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
@@ -3598,7 +3598,7 @@ package_u_ppl_filename=13029_U_PPL Dateiname $1
 #
 option_logo=11023_[
 Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] fÅr $FPCTARGET
-Copyright (c) 1993-2016 Florian KlÑmpfl und andere
+Copyright (c) 1993-2017 Florian KlÑmpfl und andere
 ]
 
 #
