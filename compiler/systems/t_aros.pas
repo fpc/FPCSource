@@ -53,7 +53,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,cfileutl,cclasses,
+       cutils,cfileutl,cclasses,aasmbase,
        globtype,globals,systems,verbose,script,fmodule,i_aros;
 
 
@@ -91,8 +91,8 @@ begin
     {       properly when calling the underlying GNU LD. (FIXME?)       }
     { This means paths with spaces in them are not supported for now on AROS.   }
     { So for example no Ram Disk: usage for anything which must be linked. (KB) }
-    ExeCmd[1]:='collect-aros $OPT $STRIP -d -n -o $EXE $RES';
-    //ExeCmd[1]:='ld $OPT -d -n -o $EXE $RES';
+    ExeCmd[1]:='collect-aros $OPT $GCSECTIONS $ENTRY -d -n -o $EXE $RES';
+    ExeCmd[2]:='strip --strip-unneeded $EXE';
   end;
 end;
 
@@ -207,22 +207,38 @@ function TLinkeraros.MakeAROSExe: boolean;
 var
   BinStr,
   CmdStr  : TCmdStr;
-  StripStr: string[40];
+  EntryStr: string;
+  GCSectionsStr: string;
+  success: boolean;
 begin
-  StripStr:='';
-  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
+  GCSectionsStr:='';
+
+  EntryStr:='-e _start';
+  if create_smartlink_sections then
+    GCSectionsStr:='--gc-sections';
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
-  Replace(cmdstr,'$STRIP',StripStr);
+  Replace(cmdstr,'$ENTRY',EntryStr);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
 
   { Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
     Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));}
 
-  MakeAROSExe:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+
+  { Call Strip }
+  if success and (cs_link_strip in current_settings.globalswitches) then
+    begin
+      SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
+      Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
+      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+    end;
+
+  MakeAROSExe:=success;
 end;
 
 
