@@ -909,21 +909,21 @@ implementation
           end;
 
         { slow simplifications }
-        if (cs_opt_level2 in current_settings.optimizerswitches) then
+        if cs_opt_level2 in current_settings.optimizerswitches then
           begin
             { the comparison is might be expensive and the nodes are usually only
               equal if some previous optimizations were done so don't check
               this simplification always
             }
-            if is_boolean(left.resultdef) and is_boolean(right.resultdef) and
-               { even when short circuit boolean evaluation is active, this
-                 optimization cannot be performed in case the node has
-                 side effects, because this can change the result (e.g., in an
-                 or-node that calls the same function twice and first returns
-                 false and then true because of a global state change }
-               not might_have_sideeffects(left) then
+            if is_boolean(left.resultdef) and is_boolean(right.resultdef) then
               begin
-                if left.isequal(right) then
+                { even when short circuit boolean evaluation is active, this
+                  optimization cannot be performed in case the node has
+                  side effects, because this can change the result (e.g., in an
+                  or-node that calls the same function twice and first returns
+                  false and then true because of a global state change }
+                if not might_have_sideeffects(left) and
+                  left.isequal(right) then
                   begin
                     case nodetype of
                       andn,orn:
@@ -940,8 +940,25 @@ implementation
                         end;
                       }
                     end;
-                  end;
-              end;
+                  end
+                { short to full boolean evalution possible and useful? }
+                else if not(might_have_sideeffects(right)) and not(cs_full_boolean_eval in localswitches) then
+                  begin
+                    case nodetype of
+                      andn,orn:
+                        { full boolean evaluation is only useful if the nodes are not too complex and if no flags/jumps must be converted,
+                          further, we need to know the expectloc }
+                        if (node_complexity(right)<=2) and
+                          not(left.expectloc in [LOC_FLAGS,LOC_JUMP,LOC_INVALID]) and not(right.expectloc in [LOC_FLAGS,LOC_JUMP,LOC_INVALID]) then
+                          begin
+                            { we need to copy the whole tree to force another pass_1 }
+                            include(localswitches,cs_full_boolean_eval);
+                            result:=getcopy;
+                            exit;
+                          end;
+                    end;
+                  end
+               end;
 
             { using sqr(x) for reals instead of x*x might reduces register pressure and/or
               memory accesses while sqr(<real>) has no drawback }
