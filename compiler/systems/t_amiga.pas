@@ -52,7 +52,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,cfileutl,cclasses,
+       cutils,cfileutl,cclasses,aasmbase,
        globtype,globals,systems,verbose,script,fmodule,i_amiga;
 
 
@@ -82,7 +82,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink -b amigahunk $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b amigahunk $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -97,7 +97,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink -q -n -b elf32amigaos -P_start -P__amigaos4__ -nostdlib $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -q -n -b elf32amigaos -P_start -P__amigaos4__ -nostdlib $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
      end;
   end;
 end;
@@ -346,9 +346,21 @@ var
   CmdStr  : TCmdStr;
   StripStr: string[40];
   DynLinkStr : string;
+  GCSectionsStr : string;
 begin
   StripStr:='';
-  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
+  GCSectionsStr:='';
+  DynLinkStr:='';
+
+  if (cs_link_strip in current_settings.globalswitches) then
+    StripStr:='-s';
+  if rlinkpath<>'' Then
+    DynLinkStr:='--rpath-link '+rlinkpath;
+  if UseVLink then
+    begin
+      if create_smartlink_sections then
+        GCSectionsStr:='-gc-all -sc -sd';
+    end;
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
@@ -357,11 +369,9 @@ begin
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STRIP',StripStr);
-  if rlinkpath<>'' Then
-    DynLinkStr:='--rpath-link '+rlinkpath
-  else
-    DynLinkStr:='';
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
+
   MakeAmiga68kExe:=DoExec(BinStr,CmdStr,true,false);
 end;
 
@@ -372,9 +382,21 @@ var
   CmdStr  : TCmdStr;
   StripStr: string[40];
   DynLinkStr : string;
+  GCSectionsStr : string;
 begin
   StripStr:='';
-  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
+  GCSectionsStr:='';
+  DynLinkStr:='';
+
+  if (cs_link_strip in current_settings.globalswitches) then
+    StripStr:='-s';
+  if rlinkpath<>'' Then
+    DynLinkStr:='--rpath-link '+rlinkpath;
+  if UseVLink then
+    begin
+      if create_smartlink_sections then
+        GCSectionsStr:='-gc-all -sc -sd';
+    end;
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
@@ -383,11 +405,9 @@ begin
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STRIP',StripStr);
-  if rlinkpath<>'' Then
-    DynLinkStr:='--rpath-link '+rlinkpath
-  else
-    DynLinkStr:='';
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
+
   MakeAmigaPPCExe:=DoExec(BinStr,CmdStr,true,false);
 end;
 

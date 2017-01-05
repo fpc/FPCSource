@@ -97,7 +97,7 @@ unit i_amiga;
             system       : system_powerpc_Amiga;
             name         : 'AmigaOS for PowerPC';
             shortname    : 'amiga';
-            flags        : [tf_files_case_aware,tf_requires_proper_alignment,tf_has_winlike_resources];
+            flags        : [tf_files_case_aware,tf_requires_proper_alignment,tf_has_winlike_resources,tf_smartlink_sections];
             cpu          : cpu_powerpc;
             unit_env     : 'AMIGAUNITS';
             extradefines : 'PPC603;HASAMIGA;AMIGAOS4';
