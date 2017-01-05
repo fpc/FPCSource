@@ -44,11 +44,14 @@ function AttemptSemaphore(SigSem: PSignalSemaphore): LongWord; syscall AOS_ExecB
 function CreateMsgPort: PMsgPort; syscall AOS_ExecBase 111;
 procedure DeleteMsgPort(Port: PMsgPort); syscall AOS_ExecBase 112;
 procedure ObtainSemaphoreShared(SigSem: PSignalSemaphore); syscall AOS_ExecBase 113;
+function AllocVec(ByteSize: DWord; Requirements: DWord): Pointer; syscall AOS_ExecBase 114;
+procedure FreeVec(MemoryBlock: Pointer); syscall AOS_ExecBase 115;
 function CreatePool(requirements: Cardinal; puddleSize: Cardinal; threshSize: Cardinal): Pointer; syscall LocalExecBase 116;
 procedure DeletePool(poolHeader: Pointer); syscall LocalExecBase 117;
 function AllocPooled(poolHeader: Pointer; memSize: Cardinal): Pointer; syscall LocalExecBase 118;
 function FreePooled(poolHeader: Pointer; memory: Pointer; memSize: Cardinal): Pointer; syscall LocalExecBase 119;
 procedure StackSwap(NewStack: PStackSwapStruct); syscall AOS_ExecBase 122;
+function NewStackSwap(NewStack: PStackSwapStruct; Function_: Pointer; Args: PStackSwapArgs): Pointer; syscall AOS_ExecBase 134;
 procedure RawPutChar(c: Char); syscall AOS_ExecBase 86;
 
 //function RawDoFmt(const formatString : pCHAR;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;

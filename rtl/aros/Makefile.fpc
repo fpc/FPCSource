@@ -6,29 +6,24 @@
 main=rtl
 
 [target]
-loaders=prt0
-units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings \
-      fpintres dos heaptrc lineinfo ctypes \
-      sysutils fgl classes math typinfo \
-      charset cpall getopts \
-      types rtlconsts sysconst character \
-      athreads
-implicitunits=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
+loaders=$(LOADERS)
+units=$(SYSTEMUNIT) heaptrc uuchar objpas macpas iso7185 extpas lineinfo buildrtl cpall
+implicitunits=$(SYSINITUNITS) athreads dos sysutils \
+      ctypes strings rtlconsts sysconst math types \
+      typinfo fgl classes charset character getopts \
+      fpintres exeinfo \
+      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 \
       unicodedata unicodenumtable
-# \
-#      exec timer doslib utility hardware inputevent graphics layers \
-#      intuition aboxlib mui \
-# these can be moved to packages later
-#      clipboard datatypes asl ahi tinygl get9 muihelper \
-rsts=math rtlconsts typinfo classes sysconst 
-#implicitunits=exeinfo
+
+rsts=math rtlconsts typinfo classes sysconst
 
 [require]
 nortl=y
 
 [install]
 fpcpackage=y
+buildunit=buildrtl
 
 [default]
 fpcdir=../..
@@ -45,9 +40,10 @@ INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 AMIINC=$(RTL)/amicommon
-
 UNITPREFIX=rtl
+LOADERS=prt0
 SYSTEMUNIT=system
+SYSINITUNITS=si_prc
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -91,149 +87,28 @@ prt0$(OEXT) : $(CPU_TARGET)/prt0.as
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp heaptrc$(PPUEXT)
+        $(COMPILER) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
 
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
-                   $(SYSTEMUNIT)$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT) heaptrc$(PPUEXT)
+        $(COMPILER) $(INC)/macpas.pp
 
-#
-# System Dependent Units
-#
+iso7185$(PPUEXT) : $(INC)/iso7185.pp buildrtl$(PPUEXT) heaptrc$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
 
-#ports$(PPUEXT) : ports.pas objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
 
-#doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
-#
-# TP7 Compatible RTL Units
-#
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 
-dos$(PPUEXT) : $(AMIINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               $(SYSTEMUNIT)$(PPUEXT)
-
-#crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
-
-#objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-
-#graph$(PPUEXT) : graph.pp
-
-#
-# Delphi Compatible Units
-#
-
-sysutils$(PPUEXT) : $(AMIINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(AMIINC)/sysutils.pp
-
-classes$(PPUEXT) : $(AMIINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes $(AMIINC)/classes.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
-
-math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
-
-#varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-#                    $(OBJPASDIR)/varutilh.inc varutils.pp
-#        $(COMPILER) -I$(OBJPASDIR) varutils.pp $(REDIR)
-
-#fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
-#        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
-
-character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) 
-        $(COMPILER) $(OBJPASDIR)/character.pas
-        
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fgl.pp
-
-types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
-
-rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
-        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
-
-#
-# Mac Pascal Model
-#
-
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp $(REDIR)
-
-#
-# Other system-independent RTL Units
-#
-
-ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
-
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
-
-#lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
-
-charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
-
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/fpintres.pp
-
-#
-# Other system-dependent RTL Units
-#
-
-athreads$(PPUEXT) : athreads.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(AMIINC)/athreads.pp
-
-#exec$(PPUEXT)    : exec.pp execf.inc execd.inc
-
-#timer$(PPUEXT)   : timer.pp timerd.inc timerf.inc
-
-#utility$(PPUEXT) : utility.pp exec$(PPUEXT) utilf.inc utild1.inc utild2.inc
-
-#doslib$(PPUEXT)  : doslib.pp exec$(PPUEXT) timer$(PPUEXT) doslibd.inc doslibf.inc
-
-#hardware$(PPUEXT): hardware.pas exec$(PPUEXT)
-
-#inputevent$(PPUEXT): inputevent.pas exec$(PPUEXT) timer$(PPUEXT) utility$(PPUEXT)
-
-#graphics$(PPUEXT): graphics.pas exec$(PPUEXT) utility$(PPUEXT) hardware$(PPUEXT)
-
-#layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
-
-#intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
-#                    inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
-
-#aboxlib$(PPUEXT): aboxlib.pas
-
-#clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
-
-#datatype$(PPUEXT): datatypes.pas exec$(PPUEXT) doslib$(PPUEXT) intuition$(PPUEXT) \
-#                   utility$(PPUEXT) graphics$(PPUEXT)
-
-#asl$(PPUEXT): asl.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
-
-#ahi$(PPUEXT): ahi.pas exec$(PPUEXT) utility$(PPUEXT)
-
-#mui$(PPUEXT): mui.pas exec$(PPUEXT) utility$(PPUEXT) intuition$(PPUEXT) graphics$(PPUEXT)
-
-#tinygl$(PPUEXT): tinygl.pp exec$(PPUEXT)
-
-#get9$(PPUEXT): get9.pas exec$(PPUEXT)
-
-#muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)

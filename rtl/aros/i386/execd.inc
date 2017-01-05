@@ -882,9 +882,9 @@ type
   end;
 
 type
-  PPPCStackSwapArgs = ^TPPCStackSwapArgs;
-  TPPCStackSwapArgs = record
-    Args: Array[0..7] Of DWord; { * The C register arguments from gpr3..gpr11 * }
+  PStackSwapArgs = ^TStackSwapArgs;
+  TStackSwapArgs = record
+    Args: Array[0..7] Of Pointer;
   end;
 
 
