@@ -586,7 +586,7 @@ implementation
       begin
         { if we load a value into a 32 bit register, it is automatically
           zero-extended to 64 bit }
-        if (high(a)=0) and
+        if (hi(a)=0) and
            (size in [OS_64,OS_S64]) then
           begin
             size:=OS_32;
