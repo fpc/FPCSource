@@ -123,7 +123,7 @@ unit agppcvasm;
          asmbin : 'vasmppc_std';
          asmcmd:  '-quiet $OTYPE -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_powerpc_amiga,system_powerpc_morphos,system_powerpc_linux];
-         flags : [af_needar{,af_smartlink_sections}];
+         flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
          comment : '# ';
          dollarsign: '$';
