@@ -58,6 +58,7 @@ interface
         procedure write_child_rtti_data(def:tdef;rt:trttitype);
         procedure write_rtti_reference(tcb: ttai_typedconstbuilder; def: tdef; rt: trttitype);
         procedure write_header(tcb: ttai_typedconstbuilder; def: tdef; typekind: byte);
+        function write_methodkind(tcb:ttai_typedconstbuilder;def:tabstractprocdef):byte;
       public
         constructor create;
         procedure write_rtti(def:tdef;rt:trttitype);
@@ -180,6 +181,37 @@ implementation
         tcb.emit_shortstring_const(name);
         tcb.end_anonymous_record;
       end;
+
+
+    function TRTTIWriter.write_methodkind(tcb:ttai_typedconstbuilder;def:tabstractprocdef):byte;
+      begin
+        case def.proctypeoption of
+          potype_constructor: result:=mkConstructor;
+          potype_destructor: result:=mkDestructor;
+          potype_class_constructor: result:=mkClassConstructor;
+          potype_class_destructor: result:=mkClassDestructor;
+          potype_operator: result:=mkOperatorOverload;
+          potype_procedure:
+            if po_classmethod in def.procoptions then
+              result:=mkClassProcedure
+            else
+              result:=mkProcedure;
+          potype_function:
+            if po_classmethod in def.procoptions then
+              result:=mkClassFunction
+            else
+              result:=mkFunction;
+        else
+          begin
+            if def.returndef = voidtype then
+              result:=mkProcedure
+            else
+              result:=mkFunction;
+          end;
+        end;
+        tcb.emit_ord_const(result,u8inttype);
+      end;
+
 
     procedure TRTTIWriter.write_rtti_name(tcb: ttai_typedconstbuilder; def: tdef);
       begin
@@ -1006,31 +1038,7 @@ implementation
                  targetinfos[target_info.system]^.alignment.maxCrecordalign);
 
                { write kind of method }
-               case def.proctypeoption of
-                 potype_constructor: methodkind:=mkConstructor;
-                 potype_destructor: methodkind:=mkDestructor;
-                 potype_class_constructor: methodkind:=mkClassConstructor;
-                 potype_class_destructor: methodkind:=mkClassDestructor;
-                 potype_operator: methodkind:=mkOperatorOverload;
-                 potype_procedure:
-                   if po_classmethod in def.procoptions then
-                     methodkind:=mkClassProcedure
-                   else
-                     methodkind:=mkProcedure;
-                 potype_function:
-                   if po_classmethod in def.procoptions then
-                     methodkind:=mkClassFunction
-                   else
-                     methodkind:=mkFunction;
-               else
-                 begin
-                   if def.returndef = voidtype then
-                     methodkind:=mkProcedure
-                   else
-                     methodkind:=mkFunction;
-                 end;
-               end;
-               tcb.emit_ord_const(methodkind,u8inttype);
+               methodkind:=write_methodkind(tcb,def);
 
                { write parameter info. The parameters must be written in reverse order
                  if this method uses right to left parameter pushing! }
