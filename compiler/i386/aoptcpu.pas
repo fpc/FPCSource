@@ -1853,29 +1853,8 @@ begin
                 if DoFpuLoadStoreOpt(p) then
                   continue;
               A_IMUL:
-                begin
-                  if (taicpu(p).ops >= 2) and
-                     ((taicpu(p).oper[0]^.typ = top_const) or
-                      ((taicpu(p).oper[0]^.typ = top_ref) and (taicpu(p).oper[0]^.ref^.refaddr=addr_full))) and
-                     (taicpu(p).oper[1]^.typ = top_reg) and
-                     ((taicpu(p).ops = 2) or
-                      ((taicpu(p).oper[2]^.typ = top_reg) and
-                       (taicpu(p).oper[2]^.reg = taicpu(p).oper[1]^.reg))) and
-                     getLastInstruction(p,hp1) and
-                     (hp1.typ = ait_instruction) and
-                     (taicpu(hp1).opcode = A_MOV) and
-                     (taicpu(hp1).oper[0]^.typ = top_reg) and
-                     (taicpu(hp1).oper[1]^.typ = top_reg) and
-                     (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
-              { change "mov reg1,reg2; imul y,reg2" to "imul y,reg1,reg2" }
-                    begin
-                      taicpu(p).ops := 3;
-                      taicpu(p).loadreg(1,taicpu(hp1).oper[0]^.reg);
-                      taicpu(p).loadreg(2,taicpu(hp1).oper[1]^.reg);
-                      asml.remove(hp1);
-                      hp1.free;
-                    end;
-                end;
+                if OptPass2Imul(p) then
+                  continue;
               A_JMP:
                 {
                   change

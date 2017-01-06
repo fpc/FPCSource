@@ -355,6 +355,8 @@ end;
               case taicpu(p).opcode of
                 A_MOV:
                   Result:=OptPass2MOV(p);
+                A_IMUL:
+                  Result:=OptPass2Imul(p);
               end;
             end;
         end;

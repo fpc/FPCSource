@@ -46,6 +46,7 @@ unit aoptx86;
         function OptPass1MOV(var p : tai) : boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
+        function OptPass2Imul(var p : tai) : boolean;
 
         procedure DebugMsg(const s : string; p : tai);inline;
 
@@ -366,7 +367,11 @@ unit aoptx86;
             ((p.oper[0]^.typ = top_ref) and
              not RegInRef(reg,p.oper[0]^.ref^)))) or
           ((p.opcode = A_POP) and
-           (SuperRegistersEqual(p.oper[0]^.reg,reg)));
+           (SuperRegistersEqual(p.oper[0]^.reg,reg))) or
+          ((p.opcode = A_IMUL) and
+           (p.ops=3) and
+           (SuperRegistersEqual(p.oper[2]^.reg,reg)) and
+           not((SuperRegistersEqual(p.oper[1]^.reg,reg))));
       end;
 
 
@@ -1167,6 +1172,45 @@ unit aoptx86;
                 p.free;
                 hp2.free;
                 p := hp1
+              end;
+            ReleaseUsedRegs(TmpUsedRegs);
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass2Imul(var p : tai) : boolean;
+      var
+        TmpUsedRegs : TAllUsedRegs;
+        hp1 : tai;
+        i : longint;
+      begin
+        Result:=false;
+        if (taicpu(p).ops >= 2) and
+           ((taicpu(p).oper[0]^.typ = top_const) or
+            ((taicpu(p).oper[0]^.typ = top_ref) and (taicpu(p).oper[0]^.ref^.refaddr=addr_full))) and
+           (taicpu(p).oper[1]^.typ = top_reg) and
+           ((taicpu(p).ops = 2) or
+            ((taicpu(p).oper[2]^.typ = top_reg) and
+             (taicpu(p).oper[2]^.reg = taicpu(p).oper[1]^.reg))) and
+           GetLastInstruction(p,hp1) and
+           MatchInstruction(hp1,A_MOV,[]) and
+           MatchOpType(hp1,top_reg,top_reg) and
+           ((taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) or
+            ((taicpu(hp1).opsize=S_L) and (taicpu(p).opsize=S_Q) and SuperRegistersEqual(taicpu(hp1).oper[1]^.reg,taicpu(p).oper[1]^.reg))) then
+          begin
+            CopyUsedRegs(TmpUsedRegs);
+            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,p,TmpUsedRegs)) then
+              { change
+                  mov reg1,reg2
+                  imul y,reg2 to imul y,reg1,reg2 }
+              begin
+                taicpu(p).ops := 3;
+                taicpu(p).loadreg(1,taicpu(hp1).oper[0]^.reg);
+                taicpu(p).loadreg(2,taicpu(hp1).oper[1]^.reg);
+                DebugMsg('Peephole MovImul2Imul done',p);
+                asml.remove(hp1);
+                hp1.free;
+                result:=true;
               end;
             ReleaseUsedRegs(TmpUsedRegs);
           end;
