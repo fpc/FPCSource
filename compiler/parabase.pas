@@ -140,6 +140,19 @@ unit parabase;
        end;
 
 
+       trttiparaloc = record
+         { contains the regtype in bits 0-6 and whether it's reference or not
+           in bit 7 }
+         loctype : byte;
+         regsub : byte;
+         regindex : word;
+         { either stack offset or shiftval }
+         offset : aint;
+       end;
+
+
+       trttiparalocs = array of trttiparaloc;
+
 
 implementation
 

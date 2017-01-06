@@ -28,7 +28,7 @@ interface
     uses
       cclasses,constexp,
       aasmbase,aasmcnst,
-      symbase,symconst,symtype,symdef;
+      symbase,symconst,symtype,symdef,symsym;
 
     type
 
@@ -60,6 +60,7 @@ interface
         procedure write_header(tcb: ttai_typedconstbuilder; def: tdef; typekind: byte);
         function write_methodkind(tcb:ttai_typedconstbuilder;def:tabstractprocdef):byte;
         procedure write_callconv(tcb:ttai_typedconstbuilder;def:tabstractprocdef);
+        procedure write_paralocs(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
       public
         constructor create;
         procedure write_rtti(def:tdef;rt:trttitype);
@@ -81,9 +82,10 @@ implementation
        cutils,
        globals,globtype,verbose,systems,
        fmodule, procinfo,
-       symtable,symsym,
+       symtable,
        aasmtai,aasmdata,
        defutil,
+       parabase,paramgr,
        wpobase
        ;
 
@@ -236,6 +238,27 @@ implementation
       begin
         tcb.emit_ord_const(ProcCallOptionToCallConv[def.proccalloption],u8inttype);
       end;
+
+
+    procedure TRTTIWriter.write_paralocs(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
+      var
+        locs : trttiparalocs;
+        i : longint;
+      begin
+        locs:=paramanager.cgparalocs_to_rttiparalocs(parasym.paraloc[callerside].location);
+        if length(locs)>high(byte) then
+          internalerror(2017010601);
+        tcb.emit_ord_const(length(locs),u8inttype);
+        for i:=low(locs) to high(locs) do
+          begin
+            tcb.emit_ord_const(locs[i].loctype,u8inttype);
+            tcb.emit_ord_const(locs[i].regsub,u8inttype);
+            tcb.emit_ord_const(locs[i].regindex,u16inttype);
+            { the corresponding type for aint is alusinttype }
+            tcb.emit_ord_const(locs[i].offset,alusinttype);
+          end;
+      end;
+
 
     procedure TRTTIWriter.write_rtti_name(tcb: ttai_typedconstbuilder; def: tdef);
       begin

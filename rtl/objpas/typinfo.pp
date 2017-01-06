@@ -80,6 +80,72 @@ unit typinfo;
       TTypeKinds = set of TTypeKind;
       ShortStringBase = string[255];
 
+{$push}
+{$scopedenums on}
+      TSubRegister = (
+        None,
+        Lo,
+        Hi,
+        Word,
+        DWord,
+        QWord,
+        FloatSingle,
+        FloatDouble,
+        FloatQuad,
+        MultiMediaSingle,
+        MultiMediaDouble,
+        MultiMediaWhole,
+        MultiMediaX,
+        MultiMediaY
+      );
+
+      TRegisterType = (
+        Invalid,
+        Int,
+        FP,
+        MMX,
+        MultiMedia,
+        Special,
+        Address
+      );
+{$pop}
+
+      TParameterLocation =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+      private
+        LocType: Byte;
+        function GetRegType: TRegisterType; inline;
+        function GetReference: Boolean; inline;
+        function GetShiftVal: Int8; inline;
+      public
+        RegSub: TSubRegister;
+        RegNumber: Word;
+        { Stack offset if Reference, ShiftVal if not }
+        Offset: SizeInt;
+        { if Reference then the register is the index register otherwise the
+          register in wihch (part of) the parameter resides }
+        property Reference: Boolean read GetReference;
+        property RegType: TRegisterType read GetRegType;
+        { if Reference, otherwise 0 }
+        property ShiftVal: Int8 read GetShiftVal;
+      end;
+      PParameterLocation = ^TParameterLocation;
+
+      TParameterLocations =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+      private
+        function GetLocation(aIndex: Byte): PParameterLocation; inline;
+      public
+        Count: Byte;
+        property Location[Index: Byte]: PParameterLocation read GetLocation;
+      end;
+
       PVmtFieldEntry = ^TVmtFieldEntry;
       TVmtFieldEntry =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -2296,6 +2362,41 @@ end;
 Function IsStoredProp(Instance: TObject; const PropName: string): Boolean;
 begin
   Result:=IsStoredProp(instance,FindPropInfo(Instance,PropName));
+end;
+
+{ TParameterLocation }
+
+function TParameterLocation.GetReference: Boolean;
+begin
+  Result := (LocType and $80) <> 0;
+end;
+
+function TParameterLocation.GetRegType: TRegisterType;
+begin
+  Result := TRegisterType(LocType and $7F);
+end;
+
+function TParameterLocation.GetShiftVal: Int8;
+begin
+  if GetReference then begin
+    if Offset < Low(Int8) then
+      Result := Low(Int8)
+    else if Offset > High(Int8) then
+      Result := High(Int8)
+    else
+      Result := Offset;
+  end else
+    Result := 0;
+end;
+
+{ TParameterLocations }
+
+function TParameterLocations.GetLocation(aIndex: Byte): PParameterLocation;
+begin
+  if aIndex >= Count then
+    Result := Nil
+  else
+    Result := PParameterLocation(@Count + SizeOf(Count) + SizeOf(TParameterLocation) * Count);
 end;
 
 { TProcedureParam }
