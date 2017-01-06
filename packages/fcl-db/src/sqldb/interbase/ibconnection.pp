@@ -923,10 +923,10 @@ begin
 end;
 
 procedure TIBConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams);
-var tr : pointer;
+var TransactionHandle : pointer;
     out_SQLDA : PXSQLDA;
 begin
-  tr := aTransaction.Handle;
+  TransactionHandle := aTransaction.Handle;
   if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, atransaction, AParams);
   if LogEvent(detParamValue) then
     LogParams(AParams);
@@ -936,7 +936,7 @@ begin
       out_SQLDA := SQLDA
     else
       out_SQLDA := nil;
-    if isc_dsql_execute2(@Status[0], @tr, @StatementHandle, 1, in_SQLDA, out_SQLDA) <> 0 then
+    if isc_dsql_execute2(@Status[0], @TransactionHandle, @StatementHandle, 1, in_SQLDA, out_SQLDA) <> 0 then
       CheckError('Execute', Status);
   end;
 end;
@@ -947,10 +947,23 @@ const
   CS_NONE=0;
   CS_BINARY=1;
 var
-  x         : integer;
+  i         : integer;
+  PSQLVar   : PXSQLVAR;
   TransLen,
   TransPrec : word;
   TransType : TFieldType;
+
+  function GetBlobCharset(TableName,ColumnName: Pointer): smallint;
+  var TransactionHandle: pointer;
+      BlobDesc: TISC_BLOB_DESC;
+      Global: array[0..31] of AnsiChar;
+  begin
+    TransactionHandle := TIBCursor(cursor).TransactionHandle;
+    if isc_blob_lookup_desc(@FStatus[0], @FDatabaseHandle, @TransactionHandle,
+         TableName, ColumnName, @BlobDesc, @Global) <> 0 then
+      CheckError('Blob Charset', FStatus);
+    Result := BlobDesc.blob_desc_charset;
+  end;
 
 begin
   {$push}
@@ -958,18 +971,20 @@ begin
   with cursor as TIBCursor do
     begin
     setlength(FieldBinding,SQLDA^.SQLD);
-    for x := 0 to SQLDA^.SQLD - 1 do
+    for i := 0 to SQLDA^.SQLD - 1 do
       begin
-      TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].sqlsubtype, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
+      PSQLVar := @SQLDA^.SQLVar[i];
+      TranslateFldType(PSQLVar^.SQLType, PSQLVar^.sqlsubtype, PSQLVar^.SQLLen, PSQLVar^.SQLScale,
         TransType, TransLen, TransPrec);
 
-      // column character set NONE or OCTETS overrides connection charset
-      if (TransType in [ftString, ftFixedChar]) and (SQLDA^.SQLVar[x].sqlsubtype and $FF in [CS_NONE,CS_BINARY]) then
-        FieldDefs.Add(SQLDA^.SQLVar[x].AliasName, TransType, TransLen, TransPrec, (SQLDA^.SQLVar[x].sqltype and 1)=0, False, x+1, CP_NONE)
+      // [var]char or blob column character set NONE or OCTETS overrides connection charset
+      if ((TransType in [ftString, ftFixedChar]) and (PSQLVar^.sqlsubtype and $FF in [CS_NONE,CS_BINARY])) or
+         ((TransType = ftMemo) and (PSQLVar^.relname_length>0) and (PSQLVar^.sqlname_length>0) and (GetBlobCharset(@PSQLVar^.relname,@PSQLVar^.sqlname) in [CS_NONE,CS_BINARY])) then
+        FieldDefs.Add(PSQLVar^.AliasName, TransType, TransLen, TransPrec, (PSQLVar^.sqltype and 1)=0, False, i+1, CP_NONE)
       else
-        AddFieldDef(FieldDefs, x+1, SQLDA^.SQLVar[x].AliasName, TransType, TransLen, TransPrec, True, (SQLDA^.SQLVar[x].sqltype and 1)=0, False);
+        AddFieldDef(FieldDefs, i+1, PSQLVar^.AliasName, TransType, TransLen, TransPrec, True, (PSQLVar^.sqltype and 1)=0, False);
 
-      FieldBinding[x] := x;
+      FieldBinding[i] := i;
       end;
     end;
   {$pop}
