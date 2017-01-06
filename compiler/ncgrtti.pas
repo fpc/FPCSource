@@ -59,6 +59,7 @@ interface
         procedure write_rtti_reference(tcb: ttai_typedconstbuilder; def: tdef; rt: trttitype);
         procedure write_header(tcb: ttai_typedconstbuilder; def: tdef; typekind: byte);
         function write_methodkind(tcb:ttai_typedconstbuilder;def:tabstractprocdef):byte;
+        procedure write_callconv(tcb:ttai_typedconstbuilder;def:tabstractprocdef);
       public
         constructor create;
         procedure write_rtti(def:tdef;rt:trttitype);
@@ -212,6 +213,29 @@ implementation
         tcb.emit_ord_const(result,u8inttype);
       end;
 
+
+    procedure TRTTIWriter.write_callconv(tcb:ttai_typedconstbuilder;def:tabstractprocdef);
+      const
+        ProcCallOptionToCallConv: array[tproccalloption] of byte = (
+         { pocall_none       } 0,
+         { pocall_cdecl      } 1,
+         { pocall_cppdecl    } 5,
+         { pocall_far16      } 6,
+         { pocall_oldfpccall } 7,
+         { pocall_internproc } 8,
+         { pocall_syscall    } 9,
+         { pocall_pascal     } 2,
+         { pocall_register   } 0,
+         { pocall_safecall   } 4,
+         { pocall_stdcall    } 3,
+         { pocall_softfloat  } 10,
+         { pocall_mwpascal   } 11,
+         { pocall_interrupt  } 12,
+         { pocall_hardfloat  } 13
+        );
+      begin
+        tcb.emit_ord_const(ProcCallOptionToCallConv[def.proccalloption],u8inttype);
+      end;
 
     procedure TRTTIWriter.write_rtti_name(tcb: ttai_typedconstbuilder; def: tdef);
       begin
@@ -939,24 +963,6 @@ implementation
 
 
         procedure procvardef_rtti(def:tprocvardef);
-           const
-             ProcCallOptionToCallConv: array[tproccalloption] of byte = (
-              { pocall_none       } 0,
-              { pocall_cdecl      } 1,
-              { pocall_cppdecl    } 5,
-              { pocall_far16      } 6,
-              { pocall_oldfpccall } 7,
-              { pocall_internproc } 8,
-              { pocall_syscall    } 9,
-              { pocall_pascal     } 2,
-              { pocall_register   } 0,
-              { pocall_safecall   } 4,
-              { pocall_stdcall    } 3,
-              { pocall_softfloat  } 10,
-              { pocall_mwpascal   } 11,
-              { pocall_interrupt  } 12,
-              { pocall_hardfloat  } 13
-             );
 
            procedure write_param_flag(parasym:tparavarsym);
              var
@@ -1057,7 +1063,7 @@ implementation
                end;
 
                { write calling convention }
-               tcb.emit_ord_const(ProcCallOptionToCallConv[def.proccalloption],u8inttype);
+               write_callconv(tcb,def);
 
                { enclosing record takes care of alignment }
                { write params typeinfo }
@@ -1076,7 +1082,7 @@ implementation
               { flags }
               tcb.emit_ord_const(0,u8inttype);
               { write calling convention }
-              tcb.emit_ord_const(ProcCallOptionToCallConv[def.proccalloption],u8inttype);
+              write_callconv(tcb,def);
               { enclosing record takes care of alignment }
               { write result typeinfo }
               write_rtti_reference(tcb,def.returndef,fullrtti);
