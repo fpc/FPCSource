@@ -68,6 +68,10 @@ unit aoptx86;
 
     function MatchReference(const ref : treference;base,index : TRegister) : Boolean;
 
+    { returns true, if ref is a reference using only the registers passed as base and index
+      and having an offset }
+    function MatchReferenceWithOffset(const ref : treference;base,index : TRegister) : Boolean;
+
     function MatchOpType(const instr : tai;ot0,ot1 : toptype) : Boolean;
 
   implementation
@@ -175,6 +179,19 @@ unit aoptx86;
       begin
        Result:=(ref.offset=0) and
          (ref.scalefactor in [0,1]) and
+         (ref.segment=NR_NO) and
+         (ref.symbol=nil) and
+         (ref.relsymbol=nil) and
+         ((base=NR_INVALID) or
+          (ref.base=base)) and
+         ((index=NR_INVALID) or
+          (ref.index=index));
+      end;
+
+
+    function MatchReferenceWithOffset(const ref : treference;base,index : TRegister) : Boolean;
+      begin
+       Result:=(ref.scalefactor in [0,1]) and
          (ref.segment=NR_NO) and
          (ref.symbol=nil) and
          (ref.relsymbol=nil) and
@@ -1102,18 +1119,19 @@ unit aoptx86;
            ((taicpu(hp1).opcode=A_LEA) and
              GetNextInstruction(hp1,hp2) and
              MatchInstruction(hp2,A_MOV,[]) and
-            (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
             ((MatchReference(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) and
              (taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg)
               ) or
              (MatchReference(taicpu(hp1).oper[0]^.ref^,NR_INVALID,
               taicpu(p).oper[1]^.reg) and
-             (taicpu(hp1).oper[0]^.ref^.base<>taicpu(p).oper[1]^.reg))
+             (taicpu(hp1).oper[0]^.ref^.base<>taicpu(p).oper[1]^.reg)) or
+             (MatchReferenceWithOffset(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_NO)) or
+             (MatchReferenceWithOffset(taicpu(hp1).oper[0]^.ref^,NR_NO,taicpu(p).oper[1]^.reg))
             ) and
             ((MatchOperand(taicpu(p).oper[1]^,taicpu(hp2).oper[0]^)) or not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,UsedRegs)))
            )
           ) and
-          MatchOperand(taicpu(p).oper[1]^,taicpu(hp2).oper[0]^) and
+          MatchOperand(taicpu(hp1).oper[taicpu(hp1).ops-1]^,taicpu(hp2).oper[0]^) and
           (taicpu(hp2).oper[1]^.typ = top_ref) then
           begin
             CopyUsedRegs(TmpUsedRegs);
@@ -1132,10 +1150,12 @@ unit aoptx86;
                   A_LEA :
                     begin
                       taicpu(hp1).opcode:=A_ADD;
-                      if taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg then
+                      if (taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg) and (taicpu(hp1).oper[0]^.ref^.index<>NR_NO) then
                         taicpu(hp1).loadreg(0,taicpu(hp1).oper[0]^.ref^.index)
+                      else if (taicpu(hp1).oper[0]^.ref^.base<>taicpu(p).oper[1]^.reg) and (taicpu(hp1).oper[0]^.ref^.base<>NR_NO) then
+                        taicpu(hp1).loadreg(0,taicpu(hp1).oper[0]^.ref^.base)
                       else
-                        taicpu(hp1).loadreg(0,taicpu(hp1).oper[0]^.ref^.base);
+                        taicpu(hp1).loadconst(0,taicpu(hp1).oper[0]^.ref^.offset);
                       taicpu(hp1).loadRef(1,taicpu(p).oper[0]^.ref^);
                       DebugMsg('Peephole FoldLea done',hp1);
                     end
