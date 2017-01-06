@@ -48,7 +48,7 @@ type
 implementation
 
     uses
-       sysutils,cutils,cfileutl,cclasses,
+       sysutils,cutils,cfileutl,cclasses,aasmbase,
        globtype,globals,systems,verbose,script,fmodule,i_atari;
 
 
@@ -73,7 +73,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink -b ataritos $FLAGS $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b ataritos $FLAGS $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -214,10 +214,24 @@ var
   CmdStr  : TCmdStr;
   StripStr: string[40];
   DynLinkStr : string;
+  GCSectionsStr : string;
+  FlagsStr : string;
   ExeName: string;
 begin
   StripStr:='';
-  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
+  GCSectionsStr:='';
+  DynLinkStr:='';
+  FlagsStr:='-tos-flags fastload,fastram';
+
+  if (cs_link_strip in current_settings.globalswitches) then
+    StripStr:='-s';
+  if rlinkpath<>'' then
+    DynLinkStr:='--rpath-link '+rlinkpath;
+  if UseVLink then
+    begin
+      if create_smartlink_sections then
+        GCSectionsStr:='-gc-all -sc -sd';
+    end;
 
   ExeName:=current_module.exefilename;
   if apptype = app_gui then
@@ -229,13 +243,11 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ExeName)));
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
-  Replace(cmdstr,'$FLAGS','-tos-flags fastload,fastram');
+  Replace(cmdstr,'$FLAGS',FlagsStr);
   Replace(cmdstr,'$STRIP',StripStr);
-  if rlinkpath<>'' Then
-    DynLinkStr:='--rpath-link '+rlinkpath
-  else
-    DynLinkStr:='';
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
+
   MakeAtariExe:=DoExec(BinStr,CmdStr,true,false);
 end;
 
