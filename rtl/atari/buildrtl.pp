@@ -6,7 +6,7 @@ unit buildrtl;
 {$ifdef cpum68k}
       si_prc,
 {$endif}
-      sysutils,
+      sysutils, dos,
 
       ctypes, strings,
       rtlconsts, sysconst, math, types,
