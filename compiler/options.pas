@@ -1997,6 +1997,11 @@ begin
                            include(init_settings.moduleswitches,cs_support_macro);
                        'o' : //an alternative to -Mtp
                          SetCompileMode('TP',true);
+                       'r' :
+                         If UnsetBool(More, j, opt, false) then
+                           exclude(init_settings.globalswitches,cs_transparent_file_names)
+                         else
+                           include(init_settings.globalswitches,cs_transparent_file_names);
 {$ifdef gpc_mode}
                        'p' : //an alternative to -Mgpc
                          SetCompileMode('GPC',true);

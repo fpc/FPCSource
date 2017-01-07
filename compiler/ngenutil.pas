@@ -472,12 +472,22 @@ implementation
        (tfiledef(tstaticvarsym(p).vardef).filetyp=ft_text) and
        (tstaticvarsym(p).isoindex<>0) then
        begin
-         addstatement(stat^,ccallnode.createintern('fpc_textinit_iso',
-           ccallparanode.create(
-             cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
-           ccallparanode.create(
-             cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
-           nil))));
+         if cs_transparent_file_names in current_settings.globalswitches then
+           addstatement(stat^,ccallnode.createintern('fpc_textinit_filename_iso',
+             ccallparanode.create(
+               cstringconstnode.createstr(tstaticvarsym(p).Name),
+             ccallparanode.create(
+               cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+             ccallparanode.create(
+               cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+             nil)))))
+         else
+           addstatement(stat^,ccallnode.createintern('fpc_textinit_iso',
+             ccallparanode.create(
+               cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+             ccallparanode.create(
+               cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+             nil))));
        end;
     end;
 

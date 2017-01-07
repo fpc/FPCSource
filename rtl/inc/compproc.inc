@@ -431,6 +431,7 @@ procedure fpc_PWideChar_To_ShortStr(out res : shortstring;const p : pwidechar); 
 Function fpc_get_input:PText;compilerproc;
 Function fpc_get_output:PText;compilerproc;
 Procedure fpc_textinit_iso(var t : Text;nr : DWord);compilerproc;
+Procedure fpc_textinit_filename_iso(var t : Text;nr : DWord;const filename : string);compilerproc;
 Procedure fpc_textclose_iso(var t : Text);compilerproc;
 Procedure fpc_Write_End(var f:Text); compilerproc;
 Procedure fpc_Writeln_End(var f:Text); compilerproc;

@@ -190,6 +190,7 @@ interface
          { parameter switches }
          cs_check_unit_name,cs_constructor_name,cs_support_exceptions,
          cs_support_c_objectivepas,
+         cs_transparent_file_names,
          { units }
          cs_load_objpas_unit,
          cs_load_gpc_unit,
