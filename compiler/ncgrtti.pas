@@ -136,6 +136,12 @@ implementation
                   if assigned(tprocdef(def).parast) then
                     write_persistent_type_info(tprocdef(def).parast,false);
                 end;
+              errordef:
+                { we shouldn't have come this far if we have an errordef somewhere }
+                internalerror(2017010701);
+              undefineddef:
+                { don't write any RTTI for these }
+                continue;
             end;
             { always generate persistent tables for types in the interface so
               they can be reused in other units and give always the same pointer
