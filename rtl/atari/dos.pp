@@ -212,7 +212,7 @@ begin
   gemdos_setdta(@IFD^.dta_search);
 
   f.IFD:=IFD;
-  dosResult:=gemdos_fsfirst(pchar(r), Attr);
+  dosResult:=gemdos_fsfirst(pchar(r), Attr and AnyFile);
   if dosResult < 0 then
     begin
       Error2DosError(dosResult);
@@ -273,8 +273,50 @@ begin
 end;
 
 function FSearch(path: PathStr; dirlist: String) : PathStr;
+var
+  p1     : longint;
+  s      : searchrec;
+  newdir : pathstr;
 begin
-  FSearch:='';
+  { No wildcards allowed in these things }
+  if (pos('?',path)<>0) or (pos('*',path)<>0) then
+  begin
+    fsearch:='';
+    exit;
+  end;
+  { check if the file specified exists }
+  findfirst(path,anyfile and not(directory),s);
+  if doserror=0 then
+    begin
+     findclose(s);
+     fsearch:=path;
+     exit;
+    end;
+  findclose(s);
+  { allow slash as backslash }
+  DoDirSeparators(dirlist);
+  repeat
+    p1:=pos(';',dirlist);
+    if p1<>0 then
+      begin
+        newdir:=copy(dirlist,1,p1-1);
+        delete(dirlist,1,p1);
+      end
+    else
+      begin
+        newdir:=dirlist;
+        dirlist:='';
+      end;
+    if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
+      newdir:=newdir+'\';
+    findfirst(newdir+path,anyfile and not(directory),s);
+    if doserror=0 then
+      newdir:=newdir+path
+    else
+      newdir:='';
+    findclose(s);
+  until (dirlist='') or (newdir<>'');
+  fsearch:=newdir;
 end;
 
 procedure GetFAttr(var f; var Attr : word);
@@ -305,7 +347,7 @@ var
   td: TDOSTIME;
 begin
   gemdos_fdatime(@td,TextRec(f).Handle,0);
-  Time:=(td.date << 16) + td.time;
+  Time:=(td.date shl 16) + td.time;
 end;
 
 procedure SetFAttr(var f; attr : word);
