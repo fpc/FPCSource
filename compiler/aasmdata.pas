@@ -58,6 +58,8 @@ interface
         al_exports,
         al_resources,
         al_rtti,
+        { all symbols with indirect suffix }
+        al_indirectglobals,
         al_dwarf_frame,
         al_dwarf_info,
         al_dwarf_abbrev,
@@ -112,6 +114,7 @@ interface
         'al_exports',
         'al_resources',
         'al_rtti',
+        'al_indirectglobals',
         'al_dwarf_frame',
         'al_dwarf_info',
         'al_dwarf_abbrev',
