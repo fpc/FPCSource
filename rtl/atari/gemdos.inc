@@ -129,8 +129,9 @@ function gemdos_dgetdrv: smallint; syscall 1 25;
 procedure gemdos_setdta(buf: PDTA); syscall 1 26;
 
 function gemdos_tgetdate: longint; syscall 1 42;
-
+function gemdos_tsetdate(date: word): smallint; syscall 1 43;
 function gemdos_tgettime: longint; syscall 1 44;
+function gemdos_tsettime(time: word): smallint; syscall 1 45;
 
 function gemdos_getdta: PDTA; syscall 1 47;
 function gemdos_sversion: smallint; syscall 1 48;
