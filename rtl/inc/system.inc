@@ -643,10 +643,11 @@ begin
       OldRandSeed:=RandSeed;
       l_index:=MTWIST_N;
     end;
-  if mt_index=MTWIST_N then
+  if l_index=MTWIST_N then
     begin
       mtwist_update_state;
       l_index:=0;
+      mt_index:=1;
     end;
   result:=mt_state[l_index];
   result:=result xor (result shr 11);
