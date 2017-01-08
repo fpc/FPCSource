@@ -41,7 +41,7 @@ type
   * }
 
 
-type
+{type
   Tag = Cardinal;
 
 type
@@ -50,7 +50,7 @@ type
   TTagItem = packed record
     ti_Tag : Tag;
     ti_Data: Cardinal;
-  end;
+  end;}
 
 
 const
@@ -60,8 +60,8 @@ const
   TAG_MORE   = 2;
   TAG_SKIP   = 3;
 
-const
-  TAG_USER   = 1 Shl 31;
+{const
+  TAG_USER   = 1 Shl 31;}
 
 const
   TAGFILTER_AND = 0;
