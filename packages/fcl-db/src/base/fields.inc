@@ -1315,7 +1315,7 @@ begin
   else
     begin
     if StringCodePage(AValue) <> FCodePage then
-      SetCodePage(AValue, FCodePage, True);
+      SetCodePage(AValue, FCodePage, FCodePage<>CP_NONE);
     if DataSize <= dsMaxStringSize then
       begin
       if FTransliterate then
@@ -3217,7 +3217,7 @@ procedure TMemoField.SetAsAnsiString(const AValue: AnsiString);
 var s: RawByteString;
 begin
   s := AValue;
-  SetCodePage(s, FCodePage, True);
+  SetCodePage(s, FCodePage, FCodePage<>CP_NONE);
   inherited SetAsAnsiString(s);
 end;
 
