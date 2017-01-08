@@ -995,7 +995,7 @@ implementation
 
            procedure write_param_flag(parasym:tparavarsym);
              var
-               paraspec : byte;
+               paraspec : word;
              begin
                case parasym.varspez of
                  vs_value   : paraspec := 0;
@@ -1016,13 +1016,22 @@ implementation
                }
                if is_class_or_interface(parasym.vardef) then
                  paraspec:=paraspec or pfAddress;
+               { flags for the hidden parameters }
+               if vo_is_hidden_para in parasym.varoptions then
+                 paraspec:=paraspec or pfHidden;
+               if vo_is_high_para in parasym.varoptions then
+                 paraspec:=paraspec or pfHigh;
+               if vo_is_self in parasym.varoptions then
+                 paraspec:=paraspec or pfSelf;
+               if vo_is_vmt in parasym.varoptions then
+                 paraspec:=paraspec or pfVmt;
                { set bits run from the highest to the lowest bit on
                  big endian systems
                }
                if (target_info.endian = endian_big) then
-                 paraspec:=reverse_byte(paraspec);
+                 paraspec:=reverse_word(paraspec);
                { write flags for current parameter }
-               tcb.emit_ord_const(paraspec,u8inttype);
+               tcb.emit_ord_const(paraspec,u16inttype);
              end;
 
            procedure write_para(parasym:tparavarsym);

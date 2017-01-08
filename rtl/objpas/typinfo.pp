@@ -55,7 +55,9 @@ unit typinfo;
        TMethodKind = (mkProcedure,mkFunction,mkConstructor,mkDestructor,
                       mkClassProcedure,mkClassFunction,mkClassConstructor,
                       mkClassDestructor,mkOperatorOverload);
-       TParamFlag     = (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut,pfConstRef);
+       TParamFlag     = (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut,pfConstRef
+                         {$ifndef VER3_0},pfHidden,pfHigh,pfSelf,pfVmt{$endif VER3_0}
+                         );
        TParamFlags    = set of TParamFlag;
        TIntfFlag      = (ifHasGuid,ifDispInterface,ifDispatch,ifHasStrGUID);
        TIntfFlags     = set of TIntfFlag;
