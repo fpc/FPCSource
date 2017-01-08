@@ -65,6 +65,8 @@ interface
     function newalignment(oldalignment: longint; offset: int64): longint;
     {# Return @var(b) with the bit order reversed }
     function reverse_byte(b: byte): byte;
+    {# Return @var(w) with the bit order reversed }
+    function reverse_word(w: word): word;
 
     function next_prime(l: longint): longint;
 
@@ -271,6 +273,17 @@ implementation
            %0001,%1001,%0101,%1101,%0011,%1011,%0111,%1111);
       begin
         reverse_byte:=(reverse_nible[b and $f] shl 4) or reverse_nible[b shr 4];
+      end;
+
+    function reverse_word(w: word): word;
+      type
+        TWordRec = packed record
+          hi, lo: Byte;
+        end;
+
+      begin
+        TWordRec(reverse_word).hi := reverse_byte(TWordRec(w).lo);
+        TWordRec(reverse_word).lo := reverse_byte(TWordRec(w).hi);
       end;
 
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
