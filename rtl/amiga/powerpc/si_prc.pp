@@ -43,6 +43,7 @@ function _FPC_proc_start(arg0: pointer; arg1: pointer; argIExec: POS4Interface):
 begin
   IExec:=argIExec;
   AOS_ExecBase:=argIExec^.Data.LibBase;
+  amigaos4_signature:=1;   { Hack: prevent section gc to remove this, until VLink has a fix (KB) }
 
   { The StackCookie check is only here so the symbol is referenced and
     doesn't get striped out }

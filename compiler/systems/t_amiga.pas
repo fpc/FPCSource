@@ -245,7 +245,7 @@ begin
       Add('  .rela.dyn       : { *(.rela.dyn) }');
       Add('  .rela.plt       : { *(.rela.plt) }');
       Add('  .init           : { *(.init) }');
-      Add('  .text           : { *(.text .gnu.linkonce.t.*) }');
+      Add('  .text           : { *(.text .text.* .gnu.linkonce.t.*) }');
       Add('  .fini           : { *(.fini) }');
       Add('  .code68k        : { *(CODE text code) }');
       Add('');
