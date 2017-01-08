@@ -70,7 +70,9 @@ RESUNIT=fpextres
 endif
 
 ifeq ($(ARCH),powerpc)
+override LOADERS=
 RESUNIT=fpintres
+SYSINITUNITS=si_prc
 endif
 
 [rules]
