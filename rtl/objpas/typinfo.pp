@@ -2408,7 +2408,7 @@ end;
 
 function TProcedureParam.GetFlags: Byte;
 begin
-  Result := Byte(ParamFlags);
+  Result := PByte(@ParamFlags)^;
 end;
 
 { TManagedField }
