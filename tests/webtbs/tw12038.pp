@@ -209,7 +209,7 @@ var
    ProcessThisProperty : boolean;
    Fu_ResultType: String;
    Flags: TParamFlags;
-   Flag:byte;
+   Flag:word;
    Definition: String;
 begin
   // Finding property type 
@@ -275,7 +275,7 @@ begin
         for i:= 1 to DTypeData^.ParamCount do
           begin
             { First Handle the ParamFlag }
-           Flag:=byte(DTypeData^.ParamList[CurrentParamPosition]);
+           Flag:=pword(@DTypeData^.ParamList[CurrentParamPosition])^;
            Flags:=TParamFlags(Flag);
            writeln('ord(Flags):',ord(DTypeData^.ParamList[CurrentParamPosition]));
 //         For i:= 1 to NumI do
@@ -294,7 +294,7 @@ begin
              then Definition := Definition+('out ');
            
            { Next char is the length of the ParamName}
-           inc(CurrentParamPosition);
+           inc(CurrentParamPosition,SizeOf(TParamFlags));
            ParamNameLength := ord( DTypeData^.ParamList[CurrentParamPosition]);
            { Next extract the Name of the Parameter }
            ParamName := '';

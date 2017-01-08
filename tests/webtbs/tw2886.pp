@@ -40,7 +40,9 @@ begin
 //  for i:=0 to ParamCount-1 do begin
 
     // SizeOf(TParamFlags) is 4, but the data is only 1 byte
-    Len:=1; // typinfo.pp comment is wrong: SizeOf(TParamFlags)
+    //Len:=1; // typinfo.pp comment is wrong: SizeOf(TParamFlags)
+    // Note by SB (2017-01-08): No longer true since typinfo uses packed sets
+    Len:=SizeOf(TParamFlags);
     inc(Offset,Len);
 
     // read ParamName
