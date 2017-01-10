@@ -601,7 +601,14 @@ begin
       ct_flip_n_click,
       
       { Nordic Semiconductor }
-      ct_nrf52832,
+      ct_nrf51422_xxaa,
+      ct_nrf51422_xxab,
+      ct_nrf51422_xxac,
+      ct_nrf51822_xxaa,
+      ct_nrf51822_xxab,
+      ct_nrf51822_xxac,
+      ct_nrf52832_xxaa,
+      ct_nrf52840_xxaa,
       
       ct_sc32442b,
       ct_thumb2bare:

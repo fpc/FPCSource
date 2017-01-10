@@ -464,7 +464,14 @@ Type
       ct_flip_n_click,
       
       { Nordic Semiconductor }
-      ct_nrf52832,
+      ct_nrf51422_xxaa,
+      ct_nrf51422_xxab,
+      ct_nrf51422_xxac,
+      ct_nrf51822_xxaa,
+      ct_nrf51822_xxab,
+      ct_nrf51822_xxac,
+      ct_nrf52832_xxaa,
+      ct_nrf52840_xxaa,
 
       // generic Thumb2 target
       ct_thumb2bare
@@ -967,8 +974,15 @@ Const
       (controllertypestr:'FLIP_N_CLICK';  controllerunitstr:'SAM3X8E'; cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00080000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       
       { Nordic Semiconductor }
-      (controllertypestr:'NRF52832'; controllerunitstr:'NRF52832'; cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$00000000; flashsize:$00080000; srambase:$20000000; sramsize:$00010000),
-
+      (controllertypestr:'NRF51422_XXAA'; controllerunitstr:'NRF51'; cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$00000000; flashsize:$00040000;      srambase:$20000000; sramsize:$00004000),
+      (controllertypestr:'NRF51422_XXAB'; controllerunitstr:'NRF51'; cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$00000000; flashsize:$00020000;      srambase:$20000000; sramsize:$00004000),
+      (controllertypestr:'NRF51422_XXAC'; controllerunitstr:'NRF51'; cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$00000000; flashsize:$00040000;      srambase:$20000000; sramsize:$00008000),
+      (controllertypestr:'NRF51822_XXAA'; controllerunitstr:'NRF51'; cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$00000000; flashsize:$00040000;      srambase:$20000000; sramsize:$00004000),
+      (controllertypestr:'NRF51822_XXAB'; controllerunitstr:'NRF51'; cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$00000000; flashsize:$00020000;      srambase:$20000000; sramsize:$00004000),
+      (controllertypestr:'NRF51822_XXAC'; controllerunitstr:'NRF51'; cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$00000000; flashsize:$00040000;      srambase:$20000000; sramsize:$00008000),
+      (controllertypestr:'NRF52832_XXAA'; controllerunitstr:'NRF52'; cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$00000000; flashsize:$00080000; srambase:$20000000; sramsize:$00010000),
+      (controllertypestr:'NRF52840_XXAA'; controllerunitstr:'NRF52'; cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$00000000; flashsize:$00080000; srambase:$20000000; sramsize:$00010000),
+      
       { Bare bones }
       (controllertypestr:'THUMB2_BARE';	controllerunitstr:'THUMB2_BARE';	cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00000000;	flashsize:$00002000;	srambase:$20000000;	sramsize:$00000400)
     );
