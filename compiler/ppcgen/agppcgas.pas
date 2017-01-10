@@ -481,8 +481,16 @@ unit agppcgas;
         { map cr registers to plain numbers }
         for i:=0 to 7 do
           writer.AsmWriteln(#9'.set'#9'cr'+tostr(i)+','+tostr(i));
-        { make sure we always have a code and toc section, the linker expects
-          that }
+        { Ensure .data and .rodata sections are aligned to 8-byte boundary,
+          required for correct RTTI alignment.
+          AIX assembler seems to only care for the first
+          alignment value given }
+        writer.AsmWriteln(#9'.csect .data[RW],3');
+        { .rodata is translated into .text[RO]
+          see sectionname in aggas unit. }
+        writer.AsmWriteln(#9'.csect .text[RO],3');
+        { make sure we always have a code and toc section,
+          the linker expects that }
         writer.AsmWriteln(#9'.csect .text[PR]');
         { set _text_s, to be used by footer below } 
         writer.AsmWriteln(#9'_text_s:');
@@ -494,7 +502,7 @@ unit agppcgas;
       begin
         inherited WriteExtraFooter;
         { link between data and text section }
-        writer.AsmWriteln(#9'.csect .data[RW],4');
+        writer.AsmWriteln(#9'.csect .data[RW],3');
 {$ifdef cpu64bitaddr}
         writer.AsmWriteln('text_pos:'#9'.llong _text_s')
 {$else cpu64bitaddr}
