@@ -3995,11 +3995,7 @@ endif
 ifndef EXENAME
 EXENAME=ppc$(CPUSUF)$(EXEEXT)
 endif
-ifndef MULTIEXENAME
-MULTIEXENAME=multippc$(CPUSUF)$(EXEEXT)
-endif
 PPEXENAME=pp$(EXEEXT)
-PPMULTIEXENAME=multipp$(EXEEXT)
 TEMPNAME=ppc$(SRCEXEEXT)
 ifneq ($(CPUSUF),jvm)
 PPCROSSNAME=ppcross$(CPUSUF)$(SRCEXEEXT)
@@ -4033,7 +4029,6 @@ alltargets: $(ALLTARGETS)
 .PHONY: all compiler echotime ppuclean execlean clean distclean
 all: compiler $(addsuffix _all,$(TARGET_DIRS))
 compiler: $(COMPILER_UNITTARGETDIR) $(COMPILER_TARGETDIR) $(EXENAME)
-multi-compiler: $(COMPILER_UNITTARGETDIR) $(COMPILER_TARGETDIR) $(EXENAME)
 ifeq ($(MAKELEVEL),0)
 ifndef STARTTIME
 ifdef DATE
@@ -4148,25 +4143,6 @@ endif
 	$(COMPILER) pp.pas
 	$(EXECPPAS)
 	$(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(EXENAME)
-$(MULTIEXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
-	     $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
-	     $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc) \
-	     $(COMPILER_UNITTARGETDIR) $(COMPILER_TARGETDIR)
-ifneq ($(REVSTR),)
-ifdef USEZIPWRAPPER
-ifneq ($(ECHOREDIR),echo)
-	$(ECHOREDIR) "'$(REVSTR)'" > revision.inc
-else
-	$(ECHOREDIR) '$(REVSTR)' > revision.inc
-endif
-else
-	$(ECHOREDIR) "'$(REVSTR)'" > revision.inc
-endif
-	$(COMPILER) version.pas
-endif
-	$(COMPILER) multipp.pas
-	$(EXECPPAS)
-	$(MOVE) $(COMPILER_TARGETDIR)/$(PPMULTIEXENAME) $(MULTIEXENAME)
 .PHONY: cycle fullcycle wpocycle
 ifeq ($(CPU_SOURCE),$(PPC_TARGET))
 ifeq ($(OS_SOURCE),$(OS_TARGET))
