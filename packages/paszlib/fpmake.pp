@@ -20,7 +20,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.1.1';
-    P.OSes := P.OSes - [embedded,nativent,msdos,win16,atari];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16];
 
     D:=P.Dependencies.Add('hash');
       D.Version:='3.1.1';
