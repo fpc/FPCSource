@@ -1,4 +1,4 @@
-unit pkgUninstalledSourcesRepository;
+unit pkgUninstalledSrcsRepo;
 
 {$mode objfpc}{$H+}
 

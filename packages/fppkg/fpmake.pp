@@ -71,7 +71,7 @@ begin
     T.Dependencies.AddInclude('fpmkunitsrc.inc');
     T:=P.Targets.AddUnit('pkgcommands.pp');
     T:=P.Targets.AddUnit('pkgpackagesstructure.pp');
-    T:=P.Targets.AddUnit('pkguninstalledsourcesrepository.pp');
+    T:=P.Targets.AddUnit('pkguninstalledsrcsrepo.pp');
 
     T:=P.Targets.AddUnit('pkgwget.pp', TargetsWithWGet);
     T:=P.Targets.AddUnit('pkgfphttp.pp', TargetsWithfpWeb);

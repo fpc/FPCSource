@@ -259,7 +259,7 @@ Type
 Implementation
 
 uses
-  pkgUninstalledSourcesRepository,
+  pkgUninstalledSrcsRepo,
   pkgPackagesStructure,
   pkgmessages;
 
