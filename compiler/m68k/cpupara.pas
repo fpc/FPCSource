@@ -130,7 +130,8 @@ unit cpupara;
           formaldef :
             result:=true;
           recorddef:
-            result:=false;
+            result:=(calloption in [pocall_register]) and
+                    (varspez in [vs_const]);
           arraydef:
             result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                              is_open_array(def) or
