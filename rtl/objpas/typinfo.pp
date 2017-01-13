@@ -70,6 +70,36 @@ unit typinfo;
                     ccCppdecl, ccFar16, ccOldFPCCall, ccInternProc,
                     ccSysCall, ccSoftFloat, ccMWPascal);
 
+{$push}
+{$scopedenums on}
+       TSubRegister = (
+         None,
+         Lo,
+         Hi,
+         Word,
+         DWord,
+         QWord,
+         FloatSingle,
+         FloatDouble,
+         FloatQuad,
+         MultiMediaSingle,
+         MultiMediaDouble,
+         MultiMediaWhole,
+         MultiMediaX,
+         MultiMediaY
+       );
+
+       TRegisterType = (
+         Invalid,
+         Int,
+         FP,
+         MMX,
+         MultiMedia,
+         Special,
+         Address
+       );
+{$pop}
+
 {$MINENUMSIZE DEFAULT}
 
    const
@@ -82,35 +112,6 @@ unit typinfo;
       TTypeKinds = set of TTypeKind;
       ShortStringBase = string[255];
 
-{$push}
-{$scopedenums on}
-      TSubRegister = (
-        None,
-        Lo,
-        Hi,
-        Word,
-        DWord,
-        QWord,
-        FloatSingle,
-        FloatDouble,
-        FloatQuad,
-        MultiMediaSingle,
-        MultiMediaDouble,
-        MultiMediaWhole,
-        MultiMediaX,
-        MultiMediaY
-      );
-
-      TRegisterType = (
-        Invalid,
-        Int,
-        FP,
-        MMX,
-        MultiMedia,
-        Special,
-        Address
-      );
-{$pop}
 
       TParameterLocation =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
