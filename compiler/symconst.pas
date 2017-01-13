@@ -109,6 +109,7 @@ const
   pfHigh     = 256;
   pfSelf     = 512;
   pfVmt      = 1024;
+  pfResult   = 2048;
 
   unknown_level         = 0;
   main_program_level    = 1;

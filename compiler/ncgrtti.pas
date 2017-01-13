@@ -299,6 +299,8 @@ implementation
           paraspec:=paraspec or pfSelf;
         if vo_is_vmt in parasym.varoptions then
           paraspec:=paraspec or pfVmt;
+        if vo_is_funcret in parasym.varoptions then
+          paraspec:=paraspec or pfResult;
         { set bits run from the highest to the lowest bit on
           big endian systems
         }
