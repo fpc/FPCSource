@@ -112,7 +112,7 @@ unit typinfo;
       TTypeKinds = set of TTypeKind;
       ShortStringBase = string[255];
 
-
+      PParameterLocation = ^TParameterLocation;
       TParameterLocation =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
@@ -135,7 +135,6 @@ unit typinfo;
         { if Reference, otherwise 0 }
         property ShiftVal: Int8 read GetShiftVal;
       end;
-      PParameterLocation = ^TParameterLocation;
 
       PParameterLocations = ^TParameterLocations;
       TParameterLocations =
