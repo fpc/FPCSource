@@ -25,6 +25,7 @@ begin
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-net');
     P.Dependencies.Add('fcl-process');
+    P.Dependencies.Add('fcl-fpcunit');
     P.Dependencies.Add('fastcgi');
     P.Dependencies.Add('httpd22', AllOses - [amiga,aros,morphos]);
     P.Dependencies.Add('httpd24', AllOses - [amiga,aros,morphos]);
@@ -41,6 +42,14 @@ begin
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/webdata');
     P.SourcePath.Add('src/jsonrpc');
+    P.SourcePath.Add('src/hpack');
+
+    T:=P.Targets.AddUnit('httpdefs.pp');
+    T.ResourceStrings:=true;
+    T.Dependencies.AddUnit('httpprotocol');
+
+    T:=P.Targets.AddUnit('httproute.pp');
+    T.Dependencies.AddUnit('httpdefs');
 
     T:=P.Targets.AddUnit('cgiapp.pp');
     T.ResourceStrings:=true;
@@ -88,10 +97,7 @@ begin
     T:=P.Targets.AddUnit('httpprotocol.pp');
     T:=P.Targets.AddUnit('cgiprotocol.pp');
 
-    T:=P.Targets.AddUnit('httpdefs.pp');
-    T.Dependencies.AddUnit('httpprotocol');
     
-    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('iniwebsession.pp');
     T.ResourceStrings:=true;
       with T.Dependencies do
@@ -113,6 +119,7 @@ begin
       begin
         ResourceStrings:=true;
         Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('httproute');
         Dependencies.AddUnit('fphttp');
       end;
     with P.Targets.AddUnit('webpage.pp') do
@@ -251,6 +258,17 @@ begin
     T.Dependencies.AddUnit('fpwebclient');
     T:=P.Targets.AddUnit('restbase.pp');
     T:=P.Targets.AddUnit('restcodegen.pp');
+
+    T:=P.Targets.AddUnit('uhpacktables.pp');
+    T:=P.Targets.AddUnit('uhpackimp.pp');
+    With T.Dependencies do  
+      AddUnit('uhpacktables');
+    T:=P.Targets.AddUnit('uhpack.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('uhpackimp');
+      end;
+    
 {$ifndef ALLPACKAGES}
     Run;
     end;

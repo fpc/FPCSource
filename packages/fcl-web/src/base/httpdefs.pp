@@ -415,8 +415,11 @@ type
     FServerPort : String;
     FContentRead : Boolean;
     FContent : String;
+    FRouteParams : TStrings;
     function GetLocalPathPrefix: string;
     function GetFirstHeaderLine: String;
+    function GetRP(AParam : String): String;
+    procedure SetRP(AParam : String; AValue: String);
   Protected
     Function AllowReadContent : Boolean; virtual;
     Function CreateUploadedFiles : TUploadedFiles; virtual;
@@ -441,6 +444,7 @@ type
     constructor Create; override;
     destructor destroy; override;
     Function GetNextPathInfo : String;
+    Property RouteParams[AParam : String] : String Read GetRP Write SetRP;
     Property ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
     Property LocalPathPrefix : string Read GetLocalPathPrefix;
     Property CommandLine : String Read FCommandLine;
@@ -1453,6 +1457,7 @@ end;
 
 destructor TRequest.destroy;
 begin
+  FreeAndNil(FRouteParams);
   FreeAndNil(FFiles);
   inherited destroy;
 end;
@@ -1532,6 +1537,22 @@ begin
   Result := Command + ' ' + URI;
   if Length(HttpVersion) > 0 then
     Result := Result + ' HTTP/' + HttpVersion;
+end;
+
+function TRequest.GetRP(AParam : String): String;
+begin
+  if Assigned(FRouteParams) then
+    Result:=FRouteParams.Values[AParam]
+  else
+    Result:='';
+end;
+
+procedure TRequest.SetRP(AParam : String; AValue: String);
+begin
+  if (AValue<>GetRP(AParam)) And ((AValue<>'')<>Assigned(FRouteParams)) then
+    FRouteParams:=TStringList.Create;
+  if (AValue<>'') and Assigned(FRouteParams) then
+    FRouteParams.Values[AParam]:=AValue;
 end;
 
 function TRequest.AllowReadContent: Boolean;
