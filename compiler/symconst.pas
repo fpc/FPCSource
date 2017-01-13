@@ -183,6 +183,7 @@ type
     vis_published,
     vis_none
   );
+  tvisibilities=set of tvisibility;
 
   { symbol options }
   tsymoption=(sp_none,
