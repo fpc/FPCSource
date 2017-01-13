@@ -1692,7 +1692,7 @@ unit cgcpu;
          srcrefp,dstrefp : treference;
          srcref,dstref : treference;
       begin
-         if (len in [1,2,4]) and (current_settings.cputype <> cpu_mc68000) then
+         if (len = 1) or ((len in [2,4]) and (current_settings.cputype <> cpu_mc68000)) then
            begin
              //list.concat(tai_comment.create(strpnew('g_concatcopy: small')));
              a_load_ref_ref(list,lentocgsize[len],lentocgsize[len],source,dest);
