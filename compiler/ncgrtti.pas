@@ -28,7 +28,8 @@ interface
     uses
       cclasses,constexp,
       aasmbase,aasmcnst,
-      symbase,symconst,symtype,symdef,symsym;
+      symbase,symconst,symtype,symdef,symsym,
+      parabase;
 
     type
 
@@ -60,7 +61,7 @@ interface
         procedure write_header(tcb: ttai_typedconstbuilder; def: tdef; typekind: byte);
         function write_methodkind(tcb:ttai_typedconstbuilder;def:tabstractprocdef):byte;
         procedure write_callconv(tcb:ttai_typedconstbuilder;def:tabstractprocdef);
-        procedure write_paralocs(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
+        procedure write_paralocs(tcb:ttai_typedconstbuilder;para:pcgpara);
         procedure write_param_flag(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
       public
         constructor create;
@@ -86,7 +87,7 @@ implementation
        symtable,
        aasmtai,aasmdata,
        defutil,
-       parabase,paramgr,
+       paramgr,
        wpobase
        ;
 
@@ -247,12 +248,12 @@ implementation
       end;
 
 
-    procedure TRTTIWriter.write_paralocs(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
+    procedure TRTTIWriter.write_paralocs(tcb:ttai_typedconstbuilder;para:pcgpara);
       var
         locs : trttiparalocs;
         i : longint;
       begin
-        locs:=paramanager.cgparalocs_to_rttiparalocs(parasym.paraloc[callerside].location);
+        locs:=paramanager.cgparalocs_to_rttiparalocs(para^.location);
         if length(locs)>high(byte) then
           internalerror(2017010601);
         tcb.emit_ord_const(length(locs),u8inttype);
