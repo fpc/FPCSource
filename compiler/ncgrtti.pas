@@ -61,6 +61,7 @@ interface
         function write_methodkind(tcb:ttai_typedconstbuilder;def:tabstractprocdef):byte;
         procedure write_callconv(tcb:ttai_typedconstbuilder;def:tabstractprocdef);
         procedure write_paralocs(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
+        procedure write_param_flag(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
       public
         constructor create;
         procedure write_rtti(def:tdef;rt:trttitype);
@@ -263,6 +264,48 @@ implementation
             { the corresponding type for aint is alusinttype }
             tcb.emit_ord_const(locs[i].offset,alusinttype);
           end;
+      end;
+
+
+    procedure TRTTIWriter.write_param_flag(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
+      var
+        paraspec : word;
+      begin
+        case parasym.varspez of
+          vs_value   : paraspec := 0;
+          vs_const   : paraspec := pfConst;
+          vs_var     : paraspec := pfVar;
+          vs_out     : paraspec := pfOut;
+          vs_constref: paraspec := pfConstRef;
+          else
+            internalerror(2013112904);
+        end;
+        { Kylix also seems to always add both pfArray and pfReference
+          in this case
+        }
+        if is_open_array(parasym.vardef) then
+          paraspec:=paraspec or pfArray or pfReference;
+        { and these for classes and interfaces (maybe because they
+          are themselves addresses?)
+        }
+        if is_class_or_interface(parasym.vardef) then
+          paraspec:=paraspec or pfAddress;
+        { flags for the hidden parameters }
+        if vo_is_hidden_para in parasym.varoptions then
+          paraspec:=paraspec or pfHidden;
+        if vo_is_high_para in parasym.varoptions then
+          paraspec:=paraspec or pfHigh;
+        if vo_is_self in parasym.varoptions then
+          paraspec:=paraspec or pfSelf;
+        if vo_is_vmt in parasym.varoptions then
+          paraspec:=paraspec or pfVmt;
+        { set bits run from the highest to the lowest bit on
+          big endian systems
+        }
+        if (target_info.endian = endian_big) then
+          paraspec:=reverse_word(paraspec);
+        { write flags for current parameter }
+        tcb.emit_ord_const(paraspec,u16inttype);
       end;
 
 
@@ -993,54 +1036,13 @@ implementation
 
         procedure procvardef_rtti(def:tprocvardef);
 
-           procedure write_param_flag(parasym:tparavarsym);
-             var
-               paraspec : word;
-             begin
-               case parasym.varspez of
-                 vs_value   : paraspec := 0;
-                 vs_const   : paraspec := pfConst;
-                 vs_var     : paraspec := pfVar;
-                 vs_out     : paraspec := pfOut;
-                 vs_constref: paraspec := pfConstRef;
-                 else
-                   internalerror(2013112904);
-               end;
-               { Kylix also seems to always add both pfArray and pfReference
-                 in this case
-               }
-               if is_open_array(parasym.vardef) then
-                 paraspec:=paraspec or pfArray or pfReference;
-               { and these for classes and interfaces (maybe because they
-                 are themselves addresses?)
-               }
-               if is_class_or_interface(parasym.vardef) then
-                 paraspec:=paraspec or pfAddress;
-               { flags for the hidden parameters }
-               if vo_is_hidden_para in parasym.varoptions then
-                 paraspec:=paraspec or pfHidden;
-               if vo_is_high_para in parasym.varoptions then
-                 paraspec:=paraspec or pfHigh;
-               if vo_is_self in parasym.varoptions then
-                 paraspec:=paraspec or pfSelf;
-               if vo_is_vmt in parasym.varoptions then
-                 paraspec:=paraspec or pfVmt;
-               { set bits run from the highest to the lowest bit on
-                 big endian systems
-               }
-               if (target_info.endian = endian_big) then
-                 paraspec:=reverse_word(paraspec);
-               { write flags for current parameter }
-               tcb.emit_ord_const(paraspec,u16inttype);
-             end;
-
            procedure write_para(parasym:tparavarsym);
              begin
                { only store user visible parameters }
                if not(vo_is_hidden_para in parasym.varoptions) then
                  begin
                    { write flags for current parameter }
-                   write_param_flag(parasym);
+                   write_param_flag(tcb,parasym);
                    { write name of current parameter }
                    tcb.emit_shortstring_const(parasym.realname);
                    { write name of type of current parameter }
@@ -1060,7 +1062,7 @@ implementation
                      targetinfos[target_info.system]^.alignment.recordalignmin,
                      targetinfos[target_info.system]^.alignment.maxCrecordalign);
                    { write flags for current parameter }
-                   write_param_flag(parasym);
+                   write_param_flag(tcb,parasym);
                    { write param type }
                    write_rtti_reference(tcb,parasym.vardef,fullrtti);
                    { write name of current parameter }
