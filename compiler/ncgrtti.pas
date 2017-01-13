@@ -44,7 +44,7 @@ interface
         defaultpacking: shortint;
 
         procedure fields_write_rtti(st:tsymtable;rt:trttitype);
-        procedure params_write_rtti(def:tabstractprocdef;rt:trttitype);
+        procedure params_write_rtti(def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
         procedure fields_write_rtti_data(tcb: ttai_typedconstbuilder; def: tabstractrecorddef; rt: trttitype);
         procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
         procedure published_write_rtti(st:tsymtable;rt:trttitype);
@@ -406,7 +406,7 @@ implementation
       end;
 
 
-    procedure TRTTIWriter.params_write_rtti(def:tabstractprocdef;rt:trttitype);
+    procedure TRTTIWriter.params_write_rtti(def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
       var
         i   : longint;
         sym : tparavarsym;
@@ -414,7 +414,7 @@ implementation
         for i:=0 to def.paras.count-1 do
           begin
             sym:=tparavarsym(def.paras[i]);
-            if not (vo_is_hidden_para in sym.varoptions) then
+            if not (vo_is_hidden_para in sym.varoptions) or allow_hidden then
               write_rtti(sym.vardef,rt);
           end;
       end;
@@ -1613,7 +1613,7 @@ implementation
             if not is_objc_class_or_protocol(tabstractpointerdef(def).pointeddef) then
               write_rtti(tabstractpointerdef(def).pointeddef,rt);
           procvardef:
-            params_write_rtti(tabstractprocdef(def),rt);
+            params_write_rtti(tabstractprocdef(def),rt,false);
         end;
       end;
 
