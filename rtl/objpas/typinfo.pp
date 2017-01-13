@@ -137,6 +137,7 @@ unit typinfo;
       end;
       PParameterLocation = ^TParameterLocation;
 
+      PParameterLocations = ^TParameterLocations;
       TParameterLocations =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
@@ -446,6 +447,7 @@ unit typinfo;
               (RefTypeRef: TypeInfoPtr);
       end;
 
+      PPropData = ^TPropData;
       TPropData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
