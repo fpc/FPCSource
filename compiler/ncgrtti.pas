@@ -46,6 +46,7 @@ interface
         procedure fields_write_rtti(st:tsymtable;rt:trttitype);
         procedure params_write_rtti(def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
         procedure fields_write_rtti_data(tcb: ttai_typedconstbuilder; def: tabstractrecorddef; rt: trttitype);
+        procedure methods_write_rtti(st:tsymtable;rt:trttitype;visibilities:tvisibilities;allow_hidden:boolean);
         procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
         procedure published_write_rtti(st:tsymtable;rt:trttitype);
         function  published_properties_count(st:tsymtable):longint;
@@ -417,6 +418,26 @@ implementation
             if not (vo_is_hidden_para in sym.varoptions) or allow_hidden then
               write_rtti(sym.vardef,rt);
           end;
+      end;
+
+
+    procedure TRTTIWriter.methods_write_rtti(st:tsymtable;rt:trttitype;visibilities:tvisibilities;allow_hidden:boolean);
+      var
+        i,j : longint;
+        sym : tprocsym;
+        def : tabstractprocdef;
+      begin
+        for i:=0 to st.symlist.count-1 do
+          if tsym(st.symlist[i]).typ=procsym then
+            begin
+              sym:=tprocsym(st.symlist[i]);
+              for j:=0 to sym.procdeflist.count-1 do
+                begin
+                  def:=tabstractprocdef(sym.procdeflist[j]);
+                  write_rtti(def.returndef,rt);
+                  params_write_rtti(def,rt,allow_hidden);
+                end;
+            end;
       end;
 
 
