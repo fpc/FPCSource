@@ -2399,7 +2399,7 @@ begin
   if aIndex >= Count then
     Result := Nil
   else
-    Result := PParameterLocation(@Count + SizeOf(Count) + SizeOf(TParameterLocation) * Count);
+    Result := PParameterLocation(@Count + SizeOf(Count) + SizeOf(TParameterLocation) * aIndex);
 end;
 
 { TProcedureParam }
