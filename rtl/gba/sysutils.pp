@@ -278,15 +278,37 @@ begin
   result := '';
 end;
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString;
+                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
+end;
+
+function ExecuteProcess(const Path: UnicodeString; const ComLine: UnicodeString;
+  Flags: TExecuteFlags = []): Integer;
+begin
+  { TODO : implement }
+  result := -1;
+end;
+
+function ExecuteProcess(const Path: UnicodeString;
+  const ComLine: Array of UnicodeString; Flags:TExecuteFlags = []): Integer;
+var
+  CommandLine: UnicodeString;
+  I: integer;
+begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+   if Pos (' ', ComLine [I]) <> 0 then
+    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+   else
+    CommandLine := CommandLine + ' ' + Comline [I];
+  ExecuteProcess := ExecuteProcess (Path, CommandLine,Flags);
 end;
 
 
