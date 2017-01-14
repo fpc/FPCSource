@@ -1019,7 +1019,6 @@ const
 
   CMD_NONSTD  = 9;
 
-{$PUSH}
 {$PACKRECORDS C}
 //**********************************************************************
 // The interface is the new way for exec libraries.
@@ -1049,7 +1048,7 @@ type
     // some functions, calling convention?
   end;
   PInterface = ^TInterface;
-{$POP}
+{$PACKRECORDS 2}
 
 const
 // Flags for the Flags field in interfaces and as flags parameter for GetInterface
