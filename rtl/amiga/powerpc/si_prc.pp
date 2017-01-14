@@ -38,12 +38,12 @@ procedure PascalMain; external name 'PASCALMAIN';
 
 
 { this function must be the first in this unit which contains code }
-{ apparently, the third argument contains the IExec on entry (KB) }
-function _FPC_proc_start(arg0: pointer; arg1: pointer; argIExec: POS4Interface): longint; cdecl; public name '_start';
+{ apparently, the third argument contains the ExecBase on entry (KB) }
+function _FPC_proc_start(arg0: pointer; arg1: pointer; argExecBase: Pointer): longint; cdecl; public name '_start';
 begin
-  IExec:=argIExec;
-  AOS_ExecBase:=argIExec^.Data.LibBase;
-  amigaos4_signature:=1;   { Hack: prevent section gc to remove this, until VLink has a fix (KB) }
+  AOS_ExecBase:=argExecBase;
+  { we should have a proper MainInterface structure instead of this hack... }
+  IExec:=PPointer(@PByte(AOS_ExecBase)[632])^;
 
   { The StackCookie check is only here so the symbol is referenced and
     doesn't get striped out }
