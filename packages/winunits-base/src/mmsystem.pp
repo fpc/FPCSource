@@ -1540,9 +1540,9 @@ Type
                                 dwControlID: DWORD;
                                 cChannels: DWORD;
                                 Case Integer Of
-                                  0: (hwndOwner: tHandle);
-                                  1: (cMultipleItems, cbDetails: DWORD;
+                                  0: (hwndOwner: tHandle; cbDetails: DWORD;
                                       paDetails: Pointer);
+                                  1: (cMultipleItems:DWORD);
 				 End;
  MIXERCONTROLDETAILS   = tMIXERCONTROLDETAILS;
  PMIXERCONTROLDETAILS  = ^tMIXERCONTROLDETAILS;
