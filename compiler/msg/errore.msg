@@ -3375,6 +3375,8 @@ option_smart_link_requires_external_linker=11056_W_Smart linking requires extern
 option_com_files_require_tiny_model=11057_E_Creating .COM files is not supported in the current memory model. Only the tiny memory model supports making .COM files.
 % Do not enable experimental -gc option if -Ur option is given.
 option_gc_incompatible_with_release_flag=11058_W_Experimental CheckPointer option not enabled because it is incomptatible with -Ur option.
+% The compiler binary only supports a single target architecture. Invoke the fpc binary if you wish to select a compiler binary for a different target architecture.
+option_invalid_target_architecture=11059_E_Unsupported target architecture -P$1, invoke the the "fpc" compiler driver instead.
 
 %\end{description}
 # EndOfTeX

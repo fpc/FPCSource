@@ -76,8 +76,10 @@ Type
     procedure ForceStaticLinking;
    protected
     MacVersionSet: boolean;
+    processorstr: TCmdStr;
     function ParseMacVersionMin(out minstr, emptystr: string; const compvarname, value: string; ios: boolean): boolean;
     procedure MaybeSetDefaultMacVersionMacro;
+    procedure VerifyTargetProcessor;
   end;
 
   TOptionClass=class of toption;
@@ -969,6 +971,16 @@ begin
       internalerror(2012031001);
   end;
 end;
+
+procedure TOption.VerifyTargetProcessor;
+  begin
+    { no custom target processor specified -> ok }
+    if processorstr='' then
+      exit;
+    { custom target processor specified -> verify it's the one we support }
+    if upcase(processorstr)<>upcase(target_cpu_string) then
+      Message1(option_invalid_target_architecture,processorstr);
+  end;
 
 
 function Toption.Unsetbool(var Opts:TCmdStr; Pos: Longint; const FullPara: TCmdStr; RequireBoolPara: boolean):boolean;
@@ -1881,7 +1893,14 @@ begin
                  end;
              end;
 
-           'P' : ; { Ignore used by fpc.pp }
+           'P' :
+             begin
+               { used to select the target processor with the "fpc" binary;
+                 give an error if it's not the target architecture supported by
+                 this compiler binary (will be verified after the target_info
+                 is set) }
+               processorstr:=More;
+             end;
 
            'R' :
              begin
@@ -3587,6 +3606,10 @@ begin
     (and print possible errors)
   }
   option.checkoptionscompatibility;
+
+  { uses the CPUXXX-defines and target_info to determine whether the selected
+    target processor, if any, is supported }
+  Option.VerifyTargetProcessor;
 
   { Stop if errors in options }
   if ErrorCount>0 then

@@ -1010,6 +1010,7 @@ const
   option_smart_link_requires_external_linker=11056;
   option_com_files_require_tiny_model=11057;
   option_gc_incompatible_with_release_flag=11058;
+  option_invalid_target_architecture=11059;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -1063,9 +1064,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 78732;
+  MsgTxtSize = 78824;
 
   MsgIdxMax : array[1..20] of longint=(
     27,102,347,124,96,58,130,33,209,65,
-    59,20,30,1,1,1,1,1,1,1
+    60,20,30,1,1,1,1,1,1,1
   );
