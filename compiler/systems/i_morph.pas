@@ -66,7 +66,7 @@ unit i_morph;
             link         : ld_none;
             linkextern   : ld_morphos;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_amiga;
             endian       : endian_big;
