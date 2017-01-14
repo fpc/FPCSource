@@ -31,31 +31,42 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('fpjson.pp');
-      T.ResourceStrings:=true;
+    T.ResourceStrings:=true;
+
     T:=P.Targets.AddUnit('jsonconf.pp');
-      T.ResourceStrings:=true;
-      with T.Dependencies do
-        begin
-          AddUnit('fpjson');
-          AddUnit('jsonparser');
-        end;
+    T.ResourceStrings:=true;
+    with T.Dependencies do
+      begin
+      AddUnit('fpjson');
+      AddUnit('jsonparser');
+     end;
+        
     T:=P.Targets.AddUnit('jsonparser.pp');
-      T.ResourceStrings:=true;
-      with T.Dependencies do
-        begin
-          AddUnit('fpjson');
-          AddUnit('jsonscanner');
-        end;
+    T.ResourceStrings:=true;
+    with T.Dependencies do
+      begin
+      AddUnit('fpjson');
+      AddUnit('jsonscanner');
+      end;
+        
     T:=P.Targets.AddUnit('jsonscanner.pp');
-      T.ResourceStrings:=true;
+    T.ResourceStrings:=true;
+    
     T:=P.Targets.AddUnit('fpjsonrtti.pp');
-      T.ResourceStrings:=true;
-      with T.Dependencies do
-        begin
-          AddUnit('fpjson');
-          AddUnit('jsonparser');
-        end;
-      T.ResourceStrings:=true;
+    T.ResourceStrings:=true;
+    with T.Dependencies do
+      begin
+      AddUnit('fpjson');
+      AddUnit('jsonparser');
+      end;
+      
+    T:=P.Targets.AddUnit('fpjsontopas.pp');
+    T.ResourceStrings:=true;
+    with T.Dependencies do
+      begin
+      AddUnit('fpjson');
+      AddUnit('jsonparser');
+      end;
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('confdemo.pp');
