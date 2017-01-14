@@ -13,7 +13,6 @@
 
  **********************************************************************}
 
-{$PUSH}
 {$PACKRECORDS 2}
 
 {$i utild1.inc}
@@ -1024,7 +1023,6 @@ const
 // function pointers similar to the old library jump table.
 //
 // FIXME: Add some more documentation
-{$PUSH}
 {$PACKRECORDS C}
 
 type
@@ -1050,7 +1048,7 @@ type
   end;
   POS4Interface = ^TOS4Interface;
 
-{$POP}
+{$PACKRECORDS 2}
 
 const
 // Flags for the Flags field in interfaces and as flags parameter for GetInterface
@@ -1738,4 +1736,4 @@ const
 
 //**********************************************************************
 
-{$POP}
+{$PACKRECORDS DEFAULT}

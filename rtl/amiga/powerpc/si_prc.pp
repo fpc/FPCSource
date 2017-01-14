@@ -42,8 +42,7 @@ procedure PascalMain; external name 'PASCALMAIN';
 function _FPC_proc_start(arg0: pointer; arg1: pointer; argExecBase: Pointer): longint; cdecl; public name '_start';
 begin
   AOS_ExecBase:=argExecBase;
-  { we should have a proper MainInterface structure instead of this hack... }
-  IExec:=PPointer(@PByte(AOS_ExecBase)[632])^;
+  IExec:=PExecBase(AOS_ExecBase)^.MainInterface;
 
   { The StackCookie check is only here so the symbol is referenced and
     doesn't get striped out }
