@@ -3112,6 +3112,7 @@ implementation
         dbgname: string;
         vardatatype: ttypesym;
         bind: tasmsymbind;
+        lang: tdwarf_source_language;
       begin
         current_module.flags:=current_module.flags or uf_has_dwarf_debuginfo;
         storefilepos:=current_filepos;
@@ -3160,12 +3161,16 @@ implementation
         { address size }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(pint)));
 
+        if (ds_dwarf_cpp in current_settings.debugswitches) then
+          lang:=DW_LANG_C_plus_plus
+        else
+          lang:=DW_LANG_Pascal83;
         { first manadatory compilation unit TAG }
         append_entry(DW_TAG_compile_unit,true,[
           DW_AT_name,DW_FORM_string,relative_dwarf_path(current_module.sourcefiles.get_file(1).path+current_module.sourcefiles.get_file(1).name)+#0,
           DW_AT_producer,DW_FORM_string,'Free Pascal '+full_version_string+' '+date_string+#0,
           DW_AT_comp_dir,DW_FORM_string,BSToSlash(FixPath(GetCurrentDir,false))+#0,
-          DW_AT_language,DW_FORM_data1,DW_LANG_Pascal83,
+          DW_AT_language,DW_FORM_data1,lang,
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
 
         { reference to line info section }
@@ -3989,8 +3994,16 @@ implementation
 
     procedure TDebugInfoDwarf3.appenddef_formal(list:TAsmList;def: tformaldef);
       begin
-        append_entry(DW_TAG_unspecified_type,false,[
-          ]);
+        if (ds_dwarf_cpp in current_settings.debugswitches) then
+          begin
+            // Do not use DW_TAG_unspecified_type for C++ simulation.
+            // At least LLDB 3.9.0 crashes in such case.
+            // Call the inherited DWARF 2 implementation, which works fine.
+            inherited;
+            exit;
+          end;
+
+        append_entry(DW_TAG_unspecified_type,false,[]);
         finish_entry;
       end;
 
