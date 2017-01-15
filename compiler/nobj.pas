@@ -833,12 +833,15 @@ implementation
           odt_class:
             begin
               systemvmt:=search_system_type('TVMT').typedef;
+              if not assigned(systemvmt) then
+                Message1(cg_f_internal_type_not_found,'TVMT');
+
               { does the TVMT type look like we expect? (so that this code is
                 easily triggered in case the definition of the VMT would
                 change) }
               if (systemvmt.typ<>recorddef) or
                  (trecorddef(systemvmt).symtable.SymList.count<>27) then
-                internalerror(2015052601);
+                Message1(cg_f_internal_type_does_not_match,'TVMT');
               { system.tvmt is a record that represents the VMT of TObject,
                 including its virtual methods. We only want the non-method
                 fields, as the methods will be added automatically based on

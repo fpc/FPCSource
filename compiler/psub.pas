@@ -1825,6 +1825,17 @@ implementation
 
          current_procinfo:=self;
          current_structdef:=procdef.struct;
+
+
+        { check if the definitions of certain types are available which might not be available in older rtls and
+          which are assigned "on the fly" in types_dec }
+        if not assigned(rec_exceptaddr) then
+          Message1(cg_f_internal_type_not_found,'TEXCEPTADDR');
+        if not assigned(rec_tguid) then
+          Message1(cg_f_internal_type_not_found,'TGUID');
+        if not assigned(rec_jmp_buf) then
+          Message1(cg_f_internal_type_not_found,'TJMPBUF');
+
          { if the procdef is truly a generic (thus takes parameters itself) then
            /that/ is our genericdef, not the - potentially - generic struct }
          if procdef.is_generic then

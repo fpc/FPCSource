@@ -3221,6 +3221,16 @@ unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory
 % cannot be read.
 unit_u_loading_from_package=10064_U_Loading unit $1 from package $2
 % The unit is loaded from a package.
+cg_f_internal_type_not_found=10065_F_Internal type "$1" was not found. Check if you use the correct run time library.
+% The compiler expects that the runtime library contains certain types. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the compiler in use. If you changed the runtime library this error means
+% that you removed a type which the compiler needs for internal use.
+cg_f_internal_type_does_not_match=10066_F_Internal type "$1" does not look as expected. Check if you use the correct run time library.
+% The compiler expects that the runtime library contains certain types. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the compiler in use. If you changed the runtime library this error means
+% that you changed a type which the compiler needs for internal use and which needs to have a certain structure.
 % \end{description}
 # EndOfTeX
 
