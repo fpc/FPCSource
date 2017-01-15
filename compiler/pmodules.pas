@@ -577,6 +577,23 @@ implementation
         def: tdef;
         sym: tsym;
       begin
+        for i:=current_module.localsymtable.deflist.count-1 downto 0 do
+          begin
+            def:=tdef(current_module.localsymtable.deflist[i]);
+            { this also frees def, as the defs are owned by the symtable }
+            if not def.is_registered and
+               not(df_not_registered_no_free in def.defoptions) then
+              begin
+                { if it's a procdef, unregister it from its procsym first,
+                  unless that sym hasn't been registered either (it's possible
+                  to have one overload in the interface and another in the
+                  implementation) }
+                if (def.typ=procdef) and
+                   tprocdef(def).procsym.is_registered then
+                 tprocsym(tprocdef(def).procsym).ProcdefList.Remove(def);
+                current_module.localsymtable.deletedef(def);
+              end;
+          end;
         { from high to low so we hopefully have moves of less data }
         for i:=current_module.localsymtable.symlist.count-1 downto 0 do
           begin
@@ -584,14 +601,6 @@ implementation
             { this also frees sym, as the symbols are owned by the symtable }
             if not sym.is_registered then
               current_module.localsymtable.Delete(sym);
-          end;
-        for i:=current_module.localsymtable.deflist.count-1 downto 0 do
-          begin
-            def:=tdef(current_module.localsymtable.deflist[i]);
-            { this also frees def, as the defs are owned by the symtable }
-            if not def.is_registered and
-               not(df_not_registered_no_free in def.defoptions) then
-              current_module.localsymtable.deletedef(def);
           end;
       end;
 
