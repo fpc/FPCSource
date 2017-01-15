@@ -1298,11 +1298,9 @@ implementation
         gotstring,
         gotsubscript,
         gotrecord,
-        gotpointer,
         gotvec,
         gotclass,
         gotdynarray,
-        gotderef,
         gottypeconv : boolean;
         fromdef,
         todef    : tdef;
@@ -1313,7 +1311,7 @@ implementation
           begin
             result:=false;
             { allow p^:= constructions with p is const parameter }
-            if gotderef or gotdynarray or (Valid_Const in opts) or
+            if gotdynarray or (Valid_Const in opts) or
               ((hp.nodetype=loadn) and
                (loadnf_isinternal_ignoreconst in tloadnode(hp).loadnodeflags)) then
               result:=true
@@ -1361,10 +1359,8 @@ implementation
         result:=false;
         gotsubscript:=false;
         gotvec:=false;
-        gotderef:=false;
         gotrecord:=false;
         gotclass:=false;
-        gotpointer:=false;
         gotdynarray:=false;
         gotstring:=false;
         gottypeconv:=false;
@@ -1384,8 +1380,6 @@ implementation
              begin
                { check return type }
                case hp.resultdef.typ of
-                 pointerdef :
-                   gotpointer:=true;
                  objectdef :
                    gotclass:=is_implicit_pointer_object_type(hp.resultdef);
                  recorddef :
@@ -1401,8 +1395,6 @@ implementation
                      temps like calls that return a structure and we
                      are assigning to a member }
                    if (valid_const in opts) or
-                      { if we got a deref, we won't modify the property itself }
-                      (gotderef) or
                       { same when we got a class and subscript (= deref) }
                       (gotclass and gotsubscript) or
                       { indexing a dynamic array = dereference }
@@ -1433,8 +1425,7 @@ implementation
                    { 1. if it returns a pointer and we've found a deref,
                      2. if it returns a class and a subscription or with is found
                      3. if the address is needed of a field (subscriptn, vecn) }
-                   if (gotpointer and gotderef) or
-                      (gotstring and gotvec) or
+                   if (gotstring and gotvec) or
                       (gotclass and gotsubscript) or
                       (
                         (gotvec and gotdynarray)
@@ -1460,8 +1451,10 @@ implementation
                end;
              derefn :
                begin
-                 gotderef:=true;
-                 hp:=tderefnode(hp).left;
+                 { dereference -> always valid }
+                 valid_for_assign:=true;
+                 mayberesettypeconvs;
+                 exit;
                end;
              typeconvn :
                begin
@@ -1476,9 +1469,8 @@ implementation
                  todef:=hp.resultdef;
                  { typeconversions on the assignment side must keep
                    left.location the same }
-                 if not(gotderef or
-                        ((target_info.system in systems_jvm) and
-                         (gotsubscript or gotvec))) then
+                 if not((target_info.system in systems_jvm) and
+                        (gotsubscript or gotvec)) then
                    begin
                      ttypeconvnode(hp).assignment_side:=true;
                      if not assigned(typeconvs) then
@@ -1526,7 +1518,7 @@ implementation
                   end;
 
                  { don't allow assignments to typeconvs that need special code }
-                 if not(gotsubscript or gotvec or gotderef) and
+                 if not(gotsubscript or gotvec) and
                     not(ttypeconvnode(hp).assign_allowed) then
                    begin
                      if report_errors then
@@ -1535,8 +1527,6 @@ implementation
                      exit;
                    end;
                  case hp.resultdef.typ of
-                   pointerdef :
-                     gotpointer:=true;
                    objectdef :
                      gotclass:=is_implicit_pointer_object_type(hp.resultdef);
                    classrefdef :
@@ -1546,7 +1536,11 @@ implementation
                        { pointer -> array conversion is done then we need to see it
                          as a deref, because a ^ is then not required anymore }
                        if ttypeconvnode(hp).convtype=tc_pointer_2_array then
-                         gotderef:=true;
+                         begin
+                           valid_for_assign:=true;
+                           mayberesettypeconvs;
+                           exit
+                         end;
                      end;
                  end;
                  hp:=ttypeconvnode(hp).left;
@@ -1592,7 +1586,7 @@ implementation
                begin
                  { asn can't be assigned directly, it returns the value in a register instead
                    of reference. }
-                 if not(gotsubscript or gotderef or gotvec) then
+                 if not(gotsubscript or gotvec) then
                    begin
                      if report_errors then
                        CGMessagePos(hp.fileinfo,errmsg);
@@ -1632,7 +1626,6 @@ implementation
                    subscript operation (to a temp location, so the assignment
                    will happen to the temp and be lost) }
                  if not gotsubscript and
-                    not gotderef and
                     not gotvec and
                     not tstoreddef(hp.resultdef).is_intregable then
                    make_not_regable(hp,[ra_addr_regable]);
@@ -1650,7 +1643,11 @@ implementation
                  { implicit pointer object types result in dereferencing }
                  hp:=tsubscriptnode(hp).left;
                  if is_implicit_pointer_object_type(hp.resultdef) then
-                   gotderef:=true;
+                   begin
+                     valid_for_assign:=true;
+                     mayberesettypeconvs;
+                     exit
+                   end;
                end;
              muln,
              divn,
@@ -1661,20 +1658,13 @@ implementation
              subn,
              addn :
                begin
-                 { Allow operators on a pointer, or on an integer
-                   if a pointer typecast and deref have been found }
-                 if ((hp.resultdef.typ=pointerdef) or
-                     (is_integer(hp.resultdef) and gotpointer)) and
-                    gotderef then
-                  result:=true
-                 else
                  { Temp strings are stored in memory, for compatibility with
                    delphi only }
-                   if (m_delphi in current_settings.modeswitches) and
-                      ((valid_addr in opts) or
-                       (valid_const in opts)) and
-                      (hp.resultdef.typ=stringdef) then
-                     result:=true
+                 if (m_delphi in current_settings.modeswitches) and
+                    ((valid_addr in opts) or
+                     (valid_const in opts)) and
+                    (hp.resultdef.typ=stringdef) then
+                   result:=true
                  else
                   if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
@@ -1684,11 +1674,7 @@ implementation
              niln,
              pointerconstn :
                begin
-                 { to support e.g. @tmypointer(0)^.data; see tests/tbs/tb0481 }
-                 if gotderef then
-                  result:=true
-                 else
-                  if report_errors then
+                if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  mayberesettypeconvs;
                  exit;
@@ -1717,10 +1703,7 @@ implementation
                end;
              addrn :
                begin
-                 if gotderef then
-                  result:=true
-                 else
-                  if report_errors then
+                 if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  mayberesettypeconvs;
                  exit;
@@ -1740,12 +1723,11 @@ implementation
                            if is_dynamic_array(hp.resultdef) and
                               gotvec then
                             begin
-                              gotderef:=true;
-                              gotpointer:=true;
+                              valid_for_assign:=true;
+                              mayberesettypeconvs;
+                              exit;
                             end;
                          end;
-                       pointerdef :
-                         gotpointer:=true;
                        objectdef :
                          gotclass:=is_implicit_pointer_object_type(hp.resultdef);
                        recorddef, { handle record like class it needs a subscription }
@@ -1754,11 +1736,9 @@ implementation
                        stringdef :
                          gotstring:=true;
                      end;
-                     { 1. if it returns a pointer and we've found a deref,
-                       2. if it returns a class or record and a subscription or with is found
-                       3. string is returned }
+                     { 1. string element is returned
+                       2. if it returns a class or record and a subscription or with is found }
                      if (gotstring and gotvec) or
-                        (gotpointer and gotderef) or
                         (gotclass and gotsubscript) then
                       result:=true
                      else
@@ -1837,7 +1817,6 @@ implementation
                      begin
                        { loop counter? }
                        if not(Valid_Const in opts) and
-                          not gotderef and
                           (vo_is_loop_counter in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
                          begin
                            if report_errors then
