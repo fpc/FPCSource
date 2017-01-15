@@ -1661,8 +1661,8 @@ implementation
              subn,
              addn :
                begin
-                 { Allow operators on a pointer, or an integer
-                   and a pointer typecast and deref has been found }
+                 { Allow operators on a pointer, or on an integer
+                   if a pointer typecast and deref have been found }
                  if ((hp.resultdef.typ=pointerdef) or
                      (is_integer(hp.resultdef) and gotpointer)) and
                     gotderef then
