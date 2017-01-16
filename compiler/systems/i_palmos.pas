@@ -34,7 +34,7 @@ unit i_palmos;
             system       : system_m68k_PalmOS;
             name         : 'PalmOS';
             shortname    : 'PalmOS';
-            flags        : [tf_code_small,tf_static_reg_based,tf_smartlink_sections];
+            flags        : [tf_under_development,tf_code_small,tf_static_reg_based,tf_smartlink_sections];
             cpu          : cpu_m68k;
             unit_env     : 'PALMUNITS';
             extradefines : '';
