@@ -47,6 +47,9 @@ implementation
     {$ifndef NOTARGETPALMOS}
       ,t_palmos
     {$endif}
+    {$ifndef NOTARGETBSD}
+      ,t_bsd
+    {$endif}
 
 {**************************************
           Assembler Readers
