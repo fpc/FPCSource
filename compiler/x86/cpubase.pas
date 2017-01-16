@@ -57,7 +57,7 @@ uses
         op2strtable=array[tasmop] of string[16];
 
 {$ifdef i8086}
-      ImmInt = ShortInt;
+      ImmInt = SmallInt;
 {$else i8086}
       ImmInt = Longint;
 {$endif i8086}
