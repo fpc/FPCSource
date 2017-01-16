@@ -153,7 +153,6 @@ implementation
              'guidconstn',
              'rttin',
              'loadparentfpn',
-             'dataconstn',
              'objselectorn',
              'objcprotocoln',
              'specializen'

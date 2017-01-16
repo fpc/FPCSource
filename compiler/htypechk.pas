@@ -1746,13 +1746,6 @@ implementation
                  mayberesettypeconvs;
                  exit;
                end;
-             dataconstn:
-               begin
-                 { only created internally, so no additional checks necessary }
-                 result:=true;
-                 mayberesettypeconvs;
-                 exit;
-               end;
              nothingn :
                begin
                  { generics can generate nothing nodes, just allow everything }

@@ -108,7 +108,6 @@ interface
           guidconstn,       { A GUID COM Interface constant }
           rttin,            { Rtti information so they can be accessed in result/firstpass}
           loadparentfpn,    { Load the framepointer of the parent for nested procedures }
-          dataconstn,       { node storing some binary data }
           objcselectorn,    { node for an Objective-C message selector }
           objcprotocoln,    { node for an Objective-C @protocol() expression (returns metaclass associated with protocol) }
           specializen       { parser-only node to handle Delphi-mode inline specializations }
@@ -193,7 +192,6 @@ interface
           'guidconstn',
           'rttin',
           'loadparentfpn',
-          'dataconstn',
           'objcselectorn',
           'objcprotocoln',
           'specializen');
@@ -202,7 +200,6 @@ interface
       nodetype_const = [ordconstn,
                         pointerconstn,
                         stringconstn,
-                        dataconstn,
                         guidconstn,
                         realconstn];
 
