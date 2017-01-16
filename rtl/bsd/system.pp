@@ -44,13 +44,13 @@ var argc:longint;
 
 CONST SIGSTKSZ = 40960;
 
-{$if defined(CPUARM)}
+{$if defined(CPUARM) or defined(CPUM68K)}
 
 {$define fpc_softfpu_interface}
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 
-{$endif defined(CPUARM)}
+{$endif defined(CPUARM) or defined(CPUM68K)}
 
 
 Implementation
