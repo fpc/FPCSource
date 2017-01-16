@@ -1299,8 +1299,6 @@ implementation
         gotsubscript,
         gotrecord,
         gotvec,
-        gotclass,
-        gotdynarray,
         gottypeconv : boolean;
         fromdef,
         todef    : tdef;
@@ -1311,7 +1309,7 @@ implementation
           begin
             result:=false;
             { allow p^:= constructions with p is const parameter }
-            if gotdynarray or (Valid_Const in opts) or
+            if (Valid_Const in opts) or
               ((hp.nodetype=loadn) and
                (loadnf_isinternal_ignoreconst in tloadnode(hp).loadnodeflags)) then
               result:=true
@@ -1360,8 +1358,6 @@ implementation
         gotsubscript:=false;
         gotvec:=false;
         gotrecord:=false;
-        gotclass:=false;
-        gotdynarray:=false;
         gotstring:=false;
         gottypeconv:=false;
         hp:=p;
@@ -1380,12 +1376,8 @@ implementation
              begin
                { check return type }
                case hp.resultdef.typ of
-                 objectdef :
-                   gotclass:=is_implicit_pointer_object_type(hp.resultdef);
                  recorddef :
                    gotrecord:=true;
-                 classrefdef :
-                   gotclass:=true;
                  stringdef :
                    gotstring:=true;
                end;
@@ -1395,10 +1387,6 @@ implementation
                      temps like calls that return a structure and we
                      are assigning to a member }
                    if (valid_const in opts) or
-                      { same when we got a class and subscript (= deref) }
-                      (gotclass and gotsubscript) or
-                      { indexing a dynamic array = dereference }
-                      (gotdynarray and gotvec) or
                       (
                        { allowing assignments to typecasted properties
                            a) is Delphi-incompatible
@@ -1426,10 +1414,6 @@ implementation
                      2. if it returns a class and a subscription or with is found
                      3. if the address is needed of a field (subscriptn, vecn) }
                    if (gotstring and gotvec) or
-                      (gotclass and gotsubscript) or
-                      (
-                        (gotvec and gotdynarray)
-                      ) or
                       (
                        (Valid_Addr in opts) and
                        (hp.nodetype in [subscriptn,vecn])
@@ -1527,10 +1511,6 @@ implementation
                      exit;
                    end;
                  case hp.resultdef.typ of
-                   objectdef :
-                     gotclass:=is_implicit_pointer_object_type(hp.resultdef);
-                   classrefdef :
-                     gotclass:=true;
                    arraydef :
                      begin
                        { pointer -> array conversion is done then we need to see it
@@ -1579,7 +1559,11 @@ implementation
                       assign the dynamic array to a variable and then change
                       its elements anyway }
                  if is_dynamic_array(tunarynode(hp).left.resultdef) then
-                   gotdynarray:=true;
+                   begin
+                     result:=true;
+                     mayberesettypeconvs;
+                     exit;
+                   end;
                  hp:=tunarynode(hp).left;
                end;
              asn :
@@ -1642,7 +1626,8 @@ implementation
                    end;
                  { implicit pointer object types result in dereferencing }
                  hp:=tsubscriptnode(hp).left;
-                 if is_implicit_pointer_object_type(hp.resultdef) then
+                 if is_implicit_pointer_object_type(hp.resultdef) or
+                    (hp.resultdef.typ=classrefdef) then
                    begin
                      valid_for_assign:=true;
                      mayberesettypeconvs;
@@ -1714,40 +1699,12 @@ implementation
                  if (hp.nodetype=calln) or
                     (nf_no_lvalue in hp.flags) then
                    begin
-                     { check return type }
-                     case hp.resultdef.typ of
-                       arraydef :
-                         begin
-                           { dynamic arrays are allowed when there is also a
-                             vec node }
-                           if is_dynamic_array(hp.resultdef) and
-                              gotvec then
-                            begin
-                              valid_for_assign:=true;
-                              mayberesettypeconvs;
-                              exit;
-                            end;
-                         end;
-                       objectdef :
-                         gotclass:=is_implicit_pointer_object_type(hp.resultdef);
-                       recorddef, { handle record like class it needs a subscription }
-                       classrefdef :
-                         gotclass:=true;
-                       stringdef :
-                         gotstring:=true;
-                     end;
-                     { 1. string element is returned
-                       2. if it returns a class or record and a subscription or with is found }
-                     if (gotstring and gotvec) or
-                        (gotclass and gotsubscript) then
-                      result:=true
-                     else
                      { Temp strings are stored in memory, for compatibility with
                        delphi only }
-                       if (m_delphi in current_settings.modeswitches) and
-                          (valid_addr in opts) and
-                          (hp.resultdef.typ=stringdef) then
-                         result:=true
+                     if (m_delphi in current_settings.modeswitches) and
+                        (valid_addr in opts) and
+                        (hp.resultdef.typ=stringdef) then
+                       result:=true
                      else
                        if ([valid_const,valid_addr] * opts = [valid_const]) then
                          result:=true
