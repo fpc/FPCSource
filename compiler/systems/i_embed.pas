@@ -104,8 +104,8 @@ unit i_embed;
             system       : system_avr_embedded;
             name         : 'Embedded';
             shortname    : 'embedded';
-            flags        : [tf_needs_symbol_size,tf_files_case_sensitive
-	                          ,tf_smartlink_sections];
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_smartlink_sections];
             cpu          : cpu_avr;
             unit_env     : '';
             extradefines : '';
@@ -232,8 +232,8 @@ unit i_embed;
             system       : system_i386_embedded;
             name         : 'Embedded';
             shortname    : 'embedded';
-            flags        : [tf_needs_symbol_size,tf_files_case_sensitive
-	                          ,tf_smartlink_sections];
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_smartlink_sections];
             cpu          : cpu_i386;
             unit_env     : '';
             extradefines : '';
@@ -296,8 +296,8 @@ unit i_embed;
             system       : system_x86_64_embedded;
             name         : 'Embedded';
             shortname    : 'embedded';
-            flags        : [tf_needs_symbol_size,tf_files_case_sensitive
-	                          ,tf_smartlink_sections];
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_smartlink_sections];
             cpu          : cpu_x86_64;
             unit_env     : '';
             extradefines : '';

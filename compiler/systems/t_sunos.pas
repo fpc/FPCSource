@@ -516,7 +516,7 @@ begin
       while not linkres.data.Empty do
         begin
           s:=linkres.data.GetFirst;
-	  if s<>'' then
+          if s<>'' then
             linkstr:=linkstr+' '+s;
         end;
       linkres.free;
@@ -626,7 +626,7 @@ begin
       while not linkres.data.Empty do
         begin
           s:=linkres.data.GetFirst;
-	  if s<>'' then
+          if s<>'' then
             linkstr:=linkstr+' '+s;
         end;
       linkres.free;
