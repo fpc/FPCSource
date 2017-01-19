@@ -394,7 +394,8 @@ begin
         if RegQueryValue(Handle,nil,@sRefSrc[1],@il) = ERROR_SUCCESS then
           begin
           SetLength(sRefSrc,il-1);  // includes null terminator
-          if not FDependencies.Find(sRefSrc,i) then
+          i:=FDependencies.Indexof(sRefSrc);
+          if i < 0 Then
             FDependencies.Add(sRefSrc);
           end
         else
