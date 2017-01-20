@@ -495,7 +495,7 @@ unit typinfo;
 
 // general property handling
 Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
-Function AlignTypeData(p : PTypeData) : PTypeData;
+Function AlignTypeData(p : Pointer) : Pointer;
 
 Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string): PPropInfo;
 Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string; AKinds: TTypeKinds): PPropInfo;
@@ -872,7 +872,7 @@ begin
 end;
 
 
-Function AlignTypeData(p : PTypeData) : PTypeData;
+Function AlignTypeData(p : Pointer) : Pointer;
 {$push}
 {$packrecords c}
   type
@@ -884,9 +884,9 @@ Function AlignTypeData(p : PTypeData) : PTypeData;
 begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
 {$ifdef VER3_0}
-  Result:=PTypeData(align(p,SizeOf(Pointer)));
+  Result:=Pointer(align(p,SizeOf(Pointer)));
 {$else VER3_0}
-  Result:=PTypeData(align(p,PtrInt(@TAlignCheck(nil^).q)))
+  Result:=Pointer(align(p,PtrInt(@TAlignCheck(nil^).q)))
 {$endif VER3_0}
 {$else FPC_REQUIRES_PROPER_ALIGNMENT}
   Result:=p;
