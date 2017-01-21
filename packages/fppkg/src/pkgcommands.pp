@@ -250,13 +250,13 @@ begin
      (PackageManager.Options.GlobalSection.RemoteRepository='auto') then
     begin
       Log(llCommands,SLogDownloading,[PackageManager.Options.GlobalSection.RemoteMirrorsURL,PackageManager.Options.GlobalSection.LocalMirrorsFile]);
-      DownloadFile(PackageManager.Options.GlobalSection.RemoteMirrorsURL,PackageManager.Options.GlobalSection.LocalMirrorsFile);
+      DownloadFile(PackageManager.Options.GlobalSection.RemoteMirrorsURL,PackageManager.Options.GlobalSection.LocalMirrorsFile, PackageManager);
       LoadLocalAvailableMirrors;
     end;
   // Download packages.xml
-  PackagesURL:=GetRemoteRepositoryURL(PackagesFileName);
+  PackagesURL:=PackageManager.GetRemoteRepositoryURL(PackagesFileName);
   Log(llCommands,SLogDownloading,[PackagesURL,PackageManager.Options.GlobalSection.LocalPackagesFile]);
-  DownloadFile(PackagesURL,PackageManager.Options.GlobalSection.LocalPackagesFile);
+  DownloadFile(PackagesURL,PackageManager.Options.GlobalSection.LocalPackagesFile,PackageManager);
   // Read the repository again
   PackageManager.ScanAvailablePackages;
   // no need to log errors again
@@ -284,7 +284,7 @@ begin
   if PackageName='' then
     Error(SErrNoPackageSpecified);
   P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
-  if not FileExists(PackageLocalArchive(P)) then
+  if not FileExists(PackageManager.PackageLocalArchive(P)) then
     ExecuteAction(PackageName,'downloadpackage');
 end;
 
@@ -298,8 +298,8 @@ begin
   if PackageName='' then
     Error(SErrNoPackageSpecified);
   P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
-  BuildDir:=PackageBuildPath(P);
-  ArchiveFile:=PackageLocalArchive(P);
+  BuildDir:=PackageManager.PackageBuildPath(P);
+  ArchiveFile:=PackageManager.PackageLocalArchive(P);
   if not FileExists(ArchiveFile) then
     ExecuteAction(PackageName,'downloadpackage');
   { Create builddir, remove it first if needed }
@@ -311,7 +311,7 @@ begin
   With TUnZipper.Create do
     try
       Log(llCommands,SLogUnzippping,[ArchiveFile]);
-      OutputPath:=PackageBuildPath(P);
+      OutputPath:=PackageManager.PackageBuildPath(P);
       UnZipAllFiles(ArchiveFile);
     Finally
       Free;
@@ -562,7 +562,7 @@ begin
                 end
               else
                 begin
-                  if InstalledP.IsPackageBroken then
+                  if PackageManager.PackageIsBroken(InstalledP, InstalledP.Repository) then
                     begin
                       status:='Broken, recompiling';
                       L.Add(D.PackageName);

@@ -10,8 +10,6 @@ uses
   pkgFppkg,
   fpmkunit;
 
-function GetRemoteRepositoryURL(const AFileName:string):string;
-
 procedure LoadLocalAvailableMirrors;
 function LoadManifestFromFile(const AManifestFN:string):TFPPackage;
 procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
@@ -20,8 +18,6 @@ function  FindBrokenPackages(SL:TStrings):Boolean;
 procedure CheckFPMakeDependencies;
 procedure ListPackages(const ShowGlobalAndLocal: boolean);
 procedure InitializeFppkg;
-
-procedure ClearRemoteRepository;
 
 procedure SetDefaultRepositoryClass(ARepositoryClass: TFPRepositoryClass);
 
@@ -43,7 +39,6 @@ resourcestring
   SErrRepositoryClassAlreadyAssigned = 'Default repository class is already assigned.';
 
 var
-  CurrentRemoteRepositoryURL : String;
   RepositoryClass : TFPRepositoryClass;
 
 procedure SetDefaultRepositoryClass(ARepositoryClass: TFPRepositoryClass);
@@ -137,23 +132,6 @@ begin
   else
     Error(SErrFailedToSelectMirror);
 end;
-
-
-function GetRemoteRepositoryURL(const AFileName:string):string;
-begin
-  if CurrentRemoteRepositoryURL='' then
-    begin
-      if GFPpkg.Options.GlobalSection.RemoteRepository='auto' then
-        CurrentRemoteRepositoryURL:=SelectRemoteMirror
-      else
-        CurrentRemoteRepositoryURL:=GFPpkg.Options.GlobalSection.RemoteRepository;
-    end;
-  result := CurrentRemoteRepositoryURL;
-  if result[length(result)]<>'/' then
-    result := result + '/';
-  Result:=Result+GFPpkg.CompilerOptions.CompilerVersion+'/'+AFileName;
-end;
-
 
 {*****************************************************************************
                            Local Repository
@@ -363,11 +341,6 @@ begin
   if Assigned(GFPpkg) then
     GFPpkg.Free;
   GFPpkg := TpkgFPpkg.Create(nil);
-end;
-
-procedure ClearRemoteRepository;
-begin
-  CurrentRemoteRepositoryURL := '';
 end;
 
 initialization

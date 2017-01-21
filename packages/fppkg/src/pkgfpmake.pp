@@ -306,7 +306,7 @@ begin
   // Does the current package support this CPU-OS?
   if PackageName<>'' then
     begin
-      P:=GFPpkg.PackageByName(PackageName, pkgpkAvailable);
+      P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
       if (PackageName=CurrentDirPackageName) and (FileExists(ManifestFileName)) then
         ObtainSupportedTargetsFromManifest(p);
     end
@@ -315,9 +315,9 @@ begin
   if assigned(P) then
     begin
       if (command<>'archive') and (command<>'manifest') and
-         (not(GFPpkg.CompilerOptions.CompilerOS in P.OSes) or
-          not(GFPpkg.CompilerOptions.CompilerCPU in P.CPUs)) then
-        Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(GFPpkg.CompilerOptions.CompilerCPU,GFPpkg.CompilerOptions.CompilerOS)]);
+         (not(PackageManager.CompilerOptions.CompilerOS in P.OSes) or
+          not(PackageManager.CompilerOptions.CompilerCPU in P.CPUs)) then
+        Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(PackageManager.CompilerOptions.CompilerCPU,GFPpkg.CompilerOptions.CompilerOS)]);
     end;
   { Maybe compile fpmake executable? }
   ExecuteAction(PackageName,'compilefpmake');
@@ -334,13 +334,13 @@ begin
     end
   else
     begin
-      if GFPpkg.CompilerOptions.HasOptions then
+      if PackageManager.CompilerOptions.HasOptions then
         AddOption('--options='+GFPpkg.CompilerOptions.Options.DelimitedText);
 
-      if GFPpkg.Options.GlobalSection.CustomFPMakeOptions<>'' then
+      if PackageManager.Options.GlobalSection.CustomFPMakeOptions<>'' then
         begin
         AddOption('--ignoreinvalidoption');
-        AddOption(GFPpkg.Options.GlobalSection.CustomFPMakeOptions);
+        AddOption(PackageManager.Options.GlobalSection.CustomFPMakeOptions);
         end;
     end;
 
@@ -354,7 +354,7 @@ begin
   // manifest command does not use the --prefix and --baseinstalldir parameters.
   if (command<>'manifest') then
     begin
-      InstallRepo := GFPpkg.RepositoryByName(GFPpkg.Options.CommandLineSection.InstallRepository);
+      InstallRepo := PackageManager.RepositoryByName(PackageManager.Options.CommandLineSection.InstallRepository);
 
       if not Assigned(InstallRepo.DefaultPackagesStructure) then
         begin
@@ -365,11 +365,11 @@ begin
       CondAddOption('--baseinstalldir',InstallRepo.DefaultPackagesStructure.GetBaseInstallDir);
     end;
 
-  for i := GFPpkg.RepositoryList.Count-1 downto 0 do
+  for i := PackageManager.RepositoryList.Count-1 downto 0 do
     begin
-      if GFPpkg.RepositoryList[i] is TFPRepository then
+      if PackageManager.RepositoryList[i] is TFPRepository then
         begin
-          InstallRepo := TFPRepository(GFPpkg.RepositoryList[i]);
+          InstallRepo := TFPRepository(PackageManager.RepositoryList[i]);
           if (InstallRepo.RepositoryType = fprtInstalled) and Assigned(InstallRepo.DefaultPackagesStructure) then
             begin
               BaseInstDir := InstallRepo.DefaultPackagesStructure.GetBaseInstallDir;

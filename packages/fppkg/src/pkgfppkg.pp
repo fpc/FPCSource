@@ -26,10 +26,13 @@ type
     FOptions: TFppkgOptions;
     FCompilerOptions: TCompilerOptions;
     FFpmakeCompilerOptions: TCompilerOptions;
+    FCurrentRemoteRepositoryURL: String;
     function IncludeRepositoryTypeForPackageKind(ARepositoryType: TFPRepositoryType;
       APackageKind: TpkgPackageKind): Boolean;
     procedure ScanPackagesOnDisk(ACompilerOptions: TCompilerOptions; APackageKind: TpkgPackageKind; ARepositoryList: TComponentList);
     function  FindPackage(ARepositoryList: TComponentList; APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
+
+    function  SelectRemoteMirror:string;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -39,6 +42,8 @@ type
     procedure ScanAvailablePackages;
     procedure ScanPackages;
 
+    function PackageIsBroken(APackage: TFPPackage; ARepository: TFPRepository): Boolean;
+
     function FPMakeRepoFindPackage(APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
     function FindPackage(APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
     function PackageByName(APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
@@ -47,6 +52,11 @@ type
     function RepositoryByName(ARepositoryName: string): TFPRepository;
 
     function GetInstallRepository(APackage: TFPPackage): TFPRepository;
+    function PackageLocalArchive(APackage:TFPPackage): String;
+    function PackageBuildPath(APackage:TFPPackage):String;
+
+    function GetRemoteRepositoryURL(const AFileName:string):string;
+    function PackageRemoteArchive(APackage:TFPPackage): String;
 
     procedure ScanInstalledPackagesForAvailablePackages;
 
@@ -259,6 +269,57 @@ begin
   ScanAvailablePackages;
 end;
 
+function TpkgFPpkg.PackageIsBroken(APackage: TFPPackage; ARepository: TFPRepository): Boolean;
+var
+  j, i, ThisRepositoryIndex: Integer;
+  Dependency: TFPDependency;
+  Repository: TFPRepository;
+  DepPackage: TFPPackage;
+begin
+  result:=false;
+
+  // We should only check for dependencies in this repository, or repositories
+  // with a lower priority.
+  ThisRepositoryIndex := -1;
+  for i := RepositoryList.Count -1 downto 0 do
+    begin
+      if RepositoryList.Items[i] = ARepository then
+        ThisRepositoryIndex := i;
+    end;
+
+  for j:=0 to APackage.Dependencies.Count-1 do
+    begin
+      Dependency:=APackage.Dependencies[j];
+      if (CompilerOptions.CompilerOS in Dependency.OSes) and
+         (CompilerOptions.CompilerCPU in Dependency.CPUs) then
+        begin
+          for i := ThisRepositoryIndex downto 0 do
+            begin
+              Repository := RepositoryList.Items[i] as TFPRepository;
+              DepPackage := Repository.FindPackage(Dependency.PackageName);
+              if Assigned(DepPackage) then
+                Break;
+            end;
+
+          if assigned(DepPackage) then
+            begin
+              if (Dependency.RequireChecksum<>$ffffffff) and (DepPackage.Checksum<>Dependency.RequireChecksum) then
+                begin
+                  log(llInfo,SLogPackageChecksumChanged,[APackage.Name,ARepository.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
+                  result:=true;
+                  exit;
+                end;
+            end
+          else
+            begin
+              log(llDebug,SDbgObsoleteDependency,[APackage.Name,Dependency.PackageName]);
+              result:=true;
+              exit;
+            end;
+        end;
+    end;
+end;
+
 function TpkgFPpkg.FPMakeRepoFindPackage(APackageName: string;
   APackageKind: TpkgPackageKind): TFPPackage;
 begin
@@ -287,6 +348,48 @@ begin
             Break;
         end;
     end;
+end;
+
+function TpkgFPpkg.SelectRemoteMirror: string;
+var
+  i,j : Integer;
+  Bucket,
+  BucketCnt : Integer;
+  M : TFPMirror;
+begin
+  Result:='';
+  M:=nil;
+  if assigned(AvailableMirrors) then
+   begin
+     // Create array for selection
+     BucketCnt:=0;
+     for i:=0 to AvailableMirrors.Count-1 do
+       inc(BucketCnt,AvailableMirrors[i].Weight);
+     // Select random entry
+     Bucket:=Random(BucketCnt);
+     M:=nil;
+     for i:=0 to AvailableMirrors.Count-1 do
+       begin
+         for j:=0 to AvailableMirrors[i].Weight-1 do
+           begin
+             if Bucket=0 then
+               begin
+                 M:=AvailableMirrors[i];
+                 break;
+               end;
+             Dec(Bucket);
+           end;
+         if assigned(M) then
+           break;
+       end;
+    end;
+  if assigned(M) then
+    begin
+      log(llInfo,SLogSelectedMirror,[M.Name]);
+      Result:=M.URL;
+    end
+  else
+    Error(SErrFailedToSelectMirror);
 end;
 
 function TpkgFPpkg.PackageByName(APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
@@ -347,6 +450,16 @@ begin
     end;
 end;
 
+function TpkgFPpkg.PackageLocalArchive(APackage: TFPPackage): String;
+begin
+  if APackage.Name=CurrentDirPackageName then
+    Error(SErrNoPackageSpecified)
+  else if APackage.Name=CmdLinePackageName then
+    Result:=APackage.LocalFileName
+  else
+    Result:=Options.GlobalSection.ArchivesDir+APackage.FileName;
+end;
+
 procedure TpkgFPpkg.ScanInstalledPackagesForAvailablePackages;
 var
   i: Integer;
@@ -366,6 +479,46 @@ begin
       AvailStruc.AddPackagesToRepository(AvailableRepo);
       AvailableRepo.DefaultPackagesStructure := AvailStruc;
     end;
+end;
+
+function TpkgFPpkg.PackageBuildPath(APackage: TFPPackage): String;
+begin
+  if (APackage.Name=CmdLinePackageName) or (APackage.Name=URLPackageName) then
+    Result:=Options.GlobalSection.BuildDir+ChangeFileExt(ExtractFileName(APackage.LocalFileName),'')
+  else if Assigned(APackage.PackagesStructure) and (APackage.PackagesStructure.GetBuildPathDirectory(APackage)<>'') then
+    Result:=APackage.PackagesStructure.GetBuildPathDirectory(APackage)
+  else
+    Result:=Options.GlobalSection.BuildDir+APackage.Name;
+end;
+
+function TpkgFPpkg.GetRemoteRepositoryURL(const AFileName: string): string;
+begin
+  if FCurrentRemoteRepositoryURL='' then
+    begin
+      if Options.GlobalSection.RemoteRepository='auto' then
+        FCurrentRemoteRepositoryURL:=SelectRemoteMirror
+      else
+        FCurrentRemoteRepositoryURL:=Options.GlobalSection.RemoteRepository;
+    end;
+  result := FCurrentRemoteRepositoryURL;
+  if result <> '' then
+    begin
+      if result[length(result)]<>'/' then
+        result := result + '/';
+      Result:=Result+CompilerOptions.CompilerVersion+'/'+AFileName;
+    end;
+end;
+
+function TpkgFPpkg.PackageRemoteArchive(APackage: TFPPackage): String;
+begin
+  if APackage.Name=CurrentDirPackageName then
+    Error(SErrNoPackageSpecified)
+  else if APackage.Name=CmdLinePackageName then
+    Error(SErrPackageIsLocal);
+  if APackage.DownloadURL<>'' then
+    Result:=APackage.DownloadURL
+  else
+    Result:=GetRemoteRepositoryURL(APackage.FileName);
 end;
 
 end.

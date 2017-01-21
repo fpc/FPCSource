@@ -5,7 +5,7 @@ unit pkgDownload;
 interface
 
 uses
-  Classes, SysUtils, pkghandler;
+  Classes, SysUtils, pkghandler, pkgFppkg;
 
 Type
 
@@ -36,7 +36,7 @@ Type
 procedure RegisterDownloader(const AName:string;Downloaderclass:TBaseDownloaderClass);
 function GetDownloader(const AName:string):TBaseDownloaderClass;
 
-procedure DownloadFile(const RemoteFile,LocalFile:String);
+procedure DownloadFile(const RemoteFile,LocalFile:String; PackageManager: TpkgFPpkg);
 
 
 implementation
@@ -48,8 +48,7 @@ uses
   pkgglobals,
   pkgoptions,
   pkgmessages,
-  pkgrepos,
-  pkgFppkg;
+  pkgrepos;
 
 var
   DownloaderList  : TFPHashList;
@@ -73,11 +72,11 @@ begin
 end;
 
 
-procedure DownloadFile(const RemoteFile,LocalFile:String);
+procedure DownloadFile(const RemoteFile,LocalFile:String; PackageManager: TpkgFPpkg);
 var
   DownloaderClass : TBaseDownloaderClass;
 begin
-  DownloaderClass:=GetDownloader(GFPpkg.Options.GlobalSection.Downloader);
+  DownloaderClass:=GetDownloader(PackageManager.Options.GlobalSection.Downloader);
   with DownloaderClass.Create(nil) do
     try
       Download(RemoteFile,LocalFile);
@@ -164,21 +163,31 @@ procedure TDownloadPackage.Execute;
 var
   DownloaderClass : TBaseDownloaderClass;
   P : TFPPackage;
+  RemoteArchive: string;
 begin
-  P:=GFPpkg.PackageByName(PackageName, pkgpkAvailable);
-  DownloaderClass:=GetDownloader(GFPpkg.Options.GlobalSection.Downloader);
-  with DownloaderClass.Create(nil) do
-    try
-      Log(llCommands,SLogDownloading,[PackageRemoteArchive(P),PackageLocalArchive(P)]);
-      pkgglobals.log(llProgres,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
+  P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
+  DownloaderClass:=GetDownloader(PackageManager.Options.GlobalSection.Downloader);
+  if Assigned(DownloaderClass) then
+    begin
+      with DownloaderClass.Create(nil) do
+        try
+          RemoteArchive := PackageManager.PackageRemoteArchive(P);
+          if RemoteArchive <> '' then
+            begin
+              Log(llCommands,SLogDownloading,[RemoteArchive,PackageManager.PackageLocalArchive(P)]);
+              pkgglobals.log(llProgres,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
 
-      // Force the existing of the archives-directory if it is being used
-      if (P.Name<>CurrentDirPackageName) and (P.Name<>CmdLinePackageName) then
-        ForceDirectories(GFPpkg.Options.GlobalSection.ArchivesDir);
+              // Force the existing of the archives-directory if it is being used
+              if (P.Name<>CurrentDirPackageName) and (P.Name<>CmdLinePackageName) then
+                ForceDirectories(PackageManager.Options.GlobalSection.ArchivesDir);
 
-      Download(PackageRemoteArchive(P),PackageLocalArchive(P));
-    finally
-      Free;
+              Download(RemoteArchive,PackageManager.PackageLocalArchive(P));
+            end
+          else
+            Error(SErrDownloadPackageFailed);
+        finally
+          Free;
+        end;
     end;
 end;
 

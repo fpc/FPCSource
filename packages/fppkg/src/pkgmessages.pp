@@ -38,6 +38,7 @@ Resourcestring
   SErrUnknownProtocol        = 'Unknown download protocol "%s" in url "%s"';
   SErrNoSuchFile             = 'File "%s" does not exist.';
   SErrDownloadFailed         = '%s Download of "%s" failed: %s';
+  SErrDownloadPackageFailed  = 'Download of package failed.';
   SErrInvalidLogLevels       = 'Invalid verbosity string: "%s"';
   SErrInvalidCommand         = 'Invalid command: %s';
   SErrChangeDirFailed        = 'Could not change directory to "%s"';
