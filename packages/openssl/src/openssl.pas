@@ -658,10 +658,39 @@ const
   SSL_MODE_AUTO_RETRY = 4;
   SSL_MODE_NO_AUTO_CHAIN = 8;
 
-  SSL_OP_NO_SSLv2 = $01000000;
-  SSL_OP_NO_SSLv3 = $02000000;
-  SSL_OP_NO_TLSv1 = $04000000;
-  SSL_OP_ALL = $000FFFFF;
+  SSL_OP_MICROSOFT_SESS_ID_BUG                  = $00000001;
+  SSL_OP_NETSCAPE_CHALLENGE_BUG                 = $00000002;
+  SSL_OP_LEGACY_SERVER_CONNECT                  = $00000004;
+  SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG       = $00000008;
+  SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG            = $00000010;
+  SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER             = $00000020;
+  SSL_OP_MSIE_SSLV2_RSA_PADDING                 = $00000040;
+  SSL_OP_SSLEAY_080_CLIENT_DH_BUG               = $00000080;
+  SSL_OP_TLS_D5_BUG                             = $00000100;
+  SSL_OP_TLS_BLOCK_PADDING_BUG                  = $00000200;
+  SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS            = $00000800;
+  SSL_OP_NO_QUERY_MTU                           = $00001000;
+  SSL_OP_COOKIE_EXCHANGE                        = $00002000;
+  SSL_OP_NO_TICKET                              = $00004000;
+  SSL_OP_CISCO_ANYCONNECT                       = $00008000;
+  SSL_OP_ALL                                    = $000FFFFF;
+  SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION = $00010000;
+  SSL_OP_NO_COMPRESSION                         = $00020000;
+  SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION      = $00040000;
+  SSL_OP_SINGLE_ECDH_USE                        = $00080000;
+  SSL_OP_SINGLE_DH_USE                          = $00100000;
+  SSL_OP_EPHEMERAL_RSA                          = $00200000;
+  SSL_OP_CIPHER_SERVER_PREFERENCE               = $00400000;
+  SSL_OP_TLS_ROLLBACK_BUG                       = $00800000;
+  SSL_OP_NO_SSLv2                               = $01000000;
+  SSL_OP_NO_SSLv3                               = $02000000;
+  SSL_OP_NO_TLSv1                               = $04000000;
+  SSL_OP_NO_TLSv1_2                             = $08000000;
+  SSL_OP_NO_TLSv1_1                             = $10000000;
+  SSL_OP_NETSCAPE_CA_DN_BUG                     = $20000000;
+  SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG        = $40000000;
+  SSL_OP_CRYPTOPRO_TLSEXT_BUG                   = $80000000;
+
   SSL_VERIFY_NONE = $00;
   SSL_VERIFY_PEER = $01;
 
@@ -864,6 +893,8 @@ var
   function SslMethodV2:PSSL_METHOD;
   function SslMethodV3:PSSL_METHOD;
   function SslMethodTLSV1:PSSL_METHOD;
+  function SslMethodTLSV1_1:PSSL_METHOD;
+  function SslMethodTLSV1_2:PSSL_METHOD;
   function SslMethodV23:PSSL_METHOD;
   function SslCtxUsePrivateKey(ctx: PSSL_CTX; pkey: SslPtr):cInt;
   function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;
@@ -1261,6 +1292,8 @@ type
   TSslMethodV2 = function:PSSL_METHOD; cdecl;
   TSslMethodV3 = function:PSSL_METHOD; cdecl;
   TSslMethodTLSV1 = function:PSSL_METHOD; cdecl;
+  TSslMethodTLSV1_1 = function:PSSL_METHOD; cdecl;
+  TSslMethodTLSV1_2 = function:PSSL_METHOD; cdecl;
   TSslMethodV23 = function:PSSL_METHOD; cdecl;
   TSslCtxUsePrivateKey = function(ctx: PSSL_CTX; pkey: sslptr):cInt; cdecl;
   TSslCtxUsePrivateKeyASN1 = function(pk: cInt; ctx: PSSL_CTX; d: sslptr; len: cInt):cInt; cdecl;
@@ -1475,6 +1508,8 @@ var
   _SslMethodV2: TSslMethodV2 = nil;
   _SslMethodV3: TSslMethodV3 = nil;
   _SslMethodTLSV1: TSslMethodTLSV1 = nil;
+  _SslMethodTLSV1_1: TSslMethodTLSV1_1 = nil;
+  _SslMethodTLSV1_2: TSslMethodTLSV1_2 = nil;
   _SslMethodV23: TSslMethodV23 = nil;
   _SslCtxUsePrivateKey: TSslCtxUsePrivateKey = nil;
   _SslCtxUsePrivateKeyASN1: TSslCtxUsePrivateKeyASN1 = nil;
@@ -1866,6 +1901,22 @@ function SslMethodTLSV1:PSSL_METHOD;
 begin
   if InitSSLInterface and Assigned(_SslMethodTLSV1) then
     Result := _SslMethodTLSV1
+  else
+    Result := nil;
+end;
+
+function SslMethodTLSV1_1:PSSL_METHOD;
+begin
+  if InitSSLInterface and Assigned(_SslMethodTLSV1_1) then
+    Result := _SslMethodTLSV1_1
+  else
+    Result := nil;
+end;
+
+function SslMethodTLSV1_2:PSSL_METHOD;
+begin
+  if InitSSLInterface and Assigned(_SslMethodTLSV1_2) then
+    Result := _SslMethodTLSV1_2
   else
     Result := nil;
 end;
@@ -3801,6 +3852,8 @@ begin
   _SslMethodV2 := GetProcAddr(SSLLibHandle, 'SSLv2_method');
   _SslMethodV3 := GetProcAddr(SSLLibHandle, 'SSLv3_method');
   _SslMethodTLSV1 := GetProcAddr(SSLLibHandle, 'TLSv1_method');
+  _SslMethodTLSV1_1 := GetProcAddr(SSLLibHandle, 'TLSv1_1_method');
+  _SslMethodTLSV1_2 := GetProcAddr(SSLLibHandle, 'TLSv1_2_method');
   _SslMethodV23 := GetProcAddr(SSLLibHandle, 'SSLv23_method');
   _SslCtxUsePrivateKey := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_PrivateKey');
   _SslCtxUsePrivateKeyASN1 := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_PrivateKey_ASN1');
@@ -4080,6 +4133,8 @@ begin
   _SslMethodV2 := nil;
   _SslMethodV3 := nil;
   _SslMethodTLSV1 := nil;
+  _SslMethodTLSV1_1 := nil;
+  _SslMethodTLSV1_2 := nil;
   _SslMethodV23 := nil;
   _SslCtxUsePrivateKey := nil;
   _SslCtxUsePrivateKeyASN1 := nil;
