@@ -21,7 +21,7 @@ interface
 uses
   Classes, SysUtils, openssl, ctypes;
 Type
-  TSSLType = (stAny,stSSLv2,stSSLv3,stTLSv1);
+  TSSLType = (stAny,stSSLv2,stSSLv3,stTLSv1,stTLSv1_1,stTLSv1_2);
 
   //  PASN1_INTEGER = SslPtr;
 
@@ -66,6 +66,7 @@ Type
     function LoadVerifyLocations(const CAfile: String; const CApath: String):cInt;
     function LoadPFX(Const S,APassword : AnsiString) : cint;
     function LoadPFX(Data : TSSLData; Const APAssword : Ansistring) : cint;
+    function SetOptions(AOptions: cLong): cLong;
     Property CTX: PSSL_CTX Read FCTX;
   end;
 
@@ -140,11 +141,14 @@ Var
   C : PSSL_CTX;
 
 begin
+  C := nil;
   Case AType of
     stAny:  C := SslCtxNew(SslMethodV23);
     stSSLv2: C := SslCtxNew(SslMethodV2);
     stSSLv3: C := SslCtxNew(SslMethodV3);
     stTLSv1: C := SslCtxNew(SslMethodTLSV1);
+    stTLSv1_1: C := SslCtxNew(SslMethodTLSV1_1);
+    stTLSv1_2: C := SslCtxNew(SslMethodTLSV1_2);
   end;
   if (C=Nil) then
      Raise ESSL.Create(SErrCountNotGetContext);
@@ -327,6 +331,10 @@ begin
   end;
 end;
 
+function TSSLContext.SetOptions(AOptions: cLong): cLong;
+begin
+  result := SslCtxCtrl(FCTX, SSL_CTRL_OPTIONS, AOptions, nil);
+end;
 
 { TSSLData }
 
