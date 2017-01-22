@@ -57,8 +57,6 @@ procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandle
 function GetPkgHandler(const AAction:string):TPackageHandlerClass;
 procedure ExecuteAction(const APackageName,AAction:string; PackageManager: TpkgFPpkg);
 
-function PackageBuildPath(APackage:TFPPackage):String;
-function PackageLocalArchive(APackage:TFPPackage): String;
 function PackageManifestFile(APackage:TFPPackage): String;
 procedure ClearExecutedAction;
 
@@ -121,18 +119,6 @@ begin
     finally
       Free;
     end;
-end;
-
-
-function PackageBuildPath(APackage:TFPPackage):String;
-begin
-  GFPpkg.PackageBuildPath(APackage);
-end;
-
-
-function PackageLocalArchive(APackage:TFPPackage): String;
-begin
-  GFPpkg.PackageLocalArchive(APackage);
 end;
 
 

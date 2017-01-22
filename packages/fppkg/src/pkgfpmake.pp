@@ -169,7 +169,7 @@ begin
   P:=GFPpkg.PackageByName(PackageName, pkgpkAvailable);
   NeedFPMKUnitSource:=false;
   OOptions:='';
-  SetCurrentDir(PackageBuildPath(P));
+  SetCurrentDir(PackageManager.PackageBuildPath(P));
   // Generate random name for build path
   TempBuildDir:='build_fpmake_'+HexStr(DateTimeToUnix(Now),8)+HexStr(GetProcessId,4);
   // Check for fpmake source
@@ -388,7 +388,7 @@ begin
 
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
-  SetCurrentDir(PackageBuildPath(P));
+  SetCurrentDir(PackageManager.PackageBuildPath(P));
   Result:=ExecuteProcess(FPMakeBin,Command+' '+OOptions);
   if Result<>0 then
     Error(SErrExecutionFPMake,[Command]);
