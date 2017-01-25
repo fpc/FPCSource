@@ -223,10 +223,13 @@ Function FormatCurr(const Format: string; Value: Currency; Const FormatSettings:
 {$endif}
 
 function StrToBool(const S: string): Boolean;
+function StrToBool(const S: string; Const FormatSettings: TFormatSettings): Boolean;
 function BoolToStr(B: Boolean;UseBoolStrs:Boolean=False): string;
 function BoolToStr(B: Boolean;const TrueS,FalseS:string): string; inline;
 function StrToBoolDef(const S: string; Default: Boolean): Boolean;
+function StrToBoolDef(const S: string; Default: Boolean; Const FormatSettings: TFormatSettings): Boolean;
 function TryStrToBool(const S: string; out Value: Boolean): Boolean;
+function TryStrToBool(const S: string; out Value: Boolean; Const FormatSettings: TFormatSettings): Boolean;
 
 function LastDelimiter(const Delimiters, S: string): SizeInt;
 function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
