@@ -253,6 +253,7 @@ type
   PPRSA = ^PRSA;
   PASN1_cInt = SslPtr;
   PPasswdCb = SslPtr;
+  PCallbackCb = SslPtr;
   PFunction = procedure;
   DES_cblock = array[0..7] of Byte;
   PDES_cblock = ^DES_cblock;
@@ -650,8 +651,50 @@ const
   SSL_CTRL_GET_RI_SUPPORT	   = 76;
   SSL_CTRL_CLEAR_OPTIONS	   = 77;
   SSL_CTRL_CLEAR_MODE		   = 78;
-  
-  TLSEXT_NAMETYPE_host_name        = 0;
+
+  TLSEXT_TYPE_server_name = 0;
+  TLSEXT_TYPE_max_fragment_length = 1;
+  TLSEXT_TYPE_client_certificate_url = 2;
+  TLSEXT_TYPE_trusted_ca_keys = 3;
+  TLSEXT_TYPE_truncated_hmac = 4;
+  TLSEXT_TYPE_status_request = 5;
+  TLSEXT_TYPE_user_mapping = 6;
+  TLSEXT_TYPE_client_authz = 7;
+  TLSEXT_TYPE_server_authz = 8;
+  TLSEXT_TYPE_cert_type = 9;
+  TLSEXT_TYPE_elliptic_curves = 10;
+  TLSEXT_TYPE_ec_point_formats = 11;
+  TLSEXT_TYPE_srp = 12;
+  TLSEXT_TYPE_signature_algorithms = 13;
+  TLSEXT_TYPE_use_srtp = 14;
+  TLSEXT_TYPE_heartbeat = 15;
+  TLSEXT_TYPE_session_ticket = 35;
+  TLSEXT_TYPE_renegotiate = $ff01;
+  TLSEXT_TYPE_next_proto_neg = 13172;
+  TLSEXT_NAMETYPE_host_name = 0;
+  TLSEXT_STATUSTYPE_ocsp = 1;
+  TLSEXT_ECPOINTFORMAT_first = 0;
+  TLSEXT_ECPOINTFORMAT_uncompressed = 0;
+  TLSEXT_ECPOINTFORMAT_ansiX962_compressed_prime = 1;
+  TLSEXT_ECPOINTFORMAT_ansiX962_compressed_char2 = 2;
+  TLSEXT_ECPOINTFORMAT_last = 2;
+  TLSEXT_signature_anonymous = 0;
+  TLSEXT_signature_rsa = 1;
+  TLSEXT_signature_dsa = 2;
+  TLSEXT_signature_ecdsa = 3;
+  TLSEXT_hash_none = 0;
+  TLSEXT_hash_md5 = 1;
+  TLSEXT_hash_sha1 = 2;
+  TLSEXT_hash_sha224 = 3;
+  TLSEXT_hash_sha256 = 4;
+  TLSEXT_hash_sha384 = 5;
+  TLSEXT_hash_sha512 = 6;
+  TLSEXT_MAXLEN_host_name = 255;
+
+  SSL_TLSEXT_ERR_OK = 0;
+  SSL_TLSEXT_ERR_ALERT_WARNING = 1;
+  SSL_TLSEXT_ERR_ALERT_FATAL = 2;
+  SSL_TLSEXT_ERR_NOACK = 3;
 
   SSL_MODE_ENABLE_PARTIAL_WRITE = 1;
   SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER = 2;
@@ -926,6 +969,9 @@ var
   function SSLCipherGetName(c: SslPtr): String;
   function SSLCipherGetBits(c: SslPtr; var alg_bits: cInt):cInt;
   function SSLGetVerifyResult(ssl: PSSL):cLong;
+  function SSLGetServername(ssl: PSSL; _type: cInt = TLSEXT_NAMETYPE_host_name): string;
+  procedure SslCtxCallbackCtrl(ssl: PSSL; _type: cInt; cb: PCallbackCb);
+  function SslSetSslCtx(ssl: PSSL; ctx: PSSL_CTX): PSSL;
 
 // libeay.dll
   procedure ERR_load_crypto_strings;
@@ -1322,6 +1368,9 @@ type
   TSSLCipherGetName = function(c: Sslptr):PChar; cdecl;
   TSSLCipherGetBits = function(c: SslPtr; alg_bits: PcInt):cInt; cdecl;
   TSSLGetVerifyResult = function(ssl: PSSL):cInt; cdecl;
+  TSSLGetServername = function(ssl: PSSL; _type: cInt = TLSEXT_NAMETYPE_host_name): PChar; cdecl;
+  TSSLCtxCallbackCtrl = procedure(ctx: PSSL_CTX; _type: cInt; cb: PCallbackCb); cdecl;
+  TSSLSetSslCtx = function(ssl: PSSL; ctx: PSSL_CTX): PSSL; cdecl;
 
 // libeay.dll
   TERR_load_crypto_strings = procedure; cdecl;
@@ -1538,6 +1587,9 @@ var
   _SSLCipherGetName: TSSLCipherGetName = nil;
   _SSLCipherGetBits: TSSLCipherGetBits = nil;
   _SSLGetVerifyResult: TSSLGetVerifyResult = nil;
+  _SSLGetServername: TSSLGetServername = nil;
+  _SslCtxCallbackCtrl: TSSLCtxCallbackCtrl = nil;
+  _SslSetSslCtx: TSSLSetSslCtx = nil;
 
 // libeay.dll
   _ERR_load_crypto_strings: TERR_load_crypto_strings = nil;
@@ -2141,6 +2193,27 @@ begin
     Result := X509_V_ERR_APPLICATION_VERIFICATION;
 end;
 
+function SSLGetServername(ssl: PSSL; _type: cInt = TLSEXT_NAMETYPE_host_name): string;
+begin
+  if InitSSLInterface and Assigned(_SSLGetServername) then
+    result := PChar(_SSLGetServername(ssl, _type))
+  else
+    result := '';
+end;
+
+procedure SslCtxCallbackCtrl(ssl: PSSL; _type: cInt; cb: PCallbackCb);
+begin
+  if InitSSLInterface and Assigned(_SslCtxCallbackCtrl) then
+    _SslCtxCallbackCtrl(ssl, _type, cb);
+end;
+
+function SslSetSslCtx(ssl: PSSL; ctx: PSSL_CTX): PSSL;
+begin
+  if InitSSLInterface and Assigned(_SslSetSslCtx) then
+    result := _SslSetSslCtx(ssl, ctx)
+  else
+    result := nil;
+end;
 
 // libeay.dll
 function SSLeayversion(t: cInt): string;
@@ -3884,6 +3957,9 @@ begin
   _SslCipherGetName := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_name');
   _SslCipherGetBits := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_bits');
   _SslGetVerifyResult := GetProcAddr(SSLLibHandle, 'SSL_get_verify_result');
+  _SslGetServername := GetProcAddr(SSLLibHandle, 'SSL_get_servername');
+  _SslCtxCallbackCtrl := GetProcAddr(SSLLibHandle, 'SSL_CTX_callback_ctrl');
+  _SslSetSslCtx := GetProcAddr(SSLLibHandle, 'SSL_set_SSL_CTX');
 end;
 
 Procedure LoadUtilEntryPoints;
@@ -4163,7 +4239,9 @@ begin
   _SslCipherGetName := nil;
   _SslCipherGetBits := nil;
   _SslGetVerifyResult := nil;
-
+  _SslGetServername := nil;
+  _SslCtxCallbackCtrl := nil;
+  _SslSetSslCtx := nil;
   _PKCS7_ISSUER_AND_SERIAL_new:=nil;
   _PKCS7_ISSUER_AND_SERIAL_free:=nil;
   _PKCS7_ISSUER_AND_SERIAL_digest:=nil;

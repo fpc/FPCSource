@@ -42,6 +42,14 @@ Type
 
   { TSSLContext }
 
+  TSSLContext = Class;
+  TRTlsExtCtx = record
+    CTX: TSSLContext;
+    domains: array of string; // SSL Certificate with one or more alternative names (SAN)
+  end;
+  TTlsExtCtx = array of TRTlsExtCtx;
+  PTlsExtCtx = ^TTlsExtCtx;
+
   TSSLContext = Class(TObject)
   private
     FCTX: PSSL_CTX;
@@ -67,6 +75,9 @@ Type
     function LoadPFX(Const S,APassword : AnsiString) : cint;
     function LoadPFX(Data : TSSLData; Const APAssword : Ansistring) : cint;
     function SetOptions(AOptions: cLong): cLong;
+    procedure SetTlsextServernameCallback(cb: PCallbackCb);
+    procedure SetTlsextServernameArg(ATlsextcbp: SslPtr);
+    procedure ActivateServerSNI(ATlsextcbp: TTlsExtCtx);
     Property CTX: PSSL_CTX Read FCTX;
   end;
 
@@ -126,6 +137,33 @@ begin
     SetLength(Result,RL)
   else
     SetLength(Result,0);
+end;
+
+function SelectSNIContextCallback(ASSL: TSSL; ad: integer; arg: TTlsExtCtx): integer; cdecl;
+var
+  sHostName: string;
+  o, i, f: integer;
+begin
+  sHostName := SSLGetServername(ASSL, TLSEXT_NAMETYPE_host_name);
+  if (sHostName <> '') and (length(arg) > 0) then
+  begin
+    f := -1;
+    for o:=0 to length(arg)-1 do
+    begin
+      for i:=0 to length(arg[o].domains)-1 do
+        if sHostName = arg[o].domains[i] then
+        begin
+          f := o;
+          break;
+        end;
+      if f <> -1 then break
+    end;
+    if f = -1 then
+      result := SSL_TLSEXT_ERR_NOACK
+    else if f > 1 then // first one should be the main certificate
+      SslSetSslCtx(ASSL, arg[f].CTX);
+  end;
+  result := SSL_TLSEXT_ERR_OK;
 end;
 
 { TSSLContext }
@@ -334,6 +372,22 @@ end;
 function TSSLContext.SetOptions(AOptions: cLong): cLong;
 begin
   result := SslCtxCtrl(FCTX, SSL_CTRL_OPTIONS, AOptions, nil);
+end;
+
+procedure TSSLContext.SetTlsextServernameCallback(cb: PCallbackCb);
+begin
+  SslCtxCallbackCtrl(FCTX, SSL_CTRL_SET_TLSEXT_SERVERNAME_CB, cb);
+end;
+
+procedure TSSLContext.SetTlsextServernameArg(ATlsextcbp: SslPtr);
+begin
+  SslCtxCtrl(FCTX, SSL_CTRL_SET_TLSEXT_SERVERNAME_ARG, 0, ATlsextcbp);
+end;
+
+procedure TSSLContext.ActivateServerSNI(ATlsextcbp: TTlsExtCtx);
+begin
+  SetTlsextServernameCallback(@SelectSNIContextCallback);
+  SetTlsextServernameArg(Pointer(ATlsextcbp));
 end;
 
 { TSSLData }
