@@ -603,6 +603,7 @@ type
     FDefaultEncoding: TEncoding;
     FEncoding: TEncoding;
     FSpecialCharsInited : boolean;
+    FAlwaysQuote: Boolean;
     FQuoteChar : Char;
     FDelimiter : Char;
     FNameValueSeparator : Char;
@@ -707,6 +708,7 @@ type
     property Encoding: TEncoding read FEncoding;
     property LineBreak : string Read GetLineBreak write SetLineBreak;
     Property StrictDelimiter : Boolean Read FStrictDelimiter Write FStrictDelimiter;
+    property AlwaysQuote: Boolean read FAlwaysQuote write FAlwaysQuote;
     property QuoteChar: Char read GetQuoteChar write SetQuoteChar;
     Property NameValueSeparator : Char Read GetNameValueSeparator Write SetNameValueSeparator;
     property ValueFromIndex[Index: Integer]: string read GetValueFromIndex write SetValueFromIndex;

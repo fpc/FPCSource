@@ -200,7 +200,8 @@ Var
   p : pchar;
   BreakChars : set of char;
   S : String;
-  
+  doQuote : Boolean;
+    
 begin
   CheckSpecialChars;
   result:='';
@@ -213,11 +214,16 @@ begin
   For i:=0 to count-1 do
     begin
     S:=Strings[i];
-    p:=pchar(S);
-    //Quote strings that include BreakChars:
-    while not(p^ in BreakChars) do
-     inc(p);
-    if (p<>pchar(S)+length(S)) then
+    doQuote:=FAlwaysQuote;
+    If not DoQuote then
+      begin
+      p:=pchar(S);
+      //Quote strings that include BreakChars:
+      while not(p^ in BreakChars) do
+        inc(p);
+      DoQuote:=(p<>pchar(S)+length(S));  
+      end;
+    if DoQuote then
       Result:=Result+QuoteString(S,QuoteChar)
     else
       Result:=Result+S;
@@ -722,6 +728,7 @@ begin
   FDefaultEncoding:=TEncoding.Default;
   FEncoding:=nil;
   FWriteBOM:=True;
+  FAlwaysQuote:=False;
 end;
 
 Function TStrings.Add(const S: string): Integer;
