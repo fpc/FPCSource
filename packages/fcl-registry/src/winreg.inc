@@ -78,7 +78,7 @@ begin
 end;
 
 function TRegistry.SysGetData(const Name: String; Buffer: Pointer;
-          BufSize: Integer; var RegData: TRegDataType): Integer;
+          BufSize: Integer; Out RegData: TRegDataType): Integer;
 Var
   P: PChar;
   RD : DWord;
@@ -105,7 +105,7 @@ begin
     end;
 end;
 
-function TRegistry.GetDataInfo(const ValueName: String; var Value: TRegDataInfo): Boolean;
+function TRegistry.GetDataInfo(const ValueName: String; out Value: TRegDataInfo): Boolean;
 
 Var
   P: PChar;
@@ -143,7 +143,7 @@ begin
 end;
 
 
-function TRegistry.GetKeyInfo(var Value: TRegKeyInfo): Boolean;
+function TRegistry.GetKeyInfo(out Value: TRegKeyInfo): Boolean;
 var
   winFileTime: Windows.FILETIME;
   sysTime: TSystemTime;
