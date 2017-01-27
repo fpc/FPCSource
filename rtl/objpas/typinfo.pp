@@ -446,18 +446,25 @@ unit typinfo;
               (RefTypeRef: TypeInfoPtr);
       end;
 
+      PPropInfo = ^TPropInfo;
+
       PPropData = ^TPropData;
       TPropData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+      private
+        function GetProp(Index: Word): PPropInfo;
+        function GetTail: Pointer; inline;
+      public
         PropCount : Word;
         PropList : record _alignmentdummy : ptrint; end;
+        property Prop[Index: Word]: PPropInfo read GetProp;
+        property Tail: Pointer read GetTail;
       end;
 
 {$PACKRECORDS 1}
-      PPropInfo = ^TPropInfo;
       TPropInfo = packed record
       private
         function GetPropType: PTypeInfo; inline;
@@ -2524,6 +2531,31 @@ end;
 function TTypeData.GetRefType: PTypeInfo;
 begin
   Result := DerefTypeInfoPtr(RefTypeRef);
+end;
+
+{ TPropData }
+
+function TPropData.GetProp(Index: Word): PPropInfo;
+begin
+  if Index >= PropCount then
+    Result := Nil
+  else
+    begin
+      Result := PPropInfo(aligntoptr(PByte(@PropCount) + SizeOf(PropCount)));
+      while Index > 0 do
+        begin
+          Result := aligntoptr(Result^.Tail);
+          Dec(Index);
+        end;
+    end;
+end;
+
+function TPropData.GetTail: Pointer;
+begin
+  if PropCount = 0 then
+    Result := PByte(@PropCount) + SizeOf(PropCount)
+  else
+    Result := Prop[PropCount - 1]^.Tail;
 end;
 
 { TPropInfo }
