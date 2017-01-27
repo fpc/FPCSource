@@ -461,6 +461,8 @@ unit typinfo;
       TPropInfo = packed record
       private
         function GetPropType: PTypeInfo; inline;
+        function GetTail: Pointer; inline;
+        function GetNext: PPropInfo; inline;
       public
         PropTypeRef : TypeInfoPtr;
         GetProc : CodePointer;
@@ -479,6 +481,8 @@ unit typinfo;
 
         Name : ShortString;
         property PropType: PTypeInfo read GetPropType;
+        property Tail: Pointer read GetTail;
+        property Next: PPropInfo read GetNext;
       end;
 
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
@@ -2527,6 +2531,16 @@ end;
 function TPropInfo.GetPropType: PTypeInfo;
 begin
   Result := DerefTypeInfoPtr(PropTypeRef);
+end;
+
+function TPropInfo.GetTail: Pointer;
+begin
+  Result := PByte(@Name[0]) + SizeOf(Name[0]) + Length(Name);
+end;
+
+function TPropInfo.GetNext: PPropInfo;
+begin
+  Result := PPropInfo(aligntoptr(Tail));
 end;
 
 end.
