@@ -183,6 +183,8 @@ unit typinfo;
       PTypeInfo = ^TTypeInfo;
       PPTypeInfo = ^PTypeInfo;
 
+      PPropData = ^TPropData;
+
 { Note: these are only for backwards compatibility. New type references should
         only use PPTypeInfo directly! }
 {$ifdef ver3_0}
@@ -276,6 +278,49 @@ unit typinfo;
         Size: Integer;
         ManagedFieldCount: Integer;
         { ManagedFields: array[0..ManagedFieldCount - 1] of TInitManagedField ; }
+      end;
+
+      PInterfaceData = ^TInterfaceData;
+      TInterfaceData =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+      private
+        function GetUnitName: ShortString; inline;
+        function GetPropertyTable: PPropData; inline;
+      public
+        Parent: PPTypeInfo;
+        Flags: TIntfFlagsBase;
+        GUID: TGUID;
+        property UnitName: ShortString read GetUnitName;
+        property PropertyTable: PPropData read GetPropertyTable;
+      private
+        UnitNameField: ShortString;
+        { PropertyTable: TPropData }
+      end;
+
+      PInterfaceRawData = ^TInterfaceRawData;
+      TInterfaceRawData =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+      private
+        function GetUnitName: ShortString; inline;
+        function GetIIDStr: ShortString; inline;
+        function GetPropertyTable: PPropData; inline;
+      public
+        Parent: PPTypeInfo;
+        Flags : TIntfFlagsBase;
+        IID: TGUID;
+        property UnitName: ShortString read GetUnitName;
+        property IIDStr: ShortString read GetIIDStr;
+        property PropertyTable: PPropData read GetPropertyTable;
+      private
+        UnitNameField: ShortString;
+        { IIDStr: ShortString; }
+        { PropertyTable: TPropData }
       end;
 
       PTypeData = ^TTypeData;
@@ -419,7 +464,7 @@ unit typinfo;
                IntfFlags : TIntfFlagsBase;
                GUID: TGUID;
                IntfUnit: ShortString;
-               { here the properties follow as Word Count & array of TPropInfo }
+               { PropertyTable: TPropData }
               );
             tkInterfaceRaw:
               (
@@ -428,7 +473,7 @@ unit typinfo;
                IID: TGUID;
                RawIntfUnit: ShortString;
                { IIDStr: ShortString; }
-               { here the properties follow as Word Count & array of TPropInfo }
+               { PropertyTable: TPropData }
               );
             tkArray:
               (ArrayData: TArrayTypeData);
@@ -448,7 +493,6 @@ unit typinfo;
 
       PPropInfo = ^TPropInfo;
 
-      PPropData = ^TPropData;
       TPropData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
@@ -2463,6 +2507,43 @@ begin
       dec(ParamIndex);
     end;
 end;
+
+{ TInterfaceData }
+
+function TInterfaceData.GetUnitName: ShortString;
+begin
+  Result := UnitNameField;
+end;
+
+function TInterfaceData.GetPropertyTable: PPropData;
+var
+  p: PByte;
+begin
+  p := PByte(@UnitNameField[0]) + SizeOf(UnitNameField[0]) + Length(UnitNameField);
+  Result := aligntoptr(p);
+end;
+
+{ TInterfaceRawData }
+
+function TInterfaceRawData.GetUnitName: ShortString;
+begin
+  Result := UnitNameField;
+end;
+
+function TInterfaceRawData.GetIIDStr: ShortString;
+begin
+  Result := PShortString(PByte(@UnitNameField[0]) + SizeOf(UnitNameField[0]) + Length(UnitNameField))^;
+end;
+
+function TInterfaceRawData.GetPropertyTable: PPropData;
+var
+  p: PByte;
+begin
+  p := PByte(@UnitNameField[0]) + SizeOf(UnitNameField[0]) + Length(UnitNameField);
+  p := p + SizeOf(p^) + p^;
+  Result := aligntoptr(p);
+end;
+
 
 { TTypeData }
 
