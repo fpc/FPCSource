@@ -78,6 +78,7 @@ Type
     procedure SetTlsextServernameCallback(cb: PCallbackCb);
     procedure SetTlsextServernameArg(ATlsextcbp: SslPtr);
     procedure ActivateServerSNI(ATlsextcbp: TTlsExtCtx);
+    procedure SetEcdhAuto(const onoff: boolean);
     Property CTX: PSSL_CTX Read FCTX;
   end;
 
@@ -388,6 +389,16 @@ procedure TSSLContext.ActivateServerSNI(ATlsextcbp: TTlsExtCtx);
 begin
   SetTlsextServernameCallback(@SelectSNIContextCallback);
   SetTlsextServernameArg(Pointer(ATlsextcbp));
+end;
+
+procedure TSSLContext.SetEcdhAuto(const onoff: boolean);
+var larg: clong;
+begin
+  if onoff then
+    larg := 1
+  else
+    larg := 0;
+  SslCtxCtrl(FCTX, SSL_CTRL_SET_ECDH_AUTO, larg, nil);
 end;
 
 { TSSLData }

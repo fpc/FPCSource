@@ -569,7 +569,9 @@ const
   SSL_ERROR_ZERO_RETURN = 6;
   SSL_ERROR_WANT_CONNECT = 7;
   SSL_ERROR_WANT_ACCEPT = 8;
-  
+  SSL_ERROR_WANT_CHANNEL_ID_LOOKUP = 9;
+  SSL_ERROR_PENDING_SESSION = 11;
+
   SSL_CTRL_NEED_TMP_RSA = 1;
   SSL_CTRL_SET_TMP_RSA = 2;
   SSL_CTRL_SET_TMP_DH = 3;
@@ -642,7 +644,36 @@ const
   SSL_CTRL_TLS_EXT_SEND_HEARTBEAT             = 85;
   SSL_CTRL_GET_TLS_EXT_HEARTBEAT_PENDING      = 86;
   SSL_CTRL_SET_TLS_EXT_HEARTBEAT_NO_REQUESTS  = 87;
-  // Some missing values ?
+  SSL_CTRL_CHAIN                              = 88;
+  SSL_CTRL_CHAIN_CERT                         = 89;
+  SSL_CTRL_GET_CURVES                         = 90;
+  SSL_CTRL_SET_CURVES                         = 91;
+  SSL_CTRL_SET_CURVES_LIST                    = 92;
+  SSL_CTRL_GET_SHARED_CURVE                   = 93;
+  SSL_CTRL_SET_ECDH_AUTO                      = 94;
+  SSL_CTRL_SET_SIGALGS                        = 97;
+  SSL_CTRL_SET_SIGALGS_LIST                   = 98;
+  SSL_CTRL_CERT_FLAGS                         = 99;
+  SSL_CTRL_CLEAR_CERT_FLAGS                   = 100;
+  SSL_CTRL_SET_CLIENT_SIGALGS                 = 101;
+  SSL_CTRL_SET_CLIENT_SIGALGS_LIST            = 102;
+  SSL_CTRL_GET_CLIENT_CERT_TYPES              = 103;
+  SSL_CTRL_SET_CLIENT_CERT_TYPES              = 104;
+  SSL_CTRL_BUILD_CERT_CHAIN                   = 105;
+  SSL_CTRL_SET_VERIFY_CERT_STORE              = 106;
+  SSL_CTRL_SET_CHAIN_CERT_STORE               = 107;
+  SSL_CTRL_GET_PEER_SIGNATURE_NID             = 108;
+  SSL_CTRL_GET_SERVER_TMP_KEY                 = 109;
+  SSL_CTRL_GET_RAW_CIPHERLIST                 = 110;
+  SSL_CTRL_GET_EC_POINT_FORMATS               = 111;
+  SSL_CTRL_GET_TLSA_RECORD                    = 112;
+  SSL_CTRL_SET_TLSA_RECORD                    = 113;
+  SSL_CTRL_PULL_TLSA_RECORD                   = 114;
+  SSL_CTRL_GET_CHAIN_CERTS                    = 115;
+  SSL_CTRL_SELECT_CURRENT_CERT                = 116;
+  SSL_CTRL_CHANNEL_ID                         = 117;
+  SSL_CTRL_GET_CHANNEL_ID                     = 118;
+  SSL_CTRL_SET_CHANNEL_ID                     = 119;
 
 
   DTLS_CTRL_GET_TIMEOUT	           = 73;
@@ -696,10 +727,11 @@ const
   SSL_TLSEXT_ERR_ALERT_FATAL = 2;
   SSL_TLSEXT_ERR_NOACK = 3;
 
-  SSL_MODE_ENABLE_PARTIAL_WRITE = 1;
-  SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER = 2;
-  SSL_MODE_AUTO_RETRY = 4;
-  SSL_MODE_NO_AUTO_CHAIN = 8;
+  SSL_MODE_ENABLE_PARTIAL_WRITE                 = $00000001;
+  SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER           = $00000002;
+  SSL_MODE_AUTO_RETRY                           = $00000004;
+  SSL_MODE_NO_AUTO_CHAIN                        = $00000008;
+  SSL_MODE_RELEASE_BUFFERS                      = $00000010;
 
   SSL_OP_MICROSOFT_SESS_ID_BUG                  = $00000001;
   SSL_OP_NETSCAPE_CHALLENGE_BUG                 = $00000002;
@@ -708,6 +740,7 @@ const
   SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG            = $00000010;
   SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER             = $00000020;
   SSL_OP_MSIE_SSLV2_RSA_PADDING                 = $00000040;
+  SSL_OP_SAFARI_ECDHE_ECDSA_BUG                 = $00000040;
   SSL_OP_SSLEAY_080_CLIENT_DH_BUG               = $00000080;
   SSL_OP_TLS_D5_BUG                             = $00000100;
   SSL_OP_TLS_BLOCK_PADDING_BUG                  = $00000200;
@@ -736,6 +769,12 @@ const
 
   SSL_VERIFY_NONE = $00;
   SSL_VERIFY_PEER = $01;
+
+  SSL_CERT_FLAG_TLS_STRICT                      = $00000001;
+
+  // Used in SSL_set_shutdown()/SSL_get_shutdown();
+  SSL_SENT_SHUTDOWN = 1;
+  SSL_RECEIVED_SHUTDOWN = 2;
 
   OPENSSL_DES_DECRYPT = 0;
   OPENSSL_DES_ENCRYPT = 1;
@@ -907,8 +946,16 @@ const
 //DES modes
   DES_ENCRYPT = 1;
   DES_DECRYPT = 0;
-  
-  
+
+// Error codes for ECDH Function
+  ECDH_F_ECDH_COMPUTE_KEY = 100;
+  ECDH_F_ECDH_DATA_NEW_METHOD = 101;
+
+// Error codes for ECDH Reason
+  ECDH_R_NO_PRIVATE_VALUE = 100;
+  ECDH_R_POINT_ARITHMETIC_FAILURE = 101;
+  ECDH_R_KDF_FAILED = 102;
+
 var
   SSLLibHandle: TLibHandle = 0;
   SSLUtilHandle: TLibHandle = 0;
