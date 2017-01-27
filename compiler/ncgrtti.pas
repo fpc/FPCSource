@@ -59,6 +59,7 @@ interface
         procedure write_rtti_data(tcb: ttai_typedconstbuilder; def:tdef; rt: trttitype);
         procedure write_child_rtti_data(def:tdef;rt:trttitype);
         procedure write_rtti_reference(tcb: ttai_typedconstbuilder; def: tdef; rt: trttitype);
+        procedure write_methods(tcb:ttai_typedconstbuilder;st:tsymtable;visibilities:tvisibilities);
         procedure write_header(tcb: ttai_typedconstbuilder; def: tdef; typekind: byte);
         function write_methodkind(tcb:ttai_typedconstbuilder;def:tabstractprocdef):byte;
         procedure write_callconv(tcb:ttai_typedconstbuilder;def:tabstractprocdef);
@@ -173,6 +174,95 @@ implementation
 {***************************************************************************
                               TRTTIWriter
 ***************************************************************************}
+
+
+    procedure TRTTIWriter.write_methods(tcb:ttai_typedconstbuilder;st:tsymtable;visibilities:tvisibilities);
+      var
+        rtticount,
+        totalcount,
+        i,j,k : longint;
+        sym : tprocsym;
+        def : tprocdef;
+        para : tparavarsym;
+      begin
+        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
+          targetinfos[target_info.system]^.alignment.recordalignmin,
+          targetinfos[target_info.system]^.alignment.maxCrecordalign);
+
+        totalcount:=0;
+        rtticount:=0;
+        for i:=0 to st.symlist.count-1 do
+          if tsym(st.symlist[i]).typ=procsym then
+            begin
+              sym:=tprocsym(st.symlist[i]);
+              inc(totalcount,sym.procdeflist.count);
+              for j:=0 to sym.procdeflist.count-1 do
+                if tprocdef(sym.procdeflist[j]).visibility in visibilities then
+                  inc(rtticount);
+            end;
+
+        tcb.emit_ord_const(totalcount,u16inttype);
+        if rtticount = 0 then
+          tcb.emit_ord_const($FFFF,u16inttype)
+        else
+          begin
+            tcb.emit_ord_const(rtticount,u16inttype);
+
+            for i:=0 to st.symlist.count-1 do
+              if tsym(st.symlist[i]).typ=procsym then
+                begin
+                  sym:=tprocsym(st.symlist[i]);
+                  for j:=0 to sym.procdeflist.count-1 do
+                    begin
+                      def:=tprocdef(sym.procdeflist[j]);
+
+                      if not (def.visibility in visibilities) then
+                        continue;
+
+                      def.init_paraloc_info(callerside);
+
+                      tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
+                        targetinfos[target_info.system]^.alignment.recordalignmin,
+                        targetinfos[target_info.system]^.alignment.maxCrecordalign);
+
+                      write_rtti_reference(tcb,def.returndef,fullrtti);
+                      write_callconv(tcb,def);
+                      write_methodkind(tcb,def);
+                      tcb.emit_ord_const(def.paras.count,u16inttype);
+                      tcb.emit_ord_const(def.callerargareasize,ptrsinttype);
+                      tcb.emit_shortstring_const(sym.realname);
+
+                      for k:=0 to def.paras.count-1 do
+                        begin
+                          para:=tparavarsym(def.paras[k]);
+
+                          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
+                            targetinfos[target_info.system]^.alignment.recordalignmin,
+                            targetinfos[target_info.system]^.alignment.maxCrecordalign);
+
+                          if is_open_array(para.vardef) then
+                            write_rtti_reference(tcb,tarraydef(para.vardef).elementdef,fullrtti)
+                          else
+                            write_rtti_reference(tcb,para.vardef,fullrtti);
+                          write_param_flag(tcb,para);
+                          tcb.emit_shortstring_const(para.realname);
+
+                          write_paralocs(tcb,@para.paraloc[callerside]);
+
+                          tcb.end_anonymous_record;
+                        end;
+
+                      if not is_void(def.returndef) then
+                        write_paralocs(tcb,@para.paraloc[callerside]);
+
+                      tcb.end_anonymous_record;
+                    end;
+                end;
+          end;
+
+        tcb.end_anonymous_record;
+      end;
+
 
     procedure TRTTIWriter.write_header(tcb: ttai_typedconstbuilder; def: tdef; typekind: byte);
       var
@@ -1276,6 +1366,9 @@ implementation
             { write published properties for this object }
             published_properties_write_rtti_data(tcb,propnamelist,def.symtable);
 
+            { write published methods for this interface }
+            write_methods(tcb,def.symtable,[vis_published]);
+
             tcb.end_anonymous_record;
             tcb.end_anonymous_record;
 
@@ -1633,6 +1726,11 @@ implementation
                 fields_write_rtti(tobjectdef(def).symtable,rt)
               else
                 published_write_rtti(tobjectdef(def).symtable,rt);
+
+              if (rt=fullrtti)
+                  and (is_interface(def) or is_dispinterface(def))
+                  and (oo_can_have_published in tobjectdef(def).objectoptions) then
+                methods_write_rtti(tobjectdef(def).symtable,rt,[vis_published],true);
             end;
           classrefdef,
           pointerdef:
