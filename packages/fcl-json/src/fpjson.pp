@@ -537,6 +537,12 @@ Type
     Function IndexOfName(const AName: TJSONStringType; CaseInsensitive : Boolean = False): Integer;
     Function Find(Const AName : String) : TJSONData; overload;
     Function Find(Const AName : String; AType : TJSONType) : TJSONData; overload;
+    function Find(const key: TJSONStringType; out AValue: TJSONData): boolean;
+    function Find(const key: TJSONStringType; out AValue: TJSONObject): boolean;
+    function Find(const key: TJSONStringType; out AValue: TJSONArray): boolean;
+    function Find(const key: TJSONStringType; out AValue: TJSONString): boolean;
+    function Find(const key: TJSONStringType; out AValue: TJSONBoolean): boolean;
+    function Find(const key: TJSONStringType; out AValue: TJSONNumber): boolean;
     Function Get(Const AName : String) : Variant;
     Function Get(Const AName : String; ADefault : TJSONFloat) : TJSONFloat;
     Function Get(Const AName : String; ADefault : Integer) : Integer;
@@ -3153,6 +3159,87 @@ begin
   Result:=Find(AName);
   If Assigned(Result) and (Result.JSONType<>AType) then
     Result:=Nil;
+end;
+
+function TJSONObject.Find(const key: TJSONStringType; out AValue: TJSONData): boolean;
+begin
+  AValue := Find(key);
+  result := assigned(AValue);
+end;
+
+function TJSONObject.Find(const key: TJSONStringType; out AValue: TJSONObject): boolean;
+var
+  v: TJSONData;
+begin
+  v := Find(key);
+  if assigned(v) then
+  begin
+    result := v.JSONType = jtObject;
+    if result then
+      AValue := TJSONObject(v);
+  end
+  else
+    result := false;
+end;
+
+function TJSONObject.Find(const key: TJSONStringType; out AValue: TJSONArray): boolean;
+var
+  v: TJSONData;
+begin
+  v := Find(key);
+  if assigned(v) then
+  begin
+    result := v.JSONType = jtArray;
+    if result then
+      AValue := TJSONArray(v);
+  end
+  else
+    result := false;
+end;
+
+function TJSONObject.Find(const key: TJSONStringType; out AValue: TJSONString): boolean;
+var
+  v: TJSONData;
+begin
+  v := Find(key);
+  if assigned(v) then
+  begin
+    result := v.JSONType = jtString;
+    if result then
+      AValue := TJSONString(v);
+  end
+  else
+    result := false;
+end;
+
+function TJSONObject.Find(const key: TJSONStringType; out AValue: TJSONBoolean): boolean;
+var
+  v: TJSONData;
+begin
+  v := Find(key);
+  if assigned(v) then
+  begin
+    result := v.JSONType = jtBoolean;
+    if result then
+      AValue := TJSONBoolean(v);
+  end
+  else
+    result := false;
+end;
+
+function TJSONObject.Find(const key: TJSONStringType; out AValue: TJSONNumber): boolean;
+var
+  v: TJSONData;
+begin
+  v := Find(key);
+  if assigned(v) then
+  begin
+    result := v.JSONType = jtNumber;
+    if result then
+      AValue := TJSONNumber(v);
+  end
+  else
+    result := false;
 end;
 
 initialization
