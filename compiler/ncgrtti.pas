@@ -416,7 +416,12 @@ implementation
           begin
             sym:=tparavarsym(def.paras[i]);
             if not (vo_is_hidden_para in sym.varoptions) or allow_hidden then
-              write_rtti(sym.vardef,rt);
+              begin
+                if is_open_array(sym.vardef) then
+                  write_rtti(tarraydef(sym.vardef).elementdef,rt)
+                else
+                  write_rtti(sym.vardef,rt);
+              end;
           end;
       end;
 
