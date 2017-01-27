@@ -296,7 +296,8 @@ Var
   BL,ND,NS : Integer;
   S : UTF8String;
   HasData: Boolean;
-  IntValue: Integer;
+  D : DWord;
+  
 begin
   Node:=FindValueKey(Name);
   Result:=Node<>Nil;
@@ -313,9 +314,9 @@ begin
       Case DataType of
         dtDWORD : begin   // DataNode is required
                   NS:=SizeOf(Cardinal);
-                  Result:=HasData and TryStrToInt(DataNode.NodeValue,IntValue) and (DataSize>=NS);
+                  Result:=HasData and TryStrToDWord(DataNode.NodeValue,D) and (DataSize>=NS);
                   if Result then
-                    PCardinal(@Data)^:=IntValue;
+                    PCardinal(@Data)^:=D;
                   end;
         dtString : // DataNode is optional
                    if HasData then
