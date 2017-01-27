@@ -26,7 +26,7 @@ unit ncgrtti;
 interface
 
     uses
-      cclasses,constexp,
+      cclasses,constexp,globtype,
       aasmbase,aasmcnst,
       symbase,symconst,symtype,symdef,symsym,
       parabase;
@@ -54,7 +54,7 @@ interface
         procedure collect_propnamelist(propnamelist:TFPHashObjectList;objdef:tobjectdef);
         { only use a direct reference if the referenced type can *only* reside
           in the same unit as the current one }
-        function  ref_rtti(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+        function ref_rtti(def:tdef;rt:trttitype;indirect:boolean;suffix:tsymstr):tasmsymbol;
         procedure write_rtti_name(tcb: ttai_typedconstbuilder; def: tdef);
         procedure write_rtti_data(tcb: ttai_typedconstbuilder; def:tdef; rt: trttitype);
         procedure write_child_rtti_data(def:tdef;rt:trttitype);
@@ -67,9 +67,9 @@ interface
       public
         constructor create;
         procedure write_rtti(def:tdef;rt:trttitype);
-        function  get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
-        function  get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
-        function  get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+        function  get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
+        function  get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
+        function  get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
       end;
 
     { generate RTTI and init tables }
@@ -83,7 +83,7 @@ implementation
 
     uses
        cutils,
-       globals,globtype,verbose,systems,
+       globals,verbose,systems,
        fmodule, procinfo,
        symtable,
        aasmtai,aasmdata,
@@ -953,7 +953,7 @@ implementation
                { total element count }
                tcb.emit_tai(Tai_const.Create_sizeint(asizeint(totalcount)),sizeuinttype);
                { last dimension element type }
-               tcb.emit_tai(Tai_const.Create_sym(ref_rtti(curdef.elementdef,rt,true)),voidpointertype);
+               tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(curdef.elementdef,rt,true)),voidpointertype);
                { dimension count }
                tcb.emit_ord_const(dimcount,u8inttype);
                finaldef:=def;
@@ -1041,7 +1041,7 @@ implementation
                include(def.defstates,ds_init_table_used);
                { we use a direct reference as the init RTTI is always in the same
                  unit as the full RTTI }
-               tcb.emit_tai(Tai_const.Create_sym(ref_rtti(def,initrtti,false)),voidpointertype);
+               tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),voidpointertype);
              end;
 
            tcb.emit_ord_const(def.size,u32inttype);
@@ -1654,15 +1654,15 @@ implementation
         if not assigned(def) or is_void(def) or ((rt<>initrtti) and is_objc_class_or_protocol(def)) then
           tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
         else
-          tcb.emit_tai(Tai_const.Create_sym(ref_rtti(def,rt,true)),voidpointertype);
+          tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,rt,true)),voidpointertype);
       end;
 
 
-    function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
+    function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype;indirect:boolean;suffix:tsymstr):tasmsymbol;
       var
-        s : TSymStr;
+        s : tsymstr;
       begin
-        s:=def.rtti_mangledname(rt);
+        s:=def.rtti_mangledname(rt)+suffix;
         result:=current_asmdata.RefAsmSymbol(s,AT_DATA,indirect);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
@@ -1728,42 +1728,18 @@ implementation
 
 
     function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
-      var
-        name : tsymstr;
       begin
-        name:=def.rtti_mangledname(rt);
-        result:=current_asmdata.RefAsmSymbol(name,AT_DATA,indirect);
-        if (cs_create_pic in current_settings.moduleswitches) and
-           assigned(current_procinfo) then
-          include(current_procinfo.flags,pi_needs_got);
-        if assigned(current_module) and (findunitsymtable(def.owner).moduleid<>current_module.moduleid) then
-          current_module.add_extern_asmsym(name,AB_EXTERNAL,AT_DATA);
+        result:=ref_rtti(def,rt,indirect,'');
       end;
 
     function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
-      var
-        name : tsymstr;
       begin
-        name:=def.rtti_mangledname(rt)+'_o2s';
-        result:=current_asmdata.RefAsmSymbol(name,AT_DATA,indirect);
-        if (cs_create_pic in current_settings.moduleswitches) and
-           assigned(current_procinfo) then
-          include(current_procinfo.flags,pi_needs_got);
-        if assigned(current_module) and (findunitsymtable(def.owner).moduleid<>current_module.moduleid) then
-          current_module.add_extern_asmsym(name,AB_EXTERNAL,AT_DATA);
+        result:=ref_rtti(def,rt,indirect,'_o2s');
       end;
 
     function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol;
-      var
-        name : tsymstr;
       begin
-        name:=def.rtti_mangledname(rt)+'_s2o';
-        result:=current_asmdata.RefAsmSymbol(name,AT_DATA,indirect);
-        if (cs_create_pic in current_settings.moduleswitches) and
-           assigned(current_procinfo) then
-          include(current_procinfo.flags,pi_needs_got);
-        if assigned(current_module) and (findunitsymtable(def.owner).moduleid<>current_module.moduleid) then
-          current_module.add_extern_asmsym(name,AB_EXTERNAL,AT_DATA);
+        result:=ref_rtti(def,rt,indirect,'_s2o');
       end;
 
 end.
