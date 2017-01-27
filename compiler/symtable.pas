@@ -51,6 +51,7 @@ interface
           procedure writedefs(ppufile:tcompilerppufile);
           procedure writesyms(ppufile:tcompilerppufile);
        public
+          constructor create(const s:string);
           procedure insert(sym:TSymEntry;checkdup:boolean=true);override;
           procedure delete(sym:TSymEntry);override;
           { load/write }
@@ -449,6 +450,18 @@ implementation
 {*****************************************************************************
                              TStoredSymtable
 *****************************************************************************}
+
+
+    constructor tstoredsymtable.create(const s:string);
+      begin
+        inherited create(s);
+        { Note: this happens for the initial macro symtable, so no error here }
+        if not assigned(current_module) then
+          comment(v_debug,'Current module not available for module id')
+        else
+          moduleid:=current_module.moduleid;
+      end;
+
 
     procedure tstoredsymtable.insert(sym:TSymEntry;checkdup:boolean=true);
       begin
@@ -1060,7 +1073,6 @@ implementation
     constructor tabstractrecordsymtable.create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
       begin
         inherited create(n);
-        moduleid:=current_module.moduleid;
         _datasize:=0;
         databitsize:=0;
         recordalignment:=1;
