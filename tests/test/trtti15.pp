@@ -162,7 +162,7 @@ begin
 end;
 
 const
-{$if defined(CPUI386) or defined(CPUI8086) or defined(CPUX86_64)}
+{$if defined(CPUI386) or defined(CPUI8086) or defined(CPUX86_64) or defined(CPUM68K)}
   DefaultCallingConvention = ccReg;
 {$else}
   DefaultCallingConvention = ccStdCall;
