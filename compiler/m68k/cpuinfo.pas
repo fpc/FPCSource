@@ -87,7 +87,7 @@ Const
      pocall_cdecl,
      { the difference to stdcall is only the name mangling }
      pocall_cppdecl,
-     { this used by the PalmOS port only }
+     { this is used by PalmOS and Amiga-likes }
      pocall_syscall
    ];
 
