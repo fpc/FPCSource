@@ -372,7 +372,9 @@ interface
 
     procedure tjvmaddnode.pass_left_right;
       begin
-        swapleftright;
+        if not((nodetype in [orn,andn]) and
+               is_boolean(left.resultdef)) then
+          swapleftright;
         inherited pass_left_right;
       end;
 
