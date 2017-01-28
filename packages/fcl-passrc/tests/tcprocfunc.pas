@@ -152,6 +152,7 @@ type
     Procedure TestProcedureExternalName;
     Procedure TestFunctionExternalName;
     Procedure TestProcedureCdeclExternal;
+    Procedure TestProcedureAlias;
     Procedure TestFunctionCdeclExternal;
     Procedure TestProcedureCdeclExternalLibName;
     Procedure TestFunctionCdeclExternalLibName;
@@ -159,6 +160,7 @@ type
     Procedure TestFunctionCdeclExternalLibNameName;
     Procedure TestProcedureCdeclExternalName;
     Procedure TestFunctionCdeclExternalName;
+    Procedure TestFunctionAlias;
     Procedure TestOperatorTokens;
     procedure TestOperatorNames;
     Procedure TestFunctionNoResult;
@@ -1157,6 +1159,22 @@ begin
   AssertFunc([pmExternal],ccCdecl,0);
   AssertNull('No Library name expression',Func.LibraryExpr);
   AssertExpression('Library symbol expression',Func.LibrarySymbolName,pekString,'''symbolname''');
+end;
+
+procedure TTestProcedureFunction.TestFunctionAlias;
+begin
+  AddDeclaration('function A : Integer; alias: ''myalias''');
+  ParseFunction;
+  AssertFunc([],ccDefault,0);
+  AssertEquals('Alias name','''myalias''',Func.AliasName);
+end;
+
+procedure TTestProcedureFunction.TestProcedureAlias;
+begin
+  AddDeclaration('Procedure A; Alias : ''myalias''');
+  ParseProcedure;
+  AssertProc([],ccDefault,0);
+  AssertEquals('Alias name','''myalias''',Proc.AliasName);
 end;
 
 procedure TTestProcedureFunction.TestOperatorTokens;

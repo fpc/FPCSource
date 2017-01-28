@@ -837,6 +837,7 @@ type
     LibrarySymbolName,
     LibraryExpr : TPasExpr;
     DispIDExpr :  TPasExpr;
+    AliasName : String;
     Procedure AddModifier(AModifier : TProcedureModifier);
     Function IsVirtual : Boolean;
     Function IsDynamic : Boolean;

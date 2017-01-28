@@ -3513,6 +3513,14 @@ begin
       end
     else if DoCheckHint then
       ConsumeSemi
+    else if (CurToken=tkIdentifier) and (CompareText(CurTokenText,'alias')=0) then
+      begin
+      ExpectToken(tkColon);
+      ExpectToken(tkString);
+      if (Parent is TPasProcedure) then
+        (Parent as TPasProcedure).AliasName:=CurTokenText;
+      ExpectToken(tkSemicolon);
+      end
     else if (CurToken = tkSquaredBraceOpen) then
       begin
       repeat
@@ -3524,7 +3532,11 @@ begin
     if Done then
       begin
       NextToken;
-      Done:=Not ((Curtoken=tkSquaredBraceOpen) or TokenIsProcedureModifier(Parent,CurtokenString,Pm) or IscurtokenHint() or TokenisCallingConvention(CurTokenString,cc));
+      Done:=Not ((Curtoken=tkSquaredBraceOpen) or
+                  TokenIsProcedureModifier(Parent,CurtokenString,Pm) or
+                  IscurtokenHint() or
+                  TokenisCallingConvention(CurTokenString,cc) or
+                  (CurToken=tkIdentifier) and (CompareText(CurTokenText,'alias')=0));
 //      DumpCurToken('Done '+IntToStr(Ord(Done)));
       UngetToken;
       end;
