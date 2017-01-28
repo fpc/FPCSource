@@ -298,7 +298,7 @@ type
     function ParseParams(AParent : TPasElement;paramskind: TPasExprKind; AllowFormatting : Boolean = False): TParamsExpr;
     function ParseExpIdent(AParent : TPasElement): TPasExpr;
     procedure DoParseClassType(AType: TPasClassType);
-    function DoParseExpression(AParent: TPaselement;InitExpr: TPasExpr=nil): TPasExpr;
+    function DoParseExpression(AParent: TPaselement;InitExpr: TPasExpr=nil; AllowEqual : Boolean = True): TPasExpr;
     function DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
     function CheckPackMode: TPackMode;
     function CheckUseUnit(ASection: TPasSection; AUnitName : string): TPasElement;
@@ -322,7 +322,7 @@ type
     function ExpectIdentifier: String;
     Function CurTokenIsIdentifier(Const S : String) : Boolean;
     // Expression parsing
-    function isEndOfExp: Boolean;
+    function isEndOfExp(AllowEqual : Boolean = False): Boolean;
     // Type declarations
     function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     function ParseTypeDecl(Parent: TPasElement): TPasType;
@@ -1413,7 +1413,7 @@ begin
    ungettoken;
 end;
 
-function TPasParser.isEndOfExp:Boolean;
+function TPasParser.isEndOfExp(AllowEqual : Boolean = False):Boolean;
 const
   EndExprToken = [
     tkEOF, tkBraceClose, tkSquaredBraceClose, tkSemicolon, tkComma, tkColon,
@@ -1421,6 +1421,8 @@ const
   ];
 begin
   Result:=(CurToken in EndExprToken) or IsCurTokenHint;
+  if Not (Result or AllowEqual) then
+    Result:=(Curtoken=tkEqual);
 end;
 
 function TPasParser.ParseParams(AParent: TPasElement; paramskind: TPasExprKind;
@@ -1693,7 +1695,7 @@ begin
   end;
 end;
 
-function TPasParser.DoParseExpression(AParent : TPaselement;InitExpr: TPasExpr): TPasExpr;
+function TPasParser.DoParseExpression(AParent : TPaselement;InitExpr: TPasExpr; AllowEqual : Boolean = True): TPasExpr;
 var
   expstack  : TFPList;
   opstack   : array of TToken;
@@ -1761,7 +1763,13 @@ const
     expstack.Add(bin);
   end;
 
+Var
+  AllowedBinaryOps : Set of TToken;
+
 begin
+  AllowedBinaryOps:=BinaryOP;
+  if Not AllowEqual then
+    Exclude(AllowedBinaryOps,tkEqual);
   //DumpCurToken('Entry',iaIndent);
   Result:=nil;
   expstack := TFPList.Create;
@@ -1842,7 +1850,7 @@ begin
         expstack.Add(InitExpr);
         InitExpr:=nil;
         end;
-      if (CurToken in BinaryOP) then
+      if (CurToken in AllowedBinaryOPs) then
         begin
         // Adjusting order of the operations
         NotBinary:=False;
@@ -1855,7 +1863,7 @@ begin
         NextToken;
         end;
       // Writeln('Bin ',NotBinary ,' or EOE ',isEndOfExp, ' Ex ',Assigned(x),' stack ',ExpStack.Count);
-    until NotBinary or isEndOfExp;
+    until NotBinary or isEndOfExp(AllowEqual);
 
     if not NotBinary then ParseExcExpectedIdentifier;
 
@@ -2683,7 +2691,11 @@ begin
   try
     NextToken;
     if CurToken = tkColon then
-      Result.VarType := ParseType(Result,Scanner.CurSourcePos)
+      begin
+      Result.VarType := ParseType(Result,Scanner.CurSourcePos);
+{      if Result.VarType is TPasRangeType then
+        Ungettoken; // Range type stops on token after last range token}
+      end
     else
       UngetToken;
     ExpectToken(tkEqual);
@@ -2756,7 +2768,7 @@ begin
         ParseExcTokenError(TokenInfos[tkEqual]);
       end;
     NextToken;
-    PE:=DoParseExpression(Result,Nil);
+    PE:=DoParseExpression(Result,Nil,False);
     if not ((PE is TBinaryExpr) and (TBinaryExpr(PE).Kind=pekRange)) then
       begin
       PE.Release;
