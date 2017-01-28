@@ -1871,6 +1871,7 @@ begin
     pointer(mysql_affected_rows) := GetProcedureAddress(MysqlLibraryHandle,'mysql_affected_rows');
     pointer(mysql_autocommit) := GetProcedureAddress(MysqlLibraryHandle,'mysql_autocommit');
     pointer(mysql_change_user) := GetProcedureAddress(MysqlLibraryHandle,'mysql_change_user');
+    pointer(mysql_character_set_name) := GetProcedureAddress(MysqlLibraryHandle,'mysql_character_set_name');
     pointer(mysql_close) := GetProcedureAddress(MysqlLibraryHandle,'mysql_close');
     pointer(mysql_commit) := GetProcedureAddress(MysqlLibraryHandle,'mysql_commit');
     pointer(mysql_data_seek) := GetProcedureAddress(MysqlLibraryHandle,'mysql_data_seek');
@@ -1889,6 +1890,9 @@ begin
     pointer(mysql_field_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_field_count');
     pointer(mysql_field_tell) := GetProcedureAddress(MysqlLibraryHandle,'mysql_field_tell');
     pointer(mysql_free_result) := GetProcedureAddress(MysqlLibraryHandle,'mysql_free_result');
+{$IFDEF mysql50}
+    pointer(mysql_get_character_set_info) := GetProcedureAddress(MysqlLibraryHandle,'mysql_get_character_set_info');
+{$ENDIF}
     pointer(mysql_get_client_info) := GetProcedureAddress(MysqlLibraryHandle,'mysql_get_client_info');
     pointer(mysql_get_client_version) := GetProcedureAddress(MysqlLibraryHandle,'mysql_get_client_version');
     pointer(mysql_get_host_info) := GetProcedureAddress(MysqlLibraryHandle,'mysql_get_host_info');
@@ -1914,8 +1918,14 @@ begin
     pointer(mysql_query) := GetProcedureAddress(MysqlLibraryHandle,'mysql_query');
     pointer(mysql_real_connect) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_connect');
     pointer(mysql_real_escape_string) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_escape_string');
+{$IFDEF mysql57}
+    pointer(mysql_real_escape_string_quote) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_escape_string_quote');
+{$ENDIF}
     pointer(mysql_real_query) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_query');
     pointer(mysql_refresh) := GetProcedureAddress(MysqlLibraryHandle,'mysql_refresh');
+{$IFDEF mysql57}
+    pointer(mysql_reset_connection) := GetProcedureAddress(MysqlLibraryHandle,'mysql_reset_connection');
+{$ENDIF}
     pointer(mysql_rollback) := GetProcedureAddress(MysqlLibraryHandle,'mysql_rollback');
     pointer(mysql_row_seek) := GetProcedureAddress(MysqlLibraryHandle,'mysql_row_seek');
     pointer(mysql_row_tell) := GetProcedureAddress(MysqlLibraryHandle,'mysql_row_tell');
@@ -1959,10 +1969,6 @@ begin
     pointer(mysql_stmt_insert_id) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_insert_id');
     pointer(mysql_stmt_field_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_field_count');
     pointer(mysql_stmt_next_result) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_next_result');
-{$IFDEF mysql57}
-    pointer(mysql_real_escape_string_quote) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_escape_string_quote');
-    pointer(mysql_reset_connection) := GetProcedureAddress(MysqlLibraryHandle,'mysql_reset_connection');
-{$ENDIF}
 
     if mysql_library_init(argc, argv, groups) <> 0 then
       Exit;
