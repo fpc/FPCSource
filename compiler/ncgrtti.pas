@@ -347,15 +347,23 @@ implementation
         locs:=paramanager.cgparalocs_to_rttiparalocs(para^.location);
         if length(locs)>high(byte) then
           internalerror(2017010601);
+        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
+          targetinfos[target_info.system]^.alignment.recordalignmin,
+          targetinfos[target_info.system]^.alignment.maxCrecordalign);
         tcb.emit_ord_const(length(locs),u8inttype);
         for i:=low(locs) to high(locs) do
           begin
+            tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
+              targetinfos[target_info.system]^.alignment.recordalignmin,
+              targetinfos[target_info.system]^.alignment.maxCrecordalign);
             tcb.emit_ord_const(locs[i].loctype,u8inttype);
             tcb.emit_ord_const(locs[i].regsub,u8inttype);
             tcb.emit_ord_const(locs[i].regindex,u16inttype);
             { the corresponding type for aint is alusinttype }
             tcb.emit_ord_const(locs[i].offset,alusinttype);
+            tcb.end_anonymous_record;
           end;
+        tcb.end_anonymous_record;
       end;
 
 
