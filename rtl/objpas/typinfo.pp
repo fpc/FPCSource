@@ -296,7 +296,7 @@ unit typinfo;
       record
       private
         function GetParam(Index: Word): PVmtMethodParam;
-        function GetReturnLoc: PParameterLocations; inline;
+        function GetResultLocs: PParameterLocations; inline;
         function GetTail: Pointer; inline;
         function GetNext: PIntfMethodEntry; inline;
       public
@@ -307,9 +307,9 @@ unit typinfo;
         StackSize: SizeInt;
         Name: ShortString;
         { Params: array[0..ParamCount - 1] of TVmtMethodParam }
-        { ReturnLoc: TParameterLocations (if ResultType != Nil) }
+        { ResultLocs: TParameterLocations (if ResultType != Nil) }
         property Param[Index: Word]: PVmtMethodParam read GetParam;
-        property ReturnLoc: PParameterLocations read GetReturnLoc;
+        property ResultLocs: PParameterLocations read GetResultLocs;
         property Tail: Pointer read GetTail;
         property Next: PIntfMethodEntry read GetNext;
       end;
@@ -2611,7 +2611,7 @@ begin
     end;
 end;
 
-function TIntfMethodEntry.GetReturnLoc: PParameterLocations;
+function TIntfMethodEntry.GetResultLocs: PParameterLocations;
 begin
   if not Assigned(ResultType) then
     Result := Nil
@@ -2627,7 +2627,7 @@ var
 begin
   if Assigned(ResultType) then
     begin
-      retloc := ReturnLoc;
+      retloc := ResultLocs;
       Result := PByte(@retloc^.Count) + SizeOf(retloc^.Count) + SizeOf(TParameterLocation) * retloc^.Count;
     end
   else if ParamCount = 0 then
