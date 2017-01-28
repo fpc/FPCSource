@@ -144,9 +144,11 @@ unit typinfo;
       record
       private
         function GetLocation(aIndex: Byte): PParameterLocation; inline;
+        function GetTail: Pointer; inline;
       public
         Count: Byte;
         property Location[Index: Byte]: PParameterLocation read GetLocation;
+        property Tail: Pointer read GetTail;
       end;
 
       PVmtFieldEntry = ^TVmtFieldEntry;
@@ -2521,7 +2523,12 @@ begin
   if aIndex >= Count then
     Result := Nil
   else
-    Result := PParameterLocation(@Count + SizeOf(Count) + SizeOf(TParameterLocation) * aIndex);
+    Result := PParameterLocation(PByte(aligntoptr(PByte(@Count) + SizeOf(Count))) + SizeOf(TParameterLocation) * aIndex);
+end;
+
+function TParameterLocations.GetTail: Pointer;
+begin
+  Result := PByte(aligntoptr(PByte(@Count) + SizeOf(Count))) + SizeOf(TParameterLocation) * Count;
 end;
 
 { TProcedureParam }
@@ -2578,15 +2585,12 @@ end;
 
 function TVmtMethodParam.GetParaLocs: PParameterLocations;
 begin
-  Result := PParameterLocations(PByte(@Name[0]) + Length(Name) + 1);
+  Result := PParameterLocations(aligntoptr(PByte(@Name[0]) + Length(Name) + Sizeof(Name[0])));
 end;
 
 function TVmtMethodParam.GetTail: Pointer;
-var
-  pl: PParameterLocations;
 begin
-  pl := ParaLocs;
-  Result := PByte(@pl^.Count) + SizeOf(pl^.Count) + SizeOf(TParameterLocation) * pl^.Count;
+  Result := ParaLocs^.Tail;
 end;
 
 function TVmtMethodParam.GetNext: PVmtMethodParam;
