@@ -1666,7 +1666,7 @@ type
              { Note: all contained units are considered as used }
            end;
 
-         if target_info.system in systems_windows then
+         if target_info.system in systems_all_windows+systems_nativent then
            begin
              main_procinfo:=create_main_proc('_DLLMainCRTStartup',potype_pkgstub,current_module.localsymtable);
              main_procinfo.code:=generate_pkg_stub(main_procinfo.procdef);
