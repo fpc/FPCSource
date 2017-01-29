@@ -1424,8 +1424,8 @@ type
         hp,hp2    : tmodule;
         pkg : tpcppackage;
         {finalize_procinfo,
-        init_procinfo,
-        main_procinfo : tcgprocinfo;}
+        init_procinfo,}
+        main_procinfo : tcgprocinfo;
         force_init_final : boolean;
         uu : tused_unit;
         module_name: ansistring;
@@ -1434,8 +1434,8 @@ type
          Status.IsPackage:=true;
          Status.IsExe:=true;
          parse_only:=false;
-         {main_procinfo:=nil;
-         init_procinfo:=nil;
+         main_procinfo:=nil;
+         {init_procinfo:=nil;
          finalize_procinfo:=nil;}
 
          if not (tf_supports_packages in target_info.flags) then
@@ -1668,10 +1668,9 @@ type
 
          if target_info.system in systems_windows then
            begin
-             { ToDo: generate an entry dummy using higher level functionality }
-             new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
-             current_asmdata.asmlists[al_procedures].concat(tai_symbol.createname_global('_DLLMainCRTStartup',AT_FUNCTION,0,voidcodepointertype));
-             gen_fpc_dummy(current_asmdata.asmlists[al_procedures]);
+             main_procinfo:=create_main_proc('_DLLMainCRTStartup',potype_pkgstub,current_module.localsymtable);
+             main_procinfo.code:=generate_pkg_stub(main_procinfo.procdef);
+             main_procinfo.generate_code;
            end;
 
          { leave when we got an error }
