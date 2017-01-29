@@ -238,6 +238,7 @@ type
     FDumpIndent : String;
     function CheckOverloadList(AList: TFPList; AName: String; out OldMember: TPasElement): TPasOverloadedProc;
     procedure DumpCurToken(Const Msg : String; IndentAction : TIndentAction = iaNone);
+    function GetCurrentModeSwitches: TModeSwitches;
     function GetVariableModifiers(Out VarMods : TVariableModifiers; Out Libname,ExportName : string): string;
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
@@ -377,6 +378,7 @@ type
     property CurToken: TToken read FCurToken;
     property CurTokenString: String read FCurTokenString;
     Property Options : TPOptions Read FOptions Write SetOptions;
+    Property CurrentModeswitches : TModeSwitches Read GetCurrentModeSwitches;
     Property CurModule : TPasModule Read FCurModule;
     Property LogEvents : TPParserLogEvents Read FLogEvents Write FLogEvents;
     Property OnLog : TPasParserLogHandler Read FOnLog Write FOnLog;
@@ -520,8 +522,14 @@ var
           if  (length(s)>2) then
             case S[3] of
               'c' : Scanner.Options:=Scanner.Options+[po_cassignments];
-              'd','2' : Parser.Options:=Parser.Options+[po_delphi];
+              'd' : Scanner.SetCompilerMode('DELPHI');
+              '2' : Scanner.SetCompilerMode('OBJFPC');
             end;
+        'M' :
+           begin
+           delete(S,1,2);
+           Scanner.SetCompilerMode(S);
+           end;
       end;
     end else
       if Filename <> '' then
@@ -3420,7 +3428,7 @@ begin
         end
       // In Delphi mode, the implementation in the implementation section can be without result as it was declared
       // We actually check if the function exists in the interface section.
-      else if (po_delphi in Options) and Assigned(CurModule.ImplementationSection) then
+      else if (msDelphi in CurrentModeswitches) and Assigned(CurModule.ImplementationSection) then
         begin
         I:=-1;
         if Assigned(CurModule.InterfaceSection) then
@@ -3780,7 +3788,7 @@ begin
     FTokenBufferSize:=1;
     FCommentsBuffer[0].Clear;
     repeat
-      Scanner.ReadNonPascalTilEndToken(true);
+      Scanner.ReadNonPascalTillEndToken(true);
       case Scanner.CurToken of
       tkLineEnding:
         AsmBlock.Tokens.Add(Scanner.CurTokenString);
@@ -4478,6 +4486,14 @@ begin
   Flush(output);
 end;
 
+function TPasParser.GetCurrentModeSwitches: TModeSwitches;
+begin
+  if Assigned(FScanner) then
+    Result:=FScanner.CurrentModeSwitches
+  else
+    Result:=[msNone];
+end;
+
 // Starts on first token after Record or (. Ends on AEndToken
 procedure TPasParser.ParseRecordFieldList(ARec: TPasRecordType;
   AEndToken: TToken; AllowMethods: Boolean);
@@ -4540,10 +4556,9 @@ begin
       tkGeneric, // Counts as field name
       tkIdentifier :
         begin
-//        If (po_delphi in Scanner.Options) then
           if CheckVisibility(CurtokenString,v) then
             begin
-            If not (po_delphi in Scanner.Options) then
+            If not (msAdvancedRecords in Scanner.CurrentModeSwitches) then
               ParseExc(nErrRecordVisibilityNotAllowed,SErrRecordVisibilityNotAllowed);
             if not (v in [visPrivate,visPublic,visStrictPrivate]) then
               ParseExc(nParserInvalidRecordVisibility,SParserInvalidRecordVisibility);

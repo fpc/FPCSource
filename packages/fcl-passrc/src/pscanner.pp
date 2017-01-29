@@ -39,6 +39,8 @@ const
   nLogIFNDefRejected = 1012;
   nLogIFOPTIgnored = 1013;
   nLogIFIgnored = 1014;
+  nErrInvalidMode = 1015;
+  nErrInvalidModeSwitch = 1016;
 
 // resourcestring patterns of messages
 resourcestring
@@ -56,6 +58,8 @@ resourcestring
   SLogIFNDefRejected = 'IFNDEF %s found, rejecting.';
   SLogIFOPTIgnored = 'IFOPT %s found, ignoring (rejected).';
   SLogIFIgnored = 'IF %s found, ignoring (rejected).';
+  SErrInvalidMode = 'Invalid mode: "%s"';
+  SErrInvalidModeSwitch = 'Invalid mode switch: "%s"';
 
 type
   TMessageType = (
@@ -189,6 +193,53 @@ type
     tkTab
     );
   TTokens = set of TToken;
+
+  TModeSwitch = (
+    msNone,
+    { generic }
+    msFpc, msObjfpc, msDelphi, msTP7, msMac, msIso, msExtpas, msGPC,
+    { more specific }
+    msClass,               { delphi class model }
+    msObjpas,              { load objpas unit }
+    msResult,              { result in functions }
+    msStringPchar,         { pchar 2 string conversion }
+    msCVarSupport,         { cvar variable directive }
+    msNestedComment,       { nested comments }
+    msTPProcVar,           { tp style procvars (no @ needed) }
+    msMacProcVar,          { macpas style procvars }
+    msRepeatForward,       { repeating forward declarations is needed }
+    msPointer2Procedure,   { allows the assignement of pointers to
+                             procedure variables                     }
+    msAutoDeref,           { does auto dereferencing of struct. vars }
+    msInitFinal,           { initialization/finalization for units }
+    msDefaultAnsistring,   { ansistring turned on by default }
+    msOut,                 { support the calling convention OUT }
+    msDefaultPara,         { support default parameters }
+    msHintDirective,       { support hint directives }
+    msDuplicateNames,      { allow locals/paras to have duplicate names of globals }
+    msProperty,            { allow properties }
+    msDefaultInline,       { allow inline proc directive }
+    msExcept,              { allow exception-related keywords }
+    msObjectiveC1,         { support interfacing with Objective-C (1.0) }
+    msObjectiveC2,         { support interfacing with Objective-C (2.0) }
+    msNestedProcVars,      { support nested procedural variables }
+    msNonLocalGoto,        { support non local gotos (like iso pascal) }
+    msAdvancedRecords,     { advanced record syntax with visibility sections, methods and properties }
+    msISOLikeUnaryMinus,   { unary minus like in iso pascal: same precedence level as binary minus/plus }
+    msSystemCodePage,      { use system codepage as compiler codepage by default, emit ansistrings with system codepage }
+    msFinalFields,         { allows declaring fields as "final", which means they must be initialised
+                             in the (class) constructor and are constant from then on (same as final
+                             fields in Java) }
+    msDefaultUnicodestring, { makes the default string type in $h+ mode unicodestring rather than
+                               ansistring; similarly, char becomes unicodechar rather than ansichar }
+    msTypeHelpers,         { allows the declaration of "type helper" (non-Delphi) or "record helper"
+                             (Delphi) for primitive types }
+    msBlocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
+    msISOLikeIO,           { I/O as it required by an ISO compatible compiler }
+    msISOLikeProgramsPara, { program parameters as it required by an ISO compatible compiler }
+    msISOLikeMod           { mod operation as it is required by an iso compatible compiler }
+  );
+  TModeSwitches = Set of TModeSwitch;
 
   { TMacroDef }
 
@@ -326,13 +377,13 @@ type
   TPascalScannerPPSkipMode = (ppSkipNone, ppSkipIfBranch, ppSkipElseBranch, ppSkipAll);
 
   TPOption = (
-    po_delphi, // Delphi mode: forbid nested comments
-    po_cassignments,  // allow C-operators += -= *= /=
+    po_delphi,               // DEPRECATED Delphi mode: forbid nested comments
+    po_cassignments,         // allow C-operators += -= *= /=
     po_resolvestandardtypes, // search for 'longint', 'string', etc., do not use dummies, TPasResolver sets this to use its declarations
-    po_asmwhole,  // store whole text between asm..end in TPasImplAsmStatement.Tokens
-    po_nooverloadedprocs,  // do not create TPasOverloadedProc for procs with same name
-    po_keepclassforward,   // disabled: delete class fowards when there is a class declaration
-    po_arrayrangeexpr    // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
+    po_asmwhole,             // store whole text between asm..end in TPasImplAsmStatement.Tokens
+    po_nooverloadedprocs,    // do not create TPasOverloadedProc for procs with same name
+    po_keepclassforward,     // disabled: delete class fowards when there is a class declaration
+    po_arrayrangeexpr        // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
     );
   TPOptions = set of TPOption;
 
@@ -351,6 +402,7 @@ type
 
   TPascalScanner = class
   private
+    FCurrentModeSwitches: TModeSwitches;
     FLastMsg: string;
     FLastMsgArgs: TMessageArgs;
     FLastMsgNumber: integer;
@@ -379,7 +431,6 @@ type
     PPSkipStackIndex: Integer;
     PPSkipModeStack: array[0..255] of TPascalScannerPPSkipMode;
     PPIsSkippingStack: array[0..255] of Boolean;
-
     function GetCurColumn: Integer;
     procedure SetOptions(AValue: TPOptions);
   protected
@@ -402,6 +453,7 @@ type
     procedure HandleUnDefine(Param: String);virtual;
     function HandleInclude(const Param: String): TToken;virtual;
     procedure HandleMode(const Param: String);virtual;
+    procedure HandleModeSwitch(const Param: String);virtual;
     function HandleMacro(AIndex: integer): TToken;virtual;
     procedure PushStackItem; virtual;
     function DoFetchTextToken: TToken;
@@ -415,9 +467,10 @@ type
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
     function FetchToken: TToken;
-    function ReadNonPascalTilEndToken(StopAtLineEnd: boolean): TToken;
+    function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken;
     Procedure AddDefine(S : String);
     Procedure RemoveDefine(S : String);
+    Procedure SetCompilerMode(S : String);
     function CurSourcePos: TPasSourcePos;
 
     property FileResolver: TBaseFileResolver read FFileResolver;
@@ -443,6 +496,7 @@ type
     property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
+    Property CurrentModeSwitches : TModeSwitches Read FCurrentModeSwitches Write FCurrentModeSwitches;
   end;
 
 const
@@ -561,6 +615,77 @@ const
     'LineEnding',
     'Tab'
   );
+
+  SModeSwitchNames : array[TModeSwitch] of string[18] =
+  ( '', '','','','','','','', '',
+    { more specific }
+    'CLASS',
+    'OBJPAS',
+    'RESULT',
+    'PCHARTOSTRING',
+    'CVAR',
+    'NESTEDCOMMENTS',
+    'CLASSICPROCVARS',
+    'MACPROCVARS',
+    'REPEATFORWARD',
+    'POINTERTOPROCVAR',
+    'AUTODEREF',
+    'INITFINAL',
+    'ANSISTRINGS',
+    'OUT',
+    'DEFAULTPARAMETERS',
+    'HINTDIRECTIVE',
+    'DUPLICATELOCALS',
+    'PROPERTIES',
+    'ALLOWINLINE',
+    'EXCEPTIONS',
+    'OBJECTIVEC1',
+    'OBJECTIVEC2',
+    'NESTEDPROCVARS',
+    'NONLOCALGOTO',
+    'ADVANCEDRECORDS',
+    'ISOUNARYMINUS',
+    'SYSTEMCODEPAGE',
+    'FINALFIELDS',
+    'UNICODESTRINGS',
+    'TYPEHELPERS',
+    'CBLOCKS',
+    'ISOIO',
+    'ISOPROGRAMPARAS',
+    'ISOMOD'
+    );
+
+const
+  AllLanguageModes = [msFPC,msObjFPC,msDelphi,msTP7,msMac,msISO,msExtPas];
+
+const
+
+  DelphiModeSwitches = [msDelphi,msClass,msObjpas,msresult,msstringpchar,
+     mspointer2procedure,msautoderef,msTPprocvar,msinitfinal,msdefaultansistring,
+     msout,msdefaultpara,msduplicatenames,mshintdirective,
+     msproperty,msdefaultinline,msexcept,msadvancedrecords,mstypehelpers];
+
+  DelphiUnicodeModeSwitches = delphimodeswitches + [mssystemcodepage,msdefaultunicodestring];
+
+  FPCModeSwitches = [msfpc,msstringpchar,msnestedcomment,msrepeatforward,
+    mscvarsupport,msinitfinal,mshintdirective, msproperty,msdefaultinline];
+
+  OBJFPCModeSwitches =  [msobjfpc,msfpc,msclass,msobjpas,msresult,msstringpchar,msnestedcomment,
+    msrepeatforward,mscvarsupport,msinitfinal,msout,msdefaultpara,mshintdirective,
+    msproperty,msdefaultinline,msexcept];
+
+  TPModeSwitches = [mstp7,mstpprocvar,msduplicatenames];
+
+  GPCModeSwitches = [msgpc,mstpprocvar];
+
+  MacModeSwitches = [msmac,mscvarsupport,msmacprocvar,msnestedprocvars,msnonlocalgoto,
+    msisolikeunaryminus,msdefaultinline];
+
+  ISOModeSwitches =  [msiso,mstpprocvar,msduplicatenames,msnestedprocvars,msnonlocalgoto,msisolikeunaryminus,msisolikeio,
+    msisolikeprogramspara, msisolikemod];
+
+  ExtPasModeSwitches = [msextpas,mstpprocvar,msduplicatenames,msnestedprocvars,msnonlocalgoto,msisolikeunaryminus,msisolikeio,
+    msisolikeprogramspara, msisolikemod];
 
 function FilenameIsAbsolute(const TheFilename: string):boolean;
 function FilenameIsWinAbsolute(const TheFilename: string): boolean;
@@ -1081,6 +1206,7 @@ begin
   FIncludeStack := TFPList.Create;
   FDefines := CS;
   FMacros:=CS;
+  FCurrentModeSwitches:=FPCModeSwitches;
 end;
 
 destructor TPascalScanner.Destroy;
@@ -1176,7 +1302,7 @@ begin
 //  Writeln(Result, '(',CurTokenString,')');
 end;
 
-function TPascalScanner.ReadNonPascalTilEndToken(StopAtLineEnd: boolean
+function TPascalScanner.ReadNonPascalTillEndToken(StopAtLineEnd: boolean
   ): TToken;
 var
   StartPos: PChar;
@@ -1455,10 +1581,82 @@ begin
   P:=UpperCase(Param);
   // Eventually, we'll need to make the distinction...
   // For now, treat OBJFPC as Delphi mode.
-  if (P='DELPHI') or (P='OBJFPC') then
-    Options:=Options+[po_delphi]
+  Case P of
+  'DELPHI':
+     begin
+     CurrentModeSwitches:=delphimodeswitches;
+     FOptions:=FOptions+[po_delphi]
+     end;
+  'DELPHIUNICODE':
+     begin
+     CurrentModeSwitches:=DelphiUnicodeModeSwitches;
+     FOptions:=FOptions+[po_delphi]
+     end;
+  'TP':
+     begin
+     CurrentModeSwitches:=TPModeSwitches;
+     FOptions:=FOptions-[po_delphi]
+     end;
+  'GPC':
+     begin
+     CurrentModeSwitches:=GPCModeSwitches;
+     FOptions:=FOptions-[po_delphi]
+     end;
+  'ISO':
+     begin
+     CurrentModeSwitches:=ISOModeSwitches;
+     FOptions:=FOptions-[po_delphi]
+     end;
+  'EXTENDED':
+     begin
+     CurrentModeSwitches:=ExtPasModeSwitches;
+     FOptions:=FOptions-[po_delphi]
+     end;
+  'MACPAS':
+     begin
+     CurrentModeSwitches:=MacModeSwitches;
+     FOptions:=FOptions-[po_delphi]
+     end;
+  'OBJFPC':
+    begin
+    CurrentModeSwitches:=ObjFPCModeSwitches;
+    FOptions:=FOptions+[po_delphi]
+    end;
+  'FPC',
+  'DEFAULT':
+    begin
+      CurrentModeSwitches:=FPCModeSwitches;
+      FOptions:=FOptions-[po_delphi]
+    end;
   else
-    Options:=Options-[po_delphi]
+    Error(nErrInvalidMode,SErrInvalidMode,[Param])
+  end;
+end;
+
+procedure TPascalScanner.HandleModeSwitch(const Param: String);
+
+Var
+  MS : TModeSwitch;
+  MSN,PM : String;
+  P : Integer;
+
+begin
+  MSN:=Uppercase(Param);
+  MS:=High(TModeSwitch);
+  P:=Pos(' ',MSN);
+  if P<>0 then
+    begin
+    PM:=Trim(Copy(MSN,P+1,Length(MSN)-P));
+    MSN:=Copy(MSN,1,P-1);
+    end;
+  While (MS<>msNone) and (SModeSwitchNames[MS]<>MSN) do
+   MS:=Pred(MS);
+  if MS=msNone then
+    Error(nErrInvalidModeSwitch,SErrInvalidModeSwitch,[Param]);
+  if (PM='') or (PM='+') or (PM='ON') then
+    CurrentModeSwitches:=CurrentModeSwitches+[MS]
+  else
+    CurrentModeSwitches:=CurrentModeSwitches-[MS];
 end;
 
 Procedure TPascalScanner.PushSkipMode;
@@ -1615,6 +1813,9 @@ begin
   'MODE':
      if not PPIsSkipping then
       HandleMode(Param);
+  'MODESWITCH':
+     if not PPIsSkipping then
+      HandleModeSwitch(Param);
   'DEFINE':
      if not PPIsSkipping then
        HandleDefine(Param);
@@ -2007,7 +2208,7 @@ begin
             TokenStart := TokenStr;
           end else
           begin
-            if not(po_delphi in Options) and (TokenStr[0] = '{') then
+            if (msNestedComment in CurrentModeSwitches) and (TokenStr[0] = '{') then
               Inc(NestingLevel)
             else if (TokenStr[0] = '}') and not PPIsSkipping then
               Dec(NestingLevel);
@@ -2088,9 +2289,20 @@ begin
 end;
 
 procedure TPascalScanner.SetOptions(AValue: TPOptions);
+
+Var
+  isModeSwitch : Boolean;
+
 begin
   if FOptions=AValue then Exit;
+  // Change of mode ?
+  IsModeSwitch:=(po_delphi in Avalue) <> (po_delphi in FOptions);
   FOptions:=AValue;
+  if isModeSwitch then
+    if (po_delphi in FOptions) then
+      CurrentModeSwitches:=DelphiModeSwitches
+    else
+      CurrentModeSwitches:=FPCModeSwitches
 end;
 
 function TPascalScanner.FetchLine: boolean;
@@ -2137,6 +2349,11 @@ begin
   I:=FDefines.IndexOf(S);
   if (I<>-1) then
     FDefines.Delete(I);
+end;
+
+procedure TPascalScanner.SetCompilerMode(S: String);
+begin
+  HandleMode(S);
 end;
 
 function TPascalScanner.CurSourcePos: TPasSourcePos;
