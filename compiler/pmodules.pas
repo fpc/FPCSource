@@ -633,11 +633,14 @@ implementation
         pd:=tprocdef(cnodeutils.create_main_procdef(target_info.cprefix+name,potype,ps));
         { We don't need is a local symtable. Change it into the static
           symtable }
-        if potype<>potype_mainstub then
+        if not (potype in [potype_mainstub,potype_pkgstub]) then
           begin
             pd.localst.free;
             pd.localst:=st;
           end
+        else if (potype=potype_pkgstub) and
+            (target_info.system in systems_all_windows+systems_nativent) then
+          pd.proccalloption:=pocall_stdcall
         else
           pd.proccalloption:=pocall_cdecl;
         handle_calling_convention(pd);
@@ -645,7 +648,8 @@ implementation
         result:=tcgprocinfo(cprocinfo.create(nil));
         result.procdef:=pd;
         { main proc does always a call e.g. to init system unit }
-        include(result.flags,pi_do_call);
+        if potype<>potype_pkgstub then
+          include(result.flags,pi_do_call);
       end;
 
 

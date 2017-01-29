@@ -29,7 +29,8 @@ interface
   uses
     finput,tokens,scanner,globtype,
     aasmdata,
-    symconst,symbase,symtype,symdef,symsym;
+    symconst,symbase,symtype,symdef,symsym,
+    node;
 
 
   type
@@ -128,17 +129,18 @@ interface
     to this new procedure }
   procedure call_through_new_name(orgpd: tprocdef; const newname: TSymStr);
 
+  function generate_pkg_stub(pd:tprocdef):tnode;
 
 implementation
 
   uses
-    cutils,cclasses,globals,verbose,systems,comphook,fmodule,
+    cutils,cclasses,globals,verbose,systems,comphook,fmodule,constexp,
     symtable,defutil,
     pbase,pdecobj,pdecsub,psub,ptconst,pparautl,
 {$ifdef jvm}
     pjvm,jvmdef,
 {$endif jvm}
-    node,nbas,nld,nmem,ngenutil,
+    nbas,nld,nmem,ngenutil,ncon,
     defcmp,
     paramgr;
 
@@ -1478,6 +1480,22 @@ implementation
       orgpd.procoptions:=orgpd.procoptions-[po_external,po_has_importname,po_has_importdll];
       orgpd.forwarddef:=true;
     end;
+
+
+  function generate_pkg_stub(pd:tprocdef):tnode;
+    begin
+      if target_info.system in systems_all_windows+systems_nativent then
+        begin
+          insert_funcret_local(pd);
+          result:=cassignmentnode.create(
+                      cloadnode.create(pd.funcretsym,pd.localst),
+                      cordconstnode.create(1,bool32type,false)
+                    );
+        end
+      else
+        result:=cnothingnode.create;
+    end;
+
 
 end.
 

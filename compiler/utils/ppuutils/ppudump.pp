@@ -1909,7 +1909,8 @@ const
      (mask:potype_propgetter;        str:'Property Getter'),
      (mask:potype_propsetter;        str:'Property Setter'),
      (mask:potype_exceptfilter;      str:'SEH filter'),
-     (mask:potype_mainstub;          str:'main stub')
+     (mask:potype_mainstub;          str:'main stub'),
+     (mask:potype_pkgstub;           str:'package stub')
   );
   procopt : array[1..ord(high(tprocoption))] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),

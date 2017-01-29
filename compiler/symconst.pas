@@ -304,7 +304,8 @@ type
     potype_propgetter,        { Dispinterface property accessors }
     potype_propsetter,
     potype_exceptfilter,      { SEH exception filter or termination handler }
-    potype_mainstub           { "main" function that calls through to FPC_SYSTEMMAIN }
+    potype_mainstub,          { "main" function that calls through to FPC_SYSTEMMAIN }
+    potype_pkgstub            { stub for a package file, that tells OS that all is OK }
   );
   tproctypeoptions=set of tproctypeoption;
 
