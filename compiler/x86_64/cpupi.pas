@@ -55,8 +55,10 @@ implementation
       globals,
       cutils,
       symconst,
+      symtable,
       aasmtai,
-      tgobj;
+      tgobj,
+      fmodule;
 
     const
       SCOPE_FINALLY=0;
@@ -146,6 +148,8 @@ implementation
         if (scopecount=0) then
           exit;
         hdir:=cai_seh_directive.create_name(ash_handler,'__FPC_specific_handler');
+        if not systemunit.iscurrentunit then
+          current_module.add_extern_asmsym('__FPC_specific_handler',AB_EXTERNAL,AT_FUNCTION);
         hdir.data.flags:=unwindflags;
         list.concat(hdir);
         list.concat(cai_seh_directive.create(ash_handlerdata));
