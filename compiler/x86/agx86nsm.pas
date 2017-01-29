@@ -735,17 +735,6 @@ interface
              begin
                consttype:=tai_const(hp).consttype;
                case consttype of
-                 aitconst_64bit,
-                 aitconst_64bit_unaligned:
-                    begin
-                      if assigned(tai_const(hp).sym) then
-                        internalerror(200404292);
-                      writer.AsmWrite(ait_const2str[aitconst_32bit]);
-                      writer.AsmWrite(tostr(longint(lo(tai_const(hp).value))));
-                      writer.AsmWrite(',');
-                      writer.AsmWrite(tostr(longint(hi(tai_const(hp).value))));
-                      writer.AsmLn;
-                    end;
                  aitconst_uleb128bit,
                  aitconst_sleb128bit,
                  aitconst_128bit:
@@ -793,13 +782,15 @@ interface
                  aitconst_fardataseg:
                    writer.AsmWriteLn(#9'DW'#9+current_module.modulename^+'_DATA');
 {$endif i8086}
+                 aitconst_64bit,
                  aitconst_32bit,
                  aitconst_16bit,
                  aitconst_8bit,
                  aitconst_rva_symbol,
                  aitconst_secrel32_symbol,
                  aitconst_16bit_unaligned,
-                 aitconst_32bit_unaligned:
+                 aitconst_32bit_unaligned,
+                 aitconst_64bit_unaligned:
                    begin
                      writer.AsmWrite(ait_const2str[tai_const(hp).consttype]);
                      l:=0;
