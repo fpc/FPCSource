@@ -544,9 +544,9 @@ begin
     begin
      lifl:=TPasImplForLoop(lsmt);
      //TODO variable
-     write(s1,'for ',lifl.VariableName,':= ',lifl.StartValue,' ');
+     write(s1,'for ',lifl.Variable.Name,':= ',lifl.StartExpr.GetDeclaration(True),' ');
      if lifl.Down then write('down');
-     writeln('to ',lifl.EndValue,' do');
+     writeln('to ',lifl.EndExpr.GetDeclaration(True),' do');
      GetTPasImplBlock(TPasImplBlock(lifl),lindent+1,0,false,false);
      DoSem:=false;
     end
@@ -1147,8 +1147,8 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
       Result:=true;
       writeln(';');
       write(s,'case ');
-      if prct.VariantName <>'' then write(prct.VariantName,'=');
-      write(TPasType(prct.VariantType).Name);
+      if prct.VariantEl.GetDeclaration(True) <>'' then write(prct.VariantEl.GetDeclaration(True),'=');
+      write(TPasType(prct.VariantEl).Name);
       writeln(' of');
       if assigned(prct.Variants)then
        if prct.Variants.Count >0 then
@@ -1235,8 +1235,8 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
     if assigned(prct.Variants) then
      begin
       write(s1,'case ');
-      if prct.VariantName <>'' then write(prct.VariantName,'=');
-        write(TPasType(prct.VariantType).Name);
+      if prct.VariantEl.Name <>'' then write(prct.VariantEl.Name,'=');
+        write(TPasType(prct.VariantEl).Name);
       writeln(' of');
       if assigned(prct.Variants)then
        if prct.Variants.Count >0 then
