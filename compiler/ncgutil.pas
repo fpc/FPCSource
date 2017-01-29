@@ -99,7 +99,6 @@ interface
 
     function getprocalign : shortint;
 
-    procedure gen_fpc_dummy(list : TAsmList);
     procedure gen_load_frame_for_exceptfilter(list : TAsmList);
 
 implementation
@@ -1762,16 +1761,6 @@ implementation
           result:=16
         else
          result:=current_settings.alignment.procalign;
-      end;
-
-
-    procedure gen_fpc_dummy(list : TAsmList);
-      begin
-{$ifdef i386}
-        { fix me! }
-        list.concat(Taicpu.Op_const_reg(A_MOV,S_L,1,NR_EAX));
-        list.concat(Taicpu.Op_const(A_RET,S_W,12));
-{$endif i386}
       end;
 
 
