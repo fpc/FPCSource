@@ -931,9 +931,9 @@ implementation
       if assigned(_class.iidguid) then
         begin
           s:=make_mangledname('IID',_class.owner,_class.objname^);
-          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
           tcb.emit_guid_const(_class.iidguid^);
-          sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,rec_tguid);
+          sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_NOINDIRECT,rec_tguid);
           list.concatlist(tcb.get_final_asmlist(
             sym,
             rec_tguid,
@@ -944,9 +944,9 @@ implementation
           current_module.add_public_asmsym(sym);
         end;
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
-      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
       def:=tcb.emit_shortstring_const(_class.iidstr^);
-      sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,def);
+      sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_NOINDIRECT,def);
       list.concatlist(tcb.get_final_asmlist(
         sym,
         def,
@@ -1106,7 +1106,7 @@ implementation
          intmessagetabledef:=nil;
 
          { generate VMT }
-         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
 
          { write tables for classes, this must be done before the actual
            class is written, because we need the labels defined }
@@ -1240,7 +1240,7 @@ implementation
 
          tcb.maybe_end_aggregate(vmtdef);
 
-         sym:=current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA_FORCEINDIRECT,vmtdef);
+         sym:=current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA_NOINDIRECT,vmtdef);
          current_module.add_public_asmsym(sym);
 
          { concatenate the VMT to the asmlist }
