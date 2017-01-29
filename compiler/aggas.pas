@@ -357,6 +357,11 @@ implementation
           (target_info.system=system_i386_go32v2) then
           secname:='.data';
 
+        { Windows correctly handles reallocations in readonly sections }
+        if (atype=sec_rodata) and
+          (target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) then
+          secname:='.rodata';
+
         { section type user gives the user full controll on the section name }
         if atype=sec_user then
           secname:=aname;
