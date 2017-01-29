@@ -359,7 +359,7 @@ implementation
       begin
         { this difference is only necessary to determine whether we always need
           indirect references or not }
-        if _typ=AT_DATA_FORCEINDIRECT then
+        if _typ in [AT_DATA_FORCEINDIRECT,AT_DATA_NOINDIRECT] then
           _typ:=AT_DATA;
         namestr:=s;
         if _bind in asmsymbindindirect then

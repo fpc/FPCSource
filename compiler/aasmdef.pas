@@ -57,6 +57,7 @@ function TAsmDataDef.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: 
     { define the indirect asmsymbol if necessary }
     if not wasdefined and
        (_bind in [AB_GLOBAL,AB_COMMON]) and
+       (_typ<>AT_DATA_NOINDIRECT) and
        (((_typ=AT_DATA) and
          (tf_supports_packages in target_info.flags) and
          (target_info.system in systems_indirect_var_imports)

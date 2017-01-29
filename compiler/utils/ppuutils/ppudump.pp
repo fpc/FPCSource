@@ -904,6 +904,10 @@ type
            tables) -- never seen in an assembler/assembler writer, always
            changed to AT_DATA }
          AT_DATA_FORCEINDIRECT,
+         { don't generate an implicit indirect symbol as that might be provided
+           by other means (e.g. the typed const builder) to ensure a correct
+           section name }
+         AT_DATA_NOINDIRECT,
          { Thread-local symbol (ELF targets) }
          AT_TLS,
          { GNU indirect function (ELF targets) }
@@ -972,8 +976,12 @@ begin
          typestr:='Label (with address taken)';
        AT_METADATA :
          typestr:='Metadata';
+       { this shouldn't appear in a PPU }
        AT_DATA_FORCEINDIRECT :
          typestr:='Data (ForceIndirect)';
+       { this shouldn't appear in a PPU }
+       AT_DATA_NOINDIRECT:
+         typestr:='Data (NoIndirect)';
        AT_TLS :
          typestr:='TLS';
        AT_GNU_IFUNC :
