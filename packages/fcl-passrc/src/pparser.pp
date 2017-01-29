@@ -337,7 +337,7 @@ type
     Function ParseFileType(Parent : TPasElement; Const NamePos: TPasSourcePos; Const TypeName  : String) : TPasFileType;
     Function ParseRecordDecl(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName : string; const Packmode : TPackMode = pmNone) : TPasRecordType;
     function ParseEnumType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName: String): TPasEnumType;
-    function ParseSetType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName: String ): TPasSetType;
+    function ParseSetType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName: String; AIsPacked : Boolean = False): TPasSetType;
     function ParseSpecializeType(Parent: TPasElement; Const TypeName: String): TPasClassType;
     Function ParseClassDecl(Parent: TPasElement; Const NamePos: TPasSourcePos; Const AClassName: String; AObjKind: TPasObjKind; PackMode : TPackMode= pmNone): TPasType;
     Function ParseProperty(Parent : TPasElement; Const AName : String; AVisibility : TPasMemberVisibility; IsClassField: boolean) : TPasProperty;
@@ -966,8 +966,8 @@ begin
   if (Result<>pmNone) then
      begin
      NextToken;
-     if Not (CurToken in [tkArray, tkRecord, tkObject, tkClass]) then
-       ParseExcTokenError('ARRAY, RECORD, OBJECT or CLASS');
+     if Not (CurToken in [tkArray, tkRecord, tkObject, tkClass, tkSet]) then
+       ParseExcTokenError('SET, ARRAY, RECORD, OBJECT or CLASS');
      end;
 end;
 
@@ -1222,12 +1222,13 @@ begin
 end;
 
 function TPasParser.ParseSetType(Parent: TPasElement;
-  const NamePos: TPasSourcePos; const TypeName: String): TPasSetType;
+  const NamePos: TPasSourcePos; const TypeName: String; AIsPacked : Boolean = False): TPasSetType;
 
 var
   ok: Boolean;
 begin
   Result := TPasSetType(CreateElement(TPasSetType, TypeName, Parent, NamePos));
+  Result.IsPacked:=AIsPacked;
   ok:=false;
   try
     ExpectToken(tkOf);
@@ -1291,7 +1292,7 @@ begin
       tkFile: Result:=ParseFileType(Parent,NamePos,TypeName);
       tkArray: Result:=ParseArrayType(Parent,NamePos,TypeName,pm);
       tkBraceOpen: Result:=ParseEnumType(Parent,NamePos,TypeName);
-      tkSet: Result:=ParseSetType(Parent,NamePos,TypeName);
+      tkSet: Result:=ParseSetType(Parent,NamePos,TypeName,pm=pmPacked);
       tkProcedure: Result:=ParseProcedureType(Parent,NamePos,TypeName,ptProcedure);
       tkFunction: Result:=ParseProcedureType(Parent,NamePos,TypeName,ptFunction);
       tkRecord:

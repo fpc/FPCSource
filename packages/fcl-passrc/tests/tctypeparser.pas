@@ -43,7 +43,7 @@ type
     Procedure DoParseEnumerated(Const ASource : String; Const AHint : String; ACount : integer);
     Procedure DoTestFileType(Const AType : String; Const AHint : String; ADestType : TClass = Nil);
     Procedure DoTestRangeType(Const AStart,AStop,AHint : String);
-    Procedure DoParseSimpleSet(Const ASource : String; Const AHint : String);
+    Procedure DoParseSimpleSet(Const ASource : String; Const AHint : String; IsPacked : Boolean = False);
     Procedure DoParseComplexSet(Const ASource : String; Const AHint : String);
     procedure DoParseRangeSet(const ASource: String; const AHint: String);
     Procedure DoTestComplexSet;
@@ -137,6 +137,7 @@ type
     Procedure TestIdentifierRangeTypePlatform;
     Procedure TestNegativeIdentifierRangeType;
     Procedure TestSimpleSet;
+    Procedure TestPackedSet;
     Procedure TestSimpleSetDeprecated;
     Procedure TestSimpleSetPlatform;
     Procedure TestComplexSet;
@@ -2519,12 +2520,15 @@ begin
   AssertEquals('Range start',AStop,Stringreplace(TPasRangeType(TheType).RangeEnd,' ','',[rfReplaceAll]));
 end;
 
-procedure TTestTypeParser.DoParseSimpleSet(const ASource: String;
-  const AHint: String);
+procedure TTestTypeParser.DoParseSimpleSet(const ASource: String; const AHint: String; IsPacked: Boolean);
 begin
-  ParseType('Set of '+ASource,TPasSetType,AHint);
+  if IsPacked then
+    ParseType('Packed Set of '+ASource,TPasSetType,AHint)
+  else
+    ParseType('Set of '+ASource,TPasSetType,AHint);
   AssertNotNull('Have enumtype',TPasSetType(TheType).EnumType);
   AssertEquals('Element type ',TPasUnresolvedTypeRef,TPasSetType(TheType).EnumType.ClassType);
+  AssertEquals('IsPacked is correct',isPacked,TPasSetType(TheType).IsPacked);
 end;
 
 procedure TTestTypeParser.DoParseComplexSet(const ASource: String;
@@ -3112,6 +3116,11 @@ procedure TTestTypeParser.TestComplexSetPlatform;
 begin
   DoParseComplexSet('(one, two, three)','platform');
   DoTestComplexSet;
+end;
+
+procedure TTestTypeParser.TestPackedSet;
+begin
+  DoParseSimpleSet('Byte','',True);
 end;
 
 procedure TTestTypeParser.TestRangeLowHigh;

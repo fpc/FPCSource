@@ -535,6 +535,7 @@ type
       const Arg: Pointer); override;
   public
     EnumType: TPasType;
+    IsPacked : Boolean;
   end;
 
   TPasRecordType = class;
