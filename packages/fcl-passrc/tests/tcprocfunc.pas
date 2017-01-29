@@ -132,6 +132,7 @@ type
     Procedure TestProcedureCdeclForward;
     Procedure TestFunctionCDeclForward;
     Procedure TestProcedureCompilerProc;
+    Procedure TestProcedureNoReturn;
     Procedure TestFunctionCompilerProc;
     Procedure TestProcedureCDeclCompilerProc;
     Procedure TestFunctionCDeclCompilerProc;
@@ -959,6 +960,12 @@ procedure TTestProcedureFunction.TestProcedureCompilerProc;
 begin
   ParseProcedure(';compilerproc;','');
   AssertProc([pmCompilerProc],ccDefault,0);
+end;
+
+procedure TTestProcedureFunction.TestProcedureNoReturn;
+begin
+  ParseProcedure(';noreturn;','');
+  AssertProc([pmnoreturn],ccDefault,0);
 end;
 
 procedure TTestProcedureFunction.TestFunctionCompilerProc;

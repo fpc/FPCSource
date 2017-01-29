@@ -810,7 +810,7 @@ type
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
                         pmExport, pmOverload, pmMessage, pmReintroduce,
                         pmStatic,pmInline,pmAssembler,pmVarargs, pmPublic,
-                        pmCompilerProc,pmExternal,pmForward, pmdispid);
+                        pmCompilerProc,pmExternal,pmForward, pmdispid, pmnoreturn);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
                         
@@ -1390,7 +1390,7 @@ const
                 = ('virtual', 'dynamic','abstract', 'override',
                    'export', 'overload', 'message', 'reintroduce',
                    'static','inline','assembler','varargs', 'public',
-                   'compilerproc','external','forward','dispid');
+                   'compilerproc','external','forward','dispid','noreturn');
 
 procedure ReleaseAndNil(var El: TPasElement); overload;
 
