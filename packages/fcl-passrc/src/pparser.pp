@@ -3938,9 +3938,14 @@ begin
           CloseBlock;
           CloseStatement(false);
         end;
+        // Case ... else without semicolon in front.
+      end else if (CurBlock is TPasImplCaseStatement) then
+      begin
+        UngetToken;
+        CloseStatement(False);
+        exit;
       end else if (CurBlock is TPasImplWhileDo) then
       begin
-        //if .. then while .. do smt else ..
         CloseBlock;
         UngetToken;
       end else if (CurBlock is TPasImplForLoop) then

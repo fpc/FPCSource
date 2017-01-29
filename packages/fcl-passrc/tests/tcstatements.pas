@@ -96,6 +96,7 @@ Type
     Procedure TestCaseElseBlock2Assignments;
     Procedure TestCaseIfCaseElse;
     Procedure TestCaseIfElse;
+    Procedure TestCaseElseNoSemicolon;
     Procedure TestRaise;
     Procedure TestRaiseEmpty;
     Procedure TestRaiseAt;
@@ -1204,6 +1205,31 @@ begin
   AssertEquals('1 case label statement',1,S.Elements.Count);
   AssertEquals('If statement in case label 1',TPasImplIfElse,TPasElement(S.Elements[0]).ClassType);
   AssertNotNull('If statement has else block',TPasImplIfElse(S.Elements[0]).ElseBranch);
+end;
+
+procedure TTestStatementParser.TestCaseElseNoSemicolon;
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+  B : TPasImplbeginBlock;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1 : dosomething;','2 : dosomethingmore','else','a:=1;','end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertNotNull('Have case expression',C.CaseExpr);
+  AssertExpression('Case expression',C.CaseExpr,pekIdent,'a');
+  AssertEquals('case label count',3,C.Elements.Count);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('case 1',1,S.Expressions.Count);
+  AssertExpression('Case With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'1');
+  S:=TPasImplCaseStatement(C.Elements[1]);
+  AssertEquals('case 2',1,S.Expressions.Count);
+  AssertExpression('Case With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'2');
+  AssertEquals('third is else',TPasImplCaseElse,TObject(C.Elements[2]).ClassType);
+  AssertNotNull('Have else branch',C.ElseBranch);
+  AssertEquals('Correct else branch class',TPasImplCaseElse,C.ElseBranch.ClassType);
+  AssertEquals('1 statements in else branch ',1,TPasImplCaseElse(C.ElseBranch).Elements.Count);
 end;
 
 procedure TTestStatementParser.TestRaise;
