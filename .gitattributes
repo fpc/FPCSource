@@ -13045,6 +13045,7 @@ tests/test/trtti12.pp svneol=native#text/pascal
 tests/test/trtti13.pp svneol=native#text/pascal
 tests/test/trtti14.pp svneol=native#text/pascal
 tests/test/trtti15.pp svneol=native#text/pascal
+tests/test/trtti16.pp svneol=native#text/pascal
 tests/test/trtti2.pp svneol=native#text/plain
 tests/test/trtti3.pp svneol=native#text/plain
 tests/test/trtti4.pp svneol=native#text/plain

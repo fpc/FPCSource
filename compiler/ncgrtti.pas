@@ -1267,10 +1267,21 @@ implementation
           procedure objectdef_rtti_fields(def:tobjectdef);
           begin
             { - for compatiblity with record RTTI we need to write a terminator-
-                Nil pointer as well for objects
+                Nil pointer for initrtti as well for objects
+              - for RTTI consistency for objects we need point from fullrtti
+                to initrtti
               - classes are assumed to have the same INIT RTTI as records
-                (see TObject.CleanupInstance) }
-            tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+                (see TObject.CleanupInstance)
+              - neither helper nor class type have fullrtti for fields
+            }
+            if (rt=initrtti) then
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
+            else
+              if (def.objecttype=odt_object) then
+                tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),voidpointertype)
+              else
+                internalerror(2017011801);
+
             tcb.emit_ord_const(def.size, u32inttype);
             { enclosing record takes care of alignment }
             fields_write_rtti_data(tcb,def,rt);
