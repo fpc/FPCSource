@@ -141,7 +141,7 @@ var
     P: TFPPackage;
   begin
     Result:=false;
-    P := GFPpkg.FPMakeRepoFindPackage(APackageName, pkgpkInstalled);
+    P := PackageManager.FPMakeRepoFindPackage(APackageName, pkgpkInstalled);
     if Assigned(P) then
       begin
         AUnitDir := P.PackagesStructure.GetUnitDirectory(P);
@@ -166,7 +166,7 @@ Var
   HaveFpmake : boolean;
   P : TFPPackage;
 begin
-  P:=GFPpkg.PackageByName(PackageName, pkgpkAvailable);
+  P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
   NeedFPMKUnitSource:=false;
   OOptions:='';
   SetCurrentDir(PackageManager.PackageBuildPath(P));
@@ -237,9 +237,9 @@ begin
           CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
         end;
       // Call compiler
-      If ExecuteProcess(GFPpkg.FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
+      If ExecuteProcess(PackageManager.FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
         begin
-          if not GFPpkg.Options.CommandLineSection.RecoveryMode then
+          if not PackageManager.Options.CommandLineSection.RecoveryMode then
             Error(SErrCompileFailureFPMakeTryRecovery)
           else
             Error(SErrCompileFailureFPMake);
@@ -317,7 +317,7 @@ begin
       if (command<>'archive') and (command<>'manifest') and
          (not(PackageManager.CompilerOptions.CompilerOS in P.OSes) or
           not(PackageManager.CompilerOptions.CompilerCPU in P.CPUs)) then
-        Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(PackageManager.CompilerOptions.CompilerCPU,GFPpkg.CompilerOptions.CompilerOS)]);
+        Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(PackageManager.CompilerOptions.CompilerCPU,PackageManager.CompilerOptions.CompilerOS)]);
     end;
   { Maybe compile fpmake executable? }
   ExecuteAction(PackageName,'compilefpmake');
@@ -335,7 +335,7 @@ begin
   else
     begin
       if PackageManager.CompilerOptions.HasOptions then
-        AddOption('--options='+GFPpkg.CompilerOptions.Options.DelimitedText);
+        AddOption('--options='+PackageManager.CompilerOptions.Options.DelimitedText);
 
       if PackageManager.Options.GlobalSection.CustomFPMakeOptions<>'' then
         begin
@@ -345,9 +345,9 @@ begin
     end;
 
   AddOption('--nofpccfg');
-  AddOption('--compiler='+GFPpkg.CompilerOptions.Compiler);
-  AddOption('--cpu='+CPUToString(GFPpkg.CompilerOptions.CompilerCPU));
-  AddOption('--os='+OSToString(GFPpkg.CompilerOptions.CompilerOS));
+  AddOption('--compiler='+PackageManager.CompilerOptions.Compiler);
+  AddOption('--cpu='+CPUToString(PackageManager.CompilerOptions.CompilerCPU));
+  AddOption('--os='+OSToString(PackageManager.CompilerOptions.CompilerOS));
 
   // While scanning a source-repository it could be necessary to create manifest
   // files. At this moment the InstallRepo could not be initialized yet. And the
@@ -437,15 +437,15 @@ var
   StoredGlobalPrefix: string;
 begin
   // In most (all?) cases we do not want a prefix in the archive.
-  StoredGlobalPrefix := GFPpkg.CompilerOptions.GlobalPrefix;
-  StoredLocalPrefix := GFPpkg.CompilerOptions.LocalPrefix;
-  GFPpkg.CompilerOptions.GlobalPrefix := '';
-  GFPpkg.CompilerOptions.LocalPrefix := '';
+  StoredGlobalPrefix := PackageManager.CompilerOptions.GlobalPrefix;
+  StoredLocalPrefix := PackageManager.CompilerOptions.LocalPrefix;
+  PackageManager.CompilerOptions.GlobalPrefix := '';
+  PackageManager.CompilerOptions.LocalPrefix := '';
   try
     RunFPMake('archive');
   finally
-    GFPpkg.CompilerOptions.GlobalPrefix := StoredGlobalPrefix;
-    GFPpkg.CompilerOptions.LocalPrefix := StoredLocalPrefix;
+    PackageManager.CompilerOptions.GlobalPrefix := StoredGlobalPrefix;
+    PackageManager.CompilerOptions.LocalPrefix := StoredLocalPrefix;
   end;
 end;
 
