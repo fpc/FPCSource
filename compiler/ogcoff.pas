@@ -148,10 +148,11 @@ interface
        TCoffObjOutput = class(tObjOutput)
        private
          win32   : boolean;
+         bigobj  : boolean;
          symidx  : longint;
          FCoffSyms,
          FCoffStrs : tdynamicarray;
-         procedure write_symbol(const name:string;value:aword;section:smallint;typ,aux:byte);
+         procedure write_symbol(const name:string;value:aword;section:longint;typ,aux:byte);
          procedure section_write_symbol(p:TObject;arg:pointer);
          procedure section_write_relocs(p:TObject;arg:pointer);
          procedure create_symbols(data:TObjData);
@@ -1236,32 +1237,59 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjOutput.write_symbol(const name:string;value:aword;section:smallint;typ,aux:byte);
+    procedure TCoffObjOutput.write_symbol(const name:string;value:aword;section:longint;typ,aux:byte);
       var
         sym : coffsymbol;
+        bosym : coffbigobjsymbol;
+        strpos : longword;
       begin
-        FillChar(sym,sizeof(sym),0);
         { symbolname }
         if length(name)>8 then
           begin
-            sym.strpos:=FCoffStrs.size+4;
+            strpos:=FCoffStrs.size+4;
             FCoffStrs.writestr(name);
             FCoffStrs.writestr(#0);
           end
         else
-          move(name[1],sym.name,length(name));
-        sym.value:=value;
-        sym.section:=section;
-        sym.typ:=typ;
-        sym.aux:=aux;
-        inc(symidx);
-        FCoffSyms.write(sym,sizeof(sym));
+          strpos:=0;
+
+        if bigobj then
+          begin
+            fillchar(bosym,sizeof(bosym),0);
+            if length(name)>8 then
+              bosym.name.offset.offset:=strpos
+            else
+              move(name[1],bosym.name.shortname,length(name));
+            bosym.value:=value;
+            bosym.SectionNumber:=longword(section);
+            bosym.StorageClass:=typ;
+            bosym.NumberOfAuxSymbols:=aux;
+            inc(symidx);
+            FCoffSyms.write(bosym,sizeof(bosym));
+          end
+        else
+          begin
+            if section>$7fff then
+              internalerror(2017020302);
+            FillChar(sym,sizeof(sym),0);
+            if length(name)>8 then
+              sym.strpos:=strpos
+            else
+              move(name[1],sym.name,length(name));
+            sym.value:=value;
+            sym.section:=section;
+            sym.typ:=typ;
+            sym.aux:=aux;
+            inc(symidx);
+            FCoffSyms.write(sym,sizeof(sym));
+          end;
       end;
 
 
     procedure TCoffObjOutput.section_write_symbol(p:TObject;arg:pointer);
       var
         secrec : coffsectionrec;
+        padding : word;
       begin
         with TCoffObjSection(p) do
           begin
@@ -1283,6 +1311,11 @@ const pemagic : array[0..3] of byte = (
               secrec.nrelocs:=65535;
             inc(symidx);
             FCoffSyms.write(secrec,sizeof(secrec));
+            { aux recs have the same size as symbols, so we need to add two
+              Byte of padding in case of a Big Obj Coff }
+            padding:=0;
+            if bigobj then
+              FCoffSyms.write(padding,sizeof(padding));
           end;
       end;
 
@@ -1387,7 +1420,8 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffObjOutput.create_symbols(data:TObjData);
       var
-        filename   : string[18];
+        filename   : string[20];
+        filenamelen : longint;
         sectionval : word;
         globalval  : byte;
         i          : longint;
@@ -1403,7 +1437,11 @@ const pemagic : array[0..3] of byte = (
            fillchar(filename,sizeof(filename),0);
            filename:=ExtractFileName(current_module.mainsource);
            inc(symidx);
-           FCoffSyms.write(filename[1],sizeof(filename)-1);
+           if bigobj then
+             filenamelen:=sizeof(coffbigobjsymbol)
+           else
+             filenamelen:=sizeof(coffsymbol);
+           FCoffSyms.write(filename[1],filenamelen);
            { Sections }
            secidx:=0;
            ObjSectionList.ForEachCall(@section_write_symbol,@secidx);
@@ -1511,17 +1549,24 @@ const pemagic : array[0..3] of byte = (
         sympos   : aword;
         i        : longint;
         header   : tcoffheader;
+        boheader : tcoffbigobjheader;
       begin
         result:=false;
         FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
         FCoffStrs:=TDynamicArray.Create(StrsMaxGrow);
         with TCoffObjData(data) do
          begin
+           bigobj:=(ObjSectionList.Count>$7fff) and win32;
+
            { Create Symbol Table }
            create_symbols(data);
 
            { Calculate the filepositions }
-           datapos:=sizeof(tcoffheader)+sizeof(tcoffsechdr)*ObjSectionList.Count;
+           if bigobj then
+             datapos:=sizeof(tcoffbigobjheader)
+           else
+             datapos:=sizeof(tcoffheader);
+           datapos:=datapos+sizeof(tcoffsechdr)*ObjSectionList.Count;
            { Sections first }
            layoutsections(datapos);
            { relocs }
@@ -1531,23 +1576,39 @@ const pemagic : array[0..3] of byte = (
            sympos:=datapos;
 
            { Generate COFF header }
-           fillchar(header,sizeof(tcoffheader),0);
-           header.mach:=COFF_MAGIC;
-           header.nsects:=ObjSectionList.Count;
-           header.sympos:=sympos;
-           header.syms:=symidx;
-           if win32 then
+           if bigobj then
              begin
-{$ifndef x86_64}
-               header.flag:=PE_FILE_32BIT_MACHINE or
-                            PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
-{$else x86_64}
-               header.flag:=PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
-{$endif x86_64}
+               fillchar(boheader,sizeof(boheader),0);
+               boheader.Sig1:=0;
+               boheader.Sig2:=$ffff;
+               boheader.Machine:=COFF_MAGIC;
+               boheader.Version:=COFF_BIG_OBJ_VERSION;
+               boheader.NumberOfSections:=longword(ObjSectionList.Count);
+               boheader.NumberOfSymbols:=longword(symidx);
+               boheader.PointerToSymbolTable:=sympos;
+               Move(COFF_BIG_OBJ_MAGIC,boheader.UUID,length(boheader.UUID));
+               FWriter.write(boheader,sizeof(boheader));
              end
            else
-             header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_NOLINES or COFF_FLAG_NOLSYMS;
-           FWriter.write(header,sizeof(header));
+             begin
+               fillchar(header,sizeof(tcoffheader),0);
+               header.mach:=COFF_MAGIC;
+               header.nsects:=ObjSectionList.Count;
+               header.sympos:=sympos;
+               header.syms:=symidx;
+               if win32 then
+                 begin
+{$ifndef x86_64}
+                   header.flag:=PE_FILE_32BIT_MACHINE or
+                                PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
+{$else x86_64}
+                   header.flag:=PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
+{$endif x86_64}
+                 end
+               else
+                 header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_NOLINES or COFF_FLAG_NOLSYMS;
+               FWriter.write(header,sizeof(header));
+             end;
            { Section headers }
            ObjSectionList.ForEachCall(@section_write_header,nil);
            { ObjSections }
