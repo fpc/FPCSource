@@ -385,7 +385,7 @@ interface
             id     : as_gas;
             idtxt  : 'AS';
             asmbin : 'as';
-            asmcmd : '--64 -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '--64 -o $OBJ $BIGOBJ $EXTRAOPT $ASM';
             supported_targets : [system_x86_64_linux,system_x86_64_freebsd,
                                  system_x86_64_win64,system_x86_64_embedded,
                                  system_x86_64_openbsd,system_x86_64_netbsd,
@@ -470,7 +470,7 @@ interface
             id     : as_gas;
             idtxt  : 'AS';
             asmbin : 'as';
-            asmcmd : '--32 -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '--32 -o $OBJ $BIGOBJ $EXTRAOPT $ASM';
             supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
                                 system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
                                 system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux,

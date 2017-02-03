@@ -941,6 +941,14 @@ Implementation
          else
            Replace(result,'$ENDIAN','-mbig');
 
+         { as we don't keep track of the amount of sections we created we simply
+           enable Big Obj COFF files always for targets that need them }
+         if (cs_asm_pre_binutils_2_25 in current_settings.globalswitches) or
+            not (target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) then
+           Replace(result,'$BIGOBJ','')
+         else
+           Replace(result,'$BIGOBJ','-mbig-obj');
+
          Replace(result,'$EXTRAOPT',asmextraopt);
       end;
 

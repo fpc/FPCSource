@@ -3651,6 +3651,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 **0*_Put + after a boolean switch option to enable it, - to disable it.
 **1@<x>_Read compiler options from <x> in addition to the default fpc.cfg
 **1a_The compiler does not delete the generated assembler file
+**2a5_Don't generate Big Obj COFF files for GNU Binutils older than 2.25 (Windows, NativeNT)
 **2al_List sourcecode lines in assembler file
 **2an_List node info in assembler file (-dEXTDEBUG compiler)
 **2ao_Add an extra option to external assembler call (ignored for internal)

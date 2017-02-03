@@ -201,7 +201,7 @@ interface
          cs_gdb_valgrind,cs_no_regalloc,cs_stabs_preservecase,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
-         cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,
+         cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,cs_asm_pre_binutils_2_25,
          { linking }
          cs_link_nolink,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
          cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_extern,cs_link_opt_vtable,

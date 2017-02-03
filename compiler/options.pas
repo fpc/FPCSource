@@ -1055,6 +1055,16 @@ begin
                while j<=length(more) do
                 begin
                   case more[j] of
+                    '5' :
+                      if target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16] then
+                        begin
+                          if UnsetBool(More, j, opt, false) then
+                            exclude(init_settings.globalswitches,cs_asm_pre_binutils_2_25)
+                          else
+                            include(init_settings.globalswitches,cs_asm_pre_binutils_2_25);
+                        end
+                      else
+                        IllegalPara(opt);
                     'l' :
                       include(init_settings.globalswitches,cs_asm_source);
                     'r' :
