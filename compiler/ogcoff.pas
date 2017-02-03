@@ -53,6 +53,18 @@ interface
          opthdr : word;
          flag   : word;
        end;
+       tcoffbigobjheader = packed record
+         Sig1 : word;
+         Sig2 : word;
+         Version : word;
+         Machine : word;
+         TimeDateStame : longword;
+         UUID : array[0..15] of byte;
+         unused : array[0..3] of longword;
+         NumberOfSections : longword;
+         PointerToSymbolTable : longword;
+         NumberOfSymbols : longword;
+       end;
        tcoffpeoptheader = packed record
          Magic : word;
          MajorLinkerVersion : byte;
@@ -171,6 +183,7 @@ interface
          FSecCount : Longint;
          FSecTbl   : ^TObjSectionArray;
          win32     : boolean;
+         bigobj    : boolean;
          function  GetSection(secidx:longint):TObjSection;
          function  Read_str(strpos:longword):string;
          procedure read_relocs(s:TCoffObjSection);
@@ -270,6 +283,8 @@ interface
        COFF_OPT_MAGIC   = $20b;
        TLSDIR_SIZE      = $28;
 {$endif x86_64}
+       COFF_BIG_OBJ_MAGIC: array[0..15] of byte = ($C7, $A1, $BA, $D1, $EE, $BA, $A9, $4B, $AF, $20, $FA, $F6, $6A, $A4, $DC, $B8);
+       COFF_BIG_OBJ_VERSION = 2;
     function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
 
 implementation
@@ -474,6 +489,10 @@ implementation
          sym      : longword;
          reloctype : word;
        end;
+       strtableoffset=packed record
+         Zeroes : longword;
+         Offset : longword;
+       end;
        coffsymbol=packed record
          name    : array[0..3] of char; { real is [0..7], which overlaps the strpos ! }
          strpos  : longword;
@@ -482,6 +501,18 @@ implementation
          empty   : word;                { actually type, $20: function, 0: not a function }
          typ     : byte;
          aux     : byte;
+       end;
+       coffbigobjsymbol=packed record
+         Name               : record
+                                case boolean of
+                                  True: (ShortName : array[0..7] of char);
+                                  False: (Offset : strtableoffset)
+                              end;
+         Value              : longword;
+         SectionNumber      : longword;
+         _Type              : word;
+         StorageClass       : byte;
+         NumberOfAuxSymbols : byte;
        end;
 
        { This is defined in rtl/win/sysos.inc source }
@@ -1561,6 +1592,7 @@ const pemagic : array[0..3] of byte = (
       begin
         inherited create;
         win32:=awin32;
+        bigobj:=false;
         FSymTbl:=nil;
       end;
 
@@ -1696,22 +1728,31 @@ const pemagic : array[0..3] of byte = (
         symidx    : aint;
         i         : longint;
         sym       : coffsymbol;
+        bosym     : coffbigobjsymbol;
         objsym    : TObjSymbol;
         bind      : Tasmsymbind;
         strname   : string;
-        auxrec    : array[0..17] of byte;
+        auxrec    : array[0..sizeof(coffsymbol)-1] of byte;
+        boauxrec  : array[0..sizeof(coffbigobjsymbol)-1] of byte;
         objsec    : TObjSection;
+        secidx    : longint;
+        symvalue  : longword;
+        auxcount  : byte;
+        symcls    : byte;
 
         { keeps string manipulations out of main routine }
         procedure UnsupportedSymbolType;
           begin
-            Comment(V_Fatal,'Unsupported COFF symbol type '+tostr(sym.typ)+' at index '+tostr(symidx)+' while reading '+InputFileName);
+            Comment(V_Fatal,'Unsupported COFF symbol type '+tostr(symcls)+' at index '+tostr(symidx)+' while reading '+InputFileName);
           end;
 
       begin
         with TCoffObjData(objdata) do
          begin
-           nsyms:=FCoffSyms.Size div sizeof(CoffSymbol);
+           if bigobj then
+             nsyms:=FCoffSyms.Size div sizeof(coffbigobjsymbol)
+           else
+             nsyms:=FCoffSyms.Size div sizeof(CoffSymbol);
            { Allocate memory for symidx -> TObjSymbol table }
            FSymTbl:=AllocMem(nsyms*sizeof(TObjSymbol));
            { Load the Symbols }
@@ -1719,28 +1760,53 @@ const pemagic : array[0..3] of byte = (
            symidx:=0;
            while (symidx<nsyms) do
             begin
-              FCoffSyms.Read(sym,sizeof(sym));
-              if plongint(@sym.name)^<>0 then
+              if bigobj then
                 begin
-                  move(sym.name,strname[1],8);
-                  strname[9]:=#0;
-                  strname[0]:=chr(strlen(@strname[1]));
-                  if strname='' then
-                    Internalerror(200205171);
+                  FCoffSyms.Read(bosym,sizeof(bosym));
+                  if bosym.Name.Offset.Zeroes<>0 then
+                    begin
+                      move(bosym.Name.ShortName,strname[1],8);
+                      strname[9]:=#0;
+                      strname[0]:=chr(strlen(@strname[1]));
+                      if strname='' then
+                        internalerror(2017020301);
+                    end
+                  else
+                    strname:=Read_str(bosym.Name.Offset.Offset);
+                  secidx:=longint(bosym.SectionNumber);
+                  symvalue:=bosym.Value;
+                  auxcount:=bosym.NumberOfAuxSymbols;
+                  symcls:=bosym.StorageClass;
                 end
               else
-                strname:=Read_str(sym.strpos);
+                begin
+                  FCoffSyms.Read(sym,sizeof(sym));
+                  if plongint(@sym.name)^<>0 then
+                    begin
+                      move(sym.name,strname[1],8);
+                      strname[9]:=#0;
+                      strname[0]:=chr(strlen(@strname[1]));
+                      if strname='' then
+                        Internalerror(200205171);
+                    end
+                  else
+                    strname:=Read_str(sym.strpos);
+                  secidx:=sym.section;
+                  symvalue:=sym.value;
+                  auxcount:=sym.aux;
+                  symcls:=sym.typ;
+                end;
               bind:=AB_EXTERNAL;
               size:=0;
               address:=0;
               objsym:=nil;
               objsec:=nil;
-              case sym.typ of
+              case symcls of
                 COFF_SYM_GLOBAL :
                   begin
-                    if sym.section=0 then
+                    if secidx=0 then
                      begin
-                       if sym.value=0 then
+                       if symvalue=0 then
                         bind:=AB_EXTERNAL
                        else
                         begin
@@ -1751,9 +1817,9 @@ const pemagic : array[0..3] of byte = (
                     else
                      begin
                        bind:=AB_GLOBAL;
-                       objsec:=GetSection(word(sym.section));
-                       if sym.value>=objsec.mempos then
-                         address:=sym.value-objsec.mempos;
+                       objsec:=GetSection(secidx);
+                       if symvalue>=objsec.mempos then
+                         address:=symvalue-objsec.mempos;
                      end;
                     objsym:=CreateSymbol(strname);
                     objsym.bind:=bind;
@@ -1766,11 +1832,11 @@ const pemagic : array[0..3] of byte = (
                 COFF_SYM_LOCAL :
                   begin
                     { do not add constants (section=-1) }
-                    if sym.section<>-1 then
+                    if secidx<>-1 then
                      begin
-                       objsec:=GetSection(word(sym.section));
-                       if sym.value>=objsec.mempos then
-                         address:=sym.value-objsec.mempos;
+                       objsec:=GetSection(secidx);
+                       if symvalue>=objsec.mempos then
+                         address:=symvalue-objsec.mempos;
                        objsym:=CreateSymbol(strname);
                        objsym.bind:=AB_LOCAL;
                        objsym.typ:=AT_FUNCTION;
@@ -1782,11 +1848,11 @@ const pemagic : array[0..3] of byte = (
                 COFF_SYM_SECTION :
                   begin
                     { GetSection checks that index is in range }
-                    objsec:=GetSection(word(sym.section));
+                    objsec:=GetSection(secidx);
                     if assigned(objsec) then
                       begin
-                        if sym.value>=objsec.mempos then
-                          address:=sym.value-objsec.mempos;
+                        if symvalue>=objsec.mempos then
+                          address:=symvalue-objsec.mempos;
                         objsym:=CreateSymbol(strname);
                         objsym.bind:=AB_LOCAL;
                         objsym.typ:=AT_FUNCTION;
@@ -1803,9 +1869,12 @@ const pemagic : array[0..3] of byte = (
               end;
               FSymTbl^[symidx]:=objsym;
               { read aux records }
-              for i:=1 to sym.aux do
+              for i:=1 to auxcount do
                begin
-                 FCoffSyms.Read(auxrec,sizeof(auxrec));
+                 if bigobj then
+                   FCoffSyms.Read(boauxrec,sizeof(boauxrec))
+                 else
+                   FCoffSyms.Read(auxrec,sizeof(auxrec));
                  inc(symidx);
                end;
               inc(symidx);
@@ -1836,12 +1905,17 @@ const pemagic : array[0..3] of byte = (
     function  TCoffObjInput.ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;
       var
         secalign : shortint;
+        secofs,
         strpos,
         i        : longint;
+        sympos,
+        symcount,
+        symsize,
         code     : longint;
         objsec   : TCoffObjSection;
         secoptions : TObjSectionOptions;
         header   : tcoffheader;
+        boheader : tcoffbigobjheader;
         sechdr   : tcoffsechdr;
         secname  : string;
         secnamebuf : array[0..15] of char;
@@ -1859,7 +1933,34 @@ const pemagic : array[0..3] of byte = (
                InputError('Can''t read COFF Header');
                exit;
              end;
-           if header.mach<>COFF_MAGIC then
+           if (header.mach=0) and (header.nsects=$ffff) then
+             begin
+               { either a library or big obj COFF }
+               AReader.seek(0);
+               if not AReader.read(boheader,sizeof(boheader)) then
+                 begin
+                   InputError('Can''t read Big Obj COFF Header');
+                   exit;
+                 end;
+               if CompareByte(boheader.UUID,COFF_BIG_OBJ_MAGIC,length(boheader.uuid))<>0 then
+                 begin
+                   { ToDo: this should be treated as a library }
+                   InputError('Illegal Big Obj COFF Magic');
+                   exit;
+                 end;
+               if boheader.Version<>COFF_BIG_OBJ_VERSION then
+                 begin
+                   InputError('Illegal Big Obj COFF Version');
+                   exit;
+                 end;
+               if boheader.Machine<>COFF_MAGIC then
+                 begin
+                   InputError('Illegal COFF Machine type');
+                   exit;
+                 end;
+               bigobj:=true;
+             end
+           else if header.mach<>COFF_MAGIC then
              begin
                InputError('Illegal COFF Magic');
                exit;
@@ -1868,8 +1969,20 @@ const pemagic : array[0..3] of byte = (
            eVCobj:=header.flag=$100;
 {$endif arm}
            { ObjSymbols }
-           AReader.Seek(header.sympos);
-           if not AReader.ReadArray(FCoffSyms,header.syms*sizeof(CoffSymbol)) then
+           if bigobj then
+             begin
+               sympos:=longint(boheader.PointerToSymbolTable);
+               symcount:=longint(boheader.NumberOfSymbols);
+               symsize:=sizeof(CoffBigObjSymbol);
+             end
+           else
+             begin
+               sympos:=longint(header.sympos);
+               symcount:=longint(header.syms);
+               symsize:=sizeof(CoffSymbol);
+             end;
+           AReader.Seek(sympos);
+           if not AReader.ReadArray(FCoffSyms,symcount*symsize) then
              begin
                InputError('Error reading coff symbol table');
                exit;
@@ -1895,10 +2008,17 @@ const pemagic : array[0..3] of byte = (
              end;
            { Section headers }
            { Allocate SecIdx -> TObjSection table, secidx is 1-based }
-           FSecCount:=header.nsects;
-           FSecTbl:=AllocMem((header.nsects+1)*sizeof(TObjSection));
-           AReader.Seek(sizeof(tcoffheader)+header.opthdr);
-           for i:=1 to header.nsects do
+           if bigobj then
+             FSecCount:=longint(boheader.NumberOfSections)
+           else
+             FSecCount:=header.nsects;
+           FSecTbl:=AllocMem((FSecCount+1)*sizeof(TObjSection));
+           if bigobj then
+             secofs:=sizeof(tcoffbigobjheader)
+           else
+             secofs:=sizeof(tcoffheader)+header.opthdr;
+           AReader.Seek(secofs);
+           for i:=1 to FSecCount do
              begin
                if not AReader.read(sechdr,sizeof(sechdr)) then
                 begin
