@@ -798,6 +798,7 @@ begin
   Mode:=M_String;
   OutFile:='';
   InFile:='';
+  OutName:='';
   GetPara;
   case Mode of
    M_Renumber : begin
