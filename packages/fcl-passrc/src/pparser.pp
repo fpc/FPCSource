@@ -944,7 +944,7 @@ begin
         NextToken;
         if (Curtoken<>tkString) then
           UnGetToken
-        else
+        else if assigned(Element) then
           Element.HintMessage:=CurTokenString;
         end;
       end;
@@ -2455,8 +2455,10 @@ begin
               end;
             declType:
               begin
-                TypeEl := ParseTypeDecl(Declarations);
-                if Assigned(TypeEl) then        // !!!
+              Scanner.ForceCaret:=True;
+              TypeEl := ParseTypeDecl(Declarations);
+              Scanner.ForceCaret:=True; // It may have been switched off
+              if Assigned(TypeEl) then        // !!!
                 begin
                   Declarations.Declarations.Add(TypeEl);
                   if (TypeEl.ClassType = TPasClassType)
