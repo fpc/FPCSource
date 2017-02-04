@@ -232,7 +232,6 @@ implementation
                       tcb.emit_ord_const(def.callerargareasize,ptrsinttype);
                       tcb.emit_shortstring_const(sym.realname);
 
-                      para:=nil;
                       for k:=0 to def.paras.count-1 do
                         begin
                           para:=tparavarsym(def.paras[k]);
@@ -254,7 +253,7 @@ implementation
                         end;
 
                       if not is_void(def.returndef) then
-                        write_paralocs(tcb,@para.paraloc[callerside]);
+                        write_paralocs(tcb,@def.funcretloc[callerside]);
 
                       tcb.end_anonymous_record;
                     end;
