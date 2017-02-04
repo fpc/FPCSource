@@ -277,7 +277,10 @@ interface
 {$ifdef arm}
        COFF_OPT_MAGIC   = $10b;
        TLSDIR_SIZE      = $18;
+
        function COFF_MAGIC: word;
+
+     const
 {$endif arm}
 {$ifdef x86_64}
        COFF_MAGIC       = $8664;
@@ -286,6 +289,7 @@ interface
 {$endif x86_64}
        COFF_BIG_OBJ_MAGIC: array[0..15] of byte = ($C7, $A1, $BA, $D1, $EE, $BA, $A9, $4B, $AF, $20, $FA, $F6, $6A, $A4, $DC, $B8);
        COFF_BIG_OBJ_VERSION = 2;
+
     function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
 
 implementation
