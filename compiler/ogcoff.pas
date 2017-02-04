@@ -1876,7 +1876,7 @@ const pemagic : array[0..3] of byte = (
                        else
                         begin
                           bind:=AB_COMMON;
-                          size:=sym.value;
+                          size:=symvalue;
                         end;
                      end
                     else
