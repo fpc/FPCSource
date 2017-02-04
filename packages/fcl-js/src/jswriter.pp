@@ -1051,39 +1051,27 @@ begin
   Indent;
   WriteJS(El.Block);
   Undent;
-  If C then
-    Write('} ')
-  else
-    begin
-    Writeln('}');
-    end;
+  Write('}');
   If (El is TJSTryCatchFinallyStatement) or (El is TJSTryCatchStatement) then
     begin
-    Write('catch ('+El.Ident);
+    Write(' catch');
+    if El.Ident<>'' then Write(' ('+El.Ident+')');
     If C then
-      Write(') {')
+      Write(' {')
     else
-      Writeln(') {');
+      Writeln(' {');
+    FSkipBrackets:=True;
     Indent;
     WriteJS(El.BCatch);
     Undent;
-    If C then
-      if (El is TJSTryCatchFinallyStatement) then
-        Write('} ')
-      else
-        Write('}')
-    else
-      begin
-      Writeln('');
-      Writeln('}');
-      end;
+    Write('}');
     end;
   If (El is TJSTryCatchFinallyStatement) or (El is TJSTryFinallyStatement) then
     begin
     If C then
-      Write('finally {')
+      Write(' finally {')
     else
-      Writeln('finally {');
+      Writeln(' finally {');
     Indent;
     FSkipBrackets:=True;
     WriteJS(El.BFinally);

@@ -403,6 +403,7 @@ type
   TPascalScanner = class
   private
     FCurrentModeSwitches: TModeSwitches;
+    FForceCaret: Boolean;
     FLastMsg: string;
     FLastMsgArgs: TMessageArgs;
     FLastMsgNumber: integer;
@@ -420,6 +421,7 @@ type
     FOptions: TPOptions;
     FLogEvents: TPScannerLogEvents;
     FOnLog: TPScannerLogHandler;
+    FPreviousToken: TToken;
     FSkipComments: Boolean;
     FSkipWhiteSpace: Boolean;
     TokenStr: PChar;
@@ -484,6 +486,7 @@ type
 
     property CurToken: TToken read FCurToken;
     property CurTokenString: string read FCurTokenString;
+    Property PreviousToken : TToken Read FPreviousToken;
 
     property Defines: TStrings read FDefines;
     property Macros: TStrings read FMacros;
@@ -497,6 +500,7 @@ type
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
     Property CurrentModeSwitches : TModeSwitches Read FCurrentModeSwitches Write FCurrentModeSwitches;
+    Property ForceCaret : Boolean Read FForceCaret Write FForceCaret;
   end;
 
 const
@@ -1262,6 +1266,7 @@ function TPascalScanner.FetchToken: TToken;
 var
   IncludeStackItem: TIncludeStackItem;
 begin
+  FPreviousToken:=FCurToken;
   while true do
   begin
     Result := DoFetchToken;
@@ -1403,9 +1408,14 @@ begin
   OldLength:=0;
   FCurTokenString := '';
 
-  while TokenStr[0] in ['#', ''''] do
+  while TokenStr[0] in ['^','#', ''''] do
   begin
     case TokenStr[0] of
+      '^' :
+        begin
+        TokenStart := TokenStr;
+        Inc(TokenStr);
+        end;
       '#':
         begin
           TokenStart := TokenStr;
@@ -2173,8 +2183,14 @@ begin
       end;
     '^':
       begin
+      if ForceCaret or
+         (PreviousToken in [tkIdentifier,tkNil,tkOperator,tkBraceClose,tkSquaredBraceClose,tkCARET]) then
+        begin
         Inc(TokenStr);
         Result := tkCaret;
+        end
+      else
+        Result:=DoFetchTextToken;
       end;
     '\':
       begin

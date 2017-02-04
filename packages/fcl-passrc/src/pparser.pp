@@ -283,6 +283,9 @@ type
       Element: TPasExpr; AOpCode: TExprOpCode);
     procedure AddParamsToBinaryExprChain(var ChainFirst, ChainLast: TPasExpr;
       Params: TParamsExpr);
+    {$IFDEF VerbosePasParser}
+    procedure WriteBinaryExprChain(Prefix: string; First, Last: TPasExpr);
+    {$ENDIF}
     function CreateUnaryExpr(AParent : TPasElement; AOperand: TPasExpr; AOpCode: TExprOpCode): TUnaryExpr;
     function CreateArrayValues(AParent : TPasElement): TArrayValues;
     function CreateFunctionType(const AName, AResultName: String; AParent: TPasElement;
@@ -2701,7 +2704,12 @@ begin
     NextToken;
     if CurToken = tkColon then
       begin
-      Result.VarType := ParseType(Result,Scanner.CurSourcePos);
+      Scanner.ForceCaret:=True;
+      try
+        Result.VarType := ParseType(Result,Scanner.CurSourcePos);
+      finally
+        Scanner.ForceCaret:=False;
+      end;
 {      if Result.VarType is TPasRangeType then
         Ungettoken; // Range type stops on token after last range token}
       end
@@ -2870,7 +2878,12 @@ begin
   TypeName := CurTokenString;
   NamePos:=Scanner.CurSourcePos;
   ExpectToken(tkEqual);
-  Result:=ParseType(Parent,NamePos,TypeName,True);
+  Scanner.ForceCaret:=True;
+  try
+    Result:=ParseType(Parent,NamePos,TypeName,True);
+  finally
+    Scanner.ForceCaret:=False;
+  end;
 end;
 
 function TPasParser.GetVariableValueAndLocation(Parent: TPasElement; out
@@ -2994,9 +3007,13 @@ begin
       if CurToken=tkComma then
         ExpectIdentifier;
     Until (CurToken=tkColon);
-
+    Scanner.ForceCaret:=False;
+    try
+      VarType := ParseComplexType(VarEl);
+    finally
+      Scanner.ForceCaret:=False;
+    end;
     // read type
-    VarType := ParseComplexType(VarEl);
     for i := OldListCount to VarList.Count - 1 do
       begin
       VarEl:=TPasVariable(VarList[i]);
@@ -3254,16 +3271,10 @@ function TPasParser.CheckProcedureArgs(Parent: TPasElement; Args: TFPList;
 
 begin
   NextToken;
-  Result:=(Curtoken=tkbraceOpen);
-  if not Result then
+  case CurToken of
+  tkBraceOpen:
     begin
-    if Mandatory then
-      ParseExc(nParserExpectedLBracketColon,SParserExpectedLBracketColon)
-    else
-      UngetToken;
-    end
-  else
-    begin
+    Result:=true;
     NextToken;
     if (CurToken<>tkBraceClose) then
       begin
@@ -3271,6 +3282,17 @@ begin
       ParseArgList(Parent, Args, tkBraceClose);
       end;
     end;
+  tkSemicolon,tkColon,tkof,tkis,tkIdentifier:
+    begin
+    Result:=false;
+    if Mandatory then
+      ParseExc(nParserExpectedLBracketColon,SParserExpectedLBracketColon)
+    else
+      UngetToken;
+    end
+  else
+    ParseExcTokenError(';');
+  end;
 end;
 
 procedure TPasParser.HandleProcedureModifier(Parent: TPasElement; pm: TProcedureModifier);
@@ -5039,7 +5061,7 @@ begin
       // chain not yet full => inconsistency
       RaiseInternal;
     Last.right:=CreateBinaryExpr(Last,Last.right,Element,AOpCode);
-    ChainLast:=Last;
+    ChainLast:=Last.right;
     end
   else
     begin
@@ -5084,6 +5106,68 @@ begin
     ChainLast:=Params;
     end;
 end;
+
+{$IFDEF VerbosePasParser}
+procedure TPasParser.WriteBinaryExprChain(Prefix: string; First, Last: TPasExpr
+  );
+var
+  i: Integer;
+begin
+  if First=nil then
+    begin
+    write(Prefix,'First=nil');
+    if Last=nil then
+      writeln('=Last')
+    else
+      begin
+      writeln(', ERROR Last=',Last.ClassName);
+      ParseExcSyntaxError;
+      end;
+    end
+  else if Last=nil then
+    begin
+    writeln(Prefix,'ERROR Last=nil First=',First.ClassName);
+    ParseExcSyntaxError;
+    end
+  else if First is TBinaryExpr then
+    begin
+    i:=0;
+    while First is TBinaryExpr do
+      begin
+      writeln(Prefix,Space(i*2),'bin.left=',TBinaryExpr(First).left.ClassName);
+      if First=Last then break;
+      First:=TBinaryExpr(First).right;
+      inc(i);
+      end;
+    if First<>Last then
+      begin
+      writeln(Prefix,Space(i*2),'ERROR Last is not last in chain');
+      ParseExcSyntaxError;
+      end;
+    if not (Last is TBinaryExpr) then
+      begin
+      writeln(Prefix,Space(i*2),'ERROR Last is not TBinaryExpr: ',Last.ClassName);
+      ParseExcSyntaxError;
+      end;
+    if TBinaryExpr(Last).right=nil then
+      begin
+      writeln(Prefix,Space(i*2),'ERROR Last.right=nil');
+      ParseExcSyntaxError;
+      end;
+    writeln(Prefix,Space(i*2),'last.right=',TBinaryExpr(Last).right.ClassName);
+    end
+  else if First=Last then
+    writeln(Prefix,'First=Last=',First.ClassName)
+  else
+    begin
+    write(Prefix,'ERROR First=',First.ClassName);
+    if Last<>nil then
+      writeln(' Last=',Last.ClassName)
+    else
+      writeln(' Last=nil');
+    end;
+end;
+{$ENDIF}
 
 function TPasParser.CreateUnaryExpr(AParent: TPasElement; AOperand: TPasExpr;
   AOpCode: TExprOpCode): TUnaryExpr;

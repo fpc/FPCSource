@@ -112,6 +112,7 @@ type
     function GetDottedIdentifier(El: TJSElement): string;
     procedure CheckSource(Msg,Statements, InitStatements: string);
     procedure CheckDiff(Msg, Expected, Actual: string);
+    procedure WriteSource(aFilename: string; Row: integer = 0; Col: integer = 0);
     property PasProgram: TPasProgram Read FPasProgram;
     property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
     property ModuleCount: integer read GetModuleCount;
@@ -154,6 +155,7 @@ type
     Procedure TestProcedureWithoutParams;
     Procedure TestPrgProcVar;
     Procedure TestProcTwoArgs;
+    Procedure TestProc_DefaultValue;
     Procedure TestUnitProcVar;
     Procedure TestFunctionResult;
     // ToDo: overloads
@@ -163,10 +165,11 @@ type
     Procedure TestAssignFunctionResult;
     Procedure TestFunctionResultInCondition;
     Procedure TestExit;
+    // ToDo: Procedure TestBreak;
+    // ToDo: Procedure TestContinue;
+    // ToDo: TestString; SetLength,Length,[],char
 
     // ToDo: pass by reference
-
-    // ToDo: procedure type
 
     // ToDo: enums
 
@@ -179,30 +182,43 @@ type
     Procedure TestVarRecord;
     Procedure TestForLoop;
     Procedure TestForLoopInFunction;
+    Procedure TestForLoop_ReadVarAfter;
+    Procedure TestForLoop_Nested;
     Procedure TestRepeatUntil;
     Procedure TestAsmBlock;
     Procedure TestTryFinally;
-    // ToDo: try..except
+    Procedure TestTryExcept;
     Procedure TestCaseOf;
     Procedure TestCaseOf_UseSwitch;
     Procedure TestCaseOfNoElse;
     Procedure TestCaseOfNoElse_UseSwitch;
     Procedure TestCaseOfRange;
 
+    // arrays
+    Procedure TestArray;
+
     // classes
-    // ToDo: var
-    // ToDo: inheritance
-    // ToDo: constructor
+    Procedure TestClass_TObjectDefaultConstructor;
+    Procedure TestClass_TObjectConstructorWithParams;
+    Procedure TestClass_Var;
+    Procedure TestClass_Method;
+    Procedure TestClass_Inheritance;
+    Procedure TestClass_AbstractMethod;
+    Procedure TestClass_CallInherited_NoParams;
+    Procedure TestClass_CallInherited_WithParams;
+    // ToDo: Procedure TestClass_CallInheritedConstructor;
+    // ToDo: overload
     // ToDo: second constructor
     // ToDo: call another constructor within a constructor
-    // ToDo: newinstance
-    // ToDo: BeforeDestruction
-    // ToDo: AfterConstruction
+    // ToDo: call class.classmethod
+    // ToDo: call instance.classmethod
+    // ToDo: property
     // ToDo: event
 
     // ToDo: class of
+    // ToDo: call classof.classmethod
 
-    // ToDo: arrays
+    // ToDo: procedure type
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -428,6 +444,8 @@ begin
 end;
 
 procedure TTestModule.ParseModule;
+var
+  Row, Col: integer;
 begin
   FFirstPasStatement:=nil;
   try
@@ -436,22 +454,20 @@ begin
   except
     on E: EParserError do
       begin
+      WriteSource(E.Filename,E.Row,E.Column);
       writeln('ERROR: TTestModule.ParseModule Parser: '+E.ClassName+':'+E.Message
-        +' File='+Scanner.CurFilename
-        +' LineNo='+IntToStr(Scanner.CurRow)
-        +' Col='+IntToStr(Scanner.CurColumn)
+        +' '+E.Filename+'('+IntToStr(E.Row)+','+IntToStr(E.Column)+')'
         +' Line="'+Scanner.CurLine+'"'
         );
       raise E;
       end;
     on E: EPasResolve do
       begin
+      Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
+      WriteSource(E.PasElement.SourceFilename,Row,Col);
       writeln('ERROR: TTestModule.ParseModule PasResolver: '+E.ClassName+':'+E.Message
-        +' File='+Scanner.CurFilename
-        +' LineNo='+IntToStr(Scanner.CurRow)
-        +' Col='+IntToStr(Scanner.CurColumn)
-        +' Line="'+Scanner.CurLine+'"'
-        );
+        +' '+E.PasElement.SourceFilename
+        +'('+IntToStr(Row)+','+IntToStr(Col)+')');
       raise E;
       end;
     on E: Exception do
@@ -582,7 +598,7 @@ var
   FunBody: TJSFunctionBody;
   InitName: String;
 begin
-  FJSModule:=FConverter.ConvertPasElement(Module,nil) as TJSSourceElements;
+  FJSModule:=FConverter.ConvertPasElement(Module,Engine) as TJSSourceElements;
   FJSSource:=TStringList.Create;
   FJSSource.Text:=JSToStr(JSModule);
   writeln('TTestModule.ConvertModule JS:');
@@ -807,6 +823,34 @@ begin
       inc(ActualP);
     end;
   until false;
+end;
+
+procedure TTestModule.WriteSource(aFilename: string; Row: integer; Col: integer
+  );
+var
+  LR: TLineReader;
+  CurRow: Integer;
+  Line: String;
+begin
+  LR:=FileResolver.FindSourceFile(aFilename);
+  writeln('Testcode:-File="',aFilename,'"----------------------------------:');
+  if LR=nil then
+    writeln('Error: file not loaded: "',aFilename,'"')
+  else
+    begin
+    CurRow:=0;
+    while not LR.IsEOF do
+      begin
+      inc(CurRow);
+      Line:=LR.ReadLine;
+      if (Row=CurRow) then
+        begin
+        write('*');
+        Line:=LeftStr(Line,Col-1)+'|'+copy(Line,Col,length(Line));
+        end;
+      writeln(Format('%:4d: ',[CurRow]),Line);
+      end;
+    end;
 end;
 
 procedure TTestModule.TestEmptyProgram;
@@ -1347,7 +1391,7 @@ begin
   Add('end;');
   Add('begin');
   ConvertProgram;
-  CheckSource('TestUnitImplVar',
+  CheckSource('TestExit',
     LinesToStr([ // statements
     'this.proca = function () {',
     '  return;',
@@ -1379,7 +1423,7 @@ begin
   Add('  v2:longint = 3;');
   Add('  v3:string = ''abc'';');
   ConvertUnit;
-  CheckSource('TestUnitImplVar',
+  CheckSource('TestUnitImplVars',
     LinesToStr([ // statements
     'var $impl = {',
     '};',
@@ -1401,7 +1445,7 @@ begin
   Add('  v2:longint = 4;');
   Add('  v3:string = ''abc'';');
   ConvertUnit;
-  CheckSource('TestUnitImplVar',
+  CheckSource('TestUnitImplConsts',
     LinesToStr([ // statements
     'var $impl = {',
     '};',
@@ -1426,7 +1470,7 @@ begin
   Add('initialization');
   Add('  r.i:=3;');
   ConvertUnit;
-  CheckSource('TestUnitImplVar',
+  CheckSource('TestUnitImplRecord',
     LinesToStr([ // statements
     'var $impl = {',
     '};',
@@ -1458,6 +1502,49 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestProc_DefaultValue;
+begin
+  StartProgram(false);
+  Add('procedure p1(i: longint = 1);');
+  Add('begin');
+  Add('end;');
+  Add('procedure p2(i: longint = 1; c: char = ''a'');');
+  Add('begin');
+  Add('end;');
+  Add('procedure p3(d: double = 1.0; b: boolean = false; s: string = ''abc'');');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  Add('  p1;');
+  Add('  p1();');
+  Add('  p1(11);');
+  Add('  p2;');
+  Add('  p2();');
+  Add('  p2(12);');
+  Add('  p2(13,''b'');');
+  Add('  p3();');
+  ConvertProgram;
+  CheckSource('TestProc_DefaultValue',
+    LinesToStr([ // statements
+    'this.p1 = function (i) {',
+    '};',
+    'this.p2 = function (i,c) {',
+    '};',
+    'this.p3 = function (d,b,s) {',
+    '};'
+    ]),
+    LinesToStr([ // this.$main
+    '  this.p1(1);',
+    '  this.p1(1);',
+    '  this.p1(11);',
+    '  this.p2(1,"a");',
+    '  this.p2(1,"a");',
+    '  this.p2(12,"a");',
+    '  this.p2(13,"b");',
+    '  this.p3(1.0,false,"abc");'
+    ]));
+end;
+
 procedure TTestModule.TestFunctionInt;
 begin
   StartProgram(false);
@@ -1467,7 +1554,7 @@ begin
   Add('end;');
   Add('begin');
   ConvertProgram;
-  CheckSource('TestProcTwoArgs',
+  CheckSource('TestFunctionInt',
     LinesToStr([ // statements
     'this.test = function (a) {',
     '  var result = 0;',
@@ -1489,7 +1576,7 @@ begin
   Add('end;');
   Add('begin');
   ConvertProgram;
-  CheckSource('TestProcTwoArgs',
+  CheckSource('TestFunctionString',
     LinesToStr([ // statements
     'this.test = function (a) {',
     '  var result = "";',
@@ -1538,7 +1625,7 @@ begin
   Add('    j:=j+i;');
   Add('  end;');
   ConvertProgram;
-  CheckSource('TestVarRecord',
+  CheckSource('TestForLoop',
     LinesToStr([ // statements
     'this.i = 0;',
     'this.j = 0;',
@@ -1547,10 +1634,11 @@ begin
     LinesToStr([ // this.$main
     '  this.j = 0;',
     '  this.n = 3;',
-    '  this.i = 1;',
-    '  for (var $loopend = this.n; (this.i <= $loopend); this.i++) {',
+    '  var $loopend1 = this.n;',
+    '  for (this.i = 1; (this.i <= $loopend1); this.i++) {',
     '    this.j = (this.j + this.i);',
-    '  };'
+    '  };',
+    '  if ((this.i > $loopend1)) this.i--;'
     ]));
 end;
 
@@ -1570,16 +1658,79 @@ begin
   Add('begin');
   Add('  SumNumbers(3);');
   ConvertProgram;
-  CheckSource('TestVarRecord',
+  CheckSource('TestForLoopInFunction',
     LinesToStr([ // statements
     'this.sumnumbers = function (n) {',
     '  var result = 0;',
     '  var i = 0;',
     '  var j = 0;',
     '  j = 0;',
-    '  i = 1;',
-    '  for (var $loopend = n; (i <= $loopend); i++) {',
+    '  var $loopend1 = n;',
+    '  for (i = 1; (i <= $loopend1); i++) {',
     '    j = (j + i);',
+    '  };',
+    '  return result;',
+    '};'
+    ]),
+    LinesToStr([ // this.$main
+    '  this.sumnumbers(3);'
+    ]));
+end;
+
+procedure TTestModule.TestForLoop_ReadVarAfter;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  for i:=1 to 2 do ;');
+  Add('  if i=3 then ;');
+  ConvertProgram;
+  CheckSource('TestForLoop',
+    LinesToStr([ // statements
+    'this.i = 0;'
+    ]),
+    LinesToStr([ // this.$main
+    '  var $loopend1 = 2;',
+    '  for (this.i = 1; (this.i <= $loopend1); this.i++);',
+    '  if((this.i>$loopend1))this.i--;',
+    '  if ((this.i==3)){} ;'
+    ]));
+end;
+
+procedure TTestModule.TestForLoop_Nested;
+begin
+  StartProgram(false);
+  Add('function SumNumbers(n: longint): longint;');
+  Add('var');
+  Add('  i, j, k: longint;');
+  Add('begin');
+  Add('  k:=0;');
+  Add('  for i:=1 to n do');
+  Add('  begin');
+  Add('    for j:=1 to i do');
+  Add('    begin');
+  Add('      k:=k+i;');
+  Add('    end;');
+  Add('  end;');
+  Add('end;');
+  Add('begin');
+  Add('  SumNumbers(3);');
+  ConvertProgram;
+  CheckSource('TestForLoopInFunction',
+    LinesToStr([ // statements
+    'this.sumnumbers = function (n) {',
+    '  var result = 0;',
+    '  var i = 0;',
+    '  var j = 0;',
+    '  var k = 0;',
+    '  k = 0;',
+    '  var $loopend1 = n;',
+    '  for (i = 1; (i <= $loopend1); i++) {',
+    '    var $loopend2 = i;',
+    '    for (j = 1; (j <= $loopend2); j++) {',
+    '      k = (k + i);',
+    '    };',
     '  };',
     '  return result;',
     '};'
@@ -1603,7 +1754,7 @@ begin
   Add('    j:=j+i;');
   Add('  until i>=n');
   ConvertProgram;
-  CheckSource('TestVarRecord',
+  CheckSource('TestRepeatUntil',
     LinesToStr([ // statements
     'this.i = 0;',
     'this.j = 0;',
@@ -1635,7 +1786,7 @@ begin
   Add('  end;');
   Add('  i:=4;');
   ConvertProgram;
-  CheckSource('TestAsm',
+  CheckSource('TestAsmBlock',
     LinesToStr([ // statements
     'this.i = 0;'
     ]),
@@ -1661,7 +1812,7 @@ begin
   Add('    i:=3');
   Add('  end;');
   ConvertProgram;
-  CheckSource('TestVarRecord',
+  CheckSource('TestTryFinally',
     LinesToStr([ // statements
     'this.i = 0;'
     ]),
@@ -1671,6 +1822,69 @@ begin
     '  this.i = (2 / this.i);',
     '} finally {',
     '  this.i = 3;',
+    '};'
+    ]));
+end;
+
+procedure TTestModule.TestTryExcept;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('  Exception = class Msg: string; end;');
+  Add('  EInvalidCast = class(Exception) end;');
+  Add('var i: longint;');
+  Add('begin');
+  Add('  try');
+  Add('    i:=1;');
+  Add('  except');
+  Add('    i:=2');
+  Add('  end;');
+  Add('  try');
+  Add('    i:=3;');
+  Add('  except');
+  Add('    raise;');
+  Add('  end;');
+  Add('  try');
+  Add('    i:=4;');
+  Add('  except');
+  Add('    on EInvalidCast do');
+  Add('      raise;');
+  Add('    on E: Exception do');
+  Add('      if E.msg='''' then');
+  Add('        raise E;');
+  Add('  end;');
+  ConvertProgram;
+  CheckSource('TestTryExcept',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "tobject", null, function () {',
+    '});',
+    'rtl.createClass(this, "exception", this.tobject, function () {',
+    '  this.msg = "";',
+    '});',
+    'rtl.createClass(this, "einvalidcast", this.exception, function () {',
+    '});',
+    'this.i = 0;'
+    ]),
+    LinesToStr([ // this.$main
+    'try {',
+    '  this.i = 1;',
+    '} catch {',
+    '  this.i = 2;',
+    '};',
+    'try {',
+    '  this.i = 3;',
+    '} catch (exceptobject) {',
+    '  throw exceptobject;',
+    '};',
+    'try {',
+    '  this.i = 4;',
+    '} catch (exceptobject) {',
+    '  if (this.einvalidcast.isPrototypeOf(exceptobject)) throw exceptobject;',
+    '  if (this.exception.isPrototypeOf(exceptobject)) {',
+    '    var e = exceptobject;',
+    '    if ((e.msg == "")) throw e;',
+    '  };',
     '};'
     ]));
 end;
@@ -1687,7 +1901,7 @@ begin
   Add('    i:=4');
   Add('  end;');
   ConvertProgram;
-  CheckSource('TestVarRecord',
+  CheckSource('TestCaseOf',
     LinesToStr([ // statements
     'this.i = 0;'
     ]),
@@ -1712,7 +1926,7 @@ begin
   Add('    i:=4');
   Add('  end;');
   ConvertProgram;
-  CheckSource('TestVarRecord',
+  CheckSource('TestCaseOf_UseSwitch',
     LinesToStr([ // statements
     'this.i = 0;'
     ]),
@@ -1738,7 +1952,7 @@ begin
   Add('  1: begin i:=2; i:=3; end;');
   Add('  end;');
   ConvertProgram;
-  CheckSource('TestVarRecord',
+  CheckSource('TestCaseOfNoElse',
     LinesToStr([ // statements
     'this.i = 0;'
     ]),
@@ -1761,7 +1975,7 @@ begin
   Add('  1: begin i:=2; i:=3; end;');
   Add('  end;');
   ConvertProgram;
-  CheckSource('TestVarRecord',
+  CheckSource('TestCaseOfNoElse_UseSwitch',
     LinesToStr([ // statements
     'this.i = 0;'
     ]),
@@ -1787,7 +2001,7 @@ begin
   Add('  else ;');
   Add('  end;');
   ConvertProgram;
-  CheckSource('TestVarRecord',
+  CheckSource('TestCaseOfRange',
     LinesToStr([ // statements
     'this.i = 0;'
     ]),
@@ -1795,6 +2009,390 @@ begin
     'var $tmp1 = this.i;',
     'if ((($tmp1 >= 1) && ($tmp1 <= 3))) this.i = 14 else if ((($tmp1 == 4) || ($tmp1 == 5))) this.i = 16 else if (((($tmp1 >= 6) && ($tmp1 <= 7)) || (($tmp1 >= 9) && ($tmp1 <= 10)))) {} else {',
     '};'
+    ]));
+end;
+
+procedure TTestModule.TestClass_TObjectDefaultConstructor;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    constructor Create;');
+  Add('    destructor Destroy;');
+  Add('  end;');
+  Add('constructor TObject.Create;');
+  Add('begin end;');
+  Add('destructor TObject.Destroy;');
+  Add('begin end;');
+  Add('var o: TObject;');
+  Add('begin');
+  Add('  o:=TObject.Create;');
+  Add('  o.Destroy;');
+  ConvertProgram;
+  CheckSource('TestClass_TObjectDefaultConstructor',
+    LinesToStr([ // statements
+    'rtl.createClass(this,"tobject",null,function(){',
+    '  this.create = function(){',
+    '  };',
+    '  this.destroy = function(){',
+    '  };',
+    '});',
+    'this.o = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.o = this.tobject.$create("create");',
+    'this.o.$destroy("destroy");'
+    ]));
+end;
+
+procedure TTestModule.TestClass_TObjectConstructorWithParams;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    constructor Create(p: longint);');
+  Add('  end;');
+  Add('constructor TObject.Create(p: longint);');
+  Add('begin end;');
+  Add('var o: TObject;');
+  Add('begin');
+  Add('  o:=TObject.Create(3);');
+  ConvertProgram;
+  CheckSource('TestClass_TObjectConstructorWithParams',
+    LinesToStr([ // statements
+    'rtl.createClass(this,"tobject",null,function(){',
+    '  this.create = function(p){',
+    '  };',
+    '});',
+    'this.o = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.o = this.tobject.$create("create",[3]);'
+    ]));
+end;
+
+procedure TTestModule.TestClass_Var;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    i: longint;');
+  Add('    constructor Create(p: longint);');
+  Add('  end;');
+  Add('constructor TObject.Create(p: longint);');
+  Add('begin');
+  Add('  i:=p+3');
+  Add('end;');
+  Add('var o: TObject;');
+  Add('begin');
+  Add('  o:=TObject.Create(4);');
+  Add('  o.i:=o.i+5;');
+  ConvertProgram;
+  CheckSource('TestClass_Var',
+    LinesToStr([ // statements
+    'rtl.createClass(this,"tobject",null,function(){',
+    '  this.i = 0;',
+    '  this.create = function(p){',
+    '    this.i = (p+3);',
+    '  };',
+    '});',
+    'this.o = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.o = this.tobject.$create("create",[4]);',
+    'this.o.i = (this.o.i + 5);'
+    ]));
+end;
+
+procedure TTestModule.TestClass_Method;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    i: longint;');
+  Add('    Sub: TObject;');
+  Add('    constructor Create;');
+  Add('    function GetIt(p: longint): TObject;');
+  Add('  end;');
+  Add('constructor TObject.Create; begin end;');
+  Add('function TObject.GetIt(p: longint): TObject;');
+  Add('begin');
+  Add('  Self.i:=p+3;');
+  Add('  Result:=Self.Sub;');
+  Add('end;');
+  Add('var o: TObject;');
+  Add('begin');
+  Add('  o:=TObject.Create;');
+  Add('  o.GetIt(4);');
+  Add('  o.Sub.Sub:=nil;');
+  Add('  o.Sub.GetIt(5);');
+  Add('  o.Sub.GetIt(6).Sub:=nil;');
+  Add('  o.Sub.GetIt(7).GetIt(8);');
+  Add('  o.Sub.GetIt(9).Sub.GetIt(10);');
+  ConvertProgram;
+  CheckSource('TestClass_Method',
+    LinesToStr([ // statements
+    'rtl.createClass(this,"tobject",null,function(){',
+    '  this.i = 0;',
+    '  this.sub = null;',
+    '  this.create = function(){',
+    '  };',
+    '  this.getit = function(p){',
+    '    var result = null;',
+    '    this.i = (p + 3);',
+    '    result = this.sub;',
+    '    return result;',
+    '  };',
+    '});',
+    'this.o = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.o = this.tobject.$create("create");',
+    'this.o.getit(4);',
+    'this.o.sub.sub=null;',
+    'this.o.sub.getit(5);',
+    'this.o.sub.getit(6).sub=null;',
+    'this.o.sub.getit(7).getit(8);',
+    'this.o.sub.getit(9).sub.getit(10);'
+    ]));
+end;
+
+procedure TTestModule.TestClass_Inheritance;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    constructor Create;');
+  Add('  end;');
+  Add('  TClassA = class');
+  Add('  end;');
+  Add('  TClassB = class(TObject)');
+  Add('    procedure ProcB;');
+  Add('  end;');
+  Add('constructor TObject.Create; begin end;');
+  Add('procedure TClassB.ProcB; begin end;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('  a: TClassA;');
+  Add('  b: TClassB;');
+  Add('begin');
+  Add('  o:=TObject.Create;');
+  Add('  a:=TClassA.Create;');
+  Add('  b:=TClassB.Create;');
+  Add('  if o is TClassA then ;');
+  Add('  b:=o as TClassB;');
+  Add('  (o as TClassB).ProcB;');
+  ConvertProgram;
+  CheckSource('TestClass_Inheritance',
+    LinesToStr([ // statements
+    'rtl.createClass(this,"tobject",null,function(){',
+    '  this.create = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this,"tclassa",this.tobject,function(){',
+    '});',
+    'rtl.createClass(this,"tclassb",this.tobject,function(){',
+    '  this.procb = function () {',
+    '  };',
+    '});',
+    'this.o = null;',
+    'this.a = null;',
+    'this.b = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.o = this.tobject.$create("create");',
+    'this.a = this.tclassa.$create("create");',
+    'this.b = this.tclassb.$create("create");',
+    'if (this.tclassa.isPrototypeOf(this.o)) {',
+    '};',
+    'this.b = rtl.as(this.o, this.tclassb);',
+    'rtl.as(this.o, this.tclassb).procb();'
+    ]));
+end;
+
+procedure TTestModule.TestClass_AbstractMethod;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    procedure DoIt; virtual; abstract;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestClass_AbstractMethod',
+    LinesToStr([ // statements
+    'rtl.createClass(this,"tobject",null,function(){',
+    '});'
+    ]),
+    LinesToStr([ // this.$main
+    ''
+    ]));
+end;
+
+procedure TTestModule.TestClass_CallInherited_NoParams;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure DoAbstract; virtual; abstract;');
+  Add('    procedure DoVirtual; virtual;');
+  Add('    procedure DoIt;');
+  Add('  end;');
+  Add('  TA = class');
+  Add('    procedure DoAbstract; override;');
+  Add('    procedure DoVirtual; override;');
+  Add('    procedure DoSome;');
+  Add('  end;');
+  Add('procedure TObject.DoVirtual;');
+  Add('begin');
+  Add('  inherited; // call non existing ancestor -> ignore silently');
+  Add('end;');
+  Add('procedure TObject.DoIt;');
+  Add('begin');
+  Add('end;');
+  Add('procedure TA.DoAbstract;');
+  Add('begin');
+  Add('  inherited DoVirtual; // call TObject.DoVirtual');
+  Add('end;');
+  Add('procedure TA.DoVirtual;');
+  Add('begin');
+  Add('  inherited; // call TObject.DoVirtual');
+  Add('  inherited DoVirtual; // call TObject.DoVirtual');
+  Add('  inherited DoVirtual(); // call TObject.DoVirtual');
+  Add('  DoIt;');
+  Add('  DoIt();');
+  Add('end;');
+  Add('procedure TA.DoSome;');
+  Add('begin');
+  Add('  inherited; // call non existing ancestor method -> silently ignore');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestClass_CallInherited_NoParams',
+    LinesToStr([ // statements
+    'rtl.createClass(this,"tobject",null,function(){',
+    '  this.dovirtual = function () {',
+    '  };',
+    '  this.doit = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "ta", this.tobject, function () {',
+    '  this.doabstract = function () {',
+    '    pas.program.tobject.dovirtual.call(this);',
+    '  };',
+    '  this.dovirtual = function () {',
+    '    pas.program.tobject.dovirtual.apply(this, arguments);',
+    '    pas.program.tobject.dovirtual.call(this);',
+    '    pas.program.tobject.dovirtual.call(this);',
+    '    this.doit();',
+    '    this.doit();',
+    '  };',
+    '  this.dosome = function () {',
+    '  };',
+    '});'
+    ]),
+    LinesToStr([ // this.$main
+    ''
+    ]));
+end;
+
+procedure TTestModule.TestClass_CallInherited_WithParams;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure DoAbstract(a: longint; b: longint = 0); virtual; abstract;');
+  Add('    procedure DoVirtual(a: longint; b: longint = 0); virtual;');
+  Add('    procedure DoIt(a: longint; b: longint = 0);');
+  Add('    procedure DoIt2(a: longint = 1; b: longint = 2);');
+  Add('  end;');
+  Add('  TA = class');
+  Add('    procedure DoAbstract(a: longint; b: longint = 0); override;');
+  Add('    procedure DoVirtual(a: longint; b: longint = 0); override;');
+  Add('  end;');
+  Add('procedure TObject.DoVirtual(a: longint; b: longint = 0);');
+  Add('begin');
+  Add('end;');
+  Add('procedure TObject.DoIt(a: longint; b: longint = 0);');
+  Add('begin');
+  Add('end;');
+  Add('procedure TObject.DoIt2(a: longint; b: longint = 0);');
+  Add('begin');
+  Add('end;');
+  Add('procedure TA.DoAbstract(a: longint; b: longint = 0);');
+  Add('begin');
+  Add('  inherited DoVirtual(a,b); // call TObject.DoVirtual(a,b)');
+  Add('  inherited DoVirtual(a); // call TObject.DoVirtual(a,0)');
+  Add('end;');
+  Add('procedure TA.DoVirtual(a: longint; b: longint = 0);');
+  Add('begin');
+  Add('  inherited; // call TObject.DoVirtual(a,b)');
+  Add('  inherited DoVirtual(a,b); // call TObject.DoVirtual(a,b)');
+  Add('  inherited DoVirtual(a); // call TObject.DoVirtual(a,0)');
+  Add('  DoIt(a,b);');
+  Add('  DoIt(a);');
+  Add('  DoIt2(a);');
+  Add('  DoIt2;');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestClass_CallInherited_WithParams',
+    LinesToStr([ // statements
+    'rtl.createClass(this,"tobject",null,function(){',
+    '  this.dovirtual = function (a,b) {',
+    '  };',
+    '  this.doit = function (a,b) {',
+    '  };',
+    '  this.doit2 = function (a,b) {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "ta", this.tobject, function () {',
+    '  this.doabstract = function (a,b) {',
+    '    pas.program.tobject.dovirtual.call(this,a,b);',
+    '    pas.program.tobject.dovirtual.call(this,a,0);',
+    '  };',
+    '  this.dovirtual = function (a,b) {',
+    '    pas.program.tobject.dovirtual.apply(this, arguments);',
+    '    pas.program.tobject.dovirtual.call(this,a,b);',
+    '    pas.program.tobject.dovirtual.call(this,a,0);',
+    '    this.doit(a,b);',
+    '    this.doit(a,0);',
+    '    this.doit2(a,2);',
+    '    this.doit2(1,2);',
+    '  };',
+    '});'
+    ]),
+    LinesToStr([ // this.$main
+    ''
+    ]));
+end;
+
+procedure TTestModule.TestArray;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrayInt = array of longint;');
+  Add('var');
+  Add('  a: TArrayInt;');
+  Add('begin');
+  Add('  SetLength(a,3);');
+  Add('  a[0]:=4;');
+  Add('  a[1]:=length(a)+a[0];');
+  ConvertProgram;
+  CheckSource('TestArray',
+    LinesToStr([ // statements
+    'this.a = [];'
+    ]),
+    LinesToStr([ // this.$main
+    'rtl.setArrayLength(this.a,3,0);',
+    'this.a[0]=4;',
+    'this.a[1]=(rtl.length(this.a)+this.a[0]);'
     ]));
 end;
 

@@ -1211,8 +1211,6 @@ procedure TTestStatementParser.TestCaseElseNoSemicolon;
 Var
   C : TPasImplCaseOf;
   S : TPasImplCaseStatement;
-  B : TPasImplbeginBlock;
-
 begin
   DeclareVar('integer');
   TestStatement(['case a of','1 : dosomething;','2 : dosomethingmore','else','a:=1;','end;']);

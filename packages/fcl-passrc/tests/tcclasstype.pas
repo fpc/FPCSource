@@ -37,6 +37,7 @@ type
     Procedure EndClass(AEnd : String = 'end');
     Procedure AddMember(S : String);
     Procedure ParseClass;
+    Procedure ParseClassFail(Msg: string; MsgNumber: integer);
     Procedure DoParseClass(FromSpecial : Boolean = False);
     procedure SetUp; override;
     procedure TearDown; override;
@@ -92,6 +93,7 @@ type
     procedure TestHintFieldUninmplemented;
     Procedure TestMethodSimple;
     Procedure TestMethodSimpleComment;
+    Procedure TestMethodWithDotFails;
     Procedure TestClassMethodSimple;
     Procedure TestClassMethodSimpleComment;
     Procedure TestConstructor;
@@ -329,6 +331,23 @@ begin
   DoParseClass(False);
 end;
 
+procedure TTestClassType.ParseClassFail(Msg: string; MsgNumber: integer);
+var
+  ok: Boolean;
+begin
+  ok:=false;
+  try
+    ParseClass;
+  except
+    on E: EParserError do
+      begin
+      AssertEquals('Expected {'+Msg+'}, but got msg {'+Parser.LastMsg+'}',MsgNumber,Parser.LastMsgNumber);
+      ok:=true;
+      end;
+  end;
+  AssertEquals('Missing parser error {'+Msg+'} ('+IntToStr(MsgNumber)+')',true,ok);
+end;
+
 procedure TTestClassType.DoParseClass(FromSpecial: Boolean);
 begin
   EndClass;
@@ -363,7 +382,6 @@ begin
     AssertNull('No helperfortype if not helper',TheClass.HelperForType);
   if TheClass.Members.Count>0 then
     FMember1:=TObject(TheClass.Members[0]) as TPaselement;
-
 end;
 
 procedure TTestClassType.SetUp;
@@ -409,6 +427,7 @@ procedure TTestClassType.AssertProperty(P: TPasProperty;
   AVisibility: TPasMemberVisibility; AName, ARead, AWrite, AStored,
   AImplements: String; AArgCount: Integer; ADefault, ANodefault: Boolean);
 begin
+  AssertEquals('Property Name',AName,P.Name);
   AssertEquals(P.Name+': Visibility',AVisibility,P.Visibility);
   Assertequals(P.Name+': No args',AArgCount,P.Args.Count);
   Assertequals(P.Name+': Read accessor',ARead,P.ReadAccessorName);
@@ -766,6 +785,12 @@ begin
   AssertNotNull('Have method',Method1);
   AssertMemberName('DoSomething');
   AssertEquals('Comment','c'+sLineBreak,Method1.DocComment);
+end;
+
+procedure TTestClassType.TestMethodWithDotFails;
+begin
+  AddMember('Procedure DoSomething.Stupid');
+  ParseClassFail('Expected ";"',nParserExpectTokenError);
 end;
 
 procedure TTestClassType.TestClassMethodSimple;
