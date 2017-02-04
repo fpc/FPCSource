@@ -16439,6 +16439,7 @@ utils/pas2jni/readme.txt svneol=native#text/plain
 utils/pas2jni/writer.pas svneol=native#text/plain
 utils/pas2js/Makefile svneol=native#text/plain
 utils/pas2js/Makefile.fpc svneol=native#text/plain
+utils/pas2js/dist/rtl.js svneol=native#text/plain
 utils/pas2js/fpmake.pp svneol=native#text/plain
 utils/pas2js/pas2js.lpi svneol=native#text/plain
 utils/pas2js/pas2js.pp svneol=native#text/plain
