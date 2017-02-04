@@ -1989,6 +1989,7 @@ const pemagic : array[0..3] of byte = (
         InputFileName:=AReader.FileName;
         objdata:=CObjData.Create(InputFileName);
         result:=false;
+        boheader:=default(tcoffbigobjheader);
         FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
         with TCoffObjData(objdata) do
          begin
