@@ -59,6 +59,7 @@ type
     function PackageRemoteArchive(APackage:TFPPackage): String;
 
     procedure ScanInstalledPackagesForAvailablePackages;
+    procedure CheckFPMakeDependencies;
 
     property Options: TFppkgOptions read FOptions;
     property CompilerOptions: TCompilerOptions read FCompilerOptions;
@@ -72,6 +73,7 @@ type
 implementation
 
 uses
+  fpmkunit,
   pkgrepos;
 
 { TpkgFPpkg }
@@ -437,7 +439,7 @@ var
   InstRepositoryName: string;
   Repo: TFPRepository;
 begin
-  Result := GFPpkg.RepositoryByName(GFPpkg.Options.CommandLineSection.InstallRepository);
+  Result := RepositoryByName(Options.CommandLineSection.InstallRepository);
   if Assigned(APackage) and Assigned(APackage.Repository) and Assigned(APackage.Repository.DefaultPackagesStructure) then
     begin
       InstRepositoryName := APackage.Repository.DefaultPackagesStructure.InstallRepositoryName;
@@ -478,6 +480,48 @@ begin
       AvailStruc := TFPOriginalSourcePackagesStructure.Create(Self, Repo);
       AvailStruc.AddPackagesToRepository(AvailableRepo);
       AvailableRepo.DefaultPackagesStructure := AvailStruc;
+    end;
+end;
+
+procedure TpkgFPpkg.CheckFPMakeDependencies;
+var
+  i : Integer;
+  P,AvailP : TFPPackage;
+  AvailVerStr : string;
+  ReqVer : TFPVersion;
+begin
+  // Reset availability
+  for i:=0 to high(FPMKUnitDeps) do
+    FPMKUnitDeps[i].available:=false;
+  // Not version check needed in Recovery mode, we always need to use
+  // the internal bootstrap procedure
+  if Options.CommandLineSection.RecoveryMode then
+    exit;
+  // Check for fpmkunit dependencies
+  for i:=0 to high(FPMKUnitDeps) do
+    begin
+      P:=FPMakeRepoFindPackage(FPMKUnitDeps[i].package, pkgpkInstalled);
+      if P<>nil then
+        begin
+          AvailP:=FindPackage(FPMKUnitDeps[i].package, pkgpkAvailable);
+          if AvailP<>nil then
+            AvailVerStr:=AvailP.Version.AsString
+          else
+            AvailVerStr:='<not available>';
+          ReqVer:=TFPVersion.Create;
+          try
+            ReqVer.AsString:=FPMKUnitDeps[i].ReqVer;
+            log(llDebug,SLogFPMKUnitDepVersion,[P.Name,ReqVer.AsString,P.Version.AsString,AvailVerStr]);
+            if ReqVer.CompareVersion(P.Version)<=0 then
+              FPMKUnitDeps[i].available:=true
+            else
+              log(llDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
+          finally
+            ReqVer.Free;
+          end;
+        end
+      else
+        log(llDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
     end;
 end;
 
