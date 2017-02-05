@@ -94,7 +94,7 @@ program install;
 
   const
      installerversion='3.0.2';
-     installercopyright='Copyright (c) 1993-2015 Florian Klaempfl';
+     installercopyright='Copyright (c) 1993-2017 Florian Klaempfl';
 
 
      maxpacks=20;
