@@ -780,6 +780,9 @@ begin
       Fail;
     End;
   MyStream:=true;
+  {$ifdef HASAMIGA}
+  Flush;
+  {$endif}
 end;
 
 constructor TResourceFile.LoadFile(AFileName: string);
