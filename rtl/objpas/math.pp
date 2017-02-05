@@ -50,6 +50,11 @@
 unit math;
 interface
 
+
+{$ifndef FPUNONE}
+    uses
+       sysutils;
+
 {$IFDEF FPDOC_MATH}
 {$DEFINE FPC_HAS_TYPE_SINGLE}
 {$DEFINE FPC_HAS_TYPE_DOUBLE}
@@ -62,10 +67,6 @@ Const
   MinFloat = 0;
   MaxFloat = 0;
 {$ENDIF}
-
-{$ifndef FPUNONE}
-    uses
-       sysutils;
 
     { Ranges of the IEEE floating point types, including denormals }
 {$ifdef FPC_HAS_TYPE_SINGLE}
