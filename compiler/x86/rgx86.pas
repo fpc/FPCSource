@@ -274,10 +274,12 @@ implementation
                               A_BTC,
                               A_BTR,
 
-                              { shufp* would require 16 byte alignment for memory locations so we force the source
+                              { shufp*/unpcklp* would require 16 byte alignment for memory locations so we force the source
                                 operand into a register }
                               A_SHUFPD,
-                              A_SHUFPS :
+                              A_SHUFPS,
+                              A_UNPCKLPD,
+                              A_UNPCKLPS :
                                 replaceoper:=-1;
                             end;
                           end;
