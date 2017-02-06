@@ -55,8 +55,6 @@ uses
 }
 
 type
-  TArray<T> = array of T; // for name TArray<T> conflict with TArray record implementation (bug #26030)
-
   // bug #24254 workaround
   // should be TArray = record class procedure Sort<T>(...) etc.
   TCustomArrayHelper<T> = class abstract
