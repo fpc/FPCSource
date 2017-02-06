@@ -288,7 +288,24 @@ var
 
 function IsManaged(TypeInfo: PTypeInfo): boolean;
 begin
-  result := TypeInfo^.Kind in [tkString, tkAString, tkLString, tkInterface, tkArray, tkDynArray];
+  if Assigned(TypeInfo) then
+    case TypeInfo^.Kind of
+      tkSString,
+      tkAString, 
+      tkLString,
+      tkWString,
+      tkUString,
+      tkInterface, 
+      tkVariant,
+      tkDynArray  : Result := true;
+      tkArray     : Result := IsManaged(GetTypeData(TypeInfo)^.ArrayData.ElType);
+      tkRecord,
+      tkObject    : Result := GetTypeData(TypeInfo)^.RecInitData^.ManagedFieldCount > 0;
+    else
+      Result := false;
+    end
+  else
+    Result := false;
 end;
 
 { TRttiPool }

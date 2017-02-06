@@ -46,6 +46,8 @@ type
     procedure TestMakeObject;
     procedure TestGetIsReadable;
     procedure TestIsWritable;
+
+    procedure TestIsManaged;
   end;
 
 implementation
@@ -87,6 +89,43 @@ type
     property AGetShortString: ShortString read GetAShortString;
     property AWriteOnly: integer write SetWriteOnly;
   end;
+
+  TManagedRec = record
+    s: string;
+  end;
+
+  TNonManagedRec = record
+    i: Integer;
+  end;
+
+  TManagedObj = object
+    i: IInterface;
+  end;
+
+  TNonManagedObj = object
+    d: double;
+  end;
+
+  TTestEnum = (te1, te2, te3, te4, te5);
+  TTestSet = set of TTestEnum;
+
+  TTestProc = procedure;
+  TTestMethod = procedure of object;
+  TTestHelper = class helper for TObject
+  end;
+
+  TArrayOfString = array[0..0] of string;
+  TArrayOfManagedRec = array[0..0] of TManagedRec;
+  TArrayOfNonManagedRec = array[0..0] of TNonManagedRec;
+  TArrayOfByte = array[0..0] of byte;
+
+{$PUSH}
+{$INTERFACES CORBA}
+
+  ICORBATest = interface
+  end;
+
+{$POP}
 
 
 { TTestValueClass }
@@ -686,6 +725,51 @@ begin
   end;
 
   LContext.Free;
+end;
+
+procedure TTestCase1.TestIsManaged;
+begin
+  CheckEquals(true, IsManaged(TypeInfo(shortstring)), 'IsManaged for tkSString');
+  CheckEquals(true, IsManaged(TypeInfo(ansistring)), 'IsManaged for tkAString');
+  CheckEquals(true, IsManaged(TypeInfo(widestring)), 'IsManaged for tkWString');
+  CheckEquals(true, IsManaged(TypeInfo(Variant)), 'IsManaged for tkVariant');
+  CheckEquals(true, IsManaged(TypeInfo(TArrayOfManagedRec)),
+    'IsManaged for tkArray (with managed ElType)');
+  CheckEquals(true, IsManaged(TypeInfo(TArrayOfString)),
+    'IsManaged for tkArray (with managed ElType)');
+  CheckEquals(true, IsManaged(TypeInfo(TManagedRec)), 'IsManaged for tkRecord');
+  CheckEquals(true, IsManaged(TypeInfo(IInterface)), 'IsManaged for tkInterface');
+  CheckEquals(true, IsManaged(TypeInfo(TManagedObj)), 'IsManaged for tkObject');
+  {$ifdef fpc}
+  CheckEquals(true, IsManaged(TypeInfo(specialize TArray<byte>)), 'IsManaged for tkDynArray');
+  {$else}
+  CheckEquals(true, IsManaged(TypeInfo(TArray<byte>)), 'IsManaged for tkDynArray');
+  {$endif}
+  CheckEquals(true, IsManaged(TypeInfo(unicodestring)), 'IsManaged for tkUString');
+  CheckEquals(false, IsManaged(TypeInfo(Byte)), 'IsManaged for tkInteger');
+  CheckEquals(false, IsManaged(TypeInfo(Char)), 'IsManaged for tkChar');
+  CheckEquals(false, IsManaged(TypeInfo(TTestEnum)), 'IsManaged for tkEnumeration');
+  CheckEquals(false, IsManaged(TypeInfo(Single)), 'IsManaged for tkFloat');
+  CheckEquals(false, IsManaged(TypeInfo(TTestSet)), 'IsManaged for tkSet');
+  CheckEquals(false, IsManaged(TypeInfo(TTestMethod)), 'IsManaged for tkMethod');
+  CheckEquals(false, IsManaged(TypeInfo(TArrayOfByte)),
+    'IsManaged for tkArray (with non managed ElType)');
+  CheckEquals(false, IsManaged(TypeInfo(TArrayOfNonManagedRec)),
+    'IsManaged for tkArray (with non managed ElType)');
+  CheckEquals(false, IsManaged(TypeInfo(TNonManagedRec)), 'IsManaged for tkRecord');
+  CheckEquals(false, IsManaged(TypeInfo(TObject)), 'IsManaged for tkClass');
+  CheckEquals(false, IsManaged(TypeInfo(TNonManagedObj)), 'IsManaged for tkObject');
+  CheckEquals(false, IsManaged(TypeInfo(WideChar)), 'IsManaged for tkWChar');
+  CheckEquals(false, IsManaged(TypeInfo(Boolean)), 'IsManaged for tkBool');
+  CheckEquals(false, IsManaged(TypeInfo(Int64)), 'IsManaged for tkInt64');
+  CheckEquals(false, IsManaged(TypeInfo(UInt64)), 'IsManaged for tkQWord');
+  CheckEquals(false, IsManaged(TypeInfo(ICORBATest)), 'IsManaged for tkInterfaceRaw');
+  CheckEquals(false, IsManaged(TypeInfo(TTestProc)), 'IsManaged for tkProcVar');
+  CheckEquals(false, IsManaged(TypeInfo(TTestHelper)), 'IsManaged for tkHelper');
+  CheckEquals(false, IsManaged(TypeInfo(file)), 'IsManaged for tkFile');
+  CheckEquals(false, IsManaged(TypeInfo(TClass)), 'IsManaged for tkClassRef');
+  CheckEquals(false, IsManaged(TypeInfo(Pointer)), 'IsManaged for tkPointer');
+  CheckEquals(false, IsManaged(nil), 'IsManaged for nil');
 end;
 
 initialization
