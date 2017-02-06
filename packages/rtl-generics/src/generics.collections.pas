@@ -58,10 +58,6 @@ type
   // bug #24254 workaround
   // should be TArray = record class procedure Sort<T>(...) etc.
   TCustomArrayHelper<T> = class abstract
-  private
-    type
-      // bug #24282
-      TComparerBugHack = TComparer<T>;
   protected
     // modified QuickSort from classes\lists.inc
     class procedure QuickSort(var AValues: array of T; ALeft, ARight: SizeInt; const AComparer: IComparer<T>);
@@ -124,9 +120,6 @@ type
   {$DEFINE CUSTOM_LIST_CAPACITY_INC := Result + Result div 2} // ~approximation to golden ratio: n = n * 1.5 }
   // {$DEFINE CUSTOM_LIST_CAPACITY_INC := Result * 2} // standard inc
   TCustomList<T> = class abstract(TEnumerable<T>)
-  protected
-    type // bug #24282
-      TArrayHelperBugHack = TArrayHelper<T>;
   private
     FOnNotify: TCollectionNotifyEvent<T>;
     function GetCapacity: SizeInt; inline;
@@ -366,12 +359,12 @@ end;
 class function TCustomArrayHelper<T>.BinarySearch(constref AValues: array of T; constref AItem: T;
   out AFoundIndex: SizeInt): Boolean;
 begin
-  Result := BinarySearch(AValues, AItem, AFoundIndex, TComparerBugHack.Default, Low(AValues), Length(AValues));
+  Result := BinarySearch(AValues, AItem, AFoundIndex, TComparer<T>.Default, Low(AValues), Length(AValues));
 end;
 
 class procedure TCustomArrayHelper<T>.Sort(var AValues: array of T);
 begin
-  QuickSort(AValues, Low(AValues), High(AValues), TComparerBugHack.Default);
+  QuickSort(AValues, Low(AValues), High(AValues), TComparer<T>.Default);
 end;
 
 class procedure TCustomArrayHelper<T>.Sort(var AValues: array of T;
@@ -979,22 +972,22 @@ end;
 
 procedure TList<T>.Sort;
 begin
-  TArrayHelperBugHack.Sort(FItems, FComparer, 0, Count);
+  TArrayHelper<T>.Sort(FItems, FComparer, 0, Count);
 end;
 
 procedure TList<T>.Sort(const AComparer: IComparer<T>);
 begin
-  TArrayHelperBugHack.Sort(FItems, AComparer, 0, Count);
+  TArrayHelper<T>.Sort(FItems, AComparer, 0, Count);
 end;
 
 function TList<T>.BinarySearch(constref AItem: T; out AIndex: SizeInt): Boolean;
 begin
-  Result := TArrayHelperBugHack.BinarySearch(FItems, AItem, AIndex);
+  Result := TArrayHelper<T>.BinarySearch(FItems, AItem, AIndex);
 end;
 
 function TList<T>.BinarySearch(constref AItem: T; out AIndex: SizeInt; const AComparer: IComparer<T>): Boolean;
 begin
-  Result := TArrayHelperBugHack.BinarySearch(FItems, AItem, AIndex, AComparer);
+  Result := TArrayHelper<T>.BinarySearch(FItems, AItem, AIndex, AComparer);
 end;
 
 { TThreadList<T> }
