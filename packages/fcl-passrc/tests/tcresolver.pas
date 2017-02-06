@@ -228,6 +228,8 @@ type
     Procedure TestAssignProcResultFail;
     Procedure TestFunctionResultInCondition;
     Procedure TestExit;
+    Procedure TestBreak;
+    Procedure TestContinue;
 
     // record
     Procedure TestRecord;
@@ -241,6 +243,7 @@ type
     Procedure TestClassForward;
     Procedure TestClassForwardNotResolved;
     Procedure TestClass_Method;
+    Procedure TestClass_MethodWithParams;
     Procedure TestClass_MethodUnresolved;
     Procedure TestClass_MethodAbstract;
     Procedure TestClass_MethodAbstractWithoutVirtualFail;
@@ -251,6 +254,7 @@ type
     Procedure TestClass_MethodInvalidOverload;
     Procedure TestClass_MethodOverride;
     Procedure TestClass_MethodOverride2;
+    Procedure TestClass_MethodOverrideFixCase;
     Procedure TestClass_MethodScope;
     Procedure TestClass_IdentifierSelf;
     Procedure TestClassCallInherited;
@@ -2731,10 +2735,11 @@ procedure TTestResolver.TestUnitIntfProc;
 begin
   StartUnit(false);
   Add('interface');
-  Add('procedure {#A_forward}FuncA(i: longint);');
+  Add('procedure {#A_forward}FuncA({#Bar}Bar: longint);');
   Add('implementation');
-  Add('procedure {#A}FuncA(i: longint);');
+  Add('procedure {#A}FuncA(bar: longint);');
   Add('begin');
+  Add('  if {@Bar}bar=3 then ;');
   Add('end;');
   Add('initialization');
   Add('  {@A_forward}FuncA(3);');
@@ -2864,6 +2869,36 @@ begin
   Add('  exit(''abc'');');
   Add('end;');
   Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestBreak;
+begin
+  StartProgram(false);
+  Add('var i: longint;');
+  Add('begin');
+  Add('  repeat');
+  Add('    break;');
+  Add('  until false;');
+  Add('  while true do');
+  Add('    break;');
+  Add('  for i:=0 to 1 do');
+  Add('    break;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestContinue;
+begin
+  StartProgram(false);
+  Add('var i: longint;');
+  Add('begin');
+  Add('  repeat');
+  Add('    continue;');
+  Add('  until false;');
+  Add('  while true do');
+  Add('    continue;');
+  Add('  for i:=0 to 1 do');
+  Add('    continue;');
   ParseProgram;
 end;
 
@@ -3053,6 +3088,24 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestClass_MethodWithParams;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#A}TObject = class');
+  Add('    procedure {#ProcA_Decl}ProcA({#Bar}Bar: longint);');
+  Add('  end;');
+  Add('procedure tobject.proca(bar: longint);');
+  Add('begin');
+  Add('  if {@Bar}bar=3 then ;');
+  Add('end;');
+  Add('var');
+  Add('  {#V}{=A}Obj: TObject;');
+  Add('begin');
+  Add('  {@V}Obj.{@ProcA_Decl}ProcA(4);');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestClass_MethodUnresolved;
 begin
   StartProgram(false);
@@ -3217,6 +3270,59 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestClass_MethodOverrideFixCase;
+
+  procedure CheckOverrideName(aLabel: string);
+  var
+    Elements: TFPList;
+    i: Integer;
+    El: TPasElement;
+    Scope: TPasProcedureScope;
+  begin
+    Elements:=FindElementsAtSrcLabel(aLabel);
+    try
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        if not (El is TPasProcedure) then continue;
+        Scope:=El.CustomData as TPasProcedureScope;
+        if Scope.OverriddenProc=nil then
+          Fail('Scope.OverriddenProc=nil');
+        AssertEquals('Proc Name and Proc.Scope.OverriddenProc.Name',El.Name,Scope.OverriddenProc.Name);
+        end;
+    finally
+      Elements.Free;
+    end;
+  end;
+
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proFixCaseOfOverrides];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure {#TOBJ_ProcA}ProcA; virtual; abstract;');
+  Add('  end;');
+  Add('  {#A}TClassA = class');
+  Add('    procedure {#A_ProcA}proca; override;');
+  Add('  end;');
+  Add('  {#B}TClassB = class');
+  Add('    procedure {#B_ProcA}prOca; override;');
+  Add('  end;');
+  Add('procedure tclassa.proca;');
+  Add('begin');
+  Add('end;');
+  Add('procedure tclassb.proca;');
+  Add('begin');
+  Add('end;');
+  Add('var');
+  Add('  {#V}{=B}v: TClassB;');
+  Add('begin');
+  Add('  {@V}v.{@B_ProcA}ProcA;');
+  ParseProgram;
+  CheckOverrideName('A_ProcA');
+  CheckOverrideName('B_ProcA');
+end;
+
 procedure TTestResolver.TestClass_MethodScope;
 begin
   StartProgram(false);
@@ -3261,30 +3367,30 @@ begin
   StartProgram(false);
   Add('type');
   Add('  TObject = class');
-  Add('    procedure {#TOBJ_ProcA}ProcA(i: longint); virtual;');
-  Add('    procedure {#TOBJ_ProcB}ProcB(j: longint); virtual;');
+  Add('    procedure {#TOBJ_ProcA}ProcA(vI: longint); virtual;');
+  Add('    procedure {#TOBJ_ProcB}ProcB(vJ: longint); virtual;');
   Add('  end;');
   Add('  {#A}TClassA = class');
-  Add('    procedure {#A_ProcA}ProcA(i: longint); override;');
-  Add('    procedure {#A_ProcB}ProcB(j: longint); override;');
+  Add('    procedure {#A_ProcA}ProcA({#i1}vI: longint); override;');
+  Add('    procedure {#A_ProcB}ProcB(vJ: longint); override;');
   Add('    procedure {#A_ProcC}ProcC; virtual;');
   Add('  end;');
-  Add('procedure TObject.ProcA(i: longint);');
+  Add('procedure TObject.ProcA(vi: longint);');
   Add('begin');
   Add('  inherited; // ignore, do not raise error');
   Add('end;');
-  Add('procedure TObject.ProcB(j: longint);');
+  Add('procedure TObject.ProcB(vj: longint);');
   Add('begin');
   Add('end;');
-  Add('procedure TClassA.ProcA({#i1}i: longint);');
+  Add('procedure TClassA.ProcA(vi: longint);');
   Add('begin');
-  Add('  {@A_ProcA}ProcA({@i1}i);');
+  Add('  {@A_ProcA}ProcA({@i1}vI);');
   Add('  {@TOBJ_ProcA}inherited;');
-  Add('  inherited {@TOBJ_ProcA}ProcA({@i1}i);');
-  Add('  {@A_ProcB}ProcB({@i1}i);');
-  Add('  inherited {@TOBJ_ProcB}ProcB({@i1}i);');
+  Add('  inherited {@TOBJ_ProcA}ProcA({@i1}vI);');
+  Add('  {@A_ProcB}ProcB({@i1}vI);');
+  Add('  inherited {@TOBJ_ProcB}ProcB({@i1}vI);');
   Add('end;');
-  Add('procedure TClassA.ProcB(j: longint);');
+  Add('procedure TClassA.ProcB(vJ: longint);');
   Add('begin');
   Add('end;');
   Add('procedure TClassA.ProcC;');
@@ -3338,20 +3444,20 @@ begin
   StartProgram(false);
   Add('type');
   Add('  TObject = class');
-  Add('    constructor {#TOBJ_CreateA}Create(i: longint); virtual;');
+  Add('    constructor {#TOBJ_CreateA}Create(vI: longint); virtual;');
   Add('  end;');
   Add('  {#A}TClassA = class');
-  Add('    constructor {#A_CreateA}Create(i: longint); override;');
+  Add('    constructor {#A_CreateA}Create({#i1}vI: longint); override;');
   Add('  end;');
-  Add('constructor TObject.Create(i: longint);');
+  Add('constructor TObject.Create(vI: longint);');
   Add('begin');
   Add('  inherited; // ignore and do not raise error');
   Add('end;');
-  Add('constructor TClassA.Create({#i1}i: longint);');
+  Add('constructor TClassA.Create(vI: longint);');
   Add('begin');
-  Add('  {@A_CreateA}Create({@i1}i);');
+  Add('  {@A_CreateA}Create({@i1}vI);');
   Add('  {@TOBJ_CreateA}inherited;');
-  Add('  inherited {@TOBJ_CreateA}Create({@i1}i);');
+  Add('  inherited {@TOBJ_CreateA}Create({@i1}vI);');
   Add('end;');
   Add('begin');
   ParseProgram;

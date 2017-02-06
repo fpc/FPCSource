@@ -26,6 +26,7 @@ function TSimpleEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility: TPasMemberVisibility;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 begin
+  Writeln(AName,' : ',AClass.ClassName,' at ',ASourceFilename,':',ASourceLinenumber);
   Result := AClass.Create(AName, AParent);
   Result.Visibility := AVisibility;
   Result.SourceFilename := ASourceFilename;

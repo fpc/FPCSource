@@ -607,18 +607,29 @@ Var
   L : TJSStatementList;
 
 begin
-  // Try a:=B except b:=c end;
+  // Try a:=b except b:=c end;
+  (*
+    Becomes:
+    try {
+     a=b;
+    } catch {
+      b = c;
+    }
+  *)
   T:=TPasImplTry.Create('',Nil);
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddExcept;
   F.AddElement(CreateAssignStatement('b','c'));
+  // Convert
   El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
+  AssertEquals('No exception object name','',String(El.Ident));
+  // check "a=b;"
   L:=AssertListStatement('try..except block is statement list',El.Block);
   AssertAssignStatement('Correct assignment in try..except block',L.A,'a','b');
   AssertNull('No second statement',L.B);
+  // check "b=c;'
   L:=AssertListStatement('try..except block is statement list',El.BCatch);
   AssertAssignStatement('Correct assignment in except..end block',L.A,'b','c');
-  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),String(El.Ident));
   AssertNull('No second statement',L.B);
 end;
 
@@ -631,19 +642,21 @@ Var
   El : TJSTryCatchStatement;
   L : TJSStatementList;
   I : TJSIfStatement;
-  IC : TJSRelationalExpressionInstanceOf;
-  V : TJSVarDeclaration;
+  IC : TJSCallExpression;
+  D: TJSDotMemberExpression;
+  ExObj: TJSElement;
+  VS: TJSVariableStatement;
+  V: TJSVarDeclaration;
 
 begin
-  // Try a:=B except on E : exception do  b:=c end;
   // Try a:=B except on E : exception do  b:=c end;
   (*
     Becomes:
     try {
      a=b;
-    } catch (ExceptObject) {
-      if (ExceptObject instanceof exception) {
-        var e = ExceptObject;
+    } catch (exceptobject) {
+      if (exception.isPrototypeOf(exceptobject)) {
+        var e = exceptobject;
         b = c;
       }
     }
@@ -655,20 +668,28 @@ begin
   O.Body:=CreateAssignStatement('b','c');
   // Convert
   El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
+  // check "catch(exceptobject)"
   AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),String(El.Ident));
-  L:=AssertListStatement('try..except block is statement list',El.BCatch);
-  AssertNull('No second statement',L.B);
-  I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,L.A));
-  Ic:=TJSRelationalExpressionInstanceOf(AssertElement('If condition is InstanceOf expression',TJSRelationalExpressionInstanceOf,I.Cond));
-  Assertidentifier('InstanceOf left is exception object',Ic.A,lowercase(DefaultJSExceptionObject));
-  // Lowercased exception - May need checking
-  Assertidentifier('InstanceOf right is original exception type',Ic.B,'exception');
-  L:=AssertListStatement('On block is always a list',i.btrue);
-  V:=TJSVarDeclaration(AssertElement('First statement in list is a var declaration',TJSVarDeclaration,L.A));
+  // check "if"
+  I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,El.BCatch));
+  // check if condition "exception.isPrototypeOf(exceptobject)"
+  IC:=TJSCallExpression(AssertElement('If condition is call expression',TJSCallExpression,I.Cond));
+  D:=TJSDotMemberExpression(AssertElement('exception.isPrototypeOf is dot member expression',TJSDotMemberExpression,IC.Expr));
+  Assertidentifier('left side of exception.isPrototypeOf',D.MExpr,'exception');
+  AssertEquals('right side of exception.isPrototypeOf','isPrototypeOf',String(D.Name));
+  AssertNotNull('args of exception.isPrototypeOf(exceptobject)',IC.Args);
+  AssertEquals('args of exception.isPrototypeOf(exceptobject)',1,IC.Args.Elements.Count);
+  ExObj:=IC.Args.Elements.Elements[0].Expr;
+  Assertidentifier('arg of exception.isPrototypeOf(exceptobject)',ExObj,lowercase(DefaultJSExceptionObject));
+  // check statement "var e = exceptobject;"
+  L:=AssertListStatement('On block is always a list',I.BTrue);
+  writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
+  VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
+  V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',v.init,lowercase(DefaultJSExceptionObject));
-  L:=AssertListStatement('Second statement is again list',L.B);
-  AssertAssignStatement('Original assignment in second statement',L.A,'b','c');
+  Assertidentifier('Variable init is exception object',V.Init,lowercase(DefaultJSExceptionObject));
+  // check "b = c;"
+  AssertAssignStatement('Original assignment in second statement',L.B,'b','c');
 end;
 
 Procedure TTestStatementConverter.TestReRaise;
@@ -679,20 +700,23 @@ Var
   El : TJSTryCatchStatement;
   L : TJSStatementList;
   I : TJSIfStatement;
-  IC : TJSRelationalExpressionInstanceOf;
+  IC : TJSCallExpression;
   R : TJSThrowStatement;
   V : TJSVarDeclaration;
+  D: TJSDotMemberExpression;
+  ExObj: TJSElement;
+  VS: TJSVariableStatement;
 
 begin
-  // Try a:=B except on E : exception do  b:=c end;
+  // Try a:=B except on E : exception do raise; end;
   (*
     Becomes:
     try {
      a=b;
-    } catch (jsexception) {
-      if jsexception instanceof exception {
-        var e = jsexception;
-        throw jsexception;
+    } catch (exceptobject) {
+      if (exception.isPrototypeOf(exceptobject)) {
+        var e = exceptobject;
+        throw exceptobject;
       }
     }
   *)
@@ -703,19 +727,27 @@ begin
   O.Body:=TPasImplRaise.Create('',Nil);
   // Convert
   El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
+  // check "catch(exceptobject)"
   AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),String(El.Ident));
-  L:=AssertListStatement('try..except block is statement list',El.BCatch);
-  AssertNull('No second statement',L.B);
-  I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,L.A));
-  Ic:=TJSRelationalExpressionInstanceOf(AssertElement('If condition is InstanceOf expression',TJSRelationalExpressionInstanceOf,I.Cond));
-  Assertidentifier('InstanceOf left is exception object',Ic.A,lowercase(DefaultJSExceptionObject));
-  // Lowercased exception - May need checking
-  L:=AssertListStatement('On block is always a list',i.btrue);
-  V:=TJSVarDeclaration(AssertElement('First statement in list is a var declaration',TJSVarDeclaration,L.A));
+  // check "if"
+  I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,El.BCatch));
+  // check if condition "exception.isPrototypeOf(exceptobject)"
+  IC:=TJSCallExpression(AssertElement('If condition is call expression',TJSCallExpression,I.Cond));
+  D:=TJSDotMemberExpression(AssertElement('exception.isPrototypeOf is dot member expression',TJSDotMemberExpression,IC.Expr));
+  Assertidentifier('left side of exception.isPrototypeOf',D.MExpr,'exception');
+  AssertEquals('right side of exception.isPrototypeOf','isPrototypeOf',String(D.Name));
+  AssertNotNull('args of exception.isPrototypeOf(ExceptObject)',IC.Args);
+  AssertEquals('args of exception.isPrototypeOf(ExceptObject)',1,IC.Args.Elements.Count);
+  ExObj:=IC.Args.Elements.Elements[0].Expr;
+  Assertidentifier('arg of exception.isPrototypeOf(ExceptObject)',ExObj,lowercase(DefaultJSExceptionObject));
+  // check statement "var e = exceptobject;"
+  L:=AssertListStatement('On block is always a list',I.BTrue);
+  writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
+  VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
+  V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',v.init,lowercase(DefaultJSExceptionObject));
-  L:=AssertListStatement('Second statement is again list',L.B);
-  R:=TJSThrowStatement(AssertElement('On block is throw statement',TJSThrowStatement,L.A));
+  Assertidentifier('Variable init is exception object',V.Init,lowercase(DefaultJSExceptionObject));
+  R:=TJSThrowStatement(AssertElement('On block is throw statement',TJSThrowStatement,L.B));
   Assertidentifier('R expression is original exception ',R.A,lowercase(DefaultJSExceptionObject));
 end;
 

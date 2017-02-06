@@ -2352,7 +2352,7 @@ var
   TypeName: String;
   PT : TProcType;
   NamePos: TPasSourcePos;
-  ok: Boolean;
+  OldForceCaret,ok: Boolean;
 
 begin
   CurBlock := declNone;
@@ -2455,9 +2455,9 @@ begin
               end;
             declType:
               begin
-              Scanner.ForceCaret:=True;
+              OldForceCaret:=Scanner.SetForceCaret(True);
               TypeEl := ParseTypeDecl(Declarations);
-              Scanner.ForceCaret:=True; // It may have been switched off
+              // Scanner.SetForceCaret(OldForceCaret); // It may have been switched off
               if Assigned(TypeEl) then        // !!!
                 begin
                   Declarations.Declarations.Add(TypeEl);
@@ -2696,8 +2696,10 @@ end;
 
 // Starts after the variable name
 function TPasParser.ParseConstDecl(Parent: TPasElement): TPasConst;
+
 var
-  ok: Boolean;
+  OldForceCaret,ok: Boolean;
+
 begin
   SaveComments;
   Result := TPasConst(CreateElement(TPasConst, CurTokenString, Parent));
@@ -2706,11 +2708,11 @@ begin
     NextToken;
     if CurToken = tkColon then
       begin
-      Scanner.ForceCaret:=True;
+      OldForceCaret:=Scanner.SetForceCaret(True);
       try
         Result.VarType := ParseType(Result,Scanner.CurSourcePos);
       finally
-        Scanner.ForceCaret:=False;
+        Scanner.SetForceCaret(OldForceCaret);
       end;
 {      if Result.VarType is TPasRangeType then
         Ungettoken; // Range type stops on token after last range token}
@@ -2876,15 +2878,17 @@ function TPasParser.ParseTypeDecl(Parent: TPasElement): TPasType;
 var
   TypeName: String;
   NamePos: TPasSourcePos;
+  OldForceCaret : Boolean;
+  
 begin
   TypeName := CurTokenString;
   NamePos:=Scanner.CurSourcePos;
   ExpectToken(tkEqual);
-  Scanner.ForceCaret:=True;
+  OldForceCaret:=Scanner.SetForceCaret(True);
   try
     Result:=ParseType(Parent,NamePos,TypeName,True);
   finally
-    Scanner.ForceCaret:=False;
+    Scanner.SetForceCaret(OldForceCaret);
   end;
 end;
 
@@ -2991,7 +2995,7 @@ var
   H : TPasMemberHints;
   VarMods: TVariableModifiers;
   D,Mods,Loc,aLibName,aExpName : string;
-  ok: Boolean;
+  OldForceCaret,ok: Boolean;
 
 begin
   OldListCount:=VarList.Count;
@@ -3009,11 +3013,11 @@ begin
       if CurToken=tkComma then
         ExpectIdentifier;
     Until (CurToken=tkColon);
-    Scanner.ForceCaret:=False;
+    OldForceCaret:=Scanner.SetForceCaret(True);
     try
       VarType := ParseComplexType(VarEl);
     finally
-      Scanner.ForceCaret:=False;
+      Scanner.SetForceCaret(OldForceCaret);
     end;
     // read type
     for i := OldListCount to VarList.Count - 1 do
@@ -3936,9 +3940,10 @@ begin
       begin
         NextToken;
         Left:=DoParseExpression(CurBlock);
-        UNgettoken;
+        UngetToken;
         El:=TPasImplIfElse(CreateElement(TPasImplIfElse,'',CurBlock));
         TPasImplIfElse(El).ConditionExpr:=Left;
+        Left.Parent:=El;
         //WriteLn(i,'IF Condition="',Condition,'" Token=',CurTokenText);
         CreateBlock(TPasImplIfElse(El));
         ExpectToken(tkthen);
@@ -3999,8 +4004,8 @@ begin
       begin
         // while Condition do
         NextToken;
-        left:=DoParseExpression(Parent);
-        ungettoken;
+        left:=DoParseExpression(CurBlock);
+        UngetToken;
         //WriteLn(i,'WHILE Condition="',Condition,'" Token=',CurTokenText);
         El:=TPasImplWhileDo(CreateElement(TPasImplWhileDo,'',CurBlock));
         TPasImplWhileDo(El).ConditionExpr:=left;
@@ -4009,7 +4014,7 @@ begin
       end;
     tkgoto:
       begin
-        nexttoken;
+        NextToken;
         curblock.AddCommand('goto '+curtokenstring);
         expecttoken(tkSemiColon);
       end;
@@ -4076,17 +4081,18 @@ begin
         // with Expr, Expr do
         SrcPos:=Scanner.CurSourcePos;
         NextToken;
-        Left:=DoParseExpression(Parent);
+        Left:=DoParseExpression(CurBlock);
         //writeln(i,'WITH Expr="',Expr,'" Token=',CurTokenText);
         El:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock,SrcPos));
         TPasImplWithDo(El).AddExpression(Left);
+        Left.Parent:=El;
         CreateBlock(TPasImplWithDo(El));
         repeat
           if CurToken=tkdo then break;
           if CurToken<>tkComma then
             ParseExcTokenError(TokenInfos[tkdo]);
           NextToken;
-          Left:=DoParseExpression(Parent);
+          Left:=DoParseExpression(CurBlock);
           //writeln(i,'WITH ...,Expr="',Expr,'" Token=',CurTokenText);
           TPasImplWithDo(CurBlock).AddExpression(Left);
         until false;
@@ -4094,7 +4100,7 @@ begin
     tkcase:
       begin
         NextToken;
-        Left:=DoParseExpression(Parent);
+        Left:=DoParseExpression(CurBlock);
         UngetToken;
         //writeln(i,'CASE OF Expr="',Expr,'" Token=',CurTokenText);
         ExpectToken(tkof);
@@ -4295,7 +4301,7 @@ begin
         if CurBlock is TPasImplRepeatUntil then
         begin
           NextToken;
-          Left:=DoParseExpression(Parent);
+          Left:=DoParseExpression(CurBlock);
           UngetToken;
           TPasImplRepeatUntil(CurBlock).ConditionExpr:=Left;
           //WriteLn(i,'UNTIL Condition="',Condition,'" Token=',CurTokenString);
@@ -4304,7 +4310,7 @@ begin
           ParseExcSyntaxError;
       end;
     else
-      left:=DoParseExpression(Parent);
+      left:=DoParseExpression(CurBlock);
       case CurToken of
         tkAssign,
         tkAssignPlus,
@@ -4315,7 +4321,7 @@ begin
           // assign statement
           Ak:=TokenToAssignKind(CurToken);
           NextToken;
-          right:=DoParseExpression(Parent); // this may solve TPasImplWhileDo.AddElement BUG
+          right:=DoParseExpression(CurBlock); // this may solve TPasImplWhileDo.AddElement BUG
           El:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock));
           left.Parent:=El;
           right.Parent:=El;

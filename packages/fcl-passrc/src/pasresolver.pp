@@ -95,6 +95,7 @@
   - procedure type
   - method type
   - function without params: mark if call or address, rrfImplicitCallWithoutParams
+  - procedure break, procedure continue
 
  ToDo:
   - overloads
@@ -206,6 +207,7 @@ const
   nCantAssignValuesToAnAddress = 3042;
   nIllegalExpression = 3043;
   nCantAccessPrivateMember = 3044;
+  nMustBeInsideALoop = 3045;
 
 // resourcestring patterns of messages
 resourcestring
@@ -253,6 +255,7 @@ resourcestring
   sCantAssignValuesToAnAddress = 'Can''t assign values to an address';
   sIllegalExpression = 'Illegal expression';
   sCantAccessPrivateMember = 'Can''t access %s member %s';
+  sMustBeInsideALoop = '%s must be inside a loop';
 
 type
   TResolverBaseType = (
@@ -396,6 +399,8 @@ type
     bfInclude,
     bfExclude,
     bfOrd,
+    bfBreak,
+    bfContinue,
     bfExit,
     bfInc,
     bfDec,
@@ -412,6 +417,8 @@ const
     'Include',
     'Exclude',
     'Ord',
+    'Break',
+    'Continue',
     'Exit',
     'Inc',
     'Dec',
@@ -826,6 +833,11 @@ type
   end;
   PPRFindData = ^TPRFindData;
 
+  TPasResolverOption = (
+    proFixCaseOfOverrides  // fix Name of overriding procs to the overriden proc
+    );
+  TPasResolverOptions = set of TPasResolverOption;
+
   { TPasResolver }
 
   TPasResolver = Class(TPasTreeContainer)
@@ -853,6 +865,7 @@ type
     FRootElement: TPasElement;
     FTopScope: TPasScope;
     FPendingForwards: TFPList; // list of TPasElement needed to check for forward procs
+    FOptions: TPasResolverOptions;
     function GetBaseType(bt: TResolverBaseType): TPasUnresolvedSymbolRef; inline;
     function GetScopes(Index: integer): TPasScope; inline;
   protected
@@ -938,6 +951,7 @@ type
     procedure FinishProcedure;
     procedure FinishProcedureHeader(El: TPasProcedureType);
     procedure FinishMethodDeclHeader(Proc: TPasProcedure);
+    procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
     procedure FinishMethodImplHeader(ImplProc: TPasProcedure);
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure);
     procedure FinishExceptOnExpr;
@@ -981,6 +995,10 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure OnGetCallResult_Ord(Proc: TResElDataBuiltInProc;
       {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    function OnGetCallCompatibility_Break(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    function OnGetCallCompatibility_Continue(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     function OnGetCallCompatibility_Exit(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     function OnGetCallCompatibility_IncDec(Proc: TResElDataBuiltInProc;
@@ -1097,12 +1115,14 @@ type
       ErrorEl: TPasElement; RaiseOnIncompatible: boolean): integer;
     function ResolvedElHasValue(const ResolvedEl: TPasResolverResult): boolean;
     function ResolvedElCanBeVarParam(const ResolvedEl: TPasResolverResult): boolean;
+    function ResolvedElIsClassInstance(const ResolvedEl: TPasResolverResult): boolean;
     // uility functions
     function GetPasPropertyType(El: TPasProperty): TPasType;
     function GetPasPropertyAncestor(El: TPasProperty): TPasProperty;
     function GetPasPropertyGetter(El: TPasProperty): TPasElement;
     function GetPasPropertySetter(El: TPasProperty): TPasElement;
     function GetPasClassAncestor(ClassEl: TPasClassType; SkipAlias: boolean): TPasType;
+    function GetLoop(El: TPasElement): TPasImplElement;
     function ResolveAliasType(aType: TPasType): TPasType;
     function ExprIsAddrTarget(El: TPasExpr): boolean;
     function GetLastExprIdentifier(El: TPasExpr): TPasExpr;
@@ -1125,6 +1145,7 @@ type
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
     property LastMsgElement: TPasElement read FLastMsgElement write FLastMsgElement;
+    property Options: TPasResolverOptions read FOptions write FOptions;
   end;
 
 function GetObjName(o: TObject): string;
@@ -2750,7 +2771,6 @@ begin
       FinishMethodDeclHeader(Proc);
       exit;
       end;
-
     FindData:=Default(TFindOverloadProcData);
     FindData.Proc:=Proc;
     FindData.Args:=Proc.ProcType.Args;
@@ -2789,6 +2809,8 @@ begin
       // remove DeclProc from scope
       FoundInScope:=FindData.ElScope as TPasIdentifierScope;
       FoundInScope.RemoveLocalIdentifier(DeclProc);
+      // replace arguments with declaration arguments
+      ReplaceProcScopeImplArgsWithDeclArgs(ProcScope);
       end
     else
       begin
@@ -2850,6 +2872,8 @@ begin
           sNoMethodInAncestorToOverride,[GetProcDesc(Proc.ProcType)],Proc.ProcType);
       // override a virtual method
       CheckProcSignatureMatch(OverloadProc,Proc);
+      if proFixCaseOfOverrides in Options then
+        Proc.Name:=OverloadProc.Name;
       end
     else if not Proc.IsReintroduced then
       begin
@@ -2857,6 +2881,37 @@ begin
         LogMsg(mtHint,nFunctionHidesIdentifier,sFunctionHidesIdentifier,
           [OverloadProc.Name,GetElementSourcePosStr(OverloadProc)],Proc.ProcType);
       end;
+    end;
+end;
+
+procedure TPasResolver.ReplaceProcScopeImplArgsWithDeclArgs(
+  ImplProcScope: TPasProcedureScope);
+var
+  DeclProc, ImplProc: TPasProcedure;
+  DeclArgs, ImplArgs: TFPList;
+  i: Integer;
+  DeclArg, ImplArg: TPasArgument;
+  Identifier: TPasIdentifier;
+begin
+  ImplProc:=ImplProcScope.Element as TPasProcedure;
+  ImplArgs:=ImplProc.ProcType.Args;
+  DeclProc:=ImplProcScope.DeclarationProc;
+  DeclArgs:=DeclProc.ProcType.Args;
+  for i:=0 to DeclArgs.Count-1 do
+    begin
+    DeclArg:=TPasArgument(DeclArgs[i]);
+    if i<ImplArgs.Count then
+      begin
+      ImplArg:=TPasArgument(ImplArgs[i]);
+      Identifier:=ImplProcScope.FindLocalIdentifier(DeclArg.Name);
+      //writeln('TPasResolver.ReplaceProcScopeImplArgsWithDeclArgs i=',i,' replacing ',GetObjName(ImplArg),' with ',GetObjName(DeclArg));
+      if Identifier.Element<>ImplArg then
+        RaiseInternalError(20170203161659,GetObjName(DeclArg)+' '+GetObjName(ImplArg));
+      Identifier.Element:=DeclArg;
+      Identifier.Identifier:=DeclArg.Name;
+      end
+    else
+      RaiseNotYetImplemented(20170203161826,ImplProc);
     end;
 end;
 
@@ -2913,6 +2968,9 @@ begin
   ImplProcScope.DeclarationProc:=DeclProc;
   DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
   DeclProcScope.ImplProc:=ImplProc;
+
+  // replace arguments in scope with declaration arguments
+  ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope);
 
   if not DeclProc.IsStatic then
     begin
@@ -5660,6 +5718,44 @@ begin
   SetResolverIdentifier(ResolvedEl,btSmallInt,Proc.Proc,FBaseTypes[btSmallInt],[rrfReadable]);
 end;
 
+function TPasResolver.OnGetCallCompatibility_Break(Proc: TResElDataBuiltInProc;
+  Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+begin
+  if GetLoop(Expr)=nil then
+    RaiseMsg(nMustBeInsideALoop,sMustBeInsideALoop,['Break'],Expr);
+  if (not (Expr is TParamsExpr)) or (length(TParamsExpr(Expr).Params)=0) then
+    exit(cExact);
+  Params:=TParamsExpr(Expr);
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.OnGetCallCompatibility_Break Params=',length(Params.Params));
+  {$ENDIF}
+  if RaiseOnError then
+    RaiseMsg(nWrongNumberOfParametersForCallTo,
+      sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[1]);
+  Result:=cIncompatible;
+end;
+
+function TPasResolver.OnGetCallCompatibility_Continue(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+begin
+  if GetLoop(Expr)=nil then
+    RaiseMsg(nMustBeInsideALoop,sMustBeInsideALoop,['Continue'],Expr);
+  if (not (Expr is TParamsExpr)) or (length(TParamsExpr(Expr).Params)=0) then
+    exit(cExact);
+  Params:=TParamsExpr(Expr);
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.OnGetCallCompatibility_Continue Params=',length(Params.Params));
+  {$ENDIF}
+  if RaiseOnError then
+    RaiseMsg(nWrongNumberOfParametersForCallTo,
+      sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[1]);
+  Result:=cIncompatible;
+end;
+
 function TPasResolver.OnGetCallCompatibility_Exit(Proc: TResElDataBuiltInProc;
   Expr: TPasExpr; RaiseOnError: boolean): integer;
 var
@@ -6390,6 +6486,12 @@ begin
   if bfOrd in BaseProcs then
     AddBuiltInProc('Ord','function Ord(const Enum or Char): integer',
         @OnGetCallCompatibility_Ord,@OnGetCallResult_Ord,bfOrd);
+  if bfBreak in BaseProcs then
+    AddBuiltInProc('Break','procedure Break',
+        @OnGetCallCompatibility_Break,nil,bfBreak);
+  if bfContinue in BaseProcs then
+    AddBuiltInProc('Continue','procedure Continue',
+        @OnGetCallCompatibility_Continue,nil,bfContinue);
   if bfExit in BaseProcs then
     AddBuiltInProc('Exit','procedure Exit(result)',
         @OnGetCallCompatibility_Exit,nil,bfExit);
@@ -7266,6 +7368,19 @@ begin
     end;
 end;
 
+function TPasResolver.ResolvedElIsClassInstance(
+  const ResolvedEl: TPasResolverResult): boolean;
+begin
+  Result:=false;
+  if ResolvedEl.BaseType<>btContext then exit;
+  if ResolvedEl.TypeEl=nil then exit;
+  if ResolvedEl.TypeEl.ClassType<>TPasClassType then exit;
+  if (ResolvedEl.IdentEl is TPasVariable)
+      or (ResolvedEl.IdentEl.ClassType=TPasArgument)
+      or (ResolvedEl.IdentEl.ClassType=TPasResultElement) then
+    exit(true);
+end;
+
 function TPasResolver.GetPasPropertyType(El: TPasProperty): TPasType;
 begin
   Result:=nil;
@@ -8042,6 +8157,19 @@ begin
     else
       Result:=ClassScope.DirectAncestor;
     end;
+end;
+
+function TPasResolver.GetLoop(El: TPasElement): TPasImplElement;
+begin
+  while El<>nil do
+    begin
+    if (El.ClassType=TPasImplRepeatUntil)
+        or (El.ClassType=TPasImplWhileDo)
+        or (El.ClassType=TPasImplForLoop) then
+      exit(TPasImplElement(El));
+    El:=El.Parent;
+    end;
+  Result:=nil;
 end;
 
 function TPasResolver.ResolveAliasType(aType: TPasType): TPasType;

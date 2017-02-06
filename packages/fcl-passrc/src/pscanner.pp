@@ -474,6 +474,7 @@ type
     Procedure RemoveDefine(S : String);
     Procedure SetCompilerMode(S : String);
     function CurSourcePos: TPasSourcePos;
+    Function SetForceCaret(AValue : Boolean) : Boolean;
 
     property FileResolver: TBaseFileResolver read FFileResolver;
     property CurSourceFile: TLineReader read FCurSourceFile;
@@ -500,7 +501,7 @@ type
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
     Property CurrentModeSwitches : TModeSwitches Read FCurrentModeSwitches Write FCurrentModeSwitches;
-    Property ForceCaret : Boolean Read FForceCaret Write FForceCaret;
+    Property ForceCaret : Boolean Read FForceCaret;
   end;
 
 const
@@ -2183,8 +2184,8 @@ begin
       end;
     '^':
       begin
-      if ForceCaret or
-         (PreviousToken in [tkIdentifier,tkNil,tkOperator,tkBraceClose,tkSquaredBraceClose,tkCARET]) then
+      if ForceCaret or PPisSkipping or
+         (PreviousToken in [tkeof,tkComment,tkIdentifier,tkNil,tkOperator,tkBraceClose,tkSquaredBraceClose,tkCARET]) then
         begin
         Inc(TokenStr);
         Result := tkCaret;
@@ -2378,5 +2379,13 @@ begin
   Result.Row:=CurRow;
   Result.Column:=CurColumn;
 end;
+
+Function TPascalScanner.SetForceCaret (AValue : Boolean): Boolean;
+
+begin
+  Result:=FForceCaret;
+  FForceCaret:=AValue;
+end;
+
 
 end.
