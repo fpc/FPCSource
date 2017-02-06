@@ -1139,25 +1139,13 @@ implementation
            if (rt=initrtti) then
              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
            else
-             begin
-               { point to more optimal init table }
-               include(def.defstates,ds_init_table_used);
-               { we use a direct reference as the init RTTI is always in the same
-                 unit as the full RTTI }
-               tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),voidpointertype);
-             end;
+             { we use a direct reference as the init RTTI is always in the same
+               unit as the full RTTI }
+             tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),voidpointertype);
 
            tcb.emit_ord_const(def.size,u32inttype);
-
            fields_write_rtti_data(tcb,def,rt);
            tcb.end_anonymous_record;
-
-           { guarantee initrtti for any record for fpc_initialize, fpc_finalize }
-           if (rt=fullrtti) and
-               (ds_init_table_used in def.defstates) and
-               not (ds_init_table_written in def.defstates)
-               then
-             write_rtti(def, initrtti);
         end;
 
 
@@ -1736,7 +1724,16 @@ implementation
               write_rtti(tarraydef(def).elementdef,rt);
             end;
           recorddef :
-            fields_write_rtti(trecorddef(def).symtable,rt);
+            begin
+              { guarantee initrtti for any record for RTTI purposes 
+                also for fpc_initialize, fpc_finalize }
+              if (rt=fullrtti) then
+                begin
+                  include(def.defstates,ds_init_table_used);
+                  write_rtti(def, initrtti);
+                end;
+              fields_write_rtti(trecorddef(def).symtable,rt);
+            end;
           objectdef :
             begin
               if assigned(tobjectdef(def).childof) then
@@ -1746,10 +1743,19 @@ implementation
               else
                 published_write_rtti(tobjectdef(def).symtable,rt);
 
-              if (rt=fullrtti)
-                  and (is_interface(def) or is_dispinterface(def))
-                  and (oo_can_have_published in tobjectdef(def).objectoptions) then
-                methods_write_rtti(tobjectdef(def).symtable,rt,[vis_published],true);
+              if (rt=fullrtti) then
+                begin
+                  { guarantee initrtti for any object for RTTI purposes 
+                    also for fpc_initialize, fpc_finalize }
+                  if (tobjectdef(def).objecttype=odt_object) then
+                    begin
+                      include(def.defstates,ds_init_table_used);
+                      write_rtti(def,initrtti);
+                    end;
+                  if (is_interface(def) or is_dispinterface(def))
+                      and (oo_can_have_published in tobjectdef(def).objectoptions) then
+                    methods_write_rtti(tobjectdef(def).symtable,rt,[vis_published],true);
+                end;
             end;
           classrefdef,
           pointerdef:
