@@ -290,8 +290,7 @@ function IsManaged(TypeInfo: PTypeInfo): boolean;
 begin
   if Assigned(TypeInfo) then
     case TypeInfo^.Kind of
-      tkSString,
-      tkAString, 
+      tkAString,
       tkLString,
       tkWString,
       tkUString,

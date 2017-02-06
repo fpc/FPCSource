@@ -729,7 +729,6 @@ end;
 
 procedure TTestCase1.TestIsManaged;
 begin
-  CheckEquals(true, IsManaged(TypeInfo(shortstring)), 'IsManaged for tkSString');
   CheckEquals(true, IsManaged(TypeInfo(ansistring)), 'IsManaged for tkAString');
   CheckEquals(true, IsManaged(TypeInfo(widestring)), 'IsManaged for tkWString');
   CheckEquals(true, IsManaged(TypeInfo(Variant)), 'IsManaged for tkVariant');
@@ -746,6 +745,7 @@ begin
   CheckEquals(true, IsManaged(TypeInfo(TArray<byte>)), 'IsManaged for tkDynArray');
   {$endif}
   CheckEquals(true, IsManaged(TypeInfo(unicodestring)), 'IsManaged for tkUString');
+  CheckEquals(false, IsManaged(TypeInfo(shortstring)), 'IsManaged for tkSString');
   CheckEquals(false, IsManaged(TypeInfo(Byte)), 'IsManaged for tkInteger');
   CheckEquals(false, IsManaged(TypeInfo(Char)), 'IsManaged for tkChar');
   CheckEquals(false, IsManaged(TypeInfo(TTestEnum)), 'IsManaged for tkEnumeration');
