@@ -147,6 +147,12 @@ type
     Procedure TestUnitImplRecord;
     Procedure TestRenameJSNameConflict;
 
+    // strings
+    Procedure TestCharConst;
+    Procedure TestStringConst;
+    Procedure TestString_SetLength;
+    // ToDo: TestString: read, write []
+
     Procedure TestEmptyProc;
     Procedure TestAliasTypeRef;
 
@@ -168,16 +174,27 @@ type
     Procedure TestExit;
     Procedure TestBreak;
     Procedure TestContinue;
-    // ToDo: TestString; SetLength,Length,[],char
 
     // ToDo: pass by reference
 
-    // ToDo: enums
+    Procedure TestEnumName;
+    Procedure TestEnumNumber;
+    Procedure TestEnumFunctions;
+    Procedure TestSet;
+    Procedure TestSetOperators;
+    Procedure TestSetFunctions;
+    // ToDo:  str
+    // ToDo: pass set as non const parameter using cloneSet
 
     // statements
     Procedure TestIncDec;
     Procedure TestAssignments;
-    Procedure TestOperators1;
+    Procedure TestArithmeticOperators1;
+    // test integer := double
+    // test integer := integer + double
+    // test pass double to an integer parameter
+    Procedure TestLogicalOperators;
+    Procedure TestBitwiseOperators;
     Procedure TestFunctionInt;
     Procedure TestFunctionString;
     Procedure TestVarRecord;
@@ -196,7 +213,9 @@ type
     Procedure TestCaseOfRange;
 
     // arrays
-    Procedure TestArray;
+    Procedure TestArray_Dynamic;
+    Procedure TestArray_Dynamic_Nil;
+    // ToDo: TestArray_LowHigh
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
@@ -207,9 +226,13 @@ type
     Procedure TestClass_AbstractMethod;
     Procedure TestClass_CallInherited_NoParams;
     Procedure TestClass_CallInherited_WithParams;
+    Procedure TestClasS_CallInheritedConstructor;
     Procedure TestClass_ClassVar;
     Procedure TestClass_CallClassMethod;
-    // ToDo: Procedure TestClass_CallInheritedConstructor;
+    Procedure TestClass_Property;
+    Procedure TestClass_Property_ClassMethod;
+    Procedure TestClass_Property_Index;
+    Procedure TestClass_PropertyOfTypeArray;
     // ToDo: overload
     // ToDo: second constructor
     // ToDo: call another constructor within a constructor
@@ -299,7 +322,7 @@ constructor TTestEnginePasResolver.Create;
 begin
   inherited Create;
   StoreSrcColumns:=true;
-  Options:=Options+[proFixCaseOfOverrides];
+  Options:=Options+DefaultPasResolverOptions;
 end;
 
 destructor TTestEnginePasResolver.Destroy;
@@ -1104,7 +1127,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestOperators1;
+procedure TTestModule.TestArithmeticOperators1;
 begin
   StartProgram(false);
   Add('var');
@@ -1112,13 +1135,15 @@ begin
   Add('begin');
   Add('  va:=1;');
   Add('  vb:=va+va;');
+  Add('  vb:=va div vb;');
+  Add('  vb:=va mod vb;');
   Add('  vb:=va+va*vb+va div vb;');
   Add('  vc:=-va;');
   Add('  va:=va-vb;');
   Add('  vb:=va;');
   Add('  if va<vb then vc:=va else vc:=vb;');
   ConvertProgram;
-  CheckSource('TestOperators1',
+  CheckSource('TestArithmeticOperators1',
     LinesToStr([ // statements
     'this.vA = 0;',
     'this.vB = 0;',
@@ -1127,11 +1152,73 @@ begin
     LinesToStr([ // this.$main
     'this.vA = 1;',
     'this.vB = this.vA + this.vA;',
-    'this.vB = (this.vA + (this.vA * this.vB)) + (this.vA / this.vB);',
+    'this.vB = Math.floor(this.vA / this.vB);',
+    'this.vB = this.vA % this.vB;',
+    'this.vB = (this.vA + (this.vA * this.vB)) + Math.floor(this.vA / this.vB);',
     'this.vC = -this.vA;',
     'this.vA = this.vA - this.vB;',
     'this.vB = this.vA;',
     'if (this.vA < this.vB) this.vC = this.vA else this.vC = this.vB;'
+    ]));
+end;
+
+procedure TTestModule.TestLogicalOperators;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  vA,vB,vC:boolean;');
+  Add('begin');
+  Add('  va:=vb and vc;');
+  Add('  va:=vb or vc;');
+  Add('  va:=true and vc;');
+  Add('  va:=(vb and vc) or (va and vb);');
+  Add('  va:=not vb;');
+  ConvertProgram;
+  CheckSource('TestLogicalOperators',
+    LinesToStr([ // statements
+    'this.vA = false;',
+    'this.vB = false;',
+    'this.vC = false;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.vA = this.vB && this.vC;',
+    'this.vA = this.vB || this.vC;',
+    'this.vA = true && this.vC;',
+    'this.vA = (this.vB && this.vC) || (this.vA && this.vB);',
+    'this.vA = !this.vB;'
+    ]));
+end;
+
+procedure TTestModule.TestBitwiseOperators;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  vA,vB,vC:longint;');
+  Add('begin');
+  Add('  va:=vb and vc;');
+  Add('  va:=vb or vc;');
+  Add('  va:=vb xor vc;');
+  Add('  va:=vb shl vc;');
+  Add('  va:=vb shr vc;');
+  Add('  va:=3 and vc;');
+  Add('  va:=(vb and vc) or (va and vb);');
+  Add('  va:=not vb;');
+  ConvertProgram;
+  CheckSource('TestBitwiseOperators',
+    LinesToStr([ // statements
+    'this.vA = 0;',
+    'this.vB = 0;',
+    'this.vC = 0;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.vA = this.vB & this.vC;',
+    'this.vA = this.vB | this.vC;',
+    'this.vA = this.vB ^ this.vC;',
+    'this.vA = this.vB << this.vC;',
+    'this.vA = this.vB >>> this.vC;',
+    'this.vA = 3 & this.vC;',
+    'this.vA = (this.vB & this.vC) | (this.vA & this.vB);',
+    'this.vA = ~this.vB;'
     ]));
 end;
 
@@ -1179,10 +1266,10 @@ begin
     LinesToStr([ // statements
     'var $impl = {',
     '};',
+    'this.$impl = $impl;',
     'this.Proc1 = function () {',
     '  var v1 = 0;',
     '};',
-    'this.$impl = $impl;',
     '$impl.v2 = "";'
     ]),
     '' // this.$init
@@ -1476,6 +1563,300 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestEnumName;
+begin
+  StartProgram(false);
+  Add('type TMyEnum = (Red, Green, Blue);');
+  Add('var e: TMyEnum;');
+  Add('var f: TMyEnum = Blue;');
+  Add('begin');
+  Add('  e:=green;');
+  ConvertProgram;
+  CheckSource('TestEnumName',
+    LinesToStr([ // statements
+    'this.TMyEnum = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1,',
+    '  "2":"Blue",',
+    '  Blue:2',
+    '  };',
+    'this.e = 0;',
+    'this.f = this.TMyEnum.Blue;'
+    ]),
+    LinesToStr([
+    'this.e=this.TMyEnum.Green;'
+    ]));
+end;
+
+procedure TTestModule.TestEnumNumber;
+begin
+  Converter.Options:=Converter.Options+[coEnumNumbers];
+  StartProgram(false);
+  Add('type TMyEnum = (Red, Green);');
+  Add('var');
+  Add('  e: TMyEnum;');
+  Add('  f: TMyEnum = Green;');
+  Add('begin');
+  Add('  e:=green;');
+  ConvertProgram;
+  CheckSource('TestEnumNumber',
+    LinesToStr([ // statements
+    'this.TMyEnum = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1',
+    '  };',
+    'this.e = 0;',
+    'this.f = 1;'
+    ]),
+    LinesToStr([
+    'this.e=1;'
+    ]));
+end;
+
+procedure TTestModule.TestEnumFunctions;
+begin
+  StartProgram(false);
+  Add('type TMyEnum = (Red, Green);');
+  Add('var');
+  Add('  e: TMyEnum;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  i:=ord(red);');
+  Add('  i:=ord(green);');
+  Add('  i:=ord(e);');
+  Add('  e:=low(tmyenum);');
+  Add('  e:=low(e);');
+  Add('  e:=high(tmyenum);');
+  Add('  e:=high(e);');
+  Add('  e:=pred(green);');
+  Add('  e:=pred(e);');
+  Add('  e:=succ(red);');
+  Add('  e:=succ(e);');
+  Add('  e:=tmyenum(1);');
+  Add('  e:=tmyenum(i);');
+  ConvertProgram;
+  CheckSource('TestEnumNumber',
+    LinesToStr([ // statements
+    'this.TMyEnum = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1',
+    '  };',
+    'this.e = 0;',
+    'this.i = 0;'
+    ]),
+    LinesToStr([
+    'this.i=this.TMyEnum.Red;',
+    'this.i=this.TMyEnum.Green;',
+    'this.i=this.e;',
+    'this.e=this.TMyEnum.Red;',
+    'this.e=this.TMyEnum.Red;',
+    'this.e=this.TMyEnum.Green;',
+    'this.e=this.TMyEnum.Green;',
+    'this.e=this.TMyEnum.Green-1;',
+    'this.e=this.e-1;',
+    'this.e=this.TMyEnum.Red+1;',
+    'this.e=this.e+1;',
+    'this.e=1;',
+    'this.e=this.i;',
+    '']));
+end;
+
+procedure TTestModule.TestSet;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TColor = (Red, Green, Blue);');
+  Add('  TColors = set of TColor;');
+  Add('var');
+  Add('  c: TColor;');
+  Add('  s: TColors;');
+  Add('  t: TColors = [];');
+  Add('  u: TColors = [Red];');
+  Add('begin');
+  Add('  s:=[];');
+  Add('  s:=[Green];');
+  Add('  s:=[Green,Blue];');
+  Add('  s:=[Red..Blue];');
+  Add('  s:=[Red,Green..Blue];');
+  Add('  s:=[Red,c];');
+  Add('  s:=t;');
+  ConvertProgram;
+  CheckSource('TestEnumName',
+    LinesToStr([ // statements
+    'this.TColor = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1,',
+    '  "2":"Blue",',
+    '  Blue:2',
+    '  };',
+    'this.c = 0;',
+    'this.s = {};',
+    'this.t = {};',
+    'this.u = rtl.createSet(this.TColor.Red);'
+    ]),
+    LinesToStr([
+    'this.s={};',
+    'this.s=rtl.createSet(this.TColor.Green);',
+    'this.s=rtl.createSet(this.TColor.Green,this.TColor.Blue);',
+    'this.s=rtl.createSet(null,this.TColor.Red,this.TColor.Blue);',
+    'this.s=rtl.createSet(this.TColor.Red,null,this.TColor.Green,this.TColor.Blue);',
+    'this.s=rtl.createSet(this.TColor.Red,this.c);',
+    'this.s=rtl.cloneSet(this.t);',
+    '']));
+end;
+
+procedure TTestModule.TestSetOperators;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TColor = (Red, Green, Blue);');
+  Add('  TColors = set of tcolor;');
+  Add('var');
+  Add('  vC: TColor;');
+  Add('  vS: TColors;');
+  Add('  vT: TColors;');
+  Add('  vU: TColors;');
+  Add('  B: boolean;');
+  Add('begin');
+  Add('  include(vs,green);');
+  Add('  exclude(vs,vc);');
+  Add('  vs:=vt+vu;');
+  Add('  vs:=vt+[red];');
+  Add('  vs:=[red]+vt;');
+  Add('  vs:=[red]+[green];');
+  Add('  vs:=vt-vu;');
+  Add('  vs:=vt-[red];');
+  Add('  vs:=[red]-vt;');
+  Add('  vs:=[red]-[green];');
+  Add('  vs:=vt*vu;');
+  Add('  vs:=vt*[red];');
+  Add('  vs:=[red]*vt;');
+  Add('  vs:=[red]*[green];');
+  Add('  vs:=vt><vu;');
+  Add('  vs:=vt><[red];');
+  Add('  vs:=[red]><vt;');
+  Add('  vs:=[red]><[green];');
+  Add('  b:=vt=vu;');
+  Add('  b:=vt=[red];');
+  Add('  b:=[red]=vt;');
+  Add('  b:=[red]=[green];');
+  Add('  b:=vt<>vu;');
+  Add('  b:=vt<>[red];');
+  Add('  b:=[red]<>vt;');
+  Add('  b:=[red]<>[green];');
+  Add('  b:=vt<=vu;');
+  Add('  b:=vt<=[red];');
+  Add('  b:=[red]<=vt;');
+  Add('  b:=[red]<=[green];');
+  Add('  b:=vt>=vu;');
+  Add('  b:=vt>=[red];');
+  Add('  b:=[red]>=vt;');
+  Add('  b:=[red]>=[green];');
+  Add('  b:=Red in vt;');
+  Add('  b:=vc in vt;');
+  Add('  b:=Green in [Red..Blue];');
+  Add('  b:=vc in [Red..Blue];');
+  ConvertProgram;
+  CheckSource('TestEnumName',
+    LinesToStr([ // statements
+    'this.TColor = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1,',
+    '  "2":"Blue",',
+    '  Blue:2',
+    '  };',
+    'this.vC = 0;',
+    'this.vS = {};',
+    'this.vT = {};',
+    'this.vU = {};',
+    'this.B = false;'
+    ]),
+    LinesToStr([
+    'this.vS[this.TColor.Green] = true;',
+    'delete this.vS[this.vC];',
+    'this.vS = rtl.unionSet(this.vT, this.vU);',
+    'this.vS = rtl.unionSet(this.vT, rtl.createSet(this.TColor.Red));',
+    'this.vS = rtl.unionSet(rtl.createSet(this.TColor.Red), this.vT);',
+    'this.vS = rtl.unionSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
+    'this.vS = rtl.diffSet(this.vT, this.vU);',
+    'this.vS = rtl.diffSet(this.vT, rtl.createSet(this.TColor.Red));',
+    'this.vS = rtl.diffSet(rtl.createSet(this.TColor.Red), this.vT);',
+    'this.vS = rtl.diffSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
+    'this.vS = rtl.intersectSet(this.vT, this.vU);',
+    'this.vS = rtl.intersectSet(this.vT, rtl.createSet(this.TColor.Red));',
+    'this.vS = rtl.intersectSet(rtl.createSet(this.TColor.Red), this.vT);',
+    'this.vS = rtl.intersectSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
+    'this.vS = rtl.symDiffSet(this.vT, this.vU);',
+    'this.vS = rtl.symDiffSet(this.vT, rtl.createSet(this.TColor.Red));',
+    'this.vS = rtl.symDiffSet(rtl.createSet(this.TColor.Red), this.vT);',
+    'this.vS = rtl.symDiffSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
+    'this.B = rtl.eqSet(this.vT, this.vU);',
+    'this.B = rtl.eqSet(this.vT, rtl.createSet(this.TColor.Red));',
+    'this.B = rtl.eqSet(rtl.createSet(this.TColor.Red), this.vT);',
+    'this.B = rtl.eqSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
+    'this.B = rtl.neSet(this.vT, this.vU);',
+    'this.B = rtl.neSet(this.vT, rtl.createSet(this.TColor.Red));',
+    'this.B = rtl.neSet(rtl.createSet(this.TColor.Red), this.vT);',
+    'this.B = rtl.neSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
+    'this.B = rtl.leSet(this.vT, this.vU);',
+    'this.B = rtl.leSet(this.vT, rtl.createSet(this.TColor.Red));',
+    'this.B = rtl.leSet(rtl.createSet(this.TColor.Red), this.vT);',
+    'this.B = rtl.leSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
+    'this.B = rtl.geSet(this.vT, this.vU);',
+    'this.B = rtl.geSet(this.vT, rtl.createSet(this.TColor.Red));',
+    'this.B = rtl.geSet(rtl.createSet(this.TColor.Red), this.vT);',
+    'this.B = rtl.geSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
+    'this.B = this.vT[this.TColor.Red];',
+    'this.B = this.vT[this.vC];',
+    'this.B = rtl.createSet(null, this.TColor.Red, this.TColor.Blue)[this.TColor.Green];',
+    'this.B = rtl.createSet(null, this.TColor.Red, this.TColor.Blue)[this.vC];',
+    '']));
+end;
+
+procedure TTestModule.TestSetFunctions;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TMyEnum = (Red, Green);');
+  Add('  TMyEnums = set of TMyEnum;');
+  Add('var');
+  Add('  e: TMyEnum;');
+  Add('  s: TMyEnums;');
+  Add('begin');
+  Add('  e:=Low(TMyEnums);');
+  Add('  e:=Low(s);');
+  Add('  e:=High(TMyEnums);');
+  Add('  e:=High(s);');
+  ConvertProgram;
+  CheckSource('TestSetFunctions',
+    LinesToStr([ // statements
+    'this.TMyEnum = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1',
+    '  };',
+    'this.e = 0;',
+    'this.s = {};'
+    ]),
+    LinesToStr([
+    'this.e=this.TMyEnum.Red;',
+    'this.e=this.TMyEnum.Red;',
+    'this.e=this.TMyEnum.Green;',
+    'this.e=this.TMyEnum.Green;',
+    '']));
+end;
+
 procedure TTestModule.TestUnitImplVars;
 begin
   StartUnit(false);
@@ -1563,6 +1944,92 @@ begin
     ]),
     LinesToStr([ // this.$main
     ''
+    ]));
+end;
+
+procedure TTestModule.TestCharConst;
+begin
+  StartProgram(false);
+  Add('const');
+  Add('  c: char = ''1'';');
+  Add('begin');
+  Add('  c:=#0;');
+  Add('  c:=#1;');
+  Add('  c:=#9;');
+  Add('  c:=#10;');
+  Add('  c:=#13;');
+  Add('  c:=#31;');
+  Add('  c:=#32;');
+  Add('  c:=#$A;');
+  Add('  c:=#$0A;');
+  Add('  c:=#$b;');
+  Add('  c:=#$0b;');
+  Add('  c:=^A;');
+  Add('  c:=''"'';');
+  ConvertProgram;
+  CheckSource('TestCharConst',
+    LinesToStr([
+    'this.c="1";'
+    ]),
+    LinesToStr([
+    'this.c="\x00";',
+    'this.c="\x01";',
+    'this.c="\t";',
+    'this.c="\n";',
+    'this.c="\r";',
+    'this.c="\x1F";',
+    'this.c=" ";',
+    'this.c="\n";',
+    'this.c="\n";',
+    'this.c="\x0B";',
+    'this.c="\x0B";',
+    'this.c="\x01";',
+    'this.c=''"'';'
+    ]));
+end;
+
+procedure TTestModule.TestStringConst;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  s: string = ''abc'';');
+  Add('begin');
+  Add('  s:='''';');
+  Add('  s:=#13#10;');
+  Add('  s:=#9''foo'';');
+  Add('  s:=#$A9;');
+  Add('  s:=''foo''#13''bar'';');
+  Add('  s:=''"'';');
+  Add('  s:=''"''''"'';');
+  ConvertProgram;
+  CheckSource('TestCharConst',
+    LinesToStr([
+    'this.s="abc";'
+    ]),
+    LinesToStr([
+    'this.s="";',
+    'this.s="\r\n";',
+    'this.s="\tfoo";',
+    'this.s="©";',
+    'this.s="foo\rbar";',
+    'this.s=''"'';',
+    'this.s=''"\''"'';'
+    ]));
+end;
+
+procedure TTestModule.TestString_SetLength;
+begin
+  StartProgram(false);
+  Add('var s: string;');
+  Add('begin');
+  Add('  SetLength(s,3);');
+  ConvertProgram;
+  CheckSource('TestString_SetLength',
+    LinesToStr([ // statements
+    'this.s = "";'
+    ]),
+    LinesToStr([ // this.$main
+    'rtl.setStringLength(this.s,3);'
     ]));
 end;
 
@@ -1901,7 +2368,7 @@ begin
     LinesToStr([ // this.$main
     'try {',
     '  this.i = 0;',
-    '  this.i = 2 / this.i;',
+    '  this.i = Math.floor(2 / this.i);',
     '} finally {',
     '  this.i = 3;',
     '};'
@@ -2495,6 +2962,103 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestClasS_CallInheritedConstructor;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    constructor Create; virtual;');
+  Add('    constructor CreateWithB(b: boolean);');
+  Add('  end;');
+  Add('  TA = class');
+  Add('    constructor Create; override;');
+  Add('    constructor CreateWithC(c: char);');
+  Add('    procedure DoIt;');
+  Add('    class function DoSome: TObject;');
+  Add('  end;');
+  Add('constructor tobject.create;');
+  Add('begin');
+  Add('  inherited; // call non existing ancestor -> ignore silently');
+  Add('end;');
+  Add('constructor tobject.createwithb(b: boolean);');
+  Add('begin');
+  Add('  inherited; // call non existing ancestor -> ignore silently');
+  Add('  create; // normal call');
+  Add('end;');
+  Add('constructor ta.create;');
+  Add('begin');
+  Add('  inherited; // normal call TObject.Create');
+  Add('  inherited create; // normal call TObject.Create');
+  Add('  inherited createwithb(false); // normal call TObject.CreateWithB');
+  Add('end;');
+  Add('constructor ta.createwithc(c: char);');
+  Add('begin');
+  Add('  inherited create; // call TObject.Create');
+  Add('  inherited createwithb(true); // call TObject.CreateWithB');
+  Add('  doit;');
+  Add('  doit();');
+  Add('  dosome;');
+  Add('end;');
+  Add('procedure ta.doit;');
+  Add('begin');
+  Add('  create; // normal call');
+  Add('  createwithb(false); // normal call');
+  Add('  createwithc(''c''); // normal call');
+  Add('end;');
+  Add('class function ta.dosome: TObject;');
+  Add('begin');
+  Add('  Result:=create; // constructor');
+  Add('  Result:=createwithb(true); // constructor');
+  Add('  Result:=createwithc(''c''); // constructor');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestClass_CallInheritedConstructor',
+    LinesToStr([ // statements
+    'rtl.createClass(this,"TObject",null,function(){',
+    '  this.$init = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '  };',
+    '  this.CreateWithB = function (b) {',
+    '    this.Create();',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TA", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TObject.$init.call(this);',
+    '  };',
+    '  this.Create = function () {',
+    '    pas.program.TObject.Create.apply(this, arguments);',
+    '    pas.program.TObject.Create.call(this);',
+    '    pas.program.TObject.CreateWithB.call(this, false);',
+    '  };',
+    '  this.CreateWithC = function (c) {',
+    '    pas.program.TObject.Create.call(this);',
+    '    pas.program.TObject.CreateWithB.call(this, true);',
+    '    this.DoIt();',
+    '    this.DoIt();',
+    '    this.$class.DoSome();',
+    '  };',
+    '  this.DoIt = function () {',
+    '    this.Create();',
+    '    this.CreateWithB(false);',
+    '    this.CreateWithC("c");',
+    '  };',
+    '  this.DoSome = function () {',
+    '    var Result = null;',
+    '    Result = this.$create("Create");',
+    '    Result = this.$create("CreateWithB", [true]);',
+    '    Result = this.$create("CreateWithC", ["c"]);',
+    '    return Result;',
+    '  };',
+    '});'
+    ]),
+    LinesToStr([ // this.$main
+    ''
+    ]));
+end;
+
 procedure TTestModule.TestClass_ClassVar;
 begin
   StartProgram(false);
@@ -2643,7 +3207,277 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestArray;
+procedure TTestModule.TestClass_Property;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    Fx: longint;');
+  Add('    Fy: longint;');
+  Add('    function GetInt: longint;');
+  Add('    procedure SetInt(Value: longint);');
+  Add('    procedure DoIt;');
+  Add('    property IntA: longint read Fx write Fy;');
+  Add('    property IntB: longint read GetInt write SetInt;');
+  Add('  end;');
+  Add('function tobject.getint: longint;');
+  Add('begin');
+  Add('  result:=fx;');
+  Add('end;');
+  Add('procedure tobject.setint(value: longint);');
+  Add('begin');
+  Add('  if value=fy then exit;');
+  Add('  fy:=value;');
+  Add('end;');
+  Add('procedure tobject.doit;');
+  Add('begin');
+  Add('  IntA:=IntA+1;');
+  Add('  Self.IntA:=Self.IntA+1;');
+  Add('  IntB:=IntB+1;');
+  Add('  Self.IntB:=Self.IntB+1;');
+  Add('end;');
+  Add('var Obj: tobject;');
+  Add('begin');
+  Add('  obj.inta:=obj.inta+1;');
+  Add('  if obj.intb=2 then;');
+  Add('  obj.intb:=obj.intb+2;');
+  Add('  obj.setint(obj.inta);');
+  ConvertProgram;
+  CheckSource('TestClass_Property',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.Fx = 0;',
+    '    this.Fy = 0;',
+    '  };',
+    '  this.GetInt = function () {',
+    '    var Result = 0;',
+    '    Result = this.Fx;',
+    '    return Result;',
+    '  };',
+    '  this.SetInt = function (Value) {',
+    '    if (Value == this.Fy) return;',
+    '    this.Fy = Value;',
+    '  };',
+    '  this.DoIt = function () {',
+    '    this.Fy = this.Fx + 1;',
+    '    this.Fy = this.Fx + 1;',
+    '    this.SetInt(this.GetInt() + 1);',
+    '    this.SetInt(this.GetInt() + 1);',
+    '  };',
+    '});',
+    'this.Obj = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.Obj.Fy = this.Obj.Fx + 1;',
+    'if (this.Obj.GetInt() == 2) {',
+    '};',
+    'this.Obj.SetInt(this.Obj.GetInt() + 2);',
+    'this.Obj.SetInt(this.Obj.Fx);'
+    ]));
+end;
+
+procedure TTestModule.TestClass_Property_ClassMethod;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class var Fx: longint;');
+  Add('    class var Fy: longint;');
+  Add('    class function GetInt: longint;');
+  Add('    class procedure SetInt(Value: longint);');
+  Add('    class procedure DoIt;');
+  Add('    class property IntA: longint read Fx write Fy;');
+  Add('    class property IntB: longint read GetInt write SetInt;');
+  Add('  end;');
+  Add('class function tobject.getint: longint;');
+  Add('begin');
+  Add('  result:=fx;');
+  Add('end;');
+  Add('class procedure tobject.setint(value: longint);');
+  Add('begin');
+  Add('end;');
+  Add('class procedure tobject.doit;');
+  Add('begin');
+  Add('  IntA:=IntA+1;');
+  Add('  Self.IntA:=Self.IntA+1;');
+  Add('  IntB:=IntB+1;');
+  Add('  Self.IntB:=Self.IntB+1;');
+  Add('end;');
+  Add('var Obj: tobject;');
+  Add('begin');
+  Add('  tobject.inta:=tobject.inta+1;');
+  Add('  if tobject.intb=2 then;');
+  Add('  tobject.intb:=tobject.intb+2;');
+  Add('  tobject.setint(tobject.inta);');
+  Add('  obj.inta:=obj.inta+1;');
+  Add('  if obj.intb=2 then;');
+  Add('  obj.intb:=obj.intb+2;');
+  Add('  obj.setint(obj.inta);');
+  ConvertProgram;
+  CheckSource('TestClass_Property_ClassMethod',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.Fx = 0;',
+    '  this.Fy = 0;',
+    '  this.$init = function () {',
+    '  };',
+    '  this.GetInt = function () {',
+    '    var Result = 0;',
+    '    Result = this.Fx;',
+    '    return Result;',
+    '  };',
+    '  this.SetInt = function (Value) {',
+    '  };',
+    '  this.DoIt = function () {',
+    '    this.Fy = this.Fx + 1;',
+    '    this.Fy = this.Fx + 1;',
+    '    this.SetInt(this.GetInt() + 1);',
+    '    this.SetInt(this.GetInt() + 1);',
+    '  };',
+    '});',
+    'this.Obj = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.TObject.Fy = this.TObject.Fx + 1;',
+    'if (this.TObject.GetInt() == 2) {',
+    '};',
+    'this.TObject.SetInt(this.TObject.GetInt() + 2);',
+    'this.TObject.SetInt(this.TObject.Fx);',
+    'this.Obj.$class.Fy = this.Obj.Fx + 1;',
+    'if (this.Obj.$class.GetInt() == 2) {',
+    '};',
+    'this.Obj.$class.SetInt(this.Obj.$class.GetInt() + 2);',
+    'this.Obj.$class.SetInt(this.Obj.Fx);'
+    ]));
+end;
+
+procedure TTestModule.TestClass_Property_Index;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    FItems: array of longint;');
+  Add('    function GetItems(Index: longint): longint;');
+  Add('    procedure SetItems(Index: longint; Value: longint);');
+  Add('    procedure DoIt;');
+  Add('    property Items[Index: longint]: longint read getitems write setitems;');
+  Add('  end;');
+  Add('function tobject.getitems(index: longint): longint;');
+  Add('begin');
+  Add('  Result:=fitems[index];');
+  Add('end;');
+  Add('procedure tobject.setitems(index: longint; value: longint);');
+  Add('begin');
+  Add('  fitems[index]:=value;');
+  Add('end;');
+  Add('procedure tobject.doit;');
+  Add('begin');
+  Add('  items[1]:=2;');
+  Add('  items[3]:=items[4];');
+  Add('  self.items[5]:=self.items[6];');
+  Add('  items[items[7]]:=items[items[8]];');
+  Add('end;');
+  Add('var Obj: tobject;');
+  Add('begin');
+  Add('  obj.Items[11]:=obj.Items[12];');
+  ConvertProgram;
+  CheckSource('TestClass_Property_Index',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FItems = [];',
+    '  };',
+    '  this.GetItems = function (Index) {',
+    '    var Result = 0;',
+    '    Result = this.FItems[Index];',
+    '    return Result;',
+    '  };',
+    '  this.SetItems = function (Index, Value) {',
+    '    this.FItems[Index] = Value;',
+    '  };',
+    '  this.DoIt = function () {',
+    '    this.SetItems(1, 2);',
+    '    this.SetItems(3,this.GetItems(4));',
+    '    this.SetItems(5,this.GetItems(6));',
+    '    this.SetItems(this.GetItems(7), this.GetItems(this.GetItems(8)));',
+    '  };',
+    '});',
+    'this.Obj = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.Obj.SetItems(11,this.Obj.GetItems(12));'
+    ]));
+end;
+
+procedure TTestModule.TestClass_PropertyOfTypeArray;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArray = array of longint;');
+  Add('  TObject = class');
+  Add('    FItems: TArray;');
+  Add('    function GetItems: tarray;');
+  Add('    procedure SetItems(Value: tarray);');
+  Add('    property Items: tarray read getitems write setitems;');
+  Add('  end;');
+  Add('function tobject.getitems: tarray;');
+  Add('begin');
+  Add('  Result:=fitems;');
+  Add('end;');
+  Add('procedure tobject.setitems(value: tarray);');
+  Add('begin');
+  Add('  fitems:=value;');
+  Add('  fitems:=nil;');
+  Add('  Items:=nil;');
+  Add('  Items:=Items;');
+  Add('  Items[1]:=2;');
+  Add('  fitems[3]:=Items[4];');
+  Add('  Items[5]:=Items[6];');
+  Add('  Self.Items[7]:=8;');
+  Add('  Self.Items[9]:=Self.Items[10];');
+  Add('  Items[Items[11]]:=Items[Items[12]];');
+  Add('end;');
+  Add('var Obj: tobject;');
+  Add('begin');
+  Add('  obj.items:=nil;');
+  Add('  obj.items:=obj.items;');
+  Add('  obj.items[11]:=obj.items[12];');
+  ConvertProgram;
+  CheckSource('TestClass_PropertyOfTypeArray',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FItems = [];',
+    '  };',
+    '  this.GetItems = function () {',
+    '    var Result = [];',
+    '    Result = this.FItems;',
+    '    return Result;',
+    '  };',
+    '  this.SetItems = function (Value) {',
+    '    this.FItems = Value;',
+    '    this.FItems = null;',
+    '    this.SetItems(null);',
+    '    this.SetItems(this.GetItems());',
+    '    this.GetItems()[1] = 2;',
+    '    this.FItems[3] = this.GetItems()[4];',
+    '    this.GetItems()[5] = this.GetItems()[6];',
+    '    this.GetItems()[7] = 8;',
+    '    this.GetItems()[9] = this.GetItems()[10];',
+    '    this.GetItems()[this.GetItems()[11]] = this.GetItems()[this.GetItems()[12]];',
+    '  };',
+    '});',
+    'this.Obj = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.Obj.SetItems(null);',
+    'this.Obj.SetItems(this.Obj.GetItems());',
+    'this.Obj.GetItems()[11] = this.Obj.GetItems()[12];'
+    ]));
+end;
+
+procedure TTestModule.TestArray_Dynamic;
 begin
   StartProgram(false);
   Add('type');
@@ -2655,14 +3489,37 @@ begin
   Add('  arr[0]:=4;');
   Add('  arr[1]:=length(arr)+arr[0];');
   ConvertProgram;
-  CheckSource('TestArray',
+  CheckSource('TestArray_Dynamic',
     LinesToStr([ // statements
     'this.Arr = [];'
     ]),
     LinesToStr([ // this.$main
-    'rtl.setArrayLength(this.Arr,3,0);',
-    'this.Arr[0]=4;',
-    'this.Arr[1]=rtl.length(this.Arr)+this.Arr[0];'
+    'this.Arr = rtl.setArrayLength(this.Arr,3,0);',
+    'this.Arr[0] = 4;',
+    'this.Arr[1] = rtl.length(this.Arr)+this.Arr[0];'
+    ]));
+end;
+
+procedure TTestModule.TestArray_Dynamic_Nil;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrayInt = array of longint;');
+  Add('var');
+  Add('  Arr: TArrayInt;');
+  Add('begin');
+  Add('  arr:=nil;');
+  Add('  if arr=nil then;');
+  Add('  if nil=arr then;');
+  ConvertProgram;
+  CheckSource('TestArray_Dynamic',
+    LinesToStr([ // statements
+    'this.Arr = [];'
+    ]),
+    LinesToStr([ // this.$main
+    'this.Arr = null;',
+    'if (this.Arr == null) {};',
+    'if (null == this.Arr) {};'
     ]));
 end;
 
