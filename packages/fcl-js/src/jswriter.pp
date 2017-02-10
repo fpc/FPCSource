@@ -83,8 +83,14 @@ Type
     Property AsUnicodeString : UnicodeString Read GetUnicodeString;
   end;
 
+  TJSEscapeQuote = (
+    jseqSingle,
+    jseqDouble,
+    jseqBoth
+    );
 
   { TJSWriter }
+
   TWriteOption = (woCompact,
                   woUseUTF8,
                   woTabIndent,
@@ -151,7 +157,7 @@ Type
     Procedure WritePrimaryExpression(El: TJSPrimaryExpression);virtual;
     Procedure WriteBinary(El: TJSBinary);virtual;
   Public
-    Function EscapeString(const S: TJSString): String;
+    Function EscapeString(const S: TJSString; Quote: TJSEscapeQuote = jseqDouble): String;
     Function JSStringToStr(const S: TJSString): string;
     Constructor Create(AWriter : TTextWriter);
     Constructor Create(Const AFileName : String);
@@ -164,13 +170,94 @@ Type
     Property IndentSize : Byte Read FIndentSize Write FIndentSize;
     Property UseUTF8 : Boolean Read GetUseUTF8;
   end;
-  EJSWriter = CLass(Exception);
+  EJSWriter = Class(Exception);
+
+function IsValidJSIdentifier(Name: TJSString; AllowEscapeSeq: boolean = false): boolean;
 
 implementation
 
 Resourcestring
   SErrUnknownJSClass = 'Unknown javascript element class : %s';
   SErrNilNode = 'Nil node in Javascript';
+
+function IsValidJSIdentifier(Name: TJSString; AllowEscapeSeq: boolean): boolean;
+var
+  p: TJSPChar;
+  i: Integer;
+begin
+  Result:=false;
+  if Name='' then exit;
+  p:=TJSPChar(Name);
+  repeat
+    case p^ of
+    #0:
+      if p-TJSPChar(Name)=length(Name) then
+        exit(true)
+      else
+        exit;
+    '0'..'9':
+      if p=TJSPChar(Name) then
+        exit
+      else
+        inc(p);
+    'a'..'z','A'..'Z','_','$': inc(p);
+    '\':
+      begin
+      if not AllowEscapeSeq then exit;
+      inc(p);
+      if p^='x' then
+        begin
+        // \x00
+        for i:=1 to 2 do
+          begin
+          inc(p);
+          if not (p^ in ['0'..'9','a'..'f','A'..'F']) then exit;
+          end;
+        end
+      else if p^='u' then
+        begin
+        inc(p);
+        if p^='{' then
+          begin
+          // \u{00000}
+          i:=0;
+          repeat
+            inc(p);
+            case p^ of
+            '}': break;
+            '0'..'9': i:=i*16+ord(p^)-ord('0');
+            'a'..'f': i:=i*16+ord(p^)-ord('a')+10;
+            'A'..'F': i:=i*16+ord(p^)-ord('A')+10;
+            else exit;
+            end;
+            if i>$10FFFF then exit;
+          until false;
+          inc(p);
+          end
+        else
+          begin
+          // \u0000
+          for i:=1 to 4 do
+            begin
+            inc(p);
+            if not (p^ in ['0'..'9','a'..'f','A'..'F']) then exit;
+            end;
+          end;
+        end
+      else
+        exit; // unknown sequence
+      end;
+    #$200C,#$200D: inc(p); // zero width non-joiner/joiner
+    #$00AA..#$2000,
+    #$200E..#$D7FF:
+      inc(p); // ToDo: only those with ID_START/ID_CONTINUE see https://codepoints.net/search?IDC=1
+    #$D800..#$DBFF:
+      inc(p,2); // see above
+    else
+      exit;
+    end;
+  until false;
+end;
 
 { TBufferWriter }
 
@@ -380,27 +467,30 @@ begin
     end;
 end;
 
-function TJSWriter.EscapeString(const S: TJSString): String;
+function TJSWriter.EscapeString(const S: TJSString; Quote: TJSEscapeQuote
+  ): String;
 
 Var
   I,J,L : Integer;
-  P : PWideChar;
+  P : TJSPChar;
 
 begin
   I:=1;
   J:=1;
   Result:='';
   L:=Length(S);
-  P:=PWideChar(S);
+  P:=TJSPChar(S);
   While I<=L do
     begin
-    if (P^ in ['"','/','\',#8,#9,#10,#12,#13]) then
+    if (P^ in [#0..#31,'"','''','/','\']) then
       begin
       Result:=Result+JSStringToStr(Copy(S,J,I-J));
       Case P^ of
         '\' : Result:=Result+'\\';
         '/' : Result:=Result+'\/';
-        '"' : Result:=Result+'\"';
+        '"' : if Quote=jseqSingle then Result:=Result+'"' else Result:=Result+'\"';
+        '''': if Quote=jseqDouble then Result:=Result+'''' else Result:=Result+'\''';
+        #0..#7,#11,#14..#31: Result:=Result+'\x'+hexStr(ord(P^),2);
         #8  : Result:=Result+'\b';
         #9  : Result:=Result+'\t';
         #10 : Result:=Result+'\n';
@@ -427,6 +517,7 @@ procedure TJSWriter.WriteValue(V: TJSValue);
 
 Var
   S : String;
+  JS: TJSString;
 begin
   if V.CustomValue<>'' then
     S:=JSStringToStr(V.CustomValue)
@@ -435,7 +526,14 @@ begin
       jstUNDEFINED : S:='undefined';
       jstNull : s:='null';
       jstBoolean : if V.AsBoolean then s:='true' else s:='false';
-      jstString : S:='"'+EscapeString(V.AsString)+'"';
+      jstString :
+        begin
+        JS:=V.AsString;
+        if Pos('"',JS)>0 then
+          S:=''''+EscapeString(JS,jseqSingle)+''''
+        else
+          S:='"'+EscapeString(JS,jseqDouble)+'"';
+        end;
       jstNumber :
         if Frac(V.AsNumber)=0 then // this needs to be improved
           Str(Round(V.AsNumber),S)
@@ -544,10 +642,10 @@ procedure TJSWriter.WriteRegularExpressionLiteral(
 
 begin
   Write('/');
-  Write(EscapeString(El.Pattern.AsString));
+  Write(EscapeString(El.Pattern.AsString,jseqBoth));
   Write('/');
   If Assigned(El.PatternFlags) then
-    Write(EscapeString(El.PatternFlags.AsString));
+    Write(EscapeString(El.PatternFlags.AsString,jseqBoth));
 end;
 
 procedure TJSWriter.WriteLiteral(El: TJSLiteral);
@@ -642,7 +740,7 @@ begin
   For I:=0 to C do
    begin
    S:=El.Elements[i].Name;
-   if QE then
+   if QE or not IsValidJSIdentifier(S) then
      S:='"'+S+'"';
    Write(S+': ');
    Indent;

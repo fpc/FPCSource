@@ -26,6 +26,8 @@ Type
   TJSType = (jstUNDEFINED,jstNull,jstBoolean,jstNumber,jstString,jstObject,jstReference,JSTCompletion);
 
   TJSString = UnicodeString;
+  TJSChar = WideChar;
+  TJSPChar = PWideChar;
   TJSNumber = Double;
 
   { TJSValue }
