@@ -176,6 +176,7 @@ var rtl = {
         o.$class = this; // Note: o.$class == Object.getPrototypeOf(o)
         if (args == undefined) args = [];
         o[fnname].apply(o,args);
+        o.$init();
         o.AfterConstruction();
         return o;
       };
@@ -197,17 +198,86 @@ var rtl = {
   },
 
   setArrayLength: function(arr,newlength,defaultvalue){
+    if (newlength == 0) return null;
+    if (arr == null) arr = [];
     var oldlen = arr.length;
     if (oldlen==newlength) return;
     arr.length = newlength;
     for (var i=oldlen; i<newlength; i++) arr[i]=defaultvalue;
+    return arr;
+  },
+
+  setStringLength: function(s,newlength){
+    s.length = newlength;
   },
 
   length: function(a){
-    if (a==null){
-      return 0;
-    } else {
-      return a.length;
+    return (a!=null) ? a.length : 0;
+  },
+
+  createSet: function(){
+    var s = {};
+    for (var i=0; i<arguments.length; i++){
+      if (arguments[i]!=null){
+        s[arguments[i]]=true;
+      } else {
+        var first=arguments[i+=1];
+        var last=arguments[i+=1];
+        for(var j=first; j<=last; j++) s[j]=true;
+      }
     }
+    return s;
+  },
+
+  cloneSet: function(s){
+    var r = {};
+    for (var key in s) if (s.hasOwnProperty(key)) r[key]=true;
+    return r;
+  },
+
+  diffSet: function(s,t){
+    var r = {};
+    for (var key in s) if (s.hasOwnProperty(key) && !t[key]) r[key]=true;
+    return r;
+  },
+
+  unionSet: function(s,t){
+    var r = {};
+    for (var key in s) if (s.hasOwnProperty(key)) r[key]=true;
+    for (var key in t) if (t.hasOwnProperty(key)) r[key]=true;
+    return r;
+  },
+
+  intersectSet: function(s,t){
+    var r = {};
+    for (var key in s) if (s.hasOwnProperty(key) && t[key]) r[key]=true;
+    return r;
+  },
+
+  symDiffSet: function(s,t){
+    var r = {};
+    for (var key in s) if (s.hasOwnProperty(key) && !t[key]) r[key]=true;
+    for (var key in t) if (t.hasOwnProperty(key) && !s[key]) r[key]=true;
+    return r;
+  },
+
+  eqSet: function(s,t){
+    for (var key in s) if (s.hasOwnProperty(key) && !t[key]) return false;
+    for (var key in t) if (t.hasOwnProperty(key) && !s[key]) return false;
+    return true;
+  },
+
+  neSet: function(s,t){
+    return !rtl.eqSet(s,t);
+  },
+
+  leSet: function(s,t){
+    for (var key in s) if (s.hasOwnProperty(key) && !t[key]) return false;
+    return true;
+  },
+
+  geSet: function(s,t){
+    for (var key in t) if (t.hasOwnProperty(key) && !s[key]) return false;
+    return true;
   },
 }
