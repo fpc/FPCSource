@@ -2674,7 +2674,7 @@ var
   p: PByte;
 begin
   p := PByte(@UnitNameField[0]) + SizeOf(UnitNameField[0]) + Length(UnitNameField);
-  Result := aligntoptr(p);
+  Result := AlignTypeData(p);
 end;
 
 function TInterfaceData.GetMethodTable: PIntfMethodTable;
@@ -2691,14 +2691,14 @@ end;
 
 function TInterfaceRawData.GetIIDStr: ShortString;
 begin
-  Result := PShortString(PByte(@UnitNameField[0]) + SizeOf(UnitNameField[0]) + Length(UnitNameField))^;
+  Result := PShortString(AlignTypeData(PByte(@UnitNameField[0]) + SizeOf(UnitNameField[0]) + Length(UnitNameField)))^;
 end;
 
 function TInterfaceRawData.GetPropertyTable: PPropData;
 var
   p: PByte;
 begin
-  p := PByte(@UnitNameField[0]) + SizeOf(UnitNameField[0]) + Length(UnitNameField);
+  p := AlignTypeData(PByte(@UnitNameField[0]) + SizeOf(UnitNameField[0]) + Length(UnitNameField));
   p := p + SizeOf(p^) + p^;
   Result := aligntoptr(p);
 end;
@@ -2750,7 +2750,7 @@ end;
 
 function TTypeData.GetIIDStr: ShortString;
 begin
-  Result := PShortString(Pointer(@RawIntfUnit) + Length(RawIntfUnit) + 1)^;
+  Result := PShortString(AlignTypeData(Pointer(@RawIntfUnit) + Length(RawIntfUnit) + 1))^;
 end;
 
 function TTypeData.GetElType: PTypeInfo;
