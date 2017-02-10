@@ -377,6 +377,7 @@ unit typinfo;
         function GetUnitName: ShortString; inline;
         function GetIIDStr: ShortString; inline;
         function GetPropertyTable: PPropData; inline;
+        function GetMethodTable: PIntfMethodTable; inline;
       public
         Parent: PPTypeInfo;
         Flags : TIntfFlagsBase;
@@ -384,6 +385,7 @@ unit typinfo;
         property UnitName: ShortString read GetUnitName;
         property IIDStr: ShortString read GetIIDStr;
         property PropertyTable: PPropData read GetPropertyTable;
+        property MethodTable: PIntfMethodTable read GetMethodTable;
       private
         UnitNameField: ShortString;
         { IIDStr: ShortString; }
@@ -2703,6 +2705,10 @@ begin
   Result := aligntoptr(p);
 end;
 
+function TInterfaceRawData.GetMethodTable: PIntfMethodTable;
+begin
+  Result := aligntoptr(PropertyTable^.Tail);
+end;
 
 { TTypeData }
 
