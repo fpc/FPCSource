@@ -28,11 +28,11 @@ type
     property T2: LongInt read Test2;
   end;
 
-  (*{$interfaces corba}
+  {$interfaces corba}
   ITestRaw = interface
     function Test: LongInt;
     property T: LongInt read Test;
-  end;*)
+  end;
   {$pop}
 
 procedure ErrorHalt(const aMsg: String; const aArgs: array of const);
@@ -139,10 +139,10 @@ var
   methtable: PIntfMethodTable;
   i: LongInt;
 begin
-  {if aRaw then begin
+  if aRaw then begin
     proptable := PInterfaceRawData(aIntf)^.PropertyTable;
     methtable := PInterfaceRawData(aIntf)^.MethodTable;
-  end else }begin
+  end else begin
     proptable := PInterfaceData(aIntf)^.PropertyTable;
     methtable := PInterfaceData(aIntf)^.MethodTable;
   end;
@@ -169,9 +169,10 @@ const
 {$endif}
 
 begin
-  {TestInterface(GetTypeData(TypeInfo(ITestRaw)), True, 1, [
+  { raw interfaces don't support $M+ currently }
+  TestInterface(GetTypeData(TypeInfo(ITestRaw)), True, 0{1}, [
       MakeMethod('Test', ccReg, mkFunction, TypeInfo(LongInt), [])
-    ]);}
+    ]);
 
   TestInterface(GetTypeData(TypeInfo(ITest)), False, 2, [
       MakeMethod('Test', DefaultCallingConvention, mkProcedure, Nil, [
