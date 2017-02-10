@@ -1409,13 +1409,15 @@ begin
   OldLength:=0;
   FCurTokenString := '';
 
-  while TokenStr[0] in ['^','#', ''''] do
-  begin
+  repeat
     case TokenStr[0] of
       '^' :
         begin
         TokenStart := TokenStr;
         Inc(TokenStr);
+        if TokenStr[0] in ['a'..'z','A'..'Z'] then
+          Inc(TokenStr);
+        if Result=tkEOF then Result := tkChar else Result:=tkString;
         end;
       '#':
         begin
@@ -1465,8 +1467,7 @@ begin
     if SectionLength > 0 then
       Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
     Inc(OldLength, SectionLength);
-  end;
-
+  until false;
 end;
 
 procedure TPascalScanner.PushStackItem;
@@ -1780,8 +1781,9 @@ end;
 Procedure TPascalScanner.HandleELSE(Const AParam : String);
 
 begin
+  if AParam='' then;
   if PPSkipStackIndex = 0 then
-     Error(nErrInvalidPPElse,sErrInvalidPPElse);
+    Error(nErrInvalidPPElse,sErrInvalidPPElse);
   if PPSkipMode = ppSkipIfBranch then
     PPIsSkipping := false
   else if PPSkipMode = ppSkipElseBranch then
@@ -1792,6 +1794,7 @@ end;
 Procedure TPascalScanner.HandleENDIF(Const AParam : String);
 
 begin
+  if AParam='' then;
   if PPSkipStackIndex = 0 then
     Error(nErrInvalidPPEndif,sErrInvalidPPEndif);
   Dec(PPSkipStackIndex);

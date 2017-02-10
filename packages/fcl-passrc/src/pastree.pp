@@ -710,7 +710,7 @@ type
   end;
 
   { TPasVariable }
-  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass,vmStatic);
+  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass, vmStatic);
   TVariableModifiers = set of TVariableModifier;
 
   TPasVariable = class(TPasElement)
@@ -1391,6 +1391,9 @@ const
                    'export', 'overload', 'message', 'reintroduce',
                    'static','inline','assembler','varargs', 'public',
                    'compilerproc','external','forward','dispid','noreturn');
+
+  VariableModifierNames : Array[TVariableModifier] of string
+     = ('cvar', 'external', 'public', 'export', 'class', 'static');
 
 procedure ReleaseAndNil(var El: TPasElement); overload;
 

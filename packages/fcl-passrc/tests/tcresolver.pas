@@ -142,6 +142,7 @@ type
     Procedure TestVarInteger;
     Procedure TestConstInteger;
     Procedure TestDuplicateVar;
+    Procedure TestVarInitConst;
     Procedure TestVarOfVarFail;
     Procedure TestConstOfVarFail;
     Procedure TestTypedConstWrongExprFail;
@@ -150,12 +151,20 @@ type
     Procedure TestIncDec;
     Procedure TestIncStringFail;
 
+    // strings
+    Procedure TestString_SetLength;
+
     // enums
     Procedure TestEnums;
     Procedure TestSets;
+    Procedure TestSetOperators;
     Procedure TestEnumParams;
     Procedure TestSetParams;
+    Procedure TestSetFunctions;
     Procedure TestEnumHighLow;
+    Procedure TestEnumOrd;
+    Procedure TestEnumPredSucc;
+    Procedure TestEnum_CastIntegerToEnum;
 
     // operators
     Procedure TestPrgAssignment;
@@ -223,6 +232,7 @@ type
     Procedure TestUnitIntfMismatchArgName;
     Procedure TestProcOverloadIsNotFunc;
     Procedure TestProcCallMissingParams;
+    Procedure TestProcArgDefaultValueTypeMismatch;
     Procedure TestBuiltInProcCallMissingParams;
     Procedure TestAssignFunctionResult;
     Procedure TestAssignProcResultFail;
@@ -331,7 +341,11 @@ type
     Procedure TestPropertyArgs1;
     Procedure TestPropertyArgs2;
     Procedure TestPropertyArgsWithDefaultsFail;
+    Procedure TestProperty_Index;
+    Procedure TestProperty_WrongTypeAsIndexFail;
+    Procedure TestProperty_Option_ClassPropertyNonStatic;
     Procedure TestDefaultProperty;
+    Procedure TestMissingDefaultProperty;
 
     // with
     Procedure TestWithBlock1;
@@ -345,6 +359,7 @@ type
     Procedure TestArrayOfArray;
     Procedure TestFunctionReturningArray;
     Procedure TestLowHighArray;
+    Procedure TestPropertyOfTypeArray;
 
     // procedure types
     Procedure TestProcTypesAssignObjFPC;
@@ -1475,6 +1490,15 @@ begin
   CheckResolverException('duplicate identifier',PasResolver.nDuplicateIdentifier);
 end;
 
+procedure TTestResolver.TestVarInitConst;
+begin
+  StartProgram(false);
+  Add('const {#c}c=1;');
+  Add('var a: longint = {@c}c;');
+  Add('begin');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestVarOfVarFail;
 begin
   StartProgram(false);
@@ -1550,13 +1574,24 @@ begin
   CheckResolverException('Incompatible type arg no. 1: Got "String", expected "Longint"',PasResolver.nIncompatibleTypeArgNo);
 end;
 
+procedure TTestResolver.TestString_SetLength;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  s: string;');
+  Add('begin');
+  Add('  SetLength(s,3);');
+  Add('  SetLength(s,length(s));');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestEnums;
 begin
   StartProgram(false);
   Add('type {#TFlag}TFlag = ({#Red}Red, {#Green}Green, {#Blue}Blue);');
   Add('var');
   Add('  {#f}{=TFlag}f: TFlag;');
-  Add('  {#v}{=TFlag}v: TFlag;');
+  Add('  {#v}{=TFlag}v: TFlag = Green;');
   Add('begin');
   Add('  {@f}f:={@Red}Red;');
   Add('  {@f}f:={@v}v;');
@@ -1588,7 +1623,7 @@ begin
   Add('var');
   Add('  {#f}{=TFlag}f: TFlag;');
   Add('  {#s}{=TFlags}s: TFlags;');
-  Add('  {#t}{=TFlags}t: TFlags;');
+  Add('  {#t}{=TFlags}t: TFlags = [Green,Gray];');
   Add('  {#Chars}{=TChars}Chars: TChars;');
   Add('  {#MyInts}{=TMyInts}MyInts: TMyInts;');
   Add('  {#MyBools}{=TMyBools}MyBools: TMyBools;');
@@ -1598,30 +1633,6 @@ begin
   Add('  {@s}s:=[{@Red}Red];');
   Add('  {@s}s:=[{@Red}Red,{@Blue}Blue];');
   Add('  {@s}s:=[{@Gray}Gray..{@White}White];');
-  Add('  {@s}s:=[{@Red}Red]+[{@Blue}Blue,{@Gray}Gray];');
-  Add('  {@s}s:=[{@Blue}Blue,{@Gray}Gray]-[{@Blue}Blue];');
-  Add('  {@s}s:={@t}t+[];');
-  Add('  {@s}s:=[{@Red}Red]+{@s}s;');
-  Add('  {@s}s:={@s}s+[{@Red}Red];');
-  Add('  {@s}s:=[{@Red}Red]-{@s}s;');
-  Add('  {@s}s:={@s}s-[{@Red}Red];');
-  Add('  Include({@s}s,{@Blue}Blue);');
-  Add('  Exclude({@s}s,{@Blue}Blue);');
-  Add('  {@s}s:={@s}s+[{@f}f];');
-  Add('  if {@Green}Green in {@s}s then ;');
-  Add('  if {@Blue}Blue in {@Colors}Colors then ;');
-  Add('  if {@f}f in {@ExtColors}ExtColors then ;');
-  Add('  {@s}s:={@s}s * Colors;');
-  Add('  {@s}s:=Colors * {@s}s;');
-  Add('  s:=ExtColors * Colors;');
-  Add('  s:=Colors >< ExtColors;');
-  Add('  s:=s >< ExtColors;');
-  Add('  s:=ExtColors >< s;');
-  Add('  if ''p'' in [''a''..''z''] then ; ');
-  Add('  if ''p'' in [''a''..''z'',''A''..''Z'',''0''..''9'',''_''] then ; ');
-  Add('  if ''p'' in {@Chars}Chars then ; ');
-  Add('  if 7 in {@MyInts}MyInts then ; ');
-  Add('  if 7 in [1+2,(3*4)+5,(-2+6)..(8-3)] then ; ');
   Add('  {@MyInts}MyInts:=[1];');
   Add('  {@MyInts}MyInts:=[1,2];');
   Add('  {@MyInts}MyInts:=[1..2];');
@@ -1631,7 +1642,71 @@ begin
   Add('  {@MyBools}MyBools:=[false];');
   Add('  {@MyBools}MyBools:=[false,true];');
   Add('  {@MyBools}MyBools:=[true..false];');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestSetOperators;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#TFlag}TFlag = ({#Red}Red, {#Green}Green, {#Blue}Blue, {#Gray}Gray, {#Black}Black, {#White}White);');
+  Add('  {#TFlags}TFlags = set of TFlag;');
+  Add('  {#TChars}TChars = set of Char;');
+  Add('  {#TMyInt}TMyInt = 0..17;');
+  Add('  {#TMyInts}TMyInts = set of TMyInt;');
+  Add('  {#TMyBools}TMyBools = set of boolean;');
+  Add('const');
+  Add('  {#Colors}Colors = [{@Red}Red..{@Blue}Blue];');
+  Add('  {#ExtColors}ExtColors = {@Colors}Colors+[{@White}White,{@Black}Black];');
+  Add('var');
+  Add('  {#f}{=TFlag}f: TFlag;');
+  Add('  {#s}{=TFlags}s: TFlags;');
+  Add('  {#t}{=TFlags}t: TFlags = [Green,Gray];');
+  Add('  {#Chars}{=TChars}Chars: TChars;');
+  Add('  {#MyInts}{=TMyInts}MyInts: TMyInts;');
+  Add('  {#MyBools}{=TMyBools}MyBools: TMyBools;');
+  Add('begin');
+  Add('  {@s}s:=[];');
+  Add('  {@s}s:=[{@Red}Red]+[{@Blue}Blue,{@Gray}Gray];');
+  Add('  {@s}s:=[{@Blue}Blue,{@Gray}Gray]-[{@Blue}Blue];');
+  Add('  {@s}s:={@t}t+[];');
+  Add('  {@s}s:=[{@Red}Red]+{@s}s;');
+  Add('  {@s}s:={@s}s+[{@Red}Red];');
+  Add('  {@s}s:=[{@Red}Red]-{@s}s;');
+  Add('  {@s}s:={@s}s-[{@Red}Red];');
+  Add('  Include({@s}s,{@Blue}Blue);');
+  Add('  Include({@s}s,{@f}f);');
+  Add('  Exclude({@s}s,{@Blue}Blue);');
+  Add('  Exclude({@s}s,{@f}f);');
+  Add('  {@s}s:={@s}s+[{@f}f];');
+  Add('  if {@Green}Green in {@s}s then ;');
+  Add('  if {@Blue}Blue in {@Colors}Colors then ;');
+  Add('  if {@f}f in {@ExtColors}ExtColors then ;');
+  Add('  {@s}s:={@s}s * {@Colors}Colors;');
+  Add('  {@s}s:={@Colors}Colors * {@s}s;');
+  Add('  {@s}s:={@ExtColors}ExtColors * {@Colors}Colors;');
+  Add('  {@s}s:=Colors >< {@ExtColors}ExtColors;');
+  Add('  {@s}s:={@s}s >< {@ExtColors}ExtColors;');
+  Add('  {@s}s:={@ExtColors}ExtColors >< s;');
+  Add('  {@s}s:={@s}s >< {@s}s;');
+  Add('  if ''p'' in [''a''..''z''] then ; ');
+  Add('  if ''p'' in [''a''..''z'',''A''..''Z'',''0''..''9'',''_''] then ; ');
+  Add('  if ''p'' in {@Chars}Chars then ; ');
+  Add('  if 7 in {@MyInts}MyInts then ; ');
+  Add('  if 7 in [1+2,(3*4)+5,(-2+6)..(8-3)] then ; ');
   Add('  if [red,blue]*s=[red,blue] then ;');
+  Add('  if {@s}s = t then;');
+  Add('  if {@s}s = {@Colors}Colors then;');
+  Add('  if {@Colors}Colors = s then;');
+  Add('  if {@s}s <> t then;');
+  Add('  if {@s}s <> {@Colors}Colors then;');
+  Add('  if {@Colors}Colors <> s then;');
+  Add('  if {@s}s <= t then;');
+  Add('  if {@s}s <= {@Colors}Colors then;');
+  Add('  if {@Colors}Colors <= s then;');
+  Add('  if {@s}s >= t then;');
+  Add('  if {@s}s >= {@Colors}Colors then;');
+  Add('  if {@Colors}Colors >= {@s}s then;');
   ParseProgram;
 end;
 
@@ -1681,6 +1756,23 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestSetFunctions;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red, green, blue);');
+  Add('  TFlags = set of TFlag;');
+  Add('var');
+  Add('  e: TFlag;');
+  Add('  s: TFlags;');
+  Add('begin');
+  Add('  e:=Low(TFlags);');
+  Add('  e:=Low(s);');
+  Add('  e:=High(TFlags);');
+  Add('  e:=High(s);');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestEnumHighLow;
 begin
   StartProgram(false);
@@ -1689,6 +1781,52 @@ begin
   Add('var f: TFlag;');
   Add('begin');
   Add('  for f:=low(TFlag) to high(TFlag) do ;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestEnumOrd;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red, green, blue);');
+  Add('var');
+  Add('  f: TFlag;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  i:=ord(f);');
+  Add('  i:=ord(green);');
+  Add('  if i=ord(f) then ;');
+  Add('  if ord(f)=i then ;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestEnumPredSucc;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red, green, blue);');
+  Add('var');
+  Add('  f: TFlag;');
+  Add('begin');
+  Add('  f:=Pred(f);');
+  Add('  if Pred(green)=Pred(TFlag.Blue) then;');
+  Add('  f:=Succ(f);');
+  Add('  if Succ(green)=Succ(TFlag.Blue) then;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestEnum_CastIntegerToEnum;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red, green, blue);');
+  Add('var');
+  Add('  f: TFlag;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  f:=TFlag(1);');
+  Add('  f:=TFlag(i);');
+  Add('  if TFlag(i)=TFlag(1) then;');
   ParseProgram;
 end;
 
@@ -1914,6 +2052,12 @@ begin
   Add('  i:=j or k;');
   Add('  i:=j and not k;');
   Add('  i:=(j+k) div 3;');
+  Add('  if i=j then;');
+  Add('  if i<>j then;');
+  Add('  if i>j then;');
+  Add('  if i>=j then;');
+  Add('  if i<j then;');
+  Add('  if i<=j then;');
   ParseProgram;
 end;
 
@@ -1931,6 +2075,9 @@ begin
   Add('  i:=(not j) or k;');
   Add('  i:=j or false;');
   Add('  i:=j and true;');
+  Add('  i:=j xor k;');
+  Add('  i:=j=k;');
+  Add('  i:=j<>k;');
   ParseProgram;
 end;
 
@@ -2792,6 +2939,17 @@ begin
   Add('  Proc1;');
   CheckResolverException('Wrong number of parameters for call to "Proc1"',
     PasResolver.nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestProcArgDefaultValueTypeMismatch;
+begin
+  StartProgram(false);
+  Add('procedure Proc1(a: string = 3);');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  CheckResolverException('Incompatible types: got "Longint" expected "String"',
+    PasResolver.nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestBuiltInProcCallMissingParams;
@@ -3958,18 +4116,23 @@ begin
   Add('type');
   Add('  TObject = class');
   Add('    constructor Create;');
+  Add('    class function DoSome: TObject;');
   Add('  end;');
   Add('constructor TObject.Create;');
   Add('begin');
   Add('  {#a}Create; // normal call');
-  Add('  TObject.{#b}Create; // new object');
+  Add('  TObject.{#b}Create; // new instance');
+  Add('end;');
+  Add('class function TObject.DoSome: TObject;');
+  Add('begin');
+  Add('  Result:={#c}Create; // new instance');
   Add('end;');
   Add('var');
   Add('  o: TObject;');
   Add('begin');
-  Add('  TObject.{#c}Create; // new object');
-  Add('  o:=TObject.{#d}Create; // new object');
-  Add('  o.{#e}Create; // normal call');
+  Add('  TObject.{#p}Create; // new object');
+  Add('  o:=TObject.{#q}Create; // new object');
+  Add('  o.{#r}Create; // normal call');
   ParseProgram;
   aMarker:=FirstSrcMarker;
   while aMarker<>nil do
@@ -3995,7 +4158,7 @@ begin
       if not ActualImplicitCallWithoutParams then
         RaiseErrorAtSrcMarker('expected implicit call at "#'+aMarker^.Identifier+', but got function ref"',aMarker);
       case aMarker^.Identifier of
-      'a','e':// should be normal call
+      'a','r':// should be normal call
         if ActualNewInstance then
           RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
       else // should be newinstance
@@ -4239,6 +4402,8 @@ begin
   Add('begin');
   Add('  c:=nil;');
   Add('  c:=o.ClassType;');
+  Add('  if c=nil then;');
+  Add('  if nil=c then;');
   Add('  if c=o.ClassType then ;');
   Add('  if c<>o.ClassType then ;');
   Add('  if Assigned(o) then ;');
@@ -4892,6 +5057,77 @@ begin
     PParser.nParserPropertyArgumentsCanNotHaveDefaultValues);
 end;
 
+procedure TTestResolver.TestProperty_Index;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    {#FItems}FItems: array of string;');
+  Add('    function {#GetItems}GetItems(Index: longint): string;');
+  Add('    procedure {#SetItems}SetItems(Index: longint; Value: string);');
+  Add('    procedure DoIt;');
+  Add('    property {#Items}Items[Index: longint]: string read {@GetItems}getitems write {@SetItems}setitems;');
+  Add('  end;');
+  Add('function tobject.getitems(index: longint): string;');
+  Add('begin');
+  Add('  Result:={@FItems}fitems[index];');
+  Add('end;');
+  Add('procedure tobject.setitems(index: longint; value: string);');
+  Add('begin');
+  Add('  {@FItems}fitems[index]:=value;');
+  Add('end;');
+  Add('procedure tobject.doit;');
+  Add('begin');
+  Add('  {@Items}items[1]:={@Items}items[2];');
+  Add('  self.{@Items}items[3]:=self.{@Items}items[4];');
+  Add('end;');
+  Add('var Obj: tobject;');
+  Add('begin');
+  Add('  obj.{@Items}Items[11]:=obj.{@Items}Items[12];');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProperty_WrongTypeAsIndexFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    function GetItems(Index: string): string;');
+  Add('    property Items[Index: string]: string read getitems;');
+  Add('  end;');
+  Add('function tobject.getitems(index: string): string;');
+  Add('begin');
+  Add('end;');
+  Add('var Obj: tobject;');
+  Add('begin');
+  Add('  obj.Items[3]:=4;');
+  CheckResolverException('Incompatible type arg no. 1: Got "Longint", expected "Index:String"',
+    PasResolver.nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestProperty_Option_ClassPropertyNonStatic;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proClassPropertyNonStatic];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class function GetB: longint;');
+  Add('    class procedure SetB(Value: longint);');
+  Add('    class property B: longint read GetB write SetB;');
+  Add('  end;');
+  Add('class function TObject.GetB: longint;');
+  Add('begin');
+  Add('end;');
+  Add('class procedure TObject.SetB(Value: longint);');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  Add('  TObject.B:=4;');
+  Add('  if TObject.B=6 then;');
+  Add('  if 7=TObject.B then;');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestDefaultProperty;
 begin
   StartProgram(false);
@@ -4913,6 +5149,19 @@ begin
   Add('  if o[5]=6 then;');
   Add('  if 7=o[8] then;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestMissingDefaultProperty;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('var o: TObject;');
+  Add('begin');
+  Add('  if o[5]=6 then;');
+  CheckResolverException('illegal qualifier "["',
+    PasResolver.nIllegalQualifier);
 end;
 
 procedure TTestResolver.TestPropertyAssign;
@@ -5073,11 +5322,15 @@ begin
   Add('type TIntArray = array of longint;');
   Add('var a: TIntArray;');
   Add('begin');
+  Add('  a:=nil;');
+  Add('  if a=nil then ;');
+  Add('  if nil=a then ;');
   Add('  SetLength(a,3);');
   Add('  a[0]:=1;');
   Add('  a[1]:=length(a);');
   Add('  a[2]:=a[0];');
   Add('  if a[3]=a[4] then ;');
+  Add('  a[a[5]]:=a[a[6]];');
   ParseProgram;
 end;
 
@@ -5147,6 +5400,35 @@ begin
   Add('begin');
   Add('  for c:=low(TArrA) to High(TArrA) do ;');
   Add('  for i:=low(TArrB) to High(TArrB) do ;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPropertyOfTypeArray;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArray = array of longint;');
+  Add('  TObject = class');
+  Add('    FItems: TArray;');
+  Add('    function GetItems: TArray;');
+  Add('    procedure SetItems(Value: TArray);');
+  Add('    property Items: TArray read FItems write FItems;');
+  Add('    property Numbers: TArray read GetItems write SetItems;');
+  Add('  end;');
+  Add('function TObject.GetItems: TArray;');
+  Add('begin');
+  Add('  Result:=FItems;');
+  Add('end;');
+  Add('procedure TObject.SetItems(Value: TArray);');
+  Add('begin');
+  Add('  FItems:=Value;');
+  Add('end;');
+  Add('var Obj: TObject;');
+  Add('begin');
+  Add('  Obj.Items[3]:=4;');
+  Add('  if Obj.Items[5]=6 then;');
+  Add('  Obj.Numbers[7]:=8;');
+  Add('  if Obj.Numbers[9]=10 then;');
   ParseProgram;
 end;
 
