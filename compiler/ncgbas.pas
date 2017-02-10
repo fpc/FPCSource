@@ -355,6 +355,9 @@ interface
              current_asmdata.CurrAsmList.concatlist(p_asm);
            end;
 
+         { Update section count }
+         current_asmdata.currasmlist.section_count:=current_asmdata.currasmlist.section_count+p_asm.section_count;
+
          { Release register used in the assembler block }
          if (not has_registerlist) then
            cg.deallocallcpuregisters(current_asmdata.CurrAsmList);

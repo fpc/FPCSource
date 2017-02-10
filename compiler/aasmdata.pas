@@ -131,6 +131,7 @@ interface
 
     type
       TAsmList = class(tlinkedlist)
+         section_count : longint;
          constructor create;
          function  getlasttaifilepos : pfileposinfo;
       end;

@@ -955,6 +955,7 @@ implementation
     procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
       begin
         list.concat(tai_section.create(Asectype,Aname,Aalign,Asecorder));
+        inc(list.section_count);
         list.concat(cai_align.create(Aalign));
       end;
 
