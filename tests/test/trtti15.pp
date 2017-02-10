@@ -169,11 +169,13 @@ const
 {$endif}
 
 begin
+  Writeln('Testing interface ITestRaw');
   { raw interfaces don't support $M+ currently }
   TestInterface(GetTypeData(TypeInfo(ITestRaw)), True, 0{1}, [
       MakeMethod('Test', ccReg, mkFunction, TypeInfo(LongInt), [])
     ]);
 
+  Writeln('Testing interface ITest');
   TestInterface(GetTypeData(TypeInfo(ITest)), False, 2, [
       MakeMethod('Test', DefaultCallingConvention, mkProcedure, Nil, [
           MakeParam('$self', [pfHidden, pfSelf, pfAddress], TypeInfo(ITest))
