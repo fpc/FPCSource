@@ -2328,7 +2328,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=46;
+  num_proc_directives=50;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2501,7 +2501,7 @@ const
       pocall   : pocall_oldfpccall;
       pooption : [po_interrupt];
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_stdcall,pocall_mwpascal,
-                       pocall_pascal,pocall_far16,pocall_oldfpccall];
+                       pocall_pascal,pocall_far16,pocall_oldfpccall,pocall_sysv_abi_cdecl,pocall_ms_abi_cdecl];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external,po_inline,po_exports]
     ),(
@@ -2727,7 +2727,7 @@ const
       handler  : @pd_winapi;
       pocall   : pocall_none;
       pooption : [];
-      mutexclpocall : [pocall_stdcall,pocall_cdecl];
+      mutexclpocall : [pocall_stdcall,pocall_cdecl,pocall_mwpascal,pocall_sysv_abi_cdecl,pocall_ms_abi_cdecl];
       mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external]
     ),(
@@ -2759,6 +2759,42 @@ const
       { it's available with po_external because the libgcc floating point routines on the arm
         uses this calling convention }
       mutexclpo     : []
+    ),(
+      idtok:_SYSV_ABI_DEFAULT;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : nil;
+      pocall   : pocall_sysv_abi_default;
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_interrupt]
+    ),(
+      idtok:_SYSV_ABI_CDECL;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : nil;
+      pocall   : pocall_sysv_abi_cdecl;
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_interrupt]
+    ),(
+      idtok:_MS_ABI_DEFAULT;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : nil;
+      pocall   : pocall_ms_abi_default;
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_interrupt]
+    ),(
+      idtok:_MS_ABI_CDECL;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : nil;
+      pocall   : pocall_ms_abi_cdecl;
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_interrupt]
     )
    );
 
@@ -2995,7 +3031,9 @@ const
           begin
             { Default names when importing variables }
             case pd.proccalloption of
-              pocall_cdecl :
+              pocall_cdecl,
+              pocall_sysv_abi_cdecl,
+              pocall_ms_abi_cdecl:
                 begin
                   if assigned(pd.struct) then
                     result:=target_info.Cprefix+pd.struct.objrealname^+'_'+pd.procsym.realname
@@ -3068,7 +3106,9 @@ const
            not(po_has_public_name in pd.procoptions) then
           begin
             case pd.proccalloption of
-              pocall_cdecl :
+              pocall_cdecl,
+              pocall_sysv_abi_cdecl,
+              pocall_ms_abi_cdecl:
                 begin
                   if assigned(pd.struct) then
                    pd.aliasnames.insert(target_info.Cprefix+pd.struct.objrealname^+'_'+pd.procsym.realname)
@@ -3121,7 +3161,9 @@ const
             { handle proccall specific settings }
             case pd.proccalloption of
               pocall_cdecl,
-              pocall_cppdecl :
+              pocall_cppdecl,
+              pocall_sysv_abi_cdecl,
+              pocall_ms_abi_cdecl:
                 begin
                   { check C cdecl para types }
                   check_c_para(pd);

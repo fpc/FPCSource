@@ -332,7 +332,11 @@ implementation
          { pocall_softfloat  } 10,
          { pocall_mwpascal   } 11,
          { pocall_interrupt  } 12,
-         { pocall_hardfloat  } 13
+         { pocall_hardfloat  } 13,
+         { pocall_sysv_abi_default } 14,
+         { pocall_sysv_abi_cdecl }   15,
+         { pocall_ms_abi_default }   16,
+         { pocall_ms_abi_cdecl }     17
         );
       begin
         tcb.emit_ord_const(ProcCallOptionToCallConv[def.proccalloption],u8inttype);

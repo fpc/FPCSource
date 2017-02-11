@@ -28,6 +28,7 @@ unit cpupi;
 interface
 
     uses
+       globtype,
        psub,procinfo,aasmbase,aasmdata;
 
     type
@@ -46,12 +47,12 @@ interface
          destructor destroy;override;
        end;
 
+    function x86_64_use_ms_abi(proccall: tproccalloption): boolean;
 
 implementation
 
     uses
       systems,
-      globtype,
       globals,
       cutils,
       symconst,
@@ -165,6 +166,16 @@ implementation
         scopes.free;
         inherited destroy;
       end;
+
+
+    function x86_64_use_ms_abi(proccall: tproccalloption): boolean;
+      begin
+        result:=
+           ((target_info.system=system_x86_64_win64) and
+            not(proccall in [pocall_sysv_abi_default,pocall_sysv_abi_cdecl])) or
+           (proccall in [pocall_ms_abi_default,pocall_ms_abi_cdecl]);
+      end;
+
 
 begin
    cprocinfo:=tcpuprocinfo;

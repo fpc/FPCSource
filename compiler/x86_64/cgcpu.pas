@@ -47,6 +47,8 @@ unit cgcpu;
 
         procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize;intreg, mmreg: tregister; shuffle: pmmshuffle); override;
         procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize;mmreg, intreg: tregister;shuffle : pmmshuffle); override;
+
+        function use_ms_abi: boolean;
       private
         function use_push: boolean;
         function saved_xmm_reg_size: longint;
@@ -72,12 +74,14 @@ unit cgcpu;
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15);
       var
         i : longint;
+        ms_abi: boolean;
       begin
         inherited init_register_allocators;
 
-        if (length(saved_standard_registers)<>saved_regs_length[target_info.system=system_x86_64_win64]) then
+        ms_abi:=use_ms_abi;
+        if (length(saved_standard_registers)<>saved_regs_length[ms_abi]) then
           begin
-            if target_info.system=system_x86_64_win64 then
+            if ms_abi then
               begin
                 SetLength(saved_standard_registers,Length(win64_saved_std_regs));
                 SetLength(saved_mm_registers,Length(win64_saved_xmm_regs));
@@ -97,7 +101,7 @@ unit cgcpu;
                   saved_standard_registers[i]:=others_saved_std_regs[i];
               end;
           end;
-        if target_info.system=system_x86_64_win64 then
+        if ms_abi then
           begin
             if (cs_userbp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
@@ -504,6 +508,15 @@ unit cgcpu;
            not shufflescalar(shuffle) then
           internalerror(2009112515);
         list.concat(taicpu.op_reg_reg(opc,S_NO,mmreg,intreg));
+      end;
+
+
+    function tcgx86_64.use_ms_abi: boolean;
+      begin
+        if assigned(current_procinfo) then
+          use_ms_abi:=x86_64_use_ms_abi(current_procinfo.procdef.proccalloption)
+        else
+          use_ms_abi:=target_info.system=system_x86_64_win64;
       end;
 
 

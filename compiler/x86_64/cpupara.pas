@@ -55,7 +55,8 @@ unit cpupara;
        cutils,verbose,
        systems,
        defutil,
-       symtable;
+       symtable,
+       cpupi;
 
     const
       paraintsupregs : array[0..5] of tsuperregister = (RS_RDI,RS_RSI,RS_RDX,RS_RCX,RS_R8,RS_R9);
@@ -292,15 +293,15 @@ unit cpupara;
       end;
 
 
-    function classify_argument(def: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint; forward;
+    function classify_argument(calloption: tproccalloption; def: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint; forward;
 
-    function init_aggregate_classification(def: tdef; varspez: tvarspez; byte_offset: aint; out words: longint; out classes: tx64paraclasses): longint;
+    function init_aggregate_classification(calloption: tproccalloption; def: tdef; varspez: tvarspez; byte_offset: aint; out words: longint; out classes: tx64paraclasses): longint;
       var
         i: longint;
       begin
         words:=0;
         { win64 follows a different convention here }
-        if (target_info.system=system_x86_64_win64) then
+        if x86_64_use_ms_abi(calloption) then
           begin
             if aggregate_in_registers_win64(varspez,def.size) then
               begin
@@ -341,14 +342,14 @@ unit cpupara;
       end;
 
 
-    function classify_aggregate_element(def: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; new_byte_offset: aint): longint;
+    function classify_aggregate_element(calloption: tproccalloption; def: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; new_byte_offset: aint): longint;
       var
         subclasses: tx64paraclasses;
         i,
         pos: longint;
       begin
         fillchar(subclasses,sizeof(subclasses),0);
-        result:=classify_argument(def,varspez,real_size,subclasses,new_byte_offset mod 8);
+        result:=classify_argument(calloption,def,varspez,real_size,subclasses,new_byte_offset mod 8);
         if (result=0) then
           exit;
         pos:=new_byte_offset div 8;
@@ -466,7 +467,7 @@ unit cpupara;
       end;
 
 
-    function classify_record(def: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
+    function classify_record(calloption: tproccalloption; def: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
       var
         vs: tfieldvarsym;
         size,
@@ -476,7 +477,7 @@ unit cpupara;
         num: longint;
         checkalignment: boolean;
       begin
-        result:=init_aggregate_classification(def,varspez,byte_offset,words,classes);
+        result:=init_aggregate_classification(calloption,def,varspez,byte_offset,words,classes);
         if (words=0) then
           exit;
 
@@ -517,7 +518,7 @@ unit cpupara;
                 result:=0;
                 exit;
               end;
-            num:=classify_aggregate_element(vs.vardef,varspez,size,classes,new_byte_offset);
+            num:=classify_aggregate_element(calloption,vs.vardef,varspez,size,classes,new_byte_offset);
             if (num=0) then
               exit(0);
           end;
@@ -526,7 +527,7 @@ unit cpupara;
       end;
 
 
-    function classify_normal_array(def: tarraydef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
+    function classify_normal_array(calloption: tproccalloption; def: tarraydef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
       var
         i, elecount: aword;
         size,
@@ -539,7 +540,7 @@ unit cpupara;
       begin
         size:=0;
         bitoffset:=0;
-        result:=init_aggregate_classification(def,varspez,byte_offset,words,classes);
+        result:=init_aggregate_classification(calloption,def,varspez,byte_offset,words,classes);
 
         if (words=0) then
           exit;
@@ -581,7 +582,7 @@ unit cpupara;
               { bit offset of next element }
               inc(bitoffset,elesize);
             end;
-          num:=classify_aggregate_element(def.elementdef,varspez,size,classes,new_byte_offset);
+          num:=classify_aggregate_element(calloption,def.elementdef,varspez,size,classes,new_byte_offset);
           if (num=0) then
             exit(0);
           inc(i);
@@ -591,7 +592,7 @@ unit cpupara;
       end;
 
 
-    function classify_argument(def: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint;
+    function classify_argument(calloption: tproccalloption; def: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint;
       begin
         case def.typ of
           orddef,
@@ -650,7 +651,7 @@ unit cpupara;
               end;
             end;
           recorddef:
-            result:=classify_record(def,varspez,classes,byte_offset);
+            result:=classify_record(calloption,def,varspez,classes,byte_offset);
           objectdef:
             begin
               if is_object(def) then
@@ -685,7 +686,7 @@ unit cpupara;
                 result:=0
               else
               { normal array }
-                result:=classify_normal_array(tarraydef(def),varspez,classes,byte_offset);
+                result:=classify_normal_array(calloption,tarraydef(def),varspez,classes,byte_offset);
             end;
           { the file record is definitely too big }
           filedef:
@@ -696,7 +697,7 @@ unit cpupara;
                 begin
                   { treat as TMethod record }
                   def:=search_system_type('TMETHOD').typedef;
-                  result:=classify_argument(def,varspez,def.size,classes,byte_offset);
+                  result:=classify_argument(calloption,def,varspez,def.size,classes,byte_offset);
                 end
               else
                 { pointer }
@@ -706,7 +707,7 @@ unit cpupara;
             begin
               { same as tvardata record }
               def:=search_system_type('TVARDATA').typedef;
-              result:=classify_argument(def,varspez,def.size,classes,byte_offset);
+              result:=classify_argument(calloption,def,varspez,def.size,classes,byte_offset);
             end;
           undefineddef:
             { show shall we know?
@@ -723,7 +724,7 @@ unit cpupara;
       end;
 
 
-    procedure getvalueparaloc(varspez:tvarspez;def:tdef;var loc1,loc2:tx64paraclass);
+    procedure getvalueparaloc(calloption: tproccalloption;varspez:tvarspez;def:tdef;var loc1,loc2:tx64paraclass);
       var
         size: aint;
         i: longint;
@@ -745,7 +746,7 @@ unit cpupara;
           size:=-1
         else
           size:=def.size;
-        numclasses:=classify_argument(def,varspez,size,classes,0);
+        numclasses:=classify_argument(calloption,def,varspez,size,classes,0);
         case numclasses of
           0:
            begin
@@ -784,7 +785,7 @@ unit cpupara;
           { make sure we handle 'procedure of object' correctly }
           procvardef:
             begin
-              numclasses:=classify_argument(def,vs_value,def.size,classes,0);
+              numclasses:=classify_argument(pd.proccalloption,def,vs_value,def.size,classes,0);
               result:=(numclasses=0);
             end;
           else
@@ -840,7 +841,7 @@ unit cpupara;
                  (varspez=vs_const) then
                 result:=true
               { Win ABI depends on size to pass it in a register or not }
-              else if (target_info.system=system_x86_64_win64) then
+              else if x86_64_use_ms_abi(calloption) then
                 result:=not aggregate_in_registers_win64(varspez,def.size)
               { pass constant parameters that would be passed via memory by
                 reference for non-cdecl/cppdecl, and make sure that the tmethod
@@ -849,7 +850,7 @@ unit cpupara;
                        not(calloption in cdecl_pocalls)) or
                       (def.size=16) then
                 begin
-                  numclasses:=classify_argument(def,vs_value,def.size,classes,0);
+                  numclasses:=classify_argument(calloption,def,vs_value,def.size,classes,0);
                   result:=numclasses=0;
                 end
               else
@@ -886,7 +887,7 @@ unit cpupara;
           procvardef,
           setdef :
             begin
-              numclasses:=classify_argument(def,vs_value,def.size,classes,0);
+              numclasses:=classify_argument(calloption,def,vs_value,def.size,classes,0);
               result:=numclasses=0;
             end;
         end;
@@ -895,7 +896,7 @@ unit cpupara;
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        if target_info.system=system_x86_64_win64 then
+        if x86_64_use_ms_abi(calloption) then
           result:=[RS_RAX,RS_RCX,RS_RDX,RS_R8,RS_R9,RS_R10,RS_R11]
         else
           result:=[RS_RAX,RS_RCX,RS_RDX,RS_RSI,RS_RDI,RS_R8,RS_R9,RS_R10,RS_R11];
@@ -904,7 +905,7 @@ unit cpupara;
 
     function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
-        if target_info.system=system_x86_64_win64 then
+        if x86_64_use_ms_abi(calloption) then
           result:=[RS_XMM0..RS_XMM5]
         else
           result:=[RS_XMM0..RS_XMM15];
@@ -972,7 +973,7 @@ unit cpupara;
          { Return in register }
           begin
             fillchar(classes,sizeof(classes),0);
-            numclasses:=classify_argument(result.def,vs_value,result.def.size,classes,0);
+            numclasses:=classify_argument(p.proccalloption,result.def,vs_value,result.def.size,classes,0);
             { this would mean a memory return }
             if (numclasses=0) then
               internalerror(2010021502);
@@ -1083,8 +1084,10 @@ unit cpupara;
         i,
         varalign,
         paraalign  : longint;
+        use_ms_abi : boolean;
       begin
         paraalign:=get_para_align(p.proccalloption);
+        use_ms_abi:=x86_64_use_ms_abi(p.proccalloption);
         { Register parameters are assigned from left to right }
         for i:=0 to paras.count-1 do
           begin
@@ -1092,7 +1095,7 @@ unit cpupara;
             paradef:=hp.vardef;
             { on win64, if a record has only one field and that field is a
               single or double, it has to be handled like a single/double }
-            if (target_info.system=system_x86_64_win64) and
+            if use_ms_abi and
                ((paradef.typ=recorddef) {or
                is_object(paradef)}) and
                tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(fdef) and
@@ -1112,14 +1115,14 @@ unit cpupara;
               end
             else
               begin
-                getvalueparaloc(hp.varspez,paradef,loc[1],loc[2]);
+                getvalueparaloc(p.proccalloption,hp.varspez,paradef,loc[1],loc[2]);
                 paralen:=push_size(hp.varspez,paradef,p.proccalloption);
                 paracgsize:=def_cgsize(paradef);
               end;
 
             { cheat for now, we should copy the value to an mm reg as well (FK) }
             if varargsparas and
-               (target_info.system = system_x86_64_win64) and
+               use_ms_abi and
                (paradef.typ = floatdef) then
               begin
                 loc[2].typ:=X86_64_NO_CLASS;
@@ -1160,10 +1163,10 @@ unit cpupara;
                       inc(needmmloc);
                   end;
                 { the "-1" is because we can also use the current register }
-                if ((target_info.system=system_x86_64_win64) and
+                if (use_ms_abi and
                     ((intparareg+needintloc-1 > high(paraintsupregs_winx64)) or
                      (mmparareg+needmmloc-1 > high(parammsupregs_winx64)))) or
-                   ((target_info.system<>system_x86_64_win64) and
+                   (not use_ms_abi and
                     ((intparareg+needintloc-1 > high(paraintsupregs)) or
                      (mmparareg+needmmloc-1 > high(parammsupregs)))) then
                   begin
@@ -1217,13 +1220,13 @@ unit cpupara;
                             end;
 
                           { winx64 uses different registers }
-                          if target_info.system=system_x86_64_win64 then
+                          if use_ms_abi then
                             paraloc^.register:=newreg(R_INTREGISTER,paraintsupregs_winx64[intparareg],subreg)
                           else
                             paraloc^.register:=newreg(R_INTREGISTER,paraintsupregs[intparareg],subreg);
 
                           { matching mm register must be skipped }
-                          if target_info.system=system_x86_64_win64 then
+                          if use_ms_abi then
                             inc(mmparareg);
 
                           inc(intparareg);
@@ -1257,13 +1260,13 @@ unit cpupara;
                           end;
 
                           { winx64 uses different registers }
-                          if target_info.system=system_x86_64_win64 then
+                          if use_ms_abi then
                             paraloc^.register:=newreg(R_MMREGISTER,parammsupregs_winx64[mmparareg],subreg)
                           else
                             paraloc^.register:=newreg(R_MMREGISTER,parammsupregs[mmparareg],subreg);
 
                           { matching int register must be skipped }
-                          if target_info.system=system_x86_64_win64 then
+                          if use_ms_abi then
                             inc(intparareg);
 
                           inc(mmparareg);
@@ -1340,7 +1343,7 @@ unit cpupara;
       begin
         intparareg:=0;
         mmparareg:=0;
-        if target_info.system=system_x86_64_win64 then
+        if x86_64_use_ms_abi(p.proccalloption) then
           parasize:=4*8
         else
           parasize:=0;
@@ -1361,7 +1364,7 @@ unit cpupara;
       begin
         intparareg:=0;
         mmparareg:=0;
-        if target_info.system=system_x86_64_win64 then
+        if x86_64_use_ms_abi(p.proccalloption) then
           parasize:=4*8
         else
           parasize:=0;

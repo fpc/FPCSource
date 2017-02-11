@@ -48,7 +48,7 @@ implementation
     aasmbase,aasmtai,aasmcpu,
     symconst,
     hlcgobj,
-    cgbase,cgutils,cgobj,cpubase,cgcpu;
+    cgbase,cgutils,cgobj,cpubase,cgcpu,cpupi;
 
   procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
     var
@@ -86,7 +86,7 @@ implementation
             Internalerror(200006139);
           { load vmt from first paramter }
           { win64 uses a different abi }
-          if target_info.system=system_x86_64_win64 then
+          if x86_64_use_ms_abi(procdef.proccalloption) then
             reference_reset_base(href,voidpointertype,NR_RCX,0,sizeof(pint),[])
           else
             reference_reset_base(href,voidpointertype,NR_RDI,0,sizeof(pint),[]);

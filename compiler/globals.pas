@@ -1078,7 +1078,7 @@ implementation
 
     function SetAktProcCall(const s:string; var a:tproccalloption):boolean;
       const
-        DefProcCallName : array[tproccalloption] of string[12] = ('',
+        DefProcCallName : array[tproccalloption] of string[16] = ('',
          'CDECL',
          'CPPDECL',
          'FAR16',
@@ -1092,7 +1092,11 @@ implementation
          'SOFTFLOAT',
          'MWPASCAL',
          'INTERRUPT',
-         'HARDFLOAT'
+         'HARDFLOAT',
+         'SYSV_ABI_DEFAULT',
+         'SYSV_ABI_CDECL',
+         'MS_ABI_DEFAULT',
+         'MS_ABI_CDECL'
         );
       var
         t  : tproccalloption;

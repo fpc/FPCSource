@@ -289,6 +289,7 @@ type
     _COMPILERPROC,
     _EXPERIMENTAL,
     _FINALIZATION,
+    _MS_ABI_CDECL,
     _NOSTACKFRAME,
     _OBJCCATEGORY,
     _OBJCPROTOCOL,
@@ -297,8 +298,11 @@ type
     _UNIMPLEMENTED,
     _IMPLEMENTATION,
     _INITIALIZATION,
+    _MS_ABI_DEFAULT,
     _RESOURCESTRING,
+    _SYSV_ABI_CDECL,
     _LESSTHANOREQUAL,
+    _SYSV_ABI_DEFAULT,
     _GREATERTHANOREQUAL
   );
 
@@ -614,6 +618,7 @@ const
       (str:'COMPILERPROC'  ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'EXPERIMENTAL'  ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'FINALIZATION'  ;special:false;keyword:[m_initfinal];op:NOTOKEN),
+      (str:'MS_ABI_CDECL'  ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NOSTACKFRAME'  ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'OBJCCATEGORY'  ;special:false;keyword:[m_objectivec1];op:NOTOKEN), { Objective-C category }
       (str:'OBJCPROTOCOL'  ;special:false;keyword:[m_objectivec1];op:NOTOKEN), { Objective-C protocol }
@@ -622,8 +627,11 @@ const
       (str:'UNIMPLEMENTED' ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'IMPLEMENTATION';special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'INITIALIZATION';special:false;keyword:[m_initfinal];op:NOTOKEN),
+      (str:'MS_ABI_DEFAULT';special:false;keyword:[m_none];op:NOTOKEN),
       (str:'RESOURCESTRING';special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
+      (str:'SYSV_ABI_CDECL';special:false;keyword:[m_none];op:NOTOKEN),
       (str:'LESSTHANOREQUAL';special:false;keyword:[m_none];op:NOTOKEN),    { delphi operator name }
+      (str:'SYSV_ABI_DEFAULT';special:false;keyword:[m_none];op:NOTOKEN),
       (str:'GREATERTHANOREQUAL';special:false;keyword:[m_none];op:NOTOKEN)  { delphi operator name }
   );
 

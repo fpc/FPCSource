@@ -47,7 +47,8 @@ implementation
       systems,verbose,cutils,
       cpubase,cgbase,cgutils,cgobj,
       symconst, symsym,symcpu,nld,
-      aasmbase,aasmtai,aasmdata,aasmcpu;
+      aasmbase,aasmtai,aasmdata,aasmcpu,
+      cpupi;
 
     procedure tx8664callnode.do_syscall;
       var
@@ -87,7 +88,7 @@ implementation
         mmregs : aint;
       begin
         { x86_64 requires %al to contain the no. SSE regs passed }
-        if (cnf_uses_varargs in callnodeflags) and (target_info.system<>system_x86_64_win64) then
+        if (cnf_uses_varargs in callnodeflags) and not x86_64_use_ms_abi(procdefinition.proccalloption) then
           begin
             if assigned(varargsparas) then
               mmregs:=varargsparas.mmregsused

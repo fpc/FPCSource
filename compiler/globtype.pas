@@ -532,12 +532,18 @@ interface
          pocall_interrupt,
          { Directive for arm: pass floating point values in (v)float registers
            regardless of the actual calling conventions }
-         pocall_hardfloat
+         pocall_hardfloat,
+         { for x86-64: force sysv ABI (Pascal resp. C) }
+         pocall_sysv_abi_default,
+         pocall_sysv_abi_cdecl,
+         { for x86-64: forces Microsoft ABI (Pascal resp. C) }
+         pocall_ms_abi_default,
+         pocall_ms_abi_cdecl
        );
        tproccalloptions = set of tproccalloption;
 
      const
-       proccalloptionStr : array[tproccalloption] of string[14]=('',
+       proccalloptionStr : array[tproccalloption] of string[16]=('',
            'CDecl',
            'CPPDecl',
            'Far16',
@@ -551,7 +557,11 @@ interface
            'SoftFloat',
            'MWPascal',
            'Interrupt',
-           'HardFloat'
+           'HardFloat',
+           'SysV_ABI_Default',
+           'MS_ABI_CDecl',
+           'MS_ABI_Default',
+           'MS_ABI_CDecl'
          );
 
        { Default calling convention }
