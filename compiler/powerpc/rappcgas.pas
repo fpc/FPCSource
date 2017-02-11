@@ -56,7 +56,7 @@ Unit rappcgas;
       { parser }
       procinfo,
       rabase,rautils,
-      cgbase,cgobj,cgppc,paramgr
+      cgbase,cgobj,cgppc
       ;
 
     procedure tppcattreader.ReadSym(oper : tppcoperand);
@@ -341,8 +341,7 @@ Unit rappcgas;
                   if hasdot and
                      (not oper.hastype) and
                      (tabstractvarsym(oper.opr.localsym).owner.symtabletype=parasymtable) and
-                     ((oper.opr.localsym.localloc.loc<>LOC_REGISTER) or
-                      not paramanager.push_addr_param(oper.opr.localsym.varspez,oper.opr.localsym.vardef,current_procinfo.procdef.proccalloption)) then
+                     (current_procinfo.procdef.proccalloption<>pocall_register) then
                     Message(asmr_e_cannot_access_field_directly_for_parameters);
                   inc(oper.opr.localsymofs,l)
                 end;

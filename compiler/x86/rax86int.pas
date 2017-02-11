@@ -91,7 +91,7 @@ Unit Rax86int;
        { register allocator }
        rabase,rautils,itx86int,
        { codegen }
-       cgbase,cgobj,procinfo,paramgr
+       cgbase,cgobj,procinfo
        ;
 
     type
@@ -1722,8 +1722,7 @@ Unit Rax86int;
                           and when the parameter is in a register (delphi compatible) }
                         if (not oper.hastype) and
                            (oper.opr.localsym.owner.symtabletype=parasymtable) and
-                           ((oper.opr.localsym.localloc.loc<>LOC_REGISTER) or
-                            not paramanager.push_addr_param(oper.opr.localsym.varspez,oper.opr.localsym.vardef,current_procinfo.procdef.proccalloption)) then
+                           (current_procinfo.procdef.proccalloption<>pocall_register) then
                           Message(asmr_e_cannot_access_field_directly_for_parameters);
 
                         oper.opr.localforceref:=true;
