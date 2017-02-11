@@ -1001,7 +1001,7 @@ var
 
 begin
   DocNode:=Engine.FindDocNode(Package);
-  If (PackageDescr='') then
+  If (PackageDescr='') and assigned(DocNode) then
     PackageDescr:=GetDescrString(Package,DocNode.ShortDescr);
   StartManPage(Package,DocNode);
   Try
@@ -1025,7 +1025,10 @@ begin
         WriteB(L[i]);
         M:=TPasModule(L.Objects[i]);
         D:=Engine.FindDocNode(M);
-        WriteLn(GetDescrString(M,D.ShortDescr))
+        if Assigned(D) then
+          WriteLn(GetDescrString(M,D.ShortDescr))
+        else
+          WriteLn(GetDescrString(M,Nil))
         end;
       StartSection(SDocSeeAlso);
       WriteSeeAlso(DocNode,True);
@@ -1151,14 +1154,17 @@ procedure TManWriter.WriteUnitPage(AModule : TPasModule);
 
 Var
   DocNode : TDocNode;
-
+  S : String;
 begin
   DocNode:=Engine.FindDocNode(AModule);
   StartManPage(AModule,DocNode);
   Try
     PageTitle(AModule.Name,ManSection,PackageName,PackageDescr);
     StartSection(SManDocName);
-    Writeln(DocNode.Name+' \- '+GetDescrString(AModule,DocNode.ShortDescr));
+    if Assigned(DocNode) then
+      S:=GetDescrString(AModule,DocNode.ShortDescr);
+
+    Writeln(AModule.Name+' \- '+S);
     if Assigned(DocNode) and not IsDescrNodeEmpty(DocNode.Descr) then
       begin
       StartSection(SManDocDescription);
