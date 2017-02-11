@@ -1934,7 +1934,7 @@ Var
   Where : String;
 
 begin
-  Result:=Query.RefreshSQL.Text;
+  Result:=Trim(Query.RefreshSQL.Text);
   if (Result='') then
     begin
     Where:='';
@@ -1985,7 +1985,7 @@ var
 
 begin
   qry:=Nil;
-  ReturningClause:=(sqSupportReturning in ConnOptions) and not (sqoRefreshUsingSelect in Query.Options) and (Query.RefreshSQL.Count=0);
+  ReturningClause:=(sqSupportReturning in ConnOptions) and not (sqoRefreshUsingSelect in Query.Options) and (Trim(Query.RefreshSQL.Text)='');
   case UpdateKind of
     ukInsert : begin
                s := Trim(Query.FInsertSQL.Text);
@@ -2570,7 +2570,7 @@ Var
   DoReturning : Boolean;
 
 begin
-  Result:=(FRefreshSQL.Count<>0);
+  Result:=(Trim(FRefreshSQL.Text)<>'');
   DoReturning:=(sqSupportReturning in SQLConnection.ConnOptions) and not (sqoRefreshUsingSelect in Options);
   if Not (Result or DoReturning) then
     begin
