@@ -131,6 +131,7 @@ type
     property LoginPrompt;
     property Params;
     property OnLogin;
+    Property Port;
   end;
   
   { TIBConnectionDef }
@@ -611,6 +612,8 @@ procedure TIBConnection.ConnectFB;
 var
   ADatabaseName: String;
   DPB: string;
+  HN : String;
+  
 begin
   DPB := chr(isc_dpb_version1);
   if (UserName <> '') then
@@ -625,8 +628,15 @@ begin
     DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
 
   FDatabaseHandle := nil;
-  if HostName <> '' then ADatabaseName := HostName+':'+DatabaseName
-    else ADatabaseName := DatabaseName;
+  HN:=HostName;
+  if HN <> '' then 
+    begin
+    if Port<>0 then
+      HN:=HN+'/'+IntToStr(Port);
+    ADatabaseName := HN+':'+DatabaseName
+    end
+  else 
+    ADatabaseName := DatabaseName;
   if isc_attach_database(@FStatus[0], Length(ADatabaseName), @ADatabaseName[1],
     @FDatabaseHandle, Length(DPB), @DPB[1]) <> 0 then
     CheckError('DoInternalConnect', FStatus);
