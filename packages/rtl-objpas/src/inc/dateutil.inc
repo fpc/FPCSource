@@ -254,7 +254,7 @@ Function WithinPastMilliSeconds(const ANow, AThen: TDateTime; const AMilliSecond
   ---------------------------------------------------------------------}
 
 Function YearsBetween(const ANow, AThen: TDateTime): Integer;
-Function MonthsBetween(const ANow, AThen: TDateTime): Integer;
+Function MonthsBetween(const ANow, AThen: TDateTime; AExact : Boolean = False): Integer;
 Function WeeksBetween(const ANow, AThen: TDateTime): Integer;
 Function DaysBetween(const ANow, AThen: TDateTime): Integer;
 Function HoursBetween(const ANow, AThen: TDateTime): Int64;
@@ -1287,9 +1287,20 @@ begin
 end;
 
 
-Function MonthsBetween(const ANow, AThen: TDateTime): Integer;
+Function MonthsBetween(const ANow, AThen: TDateTime; AExact : Boolean = False): Integer;
+
+var
+  y, m, d: Word;
+
 begin
-  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)/ApproxDaysPerMonth);
+  if AExact and (ANow >= -DateDelta) and (AThen >= -DateDelta) and
+     (ANow <= MaxDateTime) and (AThen <= MaxDateTime) then
+    begin
+    PeriodBetween(ANow, AThen, y, m, d);
+    Result := y*12 + m;
+    end
+  else
+    Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)/ApproxDaysPerMonth);
 end;
 
 
