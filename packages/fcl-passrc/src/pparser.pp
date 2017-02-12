@@ -367,6 +367,7 @@ type
     procedure ParseStatement(Parent: TPasImplBlock;  out NewImplElement: TPasImplElement);
     procedure ParseLabels(AParent: TPasElement);
     procedure ParseProcBeginBlock(Parent: TProcedureBody);
+    procedure ParseProcAsmBlock(Parent: TProcedureBody);
     // Function/Procedure declaration
     function  ParseProcedureOrFunctionDecl(Parent: TPasElement; ProcType: TProcType;AVisibility : TPasMemberVisibility = VisDefault): TPasProcedure;
     procedure ParseArgList(Parent: TPasElement;
@@ -1447,10 +1448,12 @@ var
 begin
   Result:=nil;
   if paramskind in [pekArrayParams, pekSet] then begin
-    if CurToken<>tkSquaredBraceOpen then Exit;
+    if CurToken<>tkSquaredBraceOpen then
+      ParseExc(nParserExpectTokenError,SParserExpectTokenError,['[']);
     PClose:=tkSquaredBraceClose;
   end else begin
-    if CurToken<>tkBraceOpen then Exit;
+    if CurToken<>tkBraceOpen then
+      ParseExc(nParserExpectTokenError,SParserExpectTokenError,['(']);
     PClose:=tkBraceClose;
   end;
 
@@ -1461,11 +1464,12 @@ begin
     if not isEndOfExp then begin
       repeat
         p:=DoParseExpression(params);
-        if not Assigned(p) then Exit; // bad param syntax
+        if not Assigned(p) then
+          ParseExcSyntaxError;
         params.AddParam(p);
         if (CurToken=tkColon) then
           if Not AllowFormatting then
-            ParseExcSyntaxError
+            ParseExc(nParserExpectTokenError,SParserExpectTokenError,[','])
           else
             begin
             NextToken;
@@ -1476,15 +1480,14 @@ begin
               p.format2:=DoParseExpression(p);
               end;
             end;
-        if not (CurToken in [tkComma, PClose]) then begin
-          Exit;
-        end;
+        if not (CurToken in [tkComma, PClose]) then
+          ParseExc(nParserExpectTokenError,SParserExpectTokenError,[',']);
 
         if CurToken = tkComma then begin
           NextToken;
           if CurToken = PClose then begin
             //ErrorExpected(parser, 'identifier');
-            Exit;
+            ParseExcSyntaxError;
           end;
         end;
       until CurToken=PClose;
@@ -1573,18 +1576,15 @@ begin
         b:=CreateBinaryExpr(AParent,Last, DoParseExpression(AParent), eopNone);
         if not Assigned(b.right) then
           begin
-          B.Release;
-          Exit; // error
+          b.Release;
+          ParseExcExpectedIdentifier;
           end;
         Last:=b;
-        UngetToken;
-        end
-      else
-        UngetToken;
+        end;
+      UngetToken;
       end;
     tkself:
       begin
-      //Last:=CreatePrimitiveExpr(AParent,pekString, CurTokenText); //function(self);
       Last:=CreateSelfExpr(AParent);
       NextToken;
       if CurToken = tkDot then
@@ -1594,8 +1594,8 @@ begin
         b:=CreateBinaryExpr(AParent,Last, ParseExpIdent(AParent), TokenToExprOp(optk));
         if not Assigned(b.right) then
           begin
-          B.Release;
-          Exit; // error
+          b.Release;
+          ParseExcExpectedIdentifier;
           end;
         Last:=b;
         end;
@@ -1633,7 +1633,7 @@ begin
 
   ok:=false;
   try
-    if Last.Kind=pekIdent then
+    if Last.Kind in [pekIdent,pekSelf] then
       begin
       while CurToken in [tkDot] do
         begin
@@ -1906,10 +1906,12 @@ end;
 
 function GetExprIdent(p: TPasExpr): String;
 begin
-  if Assigned(p) and (p is TPrimitiveExpr) and (p.Kind=pekIdent) then
+  Result:='';
+  if not Assigned(p) then exit;
+  if (p.ClassType=TPrimitiveExpr) and (p.Kind=pekIdent) then
     Result:=TPrimitiveExpr(p).Value
-  else
-    Result:='';
+  else if (p.ClassType=TSelfExpr) then
+    Result:='Self';
 end;
 
 function TPasParser.DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
@@ -2353,6 +2355,7 @@ var
   PT : TProcType;
   NamePos: TPasSourcePos;
   ok: Boolean;
+  Proc: TPasProcedure;
 
 begin
   CurBlock := declNone;
@@ -2586,6 +2589,9 @@ begin
         begin
         if Declarations is TProcedureBody then
           begin
+          Proc:=Declarations.Parent as TPasProcedure;
+          if pmAssembler in Proc.Modifiers then
+            ParseExc(nParserExpectTokenError,SParserExpectTokenError,['asm']);
           SetBlock(declNone);
           ParseProcBeginBlock(TProcedureBody(Declarations));
           break;
@@ -2595,6 +2601,20 @@ begin
           begin
           SetBlock(declNone);
           ParseInitialization;
+          break;
+          end
+        else
+          ParseExcSyntaxError;
+        end;
+      tkasm:
+        begin
+        if Declarations is TProcedureBody then
+          begin
+          Proc:=Declarations.Parent as TPasProcedure;
+          if not (pmAssembler in Proc.Modifiers) then
+            ParseExc(nParserExpectTokenError,SParserExpectTokenError,['begin']);
+          SetBlock(declNone);
+          ParseProcAsmBlock(TProcedureBody(Declarations));
           break;
           end
         else
@@ -3319,11 +3339,11 @@ begin
     NextToken;
     if CurToken in [tkString,tkIdentifier] then
       begin
-      // extrenal libname
+      // external libname
       // external libname name XYZ
       // external name XYZ
       Tok:=UpperCase(CurTokenString);
-      if Not ((curtoken=tkIdentifier) and (Tok='NAME')) then
+      if Not ((CurToken=tkIdentifier) and (Tok='NAME')) then
         begin
         E:=DoParseExpression(Parent);
         if Assigned(P) then
@@ -3334,7 +3354,7 @@ begin
       else
         begin
         Tok:=UpperCase(CurTokenString);
-        if ((curtoken=tkIdentifier) and (Tok='NAME')) then
+        if ((CurToken=tkIdentifier) and (Tok='NAME')) then
           begin
           NextToken;
           if not (CurToken in [tkString,tkIdentifier]) then
@@ -3789,7 +3809,6 @@ var
   BeginBlock: TPasImplBeginBlock;
   SubBlock: TPasImplElement;
 begin
-
   BeginBlock := TPasImplBeginBlock(CreateElement(TPasImplBeginBlock, '', Parent));
   Parent.Body := BeginBlock;
   repeat
@@ -3809,7 +3828,17 @@ begin
 //  writeln('TPasParser.ParseProcBeginBlock ended ',curtokenstring);
 end;
 
-procedure TPasParser.ParseAsmBlock(AsmBlock : TPasImplAsmStatement);
+procedure TPasParser.ParseProcAsmBlock(Parent: TProcedureBody);
+var
+  AsmBlock: TPasImplAsmStatement;
+begin
+  AsmBlock:=TPasImplAsmStatement(CreateElement(TPasImplAsmStatement,'',Parent));
+  Parent.Body:=AsmBlock;
+  ParseAsmBlock(AsmBlock);
+  ExpectToken(tkSemicolon);
+end;
+
+procedure TPasParser.ParseAsmBlock(AsmBlock: TPasImplAsmStatement);
 begin
   if po_asmwhole in Options then
     begin
@@ -3917,9 +3946,9 @@ begin
   while True do
   begin
     NextToken;
-    //WriteLn(i,'Token=',CurTokenText);
+    //WriteLn('Token=',CurTokenText);
     case CurToken of
-    tkasm :
+    tkasm:
       begin
       El:=TPasImplElement(CreateElement(TPasImplAsmStatement,'',CurBlock));
       ParseAsmBlock(TPasImplAsmStatement(El));
@@ -3940,9 +3969,10 @@ begin
       begin
         NextToken;
         Left:=DoParseExpression(CurBlock);
-        UNgettoken;
+        UngetToken;
         El:=TPasImplIfElse(CreateElement(TPasImplIfElse,'',CurBlock));
         TPasImplIfElse(El).ConditionExpr:=Left;
+        Left.Parent:=El;
         //WriteLn(i,'IF Condition="',Condition,'" Token=',CurTokenText);
         CreateBlock(TPasImplIfElse(El));
         ExpectToken(tkthen);
@@ -4003,8 +4033,8 @@ begin
       begin
         // while Condition do
         NextToken;
-        left:=DoParseExpression(Parent);
-        ungettoken;
+        left:=DoParseExpression(CurBlock);
+        UngetToken;
         //WriteLn(i,'WHILE Condition="',Condition,'" Token=',CurTokenText);
         El:=TPasImplWhileDo(CreateElement(TPasImplWhileDo,'',CurBlock));
         TPasImplWhileDo(El).ConditionExpr:=left;
@@ -4013,7 +4043,7 @@ begin
       end;
     tkgoto:
       begin
-        nexttoken;
+        NextToken;
         curblock.AddCommand('goto '+curtokenstring);
         expecttoken(tkSemiColon);
       end;
@@ -4080,17 +4110,18 @@ begin
         // with Expr, Expr do
         SrcPos:=Scanner.CurSourcePos;
         NextToken;
-        Left:=DoParseExpression(Parent);
+        Left:=DoParseExpression(CurBlock);
         //writeln(i,'WITH Expr="',Expr,'" Token=',CurTokenText);
         El:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock,SrcPos));
         TPasImplWithDo(El).AddExpression(Left);
+        Left.Parent:=El;
         CreateBlock(TPasImplWithDo(El));
         repeat
           if CurToken=tkdo then break;
           if CurToken<>tkComma then
             ParseExcTokenError(TokenInfos[tkdo]);
           NextToken;
-          Left:=DoParseExpression(Parent);
+          Left:=DoParseExpression(CurBlock);
           //writeln(i,'WITH ...,Expr="',Expr,'" Token=',CurTokenText);
           TPasImplWithDo(CurBlock).AddExpression(Left);
         until false;
@@ -4098,7 +4129,7 @@ begin
     tkcase:
       begin
         NextToken;
-        Left:=DoParseExpression(Parent);
+        Left:=DoParseExpression(CurBlock);
         UngetToken;
         //writeln(i,'CASE OF Expr="',Expr,'" Token=',CurTokenText);
         ExpectToken(tkof);
@@ -4299,7 +4330,7 @@ begin
         if CurBlock is TPasImplRepeatUntil then
         begin
           NextToken;
-          Left:=DoParseExpression(Parent);
+          Left:=DoParseExpression(CurBlock);
           UngetToken;
           TPasImplRepeatUntil(CurBlock).ConditionExpr:=Left;
           //WriteLn(i,'UNTIL Condition="',Condition,'" Token=',CurTokenString);
@@ -4308,7 +4339,7 @@ begin
           ParseExcSyntaxError;
       end;
     else
-      left:=DoParseExpression(Parent);
+      left:=DoParseExpression(CurBlock);
       case CurToken of
         tkAssign,
         tkAssignPlus,
@@ -4319,7 +4350,7 @@ begin
           // assign statement
           Ak:=TokenToAssignKind(CurToken);
           NextToken;
-          right:=DoParseExpression(Parent); // this may solve TPasImplWhileDo.AddElement BUG
+          right:=DoParseExpression(CurBlock); // this may solve TPasImplWhileDo.AddElement BUG
           El:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock));
           left.Parent:=El;
           right.Parent:=El;

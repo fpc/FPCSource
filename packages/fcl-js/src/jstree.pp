@@ -457,7 +457,7 @@ Type
 
   TJSVariableDeclarationList = Class(TJSBinary); // A->first variable, B->next in list, chained.
 
-  { TJSWithStatement }
+  { TJSWithStatement - with(A)do B; }
 
   TJSWithStatement = Class(TJSBinary); // A-> with expression, B->statement(s)
 

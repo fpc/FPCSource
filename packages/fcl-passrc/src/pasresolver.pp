@@ -460,14 +460,13 @@ type
 
   { TResolveData - base class for data stored in TPasElement.CustomData }
 
-  TResolveData = Class
+  TResolveData = Class(TPasElementBase)
   private
     FElement: TPasElement;
     procedure SetElement(AValue: TPasElement);
   public
     Owner: TObject; // e.g. a TPasResolver
     Next: TResolveData; // TPasResolver uses this for its memory chain
-    CustomData: TObject; // not used by TPasResolver, free for your extension
     constructor Create; virtual;
     destructor Destroy; override;
     property Element: TPasElement read FElement write SetElement;// Element.CustomData=Self
@@ -783,7 +782,8 @@ type
 
   TPasResolverResultFlag = (
     rrfReadable,
-    rrfWritable
+    rrfWritable,
+    rrfAssignable  // not writable in general, e.g. aString[1]:=
     );
   TPasResolverResultFlags = set of TPasResolverResultFlag;
 
@@ -2793,8 +2793,14 @@ begin
       end;
 
     // finish non method, i.e. interface/implementation/nested procedure/method declaration
+
     if not IsValidIdent(ProcName) then
       RaiseNotYetImplemented(20160922163407,El);
+
+    if Proc.LibraryExpr<>nil then
+      ResolveExpr(Proc.LibraryExpr);
+    if Proc.LibrarySymbolName<>nil then
+      ResolveExpr(Proc.LibrarySymbolName);
 
     if Proc.Parent is TPasClassType then
       begin
@@ -2957,6 +2963,11 @@ var
   SelfArg: TPasArgument;
   p: Integer;
 begin
+  if ImplProc.IsExternal then
+    RaiseMsg(nInvalidProcModifiers,sInvalidProcModifiers,[ImplProc.ElementTypeName,'external'],ImplProc);
+  if ImplProc.IsExported then
+    RaiseMsg(nInvalidProcModifiers,sInvalidProcModifiers,[ImplProc.ElementTypeName,'export'],ImplProc);
+
   ProcName:=ImplProc.Name;
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishMethodBodyHeader searching declaration "',ProcName,'" ...');
@@ -4254,6 +4265,8 @@ begin
 
     // found compatible element -> create reference
     Ref:=CreateReference(FindCallData.Found,Params.Value);
+    if FindCallData.StartScope.ClassType=TPasWithExprScope then
+      Ref.WithExprScope:=TPasWithExprScope(FindCallData.StartScope);
     FindData:=Default(TPRFindData);
     FindData.ErrorPosEl:=Params.Value;
     FindData.StartScope:=FindCallData.StartScope;
@@ -4288,41 +4301,48 @@ var
   FindData: TPRFindData;
   DeclEl: TPasElement;
   ResolvedEl, ResolvedArg: TPasResolverResult;
-  ArgExp: TPasExpr;
+  ArgExp, Value: TPasExpr;
   Ref: TResolvedReference;
   PropEl: TPasProperty;
   ClassScope: TPasClassScope;
   SubParams: TParamsExpr;
 begin
   DeclEl:=nil;
-  if (Params.Value.ClassType=TPrimitiveExpr)
-      and (TPrimitiveExpr(Params.Value).Kind=pekIdent) then
+  Value:=Params.Value;
+  if (Value.ClassType=TPrimitiveExpr)
+      and (TPrimitiveExpr(Value).Kind=pekIdent) then
     begin
     // e.g. Name[]
-    ArrayName:=TPrimitiveExpr(Params.Value).Value;
+    ArrayName:=TPrimitiveExpr(Value).Value;
     // find first
-    DeclEl:=FindElementWithoutParams(ArrayName,FindData,Params.Value,true);
+    DeclEl:=FindElementWithoutParams(ArrayName,FindData,Value,true);
     Ref:=CreateReference(DeclEl,Params.Value,@FindData);
     CheckFoundElement(FindData,Ref);
-    ComputeElement(Params.Value,ResolvedEl,[rcSkipTypeAlias,rcReturnFuncResult]);
+    ComputeElement(Value,ResolvedEl,[rcSkipTypeAlias,rcReturnFuncResult]);
     end
-  else if Params.Value.ClassType=TParamsExpr then
+  else if (Value.ClassType=TSelfExpr) then
+    begin
+    // e.g. Self[]
+    ResolveNameExpr(Value,'Self');
+    ComputeElement(Value,ResolvedEl,[rcSkipTypeAlias,rcReturnFuncResult]);
+    end
+  else if Value.ClassType=TParamsExpr then
     begin
     // e.g. Name()[] or Name[][]
-    SubParams:=TParamsExpr(Params.Value);
+    SubParams:=TParamsExpr(Value);
     if (SubParams.Kind in [pekArrayParams,pekFuncParams]) then
       begin
       ResolveExpr(SubParams);
       ComputeElement(SubParams,ResolvedEl,[rcSkipTypeAlias,rcReturnFuncResult]);
       end
     else
-      RaiseNotYetImplemented(20161010194925,Params.Value);
+      RaiseNotYetImplemented(20161010194925,Value);
     end
   else
-    RaiseNotYetImplemented(20160927212610,Params.Value);
+    RaiseNotYetImplemented(20160927212610,Value);
 
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.ResolveArrayParamsExpr Params.Value=',GetObjName(Params.Value),' ',GetResolverResultDesc(ResolvedEl));
+  writeln('TPasResolver.ResolveArrayParamsExpr Value=',GetObjName(Value),' ',GetResolverResultDesc(ResolvedEl));
   {$ENDIF}
   if ResolvedEl.BaseType in btAllStrings then
     begin
@@ -5236,9 +5256,10 @@ begin
       ResolvedEl.BaseType:=btWideChar
     else
       ResolvedEl.BaseType:=btChar;
-    ResolvedEl.IdentEl:=nil;
+    // keep ResolvedEl.IdentEl the string var
     ResolvedEl.TypeEl:=FBaseTypes[ResolvedEl.BaseType];
     ResolvedEl.ExprEl:=Params;
+    ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable]+[rrfAssignable];
     end
   else if (ResolvedEl.IdentEl is TPasProperty)
       and (TPasProperty(ResolvedEl.IdentEl).Args.Count>0) then
@@ -6187,7 +6208,7 @@ begin
   inherited Create;
   FDefaultScope:=TPasDefaultScope.Create;
   FPendingForwards:=TFPList.Create;
-  FBaseTypeStringIndex:=btComp;
+  FBaseTypeStringIndex:=btChar;
   PushScope(FDefaultScope);
 end;
 
@@ -7281,7 +7302,7 @@ begin
       end;
     exit;
     end;
-  if (rrfWritable in ResolvedEl.Flags) then
+  if [rrfWritable,rrfAssignable]*ResolvedEl.Flags<>[] then
     exit(true);
   // not writable
   if not ErrorOnFalse then exit;

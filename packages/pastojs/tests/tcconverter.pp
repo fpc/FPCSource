@@ -268,7 +268,6 @@ begin
   E:=TJSExpressionStatement(Convert(R,TJSExpressionStatement));
   AssertNotNull('Have call node',E.A);
   AssertEquals('Have call expression',TJSCallExpression,E.A.ClassType);
-  AssertEquals('Have call expression',TJSCallExpression,E.A.ClassType);
   C:=TJSCallExpression(E.A);
   AssertIdentifier('Call expression',C.Expr,'a');
 end;
@@ -972,12 +971,15 @@ Procedure TTestExpressionConverter.TestBinaryDiv;
 Var
   B : TBinaryExpr;
   E : TJSMultiplicativeExpressionDiv;
-
+  C: TJSCallExpression;
+  Args: TJSArguments;
 begin
   B:=TBinaryExpr.Create(Nil,pekBinary,eopDiv);
   B.left:=CreateLiteral(1.23);
   B.Right:=CreateLiteral(3.45);
-  E:=TJSMultiplicativeExpressionDiv(TestBinaryExpression(B,TJSMultiplicativeExpressionDiv));
+  C:=TJSCallExpression(Convert(B,TJSCallExpression));
+  Args:=TJSArguments(AssertElement('Math.floor param',TJSArguments,C.Args));
+  E:=TJSMultiplicativeExpressionDiv(AssertElement('param',TJSMultiplicativeExpressionDiv,Args.Elements.Elements[0].Expr));
   AssertLiteral('Correct left literal for div',E.A,1.23);
   AssertLiteral('Correct right literal for div',E.B,3.45);
 end;
@@ -1013,13 +1015,13 @@ end;
 Procedure TTestExpressionConverter.TestBinarySHR;
 Var
   B : TBinaryExpr;
-  E : TJSRShiftExpression;
+  E : TJSURShiftExpression;
 
 begin
   B:=TBinaryExpr.Create(Nil,pekBinary,eopSHR);
   B.left:=CreateLiteral(13);
   B.Right:=CreateLiteral(3);
-  E:=TJSRShiftExpression(TestBinaryExpression(B,TJSRShiftExpression));
+  E:=TJSURShiftExpression(TestBinaryExpression(B,TJSURShiftExpression));
   AssertLiteral('Correct left literal for shr',E.A,13);
   AssertLiteral('Correct right literal for shr',E.B,3);
 end;

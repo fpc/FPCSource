@@ -153,6 +153,10 @@ type
 
     // strings
     Procedure TestString_SetLength;
+    Procedure TestString_Element;
+    Procedure TestStringElement_MissingArgFail;
+    Procedure TestStringElement_IndexNonIntFail;
+    Procedure TestStringElement_AsVarArgFail;
 
     // enums
     Procedure TestEnums;
@@ -178,8 +182,6 @@ type
     Procedure TestBooleanOperators;
     Procedure TestStringOperators;
     Procedure TestFloatOperators;
-    Procedure TestStringElementMissingArgFail;
-    Procedure TestStringElementIndexNonIntFail;
     Procedure TestCAssignments;
     Procedure TestTypeCastBaseTypes;
     Procedure TestTypeCastStrToIntFail;
@@ -240,6 +242,7 @@ type
     Procedure TestExit;
     Procedure TestBreak;
     Procedure TestContinue;
+    Procedure TestProcedureExternal;
 
     // record
     Procedure TestRecord;
@@ -299,6 +302,7 @@ type
     Procedure TestClass_ConDestructor_CallInherited;
     Procedure TestClass_Constructor_Inherited;
     Procedure TestClass_SubObject;
+    Procedure TestClass_WithClassInstance;
 
     // class of
     Procedure TestClassOf;
@@ -1585,6 +1589,55 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestString_Element;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  s: string;');
+  Add('  c: char;');
+  Add('begin');
+  Add('  if s[1]=s then ;');
+  Add('  if s=s[2] then ;');
+  Add('  if s[3+4]=c then ;');
+  Add('  if c=s[5] then ;');
+  Add('  c:=s[6];');
+  Add('  s[7]:=c;');
+  Add('  s[8]:=''a'';');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestStringElement_MissingArgFail;
+begin
+  StartProgram(false);
+  Add('var s: string;');
+  Add('begin');
+  Add('  if s[]=s then ;');
+  CheckResolverException('Missing parameter character index',PasResolver.nMissingParameterX);
+end;
+
+procedure TTestResolver.TestStringElement_IndexNonIntFail;
+begin
+  StartProgram(false);
+  Add('var s: string;');
+  Add('begin');
+  Add('  if s[true]=s then ;');
+  CheckResolverException('Incompatible types: got "Boolean" expected "Char"',
+    PasResolver.nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestStringElement_AsVarArgFail;
+begin
+  StartProgram(false);
+  Add('procedure DoIt(var c: char);');
+  Add('begin');
+  Add('end;');
+  Add('var s: string;');
+  Add('begin');
+  Add('  DoIt(s[1]);');
+  CheckResolverException('Variable identifier expected',
+    PasResolver.nVariableIdentifierExpected);
+end;
+
 procedure TTestResolver.TestEnums;
 begin
   StartProgram(false);
@@ -2119,25 +2172,6 @@ begin
   Add('  i:=j**k;');
   Add('  i:=(j+k)/3;');
   ParseProgram;
-end;
-
-procedure TTestResolver.TestStringElementMissingArgFail;
-begin
-  StartProgram(false);
-  Add('var s: string;');
-  Add('begin');
-  Add('  if s[]=s then ;');
-  CheckResolverException('Missing parameter character index',PasResolver.nMissingParameterX);
-end;
-
-procedure TTestResolver.TestStringElementIndexNonIntFail;
-begin
-  StartProgram(false);
-  Add('var s: string;');
-  Add('begin');
-  Add('  if s[true]=s then ;');
-  CheckResolverException('Incompatible types: got "Boolean" expected "Comp"',
-    PasResolver.nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestCAssignments;
@@ -3057,6 +3091,23 @@ begin
   Add('    continue;');
   Add('  for i:=0 to 1 do');
   Add('    continue;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcedureExternal;
+begin
+  StartProgram(false);
+  Add('procedure {#ProcA}ProcA; external ''ExtProcA'';');
+  Add('function {#FuncB}FuncB: longint; external ''ExtFuncB'';');
+  Add('function {#FuncC}FuncC(d: double): string; external ''ExtFuncC'';');
+  Add('var');
+  Add('  i: longint;');
+  Add('  s: string;');
+  Add('begin');
+  Add('  {@ProcA}ProcA;');
+  Add('  i:={@FuncB}FuncB;');
+  Add('  i:={@FuncB}FuncB();');
+  Add('  s:={@FuncC}FuncC(1.2);');
   ParseProgram;
 end;
 
@@ -4371,6 +4422,78 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestClass_WithClassInstance;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualRefWith: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    FInt: longint;');
+  Add('    FObj: TObject;');
+  Add('    FArr: array of longint;');
+  Add('    constructor Create;');
+  Add('    function GetSize: longint;');
+  Add('    procedure SetSize(Value: longint);');
+  Add('    function GetItems(Index: longint): longint;');
+  Add('    procedure SetItems(Index, Value: longint);');
+  Add('    property Size: longint read GetSize write SetSize;');
+  Add('    property Items[Index: longint]: longint read GetItems write SetItems;');
+  Add('  end;');
+  Add('constructor TObject.Create; begin end;');
+  Add('function TObject.GetSize: longint; begin end;');
+  Add('procedure TObject.SetSize(Value: longint); begin end;');
+  Add('function TObject.GetItems(Index: longint): longint; begin end;');
+  Add('procedure TObject.SetItems(Index, Value: longint); begin end;');
+  Add('var');
+  Add('  Obj: TObject;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  with TObject.Create do begin');
+  Add('    {#A}FInt:=3;');
+  Add('    i:={#B}FInt;');
+  Add('    i:={#C}GetSize;');
+  Add('    i:={#D}GetSize();');
+  Add('    {#E}SetSize(i);');
+  Add('    i:={#F}Size;');
+  Add('    {#G}Size:=i;');
+  Add('    i:={#H}Items[i];');
+  Add('    {#I}Items[i]:=i;');
+  Add('    i:={#J}FArr[i];');
+  Add('    {#K}FArr[i]:=i;');
+  Add('  end;');
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    writeln('TTestResolver.TestClass_WithClassInstance ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualRefWith:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        writeln('TTestResolver.TestClass_WithClassInstance ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if Ref.WithExprScope=nil then continue;
+        ActualRefWith:=true;
+        break;
+        end;
+      if not ActualRefWith then
+        RaiseErrorAtSrcMarker('expected Ref.WithExprScope<>nil at "#'+aMarker^.Identifier+', but got nil"',aMarker);
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
 procedure TTestResolver.TestClassOf;
 begin
   StartProgram(false);
@@ -5142,6 +5265,8 @@ begin
   Add('end;');
   Add('procedure TObject.SetB(Index: longint; Value: longint);');
   Add('begin');
+  Add('  if Value=Self[Index] then ;');
+  Add('  Self[Index]:=Value;');
   Add('end;');
   Add('var o: TObject;');
   Add('begin');

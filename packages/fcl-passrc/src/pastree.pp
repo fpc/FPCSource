@@ -82,9 +82,17 @@ type
   // Visitor pattern.
   TPassTreeVisitor = class;
 
+  { TPasElementBase }
+
   TPasElementBase = class
-    procedure Accept(Visitor: TPassTreeVisitor); virtual; abstract;
+  private
+    FData: TObject;
+  protected
+    procedure Accept(Visitor: TPassTreeVisitor); virtual;
+  public
+    Property CustomData : TObject Read FData Write FData;
   end;
+  TPasElementBaseClass = class of TPasElementBase;
 
 
   TPasModule = class;
@@ -109,7 +117,6 @@ type
 
   TPasElement = class(TPasElementBase)
   private
-    FData: TObject;
     FDocComment: String;
     FRefCount: LongWord;
     FName: string;
@@ -145,7 +152,6 @@ type
     property Name: string read FName write FName;
     property Parent: TPasElement read FParent Write FParent;
     Property Hints : TPasMemberHints Read FHints Write FHints;
-    Property CustomData : TObject Read FData Write FData;
     Property HintMessage : String Read FHintMessage Write FHintMessage;
     Property DocComment : String Read FDocComment Write FDocComment;
   end;
@@ -1313,15 +1319,18 @@ Type
     ExceptAddr : TPasExpr;
   end;
 
-  { TPassTreeVisitor }
-
-  TPassTreeVisitor = class
-    procedure Visit(obj: TPasElement); virtual;
-  end;
+  { TPasImplLabelMark }
 
   TPasImplLabelMark = class(TPasImplElement)
   public
     LabelId: AnsiString;
+  end;
+
+  { TPassTreeVisitor }
+
+  TPassTreeVisitor = class
+  public
+    procedure Visit(obj: TPasElement); virtual;
   end;
 
 const
@@ -1406,6 +1415,13 @@ begin
   if El=nil then exit;
   El.Release;
   El:=nil;
+end;
+
+{ TPasElementBase }
+
+procedure TPasElementBase.Accept(Visitor: TPassTreeVisitor);
+begin
+
 end;
 
 { TPasTypeRef }
