@@ -203,7 +203,11 @@ var rtl = {
     var oldlen = arr.length;
     if (oldlen==newlength) return;
     arr.length = newlength;
-    for (var i=oldlen; i<newlength; i++) arr[i]=defaultvalue;
+    if (rtl.isArray(defaultvalue)){
+      for (var i=oldlen; i<newlength; i++) arr[i]=[]; // new array
+    } else {
+      for (var i=oldlen; i<newlength; i++) arr[i]=defaultvalue;
+    }
     return arr;
   },
 
@@ -213,6 +217,10 @@ var rtl = {
 
   length: function(a){
     return (a!=null) ? a.length : 0;
+  },
+
+  setCharAt: function(s,index,c){
+    return s.substr(0,index)+c+s.substr(index+1);
   },
 
   createSet: function(){
