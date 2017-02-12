@@ -948,7 +948,7 @@ type
           begin
             value.len:=c.value.len;
             getmem(value.valueptr,value.len+1);
-            move(c.value.valueptr^,value.valueptr,value.len+1);
+            move(c.value.valueptr^,value.valueptr^,value.len+1);
           end;
         constwstring:
           begin
@@ -1028,7 +1028,7 @@ type
       getmem(sp,len+1);
       move(s[1],sp^,len+1);
       value.valueptr:=sp;
-      value.len:=length(s);
+      value.len:=len;
       def:=strdef;
     end;
 
@@ -1091,7 +1091,7 @@ type
                   (is_ordinal(v.def) or is_fpu(v.def)) and
                   (is_ordinal(def) or is_fpu(def))
                 ) or
-                (is_string(v.def) and is_string(def));
+                (is_stringlike(v.def) and is_stringlike(def));
         if not result then
           Message2(type_e_incompatible_types,def.typename,v.def.typename);
       end;
@@ -1359,7 +1359,7 @@ type
       case consttyp of
         conststring,
         constresourcestring :
-          freemem(pchar(value.valueptr),value.len+1);
+          freemem(value.valueptr,value.len+1);
         constwstring :
           donewidestring(pcompilerwidestring(value.valueptr));
         constreal :
@@ -2041,6 +2041,11 @@ type
                    result:=texprvalue.create_int(1);
                  end;
                preproc_consume(_INTCONST);
+             end
+           else if current_scanner.preproc_token = _CSTRING then
+             begin
+               result:=texprvalue.create_str(current_scanner.preproc_pattern);
+               preproc_consume(_CSTRING);
              end
            else if current_scanner.preproc_token = _REALNUMBER then
              begin
@@ -5331,6 +5336,7 @@ exit_label:
       var
         low,high,mid: longint;
         optoken: ttoken;
+        s : string;
       begin
          skipspace;
          case c of
@@ -5366,6 +5372,12 @@ exit_label:
                 end;
                current_scanner.preproc_pattern:=pattern;
                readpreproc:=optoken;
+             end;
+           '''' :
+             begin
+               s:=readquotedstring;
+               current_scanner.preproc_pattern:=cstringpattern;
+               readpreproc:=_CSTRING;
              end;
            '0'..'9' :
              begin
