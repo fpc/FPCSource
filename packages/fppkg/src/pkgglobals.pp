@@ -10,8 +10,7 @@ uses
 {$endif}
   SysUtils,
   Classes,
-  fpmkunit,
-  fprepos;
+  fpmkunit;
 
 Const
 {$ifdef unix}

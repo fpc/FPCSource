@@ -30,6 +30,8 @@ type
     function IncludeRepositoryTypeForPackageKind(ARepositoryType: TFPRepositoryType;
       APackageKind: TpkgPackageKind): Boolean;
     procedure ScanPackagesOnDisk(ACompilerOptions: TCompilerOptions; APackageKind: TpkgPackageKind; ARepositoryList: TComponentList);
+    function CreateRepository(ARepoOptionSection: TFppkgRepositoryOptionSection;
+      AnOptions: TFppkgOptions; ACompilerOptions: TCompilerOptions): TFPRepository;
     function  FindPackage(ARepositoryList: TComponentList; APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
 
     function  SelectRemoteMirror:string;
@@ -121,15 +123,23 @@ begin
           RepoOption := TFppkgRepositoryOptionSection(FOptions.SectionList[i]);
           if IncludeRepositoryTypeForPackageKind(RepoOption.GetRepositoryType, APackageKind) then
             begin
-              Repo := RepoOption.InitRepository(Self, ACompilerOptions);
+              Repo := CreateRepository(RepoOption, FOptions, ACompilerOptions);
               if Assigned(Repo) then
                 begin
                   ARepositoryList.Add(Repo);
-                  Repo.DefaultPackagesStructure.AddPackagesToRepository(Repo);
+                  if Assigned(Repo.DefaultPackagesStructure) then
+                    Repo.DefaultPackagesStructure.AddPackagesToRepository(Repo);
                 end;
             end;
         end;
     end;
+end;
+
+function TpkgFPpkg.CreateRepository(ARepoOptionSection: TFppkgRepositoryOptionSection;
+  AnOptions: TFppkgOptions; ACompilerOptions: TCompilerOptions): TFPRepository;
+begin
+  Result := TFPRepository.Create(Self);
+  Result.InitializeWithOptions(ARepoOptionSection, AnOptions, ACompilerOptions);
 end;
 
 procedure TpkgFPpkg.InitializeGlobalOptions(CfgFile: string);
@@ -251,7 +261,8 @@ begin
       Repo.RepositoryName := 'Available';
       Repo.Description := 'Packages available for download';
       Repo.RepositoryType := fprtAvailable;
-      InstPackages := TFPRemotePackagesStructure.Create(Self, FOptions);
+      InstPackages := TFPRemotePackagesStructure.Create(Self);
+      InstPackages.InitializeWithOptions(Nil, FOptions, FCompilerOptions);
       InstPackages.AddPackagesToRepository(Repo);
       Repo.DefaultPackagesStructure := InstPackages;
     end;
@@ -478,6 +489,7 @@ begin
       AvailableRepo.RepositoryName := Repo.RepositoryName + '_source';
       AvailableRepo.Description := Repo.Description + ' (original sources)';
       AvailStruc := TFPOriginalSourcePackagesStructure.Create(Self, Repo);
+      AvailStruc.InitializeWithOptions(nil, FOptions, FCompilerOptions);
       AvailStruc.AddPackagesToRepository(AvailableRepo);
       AvailableRepo.DefaultPackagesStructure := AvailStruc;
     end;

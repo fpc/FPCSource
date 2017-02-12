@@ -17,7 +17,7 @@ unit pkgoptions;
 interface
 
 // pkgglobals must be AFTER fpmkunit
-uses Classes, Sysutils, Inifiles, fprepos, fpTemplate, fpmkunit, pkgglobals, fgl;
+uses Classes, Sysutils, Inifiles, fpTemplate, fpmkunit, pkgglobals, fgl;
 
 Const
   UnitConfigFileName   = 'fpunits.cfg';
@@ -28,6 +28,7 @@ Const
   CurrentConfigVersion = 5;
 
 Type
+  TFPRepositoryType = (fprtUnknown, fprtInstalled, fprtAvailable);
 
   { TFppkgOptionSection }
 
@@ -131,14 +132,13 @@ Type
     function AllowDuplicate: Boolean; override;
     function GetRepositoryType: TFPRepositoryType; virtual;
 
-    function InitRepository(AParent: TComponent; ACompilerOptions: TCompilerOptions): TFPRepository; virtual;
-
     property RepositoryName: string read FRepositoryName write SetRepositoryName;
     property Description: string read FDescription write SetDescription;
     property Path: string read GetPath write SetPath;
     property Prefix: string read GetPrefix write SetPrefix;
     property InstallRepositoryName: string read FInstallRepositoryName write FInstallRepositoryName;
   end;
+  TFppkgRepositoryOptionSectionClass = class of TFppkgRepositoryOptionSection;
 
   { TFppkgIncludeFilesOptionSection }
 
@@ -468,24 +468,6 @@ end;
 function TFppkgRepositoryOptionSection.GetRepositoryType: TFPRepositoryType;
 begin
   result := fprtInstalled;
-end;
-
-function TFppkgRepositoryOptionSection.InitRepository(AParent: TComponent;
-  ACompilerOptions: TCompilerOptions): TFPRepository;
-var
-  InstPackages: TFPInstalledPackagesStructure;
-begin
-  if Path <> '' then
-    begin
-      Result := TFPRepository.Create(AParent);
-      Result.RepositoryType := GetRepositoryType;
-      Result.RepositoryName := RepositoryName;
-      Result.Description := Description;
-      InstPackages := TFPInstalledPackagesStructure.Create(AParent, Path, ACompilerOptions);
-      InstPackages.InstallRepositoryName := InstallRepositoryName;
-      Result.DefaultPackagesStructure := InstPackages;
-      InstPackages.Prefix:=Prefix;
-    end;
 end;
 
 { TFppkgCommandLineOptionSection }

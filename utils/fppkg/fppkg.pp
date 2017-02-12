@@ -370,7 +370,9 @@ begin
             Repo.RepositoryType := fprtAvailable;
             Repo.RepositoryName := 'CurrentDirectory';
             Repo.Description := 'Package in current directory';
-            InstPackages := TFPCurrentDirectoryPackagesStructure.Create(GFPpkg, OldCurrDir, GFPpkg.CompilerOptions);
+            InstPackages := TFPCurrentDirectoryPackagesStructure.Create(GFPpkg);
+            InstPackages.InitializeWithOptions(nil, GFPpkg.Options, GFPpkg.CompilerOptions);
+            InstPackages.Path := OldCurrDir;
             InstPackages.AddPackagesToRepository(Repo);
             Repo.DefaultPackagesStructure := InstPackages;
           end;
