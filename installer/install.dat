@@ -748,7 +748,7 @@ package=units-os2units.source.zip[uos2src.zip],Units interfacing libraries deliv
 #package=units-clkdll.source.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
 # Source-2 9
 #package=units-lvm.source.zip[ulvmsrc.zip],OS/2 LVM interface unit sources
-package=units-sdl.source.zip[usdlsrc.zip],SDL interface units sources
+package=units-sdl.source.zip[usdlsrc.zip],SDL (Simple DirectMedia Layer) interface units sources
 # Source-2 10
 package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units sources
 # Source-2 11
@@ -786,7 +786,6 @@ package=units-ptc.source.zip[uptcsrc.zip],Free portable framebuffer library
 # Source-2 27
 package=units-x11.source.zip[ux11src.zip],X Window (X11) interface units
 # Source-2 28
-package=units-sdl.source.zip[usdlsrc.zip],SDL (Simple DirectMedia Layer) interface units sources
 # Source-2 29
 package=units-fcl-pdf.source.zip[ufcpdsrc.zip],PDF generating and TTF file info library
 # Source-2 30
