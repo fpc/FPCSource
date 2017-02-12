@@ -75,6 +75,9 @@ implementation
         fname: string[19];
       begin
         if (cs_fp_emulation in current_settings.moduleswitches) or
+{$ifdef cpufpemu}
+          (current_settings.fputype=fpu_soft) or
+{$endif cpufpemu}
           (current_settings.fputype=fpu_fpv4_s16) then
           result:=inherited first_int_to_real
         else
