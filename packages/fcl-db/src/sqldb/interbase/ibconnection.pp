@@ -131,7 +131,7 @@ type
     property LoginPrompt;
     property Params;
     property OnLogin;
-    Property Port;
+    Property Port stored false;
   end;
   
   { TIBConnectionDef }
