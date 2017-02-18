@@ -1060,7 +1060,7 @@ implementation
           consume(_CLASS);
           { class modifier is only allowed for procedures, functions, }
           { constructors, destructors, fields and properties          }
-          if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
+          if not((token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR]) or (token=_CONSTRUCTOR)) then
             Message(parser_e_procedure_or_function_expected);
 
           { Java interfaces can contain final class vars }

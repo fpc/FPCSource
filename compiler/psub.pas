@@ -2420,7 +2420,7 @@ implementation
                    begin
                      { class modifier is only allowed for procedures, functions, }
                      { constructors, destructors                                 }
-                     if not(token in [_FUNCTION,_PROCEDURE,_CONSTRUCTOR,_DESTRUCTOR,_OPERATOR]) and
+                     if not((token in [_FUNCTION,_PROCEDURE,_DESTRUCTOR,_OPERATOR]) or (token=_CONSTRUCTOR)) and
                         not((token=_ID) and (idtoken=_OPERATOR)) then
                        Message(parser_e_procedure_or_function_expected);
 
