@@ -346,6 +346,7 @@ interface
     function  search_struct_member_no_helper(pd : tabstractrecorddef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
     function  search_enumerator_operator(from_def,to_def:Tdef):Tprocdef;
+    function  search_management_operator(mop:tmanagementoperator;pd:Tdef):Tprocdef;
     { searches for the helper definition that's currently active for pd }
     function  search_last_objectpascal_helper(pd : tdef;contextclassh : tabstractrecorddef;out odef : tobjectdef):boolean;
     { searches whether the symbol s is available in the currently active }
@@ -435,6 +436,14 @@ interface
     { _OP_COPY       }  'copy',
     { _OP_INC        }  'inc',
     { _OP_DEC        }  'dec');
+
+      managementoperator2tok:array[tmanagementoperator] of ttoken = (
+    { mop_none       }  NOTOKEN,
+    { mop_initialize }  _OP_INITIALIZE,
+    { mop_finalize   }  _OP_FINALIZE,
+    { mop_addref     }  _OP_ADDREF,
+    { mop_copy       }  _OP_COPY
+    );
 
 
 
@@ -3736,6 +3745,31 @@ implementation
           end;
         result:=bestpd;
     end;
+
+
+    function search_management_operator(mop:tmanagementoperator;pd:Tdef):Tprocdef;
+      var
+        sym : Tprocsym;
+        hashedid : THashedIDString;
+        optoken: ttoken;
+      begin
+        optoken := managementoperator2tok[mop];
+        if (optoken<first_managment_operator) or
+           (optoken>last_managment_operator) then
+          internalerror(201602280);
+        hashedid.id:=overloaded_names[optoken];
+        if not (pd.typ in [recorddef]) then
+          internalerror(201602281);
+        sym:=Tprocsym(tabstractrecorddef(pd).symtable.FindWithHash(hashedid));
+        if sym<>nil then
+          begin
+            if sym.typ<>procsym then
+              internalerror(201602282);
+            result:=sym.find_procdef_bytype(potype_operator);
+          end
+        else
+          result:=nil;
+      end;
 
 
     function search_system_type(const s: TIDString): ttypesym;

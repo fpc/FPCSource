@@ -334,6 +334,8 @@ const
   first_overloaded = succ(NOTOKEN);
   last_overloaded  = _OP_DEC;
   last_operator = _GENERICSPECIALTOKEN;
+  first_managment_operator = _OP_INITIALIZE;
+  last_managment_operator = _OP_COPY;
 
   highest_precedence = oppower;
 
