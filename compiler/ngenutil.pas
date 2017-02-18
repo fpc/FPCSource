@@ -308,7 +308,19 @@ implementation
 
   class procedure tnodeutils.sym_maybe_initialize(p: TObject; arg: pointer);
     begin
-      if (tsym(p).typ = localvarsym) and
+      if ((tsym(p).typ = localvarsym) or
+          { check staticvarsym for record management opeators and for objects
+            which might contain record with management operators }
+          ((tsym(p).typ = staticvarsym) and
+           (
+            (tabstractvarsym(p).vardef is trecorddef) or
+            (
+             (tabstractvarsym(p).vardef is tobjectdef) and
+             (tobjectdef(tabstractvarsym(p).vardef).objecttype = odt_object)
+            )
+           )
+          )
+         ) and
          { local (procedure or unit) variables only need initialization if
            they are used }
          ((tabstractvarsym(p).refs>0) or
