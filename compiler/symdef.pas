@@ -4543,7 +4543,10 @@ implementation
 
     function trecorddef.needs_inittable : boolean;
       begin
-        needs_inittable:=trecordsymtable(symtable).needs_init_final
+        { each record with managed field or with any management operator needs
+          init table }
+        needs_inittable:=(trecordsymtable(symtable).managementoperators<>[]) or
+          trecordsymtable(symtable).needs_init_final
       end;
 
     function trecorddef.needs_separate_initrtti : boolean;
