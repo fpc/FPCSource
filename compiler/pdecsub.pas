@@ -596,6 +596,10 @@ implementation
                     _EXPLICIT:optoken:=_OP_EXPLICIT;
                     _INC:optoken:=_OP_INC;
                     _DEC:optoken:=_OP_DEC;
+                    _INITIALIZE:optoken:=_OP_INITIALIZE;
+                    _FINALIZE:optoken:=_OP_FINALIZE;
+                    _ADDREF:optoken:=_OP_ADDREF;
+                    _COPY:optoken:=_OP_COPY;
                     else
                     if (m_delphi in current_settings.modeswitches) then
                       case lastidtoken of
@@ -1436,40 +1440,67 @@ implementation
                   pd.resultname:=stringdup(orgpattern);
                   consume(_ID);
                 end;
-              if not try_to_consume(_COLON) then
+              { operators without result (management operators) }
+              if optoken in [_OP_INITIALIZE, _OP_FINALIZE, _OP_ADDREF, _OP_COPY] then
                 begin
-                  consume(_COLON);
-                  pd.returndef:=generrordef;
-                  consume_all_until(_SEMICOLON);
+                  { single var parameter to point the record }
+                  if (optoken in [_OP_INITIALIZE, _OP_FINALIZE, _OP_ADDREF]) and
+                     (
+                      (pd.parast.SymList.Count<>1) or
+                      (tparavarsym(pd.parast.SymList[0]).vardef<>pd.struct) or
+                      (tparavarsym(pd.parast.SymList[0]).varspez<>vs_var)
+                     ) then
+                    Message(parser_e_overload_impossible)
+                  { constref (source) and var (dest) parameter to point the records }
+                  else if (optoken=_OP_COPY) and
+                     (
+                      (pd.parast.SymList.Count<>2) or
+                      (tparavarsym(pd.parast.SymList[0]).vardef<>pd.struct) or
+                      (tparavarsym(pd.parast.SymList[0]).varspez<>vs_constref) or
+                      (tparavarsym(pd.parast.SymList[1]).vardef<>pd.struct) or
+                      (tparavarsym(pd.parast.SymList[1]).varspez<>vs_var)
+                     ) then
+                    Message(parser_e_overload_impossible);
+
+                  trecordsymtable(pd.procsym.Owner).includemanagementoperator(
+                    token2managementoperator(optoken));
+                  pd.returndef:=voidtype
                 end
               else
-               begin
-                 read_returndef(pd);
-                 { check that class operators have either return type of structure or }
-                 { at least one argument of that type                                 }
-                 if (po_classmethod in pd.procoptions) and
-                    (pd.returndef <> pd.struct) then
-                   begin
-                     found:=false;
-                     for i := 0 to pd.parast.SymList.Count - 1 do
-                       if tparavarsym(pd.parast.SymList[i]).vardef=pd.struct then
-                         begin
-                           found:=true;
-                           break;
-                         end;
-                     if not found then
-                       if assigned(pd.struct) then
-                         Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName)
-                       else
-                         MessagePos(pd.fileinfo,type_e_type_id_expected);
-                   end;
-                 if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
-                    equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
-                    (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
-                   message(parser_e_no_such_assignment)
-                 else if not isoperatoracceptable(pd,optoken) then
-                   Message(parser_e_overload_impossible);
-               end;
+                if not try_to_consume(_COLON) then
+                  begin
+                    consume(_COLON);
+                    pd.returndef:=generrordef;
+                    consume_all_until(_SEMICOLON);
+                  end
+                else
+                 begin
+                   read_returndef(pd);
+                   { check that class operators have either return type of structure or }
+                   { at least one argument of that type                                 }
+                   if (po_classmethod in pd.procoptions) and
+                      (pd.returndef <> pd.struct) then
+                     begin
+                       found:=false;
+                       for i := 0 to pd.parast.SymList.Count - 1 do
+                         if tparavarsym(pd.parast.SymList[i]).vardef=pd.struct then
+                           begin
+                             found:=true;
+                             break;
+                           end;
+                       if not found then
+                         if assigned(pd.struct) then
+                           Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName)
+                         else
+                           MessagePos(pd.fileinfo,type_e_type_id_expected);
+                     end;
+                   if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
+                      equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
+                      (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
+                     message(parser_e_no_such_assignment)
+                   else if not isoperatoracceptable(pd,optoken) then
+                     Message(parser_e_overload_impossible);
+                 end;
             end;
           else
             internalerror(2015052202);
