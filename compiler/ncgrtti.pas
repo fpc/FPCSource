@@ -1128,6 +1128,51 @@ implementation
         end;
 
         procedure recorddef_rtti(def:trecorddef);
+
+          procedure write_record_operators;
+          var
+            rttilab: Tasmsymbol;
+            rttidef: tdef;
+            tcb: ttai_typedconstbuilder;
+            mop: tmanagementoperator;
+            procdef: tprocdef;
+          begin
+            rttilab := current_asmdata.DefineAsmSymbol(
+                internaltypeprefixName[itp_init_record_operators]+def.rtti_mangledname(rt),
+                AB_GLOBAL,AT_DATA,def);
+            tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+
+            tcb.begin_anonymous_record(
+              rttilab.Name,
+              defaultpacking,reqalign,
+              targetinfos[target_info.system]^.alignment.recordalignmin,
+              targetinfos[target_info.system]^.alignment.maxCrecordalign
+            );
+
+            { use "succ" to omit first enum item "mop_none" }
+            for mop := succ(low(tmanagementoperator)) to high(tmanagementoperator) do
+            begin
+              if not (mop in trecordsymtable(def.symtable).managementoperators) then
+                tcb.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype)
+              else
+                begin
+                  procdef := search_management_operator(mop, def);
+                  if procdef = nil then
+                    internalerror(201603021)
+                  else
+                    tcb.emit_tai(Tai_const.Createname(procdef.mangledname,AT_FUNCTION,0),
+                      cprocvardef.getreusableprocaddr(procdef));
+                end;
+            end;
+
+            rttidef := tcb.end_anonymous_record;
+
+            current_asmdata.AsmLists[al_rtti].concatList(
+              tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,
+              sizeof(pint)));
+            tcb.free;
+          end;
+
         begin
            write_header(tcb,def,tkRecord);
            { need extra reqalign record, because otherwise the u32 int will
@@ -1148,8 +1193,22 @@ implementation
              tcb.emit_tai(Tai_const.Create_sym(get_rtti_label(def,initrtti,false)),voidpointertype);
 
            tcb.emit_ord_const(def.size,u32inttype);
+
+           { store rtti management operators only for init table }
+           if (rt=initrtti) then
+             if (trecordsymtable(def.symtable).managementoperators=[]) then
+               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
+             else
+               tcb.emit_tai(Tai_const.Createname(
+                 internaltypeprefixName[itp_init_record_operators]+def.rtti_mangledname(rt),
+                 AT_DATA_FORCEINDIRECT,0),voidpointertype);
+
            fields_write_rtti_data(tcb,def,rt);
            tcb.end_anonymous_record;
+
+           { write pointers to operators if needed }
+           if (rt=initrtti) and (trecordsymtable(def.symtable).managementoperators<>[]) then
+             write_record_operators;
         end;
 
 
@@ -1275,6 +1334,9 @@ implementation
                 internalerror(2017011801);
 
             tcb.emit_ord_const(def.size, u32inttype);
+            { pointer to management operators available only for initrtti }
+            if (rt=initrtti) then
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
             { enclosing record takes care of alignment }
             fields_write_rtti_data(tcb,def,rt);
           end;
