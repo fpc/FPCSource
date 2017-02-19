@@ -145,45 +145,16 @@
     function fpc_mul_qword(f1,f2 : qword) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
       assembler; nostackframe;
       asm
-        // (r3:r4) = (r3:r4) * (r5:r6),  checkoverflow is in r7
+        // (r3:r4) = (r3:r4) * (r5:r6)
         //   res        f1        f2
 
         or.     r10,r3,r5    // are both msw's 0?
         mulhwu  r8,r4,r6    // msw of product of lsw's
-        not     r0,r7       // if no overflowcheck, r0 := $ffffffff, else r0 := 0;
         beq     .LDone      // if both msw's are zero, skip cross products
         mullw   r9,r4,r5    // lsw of first cross-product
-        cntlzw  r11,r3      // count leading zeroes of msw1
-        cntlzw  r12,r5      // count leading zeroes of msw2
         mullw   r7,r3,r6    // lsw of second cross-product
-        add     r12,r11,r12  // sum of leading zeroes
-        mr      r10,r8
-        or      r0,r12,r0    // maximise sum if no overflow checking, otherwise it remains
         add     r8,r8,r9    // add
-        cmplwi  cr1,r0,64   // >= 64 leading zero bits in total? If so, no overflow
         add     r8,r8,r7    // add
-        bge+    cr1,.LDone  // if the sum of leading zero's >= 64 (or checkoverflow was 0)
-                            // there's no overflow, otherwise more thorough check
-        add     r7,r7,r9
-        mulhwu  r3,r6,r3
-        addc    r7,r7,r10   // add the msw of the product of the lsw's, record carry
-        cntlzw  r9,r5
-        cntlzw  r10,r4      // get leading zeroes count of lsw f1
-        mulhwu  r5,r4,r5
-        addze   r3,r3
-        subfic  r0,r11,31   // if msw f1 = 0, then r0 := -1, else r0 >= 0
-        cntlzw  r7,r6
-        subfic  r11,r9,31   // same for f2
-        srawi   r0,r0,31    // if msw f1 = 0, then r0 := 1, else r0 := 0
-        srawi   r11,r11,31
-        and     r10,r10,r0    // if msw f1 <> 0, the leading zero count lsw f1 := 0
-        and     r9,r7,r11     // same for f2
-        or.     r5,r5,r3
-        add     r9,r9,r10    // add leading zero counts of lsw's to sum if appropriate
-        add     r9,r9,r12
-        cmplwi  cr7,r9,64   // is the sum now >= 64?
-        cmplwi  cr1,r9,62   // or <= 62?
-
       .LDone:
         mullw   r4,r4,r6    // lsw of product of lsw's
         mr      r3,r8       // get msw of product in correct register
@@ -193,12 +164,11 @@
     function fpc_mul_qword_checkoverflow(f1,f2 : qword) : qword;[public,alias: 'FPC_MUL_QWORD_CHECKOVERFLOW']; compilerproc;
       assembler; nostackframe;
       asm
-        // (r3:r4) = (r3:r4) * (r5:r6),  checkoverflow is in r7
+        // (r3:r4) = (r3:r4) * (r5:r6)
         //   res        f1        f2
 
         or.     r10,r3,r5    // are both msw's 0?
         mulhwu  r8,r4,r6    // msw of product of lsw's
-        xor     r0,r0,r0    // r0 := 0 for overflow checking
         beq     .LDone      // if both msw's are zero, skip cross products
         mullw   r9,r4,r5    // lsw of first cross-product
         cntlzw  r11,r3      // count leading zeroes of msw1
@@ -206,9 +176,8 @@
         mullw   r7,r3,r6    // lsw of second cross-product
         add     r12,r11,r12  // sum of leading zeroes
         mr      r10,r8
-        or      r0,r12,r0    // maximise sum if no overflow checking, otherwise it remains
         add     r8,r8,r9    // add
-        cmplwi  cr1,r0,64   // >= 64 leading zero bits in total? If so, no overflow
+        cmplwi  cr1,r12,64   // >= 64 leading zero bits in total? If so, no overflow
         add     r8,r8,r7    // add
         bge+    cr1,.LDone  // if the sum of leading zero's >= 64 (or checkoverflow was 0)
                             // there's no overflow, otherwise more thorough check
