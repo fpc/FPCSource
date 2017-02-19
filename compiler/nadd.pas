@@ -2944,9 +2944,7 @@ implementation
               end;
 
             { otherwise, create the parameters for the helper }
-            right := ccallparanode.create(
-              cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,true),
-              ccallparanode.create(right,ccallparanode.create(left,nil)));
+            right :=   ccallparanode.create(right,ccallparanode.create(left,nil));
             left := nil;
             { only qword needs the unsigned code, the
               signed code is also used for currency }
@@ -2954,6 +2952,9 @@ implementation
               procname := 'fpc_mul_int64'
             else
               procname := 'fpc_mul_qword';
+            if cs_check_overflow in current_settings.localswitches then
+              procname := procname + '_checkoverflow';
+
             result := ccallnode.createintern(procname,right);
             right := nil;
           end;

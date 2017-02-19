@@ -602,8 +602,15 @@ function fpc_div_qword(n,z : qword) : qword; compilerproc;
 function fpc_mod_qword(n,z : qword) : qword; compilerproc;
 function fpc_div_int64(n,z : int64) : int64; compilerproc;
 function fpc_mod_int64(n,z : int64) : int64; compilerproc;
+{$ifdef VER3_0}
 function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword; compilerproc;
 function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64; compilerproc;
+{$else VER3_0}
+function fpc_mul_qword(f1,f2 : qword) : qword; compilerproc;
+function fpc_mul_qword_checkoverflow(f1,f2 : qword) : qword; compilerproc;
+function fpc_mul_int64(f1,f2 : int64) : int64; compilerproc;
+function fpc_mul_int64_checkoverflow(f1,f2 : int64) : int64; compilerproc;
+{$endif VER3_0}
 function fpc_mul_dword_to_qword(f1,f2 : dword) : qword; compilerproc;
 function fpc_mul_longint_to_int64(f1,f2 : longint) : int64; compilerproc;
 

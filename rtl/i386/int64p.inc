@@ -361,15 +361,10 @@
             movl saveedi,%edi
       end;
 
+{$ifndef VER3_0}
 {$define FPC_SYSTEM_HAS_MUL_QWORD}
-    { multiplies two qwords
-      the longbool for checkoverflow avoids a misaligned stack
-    }
-    function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
-      var
-        overflowed : boolean;
+    function fpc_mul_qword(f1,f2 : qword) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
       begin
-        overflowed:=false;
         { the following piece of code is taken from the
           AMD Athlon Processor x86 Code Optimization manual }
         asm
@@ -383,14 +378,35 @@
            mull %edx
            jmp .Lqwordmulready
         .Lqwordmultwomul:
-           cmpl $0,checkoverflow
-           jnz  .Loverflowchecked
            imul f1+4,%edx
            imul %eax,%ecx
            addl %edx,%ecx
            mull f2
            add %ecx,%edx
         .Lqwordmulready:
+           movl %eax,__RESULT
+           movl %edx,__RESULT+4
+        .Lend:
+        end [ 'eax','edx','ecx'];
+      end;
+
+	
+    function fpc_mul_qword_checkoverflow(f1,f2 : qword) : qword;[public,alias: 'FPC_MUL_QWORD_CHECKOVERFLOW']; compilerproc;
+      var
+        overflowed : boolean;
+      begin
+        overflowed:=false;
+        { the following piece of code is taken from the
+          AMD Athlon Processor x86 Code Optimization manual }
+        asm
+           movl f1+4,%edx
+           movl f2+4,%ecx
+           orl %ecx,%edx
+           movl f2,%edx
+           movl f1,%eax
+           jnz .Loverflowchecked
+           { if both upper dwords are =0 then it cannot overflow }
+           mull %edx
            movl %eax,__RESULT
            movl %edx,__RESULT+4
            jmp .Lend
@@ -431,4 +447,4 @@
         if overflowed then
           HandleErrorFrame(215,get_frame);
       end;
-
+{$endif VER3_0}
