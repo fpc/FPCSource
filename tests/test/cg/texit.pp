@@ -44,8 +44,10 @@ const
   RET_U16BIT = $5555;
   RET_S8BIT  = -80;
   RET_U8BIT = $AA;
+{$ifndef FPUNONE}
   RET_SINGLE = 57689.15;
   RET_DOUBLE = 100012.345;
+{$endif FPUNONE}
   PCHAR_STRING: pchar = 'HELLO STRING';
 
 type
@@ -93,7 +95,7 @@ var
      gets64bit := RET_S64BIT;
    end;
 
-
+{$ifndef FPUNONE}
    function gets32real : single;
     begin
      gets32real := RET_SINGLE;
@@ -104,6 +106,7 @@ var
     begin
      gets64real := RET_DOUBLE;
     end;
+{$endif FPUNONE}
 
    function getpchar: pchar;
     begin
@@ -248,7 +251,7 @@ function exit_loc_ref_ordinal_u8bit  : byte;
   end;
 
 
-
+{$ifndef FPUNONE}
 function exit_loc_ref_float_s32real : single;
  var
   s: single;
@@ -277,6 +280,7 @@ function exit_loc_reg_float_s64real : double;
  begin
    exit(gets64real);
  end;
+{$endif FPUNONE}
 
 
 function exit_loc_flags : boolean;
@@ -296,15 +300,14 @@ function exit_loc_jump : boolean;
   exit(b and c);
  end;
 
-
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
  function exit_loc_ansi(w: word) : ansistring;
   var d: ansistring;
  begin
    str(w,d);
    exit(d);
  end;
-
-
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 var
  failed : boolean;
@@ -373,6 +376,7 @@ Begin
  else
    writeln('Passed!');
 
+{$ifndef FPUNONE}
  write('    floating point return value...');
  failed := false;
  if (trunc(exit_loc_ref_float_s32real) <>  trunc(RET_SINGLE)) then
@@ -383,6 +387,7 @@ Begin
    fail
  else
    writeln('Passed!');
+{$endif FPUNONE}
 
  { procvardef is not tested since it is the same as pointer return value...}
  write('    pointer/procedure variable return value...');
@@ -420,6 +425,7 @@ Begin
  else
    writeln('Passed!');
 
+{$ifndef FPUNONE}
  write('    floating point return value...');
  failed := false;
  if (trunc(exit_loc_reg_float_s32real) <>  trunc(RET_SINGLE)) then
@@ -430,6 +436,7 @@ Begin
    fail
  else
    writeln('Passed!');
+{$endif FPUNONE}
 
  { procvardef is not tested since it is the same as pointer return value...}
  write('    pointer/procedure variable return value...');
@@ -465,6 +472,7 @@ Begin
  else
    writeln('Passed!');
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
  write('Testing secondexitn() ansistring case...');
  failed := false;
  if exit_loc_ansi(10) <> '10' then
@@ -473,5 +481,6 @@ Begin
    fail
  else
    writeln('Passed!');
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 end.
