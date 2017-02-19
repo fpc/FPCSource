@@ -1104,10 +1104,24 @@ begin
         siz:=S_W;
       if (ops=1) and (opcode=A_PUSH) then
         begin
-          {We are a 32 compiler, assume 32-bit by default. This is Delphi
-           compatible but bad coding practise.}
+{$ifdef i8086}
+          if (tx86operand(operands[1]).opr.val>=-128) and (tx86operand(operands[1]).opr.val<=127) then
+            begin
+              siz:=S_B;
+              message(asmr_w_unable_to_determine_constant_size_using_byte);
+            end
+          else
+            begin
+              siz:=S_W;
+              message(asmr_w_unable_to_determine_constant_size_using_word);
+            end;
+{$else i8086}
+          { We are a 32 compiler, assume 32-bit by default. This is Delphi
+            compatible but bad coding practise.}
+
           siz:=S_L;
           message(asmr_w_unable_to_determine_reference_size_using_dword);
+{$endif i8086}
         end;
       if (opcode=A_JMP) or (opcode=A_JCC) or (opcode=A_CALL) then
         if ops=1 then

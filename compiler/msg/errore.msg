@@ -2786,6 +2786,14 @@ asmr_e_const16bit_for_segment=07128_E_Not enough space (16 bits required) for th
 % less, for example, if you use 'DB SEG symbol' instead of 'DW SEG symbol'.
 asmr_e_invalid_code_value=07129_E_Invalid value of .code directive constant
 % The ARM assembler only allows the values 16 and 32 to be used as arguments to the .code directive
+asmr_w_unable_to_determine_constant_size_using_byte=07130_W_No size specified and unable to determine the size of the constant, using BYTE as default
+% You should specify explicitly a size for the reference, because
+% the compiler is unable to determine what size (byte, word, dword, etc.) it
+% should use for the constant. Based on its value, BYTE is used.
+asmr_w_unable_to_determine_constant_size_using_word=07131_W_No size specified and unable to determine the size of the constant, using WORD as default
+% You should specify explicitly a size for the reference, because
+% the compiler is unable to determine what size (byte, word, dword, etc.) it
+% should use for the constant. Based on its value, WORD is used.
 #
 # Assembler/binary writers
 #
