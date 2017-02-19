@@ -3000,9 +3000,9 @@ link_w_32bit_absolute_reloc=09201_W_Object file "$1" contains 32-bit absolute re
 % address space only.
 link_e_program_segment_too_large=09202_E_Program segment too large (exceeds 64k by $1 bytes)
 % Error when a 16-bit program is compiled in the tiny memory model, but its size exceeds 64k
-link_e_code_segment_too_large=09203_E_Code segment too large (exceeds 64k by $1 bytes)
+link_e_code_segment_too_large=09203_E_Code segment "$1" too large (exceeds 64k by $2 bytes)
 % Error when a 16-bit program's code segment exceeds 64k bytes
-link_e_data_segment_too_large=09204_E_Data segment too large (exceeds 64k by $1 bytes)
+link_e_data_segment_too_large=09204_E_Data segment "$1" too large (exceeds 64k by $2 bytes)
 % Error when a 16-bit program's data segment exceeds 64k bytes
 link_e_segment_too_large=09205_E_Segment "$1" too large (exceeds 64k by $2 bytes)
 % Error when a 16-bit program contains a segment that exceeds 64k bytes
