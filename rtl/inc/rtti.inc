@@ -450,6 +450,9 @@ begin
       with RTTIRecordOp(typeinfo, typeinfo)^ do
 {$endif FPC_HAS_MANAGEMENT_OPERATORS}
       begin
+{$ifndef FPC_HAS_MANAGEMENT_OPERATORS}
+        typeInfo:=RTTIRecordRttiInfoToInitInfo(typeInfo);
+{$endif FPC_HAS_MANAGEMENT_OPERATORS}
 {$ifdef VER3_0}
         Temp:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
 {$else VER3_0}
