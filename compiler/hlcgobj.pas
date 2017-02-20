@@ -4537,9 +4537,10 @@ implementation
     begin
       { initialize register variables }
       case current_procinfo.procdef.proctypeoption of
-         potype_unitinit:
-           TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
-         potype_proginit:
+         { global regvars are only initialised in unitinitialize, and only
+           finalized in unitfinalize }
+         potype_unitfinalize: ;
+         else
            TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
       end;
 

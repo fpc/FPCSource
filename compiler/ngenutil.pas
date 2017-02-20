@@ -420,15 +420,11 @@ implementation
              if assigned(current_module.globalsymtable) then
                TSymtable(current_module.globalsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
              TSymtable(current_module.localsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
-             TSymtable(current_module.localsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
            end;
          { units have seperate code for initilization and finalization }
          potype_unitfinalize: ;
          { program init/final is generated in separate procedure }
-         potype_proginit:
-           begin
-             TSymtable(current_module.localsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
-           end;
+         potype_proginit: ;
          else
            current_procinfo.procdef.localst.SymList.ForEachCall(@sym_maybe_initialize,@stat);
       end;
