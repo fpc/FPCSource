@@ -207,6 +207,9 @@ begin
     if CompilerTarget = mipsel then
       P.Options.Add('-Fu../compiler/mips');
 
+    { powerpc64-aix compiled IDE needs -CTsmalltoc option }
+    if (Defaults.OS=aix) and (Defaults.CPU=powerpc64) then
+     P.Options.Add('-CTsmalltoc');
     { Handle SPECIALLINK environment variable if available }
     s:=GetEnvironmentVariable('SPECIALLINK');
     if s<>'' then
