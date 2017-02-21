@@ -12709,6 +12709,7 @@ tests/test/tmcbool2.pp svneol=native#text/plain
 tests/test/tmmx1.pp svneol=native#text/plain
 tests/test/tmoperator1.pp svneol=native#text/pascal
 tests/test/tmoperator10.pp svneol=native#text/pascal
+tests/test/tmoperator11.pp svneol=native#text/pascal
 tests/test/tmoperator2.pp svneol=native#text/pascal
 tests/test/tmoperator3.pp svneol=native#text/pascal
 tests/test/tmoperator4.pp svneol=native#text/pascal
