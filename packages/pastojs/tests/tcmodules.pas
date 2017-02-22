@@ -156,12 +156,12 @@ type
     Procedure TestString_Compare;
     Procedure TestString_SetLength;
     Procedure TestString_CharAt;
-    // ToDo: TestString: read, write []
 
-    Procedure TestEmptyProc;
+    // alias types
     Procedure TestAliasTypeRef;
 
     // functions
+    Procedure TestEmptyProc;
     Procedure TestProcOneParam;
     Procedure TestFunctionWithoutParams;
     Procedure TestProcedureWithoutParams;
@@ -182,17 +182,18 @@ type
     Procedure TestProcedureExternal;
     Procedure TestProcedureAsm;
     Procedure TestProcedureAssembler;
+    Procedure TestProcedure_VarParam;
 
-    // ToDo: pass by reference
-
+    // enums, sets
     Procedure TestEnumName;
     Procedure TestEnumNumber;
     Procedure TestEnumFunctions;
     Procedure TestSet;
     Procedure TestSetOperators;
     Procedure TestSetFunctions;
-    // ToDo:  str
-    // ToDo: pass set as non const parameter using cloneSet
+    Procedure TestSet_PassAsArgClone;
+    Procedure TestEnum_AsParams;
+    Procedure TestSet_AsParams;
 
     // statements
     Procedure TestIncDec;
@@ -202,7 +203,6 @@ type
     Procedure TestBitwiseOperators;
     Procedure TestFunctionInt;
     Procedure TestFunctionString;
-    Procedure TestVarRecord;
     Procedure TestForLoop;
     Procedure TestForLoopInFunction;
     Procedure TestForLoop_ReadVarAfter;
@@ -216,12 +216,27 @@ type
     Procedure TestCaseOfNoElse;
     Procedure TestCaseOfNoElse_UseSwitch;
     Procedure TestCaseOfRange;
-    Procedure TestWithRecordDo;
 
     // arrays
     Procedure TestArray_Dynamic;
     Procedure TestArray_Dynamic_Nil;
     Procedure TestArray_DynMultiDimensional;
+    Procedure TestArrayOfRecord;
+    Procedure TestArray_AsParams;
+    Procedure TestArrayElement_AsParams;
+    Procedure TestArrayElementFromFuncResult_AsParams;
+    // ToDo: const array
+
+    // record
+    Procedure TestRecord_Var;
+    Procedure TestWithRecordDo;
+    Procedure TestRecord_Assign;
+    Procedure TestRecord_PassAsArgClone;
+    Procedure TestRecord_AsParams;
+    Procedure TestRecordElement_AsParams;
+    Procedure TestRecordElementFromFuncResult_AsParams;
+    Procedure TestRecordElementFromWith_AsParams;
+    // ToDo: const record
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
@@ -245,15 +260,32 @@ type
     Procedure TestClass_WithClassInstDoProperty;
     Procedure TestClass_WithClassInstDoPropertyWithParams;
     Procedure TestClass_WithClassInstDoFunc;
+    Procedure TestClass_TypeCast;
     // ToDo: overload
-    // ToDo: second constructor
-    // ToDo: call another constructor within a constructor
-    // ToDo: event
+    // ToDo: second constructor, requires overload
+    // ToDo: call another constructor within a constructor, requires overload
+    // ToDo: reintroduced var, requires overload
 
-    // ToDo: class of
-    // ToDo: call classof.classmethod
+    // class of
+    Procedure TestClassOf_Create;
+    Procedure TestClassOf_Call;
+    Procedure TestClassOf_Assign;
+    Procedure TestClassOf_Compare;
+    Procedure TestClassOf_ClassVar;
+    Procedure TestClassOf_ClassMethod;
+    Procedure TestClassOf_ClassProperty;
+    Procedure TestClassOf_ClassMethodSelf;
+    Procedure TestClassOf_TypeCast;
 
-    // ToDo: procedure type
+    Procedure TestProcType;
+    Procedure TestProcType_FunctionFPC;
+    Procedure TestProcType_FunctionDelphi;
+    Procedure TestProcType_AsParam;
+    Procedure TestProcType_MethodFPC;
+    Procedure TestProcType_MethodDelphi;
+    Procedure TestProcType_PropertyFPC;
+    Procedure TestProcType_PropertyDelphi;
+    Procedure TestProcType_WithClassInstDoPropertyFPC;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -634,8 +666,40 @@ var
   InitAssign: TJSSimpleAssignStatement;
   FunBody: TJSFunctionBody;
   InitName: String;
+  Row, Col: integer;
 begin
-  FJSModule:=FConverter.ConvertPasElement(Module,Engine) as TJSSourceElements;
+  try
+    FJSModule:=FConverter.ConvertPasElement(Module,Engine) as TJSSourceElements;
+  except
+    on E: EPasResolve do
+      begin
+      Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
+      WriteSource(E.PasElement.SourceFilename,Row,Col);
+      writeln('ERROR: TTestModule.ConvertModule PasResolver: '+E.ClassName+':'+E.Message
+        +' '+E.PasElement.SourceFilename
+        +'('+IntToStr(Row)+','+IntToStr(Col)+')');
+      raise E;
+      end;
+    on E: EPas2JS do
+      begin
+      if E.PasElement<>nil then
+        begin
+        Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
+        WriteSource(E.PasElement.SourceFilename,Row,Col);
+        writeln('ERROR: TTestModule.ConvertModule Converter: '+E.ClassName+':'+E.Message
+          +' '+E.PasElement.SourceFilename
+          +'('+IntToStr(Row)+','+IntToStr(Col)+')');
+        end
+      else
+        writeln('ERROR: TTestModule.ConvertModule Exception: '+E.ClassName+':'+E.Message);
+      raise E;
+      end;
+    on E: Exception do
+      begin
+      writeln('ERROR: TTestModule.ConvertModule Exception: '+E.ClassName+':'+E.Message);
+      raise E;
+      end;
+  end;
   FJSSource:=TStringList.Create;
   FJSSource.Text:=JSToStr(JSModule);
   {$IFDEF VerbosePas2JS}
@@ -977,7 +1041,7 @@ begin
     'this.s="";',
     'this.c="";',
     'this.b=false;',
-    'this.d=0;',
+    'this.d=0.0;',
     'this.i2=3;',
     'this.s2="foo";',
     'this.c2="4";',
@@ -1014,24 +1078,6 @@ begin
     '');
 end;
 
-procedure TTestModule.TestEmptyProc;
-begin
-  StartProgram(false);
-  Add('procedure Test;');
-  Add('begin');
-  Add('end;');
-  Add('begin');
-  ConvertProgram;
-  CheckSource('TestEmptyProc',
-    LinesToStr([ // statements
-    'this.Test = function () {',
-    '};'
-    ]),
-    LinesToStr([ // this.$main
-    ''
-    ]));
-end;
-
 procedure TTestModule.TestAliasTypeRef;
 begin
   StartProgram(false);
@@ -1047,6 +1093,24 @@ begin
     LinesToStr([ // statements
     'this.c = 0;',
     'this.d = 0;'
+    ]),
+    LinesToStr([ // this.$main
+    ''
+    ]));
+end;
+
+procedure TTestModule.TestEmptyProc;
+begin
+  StartProgram(false);
+  Add('procedure Test;');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestEmptyProc',
+    LinesToStr([ // statements
+    'this.Test = function () {',
+    '};'
     ]),
     LinesToStr([ // this.$main
     ''
@@ -1675,6 +1739,73 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestProcedure_VarParam;
+begin
+  StartProgram(false);
+  Add('type integer = longint;');
+  Add('procedure DoIt(vG: integer; const vH: integer; var vI: integer);');
+  Add('var vJ: integer;');
+  Add('begin');
+  Add('  vg:=vg+1;');
+  Add('  vj:=vh+2;');
+  Add('  vi:=vi+3;');
+  Add('  doit(vg,vg,vg);');
+  Add('  doit(vh,vh,vj);');
+  Add('  doit(vi,vi,vi);');
+  Add('  doit(vj,vj,vj);');
+  Add('end;');
+  Add('var i: integer;');
+  Add('begin');
+  Add('  doit(i,i,i);');
+  ConvertProgram;
+  CheckSource('TestProcedure_VarParam',
+    LinesToStr([ // statements
+    'this.DoIt = function (vG,vH,vI) {',
+    '  var vJ = 0;',
+    '  vG = vG + 1;',
+    '  vJ = vH + 2;',
+    '  vI.set(vI.get()+3);',
+    '  this.DoIt(vG, vG, {',
+    '    get: function () {',
+    '      return vG;',
+    '    },',
+    '    set: function (v) {',
+    '      vG = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(vH, vH, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(vI.get(), vI.get(), vI);',
+    '  this.DoIt(vJ, vJ, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '};',
+    'this.i = 0;'
+    ]),
+    LinesToStr([
+    'this.DoIt(this.i,this.i,{',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});'
+    ]));
+end;
+
 procedure TTestModule.TestEnumName;
 begin
   StartProgram(false);
@@ -1969,6 +2100,187 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestSet_PassAsArgClone;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TMyEnum = (Red, Green);');
+  Add('  TMyEnums = set of TMyEnum;');
+  Add('procedure DoDefault(s: tmyenums); begin end;');
+  Add('procedure DoConst(const s: tmyenums); begin end;');
+  Add('var');
+  Add('  aSet: tmyenums;');
+  Add('begin');
+  Add('  dodefault(aset);');
+  Add('  doconst(aset);');
+  ConvertProgram;
+  CheckSource('TestSetFunctions',
+    LinesToStr([ // statements
+    'this.TMyEnum = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1',
+    '  };',
+    'this.DoDefault = function (s) {',
+    '};',
+    'this.DoConst = function (s) {',
+    '};',
+    'this.aSet = {};'
+    ]),
+    LinesToStr([
+    'this.DoDefault(rtl.cloneSet(this.aSet));',
+    'this.DoConst(this.aSet);',
+    '']));
+end;
+
+procedure TTestModule.TestEnum_AsParams;
+begin
+  StartProgram(false);
+  Add('type TEnum = (Red,Blue);');
+  Add('procedure DoIt(vG: TEnum; const vH: TEnum; var vI: TEnum);');
+  Add('var vJ: TEnum;');
+  Add('begin');
+  Add('  vg:=vg;');
+  Add('  vj:=vh;');
+  Add('  vi:=vi;');
+  Add('  doit(vg,vg,vg);');
+  Add('  doit(vh,vh,vj);');
+  Add('  doit(vi,vi,vi);');
+  Add('  doit(vj,vj,vj);');
+  Add('end;');
+  Add('var i: TEnum;');
+  Add('begin');
+  Add('  doit(i,i,i);');
+  ConvertProgram;
+  CheckSource('TestEnum_AsParams',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "Red",',
+    '  Red: 0,',
+    '  "1": "Blue",',
+    '  Blue: 1',
+    '};',
+    'this.DoIt = function (vG,vH,vI) {',
+    '  var vJ = 0;',
+    '  vG = vG;',
+    '  vJ = vH;',
+    '  vI.set(vI.get());',
+    '  this.DoIt(vG, vG, {',
+    '    get: function () {',
+    '      return vG;',
+    '    },',
+    '    set: function (v) {',
+    '      vG = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(vH, vH, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(vI.get(), vI.get(), vI);',
+    '  this.DoIt(vJ, vJ, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '};',
+    'this.i = 0;'
+    ]),
+    LinesToStr([
+    'this.DoIt(this.i,this.i,{',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});'
+    ]));
+end;
+
+procedure TTestModule.TestSet_AsParams;
+begin
+  StartProgram(false);
+  Add('type TEnum = (Red,Blue);');
+  Add('type TEnums = set of TEnum;');
+  Add('procedure DoIt(vG: TEnums; const vH: TEnums; var vI: TEnums);');
+  Add('var vJ: TEnums;');
+  Add('begin');
+  Add('  vg:=vg;');
+  Add('  vj:=vh;');
+  Add('  vi:=vi;');
+  Add('  doit(vg,vg,vg);');
+  Add('  doit(vh,vh,vj);');
+  Add('  doit(vi,vi,vi);');
+  Add('  doit(vj,vj,vj);');
+  Add('end;');
+  Add('var i: TEnums;');
+  Add('begin');
+  Add('  doit(i,i,i);');
+  ConvertProgram;
+  CheckSource('TestSet_AsParams',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "Red",',
+    '  Red: 0,',
+    '  "1": "Blue",',
+    '  Blue: 1',
+    '};',
+    'this.DoIt = function (vG,vH,vI) {',
+    '  var vJ = {};',
+    '  vG = rtl.cloneSet(vG);',
+    '  vJ = rtl.cloneSet(vH);',
+    '  vI.set(rtl.cloneSet(vI.get()));',
+    '  this.DoIt(rtl.cloneSet(vG), vG, {',
+    '    get: function () {',
+    '      return vG;',
+    '    },',
+    '    set: function (v) {',
+    '      vG = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(rtl.cloneSet(vH), vH, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(rtl.cloneSet(vI.get()), vI.get(), vI);',
+    '  this.DoIt(rtl.cloneSet(vJ), vJ, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '};',
+    'this.i = {};'
+    ]),
+    LinesToStr([
+    'this.DoIt(rtl.cloneSet(this.i),this.i,{',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});'
+    ]));
+end;
+
 procedure TTestModule.TestUnitImplVars;
 begin
   StartUnit(false);
@@ -2031,8 +2343,12 @@ begin
     'var $impl = {',
     '};',
     'this.$impl = $impl;',
-    '$impl.TMyRecord = function () {',
-    '  this.i = 0;',
+    '$impl.TMyRecord = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
     '};',
     '$impl.aRec = new $impl.TMyRecord();'
     ]),
@@ -2355,29 +2671,6 @@ begin
     ]),
     LinesToStr([ // this.$main
     ''
-    ]));
-end;
-
-procedure TTestModule.TestVarRecord;
-begin
-  StartProgram(false);
-  Add('type');
-  Add('  TRecA = record');
-  Add('    Bold: longint;');
-  Add('  end;');
-  Add('var Rec: TRecA;');
-  Add('begin');
-  Add('  rec.bold:=123');
-  ConvertProgram;
-  CheckSource('TestVarRecord',
-    LinesToStr([ // statements
-    'this.TRecA = function () {',
-    '  this.Bold = 0;',
-    '};',
-    'this.Rec = new this.TRecA();'
-    ]),
-    LinesToStr([ // this.$main
-    'this.Rec.Bold = 123;'
     ]));
 end;
 
@@ -2793,6 +3086,362 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestArray_Dynamic;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrayInt = array of longint;');
+  Add('var');
+  Add('  Arr: TArrayInt;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  SetLength(arr,3);');
+  Add('  arr[0]:=4;');
+  Add('  arr[1]:=length(arr)+arr[0];');
+  Add('  arr[i]:=5;');
+  Add('  arr[arr[i]]:=arr[6];');
+  Add('  i:=low(arr);');
+  Add('  i:=high(arr);');
+  ConvertProgram;
+  CheckSource('TestArray_Dynamic',
+    LinesToStr([ // statements
+    'this.Arr = [];',
+    'this.i = 0;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.Arr = rtl.setArrayLength(this.Arr,3,0);',
+    'this.Arr[0] = 4;',
+    'this.Arr[1] = rtl.length(this.Arr)+this.Arr[0];',
+    'this.Arr[this.i] = 5;',
+    'this.Arr[this.Arr[this.i]] = this.Arr[6];',
+    'this.i = 0;',
+    'this.i = rtl.length(this.Arr);',
+    '']));
+end;
+
+procedure TTestModule.TestArray_Dynamic_Nil;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrayInt = array of longint;');
+  Add('var');
+  Add('  Arr: TArrayInt;');
+  Add('begin');
+  Add('  arr:=nil;');
+  Add('  if arr=nil then;');
+  Add('  if nil=arr then;');
+  ConvertProgram;
+  CheckSource('TestArray_Dynamic',
+    LinesToStr([ // statements
+    'this.Arr = [];'
+    ]),
+    LinesToStr([ // this.$main
+    'this.Arr = null;',
+    'if (this.Arr == null) {};',
+    'if (null == this.Arr) {};'
+    ]));
+end;
+
+procedure TTestModule.TestArray_DynMultiDimensional;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrayInt = array of longint;');
+  Add('  TArrayArrayInt = array of TArrayInt;');
+  Add('var');
+  Add('  Arr: TArrayInt;');
+  Add('  Arr2: TArrayArrayInt;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  arr2:=nil;');
+  Add('  if arr2=nil then;');
+  Add('  if nil=arr2 then;');
+  Add('  i:=low(arr2);');
+  Add('  i:=low(arr2[1]);');
+  Add('  i:=high(arr2);');
+  Add('  i:=high(arr2[2]);');
+  Add('  arr2[3]:=arr;');
+  Add('  arr2[4][5]:=i;');
+  Add('  i:=arr2[6][7];');
+  Add('  arr2[8,9]:=i;');
+  Add('  i:=arr2[10,11];');
+  Add('  SetLength(arr2,14);');
+  Add('  SetLength(arr2[15],16);');
+  ConvertProgram;
+  CheckSource('TestArray_Dynamic',
+    LinesToStr([ // statements
+    'this.Arr = [];',
+    'this.Arr2 = [];',
+    'this.i = 0;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.Arr2 = null;',
+    'if (this.Arr2 == null) {};',
+    'if (null == this.Arr2) {};',
+    'this.i = 0;',
+    'this.i = 0;',
+    'this.i = rtl.length(this.Arr2);',
+    'this.i = rtl.length(this.Arr2[2]);',
+    'this.Arr2[3] = this.Arr;',
+    'this.Arr2[4][5] = this.i;',
+    'this.i = this.Arr2[6][7];',
+    'this.Arr2[8][9] = this.i;',
+    'this.i = this.Arr2[10][11];',
+    'this.Arr2 = rtl.setArrayLength(this.Arr2, 14, []);',
+    'this.Arr2[15] = rtl.setArrayLength(this.Arr2[15], 16, 0);',
+    '']));
+end;
+
+procedure TTestModule.TestArrayOfRecord;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TRec = record');
+  Add('    Int: longint;');
+  Add('  end;');
+  Add('  TArrayRec = array of TRec;');
+  Add('var');
+  Add('  Arr: TArrayRec;');
+  Add('  r: TRec;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  SetLength(arr,3);');
+  Add('  arr[0].int:=4;');
+  Add('  arr[1].int:=length(arr)+arr[2].int;');
+  Add('  arr[arr[i].int].int:=arr[5].int;');
+  Add('  arr[7]:=r;');
+  Add('  r:=arr[8];');
+  Add('  i:=low(arr);');
+  Add('  i:=high(arr);');
+  ConvertProgram;
+  CheckSource('TestArrayOfRecord',
+    LinesToStr([ // statements
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.Int = s.Int;',
+    '  } else {',
+    '    this.Int = 0;',
+    '  };',
+    '};',
+    'this.Arr = [];',
+    'this.r = new this.TRec();',
+    'this.i = 0;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.Arr = rtl.setArrayLength(this.Arr,3, this.TRec);',
+    'this.Arr[0].Int = 4;',
+    'this.Arr[1].Int = rtl.length(this.Arr)+this.Arr[2].Int;',
+    'this.Arr[this.Arr[this.i].Int].Int = this.Arr[5].Int;',
+    'this.Arr[7] = new this.TRec(this.r);',
+    'this.r = new this.TRec(this.Arr[8]);',
+    'this.i = 0;',
+    'this.i = rtl.length(this.Arr);',
+    '']));
+end;
+
+procedure TTestModule.TestArray_AsParams;
+begin
+  StartProgram(false);
+  Add('type integer = longint;');
+  Add('type TArrInt = array of integer;');
+  Add('procedure DoIt(vG: TArrInt; const vH: TArrInt; var vI: TArrInt);');
+  Add('var vJ: TArrInt;');
+  Add('begin');
+  Add('  vg:=vg;');
+  Add('  vj:=vh;');
+  Add('  vi:=vi;');
+  Add('  doit(vg,vg,vg);');
+  Add('  doit(vh,vh,vj);');
+  Add('  doit(vi,vi,vi);');
+  Add('  doit(vj,vj,vj);');
+  Add('end;');
+  Add('var i: TArrInt;');
+  Add('begin');
+  Add('  doit(i,i,i);');
+  ConvertProgram;
+  CheckSource('TestArray_AsParams',
+    LinesToStr([ // statements
+    'this.DoIt = function (vG,vH,vI) {',
+    '  var vJ = [];',
+    '  vG = vG;',
+    '  vJ = vH;',
+    '  vI.set(vI.get());',
+    '  this.DoIt(vG, vG, {',
+    '    get: function () {',
+    '      return vG;',
+    '    },',
+    '    set: function (v) {',
+    '      vG = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(vH, vH, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(vI.get(), vI.get(), vI);',
+    '  this.DoIt(vJ, vJ, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '};',
+    'this.i = [];'
+    ]),
+    LinesToStr([
+    'this.DoIt(this.i,this.i,{',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});'
+    ]));
+end;
+
+procedure TTestModule.TestArrayElement_AsParams;
+begin
+  StartProgram(false);
+  Add('type integer = longint;');
+  Add('type TArrayInt = array of integer;');
+  Add('procedure DoIt(vG: Integer; const vH: Integer; var vI: Integer);');
+  Add('var vJ: tarrayint;');
+  Add('begin');
+  Add('  vi:=vi;');
+  Add('  doit(vi,vi,vi);');
+  Add('  doit(vj[1+1],vj[1+2],vj[1+3]);');
+  Add('end;');
+  Add('var a: TArrayInt;');
+  Add('begin');
+  Add('  doit(a[1+4],a[1+5],a[1+6]);');
+  ConvertProgram;
+  CheckSource('TestArrayElement_AsParams',
+    LinesToStr([ // statements
+    'this.DoIt = function (vG,vH,vI) {',
+    '  var vJ = [];',
+    '  vI.set(vI.get());',
+    '  this.DoIt(vI.get(), vI.get(), vI);',
+    '  this.DoIt(vJ[1+1], vJ[1+2], {',
+    '    a:1+3,',
+    '    p:vJ,',
+    '    get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '    set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '  });',
+    '};',
+    'this.a = [];'
+    ]),
+    LinesToStr([
+    'this.DoIt(this.a[1+4],this.a[1+5],{',
+    '  a: 1+6,',
+    '  p: this.a,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '});'
+    ]));
+end;
+
+procedure TTestModule.TestArrayElementFromFuncResult_AsParams;
+begin
+  StartProgram(false);
+  Add('type Integer = longint;');
+  Add('type TArrayInt = array of integer;');
+  Add('function GetArr(vB: integer = 0): tarrayint;');
+  Add('begin');
+  Add('end;');
+  Add('procedure DoIt(vG: integer; const vH: integer; var vI: integer);');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  Add('  doit(getarr[1+1],getarr[1+2],getarr[1+3]);');
+  Add('  doit(getarr()[2+1],getarr()[2+2],getarr()[2+3]);');
+  Add('  doit(getarr(7)[3+1],getarr(8)[3+2],getarr(9)[3+3]);');
+  ConvertProgram;
+  CheckSource('TestArrayElementFromFuncResult_AsParams',
+    LinesToStr([ // statements
+    'this.GetArr = function (vB) {',
+    '  var Result = [];',
+    '  return Result;',
+    '};',
+    'this.DoIt = function (vG,vH,vI) {',
+    '};'
+    ]),
+    LinesToStr([
+    'this.DoIt(this.GetArr(0)[1+1],this.GetArr(0)[1+2],{',
+    '  a: 1+3,',
+    '  p: this.GetArr(0),',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '});',
+    'this.DoIt(this.GetArr(0)[2+1],this.GetArr(0)[2+2],{',
+    '  a: 2+3,',
+    '  p: this.GetArr(0),',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '});',
+    'this.DoIt(this.GetArr(7)[3+1],this.GetArr(8)[3+2],{',
+    '  a: 3+3,',
+    '  p: this.GetArr(9),',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '});',
+    '']));
+end;
+
+procedure TTestModule.TestRecord_Var;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TRecA = record');
+  Add('    Bold: longint;');
+  Add('  end;');
+  Add('var Rec: TRecA;');
+  Add('begin');
+  Add('  rec.bold:=123');
+  ConvertProgram;
+  CheckSource('TestRecord_Var',
+    LinesToStr([ // statements
+    'this.TRecA = function (s) {',
+    '  if (s) {',
+    '    this.Bold = s.Bold;',
+    '  } else {',
+    '    this.Bold = 0;',
+    '  };',
+    '};',
+    'this.Rec = new this.TRecA();'
+    ]),
+    LinesToStr([ // this.$main
+    'this.Rec.Bold = 123;'
+    ]));
+end;
+
 procedure TTestModule.TestWithRecordDo;
 begin
   StartProgram(false);
@@ -2813,8 +3462,12 @@ begin
   ConvertProgram;
   CheckSource('TestWithRecordDo',
     LinesToStr([ // statements
-    'this.TRec = function () {',
-    '  this.vI = 0;',
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.vI = s.vI;',
+    '  } else {',
+    '    this.vI = 0;',
+    '  };',
     '};',
     'this.Int = 0;',
     'this.r = new this.TRec();'
@@ -2826,6 +3479,340 @@ begin
     'this.Int = $with2.vI;',
     '$with2.vI = this.Int;'
     ]));
+end;
+
+procedure TTestModule.TestRecord_Assign;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TEnum = (red,green);');
+  Add('  TEnums = set of TEnum;');
+  Add('  TSmallRec = record');
+  Add('    N: longint;');
+  Add('  end;');
+  Add('  TBigRec = record');
+  Add('    Int: longint;');
+  Add('    D: double;');
+  Add('    Arr: array of longint;');
+  Add('    Small: TSmallRec;');
+  Add('    Enums: TEnums;');
+  Add('  end;');
+  Add('var');
+  Add('  r, s: TBigRec;');
+  Add('begin');
+  Add('  r:=s;');
+  ConvertProgram;
+  CheckSource('TestRecord_Assign',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "green",',
+    '  green: 1',
+    '};',
+    'this.TSmallRec = function (s) {',
+    '  if(s){',
+    '    this.N = s.N;',
+    '  } else {',
+    '    this.N = 0;',
+    '  };',
+    '};',
+    'this.TBigRec = function (s) {',
+    '  if(s){',
+    '    this.Int = s.Int;',
+    '    this.D = s.D;',
+    '    this.Arr = s.Arr;',
+    '    this.Small = new pas.program.TSmallRec(s.Small);',
+    '    this.Enums = rtl.cloneSet(s.Enums);',
+    '  } else {',
+    '    this.Int = 0;',
+    '    this.D = 0.0;',
+    '    this.Arr = [];',
+    '    this.Small = new pas.program.TSmallRec();',
+    '    this.Enums = {};',
+    '  };',
+    '};',
+    'this.r = new this.TBigRec();',
+    'this.s = new this.TBigRec();'
+    ]),
+    LinesToStr([ // this.$main
+    'this.r = new this.TBigRec(this.s);',
+    '']));
+end;
+
+procedure TTestModule.TestRecord_PassAsArgClone;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TRecA = record');
+  Add('    Bold: longint;');
+  Add('  end;');
+  Add('procedure DoDefault(r: treca); begin end;');
+  Add('procedure DoConst(const r: treca); begin end;');
+  Add('var Rec: treca;');
+  Add('begin');
+  Add('  dodefault(rec);');
+  Add('  doconst(rec);');
+  ConvertProgram;
+  CheckSource('TestRecord_PassAsArgClone',
+    LinesToStr([ // statements
+    'this.TRecA = function (s) {',
+    '  if (s) {',
+    '    this.Bold = s.Bold;',
+    '  } else {',
+    '    this.Bold = 0;',
+    '  };',
+    '};',
+    'this.DoDefault = function (r) {',
+    '};',
+    'this.DoConst = function (r) {',
+    '};',
+    'this.Rec = new this.TRecA();'
+    ]),
+    LinesToStr([ // this.$main
+    'this.DoDefault(new this.TRecA(this.Rec));',
+    'this.DoConst(this.Rec);',
+    '']));
+end;
+
+procedure TTestModule.TestRecord_AsParams;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TRecord = record');
+  Add('    i: integer;');
+  Add('  end;');
+  Add('procedure DoIt(vG: TRecord; const vH: TRecord; var vI: TRecord);');
+  Add('var vJ: TRecord;');
+  Add('begin');
+  Add('  vg:=vg;');
+  Add('  vj:=vh;');
+  Add('  vi:=vi;');
+  Add('  doit(vg,vg,vg);');
+  Add('  doit(vh,vh,vj);');
+  Add('  doit(vi,vi,vi);');
+  Add('  doit(vj,vj,vj);');
+  Add('end;');
+  Add('var i: TRecord;');
+  Add('begin');
+  Add('  doit(i,i,i);');
+  ConvertProgram;
+  CheckSource('TestRecord_AsParams',
+    LinesToStr([ // statements
+    'this.TRecord = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '};',
+    'this.DoIt = function (vG,vH,vI) {',
+    '  var vJ = new this.TRecord();',
+    '  vG = new this.TRecord(vG);',
+    '  vJ = new this.TRecord(vH);',
+    '  vI.set(new this.TRecord(vI.get()));',
+    '  this.DoIt(new this.TRecord(vG), vG, {',
+    '    get: function () {',
+    '      return vG;',
+    '    },',
+    '    set: function (v) {',
+    '      vG = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(new this.TRecord(vH), vH, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(new this.TRecord(vI.get()), vI.get(), vI);',
+    '  this.DoIt(new this.TRecord(vJ), vJ, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '};',
+    'this.i = new this.TRecord();'
+    ]),
+    LinesToStr([
+    'this.DoIt(new this.TRecord(this.i),this.i,{',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});'
+    ]));
+end;
+
+procedure TTestModule.TestRecordElement_AsParams;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TRecord = record');
+  Add('    i: integer;');
+  Add('  end;');
+  Add('procedure DoIt(vG: integer; const vH: integer; var vI: integer);');
+  Add('var vJ: TRecord;');
+  Add('begin');
+  Add('  doit(vj.i,vj.i,vj.i);');
+  Add('end;');
+  Add('var r: TRecord;');
+  Add('begin');
+  Add('  doit(r.i,r.i,r.i);');
+  ConvertProgram;
+  CheckSource('TestRecordElement_AsParams',
+    LinesToStr([ // statements
+    'this.TRecord = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '};',
+    'this.DoIt = function (vG,vH,vI) {',
+    '  var vJ = new this.TRecord();',
+    '  this.DoIt(vJ.i, vJ.i, {',
+    '    p: vJ,',
+    '    get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '    set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '  });',
+    '};',
+    'this.r = new this.TRecord();'
+    ]),
+    LinesToStr([
+    'this.DoIt(this.r.i,this.r.i,{',
+    '  p: this.r,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});'
+    ]));
+end;
+
+procedure TTestModule.TestRecordElementFromFuncResult_AsParams;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TRecord = record');
+  Add('    i: integer;');
+  Add('  end;');
+  Add('function GetRec(vB: integer = 0): TRecord;');
+  Add('begin');
+  Add('end;');
+  Add('procedure DoIt(vG: integer; const vH: integer; var vI: integer);');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  Add('  doit(getrec.i,getrec.i,getrec.i);');
+  Add('  doit(getrec().i,getrec().i,getrec().i);');
+  Add('  doit(getrec(1).i,getrec(2).i,getrec(3).i);');
+  ConvertProgram;
+  CheckSource('TestRecordElementFromFuncResult_AsParams',
+    LinesToStr([ // statements
+    'this.TRecord = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '};',
+    'this.GetRec = function (vB) {',
+    '  var Result = new this.TRecord();',
+    '  return Result;',
+    '};',
+    'this.DoIt = function (vG,vH,vI) {',
+    '};'
+    ]),
+    LinesToStr([
+    'this.DoIt(this.GetRec(0).i,this.GetRec(0).i,{',
+    '  p: this.GetRec(0),',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});',
+    'this.DoIt(this.GetRec(0).i,this.GetRec(0).i,{',
+    '  p: this.GetRec(0),',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});',
+    'this.DoIt(this.GetRec(1).i,this.GetRec(2).i,{',
+    '  p: this.GetRec(3),',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});',
+    '']));
+end;
+
+procedure TTestModule.TestRecordElementFromWith_AsParams;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TRecord = record');
+  Add('    i: integer;');
+  Add('  end;');
+  Add('procedure DoIt(vG: integer; const vH: integer; var vI: integer);');
+  Add('begin');
+  Add('end;');
+  Add('var r: trecord;');
+  Add('begin');
+  Add('  with r do ');
+  Add('    doit(i,i,i);');
+  ConvertProgram;
+  CheckSource('TestRecordElementFromWith_AsParams',
+    LinesToStr([ // statements
+    'this.TRecord = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '};',
+    'this.DoIt = function (vG,vH,vI) {',
+    '};',
+    'this.r = new this.TRecord();'
+    ]),
+    LinesToStr([
+    'var $with1 = this.r;',
+    'this.DoIt($with1.i,$with1.i,{',
+    '  p: $with1,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});',
+    '']));
 end;
 
 procedure TTestModule.TestClass_TObjectDefaultConstructor;
@@ -4047,109 +5034,1244 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestArray_Dynamic;
+procedure TTestModule.TestClass_TypeCast;
 begin
   StartProgram(false);
   Add('type');
-  Add('  TArrayInt = array of longint;');
+  Add('  TObject = class');
+  Add('    Next: TObject;');
+  Add('    constructor Create;');
+  Add('  end;');
+  Add('  TControl = class(TObject)');
+  Add('    Arr: array of TObject;');
+  Add('    function GetIt(vI: longint = 0): TObject;');
+  Add('  end;');
+  Add('constructor tobject.create; begin end;');
+  Add('function tcontrol.getit(vi: longint = 0): tobject; begin end;');
   Add('var');
-  Add('  Arr: TArrayInt;');
-  Add('  i: longint;');
+  Add('  Obj: tobject;');
   Add('begin');
-  Add('  SetLength(arr,3);');
-  Add('  arr[0]:=4;');
-  Add('  arr[1]:=length(arr)+arr[0];');
-  Add('  arr[i]:=5;');
-  Add('  arr[arr[i]]:=arr[6];');
-  Add('  i:=low(arr);');
-  Add('  i:=high(arr);');
+  Add('  obj:=tcontrol(obj).next;');
+  Add('  tcontrol(obj):=nil;');
+  Add('  obj:=tcontrol(obj);');
+  Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit);');
+  Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit());');
+  Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit(1));');
+  Add('  tcontrol(obj):=tcontrol(tcontrol(tcontrol(obj).getit).arr[2]);');
   ConvertProgram;
-  CheckSource('TestArray_Dynamic',
+  CheckSource('TestClass_TypeCast',
     LinesToStr([ // statements
-    'this.Arr = [];',
-    'this.i = 0;'
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.Next = null;',
+    '  };',
+    '  this.Create = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TControl", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TObject.$init.call(this);',
+    '    this.Arr = [];',
+    '  };',
+    '  this.GetIt = function (vI) {',
+    '    var Result = null;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.Obj = null;'
     ]),
     LinesToStr([ // this.$main
-    'this.Arr = rtl.setArrayLength(this.Arr,3,0);',
-    'this.Arr[0] = 4;',
-    'this.Arr[1] = rtl.length(this.Arr)+this.Arr[0];',
-    'this.Arr[this.i] = 5;',
-    'this.Arr[this.Arr[this.i]] = this.Arr[6];',
-    'this.i = 0;',
-    'this.i = rtl.length(this.Arr);',
+    'this.Obj = this.Obj.Next;',
+    'this.Obj = null;',
+    'this.Obj = this.Obj;',
+    'this.Obj = this.Obj.GetIt(0);',
+    'this.Obj = this.Obj.GetIt(0);',
+    'this.Obj = this.Obj.GetIt(1);',
+    'this.Obj = this.Obj.GetIt(0).Arr[2];',
     '']));
 end;
 
-procedure TTestModule.TestArray_Dynamic_Nil;
+procedure TTestModule.TestClassOf_Create;
 begin
   StartProgram(false);
   Add('type');
-  Add('  TArrayInt = array of longint;');
+  Add('  TObject = class');
+  Add('    constructor Create;');
+  Add('  end;');
+  Add('  TClass = class of TObject;');
+  Add('constructor tobject.create; begin end;');
   Add('var');
-  Add('  Arr: TArrayInt;');
+  Add('  Obj: tobject;');
+  Add('  C: tclass;');
   Add('begin');
-  Add('  arr:=nil;');
-  Add('  if arr=nil then;');
-  Add('  if nil=arr then;');
+  Add('  obj:=C.create;');
+  Add('  with c do obj:=create;');
   ConvertProgram;
-  CheckSource('TestArray_Dynamic',
+  CheckSource('TestClassOf_Create',
     LinesToStr([ // statements
-    'this.Arr = [];'
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.C = null;'
     ]),
     LinesToStr([ // this.$main
-    'this.Arr = null;',
-    'if (this.Arr == null) {};',
-    'if (null == this.Arr) {};'
+    'this.Obj = this.C.$create("Create");',
+    'var $with1 = this.C;',
+    'this.Obj = $with1.$create("Create");',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_Call;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class procedure DoIt;');
+  Add('  end;');
+  Add('  TClass = class of TObject;');
+  Add('class procedure tobject.doit; begin end;');
+  Add('var');
+  Add('  C: tclass;');
+  Add('begin');
+  Add('  c.doit;');
+  Add('  with c do doit;');
+  ConvertProgram;
+  CheckSource('TestClassOf_Call',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '  };',
+    '});',
+    'this.C = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.C.DoIt();',
+    'var $with1 = this.C;',
+    '$with1.DoIt();',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_Assign;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TClass = class of TObject;');
+  Add('  TObject = class');
+  Add('    ClassType: TClass; ');
+  Add('  end;');
+  Add('var');
+  Add('  Obj: tobject;');
+  Add('  C: tclass;');
+  Add('begin');
+  Add('  c:=nil;');
+  Add('  c:=obj.classtype;');
+  ConvertProgram;
+  CheckSource('TestClassOf_Assign',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.ClassType = null;',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.C = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.C = null;',
+    'this.C = this.Obj.ClassType;',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_Compare;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TClass = class of TObject;');
+  Add('  TObject = class');
+  Add('    ClassType: TClass; ');
+  Add('  end;');
+  Add('var');
+  Add('  b: boolean;');
+  Add('  Obj: tobject;');
+  Add('  C: tclass;');
+  Add('begin');
+  Add('  b:=c=nil;');
+  Add('  b:=nil=c;');
+  Add('  b:=c=obj.classtype;');
+  Add('  b:=obj.classtype=c;');
+  Add('  b:=c=TObject;');
+  Add('  b:=TObject=c;');
+  Add('  b:=c<>nil;');
+  Add('  b:=nil<>c;');
+  Add('  b:=c<>obj.classtype;');
+  Add('  b:=obj.classtype<>c;');
+  Add('  b:=c<>TObject;');
+  Add('  b:=TObject<>c;');
+  ConvertProgram;
+  CheckSource('TestClassOf_Compare',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.ClassType = null;',
+    '  };',
+    '});',
+    'this.b = false;',
+    'this.Obj = null;',
+    'this.C = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.b = this.C == null;',
+    'this.b = null == this.C;',
+    'this.b = this.C == this.Obj.ClassType;',
+    'this.b = this.Obj.ClassType == this.C;',
+    'this.b = this.C == this.TObject;',
+    'this.b = this.TObject == this.C;',
+    'this.b = this.C != null;',
+    'this.b = null != this.C;',
+    'this.b = this.C != this.Obj.ClassType;',
+    'this.b = this.Obj.ClassType != this.C;',
+    'this.b = this.C != this.TObject;',
+    'this.b = this.TObject != this.C;',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_ClassVar;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class var id: longint;');
+  Add('  end;');
+  Add('  TClass = class of TObject;');
+  Add('var');
+  Add('  C: tclass;');
+  Add('begin');
+  Add('  C.id:=C.id;');
+  ConvertProgram;
+  CheckSource('TestClassOf_ClassVar',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.id = 0;',
+    '  this.$init = function () {',
+    '  };',
+    '});',
+    'this.C = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.C.id = this.C.id;',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_ClassMethod;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class function DoIt(i: longint = 0): longint;');
+  Add('  end;');
+  Add('  TClass = class of TObject;');
+  Add('class function tobject.doit(i: longint = 0): longint; begin end;');
+  Add('var');
+  Add('  i: longint;');
+  Add('  C: tclass;');
+  Add('begin');
+  Add('  C.DoIt;');
+  Add('  C.DoIt();');
+  Add('  i:=C.DoIt;');
+  Add('  i:=C.DoIt();');
+  ConvertProgram;
+  CheckSource('TestClassOf_ClassMethod',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.DoIt = function (i) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.i = 0;',
+    'this.C = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.C.DoIt(0);',
+    'this.C.DoIt(0);',
+    'this.i = this.C.DoIt(0);',
+    'this.i = this.C.DoIt(0);',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_ClassProperty;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class var FA: longint;');
+  Add('    class function GetA: longint;');
+  Add('    class procedure SetA(Value: longint): longint;');
+  Add('    class property pA: longint read fa write fa;');
+  Add('    class property pB: longint read geta write seta;');
+  Add('  end;');
+  Add('  TObjectClass = class of tobject;');
+  Add('class function tobject.geta: longint; begin end;');
+  Add('class procedure tobject.seta(value: longint): longint; begin end;');
+  Add('var');
+  Add('  b: boolean;');
+  Add('  Obj: tobject;');
+  Add('  Cla: tobjectclass;');
+  Add('begin');
+  Add('  obj.pa:=obj.pa;');
+  Add('  obj.pb:=obj.pb;');
+  Add('  b:=obj.pa=4;');
+  Add('  b:=obj.pb=obj.pb;');
+  Add('  b:=5=obj.pa;');
+  Add('  cla.pa:=6;');
+  Add('  cla.pa:=cla.pa;');
+  Add('  cla.pb:=cla.pb;');
+  Add('  b:=cla.pa=7;');
+  Add('  b:=cla.pb=cla.pb;');
+  Add('  b:=8=cla.pa;');
+  Add('  tobject.pa:=9;');
+  Add('  tobject.pb:=tobject.pb;');
+  Add('  b:=tobject.pa=10;');
+  Add('  b:=11=tobject.pa;');
+  ConvertProgram;
+  CheckSource('TestClassOf_ClassProperty',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.FA = 0;',
+    '  this.$init = function () {',
+    '  };',
+    '  this.GetA = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.SetA = function (Value) {',
+    '  };',
+    '});',
+    'this.b = false;',
+    'this.Obj = null;',
+    'this.Cla = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.Obj.$class.FA = this.Obj.FA;',
+    'this.Obj.$class.SetA(this.Obj.$class.GetA());',
+    'this.b = this.Obj.FA == 4;',
+    'this.b = this.Obj.$class.GetA() == this.Obj.$class.GetA();',
+    'this.b = 5 == this.Obj.FA;',
+    'this.Cla.FA = 6;',
+    'this.Cla.FA = this.Cla.FA;',
+    'this.Cla.SetA(this.Cla.GetA());',
+    'this.b = this.Cla.FA == 7;',
+    'this.b = this.Cla.GetA() == this.Cla.GetA();',
+    'this.b = 8 == this.Cla.FA;',
+    'this.TObject.FA = 9;',
+    'this.TObject.SetA(this.TObject.GetA());',
+    'this.b = this.TObject.FA == 10;',
+    'this.b = 11 == this.TObject.FA;',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_ClassMethodSelf;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class var GlobalId: longint;');
+  Add('    class procedure ProcA;');
+  Add('  end;');
+  Add('class procedure tobject.proca;');
+  Add('var b: boolean;');
+  Add('begin');
+  Add('  b:=self=nil;');
+  Add('  b:=self.globalid=3;');
+  Add('  b:=4=self.globalid;');
+  Add('  self.globalid:=5;');
+  Add('  self.proca;');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestClassOf_ClassMethodSelf',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.GlobalId = 0;',
+    '  this.$init = function () {',
+    '  };',
+    '  this.ProcA = function () {',
+    '    var b = false;',
+    '    b = this == null;',
+    '    b = this.GlobalId == 3;',
+    '    b = 4 == this.GlobalId;',
+    '    this.GlobalId = 5;',
+    '    this.ProcA();',
+    '  };',
+    '});'
+    ]),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_TypeCast;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class procedure {#TObject_DoIt}DoIt;');
+  Add('  end;');
+  Add('  TClass = class of TObject;');
+  Add('  TMobile = class');
+  Add('    class procedure {#TMobile_DoIt}DoIt;');
+  Add('  end;');
+  Add('  TMobileClass = class of TMobile;');
+  Add('  TCar = class(TMobile)');
+  Add('    class procedure {#TCar_DoIt}DoIt;');
+  Add('  end;');
+  Add('  TCarClass = class of TCar;');
+  Add('class procedure TObject.DoIt;');
+  Add('begin');
+  Add('  TClass(Self).{@TObject_DoIt}DoIt;');
+  Add('  TMobileClass(Self).{@TMobile_DoIt}DoIt;');
+  Add('end;');
+  Add('class procedure TMobile.DoIt;');
+  Add('begin');
+  Add('  TClass(Self).{@TObject_DoIt}DoIt;');
+  Add('  TMobileClass(Self).{@TMobile_DoIt}DoIt;');
+  Add('  TCarClass(Self).{@TCar_DoIt}DoIt;');
+  Add('end;');
+  Add('class procedure TCar.DoIt; begin end;');
+  Add('var');
+  Add('  ObjC: TClass;');
+  Add('  MobileC: TMobileClass;');
+  Add('  CarC: TCarClass;');
+  Add('begin');
+  Add('  ObjC.{@TObject_DoIt}DoIt;');
+  Add('  MobileC.{@TMobile_DoIt}DoIt;');
+  Add('  CarC.{@TCar_DoIt}DoIt;');
+  Add('  TClass(ObjC).{@TObject_DoIt}DoIt;');
+  Add('  TMobileClass(ObjC).{@TMobile_DoIt}DoIt;');
+  Add('  TCarClass(ObjC).{@TCar_DoIt}DoIt;');
+  Add('  TClass(MobileC).{@TObject_DoIt}DoIt;');
+  Add('  TMobileClass(MobileC).{@TMobile_DoIt}DoIt;');
+  Add('  TCarClass(MobileC).{@TCar_DoIt}DoIt;');
+  Add('  TClass(CarC).{@TObject_DoIt}DoIt;');
+  Add('  TMobileClass(CarC).{@TMobile_DoIt}DoIt;');
+  Add('  TCarClass(CarC).{@TCar_DoIt}DoIt;');
+  ConvertProgram;
+  CheckSource('TestClassOf_TypeCast',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '    this.DoIt();',
+    '    this.DoIt();',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TMobile", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TObject.$init.call(this);',
+    '  };',
+    '  this.DoIt = function () {',
+    '    this.DoIt();',
+    '    this.DoIt();',
+    '    this.DoIt();',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TCar", this.TMobile, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TMobile.$init.call(this);',
+    '  };',
+    '  this.DoIt = function () {',
+    '  };',
+    '});',
+    'this.ObjC = null;',
+    'this.MobileC = null;',
+    'this.CarC = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.ObjC.DoIt();',
+    'this.MobileC.DoIt();',
+    'this.CarC.DoIt();',
+    'this.ObjC.DoIt();',
+    'this.ObjC.DoIt();',
+    'this.ObjC.DoIt();',
+    'this.MobileC.DoIt();',
+    'this.MobileC.DoIt();',
+    'this.MobileC.DoIt();',
+    'this.CarC.DoIt();',
+    'this.CarC.DoIt();',
+    'this.CarC.DoIt();',
+    '']));
+end;
+
+procedure TTestModule.TestProcType;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TProcInt = procedure(vI: longint = 1);');
+  Add('procedure DoIt(vJ: longint);');
+  Add('begin end;');
+  Add('var');
+  Add('  b: boolean;');
+  Add('  vP, vQ: tprocint;');
+  Add('begin');
+  Add('  vp:=nil;');
+  Add('  vp:=vp;');
+  Add('  vp:=@doit;');
+  Add('  vp;');
+  Add('  vp();');
+  Add('  vp(2);');
+  Add('  b:=vp=nil;');
+  Add('  b:=nil=vp;');
+  Add('  b:=vp=vq;');
+  Add('  b:=vp=@doit;');
+  Add('  b:=@doit=vp;');
+  Add('  b:=vp<>nil;');
+  Add('  b:=nil<>vp;');
+  Add('  b:=vp<>vq;');
+  Add('  b:=vp<>@doit;');
+  Add('  b:=@doit<>vp;');
+  Add('  b:=Assigned(vp);');
+  ConvertProgram;
+  CheckSource('TestProcType',
+    LinesToStr([ // statements
+    'this.DoIt = function(vJ) {',
+    '};',
+    'this.b = false;',
+    'this.vP = null;',
+    'this.vQ = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.vP = null;',
+    'this.vP = this.vP;',
+    'this.vP = rtl.createCallback(this,this.DoIt);',
+    'this.vP(1);',
+    'this.vP(1);',
+    'this.vP(2);',
+    'this.b = this.vP == null;',
+    'this.b = null == this.vP;',
+    'this.b = rtl.eqCallback(this.vP,this.vQ);',
+    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this, this.DoIt));',
+    'this.b = rtl.eqCallback(rtl.createCallback(this, this.DoIt), this.vP);',
+    'this.b = this.vP != null;',
+    'this.b = null != this.vP;',
+    'this.b = !rtl.eqCallback(this.vP,this.vQ);',
+    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this, this.DoIt));',
+    'this.b = !rtl.eqCallback(rtl.createCallback(this, this.DoIt), this.vP);',
+    'this.b = this.vP != null;',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_FunctionFPC;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFuncInt = function(vA: longint = 1): longint;');
+  Add('function DoIt(vI: longint): longint;');
+  Add('begin end;');
+  Add('var');
+  Add('  b: boolean;');
+  Add('  vP, vQ: tfuncint;');
+  Add('begin');
+  Add('  vp:=nil;');
+  Add('  vp:=vp;');
+  Add('  vp:=@doit;'); // ok in fpc and delphi
+  //Add('  vp:=doit;'); // illegal in fpc, ok in delphi
+  Add('  vp;'); // ok in fpc and delphi
+  Add('  vp();');
+  Add('  vp(2);');
+  Add('  b:=vp=nil;'); // ok in fpc, illegal in delphi
+  Add('  b:=nil=vp;'); // ok in fpc, illegal in delphi
+  Add('  b:=vp=vq;'); // in fpc compare proctypes, in delphi compare results
+  Add('  b:=vp=@doit;'); // ok in fpc, illegal in delphi
+  Add('  b:=@doit=vp;'); // ok in fpc, illegal in delphi
+  //Add('  b:=vp=3;'); // illegal in fpc, ok in delphi
+  Add('  b:=4=vp;'); // illegal in fpc, ok in delphi
+  Add('  b:=vp<>nil;'); // ok in fpc, illegal in delphi
+  Add('  b:=nil<>vp;'); // ok in fpc, illegal in delphi
+  Add('  b:=vp<>vq;'); // in fpc compare proctypes, in delphi compare results
+  Add('  b:=vp<>@doit;'); // ok in fpc, illegal in delphi
+  Add('  b:=@doit<>vp;'); // ok in fpc, illegal in delphi
+  //Add('  b:=vp<>5;'); // illegal in fpc, ok in delphi
+  Add('  b:=6<>vp;'); // illegal in fpc, ok in delphi
+  Add('  b:=Assigned(vp);');
+  //Add('  doit(vp);'); // illegal in fpc, ok in delphi
+  Add('  doit(vp());'); // ok in fpc and delphi
+  Add('  doit(vp(2));'); // ok in fpc and delphi
+  ConvertProgram;
+  CheckSource('TestProcType_FunctionFPC',
+    LinesToStr([ // statements
+    'this.DoIt = function(vI) {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.b = false;',
+    'this.vP = null;',
+    'this.vQ = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.vP = null;',
+    'this.vP = this.vP;',
+    'this.vP = rtl.createCallback(this,this.DoIt);',
+    'this.vP(1);',
+    'this.vP(1);',
+    'this.vP(2);',
+    'this.b = this.vP == null;',
+    'this.b = null == this.vP;',
+    'this.b = rtl.eqCallback(this.vP,this.vQ);',
+    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this, this.DoIt));',
+    'this.b = rtl.eqCallback(rtl.createCallback(this, this.DoIt), this.vP);',
+    'this.b = 4 == this.vP(1);',
+    'this.b = this.vP != null;',
+    'this.b = null != this.vP;',
+    'this.b = !rtl.eqCallback(this.vP,this.vQ);',
+    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this, this.DoIt));',
+    'this.b = !rtl.eqCallback(rtl.createCallback(this, this.DoIt), this.vP);',
+    'this.b = 6 != this.vP(1);',
+    'this.b = this.vP != null;',
+    'this.DoIt(this.vP(1));',
+    'this.DoIt(this.vP(2));',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_FunctionDelphi;
+begin
+  StartProgram(false);
+  Add('{$mode Delphi}');
+  Add('type');
+  Add('  TFuncInt = function(vA: longint = 1): longint;');
+  Add('function DoIt(vI: longint): longint;');
+  Add('begin end;');
+  Add('var');
+  Add('  b: boolean;');
+  Add('  vP, vQ: tfuncint;');
+  Add('begin');
+  Add('  vp:=nil;');
+  Add('  vp:=vp;');
+  Add('  vp:=@doit;'); // ok in fpc and delphi
+  Add('  vp:=doit;'); // illegal in fpc, ok in delphi
+  Add('  vp;'); // ok in fpc and delphi
+  Add('  vp();');
+  Add('  vp(2);');
+  //Add('  b:=vp=nil;'); // ok in fpc, illegal in delphi
+  //Add('  b:=nil=vp;'); // ok in fpc, illegal in delphi
+  Add('  b:=vp=vq;'); // in fpc compare proctypes, in delphi compare results
+  //Add('  b:=vp=@doit;'); // ok in fpc, illegal in delphi
+  //Add('  b:=@doit=vp;'); // ok in fpc, illegal in delphi
+  Add('  b:=vp=3;'); // illegal in fpc, ok in delphi
+  Add('  b:=4=vp;'); // illegal in fpc, ok in delphi
+  //Add('  b:=vp<>nil;'); // ok in fpc, illegal in delphi
+  //Add('  b:=nil<>vp;'); // ok in fpc, illegal in delphi
+  Add('  b:=vp<>vq;'); // in fpc compare proctypes, in delphi compare results
+  //Add('  b:=vp<>@doit;'); // ok in fpc, illegal in delphi
+  //Add('  b:=@doit<>vp;'); // ok in fpc, illegal in delphi
+  Add('  b:=vp<>5;'); // illegal in fpc, ok in delphi
+  Add('  b:=6<>vp;'); // illegal in fpc, ok in delphi
+  Add('  b:=Assigned(vp);');
+  Add('  doit(vp);'); // illegal in fpc, ok in delphi
+  Add('  doit(vp());'); // ok in fpc and delphi
+  Add('  doit(vp(2));'); // ok in fpc and delphi  *)
+  ConvertProgram;
+  CheckSource('TestProcType_FunctionDelphi',
+    LinesToStr([ // statements
+    'this.DoIt = function(vI) {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.b = false;',
+    'this.vP = null;',
+    'this.vQ = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'this.vP = null;',
+    'this.vP = this.vP;',
+    'this.vP = rtl.createCallback(this,this.DoIt);',
+    'this.vP = rtl.createCallback(this,this.DoIt);',
+    'this.vP(1);',
+    'this.vP(1);',
+    'this.vP(2);',
+    'this.b = this.vP(1) == this.vQ(1);',
+    'this.b = this.vP(1) == 3;',
+    'this.b = 4 == this.vP(1);',
+    'this.b = this.vP(1) != this.vQ(1);',
+    'this.b = this.vP(1) != 5;',
+    'this.b = 6 != this.vP(1);',
+    'this.b = this.vP != null;',
+    'this.DoIt(this.vP(1));',
+    'this.DoIt(this.vP(1));',
+    'this.DoIt(this.vP(2));',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_AsParam;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFuncInt = function(vA: longint = 1): longint;');
+  Add('procedure DoIt(vG: tfuncint; const vH: tfuncint; var vI: tfuncint);');
+  Add('var vJ: tfuncint;');
+  Add('begin');
+  Add('  vg:=vg;');
+  Add('  vj:=vh;');
+  Add('  vi:=vi;');
+  Add('  doit(vg,vg,vg);');
+  Add('  doit(vh,vh,vj);');
+  Add('  doit(vi,vi,vi);');
+  Add('  doit(vj,vj,vj);');
+  Add('end;');
+  Add('var i: tfuncint;');
+  Add('begin');
+  Add('  doit(i,i,i);');
+  ConvertProgram;
+  CheckSource('TestProcType_AsParam',
+    LinesToStr([ // statements
+    'this.DoIt = function (vG,vH,vI) {',
+    '  var vJ = null;',
+    '  vG = vG;',
+    '  vJ = vH;',
+    '  vI.set(vI.get());',
+    '  this.DoIt(vG, vG, {',
+    '    get: function () {',
+    '      return vG;',
+    '    },',
+    '    set: function (v) {',
+    '      vG = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(vH, vH, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(vI.get(), vI.get(), vI);',
+    '  this.DoIt(vJ, vJ, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '};',
+    'this.i = null;'
+    ]),
+    LinesToStr([
+    'this.DoIt(this.i,this.i,{',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});'
     ]));
 end;
 
-procedure TTestModule.TestArray_DynMultiDimensional;
+procedure TTestModule.TestProcType_MethodFPC;
 begin
   StartProgram(false);
   Add('type');
-  Add('  TArrayInt = array of longint;');
-  Add('  TArrayArrayInt = array of TArrayInt;');
-  Add('var');
-  Add('  Arr: TArrayInt;');
-  Add('  Arr2: TArrayArrayInt;');
-  Add('  i: longint;');
+  Add('  TFuncInt = function(vA: longint = 1): longint of object;');
+  Add('  TObject = class');
+  Add('    function DoIt(vA: longint = 1): longint;');
+  Add('  end;');
+  Add('function TObject.DoIt(vA: longint = 1): longint;');
   Add('begin');
-  Add('  arr2:=nil;');
-  Add('  if arr2=nil then;');
-  Add('  if nil=arr2 then;');
-  Add('  i:=low(arr2);');
-  Add('  i:=low(arr2[1]);');
-  Add('  i:=high(arr2);');
-  Add('  i:=high(arr2[2]);');
-  Add('  arr2[3]:=arr;');
-  Add('  arr2[4][5]:=i;');
-  Add('  i:=arr2[6][7];');
-  Add('  arr2[8,9]:=i;');
-  Add('  i:=arr2[10,11];');
-  Add('  SetLength(arr2,14);');
-  Add('  SetLength(arr2[15],16);');
+  Add('end;');
+  Add('var');
+  Add('  Obj: TObject;');
+  Add('  vP: tfuncint;');
+  Add('  b: boolean;');
+  Add('begin');
+  Add('  vp:=@obj.doit;'); // ok in fpc and delphi
+  //Add('  vp:=obj.doit;'); // illegal in fpc, ok in delphi
+  Add('  vp;'); // ok in fpc and delphi
+  Add('  vp();');
+  Add('  vp(2);');
+  Add('  b:=vp=@obj.doit;'); // ok in fpc, illegal in delphi
+  Add('  b:=@obj.doit=vp;'); // ok in fpc, illegal in delphi
+  Add('  b:=vp<>@obj.doit;'); // ok in fpc, illegal in delphi
+  Add('  b:=@obj.doit<>vp;'); // ok in fpc, illegal in delphi
   ConvertProgram;
-  CheckSource('TestArray_Dynamic',
+  CheckSource('TestProcType_MethodFPC',
     LinesToStr([ // statements
-    'this.Arr = [];',
-    'this.Arr2 = [];',
-    'this.i = 0;'
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.DoIt = function (vA) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.vP = null;',
+    'this.b = false;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Arr2 = null;',
-    'if (this.Arr2 == null) {};',
-    'if (null == this.Arr2) {};',
-    'this.i = 0;',
-    'this.i = 0;',
-    'this.i = rtl.length(this.Arr2);',
-    'this.i = rtl.length(this.Arr2[2]);',
-    'this.Arr2[3] = this.Arr;',
-    'this.Arr2[4][5] = this.i;',
-    'this.i = this.Arr2[6][7];',
-    'this.Arr2[8][9] = this.i;',
-    'this.i = this.Arr2[10][11];',
-    'this.Arr2 = rtl.setArrayLength(this.Arr2, 14, []);',
-    'this.Arr2[15] = rtl.setArrayLength(this.Arr2[15], 16, 0);',
+    LinesToStr([
+    'this.vP = rtl.createCallback(this.Obj, this.TObject.DoIt);',
+    'this.vP(1);',
+    'this.vP(1);',
+    'this.vP(2);',
+    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.b = rtl.eqCallback(rtl.createCallback(this.Obj, this.TObject.DoIt), this.vP);',
+    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.b = !rtl.eqCallback(rtl.createCallback(this.Obj, this.TObject.DoIt), this.vP);',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_MethodDelphi;
+begin
+  StartProgram(false);
+  Add('{$mode delphi}');
+  Add('type');
+  Add('  TFuncInt = function(vA: longint = 1): longint of object;');
+  Add('  TObject = class');
+  Add('    function DoIt(vA: longint = 1): longint;');
+  Add('  end;');
+  Add('function TObject.DoIt(vA: longint = 1): longint;');
+  Add('begin');
+  Add('end;');
+  Add('var');
+  Add('  Obj: TObject;');
+  Add('  vP: tfuncint;');
+  Add('  b: boolean;');
+  Add('begin');
+  Add('  vp:=@obj.doit;'); // ok in fpc and delphi
+  Add('  vp:=obj.doit;'); // illegal in fpc, ok in delphi
+  Add('  vp;'); // ok in fpc and delphi
+  Add('  vp();');
+  Add('  vp(2);');
+  //Add('  b:=vp=@obj.doit;'); // ok in fpc, illegal in delphi
+  //Add('  b:=@obj.doit=vp;'); // ok in fpc, illegal in delphi
+  //Add('  b:=vp<>@obj.doit;'); // ok in fpc, illegal in delphi
+  //Add('  b:=@obj.doit<>vp;'); // ok in fpc, illegal in delphi
+  ConvertProgram;
+  CheckSource('TestProcType_MethodDelphi',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.DoIt = function (vA) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.vP = null;',
+    'this.b = false;'
+    ]),
+    LinesToStr([
+    'this.vP = rtl.createCallback(this.Obj, this.TObject.DoIt);',
+    'this.vP = rtl.createCallback(this.Obj, this.TObject.DoIt);',
+    'this.vP(1);',
+    'this.vP(1);',
+    'this.vP(2);',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_PropertyFPC;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFuncInt = function(vA: longint = 1): longint of object;');
+  Add('  TObject = class');
+  Add('    FOnFoo: TFuncInt;');
+  Add('    function DoIt(vA: longint = 1): longint;');
+  Add('    function GetFoo: TFuncInt;');
+  Add('    procedure SetFoo(const Value: TFuncInt);');
+  Add('    function GetEvents(Index: longint): TFuncInt;');
+  Add('    procedure SetEvents(Index: longint; const Value: TFuncInt);');
+  Add('    property OnFoo: TFuncInt read FOnFoo write FOnFoo;');
+  Add('    property OnBar: TFuncInt read GetFoo write SetFoo;');
+  Add('    property Events[Index: longint]: TFuncInt read GetEvents write SetEvents; default;');
+  Add('  end;');
+  Add('function tobject.doit(va: longint = 1): longint; begin end;');
+  Add('function tobject.getfoo: tfuncint; begin end;');
+  Add('procedure tobject.setfoo(const value: tfuncint); begin end;');
+  Add('function tobject.getevents(index: longint): tfuncint; begin end;');
+  Add('procedure tobject.setevents(index: longint; const value: tfuncint); begin end;');
+  Add('var');
+  Add('  Obj: TObject;');
+  Add('  vP: tfuncint;');
+  Add('  b: boolean;');
+  Add('begin');
+  Add('  obj.onfoo:=nil;');
+  Add('  obj.onbar:=nil;');
+  Add('  obj.events[1]:=nil;');
+  Add('  obj.onfoo:=obj.onfoo;');
+  Add('  obj.onbar:=obj.onbar;');
+  Add('  obj.events[2]:=obj.events[3];');
+  Add('  obj.onfoo:=@obj.doit;');
+  Add('  obj.onbar:=@obj.doit;');
+  Add('  obj.events[4]:=@obj.doit;');
+  //Add('  obj.onfoo:=obj.doit;'); // delphi
+  //Add('  obj.onbar:=obj.doit;'); // delphi
+  //Add('  obj.events[4]:=obj.doit;'); // delphi
+  Add('  obj.onfoo;');
+  Add('  obj.onbar;');
+  //Add('  obj.events[5];'); ToDo in pasresolver
+  Add('  obj.onfoo();');
+  Add('  obj.onbar();');
+  Add('  obj.events[6]();');
+  Add('  b:=obj.onfoo=nil;');
+  Add('  b:=obj.onbar=nil;');
+  Add('  b:=obj.events[7]=nil;');
+  Add('  b:=obj.onfoo<>nil;');
+  Add('  b:=obj.onbar<>nil;');
+  Add('  b:=obj.events[8]<>nil;');
+  Add('  b:=obj.onfoo=vp;');
+  Add('  b:=obj.onbar=vp;');
+  Add('  b:=obj.events[9]=vp;');
+  Add('  b:=obj.onfoo=obj.onfoo;');
+  Add('  b:=obj.onbar=obj.onfoo;');
+  Add('  b:=obj.events[10]=obj.onfoo;');
+  Add('  b:=obj.onfoo<>obj.onfoo;');
+  Add('  b:=obj.onbar<>obj.onfoo;');
+  Add('  b:=obj.events[11]<>obj.onfoo;');
+  Add('  b:=obj.onfoo=@obj.doit;');
+  Add('  b:=obj.onbar=@obj.doit;');
+  Add('  b:=obj.events[12]=@obj.doit;');
+  Add('  b:=obj.onfoo<>@obj.doit;');
+  Add('  b:=obj.onbar<>@obj.doit;');
+  Add('  b:=obj.events[12]<>@obj.doit;');
+  Add('  b:=Assigned(obj.onfoo);');
+  Add('  b:=Assigned(obj.onbar);');
+  Add('  b:=Assigned(obj.events[13]);');
+  ConvertProgram;
+  CheckSource('TestProcType_PropertyFPC',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FOnFoo = null;',
+    '  };',
+    '  this.DoIt = function (vA) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    'this.GetFoo = function () {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
+    'this.SetFoo = function (Value) {',
+    '};',
+    'this.GetEvents = function (Index) {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
+    'this.SetEvents = function (Index, Value) {',
+    '};',
+    '});',
+    'this.Obj = null;',
+    'this.vP = null;',
+    'this.b = false;'
+    ]),
+    LinesToStr([
+    'this.Obj.FOnFoo = null;',
+    'this.Obj.SetFoo(null);',
+    'this.Obj.SetEvents(1, null);',
+    'this.Obj.FOnFoo = this.Obj.FOnFoo;',
+    'this.Obj.SetFoo(this.Obj.GetFoo());',
+    'this.Obj.SetEvents(2, this.Obj.GetEvents(3));',
+    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, this.TObject.DoIt);',
+    'this.Obj.SetFoo(rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.Obj.FOnFoo(1);',
+    'this.Obj.GetFoo();',
+    'this.Obj.FOnFoo(1);',
+    'this.Obj.GetFoo()(1);',
+    'this.Obj.GetEvents(6)(1);',
+    'this.b = this.Obj.FOnFoo == null;',
+    'this.b = this.Obj.GetFoo() == null;',
+    'this.b = this.Obj.GetEvents(7) == null;',
+    'this.b = this.Obj.FOnFoo != null;',
+    'this.b = this.Obj.GetFoo() != null;',
+    'this.b = this.Obj.GetEvents(8) != null;',
+    'this.b = rtl.eqCallback(this.Obj.FOnFoo, this.vP);',
+    'this.b = rtl.eqCallback(this.Obj.GetFoo(), this.vP);',
+    'this.b = rtl.eqCallback(this.Obj.GetEvents(9), this.vP);',
+    'this.b = rtl.eqCallback(this.Obj.FOnFoo, this.Obj.FOnFoo);',
+    'this.b = rtl.eqCallback(this.Obj.GetFoo(), this.Obj.FOnFoo);',
+    'this.b = rtl.eqCallback(this.Obj.GetEvents(10), this.Obj.FOnFoo);',
+    'this.b = !rtl.eqCallback(this.Obj.FOnFoo, this.Obj.FOnFoo);',
+    'this.b = !rtl.eqCallback(this.Obj.GetFoo(), this.Obj.FOnFoo);',
+    'this.b = !rtl.eqCallback(this.Obj.GetEvents(11), this.Obj.FOnFoo);',
+    'this.b = rtl.eqCallback(this.Obj.FOnFoo, rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.b = rtl.eqCallback(this.Obj.GetFoo(), rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.b = rtl.eqCallback(this.Obj.GetEvents(12), rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.b = !rtl.eqCallback(this.Obj.FOnFoo, rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.b = !rtl.eqCallback(this.Obj.GetFoo(), rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.b = !rtl.eqCallback(this.Obj.GetEvents(12), rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.b = this.Obj.FOnFoo != null;',
+    'this.b = this.Obj.GetFoo() != null;',
+    'this.b = this.Obj.GetEvents(13) != null;',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_PropertyDelphi;
+begin
+  StartProgram(false);
+  Add('{$mode delphi}');
+  Add('type');
+  Add('  TFuncInt = function(vA: longint = 1): longint of object;');
+  Add('  TObject = class');
+  Add('    FOnFoo: TFuncInt;');
+  Add('    function DoIt(vA: longint = 1): longint;');
+  Add('    function GetFoo: TFuncInt;');
+  Add('    procedure SetFoo(const Value: TFuncInt);');
+  Add('    function GetEvents(Index: longint): TFuncInt;');
+  Add('    procedure SetEvents(Index: longint; const Value: TFuncInt);');
+  Add('    property OnFoo: TFuncInt read FOnFoo write FOnFoo;');
+  Add('    property OnBar: TFuncInt read GetFoo write SetFoo;');
+  Add('    property Events[Index: longint]: TFuncInt read GetEvents write SetEvents; default;');
+  Add('  end;');
+  Add('function tobject.doit(va: longint = 1): longint; begin end;');
+  Add('function tobject.getfoo: tfuncint; begin end;');
+  Add('procedure tobject.setfoo(const value: tfuncint); begin end;');
+  Add('function tobject.getevents(index: longint): tfuncint; begin end;');
+  Add('procedure tobject.setevents(index: longint; const value: tfuncint); begin end;');
+  Add('var');
+  Add('  Obj: TObject;');
+  Add('  vP: tfuncint;');
+  Add('  b: boolean;');
+  Add('begin');
+  Add('  obj.onfoo:=nil;');
+  Add('  obj.onbar:=nil;');
+  Add('  obj.events[1]:=nil;');
+  Add('  obj.onfoo:=obj.onfoo;');
+  Add('  obj.onbar:=obj.onbar;');
+  Add('  obj.events[2]:=obj.events[3];');
+  Add('  obj.onfoo:=@obj.doit;');
+  Add('  obj.onbar:=@obj.doit;');
+  Add('  obj.events[4]:=@obj.doit;');
+  Add('  obj.onfoo:=obj.doit;'); // delphi
+  Add('  obj.onbar:=obj.doit;'); // delphi
+  Add('  obj.events[4]:=obj.doit;'); // delphi
+  Add('  obj.onfoo;');
+  Add('  obj.onbar;');
+  //Add('  obj.events[5];'); ToDo in pasresolver
+  Add('  obj.onfoo();');
+  Add('  obj.onbar();');
+  Add('  obj.events[6]();');
+  //Add('  b:=obj.onfoo=nil;'); // fpc
+  //Add('  b:=obj.onbar=nil;'); // fpc
+  //Add('  b:=obj.events[7]=nil;'); // fpc
+  //Add('  b:=obj.onfoo<>nil;'); // fpc
+  //Add('  b:=obj.onbar<>nil;'); // fpc
+  //Add('  b:=obj.events[8]<>nil;'); // fpc
+  Add('  b:=obj.onfoo=vp;');
+  Add('  b:=obj.onbar=vp;');
+  //Add('  b:=obj.events[9]=vp;'); ToDo in pasresolver
+  Add('  b:=obj.onfoo=obj.onfoo;');
+  Add('  b:=obj.onbar=obj.onfoo;');
+  //Add('  b:=obj.events[10]=obj.onfoo;'); // ToDo in pasresolver
+  Add('  b:=obj.onfoo<>obj.onfoo;');
+  Add('  b:=obj.onbar<>obj.onfoo;');
+  //Add('  b:=obj.events[11]<>obj.onfoo;'); // ToDo in pasresolver
+  //Add('  b:=obj.onfoo=@obj.doit;'); // fpc
+  //Add('  b:=obj.onbar=@obj.doit;'); // fpc
+  //Add('  b:=obj.events[12]=@obj.doit;'); // fpc
+  //Add('  b:=obj.onfoo<>@obj.doit;'); // fpc
+  //Add('  b:=obj.onbar<>@obj.doit;'); // fpc
+  //Add('  b:=obj.events[12]<>@obj.doit;'); // fpc
+  Add('  b:=Assigned(obj.onfoo);');
+  Add('  b:=Assigned(obj.onbar);');
+  Add('  b:=Assigned(obj.events[13]);');
+  ConvertProgram;
+  CheckSource('TestProcType_PropertyDelphi',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FOnFoo = null;',
+    '  };',
+    '  this.DoIt = function (vA) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    'this.GetFoo = function () {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
+    'this.SetFoo = function (Value) {',
+    '};',
+    'this.GetEvents = function (Index) {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
+    'this.SetEvents = function (Index, Value) {',
+    '};',
+    '});',
+    'this.Obj = null;',
+    'this.vP = null;',
+    'this.b = false;'
+    ]),
+    LinesToStr([
+    'this.Obj.FOnFoo = null;',
+    'this.Obj.SetFoo(null);',
+    'this.Obj.SetEvents(1, null);',
+    'this.Obj.FOnFoo = this.Obj.FOnFoo;',
+    'this.Obj.SetFoo(this.Obj.GetFoo());',
+    'this.Obj.SetEvents(2, this.Obj.GetEvents(3));',
+    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, this.TObject.DoIt);',
+    'this.Obj.SetFoo(rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, this.TObject.DoIt);',
+    'this.Obj.SetFoo(rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.Obj.FOnFoo(1);',
+    'this.Obj.GetFoo();',
+    'this.Obj.FOnFoo(1);',
+    'this.Obj.GetFoo()(1);',
+    'this.Obj.GetEvents(6)(1);',
+    'this.b = this.Obj.FOnFoo(1) == this.vP(1);',
+    'this.b = this.Obj.GetFoo() == this.vP(1);',
+    'this.b = this.Obj.FOnFoo(1) == this.Obj.FOnFoo(1);',
+    'this.b = this.Obj.GetFoo() == this.Obj.FOnFoo(1);',
+    'this.b = this.Obj.FOnFoo(1) != this.Obj.FOnFoo(1);',
+    'this.b = this.Obj.GetFoo() != this.Obj.FOnFoo(1);',
+    'this.b = this.Obj.FOnFoo != null;',
+    'this.b = this.Obj.GetFoo() != null;',
+    'this.b = this.Obj.GetEvents(13) != null;',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_WithClassInstDoPropertyFPC;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFuncInt = function(vA: longint = 1): longint of object;');
+  Add('  TObject = class');
+  Add('    FOnFoo: TFuncInt;');
+  Add('    function DoIt(vA: longint = 1): longint;');
+  Add('    function GetFoo: TFuncInt;');
+  Add('    procedure SetFoo(const Value: TFuncInt);');
+  Add('    property OnFoo: TFuncInt read FOnFoo write FOnFoo;');
+  Add('    property OnBar: TFuncInt read GetFoo write SetFoo;');
+  Add('  end;');
+  Add('function tobject.doit(va: longint = 1): longint; begin end;');
+  Add('function tobject.getfoo: tfuncint; begin end;');
+  Add('procedure tobject.setfoo(const value: tfuncint); begin end;');
+  Add('var');
+  Add('  Obj: TObject;');
+  Add('  vP: tfuncint;');
+  Add('  b: boolean;');
+  Add('begin');
+  Add('with obj do begin');
+  Add('  fonfoo:=nil;');
+  Add('  onfoo:=nil;');
+  Add('  onbar:=nil;');
+  Add('  fonfoo:=fonfoo;');
+  Add('  onfoo:=onfoo;');
+  Add('  onbar:=onbar;');
+  Add('  fonfoo:=@doit;');
+  Add('  onfoo:=@doit;');
+  Add('  onbar:=@doit;');
+  //Add('  fonfoo:=doit;'); // delphi
+  //Add('  onfoo:=doit;'); // delphi
+  //Add('  onbar:=doit;'); // delphi
+  Add('  fonfoo;');
+  Add('  onfoo;');
+  Add('  onbar;');
+  Add('  fonfoo();');
+  Add('  onfoo();');
+  Add('  onbar();');
+  Add('  b:=fonfoo=nil;');
+  Add('  b:=onfoo=nil;');
+  Add('  b:=onbar=nil;');
+  Add('  b:=fonfoo<>nil;');
+  Add('  b:=onfoo<>nil;');
+  Add('  b:=onbar<>nil;');
+  Add('  b:=fonfoo=vp;');
+  Add('  b:=onfoo=vp;');
+  Add('  b:=onbar=vp;');
+  Add('  b:=fonfoo=fonfoo;');
+  Add('  b:=onfoo=onfoo;');
+  Add('  b:=onbar=onfoo;');
+  Add('  b:=fonfoo<>fonfoo;');
+  Add('  b:=onfoo<>onfoo;');
+  Add('  b:=onbar<>onfoo;');
+  Add('  b:=fonfoo=@doit;');
+  Add('  b:=onfoo=@doit;');
+  Add('  b:=onbar=@doit;');
+  Add('  b:=fonfoo<>@doit;');
+  Add('  b:=onfoo<>@doit;');
+  Add('  b:=onbar<>@doit;');
+  Add('  b:=Assigned(fonfoo);');
+  Add('  b:=Assigned(onfoo);');
+  Add('  b:=Assigned(onbar);');
+  Add('end;');
+  ConvertProgram;
+  CheckSource('TestProcType_WithClassInstDoPropertyFPC',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FOnFoo = null;',
+    '  };',
+    '  this.DoIt = function (vA) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.GetFoo = function () {',
+    '    var Result = null;',
+    '    return Result;',
+    '  };',
+    '  this.SetFoo = function (Value) {',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.vP = null;',
+    'this.b = false;'
+    ]),
+    LinesToStr([
+    'var $with1 = this.Obj;',
+    '$with1.FOnFoo = null;',
+    '$with1.FOnFoo = null;',
+    '$with1.SetFoo(null);',
+    '$with1.FOnFoo = $with1.FOnFoo;',
+    '$with1.FOnFoo = $with1.FOnFoo;',
+    '$with1.SetFoo($with1.GetFoo());',
+    '$with1.FOnFoo = rtl.createCallback($with1, this.TObject.DoIt);',
+    '$with1.FOnFoo = rtl.createCallback($with1, this.TObject.DoIt);',
+    '$with1.SetFoo(rtl.createCallback($with1, this.TObject.DoIt));',
+    '$with1.FOnFoo(1);',
+    '$with1.FOnFoo(1);',
+    '$with1.GetFoo();',
+    '$with1.FOnFoo(1);',
+    '$with1.FOnFoo(1);',
+    '$with1.GetFoo()(1);',
+    'this.b = $with1.FOnFoo == null;',
+    'this.b = $with1.FOnFoo == null;',
+    'this.b = $with1.GetFoo() == null;',
+    'this.b = $with1.FOnFoo != null;',
+    'this.b = $with1.FOnFoo != null;',
+    'this.b = $with1.GetFoo() != null;',
+    'this.b = rtl.eqCallback($with1.FOnFoo, this.vP);',
+    'this.b = rtl.eqCallback($with1.FOnFoo, this.vP);',
+    'this.b = rtl.eqCallback($with1.GetFoo(), this.vP);',
+    'this.b = rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
+    'this.b = rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
+    'this.b = rtl.eqCallback($with1.GetFoo(), $with1.FOnFoo);',
+    'this.b = !rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
+    'this.b = !rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
+    'this.b = !rtl.eqCallback($with1.GetFoo(), $with1.FOnFoo);',
+    'this.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, this.TObject.DoIt));',
+    'this.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, this.TObject.DoIt));',
+    'this.b = rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, this.TObject.DoIt));',
+    'this.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, this.TObject.DoIt));',
+    'this.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, this.TObject.DoIt));',
+    'this.b = !rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, this.TObject.DoIt));',
+    'this.b = $with1.FOnFoo != null;',
+    'this.b = $with1.FOnFoo != null;',
+    'this.b = $with1.GetFoo() != null;',
     '']));
 end;
 

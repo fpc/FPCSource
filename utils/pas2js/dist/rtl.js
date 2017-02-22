@@ -157,11 +157,24 @@ var rtl = {
   },
 
   createCallback: function(scope, fn){
-    var wrapper = function(){
+    var cb = function(){
       return fn.apply(scope,arguments);
     };
-    wrapper.fn = fn;
-    return wrapper;
+    cb.fn = fn;
+    cb.scope = scope;
+    return cb;
+  },
+
+  cloneCallback: function(cb){
+    return rtl.createCallback(cb.scope,cb.fn);
+  },
+
+  eqCallback: function(a,b){
+    if (a==null){
+      return (b==null);
+    } else {
+      return (b!=null) && (a.scope==b.scope) && (a.fn==b.fn);
+    }
   },
 
   createClass: function(owner,name,ancestor,initfn){
@@ -205,6 +218,8 @@ var rtl = {
     arr.length = newlength;
     if (rtl.isArray(defaultvalue)){
       for (var i=oldlen; i<newlength; i++) arr[i]=[]; // new array
+    } else if (rtl.isFunction(defaultvalue)){
+      for (var i=oldlen; i<newlength; i++) arr[i]=new defaultvalue(); // new record
     } else {
       for (var i=oldlen; i<newlength; i++) arr[i]=defaultvalue;
     }
