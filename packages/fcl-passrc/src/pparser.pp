@@ -1672,14 +1672,20 @@ begin
           end;
       until false;
       // Needed for TSDOBaseDataObjectClass(Self.ClassType).Create
-      if CurToken in [tkdot,tkas] then
+      if CurToken in [tkDot,tkas] then
         begin
         optk:=CurToken;
         NextToken;
         Expr:=ParseExpIdent(AParent);
         if Expr=nil then
-          Exit; // error
-        AddToBinaryExprChain(Result,Last,Expr,TokenToExprOp(optk));
+          ParseExcExpectedIdentifier;
+        if optk=tkDot then
+          AddToBinaryExprChain(Result,Last,Expr,TokenToExprOp(optk))
+        else
+          begin
+          // a as b
+          Result:=CreateBinaryExpr(AParent,Result,Expr,TokenToExprOp(tkas));
+          end;
       end;
     end;
     ok:=true;
