@@ -1406,6 +1406,7 @@ Unit Rax86int;
                 hs:='';
                 l:=0;
                 case actasmtoken of
+                  AS_ID,
                   AS_LPAREN :
                     l:=BuildConstExpression;
                   AS_INTNUM:
