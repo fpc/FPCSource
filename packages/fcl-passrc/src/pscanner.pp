@@ -929,6 +929,7 @@ begin
   S:=FindStream(AName,ScanIncludes);
   If (S<>Nil) then
     begin
+    S.Position:=0;
     SL:=TStreamLineReader.Create(AName);
     try
       SL.InitFromStream(S);
