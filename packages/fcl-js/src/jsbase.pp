@@ -78,10 +78,90 @@ Type
     Property AsCompletion : TObject Read GetAsCompletion Write SetAsCompletion;
   end;
 
+function IsValidJSIdentifier(Name: TJSString; AllowEscapeSeq: boolean = false): boolean;
+
 implementation
 
-{ TJSValue }
+function IsValidJSIdentifier(Name: TJSString; AllowEscapeSeq: boolean): boolean;
+var
+  p: TJSPChar;
+  i: Integer;
+begin
+  Result:=false;
+  if Name='' then exit;
+  p:=TJSPChar(Name);
+  repeat
+    case p^ of
+    #0:
+      if p-TJSPChar(Name)=length(Name) then
+        exit(true)
+      else
+        exit;
+    '0'..'9':
+      if p=TJSPChar(Name) then
+        exit
+      else
+        inc(p);
+    'a'..'z','A'..'Z','_','$': inc(p);
+    '\':
+      begin
+      if not AllowEscapeSeq then exit;
+      inc(p);
+      if p^='x' then
+        begin
+        // \x00
+        for i:=1 to 2 do
+          begin
+          inc(p);
+          if not (p^ in ['0'..'9','a'..'f','A'..'F']) then exit;
+          end;
+        end
+      else if p^='u' then
+        begin
+        inc(p);
+        if p^='{' then
+          begin
+          // \u{00000}
+          i:=0;
+          repeat
+            inc(p);
+            case p^ of
+            '}': break;
+            '0'..'9': i:=i*16+ord(p^)-ord('0');
+            'a'..'f': i:=i*16+ord(p^)-ord('a')+10;
+            'A'..'F': i:=i*16+ord(p^)-ord('A')+10;
+            else exit;
+            end;
+            if i>$10FFFF then exit;
+          until false;
+          inc(p);
+          end
+        else
+          begin
+          // \u0000
+          for i:=1 to 4 do
+            begin
+            inc(p);
+            if not (p^ in ['0'..'9','a'..'f','A'..'F']) then exit;
+            end;
+          end;
+        end
+      else
+        exit; // unknown sequence
+      end;
+    #$200C,#$200D: inc(p); // zero width non-joiner/joiner
+    #$00AA..#$2000,
+    #$200E..#$D7FF:
+      inc(p); // ToDo: only those with ID_START/ID_CONTINUE see https://codepoints.net/search?IDC=1
+    #$D800..#$DBFF:
+      inc(p,2); // see above
+    else
+      exit;
+    end;
+  until false;
+end;
 
+{ TJSValue }
 
 function TJSValue.GetAsBoolean: Boolean;
 begin
