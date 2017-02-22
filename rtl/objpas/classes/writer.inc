@@ -874,6 +874,8 @@ var
   VarValue, DefVarValue : tvardata;
   BoolValue, DefBoolValue: boolean;
   Handled: Boolean;
+  IntfValue: IInterface;
+  CompRef: IInterfaceComponentReference;
 
 begin
   // do not stream properties without getter
@@ -1180,6 +1182,79 @@ begin
           WriteBoolean(BoolValue);
           Driver.EndProperty;
           end;
+      end;
+    tkInterface:
+      begin
+        IntfValue := GetInterfaceProp(Instance, PropInfo);
+        if Assigned(IntfValue) and Supports(IntfValue, IInterfaceComponentReference, CompRef) then
+          begin
+          Component := CompRef.GetComponent;
+          if HasAncestor then
+          begin
+            AncestorObj := TObject(GetObjectProp(Ancestor, PropInfo));
+            if (AncestorObj is TComponent) then
+            begin
+              //writeln('TWriter.WriteProperty AncestorObj=',TComponent(AncestorObj).Name,' OwnerFit=',TComponent(AncestorObj).Owner = FRootAncestor,' ',TComponent(ObjValue).Name,' OwnerFit=',TComponent(ObjValue).Owner = Root);
+              if (AncestorObj<> Component) and
+               (TComponent(AncestorObj).Owner = FRootAncestor) and
+               (Component.Owner = Root) and
+               (UpperCase(TComponent(AncestorObj).Name) = UpperCase(Component.Name)) then
+              begin
+                // different components, but with the same name
+                // treat it like an override
+                AncestorObj := Component;
+              end;
+            end;
+          end else
+            AncestorObj := nil;
+
+          if not Assigned(Component) then
+            begin
+            if Component <> AncestorObj then
+              begin
+              Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+              Driver.WriteIdent('NIL');
+              Driver.EndProperty;
+              end
+            end
+          else if ((not (csSubComponent in Component.ComponentStyle))
+                 or ((Component.Owner<>Instance) and (Component.Owner<>Nil))) then
+            begin
+            if (Component <> AncestorObj)
+                and not (csTransient in Component.ComponentStyle) then
+              begin
+              Name:= '';
+              C:= Component;
+              While (C<>Nil) and (C.Name<>'') do
+                begin
+                If (Name<>'') Then
+                  Name:='.'+Name;
+                if C.Owner = LookupRoot then
+                  begin
+                  Name := C.Name+Name;
+                  break;
+                  end
+                else if C = LookupRoot then
+                  begin
+                  Name := 'Owner' + Name;
+                  break;
+                  end;
+                Name:=C.Name + Name;
+                C:= C.Owner;
+                end;
+              if (C=nil) and (Component.Owner=nil) then
+                if (Name<>'') then              //foreign root
+                  Name:=Name+'.Owner';
+              if Length(Name) > 0 then
+                begin
+                Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+                WriteIdent(Name);
+                Driver.EndProperty;
+                end;  // length Name>0
+              end; //(Component <> AncestorObj)
+            end;
+          end; //Assigned(IntfValue) and Supports(IntfValue,..
+               //else write NIL ?
       end;
   end;
 end;

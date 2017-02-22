@@ -722,7 +722,10 @@ begin
         FOnReferenceName(Self,Ref);
       C:=FindNestedComponent(R.FRoot,Ref);
       If Assigned(C) then
-        SetObjectProp(R.FInstance,R.FPropInfo,C)
+        if R.FPropInfo^.PropType^.Kind = tkInterface then
+          SetInterfaceProp(R.FInstance,R.FPropInfo,C)
+        else
+          SetObjectProp(R.FInstance,R.FPropInfo,C)
       else
         begin
         P:=Pos('.',R.FRelative);
@@ -1256,6 +1259,8 @@ begin
 
         if PropInfo^.PropType^.Kind = tkClass then
           Obj := TObject(GetObjectProp(Instance, PropInfo))
+        //else if PropInfo^.PropType^.Kind = tkInterface then
+        //  Obj := TObject(GetInterfaceProp(Instance, PropInfo))
         else
           Obj := nil;
 
@@ -1385,7 +1390,7 @@ begin
       begin
         SetVariantProp(Instance,PropInfo,ReadVariant);
       end;
-    tkClass:
+    tkClass, tkInterface:
       case FDriver.NextValue of
         vaNil:
           begin
