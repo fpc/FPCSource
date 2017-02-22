@@ -1937,10 +1937,20 @@ Function CompareDateTime(const A, B: TDateTime): TValueRelationship;
 begin
   If SameDateTime(A,B) then
     Result:=EqualsValue
-  else If A>B then
-    Result:=GreaterThanValue
-  else
-    Result:=LessThanValue
+  else if trunc(a)=trunc(b) then
+    begin
+    if abs(frac(a))>abs(frac(b)) then 
+      result:=GreaterThanValue
+    else 
+      result:=LessThanValue;
+    end 
+  else 
+    begin
+    if a>b then 
+      result:=GreaterThanValue
+    else 
+      result:=LessThanValue;
+    end;
 end;
 
 
