@@ -1230,7 +1230,7 @@ implementation
             write(f);
             notfirst:=true;
           end;
-        writeln('])');
+        writeln(t,'])');
       end;
 
 
