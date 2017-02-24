@@ -1687,7 +1687,8 @@ begin
   // converts parameter value to connection charset
   if FCodePage = CP_UTF8 then
     Result := Param.AsUTF8String
-  else if FCodePage in [DefaultSystemCodePage, CP_ACP, CP_NONE] then
+  else if (FCodePage = DefaultSystemCodePage) or
+          (FCodePage = CP_ACP) or (FCodePage = CP_NONE) then
     Result := Param.AsAnsiString
   else
   begin
