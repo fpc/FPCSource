@@ -1740,16 +1740,20 @@ implementation
         n : tcallnode;
         i : integer;
         hp,hpn : tparavarsym;
-        oldleft : tnode;
+        oldleft, oldright : tnode;
         para: tcallparanode;
       begin
         { Need to use a hack here to prevent the parameters from being copied.
           The parameters must be copied between callinitblock/callcleanupblock because
           they can reference methodpointer }
+        { same goes for right (= self/context for procvars) }
         oldleft:=left;
         left:=nil;
+        oldright:=right;
+        right:=nil;
         n:=tcallnode(inherited dogetcopy);
         left:=oldleft;
+        right:=oldright;
         n.symtableprocentry:=symtableprocentry;
         n.symtableproc:=symtableproc;
         n.procdefinition:=procdefinition;
@@ -1766,6 +1770,10 @@ implementation
           n.left:=left.dogetcopy
         else
           n.left:=nil;
+        if assigned(right) then
+          n.right:=right.dogetcopy
+        else
+          n.right:=nil;
         if assigned(methodpointer) then
           n.methodpointer:=methodpointer.dogetcopy
         else
