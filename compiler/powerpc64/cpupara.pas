@@ -185,7 +185,7 @@ begin
         (varspez = vs_const) and
         (
          (
-          (not (calloption in [pocall_cdecl, pocall_cppdecl]) and
+          (not (calloption in cdecl_pocalls) and
           (def.size > 8))
          ) or
          (calloption = pocall_mwpascal)
@@ -371,7 +371,7 @@ begin
     end;
 
     { currently only support C-style array of const }
-    if (p.proccalloption in [pocall_cdecl, pocall_cppdecl]) and
+    if (p.proccalloption in cstylearrayofconst) and
       is_array_of_const(hp.vardef) then begin
       paraloc := hp.paraloc[side].add_location;
       { hack: the paraloc must be valid, but is not actually used }
@@ -744,7 +744,7 @@ begin
 
   result := create_paraloc_info_intern(p, callerside, p.paras, curintreg,
     curfloatreg, curmmreg, cur_stack_offset, false);
-  if (p.proccalloption in [pocall_cdecl, pocall_cppdecl, pocall_mwpascal]) then begin
+  if (p.proccalloption in cstylearrayofconst) then begin
     { just continue loading the parameters in the registers }
     result := create_paraloc_info_intern(p, callerside, varargspara, curintreg,
       curfloatreg, curmmreg, cur_stack_offset, true);

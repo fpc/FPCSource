@@ -104,7 +104,7 @@ unit cpupara;
                       only records of a size of 1,2 or 4 bytes in FUNCTION_RETURN_REG }
                     if ((pd.proccalloption in [pocall_stdcall,pocall_register]) and
                         (def.size in [1,2,4])) or
-                       ((pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+                       ((pd.proccalloption in cdecl_pocalls) and
                         (def.size>0) and
                         (def.size<=8)) then
                      begin
@@ -121,7 +121,7 @@ unit cpupara;
                 recorddef :
                   begin
                     { EMX port of GCC returns small records in the FUNCTION_RETURN_REG up to 4 bytes in registers. }
-                    if ((pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+                    if ((pd.proccalloption in cdecl_pocalls) and
                         (def.size>0) and
                         (def.size<=4)) then
                      begin

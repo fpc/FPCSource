@@ -3234,7 +3234,7 @@ const
                          { for objcclasses this is checked later, because the entire
                            class may be external.  }
                          is_objc_class_or_protocol(tprocdef(pd).struct)) and
-                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal,pocall_stdcall])) then
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_stdcall])) then
                     Message(parser_e_varargs_need_cdecl_and_external);
                 end
                else
@@ -3242,7 +3242,7 @@ const
                   { both must be defined now }
                   if not((po_external in pd.procoptions) or
                          (pd.typ=procvardef)) or
-                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal,pocall_stdcall])) then
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_stdcall])) then
                     Message(parser_e_varargs_need_cdecl_and_external);
                 end;
              end;

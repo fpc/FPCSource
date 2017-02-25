@@ -220,7 +220,7 @@ unit cpupara;
               not(target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin]) or
               ((varspez = vs_const) and
                ((calloption = pocall_mwpascal) or
-                (not (calloption in [pocall_cdecl,pocall_cppdecl]) and
+                (not (calloption in cdecl_pocalls) and
                  (def.size > 8)
                 )
                )

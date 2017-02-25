@@ -839,7 +839,7 @@ implementation
                            else
                              begin
                                if (po_hascallingconvention in tprocvardef(hdef).procoptions) and
-                                  (tprocvardef(hdef).proccalloption=pocall_cdecl) then
+                                  (tprocvardef(hdef).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
                                  begin
                                    include(tprocvardef(hdef).procoptions,po_is_block);
                                    { can't check yet whether the parameter types

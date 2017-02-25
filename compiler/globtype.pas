@@ -575,7 +575,7 @@ interface
        pocall_default = pocall_stdcall;
 {$endif}
 
-       cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal];
+       cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal,pocall_sysv_abi_cdecl,pocall_ms_abi_cdecl];
 
        modeswitchstr : array[tmodeswitch] of string[18] = ('',
          '','','','','','','',
