@@ -800,54 +800,8 @@ begin
 end;
 
 function TFPRepository.PackageIsBroken(APackage: TFPPackage): Boolean;
-var
-  j, i, ThisRepositoryIndex: Integer;
-  Dependency: TFPDependency;
-  Repository: TFPRepository;
-  DepPackage: TFPPackage;
 begin
-  result:=false;
-
-  // We should only check for dependencies in this repository, or repositories
-  // with a lower priority.
-  ThisRepositoryIndex := -1;
-  for i := GFPpkg.RepositoryList.Count -1 downto 0 do
-    begin
-      if GFPpkg.RepositoryList.Items[i] = Self then
-        ThisRepositoryIndex := i;
-    end;
-
-  for j:=0 to APackage.Dependencies.Count-1 do
-    begin
-      Dependency:=APackage.Dependencies[j];
-      if (GFPpkg.CompilerOptions.CompilerOS in Dependency.OSes) and
-         (GFPpkg.CompilerOptions.CompilerCPU in Dependency.CPUs) then
-        begin
-          for i := ThisRepositoryIndex downto 0 do
-            begin
-              Repository := GFPpkg.RepositoryList.Items[i] as TFPRepository;
-              DepPackage := Repository.FindPackage(Dependency.FPackageName);
-              if Assigned(DepPackage) then
-                Break;
-            end;
-
-          if assigned(DepPackage) then
-            begin
-              if (Dependency.RequireChecksum<>$ffffffff) and (DepPackage.Checksum<>Dependency.RequireChecksum) then
-                begin
-                  log(llInfo,SLogPackageChecksumChanged,[APackage.Name,Self.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
-                  result:=true;
-                  exit;
-                end;
-            end
-          else
-            begin
-              log(llDebug,SDbgObsoleteDependency,[APackage.Name,Dependency.PackageName]);
-              result:=true;
-              exit;
-            end;
-        end;
-    end;
+  Result := GFPpkg.PackageIsBroken(APackage, Self);
 end;
 
 constructor TFPRepository.Create(AOwner: TComponent);

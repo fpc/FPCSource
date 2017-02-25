@@ -324,13 +324,21 @@ var
 begin
   result:=false;
 
-  // We should only check for dependencies in this repository, or repositories
-  // with a lower priority.
-  ThisRepositoryIndex := -1;
-  for i := RepositoryList.Count -1 downto 0 do
+  if not Assigned(ARepository) then
     begin
-      if RepositoryList.Items[i] = ARepository then
-        ThisRepositoryIndex := i;
+    // Check with all repositories
+    ThisRepositoryIndex := RepositoryList.Count -1;
+    end
+  else
+    begin
+    // We should only check for dependencies in this repository, or repositories
+    // with a lower priority.
+    ThisRepositoryIndex := -1;
+    for i := RepositoryList.Count -1 downto 0 do
+      begin
+        if RepositoryList.Items[i] = ARepository then
+          ThisRepositoryIndex := i;
+      end;
     end;
 
   for j:=0 to APackage.Dependencies.Count-1 do
@@ -351,7 +359,7 @@ begin
             begin
               if (Dependency.RequireChecksum<>$ffffffff) and (DepPackage.Checksum<>Dependency.RequireChecksum) then
                 begin
-                  log(llInfo,SLogPackageChecksumChanged,[APackage.Name,ARepository.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
+                  log(llInfo,SLogPackageChecksumChanged,[APackage.Name,APackage.Repository.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
                   result:=true;
                   exit;
                 end;
