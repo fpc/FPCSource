@@ -60,34 +60,8 @@ end;
 *****************************************************************************}
 
 procedure LoadLocalAvailableMirrors;
-var
-  S : String;
-  X : TFPXMLMirrorHandler;
 begin
-  if assigned(AvailableMirrors) then
-    AvailableMirrors.Free;
-  AvailableMirrors:=TFPMirrors.Create(TFPMirror);
-
-  // Repository
-  S:=GFPpkg.Options.GlobalSection.LocalMirrorsFile;
-  log(llDebug,SLogLoadingMirrorsFile,[S]);
-  if not FileExists(S) then
-    exit;
-  try
-    X:=TFPXMLMirrorHandler.Create;
-    With X do
-      try
-        LoadFromXml(AvailableMirrors,S);
-      finally
-        Free;
-      end;
-  except
-    on E : Exception do
-      begin
-        Log(llError,E.Message);
-        Error(SErrCorruptMirrorsFile,[S]);
-      end;
-  end;
+  GFPpkg.LoadLocalAvailableMirrors;
 end;
 
 

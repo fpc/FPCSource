@@ -41,6 +41,7 @@ type
 
     procedure InitializeGlobalOptions(CfgFile: string);
     procedure InitializeCompilerOptions;
+    procedure LoadLocalAvailableMirrors;
     procedure ScanAvailablePackages;
     procedure ScanPackages;
 
@@ -76,6 +77,7 @@ implementation
 
 uses
   fpmkunit,
+  fpxmlrep,
   pkgrepos;
 
 { TpkgFPpkg }
@@ -238,6 +240,37 @@ begin
     Error(SErrMissingCompilerConfig,[S]);
   // Log compiler configuration
   FFPMakeCompilerOptions.LogValues(llDebug,'fpmake-building');
+end;
+
+procedure TpkgFPpkg.LoadLocalAvailableMirrors;
+var
+  S : String;
+  X : TFPXMLMirrorHandler;
+begin
+  if assigned(AvailableMirrors) then
+    AvailableMirrors.Free;
+  AvailableMirrors:=TFPMirrors.Create(TFPMirror);
+
+  // Repository
+  S:=Options.GlobalSection.LocalMirrorsFile;
+  log(llDebug,SLogLoadingMirrorsFile,[S]);
+  if not FileExists(S) then
+    exit;
+  try
+    X:=TFPXMLMirrorHandler.Create;
+    With X do
+      try
+        LoadFromXml(AvailableMirrors,S);
+      finally
+        Free;
+      end;
+  except
+    on E : Exception do
+      begin
+        Log(llError,E.Message);
+        Error(SErrCorruptMirrorsFile,[S]);
+      end;
+  end;
 end;
 
 procedure TpkgFPpkg.ScanAvailablePackages;
