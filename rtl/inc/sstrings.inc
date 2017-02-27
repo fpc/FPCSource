@@ -679,7 +679,7 @@ const
   MinLen = 8; { Minimal string length in scientific format }
 var
   buf : array[1..19] of char;
-  i,j,k,reslen,tlen,sign,r,point : longint;
+  i,j,k,reslen,tlen,sign,r,point : ObjpasInt;
   ic : qword;
 begin
   fillchar(buf,length(buf),'0');
