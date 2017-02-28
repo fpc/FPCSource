@@ -203,12 +203,16 @@ type
       const Arg: Pointer); override;
   end;
 
+  { TPrimitiveExpr }
+
   TPrimitiveExpr = class(TPasExpr)
     Value     : AnsiString;
     constructor Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : Ansistring); overload;
     function GetDeclaration(full : Boolean) : string; override;
   end;
   
+  { TBoolConstExpr }
+
   TBoolConstExpr = class(TPasExpr)
     Value     : Boolean;
     constructor Create(AParent : TPasElement; AKind: TPasExprKind; const ABoolValue : Boolean); overload;
@@ -521,7 +525,7 @@ type
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-     function ElementTypeName: string; override;
+    function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
     Procedure GetEnumNames(Names : TStrings);
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
@@ -1413,6 +1417,7 @@ uses SysUtils;
 procedure ReleaseAndNil(var El: TPasElement);
 begin
   if El=nil then exit;
+  {$IFDEF VerbosePasTreeMem}writeln('ReleaseAndNil ',El.Name,' ',El.ClassName);{$ENDIF}
   El.Release;
   El:=nil;
 end;
@@ -1421,7 +1426,7 @@ end;
 
 procedure TPasElementBase.Accept(Visitor: TPassTreeVisitor);
 begin
-
+  if Visitor=nil then ;
 end;
 
 { TPasTypeRef }
@@ -1596,8 +1601,11 @@ end;
 
 destructor TPasProgram.Destroy;
 begin
+  {$IFDEF VerbosePasTreeMem}writeln('TPasProgram.Destroy ProgramSection');{$ENDIF}
   ReleaseAndNil(TPasElement(ProgramSection));
+  {$IFDEF VerbosePasTreeMem}writeln('TPasProgram.Destroy inherited');{$ENDIF}
   inherited Destroy;
+  {$IFDEF VerbosePasTreeMem}writeln('TPasProgram.Destroy END');{$ENDIF}
 end;
 
 function TPasProgram.ElementTypeName: string;
@@ -1861,8 +1869,11 @@ end;
 
 destructor TPasElement.Destroy;
 begin
-  if FRefCount>0 then
+  if (FRefCount>0) and (FRefCount<high(FRefCount)) then
+    begin
+    {$if defined(debugrefcount) or defined(VerbosePasTreeMem)}writeln('TPasElement.Destroy ',Name,':',ClassName);{$ENDIF}
     raise Exception.Create('');
+    end;
   inherited Destroy;
 end;
 
@@ -1875,24 +1886,32 @@ end;
 
 procedure TPasElement.Release;
 
-{$ifdef debugrefcount}
+{$if defined(debugrefcount) or defined(VerbosePasTreeMem)}
 Var
   Cn : String;
   {$endif}
 
 begin
-{$ifdef debugrefcount}
-  CN:=ClassName;
+{$if defined(debugrefcount) or defined(VerbosePasTreeMem)}
+  CN:=ClassName+' '+Name;
   CN:=CN+' '+IntToStr(FRefCount);
-  If Assigned(Parent) then
-    CN:=CN+' ('+Parent.ClassName+')';
-  Writeln('Release : ',Cn);
+  //If Assigned(Parent) then
+  //  CN:=CN+' ('+Parent.ClassName+')';
+  Writeln('TPasElement.Release : ',Cn);
 {$endif}
   if FRefCount = 0 then
-    Free
+    begin
+    FRefCount:=High(FRefCount);
+    Free;
+    end
+  else if FRefCount=High(FRefCount) then
+    begin
+    {$if defined(debugrefcount) or defined(VerbosePasTreeMem)}  Writeln('TPasElement.Released OUCH: ',Cn); {$endif}
+    raise Exception.Create('');
+    end
   else
     Dec(FRefCount);
-{$ifdef debugrefcount}  Writeln('Released : ',Cn); {$endif}
+{$if defined(debugrefcount) or defined(VerbosePasTreeMem)}  Writeln('TPasElement.Released : ',Cn); {$endif}
 end;
 
 procedure TPasElement.ForEachCall(const aMethodCall: TOnForEachPasElement;
@@ -2028,30 +2047,38 @@ destructor TPasDeclarations.Destroy;
 var
   i: Integer;
 begin
-  ExportSymbols.Free;
-  Variables.Free;
-  Functions.Free;
-  Classes.Free;
-  Consts.Free;
-  Types.Free;
-  ResStrings.Free;
-  Properties.Free;
+  {$IFDEF VerbosePasTreeMem}writeln('TPasDeclarations.Destroy START');{$ENDIF}
+  FreeAndNil(ExportSymbols);
+  FreeAndNil(Properties);
+  FreeAndNil(Variables);
+  FreeAndNil(Functions);
+  FreeAndNil(Classes);
+  FreeAndNil(Consts);
+  FreeAndNil(Types);
+  FreeAndNil(ResStrings);
+  {$IFDEF VerbosePasTreeMem}writeln('TPasDeclarations.Destroy Declarations');{$ENDIF}
   for i := 0 to Declarations.Count - 1 do
     TPasElement(Declarations[i]).Release;
-  Declarations.Free;
+  FreeAndNil(Declarations);
 
+  {$IFDEF VerbosePasTreeMem}writeln('TPasDeclarations.Destroy inherited');{$ENDIF}
   inherited Destroy;
+  {$IFDEF VerbosePasTreeMem}writeln('TPasDeclarations.Destroy END');{$ENDIF}
 end;
 
 destructor TPasModule.Destroy;
 begin
-  if Assigned(InterfaceSection) then
-    InterfaceSection.Release;
-  if Assigned(ImplementationSection) then
-    ImplementationSection.Release;
+  {$IFDEF VerbosePasTreeMem}writeln('TPasModule.Destroy interface');{$ENDIF}
+  ReleaseAndNil(TPasElement(InterfaceSection));
+  {$IFDEF VerbosePasTreeMem}writeln('TPasModule.Destroy implementation');{$ENDIF}
+  ReleaseAndNil(TPasElement(ImplementationSection));
+  {$IFDEF VerbosePasTreeMem}writeln('TPasModule.Destroy initialization');{$ENDIF}
   ReleaseAndNil(TPasElement(InitializationSection));
+  {$IFDEF VerbosePasTreeMem}writeln('TPasModule.Destroy finalization');{$ENDIF}
   ReleaseAndNil(TPasElement(FinalizationSection));
+  {$IFDEF VerbosePasTreeMem}writeln('TPasModule.Destroy inherited');{$ENDIF}
   inherited Destroy;
+  {$IFDEF VerbosePasTreeMem}writeln('TPasModule.Destroy END');{$ENDIF}
 end;
 
 
@@ -2070,7 +2097,7 @@ var
 begin
   for i := 0 to Modules.Count - 1 do
     TPasModule(Modules[i]).Release;
-  Modules.Free;
+  FreeAndNil(Modules);
   inherited Destroy;
 end;
 
@@ -2122,7 +2149,7 @@ var
 begin
   for i := 0 to Values.Count - 1 do
     TPasEnumValue(Values[i]).Release;
-  Values.Free;
+  FreeAndNil(Values);
   inherited Destroy;
 end;
 
@@ -2150,16 +2177,6 @@ begin
 end;
 
 
-destructor TPasSetType.Destroy;
-begin
-  if Assigned(EnumType) then
-    begin
-    EnumType.Release;
-    end;
-  inherited Destroy;
-end;
-
-
 constructor TPasVariant.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
@@ -2174,9 +2191,9 @@ Var
 begin
   For I:=0 to Values.Count-1 do
     TPasElement(Values[i]).Release;
-  Values.Free;
+  FreeAndNil(Values);
   if Assigned(Members) then
-    Members.Release;
+    ReleaseAndNil(TpasElement(Members));
   inherited Destroy;
 end;
 
@@ -2202,6 +2219,7 @@ begin
       S.Free;
     end;
     Result:=Result+');';
+    if Full then ;
     end;
 end;
 
@@ -2230,16 +2248,16 @@ var
 begin
   for i := 0 to Members.Count - 1 do
     TPasVariable(Members[i]).Release;
-  Members.Free;
+  FreeAndNil(Members);
 
   if Assigned(VariantEl) then
-    VariantEl.Release;
+    ReleaseAndNil(TPasElement(VariantEl));
 
   if Assigned(Variants) then
   begin
     for i := 0 to Variants.Count - 1 do
       TPasVariant(Variants[i]).Release;
-    Variants.Free;
+    FreeAndNil(Variants);
   end;
 
   inherited Destroy;
@@ -2266,17 +2284,17 @@ begin
     TPasElement(Members[i]).Release;
   for i := 0 to Interfaces.Count - 1 do
     TPasElement(Interfaces[i]).Release;
-  Members.Free;
+  FreeAndNil(Members);
   if Assigned(AncestorType) then
     AncestorType.Release;
   if Assigned(HelperForType) then
     HelperForType.Release;
   ReleaseAndNil(TPasElement(GUIDExpr));
-  Modifiers.Free;
-  Interfaces.Free;
+  FreeAndNil(Modifiers);
+  FreeAndNil(Interfaces);
   for i := 0 to GenericTemplateTypes.Count - 1 do
     TPasElement(GenericTemplateTypes[i]).Release;
-  GenericTemplateTypes.Free;
+  FreeAndNil(GenericTemplateTypes);
   inherited Destroy;
 end;
 
@@ -2508,7 +2526,7 @@ var
 begin
   for i := 0 to Overloads.Count - 1 do
     TPasProcedure(Overloads[i]).Release;
-  Overloads.Free;
+  FreeAndNil(Overloads);
   inherited Destroy;
 end;
 
@@ -2575,7 +2593,7 @@ begin
 
   for i := 0 to Locals.Count - 1 do
     TPasElement(Locals[i]).Release;
-  Locals.Free;
+  FreeAndNil(Locals);
 
   if Assigned(ProcType) then
     ProcType.Release;
@@ -2608,7 +2626,7 @@ end;
 
 destructor TPasImplCommands.Destroy;
 begin
-  Commands.Free;
+  FreeAndNil(Commands);
   inherited Destroy;
 end;
 
@@ -2724,7 +2742,7 @@ var
 begin
   for i := 0 to Elements.Count - 1 do
     TPasImplElement(Elements[i]).Release;
-  Elements.Free;
+  FreeAndNil(Elements);
   inherited Destroy;
 end;
 
@@ -2898,6 +2916,7 @@ end;
 function TPasModule.GetDeclaration(full : boolean): string;
 begin
   Result := 'Unit ' + Name;
+  if full then ;
 end;
 
 procedure TPasModule.ForEachCall(const aMethodCall: TOnForEachPasElement;
@@ -3128,6 +3147,12 @@ begin
   finally
     S.Free;
   end;
+end;
+
+destructor TPasSetType.Destroy;
+begin
+  ReleaseAndNil(TPasElement(EnumType));
+  inherited Destroy;
 end;
 
 function TPasSetType.GetDeclaration (full : boolean) : string;
@@ -3779,6 +3804,7 @@ end;
 procedure TPassTreeVisitor.Visit(obj: TPasElement);
 begin
   // Needs to be implemented by descendents.
+  if Obj=nil then ;
 end;
 
 { TPasSection }
@@ -3793,11 +3819,14 @@ destructor TPasSection.Destroy;
 var
   i: Integer;
 begin
+  {$IFDEF VerbosePasTreeMem}writeln('TPasSection.Destroy UsesList');{$ENDIF}
   for i := 0 to UsesList.Count - 1 do
     TPasType(UsesList[i]).Release;
   FreeAndNil(UsesList);
 
+  {$IFDEF VerbosePasTreeMem}writeln('TPasSection.Destroy inherited');{$ENDIF}
   inherited Destroy;
+  {$IFDEF VerbosePasTreeMem}writeln('TPasSection.Destroy END');{$ENDIF}
 end;
 
 procedure TPasSection.AddUnitToUsesList(const AUnitName: string);
@@ -4121,9 +4150,10 @@ end;
 
 { TPrimitiveExpr }
 
-function TPrimitiveExpr.GetDeclaration(Full : Boolean):AnsiString;
+function TPrimitiveExpr.GetDeclaration(full: Boolean): string;
 begin
   Result:=Value;
+  if full then ;
 end;
 
 constructor TPrimitiveExpr.Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : Ansistring);
@@ -4140,13 +4170,14 @@ begin
   Value:=ABoolValue;
 end;
 
-Function TBoolConstExpr.GetDeclaration(Full: Boolean):AnsiString;
+function TBoolConstExpr.GetDeclaration(full: Boolean): string;
 
 begin
   If Value then
     Result:='True'
   else
-    Result:='False';  
+    Result:='False';
+  if full then ;
 end;
 
 
@@ -4359,6 +4390,7 @@ var
 begin
   for i:=0 to length(Fields)-1 do
     Fields[i].ValueExp.Release;
+  Fields:=nil;
   inherited Destroy;
 end;
 
@@ -4370,13 +4402,15 @@ begin
   SetLength(Fields, i+1);
   Fields[i].Name:=AName;
   Fields[i].ValueExp:=Value;
+  Value.Parent:=Self;
 end;
 
 { TNilExpr }
 
-Function TNilExpr.GetDeclaration(Full :Boolean):AnsiString;
+function TNilExpr.GetDeclaration(full: Boolean): string;
 begin
   Result:='Nil';
+  if full then ;
 end;
 
 { TInheritedExpr }
@@ -4384,13 +4418,15 @@ end;
 function TInheritedExpr.GetDeclaration(full: Boolean): string;
 begin
   Result:='Inherited';
+  if full then ;
 end;
 
 { TSelfExpr }
 
-Function TSelfExpr.GetDeclaration(Full :Boolean):AnsiString;
+function TSelfExpr.GetDeclaration(full: Boolean): string;
 begin
   Result:='Self';
+  if full then ;
 end;
 
 { TArrayValues }
@@ -4432,6 +4468,7 @@ var
 begin
   for i:=0 to length(Values)-1 do
     Values[i].Release;
+  Values:=nil;
   inherited Destroy;
 end;
 
@@ -4442,6 +4479,7 @@ begin
   i:=length(Values);
   SetLength(Values, i+1);
   Values[i]:=AValue;
+  AValue.Parent:=Self;
 end;
 
 { TNilExpr }
@@ -4476,7 +4514,7 @@ end;
 
 destructor TPasLabels.Destroy;
 begin
-  Labels.Free;
+  FreeAndNil(Labels);
   inherited Destroy;
 end;
 

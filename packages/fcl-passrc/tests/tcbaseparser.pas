@@ -462,6 +462,9 @@ end;
 procedure TTestParser.CleanupParser;
 
 begin
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser START');
+  {$ENDIF}
   if Not Assigned(FModule) then
     FreeAndNil(FDeclarations)
   else
@@ -469,17 +472,38 @@ begin
   FImplementation:=False;
   FEndSource:=False;
   FIsUnit:=False;
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FModule');
+  {$ENDIF}
   if Assigned(FModule) then
-    begin
-    FModule.Release;
-    FModule:=nil;
-    end;
+    ReleaseAndNil(TPasElement(FModule));
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FSource');
+  {$ENDIF}
   FreeAndNil(FSource);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FParseResult');
+  {$ENDIF}
   FreeAndNil(FParseResult);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FParser');
+  {$ENDIF}
   FreeAndNil(FParser);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FEngine');
+  {$ENDIF}
   FreeAndNil(FEngine);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FScanner');
+  {$ENDIF}
   FreeAndNil(FScanner);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FResolver');
+  {$ENDIF}
   FreeAndNil(FResolver);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser END');
+  {$ENDIF}
 end;
 
 procedure TTestParser.ResetParser;
@@ -497,8 +521,17 @@ end;
 
 procedure TTestParser.TearDown;
 begin
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.TearDown START CleanupParser');
+  {$ENDIF}
   CleanupParser;
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.TearDown inherited');
+  {$ENDIF}
   Inherited;
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.TearDown END');
+  {$ENDIF}
 end;
 
 procedure TTestParser.CreateEngine(var TheEngine: TPasTreeContainer);
