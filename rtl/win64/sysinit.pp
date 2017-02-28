@@ -34,7 +34,7 @@ unit sysinit;
 
 {$if defined(FPC_USE_TLS_DIRECTORY) or defined(FPC_SECTION_THREADVARS)}
    var
-      tlsdir: record end; external name '__tls_used';
+      tlsdir: record end; external name '_tls_used';
 
     procedure LinkIn(p1,p2,p3: Pointer); inline;
       begin
