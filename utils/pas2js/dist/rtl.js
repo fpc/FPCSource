@@ -210,7 +210,7 @@ var rtl = {
     throw pas.System.EInvalidCast.$create("create");
   },
 
-  setArrayLength: function(arr,newlength,defaultvalue){
+  arraySetLength: function(arr,newlength,defaultvalue){
     if (newlength == 0) return null;
     if (arr == null) arr = [];
     var oldlen = arr.length;
@@ -226,7 +226,21 @@ var rtl = {
     return arr;
   },
 
-  setStringLength: function(s,newlength){
+  arrayNewMultiDim: function(dims,defaultvalue){
+    function create(dim){
+      if (dim == dims.length-1){
+        return rtl.arraySetLength(null,dims[dim],defaultvalue);
+      }
+      var a = [];
+      var count = dims[dim];
+      a.length = count;
+      for(var i=0; i<count; i++) a[i] = create(dim+1);
+      return a;
+    };
+    return create(0);
+  },
+
+  stringSetLength: function(s,newlength){
     s.length = newlength;
   },
 

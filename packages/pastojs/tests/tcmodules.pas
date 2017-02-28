@@ -40,7 +40,7 @@ type
 
   { TTestEnginePasResolver }
 
-  TTestEnginePasResolver = class(TPasResolver)
+  TTestEnginePasResolver = class(TPas2JsResolver)
   private
     FFilename: string;
     FModule: TPasModule;
@@ -51,7 +51,6 @@ type
     FSource: string;
     procedure SetModule(AValue: TPasModule);
   public
-    constructor Create;
     destructor Destroy; override;
     function FindModule(const AName: String): TPasModule; override;
     property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
@@ -148,6 +147,7 @@ type
     Procedure TestUnitImplConsts;
     Procedure TestUnitImplRecord;
     Procedure TestRenameJSNameConflict;
+    Procedure TestLocalConst;
 
     // strings
     Procedure TestCharConst;
@@ -169,8 +169,8 @@ type
     Procedure TestProcTwoArgs;
     Procedure TestProc_DefaultValue;
     Procedure TestUnitProcVar;
+    Procedure TestImplProc;
     Procedure TestFunctionResult;
-    // ToDo: overloads
     Procedure TestNestedProc;
     Procedure TestForwardProc;
     Procedure TestNestedForwardProc;
@@ -183,6 +183,10 @@ type
     Procedure TestProcedureAsm;
     Procedure TestProcedureAssembler;
     Procedure TestProcedure_VarParam;
+    Procedure TestProcedureOverload;
+    Procedure TestProcedureOverloadForward;
+    Procedure TestProcedureOverloadUnit;
+    Procedure TestProcedureOverloadNested;
 
     // enums, sets
     Procedure TestEnumName;
@@ -225,7 +229,9 @@ type
     Procedure TestArray_AsParams;
     Procedure TestArrayElement_AsParams;
     Procedure TestArrayElementFromFuncResult_AsParams;
+    Procedure TestArrayEnumTypeRange;
     // ToDo: const array
+    // ToDo: SetLength(array of static array)
 
     // record
     Procedure TestRecord_Var;
@@ -236,6 +242,7 @@ type
     Procedure TestRecordElement_AsParams;
     Procedure TestRecordElementFromFuncResult_AsParams;
     Procedure TestRecordElementFromWith_AsParams;
+    Procedure TestRecord_Equal;
     // ToDo: const record
 
     // classes
@@ -261,10 +268,10 @@ type
     Procedure TestClass_WithClassInstDoPropertyWithParams;
     Procedure TestClass_WithClassInstDoFunc;
     Procedure TestClass_TypeCast;
-    // ToDo: overload
-    // ToDo: second constructor, requires overload
-    // ToDo: call another constructor within a constructor, requires overload
-    // ToDo: reintroduced var, requires overload
+    Procedure TestClass_Overloads;
+    Procedure TestClass_OverloadsAncestor;
+    Procedure TestClass_OverloadConstructor;
+    Procedure TestClass_ReintroducedVar;
 
     // class of
     Procedure TestClassOf_Create;
@@ -277,6 +284,7 @@ type
     Procedure TestClassOf_ClassMethodSelf;
     Procedure TestClassOf_TypeCast;
 
+    // proc types
     Procedure TestProcType;
     Procedure TestProcType_FunctionFPC;
     Procedure TestProcType_FunctionDelphi;
@@ -357,13 +365,6 @@ begin
   FModule:=AValue;
   if Module<>nil then
     Module.AddRef;
-end;
-
-constructor TTestEnginePasResolver.Create;
-begin
-  inherited Create;
-  StoreSrcColumns:=true;
-  Options:=Options+DefaultPasResolverOptions;
 end;
 
 destructor TTestEnginePasResolver.Destroy;
@@ -1382,6 +1383,37 @@ begin
     );
 end;
 
+procedure TTestModule.TestImplProc;
+begin
+  StartUnit(false);
+  Add('interface');
+  Add('');
+  Add('procedure Proc1;');
+  Add('');
+  Add('implementation');
+  Add('');
+  Add('procedure Proc1; begin end;');
+  Add('procedure Proc2; begin end;');
+  Add('initialization');
+  Add('  Proc1;');
+  Add('  Proc2;');
+  ConvertUnit;
+  CheckSource('TestImplProc',
+    LinesToStr([ // statements
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;',
+    'this.Proc1 = function () {',
+    '};',
+    '$impl.Proc2 = function () {',
+    '};',
+    '']),
+    LinesToStr([ // this.$init
+    'this.Proc1();',
+    '$impl.Proc2();',
+    '']));
+end;
+
 procedure TTestModule.TestFunctionResult;
 begin
   StartProgram(false);
@@ -1444,9 +1476,9 @@ begin
   Add('procedure FuncA(Bar: longint); forward;');
   Add('procedure FuncB(Bar: longint);');
   Add('begin');
-  Add('  FuncA(Bar);');
+  Add('  funca(bar);');
   Add('end;');
-  Add('procedure FuncA(Bar: longint);');
+  Add('procedure funca(bar: longint);');
   Add('begin');
   Add('  if bar=3 then ;');
   Add('end;');
@@ -1804,6 +1836,206 @@ begin
     '    }',
     '});'
     ]));
+end;
+
+procedure TTestModule.TestProcedureOverload;
+begin
+  StartProgram(false);
+  Add('procedure DoIt(vI: longint); begin end;');
+  Add('procedure DoIt(vI, vJ: longint); begin end;');
+  Add('procedure DoIt(vD: double); begin end;');
+  Add('begin');
+  Add('  DoIt(1);');
+  Add('  DoIt(2,3);');
+  Add('  DoIt(4.5);');
+  ConvertProgram;
+  CheckSource('TestProcedureOverload',
+    LinesToStr([ // statements
+    'this.DoIt = function (vI) {',
+    '};',
+    'this.DoIt$1 = function (vI, vJ) {',
+    '};',
+    'this.DoIt$2 = function (vD) {',
+    '};',
+    '']),
+    LinesToStr([
+    'this.DoIt(1);',
+    'this.DoIt$1(2, 3);',
+    'this.DoIt$2(4.5);',
+    '']));
+end;
+
+procedure TTestModule.TestProcedureOverloadForward;
+begin
+  StartProgram(false);
+  Add('procedure DoIt(vI: longint); forward;');
+  Add('procedure DoIt(vI, vJ: longint); begin end;');
+  Add('procedure doit(vi: longint); begin end;');
+  Add('begin');
+  Add('  doit(1);');
+  Add('  doit(2,3);');
+  ConvertProgram;
+  CheckSource('TestProcedureOverloadForward',
+    LinesToStr([ // statements
+    'this.DoIt$1 = function (vI, vJ) {',
+    '};',
+    'this.DoIt = function (vI) {',
+    '};',
+    '']),
+    LinesToStr([
+    'this.DoIt(1);',
+    'this.DoIt$1(2, 3);',
+    '']));
+end;
+
+procedure TTestModule.TestProcedureOverloadUnit;
+begin
+  StartUnit(false);
+  Add('interface');
+  Add('procedure DoIt(vI: longint);');
+  Add('procedure DoIt(vI, vJ: longint);');
+  Add('implementation');
+  Add('procedure DoIt(vI, vJ, vK, vL, vM: longint); forward;');
+  Add('procedure DoIt(vI, vJ, vK: longint); begin end;');
+  Add('procedure DoIt(vi: longint); begin end;');
+  Add('procedure DoIt(vI, vJ, vK, vL: longint); begin end;');
+  Add('procedure DoIt(vi, vj: longint); begin end;');
+  Add('procedure DoIt(vi, vj, vk, vl, vm: longint); begin end;');
+  Add('begin');
+  Add('  doit(1);');
+  Add('  doit(2,3);');
+  Add('  doit(4,5,6);');
+  Add('  doit(7,8,9,10);');
+  Add('  doit(11,12,13,14,15);');
+  ConvertUnit;
+  CheckSource('TestProcedureOverloadUnit',
+    LinesToStr([ // statements
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;',
+    'this.DoIt = function (vI) {',
+    '};',
+    'this.DoIt$1 = function (vI, vJ) {',
+    '};',
+    '$impl.DoIt$3 = function (vI, vJ, vK) {',
+    '};',
+    '$impl.DoIt$4 = function (vI, vJ, vK, vL) {',
+    '};',
+    '$impl.DoIt$2 = function (vI, vJ, vK, vL, vM) {',
+    '};',
+    '']),
+    LinesToStr([
+    'this.DoIt(1);',
+    'this.DoIt$1(2, 3);',
+    '$impl.DoIt$3(4,5,6);',
+    '$impl.DoIt$4(7,8,9,10);',
+    '$impl.DoIt$2(11,12,13,14,15);',
+    '']));
+end;
+
+procedure TTestModule.TestProcedureOverloadNested;
+begin
+  StartProgram(false);
+  Add('procedure DoIt(vA: longint); forward;');
+  Add('procedure DoIt(vB, vC: longint);');
+  Add('begin // 2 param overload');
+  Add('  doit(1);');
+  Add('  doit(1,2);');
+  Add('end;');
+  Add('procedure doit(vA: longint);');
+  Add('  procedure DoIt(vA, vB, vC: longint); forward;');
+  Add('  procedure DoIt(vA, vB, vC, vD: longint);');
+  Add('  begin // 4 param overload');
+  Add('    doit(1);');
+  Add('    doit(1,2);');
+  Add('    doit(1,2,3);');
+  Add('    doit(1,2,3,4);');
+  Add('  end;');
+  Add('  procedure doit(vA, vB, vC: longint);');
+  Add('    procedure DoIt(vA, vB, vC, vD, vE: longint); forward;');
+  Add('    procedure DoIt(vA, vB, vC, vD, vE, vF: longint);');
+  Add('    begin // 6 param overload');
+  Add('      doit(1);');
+  Add('      doit(1,2);');
+  Add('      doit(1,2,3);');
+  Add('      doit(1,2,3,4);');
+  Add('      doit(1,2,3,4,5);');
+  Add('      doit(1,2,3,4,5,6);');
+  Add('    end;');
+  Add('    procedure doit(vA, vB, vC, vD, vE: longint);');
+  Add('    begin // 5 param overload');
+  Add('      doit(1);');
+  Add('      doit(1,2);');
+  Add('      doit(1,2,3);');
+  Add('      doit(1,2,3,4);');
+  Add('      doit(1,2,3,4,5);');
+  Add('      doit(1,2,3,4,5,6);');
+  Add('    end;');
+  Add('  begin // 3 param overload');
+  Add('    doit(1);');
+  Add('    doit(1,2);');
+  Add('    doit(1,2,3);');
+  Add('    doit(1,2,3,4);');
+  Add('    doit(1,2,3,4,5);');
+  Add('    doit(1,2,3,4,5,6);');
+  Add('  end;');
+  Add('begin // 1 param overload');
+  Add('  doit(1);');
+  Add('  doit(1,2);');
+  Add('  doit(1,2,3);');
+  Add('  doit(1,2,3,4);');
+  Add('end;');
+  Add('begin // main');
+  Add('  doit(1);');
+  Add('  doit(1,2);');
+  ConvertProgram;
+  CheckSource('TestProcedureOverloadNested',
+    LinesToStr([ // statements
+    'this.DoIt$1 = function (vB, vC) {',
+    '  this.DoIt(1);',
+    '  this.DoIt$1(1, 2);',
+    '};',
+    'this.DoIt = function (vA) {',
+    '  function DoIt$3(vA, vB, vC, vD) {',
+    '    this.DoIt(1);',
+    '    this.DoIt$1(1, 2);',
+    '    DoIt$2(1, 2, 3);',
+    '    DoIt$3(1, 2, 3, 4);',
+    '  };',
+    '  function DoIt$2(vA, vB, vC) {',
+    '    function DoIt$5(vA, vB, vC, vD, vE, vF) {',
+    '      this.DoIt(1);',
+    '      this.DoIt$1(1, 2);',
+    '      DoIt$2(1, 2, 3);',
+    '      DoIt$3(1, 2, 3, 4);',
+    '      DoIt$4(1, 2, 3, 4, 5);',
+    '      DoIt$5(1, 2, 3, 4, 5, 6);',
+    '    };',
+    '    function DoIt$4(vA, vB, vC, vD, vE) {',
+    '      this.DoIt(1);',
+    '      this.DoIt$1(1, 2);',
+    '      DoIt$2(1, 2, 3);',
+    '      DoIt$3(1, 2, 3, 4);',
+    '      DoIt$4(1, 2, 3, 4, 5);',
+    '      DoIt$5(1, 2, 3, 4, 5, 6);',
+    '    };',
+    '    this.DoIt(1);',
+    '    this.DoIt$1(1, 2);',
+    '    DoIt$2(1, 2, 3);',
+    '    DoIt$3(1, 2, 3, 4);',
+    '    DoIt$4(1, 2, 3, 4, 5);',
+    '    DoIt$5(1, 2, 3, 4, 5, 6);',
+    '  };',
+    '  this.DoIt(1);',
+    '  this.DoIt$1(1, 2);',
+    '  DoIt$2(1, 2, 3);',
+    '  DoIt$3(1, 2, 3, 4);',
+    '};',
+    '']),
+    LinesToStr([
+    'this.DoIt(1);',
+    'this.DoIt$1(1, 2);',
+    '']));
 end;
 
 procedure TTestModule.TestEnumName;
@@ -2349,6 +2581,9 @@ begin
     '  } else {',
     '    this.i = 0;',
     '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
+    '  };',
     '};',
     '$impl.aRec = new $impl.TMyRecord();'
     ]),
@@ -2372,6 +2607,44 @@ begin
     ]),
     LinesToStr([ // this.$main
     ''
+    ]));
+end;
+
+procedure TTestModule.TestLocalConst;
+begin
+  StartProgram(false);
+  Add('procedure DoIt;');
+  Add('const');
+  Add('  cA: longint = 1;');
+  Add('  cB = 2;');
+  Add('  procedure Sub;');
+  Add('  const');
+  Add('    csA = 3;');
+  Add('    cB: double = 4;');
+  Add('  begin');
+  Add('    cb:=cb+csa;');
+  Add('    ca:=ca+csa+5;');
+  Add('  end;');
+  Add('begin');
+  Add('  ca:=ca+cb+6;');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestLocalConst',
+    LinesToStr([
+    'var cA = 1;',
+    'var cB = 2;',
+    'var csA = 3;',
+    'var cB$1 = 4;',
+    'this.DoIt = function () {',
+    '  function Sub() {',
+    '    cB$1 = cB$1 + csA;',
+    '    cA = (cA + csA) + 5;',
+    '  };',
+    '  cA = (cA + cB) + 6;',
+    '};'
+    ]),
+    LinesToStr([
     ]));
 end;
 
@@ -2530,7 +2803,7 @@ begin
     'this.s = "";'
     ]),
     LinesToStr([ // this.$main
-    'rtl.setStringLength(this.s,3);'
+    'rtl.stringSetLength(this.s,3);'
     ]));
 end;
 
@@ -3109,7 +3382,7 @@ begin
     'this.i = 0;'
     ]),
     LinesToStr([ // this.$main
-    'this.Arr = rtl.setArrayLength(this.Arr,3,0);',
+    'this.Arr = rtl.arraySetLength(this.Arr,3,0);',
     'this.Arr[0] = 4;',
     'this.Arr[1] = rtl.length(this.Arr)+this.Arr[0];',
     'this.Arr[this.i] = 5;',
@@ -3187,8 +3460,8 @@ begin
     'this.i = this.Arr2[6][7];',
     'this.Arr2[8][9] = this.i;',
     'this.i = this.Arr2[10][11];',
-    'this.Arr2 = rtl.setArrayLength(this.Arr2, 14, []);',
-    'this.Arr2[15] = rtl.setArrayLength(this.Arr2[15], 16, 0);',
+    'this.Arr2 = rtl.arraySetLength(this.Arr2, 14, []);',
+    'this.Arr2[15] = rtl.arraySetLength(this.Arr2[15], 16, 0);',
     '']));
 end;
 
@@ -3222,13 +3495,16 @@ begin
     '  } else {',
     '    this.Int = 0;',
     '  };',
+    '  this.$equal = function (b) {',
+    '    return this.Int == b.Int;',
+    '  };',
     '};',
     'this.Arr = [];',
     'this.r = new this.TRec();',
     'this.i = 0;'
     ]),
     LinesToStr([ // this.$main
-    'this.Arr = rtl.setArrayLength(this.Arr,3, this.TRec);',
+    'this.Arr = rtl.arraySetLength(this.Arr,3, this.TRec);',
     'this.Arr[0].Int = 4;',
     'this.Arr[1].Int = rtl.length(this.Arr)+this.Arr[2].Int;',
     'this.Arr[this.Arr[this.i].Int].Int = this.Arr[5].Int;',
@@ -3415,6 +3691,46 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestArrayEnumTypeRange;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TEnum = (red,blue);');
+  Add('  TEnumArray = array[TEnum] of longint;');
+  Add('var');
+  Add('  e: TEnum;');
+  Add('  i: longint;');
+  Add('  a: TEnumArray;');
+  Add('  numbers: TEnumArray = (1,2);');
+  Add('  names: array[TEnum] of string = (''red'',''blue'');');
+  Add('begin');
+  Add('  e:=low(a);');
+  Add('  e:=high(a);');
+  Add('  i:=a[red]+length(a);');
+  Add('  a[e]:=a[e];');
+  ConvertProgram;
+  CheckSource('TestArrayEnumTypeRange',
+    LinesToStr([ // statements
+    '  this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'this.e = 0;',
+    'this.i = 0;',
+    'this.a = rtl.arrayNewMultiDim([2],0);',
+    'this.numbers = [1, 2];',
+    'this.names = ["red", "blue"];',
+    '']),
+    LinesToStr([ // this.$main
+    'this.e = this.TEnum.red;',
+    'this.e = this.TEnum.blue;',
+    'this.i = this.a[this.TEnum.red]+2;',
+    'this.a[this.e] = this.a[this.e];',
+    '']));
+end;
+
 procedure TTestModule.TestRecord_Var;
 begin
   StartProgram(false);
@@ -3433,6 +3749,9 @@ begin
     '    this.Bold = s.Bold;',
     '  } else {',
     '    this.Bold = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.Bold == b.Bold;',
     '  };',
     '};',
     'this.Rec = new this.TRecA();'
@@ -3467,6 +3786,9 @@ begin
     '    this.vI = s.vI;',
     '  } else {',
     '    this.vI = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.vI == b.vI;',
     '  };',
     '};',
     'this.Int = 0;',
@@ -3516,6 +3838,9 @@ begin
     '  } else {',
     '    this.N = 0;',
     '  };',
+    '  this.$equal = function (b) {',
+    '    return this.N == b.N;',
+    '  };',
     '};',
     'this.TBigRec = function (s) {',
     '  if(s){',
@@ -3530,6 +3855,10 @@ begin
     '    this.Arr = [];',
     '    this.Small = new pas.program.TSmallRec();',
     '    this.Enums = {};',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return (this.Int == b.Int) && ((this.D == b.D) && ((this.Arr == b.Arr)',
+    ' && (this.Small.$equal(b.Small) && rtl.eqSet(this.Enums, b.Enums))));',
     '  };',
     '};',
     'this.r = new this.TBigRec();',
@@ -3561,6 +3890,9 @@ begin
     '    this.Bold = s.Bold;',
     '  } else {',
     '    this.Bold = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.Bold == b.Bold;',
     '  };',
     '};',
     'this.DoDefault = function (r) {',
@@ -3605,6 +3937,9 @@ begin
     '    this.i = s.i;',
     '  } else {',
     '    this.i = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
     '  };',
     '};',
     'this.DoIt = function (vG,vH,vI) {',
@@ -3678,6 +4013,9 @@ begin
     '  } else {',
     '    this.i = 0;',
     '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
+    '  };',
     '};',
     'this.DoIt = function (vG,vH,vI) {',
     '  var vJ = new this.TRecord();',
@@ -3732,6 +4070,9 @@ begin
     '    this.i = s.i;',
     '  } else {',
     '    this.i = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
     '  };',
     '};',
     'this.GetRec = function (vB) {',
@@ -3796,6 +4137,9 @@ begin
     '  } else {',
     '    this.i = 0;',
     '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
+    '  };',
     '};',
     'this.DoIt = function (vG,vH,vI) {',
     '};',
@@ -3812,6 +4156,71 @@ begin
     '      this.p.i = v;',
     '    }',
     '});',
+    '']));
+end;
+
+procedure TTestModule.TestRecord_Equal;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TFlag = (red,blue);');
+  Add('  TFlags = set of TFlag;');
+  Add('  TProc = procedure;');
+  Add('  TRecord = record');
+  Add('    i: integer;');
+  Add('    Event: TProc;');
+  Add('    f: TFlags;');
+  Add('  end;');
+  Add('  TNested = record');
+  Add('    r: TRecord;');
+  Add('  end;');
+  Add('var');
+  Add('  b: boolean;');
+  Add('  r,s: trecord;');
+  Add('begin');
+  Add('  b:=r=s;');
+  Add('  b:=r<>s;');
+  ConvertProgram;
+  CheckSource('TestRecord_Equal',
+    LinesToStr([ // statements
+    'this.TFlag = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'this.TRecord = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '    this.Event = s.Event;',
+    '    this.f = rtl.cloneSet(s.f);',
+    '  } else {',
+    '    this.i = 0;',
+    '    this.Event = null;',
+    '    this.f = {};',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return (this.i == b.i) && (rtl.eqCallback(this.Event, b.Event) && rtl.eqSet(this.f, b.f));',
+    '  };',
+    '};',
+    'this.TNested = function (s) {',
+    '  if (s) {',
+    '    this.r = new pas.program.TRecord(s.r);',
+    '  } else {',
+    '    this.r = new pas.program.TRecord();',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.r.$equal(b.r);',
+    '  };',
+    '};',
+    'this.b = false;',
+    'this.r = new this.TRecord();',
+    'this.s = new this.TRecord();'
+    ]),
+    LinesToStr([
+    'this.b = this.r.$equal(this.s);',
+    'this.b = !this.r.$equal(this.s);',
     '']));
 end;
 
@@ -5091,6 +5500,216 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestClass_Overloads;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure DoIt;');
+  Add('    procedure DoIt(vI: longint);');
+  Add('  end;');
+  Add('procedure TObject.DoIt;');
+  Add('begin');
+  Add('  DoIt;');
+  Add('  DoIt(1);');
+  Add('end;');
+  Add('procedure TObject.DoIt(vI: longint); begin end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestClass_Overloads',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '    this.DoIt();',
+    '    this.DoIt$1(1);',
+    '  };',
+    '  this.DoIt$1 = function (vI) {',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestClass_OverloadsAncestor;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure DoIt(vA: longint);');
+  Add('    procedure DoIt(vA, vB: longint);');
+  Add('  end;');
+  Add('  TCar = class');
+  Add('    procedure DoIt(vA: longint);');
+  Add('    procedure DoIt(vA, vB: longint);');
+  Add('  end;');
+  Add('procedure tobject.doit(va: longint);');
+  Add('begin');
+  Add('  doit(1);');
+  Add('  doit(1,2);');
+  Add('end;');
+  Add('procedure tobject.doit(va, vb: longint); begin end;');
+  Add('procedure tcar.doit(va: longint);');
+  Add('begin');
+  Add('  doit(1);');
+  Add('  doit(1,2);');
+  Add('  inherited doit(1);');
+  Add('  inherited doit(1,2);');
+  Add('end;');
+  Add('procedure tcar.doit(va, vb: longint); begin end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestClass_OverloadsAncestor',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.DoIt = function (vA) {',
+    '    this.DoIt(1);',
+    '    this.DoIt$1(1,2);',
+    '  };',
+    '  this.DoIt$1 = function (vA, vB) {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TCar", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TObject.$init.call(this);',
+    '  };',
+    '  this.DoIt$2 = function (vA) {',
+    '    this.DoIt$2(1);',
+    '    this.DoIt$3(1, 2);',
+    '    pas.program.TObject.DoIt.call(this, 1);',
+    '    pas.program.TObject.DoIt$1.call(this, 1, 2);',
+    '  };',
+    '  this.DoIt$3 = function (vA, vB) {',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestClass_OverloadConstructor;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    constructor Create(vA: longint);');
+  Add('    constructor Create(vA, vB: longint);');
+  Add('  end;');
+  Add('  TCar = class');
+  Add('    constructor Create(vA: longint);');
+  Add('    constructor Create(vA, vB: longint);');
+  Add('  end;');
+  Add('constructor tobject.create(va: longint);');
+  Add('begin');
+  Add('  create(1);');
+  Add('  create(1,2);');
+  Add('end;');
+  Add('constructor tobject.create(va, vb: longint); begin end;');
+  Add('constructor tcar.create(va: longint);');
+  Add('begin');
+  Add('  create(1);');
+  Add('  create(1,2);');
+  Add('  inherited create(1);');
+  Add('  inherited create(1,2);');
+  Add('end;');
+  Add('constructor tcar.create(va, vb: longint); begin end;');
+  Add('begin');
+  Add('  tobject.create(1);');
+  Add('  tobject.create(1,2);');
+  Add('  tcar.create(1);');
+  Add('  tcar.create(1,2);');
+  ConvertProgram;
+  CheckSource('TestClass_OverloadConstructor',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.Create = function (vA) {',
+    '    this.Create(1);',
+    '    this.Create$1(1,2);',
+    '  };',
+    '  this.Create$1 = function (vA, vB) {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TCar", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TObject.$init.call(this);',
+    '  };',
+    '  this.Create$2 = function (vA) {',
+    '    this.Create$2(1);',
+    '    this.Create$3(1, 2);',
+    '    pas.program.TObject.Create.call(this, 1);',
+    '    pas.program.TObject.Create$1.call(this, 1, 2);',
+    '  };',
+    '  this.Create$3 = function (vA, vB) {',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    'this.TObject.$create("Create", [1]);',
+    'this.TObject.$create("Create$1", [1, 2]);',
+    'this.TCar.$create("Create$2", [1]);',
+    'this.TCar.$create("Create$3", [1, 2]);',
+    '']));
+end;
+
+procedure TTestModule.TestClass_ReintroducedVar;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  strict private');
+  Add('    Some: longint;');
+  Add('  end;');
+  Add('  TMobile = class');
+  Add('  strict private');
+  Add('    Some: string;');
+  Add('  end;');
+  Add('  TCar = class(tmobile)');
+  Add('    procedure Some;');
+  Add('    procedure Some(vA: longint);');
+  Add('  end;');
+  Add('procedure tcar.some;');
+  Add('begin');
+  Add('  Some;');
+  Add('  Some(1);');
+  Add('end;');
+  Add('procedure tcar.some(va: longint); begin end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestClass_ReintroducedVar',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.Some = 0;',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TMobile", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TObject.$init.call(this);',
+    '    this.Some$1 = "";',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TCar", this.TMobile, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TMobile.$init.call(this);',
+    '  };',
+    '  this.Some$2 = function () {',
+    '    this.Some$2();',
+    '    this.Some$3(1);',
+    '  };',
+    '  this.Some$3 = function (vA) {',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
 procedure TTestModule.TestClassOf_Create;
 begin
   StartProgram(false);
@@ -5470,24 +6089,24 @@ begin
     '  };',
     '  this.DoIt = function () {',
     '    this.DoIt();',
-    '    this.DoIt();',
+    '    this.DoIt$1();',
     '  };',
     '});',
     'rtl.createClass(this, "TMobile", this.TObject, function () {',
     '  this.$init = function () {',
     '    pas.program.TObject.$init.call(this);',
     '  };',
-    '  this.DoIt = function () {',
+    '  this.DoIt$1 = function () {',
     '    this.DoIt();',
-    '    this.DoIt();',
-    '    this.DoIt();',
+    '    this.DoIt$1();',
+    '    this.DoIt$2();',
     '  };',
     '});',
     'rtl.createClass(this, "TCar", this.TMobile, function () {',
     '  this.$init = function () {',
     '    pas.program.TMobile.$init.call(this);',
     '  };',
-    '  this.DoIt = function () {',
+    '  this.DoIt$2 = function () {',
     '  };',
     '});',
     'this.ObjC = null;',
@@ -5496,17 +6115,17 @@ begin
     '']),
     LinesToStr([ // this.$main
     'this.ObjC.DoIt();',
-    'this.MobileC.DoIt();',
-    'this.CarC.DoIt();',
+    'this.MobileC.DoIt$1();',
+    'this.CarC.DoIt$2();',
     'this.ObjC.DoIt();',
-    'this.ObjC.DoIt();',
-    'this.ObjC.DoIt();',
+    'this.ObjC.DoIt$1();',
+    'this.ObjC.DoIt$2();',
     'this.MobileC.DoIt();',
-    'this.MobileC.DoIt();',
-    'this.MobileC.DoIt();',
+    'this.MobileC.DoIt$1();',
+    'this.MobileC.DoIt$2();',
     'this.CarC.DoIt();',
-    'this.CarC.DoIt();',
-    'this.CarC.DoIt();',
+    'this.CarC.DoIt$1();',
+    'this.CarC.DoIt$2();',
     '']));
 end;
 
