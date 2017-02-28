@@ -2,6 +2,7 @@ unit tests.rtti;
 
 {$ifdef fpc}
 {$mode objfpc}{$H+}
+{$modeswitch advancedrecords}
 {$endif}
 
 interface
@@ -94,6 +95,10 @@ type
     s: string;
   end;
 
+  TManagedRecOp = record
+    class operator AddRef(var a: TManagedRecOp);
+  end;
+
   TNonManagedRec = record
     i: Integer;
   end;
@@ -127,6 +132,9 @@ type
 
 {$POP}
 
+class operator TManagedRecOp.AddRef(var  a: TManagedRecOp);
+begin
+end;
 
 { TTestValueClass }
 
@@ -737,6 +745,7 @@ begin
   CheckEquals(true, IsManaged(TypeInfo(TArrayOfString)),
     'IsManaged for tkArray (with managed ElType)');
   CheckEquals(true, IsManaged(TypeInfo(TManagedRec)), 'IsManaged for tkRecord');
+  CheckEquals(true, IsManaged(TypeInfo(TManagedRecOp)), 'IsManaged for tkRecord');
   CheckEquals(true, IsManaged(TypeInfo(IInterface)), 'IsManaged for tkInterface');
   CheckEquals(true, IsManaged(TypeInfo(TManagedObj)), 'IsManaged for tkObject');
   {$ifdef fpc}

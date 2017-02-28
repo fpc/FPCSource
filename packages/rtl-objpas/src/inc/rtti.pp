@@ -294,12 +294,14 @@ begin
       tkLString,
       tkWString,
       tkUString,
-      tkInterface, 
+      tkInterface,
       tkVariant,
       tkDynArray  : Result := true;
       tkArray     : Result := IsManaged(GetTypeData(TypeInfo)^.ArrayData.ElType);
       tkRecord,
-      tkObject    : Result := GetTypeData(TypeInfo)^.RecInitData^.ManagedFieldCount > 0;
+      tkObject    :
+        with GetTypeData(TypeInfo)^.RecInitData^ do
+          Result := (ManagedFieldCount > 0) or Assigned(ManagementOp);
     else
       Result := false;
     end
