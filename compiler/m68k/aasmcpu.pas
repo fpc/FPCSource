@@ -65,11 +65,8 @@ type
      { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
      constructor op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : treference);
 
+     { this is used for divx/remx regpair generation }
      constructor op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
-     constructor op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
-     constructor op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : treference;_op3 : tregister);
-     constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister; _op3 : treference);
-     constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : treference);
 
      constructor op_reg_regset(op: tasmop; _size : topsize; _op1: tregister;const _op2data,_op2addr,_op2fpu: tcpuregisterset);
      constructor op_regset_reg(op: tasmop; _size : topsize;const _op1data,_op1addr,_op1fpu: tcpuregisterset; _op2: tregister);
@@ -323,49 +320,6 @@ type
          loadreg(1,_op2);
          loadreg(2,_op3);
       end;
-
-    constructor taicpu.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=3;
-         loadconst(0,aword(_op1));
-         loadreg(1,_op2);
-         loadreg(2,_op3);
-      end;
-
-    constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;_op3 : treference);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=3;
-         loadreg(0,_op1);
-         loadreg(1,_op2);
-         loadref(2,_op3);
-      end;
-
-
-    constructor taicpu.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : treference;_op3 : tregister);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=3;
-         loadconst(0,aword(_op1));
-         loadref(1,_op2);
-         loadreg(2,_op3);
-      end;
-
-
-    constructor taicpu.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : treference);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=3;
-         loadconst(0,aword(_op1));
-         loadreg(1,_op2);
-         loadref(2,_op3);
-      end;
-
 
    constructor taicpu.op_ref_regset(op: tasmop; _size : topsize; _op1: treference;const _op2data,_op2addr,_op2fpu: tcpuregisterset);
      Begin
