@@ -277,6 +277,7 @@ end;
 procedure TWin64CFI.end_frame(objdata:TObjData);
 var
   pdatasym:TObjSymbol;
+  pdatasec:TObjSection;
 begin
   if not assigned(FName) then
     internalerror(2011072307);
@@ -286,7 +287,7 @@ begin
 
   if not codegenerror then
     begin
-      objdata.createsection(sec_pdata,lower(FName^));
+      pdatasec:=objdata.createsection(sec_pdata,lower(FName^));
       pdatasym:=objdata.symboldefine('$pdata$'+FName^,AB_LOCAL,AT_DATA);
       objdata.writereloc(0,4,FFrameStartSym,RELOC_RVA);
       objdata.writereloc(FFrameStartSec.Size,4,FFrameStartSym,RELOC_RVA);
@@ -294,7 +295,7 @@ begin
       { restore previous state }
       objdata.SetSection(FFrameStartSec);
       { create a dummy relocation, so pdata is not smartlinked away }
-      objdata.writereloc(0,0,pdatasym,RELOC_NONE);
+      FFrameStartSec.AddSectionReloc(0,pdatasec,RELOC_NONE);
     end;
   FElements.Clear;
   FFrameStartSym:=nil;
