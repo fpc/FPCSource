@@ -121,7 +121,7 @@ Type
 
   TJSString = jsbase.TJSString; // beware of jstoken.tjsString
 
-  { TJSFuncDef - e.g. 'function Name(Params)Body' }
+  { TJSFuncDef - part of TJSFunctionDeclarationStatement, e.g. 'function Name(Params)Body' }
 
   TJSFuncDef = Class(TJSObject)
   private
