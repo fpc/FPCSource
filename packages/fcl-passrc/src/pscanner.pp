@@ -2074,35 +2074,25 @@ begin
       end;
     '0'..'9':
       begin
+        // 1, 12, 1.2, 1.2E3, 1.E2, 1E2, 1.2E-3, 1E+2
+        // beware of 1..2
         TokenStart := TokenStr;
-        while true do
+        repeat
+          Inc(TokenStr);
+        until not (TokenStr[0] in ['0'..'9']);
+        if (TokenStr[0]='.') and (TokenStr[1]<>'.') then
+          begin
+          inc(TokenStr);
+          while TokenStr[0] in ['0'..'9'] do
+            Inc(TokenStr);
+          end;
+        if TokenStr[0] in ['e', 'E'] then
         begin
           Inc(TokenStr);
-          case TokenStr[0] of
-            '.':
-              begin
-                if TokenStr[1] in ['0'..'9', 'e', 'E'] then
-                begin
-                  Inc(TokenStr);
-                  repeat
-                    Inc(TokenStr);
-                  until not (TokenStr[0] in ['0'..'9', 'e', 'E']);
-                end;
-                break;
-              end;
-            '0'..'9': ;
-            'e', 'E':
-              begin
-                Inc(TokenStr);
-                if TokenStr[0] = '-'  then
-                  Inc(TokenStr);
-                while TokenStr[0] in ['0'..'9'] do
-                  Inc(TokenStr);
-                break;
-              end;
-            else
-              break;
-          end;
+          if TokenStr[0] in ['-','+'] then
+            inc(TokenStr);
+          while TokenStr[0] in ['0'..'9'] do
+            Inc(TokenStr);
         end;
         SectionLength := TokenStr - TokenStart;
         SetLength(FCurTokenString, SectionLength);

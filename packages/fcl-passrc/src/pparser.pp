@@ -239,7 +239,7 @@ type
     function CheckOverloadList(AList: TFPList; AName: String; out OldMember: TPasElement): TPasOverloadedProc;
     procedure DumpCurToken(Const Msg : String; IndentAction : TIndentAction = iaNone);
     function GetCurrentModeSwitches: TModeSwitches;
-    function GetVariableModifiers(Out VarMods : TVariableModifiers; Out Libname,ExportName : string): string;
+    function GetVariableModifiers(Parent: TPasElement; Out VarMods: TVariableModifiers; Out LibName, ExportName: TPasExpr): string;
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
     procedure ParseClassLocalConsts(AType: TPasClassType; AVisibility: TPasMemberVisibility);
@@ -886,7 +886,7 @@ end;
 
 function TPasParser.CurTokenIsIdentifier(const S: String): Boolean;
 begin
-  Result:=(Curtoken=tkidentifier) and (CompareText(S,CurtokenText)=0);
+  Result:=(Curtoken=tkIdentifier) and (CompareText(S,CurtokenText)=0);
 end;
 
 
@@ -2976,13 +2976,16 @@ begin
     UngetToken;
 end;
 
-function TPasParser.GetVariableModifiers(out VarMods: TVariableModifiers; out
-  Libname, ExportName: string): string;
+function TPasParser.GetVariableModifiers(Parent: TPasElement; out
+  VarMods: TVariableModifiers; out LibName, ExportName: TPasExpr): string;
 
 Var
   S : String;
+  ExtMod: TVariableModifier;
 begin
   Result := '';
+  LibName := nil;
+  ExportName := nil;
   VarMods := [];
   NextToken;
   If CurTokenIsIdentifier('cvar') then
@@ -2993,46 +2996,47 @@ begin
     NextToken;
     end;
   s:=LowerCase(CurTokenText);
-  if Not ((s='external') or (s='public') or (s='export')) then
-    UngetToken
+  if s='external' then
+    ExtMod:=vmExternal
+  else if (s='public') then
+    ExtMod:=vmPublic
+  else if (s='export') then
+    ExtMod:=vmExport
   else
     begin
-    if s='external' then
-      Include(VarMods,vmexternal)
-    else if (s='public') then
-      Include(varMods,vmpublic)
-    else if (s='export') then
-      Include(varMods,vmexport);
-    Result:=Result+';'+CurTokenText;
-    NextToken;
-    if (Curtoken<>tksemicolon) then
-      begin
-      if (s='external') then
-        begin
-        Include(VarMods,vmexternal);
-        if (CurToken in [tkString,tkIdentifier])
-            and Not (CurTokenIsIdentifier('name')) then
-          begin
-          Result := Result + ' ' + CurTokenText;
-          LibName:=CurTokenText;
-          NextToken;
-          end;
-        end;
-      if CurTokenIsIdentifier('name') then
-        begin
-        Result := Result + ' name ';
-        NextToken;
-        if (CurToken in [tkString,tkIdentifier]) then
-          Result := Result + CurTokenText
-        else
-          ParseExcSyntaxError;
-        ExportName:=CurTokenText;
-        NextToken;
-        end
-      else
-        ParseExcSyntaxError;
-      end;
+    UngetToken;
+    exit;
     end;
+  Include(varMods,ExtMod);
+  Result:=Result+';'+CurTokenText;
+
+  NextToken;
+  if not (CurToken in [tkString,tkIdentifier]) then
+    begin
+    if (CurToken=tkSemicolon) and (ExtMod in [vmExternal,vmPublic]) then
+      exit;
+    ParseExcSyntaxError;
+    end;
+  // export name exportname;
+  // public;
+  // public name exportname;
+  // external;
+  // external libname;
+  // external libname name exportname;
+  // external name exportname;
+  if (ExtMod=vmExternal) and (CurToken in [tkString,tkIdentifier])
+      and Not (CurTokenIsIdentifier('name')) then
+    begin
+    Result := Result + ' ' + CurTokenText;
+    LibName:=DoParseExpression(Parent);
+    end;
+  if not CurTokenIsIdentifier('name') then
+    ParseExcSyntaxError;
+  NextToken;
+  if not (CurToken in [tkString,tkIdentifier]) then
+    ParseExcTokenError(TokenInfos[tkString]);
+  Result := Result + ' ' + CurTokenText;
+  ExportName:=DoParseExpression(Parent);
 end;
 
 
@@ -3042,15 +3046,18 @@ procedure TPasParser.ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibi
 
 var
   i, OldListCount: Integer;
-  Value : TPasExpr;
+  Value , aLibName, aExpName: TPasExpr;
   VarType: TPasType;
   VarEl: TPasVariable;
   H : TPasMemberHints;
   VarMods: TVariableModifiers;
-  D,Mods,Loc,aLibName,aExpName : string;
+  D,Mods,Loc: string;
   OldForceCaret,ok: Boolean;
 
 begin
+  Value:=Nil;
+  aLibName:=nil;
+  aExpName:=nil;
   OldListCount:=VarList.Count;
   ok:=false;
   try
@@ -3083,20 +3090,17 @@ begin
         VarType.AddRef;
       end;
 
-    Value:=Nil;
     H:=CheckHint(Nil,False);
     If Full then
       GetVariableValueAndLocation(Parent,Value,Loc);
     if (Value<>nil) and (VarList.Count>OldListCount+1) then
-      begin
-      Value.Release;
       ParseExc(nParserOnlyOneVariableCanBeInitialized,SParserOnlyOneVariableCanBeInitialized);
-      end;
     TPasVariable(VarList[OldListCount]).Expr:=Value;
+    Value:=nil;
 
     H:=H+CheckHint(Nil,Full);
     if Full then
-      Mods:=GetVariableModifiers(VarMods,aLibName,aExpName)
+      Mods:=GetVariableModifiers(Parent,VarMods,aLibName,aExpName)
     else
       begin
       NextToken;
@@ -3117,15 +3121,26 @@ begin
       VarEl.Modifiers:=Mods;
       VarEl.VarModifiers:=VarMods;
       VarEl.AbsoluteLocation:=Loc;
-      VarEl.LibraryName:=aLibName;
-      VarEl.ExportName:=aExpName;
+      if aLibName<>nil then
+        begin
+        VarEl.LibraryName:=aLibName;
+        aLibName.AddRef;
+        end;
+      if aExpName<>nil then
+        begin
+        VarEl.ExportName:=aExpName;
+        aExpName.AddRef;
+        end;
       end;
     for i := OldListCount to VarList.Count - 1 do
       Engine.FinishScope(stDeclaration,TPasVariable(VarList[i]));
     ok:=true;
   finally
+    if aLibName<>nil then aLibName.Release;
+    if aExpName<>nil then aExpName.Release;
     if not ok then
       begin
+        if Value<>nil then Value.Release;
         for i:=OldListCount to VarList.Count-1 do
           TPasElement(VarList[i]).Release;
         VarList.Count:=OldListCount;

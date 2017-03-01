@@ -150,6 +150,7 @@ type
     Procedure TestArgWrongExprFail;
     Procedure TestIncDec;
     Procedure TestIncStringFail;
+    Procedure TestVarExternal;
 
     // strings
     Procedure TestString_SetLength;
@@ -249,6 +250,8 @@ type
     Procedure TestBreak;
     Procedure TestContinue;
     Procedure TestProcedureExternal;
+    Procedure TestProc_UntypedParam_Forward;
+    Procedure TestProc_Varargs;
     // ToDo: fail builtin functions in constant with non const param
 
     // record
@@ -275,6 +278,8 @@ type
     Procedure TestClass_MethodOverride;
     Procedure TestClass_MethodOverride2;
     Procedure TestClass_MethodOverrideFixCase;
+    Procedure TestClass_MethodOverrideSameResultType;
+    Procedure TestClass_MethodOverrideDiffResultTypeFail;
     Procedure TestClass_MethodOverloadAncestor;
     Procedure TestClass_MethodScope;
     Procedure TestClass_IdentifierSelf;
@@ -315,6 +320,7 @@ type
     Procedure TestClass_ReintroducePublicVarFail;
     Procedure TestClass_ReintroducePrivateVar;
     Procedure TestClass_ReintroduceProc;
+    Procedure TestClass_UntypedParam_TypeCast;
     // Todo: Fail to use class.method in constant or type, e.g. const p = @o.doit;
     // ToDo: typecast multiple params fail
     // ToDo: use Self in non method as local var, requires changes in pparser
@@ -392,6 +398,9 @@ type
     Procedure TestArrayEnumTypeConstWrongTypeFail;
     Procedure TestArrayEnumTypeConstNonConstFail;
     Procedure TestArrayEnumTypeSetLengthFail;
+    Procedure TestArray_AssignNilToStaticArrayFail1;
+    Procedure TestArray_SetLengthProperty;
+    Procedure TestArray_PassArrayElementToVarParam;
 
     // procedure types
     Procedure TestProcTypesAssignObjFPC;
@@ -1625,6 +1634,15 @@ begin
   Add('begin');
   Add('  inc(i);');
   CheckResolverException('Incompatible type arg no. 1: Got "String", expected "Longint"',PasResolver.nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestVarExternal;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  NaN: double; external name ''Global.Nan'';');
+  Add('begin');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestString_SetLength;
@@ -3257,6 +3275,59 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestProc_UntypedParam_Forward;
+begin
+  StartProgram(false);
+  Add('procedure {#ProcA}ProcA(var {#A}A); forward;');
+  Add('procedure {#ProcB}ProcB(const {#B}B); forward;');
+  Add('procedure {#ProcC}ProcC(out {#C}C); forward;');
+  Add('procedure {#ProcD}ProcD(constref {#D}D); forward;');
+  Add('procedure ProcA(var A);');
+  Add('begin');
+  Add('end;');
+  Add('procedure ProcB(const B);');
+  Add('begin');
+  Add('end;');
+  Add('procedure ProcC(out C);');
+  Add('begin');
+  Add('end;');
+  Add('procedure ProcD(constref D);');
+  Add('begin');
+  Add('end;');
+  Add('var i: longint;');
+  Add('begin');
+  Add('  {@ProcA}ProcA(i);');
+  Add('  {@ProcB}ProcB(i);');
+  Add('  {@ProcC}ProcC(i);');
+  Add('  {@ProcD}ProcD(i);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_Varargs;
+begin
+  StartProgram(false);
+  Add('procedure ProcA(i:longint); varargs; external;');
+  Add('procedure ProcB; varargs; external;');
+  Add('procedure ProcC(i: longint = 17); varargs; external;');
+  Add('begin');
+  Add('  ProcA(1);');
+  Add('  ProcA(1,2);');
+  Add('  ProcA(1,2.0);');
+  Add('  ProcA(1,2,3);');
+  Add('  ProcA(1,''2'');');
+  Add('  ProcA(2,'''');');
+  Add('  ProcA(3,false);');
+  Add('  ProcB;');
+  Add('  ProcB();');
+  Add('  ProcB(4);');
+  Add('  ProcB(''foo'');');
+  Add('  ProcC;');
+  Add('  ProcC();');
+  Add('  ProcC(4);');
+  Add('  ProcC(5,''foo'');');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestRecord;
 begin
   StartProgram(false);
@@ -3670,6 +3741,50 @@ begin
   ParseProgram;
   CheckOverrideName('A_ProcA');
   CheckOverrideName('B_ProcA');
+end;
+
+procedure TTestResolver.TestClass_MethodOverrideSameResultType;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  public',
+    '    function ProcA(const s: string): string; virtual; abstract;',
+    '  end;',
+    '']),
+    LinesToStr([
+    ''])
+    );
+
+  StartProgram(true);
+  Add('uses unit2;');
+  Add('type');
+  Add('  TCar = class');
+  Add('  public');
+  Add('    function ProcA(const s: string): string; override;');
+  Add('  end;');
+  Add('function TCar.ProcA(const s: string): string; begin end;');
+  Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_MethodOverrideDiffResultTypeFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    function ProcA(const s: string): string; virtual; abstract;');
+  Add('  end;');
+  Add('  TCar = class');
+  Add('  public');
+  Add('    function ProcA(const s: string): longint; override;');
+  Add('  end;');
+  Add('function TCar.ProcA(const s: string): longint; begin end;');
+  Add('begin');
+  CheckResolverException('Result type mismatch, expected String, but found Longint',
+    nResultTypeMismatchExpectedButFound);
 end;
 
 procedure TTestResolver.TestClass_MethodOverloadAncestor;
@@ -4726,6 +4841,29 @@ begin
   Add('end;');
   Add('procedure tcar.some(va: longint); begin end;');
   Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_UntypedParam_TypeCast;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('procedure {#ProcA}ProcA(var {#A}A);');
+  Add('begin');
+  Add('  TObject({@A}A):=TObject({@A}A);');
+  Add('  if TObject({@A}A)=nil then ;');
+  Add('  if nil=TObject({@A}A) then ;');
+  Add('end;');
+  Add('procedure {#ProcB}ProcB(const {#B}B);');
+  Add('begin');
+  Add('  if TObject({@B}B)=nil then ;');
+  Add('  if nil=TObject({@B}B) then ;');
+  Add('end;');
+  Add('var o: TObject;');
+  Add('begin');
+  Add('  {@ProcA}ProcA(o);');
+  Add('  {@ProcB}ProcB(o);');
   ParseProgram;
 end;
 
@@ -6040,8 +6178,52 @@ begin
   Add('  a: array[TEnum] of longint;');
   Add('begin');
   Add('  SetLength(a,1);');
-  CheckResolverException(' Incompatible type arg no. 1: Got "array[] of Longint", expected "string or dynamic array variable',
+  CheckResolverException('Incompatible type arg no. 1: Got "array[] of Longint", expected "string or dynamic array variable',
     nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestArray_AssignNilToStaticArrayFail1;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TEnum = (red,blue);');
+  Add('var');
+  Add('  a: array[TEnum] of longint;');
+  Add('begin');
+  Add('  a:=nil;');
+  CheckResolverException('Incompatible types: got "nil" expected "array type"',
+    nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestArray_SetLengthProperty;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proAllowPropertyAsVarParam];
+  StartProgram(false);
+  Add('type');
+  Add('  TArrInt = array of longint;');
+  Add('  TObject = class');
+  Add('    function GetColors: TArrInt; external name ''GetColors'';');
+  Add('    procedure SetColors(const Value: TArrInt); external name ''SetColors'';');
+  Add('    property Colors: TArrInt read GetColors write SetColors;');
+  Add('  end;');
+  Add('procedure DoIt(var i: longint; out j: longint; const k: longint); begin end;');
+  Add('var Obj: TObject;');
+  Add('begin');
+  Add('  SetLength(Obj.Colors,2);');
+  Add('  DoIt(Obj.Colors[1],Obj.Colors[2],Obj.Colors[3]);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_PassArrayElementToVarParam;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrInt = array of longint;');
+  Add('procedure DoIt(var i: longint; out j: longint; const k: longint); begin end;');
+  Add('var a: TArrInt;');
+  Add('begin');
+  Add('  DoIt(a[1],a[2],a[3]);');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProcTypesAssignObjFPC;

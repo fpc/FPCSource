@@ -632,7 +632,7 @@ type
       const Arg: Pointer); override;
   public
     Access: TArgumentAccess;
-    ArgType: TPasType;
+    ArgType: TPasType; // can be nil, when Access<>argDefault
     ValueExpr: TPasExpr; // the default value
     Function Value : String;
   end;
@@ -733,7 +733,8 @@ type
   public
     VarType: TPasType;
     VarModifiers : TVariableModifiers;
-    LibraryName,ExportName : string;
+    LibraryName : TPasExpr; // libname of modifier external
+    ExportName : TPasExpr; // symbol name of modifier external, export and public
     Modifiers : string;
     AbsoluteLocation : String;
     Expr: TPasExpr;
@@ -820,7 +821,7 @@ type
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
                         pmExport, pmOverload, pmMessage, pmReintroduce,
                         pmStatic,pmInline,pmAssembler,pmVarargs, pmPublic,
-                        pmCompilerProc,pmExternal,pmForward, pmdispid, pmnoreturn);
+                        pmCompilerProc,pmExternal,pmForward, pmDispId, pmNoReturn);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
                         
@@ -2474,6 +2475,8 @@ begin
     (e.g. in Constants) }
   ReleaseAndNil(TPasElement(VarType));
   ReleaseAndNil(TPasElement(Expr));
+  ReleaseAndNil(TPasElement(LibraryName));
+  ReleaseAndNil(TPasElement(ExportName));
   inherited Destroy;
 end;
 

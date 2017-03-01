@@ -45,6 +45,16 @@ type
     procedure TestPrimitiveIntegerOctal;
     procedure TestPrimitiveIntegerBinary;
     procedure TestPrimitiveDouble;
+    procedure TestPrimitiveDouble2;
+    procedure TestPrimitiveDouble3;
+    procedure TestPrimitiveDouble4;
+    procedure TestPrimitiveDouble5;
+    procedure TestPrimitiveDouble6;
+    procedure TestPrimitiveDouble7;
+    procedure TestPrimitiveDouble8;
+    procedure TestPrimitiveDouble9;
+    procedure TestPrimitiveDouble10;
+    procedure TestPrimitiveDouble11;
     procedure TestPrimitiveString;
     procedure TestPrimitiveIdent;
     procedure TestPrimitiveBooleanFalse;
@@ -162,6 +172,66 @@ procedure TTestExpressions.TestPrimitiveDouble;
 begin
   ParseExpression('1.2');
   AssertExpression('Simple double',theExpr,pekNumber,'1.2');
+end;
+
+procedure TTestExpressions.TestPrimitiveDouble2;
+begin
+  ParseExpression('1.200');
+  AssertExpression('Simple double',theExpr,pekNumber,'1.200');
+end;
+
+procedure TTestExpressions.TestPrimitiveDouble3;
+begin
+  ParseExpression('01.2');
+  AssertExpression('Simple double',theExpr,pekNumber,'01.2');
+end;
+
+procedure TTestExpressions.TestPrimitiveDouble4;
+begin
+  ParseExpression('1.2e10');
+  AssertExpression('Simple double',theExpr,pekNumber,'1.2e10');
+end;
+
+procedure TTestExpressions.TestPrimitiveDouble5;
+begin
+  ParseExpression('1.2e-10');
+  AssertExpression('Simple double',theExpr,pekNumber,'1.2e-10');
+end;
+
+procedure TTestExpressions.TestPrimitiveDouble6;
+begin
+  ParseExpression('12e10');
+  AssertExpression('Simple double',theExpr,pekNumber,'12e10');
+end;
+
+procedure TTestExpressions.TestPrimitiveDouble7;
+begin
+  ParseExpression('12e-10');
+  AssertExpression('Simple double',theExpr,pekNumber,'12e-10');
+end;
+
+procedure TTestExpressions.TestPrimitiveDouble8;
+begin
+  ParseExpression('8.5');
+  AssertExpression('Simple double',theExpr,pekNumber,'8.5');
+end;
+
+procedure TTestExpressions.TestPrimitiveDouble9;
+begin
+  ParseExpression('8.E5');
+  AssertExpression('Simple double',theExpr,pekNumber,'8.E5');
+end;
+
+procedure TTestExpressions.TestPrimitiveDouble10;
+begin
+  ParseExpression('8.E-5');
+  AssertExpression('Simple double',theExpr,pekNumber,'8.E-5');
+end;
+
+procedure TTestExpressions.TestPrimitiveDouble11;
+begin
+  ParseExpression('8E+5');
+  AssertExpression('Simple double',theExpr,pekNumber,'8E+5');
 end;
 
 procedure TTestExpressions.TestPrimitiveString;
