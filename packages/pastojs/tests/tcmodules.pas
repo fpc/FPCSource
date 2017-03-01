@@ -148,11 +148,13 @@ type
     Procedure TestUnitImplRecord;
     Procedure TestRenameJSNameConflict;
     Procedure TestLocalConst;
+    Procedure TestVarExternal;
 
     // strings
     Procedure TestCharConst;
     Procedure TestChar_Compare;
     Procedure TestStringConst;
+    Procedure TestString_Length;
     Procedure TestString_Compare;
     Procedure TestString_SetLength;
     Procedure TestString_CharAt;
@@ -187,6 +189,7 @@ type
     Procedure TestProcedureOverloadForward;
     Procedure TestProcedureOverloadUnit;
     Procedure TestProcedureOverloadNested;
+    Procedure TestProc_Varargs;
 
     // enums, sets
     Procedure TestEnumName;
@@ -198,6 +201,7 @@ type
     Procedure TestSet_PassAsArgClone;
     Procedure TestEnum_AsParams;
     Procedure TestSet_AsParams;
+    Procedure TestSet_Property;
 
     // statements
     Procedure TestIncDec;
@@ -230,6 +234,7 @@ type
     Procedure TestArrayElement_AsParams;
     Procedure TestArrayElementFromFuncResult_AsParams;
     Procedure TestArrayEnumTypeRange;
+    Procedure TestArray_SetLengthProperty;
     // ToDo: const array
     // ToDo: SetLength(array of static array)
 
@@ -268,6 +273,7 @@ type
     Procedure TestClass_WithClassInstDoPropertyWithParams;
     Procedure TestClass_WithClassInstDoFunc;
     Procedure TestClass_TypeCast;
+    Procedure TestClass_TypeCastUntypedParam;
     Procedure TestClass_Overloads;
     Procedure TestClass_OverloadsAncestor;
     Procedure TestClass_OverloadConstructor;
@@ -672,6 +678,20 @@ begin
   try
     FJSModule:=FConverter.ConvertPasElement(Module,Engine) as TJSSourceElements;
   except
+    on E: EScannerError do begin
+      WriteSource(Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn);
+      writeln('ERROR: TTestModule.ConvertModule Scanner: '+E.ClassName+':'+E.Message
+        +' '+Scanner.CurFilename
+        +'('+IntToStr(Scanner.CurRow)+','+IntToStr(Scanner.CurColumn)+')');
+      raise E;
+    end;
+    on E: EParserError do begin
+      WriteSource(Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn);
+      writeln('ERROR: TTestModule.ConvertModule Parser: '+E.ClassName+':'+E.Message
+        +' '+Scanner.CurFilename
+        +'('+IntToStr(Scanner.CurRow)+','+IntToStr(Scanner.CurColumn)+')');
+      raise E;
+    end;
     on E: EPasResolve do
       begin
       Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
@@ -1740,9 +1760,8 @@ begin
     LinesToStr([ // statements
     'this.DoIt = function () {',
     '  var Result = 0;',
-    '    { a:{ b:{}, c:[]}, d:''1'' };',
-    ';',
-    'return Result;',
+    '  { a:{ b:{}, c:[]}, d:''1'' };',
+    '  return Result;',
     '};'
     ]),
     LinesToStr([
@@ -1762,8 +1781,7 @@ begin
   CheckSource('TestProcedureAssembler',
     LinesToStr([ // statements
     'this.DoIt = function () {',
-    '    { a:{ b:{}, c:[]}, d:''1'' };',
-    ';',
+    '  { a:{ b:{}, c:[]}, d:''1'' };',
     '};'
     ]),
     LinesToStr([
@@ -2038,6 +2056,51 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestProc_Varargs;
+begin
+  StartProgram(false);
+  Add('procedure ProcA(i:longint); varargs; external name ''ProcA'';');
+  Add('procedure ProcB; varargs; external name ''ProcB'';');
+  Add('procedure ProcC(i: longint = 17); varargs; external name ''ProcC'';');
+  Add('begin');
+  Add('  ProcA(1);');
+  Add('  ProcA(1,2);');
+  Add('  ProcA(1,2.0);');
+  Add('  ProcA(1,2,3);');
+  Add('  ProcA(1,''2'');');
+  Add('  ProcA(2,'''');');
+  Add('  ProcA(3,false);');
+  Add('  ProcB;');
+  Add('  ProcB();');
+  Add('  ProcB(4);');
+  Add('  ProcB(''foo'');');
+  Add('  ProcC;');
+  Add('  ProcC();');
+  Add('  ProcC(4);');
+  Add('  ProcC(5,''foo'');');
+  ConvertProgram;
+  CheckSource('TestProc_Varargs',
+    LinesToStr([ // statements
+    '']),
+    LinesToStr([
+    'ProcA(1);',
+    'ProcA(1, 2);',
+    'ProcA(1, 2.0);',
+    'ProcA(1, 2, 3);',
+    'ProcA(1, "2");',
+    'ProcA(2, "");',
+    'ProcA(3, false);',
+    'ProcB();',
+    'ProcB();',
+    'ProcB(4);',
+    'ProcB("foo");',
+    'ProcC(17);',
+    'ProcC(17);',
+    'ProcC(4);',
+    'ProcC(5, "foo");',
+    '']));
+end;
+
 procedure TTestModule.TestEnumName;
 begin
   StartProgram(false);
@@ -2184,7 +2247,7 @@ begin
     'this.s=rtl.createSet(null,this.TColor.Red,this.TColor.Blue);',
     'this.s=rtl.createSet(this.TColor.Red,null,this.TColor.Green,this.TColor.Blue);',
     'this.s=rtl.createSet(this.TColor.Red,this.c);',
-    'this.s=rtl.cloneSet(this.t);',
+    'this.s=rtl.refSet(this.t);',
     '']));
 end;
 
@@ -2257,8 +2320,8 @@ begin
     'this.B = false;'
     ]),
     LinesToStr([
-    'this.vS[this.TColor.Green] = true;',
-    'delete this.vS[this.vC];',
+    'this.vS = rtl.includeSet(this.vS,this.TColor.Green);',
+    'this.vS = rtl.excludeSet(this.vS,this.vC);',
     'this.vS = rtl.unionSet(this.vT, this.vU);',
     'this.vS = rtl.unionSet(this.vT, rtl.createSet(this.TColor.Red));',
     'this.vS = rtl.unionSet(rtl.createSet(this.TColor.Red), this.vT);',
@@ -2361,7 +2424,7 @@ begin
     'this.aSet = {};'
     ]),
     LinesToStr([
-    'this.DoDefault(rtl.cloneSet(this.aSet));',
+    'this.DoDefault(rtl.refSet(this.aSet));',
     'this.DoConst(this.aSet);',
     '']));
 end;
@@ -2469,10 +2532,10 @@ begin
     '};',
     'this.DoIt = function (vG,vH,vI) {',
     '  var vJ = {};',
-    '  vG = rtl.cloneSet(vG);',
-    '  vJ = rtl.cloneSet(vH);',
-    '  vI.set(rtl.cloneSet(vI.get()));',
-    '  this.DoIt(rtl.cloneSet(vG), vG, {',
+    '  vG = rtl.refSet(vG);',
+    '  vJ = rtl.refSet(vH);',
+    '  vI.set(rtl.refSet(vI.get()));',
+    '  this.DoIt(rtl.refSet(vG), vG, {',
     '    get: function () {',
     '      return vG;',
     '    },',
@@ -2480,7 +2543,7 @@ begin
     '      vG = v;',
     '    }',
     '  });',
-    '  this.DoIt(rtl.cloneSet(vH), vH, {',
+    '  this.DoIt(rtl.refSet(vH), vH, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -2488,8 +2551,8 @@ begin
     '      vJ = v;',
     '    }',
     '  });',
-    '  this.DoIt(rtl.cloneSet(vI.get()), vI.get(), vI);',
-    '  this.DoIt(rtl.cloneSet(vJ), vJ, {',
+    '  this.DoIt(rtl.refSet(vI.get()), vI.get(), vI);',
+    '  this.DoIt(rtl.refSet(vJ), vJ, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -2501,7 +2564,7 @@ begin
     'this.i = {};'
     ]),
     LinesToStr([
-    'this.DoIt(rtl.cloneSet(this.i),this.i,{',
+    'this.DoIt(rtl.refSet(this.i),this.i,{',
     '  p: this,',
     '  get: function () {',
     '      return this.p.i;',
@@ -2511,6 +2574,49 @@ begin
     '    }',
     '});'
     ]));
+end;
+
+procedure TTestModule.TestSet_Property;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TEnum = (Red,Blue);');
+  Add('  TEnums = set of TEnum;');
+  Add('  TObject = class');
+  Add('    function GetColors: TEnums; external name ''GetColors'';');
+  Add('    procedure SetColors(const Value: TEnums); external name ''SetColors'';');
+  Add('    property Colors: TEnums read GetColors write SetColors;');
+  Add('  end;');
+  Add('procedure DoIt(i: TEnums; const j: TEnums; var k: TEnums; out l: TEnums);');
+  Add('begin end;');
+  Add('var Obj: TObject;');
+  Add('begin');
+  Add('  Include(Obj.Colors,Red);');
+  Add('  Exclude(Obj.Colors,Red);');
+  //Add('  DoIt(Obj.Colors,Obj.Colors,Obj.Colors,Obj.Colors);');
+  ConvertProgram;
+  CheckSource('TestSet_Property',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "Red",',
+    '  Red: 0,',
+    '  "1": "Blue",',
+    '  Blue: 1',
+    '};',
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.DoIt = function (i, j, k, l) {',
+    '};',
+    'this.Obj = null;',
+    '']),
+    LinesToStr([
+    'this.Obj.SetColors(rtl.includeSet(this.Obj.GetColors(), this.TEnum.Red));',
+    'this.Obj.SetColors(rtl.excludeSet(this.Obj.GetColors(), this.TEnum.Red));',
+    '']));
 end;
 
 procedure TTestModule.TestUnitImplVars;
@@ -2648,6 +2754,24 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestVarExternal;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  NaN: double; external name ''Global.NaN'';');
+  Add('  d: double;');
+  Add('begin');
+  Add('  d:=NaN;');
+  ConvertProgram;
+  CheckSource('TestVarExternal',
+    LinesToStr([
+    'this.d = 0.0;'
+    ]),
+    LinesToStr([
+    'this.d = Global.NaN;'
+    ]));
+end;
+
 procedure TTestModule.TestCharConst;
 begin
   StartProgram(false);
@@ -2761,6 +2885,33 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestString_Length;
+begin
+  StartProgram(false);
+  Add('const c = ''foo'';');
+  Add('var');
+  Add('  s: string;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  i:=length(s);');
+  Add('  i:=length(s+s);');
+  Add('  i:=length(''abc'');');
+  Add('  i:=length(c);');
+  ConvertProgram;
+  CheckSource('TestString_Length',
+    LinesToStr([
+    'this.c = "foo";',
+    'this.s = "";',
+    'this.i = 0;',
+    '']),
+    LinesToStr([
+    'this.i = this.s.length;',
+    'this.i = (this.s+this.s).length;',
+    'this.i = "abc".length;',
+    'this.i = this.c.length;',
+    '']));
+end;
+
 procedure TTestModule.TestString_Compare;
 begin
   StartProgram(false);
@@ -2803,7 +2954,7 @@ begin
     'this.s = "";'
     ]),
     LinesToStr([ // this.$main
-    'rtl.stringSetLength(this.s,3);'
+    'this.s.length = 3;'
     ]));
 end;
 
@@ -3197,6 +3348,8 @@ begin
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '});',
     'rtl.createClass(this, "Exception", this.TObject, function () {',
     '  this.$init = function () {',
@@ -3205,9 +3358,6 @@ begin
     '  };',
     '});',
     'rtl.createClass(this, "EInvalidCast", this.Exception, function () {',
-    '  this.$init = function () {',
-    '    pas.program.Exception.$init.call(this);',
-    '  };',
     '});',
     'this.vI = 0;'
     ]),
@@ -3384,11 +3534,11 @@ begin
     LinesToStr([ // this.$main
     'this.Arr = rtl.arraySetLength(this.Arr,3,0);',
     'this.Arr[0] = 4;',
-    'this.Arr[1] = rtl.length(this.Arr)+this.Arr[0];',
+    'this.Arr[1] = this.Arr.length + this.Arr[0];',
     'this.Arr[this.i] = 5;',
     'this.Arr[this.Arr[this.i]] = this.Arr[6];',
     'this.i = 0;',
-    'this.i = rtl.length(this.Arr);',
+    'this.i = this.Arr.length - 1;',
     '']));
 end;
 
@@ -3399,20 +3549,25 @@ begin
   Add('  TArrayInt = array of longint;');
   Add('var');
   Add('  Arr: TArrayInt;');
+  Add('procedure DoIt(const i: TArrayInt; j: TArrayInt); begin end;');
   Add('begin');
   Add('  arr:=nil;');
   Add('  if arr=nil then;');
   Add('  if nil=arr then;');
+  Add('  DoIt(nil,nil);');
   ConvertProgram;
   CheckSource('TestArray_Dynamic',
     LinesToStr([ // statements
-    'this.Arr = [];'
+    'this.Arr = [];',
+    'this.DoIt = function(i,j){',
+    '};'
     ]),
     LinesToStr([ // this.$main
-    'this.Arr = null;',
-    'if (this.Arr == null) {};',
-    'if (null == this.Arr) {};'
-    ]));
+    'this.Arr = [];',
+    'if (this.Arr.length == 0) {};',
+    'if (0 == this.Arr.length) {};',
+    'this.DoIt([],[]);',
+    '']));
 end;
 
 procedure TTestModule.TestArray_DynMultiDimensional;
@@ -3448,13 +3603,13 @@ begin
     'this.i = 0;'
     ]),
     LinesToStr([ // this.$main
-    'this.Arr2 = null;',
-    'if (this.Arr2 == null) {};',
-    'if (null == this.Arr2) {};',
+    'this.Arr2 = [];',
+    'if (this.Arr2.length == 0) {};',
+    'if (0 == this.Arr2.length) {};',
     'this.i = 0;',
     'this.i = 0;',
-    'this.i = rtl.length(this.Arr2);',
-    'this.i = rtl.length(this.Arr2[2]);',
+    'this.i = this.Arr2.length-1;',
+    'this.i = this.Arr2[2].length-1;',
     'this.Arr2[3] = this.Arr;',
     'this.Arr2[4][5] = this.i;',
     'this.i = this.Arr2[6][7];',
@@ -3506,12 +3661,12 @@ begin
     LinesToStr([ // this.$main
     'this.Arr = rtl.arraySetLength(this.Arr,3, this.TRec);',
     'this.Arr[0].Int = 4;',
-    'this.Arr[1].Int = rtl.length(this.Arr)+this.Arr[2].Int;',
+    'this.Arr[1].Int = this.Arr.length+this.Arr[2].Int;',
     'this.Arr[this.Arr[this.i].Int].Int = this.Arr[5].Int;',
     'this.Arr[7] = new this.TRec(this.r);',
     'this.r = new this.TRec(this.Arr[8]);',
     'this.i = 0;',
-    'this.i = rtl.length(this.Arr);',
+    'this.i = this.Arr.length-1;',
     '']));
 end;
 
@@ -3731,6 +3886,35 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestArray_SetLengthProperty;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrInt = array of longint;');
+  Add('  TObject = class');
+  Add('    function GetColors: TArrInt; external name ''GetColors'';');
+  Add('    procedure SetColors(const Value: TArrInt); external name ''SetColors'';');
+  Add('    property Colors: TArrInt read GetColors write SetColors;');
+  Add('  end;');
+  Add('var Obj: TObject;');
+  Add('begin');
+  Add('  SetLength(Obj.Colors,2);');
+  ConvertProgram;
+  CheckSource('TestArray_SetLengthProperty',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    '']),
+    LinesToStr([
+    'this.Obj.SetColors(rtl.arraySetLength(this.Obj.GetColors(), 2, 0));',
+    '']));
+end;
+
 procedure TTestModule.TestRecord_Var;
 begin
   StartProgram(false);
@@ -3848,7 +4032,7 @@ begin
     '    this.D = s.D;',
     '    this.Arr = s.Arr;',
     '    this.Small = new pas.program.TSmallRec(s.Small);',
-    '    this.Enums = rtl.cloneSet(s.Enums);',
+    '    this.Enums = rtl.refSet(s.Enums);',
     '  } else {',
     '    this.Int = 0;',
     '    this.D = 0.0;',
@@ -4194,7 +4378,7 @@ begin
     '  if (s) {',
     '    this.i = s.i;',
     '    this.Event = s.Event;',
-    '    this.f = rtl.cloneSet(s.f);',
+    '    this.f = rtl.refSet(s.f);',
     '  } else {',
     '    this.i = 0;',
     '    this.Event = null;',
@@ -4247,6 +4431,8 @@ begin
     'rtl.createClass(this,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.Create = function(){',
     '  };',
     '  this.Destroy = function(){',
@@ -4278,6 +4464,8 @@ begin
     LinesToStr([ // statements
     'rtl.createClass(this,"TObject",null,function(){',
     '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
     '  };',
     '  this.Create = function(Par){',
     '  };',
@@ -4312,6 +4500,8 @@ begin
     'rtl.createClass(this,"TObject",null,function(){',
     '  this.$init = function () {',
     '    this.vI = 0;',
+    '  };',
+    '  this.$final = function () {',
     '  };',
     '  this.Create = function(Par){',
     '    this.vI = Par+3;',
@@ -4358,6 +4548,9 @@ begin
     '  this.$init = function () {',
     '    this.vI = 0;',
     '    this.Sub = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.Sub = undefined;',
     '  };',
     '  this.Create = function(){',
     '  };',
@@ -4413,18 +4606,14 @@ begin
     'rtl.createClass(this,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.Create = function () {',
     '  };',
     '});',
     'rtl.createClass(this,"TClassA",this.TObject,function(){',
-    '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
-    '  };',
     '});',
     'rtl.createClass(this,"TClassB",this.TObject,function(){',
-    '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
-    '  };',
     '  this.ProcB = function () {',
     '  };',
     '});',
@@ -4457,6 +4646,8 @@ begin
     LinesToStr([ // statements
     'rtl.createClass(this,"TObject",null,function(){',
     '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
     '  };',
     '});'
     ]),
@@ -4509,15 +4700,14 @@ begin
     'rtl.createClass(this,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.DoVirtual = function () {',
     '  };',
     '  this.DoIt = function () {',
     '  };',
     '});',
     'rtl.createClass(this, "TA", this.TObject, function () {',
-    '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
-    '  };',
     '  this.DoAbstract = function () {',
     '    pas.program.TObject.DoVirtual.call(this);',
     '  };',
@@ -4582,6 +4772,8 @@ begin
     'rtl.createClass(this,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.DoVirtual = function (pA,pB) {',
     '  };',
     '  this.DoIt = function (pA,pB) {',
@@ -4590,9 +4782,6 @@ begin
     '  };',
     '});',
     'rtl.createClass(this, "TClassA", this.TObject, function () {',
-    '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
-    '  };',
     '  this.DoAbstract = function (pA,pB) {',
     '    pas.program.TObject.DoVirtual.call(this,pA,pB);',
     '    pas.program.TObject.DoVirtual.call(this,pA,0);',
@@ -4669,6 +4858,8 @@ begin
     'rtl.createClass(this,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.Create = function () {',
     '  };',
     '  this.CreateWithB = function (b) {',
@@ -4676,9 +4867,6 @@ begin
     '  };',
     '});',
     'rtl.createClass(this, "TA", this.TObject, function () {',
-    '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
-    '  };',
     '  this.Create = function () {',
     '    pas.program.TObject.Create.apply(this, arguments);',
     '    pas.program.TObject.Create.call(this);',
@@ -4747,6 +4935,8 @@ begin
     '  this.vI = 0;',
     '  this.Sub = null;',
     '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
     '  };',
     '  this.Create = function(){',
     '    this.$class.vI = this.vI+1;',
@@ -4821,6 +5011,8 @@ begin
     '  this.vI = 0;',
     '  this.Sub = null;',
     '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
     '  };',
     '  this.Create = function(){',
     '    this.$class.Sub = this.$class.GetIt(3);',
@@ -4901,6 +5093,8 @@ begin
     '    this.Fx = 0;',
     '    this.Fy = 0;',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.GetInt = function () {',
     '    var Result = 0;',
     '    Result = this.Fx;',
@@ -4973,6 +5167,8 @@ begin
     '  this.Fy = 0;',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.GetInt = function () {',
     '    var Result = 0;',
     '    Result = this.Fx;',
@@ -5039,6 +5235,9 @@ begin
     '  this.$init = function () {',
     '    this.FItems = [];',
     '  };',
+    '  this.$final = function () {',
+    '    this.FItems = undefined;',
+    '  };',
     '  this.GetItems = function (Index) {',
     '    var Result = 0;',
     '    Result = this.FItems[Index];',
@@ -5101,6 +5300,9 @@ begin
     '  this.$init = function () {',
     '    this.FItems = [];',
     '  };',
+    '  this.$final = function () {',
+    '    this.FItems = undefined;',
+    '  };',
     '  this.GetItems = function () {',
     '    var Result = [];',
     '    Result = this.FItems;',
@@ -5108,8 +5310,8 @@ begin
     '  };',
     '  this.SetItems = function (Value) {',
     '    this.FItems = Value;',
-    '    this.FItems = null;',
-    '    this.SetItems(null);',
+    '    this.FItems = [];',
+    '    this.SetItems([]);',
     '    this.SetItems(this.GetItems());',
     '    this.GetItems()[1] = 2;',
     '    this.FItems[3] = this.GetItems()[4];',
@@ -5122,7 +5324,7 @@ begin
     'this.Obj = null;'
     ]),
     LinesToStr([ // this.$main
-    'this.Obj.SetItems(null);',
+    'this.Obj.SetItems([]);',
     'this.Obj.SetItems(this.Obj.GetItems());',
     'this.Obj.GetItems()[11] = this.Obj.GetItems()[12];'
     ]));
@@ -5161,6 +5363,9 @@ begin
     '  this.$init = function () {',
     '    this.FItems = [];',
     '  };',
+    '  this.$final = function () {',
+    '    this.FItems = undefined;',
+    '  };',
     '  this.GetItems = function (Index) {',
     '    var Result = 0;',
     '    return Result;',
@@ -5198,6 +5403,8 @@ begin
     LinesToStr([ // statements
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
     '  };',
     '});',
     'this.Obj = null;',
@@ -5246,6 +5453,9 @@ begin
     '  this.$init = function () {',
     '    this.aBool = false;',
     '    this.Arr = [];',
+    '  };',
+    '  this.$final = function () {',
+    '    this.Arr = undefined;',
     '  };',
     '  this.Create = function () {',
     '  };',
@@ -5308,6 +5518,8 @@ begin
     '  this.$init = function () {',
     '    this.FInt = 0;',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.Create = function () {',
     '  };',
     '  this.GetSize = function () {',
@@ -5365,6 +5577,8 @@ begin
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.Create = function () {',
     '  };',
     '  this.GetItems = function (Index) {',
@@ -5418,6 +5632,8 @@ begin
     LinesToStr([ // statements
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
     '  };',
     '  this.Create = function () {',
     '  };',
@@ -5474,6 +5690,9 @@ begin
     '  this.$init = function () {',
     '    this.Next = null;',
     '  };',
+    '  this.$final = function () {',
+    '    this.Next = undefined;',
+    '  };',
     '  this.Create = function () {',
     '  };',
     '});',
@@ -5481,6 +5700,10 @@ begin
     '  this.$init = function () {',
     '    pas.program.TObject.$init.call(this);',
     '    this.Arr = [];',
+    '  };',
+    '  this.$final = function () {',
+    '    this.Arr = undefined;',
+    '    pas.program.TObject.$final.call(this);',
     '  };',
     '  this.GetIt = function (vI) {',
     '    var Result = null;',
@@ -5497,6 +5720,91 @@ begin
     'this.Obj = this.Obj.GetIt(0);',
     'this.Obj = this.Obj.GetIt(1);',
     'this.Obj = this.Obj.GetIt(0).Arr[2];',
+    '']));
+end;
+
+procedure TTestModule.TestClass_TypeCastUntypedParam;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('procedure ProcA(var A);');
+  Add('begin');
+  Add('  TObject(A):=nil;');
+  Add('  TObject(A):=TObject(A);');
+  Add('  if TObject(A)=nil then ;');
+  Add('  if nil=TObject(A) then ;');
+  Add('end;');
+  Add('procedure ProcB(out A);');
+  Add('begin');
+  Add('  TObject(A):=nil;');
+  Add('  TObject(A):=TObject(A);');
+  Add('  if TObject(A)=nil then ;');
+  Add('  if nil=TObject(A) then ;');
+  Add('end;');
+  Add('procedure ProcC(const A);');
+  Add('begin');
+  Add('  if TObject(A)=nil then ;');
+  Add('  if nil=TObject(A) then ;');
+  Add('end;');
+  Add('var o: TObject;');
+  Add('begin');
+  Add('  ProcA(o);');
+  Add('  ProcB(o);');
+  Add('  ProcC(o);');
+  ConvertProgram;
+  CheckSource('TestClass_TypeCastUntypedParam',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.ProcA = function (A) {',
+    '  A.set(null);',
+    '  A.set(A.get());',
+    '  if (A.get() == null) {',
+    '  };',
+    '  if (null == A.get()) {',
+    '  };',
+    '};',
+    'this.ProcB = function (A) {',
+    '  A.set(null);',
+    '  A.set(A.get());',
+    '  if (A.get() == null) {',
+    '  };',
+    '  if (null == A.get()) {',
+    '  };',
+    '};',
+    'this.ProcC = function (A) {',
+    '  if (A == null) {',
+    '  };',
+    '  if (null == A) {',
+    '  };',
+    '};',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.ProcA({',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.o;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.o = v;',
+    '    }',
+    '});',
+    'this.ProcB({',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.o;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.o = v;',
+    '    }',
+    '});',
+    'this.ProcC(this.o);',
     '']));
 end;
 
@@ -5520,6 +5828,8 @@ begin
     LinesToStr([ // statements
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
     '  };',
     '  this.DoIt = function () {',
     '    this.DoIt();',
@@ -5566,6 +5876,8 @@ begin
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.DoIt = function (vA) {',
     '    this.DoIt(1);',
     '    this.DoIt$1(1,2);',
@@ -5574,9 +5886,6 @@ begin
     '  };',
     '});',
     'rtl.createClass(this, "TCar", this.TObject, function () {',
-    '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
-    '  };',
     '  this.DoIt$2 = function (vA) {',
     '    this.DoIt$2(1);',
     '    this.DoIt$3(1, 2);',
@@ -5628,6 +5937,8 @@ begin
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.Create = function (vA) {',
     '    this.Create(1);',
     '    this.Create$1(1,2);',
@@ -5636,9 +5947,6 @@ begin
     '  };',
     '});',
     'rtl.createClass(this, "TCar", this.TObject, function () {',
-    '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
-    '  };',
     '  this.Create$2 = function (vA) {',
     '    this.Create$2(1);',
     '    this.Create$3(1, 2);',
@@ -5687,6 +5995,8 @@ begin
     '  this.$init = function () {',
     '    this.Some = 0;',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '});',
     'rtl.createClass(this, "TMobile", this.TObject, function () {',
     '  this.$init = function () {',
@@ -5695,9 +6005,6 @@ begin
     '  };',
     '});',
     'rtl.createClass(this, "TCar", this.TMobile, function () {',
-    '  this.$init = function () {',
-    '    pas.program.TMobile.$init.call(this);',
-    '  };',
     '  this.Some$2 = function () {',
     '    this.Some$2();',
     '    this.Some$3(1);',
@@ -5730,6 +6037,8 @@ begin
     LinesToStr([ // statements
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
     '  };',
     '  this.Create = function () {',
     '  };',
@@ -5764,6 +6073,8 @@ begin
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.DoIt = function () {',
     '  };',
     '});',
@@ -5796,6 +6107,9 @@ begin
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.ClassType = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.ClassType = undefined;',
     '  };',
     '});',
     'this.Obj = null;',
@@ -5839,6 +6153,9 @@ begin
     '  this.$init = function () {',
     '    this.ClassType = null;',
     '  };',
+    '  this.$final = function () {',
+    '    this.ClassType = undefined;',
+    '  };',
     '});',
     'this.b = false;',
     'this.Obj = null;',
@@ -5879,6 +6196,8 @@ begin
     '  this.id = 0;',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '});',
     'this.C = null;'
     ]),
@@ -5909,6 +6228,8 @@ begin
     LinesToStr([ // statements
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
     '  };',
     '  this.DoIt = function (i) {',
     '    var Result = 0;',
@@ -5967,6 +6288,8 @@ begin
     '  this.FA = 0;',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.GetA = function () {',
     '    var Result = 0;',
     '    return Result;',
@@ -6021,6 +6344,8 @@ begin
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.GlobalId = 0;',
     '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
     '  };',
     '  this.ProcA = function () {',
     '    var b = false;',
@@ -6087,15 +6412,14 @@ begin
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.DoIt = function () {',
     '    this.DoIt();',
     '    this.DoIt$1();',
     '  };',
     '});',
     'rtl.createClass(this, "TMobile", this.TObject, function () {',
-    '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
-    '  };',
     '  this.DoIt$1 = function () {',
     '    this.DoIt();',
     '    this.DoIt$1();',
@@ -6103,9 +6427,6 @@ begin
     '  };',
     '});',
     'rtl.createClass(this, "TCar", this.TMobile, function () {',
-    '  this.$init = function () {',
-    '    pas.program.TMobile.$init.call(this);',
-    '  };',
     '  this.DoIt$2 = function () {',
     '  };',
     '});',
@@ -6169,20 +6490,20 @@ begin
     LinesToStr([ // this.$main
     'this.vP = null;',
     'this.vP = this.vP;',
-    'this.vP = rtl.createCallback(this,this.DoIt);',
+    'this.vP = rtl.createCallback(this,"DoIt");',
     'this.vP(1);',
     'this.vP(1);',
     'this.vP(2);',
     'this.b = this.vP == null;',
     'this.b = null == this.vP;',
     'this.b = rtl.eqCallback(this.vP,this.vQ);',
-    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this, this.DoIt));',
-    'this.b = rtl.eqCallback(rtl.createCallback(this, this.DoIt), this.vP);',
+    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this, "DoIt"));',
+    'this.b = rtl.eqCallback(rtl.createCallback(this, "DoIt"), this.vP);',
     'this.b = this.vP != null;',
     'this.b = null != this.vP;',
     'this.b = !rtl.eqCallback(this.vP,this.vQ);',
-    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this, this.DoIt));',
-    'this.b = !rtl.eqCallback(rtl.createCallback(this, this.DoIt), this.vP);',
+    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this, "DoIt"));',
+    'this.b = !rtl.eqCallback(rtl.createCallback(this, "DoIt"), this.vP);',
     'this.b = this.vP != null;',
     '']));
 end;
@@ -6237,21 +6558,21 @@ begin
     LinesToStr([ // this.$main
     'this.vP = null;',
     'this.vP = this.vP;',
-    'this.vP = rtl.createCallback(this,this.DoIt);',
+    'this.vP = rtl.createCallback(this,"DoIt");',
     'this.vP(1);',
     'this.vP(1);',
     'this.vP(2);',
     'this.b = this.vP == null;',
     'this.b = null == this.vP;',
     'this.b = rtl.eqCallback(this.vP,this.vQ);',
-    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this, this.DoIt));',
-    'this.b = rtl.eqCallback(rtl.createCallback(this, this.DoIt), this.vP);',
+    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this, "DoIt"));',
+    'this.b = rtl.eqCallback(rtl.createCallback(this, "DoIt"), this.vP);',
     'this.b = 4 == this.vP(1);',
     'this.b = this.vP != null;',
     'this.b = null != this.vP;',
     'this.b = !rtl.eqCallback(this.vP,this.vQ);',
-    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this, this.DoIt));',
-    'this.b = !rtl.eqCallback(rtl.createCallback(this, this.DoIt), this.vP);',
+    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this, "DoIt"));',
+    'this.b = !rtl.eqCallback(rtl.createCallback(this, "DoIt"), this.vP);',
     'this.b = 6 != this.vP(1);',
     'this.b = this.vP != null;',
     'this.DoIt(this.vP(1));',
@@ -6310,8 +6631,8 @@ begin
     LinesToStr([ // this.$main
     'this.vP = null;',
     'this.vP = this.vP;',
-    'this.vP = rtl.createCallback(this,this.DoIt);',
-    'this.vP = rtl.createCallback(this,this.DoIt);',
+    'this.vP = rtl.createCallback(this,"DoIt");',
+    'this.vP = rtl.createCallback(this,"DoIt");',
     'this.vP(1);',
     'this.vP(1);',
     'this.vP(2);',
@@ -6427,6 +6748,8 @@ begin
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.DoIt = function (vA) {',
     '    var Result = 0;',
     '    return Result;',
@@ -6437,14 +6760,14 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([
-    'this.vP = rtl.createCallback(this.Obj, this.TObject.DoIt);',
+    'this.vP = rtl.createCallback(this.Obj, "DoIt");',
     'this.vP(1);',
     'this.vP(1);',
     'this.vP(2);',
-    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this.Obj, this.TObject.DoIt));',
-    'this.b = rtl.eqCallback(rtl.createCallback(this.Obj, this.TObject.DoIt), this.vP);',
-    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this.Obj, this.TObject.DoIt));',
-    'this.b = !rtl.eqCallback(rtl.createCallback(this.Obj, this.TObject.DoIt), this.vP);',
+    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this.Obj, "DoIt"));',
+    'this.b = rtl.eqCallback(rtl.createCallback(this.Obj, "DoIt"), this.vP);',
+    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this.Obj, "DoIt"));',
+    'this.b = !rtl.eqCallback(rtl.createCallback(this.Obj, "DoIt"), this.vP);',
     '']));
 end;
 
@@ -6480,6 +6803,8 @@ begin
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
+    '  this.$final = function () {',
+    '  };',
     '  this.DoIt = function (vA) {',
     '    var Result = 0;',
     '    return Result;',
@@ -6490,8 +6815,8 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([
-    'this.vP = rtl.createCallback(this.Obj, this.TObject.DoIt);',
-    'this.vP = rtl.createCallback(this.Obj, this.TObject.DoIt);',
+    'this.vP = rtl.createCallback(this.Obj, "DoIt");',
+    'this.vP = rtl.createCallback(this.Obj, "DoIt");',
     'this.vP(1);',
     'this.vP(1);',
     'this.vP(2);',
@@ -6573,6 +6898,9 @@ begin
     '  this.$init = function () {',
     '    this.FOnFoo = null;',
     '  };',
+    '  this.$final = function () {',
+    '    this.FOnFoo = undefined;',
+    '  };',
     '  this.DoIt = function (vA) {',
     '    var Result = 0;',
     '    return Result;',
@@ -6601,9 +6929,9 @@ begin
     'this.Obj.FOnFoo = this.Obj.FOnFoo;',
     'this.Obj.SetFoo(this.Obj.GetFoo());',
     'this.Obj.SetEvents(2, this.Obj.GetEvents(3));',
-    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, this.TObject.DoIt);',
-    'this.Obj.SetFoo(rtl.createCallback(this.Obj, this.TObject.DoIt));',
-    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, "DoIt");',
+    'this.Obj.SetFoo(rtl.createCallback(this.Obj, "DoIt"));',
+    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, "DoIt"));',
     'this.Obj.FOnFoo(1);',
     'this.Obj.GetFoo();',
     'this.Obj.FOnFoo(1);',
@@ -6624,12 +6952,12 @@ begin
     'this.b = !rtl.eqCallback(this.Obj.FOnFoo, this.Obj.FOnFoo);',
     'this.b = !rtl.eqCallback(this.Obj.GetFoo(), this.Obj.FOnFoo);',
     'this.b = !rtl.eqCallback(this.Obj.GetEvents(11), this.Obj.FOnFoo);',
-    'this.b = rtl.eqCallback(this.Obj.FOnFoo, rtl.createCallback(this.Obj, this.TObject.DoIt));',
-    'this.b = rtl.eqCallback(this.Obj.GetFoo(), rtl.createCallback(this.Obj, this.TObject.DoIt));',
-    'this.b = rtl.eqCallback(this.Obj.GetEvents(12), rtl.createCallback(this.Obj, this.TObject.DoIt));',
-    'this.b = !rtl.eqCallback(this.Obj.FOnFoo, rtl.createCallback(this.Obj, this.TObject.DoIt));',
-    'this.b = !rtl.eqCallback(this.Obj.GetFoo(), rtl.createCallback(this.Obj, this.TObject.DoIt));',
-    'this.b = !rtl.eqCallback(this.Obj.GetEvents(12), rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.b = rtl.eqCallback(this.Obj.FOnFoo, rtl.createCallback(this.Obj, "DoIt"));',
+    'this.b = rtl.eqCallback(this.Obj.GetFoo(), rtl.createCallback(this.Obj, "DoIt"));',
+    'this.b = rtl.eqCallback(this.Obj.GetEvents(12), rtl.createCallback(this.Obj, "DoIt"));',
+    'this.b = !rtl.eqCallback(this.Obj.FOnFoo, rtl.createCallback(this.Obj, "DoIt"));',
+    'this.b = !rtl.eqCallback(this.Obj.GetFoo(), rtl.createCallback(this.Obj, "DoIt"));',
+    'this.b = !rtl.eqCallback(this.Obj.GetEvents(12), rtl.createCallback(this.Obj, "DoIt"));',
     'this.b = this.Obj.FOnFoo != null;',
     'this.b = this.Obj.GetFoo() != null;',
     'this.b = this.Obj.GetEvents(13) != null;',
@@ -6712,6 +7040,9 @@ begin
     '  this.$init = function () {',
     '    this.FOnFoo = null;',
     '  };',
+    '  this.$final = function () {',
+    '    this.FOnFoo = undefined;',
+    '  };',
     '  this.DoIt = function (vA) {',
     '    var Result = 0;',
     '    return Result;',
@@ -6740,12 +7071,12 @@ begin
     'this.Obj.FOnFoo = this.Obj.FOnFoo;',
     'this.Obj.SetFoo(this.Obj.GetFoo());',
     'this.Obj.SetEvents(2, this.Obj.GetEvents(3));',
-    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, this.TObject.DoIt);',
-    'this.Obj.SetFoo(rtl.createCallback(this.Obj, this.TObject.DoIt));',
-    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, this.TObject.DoIt));',
-    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, this.TObject.DoIt);',
-    'this.Obj.SetFoo(rtl.createCallback(this.Obj, this.TObject.DoIt));',
-    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, this.TObject.DoIt));',
+    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, "DoIt");',
+    'this.Obj.SetFoo(rtl.createCallback(this.Obj, "DoIt"));',
+    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, "DoIt"));',
+    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, "DoIt");',
+    'this.Obj.SetFoo(rtl.createCallback(this.Obj, "DoIt"));',
+    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, "DoIt"));',
     'this.Obj.FOnFoo(1);',
     'this.Obj.GetFoo();',
     'this.Obj.FOnFoo(1);',
@@ -6835,6 +7166,9 @@ begin
     '  this.$init = function () {',
     '    this.FOnFoo = null;',
     '  };',
+    '  this.$final = function () {',
+    '    this.FOnFoo = undefined;',
+    '  };',
     '  this.DoIt = function (vA) {',
     '    var Result = 0;',
     '    return Result;',
@@ -6858,9 +7192,9 @@ begin
     '$with1.FOnFoo = $with1.FOnFoo;',
     '$with1.FOnFoo = $with1.FOnFoo;',
     '$with1.SetFoo($with1.GetFoo());',
-    '$with1.FOnFoo = rtl.createCallback($with1, this.TObject.DoIt);',
-    '$with1.FOnFoo = rtl.createCallback($with1, this.TObject.DoIt);',
-    '$with1.SetFoo(rtl.createCallback($with1, this.TObject.DoIt));',
+    '$with1.FOnFoo = rtl.createCallback($with1, "DoIt");',
+    '$with1.FOnFoo = rtl.createCallback($with1, "DoIt");',
+    '$with1.SetFoo(rtl.createCallback($with1, "DoIt"));',
     '$with1.FOnFoo(1);',
     '$with1.FOnFoo(1);',
     '$with1.GetFoo();',
@@ -6882,12 +7216,12 @@ begin
     'this.b = !rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
     'this.b = !rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
     'this.b = !rtl.eqCallback($with1.GetFoo(), $with1.FOnFoo);',
-    'this.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, this.TObject.DoIt));',
-    'this.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, this.TObject.DoIt));',
-    'this.b = rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, this.TObject.DoIt));',
-    'this.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, this.TObject.DoIt));',
-    'this.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, this.TObject.DoIt));',
-    'this.b = !rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, this.TObject.DoIt));',
+    'this.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
+    'this.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
+    'this.b = rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, "DoIt"));',
+    'this.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
+    'this.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
+    'this.b = !rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, "DoIt"));',
     'this.b = $with1.FOnFoo != null;',
     'this.b = $with1.FOnFoo != null;',
     'this.b = $with1.GetFoo() != null;',
