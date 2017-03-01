@@ -1012,8 +1012,11 @@ implementation
               end;
           end;
 
-         { only need to get the address of the procedure? }
-         if getaddr then
+         { only need to get the address of the procedure? Check token because
+           in the case of opening parenthesis is possible to get pointer to 
+           function result (lack of checking for token was the reason of
+           tw10933.pp test failure) }
+         if getaddr and (token<>_LKLAMMER) then
            begin
              { for now we don't support pointers to generic functions, but since
                this is only temporary we use a non translated message }
