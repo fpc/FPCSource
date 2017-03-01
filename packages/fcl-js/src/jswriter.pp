@@ -20,7 +20,7 @@ unit jswriter;
 interface
 
 uses
-  {Classes, } SysUtils, jstoken, jsbase, jstree;
+  SysUtils, jstoken, jsbase, jstree;
 
 Type
 
@@ -31,7 +31,7 @@ Type
     Function DoWrite(Const S : AnsiString) : Integer; virtual; abstract;
     Function DoWrite(Const S : UnicodeString) : Integer; virtual; abstract;
   Public
-    // All functions return the numberof bytes copied to output stream.
+    // All functions return the number of bytes copied to output stream.
     Function Write(Const S : UnicodeString) : Integer;
     Function Write(Const S : AnsiString) : Integer;
     Function WriteLn(Const S : AnsiString) : Integer;
@@ -58,6 +58,7 @@ Type
   end;
 
   { TBufferWriter }
+
   TBytes = Array of byte;
   TBufferWriter = Class(TTextWriter)
   private
@@ -157,8 +158,7 @@ Type
     Procedure WritePrimaryExpression(El: TJSPrimaryExpression);virtual;
     Procedure WriteBinary(El: TJSBinary);virtual;
   Public
-    Function EscapeString(const S: TJSString; Quote: TJSEscapeQuote = jseqDouble): String;
-    Function JSStringToStr(const S: TJSString): string;
+    Function EscapeString(const S: TJSString; Quote: TJSEscapeQuote = jseqDouble): TJSString;
     Constructor Create(AWriter : TTextWriter);
     Constructor Create(Const AFileName : String);
     Destructor Destroy; override;
@@ -172,11 +172,30 @@ Type
   end;
   EJSWriter = Class(Exception);
 
+Function UTF16ToUTF8(const S: UnicodeString): string;
+
 implementation
 
 Resourcestring
   SErrUnknownJSClass = 'Unknown javascript element class : %s';
   SErrNilNode = 'Nil node in Javascript';
+
+function HexDump(p: PChar; Count: integer): string;
+var
+  i: Integer;
+begin
+  Result:='';
+  for i:=0 to Count-1 do
+    Result:=Result+HexStr(ord(p[i]),2);
+end;
+
+function UTF16ToUTF8(const S: UnicodeString): string;
+begin
+  Result:=UTF8Encode(S);
+  // prevent UTF8 codepage appear in the strings - we don't need codepage
+  // conversion magic
+  SetCodePage(RawByteString(Result), CP_ACP, False);
+end;
 
 { TBufferWriter }
 
@@ -332,13 +351,13 @@ end;
 procedure TJSWriter.Write(const U: UnicodeString);
 
 Var
-  S : UTF8String;
+  S : String;
 
 begin
   WriteIndent;
   if UseUTF8 then
     begin
-    S:=UTF8Encode(U);
+    S:=UTF16ToUTF8(U);
     FLinePos:=FLinePos+Writer.Write(S);
     end
   else
@@ -370,12 +389,12 @@ end;
 
 procedure TJSWriter.WriteLn(const U: UnicodeString);
 Var
-  S : UTF8String;
+  S : String;
 
 begin
   if UseUTF8 then
     begin
-    S:=UTF8Encode(U);
+    S:=UTF16ToUTF8(U);
     Writeln(S);
     end
   else
@@ -387,81 +406,153 @@ begin
 end;
 
 function TJSWriter.EscapeString(const S: TJSString; Quote: TJSEscapeQuote
-  ): String;
+  ): TJSString;
 
 Var
   I,J,L : Integer;
   P : TJSPChar;
+  R: TJSString;
 
 begin
   I:=1;
   J:=1;
-  Result:='';
+  R:='';
   L:=Length(S);
   P:=TJSPChar(S);
   While I<=L do
     begin
     if (P^ in [#0..#31,'"','''','/','\']) then
       begin
-      Result:=Result+JSStringToStr(Copy(S,J,I-J));
+      R:=R+Copy(S,J,I-J);
       Case P^ of
-        '\' : Result:=Result+'\\';
-        '/' : Result:=Result+'\/';
-        '"' : if Quote=jseqSingle then Result:=Result+'"' else Result:=Result+'\"';
-        '''': if Quote=jseqDouble then Result:=Result+'''' else Result:=Result+'\''';
-        #0..#7,#11,#14..#31: Result:=Result+'\x'+hexStr(ord(P^),2);
-        #8  : Result:=Result+'\b';
-        #9  : Result:=Result+'\t';
-        #10 : Result:=Result+'\n';
-        #12 : Result:=Result+'\f';
-        #13 : Result:=Result+'\r';
+        '\' : R:=R+'\\';
+        '/' : R:=R+'\/';
+        '"' : if Quote=jseqSingle then R:=R+'"' else R:=R+'\"';
+        '''': if Quote=jseqDouble then R:=R+'''' else R:=R+'\''';
+        #0..#7,#11,#14..#31: R:=R+'\x'+TJSString(hexStr(ord(P^),2));
+        #8  : R:=R+'\b';
+        #9  : R:=R+'\t';
+        #10 : R:=R+'\n';
+        #12 : R:=R+'\f';
+        #13 : R:=R+'\r';
       end;
       J:=I+1;
       end;
     Inc(I);
     Inc(P);
     end;
-  Result:=Result+JSStringToStr(Copy(S,J,I-1));
-end;
-
-function TJSWriter.JSStringToStr(const S: TJSString): string;
-begin
-  if UseUTF8 then
-    Result:=UTF8Encode(S)
-  else
-    Result:=String(S);
+  R:=R+Copy(S,J,I-1);
+  Result:=R;
 end;
 
 procedure TJSWriter.WriteValue(V: TJSValue);
+const
+  TabWidth = 4;
+
+  function GetLineIndent(var p: PWideChar): integer;
+  var
+    h: PWideChar;
+  begin
+    h:=p;
+    Result:=0;
+    repeat
+      case h^ of
+      #0: break;
+      #9: Result:=Result+(TabWidth-Result mod TabWidth);
+      ' ': inc(Result);
+      else break;
+      end;
+      inc(h);
+    until false;
+    p:=h;
+  end;
+
+  function SkipToNextLineStart(p: PWideChar): PWideChar;
+  begin
+    repeat
+      case p^ of
+      #0: break;
+      #10,#13:
+        begin
+        if (p[1] in [#10,#13]) and (p^<>p[1]) then
+          inc(p,2)
+        else
+          inc(p);
+        break;
+        end
+      else inc(p);
+      end;
+    until false;
+    Result:=p;
+  end;
 
 Var
   S : String;
   JS: TJSString;
+  p, StartP: PWideChar;
+  MinIndent, CurLineIndent: Integer;
 begin
   if V.CustomValue<>'' then
-    S:=JSStringToStr(V.CustomValue)
-  else
-    Case V.ValueType of
-      jstUNDEFINED : S:='undefined';
-      jstNull : s:='null';
-      jstBoolean : if V.AsBoolean then s:='true' else s:='false';
-      jstString :
-        begin
-        JS:=V.AsString;
-        if Pos('"',JS)>0 then
-          S:=''''+EscapeString(JS,jseqSingle)+''''
-        else
-          S:='"'+EscapeString(JS,jseqDouble)+'"';
-        end;
-      jstNumber :
-        if Frac(V.AsNumber)=0 then // this needs to be improved
-          Str(Round(V.AsNumber),S)
-        else
-          Str(V.AsNumber,S);
-      jstObject : ;
-      jstReference : ;
-      JSTCompletion : ;
+    begin
+    JS:=V.CustomValue;
+    if JS='' then exit;
+
+    p:=SkipToNextLineStart(PWideChar(JS));
+    if p^=#0 then
+      begin
+      // simple value
+      Write(JS);
+      exit;
+      end;
+
+    // multi line value
+
+    // find minimum indent
+    MinIndent:=-1;
+    repeat
+      CurLineIndent:=GetLineIndent(p);
+      if (MinIndent<0) or (MinIndent>CurLineIndent) then
+        MinIndent:=CurLineIndent;
+      p:=SkipToNextLineStart(p);
+    until p^=#0;
+
+    // write value lines indented
+    p:=PWideChar(JS);
+    GetLineIndent(p); // the first line is already indented, skip
+    repeat
+      StartP:=p;
+      p:=SkipToNextLineStart(StartP);
+      Write(copy(JS,StartP-PWideChar(JS)+1,p-StartP));
+      if p^=#0 then break;
+      CurLineIndent:=GetLineIndent(p);
+      Write(StringOfChar(FIndentChar,FCurIndent+CurLineIndent-MinIndent));
+    until false;
+
+    exit;
     end;
+  Case V.ValueType of
+    jstUNDEFINED : S:='undefined';
+    jstNull : s:='null';
+    jstBoolean : if V.AsBoolean then s:='true' else s:='false';
+    jstString :
+      begin
+      JS:=V.AsString;
+      if Pos('"',JS)>0 then
+        JS:=''''+EscapeString(JS,jseqSingle)+''''
+      else
+        JS:='"'+EscapeString(JS,jseqDouble)+'"';
+      Write(JS);
+      exit;
+      end;
+    jstNumber :
+      if Frac(V.AsNumber)=0 then // this needs to be improved
+        Str(Round(V.AsNumber),S)
+      else
+        Str(V.AsNumber,S);
+    jstObject : ;
+    jstReference : ;
+    JSTCompletion : ;
+  end;
   Write(S);
 end;
 
@@ -680,10 +771,24 @@ end;
 
 procedure TJSWriter.WriteMemberExpression(El: TJSMemberExpression);
 
+var
+  MExpr: TJSElement;
 begin
   if El is TJSNewMemberExpression then
     Write('new ');
-  WriteJS(El.MExpr);
+  MExpr:=El.MExpr;
+  if (MExpr is TJSPrimaryExpression)
+      or (MExpr is TJSDotMemberExpression)
+      or (MExpr is TJSBracketMemberExpression)
+      or (MExpr is TJSCallExpression)
+      or (MExpr is TJSLiteral) then
+    WriteJS(MExpr)
+  else
+    begin
+    Write('(');
+    WriteJS(MExpr);
+    Write(')');
+    end;
   if El is TJSDotMemberExpression then
     begin
     write('.');
@@ -1309,23 +1414,23 @@ begin
   Result:=DoWrite(S);
 end;
 
-Function TTextWriter.Write(Const S: String) : integer;
+Function TTextWriter.Write(Const S: AnsiString) : integer;
 begin
   Result:=DoWrite(S);
 end;
 
-Function TTextWriter.WriteLn(Const S: String) : Integer;
+Function TTextWriter.WriteLn(Const S: AnsiString) : Integer;
 begin
   Result:=DoWrite(S)+DoWrite(sLineBreak);
 end;
 
-Function TTextWriter.Write(Const Fmt: String; Args: Array of const) : Integer;
+Function TTextWriter.Write(Const Fmt: AnsiString; Args: Array of const) : Integer;
 
 begin
   Result:=DoWrite(Format(Fmt,Args));
 end;
 
-Function TTextWriter.WriteLn(Const Fmt: String; Args: Array of const) : integer;
+Function TTextWriter.WriteLn(Const Fmt: AnsiString; Args: Array of const) : integer;
 begin
   Result:=WriteLn(Format(Fmt,Args));
 end;
