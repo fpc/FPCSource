@@ -40,36 +40,48 @@ var rtl = {
     rtl.debug('Warn: ',s);
   },
 
-  isArray: function isArray(a) {
+  isArray: function(a) {
     return a instanceof Array;
   },
 
-  isNumber: function isNumber(n){
+  isNumber: function(n){
     return typeof(n)=="number";
   },
 
-  isInteger: function isInteger(A){
+  isInteger: function(A){
     return Math.floor(A)===A;
   },
 
-  isBoolean: function isBoolean(b){
+  isBoolean: function(b){
     return typeof(b)=="boolean";
   },
 
-  isString: function isString(s){
+  isString: function(s){
     return typeof(s)=="string";
   },
 
-  isObject: function isObject(o){
+  isObject: function(o){
     return typeof(o)=="object";
   },
 
-  isFunction: function isFunction(f){
+  isFunction: function(f){
     return typeof(f)=="function";
   },
 
-  isNull: function isNull(o){
+  isNull: function(o){
     return (o==null && typeof(o)=='object') || o==undefined;
+  },
+
+  isRecord: function(r){
+    return (typeof(r)=="function") && (typeof(r.$create) == "function");
+  },
+
+  isClass: function(c){
+    return (typeof(o)=="object") && (o.$class == o);
+  },
+
+  isClassInstance: function(c){
+    return (typeof(o)=="object") && (o.$class == Object.getPrototypeOf(o));
   },
 
   hasString: function(s){
@@ -97,11 +109,12 @@ var rtl = {
 
   run: function(module_name){
     if (module_name==undefined) module_name='program';
+    if (rtl.debug_load_units) rtl.debug('rtl.run module="'+module_name+'"');
     var module = pas[module_name];
     rtl.loadintf(module);
     rtl.loadimpl(module);
     if (module_name=='program'){
-      rtl.debug('running $main');
+      if (rtl.debug_load_units) rtl.debug('running $main');
       pas.program.$main();
     }
     return pas.System.ExitCode;
@@ -109,14 +122,14 @@ var rtl = {
 
   loadintf: function(module){
     if (module.state>rtl.m_loading_intf) return; // already finished
-    rtl.debug('loadintf: '+module.$name);
+    if (rtl.debug_load_units) rtl.debug('loadintf: '+module.$name);
     if (module.$state==rtl.m_loading_intf)
       rtl.error('unit cycle detected "'+module.$name+'"');
     module.$state=rtl.m_loading_intf;
     // load interfaces of interface useslist
     rtl.loaduseslist(module,module.$intfuseslist,rtl.loadintf);
     // run interface
-    rtl.debug('loadintf: run intf of '+module.$name);
+    if (rtl.debug_load_units) rtl.debug('loadintf: run intf of '+module.$name);
     module.$code(module.$intfuseslist,module);
     // success
     module.$state=rtl.m_intf_loaded;
@@ -127,7 +140,7 @@ var rtl = {
     if (useslist==undefined) return;
     for (var i in useslist){
       var unitname=useslist[i];
-      //rtl.debug('loaduseslist of "'+module.name+'" uses="'+unitname+'"');
+      if (rtl.debug_load_units) rtl.debug('loaduseslist of "'+module.name+'" uses="'+unitname+'"');
       if (pas[unitname]==undefined)
         rtl.error('module "'+module.$name+'" misses "'+unitname+'"');
       f(pas[unitname]);
@@ -137,7 +150,7 @@ var rtl = {
   loadimpl: function(module){
     if (module.$state>=rtl.m_loading_impl) return; // already processing
     if (module.$state<rtl.m_loading_intf) rtl.loadintf(module);
-    rtl.debug('loadimpl: '+module.$name+' load uses');
+    if (rtl.debug_load_units) rtl.debug('loadimpl: '+module.$name+' load uses');
     module.$state=rtl.m_loading_impl;
     // load implementation of interfaces useslist
     rtl.loaduseslist(module,module.$intfuseslist,rtl.loadimpl);
@@ -148,7 +161,7 @@ var rtl = {
     // initialized. This is by design.
 
     // run initialization
-    rtl.debug('loadimpl: '+module.$name+' run init');
+    if (rtl.debug_load_units) rtl.debug('loadimpl: '+module.$name+' run init');
     module.$state=rtl.m_initializing;
     if (rtl.isFunction(module.$init))
       module.$init();
@@ -156,24 +169,24 @@ var rtl = {
     module.$state=rtl.m_initialized;
   },
 
-  createCallback: function(scope, fn){
+  createCallback: function(scope, fnname){
     var cb = function(){
-      return fn.apply(scope,arguments);
+      return scope[fnname].apply(scope,arguments);
     };
-    cb.fn = fn;
     cb.scope = scope;
+    cb.fnname = fnname;
     return cb;
   },
 
   cloneCallback: function(cb){
-    return rtl.createCallback(cb.scope,cb.fn);
+    return rtl.createCallback(cb.scope,cb.fnname);
   },
 
   eqCallback: function(a,b){
     if (a==null){
       return (b==null);
     } else {
-      return (b!=null) && (a.scope==b.scope) && (a.fn==b.fn);
+      return (b!=null) && (a.scope==b.scope) && (a.fnname==b.fnname);
     }
   },
 
@@ -188,14 +201,15 @@ var rtl = {
         var o = Object.create(this);
         o.$class = this; // Note: o.$class == Object.getPrototypeOf(o)
         if (args == undefined) args = [];
-        o[fnname].apply(o,args);
         o.$init();
+        o[fnname].apply(o,args);
         o.AfterConstruction();
         return o;
       };
       c.$destroy = function(fnname){
         this.BeforeDestruction();
-        this[fnname].apply(obj,[]);
+        this[fnname]();
+        this.$final;
       };
     };
     c.$classname = name;
@@ -211,8 +225,6 @@ var rtl = {
   },
 
   arraySetLength: function(arr,newlength,defaultvalue){
-    if (newlength == 0) return null;
-    if (arr == null) arr = [];
     var oldlen = arr.length;
     if (oldlen==newlength) return;
     arr.length = newlength;
@@ -229,7 +241,7 @@ var rtl = {
   arrayNewMultiDim: function(dims,defaultvalue){
     function create(dim){
       if (dim == dims.length-1){
-        return rtl.arraySetLength(null,dims[dim],defaultvalue);
+        return rtl.arraySetLength([],dims[dim],defaultvalue);
       }
       var a = [];
       var count = dims[dim];
@@ -238,14 +250,6 @@ var rtl = {
       return a;
     };
     return create(0);
-  },
-
-  stringSetLength: function(s,newlength){
-    s.length = newlength;
-  },
-
-  length: function(a){
-    return (a!=null) ? a.length : 0;
   },
 
   setCharAt: function(s,index,c){
@@ -272,9 +276,27 @@ var rtl = {
     return r;
   },
 
+  refSet: function(s){
+    s.$shared = true;
+    return s;
+  },
+
+  includeSet: function(s,enumvalue){
+    if (s.$shared) s = cloneSet(s);
+    s[enumvalue] = true;
+    return s;
+  },
+
+  excludeSet: function(s,enumvalue){
+    if (s.$shared) s = cloneSet(s);
+    delete s[enumvalue];
+    return s;
+  },
+
   diffSet: function(s,t){
     var r = {};
     for (var key in s) if (s.hasOwnProperty(key) && !t[key]) r[key]=true;
+    delete r.$shared;
     return r;
   },
 
@@ -282,12 +304,14 @@ var rtl = {
     var r = {};
     for (var key in s) if (s.hasOwnProperty(key)) r[key]=true;
     for (var key in t) if (t.hasOwnProperty(key)) r[key]=true;
+    delete r.$shared;
     return r;
   },
 
   intersectSet: function(s,t){
     var r = {};
     for (var key in s) if (s.hasOwnProperty(key) && t[key]) r[key]=true;
+    delete r.$shared;
     return r;
   },
 
@@ -295,12 +319,13 @@ var rtl = {
     var r = {};
     for (var key in s) if (s.hasOwnProperty(key) && !t[key]) r[key]=true;
     for (var key in t) if (t.hasOwnProperty(key) && !s[key]) r[key]=true;
+    delete r.$shared;
     return r;
   },
 
   eqSet: function(s,t){
-    for (var key in s) if (s.hasOwnProperty(key) && !t[key]) return false;
-    for (var key in t) if (t.hasOwnProperty(key) && !s[key]) return false;
+    for (var key in s) if (s.hasOwnProperty(key) && !t[key] && (key!='$shared')) return false;
+    for (var key in t) if (t.hasOwnProperty(key) && !s[key] && (key!='$shared')) return false;
     return true;
   },
 
@@ -309,12 +334,12 @@ var rtl = {
   },
 
   leSet: function(s,t){
-    for (var key in s) if (s.hasOwnProperty(key) && !t[key]) return false;
+    for (var key in s) if (s.hasOwnProperty(key) && !t[key] && (key!='$shared')) return false;
     return true;
   },
 
   geSet: function(s,t){
-    for (var key in t) if (t.hasOwnProperty(key) && !s[key]) return false;
+    for (var key in t) if (t.hasOwnProperty(key) && !s[key] && (key!='$shared')) return false;
     return true;
   },
 }
