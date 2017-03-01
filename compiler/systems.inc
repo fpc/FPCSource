@@ -50,7 +50,8 @@
              cpu_mipsel,                   { 13 }
              cpu_jvm,                      { 14 }
              cpu_i8086,                    { 15 }
-             cpu_aarch64                   { 16 }
+             cpu_aarch64,                  { 16 }
+             cpu_wasm                      { 17 }
        );
 
        tasmmode= (asmmode_none
@@ -173,7 +174,8 @@
              system_aarch64_linux,      { 88 }
              system_i8086_win16,        { 89 }
              system_i8086_embedded,     { 90 }
-             system_arm_aros            { 91 }
+             system_arm_aros,           { 91 }
+             system_wasm_wasm32         { 92 }
        );
 
      type
@@ -226,6 +228,7 @@
              ,as_solaris_as
              ,as_m68k_vasm
              ,as_m68k_as_aout
+             ,as_wasm_binaryen
        );
 
        tlink = (ld_none,
