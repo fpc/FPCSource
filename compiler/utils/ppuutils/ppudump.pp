@@ -78,7 +78,8 @@ const
     { 13 } 'mipsel',
     { 14 } 'jvm',
     { 15 } 'i8086',
-    { 16 } 'aarch64'
+    { 16 } 'aarch64',
+    { 17 } 'wasm'
     );
 
 { List of all supported system-cpu couples }
@@ -175,7 +176,8 @@ const
   { 88 }  'Linux-AArch64',
   { 89 }  'Win16',
   { 90 }  'Embedded-i8086',
-  { 91 }  'AROS-arm'
+  { 91 }  'AROS-arm',
+  { 92 }  'WebAssembly-wasm'
   );
 
 const
