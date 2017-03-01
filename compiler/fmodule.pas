@@ -29,7 +29,7 @@ unit fmodule;
 {$ifdef watcom}
   {$define shortasmprefix}
 {$endif}
-{$ifdef tos}
+{$ifdef atari}
   {$define shortasmprefix}
 {$endif}
 {$ifdef OS2}
