@@ -3519,7 +3519,7 @@ implementation
           for i:=0 to def.symtable.symlist.count-1 do
             begin
               sym:=tsym(def.symtable.symlist[i]);
-              if sym.typ<>fieldvarsym then
+              if (sym.typ<>fieldvarsym) or (sp_static in sym.symoptions) then
                 continue;
               if not is_valid_for_default(tfieldvarsym(sym).vardef) then
                 begin
