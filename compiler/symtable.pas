@@ -2949,6 +2949,13 @@ implementation
                        (
                          isspezproc and
                          (current_procinfo.procdef.struct=current_structdef)
+                       ) or
+                       { specializations may access private symbols that their
+                         generics are allowed to access }
+                       (
+                         assigned(current_structdef) and
+                         (df_specialization in current_structdef.defoptions) and
+                         (symst.moduleid=current_structdef.genericdef.owner.moduleid)
                        )
                       );
             end;
@@ -3023,6 +3030,13 @@ implementation
                        (
                          isspezproc and
                          (current_procinfo.procdef.struct=current_structdef)
+                       ) or
+                       { specializations may access private symbols that their
+                         generics are allowed to access }
+                       (
+                         assigned(current_structdef) and
+                         (df_specialization in current_structdef.defoptions) and
+                         (symst.moduleid=current_structdef.genericdef.owner.moduleid)
                        )
                       );
             end;
