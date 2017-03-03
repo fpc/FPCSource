@@ -175,10 +175,10 @@ interface
         function  empty:boolean;
         function getcopy: tpropaccesslist;
         procedure addsym(slt:tsltype;p:tsym);
-        procedure addconst(slt:tsltype;v:TConstExprInt;d:tdef);
+        procedure addconst(slt:tsltype;const v:TConstExprInt;d:tdef);
         procedure addtype(slt:tsltype;d:tdef);
         procedure addsymderef(slt:tsltype;d:tderef);
-        procedure addconstderef(slt:tsltype;v:TConstExprInt;d:tderef);
+        procedure addconstderef(slt:tsltype;const v:TConstExprInt;d:tderef);
         procedure addtypederef(slt:tsltype;d:tderef);
         procedure clear;
         procedure resolve;
@@ -609,7 +609,7 @@ implementation
       end;
 
 
-    procedure tpropaccesslist.addconst(slt:tsltype;v:TConstExprInt;d:tdef);
+    procedure tpropaccesslist.addconst(slt:tsltype;const v:TConstExprInt;d:tdef);
       var
         hp : ppropaccesslistitem;
       begin
@@ -651,7 +651,7 @@ implementation
       end;
 
 
-    procedure tpropaccesslist.addconstderef(slt:tsltype;v:TConstExprInt;d:tderef);
+    procedure tpropaccesslist.addconstderef(slt:tsltype;const v:TConstExprInt;d:tderef);
       begin
         addconst(slt,v,nil);
         lastsym^.valuedefderef:=d;

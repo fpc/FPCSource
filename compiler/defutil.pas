@@ -62,11 +62,11 @@ interface
     function get_max_value(def : tdef) : TConstExprInt;
 
     {# Returns basetype of the specified integer range }
-    function range_to_basetype(l,h:TConstExprInt):tordtype;
+    function range_to_basetype(const l,h:TConstExprInt):tordtype;
 
-    procedure range_to_type(l,h:TConstExprInt;var def:tdef);
+    procedure range_to_type(const l,h:TConstExprInt;var def:tdef);
 
-    procedure int_to_type(v:TConstExprInt;var def:tdef);
+    procedure int_to_type(const v:TConstExprInt;var def:tdef);
 
     {# Returns true, if definition defines an integer type }
     function is_integer(def : tdef) : boolean;
@@ -404,7 +404,7 @@ implementation
       end;
 
 
-    function range_to_basetype(l,h:TConstExprInt):tordtype;
+    function range_to_basetype(const l,h:TConstExprInt):tordtype;
       begin
         { prefer signed over unsigned }
         if (l>=int64(-128)) and (h<=127) then
@@ -426,7 +426,7 @@ implementation
       end;
 
 
-    procedure range_to_type(l,h:TConstExprInt;var def:tdef);
+    procedure range_to_type(const l,h:TConstExprInt;var def:tdef);
       begin
         { prefer signed over unsigned }
         if (l>=int64(-128)) and (h<=127) then
@@ -448,7 +448,7 @@ implementation
       end;
 
 
-    procedure int_to_type(v:TConstExprInt;var def:tdef);
+    procedure int_to_type(const v:TConstExprInt;var def:tdef);
       begin
         range_to_type(v,v,def);
       end;

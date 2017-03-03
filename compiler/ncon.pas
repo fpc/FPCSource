@@ -61,7 +61,7 @@ interface
             _rangecheck determines if the value of the ordinal should be checked
             against the ranges of the type definition.
           }
-          constructor create(v : tconstexprint;def:tdef; _rangecheck : boolean);virtual;
+          constructor create(const v : tconstexprint;def:tdef; _rangecheck : boolean);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -173,7 +173,7 @@ interface
        cguidconstnode : tguidconstnodeclass = tguidconstnode;
        cnilnode : tnilnodeclass=tnilnode;
 
-    function genintconstnode(v : TConstExprInt) : tordconstnode;
+    function genintconstnode(const v : TConstExprInt) : tordconstnode;
     function genenumnode(v : tenumsym) : tordconstnode;
 
     { some helper routines }
@@ -194,7 +194,7 @@ implementation
       cpubase,cgbase,
       nld;
 
-    function genintconstnode(v : TConstExprInt) : tordconstnode;
+    function genintconstnode(const v : TConstExprInt) : tordconstnode;
       var
         htype : tdef;
       begin
@@ -486,7 +486,7 @@ implementation
                               TORDCONSTNODE
 *****************************************************************************}
 
-    constructor tordconstnode.create(v : tconstexprint;def:tdef;_rangecheck : boolean);
+    constructor tordconstnode.create(const v : tconstexprint;def:tdef;_rangecheck : boolean);
 
       begin
          inherited create(ordconstn);

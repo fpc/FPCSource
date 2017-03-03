@@ -93,7 +93,7 @@ interface
       which was determined during an earlier typecheck pass (because the value
       may e.g. be a parameter to a call, which needs to be of the declared
       parameter type) }
-    function create_simplified_ord_const(value: tconstexprint; def: tdef; forinline: boolean): tnode;
+    function create_simplified_ord_const(const value: tconstexprint; def: tdef; forinline: boolean): tnode;
 
     { returns true if n is only a tree of administrative nodes
       containing no code }
@@ -1072,7 +1072,7 @@ implementation
       end;
 
 
-    function create_simplified_ord_const(value: tconstexprint; def: tdef; forinline: boolean): tnode;
+    function create_simplified_ord_const(const value: tconstexprint; def: tdef; forinline: boolean): tnode;
       begin
         if not forinline then
           result:=genintconstnode(value)
