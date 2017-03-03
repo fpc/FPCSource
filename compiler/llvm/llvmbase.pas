@@ -128,7 +128,8 @@ implementation
        'mipsel',
        'unknown',
        'unknown',
-       'aarch64'
+       'aarch64',
+       'wasm32'
       );
 
   function llvm_target_name: ansistring;
