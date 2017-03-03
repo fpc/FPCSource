@@ -1,3 +1,5 @@
+{ %NORUN }
+
 program tw31431;
 
 {$mode objfpc}
