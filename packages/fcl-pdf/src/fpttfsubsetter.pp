@@ -1092,7 +1092,7 @@ begin
 
   // update head.ChecksumAdjustment field
   head.Seek(8, soBeginning);
-  WriteInt32(head, checksum);
+  WriteInt32(head, Int32(checksum));
 
   // write table bodies
   WriteTableBodies(AStream, tables);
