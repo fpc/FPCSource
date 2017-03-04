@@ -33,14 +33,28 @@ uses
   Classes, SysUtils;
 
 type
+  TAVLTree = class;
+
+  TObjectSortCompare = function(Tree: TAVLTree; Data1, Data2: Pointer): integer of object;
+
+  { TAVLTreeNode }
+
   TAVLTreeNode = class
   public
     Parent, Left, Right: TAVLTreeNode;
-    Balance: integer;
+    Balance: integer; // = RightDepth-LeftDepth  -2..+2, after balancing: -1,0,+1
     Data: Pointer;
+    function Successor: TAVLTreeNode; // next right
+    function Precessor: TAVLTreeNode; // next left
     procedure Clear;
     function TreeDepth: integer; // longest WAY down. e.g. only one node => 0 !
+    procedure ConsistencyCheck(Tree: TAVLTree); virtual;
+    function GetCount: SizeInt;
   end;
+  TAVLTreeNodeClass = class of TAVLTreeNode;
+  PAVLTreeNode = ^TAVLTreeNode;
+
+  { TBaseAVLTreeNodeManager }
 
   TBaseAVLTreeNodeManager = class
   public
@@ -48,41 +62,88 @@ type
     function NewNode: TAVLTreeNode; virtual; abstract;
   end;
 
-  TAVLTree = class;
-
   { TAVLTreeNodeEnumerator }
 
   TAVLTreeNodeEnumerator = class
   private
-    FTree: TAVLTree;
     FCurrent: TAVLTreeNode;
+    FLowToHigh: boolean;
+    FTree: TAVLTree;
   public
-    constructor Create(Tree: TAVLTree);
+    constructor Create(Tree: TAVLTree; aLowToHigh: boolean = true);
+    function GetEnumerator: TAVLTreeNodeEnumerator; inline;
     function MoveNext: Boolean;
     property Current: TAVLTreeNode read FCurrent;
+    property LowToHigh: boolean read FLowToHigh;
   end;
 
   TAVLTree = class
-  private
+  protected
+    FCount: SizeInt;
+    FNodeClass: TAVLTreeNodeClass;
+    fNodeMgr: TBaseAVLTreeNodeManager;
+    fNodeMgrAutoFree: boolean;
     FOnCompare: TListSortCompare;
-    FCount: integer;
+    FOnObjectCompare: TObjectSortCompare;
+    FRoot: TAVLTreeNode;
     procedure BalanceAfterInsert(ANode: TAVLTreeNode);
     procedure BalanceAfterDelete(ANode: TAVLTreeNode);
+    procedure DeletingNode({%H-}aNode: TAVLTreeNode); virtual;
     function FindInsertPos(Data: Pointer): TAVLTreeNode;
+    procedure Init; virtual;
+    procedure NodeAdded({%H-}aNode: TAVLTreeNode); virtual;
+    procedure RotateLeft(aNode: TAVLTreeNode); virtual;
+    procedure RotateRight(aNode: TAVLTreeNode); virtual;
+    procedure SwitchPositionWithSuccessor(aNode, aSuccessor: TAVLTreeNode); virtual;
     procedure SetOnCompare(const AValue: TListSortCompare);
-  protected
-    fNodeMgrAutoFree: boolean;
-    fNodeMgr: TBaseAVLTreeNodeManager;
+    procedure SetOnObjectCompare(const AValue: TObjectSortCompare);
+    procedure SetCompares(const NewCompare: TListSortCompare;
+                          const NewObjectCompare: TObjectSortCompare);
   public
-    Root: TAVLTreeNode;
-    function Find(Data: Pointer): TAVLTreeNode;
+    constructor Create(const OnCompareMethod: TListSortCompare);
+    constructor CreateObjectCompare(const OnCompareMethod: TObjectSortCompare);
+    constructor Create;
+    destructor Destroy; override;
+    property OnCompare: TListSortCompare read FOnCompare write SetOnCompare;
+    property OnObjectCompare: TObjectSortCompare read FOnObjectCompare write SetOnObjectCompare;
+    property NodeClass: TAVLTreeNodeClass read FNodeClass write FNodeClass; // used for new nodes
+    procedure SetNodeManager(NewMgr: TBaseAVLTreeNodeManager;
+                             AutoFree: boolean = false);
+    function NewNode: TAVLTreeNode; virtual; // create a node outside the tree
+    procedure DisposeNode(ANode: TAVLTreeNode); virtual; // free the node outside the tree
+
+    // add, delete, remove, move
+    procedure Add(ANode: TAVLTreeNode);
+    function Add(Data: Pointer): TAVLTreeNode;
+    function AddAscendingSequence(Data: Pointer; LastAdded: TAVLTreeNode;
+      var Successor: TAVLTreeNode): TAVLTreeNode;
+    procedure Delete(ANode: TAVLTreeNode);
+    procedure Remove(Data: Pointer);
+    procedure RemovePointer(Data: Pointer);
+    procedure MoveDataLeftMost(var ANode: TAVLTreeNode);
+    procedure MoveDataRightMost(var ANode: TAVLTreeNode);
+    procedure Clear;
+    procedure FreeAndClear;
+    procedure FreeAndDelete(ANode: TAVLTreeNode);
+    function Equals(Obj: TObject): boolean; override; // same as IsEqual(aTree,false)
+    function IsEqual(aTree: TAVLTree; CheckDataPointer: boolean): boolean; // checks only keys or Data (references), not the data itself, O(n)
+    procedure Assign(aTree: TAVLTree); virtual; // clear and copy all Data (references), O(n)
+
+    // search
+    property Root: TAVLTreeNode read fRoot;
+    property Count: SizeInt read FCount;
+    function Compare(Data1, Data2: Pointer): integer;
+    function Find(Data: Pointer): TAVLTreeNode; // O(log(n))
     function FindKey(Key: Pointer;
-      const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
-    function FindSuccessor(ANode: TAVLTreeNode): TAVLTreeNode;
-    function FindPrecessor(ANode: TAVLTreeNode): TAVLTreeNode;
-    function FindLowest: TAVLTreeNode;
-    function FindHighest: TAVLTreeNode;
+      const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode; // O(log(n))
+    function FindNearestKey(Key: Pointer;
+      const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode; // O(log(n))
+    function FindSuccessor(ANode: TAVLTreeNode): TAVLTreeNode; inline;
+    function FindPrecessor(ANode: TAVLTreeNode): TAVLTreeNode; inline;
+    function FindLowest: TAVLTreeNode; // O(log(n))
+    function FindHighest: TAVLTreeNode; // O(log(n))
     function FindNearest(Data: Pointer): TAVLTreeNode;
+    // search in a tree with duplicates (duplicate means here: Compare function returns 0)
     function FindPointer(Data: Pointer): TAVLTreeNode;
     function FindLeftMost(Data: Pointer): TAVLTreeNode;
     function FindRightMost(Data: Pointer): TAVLTreeNode;
@@ -92,57 +153,47 @@ type
       const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
     function FindLeftMostSameKey(ANode: TAVLTreeNode): TAVLTreeNode;
     function FindRightMostSameKey(ANode: TAVLTreeNode): TAVLTreeNode;
-    procedure Add(ANode: TAVLTreeNode);
-    function Add(Data: Pointer): TAVLTreeNode;
-    procedure Delete(ANode: TAVLTreeNode);
-    procedure Remove(Data: Pointer);
-    procedure RemovePointer(Data: Pointer);
-    procedure MoveDataLeftMost(var ANode: TAVLTreeNode);
-    procedure MoveDataRightMost(var ANode: TAVLTreeNode);
-    property OnCompare: TListSortCompare read FOnCompare write SetOnCompare;
-    procedure Clear;
-    procedure FreeAndClear;
-    procedure FreeAndDelete(ANode: TAVLTreeNode);
-    property Count: integer read FCount;
-    function ConsistencyCheck: integer;
-    procedure WriteReportToStream(s: TStream; var StreamSize: int64);
-    function ReportAsString: string;
-    procedure SetNodeManager(NewMgr: TBaseAVLTreeNodeManager;
-                             AutoFree: boolean = false);
-    constructor Create(const OnCompareMethod: TListSortCompare);
-    constructor Create;
-    destructor Destroy; override;
+
+    // enumerators
     function GetEnumerator: TAVLTreeNodeEnumerator;
+    function GetEnumeratorHighToLow: TAVLTreeNodeEnumerator;
+
+    // consistency
+    function ConsistencyCheck: integer;
+    procedure WriteReportToStream(s: TStream);
+    function NodeToReportStr(aNode: TAVLTreeNode): string; virtual;
+    function ReportAsString: string;
   end;
+  TAVLTreeClass = class of TAVLTree;
+
+  { TAVLTreeNodeMemManager }
 
   TAVLTreeNodeMemManager = class(TBaseAVLTreeNodeManager)
   private
     FFirstFree: TAVLTreeNode;
-    FFreeCount: integer;
-    FCount: integer;
-    FMinFree: integer;
-    FMaxFreeRatio: integer;
-    procedure SetMaxFreeRatio(NewValue: integer);
-    procedure SetMinFree(NewValue: integer);
+    FFreeCount: SizeInt;
+    FCount: SizeInt;
+    FMinFree: SizeInt;
+    FMaxFreeRatio: SizeInt;
+    procedure SetMaxFreeRatio(NewValue: SizeInt);
+    procedure SetMinFree(NewValue: SizeInt);
     procedure DisposeFirstFreeNode;
   public
     procedure DisposeNode(ANode: TAVLTreeNode); override;
     function NewNode: TAVLTreeNode; override;
-    property MinimumFreeNode: integer read FMinFree write SetMinFree;
-    property MaximumFreeNodeRatio: integer
+    property MinimumFreeNode: SizeInt read FMinFree write SetMinFree;
+    property MaximumFreeNodeRatio: SizeInt
         read FMaxFreeRatio write SetMaxFreeRatio; // in one eighth steps
-    property Count: integer read FCount;
+    property Count: SizeInt read FCount;
     procedure Clear;
     constructor Create;
     destructor Destroy; override;
   end;
 
+var
+  NodeMemManager: TAVLTreeNodeMemManager;
 
 implementation
-
-
-var NodeMemManager: TAVLTreeNodeMemManager;
-
 
 function ComparePointer(Data1, Data2: Pointer): integer;
 begin
@@ -153,17 +204,30 @@ end;
 
 { TAVLTreeNodeEnumerator }
 
-constructor TAVLTreeNodeEnumerator.Create(Tree: TAVLTree);
+constructor TAVLTreeNodeEnumerator.Create(Tree: TAVLTree; aLowToHigh: boolean);
 begin
   FTree:=Tree;
+  FLowToHigh:=aLowToHigh;
+end;
+
+function TAVLTreeNodeEnumerator.GetEnumerator: TAVLTreeNodeEnumerator;
+begin
+  Result:=Self;
 end;
 
 function TAVLTreeNodeEnumerator.MoveNext: Boolean;
 begin
-  if FCurrent=nil then
-    FCurrent:=FTree.FindLowest
-  else
-    FCurrent:=FTree.FindSuccessor(FCurrent);
+  if FLowToHigh then begin
+    if FCurrent<>nil then
+      FCurrent:=FCurrent.Successor
+    else
+      FCurrent:=FTree.FindLowest;
+  end else begin
+    if FCurrent<>nil then
+      FCurrent:=FCurrent.Precessor
+    else
+      FCurrent:=FTree.FindHighest;
+  end;
   Result:=FCurrent<>nil;
 end;
 
@@ -174,6 +238,63 @@ begin
   Result:=fNodeMgr.NewNode;
   Result.Data:=Data;
   Add(Result);
+end;
+
+function TAVLTree.AddAscendingSequence(Data: Pointer; LastAdded: TAVLTreeNode;
+  var Successor: TAVLTreeNode): TAVLTreeNode;
+{ This is an optimized version of "Add" for adding an ascending sequence of
+  nodes.
+  It uses the LastAdded and Successor to skip searching for an insert position.
+  For nodes with same value the order of the sequence is kept.
+
+  Usage:
+    LastNode:=nil; // TAvgLvlTreeNode
+    Successor:=nil; // TAvgLvlTreeNode
+    for i:=1 to 1000 do
+      LastNode:=Tree.AddAscendingSequence(TItem.Create(i),LastNode,Successor);
+}
+var
+  InsertPos: TAVLTreeNode;
+begin
+  Result:=NewNode;
+  Result.Data:=Data;
+  if (LastAdded<>nil) and (Compare(LastAdded.Data,Data)<=0)
+  and ((Successor=nil) or (Compare(Data,Successor.Data)<=0)) then begin
+    // Data is between LastAdded and Successor
+    inc(FCount);
+    if LastAdded.Right=nil then begin
+      Result.Parent:=LastAdded;
+      LastAdded.Right:=Result;
+    end else begin
+      InsertPos:=LastAdded.Right;
+      while InsertPos.Left<>nil do
+        InsertPos:=InsertPos.Left;
+      Result.Parent:=InsertPos;
+      InsertPos.Left:=Result;
+    end;
+    NodeAdded(Result);
+    BalanceAfterInsert(Result);
+  end else begin
+    // normal Add
+    Add(Result);
+    Successor:=Result.Successor;
+  end;
+end;
+
+function TAVLTree.NewNode: TAVLTreeNode;
+begin
+  if NodeMemManager<>nil then
+    Result:=NodeMemManager.NewNode
+  else
+    Result:=NodeClass.Create;
+end;
+
+procedure TAVLTree.DisposeNode(ANode: TAVLTreeNode);
+begin
+  if NodeMemManager<>nil then
+    NodeMemManager.DisposeNode(ANode)
+  else
+    ANode.Free;
 end;
 
 procedure TAVLTree.Add(ANode: TAVLTreeNode);
@@ -187,7 +308,7 @@ begin
   inc(FCount);
   if Root<>nil then begin
     InsertPos:=FindInsertPos(ANode.Data);
-    InsertComp:=fOnCompare(ANode.Data,InsertPos.Data);
+    InsertComp:=Compare(ANode.Data,InsertPos.Data);
     ANode.Parent:=InsertPos;
     if InsertComp<0 then begin
       // insert to the left
@@ -196,10 +317,12 @@ begin
       // insert to the right
       InsertPos.Right:=ANode;
     end;
+    NodeAdded(ANode);
     BalanceAfterInsert(ANode);
   end else begin
-    Root:=ANode;
+    fRoot:=ANode;
     ANode.Parent:=nil;
+    NodeAdded(ANode);
   end;
 end;
 
@@ -218,286 +341,261 @@ begin
 end;
 
 procedure TAVLTree.BalanceAfterDelete(ANode: TAVLTreeNode);
-var OldParent, OldRight, OldRightLeft, OldLeft, OldLeftRight,
-  OldRightLeftLeft, OldRightLeftRight, OldLeftRightLeft, OldLeftRightRight
-  : TAVLTreeNode;
+var
+  OldParent, OldRight, OldRightLeft, OldLeft, OldLeftRight: TAVLTreeNode;
 begin
-  if (ANode=nil) then exit;
-  if ((ANode.Balance=+1) or (ANode.Balance=-1)) then exit;
-  OldParent:=ANode.Parent;
-  if (ANode.Balance=0) then begin
-    // Treeheight has decreased by one
-    if (OldParent<>nil) then begin
+  while ANode<>nil do begin
+    if ((ANode.Balance=+1) or (ANode.Balance=-1)) then exit;
+    OldParent:=ANode.Parent;
+    if (ANode.Balance=0) then begin
+      // Treeheight has decreased by one
+      if (OldParent=nil) then
+        exit;
       if(OldParent.Left=ANode) then
         Inc(OldParent.Balance)
       else
         Dec(OldParent.Balance);
-      BalanceAfterDelete(OldParent);
-    end;
-    exit;
-  end;
-  if (ANode.Balance=+2) then begin
-    // Node is overweighted to the right
-    OldRight:=ANode.Right;
-    if (OldRight.Balance>=0) then begin
-      // OldRight.Balance=={0 or -1}
-      // rotate left
-      OldRightLeft:=OldRight.Left;
-      if (OldParent<>nil) then begin
-        if (OldParent.Left=ANode) then
-          OldParent.Left:=OldRight
+      ANode:=OldParent;
+    end else if (ANode.Balance=+2) then begin
+      // Node is overweighted to the right
+      OldRight:=ANode.Right;
+      if (OldRight.Balance>=0) then begin
+        // OldRight.Balance is 0 or -1
+        // rotate ANode,OldRight left
+        RotateLeft(ANode);
+        ANode.Balance:=(1-OldRight.Balance); // toggle 0 and 1
+        Dec(OldRight.Balance);
+        ANode:=OldRight;
+      end else begin
+        // OldRight.Balance=-1
+        { double rotate
+          = rotate OldRightLeft,OldRight right
+            and then rotate ANode,OldRightLeft left
+                  OldParent                           OldParent
+                      |                                  |
+                    ANode                           OldRightLeft
+                       \                               /      \
+                    OldRight             =>          ANode    OldRight
+                      /                                \         /
+               OldRightLeft                OldRightLeftLeft OldRightLeftRight
+                   /     \
+        OldRightLeftLeft OldRightLeftRight
+        }
+        OldRightLeft:=OldRight.Left;
+        RotateRight(OldRight);
+        RotateLeft(ANode);
+        if (OldRightLeft.Balance<=0) then
+          ANode.Balance:=0
         else
-          OldParent.Right:=OldRight;
-      end else
-        Root:=OldRight;
-      ANode.Parent:=OldRight;
-      ANode.Right:=OldRightLeft;
-      OldRight.Parent:=OldParent;
-      OldRight.Left:=ANode;
-      if (OldRightLeft<>nil) then
-        OldRightLeft.Parent:=ANode;
-      ANode.Balance:=(1-OldRight.Balance);
-      Dec(OldRight.Balance);
-      BalanceAfterDelete(OldRight);
+          ANode.Balance:=-1;
+        if (OldRightLeft.Balance>=0) then
+          OldRight.Balance:=0
+        else
+          OldRight.Balance:=+1;
+        OldRightLeft.Balance:=0;
+        ANode:=OldRightLeft;
+      end;
     end else begin
-      // OldRight.Balance=-1
-      // double rotate right left
-      OldRightLeft:=OldRight.Left;
-      OldRightLeftLeft:=OldRightLeft.Left;
-      OldRightLeftRight:=OldRightLeft.Right;
-      if (OldParent<>nil) then begin
-        if (OldParent.Left=ANode) then
-          OldParent.Left:=OldRightLeft
+      // Node.Balance=-2
+      // Node is overweighted to the left
+      OldLeft:=ANode.Left;
+      if (OldLeft.Balance<=0) then begin
+        // rotate OldLeft,ANode right
+        RotateRight(ANode);
+        ANode.Balance:=(-1-OldLeft.Balance); // toggle 0 and -1
+        Inc(OldLeft.Balance);
+        ANode:=OldLeft;
+      end else begin
+        // OldLeft.Balance = 1
+        { double rotate left right
+          = rotate OldLeft,OldLeftRight left
+            and then rotate OldLeft,ANode right
+                    OldParent                           OldParent
+                        |                                  |
+                      ANode                            OldLeftRight
+                       /                               /         \
+                    OldLeft             =>          OldLeft    ANode
+                       \                                \         /
+                   OldLeftRight               OldLeftRightLeft OldLeftRightRight
+                     /     \
+          OldLeftRightLeft OldLeftRightRight
+        }
+        OldLeftRight:=OldLeft.Right;
+        RotateLeft(OldLeft);
+        RotateRight(ANode);
+        if (OldLeftRight.Balance>=0) then
+          ANode.Balance:=0
         else
-          OldParent.Right:=OldRightLeft;
-      end else
-        Root:=OldRightLeft;
-      ANode.Parent:=OldRightLeft;
-      ANode.Right:=OldRightLeftLeft;
-      OldRight.Parent:=OldRightLeft;
-      OldRight.Left:=OldRightLeftRight;
-      OldRightLeft.Parent:=OldParent;
-      OldRightLeft.Left:=ANode;
-      OldRightLeft.Right:=OldRight;
-      if (OldRightLeftLeft<>nil) then
-        OldRightLeftLeft.Parent:=ANode;
-      if (OldRightLeftRight<>nil) then
-        OldRightLeftRight.Parent:=OldRight;
-      if (OldRightLeft.Balance<=0) then
-        ANode.Balance:=0
-      else
-        ANode.Balance:=-1;
-      if (OldRightLeft.Balance>=0) then
-        OldRight.Balance:=0
-      else
-        OldRight.Balance:=+1;
-      OldRightLeft.Balance:=0;
-      BalanceAfterDelete(OldRightLeft);
-    end;
-  end else begin
-    // Node.Balance=-2
-    // Node is overweighted to the left
-    OldLeft:=ANode.Left;
-    if (OldLeft.Balance<=0) then begin
-      // rotate right
-      OldLeftRight:=OldLeft.Right;
-      if (OldParent<>nil) then begin
-        if (OldParent.Left=ANode) then
-          OldParent.Left:=OldLeft
+          ANode.Balance:=+1;
+        if (OldLeftRight.Balance<=0) then
+          OldLeft.Balance:=0
         else
-          OldParent.Right:=OldLeft;
-      end else
-        Root:=OldLeft;
-      ANode.Parent:=OldLeft;
-      ANode.Left:=OldLeftRight;
-      OldLeft.Parent:=OldParent;
-      OldLeft.Right:=ANode;
-      if (OldLeftRight<>nil) then
-        OldLeftRight.Parent:=ANode;
-      ANode.Balance:=(-1-OldLeft.Balance);
-      Inc(OldLeft.Balance);
-      BalanceAfterDelete(OldLeft);
-    end else begin
-      // OldLeft.Balance = 1
-      // double rotate left right
-      OldLeftRight:=OldLeft.Right;
-      OldLeftRightLeft:=OldLeftRight.Left;
-      OldLeftRightRight:=OldLeftRight.Right;
-      if (OldParent<>nil) then begin
-        if (OldParent.Left=ANode) then
-          OldParent.Left:=OldLeftRight
-        else
-          OldParent.Right:=OldLeftRight;
-      end else
-        Root:=OldLeftRight;
-      ANode.Parent:=OldLeftRight;
-      ANode.Left:=OldLeftRightRight;
-      OldLeft.Parent:=OldLeftRight;
-      OldLeft.Right:=OldLeftRightLeft;
-      OldLeftRight.Parent:=OldParent;
-      OldLeftRight.Left:=OldLeft;
-      OldLeftRight.Right:=ANode;
-      if (OldLeftRightLeft<>nil) then
-        OldLeftRightLeft.Parent:=OldLeft;
-      if (OldLeftRightRight<>nil) then
-        OldLeftRightRight.Parent:=ANode;
-      if (OldLeftRight.Balance>=0) then
-        ANode.Balance:=0
-      else
-        ANode.Balance:=+1;
-      if (OldLeftRight.Balance<=0) then
-        OldLeft.Balance:=0
-      else
-        OldLeft.Balance:=-1;
-      OldLeftRight.Balance:=0;
-      BalanceAfterDelete(OldLeftRight);
+          OldLeft.Balance:=-1;
+        OldLeftRight.Balance:=0;
+        ANode:=OldLeftRight;
+      end;
     end;
   end;
 end;
 
+procedure TAVLTree.DeletingNode(aNode: TAVLTreeNode);
+// called by Delete
+// Node.Left=nil or Node.Right=nil
+begin
+  // for descendants to override
+end;
+
+procedure TAVLTree.SetOnObjectCompare(const AValue: TObjectSortCompare);
+begin
+  if AValue=nil then
+    SetCompares(FOnCompare,nil)
+  else
+    SetCompares(nil,AValue);
+end;
+
+procedure TAVLTree.SetCompares(const NewCompare: TListSortCompare;
+  const NewObjectCompare: TObjectSortCompare);
+var List: PPointer;
+  ANode: TAVLTreeNode;
+  i, OldCount: integer;
+begin
+  if (FOnCompare=NewCompare) and (FOnObjectCompare=NewObjectCompare) then exit;
+  if Count<=1 then begin
+    FOnCompare:=NewCompare;
+    FOnObjectCompare:=NewObjectCompare;
+    exit;
+  end;
+  // sort the tree again
+  OldCount:=Count;
+  GetMem(List,SizeOf(Pointer)*OldCount);
+  try
+    // save the data in a list
+    ANode:=FindLowest;
+    i:=0;
+    while ANode<>nil do begin
+      List[i]:=ANode.Data;
+      inc(i);
+      ANode:=ANode.Successor;
+    end;
+    // clear the tree
+    Clear;
+    // set the new compare function
+    FOnCompare:=NewCompare;
+    FOnObjectCompare:=NewObjectCompare;
+    // re-add all nodes
+    for i:=0 to OldCount-1 do
+      Add(List[i]);
+  finally
+    FreeMem(List);
+  end;
+end;
+
 procedure TAVLTree.BalanceAfterInsert(ANode: TAVLTreeNode);
-var OldParent, OldParentParent, OldRight, OldRightLeft, OldRightRight, OldLeft,
-   OldLeftLeft, OldLeftRight: TAVLTreeNode;
+var
+  OldParent, OldRight, OldLeft: TAVLTreeNode;
 begin
   OldParent:=ANode.Parent;
-  if (OldParent=nil) then exit;
-  if (OldParent.Left=ANode) then begin
-    // Node is left son
-    dec(OldParent.Balance);
-    if (OldParent.Balance=0) then exit;
-    if (OldParent.Balance=-1) then begin
-      BalanceAfterInsert(OldParent);
-      exit;
-    end;
-    // OldParent.Balance=-2
-    if (ANode.Balance=-1) then begin
-      // rotate
-      OldRight:=ANode.Right;
-      OldParentParent:=OldParent.Parent;
-      if (OldParentParent<>nil) then begin
-        // OldParent has GrandParent. GrandParent gets new child
-        if (OldParentParent.Left=OldParent) then
-          OldParentParent.Left:=ANode
-        else
-          OldParentParent.Right:=ANode;
-      end else begin
-        // OldParent was root node. New root node
-        Root:=ANode;
+  while (OldParent<>nil) do begin
+    if (OldParent.Left=ANode) then begin
+      // Node is left child
+      dec(OldParent.Balance);
+      if (OldParent.Balance=0) then exit;
+      if (OldParent.Balance=-1) then begin
+        ANode:=OldParent;
+        OldParent:=ANode.Parent;
+        continue;
       end;
-      ANode.Parent:=OldParentParent;
-      ANode.Right:=OldParent;
-      OldParent.Parent:=ANode;
-      OldParent.Left:=OldRight;
-      if (OldRight<>nil) then
-        OldRight.Parent:=OldParent;
-      ANode.Balance:=0;
-      OldParent.Balance:=0;
-    end else begin
-      // Node.Balance = +1
-      // double rotate
-      OldParentParent:=OldParent.Parent;
-      OldRight:=ANode.Right;
-      OldRightLeft:=OldRight.Left;
-      OldRightRight:=OldRight.Right;
-      if (OldParentParent<>nil) then begin
-        // OldParent has GrandParent. GrandParent gets new child
-        if (OldParentParent.Left=OldParent) then
-          OldParentParent.Left:=OldRight
-        else
-          OldParentParent.Right:=OldRight;
-      end else begin
-        // OldParent was root node. new root node
-        Root:=OldRight;
-      end;
-      OldRight.Parent:=OldParentParent;
-      OldRight.Left:=ANode;
-      OldRight.Right:=OldParent;
-      ANode.Parent:=OldRight;
-      ANode.Right:=OldRightLeft;
-      OldParent.Parent:=OldRight;
-      OldParent.Left:=OldRightRight;
-      if (OldRightLeft<>nil) then
-        OldRightLeft.Parent:=ANode;
-      if (OldRightRight<>nil) then
-        OldRightRight.Parent:=OldParent;
-      if (OldRight.Balance<=0) then
-        ANode.Balance:=0
-      else
-        ANode.Balance:=-1;
-      if (OldRight.Balance=-1) then
-        OldParent.Balance:=1
-      else
+      // OldParent.Balance=-2
+      if (ANode.Balance=-1) then begin
+        { rotate ANode,ANode.Parent right
+             OldParentParent        OldParentParent
+                   |                     |
+               OldParent        =>     ANode
+                 /                        \
+              ANode                     OldParent
+                \                        /
+              OldRight               OldRight      }
+        RotateRight(OldParent);
+        ANode.Balance:=0;
         OldParent.Balance:=0;
-      OldRight.Balance:=0;
-    end;
-  end else begin
-    // Node is right son
-    Inc(OldParent.Balance);
-    if (OldParent.Balance=0) then exit;
-    if (OldParent.Balance=+1) then begin
-      BalanceAfterInsert(OldParent);
+      end else begin
+        // Node.Balance = +1
+        { double rotate
+          = rotate ANode,OldRight left and then rotate OldRight,OldParent right
+             OldParentParent             OldParentParent
+                    |                           |
+                OldParent                    OldRight
+                   /            =>          /        \
+                 ANode                   ANode      OldParent
+                    \                       \          /
+                   OldRight          OldRightLeft  OldRightRight
+                     / \
+          OldRightLeft OldRightRight
+        }
+        OldRight:=ANode.Right;
+        RotateLeft(ANode);
+        RotateRight(OldParent);
+        if (OldRight.Balance<=0) then
+          ANode.Balance:=0
+        else
+          ANode.Balance:=-1;
+        if (OldRight.Balance=-1) then
+          OldParent.Balance:=1
+        else
+          OldParent.Balance:=0;
+        OldRight.Balance:=0;
+      end;
       exit;
-    end;
-    // OldParent.Balance = +2
-    if(ANode.Balance=+1) then begin
-      // rotate
-      OldLeft:=ANode.Left;
-      OldParentParent:=OldParent.Parent;
-      if (OldParentParent<>nil) then begin
-        // Parent has GrandParent . GrandParent gets new child
-        if(OldParentParent.Left=OldParent) then
-          OldParentParent.Left:=ANode
-        else
-          OldParentParent.Right:=ANode;
-      end else begin
-        // OldParent was root node . new root node
-        Root:=ANode;
-      end;
-      ANode.Parent:=OldParentParent;
-      ANode.Left:=OldParent;
-      OldParent.Parent:=ANode;
-      OldParent.Right:=OldLeft;
-      if (OldLeft<>nil) then
-        OldLeft.Parent:=OldParent;
-      ANode.Balance:=0;
-      OldParent.Balance:=0;
     end else begin
-      // Node.Balance = -1
-      // double rotate
-      OldLeft:=ANode.Left;
-      OldParentParent:=OldParent.Parent;
-      OldLeftLeft:=OldLeft.Left;
-      OldLeftRight:=OldLeft.Right;
-      if (OldParentParent<>nil) then begin
-        // OldParent has GrandParent . GrandParent gets new child
-        if (OldParentParent.Left=OldParent) then
-          OldParentParent.Left:=OldLeft
-        else
-          OldParentParent.Right:=OldLeft;
-      end else begin
-        // OldParent was root node . new root node
-        Root:=OldLeft;
+      // Node is right child
+      Inc(OldParent.Balance);
+      if (OldParent.Balance=0) then exit;
+      if (OldParent.Balance=+1) then begin
+        ANode:=OldParent;
+        OldParent:=ANode.Parent;
+        continue;
       end;
-      OldLeft.Parent:=OldParentParent;
-      OldLeft.Left:=OldParent;
-      OldLeft.Right:=ANode;
-      ANode.Parent:=OldLeft;
-      ANode.Left:=OldLeftRight;
-      OldParent.Parent:=OldLeft;
-      OldParent.Right:=OldLeftLeft;
-      if (OldLeftLeft<>nil) then
-        OldLeftLeft.Parent:=OldParent;
-      if (OldLeftRight<>nil) then
-        OldLeftRight.Parent:=ANode;
-      if (OldLeft.Balance>=0) then
-        ANode.Balance:=0
-      else
-        ANode.Balance:=+1;
-      if (OldLeft.Balance=+1) then
-        OldParent.Balance:=-1
-      else
+      // OldParent.Balance = +2
+      if(ANode.Balance=+1) then begin
+        { rotate OldParent,ANode left
+             OldParentParent        OldParentParent
+                   |                     |
+               OldParent        =>     ANode
+                    \                   /
+                  ANode               OldParent
+                   /                      \
+                OldLeft                 OldLeft      }
+        RotateLeft(OldParent);
+        ANode.Balance:=0;
         OldParent.Balance:=0;
-      OldLeft.Balance:=0;
+      end else begin
+        // Node.Balance = -1
+        { double rotate
+          = rotate OldLeft,ANode right and then rotate OldParent,OldLeft right
+             OldParentParent             OldParentParent
+                    |                           |
+                OldParent                    OldLeft
+                     \            =>        /       \
+                    ANode               OldParent   ANode
+                     /                     \          /
+                  OldLeft          OldLeftLeft  OldLeftRight
+                    / \
+         OldLeftLeft OldLeftRight
+        }
+        OldLeft:=ANode.Left;
+        RotateRight(ANode);
+        RotateLeft(OldParent);
+        if (OldLeft.Balance>=0) then
+          ANode.Balance:=0
+        else
+          ANode.Balance:=+1;
+        if (OldLeft.Balance=+1) then
+          OldParent.Balance:=-1
+        else
+          OldParent.Balance:=0;
+        OldLeft.Balance:=0;
+      end;
+      exit;
     end;
   end;
 end;
@@ -516,7 +614,7 @@ procedure TAVLTree.Clear;
 // Clear
 begin
   DeleteNode(Root);
-  Root:=nil;
+  fRoot:=nil;
   FCount:=0;
 end;
 
@@ -525,7 +623,15 @@ begin
   inherited Create;
   fNodeMgr:=NodeMemManager;
   FOnCompare:=OnCompareMethod;
-  FCount:=0;
+  Init;
+end;
+
+constructor TAVLTree.CreateObjectCompare(
+  const OnCompareMethod: TObjectSortCompare);
+begin
+  fNodeMgr:=NodeMemManager;
+  FOnObjectCompare:=OnCompareMethod;
+  Init;
 end;
 
 constructor TAVLTree.Create;
@@ -534,125 +640,43 @@ begin
 end;
 
 procedure TAVLTree.Delete(ANode: TAVLTreeNode);
-var OldParent, OldLeft, OldRight, Successor, OldSuccParent, OldSuccLeft,
-  OldSuccRight: TAVLTreeNode;
-  OldBalance: integer;
+var
+  OldParent, Child: TAVLTreeNode;
 begin
+  if (ANode.Left<>nil) and (ANode.Right<>nil) then begin
+    // ANode has both: Left and Right
+    // Switch ANode position with Successor
+    // Because ANode.Right<>nil the Successor is a child of ANode
+    SwitchPositionWithSuccessor(ANode,ANode.Successor);
+  end;
+  // left or right is nil
+  DeletingNode(aNode);
   OldParent:=ANode.Parent;
-  OldBalance:=ANode.Balance;
   ANode.Parent:=nil;
-  ANode.Balance:=0;
-  if ((ANode.Left=nil) and (ANode.Right=nil)) then begin
-    // Node is Leaf (no children)
-    if (OldParent<>nil) then begin
-      // Node has parent
-      if (OldParent.Left=ANode) then begin
-        // Node is left Son of OldParent
-        OldParent.Left:=nil;
-        Inc(OldParent.Balance);
-      end else begin
-        // Node is right Son of OldParent
-        OldParent.Right:=nil;
-        Dec(OldParent.Balance);
-      end;
-      BalanceAfterDelete(OldParent);
-    end else begin
-      // Node is the only node of tree
-      Root:=nil;
-    end;
-    dec(FCount);
-    fNodeMgr.DisposeNode(ANode);
-    exit;
-  end;
-  if (ANode.Right=nil) then begin
-    // Left is only son
-    // and because DelNode is AVL, Right has no childrens
-    // replace DelNode with Left
-    OldLeft:=ANode.Left;
-    ANode.Left:=nil;
-    OldLeft.Parent:=OldParent;
-    if (OldParent<>nil) then begin
-      if (OldParent.Left=ANode) then begin
-        OldParent.Left:=OldLeft;
-        Inc(OldParent.Balance);
-      end else begin
-        OldParent.Right:=OldLeft;
-        Dec(OldParent.Balance);
-      end;
-      BalanceAfterDelete(OldParent);
-    end else begin
-      Root:=OldLeft;
-    end;
-    dec(FCount);
-    fNodeMgr.DisposeNode(ANode);
-    exit;
-  end;
-  if (ANode.Left=nil) then begin
-    // Right is only son
-    // and because DelNode is AVL, Left has no childrens
-    // replace DelNode with Right
-    OldRight:=ANode.Right;
-    ANode.Right:=nil;
-    OldRight.Parent:=OldParent;
-    if (OldParent<>nil) then begin
-      if (OldParent.Left=ANode) then begin
-        OldParent.Left:=OldRight;
-        Inc(OldParent.Balance);
-      end else begin
-        OldParent.Right:=OldRight;
-        Dec(OldParent.Balance);
-      end;
-      BalanceAfterDelete(OldParent);
-    end else begin
-      Root:=OldRight;
-    end;
-    dec(FCount);
-    fNodeMgr.DisposeNode(ANode);
-    exit;
-  end;
-  // DelNode has both: Left and Right
-  // Replace ANode with symmetric Successor
-  Successor:=FindSuccessor(ANode);
-  OldLeft:=ANode.Left;
-  OldRight:=ANode.Right;
-  OldSuccParent:=Successor.Parent;
-  OldSuccLeft:=Successor.Left;
-  OldSuccRight:=Successor.Right;
-  ANode.Balance:=Successor.Balance;
-  Successor.Balance:=OldBalance;
-  if (OldSuccParent<>ANode) then begin
-    // at least one node between ANode and Successor
-    ANode.Parent:=Successor.Parent;
-    if (OldSuccParent.Left=Successor) then
-      OldSuccParent.Left:=ANode
-    else
-      OldSuccParent.Right:=ANode;
-    Successor.Right:=OldRight;
-    OldRight.Parent:=Successor;
-  end else begin
-    // Successor is right son of ANode
-    ANode.Parent:=Successor;
-    Successor.Right:=ANode;
-  end;
-  Successor.Left:=OldLeft;
-  if OldLeft<>nil then
-    OldLeft.Parent:=Successor;
-  Successor.Parent:=OldParent;
-  ANode.Left:=OldSuccLeft;
   if ANode.Left<>nil then
-    ANode.Left.Parent:=ANode;
-  ANode.Right:=OldSuccRight;
-  if ANode.Right<>nil then
-    ANode.Right.Parent:=ANode;
+    Child:=ANode.Left
+  else
+    Child:=ANode.Right;
+  if Child<>nil then
+    Child.Parent:=OldParent;
   if (OldParent<>nil) then begin
-    if (OldParent.Left=ANode) then
-      OldParent.Left:=Successor
-    else
-      OldParent.Right:=Successor;
-  end else
-    Root:=Successor;
-  // delete Node as usual
-  Delete(ANode);
+    // Node has parent
+    if (OldParent.Left=ANode) then begin
+      // Node is left child of OldParent
+      OldParent.Left:=Child;
+      Inc(OldParent.Balance);
+    end else begin
+      // Node is right child of OldParent
+      OldParent.Right:=Child;
+      Dec(OldParent.Balance);
+    end;
+    BalanceAfterDelete(OldParent);
+  end else begin
+    // Node was Root
+    fRoot:=Child;
+  end;
+  dec(FCount);
+  DisposeNode(ANode);
 end;
 
 procedure TAVLTree.Remove(Data: Pointer);
@@ -682,7 +706,12 @@ end;
 
 function TAVLTree.GetEnumerator: TAVLTreeNodeEnumerator;
 begin
-  Result:=TAVLTreeNodeEnumerator.Create(Self);
+  Result:=TAVLTreeNodeEnumerator.Create(Self,true);
+end;
+
+function TAVLTree.GetEnumeratorHighToLow: TAVLTreeNodeEnumerator;
+begin
+  Result:=TAVLTreeNodeEnumerator.Create(Self,false);
 end;
 
 function TAVLTree.Find(Data: Pointer): TAVLTreeNode;
@@ -690,7 +719,7 @@ var Comp: integer;
 begin
   Result:=Root;
   while (Result<>nil) do begin
-    Comp:=fOnCompare(Data,Result.Data);
+    Comp:=Compare(Data,Result.Data);
     if Comp=0 then exit;
     if Comp<0 then begin
       Result:=Result.Left
@@ -716,6 +745,28 @@ begin
   end;
 end;
 
+function TAVLTree.FindNearestKey(Key: Pointer;
+  const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
+var Comp: integer;
+begin
+  Result:=fRoot;
+  while (Result<>nil) do begin
+    Comp:=OnCompareKeyWithData(Key,Result.Data);
+    if Comp=0 then exit;
+    if Comp<0 then begin
+      if Result.Left<>nil then
+        Result:=Result.Left
+      else
+        exit;
+    end else begin
+      if Result.Right<>nil then
+        Result:=Result.Right
+      else
+        exit;
+    end;
+  end;
+end;
+
 function TAVLTree.FindLeftMostKey(Key: Pointer;
   const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
 var
@@ -724,7 +775,7 @@ begin
   Result:=FindKey(Key,OnCompareKeyWithData);
   if Result=nil then exit;
   repeat
-    LeftNode:=FindPrecessor(Result);
+    LeftNode:=Result.Precessor;
     if (LeftNode=nil) or (OnCompareKeyWithData(Key,LeftNode.Data)<>0) then exit;
     Result:=LeftNode;
   until false;
@@ -738,7 +789,7 @@ begin
   Result:=FindKey(Key,OnCompareKeyWithData);
   if Result=nil then exit;
   repeat
-    RightNode:=FindSuccessor(Result);
+    RightNode:=Result.Successor;
     if (RightNode=nil) or (OnCompareKeyWithData(Key,RightNode.Data)<>0) then exit;
     Result:=RightNode;
   until false;
@@ -753,8 +804,8 @@ begin
     Data:=ANode.Data;
     Result:=ANode;
     repeat
-      LeftNode:=FindPrecessor(Result);
-      if (LeftNode=nil) or (FOnCompare(Data,LeftNode.Data)<>0) then break;
+      LeftNode:=Result.Precessor;
+      if (LeftNode=nil) or (Compare(Data,LeftNode.Data)<>0) then break;
       Result:=LeftNode;
     until false;
   end else begin
@@ -771,8 +822,8 @@ begin
     Data:=ANode.Data;
     Result:=ANode;
     repeat
-      RightNode:=FindSuccessor(Result);
-      if (RightNode=nil) or (FOnCompare(Data,RightNode.Data)<>0) then break;
+      RightNode:=Result.Successor;
+      if (RightNode=nil) or (Compare(Data,RightNode.Data)<>0) then break;
       Result:=RightNode;
     until false;
   end else begin
@@ -785,7 +836,7 @@ var Comp: integer;
 begin
   Result:=Root;
   while (Result<>nil) do begin
-    Comp:=fOnCompare(Data,Result.Data);
+    Comp:=Compare(Data,Result.Data);
     if Comp=0 then exit;
     if Comp<0 then begin
       if Result.Left<>nil then
@@ -802,13 +853,14 @@ begin
 end;
 
 function TAVLTree.FindPointer(Data: Pointer): TAVLTreeNode;
+// same as Find, but not comparing for key, but same Data too
 begin
   Result:=FindLeftMost(Data);
   while (Result<>nil) do begin
     if Result.Data=Data then break;
-    Result:=FindSuccessor(Result);
+    Result:=Result.Successor;
     if Result=nil then exit;
-    if fOnCompare(Data,Result.Data)<>0 then exit(nil);
+    if Compare(Data,Result.Data)<>0 then exit(nil);
   end;
 end;
 
@@ -818,8 +870,8 @@ var
 begin
   Result:=Find(Data);
   while (Result<>nil) do begin
-    Left:=FindPrecessor(Result);
-    if (Left=nil) or (fOnCompare(Data,Left.Data)<>0) then break;
+    Left:=Result.Precessor;
+    if (Left=nil) or (Compare(Data,Left.Data)<>0) then break;
     Result:=Left;
   end;
 end;
@@ -830,8 +882,8 @@ var
 begin
   Result:=Find(Data);
   while (Result<>nil) do begin
-    Right:=FindSuccessor(Result);
-    if (Right=nil) or (fOnCompare(Data,Right.Data)<>0) then break;
+    Right:=Result.Successor;
+    if (Right=nil) or (Compare(Data,Right.Data)<>0) then break;
     Result:=Right;
   end;
 end;
@@ -841,7 +893,7 @@ var Comp: integer;
 begin
   Result:=Root;
   while (Result<>nil) do begin
-    Comp:=fOnCompare(Data,Result.Data);
+    Comp:=Compare(Data,Result.Data);
     if Comp<0 then begin
       if Result.Left<>nil then
         Result:=Result.Left
@@ -856,30 +908,145 @@ begin
   end;
 end;
 
+procedure TAVLTree.Init;
+begin
+  FNodeClass:=TAVLTreeNode;
+end;
+
+procedure TAVLTree.NodeAdded(aNode: TAVLTreeNode);
+begin
+  // for descendants to override
+end;
+
+procedure TAVLTree.RotateLeft(aNode: TAVLTreeNode);
+{    Parent                Parent
+       |                     |
+      Node        =>       OldRight
+      /  \                  /
+   Left OldRight          Node
+          /               /  \
+     OldRightLeft      Left OldRightLeft  }
+var
+  AParent, OldRight, OldRightLeft: TAVLTreeNode;
+begin
+  OldRight:=aNode.Right;
+  OldRightLeft:=OldRight.Left;
+  AParent:=aNode.Parent;
+  if AParent<>nil then begin
+    if AParent.Left=aNode then
+      AParent.Left:=OldRight
+    else
+      AParent.Right:=OldRight;
+  end else
+    fRoot:=OldRight;
+  OldRight.Parent:=AParent;
+  aNode.Parent:=OldRight;
+  aNode.Right:=OldRightLeft;
+  if OldRightLeft<>nil then
+    OldRightLeft.Parent:=aNode;
+  OldRight.Left:=aNode;
+end;
+
+procedure TAVLTree.RotateRight(aNode: TAVLTreeNode);
+{       Parent              Parent
+          |                   |
+         Node        =>     OldLeft
+         /   \                 \
+    OldLeft  Right            Node
+        \                     /  \
+   OldLeftRight      OldLeftRight Right  }
+var
+  AParent, OldLeft, OldLeftRight: TAVLTreeNode;
+begin
+  OldLeft:=aNode.Left;
+  OldLeftRight:=OldLeft.Right;
+  AParent:=aNode.Parent;
+  if AParent<>nil then begin
+    if AParent.Left=aNode then
+      AParent.Left:=OldLeft
+    else
+      AParent.Right:=OldLeft;
+  end else
+    fRoot:=OldLeft;
+  OldLeft.Parent:=AParent;
+  aNode.Parent:=OldLeft;
+  aNode.Left:=OldLeftRight;
+  if OldLeftRight<>nil then
+    OldLeftRight.Parent:=aNode;
+  OldLeft.Right:=aNode;
+end;
+
+procedure TAVLTree.SwitchPositionWithSuccessor(aNode, aSuccessor: TAVLTreeNode);
+{ called by delete, when aNode.Left<>nil and aNode.Right<>nil
+  Switch ANode position with Successor
+  Because ANode.Right<>nil the Successor is a child of ANode }
+var
+  OldBalance: Integer;
+  OldParent, OldLeft, OldRight,
+  OldSuccParent, OldSuccLeft, OldSuccRight: TAVLTreeNode;
+begin
+  OldBalance:=aNode.Balance;
+  aNode.Balance:=aSuccessor.Balance;
+  aSuccessor.Balance:=OldBalance;
+
+  OldParent:=aNode.Parent;
+  OldLeft:=aNode.Left;
+  OldRight:=aNode.Right;
+  OldSuccParent:=aSuccessor.Parent;
+  OldSuccLeft:=aSuccessor.Left;
+  OldSuccRight:=aSuccessor.Right;
+
+  if OldParent<>nil then begin
+    if OldParent.Left=aNode then
+      OldParent.Left:=aSuccessor
+    else
+      OldParent.Right:=aSuccessor;
+  end else
+    fRoot:=aSuccessor;
+  aSuccessor.Parent:=OldParent;
+
+  if OldSuccParent<>aNode then begin
+    if OldSuccParent.Left=aSuccessor then
+      OldSuccParent.Left:=aNode
+    else
+      OldSuccParent.Right:=aNode;
+    aSuccessor.Right:=OldRight;
+    aNode.Parent:=OldSuccParent;
+    if OldRight<>nil then
+      OldRight.Parent:=aSuccessor;
+  end else begin
+    {  aNode            aSuccessor
+         \          =>    \
+         aSuccessor       aNode  }
+    aSuccessor.Right:=aNode;
+    aNode.Parent:=aSuccessor;
+  end;
+
+  aNode.Left:=OldSuccLeft;
+  if OldSuccLeft<>nil then
+    OldSuccLeft.Parent:=aNode;
+  aNode.Right:=OldSuccRight;
+  if OldSuccRight<>nil then
+    OldSuccRight.Parent:=aNode;
+  aSuccessor.Left:=OldLeft;
+  if OldLeft<>nil then
+    OldLeft.Parent:=aSuccessor;
+end;
+
 function TAVLTree.FindSuccessor(ANode: TAVLTreeNode): TAVLTreeNode;
 begin
-  Result:=ANode.Right;
-  if Result<>nil then begin
-    while (Result.Left<>nil) do Result:=Result.Left;
-  end else begin
-    Result:=ANode;
-    while (Result.Parent<>nil) and (Result.Parent.Right=Result) do
-      Result:=Result.Parent;
-    Result:=Result.Parent;
-  end;
+  if ANode<>nil then
+    Result:=ANode.Successor
+  else
+    Result:=nil;
 end;
 
 function TAVLTree.FindPrecessor(ANode: TAVLTreeNode): TAVLTreeNode;
 begin
-  Result:=ANode.Left;
-  if Result<>nil then begin
-    while (Result.Right<>nil) do Result:=Result.Right;
-  end else begin
-    Result:=ANode;
-    while (Result.Parent<>nil) and (Result.Parent.Left=Result) do
-      Result:=Result.Parent;
-    Result:=Result.Parent;
-  end;
+  if ANode<>nil then
+    Result:=ANode.Precessor
+  else
+    Result:=nil;
 end;
 
 procedure TAVLTree.MoveDataLeftMost(var ANode: TAVLTreeNode);
@@ -890,7 +1057,7 @@ begin
   LeftMost:=ANode;
   repeat
     PreNode:=FindPrecessor(LeftMost);
-    if (PreNode=nil) or (FOnCompare(ANode,PreNode)<>0) then break;
+    if (PreNode=nil) or (Compare(ANode,PreNode)<>0) then break;
     LeftMost:=PreNode;
   until false;
   if LeftMost=ANode then exit;
@@ -908,7 +1075,7 @@ begin
   RightMost:=ANode;
   repeat
     PostNode:=FindSuccessor(RightMost);
-    if (PostNode=nil) or (FOnCompare(ANode,PostNode)<>0) then break;
+    if (PostNode=nil) or (Compare(ANode,PostNode)<>0) then break;
     RightMost:=PostNode;
   until false;
   if RightMost=ANode then exit;
@@ -919,74 +1086,32 @@ begin
 end;
 
 function TAVLTree.ConsistencyCheck: integer;
-var RealCount: integer;
 
-  function CheckNode(ANode: TAVLTreeNode): integer;
-  var LeftDepth, RightDepth: integer;
+  procedure E(Msg: string);
   begin
-    if ANode=nil then begin
-      Result:=0;
-      exit;
-    end;
-    inc(RealCount);
-    // test left son
-    if ANode.Left<>nil then begin
-      if ANode.Left.Parent<>ANode then begin
-        Result:=-2;  exit;
-      end;
-      if fOnCompare(ANode.Left.Data,ANode.Data)>0 then begin
-        //DebugLn('CCC-3 ',HexStr(PtrInt(ANode.Data),8),' ',HexStr(PtrInt(ANode.Left.Data),8));
-        Result:=-3;  exit;
-      end;
-      Result:=CheckNode(ANode.Left);
-      if Result<>0 then exit;
-    end;
-    // test right son
-    if ANode.Right<>nil then begin
-      if ANode.Right.Parent<>ANode then begin
-        Result:=-4;  exit;
-      end;
-      if fOnCompare(ANode.Data,ANode.Right.Data)>0 then begin
-        //DebugLn('CCC-5 ',HexStr(PtrInt(ANode.Data),8),' ',HexStr(PtrInt(ANode.Right.Data),8));
-        Result:=-5;  exit;
-      end;
-      Result:=CheckNode(ANode.Right);
-      if Result<>0 then exit;
-    end;
-    // test balance
-    if ANode.Left<>nil then
-      LeftDepth:=ANode.Left.TreeDepth+1
-    else
-      LeftDepth:=0;
-    if ANode.Right<>nil then
-      RightDepth:=ANode.Right.TreeDepth+1
-    else
-      RightDepth:=0;
-    if ANode.Balance<>(RightDepth-LeftDepth) then begin
-      Result:=-6;  exit;
-    end;
-    // ok
-    Result:=0;
+    raise Exception.Create('TAVLTree.ConsistencyCheck: '+Msg);
   end;
 
-// TAVLTree.ConsistencyCheck
+var
+  RealCount: SizeInt;
 begin
+  Result:=0;
   RealCount:=0;
-  Result:=CheckNode(Root);
-  if Result<>0 then exit;
-  if FCount<>RealCount then begin
-    Result:=-1;
-    exit;
+  if FRoot<>nil then begin
+    FRoot.ConsistencyCheck(Self);
+    RealCount:=FRoot.GetCount;
   end;
+  if Count<>RealCount then
+    E('Count<>RealCount');
 end;
 
 procedure TAVLTree.FreeAndClear;
 
-  procedure FreeNode(ANode: TAVLTreeNode);
+  procedure FreeNodeData(ANode: TAVLTreeNode);
   begin
     if ANode=nil then exit;
-    FreeNode(ANode.Left);
-    FreeNode(ANode.Right);
+    FreeNodeData(ANode.Left);
+    FreeNodeData(ANode.Right);
     if ANode.Data<>nil then TObject(ANode.Data).Free;
     ANode.Data:=nil;
   end;
@@ -994,7 +1119,7 @@ procedure TAVLTree.FreeAndClear;
 // TAVLTree.FreeAndClear
 begin
   // free all data
-  FreeNode(Root);
+  FreeNodeData(Root);
   // free all nodes
   Clear;
 end;
@@ -1007,93 +1132,161 @@ begin
   OldData.Free;
 end;
 
-procedure TAVLTree.WriteReportToStream(s: TStream; var StreamSize: int64);
-var h: string;
+function TAVLTree.Equals(Obj: TObject): boolean;
+begin
+  if Obj is TAVLTree then
+    Result:=IsEqual(TAVLTree(Obj),false)
+  else
+    Result:=inherited Equals(Obj);
+end;
+
+function TAVLTree.IsEqual(aTree: TAVLTree; CheckDataPointer: boolean): boolean;
+var
+  MyNode, OtherNode: TAVLTreeNode;
+begin
+  if aTree=Self then exit(true);
+  Result:=false;
+  if aTree=nil then exit;
+  if Count<>aTree.Count then exit;
+  if OnCompare<>aTree.OnCompare then exit;
+  if OnObjectCompare<>aTree.OnObjectCompare then exit;
+  if NodeClass<>aTree.NodeClass then exit;
+  MyNode:=FindLowest;
+  OtherNode:=aTree.FindLowest;
+  while MyNode<>nil do begin
+    if OtherNode=nil then exit;
+    if CheckDataPointer then begin
+      if MyNode.Data<>OtherNode.Data then exit;
+    end else begin
+      if Compare(MyNode.Data,OtherNode.Data)<>0 then exit;
+    end;
+    MyNode:=MyNode.Successor;;
+    OtherNode:=OtherNode.Successor;
+  end;
+  if OtherNode<>nil then exit;
+  Result:=true;
+end;
+
+procedure TAVLTree.Assign(aTree: TAVLTree);
+
+  procedure AssignNode(var MyNode: TAVLTreeNode; OtherNode: TAVLTreeNode);
+  begin
+    MyNode:=NewNode;
+    MyNode.Data:=OtherNode.Data;
+    MyNode.Balance:=OtherNode.Balance;
+    if OtherNode.Left<>nil then begin
+      AssignNode(MyNode.Left,OtherNode.Left);
+      MyNode.Left.Parent:=MyNode;
+    end;
+    if OtherNode.Right<>nil then begin
+      AssignNode(MyNode.Right,OtherNode.Right);
+      MyNode.Right.Parent:=MyNode;
+    end;
+  end;
+
+begin
+  if aTree=nil then
+    raise Exception.Create('TAVLTree.Assign aTree=nil');
+  if IsEqual(aTree,true) then exit;
+  Clear;
+  SetCompares(aTree.OnCompare,aTree.OnObjectCompare);
+  FNodeClass:=aTree.NodeClass;
+  if aTree.Root<>nil then
+    AssignNode(fRoot,aTree.Root);
+  FCount:=aTree.Count;
+end;
+
+function TAVLTree.Compare(Data1, Data2: Pointer): integer;
+begin
+  if Assigned(FOnCompare) then
+    Result:=FOnCompare(Data1,Data2)
+  else
+    Result:=FOnObjectCompare(Self,Data1,Data2);
+end;
+
+procedure TAVLTree.WriteReportToStream(s: TStream);
 
   procedure WriteStr(const Txt: string);
   begin
-    if s<>nil then
-      s.Write(Txt[1],length(Txt));
-    inc(StreamSize,length(Txt));
+    if Txt='' then exit;
+    s.Write(Txt[1],length(Txt));
   end;
 
-  procedure WriteTreeNode(ANode: TAVLTreeNode; const Prefix: string);
-  var b: string;
+  procedure WriteTreeNode(ANode: TAVLTreeNode);
+  var
+    b: String;
+    IsLeft: boolean;
+    AParent: TAVLTreeNode;
+    WasLeft: Boolean;
   begin
     if ANode=nil then exit;
-    WriteTreeNode(ANode.Right,Prefix+'  ');
-    b:=Prefix+HexStr(PtrInt(ANode.Data),8)+'    '
-        +'  Self='+HexStr(PtrInt(ANode),8)
-        +'  Parent='+HexStr(PtrInt(ANode.Parent),8)
-        +'  Balance='+IntToStr(ANode.Balance)
-        +#13#10;
+    WriteTreeNode(ANode.Right);
+    AParent:=ANode;
+    WasLeft:=false;
+    b:='';
+    while AParent<>nil do begin
+      if AParent.Parent=nil then begin
+        if AParent=ANode then
+          b:='--'+b
+        else
+          b:='  '+b;
+        break;
+      end;
+      IsLeft:=AParent.Parent.Left=AParent;
+      if AParent=ANode then begin
+        if IsLeft then
+          b:='\-'
+        else
+          b:='/-';
+      end else begin
+        if WasLeft=IsLeft then
+          b:='  '+b
+        else
+          b:='| '+b;
+      end;
+      WasLeft:=IsLeft;
+      AParent:=AParent.Parent;
+    end;
+    b:=b+NodeToReportStr(ANode)+LineEnding;
     WriteStr(b);
-    WriteTreeNode(ANode.Left,Prefix+'  ');
+    WriteTreeNode(ANode.Left);
   end;
 
 // TAVLTree.WriteReportToStream
 begin
-  h:='Consistency: '+IntToStr(ConsistencyCheck)+' ---------------------'+#13#10;
-  WriteStr(h);
-  WriteTreeNode(Root,'  ');
-  h:='-End-Of-AVL-Tree---------------------'+#13#10;
-  WriteStr(h);
+  WriteStr('-Start-of-AVL-Tree-------------------'+LineEnding);
+  WriteTreeNode(fRoot);
+  WriteStr('-End-Of-AVL-Tree---------------------'+LineEnding);
+end;
+
+function TAVLTree.NodeToReportStr(aNode: TAVLTreeNode): string;
+begin
+  Result:=Format('%p      Self=%p  Parent=%p  Balance=%d',
+             [aNode.Data, Pointer(aNode),Pointer(aNode.Parent), aNode.Balance]);
 end;
 
 function TAVLTree.ReportAsString: string;
 var ms: TMemoryStream;
-  StreamSize: int64;
 begin
   Result:='';
   ms:=TMemoryStream.Create;
   try
-    StreamSize:=0;
-    WriteReportToStream(nil,StreamSize);
-    ms.Size:=StreamSize;
-    StreamSize:=0;
-    WriteReportToStream(ms,StreamSize);
-    StreamSize:=0;
-    if StreamSize>0 then begin
-      ms.Position:=0;
-      SetLength(Result,StreamSize);
-      ms.Read(Result[1],StreamSize);
-    end;
+    WriteReportToStream(ms);
+    ms.Position:=0;
+    SetLength(Result,ms.Size);
+    if Result<>'' then
+      ms.Read(Result[1],length(Result));
   finally
     ms.Free;
   end;
 end;
 
 procedure TAVLTree.SetOnCompare(const AValue: TListSortCompare);
-var List: PPointer;
-  ANode: TAVLTreeNode;
-  i, OldCount: integer;
 begin
-  if FOnCompare=AValue then exit;
-  // sort the tree again
-  if Count>0 then begin
-    OldCount:=Count;
-    GetMem(List,SizeOf(Pointer)*OldCount);
-    try
-      // save the data in a list
-      ANode:=FindLowest;
-      i:=0;
-      while ANode<>nil do begin
-        List[i]:=ANode.Data;
-        inc(i);
-        ANode:=FindSuccessor(ANode);
-      end;
-      // clear the tree
-      Clear;
-      // set the new compare function
-      FOnCompare:=AValue;
-      // re-add all nodes
-      for i:=0 to OldCount-1 do
-        Add(List[i]);
-    finally
-      FreeMem(List);
-    end;
-  end else
-    FOnCompare:=AValue;
+  if AValue=nil then
+    SetCompares(nil,FOnObjectCompare)
+  else
+    SetCompares(AValue,nil);
 end;
 
 procedure TAVLTree.SetNodeManager(NewMgr: TBaseAVLTreeNodeManager;
@@ -1124,6 +1317,79 @@ begin
     Result:=LeftDepth
   else
     Result:=RightDepth;
+end;
+
+procedure TAVLTreeNode.ConsistencyCheck(Tree: TAVLTree);
+
+  procedure E(Msg: string);
+  begin
+    raise Exception.Create('TAVLTreeNode.ConsistencyCheck: '+Msg);
+  end;
+
+var
+  LeftDepth: SizeInt;
+  RightDepth: SizeInt;
+begin
+  // test left child
+  if Left<>nil then begin
+    if Left.Parent<>Self then
+      E('Left.Parent<>Self');
+    if Tree.Compare(Left.Data,Data)>0 then
+      E('Compare(Left.Data,Data)>0');
+    Left.ConsistencyCheck(Tree);
+  end;
+  // test right child
+  if Right<>nil then begin
+    if Right.Parent<>Self then
+      E('Right.Parent<>Self');
+    if Tree.Compare(Data,Right.Data)>0 then
+      E('Compare(Data,Right.Data)>0');
+    Right.ConsistencyCheck(Tree);
+  end;
+  // test balance
+  if Left<>nil then
+    LeftDepth:=Left.TreeDepth+1
+  else
+    LeftDepth:=0;
+  if Right<>nil then
+    RightDepth:=Right.TreeDepth+1
+  else
+    RightDepth:=0;
+  if Balance<>(RightDepth-LeftDepth) then
+    E('Balance['+IntToStr(Balance)+']<>(RightDepth['+IntToStr(RightDepth)+']-LeftDepth['+IntToStr(LeftDepth)+'])');
+end;
+
+function TAVLTreeNode.GetCount: SizeInt;
+begin
+  Result:=1;
+  if Left<>nil then inc(Result,Left.GetCount);
+  if Right<>nil then inc(Result,Right.GetCount);
+end;
+
+function TAVLTreeNode.Successor: TAVLTreeNode;
+begin
+  Result:=Right;
+  if Result<>nil then begin
+    while (Result.Left<>nil) do Result:=Result.Left;
+  end else begin
+    Result:=Self;
+    while (Result.Parent<>nil) and (Result.Parent.Right=Result) do
+      Result:=Result.Parent;
+    Result:=Result.Parent;
+  end;
+end;
+
+function TAVLTreeNode.Precessor: TAVLTreeNode;
+begin
+  Result:=Left;
+  if Result<>nil then begin
+    while (Result.Right<>nil) do Result:=Result.Right;
+  end else begin
+    Result:=Self;
+    while (Result.Parent<>nil) and (Result.Parent.Left=Result) do
+      Result:=Result.Parent;
+    Result:=Result.Parent;
+  end;
 end;
 
 procedure TAVLTreeNode.Clear;
@@ -1202,14 +1468,14 @@ begin
   FFreeCount:=0;
 end;
 
-procedure TAVLTreeNodeMemManager.SetMaxFreeRatio(NewValue: integer);
+procedure TAVLTreeNodeMemManager.SetMaxFreeRatio(NewValue: SizeInt);
 begin
   if NewValue<0 then NewValue:=0;
   if NewValue=FMaxFreeRatio then exit;
   FMaxFreeRatio:=NewValue;
 end;
 
-procedure TAVLTreeNodeMemManager.SetMinFree(NewValue: integer);
+procedure TAVLTreeNodeMemManager.SetMinFree(NewValue: SizeInt);
 begin
   if NewValue<0 then NewValue:=0;
   if NewValue=FMinFree then exit;
