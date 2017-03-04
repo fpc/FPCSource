@@ -299,7 +299,7 @@ type
     Function GetFieldCount : Integer;
     Function GetContentLength : Integer;
     Procedure SetContentLength(Value : Integer);
-    Function GetFieldOrigin(AIndex : Integer; Out H : THeader; V : THTTPVAriableType) : Boolean;
+    Function GetFieldOrigin(AIndex : Integer; Out H : THeader; Out V : THTTPVAriableType) : Boolean;
     Function GetServerPort : Word;
     Procedure SetServerPort(AValue : Word);
     Function GetSetFieldValue(Index : Integer) : String; virtual;
@@ -816,7 +816,7 @@ end;
 
 
 function THTTPHeader.GetFieldOrigin(AIndex: Integer; out H: THeader;
-  V: THTTPVAriableType): Boolean;
+  Out V: THTTPVAriableType): Boolean;
 
 
 begin
