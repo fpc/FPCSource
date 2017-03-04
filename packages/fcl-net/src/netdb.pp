@@ -332,12 +332,16 @@ Var
   L : String;
   A : THostAddr;
   T : PHostListEntry;
+  B : Array of byte;
+  FS : Int64;
   
 begin
   Result:=Nil;
   Assign(F,FileName);
   {$push}{$I-}
   Reset(F);
+  SetLength(B,65355);
+  SetTextBuf(F,B[0],65355);
   {$pop};
   If (IOResult<>0) then
     Exit;
