@@ -3737,6 +3737,17 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
       ExpectToken(tkSquaredBraceClose);
       Result := Result + ']';
       end;
+    repeat
+      NextToken;
+      if CurToken <> tkDot then
+        begin
+        UngetToken;
+        break;
+        end;
+      ExpectIdentifier;
+      Result := Result + '.' + CurTokenString;
+      AddToBinaryExprChain(Expr,Last,CreatePrimitiveExpr(aParent,pekIdent,CurTokenString),eopSubIdent);
+    until false;
   end;
 
 var
