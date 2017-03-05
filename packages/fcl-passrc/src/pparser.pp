@@ -239,6 +239,7 @@ type
     function CheckOverloadList(AList: TFPList; AName: String; out OldMember: TPasElement): TPasOverloadedProc;
     procedure DumpCurToken(Const Msg : String; IndentAction : TIndentAction = iaNone);
     function GetCurrentModeSwitches: TModeSwitches;
+    Procedure SetCurrentModeSwitches(AValue: TModeSwitches);
     function GetVariableModifiers(Parent: TPasElement; Out VarMods: TVariableModifiers; Out LibName, ExportName: TPasExpr): string;
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
@@ -382,7 +383,7 @@ type
     property CurToken: TToken read FCurToken;
     property CurTokenString: String read FCurTokenString;
     Property Options : TPOptions Read FOptions Write SetOptions;
-    Property CurrentModeswitches : TModeSwitches Read GetCurrentModeSwitches;
+    Property CurrentModeswitches : TModeSwitches Read GetCurrentModeSwitches Write SetCurrentModeSwitches;
     Property CurModule : TPasModule Read FCurModule;
     Property LogEvents : TPParserLogEvents Read FLogEvents Write FLogEvents;
     Property OnLog : TPasParserLogHandler Read FOnLog Write FOnLog;
@@ -3478,6 +3479,35 @@ end;
 procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
   Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
 
+  Function FindInSection(AName : String;ASection : TPasSection) : Boolean;
+
+  Var
+    I : integer;
+    Cn,FN : String;
+    CT : TPasClassType;
+
+  begin
+    // ToDo: add an event for the resolver to use a faster lookup
+    I:=ASection.Functions.Count-1;
+    While (I>=0) and (CompareText(TPasElement(ASection.Functions[I]).Name,AName)<>0) do
+      Dec(I);
+    Result:=I<>-1;
+    I:=Pos('.',AName);
+    if (Not Result) and (I<>0) then
+      begin
+      CN:=Copy(AName,1,I-1);
+      FN:=Aname;
+      Delete(FN,1,I);
+      I:=Asection.Classes.Count-1;
+      While Not Result and (I>=0) do
+        begin
+        CT:=TPasClassType(ASection.Classes[i]);
+        if CompareText(CT.Name,CN)=0 then
+          Result:=CT.FindMember(TPasFunction, FN)<>Nil;
+        Dec(I);
+        end;
+      end;
+  end;
   procedure ConsumeSemi;
   begin
     NextToken;
@@ -3512,6 +3542,7 @@ Var
   Done: Boolean;
   ResultEl: TPasResultElement;
   I : Integer;
+  OK : Boolean;
 
 begin
   // Element must be non-nil. Removed all checks for not-nil.
@@ -3528,17 +3559,15 @@ begin
         end
       // In Delphi mode, the implementation in the implementation section can be without result as it was declared
       // We actually check if the function exists in the interface section.
-      else if (msDelphi in CurrentModeswitches) and Assigned(CurModule.ImplementationSection) then
+      else if (msDelphi in CurrentModeswitches) and
+              (Assigned(CurModule.ImplementationSection) or
+               (CurModule is TPasProgram)) then
         begin
-        I:=-1;
         if Assigned(CurModule.InterfaceSection) then
-          begin
-          // ToDo: add an event for the resolver to use a faster lookup
-          I:=CurModule.InterfaceSection.Functions.Count-1;
-          While (I>=0) and (CompareText(TPasElement(CurModule.InterfaceSection.Functions[i]).Name,Parent.Name)<>0) do
-            Dec(I);
-          end;
-        if (I=-1) then
+          OK:=FindInSection(Parent.Name,CurModule.InterfaceSection)
+        else if (CurModule is TPasProgram) and Assigned(TPasProgram(CurModule).ProgramSection) then
+          OK:=FindInSection(Parent.Name,TPasProgram(CurModule).ProgramSection);
+        if Not OK then
           CheckToken(tkColon)
         else
           begin
@@ -4619,6 +4648,12 @@ begin
     Result:=FScanner.CurrentModeSwitches
   else
     Result:=[msNone];
+end;
+
+procedure TPasParser.SetCurrentModeSwitches(AValue: TModeSwitches);
+begin
+  if Assigned(FScanner) then
+    FScanner.CurrentModeSwitches:=AValue;
 end;
 
 // Starts on first token after Record or (. Ends on AEndToken

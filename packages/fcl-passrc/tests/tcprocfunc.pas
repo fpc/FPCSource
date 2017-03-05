@@ -28,6 +28,7 @@ type
     procedure AssertProc(Mods: TProcedureModifiers; CC: TCallingConvention; ArgCount: Integer; P: TPasProcedure=nil);
     function BaseAssertArg(ProcType: TPasProcedureType; AIndex: Integer;
       AName: String; AAccess: TArgumentAccess; AValue: String=''): TPasArgument;
+    procedure CreateForwardTest;
     function GetFT: TPasFunctionType;
     function GetPT: TPasProcedureType;
     Procedure ParseProcedure;
@@ -146,6 +147,8 @@ type
     Procedure TestFunctionCDeclExport;
     Procedure TestProcedureExternal;
     Procedure TestFunctionExternal;
+    Procedure TestFunctionForwardNoReturnDelphi;
+    procedure TestFunctionForwardNoReturnNoDelphi;
     Procedure TestProcedureExternalLibName;
     Procedure TestFunctionExternalLibName;
     Procedure TestProcedureExternalLibNameName;
@@ -1053,6 +1056,39 @@ begin
   ParseFunction;
   AssertFunc([pmExternal],ccDefault,0);
   AssertNull('No Library name expression',Func.LibraryExpr);
+end;
+
+procedure TTestProcedureFunction.CreateForwardTest;
+
+begin
+  With Source do
+    begin
+    Add('type');
+    Add('');
+    Add('Entity=object');
+    Add('  function test:Boolean;');
+    Add('end;');
+    Add('');
+    Add('Function Entity.test;');
+    Add('begin');
+    Add('end;');
+    Add('');
+    Add('begin');
+    // End is added by ParseModule
+    end;
+end;
+
+procedure TTestProcedureFunction.TestFunctionForwardNoReturnDelphi;
+begin
+  Source.Add('{$MODE DELPHI}');
+  CreateForwardTest;
+  ParseModule;
+end;
+
+procedure TTestProcedureFunction.TestFunctionForwardNoReturnNoDelphi;
+begin
+  CreateForwardTest;
+  AssertException('Only in delphi mode can result be omitted',EParserError,@ParseModule);
 end;
 
 procedure TTestProcedureFunction.TestProcedureExternalLibName;
