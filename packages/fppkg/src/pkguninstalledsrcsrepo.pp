@@ -10,6 +10,7 @@ uses
   fpmkunit,
   fpTemplate,
   pkgoptions,
+  pkgFppkg,
   pkgglobals,
   pkgmessages,
   fprepos,
@@ -165,7 +166,7 @@ begin
   else
     Result := IncludeTrailingPathDelimiter(GetBaseInstallDir)+APackage.Name+PathDelim;
 
-  Result := Result +APackage.Name+'-'+GFPpkg.CompilerOptions.CompilerTarget+FpmkExt;
+  Result := Result +APackage.Name+'-'+FCompilerOptions.CompilerTarget+FpmkExt;
 end;
 
 { TFppkgUninstalledRepositoryOptionSection }
@@ -220,6 +221,7 @@ var
   TempPackagesStructure: TFPTemporaryDirectoryPackagesStructure;
   TempRepo: TFPRepository;
   PackageName: string;
+  PackageManager: TpkgFppkg;
 begin
   Result:=false;
 
@@ -231,8 +233,14 @@ begin
   TempRepo.RepositoryType := fprtAvailable;
   TempRepo.DefaultPackagesStructure := TempPackagesStructure;
   TempPackagesStructure.AddPackagesToRepository(TempRepo);
-  GFPpkg.RepositoryList.Add(TempRepo);
 
+  if Owner is TPkgFppkg then
+    PackageManager := TPkgfppkg(owner)
+  else
+    PackageManager := GFPpkg;
+
+  if Assigned(PackageManager) then
+    PackageManager.RepositoryList.Add(TempRepo);
   try
     log(llDebug,SLogFindInstalledPackages,[Path]);
     if FindFirst(Path+AllFiles,faDirectory,SR)=0 then
@@ -247,18 +255,25 @@ begin
                   if not FileExists(AManifestFile) or (FileAge(AManifestFile) < FileAge(AFPMakeFile)) then
                     begin
                       // (Re-)create manifest
-                      try
-                        TempPackagesStructure.SetTempPath(Path+SR.Name);
-                        PackageName :=  SR.Name + '_create_manifest';
-                        TempPackagesStructure.TempPackageName := PackageName;
-                        pkghandler.ExecuteAction(PackageName,'fpmakemanifest',GFPpkg);
-                      except
-                        on E: Exception do
-                          begin
-                            log(llWarning, SLogFailedToCreateManifest ,[AFPMakeFile, E.Message]);
-                            Continue;
+                      if assigned(PackageManager) then
+                        begin
+                          try
+                            TempPackagesStructure.SetTempPath(Path+SR.Name);
+                            PackageName :=  SR.Name + '_create_manifest';
+                            TempPackagesStructure.TempPackageName := PackageName;
+                            pkghandler.ExecuteAction(PackageName,'fpmakemanifest',PackageManager);
+                          except
+                            on E: Exception do
+                              begin
+                              log(llWarning, SLogFailedToCreateManifest ,[AFPMakeFile, E.Message]);
+                                Continue;
+                              end;
                           end;
-                      end;
+                        end
+                      else
+                        begin
+                          log(llError, SLogFailedToCreateManifest ,[AFPMakeFile, 'No packagemanager available']);
+                        end;
                     end;
                   ARepository.AddPackagesFromManifestFile(AManifestFile);
                   for i := 0 to ARepository.PackageCount -1 do
@@ -270,7 +285,8 @@ begin
       end;
     FindClose(SR);
   finally
-    GFPpkg.RepositoryList.Remove(TempRepo);
+    if Assigned(PackageManager) then
+      PackageManager.RepositoryList.Remove(TempRepo);
     TempRepo.Free;
     TempPackagesStructure.Free;
   end;
@@ -290,5 +306,6 @@ end;
 
 initialization
   TFPCustomPackagesStructure.RegisterPackagesStructureClass(TFPUninstalledSourcesAvailablePackagesStructure);
+  TFPCustomPackagesStructure.RegisterPackagesStructureClass(TFPUninstalledSourcesPackagesStructure);
 end.
 
