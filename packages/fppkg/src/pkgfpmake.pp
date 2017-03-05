@@ -164,6 +164,8 @@ Var
   FPMakeSrc : string;
   NeedFPMKUnitSource,
   HaveFpmake : boolean;
+  FPMKUnitDepAvailable: Boolean;
+  FPMKUnitDepPackage: TFPPackage;
   P : TFPPackage;
 begin
   P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
@@ -192,7 +194,22 @@ begin
       AddOption('-dCOMPILED_BY_FPPKG');
       for i:=0 to high(FPMKUnitDeps) do
         begin
-          if FPMKUnitDeps[i].available then
+          FPMKUnitDepAvailable := FPMKUnitDeps[i].available;
+          if FPMKUnitDepAvailable then
+            begin
+              // Do not try to use packages which are broken. This can happen when
+              // fixbroken is being called and one of the fpmkunit-dependencies itself
+              // is broken. In that case, build fpmake without the dependency.
+              // (Plugins are also fpmkunit-dependencies)
+              FPMKUnitDepPackage := PackageManager.FindPackage(FPMKUnitDeps[i].package, pkgpkInstalled);
+              if Assigned(FPMKUnitDepPackage) then
+                begin
+                  if PackageManager.PackageIsBroken(FPMKUnitDepPackage, nil) then
+                    FPMKUnitDepAvailable := False;
+                end;
+            end;
+
+          if FPMKUnitDepAvailable then
             begin
               if CheckUnitDir(FPMKUnitDeps[i].package,DepDir) then
                 AddOption('-Fu'+DepDir)
