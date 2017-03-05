@@ -141,6 +141,7 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
+          function elements : AInt;
        end;
        tsetconstnodeclass = class of tsetconstnode;
 
@@ -1070,11 +1071,11 @@ implementation
         typedef:=tdef(typedefderef.resolve);
       end;
 
+    type
+       setbytes = array[0..31] of byte;
+       Psetbytes = ^setbytes;
 
     procedure tsetconstnode.adjustforsetbase;
-      type
-         setbytes = array[0..31] of byte;
-         Psetbytes = ^setbytes;
       var
         i, diff: longint;
       begin
@@ -1143,6 +1144,18 @@ implementation
       begin
         docompare:=(inherited docompare(p)) and
                    (value_set^=Tsetconstnode(p).value_set^);
+      end;
+
+
+    function tsetconstnode.elements : AInt;
+      var
+        i : AInt;
+      begin
+        result:=0;
+        if not(assigned(value_set)) then
+          exit;
+        for i:=0 to tsetdef(resultdef).size-1 do
+          result:=result+ PopCnt(Psetbytes(value_set)^[i]);
       end;
 
 

@@ -3118,6 +3118,12 @@ implementation
 
 
     function taddnode.pass_1 : tnode;
+
+      function isconstsetfewelements(p : tnode) : boolean;
+        begin
+          result:=(p.nodetype=setconstn) and (tsetconstnode(p).elements<=4);
+        end;
+
       var
 {$ifdef addstringopt}
          hp      : tnode;
@@ -3128,6 +3134,10 @@ implementation
 {$ifdef cpuneedsmulhelper}
          procname : string[32];
 {$endif cpuneedsmulhelper}
+        tempn,varsetnode: tnode;
+        mulnode : taddnode;
+        constsetnode : tsetconstnode;
+        createinnodes : Boolean;
       begin
          result:=nil;
          { Can we optimize multiple string additions into a single call?
@@ -3138,6 +3148,56 @@ implementation
              result:=genmultistringadd(self);
              exit;
            end;
+
+         { typical set tests like (s*[const. set])<>/=[] can be converted into an or'ed chain of in tests
+           for var sets if const. set contains only a few elements }
+         if (cs_opt_level1 in current_settings.optimizerswitches) and (nodetype in [unequaln,equaln]) and (left.resultdef.typ=setdef) and not(is_smallset(left.resultdef)) then
+           begin
+             createinnodes:=false;
+             mulnode:=nil;
+             if (is_emptyset(right) and (left.nodetype=muln) and
+                 (isconstsetfewelements(taddnode(left).right) or isconstsetfewelements(taddnode(left).left))) then
+               begin
+                 createinnodes:=true;
+                 mulnode:=taddnode(left);
+               end
+             else if (is_emptyset(left) and (right.nodetype=muln) and
+               (isconstsetfewelements(taddnode(right).right) or isconstsetfewelements(taddnode(right).left))) then
+               begin
+                 createinnodes:=true;
+                 mulnode:=taddnode(right);
+               end;
+
+             if createinnodes then
+               begin
+                 constsetnode:=nil;
+                 varsetnode:=nil;
+                 if isconstsetfewelements(mulnode.right) then
+                   begin
+                     constsetnode:=tsetconstnode(mulnode.right);
+                     varsetnode:=mulnode.left;
+                   end
+                 else
+                   begin
+                     constsetnode:=tsetconstnode(mulnode.left);
+                     varsetnode:=mulnode.right;
+                   end;
+                 result:=nil;
+                 for i:=low(tconstset) to high(tconstset) do
+                   if i in constsetnode.value_set^ then
+                     begin
+                       tempn:=cinnode.create(cordconstnode.create(i,tsetdef(constsetnode.resultdef).elementdef,false),varsetnode.getcopy);
+                       if assigned(result) then
+                         result:=caddnode.create_internal(orn,result,tempn)
+                       else
+                         result:=tempn;
+                     end;
+                 if nodetype=equaln then
+                   result:=cnotnode.create(result);
+                 exit;
+               end;
+           end;
+
          { first do the two subtrees }
          firstpass(left);
          firstpass(right);
