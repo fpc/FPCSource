@@ -59,6 +59,23 @@ interface
 
 {$undef GDB_VERSION_RECOGNIZED}
 
+{ GDB 7.12 is the last version
+  that use a plain C compiler
+  Later version will not work
+  for gdbint unit unless we get a
+  working g++ mangler into Free Pascal compiler }
+
+{ 7.12.x }
+{$ifdef GDB_V712}
+  {$info using gdb 7.12.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_VER_GE_712}
+{$endif}
+
+{$ifdef GDB_VER_GE_712}
+  {$define GDB_VER_GE_711}
+{$endif}
+
 { 7.11.x }
 {$ifdef GDB_V711}
   {$info using gdb 7.11.x}
@@ -331,7 +348,7 @@ interface
   {$define GDB_INIT_HAS_ARGV0}
 {$endif GDB_V6}
 
-{$ifdef GDB_VERSION_RECOGNIZED}
+{$ifndef GDB_VERSION_RECOGNIZED}
   {$warning no recognized GDB_VXYZ conditional found, linking might fail. }
 {$endif}
 
