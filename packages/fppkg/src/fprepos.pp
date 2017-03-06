@@ -365,7 +365,14 @@ end;
 
 function TFPCustomPackagesStructure.GetBuildPathDirectory(APackage: TFPPackage): string;
 begin
-  Result := '';
+  if (APackage.Repository.RepositoryType=fprtInstalled) and (APackage.SourcePath<>'') then
+    begin
+      Result := APackage.SourcePath;
+    end
+  else
+    begin
+      Result := '';
+    end;
 end;
 
 function TFPCustomPackagesStructure.GetPrefix: string;

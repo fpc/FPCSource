@@ -562,7 +562,7 @@ begin
                 end
               else
                 begin
-                  if PackageManager.PackageIsBroken(InstalledP, InstalledP.Repository) then
+                  if PackageManager.PackageIsBroken(InstalledP, nil) then
                     begin
                       status:='Broken, recompiling';
                       L.Add(D.PackageName);
@@ -610,10 +610,12 @@ procedure TCommandFixBroken.Execute;
 var
   i : integer;
   SL : TStringList;
+  BreakLoop : Boolean;
 begin
   SL:=TStringList.Create;
+  BreakLoop := false;
   repeat
-    FindBrokenPackages(SL);
+    PackageManager.FindBrokenPackages(SL);
     if SL.Count=0 then
       break;
     pkgglobals.Log(llProgres,SProgrReinstallDependent);
@@ -621,8 +623,13 @@ begin
       begin
         ExecuteAction(SL[i],'build');
         ExecuteAction(SL[i],'install-req');
+        if PackageManager.PackageIsBroken(PackageManager.PackageByName(SL[i], pkgpkInstalled), nil) then
+          begin
+            BreakLoop := true;
+            pkgglobals.Log(llWarning, SWarnBrokenAfterReinstall, [SL[i]]);
+          end;
       end;
-  until false;
+  until BreakLoop;
   FreeAndNil(SL);
 end;
 

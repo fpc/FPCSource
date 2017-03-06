@@ -23,6 +23,8 @@ type
   { TFPMakeCompiler }
 
   TFPMakeCompiler = Class(TPackagehandler)
+  protected
+    function DeterminePackage: TFPPackage;
   Public
     Procedure Execute;override;
   end;
@@ -30,7 +32,7 @@ type
 
   { TFPMakeRunner }
 
-  TFPMakeRunner = Class(TPackagehandler)
+  TFPMakeRunner = Class(TFPMakeCompiler)
   Protected
     Function RunFPMake(const Command:string):Integer;
   end;
@@ -132,6 +134,28 @@ end;
 
 { TFPMakeCompiler }
 
+function TFPMakeCompiler.DeterminePackage: TFPPackage;
+var
+  PA, PI: TFPPackage;
+begin
+  PA:=PackageManager.FindPackage(PackageName, pkgpkAvailable);
+  PI:=PackageManager.FindPackage(PackageName, pkgpkInstalled);
+  if Assigned(PA) and Assigned(PI) then
+    begin
+    if PA.Version.CompareVersion(PI.Version) > 0 then
+      Result := PA
+    else
+      Result := PI;
+    end
+  else if Assigned(PI) then
+    Result := PI
+  else
+    Result := PA;
+
+  if not Assigned(Result) then
+    Raise EPackage.CreateFmt(SErrMissingPackage,[PackageName]);
+end;
+
 Procedure TFPMakeCompiler.Execute;
 var
   OOptions : string;
@@ -168,7 +192,7 @@ Var
   FPMKUnitDepPackage: TFPPackage;
   P : TFPPackage;
 begin
-  P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
+  P:=DeterminePackage;
   NeedFPMKUnitSource:=false;
   OOptions:='';
   SetCurrentDir(PackageManager.PackageBuildPath(P));
@@ -323,7 +347,7 @@ begin
   // Does the current package support this CPU-OS?
   if PackageName<>'' then
     begin
-      P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
+      P := DeterminePackage;
       if (PackageName=CurrentDirPackageName) and (FileExists(ManifestFileName)) then
         ObtainSupportedTargetsFromManifest(p);
     end

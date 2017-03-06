@@ -145,47 +145,37 @@ end;
 
 
 Procedure AddFPMakeAddIn(APackage: TFPPackage);
+var
+  SelectedDep, i: Integer;
 begin
-  log(llDebug,SLogFoundFPMakeAddin,[APackage.Name]);
-  setlength(FPMKUnitDeps,length(FPMKUnitDeps)+1);
-  FPMKUnitDeps[high(FPMKUnitDeps)].package:=APackage.Name;
-  FPMKUnitDeps[high(FPMKUnitDeps)].reqver:=APackage.Version.AsString;
-  FPMKUnitDeps[high(FPMKUnitDeps)].def:='HAS_PACKAGE_'+APackage.Name;
-  FPMKUnitDeps[high(FPMKUnitDeps)].PluginUnit:=APackage.FPMakePluginUnits;
-  FPMKUnitDeps[high(FPMKUnitDeps)].available:=true;
+  SelectedDep := -1;
+  for i := 0 to high(FPMKUnitDeps) do
+    begin
+      if FPMKUnitDeps[i].package = APackage.Name then
+        begin
+          log(llDebug,SLogUpdateFPMakeAddin,[APackage.Name]);
+          SelectedDep := i;
+          break;
+        end;
+    end;
+
+  if SelectedDep = -1 then
+    begin
+      log(llDebug,SLogFoundFPMakeAddin,[APackage.Name]);
+      setlength(FPMKUnitDeps,length(FPMKUnitDeps)+1);
+      SelectedDep := high(FPMKUnitDeps);
+    end;
+  FPMKUnitDeps[SelectedDep].package:=APackage.Name;
+  FPMKUnitDeps[SelectedDep].reqver:=APackage.Version.AsString;
+  FPMKUnitDeps[SelectedDep].def:='HAS_PACKAGE_'+APackage.Name;
+  FPMKUnitDeps[SelectedDep].PluginUnit:=APackage.FPMakePluginUnits;
+  FPMKUnitDeps[SelectedDep].available:=true;
 end;
 
 
 function FindBrokenPackages(SL:TStrings):Boolean;
-var
-  i,j,k : integer;
-  P : TFPPackage;
-  Repo: TFPRepository;
 begin
-  SL.Clear;
-  for i:=0 to GFPpkg.RepositoryList.Count-1 do
-    begin
-      Repo := TFPRepository(GFPpkg.RepositoryList[i]);
-      if Repo.RepositoryType = fprtInstalled then
-        begin
-          for j := 0 to Repo.PackageCount-1 do
-            begin
-              P := Repo.Packages[j];
-              if P.IsPackageBroken then
-                SL.Add(P.Name)
-              else
-                begin
-                  // It could be that a package is broken in one repository,
-                  // but that this problem is 'fixed' in a repository with an higher
-                  // priority
-                  k := SL.IndexOf(P.Name);
-                  if k > -1 then
-                    SL.Delete(k);
-                end;
-            end;
-        end;
-    end;
-  Result:=(SL.Count>0);
+  Result := GFPpkg.FindBrokenPackages(SL);
 end;
 
 

@@ -20,7 +20,7 @@ Resourcestring
   SErrMissingCompilerConfig  = 'Could not find compiler configuration "%s"';
   SErrMissingInstallPackage  = 'Package "%s" is not installed';
   SErrMissingAvailablePackage= 'Package "%s" is not available';
-  SErrMissingPackage         = 'Could not fin package "%s"';
+  SErrMissingPackage         = 'Could not find package "%s"';
   SErrMissingInstallRepo     = 'Could not find repository "%s"';
   SErrNoPackageSpecified     = 'No package specified';
   SErrNoPackageAvailable     = 'Package %s %s is not available';
@@ -80,6 +80,7 @@ Resourcestring
   SLogLoadingMirrorsFile     = 'Loading available mirrors from "%s"';
   SLogFindInstalledPackages  = 'Searching for installed packages in "%s"';
   SLogFoundFPMakeAddin       = 'Found FPMake-AddIn "%s"';
+  SLogUpdateFPMakeAddin      = 'FPMake-AddIn "%s" updated';
   SLogSavingStatusFile       = 'Saving local status to "%s"';
   SLogFPMKUnitDepVersion     = 'Checking for %s %s, installed %s, available %s';
   SLogFPMKUnitDepTooOld      = 'Minimum version of %s is not installed, using internal fpmkunit with limited functionality';
@@ -89,6 +90,7 @@ Resourcestring
   SLogOldConfigFileFormat    = 'Configuration file is in an old format';
   SLogPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
   SLogPackageChecksumChanged = 'Package %s (%s) needs to be rebuild, dependency %s (%s) is modified';
+  SLogPackageDepBroken       = 'Package %s (%s) needs to be rebuild, dependency %s (%s) is broken';
   SLogCheckBrokenDependenvies= 'Checking for broken dependencies';
   SLogFailedToCreateManifest = 'Failed to create manifest from fpmake.pp-file (%s) while scanning for available packages: %s';
   SLogUseInternalFpmkunit    = 'Fpmkunit not available, fallback to internal version.';
@@ -145,6 +147,8 @@ Resourcestring
   SDbgPackageMultipleLocations = 'Multiple installations found for package %s, using installation "%s"';
   SDbgPackageDependencyOtherTarget  = 'Dependency on package %s is not for %s';
   SDbgObsoleteDependency     = 'Package %s depends on package %s which is not installed anymore';
+
+  SWarnBrokenAfterReinstall  = 'Package %s is still broken, even after re-installation.';
 
   SProgrReinstallDependent   = 'Re-install packages which are dependent on just installed packages';
   SProgrInstallDependencies  = 'Install dependencies';

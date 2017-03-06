@@ -21,6 +21,9 @@ type
   TpkgPackageKind = (pkgpkInstalled, pkgpkAvailable, pkgpkBoth);
   TpkgFPpkg = class(TComponent)
   private
+    FInsideFindBrokenPackages: Integer;
+    FBrokenPackagesDictionary: TFPHashList;
+
     FFPMakeRepositoryList: TComponentList;
     FRepositoryList: TComponentList;
     FOptions: TFppkgOptions;
@@ -35,6 +38,8 @@ type
     function  FindPackage(ARepositoryList: TComponentList; APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
 
     function  SelectRemoteMirror:string;
+    procedure EnterFindBrokenPackages;
+    procedure LeaveFindBrokenpackages;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -63,6 +68,7 @@ type
 
     procedure ScanInstalledPackagesForAvailablePackages;
     procedure CheckFPMakeDependencies;
+    function  FindBrokenPackages(SL:TStrings):Boolean;
 
     property Options: TFppkgOptions read FOptions;
     property CompilerOptions: TCompilerOptions read FCompilerOptions;
@@ -90,10 +96,12 @@ begin
   FFpmakeCompilerOptions := TCompilerOptions.Create;
   FRepositoryList := TComponentList.Create(False);
   FFPMakeRepositoryList := TComponentList.Create(False);
+  FBrokenPackagesDictionary := TFPHashList.Create;
 end;
 
 destructor TpkgFPpkg.Destroy;
 begin
+  FBrokenPackagesDictionary.Free;
   FFPMakeRepositoryList.Free;
   FRepositoryList.Free;
   FCompilerOptions.Free;
@@ -321,57 +329,82 @@ var
   Dependency: TFPDependency;
   Repository: TFPRepository;
   DepPackage: TFPPackage;
+  HashPtr: PtrInt;
 begin
   result:=false;
 
-  if not Assigned(ARepository) then
-    begin
-    // Check with all repositories
-    ThisRepositoryIndex := RepositoryList.Count -1;
-    end
-  else
-    begin
-    // We should only check for dependencies in this repository, or repositories
-    // with a lower priority.
-    ThisRepositoryIndex := -1;
-    for i := RepositoryList.Count -1 downto 0 do
+  EnterFindBrokenPackages;
+  try
+    HashPtr := PtrInt(FBrokenPackagesDictionary.Find(APackage.Name));
+    if HashPtr<>0 then
       begin
-        if RepositoryList.Items[i] = ARepository then
-          ThisRepositoryIndex := i;
+        // Package is already evaluated
+        Result := (HashPtr = 1);
+        Exit;
       end;
-    end;
-
-  for j:=0 to APackage.Dependencies.Count-1 do
-    begin
-      Dependency:=APackage.Dependencies[j];
-      if (CompilerOptions.CompilerOS in Dependency.OSes) and
-         (CompilerOptions.CompilerCPU in Dependency.CPUs) then
+    if not Assigned(ARepository) then
+      begin
+      // Check with all repositories
+      ThisRepositoryIndex := RepositoryList.Count -1;
+      end
+    else
+      begin
+      // We should only check for dependencies in this repository, or repositories
+      // with a lower priority.
+      ThisRepositoryIndex := -1;
+      for i := RepositoryList.Count -1 downto 0 do
         begin
-          for i := ThisRepositoryIndex downto 0 do
-            begin
-              Repository := RepositoryList.Items[i] as TFPRepository;
-              DepPackage := Repository.FindPackage(Dependency.PackageName);
-              if Assigned(DepPackage) then
-                Break;
-            end;
-
-          if assigned(DepPackage) then
-            begin
-              if (Dependency.RequireChecksum<>$ffffffff) and (DepPackage.Checksum<>Dependency.RequireChecksum) then
-                begin
-                  log(llInfo,SLogPackageChecksumChanged,[APackage.Name,APackage.Repository.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
-                  result:=true;
-                  exit;
-                end;
-            end
-          else
-            begin
-              log(llDebug,SDbgObsoleteDependency,[APackage.Name,Dependency.PackageName]);
-              result:=true;
-              exit;
-            end;
+          if RepositoryList.Items[i] = ARepository then
+            ThisRepositoryIndex := i;
         end;
-    end;
+      end;
+
+    for j:=0 to APackage.Dependencies.Count-1 do
+      begin
+        Dependency:=APackage.Dependencies[j];
+        if (CompilerOptions.CompilerOS in Dependency.OSes) and
+           (CompilerOptions.CompilerCPU in Dependency.CPUs) then
+          begin
+            DepPackage := nil;
+            for i := ThisRepositoryIndex downto 0 do
+              begin
+                Repository := RepositoryList.Items[i] as TFPRepository;
+                if Repository.RepositoryType=fprtInstalled then
+                  DepPackage := Repository.FindPackage(Dependency.PackageName);
+                if Assigned(DepPackage) then
+                  Break;
+              end;
+
+            if assigned(DepPackage) then
+              begin
+                if PackageIsBroken(DepPackage, ARepository) then
+                  begin
+                    log(llInfo,SLogPackageDepBroken,[APackage.Name,APackage.Repository.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
+                    result:=true;
+                    FBrokenPackagesDictionary.Add(APackage.Name, Pointer(1));
+                    exit;
+                  end;
+                if (Dependency.RequireChecksum<>$ffffffff) and (DepPackage.Checksum<>Dependency.RequireChecksum) then
+                  begin
+                    log(llInfo,SLogPackageChecksumChanged,[APackage.Name,APackage.Repository.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
+                    result:=true;
+                    FBrokenPackagesDictionary.Add(APackage.Name, Pointer(1));
+                    exit;
+                  end;
+              end
+            else
+              begin
+                log(llInfo,SDbgObsoleteDependency,[APackage.Name,Dependency.PackageName]);
+                result:=true;
+                FBrokenPackagesDictionary.Add(APackage.Name, Pointer(1));
+                exit;
+              end;
+          end;
+      end;
+    FBrokenPackagesDictionary.Add(APackage.Name, Pointer(2));
+  finally
+    LeaveFindBrokenpackages;
+  end;
 end;
 
 function TpkgFPpkg.FPMakeRepoFindPackage(APackageName: string;
@@ -444,6 +477,20 @@ begin
     end
   else
     Error(SErrFailedToSelectMirror);
+end;
+
+procedure TpkgFPpkg.EnterFindBrokenPackages;
+begin
+  Assert((FInsideFindBrokenPackages>0) or (FBrokenPackagesDictionary.Count=0));
+  Inc(FInsideFindBrokenPackages)
+end;
+
+procedure TpkgFPpkg.LeaveFindBrokenpackages;
+begin
+  Assert(FInsideFindBrokenPackages>0);
+  Dec(FInsideFindBrokenPackages);
+  if FInsideFindBrokenPackages=0 then
+    FBrokenPackagesDictionary.Clear;
 end;
 
 function TpkgFPpkg.PackageByName(APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
@@ -576,6 +623,34 @@ begin
       else
         log(llDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
     end;
+end;
+
+function TpkgFPpkg.FindBrokenPackages(SL: TStrings): Boolean;
+var
+  i,j,k : integer;
+  P : TFPPackage;
+  Repo: TFPRepository;
+begin
+  SL.Clear;
+  EnterFindBrokenPackages;
+  try
+    for i:=0 to RepositoryList.Count-1 do
+      begin
+        Repo := TFPRepository(RepositoryList[i]);
+        if Repo.RepositoryType = fprtInstalled then
+          begin
+            for j := 0 to Repo.PackageCount-1 do
+              begin
+                P := Repo.Packages[j];
+                if (P = FindPackage(P.Name, pkgpkInstalled)) and PackageIsBroken(P, nil) then
+                  SL.Add(P.Name);
+              end;
+          end;
+      end;
+  finally
+    LeaveFindBrokenpackages;
+  end;
+  Result:=(SL.Count>0);
 end;
 
 function TpkgFPpkg.PackageBuildPath(APackage: TFPPackage): String;
