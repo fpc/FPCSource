@@ -3137,7 +3137,7 @@ implementation
         tempn,varsetnode: tnode;
         mulnode : taddnode;
         constsetnode : tsetconstnode;
-        createinnodes : Boolean;
+        trycreateinnodes : Boolean;
       begin
          result:=nil;
          { Can we optimize multiple string additions into a single call?
@@ -3153,22 +3153,22 @@ implementation
            for var sets if const. set contains only a few elements }
          if (cs_opt_level1 in current_settings.optimizerswitches) and (nodetype in [unequaln,equaln]) and (left.resultdef.typ=setdef) and not(is_smallset(left.resultdef)) then
            begin
-             createinnodes:=false;
+             trycreateinnodes:=false;
              mulnode:=nil;
              if (is_emptyset(right) and (left.nodetype=muln) and
                  (isconstsetfewelements(taddnode(left).right) or isconstsetfewelements(taddnode(left).left))) then
                begin
-                 createinnodes:=true;
+                 trycreateinnodes:=true;
                  mulnode:=taddnode(left);
                end
              else if (is_emptyset(left) and (right.nodetype=muln) and
                (isconstsetfewelements(taddnode(right).right) or isconstsetfewelements(taddnode(right).left))) then
                begin
-                 createinnodes:=true;
+                 trycreateinnodes:=true;
                  mulnode:=taddnode(right);
                end;
 
-             if createinnodes then
+             if trycreateinnodes then
                begin
                  constsetnode:=nil;
                  varsetnode:=nil;
@@ -3182,19 +3182,24 @@ implementation
                      constsetnode:=tsetconstnode(mulnode.left);
                      varsetnode:=mulnode.right;
                    end;
-                 result:=nil;
-                 for i:=low(tconstset) to high(tconstset) do
-                   if i in constsetnode.value_set^ then
-                     begin
-                       tempn:=cinnode.create(cordconstnode.create(i,tsetdef(constsetnode.resultdef).elementdef,false),varsetnode.getcopy);
-                       if assigned(result) then
-                         result:=caddnode.create_internal(orn,result,tempn)
-                       else
-                         result:=tempn;
-                     end;
-                 if nodetype=equaln then
-                   result:=cnotnode.create(result);
-                 exit;
+                 { the node is copied so it might have no side effects, if the complexity is too, cse should fix it, so
+                   do not check complexity }
+                 if not(might_have_sideeffects(varsetnode)) then
+                   begin
+                     result:=nil;
+                     for i:=low(tconstset) to high(tconstset) do
+                       if i in constsetnode.value_set^ then
+                         begin
+                           tempn:=cinnode.create(cordconstnode.create(i,tsetdef(constsetnode.resultdef).elementdef,false),varsetnode.getcopy);
+                           if assigned(result) then
+                             result:=caddnode.create_internal(orn,result,tempn)
+                           else
+                             result:=tempn;
+                         end;
+                     if nodetype=equaln then
+                       result:=cnotnode.create(result);
+                     exit;
+                   end;
                end;
            end;
 
