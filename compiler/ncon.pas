@@ -1149,7 +1149,7 @@ implementation
 
     function tsetconstnode.elements : AInt;
       var
-        i : AInt;
+        i : longint;
       begin
         result:=0;
         if not(assigned(value_set)) then
