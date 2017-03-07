@@ -174,6 +174,7 @@ var
            ppufile:=nil;
          end;
         freederefunitimportsyms;
+        unitimportsymsderefs.free;
         unitimportsymsderefs:=tfplist.create;
         inherited reset;
       end;
