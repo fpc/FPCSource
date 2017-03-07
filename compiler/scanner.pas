@@ -5336,7 +5336,6 @@ exit_label:
       var
         low,high,mid: longint;
         optoken: ttoken;
-        s : string;
       begin
          skipspace;
          case c of
@@ -5375,7 +5374,7 @@ exit_label:
              end;
            '''' :
              begin
-               s:=readquotedstring;
+               readquotedstring;
                current_scanner.preproc_pattern:=cstringpattern;
                readpreproc:=_CSTRING;
              end;
