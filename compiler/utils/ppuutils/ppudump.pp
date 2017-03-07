@@ -1975,7 +1975,6 @@ var
   proctypeoption  : tproctypeoption;
   i     : longint;
   first : boolean;
-  tempbuf : array[0..255] of byte;
 begin
   write([space,'      Return type : ']);
   readderef('', ProcDef.ReturnType);
@@ -2429,7 +2428,6 @@ var
   doublevalue : double;
   singlevalue : single;
   extended : TSplit80bitReal;
-  tempbuf : array[0..127] of char;
   pw : pcompilerwidestring;
   varoptions : tvaroptions;
   propoptions : tpropertyoptions;
