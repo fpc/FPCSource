@@ -1114,7 +1114,6 @@ implementation
          oldContinueLabel,
          oldBreakLabel : tasmlabel;
          finallyexceptionstate: tcgexceptionstatehandler.texceptionstate;
-         prefinallyflowcontrol : tflowcontrol;
          excepttemps : tcgexceptionstatehandler.texceptiontemps;
          reasonreg : tregister;
       begin

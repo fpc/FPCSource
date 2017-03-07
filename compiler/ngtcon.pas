@@ -1675,7 +1675,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     procedure tasmlisttypedconstbuilder.parse_objectdef(def:tobjectdef);
       var
         n      : tnode;
-        i      : longint;
         obj    : tobjectdef;
         srsym  : tsym;
         st     : tsymtable;

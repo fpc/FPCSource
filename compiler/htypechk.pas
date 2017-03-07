@@ -2517,7 +2517,6 @@ implementation
       var
         pd:tprocdef;
         candidate:pcandidate;
-        objdef: tobjectdef;
         st: tsymtable;
       begin
         { Give a small penalty for overloaded methods not defined in the

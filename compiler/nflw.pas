@@ -1526,7 +1526,7 @@ implementation
 
     function tfornode.pass_1 : tnode;
       var
-        ifblock,whileblock,loopblock : tblocknode;
+        ifblock,loopblock : tblocknode;
         ifstatements,statements,loopstatements : tstatementnode;
         fromtemp,totemp : ttempcreatenode;
         do_loopvar_at_end : Boolean;
