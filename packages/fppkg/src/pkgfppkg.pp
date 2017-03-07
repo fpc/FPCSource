@@ -333,6 +333,12 @@ var
 begin
   result:=false;
 
+  if Assigned(APackage.Repository) and (APackage.Repository.RepositoryType <> fprtInstalled) then
+    begin
+    Result := False;
+    Exit;
+    end;
+
   EnterFindBrokenPackages;
   try
     HashPtr := PtrInt(FBrokenPackagesDictionary.Find(APackage.Name));
