@@ -547,6 +547,7 @@ implementation
                     addstatement(statements,ctempdeletenode.create(temp));
                     addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp));
                     addstatement(statements,ctemprefnode.create(resulttemp));
+                    right.Free;
                   end
                 else
                   begin
