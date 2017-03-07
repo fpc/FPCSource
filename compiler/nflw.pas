@@ -2033,10 +2033,18 @@ implementation
 
     destructor tlabelnode.destroy;
       begin
-        { Remove reference in labelsym, this is to prevent
-          goto's to this label }
-        if assigned(labsym) and (labsym.code=pointer(self)) then
-          labsym.code:=nil;
+        if assigned(labsym) then
+          begin
+            if not assigned(labsym.Owner) then
+              labsym.Free // Free labelsym if it has no owner
+            else
+              if labsym.code=pointer(self) then
+                begin
+                  { Remove reference in labelsym, this is to prevent
+                    goto's to this label }
+                  labsym.code:=nil;
+                end;
+          end;
         inherited destroy;
       end;
 
