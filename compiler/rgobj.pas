@@ -721,12 +721,7 @@ unit rgobj;
           if movelist=nil then
             begin
               { don't use sizeof(tmovelistheader), because that ignores alignment }
-              {$push}
-              { avoid RTE 204 if checkpointer is enabled with -gc }
-              {$checkpointer off}
-              {$note This is a problem in checkpointer support, as the address is taken here, no check should be done}
               getmem(movelist,ptruint(@movelist^.data)-ptruint(movelist)+60*sizeof(pointer));
-              {$pop}
               movelist^.header.maxcount:=60;
               movelist^.header.count:=0;
               movelist^.header.sorted_until:=0;
