@@ -1038,7 +1038,7 @@ begin
   Result := S_OK;
 end;
 
-function TStreamAdapter.Seek(dlibMove: LargeUint; dwOrigin: Longint; out libNewPosition: LargeUint): HResult; stdcall;
+function TStreamAdapter.Seek(dlibMove: LargeInt; dwOrigin: DWORD; out libNewPosition: LargeUint): HResult; stdcall;
 var
   newpos: QWord;
 begin
@@ -1118,7 +1118,7 @@ begin
   Result := S_OK;
 end;
 
-function TStreamAdapter.Commit(grfCommitFlags: Longint): HResult; stdcall;
+function TStreamAdapter.Commit(grfCommitFlags: DWORD): HResult; stdcall;
 begin
   if m_bReverted then
     Result := STG_E_REVERTED
@@ -1133,19 +1133,19 @@ begin
 end;
 
 
-function TStreamAdapter.LockRegion(libOffset: LargeUint; cb: LargeUint; dwLockType: Longint): HResult; stdcall;
+function TStreamAdapter.LockRegion(libOffset: LargeUint; cb: LargeUint; dwLockType: DWORD): HResult; stdcall;
 begin
   Result := STG_E_INVALIDFUNCTION;
 end;
 
 
-function TStreamAdapter.UnlockRegion(libOffset: LargeUint; cb: LargeUint; dwLockType: Longint): HResult; stdcall;
+function TStreamAdapter.UnlockRegion(libOffset: LargeUint; cb: LargeUint; dwLockType: DWORD): HResult; stdcall;
 begin
   Result := STG_E_INVALIDFUNCTION;
 end;
 
 
-function TStreamAdapter.Stat(out statstg: TStatStg; grfStatFlag: Longint): HResult; stdcall;
+function TStreamAdapter.Stat(out statstg: TStatStg; grfStatFlag: DWORD): HResult; stdcall;
 begin
   if m_bReverted then
     begin
