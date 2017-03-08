@@ -10,7 +10,7 @@ program test(input, output, testfile);
     writeln(testfile,'Hello world');
     close(testfile);
 
-    assign(testfile,'testfile.txt');
+    assign(testfile,'TESTFILE.txt');
     reset(testfile);
     readln(testfile,s);
     if (s[1]<>'H') or (s[2]<>'e') then
