@@ -265,13 +265,14 @@ implementation
         norelocatelab : tasmlabel;
         tvref,
         href : treference;
-        hregister : tregister;
+        hregister, hreg_tv_rec : tregister;
         tv_rec : trecorddef;
         tv_index_field,
         tv_non_mt_data_field: tsym;
         tmpresloc: tlocation;
         issystemunit,
         indirect : boolean;
+        size_opt : boolean;
       begin
          if (tf_section_threadvars in target_info.flags) then
            begin
@@ -291,6 +292,7 @@ implementation
                is available it is called to retrieve the address.
                Otherwise the address is loaded with the symbol
              }
+
              tv_rec:=get_threadvar_record(resultdef,tv_index_field,tv_non_mt_data_field);
              fieldptrdef:=cpointerdef.getreusable(resultdef);
              current_asmdata.getjumplabel(norelocatelab);
@@ -314,6 +316,20 @@ implementation
                          (target_info.system in systems_indirect_var_imports) and
                          (cs_imported_data in current_settings.localswitches) and
                          not issystemunit;
+             if not(vo_is_weak_external in gvs.varoptions) then
+               reference_reset_symbol(tvref,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,sizeof(pint),[])
+             else
+               reference_reset_symbol(tvref,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint),[]);
+             { Enable size optimization with -Os or PIC code is generated and PIC uses GOT }
+             size_opt:=(cs_opt_size in current_settings.optimizerswitches)
+                       or ((cs_create_pic in current_settings.moduleswitches) and (tf_pic_uses_got in target_info.flags));
+             if size_opt then
+               begin
+                 { Load a pointer to the thread var record into a register. }
+                 { This register will be used in both multithreaded and non-multithreaded cases. }
+                 hreg_tv_rec:=hlcg.getaddressregister(current_asmdata.CurrAsmList,fieldptrdef);
+                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,fieldptrdef,tvref,hreg_tv_rec);
+               end;
              paraloc1.init;
              paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
@@ -323,15 +339,17 @@ implementation
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
              { no, call it with the index of the threadvar as parameter }
-             if not(vo_is_weak_external in gvs.varoptions) then
-               reference_reset_symbol(tvref,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,sizeof(pint),[])
-             else
-               reference_reset_symbol(tvref,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint),[]);
              href:=tvref;
              hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,
                tv_rec,
                tfieldvarsym(tv_index_field),href);
+             if size_opt then
+               hlcg.reference_reset_base(href,tfieldvarsym(tv_index_field).vardef,hreg_tv_rec,href.offset,href.alignment,[]);
              hlcg.a_load_ref_cgpara(current_asmdata.CurrAsmList,tfieldvarsym(tv_index_field).vardef,href,paraloc1);
+             { Dealloc the threadvar record register before calling the helper function to allow  }
+             { the register allocator to assign non-mandatory real registers for hreg_tv_rec. }
+             if size_opt then
+               cg.a_reg_dealloc(current_asmdata.CurrAsmList,hreg_tv_rec);
              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
              { result is the address of the threadvar }
@@ -358,6 +376,8 @@ implementation
                tfieldvarsym(tv_non_mt_data_field),href);
              { load in the same "hregister" as above, so after this sequence
                the address of the threadvar is always in hregister }
+             if size_opt then
+               hlcg.reference_reset_base(href,fieldptrdef,hreg_tv_rec,href.offset,href.alignment,[]);
              hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,fieldptrdef,href,hregister);
              hlcg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
 
