@@ -1,4 +1,5 @@
 { %skiptarget=os2,emx }
+{$codepage cp1252}
 {$mode objfpc}
 {$H+}
 
@@ -15,6 +16,7 @@ VAR
   t: WideString;
   err : boolean;
 BEGIN
+  DefaultSystemCodePage:=1252;
   s := 'This is a test.'#961#967;
   t := 'test.'#961#967;
   IF AnsiEndsStr(t, s) THEN
