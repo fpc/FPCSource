@@ -2574,13 +2574,14 @@ Implementation
               hp3:=tai(p.Previous);
               hp5:=tai(p.next);
               asml.Remove(p);
-              { if there is a reg. dealloc instruction or address labels (e.g. for GOT-less PIC)
+              { if there is a reg. alloc/dealloc/sync instructions or address labels (e.g. for GOT-less PIC)
                 associated with p, move it together with p }
 
               { before the instruction? }
+              { find reg allocs and PIC labels }
               while assigned(hp3) and (hp3.typ<>ait_instruction) do
                 begin
-                  if ( (hp3.typ=ait_regalloc) and (tai_regalloc(hp3).ratype in [ra_dealloc]) and
+                  if ( (hp3.typ=ait_regalloc) and (tai_regalloc(hp3).ratype in [ra_alloc]) and
                     RegInInstruction(tai_regalloc(hp3).reg,p) )
                     or ( (hp3.typ=ait_label) and (tai_label(hp3).labsym.typ=AT_ADDR) )
                   then
@@ -2598,9 +2599,10 @@ Implementation
               SwapRegLive(taicpu(p),taicpu(hp1));
 
               { after the instruction? }
+              { find reg deallocs and reg syncs }
               while assigned(hp5) and (hp5.typ<>ait_instruction) do
                 begin
-                  if (hp5.typ=ait_regalloc) and (tai_regalloc(hp5).ratype in [ra_dealloc]) and
+                  if (hp5.typ=ait_regalloc) and (tai_regalloc(hp5).ratype in [ra_dealloc, ra_sync]) and
                     RegInInstruction(tai_regalloc(hp5).reg,p) then
                     begin
                       hp4:=hp5;
