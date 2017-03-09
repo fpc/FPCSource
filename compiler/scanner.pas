@@ -51,7 +51,7 @@ interface
           next    : tpreprocstack;
           name    : TIDString;
           line_nb : longint;
-          owner   : tscannerfile;
+          fileindex : longint;
           constructor Create(atyp:preproctyp;a:boolean;n:tpreprocstack);
        end;
 
@@ -3710,7 +3710,8 @@ type
         while assigned(preprocstack) do
          begin
            Message4(scan_e_endif_expected,preprocstring[preprocstack.typ],preprocstack.name,
-             preprocstack.owner.inputfile.name,tostr(preprocstack.line_nb));
+             current_module.sourcefiles.get_file_name(preprocstack.fileindex),
+             tostr(preprocstack.line_nb));
            poppreprocstack;
          end;
       end;
@@ -3747,7 +3748,7 @@ type
         preprocstack:=tpreprocstack.create(atyp, condition, preprocstack);
         preprocstack.name:=valuedescr;
         preprocstack.line_nb:=line_no;
-        preprocstack.owner:=self;
+        preprocstack.fileindex:=current_filepos.fileindex;
         if preprocstack.accept then
           Message2(messid,preprocstack.name,'accepted')
         else
@@ -3766,6 +3767,7 @@ type
                preprocstack.accept:=not preprocstack.accept;
            preprocstack.typ:=pp_else;
            preprocstack.line_nb:=line_no;
+           preprocstack.fileindex:=current_filepos.fileindex;
            if preprocstack.accept then
             Message2(scan_c_else_found,preprocstack.name,'accepted')
            else
@@ -3801,6 +3803,7 @@ type
                end;
 
            preprocstack.line_nb:=line_no;
+           preprocstack.fileindex:=current_filepos.fileindex;
            if preprocstack.accept then
              Message2(scan_c_else_found,preprocstack.name,'accepted')
            else
