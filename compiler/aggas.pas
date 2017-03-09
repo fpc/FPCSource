@@ -362,6 +362,10 @@ implementation
           (target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) then
           secname:='.rodata';
 
+        { Use .rodata for Android }
+        if (target_info.system in systems_android) and (atype in [sec_rodata,sec_rodata_norel]) then
+          secname:='.rodata';
+
         { section type user gives the user full controll on the section name }
         if atype=sec_user then
           secname:=aname;
