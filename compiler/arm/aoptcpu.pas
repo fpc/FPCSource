@@ -2578,10 +2578,10 @@ Implementation
                 associated with p, move it together with p }
 
               { before the instruction? }
-              { find reg allocs and PIC labels }
+              { find reg allocs,deallocs and PIC labels }
               while assigned(hp3) and (hp3.typ<>ait_instruction) do
                 begin
-                  if ( (hp3.typ=ait_regalloc) and (tai_regalloc(hp3).ratype in [ra_alloc]) and
+                  if ( (hp3.typ=ait_regalloc) and (tai_regalloc(hp3).ratype in [ra_alloc, ra_dealloc]) and
                     RegInInstruction(tai_regalloc(hp3).reg,p) )
                     or ( (hp3.typ=ait_label) and (tai_label(hp3).labsym.typ=AT_ADDR) )
                   then
@@ -2589,7 +2589,7 @@ Implementation
                       hp4:=hp3;
                       hp3:=tai(hp3.Previous);
                       asml.Remove(hp4);
-                      list.Concat(hp4);
+                      list.Insert(hp4);
                     end
                   else
                     hp3:=tai(hp3.Previous);
