@@ -178,7 +178,7 @@ implementation
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
       cpuinfo,
-      ncon,ninl,ncnv,nmem,ncal,nutils,
+      ncon,ninl,ncnv,nmem,ncal,nadd,nutils,
       cgbase
       ;
 
@@ -581,6 +581,41 @@ implementation
               result:=cinlinenode.createintern(
                 in_dec_x,false,ccallparanode.create(
                 left.getcopy,nil));
+            exit;
+          end;
+        { replace i:=i+k/i:=i-k by inc/dec(i,k)? }
+        if (right.nodetype in [addn,subn]) and
+          (taddnode(right).left.isequal(left)) and
+          is_integer(taddnode(right).left.resultdef) and
+          is_integer(taddnode(right).right.resultdef) and
+          ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+          ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+          valid_for_var(taddnode(right).left,false) and
+          not(might_have_sideeffects(taddnode(right).left)) then
+          begin
+            if right.nodetype=addn then
+              result:=cinlinenode.create(
+                in_inc_x,false,ccallparanode.create(
+                left.getcopy,ccallparanode.create(taddnode(right).right.getcopy,nil)))
+            else
+              result:=cinlinenode.createintern(
+                in_dec_x,false,ccallparanode.create(
+                left.getcopy,ccallparanode.create(taddnode(right).right.getcopy,nil)));
+            exit;
+          end;
+        { replace i:=k+i by inc(i,k)? }
+        if (right.nodetype=addn) and
+          (taddnode(right).right.isequal(left)) and
+          is_integer(taddnode(right).left.resultdef) and
+          is_integer(taddnode(right).right.resultdef) and
+          ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+          ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+          valid_for_var(taddnode(right).right,false) and
+          not(might_have_sideeffects(taddnode(right).right)) then
+          begin
+            result:=cinlinenode.create(
+              in_inc_x,false,ccallparanode.create(
+              left.getcopy,ccallparanode.create(taddnode(right).left.getcopy,nil)));
             exit;
           end;
       end;
