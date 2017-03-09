@@ -1042,9 +1042,6 @@ begin
     exit;
   SetString(Src, Source, Len);
 
-  if Len > FieldDef.Size then
-    Len := FieldDef.Size;
-
   case FieldDef.DataType of
     ftSmallint:
       begin
@@ -1072,10 +1069,10 @@ begin
         end
       else
       {$ENDIF}
-      if Src <> '' then
-        VL := StrToInt64(Src)
-      else
-        VL := 0;
+        if Src <> '' then
+          VL := StrToInt64(Src)
+        else
+          VL := 0;
       Move(VL, Dest^, SizeOf(LargeInt));
       end;
     ftFloat:
@@ -1127,16 +1124,21 @@ begin
       // String-fields which can contain more then dsMaxStringSize characters
       // are mapped to ftBlob fields, while their mysql-datatype is FIELD_TYPE_BLOB
       begin
+      if Len > FieldDef.Size*FieldDef.CharSize then Len := FieldDef.Size*FieldDef.CharSize;
       Move(Source^, Dest^, Len);
       (Dest+Len)^ := #0;
       end;
     ftVarBytes:
       begin
+      if Len > FieldDef.Size then Len := FieldDef.Size;
       PWord(Dest)^ := Len;
       Move(Source^, (Dest+sizeof(Word))^, Len);
       end;
     ftBytes:
+      begin
+      if Len > FieldDef.Size then Len := FieldDef.Size;
       Move(Source^, Dest^, Len);
+      end;
     ftBlob, ftMemo:
       CreateBlob := True;
   end;
