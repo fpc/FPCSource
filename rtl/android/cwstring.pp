@@ -125,7 +125,7 @@ begin
   conv:=GetConverter(cp);
   if (conv = nil) and not ( (cp = CP_UTF8) or (cp = CP_ACP) ) then begin
     // fallback implementation
-    DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
+    DefaultUnicode2AnsiMove(source,dest,cp,len);
     exit;
   end;
 
@@ -166,7 +166,7 @@ begin
   conv:=GetConverter(cp);
   if (conv = nil) and not ( (cp = CP_UTF8) or (cp = CP_ACP) ) then begin
     // fallback implementation
-    DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
+    DefaultAnsi2UnicodeMove(source,cp,dest,len);
     exit;
   end;
 
