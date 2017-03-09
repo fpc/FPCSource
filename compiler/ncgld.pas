@@ -323,6 +323,7 @@ implementation
              { Enable size optimization with -Os or PIC code is generated and PIC uses GOT }
              size_opt:=(cs_opt_size in current_settings.optimizerswitches)
                        or ((cs_create_pic in current_settings.moduleswitches) and (tf_pic_uses_got in target_info.flags));
+             hreg_tv_rec:=NR_INVALID;
              if size_opt then
                begin
                  { Load a pointer to the thread var record into a register. }
@@ -568,7 +569,7 @@ implementation
                         LOC_CREFERENCE,
                         LOC_REFERENCE:
                           begin
-                             if is_implicit_pointer_object_type(left.resultdef) or 
+                             if is_implicit_pointer_object_type(left.resultdef) or
                                  (left.resultdef.typ=classrefdef) then
                                begin
                                  vd:=left.resultdef;
