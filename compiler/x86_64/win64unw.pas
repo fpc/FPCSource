@@ -276,7 +276,6 @@ end;
 
 procedure TWin64CFI.end_frame(objdata:TObjData);
 var
-  pdatasym:TObjSymbol;
   pdatasec:TObjSection;
 begin
   if not assigned(FName) then
@@ -288,7 +287,6 @@ begin
   if not codegenerror then
     begin
       pdatasec:=objdata.createsection(sec_pdata,lower(FName^));
-      pdatasym:=objdata.symboldefine('$pdata$'+FName^,AB_LOCAL,AT_DATA);
       objdata.writereloc(0,4,FFrameStartSym,RELOC_RVA);
       objdata.writereloc(FFrameStartSec.Size,4,FFrameStartSym,RELOC_RVA);
       objdata.writereloc(0,4,FXdataSym,RELOC_RVA);
