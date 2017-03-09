@@ -1182,7 +1182,6 @@ unit aoptx86;
       var
         TmpUsedRegs : TAllUsedRegs;
         hp1 : tai;
-        i : longint;
       begin
         Result:=false;
         if (taicpu(p).ops >= 2) and
