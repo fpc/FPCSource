@@ -263,12 +263,12 @@ implementation
     function tloadnode.dogetcopy : tnode;
       var
          n : tloadnode;
-
       begin
          n:=tloadnode(inherited dogetcopy);
          n.symtable:=symtable;
          n.symtableentry:=symtableentry;
          n.fprocdef:=fprocdef;
+         n.loadnodeflags:=loadnodeflags;
          result:=n;
       end;
 
