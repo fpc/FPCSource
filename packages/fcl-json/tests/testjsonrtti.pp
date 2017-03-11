@@ -106,8 +106,10 @@ type
     Procedure TestObjectToJSONString;
     Procedure TestStringsToJSONString;
     Procedure TestCollectionToJSONString;
+    procedure TestTListToJSONString;
     Procedure TestChildren;
     Procedure TestChildren2;
+    Procedure TestLowercase;
   end;
 
   { TTestJSONDeStreamer }
@@ -1753,6 +1755,38 @@ begin
   end;
 end;
 
+procedure TTestJSONStreamer.TestTListToJSONString ;
+
+
+Var
+  C : TList;
+  D : TJSONData;
+  P : Pointer;
+
+  Function Add : TTestItem;
+
+  begin
+    Result:=TTestItem.Create(Nil);
+    C.Add(Result);
+  end;
+
+begin
+  RJ.Options:=RJ.Options + [jsoStreamTList];
+  C:=TList.Create;
+  try
+    Add.StrProp:='one';
+    Add.StrProp:='two';
+    Add.StrProp:='three';
+    D:=RJ.StreamTList(C);
+    AssertEquals('StreamTlist','[{ "StrProp" : "one" }, { "StrProp" : "two" }, { "StrProp" : "three" }]',D.AsJSON);
+  finally
+    D.Free;
+    For P in C do
+      TObject(P).Free;
+    FreeAndNil(C);
+  end;
+end;
+
 procedure TTestJSONStreamer.TestCollectionToJSONString;
 
 Var
@@ -1811,6 +1845,14 @@ begin
   finally
     SR:=O;
   end;
+end;
+
+procedure TTestJSONStreamer.TestLowercase;
+begin
+  RJ.Options:=RJ.Options+[jsoLowerPropertyNames];
+  StreamObject(TBooleanComponent.Create(nil));
+  AssertPropCount(1);
+  AssertProp('booleanprop',False);
 end;
 
 initialization
