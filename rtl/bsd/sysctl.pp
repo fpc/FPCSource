@@ -81,11 +81,11 @@ TYPE    CtlNameRec = Record
 //
 
 {$ifdef FPC_USE_LIBC}
-function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctl';
+function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctl';
 function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctlbyname';
 function FPsysctlnametomib (Name: pchar;mibp:pcint;sizep:psize_t):cint; cdecl; external name 'sysctlnametomib';
 {$else}
-function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
+function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 function FPsysctlnametomib (Name: pchar; mibp:pcint;sizep:psize_t):cint;
 {$endif}
@@ -101,7 +101,7 @@ Uses Syscall;
 CONST  syscall_nr___sysctl                    = 202;
 {$endif}
 
-function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
+function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 
 Begin
         if (name[0] <> chr(CTL_USER)) Then
