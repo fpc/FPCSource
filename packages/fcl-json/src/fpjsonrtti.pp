@@ -524,7 +524,7 @@ begin
     try
       For I:=0 to PIL.Count-1 do
         begin
-        J:=JSON.IndexOfName(Pil.Items[i]^.Name,FCaseInsensitive);
+        J:=JSON.IndexOfName(Pil.Items[i]^.Name,(jdoCaseInsensitive in Options));
         If (J<>-1) then
           RestoreProperty(AObject,PIL.Items[i],JSON.Items[J]);
         end;
