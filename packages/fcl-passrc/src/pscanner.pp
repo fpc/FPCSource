@@ -383,7 +383,8 @@ type
     po_asmwhole,             // store whole text between asm..end in TPasImplAsmStatement.Tokens
     po_nooverloadedprocs,    // do not create TPasOverloadedProc for procs with same name
     po_keepclassforward,     // disabled: delete class fowards when there is a class declaration
-    po_arrayrangeexpr        // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
+    po_arrayrangeexpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
+    po_selftoken             // Self is a token. For backward compatibility.
     );
   TPOptions = set of TPOption;
 
@@ -1301,6 +1302,15 @@ begin
     tkComment:
       if not (FSkipComments or PPIsSkipping) then
         Break;
+    tkSelf:
+      begin
+      if Not (po_selftoken in Options) then
+        begin
+        FCurToken:=tkIdentifier;
+        Result:=FCurToken;
+        end;
+      Break;
+      end;
     else
       if not PPIsSkipping then
         break;

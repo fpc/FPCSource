@@ -932,7 +932,7 @@ function TPasParser.CheckHint(Element: TPasElement; ExpectSemiColon: Boolean
 Var
   Found : Boolean;
   h : TPasMemberHint;
-  
+
 begin
   Result:=[];
   Repeat
@@ -1423,7 +1423,7 @@ begin
   NextToken;
   If CurToken=tkOf then
     Result.ElType := ParseType(Result,Scanner.CurSourcePos)
-  else 
+  else
    ungettoken;
 end;
 
@@ -1516,7 +1516,7 @@ begin
     tkLessEqualThan         : Result:=eopLessthanEqual;
     tkGreaterEqualThan      : Result:=eopGreaterThanEqual;
     tkPower                 : Result:=eopPower;
-    tkSymmetricalDifference : Result:=eopSymmetricalDifference;                                                                                              
+    tkSymmetricalDifference : Result:=eopSymmetricalDifference;
     tkIs                    : Result:=eopIs;
     tkAs                    : Result:=eopAs;
     tkSHR                   : Result:=eopSHR;
@@ -1534,7 +1534,7 @@ begin
     ParseExc(nParserNotAnOperand,SParserNotAnOperand,[AToken,TokenInfos[AToken]]);
   end;
 end;
- 
+
 function TPasParser.ParseExpIdent(AParent: TPasElement): TPasExpr;
 
   Function IsWriteOrstr(P : TPasExpr) : boolean;
@@ -1550,6 +1550,30 @@ function TPasParser.ParseExpIdent(AParent: TPasElement): TPasExpr;
       Result:=(N='write') or (N='str') or (N='writeln');
       end;
   end;
+
+  Procedure HandleSelf(Var Last: TPasExpr);
+
+  Var
+    b       : TBinaryExpr;
+    optk    : TToken;
+
+  begin
+    NextToken;
+    if CurToken = tkDot then
+      begin // self.Write(EscapeText(AText));
+      optk:=CurToken;
+      NextToken;
+      b:=CreateBinaryExpr(AParent,Last, ParseExpIdent(AParent), TokenToExprOp(optk));
+      if not Assigned(b.right) then
+        begin
+        b.Release;
+        ParseExcExpectedIdentifier;
+        end;
+      Last:=b;
+      end;
+    UngetToken;
+  end;
+
 var
   Last    , Expr: TPasExpr;
   prm     : TParamsExpr;
@@ -1563,7 +1587,16 @@ begin
     tkString:           Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenString);
     tkChar:             Last:=CreatePrimitiveExpr(AParent,pekString, CurTokenText);
     tkNumber:           Last:=CreatePrimitiveExpr(AParent,pekNumber, CurTokenString);
-    tkIdentifier:       Last:=CreatePrimitiveExpr(AParent,pekIdent, CurTokenText);
+    tkIdentifier:
+      begin
+      if CompareText(CurTokenText,'self')=0 then
+        begin
+        Last:=CreateSelfExpr(AParent);
+        HandleSelf(Last)
+        end
+      Else
+        Last:=CreatePrimitiveExpr(AParent,pekIdent, CurTokenText)
+      end;
     tkfalse, tktrue:    Last:=CreateBoolConstExpr(Aparent,pekBoolConst, CurToken=tktrue);
     tknil:              Last:=CreateNilExpr(AParent);
     tkSquaredBraceOpen: Last:=ParseParams(AParent,pekSet);
@@ -1587,20 +1620,7 @@ begin
     tkself:
       begin
       Last:=CreateSelfExpr(AParent);
-      NextToken;
-      if CurToken = tkDot then
-        begin // self.Write(EscapeText(AText));
-        optk:=CurToken;
-        NextToken;
-        b:=CreateBinaryExpr(AParent,Last, ParseExpIdent(AParent), TokenToExprOp(optk));
-        if not Assigned(b.right) then
-          begin
-          b.Release;
-          ParseExcExpectedIdentifier;
-          end;
-        Last:=b;
-        end;
-      UngetToken;
+      HandleSelf(Last);
       end;
     tkAt:
       begin
@@ -1724,7 +1744,7 @@ var
   i         : Integer;
   tempop    : TToken;
   NotBinary : Boolean;
-  
+
 const
   PrefixSym = [tkPlus, tkMinus, tknot, tkAt]; // + - not @
   BinaryOP  = [tkMul, tkDivision, tkdiv, tkmod,  tkDotDot,
@@ -2372,6 +2392,7 @@ var
     if CurBlock=declType then
       Engine.FinishScope(stTypeSection,Declarations);
     CurBlock:=NewBlock;
+    Scanner.SetForceCaret(NewBlock=declType);
   end;
 
 var
@@ -2492,7 +2513,6 @@ begin
               end;
             declType:
               begin
-              Scanner.SetForceCaret(True);
               TypeEl := ParseTypeDecl(Declarations);
               // Scanner.SetForceCaret(OldForceCaret); // It may have been switched off
               if Assigned(TypeEl) then        // !!!
@@ -2933,7 +2953,7 @@ var
   TypeName: String;
   NamePos: TPasSourcePos;
   OldForceCaret : Boolean;
-  
+
 begin
   TypeName := CurTokenString;
   NamePos:=Scanner.CurSourcePos;
@@ -3605,7 +3625,7 @@ begin
       begin
       ExpectToken(tkObject);
       Element.IsOfObject := True;
-      end 
+      end
     else if (curToken = tkIs) then
       begin
       expectToken(tkIdentifier);
@@ -3614,8 +3634,8 @@ begin
       Element.IsNested:=True;
       end
     else
-      UnGetToken;  
-    end;  
+      UnGetToken;
+    end;
   NextToken;
   if CurToken = tkEqual then
     begin
