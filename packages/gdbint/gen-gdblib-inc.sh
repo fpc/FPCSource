@@ -207,11 +207,24 @@ cat > gdb_get_stdin.c <<EOF
 /* Missing prototypes.  */
 
 FILE * gdb_get_stdin (void);
+FILE * gdb_get_stdout (void);
+FILE * gdb_get_stderr (void);
 
 FILE *
 gdb_get_stdin (void)
 {
   return stdin;
+}
+
+FILE *
+gdb_get_stdout (void)
+{
+  return stdout;
+}
+FILE *
+gdb_get_stderr (void)
+{
+  return stderr;
 }
 EOF
 
