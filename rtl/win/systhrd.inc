@@ -141,7 +141,7 @@ var
 
     function SysRelocateThreadvar(offset : dword) : pointer; forward;
 
-    procedure SysInitMultithreading;
+    procedure SysInitTLS;
       begin
         { do not check IsMultiThread, as program could have altered it, out of Delphi habit }
 
@@ -151,8 +151,6 @@ var
            { We're still running in single thread mode, setup the TLS }
            TLSKey^:=TlsAlloc;
            InitThreadVars(@SysRelocateThreadvar);
-
-           IsMultiThread:=true;
          end;
       end;
 
@@ -250,7 +248,8 @@ var
         writeln('Creating new thread');
 {$endif DEBUG_MT}
         { Initialize multithreading if not done }
-        SysInitMultithreading;
+        SysInitTLS;
+        IsMultiThread:=true;
 
         { the only way to pass data to the newly created thread
           in a MT safe way, is to use the heap }
@@ -544,7 +543,7 @@ begin
 {$ifndef FPC_USE_TLS_DIRECTORY}
   if IsLibrary then
 {$endif}
-    SysInitMultithreading;
+    SysInitTLS;
 {$IFDEF SUPPORT_WIN95}
   { Try to find TryEnterCriticalSection function }
   KernelHandle:=GetModuleHandle(KernelDLL);

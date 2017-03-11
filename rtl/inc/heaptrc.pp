@@ -1446,9 +1446,14 @@ begin
 {$endif EXTRA}
   { if multithreading was initialized before heaptrc gets initialized (this is currently
     the case for windows dlls), then RelocateHeap gets never called and the lock
-    must be initialized already here
+    must be initialized already here,
+
+    however, IsMultithread is not set in this case on windows,
+    it is set only if a new thread is started
   }
+{$IfNDef WINDOWS}
   if IsMultithread then
+{$EndIf WINDOWS}
     TraceRelocateHeap;
 end;
 
