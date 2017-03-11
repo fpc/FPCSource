@@ -152,6 +152,7 @@ program pp;
   { 256 MB stack }
   { under windows the stack can't grow }
   {$MAXSTACKSIZE 256000000}
+  {$setpeflags $20}
 {$else win32}
   {$ifdef win64}
     { 512 MB stack }
