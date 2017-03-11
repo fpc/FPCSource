@@ -551,6 +551,8 @@ implementation
 
 
     function tassignmentnode.simplify(forinline : boolean) : tnode;
+      var
+         newinlinenodetype : byte;
       begin
         result:=nil;
         { assignment nodes can perform several floating point }
@@ -574,13 +576,13 @@ implementation
           not(might_have_sideeffects(tinlinenode(right).left)) then
           begin
             if tinlinenode(right).inlinenumber=in_succ_x then
-              result:=cinlinenode.create(
-                in_inc_x,false,ccallparanode.create(
-                left.getcopy,nil))
+              newinlinenodetype:=in_inc_x
             else
-              result:=cinlinenode.createintern(
-                in_dec_x,false,ccallparanode.create(
-                left.getcopy,nil));
+              newinlinenodetype:=in_dec_x;
+            result:=cinlinenode.createintern(
+              newinlinenodetype,false,ccallparanode.create(
+              left,nil));
+            left:=nil;
             exit;
           end;
         { replace i:=i+k/i:=i-k by inc/dec(i,k)? }
@@ -594,13 +596,14 @@ implementation
           not(might_have_sideeffects(taddnode(right).left)) then
           begin
             if right.nodetype=addn then
-              result:=cinlinenode.create(
-                in_inc_x,false,ccallparanode.create(
-                left.getcopy,ccallparanode.create(taddnode(right).right.getcopy,nil)))
+              newinlinenodetype:=in_inc_x
             else
-              result:=cinlinenode.createintern(
-                in_dec_x,false,ccallparanode.create(
-                left.getcopy,ccallparanode.create(taddnode(right).right.getcopy,nil)));
+              newinlinenodetype:=in_dec_x;
+            result:=cinlinenode.createintern(
+              newinlinenodetype,false,ccallparanode.create(
+              left,ccallparanode.create(taddnode(right).right,nil)));
+            left:=nil;
+            taddnode(right).right:=nil;
             exit;
           end;
         { replace i:=k+i by inc(i,k)? }
@@ -613,9 +616,11 @@ implementation
           valid_for_var(taddnode(right).right,false) and
           not(might_have_sideeffects(taddnode(right).right)) then
           begin
-            result:=cinlinenode.create(
+            result:=cinlinenode.createintern(
               in_inc_x,false,ccallparanode.create(
-              left.getcopy,ccallparanode.create(taddnode(right).left.getcopy,nil)));
+              left,ccallparanode.create(taddnode(right).left,nil)));
+            left:=nil;
+            taddnode(right).left:=nil;
             exit;
           end;
       end;
