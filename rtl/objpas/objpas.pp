@@ -57,7 +57,10 @@ interface
        TBoundArray = array of integer;
 
 
-
+       // Delphi Berlin compatibility 
+       FixedInt = Int32;
+       FixedUInt = UInt32;
+       
 {$if FPC_FULLVERSION >= 20701}
 
       { Generic array type. 
