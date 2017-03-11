@@ -131,4 +131,5 @@
   add_Google(ADirectory+IncludeTrailingPathDelimiter('googleapi'));
   add_fcl_pdf(ADirectory+IncludeTrailingPathDelimiter('fcl-pdf'));
   add_odata(ADirectory+IncludeTrailingPathDelimiter('odata'));
+  add_pastojs(ADirectory+IncludeTrailingPathDelimiter('pastojs'));
   

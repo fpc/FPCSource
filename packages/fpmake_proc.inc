@@ -746,3 +746,9 @@ begin
 end;
 
 {$include odata/fpmake.pp}
+
+procedure add_pastojs(const ADirectory: string);
+begin
+  with Installer do
+{$include pastojs/fpmake.pp}
+end;
