@@ -30,7 +30,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestStatementParser.TestCaseElseNoSemicolon"/>
+        <CommandLineParams Value="--suite=TTestScanner.TestSelf"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">
@@ -38,7 +38,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="13">
+    <Units Count="14">
       <Unit0>
         <Filename Value="testpassrc.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -91,6 +91,10 @@
         <Filename Value="tcresolver.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit12>
+      <Unit13>
+        <Filename Value="tcgenerics.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit13>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

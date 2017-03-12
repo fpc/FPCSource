@@ -161,7 +161,6 @@ type
     Procedure TestReferencePointer;
     Procedure TestInvalidColon;
     Procedure TestTypeHelper;
-    Procedure TestSpecializationDelphi;
   end;
 
   { TTestRecordTypeParser }
@@ -3306,10 +3305,6 @@ begin
   ParseType('Type Helper for AnsiString end',TPasClassType,'');
 end;
 
-procedure TTestTypeParser.TestSpecializationDelphi;
-begin
-  ParseType('TFPGList<integer>',TPasClassType,'');
-end;
 
 initialization
   RegisterTests([TTestTypeParser,TTestRecordTypeParser,TTestProcedureTypeParser]);

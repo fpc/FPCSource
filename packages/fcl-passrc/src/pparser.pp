@@ -2605,6 +2605,7 @@ begin
             ExpectToken(tkEqual);
             NextToken;
             Case CurToken of
+              tkObject,
               tkClass :
                  begin
                  ClassEl := TPasClassType(CreateElement(TPasClassType,
