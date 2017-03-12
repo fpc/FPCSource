@@ -1842,7 +1842,10 @@ Unit Rax86int;
                       Message(asmr_e_syn_operand);
                   end;
                 Consume(AS_PTR);
-                oper.InitRef;
+                { in delphi mode, allow e.g. call dword ptr eax,
+                  see also webtbs/tw18225.pp }
+                if not(m_delphi in current_settings.modeswitches) then
+                  oper.InitRef;
                 { if the operand subscripts a record, the typesize will be
                   rest -> save it here and restore it afterwards }
                 l:=oper.typesize;
