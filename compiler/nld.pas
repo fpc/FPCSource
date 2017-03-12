@@ -566,62 +566,68 @@ implementation
            not equal_defs(right.resultdef,left.resultdef) then
           inserttypeconv(right,left.resultdef);
 
-        { replace i:=succ/pred(i) by inc/dec(i)? }
-        if (right.nodetype=inlinen) and
-          ((tinlinenode(right).inlinenumber=in_succ_x) or (tinlinenode(right).inlinenumber=in_pred_x)) and
-          (tinlinenode(right).left.isequal(left)) and
-          ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
-          ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
-          valid_for_var(tinlinenode(right).left,false) and
-          not(might_have_sideeffects(tinlinenode(right).left)) then
+        if cs_opt_level2 in current_settings.optimizerswitches then
           begin
-            if tinlinenode(right).inlinenumber=in_succ_x then
-              newinlinenodetype:=in_inc_x
-            else
-              newinlinenodetype:=in_dec_x;
-            result:=cinlinenode.createintern(
-              newinlinenodetype,false,ccallparanode.create(
-              left,nil));
-            left:=nil;
-            exit;
-          end;
-        { replace i:=i+k/i:=i-k by inc/dec(i,k)? }
-        if (right.nodetype in [addn,subn]) and
-          (taddnode(right).left.isequal(left)) and
-          is_integer(taddnode(right).left.resultdef) and
-          is_integer(taddnode(right).right.resultdef) and
-          ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
-          ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
-          valid_for_var(taddnode(right).left,false) and
-          not(might_have_sideeffects(taddnode(right).left)) then
-          begin
-            if right.nodetype=addn then
-              newinlinenodetype:=in_inc_x
-            else
-              newinlinenodetype:=in_dec_x;
-            result:=cinlinenode.createintern(
-              newinlinenodetype,false,ccallparanode.create(
-              left,ccallparanode.create(taddnode(right).right,nil)));
-            left:=nil;
-            taddnode(right).right:=nil;
-            exit;
-          end;
-        { replace i:=k+i by inc(i,k)? }
-        if (right.nodetype=addn) and
-          (taddnode(right).right.isequal(left)) and
-          is_integer(taddnode(right).left.resultdef) and
-          is_integer(taddnode(right).right.resultdef) and
-          ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
-          ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
-          valid_for_var(taddnode(right).right,false) and
-          not(might_have_sideeffects(taddnode(right).right)) then
-          begin
-            result:=cinlinenode.createintern(
-              in_inc_x,false,ccallparanode.create(
-              left,ccallparanode.create(taddnode(right).left,nil)));
-            left:=nil;
-            taddnode(right).left:=nil;
-            exit;
+            { replace i:=succ/pred(i) by inc/dec(i)? }
+            if (right.nodetype=inlinen) and
+              ((tinlinenode(right).inlinenumber=in_succ_x) or (tinlinenode(right).inlinenumber=in_pred_x)) and
+              (tinlinenode(right).left.isequal(left)) and
+              ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+              ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+              valid_for_var(tinlinenode(right).left,false) and
+              not(might_have_sideeffects(tinlinenode(right).left)) then
+              begin
+                if tinlinenode(right).inlinenumber=in_succ_x then
+                  newinlinenodetype:=in_inc_x
+                else
+                  newinlinenodetype:=in_dec_x;
+                result:=cinlinenode.createintern(
+                  newinlinenodetype,false,ccallparanode.create(
+                  left,nil));
+                left:=nil;
+                exit;
+              end;
+            if cs_opt_level3 in current_settings.optimizerswitches then
+              begin
+                { replace i:=i+k/i:=i-k by inc/dec(i,k)? }
+                if (right.nodetype in [addn,subn]) and
+                  (taddnode(right).left.isequal(left)) and
+                  is_integer(taddnode(right).left.resultdef) and
+                  is_integer(taddnode(right).right.resultdef) and
+                  ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+                  ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+                  valid_for_var(taddnode(right).left,false) and
+                  not(might_have_sideeffects(taddnode(right).left)) then
+                  begin
+                    if right.nodetype=addn then
+                      newinlinenodetype:=in_inc_x
+                    else
+                      newinlinenodetype:=in_dec_x;
+                    result:=cinlinenode.createintern(
+                      newinlinenodetype,false,ccallparanode.create(
+                      left,ccallparanode.create(taddnode(right).right,nil)));
+                    left:=nil;
+                    taddnode(right).right:=nil;
+                    exit;
+                  end;
+                { replace i:=k+i by inc(i,k)? }
+                if (right.nodetype=addn) and
+                  (taddnode(right).right.isequal(left)) and
+                  is_integer(taddnode(right).left.resultdef) and
+                  is_integer(taddnode(right).right.resultdef) and
+                  ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+                  ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+                  valid_for_var(taddnode(right).right,false) and
+                  not(might_have_sideeffects(taddnode(right).right)) then
+                  begin
+                    result:=cinlinenode.createintern(
+                      in_inc_x,false,ccallparanode.create(
+                      left,ccallparanode.create(taddnode(right).left,nil)));
+                    left:=nil;
+                    taddnode(right).left:=nil;
+                    exit;
+                  end;
+              end;
           end;
       end;
 
