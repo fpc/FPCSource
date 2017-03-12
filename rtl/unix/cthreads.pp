@@ -306,10 +306,14 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         pthread_exit(ThreadMain);
       end;
 
-  Procedure InitCThreading;
+
+  var
+    TLSInitialized : longbool = FALSE;
+
+  Procedure InitCTLS;
   
   begin
-    if (InterLockedExchange(longint(IsMultiThread),ord(true)) = 0) then
+    if (InterLockedExchange(longint(TLSInitialized),ord(true)) = 0) then
       begin
         { We're still running in single thread mode, setup the TLS }
         pthread_key_create(@TLSKey,nil);
@@ -338,8 +342,10 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       writeln('Creating new thread');
 {$endif DEBUG_MT}
       { Initialize multithreading if not done }
-      if not IsMultiThread then
-        InitCThreading;
+      if not TLSInitialized then
+        InitCTLS;
+      IsMultiThread:=true;
+
       { the only way to pass data to the newly created thread
         in a MT safe way, is to use the heap }
       new(ti);
@@ -817,7 +823,7 @@ begin
   Writeln('InitThreads : ',Result);
 {$endif DEBUG_MT}
   // We assume that if you set the thread manager, the application is multithreading.
-  InitCThreading;
+  InitCTLS;
 end;
 
 Function CDoneThreads : Boolean;
