@@ -104,7 +104,7 @@ CONST  syscall_nr___sysctl                    = 202;
 function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 
 Begin
-        if (name[0] <> chr(CTL_USER)) Then
+        if (name[0] <> CTL_USER) Then
            exit(do_syscall(syscall_nr___sysctl,TSysParam(name), namelen, TSysParam(oldp), TSysParam(oldlenp), TSysParam(newp), TSysParam(newlen)))
         else
          Exit(0);
