@@ -19,7 +19,7 @@ begin
 {$endif ALLPACKAGES}
 
     P.Version:='3.1.1';
-    P.OSes := AllOses;
+    P.OSes := AllOses-[embedded,msdos,win16];
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-passrc');
 
