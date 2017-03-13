@@ -459,6 +459,21 @@ implementation
 {$ifdef FreeBSD}
 function GetOSRelDate:Longint;
 
+{ FPSysCtl first argument was of type pchar
+  up to commit 35566 from 2017/03/11 
+  and corrected to pcint in that commit.
+  But the following code needs to work with
+  both old 3.0.X definition and new definition using pcint type.
+  Problem solved using a special type called
+  FPSysCtlFirstArgType. }
+{$ifdef VER3_0}
+type
+  FPSysCtlFirstArgType = PChar;
+{$else}
+type
+  FPSysCtlFirstArgType = pcint;
+{$endif}  
+
 var
         mib  : array[0..1] of cint;
         rval : cint;
@@ -475,7 +490,7 @@ Begin
         mib[1] := KERN_OSRELDATE;
         len    := 4;
         oerrno:= fpgeterrno;
-        if (FPsysctl(pChar(@mib), 2, pchar(@v), @len, NIL, 0) = -1) Then
+        if (FPsysctl(FPSysCtlFirstArgType(@mib), 2, pchar(@v), @len, NIL, 0) = -1) Then
            Begin
                 if (fpgeterrno = ESysENOMEM) Then
                         fpseterrno(oerrno);
