@@ -880,6 +880,12 @@ begin
       end;
     if (not C) and not (LastEl is TJSStatementList) then
       writeln(';');
+    end
+  else if Assigned(El.B) then
+    begin
+    WriteJS(El.B);
+    if (not C) and not (El.B is TJSStatementList) then
+      writeln(';');
     end;
   if B then
     begin
@@ -997,8 +1003,6 @@ begin
     begin
     if (El.BTrue=nil) or (El.BTrue is TJSEmptyStatement) then
       Writeln('{}')
-    else if not (El.BTrue is TJSStatementList) then
-      Writeln('')
     else
       Write(' ');
     Write('else ');
@@ -1117,28 +1121,37 @@ begin
       WriteJS(EC.Expr);
       FSkipRoundBrackets:=false;
       end;
-    If C then
-      Write(': ')
-    else
-      Writeln(':');
     if Assigned(EC.Body) then
       begin
       FSkipCurlyBrackets:=true;
+      If C then
+        Write(': ')
+      else
+        Writeln(':');
       Indent;
       WriteJS(EC.Body);
       Undent;
-      if Not ((EC.Body is TJSStatementList) or (EC.Body is TJSEmptyBlockStatement)) then
+      if ((EC.Body is TJSStatementList) or (EC.Body is TJSEmptyBlockStatement)) then
+        begin
         if C then
-          Write('; ')
+          begin
+          if I<El.Cases.Count-1 then
+            Write(' ');
+          end
         else
-          Writeln(';');
+          Writeln('');
+        end
+      else if C then
+        Write('; ')
+      else
+        Writeln(';');
       end
     else
       begin
       if C then
-        Write('; ')
+        Write(': ')
       else
-        Writeln(';');
+        Writeln(':');
       end;
     end;
   Write('}');
@@ -1217,6 +1230,7 @@ begin
   FSkipCurlyBrackets:=True;
   Indent;
   WriteJS(El.Block);
+  if Not C then writeln('');
   Undent;
   Write('}');
   If (El is TJSTryCatchFinallyStatement) or (El is TJSTryCatchStatement) then
@@ -1231,6 +1245,7 @@ begin
     Indent;
     WriteJS(El.BCatch);
     Undent;
+    if Not C then writeln('');
     Write('}');
     end;
   If (El is TJSTryCatchFinallyStatement) or (El is TJSTryFinallyStatement) then
@@ -1243,6 +1258,7 @@ begin
     FSkipCurlyBrackets:=True;
     WriteJS(El.BFinally);
     Undent;
+    if Not C then writeln('');
     Write('}');
     end;
 end;

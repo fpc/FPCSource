@@ -84,6 +84,8 @@ type
   Public
     Procedure TestAssignment(Const Msg : String; AClass : TJSAssignStatementClass; Result : String;ACompact : Boolean);
     Function CreateAssignment(AClass : TJSAssignStatementClass) : TJSAssignStatement;
+    Function CreateStatementListOneElement : TJSStatementList;
+    Function CreateStatementListTwoElement2 : TJSStatementList;
   published
     Procedure TestEmptyStatement;
     Procedure TestEmptyStatementComment;
@@ -130,6 +132,7 @@ type
     Procedure TestAssignmentStatementBinaryAndCompact;
     Procedure TestForStatementEmpty;
     Procedure TestForStatementFull;
+    Procedure TestForStatementFull1;
     Procedure TestForStatementCompact;
     Procedure TestForInStatement;
     Procedure TestWhileStatement;
@@ -152,6 +155,7 @@ type
     Procedure TestStatementListOneStatementCompact;
     Procedure TestStatementListTwoStatements;
     Procedure TestStatementListTwoStatementsCompact;
+    Procedure TestStatementListFor;
     Procedure TestEmptyFunctionDef;
     Procedure TestEmptyFunctionDefCompact;
     Procedure TestFunctionDefParams;
@@ -628,7 +632,7 @@ begin
   U.Args:=TJSArguments.Create(0,0);
   U.Args.Elements.AddElement;
   U.Args.Elements[0].Expr:=CreateLiteral(123);
-  AssertWrite('member b of object a (a[b])','new a('+slinebreak+'123'+sLineBreak+')',U);
+  AssertWrite('member b of object a (a[b])','new a(123)',U);
 end;
 
 Procedure TTestExpressionWriter.TestNewMemberCompact;
@@ -666,7 +670,8 @@ begin
   U.Args:=TJSArguments.Create(0,0);
   U.Args.Elements.AddElement;
   U.Args.Elements[0].Expr:=CreateLiteral(123);
-  AssertWrite('call a(123)','a('+slinebreak+'123'+sLineBreak+')',U);
+  AssertWrite('call a(123)',
+     'a(123)',U);
 end;
 
 Procedure TTestExpressionWriter.TestCallCompact;
@@ -696,7 +701,7 @@ begin
   U.Args.Elements[0].Expr:=CreateLiteral(123);
   U.Args.Elements.AddElement;
   U.Args.Elements[1].Expr:=CreateLiteral(456);
-  AssertWrite('call a(123,456)','a(123, 456)',U);
+  AssertWrite('call a(123,456)','a(123,456)',U);
 
 end;
 
@@ -765,6 +770,19 @@ begin
   Result:=AClass.Create(0,0);
   Result.LHS:=CreateIdent('a');
   Result.Expr:=CreateIdent('b');
+end;
+
+function TTestStatementWriter.CreateStatementListOneElement: TJSStatementList;
+begin
+  Result:=TJSStatementList.Create(0,0);
+  Result.A:=CreateAssignment(nil);
+end;
+
+function TTestStatementWriter.CreateStatementListTwoElement2: TJSStatementList;
+begin
+  Result:=TJSStatementList.Create(0,0);
+  Result.A:=CreateAssignment(nil);
+  Result.B:=CreateAssignment(nil);
 end;
 
 Procedure TTestStatementWriter.TestEmptyStatement;
@@ -1120,7 +1138,6 @@ end;
 
 Procedure TTestStatementWriter.TestForStatementFull;
 
-
 Var
   S : TJSForStatement;
   UPP : TJSUnaryPostPlusPlusExpression;
@@ -1141,7 +1158,35 @@ begin
   S.Incr:=UPP;
   S.Cond:=CL;
   S.Body:=TJSEmptyBlockStatement.Create(0,0);
-  AssertWrite('for i:=0 to 9','for (i = 0; (i < 10); i++) {'+sLineBreak+'}',S);
+  AssertWrite('for i:=0 to 9','for (i = 0; i < 10; i++) {'+sLineBreak+'}',S);
+end;
+
+procedure TTestStatementWriter.TestForStatementFull1;
+
+Var
+  S : TJSForStatement;
+  UPP : TJSUnaryPostPlusPlusExpression;
+  CL : TJSRelationalExpressionLT;
+  sa : TJSSimpleAssignStatement;
+
+begin
+  SA:=TJSSimpleAssignStatement.Create(0,0);
+  SA.LHS:=CreateIdent('i');
+  SA.Expr:=CreateLiteral(0);
+  UPP:=TJSUnaryPostPlusPlusExpression.Create(0,0);
+  UPP.A:=CreateIdent('i');
+  CL:=TJSRelationalExpressionLT.Create(0,0);
+  CL.A:=CreateIdent('i');
+  CL.B:=CreateLiteral(10);
+  S:=TJSForStatement.Create(0,0);
+  S.Init:=SA;
+  S.Incr:=UPP;
+  S.Cond:=CL;
+  S.Body:=CreateStatementListOneElement;
+  AssertWrite('for i:=0 to 9',
+     'for (i = 0; i < 10; i++) {'+sLineBreak
+    +'a = b;'+sLineBreak
+    +'}',S);
 end;
 
 Procedure TTestStatementWriter.TestForStatementCompact;
@@ -1166,7 +1211,7 @@ begin
   S.Cond:=CL;
   S.Body:=TJSEmptyBlockStatement.Create(0,0);
   Writer.Options:=[woCompact,woUseUTF8];
-  AssertWrite('for i:=0 to 9','for (i=0; (i<10); i++) {}',S);
+  AssertWrite('for i:=0 to 9','for (i=0; i<10; i++) {}',S);
 end;
 
 Procedure TTestStatementWriter.TestForInStatement;
@@ -1288,7 +1333,7 @@ begin
   C:=S.Cases.AddCase;
   C.Body:=TJSEmptyBlockStatement.Create(0,0);;
   C.Expr:=CreateIdent('d');
-  AssertWrite('switch ','switch (a) {case c: {}case d: {}}',S);
+  AssertWrite('switch ','switch (a) {case c: {} case d: {}}',S);
 end;
 
 Procedure TTestStatementWriter.TestSwitchStatementTwoElementsDefault;
@@ -1327,7 +1372,7 @@ begin
   C:=S.Cases.AddCase;
   C.Body:=TJSEmptyBlockStatement.Create(0,0);;
   S.TheDefault:=C;
-  AssertWrite('switch ','switch (a) {case c: {}case d: {}default: {}}',S);
+  AssertWrite('switch ','switch (a) {case c: {} case d: {} default: {}}',S);
 end;
 
 Procedure TTestStatementWriter.TestSwitchStatementTwoElementsOneEmpty;
@@ -1345,7 +1390,16 @@ begin
   C:=S.Cases.AddCase;
   C.Body:=TJSEmptyBlockStatement.Create(0,0);;
   S.TheDefault:=C;
-  AssertWrite('switch ','switch (a) {'+sLineBreak+'case c:'+sLineBreak+'case d:'+sLineBreak+'{'+sLineBreak+'}'+sLineBreak+'default:'+sLineBreak+'{'+sLineBreak+'}'+sLineBreak+'}',S);
+  AssertWrite('switch ',
+     'switch (a) {'+sLineBreak
+    +'case c:'+sLineBreak
+    +'case d:'+sLineBreak
+    +'{'+sLineBreak
+    +'}'+sLineBreak
+    +'default:'+sLineBreak
+    +'{'+sLineBreak
+    +'}'+sLineBreak
+    +'}',S);
 end;
 
 Procedure TTestStatementWriter.TestSwitchStatementTwoElementsOneEmptyCompact;
@@ -1364,7 +1418,7 @@ begin
   C:=S.Cases.AddCase;
   C.Body:=TJSEmptyBlockStatement.Create(0,0);;
   S.TheDefault:=C;
-  AssertWrite('switch ','switch (a) {case c: case d: {}default: {}}',S);
+  AssertWrite('switch ','switch (a) {case c: case d: {} default: {}}',S);
 end;
 
 Procedure TTestStatementWriter.TestIfThen;
@@ -1389,7 +1443,10 @@ begin
   S.Cond:=CreateIdent('a');
   S.btrue:=TJSEmptyBlockStatement.Create(0,0);
   S.bfalse:=TJSEmptyBlockStatement.Create(0,0);
-  AssertWrite('if then','if (a) {'+sLineBreak+'} else {'+sLineBreak+'}',S);
+  AssertWrite('if then',
+     'if (a) {'+sLineBreak
+    +'} else {'+sLineBreak
+    +'}',S);
 end;
 
 Procedure TTestStatementWriter.TestStatementListEmpty;
@@ -1415,12 +1472,14 @@ end;
 Procedure TTestStatementWriter.TestStatementListOneStatement;
 Var
   S : TJSStatementList;
-
 begin
 //  Writer.Options:=[woCompact,woUseUTF8];
   S:=TJSStatementList.Create(0,0);
   S.A:=CreateAssignment(nil);
-  AssertWrite('Statement list','{'+sLineBreak+'a = b;'+sLineBreak+'}',S);
+  AssertWrite('Statement list',
+     '{'+sLineBreak
+    +'a = b;'+sLineBreak
+    +'}',S);
 end;
 
 Procedure TTestStatementWriter.TestStatementListOneStatementCompact;
@@ -1444,7 +1503,11 @@ begin
   S:=TJSStatementList.Create(0,0);
   S.A:=CreateAssignment(nil);
   S.B:=CreateAssignment(nil);
-  AssertWrite('Statement list','{'+sLineBreak+'a = b;'+sLineBreak+'a = b;'+sLineBreak+'}',S);
+  AssertWrite('Statement list',
+     '{'+sLineBreak
+    +'a = b;'+sLineBreak
+    +'a = b;'+sLineBreak
+    +'}',S);
 end;
 
 Procedure TTestStatementWriter.TestStatementListTwoStatementsCompact;
@@ -1459,6 +1522,21 @@ begin
   AssertWrite('Statement list','{a=b; a=b}',S);
 end;
 
+procedure TTestStatementWriter.TestStatementListFor;
+Var
+  S : TJSStatementList;
+begin
+  // Writer.Options:=[woCompact,woUseUTF8];
+  S:=TJSStatementList.Create(0,0);
+  S.A:=TJSForStatement.Create(0,0);
+  TJSForStatement(S.A).Body:=TJSEmptyBlockStatement.Create(0,0);
+  AssertWrite('Statement list',
+     '{'+sLineBreak
+    +'for (; ; ) {'+sLineBreak
+    +'};'+sLineBreak
+    +'}',S);
+end;
+
 Procedure TTestStatementWriter.TestEmptyFunctionDef;
 
 Var
@@ -1468,7 +1546,9 @@ begin
   FD:=TJSFunctionDeclarationStatement.Create(0,0);
   FD.AFunction:=TJSFuncDef.Create;
   FD.AFunction.Name:='a';
-  AssertWrite('Empty function','function a() {'+sLineBreak+'}',FD);
+  AssertWrite('Empty function',
+     'function a() {'+sLineBreak
+    +'}',FD);
 end;
 
 Procedure TTestStatementWriter.TestEmptyFunctionDefCompact;
@@ -1497,7 +1577,9 @@ begin
   FD.AFunction.Params.Add('c');
   FD.AFunction.Params.Add('d');
 
-  AssertWrite('Empty function, 3 params','function a(b, c, d) {'+sLineBreak+'}',FD);
+  AssertWrite('Empty function, 3 params',
+     'function a(b, c, d) {'+sLineBreak
+    +'}',FD);
 end;
 
 Procedure TTestStatementWriter.TestFunctionDefParamsCompact;
@@ -1532,7 +1614,10 @@ begin
   R:=TJSReturnStatement.Create(0,0);
   R.Expr:=CreateLiteral(0);
   FD.AFunction.Body.A:=R;
-  AssertWrite('1 statement, ','function a() {'+sLineBreak+'  return 0;'+sLineBreak+'}',FD);
+  AssertWrite('1 statement, ',
+     'function a() {'+sLineBreak
+    +'  return 0;'+sLineBreak
+    +'}',FD);
 end;
 
 Procedure TTestStatementWriter.TestFunctionDefBody1Compact;
@@ -1581,7 +1666,11 @@ begin
   L.A:=A;
   L.B:=R;
   FD.AFunction.Body.A:=L;
-  AssertWrite('Function, 2 statements','function a(b) {'+sLineBreak+'  b = (b * 10);'+sLineBreak+'  return b;'+sLineBreak+'}',FD);
+  AssertWrite('Function, 2 statements',
+     'function a(b) {'+sLineBreak
+    +'  b = b * 10;'+sLineBreak
+    +'  return b;'+sLineBreak
+    +'}',FD);
 end;
 
 Procedure TTestStatementWriter.TestFunctionDefBody2Compact;
@@ -1612,7 +1701,7 @@ begin
   L.A:=A;
   L.B:=R;
   FD.AFunction.Body.A:=L;
-  AssertWrite('Function, 2 statements, compact','function a(b) {b=(b*10); return b}',FD);
+  AssertWrite('Function, 2 statements, compact','function a(b) {b=b*10; return b}',FD);
 end;
 
 Procedure TTestStatementWriter.TestTryCatch;
@@ -1637,7 +1726,12 @@ begin
   A.LHS:=CreateIdent('b');
   A.Expr:=CreateLiteral(1);
   T.BCatch:=A;
-  AssertWrite('Try catch','try {'+sLineBreak+'  b = (b * 10)'+sLineBreak+'}'+sLineBreak+'catch (e) {'+sLineBreak+'  b = 1'+sLineBreak+'}'+sLineBreak,T);
+  AssertWrite('Try catch',
+     'try {'+sLineBreak
+    +'  b = b * 10'+sLineBreak
+    +'} catch (e) {'+sLineBreak
+    +'  b = 1'+sLineBreak
+    +'}',T);
 end;
 
 Procedure TTestStatementWriter.TestTryCatchCompact;
@@ -1662,7 +1756,7 @@ begin
   A.LHS:=CreateIdent('b');
   A.Expr:=CreateLiteral(1);
   T.BCatch:=A;
-  AssertWrite('Try catch compact','try {b=(b*10)} catch (e) {b=1}',T);
+  AssertWrite('Try catch compact','try {b=b*10} catch (e) {b=1}',T);
 end;
 
 Procedure TTestStatementWriter.TestTryFinally;
@@ -1687,7 +1781,12 @@ begin
   A.LHS:=CreateIdent('b');
   A.Expr:=CreateLiteral(1);
   T.BFinally:=A;
-  AssertWrite('Try finally ','try {'+sLineBreak+'  b = (b * 10)'+sLineBreak+'}'+sLineBreak+'finally {'+sLineBreak+'  b = 1'+sLineBreak+'}'+sLineBreak,T);
+  AssertWrite('Try finally ',
+    'try {'+sLineBreak
+   +'  b = b * 10'+sLineBreak
+   +'} finally {'+sLineBreak
+   +'  b = 1'+sLineBreak
+   +'}',T);
 end;
 
 Procedure TTestStatementWriter.TestTryFinallyCompact;
@@ -1713,7 +1812,7 @@ begin
   A.LHS:=CreateIdent('b');
   A.Expr:=CreateLiteral(1);
   T.BFinally:=A;
-  AssertWrite('Try finally compact','try {b=(b*10)} finally {b=1}',T);
+  AssertWrite('Try finally compact','try {b=b*10} finally {b=1}',T);
 end;
 
 Procedure TTestStatementWriter.TestTryCatchFinally;
@@ -1741,7 +1840,13 @@ begin
   A.LHS:=CreateIdent('b');
   A.Expr:=CreateLiteral(1);
   T.BFinally:=A;
-  AssertWrite('Try finally ','try {'+sLineBreak+'  b = (b * 10)'+sLineBreak+'}'+sLineBreak+'catch (e) {'+sLineBreak+'  b = 10'+sLineBreak+'}'+sLineBreak+'finally {'+sLineBreak+'  b = 1'+sLineBreak+'}'+sLineBreak,T);
+  AssertWrite('Try finally ',
+     'try {'+sLineBreak
+    +'  b = b * 10'+sLineBreak
+    +'} catch (e) {'+sLineBreak
+    +'  b = 10'+sLineBreak
+    +'} finally {'+sLineBreak
+    +'  b = 1'+sLineBreak+'}',T);
 end;
 
 Procedure TTestStatementWriter.TestTryCatchFinallyCompact;
@@ -1770,7 +1875,7 @@ begin
   A.LHS:=CreateIdent('b');
   A.Expr:=CreateLiteral(1);
   T.BFinally:=A;
-  AssertWrite('Try finally ','try {b=(b*10)} catch (e) {b=10} finally {b=1}',T);
+  AssertWrite('Try finally ','try {b=b*10} catch (e) {b=10} finally {b=1}',T);
 end;
 
 Procedure TTestStatementWriter.TestWith;
@@ -1791,7 +1896,7 @@ begin
   M.B:=CreateLiteral(10);
   A.Expr:=M;
   T.B:=A;
-  AssertWrite('With statement ','with (e)'+slineBreak+'  b = (b * 10)',T);
+  AssertWrite('With statement ','with (e)'+slineBreak+'  b = b * 10',T);
 end;
 
 Procedure TTestStatementWriter.TestWithCompact;
@@ -1812,7 +1917,7 @@ begin
   M.B:=CreateLiteral(10);
   A.Expr:=M;
   T.B:=A;
-  AssertWrite('With statement ','with (e) b=(b*10)',T);
+  AssertWrite('With statement ','with (e) b=b*10',T);
 end;
 
 Procedure TTestStatementWriter.TestSourceElements;
@@ -1839,7 +1944,7 @@ begin
   M.B:=CreateLiteral(2);
   A.Expr:=M;
   T.Statements.AddNode.Node:=A;
-  AssertWrite('Statement lists ','b = (b * 10);'+sLineBreak+'c = (c * 2);'+sLineBreak,T);
+  AssertWrite('Statement lists ','b = b * 10;'+sLineBreak+'c = c * 2;'+sLineBreak,T);
 end;
 
 Procedure TTestStatementWriter.TestSourceElementsCompact;
@@ -1866,7 +1971,7 @@ begin
   M.B:=CreateLiteral(2);
   A.Expr:=M;
   T.Statements.AddNode.Node:=A;
-  AssertWrite('Statement lists compact','b=(b*10); c=(c*2);',T);
+  AssertWrite('Statement lists compact','b=b*10; c=c*2;',T);
 end;
 
 { ---------------------------------------------------------------------
@@ -1931,7 +2036,7 @@ Var
 begin
   L:=TJSLiteral.Create(0,0,'');
   L.Value.AsString:='ab"cd';
-  AssertWrite('ab"cd','"ab\"cd"',L);
+  AssertWrite('ab"cd','''ab"cd''',L);
 end;
 
 Procedure TTestLiteralWriter.TestStringBackslash;
@@ -2027,7 +2132,7 @@ begin
   I:=TJSLiteral.Create(0,0);
   I.Value.AsNumber:=1;
   L.Elements.AddElement.Expr:=I;
-  AssertWrite('Empty array ','['+sLineBreak+'1'+sLineBreak+']',L);
+  AssertWrite('Empty array ','[1]',L);
 end;
 
 Procedure TTestLiteralWriter.TestArrayOneElementCompact;
@@ -2056,7 +2161,7 @@ begin
   I:=TJSLiteral.Create(0,0);
   I.Value.AsNumber:=1;
   L.Elements.AddElement.Expr:=I;
-  AssertWrite('Empty array ','['+sLineBreak+'  1'+sLineBreak+']',L);
+  AssertWrite('Empty array ','[1]',L);
 end;
 
 Procedure TTestLiteralWriter.TestArrayTwoElements;
@@ -2073,7 +2178,7 @@ begin
   I:=TJSLiteral.Create(0,0);
   I.Value.AsNumber:=2;
   L.Elements.AddElement.Expr:=I;
-  AssertWrite('Empty array ','['+sLineBreak+'1,'+sLineBreak+'2'+sLineBreak+']',L);
+  AssertWrite('Empty array ','[1, 2]',L);
 end;
 
 Procedure TTestLiteralWriter.TestArrayTwoElementsCompact;
@@ -2090,7 +2195,7 @@ begin
   I:=TJSLiteral.Create(0,0);
   I.Value.AsNumber:=2;
   L.Elements.AddElement.Expr:=I;
-  AssertWrite('Empty array ','[1, 2]',L);
+  AssertWrite('Empty array ','[1,2]',L);
 end;
 
 Procedure TTestLiteralWriter.TestArrayTwoElementsCompact2;
@@ -2107,7 +2212,7 @@ begin
   I:=TJSLiteral.Create(0,0);
   I.Value.AsNumber:=2;
   L.Elements.AddElement.Expr:=I;
-  AssertWrite('Empty array ','[1, 2]',L);
+  AssertWrite('Empty array ','[1,2]',L);
 end;
 
 Procedure TTestLiteralWriter.TestArrayThreeElementsCompact;
@@ -2127,7 +2232,7 @@ begin
   I:=TJSLiteral.Create(0,0);
   I.Value.AsNumber:=3;
   L.Elements.AddElement.Expr:=I;
-  AssertWrite('Empty array ','[1, 2, 3]',L);
+  AssertWrite('Empty array ','[1,2,3]',L);
 end;
 
 Procedure TTestLiteralWriter.TestObjectEmpty;
@@ -2372,7 +2477,7 @@ Var
   S : UnicodeString;
 begin
   S:=FTextWriter.AsUnicodeString;
-  AssertEquals(Msg,Result,S);
+  AssertEquals(Msg,String(Result),String(S));
 end;
 
 Procedure TTestJSWriter.AssertWrite(Const Msg, Result: String;
