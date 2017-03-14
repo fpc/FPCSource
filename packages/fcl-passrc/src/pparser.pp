@@ -832,8 +832,20 @@ begin
       until not (FCurToken in WhitespaceTokensToIgnore);
     except
       on e: EScannerError do
-        raise EParserError.Create(e.Message,
-          Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn);
+        begin
+        if po_KeepScannerError in Options then
+          raise e
+        else
+          begin
+          FLastMsgType := mtError;
+          FLastMsgNumber := Scanner.LastMsgNumber;
+          FLastMsgPattern := Scanner.LastMsgPattern;
+          FLastMsg := Scanner.LastMsg;
+          FLastMsgArgs := Scanner.LastMsgArgs;
+          raise EParserError.Create(e.Message,
+            Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn);
+          end;
+        end;
     end;
     FCurTokenString := Scanner.CurTokenString;
     FTokenBuffer[FTokenBufferSize] := FCurToken;
@@ -3562,7 +3574,6 @@ Var
   PM : TProcedureModifier;
   Done: Boolean;
   ResultEl: TPasResultElement;
-  I : Integer;
   OK : Boolean;
 
 begin
