@@ -27,7 +27,7 @@ Type
 
   { TTestParser }
 
-  TTestParser= class(TTestCase)
+  TTestParser = class(TTestCase)
   Private
     FDeclarations: TPasDeclarations;
     FDefinition: TPasElement;
