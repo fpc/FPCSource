@@ -153,13 +153,11 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- TTestModule.TestSet_Property pass set as parameter
-- Combine TAssignContext tail statements
+- function str, procedure str
 
 Not in Version 1.0:
 - writeln
 - arrays
-  - static array: clone on assign and pass as argument
   - static array: non 0 start index, length
   - array of static array: setlength
   - array range char, char rangge, integer range, enum range
@@ -180,8 +178,8 @@ Not in Version 1.0:
 - option overflow checking -Co
 - option trash local vars -gt
 - optimizations:
-  set operators on literals without temporary arrays
-  use a number for small sets
+  - set operators on literals without temporary arrays, a in [b], [a]*b<>[]
+  - use a number for small sets
   -O1 remove not used identifiers and units in unit
   -O1 with -Jc whole program optimization: remove not used identifiers
   -O1 insert local/unit vars for global type references:
@@ -189,6 +187,8 @@ Not in Version 1.0:
       at end of impl: $r1=path;
   -O1 insert unit vars for complex literals
   -O1 no function Result var when assigned only once
+  - SetLength(scope.a,l) -> read scope only once, same for
+    Include, Exclude, Inc, Dec
 - dotted unit names
 - pointer of record
 - objects, interfaces, advanced records
@@ -198,6 +198,7 @@ Not in Version 1.0:
 - operator overloading
 - enumeration  for..in..do
 - inline
+- type alias type
 
 Compile flags for debugging: -d<x>
    VerbosePas2JS
