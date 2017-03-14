@@ -174,7 +174,7 @@ type
   TPasExpr = class(TPasElement)
     Kind      : TPasExprKind;
     OpCode    : TExprOpCode;
-    format1,format2 : TPasExpr;
+    format1,format2 : TPasExpr; // write, writeln, str
     constructor Create(AParent : TPasElement; AKind: TPasExprKind; AOpCode: TExprOpCode); virtual; overload;
     destructor Destroy; override;
   end;
@@ -346,7 +346,7 @@ type
   public
     InterfaceSection: TInterfaceSection;
     ImplementationSection: TImplementationSection;
-    InitializationSection: TInitializationSection;
+    InitializationSection: TInitializationSection; // in TPasProgram the begin..end.
     FinalizationSection: TFinalizationSection;
     PackageName: string;
     Filename   : String;  // the IN filename, only written when not empty.
@@ -369,6 +369,7 @@ type
   Public
     ProgramSection: TProgramSection;
     InputFile,OutPutFile : String;
+    // Note: the begin..end. block is in the InitializationSection
   end;
 
   { TPasLibrary }
@@ -4039,10 +4040,9 @@ procedure TPasImplWithDo.ForEachCall(const aMethodCall: TOnForEachPasElement;
 var
   i: Integer;
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   for i:=0 to Expressions.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(Expressions[i]),false);
-  ForEachChildCall(aMethodCall,Arg,Body,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 { TPasImplTry }
