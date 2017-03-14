@@ -18,8 +18,9 @@ unit tcresolver;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, PasTree, PScanner, PParser, PasResolver,
-  tcbaseparser, testregistry, contnrs;
+  Classes, SysUtils, contnrs, strutils, fpcunit, testregistry,
+  PasTree, PScanner, PParser, PasResolver,
+  tcbaseparser;
 
 type
   TSrcMarkerKind = (
@@ -85,9 +86,9 @@ type
     );
   TSystemUnitParts = set of TSystemUnitPart;
 
-  { TTestResolver }
+  { TCustomTestResolver }
 
-  TTestResolver = Class(TTestParser)
+  TCustomTestResolver = Class(TTestParser)
   Private
     FFirstStatement: TPasImplBlock;
     FModules: TObjectList;// list of TTestEnginePasResolver
@@ -103,11 +104,12 @@ type
     Procedure SetUp; override;
     Procedure TearDown; override;
     procedure CreateEngine(var TheEngine: TPasTreeContainer); override;
-    procedure ParseProgram;
-    procedure ParseUnit;
-    procedure CheckReferenceDirectives;
+    procedure ParseProgram; virtual;
+    procedure ParseUnit; virtual;
+    procedure CheckReferenceDirectives; virtual;
     procedure CheckResolverException(Msg: string; MsgNumber: integer);
     procedure CheckParserException(Msg: string; MsgNumber: integer);
+    procedure CheckAccessMarkers; virtual;
     procedure GetSrc(Index: integer; out SrcLines: TStringList; out aFilename: string);
     function FindElementsAt(aFilename: string; aLine, aStartCol, aEndCol: integer): TFPList;// list of TPasElement
     function FindElementsAt(aMarker: PSrcMarker; ErrorOnNoElements: boolean = true): TFPList;// list of TPasElement
@@ -128,6 +130,11 @@ type
     property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
     property ModuleCount: integer read GetModuleCount;
     property ResolverEngine: TTestEnginePasResolver read FResolverEngine;
+  end;
+
+  { TTestResolver }
+
+  TTestResolver = Class(TCustomTestResolver)
   Published
     Procedure TestEmpty;
 
@@ -136,6 +143,7 @@ type
     Procedure TestAlias2Type;
     Procedure TestAliasTypeRefs;
     Procedure TestAliasOfVarFail;
+    Procedure TestTypeAliasType; // ToDo
 
     // var, const
     Procedure TestVarLongint;
@@ -158,6 +166,7 @@ type
     Procedure TestStringElement_MissingArgFail;
     Procedure TestStringElement_IndexNonIntFail;
     Procedure TestStringElement_AsVarArgFail;
+    Procedure TestString_DoubleQuotesFail;
 
     // enums
     Procedure TestEnums;
@@ -190,6 +199,7 @@ type
     Procedure TestTypeCastDoubleToStrFail;
     Procedure TestTypeCastDoubleToIntFail;
     Procedure TestHighLow;
+    Procedure TestAssign_Access;
 
     // statements
     Procedure TestForLoop;
@@ -200,6 +210,7 @@ type
     Procedure TestTryExceptOnNonClassFail;
     Procedure TestRaiseNonVarFail;
     Procedure TestRaiseNonClassFail;
+    Procedure TestRaiseDescendant;
     Procedure TestStatementsRefs;
     Procedure TestRepeatUntilNonBoolFail;
     Procedure TestWhileDoNonBoolFail;
@@ -252,6 +263,7 @@ type
     Procedure TestProcedureExternal;
     Procedure TestProc_UntypedParam_Forward;
     Procedure TestProc_Varargs;
+    Procedure TestProc_ParameterExprAccess;
     // ToDo: fail builtin functions in constant with non const param
 
     // record
@@ -299,6 +311,8 @@ type
     Procedure TestClassTypeCast;
     Procedure TestClassTypeCastUnrelatedFail;
     Procedure TestClass_TypeCastSelf;
+    Procedure TestClass_TypeCaseMultipleParamsFail;
+    Procedure TestClass_TypeCastAssign;
     Procedure TestClass_AccessMemberViaClassFail;
     Procedure TestClass_FuncReturningObjectMember;
     Procedure TestClass_StaticWithoutClassFail;
@@ -322,9 +336,6 @@ type
     Procedure TestClass_ReintroduceProc;
     Procedure TestClass_UntypedParam_TypeCast;
     // Todo: Fail to use class.method in constant or type, e.g. const p = @o.doit;
-    // ToDo: typecast multiple params fail
-    // ToDo: use Self in non method as local var, requires changes in pparser
-    // ToDo: use Self in non method as global var, requires changes in pparser
 
     // class of
     Procedure TestClassOf;
@@ -362,12 +373,13 @@ type
     Procedure TestPropertyWriteAccessorProcWrongArgType;
     Procedure TestPropertyWriteAccessorProc;
     Procedure TestPropertyTypeless;
-    Procedure TestPropertyTypelessNoAncestor;
+    Procedure TestPropertyTypelessNoAncestorFail;
     Procedure TestPropertyStoredAccessorProcNotFunc;
     Procedure TestPropertyStoredAccessorFuncWrongResult;
     Procedure TestPropertyStoredAccessorFuncWrongArgCount;
     Procedure TestPropertyAssign;
     Procedure TestPropertyAssignReadOnlyFail;
+    Procedure TestProperty_PassAsParam;
     Procedure TestPropertyReadNonReadableFail;
     Procedure TestPropertyArgs1;
     Procedure TestPropertyArgs2;
@@ -416,6 +428,10 @@ type
     Procedure TestAssignProcWrongArgsFail;
     Procedure TestArrayOfProc;
     Procedure TestProcType_Assigned;
+    Procedure TestProcType_TNotifyEvent;
+    Procedure TestProcType_TNotifyEvent_NoAtFPC_Fail1;
+    Procedure TestProcType_TNotifyEvent_NoAtFPC_Fail2;
+    Procedure TestProcType_TNotifyEvent_NoAtFPC_Fail3;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -462,11 +478,10 @@ end;
 
 destructor TTestEnginePasResolver.Destroy;
 begin
-  FreeAndNil(FResolver);
+  FResolver:=nil;
   Module:=nil;
   FreeAndNil(FParser);
   FreeAndNil(FScanner);
-  FreeAndNil(FResolver);
   inherited Destroy;
 end;
 
@@ -477,18 +492,18 @@ begin
     Result:=OnFindUnit(AName);
 end;
 
-{ TTestResolver }
+{ TCustomTestResolver }
 
-procedure TTestResolver.SetUp;
+procedure TCustomTestResolver.SetUp;
 begin
   FirstSrcMarker:=nil;
   LastSrcMarker:=nil;
   FModules:=TObjectList.Create(true);
   inherited SetUp;
-  Parser.Options:=Parser.Options+[po_resolvestandardtypes];
+  Parser.Options:=Parser.Options+[po_ResolveStandardTypes];
 end;
 
-procedure TTestResolver.TearDown;
+procedure TCustomTestResolver.TearDown;
 begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown START FreeSrcMarkers');
@@ -518,13 +533,13 @@ begin
   {$ENDIF}
 end;
 
-procedure TTestResolver.CreateEngine(var TheEngine: TPasTreeContainer);
+procedure TCustomTestResolver.CreateEngine(var TheEngine: TPasTreeContainer);
 begin
   FResolverEngine:=AddModule(MainFilename);
   TheEngine:=ResolverEngine;
 end;
 
-procedure TTestResolver.ParseProgram;
+procedure TCustomTestResolver.ParseProgram;
 var
   aFilename: String;
   aRow, aCol: Integer;
@@ -535,9 +550,9 @@ begin
   except
     on E: EParserError do
       begin
-      aFilename:=Scanner.CurFilename;
-      aRow:=Scanner.CurRow;
-      aCol:=Scanner.CurColumn;
+      aFilename:=E.Filename;
+      aRow:=E.Row;
+      aCol:=E.Column;
       WriteSources(aFilename,aRow,aCol);
       writeln('ERROR: TTestResolver.ParseProgram Parser: '+E.ClassName+':'+E.Message
         +' Scanner at'
@@ -576,7 +591,7 @@ begin
   CheckReferenceDirectives;
 end;
 
-procedure TTestResolver.ParseUnit;
+procedure TCustomTestResolver.ParseUnit;
 begin
   FFirstStatement:=nil;
   try
@@ -619,7 +634,7 @@ begin
   CheckReferenceDirectives;
 end;
 
-procedure TTestResolver.CheckReferenceDirectives;
+procedure TCustomTestResolver.CheckReferenceDirectives;
 var
   Filename: string;
   LineNumber: Integer;
@@ -968,7 +983,7 @@ begin
   //writeln('TTestResolver.CheckReferenceDirectives COMPLETE');
 end;
 
-procedure TTestResolver.CheckResolverException(Msg: string; MsgNumber: integer);
+procedure TCustomTestResolver.CheckResolverException(Msg: string; MsgNumber: integer);
 var
   ok: Boolean;
 begin
@@ -986,7 +1001,7 @@ begin
   AssertEquals('Missing resolver error {'+Msg+'} ('+IntToStr(MsgNumber)+')',true,ok);
 end;
 
-procedure TTestResolver.CheckParserException(Msg: string; MsgNumber: integer);
+procedure TCustomTestResolver.CheckParserException(Msg: string; MsgNumber: integer);
 var
   ok: Boolean;
 begin
@@ -996,7 +1011,7 @@ begin
   except
     on E: EParserError do
       begin
-      AssertEquals('Expected '+Msg+', but got msg "'+E.Message+'" number',
+      AssertEquals('Expected {'+Msg+'}, but got msg {'+E.Message+'} number',
         MsgNumber,Parser.LastMsgNumber);
       ok:=true;
       end;
@@ -1004,7 +1019,80 @@ begin
   AssertEquals('Missing parser error '+Msg+' ('+IntToStr(MsgNumber)+')',true,ok);
 end;
 
-procedure TTestResolver.GetSrc(Index: integer; out SrcLines: TStringList; out
+procedure TCustomTestResolver.CheckAccessMarkers;
+const
+  AccessNames: array[TResolvedRefAccess] of string = (
+    'none',
+    'read',
+    'assign',
+    'readandassign',
+    'var',
+    'out',
+    'paramtest'
+    );
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualAccess, ExpectedAccess: TResolvedRefAccess;
+  i, j: Integer;
+  El, El2: TPasElement;
+  Ref: TResolvedReference;
+  p: SizeInt;
+  AccessPostfix: String;
+begin
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.CheckAccessMarkers ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    p:=RPos('_',aMarker^.Identifier);
+    if p>1 then
+      begin
+      AccessPostfix:=copy(aMarker^.Identifier,p+1);
+      ExpectedAccess:=High(TResolvedRefAccess);
+      repeat
+        if CompareText(AccessPostfix,AccessNames[ExpectedAccess])=0 then break;
+        if ExpectedAccess=Low(TResolvedRefAccess) then
+          RaiseErrorAtSrcMarker('unknown access postfix of reference at "#'+aMarker^.Identifier+'"',aMarker);
+        ExpectedAccess:=Pred(ExpectedAccess);
+      until false;
+
+      Elements:=FindElementsAt(aMarker);
+      try
+        ActualAccess:=rraNone;
+        for i:=0 to Elements.Count-1 do
+          begin
+          El:=TPasElement(Elements[i]);
+          //writeln('TTestResolver.CheckAccessMarkers ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+          if not (El.CustomData is TResolvedReference) then continue;
+          Ref:=TResolvedReference(El.CustomData);
+          if ActualAccess<>rraNone then
+            begin
+            writeln('TTestResolver.CheckAccessMarkers multiple references at "#'+aMarker^.Identifier+'":');
+            for j:=0 to Elements.Count-1 do
+              begin
+              El2:=TPasElement(Elements[i]);
+              if not (El2.CustomData is TResolvedReference) then continue;
+              //writeln('TTestResolver.CheckAccessMarkers ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+              Ref:=TResolvedReference(El.CustomData);
+              writeln('  ',j,'/',Elements.Count,' Element=',GetObjName(El2),' ',AccessNames[Ref.Access],' Declaration="',El2.GetDeclaration(true),'"');
+              end;
+            RaiseErrorAtSrcMarker('multiple references at "#'+aMarker^.Identifier+'"',aMarker);
+            end;
+          ActualAccess:=Ref.Access;
+          if ActualAccess=rraNone then
+            RaiseErrorAtSrcMarker('missing Access in reference at "#'+aMarker^.Identifier+'"',aMarker);
+          end;
+        if ActualAccess<>ExpectedAccess then
+          RaiseErrorAtSrcMarker('expected "'+AccessNames[ExpectedAccess]+'" at "#'+aMarker^.Identifier+'", but got "'+AccessNames[ActualAccess]+'"',aMarker);
+      finally
+        Elements.Free;
+      end;
+      end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TCustomTestResolver.GetSrc(Index: integer; out SrcLines: TStringList; out
   aFilename: string);
 var
   aStream: TStream;
@@ -1016,7 +1104,7 @@ begin
   aFilename:=Resolver.Streams[Index];
 end;
 
-function TTestResolver.FindElementsAt(aFilename: string; aLine, aStartCol,
+function TCustomTestResolver.FindElementsAt(aFilename: string; aLine, aStartCol,
   aEndCol: integer): TFPList;
 var
   ok: Boolean;
@@ -1040,7 +1128,7 @@ begin
   FoundRefs.Found:=nil;
 end;
 
-function TTestResolver.FindElementsAt(aMarker: PSrcMarker;
+function TCustomTestResolver.FindElementsAt(aMarker: PSrcMarker;
   ErrorOnNoElements: boolean): TFPList;
 begin
   Result:=FindElementsAt(aMarker^.Filename,aMarker^.Row,aMarker^.StartCol,aMarker^.EndCol);
@@ -1048,7 +1136,7 @@ begin
     RaiseErrorAtSrcMarker('marker '+SrcMarker[aMarker^.Kind]+aMarker^.Identifier+' has no elements',aMarker);
 end;
 
-function TTestResolver.FindSrcLabel(const Identifier: string): PSrcMarker;
+function TCustomTestResolver.FindSrcLabel(const Identifier: string): PSrcMarker;
 begin
   Result:=FirstSrcMarker;
   while Result<>nil do
@@ -1060,7 +1148,7 @@ begin
     end;
 end;
 
-function TTestResolver.FindElementsAtSrcLabel(const Identifier: string;
+function TCustomTestResolver.FindElementsAtSrcLabel(const Identifier: string;
   ErrorOnNoElements: boolean): TFPList;
 var
   SrcLabel: PSrcMarker;
@@ -1071,7 +1159,7 @@ begin
   Result:=FindElementsAt(SrcLabel,ErrorOnNoElements);
 end;
 
-procedure TTestResolver.WriteSources(const aFilename: string; aRow,
+procedure TCustomTestResolver.WriteSources(const aFilename: string; aRow,
   aCol: integer);
 var
   IsSrc: Boolean;
@@ -1098,7 +1186,7 @@ begin
     end;
 end;
 
-procedure TTestResolver.RaiseErrorAtSrc(Msg: string; const aFilename: string;
+procedure TCustomTestResolver.RaiseErrorAtSrc(Msg: string; const aFilename: string;
   aRow, aCol: integer);
 var
   s: String;
@@ -1109,12 +1197,12 @@ begin
   raise EAssertionFailedError.Create(s);
 end;
 
-procedure TTestResolver.RaiseErrorAtSrcMarker(Msg: string; aMarker: PSrcMarker);
+procedure TCustomTestResolver.RaiseErrorAtSrcMarker(Msg: string; aMarker: PSrcMarker);
 begin
   RaiseErrorAtSrc(Msg,aMarker^.Filename,aMarker^.Row,aMarker^.StartCol);
 end;
 
-function TTestResolver.FindModuleWithFilename(aFilename: string
+function TCustomTestResolver.FindModuleWithFilename(aFilename: string
   ): TTestEnginePasResolver;
 var
   i: Integer;
@@ -1125,7 +1213,7 @@ begin
   Result:=nil;
 end;
 
-function TTestResolver.AddModule(aFilename: string): TTestEnginePasResolver;
+function TCustomTestResolver.AddModule(aFilename: string): TTestEnginePasResolver;
 begin
   //writeln('TTestResolver.AddModule ',aFilename);
   if FindModuleWithFilename(aFilename)<>nil then
@@ -1137,14 +1225,14 @@ begin
   FModules.Add(Result);
 end;
 
-function TTestResolver.AddModuleWithSrc(aFilename, Src: string
+function TCustomTestResolver.AddModuleWithSrc(aFilename, Src: string
   ): TTestEnginePasResolver;
 begin
   Result:=AddModule(aFilename);
   Result.Source:=Src;
 end;
 
-function TTestResolver.AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
+function TCustomTestResolver.AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
   ImplementationSrc: string): TTestEnginePasResolver;
 var
   Src: String;
@@ -1161,7 +1249,7 @@ begin
   Result:=AddModuleWithSrc(aFilename,Src);
 end;
 
-procedure TTestResolver.AddSystemUnit(Parts: TSystemUnitParts);
+procedure TCustomTestResolver.AddSystemUnit(Parts: TSystemUnitParts);
 var
   Intf, Impl: TStringList;
 begin
@@ -1178,19 +1266,69 @@ begin
     //'  AllowDriveSeparators : set of char = [];',
   if supTObject in Parts then
     begin
-    Intf.Add('type');
-    Intf.Add('  TObject = class');
-    Intf.Add('  end;');
+    Intf.AddStrings([
+    'type',
+    '  TClass = class of TObject;',
+    '  TObject = class',
+    '    constructor Create;',
+    '    destructor Destroy; virtual;',
+    '    class function ClassType: TClass; assembler;',
+    '    class function ClassName: String; assembler;',
+    '    class function ClassNameIs(const Name: string): boolean;',
+    '    class function ClassParent: TClass; assembler;',
+    '    class function InheritsFrom(aClass: TClass): boolean; assembler;',
+    '    class function UnitName: String; assembler;',
+    '    procedure AfterConstruction; virtual;',
+    '    procedure BeforeDestruction;virtual;',
+    '    function Equals(Obj: TObject): boolean; virtual;',
+    '    function ToString: String; virtual;',
+    '  end;']);
     end;
   Intf.Add('var');
-  Intf.Add('  ExitCode: Longint;');
-    //'Procedure Move(const source;var dest;count:SizeInt);',
+  Intf.Add('  ExitCode: Longint = 0;');
 
   // implementation
   Impl:=TStringList.Create;
-    // 'Procedure Move(const source;var dest;count:SizeInt);',
-    // 'begin',
-    // 'end;',
+  if supTObject in Parts then
+    begin
+    Impl.AddStrings([
+      '// needed by ClassNameIs, the real SameText is in SysUtils',
+      'function SameText(const s1, s2: String): Boolean; assembler;',
+      'asm',
+      'end;',
+      'constructor TObject.Create; begin end;',
+      'destructor TObject.Destroy; begin end;',
+      'class function TObject.ClassType: TClass; assembler;',
+      'asm',
+      'end;',
+      'class function TObject.ClassName: String; assembler;',
+      'asm',
+      'end;',
+      'class function TObject.ClassNameIs(const Name: string): boolean;',
+      'begin',
+      '  Result:=SameText(Name,ClassName);',
+      'end;',
+      'class function TObject.ClassParent: TClass; assembler;',
+      'asm',
+      'end;',
+      'class function TObject.InheritsFrom(aClass: TClass): boolean; assembler;',
+      'asm',
+      'end;',
+      'class function TObject.UnitName: String; assembler;',
+      'asm',
+      'end;',
+      'procedure TObject.AfterConstruction; begin end;',
+      'procedure TObject.BeforeDestruction; begin end;',
+      'function TObject.Equals(Obj: TObject): boolean;',
+      'begin',
+      '  Result:=Obj=Self;',
+      'end;',
+      'function TObject.ToString: String;',
+      'begin',
+      '  Result:=ClassName;',
+      'end;'
+      ]);
+    end;
 
   try
     AddModuleWithIntfImplSrc('system.pp',Intf.Text,Impl.Text);
@@ -1200,7 +1338,7 @@ begin
   end;
 end;
 
-procedure TTestResolver.StartProgram(NeedSystemUnit: boolean;
+procedure TCustomTestResolver.StartProgram(NeedSystemUnit: boolean;
   SystemUnitParts: TSystemUnitParts);
 begin
   if NeedSystemUnit then
@@ -1210,7 +1348,7 @@ begin
   Add('program '+ExtractFileUnitName(MainFilename)+';');
 end;
 
-procedure TTestResolver.StartUnit(NeedSystemUnit: boolean);
+procedure TCustomTestResolver.StartUnit(NeedSystemUnit: boolean);
 begin
   if NeedSystemUnit then
     AddSystemUnit
@@ -1219,12 +1357,12 @@ begin
   Add('unit '+ExtractFileUnitName(MainFilename)+';');
 end;
 
-function TTestResolver.OnPasResolverFindUnit(const aUnitName: String
+function TCustomTestResolver.OnPasResolverFindUnit(const aUnitName: String
   ): TPasModule;
 var
-  i: Integer;
+  i, ErrRow, ErrCol: Integer;
   CurEngine: TTestEnginePasResolver;
-  CurUnitName: String;
+  CurUnitName, ErrFilename: String;
 begin
   //writeln('TTestResolver.OnPasResolverFindUnit START Unit="',aUnitName,'"');
   Result:=nil;
@@ -1238,10 +1376,11 @@ begin
       Result:=CurEngine.Module;
       if Result<>nil then exit;
       //writeln('TTestResolver.OnPasResolverFindUnit PARSING unit "',CurEngine.Filename,'"');
-      Resolver.FindSourceFile(aUnitName);
+      //Resolver.FindSourceFile(aUnitName);
 
-      CurEngine.Resolver:=TStreamResolver.Create;
-      CurEngine.Resolver.OwnsStreams:=True;
+      CurEngine.Resolver:=Resolver;
+      //CurEngine.Resolver:=TStreamResolver.Create;
+      //CurEngine.Resolver.OwnsStreams:=True;
       //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurEngine.Source);
       CurEngine.Resolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
       CurEngine.Scanner:=TPascalScanner.Create(CurEngine.Resolver);
@@ -1255,12 +1394,16 @@ begin
       except
         on E: Exception do
           begin
+          ErrFilename:=CurEngine.Scanner.CurFilename;
+          ErrRow:=CurEngine.Scanner.CurRow;
+          ErrCol:=CurEngine.Scanner.CurColumn;
           writeln('ERROR: TTestResolver.OnPasResolverFindUnit during parsing: '+E.ClassName+':'+E.Message
-            +' File='+CurEngine.Scanner.CurFilename
-            +' LineNo='+IntToStr(CurEngine.Scanner.CurRow)
-            +' Col='+IntToStr(CurEngine.Scanner.CurColumn)
+            +' File='+ErrFilename
+            +' LineNo='+IntToStr(ErrRow)
+            +' Col='+IntToStr(ErrCol)
             +' Line="'+CurEngine.Scanner.CurLine+'"'
             );
+          WriteSources(ErrFilename,ErrRow,ErrCol);
           raise E;
           end;
       end;
@@ -1273,7 +1416,7 @@ begin
   raise EAssertionFailedError.Create('can''t find unit "'+aUnitName+'"');
 end;
 
-procedure TTestResolver.OnFindReference(El: TPasElement; FindData: pointer);
+procedure TCustomTestResolver.OnFindReference(El: TPasElement; FindData: pointer);
 var
   Data: PTestResolverReferenceData absolute FindData;
   Line, Col: integer;
@@ -1288,7 +1431,7 @@ begin
     Data^.Found.Add(El);
 end;
 
-procedure TTestResolver.OnCheckElementParent(El: TPasElement; arg: pointer);
+procedure TCustomTestResolver.OnCheckElementParent(El: TPasElement; arg: pointer);
 var
   SubEl: TPasElement;
   i: Integer;
@@ -1364,7 +1507,7 @@ begin
     end;
 end;
 
-procedure TTestResolver.FreeSrcMarkers;
+procedure TCustomTestResolver.FreeSrcMarkers;
 var
   aMarker, Last: PSrcMarker;
 begin
@@ -1377,15 +1520,17 @@ begin
     end;
 end;
 
-function TTestResolver.GetModules(Index: integer): TTestEnginePasResolver;
+function TCustomTestResolver.GetModules(Index: integer): TTestEnginePasResolver;
 begin
   Result:=TTestEnginePasResolver(FModules[Index]);
 end;
 
-function TTestResolver.GetModuleCount: integer;
+function TCustomTestResolver.GetModuleCount: integer;
 begin
   Result:=FModules.Count;
 end;
+
+{ TTestResolver }
 
 procedure TTestResolver.TestEmpty;
 begin
@@ -1467,6 +1612,24 @@ begin
   Add('  t=a;');
   Add('begin');
   CheckParserException('Expected type, but got variable',PParser.nParserExpectedTypeButGot);
+end;
+
+procedure TTestResolver.TestTypeAliasType;
+begin
+  // ToDo
+  StartProgram(false);
+  Add('type');
+  Add('  {#integer}integer = longint;');
+  Add('  {#tcolor}TColor = type integer;');
+  Add('var');
+  Add('  {=integer}i: integer;');
+  Add('  {=tcolor}c: TColor;');
+  Add('begin');
+  Add('  c:=i;');
+  Add('  i:=c;');
+  Add('  i:=integer(c);');
+  Add('  c:=TColor(i);');
+  // ParseProgram;
 end;
 
 procedure TTestResolver.TestVarLongint;
@@ -1619,11 +1782,12 @@ begin
   Add('var');
   Add('  i: longint;');
   Add('begin');
-  Add('  inc(i);');
-  Add('  inc(i,2);');
-  Add('  dec(i);');
-  Add('  dec(i,3);');
+  Add('  inc({#a_var}i);');
+  Add('  inc({#b_var}i,2);');
+  Add('  dec({#c_var}i);');
+  Add('  dec({#d_var}i,3);');
   ParseProgram;
+  CheckAccessMarkers;
 end;
 
 procedure TTestResolver.TestIncStringFail;
@@ -1651,9 +1815,10 @@ begin
   Add('var');
   Add('  s: string;');
   Add('begin');
-  Add('  SetLength(s,3);');
-  Add('  SetLength(s,length(s));');
+  Add('  SetLength({#a_var}s,3);');
+  Add('  SetLength({#b_var}s,length({#c_read}s));');
   ParseProgram;
+  CheckAccessMarkers;
 end;
 
 procedure TTestResolver.TestString_Element;
@@ -1703,6 +1868,15 @@ begin
   Add('  DoIt(s[1]);');
   CheckResolverException('Variable identifier expected',
     PasResolver.nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestString_DoubleQuotesFail;
+begin
+  StartProgram(false);
+  Add('var s: string;');
+  Add('begin');
+  Add('  s:="abc" + "def";');
+  CheckParserException('Invalid character ''"''',PScanner.nErrInvalidCharacter);
 end;
 
 procedure TTestResolver.TestEnums;
@@ -1945,9 +2119,10 @@ begin
   Add('  i: longint;');
   Add('begin');
   Add('  f:=TFlag(1);');
-  Add('  f:=TFlag(i);');
-  Add('  if TFlag(i)=TFlag(1) then;');
+  Add('  f:=TFlag({#a_read}i);');
+  Add('  if TFlag({#b_read}i)=TFlag(1) then;');
   ParseProgram;
+  CheckAccessMarkers;
 end;
 
 procedure TTestResolver.TestPrgAssignment;
@@ -2292,17 +2467,18 @@ begin
   Add('  d: double;');
   Add('  b: boolean;');
   Add('begin');
-  Add('  d:=double(i);');
-  Add('  i:=shortint(i);');
-  Add('  i:=longint(si);');
-  Add('  d:=double(d);');
-  Add('  fs:=single(d);');
-  Add('  d:=single(d);');
-  Add('  b:=longbool(b);');
-  Add('  b:=bytebool(longbool(b));');
-  Add('  d:=double(i)/2.5;');
-  Add('  b:=boolean(i);');
+  Add('  d:=double({#a_read}i);');
+  Add('  i:=shortint({#b_read}i);');
+  Add('  i:=longint({#c_read}si);');
+  Add('  d:=double({#d_read}d);');
+  Add('  fs:=single({#e_read}d);');
+  Add('  d:=single({#f_read}d);');
+  Add('  b:=longbool({#g_read}b);');
+  Add('  b:=bytebool({#i_read}longbool({#h_read}b));');
+  Add('  d:=double({#j_read}i)/2.5;');
+  Add('  b:=boolean({#k_read}i);');
   ParseProgram;
+  CheckAccessMarkers;
 end;
 
 procedure TTestResolver.TestTypeCastStrToIntFail;
@@ -2361,6 +2537,21 @@ begin
   Add('  for by:=low(byte) to high(byte) do;');
   Add('  for ch:=low(char) to high(char) do;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestAssign_Access;
+begin
+  StartProgram(false);
+  Parser.Options:=Parser.Options+[po_cassignments];
+  Scanner.Options:=Scanner.Options+[po_cassignments];
+  Add('var i: longint;');
+  Add('begin');
+  Add('  {#a1_assign}i:={#a2_read}i;');
+  Add('  {#b1_readandassign}i+={#b2_read}i;');
+  Add('  {#c1_readandassign}i-={#c2_read}i;');
+  Add('  {#d1_readandassign}i*={#d2_read}i;');
+  ParseProgram;
+  CheckAccessMarkers;
 end;
 
 procedure TTestResolver.TestForLoop;
@@ -2490,6 +2681,54 @@ begin
   Add('begin');
   Add('  raise E;');
   CheckResolverException('class expected but longint found',PasResolver.nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestRaiseDescendant;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualNewInstance: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    constructor Create(Msg: string); external name ''ext'';');
+  Add('  end;');
+  Add('  Exception = class end;');
+  Add('  EConvertError = class(Exception) end;');
+  Add('begin');
+  Add('  raise Exception.{#a}Create(''foo'');');
+  Add('  raise EConvertError.{#b}Create(''bar'');');
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestRaiseDescendant ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualNewInstance:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestRaiseDescendant ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestRaiseDescendant ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if (Ref.Declaration is TPasConstructor) then
+          ActualNewInstance:=rrfNewInstance in Ref.Flags;
+        break;
+        end;
+      if not ActualNewInstance then
+        RaiseErrorAtSrcMarker('expected newinstance at "#'+aMarker^.Identifier+', but got normal call"',aMarker);
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
 end;
 
 procedure TTestResolver.TestStatementsRefs;
@@ -3326,6 +3565,33 @@ begin
   Add('  ProcC(4);');
   Add('  ProcC(5,''foo'');');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_ParameterExprAccess;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TRec = record');
+  Add('    a: longint;');
+  Add('  end;');
+  Add('procedure DoIt(i: longint; const j: longint; var k: longint; out l: longint);');
+  Add('begin');
+  Add('  DoIt({#loc1_read}i,{#loc2_read}i,{#loc3_var}i,{#loc4_out}i);');
+  Add('end;');
+  Add('var');
+  Add('  r: TRec;');
+  Add('begin');
+  Add('  DoIt({#r1_read}r.{#r_a1_read}a,');
+  Add('    {#r2_read}r.{#r_a2_read}a,');
+  Add('    {#r3_read}r.{#r_a3_var}a,');
+  Add('    {#r4_read}r.{#r_a4_out}a);');
+  Add('  with r do');
+  Add('    DoIt({#w_a1_read}a,');
+  Add('      {#w_a2_read}a,');
+  Add('      {#w_a3_var}a,');
+  Add('      {#w_a4_out}a);');
+  ParseProgram;
+  CheckAccessMarkers;
 end;
 
 procedure TTestResolver.TestRecord;
@@ -4232,6 +4498,40 @@ begin
   Add('end;');
   Add('begin');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_TypeCaseMultipleParamsFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    i: longint;');
+  Add('  end;');
+  Add('var o: TObject;');
+  Add('begin');
+  Add('  o.i:=TObject(o,o).i;');
+  CheckResolverException('wrong number of parameters for type cast to TObject',
+    PasResolver.nWrongNumberOfParametersForTypeCast);
+end;
+
+procedure TTestResolver.TestClass_TypeCastAssign;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TCar = class');
+  Add('  end;');
+  Add('procedure DoIt(a: TCar; const b: TCar; var c: TCar; out d: TCar); begin end;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('  c: TCar;');
+  Add('begin');
+  Add('  TCar({#a_assign}o):=nil;');
+  Add('  TCar({#b_assign}o):=c;');
+  Add('  DoIt(TCar({#c1_read}o),TCar({#c2_read}o),TCar({#c3_var}o),TCar({#c4_out}o));');
+  ParseProgram;
+  CheckAccessMarkers;
 end;
 
 procedure TTestResolver.TestClass_AccessMemberViaClassFail;
@@ -5553,7 +5853,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestPropertyTypelessNoAncestor;
+procedure TTestResolver.TestPropertyTypelessNoAncestorFail;
 begin
   StartProgram(false);
   Add('type');
@@ -5794,11 +6094,12 @@ begin
   Add('  o: TObject;');
   Add('  i: longint;');
   Add('begin');
-  Add('  o.B:=i;');
-  Add('  i:=o.B;');
-  Add('  if i=o.B then ;');
-  Add('  if o.B=3 then ;');
+  Add('  {#a1_read}o.{#a2_assign}B:=i;');
+  Add('  i:={#b1_read}o.{#b2_read}B;');
+  Add('  if i={#c1_read}o.{#c2_read}B then ;');
+  Add('  if {#d1_read}o.{#d2_read}B=3 then ;');
   ParseProgram;
+  CheckAccessMarkers;
 end;
 
 procedure TTestResolver.TestPropertyAssignReadOnlyFail;
@@ -5814,6 +6115,34 @@ begin
   Add('begin');
   Add('  o.B:=3;');
   CheckResolverException('No member is provided to access property',PasResolver.nPropertyNotWritable);
+end;
+
+procedure TTestResolver.TestProperty_PassAsParam;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proAllowPropertyAsVarParam];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    FA: longint;');
+  Add('    property A: longint read FA write FA;');
+  Add('  end;');
+  Add('procedure DoIt(i: longint; const j: longint; var k: longint; out l: longint);');
+  Add('begin');
+  Add('end;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  DoIt({#o1_read}o.{#o_a1_read}a,');
+  Add('    {#o2_read}o.{#o_a2_read}a,');
+  Add('    {#o3_read}o.{#o_a3_var}a,');
+  Add('    {#o4_read}o.{#o_a4_out}a);');
+  Add('  with o do');
+  Add('    DoIt({#w_a1_read}a,');
+  Add('      {#w_a2_read}a,');
+  Add('      {#w_a3_var}a,');
+  Add('      {#w_a4_out}a);');
+  ParseProgram;
+  CheckAccessMarkers;
 end;
 
 procedure TTestResolver.TestPropertyReadNonReadableFail;
@@ -6631,6 +6960,97 @@ begin
   Add('  if Assigned(p) then ;');
   Add('  if Assigned(a[1]) then ;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_TNotifyEvent;
+begin
+  StartProgram(true,[supTObject]);
+  Add('type');
+  Add('  TNotifyEvent = procedure(Sender: TObject) of object;');
+  Add('  TButton = class(TObject)');
+  Add('  private');
+  Add('    FOnClick: TNotifyEvent;');
+  Add('  published');
+  Add('    property OnClick: TNotifyEvent read FOnClick write FOnClick;');
+  Add('  end;');
+  Add('  TApplication = class(TObject)');
+  Add('    procedure BtnClickHandler(Sender: TObject); external name ''BtnClickHandler'';');
+  Add('  end;');
+  Add('var ');
+  Add('  App: TApplication;');
+  Add('  Button1: TButton;');
+  Add('begin');
+  Add('  Button1.OnClick := @App.BtnClickHandler;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_TNotifyEvent_NoAtFPC_Fail1;
+begin
+  StartProgram(true,[supTObject]);
+  Add('type');
+  Add('  TNotifyEvent = procedure(Sender: TObject) of object;');
+  Add('  TButton = class(TObject)');
+  Add('  private');
+  Add('    FOnClick: TNotifyEvent;');
+  Add('  published');
+  Add('    property OnClick: TNotifyEvent read FOnClick write FOnClick;');
+  Add('  end;');
+  Add('  TApplication = class(TObject)');
+  Add('    procedure BtnClickHandler(Sender: TObject); external name ''BtnClickHandler'';');
+  Add('  end;');
+  Add('var ');
+  Add('  App: TApplication;');
+  Add('  Button1: TButton;');
+  Add('begin');
+  Add('  Button1.OnClick := App.BtnClickHandler;');
+  CheckResolverException('Wrong number of parameters specified for call to "BtnClickHandler"',
+    nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestProcType_TNotifyEvent_NoAtFPC_Fail2;
+begin
+  StartProgram(true,[supTObject]);
+  Add('type');
+  Add('  TNotifyEvent = procedure(Sender: TObject) of object;');
+  Add('  TButton = class(TObject)');
+  Add('  private');
+  Add('    FOnClick: TNotifyEvent;');
+  Add('  published');
+  Add('    property OnClick: TNotifyEvent read FOnClick write FOnClick;');
+  Add('  end;');
+  Add('  TApplication = class(TObject)');
+  Add('    procedure BtnClickHandler(Sender: TObject); external name ''BtnClickHandler'';');
+  Add('  end;');
+  Add('var ');
+  Add('  App: TApplication;');
+  Add('  Button1: TButton;');
+  Add('begin');
+  Add('  Button1.OnClick := App.BtnClickHandler();');
+  CheckResolverException('Wrong number of parameters specified for call to "BtnClickHandler"',
+    nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestProcType_TNotifyEvent_NoAtFPC_Fail3;
+begin
+  StartProgram(true,[supTObject]);
+  Add('type');
+  Add('  TNotifyEvent = procedure(Sender: TObject) of object;');
+  Add('  TButton = class(TObject)');
+  Add('  private');
+  Add('    FOnClick: TNotifyEvent;');
+  Add('  published');
+  Add('    property OnClick: TNotifyEvent read FOnClick write FOnClick;');
+  Add('  end;');
+  Add('  TApplication = class(TObject)');
+  Add('    procedure BtnClickHandler(Sender: TObject); external name ''BtnClickHandler'';');
+  Add('  end;');
+  Add('var ');
+  Add('  App: TApplication;');
+  Add('  Button1: TButton;');
+  Add('begin');
+  Add('  Button1.OnClick := @App.BtnClickHandler();');
+  CheckResolverException('Wrong number of parameters specified for call to "BtnClickHandler"',
+    nWrongNumberOfParametersForCallTo);
 end;
 
 initialization
