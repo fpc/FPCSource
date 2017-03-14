@@ -378,13 +378,14 @@ type
 
   TPOption = (
     po_delphi,               // DEPRECATED Delphi mode: forbid nested comments
-    po_cassignments,         // allow C-operators += -= *= /=
-    po_resolvestandardtypes, // search for 'longint', 'string', etc., do not use dummies, TPasResolver sets this to use its declarations
-    po_asmwhole,             // store whole text between asm..end in TPasImplAsmStatement.Tokens
-    po_nooverloadedprocs,    // do not create TPasOverloadedProc for procs with same name
-    po_keepclassforward,     // disabled: delete class fowards when there is a class declaration
-    po_arrayrangeexpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
-    po_selftoken             // Self is a token. For backward compatibility.
+    po_KeepScannerError,     // default: catch EScannerError and raise an EParserError instead
+    po_CAssignments,         // allow C-operators += -= *= /=
+    po_ResolveStandardTypes, // search for 'longint', 'string', etc., do not use dummies, TPasResolver sets this to use its declarations
+    po_AsmWhole,             // store whole text between asm..end in TPasImplAsmStatement.Tokens
+    po_NoOverloadedProcs,    // do not create TPasOverloadedProc for procs with same name
+    po_KeepClassForward,     // disabled: delete class fowards when there is a class declaration
+    po_ArrayRangeExpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
+    po_SelfToken             // Self is a token. For backward compatibility.
     );
   TPOptions = set of TPOption;
 
@@ -2006,7 +2007,7 @@ begin
           Inc(TokenStr);
           Result := tkPower;
           end 
-        else if (po_cassignments in options) then
+        else if (po_CAssignments in options) then
           begin
           if TokenStr[0]='=' then
             begin
@@ -2019,7 +2020,7 @@ begin
       begin
         Result:=tkPlus;
         Inc(TokenStr);
-        if (po_cassignments in options) then
+        if (po_CAssignments in options) then
           begin
           if TokenStr[0]='=' then
             begin
@@ -2037,7 +2038,7 @@ begin
       begin
         Result := tkMinus;
         Inc(TokenStr);
-        if (po_cassignments in options) then
+        if (po_CAssignments in options) then
           begin
           if TokenStr[0]='=' then
             begin
@@ -2073,7 +2074,7 @@ begin
             Move(TokenStart^, FCurTokenString[1], SectionLength);
           Result := tkComment;
           end
-        else if (po_cassignments in options) then
+        else if (po_CAssignments in options) then
           begin
           if TokenStr[0]='=' then
             begin
