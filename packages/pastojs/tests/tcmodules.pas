@@ -267,6 +267,7 @@ type
     Procedure TestClass_Property_Index;
     Procedure TestClass_PropertyOfTypeArray;
     Procedure TestClass_PropertyDefault;
+    Procedure TestClass_PropertyOverride;
     Procedure TestClass_Assigned;
     Procedure TestClass_WithClassDoCreate;
     Procedure TestClass_WithClassInstDoProperty;
@@ -278,6 +279,7 @@ type
     Procedure TestClass_OverloadsAncestor;
     Procedure TestClass_OverloadConstructor;
     Procedure TestClass_ReintroducedVar;
+    Procedure TestClass_RaiseDescendent;
 
     // class of
     Procedure TestClassOf_Create;
@@ -5386,6 +5388,53 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestClass_PropertyOverride;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TObject = class');
+  Add('    FItem: integer;');
+  Add('    function GetItem: integer; external name ''getter'';');
+  Add('    procedure SetItem(Value: integer); external name ''setter'';');
+  Add('    property Item: integer read getitem write setitem;');
+  Add('  end;');
+  Add('  TCar = class');
+  Add('    FBag: integer;');
+  Add('    function GetBag: integer; external name ''getbag'';');
+  Add('    property Item read getbag;');
+  Add('  end;');
+  Add('var');
+  Add('  Obj: tobject;');
+  Add('  Car: tcar;');
+  Add('begin');
+  Add('  Obj.Item:=Obj.Item;');
+  Add('  Car.Item:=Car.Item;');
+  ConvertProgram;
+  CheckSource('TestClass_PropertyOverride',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FItem = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TCar", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TObject.$init.call(this);',
+    '    this.FBag = 0;',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.Car = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Obj.SetItem(this.Obj.getter());',
+    'this.Car.SetItem(this.Car.getbag());',
+    '']));
+end;
+
 procedure TTestModule.TestClass_Assigned;
 begin
   StartProgram(false);
@@ -6014,6 +6063,40 @@ begin
     '});',
     '']),
     LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestClass_RaiseDescendent;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    constructor Create(Msg: string); external name ''Foo'';');
+  Add('  end;');
+  Add('  Exception = class');
+  Add('  end;');
+  Add('  EConvertError = class(Exception)');
+  Add('  end;');
+  Add('begin');
+  Add('  raise Exception.Create(''Bar1'');');
+  Add('  raise EConvertError.Create(''Bar2'');');
+  ConvertProgram;
+  CheckSource('TestClassOf_Create',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "Exception", this.TObject, function () {',
+    '});',
+    'rtl.createClass(this, "EConvertError", this.Exception, function () {',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    'throw this.Exception.$create("Create",["Bar1"]);',
+    'throw this.EConvertError.$create("Create",["Bar2"]);',
     '']));
 end;
 
