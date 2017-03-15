@@ -822,7 +822,8 @@ type
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
                         pmExport, pmOverload, pmMessage, pmReintroduce,
                         pmStatic,pmInline,pmAssembler,pmVarargs, pmPublic,
-                        pmCompilerProc,pmExternal,pmForward, pmDispId, pmNoReturn);
+                        pmCompilerProc,pmExternal,pmForward, pmDispId, 
+                        pmNoReturn, pmfar);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
                         
@@ -1405,7 +1406,8 @@ const
                 = ('virtual', 'dynamic','abstract', 'override',
                    'export', 'overload', 'message', 'reintroduce',
                    'static','inline','assembler','varargs', 'public',
-                   'compilerproc','external','forward','dispid','noreturn');
+                   'compilerproc','external','forward','dispid',
+                   'noreturn','far');
 
   VariableModifierNames : Array[TVariableModifier] of string
      = ('cvar', 'external', 'public', 'export', 'class', 'static');

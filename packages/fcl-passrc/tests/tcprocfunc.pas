@@ -130,6 +130,8 @@ type
     Procedure TestFunctionForwardInterface;
     Procedure TestProcedureForward;
     Procedure TestFunctionForward;
+    Procedure TestProcedureFar;
+    Procedure TestFunctionFar;
     Procedure TestProcedureCdeclForward;
     Procedure TestFunctionCDeclForward;
     Procedure TestProcedureCompilerProc;
@@ -941,6 +943,20 @@ begin
   AddDeclaration('function A : integer; forward;');
   ParseFunction;
   AssertFunc([pmforward],ccDefault,0);
+end;
+
+procedure TTestProcedureFunction.TestProcedureFar;
+begin
+  AddDeclaration('procedure A; far;');
+  ParseProcedure;
+  AssertProc([pmfar],ccDefault,0);
+end;
+
+procedure TTestProcedureFunction.TestFunctionFar;
+begin
+  AddDeclaration('function A : integer; far;');
+  ParseFunction;
+  AssertFunc([pmfar],ccDefault,0);
 end;
 
 procedure TTestProcedureFunction.TestProcedureCdeclForward;
