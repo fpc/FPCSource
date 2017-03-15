@@ -110,8 +110,9 @@ Type
     Procedure TestTryExceptOn2;
     Procedure TestTryExceptOnElse;
     Procedure TestTryExceptOnIfElse;
-    procedure TestTryExceptRaise;
+    procedure  TestTryExceptRaise;
     Procedure TestAsm;
+    Procedure TestGotoInIfThen;
   end;
 
 implementation
@@ -1644,6 +1645,21 @@ begin
   AssertEquals('token 2 ','eax',T.Tokens[1]);
   AssertEquals('token 3 ',',',T.Tokens[2]);
   AssertEquals('token 4 ','1',T.Tokens[3]);
+end;
+
+Procedure TTestStatementParser.TestGotoInIfThen;
+
+begin
+  AddStatements(['if expr then',
+  '  dosomething',
+  '   else if expr2 then',
+  '    goto try_qword',
+  '  else',
+  '    dosomething;',
+  '  try_qword:',
+  '  dosomething;',
+  'end.']);
+  ParseModule;
 end;
 
 initialization

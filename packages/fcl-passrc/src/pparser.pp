@@ -4170,7 +4170,7 @@ begin
       begin
         NextToken;
         curblock.AddCommand('goto '+curtokenstring);
-        expecttoken(tkSemiColon);
+        // expecttoken(tkSemiColon);
       end;
     tkfor:
       begin
