@@ -1310,7 +1310,8 @@ begin
         FCurToken:=tkIdentifier;
         Result:=FCurToken;
         end;
-      Break;
+      if not PPIsSkipping then
+        Break;
       end;
     else
       if not PPIsSkipping then
