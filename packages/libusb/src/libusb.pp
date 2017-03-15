@@ -48,6 +48,7 @@ uses ctypes,sockets,unixtype;
   type
     ssize_t = longint;
 {$endif  WIN64}
+    ptimeval = pointer;
 
 {$else}
   type
@@ -100,7 +101,7 @@ uses ctypes,sockets,unixtype;
 {$ifdef MSWINDOWS}
  
 const libusb1='libusb-1.0.dll';
-{$define LIBUSB_CALL := WINAPI;external libusb1; }
+{$define LIBUSB_CALL := WINAPI }
 {$else}
 const libusb1='libusb-1.0.so';
 {$define LIBUSB_CALL := cdecl }
