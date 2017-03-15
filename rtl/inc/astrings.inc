@@ -687,6 +687,26 @@ end;
 
 {$ifndef FPC_HAS_ANSISTR_COMPARE_EQUAL}
 {$define FPC_HAS_ANSISTR_COMPARE_EQUAL}
+
+Function fpc_utf8_Compare_equal(Const S1,S2 : RawByteString): SizeInt;
+
+Var
+  r1,r2 : RawByteString;
+  L1,L2 : SizeInt;
+begin
+  r1:=S1;
+  r2:=S2;
+  //convert them to utf8 then compare
+  SetCodePage(r1,65001);
+  SetCodePage(r2,65001);
+  L1:=Length(r1);
+  L2:=Length(r2);
+  Result:=L1-L2;
+  if Result = 0 then
+    if L1>0 then
+      result:=CompareByte(r1[1],r2[1],L1);
+end;
+
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE_EQUAL'];  compilerproc;
 {
   Compares 2 AnsiStrings for equality/inequality only;
@@ -697,7 +717,6 @@ Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt;[Public
 Var
   MaxI,Temp : SizeInt;
   cp1,cp2 : TSystemCodePage;
-  r1,r2 : RawByteString;
 begin
   if pointer(S1)=pointer(S2) then
     begin
@@ -728,17 +747,7 @@ begin
     end
   else
     begin
-      r1:=S1;
-      r2:=S2;
-      //convert them to utf8 then compare
-      SetCodePage(r1,65001);
-      SetCodePage(r2,65001);
-      Maxi:=Length(r1);
-      temp:=Length(r2);
-      Result := Maxi - temp;
-      if Result = 0 then
-        if MaxI>0 then
-          result:=CompareByte(r1[1],r2[1],MaxI);
+    Result:=fpc_utf8_Compare_equal(S1,S2);
     end;
 end;
 {$endif FPC_HAS_ANSISTR_COMPARE_EQUAL}
