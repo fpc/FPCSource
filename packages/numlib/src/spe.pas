@@ -20,6 +20,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}{$H+}
+{$modeswitch nestedprocvars}
+
 unit spe;
 {$I DIRECT.INC}
 
@@ -65,6 +68,15 @@ function spegam(x: ArbFloat): ArbFloat;
 
 {  Function to calculate the natural logaritm of the Gamma function}
 function spelga(x: ArbFloat): ArbFloat;
+
+{  Function to calculate the lower incomplete Gamma function
+     int(t,0,x,exp(-t)t^(s-1)) / spegam(s)  (s > 0) }
+function gammap(s, x: ArbFloat): ArbFloat;
+
+{  Function to calculate the upper incomplete Gamma function
+     int(t,x,inf,exp(-t)t^(s-1)) / spegam(s)  (s > 0)
+     gammaq(s,x) = 1 - gammap(s,x) }
+function gammaq(s, x: ArbFloat): ArbFloat;
 
 {  "Calculates" the maximum of two ArbFloat values     }
 function spemax(a, b: ArbFloat): ArbFloat;
@@ -1002,6 +1014,115 @@ begin
   else  { x > xmax => x*ln(x) > giant }
     RunError(408)
 end; {spelga}
+
+{ Implements power series expansion for lower incomplete gamma function
+  according to
+  https://en.wikipedia.org/wiki/Incomplete_gamma_function#Evaluation_formulae
+    gamma(s, x) = sum {k = 0 to inf, x^s exp(-x) x^k / (s (s+1) ... (s+k) ) }
+  Converges rapidly for x < s + 1 }
+function gammaser(s, x: ArbFloat): ArbFloat;
+const
+  MAX_IT = 100;
+  EPS = 1E-7;
+var
+  delta: Arbfloat;
+  sum: ArbFloat;
+  k: Integer;
+  lngamma: ArbFloat;
+begin
+  delta := 1 / s;
+  sum := delta;
+  for k := 1 to MAX_IT do begin
+    delta := delta * x / (s + k);
+    sum := sum + delta;
+    if delta < EPS then break;
+  end;
+  lngamma := spelga(s);  // log of complete gamma(s)
+  Result := exp(s * ln(x) - x + ln(sum) - lngamma);
+end;
+
+type
+  TCFFunc = function(n: Integer): ArbFloat is nested;
+
+{ Calculates the continued fraction a0 + (b1 / (a1 + b2 / (a2 + b3 / (a3 + b4 /...))))
+  Ref.: https://rosettacode.org/wiki/Continued_fraction#C}
+function CalcCF(funca, funcb: TCfFunc; NumIt: Integer): ArbFloat;
+var
+  r: ArbFloat;
+  i: Integer;
+begin
+  r := 0;
+  for i := NumIt downTo 1 do
+    r := funcb(i) / (funca(i) + r);
+  Result := funca(0) + r;
+end;
+
+{ calculates the upper incomplete gamma function using its continued
+  fraction expansion
+  https://en.wikipedia.org/wiki/Incomplete_gamma_function#Connection_with_Kummer.27s_confluent_hypergeometric_function }
+function gammacf(s, x: ArbFloat): ArbFloat;
+
+  function funca(i: Integer): ArbFloat;
+  begin
+    if i = 0 then
+      Result := 0
+    else
+    if odd(i) then
+      Result := x
+    else
+      Result := 1;
+  end;
+
+  function funcb(i: Integer): ArbFloat;
+  begin
+    if i = 1 then
+      Result := 1
+    else
+    if odd(i) then
+      Result := (i-1) div 2
+    else
+      Result := i div 2 - s;
+  end;
+
+const
+  MAX_IT = 100;
+  EPS = 1E-7;
+var
+  gamma, prevgamma, lngamma: ArbFloat;
+  i: Integer;
+begin
+  prevgamma := giant;
+  i := 0;
+  while i < MAX_IT do begin
+    gamma := CalcCF(@funca, @funcb, i);
+    if (abs(gamma - prevgamma) < EPS) then
+      break;
+    prevgamma := gamma;
+    inc(i);
+  end;
+  lngamma := spelga(s);  // logarithm of complete gamma(s)
+  Result := exp(-x + s*ln(x) - lngamma) * gamma;
+end;
+
+function gammap(s, x: ArbFloat): ArbFloat;
+begin
+  if (x < 0.0) or (s <= 0.0) then
+    RunError(401);                  // Invalid argument of gammap
+  if x < s + 1 then
+    Result := gammaser(s, x)        // Use series expansion
+  else
+    Result := 1.0 - gammacf(s, x);  // Use continued fraction
+end;
+
+function gammaq(s, x: ArbFloat): ArbFloat;
+begin
+  if (x < 0.0) or (s <= 0.0) then
+    RunError(401);                  // Invalid argument of gammaq
+  if x < s + 1 then
+    Result := 1.0 - gammaser(s, x)  // Use series expansion
+  else
+    Result := gammacf(s, x);        // Use continued fraction
+end;
 
 function spepol(x: ArbFloat; var a: ArbFloat; n: ArbInt): ArbFloat;
 var   pa : ^arfloat0;
