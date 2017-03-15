@@ -5,7 +5,7 @@ unit tcgenerics;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, pparser, pastree, testregistry, tctypeparser;
+  Classes, SysUtils, fpcunit, pastree, testregistry, tctypeparser;
 
 Type
 

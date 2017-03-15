@@ -1587,7 +1587,7 @@ function TPasParser.ParseExpIdent(AParent: TPasElement): TPasExpr;
   end;
 
 var
-  Last    , Expr: TPasExpr;
+  Last,func, Expr: TPasExpr;
   prm     : TParamsExpr;
   b       : TBinaryExpr;
   optk    : TToken;
@@ -1661,7 +1661,8 @@ begin
   end;
 
   Result:=Last;
-
+  func:=Last;
+  
   if Last.Kind<>pekSet then NextToken;
 
   ok:=false;
@@ -1673,8 +1674,9 @@ begin
         NextToken;
         if CurToken in [tkIdentifier,tktrue,tkfalse] then // true and false are also identifiers
           begin
-          AddToBinaryExprChain(Result,Last,
-            CreatePrimitiveExpr(AParent,pekIdent,CurTokenString), eopSubIdent);
+          expr:=CreatePrimitiveExpr(AParent,pekIdent,CurTokenString);
+          AddToBinaryExprChain(Result,Last,expr,eopSubIdent);
+          func:=expr;
           NextToken;
           end
         else
@@ -1683,12 +1685,12 @@ begin
           ParseExcExpectedIdentifier;
           end;
         end;
-      repeat
+       repeat
         case CurToken of
           tkBraceOpen,tkSquaredBraceOpen:
             begin
             if CurToken=tkBraceOpen then
-              prm:=ParseParams(AParent,pekFuncParams,isWriteOrStr(Last))
+              prm:=ParseParams(AParent,pekFuncParams,isWriteOrStr(func))
             else
               prm:=ParseParams(AParent,pekArrayParams);
             if not Assigned(prm) then Exit;
