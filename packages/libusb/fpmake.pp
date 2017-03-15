@@ -17,9 +17,11 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.1.1';
-    P.Description := 'Headers for the libusb library e)';
+    P.Description := 'Headers for the libusb library';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
     P.OSes := [linux,win32];
+
+    P.Dependencies.Add('rtl-extra',[linux]);
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
