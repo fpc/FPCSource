@@ -198,12 +198,18 @@ end;
 
 function CompareMemRange(P1, P2: Pointer; Length: PtrUInt): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 begin
-  Result:=CompareByte(P1^,P2^,Length);
+  If P1=P2 then 
+    Result:=0
+  else  
+    Result:=CompareByte(P1^,P2^,Length);
 end;
 
 function CompareMem(P1, P2: Pointer; Length: PtrUInt): Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 begin
-  Result:=CompareByte(P1^,P2^,Length)=0;
+  if P1=P2 then
+    Result:=True
+  else 
+    Result:=CompareByte(P1^,P2^,Length)=0;
 end;
 
 
