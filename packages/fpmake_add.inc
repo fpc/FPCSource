@@ -68,6 +68,7 @@
   add_libpng(ADirectory+IncludeTrailingPathDelimiter('libpng'));
   add_librsvg(ADirectory+IncludeTrailingPathDelimiter('librsvg'));
   add_libsee(ADirectory+IncludeTrailingPathDelimiter('libsee'));
+  add_libusb(ADirectory+IncludeTrailingPathDelimiter('libusb'));
   add_libtar(ADirectory+IncludeTrailingPathDelimiter('libtar'));
   add_libvlc(ADirectory+IncludeTrailingPathDelimiter('libvlc'));
   add_libxml(ADirectory+IncludeTrailingPathDelimiter('libxml'));

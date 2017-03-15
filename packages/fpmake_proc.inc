@@ -392,6 +392,12 @@ begin
 {$include libsee/fpmake.pp}
 end;
 
+procedure add_libusb(const ADirectory: string);
+begin
+  with Installer do
+{$include libusb/fpmake.pp}
+end;
+
 procedure add_libtar(const ADirectory: string);
 begin
   with Installer do
