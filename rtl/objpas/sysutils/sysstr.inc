@@ -678,13 +678,15 @@ function AnsiExtractQuotedStr(var  Src: PChar; Quote: Char): string;
 var
   P,Q,R: PChar;
 begin
+ result:='';
+ if P=Nil then exit;
  P := Src;
  Q := StrEnd(P);
- result:='';
- if P=Q then exit;
- if P^<>quote then exit(strpas(P));
+ if P=Q then 
+   exit;
+ if P^<>quote then 
+   exit(strpas(P));
  inc(p);
-
  setlength(result,(Q-P)+1);
  R:=@Result[1];
  while P <> Q do
@@ -1904,7 +1906,6 @@ var p : pchar;
 begin
   p:=pchar(pointer(s)); // work around CONST. Ansiextract is safe for nil
   result:=AnsiExtractquotedStr(p,AQuote);
-  
 end;
 
 function StrToBool(const S: string): Boolean;
