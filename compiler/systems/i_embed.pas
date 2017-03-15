@@ -424,6 +424,70 @@ unit i_embed;
             llvmdatalayout : 'todo';
           );
 
+       system_m68k_embedded_info : tsysteminfo =
+          (
+            system       : system_m68k_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_smartlink_sections];
+            cpu          : cpu_m68k;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_embedded;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 32768;
+            stackalign   : 4;
+            abi : abi_default;
+            llvmdatalayout : 'TODO';
+          );
+
   implementation
 
 initialization
@@ -457,4 +521,9 @@ initialization
     set_source_info(system_i8086_embedded_info);
   {$endif embedded}
 {$endif cpu8086}
+{$ifdef cpum68k}
+  {$ifdef embedded}
+    set_source_info(system_m68k_embedded_info);
+  {$endif embedded}
+{$endif cpum68k}
 end.

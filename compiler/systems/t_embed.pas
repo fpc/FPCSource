@@ -1,8 +1,8 @@
 {
-    This unit implements support import,export,link routines
-    for the (arm) GameBoy Advance target
+    Copyright (c) 2005-2017 by Free Pascal Compiler team
 
-    Copyright (c) 2001-2002 by Peter Vreman
+    This unit implements support import, export, link routines
+    for the Embedded Target
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1510,4 +1510,8 @@ initialization
   RegisterTarget(system_mipsel_embedded_info);
 {$endif mipsel}
 
+{$ifdef m68k}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_m68k_embedded_info);
+{$endif m68k}
 end.
