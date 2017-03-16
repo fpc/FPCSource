@@ -160,7 +160,7 @@ begin
     result:=1
   else
     result:=0;
-end;    
+end;
 {$DEFINE CAPSIZEINT:=DoCapSizeInt}
 {$ELSE}
 {$DEFINE CAPSIZEINT:=}
@@ -198,9 +198,9 @@ end;
 
 function CompareMemRange(P1, P2: Pointer; Length: PtrUInt): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 begin
-  If P1=P2 then 
+  If P1=P2 then
     Result:=0
-  else  
+  else
     Result:=CompareByte(P1^,P2^,Length);
 end;
 
@@ -208,7 +208,7 @@ function CompareMem(P1, P2: Pointer; Length: PtrUInt): Boolean;{$ifdef SYSUTILSI
 begin
   if P1=P2 then
     Result:=True
-  else 
+  else
     Result:=CompareByte(P1^,P2^,Length)=0;
 end;
 
@@ -224,7 +224,7 @@ end;
 function CompareText(const S1, S2: string): Integer; overload;
 
 var
-  i, count, count1, count2: sizeint; 
+  i, count, count1, count2: sizeint;
   Chr1, Chr2: byte;
   P1, P2: PChar;
 begin
@@ -685,12 +685,12 @@ var
   P,Q,R: PChar;
 begin
  result:='';
- if P=Nil then exit;
+ if Src=Nil then exit;
  P := Src;
  Q := StrEnd(P);
- if P=Q then 
+ if P=Q then
    exit;
- if P^<>quote then 
+ if P^<>quote then
    exit(strpas(P));
  inc(p);
  setlength(result,(Q-P)+1);
@@ -859,7 +859,7 @@ const
 function IntToHex(Value: Longint; Digits: integer): string;
 var i: integer;
 begin
- If Digits=0 then 
+ If Digits=0 then
    Digits:=1;
  SetLength(result, digits);
  for i := 0 to digits - 1 do
@@ -876,7 +876,7 @@ end ;
 function IntToHex(Value: int64; Digits: integer): string;
 var i: integer;
 begin
- If Digits=0 then 
+ If Digits=0 then
    Digits:=1;
  SetLength(result, digits);
  for i := 0 to digits - 1 do
@@ -1863,7 +1863,7 @@ end;
 Function CurrToStr(Value: Currency; Const FormatSettings: TFormatSettings): string;
 begin
   Result:=FloatToStrF(Value,ffGeneral,-1,0,FormatSettings);
-end;  
+end;
 
 
 function StrToCurr(const S: string): Currency;
@@ -1873,7 +1873,7 @@ begin
 end;
 
 
-function StrToCurr(const S: string; Const FormatSettings: TFormatSettings): Currency; 
+function StrToCurr(const S: string; Const FormatSettings: TFormatSettings): Currency;
 begin
   if not TextToFloat(PChar(pointer(S)), Result, fvCurrency,FormatSettings) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
@@ -1886,10 +1886,10 @@ Begin
 End;
 
 
-function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings: TFormatSettings): Boolean;       
+function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings: TFormatSettings): Boolean;
 Begin
   Result := TextToFloat(PChar(pointer(S)), Value, fvCurrency,FormatSettings);
-End;  
+End;
 
 
 function StrToCurrDef(const S: string; Default : Currency): Currency;
@@ -1898,11 +1898,11 @@ begin
     Result:=Default;
 end;
 
-function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;  
+function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;
 begin
   if not TextToFloat(PChar(pointer(S)), Result, fvCurrency,FormatSettings) then
     Result:=Default;
-end; 
+end;
 {$endif FPUNONE}
 
 function AnsiDequotedStr(const S: string; AQuote: Char): string;
@@ -2299,7 +2299,7 @@ Var
           Digits:=Copy(Digits, 2, Length(Digits));
           Dec(DecimalPoint);
           End;
-        End;  
+        End;
       Exp := 0;
       End
     Else
@@ -2471,7 +2471,7 @@ Var
                   Inc(Buf);
                   End;
                 End;
-              if Digits[Dig]<>'-' then  
+              if Digits[Dig]<>'-' then
                 Dec(DigitExponent);
               Inc(Dig);
               Inc(Fmt);
@@ -2772,7 +2772,7 @@ Function LastDelimiter(const Delimiters, S: string): SizeInt;
 var
   chs: TSysCharSet;
   I: SizeInt;
-  
+
 begin
   chs := [];
   for I := 1 to Length(Delimiters) do
