@@ -360,11 +360,11 @@ type
     // CUCKOO_MAX_ITEMS_LENGTH: <- to do : calc max length for items based on CUCKOO sign
     // maybe some CDM bloom filter?
 
-    procedure UpdateItemsThreshold(ASize: SizeInt); override;
     procedure Resize(ANewSize: SizeInt);
     procedure Rehash(ASizePow2: SizeInt);
     function PrepareAddingItem: SizeInt;
   protected
+    procedure UpdateItemsThreshold(ASize: SizeInt); override;
     function Lookup(constref AKey: TKey; var AHashListOrIndex: PUInt32): SizeInt; inline; overload;
     function Lookup(constref AItems: TItemsDArray; constref AKey: TKey; var AHashListOrIndex: PUInt32): SizeInt; virtual; overload;
   public
