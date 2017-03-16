@@ -267,6 +267,15 @@ type
       out AHash: UInt32): SizeInt; override;
   end;
 
+  TOpenAddressingQP<OPEN_ADDRESSING_CONSTRAINTS> = class(TOpenAddressingSH<OPEN_ADDRESSING_CONSTRAINTS>)
+  private
+    FPrimaryNumberAsSizeApproximation: SizeInt;
+  protected
+    procedure UpdateItemsThreshold(ASize: SizeInt); override;
+    function FindBucketIndexOrTombstone(constref AItems: TArray<TItem>;
+      constref AKey: TKey; out AHash: UInt32): SizeInt; override;
+  end;
+
   TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS> = class(TOpenAddressingTombstones<OPEN_ADDRESSING_CONSTRAINTS>)
   private type // for workaround Lazarus bug #25613
     _TItem = record
@@ -495,8 +504,8 @@ type
   TOpenAddressingLPT<TKey, TValue, THashFactory> = class(TOpenAddressingSH<TKey, TValue, THashFactory, TLinearProbing>);
   TOpenAddressingLPT<TKey, TValue> = class(TOpenAddressingSH<TKey, TValue, TDelphiHashFactory, TLinearProbing>);
 
-  TOpenAddressingQP<TKey, TValue, THashFactory> = class(TOpenAddressingSH<TKey, TValue, THashFactory, TQuadraticProbing>);
-  TOpenAddressingQP<TKey, TValue> = class(TOpenAddressingSH<TKey, TValue, TDelphiHashFactory, TQuadraticProbing>);
+  TOpenAddressingQP<TKey, TValue, THashFactory> = class(TOpenAddressingQP<TKey, TValue, THashFactory, TQuadraticProbing>);
+  TOpenAddressingQP<TKey, TValue> = class(TOpenAddressingQP<TKey, TValue, TDelphiHashFactory, TQuadraticProbing>);
 
   TOpenAddressingDH<TKey, TValue, THashFactory> = class(TOpenAddressingDH<TKey, TValue, THashFactory, TDoubleHashing>);
   TOpenAddressingDH<TKey, TValue> = class(TOpenAddressingDH<TKey, TValue, TDelphiDoubleHashFactory, TDoubleHashing>);

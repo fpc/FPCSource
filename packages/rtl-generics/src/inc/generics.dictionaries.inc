@@ -788,6 +788,58 @@ begin
   until false;
 end;
 
+{ TOpenAddressingQP<OPEN_ADDRESSING_CONSTRAINTS> }
+
+procedure TOpenAddressingQP<OPEN_ADDRESSING_CONSTRAINTS>.UpdateItemsThreshold(ASize: SizeInt);
+begin
+  if ASize = $40000000 then
+    FItemsThreshold := $40000001
+  else
+    begin
+      FPrimaryNumberAsSizeApproximation := PrimaryNumbersJustLessThanPowerOfTwo[
+        MultiplyDeBruijnBitPosition[UInt32(((ASize and -ASize) * $077CB531)) shr 27]];
+
+      FItemsThreshold := Pred(Round(FPrimaryNumberAsSizeApproximation * FMaxLoadFactor));
+    end;
+end;
+
+function TOpenAddressingQP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexOrTombstone(constref AItems: TArray<TItem>;
+  constref AKey: TKey; out AHash: UInt32): SizeInt;
+var
+  LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
+  LLengthMask: SizeInt;
+  i, m: SizeInt;
+  LHash: UInt32;
+begin
+  m := Length(AItems);
+  LLengthMask := m - 1;
+
+  LHash := FEqualityComparer.GetHashCode(AKey);
+
+  i := 0;
+  AHash := LHash or UInt32.GetSignMask;
+
+  if m = 0 then
+    Exit(-1);
+
+  for i := 0 to FPrimaryNumberAsSizeApproximation - 1 do
+  begin
+    Result := TProbeSequence.Probe(i, m, AHash) mod FPrimaryNumberAsSizeApproximation;
+    LItem := _TItem(AItems[Result]);
+
+    // Empty position or tombstone
+    if LItem.Hash and UInt32.GetSignMask = 0 then
+      Exit(not Result); // insert!
+
+    // Same position?
+    if LItem.Hash = AHash then
+      if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
+        Exit;
+  end;
+
+  Result := -1;
+end;
+
 { TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS> }
 
 constructor TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.Create(ACapacity: SizeInt;
