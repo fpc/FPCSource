@@ -574,7 +574,7 @@ var
   LItem: PItem;
   LPair: TPair<TKey, TValue>;
   LLengthMask: SizeInt;
-  i, m, LIndex, LGapIndex: SizeInt;
+  i, LIndex, LGapIndex: SizeInt;
   LHash, LBucket: UInt32;
 begin
   LItem := @FItems[AIndex];
@@ -583,12 +583,11 @@ begin
   // try fill gap
   LHash := LItem.Hash;
   LItem.Hash := 0; // prevents an infinite searching loop
-  m := Length(FItems);
-  LLengthMask := m - 1;
+  LLengthMask := Length(FItems) - 1;
   i := Succ(AIndex - (LHash and LLengthMask));
   LGapIndex := AIndex;
   repeat
-    LIndex := TProbeSequence.Probe(i, m, LHash) and LLengthMask;
+    LIndex := TProbeSequence.Probe(i, LHash) and LLengthMask;
     LItem := @FItems[LIndex];
 
     // Empty position
@@ -650,7 +649,7 @@ begin
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, m, AHash) and LLengthMask;
+    Result := TProbeSequence.Probe(i, AHash) and LLengthMask;
 
   until false;
 end;
@@ -743,7 +742,7 @@ begin
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, m, AHash) and LLengthMask;
+    Result := TProbeSequence.Probe(i, AHash) and LLengthMask;
 
   until false;
 end;
@@ -783,7 +782,7 @@ begin
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, m, AHash) and LLengthMask;
+    Result := TProbeSequence.Probe(i, AHash) and LLengthMask;
 
   until false;
 end;
@@ -824,7 +823,7 @@ begin
 
   for i := 0 to FPrimaryNumberAsSizeApproximation - 1 do
   begin
-    Result := TProbeSequence.Probe(i, m, AHash) mod FPrimaryNumberAsSizeApproximation;
+    Result := TProbeSequence.Probe(i, AHash) mod FPrimaryNumberAsSizeApproximation;
     LItem := _TItem(AItems[Result]);
 
     // Empty position or tombstone
@@ -937,7 +936,7 @@ begin
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, m, AHash, LHash2) and LLengthMask;
+    Result := TProbeSequence.Probe(i, AHash, LHash2) and LLengthMask;
   until false;
 end;
 
@@ -981,7 +980,7 @@ begin
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, m, AHash, LHash2) and LLengthMask;
+    Result := TProbeSequence.Probe(i, AHash, LHash2) and LLengthMask;
   until false;
 end;
 
