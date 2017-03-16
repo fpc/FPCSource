@@ -272,6 +272,8 @@ type
     FPrimaryNumberAsSizeApproximation: SizeInt;
   protected
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
+    function FindBucketIndex(constref AItems: TArray<TItem>;
+      constref AKey: TKey; out AHash: UInt32): SizeInt; override; overload;
     function FindBucketIndexOrTombstone(constref AItems: TArray<TItem>;
       constref AKey: TKey; out AHash: UInt32): SizeInt; override;
   end;
