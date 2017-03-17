@@ -31,7 +31,7 @@
         <PackageName Value="FCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="5">
       <Unit0>
         <Filename Value="testpas2js.pp"/>
         <IsPartOfProject Value="True"/>
@@ -44,19 +44,26 @@
         <Filename Value="../src/fppas2js.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="tcmodules.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="tcoptimizations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="testpas2js"/>
+    </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../fcl-js/src;../../fcl-passrc/src;../src"/>
+      <OtherUnitFiles Value="../src;../../fcl-js/src;../../fcl-passrc/src;../../pastojs/tests"/>
+      <UnitOutputDirectory Value="lib"/>
     </SearchPaths>
-    <Parsing>
-      <SyntaxOptions>
-        <AllowLabel Value="False"/>
-      </SyntaxOptions>
-    </Parsing>
     <CodeGeneration>
       <Checks>
         <IOChecks Value="True"/>
@@ -66,11 +73,12 @@
       </Checks>
       <VerifyObjMethodCallValidity Value="True"/>
     </CodeGeneration>
-    <Linking>
-      <Debugging>
-        <TrashVariables Value="True"/>
-      </Debugging>
-    </Linking>
+    <Other>
+      <CustomOptions Value="-dVerbosePas2JS"/>
+      <OtherDefines Count="1">
+        <Define0 Value="VerbosePas2JS"/>
+      </OtherDefines>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

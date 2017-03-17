@@ -62,9 +62,9 @@ type
     property Module: TPasModule read FModule write SetModule;
   end;
 
-  { TTestModule }
+  { TCustomTestModule }
 
-  TTestModule = Class(TTestCase)
+  TCustomTestModule = Class(TTestCase)
   private
     FConverter: TPasToJSConverter;
     FEngine: TTestEnginePasResolver;
@@ -90,28 +90,28 @@ type
   protected
     procedure SetUp; override;
     procedure TearDown; override;
-    Procedure Add(Line: string);
-    Procedure StartParsing;
-    procedure ParseModule;
-    procedure ParseProgram;
-    procedure ParseUnit;
+    Procedure Add(Line: string); virtual;
+    Procedure StartParsing; virtual;
+    procedure ParseModule; virtual;
+    procedure ParseProgram; virtual;
+    procedure ParseUnit; virtual;
   protected
-    function FindModuleWithFilename(aFilename: string): TTestEnginePasResolver;
-    function AddModule(aFilename: string): TTestEnginePasResolver;
-    function AddModuleWithSrc(aFilename, Src: string): TTestEnginePasResolver;
+    function FindModuleWithFilename(aFilename: string): TTestEnginePasResolver; virtual;
+    function AddModule(aFilename: string): TTestEnginePasResolver; virtual;
+    function AddModuleWithSrc(aFilename, Src: string): TTestEnginePasResolver; virtual;
     function AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
-      ImplementationSrc: string): TTestEnginePasResolver;
-    procedure AddSystemUnit;
-    procedure StartProgram(NeedSystemUnit: boolean);
-    procedure StartUnit(NeedSystemUnit: boolean);
-    Procedure ConvertModule;
-    Procedure ConvertProgram;
-    Procedure ConvertUnit;
+      ImplementationSrc: string): TTestEnginePasResolver; virtual;
+    procedure AddSystemUnit; virtual;
+    procedure StartProgram(NeedSystemUnit: boolean); virtual;
+    procedure StartUnit(NeedSystemUnit: boolean); virtual;
+    Procedure ConvertModule; virtual;
+    Procedure ConvertProgram; virtual;
+    Procedure ConvertUnit; virtual;
     procedure CheckDottedIdentifier(Msg: string; El: TJSElement; DottedName: string);
     function GetDottedIdentifier(El: TJSElement): string;
-    procedure CheckSource(Msg,Statements, InitStatements: string);
-    procedure CheckDiff(Msg, Expected, Actual: string);
-    procedure WriteSource(aFilename: string; Row: integer = 0; Col: integer = 0);
+    procedure CheckSource(Msg,Statements, InitStatements: string); virtual;
+    procedure CheckDiff(Msg, Expected, Actual: string); virtual;
+    procedure WriteSource(aFilename: string; Row: integer = 0; Col: integer = 0); virtual;
     property PasProgram: TPasProgram Read FPasProgram;
     property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
     property ModuleCount: integer read GetModuleCount;
@@ -132,6 +132,11 @@ type
     property FileResolver: TStreamResolver read FFileResolver;
     property Scanner: TPascalScanner read FScanner;
     property Parser: TTestPasParser read FParser;
+  end;
+
+  { TTestModule }
+
+  TTestModule = class(TCustomTestModule)
   Published
     // modules
     Procedure TestEmptyProgram;
@@ -392,20 +397,20 @@ begin
     Result:=OnFindUnit(AName);
 end;
 
-{ TTestModule }
+{ TCustomTestModule }
 
-function TTestModule.GetModuleCount: integer;
+function TCustomTestModule.GetModuleCount: integer;
 begin
   Result:=FModules.Count;
 end;
 
-function TTestModule.GetModules(Index: integer
+function TCustomTestModule.GetModules(Index: integer
   ): TTestEnginePasResolver;
 begin
   Result:=TTestEnginePasResolver(FModules[Index]);
 end;
 
-function TTestModule.OnPasResolverFindUnit(const aUnitName: String
+function TCustomTestModule.OnPasResolverFindUnit(const aUnitName: String
   ): TPasModule;
 var
   i: Integer;
@@ -460,7 +465,7 @@ begin
   raise Exception.Create('can''t find unit "'+aUnitName+'"');
 end;
 
-procedure TTestModule.SetUp;
+procedure TCustomTestModule.SetUp;
 begin
   inherited SetUp;
   FSource:=TStringList.Create;
@@ -478,7 +483,7 @@ begin
   FConverter.UseLowerCase:=false;
 end;
 
-procedure TTestModule.TearDown;
+procedure TCustomTestModule.TearDown;
 begin
   FJSModule:=nil;
   FJSRegModuleCall:=nil;
@@ -508,12 +513,12 @@ begin
   inherited TearDown;
 end;
 
-procedure TTestModule.Add(Line: string);
+procedure TCustomTestModule.Add(Line: string);
 begin
   Source.Add(Line);
 end;
 
-procedure TTestModule.StartParsing;
+procedure TCustomTestModule.StartParsing;
 begin
   FileResolver.AddStream(FileName,TStringStream.Create(Source.Text));
   Scanner.OpenFile(FileName);
@@ -521,7 +526,7 @@ begin
   Writeln(Source.Text);
 end;
 
-procedure TTestModule.ParseModule;
+procedure TCustomTestModule.ParseModule;
 var
   Row, Col: integer;
 begin
@@ -559,7 +564,7 @@ begin
   TAssert.AssertSame('Has resolver',Engine,Parser.Engine);
 end;
 
-procedure TTestModule.ParseProgram;
+procedure TCustomTestModule.ParseProgram;
 begin
   ParseModule;
   AssertEquals('Has program',TPasProgram,Module.ClassType);
@@ -571,7 +576,7 @@ begin
       FFirstPasStatement:=TPasImplBlock(PasProgram.InitializationSection.Elements[0]);
 end;
 
-procedure TTestModule.ParseUnit;
+procedure TCustomTestModule.ParseUnit;
 begin
   ParseModule;
   AssertEquals('Has unit (TPasModule)',TPasModule,Module.ClassType);
@@ -583,7 +588,7 @@ begin
     FFirstPasStatement:=TPasImplBlock(Module.InitializationSection.Elements[0]);
 end;
 
-function TTestModule.FindModuleWithFilename(aFilename: string
+function TCustomTestModule.FindModuleWithFilename(aFilename: string
   ): TTestEnginePasResolver;
 var
   i: Integer;
@@ -594,7 +599,7 @@ begin
   Result:=nil;
 end;
 
-function TTestModule.AddModule(aFilename: string
+function TCustomTestModule.AddModule(aFilename: string
   ): TTestEnginePasResolver;
 begin
   //writeln('TTestModuleConverter.AddModule ',aFilename);
@@ -607,14 +612,14 @@ begin
   FModules.Add(Result);
 end;
 
-function TTestModule.AddModuleWithSrc(aFilename, Src: string
+function TCustomTestModule.AddModuleWithSrc(aFilename, Src: string
   ): TTestEnginePasResolver;
 begin
   Result:=AddModule(aFilename);
   Result.Source:=Src;
 end;
 
-function TTestModule.AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
+function TCustomTestModule.AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
   ImplementationSrc: string): TTestEnginePasResolver;
 var
   Src: String;
@@ -631,7 +636,7 @@ begin
   Result:=AddModuleWithSrc(aFilename,Src);
 end;
 
-procedure TTestModule.AddSystemUnit;
+procedure TCustomTestModule.AddSystemUnit;
 begin
   AddModuleWithIntfImplSrc('system.pp',
     // interface
@@ -647,7 +652,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.StartProgram(NeedSystemUnit: boolean);
+procedure TCustomTestModule.StartProgram(NeedSystemUnit: boolean);
 begin
   if NeedSystemUnit then
     AddSystemUnit
@@ -657,7 +662,7 @@ begin
   Add('');
 end;
 
-procedure TTestModule.StartUnit(NeedSystemUnit: boolean);
+procedure TCustomTestModule.StartUnit(NeedSystemUnit: boolean);
 begin
   if NeedSystemUnit then
     AddSystemUnit
@@ -667,7 +672,7 @@ begin
   Add('');
 end;
 
-procedure TTestModule.ConvertModule;
+procedure TCustomTestModule.ConvertModule;
 var
   ModuleNameExpr: TJSLiteral;
   FunDecl, InitFunction: TJSFunctionDeclarationStatement;
@@ -788,21 +793,21 @@ begin
     end;
 end;
 
-procedure TTestModule.ConvertProgram;
+procedure TCustomTestModule.ConvertProgram;
 begin
   Add('end.');
   ParseProgram;
   ConvertModule;
 end;
 
-procedure TTestModule.ConvertUnit;
+procedure TCustomTestModule.ConvertUnit;
 begin
   Add('end.');
   ParseUnit;
   ConvertModule;
 end;
 
-procedure TTestModule.CheckDottedIdentifier(Msg: string; El: TJSElement;
+procedure TCustomTestModule.CheckDottedIdentifier(Msg: string; El: TJSElement;
   DottedName: string);
 begin
   if DottedName='' then
@@ -816,7 +821,7 @@ begin
     end;
 end;
 
-function TTestModule.GetDottedIdentifier(El: TJSElement): string;
+function TCustomTestModule.GetDottedIdentifier(El: TJSElement): string;
 begin
   if El=nil then
     Result:=''
@@ -828,7 +833,7 @@ begin
     AssertEquals('GetDottedIdentifier',TJSPrimaryExpressionIdent,El.ClassType);
 end;
 
-procedure TTestModule.CheckSource(Msg, Statements, InitStatements: string);
+procedure TCustomTestModule.CheckSource(Msg, Statements, InitStatements: string);
 var
   ActualSrc, ExpectedSrc, InitName: String;
 begin
@@ -847,7 +852,7 @@ begin
   CheckDiff(Msg,ExpectedSrc,ActualSrc);
 end;
 
-procedure TTestModule.CheckDiff(Msg, Expected, Actual: string);
+procedure TCustomTestModule.CheckDiff(Msg, Expected, Actual: string);
 // search diff, ignore changes in spaces
 const
   SpaceChars = [#9,#10,#13,' '];
@@ -951,7 +956,7 @@ begin
   until false;
 end;
 
-procedure TTestModule.WriteSource(aFilename: string; Row: integer; Col: integer
+procedure TCustomTestModule.WriteSource(aFilename: string; Row: integer; Col: integer
   );
 var
   LR: TLineReader;
@@ -978,6 +983,8 @@ begin
       end;
     end;
 end;
+
+{ TTestModule }
 
 procedure TTestModule.TestEmptyProgram;
 begin
