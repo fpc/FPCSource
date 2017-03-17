@@ -612,6 +612,7 @@ type
     Modifiers: TStringList;
     Interfaces : TFPList; // list of TPasElement
     GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType
+    Procedure SetGenericTemplates(AList : TFPList);
     Function FindMember(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function IsPacked : Boolean;
@@ -2331,6 +2332,21 @@ begin
     ForEachChildCall(aMethodCall,Arg,TPasElement(Members[i]),false);
   for i:=0 to GenericTemplateTypes.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
+end;
+
+procedure TPasClassType.SetGenericTemplates(AList: TFPList);
+
+Var
+  I : Integer;
+
+begin
+  ObjKind:=okGeneric;
+  For I:=0 to AList.Count-1 do
+    begin
+    TPasElement(AList[i]).Parent:=Self;
+    GenericTemplateTypes.Add(AList[i]);
+    end;
+  ObjKind:=okGeneric;
 end;
 
 function TPasClassType.FindMember(MemberClass: TPTreeElement; const MemberName: String): TPasElement;

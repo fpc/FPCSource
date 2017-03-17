@@ -331,7 +331,7 @@ type
     // Type declarations
     function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     function ParseTypeDecl(Parent: TPasElement): TPasType;
-    function ParseType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName : String = ''; Full : Boolean = False): TPasType;
+    function ParseType(Parent: TPasElement; const NamePos: TPasSourcePos; const TypeName: String = ''; Full: Boolean = false; GenericArgs: TFPList = nil): TPasType;
     function ParseProcedureType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; const PT: TProcType): TPasProcedureType;
     function ParseStringType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasAliasType;
     function ParseSimpleType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; IsFull : Boolean = False): TPasType;
@@ -343,7 +343,7 @@ type
     function ParseEnumType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName: String): TPasEnumType;
     function ParseSetType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName: String; AIsPacked : Boolean = False): TPasSetType;
     function ParseSpecializeType(Parent: TPasElement; Const TypeName: String): TPasClassType;
-    Function ParseClassDecl(Parent: TPasElement; Const NamePos: TPasSourcePos; Const AClassName: String; AObjKind: TPasObjKind; PackMode : TPackMode= pmNone): TPasType;
+    Function ParseClassDecl(Parent: TPasElement; Const NamePos: TPasSourcePos; Const AClassName: String; AObjKind: TPasObjKind; PackMode : TPackMode= pmNone; GenericArgs: TFPList = nil): TPasType;
     Function ParseProperty(Parent : TPasElement; Const AName : String; AVisibility : TPasMemberVisibility; IsClassField: boolean) : TPasProperty;
     function ParseRangeType(AParent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; Full: Boolean = True): TPasRangeType;
     procedure ParseExportDecl(Parent: TPasElement; List: TFPList);
@@ -1259,7 +1259,7 @@ begin
 end;
 
 function TPasParser.ParseType(Parent: TPasElement;
-  const NamePos: TPasSourcePos; const TypeName: String; Full: Boolean
+  const NamePos: TPasSourcePos; const TypeName: String = ''; Full: Boolean = false; GenericArgs : TFPList = Nil
   ): TPasType;
 
 Const
@@ -1292,7 +1292,7 @@ begin
       tkInterface:
         Result := ParseClassDecl(Parent, NamePos, TypeName, okInterface);
       tkSpecialize: Result:=ParseSpecializeType(Parent,TypeName);
-      tkClass: Result := ParseClassDecl(Parent, NamePos, TypeName, okClass, PM);
+      tkClass: Result := ParseClassDecl(Parent, NamePos, TypeName, okClass, PM, GenericArgs);
       tkType:
         begin
         NextToken;
@@ -2624,12 +2624,7 @@ begin
                  begin
                  ClassEl := TPasClassType(CreateElement(TPasClassType,
                    TypeName, Declarations, NamePos));
-                 ClassEl.ObjKind:=okGeneric;
-                 For I:=0 to List.Count-1 do
-                   begin
-                   TPasElement(List[i]).Parent:=ClassEl;
-                   ClassEl.GenericTemplateTypes.Add(List[i]);
-                   end;
+                 ClassEl.SetGenericTemplates(List);
                  NextToken;
                  DoParseClassType(ClassEl);
                  Declarations.Declarations.Add(ClassEl);
@@ -2968,16 +2963,25 @@ var
   TypeName: String;
   NamePos: TPasSourcePos;
   OldForceCaret : Boolean;
+  List : TFPList;
 
 begin
   TypeName := CurTokenString;
   NamePos:=Scanner.CurSourcePos;
-  ExpectToken(tkEqual);
+  List:=Nil;
   OldForceCaret:=Scanner.SetForceCaret(True);
   try
-    Result:=ParseType(Parent,NamePos,TypeName,True);
+    NextToken;
+    if (CurToken=tkLessThan) and (msDelphi in CurrentModeswitches) then
+      List:=TFPList.Create;
+    UnGetToken; // ReadGenericArguments starts at <
+    if Assigned(List) then
+      ReadGenericArguments(List,Parent);
+    ExpectToken(tkEqual);
+    Result:=ParseType(Parent,NamePos,TypeName,True,List);
   finally
     Scanner.SetForceCaret(OldForceCaret);
+    List.Free;
   end;
 end;
 
@@ -5028,13 +5032,16 @@ begin
     NextToken;
     end;
 end;
+
 procedure TPasParser.DoParseClassType(AType: TPasClassType);
 
 var
   Element : TPasElement;
   s: String;
+  CT : TPasClassType;
 
 begin
+  ct:=Nil;
   // nettism/new delphi features
   if (CurToken=tkIdentifier) and (Atype.ObjKind in [okClass,okGeneric]) then
     begin
@@ -5050,11 +5057,28 @@ begin
   if (CurToken=tkBraceOpen) then
     begin
     AType.AncestorType := ParseType(AType,Scanner.CurSourcePos);
+    NextToken;
+    if curToken=tkLessthan then
+      CT := TPasClassType(CreateElement(TPasClassType, AType.AncestorType.Name, AType.Parent, Scanner.CurSourcePos));
+    UnGetToken ;
+    if Assigned(CT) then
+      try
+        CT.ObjKind := okSpecialize;
+        CT.AncestorType := TPasUnresolvedTypeRef.Create(AType.AncestorType.Name,AType.Parent);
+        CT.IsShortDefinition:=True;
+        ReadGenericArguments(CT.GenericTemplateTypes,CT);
+        AType.AncestorType.Release;
+        AType.AncestorType:=CT;
+        CT:=Nil;
+      Finally
+        FreeAndNil(CT);
+      end;
     while True do
       begin
       NextToken;
       if CurToken = tkBraceClose then
-        break;
+        break  ;
+
       UngetToken;
       ExpectToken(tkComma);
       Element:=ParseType(AType,Scanner.CurSourcePos,'',False); // search interface.
@@ -5090,7 +5114,7 @@ end;
 
 function TPasParser.ParseClassDecl(Parent: TPasElement;
   const NamePos: TPasSourcePos; const AClassName: String;
-  AObjKind: TPasObjKind; PackMode: TPackMode): TPasType;
+  AObjKind: TPasObjKind; PackMode: TPackMode; GenericArgs: TFPList): TPasType;
 
 Var
   ok: Boolean;
@@ -5131,6 +5155,8 @@ begin
   try
     TPasClassType(Result).ObjKind := AObjKind;
     TPasClassType(Result).PackMode:=PackMode;
+    if Assigned(GenericArgs) then
+      TPasClassType(Result).SetGenericTemplates(GenericArgs);
     DoParseClassType(TPasClassType(Result));
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;
