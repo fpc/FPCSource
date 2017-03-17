@@ -700,6 +700,7 @@ function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
 function IsNamedToken(Const AToken : String; Out T : TToken) : Boolean;
 
 procedure CreateMsgArgs(var MsgArgs: TMessageArgs; Args: array of const);
+function SafeFormat(const Fmt: string; Args: array of const): string;
 
 implementation
 
@@ -787,7 +788,6 @@ var
 begin
   SetLength(MsgArgs, High(Args)-Low(Args)+1);
   for i:=Low(Args) to High(Args) do
-  begin
     case Args[i].VType of
       vtInteger:      MsgArgs[i] := IntToStr(Args[i].VInteger);
       vtBoolean:      MsgArgs[i] := BoolToStr(Args[i].VBoolean);
@@ -811,6 +811,26 @@ begin
       vtQWord:        MsgArgs[i] := IntToStr(Args[i].VQWord^);
       vtUnicodeString:MsgArgs[i] := AnsiString(UnicodeString(Args[i].VUnicodeString));
     end;
+end;
+
+function SafeFormat(const Fmt: string; Args: array of const): string;
+var
+  MsgArgs: TMessageArgs;
+  i: Integer;
+begin
+  try
+    Result:=Format(Fmt,Args);
+  except
+    Result:='';
+    MsgArgs:=nil;
+    CreateMsgArgs(MsgArgs,Args);
+    for i:=0 to length(MsgArgs)-1 do
+      begin
+      if i>0 then
+        Result:=Result+',';
+      Result:=Result+MsgArgs[i];
+      end;
+    Result:='{'+Fmt+'}['+Result+']';
   end;
 end;
 
@@ -1310,8 +1330,7 @@ begin
         FCurToken:=tkIdentifier;
         Result:=FCurToken;
         end;
-      if not PPIsSkipping then
-        Break;
+      Break;
       end;
     else
       if not PPIsSkipping then
@@ -2291,7 +2310,7 @@ begin
   If (TokenStr<>Nil) then
     Result := TokenStr - PChar(CurLine)
   else
-    Result:=0;
+    Result := 0;
 end;
 
 procedure TPascalScanner.DoLog(MsgType: TMessageType; MsgNumber: integer;
@@ -2352,7 +2371,7 @@ begin
   FLastMsgType := MsgType;
   FLastMsgNumber := MsgNumber;
   FLastMsgPattern := Fmt;
-  FLastMsg := Format(Fmt,Args);
+  FLastMsg := SafeFormat(Fmt,Args);
   CreateMsgArgs(FLastMsgArgs,Args);
 end;
 

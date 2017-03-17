@@ -264,6 +264,7 @@ type
     Procedure TestProc_UntypedParam_Forward;
     Procedure TestProc_Varargs;
     Procedure TestProc_ParameterExprAccess;
+    Procedure TestProc_FunctionResult_DeclProc;
     // ToDo: fail builtin functions in constant with non const param
 
     // record
@@ -278,6 +279,7 @@ type
     Procedure TestClassForward;
     Procedure TestClassForwardNotResolved;
     Procedure TestClass_Method;
+    Procedure TestClass_MethodWithoutClassFail;
     Procedure TestClass_MethodWithParams;
     Procedure TestClass_MethodUnresolved;
     Procedure TestClass_MethodAbstract;
@@ -671,14 +673,14 @@ var
   end;
 
   function AddMarkerForTokenBehindComment(Kind: TSrcMarkerKind;
-    const Identifer: string): PSrcMarker;
+    const Identifier: string): PSrcMarker;
   var
     TokenStart, p: PChar;
   begin
     p:=CommentEndP;
     ReadNextPascalToken(p,TokenStart,false,false);
     Result:=AddMarker(Kind,Filename,LineNumber,
-      CommentEndP-PChar(SrcLine)+1,p-PChar(SrcLine)+1,Identifer);
+      CommentEndP-PChar(SrcLine)+1,p-PChar(SrcLine)+1,Identifier);
   end;
 
   function ReadIdentifier(var p: PChar): string;
@@ -3594,6 +3596,70 @@ begin
   CheckAccessMarkers;
 end;
 
+procedure TTestResolver.TestProc_FunctionResult_DeclProc;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+  ResultEl: TPasResultElement;
+  Proc: TPasProcedure;
+  ProcScope: TPasProcedureScope;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    function MethodA: longint;');
+  Add('  end;');
+  Add('function FuncA: longint; forward;');
+  Add('function TObject.MethodA: longint;');
+  Add('begin');
+  Add('  {#MethodA_Result}Result:=1;');
+  Add('end;');
+  Add('function FuncA: longint;');
+  Add('  function SubFuncA: longint; forward;');
+  Add('  function SubFuncB: longint;');
+  Add('  begin');
+  Add('    {#SubFuncB_Result}Result:=2;');
+  Add('  end;');
+  Add('  function SubFuncA: longint;');
+  Add('  begin');
+  Add('    {#SubFuncA_Result}Result:=3;');
+  Add('  end;');
+  Add('begin');
+  Add('  {#FuncA_Result}Result:=4;');
+  Add('end;');
+  Add('begin');
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    writeln('TTestResolver.TestProc_FunctionResult_DeclProc ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        writeln('TTestResolver.TestProc_FunctionResult_DeclProc ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        writeln('TTestResolver.TestProc_FunctionResult_DeclProc ',GetObjName(Ref.Declaration));
+        if not (Ref.Declaration is TPasResultElement) then continue;
+        ResultEl:=TPasResultElement(Ref.Declaration);
+        Proc:=ResultEl.Parent as TPasProcedure;
+        ProcScope:=Proc.CustomData as TPasProcedureScope;
+        if ProcScope.DeclarationProc<>nil then
+          RaiseErrorAtSrcMarker('expected Result to resolve to declaration at "#'+aMarker^.Identifier+', but was implproc"',aMarker);
+        break;
+        end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
 procedure TTestResolver.TestRecord;
 begin
   StartProgram(false);
@@ -3772,6 +3838,19 @@ begin
   Add('begin');
   Add('  {@V}v.{@A_ProcA_Decl}ProcA;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_MethodWithoutClassFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('procedure TClassA.ProcA;');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  CheckResolverException('identifier not found "TClassA"',nIdentifierNotFound);
 end;
 
 procedure TTestResolver.TestClass_MethodWithParams;

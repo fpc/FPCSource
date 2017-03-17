@@ -714,7 +714,7 @@ procedure TPasParser.ParseExc(MsgNumber: integer; const Fmt: String;
   Args: array of const);
 begin
   SetLastMsg(mtError,MsgNumber,Fmt,Args);
-  raise EParserError.Create(Format(SParserErrorAtToken,
+  raise EParserError.Create(SafeFormat(SParserErrorAtToken,
     [FLastMsg, CurTokenName, Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn])
     {$ifdef addlocation}+' ('+inttostr(scanner.currow)+' '+inttostr(scanner.curcolumn)+')'{$endif},
     Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn);
@@ -3220,7 +3220,7 @@ begin
   FLastMsgType := MsgType;
   FLastMsgNumber := MsgNumber;
   FLastMsgPattern := Fmt;
-  FLastMsg := Format(Fmt,Args);
+  FLastMsg := SafeFormat(Fmt,Args);
   CreateMsgArgs(FLastMsgArgs,Args);
 end;
 

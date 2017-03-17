@@ -113,6 +113,7 @@ Works:
 
 
 ToDo:
+- fix slow lookup declaration proc in PParser
 - fail to write a loop var inside the loop
 - warn: create class with abstract methods
 - classes - TPasClassType
@@ -466,7 +467,9 @@ type
     procedure SetPasElement(AValue: TPasElement);
   public
     Id: int64;
+    MsgType: TMessageType;
     MsgNumber: integer;
+    MsgPattern: String;
     Args: TMessageArgs;
     destructor Destroy; override;
     property PasElement: TPasElement read FPasElement write SetPasElement;
@@ -1141,7 +1144,7 @@ type
       Const Fmt : String; Args : Array of const; Element: TPasElement);
     procedure LogMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
       const Fmt: String; Args: Array of const; PosEl: TPasElement); overload;
-    procedure RaiseMsg(const id: int64; MsgNumber: integer; const Fmt: String;
+    procedure RaiseMsg(const Id: int64; MsgNumber: integer; const Fmt: String;
       Args: Array of const; ErrorPosEl: TPasElement);
     procedure RaiseNotYetImplemented(id: int64; El: TPasElement; Msg: string = ''); virtual;
     procedure RaiseInternalError(id: int64; const Msg: string = '');
@@ -3786,6 +3789,13 @@ begin
     else
       RaiseNotYetImplemented(20170203161826,ImplProc);
     end;
+  if DeclProc is TPasFunction then
+    begin
+    // replace 'Result'
+    Identifier:=ImplProcScope.FindLocalIdentifier(ResolverResultVar);
+    if Identifier.Element is TPasResultElement then
+      Identifier.Element:=TPasFunction(DeclProc).FuncType.ResultEl;
+    end;
 end;
 
 procedure TPasResolver.CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure
@@ -5147,6 +5157,7 @@ begin
   {$ENDIF}
   if not (TopScope is TPasIdentifierScope) then
     RaiseInvalidScopeForElement(20160922163522,El);
+  // Note: El.ProcType is nil !
   AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikProc);
   ProcScope:=TPasProcedureScope(PushScope(El,TPasProcedureScope));
   ProcName:=El.Name;
@@ -5181,7 +5192,7 @@ begin
       else
         NeedPop:=false;
 
-      CurClassType:=TPasClassType(FindElementWithoutParams(aClassName,El.ProcType,false));
+      CurClassType:=TPasClassType(FindElementWithoutParams(aClassName,El,false));
       if not (CurClassType is TPasClassType) then
         begin
         aClassName:=LeftStr(El.Name,length(El.Name)-length(ProcName));
@@ -5245,8 +5256,8 @@ end;
 
 procedure TPasResolver.AddFunctionResult(El: TPasResultElement);
 begin
-  if TopScope.ClassType=TPasProcedureScope then
-    AddIdentifier(TPasProcedureScope(TopScope),ResolverResultVar,El,pikSimple);
+  if TopScope.ClassType<>TPasProcedureScope then exit;
+  AddIdentifier(TPasProcedureScope(TopScope),ResolverResultVar,El,pikSimple);
 end;
 
 procedure TPasResolver.AddExceptOn(El: TPasImplExceptOn);
@@ -7488,7 +7499,7 @@ begin
   FLastMsgType := MsgType;
   FLastMsgNumber := MsgNumber;
   FLastMsgPattern := Fmt;
-  FLastMsg := Format(Fmt,Args);
+  FLastMsg := SafeFormat(Fmt,Args);
   FLastElement := Element;
   CreateMsgArgs(FLastMsgArgs,Args);
   {$IFDEF VerbosePasResolver}
@@ -7500,15 +7511,17 @@ begin
   {$ENDIF}
 end;
 
-procedure TPasResolver.RaiseMsg(const id: int64; MsgNumber: integer;
+procedure TPasResolver.RaiseMsg(const Id: int64; MsgNumber: integer;
   const Fmt: String; Args: array of const; ErrorPosEl: TPasElement);
 var
   E: EPasResolve;
 begin
-  SetLastMsg(id,mtError,MsgNumber,Fmt,Args,ErrorPosEl);
+  SetLastMsg(Id,mtError,MsgNumber,Fmt,Args,ErrorPosEl);
   E:=EPasResolve.Create(FLastMsg);
-  E.PasElement:=ErrorPosEl;
+  E.Id:=Id;
+  E.MsgType:=mtError;
   E.MsgNumber:=MsgNumber;
+  E.PasElement:=ErrorPosEl;
   E.Args:=FLastMsgArgs;
   raise E;
 end;
@@ -7576,7 +7589,7 @@ procedure TPasResolver.LogMsg(const id: int64; MsgType: TMessageType;
 begin
   SetLastMsg(id,MsgType,MsgNumber,Fmt,Args,PosEl);
   if Assigned(CurrentParser.OnLog) then
-    CurrentParser.OnLog(Self,Format(Fmt,Args));
+    CurrentParser.OnLog(Self,SafeFormat(Fmt,Args));
 end;
 
 function TPasResolver.CheckCallProcCompatibility(ProcType: TPasProcedureType;
