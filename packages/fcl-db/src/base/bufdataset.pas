@@ -2878,7 +2878,7 @@ begin
     Result := 0
   else
     begin
-    InternalSetToRecord(ActiveBuffer);
+    UpdateCursorPos;
     Result := FCurrentIndex.RecNo;
     end;
 end;
