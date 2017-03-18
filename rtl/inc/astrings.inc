@@ -719,21 +719,10 @@ Var
   cp1,cp2 : TSystemCodePage;
 begin
   if pointer(S1)=pointer(S2) then
-    begin
-      result:=0;
-      exit;
-    end;
+    Exit(0);
   { don't compare strings if one of them is empty }
-  if (pointer(S1)=nil) then
-    begin
-      result:=-1;
-      exit;
-    end;
-  if (pointer(S2)=nil) then
-    begin
-      result:=1;
-      exit;
-    end;
+  if (pointer(S1)=nil) or (pointer(S2)=Nil) then
+    Exit(-1);
   cp1:=TranslatePlaceholderCP(StringCodePage(S1));
   cp2:=TranslatePlaceholderCP(StringCodePage(S2));
   if cp1=cp2 then
