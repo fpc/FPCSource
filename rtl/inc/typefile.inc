@@ -68,12 +68,14 @@ Begin
   Rewrite(UnTypedFile(f),Size);
 End;
 
+{$i isotmp.inc}
+
 
 {$ifdef FPC_HAS_FEATURE_RANDOM}
 { this code is duplicated in the iso7185 unit }
 Procedure DoAssign(var t : TypedFile);
 Begin
-  Assign(t,'fpc_'+HexStr(random(1000000000),8)+'.tmp');
+  Assign(t,getTempDir+'fpc_'+HexStr(random(1000000000),8)+'.tmp');
 End;
 {$else FPC_HAS_FEATURE_RANDOM}
 { this code is duplicated in the iso7185 unit }
@@ -84,7 +86,7 @@ Begin
 {$ifdef EXCLUDE_COMPLEX_PROCS}
   runerror(219);
 {$else EXCLUDE_COMPLEX_PROCS}
-  Assign(t,'fpc_'+HexStr(start,8)+'.tmp');
+  Assign(t,getTempDir+'fpc_'+HexStr(start,8)+'.tmp');
   inc(start);
 {$endif EXCLUDE_COMPLEX_PROCS}
 End;

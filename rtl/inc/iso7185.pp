@@ -52,53 +52,9 @@ unit iso7185;
 
   implementation
 
-{$IFDEF UNIX}
-  function getTempDir: string;
-    var
-      key: string;
-      value: string;
-      i_env, i_key, i_value: integer;
-      pd : char; // Pathdelim not available ?
-    begin
-      value := '/tmp/';  (** default for UNIX **)
-      pd:='/';
-      while (envp <> NIL) and assigned(envp^) do
-      begin
-        i_env := 0;
-        i_key := 1;
-        while not (envp^[i_env] in ['=', #0]) do
-        begin
-          key[i_key] := envp^[i_env];
-          inc(i_env);
-          inc(i_key);
-        end;
-        setlength(key, i_key - 1);
-        if (key = 'TEMP') or (key = 'TMP') or (key = 'TMPDIR') then
-        begin
-          inc(i_env);    (** skip '=' **)
-          i_value := 1;
-          while (envp^[i_env] <> #0) do
-          begin
-            value[i_value] := envp^[i_env];
-            inc(i_env);
-            inc(i_value);
-          end;
-          setlength(value, i_value - 1);
-        end;
-        inc(envp);
-      end;
-      i_value:=length(value);
-      if (i_value>0) and (value[i_value]<>pd) then
-       value:=value+pd;
-      getTempDir := value;
-    end;
-{$else}    
-  function getTempDir: string;
-  begin
-    getTempDir:='';
-  end;
-{$ENDIF}  
 
+{$i isotmp.inc}
+ 
 {$i-}
     procedure DoAssign(var t : Text);
 {$ifndef FPC_HAS_FEATURE_RANDOM}
