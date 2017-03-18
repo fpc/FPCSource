@@ -17,6 +17,7 @@ Type
     Procedure TestSpecializationDelphi;
     Procedure TestDeclarationDelphi;
     Procedure TestDeclarationDelphiSpecialize;
+    Procedure TestMethodImplementation;
   end;
 
 implementation
@@ -71,11 +72,31 @@ begin
   AssertEquals('have generic definition',1,Declarations.Classes.Count);
   AssertEquals('Pascal class',TPasClassType,TObject(Declarations.Classes[0]).ClassType);
   T:=TPasClassType(Declarations.Classes[0]);
+  AssertEquals('Name is correct','TSomeClass',T.Name);
   AssertNotNull('have generic templates',T.GenericTemplateTypes);
   AssertEquals('2 template types',2,T.GenericTemplateTypes.Count);
   AssertSame('Parent 0 is class',T,TPasElement(T.GenericTemplateTypes[0]).Parent);
   AssertSame('Parent 1 is class',T,TPasElement(T.GenericTemplateTypes[1]).Parent);
 
+end;
+
+procedure TTestGenerics.TestMethodImplementation;
+begin
+  With source do
+    begin
+    Add('unit afile;');
+    Add('{$MODE DELPHI}');
+    Add('interface');
+    Add('type');
+    Add('  TTest<T> =  object');
+    Add('    procedure foo(v:T);');
+    Add('  end;');
+    Add('implementation');
+    Add('procedure TTest<T>.foo;');
+    Add('begin');
+    Add('end;');
+    end;
+  ParseModule;
 end;
 
 initialization

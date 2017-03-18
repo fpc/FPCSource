@@ -4552,15 +4552,33 @@ end;
 function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement; ProcType: TProcType;AVisibility : TPasMemberVisibility = VisDefault): TPasProcedure;
 
   function ExpectProcName: string;
+
+  Var
+    L : TFPList;
+    I : Integer;
+
   begin
     Result:=ExpectIdentifier;
     //writeln('ExpectProcName ',Parent.Classname);
     if Parent is TImplementationSection then
     begin
       NextToken;
-      While CurToken=tkDot do
+      While CurToken in [tkDot,tkLessThan] do
         begin
-        Result:=Result+'.'+ExpectIdentifier;
+        if CurToken=tkDot then
+          Result:=Result+'.'+ExpectIdentifier
+        else
+          begin // <> can be ignored, we read the list but discard its content
+          UnGetToken;
+          L:=TFPList.Create;
+          Try
+            ReadGenericArguments(L,Parent);
+          finally
+            For I:=0 to L.Count-1 do
+              TPasElement(L[i]).Release;
+            L.Free;
+          end;
+          end;
         NextToken;
         end;
       UngetToken;
