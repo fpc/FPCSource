@@ -1330,7 +1330,8 @@ begin
         FCurToken:=tkIdentifier;
         Result:=FCurToken;
         end;
-      Break;
+      if not (FSkipComments or PPIsSkipping) then
+        Break;
       end;
     else
       if not PPIsSkipping then
