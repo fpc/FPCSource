@@ -627,6 +627,20 @@ end;
 
 {$ifndef FPC_HAS_ANSISTR_COMPARE}
 {$define FPC_HAS_ANSISTR_COMPARE}
+
+Function fpc_utf8_Compare(const S1,S2 : RawByteString): SizeInt;
+
+var
+  r1,r2 : RawByteString;
+begin
+  r1:=S1;
+  r2:=S2;
+  //convert them to utf8 then compare
+  SetCodePage(r1,65001);
+  SetCodePage(r2,65001);
+  Result:=fpc_AnsiStr_Compare(r1,r2);
+end;
+
 Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  compilerproc;
 {
   Compares 2 AnsiStrings;
@@ -673,14 +687,7 @@ begin
         result:=Length(S1)-Length(S2);
     end
   else
-    begin
-      r1:=S1;
-      r2:=S2;
-      //convert them to utf8 then compare
-      SetCodePage(r1,65001);
-      SetCodePage(r2,65001);
-      Result:=fpc_AnsiStr_Compare(r1,r2);
-    end;
+    Result:=fpc_utf8_compare(s1,s2);
 end;
 {$endif FPC_HAS_ANSISTR_COMPARE}
 
