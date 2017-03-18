@@ -50,13 +50,20 @@ Type
 
   TFPWebActions = Class(TCustomWebActions)
   private
-    FCurrentAction : TCustomWebAction;
+    FCurrentAction : TFPWebAction;
+    function GetFPWebActions(Index : Integer): TFPWebAction;
+    procedure SetFPWebActions(Index : Integer; const AValue: TFPWebAction);
   protected
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); virtual;
     Procedure GetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); virtual;
+    Function  GetRequestAction(ARequest: TRequest) : TFPWebAction;
   Public
+    Function Add : TFPWebAction;
+    Function ActionByName(const AName : String) : TFPWebAction;
+    Function FindAction(const AName : String): TFPWebAction;
+    Property FPWebActions[Index : Integer] : TFPWebAction Read GetFPWebActions Write SetFPWebActions; Default;
     Property ActionVar;
-    Property CurrentAction: TCustomWebAction read FCurrentAction;
+    Property CurrentAction: TFPWebAction read FCurrentAction;
   end;
 
   { TTemplateVar }
@@ -553,10 +560,40 @@ end;
 
 { TFPWebActions }
 
+Function TFPWebActions.GetRequestAction(ARequest: TRequest) : TFPWebAction;
+begin
+  Result := inherited GetRequestAction(ARequest) as TFPWebAction;
+end;
+
+Function TFPWebActions.Add : TFPWebAction;
+begin
+  Result := inherited Add as TFPWebAction;
+end;
+
+Function TFPWebActions.ActionByName(const AName : String) : TFPWebAction;
+begin
+  Result := inherited ActionByName(AName) as TFPWebAction;
+end;
+
+Function TFPWebActions.FindAction(const AName : String): TFPWebAction;
+begin
+  Result := inherited FindAction(AName) as TFPWebAction;
+end;
+
+function TFPWebActions.GetFPWebActions(Index : Integer): TFPWebAction;
+begin
+  Result := Actions[Index] as TFPWebAction;
+end;
+
+procedure TFPWebActions.SetFPWebActions(Index : Integer; const AValue: TFPWebAction);
+begin
+  Actions[Index] := AValue;
+end;
+
 procedure TFPWebActions.HandleRequest(ARequest: TRequest; AResponse: TResponse; Var Handled : Boolean);
 
 Var
-  A : TCustomWebAction;
+  A : TFPWebAction;
 
 begin
 {$ifdef cgidebug}SendMethodEnter('FPWebActions.handlerequest');{$endif cgidebug}
