@@ -1030,7 +1030,18 @@ begin
       If Components[i] is TDaemonController then
         L.Add(Components[i]);
     For I:=L.Count-1 downto 0 do
-      TDaemonController(L[i]).Controller(ControlCodes[Force],0,Nil);
+      TDaemonController(L[i]).Controller(SERVICE_CONTROL_STOP,0,Nil);
+    if Force then
+      begin
+      Sleep(50); // Give the daemons some chance to actually stop
+      L.Clear;
+      For I:=0 to ComponentCount-1 do
+        If (Components[i] is TDaemonController) and 
+           (TDaemonController(Components[i]).LastStatus<>csStopped)  then
+          L.Add(Components[i]);
+      For I:=L.Count-1 downto 0 do
+        TDaemonController(L[i]).Controller(SERVICE_CONTROL_SHUTDOWN,0,Nil);
+      end;  
   finally
     L.Free;
   end;
