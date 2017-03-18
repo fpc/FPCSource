@@ -1092,6 +1092,11 @@ begin
       ParseExcTokenError(';');
     UnGetToken;
     end
+  else  if (CurToken = tkLessThan) then // A = B<t>;
+    begin
+    K:=stkSpecialize;
+    UnGetToken;
+    end
   else if (CurToken in [tkBraceOpen,tkDotDot]) then // A: B..C;
     begin
     K:=stkRange;
@@ -2918,22 +2923,9 @@ end;
 function TPasParser.ParseSpecializeType(Parent: TPasElement;
   const TypeName: String): TPasClassType;
 
-var
-  ok: Boolean;
 begin
-  Result := TPasClassType(CreateElement(TPasClassType, TypeName, Parent,
-    Scanner.CurSourcePos));
-  ok:=false;
-  try
-    Result.ObjKind := okSpecialize;
-    Result.AncestorType := ParseType(Result,Scanner.CurSourcePos);
-    Result.IsShortDefinition:=True;
-    ReadGenericArguments(TPasClassType(Result).GenericTemplateTypes,Result);
-    ok:=true;
-  finally
-    if not ok then
-      Result.Release;
-  end;
+  NextToken;
+  Result:=ParseSimpleType(Parent,Scanner.CurSourcePos,TypeName) as TPasClassType;
 end;
 
 function TPasParser.ParseProcedureType(Parent: TPasElement;

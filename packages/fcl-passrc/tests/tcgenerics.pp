@@ -18,6 +18,7 @@ Type
     Procedure TestDeclarationDelphi;
     Procedure TestDeclarationDelphiSpecialize;
     Procedure TestMethodImplementation;
+    Procedure TestInlineSpecializationInProcedure;
   end;
 
 implementation
@@ -95,6 +96,22 @@ begin
     Add('procedure TTest<T>.foo;');
     Add('begin');
     Add('end;');
+    end;
+  ParseModule;
+end;
+
+procedure TTestGenerics.TestInlineSpecializationInProcedure;
+begin
+  With source do
+    begin
+    Add('unit afile;');
+    Add('{$MODE DELPHI}');
+    Add('interface');
+    Add('type');
+    Add('  TFoo=class');
+    Add('    procedure foo(var Node:TSomeGeneric<TBoundingBox>;const index:Integer);');
+    Add('  end;');
+    Add('implementation');
     end;
   ParseModule;
 end;
