@@ -168,6 +168,7 @@ type
     procedure TestBug6893;
     procedure TestRequired;
     procedure TestModified;
+    procedure TestUpdateCursorPos;         // bug 31532
     // fields
     procedure TestFieldOldValueObsolete;
     procedure TestFieldOldValue;
@@ -682,6 +683,37 @@ begin
 
     Close;
   end;
+end;
+
+procedure TTestCursorDBBasics.TestUpdateCursorPos;
+var
+  datasource1: TDataSource;
+  datalink1: TDataLink;
+  dataset1: TDataSet;
+  i,r: integer;
+begin
+  // TBufDataset should notify TDataset (TDataset.CurrentRecord) when changes internaly current record
+  // TBufDataset.GetRecNo was synchronizing its internal position with TDataset.ActiveRecord, but TDataset.CurrentRecord remains unchaged
+  // Bug #31532
+  dataset1 := DBConnector.GetNDataset(16);
+  datasource1 := TDataSource.Create(nil);
+  datasource1.DataSet := dataset1;
+  datalink1 := TDataLink.Create;
+  datalink1:= TDataLink.create;
+  datalink1.DataSource:= datasource1;
+  datalink1.BufferCount:= 12;
+
+  dataset1.Open;
+  dataset1.MoveBy(4);
+  CheckEquals(5, dataset1.RecNo);
+  for i:=13 to 15 do begin
+    datalink1.BufferCount := datalink1.BufferCount+1;
+    r := dataset1.RecNo; // syncronizes source dataset to ActiveRecord
+    datalink1.ActiveRecord := datalink1.BufferCount-1;
+    CheckEquals(i, dataset1.FieldByName('ID').AsInteger);
+  end;
+  datasource1.free;
+  datalink1.free;
 end;
 
 procedure TTestDBBasics.TestDetectionNonMatchingDataset;
