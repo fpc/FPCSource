@@ -896,14 +896,26 @@ begin
             exit;
           A_MOVQ :
             opsize:=S_IQ;
+          A_CVTSI2SS,
+          A_CVTSI2SD,
           A_OUT :
             opsize:=tx86operand(operands[1]).opsize;
           else
             opsize:=tx86operand(operands[2]).opsize;
         end;
       end;
-    3,4 :
+    3 :
+      begin
+        case opcode of
+          A_VCVTSI2SS,
+          A_VCVTSI2SD:
+            opsize:=tx86operand(operands[1]).opsize;
+        else
           opsize:=tx86operand(operands[ops]).opsize;
+        end;
+      end;
+    4 :
+        opsize:=tx86operand(operands[ops]).opsize;
 
   end;
 end;
