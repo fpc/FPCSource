@@ -1983,7 +1983,8 @@ begin
           TokenStart := TokenStr;
           FCurTokenString := '';
           OldLength := 0;
-          while (TokenStr[0] <> '*') or (TokenStr[1] <> ')') do
+          NestingLevel:=0;
+          while (TokenStr[0] <> '*') or (TokenStr[1] <> ')') or (NestingLevel>0) do
             begin
             if TokenStr[0] = #0 then
               begin
@@ -2002,7 +2003,16 @@ begin
               TokenStart:=TokenStr;
               end
             else
+              begin
+              If (msNestedComment in CurrentModeSwitches) then
+                 begin
+                 if (TokenStr[0] = '(') and (TokenStr[1] = '*') then
+                   Inc(NestingLevel)
+                 else if (TokenStr[0] = '*') and (TokenStr[1] = ')') and not PPIsSkipping then
+                   Dec(NestingLevel);
+                 end;
               Inc(TokenStr);
+              end;
           end;
           SectionLength := TokenStr - TokenStart;
           SetLength(FCurTokenString, OldLength + SectionLength);
