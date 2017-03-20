@@ -187,8 +187,8 @@ begin
   R:=TPasImplIfElse.Create('',Nil);
   R.ConditionExpr:=CreateCondition;
   E:=TJSIfStatement(Convert(R,TJSIfStatement));
-  AssertEquals('If branch is empty block statement',TJSEmptyBlockStatement,E.btrue.ClassType);
-  AssertNull('No else branch',E.bfalse);
+  AssertNull('If branch is empty',E.BTrue);
+  AssertNull('No else branch',E.BFalse);
   AssertIdentifier('Left hand side OK',E.Cond,'a');
 end;
 
@@ -668,7 +668,7 @@ begin
   // Convert
   El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
   // check "catch(exceptobject)"
-  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),String(El.Ident));
+  AssertEquals('Correct exception object name',lowercase(DefaultVarNameExceptObject),String(El.Ident));
   // check "if"
   I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,El.BCatch));
   // check if condition "exception.isPrototypeOf(exceptobject)"
@@ -679,14 +679,14 @@ begin
   AssertNotNull('args of exception.isPrototypeOf(exceptobject)',IC.Args);
   AssertEquals('args of exception.isPrototypeOf(exceptobject)',1,IC.Args.Elements.Count);
   ExObj:=IC.Args.Elements.Elements[0].Expr;
-  Assertidentifier('arg of exception.isPrototypeOf(exceptobject)',ExObj,lowercase(DefaultJSExceptionObject));
+  Assertidentifier('arg of exception.isPrototypeOf(exceptobject)',ExObj,lowercase(DefaultVarNameExceptObject));
   // check statement "var e = exceptobject;"
   L:=AssertListStatement('On block is always a list',I.BTrue);
   writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
   VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
   V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',V.Init,lowercase(DefaultJSExceptionObject));
+  Assertidentifier('Variable init is exception object',V.Init,lowercase(DefaultVarNameExceptObject));
   // check "b = c;"
   AssertAssignStatement('Original assignment in second statement',L.B,'b','c');
 end;
@@ -727,7 +727,7 @@ begin
   // Convert
   El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
   // check "catch(exceptobject)"
-  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),String(El.Ident));
+  AssertEquals('Correct exception object name',lowercase(DefaultVarNameExceptObject),String(El.Ident));
   // check "if"
   I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,El.BCatch));
   // check if condition "exception.isPrototypeOf(exceptobject)"
@@ -738,16 +738,16 @@ begin
   AssertNotNull('args of exception.isPrototypeOf(ExceptObject)',IC.Args);
   AssertEquals('args of exception.isPrototypeOf(ExceptObject)',1,IC.Args.Elements.Count);
   ExObj:=IC.Args.Elements.Elements[0].Expr;
-  Assertidentifier('arg of exception.isPrototypeOf(ExceptObject)',ExObj,lowercase(DefaultJSExceptionObject));
+  Assertidentifier('arg of exception.isPrototypeOf(ExceptObject)',ExObj,lowercase(DefaultVarNameExceptObject));
   // check statement "var e = exceptobject;"
   L:=AssertListStatement('On block is always a list',I.BTrue);
   writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
   VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
   V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',V.Init,lowercase(DefaultJSExceptionObject));
+  Assertidentifier('Variable init is exception object',V.Init,lowercase(DefaultVarNameExceptObject));
   R:=TJSThrowStatement(AssertElement('On block is throw statement',TJSThrowStatement,L.B));
-  Assertidentifier('R expression is original exception ',R.A,lowercase(DefaultJSExceptionObject));
+  Assertidentifier('R expression is original exception ',R.A,lowercase(DefaultVarNameExceptObject));
 end;
 
 Procedure TTestStatementConverter.TestVariableStatement;

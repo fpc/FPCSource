@@ -507,7 +507,7 @@ type
     ElType: TPasType;
   end;
 
-  { TPasEnumValue }
+  { TPasEnumValue - Parent is TPasEnumType }
 
   TPasEnumValue = class(TPasElement)
   public

@@ -529,8 +529,7 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'if (this.o.FFoo){',
-    '};',
+    'if (this.o.FFoo);',
     '']));
 end;
 
@@ -566,8 +565,7 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'if (this.o.GetFoo()){',
-    '};',
+    'if (this.o.GetFoo()) ;',
     '']));
 end;
 

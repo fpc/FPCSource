@@ -127,7 +127,7 @@ Type
     // one per type of statement
     Procedure WriteValue(V : TJSValue);  virtual;
     Procedure WriteRegularExpressionLiteral(El: TJSRegularExpressionLiteral);
-    Procedure WriteVariableStatement(el: TJSVariableStatement);
+    Procedure WriteVariableStatement(El: TJSVariableStatement);
     Procedure WriteEmptyBlockStatement(El: TJSEmptyBlockStatement); virtual;
     Procedure WriteEmptyStatement(El: TJSEmptyStatement);virtual;
     Procedure WriteLiteral(El: TJSLiteral);virtual;
@@ -157,6 +157,8 @@ Type
     Procedure WriteFuncDef(FD: TJSFuncDef);virtual;
     Procedure WritePrimaryExpression(El: TJSPrimaryExpression);virtual;
     Procedure WriteBinary(El: TJSBinary);virtual;
+    Function IsEmptyStatement(El: TJSElement): boolean;
+    Function HasLineEnding(El: TJSElement): boolean;
   Public
     Function EscapeString(const S: TJSString; Quote: TJSEscapeQuote = jseqDouble): TJSString;
     Constructor Create(AWriter : TTextWriter);
@@ -584,6 +586,7 @@ procedure TJSWriter.WriteFuncDef(FD: TJSFuncDef);
 Var
   C : Boolean;
   I : Integer;
+  A: TJSElement;
 
 begin
   C:=(woCompact in Options);
@@ -609,10 +612,11 @@ begin
     FSkipCurlyBrackets:=True;
     //writeln('TJSWriter.WriteFuncDef '+FD.Body.ClassName);
     WriteJS(FD.Body);
-    If (Assigned(FD.Body.A))
-    and (not (FD.Body.A is TJSStatementList))
-    and (not (FD.Body.A is TJSSourceElements))
-    and (not (FD.Body.A is TJSEmptyBlockStatement))
+    A:=FD.Body.A;
+    If (Assigned(A))
+        and (not (A is TJSStatementList))
+        and (not (A is TJSSourceElements))
+        and (not (A is TJSEmptyBlockStatement))
     then
       if C then
         Write('; ')
@@ -861,7 +865,7 @@ begin
     Indent;
     if not C then writeln('');
     end;
-  if Assigned(El.A) and (El.A.ClassType<>TJSEmptyBlockStatement) then
+  if not IsEmptyStatement(El.A) then
     begin
     WriteJS(El.A);
     LastEl:=El.A;
@@ -926,6 +930,9 @@ Var
   S : AnsiString;
   AllowCompact, WithBrackets: Boolean;
 begin
+  {$IFDEF VerboseJSWriter}
+  System.writeln('TJSWriter.WriteBinary SkipRoundBrackets=',FSkipRoundBrackets);
+  {$ENDIF}
   WithBrackets:=not FSkipRoundBrackets;
   if WithBrackets then
     Write('(');
@@ -943,6 +950,25 @@ begin
   WriteJS(El.B);
   if WithBrackets then
     Write(')');
+end;
+
+function TJSWriter.IsEmptyStatement(El: TJSElement): boolean;
+begin
+  if (El=nil) then
+    exit(true);
+  if (El.ClassType=TJSEmptyStatement) and not (woEmptyStatementAsComment in Options) then
+    exit(true);
+  Result:=false;
+end;
+
+function TJSWriter.HasLineEnding(El: TJSElement): boolean;
+begin
+  if El<>nil then
+    begin
+    if (El.ClassType=TJSStatementList) or (El.ClassType=TJSSourceElements) then
+      exit(true);
+    end;
+  Result:=false;
 end;
 
 procedure TJSWriter.WriteConditionalExpression(El: TJSConditionalExpression);
@@ -987,22 +1013,29 @@ end;
 
 procedure TJSWriter.WriteIfStatement(El: TJSIfStatement);
 
+var
+  BTrueEmpty, C: Boolean;
 begin
+  C:=woCompact in Options;
   Write('if (');
   FSkipRoundBrackets:=true;
   WriteJS(El.Cond);
   FSkipRoundBrackets:=false;
   Write(')');
-  If Not (woCompact in Options) then
+  If Not C then
     Write(' ');
-  if (El.BTrue<>nil) and (not (El.BTrue is TJSEmptyStatement)) then
-    begin
+  BTrueEmpty:=IsEmptyStatement(El.BTrue);
+  if not BTrueEmpty then
     WriteJS(El.BTrue);
-    end;
-  if Assigned(El.BFalse) then
+  if not IsEmptyStatement(El.BFalse) then
     begin
-    if (El.BTrue=nil) or (El.BTrue is TJSEmptyStatement) then
-      Writeln('{}')
+    if BTrueEmpty then
+      begin
+      if C then
+        Write('{}')
+      else
+        Writeln('{}');
+      end
     else
       Write(' ');
     Write('else ');
@@ -1131,7 +1164,7 @@ begin
       Indent;
       WriteJS(EC.Body);
       Undent;
-      if ((EC.Body is TJSStatementList) or (EC.Body is TJSEmptyBlockStatement)) then
+      if (EC.Body is TJSStatementList) or (EC.Body is TJSEmptyBlockStatement) then
         begin
         if C then
           begin
@@ -1226,12 +1259,15 @@ Var
 begin
   C:=woCompact in Options;
   Write('try {');
-  if Not C then writeln('');
-  FSkipCurlyBrackets:=True;
-  Indent;
-  WriteJS(El.Block);
-  if Not C then writeln('');
-  Undent;
+  if not IsEmptyStatement(El.Block) then
+    begin
+    if Not C then writeln('');
+    FSkipCurlyBrackets:=True;
+    Indent;
+    WriteJS(El.Block);
+    if (Not C) and (not (El.Block is TJSStatementList)) then writeln('');
+    Undent;
+    end;
   Write('}');
   If (El is TJSTryCatchFinallyStatement) or (El is TJSTryCatchStatement) then
     begin
@@ -1241,11 +1277,14 @@ begin
       Write(' {')
     else
       Writeln(' {');
-    FSkipCurlyBrackets:=True;
-    Indent;
-    WriteJS(El.BCatch);
-    Undent;
-    if Not C then writeln('');
+    if not IsEmptyStatement(El.BCatch) then
+      begin
+      FSkipCurlyBrackets:=True;
+      Indent;
+      WriteJS(El.BCatch);
+      Undent;
+      if (Not C) and (not (El.BCatch is TJSStatementList)) then writeln('');
+      end;
     Write('}');
     end;
   If (El is TJSTryCatchFinallyStatement) or (El is TJSTryFinallyStatement) then
@@ -1254,11 +1293,14 @@ begin
       Write(' finally {')
     else
       Writeln(' finally {');
-    Indent;
-    FSkipCurlyBrackets:=True;
-    WriteJS(El.BFinally);
-    Undent;
-    if Not C then writeln('');
+    if not IsEmptyStatement(El.BFinally) then
+      begin
+      Indent;
+      FSkipCurlyBrackets:=True;
+      WriteJS(El.BFinally);
+      Undent;
+      if (Not C) and (not (El.BFinally is TJSStatementList)) then writeln('');
+      end;
     Write('}');
     end;
 end;
@@ -1267,7 +1309,7 @@ procedure TJSWriter.WriteFunctionBody(El: TJSFunctionBody);
 
 begin
   //writeln('TJSWriter.WriteFunctionBody '+El.A.ClassName+' FSkipBrackets='+BoolToStr(FSkipCurlyBrackets,'true','false'));
-  if Assigned(El.A) and (not (El.A is TJSEmptyBlockStatement)) then
+  if not IsEmptyStatement(El.A) then
     WriteJS(El.A);
 end;
 
@@ -1311,11 +1353,11 @@ begin
   WriteElements(El.Statements);
 end;
 
-procedure TJSWriter.WriteVariableStatement(el: TJSVariableStatement);
+procedure TJSWriter.WriteVariableStatement(El: TJSVariableStatement);
 
 begin
   Write('var ');
-  WriteJS(EL.A);
+  WriteJS(El.A);
 end;
 
 procedure TJSWriter.WriteJS(El: TJSElement);

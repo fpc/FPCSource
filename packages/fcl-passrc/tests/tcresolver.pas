@@ -159,6 +159,9 @@ type
     Procedure TestIncDec;
     Procedure TestIncStringFail;
     Procedure TestVarExternal;
+    Procedure TestStr_BaseTypes;
+    Procedure TestStr_StringFail;
+    Procedure TestStr_CharFail;
 
     // strings
     Procedure TestString_SetLength;
@@ -179,6 +182,7 @@ type
     Procedure TestEnumOrd;
     Procedure TestEnumPredSucc;
     Procedure TestEnum_CastIntegerToEnum;
+    Procedure TestEnum_Str;
 
     // operators
     Procedure TestPrgAssignment;
@@ -560,7 +564,7 @@ begin
         +' Scanner at'
         +' at '+aFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+')'
         +' Line="'+Scanner.CurLine+'"');
-      raise E;
+      Fail(E.Message);
       end;
     on E: EPasResolve do
       begin
@@ -575,12 +579,12 @@ begin
       WriteSources(aFilename,aRow,aCol);
       writeln('ERROR: TTestResolver.ParseProgram PasResolver: '+E.ClassName+':'+E.Message
         +' at '+aFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+')');
-      raise E;
+      Fail(E.Message);
       end;
     on E: Exception do
       begin
       writeln('ERROR: TTestResolver.ParseProgram Exception: '+E.ClassName+':'+E.Message);
-      raise E;
+      Fail(E.Message);
       end;
   end;
   TAssert.AssertSame('Has resolver',ResolverEngine,Parser.Engine);
@@ -607,7 +611,7 @@ begin
         +' Col='+IntToStr(Scanner.CurColumn)
         +' Line="'+Scanner.CurLine+'"'
         );
-      raise E;
+      Fail(E.Message);
       end;
     on E: EPasResolve do
       begin
@@ -617,12 +621,12 @@ begin
         +' Col='+IntToStr(Scanner.CurColumn)
         +' Line="'+Scanner.CurLine+'"'
         );
-      raise E;
+      Fail(E.Message);
       end;
     on E: Exception do
       begin
       writeln('ERROR: TTestResolver.ParseUnit Exception: '+E.ClassName+':'+E.Message);
-      raise E;
+      Fail(E.Message);
       end;
   end;
   TAssert.AssertSame('Has resolver',ResolverEngine,Parser.Engine);
@@ -1196,7 +1200,7 @@ begin
   WriteSources(aFilename,aRow,aCol);
   s:='[TTestResolver.RaiseErrorAtSrc] '+aFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+') Error: '+Msg;
   writeln('ERROR: ',s);
-  raise EAssertionFailedError.Create(s);
+  Fail(s);
 end;
 
 procedure TCustomTestResolver.RaiseErrorAtSrcMarker(Msg: string; aMarker: PSrcMarker);
@@ -1219,7 +1223,7 @@ function TCustomTestResolver.AddModule(aFilename: string): TTestEnginePasResolve
 begin
   //writeln('TTestResolver.AddModule ',aFilename);
   if FindModuleWithFilename(aFilename)<>nil then
-    raise EAssertionFailedError.Create('TTestResolver.AddModule: file "'+aFilename+'" already exists');
+    Fail('TTestResolver.AddModule: file "'+aFilename+'" already exists');
   Result:=TTestEnginePasResolver.Create;
   Result.Filename:=aFilename;
   Result.AddObjFPCBuiltInIdentifiers;
@@ -1406,7 +1410,7 @@ begin
             +' Line="'+CurEngine.Scanner.CurLine+'"'
             );
           WriteSources(ErrFilename,ErrRow,ErrCol);
-          raise E;
+          Fail(E.Message);
           end;
       end;
       //writeln('TTestResolver.OnPasResolverFindUnit END ',CurUnitName);
@@ -1415,7 +1419,7 @@ begin
       end;
     end;
   writeln('TTestResolver.OnPasResolverFindUnit missing unit "',aUnitName,'"');
-  raise EAssertionFailedError.Create('can''t find unit "'+aUnitName+'"');
+  Fail('can''t find unit "'+aUnitName+'"');
 end;
 
 procedure TCustomTestResolver.OnFindReference(El: TPasElement; FindData: pointer);
@@ -1445,7 +1449,7 @@ var
     s:='TTestResolver.OnCheckElementParent El='+GetTreeDesc(El)+' '+
       ResolverEngine.GetElementSourcePosStr(El)+' '+Msg;
     writeln('ERROR: ',s);
-    raise EAssertionFailedError.Create(s);
+    Fail(s);
   end;
 
 begin
@@ -1811,6 +1815,62 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestStr_BaseTypes;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  b: boolean;');
+  Add('  i: longint;');
+  Add('  i64: int64;');
+  Add('  s: single;');
+  Add('  d: double;');
+  Add('  aString: string;');
+  Add('begin');
+  Add('  Str(b,{#a_var}aString);');
+  Add('  Str(b:1,aString);');
+  Add('  Str(b:i,aString);');
+  Add('  Str(i,aString);');
+  Add('  Str(i:2,aString);');
+  Add('  Str(i:i64,aString);');
+  Add('  Str(i64,aString);');
+  Add('  Str(i64:3,aString);');
+  Add('  Str(i64:i,aString);');
+  Add('  Str(s,aString);');
+  Add('  Str(d,aString);');
+  Add('  Str(d:4,aString);');
+  Add('  Str(d:4:5,aString);');
+  Add('  Str(d:4:i,aString);');
+  Add('  aString:=Str(b);');
+  Add('  aString:=Str(i:3);');
+  Add('  aString:=Str(d:3:4);');
+  Add('  aString:=Str(b,i,d);');
+  ParseProgram;
+  CheckAccessMarkers;
+end;
+
+procedure TTestResolver.TestStr_StringFail;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  aString: string;');
+  Add('begin');
+  Add('  Str(aString,aString);');
+  CheckResolverException('Incompatible type arg no. 1: Got "String", expected "boolean, integer, enum value"',
+    nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestStr_CharFail;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  c: char;');
+  Add('  aString: string;');
+  Add('begin');
+  Add('  Str(c,aString);');
+  CheckResolverException('Incompatible type arg no. 1: Got "Char", expected "boolean, integer, enum value"',
+    nIncompatibleTypeArgNo);
+end;
+
 procedure TTestResolver.TestString_SetLength;
 begin
   StartProgram(false);
@@ -2125,6 +2185,22 @@ begin
   Add('  if TFlag({#b_read}i)=TFlag(1) then;');
   ParseProgram;
   CheckAccessMarkers;
+end;
+
+procedure TTestResolver.TestEnum_Str;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red, green, blue);');
+  Add('var');
+  Add('  f: TFlag;');
+  Add('  i: longint;');
+  Add('  aString: string;');
+  Add('begin');
+  Add('  aString:=str(f);');
+  Add('  aString:=str(f:3);');
+  Add('  str(f,aString);');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestPrgAssignment;

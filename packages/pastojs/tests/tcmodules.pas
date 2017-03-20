@@ -164,6 +164,7 @@ type
     Procedure TestString_Compare;
     Procedure TestString_SetLength;
     Procedure TestString_CharAt;
+    Procedure TestStr;
 
     // alias types
     Procedure TestAliasTypeRef;
@@ -211,6 +212,7 @@ type
     Procedure TestSet_Property;
 
     // statements
+    Procedure TestNestBegin;
     Procedure TestIncDec;
     Procedure TestAssignments;
     Procedure TestArithmeticOperators1;
@@ -458,7 +460,7 @@ begin
             +' Col='+IntToStr(CurEngine.Scanner.CurColumn)
             +' Line="'+CurEngine.Scanner.CurLine+'"'
             );
-          raise E;
+          Fail(E.Message);
           end;
       end;
       //writeln('TTestModule.OnPasResolverFindUnit END ',CurUnitName);
@@ -467,7 +469,7 @@ begin
       end;
     end;
   writeln('TTestModule.OnPasResolverFindUnit missing unit "',aUnitName,'"');
-  raise Exception.Create('can''t find unit "'+aUnitName+'"');
+  Fail('can''t find unit "'+aUnitName+'"');
 end;
 
 procedure TCustomTestModule.SetUp;
@@ -547,7 +549,7 @@ begin
         +' '+E.Filename+'('+IntToStr(E.Row)+','+IntToStr(E.Column)+')'
         +' Line="'+Scanner.CurLine+'"'
         );
-      raise E;
+      Fail(E.Message);
       end;
     on E: EPasResolve do
       begin
@@ -556,12 +558,12 @@ begin
       writeln('ERROR: TTestModule.ParseModule PasResolver: '+E.ClassName+':'+E.Message
         +' '+E.PasElement.SourceFilename
         +'('+IntToStr(Row)+','+IntToStr(Col)+')');
-      raise E;
+      Fail(E.Message);
       end;
     on E: Exception do
       begin
       writeln('ERROR: TTestModule.ParseModule Exception: '+E.ClassName+':'+E.Message);
-      raise E;
+      Fail(E.Message);
       end;
   end;
   AssertNotNull('Module resulted in Module',FModule);
@@ -609,7 +611,7 @@ function TCustomTestModule.AddModule(aFilename: string
 begin
   //writeln('TTestModuleConverter.AddModule ',aFilename);
   if FindModuleWithFilename(aFilename)<>nil then
-    raise Exception.Create('TTestModuleConverter.AddModule: file "'+aFilename+'" already exists');
+    Fail('TTestModuleConverter.AddModule: file "'+aFilename+'" already exists');
   Result:=TTestEnginePasResolver.Create;
   Result.Filename:=aFilename;
   Result.AddObjFPCBuiltInIdentifiers([btChar,btString,btLongint,btInt64,btBoolean,btDouble]);
@@ -695,14 +697,14 @@ begin
       writeln('ERROR: TTestModule.ConvertModule Scanner: '+E.ClassName+':'+E.Message
         +' '+Scanner.CurFilename
         +'('+IntToStr(Scanner.CurRow)+','+IntToStr(Scanner.CurColumn)+')');
-      raise E;
+      Fail(E.Message);
     end;
     on E: EParserError do begin
       WriteSource(Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn);
       writeln('ERROR: TTestModule.ConvertModule Parser: '+E.ClassName+':'+E.Message
         +' '+Scanner.CurFilename
         +'('+IntToStr(Scanner.CurRow)+','+IntToStr(Scanner.CurColumn)+')');
-      raise E;
+      Fail(E.Message);
     end;
     on E: EPasResolve do
       begin
@@ -711,7 +713,7 @@ begin
       writeln('ERROR: TTestModule.ConvertModule PasResolver: '+E.ClassName+':'+E.Message
         +' '+E.PasElement.SourceFilename
         +'('+IntToStr(Row)+','+IntToStr(Col)+')');
-      raise E;
+      Fail(E.Message);
       end;
     on E: EPas2JS do
       begin
@@ -725,12 +727,12 @@ begin
         end
       else
         writeln('ERROR: TTestModule.ConvertModule Exception: '+E.ClassName+':'+E.Message);
-      raise E;
+      Fail(E.Message);
       end;
     on E: Exception do
       begin
       writeln('ERROR: TTestModule.ConvertModule Exception: '+E.ClassName+':'+E.Message);
-      raise E;
+      Fail(E.Message);
       end;
   end;
   FJSSource:=TStringList.Create;
@@ -1526,8 +1528,7 @@ begin
     '  this.FuncA(Bar);',
     '};',
     'this.FuncA = function (Bar) {',
-    '  if (Bar == 3) {',
-    '  };',
+    '  if (Bar == 3);',
     '};'
     ]),
     LinesToStr([
@@ -1563,8 +1564,7 @@ begin
     '    FuncB(i);',
     '  };',
     '  function FuncB(i) {',
-    '    if (i == 3) {',
-    '    };',
+    '    if (i == 3);',
     '  };',
     '  FuncC(4);',
     '};'
@@ -1628,12 +1628,9 @@ begin
      'this.i = 0;'
     ]),
     LinesToStr([
-    'if (this.Func2()) {',
-    '};',
-    'if (this.i == this.Func1()) {',
-    '};',
-    'if (this.i == this.Func1()) {',
-    '};'
+    'if (this.Func2());',
+    'if (this.i == this.Func1());',
+    'if (this.i == this.Func1());'
     ]));
 end;
 
@@ -2230,6 +2227,7 @@ begin
   Add('var');
   Add('  e: TMyEnum;');
   Add('  i: longint;');
+  Add('  s: string;');
   Add('begin');
   Add('  i:=ord(red);');
   Add('  i:=ord(green);');
@@ -2244,6 +2242,9 @@ begin
   Add('  e:=succ(e);');
   Add('  e:=tmyenum(1);');
   Add('  e:=tmyenum(i);');
+  Add('  s:=str(e);');
+  Add('  str(e,s)');
+  Add('  s:=str(e:3);');
   ConvertProgram;
   CheckSource('TestEnumNumber',
     LinesToStr([ // statements
@@ -2254,7 +2255,8 @@ begin
     '  Green:1',
     '  };',
     'this.e = 0;',
-    'this.i = 0;'
+    'this.i = 0;',
+    'this.s = "";'
     ]),
     LinesToStr([
     'this.i=this.TMyEnum.Red;',
@@ -2270,6 +2272,9 @@ begin
     'this.e=this.e+1;',
     'this.e=1;',
     'this.e=this.i;',
+    'this.s = this.TMyEnum[this.e];',
+    'this.s = this.TMyEnum[this.e];',
+    'this.s = rtl.spaceLeft(this.TMyEnum[this.e], 3);',
     '']));
 end;
 
@@ -2685,6 +2690,23 @@ begin
     'this.Obj.SetColors(rtl.includeSet(this.Obj.GetColors(), this.TEnum.Red));',
     'this.Obj.SetColors(rtl.excludeSet(this.Obj.GetColors(), this.TEnum.Red));',
     '']));
+end;
+
+procedure TTestModule.TestNestBegin;
+begin
+  StartProgram(false);
+  Add('begin');
+  Add('  begin');
+  Add('    begin');
+  Add('    end;');
+  Add('    begin');
+  Add('      if true then ;');
+  Add('    end;');
+  Add('  end;');
+  ConvertProgram;
+  CheckSource('TestNestBegin',
+    '',
+    'if (true) ;');
 end;
 
 procedure TTestModule.TestUnitImplVars;
@@ -3103,6 +3125,55 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestStr;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  b: boolean;');
+  Add('  i: longint;');
+  Add('  d: double;');
+  Add('  s: string;');
+  Add('begin');
+  Add('  s:=str(b);');
+  Add('  s:=str(i);');
+  Add('  s:=str(d);');
+  Add('  s:=str(i,i);');
+  Add('  s:=str(i:3);');
+  Add('  s:=str(d:3:2);');
+  Add('  s:=str(i:4,i);');
+  Add('  s:=str(i,i:5);');
+  Add('  s:=str(i:4,i:5);');
+  Add('  str(b,s);');
+  Add('  str(i,s);');
+  Add('  str(d,s);');
+  Add('  str(i:3,s);');
+  Add('  str(d:3:2,s);');
+  ConvertProgram;
+  CheckSource('TestStr',
+    LinesToStr([ // statements
+    'this.b = false;',
+    'this.i = 0;',
+    'this.d = 0.0;',
+    'this.s = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.s = ""+this.b;',
+    'this.s = ""+this.i;',
+    'this.s = ""+this.d;',
+    'this.s = (""+this.i)+this.i;',
+    'this.s = rtl.spaceLeft(""+this.i,3);',
+    'this.s = rtl.spaceLeft(this.d.toFixed(2),3);',
+    'this.s = rtl.spaceLeft("" + this.i, 4) + this.i;',
+    'this.s = ("" + this.i) + rtl.spaceLeft("" + this.i, 5);',
+    'this.s = rtl.spaceLeft("" + this.i, 4) + rtl.spaceLeft("" + this.i, 5);',
+    'this.s = ""+this.b;',
+    'this.s = ""+this.i;',
+    'this.s = ""+this.d;',
+    'this.s = rtl.spaceLeft(""+this.i,3);',
+    'this.s = rtl.spaceLeft(this.d.toFixed(2),3);',
+    '']));
+end;
+
 procedure TTestModule.TestProcTwoArgs;
 begin
   StartProgram(false);
@@ -3290,7 +3361,7 @@ begin
     '  var $loopend1 = 2;',
     '  for (this.vI = 1; this.vI <= $loopend1; this.vI++);',
     '  if(this.vI>$loopend1)this.vI--;',
-    '  if (this.vI==3){} ;'
+    '  if (this.vI==3) ;'
     ]));
 end;
 
@@ -3389,7 +3460,7 @@ begin
     LinesToStr([ // this.$main
     'this.vI = 1;',
     'if (vI==1) {',
-    'vI=2;',
+    '  vI=2;',
     '}',
     'if (vI==2){ vI=3; }',
     ';',
@@ -3452,6 +3523,11 @@ begin
   Add('    else');
   Add('      vi:=5');
   Add('  end;');
+  Add('  try');
+  Add('    VI:=6;');
+  Add('  except');
+  Add('    on einvalidcast do ;');
+  Add('  end;');
   ConvertProgram;
   CheckSource('TestTryExcept',
     LinesToStr([ // statements
@@ -3479,21 +3555,27 @@ begin
     '};',
     'try {',
     '  this.vI = 3;',
-    '} catch ('+DefaultJSExceptionObject+') {',
-    '  throw '+DefaultJSExceptionObject+';',
+    '} catch ('+DefaultVarNameExceptObject+') {',
+    '  throw '+DefaultVarNameExceptObject+';',
     '};',
     'try {',
     '  this.vI = 4;',
-    '} catch ('+DefaultJSExceptionObject+') {',
-    '  if (this.EInvalidCast.isPrototypeOf('+DefaultJSExceptionObject+')) throw '+DefaultJSExceptionObject,
-    '  else if (this.Exception.isPrototypeOf('+DefaultJSExceptionObject+')) {',
-    '    var E = '+DefaultJSExceptionObject+';',
+    '} catch ('+DefaultVarNameExceptObject+') {',
+    '  if (this.EInvalidCast.isPrototypeOf('+DefaultVarNameExceptObject+')) throw '+DefaultVarNameExceptObject,
+    '  else if (this.Exception.isPrototypeOf('+DefaultVarNameExceptObject+')) {',
+    '    var E = '+DefaultVarNameExceptObject+';',
     '    if (E.Msg == "") throw E;',
     '  } else {',
     '    this.vI = 5;',
     '  }',
-    '};'
-    ]));
+    '};',
+    'try {',
+    '  this.vI = 6;',
+    '} catch ('+DefaultVarNameExceptObject+') {',
+    '  if (this.EInvalidCast.isPrototypeOf('+DefaultVarNameExceptObject+')){' ,
+    '  } else throw '+DefaultVarNameExceptObject,
+    '};',
+    '']));
 end;
 
 procedure TTestModule.TestCaseOf;
@@ -3614,8 +3696,7 @@ begin
     ]),
     LinesToStr([ // this.$main
     'var $tmp1 = this.vI;',
-    'if (($tmp1 >= 1) && ($tmp1 <= 3)) this.vI = 14 else if (($tmp1 == 4) || ($tmp1 == 5)) this.vI = 16 else if ((($tmp1 >= 6) && ($tmp1 <= 7)) || (($tmp1 >= 9) && ($tmp1 <= 10))) {} else {',
-    '};'
+    'if (($tmp1 >= 1) && ($tmp1 <= 3)) this.vI = 14 else if (($tmp1 == 4) || ($tmp1 == 5)) this.vI = 16 else if ((($tmp1 >= 6) && ($tmp1 <= 7)) || (($tmp1 >= 9) && ($tmp1 <= 10))) ;'
     ]));
 end;
 
@@ -3674,8 +3755,8 @@ begin
     ]),
     LinesToStr([ // this.$main
     'this.Arr = [];',
-    'if (this.Arr.length == 0) {};',
-    'if (0 == this.Arr.length) {};',
+    'if (this.Arr.length == 0);',
+    'if (0 == this.Arr.length);',
     'this.DoIt([],[]);',
     '']));
 end;
@@ -3714,8 +3795,8 @@ begin
     ]),
     LinesToStr([ // this.$main
     'this.Arr2 = [];',
-    'if (this.Arr2.length == 0) {};',
-    'if (0 == this.Arr2.length) {};',
+    'if (this.Arr2.length == 0);',
+    'if (0 == this.Arr2.length);',
     'this.i = 0;',
     'this.i = 0;',
     'this.i = this.Arr2.length-1;',
@@ -4735,8 +4816,7 @@ begin
     'this.oO = this.TObject.$create("Create");',
     'this.oA = this.TClassA.$create("Create");',
     'this.oB = this.TClassB.$create("Create");',
-    'if (this.TClassA.isPrototypeOf(this.oO)) {',
-    '};',
+    'if (this.TClassA.isPrototypeOf(this.oO));',
     'this.oB = rtl.as(this.oO, this.TClassB);',
     'rtl.as(this.oO, this.TClassB).ProcB();'
     ]));
@@ -5065,7 +5145,7 @@ begin
     LinesToStr([ // this.$main
     'this.Obj = this.TObject.$create("Create");',
     'this.TObject.vI = 3;',
-    'if (this.TObject.vI == 4){};',
+    'if (this.TObject.vI == 4);',
     'this.TObject.Sub=null;',
     'this.Obj.$class.Sub=null;',
     'this.Obj.Sub.$class.Sub=null;',
@@ -5225,8 +5305,7 @@ begin
     ]),
     LinesToStr([ // this.$main
     'this.Obj.Fy = this.Obj.Fx + 1;',
-    'if (this.Obj.GetInt() == 2) {',
-    '};',
+    'if (this.Obj.GetInt() == 2);',
     'this.Obj.SetInt(this.Obj.GetInt() + 2);',
     'this.Obj.SetInt(this.Obj.Fx);'
     ]));
@@ -5297,13 +5376,11 @@ begin
     ]),
     LinesToStr([ // this.$main
     'this.TObject.Fy = this.TObject.Fx + 1;',
-    'if (this.TObject.GetInt() == 2) {',
-    '};',
+    'if (this.TObject.GetInt() == 2);',
     'this.TObject.SetInt(this.TObject.GetInt() + 2);',
     'this.TObject.SetInt(this.TObject.Fx);',
     'this.Obj.$class.Fy = this.Obj.Fx + 1;',
-    'if (this.Obj.$class.GetInt() == 2) {',
-    '};',
+    'if (this.Obj.$class.GetInt() == 2);',
     'this.Obj.$class.SetInt(this.Obj.$class.GetInt() + 2);',
     'this.Obj.$class.SetInt(this.Obj.Fx);'
     ]));
@@ -5568,8 +5645,7 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([ // this.$main
-    'if (this.Obj != null) {',
-    '};',
+    'if (this.Obj != null);',
     'this.b = (this.Obj != null) || false;'
     ]));
 end;
@@ -5921,24 +5997,18 @@ begin
     'this.ProcA = function (A) {',
     '  A.set(null);',
     '  A.set(A.get());',
-    '  if (A.get() == null) {',
-    '  };',
-    '  if (null == A.get()) {',
-    '  };',
+    '  if (A.get() == null);',
+    '  if (null == A.get());',
     '};',
     'this.ProcB = function (A) {',
     '  A.set(null);',
     '  A.set(A.get());',
-    '  if (A.get() == null) {',
-    '  };',
-    '  if (null == A.get()) {',
-    '  };',
+    '  if (A.get() == null);',
+    '  if (null == A.get());',
     '};',
     'this.ProcC = function (A) {',
-    '  if (A == null) {',
-    '  };',
-    '  if (null == A) {',
-    '  };',
+    '  if (A == null);',
+    '  if (null == A);',
     '};',
     'this.o = null;',
     '']),

@@ -153,8 +153,7 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- function str, procedure str
-- try raise E1 except on E: E2 end;
+- class external
 
 Not in Version 1.0:
 - write, writeln
@@ -245,8 +244,8 @@ resourcestring
   sMissingExternalName = 'Missing external name';
 
 const
-  DefaultFuncNameArray_SetLength = 'arraySetLength'; // rtl.arraySetLength
   DefaultFuncNameArray_NewMultiDim = 'arrayNewMultiDim'; // rtl.arrayNewMultiDim
+  DefaultFuncNameArray_SetLength = 'arraySetLength'; // rtl.arraySetLength
   DefaultFuncNameAs = 'as'; // rtl.as
   DefaultFuncNameCreateClass = 'createClass'; // rtl.createClass
   DefaultFuncNameFreeClassInstance = '$destroy';
@@ -268,6 +267,8 @@ const
   DefaultFuncNameSet_Reference = 'refSet'; // rtl.refSet
   DefaultFuncNameSet_SymDiffSet = 'symDiffSet'; // rtl.symDiffSet >< (symmetrical difference)
   DefaultFuncNameSet_Union = 'unionSet'; // rtl.unionSet +
+  DefaultFuncNameSpaceLeft = 'spaceLeft'; // rtl.spaceLeft
+  DefaultVarNameExceptObject = '$e';
   DefaultVarNameImplementation = '$impl';
   DefaultVarNameLoopEnd = '$loopend';
   DefaultVarNameModules = 'pas';
@@ -544,9 +545,20 @@ type
 
   TPas2JSIsElementUsedEvent = function(Sender: TObject; El: TPasElement): boolean of object;
 
+  TPasToJsPlatform = (
+    PlatformBrowser,
+    PlatformNodeJS
+    );
+  TPasToJsPlatforms = set of TPasToJsPlatform;
+const
+  PasToJsPlatformNames: array[TPasToJsPlatform] of string = (
+   'Browser',
+   'NodeJS'
+    );
+type
   TPasToJsProcessor = (
-    pECMAScript5,
-    pECMAScript6
+    ProcessorECMAScript5,
+    ProcessorECMAScript6
     );
   TPasToJsProcessors = set of TPasToJsProcessor;
 const
@@ -614,9 +626,12 @@ type
     FFuncNameSet_Reference: String;
     FFuncNameSet_SymDiffSet: String;
     FFuncNameSet_Union: String;
+    FFuncNameSpaceLeft: String;
     FOnIsElementUsed: TPas2JSIsElementUsedEvent;
     FOptions: TPasToJsConverterOptions;
+    FTargetPlatform: TPasToJsPlatform;
     FTargetProcessor: TPasToJsProcessor;
+    FVarNameExceptObject: String;
     FVarNameImplementation: String;
     FVarNameLoopEnd: String;
     FVarNameModules: String;
@@ -635,7 +650,6 @@ type
       DataClass: TPas2JsElementDataClass): TPas2JsElementData;
     procedure AddElementData(Data: TPas2JsElementData);
     Procedure AddToSourceElements(Src: TJSSourceElements; El: TJSElement);
-    procedure SetTargetProcessor(const AValue: TPasToJsProcessor);
     procedure SetUseEnumNumbers(const AValue: boolean);
     procedure SetUseLowerCase(const AValue: boolean);
     procedure SetUseSwitchStatement(const AValue: boolean);
@@ -658,7 +672,6 @@ type
     Function TransformVariableName(El: TPasElement; AContext : TConvertContext) : String; virtual;
     Function TransformModuleName(El: TPasModule; AContext : TConvertContext) : String; virtual;
     Function IsPreservedWord(aName: string): boolean; virtual;
-    Function GetExceptionObjectName(AContext: TConvertContext) : string;
     // Never create an element manually, always use the below functions
     Function IsElementUsed(El: TPasElement): boolean; virtual;
     Function CreateElement(C: TJSElementClass; Src: TPasElement): TJSElement; virtual;
@@ -702,9 +715,10 @@ type
       RecordExpr: TJSElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateCallback(El: TPasElement; ResolvedEl: TPasResolverResult;
       AContext: TConvertContext): TJSElement; virtual;
+    Function CreateAssignStatement(LeftEl: TPasElement; AssignContext: TAssignContext): TJSElement; virtual;
     // Statements
-    Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext): TJSElement; virtual;
-    Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
+    Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
     Function ConvertStatement(El: TPasImplStatement; AContext: TConvertContext ): TJSElement; virtual;
     Function ConvertAssignStatement(El: TPasImplAssign; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertRaiseStatement(El: TPasImplRaise; AContext: TConvertContext ): TJSElement; virtual;
@@ -741,6 +755,9 @@ type
     Function ConvertBuiltInHigh(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltInPred(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltInSucc(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltInStrProc(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltInStrFunc(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltInStrParam(El: TPasExpr; AContext: TConvertContext; IsFirst: boolean): TJSElement; virtual;
     Function ConvertRecordValues(El: TRecordValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSelfExpression(El: TSelfExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBinaryExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -776,7 +793,8 @@ type
     Function ConvertPasElement(El : TPasElement; Resolver: TPasResolver) : TJSElement;
     // options
     Property Options: TPasToJsConverterOptions read FOptions write FOptions;
-    Property TargetProcessor: TPasToJsProcessor read FTargetProcessor write SetTargetProcessor;
+    Property TargetPlatform: TPasToJsPlatform read FTargetPlatform write FTargetPlatform;
+    Property TargetProcessor: TPasToJsProcessor read FTargetProcessor write FTargetProcessor;
     Property UseLowerCase: boolean read GetUseLowerCase write SetUseLowerCase default true;
     Property UseSwitchStatement: boolean read GetUseSwitchStatement write SetUseSwitchStatement;// default false, because slower than "if" in many engines
     Property UseEnumNumbers: boolean read GetUseEnumNumbers write SetUseEnumNumbers; // default false
@@ -806,15 +824,14 @@ type
     Property FuncNameSet_Reference: String read FFuncNameSet_Reference write FFuncNameSet_Reference; // rtl.refSet
     Property FuncNameSet_SymDiffSet: String read FFuncNameSet_SymDiffSet write FFuncNameSet_SymDiffSet; // rtl.symDiffSet (symmetrical difference ><
     Property FuncNameSet_Union: String read FFuncNameSet_Union write FFuncNameSet_Union; // rtl.unionSet +
+    Property FuncNameSpaceLeft: String read FFuncNameSpaceLeft write FFuncNameSpaceLeft;
+    Property VarNameExceptObject: String read FVarNameExceptObject write FVarNameExceptObject;
     Property VarNameImplementation: String read FVarNameImplementation write FVarNameImplementation;// empty to not use, default '$impl'
     Property VarNameLoopEnd: String read FVarNameLoopEnd write FVarNameLoopEnd;
     Property VarNameModules: String read FVarNameModules write FVarNameModules;
     Property VarNameRTL: String read FVarNameRTL write FVarNameRTL;
     Property VarNameWith: String read FVarNameWith write FVarNameWith;
   end;
-
-var
-  DefaultJSExceptionObject: string = '$e';
 
 function CodePointToJSString(u: cardinal): TJSString;
 function PosLast(c: char; const s: string): integer;
@@ -2202,11 +2219,11 @@ begin
           S:=copy(El.Value,2,length(El.Value));
           case El.Value[1] of
           '$': S:='0x'+S;
-          '&': if TargetProcessor=pECMAScript5 then
+          '&': if TargetProcessor=ProcessorECMAScript5 then
                  S:='0'+S
                else
                  S:='0o'+S;
-          '%': if TargetProcessor=pECMAScript5 then
+          '%': if TargetProcessor=ProcessorECMAScript5 then
                  S:=''
                else
                  S:='0b'+S;
@@ -2948,6 +2965,8 @@ begin
         bfHigh: Result:=ConvertBuiltInHigh(El,AContext);
         bfPred: Result:=ConvertBuiltInPred(El,AContext);
         bfSucc: Result:=ConvertBuiltInSucc(El,AContext);
+        bfStrProc: Result:=ConvertBuiltInStrProc(El,AContext);
+        bfStrFunc: Result:=ConvertBuiltInStrFunc(El,AContext);
       else
         RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
       end;
@@ -3142,7 +3161,7 @@ var
   ResolvedParam0: TPasResolverResult;
   ArrayType: TPasArrayType;
   Call: TJSCallExpression;
-  ValInit, Arg, LHS: TJSElement;
+  ValInit, Arg: TJSElement;
   AssignSt: TJSSimpleAssignStatement;
   AssignContext: TAssignContext;
   ElType: TPasType;
@@ -3163,7 +3182,6 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasToJSConverter.ConvertBuiltInSetLength array');
     {$ENDIF}
-    LHS:=nil;
     AssignContext:=TAssignContext.Create(El,nil,AContext);
     try
       AContext.Resolver.ComputeElement(El.Value,AssignContext.LeftResolved,[rcNoImplicitProc]);
@@ -3187,26 +3205,8 @@ begin
       Call.Args.Elements.AddElement.Expr:=ValInit;
 
       // create left side:  array =
-      LHS:=ConvertElement(Param0,AssignContext);
-      if AssignContext.Call<>nil then
-        begin
-        // array has a setter -> right side was already added as parameter
-        if AssignContext.RightSide<>nil then
-          RaiseInconsistency(20170207215447);
-        Result:=LHS;
-        end
-      else
-        begin
-        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-        AssignSt.LHS:=LHS;
-        AssignSt.Expr:=AssignContext.RightSide;
-        AssignContext.RightSide:=nil;
-        Result:=AssignSt;
-        end;
-
+      Result:=CreateAssignStatement(Param0,AssignContext);
     finally
-      if Result=nil then
-        LHS.Free;
       AssignContext.RightSide.Free;
       AssignContext.Free;
     end;
@@ -3241,12 +3241,9 @@ var
   Call: TJSCallExpression;
   Param0: TPasExpr;
   AssignContext: TAssignContext;
-  AssignSt: TJSSimpleAssignStatement;
-  LHS: TJSElement;
   FunName: String;
 begin
   Result:=nil;
-  LHS:=nil;
   Param0:=El.Params[0];
   AssignContext:=TAssignContext.Create(El,nil,AContext);
   try
@@ -3264,26 +3261,8 @@ begin
     Call.Args.Elements.AddElement.Expr:=ConvertElement(Param0,AContext);
     Call.Args.Elements.AddElement.Expr:=ConvertElement(El.Params[1],AContext);
 
-    // create left side:  aSet =
-    LHS:=ConvertElement(Param0,AssignContext);
-    if AssignContext.Call<>nil then
-      begin
-      // set has a setter -> right side was already added as parameter
-      if AssignContext.RightSide<>nil then
-        RaiseInconsistency(20170301145100);
-      Result:=LHS;
-      end
-    else
-      begin
-      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-      AssignSt.LHS:=LHS;
-      AssignSt.Expr:=AssignContext.RightSide;
-      AssignContext.RightSide:=nil;
-      Result:=AssignSt;
-      end;
+    Result:=CreateAssignStatement(Param0,AssignContext);
   finally
-    if Result=nil then
-      LHS.Free;
     AssignContext.RightSide.Free;
     AssignContext.Free;
   end;
@@ -3617,7 +3596,7 @@ end;
 
 function TPasToJSConverter.ConvertBuiltInSucc(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
-// pred(enumvalue) -> enumvalue-1
+// succ(enumvalue) -> enumvalue+1
 var
   ResolvedEl: TPasResolverResult;
   Param: TPasExpr;
@@ -3640,6 +3619,163 @@ begin
     exit;
     end;
   DoError(20170210120626,nExpectedXButFoundY,sExpectedXButFoundY,['enum',GetResolverResultDescription(ResolvedEl)],Param);
+end;
+
+function TPasToJSConverter.ConvertBuiltInStrProc(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// convert 'str(value,aString)' to 'aString = <string>'
+// for the conversion see ConvertBuiltInStrFunc
+var
+  AssignContext: TAssignContext;
+  StrVar: TPasExpr;
+begin
+  Result:=nil;
+  AssignContext:=TAssignContext.Create(El,nil,AContext);
+  try
+    StrVar:=El.Params[1];
+    AContext.Resolver.ComputeElement(StrVar,AssignContext.LeftResolved,[rcNoImplicitProc]);
+
+    // create right side
+    AssignContext.RightSide:=ConvertBuiltInStrParam(El.Params[0],AContext,true);
+    SetResolverValueExpr(AssignContext.RightResolved,btString,
+      AContext.Resolver.BaseType[btString],El,[rrfReadable]);
+
+    // create 'StrVar = rightside'
+    Result:=CreateAssignStatement(StrVar,AssignContext);
+  finally
+    AssignContext.RightSide.Free;
+    AssignContext.Free;
+  end;
+end;
+
+function TPasToJSConverter.ConvertBuiltInStrFunc(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// convert 'str(boolean)' to '""+boolean'
+// convert 'str(integer)' to '""+integer'
+// convert 'str(float)' to '""+float'
+// convert 'str(float:width)' to rtl.spaceLeft('""+float,width)'
+// convert 'str(float:width:precision)' to 'rtl.spaceLeft(float.toFixed(precision),width)'
+var
+  i: Integer;
+  Param: TPasExpr;
+  Sum, Add: TJSElement;
+  AddEl: TJSAdditiveExpressionPlus;
+begin
+  {$IFDEF VerbosePas2JS}
+  writeln('TPasToJSConverter.ConvertBuiltInStrFunc Count=',length(El.Params));
+  {$ENDIF}
+  Result:=nil;
+  Sum:=nil;
+  Add:=nil;
+  try
+    for i:=0 to length(El.Params)-1 do
+      begin
+      Param:=El.Params[i];
+      Add:=ConvertBuiltInStrParam(Param,AContext,i=0);
+      if Sum=nil then
+        Sum:=Add
+      else
+        begin
+        AddEl:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,Param));
+        AddEl.A:=Sum;
+        AddEl.B:=Add;
+        Sum:=AddEl;
+        end;
+      Add:=nil;
+      end;
+    Result:=Sum;
+  finally
+    Add.Free;
+    if Result=nil then
+      Sum.Free;
+  end;
+end;
+
+function TPasToJSConverter.ConvertBuiltInStrParam(El: TPasExpr;
+  AContext: TConvertContext; IsFirst: boolean): TJSElement;
+var
+  ResolvedEl: TPasResolverResult;
+  NeedStrLit: Boolean;
+  Add: TJSElement;
+  Call: TJSCallExpression;
+  PlusEl: TJSAdditiveExpressionPlus;
+  Bracket: TJSBracketMemberExpression;
+  procedure PrependStrLit;
+  begin
+    PlusEl:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,El));
+    PlusEl.A:=CreateLiteralString(El,'');
+    PlusEl.B:=Add;
+    Add:=PlusEl;
+  end;
+
+begin
+  Result:=nil;
+  AContext.Resolver.ComputeElement(El,ResolvedEl,[]);
+  Add:=nil;
+  Call:=nil;
+  Bracket:=nil;
+  try
+    NeedStrLit:=false;
+    if ResolvedEl.BaseType in (btAllBooleans+btAllInteger) then
+      begin
+      NeedStrLit:=true;
+      Add:=ConvertElement(El,AContext);
+      end
+    else if ResolvedEl.BaseType in btAllFloats then
+      begin
+      NeedStrLit:=true;
+      Add:=ConvertElement(El,AContext);
+      if El.format2<>nil then
+        begin
+        // precision -> rtl El.toFixed(precision);
+        NeedStrLit:=false;
+        Call:=CreateCallExpression(El);
+        Call.Expr:=CreateDotExpression(El,Add,CreateBuiltInIdentifierExpr('toFixed'));
+        Call.Args.Elements.AddElement.Expr:=ConvertElement(El.format2,AContext);
+        Add:=Call;
+        Call:=nil;
+        end;
+      end
+    else if ResolvedEl.BaseType=btContext then
+      begin
+      if ResolvedEl.TypeEl.ClassType=TPasEnumType then
+        begin
+        // create enumtype[enumvalue]
+        Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+        Bracket.MExpr:=CreateReferencePathExpr(TPasEnumType(ResolvedEl.TypeEl),AContext);
+        Bracket.Name:=ConvertElement(El,AContext);
+        Add:=Bracket;
+        Bracket:=nil;
+        end
+      else
+        RaiseNotSupported(El,AContext,20170320123827);
+      end
+    else
+      RaiseNotSupported(El,AContext,20170320093001);
+
+    if El.format1<>nil then
+      begin
+      // width -> leading spaces
+      if NeedStrLit then
+        PrependStrLit;
+      // create 'rtl.spaceLeft(add,width)'
+      Call:=CreateCallExpression(El);
+      Call.Expr:=CreateMemberExpression([VarNameRTL,FuncNameSpaceLeft]);
+      Call.Args.Elements.AddElement.Expr:=Add;
+      Add:=nil;
+      Call.Args.Elements.AddElement.Expr:=ConvertElement(El.format1,AContext);
+      Add:=Call;
+      Call:=nil;
+      end
+    else if IsFirst and NeedStrLit then
+      PrependStrLit;
+    Result:=Add;
+  finally
+    Call.Free;
+    Bracket.Free;
+    if Result=nil then
+      Add.Free;
+  end;
 end;
 
 function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;
@@ -3884,7 +4020,7 @@ begin
     if El.ElseBranch<>nil then
       begin
       JSCaseEl:=SwitchEl.Cases.AddCase;
-      JSCaseEl.Body:=ConvertImplBlockElements(El.ElseBranch,AContext);
+      JSCaseEl.Body:=ConvertImplBlockElements(El.ElseBranch,AContext,false);
       SwitchEl.TheDefault:=JSCaseEl;
       end;
     ok:=true;
@@ -4465,12 +4601,6 @@ begin
   until false;
 end;
 
-procedure TPasToJSConverter.SetTargetProcessor(const AValue: TPasToJsProcessor);
-begin
-  if FTargetProcessor=AValue then Exit;
-  FTargetProcessor:=AValue;
-end;
-
 constructor TPasToJSConverter.Create;
 begin
   FOptions:=[coLowerCase];
@@ -4497,6 +4627,8 @@ begin
   FFuncNameSet_Reference:=DefaultFuncNameSet_Reference;
   FFuncNameSet_SymDiffSet:=DefaultFuncNameSet_SymDiffSet;
   FFuncNameSet_Union:=DefaultFuncNameSet_Union;
+  FFuncNameSpaceLeft:=DefaultFuncNameSpaceLeft;
+  FVarNameExceptObject:=DefaultVarNameExceptObject;
   FVarNameImplementation:=DefaultVarNameImplementation;
   FVarNameLoopEnd:=DefaultVarNameLoopEnd;
   FVarNameModules:=DefaultVarNameModules;
@@ -4638,14 +4770,14 @@ begin
 end;
 
 function TPasToJSConverter.ConvertBeginEndStatement(El: TPasImplBeginBlock;
-  AContext: TConvertContext): TJSElement;
+  AContext: TConvertContext; NilIfEmpty: boolean): TJSElement;
 
 begin
-  Result:=ConvertImplBlockElements(El,AContext);
+  Result:=ConvertImplBlockElements(El,AContext,NilIfEmpty);
 end;
 
 function TPasToJSConverter.ConvertImplBlockElements(El: TPasImplBlock;
-  AContext: TConvertContext): TJSElement;
+  AContext: TConvertContext; NilIfEmpty: boolean): TJSElement;
 
 var
   First, Last: TJSStatementList;
@@ -4655,7 +4787,12 @@ var
 
 begin
   if Not (Assigned(El.Elements) and (El.Elements.Count>0)) then
-    Result:=TJSEmptyBlockStatement(CreateElement(TJSEmptyBlockStatement,El))
+    begin
+    if NilIfEmpty then
+      Result:=nil
+    else
+      Result:=TJSEmptyBlockStatement(CreateElement(TJSEmptyBlockStatement,El));
+    end
   else
     begin
     First:=nil;
@@ -4708,7 +4845,7 @@ begin
       Body:=FDS.AFunction.Body;
       FuncContext:=TFunctionContext.Create(El,Body,AContext);
       FuncContext.This:=AContext.GetThis;
-      Body.A:=ConvertImplBlockElements(El,FuncContext);
+      Body.A:=ConvertImplBlockElements(El,FuncContext,false);
       end;
     ok:=true;
   finally
@@ -4754,15 +4891,15 @@ begin
     if El.FinallyExcept is TPasImplTryFinally then
       begin
       T:=TJSTryFinallyStatement(CreateElement(TJSTryFinallyStatement,El));
-      T.Block:=ConvertImplBlockElements(El,AContext);
-      T.BFinally:=ConvertImplBlockElements(El.FinallyExcept,AContext);
+      T.Block:=ConvertImplBlockElements(El,AContext,true);
+      T.BFinally:=ConvertImplBlockElements(El.FinallyExcept,AContext,true);
       end
     else
       begin
       T:=TJSTryCatchStatement(CreateElement(TJSTryCatchStatement,El));
-      T.Block:=ConvertImplBlockElements(El,AContext);
+      T.Block:=ConvertImplBlockElements(El,AContext,true);
       if NeedExceptObject then
-        T.Ident:=TJSString(GetExceptionObjectName(AContext));
+        T.Ident:=TJSString(VarNameExceptObject);
       //T.BCatch:=ConvertElement(El.FinallyExcept,AContext);
       ExceptBlock:=El.FinallyExcept;
       if (ExceptBlock.Elements.Count>0)
@@ -4780,13 +4917,20 @@ begin
           Last:=IfSt;
           end;
         if El.ElseBranch<>nil then
-          Last.BFalse:=ConvertImplBlockElements(El.ElseBranch,AContext);
+          Last.BFalse:=ConvertImplBlockElements(El.ElseBranch,AContext,true)
+        else
+          begin
+          // default else: throw exceptobject
+          Last.BFalse:=TJSThrowStatement(CreateElement(TJSThrowStatement,El));
+          TJSThrowStatement(Last.BFalse).A:=
+            CreateBuiltInIdentifierExpr(VarNameExceptObject);
+          end;
         end
       else
         begin
         if El.ElseBranch<>nil then
           RaiseNotSupported(El.ElseBranch,AContext,20170205003014);
-        T.BCatch:=ConvertImplBlockElements(ExceptBlock,AContext);
+        T.BCatch:=ConvertImplBlockElements(ExceptBlock,AContext,true);
         end;
       end;
     Result:=T;
@@ -4925,7 +5069,7 @@ begin
         // Pascal 'else' or 'otherwise' -> create JS "else{}"
         if LastIfSt=nil then
           RaiseNotSupported(SubEl,AContext,20161128120802,'case-of needs at least one case');
-        LastIfSt.BFalse:=ConvertImplBlockElements(El.ElseBranch,AContext);
+        LastIfSt.BFalse:=ConvertImplBlockElements(El.ElseBranch,AContext,true);
         end
       else
         RaiseNotSupported(SubEl,AContext,20161128113055);
@@ -5170,6 +5314,34 @@ begin
   end;
 end;
 
+function TPasToJSConverter.CreateAssignStatement(LeftEl: TPasElement;
+  AssignContext: TAssignContext): TJSElement;
+var
+  LHS: TJSElement;
+  AssignSt: TJSSimpleAssignStatement;
+begin
+  Result:=nil;
+  LHS:=ConvertElement(LeftEl,AssignContext);
+  if AssignContext.Call<>nil then
+    begin
+    // has a setter -> right side was already added as parameter
+    if AssignContext.RightSide<>nil then
+      begin
+      LHS.Free;
+      RaiseInconsistency(20170207215447);
+      end;
+    Result:=LHS;
+    end
+  else
+    begin
+    AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,AssignContext.PasElement));
+    AssignSt.LHS:=LHS;
+    AssignSt.Expr:=AssignContext.RightSide;
+    AssignContext.RightSide:=nil;
+    Result:=AssignSt;
+    end;
+end;
+
 function TPasToJSConverter.ConvertImplBlock(El: TPasImplBlock;
   AContext: TConvertContext): TJSElement;
 
@@ -5182,7 +5354,7 @@ begin
   else if (El.ClassType=TPasImplRepeatUntil) then
     Result:=ConvertRepeatStatement(TPasImplRepeatUntil(El),AContext)
   else if (El.ClassType=TPasImplBeginBlock) then
-    Result:=ConvertBeginEndStatement(TPasImplBeginBlock(El),AContext)
+    Result:=ConvertBeginEndStatement(TPasImplBeginBlock(El),AContext,true)
   else if (El.ClassType=TInitializationSection) then
     Result:=ConvertInitializationSection(TInitializationSection(El),AContext)
   else if (El.ClassType=TFinalizationSection) then
@@ -5295,7 +5467,7 @@ begin
   if El.ExceptObject<>Nil then
     E:=ConvertElement(El.ExceptObject,AContext)
   else
-    E:=CreateBuiltInIdentifierExpr(GetExceptionObjectName(AContext));
+    E:=CreateBuiltInIdentifierExpr(VarNameExceptObject);
   T:=TJSThrowStatement(CreateElement(TJSThrowStatement,El));
   T.A:=E;
   Result:=T;
@@ -5430,9 +5602,7 @@ begin
   try
     C:=ConvertElement(El.ConditionExpr,AContext);
     if Assigned(El.IfBranch) then
-      BThen:=ConvertElement(El.IfBranch,AContext)
-    else
-      BThen:=TJSEmptyBlockStatement(CreateElement(TJSEmptyBlockStatement,El));
+      BThen:=ConvertElement(El.IfBranch,AContext);
     if Assigned(El.ElseBranch) then
       BElse:=ConvertElement(El.ElseBranch,AContext);
     ok:=true;
@@ -5502,7 +5672,7 @@ begin
     C:=ConvertElement(EL.ConditionExpr,AContext);
     N:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,EL.ConditionExpr));
     N.A:=C;
-    B:=ConvertImplBlockElements(El,AContext);
+    B:=ConvertImplBlockElements(El,AContext,false);
     ok:=true;
   finally
     if not ok then
@@ -5734,11 +5904,6 @@ begin
         begin
         B:=ConvertElement(El.Body,AContext);
         AddToStatementList(FirstSt,LastSt,B,El.Body);
-        end
-      else
-        begin
-        B:=TJSEmptyBlockStatement(CreateElement(TJSEmptyBlockStatement,El));
-        AddToStatementList(FirstSt,LastSt,B,El);
         end;
       Result:=FirstSt;
     finally
@@ -5777,15 +5942,6 @@ begin
     end;
     W.B:=B;
     end;
-end;
-
-function TPasToJSConverter.GetExceptionObjectName(AContext: TConvertContext
-  ): string;
-begin
-  if AContext=nil then ;
-  Result:=DefaultJSExceptionObject; // use the same as the FPC RTL
-  if UseLowerCase then
-    Result:=lowercase(Result);
 end;
 
 function TPasToJSConverter.IsElementUsed(El: TPasElement): boolean;
@@ -6789,7 +6945,7 @@ begin
     // create "T.isPrototypeOf(exceptObject)"
     Call:=CreateCallExpression(El);
     Call.Expr:=DotExpr;
-    Call.Args.Elements.AddElement.Expr:=CreateBuiltInIdentifierExpr(GetExceptionObjectName(AContext));
+    Call.Args.Elements.AddElement.Expr:=CreateBuiltInIdentifierExpr(VarNameExceptObject);
     IfSt.Cond:=Call;
 
     if El.VarEl<>nil then
@@ -6803,11 +6959,11 @@ begin
       VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
       V.A:=VarDecl;
       VarDecl.Name:=TransformVariableName(El,El.VariableName,AContext);
-      VarDecl.Init:=CreateBuiltInIdentifierExpr(GetExceptionObjectName(AContext));
+      VarDecl.Init:=CreateBuiltInIdentifierExpr(VarNameExceptObject);
       // add statements
       AddToStatementList(ListFirst,ListLast,ConvertElement(El.Body,AContext),El);
       end
-    else
+    else if El.Body<>nil then
       // add statements
       IfSt.BTrue:=ConvertElement(El.Body,AContext);
 
@@ -7360,7 +7516,6 @@ begin
   Result:=true;
   if aName=VarNameModules then exit;
   if aName=VarNameRTL then exit;
-  if aName=GetExceptionObjectName(nil) then exit;
 
   l:=low(JSReservedWords);
   r:=high(JSReservedWords);
@@ -7387,7 +7542,10 @@ begin
   aContext:=TRootContext.Create(El,nil,nil);
   try
     aContext.Resolver:=Resolver;
-    Result:=ConvertElement(El,aContext);
+    if (El.ClassType=TPasImplBeginBlock) then
+      Result:=ConvertBeginEndStatement(TPasImplBeginBlock(El),AContext,false)
+    else
+      Result:=ConvertElement(El,aContext);
   finally
     FreeAndNil(aContext);
   end;
