@@ -650,7 +650,8 @@ type
     // Computation, value conversions
     Function GetExpressionValueType(El: TPasExpr; AContext: TConvertContext ): TJSType; virtual;
     Function GetPasIdentValueType(AName: String; AContext: TConvertContext): TJSType; virtual;
-    Function ComputeConst(Expr: TPasExpr; AContext: TConvertContext): TJSValue; virtual;
+    Function ComputeConst(Expr: TPasExpr; AContext: TConvertContext;
+      StoreCustomData: boolean): TJSValue; virtual;
     Function TransFormStringLiteral(El: TPasElement; AContext: TConvertContext; const S: String): TJSString; virtual;
     // Name mangling
     Function TransformVariableName(El: TPasElement; Const AName: String; AContext : TConvertContext): String; virtual;
@@ -1639,14 +1640,27 @@ begin
 end;
 
 function TPasToJSConverter.ComputeConst(Expr: TPasExpr;
-  AContext: TConvertContext): TJSValue;
+  AContext: TConvertContext; StoreCustomData: boolean): TJSValue;
 var
   Prim: TPrimitiveExpr;
   V: TJSValue;
+  ConstData: TP2JConstExprData;
 begin
   Result:=nil;
   if Expr=nil then
     RaiseInconsistency(20170215123600);
+  if StoreCustomData and (Expr.CustomData is TPasElementBase) then
+    begin
+    ConstData:=TP2JConstExprData(GetElementData(
+                           TPasElementBase(Expr.CustomData),TP2JConstExprData));
+    if ConstData<>nil then
+      begin
+      // use stored result
+      Result:=ConstData.Value;
+      exit;
+      end;
+    end;
+
   V:=nil;
   try
     if Expr.ClassType=TPrimitiveExpr then
@@ -1660,6 +1674,13 @@ begin
     else
       RaiseNotSupported(Expr,AContext,20170215124746);
     Result:=V;
+
+    if StoreCustomData then
+      begin
+      // store result
+      ConstData:=TP2JConstExprData(CreateElementData(TP2JConstExprData,Expr));
+      ConstData.Value:=V;
+      end;
   finally
     if Result=nil then
       V.Free;
@@ -2075,8 +2096,20 @@ var
   Left, Right: TJSElement;
   DotContext: TDotContext;
   OldAccess: TCtxAccess;
+  LeftResolved: TPasResolverResult;
 begin
   Result:=nil;
+  if AContext.Resolver<>nil then
+    begin
+    AContext.Resolver.ComputeElement(El.left,LeftResolved,[]);
+    if LeftResolved.BaseType=btModule then
+      begin
+      // e.g. System.ExitCode
+      // unit prefix is automatically created -> omit
+      Result:=ConvertElement(El.right,AContext);
+      exit;
+      end;
+    end;
   // convert left side
   OldAccess:=AContext.Access;
   AContext.Access:=caRead;
@@ -2088,8 +2121,7 @@ begin
   DotContext:=TDotContext.Create(El,Left,AContext);
   Right:=nil;
   try
-    if AContext.Resolver<>nil then
-      AContext.Resolver.ComputeElement(El.left,DotContext.LeftResolved,[]);
+    DotContext.LeftResolved:=LeftResolved;
     Right:=ConvertElement(El.right,DotContext);
   finally
     DotContext.Free;
@@ -2207,10 +2239,10 @@ var
   AssignContext: TAssignContext;
   Arg: TPasArgument;
   ParamContext: TParamContext;
-  ConstData: TP2JConstExprData;
   ResolvedEl: TPasResolverResult;
   ProcType: TPasProcedureType;
   aVar: TPasVariable;
+  ConstValue: TJSValue;
 begin
   Result:=nil;
   if AContext=nil then ;
@@ -2355,19 +2387,19 @@ begin
       begin
       // an external function -> use the literal
       Proc:=TPasProcedure(Decl);
-      ConstData:=TP2JConstExprData(GetElementData(Proc.LibrarySymbolName,TP2JConstExprData));
-      if ConstData=nil then
+      ConstValue:=ComputeConst(Proc.LibrarySymbolName,AContext,true);
+      if ConstValue=nil then
         RaiseInconsistency(20170215131352);
-      Name:=String(ConstData.Value.AsString);
+      Name:=String(ConstValue.AsString);
       end
     else if (Decl is TPasVariable) and (TPasVariable(Decl).ExportName<>nil) then
       begin
       // an external variable -> use the literal
       aVar:=TPasVariable(Decl);
-      ConstData:=TP2JConstExprData(GetElementData(aVar.ExportName,TP2JConstExprData));
-      if ConstData=nil then
+      ConstValue:=ComputeConst(aVar.ExportName,AContext,true);
+      if ConstValue=nil then
         RaiseInconsistency(20170227091555);
-      Name:=String(ConstData.Value.AsString);
+      Name:=String(ConstValue.AsString);
       end
     else
       Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,false,Ref);
@@ -3749,8 +3781,6 @@ Var
   Obj: TJSObjectLiteral;
   ObjLit: TJSObjectLiteralElement;
   LibSymbol: TJSValue;
-  ConstData: TP2JConstExprData;
-
 begin
   Result:=nil;
   if vmExternal in El.VarModifiers then
@@ -3761,16 +3791,9 @@ begin
         ['library'],El.ExportName);
     if El.ExportName=nil then
       DoError(20170227100750,nMissingExternalName,sMissingExternalName,[],El);
-    LibSymbol:=ComputeConst(El.ExportName,AContext);
-    try
-      if (LibSymbol.ValueType<>jstString) or (LibSymbol.AsString='') then
-        DoError(20170227094343,nExpectedXButFoundY,sExpectedXButFoundY,['string literal',El.Name],El);
-      ConstData:=TP2JConstExprData(CreateElementData(TP2JConstExprData,El.ExportName));
-      ConstData.Value:=LibSymbol;
-      LibSymbol:=nil;
-    finally
-      LibSymbol.Free;
-    end;
+    LibSymbol:=ComputeConst(El.ExportName,AContext,true);
+    if (LibSymbol.ValueType<>jstString) or (LibSymbol.AsString='') then
+      DoError(20170227094343,nExpectedXButFoundY,sExpectedXButFoundY,['string literal',El.Name],El);
     exit;
     end;
   if AContext is TObjectContext then
@@ -4516,8 +4539,6 @@ Var
   ImplProc: TPasProcedure;
   pm: TProcedureModifier;
   LibSymbol: TJSValue;
-  ConstData: TP2JConstExprData;
-
 begin
   Result:=nil;
 
@@ -4556,16 +4577,9 @@ begin
     for pm in [pmAssembler,pmForward] do
       if pm in El.Modifiers then
         RaiseNotSupported(El,AContext,20170301121326,'modifier '+ModifierNames[pm]);
-    LibSymbol:=ComputeConst(El.LibrarySymbolName,AContext);
-    try
-      if (LibSymbol.ValueType<>jstString) or (LibSymbol.AsString='') then
-        DoError(20170211221121,nExpectedXButFoundY,sExpectedXButFoundY,['string literal',El.Name],El);
-      ConstData:=TP2JConstExprData(CreateElementData(TP2JConstExprData,El.LibrarySymbolName));
-      ConstData.Value:=LibSymbol;
-      LibSymbol:=nil;
-    finally
-      LibSymbol.Free;
-    end;
+    LibSymbol:=ComputeConst(El.LibrarySymbolName,AContext,true);
+    if (LibSymbol.ValueType<>jstString) or (LibSymbol.AsString='') then
+      DoError(20170211221121,nExpectedXButFoundY,sExpectedXButFoundY,['string literal',El.Name],El);
     exit;
     end;
 
@@ -5849,7 +5863,8 @@ begin
       begin
       El:=TPasElement(UsesList[k]);
       if not (El is TPasModule) then continue;
-      if not IsElementUsed(El) then continue;
+      if (not IsElementUsed(El)) and (CompareText('system',El.Name)<>0) then
+        continue;
       anUnitName := TransformVariableName(TPasModule(El),AContext);
       ArgEx := CreateLiteralString(UsesSection,anUnitName);
       ArgArray.Elements.AddElement.Expr := ArgEx;

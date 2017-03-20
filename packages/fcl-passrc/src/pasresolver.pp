@@ -1213,6 +1213,7 @@ type
     function IsProcedureType(const ResolvedEl: TPasResolverResult): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
+    function ProcNeedsParams(El: TPasProcedureType): boolean;
     function GetRangeLength(RangeResolved: TPasResolverResult): integer;
   public
     property BaseType[bt: TResolverBaseType]: TPasUnresolvedSymbolRef read GetBaseType;
@@ -1255,6 +1256,7 @@ procedure SetResolverValueExpr(out ResolvedType: TPasResolverResult;
 function ProcNeedsImplProc(Proc: TPasProcedure): boolean;
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
 function dbgs(const a: TResolvedRefAccess): string;
+function dbgs(const Flags: TResolvedReferenceFlags): string; overload;
 
 implementation
 
@@ -1637,6 +1639,22 @@ end;
 function dbgs(const a: TResolvedRefAccess): string;
 begin
   str(a,Result);
+end;
+
+function dbgs(const Flags: TResolvedReferenceFlags): string;
+var
+  s: string;
+  f: TResolvedReferenceFlag;
+begin
+  Result:='';
+  for f in Flags do
+    if f in Flags then
+      begin
+      if Result<>'' then Result:=Result+',';
+      str(f,s);
+      Result:=Result+s;
+      end;
+  Result:='['+Result+']';
 end;
 
 { TPasPropertyScope }
@@ -2363,8 +2381,7 @@ var
 begin
   ok:=true;
   if (El is TPasProcedure)
-      and (TPasProcedure(El).ProcType.Args.Count>0)
-      and (TPasArgument(TPasProcedure(El).ProcType.Args[0]).ValueExpr=nil) then
+      and ProcNeedsParams(TPasProcedure(El).ProcType) then
     // found a proc, but it needs parameters -> remember the first and continue
     ok:=false;
   if ok or (Data^.Found=nil) then
@@ -4260,10 +4277,7 @@ begin
       begin
       // examples: funca or @proca or a.funca or @a.funca ...
       Proc:=TPasProcedure(DeclEl);
-      if (Proc.ProcType.Args.Count>0)
-          and (TPasArgument(Proc.ProcType.Args[0]).ValueExpr=nil) // no default value -> param needed
-          and not ExprIsAddrTarget(El)
-      then
+      if ProcNeedsParams(Proc.ProcType) and not ExprIsAddrTarget(El) then
         begin
         {$IFDEF VerbosePasResolver}
         writeln('TPasResolver.ResolveNameExpr ',GetObjName(El));
@@ -4615,7 +4629,10 @@ begin
         and (TPrimitiveExpr(Value).Kind=pekIdent)) then
     begin
     // e.g. Name() -> find compatible
-    ElName:=TPrimitiveExpr(Value).Value;
+    if Value.ClassType=TPrimitiveExpr then
+      ElName:=TPrimitiveExpr(Value).Value
+    else
+      ElName:='Self';
     FindCallData:=Default(TFindCallElData);
     FindCallData.Params:=Params;
     Abort:=false;
@@ -6670,7 +6687,7 @@ begin
     end
   else
     ;// ordinal: result type is argument type
-  ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable];
+  ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable]+[rrfReadable];
 end;
 
 function TPasResolver.BI_PredSucc_OnGetCallCompatibility(
@@ -6888,8 +6905,7 @@ begin
     RaiseIdentifierNotFound(20170216152722,AName,ErrorPosEl);
     end;
   if NoProcsWithArgs and (Result is TPasProcedure)
-      and (TPasProcedure(Result).ProcType.Args.Count>0)
-      and (TPasArgument(TPasProcedure(Result).ProcType.Args[0]).ValueExpr=nil)
+      and ProcNeedsParams(TPasProcedure(Result).ProcType)
   then
     // proc needs parameters
     RaiseMsg(20170216152347,nWrongNumberOfParametersForCallTo,
@@ -7588,8 +7604,10 @@ procedure TPasResolver.LogMsg(const id: int64; MsgType: TMessageType;
   PosEl: TPasElement);
 begin
   SetLastMsg(id,MsgType,MsgNumber,Fmt,Args,PosEl);
-  if Assigned(CurrentParser.OnLog) then
-    CurrentParser.OnLog(Self,SafeFormat(Fmt,Args));
+  if Assigned(OnLog) then
+    OnLog(Self,FLastMsg)
+  else if Assigned(CurrentParser.OnLog) then
+    CurrentParser.OnLog(Self,FLastMsg);
 end;
 
 function TPasResolver.CheckCallProcCompatibility(ProcType: TPasProcedureType;
@@ -7598,36 +7616,52 @@ var
   ProcArgs: TFPList;
   i, ParamCnt, ParamCompatibility: Integer;
   Param: TPasExpr;
-  Proc: TPasProcedure;
+  ParamResolved: TPasResolverResult;
+  IsVarArgs: Boolean;
 begin
   Result:=cExact;
   ProcArgs:=ProcType.Args;
   // check args
   ParamCnt:=length(Params.Params);
+  IsVarArgs:=false;
   i:=0;
   while i<ParamCnt do
     begin
     Param:=Params.Params[i];
-    if i>=ProcArgs.Count then
-      begin
-      if ProcType.Parent is TPasProcedure then
-        begin
-        Proc:=TPasProcedure(ProcType.Parent);
-        if pmVarargs in Proc.Modifiers then
-          exit;
-        end;
-      // too many arguments
-      if RaiseOnError then
-        RaiseMsg(20170216152408,nWrongNumberOfParametersForCallTo,
-          sWrongNumberOfParametersForCallTo,[GetProcDesc(ProcType)],Param);
-      exit(cIncompatible);
-      end;
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.CheckCallProcCompatibility ',i,'/',ParamCnt);
     {$ENDIF}
-    ParamCompatibility:=CheckParamCompatibility(Param,TPasArgument(ProcArgs[i]),i,RaiseOnError);
-    if ParamCompatibility=cIncompatible then
-      exit(cIncompatible);
+    if i<ProcArgs.Count then
+      begin
+      ParamCompatibility:=CheckParamCompatibility(Param,TPasArgument(ProcArgs[i]),i,RaiseOnError);
+      if ParamCompatibility=cIncompatible then
+        exit(cIncompatible);
+      end
+    else
+      begin
+      IsVarArgs:=IsVarArgs or ((ProcType.Parent is TPasProcedure)
+        and (pmVarargs in TPasProcedure(ProcType.Parent).Modifiers));
+      if IsVarArgs then
+        begin
+        ComputeElement(Param,ParamResolved,[],Param);
+        if not (rrfReadable in ParamResolved.Flags) then
+          begin
+          if RaiseOnError then
+            RaiseMsg(20170318234957,nVariableIdentifierExpected,
+              sVariableIdentifierExpected,[],Param);
+          exit(cIncompatible);
+          end;
+        ParamCompatibility:=cExact;
+        end
+      else
+        begin
+        // too many arguments
+        if RaiseOnError then
+          RaiseMsg(20170216152408,nWrongNumberOfParametersForCallTo,
+            sWrongNumberOfParametersForCallTo,[GetProcDesc(ProcType)],Param);
+        exit(cIncompatible);
+        end;
+      end;
     inc(Result,ParamCompatibility);
     inc(i);
     end;
@@ -7926,54 +7960,60 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CheckAssignResCompatibility START LHS='+GetResolverResultDesc(LHS)+' RHS='+GetResolverResultDesc(RHS));
   {$ENDIF}
+  Result:=-1;
+
   if LHS.TypeEl=nil then
     begin
     if LHS.BaseType=btUntyped then
       begin
       // untyped parameter
-      exit(cExact+1);
-      end;
-    RaiseNotYetImplemented(20160922163631,LHS.IdentEl);
+      Result:=cExact+1;
+      end
+    else
+      RaiseNotYetImplemented(20160922163631,LHS.IdentEl);
     end
   else if LHS.BaseType=RHS.BaseType then
     begin
     if LHS.BaseType=btContext then
-      exit(CheckAssignCompatibilityCustomType(LHS,RHS,ErrorEl,RaiseOnIncompatible))
+      Result:=CheckAssignCompatibilityCustomType(LHS,RHS,ErrorEl,RaiseOnIncompatible)
     else
-      exit(cExact); // same base type, maybe not same type name (e.g. longint and integer)
+      Result:=cExact; // same base type, maybe not same type name (e.g. longint and integer)
     end
   else if (LHS.BaseType in btAllInteger)
       and (RHS.BaseType in btAllInteger) then
-    exit(cExact+1) // ToDo: range check for Expr
+    Result:=cExact+1
   else if (LHS.BaseType in btAllBooleans)
       and (RHS.BaseType in btAllBooleans) then
-    exit(cExact+1)
+    Result:=cExact+1
   else if (LHS.BaseType in btAllStringAndChars)
       and (RHS.BaseType in btAllStringAndChars) then
-    exit(cExact+1)
+    Result:=cExact+1
   else if (LHS.BaseType in btAllFloats)
       and (RHS.BaseType in btAllFloats+btAllInteger) then
-    exit(cExact+1)
+    Result:=cExact+1
   else if LHS.BaseType=btNil then
     begin
-    if not RaiseOnIncompatible then exit(cIncompatible);
-    RaiseMsg(20170216152431,nCantAssignValuesToAnAddress,sCantAssignValuesToAnAddress,
-      [],ErrorEl);
+    if RaiseOnIncompatible then
+      RaiseMsg(20170216152431,nCantAssignValuesToAnAddress,sCantAssignValuesToAnAddress,
+        [],ErrorEl);
+    exit(cIncompatible);
     end
   else if LHS.BaseType in [btRange,btSet,btModule,btArray] then
     begin
     if RaiseOnIncompatible then
       RaiseMsg(20170216152432,nIllegalExpression,sIllegalExpression,[],ErrorEl);
+    exit(cIncompatible);
     end
   else if (LHS.IdentEl=nil) and (LHS.ExprEl=nil) then
     begin
     if RaiseOnIncompatible then
       RaiseMsg(20170216152434,nIllegalExpression,sIllegalExpression,[],ErrorEl);
+    exit(cIncompatible);
     end
   else if RHS.BaseType=btNil then
     begin
     if LHS.BaseType=btPointer then
-      exit(cExact)
+      Result:=cExact
     else if LHS.BaseType=btContext then
       begin
       TypeEl:=LHS.TypeEl;
@@ -7982,7 +8022,7 @@ begin
           or (TypeEl.ClassType=TPasPointerType)
           or (TypeEl is TPasProcedureType)
           or IsDynArray(TypeEl) then
-        exit(cExact);
+        Result:=cExact;
       end;
     end
   else if RHS.BaseType=btSet then
@@ -7990,15 +8030,15 @@ begin
     if (LHS.BaseType=btSet) then
       begin
       if RHS.TypeEl=nil then
-        exit(cExact); // empty set
-      if (LHS.SubType=RHS.SubType) and (LHS.SubType in (btAllBooleans+btAllInteger+[btChar])) then
-        exit(cExact);
-      if ((LHS.SubType in btAllBooleans) and (RHS.SubType in btAllBooleans))
+        Result:=cExact // empty set
+      else if (LHS.SubType=RHS.SubType) and (LHS.SubType in (btAllBooleans+btAllInteger+[btChar])) then
+        Result:=cExact
+      else if ((LHS.SubType in btAllBooleans) and (RHS.SubType in btAllBooleans))
           or ((LHS.SubType in btAllInteger) and (RHS.SubType in btAllInteger)) then
-        exit(cExact+1);
-      if (LHS.SubType=btContext) and (LHS.TypeEl is TPasEnumType)
+        Result:=cExact+1
+      else if (LHS.SubType=btContext) and (LHS.TypeEl is TPasEnumType)
           and (LHS.TypeEl=RHS.TypeEl) then
-        exit(cExact);
+        Result:=cExact;
       end;
     end
   else if RHS.BaseType=btProc then
@@ -8009,15 +8049,29 @@ begin
       begin
       if CheckProcAssignCompatibility(TPasProcedureType(LHS.TypeEl),
           TPasProcedure(RHS.IdentEl).ProcType) then
-        exit(cExact);
+        Result:=cExact;
       end;
     end
   else if (LHS.BaseType=btContext) and (LHS.TypeEl is TPasArrayType) then
-    exit(CheckAssignCompatibilityArrayType(LHS,RHS,ErrorEl,RaiseOnIncompatible));
+    Result:=CheckAssignCompatibilityArrayType(LHS,RHS,ErrorEl,RaiseOnIncompatible);
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CheckAssignResCompatibility incompatible LHS='+GetResolverResultDesc(LHS)+' RHS='+GetResolverResultDesc(RHS));
   {$ENDIF}
 
+  if (Result>=0) and (Result<cIncompatible) then
+    begin
+    // type fits -> check readable
+    if not (rrfReadable in RHS.Flags) then
+      begin
+      if RaiseOnIncompatible then
+        RaiseMsg(20170318235637,nVariableIdentifierExpected,
+          sVariableIdentifierExpected,[],ErrorEl);
+      exit(cIncompatible);
+      end;
+    exit;
+    end;
+
+  // incompatible
   if not RaiseOnIncompatible then
     exit(cIncompatible);
 
@@ -8860,8 +8914,7 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
         begin
         // a proc and implicit call without params is allowed -> check if possible
         Proc:=ResolvedEl.IdentEl as TPasProcedure;
-        if (Proc.ProcType.Args.Count=0)
-            or (TPasArgument(Proc.ProcType.Args[0]).ValueExpr<>nil) then
+        if not ProcNeedsParams(Proc.ProcType) then
           begin
           // parameter less proc -> implicit call
           Include(Ref.Flags,rrfImplicitCallWithoutParams);
@@ -8886,8 +8939,7 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
         begin
         // a proc type and implicit call without params is allowed -> check if possible
         ProcType:=TPasProcedureType(ResolvedEl.TypeEl);
-        if (ProcType.Args.Count=0)
-            or (TPasArgument(ProcType.Args[0]).ValueExpr<>nil) then
+        if not ProcNeedsParams(ProcType) then
           begin
           // parameter less proc -> implicit call
           Include(Ref.Flags,rrfImplicitCallWithoutParams);
@@ -9353,6 +9405,11 @@ begin
   if (Decl.ClassType=TPasUnresolvedSymbolRef)
       and (Decl.CustomData is TResElDataBaseType) then
     exit(true);
+end;
+
+function TPasResolver.ProcNeedsParams(El: TPasProcedureType): boolean;
+begin
+  Result:=(El.Args.Count>0) and (TPasArgument(El.Args[0]).ValueExpr=nil);
 end;
 
 function TPasResolver.GetRangeLength(RangeResolved: TPasResolverResult

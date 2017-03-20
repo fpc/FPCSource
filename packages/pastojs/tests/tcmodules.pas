@@ -154,6 +154,7 @@ type
     Procedure TestRenameJSNameConflict;
     Procedure TestLocalConst;
     Procedure TestVarExternal;
+    Procedure TestVarExternalOtherUnit;
 
     // strings
     Procedure TestCharConst;
@@ -187,6 +188,7 @@ type
     Procedure TestBreak;
     Procedure TestContinue;
     Procedure TestProcedureExternal;
+    Procedure TestProcedureExternalOtherUnit;
     Procedure TestProcedureAsm;
     Procedure TestProcedureAssembler;
     Procedure TestProcedure_VarParam;
@@ -285,6 +287,8 @@ type
     Procedure TestClass_OverloadConstructor;
     Procedure TestClass_ReintroducedVar;
     Procedure TestClass_RaiseDescendent;
+    Procedure TestClass_ExternalMethod;
+    Procedure TestClass_ExternalVar;
 
     // class of
     Procedure TestClassOf_Create;
@@ -296,6 +300,7 @@ type
     Procedure TestClassOf_ClassProperty;
     Procedure TestClassOf_ClassMethodSelf;
     Procedure TestClassOf_TypeCast;
+    Procedure TestClassOf_ImplicitFunctionCall;
 
     // proc types
     Procedure TestProcType;
@@ -1754,6 +1759,49 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestProcedureExternalOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'procedure Now; external name ''Date.now'';',
+    'procedure DoIt;'
+    ]),
+    'procedure doit; begin end;');
+
+  StartUnit(true);
+  Add('interface');
+  Add('uses unit2;');
+  Add('implementation');
+  Add('begin');
+  Add('  now;');
+  Add('  now();');
+  Add('  uNit2.now;');
+  Add('  uNit2.now();');
+  Add('  test1.now;');
+  Add('  test1.now();');
+  Add('  doit;');
+  Add('  uNit2.doit;');
+  Add('  test1.doit;');
+  ConvertUnit;
+  CheckSource('TestProcedureExternalOtherUnit',
+    LinesToStr([
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;'
+    ]),
+    LinesToStr([
+    'Date.now();',
+    'Date.now();',
+    'Date.now();',
+    'Date.now();',
+    'Date.now();',
+    'Date.now();',
+    'pas.unit2.DoIt();',
+    'pas.unit2.DoIt();',
+    'pas.unit2.DoIt();'
+    ]));
+end;
+
 procedure TTestModule.TestProcedureAsm;
 begin
   StartProgram(false);
@@ -2071,6 +2119,7 @@ begin
   Add('procedure ProcA(i:longint); varargs; external name ''ProcA'';');
   Add('procedure ProcB; varargs; external name ''ProcB'';');
   Add('procedure ProcC(i: longint = 17); varargs; external name ''ProcC'';');
+  Add('function GetIt: longint; begin end;');
   Add('begin');
   Add('  ProcA(1);');
   Add('  ProcA(1,2);');
@@ -2087,9 +2136,16 @@ begin
   Add('  ProcC();');
   Add('  ProcC(4);');
   Add('  ProcC(5,''foo'');');
+  Add('  ProcB(GetIt);');
+  Add('  ProcB(GetIt());');
+  Add('  ProcB(GetIt,GetIt());');
   ConvertProgram;
   CheckSource('TestProc_Varargs',
     LinesToStr([ // statements
+    'this.GetIt = function () {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
     '']),
     LinesToStr([
     'ProcA(1);',
@@ -2107,6 +2163,9 @@ begin
     'ProcC(17);',
     'ProcC(4);',
     'ProcC(5, "foo");',
+    'ProcB(this.GetIt());',
+    'ProcB(this.GetIt());',
+    'ProcB(this.GetIt(), this.GetIt());',
     '']));
 end;
 
@@ -2779,6 +2838,48 @@ begin
     LinesToStr([
     'this.d = Global.NaN;'
     ]));
+end;
+
+procedure TTestModule.TestVarExternalOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'var NaN: double; external name ''Global.NaN'';',
+    'var iV: longint;'
+    ]),
+    '');
+
+  StartUnit(true);
+  Add('interface');
+  Add('uses unit2;');
+  Add('implementation');
+  Add('var');
+  Add('  d: double;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  d:=nan;');
+  Add('  d:=uNit2.nan;');
+  Add('  d:=test1.nan;');
+  Add('  i:=iv;');
+  Add('  i:=uNit2.iv;');
+  Add('  i:=test1.iv;');
+  ConvertUnit;
+  CheckSource('TestVarExternalOtherUnit',
+    LinesToStr([
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;',
+    '$impl.d = 0.0;',
+    '$impl.i = 0;',
+    '']),
+    LinesToStr([
+    '$impl.d = Global.NaN;',
+    '$impl.d = Global.NaN;',
+    '$impl.d = Global.NaN;',
+    '$impl.i = pas.unit2.iV;',
+    '$impl.i = pas.unit2.iV;',
+    '$impl.i = pas.unit2.iV;',
+    '']));
 end;
 
 procedure TTestModule.TestCharConst;
@@ -6107,6 +6208,127 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestClass_ExternalMethod;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  public',
+    '    procedure Intern; external name ''$DoIntern'';',
+    '  end;',
+    '']),
+    LinesToStr([
+    '']));
+
+  StartUnit(true);
+  Add('interface');
+  Add('uses unit2;');
+  Add('type');
+  Add('  TCar = class(TObject)');
+  Add('  public');
+  Add('    procedure Intern2; external name ''$DoIntern2'';');
+  Add('    procedure DoIt;');
+  Add('  end;');
+  Add('implementation');
+  Add('procedure tcar.doit;');
+  Add('begin');
+  Add('  Intern;');
+  Add('  Intern();');
+  Add('  Intern2;');
+  Add('  Intern2();');
+  Add('end;');
+  Add('var Obj: TCar;');
+  Add('begin');
+  Add('  obj.intern;');
+  Add('  obj.intern();');
+  Add('  obj.intern2;');
+  Add('  obj.intern2();');
+  Add('  obj.doit;');
+  Add('  obj.doit();');
+  ConvertUnit;
+  CheckSource('TestClass_ExternalMethod',
+    LinesToStr([
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;',
+    'rtl.createClass(this, "TCar", pas.unit2.TObject, function () {',
+    '    this.DoIt = function () {',
+    '      $DoIntern();',
+    '      $DoIntern();',
+    '      $DoIntern2();',
+    '      $DoIntern2();',
+    '    };',
+    '  });',
+    '$impl.Obj = null;',
+    '']),
+    LinesToStr([
+    '$impl.Obj.$DoIntern();',
+    '$impl.Obj.$DoIntern();',
+    '$impl.Obj.$DoIntern2();',
+    '$impl.Obj.$DoIntern2();',
+    '$impl.Obj.DoIt();',
+    '$impl.Obj.DoIt();',
+    '']));
+end;
+
+procedure TTestModule.TestClass_ExternalVar;
+begin
+  //Not yet supported by pparser:
+  //
+  //AddModuleWithIntfImplSrc('unit2.pas',
+  //  LinesToStr([
+  //  'type',
+  //  '  TObject = class',
+  //  '  public',
+  //  '    Intern: longint; external name ''$Intern'';',
+  //  '  end;',
+  //  '']),
+  //  LinesToStr([
+  //  '']));
+  //
+  //StartUnit(true);
+  //Add('interface');
+  //Add('uses unit2;');
+  //Add('type');
+  //Add('  TCar = class(tobject)');
+  //Add('  public');
+  //Add('    Intern2: longint; external name ''$Intern2'';');
+  //Add('    procedure DoIt;');
+  //Add('  end;');
+  //Add('implementation');
+  //Add('procedure tcar.doit;');
+  //Add('begin');
+  //Add('  Intern:=Intern+1;');
+  //Add('  Intern2:=Intern2+2;');
+  //Add('end;');
+  //Add('var Obj: TCar;');
+  //Add('begin');
+  //Add('  obj.intern:=obj.intern+1;');
+  //Add('  obj.intern2:=obj.intern2+2;');
+  //ConvertUnit;
+  //CheckSource('TestClass_ExternalVar',
+  //  LinesToStr([
+  //  'var $impl = {',
+  //  '};',
+  //  'this.$impl = $impl;',
+  //  'rtl.createClass(this, "TCar", pas.unit2.TObject, function () {',
+  //  '    this.DoIt = function () {',
+  //  '      $DoIntern();',
+  //  '      $DoIntern();',
+  //  '    };',
+  //  '  });',
+  //  '']),
+  //  LinesToStr([
+  //  '$impl.Obj.$DoIntern();',
+  //  '$impl.Obj.$DoIntern();',
+  //  '$impl.Obj.$DoIntern2();',
+  //  '$impl.Obj.$DoIntern2();',
+  //  '$impl.Obj.DoIt();',
+  //  '$impl.Obj.DoIt();',
+  //  '']));
+end;
+
 procedure TTestModule.TestClassOf_Create;
 begin
   StartProgram(false);
@@ -6537,6 +6759,52 @@ begin
     'this.CarC.DoIt();',
     'this.CarC.DoIt$1();',
     'this.CarC.DoIt$2();',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_ImplicitFunctionCall;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    function CurNow: longint; ');
+  Add('    class function Now: longint; ');
+  Add('  end;');
+  Add('function TObject.CurNow: longint; begin end;');
+  Add('class function TObject.Now: longint; begin end;');
+  Add('var');
+  Add('  Obj: tobject;');
+  Add('  vI: longint;');
+  Add('begin');
+  Add('  obj.curnow;');
+  Add('  vi:=obj.curnow;');
+  Add('  tobject.now;');
+  Add('  vi:=tobject.now;');
+  ConvertProgram;
+  CheckSource('TestClassOf_ImplicitFunctionCall',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.CurNow = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.Now = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.vI = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Obj.CurNow();',
+    'this.vI = this.Obj.CurNow();',
+    'this.TObject.Now();',
+    'this.vI = this.TObject.Now();',
     '']));
 end;
 

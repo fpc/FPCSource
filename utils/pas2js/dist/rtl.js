@@ -1,4 +1,4 @@
-/*
+﻿/*
     This file is part of the Free Pascal pas2js tool.
     Copyright (c) 2017 Mattias Gaertner
 
@@ -17,7 +17,7 @@ var pas = {};
 var rtl = {
 
   quiet: false,
-  debug_load_units: true,
+  debug_load_units: false,
 
   m_loading: 0,
   m_loading_intf: 1,
@@ -27,7 +27,7 @@ var rtl = {
   m_initialized: 5,
 
   debug: function(){
-    if (!window.console || rtl.quiet) return;
+    if (rtl.quiet || !console || !console.log) return;
     console.log(arguments);
   },
 
