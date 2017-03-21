@@ -3139,6 +3139,31 @@ begin
       begin
       NextToken;
       VarMods:=[];
+      Mods:='';
+      {$IFDEF EnablePas2JSExternal}
+      if Parent.ClassType=TPasClassType then
+        begin
+        if CurToken=tkSemicolon then
+          begin
+          NextToken;
+          if (CurToken=tkIdentifier) and (CurTokenIsIdentifier('external')) then
+            begin
+            Include(VarMods,vmExternal);
+            Mods:=CurTokenText;
+            NextToken;
+            if not CurTokenIsIdentifier('name') then
+              ParseExcTokenError('name');
+            NextToken;
+            if not (CurToken in [tkString,tkIdentifier]) then
+              ParseExcTokenError(TokenInfos[tkString]);
+            Mods := Mods + ' ' + CurTokenText;
+            aExpName:=DoParseExpression(Parent);
+            end
+          else
+            UngetToken;
+          end;
+        end;
+      {$ENDIF}
       end;
     SaveComments(D);
 
@@ -5039,7 +5064,9 @@ begin
         SaveComments;
         ExpectIdentifier;
         AType.Members.Add(ParseProperty(AType,CurtokenString,CurVisibility,false));
-        end;
+        end
+    else
+      CheckToken(tkIdentifier);
     end;
     NextToken;
     end;
@@ -5152,9 +5179,15 @@ begin
     AExternalNameSpace:=CurTokenString;
     ExpectIdentifier;
     If Not CurTokenIsIdentifier('Name')  then
-       ParseExc(nParserExpectedExternalClassName,SParserExpectedExternalClassName);
+      ParseExc(nParserExpectedExternalClassName,SParserExpectedExternalClassName);
     ExpectToken(tkString);
     AExternalName:=CurTokenString;
+    NextToken;
+    end
+  else
+    begin
+    AExternalNameSpace:='';
+    AExternalName:='';
     end;
   if (CurTokenIsIdentifier('Helper')) then
     begin
@@ -5162,7 +5195,7 @@ begin
       ParseExc(nParserHelperNotAllowed,SParserHelperNotAllowed,[ObjKindNames[AObjKind]]);
     Case AObjKind of
      okClass:
-        AObjKind:=okClassHelper;
+       AObjKind:=okClassHelper;
      okTypeHelper:
        begin
        ExpectToken(tkFor);
@@ -5176,8 +5209,10 @@ begin
   Result:=PCT;
   PCT.HelperForType:=FT;
   PCT.IsExternal:=(AExternalName<>'');
-  PCT.ExternalName:=AnsiDequotedStr(AExternalName,'''');
-  PCT.ExternalNameSpace:=AnsiDequotedStr(AExternalNameSpace,'''');
+  if AExternalName<>'' then
+    PCT.ExternalName:=AnsiDequotedStr(AExternalName,'''');
+  if AExternalNameSpace<>'' then
+    PCT.ExternalNameSpace:=AnsiDequotedStr(AExternalNameSpace,'''');
   ok:=false;
   try
     PCT.ObjKind := AObjKind;

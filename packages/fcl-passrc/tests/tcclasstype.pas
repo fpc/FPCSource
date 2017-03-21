@@ -1162,7 +1162,7 @@ end;
 procedure TTestClassType.TestPropertyRedeclareDefault;
 begin
   StartVisibility(visPublic);
-  AddMember('Property Something; default;');
+  AddMember('Property Something; default');
   ParseClass;
   AssertProperty(Property1,visPublic,'Something','','','','',0,True,False);
   AssertNull('No type',Property1.VarType);

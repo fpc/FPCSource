@@ -620,6 +620,9 @@ type
     Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function IsPacked : Boolean;
     Function InterfaceGUID : string;
+    Function IsSealed : Boolean;
+    Function IsAbstract : Boolean;
+    Function HasModifier(const aModifier: String): Boolean;
   end;
 
 
@@ -2401,6 +2404,26 @@ begin
     Result:=GUIDExpr.GetDeclaration(True)
   else
     Result:=''
+end;
+
+function TPasClassType.IsSealed: Boolean;
+begin
+  Result:=HasModifier('sealed');
+end;
+
+function TPasClassType.IsAbstract: Boolean;
+begin
+  Result:=HasModifier('abstract');
+end;
+
+function TPasClassType.HasModifier(const aModifier: String): Boolean;
+var
+  i: Integer;
+begin
+  for i:=0 to Modifiers.Count-1 do
+    if CompareText(aModifier,Modifiers[i])=0 then
+      exit(true);
+  Result:=false;
 end;
 
 function TPasClassType.IsPacked: Boolean;

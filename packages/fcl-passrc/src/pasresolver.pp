@@ -68,6 +68,7 @@ Works:
   - property with params
   - default property
   - visibility
+  - sealed
 - with..do
 - enums - TPasEnumType, TPasEnumValue
   - propagate to parent scopes
@@ -226,6 +227,7 @@ const
   nCantAccessPrivateMember = 3045;
   nMustBeInsideALoop = 3046;
   nExpectXArrayElementsButFoundY = 3047;
+  nCannotCreateADescendantOfTheSealedClass = 3048;
 
 // resourcestring patterns of messages
 resourcestring
@@ -276,6 +278,7 @@ resourcestring
   sCantAccessPrivateMember = 'Can''t access %s member %s';
   sMustBeInsideALoop = '%s must be inside a loop';
   sExpectXArrayElementsButFoundY = 'Expect %s array elements, but found %s';
+  sCannotCreateADescendantOfTheSealedClass = 'Cannot create a decscendant of the sealed class "%s"';
 
 type
   TResolverBaseType = (
@@ -622,14 +625,20 @@ type
   TPasRecordScope = Class(TPasIdentifierScope)
   end;
 
+  TPasClassScopeFlag = (
+    pcsfAncestorResolved,
+    pcsfSealed
+    );
+  TPasClassScopeFlags = set of TPasClassScopeFlag;
+
   { TPasClassScope }
 
   TPasClassScope = Class(TPasIdentifierScope)
   public
-    AncestorResolved: boolean;
     AncestorScope: TPasClassScope;
     DirectAncestor: TPasType; // TPasClassType or TPasAliasType or TPasTypeAliasType
     DefaultProperty: TPasProperty;
+    Flags: TPasClassScopeFlags;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
@@ -3657,20 +3666,30 @@ procedure TPasResolver.FinishAncestors(aClass: TPasClassType);
 // before parsing the class elements
 var
   AncestorEl: TPasClassType;
-  ClassScope: TPasClassScope;
+  ClassScope, AncestorClassScope: TPasClassScope;
   DirectAncestor, AncestorType, El: TPasType;
+  i: Integer;
+  aModifier: String;
+  IsSealed: Boolean;
 begin
   if aClass.IsForward then
     exit;
   if aClass.ObjKind<>okClass then
     RaiseNotYetImplemented(20161010174638,aClass,ObjKindNames[aClass.ObjKind]);
 
+  IsSealed:=false;
+  for i:=0 to aClass.Modifiers.Count-1 do
+    begin
+    aModifier:=lowercase(aClass.Modifiers[i]);
+    case aModifier of
+    'sealed': IsSealed:=true;
+    else
+      RaiseMsg(20170320190619,nIllegalQualifier,sIllegalQualifier,[aClass.Modifiers[i]],aClass);
+    end;
+    end;
+
   DirectAncestor:=aClass.AncestorType;
-  AncestorType:=DirectAncestor;
-  while (AncestorType<>nil)
-      and ((AncestorType.ClassType=TPasAliasType) or (AncestorType.ClassType=TPasTypeAliasType))
-  do
-    AncestorType:=TPasAliasType(AncestorType).DestType;
+  AncestorType:=ResolveAliasType(DirectAncestor);
 
   if AncestorType=nil then
     begin
@@ -3691,6 +3710,8 @@ begin
     RaiseXExpectedButYFound(20170216151944,'class type',GetTypeDesc(AncestorType),aClass)
   else
     AncestorEl:=TPasClassType(AncestorType);
+
+  AncestorClassScope:=nil;
   if AncestorEl=nil then
     begin
     // root class TObject
@@ -3701,6 +3722,10 @@ begin
     if AncestorEl.IsForward then
       RaiseMsg(20170216151947,nCantUseForwardDeclarationAsAncestor,
         sCantUseForwardDeclarationAsAncestor,[AncestorEl.Name],aClass);
+    AncestorClassScope:=AncestorEl.CustomData as TPasClassScope;
+    if pcsfSealed in AncestorClassScope.Flags then
+      RaiseMsg(20170320191735,nCannotCreateADescendantOfTheSealedClass,
+        sCannotCreateADescendantOfTheSealedClass,[AncestorEl.Name],aClass);
     El:=AncestorEl;
     repeat
       if El=aClass then
@@ -3721,7 +3746,9 @@ begin
   PushScope(aClass,TPasClassScope);
   ClassScope:=TPasClassScope(TopScope);
   ClassScope.VisibilityContext:=aClass;
-  ClassScope.AncestorResolved:=true;
+  Include(ClassScope.Flags,pcsfAncestorResolved);
+  if IsSealed then
+    Include(ClassScope.Flags,pcsfSealed);
   ClassScope.DirectAncestor:=DirectAncestor;
   if AncestorEl<>nil then
     begin
@@ -9416,7 +9443,7 @@ begin
   else
     begin
     ClassScope:=ClassEl.CustomData as TPasClassScope;
-    if not ClassScope.AncestorResolved then
+    if not (pcsfAncestorResolved in ClassScope.Flags) then
       exit;
     if SkipAlias then
       begin
@@ -9445,7 +9472,8 @@ end;
 function TPasResolver.ResolveAliasType(aType: TPasType): TPasType;
 begin
   Result:=aType;
-  while Result is TPasAliasType do
+  while (Result<>nil)
+      and ((Result.ClassType=TPasAliasType) or (Result.ClassType=TPasTypeAliasType)) do
     Result:=TPasAliasType(Result).DestType;
 end;
 

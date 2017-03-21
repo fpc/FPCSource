@@ -341,6 +341,10 @@ type
     Procedure TestClass_ReintroducePrivateVar;
     Procedure TestClass_ReintroduceProc;
     Procedure TestClass_UntypedParam_TypeCast;
+    Procedure TestClass_Sealed;
+    Procedure TestClass_SealedDescendFail;
+    Procedure TestClass_VarExternal;
+    Procedure TestClass_External;
     // Todo: Fail to use class.method in constant or type, e.g. const p = @o.doit;
 
     // class of
@@ -1176,7 +1180,7 @@ begin
   for i:=0 to Resolver.Streams.Count-1 do
     begin
     GetSrc(i,SrcLines,SrcFilename);
-    IsSrc:=ExtractFilename(aFilename)=ExtractFileName(aFilename);
+    IsSrc:=ExtractFilename(SrcFilename)=ExtractFileName(aFilename);
     writeln('Testcode:-File="',SrcFilename,'"----------------------------------:');
     for j:=1 to SrcLines.Count do
       begin
@@ -5319,6 +5323,53 @@ begin
   Add('begin');
   Add('  {@ProcA}ProcA(o);');
   Add('  {@ProcB}ProcB(o);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_Sealed;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class sealed');
+  Add('  end;');
+  Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_SealedDescendFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class sealed');
+  Add('  end;');
+  Add('  TNop = class(TObject)');
+  Add('  end;');
+  Add('begin');
+  CheckResolverException('Cannot create a decscendant of the sealed class "TObject"',
+    nCannotCreateADescendantOfTheSealedClass);
+end;
+
+procedure TTestResolver.TestClass_VarExternal;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    Id: longint; external name ''$Id'';');
+  Add('    Data: longint; external name ''$Data'';');
+  Add('  end;');
+  Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_External;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('{$modeswitch externalclass}');
+  Add('  TObject = class external ''namespace'' name ''symbol''');
+  Add('    Id: longint;');
+  Add('  end;');
+  Add('begin');
   ParseProgram;
 end;
 
