@@ -606,12 +606,15 @@ type
     AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef or TPasAliasType or TPasTypeAliasType
     HelperForType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
     IsForward: Boolean;
+    IsExternal : Boolean;
     IsShortDefinition: Boolean;//class(anchestor); without end
     GUIDExpr : TPasExpr;
     Members: TFPList;     // list of TPasElement
     Modifiers: TStringList;
     Interfaces : TFPList; // list of TPasElement
     GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType
+    ExternalNameSpace : String;
+    ExternalName : String;
     Procedure SetGenericTemplates(AList : TFPList);
     Function FindMember(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;

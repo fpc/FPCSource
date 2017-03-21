@@ -237,7 +237,8 @@ type
     msBlocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
     msISOLikeIO,           { I/O as it required by an ISO compatible compiler }
     msISOLikeProgramsPara, { program parameters as it required by an ISO compatible compiler }
-    msISOLikeMod           { mod operation as it is required by an iso compatible compiler }
+    msISOLikeMod,          { mod operation as it is required by an iso compatible compiler }
+    msExternalClass        { Allow external class definitions }
   );
   TModeSwitches = Set of TModeSwitch;
 
@@ -659,7 +660,8 @@ const
     'CBLOCKS',
     'ISOIO',
     'ISOPROGRAMPARAS',
-    'ISOMOD'
+    'ISOMOD',
+    'EXTERNALCLASS'
     );
 
 const

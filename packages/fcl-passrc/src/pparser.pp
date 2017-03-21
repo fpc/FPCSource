@@ -75,6 +75,7 @@ const
   nParserOnlyOneVariableCanBeInitialized = 2048;
   nParserExpectedTypeButGot = 2049;
   nParserPropertyArgumentsCanNotHaveDefaultValues = 2050;
+  nParserExpectedExternalClassName = 2051;
 
 // resourcestring patterns of messages
 resourcestring
@@ -128,6 +129,7 @@ resourcestring
   SParserOnlyOneVariableCanBeInitialized = 'Only one variable can be initialized';
   SParserExpectedTypeButGot = 'Expected type, but got %s';
   SParserPropertyArgumentsCanNotHaveDefaultValues = 'Property arguments can not have default values';
+  SParserExpectedExternalClassName = 'Expected external class name';
 
 type
   TPasScopeType = (
@@ -5129,7 +5131,8 @@ function TPasParser.ParseClassDecl(Parent: TPasElement;
 Var
   ok: Boolean;
   FT : TPasType;
-
+  AExternalNameSpace,AExternalName : String;
+  PCT:TPasClassType;
 begin
   NextToken;
   FT:=Nil;
@@ -5142,6 +5145,16 @@ begin
     TPasClassOfType(Result).DestType := ParseType(Result,Scanner.CurSourcePos);
     Engine.FinishScope(stTypeDef,Result);
     exit;
+    end;
+  if ((AobjKind in [okClass,OKInterface]) and (msExternalClass in CurrentModeswitches) and  CurTokenIsIdentifier('external')) then
+    begin
+    ExpectToken(tkString);
+    AExternalNameSpace:=CurTokenString;
+    ExpectIdentifier;
+    If Not CurTokenIsIdentifier('Name')  then
+       ParseExc(nParserExpectedExternalClassName,SParserExpectedExternalClassName);
+    ExpectToken(tkString);
+    AExternalName:=CurTokenString;
     end;
   if (CurTokenIsIdentifier('Helper')) then
     begin
@@ -5158,16 +5171,20 @@ begin
     end;
     NextToken;
     end;
-  Result := TPasClassType(CreateElement(TPasClassType, AClassName,
+  PCT := TPasClassType(CreateElement(TPasClassType, AClassName,
     Parent, NamePos));
-  TPasClassType(Result).HelperForType:=FT;
+  Result:=PCT;
+  PCT.HelperForType:=FT;
+  PCT.IsExternal:=(AExternalName<>'');
+  PCT.ExternalName:=AnsiDequotedStr(AExternalName,'''');
+  PCT.ExternalNameSpace:=AnsiDequotedStr(AExternalNameSpace,'''');
   ok:=false;
   try
-    TPasClassType(Result).ObjKind := AObjKind;
-    TPasClassType(Result).PackMode:=PackMode;
+    PCT.ObjKind := AObjKind;
+    PCT.PackMode:=PackMode;
     if Assigned(GenericArgs) then
-      TPasClassType(Result).SetGenericTemplates(GenericArgs);
-    DoParseClassType(TPasClassType(Result));
+      PCT.SetGenericTemplates(GenericArgs);
+    DoParseClassType(PCT);
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;
   finally

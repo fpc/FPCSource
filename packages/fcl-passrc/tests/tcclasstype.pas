@@ -5,7 +5,7 @@ unit tcclasstype;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, pparser, pastree, testregistry, tctypeparser;
+  Classes, SysUtils, fpcunit, pscanner,pparser, pastree, testregistry, tctypeparser;
 
 type
 
@@ -30,6 +30,7 @@ type
     function GetT(AIndex : Integer) : TPasType;
   protected
     Procedure StartClass (AParent : String = 'TObject'; InterfaceList : String = '');
+    Procedure StartExternalClass (AParent : String; AExternalName,AExternalNameSpace : String );
     Procedure StartClassHelper (ForType : String = 'TOriginal'; AParent : String = 'TObject');
     Procedure StartInterface (AParent : String = 'IInterface'; UUID : String = ''; Disp : Boolean = False);
     Procedure StartRecordHelper (ForType : String = 'TOriginal'; AParent : String = 'TObject');
@@ -141,6 +142,10 @@ type
     Procedure TestPropertyReadFromRecordField;
     procedure TestPropertyReadFromArrayField;
     procedure TestPropertyReadWriteFromRecordField;
+    Procedure TestExternalClass;
+    Procedure TestExternalClassNoNameSpace;
+    Procedure TestExternalClassNoNameKeyWord;
+    Procedure TestExternalClassNoName;
     Procedure TestLocalSimpleType;
     Procedure TestLocalSimpleTypes;
     Procedure TestLocalSimpleConst;
@@ -248,6 +253,21 @@ begin
       S:=S+','+InterfaceList;
     S:=S+')';
     end;
+  FDecl.Add(S);
+  FParent:=AParent;
+end;
+
+procedure TTestClassType.StartExternalClass(AParent: String; AExternalName,
+  AExternalNameSpace: String);
+
+Var
+  S : String;
+
+begin
+  FStarted:=True;
+  S:=Format('TMyClass = Class external ''%s'' name ''%s'' ',[AExternalNameSpace,AExternalName]);
+  if (AParent<>'') then
+    S:=S+'('+AParent+')';
   FDecl.Add(S);
   FParent:=AParent;
 end;
@@ -1492,6 +1512,42 @@ begin
   AssertNull('No Index expression',Property1.IndexExpr);
   AssertNull('No default expression',Property1.DefaultExpr);
   Assertequals('Default value','',Property1.DefaultValue);
+end;
+
+procedure TTestClassType.TestExternalClass;
+begin
+  StartExternalClass('','myname','mynamespace');
+  Parser.CurrentModeswitches:=[msObjfpc,msexternalClass];
+  ParseClass;
+  AssertTrue('External class ',TheClass.IsExternal);
+  AssertEquals('External name space','mynamespace',TheClass.ExternalNameSpace);
+  AssertEquals('External name ','myname',TheClass.ExternalName);
+end;
+
+procedure TTestClassType.TestExternalClassNoNameSpace;
+begin
+  FStarted:=True;
+  Parser.CurrentModeswitches:=[msObjfpc,msexternalClass];
+  FDecl.add('TMyClass = Class external name ''me'' ');
+  AssertException('No namespace raises error',EParserError,@ParseClass);
+end;
+
+procedure TTestClassType.TestExternalClassNoNameKeyWord;
+begin
+  FStarted:=True;
+  Parser.CurrentModeswitches:=[msObjfpc,msexternalClass];
+  FDecl.add('TMyClass = Class external ''name'' ''me'' ');
+  AssertException('No name keyword raises error',EParserError,@ParseClass);
+
+end;
+
+procedure TTestClassType.TestExternalClassNoName;
+begin
+  FStarted:=True;
+  Parser.CurrentModeswitches:=[msObjfpc,msexternalClass];
+  FDecl.add('TMyClass = Class external ''name'' name ');
+  AssertException('No name  raises error',EParserError,@ParseClass);
+
 end;
 
 procedure TTestClassType.TestLocalSimpleType;
