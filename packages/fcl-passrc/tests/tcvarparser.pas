@@ -44,6 +44,7 @@ Type
     Procedure TestVarExternal;
     Procedure TestVarExternalLib;
     Procedure TestVarExternalLibName;
+    procedure TestVarExternalNoSemiColon;
     Procedure TestVarCVar;
     Procedure TestVarCVarExternal;
     Procedure TestVarPublic;
@@ -266,6 +267,12 @@ end;
 procedure TTestVarParser.TestVarExternal;
 begin
   ParseVar('integer; external','');
+  AssertEquals('Variable modifiers',[vmexternal],TheVar.VarModifiers);
+end;
+
+procedure TTestVarParser.TestVarExternalNoSemiColon;
+begin
+  ParseVar('integer external','');
   AssertEquals('Variable modifiers',[vmexternal],TheVar.VarModifiers);
 end;
 

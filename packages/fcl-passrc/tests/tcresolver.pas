@@ -344,6 +344,7 @@ type
     Procedure TestClass_Sealed;
     Procedure TestClass_SealedDescendFail;
     Procedure TestClass_VarExternal;
+    Procedure TestClass_VarExternalSemicolon;
     Procedure TestClass_External;
     // Todo: Fail to use class.method in constant or type, e.g. const p = @o.doit;
 
@@ -5357,6 +5358,19 @@ begin
   Add('  TObject = class');
   Add('    Id: longint external name ''$Id'';');
   Add('    Data: longint external name ''$Data'';');
+  Add('  end;');
+  Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_VarExternalSemicolon;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('{$modeswitch externalclass}');
+  Add('  TObject = class');
+  Add('    Id: longint; external name ''$Id'';');
+  Add('    Data: longint; external name ''$Data'';');
   Add('  end;');
   Add('begin');
   ParseProgram;

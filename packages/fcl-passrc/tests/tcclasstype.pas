@@ -92,7 +92,8 @@ type
     procedure TestHintFieldExperimental;
     procedure TestHintFieldLibraryError;
     procedure TestHintFieldUninmplemented;
-    Procedure TestOneVarFieldExternamName;
+    Procedure TestOneVarFieldExternalName;
+    procedure TestOneVarFieldExternalNameSemicolon;
     Procedure TestMethodSimple;
     Procedure TestMethodSimpleComment;
     Procedure TestMethodWithDotFails;
@@ -783,11 +784,22 @@ begin
   AssertMemberName('unimplemented');
 end;
 
-procedure TTestClassType.TestOneVarFieldExternamName;
+procedure TTestClassType.TestOneVarFieldExternalName;
 begin
   Parser.CurrentModeswitches:=Parser.CurrentModeswitches+[msExternalClass];
   StartExternalClass('','myname','');
   AddMember('unimplemented: integer external name ''uni''');
+  ParseClass;
+  AssertEquals('1 members',1,TheClass.members.Count);
+  AssertNotNull('Have field',Field1);
+  AssertMemberName('unimplemented');
+end;
+
+procedure TTestClassType.TestOneVarFieldExternalNameSemicolon;
+begin
+  Parser.CurrentModeswitches:=Parser.CurrentModeswitches+[msExternalClass];
+  StartExternalClass('','myname','');
+  AddMember('unimplemented: integer; external name ''uni''');
   ParseClass;
   AssertEquals('1 members',1,TheClass.members.Count);
   AssertNotNull('Have field',Field1);

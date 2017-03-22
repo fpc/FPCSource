@@ -3134,13 +3134,14 @@ begin
     Value:=nil;
     ExternalClass:=(msExternalClass in CurrentModeSwitches)
                     and (Parent is TPasClassType) ;
-    H:=H+CheckHint(Nil,Full);
-    if Full  then
-      Mods:=GetVariableModifiers(Parent,VarMods,aLibName,aExpName,ExternalClass)
-    else if ExternalClass then
+    H:=H+CheckHint(Nil,False);
+    if Full or Externalclass then
       begin
+      NextToken;
+      If Curtoken<>tkSemicolon then
+        UnGetToken;
       Mods:=GetVariableModifiers(Parent,VarMods,aLibName,aExpName,ExternalClass)  ;
-      if mods='' then
+      if (mods='') and (CurToken<>tkSemicolon) then
          NextToken;
       end
     else
