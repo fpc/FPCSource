@@ -242,7 +242,7 @@ type
     procedure DumpCurToken(Const Msg : String; IndentAction : TIndentAction = iaNone);
     function GetCurrentModeSwitches: TModeSwitches;
     Procedure SetCurrentModeSwitches(AValue: TModeSwitches);
-    function GetVariableModifiers(Parent: TPasElement; Out VarMods: TVariableModifiers; Out LibName, ExportName: TPasExpr): string;
+    function GetVariableModifiers(Parent: TPasElement; Out VarMods: TVariableModifiers; Out LibName, ExportName: TPasExpr; ExternalClass : Boolean): string;
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
     procedure ParseClassLocalConsts(AType: TPasClassType; AVisibility: TPasMemberVisibility);
@@ -3011,7 +3011,8 @@ begin
 end;
 
 function TPasParser.GetVariableModifiers(Parent: TPasElement; out
-  VarMods: TVariableModifiers; out LibName, ExportName: TPasExpr): string;
+  VarMods: TVariableModifiers; out LibName, ExportName: TPasExpr;
+  ExternalClass: Boolean): string;
 
 Var
   S : String;
@@ -3022,7 +3023,7 @@ begin
   ExportName := nil;
   VarMods := [];
   NextToken;
-  If CurTokenIsIdentifier('cvar') then
+  If CurTokenIsIdentifier('cvar') and not ExternalClass then
     begin
     Result:=';cvar';
     Include(VarMods,vmcvar);
@@ -3032,9 +3033,9 @@ begin
   s:=LowerCase(CurTokenText);
   if s='external' then
     ExtMod:=vmExternal
-  else if (s='public') then
+  else if (s='public') and not externalclass then
     ExtMod:=vmPublic
-  else if (s='export') then
+  else if (s='export') and not externalclass then
     ExtMod:=vmExport
   else
     begin
@@ -3059,7 +3060,7 @@ begin
   // external libname name exportname;
   // external name exportname;
   if (ExtMod=vmExternal) and (CurToken in [tkString,tkIdentifier])
-      and Not (CurTokenIsIdentifier('name')) then
+      and Not (CurTokenIsIdentifier('name')) and not ExternalClass then
     begin
     Result := Result + ' ' + CurTokenText;
     LibName:=DoParseExpression(Parent);
@@ -3086,7 +3087,7 @@ var
   H : TPasMemberHints;
   VarMods: TVariableModifiers;
   D,Mods,Loc: string;
-  OldForceCaret,ok: Boolean;
+  OldForceCaret,ok,ExternalClass: Boolean;
 
 begin
   Value:=Nil;
@@ -3131,39 +3132,23 @@ begin
       ParseExc(nParserOnlyOneVariableCanBeInitialized,SParserOnlyOneVariableCanBeInitialized);
     TPasVariable(VarList[OldListCount]).Expr:=Value;
     Value:=nil;
-
+    ExternalClass:=(msExternalClass in CurrentModeSwitches)
+                    and (Parent is TPasClassType)
+                    and (TPasClassType(Parent).ExternalName<>'');
     H:=H+CheckHint(Nil,Full);
-    if Full then
-      Mods:=GetVariableModifiers(Parent,VarMods,aLibName,aExpName)
+    if Full  then
+      Mods:=GetVariableModifiers(Parent,VarMods,aLibName,aExpName,ExternalClass)
+    else if ExternalClass then
+      begin
+      Mods:=GetVariableModifiers(Parent,VarMods,aLibName,aExpName,ExternalClass)  ;
+      if mods='' then
+         NextToken;
+      end
     else
       begin
       NextToken;
       VarMods:=[];
       Mods:='';
-      {$IFDEF EnablePas2JSExternal}
-      if Parent.ClassType=TPasClassType then
-        begin
-        if CurToken=tkSemicolon then
-          begin
-          NextToken;
-          if (CurToken=tkIdentifier) and (CurTokenIsIdentifier('external')) then
-            begin
-            Include(VarMods,vmExternal);
-            Mods:=CurTokenText;
-            NextToken;
-            if not CurTokenIsIdentifier('name') then
-              ParseExcTokenError('name');
-            NextToken;
-            if not (CurToken in [tkString,tkIdentifier]) then
-              ParseExcTokenError(TokenInfos[tkString]);
-            Mods := Mods + ' ' + CurTokenText;
-            aExpName:=DoParseExpression(Parent);
-            end
-          else
-            UngetToken;
-          end;
-        end;
-      {$ENDIF}
       end;
     SaveComments(D);
 
@@ -5175,8 +5160,11 @@ begin
     end;
   if ((AobjKind in [okClass,OKInterface]) and (msExternalClass in CurrentModeswitches) and  CurTokenIsIdentifier('external')) then
     begin
-    ExpectToken(tkString);
-    AExternalNameSpace:=CurTokenString;
+    NextToken;
+    if CurToken<>tkString then
+      UnGetToken
+    else
+      AExternalNameSpace:=CurTokenString;
     ExpectIdentifier;
     If Not CurTokenIsIdentifier('Name')  then
       ParseExc(nParserExpectedExternalClassName,SParserExpectedExternalClassName);

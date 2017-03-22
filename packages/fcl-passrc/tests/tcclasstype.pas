@@ -92,6 +92,7 @@ type
     procedure TestHintFieldExperimental;
     procedure TestHintFieldLibraryError;
     procedure TestHintFieldUninmplemented;
+    Procedure TestOneVarFieldExternamName;
     Procedure TestMethodSimple;
     Procedure TestMethodSimpleComment;
     Procedure TestMethodWithDotFails;
@@ -776,6 +777,17 @@ end;
 procedure TTestClassType.TestHintFieldUninmplemented;
 begin
   AddMember('unimplemented: integer');
+  ParseClass;
+  AssertEquals('1 members',1,TheClass.members.Count);
+  AssertNotNull('Have field',Field1);
+  AssertMemberName('unimplemented');
+end;
+
+procedure TTestClassType.TestOneVarFieldExternamName;
+begin
+  Parser.CurrentModeswitches:=Parser.CurrentModeswitches+[msExternalClass];
+  StartExternalClass('','myname','');
+  AddMember('unimplemented: integer external name ''uni''');
   ParseClass;
   AssertEquals('1 members',1,TheClass.members.Count);
   AssertNotNull('Have field',Field1);
@@ -1529,7 +1541,10 @@ begin
   FStarted:=True;
   Parser.CurrentModeswitches:=[msObjfpc,msexternalClass];
   FDecl.add('TMyClass = Class external name ''me'' ');
-  AssertException('No namespace raises error',EParserError,@ParseClass);
+  ParseClass;
+  AssertTrue('External class ',TheClass.IsExternal);
+  AssertEquals('External name space','',TheClass.ExternalNameSpace);
+  AssertEquals('External name ','me',TheClass.ExternalName);
 end;
 
 procedure TTestClassType.TestExternalClassNoNameKeyWord;

@@ -5353,9 +5353,10 @@ procedure TTestResolver.TestClass_VarExternal;
 begin
   StartProgram(false);
   Add('type');
-  Add('  TObject = class');
-  Add('    Id: longint; external name ''$Id'';');
-  Add('    Data: longint; external name ''$Data'';');
+  Add('{$modeswitch externalclass}');
+  Add('  TObject = class external ''namespace'' name ''symbol''');
+  Add('    Id: longint external name ''$Id'';');
+  Add('    Data: longint external name ''$Data'';');
   Add('  end;');
   Add('begin');
   ParseProgram;
