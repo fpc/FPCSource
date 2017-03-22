@@ -5354,7 +5354,7 @@ begin
   StartProgram(false);
   Add('type');
   Add('{$modeswitch externalclass}');
-  Add('  TObject = class external ''namespace'' name ''symbol''');
+  Add('  TObject = class');
   Add('    Id: longint external name ''$Id'';');
   Add('    Data: longint external name ''$Data'';');
   Add('  end;');

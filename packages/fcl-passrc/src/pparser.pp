@@ -3133,8 +3133,7 @@ begin
     TPasVariable(VarList[OldListCount]).Expr:=Value;
     Value:=nil;
     ExternalClass:=(msExternalClass in CurrentModeSwitches)
-                    and (Parent is TPasClassType)
-                    and (TPasClassType(Parent).ExternalName<>'');
+                    and (Parent is TPasClassType) ;
     H:=H+CheckHint(Nil,Full);
     if Full  then
       Mods:=GetVariableModifiers(Parent,VarMods,aLibName,aExpName,ExternalClass)
