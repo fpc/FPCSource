@@ -68,6 +68,9 @@ type
   private
     FConverter: TPasToJSConverter;
     FEngine: TTestEnginePasResolver;
+    FExpectedErrorClass: ExceptClass;
+    FExpectedErrorMsg: string;
+    FExpectedErrorNumber: integer;
     FFilename: string;
     FFileResolver: TStreamResolver;
     FJSInitBody: TJSFunctionBody;
@@ -82,6 +85,7 @@ type
     FPasProgram: TPasProgram;
     FJSRegModuleCall: TJSCallExpression;
     FScanner: TPascalScanner;
+    FSkipTests: boolean;
     FSource: TStringList;
     FFirstPasStatement: TPasImplBlock;
     function GetModuleCount: integer;
@@ -111,7 +115,16 @@ type
     function GetDottedIdentifier(El: TJSElement): string;
     procedure CheckSource(Msg,Statements, InitStatements: string); virtual;
     procedure CheckDiff(Msg, Expected, Actual: string); virtual;
-    procedure WriteSource(aFilename: string; Row: integer = 0; Col: integer = 0); virtual;
+    procedure SetExpectedPasResolverError(Msg: string; MsgNumber: integer);
+    procedure SetExpectedConverterError(Msg: string; MsgNumber: integer);
+    function IsErrorExpected(E: Exception): boolean;
+    procedure HandleScannerError(E: EScannerError);
+    procedure HandleParserError(E: EParserError);
+    procedure HandlePasResolveError(E: EPasResolve);
+    procedure HandlePas2JSError(E: EPas2JS);
+    procedure HandleException(E: Exception);
+    procedure RaiseException(E: Exception);
+    procedure WriteSources(const aFilename: string; aRow, aCol: integer);
     property PasProgram: TPasProgram Read FPasProgram;
     property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
     property ModuleCount: integer read GetModuleCount;
@@ -127,6 +140,10 @@ type
     property JSInterfaceUses: TJSArrayLiteral read FJSInterfaceUses;
     property JSModuleSrc: TJSSourceElements read FJSModuleSrc;
     property JSInitBody: TJSFunctionBody read FJSInitBody;
+    property ExpectedErrorClass: ExceptClass read FExpectedErrorClass write FExpectedErrorClass;
+    property ExpectedErrorMsg: string read FExpectedErrorMsg write FExpectedErrorMsg;
+    property ExpectedErrorNumber: integer read FExpectedErrorNumber write FExpectedErrorNumber;
+    property SkipTests: boolean read FSkipTests write FSkipTests;
   public
     property Source: TStringList read FSource;
     property FileResolver: TStreamResolver read FFileResolver;
@@ -288,14 +305,17 @@ type
     Procedure TestClass_OverloadsAncestor;
     Procedure TestClass_OverloadConstructor;
     Procedure TestClass_ReintroducedVar;
-    Procedure TestClass_RaiseDescendent;
+    Procedure TestClass_RaiseDescendant;
     Procedure TestClass_ExternalMethod;
+    Procedure TestClass_ExternalVirtualNameMismatchFail;
+    Procedure TestClass_ExternalOverrideFail;
     Procedure TestClass_ExternalVar;
 
     // class of
     Procedure TestClassOf_Create;
     Procedure TestClassOf_Call;
     Procedure TestClassOf_Assign;
+    Procedure TestClassOf_Is;
     Procedure TestClassOf_Compare;
     Procedure TestClassOf_ClassVar;
     Procedure TestClassOf_ClassMethod;
@@ -303,6 +323,26 @@ type
     Procedure TestClassOf_ClassMethodSelf;
     Procedure TestClassOf_TypeCast;
     Procedure TestClassOf_ImplicitFunctionCall;
+
+    // external class
+    Procedure TestExternalClass_Var;
+    // ToDo TestExternalClass_Const
+    Procedure TestExternalClass_DuplicateVarFail;
+    Procedure TestExternalClass_Method;
+    Procedure TestExternalClass_NonExternalOverride;
+    Procedure TestExternalClass_Property;
+    Procedure TestExternalClass_ClassProperty;
+    Procedure TestExternalClass_ClassOf;
+    Procedure TestExternalClass_ClassOtherUnit;
+    Procedure TestExternalClass_Is;
+    Procedure TestExternalClass_As;
+    Procedure TestExternalClass_DestructorFail;
+    Procedure TestExternalClass_New;
+    Procedure TestExternalClass_ClassOf_New;
+    Procedure TestExternalClass_FuncClassOf_New;
+    Procedure TestExternalClass_LocalConstSameName;
+    Procedure TestExternalClass_ReintroduceOverload;
+    Procedure TestExternalClass_Inherited;
 
     // proc types
     Procedure TestProcType;
@@ -452,16 +492,12 @@ begin
         CurEngine.Parser.NextToken;
         CurEngine.Parser.ParseUnit(CurEngine.FModule);
       except
+        on E: EParserError do
+          HandleParserError(E);
+        on E: EPasResolve do
+          HandlePasResolveError(E);
         on E: Exception do
-          begin
-          writeln('ERROR: TTestModule.OnPasResolverFindUnit during parsing: '+E.ClassName+':'+E.Message
-            +' File='+CurEngine.Scanner.CurFilename
-            +' LineNo='+IntToStr(CurEngine.Scanner.CurRow)
-            +' Col='+IntToStr(CurEngine.Scanner.CurColumn)
-            +' Line="'+CurEngine.Scanner.CurLine+'"'
-            );
-          Fail(E.Message);
-          end;
+          HandleException(E);
       end;
       //writeln('TTestModule.OnPasResolverFindUnit END ',CurUnitName);
       Result:=CurEngine.Module;
@@ -475,6 +511,7 @@ end;
 procedure TCustomTestModule.SetUp;
 begin
   inherited SetUp;
+  FSkipTests:=false;
   FSource:=TStringList.Create;
   FModules:=TObjectList.Create(true);
 
@@ -488,10 +525,13 @@ begin
   FModule:=Nil;
   FConverter:=TPasToJSConverter.Create;
   FConverter.UseLowerCase:=false;
+
+  FExpectedErrorClass:=nil;
 end;
 
 procedure TCustomTestModule.TearDown;
 begin
+  FSkipTests:=false;
   FJSModule:=nil;
   FJSRegModuleCall:=nil;
   FJSModuleCallArgs:=nil;
@@ -526,46 +566,36 @@ begin
 end;
 
 procedure TCustomTestModule.StartParsing;
+var
+  Src: String;
 begin
-  FileResolver.AddStream(FileName,TStringStream.Create(Source.Text));
+  Src:=Source.Text;
+  FEngine.Source:=Src;
+  FileResolver.AddStream(FileName,TStringStream.Create(Src));
   Scanner.OpenFile(FileName);
   Writeln('// Test : ',Self.TestName);
-  Writeln(Source.Text);
+  Writeln(Src);
 end;
 
 procedure TCustomTestModule.ParseModule;
-var
-  Row, Col: integer;
 begin
+  if SkipTests then exit;
   FFirstPasStatement:=nil;
   try
     StartParsing;
     Parser.ParseMain(FModule);
   except
     on E: EParserError do
-      begin
-      WriteSource(E.Filename,E.Row,E.Column);
-      writeln('ERROR: TTestModule.ParseModule Parser: '+E.ClassName+':'+E.Message
-        +' '+E.Filename+'('+IntToStr(E.Row)+','+IntToStr(E.Column)+')'
-        +' Line="'+Scanner.CurLine+'"'
-        );
-      Fail(E.Message);
-      end;
+      HandleParserError(E);
     on E: EPasResolve do
-      begin
-      Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
-      WriteSource(E.PasElement.SourceFilename,Row,Col);
-      writeln('ERROR: TTestModule.ParseModule PasResolver: '+E.ClassName+':'+E.Message
-        +' '+E.PasElement.SourceFilename
-        +'('+IntToStr(Row)+','+IntToStr(Col)+')');
-      Fail(E.Message);
-      end;
+      HandlePasResolveError(E);
+    on E: EPas2JS do
+      HandlePas2JSError(E);
     on E: Exception do
-      begin
-      writeln('ERROR: TTestModule.ParseModule Exception: '+E.ClassName+':'+E.Message);
-      Fail(E.Message);
-      end;
+      HandleException(E);
   end;
+  if SkipTests then exit;
+
   AssertNotNull('Module resulted in Module',FModule);
   AssertEquals('modulename',lowercase(ChangeFileExt(FFileName,'')),lowercase(Module.Name));
   TAssert.AssertSame('Has resolver',Engine,Parser.Engine);
@@ -573,7 +603,9 @@ end;
 
 procedure TCustomTestModule.ParseProgram;
 begin
+  if SkipTests then exit;
   ParseModule;
+  if SkipTests then exit;
   AssertEquals('Has program',TPasProgram,Module.ClassType);
   FPasProgram:=TPasProgram(Module);
   AssertNotNull('Has program section',PasProgram.ProgramSection);
@@ -585,7 +617,9 @@ end;
 
 procedure TCustomTestModule.ParseUnit;
 begin
+  if SkipTests then exit;
   ParseModule;
+  if SkipTests then exit;
   AssertEquals('Has unit (TPasModule)',TPasModule,Module.ClassType);
   AssertNotNull('Has interface section',Module.InterfaceSection);
   AssertNotNull('Has implementation section',Module.ImplementationSection);
@@ -687,54 +721,26 @@ var
   InitAssign: TJSSimpleAssignStatement;
   FunBody: TJSFunctionBody;
   InitName: String;
-  Row, Col: integer;
 begin
+  if SkipTests then exit;
   try
     FJSModule:=FConverter.ConvertPasElement(Module,Engine) as TJSSourceElements;
   except
-    on E: EScannerError do begin
-      WriteSource(Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn);
-      writeln('ERROR: TTestModule.ConvertModule Scanner: '+E.ClassName+':'+E.Message
-        +' '+Scanner.CurFilename
-        +'('+IntToStr(Scanner.CurRow)+','+IntToStr(Scanner.CurColumn)+')');
-      Fail(E.Message);
-    end;
-    on E: EParserError do begin
-      WriteSource(Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn);
-      writeln('ERROR: TTestModule.ConvertModule Parser: '+E.ClassName+':'+E.Message
-        +' '+Scanner.CurFilename
-        +'('+IntToStr(Scanner.CurRow)+','+IntToStr(Scanner.CurColumn)+')');
-      Fail(E.Message);
-    end;
+    on E: EScannerError do
+      HandleScannerError(E);
+    on E: EParserError do
+      HandleParserError(E);
     on E: EPasResolve do
-      begin
-      Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
-      WriteSource(E.PasElement.SourceFilename,Row,Col);
-      writeln('ERROR: TTestModule.ConvertModule PasResolver: '+E.ClassName+':'+E.Message
-        +' '+E.PasElement.SourceFilename
-        +'('+IntToStr(Row)+','+IntToStr(Col)+')');
-      Fail(E.Message);
-      end;
+      HandlePasResolveError(E);
     on E: EPas2JS do
-      begin
-      if E.PasElement<>nil then
-        begin
-        Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
-        WriteSource(E.PasElement.SourceFilename,Row,Col);
-        writeln('ERROR: TTestModule.ConvertModule Converter: '+E.ClassName+':'+E.Message
-          +' '+E.PasElement.SourceFilename
-          +'('+IntToStr(Row)+','+IntToStr(Col)+')');
-        end
-      else
-        writeln('ERROR: TTestModule.ConvertModule Exception: '+E.ClassName+':'+E.Message);
-      Fail(E.Message);
-      end;
+      HandlePas2JSError(E);
     on E: Exception do
-      begin
-      writeln('ERROR: TTestModule.ConvertModule Exception: '+E.ClassName+':'+E.Message);
-      Fail(E.Message);
-      end;
+      HandleException(E);
   end;
+  if SkipTests then exit;
+  if ExpectedErrorClass<>nil then
+    Fail('Missing '+ExpectedErrorClass.ClassName+' error {'+ExpectedErrorMsg+'} ('+IntToStr(ExpectedErrorNumber)+')');
+
   FJSSource:=TStringList.Create;
   FJSSource.Text:=JSToStr(JSModule);
   {$IFDEF VerbosePas2JS}
@@ -963,31 +969,147 @@ begin
   until false;
 end;
 
-procedure TCustomTestModule.WriteSource(aFilename: string; Row: integer; Col: integer
-  );
-var
-  LR: TLineReader;
-  CurRow: Integer;
-  Line: String;
+procedure TCustomTestModule.SetExpectedPasResolverError(Msg: string;
+  MsgNumber: integer);
 begin
-  LR:=FileResolver.FindSourceFile(aFilename);
-  writeln('Testcode:-File="',aFilename,'"----------------------------------:');
-  if LR=nil then
-    writeln('Error: file not loaded: "',aFilename,'"')
+  ExpectedErrorClass:=EPasResolve;
+  ExpectedErrorMsg:=Msg;
+  ExpectedErrorNumber:=MsgNumber;
+end;
+
+procedure TCustomTestModule.SetExpectedConverterError(Msg: string;
+  MsgNumber: integer);
+begin
+  ExpectedErrorClass:=EPas2JS;
+  ExpectedErrorMsg:=Msg;
+  ExpectedErrorNumber:=MsgNumber;
+end;
+
+function TCustomTestModule.IsErrorExpected(E: Exception): boolean;
+var
+  MsgNumber: Integer;
+begin
+  Result:=false;
+  if (ExpectedErrorClass=nil) or (ExpectedErrorClass<>E.ClassType) then exit;
+  if E is EPas2JS then
+    MsgNumber:=EPas2JS(E).MsgNumber
+  else if E is EPasResolve then
+    MsgNumber:=EPasResolve(E).MsgNumber
   else
+    MsgNumber:=0;
+  Result:=(MsgNumber=ExpectedErrorNumber) and (E.Message=ExpectedErrorMsg);
+  if Result then
+    SkipTests:=true;
+end;
+
+procedure TCustomTestModule.HandleScannerError(E: EScannerError);
+begin
+  if IsErrorExpected(E) then exit;
+  WriteSources(Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn);
+  writeln('ERROR: TCustomTestModule.HandleScannerError '+E.ClassName+':'+E.Message
+    +' '+Scanner.CurFilename
+    +'('+IntToStr(Scanner.CurRow)+','+IntToStr(Scanner.CurColumn)+')');
+  RaiseException(E);
+end;
+
+procedure TCustomTestModule.HandleParserError(E: EParserError);
+begin
+  if IsErrorExpected(E) then exit;
+  WriteSources(E.Filename,E.Row,E.Column);
+  writeln('ERROR: TCustomTestModule.HandleParserError '+E.ClassName+':'+E.Message
+    +' '+E.Filename+'('+IntToStr(E.Row)+','+IntToStr(E.Column)+')'
+    +' Line="'+Scanner.CurLine+'"'
+    );
+  RaiseException(E);
+end;
+
+procedure TCustomTestModule.HandlePasResolveError(E: EPasResolve);
+var
+  Row, Col: integer;
+begin
+  if IsErrorExpected(E) then exit;
+  Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
+  WriteSources(E.PasElement.SourceFilename,Row,Col);
+  writeln('ERROR: TCustomTestModule.HandlePasResolveError '+E.ClassName+':'+E.Message
+    +' '+E.PasElement.SourceFilename
+    +'('+IntToStr(Row)+','+IntToStr(Col)+')');
+  RaiseException(E);
+end;
+
+procedure TCustomTestModule.HandlePas2JSError(E: EPas2JS);
+var
+  Row, Col: integer;
+begin
+  if IsErrorExpected(E) then exit;
+  Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
+  WriteSources(E.PasElement.SourceFilename,Row,Col);
+  writeln('ERROR: TCustomTestModule.HandlePas2JSError '+E.ClassName+':'+E.Message
+    +' '+E.PasElement.SourceFilename
+    +'('+IntToStr(Row)+','+IntToStr(Col)+')');
+  RaiseException(E);
+end;
+
+procedure TCustomTestModule.HandleException(E: Exception);
+begin
+  if IsErrorExpected(E) then exit;
+  WriteSources('',0,0);
+  writeln('ERROR: TCustomTestModule.HandleException '+E.ClassName+':'+E.Message);
+  RaiseException(E);
+end;
+
+procedure TCustomTestModule.RaiseException(E: Exception);
+var
+  MsgNumber: Integer;
+begin
+  if ExpectedErrorClass<>nil then begin
+    if FExpectedErrorClass=E.ClassType then begin
+      if E is EPas2JS then
+        MsgNumber:=EPas2JS(E).MsgNumber
+      else if E is EPasResolve then
+        MsgNumber:=EPasResolve(E).MsgNumber
+      else
+        MsgNumber:=0;
+      AssertEquals('Expected error message ('+IntToStr(ExpectedErrorNumber)+')','{'+ExpectedErrorMsg+'}','{'+E.Message+'}');
+      AssertEquals('Expected {'+ExpectedErrorMsg+'}, but got msg {'+E.Message+'} number',
+        ExpectedErrorNumber,MsgNumber);
+    end else begin
+      AssertEquals('Wrong exception class',ExpectedErrorClass.ClassName,E.ClassName);
+    end;
+  end;
+  Fail(E.Message);
+end;
+
+procedure TCustomTestModule.WriteSources(const aFilename: string; aRow,
+  aCol: integer);
+var
+  IsSrc: Boolean;
+  i, j: Integer;
+  SrcLines: TStringList;
+  Line: string;
+  aModule: TTestEnginePasResolver;
+begin
+  for i:=0 to ModuleCount-1 do
     begin
-    CurRow:=0;
-    while not LR.IsEOF do
-      begin
-      inc(CurRow);
-      Line:=LR.ReadLine;
-      if (Row=CurRow) then
+    aModule:=Modules[i];
+    SrcLines:=TStringList.Create;
+    try
+      SrcLines.Text:=aModule.Source;
+      IsSrc:=ExtractFilename(aModule.Filename)=ExtractFileName(aFilename);
+      writeln('Testcode:-File="',aModule.Filename,'"----------------------------------:');
+      writeln('AAA1 TCustomTestModule.WriteSources ',SrcLines.Count);
+      for j:=1 to SrcLines.Count do
         begin
-        write('*');
-        Line:=LeftStr(Line,Col-1)+'|'+copy(Line,Col,length(Line));
+        Line:=SrcLines[j-1];
+        if IsSrc and (j=aRow) then
+          begin
+          write('*');
+          Line:=LeftStr(Line,aCol-1)+'|'+copy(Line,aCol,length(Line));
+          end;
+        writeln(Format('%:4d: ',[j]),Line);
         end;
-      writeln(Format('%:4d: ',[CurRow]),Line);
-      end;
+    finally
+      SrcLines.Free;
+    end;
     end;
 end;
 
@@ -5580,13 +5702,13 @@ begin
   Add('  integer = longint;');
   Add('  TObject = class');
   Add('    FItem: integer;');
-  Add('    function GetItem: integer; external name ''getter'';');
-  Add('    procedure SetItem(Value: integer); external name ''setter'';');
+  Add('    function GetItem: integer; external name ''GetItem'';');
+  Add('    procedure SetItem(Value: integer); external name ''SetItem'';');
   Add('    property Item: integer read getitem write setitem;');
   Add('  end;');
   Add('  TCar = class');
   Add('    FBag: integer;');
-  Add('    function GetBag: integer; external name ''getbag'';');
+  Add('    function GetBag: integer; external name ''GetBag'';');
   Add('    property Item read getbag;');
   Add('  end;');
   Add('var');
@@ -5615,8 +5737,8 @@ begin
     'this.Car = null;',
     '']),
     LinesToStr([ // this.$main
-    'this.Obj.SetItem(this.Obj.getter());',
-    'this.Car.SetItem(this.Car.getbag());',
+    'this.Obj.SetItem(this.Obj.GetItem());',
+    'this.Car.SetItem(this.Car.GetBag());',
     '']));
 end;
 
@@ -6244,27 +6366,30 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClass_RaiseDescendent;
+procedure TTestModule.TestClass_RaiseDescendant;
 begin
   StartProgram(false);
   Add('type');
   Add('  TObject = class');
-  Add('    constructor Create(Msg: string); external name ''Foo'';');
+  Add('    constructor Create(Msg: string);');
   Add('  end;');
   Add('  Exception = class');
   Add('  end;');
   Add('  EConvertError = class(Exception)');
   Add('  end;');
+  Add('constructor TObject.Create(Msg: string); begin end;');
   Add('begin');
   Add('  raise Exception.Create(''Bar1'');');
   Add('  raise EConvertError.Create(''Bar2'');');
   ConvertProgram;
-  CheckSource('TestClassOf_Create',
+  CheckSource('TestClass_RaiseDescendant',
     LinesToStr([ // statements
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
+    '  };',
+    '  this.Create = function (Msg) {',
     '  };',
     '});',
     'rtl.createClass(this, "Exception", this.TObject, function () {',
@@ -6316,6 +6441,12 @@ begin
   Add('  obj.intern2();');
   Add('  obj.doit;');
   Add('  obj.doit();');
+  Add('  with obj do begin');
+  Add('    Intern;');
+  Add('    Intern();');
+  Add('    Intern2;');
+  Add('    Intern2();');
+  Add('  end;');
   ConvertUnit;
   CheckSource('TestClass_ExternalMethod',
     LinesToStr([
@@ -6324,10 +6455,10 @@ begin
     'this.$impl = $impl;',
     'rtl.createClass(this, "TCar", pas.unit2.TObject, function () {',
     '    this.DoIt = function () {',
-    '      $DoIntern();',
-    '      $DoIntern();',
-    '      $DoIntern2();',
-    '      $DoIntern2();',
+    '      this.$DoIntern();',
+    '      this.$DoIntern();',
+    '      this.$DoIntern2();',
+    '      this.$DoIntern2();',
     '    };',
     '  });',
     '$impl.Obj = null;',
@@ -6339,64 +6470,102 @@ begin
     '$impl.Obj.$DoIntern2();',
     '$impl.Obj.DoIt();',
     '$impl.Obj.DoIt();',
+    'var $with1 = $impl.Obj;',
+    '$with1.$DoIntern();',
+    '$with1.$DoIntern();',
+    '$with1.$DoIntern2();',
+    '$with1.$DoIntern2();',
     '']));
+end;
+
+procedure TTestModule.TestClass_ExternalVirtualNameMismatchFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure DoIt; virtual; external name ''Foo'';');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError('Virtual method name must match external',
+    nVirtualMethodNameMustMatchExternal);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClass_ExternalOverrideFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure DoIt; virtual; external name ''DoIt'';');
+  Add('  end;');
+  Add('  TCar = class');
+  Add('    procedure DoIt; override; external name ''DoIt'';');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError('Invalid procedure modifiers override,external',
+    nInvalidProcModifiers);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestClass_ExternalVar;
 begin
-  //Not yet supported by pparser:
-  //
-  //AddModuleWithIntfImplSrc('unit2.pas',
-  //  LinesToStr([
-  //  'type',
-  //  '  TObject = class',
-  //  '  public',
-  //  '    Intern: longint; external name ''$Intern'';',
-  //  '  end;',
-  //  '']),
-  //  LinesToStr([
-  //  '']));
-  //
-  //StartUnit(true);
-  //Add('interface');
-  //Add('uses unit2;');
-  //Add('type');
-  //Add('  TCar = class(tobject)');
-  //Add('  public');
-  //Add('    Intern2: longint; external name ''$Intern2'';');
-  //Add('    procedure DoIt;');
-  //Add('  end;');
-  //Add('implementation');
-  //Add('procedure tcar.doit;');
-  //Add('begin');
-  //Add('  Intern:=Intern+1;');
-  //Add('  Intern2:=Intern2+2;');
-  //Add('end;');
-  //Add('var Obj: TCar;');
-  //Add('begin');
-  //Add('  obj.intern:=obj.intern+1;');
-  //Add('  obj.intern2:=obj.intern2+2;');
-  //ConvertUnit;
-  //CheckSource('TestClass_ExternalVar',
-  //  LinesToStr([
-  //  'var $impl = {',
-  //  '};',
-  //  'this.$impl = $impl;',
-  //  'rtl.createClass(this, "TCar", pas.unit2.TObject, function () {',
-  //  '    this.DoIt = function () {',
-  //  '      $DoIntern();',
-  //  '      $DoIntern();',
-  //  '    };',
-  //  '  });',
-  //  '']),
-  //  LinesToStr([
-  //  '$impl.Obj.$DoIntern();',
-  //  '$impl.Obj.$DoIntern();',
-  //  '$impl.Obj.$DoIntern2();',
-  //  '$impl.Obj.$DoIntern2();',
-  //  '$impl.Obj.DoIt();',
-  //  '$impl.Obj.DoIt();',
-  //  '']));
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$modeswitch externalclass}',
+    'type',
+    '  TObject = class',
+    '  public',
+    '    Intern: longint external name ''$Intern'';',
+    '  end;',
+    '']),
+    LinesToStr([
+    '']));
+
+  StartUnit(true);
+  Add('interface');
+  Add('uses unit2;');
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TCar = class(tobject)');
+  Add('  public');
+  Add('    Intern2: longint external name ''$Intern2'';');
+  Add('    procedure DoIt;');
+  Add('  end;');
+  Add('implementation');
+  Add('procedure tcar.doit;');
+  Add('begin');
+  Add('  Intern:=Intern+1;');
+  Add('  Intern2:=Intern2+2;');
+  Add('end;');
+  Add('var Obj: TCar;');
+  Add('begin');
+  Add('  obj.intern:=obj.intern+1;');
+  Add('  obj.intern2:=obj.intern2+2;');
+  Add('  with obj do begin');
+  Add('    intern:=intern+1;');
+  Add('    intern2:=intern2+2;');
+  Add('  end;');
+  ConvertUnit;
+  CheckSource('TestClass_ExternalVar',
+    LinesToStr([
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;',
+    'rtl.createClass(this, "TCar", pas.unit2.TObject, function () {',
+    '    this.DoIt = function () {',
+    '      this.$Intern = this.$Intern + 1;',
+    '      this.$Intern2 = this.$Intern2 + 2;',
+    '    };',
+    '  });',
+    '$impl.Obj = null;',
+    '']),
+    LinesToStr([
+    '$impl.Obj.$Intern = $impl.Obj.$Intern + 1;',
+    '$impl.Obj.$Intern2 = $impl.Obj.$Intern2 + 2;',
+    'var $with1 = $impl.Obj;',
+    '$with1.$Intern = $with1.$Intern + 1;',
+    '$with1.$Intern2 = $with1.$Intern2 + 2;',
+    '']));
 end;
 
 procedure TTestModule.TestClassOf_Create;
@@ -6500,6 +6669,44 @@ begin
     LinesToStr([ // this.$main
     'this.C = null;',
     'this.C = this.Obj.ClassType;',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_Is;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TClass = class of TObject;');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TCar = class');
+  Add('  end;');
+  Add('  TCars = class of TCar;');
+  Add('var');
+  Add('  Obj: tobject;');
+  Add('  C: tclass;');
+  Add('  Cars: tcars;');
+  Add('begin');
+  Add('  if c is tcar then ;');
+  Add('  if c is tcars then ;');
+  ConvertProgram;
+  CheckSource('TestClassOf_Is',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TCar", this.TObject, function () {',
+    '});',
+    'this.Obj = null;',
+    'this.C = null;',
+    'this.Cars = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'if(rtl.is(this.C,this.TCar));',
+    'if(rtl.is(this.C,this.TCar));',
     '']));
 end;
 
@@ -6875,6 +7082,683 @@ begin
     'this.vI = this.Obj.CurNow();',
     'this.TObject.Now();',
     'this.vI = this.TObject.Now();',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_Var;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtObj''');
+  Add('    Id: longint external name ''$Id'';');
+  Add('    B: longint;');
+  Add('  end;');
+  Add('var Obj: TExtA;');
+  Add('begin');
+  Add('  obj.id:=obj.id+1;');
+  Add('  obj.B:=obj.B+1;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_Var',
+    LinesToStr([ // statements
+    'this.Obj = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Obj.$Id = this.Obj.$Id + 1;',
+    'this.Obj.B = this.Obj.B + 1;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_DuplicateVarFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    Id: longint external name ''$Id'';');
+  Add('  end;');
+  Add('  TExtB = class external ''lib'' name ''ExtB''(TExtA)');
+  Add('    Id: longint;');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError('Duplicate identifier "Id" at test1.pp(6,6)',nDuplicateIdentifier);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_Method;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtObj''');
+  Add('    procedure DoIt(Id: longint = 1); external name ''$Execute'';');
+  Add('    procedure DoSome(Id: longint = 1);');
+  Add('  end;');
+  Add('var Obj: texta;');
+  Add('begin');
+  Add('  obj.doit;');
+  Add('  obj.doit();');
+  Add('  obj.doit(2);');
+  Add('  with obj do begin');
+  Add('    doit;');
+  Add('    doit();');
+  Add('    doit(3);');
+  Add('  end;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_Method',
+    LinesToStr([ // statements
+    'this.Obj = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Obj.$Execute(1);',
+    'this.Obj.$Execute(1);',
+    'this.Obj.$Execute(2);',
+    'var $with1 = this.Obj;',
+    '$with1.$Execute(1);',
+    '$with1.$Execute(1);',
+    '$with1.$Execute(3);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_NonExternalOverride;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtObjA''');
+  Add('    procedure ProcA; virtual;');
+  Add('    procedure ProcB; virtual;');
+  Add('  end;');
+  Add('  TExtB = class external name ''ExtObjB'' (TExtA)');
+  Add('  end;');
+  Add('  TExtC = class (TExtB)');
+  Add('    procedure ProcA; override;');
+  Add('  end;');
+  Add('procedure TExtC.ProcA;');
+  Add('begin');
+  Add('  ProcA;');
+  Add('  Self.ProcA;');
+  Add('  ProcB;');
+  Add('  Self.ProcB;');
+  Add('end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('  B: textb;');
+  Add('  C: textc;');
+  Add('begin');
+  Add('  a.proca;');
+  Add('  b.proca;');
+  Add('  c.proca;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_NonExternalOverride',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtC", ExtObjB, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.ProcA = function () {',
+    '    this.ProcA();',
+    '    this.ProcA();',
+    '    this.ProcB();',
+    '    this.ProcB();',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.B = null;',
+    'this.C = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A.ProcA();',
+    'this.B.ProcA();',
+    'this.C.ProcA();',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_Property;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    function getYear: longint;');
+  Add('    procedure setYear(Value: longint);');
+  Add('    property Year: longint read getyear write setyear;');
+  Add('  end;');
+  Add('  TExtB = class (TExtA)');
+  Add('    procedure OtherSetYear(Value: longint);');
+  Add('    property year write othersetyear;');
+  Add('  end;');
+  Add('procedure textb.othersetyear(value: longint);');
+  Add('begin');
+  Add('  setYear(Value+4);');
+  Add('end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('  B: textb;');
+  Add('begin');
+  Add('  a.year:=a.year+1;');
+  Add('  b.year:=b.year+2;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_NonExternalOverride',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtB", ExtA, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.OtherSetYear = function (Value) {',
+    '    this.setYear(Value+4);',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.B = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A.setYear(this.A.getYear()+1);',
+    'this.B.OtherSetYear(this.B.getYear()+2);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ClassProperty;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    class function getYear: longint;');
+  Add('    class procedure setYear(Value: longint);');
+  Add('    class property Year: longint read getyear write setyear;');
+  Add('  end;');
+  Add('  TExtB = class (TExtA)');
+  Add('    class function GetCentury: longint;');
+  Add('    class procedure SetCentury(Value: longint);');
+  Add('    class property Century: longint read getcentury write setcentury;');
+  Add('  end;');
+  Add('class function textb.getcentury: longint;');
+  Add('begin');
+  Add('end;');
+  Add('class procedure textb.setcentury(value: longint);');
+  Add('begin');
+  Add('  setyear(value+11);');
+  Add('  texta.year:=texta.year+12;');
+  Add('  year:=year+13;');
+  Add('  textb.century:=textb.century+14;');
+  Add('  century:=century+15;');
+  Add('end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('  B: textb;');
+  Add('begin');
+  Add('  texta.year:=texta.year+1;');
+  Add('  textb.year:=textb.year+2;');
+  Add('  a.year:=a.year+3;');
+  Add('  b.year:=b.year+4;');
+  Add('  textb.century:=textb.century+5;');
+  Add('  b.century:=b.century+6;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ClassProperty',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtB", ExtA, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetCentury = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.SetCentury = function (Value) {',
+    '    this.setYear(Value + 11);',
+    '    ExtA.setYear(ExtA.getYear() + 12);',
+    '    this.setYear(this.getYear() + 13);',
+    '    pas.program.TExtB.SetCentury(pas.program.TExtB.GetCentury() + 14);',
+    '    this.SetCentury(this.GetCentury() + 15);',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.B = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'ExtA.setYear(ExtA.getYear() + 1);',
+    'this.TExtB.setYear(this.TExtB.getYear() + 2);',
+    'this.A.setYear(this.A.getYear() + 3);',
+    'this.B.setYear(this.B.getYear() + 4);',
+    'this.TExtB.SetCentury(this.TExtB.GetCentury() + 5);',
+    'this.B.$class.SetCentury(this.B.$class.GetCentury() + 6);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ClassOf;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    procedure ProcA; virtual;');
+  Add('    procedure ProcB; virtual;');
+  Add('  end;');
+  Add('  TExtAClass = class of TExtA;');
+  Add('  TExtB = class external name ''ExtB'' (TExtA)');
+  Add('  end;');
+  Add('  TExtBClass = class of TExtB;');
+  Add('  TExtC = class (TExtB)');
+  Add('    procedure ProcA; override;');
+  Add('  end;');
+  Add('  TExtCClass = class of TExtC;');
+  Add('procedure TExtC.ProcA; begin end;');
+  Add('var');
+  Add('  A: texta; ClA: TExtAClass;');
+  Add('  B: textb; ClB: TExtBClass;');
+  Add('  C: textc; ClC: TExtCClass;');
+  Add('begin');
+  Add('  ClA:=texta;');
+  Add('  ClA:=textb;');
+  Add('  ClA:=textc;');
+  Add('  ClB:=textb;');
+  Add('  ClB:=textc;');
+  Add('  ClC:=textc;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ClassOf',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtC", ExtB, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.ProcA = function () {',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.ClA = null;',
+    'this.B = null;',
+    'this.ClB = null;',
+    'this.C = null;',
+    'this.ClC = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.ClA = ExtA;',
+    'this.ClA = ExtB;',
+    'this.ClA = this.TExtC;',
+    'this.ClB = ExtB;',
+    'this.ClB = this.TExtC;',
+    'this.ClC = this.TExtC;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ClassOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$modeswitch externalclass}',
+    'type',
+    '  TExtA = class external name ''ExtA''',
+    '    class var Id: longint;',
+    '  end;',
+    '']),
+    '');
+
+  StartUnit(true);
+  Add('interface');
+  Add('uses unit2;');
+  Add('implementation');
+  Add('begin');
+  Add('  unit2.texta.id:=unit2.texta.id+1;');
+  ConvertUnit;
+  CheckSource('TestExternalClass_ClassOtherUnit',
+    LinesToStr([
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;',
+    '']),
+    LinesToStr([
+    'ExtA.Id = ExtA.Id + 1;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_Is;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TExtAClass = class of TExtA;');
+  Add('  TExtB = class external name ''ExtB'' (TExtA)');
+  Add('  end;');
+  Add('  TExtBClass = class of TExtB;');
+  Add('  TExtC = class (TExtB)');
+  Add('  end;');
+  Add('  TExtCClass = class of TExtC;');
+  Add('var');
+  Add('  A: texta; ClA: TExtAClass;');
+  Add('  B: textb; ClB: TExtBClass;');
+  Add('  C: textc; ClC: TExtCClass;');
+  Add('begin');
+  Add('  if a is textb then ;');
+  Add('  if a is textc then ;');
+  Add('  if b is textc then ;');
+  Add('  if cla is textb then ;');
+  Add('  if cla is textc then ;');
+  Add('  if clb is textc then ;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_Is',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtC", ExtB, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.ClA = null;',
+    'this.B = null;',
+    'this.ClB = null;',
+    'this.C = null;',
+    'this.ClC = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'if (rtl.isExt(this.A, ExtB)) ;',
+    'if (this.TExtC.isPrototypeOf(this.A)) ;',
+    'if (this.TExtC.isPrototypeOf(this.B)) ;',
+    'if (rtl.isExt(this.ClA, ExtB)) ;',
+    'if (rtl.is(this.ClA, this.TExtC)) ;',
+    'if (rtl.is(this.ClB, this.TExtC)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_As;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TExtB = class external name ''ExtB'' (TExtA)');
+  Add('  end;');
+  Add('  TExtC = class (TExtB)');
+  Add('  end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('  B: textb;');
+  Add('  C: textc;');
+  Add('begin');
+  Add('  b:=a as textb;');
+  Add('  c:=a as textc;');
+  Add('  c:=b as textc;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_Is',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtC", ExtB, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.B = null;',
+    'this.C = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.B = rtl.asExt(this.A, ExtB);',
+    'this.C = rtl.as(this.A, this.TExtC);',
+    'this.C = rtl.as(this.B, this.TExtC);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_DestructorFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    destructor Free;');
+  Add('  end;');
+  SetExpectedPasResolverError('Pascal element not supported: destructor',
+    nPasElementNotSupported);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_New;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    constructor New;');
+  Add('    constructor New(i: longint; j: longint = 2);');
+  Add('  end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('begin');
+  Add('  a:=texta.new;');
+  Add('  a:=texta.new();');
+  Add('  a:=texta.new(1);');
+  Add('  with texta do begin');
+  Add('    a:=new;');
+  Add('    a:=new();');
+  Add('    a:=new(2);');
+  Add('  end;');
+  Add('  a:=test1.texta.new;');
+  Add('  a:=test1.texta.new();');
+  Add('  a:=test1.texta.new(3);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ObjectCreate',
+    LinesToStr([ // statements
+    'this.A = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A = new ExtA();',
+    'this.A = new ExtA();',
+    'this.A = new ExtA(1,2);',
+    'var $with1 = ExtA;',
+    'this.A = new $with1();',
+    'this.A = new $with1();',
+    'this.A = new $with1(2,2);',
+    'this.A = new ExtA();',
+    'this.A = new ExtA();',
+    'this.A = new ExtA(3,2);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ClassOf_New;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtAClass = class of TExtA;');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    constructor New;');
+  Add('  end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('  C: textaclass;');
+  Add('begin');
+  Add('  a:=c.new;');
+  Add('  a:=c.new();');
+  Add('  with C do begin');
+  Add('    a:=new;');
+  Add('    a:=new();');
+  Add('  end;');
+  Add('  a:=test1.c.new;');
+  Add('  a:=test1.c.new();');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ClassOf_New',
+    LinesToStr([ // statements
+    'this.A = null;',
+    'this.C = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A = new this.C();',
+    'this.A = new this.C();',
+    'var $with1 = this.C;',
+    'this.A = new $with1();',
+    'this.A = new $with1();',
+    'this.A = new this.C();',
+    'this.A = new this.C();',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_FuncClassOf_New;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtAClass = class of TExtA;');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    constructor New;');
+  Add('  end;');
+  Add('function GetCreator: TExtAClass;');
+  Add('begin');
+  Add('  Result:=TExtA;');
+  Add('end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('begin');
+  Add('  a:=getcreator.new;');
+  Add('  a:=getcreator().new;');
+  Add('  a:=getcreator().new();');
+  Add('  a:=getcreator.new();');
+  Add('  with getcreator do begin');
+  Add('    a:=new;');
+  Add('    a:=new();');
+  Add('  end;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_FuncClassOf_New',
+    LinesToStr([ // statements
+    'this.GetCreator = function () {',
+    '  var Result = null;',
+    '  Result = ExtA;',
+    '  return Result;',
+    '};',
+    'this.A = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A = new (this.GetCreator())();',
+    'this.A = new (this.GetCreator())();',
+    'this.A = new (this.GetCreator())();',
+    'this.A = new (this.GetCreator())();',
+    'var $with1 = this.GetCreator();',
+    'this.A = new $with1();',
+    'this.A = new $with1();',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_LocalConstSameName;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    constructor New;');
+  Add('  end;');
+  Add('function DoIt: longint;');
+  Add('const ExtA = 3;');
+  Add('begin');
+  Add('  Result:=ExtA;');
+  Add('end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('begin');
+  Add('  a:=texta.new;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_LocalConstSameName',
+    LinesToStr([ // statements
+    'var ExtA$1 = 3;',
+    'this.DoIt = function () {',
+    '  var Result = 0;',
+    '  Result = ExtA$1;',
+    '  return Result;',
+    '};',
+    'this.A = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A = new ExtA();',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ReintroduceOverload;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    procedure DoIt;');
+  Add('  end;');
+  Add('  TMyA = class(TExtA)');
+  Add('    procedure DoIt;');
+  Add('  end;');
+  Add('procedure TMyA.DoIt; begin end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ReintroduceOverload',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TMyA", ExtA, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt$1 = function () {',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_Inherited;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    procedure DoIt(i: longint = 1); virtual;');
+  Add('    procedure DoSome(j: longint = 2);');
+  Add('  end;');
+  Add('  TExtB = class external name ''ExtB''(TExtA)');
+  Add('  end;');
+  Add('  TMyC = class(TExtB)');
+  Add('    procedure DoIt(i: longint = 1); override;');
+  Add('    procedure DoSome(j: longint = 2); reintroduce;');
+  Add('  end;');
+  Add('procedure TMyC.DoIt(i: longint);');
+  Add('begin');
+  Add('  inherited;');
+  Add('  inherited DoIt;');
+  Add('  inherited DoIt();');
+  Add('  inherited DoIt(3);');
+  Add('  inherited DoSome;');
+  Add('  inherited DoSome();');
+  Add('  inherited DoSome(4);');
+  Add('end;');
+  Add('procedure TMyC.DoSome(j: longint);');
+  Add('begin');
+  Add('  inherited;');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ReintroduceOverload',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TMyC", ExtB, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function (i) {',
+    '    ExtB.DoIt.apply(this, arguments);',
+    '    ExtB.DoIt.call(this, 1);',
+    '    ExtB.DoIt.call(this, 1);',
+    '    ExtB.DoIt.call(this, 3);',
+    '    ExtB.DoSome.call(this, 2);',
+    '    ExtB.DoSome.call(this, 2);',
+    '    ExtB.DoSome.call(this, 4);',
+    '  };',
+    '  this.DoSome$1 = function (j) {',
+    '    ExtB.DoSome.apply(this, arguments);',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
     '']));
 end;
 
