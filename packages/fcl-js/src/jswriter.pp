@@ -784,7 +784,8 @@ begin
   if (MExpr is TJSPrimaryExpression)
       or (MExpr is TJSDotMemberExpression)
       or (MExpr is TJSBracketMemberExpression)
-      or (MExpr is TJSCallExpression)
+      // Note: new requires brackets in this case: new (a())()
+      or ((MExpr is TJSCallExpression) and not (El is TJSNewMemberExpression))
       or (MExpr is TJSLiteral) then
     WriteJS(MExpr)
   else
