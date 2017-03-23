@@ -40,6 +40,8 @@ type
     function  SelectRemoteMirror:string;
     procedure EnterFindBrokenPackages;
     procedure LeaveFindBrokenpackages;
+
+    procedure ClearRepositories(ARepositoryList: TComponentList);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -315,10 +317,12 @@ begin
   // FPMakeRepositoryList. Beside that it could lead to problems
   // when the scan of one of the available-repositories tries to compile an
   // fpmake-executable. (Like TFPUninstalledSourcesAvailablePackagesStructure does)
+  ClearRepositories(FPMakeRepositoryList);
   ScanPackagesOnDisk(FFpmakeCompilerOptions, pkgpkInstalled, FPMakeRepositoryList);
 
   CheckFPMakeDependencies;
 
+  ClearRepositories(RepositoryList);
   ScanPackagesOnDisk(FCompilerOptions, pkgpkBoth, RepositoryList);
   ScanAvailablePackages;
 end;
@@ -497,6 +501,22 @@ begin
   Dec(FInsideFindBrokenPackages);
   if FInsideFindBrokenPackages=0 then
     FBrokenPackagesDictionary.Clear;
+end;
+
+procedure TpkgFPpkg.ClearRepositories(ARepositoryList: TComponentList);
+var
+  i: Integer;
+  Repo: TFPRepository;
+begin
+  for i := ARepositoryList.Count -1 downto 0 do
+    begin
+      Repo := ARepositoryList.Items[i] as TFPRepository;
+      if Repo.Name <> 'Available' then
+        begin
+          ARepositoryList.Delete(i);
+          Repo.Free;
+        end;
+    end;
 end;
 
 function TpkgFPpkg.PackageByName(APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
