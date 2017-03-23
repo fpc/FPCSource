@@ -69,6 +69,11 @@ begin
         begin
           AddUnit('pastree');
         end;
+    T:=P.Targets.AddUnit('pasuseanalyzer.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('pastree');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
