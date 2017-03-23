@@ -344,15 +344,18 @@ type
     Procedure TestClass_Sealed;
     Procedure TestClass_SealedDescendFail;
     Procedure TestClass_VarExternal;
-    Procedure TestClass_VarExternalSemicolon;
-    Procedure TestClass_External;
     // Todo: Fail to use class.method in constant or type, e.g. const p = @o.doit;
+
+    // external class
+    Procedure TestExternalClass;
+    Procedure TestExternalClass_Descendant;
 
     // class of
     Procedure TestClassOf;
     Procedure TestClassOfNonClassFail;
     Procedure TestClassOfIsOperatorFail;
     Procedure TestClassOfAsOperatorFail;
+    Procedure TestClassOfIsOperator;
     Procedure TestClass_ClassVar;
     Procedure TestClassOfDotClassVar;
     Procedure TestClassOfDotVarFail;
@@ -368,6 +371,7 @@ type
     Procedure TestClassOf_IsFail;
     Procedure TestClass_TypeCast;
     Procedure TestClassOf_AlwaysForward;
+    Procedure TestClassOf_ClassOfBeforeClass_FuncResult;
 
     // property
     Procedure TestProperty1;
@@ -5353,9 +5357,9 @@ end;
 procedure TTestResolver.TestClass_VarExternal;
 begin
   StartProgram(false);
-  Add('type');
   Add('{$modeswitch externalclass}');
-  Add('  TObject = class');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
   Add('    Id: longint external name ''$Id'';');
   Add('    Data: longint external name ''$Data'';');
   Add('  end;');
@@ -5363,26 +5367,27 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClass_VarExternalSemicolon;
+procedure TTestResolver.TestExternalClass;
 begin
   StartProgram(false);
   Add('type');
   Add('{$modeswitch externalclass}');
-  Add('  TObject = class');
-  Add('    Id: longint; external name ''$Id'';');
-  Add('    Data: longint; external name ''$Data'';');
+  Add('  TExtA = class external ''namespace'' name ''symbol''');
+  Add('    Id: longint;');
   Add('  end;');
   Add('begin');
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClass_External;
+procedure TTestResolver.TestExternalClass_Descendant;
 begin
   StartProgram(false);
   Add('type');
   Add('{$modeswitch externalclass}');
-  Add('  TObject = class external ''namespace'' name ''symbol''');
+  Add('  TExtA = class external ''namespace'' name ''symbol''');
   Add('    Id: longint;');
+  Add('  end;');
+  Add('  TExtB = class external ''namespace'' name ''symbol''(TExtA)');
   Add('  end;');
   Add('begin');
   ParseProgram;
@@ -5478,6 +5483,24 @@ begin
   Add('begin');
   Add('  cars:=cars as TCars;');
   CheckResolverException('illegal qualifier "as"',PasResolver.nIllegalQualifier);
+end;
+
+procedure TTestResolver.TestClassOfIsOperator;
+begin
+  StartProgram(false);
+  ResolverEngine.Options:=ResolverEngine.Options+[proClassOfIs];
+  Add('type');
+  Add('  TObject = class end;');
+  Add('  TClass = class of TObject;');
+  Add('  TCar = class end;');
+  Add('  TCars = class of TCar;');
+  Add('var C: TClass;');
+  Add('  D: TCars;');
+  Add('begin');
+  Add('  if C is TCar then;');
+  Add('  if C is TCars then;');
+  Add('  if C is D then ;');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestClass_ClassVar;
@@ -5876,6 +5899,21 @@ begin
   Add('  end;');
   Add('begin');
   Add('  {@C}TCars.{@B}B:=3;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassOf_ClassOfBeforeClass_FuncResult;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TClass = class of TObject;');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('function GetClass: TClass;');
+  Add('begin');
+  Add('  Result:=TObject;');
+  Add('end;');
+  Add('begin');
   ParseProgram;
 end;
 
@@ -6340,7 +6378,7 @@ end;
 
 procedure TTestResolver.TestProperty_PassAsParam;
 begin
-  ResolverEngine.Options:=ResolverEngine.Options+[proAllowPropertyAsVarParam];
+  ResolverEngine.Options:=ResolverEngine.Options+[proPropertyAsVarParam];
   StartProgram(false);
   Add('type');
   Add('  TObject = class');
@@ -6747,7 +6785,7 @@ end;
 
 procedure TTestResolver.TestArray_SetLengthProperty;
 begin
-  ResolverEngine.Options:=ResolverEngine.Options+[proAllowPropertyAsVarParam];
+  ResolverEngine.Options:=ResolverEngine.Options+[proPropertyAsVarParam];
   StartProgram(false);
   Add('type');
   Add('  TArrInt = array of longint;');
