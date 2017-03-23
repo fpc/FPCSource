@@ -282,9 +282,9 @@ type
     function CreatePrimitiveExpr(AParent: TPasElement; AKind: TPasExprKind; const AValue: String): TPrimitiveExpr;
     function CreateBoolConstExpr(AParent: TPasElement; AKind: TPasExprKind; const ABoolValue : Boolean): TBoolConstExpr;
     function CreateBinaryExpr(AParent : TPasElement; xleft, xright: TPasExpr; AOpCode: TExprOpCode): TBinaryExpr;
-    procedure AddToBinaryExprChain(var ChainFirst, ChainLast: TPasExpr;
+    procedure AddToBinaryExprChain(var ChainFirst: TPasExpr;
       Element: TPasExpr; AOpCode: TExprOpCode);
-    procedure AddParamsToBinaryExprChain(var ChainFirst, ChainLast: TPasExpr;
+    procedure AddParamsToBinaryExprChain(var ChainFirst: TPasExpr;
       Params: TParamsExpr);
     {$IFDEF VerbosePasParser}
     procedure WriteBinaryExprChain(Prefix: string; First, Last: TPasExpr);
@@ -1682,7 +1682,7 @@ begin
         if CurToken in [tkIdentifier,tktrue,tkfalse] then // true and false are also identifiers
           begin
           expr:=CreatePrimitiveExpr(AParent,pekIdent,CurTokenString);
-          AddToBinaryExprChain(Result,Last,expr,eopSubIdent);
+          AddToBinaryExprChain(Result,expr,eopSubIdent);
           func:=expr;
           NextToken;
           end
@@ -1701,12 +1701,11 @@ begin
             else
               prm:=ParseParams(AParent,pekArrayParams);
             if not Assigned(prm) then Exit;
-            AddParamsToBinaryExprChain(Result,Last,prm);
+            AddParamsToBinaryExprChain(Result,prm);
             end;
           tkCaret:
             begin
             Result:=CreateUnaryExpr(AParent,Result,TokenToExprOp(CurToken));
-            Last:=Result;
             NextToken;
             end;
           else
@@ -1722,7 +1721,7 @@ begin
         if Expr=nil then
           ParseExcExpectedIdentifier;
         if optk=tkDot then
-          AddToBinaryExprChain(Result,Last,Expr,TokenToExprOp(optk))
+          AddToBinaryExprChain(Result,Expr,TokenToExprOp(optk))
         else
           begin
           // a as b
@@ -2498,20 +2497,20 @@ begin
         SetBlock(declProperty);
       tkProcedure, tkFunction, tkConstructor, tkDestructor,tkOperator:
         begin
+        SetBlock(declNone);
         SaveComments;
         pt:=GetProcTypeFromToken(CurToken);
         AddProcOrFunction(Declarations, ParseProcedureOrFunctionDecl(Declarations, pt));
-        SetBlock(declNone);
         end;
       tkClass:
         begin
+          SetBlock(declNone);
           SaveComments;
           NextToken;
           If CurToken in [tkprocedure,tkFunction,tkConstructor, tkDestructor] then
             begin
             pt:=GetProcTypeFromToken(CurToken,True);
             AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt));
-            SetBlock(declNone);
             end
           else
             ExpectToken(tkprocedure);
@@ -3132,17 +3131,20 @@ begin
       ParseExc(nParserOnlyOneVariableCanBeInitialized,SParserOnlyOneVariableCanBeInitialized);
     TPasVariable(VarList[OldListCount]).Expr:=Value;
     Value:=nil;
+
+    // Note: external members are allowed for non external classes too
     ExternalClass:=(msExternalClass in CurrentModeSwitches)
-                    and (Parent is TPasClassType) ;
+                    and (Parent is TPasClassType);
+
     H:=H+CheckHint(Nil,False);
     if Full or Externalclass then
       begin
       NextToken;
       If Curtoken<>tkSemicolon then
         UnGetToken;
-      Mods:=GetVariableModifiers(Parent,VarMods,aLibName,aExpName,ExternalClass)  ;
+      Mods:=GetVariableModifiers(Parent,VarMods,aLibName,aExpName,ExternalClass);
       if (mods='') and (CurToken<>tkSemicolon) then
-         NextToken;
+        NextToken;
       end
     else
       begin
@@ -3767,14 +3769,12 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
 
   function GetAccessorName(aParent: TPasElement; out Expr: TPasExpr): String;
   var
-    Last: TPasExpr;
     Params: TParamsExpr;
     Param: TPasExpr;
   begin
     ExpectIdentifier;
     Result := CurTokenString;
     Expr := CreatePrimitiveExpr(aParent,pekIdent,CurTokenString);
-    Last := Expr;
 
     // read .subident.subident...
     repeat
@@ -3782,7 +3782,7 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
       if CurToken <> tkDot then break;
       ExpectIdentifier;
       Result := Result + '.' + CurTokenString;
-      AddToBinaryExprChain(Expr,Last,CreatePrimitiveExpr(aParent,pekIdent,CurTokenString),eopSubIdent);
+      AddToBinaryExprChain(Expr,CreatePrimitiveExpr(aParent,pekIdent,CurTokenString),eopSubIdent);
     until false;
 
     // read optional array index
@@ -3793,7 +3793,7 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
       Result := Result + '[';
       Params:=TParamsExpr(CreateElement(TParamsExpr,'',aParent));
       Params.Kind:=pekArrayParams;
-      AddParamsToBinaryExprChain(Expr,Last,Params);
+      AddParamsToBinaryExprChain(Expr,Params);
       NextToken;
       case CurToken of
         tkChar:             Param:=CreatePrimitiveExpr(aParent,pekString, CurTokenText);
@@ -3817,7 +3817,7 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
         end;
       ExpectIdentifier;
       Result := Result + '.' + CurTokenString;
-      AddToBinaryExprChain(Expr,Last,CreatePrimitiveExpr(aParent,pekIdent,CurTokenString),eopSubIdent);
+      AddToBinaryExprChain(Expr,CreatePrimitiveExpr(aParent,pekIdent,CurTokenString),eopSubIdent);
     until false;
   end;
 
@@ -4189,7 +4189,6 @@ begin
         Try
           ExpectIdentifier;
           Left:=CreatePrimitiveExpr(El,pekIdent,CurTokenString);
-          Right:=Left;
           TPasImplForLoop(El).VariableName:=Left;
           repeat
             NextToken;
@@ -4207,7 +4206,7 @@ begin
               tkDot:
                 begin
                 ExpectIdentifier;
-                AddToBinaryExprChain(Left,Right,
+                AddToBinaryExprChain(Left,
                   CreatePrimitiveExpr(El,pekIdent,CurTokenString), eopSubIdent);
                 TPasImplForLoop(El).VariableName:=Left;
                 end;
@@ -5276,60 +5275,36 @@ begin
     end;
 end;
 
-procedure TPasParser.AddToBinaryExprChain(var ChainFirst, ChainLast: TPasExpr;
+procedure TPasParser.AddToBinaryExprChain(var ChainFirst: TPasExpr;
   Element: TPasExpr; AOpCode: TExprOpCode);
-
-  procedure RaiseInternal;
-  begin
-    raise Exception.Create('TBinaryExpr.AddToChain: internal error');
-  end;
-
-var
-  Last: TBinaryExpr;
 begin
   if Element=nil then
     exit
   else if ChainFirst=nil then
     begin
     // empty chain => simply add element, no need to create TBinaryExpr
-    if (ChainLast<>nil) then
-      RaiseInternal;
     ChainFirst:=Element;
-    ChainLast:=Element;
-    end
-  else if ChainLast is TBinaryExpr then
-    begin
-    // add a new TBinaryExpr at the end of the chain
-    Last:=TBinaryExpr(ChainLast);
-    if (Last.left=nil) or (Last.right=nil) then
-      // chain not yet full => inconsistency
-      RaiseInternal;
-    Last.right:=CreateBinaryExpr(Last,Last.right,Element,AOpCode);
-    ChainLast:=Last.right;
     end
   else
     begin
-    // one element => create a TBinaryExpr with two elements
-    if ChainFirst<>ChainLast then
-      RaiseInternal;
-    ChainLast:=CreateBinaryExpr(ChainLast.Parent,ChainLast,Element,AOpCode);
-    ChainFirst:=ChainLast;
+    // create new binary, old becomes left, Element right
+    ChainFirst:=CreateBinaryExpr(ChainFirst.Parent,ChainFirst,Element,AOpCode);
     end;
 end;
 
-procedure TPasParser.AddParamsToBinaryExprChain(var ChainFirst,
-  ChainLast: TPasExpr; Params: TParamsExpr);
-// append Params to chain, using the last element as Params.Value
+procedure TPasParser.AddParamsToBinaryExprChain(var ChainFirst: TPasExpr;
+  Params: TParamsExpr);
+// append Params to chain, using the last(right) element as Params.Value
 var
   Bin: TBinaryExpr;
 begin
   if Params.Value<>nil then
     ParseExcSyntaxError;
-  if ChainLast=nil then
+  if ChainFirst=nil then
     ParseExcSyntaxError;
-  if ChainLast is TBinaryExpr then
+  if ChainFirst is TBinaryExpr then
     begin
-    Bin:=TBinaryExpr(ChainLast);
+    Bin:=TBinaryExpr(ChainFirst);
     if Bin.left=nil then
       ParseExcSyntaxError;
     if Bin.right=nil then
@@ -5341,13 +5316,10 @@ begin
     end
   else
     begin
-    if ChainFirst<>ChainLast then
-      ParseExcSyntaxError;
     Params.Value:=ChainFirst;
     Params.Parent:=ChainFirst.Parent;
     ChainFirst.Parent:=Params;
     ChainFirst:=Params;
-    ChainLast:=Params;
     end;
 end;
 

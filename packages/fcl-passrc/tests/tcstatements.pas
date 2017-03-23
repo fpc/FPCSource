@@ -402,11 +402,11 @@ begin
   S:=Statement as TPasImplSimple;
   AssertExpression('Doit call',S.Expr,pekBinary,TBinaryExpr);
   B:=S.Expr as TBinaryExpr;
-  AssertExpression('Unit name part 1',B.Left,pekIdent,'Unita');
-  AssertExpression('Second part of unit name',B.Right,pekBinary,TBinaryExpr);
-  B:=B.Right as TBinaryExpr;
-  AssertExpression('Unit name part 2',B.Left,pekIdent,'ClassB');
   AssertExpression('Doit call',B.Right,pekIdent,'Doit');
+  AssertExpression('First two parts of unit name',B.left,pekBinary,TBinaryExpr);
+  B:=B.left as TBinaryExpr;
+  AssertExpression('Unit name part 1',B.Left,pekIdent,'Unita');
+  AssertExpression('Unit name part 2',B.right,pekIdent,'ClassB');
 end;
 
 procedure TTestStatementParser.TestCallNoArgs;
