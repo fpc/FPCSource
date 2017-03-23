@@ -80,6 +80,9 @@ interface
           procedure genjumptable(hp : pcaselabel;min_,max_ : aint); virtual;
           procedure genlinearlist(hp : pcaselabel); virtual;
           procedure genlinearcmplist(hp : pcaselabel); virtual;
+
+         procedure genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt); virtual;
+         procedure genjmptree(root : pcaselabel); virtual;
        end;
 
 
@@ -898,6 +901,109 @@ implementation
       end;
 
 
+      procedure tcgcasenode.genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);
+        var
+          lesslabel,greaterlabel : tasmlabel;
+          less,greater : pcaselabel;
+        begin
+          current_asmdata.CurrAsmList.concat(cai_align.Create(current_settings.alignment.jumpalign));
+          cg.a_label(current_asmdata.CurrAsmList,p^.labellabel);
+
+          { calculate labels for left and right }
+          if p^.less=nil then
+            lesslabel:=elselabel
+          else
+            lesslabel:=p^.less^.labellabel;
+          if p^.greater=nil then
+            greaterlabel:=elselabel
+          else
+            greaterlabel:=p^.greater^.labellabel;
+
+          { calculate labels for left and right }
+          { no range label: }
+          if p^._low=p^._high then
+            begin
+               if greaterlabel=lesslabel then
+                 begin
+                   hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_NE,p^._low,hregister, lesslabel);
+                 end
+               else
+                 begin
+                   hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize, jmp_lt,p^._low,hregister, lesslabel);
+                   hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize, jmp_gt,p^._low,hregister, greaterlabel);
+                 end;
+               hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
+            end
+          else
+            begin
+              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low, hregister, lesslabel);
+              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._high,hregister, greaterlabel);
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
+            end;
+           if assigned(p^.less) then
+             genjmptreeentry(p^.less,p^._low);
+           if assigned(p^.greater) then
+             genjmptreeentry(p^.greater,p^._high);
+        end;
+
+
+    procedure tcgcasenode.genjmptree(root : pcaselabel);
+      type
+        tlabelarrayentry = record
+          caselabel : pcaselabel;
+          asmlabel : TAsmLabel;
+        end;
+        tlabelarray = array of tlabelarrayentry;
+      var
+        labelarray : tlabelarray;
+
+      var
+        nextarrayentry : int64;
+        i : aint;
+
+      procedure addarrayentry(entry : pcaselabel);
+        begin
+          if assigned(entry^.less) then
+            addarrayentry(entry^.less);
+          with labelarray[nextarrayentry] do
+            begin
+              caselabel:=entry;
+              current_asmdata.getjumplabel(asmlabel);
+            end;
+          inc(nextarrayentry);
+          if assigned(entry^.greater) then
+            addarrayentry(entry^.greater);
+        end;
+
+      { rebuild the label tree balanced }
+      procedure rebuild(first,last : int64;var p : pcaselabel);
+        var
+          current : int64;
+        begin
+          current:=(first+last) div 2;
+
+          p:=labelarray[current].caselabel;
+          if first<current then
+            rebuild(first,current-1,p^.less)
+          else
+            p^.less:=nil;
+
+          if last>current then
+            rebuild(current+1,last,p^.greater)
+          else
+            p^.greater:=nil;
+        end;
+
+      begin
+        SetLength(labelarray,case_count_labels(root));
+        nextarrayentry:=0;
+        addarrayentry(root);
+        rebuild(0,high(labelarray),root);
+        for i:=0 to high(labelarray) do
+          current_asmdata.getjumplabel(labelarray[i].caselabel^.labellabel);
+        genjmptreeentry(root,root^._high+10);
+      end;
+
     procedure tcgcasenode.pass_generate_code;
       var
          oldflowcontrol: tflowcontrol;
@@ -1032,6 +1138,8 @@ implementation
                                (min_label>=int64(low(aint))) and
                                (max_label<=high(aint)) then
                               genjumptable(labels,min_label.svalue,max_label.svalue)
+                            else if labelcnt>=64 then
+                              genjmptree(labels)
                             else
                               genlinearlist(labels);
                           end;

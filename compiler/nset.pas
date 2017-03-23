@@ -41,6 +41,8 @@ interface
           less,
           greater : pcaselabel;
 
+          labellabel : TAsmLabel;
+
           { range type }
           case label_type : TLabelType of
             ltOrdinal:

@@ -26,7 +26,7 @@ unit nx86set;
 interface
 
     uses
-      globtype,
+      globtype,constexp,
       node,nset,pass_1,ncgset;
 
     type
@@ -39,12 +39,13 @@ interface
          function  has_jumptable : boolean;override;
          procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
          procedure genlinearlist(hp : pcaselabel);override;
+         procedure genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);override;
       end;
 
 implementation
 
     uses
-      systems,constexp,
+      systems,
       verbose,globals,
       symconst,symdef,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
@@ -150,6 +151,7 @@ implementation
         genitem(jtlist,hp);
       end;
 
+
     procedure tx86casenode.genlinearlist(hp : pcaselabel);
       var
         first : boolean;
@@ -254,6 +256,69 @@ implementation
                 cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
              end;
         end;
+
+      procedure tx86casenode.genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);
+        var
+          lesslabel,greaterlabel : tasmlabel;
+          less,greater : pcaselabel;
+          cond_gt: TResFlags;
+          cmplow : Boolean;
+        begin
+           if with_sign then
+             cond_gt:=F_G
+           else
+             cond_gt:=F_A;
+          current_asmdata.CurrAsmList.concat(cai_align.Create(current_settings.alignment.jumpalign));
+          cg.a_label(current_asmdata.CurrAsmList,p^.labellabel);
+
+          { calculate labels for left and right }
+          if p^.less=nil then
+            lesslabel:=elselabel
+          else
+            lesslabel:=p^.less^.labellabel;
+          if p^.greater=nil then
+            greaterlabel:=elselabel
+          else
+            greaterlabel:=p^.greater^.labellabel;
+
+          { calculate labels for left and right }
+          { no range label: }
+          if p^._low=p^._high then
+            begin
+               if greaterlabel=lesslabel then
+                 begin
+                   if p^._low-1<>parentvalue then
+                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,p^._low,hregister,lesslabel);
+                 end
+               else
+                 begin
+                   cmplow:=p^._low-1<>parentvalue;
+                   if cmplow then
+                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
+                   if p^._high+1<>parentvalue then
+                     begin
+                       if cmplow then
+                         hlcg.a_jmp_flags(current_asmdata.CurrAsmList,cond_gt,greaterlabel)
+                       else
+                         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._low,hregister,greaterlabel);
+                     end;
+                 end;
+               hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
+            end
+          else
+            begin
+              if p^._low-1<>parentvalue then
+                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
+              if p^._high+1<>parentvalue then
+                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._high,hregister,greaterlabel);
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
+            end;
+           if assigned(p^.less) then
+             genjmptreeentry(p^.less,p^._low);
+           if assigned(p^.greater) then
+             genjmptreeentry(p^.greater,p^._high);
+        end;
+
 
 {*****************************************************************************
                               TX86INNODE
