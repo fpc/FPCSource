@@ -959,7 +959,7 @@ implementation
 
       var
         nextarrayentry : int64;
-        i : aint;
+        i : longint;
 
       procedure addarrayentry(entry : pcaselabel);
         begin
