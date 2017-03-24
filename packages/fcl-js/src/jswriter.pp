@@ -1015,7 +1015,7 @@ end;
 procedure TJSWriter.WriteIfStatement(El: TJSIfStatement);
 
 var
-  BTrueEmpty, C: Boolean;
+  HasBTrue, C, HasBFalse, BTrueNeedBrackets: Boolean;
 begin
   C:=woCompact in Options;
   Write('if (');
@@ -1025,12 +1025,34 @@ begin
   Write(')');
   If Not C then
     Write(' ');
-  BTrueEmpty:=IsEmptyStatement(El.BTrue);
-  if not BTrueEmpty then
-    WriteJS(El.BTrue);
-  if not IsEmptyStatement(El.BFalse) then
+  HasBTrue:=not IsEmptyStatement(El.BTrue);
+  HasBFalse:=not IsEmptyStatement(El.BFalse);
+  if HasBTrue then
     begin
-    if BTrueEmpty then
+    // Note: the 'else' needs {} in front
+    BTrueNeedBrackets:=HasBFalse and not (El.BTrue is TJSStatementList)
+      and not (El.BTrue is TJSEmptyBlockStatement);
+    if BTrueNeedBrackets then
+      if C then
+        Write('{')
+      else
+        begin
+        Writeln('{');
+        Indent;
+        end;
+    WriteJS(El.BTrue);
+    if BTrueNeedBrackets then
+      if C then
+        Write('}')
+      else
+        begin
+        Undent;
+        Writeln('}');
+        end;
+    end;
+  if HasBFalse then
+    begin
+    if not HasBTrue then
       begin
       if C then
         Write('{}')
