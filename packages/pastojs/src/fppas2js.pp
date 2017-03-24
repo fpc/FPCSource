@@ -171,6 +171,7 @@ Works:
   - use 0o for octal literals
 
 ToDos:
+- exports - to protect an identifier from optimization
 - jsvalue: add base type jsvalue, useful for TList and external classes
   - constant for undefined
 - fail check: assign proc type a class method
@@ -181,6 +182,7 @@ ToDos:
   - option to add preserved word
   - documentation
   - use in TObject
+- asm: pas() - useful for overloads and protect an identifier from optimization
 
 Not in Version 1.0:
 - write, writeln
@@ -313,15 +315,48 @@ const
   DefaultVarNameRTL = 'rtl';
   DefaultVarNameWith = '$with';
 
-  JSReservedWords: array[0..61] of string = (
+  JSReservedWords: array[0..106] of string = (
      // keep sorted, first uppercase, then lowercase !
      'Array',
+     'ArrayBuffer',
+     'Boolean',
+     'DataView',
+     'Date',
+     'Error',
+     'EvalError',
+     'Float32Array',
+     'Float64Array',
+     'Generator',
+     'GeneratorFunction',
      'Infinity',
+     'Int16Array',
+     'Int32Array',
+     'Int8Array',
+     'InternalError',
+     'JSON',
+     'Map',
      'Math',
      'NaN',
      'Number',
      'Object',
+     'Promise',
+     'Proxy',
+     'RangeError',
+     'ReferenceError',
+     'Reflect',
+     'RegExp',
+     'Set',
      'String',
+     'Symbol',
+     'SyntaxError',
+     'TypeError',
+     'URIError',
+     'Uint16Array',
+     'Uint32Array',
+     'Uint8Array',
+     'Uint8ClampedArray',
+     'WeakMap',
+     'WeakSet',
      '__extends',
      '_super',
      'anonymous',
@@ -337,12 +372,18 @@ const
      'class',
      'constructor',
      'continue',
+     'decodeURI',
+     'decodeURIComponent',
      'default',
      'delete',
      'do',
      'each',
      'else',
+     'encodeURI',
+     'encodeURIComponent',
      'enum',
+     'escape',
+     'eval',
      'export',
      'extends',
      'false',
@@ -355,11 +396,15 @@ const
      'in',
      'instanceof',
      'interface',
+     'isFinite',
+     'isNaN',
      'isPrototypeOf',
      'let',
      'new',
      'null',
      'package',
+     'parseFloat',
+     'parseInt',
      'private',
      'protected',
      'prototype',
@@ -373,6 +418,8 @@ const
      'true',
      'try',
      'undefined',
+     'unescape',
+     'uneval',
      'var',
      'while',
      'with',

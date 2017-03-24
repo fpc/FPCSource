@@ -1423,7 +1423,7 @@ begin
     'this.vC = -this.vA;',
     'this.vA = this.vA - this.vB;',
     'this.vB = this.vA;',
-    'if (this.vA < this.vB) this.vC = this.vA else this.vC = this.vB;'
+    'if (this.vA < this.vB){ this.vC = this.vA } else this.vC = this.vB;'
     ]));
 end;
 
@@ -3683,8 +3683,9 @@ begin
     'try {',
     '  this.vI = 4;',
     '} catch ('+DefaultVarNameExceptObject+') {',
-    '  if (this.EInvalidCast.isPrototypeOf('+DefaultVarNameExceptObject+')) throw '+DefaultVarNameExceptObject,
-    '  else if (this.Exception.isPrototypeOf('+DefaultVarNameExceptObject+')) {',
+    '  if (this.EInvalidCast.isPrototypeOf('+DefaultVarNameExceptObject+')){',
+    '    throw '+DefaultVarNameExceptObject,
+    '  } else if (this.Exception.isPrototypeOf('+DefaultVarNameExceptObject+')) {',
     '    var E = '+DefaultVarNameExceptObject+';',
     '    if (E.Msg == "") throw E;',
     '  } else {',
@@ -3718,7 +3719,7 @@ begin
     ]),
     LinesToStr([ // this.$main
     'var $tmp1 = this.vI;',
-    'if ($tmp1 == 1) {} else if ($tmp1 == 2) this.vI = 3 else {',
+    'if ($tmp1 == 1) {} else if ($tmp1 == 2){ this.vI = 3 }else {',
     '  this.vI = 4;',
     '};'
     ]));
@@ -3818,7 +3819,11 @@ begin
     ]),
     LinesToStr([ // this.$main
     'var $tmp1 = this.vI;',
-    'if (($tmp1 >= 1) && ($tmp1 <= 3)) this.vI = 14 else if (($tmp1 == 4) || ($tmp1 == 5)) this.vI = 16 else if ((($tmp1 >= 6) && ($tmp1 <= 7)) || (($tmp1 >= 9) && ($tmp1 <= 10))) ;'
+    'if (($tmp1 >= 1) && ($tmp1 <= 3)){',
+    '  this.vI = 14',
+    '} else if (($tmp1 == 4) || ($tmp1 == 5)){',
+    '  this.vI = 16',
+    '} else if ((($tmp1 >= 6) && ($tmp1 <= 7)) || (($tmp1 >= 9) && ($tmp1 <= 10))) ;'
     ]));
 end;
 
