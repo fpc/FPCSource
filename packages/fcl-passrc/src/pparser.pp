@@ -3425,11 +3425,19 @@ Var
   P : TPasProcedure;
   E : TPasExpr;
 
-begin
-  if Parent is TPasProcedure then
-    P:=TPasProcedure(Parent);
-  if Assigned(P) then
+  procedure AddModifier;
+  begin
+    if pm in P.Modifiers then
+      ParseExcSyntaxError;
     P.AddModifier(pm);
+  end;
+
+begin
+  if not (Parent is TPasProcedure) then
+    exit;
+  P:=TPasProcedure(Parent);
+  if pm<>pmPublic then
+    AddModifier;
   Case pm of
   pmExternal:
     begin
@@ -3470,14 +3478,22 @@ begin
     NextToken;
     { Should be token Name,
       if not we're in a class and the public section starts }
-    If (Uppercase(CurTokenString)<>'NAME') then
+    If not CurTokenIsIdentifier('name') then
       begin
-      UngetToken;
-      UngetToken;
+      if P.Parent is TPasClassType then
+        begin
+        // public section starts
+        UngetToken;
+        UngetToken;
+        exit;
+        end;
+      AddModifier;
+      CheckToken(tkSemicolon);
       exit;
       end
     else
       begin
+      AddModifier;
       NextToken;  // Should be export name string.
       if not (CurToken in [tkString,tkIdentifier]) then
         ParseExcTokenError(TokenInfos[tkString]);
@@ -3671,7 +3687,7 @@ begin
     UngetToken;
   Repeat
     NextToken;
-    If TokenisCallingConvention(CurTokenString,cc) then
+    If TokenIsCallingConvention(CurTokenString,cc) then
       begin
       Element.CallingConvention:=Cc;
       if cc = ccSysCall then
