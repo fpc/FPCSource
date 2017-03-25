@@ -251,7 +251,7 @@ begin
     begin
       Log(llCommands,SLogDownloading,[PackageManager.Options.GlobalSection.RemoteMirrorsURL,PackageManager.Options.GlobalSection.LocalMirrorsFile]);
       DownloadFile(PackageManager.Options.GlobalSection.RemoteMirrorsURL,PackageManager.Options.GlobalSection.LocalMirrorsFile, PackageManager);
-      LoadLocalAvailableMirrors;
+      PackageManager.LoadLocalAvailableMirrors;
     end;
   // Download packages.xml
   PackagesURL:=PackageManager.GetRemoteRepositoryURL(PackagesFileName);
@@ -260,7 +260,7 @@ begin
   // Read the repository again
   PackageManager.ScanAvailablePackages;
   // no need to log errors again
-  FindInstalledPackages(PackageManager.CompilerOptions,False);
+  PackageManager.ScanPackages;
 end;
 
 
