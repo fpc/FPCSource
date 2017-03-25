@@ -736,6 +736,11 @@ interface
               begin
                 location.register:=left.location.register;
                 hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,location.register);
+              end;
+            LOC_CONSTANT:
+              begin
+                 location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+                 hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,left.location.value,location.register);
               end
             else
               internalerror(121120001);
