@@ -52,6 +52,7 @@ unit cgcpu;
 
       tcg64f386 = class(tcg64f32)
         procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
+        procedure a_op64_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);override;
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
         procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
@@ -653,6 +654,29 @@ unit cgcpu;
             a_load64_ref_reg(list,ref,reg);
             a_op64_reg_reg(list,op,size,reg,reg);
           end;
+      end;
+
+
+    procedure tcg64f386.a_op64_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);
+      var
+        op1,op2 : TAsmOp;
+        tempref : treference;
+      begin
+        if not(op in [OP_NEG,OP_NOT]) then
+          begin
+            get_64bit_ops(op,op1,op2);
+            tempref:=ref;
+            tcgx86(cg).make_simple_ref(list,tempref);
+            if op in [OP_ADD,OP_SUB] then
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+            list.concat(taicpu.op_reg_ref(op1,S_L,reg.reglo,tempref));
+            inc(tempref.offset,4);
+            list.concat(taicpu.op_reg_ref(op2,S_L,reg.reghi,tempref));
+            if op in [OP_ADD,OP_SUB] then
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+          end
+        else
+          inherited;
       end;
 
 
