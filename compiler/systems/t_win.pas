@@ -383,7 +383,7 @@ implementation
 {$else}
               objdata.writereloc(0,sizeof(longint),idata5label,RELOC_ABSOLUTE32);
 {$endif x86_64}
-              objdata.writebytes(nopopcodes,align(objdata.CurrObjSec.size,sizeof(nopopcodes))-objdata.CurrObjSec.size);
+              objdata.writebytes(nopopcodes,align(objdata.CurrObjSec.size,qword(sizeof(nopopcodes)))-objdata.CurrObjSec.size);
             end;
           ObjOutput.exportsymbol(implabel);
           WriteObjData(objdata);

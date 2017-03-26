@@ -142,7 +142,7 @@ interface
           { for classes (like for Delphi .NET before) only for Delphi NEXTGEN  }
           managementoperators : tmanagementoperators;
           constructor create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
-          procedure insertunionst(unionst : trecordsymtable;offset : longint);
+          procedure insertunionst(unionst : trecordsymtable;offset : asizeint);
           procedure includemanagementoperator(mop:tmanagementoperator);
        end;
 
@@ -1653,13 +1653,13 @@ implementation
     { the offset is the location of the start of the variant
       and datasize and dataalignment corresponds to
       the complete size (see code in pdecl unit) PM }
-    procedure trecordsymtable.insertunionst(unionst : trecordsymtable;offset : longint);
+    procedure trecordsymtable.insertunionst(unionst : trecordsymtable;offset : asizeint);
       var
         sym : tsym;
         def : tdef;
         i : integer;
         varalignrecord,varalign,
-        storesize,storealign : aint;
+        storesize,storealign : asizeint;
         bitsize: tcgint;
       begin
         storesize:=_datasize;

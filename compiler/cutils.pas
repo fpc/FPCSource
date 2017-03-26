@@ -58,6 +58,8 @@ interface
 
     {# Return value @var(i) aligned on @var(a) boundary }
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
+    function align(i,a:int64):int64;{$ifdef USEINLINE}inline;{$endif}
+    function align(i,a:qword):qword;{$ifdef USEINLINE}inline;{$endif}
     { if you have an address aligned using "oldalignment" and add an
       offset of (a multiple of) offset to it, this function calculates
       the new minimally guaranteed alignment
@@ -301,6 +303,37 @@ implementation
             else
               result:=((i+a-1) div a) * a;
           end;
+      end;
+
+
+    function align(i,a:int64):int64;{$ifdef USEINLINE}inline;{$endif}
+    {
+      return value <i> aligned <a> boundary
+    }
+      begin
+        { for 0 and 1 no aligning is needed }
+        if a<=1 then
+          result:=i
+        else
+          begin
+            if i<0 then
+              result:=((i-a+1) div a) * a
+            else
+              result:=((i+a-1) div a) * a;
+          end;
+      end;
+
+
+    function align(i,a:qword):qword;{$ifdef USEINLINE}inline;{$endif}
+    {
+      return value <i> aligned <a> boundary
+    }
+      begin
+        { for 0 and 1 no aligning is needed }
+        if a<=1 then
+          result:=i
+        else
+          result:=((i+a-1) div a) * a;
       end;
 
 

@@ -2844,7 +2844,7 @@ const pemagic : array[0..3] of byte = (
               textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,4,RELOC_ABSOLUTE32);
 {$endif x86_64}
 
-              textobjsection.write(nopopcodes,align(textobjsection.size,sizeof(nopopcodes))-textobjsection.size);
+              textobjsection.write(nopopcodes,align(textobjsection.size,qword(sizeof(nopopcodes)))-textobjsection.size);
             end;
           { idata5 section data }
           WriteTableEntry(idata5objsection);
