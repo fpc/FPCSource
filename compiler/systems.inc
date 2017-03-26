@@ -175,7 +175,8 @@
              system_i8086_win16,        { 89 }
              system_i8086_embedded,     { 90 }
              system_arm_aros,           { 91 }
-             system_wasm_wasm32         { 92 }
+             system_wasm_wasm32,        { 92 }
+             system_z80_embedded        { 93 }
        );
 
      type
@@ -229,6 +230,7 @@
              ,as_m68k_vasm
              ,as_m68k_as_aout
              ,as_wasm_binaryen
+             ,as_z80asm
        );
 
        tlink = (ld_none,
