@@ -61,8 +61,6 @@ Type
 Const
    {# Size of native extended floating point type }
    extended_size = 8;
-   {# Size of a multimedia register               }
-   mmreg_size = 0;
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,

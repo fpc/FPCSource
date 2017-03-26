@@ -82,8 +82,6 @@ Const
    ControllerSupport = true;
    { Size of native extended type }
    extended_size = 10;
-   { Size of a multimedia register }
-   mmreg_size = 16;
    { target cpu string (used by compiler options) }
    target_cpu_string = 'x86_64';
 
