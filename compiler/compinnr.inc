@@ -93,6 +93,9 @@ const
    in_delete_x_y_z      = 83;
    in_reset_typedfile_name   = 84;
    in_rewrite_typedfile_name = 85;
+   in_and_assign_x_y    = 86;
+   in_or_assign_x_y     = 87;
+   in_xor_assign_x_y    = 88;
 
 { Internal constant functions }
    in_const_sqr        = 100;

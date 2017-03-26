@@ -90,6 +90,7 @@ interface
           function first_seg: tnode; virtual;
           function first_sar: tnode; virtual;
           function first_fma : tnode; virtual;
+          function first_AndOrXor_assign: tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -3020,6 +3021,52 @@ implementation
                     end;
                 end;
 
+              in_and_assign_x_y,
+              in_or_assign_x_y,
+              in_xor_assign_x_y:
+                begin
+                  resultdef:=voidtype;
+                  if not(df_generic in current_procinfo.procdef.defoptions) then
+                    begin
+                      { first parameter must exist }
+                      if not assigned(left) or (left.nodetype<>callparan) then
+                        internalerror(2017032501);
+                      { second parameter must exist }
+                      if not assigned(tcallparanode(left).right) or (tcallparanode(left).right.nodetype<>callparan) then
+                        internalerror(2017032502);
+                      { third parameter must NOT exist }
+                      if assigned(tcallparanode(tcallparanode(left).right).right) then
+                        internalerror(2017032503);
+
+                      valid_for_var(tcallparanode(tcallparanode(left).right).left,true);
+                      set_varstate(tcallparanode(tcallparanode(left).right).left,vs_readwritten,[vsf_must_be_valid]);
+
+                      if is_integer(tcallparanode(left).right.resultdef) then
+                        begin
+                          { value of right gets changed -> must be unique }
+                          set_unique(tcallparanode(tcallparanode(left).right).left);
+                          if is_integer(left.resultdef) then
+                            begin
+                              set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
+                              { these nodes shouldn't be created, when range checking is on }
+                              if [cs_check_range,cs_check_overflow]*current_settings.localswitches<>[] then
+                                internalerror(2017032701);
+                              inserttypeconv(tcallparanode(left).left,tcallparanode(tcallparanode(left).right).left.resultdef);
+                            end
+                          else
+                            CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
+                        end
+                      { generic type parameter? }
+                      else if is_typeparam(tcallparanode(left).right.resultdef) then
+                        begin
+                          result:=cnothingnode.create;
+                          exit;
+                        end
+                      else
+                        CGMessagePos(tcallparanode(left).right.fileinfo,type_e_ordinal_expr_expected);
+                    end;
+                end;
+
               in_read_x,
               in_readln_x,
               in_readstr_x,
@@ -3541,6 +3588,13 @@ implementation
           in_dec_x:
             begin
               result:=first_IncDec;
+            end;
+
+          in_and_assign_x_y,
+          in_or_assign_x_y,
+          in_xor_assign_x_y:
+            begin
+              result:=first_AndOrXor_assign;
             end;
 
          in_include_x_y,
@@ -4555,6 +4609,13 @@ implementation
        begin
          CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'FMA');
          result:=nil;
+       end;
+
+
+     function tinlinenode.first_AndOrXor_assign: tnode;
+       begin
+         result:=nil;
+         expectloc:=tcallparanode(tcallparanode(left).right).left.expectloc;
        end;
 
 end.

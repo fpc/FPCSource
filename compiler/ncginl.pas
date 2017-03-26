@@ -35,6 +35,7 @@ interface
           procedure second_length;virtual;
           procedure second_predsucc;virtual;
           procedure second_incdec;virtual;
+          procedure second_AndOrXor_assign;virtual;
           procedure second_typeinfo;virtual;
           procedure second_includeexclude;virtual;
           procedure second_pi; virtual;
@@ -199,6 +200,10 @@ implementation
             in_fma_extended,
             in_fma_float128:
                second_fma;
+            in_and_assign_x_y,
+            in_or_assign_x_y,
+            in_xor_assign_x_y:
+               second_AndOrXor_assign;
             else internalerror(9);
          end;
       end;
@@ -414,6 +419,76 @@ implementation
 //              cg.g_rangecheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,
 //                 tcallparanode(left).left.resultdef);
             end;
+        end;
+
+
+{*****************************************************************************
+                     AND/OR/XOR ASSIGN GENERIC HANDLING
+*****************************************************************************}
+      procedure tcginlinenode.second_AndOrXor_assign;
+        const
+          andorxorop:array[in_and_assign_x_y..in_xor_assign_x_y] of TOpCG=(OP_AND,OP_OR,OP_XOR);
+        var
+          maskvalue : TConstExprInt;
+          maskconstant : boolean;
+{$ifndef cpu64bitalu}
+          hregisterhi,
+{$endif not cpu64bitalu}
+          hregister : tregister;
+        begin
+          { set defaults }
+          maskconstant:=true;
+          hregister:=NR_NO;
+{$ifndef cpu64bitalu}
+          hregisterhi:=NR_NO;
+{$endif not cpu64bitalu}
+
+          { first secondpass first argument, because if the second arg }
+          { is used in that expression then SSL may move it to another }
+          { register                                                   }
+          secondpass(tcallparanode(left).left);
+          { load second parameter, must be a reference }
+          secondpass(tcallparanode(tcallparanode(left).right).left);
+
+          { when constant, just get the maskvalue }
+          if is_constintnode(tcallparanode(left).left) then
+             maskvalue:=get_ordinal_value(tcallparanode(left).left)
+          else
+            begin
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,tcallparanode(left).right.resultdef,true);
+              hregister:=tcallparanode(left).left.location.register;
+{$ifndef cpu64bitalu}
+              hregisterhi:=tcallparanode(left).left.location.register64.reghi;
+{$endif not cpu64bitalu}
+              maskconstant:=false;
+            end;
+          { write the and/or/xor instruction }
+          if maskconstant then
+            begin
+{$ifndef cpu64bitalu}
+              if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
+                cg64.a_op64_const_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),maskvalue,tcallparanode(tcallparanode(left).right).left.location)
+              else
+{$endif not cpu64bitalu}
+                hlcg.a_op_const_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],tcallparanode(left).right.resultdef,
+{$ifdef cpu64bitalu}
+                  aint(maskvalue.svalue),
+{$else cpu64bitalu}
+                  longint(maskvalue.svalue),  // can't use aint, because it breaks 16-bit and 8-bit CPUs
+{$endif cpu64bitalu}
+                  tcallparanode(tcallparanode(left).right).left.location);
+            end
+           else
+             begin
+{$ifndef cpu64bitalu}
+               if def_cgsize(tcallparanode(left).right.resultdef) in [OS_64,OS_S64] then
+                 cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),
+                   joinreg64(hregister,hregisterhi),tcallparanode(tcallparanode(left).right).left.location)
+               else
+{$endif not cpu64bitalu}
+                 hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],tcallparanode(left).right.resultdef,
+                   hregister,tcallparanode(tcallparanode(left).right).left.location);
+             end;
         end;
 
 
