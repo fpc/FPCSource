@@ -1862,6 +1862,7 @@ Unit Rax86int;
                     Begin
                       oper.SetupResult;
                       Consume(AS_ID);
+                      expr:='result';
                     end
                    else
                     if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
@@ -1887,6 +1888,7 @@ Unit Rax86int;
                   begin
                     oper.SetUpResult;
                     Consume(AS_ID);
+                    expr:='result';
                   end
                 { probably a variable or normal expression }
                 { or a procedure (such as in CALL ID)      }
@@ -1961,10 +1963,15 @@ Unit Rax86int;
                             Begin
                               { not a variable, check special variables.. }
                               if expr = 'SELF' then
-                                oper.SetupSelf
+                                begin
+                                  oper.SetupSelf;
+                                  expr:='self';
+                                end
                               else
-                                Message1(sym_e_unknown_id,expr);
-                              expr:='';
+                                begin
+                                  Message1(sym_e_unknown_id,expr);
+                                  expr:='';
+                                end;
                             end;
                           { indexed access to variable? }
                           if actasmtoken=AS_LBRACKET then
