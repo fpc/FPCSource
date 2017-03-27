@@ -388,7 +388,7 @@ begin
   //   for(i=1; i<=$loopend1; i++){ a:=b; }
 
   // "var $loopend1=100"
-  LoopEndVar:=DefaultVarNameLoopEnd+'1';
+  LoopEndVar:=Pas2JSBuiltInNames[pbivnLoopEnd]+'1';
   VS:=TJSVariableStatement(AssertElement('First in list is var '+LoopEndVar,TJSVariableStatement,L.A));
   VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,VS.A));
   AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
@@ -442,7 +442,7 @@ begin
   //   for(i=100; i>=$loopend1; i--){ a:=b; }
 
   // "var $loopend1=1"
-  LoopEndVar:=DefaultVarNameLoopEnd+'1';
+  LoopEndVar:=Pas2JSBuiltInNames[pbivnLoopEnd]+'1';
   VS:=TJSVariableStatement(AssertElement('var '+LoopEndVar,TJSVariableStatement,L.A));
   VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,VS.A));
   AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
@@ -646,6 +646,7 @@ Var
   ExObj: TJSElement;
   VS: TJSVariableStatement;
   V: TJSVarDeclaration;
+  ExceptObjName: String;
 
 begin
   // Try a:=B except on E : exception do  b:=c end;
@@ -668,7 +669,8 @@ begin
   // Convert
   El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
   // check "catch(exceptobject)"
-  AssertEquals('Correct exception object name',lowercase(DefaultVarNameExceptObject),String(El.Ident));
+  ExceptObjName:=lowercase(Pas2JSBuiltInNames[pbivnExceptObject]);
+  AssertEquals('Correct exception object name',ExceptObjName,String(El.Ident));
   // check "if"
   I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,El.BCatch));
   // check if condition "exception.isPrototypeOf(exceptobject)"
@@ -679,14 +681,14 @@ begin
   AssertNotNull('args of exception.isPrototypeOf(exceptobject)',IC.Args);
   AssertEquals('args of exception.isPrototypeOf(exceptobject)',1,IC.Args.Elements.Count);
   ExObj:=IC.Args.Elements.Elements[0].Expr;
-  Assertidentifier('arg of exception.isPrototypeOf(exceptobject)',ExObj,lowercase(DefaultVarNameExceptObject));
+  Assertidentifier('arg of exception.isPrototypeOf(exceptobject)',ExObj,ExceptObjName);
   // check statement "var e = exceptobject;"
   L:=AssertListStatement('On block is always a list',I.BTrue);
   writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
   VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
   V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',V.Init,lowercase(DefaultVarNameExceptObject));
+  Assertidentifier('Variable init is exception object',V.Init,ExceptObjName);
   // check "b = c;"
   AssertAssignStatement('Original assignment in second statement',L.B,'b','c');
 end;
@@ -705,6 +707,7 @@ Var
   D: TJSDotMemberExpression;
   ExObj: TJSElement;
   VS: TJSVariableStatement;
+  ExceptObjName: String;
 
 begin
   // Try a:=B except on E : exception do raise; end;
@@ -712,10 +715,10 @@ begin
     Becomes:
     try {
      a=b;
-    } catch (exceptobject) {
-      if (exception.isPrototypeOf(exceptobject)) {
-        var e = exceptobject;
-        throw exceptobject;
+    } catch ($e) {
+      if (exception.isPrototypeOf($e)) {
+        var e = $e;
+        throw $e;
       }
     }
   *)
@@ -727,7 +730,8 @@ begin
   // Convert
   El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
   // check "catch(exceptobject)"
-  AssertEquals('Correct exception object name',lowercase(DefaultVarNameExceptObject),String(El.Ident));
+  ExceptObjName:=lowercase(Pas2JSBuiltInNames[pbivnExceptObject]);
+  AssertEquals('Correct exception object name',ExceptObjName,String(El.Ident));
   // check "if"
   I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,El.BCatch));
   // check if condition "exception.isPrototypeOf(exceptobject)"
@@ -738,16 +742,16 @@ begin
   AssertNotNull('args of exception.isPrototypeOf(ExceptObject)',IC.Args);
   AssertEquals('args of exception.isPrototypeOf(ExceptObject)',1,IC.Args.Elements.Count);
   ExObj:=IC.Args.Elements.Elements[0].Expr;
-  Assertidentifier('arg of exception.isPrototypeOf(ExceptObject)',ExObj,lowercase(DefaultVarNameExceptObject));
+  Assertidentifier('arg of exception.isPrototypeOf(ExceptObject)',ExObj,ExceptObjName);
   // check statement "var e = exceptobject;"
   L:=AssertListStatement('On block is always a list',I.BTrue);
   writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
   VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
   V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',V.Init,lowercase(DefaultVarNameExceptObject));
+  Assertidentifier('Variable init is exception object',V.Init,ExceptObjName);
   R:=TJSThrowStatement(AssertElement('On block is throw statement',TJSThrowStatement,L.B));
-  Assertidentifier('R expression is original exception ',R.A,lowercase(DefaultVarNameExceptObject));
+  Assertidentifier('R expression is original exception ',R.A,ExceptObjName);
 end;
 
 Procedure TTestStatementConverter.TestVariableStatement;

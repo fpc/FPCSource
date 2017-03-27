@@ -176,6 +176,8 @@ type
     // strings
     Procedure TestCharConst;
     Procedure TestChar_Compare;
+    Procedure TestChar_Ord;
+    Procedure TestChar_Chr;
     Procedure TestStringConst;
     Procedure TestString_Length;
     Procedure TestString_Compare;
@@ -185,6 +187,8 @@ type
 
     // alias types
     Procedure TestAliasTypeRef;
+    Procedure TestTypeCast_BaseTypes;
+    Procedure TestTypeCast_AliasBaseTypes;
 
     // functions
     Procedure TestEmptyProc;
@@ -261,6 +265,7 @@ type
     Procedure TestArrayElementFromFuncResult_AsParams;
     Procedure TestArrayEnumTypeRange;
     Procedure TestArray_SetLengthProperty;
+    Procedure TestArray_OpenArrayOfString;
     // ToDo: const array
     // ToDo: SetLength(array of static array)
 
@@ -343,6 +348,11 @@ type
     Procedure TestExternalClass_LocalConstSameName;
     Procedure TestExternalClass_ReintroduceOverload;
     Procedure TestExternalClass_Inherited;
+    Procedure TestExternalClass_NewInstance;
+    Procedure TestExternalClass_NewInstance_NonVirtualFail;
+    Procedure TestExternalClass_NewInstance_FirstParamNotString_Fail;
+    Procedure TestExternalClass_NewInstance_SecondParamTyped_Fail;
+    Procedure TestExternalClass_TypeCastToRootClass;
 
     // proc types
     Procedure TestProcType;
@@ -354,6 +364,16 @@ type
     Procedure TestProcType_PropertyFPC;
     Procedure TestProcType_PropertyDelphi;
     Procedure TestProcType_WithClassInstDoPropertyFPC;
+
+    // jsvalue
+    Procedure TestJSValue_AssignToJSValue;
+    Procedure TestJSValue_TypeCastToBaseType;
+    Procedure TestJSValue_Enum;
+    Procedure TestJSValue_ClassInstance;
+    Procedure TestJSValue_ClassOf;
+    Procedure TestJSValue_ArrayOfJSValue;
+    Procedure TestJSValue_Params;
+    Procedure TestJSValue_UntypedParam;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -1096,7 +1116,6 @@ begin
       SrcLines.Text:=aModule.Source;
       IsSrc:=ExtractFilename(aModule.Filename)=ExtractFileName(aFilename);
       writeln('Testcode:-File="',aModule.Filename,'"----------------------------------:');
-      writeln('AAA1 TCustomTestModule.WriteSources ',SrcLines.Count);
       for j:=1 to SrcLines.Count do
         begin
         Line:=SrcLines[j-1];
@@ -1256,6 +1275,94 @@ begin
     LinesToStr([ // this.$main
     ''
     ]));
+end;
+
+procedure TTestModule.TestTypeCast_BaseTypes;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  i: longint;');
+  Add('  b: boolean;');
+  Add('  d: double;');
+  Add('  s: string;');
+  Add('  c: char;');
+  Add('begin');
+  Add('  i:=longint(i);');
+  Add('  i:=longint(b);');
+  Add('  b:=boolean(b);');
+  Add('  b:=boolean(i);');
+  Add('  d:=double(d);');
+  Add('  d:=double(i);');
+  Add('  s:=string(s);');
+  Add('  s:=string(c);');
+  Add('  c:=char(c);');
+  ConvertProgram;
+  CheckSource('TestAliasTypeRef',
+    LinesToStr([ // statements
+    'this.i = 0;',
+    'this.b = false;',
+    'this.d = 0.0;',
+    'this.s = "";',
+    'this.c = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.i = this.i;',
+    'this.i = (this.b ? 1 : 0);',
+    'this.b = this.b;',
+    'this.b = this.i != 0;',
+    'this.d = this.d;',
+    'this.d = this.i;',
+    'this.s = this.s;',
+    'this.s = this.c;',
+    'this.c = this.c;',
+    '']));
+end;
+
+procedure TTestModule.TestTypeCast_AliasBaseTypes;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TYesNo = boolean;');
+  Add('  TFloat = double;');
+  Add('  TCaption = string;');
+  Add('  TChar = char;');
+  Add('var');
+  Add('  i: integer;');
+  Add('  b: TYesNo;');
+  Add('  d: TFloat;');
+  Add('  s: TCaption;');
+  Add('  c: TChar;');
+  Add('begin');
+  Add('  i:=integer(i);');
+  Add('  i:=integer(b);');
+  Add('  b:=TYesNo(b);');
+  Add('  b:=TYesNo(i);');
+  Add('  d:=TFloat(d);');
+  Add('  d:=TFloat(i);');
+  Add('  s:=TCaption(s);');
+  Add('  s:=TCaption(c);');
+  Add('  c:=TChar(c);');
+  ConvertProgram;
+  CheckSource('TestAliasTypeRef',
+    LinesToStr([ // statements
+    'this.i = 0;',
+    'this.b = false;',
+    'this.d = 0.0;',
+    'this.s = "";',
+    'this.c = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.i = this.i;',
+    'this.i = (this.b ? 1 : 0);',
+    'this.b = this.b;',
+    'this.b = this.i != 0;',
+    'this.d = this.d;',
+    'this.d = this.i;',
+    'this.s = this.s;',
+    'this.s = this.c;',
+    'this.c = this.c;',
+    '']));
 end;
 
 procedure TTestModule.TestEmptyProc;
@@ -3110,6 +3217,44 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestChar_Ord;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  c: char;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  i:=ord(c);');
+  ConvertProgram;
+  CheckSource('TestChar_Ord',
+    LinesToStr([
+    'this.c = "";',
+    'this.i = 0;'
+    ]),
+    LinesToStr([
+    'this.i = this.c.charCodeAt();',
+    '']));
+end;
+
+procedure TTestModule.TestChar_Chr;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  c: char;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  c:=chr(i);');
+  ConvertProgram;
+  CheckSource('TestChar_Chr',
+    LinesToStr([
+    'this.c = "";',
+    'this.i = 0;'
+    ]),
+    LinesToStr([
+    'this.c = String.fromCharCode(this.i);',
+    '']));
+end;
+
 procedure TTestModule.TestStringConst;
 begin
   StartProgram(false);
@@ -3256,6 +3401,11 @@ begin
   Add('  d: double;');
   Add('  s: string;');
   Add('begin');
+  Add('  str(b,s);');
+  Add('  str(i,s);');
+  Add('  str(d,s);');
+  Add('  str(i:3,s);');
+  Add('  str(d:3:2,s);');
   Add('  s:=str(b);');
   Add('  s:=str(i);');
   Add('  s:=str(d);');
@@ -3265,11 +3415,8 @@ begin
   Add('  s:=str(i:4,i);');
   Add('  s:=str(i,i:5);');
   Add('  s:=str(i:4,i:5);');
-  Add('  str(b,s);');
-  Add('  str(i,s);');
-  Add('  str(d,s);');
-  Add('  str(i:3,s);');
-  Add('  str(d:3:2,s);');
+  Add('  s:=str(s,s);');
+  Add('  s:=str(s,''foo'');');
   ConvertProgram;
   CheckSource('TestStr',
     LinesToStr([ // statements
@@ -3282,17 +3429,19 @@ begin
     'this.s = ""+this.b;',
     'this.s = ""+this.i;',
     'this.s = ""+this.d;',
+    'this.s = rtl.spaceLeft(""+this.i,3);',
+    'this.s = rtl.spaceLeft(this.d.toFixed(2),3);',
+    'this.s = ""+this.b;',
+    'this.s = ""+this.i;',
+    'this.s = ""+this.d;',
     'this.s = (""+this.i)+this.i;',
     'this.s = rtl.spaceLeft(""+this.i,3);',
     'this.s = rtl.spaceLeft(this.d.toFixed(2),3);',
     'this.s = rtl.spaceLeft("" + this.i, 4) + this.i;',
     'this.s = ("" + this.i) + rtl.spaceLeft("" + this.i, 5);',
     'this.s = rtl.spaceLeft("" + this.i, 4) + rtl.spaceLeft("" + this.i, 5);',
-    'this.s = ""+this.b;',
-    'this.s = ""+this.i;',
-    'this.s = ""+this.d;',
-    'this.s = rtl.spaceLeft(""+this.i,3);',
-    'this.s = rtl.spaceLeft(this.d.toFixed(2),3);',
+    'this.s = this.s + this.s;',
+    'this.s = this.s + "foo";',
     '']));
 end;
 
@@ -3677,16 +3826,16 @@ begin
     '};',
     'try {',
     '  this.vI = 3;',
-    '} catch ('+DefaultVarNameExceptObject+') {',
-    '  throw '+DefaultVarNameExceptObject+';',
+    '} catch ($e) {',
+    '  throw $e;',
     '};',
     'try {',
     '  this.vI = 4;',
-    '} catch ('+DefaultVarNameExceptObject+') {',
-    '  if (this.EInvalidCast.isPrototypeOf('+DefaultVarNameExceptObject+')){',
-    '    throw '+DefaultVarNameExceptObject,
-    '  } else if (this.Exception.isPrototypeOf('+DefaultVarNameExceptObject+')) {',
-    '    var E = '+DefaultVarNameExceptObject+';',
+    '} catch ($e) {',
+    '  if (this.EInvalidCast.isPrototypeOf($e)){',
+    '    throw $e',
+    '  } else if (this.Exception.isPrototypeOf($e)) {',
+    '    var E = $e;',
     '    if (E.Msg == "") throw E;',
     '  } else {',
     '    this.vI = 5;',
@@ -3694,9 +3843,9 @@ begin
     '};',
     'try {',
     '  this.vI = 6;',
-    '} catch ('+DefaultVarNameExceptObject+') {',
-    '  if (this.EInvalidCast.isPrototypeOf('+DefaultVarNameExceptObject+')){' ,
-    '  } else throw '+DefaultVarNameExceptObject,
+    '} catch ($e) {',
+    '  if (this.EInvalidCast.isPrototypeOf($e)){' ,
+    '  } else throw $e',
     '};',
     '']));
 end;
@@ -4230,6 +4379,37 @@ begin
     '']),
     LinesToStr([
     'this.Obj.SetColors(rtl.arraySetLength(this.Obj.GetColors(), 2, 0));',
+    '']));
+end;
+
+procedure TTestModule.TestArray_OpenArrayOfString;
+begin
+  StartProgram(false);
+  Add('procedure DoIt(const a: array of String);');
+  Add('var');
+  Add('  i: longint;');
+  Add('  s: string;');
+  Add('begin');
+  Add('  for i:=low(a) to high(a) do s:=a[length(a)-i-1];');
+  Add('end;');
+  Add('var s: string;');
+  Add('begin');
+  Add('  DoIt([]);');
+  Add('  DoIt([s,''foo'','''',s+s]);');
+  ConvertProgram;
+  CheckSource('TestArray_OpenArrayOfString',
+    LinesToStr([ // statements
+    'this.DoIt = function (a) {',
+    '  var i = 0;',
+    '  var s = "";',
+    '  var $loopend1 = a.length - 1;',
+    '  for (i = 0; i <= $loopend1; i++) s = a[(a.length - i) - 1];',
+    '};',
+    'this.s = "";',
+    '']),
+    LinesToStr([
+    'this.DoIt([]);',
+    'this.DoIt([this.s, "foo", "", this.s + this.s]);',
     '']));
 end;
 
@@ -7197,7 +7377,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_NonExternalOverride',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtC", ExtObjB, function () {',
+    'rtl.createClassExt(this, "TExtC", ExtObjB, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7247,7 +7427,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_NonExternalOverride',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtB", ExtA, function () {',
+    'rtl.createClassExt(this, "TExtB", ExtA, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7304,7 +7484,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_ClassProperty',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtB", ExtA, function () {',
+    'rtl.createClassExt(this, "TExtB", ExtA, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7366,7 +7546,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_ClassOf',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtC", ExtB, function () {',
+    'rtl.createClassExt(this, "TExtC", ExtB, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7449,7 +7629,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_Is',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtC", ExtB, function () {',
+    'rtl.createClassExt(this, "TExtC", ExtB, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7494,7 +7674,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_Is',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtC", ExtB, function () {',
+    'rtl.createClassExt(this, "TExtC", ExtB, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7698,7 +7878,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_ReintroduceOverload',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TMyA", ExtA, function () {',
+    'rtl.createClassExt(this, "TMyA", ExtA, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7744,7 +7924,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_ReintroduceOverload',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TMyC", ExtB, function () {',
+    'rtl.createClassExt(this, "TMyC", ExtB, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7764,6 +7944,157 @@ begin
     '});',
     '']),
     LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_NewInstance;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TMyB = class(TExtA)');
+  Add('  protected');
+  Add('    class function NewInstance(fnname: string; const paramarray): TMyB; virtual;');
+  Add('  end;');
+  Add('class function TMyB.NewInstance(fnname: string; const paramarray): TMyB;');
+  Add('begin end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestExternalClass_NewInstance',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TMyB", ExtA, "NewInstance", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.NewInstance = function (fnname, paramarray) {',
+    '    var Result = null;',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_NewInstance_NonVirtualFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TMyB = class(TExtA)');
+  Add('  protected');
+  Add('    class function NewInstance(fnname: string; const paramarray): TMyB;');
+  Add('  end;');
+  Add('class function TMyB.NewInstance(fnname: string; const paramarray): TMyB;');
+  Add('begin end;');
+  Add('begin');
+  SetExpectedPasResolverError(sNewInstanceFunctionMustBeVirtual,nNewInstanceFunctionMustBeVirtual);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_NewInstance_FirstParamNotString_Fail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TMyB = class(TExtA)');
+  Add('  protected');
+  Add('    class function NewInstance(fnname: longint; const paramarray): TMyB; virtual;');
+  Add('  end;');
+  Add('class function TMyB.NewInstance(fnname: longint; const paramarray): TMyB;');
+  Add('begin end;');
+  Add('begin');
+  SetExpectedPasResolverError('Incompatible type arg no. 1: Got "Longint", expected "String"',
+    nIncompatibleTypeArgNo);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_NewInstance_SecondParamTyped_Fail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TMyB = class(TExtA)');
+  Add('  protected');
+  Add('    class function NewInstance(fnname: string; const paramarray: string): TMyB; virtual;');
+  Add('  end;');
+  Add('class function TMyB.NewInstance(fnname: string; const paramarray: string): TMyB;');
+  Add('begin end;');
+  Add('begin');
+  SetExpectedPasResolverError('Incompatible type arg no. 2: Got "type", expected "untyped"',
+    nIncompatibleTypeArgNo);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_TypeCastToRootClass;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TChild = class');
+  Add('  end;');
+  Add('  TExtRootA = class external name ''ExtRootA''');
+  Add('  end;');
+  Add('  TExtChildA = class external name ''ExtChildA''(TExtRootA)');
+  Add('  end;');
+  Add('  TExtRootB = class external name ''ExtRootB''');
+  Add('  end;');
+  Add('  TExtChildB = class external name ''ExtChildB''(TExtRootB)');
+  Add('  end;');
+  Add('var');
+  Add('  Obj: TObject;');
+  Add('  Child: TChild;');
+  Add('  RootA: TExtRootA;');
+  Add('  ChildA: TExtChildA;');
+  Add('  RootB: TExtRootB;');
+  Add('  ChildB: TExtChildB;');
+  Add('begin');
+  Add('  obj:=tobject(roota);');
+  Add('  obj:=tobject(childa);');
+  Add('  child:=tchild(tobject(roota));');
+  Add('  roota:=textroota(obj);');
+  Add('  roota:=textroota(child);');
+  Add('  roota:=textroota(rootb);');
+  Add('  roota:=textroota(childb);');
+  Add('  childa:=textchilda(textroota(obj));');
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastToRootClass',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TChild", this.TObject, function () {',
+    '});',
+    'this.Obj = null;',
+    'this.Child = null;',
+    'this.RootA = null;',
+    'this.ChildA = null;',
+    'this.RootB = null;',
+    'this.ChildB = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Obj = this.RootA;',
+    'this.Obj = this.ChildA;',
+    'this.Child = this.RootA;',
+    'this.RootA = this.Obj;',
+    'this.RootA = this.Child;',
+    'this.RootA = this.RootB;',
+    'this.RootA = this.ChildB;',
+    'this.ChildA = this.Obj;',
     '']));
 end;
 
@@ -8542,6 +8873,394 @@ begin
     'this.b = $with1.FOnFoo != null;',
     'this.b = $with1.FOnFoo != null;',
     'this.b = $with1.GetFoo() != null;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_AssignToJSValue;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  i: longint;');
+  Add('  s: string;');
+  Add('  b: boolean;');
+  Add('  d: double;');
+  Add('begin');
+  Add('  v:=v;');
+  Add('  v:=1;');
+  Add('  v:=i;');
+  Add('  v:='''';');
+  Add('  v:=''c'';');
+  Add('  v:=''foo'';');
+  Add('  v:=s;');
+  Add('  v:=false;');
+  Add('  v:=true;');
+  Add('  v:=b;');
+  Add('  v:=0.1;');
+  Add('  v:=d;');
+  Add('  v:=nil;');
+  ConvertProgram;
+  CheckSource('TestJSValue_AssignToJSValue',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    'this.i = 0;',
+    'this.s = "";',
+    'this.b = false;',
+    'this.d = 0.0;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.v;',
+    'this.v = 1;',
+    'this.v = this.i;',
+    'this.v = "";',
+    'this.v = "c";',
+    'this.v = "foo";',
+    'this.v = this.s;',
+    'this.v = false;',
+    'this.v = true;',
+    'this.v = this.b;',
+    'this.v = 0.1;',
+    'this.v = this.d;',
+    'this.v = null;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_TypeCastToBaseType;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TYesNo = boolean;');
+  Add('  TFloat = double;');
+  Add('  TCaption = string;');
+  Add('  TChar = char;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  i: integer;');
+  Add('  s: TCaption;');
+  Add('  b: TYesNo;');
+  Add('  d: TFloat;');
+  Add('  c: char;');
+  Add('begin');
+  Add('  i:=longint(v);');
+  Add('  i:=integer(v);');
+  Add('  s:=string(v);');
+  Add('  s:=TCaption(v);');
+  Add('  b:=boolean(v);');
+  Add('  b:=TYesNo(v);');
+  Add('  d:=double(v);');
+  Add('  d:=TFloat(v);');
+  Add('  c:=char(v);');
+  Add('  c:=TChar(v);');
+  ConvertProgram;
+  CheckSource('TestJSValue_TypeCastToBaseType',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    'this.i = 0;',
+    'this.s = "";',
+    'this.b = false;',
+    'this.d = 0.0;',
+    'this.c = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.i = Math.floor(this.v);',
+    'this.i = Math.floor(this.v);',
+    'this.s = "" + this.v;',
+    'this.s = "" + this.v;',
+    'this.b = !(this.v == false);',
+    'this.b = !(this.v == false);',
+    'this.d = rtl.getNumber(this.v);',
+    'this.d = rtl.getNumber(this.v);',
+    'this.c = rtl.getChar(this.v);',
+    'this.c = rtl.getChar(this.v);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_Enum;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TColor = (red, blue);');
+  Add('  TRedBlue = TColor;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  e: TColor;');
+  Add('begin');
+  Add('  v:=e;');
+  Add('  v:=TColor(e);');
+  Add('  v:=TRedBlue(e);');
+  Add('  e:=TColor(v);');
+  Add('  e:=TRedBlue(v);');
+  ConvertProgram;
+  CheckSource('TestJSValue_Enum',
+    LinesToStr([ // statements
+    'this.TColor = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'this.v = undefined;',
+    'this.e = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.e;',
+    'this.v = this.e;',
+    'this.v = this.e;',
+    'this.e = this.v;',
+    'this.e = this.v;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ClassInstance;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TBirdObject = TObject;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  v:=o;');
+  Add('  v:=TObject(o);');
+  Add('  v:=TBirdObject(o);');
+  Add('  o:=TObject(v);');
+  Add('  o:=TBirdObject(v);');
+  ConvertProgram;
+  CheckSource('TestJSValue_ClassInstance',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.v = undefined;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.o;',
+    'this.v = this.o;',
+    'this.v = this.o;',
+    'this.o = rtl.getObject(this.v);',
+    'this.o = rtl.getObject(this.v);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ClassOf;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TClass = class of TObject;');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TBirds = class of TBird;');
+  Add('  TBird = class(TObject) end;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  c: TClass;');
+  Add('begin');
+  Add('  v:=c;');
+  Add('  v:=TClass(c);');
+  Add('  v:=TBirds(c);');
+  Add('  c:=TClass(v);');
+  Add('  c:=TBirds(v);');
+  ConvertProgram;
+  CheckSource('TestJSValue_ClassOf',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '});',
+    'this.v = undefined;',
+    'this.c = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.c;',
+    'this.v = this.c;',
+    'this.v = this.c;',
+    'this.c = rtl.getObject(this.v);',
+    'this.c = rtl.getObject(this.v);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ArrayOfJSValue;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TArray = array of JSValue;');
+  Add('  TArrgh = tarray;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  TheArray: TArray;');
+  Add('  Arr: TArrgh;');
+  Add('  i: integer;');
+  Add('begin');
+  Add('  Arr:=TheArray;');
+  Add('  TheArray:=Arr;');
+  Add('  SetLength(Arr,2);');
+  Add('  SetLength(TheArray,3);');
+  Add('  Arr[4]:=v;');
+  Add('  Arr[5]:=i;');
+  Add('  Arr[6]:=nil;');
+  Add('  Arr[7]:=TheArray[8];');
+  ConvertProgram;
+  CheckSource('TestJSValue_ArrayOfJSValue',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    'this.TheArray = [];',
+    'this.Arr = [];',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Arr = this.TheArray;',
+    'this.TheArray = this.Arr;',
+    'this.Arr.length = 2;',
+    'this.TheArray.length = 3;',
+    'this.Arr[4] = this.v;',
+    'this.Arr[5] = this.i;',
+    'this.Arr[6] = null;',
+    'this.Arr[7] = this.TheArray[8];',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_Params;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TYesNo = boolean;');
+  Add('  TFloat = double;');
+  Add('  TCaption = string;');
+  Add('  TChar = char;');
+  Add('function DoIt(a: jsvalue; const b: jsvalue; var c: jsvalue; out d: jsvalue): jsvalue;');
+  Add('var');
+  Add('  l: jsvalue;');
+  Add('begin');
+  Add('  a:=a;');
+  Add('  l:=b;');
+  Add('  c:=c;');
+  Add('  d:=d;');
+  Add('  Result:=l;');
+  Add('end;');
+  Add('function DoSome(a: jsvalue; const b: jsvalue): jsvalue; begin end;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  i: integer;');
+  Add('  b: TYesNo;');
+  Add('  d: TFloat;');
+  Add('  s: TCaption;');
+  Add('  c: TChar;');
+  Add('begin');
+  Add('  v:=doit(v,v,v,v);');
+  Add('  i:=integer(dosome(i,i));');
+  Add('  b:=TYesNo(dosome(b,b));');
+  Add('  d:=TFloat(dosome(d,d));');
+  Add('  s:=TCaption(dosome(s,s));');
+  Add('  c:=TChar(dosome(c,c));');
+  ConvertProgram;
+  CheckSource('TestJSValue_Params',
+    LinesToStr([ // statements
+    'this.DoIt = function (a, b, c, d) {',
+    '  var Result = undefined;',
+    '  var l = undefined;',
+    '  a = a;',
+    '  l = b;',
+    '  c.set(c.get());',
+    '  d.set(d.get());',
+    '  Result = l;',
+    '  return Result;',
+    '};',
+    'this.DoSome = function (a, b) {',
+    '  var Result = undefined;',
+    '  return Result;',
+    '};',
+    'this.v = undefined;',
+    'this.i = 0;',
+    'this.b = false;',
+    'this.d = 0.0;',
+    'this.s = "";',
+    'this.c = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.DoIt(this.v, this.v, {',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.v;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.v = v;',
+    '    }',
+    '}, {',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.v;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.v = v;',
+    '    }',
+    '});',
+    'this.i = Math.floor(this.DoSome(this.i, this.i));',
+    'this.b = !(this.DoSome(this.b, this.b) == false);',
+    'this.d = rtl.getNumber(this.DoSome(this.d, this.d));',
+    'this.s = "" + this.DoSome(this.s, this.s);',
+    'this.c = rtl.getChar(this.DoSome(this.c, this.c));',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_UntypedParam;
+begin
+  StartProgram(false);
+  Add('function DoIt(const a; var b; out c): jsvalue;');
+  Add('begin');
+  Add('  Result:=a;');
+  Add('  Result:=b;');
+  Add('  Result:=c;');
+  Add('  b:=Result;');
+  Add('  c:=Result;');
+  Add('end;');
+  Add('var i: longint;');
+  Add('begin');
+  Add('  doit(i,i,i);');
+  ConvertProgram;
+  CheckSource('TestJSValue_UntypedParam',
+    LinesToStr([ // statements
+    'this.DoIt = function (a, b, c) {',
+    '  var Result = undefined;',
+    '  Result = a;',
+    '  Result = b.get();',
+    '  Result = c.get();',
+    '  b.set(Result);',
+    '  c.set(Result);',
+    '  return Result;',
+    '};',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.DoIt(this.i, {',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '}, {',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});',
     '']));
 end;
 

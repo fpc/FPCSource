@@ -77,6 +77,7 @@ type
     procedure TestWPO_OmitPropertySetter2;
     procedure TestWPO_CallInherited;
     procedure TestWPO_UseUnit;
+    procedure TestWPO_ProgramPublicDeclaration;
   end;
 
 implementation
@@ -728,6 +729,31 @@ begin
     '});',
     '']);
   CheckDiff('TestWPO_UseUnit',ExpectedSrc,ActualSrc);
+end;
+
+procedure TTestOptimizations.TestWPO_ProgramPublicDeclaration;
+var
+  ActualSrc, ExpectedSrc: String;
+begin
+  StartProgram(true);
+  Add('var');
+  Add('  vPublic: longint; public;');
+  Add('  vPrivate: longint;');
+  Add('procedure DoPublic; public; begin end;');
+  Add('procedure DoPrivate; begin end;');
+  Add('begin');
+  ConvertProgram;
+  ActualSrc:=JSToStr(JSModule);
+  ExpectedSrc:=LinesToStr([
+    'rtl.module("program", ["system"], function () {',
+    '  this.vPublic = 0;',
+    '  this.DoPublic =function(){',
+    '  };',
+    '  this.$main = function () {',
+    '  };',
+    '});',
+    '']);
+  CheckDiff('TestWPO_ProgramPublicDeclaration',ExpectedSrc,ActualSrc);
 end;
 
 Initialization
