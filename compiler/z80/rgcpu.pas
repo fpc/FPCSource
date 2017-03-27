@@ -95,20 +95,22 @@ unit rgcpu;
         helplist : TAsmList;
         hreg     : tregister;
       begin
-        if abs(spilltemp.offset)>63 then
+        if abs(spilltemp.offset)>127 then
           begin
-            helplist:=TAsmList.create;
-
-            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
-            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
-            helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
-            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,GetNextReg(spilltemp.base)));
-
-            reference_reset_base(tmpref,NR_R26,0,1,[]);
-            helpins:=spilling_create_load(tmpref,tempreg);
-            helplist.concat(helpins);
-            list.insertlistafter(pos,helplist);
-            helplist.free;
+            Internalerror(2017032701);
+//
+//            helplist:=TAsmList.create;
+//
+//            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
+//            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
+//            helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
+//            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,GetNextReg(spilltemp.base)));
+//
+//            reference_reset_base(tmpref,NR_R26,0,1,[]);
+//            helpins:=spilling_create_load(tmpref,tempreg);
+//            helplist.concat(helpins);
+//            list.insertlistafter(pos,helplist);
+//            helplist.free;
           end
         else
           inherited;
@@ -121,19 +123,21 @@ unit rgcpu;
         helplist : TAsmList;
         hreg     : tregister;
       begin
-        if abs(spilltemp.offset)>63 then
+        if abs(spilltemp.offset)>127 then
           begin
-            helplist:=TAsmList.create;
-
-            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
-            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
-            helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
-            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,GetNextReg(spilltemp.base)));
-
-            reference_reset_base(tmpref,NR_R26,0,1,[]);
-            helplist.concat(spilling_create_store(tempreg,tmpref));
-            list.insertlistafter(pos,helplist);
-            helplist.free;
+            Internalerror(2017032702);
+//
+//            helplist:=TAsmList.create;
+//
+//            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
+//            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
+//            helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
+//            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,GetNextReg(spilltemp.base)));
+//
+//            reference_reset_base(tmpref,NR_R26,0,1,[]);
+//            helplist.concat(spilling_create_store(tempreg,tmpref));
+//            list.insertlistafter(pos,helplist);
+//            helplist.free;
           end
         else
           inherited;

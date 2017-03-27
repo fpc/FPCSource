@@ -167,7 +167,7 @@ unit cpupara;
             result:=not(def.size in [1,2,4]);
           }
           else
-            if (def.size > 8) then
+            if def.size>4 then
               result:=true
             else
               result:=inherited ret_in_param(def,pd);
@@ -177,7 +177,7 @@ unit cpupara;
 
     procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
       begin
-        curintreg:=RS_R25;
+        curintreg:=RS_HL;
         curfloatreg:=RS_INVALID;
         curmmreg:=RS_INVALID;
         cur_stack_offset:=0;
@@ -204,7 +204,7 @@ unit cpupara;
         begin
           { In case of po_delphi_nested_cc, the parent frame pointer
             is always passed on the stack. }
-           if (nextintreg>RS_R9) and
+           if (nextintreg<>RS_HL) and
               (not(vo_is_parentfp in hp.varoptions) or
                not(po_delphi_nested_cc in p.procoptions)) then
              begin
@@ -247,7 +247,7 @@ unit cpupara;
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
                 paraloc^.loc:=LOC_REGISTER;
-                paraloc^.register:=NR_R25;
+                paraloc^.register:=NR_HL;
                 paraloc^.size:=OS_ADDR;
                 paraloc^.def:=voidpointertype;
                 break;
@@ -301,11 +301,11 @@ unit cpupara;
                    by adding paralen mod 2, make the size even
                  }
                  nextintreg:=curintreg-(paralen+(paralen mod 2))+1;
-                 if nextintreg>=RS_R8 then
+                 if nextintreg>=RS_HL then
                    curintreg:=nextintreg-1
                  else
                    begin
-                     curintreg:=RS_R7;
+                     curintreg:=RS_HL;
                      loc:=LOC_REFERENCE;
                    end;
                end;
@@ -336,7 +336,7 @@ unit cpupara;
                  case loc of
                     LOC_REGISTER:
                       begin
-                        if nextintreg>=RS_R8 then
+                        if nextintreg>=RS_HL then
                           begin
                             paraloc^.loc:=LOC_REGISTER;
                             paraloc^.size:=OS_8;
@@ -456,47 +456,48 @@ unit cpupara;
         else
           begin
             case retcgsize of
-              OS_64,OS_S64:
-                begin
-                  for reg:=NR_R18 to NR_R25 do
-                    begin
-                      paraloc^.loc:=LOC_REGISTER;
-                      paraloc^.register:=reg;
-                      paraloc^.size:=OS_8;
-                      paraloc^.def:=u8inttype;
-                      if reg<>NR_R25 then
-                        paraloc:=result.add_location;
-                    end;
-                end;
               OS_32,OS_S32:
                 begin
-                  for reg:=NR_R22 to NR_R25 do
-                    begin
-                      paraloc^.loc:=LOC_REGISTER;
-                      paraloc^.register:=reg;
-                      paraloc^.size:=OS_8;
-                      paraloc^.def:=u8inttype;
-                      if reg<>NR_R25 then
-                        paraloc:=result.add_location;
-                    end;
-                end;
-              OS_16,OS_S16:
-                begin
                   paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_R24;
+                  paraloc^.register:=NR_L;
                   paraloc^.size:=OS_8;
                   paraloc^.def:=u8inttype;
 
                   paraloc:=result.add_location;
                   paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_R25;
+                  paraloc^.register:=NR_H;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_C;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_B;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+                end;
+              OS_16,OS_S16:
+                begin
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_L;
+                  paraloc^.size:=OS_8;
+                  paraloc^.def:=u8inttype;
+
+                  paraloc:=result.add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.register:=NR_H;
                   paraloc^.size:=OS_8;
                   paraloc^.def:=u8inttype;
                 end;
               OS_8,OS_S8:
                 begin
                   paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_R24;
+                  paraloc^.register:=NR_HL;
                   paraloc^.size:=OS_8;
                   paraloc^.def:=u8inttype;
                 end;

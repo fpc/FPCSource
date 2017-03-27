@@ -15,6 +15,9 @@
 {$mode objfpc}
 program mkz80reg;
 
+uses
+  sysutils;
+
 const Version = '1.00';
       max_regcount = 200;
 
@@ -24,8 +27,6 @@ var s : string;
     regcount:byte;
     regcount_bsstart:byte;
     names,
-    regtypes,
-    supregs,
     numbers,
     stdnames,
     stabs,dwarf : array[0..max_regcount-1] of string[63];
@@ -168,9 +169,7 @@ begin
         i:=1;
         names[regcount]:=readstr;
         readcomma;
-        regtypes[regcount]:=readstr;
-        readcomma;
-        supregs[regcount]:=readstr;
+        numbers[regcount]:=readstr;
         readcomma;
         stdnames[regcount]:=readstr;
         readcomma;
@@ -178,13 +177,12 @@ begin
         readcomma;
         dwarf[regcount]:=readstr;
         { Create register number }
-        if supregs[regcount][1]<>'$' then
+        if numbers[regcount][1]<>'$' then
           begin
             writeln('Missing $ before number, at line ',line);
             writeln('Line: "',s,'"');
             halt(1);
           end;
-        numbers[regcount]:=regtypes[regcount]+'0000'+copy(supregs[regcount],2,255);
         if i<length(s) then
           begin
             writeln('Extra chars at end of line, at line ',line);
@@ -234,7 +232,7 @@ begin
         end
       else
         first:=false;
-      writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
+      writeln(supfile,'RS_',names[i],' = ',StrToInt(numbers[i]) and $ff,';');
       writeln(confile,'NR_'+names[i],' = ','tregister(',numbers[i],')',';');
       write(numfile,'tregister(',numbers[i],')');
       write(stdfile,'''',stdnames[i],'''');

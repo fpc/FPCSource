@@ -1,5 +1,4 @@
 { don't edit, this file is generated from z80reg.dat }
--1,
 0,
 1,
 2,
@@ -25,11 +24,4 @@
 22,
 23,
 24,
-25,
-26,
-27,
-28,
-29,
-30,
-31,
-0
+25

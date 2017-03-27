@@ -133,9 +133,7 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
         rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-            [RS_R18,RS_R19,RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25,
-             RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,
-             RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17],first_int_imreg,[]);
+            [RS_BC,RS_DE,RS_HL],first_int_imreg,[]);
       end;
 
 
@@ -784,37 +782,37 @@ unit cgcpu;
              end;
            OP_ADD:
              begin
-               curvalue:=a and mask;
-               if curvalue=0 then
-                 list.concat(taicpu.op_reg_reg(A_ADD,reg,NR_R1))
-               else if (curvalue=1) and (tcgsize2size[size]=1) then
-                 list.concat(taicpu.op_reg(A_INC,reg))
-               else
-                 begin
-                   tmpreg:=getintregister(list,OS_8);
-                   a_load_const_reg(list,OS_8,curvalue,tmpreg);
-                   list.concat(taicpu.op_reg_reg(A_ADD,reg,tmpreg));
-                 end;
-               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
-                 begin
-                   for i:=2 to tcgsize2size[size] do
-                     begin
-                       NextReg;
-                       mask:=mask shl 8;
-                       inc(shift,8);
-                       curvalue:=(qword(a) and mask) shr shift;
-                       { decrease pressure on upper half of registers by using ADC ...,R1 instead
-                         of ADD ...,0 }
-                       if curvalue=0 then
-                         list.concat(taicpu.op_reg_reg(A_ADC,reg,NR_R1))
-                       else
-                         begin
-                           tmpreg:=getintregister(list,OS_8);
-                           a_load_const_reg(list,OS_8,curvalue,tmpreg);
-                           list.concat(taicpu.op_reg_reg(A_ADC,reg,tmpreg));
-                         end;
-                     end;
-                 end;
+               //curvalue:=a and mask;
+               //if curvalue=0 then
+               //  list.concat(taicpu.op_reg_reg(A_ADD,reg,NR_R1))
+               //else if (curvalue=1) and (tcgsize2size[size]=1) then
+               //  list.concat(taicpu.op_reg(A_INC,reg))
+               //else
+               //  begin
+               //    tmpreg:=getintregister(list,OS_8);
+               //    a_load_const_reg(list,OS_8,curvalue,tmpreg);
+               //    list.concat(taicpu.op_reg_reg(A_ADD,reg,tmpreg));
+               //  end;
+               //if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+               //  begin
+               //    for i:=2 to tcgsize2size[size] do
+               //      begin
+               //        NextReg;
+               //        mask:=mask shl 8;
+               //        inc(shift,8);
+               //        curvalue:=(qword(a) and mask) shr shift;
+               //        { decrease pressure on upper half of registers by using ADC ...,R1 instead
+               //          of ADD ...,0 }
+               //        if curvalue=0 then
+               //          list.concat(taicpu.op_reg_reg(A_ADC,reg,NR_R1))
+               //        else
+               //          begin
+               //            tmpreg:=getintregister(list,OS_8);
+               //            a_load_const_reg(list,OS_8,curvalue,tmpreg);
+               //            list.concat(taicpu.op_reg_reg(A_ADC,reg,tmpreg));
+               //          end;
+               //      end;
+               //  end;
              end;
          else
            begin
@@ -861,19 +859,19 @@ unit cgcpu;
          shift:=0;
          for i:=1 to tcgsize2size[size] do
            begin
-             if ((qword(a) and mask) shr shift)=0 then
-               emit_mov(list,reg,NR_R1)
-             else
-               begin
-                 getcpuregister(list,NR_R26);
-                 list.concat(taicpu.op_reg_const(A_LDI,NR_R26,(qword(a) and mask) shr shift));
-                 a_load_reg_reg(list,OS_8,OS_8,NR_R26,reg);
-                 ungetcpuregister(list,NR_R26);
-               end;
-
-             mask:=mask shl 8;
-             inc(shift,8);
-             reg:=GetNextReg(reg);
+             //if ((qword(a) and mask) shr shift)=0 then
+             //  emit_mov(list,reg,NR_R1)
+             //else
+             //  begin
+             //    getcpuregister(list,NR_R26);
+             //    list.concat(taicpu.op_reg_const(A_LDI,NR_R26,(qword(a) and mask) shr shift));
+             //    a_load_reg_reg(list,OS_8,OS_8,NR_R26,reg);
+             //    ungetcpuregister(list,NR_R26);
+             //  end;
+             //
+             //mask:=mask shl 8;
+             //inc(shift,8);
+             //reg:=GetNextReg(reg);
            end;
        end;
 
@@ -1606,9 +1604,9 @@ unit cgcpu;
         else
         }
           begin
-            list.concat(taicpu.op_reg_const(A_LDI,reg,1));
-            a_jmp_flags(list,f,l);
-            emit_mov(list,reg,NR_R1);
+            //list.concat(taicpu.op_reg_const(A_LDI,reg,1));
+            //a_jmp_flags(list,f,l);
+            //emit_mov(list,reg,NR_R1);
           end;
         cg.a_label(list,l);
       end;
@@ -1767,46 +1765,46 @@ unit cgcpu;
         { every byte counts for avr, so if a subroutine is marked as non-returning, we do
           not generate any exit code, so we really trust the noreturn directive
         }
-        if po_noreturn in current_procinfo.procdef.procoptions then
-          exit;
-        if po_interrupt in current_procinfo.procdef.procoptions then
-          begin
-            regs:=rg[R_INTREGISTER].used_in_proc;
-            if current_procinfo.framepointer<>NR_NO then
-              begin
-                regs:=regs+[RS_R28,RS_R29];
-                LocalSize:=current_procinfo.calc_stackframe_size;
-                a_adjust_sp(list,LocalSize);
-              end;
-
-            { Reload SREG }
-            regs:=regs+[RS_R0];
-
-            list.concat(taicpu.op_reg(A_POP, NR_R0));
-            list.concat(taicpu.op_const_reg(A_OUT, $3F, NR_R0));
-
-            for reg:=RS_R0 to RS_R31 do
-              if reg in regs then
-                list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
-
-            list.concat(taicpu.op_none(A_RETI));
-          end
-        else if not(nostackframe) then
-          begin
-            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-            if current_procinfo.framepointer<>NR_NO then
-              begin
-                regs:=regs+[RS_R28,RS_R29];
-                LocalSize:=current_procinfo.calc_stackframe_size;
-                a_adjust_sp(list,LocalSize);
-              end;
-            for reg:=RS_R0 to RS_R31 do
-              if reg in regs then
-                list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
-            list.concat(taicpu.op_none(A_RET));
-          end
-        else
-          list.concat(taicpu.op_none(A_RET));
+        //if po_noreturn in current_procinfo.procdef.procoptions then
+        //  exit;
+        //if po_interrupt in current_procinfo.procdef.procoptions then
+        //  begin
+        //    regs:=rg[R_INTREGISTER].used_in_proc;
+        //    if current_procinfo.framepointer<>NR_NO then
+        //      begin
+        //        regs:=regs+[RS_R28,RS_R29];
+        //        LocalSize:=current_procinfo.calc_stackframe_size;
+        //        a_adjust_sp(list,LocalSize);
+        //      end;
+        //
+        //    { Reload SREG }
+        //    regs:=regs+[RS_R0];
+        //
+        //    list.concat(taicpu.op_reg(A_POP, NR_R0));
+        //    list.concat(taicpu.op_const_reg(A_OUT, $3F, NR_R0));
+        //
+        //    for reg:=RS_R0 to RS_R31 do
+        //      if reg in regs then
+        //        list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
+        //
+        //    list.concat(taicpu.op_none(A_RETI));
+        //  end
+        //else if not(nostackframe) then
+        //  begin
+        //    regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
+        //    if current_procinfo.framepointer<>NR_NO then
+        //      begin
+        //        regs:=regs+[RS_R28,RS_R29];
+        //        LocalSize:=current_procinfo.calc_stackframe_size;
+        //        a_adjust_sp(list,LocalSize);
+        //      end;
+        //    for reg:=RS_R0 to RS_R31 do
+        //      if reg in regs then
+        //        list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
+        //    list.concat(taicpu.op_none(A_RET));
+        //  end
+        //else
+        //  list.concat(taicpu.op_none(A_RET));
       end;
 
 

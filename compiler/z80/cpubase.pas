@@ -85,19 +85,8 @@ unit cpubase;
       { Available Registers }
       {$i rz80con.inc}
 
-      NR_XLO = NR_R26;
-      NR_XHI = NR_R27;
-      NR_YLO = NR_R28;
-      NR_YHI = NR_R29;
-      NR_ZLO = NR_R30;
-      NR_ZHI = NR_R31;
-
-      NIO_SREG = $3f;
-      NIO_SP_LO = $3d;
-      NIO_SP_HI = $3e;
-
       { Integer Super registers first and last }
-      first_int_supreg = RS_R0;
+      first_int_supreg = RS_A;
       first_int_imreg = $20;
 
       { Float Super register first and last }
@@ -122,7 +111,7 @@ unit cpubase;
         {$i rz80dwa.inc}
       );
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_R0,RS_R1,RS_R18..RS_R27,RS_R30,RS_R31];
+      VOLATILE_INTREGISTERS = [RS_A,RS_BC,RS_DE,RS_HL];
       VOLATILE_FPUREGISTERS = [];
 
     type
@@ -190,20 +179,12 @@ unit cpubase;
 *****************************************************************************}
 
     const
-      firstsaveintreg = RS_R4;
-      lastsaveintreg  = RS_R10;
+      firstsaveintreg = RS_INVALID;
+      lastsaveintreg  = RS_INVALID;
       firstsavefpureg = RS_INVALID;
       lastsavefpureg  = RS_INVALID;
       firstsavemmreg  = RS_INVALID;
       lastsavemmreg   = RS_INVALID;
-
-      maxvarregs = 7;
-      varregs : Array [1..maxvarregs] of tsuperregister =
-                (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
-
-      maxfpuvarregs = 1;
-      fpuvarregs : Array [1..maxfpuvarregs] of tsuperregister =
-                (RS_INVALID);
 
 {*****************************************************************************
                           Default generic sizes
@@ -229,25 +210,25 @@ unit cpubase;
 *****************************************************************************}
 
       { Stack pointer register }
-      NR_STACK_POINTER_REG = NR_R13;
-      RS_STACK_POINTER_REG = RS_R13;
+      NR_STACK_POINTER_REG = NR_SP;
+      RS_STACK_POINTER_REG = RS_SP;
       { Frame pointer register }
-      RS_FRAME_POINTER_REG = RS_R28;
-      NR_FRAME_POINTER_REG = NR_R28;
+      RS_FRAME_POINTER_REG = RS_IX;
+      NR_FRAME_POINTER_REG = NR_IX;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
-      NR_PIC_OFFSET_REG = NR_R9;
+      NR_PIC_OFFSET_REG = NR_INVALID;
       { Results are returned in this register (32-bit values) }
-      NR_FUNCTION_RETURN_REG = NR_R24;
-      RS_FUNCTION_RETURN_REG = RS_R24;
+      NR_FUNCTION_RETURN_REG = NR_HL;
+      RS_FUNCTION_RETURN_REG = RS_HL;
       { Low part of 64bit return value }
-      NR_FUNCTION_RETURN64_LOW_REG = NR_R22;
-      RS_FUNCTION_RETURN64_LOW_REG = RS_R22;
+      NR_FUNCTION_RETURN64_LOW_REG = NR_HL;
+      RS_FUNCTION_RETURN64_LOW_REG = RS_HL;
       { High part of 64bit return value }
-      NR_FUNCTION_RETURN64_HIGH_REG = NR_R1;
-      RS_FUNCTION_RETURN64_HIGH_REG = RS_R1;
+      NR_FUNCTION_RETURN64_HIGH_REG = NR_BC;
+      RS_FUNCTION_RETURN64_HIGH_REG = RS_BC;
       { The value returned from a function is available in this register }
       NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
       RS_FUNCTION_RESULT_REG = RS_FUNCTION_RETURN_REG;
@@ -267,8 +248,8 @@ unit cpubase;
       { Offset where the parent framepointer is pushed }
       PARENT_FRAMEPOINTER_OFFSET = 0;
 
-      NR_DEFAULTFLAGS = NR_SREG;
-      RS_DEFAULTFLAGS = RS_SREG;
+      NR_DEFAULTFLAGS = NR_F;
+      RS_DEFAULTFLAGS = RS_F;
 
 {*****************************************************************************
                        GCC /ABI linking information
