@@ -2599,6 +2599,7 @@ begin
                     Declarations.Declarations.Add(VarEl);
                     Declarations.Variables.Add(VarEl);
                   end;
+                  CheckToken(tkSemicolon);
                 finally
                   List.Free;
                 end;
@@ -3476,8 +3477,6 @@ begin
   pmPublic:
     begin
     NextToken;
-    { Should be token Name,
-      if not we're in a class and the public section starts }
     If not CurTokenIsIdentifier('name') then
       begin
       if P.Parent is TPasClassType then

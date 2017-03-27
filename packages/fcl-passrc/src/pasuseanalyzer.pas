@@ -703,7 +703,8 @@ begin
     {$ENDIF}
     if Decl is TPasProcedure then
       begin
-      if OnlyExports and (TPasProcedure(Decl).PublicName=nil) then continue;
+      if OnlyExports and ([pmExport,pmPublic]*TPasProcedure(Decl).Modifiers=[]) then
+        continue;
       UseProcedure(TPasProcedure(Decl))
       end
     else if Decl is TPasType then

@@ -1226,6 +1226,7 @@ Type
   end;
 
   { TPasImplForLoop }
+
   TLoopType = (ltNormal,ltDown,ltIn);
   TPasImplForLoop = class(TPasImplStatement)
   public
@@ -2693,7 +2694,7 @@ begin
   if IfBranch=nil then
     begin
     IfBranch:=Element;
-    element.AddRef;
+    Element.AddRef;
     end
   else if ElseBranch=nil then
     begin
@@ -2712,10 +2713,12 @@ end;
 procedure TPasImplIfElse.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,ConditionExpr,false);
-  ForEachChildCall(aMethodCall,Arg,IfBranch,false);
-  ForEachChildCall(aMethodCall,Arg,ElseBranch,false);
+  if Elements.IndexOf(IfBranch)<0 then
+    ForEachChildCall(aMethodCall,Arg,IfBranch,false);
+  if Elements.IndexOf(ElseBranch)<0 then
+    ForEachChildCall(aMethodCall,Arg,ElseBranch,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 function TPasImplIfElse.Condition: string;
@@ -2749,12 +2752,13 @@ end;
 procedure TPasImplForLoop.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,VariableName,false);
   ForEachChildCall(aMethodCall,Arg,Variable,false);
   ForEachChildCall(aMethodCall,Arg,StartExpr,false);
   ForEachChildCall(aMethodCall,Arg,EndExpr,false);
-  ForEachChildCall(aMethodCall,Arg,Body,false);
+  if Elements.IndexOf(Body)<0 then
+    ForEachChildCall(aMethodCall,Arg,Body,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 function TPasImplForLoop.Down: boolean;
@@ -3931,15 +3935,16 @@ begin
     Body.AddRef;
     end
   else
-    raise Exception.Create('TPasImplWhileDo.AddElement body already set - please report this bug');
+    raise Exception.Create('TPasImplWhileDo.AddElement body already set');
 end;
 
 procedure TPasImplWhileDo.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,ConditionExpr,false);
-  ForEachChildCall(aMethodCall,Arg,Body,false);
+  if Elements.IndexOf(Body)<0 then
+    ForEachChildCall(aMethodCall,Arg,Body,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 function TPasImplWhileDo.Condition: string;
@@ -3982,9 +3987,10 @@ end;
 procedure TPasImplCaseOf.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,CaseExpr,false);
-  ForEachChildCall(aMethodCall,Arg,ElseBranch,false);
+  if Elements.IndexOf(ElseBranch)<0 then
+    ForEachChildCall(aMethodCall,Arg,ElseBranch,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 function TPasImplCaseOf.Expression: string;
@@ -4025,6 +4031,8 @@ begin
     Body:=Element;
     Body.AddRef;
     end
+  else
+    raise Exception.Create('TPasImplCaseStatement.AddElement body already set');
 end;
 
 procedure TPasImplCaseStatement.AddExpression(const Expr: TPasExpr);
@@ -4038,10 +4046,11 @@ procedure TPasImplCaseStatement.ForEachCall(
 var
   i: Integer;
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   for i:=0 to Expressions.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(Expressions[i]),false);
-  ForEachChildCall(aMethodCall,Arg,Body,false);
+  if Elements.IndexOf(Body)<0 then
+    ForEachChildCall(aMethodCall,Arg,Body,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 { TPasImplWithDo }
@@ -4071,7 +4080,9 @@ begin
     begin
     Body:=Element;
     Body.AddRef;
-    end;
+    end
+  else
+    raise Exception.Create('TPasImplWithDo.AddElement body already set');
 end;
 
 procedure TPasImplWithDo.AddExpression(const Expression: TPasExpr);
@@ -4086,6 +4097,8 @@ var
 begin
   for i:=0 to Expressions.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(Expressions[i]),false);
+  if Elements.IndexOf(Body)<0 then
+    ForEachChildCall(aMethodCall,Arg,Body,false);
   inherited ForEachCall(aMethodCall, Arg);
 end;
 
@@ -4149,10 +4162,11 @@ end;
 procedure TPasImplExceptOn.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,VarEl,false);
   ForEachChildCall(aMethodCall,Arg,TypeEl,false);
-  ForEachChildCall(aMethodCall,Arg,Body,false);
+  if Elements.IndexOf(Body)<0 then
+    ForEachChildCall(aMethodCall,Arg,Body,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 function TPasImplExceptOn.VariableName: String;

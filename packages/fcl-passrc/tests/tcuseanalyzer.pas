@@ -97,6 +97,7 @@ type
     procedure TestWP_UnitInitialization;
     procedure TestWP_UnitFinalization;
     procedure TestWP_CallInherited;
+    procedure TestWP_ProgramPublicDeclarations;
   end;
 
 implementation
@@ -1229,6 +1230,18 @@ begin
   Add('begin');
   Add('  o.DoA;');
   Add('  o.DoC;');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_ProgramPublicDeclarations;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  {#vPublic_used}vPublic: longint; public;');
+  Add('  {#vPrivate_notused}vPrivate: longint;');
+  Add('procedure {#DoPublic_used}DoPublic; public; begin end;');
+  Add('procedure {#DoPrivate_notused}DoPrivate; begin end;');
+  Add('begin');
   AnalyzeWholeProgram;
 end;
 
