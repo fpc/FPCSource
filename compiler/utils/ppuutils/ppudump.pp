@@ -177,7 +177,8 @@ const
   { 89 }  'Win16',
   { 90 }  'Embedded-i8086',
   { 91 }  'AROS-arm',
-  { 92 }  'WebAssembly-wasm'
+  { 92 }  'WebAssembly-wasm',
+  { 93 }  'Embedded-Z80'
   );
 
 const
