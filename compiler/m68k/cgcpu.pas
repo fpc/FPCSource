@@ -2452,7 +2452,6 @@ unit cgcpu;
         href: treference;
         hreg: tregister;
       begin
-        writeln('sajt');
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
