@@ -230,19 +230,32 @@ implementation
         case current_settings.fputype of
           fpu_68881,fpu_coldfire:
             begin
-              { force left fpureg as register, right can be reference }
+              location_reset(location,LOC_FLAGS,OS_NO);
+              location.resflags:=getfloatresflags;
 
               { emit compare }
               case right.location.loc of
                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
                     begin
-                      hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,fpuregopsize,right.location.register,left.location.register));
+                      //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_cmpfloat right reg!')));
+                      if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                        begin
+                          href:=left.location.reference;
+                          tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+                          current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[left.location.size],href,right.location.register));
+                          toggleflag(nf_swapped);
+                          location.resflags:=getfloatresflags;
+                        end
+                      else
+                        begin
+                          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,fpuregopsize,right.location.register,left.location.register));
+                        end;
                     end;
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      { use FTST, if realconst is 0.0, it would be very had to do this in the
-                        optimized, because we would need to investigate the referenced value... }
+                      { use FTST, if realconst is 0.0, it would be hard to do this in the
+                        optimizer, because we would need to investigate the referenced value... }
                       if (right.nodetype = realconstn) and
                          (trealconstnode(right).value_real = 0.0) then
                         begin
@@ -276,8 +289,6 @@ implementation
                   internalerror(2015021502);
               end;
 
-              location_reset(location,LOC_FLAGS,OS_NO);
-              location.resflags:=getfloatresflags;
             end;
           else
             // softfpu should be handled in pass1, others are not yet supported...
@@ -389,7 +400,7 @@ implementation
 
         if (location.size <> right.location.size) or
            not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
-           (not(CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]) and (nodetype = muln)) or 
+           (not(CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]) and (nodetype = muln)) or
            ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,def_cgsize(resultdef))) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
