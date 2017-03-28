@@ -109,7 +109,7 @@ implementation
       cutils,cfileutl,systems,
       fmodule,verbose,
 {$ifndef DISABLE_WIN64_SEH}
-      itcpuasm,
+      itcpugas,
 {$endif DISABLE_WIN64_SEH}
 {$ifdef m68k}
       cpuinfo,aasmcpu,
