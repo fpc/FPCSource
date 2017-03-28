@@ -3535,6 +3535,12 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif aarch64}
+{$ifdef z80}
+  def_system_macro('CPUZ80');
+  def_system_macro('CPU16');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif z80}
 
 {$if defined(cpu8bitalu)}
   def_system_macro('CPUINT8');

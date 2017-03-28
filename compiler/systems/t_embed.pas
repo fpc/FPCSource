@@ -1514,4 +1514,9 @@ initialization
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_m68k_embedded_info);
 {$endif m68k}
+
+{$ifdef z80}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_z80_embedded_info);
+{$endif z80}
 end.

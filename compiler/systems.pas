@@ -1006,7 +1006,11 @@ begin
 
 {$ifdef wasm}
   default_target(system_wasm_wasm32);
-{$endif}
+{$endif wasm}
+
+{$ifdef z80}
+  default_target(system_z80_embedded);
+{$endif z80}
 end;
 
 
