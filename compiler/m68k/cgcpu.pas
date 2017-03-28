@@ -114,6 +114,7 @@ unit cgcpu;
        procedure a_op64_reg_reg(list : TAsmList;op:TOpCG; size: tcgsize; regsrc,regdst : tregister64);override;
        procedure a_op64_const_reg(list : TAsmList;op:TOpCG; size: tcgsize; value : int64;regdst : tregister64);override;
        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
+       procedure a_op64_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64;const ref : treference);override;
        procedure a_load64_reg_ref(list : TAsmList;reg : tregister64;const ref : treference); override;
        procedure a_load64_ref_reg(list : TAsmList;const ref : treference;reg : tregister64); override;
      end;
@@ -1266,6 +1267,7 @@ unit cgcpu;
         opcode: tasmop;
         opsize: topsize;
         href  : treference;
+        hreg  : tregister;
       begin
         optimize_op_const(size, op, a);
         opcode := topcg2tasmop[op];
@@ -1289,6 +1291,17 @@ unit cgcpu;
             begin
               { Optimized, replaced with a simple load }
               a_load_const_ref(list,size,a,ref);
+            end;
+          OP_AND,
+          OP_OR,
+          OP_XOR :
+            begin
+              //list.concat(tai_comment.create(strpnew('a_op_const_ref: bitwise')));
+              hreg:=getintregister(list,size);
+              a_load_const_reg(list,size,a,hreg);
+              href:=ref;
+              fixref(list,href,false);
+              list.concat(taicpu.op_reg_ref(opcode, opsize, hreg, href));
             end;
           OP_ADD,
           OP_SUB :
@@ -2399,7 +2412,8 @@ unit cgcpu;
 
     procedure tcg64f68k.a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
       var
-        tempref : treference;
+        href : treference;
+        hreg: tregister;
       begin
         case op of
           OP_NEG,OP_NOT:
@@ -2407,19 +2421,61 @@ unit cgcpu;
               a_load64_ref_reg(list,ref,reg);
               a_op64_reg_reg(list,op,size,reg,reg);
             end;
-
           OP_AND,OP_OR:
             begin
-              tempref:=ref;
-              tcg68k(cg).fixref(list,tempref,false);
-              list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,tempref,reg.reghi));
-              inc(tempref.offset,4);
-              list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,tempref,reg.reglo));
+              href:=ref;
+              tcg68k(cg).fixref(list,href,false);
+              list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,href,reg.reghi));
+              inc(href.offset,4);
+              list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,href,reg.reglo));
+            end;
+          OP_ADD,OP_SUB:
+            begin
+              href:=ref;
+              tcg68k(cg).fixref(list,href,false);
+              hreg:=cg.getintregister(list,OS_32);
+              cg.a_load_ref_reg(list,OS_32,OS_32,href,hreg);
+              inc(href.offset,4);
+              list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,href,reg.reglo));
+              list.concat(taicpu.op_reg_reg(topcg2tasmopx[op],S_L,hreg,reg.reghi));
             end;
         else
           { XOR does not allow reference for source; ADD/SUB do not allow reference for
             high dword, although low dword can still be handled directly. }
           inherited a_op64_ref_reg(list,op,size,ref,reg);
+        end;
+      end;
+
+
+    procedure tcg64f68k.a_op64_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64;const ref : treference);
+      var
+        href: treference;
+        hreg: tregister;
+      begin
+        writeln('sajt');
+        case op of
+          OP_AND,OP_OR,OP_XOR:
+            begin
+              href:=ref;
+              tcg68k(cg).fixref(list,href,false);
+              list.concat(taicpu.op_reg_ref(topcg2tasmop[op],S_L,reg.reghi,href));
+              inc(href.offset,4);
+              list.concat(taicpu.op_reg_ref(topcg2tasmop[op],S_L,reg.reglo,href));
+            end;
+          OP_ADD,OP_SUB:
+            begin
+              href:=ref;
+              tcg68k(cg).fixref(list,href,false);
+              hreg:=cg.getintregister(list,OS_32);
+              cg.a_load_ref_reg(list,OS_32,OS_32,href,hreg);
+              inc(href.offset,4);
+              list.concat(taicpu.op_reg_ref(topcg2tasmop[op],S_L,reg.reglo,href));
+              list.concat(taicpu.op_reg_reg(topcg2tasmopx[op],S_L,reg.reghi,hreg));
+              dec(href.offset,4);
+              cg.a_load_reg_ref(list,OS_32,OS_32,hreg,href);
+            end;
+        else
+          inherited a_op64_reg_ref(list,op,size,reg,ref);
         end;
       end;
 
@@ -2468,7 +2524,7 @@ unit cgcpu;
           OP_IMUL,OP_MUL:
             internalerror(2002081701);
           { this is also handled in 1st pass for 32-bit cpus (helper call) }
-          OP_SAR,OP_SHL,OP_SHR: 
+          OP_SAR,OP_SHL,OP_SHR:
             internalerror(2002081702);
           { these should have been handled already by earlier passes }
           OP_NOT,OP_NEG:
