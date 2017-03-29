@@ -292,7 +292,7 @@ type
     function CreateUnaryExpr(AParent : TPasElement; AOperand: TPasExpr; AOpCode: TExprOpCode): TUnaryExpr;
     function CreateArrayValues(AParent : TPasElement): TArrayValues;
     function CreateFunctionType(const AName, AResultName: String; AParent: TPasElement;
-             UseParentAsResultParent: Boolean): TPasFunctionType;
+             UseParentAsResultParent: Boolean; const NamePos: TPasSourcePos): TPasFunctionType;
     function CreateInheritedExpr(AParent : TPasElement): TInheritedExpr;
     function CreateSelfExpr(AParent : TPasElement): TSelfExpr;
     function CreateNilExpr(AParent : TPasElement): TNilExpr;
@@ -1364,7 +1364,7 @@ begin
       end;
     tkFunction:
       begin
-        Result := CreateFunctionType('', 'Result', Parent, False);
+        Result := CreateFunctionType('', 'Result', Parent, False, Scanner.CurSourcePos);
         ParseProcedureOrFunctionHeader(Result, TPasFunctionType(Result), ptFunction, True);
         if CurToken = tkSemicolon then
           UngetToken;        // Unget semicolon
@@ -2938,7 +2938,7 @@ var
   ok: Boolean;
 begin
   if PT in [ptFunction,ptClassFunction] then
-    Result := CreateFunctionType(TypeName, 'Result', Parent, False)
+    Result := CreateFunctionType(TypeName, 'Result', Parent, False, NamePos)
   else
     Result := TPasProcedureType(CreateElement(TPasProcedureType, TypeName, Parent, NamePos));
   ok:=false;
@@ -4094,14 +4094,16 @@ begin
   while True do
   begin
     NextToken;
-    //WriteLn('Token=',CurTokenText);
+    WriteLn({$IFDEF VerbosePasParser}i,{$ENDIF}' Token=',CurTokenText);
     case CurToken of
     tkasm:
       begin
       El:=TPasImplElement(CreateElement(TPasImplAsmStatement,'',CurBlock));
       ParseAsmBlock(TPasImplAsmStatement(El));
       CurBlock.AddElement(El);
-      NewImplElement:=El;
+      if NewImplElement=nil then NewImplElement:=CurBlock;
+      if CloseStatement(true) then
+        break;
       end;
     tkbegin:
       begin
@@ -4484,8 +4486,9 @@ begin
           if CloseBlock then break;
         end else
           ParseExcSyntaxError;
-      end;
+      end
     else
+      begin
       left:=DoParseExpression(CurBlock);
       case CurToken of
         tkAssign,
@@ -4530,6 +4533,7 @@ begin
 
       if not (CmdElem is TPasImplLabelMark) then
         if NewImplElement=nil then NewImplElement:=CmdElem;
+      end;
     end;
   end;
 end;
@@ -4633,7 +4637,7 @@ begin
       Result.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '', Result))
     else
       begin
-      Result.ProcType := CreateFunctionType('', 'Result', Result, True);
+      Result.ProcType := CreateFunctionType('', 'Result', Result, True, Scanner.CurSourcePos);
       if (ProcType in [ptOperator, ptClassOperator]) then
         begin
         TPasOperator(Result).TokenBased:=IsTokenBased;
@@ -5417,11 +5421,12 @@ begin
 end;
 
 function TPasParser.CreateFunctionType(const AName, AResultName: String;
-  AParent: TPasElement; UseParentAsResultParent: Boolean): TPasFunctionType;
+  AParent: TPasElement; UseParentAsResultParent: Boolean;
+  const NamePos: TPasSourcePos): TPasFunctionType;
 begin
   Result:=Engine.CreateFunctionType(AName,AResultName,
                                     AParent,UseParentAsResultParent,
-                                    Scanner.CurSourcePos);
+                                    NamePos);
 end;
 
 function TPasParser.CreateInheritedExpr(AParent: TPasElement): TInheritedExpr;
