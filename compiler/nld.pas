@@ -589,8 +589,13 @@ implementation
               end;
             if cs_opt_level3 in current_settings.optimizerswitches then
               begin
-                { replace i:=i+k/i:=i-k by inc/dec(i,k)? }
-                if (right.nodetype in [addn,subn]) and
+                { replace i:=i+k by inc(i,k)
+                          i:=i-k by dec(i,k)
+                          i:=i and/or/xor k  by in_[and/or/xor]_assign_x_y(i,k)
+                  todo: for some integer types, there are extra implicit
+                        typecasts inserted by the compiler; this code should be
+                        updated to handle them as well }
+                if (right.nodetype in [addn,subn,andn,orn,xorn]) and
                   (taddnode(right).left.isequal(left)) and
                   is_integer(taddnode(right).left.resultdef) and
                   is_integer(taddnode(right).right.resultdef) and
@@ -599,19 +604,38 @@ implementation
                   valid_for_var(taddnode(right).left,false) and
                   not(might_have_sideeffects(taddnode(right).left)) then
                   begin
-                    if right.nodetype=addn then
-                      newinlinenodetype:=in_inc_x
+                    case right.nodetype of
+                      addn:
+                        newinlinenodetype:=in_inc_x;
+                      subn:
+                        newinlinenodetype:=in_dec_x;
+                      andn:
+                        newinlinenodetype:=in_and_assign_x_y;
+                      orn:
+                        newinlinenodetype:=in_or_assign_x_y;
+                      xorn:
+                        newinlinenodetype:=in_xor_assign_x_y;
+                      else
+                        internalerror(2017032901);
+                    end;
+                    if right.nodetype in [addn,subn] then
+                      result:=cinlinenode.createintern(
+                        newinlinenodetype,false,ccallparanode.create(
+                        left,ccallparanode.create(taddnode(right).right,nil)))
                     else
-                      newinlinenodetype:=in_dec_x;
-                    result:=cinlinenode.createintern(
-                      newinlinenodetype,false,ccallparanode.create(
-                      left,ccallparanode.create(taddnode(right).right,nil)));
+                      result:=cinlinenode.createintern(
+                        newinlinenodetype,false,ccallparanode.create(
+                        taddnode(right).right,ccallparanode.create(left,nil)));
                     left:=nil;
                     taddnode(right).right:=nil;
                     exit;
                   end;
-                { replace i:=k+i by inc(i,k)? }
-                if (right.nodetype=addn) and
+                { replace i:=k+i by inc(i,k)
+                          i:=k and/or/xor i  by in_[and/or/xor]_assign_x_y(i,k)
+                  todo: for some integer types, there are extra implicit
+                        typecasts inserted by the compiler; this code should be
+                        updated to handle them as well }
+                if (right.nodetype in [addn,andn,orn,xorn]) and
                   (taddnode(right).right.isequal(left)) and
                   is_integer(taddnode(right).left.resultdef) and
                   is_integer(taddnode(right).right.resultdef) and
@@ -620,9 +644,26 @@ implementation
                   valid_for_var(taddnode(right).right,false) and
                   not(might_have_sideeffects(taddnode(right).right)) then
                   begin
-                    result:=cinlinenode.createintern(
-                      in_inc_x,false,ccallparanode.create(
-                      left,ccallparanode.create(taddnode(right).left,nil)));
+                    case right.nodetype of
+                      addn:
+                        newinlinenodetype:=in_inc_x;
+                      andn:
+                        newinlinenodetype:=in_and_assign_x_y;
+                      orn:
+                        newinlinenodetype:=in_or_assign_x_y;
+                      xorn:
+                        newinlinenodetype:=in_xor_assign_x_y;
+                      else
+                        internalerror(2017032902);
+                    end;
+                    if right.nodetype=addn then
+                      result:=cinlinenode.createintern(
+                        newinlinenodetype,false,ccallparanode.create(
+                        left,ccallparanode.create(taddnode(right).left,nil)))
+                    else
+                      result:=cinlinenode.createintern(
+                        newinlinenodetype,false,ccallparanode.create(
+                        taddnode(right).left,ccallparanode.create(left,nil)));
                     left:=nil;
                     taddnode(right).left:=nil;
                     exit;
