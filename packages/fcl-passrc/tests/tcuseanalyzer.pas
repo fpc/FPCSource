@@ -176,7 +176,7 @@ begin
   aMarker:=FirstSrcMarker;
   while aMarker<>nil do
     begin
-    writeln('TCustomTestUseAnalyzer.CheckUsedMarkers ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    writeln('TCustomTestUseAnalyzer.CheckUsedMarkers ',aMarker^.Identifier,' Line=',aMarker^.Row,' StartCol=',aMarker^.StartCol,' EndCol=',aMarker^.EndCol);
     p:=RPos('_',aMarker^.Identifier);
     if p>1 then
       begin
@@ -603,10 +603,13 @@ begin
   Add('procedure {#DoIt_used}DoIt;');
   Add('type');
   Add('  {#TProc_used}TProc = procedure;');
+  Add('  {#TFunc_used}TFunc = function(): longint;');
   Add('var');
   Add('  {#p_used}p: TProc;');
+  Add('  {#f_used}f: TFunc;');
   Add('begin');
   Add('  p:=nil;');
+  Add('  f:=nil;');
   Add('end;');
   Add('begin');
   Add('  DoIt;');

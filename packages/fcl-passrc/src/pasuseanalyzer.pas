@@ -1045,7 +1045,7 @@ begin
       if not MarkElementAsUsed(El) then exit;
       UseType(TPasSetType(El).EnumType,Mode);
       end
-    else if C=TPasProcedureType then
+    else if C.InheritsFrom(TPasProcedureType) then
       UseProcedureType(TPasProcedureType(El),true)
     else
       RaiseNotSupported(20170306170315,El);
@@ -1061,7 +1061,7 @@ begin
   MarkElementAsUsed(El);
   if (Mode=paumAllPublic) and not ElementVisited(El,Mode) then
     for i:=0 to El.Members.Count-1 do
-      UseVariable(TObject(El.Members) as TPasVariable,rraNone,true);
+      UseVariable(TObject(El.Members[i]) as TPasVariable,rraNone,true);
 end;
 
 procedure TPasAnalyzer.UseClassType(El: TPasClassType; Mode: TPAUseMode);
