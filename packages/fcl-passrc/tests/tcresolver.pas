@@ -162,12 +162,15 @@ type
     Procedure TestAlias2Type;
     Procedure TestAliasTypeRefs;
     Procedure TestAliasOfVarFail;
+    Procedure TestAliasType_UnitPrefix;
+    Procedure TestAliasType_UnitPrefix_CycleFail;
     Procedure TestTypeAliasType; // ToDo
 
     // var, const
     Procedure TestVarLongint;
     Procedure TestVarInteger;
     Procedure TestConstInteger;
+    Procedure TestConstInteger2;
     Procedure TestDuplicateVar;
     Procedure TestVarInitConst;
     Procedure TestVarOfVarFail;
@@ -196,6 +199,7 @@ type
     // enums
     Procedure TestEnums;
     Procedure TestSets;
+    Procedure TestSetConstRange;
     Procedure TestSetOperators;
     Procedure TestEnumParams;
     Procedure TestSetParams;
@@ -230,6 +234,7 @@ type
     Procedure TestTypeCastBooleanToDoubleFail;
     Procedure TestHighLow;
     Procedure TestAssign_Access;
+    Procedure TestAssignedIntFail;
 
     // statements
     Procedure TestForLoop;
@@ -268,6 +273,7 @@ type
     Procedure TestProcOverloadWithClassTypes;
     Procedure TestProcOverloadWithInhClassTypes;
     Procedure TestProcOverloadWithInhAliasClassTypes;
+    Procedure TestProcOverloadBaseTypeOtherUnit;
     Procedure TestProcDuplicate;
     Procedure TestNestedProc;
     Procedure TestForwardProc;
@@ -281,6 +287,7 @@ type
     Procedure TestUnitIntfMismatchArgName;
     Procedure TestProcOverloadIsNotFunc;
     Procedure TestProcCallMissingParams;
+    Procedure TestProcArgDefaultValue;
     Procedure TestProcArgDefaultValueTypeMismatch;
     Procedure TestProcPassConstToVar;
     Procedure TestBuiltInProcCallMissingParams;
@@ -311,7 +318,8 @@ type
     Procedure TestClass_Method;
     Procedure TestClass_MethodWithoutClassFail;
     Procedure TestClass_MethodWithParams;
-    Procedure TestClass_MethodUnresolved;
+    Procedure TestClass_MethodUnresolvedPrg;
+    Procedure TestClass_MethodUnresolvedUnit;
     Procedure TestClass_MethodAbstract;
     Procedure TestClass_MethodAbstractWithoutVirtualFail;
     Procedure TestClass_MethodAbstractHasBodyFail;
@@ -443,7 +451,8 @@ type
     Procedure TestStaticArray;
     Procedure TestArrayOfArray;
     Procedure TestFunctionReturningArray;
-    Procedure TestLowHighArray;
+    Procedure TestArray_LowHigh;
+    Procedure TestArray_Assigned;
     Procedure TestPropertyOfTypeArray;
     Procedure TestArrayElementFromFuncResult_AsParams;
     Procedure TestArrayEnumTypeRange;
@@ -457,6 +466,7 @@ type
     Procedure TestArray_PassArrayElementToVarParam;
     Procedure TestArray_OpenArrayOfString;
     Procedure TestArray_OpenArrayOfString_IntFail;
+    Procedure TestArray_OpenArrayOverride;
 
     // procedure types
     Procedure TestProcTypesAssignObjFPC;
@@ -476,6 +486,7 @@ type
     Procedure TestProcType_TNotifyEvent_NoAtFPC_Fail1;
     Procedure TestProcType_TNotifyEvent_NoAtFPC_Fail2;
     Procedure TestProcType_TNotifyEvent_NoAtFPC_Fail3;
+    Procedure TestProcType_WhileListCompare;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -1736,6 +1747,30 @@ begin
   CheckParserException('Expected type, but got variable',PParser.nParserExpectedTypeButGot);
 end;
 
+procedure TTestResolver.TestAliasType_UnitPrefix;
+begin
+  StartUnit(false);
+  Add('interface');
+  Add('type');
+  Add('  {#a}a=longint;');
+  Add('  {#b}{=a}b=afile.a;');
+  Add('var');
+  Add('  {=a}c: a;');
+  Add('  {=b}d: b;');
+  Add('implementation');
+  ParseUnit;
+end;
+
+procedure TTestResolver.TestAliasType_UnitPrefix_CycleFail;
+begin
+  StartUnit(false);
+  Add('interface');
+  Add('type');
+  Add('  {#a}a=afile.a;');
+  Add('implementation');
+  CheckResolverException('identifier not found "a"',nIdentifierNotFound);
+end;
+
 procedure TTestResolver.TestTypeAliasType;
 begin
   // ToDo
@@ -1809,7 +1844,7 @@ var
 begin
   StartProgram(true);
   Add('const');
-  Add('  c1:integer=3;'); // defined in system.pp
+  Add('  c1: integer=3;'); // defined in system.pp
   Add('begin');
   ParseProgram;
   AssertEquals('1 declaration',1,PasProgram.ProgramSection.Declarations.Count);
@@ -1826,6 +1861,15 @@ begin
   AssertNotNull('c1 expr',ExprC1);
   AssertEquals('c1 expr primitive',TPrimitiveExpr,ExprC1.ClassType);
   AssertEquals('c1 expr value','3',ExprC1.Value);
+end;
+
+procedure TTestResolver.TestConstInteger2;
+begin
+  StartProgram(false);
+  Add('const');
+  Add('  c1 = 3');
+  Add('  c2: longint=c1;'); // defined in system.pp
+  Add('begin');
 end;
 
 procedure TTestResolver.TestDuplicateVar;
@@ -2161,6 +2205,16 @@ begin
   Add('  {@MyBools}MyBools:=[false,true];');
   Add('  {@MyBools}MyBools:=[true..false];');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestSetConstRange;
+begin
+  StartProgram(false);
+  Add('const');
+  Add('  MinInt = -1;');
+  Add('  MaxInt = +1;');
+  Add('  {#TMyInt}TMyInt = MinInt..MaxInt;');
+  Add('begin');
 end;
 
 procedure TTestResolver.TestSetOperators;
@@ -2862,6 +2916,16 @@ begin
   CheckAccessMarkers;
 end;
 
+procedure TTestResolver.TestAssignedIntFail;
+begin
+  StartProgram(false);
+  Add('var i: longint;');
+  Add('begin');
+  Add('  if Assigned(i) then ;');
+  CheckResolverException('Incompatible type arg no. 1: Got "Longint", expected "class or array"',
+    nIncompatibleTypeArgNo);
+end;
+
 procedure TTestResolver.TestForLoop;
 begin
   StartProgram(false);
@@ -3343,7 +3407,9 @@ end;
 procedure TTestResolver.TestProcParam;
 begin
   StartProgram(false);
-  Add('procedure Proc1(a: longint);');
+  Add('type');
+  Add('  integer = longint;');
+  Add('procedure Proc1(a: integer);');
   Add('begin');
   Add('  a:=3;');
   Add('end;');
@@ -3354,8 +3420,10 @@ end;
 procedure TTestResolver.TestProcParamAccess;
 begin
   StartProgram(false);
-  Add('procedure DoIt(vI: longint; const vJ: longint; var vK: longint);');
-  Add('var vL: longint;');
+  Add('type');
+  Add('  integer = longint;');
+  Add('procedure DoIt(vI: integer; const vJ: integer; var vK: integer);');
+  Add('var vL: integer;');
   Add('begin');
   Add('  vi:=vi+1;');
   Add('  vl:=vj+1;');
@@ -3366,7 +3434,7 @@ begin
   Add('  DoIt(vk,vk,vk);');
   Add('  DoIt(vl,vl,vl);');
   Add('end;');
-  Add('var i: longint;');
+  Add('var i: integer;');
   Add('begin');
   Add('  DoIt(i,i,i);');
   ParseProgram;
@@ -3492,6 +3560,29 @@ begin
   Add('  {@DoA}DoIt({@A}A)');
   Add('  {@DoA}DoIt({@B}B)');
   Add('  {@DoC}DoIt({@C}C)');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadBaseTypeOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'procedure Val(var d: double);',
+    //'procedure Val(var i: integer);',
+    '']),
+    LinesToStr([
+    'procedure Val(var d: double); begin end;',
+    'procedure Val(var i: integer); begin end;',
+    '']));
+
+  StartProgram(true);
+  Add('uses unit2;');
+  Add('var');
+  Add('  d: double;');
+  Add('  i: integer;');
+  Add('begin');
+  //Add('  Val(i);');
+  Add('  Val(d);');
   ParseProgram;
 end;
 
@@ -3672,6 +3763,17 @@ begin
   Add('  Proc1;');
   CheckResolverException('Wrong number of parameters for call to "Proc1"',
     PasResolver.nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestProcArgDefaultValue;
+begin
+  StartProgram(false);
+  Add('const {#DefA}DefA = 3;');
+  Add('procedure Proc1(a: longint = {@DefA}DefA);');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProcArgDefaultValueTypeMismatch;
@@ -4177,7 +4279,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClass_MethodUnresolved;
+procedure TTestResolver.TestClass_MethodUnresolvedPrg;
 begin
   StartProgram(false);
   Add('type');
@@ -4187,6 +4289,20 @@ begin
   Add('    procedure ProcA;');
   Add('  end;');
   Add('begin');
+  CheckResolverException('forward proc not resolved',PasResolver.nForwardProcNotResolved);
+end;
+
+procedure TTestResolver.TestClass_MethodUnresolvedUnit;
+begin
+  StartUnit(false);
+  Add('interface');
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TClassA = class');
+  Add('    procedure ProcA;');
+  Add('  end;');
+  Add('implementation');
   CheckResolverException('forward proc not resolved',PasResolver.nForwardProcNotResolved);
 end;
 
@@ -6214,7 +6330,8 @@ begin
   Add('    property B: longint read FB;');
   Add('  end;');
   Add('begin');
-  CheckResolverException('Longint expected, but String found',PasResolver.nXExpectedButYFound);
+  CheckResolverException('Incompatible types: got "Longint" expected "String"',
+    PasResolver.nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestPropertyReadAccessorProcNotFunc;
@@ -6280,7 +6397,8 @@ begin
   Add('    property B: longint write FB;');
   Add('  end;');
   Add('begin');
-  CheckResolverException('Longint expected, but String found',PasResolver.nXExpectedButYFound);
+  CheckResolverException('Incompatible types: got "Longint" expected "String"',
+    PasResolver.nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestPropertyWriteAccessorFuncNotProc;
@@ -6851,7 +6969,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestLowHighArray;
+procedure TTestResolver.TestArray_LowHigh;
 begin
   StartProgram(false);
   Add('type');
@@ -6863,6 +6981,15 @@ begin
   Add('begin');
   Add('  for c:=low(TArrA) to High(TArrA) do ;');
   Add('  for i:=low(TArrB) to High(TArrB) do ;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_Assigned;
+begin
+  StartProgram(false);
+  Add('var a: array of longint;');
+  Add('begin');
+  Add('  if Assigned(a) then ;');
   ParseProgram;
 end;
 
@@ -7099,6 +7226,28 @@ begin
   Add('begin');
   Add('  DoIt([1]);');
   CheckResolverException('Incompatible types: got "Longint" expected "String"',nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestArray_OpenArrayOverride;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  Exception = class');
+  Add('    constructor CreateFmt(const Msg: string; const Args: array of string); virtual;');
+  Add('  end;');
+  Add('  ESome = class(Exception)');
+  Add('    constructor CreateFmt(const Msg: string; const Args: array of string); override;');
+  Add('  end;');
+  Add('constructor Exception.CreateFmt(const Msg: string; const Args: array of string);');
+  Add('begin end;');
+  Add('constructor ESome.CreateFmt(const Msg: string; const Args: array of string);');
+  Add('begin');
+  Add('  inherited CreateFmt(Msg,Args);');
+  Add('end;');
+  Add('begin');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProcTypesAssignObjFPC;
@@ -7597,6 +7746,21 @@ begin
   Add('  Button1.OnClick := @App.BtnClickHandler();');
   CheckResolverException('Wrong number of parameters specified for call to "BtnClickHandler"',
     nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestProcType_WhileListCompare;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TArrInt = array of Integer;');
+  Add('  TListCompare = function(Item1, Item2: Integer): integer;');
+  Add('procedure Sort(P: Integer; const List: TArrInt; const Compare: TListCompare);');
+  Add('begin');
+  Add('  while Compare(P,List[0])>0 do ;');
+  Add('end;');
+  Add('begin');
+  ParseProgram;
 end;
 
 initialization
