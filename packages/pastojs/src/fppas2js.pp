@@ -48,6 +48,7 @@ Works:
   - literals
   - setlength(s,newlen) -> s.length == newlen
   - read and write char aString[]
+  - allow only String, no ShortString, AnsiString, UnicodeString,...
 - for loop
   - if loopvar is used afterwards append  if($loopend>i)i--;
 - repeat..until
@@ -101,10 +102,9 @@ Works:
 - dynamic arrays
   - init as "arr = []"  arrays must never be null
   - SetLength(arr,len) becomes  arr = SetLength(arr,len,defaultvalue)
-  - length(arr)
+  - length(), low(), high(), assigned()
   - assign nil -> []  arrays must never be null
   - read, write element arr[index]
-  - low(), high()
   - multi dimensional [index1,index2] -> [index1][index2]
   - array of record
   - equal, unequal nil -> array.length == 0
@@ -196,7 +196,31 @@ Works:
   - parameter, result type, assign from/to untyped
 
 ToDos:
+- if jsvalue<>nil  jsvalue=nil
+- function copy(array): array
+- function copy(array,start): array
+- function copy(array,start,count): array
+- proc insert(const item,var array,const position)
+- proc delete(var array,const start,count)
+- function slice(array,count): array
+- function splice(var array, const start,deletecount,item1,item2,...): arrayofdeletedelements;
+- function concat(array1,array2,...): array
+- allow type casting array to external class 'Array'
+- document "overload" modifier
+- test param const R: TRect  r.Left:=3 fails
+- FuncName:= (instead of Result:=)
+- ord(s[i]) -> s.charCodeAt(i)
+- $modeswitch -> define <modeswitch>
+- $modeswitch- -> turn off
 - add rtl functions IsString, IsInteger, IsBoolean, IsDouble, IsTObject, IsClass, IsEnum, IsUndefined
+- integer range
+- @@ compare method in
+- dotted unit names, namespaces
+- type alias type
+- RTTI
+- enumeration  for..in..do
+- pointer of record
+- nested types in class
 
 Not in Version 1.0:
 - write, writeln
@@ -204,7 +228,7 @@ Not in Version 1.0:
 - arrays
   - static array: non 0 start index, length
   - array of static array: setlength
-  - array range char, char rangge, integer range, enum range
+  - array range char, char range, integer range, enum range
   - array of const
 - sets
   - set of char, boolean, integer range, char range, enum range
@@ -227,16 +251,12 @@ Not in Version 1.0:
   -O1 no function Result var when assigned only once
   - SetLength(scope.a,l) -> read scope only once, same for
     Include, Exclude, Inc, Dec
-- dotted unit names
-- pointer of record
 - objects, interfaces, advanced records
 - class helpers, type helpers, record helpers,
-- nested types in class
 - generics
 - operator overloading
-- enumeration  for..in..do
 - inline
-- type alias type
+- anonymous functions
 
 Compile flags for debugging: -d<x>
    VerbosePas2JS
@@ -632,6 +652,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure AddObjFPCBuiltInIdentifiers(
+      const TheBaseTypes: TResolveBaseTypes=btAllStandardTypes;
+      const TheBaseProcs: TResolverBuiltInProcs=bfAllStandardProcs); override;
     // compute literals and constants
     Function ExtractPasStringLiteral(El: TPasElement; const S: String): TJSString; virtual;
     Function ComputeConst(Expr: TPasExpr; StoreCustomData: boolean): TJSValue; virtual;
@@ -1002,7 +1025,7 @@ type
   end;
 
 var
-  JSValueTypeCaptions: array[TJSType] of string = (
+  JSTypeCaptions: array[TJSType] of string = (
     'undefined',
     'null',
     'boolean',
@@ -1861,6 +1884,13 @@ begin
   inherited Destroy;
 end;
 
+procedure TPas2JSResolver.AddObjFPCBuiltInIdentifiers(
+  const TheBaseTypes: TResolveBaseTypes;
+  const TheBaseProcs: TResolverBuiltInProcs);
+begin
+  inherited AddObjFPCBuiltInIdentifiers(TheBaseTypes-btAllStrings+[btString], TheBaseProcs);
+end;
+
 function TPas2JSResolver.ExtractPasStringLiteral(El: TPasElement;
   const S: String): TJSString;
 { Extracts the value from a Pascal string literal
@@ -2040,7 +2070,7 @@ begin
   if V.ValueType<>jsbase.jstString then
     RaiseNotYetImplemented(20170320220728,Expr,'expected string constant');
   if V.ValueType<>jstString then
-    RaiseMsg(20170211221121,nExpectedXButFoundY,sExpectedXButFoundY,['string literal',JSValueTypeCaptions[V.ValueType]],Expr);
+    RaiseMsg(20170211221121,nExpectedXButFoundY,sExpectedXButFoundY,['string literal',JSTypeCaptions[V.ValueType]],Expr);
   if NotEmpty and (V.AsString='') then
     RaiseMsg(20170321085318,nExpectedXButFoundY,sExpectedXButFoundY,['string literal','empty'],Expr);
   Result:=String(V.AsString);
@@ -4030,6 +4060,14 @@ begin
       else
         RaiseNotSupported(El,AContext,20170217115244);
       end
+    else if (Decl.ClassType=TPasArgument) then
+      begin
+      AContext.Resolver.ComputeElement(Decl,DeclResolved,[rcType]);
+      if DeclResolved.TypeEl is TPasProcedureType then
+        TargetProcType:=TPasProcedureType(DeclResolved.TypeEl)
+      else
+        RaiseNotSupported(El,AContext,20170328224020);
+      end
     else if (Decl.ClassType=TPasProcedureType)
         or (Decl.ClassType=TPasFunctionType) then
       begin
@@ -4712,24 +4750,49 @@ end;
 
 function TPasToJSConverter.ConvertBuiltInAssigned(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
-// convert Assigned(value)  ->  value!=null
 var
   NE: TJSEqualityExpressionNE;
   Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+  C: TClass;
+  GT: TJSRelationalExpressionGT;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
     RaiseInconsistency(20170210105235);
   Param:=El.Params[0];
-  NE:=TJSEqualityExpressionNE(CreateElement(TJSEqualityExpressionNE,El));
-  try
-    NE.A:=ConvertElement(Param,AContext);
-    NE.B:=CreateLiteralNull(El);
-    Result:=NE;
-  finally
-    if Result=nil then
-      NE.Free;
-  end;
+  AContext.Resolver.ComputeElement(Param,ParamResolved,[rcNoImplicitProcType]);
+  {$IFDEF VerbosePas2JS}
+  writeln('TPasToJSConverter.ConvertBuiltInAssigned ParamResolved=',GetResolverResultDesc(ParamResolved));
+  {$ENDIF}
+  if ParamResolved.BaseType=btContext then
+    begin
+    C:=ParamResolved.TypeEl.ClassType;
+    if (C=TPasClassType)
+        or (C=TPasClassOfType)
+        or C.InheritsFrom(TPasProcedureType) then
+      begin
+      // convert Assigned(value)  ->  value!=null
+      Result:=ConvertElement(Param,AContext);
+      // Note: convert Param first, it may raise an exception
+      NE:=TJSEqualityExpressionNE(CreateElement(TJSEqualityExpressionNE,El));
+      NE.A:=Result;
+      NE.B:=CreateLiteralNull(El);
+      Result:=NE;
+      end
+    else if C=TPasArrayType then
+      begin
+      // convert Assigned(value)  ->  value.length>0
+      Result:=ConvertElement(Param,AContext);
+      // Note: convert Param first, it may raise an exception
+      GT:=TJSRelationalExpressionGT(CreateElement(TJSRelationalExpressionGT,El));
+      GT.A:=CreateDotExpression(El,Result,CreateBuiltInIdentifierExpr('length'));
+      GT.B:=CreateLiteralNumber(El,0);
+      Result:=GT;
+      end
+    else
+      RaiseNotSupported(El,AContext,20170328124606);
+    end;
 end;
 
 function TPasToJSConverter.ConvertBuiltInChr(El: TParamsExpr;

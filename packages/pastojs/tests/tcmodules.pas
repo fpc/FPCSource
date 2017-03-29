@@ -184,6 +184,7 @@ type
     Procedure TestString_SetLength;
     Procedure TestString_CharAt;
     Procedure TestStr;
+    Procedure TestAnsiStringFail;
 
     // alias types
     Procedure TestAliasTypeRef;
@@ -374,6 +375,7 @@ type
     Procedure TestJSValue_ArrayOfJSValue;
     Procedure TestJSValue_Params;
     Procedure TestJSValue_UntypedParam;
+    Procedure TestJSValue_FuncType;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -3445,6 +3447,14 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestAnsiStringFail;
+begin
+  StartProgram(false);
+  Add('var s: AnsiString');
+  Add('begin');
+  SetExpectedPasResolverError('foo',123);
+end;
+
 procedure TTestModule.TestProcTwoArgs;
 begin
   StartProgram(false);
@@ -3984,6 +3994,7 @@ begin
   Add('var');
   Add('  Arr: TArrayInt;');
   Add('  i: longint;');
+  Add('  b: boolean;');
   Add('begin');
   Add('  SetLength(arr,3);');
   Add('  arr[0]:=4;');
@@ -3992,11 +4003,13 @@ begin
   Add('  arr[arr[i]]:=arr[6];');
   Add('  i:=low(arr);');
   Add('  i:=high(arr);');
+  Add('  b:=Assigned(arr);');
   ConvertProgram;
   CheckSource('TestArray_Dynamic',
     LinesToStr([ // statements
     'this.Arr = [];',
-    'this.i = 0;'
+    'this.i = 0;',
+    'this.b = false;'
     ]),
     LinesToStr([ // this.$main
     'this.Arr = rtl.arraySetLength(this.Arr,3,0);',
@@ -4006,6 +4019,7 @@ begin
     'this.Arr[this.Arr[this.i]] = this.Arr[6];',
     'this.i = 0;',
     'this.i = this.Arr.length - 1;',
+    'this.b = this.Arr.length > 0;',
     '']));
 end;
 
@@ -9261,6 +9275,45 @@ begin
     '      this.p.i = v;',
     '    }',
     '});',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_FuncType;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TJSValueArray = array of JSValue;');
+  Add('  TListSortCompare = function(Item1, Item2: JSValue): Integer;');
+  Add('procedure Sort(P: JSValue; aList: TJSValueArray; const Compare: TListSortCompare);');
+  Add('begin');
+  Add('  while Compare(P,aList[0])>0 do ;');
+  Add('end;');
+  Add('var');
+  Add('  Compare: TListSortCompare;');
+  Add('  V: JSValue;');
+  Add('  i: integer;');
+  Add('begin');
+  Add('  if Compare(V,V)>0 then ;');
+  Add('  if Compare(i,i)>1 then ;');
+  Add('  if Compare(nil,false)>2 then ;');
+  Add('  if Compare(1,true)>3 then ;');
+  ConvertProgram;
+  CheckSource('TestJSValue_UntypedParam',
+    LinesToStr([ // statements
+    'this.Sort = function (P, aList, Compare) {',
+    '  while (Compare(P, aList[0]) > 0) {',
+    '  };',
+    '};',
+    'this.Compare = null;',
+    'this.V = undefined;',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    'if (this.Compare(this.V, this.V) > 0) ;',
+    'if (this.Compare(this.i, this.i) > 1) ;',
+    'if (this.Compare(null, false) > 2) ;',
+    'if (this.Compare(1, true) > 3) ;',
     '']));
 end;
 
