@@ -39,6 +39,10 @@ begin
   gr.q := $5A7EFF4455AAFF00;
   AndAssignQWord(gr.q, $4F23E7680FF05A78);
   Check(gr.q, $4A22E74005A05A00);
+
+  gr.q := $5A7EFF4455AAFF00;
+  AndAssignQWord(gr.q, $CF23E7680FF05A78);
+  Check(gr.q, $4A22E74005A05A00);
 end;
 
 procedure Test_And_Ref_Ref;
@@ -85,6 +89,10 @@ begin
 
   q := $5A7EFF4455AAFF00;
   AndAssignQWord(q, $4F23E7680FF05A78);
+  Check(q, $4A22E74005A05A00);
+
+  q := $5A7EFF4455AAFF00;
+  AndAssignQWord(q, $CF23E7680FF05A78);
   Check(q, $4A22E74005A05A00);
 end;
 
@@ -133,6 +141,10 @@ begin
   gr.q := $5A7EFF4455AAFF00;
   OrAssignQWord(gr.q, $4F23E7680FF05A78);
   Check(gr.q, $5F7FFF6C5FFAFF78);
+
+  gr.q := $5A7EFF4455AAFF00;
+  OrAssignQWord(gr.q, $CF23E7680FF05A78);
+  Check(gr.q, $DF7FFF6C5FFAFF78);
 end;
 
 procedure Test_Or_Ref_Ref;
@@ -180,6 +192,10 @@ begin
   q := $5A7EFF4455AAFF00;
   OrAssignQWord(q, $4F23E7680FF05A78);
   Check(q, $5F7FFF6C5FFAFF78);
+
+  q := $5A7EFF4455AAFF00;
+  OrAssignQWord(q, $CF23E7680FF05A78);
+  Check(q, $DF7FFF6C5FFAFF78);
 end;
 
 procedure Test_Or_RegVar_RegVar;
@@ -227,6 +243,10 @@ begin
   gr.q := $5A7EFF4455AAFF00;
   XorAssignQWord(gr.q, $4F23E7680FF05A78);
   Check(gr.q, $155D182C5A5AA578);
+
+  gr.q := $5A7EFF4455AAFF00;
+  XorAssignQWord(gr.q, $CF23E7680FF05A78);
+  Check(gr.q, $955D182C5A5AA578);
 end;
 
 procedure Test_Xor_Ref_Ref;
@@ -274,6 +294,10 @@ begin
   q := $5A7EFF4455AAFF00;
   XorAssignQWord(q, $4F23E7680FF05A78);
   Check(q, $155D182C5A5AA578);
+
+  q := $5A7EFF4455AAFF00;
+  XorAssignQWord(q, $CF23E7680FF05A78);
+  Check(q, $955D182C5A5AA578);
 end;
 
 procedure Test_Xor_RegVar_RegVar;
