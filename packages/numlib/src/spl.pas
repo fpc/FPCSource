@@ -23,7 +23,7 @@ unit spl;
 
 interface
 
-uses typ, sle;
+uses typ, math, sle;
 
 function  spl1bspv(q: ArbInt; var kmin1, c1: ArbFloat; x: ArbFloat; var term: ArbInt): ArbFloat;
 function  spl2bspv(qx, qy: ArbInt; var kxmin1, kymin1, c11: ArbFloat; x, y: ArbFloat; var term: ArbInt): ArbFloat;
