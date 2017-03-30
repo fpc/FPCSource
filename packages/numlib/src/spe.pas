@@ -115,6 +115,21 @@ function speach(x: ArbFloat): ArbFloat;
 {  ArcTanH(x) }
 function speath(x: ArbFloat): ArbFloat;
 
+{ Error numbers used within this unit:
+
+  401 - function spebk0(x) is not defined for x <= 0.
+  402 - function spebk1(x) is not defined for x <= 0.
+  403 - function speby0(x) is not defined for x <= 0.
+  404 - function speby1(x) is not defined for x <= 0.
+  405 - function speach(x) is not defined for x < 1
+  406 - function speath(x) is not defined for x <= -1 or x >= 1
+  407 - function spgam(x): x is too small or too large.
+  408 - function splga(x) cannot be calculated for x <= 0, or x is too large.
+  409 - function spears(s, x) is not defined for x < -1 or x > 1
+  410 - function gammap(s, x) is not defined for s <= 0 or x < 0
+  411 - function gammaq(s, x) is not defined for s <= 0 or x < 0
+}
+
 implementation
 
 function spebi0(x: ArbFloat): ArbFloat;
@@ -1045,17 +1060,41 @@ type
   TCFFunc = function(n: Integer): ArbFloat is nested;
 
 { Calculates the continued fraction a0 + (b1 / (a1 + b2 / (a2 + b3 / (a3 + b4 /...))))
-  Ref.: https://rosettacode.org/wiki/Continued_fraction#C}
-function CalcCF(funca, funcb: TCfFunc; NumIt: Integer): ArbFloat;
+  using convergents.
+  Ref.: http://lib.dr.iastate.edu/cgi/viewcontent.cgi?article=8639&context=rtd
+    nth convergent: wn = P(n)/Q(n).
+    P(n) = a(n) P(n-1) + b(n) P(n-2)
+    Q(n) = a(n) Q(n-1) + b(n) Q(n-2)
+    P(-1) = 1, P(0) = a(0), Q(-1) = 0, Q(0) = 1 }
+function CalcCF(funca, funcb: TCfFunc; MaxIt: Integer; Eps: ArbFloat): ArbFloat;
 var
-  r: ArbFloat;
-  i: Integer;
+  Pn, Pn1, Pn2: ArbFloat;
+  Qn, Qn1, Qn2: ArbFloat;
+  it: Integer;
+  prev: ArbFloat;
+  a, b: ArbFloat;
 begin
-  r := 0;
-  for i := NumIt downTo 1 do
-    r := funcb(i) / (funca(i) + r);
-  Result := funca(0) + r;
+  Pn2 := 1.0;
+  Pn1 := funca(0);
+  Qn2 := 0.0;
+  Qn1 := 1.0;
+  prev := Giant;
+  for it := 1 to MaxIt do begin
+    a := funca(it);
+    b := funcb(it);
+    Pn := a * Pn1 + b * Pn2;
+    Qn := a * Qn1 + b * Qn2;
+    Result := Pn/Qn;
+    if abs(Result - prev) < EPS * abs(Result) then
+      exit;
+    prev := Result;
+    Pn2 := Pn1;
+    Pn1 := Pn;
+    Qn2 := Qn1;
+    Qn1 := Qn;
+  end;
 end;
+
 
 { calculates the upper incomplete gamma function using its continued
   fraction expansion
@@ -1087,28 +1126,17 @@ function gammacf(s, x: ArbFloat): ArbFloat;
 const
   MAX_IT = 100;
   EPS = 1E-7;
-var
-  gamma, prevgamma, lngamma: ArbFloat;
-  i: Integer;
 begin
-  prevgamma := giant;
-  i := 0;
-  while i < MAX_IT do begin
-    gamma := CalcCF(@funca, @funcb, i);
-    if (abs(gamma - prevgamma) < EPS) then
-      break;
-    prevgamma := gamma;
-    inc(i);
-  end;
-  lngamma := spelga(s);  // logarithm of complete gamma(s)
-  Result := exp(-x + s*ln(x) - lngamma) * gamma;
+  Result := exp(-x + s*ln(x) - spelga(s)) * CalcCF(@funca, @funcb, MAX_IT, EPS);
 end;
 
 function gammap(s, x: ArbFloat): ArbFloat;
 begin
   if (x < 0.0) or (s <= 0.0) then
-    RunError(401);                  // Invalid argument of gammap
-  if x < s + 1 then
+    RunError(410);                  // Invalid argument of gammap
+  if x = 0.0 then
+    Result := 0.0
+  else if x < s + 1 then
     Result := gammaser(s, x)        // Use series expansion
   else
     Result := 1.0 - gammacf(s, x);  // Use continued fraction
@@ -1117,8 +1145,10 @@ end;
 function gammaq(s, x: ArbFloat): ArbFloat;
 begin
   if (x < 0.0) or (s <= 0.0) then
-    RunError(401);                  // Invalid argument of gammaq
-  if x < s + 1 then
+    RunError(411);                  // Invalid argument of gammaq
+  if x = 0.0 then
+    Result := 1.0
+  else if x < s + 1 then
     Result := 1.0 - gammaser(s, x)  // Use series expansion
   else
     Result := gammacf(s, x);        // Use continued fraction
@@ -1201,7 +1231,7 @@ var    y, u, t, s : ArbFloat;
 begin
   if abs(x) > 1
   then
-    RunError(401);
+    RunError(411);
   u:=sqr(x); uprang:= u > 0.5;
   if uprang
   then
