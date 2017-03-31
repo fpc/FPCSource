@@ -56,6 +56,7 @@ type
   TFPUninstalledSourcesPackagesStructure = class(TFPCustomFileSystemPackagesStructure)
   private
     FSourceRepositoryName: string;
+    FLinkedRepositoryName: string;
   public
     class function GetRepositoryOptionSectionClass: TFppkgRepositoryOptionSectionClass; override;
     procedure InitializeWithOptions(ARepoOptionSection: TFppkgRepositoryOptionSection; AnOptions: TFppkgOptions; ACompilerOptions: TCompilerOptions); override;
@@ -94,6 +95,7 @@ begin
   RepoOptionSection := ARepoOptionSection as TFppkgUninstalledRepositoryOptionSection;
   path := RepoOptionSection.Path;
   SourceRepositoryName := RepoOptionSection.SourceRepositoryName;
+  FLinkedRepositoryName := RepoOptionSection.RepositoryName;
 end;
 
 function TFPUninstalledSourcesPackagesStructure.AddPackagesToRepository(ARepository: TFPRepository): Boolean;
@@ -148,7 +150,8 @@ end;
 
 function TFPUninstalledSourcesPackagesStructure.IsInstallationNeeded(APackage: TFPPackage): TFPInstallationNeeded;
 begin
-  if APackage.Repository.RepositoryName=SourceRepositoryName then
+  if (APackage.Repository.RepositoryName=SourceRepositoryName) or
+    (Assigned(APackage.Repository.DefaultPackagesStructure) and (APackage.Repository.DefaultPackagesStructure.InstallRepositoryName=FLinkedRepositoryName)) then
     Result := fpinNoInstallationNeeded
   else
     Result := fpinInstallationImpossible;

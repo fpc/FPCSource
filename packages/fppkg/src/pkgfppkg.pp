@@ -596,16 +596,19 @@ begin
   for i := FRepositoryList.Count-1 downto 0 do
     begin
       Repo := FRepositoryList.Items[i] as TFPRepository;
-
-      AvailableRepo := TFPRepository.Create(Self);
-      FRepositoryList.Add(AvailableRepo);
-      AvailableRepo.RepositoryType := fprtAvailable;
-      AvailableRepo.RepositoryName := Repo.RepositoryName + '_source';
-      AvailableRepo.Description := Repo.Description + ' (original sources)';
-      AvailStruc := TFPOriginalSourcePackagesStructure.Create(Self, Repo);
-      AvailStruc.InitializeWithOptions(nil, FOptions, FCompilerOptions);
-      AvailStruc.AddPackagesToRepository(AvailableRepo);
-      AvailableRepo.DefaultPackagesStructure := AvailStruc;
+      if Repo.RepositoryType = fprtInstalled then
+        begin
+          AvailableRepo := TFPRepository.Create(Self);
+          FRepositoryList.Add(AvailableRepo);
+          AvailableRepo.RepositoryType := fprtAvailable;
+          AvailableRepo.RepositoryName := Repo.RepositoryName + '_source';
+          AvailableRepo.Description := Repo.Description + ' (original sources)';
+          AvailStruc := TFPOriginalSourcePackagesStructure.Create(Self, Repo);
+          AvailStruc.InitializeWithOptions(nil, FOptions, FCompilerOptions);
+          AvailStruc.InstallRepositoryName := Repo.RepositoryName;
+          AvailStruc.AddPackagesToRepository(AvailableRepo);
+          AvailableRepo.DefaultPackagesStructure := AvailStruc;
+        end;
     end;
 end;
 
