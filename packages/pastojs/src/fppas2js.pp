@@ -22,6 +22,8 @@ Works:
 - uses list
 - use $impl for implementation declarations, can be disabled
 - interface vars
+  - only double, no other float type
+  - only string, no other string type
   - modifier public to protect from removing by optimizer
 - implementation vars
 - external vars
@@ -102,7 +104,7 @@ Works:
 - dynamic arrays
   - init as "arr = []"  arrays must never be null
   - SetLength(arr,len) becomes  arr = SetLength(arr,len,defaultvalue)
-  - length(), low(), high(), assigned()
+  - length(), low(), high(), assigned(), concat()
   - assign nil -> []  arrays must never be null
   - read, write element arr[index]
   - multi dimensional [index1,index2] -> [index1][index2]
@@ -194,19 +196,19 @@ Works:
   - class of: assign to jsvalue, typecast jsvalue to a class-of
   - array of jsvalue
   - parameter, result type, assign from/to untyped
+  - operators equal, not equal
 
 ToDos:
-- if jsvalue<>nil  jsvalue=nil
+- external class: class functions are static, forbid calling instance.classfunction
 - function copy(array): array
 - function copy(array,start): array
 - function copy(array,start,count): array
-- proc insert(const item,var array,const position)
+- proc insert(item,var array,const position)
 - proc delete(var array,const start,count)
-- function slice(array,count): array
-- function splice(var array, const start,deletecount,item1,item2,...): arrayofdeletedelements;
 - function concat(array1,array2,...): array
+- function splice(var array, const start,deletecount,item1,item2,...): arrayofdeletedelements;
 - allow type casting array to external class 'Array'
-- document "overload" modifier
+- allow type casting string to external class 'String'
 - test param const R: TRect  r.Left:=3 fails
 - FuncName:= (instead of Result:=)
 - ord(s[i]) -> s.charCodeAt(i)
@@ -221,10 +223,10 @@ ToDos:
 - enumeration  for..in..do
 - pointer of record
 - nested types in class
+- asm: pas() - useful for overloads and protect an identifier from optimization
 
 Not in Version 1.0:
 - write, writeln
-- asm: pas() - useful for overloads and protect an identifier from optimization
 - arrays
   - static array: non 0 start index, length
   - array of static array: setlength
@@ -315,6 +317,7 @@ resourcestring
 
 type
   TPas2JSBuiltInName = (
+    pbifnArray_Concat,
     pbifnArray_NewMultiDim,
     pbifnArray_SetLength,
     pbifnAs,
@@ -359,6 +362,7 @@ type
 
 const
   Pas2JSBuiltInNames: array[TPas2JSBuiltInName] of string = (
+    'arrayConcat', // rtl.arrayConcat
     'arrayNewMultiDim', // rtl.arrayNewMultiDim
     'arraySetLength', // rtl.arraySetLength
     'as', // rtl.as
@@ -649,6 +653,9 @@ type
       RaiseOnIncompatible: boolean): integer; override;
     function CheckTypeCastClassInstanceToClass(Param: TPasExpr;
       const FromClassRes, ToClassRes: TPasResolverResult): integer; override;
+    function CheckEqualCompatibilityCustomType(const LHS,
+      RHS: TPasResolverResult; ErrorEl: TPasElement;
+      RaiseOnIncompatible: boolean): integer; override;
   public
     constructor Create;
     destructor Destroy; override;
@@ -978,6 +985,8 @@ type
     Function ConvertBuiltInStrProc(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltInStrFunc(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltInStrParam(El: TPasExpr; AContext: TConvertContext; IsStrFunc, IsFirst: boolean): TJSElement; virtual;
+    Function ConvertBuiltInConcatArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltInCopyArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertRecordValues(El: TRecordValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSelfExpression(El: TSelfExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBinaryExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -1863,6 +1872,59 @@ begin
     Result:=cIncompatible;
 end;
 
+function TPas2JSResolver.CheckEqualCompatibilityCustomType(const LHS,
+  RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
+  ): integer;
+var
+  LeftBaseType: TPas2jsBaseType;
+begin
+  Result:=cIncompatible;
+  if LHS.BaseType=btCustom then
+    begin
+    if not (LHS.TypeEl is TPasUnresolvedSymbolRef) then
+      begin
+      {$IFDEF VerbosePas2JS}
+      writeln('TPas2JSResolver.CheckEqualCompatibilityCustomType LHS=',GetResolverResultDesc(LHS));
+      {$ENDIF}
+      RaiseInternalError(20170330005841);
+      end;
+    if not (LHS.TypeEl.CustomData is TResElDataPas2JSBaseType) then
+      exit;
+    LeftBaseType:=TResElDataPas2JSBaseType(LHS.TypeEl.CustomData).JSBaseType;
+    if LeftBaseType=pbtJSValue then
+      begin
+      if (rrfReadable in LHS.Flags) then
+        begin
+        if (rrfReadable in RHS.Flags) then
+          begin
+          if RHS.BaseType in btAllJSValueSrcTypes then
+            Result:=cExact
+          else if RHS.BaseType=btCustom then
+            begin
+            if IsJSBaseType(RHS,pbtJSValue) then
+              Result:=cExact;
+            end
+          else if RHS.BaseType=btContext then
+            Result:=cExact+1;
+          end
+        else if RHS.BaseType=btContext then
+          begin
+          // right side is not a value
+          if RHS.IdentEl<>nil then
+            begin
+            if RHS.IdentEl.ClassType=TPasClassType then
+              Result:=cExact+1; // RHS is a class
+            end;
+          end;
+        end;
+      end;
+    end
+  else if RHS.BaseType=btCustom then
+    exit(CheckEqualCompatibilityCustomType(RHS,LHS,ErrorEl,RaiseOnIncompatible))
+  else
+    RaiseInternalError(20170330005725);
+end;
+
 constructor TPas2JSResolver.Create;
 var
   bt: TPas2jsBaseType;
@@ -1888,7 +1950,11 @@ procedure TPas2JSResolver.AddObjFPCBuiltInIdentifiers(
   const TheBaseTypes: TResolveBaseTypes;
   const TheBaseProcs: TResolverBuiltInProcs);
 begin
-  inherited AddObjFPCBuiltInIdentifiers(TheBaseTypes-btAllStrings+[btString], TheBaseProcs);
+  inherited AddObjFPCBuiltInIdentifiers(
+    TheBaseTypes
+    -btAllStrings+[btString] // allow only String
+    -btAllFloats+[btDouble] // allow only Double
+    ,TheBaseProcs);
 end;
 
 function TPas2JSResolver.ExtractPasStringLiteral(El: TPasElement;
@@ -3991,6 +4057,8 @@ begin
           bfSucc: Result:=ConvertBuiltInSucc(El,AContext);
           bfStrProc: Result:=ConvertBuiltInStrProc(El,AContext);
           bfStrFunc: Result:=ConvertBuiltInStrFunc(El,AContext);
+          bfConcatArray: Result:=ConvertBuiltInConcatArray(El,AContext);
+          bfCopyArray: Result:=ConvertBuiltInCopyArray(El,AContext);
         else
           RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
         end;
@@ -5260,6 +5328,80 @@ begin
     if Result=nil then
       Add.Free;
   end;
+end;
+
+function TPasToJSConverter.ConvertBuiltInConcatArray(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// concat(array1, array2)
+var
+  Param0Resolved, ElTypeResolved: TPasResolverResult;
+  Param0: TPasExpr;
+  ArrayType: TPasArrayType;
+  Call: TJSCallExpression;
+  i: Integer;
+begin
+  if length(El.Params)<1 then
+    RaiseInconsistency(20170331000332);
+  if length(El.Params)=1 then
+    begin
+    // concat(array1)  ->  array1
+    {$IFDEF VerbosePas2JS}
+    writeln('TPasToJSConverter.ConvertBuiltInConcatArray Count=',length(El.Params));
+    {$ENDIF}
+    Result:=ConvertElement(El.Params[0],AContext);
+    end
+  else
+    begin
+    // concat(array1,array2,...)
+    Param0:=El.Params[0];
+    AContext.Resolver.ComputeElement(Param0,Param0Resolved,[]);
+    if Param0Resolved.BaseType<>btContext then
+      RaiseNotSupported(Param0,AContext,20170331000819);
+    if Param0Resolved.TypeEl.ClassType<>TPasArrayType then
+      RaiseNotSupported(Param0,AContext,20170331000846);
+    ArrayType:=TPasArrayType(Param0Resolved.TypeEl);
+    if length(ArrayType.Ranges)>0 then
+      RaiseNotSupported(Param0,AContext,20170331001021);
+    AContext.Resolver.ComputeElement(ArrayType.ElType,ElTypeResolved,[rcType]);
+    Call:=CreateCallExpression(El);
+    try
+      {$IFDEF VerbosePas2JS}
+      writeln('TPasToJSConverter.ConvertBuiltInConcatArray Count=',length(El.Params),' ElType=',GetResolverResultDesc(ElTypeResolved));
+      {$ENDIF}
+      if ElTypeResolved.BaseType=btContext then
+        begin
+        if ElTypeResolved.TypeEl.ClassType=TPasRecordType then
+          begin
+          // record: rtl.arrayConcat(RecordType,array1,array2,...)
+          Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Concat]]);
+          Call.Args.Elements.AddElement.Expr:=CreateReferencePathExpr(
+                                                ElTypeResolved.TypeEl,AContext);
+          end;
+        end
+      else if ElTypeResolved.BaseType=btSet then
+        begin
+        // set: rtl.arrayConcat("refSet",array1,array2,...)
+        Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Concat]]);
+        Call.Args.Elements.AddElement.Expr:=CreateLiteralString(El,'refSet');
+        end;
+      if Call.Expr=nil then
+        // default: array1.concat(array2,...)
+        Call.Expr:=CreateDotExpression(El,ConvertElement(Param0,AContext),
+                                     CreateBuiltInIdentifierExpr('concat'));
+      for i:=1 to length(El.Params)-1 do
+        Call.Args.Elements.AddElement.Expr:=ConvertElement(El.Params[i],AContext);
+      Result:=Call;
+    finally
+      if Result=nil then
+        Call.Free;
+    end;
+    end;
+end;
+
+function TPasToJSConverter.ConvertBuiltInCopyArray(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+begin
+  Result:=nil;
 end;
 
 function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;

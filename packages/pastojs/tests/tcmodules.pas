@@ -164,6 +164,8 @@ type
     // vars/const
     Procedure TestVarInt;
     Procedure TestVarBaseTypes;
+    Procedure TestBaseTypeSingleFail;
+    Procedure TestBaseTypeExtendedFail;
     Procedure TestConstBaseTypes;
     Procedure TestUnitImplVars;
     Procedure TestUnitImplConsts;
@@ -184,7 +186,10 @@ type
     Procedure TestString_SetLength;
     Procedure TestString_CharAt;
     Procedure TestStr;
-    Procedure TestAnsiStringFail;
+    Procedure TestBaseType_AnsiStringFail;
+    Procedure TestBaseType_UnicodeStringFail;
+    Procedure TestBaseType_ShortStringFail;
+    Procedure TestBaseType_RawByteStringFail;
 
     // alias types
     Procedure TestAliasTypeRef;
@@ -261,12 +266,14 @@ type
     Procedure TestArray_Dynamic_Nil;
     Procedure TestArray_DynMultiDimensional;
     Procedure TestArrayOfRecord;
+    // ToDo: Procedure TestArrayOfSet;
     Procedure TestArray_AsParams;
     Procedure TestArrayElement_AsParams;
     Procedure TestArrayElementFromFuncResult_AsParams;
     Procedure TestArrayEnumTypeRange;
     Procedure TestArray_SetLengthProperty;
     Procedure TestArray_OpenArrayOfString;
+    Procedure TestArray_Concat;
     // ToDo: const array
     // ToDo: SetLength(array of static array)
 
@@ -369,6 +376,7 @@ type
     // jsvalue
     Procedure TestJSValue_AssignToJSValue;
     Procedure TestJSValue_TypeCastToBaseType;
+    Procedure TestJSValue_Equal;
     Procedure TestJSValue_Enum;
     Procedure TestJSValue_ClassInstance;
     Procedure TestJSValue_ClassOf;
@@ -1234,6 +1242,22 @@ begin
     'this.i7=-0x10000000000000;'
     ]),
     '');
+end;
+
+procedure TTestModule.TestBaseTypeSingleFail;
+begin
+  StartProgram(false);
+  Add('var s: single;');
+  SetExpectedPasResolverError('identifier not found "single"',nIdentifierNotFound);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestBaseTypeExtendedFail;
+begin
+  StartProgram(false);
+  Add('var e: extended;');
+  SetExpectedPasResolverError('identifier not found "extended"',nIdentifierNotFound);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestConstBaseTypes;
@@ -3447,12 +3471,36 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestAnsiStringFail;
+procedure TTestModule.TestBaseType_AnsiStringFail;
 begin
   StartProgram(false);
   Add('var s: AnsiString');
-  Add('begin');
-  SetExpectedPasResolverError('foo',123);
+  SetExpectedPasResolverError('identifier not found "AnsiString"',nIdentifierNotFound);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestBaseType_UnicodeStringFail;
+begin
+  StartProgram(false);
+  Add('var s: UnicodeString');
+  SetExpectedPasResolverError('identifier not found "UnicodeString"',nIdentifierNotFound);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestBaseType_ShortStringFail;
+begin
+  StartProgram(false);
+  Add('var s: ShortString');
+  SetExpectedPasResolverError('identifier not found "ShortString"',nIdentifierNotFound);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestBaseType_RawByteStringFail;
+begin
+  StartProgram(false);
+  Add('var s: RawByteString');
+  SetExpectedPasResolverError('identifier not found "RawByteString"',nIdentifierNotFound);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestProcTwoArgs;
@@ -4424,6 +4472,78 @@ begin
     LinesToStr([
     'this.DoIt([]);',
     'this.DoIt([this.s, "foo", "", this.s + this.s]);',
+    '']));
+end;
+
+procedure TTestModule.TestArray_Concat;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TFlag = (big,small);');
+  Add('  TFlags = set of TFlag;');
+  Add('  TRec = record');
+  Add('    i: integer;');
+  Add('  end;');
+  Add('  TArrInt = array of integer;');
+  Add('  TArrRec = array of TRec;');
+  Add('  TArrSet = array of TFlags;');
+  Add('  TArrJSValue = array of jsvalue;');
+  Add('var');
+  Add('  ArrInt: tarrint;');
+  Add('  ArrRec: tarrrec;');
+  Add('  ArrSet: tarrset;');
+  Add('  ArrJSValue: tarrjsvalue;');
+  Add('begin');
+  Add('  arrint:=concat(arrint);');
+  Add('  arrint:=concat(arrint,arrint);');
+  Add('  arrint:=concat(arrint,arrint,arrint);');
+  Add('  arrrec:=concat(arrrec);');
+  Add('  arrrec:=concat(arrrec,arrrec);');
+  Add('  arrrec:=concat(arrrec,arrrec,arrrec);');
+  Add('  arrset:=concat(arrset);');
+  Add('  arrset:=concat(arrset,arrset);');
+  Add('  arrset:=concat(arrset,arrset,arrset);');
+  Add('  arrjsvalue:=concat(arrjsvalue);');
+  Add('  arrjsvalue:=concat(arrjsvalue,arrjsvalue);');
+  Add('  arrjsvalue:=concat(arrjsvalue,arrjsvalue,arrjsvalue);');
+  ConvertProgram;
+  CheckSource('TestRecord_Var',
+    LinesToStr([ // statements
+    'this.TFlag = {',
+    '  "0": "big",',
+    '  big: 0,',
+    '  "1": "small",',
+    '  small: 1',
+    '};',
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
+    '  };',
+    '};',
+    'this.ArrInt = [];',
+    'this.ArrRec = [];',
+    'this.ArrSet = [];',
+    'this.ArrJSValue = [];',
+    '']),
+    LinesToStr([ // this.$main
+    'this.ArrInt = this.ArrInt;',
+    'this.ArrInt = this.ArrInt.concat(this.ArrInt);',
+    'this.ArrInt = this.ArrInt.concat(this.ArrInt,this.ArrInt);',
+    'this.ArrRec = this.ArrRec;',
+    'this.ArrRec = rtl.arrayConcat(this.TRec, this.ArrRec);',
+    'this.ArrRec = rtl.arrayConcat(this.TRec, this.ArrRec, this.ArrRec);',
+    'this.ArrSet = this.ArrSet;',
+    'this.ArrSet = rtl.arrayConcat("refSet", this.ArrSet);',
+    'this.ArrSet = rtl.arrayConcat("refSet", this.ArrSet, this.ArrSet);',
+    'this.ArrJSValue = this.ArrJSValue;',
+    'this.ArrJSValue = this.ArrJSValue.concat(this.ArrJSValue);',
+    'this.ArrJSValue = this.ArrJSValue.concat(this.ArrJSValue, this.ArrJSValue);',
     '']));
 end;
 
@@ -7042,13 +7162,13 @@ begin
   Add('  TObject = class');
   Add('    class var FA: longint;');
   Add('    class function GetA: longint;');
-  Add('    class procedure SetA(Value: longint): longint;');
+  Add('    class procedure SetA(Value: longint);');
   Add('    class property pA: longint read fa write fa;');
   Add('    class property pB: longint read geta write seta;');
   Add('  end;');
   Add('  TObjectClass = class of tobject;');
   Add('class function tobject.geta: longint; begin end;');
-  Add('class procedure tobject.seta(value: longint): longint; begin end;');
+  Add('class procedure tobject.seta(value: longint); begin end;');
   Add('var');
   Add('  b: boolean;');
   Add('  Obj: tobject;');
@@ -8987,6 +9107,94 @@ begin
     'this.d = rtl.getNumber(this.v);',
     'this.c = rtl.getChar(this.v);',
     'this.c = rtl.getChar(this.v);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_Equal;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TYesNo = boolean;');
+  Add('  TFloat = double;');
+  Add('  TCaption = string;');
+  Add('  TChar = char;');
+  Add('  TMulti = JSValue;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  i: integer;');
+  Add('  s: TCaption;');
+  Add('  b: TYesNo;');
+  Add('  d: TFloat;');
+  Add('  c: char;');
+  Add('  m: TMulti;');
+  Add('begin');
+  Add('  b:=v=v;');
+  Add('  b:=v<>v;');
+  Add('  b:=v=1;');
+  Add('  b:=v<>1;');
+  Add('  b:=2=v;');
+  Add('  b:=2<>v;');
+  Add('  b:=v=i;');
+  Add('  b:=i=v;');
+  Add('  b:=v=nil;');
+  Add('  b:=nil=v;');
+  Add('  b:=v=false;');
+  Add('  b:=true=v;');
+  Add('  b:=v=b;');
+  Add('  b:=b=v;');
+  Add('  b:=v=s;');
+  Add('  b:=s=v;');
+  Add('  b:=v=''foo'';');
+  Add('  b:=''''=v;');
+  Add('  b:=v=d;');
+  Add('  b:=d=v;');
+  Add('  b:=v=3.4;');
+  Add('  b:=5.6=v;');
+  Add('  b:=v=c;');
+  Add('  b:=c=v;');
+  Add('  b:=m=m;');
+  Add('  b:=v=m;');
+  Add('  b:=m=v;');
+  ConvertProgram;
+  CheckSource('TestJSValue_Equal',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    'this.i = 0;',
+    'this.s = "";',
+    'this.b = false;',
+    'this.d = 0.0;',
+    'this.c = "";',
+    'this.m = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.b = this.v == this.v;',
+    'this.b = this.v != this.v;',
+    'this.b = this.v == 1;',
+    'this.b = this.v != 1;',
+    'this.b = 2 == this.v;',
+    'this.b = 2 != this.v;',
+    'this.b = this.v == this.i;',
+    'this.b = this.i == this.v;',
+    'this.b = this.v == null;',
+    'this.b = null == this.v;',
+    'this.b = this.v == false;',
+    'this.b = true == this.v;',
+    'this.b = this.v == this.b;',
+    'this.b = this.b == this.v;',
+    'this.b = this.v == this.s;',
+    'this.b = this.s == this.v;',
+    'this.b = this.v == "foo";',
+    'this.b = "" == this.v;',
+    'this.b = this.v == this.d;',
+    'this.b = this.d == this.v;',
+    'this.b = this.v == 3.4;',
+    'this.b = 5.6 == this.v;',
+    'this.b = this.v == this.c;',
+    'this.b = this.c == this.v;',
+    'this.b = this.m == this.m;',
+    'this.b = this.v == this.m;',
+    'this.b = this.m == this.v;',
     '']));
 end;
 
