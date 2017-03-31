@@ -268,6 +268,7 @@ type
     Procedure TestProcParam;
     Procedure TestProcParamAccess;
     Procedure TestFunctionResult;
+    Procedure TestProcedureResultFail;
     Procedure TestProcOverload;
     Procedure TestProcOverloadWithBaseTypes;
     Procedure TestProcOverloadWithClassTypes;
@@ -467,6 +468,10 @@ type
     Procedure TestArray_OpenArrayOfString;
     Procedure TestArray_OpenArrayOfString_IntFail;
     Procedure TestArray_OpenArrayOverride;
+    Procedure TestArray_CopyConcat;
+    Procedure TestArray_CopyMismatchFail;
+    Procedure TestArray_InsertDelete;
+    Procedure TestArray_InsertItemMismatchFail;
 
     // procedure types
     Procedure TestProcTypesAssignObjFPC;
@@ -3451,6 +3456,15 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestProcedureResultFail;
+begin
+  StartProgram(false);
+  Add('procedure A: longint; begin end;');
+  Add('begin');
+  CheckParserException('Expected ";" at token ":" in file afile.pp at line 2 column 12',
+    nParserExpectTokenError);
+end;
+
 procedure TTestResolver.TestProcOverload;
 var
   El: TPasElement;
@@ -6005,13 +6019,13 @@ begin
   Add('  TObject = class');
   Add('    class var FA: longint;');
   Add('    class function GetA: longint; static;');
-  Add('    class procedure SetA(Value: longint): longint; static;');
+  Add('    class procedure SetA(Value: longint); static;');
   Add('    class property A1: longint read FA write SetA;');
   Add('    class property A2: longint read GetA write FA;');
   Add('  end;');
   Add('  TObjectClass = class of TObject;');
   Add('class function TObject.GetA: longint; begin end;');
-  Add('class procedure TObject.SetA(Value: longint): longint; begin end;');
+  Add('class procedure TObject.SetA(Value: longint); begin end;');
   Add('var');
   Add('  o: TObject;');
   Add('  oc: TObjectClass;');
@@ -7248,6 +7262,75 @@ begin
   Add('end;');
   Add('begin');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_CopyConcat;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TArrayInt = array of integer;');
+  Add('function Get(A: TArrayInt): TArrayInt; begin end;');
+  Add('var');
+  Add('  i: integer;');
+  Add('  A: TArrayInt;');
+  Add('begin');
+  Add('  A:=Copy(A);');
+  Add('  A:=Copy(A,1);');
+  Add('  A:=Copy(A,2,3);');
+  Add('  A:=Copy(Get(A),2,3);');
+  Add('  Get(Copy(A));');
+  Add('  A:=Concat(A);');
+  Add('  A:=Concat(A,Get(A));');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_CopyMismatchFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TArrayInt = array of integer;');
+  Add('  TArrayStr = array of string;');
+  Add('var');
+  Add('  i: integer;');
+  Add('  A: TArrayInt;');
+  Add('  B: TArrayStr;');
+  Add('begin');
+  Add('  A:=Copy(B);');
+  CheckResolverException('Incompatible types: got "array of integer" expected "array of String"',
+    nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestArray_InsertDelete;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TArrayInt = array of integer;');
+  Add('var');
+  Add('  i: integer;');
+  Add('  A: TArrayInt;');
+  Add('begin');
+  Add('  Insert({#a1_read}i+1,{#a2_var}A,{#a3_read}i+2);');
+  Add('  Delete({#b1_var}A,{#b2_read}i+3,{#b3_read}i+4);');
+  ParseProgram;
+  CheckAccessMarkers;
+end;
+
+procedure TTestResolver.TestArray_InsertItemMismatchFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TCaption = string;');
+  Add('  TArrayCap = array of TCaption;');
+  Add('var');
+  Add('  i: longint;');
+  Add('  A: TArrayCap;');
+  Add('begin');
+  Add('  Insert(i,{#a2_var}A,2);');
+  CheckResolverException('Incompatible types: got "Longint" expected "String"',
+    nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestProcTypesAssignObjFPC;

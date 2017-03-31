@@ -103,12 +103,16 @@ Works:
 - arrays TPasArrayType
   - TPasEnumType, char, integer, range
   - low, high, length, setlength, assigned
+  - function concat(array1,array2,...): array
+  - function copy(array): array, copy(a,start), copy(a,start,end)
+  - insert(item; var array; index: integer)
+  - delete(var array; start, count: integer)
   - element
   - multi dimensional
   - const
   - open array, override, pass array literal, pass var
 - check if var initexpr fits vartype: var a: type = expr;
-- built-in functions high, low for range types, enums and arrays
+- built-in functions high, low for range types
 - procedure type
 - method type
 - function without params: mark if call or address, rrfImplicitCallWithoutParams
@@ -446,7 +450,11 @@ type
     bfPred,
     bfSucc,
     bfStrProc,
-    bfStrFunc
+    bfStrFunc,
+    bfConcatArray,
+    bfCopyArray,
+    bfInsertArray,
+    bfDeleteArray
     );
   TResolverBuiltInProcs = set of TResolverBuiltInProc;
 const
@@ -469,7 +477,11 @@ const
     'Pred',
     'Succ',
     'Str',
-    'Str'
+    'Str',
+    'Concat',
+    'Copy',
+    'Insert',
+    'Delete'
     );
   bfAllStandardProcs = [Succ(bfCustom)..high(TResolverBuiltInProc)];
 
@@ -1080,10 +1092,17 @@ type
     function IsCharLiteral(const Value: string): boolean; virtual;
     function CheckBuiltInMinParamCount(Proc: TResElDataBuiltInProc; Expr: TPasExpr;
       MinCount: integer; RaiseOnError: boolean): boolean;
+    function CheckBuiltInMaxParamCount(Proc: TResElDataBuiltInProc; Params: TParamsExpr;
+      MaxCount: integer; RaiseOnError: boolean): integer;
+    function CheckRaiseTypeArgNo(id: int64; ArgNo: integer; Param: TPasExpr;
+      const ParamResolved: TPasResolverResult; Expected: string; RaiseOnError: boolean): integer;
     // custom types (added by descendant resolvers)
     function CheckTypeCastCustomBaseType(const TypeResolved: TPasResolverResult;
       Param: TPasExpr; const ParamResolved: TPasResolverResult): integer; virtual;
     function CheckAssignCompatibilityCustomBaseType(
+      const LHS, RHS: TPasResolverResult; ErrorEl: TPasElement;
+      RaiseOnIncompatible: boolean): integer; virtual;
+    function CheckEqualCompatibilityCustomType(
       const LHS, RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer; virtual;
   protected
@@ -1141,6 +1160,22 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_StrFunc_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
       {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    function BI_ConcatArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_ConcatArray_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
+      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    function BI_CopyArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_CopyArray_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
+      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    function BI_InsertArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_InsertArray_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr); virtual;
+    function BI_DeleteArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_DeleteArray_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr); virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1243,7 +1278,7 @@ type
     function CheckConstArrayCompatibility(Params: TParamsExpr;
       const ArrayResolved: TPasResolverResult; RaiseOnError: boolean;
       Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil): integer;
-    function CheckEqualCompatibilityCustomType(
+    function CheckEqualCompatibilityUserType(
       const TypeA, TypeB: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer;
     function CheckTypeCast(El: TPasType; Params: TParamsExpr; RaiseOnError: boolean): integer;
@@ -1417,22 +1452,8 @@ begin
     end
   else if (C=TPasUnresolvedTypeRef) then
     Result:=GetName
-  else if C=TPasPointerType then
-    Result:='^'+GetTypeDesc(TPasPointerType(aType).DestType,AddPath)
-  else if (C=TPasAliasType)
-      or (C=TPasTypeAliasType)
-      or (C=TPasClassOfType)
-      or (C=TPasClassType)
-      or (C=TPasRecordType)
-      or (C=TPasEnumType)
-      or (C=TPasSetType) then
-    Result:=GetName
-  else if C=TPasArrayType then
-    Result:='array['+TPasArrayType(aType).IndexRange+'] of '+GetTypeDesc(TPasArrayType(aType).ElType,AddPath)
-  else if aType is TPasProcedureType then
-    Result:=GetProcDesc(TPasProcedureType(aType),false,AddPath)
   else
-    Result:=aType.ElementTypeName+' '+GetName;
+    Result:=GetName;
 end;
 
 function GetTreeDesc(El: TPasElement; Indent: integer): string;
@@ -3616,8 +3637,8 @@ var
     while ArgNo<PropEl.Args.Count do
       begin
       if ArgNo>=Proc.ProcType.Args.Count then
-        RaiseMsg(20170216151805,nWrongNumberOfParametersForCallTo,sWrongNumberOfParametersForCallTo,
-          [Proc.Name],ErrorEl);
+        RaiseMsg(20170216151805,nWrongNumberOfParametersForCallTo,
+          sWrongNumberOfParametersForCallTo,[Proc.Name],ErrorEl);
       PropArg:=TPasArgument(PropEl.Args[ArgNo]);
       ProcArg:=TPasArgument(Proc.ProcType.Args[ArgNo]);
       inc(ArgNo);
@@ -6352,6 +6373,30 @@ begin
   Result:=true;
 end;
 
+function TPasResolver.CheckBuiltInMaxParamCount(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; MaxCount: integer; RaiseOnError: boolean): integer;
+begin
+  if length(Params.Params)>MaxCount then
+    begin
+    if RaiseOnError then
+      RaiseMsg(20170329154348,nWrongNumberOfParametersForCallTo,
+        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[MaxCount]);
+    exit(cIncompatible);
+    end;
+
+  Result:=cExact;
+end;
+
+function TPasResolver.CheckRaiseTypeArgNo(id: int64; ArgNo: integer;
+  Param: TPasExpr; const ParamResolved: TPasResolverResult; Expected: string;
+  RaiseOnError: boolean): integer;
+begin
+  if RaiseOnError then
+    RaiseMsg(id,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
+      [IntToStr(ArgNo),GetResolverResultDescription(ParamResolved,true),Expected],Param);
+  Result:=cIncompatible;
+end;
+
 function TPasResolver.CheckTypeCastCustomBaseType(
   const TypeResolved: TPasResolverResult; Param: TPasExpr;
   const ParamResolved: TPasResolverResult): integer;
@@ -6372,6 +6417,16 @@ begin
   if LHS.BaseType=btNone then ;
   if RHS.BaseType=btNone then ;
   if ErrorEl=nil then ;
+  if RaiseOnIncompatible then ;
+end;
+
+function TPasResolver.CheckEqualCompatibilityCustomType(const LHS,
+  RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
+  ): integer;
+begin
+  Result:=cIncompatible;
+  if LHS.BaseType=RHS.BaseType then;
+  if ErrorEl=nil then;
   if RaiseOnIncompatible then ;
 end;
 
@@ -6402,21 +6457,10 @@ begin
       end;
     end;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152250,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['1',GetTypeDesc(ParamResolved.TypeEl),'string or array'],
-        Param);
-    exit;
-    end;
+    exit(CheckRaiseTypeArgNo(20170329160335,1,Param,ParamResolved,
+      'string or array',RaiseOnError));
 
-  if length(Params.Params)>1 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152251,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[1]);
-    exit(cIncompatible);
-    end;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
 end;
 
 procedure TPasResolver.BI_Length_OnGetCallResult(Proc: TResElDataBuiltInProc;
@@ -6458,13 +6502,8 @@ begin
       end;
     end;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152254,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['1',GetTypeDesc(ParamResolved.TypeEl),'string or dynamic array variable'],
-        Param);
-    exit(cIncompatible);
-    end;
+    exit(CheckRaiseTypeArgNo(20170216152250,1,Param,ParamResolved,
+      'string or dynamic array variable',RaiseOnError));
 
   // second param: new length
   Param:=Params.Params[1];
@@ -6474,20 +6513,10 @@ begin
       and (ParamResolved.BaseType in btAllInteger) then
     Result:=cExact;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152256,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['2',GetTypeDesc(ParamResolved.TypeEl),'integer'],Param);
-    exit(cIncompatible);
-    end;
+    exit(CheckRaiseTypeArgNo(20170329160338,2,Param,ParamResolved,
+      'integer',RaiseOnError));
 
-  if length(Params.Params)>2 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152257,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[2]);
-    exit(cIncompatible);
-    end;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,2,RaiseOnError);
 end;
 
 procedure TPasResolver.BI_SetLength_OnFinishParamsExpr(
@@ -6531,11 +6560,8 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnGetCallCompatibility_InExclude ',GetResolverResultDesc(ParamResolved));
     {$ENDIF}
-    if RaiseOnError then
-      RaiseMsg(20170216152301,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['1',GetTypeDesc(ParamResolved.TypeEl),'variable of set of enumtype'],
-        Param);
-    exit(cIncompatible);
+    exit(CheckRaiseTypeArgNo(20170216152301,1,Param,ParamResolved,
+      'variable of set of enumtype',RaiseOnError));
     end;
 
   // second param: enum
@@ -6550,15 +6576,7 @@ begin
     exit(cIncompatible);
     end;
 
-  if length(Params.Params)>2 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152304,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[2]);
-    exit(cIncompatible);
-    end;
-
-  Result:=cExact;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,2,RaiseOnError);
 end;
 
 procedure TPasResolver.BI_InExclude_OnFinishParamsExpr(
@@ -6585,10 +6603,7 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.OnGetCallCompatibility_Break Params=',length(Params.Params));
   {$ENDIF}
-  if RaiseOnError then
-    RaiseMsg(20170216152308,nWrongNumberOfParametersForCallTo,
-      sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[1]);
-  Result:=cIncompatible;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,0,RaiseOnError);
 end;
 
 function TPasResolver.BI_Continue_OnGetCallCompatibility(
@@ -6604,10 +6619,7 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.OnGetCallCompatibility_Continue Params=',length(Params.Params));
   {$ENDIF}
-  if RaiseOnError then
-    RaiseMsg(20170216152311,nWrongNumberOfParametersForCallTo,
-      sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[1]);
-  Result:=cIncompatible;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,0,RaiseOnError);
 end;
 
 function TPasResolver.BI_Exit_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
@@ -6669,22 +6681,12 @@ begin
   if Result=cIncompatible then
     begin
     if RaiseOnError then
-      RaiseMsg(20170216152314,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['1',GetResolverResultDescription(ParamResolved,true),
-             GetResolverResultDescription(ResultResolved,true)],
-        Param);
+      RaiseIncompatibleTypeRes(20170216152314,nIncompatibleTypeArgNo,
+        ['1'],ParamResolved,ResultResolved,Param);
     exit;
     end;
 
-  if length(Params.Params)>1 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152316,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[1]);
-    exit(cIncompatible);
-    end;
-
-  Result:=cExact;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
 end;
 
 function TPasResolver.BI_IncDec_OnGetCallCompatibility(
@@ -6715,13 +6717,7 @@ begin
   if ParamResolved.BaseType in btAllInteger then
     Result:=cExact;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152320,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['1',GetTypeDesc(ParamResolved.TypeEl),'integer'],
-        Param);
-    exit;
-    end;
+    exit(CheckRaiseTypeArgNo(20170216152320,1,Param,ParamResolved,'integer',RaiseOnError));
 
   if length(Params.Params)=1 then
     exit;
@@ -6736,23 +6732,9 @@ begin
       Result:=cExact;
     end;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152322,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['2',GetTypeDesc(IncrResolved.TypeEl),'integer'],
-        Param);
-    exit;
-    end;
+    exit(CheckRaiseTypeArgNo(20170216152322,2,Param,IncrResolved,'integer',RaiseOnError));
 
-  if length(Params.Params)>2 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152324,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[2]);
-    exit(cIncompatible);
-    end;
-
-  Result:=cExact;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,2,RaiseOnError);
 end;
 
 procedure TPasResolver.BI_IncDec_OnFinishParamsExpr(
@@ -6796,23 +6778,9 @@ begin
       Result:=cExact;
     end;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152329,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['1',GetTypeDesc(ParamResolved.TypeEl),'class or array'],
-        Param);
-    exit;
-    end;
+    exit(CheckRaiseTypeArgNo(20170216152329,1,Param,ParamResolved,'class or array',RaiseOnError));
 
-  if length(Params.Params)>1 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152331,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[1]);
-    exit(cIncompatible);
-    end;
-
-  Result:=cExact;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
 end;
 
 procedure TPasResolver.BI_Assigned_OnGetCallResult(Proc: TResElDataBuiltInProc;
@@ -6842,23 +6810,9 @@ begin
       Result:=cExact;
     end;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170325185321,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['1',GetTypeDesc(ParamResolved.TypeEl),'integer'],
-        Param);
-    exit;
-    end;
+    exit(CheckRaiseTypeArgNo(20170325185321,1,Param,ParamResolved,'integer',RaiseOnError));
 
-  if length(Params.Params)>1 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170325185323,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[1]);
-    exit(cIncompatible);
-    end;
-
-  Result:=cExact;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
 end;
 
 procedure TPasResolver.BI_Chr_OnGetCallResult(Proc: TResElDataBuiltInProc;
@@ -6890,23 +6844,9 @@ begin
       Result:=cExact;
     end;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152334,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['1',GetTypeDesc(ParamResolved.TypeEl),'enum or char'],
-        Param);
-    exit;
-    end;
+    exit(CheckRaiseTypeArgNo(20170216152334,1,Param,ParamResolved,'enum or char',RaiseOnError));
 
-  if length(Params.Params)>1 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152335,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[1]);
-    exit(cIncompatible);
-    end;
-
-  Result:=cExact;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
 end;
 
 procedure TPasResolver.BI_Ord_OnGetCallResult(Proc: TResElDataBuiltInProc;
@@ -6944,23 +6884,9 @@ begin
       Result:=cExact;
     end;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152338,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['1',GetTypeDesc(ParamResolved.TypeEl),'enum or char'],
-        Param);
-    exit;
-    end;
+    exit(CheckRaiseTypeArgNo(20170216152338,1,Param,ParamResolved,'enum or char',RaiseOnError));
 
-  if length(Params.Params)>1 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152340,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[1]);
-    exit(cIncompatible);
-    end;
-
-  Result:=cExact;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
 end;
 
 procedure TPasResolver.BI_LowHigh_OnGetCallResult(Proc: TResElDataBuiltInProc;
@@ -7022,23 +6948,9 @@ begin
   if CheckIsOrdinal(ParamResolved,Param,false) then
     Result:=cExact;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152343,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['1',GetTypeDesc(ParamResolved.TypeEl),'ordinal'],
-        Param);
-    exit;
-    end;
+    exit(CheckRaiseTypeArgNo(20170216152343,1,Param,ParamResolved,'ordinal',RaiseOnError));
 
-  if length(Params.Params)>1 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152345,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[1]);
-    exit(cIncompatible);
-    end;
-
-  Result:=cExact;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
 end;
 
 procedure TPasResolver.BI_PredSucc_OnGetCallResult(Proc: TResElDataBuiltInProc;
@@ -7105,13 +7017,7 @@ begin
         Result:=cExact
     end;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170319220517,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        [IntToStr(ArgNo),GetTypeDesc(ParamResolved.TypeEl),'boolean, integer, enum value'],
-        Param);
-    exit;
-    end;
+    exit(CheckRaiseTypeArgNo(20170319220517,ArgNo,Param,ParamResolved,'boolean, integer, enum value',RaiseOnError));
   if not CheckFormat(Param.format1,1,ParamResolved) then
     exit(cIncompatible);
   if not CheckFormat(Param.format2,2,ParamResolved) then
@@ -7154,23 +7060,9 @@ begin
       Result:=cExact;
     end;
   if Result=cIncompatible then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170319220806,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-        ['1',GetTypeDesc(ParamResolved.TypeEl),'string variable'],
-        Param);
-    exit;
-    end;
+    exit(CheckRaiseTypeArgNo(20170319220806,1,Param,ParamResolved,'string variable',RaiseOnError));
 
-  if length(Params.Params)>2 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152345,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[2]);
-    exit(cIncompatible);
-    end;
-
-  Result:=cExact;
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,2,RaiseOnError);
 end;
 
 procedure TPasResolver.BI_StrProc_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
@@ -7198,13 +7090,11 @@ begin
   if not ParentNeedsExprResult(Params) then
     begin
     // not in an expression -> the 'procedure str' is needed, not the 'function str'
-    writeln('AAA1 TPasResolver.BI_StrFunc_OnGetCallCompatibility ',GetObjName(Params.Parent));
     if RaiseOnError then
       RaiseMsg(20170326084622,nIncompatibleTypesGotExpected,
         sIncompatibleTypesGotExpected,['function str','procedure str'],Params);
     exit(cIncompatible);
     end;
-  writeln('AAA2 TPasResolver.BI_StrFunc_OnGetCallCompatibility ',GetObjName(Params.Parent));
 
   // param: string, boolean, integer, enum, class instance
   for i:=0 to length(Params.Params)-1 do
@@ -7224,6 +7114,212 @@ procedure TPasResolver.BI_StrFunc_OnGetCallResult(Proc: TResElDataBuiltInProc;
 begin
   if Params=nil then ;
   SetResolverIdentifier(ResolvedEl,btString,Proc.Proc,FBaseTypes[btString],[rrfReadable]);
+end;
+
+function TPasResolver.BI_ConcatArray_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  ParamResolved, ElTypeResolved, FirstElTypeResolved: TPasResolverResult;
+  i: Integer;
+begin
+  Result:=cIncompatible;
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    exit;
+  Params:=TParamsExpr(Expr);
+
+  FirstElTypeResolved:=Default(TPasResolverResult);
+  for i:=0 to length(Params.Params)-1 do
+    begin
+    // all params: array
+    Param:=Params.Params[i];
+    ComputeElement(Param,ParamResolved,[]);
+    if not (rrfReadable in ParamResolved.Flags)
+        or (ParamResolved.BaseType<>btContext)
+        or not IsDynArray(ParamResolved.TypeEl) then
+      exit(CheckRaiseTypeArgNo(20170329181206,i+1,Param,ParamResolved,'dynamic array',RaiseOnError));
+    ComputeElement(TPasArrayType(ParamResolved.TypeEl).ElType,ElTypeResolved,[rcType]);
+    Include(ElTypeResolved.Flags,rrfReadable);
+    if i=0 then
+      begin
+      FirstElTypeResolved:=ElTypeResolved;
+      Include(ElTypeResolved.Flags,rrfWritable);
+      end
+    else if CheckAssignResCompatibility(FirstElTypeResolved,ElTypeResolved,Param,RaiseOnError)=cIncompatible then
+      exit(cIncompatible);
+    end;
+end;
+
+procedure TPasResolver.BI_ConcatArray_OnGetCallResult(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr; out
+  ResolvedEl: TPasResolverResult);
+begin
+  ComputeElement(Params.Params[0],ResolvedEl,[]);
+  ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable];
+end;
+
+function TPasResolver.BI_CopyArray_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+begin
+  Result:=cIncompatible;
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    exit;
+  Params:=TParamsExpr(Expr);
+
+  // first param: array
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[]);
+  if (rrfReadable in ParamResolved.Flags)
+      and (ParamResolved.BaseType=btContext)
+      and IsDynArray(ParamResolved.TypeEl) then
+    Result:=cExact;
+  if Result=cIncompatible then
+    exit(CheckRaiseTypeArgNo(20170329153951,1,Param,ParamResolved,'dynamic array',RaiseOnError));
+  if length(Params.Params)=1 then
+    exit(cExact);
+
+  // check optional Start index
+  Param:=Params.Params[1];
+  ComputeElement(Param,ParamResolved,[]);
+  if not (rrfReadable in ParamResolved.Flags)
+      or not (ParamResolved.BaseType in btAllInteger) then
+    exit(CheckRaiseTypeArgNo(20170329164210,2,Param,ParamResolved,'integer',RaiseOnError));
+  if length(Params.Params)=2 then
+    exit(cExact);
+
+  // check optional Count
+  Param:=Params.Params[2];
+  ComputeElement(Param,ParamResolved,[]);
+  if not (rrfReadable in ParamResolved.Flags)
+      or not (ParamResolved.BaseType in btAllInteger) then
+    exit(CheckRaiseTypeArgNo(20170329164329,3,Param,ParamResolved,'integer',RaiseOnError));
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,3,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_CopyArray_OnGetCallResult(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr; out
+  ResolvedEl: TPasResolverResult);
+begin
+  ComputeElement(Params.Params[0],ResolvedEl,[]);
+  ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable];
+end;
+
+function TPasResolver.BI_InsertArray_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+// Insert(Item,var Array,Index)
+var
+  Params: TParamsExpr;
+  Param, ItemParam: TPasExpr;
+  ItemResolved, ParamResolved, ElTypeResolved: TPasResolverResult;
+begin
+  Result:=cIncompatible;
+  if not CheckBuiltInMinParamCount(Proc,Expr,3,RaiseOnError) then
+    exit;
+  Params:=TParamsExpr(Expr);
+
+  // check Item
+  ItemParam:=Params.Params[0];
+  ComputeElement(ItemParam,ItemResolved,[]);
+  if not (rrfReadable in ItemResolved.Flags) then
+    exit(CheckRaiseTypeArgNo(20170329171400,1,ItemParam,ItemResolved,'value',RaiseOnError));
+
+  // check Array
+  Param:=Params.Params[1];
+  ComputeElement(Param,ParamResolved,[]);
+  if not ResolvedElCanBeVarParam(ParamResolved) then
+    begin
+    if RaiseOnError then
+      RaiseMsg(20170329171514,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Param);
+    exit;
+    end;
+  if (ParamResolved.BaseType<>btContext)
+      or not IsDynArray(ParamResolved.TypeEl) then
+    exit(CheckRaiseTypeArgNo(20170329172024,2,Param,ParamResolved,'dynamic array',RaiseOnError));
+  ComputeElement(TPasArrayType(ParamResolved.TypeEl).ElType,ElTypeResolved,[rcType]);
+  if CheckAssignResCompatibility(ElTypeResolved,ItemResolved,ItemParam,RaiseOnError)=cIncompatible then
+    exit(cIncompatible);
+
+  // check insert Index
+  Param:=Params.Params[2];
+  ComputeElement(Param,ParamResolved,[]);
+  if not (rrfReadable in ParamResolved.Flags)
+      or not (ParamResolved.BaseType in btAllInteger) then
+    exit(CheckRaiseTypeArgNo(20170329172348,3,Param,ParamResolved,'integer',RaiseOnError));
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,3,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_InsertArray_OnFinishParamsExpr(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr);
+var
+  P: TPasExprArray;
+begin
+  if Proc=nil then ;
+  P:=Params.Params;
+  FinishParamExpressionAccess(P[0],rraRead);
+  FinishParamExpressionAccess(P[1],rraVarParam);
+  FinishParamExpressionAccess(P[2],rraRead);
+end;
+
+function TPasResolver.BI_DeleteArray_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+// Delete(var Array; Start, Count: integer)
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+begin
+  Result:=cIncompatible;
+  if not CheckBuiltInMinParamCount(Proc,Expr,3,RaiseOnError) then
+    exit;
+  Params:=TParamsExpr(Expr);
+
+  // check Array
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[]);
+  if not ResolvedElCanBeVarParam(ParamResolved) then
+    begin
+    if RaiseOnError then
+      RaiseMsg(20170329173421,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Param);
+    exit;
+    end;
+  if (ParamResolved.BaseType<>btContext)
+      or not IsDynArray(ParamResolved.TypeEl) then
+    exit(CheckRaiseTypeArgNo(20170329173434,1,Param,ParamResolved,'dynamic array',RaiseOnError));
+
+  // check param Start
+  Param:=Params.Params[1];
+  ComputeElement(Param,ParamResolved,[]);
+  if not (rrfReadable in ParamResolved.Flags)
+     or not (ParamResolved.BaseType in btAllInteger) then
+    exit(CheckRaiseTypeArgNo(20170329173613,2,Param,ParamResolved,'integer',RaiseOnError));
+
+  // check param Count
+  Param:=Params.Params[2];
+  ComputeElement(Param,ParamResolved,[]);
+  if not (rrfReadable in ParamResolved.Flags)
+      or not (ParamResolved.BaseType in btAllInteger) then
+    exit(CheckRaiseTypeArgNo(20170329172348,3,Param,ParamResolved,'integer',RaiseOnError));
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,3,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_DeleteArray_OnFinishParamsExpr(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr);
+var
+  P: TPasExprArray;
+begin
+  if Proc=nil then ;
+  P:=Params.Params;
+  FinishParamExpressionAccess(P[0],rraVarParam);
+  FinishParamExpressionAccess(P[1],rraRead);
+  FinishParamExpressionAccess(P[2],rraRead);
 end;
 
 constructor TPasResolver.Create;
@@ -7816,6 +7912,20 @@ begin
   if bfStrFunc in TheBaseProcs then
     AddBuiltInProc('Str','function Str(const var): String',
         @BI_StrFunc_OnGetCallCompatibility,@BI_StrFunc_OnGetCallResult,nil,bfStrFunc);
+  if bfConcatArray in TheBaseProcs then
+    AddBuiltInProc('Concat','function Concat(const Array1, Array2, ...): Array',
+        @BI_ConcatArray_OnGetCallCompatibility,@BI_ConcatArray_OnGetCallResult,nil,bfConcatArray);
+  if bfCopyArray in TheBaseProcs then
+    AddBuiltInProc('Copy','function Copy(const Array; Start: integer = 0; Count: integer = all): Array',
+        @BI_CopyArray_OnGetCallCompatibility,@BI_CopyArray_OnGetCallResult,nil,bfCopyArray);
+  if bfInsertArray in TheBaseProcs then
+    AddBuiltInProc('Insert','procedure Insert(const Element; var Array; Index: integer)',
+        @BI_InsertArray_OnGetCallCompatibility,nil,
+        @BI_InsertArray_OnFinishParamsExpr,bfInsertArray,[bipfCanBeStatement]);
+  if bfDeleteArray in TheBaseProcs then
+    AddBuiltInProc('Delete','procedure Delete(var Array; Start, Count: integer)',
+        @BI_DeleteArray_OnGetCallCompatibility,nil,
+        @BI_DeleteArray_OnFinishParamsExpr,bfDeleteArray,[bipfCanBeStatement]);
 end;
 
 function TPasResolver.AddBaseType(const aName: string; Typ: TResolverBaseType
@@ -8415,21 +8525,9 @@ begin
       begin
       // dynamic array -> needs exactly one integer
       GetNextParam;
-      if not (ParamResolved.BaseType in btAllInteger) then
-        begin
-        if not RaiseOnError then exit(cIncompatible);
-        RaiseMsg(20170216152417,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-          [IntToStr(ArgNo),BaseTypeNames[ParamResolved.BaseType],'integer'],
-          Param);
-        end;
-      if not (rrfReadable in ParamResolved.Flags) then
-        begin
-        if not RaiseOnError then exit(cIncompatible);
-        RaiseMsg(20170216152419,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-          [IntToStr(ArgNo),GetResolverResultDescription(ParamResolved,true),
-            'integer'],
-          Param);
-        end;
+      if (not (rrfReadable in ParamResolved.Flags))
+          or not (ParamResolved.BaseType in btAllInteger) then
+        exit(CheckRaiseTypeArgNo(20170216152417,ArgNo,Param,ParamResolved,'integer',RaiseOnError));
       end
     else
       begin
@@ -8444,10 +8542,8 @@ begin
         if not (rrfReadable in ParamResolved.Flags) then
           begin
           if not RaiseOnError then exit(cIncompatible);
-          RaiseMsg(20170216152421,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-            [IntToStr(ArgNo),GetResolverResultDescription(ParamResolved,true),
-             GetResolverResultDescription(RangeResolved,true)],
-            Param);
+          RaiseIncompatibleTypeRes(20170216152421,nIncompatibleTypeArgNo,
+            [IntToStr(ArgNo)],ParamResolved,RangeResolved,Param);
           end;
         if (bt in btAllBooleans) and (ParamResolved.BaseType in btAllBooleans) then
           continue
@@ -8463,10 +8559,8 @@ begin
           end;
         // incompatible
         if not RaiseOnError then exit(cIncompatible);
-        RaiseMsg(20170216152422,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-          [IntToStr(ArgNo),GetResolverResultDescription(ParamResolved,true),
-           GetResolverResultDescription(RangeResolved,true)],
-          Param);
+        RaiseIncompatibleTypeRes(20170216152422,nIncompatibleTypeArgNo,
+          [IntToStr(ArgNo)],ParamResolved,RangeResolved,Param);
         end;
       end;
     if ArgNo=length(Params.Params) then exit(cExact);
@@ -8775,7 +8869,7 @@ begin
 
   // create error messages
   RaiseIncompatibleTypeRes(20170216152437,nIncompatibleTypesGotExpected,
-    [],LHS,RHS,ErrorEl);
+    [],RHS,LHS,ErrorEl);
 end;
 
 function TPasResolver.CheckEqualElCompatibility(Left, Right: TPasElement;
@@ -8824,10 +8918,18 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CheckEqualCompatibility LHS=',GetResolverResultDesc(LHS),' RHS=',GetResolverResultDesc(RHS));
   {$ENDIF}
-  if LHS.BaseType=RHS.BaseType then
+  if (LHS.BaseType=btCustom) or (RHS.BaseType=btCustom) then
+    begin
+    Result:=CheckEqualCompatibilityCustomType(LHS,RHS,ErrorEl,RaiseOnIncompatible);
+    if (Result=cIncompatible) and RaiseOnIncompatible then
+      RaiseIncompatibleTypeRes(20170330010727,nIncompatibleTypesGotExpected,
+        [],RHS,LHS,ErrorEl);
+    exit;
+    end
+  else if LHS.BaseType=RHS.BaseType then
     begin
     if LHS.BaseType=btContext then
-      exit(CheckEqualCompatibilityCustomType(LHS,RHS,ErrorEl,RaiseOnIncompatible))
+      exit(CheckEqualCompatibilityUserType(LHS,RHS,ErrorEl,RaiseOnIncompatible))
     else
       exit(cExact); // same base type, maybe not same type name (e.g. longint and integer)
     end
@@ -9095,9 +9197,8 @@ begin
 
   Result:=CheckAssignResCompatibility(ParamResolved,ExprResolved,Expr,false);
   if (Result=cIncompatible) and RaiseOnError then
-    RaiseMsg(20170216152454,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-      [IntToStr(ParamNo+1),GetResolverResultDescription(ExprResolved,true),
-        GetResolverResultDescription(ParamResolved,true)],Expr);
+    RaiseIncompatibleTypeRes(20170216152454,nIncompatibleTypeArgNo,
+      [IntToStr(ParamNo+1)],ExprResolved,ParamResolved,Expr);
 end;
 
 function TPasResolver.CheckAssignCompatibilityUserType(const LHS,
@@ -9368,7 +9469,7 @@ begin
     end;
 end;
 
-function TPasResolver.CheckEqualCompatibilityCustomType(const TypeA,
+function TPasResolver.CheckEqualCompatibilityUserType(const TypeA,
   TypeB: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
   ): integer;
 var
