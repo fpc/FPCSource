@@ -147,6 +147,8 @@ Resourcestring
   SDbgPackageMultipleLocations = 'Multiple installations found for package %s, using installation "%s"';
   SDbgPackageDependencyOtherTarget  = 'Dependency on package %s is not for %s';
   SDbgObsoleteDependency     = 'Package %s depends on package %s which is not installed anymore';
+  SDbgForcePackageInstall    = 'Installation of package "%s" forced';
+  SDbgPackageInstallRequired = 'Installation of package "%s" required for repository "%s"';
 
   SWarnBrokenAfterReinstall  = 'Package %s is still broken, even after re-installation.';
 

@@ -422,11 +422,17 @@ begin
       InstallRepo := PackageManager.GetInstallRepository(AvailPackage);
       case InstallRepo.DefaultPackagesStructure.IsInstallationNeeded(AvailPackage) of
         fpinInstallationNeeded:
-          ExecuteAction(PackageName,'fpmakeinstall');
+          begin
+            log(llDebug,SDbgPackageInstallRequired,[AvailPackage.Repository.RepositoryName+'-'+PackageName, InstallRepo.RepositoryName]);
+            ExecuteAction(PackageName,'fpmakeinstall');
+          end;
         fpinInstallationImpossible:
           Error(SErrInstallationImpossible,[PackageName, InstallRepo.RepositoryName]);
         else if ForceInstall then
-          ExecuteAction(PackageName,'fpmakeinstall');
+          begin
+            log(llDebug,SDbgForcePackageInstall,[P.Name]);
+            ExecuteAction(PackageName,'fpmakeinstall');
+          end;
       end;
 
       if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) or
