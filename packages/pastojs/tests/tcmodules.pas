@@ -274,6 +274,7 @@ type
     Procedure TestArray_SetLengthProperty;
     Procedure TestArray_OpenArrayOfString;
     Procedure TestArray_Concat;
+    Procedure TestExternalClass_TypeCastArrayToExternalArray;
     // ToDo: const array
     // ToDo: SetLength(array of static array)
 
@@ -361,6 +362,7 @@ type
     Procedure TestExternalClass_NewInstance_FirstParamNotString_Fail;
     Procedure TestExternalClass_NewInstance_SecondParamTyped_Fail;
     Procedure TestExternalClass_TypeCastToRootClass;
+    Procedure TestExternalClass_TypeCastStringToExternalString;
 
     // proc types
     Procedure TestProcType;
@@ -4508,7 +4510,7 @@ begin
   Add('  arrjsvalue:=concat(arrjsvalue,arrjsvalue);');
   Add('  arrjsvalue:=concat(arrjsvalue,arrjsvalue,arrjsvalue);');
   ConvertProgram;
-  CheckSource('TestRecord_Var',
+  CheckSource('TestArray_Concat',
     LinesToStr([ // statements
     'this.TFlag = {',
     '  "0": "big",',
@@ -4544,6 +4546,33 @@ begin
     'this.ArrJSValue = this.ArrJSValue;',
     'this.ArrJSValue = this.ArrJSValue.concat(this.ArrJSValue);',
     'this.ArrJSValue = this.ArrJSValue.concat(this.ArrJSValue, this.ArrJSValue);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_TypeCastArrayToExternalArray;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array''');
+  Add('    class function isArray(Value: JSValue) : boolean;');
+  Add('    function concat() : TJSArray; varargs;');
+  Add('  end;');
+  Add('var');
+  Add('  aObj: TJSArray;');
+  Add('  a: array of longint;');
+  Add('begin');
+  Add('  if TJSArray.isArray(65) then ;');
+  Add('  aObj:=TJSArray(a).concat(a);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastArrayToExternalArray',
+    LinesToStr([ // statements
+    'this.aObj = null;',
+    'this.a = [];',
+    '']),
+    LinesToStr([ // this.$main
+    'if (Array.isArray(65)) ;',
+    'this.aObj = this.a.concat(this.a);',
     '']));
 end;
 
@@ -8232,6 +8261,33 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestExternalClass_TypeCastStringToExternalString;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSString = class external name ''String''');
+  Add('    class function fromCharCode() : string; varargs;');
+  Add('    function anchor(const aName : string) : string;');
+  Add('  end;');
+  Add('var');
+  Add('  s: string;');
+  Add('begin');
+  Add('  s:=TJSString.fromCharCode(65,66);');
+  Add('  s:=TJSString(s).anchor(s);');
+  Add('  s:=TJSString(''foo'').anchor(s);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastStringToExternalString',
+    LinesToStr([ // statements
+    'this.s = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.s = String.fromCharCode(65, 66);',
+    'this.s = this.s.anchor(this.s);',
+    'this.s = "foo".anchor(this.s);',
+    '']));
+end;
+
 procedure TTestModule.TestProcType;
 begin
   StartProgram(false);
@@ -9319,20 +9375,24 @@ begin
   Add('  integer = longint;');
   Add('  TArray = array of JSValue;');
   Add('  TArrgh = tarray;');
+  Add('  TArrInt = array of integer;');
   Add('var');
   Add('  v: jsvalue;');
-  Add('  TheArray: TArray;');
-  Add('  Arr: TArrgh;');
+  Add('  TheArray: tarray;');
+  Add('  Arr: tarrgh;');
   Add('  i: integer;');
+  Add('  ArrInt: tarrint;');
   Add('begin');
-  Add('  Arr:=TheArray;');
-  Add('  TheArray:=Arr;');
-  Add('  SetLength(Arr,2);');
-  Add('  SetLength(TheArray,3);');
-  Add('  Arr[4]:=v;');
-  Add('  Arr[5]:=i;');
-  Add('  Arr[6]:=nil;');
-  Add('  Arr[7]:=TheArray[8];');
+  Add('  arr:=thearray;');
+  Add('  thearray:=arr;');
+  Add('  setlength(arr,2);');
+  Add('  setlength(thearray,3);');
+  Add('  arr[4]:=v;');
+  Add('  arr[5]:=i;');
+  Add('  arr[6]:=nil;');
+  Add('  arr[7]:=thearray[8];');
+  Add('  arr:=arrint;');
+  Add('  arrInt:=tarrint(arr);');
   ConvertProgram;
   CheckSource('TestJSValue_ArrayOfJSValue',
     LinesToStr([ // statements
@@ -9340,6 +9400,7 @@ begin
     'this.TheArray = [];',
     'this.Arr = [];',
     'this.i = 0;',
+    'this.ArrInt = [];',
     '']),
     LinesToStr([ // this.$main
     'this.Arr = this.TheArray;',
@@ -9350,6 +9411,8 @@ begin
     'this.Arr[5] = this.i;',
     'this.Arr[6] = null;',
     'this.Arr[7] = this.TheArray[8];',
+    'this.Arr = this.ArrInt;',
+    'this.ArrInt = this.Arr;',
     '']));
 end;
 

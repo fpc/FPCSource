@@ -51,6 +51,7 @@ Works:
   - setlength(s,newlen) -> s.length == newlen
   - read and write char aString[]
   - allow only String, no ShortString, AnsiString, UnicodeString,...
+  - allow type casting string to external class name 'String'
 - for loop
   - if loopvar is used afterwards append  if($loopend>i)i--;
 - repeat..until
@@ -111,6 +112,8 @@ Works:
   - array of record
   - equal, unequal nil -> array.length == 0
   - when passing nil to an array argument, pass []
+  - allow type casting array to external class name 'Array'
+  - type cast array to array of same dimensions and compatible element type
 - static arrays
   - range: enumtype
   - init as arr = rtl.arrayNewMultiDim([dim1,dim2,...],value)
@@ -194,7 +197,8 @@ Works:
   - enums: assign to jsvalue, typecast jsvalue to enum
   - class instance: assign to jsvalue, typecast jsvalue to a class
   - class of: assign to jsvalue, typecast jsvalue to a class-of
-  - array of jsvalue
+  - array of jsvalue,
+    allow to assign any array to an array of jsvalue
   - parameter, result type, assign from/to untyped
   - operators equal, not equal
 
@@ -207,8 +211,6 @@ ToDos:
 - proc delete(var array,const start,count)
 - function concat(array1,array2,...): array
 - function splice(var array, const start,deletecount,item1,item2,...): arrayofdeletedelements;
-- allow type casting array to external class 'Array'
-- allow type casting string to external class 'String'
 - test param const R: TRect  r.Left:=3 fails
 - FuncName:= (instead of Result:=)
 - ord(s[i]) -> s.charCodeAt(i)
@@ -645,23 +647,24 @@ type
     function AddJSBaseType(const aName: string; Typ: TPas2jsBaseType): TResElDataPas2JSBaseType;
     function IsJSBaseType(TypeEl: TPasType; Typ: TPas2jsBaseType): boolean;
     function IsJSBaseType(const TypeResolved: TPasResolverResult; Typ: TPas2jsBaseType): boolean;
-    function CheckTypeCastCustomBaseType(const TypeResolved: TPasResolverResult;
-      Param: TPasExpr; const ParamResolved: TPasResolverResult): integer;
-      override;
-    function CheckAssignCompatibilityCustomBaseType(const LHS,
+    function CheckAssignCompatibilityCustom(const LHS,
       RHS: TPasResolverResult; ErrorEl: TPasElement;
-      RaiseOnIncompatible: boolean): integer; override;
-    function CheckTypeCastClassInstanceToClass(Param: TPasExpr;
-      const FromClassRes, ToClassRes: TPasResolverResult): integer; override;
+      RaiseOnIncompatible: boolean; var Handled: boolean): integer; override;
+    function CheckTypeCastClassInstanceToClass(const FromClassRes,
+      ToClassRes: TPasResolverResult; ErrorEl: TPasElement): integer; override;
     function CheckEqualCompatibilityCustomType(const LHS,
       RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer; override;
   public
     constructor Create;
     destructor Destroy; override;
+    // base types
     procedure AddObjFPCBuiltInIdentifiers(
       const TheBaseTypes: TResolveBaseTypes=btAllStandardTypes;
       const TheBaseProcs: TResolverBuiltInProcs=bfAllStandardProcs); override;
+    function CheckTypeCastRes(const FromResolved,
+      ToResolved: TPasResolverResult; ErrorEl: TPasElement;
+      RaiseOnError: boolean): integer; override;
     // compute literals and constants
     Function ExtractPasStringLiteral(El: TPasElement; const S: String): TJSString; virtual;
     Function ComputeConst(Expr: TPasExpr; StoreCustomData: boolean): TJSValue; virtual;
@@ -1742,74 +1745,13 @@ begin
   Result:=(TypeResolved.BaseType=btCustom) and IsJSBaseType(TypeResolved.TypeEl,Typ);
 end;
 
-function TPas2JSResolver.CheckTypeCastCustomBaseType(
-  const TypeResolved: TPasResolverResult; Param: TPasExpr;
-  const ParamResolved: TPasResolverResult): integer;
-// either TypeResolved or ParamResolved is btCustom
-var
-  JSBaseType: TPas2jsBaseType;
-  C: TClass;
-begin
-  Result:=cIncompatible;
-  {$IFDEF VerbosePas2JS}
-  writeln('TPas2JSResolver.CheckTypeCastCustomBaseType Type=',GetResolverResultDesc(TypeResolved),' Param=',GetObjName(Param),'=',GetResolverResultDesc(ParamResolved));
-  {$ENDIF}
-  if Param=nil then exit;
-  if (TypeResolved.BaseType=btCustom) then
-    begin
-    if not (TypeResolved.TypeEl is TPasUnresolvedSymbolRef) then
-      RaiseInternalError(20170325142826);
-    if not (TypeResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
-      exit;
-    // type cast to pas2js type, e.g. JSValue(V)
-    JSBaseType:=TResElDataPas2JSBaseType(TypeResolved.TypeEl.CustomData).JSBaseType;
-    if JSBaseType=pbtJSValue then
-      begin
-      if rrfReadable in ParamResolved.Flags then
-        begin
-        if (ParamResolved.BaseType in btAllJSValueSrcTypes) then
-          Result:=cExact+1 // type cast to JSValue
-        else if ParamResolved.BaseType=btCustom then
-          begin
-          if IsJSBaseType(ParamResolved,pbtJSValue) then
-            Result:=cExact;
-          end
-        else if ParamResolved.BaseType=btContext then
-          Result:=cExact+1;
-        end;
-      end;
-    end
-  else if ParamResolved.BaseType=btCustom then
-    begin
-    if not (ParamResolved.TypeEl is TPasUnresolvedSymbolRef) then
-      RaiseInternalError(20170325143016);
-    if not (ParamResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
-      exit;
-    // type cast a pas2js value, e.g. T(jsvalue)
-    if not (rrfReadable in ParamResolved.Flags) then
-      exit;
-    JSBaseType:=TResElDataPas2JSBaseType(ParamResolved.TypeEl.CustomData).JSBaseType;
-    if JSBaseType=pbtJSValue then
-      begin
-      if (TypeResolved.BaseType in btAllJSValueTypeCastTo) then
-        Result:=cExact+1 // type cast JSValue to simple base type
-      else if TypeResolved.BaseType=btContext then
-        begin
-        C:=TypeResolved.TypeEl.ClassType;
-        if (C=TPasClassType)
-            or (C=TPasClassOfType)
-            or (C=TPasEnumType) then
-          Result:=cExact+1;
-        end;
-      end;
-    end;
-end;
-
-function TPas2JSResolver.CheckAssignCompatibilityCustomBaseType(const LHS,
-  RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
-  ): integer;
+function TPas2JSResolver.CheckAssignCompatibilityCustom(const LHS,
+  RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean;
+  var Handled: boolean): integer;
 var
   LeftBaseType: TPas2jsBaseType;
+  LArray: TPasArrayType;
+  ElTypeResolved: TPasResolverResult;
 begin
   Result:=cIncompatible;
   if LHS.BaseType=btCustom then
@@ -1823,6 +1765,7 @@ begin
       end;
     if not (LHS.TypeEl.CustomData is TResElDataPas2JSBaseType) then
       exit;
+    Handled:=true;
     LeftBaseType:=TResElDataPas2JSBaseType(LHS.TypeEl.CustomData).JSBaseType;
     if LeftBaseType=pbtJSValue then
       begin
@@ -1850,18 +1793,32 @@ begin
           end;
         end;
       end;
+    end
+  else if (LHS.BaseType=btContext) and (LHS.TypeEl.ClassType=TPasArrayType) then
+    begin
+    LArray:=TPasArrayType(LHS.TypeEl);
+    if length(LArray.Ranges)>0 then
+      exit;
+    if (RHS.BaseType<>btContext) or (RHS.TypeEl.ClassType<>TPasArrayType) then
+      exit;
+    ComputeElement(LArray.ElType,ElTypeResolved,[rcType]);
+    if IsJSBaseType(ElTypeResolved,pbtJSValue) then
+      begin
+      // array of jsvalue := array
+      Handled:=true;
+      Result:=cExact+1;
+      end;
     end;
   if RaiseOnIncompatible then
     if ErrorEl=nil then ;
 end;
 
-function TPas2JSResolver.CheckTypeCastClassInstanceToClass(Param: TPasExpr;
-  const FromClassRes, ToClassRes: TPasResolverResult): integer;
+function TPas2JSResolver.CheckTypeCastClassInstanceToClass(const FromClassRes,
+  ToClassRes: TPasResolverResult; ErrorEl: TPasElement): integer;
 var
   ToClass: TPasClassType;
   ClassScope: TPasClassScope;
 begin
-  if Param=nil then ;
   if FromClassRes.BaseType=btNil then exit(cExact);
   ToClass:=(ToClassRes.TypeEl as TPasClassType);
   ClassScope:=ToClass.CustomData as TPasClassScope;
@@ -1870,6 +1827,7 @@ begin
     Result:=cExact+1
   else
     Result:=cIncompatible;
+  if ErrorEl=nil then ;
 end;
 
 function TPas2JSResolver.CheckEqualCompatibilityCustomType(const LHS,
@@ -1955,6 +1913,91 @@ begin
     -btAllStrings+[btString] // allow only String
     -btAllFloats+[btDouble] // allow only Double
     ,TheBaseProcs);
+end;
+
+function TPas2JSResolver.CheckTypeCastRes(const FromResolved,
+  ToResolved: TPasResolverResult; ErrorEl: TPasElement; RaiseOnError: boolean
+  ): integer;
+var
+  JSBaseType: TPas2jsBaseType;
+  C: TClass;
+  CurClass: TPasClassType;
+begin
+  Result:=cIncompatible;
+  {$IFDEF VerbosePas2JS}
+  writeln('TPas2JSResolver.CheckTypeCastCustomBaseType To=',GetResolverResultDesc(ToResolved),' From=',GetResolverResultDesc(FromResolved));
+  {$ENDIF}
+  if (ToResolved.BaseType=btCustom) then
+    begin
+    if not (ToResolved.TypeEl is TPasUnresolvedSymbolRef) then
+      RaiseInternalError(20170325142826);
+    if (ToResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
+      begin
+      // type cast to pas2js type, e.g. JSValue(V)
+      JSBaseType:=TResElDataPas2JSBaseType(ToResolved.TypeEl.CustomData).JSBaseType;
+      if JSBaseType=pbtJSValue then
+        begin
+        if rrfReadable in FromResolved.Flags then
+          begin
+          if (FromResolved.BaseType in btAllJSValueSrcTypes) then
+            Result:=cExact+1 // type cast to JSValue
+          else if FromResolved.BaseType=btCustom then
+            begin
+            if IsJSBaseType(FromResolved,pbtJSValue) then
+              Result:=cExact;
+            end
+          else if FromResolved.BaseType=btContext then
+            Result:=cExact+1;
+          end;
+        end;
+      exit;
+      end;
+    end
+  else if FromResolved.BaseType=btCustom then
+    begin
+    if not (FromResolved.TypeEl is TPasUnresolvedSymbolRef) then
+      RaiseInternalError(20170325143016);
+    if (FromResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
+      begin
+      // type cast a pas2js value, e.g. T(jsvalue)
+      if not (rrfReadable in FromResolved.Flags) then
+        exit;
+      JSBaseType:=TResElDataPas2JSBaseType(FromResolved.TypeEl.CustomData).JSBaseType;
+      if JSBaseType=pbtJSValue then
+        begin
+        if (ToResolved.BaseType in btAllJSValueTypeCastTo) then
+          Result:=cExact+1 // type cast JSValue to simple base type
+        else if ToResolved.BaseType=btContext then
+          begin
+          C:=ToResolved.TypeEl.ClassType;
+          if (C=TPasClassType)
+              or (C=TPasClassOfType)
+              or (C=TPasEnumType) then
+            Result:=cExact+1;
+          end;
+        end;
+      exit;
+      end;
+    end
+  else if ToResolved.BaseType=btContext then
+    begin
+    C:=ToResolved.TypeEl.ClassType;
+    if C=TPasClassType then
+      begin
+      CurClass:=TPasClassType(ToResolved.TypeEl);
+      if CurClass.IsExternal then
+        begin
+        if (CurClass.ExternalName='String')
+            and (FromResolved.BaseType in btAllStringAndChars) then
+          exit(cExact);
+        if (CurClass.ExternalName='Array')
+            and ((FromResolved.BaseType=btArray)
+                or (FromResolved.BaseType=btContext)) then
+          exit(cExact);
+        end;
+      end
+    end;
+  Result:=inherited CheckTypeCastRes(FromResolved,ToResolved,ErrorEl,RaiseOnError);
 end;
 
 function TPas2JSResolver.ExtractPasStringLiteral(El: TPasElement;
@@ -4016,6 +4059,7 @@ var
   DeclResolved, ParamResolved: TPasResolverResult;
   Param: TPasExpr;
   JSBaseType: TPas2jsBaseType;
+  C: TClass;
 begin
   Result:=nil;
   if El.Kind<>pekFuncParams then
@@ -4031,8 +4075,9 @@ begin
     if Decl is TPasType then
       Decl:=AContext.Resolver.ResolveAliasType(TPasType(Decl));
     //writeln('TPasToJSConverter.ConvertFuncParams pekFuncParams TResolvedReference ',GetObjName(Ref.Declaration),' ',GetObjName(Ref.Declaration.CustomData));
+    C:=Decl.ClassType;
 
-    if Decl.ClassType=TPasUnresolvedSymbolRef then
+    if C=TPasUnresolvedSymbolRef then
       begin
       if Decl.CustomData is TResElDataBuiltInProc then
         begin
@@ -4088,18 +4133,18 @@ begin
       Result:=ConvertExternalConstructor(Left,Ref,El,AContext);
       exit;
       end
-    else if Decl is TPasProcedure then
+    else if C.InheritsFrom(TPasProcedure) then
       TargetProcType:=TPasProcedure(Decl).ProcType
-    else if (Decl.ClassType=TPasEnumType)
-        or (Decl.ClassType=TPasClassType)
-        or (Decl.ClassType=TPasClassOfType) then
+    else if (C=TPasClassType)
+        or (C=TPasClassOfType)
+        or (C=TPasEnumType)
+        or (C=TPasArrayType) then
       begin
       // typecast
+      // default is to simply replace  "aType(value)" with "value"
       Param:=El.Params[0];
       AContext.Resolver.ComputeElement(Param,ParamResolved,[]);
-      //  EnumType(value) -> value
-      //  ClassType(value) -> value
-      //  ClassOfType(value) -> value
+
       Result:=ConvertElement(Param,AContext);
       if (ParamResolved.BaseType=btCustom)
           and (ParamResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
@@ -4107,8 +4152,8 @@ begin
         JSBaseType:=TResElDataPas2JSBaseType(ParamResolved.TypeEl.CustomData).JSBaseType;
         if JSBaseType=pbtJSValue then
           begin
-          if (Decl.ClassType=TPasClassType)
-              or (Decl.ClassType=TPasClassOfType) then
+          if (C=TPasClassType)
+              or (C=TPasClassOfType) then
             begin
             // TObject(jsvalue)  ->  rtl.getObject(jsvalue)
             Call:=CreateCallExpression(El);
@@ -4120,7 +4165,7 @@ begin
         end;
       exit;
       end
-    else if (Decl is TPasVariable) then
+    else if C.InheritsFrom(TPasVariable) then
       begin
       AContext.Resolver.ComputeElement(Decl,DeclResolved,[rcType]);
       if DeclResolved.TypeEl is TPasProcedureType then
@@ -4128,7 +4173,7 @@ begin
       else
         RaiseNotSupported(El,AContext,20170217115244);
       end
-    else if (Decl.ClassType=TPasArgument) then
+    else if (C=TPasArgument) then
       begin
       AContext.Resolver.ComputeElement(Decl,DeclResolved,[rcType]);
       if DeclResolved.TypeEl is TPasProcedureType then
@@ -4136,8 +4181,8 @@ begin
       else
         RaiseNotSupported(El,AContext,20170328224020);
       end
-    else if (Decl.ClassType=TPasProcedureType)
-        or (Decl.ClassType=TPasFunctionType) then
+    else if (C=TPasProcedureType)
+        or (C=TPasFunctionType) then
       begin
       TargetProcType:=TPasProcedureType(Decl);
       end
@@ -5402,6 +5447,8 @@ function TPasToJSConverter.ConvertBuiltInCopyArray(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 begin
   Result:=nil;
+  if El=nil then ;
+  if AContext=nil then;
 end;
 
 function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;
