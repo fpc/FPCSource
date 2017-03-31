@@ -111,6 +111,7 @@ Works:
   - multi dimensional
   - const
   - open array, override, pass array literal, pass var
+  - type cast array to arrays with same dimensions and compatible element type
 - check if var initexpr fits vartype: var a: type = expr;
 - built-in functions high, low for range types
 - procedure type
@@ -425,9 +426,9 @@ const
     'Nil',
     'Procedure/Function',
     'BuiltInProc',
-    'set-[]',
+    'set literal',
     'range..',
-    'const-array-(,)'
+    'array literal'
     );
 
 type
@@ -1080,8 +1081,9 @@ type
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
     procedure CheckIsClass(El: TPasElement; const ResolvedEl: TPasResolverResult);
-    function CheckTypeCastClassInstanceToClass(Param: TPasExpr;
-      const FromClassRes, ToClassRes: TPasResolverResult): integer; virtual;
+    function CheckTypeCastClassInstanceToClass(
+      const FromClassRes, ToClassRes: TPasResolverResult;
+      ErrorEl: TPasElement): integer; virtual;
     procedure CheckRangeExpr(Left, Right: TPasExpr;
       out LeftResolved, RightResolved: TPasResolverResult);
     procedure CheckSetElementsCompatible(Left, Right: TPasExpr;
@@ -1097,11 +1099,9 @@ type
     function CheckRaiseTypeArgNo(id: int64; ArgNo: integer; Param: TPasExpr;
       const ParamResolved: TPasResolverResult; Expected: string; RaiseOnError: boolean): integer;
     // custom types (added by descendant resolvers)
-    function CheckTypeCastCustomBaseType(const TypeResolved: TPasResolverResult;
-      Param: TPasExpr; const ParamResolved: TPasResolverResult): integer; virtual;
-    function CheckAssignCompatibilityCustomBaseType(
+    function CheckAssignCompatibilityCustom(
       const LHS, RHS: TPasResolverResult; ErrorEl: TPasElement;
-      RaiseOnIncompatible: boolean): integer; virtual;
+      RaiseOnIncompatible: boolean; var Handled: boolean): integer; virtual;
     function CheckEqualCompatibilityCustomType(
       const LHS, RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer; virtual;
@@ -1282,6 +1282,10 @@ type
       const TypeA, TypeB: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer;
     function CheckTypeCast(El: TPasType; Params: TParamsExpr; RaiseOnError: boolean): integer;
+    function CheckTypeCastRes(const FromResolved, ToResolved: TPasResolverResult;
+      ErrorEl: TPasElement; RaiseOnError: boolean): integer; virtual;
+    function CheckTypeCastArray(FromType, ToType: TPasArrayType;
+      ErrorEl: TPasElement; RaiseOnError: boolean): integer;
     function CheckSrcIsADstType(
       const ResolvedSrcType, ResolvedDestType: TPasResolverResult;
       ErrorEl: TPasElement): integer;
@@ -2536,6 +2540,7 @@ var
   BuiltInProc: TResElDataBuiltInProc;
   CandidateFound: Boolean;
   VarType, TypeEl: TPasType;
+  C: TClass;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.OnFindCallElements START ---------');
@@ -2596,7 +2601,8 @@ begin
   else if El is TPasType then
     begin
     TypeEl:=ResolveAliasType(TPasType(El));
-    if TypeEl.ClassType=TPasUnresolvedSymbolRef then
+    C:=TypeEl.ClassType;
+    if C=TPasUnresolvedSymbolRef then
       begin
       if TypeEl.CustomData.ClassType=TResElDataBuiltInProc then
         begin
@@ -2630,36 +2636,17 @@ begin
         CandidateFound:=true;
         end;
       end
-    else if TypeEl.ClassType=TPasClassType then
+    else if (C=TPasClassType)
+        or (C=TPasClassOfType)
+        or (C=TPasEnumType)
+        or (C=TPasArrayType) then
       begin
-      // type cast to a class
+      // type cast to a class, class-of, enum, or array
       Abort:=true; // can't be overloaded
       if Data^.Found<>nil then exit;
       Distance:=CheckTypeCast(TPasType(El),Data^.Params,false);
       {$IFDEF VerbosePasResolver}
-      writeln('TPasResolver.OnFindCallElements type cast to class=',El.Name,' Distance=',Distance);
-      {$ENDIF}
-      CandidateFound:=true;
-      end
-    else if TypeEl.ClassType=TPasClassOfType then
-      begin
-      // type cast to a class-of
-      Abort:=true; // can't be overloaded
-      if Data^.Found<>nil then exit;
-      Distance:=CheckTypeCast(TPasType(El),Data^.Params,false);
-      {$IFDEF VerbosePasResolver}
-      writeln('TPasResolver.OnFindCallElements type cast to class-of=',El.Name,' Distance=',Distance);
-      {$ENDIF}
-      CandidateFound:=true;
-      end
-    else if TypeEl.ClassType=TPasEnumType then
-      begin
-      // type cast to a enum
-      Abort:=true; // can't be overloaded
-      if Data^.Found<>nil then exit;
-      Distance:=cExact;
-      {$IFDEF VerbosePasResolver}
-      writeln('TPasResolver.OnFindCallElements type cast to enum=',El.Name,' Distance=',Distance);
+      writeln('TPasResolver.OnFindCallElements type cast to =',GetObjName(El),' Distance=',Distance);
       {$ENDIF}
       CandidateFound:=true;
       end;
@@ -4850,6 +4837,7 @@ var
   ResolvedEl: TPasResolverResult;
   Value: TPasExpr;
   TypeEl: TPasType;
+  C: TClass;
 begin
   Value:=Params.Value;
   if (Value.ClassType=TSelfExpr)
@@ -4940,15 +4928,17 @@ begin
     else if FoundEl is TPasType then
       begin
       TypeEl:=ResolveAliasType(TPasType(FoundEl));
-      if (TypeEl.ClassType=TPasClassType)
-          or (TypeEl.ClassType=TPasClassOfType)
-          or (TypeEl.ClassType=TPasEnumType) then
+      C:=TypeEl.ClassType;
+      if (C=TPasClassType)
+          or (C=TPasClassOfType)
+          or (C=TPasEnumType)
+          or (C=TPasArrayType) then
         begin
         // type cast
         for i:=0 to length(Params.Params)-1 do
           FinishParamExpressionAccess(Params.Params[i],Access);
         end
-      else if TypeEl.ClassType=TPasUnresolvedSymbolRef then
+      else if C=TPasUnresolvedSymbolRef then
         begin
         if TypeEl.CustomData is TResElDataBuiltInProc then
           begin
@@ -6234,13 +6224,13 @@ begin
       ['class',ResolvedEl.TypeEl.ElementTypeName],El);
 end;
 
-function TPasResolver.CheckTypeCastClassInstanceToClass(Param: TPasExpr;
-  const FromClassRes, ToClassRes: TPasResolverResult): integer;
+function TPasResolver.CheckTypeCastClassInstanceToClass(const FromClassRes,
+  ToClassRes: TPasResolverResult; ErrorEl: TPasElement): integer;
 // called when type casting a class instance into an unrelated class
 begin
-  if Param=nil then ;
   if FromClassRes.BaseType=btNone then ;
   if ToClassRes.BaseType=btNone then ;
+  if ErrorEl=nil then ;
   Result:=cIncompatible;
 end;
 
@@ -6397,19 +6387,9 @@ begin
   Result:=cIncompatible;
 end;
 
-function TPasResolver.CheckTypeCastCustomBaseType(
-  const TypeResolved: TPasResolverResult; Param: TPasExpr;
-  const ParamResolved: TPasResolverResult): integer;
-begin
-  if TypeResolved.BaseType=btNone then ;
-  if Param=nil then ;
-  if ParamResolved.BaseType=btNone then ;
-  Result:=cIncompatible;
-end;
-
-function TPasResolver.CheckAssignCompatibilityCustomBaseType(const LHS,
-  RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
-  ): integer;
+function TPasResolver.CheckAssignCompatibilityCustom(const LHS,
+  RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean;
+  var Handled: boolean): integer;
 // called when LHS or RHS BaseType is btCustom
 // if RaiseOnIncompatible=true you can raise an useful error.
 begin
@@ -6418,6 +6398,7 @@ begin
   if RHS.BaseType=btNone then ;
   if ErrorEl=nil then ;
   if RaiseOnIncompatible then ;
+  if Handled then ;
 end;
 
 function TPasResolver.CheckEqualCompatibilityCustomType(const LHS,
@@ -8365,7 +8346,25 @@ procedure TPasResolver.RaiseIncompatibleTypeRes(id: int64; MsgNumber: integer;
 var
   DescA, DescB: String;
 begin
-  if (TypeA.TypeEl<>nil) and (TypeB.TypeEl<>nil) then
+  if TypeA.BaseType<>TypeB.BaseType then
+    begin
+    if TypeA.BaseType=btContext then
+      DescA:=GetTypeDesc(TypeA.TypeEl)
+    else
+      DescA:=BaseTypeNames[TypeA.BaseType];
+    if TypeB.BaseType=btContext then
+      DescB:=GetTypeDesc(TypeB.TypeEl)
+    else
+      DescB:=BaseTypeNames[TypeB.BaseType];
+    if DescA=DescB then
+      begin
+      if TypeA.BaseType=btContext then
+        DescA:=GetTypeDesc(TypeA.TypeEl,true);
+      if TypeB.BaseType=btContext then
+        DescB:=GetTypeDesc(TypeB.TypeEl,true);
+      end;
+    end
+  else if (TypeA.TypeEl<>nil) and (TypeB.TypeEl<>nil) then
     begin
     DescA:=GetTypeDesc(TypeA.TypeEl);
     DescB:=GetTypeDesc(TypeB.TypeEl);
@@ -8669,12 +8668,10 @@ begin
       or (Arg1Resolved.TypeEl=nil)
       or (Arg2Resolved.TypeEl=nil) then
     exit(false);
-  if Arg1Resolved.TypeEl=Arg2Resolved.TypeEl then
+  if (Arg1Resolved.BaseType=Arg2Resolved.BaseType)
+      and IsSameType(Arg1Resolved.TypeEl,Arg2Resolved.TypeEl) then
     exit(true);
   C:=Arg1Resolved.TypeEl.ClassType;
-  if (C=TPasUnresolvedSymbolRef)
-      and (IsBaseType(Arg2Resolved.TypeEl,Arg1Resolved.BaseType)) then
-    exit(true);
   if (C=TPasArrayType) and (Arg2Resolved.TypeEl.ClassType=TPasArrayType) then
     begin
     Arr1:=TPasArrayType(Arg1Resolved.TypeEl);
@@ -8745,6 +8742,7 @@ function TPasResolver.CheckAssignResCompatibility(const LHS,
   ): integer;
 var
   TypeEl: TPasType;
+  Handled: Boolean;
 begin
   // check if the RHS can be converted to LHS
   {$IFDEF VerbosePasResolver}
@@ -8752,100 +8750,103 @@ begin
   {$ENDIF}
   Result:=-1;
 
-  if LHS.TypeEl=nil then
+  Handled:=false;
+  Result:=CheckAssignCompatibilityCustom(LHS,RHS,ErrorEl,RaiseOnIncompatible,Handled);
+  if not Handled then
     begin
-    if LHS.BaseType=btUntyped then
+    if LHS.TypeEl=nil then
       begin
-      // untyped parameter
-      Result:=cExact+1;
+      if LHS.BaseType=btUntyped then
+        begin
+        // untyped parameter
+        Result:=cExact+1;
+        end
+      else
+        RaiseNotYetImplemented(20160922163631,LHS.IdentEl);
       end
-    else
-      RaiseNotYetImplemented(20160922163631,LHS.IdentEl);
-    end
-  else if (LHS.BaseType=btCustom) or (RHS.BaseType=btCustom) then
-    Result:=CheckAssignCompatibilityCustomBaseType(LHS,RHS,ErrorEl,RaiseOnIncompatible)
-  else if LHS.BaseType=RHS.BaseType then
-    begin
-    if LHS.BaseType=btContext then
-      Result:=CheckAssignCompatibilityUserType(LHS,RHS,ErrorEl,RaiseOnIncompatible)
-    else
-      Result:=cExact; // same base type, maybe not same type name (e.g. longint and integer)
-    end
-  else if (LHS.BaseType in btAllInteger)
-      and (RHS.BaseType in btAllInteger) then
-    Result:=cExact+1
-  else if (LHS.BaseType in btAllBooleans)
-      and (RHS.BaseType in btAllBooleans) then
-    Result:=cExact+1
-  else if (LHS.BaseType in btAllStringAndChars)
-      and (RHS.BaseType in btAllStringAndChars) then
-    Result:=cExact+1
-  else if (LHS.BaseType in btAllFloats)
-      and (RHS.BaseType in btAllFloats+btAllInteger) then
-    Result:=cExact+1
-  else if LHS.BaseType=btNil then
-    begin
-    if RaiseOnIncompatible then
-      RaiseMsg(20170216152431,nCantAssignValuesToAnAddress,sCantAssignValuesToAnAddress,
-        [],ErrorEl);
-    exit(cIncompatible);
-    end
-  else if LHS.BaseType in [btRange,btSet,btModule,btArray] then
-    begin
-    if RaiseOnIncompatible then
-      RaiseMsg(20170216152432,nIllegalExpression,sIllegalExpression,[],ErrorEl);
-    exit(cIncompatible);
-    end
-  else if (LHS.IdentEl=nil) and (LHS.ExprEl=nil) then
-    begin
-    if RaiseOnIncompatible then
-      RaiseMsg(20170216152434,nIllegalExpression,sIllegalExpression,[],ErrorEl);
-    exit(cIncompatible);
-    end
-  else if RHS.BaseType=btNil then
-    begin
-    if LHS.BaseType=btPointer then
-      Result:=cExact
-    else if LHS.BaseType=btContext then
+    else if LHS.BaseType=RHS.BaseType then
       begin
-      TypeEl:=LHS.TypeEl;
-      if (TypeEl.ClassType=TPasClassType)
-          or (TypeEl.ClassType=TPasClassOfType)
-          or (TypeEl.ClassType=TPasPointerType)
-          or (TypeEl is TPasProcedureType)
-          or IsDynArray(TypeEl) then
-        Result:=cExact;
-      end;
-    end
-  else if RHS.BaseType=btSet then
-    begin
-    if (LHS.BaseType=btSet) then
+      if LHS.BaseType=btContext then
+        Result:=CheckAssignCompatibilityUserType(LHS,RHS,ErrorEl,RaiseOnIncompatible)
+      else
+        Result:=cExact; // same base type, maybe not same type name (e.g. longint and integer)
+      end
+    else if (LHS.BaseType in btAllInteger)
+        and (RHS.BaseType in btAllInteger) then
+      Result:=cExact+1
+    else if (LHS.BaseType in btAllBooleans)
+        and (RHS.BaseType in btAllBooleans) then
+      Result:=cExact+1
+    else if (LHS.BaseType in btAllStringAndChars)
+        and (RHS.BaseType in btAllStringAndChars) then
+      Result:=cExact+1
+    else if (LHS.BaseType in btAllFloats)
+        and (RHS.BaseType in btAllFloats+btAllInteger) then
+      Result:=cExact+1
+    else if LHS.BaseType=btNil then
       begin
-      if RHS.TypeEl=nil then
-        Result:=cExact // empty set
-      else if (LHS.SubType=RHS.SubType) and (LHS.SubType in (btAllBooleans+btAllInteger+[btChar])) then
+      if RaiseOnIncompatible then
+        RaiseMsg(20170216152431,nCantAssignValuesToAnAddress,sCantAssignValuesToAnAddress,
+          [],ErrorEl);
+      exit(cIncompatible);
+      end
+    else if LHS.BaseType in [btRange,btSet,btModule,btArray] then
+      begin
+      if RaiseOnIncompatible then
+        RaiseMsg(20170216152432,nIllegalExpression,sIllegalExpression,[],ErrorEl);
+      exit(cIncompatible);
+      end
+    else if (LHS.IdentEl=nil) and (LHS.ExprEl=nil) then
+      begin
+      if RaiseOnIncompatible then
+        RaiseMsg(20170216152434,nIllegalExpression,sIllegalExpression,[],ErrorEl);
+      exit(cIncompatible);
+      end
+    else if RHS.BaseType=btNil then
+      begin
+      if LHS.BaseType=btPointer then
         Result:=cExact
-      else if ((LHS.SubType in btAllBooleans) and (RHS.SubType in btAllBooleans))
-          or ((LHS.SubType in btAllInteger) and (RHS.SubType in btAllInteger)) then
-        Result:=cExact+1
-      else if (LHS.SubType=btContext) and (LHS.TypeEl is TPasEnumType)
-          and (LHS.TypeEl=RHS.TypeEl) then
-        Result:=cExact;
-      end;
-    end
-  else if RHS.BaseType=btProc then
-    begin
-    if (msDelphi in CurrentParser.CurrentModeswitches)
-        and (LHS.TypeEl is TPasProcedureType)
-        and (RHS.IdentEl is TPasProcedure) then
+      else if LHS.BaseType=btContext then
+        begin
+        TypeEl:=LHS.TypeEl;
+        if (TypeEl.ClassType=TPasClassType)
+            or (TypeEl.ClassType=TPasClassOfType)
+            or (TypeEl.ClassType=TPasPointerType)
+            or (TypeEl is TPasProcedureType)
+            or IsDynArray(TypeEl) then
+          Result:=cExact;
+        end;
+      end
+    else if RHS.BaseType=btSet then
       begin
-      if CheckProcAssignCompatibility(TPasProcedureType(LHS.TypeEl),
-          TPasProcedure(RHS.IdentEl).ProcType) then
-        Result:=cExact;
-      end;
-    end
-  else if (LHS.BaseType=btContext) and (LHS.TypeEl is TPasArrayType) then
-    Result:=CheckAssignCompatibilityArrayType(LHS,RHS,ErrorEl,RaiseOnIncompatible);
+      if (LHS.BaseType=btSet) then
+        begin
+        if RHS.TypeEl=nil then
+          Result:=cExact // empty set
+        else if (LHS.SubType=RHS.SubType) and (LHS.SubType in (btAllBooleans+btAllInteger+[btChar])) then
+          Result:=cExact
+        else if ((LHS.SubType in btAllBooleans) and (RHS.SubType in btAllBooleans))
+            or ((LHS.SubType in btAllInteger) and (RHS.SubType in btAllInteger)) then
+          Result:=cExact+1
+        else if (LHS.SubType=btContext) and (LHS.TypeEl is TPasEnumType)
+            and (LHS.TypeEl=RHS.TypeEl) then
+          Result:=cExact;
+        end;
+      end
+    else if RHS.BaseType=btProc then
+      begin
+      if (msDelphi in CurrentParser.CurrentModeswitches)
+          and (LHS.TypeEl is TPasProcedureType)
+          and (RHS.IdentEl is TPasProcedure) then
+        begin
+        if CheckProcAssignCompatibility(TPasProcedureType(LHS.TypeEl),
+            TPasProcedure(RHS.IdentEl).ProcType) then
+          Result:=cExact;
+        end;
+      end
+    else if (LHS.BaseType=btContext) and (LHS.TypeEl is TPasArrayType) then
+      Result:=CheckAssignCompatibilityArrayType(LHS,RHS,ErrorEl,RaiseOnIncompatible);
+    end;
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CheckAssignResCompatibility incompatible LHS='+GetResolverResultDesc(LHS)+' RHS='+GetResolverResultDesc(RHS));
   {$ENDIF}
@@ -9409,6 +9410,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
     else
       begin
       // single value
+      // Note: the parser does not store the difference between (1) and 1
       if (not IsLastRange) or (Count>1) then
         RaiseMsg(20170223095307,nExpectXArrayElementsButFoundY,sExpectXArrayElementsButFoundY,
           [IntToStr(Count),'1'],ErrorEl);
@@ -9599,133 +9601,221 @@ function TPasResolver.CheckTypeCast(El: TPasType; Params: TParamsExpr;
 var
   Param: TPasExpr;
   ParamResolved, ResolvedEl: TPasResolverResult;
-  ResTypeEl, ElClassType, ParamClassType: TPasType;
-  TypeBaseType: TResolverBaseType;
 begin
-  if length(Params.Params)<1 then
+  if length(Params.Params)<>1 then
     begin
     if RaiseOnError then
       RaiseMsg(20170216152526,nWrongNumberOfParametersForTypeCast,
         sWrongNumberOfParametersForTypeCast,[El.Name],Params);
     exit(cIncompatible);
     end;
-
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
-  Result:=cIncompatible;
   ComputeElement(El,ResolvedEl,[]);
+  Result:=CheckTypeCastRes(ParamResolved,ResolvedEl,Param,RaiseOnError);
+end;
 
-  ResTypeEl:=ResolvedEl.TypeEl;
-  if (ResTypeEl<>nil)
-      and (rrfReadable in ParamResolved.Flags) then
+function TPasResolver.CheckTypeCastRes(const FromResolved,
+  ToResolved: TPasResolverResult; ErrorEl: TPasElement; RaiseOnError: boolean
+  ): integer;
+var
+  ToTypeEl, ToClassType, FromClassType: TPasType;
+  ToTypeBaseType: TResolverBaseType;
+  C: TClass;
+begin
+  Result:=cIncompatible;
+  ToTypeEl:=ToResolved.TypeEl;
+  if (ToTypeEl<>nil)
+      and (rrfReadable in FromResolved.Flags) then
     begin
-    if ParamResolved.BaseType=btUntyped then
+    C:=ToTypeEl.ClassType;
+    if FromResolved.BaseType=btUntyped then
       begin
       // typecast an untyped parameter
       Result:=cExact+1;
       end
-    else if (ResolvedEl.BaseType=btCustom) or (ParamResolved.BaseType=btCustom) then
-      Result:=CheckTypeCastCustomBaseType(ResolvedEl,Param,ParamResolved)
-    else if ResTypeEl.ClassType=TPasUnresolvedSymbolRef then
+    else if C=TPasUnresolvedSymbolRef then
       begin
-      if ResTypeEl.CustomData is TResElDataBaseType then
+      if ToTypeEl.CustomData is TResElDataBaseType then
         begin
         // base type cast, e.g. double(aninteger)
-        if ResTypeEl=ParamResolved.TypeEl then
+        if ToTypeEl=FromResolved.TypeEl then
           exit(cExact);
-        TypeBaseType:=(ResTypeEl.CustomData as TResElDataBaseType).BaseType;
-        if TypeBaseType=ParamResolved.BaseType then
+        ToTypeBaseType:=(ToTypeEl.CustomData as TResElDataBaseType).BaseType;
+        if ToTypeBaseType=FromResolved.BaseType then
           Result:=cExact
-        else if TypeBaseType in btAllInteger then
+        else if ToTypeBaseType in btAllInteger then
           begin
-          if ParamResolved.BaseType in (btAllInteger+btAllBooleans) then
+          if FromResolved.BaseType in (btAllInteger+btAllBooleans) then
             Result:=cExact+1;
           end
-        else if TypeBaseType in btAllFloats then
+        else if ToTypeBaseType in btAllFloats then
           begin
-          if ParamResolved.BaseType in (btAllInteger+btAllFloats) then
+          if FromResolved.BaseType in (btAllInteger+btAllFloats) then
             Result:=cExact+1;
           end
-        else if TypeBaseType in btAllBooleans then
+        else if ToTypeBaseType in btAllBooleans then
           begin
-          if ParamResolved.BaseType in (btAllBooleans+btAllInteger) then
+          if FromResolved.BaseType in (btAllBooleans+btAllInteger) then
             Result:=cExact+1;
           end
-        else if TypeBaseType in btAllStrings then
+        else if ToTypeBaseType in btAllStrings then
           begin
-          if ParamResolved.BaseType in btAllStringAndChars then
+          if FromResolved.BaseType in btAllStringAndChars then
             Result:=cExact+1;
           end;
         end;
       end
-    else if ResTypeEl.ClassType=TPasClassType then
+    else if C=TPasClassType then
       begin
-      if ParamResolved.BaseType=btNil then
+      // to class
+      if FromResolved.BaseType=btNil then
         Result:=cExact
-      else if (ParamResolved.BaseType=btContext)
-          and (ParamResolved.TypeEl.ClassType=TPasClassType)
-          and (not (ParamResolved.IdentEl is TPasType)) then
+      else if (FromResolved.BaseType=btContext)
+          and (FromResolved.TypeEl.ClassType=TPasClassType)
+          and (not (FromResolved.IdentEl is TPasType)) then
         begin
         // type cast upwards or downwards
-        Result:=CheckSrcIsADstType(ResolvedEl,ParamResolved,Param);
+        Result:=CheckSrcIsADstType(FromResolved,ToResolved,ErrorEl);
         if Result=cIncompatible then
-          Result:=CheckSrcIsADstType(ParamResolved,ResolvedEl,Param);
+          Result:=CheckSrcIsADstType(ToResolved,FromResolved,ErrorEl);
         if Result=cIncompatible then
-          Result:=CheckTypeCastClassInstanceToClass(Param,ParamResolved,ResolvedEl);
+          Result:=CheckTypeCastClassInstanceToClass(FromResolved,ToResolved,ErrorEl);
         end;
       end
-    else if ResTypeEl.ClassType=TPasClassOfType then
+    else if C=TPasClassOfType then
       begin
-      // writeln('TPasResolver.CheckTypeCast class-of ParamResolved.TypeEl=',GetObjName(ParamResolved.TypeEl),' ParamResolved.IdentEl=',GetObjName(ParamResolved.IdentEl));
-      if (ParamResolved.BaseType=btContext) then
+      //writeln('TPasResolver.CheckTypeCast class-of FromRes.TypeEl=',GetObjName(FromResolved.TypeEl),' FromRes.IdentEl=',GetObjName(FromResolved.IdentEl));
+      if (FromResolved.BaseType=btContext) then
         begin
-        if (ParamResolved.TypeEl.ClassType=TPasClassOfType)
-            and (not (ParamResolved.IdentEl is TPasType)) then
+        if (FromResolved.TypeEl.ClassType=TPasClassOfType)
+            and (not (FromResolved.IdentEl is TPasType)) then
           begin
           // type cast  classof(classof-var)  upwards or downwards
-          ElClassType:=TPasClassOfType(ResTypeEl).DestType;
-          ParamClassType:=TPasClassOfType(ParamResolved.TypeEl).DestType;
-          Result:=CheckClassIsClass(ElClassType,ParamClassType,Param);
+          ToClassType:=TPasClassOfType(ToTypeEl).DestType;
+          FromClassType:=TPasClassOfType(FromResolved.TypeEl).DestType;
+          Result:=CheckClassIsClass(ToClassType,FromClassType,ErrorEl);
           if Result=cIncompatible then
-            Result:=CheckClassIsClass(ParamClassType,ElClassType,Param);
+            Result:=CheckClassIsClass(FromClassType,ToClassType,ErrorEl);
           end
-        else if (ParamResolved.TypeEl.ClassType=TPasClassType)
-            and (ParamResolved.IdentEl=ParamResolved.TypeEl) then
+        else if (FromResolved.TypeEl.ClassType=TPasClassType)
+            and (FromResolved.IdentEl=FromResolved.TypeEl) then
           begin
-          // type case  classof(Self)  upwards or downwards
-          ElClassType:=TPasClassOfType(ResTypeEl).DestType;
-          ParamClassType:=TPasClassType(ParamResolved.TypeEl);
-          Result:=CheckClassIsClass(ElClassType,ParamClassType,Param);
+          // type cast  classof(Self) or classof(aclass)  upwards or downwards
+          ToClassType:=TPasClassOfType(ToTypeEl).DestType;
+          FromClassType:=TPasClassType(FromResolved.TypeEl);
+          Result:=CheckClassIsClass(ToClassType,FromClassType,ErrorEl);
           if Result=cIncompatible then
-            Result:=CheckClassIsClass(ParamClassType,ElClassType,Param);
+            Result:=CheckClassIsClass(FromClassType,ToClassType,ErrorEl);
           end;
         end;
       end
-    else if ResTypeEl.ClassType=TPasEnumType then
+    else if C=TPasEnumType then
       begin
-      if CheckIsOrdinal(ParamResolved,Param,true) then
+      if CheckIsOrdinal(FromResolved,ErrorEl,true) then
         Result:=cExact;
+      end
+    else if C=TPasArrayType then
+      begin
+      if (FromResolved.BaseType=btContext)
+          and (FromResolved.TypeEl.ClassType=TPasArrayType) then
+        Result:=CheckTypeCastArray(TPasArrayType(FromResolved.TypeEl),
+          TPasArrayType(ToTypeEl),ErrorEl,RaiseOnError);
       end;
     end;
 
   if Result=cIncompatible then
     begin
     {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.CheckTypeCast El=',GetResolverResultDesc(ResolvedEl),' Param=',GetResolverResultDesc(ParamResolved));
+    writeln('TPasResolver.CheckTypeCastRes From=',GetResolverResultDesc(FromResolved),' To=',GetResolverResultDesc(ToResolved));
     {$ENDIF}
     if RaiseOnError then
-      RaiseIncompatibleType(20170216152528,nIllegalTypeConversionTo,
-        [],ParamResolved.TypeEl,El,Param);
+      RaiseIncompatibleTypeRes(20170216152528,nIllegalTypeConversionTo,
+        [],FromResolved,ToResolved,ErrorEl);
     exit;
     end;
+end;
 
-  if length(Params.Params)>1 then
-    begin
-    if RaiseOnError then
-      RaiseMsg(20170216152530,nWrongNumberOfParametersForTypeCast,
-        sWrongNumberOfParametersForTypeCast,[El.Name],Params);
-    exit(cIncompatible);
-    end;
+function TPasResolver.CheckTypeCastArray(FromType, ToType: TPasArrayType;
+  ErrorEl: TPasElement; RaiseOnError: boolean): integer;
+
+  function NextDim(var ArrType: TPasArrayType; var NextIndex: integer;
+    out ElTypeResolved: TPasResolverResult): boolean;
+  begin
+    inc(NextIndex);
+    if NextIndex<length(ArrType.Ranges) then
+      begin
+      ElTypeResolved.BaseType:=btNone;
+      exit(true);
+      end;
+    ComputeElement(ArrType.ElType,ElTypeResolved,[rcType]);
+    if (ElTypeResolved.BaseType<>btContext)
+        or (ElTypeResolved.TypeEl.ClassType<>TPasArrayType) then
+      exit(false);
+    ArrType:=TPasArrayType(ElTypeResolved.TypeEl);
+    NextIndex:=0;
+    Result:=true;
+  end;
+
+var
+  FromIndex, ToIndex: Integer;
+  FromElTypeRes, ToElTypeRes: TPasResolverResult;
+  StartFromType, StartToType: TPasArrayType;
+begin
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.CheckTypeCastArray From=',GetTypeDesc(FromType),' ToType=',GetTypeDesc(ToType));
+  {$ENDIF}
+  StartFromType:=FromType;
+  StartToType:=ToType;
+  Result:=cIncompatible;
+  // check dimensions
+  FromIndex:=0;
+  ToIndex:=0;
+  repeat
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.CheckTypeCastArray From=',GetTypeDesc(FromType),' FromIndex=',FromIndex,' ToType=',GetTypeDesc(ToType),' ToIndex=',ToIndex);
+    {$ENDIF}
+    if length(ToType.Ranges)=0 then
+      // ToType is dynamic -> fits any size
+    else
+      begin
+      // ToType is ranged
+      // ToDo: check size of dimension
+      end;
+    // check next dimension
+    if not NextDim(FromType,FromIndex,FromElTypeRes) then
+      begin
+      // at end of FromType
+      if NextDim(ToType,ToIndex,ToElTypeRes) then
+        begin
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.CheckTypeCastArray To has more dims than From: From=',GetTypeDesc(FromType),' FromIndex=',FromIndex,', ToType=',GetTypeDesc(ToType),' ToIndex=',ToIndex);
+        {$ENDIF}
+        break; // ToType has more dimensions
+        end;
+      // have same dimension -> check ElType
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.CheckTypeCastArray check ElType From=',GetResolverResultDesc(FromElTypeRes),' To=',GetResolverResultDesc(ToElTypeRes));
+      {$ENDIF}
+      Include(FromElTypeRes.Flags,rrfReadable);
+      Result:=CheckTypeCastRes(FromElTypeRes,ToElTypeRes,ErrorEl,false);
+      break;
+      end
+    else
+      begin
+      // FromType has more dimensions
+      if not NextDim(ToType,ToIndex,ToElTypeRes) then
+        begin
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.CheckTypeCastArray From has more dims than To: From=',GetTypeDesc(FromType),' FromIndex=',FromIndex,', ToType=',GetTypeDesc(ToType),' ToIndex=',ToIndex);
+        {$ENDIF}
+        break; // ToType has less dimensions
+        end;
+      end;
+  until false;
+  if (Result=cIncompatible) and RaiseOnError then
+    RaiseIncompatibleType(20170331124643,nIllegalTypeConversionTo,
+      [],StartFromType,StartToType,ErrorEl);
 end;
 
 procedure TPasResolver.ComputeElement(El: TPasElement; out

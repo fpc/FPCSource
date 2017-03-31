@@ -472,6 +472,8 @@ type
     Procedure TestArray_CopyMismatchFail;
     Procedure TestArray_InsertDelete;
     Procedure TestArray_InsertItemMismatchFail;
+    Procedure TestArray_TypeCast;
+    Procedure TestArray_TypeCastWrongElTypeFail;
 
     // procedure types
     Procedure TestProcTypesAssignObjFPC;
@@ -7331,6 +7333,41 @@ begin
   Add('  Insert(i,{#a2_var}A,2);');
   CheckResolverException('Incompatible types: got "Longint" expected "String"',
     nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestArray_TypeCast;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TArrIntA = array of integer;');
+  Add('  TArrIntB = array of longint;');
+  Add('  TArrIntC = array of integer;');
+  Add('var');
+  Add('  a: TArrIntA;');
+  Add('  b: TArrIntB;');
+  Add('  c: TArrIntC;');
+  Add('begin');
+  Add('  a:=TArrIntA(a);');
+  Add('  a:=TArrIntA(b);');
+  Add('  a:=TArrIntA(c);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_TypeCastWrongElTypeFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TArrInt = array of integer;');
+  Add('  TArrStr = array of string;');
+  Add('var');
+  Add('  a: TArrInt;');
+  Add('  s: TArrStr;');
+  Add('begin');
+  Add('  a:=TArrInt(s);');
+  CheckResolverException('Illegal type conversion: "TArrStr" to "TArrInt"',
+    nIllegalTypeConversionTo);
 end;
 
 procedure TTestResolver.TestProcTypesAssignObjFPC;
