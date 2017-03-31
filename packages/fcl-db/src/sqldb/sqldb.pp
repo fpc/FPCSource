@@ -296,7 +296,7 @@ type
     property HostName : string Read FHostName Write FHostName;
     Property OnLog : TDBLogNotifyEvent Read FOnLog Write FOnLog;
     Property LogEvents : TDBEventTypes Read FLogEvents Write FLogEvents Default LogAllEvents;
-    Property Options : TSQLConnectionOptions Read FOptions Write SetOptions;
+    Property Options : TSQLConnectionOptions Read FOptions Write SetOptions default [];
     Property Role :  String read FRole write FRole;
     property Connected;
     property DatabaseName;
@@ -346,7 +346,7 @@ type
     property Action : TCommitRollbackAction read FAction write FAction Default caRollBack;
     property Database;
     property Params : TStringList read FParams write SetParams;
-    Property Options : TSQLTransactionOptions Read FOptions Write SetOptions;
+    Property Options : TSQLTransactionOptions Read FOptions Write SetOptions default [];
   end;
 
 
@@ -604,7 +604,7 @@ type
     property UpdateSQL : TStringList read FUpdateSQL write SetUpdateSQL;
     property DeleteSQL : TStringList read FDeleteSQL write SetDeleteSQL;
     property RefreshSQL : TStringList read FRefreshSQL write SetRefreshSQL;
-    Property Options : TSQLQueryOptions Read FOptions Write SetOptions;
+    Property Options : TSQLQueryOptions Read FOptions Write SetOptions default [];
     property Params : TParams read GetParams Write SetParams;
     Property ParamCheck : Boolean Read GetParamCheck Write SetParamCheck default true;
     property ParseSQL : Boolean read GetParseSQL write SetParseSQL default true;
