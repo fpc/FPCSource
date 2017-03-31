@@ -669,7 +669,14 @@ begin
               begin
                 P := Repo.Packages[j];
                 if (P = FindPackage(P.Name, pkgpkInstalled)) and PackageIsBroken(P, nil) then
-                  SL.Add(P.Name);
+                  begin
+                    if P.IsFPMakeAddIn then
+                      // Make sure that FPMakeAddIn's are fixed first, so
+                      // as much packages are compiled with them.
+                      SL.Insert(0, P.Name)
+                    else
+                      SL.Add(P.Name);
+                  end;
               end;
           end;
       end;
