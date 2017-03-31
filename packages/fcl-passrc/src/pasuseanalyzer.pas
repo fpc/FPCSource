@@ -1072,6 +1072,7 @@ var
   UsePublished, FirstTime: Boolean;
   ProcScope: TPasProcedureScope;
   ClassScope: TPasClassScope;
+  Ref: TResolvedReference;
 begin
   FirstTime:=true;
   case Mode of
@@ -1092,6 +1093,13 @@ begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseClassType ',GetElModName(El),' ',Mode,' First=',FirstTime);
   {$ENDIF}
+  if El.IsForward then
+    begin
+    Ref:=El.CustomData as TResolvedReference;
+    UseClassType(Ref.Declaration as TPasClassType,Mode);
+    exit;
+    end;
+
   ClassScope:=El.CustomData as TPasClassScope;
   if FirstTime then
     begin
@@ -1426,6 +1434,7 @@ begin
     end
   else if C=TPasClassType then
     begin
+    if TPasClassType(El).IsForward then exit;
     for i:=0 to TPasClassType(El).Members.Count-1 do
       begin
       Member:=TPasElement(TPasClassType(El).Members[i]);

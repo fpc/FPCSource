@@ -65,6 +65,7 @@ type
     procedure TestM_ProcedureType;
     procedure TestM_Params;
     procedure TestM_Class;
+    procedure TestM_ClassForward;
     procedure TestM_Class_Property;
     procedure TestM_Class_PropertyOverride;
     procedure TestM_Class_MethodOverride;
@@ -650,6 +651,26 @@ begin
   Add('var Obj: TObject;');
   Add('begin');
   Add('  Obj.a:=3;');
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_ClassForward;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#integer_notused}integer = longint;');
+  Add('  {#TObject_used}TObject = class end;');
+  Add('  TFelidae = class;');
+  Add('  {#TCheetah_used}TCheetah = class');
+  Add('  public');
+  Add('    {#i_notused}i: integer;');
+  Add('    {#f_used}f: TFelidae;');
+  Add('  end;');
+  Add('  {TFelidae_used}TFelidae = class');
+  Add('  end;');
+  Add('var {#c_used}c: TCheetah;');
+  Add('begin');
+  Add('  c.f:=nil;');
   AnalyzeProgram;
 end;
 

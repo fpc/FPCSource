@@ -1139,6 +1139,7 @@ function TPas2JSResolver.GetOverloadIndex(Identifier: TPasIdentifier;
 var
   El: TPasElement;
   ProcScope: TPasProcedureScope;
+  C: TClass;
 begin
   Result:=0;
   // iterate from last added to first added
@@ -1151,7 +1152,13 @@ begin
       Result:=0;
       continue;
       end;
-    if El is TPasProcedure then
+    C:=El.ClassType;
+    if C=TPasClassType then
+      begin
+      if TPasClassType(El).IsForward then
+        continue;
+      end
+    else if C.InheritsFrom(TPasProcedure) then
       begin
       if TPasProcedure(El).IsOverride then
         continue;
@@ -1239,6 +1246,9 @@ begin
     RenameSubOverloads(aSection.Declarations);
     end;
   PopOverloadScope;
+  {$IFDEF VerbosePas2JS}
+  writeln('TPas2JSResolver.RenameOverloadsInSection END ',GetObjName(aSection));
+  {$ENDIF}
 end;
 
 procedure TPas2JSResolver.RenameOverloads(DeclEl: TPasElement;
@@ -1275,6 +1285,9 @@ begin
           ProcScope.ImplProc.Name:=Proc.Name;
       end;
     end;
+  {$IFDEF VerbosePas2JS}
+  writeln('TPas2JSResolver.RenameOverloads END ',GetObjName(DeclEl));
+  {$ENDIF}
 end;
 
 procedure TPas2JSResolver.RenameSubOverloads(Declarations: TFPList);
@@ -1296,7 +1309,9 @@ begin
       Proc:=TPasProcedure(El);
       if Proc.IsAbstract or Proc.IsExternal then continue;
       ProcScope:=Proc.CustomData as TPasProcedureScope;
-      //writeln('TPas2JSResolver.RenameSubOverloads Proc=',Proc.Name,' DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ImplProc=',GetObjName(ProcScope.ImplProc),' ClassScope=',GetObjName(ProcScope.ClassScope));
+      {$IFDEF VerbosePas2JS}
+      writeln('TPas2JSResolver.RenameSubOverloads Proc=',Proc.Name,' DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ImplProc=',GetObjName(ProcScope.ImplProc),' ClassScope=',GetObjName(ProcScope.ClassScope));
+      {$ENDIF}
       if ProcScope.DeclarationProc<>nil then
         // proc implementation (not forward) -> skip
         continue;
@@ -1318,6 +1333,7 @@ begin
     else if C=TPasClassType then
       begin
       ClassEl:=TPasClassType(El);
+      if ClassEl.IsForward then continue;
       ClassScope:=El.CustomData as TPas2JSClassScope;
       OldScopeCount:=FOverloadScopes.Count;
 
@@ -1341,6 +1357,9 @@ begin
     else if C.InheritsFrom(TPasVariable) and (El.Parent.ClassType=TPasClassType) then
       RenameOverload(El);
     end;
+  {$IFDEF VerbosePas2JS}
+  writeln('TPas2JSResolver.RenameSubOverloads END');
+  {$ENDIF}
 end;
 
 procedure TPas2JSResolver.PushOverloadScope(Scope: TPasIdentifierScope);

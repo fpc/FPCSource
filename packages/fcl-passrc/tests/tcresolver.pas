@@ -315,6 +315,7 @@ type
     Procedure TestClassDefaultInheritance;
     Procedure TestClassTripleInheritance;
     Procedure TestClassForward;
+    Procedure TestClassForwardAsAncestorFail;
     Procedure TestClassForwardNotResolved;
     Procedure TestClass_Method;
     Procedure TestClass_MethodWithoutClassFail;
@@ -4223,9 +4224,22 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestClassForwardAsAncestorFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class;');
+  Add('  TBird = class end;');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('var');
+  Add('  v: TBird;');
+  Add('begin');
+  CheckResolverException('Can''t use forward declaration "TObject" as ancestor',
+    nCantUseForwardDeclarationAsAncestor);
+end;
+
 procedure TTestResolver.TestClassForwardNotResolved;
-var
-  ErrorNo: Integer;
 begin
   StartProgram(false);
   Add('type');
@@ -4235,14 +4249,8 @@ begin
   Add('var');
   Add('  v: TClassB;');
   Add('begin');
-  ErrorNo:=0;
-  try
-    ParseModule;
-  except
-    on E: EPasResolve do
-      ErrorNo:=E.MsgNumber;
-  end;
-  AssertEquals('Forward class not resolved raises correct error',nForwardTypeNotResolved,ErrorNo);
+  CheckResolverException('Forward class not resolved raises correct error',
+    nForwardTypeNotResolved);
 end;
 
 procedure TTestResolver.TestClass_Method;

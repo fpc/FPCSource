@@ -6544,10 +6544,12 @@ procedure TTestModule.TestClass_OverloadsAncestor;
 begin
   StartProgram(false);
   Add('type');
+  Add('  TObject = class;');
   Add('  TObject = class');
   Add('    procedure DoIt(vA: longint);');
   Add('    procedure DoIt(vA, vB: longint);');
   Add('  end;');
+  Add('  TCar = class;');
   Add('  TCar = class');
   Add('    procedure DoIt(vA: longint);');
   Add('    procedure DoIt(vA, vB: longint);');
