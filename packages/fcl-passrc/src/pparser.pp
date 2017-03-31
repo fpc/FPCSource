@@ -3735,7 +3735,9 @@ begin
         NextToken
       until CurToken = tkSquaredBraceClose;
       ExpectToken(tkSemicolon);
-      end;
+      end
+    else if CurToken<>tkSemicolon then
+      CheckToken(tkSemicolon);
     Done:=(CurToken=tkSemiColon);
     if Done then
       begin
