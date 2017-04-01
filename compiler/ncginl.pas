@@ -439,6 +439,7 @@ implementation
           { set defaults }
           maskconstant:=true;
           hregister:=NR_NO;
+          maskvalue:=0;
 {$ifndef cpu64bitalu}
           hregisterhi:=NR_NO;
 {$endif not cpu64bitalu}
