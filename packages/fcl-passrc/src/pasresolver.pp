@@ -44,6 +44,9 @@ Works:
 - type cast base types
 - char
   - ord(), chr()
+- record
+  - variants
+  - const param makes children const too
 - class:
   - forward declaration
   - instance.a
@@ -133,7 +136,6 @@ ToDo:
 - for..in..do
 - pointer TPasPointerType
 - records - TPasRecordType,
-   - variant - TPasVariant
    - const  TRecordValues
    - function default(record type): record
    - pointer of record
@@ -239,6 +241,7 @@ const
   nCannotCreateADescendantOfTheSealedClass = 3048;
   nAncestorIsNotExternal = 3049;
   nVirtualMethodXHasLowerVisibility = 3050; // FPC 3250
+  nExternalClassInstanceCannotAccessStaticX = 3051;
 
 // resourcestring patterns of messages
 resourcestring
@@ -292,6 +295,7 @@ resourcestring
   sCannotCreateADescendantOfTheSealedClass = 'Cannot create a descendant of the sealed class "%s"';
   sAncestorIsNotExternal = 'Ancestor "%s" is not external';
   sVirtualMethodXHasLowerVisibility = 'Virtual method "%s" has a lower visibility (%s) than parent class %s (%s)';
+  sExternalClassInstanceCannotAccessStaticX = 'External class instance cannot access static %s';
 
 type
   TResolverBaseType = (
@@ -704,16 +708,22 @@ type
 
   TPasWithScope = class;
 
+  TPasWithExprScopeFlag = (
+    wesfNeedTmpVar,
+    wesfOnlyTypeMembers,
+    wesfConstParent
+    );
+  TPasWithExprScopeFlags = set of TPasWithExprScopeFlag;
+
   { TPasWithExprScope }
 
   TPasWithExprScope = Class(TPasScope)
   public
     WithScope: TPasWithScope;
     Index: integer;
-    NeedTmpVar: boolean;
     Expr: TPasExpr;
     Scope: TPasScope;
-    OnlyTypeMembers: boolean;
+    Flags: TPasWithExprScopeFlags;
     class function IsStoredInElement: boolean; override;
     class function FreeOnPop: boolean; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
@@ -774,6 +784,7 @@ type
   public
     IdentifierScope: TPasIdentifierScope;
     OnlyTypeMembers: boolean; // true=only class var/procs, false=default=all
+    ConstParent: boolean;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
@@ -807,7 +818,8 @@ type
     rrfImplicitCallWithoutParams, // a TPrimitiveExpr is an implicit call without params
     rrfNewInstance, // constructor call (without it call constructor as normal method)
     rrfFreeInstance, // destructor call (without it call destructor as normal method)
-    rrfVMT // use VMT for call
+    rrfVMT, // use VMT for call
+    rrfConstInherited  // parent is const and children are too
     );
   TResolvedReferenceFlags = set of TResolvedReferenceFlag;
 
@@ -932,7 +944,9 @@ type
     proFixCaseOfOverrides,  // fix Name of overriding procs to the overriden proc
     proClassPropertyNonStatic,  // class property accessor must be non static
     proPropertyAsVarParam, // allows to pass a property as a var/out argument
-    proClassOfIs // class-of supports is and as operator
+    proClassOfIs, // class-of supports is and as operator
+    proExtClassInstanceNoTypeMembers, // class members of external class cannot be accessed by instance
+    proOpenAsDynArrays // open arrays work like dyn arrays
     );
   TPasResolverOptions = set of TPasResolverOption;
 
@@ -1306,7 +1320,8 @@ type
     function CheckEqualElCompatibility(Left, Right: TPasElement;
       ErrorEl: TPasElement; RaiseOnIncompatible: boolean): integer;
     function CheckEqualResCompatibility(const LHS, RHS: TPasResolverResult;
-      ErrorEl: TPasElement; RaiseOnIncompatible: boolean): integer;
+      LErrorEl: TPasElement; RaiseOnIncompatible: boolean;
+      RErrorEl: TPasElement = nil): integer;
     function ResolvedElHasValue(const ResolvedEl: TPasResolverResult): boolean;
     function ResolvedElCanBeVarParam(const ResolvedEl: TPasResolverResult): boolean;
     function ResolvedElIsClassInstance(const ResolvedEl: TPasResolverResult): boolean;
@@ -1323,6 +1338,8 @@ type
     function ParentNeedsExprResult(El: TPasExpr): boolean;
     function GetReference_NewInstanceClass(Ref: TResolvedReference): TPasClassType;
     function IsDynArray(TypeEl: TPasType): boolean;
+    function IsOpenArray(TypeEl: TPasType): boolean;
+    function IsDynOrOpenArray(TypeEl: TPasType): boolean;
     function IsClassMethod(El: TPasElement): boolean;
     function IsProcedureType(const ResolvedEl: TPasResolverResult): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
@@ -4297,8 +4314,14 @@ begin
     WithExprScope.Index:=i;
     WithExprScope.Expr:=Expr;
     WithExprScope.Scope:=ExprScope;
-    WithExprScope.NeedTmpVar:=not (ExprResolved.IdentEl is TPasType);
-    WithExprScope.OnlyTypeMembers:=OnlyTypeMembers;
+    if ExprResolved.IdentEl is TPasType then
+      Include(WithExprScope.flags,wesfNeedTmpVar);
+    if OnlyTypeMembers then
+      Include(WithExprScope.flags,wesfOnlyTypeMembers);
+    if (not (rrfWritable in ExprResolved.Flags))
+        and (ExprResolved.BaseType=btContext)
+        and (ExprResolved.TypeEl.ClassType=TPasRecordType) then
+      Include(WithExprScope.flags,wesfConstParent);
     WithScope.ExpressionScopes.Add(WithExprScope);
     PushScope(WithExprScope);
     end;
@@ -4731,6 +4754,7 @@ begin
     begin
     RecordEl:=TPasRecordType(LeftResolved.TypeEl);
     RecordScope:=PushRecordDotScope(RecordEl);
+    RecordScope.ConstParent:=not (rrfWritable in LeftResolved.Flags);
     if LeftResolved.IdentEl is TPasType then
       // e.g. TPoint.PointInCircle
       RecordScope.OnlyTypeMembers:=true
@@ -5526,7 +5550,7 @@ begin
 
   if Bin.OpCode in [eopEqual,eopNotEqual] then
     begin
-    if CheckEqualElCompatibility(Bin.left,Bin.right,Bin,true)=cIncompatible then
+    if CheckEqualElCompatibility(Bin.left,Bin.right,nil,true)=cIncompatible then
       RaiseInternalError(20161007215912);
     SetBaseType(btBoolean);
     exit;
@@ -6042,7 +6066,7 @@ begin
       ArgNo:=0;
       repeat
         if length(ArrayEl.Ranges)=0 then
-          inc(ArgNo) // dynamic array has one dimension
+          inc(ArgNo) // dynamic/open array has one dimension
         else
           inc(ArgNo,length(ArrayEl.Ranges)); // static array has several dimensions
         if ArgNo>length(Params.Params) then
@@ -6058,6 +6082,9 @@ begin
       ResolvedEl.IdentEl:=OrigResolved.IdentEl;
       ResolvedEl.ExprEl:=OrigResolved.ExprEl;
       ResolvedEl.Flags:=OrigResolved.Flags*[rrfReadable,rrfWritable];
+      if IsDynArray(ArrayEl) then
+        // dyn array elements are writable independent of the array
+        Include(ResolvedEl.Flags,rrfWritable);
       end
     else
       RaiseNotYetImplemented(20161010151727,Params,GetResolverResultDesc(ResolvedEl));
@@ -6458,7 +6485,6 @@ var
   Params: TParamsExpr;
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
-  ArrayType: TPasArrayType;
 begin
   if not CheckBuiltInMinParamCount(Proc,Expr,2,RaiseOnError) then
     exit(cIncompatible);
@@ -6474,12 +6500,8 @@ begin
       Result:=cExact
     else if ParamResolved.BaseType=btContext then
       begin
-      if ParamResolved.TypeEl.ClassType=TPasArrayType then
-        begin
-        ArrayType:=TPasArrayType(ParamResolved.TypeEl);
-        if length(ArrayType.Ranges)=0 then
-          Result:=cExact;
-        end;
+      if IsDynArray(ParamResolved.TypeEl) then
+        Result:=cExact;
       end;
     end;
   if Result=cIncompatible then
@@ -7502,7 +7524,7 @@ begin
   if Data.Found=nil then exit; // forward type: class-of or ^
   CheckFoundElement(Data,nil);
   if (Data.StartScope<>nil) and (Data.StartScope.ClassType=ScopeClass_WithExpr)
-      and TPasWithExprScope(Data.StartScope).NeedTmpVar then
+      and (wesfNeedTmpVar in TPasWithExprScope(Data.StartScope).Flags) then
     RaiseInternalError(20160923111727); // caller forgot to handle "With", use the other FindElementWithoutParams instead
 end;
 
@@ -7567,6 +7589,7 @@ var
   StartScope: TPasScope;
   OnlyTypeMembers: Boolean;
   TypeEl: TPasType;
+  C: TClass;
 begin
   StartScope:=FindData.StartScope;
   OnlyTypeMembers:=false;
@@ -7574,11 +7597,15 @@ begin
     begin
     OnlyTypeMembers:=TPasDotIdentifierScope(StartScope).OnlyTypeMembers;
     Include(Ref.Flags,rrfDotScope);
+    if TPasDotIdentifierScope(StartScope).ConstParent then
+      Include(Ref.Flags,rrfConstInherited);
     end
   else if StartScope.ClassType=ScopeClass_WithExpr then
     begin
-    OnlyTypeMembers:=TPasWithExprScope(StartScope).OnlyTypeMembers;
+    OnlyTypeMembers:=wesfOnlyTypeMembers in TPasWithExprScope(StartScope).Flags;
     Include(Ref.Flags,rrfDotScope);
+    if wesfConstParent in TPasWithExprScope(StartScope).Flags then
+      Include(Ref.Flags,rrfConstInherited);
     end
   else if StartScope.ClassType=TPasProcedureScope then
     begin
@@ -7589,8 +7616,8 @@ begin
     end;
 
   //writeln('TPasResolver.CheckFoundElOnStartScope StartScope=',StartScope.ClassName,
-  //    ' ',StartScope is TPasDotIdentifierScope,
-  //    ' ',(StartScope is TPasDotIdentifierScope)
+  //    ' StartIsDot=',StartScope is TPasDotIdentifierScope,
+  //    ' OnlyTypeMembers=',(StartScope is TPasDotIdentifierScope)
   //       and TPasDotIdentifierScope(StartScope).OnlyTypeMembers,
   //    ' FindData.Found=',GetObjName(FindData.Found));
   if OnlyTypeMembers then
@@ -7609,6 +7636,25 @@ begin
     else
       RaiseMsg(20170216152348,nOnlyClassMembersCanBeReferredWithClassReferences,
         sOnlyClassMembersCanBeReferredWithClassReferences,[],FindData.ErrorPosEl);
+    end
+  else if (proExtClassInstanceNoTypeMembers in Options)
+      and (StartScope.ClassType=TPasDotClassScope)
+      and TPasClassType(TPasDotClassScope(StartScope).ClassScope.Element).IsExternal then
+    begin
+    // found member in external class instance
+      C:=FindData.Found.ClassType;
+      if (C=TPasProcedure) or (C=TPasFunction) then
+        // ok
+      else if C.InheritsFrom(TPasVariable)
+          and (not (vmClass in TPasVariable(FindData.Found).VarModifiers)) then
+        // ok
+      else
+        begin
+        RaiseMsg(20170331184224,nExternalClassInstanceCannotAccessStaticX,
+          sExternalClassInstanceCannotAccessStaticX,
+          [FindData.Found.ElementTypeName+' '+FindData.Found.Name],
+          FindData.ErrorPosEl);
+        end;
     end;
 
   if (FindData.Found is TPasProcedure) then
@@ -7638,7 +7684,7 @@ begin
         and OnlyTypeMembers
         and (Ref<>nil) then
       begin
-      Ref.Flags:=Ref.Flags+[rrfNewInstance];
+      Ref.Flags:=Ref.Flags+[rrfNewInstance]-[rrfConstInherited];
       // store the class in Ref.Context
       if Ref.Context<>nil then
         RaiseInternalError(20170131141936);
@@ -8522,7 +8568,7 @@ begin
   repeat
     if length(ArrayEl.Ranges)=0 then
       begin
-      // dynamic array -> needs exactly one integer
+      // dynamic/open array -> needs exactly one integer
       GetNextParam;
       if (not (rrfReadable in ParamResolved.Flags))
           or not (ParamResolved.BaseType in btAllInteger) then
@@ -8767,7 +8813,7 @@ begin
     else if LHS.BaseType=RHS.BaseType then
       begin
       if LHS.BaseType=btContext then
-        Result:=CheckAssignCompatibilityUserType(LHS,RHS,ErrorEl,RaiseOnIncompatible)
+        exit(CheckAssignCompatibilityUserType(LHS,RHS,ErrorEl,RaiseOnIncompatible))
       else
         Result:=cExact; // same base type, maybe not same type name (e.g. longint and integer)
       end
@@ -8879,6 +8925,7 @@ function TPasResolver.CheckEqualElCompatibility(Left, Right: TPasElement;
 var
   Flags: TPasResolverComputeFlags;
   LeftResolved, RightResolved: TPasResolverResult;
+  LeftErrorEl, RightErrorEl: TPasElement;
 begin
   Result:=cIncompatible;
   // Delphi resolves both sides, so it forbids "if procvar=procvar then"
@@ -8901,36 +8948,78 @@ begin
   writeln('TPasResolver.CheckEqualElCompatibility Left=',GetResolverResultDesc(LeftResolved),' Flags=',dbgs(Flags),' Delphi=',msDelphi in CurrentParser.CurrentModeswitches);
   {$ENDIF}
   ComputeElement(Right,RightResolved,Flags);
-  if not (rrfReadable in LeftResolved.Flags) then
-    RaiseMsg(20170216152438,nNotReadable,sNotReadable,[],Left);
-  if not (rrfReadable in RightResolved.Flags) then
-    RaiseMsg(20170216152440,nNotReadable,sNotReadable,[],Right);
-  Result:=CheckEqualResCompatibility(LeftResolved,RightResolved,ErrorEl,RaiseOnIncompatible);
+  if ErrorEl=nil then
+    begin
+    LeftErrorEl:=Left;
+    RightErrorEl:=Right;
+    end
+  else
+    begin
+    LeftErrorEl:=ErrorEl;
+    RightErrorEl:=ErrorEl;
+    end;
+  Result:=CheckEqualResCompatibility(LeftResolved,RightResolved,LeftErrorEl,
+    RaiseOnIncompatible,RightErrorEl);
 end;
 
 function TPasResolver.CheckEqualResCompatibility(const LHS,
-  RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
-  ): integer;
+  RHS: TPasResolverResult; LErrorEl: TPasElement; RaiseOnIncompatible: boolean;
+  RErrorEl: TPasElement): integer;
 var
   TypeEl: TPasType;
+  ok: Boolean;
 begin
   Result:=cIncompatible;
+  if RErrorEl=nil then RErrorEl:=LErrorEl;
   // check if the RHS is type compatible to LHS
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CheckEqualCompatibility LHS=',GetResolverResultDesc(LHS),' RHS=',GetResolverResultDesc(RHS));
   {$ENDIF}
+  if not (rrfReadable in LHS.Flags) then
+    begin
+    ok:=false;
+    if (LHS.BaseType=btContext) and (LHS.TypeEl.ClassType=TPasClassType)
+        and (LHS.IdentEl=LHS.TypeEl) then
+      begin
+      if RHS.BaseType=btNil then
+        ok:=true
+      else if (RHS.BaseType=btContext) and (RHS.TypeEl.ClassType=TPasClassOfType)
+          and (rrfReadable in RHS.Flags) then
+        // for example  if TImage=ImageClass then
+        ok:=true;
+      end;
+    if not ok then
+      RaiseMsg(20170216152438,nNotReadable,sNotReadable,[],LErrorEl);
+    end;
+  if not (rrfReadable in RHS.Flags) then
+    begin
+    ok:=false;
+    if (RHS.BaseType=btContext) and (RHS.TypeEl.ClassType=TPasClassType)
+        and (RHS.IdentEl=RHS.TypeEl) then
+      begin
+      if LHS.BaseType=btNil then
+        ok:=true
+      else if (LHS.BaseType=btContext) and (LHS.TypeEl.ClassType=TPasClassOfType)
+          and (rrfReadable in LHS.Flags) then
+        // for example  if ImageClass=TImage then
+        ok:=true;
+      end;
+    if not ok then
+      RaiseMsg(20170216152440,nNotReadable,sNotReadable,[],RErrorEl);
+    end;
+
   if (LHS.BaseType=btCustom) or (RHS.BaseType=btCustom) then
     begin
-    Result:=CheckEqualCompatibilityCustomType(LHS,RHS,ErrorEl,RaiseOnIncompatible);
+    Result:=CheckEqualCompatibilityCustomType(LHS,RHS,LErrorEl,RaiseOnIncompatible);
     if (Result=cIncompatible) and RaiseOnIncompatible then
       RaiseIncompatibleTypeRes(20170330010727,nIncompatibleTypesGotExpected,
-        [],RHS,LHS,ErrorEl);
+        [],RHS,LHS,LErrorEl);
     exit;
     end
   else if LHS.BaseType=RHS.BaseType then
     begin
     if LHS.BaseType=btContext then
-      exit(CheckEqualCompatibilityUserType(LHS,RHS,ErrorEl,RaiseOnIncompatible))
+      exit(CheckEqualCompatibilityUserType(LHS,RHS,LErrorEl,RaiseOnIncompatible))
     else
       exit(cExact); // same base type, maybe not same type name (e.g. longint and integer)
     end
@@ -8959,7 +9048,7 @@ begin
         end
       else if RaiseOnIncompatible then
         RaiseMsg(20170216152442,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          [BaseTypeNames[RHS.BaseType],BaseTypeNames[LHS.BaseType]],ErrorEl)
+          [BaseTypeNames[RHS.BaseType],BaseTypeNames[LHS.BaseType]],LErrorEl)
       else
         exit(cIncompatible);
     end
@@ -8979,7 +9068,7 @@ begin
         end
       else if RaiseOnIncompatible then
         RaiseMsg(20170216152444,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          [BaseTypeNames[LHS.BaseType],BaseTypeNames[RHS.BaseType]],ErrorEl)
+          [BaseTypeNames[LHS.BaseType],BaseTypeNames[RHS.BaseType]],LErrorEl)
       else
         exit(cIncompatible);
     end
@@ -9001,17 +9090,17 @@ begin
         exit(cExact);
       if RaiseOnIncompatible then
         RaiseMsg(20170216152446,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          ['set of '+BaseTypeNames[LHS.SubType],'set of '+BaseTypeNames[RHS.SubType]],ErrorEl)
+          ['set of '+BaseTypeNames[LHS.SubType],'set of '+BaseTypeNames[RHS.SubType]],LErrorEl)
       else
         exit(cIncompatible);
       end;
     end
   else if RaiseOnIncompatible then
     RaiseMsg(20170216152449,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-      [BaseTypeNames[LHS.BaseType],BaseTypeNames[RHS.BaseType]],ErrorEl)
+      [BaseTypeNames[LHS.BaseType],BaseTypeNames[RHS.BaseType]],LErrorEl)
   else
     exit(cIncompatible);
-  RaiseNotYetImplemented(20161007101041,ErrorEl,'LHS='+GetResolverResultDesc(LHS)+' RHS='+GetResolverResultDesc(RHS));
+  RaiseNotYetImplemented(20161007101041,LErrorEl,'LHS='+GetResolverResultDesc(LHS)+' RHS='+GetResolverResultDesc(RHS));
 end;
 
 function TPasResolver.ResolvedElHasValue(const ResolvedEl: TPasResolverResult
@@ -9209,12 +9298,11 @@ var
   RTypeEl, LTypeEl: TPasType;
   SrcResolved, DstResolved: TPasResolverResult;
   LArray, RArray: TPasArrayType;
-
   function RaiseIncompatType: integer;
   begin
     if not RaiseOnIncompatible then exit(cIncompatible);
-    RaiseIncompatibleType(20170216152456,nIncompatibleTypesGotExpected,
-        [],RTypeEl,LTypeEl,ErrorEl);
+    RaiseIncompatibleTypeRes(20170216152505,nIncompatibleTypesGotExpected,
+      [],RHS,LHS,ErrorEl);
   end;
 
 begin
@@ -9230,17 +9318,17 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CheckCustomTypeCompatibility LTypeEl=',GetObjName(LTypeEl),' RTypeEl=',GetObjName(RTypeEl));
   {$ENDIF}
+  Result:=-1;
   if LTypeEl.ClassType=TPasClassType then
     begin
     if RHS.BaseType=btNil then
-      exit(cExact)
+      Result:=cExact
     else if RTypeEl.ClassType=TPasClassType then
       begin
       Result:=CheckSrcIsADstType(RHS,LHS,ErrorEl);
       if (Result=cIncompatible) and RaiseOnIncompatible then
         RaiseIncompatibleType(20170216152458,nIncompatibleTypesGotExpected,
           [],RTypeEl,LTypeEl,ErrorEl);
-      exit;
       end
     else
       exit(RaiseIncompatType);
@@ -9248,8 +9336,8 @@ begin
   else if LTypeEl.ClassType=TPasClassOfType then
     begin
     if RHS.BaseType=btNil then
-      exit(cExact);
-    if (RTypeEl.ClassType=TPasClassOfType) then
+      Result:=cExact
+    else if (RTypeEl.ClassType=TPasClassOfType) then
       begin
       // e.g. ImageClass:=AnotherImageClass;
       Result:=CheckClassIsClass(TPasClassOfType(RTypeEl).DestType,
@@ -9257,7 +9345,6 @@ begin
       if (Result=cIncompatible) and RaiseOnIncompatible then
         RaiseMsg(20170216152500,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
           ['class of '+TPasClassOfType(RTypeEl).DestType.FullName,'class of '+TPasClassOfType(LTypeEl).DestType.FullName],ErrorEl);
-      exit;
       end
     else if (RHS.IdentEl is TPasClassType) then
       begin
@@ -9266,65 +9353,60 @@ begin
       if (Result=cIncompatible) and RaiseOnIncompatible then
         RaiseMsg(20170216152501,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
           [RTypeEl.Name,'class of '+TPasClassOfType(LTypeEl).DestType.FullName],ErrorEl);
+      // do not check rrfReadable -> exit
       exit;
       end;
     end
   else if LTypeEl is TPasProcedureType then
     begin
     if RHS.BaseType=btNil then
-      exit(cExact);
-    if (LTypeEl.ClassType=RTypeEl.ClassType)
+      Result:=cExact
+    else if (LTypeEl.ClassType=RTypeEl.ClassType)
         and (rrfReadable in RHS.Flags) then
       begin
       if CheckProcAssignCompatibility(TPasProcedureType(LTypeEl),TPasProcedureType(RTypeEl)) then
-        exit(cExact);
+        Result:=cExact;
       end;
     end
   else if LTypeEl.ClassType=TPasArrayType then
     begin
-    if RTypeEl.ClassType=TPasArrayType then
-     begin
-     // arrays of different type
-     LArray:=TPasArrayType(LTypeEl);
-     RArray:=TPasArrayType(RTypeEl);
-     if length(LArray.Ranges)=length(RArray.Ranges) then
-       begin
-       if CheckProcArgTypeCompatibility(LArray.ElType,RArray.ElType) then
-         Result:=cExact
-       else if RaiseOnIncompatible then
-         RaiseMsg(20170328110050,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-           ['array of '+LArray.ElType.FullName,
-            'array of '+RArray.ElType.FullName],ErrorEl)
-       else
-         exit(cIncompatible);
-       end;
-     end
+    // arrays of different types
+    if IsOpenArray(LTypeEl) then
+      begin
+      LArray:=TPasArrayType(LTypeEl);
+      RArray:=TPasArrayType(RTypeEl);
+      if length(LArray.Ranges)=length(RArray.Ranges) then
+        begin
+        if CheckProcArgTypeCompatibility(LArray.ElType,RArray.ElType) then
+          Result:=cExact
+        else if RaiseOnIncompatible then
+          RaiseMsg(20170328110050,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
+            ['array of '+LArray.ElType.FullName,
+             'array of '+RArray.ElType.FullName],ErrorEl)
+        else
+          exit(cIncompatible);
+        end;
+      end;
     end
   else if RTypeEl.ClassType=TPasEnumType then
     begin
     // enums of different type
-    if not RaiseOnIncompatible then
-      exit(cIncompatible);
-    if LTypeEl.ClassType=TPasEnumValue then
-      RaiseIncompatibleType(20170216152730,nIncompatibleTypesGotExpected,
-        [],RTypeEl,LTypeEl,ErrorEl)
-    else
-      exit(RaiseIncompatType);
     end
   else if RTypeEl.ClassType=TPasSetType then
     begin
+    // sets of different type are compatible if enum types are compatible
     if LTypeEl.ClassType=TPasSetType then
       begin
       ComputeElement(TPasSetType(LTypeEl).EnumType,DstResolved,[]);
       ComputeElement(TPasSetType(RTypeEl).EnumType,SrcResolved,[]);
       if (SrcResolved.TypeEl<>nil)
       and (SrcResolved.TypeEl=DstResolved.TypeEl) then
-        exit(cExact);
-      if (SrcResolved.TypeEl.CustomData is TResElDataBaseType)
+        Result:=cExact
+      else if (SrcResolved.TypeEl.CustomData is TResElDataBaseType)
           and (DstResolved.TypeEl.CustomData is TResElDataBaseType)
           and (CompareText(SrcResolved.TypeEl.Name,DstResolved.TypeEl.Name)=0) then
-        exit(cExact);
-      if RaiseOnIncompatible then
+        Result:=cExact
+      else if RaiseOnIncompatible then
         RaiseIncompatibleTypeRes(20170216152510,nIncompatibleTypesGotExpected,
           [],SrcResolved,DstResolved,ErrorEl)
       else
@@ -9335,10 +9417,11 @@ begin
     end
   else
     RaiseNotYetImplemented(20160922163654,ErrorEl);
-  if RaiseOnIncompatible then
-    RaiseIncompatibleTypeRes(20170216152505,nIncompatibleTypesGotExpected,
-      [],RHS,LHS,ErrorEl);
-  exit;
+
+  if Result=-1 then
+    exit(RaiseIncompatType);
+  if not (rrfReadable in RHS.Flags) then
+    exit(RaiseIncompatType);
 end;
 
 function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
@@ -9694,19 +9777,7 @@ begin
           // type cast  classof(classof-var)  upwards or downwards
           ToClassType:=TPasClassOfType(ToTypeEl).DestType;
           FromClassType:=TPasClassOfType(FromResolved.TypeEl).DestType;
-          Result:=CheckClassIsClass(ToClassType,FromClassType,ErrorEl);
-          if Result=cIncompatible then
-            Result:=CheckClassIsClass(FromClassType,ToClassType,ErrorEl);
-          end
-        else if (FromResolved.TypeEl.ClassType=TPasClassType)
-            and (FromResolved.IdentEl=FromResolved.TypeEl) then
-          begin
-          // type cast  classof(Self) or classof(aclass)  upwards or downwards
-          ToClassType:=TPasClassOfType(ToTypeEl).DestType;
-          FromClassType:=TPasClassType(FromResolved.TypeEl);
-          Result:=CheckClassIsClass(ToClassType,FromClassType,ErrorEl);
-          if Result=cIncompatible then
-            Result:=CheckClassIsClass(FromClassType,ToClassType,ErrorEl);
+          Result:=CheckClassesAreRelated(ToClassType,FromClassType,ErrorEl);
           end;
         end;
       end
@@ -9721,6 +9792,22 @@ begin
           and (FromResolved.TypeEl.ClassType=TPasArrayType) then
         Result:=CheckTypeCastArray(TPasArrayType(FromResolved.TypeEl),
           TPasArrayType(ToTypeEl),ErrorEl,RaiseOnError);
+      end;
+    end
+  else if ToTypeEl<>nil then
+    begin
+    // FromResolved is not readable
+    if (FromResolved.BaseType=btContext)
+        and (FromResolved.TypeEl.ClassType=TPasClassType)
+        and (FromResolved.TypeEl=FromResolved.IdentEl)
+        and (ToResolved.BaseType=btContext)
+        and (ToResolved.TypeEl.ClassType=TPasClassOfType)
+        and (ToResolved.TypeEl=ToResolved.IdentEl) then
+      begin
+      // for example  class-of(Self) in a class function
+      ToClassType:=TPasClassOfType(ToTypeEl).DestType;
+      FromClassType:=TPasClassType(FromResolved.TypeEl);
+      Result:=CheckClassesAreRelated(ToClassType,FromClassType,ErrorEl);
       end;
     end;
 
@@ -9776,7 +9863,7 @@ begin
     writeln('TPasResolver.CheckTypeCastArray From=',GetTypeDesc(FromType),' FromIndex=',FromIndex,' ToType=',GetTypeDesc(ToType),' ToIndex=',ToIndex);
     {$ENDIF}
     if length(ToType.Ranges)=0 then
-      // ToType is dynamic -> fits any size
+      // ToType is dynamic/open array -> fits any size
     else
       begin
       // ToType is ranged
@@ -9831,6 +9918,8 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
   begin
     Ref:=TResolvedReference(El.CustomData);
     ComputeElement(Ref.Declaration,ResolvedEl,Flags+[rcNoImplicitProc],StartEl);
+    if rrfConstInherited in Ref.Flags then
+      Exclude(ResolvedEl.Flags,rrfWritable);
     {$IFDEF VerbosePasResolver}
     if El is TPrimitiveExpr then
       writeln('TPasResolver.ComputeElement.ComputeIdentifier TPrimitiveExpr "',TPrimitiveExpr(El).Value,'" ',GetResolverResultDesc(ResolvedEl),' Flags=',dbgs(Flags))
@@ -10105,7 +10194,9 @@ begin
     else
       ResolvedEl.TypeEl:=TPasClassType(El);
     SetResolverIdentifier(ResolvedEl,btContext,
-                          ResolvedEl.TypeEl,ResolvedEl.TypeEl,[rrfReadable]);
+                          ResolvedEl.TypeEl,ResolvedEl.TypeEl,[]);
+    //if not TPasClassType(El).IsExternal then
+    //  Include(ResolvedEl.Flags,rrfReadable);
     // Note: rrfReadable because a class has a vmt as value
     end
   else if ElClass=TPasClassOfType then
@@ -10344,6 +10435,25 @@ end;
 
 function TPasResolver.IsDynArray(TypeEl: TPasType): boolean;
 begin
+  if (TypeEl=nil) or (TypeEl.ClassType<>TPasArrayType)
+      or (length(TPasArrayType(TypeEl).Ranges)<>0) then
+    exit(false);
+  if proOpenAsDynArrays in Options then
+    Result:=true
+  else
+    Result:=(TypeEl.Parent=nil) or (TypeEl.Parent.ClassType<>TPasArgument);
+end;
+
+function TPasResolver.IsOpenArray(TypeEl: TPasType): boolean;
+begin
+  Result:=(TypeEl<>nil) and (TypeEl.ClassType=TPasArrayType)
+      and (length(TPasArrayType(TypeEl).Ranges)=0)
+      and (TypeEl.Parent<>nil)
+      and (TypeEl.Parent.ClassType=TPasArgument);
+end;
+
+function TPasResolver.IsDynOrOpenArray(TypeEl: TPasType): boolean;
+begin
   Result:=(TypeEl<>nil) and (TypeEl.ClassType=TPasArrayType)
       and (length(TPasArrayType(TypeEl).Ranges)=0);
 end;
@@ -10423,6 +10533,7 @@ end;
 
 function TPasResolver.CheckClassIsClass(SrcType, DestType: TPasType;
   ErrorEl: TPasElement): integer;
+// check if Src is equal or descends from Dest
 var
   ClassEl: TPasClassType;
 begin

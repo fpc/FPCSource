@@ -309,6 +309,10 @@ type
     Procedure TestRecord;
     Procedure TestRecordVariant;
     Procedure TestRecordVariantNested;
+    Procedure TestRecord_WriteConstParamFail;
+    Procedure TestRecord_WriteConstParam_WithFail;
+    Procedure TestRecord_WriteNestedConstParamFail;
+    Procedure TestRecord_WriteNestedConstParamWithFail;
 
     // class
     Procedure TestClass;
@@ -454,6 +458,7 @@ type
     Procedure TestArrayOfArray;
     Procedure TestFunctionReturningArray;
     Procedure TestArray_LowHigh;
+    Procedure TestArray_AssignSameSignatureFail;
     Procedure TestArray_Assigned;
     Procedure TestPropertyOfTypeArray;
     Procedure TestArrayElementFromFuncResult_AsParams;
@@ -475,6 +480,8 @@ type
     Procedure TestArray_InsertItemMismatchFail;
     Procedure TestArray_TypeCast;
     Procedure TestArray_TypeCastWrongElTypeFail;
+    Procedure TestArray_ConstDynArrayWrite;
+    Procedure TestArray_ConstOpenArrayWriteFail;
 
     // procedure types
     Procedure TestProcTypesAssignObjFPC;
@@ -4144,6 +4151,72 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestRecord_WriteConstParamFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TSmall = record');
+  Add('    Size: longint;');
+  Add('  end;');
+  Add('procedure DoIt(const S: TSmall);');
+  Add('begin');
+  Add('  S.Size:=3;');
+  Add('end;');
+  Add('begin');
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestRecord_WriteConstParam_WithFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TSmall = record');
+  Add('    Size: longint;');
+  Add('  end;');
+  Add('procedure DoIt(const S: TSmall);');
+  Add('begin');
+  Add('  with S do Size:=3;');
+  Add('end;');
+  Add('begin');
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestRecord_WriteNestedConstParamFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TSmall = record');
+  Add('    Size: longint;');
+  Add('  end;');
+  Add('  TBig = record');
+  Add('    Small: TSmall;');
+  Add('  end;');
+  Add('procedure DoIt(const B: TBig);');
+  Add('begin');
+  Add('  B.Small.Size:=3;');
+  Add('end;');
+  Add('begin');
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestRecord_WriteNestedConstParamWithFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TSmall = record');
+  Add('    Size: longint;');
+  Add('  end;');
+  Add('  TBig = record');
+  Add('    Small: TSmall;');
+  Add('  end;');
+  Add('procedure DoIt(const B: TBig);');
+  Add('begin');
+  Add('  with B do with Small do Size:=3;');
+  Add('end;');
+  Add('begin');
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
 procedure TTestResolver.TestClass;
 begin
   StartProgram(false);
@@ -7008,6 +7081,21 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestArray_AssignSameSignatureFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrA = array of longint;');
+  Add('  TArrB = array of longint;');
+  Add('var');
+  Add('  a: TArrA;');
+  Add('  b: TArrB;');
+  Add('begin');
+  Add('  a:=b;');
+  CheckResolverException('Incompatible types: got "TArrB" expected "TArrA"',
+    nIncompatibleTypesGotExpected);
+end;
+
 procedure TTestResolver.TestArray_Assigned;
 begin
   StartProgram(false);
@@ -7376,6 +7464,30 @@ begin
   Add('  a:=TArrInt(s);');
   CheckResolverException('Illegal type conversion: "TArrStr" to "TArrInt"',
     nIllegalTypeConversionTo);
+end;
+
+procedure TTestResolver.TestArray_ConstDynArrayWrite;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrInt = array of longint;');
+  Add('Procedure DoIt(const a: tarrint);');
+  Add('begin');
+  Add('  a[2]:=3;'); // FPC allows this for dynamic arrays
+  Add('end;');
+  Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_ConstOpenArrayWriteFail;
+begin
+  StartProgram(false);
+  Add('Procedure DoIt(const a: array of longint);');
+  Add('begin');
+  Add('  a[2]:=3;');
+  Add('end;');
+  Add('begin');
+  CheckResolverException('Variable identifier expected',nVariableIdentifierExpected);
 end;
 
 procedure TTestResolver.TestProcTypesAssignObjFPC;

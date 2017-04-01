@@ -58,6 +58,7 @@ Type
     Procedure StartImplementation;
     Procedure EndSource;
     Procedure Add(Const ALine : String);
+    Procedure Add(Const Lines : array of String);
     Procedure StartParsing;
     Procedure ParseDeclarations;
     Procedure ParseModule;
@@ -628,6 +629,14 @@ end;
 procedure TTestParser.Add(const ALine: String);
 begin
   FSource.Add(ALine);
+end;
+
+procedure TTestParser.Add(const Lines: array of String);
+var
+  i: Integer;
+begin
+  for i:=Low(Lines) to High(Lines) do
+    Add(Lines[i]);
 end;
 
 procedure TTestParser.StartParsing;
