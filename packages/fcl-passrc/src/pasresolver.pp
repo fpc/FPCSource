@@ -614,6 +614,9 @@ type
     function AddIdentifier(const Identifier: String; El: TPasElement;
       const Kind: TPasIdentifierKind): TPasIdentifier; virtual;
     function FindElement(const aName: string): TPasElement;
+    procedure IterateLocalElements(const aName: string; StartScope: TPasScope;
+      const OnIterateElement: TIterateScopeElement; Data: Pointer;
+      var Abort: boolean);
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
       var Abort: boolean); override;
@@ -2171,7 +2174,7 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasSectionScope.FindIdentifier "',Identifier,'" in used unit ',GetObjName(UsesScope.Element));
     {$ENDIF}
-    Result:=UsesScope.FindIdentifier(Identifier);
+    Result:=UsesScope.FindLocalIdentifier(Identifier);
     if Result<>nil then exit;
     end;
 end;
@@ -2191,7 +2194,7 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasSectionScope.IterateElements "',aName,'" in used unit ',GetObjName(UsesScope.Element));
     {$ENDIF}
-    UsesScope.IterateElements(aName,StartScope,OnIterateElement,Data,Abort);
+    UsesScope.IterateLocalElements(aName,StartScope,OnIterateElement,Data,Abort);
     if Abort then exit;
     end;
 end;
@@ -2463,7 +2466,7 @@ begin
   //writeln('TPasIdentifierScope.FindElement Found="',GetObjName(Result),'"');
 end;
 
-procedure TPasIdentifierScope.IterateElements(const aName: string;
+procedure TPasIdentifierScope.IterateLocalElements(const aName: string;
   StartScope: TPasScope; const OnIterateElement: TIterateScopeElement;
   Data: Pointer; var Abort: boolean);
 var
@@ -2475,7 +2478,7 @@ begin
   Item:=FindLocalIdentifier(aName);
   while Item<>nil do
     begin
-    //writeln('TPasIdentifierScope.IterateElements ',ClassName,' ',Item.Identifier,' ',GetObjName(Item.Element));
+    //writeln('TPasIdentifierScope.IterateLocalElements ',ClassName,' ',Item.Identifier,' ',GetObjName(Item.Element));
     {$IFDEF VerbosePasResolver}
     OldElement:=Item.Element;
     {$ENDIF}
@@ -2487,6 +2490,13 @@ begin
     if Abort then exit;
     Item:=Item.NextSameIdentifier;
     end;
+end;
+
+procedure TPasIdentifierScope.IterateElements(const aName: string;
+  StartScope: TPasScope; const OnIterateElement: TIterateScopeElement;
+  Data: Pointer; var Abort: boolean);
+begin
+  IterateLocalElements(aName,StartScope,OnIterateElement,Data,Abort);
 end;
 
 procedure TPasIdentifierScope.WriteIdentifiers(Prefix: string);
@@ -2954,6 +2964,9 @@ begin
         +El.Name+'->'+GetObjName(PublicEl)+'->'+PublicEl.CustomData.ClassName);
 
     UsesScope:=TPasIdentifierScope(PublicEl.CustomData);
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.FinishUsesList Add UsesScope=',GetObjName(UsesScope));
+    {$ENDIF}
     Scope.UsesList.Add(UsesScope);
     end;
 end;

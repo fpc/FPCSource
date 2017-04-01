@@ -263,6 +263,7 @@ type
     Procedure TestUnitIntfInitalization;
     Procedure TestUnitUseIntf;
     Procedure TestUnitUseImplFail;
+    Procedure TestUnit_NestedFail;
 
     // procs
     Procedure TestProcParam;
@@ -3417,6 +3418,29 @@ begin
   Add('begin');
   Add('  DoIt;');
   CheckResolverException('identifier not found "DoIt"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestUnit_NestedFail;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var i2: longint;']),
+    LinesToStr([
+    '']));
+
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'uses unit2;',
+    'var j1: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add('uses unit1;');
+  Add('begin');
+  Add('  if j1=0 then ;');
+  Add('  if i2=0 then ;');
+  CheckResolverException('identifier not found "i"',nIdentifierNotFound);
 end;
 
 procedure TTestResolver.TestProcParam;
