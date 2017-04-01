@@ -96,6 +96,10 @@ var
   LogHandler: TLogProc;
   ErrorHandler: TPkgErrorProc;
 
+function GetFppkgConfigFile(Global : Boolean; SubDir : Boolean): string;
+function GetFppkgConfigDir(Global : Boolean): string;
+
+
 Implementation
 
 // define use_shell to use sysutils.executeprocess
@@ -420,11 +424,42 @@ begin
   end;
 end;
 
+function GetFppkgConfigFile(Global : Boolean; SubDir : Boolean): string;
+var
+  StoredOnGetApplicationName: TGetAppNameEvent;
+  StoredOnGetVendorName: TGetVendorNameEvent;
+begin
+  StoredOnGetApplicationName := OnGetApplicationName;
+  StoredOnGetVendorName := OnGetVendorName;
+  try
+    OnGetApplicationName := @FPPkgGetApplicationName;
+    OnGetVendorName := @FPPkgGetVendorName;
+    result := GetAppConfigFile(Global, SubDir);
+  finally
+    OnGetApplicationName := StoredOnGetApplicationName;
+    OnGetVendorName := StoredOnGetVendorName;
+  end;
+end;
+
+function GetFppkgConfigDir(Global : Boolean): string;
+var
+  StoredOnGetApplicationName: TGetAppNameEvent;
+  StoredOnGetVendorName: TGetVendorNameEvent;
+begin
+  StoredOnGetApplicationName := OnGetApplicationName;
+  StoredOnGetVendorName := OnGetVendorName;
+  try
+    OnGetApplicationName := @FPPkgGetApplicationName;
+    OnGetVendorName := @FPPkgGetVendorName;
+    result := GetAppConfigDir(Global);
+  finally
+    OnGetApplicationName := StoredOnGetApplicationName;
+    OnGetVendorName := StoredOnGetVendorName;
+  end;
+end;
+
 
 initialization
-  OnGetVendorName:=@FPPkgGetVendorName;
-  OnGetApplicationName:=@FPPkgGetApplicationName;
   LogHandler := @LogCmd;
   ErrorHandler := @ErrorCmd;
-
 end.

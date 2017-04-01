@@ -169,16 +169,16 @@ begin
   else
     begin
       // Now try if a local config-file exists
-      cfgfile:=GetAppConfigFile(False,False);
+      cfgfile:=GetFppkgConfigFile(False,False);
       if not FileExists(cfgfile) then
         begin
           // If not, try to find a global configuration file
-          cfgfile:=GetAppConfigFile(True,False);
+          cfgfile:=GetFppkgConfigFile(True,False);
           if not FileExists(cfgfile) then
             begin
               // Create a new configuration file
               if not IsSuperUser then // Make a local, not global, configuration file
-                cfgfile:=GetAppConfigFile(False,False);
+                cfgfile:=GetFppkgConfigFile(False,False);
               ForceDirectories(ExtractFilePath(cfgfile));
               FOptions.SaveToFile(cfgfile);
               GeneratedConfig:=true;

@@ -614,7 +614,7 @@ begin
     LocalRepository:='{UserDir}.fppkg/';
 {$else}
   if IsSuperUser then
-    LocalRepository:=IncludeTrailingPathDelimiter(GetAppConfigDir(true))
+    LocalRepository:=IncludeTrailingPathDelimiter(GetFppkgConfigDir(true))
   else
     LocalRepository:='{AppConfigDir}';
 {$endif}
@@ -754,7 +754,7 @@ end;
 constructor TFppkgOptions.Create;
 begin
   FOptionParser := TTemplateParser.Create;
-  FOptionParser.Values['AppConfigDir'] := GetAppConfigDir(false);
+  FOptionParser.Values['AppConfigDir'] := GetFppkgConfigDir(false);
   FOptionParser.Values['UserDir'] := GetUserDir;
 
   FSectionList := TFppkgOptionSectionList.Create;
@@ -899,7 +899,7 @@ end;
 constructor TCompilerOptions.Create;
 begin
   FOptionParser := TTemplateParser.Create;
-  FOptionParser.Values['AppConfigDir'] := GetAppConfigDir(false);
+  FOptionParser.Values['AppConfigDir'] := GetFppkgConfigDir(false);
   FOptionParser.Values['UserDir'] := GetUserDir;
   {$ifdef unix}
   FLocalInstallDir:='{LocalPrefix}'+'lib'+PathDelim+'fpc'+PathDelim+'{CompilerVersion}'+PathDelim;
