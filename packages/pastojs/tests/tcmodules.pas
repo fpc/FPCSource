@@ -4068,12 +4068,12 @@ begin
     LinesToStr([ // this.$main
     'this.Arr = rtl.arraySetLength(this.Arr,3,0);',
     'this.Arr[0] = 4;',
-    'this.Arr[1] = this.Arr.length + this.Arr[0];',
+    'this.Arr[1] = rtl.length(this.Arr) + this.Arr[0];',
     'this.Arr[this.i] = 5;',
     'this.Arr[this.Arr[this.i]] = this.Arr[6];',
     'this.i = 0;',
-    'this.i = this.Arr.length - 1;',
-    'this.b = this.Arr.length > 0;',
+    'this.i = rtl.length(this.Arr) - 1;',
+    'this.b = rtl.length(this.Arr) > 0;',
     '']));
 end;
 
@@ -4089,6 +4089,8 @@ begin
   Add('  arr:=nil;');
   Add('  if arr=nil then;');
   Add('  if nil=arr then;');
+  Add('  if arr<>nil then;');
+  Add('  if nil<>arr then;');
   Add('  DoIt(nil,nil);');
   ConvertProgram;
   CheckSource('TestArray_Dynamic',
@@ -4099,8 +4101,10 @@ begin
     ]),
     LinesToStr([ // this.$main
     'this.Arr = [];',
-    'if (this.Arr.length == 0);',
-    'if (0 == this.Arr.length);',
+    'if (rtl.length(this.Arr) == 0) ;',
+    'if (rtl.length(this.Arr) == 0) ;',
+    'if (rtl.length(this.Arr) > 0) ;',
+    'if (rtl.length(this.Arr) > 0) ;',
     'this.DoIt([],[]);',
     '']));
 end;
@@ -4139,12 +4143,12 @@ begin
     ]),
     LinesToStr([ // this.$main
     'this.Arr2 = [];',
-    'if (this.Arr2.length == 0);',
-    'if (0 == this.Arr2.length);',
+    'if (rtl.length(this.Arr2) == 0) ;',
+    'if (rtl.length(this.Arr2) == 0) ;',
     'this.i = 0;',
     'this.i = 0;',
-    'this.i = this.Arr2.length-1;',
-    'this.i = this.Arr2[2].length-1;',
+    'this.i = rtl.length(this.Arr2) - 1;',
+    'this.i = rtl.length(this.Arr2[2]) - 1;',
     'this.Arr2[3] = this.Arr;',
     'this.Arr2[4][5] = this.i;',
     'this.i = this.Arr2[6][7];',
@@ -4196,12 +4200,12 @@ begin
     LinesToStr([ // this.$main
     'this.Arr = rtl.arraySetLength(this.Arr,3, this.TRec);',
     'this.Arr[0].Int = 4;',
-    'this.Arr[1].Int = this.Arr.length+this.Arr[2].Int;',
+    'this.Arr[1].Int = rtl.length(this.Arr)+this.Arr[2].Int;',
     'this.Arr[this.Arr[this.i].Int].Int = this.Arr[5].Int;',
     'this.Arr[7] = new this.TRec(this.r);',
     'this.r = new this.TRec(this.Arr[8]);',
     'this.i = 0;',
-    'this.i = this.Arr.length-1;',
+    'this.i = rtl.length(this.Arr)-1;',
     '']));
 end;
 
@@ -4470,8 +4474,8 @@ begin
     'this.DoIt = function (a) {',
     '  var i = 0;',
     '  var s = "";',
-    '  var $loopend1 = a.length - 1;',
-    '  for (i = 0; i <= $loopend1; i++) s = a[(a.length - i) - 1];',
+    '  var $loopend1 = rtl.length(a) - 1;',
+    '  for (i = 0; i <= $loopend1; i++) s = a[(rtl.length(a) - i) - 1];',
     '};',
     'this.s = "";',
     '']),
@@ -9578,11 +9582,16 @@ begin
   Add('  setlength(arr,2);');
   Add('  setlength(thearray,3);');
   Add('  arr[4]:=v;');
-  Add('  arr[5]:=i;');
+  Add('  arr[5]:=length(thearray);');
   Add('  arr[6]:=nil;');
   Add('  arr[7]:=thearray[8];');
+  Add('  arr[low(arr)]:=high(thearray);');
   Add('  arr:=arrint;');
   Add('  arrInt:=tarrint(arr);');
+  Add('  if TheArray = nil then ;');
+  Add('  if nil = TheArray then ;');
+  Add('  if TheArray <> nil then ;');
+  Add('  if nil <> TheArray then ;');
   ConvertProgram;
   CheckSource('TestJSValue_ArrayOfJSValue',
     LinesToStr([ // statements
@@ -9595,14 +9604,19 @@ begin
     LinesToStr([ // this.$main
     'this.Arr = this.TheArray;',
     'this.TheArray = this.Arr;',
-    'this.Arr.length = 2;',
-    'this.TheArray.length = 3;',
+    'this.Arr = rtl.arraySetLength(this.Arr,2,undefined);',
+    'this.TheArray = rtl.arraySetLength(this.TheArray,3,undefined);',
     'this.Arr[4] = this.v;',
-    'this.Arr[5] = this.i;',
+    'this.Arr[5] = rtl.length(this.TheArray);',
     'this.Arr[6] = null;',
     'this.Arr[7] = this.TheArray[8];',
+    'this.Arr[0] = rtl.length(this.TheArray) - 1;',
     'this.Arr = this.ArrInt;',
     'this.ArrInt = this.Arr;',
+    'if (rtl.length(this.TheArray) == 0) ;',
+    'if (rtl.length(this.TheArray) == 0) ;',
+    'if (rtl.length(this.TheArray) > 0) ;',
+    'if (rtl.length(this.TheArray) > 0) ;',
     '']));
 end;
 
