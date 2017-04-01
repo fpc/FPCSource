@@ -1134,8 +1134,10 @@ begin
   StartProgram(false);
   Add('var {#a_notused}a: longint;');
   Add('var {#b_used}b: longint;');
+  Add('var {#c_used}c: longint;');
   Add('begin');
   Add('  b:=2;');
+  Add('  afile.c:=3;');
   AnalyzeWholeProgram;
 end;
 

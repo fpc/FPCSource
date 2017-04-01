@@ -607,6 +607,8 @@ begin
     UseExpr(TPasExpr(El))
   else if C=TPasEnumValue then
     MarkElementAsUsed(El)
+  else if C.InheritsFrom(TPasModule) then
+    // e.g. unitname.identifier -> the module is used by the identifier
   else
     RaiseNotSupported(20170307090947,El);
 end;
