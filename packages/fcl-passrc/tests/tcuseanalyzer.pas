@@ -99,6 +99,7 @@ type
     procedure TestWP_UnitFinalization;
     procedure TestWP_CallInherited;
     procedure TestWP_ProgramPublicDeclarations;
+    procedure TestWP_ClassDefaultProperty;
   end;
 
 implementation
@@ -1268,6 +1269,24 @@ begin
   Add('procedure {#DoPublic_used}DoPublic; public; begin end;');
   Add('procedure {#DoPrivate_notused}DoPrivate; begin end;');
   Add('begin');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_ClassDefaultProperty;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#tobject_used}TObject = class');
+  Add('    function {#getitems_notused}Getitems(Index: longint): string;');
+  Add('    procedure {#setitems_used}Setitems(Index: longint; Value: String);');
+  Add('    property {#items_used}Items[Index: longint]: string read GetItems write SetItems; default;');
+  Add('  end;');
+  Add('function TObject.Getitems(Index: longint): string; begin end;');
+  Add('procedure TObject.Setitems(Index: longint; Value: String); begin end;');
+  Add('var');
+  Add('  {#l_used}L: TObject;');
+  Add('begin');
+  Add('  L[0]:=''birdy'';');
   AnalyzeWholeProgram;
 end;
 

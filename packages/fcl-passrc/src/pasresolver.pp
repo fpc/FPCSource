@@ -5143,6 +5143,9 @@ begin
         // class has default property
         if (ResolvedEl.IdentEl is TPasType) and (not PropEl.IsClass) then
           RaiseMsg(20170216152213,nIllegalQualifier,sIllegalQualifier,['['],Params);
+        if Params.Value.CustomData is TResolvedReference then
+          TResolvedReference(Params.Value.CustomData).Access:=rraRead;
+        CreateReference(PropEl,Params,Access);
         CheckCallPropertyCompatibility(PropEl,Params,true);
         FinishPropertyParamAccess(PropEl);
         exit;
@@ -9316,7 +9319,7 @@ begin
     exit(cExact);
 
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.CheckCustomTypeCompatibility LTypeEl=',GetObjName(LTypeEl),' RTypeEl=',GetObjName(RTypeEl));
+  writeln('TPasResolver.CheckAssignCompatibilityUserType LTypeEl=',GetObjName(LTypeEl),' RTypeEl=',GetObjName(RTypeEl));
   {$ENDIF}
   Result:=-1;
   if LTypeEl.ClassType=TPasClassType then
@@ -9371,7 +9374,7 @@ begin
   else if LTypeEl.ClassType=TPasArrayType then
     begin
     // arrays of different types
-    if IsOpenArray(LTypeEl) then
+    if IsOpenArray(LTypeEl) and (RTypeEl.ClassType=TPasArrayType) then
       begin
       LArray:=TPasArrayType(LTypeEl);
       RArray:=TPasArrayType(RTypeEl);
@@ -10446,7 +10449,8 @@ end;
 
 function TPasResolver.IsOpenArray(TypeEl: TPasType): boolean;
 begin
-  Result:=(TypeEl<>nil) and (TypeEl.ClassType=TPasArrayType)
+  Result:=(TypeEl<>nil)
+      and (TypeEl.ClassType=TPasArrayType)
       and (length(TPasArrayType(TypeEl).Ranges)=0)
       and (TypeEl.Parent<>nil)
       and (TypeEl.Parent.ClassType=TPasArgument);
