@@ -274,7 +274,10 @@ type
     Procedure TestArray_SetLengthProperty;
     Procedure TestArray_OpenArrayOfString;
     Procedure TestArray_Concat;
+    Procedure TestArray_Copy;
+    Procedure TestArray_InsertDelete;
     Procedure TestExternalClass_TypeCastArrayToExternalArray;
+    Procedure TestExternalClass_TypeCastArrayFromExternalArray;
     // ToDo: const array
     // ToDo: SetLength(array of static array)
 
@@ -363,6 +366,7 @@ type
     Procedure TestExternalClass_NewInstance_SecondParamTyped_Fail;
     Procedure TestExternalClass_TypeCastToRootClass;
     Procedure TestExternalClass_TypeCastStringToExternalString;
+    Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
 
     // proc types
     Procedure TestProcType;
@@ -4549,6 +4553,146 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestArray_Copy;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TFlag = (big,small);');
+  Add('  TFlags = set of TFlag;');
+  Add('  TRec = record');
+  Add('    i: integer;');
+  Add('  end;');
+  Add('  TArrInt = array of integer;');
+  Add('  TArrRec = array of TRec;');
+  Add('  TArrSet = array of TFlags;');
+  Add('  TArrJSValue = array of jsvalue;');
+  Add('var');
+  Add('  ArrInt: tarrint;');
+  Add('  ArrRec: tarrrec;');
+  Add('  ArrSet: tarrset;');
+  Add('  ArrJSValue: tarrjsvalue;');
+  Add('begin');
+  Add('  arrint:=copy(arrint);');
+  Add('  arrint:=copy(arrint,2);');
+  Add('  arrint:=copy(arrint,3,4);');
+  Add('  arrrec:=copy(arrrec);');
+  Add('  arrrec:=copy(arrrec,5);');
+  Add('  arrrec:=copy(arrrec,6,7);');
+  Add('  arrset:=copy(arrset);');
+  Add('  arrset:=copy(arrset,8);');
+  Add('  arrset:=copy(arrset,9,10);');
+  Add('  arrjsvalue:=copy(arrjsvalue);');
+  Add('  arrjsvalue:=copy(arrjsvalue,11);');
+  Add('  arrjsvalue:=copy(arrjsvalue,12,13);');
+  ConvertProgram;
+  CheckSource('TestArray_Copy',
+    LinesToStr([ // statements
+    'this.TFlag = {',
+    '  "0": "big",',
+    '  big: 0,',
+    '  "1": "small",',
+    '  small: 1',
+    '};',
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
+    '  };',
+    '};',
+    'this.ArrInt = [];',
+    'this.ArrRec = [];',
+    'this.ArrSet = [];',
+    'this.ArrJSValue = [];',
+    '']),
+    LinesToStr([ // this.$main
+    'this.ArrInt = rtl.arrayCopy(0, this.ArrInt, 0);',
+    'this.ArrInt = rtl.arrayCopy(0, this.ArrInt, 2);',
+    'this.ArrInt = rtl.arrayCopy(0, this.ArrInt, 3, 4);',
+    'this.ArrRec = rtl.arrayCopy(this.TRec, this.ArrRec, 0);',
+    'this.ArrRec = rtl.arrayCopy(this.TRec, this.ArrRec, 5);',
+    'this.ArrRec = rtl.arrayCopy(this.TRec, this.ArrRec, 6, 7);',
+    'this.ArrSet = rtl.arrayCopy("refSet", this.ArrSet, 0);',
+    'this.ArrSet = rtl.arrayCopy("refSet", this.ArrSet, 8);',
+    'this.ArrSet = rtl.arrayCopy("refSet", this.ArrSet, 9, 10);',
+    'this.ArrJSValue = rtl.arrayCopy(0, this.ArrJSValue, 0);',
+    'this.ArrJSValue = rtl.arrayCopy(0, this.ArrJSValue, 11);',
+    'this.ArrJSValue = rtl.arrayCopy(0, this.ArrJSValue, 12, 13);',
+    '']));
+end;
+
+procedure TTestModule.TestArray_InsertDelete;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TFlag = (big,small);');
+  Add('  TFlags = set of TFlag;');
+  Add('  TRec = record');
+  Add('    i: integer;');
+  Add('  end;');
+  Add('  TArrInt = array of integer;');
+  Add('  TArrRec = array of TRec;');
+  Add('  TArrSet = array of TFlags;');
+  Add('  TArrJSValue = array of jsvalue;');
+  Add('var');
+  Add('  ArrInt: tarrint;');
+  Add('  ArrRec: tarrrec;');
+  Add('  ArrSet: tarrset;');
+  Add('  ArrJSValue: tarrjsvalue;');
+  Add('begin');
+  Add('  Insert(1,arrint,2);');
+  Add('  Insert(arrint[3],arrint,4);');
+  Add('  Insert(arrrec[5],arrrec,6);');
+  Add('  Insert(arrset[7],arrset,7);');
+  Add('  Insert(arrjsvalue[8],arrjsvalue,9);');
+  Add('  Insert(10,arrjsvalue,11);');
+  Add('  Delete(arrint,12,13);');
+  Add('  Delete(arrrec,14,15);');
+  Add('  Delete(arrset,17,18);');
+  Add('  Delete(arrjsvalue,19,10);');
+  ConvertProgram;
+  CheckSource('TestArray_InsertDelete',
+    LinesToStr([ // statements
+    'this.TFlag = {',
+    '  "0": "big",',
+    '  big: 0,',
+    '  "1": "small",',
+    '  small: 1',
+    '};',
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
+    '  };',
+    '};',
+    'this.ArrInt = [];',
+    'this.ArrRec = [];',
+    'this.ArrSet = [];',
+    'this.ArrJSValue = [];',
+    '']),
+    LinesToStr([ // this.$main
+    'this.ArrInt.splice(2, 1, 1);',
+    'this.ArrInt.splice(4, 1, this.ArrInt[3]);',
+    'this.ArrRec.splice(6, 1, this.ArrRec[5]);',
+    'this.ArrSet.splice(7, 1, this.ArrSet[7]);',
+    'this.ArrJSValue.splice(9, 1, this.ArrJSValue[8]);',
+    'this.ArrJSValue.splice(11, 1, 10);',
+    'this.ArrInt.splice(12, 13);',
+    'this.ArrRec.splice(14, 15);',
+    'this.ArrSet.splice(17, 18);',
+    'this.ArrJSValue.splice(19, 10);',
+    '']));
+end;
+
 procedure TTestModule.TestExternalClass_TypeCastArrayToExternalArray;
 begin
   StartProgram(false);
@@ -4573,6 +4717,32 @@ begin
     LinesToStr([ // this.$main
     'if (Array.isArray(65)) ;',
     'this.aObj = this.a.concat(this.a);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_TypeCastArrayFromExternalArray;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TArrStr = array of string;');
+  Add('  TJSArray = class external name ''Array''');
+  Add('  end;');
+  Add('var');
+  Add('  aObj: TJSArray;');
+  Add('  a: TArrStr;');
+  Add('begin');
+  Add('  a:=TArrStr(aObj);');
+  Add('  TArrStr(aObj)[1]:=TArrStr(aObj)[2];');
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastArrayFromExternalArray',
+    LinesToStr([ // statements
+    'this.aObj = null;',
+    'this.a = [];',
+    '']),
+    LinesToStr([ // this.$main
+    'this.a = this.aObj;',
+    'this.aObj[1] = this.aObj[2];',
     '']));
 end;
 
@@ -7642,7 +7812,7 @@ begin
   Add('begin');
   Add('  texta.year:=texta.year+1;');
   Add('  textb.year:=textb.year+2;');
-  Add('  a.year:=a.year+3;');
+  Add('  TextA.year:=TextA.year+3;');
   Add('  b.year:=b.year+4;');
   Add('  textb.century:=textb.century+5;');
   Add('  b.century:=b.century+6;');
@@ -7672,7 +7842,7 @@ begin
     LinesToStr([ // this.$main
     'ExtA.setYear(ExtA.getYear() + 1);',
     'this.TExtB.setYear(this.TExtB.getYear() + 2);',
-    'this.A.setYear(this.A.getYear() + 3);',
+    'ExtA.setYear(ExtA.getYear() + 3);',
     'this.B.setYear(this.B.getYear() + 4);',
     'this.TExtB.SetCentury(this.TExtB.GetCentury() + 5);',
     'this.B.$class.SetCentury(this.B.$class.GetCentury() + 6);',
@@ -8288,6 +8458,24 @@ begin
     'this.s = this.s.anchor(this.s);',
     'this.s = "foo".anchor(this.s);',
     '']));
+end;
+
+procedure TTestModule.TestExternalClass_CallClassFunctionOfInstanceFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSString = class external name ''String''');
+  Add('    class function fromCharCode() : string; varargs;');
+  Add('  end;');
+  Add('var');
+  Add('  s: string;');
+  Add('  sObj: TJSString;');
+  Add('begin');
+  Add('  s:=sObj.fromCharCode(65,66);');
+  SetExpectedPasResolverError('External class instance cannot access static class function fromCharCode',
+    nExternalClassInstanceCannotAccessStaticX);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestProcType;

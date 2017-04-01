@@ -114,6 +114,9 @@ Works:
   - when passing nil to an array argument, pass []
   - allow type casting array to external class name 'Array'
   - type cast array to array of same dimensions and compatible element type
+  - function copy(array,start=0,count=max): array
+  - procedure insert(item,var array,const position)
+  - procedure delete(var array,const start,count)
 - static arrays
   - range: enumtype
   - init as arr = rtl.arrayNewMultiDim([dim1,dim2,...],value)
@@ -181,6 +184,7 @@ Works:
   - call inherited
   - Pascal descendant can override newinstance
   - any class can be typecasted to any root class
+  - class instances cannot access external class members (e.g. static class functions)
 - ECMAScript6:
   - use 0b for binary literals
   - use 0o for octal literals
@@ -199,19 +203,13 @@ Works:
   - class of: assign to jsvalue, typecast jsvalue to a class-of
   - array of jsvalue,
     allow to assign any array to an array of jsvalue
+    allow type casting to any array
   - parameter, result type, assign from/to untyped
   - operators equal, not equal
 
 ToDos:
-- external class: class functions are static, forbid calling instance.classfunction
-- function copy(array): array
-- function copy(array,start): array
-- function copy(array,start,count): array
-- proc insert(item,var array,const position)
-- proc delete(var array,const start,count)
-- function concat(array1,array2,...): array
-- function splice(var array, const start,deletecount,item1,item2,...): arrayofdeletedelements;
-- test param const R: TRect  r.Left:=3 fails
+- null arrays
+- [] operator of external class 'Array'
 - FuncName:= (instead of Result:=)
 - ord(s[i]) -> s.charCodeAt(i)
 - $modeswitch -> define <modeswitch>
@@ -320,6 +318,7 @@ resourcestring
 type
   TPas2JSBuiltInName = (
     pbifnArray_Concat,
+    pbifnArray_Copy,
     pbifnArray_NewMultiDim,
     pbifnArray_SetLength,
     pbifnAs,
@@ -365,6 +364,7 @@ type
 const
   Pas2JSBuiltInNames: array[TPas2JSBuiltInName] of string = (
     'arrayConcat', // rtl.arrayConcat
+    'arrayCopy', // rtl.arrayCopy
     'arrayNewMultiDim', // rtl.arrayNewMultiDim
     'arraySetLength', // rtl.arraySetLength
     'as', // rtl.as
@@ -611,7 +611,9 @@ const
     proFixCaseOfOverrides,
     proClassPropertyNonStatic,
     proPropertyAsVarParam,
-    proClassOfIs
+    proClassOfIs,
+    proExtClassInstanceNoTypeMembers,
+    proOpenAsDynArrays
     ];
 type
   TPas2JSResolver = class(TPasResolver)
@@ -990,6 +992,8 @@ type
     Function ConvertBuiltInStrParam(El: TPasExpr; AContext: TConvertContext; IsStrFunc, IsFirst: boolean): TJSElement; virtual;
     Function ConvertBuiltInConcatArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltInCopyArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltInInsertArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltInDeleteArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertRecordValues(El: TRecordValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSelfExpression(El: TSelfExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBinaryExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -1940,81 +1944,95 @@ function TPas2JSResolver.CheckTypeCastRes(const FromResolved,
 var
   JSBaseType: TPas2jsBaseType;
   C: TClass;
-  CurClass: TPasClassType;
+  ToClass: TPasClassType;
 begin
   Result:=cIncompatible;
   {$IFDEF VerbosePas2JS}
   writeln('TPas2JSResolver.CheckTypeCastCustomBaseType To=',GetResolverResultDesc(ToResolved),' From=',GetResolverResultDesc(FromResolved));
   {$ENDIF}
-  if (ToResolved.BaseType=btCustom) then
+  if rrfReadable in FromResolved.Flags then
     begin
-    if not (ToResolved.TypeEl is TPasUnresolvedSymbolRef) then
-      RaiseInternalError(20170325142826);
-    if (ToResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
+    if (ToResolved.BaseType=btCustom) then
       begin
-      // type cast to pas2js type, e.g. JSValue(V)
-      JSBaseType:=TResElDataPas2JSBaseType(ToResolved.TypeEl.CustomData).JSBaseType;
-      if JSBaseType=pbtJSValue then
+      if not (ToResolved.TypeEl is TPasUnresolvedSymbolRef) then
+        RaiseInternalError(20170325142826);
+      if (ToResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
         begin
-        if rrfReadable in FromResolved.Flags then
+        // type cast to pas2js type, e.g. JSValue(V)
+        JSBaseType:=TResElDataPas2JSBaseType(ToResolved.TypeEl.CustomData).JSBaseType;
+        if JSBaseType=pbtJSValue then
           begin
-          if (FromResolved.BaseType in btAllJSValueSrcTypes) then
-            Result:=cExact+1 // type cast to JSValue
-          else if FromResolved.BaseType=btCustom then
+          if rrfReadable in FromResolved.Flags then
             begin
-            if IsJSBaseType(FromResolved,pbtJSValue) then
-              Result:=cExact;
-            end
-          else if FromResolved.BaseType=btContext then
-            Result:=cExact+1;
+            if (FromResolved.BaseType in btAllJSValueSrcTypes) then
+              Result:=cExact+1 // type cast to JSValue
+            else if FromResolved.BaseType=btCustom then
+              begin
+              if IsJSBaseType(FromResolved,pbtJSValue) then
+                Result:=cExact;
+              end
+            else if FromResolved.BaseType=btContext then
+              Result:=cExact+1;
+            end;
           end;
-        end;
-      exit;
-      end;
-    end
-  else if FromResolved.BaseType=btCustom then
-    begin
-    if not (FromResolved.TypeEl is TPasUnresolvedSymbolRef) then
-      RaiseInternalError(20170325143016);
-    if (FromResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
-      begin
-      // type cast a pas2js value, e.g. T(jsvalue)
-      if not (rrfReadable in FromResolved.Flags) then
         exit;
-      JSBaseType:=TResElDataPas2JSBaseType(FromResolved.TypeEl.CustomData).JSBaseType;
-      if JSBaseType=pbtJSValue then
-        begin
-        if (ToResolved.BaseType in btAllJSValueTypeCastTo) then
-          Result:=cExact+1 // type cast JSValue to simple base type
-        else if ToResolved.BaseType=btContext then
-          begin
-          C:=ToResolved.TypeEl.ClassType;
-          if (C=TPasClassType)
-              or (C=TPasClassOfType)
-              or (C=TPasEnumType) then
-            Result:=cExact+1;
-          end;
-        end;
-      exit;
-      end;
-    end
-  else if ToResolved.BaseType=btContext then
-    begin
-    C:=ToResolved.TypeEl.ClassType;
-    if C=TPasClassType then
-      begin
-      CurClass:=TPasClassType(ToResolved.TypeEl);
-      if CurClass.IsExternal then
-        begin
-        if (CurClass.ExternalName='String')
-            and (FromResolved.BaseType in btAllStringAndChars) then
-          exit(cExact);
-        if (CurClass.ExternalName='Array')
-            and ((FromResolved.BaseType=btArray)
-                or (FromResolved.BaseType=btContext)) then
-          exit(cExact);
         end;
       end
+    else if FromResolved.BaseType=btCustom then
+      begin
+      if not (FromResolved.TypeEl is TPasUnresolvedSymbolRef) then
+        RaiseInternalError(20170325143016);
+      if (FromResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
+        begin
+        // type cast a pas2js value, e.g. T(jsvalue)
+        if not (rrfReadable in FromResolved.Flags) then
+          exit;
+        JSBaseType:=TResElDataPas2JSBaseType(FromResolved.TypeEl.CustomData).JSBaseType;
+        if JSBaseType=pbtJSValue then
+          begin
+          if (ToResolved.BaseType in btAllJSValueTypeCastTo) then
+            Result:=cExact+1 // type cast JSValue to simple base type
+          else if ToResolved.BaseType=btContext then
+            begin
+            C:=ToResolved.TypeEl.ClassType;
+            if (C=TPasClassType)
+                or (C=TPasClassOfType)
+                or (C=TPasEnumType) then
+              Result:=cExact+1;
+            end;
+          end;
+        exit;
+        end;
+      end
+    else if ToResolved.BaseType=btContext then
+      begin
+      C:=ToResolved.TypeEl.ClassType;
+      if C=TPasClassType then
+        begin
+        ToClass:=TPasClassType(ToResolved.TypeEl);
+        if ToClass.IsExternal then
+          begin
+          if (ToClass.ExternalName='String')
+              and (FromResolved.BaseType in btAllStringAndChars) then
+            exit(cExact);
+          if (ToClass.ExternalName='Array')
+              and ((FromResolved.BaseType=btArray)
+                  or (FromResolved.BaseType=btContext)) then
+            exit(cExact);
+          end;
+        end
+      else if C=TPasArrayType then
+        begin
+        if (FromResolved.BaseType=btContext)
+            and (FromResolved.TypeEl.ClassType=TPasClassType)
+            and TPasClassType(FromResolved.TypeEl).IsExternal
+            and (TPasClassType(FromResolved.TypeEl).ExternalName='Array') then
+          begin
+            // type cast external Array to an array
+            exit(cExact+1);
+          end;
+        end;
+      end;
     end;
   Result:=inherited CheckTypeCastRes(FromResolved,ToResolved,ErrorEl,RaiseOnError);
 end;
@@ -4123,6 +4141,8 @@ begin
           bfStrFunc: Result:=ConvertBuiltInStrFunc(El,AContext);
           bfConcatArray: Result:=ConvertBuiltInConcatArray(El,AContext);
           bfCopyArray: Result:=ConvertBuiltInCopyArray(El,AContext);
+          bfInsertArray: Result:=ConvertBuiltInInsertArray(El,AContext);
+          bfDeleteArray: Result:=ConvertBuiltInDeleteArray(El,AContext);
         else
           RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
         end;
@@ -5446,7 +5466,7 @@ begin
         begin
         // set: rtl.arrayConcat("refSet",array1,array2,...)
         Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Concat]]);
-        Call.Args.Elements.AddElement.Expr:=CreateLiteralString(El,'refSet');
+        Call.Args.Elements.AddElement.Expr:=CreateLiteralString(El,FBuiltInNames[pbifnSet_Reference]);
         end;
       if Call.Expr=nil then
         // default: array1.concat(array2,...)
@@ -5464,10 +5484,107 @@ end;
 
 function TPasToJSConverter.ConvertBuiltInCopyArray(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
+var
+  Param: TPasExpr;
+  ParamResolved, ElTypeResolved: TPasResolverResult;
+  C: TClass;
+  TypeParam: TJSElement;
+  Call: TJSCallExpression;
+  ArrayType: TPasArrayType;
 begin
   Result:=nil;
+  Call:=nil;
+  try
+    Param:=El.Params[0];
+    AContext.Resolver.ComputeElement(El,ParamResolved,[]);
+    if ParamResolved.BaseType<>btContext then
+      RaiseInconsistency(20170401003242);
+    if ParamResolved.TypeEl.ClassType<>TPasArrayType then
+      RaiseInconsistency(20170401003256);
+    ArrayType:=TPasArrayType(ParamResolved.TypeEl);
+    AContext.Resolver.ComputeElement(ArrayType.ElType,ElTypeResolved,[rcType]);
+    // rtl.arrayCopy(type,src,start,count)
+    TypeParam:=nil;
+    if ElTypeResolved.BaseType=btContext then
+      begin
+      C:=ElTypeResolved.TypeEl.ClassType;
+      if C=TPasRecordType then
+        TypeParam:=CreateReferencePathExpr(TPasRecordType(ElTypeResolved.TypeEl),AContext);
+      end
+    else if ElTypeResolved.BaseType=btSet then
+      TypeParam:=CreateLiteralString(El,FBuiltInNames[pbifnSet_Reference]);
+    if TypeParam=nil then
+      TypeParam:=CreateLiteralNumber(El,0);
+    Call:=CreateCallExpression(El);
+    // rtl.arrayCopy
+    Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Copy]]);
+    // param: type
+    Call.Args.Elements.AddElement.Expr:=TypeParam;
+    // param: src
+    Call.Args.Elements.AddElement.Expr:=ConvertElement(Param,AContext);
+    // param: start
+    if length(El.Params)=1 then
+      Call.Args.Elements.AddElement.Expr:=CreateLiteralNumber(El,0)
+    else
+      Call.Args.Elements.AddElement.Expr:=ConvertElement(El.Params[1],AContext);
+    // param: count
+    if length(El.Params)>=3 then
+      Call.Args.Elements.AddElement.Expr:=ConvertElement(El.Params[2],AContext);
+    Result:=Call;
+  finally
+    if Result=nil then
+      Call.Free;
+  end;
+
   if El=nil then ;
   if AContext=nil then;
+end;
+
+function TPasToJSConverter.ConvertBuiltInInsertArray(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// procedure insert(item,var array,const position)
+// ->  array.splice(position,1,item);
+var
+  ArrEl: TJSElement;
+  Call: TJSCallExpression;
+begin
+  Result:=nil;
+  Call:=nil;
+  try
+    Call:=CreateCallExpression(El);
+    ArrEl:=ConvertElement(El.Params[1],AContext);
+    Call.Expr:=CreateDotExpression(El,ArrEl,CreateBuiltInIdentifierExpr('splice'));
+    Call.Args.Elements.AddElement.Expr:=ConvertElement(El.Params[2],AContext);
+    Call.Args.Elements.AddElement.Expr:=CreateLiteralNumber(El,1);
+    Call.Args.Elements.AddElement.Expr:=ConvertElement(El.Params[0],AContext);
+    Result:=Call;
+  finally
+    if Result=nil then
+      Call.Free;
+  end;
+end;
+
+function TPasToJSConverter.ConvertBuiltInDeleteArray(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// proc delete(var array,const start,count)
+// ->  array.splice(start,count)
+var
+  ArrEl: TJSElement;
+  Call: TJSCallExpression;
+begin
+  Result:=nil;
+  Call:=nil;
+  try
+    Call:=CreateCallExpression(El);
+    ArrEl:=ConvertElement(El.Params[0],AContext);
+    Call.Expr:=CreateDotExpression(El,ArrEl,CreateBuiltInIdentifierExpr('splice'));
+    Call.Args.Elements.AddElement.Expr:=ConvertElement(El.Params[1],AContext);
+    Call.Args.Elements.AddElement.Expr:=ConvertElement(El.Params[2],AContext);
+    Result:=Call;
+  finally
+    if Result=nil then
+      Call.Free;
+  end;
 end;
 
 function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;
@@ -7966,6 +8083,7 @@ function TPasToJSConverter.CreateReferencePath(El: TPasElement;
    - in initialization 'this' is interface
    - in method body 'this' is the instance
    - in class method body 'this' is the class
+ - with context uses the local $withnnn var
  otherwise use absolute path
 }
 
