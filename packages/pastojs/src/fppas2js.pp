@@ -103,14 +103,15 @@ Works:
   - reintroduced variables
   - external vars and methods
 - dynamic arrays
-  - init as "arr = []"  arrays must never be null
+  - arrays can be null
+  - init as "arr = []"  so typeof works
   - SetLength(arr,len) becomes  arr = SetLength(arr,len,defaultvalue)
   - length(), low(), high(), assigned(), concat()
-  - assign nil -> []  arrays must never be null
+  - assign nil -> []  so typeof works
   - read, write element arr[index]
   - multi dimensional [index1,index2] -> [index1][index2]
   - array of record
-  - equal, unequal nil -> array.length == 0
+  - equal, unequal nil -> rtl.length(array)==0  or >0
   - when passing nil to an array argument, pass []
   - allow type casting array to external class name 'Array'
   - type cast array to array of same dimensions and compatible element type
@@ -208,7 +209,7 @@ Works:
   - operators equal, not equal
 
 ToDos:
-- null arrays
+- proc type of nested function
 - [] operator of external class 'Array'
 - FuncName:= (instead of Result:=)
 - ord(s[i]) -> s.charCodeAt(i)
@@ -319,6 +320,7 @@ type
   TPas2JSBuiltInName = (
     pbifnArray_Concat,
     pbifnArray_Copy,
+    pbifnArray_Length,
     pbifnArray_NewMultiDim,
     pbifnArray_SetLength,
     pbifnAs,
@@ -365,6 +367,7 @@ const
   Pas2JSBuiltInNames: array[TPas2JSBuiltInName] of string = (
     'arrayConcat', // rtl.arrayConcat
     'arrayCopy', // rtl.arrayCopy
+    'length', // rtl.length
     'arrayNewMultiDim', // rtl.arrayNewMultiDim
     'arraySetLength', // rtl.arraySetLength
     'as', // rtl.as
@@ -930,6 +933,7 @@ type
       El: TPasElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateArrayInit(ArrayType: TPasArrayType; Expr: TPasElement;
       El: TPasElement; AContext: TConvertContext): TJSElement; virtual;
+    Function CreateCmpArrayWithNil(El: TPasElement; JSArray: TJSElement; OpCode: TExprOpCode): TJSElement; virtual;
     Function CreateReferencePath(El: TPasElement; AContext : TConvertContext;
       Kind: TRefPathKind; Full: boolean = false; Ref: TResolvedReference = nil): string; virtual;
     Function CreateReferencePathExpr(El: TPasElement; AContext : TConvertContext; Full: boolean = false; Ref: TResolvedReference = nil): TJSPrimaryExpressionIdent; virtual;
@@ -2954,8 +2958,6 @@ Var
   Flags: TPasResolverComputeFlags;
   ModeSwitches: TModeSwitches;
   NotEl: TJSUnaryNotExpression;
-  CmpExpr: TJSBinaryExpression;
-
 begin
   Result:=Nil;
 
@@ -3119,13 +3121,10 @@ begin
           begin
           if RightResolved.BaseType=btNil then
             begin
-            // convert "array = nil" to "array.length == 0"
+            // convert "array = nil" to "rtl.length(array) > 0"
             FreeAndNil(B);
-            CmpExpr:=TJSEqualityExpressionEQ(CreateElement(BinClasses[El.OpCode],El));
-            CmpExpr.A:=CreateDotExpression(El,A,CreateBuiltInIdentifierExpr('length'));
+            Result:=CreateCmpArrayWithNil(El,A,El.OpCode);
             A:=nil;
-            CmpExpr.B:=CreateLiteralNumber(El.right,0);
-            Result:=CmpExpr;
             exit;
             end;
           end
@@ -3133,13 +3132,10 @@ begin
           begin
           if LeftResolved.BaseType=btNil then
             begin
-            // convert "nil = array" to "0 == array.length"
+            // convert "nil = array" to "0 < rtl.length(array)"
             FreeAndNil(A);
-            CmpExpr:=TJSEqualityExpressionEQ(CreateElement(BinClasses[El.OpCode],El));
-            CmpExpr.A:=CreateLiteralNumber(El.left,0);
-            CmpExpr.B:=CreateDotExpression(El,B,CreateBuiltInIdentifierExpr('length'));
+            Result:=CreateCmpArrayWithNil(El,B,El.OpCode);
             B:=nil;
-            Result:=CmpExpr;
             exit;
             end;
           end;
@@ -4652,14 +4648,12 @@ end;
 
 function TPasToJSConverter.ConvertBuiltInLength(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
-// length(dynarray) -> array.length
-// length(staticarray) -> number
-// length(string) -> string.length
 var
   Arg: TJSElement;
   Param: TPasExpr;
   ParamResolved, RangeResolved: TPasResolverResult;
   Ranges: TPasExprArray;
+  Call: TJSCallExpression;
 begin
   Result:=nil;
   Param:=El.Params[0];
@@ -4671,7 +4665,7 @@ begin
       Ranges:=TPasArrayType(ParamResolved.TypeEl).Ranges;
       if length(Ranges)>0 then
         begin
-        // static array
+        // static array -> number literal
         if length(Ranges)>1 then
           RaiseNotSupported(El,AContext,20170223131042);
         AContext.Resolver.ComputeElement(Ranges[0],RangeResolved,[rcConstant]);
@@ -4688,6 +4682,17 @@ begin
           Result:=CreateLiteralNumber(El,2);
           exit;
           end;
+        end
+      else
+        begin
+        // dynamic array -> rtl.length(array)
+        Result:=ConvertElement(El.Params[0],AContext);
+        // Note: convert param first, it may raise an exception
+        Call:=CreateCallExpression(El);
+        Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Length]]);
+        Call.Args.Elements.AddElement.Expr:=Result;
+        Result:=Call;
+        exit;
         end;
       end;
     end;
@@ -4702,14 +4707,13 @@ function TPasToJSConverter.ConvertBuiltInSetLength(El: TParamsExpr;
 // convert "SetLength(a,Len)" to "a = rtl.arraySetLength(a,Len)"
 var
   Param0: TPasExpr;
-  ResolvedParam0, ArrayElTypeResolved: TPasResolverResult;
+  ResolvedParam0: TPasResolverResult;
   ArrayType: TPasArrayType;
   Call: TJSCallExpression;
   ValInit, Arg: TJSElement;
   AssignSt: TJSSimpleAssignStatement;
   AssignContext: TAssignContext;
   ElType: TPasType;
-  JSBaseType: TPas2jsBaseType;
 begin
   Result:=nil;
   Param0:=El.Params[0];
@@ -4726,43 +4730,16 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasToJSConverter.ConvertBuiltInSetLength array');
     {$ENDIF}
-    AContext.Resolver.ComputeElement(ArrayType.ElType,ArrayElTypeResolved,[]);
-    if (ArrayElTypeResolved.BaseType=btCustom)
-        and (ArrayElTypeResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
-      begin
-      JSBaseType:=TResElDataPas2JSBaseType(ArrayElTypeResolved.TypeEl.CustomData).JSBaseType;
-      if JSBaseType=pbtJSValue then
-        begin
-        // array of jsvalue  ->  "AnArray.length=newlength"
-        AssignSt:=nil;
-        Arg:=nil;
-        try
-          AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-          Arg:=ConvertElement(Param0,AContext);
-          AssignSt.LHS:=CreateDotExpression(El,Arg,CreateBuiltInIdentifierExpr('length'));
-          Arg:=nil;
-          AssignSt.Expr:=ConvertElement(El.Params[1],AContext);
-          Result:=AssignSt;
-        finally
-          if Result=nil then
-            begin
-            AssignSt.Free;
-            Arg.Free;
-            end;
-        end;
-        exit;
-        end;
-      end;
 
-    // ->  array = rtl.setArrayLength(AnArray,newlength,initvalue)
+    // ->  AnArray = rtl.setArrayLength(AnArray,newlength,initvalue)
     AssignContext:=TAssignContext.Create(El,nil,AContext);
     try
-      AContext.Resolver.ComputeElement(El.Value,AssignContext.LeftResolved,[rcNoImplicitProc]);
+      AContext.Resolver.ComputeElement(Param0,AssignContext.LeftResolved,[rcNoImplicitProc]);
       AssignContext.RightResolved:=ResolvedParam0;
 
       // create right side
       // rtl.setArrayLength()
-      Call:=CreateCallExpression(Param0);
+      Call:=CreateCallExpression(El);
       AssignContext.RightSide:=Call;
       Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_SetLength]]);
       // 1st param: AnArray
@@ -4908,6 +4885,7 @@ var
   ParamResolved: TPasResolverResult;
   C: TClass;
   GT: TJSRelationalExpressionGT;
+  Call: TJSCallExpression;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
@@ -4934,11 +4912,14 @@ begin
       end
     else if C=TPasArrayType then
       begin
-      // convert Assigned(value)  ->  value.length>0
+      // convert Assigned(value)  ->  rtl.length(value)>0
       Result:=ConvertElement(Param,AContext);
       // Note: convert Param first, it may raise an exception
       GT:=TJSRelationalExpressionGT(CreateElement(TJSRelationalExpressionGT,El));
-      GT.A:=CreateDotExpression(El,Result,CreateBuiltInIdentifierExpr('length'));
+      Call:=CreateCallExpression(El);
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Length]]);
+      Call.Args.Elements.AddElement.Expr:=Result;
+      GT.A:=Call;
       GT.B:=CreateLiteralNumber(El,0);
       Result:=GT;
       end
@@ -5123,8 +5104,8 @@ var
   ResolvedEl, RangeResolved: TPasResolverResult;
   Param, Range: TPasExpr;
   TypeEl: TPasType;
-  Arg: TJSElement;
   MinusExpr: TJSAdditiveExpressionMinus;
+  Call: TJSCallExpression;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
@@ -5153,10 +5134,14 @@ begin
         begin
         if length(TPasArrayType(TypeEl).Ranges)=0 then
           begin
-          // dynamic array -> Param.length-1
-          Arg:=ConvertElement(Param,AContext);
+          // dynamic array -> rtl.length(Param)-1
+          Result:=ConvertElement(Param,AContext);
+          // Note: convert Param first, it may raise an exception
+          Call:=CreateCallExpression(El);
+          Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Length]]);
+          Call.Args.Elements.AddElement.Expr:=Result;
           MinusExpr:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,El));
-          MinusExpr.A:=CreateDotExpression(Param,Arg,CreateBuiltInIdentifierExpr('length'));
+          MinusExpr.A:=Call;
           MinusExpr.B:=CreateLiteralNumber(El,1);
           Result:=MinusExpr;
           exit;
@@ -8069,6 +8054,26 @@ begin
         Call.Free;
     end;
     end;
+end;
+
+function TPasToJSConverter.CreateCmpArrayWithNil(El: TPasElement;
+  JSArray: TJSElement; OpCode: TExprOpCode): TJSElement;
+var
+  Call: TJSCallExpression;
+  BinExpr: TJSBinaryExpression;
+begin
+  if not (OpCode in [eopEqual,eopNotEqual]) then
+    RaiseInconsistency(20170401184819);
+  Call:=CreateCallExpression(El);
+  Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Length]]);
+  Call.Args.Elements.AddElement.Expr:=JSArray;
+  if OpCode=eopEqual then
+    BinExpr:=TJSEqualityExpressionEQ(CreateElement(TJSEqualityExpressionEQ,El))
+  else
+    BinExpr:=TJSRelationalExpressionGT(CreateElement(TJSRelationalExpressionGT,El));
+  BinExpr.A:=Call;
+  BinExpr.B:=CreateLiteralNumber(El,0);
+  Result:=BinExpr;
 end;
 
 function TPasToJSConverter.CreateReferencePath(El: TPasElement;
