@@ -1065,6 +1065,11 @@ type
     procedure ResolveParamsExpr(Params: TParamsExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveFuncParamsExpr(Params: TParamsExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveArrayParamsExpr(Params: TParamsExpr; Access: TResolvedRefAccess); virtual;
+    procedure ResolveArrayParamsArgs(Params: TParamsExpr;
+      const ResolvedValue: TPasResolverResult; Access: TResolvedRefAccess); virtual;
+    function ResolveBracketOperatorClass(Params: TParamsExpr;
+      const ResolvedValue: TPasResolverResult; ClassScope: TPasClassScope;
+      Access: TResolvedRefAccess): boolean; virtual;
     procedure ResolveSetParamsExpr(Params: TParamsExpr); virtual;
     procedure ResolveArrayValues(El: TArrayValues); virtual;
     procedure FinishModule(CurModule: TPasModule); virtual;
@@ -1091,6 +1096,8 @@ type
     procedure FinishArgument(El: TPasArgument); virtual;
     procedure FinishAncestors(aClass: TPasClassType); virtual;
     procedure FinishParamExpressionAccess(Expr: TPasExpr; Access: TResolvedRefAccess);
+    procedure FinishPropertyParamAccess(Params: TParamsExpr;
+      Prop: TPasProperty);
     procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure);
     procedure CheckPendingForwards(El: TPasElement);
@@ -1100,6 +1107,9 @@ type
     procedure ComputeArrayParams(Params: TParamsExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
+    procedure ComputeArrayParams_Class(Params: TParamsExpr;
+      var ResolvedEl: TPasResolverResult; ClassScope: TPasClassScope;
+      Flags: TPasResolverComputeFlags; StartEl: TPasElement); virtual;
     procedure ComputeFuncParams(Params: TParamsExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
@@ -1354,6 +1364,7 @@ type
     function IsOpenArray(TypeEl: TPasType): boolean;
     function IsDynOrOpenArray(TypeEl: TPasType): boolean;
     function IsClassMethod(El: TPasElement): boolean;
+    function IsExternalClassName(aClass: TPasClassType; const ExtName: string): boolean;
     function IsProcedureType(const ResolvedEl: TPasResolverResult): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
@@ -4065,6 +4076,24 @@ begin
     end;
 end;
 
+procedure TPasResolver.FinishPropertyParamAccess(Params: TParamsExpr;
+  Prop: TPasProperty);
+var
+  i: Integer;
+  ParamAccess: TResolvedRefAccess;
+begin
+  for i:=0 to length(Params.Params)-1 do
+    begin
+    ParamAccess:=rraRead;
+    if i<Prop.Args.Count then
+      case TPasArgument(Prop.Args[i]).Access of
+      argVar: ParamAccess:=rraVarParam;
+      argOut: ParamAccess:=rraOutParam;
+      end;
+    FinishParamExpressionAccess(Params.Params[i],ParamAccess);
+    end;
+end;
+
 procedure TPasResolver.ReplaceProcScopeImplArgsWithDeclArgs(
   ImplProcScope: TPasProcedureScope);
 var
@@ -5070,55 +5099,34 @@ end;
 
 procedure TPasResolver.ResolveArrayParamsExpr(Params: TParamsExpr;
   Access: TResolvedRefAccess);
+var
+  ResolvedEl: TPasResolverResult;
 
-  procedure FinishPropertyParamAccess(Prop: TPasProperty);
+  procedure ResolveValueName(Value: TPasElement; ArrayName: string);
   var
-    i: Integer;
-    ParamAccess: TResolvedRefAccess;
+    FindData: TPRFindData;
+    Ref: TResolvedReference;
+    DeclEl: TPasElement;
   begin
-    for i:=0 to length(Params.Params)-1 do
-      begin
-      ParamAccess:=rraRead;
-      if i<Prop.Args.Count then
-        case TPasArgument(Prop.Args[i]).Access of
-        argVar: ParamAccess:=rraVarParam;
-        argOut: ParamAccess:=rraOutParam;
-        end;
-      FinishParamExpressionAccess(Params.Params[i],ParamAccess);
-      end;
+    // e.g. Name[]
+    DeclEl:=FindElementWithoutParams(ArrayName,FindData,Value,true);
+    Ref:=CreateReference(DeclEl,Value,Access,@FindData);
+    CheckFoundElement(FindData,Ref);
+    ComputeElement(Value,ResolvedEl,[rcSkipTypeAlias]);
   end;
 
 var
-  ArrayName: String;
-  FindData: TPRFindData;
-  DeclEl: TPasElement;
-  ResolvedEl, ResolvedArg: TPasResolverResult;
-  ArgExp, Value: TPasExpr;
-  Ref: TResolvedReference;
-  PropEl: TPasProperty;
-  ClassScope: TPasClassScope;
+  Value: TPasExpr;
   SubParams: TParamsExpr;
-  i: Integer;
 begin
-  DeclEl:=nil;
   Value:=Params.Value;
   if (Value.ClassType=TPrimitiveExpr)
       and (TPrimitiveExpr(Value).Kind=pekIdent) then
-    begin
     // e.g. Name[]
-    ArrayName:=TPrimitiveExpr(Value).Value;
-    // find first
-    DeclEl:=FindElementWithoutParams(ArrayName,FindData,Value,true);
-    Ref:=CreateReference(DeclEl,Params.Value,Access,@FindData);
-    CheckFoundElement(FindData,Ref);
-    ComputeElement(Value,ResolvedEl,[rcSkipTypeAlias]);
-    end
+    ResolveValueName(Value,TPrimitiveExpr(Value).Value)
   else if (Value.ClassType=TSelfExpr) then
-    begin
     // e.g. Self[]
-    ResolveNameExpr(Value,'Self',Access);
-    ComputeElement(Value,ResolvedEl,[rcSkipTypeAlias]);
-    end
+    ResolveValueName(Value,'Self')
   else if Value.ClassType=TParamsExpr then
     begin
     SubParams:=TParamsExpr(Value);
@@ -5138,11 +5146,23 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveArrayParamsExpr Value=',GetObjName(Value),' ',GetResolverResultDesc(ResolvedEl));
   {$ENDIF}
-  if ResolvedEl.BaseType in btAllStrings then
+  ResolveArrayParamsArgs(Params,ResolvedEl,Access);
+end;
+
+procedure TPasResolver.ResolveArrayParamsArgs(Params: TParamsExpr;
+  const ResolvedValue: TPasResolverResult; Access: TResolvedRefAccess);
+var
+  ArgExp: TPasExpr;
+  ResolvedArg: TPasResolverResult;
+  PropEl: TPasProperty;
+  ClassScope: TPasClassScope;
+  i: Integer;
+begin
+  if ResolvedValue.BaseType in btAllStrings then
     begin
-    // string -> check that ResolvedEl is not merely a type, but has a value
-    if not ResolvedElHasValue(ResolvedEl) then
-      RaiseXExpectedButYFound(20170216152548,'variable',ResolvedEl.TypeEl.ElementTypeName,Params);
+    // string -> check that ResolvedValue is not merely a type, but has a value
+    if not ResolvedElHasValue(ResolvedValue) then
+      RaiseXExpectedButYFound(20170216152548,'variable',ResolvedValue.TypeEl.ElementTypeName,Params);
     // check single argument
     if length(Params.Params)<1 then
       RaiseMsg(20170216152204,nMissingParameterX,
@@ -5161,44 +5181,55 @@ begin
     FinishParamExpressionAccess(ArgExp,rraRead);
     exit;
     end
-  else if (ResolvedEl.IdentEl is TPasProperty)
-      and (TPasProperty(ResolvedEl.IdentEl).Args.Count>0) then
+  else if (ResolvedValue.IdentEl is TPasProperty)
+      and (TPasProperty(ResolvedValue.IdentEl).Args.Count>0) then
     begin
-    PropEl:=TPasProperty(ResolvedEl.IdentEl);
+    PropEl:=TPasProperty(ResolvedValue.IdentEl);
     CheckCallPropertyCompatibility(PropEl,Params,true);
-    FinishPropertyParamAccess(PropEl);
+    FinishPropertyParamAccess(Params,PropEl);
     exit;
     end
-  else if ResolvedEl.BaseType=btContext then
+  else if ResolvedValue.BaseType=btContext then
     begin
-    if ResolvedEl.TypeEl.ClassType=TPasClassType then
+    if ResolvedValue.TypeEl.ClassType=TPasClassType then
       begin
-      ClassScope:=ResolvedEl.TypeEl.CustomData as TPasClassScope;
-      PropEl:=ClassScope.DefaultProperty;
-      if PropEl<>nil then
-        begin
-        // class has default property
-        if (ResolvedEl.IdentEl is TPasType) and (not PropEl.IsClass) then
-          RaiseMsg(20170216152213,nIllegalQualifier,sIllegalQualifier,['['],Params);
-        if Params.Value.CustomData is TResolvedReference then
-          TResolvedReference(Params.Value.CustomData).Access:=rraRead;
-        CreateReference(PropEl,Params,Access);
-        CheckCallPropertyCompatibility(PropEl,Params,true);
-        FinishPropertyParamAccess(PropEl);
+      ClassScope:=ResolvedValue.TypeEl.CustomData as TPasClassScope;
+      if ResolveBracketOperatorClass(Params,ResolvedValue,ClassScope,Access) then
         exit;
-        end;
       end
-    else if ResolvedEl.TypeEl.ClassType=TPasArrayType then
+    else if ResolvedValue.TypeEl.ClassType=TPasArrayType then
       begin
-      if ResolvedEl.IdentEl is TPasType then
+      if ResolvedValue.IdentEl is TPasType then
         RaiseMsg(20170216152215,nIllegalQualifier,sIllegalQualifier,['['],Params);
-      CheckCallArrayCompatibility(TPasArrayType(ResolvedEl.TypeEl),Params,true);
+      CheckCallArrayCompatibility(TPasArrayType(ResolvedValue.TypeEl),Params,true);
       for i:=0 to length(Params.Params)-1 do
         FinishParamExpressionAccess(Params.Params[i],rraRead);
       exit;
       end;
     end;
   RaiseMsg(20170216152217,nIllegalQualifier,sIllegalQualifier,['['],Params);
+end;
+
+function TPasResolver.ResolveBracketOperatorClass(Params: TParamsExpr;
+  const ResolvedValue: TPasResolverResult; ClassScope: TPasClassScope;
+  Access: TResolvedRefAccess): boolean;
+var
+  PropEl: TPasProperty;
+begin
+  PropEl:=ClassScope.DefaultProperty;
+  if PropEl<>nil then
+    begin
+    // class has default property
+    if (ResolvedValue.IdentEl is TPasType) and (not PropEl.IsClass) then
+      RaiseMsg(20170216152213,nIllegalQualifier,sIllegalQualifier,['['],Params);
+    if Params.Value.CustomData is TResolvedReference then
+      TResolvedReference(Params.Value.CustomData).Access:=rraRead;
+    CreateReference(PropEl,Params,Access);
+    CheckCallPropertyCompatibility(PropEl,Params,true);
+    FinishPropertyParamAccess(Params,PropEl);
+    exit(true);
+    end;
+  Result:=false;
 end;
 
 procedure TPasResolver.ResolveSetParamsExpr(Params: TParamsExpr);
@@ -6089,16 +6120,18 @@ begin
     if TypeEl.ClassType=TPasClassType then
       begin
       ClassScope:=TypeEl.CustomData as TPasClassScope;
-      if ClassScope.DefaultProperty=nil then
-        RaiseInternalError(20161010151747);
-      ComputeIndexProperty(ClassScope.DefaultProperty);
+      if ClassScope.DefaultProperty<>nil then
+        ComputeIndexProperty(ClassScope.DefaultProperty)
+      else
+        ComputeArrayParams_Class(Params,ResolvedEl,ClassScope,Flags,StartEl);
       end
     else if TypeEl.ClassType=TPasClassOfType then
       begin
       ClassScope:=TPasClassOfType(TypeEl).DestType.CustomData as TPasClassScope;
-      if ClassScope.DefaultProperty=nil then
+      if ClassScope.DefaultProperty<>nil then
+        ComputeIndexProperty(ClassScope.DefaultProperty)
+      else
         RaiseInternalError(20161010174916);
-      ComputeIndexProperty(ClassScope.DefaultProperty);
       end
     else if TypeEl.ClassType=TPasArrayType then
       begin
@@ -6131,6 +6164,18 @@ begin
     end
   else
     RaiseNotYetImplemented(20160928174212,Params,GetResolverResultDesc(ResolvedEl));
+end;
+
+procedure TPasResolver.ComputeArrayParams_Class(Params: TParamsExpr;
+  var ResolvedEl: TPasResolverResult; ClassScope: TPasClassScope;
+  Flags: TPasResolverComputeFlags; StartEl: TPasElement);
+begin
+  RaiseInternalError(20161010174916);
+  if Params=nil then ;
+  if ClassScope=nil then ;
+  if Flags=[] then ;
+  if StartEl=nil then ;
+  SetResolverIdentifier(ResolvedEl,btNone,nil,nil,[]);
 end;
 
 procedure TPasResolver.ComputeFuncParams(Params: TParamsExpr; out
@@ -10548,6 +10593,22 @@ begin
        or (El.ClassType=TPasClassProcedure)
        or (El.ClassType=TPasClassFunction)
        or (El.ClassType=TPasClassOperator));
+end;
+
+function TPasResolver.IsExternalClassName(aClass: TPasClassType;
+  const ExtName: string): boolean;
+var
+  AncestorScope: TPasClassScope;
+begin
+  Result:=false;
+  if aClass=nil then exit;
+  while (aClass<>nil) and aClass.IsExternal do
+    begin
+    if aClass.ExternalName=ExtName then exit(true);
+    AncestorScope:=(aClass.CustomData as TPasClassScope).AncestorScope;
+    if AncestorScope=nil then exit;
+    aClass:=AncestorScope.Element as TPasClassType;
+  end;
 end;
 
 function TPasResolver.IsProcedureType(const ResolvedEl: TPasResolverResult
