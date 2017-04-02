@@ -74,6 +74,7 @@ Works:
   - property with params
   - default property
   - visibility, override: warn and fix if lower
+  - events, proc type of object
   - sealed
 - with..do
 - enums - TPasEnumType, TPasEnumValue
@@ -118,7 +119,12 @@ Works:
 - check if var initexpr fits vartype: var a: type = expr;
 - built-in functions high, low for range types
 - procedure type
-- method type
+  - call
+  - as function result
+  - as parameter
+  - Delphi without @
+  - FPC equal and not equal
+  - "is nested"
 - function without params: mark if call or address, rrfImplicitCallWithoutParams
 - procedure break, procedure continue
 - built-in functions pred, succ for range type and enums
@@ -206,7 +212,7 @@ const
   nCantDetermineWhichOverloadedFunctionToCall = 3013;
   nForwardTypeNotResolved = 3014;
   nForwardProcNotResolved = 3015;
-  nInvalidProcModifiers = 3016;
+  nInvalidXModifiersY = 3016;
   nAbstractMethodsMustNotHaveImplementation = 3017;
   nCallingConventionMismatch = 3018;
   nResultTypeMismatchExpectedButFound = 3019;
@@ -242,6 +248,7 @@ const
   nAncestorIsNotExternal = 3049;
   nVirtualMethodXHasLowerVisibility = 3050; // FPC 3250
   nExternalClassInstanceCannotAccessStaticX = 3051;
+  nXModifierMismatchY = 3052;
 
 // resourcestring patterns of messages
 resourcestring
@@ -260,7 +267,7 @@ resourcestring
   sCantDetermineWhichOverloadedFunctionToCall = 'Can''t determine which overloaded function to call';
   sForwardTypeNotResolved = 'Forward type not resolved "%s"';
   sForwardProcNotResolved = 'Forward %s not resolved "%s"';
-  sInvalidProcModifiers = 'Invalid %s modifiers %s';
+  sInvalidXModifiersY = 'Invalid %s modifiers %s';
   sAbstractMethodsMustNotHaveImplementation = 'Abstract method must not have an implementation.';
   sCallingConventionMismatch = 'Calling convention mismatch';
   sResultTypeMismatchExpectedButFound = 'Result type mismatch, expected %s, but found %s';
@@ -296,6 +303,7 @@ resourcestring
   sAncestorIsNotExternal = 'Ancestor "%s" is not external';
   sVirtualMethodXHasLowerVisibility = 'Virtual method "%s" has a lower visibility (%s) than parent class %s (%s)';
   sExternalClassInstanceCannotAccessStaticX = 'External class instance cannot access static %s';
+  sXModifierMismatchY = '%s modifier "%s" mismatch';
 
 type
   TResolverBaseType = (
@@ -949,7 +957,8 @@ type
     proPropertyAsVarParam, // allows to pass a property as a var/out argument
     proClassOfIs, // class-of supports is and as operator
     proExtClassInstanceNoTypeMembers, // class members of external class cannot be accessed by instance
-    proOpenAsDynArrays // open arrays work like dyn arrays
+    proOpenAsDynArrays, // open arrays work like dynamic arrays
+    proProcTypeWithoutIsNested // proc types can use nested procs without 'is nested'
     );
   TPasResolverOptions = set of TPasResolverOption;
 
@@ -1311,7 +1320,8 @@ type
     function CheckClassesAreRelated(TypeA, TypeB: TPasType;
       ErrorEl: TPasElement): integer;
     function CheckOverloadProcCompatibility(Proc1, Proc2: TPasProcedure): boolean;
-    function CheckProcAssignCompatibility(Proc1, Proc2: TPasProcedureType): boolean;
+    function CheckProcTypeCompatibility(Proc1, Proc2: TPasProcedureType;
+      ErrorEl: TPasElement; RaiseOnIncompatible: boolean): boolean;
     function CheckProcArgCompatibility(Arg1, Arg2: TPasArgument): boolean;
     function CheckProcArgTypeCompatibility(Arg1, Arg2: TPasType): boolean;
     function CheckCanBeLHS(const ResolvedEl: TPasResolverResult;
@@ -1596,7 +1606,7 @@ begin
     if TPasProcedureType(El).IsOfObject then
       Result:=Result+' of object';
     if TPasProcedureType(El).IsNested then
-      Result:=Result+' of nested';
+      Result:=Result+' is nested';
     if cCallingConventions[TPasProcedureType(El).CallingConvention]<>'' then
       Result:=Result+'; '+cCallingConventions[TPasProcedureType(El).CallingConvention];
     end
@@ -3204,13 +3214,13 @@ procedure TPasResolver.FinishProcedureType(El: TPasProcedureType);
 var
   ProcName: String;
   FindData: TFindOverloadProcData;
-  DeclProc, Proc: TPasProcedure;
+  DeclProc, Proc, ParentProc: TPasProcedure;
   Abort: boolean;
   DeclProcScope, ProcScope: TPasProcedureScope;
   ParentScope: TPasScope;
   pm: TProcedureModifier;
 begin
-  if El.Parent is TPasProcedure then
+  if (El.Parent is TPasProcedure) and (TPasProcedure(El.Parent).ProcType=El) then
     begin
     // finished header of a procedure declaration
     // -> search the best fitting proc
@@ -3221,6 +3231,20 @@ begin
     {$ENDIF}
     ProcName:=Proc.Name;
 
+    if (proProcTypeWithoutIsNested in Options) and El.IsNested then
+      RaiseMsg(20170402120811,nIllegalQualifier,sIllegalQualifier,['is nested'],El);
+
+    if (Proc.Parent.ClassType=TProcedureBody) then
+      begin
+      // nested sub proc
+      if not (proProcTypeWithoutIsNested in Options) then
+        El.IsNested:=true;
+      // inherit 'of Object'
+      ParentProc:=Proc.Parent.Parent as TPasProcedure;
+      if ParentProc.ProcType.IsOfObject then
+        El.IsOfObject:=true;
+      end;
+
     if Proc.IsExternal then
       for pm in TProcedureModifier do
         if (pm in Proc.Modifiers)
@@ -3229,8 +3253,8 @@ begin
                         pmStatic, pmVarargs,
                         pmExternal, pmDispId,
                         pmfar]) then
-          RaiseMsg(20170216151616,nInvalidProcModifiers,
-            sInvalidProcModifiers,[Proc.ElementTypeName,'external, '+ModifierNames[pm]],Proc);
+          RaiseMsg(20170216151616,nInvalidXModifiersY,
+            sInvalidXModifiersY,[Proc.ElementTypeName,'external, '+ModifierNames[pm]],Proc);
 
     if Proc.Parent is TPasClassType then
       begin
@@ -3238,31 +3262,31 @@ begin
       if Proc.IsAbstract then
         begin
         if not Proc.IsVirtual then
-          RaiseMsg(20170216151623,nInvalidProcModifiers,sInvalidProcModifiers,[Proc.ElementTypeName,'abstract without virtual'],Proc);
+          RaiseMsg(20170216151623,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'abstract without virtual'],Proc);
         if Proc.IsOverride then
-          RaiseMsg(20170216151625,nInvalidProcModifiers,sInvalidProcModifiers,[Proc.ElementTypeName,'abstract, override'],Proc);
+          RaiseMsg(20170216151625,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'abstract, override'],Proc);
         end;
       if Proc.IsVirtual and Proc.IsOverride then
-        RaiseMsg(20170216151627,nInvalidProcModifiers,sInvalidProcModifiers,[Proc.ElementTypeName,'virtual, override'],Proc);
+        RaiseMsg(20170216151627,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'virtual, override'],Proc);
       if Proc.IsForward then
-        RaiseMsg(20170216151629,nInvalidProcModifiers,sInvalidProcModifiers,[Proc.ElementTypeName,'forward'],Proc);
+        RaiseMsg(20170216151629,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'forward'],Proc);
       if Proc.IsStatic then
         if (Proc.ClassType<>TPasClassProcedure) and (Proc.ClassType<>TPasClassFunction) then
-          RaiseMsg(20170216151631,nInvalidProcModifiers,sInvalidProcModifiers,[Proc.ElementTypeName,'static'],Proc);
+          RaiseMsg(20170216151631,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'static'],Proc);
       end
     else
       begin
       // intf proc, forward proc, proc body, method body
       if Proc.IsAbstract then
-        RaiseMsg(20170216151634,nInvalidProcModifiers,sInvalidProcModifiers,[Proc.ElementTypeName,'abstract'],Proc);
+        RaiseMsg(20170216151634,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'abstract'],Proc);
       if Proc.IsVirtual then
-        RaiseMsg(20170216151635,nInvalidProcModifiers,sInvalidProcModifiers,[Proc.ElementTypeName,'virtual'],Proc);
+        RaiseMsg(20170216151635,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'virtual'],Proc);
       if Proc.IsOverride then
-        RaiseMsg(20170216151637,nInvalidProcModifiers,sInvalidProcModifiers,[Proc.ElementTypeName,'override'],Proc);
+        RaiseMsg(20170216151637,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'override'],Proc);
       if Proc.IsMessage then
-        RaiseMsg(20170216151638,nInvalidProcModifiers,sInvalidProcModifiers,[Proc.ElementTypeName,'message'],Proc);
+        RaiseMsg(20170216151638,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'message'],Proc);
       if Proc.IsStatic then
-        RaiseMsg(20170216151640,nInvalidProcModifiers,sInvalidProcModifiers,[Proc.ElementTypeName,'static'],Proc);
+        RaiseMsg(20170216151640,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'static'],Proc);
       end;
 
     if Pos('.',ProcName)>1 then
@@ -3441,9 +3465,9 @@ var
   p: Integer;
 begin
   if ImplProc.IsExternal then
-    RaiseMsg(20170216151715,nInvalidProcModifiers,sInvalidProcModifiers,[ImplProc.ElementTypeName,'external'],ImplProc);
+    RaiseMsg(20170216151715,nInvalidXModifiersY,sInvalidXModifiersY,[ImplProc.ElementTypeName,'external'],ImplProc);
   if ImplProc.IsExported then
-    RaiseMsg(20170216151717,nInvalidProcModifiers,sInvalidProcModifiers,[ImplProc.ElementTypeName,'export'],ImplProc);
+    RaiseMsg(20170216151717,nInvalidXModifiersY,sInvalidXModifiersY,[ImplProc.ElementTypeName,'export'],ImplProc);
 
   ProcName:=ImplProc.Name;
   {$IFDEF VerbosePasResolver}
@@ -8382,6 +8406,8 @@ begin
                [GetString(0),DescA,DescB],ErrorEl);
     nResultTypeMismatchExpectedButFound:
       RaiseMsg(id,MsgNumber,sResultTypeMismatchExpectedButFound,[DescA,DescB],ErrorEl);
+    nXExpectedButYFound:
+      RaiseMsg(id,MsgNumber,sXExpectedButYFound,[DescA,DescB],ErrorEl);
   else
     RaiseInternalError(20170329112911);
   end;
@@ -8663,18 +8689,48 @@ begin
   Result:=true;
 end;
 
-function TPasResolver.CheckProcAssignCompatibility(Proc1,
-  Proc2: TPasProcedureType): boolean;
+function TPasResolver.CheckProcTypeCompatibility(Proc1,
+  Proc2: TPasProcedureType; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
+  ): boolean;
+
+  function ModifierError(const Modifier: string): boolean;
+  begin
+    Result:=false;
+    if not RaiseOnIncompatible then exit;
+    RaiseMsg(20170402112049,nXModifierMismatchY,sXModifierMismatchY,
+      [Proc1.ElementTypeName,Modifier],ErrorEl);
+  end;
+
 var
   ProcArgs1, ProcArgs2: TFPList;
   i: Integer;
   Result1Resolved, Result2Resolved: TPasResolverResult;
 begin
   Result:=false;
-  if Proc1.ClassType<>Proc2.ClassType then exit;
-  if Proc1.IsOfObject<>Proc2.IsOfObject then exit;
-  if Proc1.IsNested<>Proc2.IsNested then exit;
-  if Proc1.CallingConvention<>Proc2.CallingConvention then exit;
+  if Proc1.ClassType<>Proc2.ClassType then
+    begin
+    if RaiseOnIncompatible then
+      RaiseXExpectedButYFound(20170402112353,Proc1.TypeName,Proc2.TypeName,ErrorEl);
+    exit;
+    end;
+  if Proc1.IsNested<>Proc2.IsNested then
+    exit(ModifierError('is nested'));
+  if Proc1.IsOfObject<>Proc2.IsOfObject then
+    begin
+    if (proProcTypeWithoutIsNested in Options) then
+      exit(ModifierError('of object'))
+    else if Proc1.IsNested then
+      // "is nested" can handle both, proc and method.
+    else
+      exit(ModifierError('of object'))
+    end;
+  if Proc1.CallingConvention<>Proc2.CallingConvention then
+    begin
+    if RaiseOnIncompatible then
+      RaiseMsg(20170402112253,nCallingConventionMismatch,sCallingConventionMismatch,
+        [],ErrorEl);
+    exit;
+    end;
   ProcArgs1:=Proc1.Args;
   ProcArgs2:=Proc2.Args;
   if ProcArgs1.Count<>ProcArgs2.Count then exit;
@@ -8693,7 +8749,12 @@ begin
     if (Result1Resolved.BaseType<>Result2Resolved.BaseType)
         or (Result1Resolved.TypeEl=nil)
         or (Result1Resolved.TypeEl<>Result2Resolved.TypeEl) then
+      begin
+      if RaiseOnIncompatible then
+        RaiseIncompatibleTypeRes(20170402112648,nResultTypeMismatchExpectedButFound,
+          [],Result1Resolved,Result2Resolved,ErrorEl);
       exit;
+      end;
     end;
   Result:=true;
 end;
@@ -8901,8 +8962,9 @@ begin
           and (LHS.TypeEl is TPasProcedureType)
           and (RHS.IdentEl is TPasProcedure) then
         begin
-        if CheckProcAssignCompatibility(TPasProcedureType(LHS.TypeEl),
-            TPasProcedure(RHS.IdentEl).ProcType) then
+        // for example  ProcVar:=Proc
+        if CheckProcTypeCompatibility(TPasProcedureType(LHS.TypeEl),
+            TPasProcedure(RHS.IdentEl).ProcType,ErrorEl,RaiseOnIncompatible) then
           Result:=cExact;
         end;
       end
@@ -9380,7 +9442,9 @@ begin
     else if (LTypeEl.ClassType=RTypeEl.ClassType)
         and (rrfReadable in RHS.Flags) then
       begin
-      if CheckProcAssignCompatibility(TPasProcedureType(LTypeEl),TPasProcedureType(RTypeEl)) then
+      // e.g. ProcVar1:=ProcVar2
+      if CheckProcTypeCompatibility(TPasProcedureType(LTypeEl),TPasProcedureType(RTypeEl),
+          ErrorEl,RaiseOnIncompatible) then
         Result:=cExact;
       end;
     end
@@ -9684,9 +9748,10 @@ begin
     begin
     if (ElB is TPasProcedureType) and (rrfReadable in TypeB.Flags) then
       begin
-      if CheckProcAssignCompatibility(TPasProcedureType(ElA),TPasProcedureType(ElB)) then
+      // e.g. ProcVar1 = ProcVar2
+      if CheckProcTypeCompatibility(TPasProcedureType(ElA),TPasProcedureType(ElB),
+          nil,false) then
         exit(cExact);
-
       end
     else
       exit(IncompatibleElements);

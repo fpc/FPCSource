@@ -496,6 +496,7 @@ type
     Procedure TestAssignMethodToProcFail;
     Procedure TestAssignProcToFunctionFail;
     Procedure TestAssignProcWrongArgsFail;
+    Procedure TestProcType_AssignNestedProcFail;
     Procedure TestArrayOfProc;
     Procedure TestProcType_Assigned;
     Procedure TestProcType_TNotifyEvent;
@@ -503,6 +504,10 @@ type
     Procedure TestProcType_TNotifyEvent_NoAtFPC_Fail2;
     Procedure TestProcType_TNotifyEvent_NoAtFPC_Fail3;
     Procedure TestProcType_WhileListCompare;
+    Procedure TestProcType_IsNested;
+    Procedure TestProcType_IsNested_AssignProcFail;
+    Procedure TestProcType_AllowNested;
+    Procedure TestProcType_AllowNestedOfObject;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -4446,7 +4451,7 @@ begin
   Add('    procedure ProcA; abstract;');
   Add('  end;');
   Add('begin');
-  CheckResolverException('abstract without virtual',PasResolver.nInvalidProcModifiers);
+  CheckResolverException('abstract without virtual',PasResolver.nInvalidXModifiersY);
 end;
 
 procedure TTestResolver.TestClass_MethodAbstractHasBodyFail;
@@ -5195,7 +5200,7 @@ begin
   Add('  end;');
   Add('procedure TObject.ProcA; begin end;');
   Add('begin');
-  CheckResolverException('Invalid procedure modifiers static',PasResolver.nInvalidProcModifiers);
+  CheckResolverException('Invalid procedure modifiers static',PasResolver.nInvalidXModifiersY);
 end;
 
 procedure TTestResolver.TestClass_SelfInStaticFail;
@@ -7826,8 +7831,8 @@ begin
   Add('var n: TNotifyEvent;');
   Add('begin');
   Add('  n:=@ProcA;');
-  CheckResolverException('Incompatible types: got "procedure(class TObject)" expected "n:procedure(class TObject) of object"',
-    PasResolver.nIncompatibleTypesGotExpected);
+  CheckResolverException('procedure type modifier "of object" mismatch',
+    PasResolver.nXModifierMismatchY);
 end;
 
 procedure TTestResolver.TestAssignMethodToProcFail;
@@ -7845,8 +7850,8 @@ begin
   Add('  o: TObject;');
   Add('begin');
   Add('  n:=@o.ProcA;');
-  CheckResolverException('Incompatible types: got "procedure(class TObject) of object" expected "n:procedure(class TObject)"',
-    PasResolver.nIncompatibleTypesGotExpected);
+  CheckResolverException('procedure type modifier "of object" mismatch',
+    PasResolver.nXModifierMismatchY);
 end;
 
 procedure TTestResolver.TestAssignProcToFunctionFail;
@@ -7875,6 +7880,24 @@ begin
   Add('  p:=@ProcA;');
   CheckResolverException('Incompatible types: got "procedure(String)" expected "p:procedure(Longint)"',
     PasResolver.nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestProcType_AssignNestedProcFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TProcInt = procedure(i: longint);');
+  Add('procedure ProcA;');
+  Add('var p: TProcInt;');
+  Add('  procedure SubProc(i: longint);');
+  Add('  begin');
+  Add('  end;');
+  Add('begin');
+  Add('  p:=@SubProc;');
+  Add('end;');
+  Add('begin');
+  CheckResolverException('procedure type modifier "is nested" mismatch',
+    PasResolver.nXModifierMismatchY);
 end;
 
 procedure TTestResolver.TestArrayOfProc;
@@ -8022,6 +8045,126 @@ begin
   Add('procedure Sort(P: Integer; const List: TArrInt; const Compare: TListCompare);');
   Add('begin');
   Add('  while Compare(P,List[0])>0 do ;');
+  Add('end;');
+  Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_IsNested;
+begin
+  StartProgram(false);
+  Add('{$modeswitch nestedprocvars}');
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TNestedProc = procedure(i: integer) is nested;');
+  Add('procedure DoIt(i: integer);');
+  Add('var p: TNestedProc;');
+  Add('  procedure Sub(i: integer);');
+  Add('  var SubP: TNestedProc;');
+  Add('    procedure SubSub(i: integer);');
+  Add('    begin');
+  Add('      p:=@Sub;');
+  Add('      p:=@SubSub;');
+  Add('      SubP:=@Sub;');
+  Add('      SubP:=@SubSub;');
+  Add('    end;');
+  Add('  begin');
+  Add('    p:=@Sub;');
+  Add('    p:=@SubSub;');
+  Add('    SubP:=@Sub;');
+  Add('    SubP:=@SubSub;');
+  Add('  end;');
+  Add('begin');
+  Add('  p:=@Sub;');
+  Add('end;');
+  Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_IsNested_AssignProcFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch nestedprocvars}');
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TNestedProc = procedure(i: integer) is nested;');
+  Add('procedure DoIt(i: integer); begin end;');
+  Add('var p: TNestedProc;');
+  Add('begin');
+  Add('  p:=@DoIt;');
+  CheckResolverException('foo',nXModifierMismatchY);
+end;
+
+procedure TTestResolver.TestProcType_AllowNested;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proProcTypeWithoutIsNested];
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TProc = procedure(i: integer);');
+  Add('procedure DoIt(i: integer);');
+  Add('var p: TProc;');
+  Add('  procedure Sub(i: integer);');
+  Add('  var SubP: TProc;');
+  Add('    procedure SubSub(i: integer);');
+  Add('    begin');
+  Add('      p:=@DoIt;');
+  Add('      p:=@Sub;');
+  Add('      p:=@SubSub;');
+  Add('      SubP:=@DoIt;');
+  Add('      SubP:=@Sub;');
+  Add('      SubP:=@SubSub;');
+  Add('    end;');
+  Add('  begin');
+  Add('    p:=@DoIt;');
+  Add('    p:=@Sub;');
+  Add('    p:=@SubSub;');
+  Add('    SubP:=@DoIt;');
+  Add('    SubP:=@Sub;');
+  Add('    SubP:=@SubSub;');
+  Add('  end;');
+  Add('begin');
+  Add('  p:=@DoIt;');
+  Add('  p:=@Sub;');
+  Add('end;');
+  Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_AllowNestedOfObject;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proProcTypeWithoutIsNested];
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TMethodProc = procedure(i: integer) of object;');
+  Add('  TObject = class');
+  Add('    procedure DoIt(i: integer);');
+  Add('  end;');
+  Add('procedure TObject.DoIt(i: integer);');
+  Add('var p: TMethodProc;');
+  Add('  procedure Sub(i: integer);');
+  Add('  var SubP: TMethodProc;');
+  Add('    procedure SubSub(i: integer);');
+  Add('    begin');
+  Add('      p:=@DoIt;');
+  Add('      p:=@Sub;');
+  Add('      p:=@SubSub;');
+  Add('      SubP:=@DoIt;');
+  Add('      SubP:=@Sub;');
+  Add('      SubP:=@SubSub;');
+  Add('    end;');
+  Add('  begin');
+  Add('    p:=@DoIt;');
+  Add('    p:=@Sub;');
+  Add('    p:=@SubSub;');
+  Add('    SubP:=@DoIt;');
+  Add('    SubP:=@Sub;');
+  Add('    SubP:=@SubSub;');
+  Add('  end;');
+  Add('begin');
+  Add('  p:=@DoIt;');
+  Add('  p:=@Sub;');
   Add('end;');
   Add('begin');
   ParseProgram;
