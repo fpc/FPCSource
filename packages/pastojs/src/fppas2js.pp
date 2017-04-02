@@ -159,6 +159,7 @@ Works:
   - methods
   - mode delphi: proctype:=proc
   - mode delphi: functype=funcresulttype
+  - nested functions
 - class-of
   - assign :=   nil, var
   - call class method
@@ -186,9 +187,6 @@ Works:
   - Pascal descendant can override newinstance
   - any class can be typecasted to any root class
   - class instances cannot access external class members (e.g. static class functions)
-- ECMAScript6:
-  - use 0b for binary literals
-  - use 0o for octal literals
 - jsvalue
   - init as undefined
   - assign to jsvalue := integer, string, boolean, double, char
@@ -207,9 +205,11 @@ Works:
     allow type casting to any array
   - parameter, result type, assign from/to untyped
   - operators equal, not equal
+- ECMAScript6:
+  - use 0b for binary literals
+  - use 0o for octal literals
 
 ToDos:
-- proc type of nested function
 - [] operator of external class 'Array'
 - FuncName:= (instead of Result:=)
 - ord(s[i]) -> s.charCodeAt(i)
@@ -225,6 +225,7 @@ ToDos:
 - pointer of record
 - nested types in class
 - asm: pas() - useful for overloads and protect an identifier from optimization
+- source maps
 
 Not in Version 1.0:
 - write, writeln
@@ -616,7 +617,8 @@ const
     proPropertyAsVarParam,
     proClassOfIs,
     proExtClassInstanceNoTypeMembers,
-    proOpenAsDynArrays
+    proOpenAsDynArrays,
+    proProcTypeWithoutIsNested
     ];
 type
   TPas2JSResolver = class(TPasResolver)
@@ -1531,8 +1533,8 @@ begin
 
     // check pmPublic
     if [pmPublic,pmExternal]<=Proc.Modifiers then
-      RaiseMsg(20170324150149,nInvalidProcModifiers,
-        sInvalidProcModifiers,[Proc.ElementTypeName,'public, external'],Proc);
+      RaiseMsg(20170324150149,nInvalidXModifiersY,
+        sInvalidXModifiersY,[Proc.ElementTypeName,'public, external'],Proc);
     if (Proc.PublicName<>nil) then
       RaiseMsg(20170324150417,nPasElementNotSupported,sPasElementNotSupported,
         ['public name'],Proc.PublicName);
@@ -1549,8 +1551,8 @@ begin
         if not (pmExternal in Proc.Modifiers) then
           begin
           if Proc.LibrarySymbolName<>nil then
-            RaiseMsg(20170322142158,nInvalidProcModifiers,
-              sInvalidProcModifiers,[Proc.ElementTypeName,'symbol name'],Proc.LibrarySymbolName);
+            RaiseMsg(20170322142158,nInvalidXModifiersY,
+              sInvalidXModifiersY,[Proc.ElementTypeName,'symbol name'],Proc.LibrarySymbolName);
           Proc.Modifiers:=Proc.Modifiers+[pmExternal];
           Proc.LibrarySymbolName:=TPrimitiveExpr.Create(El,pekString,''''+Proc.Name+'''');
           end;
@@ -1563,7 +1565,7 @@ begin
           begin
           if Proc.IsVirtual then
             // constructor of external class can't be overriden -> forbid virtual
-            RaiseMsg(20170323100447,nInvalidProcModifiers,sInvalidProcModifiers,
+            RaiseMsg(20170323100447,nInvalidXModifiersY,sInvalidXModifiersY,
               [Proc.ElementTypeName,'virtual,external'],Proc);
           if CompareText(Proc.Name,'new')=0 then
             begin
@@ -1576,7 +1578,7 @@ begin
             RaiseMsg(20170322164357,nNoArgumentsAllowedForExternalObjectConstructor,
               sNoArgumentsAllowedForExternalObjectConstructor,[],TPasArgument(El.Args[0]));
           if pmVirtual in Proc.Modifiers then
-            RaiseMsg(20170322183141,nInvalidProcModifiers,sInvalidProcModifiers,
+            RaiseMsg(20170322183141,nInvalidXModifiersY,sInvalidXModifiersY,
               [Proc.ElementTypeName,'virtual'],Proc.ProcType);
           end
         else
@@ -1610,7 +1612,7 @@ begin
 
       // external override -> unneeded information, probably a bug
       if Proc.IsOverride then
-        RaiseMsg(20170321101715,nInvalidProcModifiers,sInvalidProcModifiers,
+        RaiseMsg(20170321101715,nInvalidXModifiersY,sInvalidXModifiersY,
           [Proc.ElementTypeName,'override,external'],Proc);
 
       if Proc.LibraryExpr<>nil then
@@ -1622,7 +1624,7 @@ begin
 
       for pm in [pmAssembler,pmForward,pmNoReturn,pmInline] do
         if pm in Proc.Modifiers then
-          RaiseMsg(20170323100842,nInvalidProcModifiers,sInvalidProcModifiers,
+          RaiseMsg(20170323100842,nInvalidXModifiersY,sInvalidXModifiersY,
             [Proc.ElementTypeName,ModifierNames[pm]],Proc);
 
       // compute external name
@@ -6164,7 +6166,7 @@ begin
       For i:=0 to El.Members.Count-1 do
         begin
         P:=TPasElement(El.Members[i]);
-        writeln('TPasToJSConverter.ConvertClassType class El[',i,']=',GetObjName(P));
+        //writeln('TPasToJSConverter.ConvertClassType class El[',i,']=',GetObjName(P));
         if not IsMemberNeeded(P) then continue;
         C:=P.ClassType;
         NewEl:=nil;
@@ -6970,7 +6972,7 @@ begin
     Call:=CreateCallExpression(El);
     // "rtl.createCallback"
     Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnProcType_Create]]);
-    // add scope as parameter
+    // add parameters
     Scope:=ConvertElement(El,AContext);
     {$IFDEF VerbosePas2JS}
     writeln('TPasToJSConverter.CreateCallback ',GetObjName(Scope));
@@ -6979,7 +6981,7 @@ begin
     // the last element of Scope is the proc, chomp that off
     if Scope.ClassType=TJSDotMemberExpression then
       begin
-      // chomp dot member
+      // chomp dot member  ->  rtl.createCallback(scope,"FunName")
       DotExpr:=TJSDotMemberExpression(Scope);
       Scope:=DotExpr.MExpr;
       DotExpr.MExpr:=nil;
@@ -6992,22 +6994,33 @@ begin
         DoError(20170215161802,nInvalidFunctionReference,sInvalidFunctionReference,[],El);
         end;
       FreeAndNil(DotExpr);
+      Call.Args.Elements.AddElement.Expr:=Scope;
+      // add function name as parameter
+      Call.Args.Elements.AddElement.Expr:=CreateLiteralString(El,FunName);
       end
     else if Scope.ClassType=TJSPrimaryExpressionIdent then
       begin
-      // chomp dotted identifier
       Prim:=TJSPrimaryExpressionIdent(Scope);
       aName:=String(Prim.Name);
       DotPos:=PosLast('.',aName);
-      if DotPos<1 then
+      if DotPos>0 then
         begin
-        {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.CreateCallback Scope=',GetObjName(Scope),' Name="',String(aName),'"');
-        {$ENDIF}
-        DoError(20170215161410,nInvalidFunctionReference,sInvalidFunctionReference,[],El);
+        // chomp dotted identifier   ->  rtl.createCallback(scope,"FunName")
+        FunName:=copy(aName,DotPos+1);
+        Prim.Name:=TJSString(LeftStr(aName,DotPos-1));
+        Call.Args.Elements.AddElement.Expr:=Prim;
+        // add function name as parameter
+        Call.Args.Elements.AddElement.Expr:=CreateLiteralString(El,FunName);
+        end
+      else
+        begin
+        // nested proc  ->  rtl.createCallback(this,FunName)
+        FunName:=aName;
+        Prim.Name:='this';
+        Call.Args.Elements.AddElement.Expr:=Prim;
+        // add function as parameter
+        Call.Args.Elements.AddElement.Expr:=CreateBuiltInIdentifierExpr(FunName);
         end;
-      FunName:=copy(aName,DotPos+1);
-      Prim.Name:=TJSString(LeftStr(aName,DotPos-1));
       end
     else
       begin
@@ -7016,10 +7029,6 @@ begin
       {$ENDIF}
       RaiseNotSupported(El,AContext,20170215161210);
       end;
-    Call.Args.Elements.AddElement.Expr:=Scope;
-
-    // add function name as parameter
-    Call.Args.Elements.AddElement.Expr:=CreateLiteralString(El,FunName);
 
     Result:=Call;
   finally

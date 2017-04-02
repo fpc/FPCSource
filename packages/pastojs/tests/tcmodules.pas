@@ -378,6 +378,7 @@ type
     Procedure TestProcType_PropertyFPC;
     Procedure TestProcType_PropertyDelphi;
     Procedure TestProcType_WithClassInstDoPropertyFPC;
+    Procedure TestProcType_Nested;
 
     // jsvalue
     Procedure TestJSValue_AssignToJSValue;
@@ -7027,7 +7028,7 @@ begin
   Add('  end;');
   Add('begin');
   SetExpectedPasResolverError('Invalid procedure modifiers override,external',
-    nInvalidProcModifiers);
+    nInvalidXModifiersY);
   ConvertProgram;
 end;
 
@@ -9257,6 +9258,67 @@ begin
     'this.b = $with1.FOnFoo != null;',
     'this.b = $with1.FOnFoo != null;',
     'this.b = $with1.GetFoo() != null;',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_Nested;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TProcInt = procedure(vI: longint = 1);');
+  Add('procedure DoIt(vJ: longint);');
+  Add('var aProc: TProcInt;');
+  Add('    b: boolean;');
+  Add('  procedure Sub(vK: longint);');
+  Add('  var aSub: TProcInt;');
+  Add('    procedure SubSub(vK: longint);');
+  Add('    var aSubSub: TProcInt;');
+  Add('    begin;');
+  Add('      aProc:=@DoIt;');
+  Add('      aSub:=@DoIt;');
+  Add('      aSubSub:=@DoIt;');
+  Add('      aProc:=@Sub;');
+  Add('      aSub:=@Sub;');
+  Add('      aSubSub:=@Sub;');
+  Add('      aProc:=@SubSub;');
+  Add('      aSub:=@SubSub;');
+  Add('      aSubSub:=@SubSub;');
+  Add('    end;');
+  Add('  begin;');
+  Add('  end;');
+  Add('begin;');
+  Add('  aProc:=@Sub;');
+  Add('  b:=aProc=@Sub;');
+  Add('  b:=@Sub=aProc;');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestProcType_Nested',
+    LinesToStr([ // statements
+    'this.DoIt = function (vJ) {',
+    '  var aProc = null;',
+    '  var b = false;',
+    '  function Sub(vK) {',
+    '    var aSub = null;',
+    '    function SubSub(vK) {',
+    '      var aSubSub = null;',
+    '      aProc = rtl.createCallback(this, "DoIt");',
+    '      aSub = rtl.createCallback(this, "DoIt");',
+    '      aSubSub = rtl.createCallback(this, "DoIt");',
+    '      aProc = rtl.createCallback(this, Sub);',
+    '      aSub = rtl.createCallback(this, Sub);',
+    '      aSubSub = rtl.createCallback(this, Sub);',
+    '      aProc = rtl.createCallback(this, SubSub);',
+    '      aSub = rtl.createCallback(this, SubSub);',
+    '      aSubSub = rtl.createCallback(this, SubSub);',
+    '    };',
+    '  };',
+    '  aProc = rtl.createCallback(this, Sub);',
+    '  b = rtl.eqCallback(aProc, rtl.createCallback(this, Sub));',
+    '  b = rtl.eqCallback(rtl.createCallback(this, Sub), aProc);',
+    '};',
+    '']),
+    LinesToStr([ // this.$main
     '']));
 end;
 
