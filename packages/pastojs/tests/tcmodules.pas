@@ -360,6 +360,7 @@ type
     Procedure TestExternalClass_LocalConstSameName;
     Procedure TestExternalClass_ReintroduceOverload;
     Procedure TestExternalClass_Inherited;
+    Procedure TestExternalClass_PascalAncestorFail;
     Procedure TestExternalClass_NewInstance;
     Procedure TestExternalClass_NewInstance_NonVirtualFail;
     Procedure TestExternalClass_NewInstance_FirstParamNotString_Fail;
@@ -367,6 +368,7 @@ type
     Procedure TestExternalClass_TypeCastToRootClass;
     Procedure TestExternalClass_TypeCastStringToExternalString;
     Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
+    Procedure TestExternalClass_BracketOperator;
 
     // proc types
     Procedure TestProcType;
@@ -8287,6 +8289,20 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestExternalClass_PascalAncestorFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TExtA = class external name ''ExtA''(TObject)');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError('Ancestor "TObject" is not external',nAncestorIsNotExternal);
+  ConvertProgram;
+end;
+
 procedure TTestModule.TestExternalClass_NewInstance;
 begin
   StartProgram(false);
@@ -8481,6 +8497,93 @@ begin
   SetExpectedPasResolverError('External class instance cannot access static class function fromCharCode',
     nExternalClassInstanceCannotAccessStaticX);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_BracketOperator;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array''');
+  Add('  end;');
+  Add('  TJSObject = class external name ''Object''');
+  Add('  end;');
+  Add('procedure DoIt(vI: JSValue; const vJ: jsvalue; var vK: jsvalue; out vL: jsvalue);');
+  Add('begin end;');
+  Add('var');
+  Add('  Obj: tjsobject;');
+  Add('  Arr: tjsarray;');
+  Add('  s: string;');
+  Add('  i: longint;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  arr[1]:=s;');
+  Add('  arr[2]:=i;');
+  Add('  arr[3]:=arr[4];');
+  Add('  v:=arr[5];');
+  Add('  v:=obj[''one''];');
+  Add('  obj[''two'']:=i;');
+  Add('  obj[''three'']:=v;');
+  Add('  doit(arr[6],arr[7],arr[8],arr[9]);');
+  Add('  doit(obj[''10''],obj[''11''],obj[''12''],obj[''13'']);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketOperator',
+    LinesToStr([ // statements
+    'this.DoIt = function (vI, vJ, vK, vL) {',
+    '};',
+    'this.Obj = null;',
+    'this.Arr = null;',
+    'this.s = "";',
+    'this.i = 0;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Arr[1] = this.s;',
+    'this.Arr[2] = this.i;',
+    'this.Arr[3] = this.Arr[4];',
+    'this.v = this.Arr[5];',
+    'this.v = this.Obj["one"];',
+    'this.Obj["two"] = this.i;',
+    'this.Obj["three"] = this.v;',
+    'this.DoIt(this.Arr[6], this.Arr[7], {',
+    '  a: 8,',
+    '  p: this.Arr,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '}, {',
+    '  a: 9,',
+    '  p: this.Arr,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '});',
+    ' this.DoIt(this.Obj["10"], this.Obj["11"], {',
+    '  a: "12",',
+    '  p: this.Obj,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '}, {',
+    '  a: "13",',
+    '  p: this.Obj,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '});',
+    '']));
 end;
 
 procedure TTestModule.TestProcType;

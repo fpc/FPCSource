@@ -187,6 +187,8 @@ Works:
   - Pascal descendant can override newinstance
   - any class can be typecasted to any root class
   - class instances cannot access external class members (e.g. static class functions)
+  - external class 'Array' bracket operator [integer] type jsvalue
+  - external class 'Object' bracket operator [string] type jsvalue
 - jsvalue
   - init as undefined
   - assign to jsvalue := integer, string, boolean, double, char
@@ -210,7 +212,6 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- [] operator of external class 'Array'
 - FuncName:= (instead of Result:=)
 - ord(s[i]) -> s.charCodeAt(i)
 - $modeswitch -> define <modeswitch>
@@ -662,6 +663,12 @@ type
     function CheckEqualCompatibilityCustomType(const LHS,
       RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer; override;
+    function ResolveBracketOperatorClass(Params: TParamsExpr;
+      const ResolvedValue: TPasResolverResult; ClassScope: TPasClassScope;
+      Access: TResolvedRefAccess): boolean; override;
+    procedure ComputeArrayParams_Class(Params: TParamsExpr; var
+      ResolvedEl: TPasResolverResult; ClassScope: TPasClassScope;
+      Flags: TPasResolverComputeFlags; StartEl: TPasElement); override;
   public
     constructor Create;
     destructor Destroy; override;
@@ -672,17 +679,17 @@ type
     function CheckTypeCastRes(const FromResolved,
       ToResolved: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnError: boolean): integer; override;
+    property JSBaseTypes[aBaseType: TPas2jsBaseType]: TPasUnresolvedSymbolRef read GetJSBaseTypes;
     // compute literals and constants
-    Function ExtractPasStringLiteral(El: TPasElement; const S: String): TJSString; virtual;
-    Function ComputeConst(Expr: TPasExpr; StoreCustomData: boolean): TJSValue; virtual;
-    Function ComputeConstString(Expr: TPasExpr; StoreCustomData, NotEmpty: boolean): String; virtual;
+    function ExtractPasStringLiteral(El: TPasElement; const S: String): TJSString; virtual;
+    function ComputeConst(Expr: TPasExpr; StoreCustomData: boolean): TJSValue; virtual;
+    function ComputeConstString(Expr: TPasExpr; StoreCustomData, NotEmpty: boolean): String; virtual;
     // CustomData
     function GetElementData(El: TPasElementBase;
       DataClass: TPas2JsElementDataClass): TPas2JsElementData; virtual;
     procedure AddElementData(Data: TPas2JsElementData); virtual;
     function CreateElementData(DataClass: TPas2JsElementDataClass;
       El: TPasElement): TPas2JsElementData; virtual;
-    property JSBaseTypes[aBaseType: TPas2jsBaseType]: TPasUnresolvedSymbolRef read GetJSBaseTypes;
   end;
 
 //------------------------------------------------------------------------------
@@ -1912,6 +1919,77 @@ begin
     RaiseInternalError(20170330005725);
 end;
 
+function TPas2JSResolver.ResolveBracketOperatorClass(Params: TParamsExpr;
+  const ResolvedValue: TPasResolverResult; ClassScope: TPasClassScope;
+  Access: TResolvedRefAccess): boolean;
+var
+  ParamResolved: TPasResolverResult;
+  Param: TPasExpr;
+  aClass: TPasClassType;
+begin
+  if ClassScope.DefaultProperty=nil then
+    begin
+    aClass:=TPasClassType(ClassScope.Element);
+    if IsExternalClassName(aClass,'Array') then
+      begin
+      if ResolvedValue.IdentEl is TPasType then
+        RaiseMsg(20170402194000,nIllegalQualifier,sIllegalQualifier,['['],Params);
+      if length(Params.Params)<>1 then
+        RaiseMsg(20170402194059,nWrongNumberOfParametersForArray,
+          sWrongNumberOfParametersForArray,[],Params);
+      // check first param is an integer value
+      Param:=Params.Params[0];
+      ComputeElement(Param,ParamResolved,[]);
+      if (not (rrfReadable in ParamResolved.Flags))
+          or not (ParamResolved.BaseType in btAllInteger) then
+        CheckRaiseTypeArgNo(20170402194221,1,Param,ParamResolved,'integer',true);
+      FinishParamExpressionAccess(Param,rraRead);
+      exit(true);
+      end
+    else if IsExternalClassName(aClass,'Object') then
+      begin
+      if ResolvedValue.IdentEl is TPasType then
+        RaiseMsg(20170402194453,nIllegalQualifier,sIllegalQualifier,['['],Params);
+      if length(Params.Params)<>1 then
+        RaiseMsg(20170402194456,nWrongNumberOfParametersForArray,
+          sWrongNumberOfParametersForArray,[],Params);
+      // check first param is a string value
+      Param:=Params.Params[0];
+      ComputeElement(Param,ParamResolved,[]);
+      if (not (rrfReadable in ParamResolved.Flags))
+          or not (ParamResolved.BaseType in btAllStringAndChars) then
+        CheckRaiseTypeArgNo(20170402194511,1,Param,ParamResolved,'string',true);
+      FinishParamExpressionAccess(Param,rraRead);
+      exit(true);
+      end;
+    end;
+  Result:=inherited ResolveBracketOperatorClass(Params, ResolvedValue, ClassScope, Access);
+end;
+
+procedure TPas2JSResolver.ComputeArrayParams_Class(Params: TParamsExpr;
+  var ResolvedEl: TPasResolverResult; ClassScope: TPasClassScope;
+  Flags: TPasResolverComputeFlags; StartEl: TPasElement);
+var
+  aClass: TPasClassType;
+  OrigResolved: TPasResolverResult;
+begin
+  aClass:=TPasClassType(ClassScope.Element);
+  if IsExternalClassName(aClass,'Array') or IsExternalClassName(aClass,'Object') then
+    begin
+    if [rcConstant,rcType]*Flags<>[] then
+      RaiseConstantExprExp(20170402202137,Params);
+    OrigResolved:=ResolvedEl;
+    SetResolverTypeExpr(ResolvedEl,btCustom,JSBaseTypes[pbtJSValue],[rrfReadable,rrfWritable]);
+    // identifier and value is the array/object itself
+    ResolvedEl.IdentEl:=OrigResolved.IdentEl;
+    ResolvedEl.ExprEl:=OrigResolved.ExprEl;
+    ResolvedEl.Flags:=OrigResolved.Flags+[rrfReadable,rrfWritable];
+    exit;
+    end;
+  inherited ComputeArrayParams_Class(Params, ResolvedEl, ClassScope, Flags,
+    StartEl);
+end;
+
 constructor TPas2JSResolver.Create;
 var
   bt: TPas2jsBaseType;
@@ -2018,10 +2096,10 @@ begin
         ToClass:=TPasClassType(ToResolved.TypeEl);
         if ToClass.IsExternal then
           begin
-          if (ToClass.ExternalName='String')
+          if IsExternalClassName(ToClass,'String')
               and (FromResolved.BaseType in btAllStringAndChars) then
             exit(cExact);
-          if (ToClass.ExternalName='Array')
+          if IsExternalClassName(ToClass,'Array')
               and ((FromResolved.BaseType=btArray)
                   or (FromResolved.BaseType=btContext)) then
             exit(cExact);
@@ -2032,7 +2110,7 @@ begin
         if (FromResolved.BaseType=btContext)
             and (FromResolved.TypeEl.ClassType=TPasClassType)
             and TPasClassType(FromResolved.TypeEl).IsExternal
-            and (TPasClassType(FromResolved.TypeEl).ExternalName='Array') then
+            and IsExternalClassName(TPasClassType(FromResolved.TypeEl),'Array') then
           begin
             // type cast external Array to an array
             exit(cExact+1);
@@ -3876,7 +3954,7 @@ var
         for i:=1 to Max(length(ArrayEl.Ranges),1) do
           begin
           // add parameter
-          AContext.Access:=caRead;
+          ArgContext.Access:=caRead;
           Arg:=ConvertElement(El.Params[ArgNo],ArgContext);
           ArgContext.Access:=OldAccess;
           if B.Name<>nil then
@@ -3895,6 +3973,31 @@ var
         // continue in sub array
         ArrayEl:=AContext.Resolver.ResolveAliasType(ArrayEl.ElType) as TPasArrayType;
       until false;
+      Result:=B;
+    finally
+      if Result=nil then
+        B.Free;
+    end;
+  end;
+
+  procedure ConvertJSObject;
+  var
+    B: TJSBracketMemberExpression;
+    OldAccess: TCtxAccess;
+  begin
+    B:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+    try
+      // add read accessor
+      OldAccess:=AContext.Access;
+      AContext.Access:=caRead;
+      B.MExpr:=ConvertElement(El.Value,AContext);
+      AContext.Access:=OldAccess;
+
+      // add parameter
+      ArgContext.Access:=caRead;
+      B.Name:=ConvertElement(El.Params[0],ArgContext);
+      ArgContext.Access:=OldAccess;
+
       Result:=B;
     finally
       if Result=nil then
@@ -4013,6 +4116,7 @@ Var
   ClassScope: TPas2JSClassScope;
   B: TJSBracketMemberExpression;
   OldAccess: TCtxAccess;
+  aClass: TPasClassType;
 begin
   if El.Kind<>pekArrayParams then
     RaiseInconsistency(20170209113713);
@@ -4059,10 +4163,15 @@ begin
     TypeEl:=ResolvedEl.TypeEl;
     if TypeEl.ClassType=TPasClassType then
       begin
+      aClass:=TPasClassType(TypeEl);
       ClassScope:=TypeEl.CustomData as TPas2JSClassScope;
-      if ClassScope.DefaultProperty=nil then
+      if ClassScope.DefaultProperty<>nil then
+        ConvertDefaultProperty(ClassScope.DefaultProperty)
+      else if AContext.Resolver.IsExternalClassName(aClass,'Array')
+          or AContext.Resolver.IsExternalClassName(aClass,'Object') then
+        ConvertJSObject
+      else
         RaiseInconsistency(20170206180448);
-      ConvertDefaultProperty(ClassScope.DefaultProperty);
       end
     else if TypeEl.ClassType=TPasClassOfType then
       begin
