@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="9"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -25,21 +25,23 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="test.pp"/>
       </local>
     </RunParams>
     <Units Count="3">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="pp"/>
       </Unit0>
       <Unit1>
         <Filename Value="x86\symold86.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="symold86"/>
       </Unit1>
       <Unit2>
         <Filename Value="i8086\symcpu.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="symcpu"/>
       </Unit2>
     </Units>
   </ProjectOptions>
@@ -71,7 +73,11 @@
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
       <CustomOptions Value="-di386"/>
+      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
 </CONFIG>
