@@ -212,6 +212,9 @@ Works:
   - use 0o for octal literals
 
 ToDos:
+- external class array accessor: pass by ref
+- remove 'Object' array workaround
+- pass by ref: arr[3] ->  omit this.a
 - FuncName:= (instead of Result:=)
 - ord(s[i]) -> s.charCodeAt(i)
 - $modeswitch -> define <modeswitch>
@@ -297,6 +300,7 @@ const
   nNewInstanceFunctionMustBeVirtual = 4016;
   nNewInstanceFunctionMustHaveTwoParameters = 4017;
   nNewInstanceFunctionMustNotHaveOverloads = 4018;
+  nArrayAccessorOfExternalClassMustHaveOneParameter = 4019;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -317,6 +321,10 @@ resourcestring
   sNewInstanceFunctionMustBeVirtual = 'NewInstance function must be virtual';
   sNewInstanceFunctionMustHaveTwoParameters = 'NewInstance function must have two parameters';
   sNewInstanceFunctionMustNotHaveOverloads = 'NewInstance function must not have overloads';
+  sArrayAccessorOfExternalClassMustHaveOneParameter = 'Array accessor of external class must have one parameter';
+
+const
+  ExtClassArrayAccessor = 'Array'; // external name 'Array' marks the array param getter/setter
 
 type
   TPas2JSBuiltInName = (
@@ -641,10 +649,12 @@ type
     procedure RenameSubOverloads(Declarations: TFPList);
     procedure PushOverloadScope(Scope: TPasIdentifierScope);
     procedure PopOverloadScope;
+    procedure ResolveImplAsm(El: TPasImplAsmStatement); override;
     procedure FinishModule(CurModule: TPasModule); override;
     procedure FinishClassType(El: TPasClassType); override;
     procedure FinishVariable(El: TPasVariable); override;
     procedure FinishProcedureType(El: TPasProcedureType); override;
+    procedure FinishPropertyOfClass(PropEl: TPasProperty); override;
     procedure CheckNewInstanceFunction(ClassScope: TPas2JSClassScope); virtual;
     function AddExternalName(const aName: string; El: TPasElement): TPasIdentifier; virtual;
     function FindExternalName(const aName: String): TPasIdentifier; virtual;
@@ -684,6 +694,7 @@ type
     function ExtractPasStringLiteral(El: TPasElement; const S: String): TJSString; virtual;
     function ComputeConst(Expr: TPasExpr; StoreCustomData: boolean): TJSValue; virtual;
     function ComputeConstString(Expr: TPasExpr; StoreCustomData, NotEmpty: boolean): String; virtual;
+    function IsExternalArrayAccessor(El: TPasElement): boolean;
     // CustomData
     function GetElementData(El: TPasElementBase;
       DataClass: TPas2JsElementDataClass): TPas2JsElementData; virtual;
@@ -797,7 +808,7 @@ type
     // created by ConvertElement:
     Getter: TJSElement;
     Setter: TJSElement;
-    ReusingReference: boolean; // truer = result is a reference, do not create another
+    ReusingReference: boolean; // true = result is a reference, do not create another
     constructor Create(PasEl: TPasElement; JSEl: TJSElement; aParent: TConvertContext); override;
   end;
 
@@ -1389,6 +1400,28 @@ begin
   FOverloadScopes.Delete(FOverloadScopes.Count-1);
 end;
 
+procedure TPas2JSResolver.ResolveImplAsm(El: TPasImplAsmStatement);
+{type
+  TAsmToken = (
+    atNone,
+    atWord,
+    atDot,
+    atRoundBracketOpen,
+    atRoundBracketClose
+    );
+
+  procedure Next;
+  begin
+
+  end;}
+
+var
+  Lines: TStrings;
+begin
+  Lines:=El.Tokens;
+  if Lines=nil then exit;
+end;
+
 procedure TPas2JSResolver.FinishModule(CurModule: TPasModule);
 var
   ModuleClass: TClass;
@@ -1647,6 +1680,46 @@ begin
 
       exit;
       end;
+    end;
+end;
+
+procedure TPas2JSResolver.FinishPropertyOfClass(PropEl: TPasProperty);
+var
+  Getter, Setter: TPasElement;
+  GetterIsArrayAccessor, SetterIsArrayAcessor: Boolean;
+  Arg: TPasArgument;
+  ArgResolved: TPasResolverResult;
+begin
+  inherited FinishPropertyOfClass(PropEl);
+  Getter:=GetPasPropertyGetter(PropEl);
+  GetterIsArrayAccessor:=IsExternalArrayAccessor(Getter);
+  Setter:=GetPasPropertySetter(PropEl);
+  SetterIsArrayAcessor:=IsExternalArrayAccessor(Setter);
+  if GetterIsArrayAccessor then
+    begin
+    if PropEl.Args.Count<>1 then
+      RaiseMsg(20170403001743,nArrayAccessorOfExternalClassMustHaveOneParameter,
+        sArrayAccessorOfExternalClassMustHaveOneParameter,
+        [],PropEl);
+    end;
+  if SetterIsArrayAcessor then
+    begin
+    if PropEl.Args.Count<>1 then
+      RaiseMsg(20170403001806,nArrayAccessorOfExternalClassMustHaveOneParameter,
+        sArrayAccessorOfExternalClassMustHaveOneParameter,
+        [],PropEl);
+    end;
+  if GetterIsArrayAccessor or SetterIsArrayAcessor then
+    begin
+    Arg:=TPasArgument(PropEl.Args[0]);
+    if not (Arg.Access in [argDefault,argConst]) then
+      RaiseMsg(20170403090225,nXExpectedButYFound,sXExpectedButYFound,
+        ['default or "const"',AccessNames[Arg.Access]],PropEl);
+    ComputeElement(Arg,ArgResolved,[rcType],Arg);
+    if not (ArgResolved.BaseType in (btAllInteger+btAllStringAndChars+btAllBooleans+btAllFloats)) then
+      RaiseMsg(20170403090628,nIncompatibleTypesGotExpected,
+        sIncompatibleTypesGotExpected,
+        [GetResolverResultDescription(ArgResolved,true),'string'],Arg);
     end;
 end;
 
@@ -2304,6 +2377,16 @@ begin
   if NotEmpty and (V.AsString='') then
     RaiseMsg(20170321085318,nExpectedXButFoundY,sExpectedXButFoundY,['string literal','empty'],Expr);
   Result:=String(V.AsString);
+end;
+
+function TPas2JSResolver.IsExternalArrayAccessor(El: TPasElement): boolean;
+var
+  ExtName: String;
+begin
+  if (not (El is TPasProcedure)) or (TPasProcedure(El).LibrarySymbolName=nil) then
+    exit(false);
+  ExtName:=ComputeConstString(TPasProcedure(El).LibrarySymbolName,false,false);
+  Result:=ExtName=ExtClassArrayAccessor;
 end;
 
 function TPas2JSResolver.GetElementData(El: TPasElementBase;
@@ -3526,6 +3609,7 @@ begin
               RaiseNotSupported(El,AContext,20170206000310);
             AssignContext.PropertyEl:=Prop;
             AssignContext.Setter:=Decl;
+            // Setter
             Call:=CreateCallExpression(El);
             AssignContext.Call:=Call;
             Call.Expr:=CreateReferencePathExpr(Decl,AContext,false,Ref);
@@ -4005,6 +4089,71 @@ var
     end;
   end;
 
+  function IsJSArrayAccessorAndConvert(Prop: TPasProperty;
+    AccessEl: TPasElement;
+    AContext: TConvertContext; ChompPropName: boolean): boolean;
+  // If El.Value contains property name set ChompPropName = true
+  var
+    Bracket: TJSBracketMemberExpression;
+    OldAccess: TCtxAccess;
+    PathEl: TPasExpr;
+    Ref: TResolvedReference;
+    Path: String;
+  begin
+    if not AContext.Resolver.IsExternalArrayAccessor(AccessEl) then
+      exit(false);
+    Result:=true;
+    // array accessor of external class
+    if Prop.Args.Count<>1 then
+      RaiseInconsistency(20170403003753);
+    // array accessor of external class  -> create  PathEl[param]
+    Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,Prop));
+    try
+      PathEl:=El.Value;
+      if ChompPropName then
+        begin
+        if (PathEl is TPrimitiveExpr)
+            and (TPrimitiveExpr(PathEl).Kind=pekIdent)
+            and (PathEl.CustomData is TResolvedReference) then
+          begin
+          // propname without path, e.g.  propname[param]
+          Ref:=TResolvedReference(PathEl.CustomData);
+          Path:=CreateReferencePath(Prop,AContext,rpkPath,false,Ref);
+          if Path<>'' then
+            Bracket.MExpr:=CreateBuiltInIdentifierExpr(Path);
+          PathEl:=nil;
+          end
+        else if (PathEl is TBinaryExpr)
+            and (TBinaryExpr(PathEl).OpCode=eopSubIdent)
+            and (TBinaryExpr(PathEl).right is TPrimitiveExpr)
+            and (TPrimitiveExpr(TBinaryExpr(PathEl).right).Kind=pekIdent) then
+          begin
+          // instance.propname[param]  ->  instance[param]
+          PathEl:=TBinaryExpr(PathEl).left;
+          end
+        else
+          RaiseNotSupported(El.Value,AContext,20170402225050);
+        end;
+
+      if (PathEl<>nil) and (Bracket.MExpr=nil) then
+        begin
+        OldAccess:=AContext.Access;
+        AContext.Access:=caRead;
+        Bracket.MExpr:=ConvertElement(PathEl,AContext);
+        AContext.Access:=OldAccess;
+        end;
+
+      OldAccess:=ArgContext.Access;
+      ArgContext.Access:=caRead;
+      Bracket.Name:=ConvertElement(El.Params[0],AContext);
+      ArgContext.Access:=OldAccess;
+      ConvertArrayParams:=Bracket;
+      Bracket:=nil;
+    finally
+      Bracket.Free;
+    end;
+  end;
+
   procedure ConvertIndexProperty(Prop: TPasProperty; AContext: TConvertContext);
   var
     Call: TJSCallExpression;
@@ -4023,14 +4172,20 @@ var
       case AContext.Access of
       caAssign:
         begin
-        AssignContext:=AContext.AccessContext as TAssignContext;
         AccessEl:=AContext.Resolver.GetPasPropertySetter(Prop);
+        if IsJSArrayAccessorAndConvert(Prop,AccessEl,AContext,true) then
+            exit;
+        AssignContext:=AContext.AccessContext as TAssignContext;
         AssignContext.PropertyEl:=Prop;
         AssignContext.Setter:=AccessEl;
         AssignContext.Call:=Call;
         end;
       caRead:
+        begin
         AccessEl:=AContext.Resolver.GetPasPropertyGetter(Prop);
+        if IsJSArrayAccessorAndConvert(Prop,AccessEl,AContext,true) then
+          exit;
+        end
       else
         RaiseNotSupported(El,AContext,20170213213317);
       end;
@@ -4082,12 +4237,42 @@ var
     end;
   end;
 
-  procedure ConvertDefaultProperty(Prop: TPasProperty);
+  procedure ConvertDefaultProperty(const ResolvedEl: TPasResolverResult;
+    Prop: TPasProperty);
   var
     DotContext: TDotContext;
     Left, Right: TJSElement;
     OldAccess: TCtxAccess;
+    AccessEl: TPasElement;
   begin
+    case AContext.Access of
+    caAssign:
+      begin
+      AccessEl:=AContext.Resolver.GetPasPropertySetter(Prop);
+      if IsJSArrayAccessorAndConvert(Prop,AccessEl,AContext,false) then
+        exit;
+      end;
+    caRead:
+      begin
+      AccessEl:=AContext.Resolver.GetPasPropertyGetter(Prop);
+      if IsJSArrayAccessorAndConvert(Prop,AccessEl,AContext,false) then
+        exit;
+      end;
+    {caByReference:
+      begin
+      ParamContext:=AContext.AccessContext as TParamContext;
+      AccessEl:=AContext.Resolver.GetPasPropertyGetter(Prop);
+      SetAccessEl:=AContext.Resolver.GetPasPropertySetter(Prop);
+      if IsJSArrayAccessorAndConvert(Prop,AccessEl,AContext,false) then
+        begin
+
+        end;
+      RaiseNotSupported(El,AContext,20170403000550);
+      end;}
+    else
+      RaiseNotSupported(El,AContext,20170402233834);
+    end;
+
     DotContext:=nil;
     Left:=nil;
     Right:=nil;
@@ -4098,7 +4283,7 @@ var
       AContext.Access:=OldAccess;
 
       DotContext:=TDotContext.Create(El.Value,Left,AContext);
-      AContext.Resolver.ComputeElement(El.Value,DotContext.LeftResolved,[]);
+      DotContext.LeftResolved:=ResolvedEl;
       ConvertIndexProperty(Prop,DotContext);
       Right:=Result;
       Result:=nil;
@@ -4166,7 +4351,7 @@ begin
       aClass:=TPasClassType(TypeEl);
       ClassScope:=TypeEl.CustomData as TPas2JSClassScope;
       if ClassScope.DefaultProperty<>nil then
-        ConvertDefaultProperty(ClassScope.DefaultProperty)
+        ConvertDefaultProperty(ResolvedEl,ClassScope.DefaultProperty)
       else if AContext.Resolver.IsExternalClassName(aClass,'Array')
           or AContext.Resolver.IsExternalClassName(aClass,'Object') then
         ConvertJSObject
@@ -4178,7 +4363,7 @@ begin
       ClassScope:=TPasClassOfType(TypeEl).DestType.CustomData as TPas2JSClassScope;
       if ClassScope.DefaultProperty=nil then
         RaiseInconsistency(20170206180503);
-      ConvertDefaultProperty(ClassScope.DefaultProperty);
+      ConvertDefaultProperty(ResolvedEl,ClassScope.DefaultProperty);
       end
     else if TypeEl.ClassType=TPasArrayType then
       ConvertArray(TPasArrayType(TypeEl))
@@ -5758,6 +5943,8 @@ function TPasToJSConverter.CreateBuiltInIdentifierExpr(AName: string
 var
   Ident: TJSPrimaryExpressionIdent;
 begin
+  if AName='' then
+    RaiseInconsistency(20170402230134);
   Ident:=TJSPrimaryExpressionIdent.Create(0,0);
   // do not lowercase
   Ident.Name:=TJSString(AName);
@@ -6977,16 +7164,37 @@ begin
         begin
         RightParent:=Right;
         Right:=TJSCallExpression(Right).Expr;
+        if Right=nil then
+          begin
+          // left-most is nil -> insert Left
+          TJSCallExpression(RightParent).Expr:=Left;
+          ok:=true;
+          exit;
+          end;
         end
       else if (Right.ClassType=TJSBracketMemberExpression) then
         begin
         RightParent:=Right;
         Right:=TJSBracketMemberExpression(Right).MExpr;
+        if Right=nil then
+          begin
+          // left-most is nil -> insert Left
+          TJSBracketMemberExpression(RightParent).MExpr:=Left;
+          ok:=true;
+          exit;
+          end;
         end
       else if (Right.ClassType=TJSDotMemberExpression) then
         begin
         RightParent:=Right;
         Right:=TJSDotMemberExpression(Right).MExpr;
+        if Right=nil then
+          begin
+          // left-most is nil -> insert Left
+          TJSDotMemberExpression(RightParent).MExpr:=Left;
+          ok:=true;
+          exit;
+          end;
         end
       else if (Right.ClassType=TJSPrimaryExpressionIdent) then
         begin
@@ -8654,8 +8862,8 @@ begin
       end;
 
     // if ParamContext.Getter is set then
-    // ParamContext.Getter is the last part of the FullGetter, that needs to
-    // be replaced by ParamContext.Setter to create a FullSetter
+    // ParamContext.Getter is the last part of the FullGetter
+    // FullSetter is created from FullGetter by replacing the Getter with the Setter
     {$IFDEF VerbosePas2JS}
     writeln('TPasToJSConverter.CreateProcedureCallArg VAR FullGetter=',GetObjName(FullGetter),' Getter=',GetObjName(ParamContext.Getter),' Setter=',GetObjName(ParamContext.Setter));
     {$ENDIF}
@@ -8679,11 +8887,12 @@ begin
       GetDotPos:=PosLast('.',GetPath);
       if GetDotPos>0 then
         begin
-        // e.g. this.readvar
+        // e.g. path1.path2.readvar
         // create
-        //    GetPathExpr: this
-        //    GetExpr:     p.readvar
-        // Will create "{p:GetPathExpr, get:function(){return GetExpr;},set:...}"
+        //    GetPathExpr: path1.path2
+        //    GetExpr:     this.p.readvar
+        // Will create "{p:GetPathExpr, get:function(){return GetExpr;},
+        //                              set:function(v){GetExpr = v;}}"
         GetPathExpr:=CreateBuiltInIdentifierExpr(LeftStr(GetPath,GetDotPos-1));
         GetExpr:=CreateDotExpression(El,CreateBuiltInIdentifierExpr('this.'+GetPathName),
             CreateBuiltInIdentifierExpr(copy(GetPath,GetDotPos+1)));
@@ -8757,10 +8966,10 @@ begin
       //  get:function{return this.p[this.a];},
       //  set:function(v){this.p[this.a]=v;}
       // }
-
-      // create "a:value"
       BracketExpr:=TJSBracketMemberExpression(FullGetter);
       ParamExpr:=BracketExpr.Name;
+
+      // create "a:value"
       BracketExpr.Name:=CreateBuiltInIdentifierExpr('this.'+ParamName);
       AddVar(ParamName,ParamExpr);
 

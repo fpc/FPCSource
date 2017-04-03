@@ -217,7 +217,7 @@ type
     Procedure TestContinue;
     Procedure TestProcedureExternal;
     Procedure TestProcedureExternalOtherUnit;
-    Procedure TestProcedureAsm;
+    Procedure TestProcedure_Asm;
     Procedure TestProcedureAssembler;
     Procedure TestProcedure_VarParam;
     Procedure TestProcedureOverload;
@@ -253,6 +253,7 @@ type
     Procedure TestForLoop_Nested;
     Procedure TestRepeatUntil;
     Procedure TestAsmBlock;
+    Procedure TestAsmPas_Impl;
     Procedure TestTryFinally;
     Procedure TestTryExcept;
     Procedure TestCaseOf;
@@ -368,7 +369,9 @@ type
     Procedure TestExternalClass_TypeCastToRootClass;
     Procedure TestExternalClass_TypeCastStringToExternalString;
     Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
+    Procedure TestExternalClass_BracketOperatorOld;
     Procedure TestExternalClass_BracketOperator;
+    // ToDo: check default property accessors have one parameter
 
     // proc types
     Procedure TestProcType;
@@ -2063,7 +2066,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestProcedureAsm;
+procedure TTestModule.TestProcedure_Asm;
 begin
   StartProgram(false);
   Add('function DoIt: longint;');
@@ -3804,6 +3807,44 @@ begin
     ';',
     'this.vI = 4;'
     ]));
+end;
+
+procedure TTestModule.TestAsmPas_Impl;
+begin
+  StartUnit(false);
+  Add('interface');
+  Add('const cIntf: longint = 1;');
+  Add('var vIntf: longint;');
+  Add('implementation');
+  Add('const cImpl: longint = 2;');
+  Add('var vImpl: longint;');
+  Add('procedure DoIt;');
+  Add('const cLoc: longint = 3;');
+  Add('var vLoc: longint;');
+  Add('begin;');
+  Add('  asm');
+  //Add('    pas(vIntf)=pas(cIntf);');
+  //Add('    pas(vImpl)=pas(cImpl);');
+  //Add('    pas(vLoc)=pas(cLoc);');
+  Add('  end;');
+  Add('end;');
+  ConvertUnit;
+  // ToDo: check use analyzer
+  CheckSource('TestAsmPas_Impl',
+    LinesToStr([
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;',
+    'this.cIntf = 1;',
+    'this.vIntf = 0;',
+    'var cLoc = 3;',
+    '$impl.cImpl = 2;',
+    '$impl.vImpl = 0;',
+    '$impl.DoIt = function () {',
+    '  var vLoc = 0;',
+    '};',
+    '']),
+    '');
 end;
 
 procedure TTestModule.TestTryFinally;
@@ -8499,7 +8540,7 @@ begin
   ConvertProgram;
 end;
 
-procedure TTestModule.TestExternalClass_BracketOperator;
+procedure TTestModule.TestExternalClass_BracketOperatorOld;
 begin
   StartProgram(false);
   Add('{$modeswitch externalclass}');
@@ -8583,6 +8624,56 @@ begin
     '      this.p[this.a] = v;',
     '    }',
     '});',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_BracketOperator;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    function GetItems(Index: longint): jsvalue; external name ''Array'';');
+  Add('    procedure SetItems(Index: longint; Value: jsvalue); external name ''Array'';');
+  Add('    property Items[Index: longint]: jsvalue read GetItems write SetItems; default;');
+  Add('  end;');
+  Add('procedure DoIt(vI: JSValue; const vJ: jsvalue; var vK: jsvalue; out vL: jsvalue);');
+  Add('begin end;');
+  Add('var');
+  Add('  Arr: tjsarray;');
+  Add('  s: string;');
+  Add('  i: longint;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  v:=arr[0];');
+  Add('  v:=arr.items[1];');
+  Add('  arr[2]:=s;');
+  Add('  arr.items[3]:=s;');
+  Add('  arr[4]:=i;');
+  Add('  arr[5]:=arr[6];');
+  Add('  arr.items[7]:=arr.items[8];');
+  Add('  with arr do items[9]:=items[10];');
+  //Add('  doit(arr[7],arr[8],arr[9],arr[10]);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketOperator',
+    LinesToStr([ // statements
+    'this.DoIt = function (vI, vJ, vK, vL) {',
+    '};',
+    'this.Arr = null;',
+    'this.s = "";',
+    'this.i = 0;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.Arr[0];',
+    'this.v = this.Arr[1];',
+    'this.Arr[2] = this.s;',
+    'this.Arr[3] = this.s;',
+    'this.Arr[4] = this.i;',
+    'this.Arr[5] = this.Arr[6];',
+    'this.Arr[7] = this.Arr[8];',
+    'var $with1 = this.Arr;',
+    '$with1[9] = $with1[10];',
     '']));
 end;
 
