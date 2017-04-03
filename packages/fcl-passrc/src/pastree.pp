@@ -854,9 +854,9 @@ type
   public
     ProcType : TPasProcedureType;
     Body : TProcedureBody;
-    PublicName,
+    PublicName, // e.g. public PublicName;
     LibrarySymbolName,
-    LibraryExpr : TPasExpr;
+    LibraryExpr : TPasExpr; // e.g. external LibraryExpr name LibrarySymbolName;
     DispIDExpr :  TPasExpr;
     AliasName : String;
     Procedure AddModifier(AModifier : TProcedureModifier);

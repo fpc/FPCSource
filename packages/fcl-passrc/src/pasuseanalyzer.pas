@@ -147,7 +147,7 @@ type
   end;
 
   TPasAnalyzerOption = (
-    paoAlwaysUsePublished, // when a class is used, all its published members are used as well
+    paoKeepPublished, // when a class is used, all its published members are used as well
     paoOnlyExports // default: use all class members accessible from outside (protected, but not private)
     );
   TPasAnalyzerOptions = set of TPasAnalyzerOption;
@@ -1112,7 +1112,7 @@ begin
       UseType(TPasType(El.Interfaces[i]),paumElement);
     end;
   // members
-  UsePublished:=(Mode<>paumAllExports) and (paoAlwaysUsePublished in Options);
+  UsePublished:=(Mode<>paumAllExports) and (paoKeepPublished in Options);
   for i:=0 to El.Members.Count-1 do
     begin
     Member:=TPasElement(El.Members[i]);
@@ -1685,7 +1685,7 @@ begin
   if IsExport(El) then exit(false);
   case El.Visibility of
   visPrivate,visStrictPrivate: exit(true);
-  visPublished: if paoAlwaysUsePublished in Options then exit(false);
+  visPublished: if paoKeepPublished in Options then exit(false);
   end;
   Result:=IsModuleInternal(El.Parent);
 end;

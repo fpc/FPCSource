@@ -1052,6 +1052,7 @@ type
     procedure ResolveImplLabelMark(Mark: TPasImplLabelMark); virtual;
     procedure ResolveImplForLoop(Loop: TPasImplForLoop); virtual;
     procedure ResolveImplWithDo(El: TPasImplWithDo); virtual;
+    procedure ResolveImplAsm(El: TPasImplAsmStatement); virtual;
     procedure ResolveImplAssign(El: TPasImplAssign); virtual;
     procedure ResolveImplSimple(El: TPasImplSimple); virtual;
     procedure ResolveImplRaise(El: TPasImplRaise); virtual;
@@ -4178,56 +4179,60 @@ begin
 end;
 
 procedure TPasResolver.ResolveImplElement(El: TPasImplElement);
+var
+  C: TClass;
 begin
   //writeln('TPasResolver.ResolveImplElement ',GetObjName(El));
-  if El=nil then
-  else if El.ClassType=TPasImplBeginBlock then
+  if El=nil then exit;
+  C:=El.ClassType;
+  if C=TPasImplBeginBlock then
     ResolveImplBlock(TPasImplBeginBlock(El))
-  else if El.ClassType=TPasImplAssign then
+  else if C=TPasImplAssign then
     ResolveImplAssign(TPasImplAssign(El))
-  else if El.ClassType=TPasImplSimple then
+  else if C=TPasImplSimple then
     ResolveImplSimple(TPasImplSimple(El))
-  else if El.ClassType=TPasImplBlock then
+  else if C=TPasImplBlock then
     ResolveImplBlock(TPasImplBlock(El))
-  else if El.ClassType=TPasImplRepeatUntil then
+  else if C=TPasImplRepeatUntil then
     begin
     ResolveImplBlock(TPasImplBlock(El));
     ResolveStatementConditionExpr(TPasImplRepeatUntil(El).ConditionExpr);
     end
-  else if El.ClassType=TPasImplIfElse then
+  else if C=TPasImplIfElse then
     begin
     ResolveStatementConditionExpr(TPasImplIfElse(El).ConditionExpr);
     ResolveImplElement(TPasImplIfElse(El).IfBranch);
     ResolveImplElement(TPasImplIfElse(El).ElseBranch);
     end
-  else if El.ClassType=TPasImplWhileDo then
+  else if C=TPasImplWhileDo then
     begin
     ResolveStatementConditionExpr(TPasImplWhileDo(El).ConditionExpr);
     ResolveImplElement(TPasImplWhileDo(El).Body);
     end
-  else if El.ClassType=TPasImplCaseOf then
+  else if C=TPasImplCaseOf then
     ResolveImplCaseOf(TPasImplCaseOf(El))
-  else if El.ClassType=TPasImplLabelMark then
+  else if C=TPasImplLabelMark then
     ResolveImplLabelMark(TPasImplLabelMark(El))
-  else if El.ClassType=TPasImplForLoop then
+  else if C=TPasImplForLoop then
     ResolveImplForLoop(TPasImplForLoop(El))
-  else if El.ClassType=TPasImplTry then
+  else if C=TPasImplTry then
     begin
     ResolveImplBlock(TPasImplTry(El));
     ResolveImplBlock(TPasImplTry(El).FinallyExcept);
     ResolveImplBlock(TPasImplTry(El).ElseBranch);
     end
-  else if El.ClassType=TPasImplExceptOn then
+  else if C=TPasImplExceptOn then
     // handled in FinishExceptOnStatement
-  else if El.ClassType=TPasImplRaise then
+  else if C=TPasImplRaise then
     ResolveImplRaise(TPasImplRaise(El))
-  else if El.ClassType=TPasImplCommand then
+  else if C=TPasImplCommand then
     begin
     if TPasImplCommand(El).Command<>'' then
       RaiseNotYetImplemented(20160922163442,El,'TPasResolver.ResolveImplElement');
     end
-  else if El.ClassType=TPasImplAsmStatement then
-  else if El.ClassType=TPasImplWithDo then
+  else if C=TPasImplAsmStatement then
+    ResolveImplAsm(TPasImplAsmStatement(El))
+  else if C=TPasImplWithDo then
     ResolveImplWithDo(TPasImplWithDo(El))
   else
     RaiseNotYetImplemented(20160922163445,El,'TPasResolver.ResolveImplElement');
@@ -4397,6 +4402,11 @@ begin
     RaiseInternalError(20160923102846);
   while ScopeCount>OldScopeCount do
     PopScope;
+end;
+
+procedure TPasResolver.ResolveImplAsm(El: TPasImplAsmStatement);
+begin
+  if El=nil then ;
 end;
 
 procedure TPasResolver.ResolveImplAssign(El: TPasImplAssign);
