@@ -131,6 +131,9 @@ const
   DW_FORM_ref8 = $14;
   DW_FORM_ref_udata = $15;
   DW_FORM_indirect = $16;
+  DW_FORM_sec_offset = $17;
+  DW_FORM_exprloc = $18;
+  DW_FORM_flag_present = $19;
 
 type
   { state record for the line info state machine }
@@ -1007,7 +1010,8 @@ procedure SkipAttr(form : QWord);
         ReadNext(dummy,8);
       DW_FORM_string:
         ReadString;
-      DW_FORM_block:
+      DW_FORM_block,
+      DW_FORM_exprloc:
         begin
           ql:=ReadULEB128;
           for i:=1 to ql do
@@ -1037,7 +1041,8 @@ procedure SkipAttr(form : QWord);
           end
         else
           ReadNext(dummy,header64.address_size);
-      DW_FORM_strp:
+      DW_FORM_strp,
+      DW_FORM_sec_offset:
         if isdwarf64 then
           ReadNext(dummy,8)
         else
@@ -1056,6 +1061,7 @@ procedure SkipAttr(form : QWord);
         ReadULEB128;
       DW_FORM_indirect:
         SkipAttr(ReadULEB128);
+      DW_FORM_flag_present: {none};
       else
         begin
           writeln(stderr,'Internal error: unknown dwarf form: $',hexstr(form,2));
