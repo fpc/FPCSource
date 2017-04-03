@@ -207,6 +207,7 @@ Works:
     allow type casting to any array
   - parameter, result type, assign from/to untyped
   - operators equal, not equal
+  - callback: assign to jsvalue, equal, not equal
 - ECMAScript6:
   - use 0b for binary literals
   - use 0o for octal literals
@@ -664,7 +665,8 @@ type
     // additional base types
     function AddJSBaseType(const aName: string; Typ: TPas2jsBaseType): TResElDataPas2JSBaseType;
     function IsJSBaseType(TypeEl: TPasType; Typ: TPas2jsBaseType): boolean;
-    function IsJSBaseType(const TypeResolved: TPasResolverResult; Typ: TPas2jsBaseType): boolean;
+    function IsJSBaseType(const TypeResolved: TPasResolverResult;
+      Typ: TPas2jsBaseType; HasValue: boolean = false): boolean;
     function CheckAssignCompatibilityCustom(const LHS,
       RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean; var Handled: boolean): integer; override;
@@ -1021,6 +1023,8 @@ type
     Function ConvertRecordValues(El: TRecordValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSelfExpression(El: TSelfExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBinaryExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBinaryExpressionRes(El: TBinaryExpr; AContext: TConvertContext;
+      const LeftResolved, RightResolved: TPasResolverResult; var A,B: TJSElement): TJSElement; virtual;
     Function ConvertSubIdentExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBoolConstExpression(El: TBoolConstExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertPrimitiveExpression(El: TPrimitiveExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -1849,9 +1853,13 @@ begin
 end;
 
 function TPas2JSResolver.IsJSBaseType(const TypeResolved: TPasResolverResult;
-  Typ: TPas2jsBaseType): boolean;
+  Typ: TPas2jsBaseType; HasValue: boolean): boolean;
 begin
-  Result:=(TypeResolved.BaseType=btCustom) and IsJSBaseType(TypeResolved.TypeEl,Typ);
+  if (TypeResolved.BaseType<>btCustom) or not IsJSBaseType(TypeResolved.TypeEl,Typ) then
+    exit(false);
+  if HasValue and not (rrfReadable in TypeResolved.Flags) then
+    exit(false);
+  Result:=true;
 end;
 
 function TPas2JSResolver.CheckAssignCompatibilityCustom(const LHS,
@@ -3113,14 +3121,10 @@ Var
   C : TJSBinaryClass;
   A,B: TJSElement;
   UseBitwiseOp: Boolean;
-  DotExpr: TJSDotMemberExpression;
   Call: TJSCallExpression;
   LeftResolved, RightResolved: TPasResolverResult;
-  FunName: String;
-  Bracket: TJSBracketMemberExpression;
   Flags: TPasResolverComputeFlags;
   ModeSwitches: TModeSwitches;
-  NotEl: TJSUnaryNotExpression;
 begin
   Result:=Nil;
 
@@ -3164,145 +3168,18 @@ begin
         begin
         if LeftResolved.BaseType=btNil then
           Flags:=[rcNoImplicitProcType]
-        else if AContext.Resolver.IsProcedureType(LeftResolved) then
+        else if AContext.Resolver.IsProcedureType(LeftResolved,true) then
           Flags:=[rcNoImplicitProcType]
         else
           Flags:=[];
         end;
       AContext.Resolver.ComputeElement(El.right,RightResolved,Flags);
 
+      Result:=ConvertBinaryExpressionRes(El,AContext,LeftResolved,RightResolved,A,B);
+      if Result<>nil then exit;
       {$IFDEF VerbosePas2JS}
       writeln('TPasToJSConverter.ConvertBinaryExpression Left=',GetResolverResultDesc(LeftResolved),' Right=',GetResolverResultDesc(RightResolved));
       {$ENDIF}
-      if LeftResolved.BaseType=btSet then
-        begin
-        // set operators -> rtl.operatorfunction(a,b)
-        case El.OpCode of
-        eopAdd: FunName:=FBuiltInNames[pbifnSet_Union];
-        eopSubtract: FunName:=FBuiltInNames[pbifnSet_Difference];
-        eopMultiply: FunName:=FBuiltInNames[pbifnSet_Intersect];
-        eopSymmetricaldifference: FunName:=FBuiltInNames[pbifnSet_SymDiffSet];
-        eopEqual: FunName:=FBuiltInNames[pbifnSet_Equal];
-        eopNotEqual: FunName:=FBuiltInNames[pbifnSet_NotEqual];
-        eopGreaterThanEqual: FunName:=FBuiltInNames[pbifnSet_GreaterEqual];
-        eopLessthanEqual: FunName:=FBuiltInNames[pbifnSet_LowerEqual];
-        else
-          DoError(20170209151300,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,[OpcodeStrings[El.OpCode]],El);
-        end;
-        Call:=CreateCallExpression(El);
-        Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FunName]);
-        Call.Args.Elements.AddElement.Expr:=A;
-        Call.Args.Elements.AddElement.Expr:=B;
-        Result:=Call;
-        exit;
-        end
-      else if (RightResolved.BaseType=btSet) and (El.OpCode=eopIn) then
-        begin
-        // a in b -> b[a]
-        Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
-        Bracket.MExpr:=B;
-        Bracket.Name:=A;
-        Result:=Bracket;
-        exit;
-        end
-      else if (El.OpCode=eopIs) then
-        begin
-        // "A is B"
-        Call:=CreateCallExpression(El);
-        Result:=Call;
-        Call.Args.Elements.AddElement.Expr:=A; A:=nil;
-        if RightResolved.IdentEl is TPasClassOfType then
-          begin
-          // "A is class-of-type" -> "A is class"
-          FreeAndNil(B);
-          B:=CreateReferencePathExpr(TPasClassOfType(RightResolved.IdentEl).DestType,AContext);
-          end;
-        if (RightResolved.TypeEl is TPasClassType) and TPasClassType(RightResolved.TypeEl).IsExternal then
-          begin
-          // B is an external class -> "rtl.isExt(A,B)"
-          Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIsExt]]);
-          Call.Args.Elements.AddElement.Expr:=B; B:=nil;
-          end
-        else if LeftResolved.TypeEl is TPasClassOfType then
-          begin
-          // A is a TPasClassOfType -> "rtl.is(A,B)"
-          Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIs]]);
-          Call.Args.Elements.AddElement.Expr:=B; B:=nil;
-          end
-        else
-          begin
-          // use directly "B.isPrototypeOf(A)"
-          DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-          DotExpr.MExpr:=B; B:=nil;
-          DotExpr.Name:='isPrototypeOf';
-          Call.Expr:=DotExpr;
-          end;
-        exit;
-        end
-      else if (El.OpCode in [eopEqual,eopNotEqual]) then
-        begin
-        if AContext.Resolver.IsProcedureType(LeftResolved) then
-        begin
-          if RightResolved.BaseType=btNil then
-          else if AContext.Resolver.IsProcedureType(RightResolved) then
-            begin
-            // convert "proctypeA = proctypeB" to "rtl.eqCallback(proctypeA,proctypeB)"
-            Call:=CreateCallExpression(El);
-            Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnProcType_Equal]]);
-            Call.Args.Elements.AddElement.Expr:=A;
-            Call.Args.Elements.AddElement.Expr:=B;
-            if El.OpCode=eopNotEqual then
-              begin
-              // convert "proctypeA <> proctypeB" to "!rtl.eqCallback(proctypeA,proctypeB)"
-              NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-              NotEl.A:=Call;
-              Result:=NotEl;
-              end
-            else
-              Result:=Call;
-            exit;
-            end;
-          end
-        else if LeftResolved.TypeEl is TPasRecordType then
-          begin
-          // convert "recordA = recordB" to "recordA.$equal(recordB)"
-          Call:=CreateCallExpression(El);
-          Call.Expr:=CreateDotExpression(El,A,CreateBuiltInIdentifierExpr(FBuiltInNames[pbifnRecordEqual]));
-          Call.Args.Elements.AddElement.Expr:=B;
-          if El.OpCode=eopNotEqual then
-            begin
-            // convert "recordA = recordB" to "!recordA.$equal(recordB)"
-            NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-            NotEl.A:=Call;
-            Result:=NotEl;
-            end
-          else
-            Result:=Call;
-          exit;
-          end
-        else if LeftResolved.TypeEl is TPasArrayType then
-          begin
-          if RightResolved.BaseType=btNil then
-            begin
-            // convert "array = nil" to "rtl.length(array) > 0"
-            FreeAndNil(B);
-            Result:=CreateCmpArrayWithNil(El,A,El.OpCode);
-            A:=nil;
-            exit;
-            end;
-          end
-        else if RightResolved.TypeEl is TPasArrayType then
-          begin
-          if LeftResolved.BaseType=btNil then
-            begin
-            // convert "nil = array" to "0 < rtl.length(array)"
-            FreeAndNil(A);
-            Result:=CreateCmpArrayWithNil(El,B,El.OpCode);
-            B:=nil;
-            exit;
-            end;
-          end;
-        end;
       end;
 
     C:=BinClasses[El.OpCode];
@@ -3374,6 +3251,172 @@ begin
       B.Free;
       end;
   end;
+end;
+
+function TPasToJSConverter.ConvertBinaryExpressionRes(El: TBinaryExpr;
+  AContext: TConvertContext; const LeftResolved,
+  RightResolved: TPasResolverResult; var A, B: TJSElement): TJSElement;
+
+  function CreateEqualCallback: TJSElement;
+  var
+    Call: TJSCallExpression;
+    NotEl: TJSUnaryNotExpression;
+  begin
+    // convert "proctypeA = proctypeB" to "rtl.eqCallback(proctypeA,proctypeB)"
+    Call:=CreateCallExpression(El);
+    Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnProcType_Equal]]);
+    Call.Args.Elements.AddElement.Expr:=A;
+    A:=nil;
+    Call.Args.Elements.AddElement.Expr:=B;
+    B:=nil;
+    if El.OpCode=eopNotEqual then
+      begin
+      // convert "proctypeA <> proctypeB" to "!rtl.eqCallback(proctypeA,proctypeB)"
+      NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
+      NotEl.A:=Call;
+      Result:=NotEl;
+      end
+    else
+      Result:=Call;
+  end;
+
+var
+  FunName: String;
+  Call: TJSCallExpression;
+  Bracket: TJSBracketMemberExpression;
+  DotExpr: TJSDotMemberExpression;
+  NotEl: TJSUnaryNotExpression;
+begin
+  {$IFDEF VerbosePas2JS}
+  writeln('TPasToJSConverter.ConvertBinaryExpressionRes OpCode="',OpcodeStrings[El.OpCode],'" Left=',GetResolverResultDesc(LeftResolved),' Right=',GetResolverResultDesc(RightResolved));
+  {$ENDIF}
+  Result:=nil;
+  if LeftResolved.BaseType=btSet then
+    begin
+    // set operators -> rtl.operatorfunction(a,b)
+    case El.OpCode of
+    eopAdd: FunName:=FBuiltInNames[pbifnSet_Union];
+    eopSubtract: FunName:=FBuiltInNames[pbifnSet_Difference];
+    eopMultiply: FunName:=FBuiltInNames[pbifnSet_Intersect];
+    eopSymmetricaldifference: FunName:=FBuiltInNames[pbifnSet_SymDiffSet];
+    eopEqual: FunName:=FBuiltInNames[pbifnSet_Equal];
+    eopNotEqual: FunName:=FBuiltInNames[pbifnSet_NotEqual];
+    eopGreaterThanEqual: FunName:=FBuiltInNames[pbifnSet_GreaterEqual];
+    eopLessthanEqual: FunName:=FBuiltInNames[pbifnSet_LowerEqual];
+    else
+      DoError(20170209151300,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,[OpcodeStrings[El.OpCode]],El);
+    end;
+    Call:=CreateCallExpression(El);
+    Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FunName]);
+    Call.Args.Elements.AddElement.Expr:=A;
+    A:=nil;
+    Call.Args.Elements.AddElement.Expr:=B;
+    B:=nil;
+    Result:=Call;
+    exit;
+    end
+  else if (RightResolved.BaseType=btSet) and (El.OpCode=eopIn) then
+    begin
+    // a in b -> b[a]
+    Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+    Bracket.MExpr:=B;
+    B:=nil;
+    Bracket.Name:=A;
+    A:=nil;
+    Result:=Bracket;
+    exit;
+    end
+  else if (El.OpCode=eopIs) then
+    begin
+    // "A is B"
+    Call:=CreateCallExpression(El);
+    Result:=Call;
+    Call.Args.Elements.AddElement.Expr:=A; A:=nil;
+    if RightResolved.IdentEl is TPasClassOfType then
+      begin
+      // "A is class-of-type" -> "A is class"
+      FreeAndNil(B);
+      B:=CreateReferencePathExpr(TPasClassOfType(RightResolved.IdentEl).DestType,AContext);
+      end;
+    if (RightResolved.TypeEl is TPasClassType) and TPasClassType(RightResolved.TypeEl).IsExternal then
+      begin
+      // B is an external class -> "rtl.isExt(A,B)"
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIsExt]]);
+      Call.Args.Elements.AddElement.Expr:=B; B:=nil;
+      end
+    else if LeftResolved.TypeEl is TPasClassOfType then
+      begin
+      // A is a TPasClassOfType -> "rtl.is(A,B)"
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIs]]);
+      Call.Args.Elements.AddElement.Expr:=B; B:=nil;
+      end
+    else
+      begin
+      // use directly "B.isPrototypeOf(A)"
+      DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
+      DotExpr.MExpr:=B; B:=nil;
+      DotExpr.Name:='isPrototypeOf';
+      Call.Expr:=DotExpr;
+      end;
+    exit;
+    end
+  else if (El.OpCode in [eopEqual,eopNotEqual]) then
+    begin
+    if AContext.Resolver.IsProcedureType(LeftResolved,true) then
+      begin
+      if RightResolved.BaseType=btNil then
+      else if AContext.Resolver.IsProcedureType(RightResolved,true)
+          or AContext.Resolver.IsJSBaseType(RightResolved,pbtJSValue,true) then
+        exit(CreateEqualCallback);
+      end
+    else if AContext.Resolver.IsProcedureType(RightResolved,true) then
+      begin
+      if LeftResolved.BaseType=btNil then
+      else if AContext.Resolver.IsJSBaseType(LeftResolved,pbtJSValue,true) then
+        exit(CreateEqualCallback);
+      end
+    else if LeftResolved.TypeEl is TPasRecordType then
+      begin
+      // convert "recordA = recordB" to "recordA.$equal(recordB)"
+      Call:=CreateCallExpression(El);
+      Call.Expr:=CreateDotExpression(El,A,CreateBuiltInIdentifierExpr(FBuiltInNames[pbifnRecordEqual]));
+      A:=nil;
+      Call.Args.Elements.AddElement.Expr:=B;
+      B:=nil;
+      if El.OpCode=eopNotEqual then
+        begin
+        // convert "recordA = recordB" to "!recordA.$equal(recordB)"
+        NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
+        NotEl.A:=Call;
+        Result:=NotEl;
+        end
+      else
+        Result:=Call;
+      exit;
+      end
+    else if LeftResolved.TypeEl is TPasArrayType then
+      begin
+      if RightResolved.BaseType=btNil then
+        begin
+        // convert "array = nil" to "rtl.length(array) > 0"
+        FreeAndNil(B);
+        Result:=CreateCmpArrayWithNil(El,A,El.OpCode);
+        A:=nil;
+        exit;
+        end;
+      end
+    else if RightResolved.TypeEl is TPasArrayType then
+      begin
+      if LeftResolved.BaseType=btNil then
+        begin
+        // convert "nil = array" to "0 < rtl.length(array)"
+        FreeAndNil(A);
+        Result:=CreateCmpArrayWithNil(El,B,El.OpCode);
+        B:=nil;
+        exit;
+        end;
+      end;
+    end;
 end;
 
 function TPasToJSConverter.ConvertSubIdentExpression(El: TBinaryExpr;
@@ -7300,17 +7343,37 @@ begin
       begin
       // chomp dot member  ->  rtl.createCallback(scope,"FunName")
       DotExpr:=TJSDotMemberExpression(Scope);
-      Scope:=DotExpr.MExpr;
-      DotExpr.MExpr:=nil;
       FunName:=String(DotExpr.Name);
-      if not IsValidJSIdentifier(DotExpr.Name) then
+      DotPos:=PosLast('.',FunName);
+      if DotPos>0 then
+        begin
+        // e.g.  path dot $class.funname
+        // keep DotExpr, chomp funname
+        DotExpr.Name:=TJSString(LeftStr(FunName,DotPos-1));
+        FunName:=copy(FunName,DotPos+1);
+        if not IsValidJSIdentifier(DotExpr.Name) then
+          begin
+          {$IFDEF VerbosePas2JS}
+          writeln('TPasToJSConverter.CreateCallback ',GetObjName(Scope),' DotExpr.Name="',DotExpr.Name,'"');
+          {$ENDIF}
+          DoError(20170215161802,nInvalidFunctionReference,sInvalidFunctionReference,[],El);
+          end;
+        end
+      else
+        begin
+        // e.g.  path dot funname
+        // delete DotExpr
+        Scope:=DotExpr.MExpr;
+        DotExpr.MExpr:=nil;
+        FreeAndNil(DotExpr);
+        end;
+      if not IsValidJSIdentifier(TJSString(FunName)) then
         begin
         {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.CreateCallback ',GetObjName(Scope),' Name="',FunName,'"');
+        writeln('TPasToJSConverter.CreateCallback ',GetObjName(Scope),' FunName="',FunName,'"');
         {$ENDIF}
         DoError(20170215161802,nInvalidFunctionReference,sInvalidFunctionReference,[],El);
         end;
-      FreeAndNil(DotExpr);
       Call.Args.Elements.AddElement.Expr:=Scope;
       // add function name as parameter
       Call.Args.Elements.AddElement.Expr:=CreateLiteralString(El,FunName);
@@ -7535,7 +7598,7 @@ begin
       begin
       AContext.Resolver.ComputeElement(El.left,AssignContext.LeftResolved,[rcNoImplicitProc]);
       Flags:=[];
-      LeftIsProcType:=AContext.Resolver.IsProcedureType(AssignContext.LeftResolved);
+      LeftIsProcType:=AContext.Resolver.IsProcedureType(AssignContext.LeftResolved,true);
       if LeftIsProcType then
         begin
         if msDelphi in AContext.CurrentModeswitches then
@@ -8743,7 +8806,7 @@ begin
   ExprFlags:=[];
   if NeedVar then
     Include(ExprFlags,rcNoImplicitProc)
-  else if AContext.Resolver.IsProcedureType(ArgResolved) then
+  else if AContext.Resolver.IsProcedureType(ArgResolved,true) then
     Include(ExprFlags,rcNoImplicitProcType);
 
   if (ArgResolved.TypeEl is TPasArrayType)

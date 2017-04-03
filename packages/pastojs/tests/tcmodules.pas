@@ -253,7 +253,7 @@ type
     Procedure TestForLoop_Nested;
     Procedure TestRepeatUntil;
     Procedure TestAsmBlock;
-    Procedure TestAsmPas_Impl;
+    Procedure TestAsmPas_Impl; // ToDo
     Procedure TestTryFinally;
     Procedure TestTryExcept;
     Procedure TestCaseOf;
@@ -371,7 +371,7 @@ type
     Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
     Procedure TestExternalClass_BracketOperatorOld;
     Procedure TestExternalClass_BracketOperator;
-    // ToDo: check default property accessors have one parameter
+    // ToDo: check array accessors has one parameter
 
     // proc types
     Procedure TestProcType;
@@ -395,7 +395,9 @@ type
     Procedure TestJSValue_ArrayOfJSValue;
     Procedure TestJSValue_Params;
     Procedure TestJSValue_UntypedParam;
-    Procedure TestJSValue_FuncType;
+    Procedure TestJSValue_FuncResultType;
+    Procedure TestJSValue_ProcType_Assign;
+    Procedure TestJSValue_ProcType_Equal;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -10009,7 +10011,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestJSValue_FuncType;
+procedure TTestModule.TestJSValue_FuncResultType;
 begin
   StartProgram(false);
   Add('type');
@@ -10045,6 +10047,164 @@ begin
     'if (this.Compare(this.i, this.i) > 1) ;',
     'if (this.Compare(null, false) > 2) ;',
     'if (this.Compare(1, true) > 3) ;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ProcType_Assign;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TObject = class');
+  Add('    class function GetGlob: integer;');
+  Add('    function Getter: integer;');
+  Add('  end;');
+  Add('class function TObject.GetGlob: integer;');
+  Add('var v1: jsvalue;');
+  Add('begin');
+  Add('  v1:=@GetGlob;');
+  Add('  v1:=@Self.GetGlob;');
+  Add('end;');
+  Add('function TObject.Getter: integer;');
+  Add('var v2: jsvalue;');
+  Add('begin');
+  Add('  v2:=@Getter;');
+  Add('  v2:=@Self.Getter;');
+  Add('  v2:=@GetGlob;');
+  Add('  v2:=@Self.GetGlob;');
+  Add('end;');
+  Add('function GetIt(i: integer): integer;');
+  Add('var v3: jsvalue;');
+  Add('begin');
+  Add('  v3:=@GetIt;');
+  Add('end;');
+  Add('var');
+  Add('  V: JSValue;');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  v:=@GetIt;');
+  Add('  v:=@o.Getter;');
+  Add('  v:=@o.GetGlob;');
+  ConvertProgram;
+  CheckSource('TestJSValue_ProcType_Assign',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetGlob = function () {',
+    '    var Result = 0;',
+    '    var v1 = undefined;',
+    '    v1 = rtl.createCallback(this, "GetGlob");',
+    '    v1 = rtl.createCallback(this, "GetGlob");',
+    '    return Result;',
+    '  };',
+    '  this.Getter = function () {',
+    '    var Result = 0;',
+    '    var v2 = undefined;',
+    '    v2 = rtl.createCallback(this, "Getter");',
+    '    v2 = rtl.createCallback(this, "Getter");',
+    '    v2 = rtl.createCallback(this.$class, "GetGlob");',
+    '    v2 = rtl.createCallback(this.$class, "GetGlob");',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.GetIt = function (i) {',
+    '  var Result = 0;',
+    '  var v3 = undefined;',
+    '  v3 = rtl.createCallback(this, "GetIt");',
+    '  return Result;',
+    '};',
+    'this.V = undefined;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.V = rtl.createCallback(this, "GetIt");',
+    'this.V = rtl.createCallback(this.o, "Getter");',
+    'this.V = rtl.createCallback(this.o.$class, "GetGlob");',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ProcType_Equal;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TObject = class');
+  Add('    class function GetGlob: integer;');
+  Add('    function Getter: integer;');
+  Add('  end;');
+  Add('class function TObject.GetGlob: integer;');
+  Add('var v1: jsvalue;');
+  Add('begin');
+  Add('  if v1=@GetGlob then;');
+  Add('  if v1=@Self.GetGlob then ;');
+  Add('end;');
+  Add('function TObject.Getter: integer;');
+  Add('var v2: jsvalue;');
+  Add('begin');
+  Add('  if v2=@Getter then;');
+  Add('  if v2=@Self.Getter then ;');
+  Add('  if v2=@GetGlob then;');
+  Add('  if v2=@Self.GetGlob then;');
+  Add('end;');
+  Add('function GetIt(i: integer): integer;');
+  Add('var v3: jsvalue;');
+  Add('begin');
+  Add('  if v3=@GetIt then;');
+  Add('end;');
+  Add('var');
+  Add('  V: JSValue;');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  if v=@GetIt then;');
+  Add('  if v=@o.Getter then;');
+  Add('  if v=@o.GetGlob then;');
+  Add('  if @GetIt=v then;');
+  Add('  if @o.Getter=v then;');
+  Add('  if @o.GetGlob=v then;');
+  ConvertProgram;
+  CheckSource('TestJSValue_ProcType_Equal',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetGlob = function () {',
+    '    var Result = 0;',
+    '    var v1 = undefined;',
+    '    if (rtl.eqCallback(v1, rtl.createCallback(this, "GetGlob"))) ;',
+    '    if (rtl.eqCallback(v1, rtl.createCallback(this, "GetGlob"))) ;',
+    '    return Result;',
+    '  };',
+    '  this.Getter = function () {',
+    '    var Result = 0;',
+    '    var v2 = undefined;',
+    '    if (rtl.eqCallback(v2, rtl.createCallback(this, "Getter"))) ;',
+    '    if (rtl.eqCallback(v2, rtl.createCallback(this, "Getter"))) ;',
+    '    if (rtl.eqCallback(v2, rtl.createCallback(this.$class, "GetGlob"))) ;',
+    '    if (rtl.eqCallback(v2, rtl.createCallback(this.$class, "GetGlob"))) ;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.GetIt = function (i) {',
+    '  var Result = 0;',
+    '  var v3 = undefined;',
+    '  if (rtl.eqCallback(v3, rtl.createCallback(this, "GetIt"))) ;',
+    '  return Result;',
+    '};',
+    'this.V = undefined;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'if (rtl.eqCallback(this.V, rtl.createCallback(this, "GetIt"))) ;',
+    'if (rtl.eqCallback(this.V, rtl.createCallback(this.o, "Getter"))) ;',
+    'if (rtl.eqCallback(this.V, rtl.createCallback(this.o.$class, "GetGlob"))) ;',
+    'if (rtl.eqCallback(rtl.createCallback(this, "GetIt"), this.V)) ;',
+    'if (rtl.eqCallback(rtl.createCallback(this.o, "Getter"), this.V)) ;',
+    'if (rtl.eqCallback(rtl.createCallback(this.o.$class, "GetGlob"), this.V)) ;',
     '']));
 end;
 

@@ -1366,7 +1366,7 @@ type
     function IsDynOrOpenArray(TypeEl: TPasType): boolean;
     function IsClassMethod(El: TPasElement): boolean;
     function IsExternalClassName(aClass: TPasClassType; const ExtName: string): boolean;
-    function IsProcedureType(const ResolvedEl: TPasResolverResult): boolean;
+    function IsProcedureType(const ResolvedEl: TPasResolverResult; HasValue: boolean): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
     function ProcNeedsParams(El: TPasProcedureType): boolean;
@@ -4429,7 +4429,7 @@ begin
   CheckCanBeLHS(LeftResolved,true,El.left);
   // compute RHS
   Flags:=[rcSkipTypeAlias];
-  if IsProcedureType(LeftResolved) then
+  if IsProcedureType(LeftResolved,true) then
     if (msDelphi in CurrentParser.CurrentModeswitches) then
       Include(Flags,rcNoImplicitProc) // a proc type can use param less procs
     else
@@ -5094,7 +5094,7 @@ begin
       // e.g. Name()() or Name[]()
       ResolveExpr(SubParams,rraRead);
       ComputeElement(SubParams,ResolvedEl,[rcNoImplicitProc]);
-      if IsProcedureType(ResolvedEl) and (rrfReadable in ResolvedEl.Flags) then
+      if IsProcedureType(ResolvedEl,true) then
         begin
         CheckCallProcCompatibility(TPasProcedureType(ResolvedEl.TypeEl),Params,true);
         CreateReference(ResolvedEl.TypeEl,Value,Access);
@@ -6767,7 +6767,7 @@ begin
   {$ENDIF}
 
   Flags:=[];
-  if IsProcedureType(ResultResolved) then
+  if IsProcedureType(ResultResolved,true) then
     Include(Flags,rcNoImplicitProc);
   ComputeElement(Param,ParamResolved,Flags);
   {$IFDEF VerbosePasResolver}
@@ -8905,7 +8905,7 @@ var
 begin
   ComputeElement(LHS,LeftResolved,[rcNoImplicitProc]);
   Flags:=[];
-  IsProcType:=IsProcedureType(LeftResolved);
+  IsProcType:=IsProcedureType(LeftResolved,true);
   if IsProcType then
     if msDelphi in CurrentParser.CurrentModeswitches then
       Include(Flags,rcNoImplicitProc)
@@ -9072,7 +9072,7 @@ begin
     begin
     if LeftResolved.BaseType=btNil then
       Flags:=[rcNoImplicitProcType]
-    else if IsProcedureType(LeftResolved) then
+    else if IsProcedureType(LeftResolved,true) then
       Flags:=[rcNoImplicitProcType]
     else
       Flags:=[];
@@ -9364,7 +9364,7 @@ begin
   RHSFlags:=[];
   if NeedVar then
     Include(RHSFlags,rcNoImplicitProc)
-  else if IsProcedureType(ParamResolved) then
+  else if IsProcedureType(ParamResolved,true) then
     Include(RHSFlags,rcNoImplicitProcType);
 
   if (Expr is TParamsExpr) and (TParamsExpr(Expr).Kind=pekSet) then
@@ -10087,7 +10087,7 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
           end;
         end;
       end
-    else if IsProcedureType(ResolvedEl) then
+    else if IsProcedureType(ResolvedEl,true) then
       begin
       if [rcNoImplicitProc,rcNoImplicitProcType,rcConstant,rcType]*Flags=[] then
         begin
@@ -10294,7 +10294,7 @@ begin
         Include(ResolvedEl.Flags,rrfReadable);
       if GetPasPropertySetter(TPasProperty(El))<>nil then
         Include(ResolvedEl.Flags,rrfWritable);
-      if IsProcedureType(ResolvedEl) then
+      if IsProcedureType(ResolvedEl,true) then
         Include(ResolvedEl.Flags,rrfCanBeStatement);
       end
     else
@@ -10317,7 +10317,7 @@ begin
     ResolvedEl.Flags:=[rrfReadable];
     if TPasArgument(El).Access in [argDefault, argVar, argOut] then
       Include(ResolvedEl.Flags,rrfWritable);
-    if IsProcedureType(ResolvedEl) then
+    if IsProcedureType(ResolvedEl,true) then
       Include(ResolvedEl.Flags,rrfCanBeStatement);
     end
   else if ElClass=TPasClassType then
@@ -10621,10 +10621,14 @@ begin
   end;
 end;
 
-function TPasResolver.IsProcedureType(const ResolvedEl: TPasResolverResult
-  ): boolean;
+function TPasResolver.IsProcedureType(const ResolvedEl: TPasResolverResult;
+  HasValue: boolean): boolean;
 begin
-  Result:=(ResolvedEl.BaseType=btContext) and (ResolvedEl.TypeEl is TPasProcedureType);
+  if (ResolvedEl.BaseType<>btContext) or not (ResolvedEl.TypeEl is TPasProcedureType) then
+    exit(false);
+  if HasValue and not (rrfReadable in ResolvedEl.Flags) then
+    exit(false);
+  Result:=true;
 end;
 
 function TPasResolver.IsArrayType(const ResolvedEl: TPasResolverResult
