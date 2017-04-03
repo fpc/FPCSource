@@ -259,7 +259,7 @@ unit cgcpu;
         ax_subreg: tregister;
         hl_loop_start: tasmlabel;
         ai: taicpu;
-        use_loop, use_186_fast_shift: Boolean;
+        use_loop, use_186_fast_shift, use_8086_fast_shift: Boolean;
         i: Integer;
       begin
         optimize_op_const(size, op, a);
@@ -398,6 +398,8 @@ unit cgcpu;
                       use_loop:=a>2;
                       use_186_fast_shift:=(current_settings.cputype>=cpu_186) and (a>2)
                         and not (cs_opt_size in current_settings.optimizerswitches);
+                      use_8086_fast_shift:=(current_settings.cputype<cpu_186) and (a>2)
+                        and not (cs_opt_size in current_settings.optimizerswitches);
 
                       if use_186_fast_shift then
                         begin
@@ -430,6 +432,49 @@ unit cgcpu;
                             else
                               internalerror(2017040301);
                           end;
+                        end
+                      else if use_8086_fast_shift then
+                        begin
+                          getcpuregister(list,NR_CX);
+                          a_load_const_reg(list,OS_8,a,NR_CL);
+
+                          tmpreg:=getintregister(list,OS_16);
+                          case op of
+                            OP_SHR:
+                              begin
+                                a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg),tmpreg);
+                                list.concat(taicpu.op_reg_reg(A_SHR,S_W,NR_CL,GetNextReg(reg)));
+                                list.concat(taicpu.op_reg_reg(A_SHR,S_W,NR_CL,reg));
+                                if a<>8 then
+                                  a_load_const_reg(list,OS_8,16-a,NR_CL);
+                                list.concat(taicpu.op_reg_reg(A_SHL,S_W,NR_CL,tmpreg));
+                                list.concat(taicpu.op_reg_reg(A_OR,S_W,tmpreg,reg));
+                              end;
+                            OP_SAR:
+                              begin
+                                a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg),tmpreg);
+                                list.concat(taicpu.op_reg_reg(A_SAR,S_W,NR_CL,GetNextReg(reg)));
+                                list.concat(taicpu.op_reg_reg(A_SHR,S_W,NR_CL,reg));
+                                if a<>8 then
+                                  a_load_const_reg(list,OS_8,16-a,NR_CL);
+                                list.concat(taicpu.op_reg_reg(A_SHL,S_W,NR_CL,tmpreg));
+                                list.concat(taicpu.op_reg_reg(A_OR,S_W,tmpreg,reg));
+                              end;
+                            OP_SHL:
+                              begin
+                                a_load_reg_reg(list,OS_16,OS_16,reg,tmpreg);
+                                list.concat(taicpu.op_reg_reg(A_SHL,S_W,NR_CL,reg));
+                                list.concat(taicpu.op_reg_reg(A_SHL,S_W,NR_CL,GetNextReg(reg)));
+                                if a<>8 then
+                                  a_load_const_reg(list,OS_8,16-a,NR_CL);
+                                list.concat(taicpu.op_reg_reg(A_SHR,S_W,NR_CL,tmpreg));
+                                list.concat(taicpu.op_reg_reg(A_OR,S_W,tmpreg,GetNextReg(reg)));
+                              end;
+                            else
+                              internalerror(2017040301);
+                          end;
+
+                          ungetcpuregister(list,NR_CX);
                         end
                       else if use_loop then
                         begin
