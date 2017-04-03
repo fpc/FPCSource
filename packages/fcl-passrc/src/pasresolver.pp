@@ -5209,6 +5209,7 @@ begin
   if (Ref.Access=Access) then exit;
   if Access in [rraNone,rraParamToUnknownProc] then
     exit;
+  if Expr=nil then ;
 
   case Ref.Access of
     rraNone,rraParamToUnknownProc:
@@ -5228,31 +5229,6 @@ begin
   else
     RaiseInternalError(20170403163727);
   end;
-
-  if (Expr.ClassType=TSelfExpr)
-      or ((Expr.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent)) then
-    begin
-    if Ref.WithExprScope<>nil then
-      begin
-      if Ref.WithExprScope.Scope is TPasRecordScope then
-        begin
-        // a record member was accessed -> access the record too
-        AccessExpr(Ref.WithExprScope.Expr,Access);
-        exit;
-        end;
-      end;
-    if (Ref.Declaration is TPasVariable)
-        and (Expr.Parent is TBinaryExpr)
-        and (TBinaryExpr(Expr.Parent).right=Expr) then
-      begin
-      if ((Ref.Declaration.Parent is TPasRecordType)
-            or (Ref.Declaration.Parent is TPasVariant)) then
-        begin
-        // a record member was accessed -> access the record too
-        AccessExpr(TBinaryExpr(Expr.Parent).left,Access);
-        end;
-      end;
-    end;
 end;
 
 procedure TPasResolver.AccessExpr(Expr: TPasExpr;
@@ -5297,6 +5273,8 @@ begin
     pekSet:
       if Access<>rraRead then
         RaiseMsg(20170306112306,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Expr);
+    else
+      RaiseNotYetImplemented(20170403173831,Params);
     end;
     end
   else if (C=TSelfExpr) or ((C=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent)) then

@@ -4046,8 +4046,8 @@ begin
   Add('begin');
   Add('  DoIt({#r1_read}r.{#r_a1_read}a,');
   Add('    {#r2_read}r.{#r_a2_read}a,');
-  Add('    {#r3_readandassign}r.{#r_a3_var}a,');
-  Add('    {#r4_readandassign}r.{#r_a4_out}a);');
+  Add('    {#r3_read}r.{#r_a3_var}a,');
+  Add('    {#r4_read}r.{#r_a4_out}a);');
   Add('  with r do');
   Add('    DoIt({#w_a1_read}a,');
   Add('      {#w_a2_read}a,');

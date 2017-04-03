@@ -92,6 +92,7 @@ type
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet;
     procedure TestM_Hint_FunctionResultRecord;
     procedure TestM_Hint_FunctionResultPassRecordElement;
+    procedure TestM_Hint_OutParam_No_AssignedButNeverUsed;
 
     // whole program optimization
     procedure TestWP_LocalVar;
@@ -233,13 +234,19 @@ begin
   while i>=0 do
     begin
     Msg:=PAMessages[i];
-    if (Msg.MsgType=MsgType)
-        and (Msg.MsgNumber=MsgNumber)
-        and (Msg.MsgText=MsgText) then
+    if (Msg.MsgNumber=MsgNumber) then
       begin
       if Has then
-        exit;
-      break;
+        begin
+        // must have -> message type and text must match exactly
+        if (Msg.MsgType=MsgType) and (Msg.MsgText=MsgText) then
+          exit;
+        end
+      else
+        begin
+        // must not have -> matching number is enough
+        break;
+        end;
       end;
     dec(i);
     end;
@@ -1166,6 +1173,21 @@ begin
   AnalyzeProgram;
   CheckHasHint(mtHint,nPAFunctionResultDoesNotSeemToBeSet,
     sPAFunctionResultDoesNotSeemToBeSet,false);
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_OutParam_No_AssignedButNeverUsed;
+begin
+  StartProgram(true);
+  Add('procedure DoIt(out x: longint);');
+  Add('begin');
+  Add('  x:=3;');
+  Add('end;');
+  Add('var i: longint;');
+  Add('begin');
+  Add('  DoIt(i);');
+  AnalyzeProgram;
+  CheckHasHint(mtHint,nPAValueParameterIsAssignedButNeverUsed,
+    sPAValueParameterIsAssignedButNeverUsed,false);
 end;
 
 procedure TTestUseAnalyzer.TestWP_LocalVar;

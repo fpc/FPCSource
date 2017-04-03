@@ -193,6 +193,8 @@ type
     procedure UseImplBlock(Block: TPasImplBlock; Mark: boolean); virtual;
     procedure UseImplElement(El: TPasImplElement); virtual;
     procedure UseExpr(El: TPasExpr); virtual;
+    procedure UseExprRef(Expr: TPasExpr; Access: TResolvedRefAccess;
+      UseFull: boolean); virtual;
     procedure UseProcedure(Proc: TPasProcedure); virtual;
     procedure UseProcedureType(ProcType: TPasProcedureType; Mark: boolean); virtual;
     procedure UseType(El: TPasType; Mode: TPAUseMode); virtual;
@@ -877,13 +879,39 @@ var
   i: Integer;
 begin
   if El=nil then exit;
-  // expression are not marked
+  // expressions are not marked
 
   if El.CustomData is TResolvedReference then
     begin
     // this is a reference -> mark target
     Ref:=TResolvedReference(El.CustomData);
     UseElement(Ref.Declaration,Ref.Access,false);
+
+    if (El.ClassType=TSelfExpr)
+        or ((El.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(El).Kind=pekIdent)) then
+      begin
+      if Ref.WithExprScope<>nil then
+        begin
+        if Ref.WithExprScope.Scope is TPasRecordScope then
+          begin
+          // a record member was accessed -> access the record too
+          UseExprRef(Ref.WithExprScope.Expr,Ref.Access,false);
+          exit;
+          end;
+        end;
+      if (Ref.Declaration is TPasVariable)
+          and (El.Parent is TBinaryExpr)
+          and (TBinaryExpr(El.Parent).right=El) then
+        begin
+        if ((Ref.Declaration.Parent is TPasRecordType)
+              or (Ref.Declaration.Parent is TPasVariant)) then
+          begin
+          // a record member was accessed -> access the record too
+          UseExprRef(TBinaryExpr(El.Parent).left,Ref.Access,false);
+          end;
+        end;
+      end;
+
     end;
   UseExpr(El.format1);
   UseExpr(El.format2);
@@ -909,6 +937,65 @@ begin
     end
   else
     RaiseNotSupported(20170307085444,El);
+end;
+
+procedure TPasAnalyzer.UseExprRef(Expr: TPasExpr; Access: TResolvedRefAccess;
+  UseFull: boolean);
+var
+  Ref: TResolvedReference;
+  C: TClass;
+  Bin: TBinaryExpr;
+  Params: TParamsExpr;
+  ValueResolved: TPasResolverResult;
+begin
+  if (Expr.CustomData is TResolvedReference) then
+    begin
+    Ref:=TResolvedReference(Expr.CustomData);
+    UseElement(Ref.Declaration,Access,UseFull);
+    end;
+
+  C:=Expr.ClassType;
+  if C=TBinaryExpr then
+    begin
+    Bin:=TBinaryExpr(Expr);
+    if Bin.OpCode in [eopSubIdent,eopNone] then
+      UseExprRef(Bin.right,Access,UseFull);
+    end
+  else if C=TParamsExpr then
+    begin
+    Params:=TParamsExpr(Expr);
+    case Params.Kind of
+    pekFuncParams:
+      if Resolver.IsTypeCast(Params) then
+        UseExprRef(Params.Params[0],Access,UseFull)
+      else
+        UseExprRef(Params.Value,Access,UseFull);
+    pekArrayParams:
+      begin
+      Resolver.ComputeElement(Params.Value,ValueResolved,[]);
+      if not Resolver.IsDynArray(ValueResolved.TypeEl) then
+        UseExprRef(Params.Value,Access,UseFull);
+      end;
+    pekSet: ;
+    else
+      RaiseNotSupported(20170403173817,Params);
+    end;
+    end
+  else if (C=TSelfExpr) or ((C=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent)) then
+    // ok
+  else if (Access=rraRead)
+      and ((C=TPrimitiveExpr)
+        or (C=TNilExpr)
+        or (C=TBoolConstExpr)
+        or (C=TUnaryExpr)) then
+    // ok
+  else
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.UseExprRef Expr=',GetObjName(Expr),' Access=',Access,' Declaration="',Expr.GetDeclaration(false),'"');
+    {$ENDIF}
+    RaiseNotSupported(20170306102158,Expr);
+    end;
 end;
 
 procedure TPasAnalyzer.UseProcedure(Proc: TPasProcedure);
@@ -1531,7 +1618,7 @@ begin
       else
         begin
         // parameter was used
-        if Usage.Access=paiaWrite then
+        if (Usage.Access=paiaWrite) and (Arg.Access<>argOut) then
           EmitMessage(20170312095348,mtHint,nPAValueParameterIsAssignedButNeverUsed,
             sPAValueParameterIsAssignedButNeverUsed,[Arg.Name],Arg);
         end;
