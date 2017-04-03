@@ -2680,7 +2680,7 @@ const
       pooption : [po_staticmethod];
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
-      mutexclpo     : [po_interrupt,po_exports]
+      mutexclpo     : [po_interrupt,po_exports,po_virtualmethod]
     ),(
       idtok:_STDCALL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -2710,7 +2710,7 @@ const
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [potype_class_constructor,potype_class_destructor];
-      mutexclpo     : [po_interrupt,po_exports,po_overridingmethod,po_inline]
+      mutexclpo     : [po_interrupt,po_exports,po_overridingmethod,po_inline,po_staticmethod]
     ),(
       idtok:_CPPDECL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
