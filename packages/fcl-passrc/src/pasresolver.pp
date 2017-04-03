@@ -730,7 +730,7 @@ type
 
   TPasWithExprScope = Class(TPasScope)
   public
-    WithScope: TPasWithScope;
+    WithScope: TPasWithScope; // owner
     Index: integer;
     Expr: TPasExpr;
     Scope: TPasScope;
@@ -1073,6 +1073,9 @@ type
       Access: TResolvedRefAccess): boolean; virtual;
     procedure ResolveSetParamsExpr(Params: TParamsExpr); virtual;
     procedure ResolveArrayValues(El: TArrayValues); virtual;
+    procedure SetResolvedRefAccess(Expr: TPasExpr; Ref: TResolvedReference;
+      Access: TResolvedRefAccess); virtual;
+    procedure AccessExpr(Expr: TPasExpr; Access: TResolvedRefAccess);
     procedure FinishModule(CurModule: TPasModule); virtual;
     procedure FinishUsesList; virtual;
     procedure FinishTypeSection(El: TPasDeclarations); virtual;
@@ -1096,7 +1099,6 @@ type
     procedure FinishPropertyOfClass(PropEl: TPasProperty); virtual;
     procedure FinishArgument(El: TPasArgument); virtual;
     procedure FinishAncestors(aClass: TPasClassType); virtual;
-    procedure FinishParamExpressionAccess(Expr: TPasExpr; Access: TResolvedRefAccess);
     procedure FinishPropertyParamAccess(Params: TParamsExpr;
       Prop: TPasProperty);
     procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
@@ -4013,70 +4015,6 @@ begin
     end;
 end;
 
-procedure TPasResolver.FinishParamExpressionAccess(Expr: TPasExpr;
-  Access: TResolvedRefAccess);
-// called after a call overload was found for each element
-// to set the rraParamToUnknownProc to Access
-var
-  Ref: TResolvedReference;
-  Bin: TBinaryExpr;
-  Params: TParamsExpr;
-begin
-  if (Expr.CustomData is TResolvedReference) then
-    begin
-    Ref:=TResolvedReference(Expr.CustomData);
-    if Ref.Access=rraParamToUnknownProc then
-      begin
-      Ref.Access:=Access;
-      exit;
-      end;
-    end;
-
-  if Expr.ClassType=TBinaryExpr then
-    begin
-    Bin:=TBinaryExpr(Expr);
-    if Bin.OpCode in [eopSubIdent,eopNone] then
-      FinishParamExpressionAccess(Bin.right,Access);
-    exit;
-    end
-  else if Expr.ClassType=TParamsExpr then
-    begin
-    Params:=TParamsExpr(Expr);
-    case Params.Kind of
-    pekFuncParams:
-      if IsTypeCast(Params) then
-        FinishParamExpressionAccess(Params.Params[0],Access)
-      else
-        FinishParamExpressionAccess(Params.Value,Access);
-    pekArrayParams:
-      FinishParamExpressionAccess(Params.Value,Access);
-    pekSet:
-      if Access<>rraRead then
-        RaiseMsg(20170306112306,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Expr);
-    end;
-    end
-  else if ((Expr.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent))
-      or (Expr.ClassType=TSelfExpr) then
-    begin
-    Ref:=Expr.CustomData as TResolvedReference;
-    if Ref.Access<>Access then
-      RaiseInternalError(20170306101244);
-    end
-  else if (Access=rraRead)
-      and ((Expr.ClassType=TPrimitiveExpr)
-        or (Expr.ClassType=TNilExpr)
-        or (Expr.ClassType=TBoolConstExpr)
-        or (Expr.ClassType=TUnaryExpr)) then
-    // ok
-  else
-    begin
-    {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.FinishParamExpressionAccess Expr=',GetObjName(Expr),' Access=',Access,' Declaration="',Expr.GetDeclaration(false),'"');
-    {$ENDIF}
-    RaiseNotYetImplemented(20170306102158,Expr);
-    end;
-end;
-
 procedure TPasResolver.FinishPropertyParamAccess(Params: TParamsExpr;
   Prop: TPasProperty);
 var
@@ -4091,7 +4029,7 @@ begin
       argVar: ParamAccess:=rraVarParam;
       argOut: ParamAccess:=rraOutParam;
       end;
-    FinishParamExpressionAccess(Params.Params[i],ParamAccess);
+    AccessExpr(Params.Params[i],ParamAccess);
     end;
 end;
 
@@ -4835,8 +4773,11 @@ begin
       // e.g. TPoint.PointInCircle
       RecordScope.OnlyTypeMembers:=true
     else
+      begin
       // e.g. aPoint.X
+      AccessExpr(El.left,Access);
       RecordScope.OnlyTypeMembers:=false;
+      end;
     ResolveExpr(El.right,Access);
     PopScope;
     exit;
@@ -4920,7 +4861,7 @@ procedure TPasResolver.ResolveFuncParamsExpr(Params: TParamsExpr;
         argVar: ParamAccess:=rraVarParam;
         argOut: ParamAccess:=rraOutParam;
         end;
-      FinishParamExpressionAccess(Params.Params[i],ParamAccess);
+      AccessExpr(Params.Params[i],ParamAccess);
       end;
   end;
 
@@ -5036,7 +4977,7 @@ begin
         begin
         // type cast
         for i:=0 to length(Params.Params)-1 do
-          FinishParamExpressionAccess(Params.Params[i],Access);
+          AccessExpr(Params.Params[i],Access);
         end
       else if C=TPasUnresolvedSymbolRef then
         begin
@@ -5048,13 +4989,13 @@ begin
             BuiltInProc.FinishParamsExpression(BuiltInProc,Params)
           else
             for i:=0 to length(Params.Params)-1 do
-              FinishParamExpressionAccess(Params.Params[i],rraRead);
+              AccessExpr(Params.Params[i],rraRead);
           end
         else if TypeEl.CustomData is TResElDataBaseType then
           begin
           // type cast to base type
           for i:=0 to length(Params.Params)-1 do
-            FinishParamExpressionAccess(Params.Params[i],Access);
+            AccessExpr(Params.Params[i],Access);
           end
         else
           begin
@@ -5188,7 +5129,7 @@ begin
     if not (rrfReadable in ResolvedArg.Flags) then
       RaiseMsg(20170216152211,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
         ['type','value'],ArgExp);
-    FinishParamExpressionAccess(ArgExp,rraRead);
+    AccessExpr(ArgExp,rraRead);
     exit;
     end
   else if (ResolvedValue.IdentEl is TPasProperty)
@@ -5213,7 +5154,7 @@ begin
         RaiseMsg(20170216152215,nIllegalQualifier,sIllegalQualifier,['['],Params);
       CheckCallArrayCompatibility(TPasArrayType(ResolvedValue.TypeEl),Params,true);
       for i:=0 to length(Params.Params)-1 do
-        FinishParamExpressionAccess(Params.Params[i],rraRead);
+        AccessExpr(Params.Params[i],rraRead);
       exit;
       end;
     end;
@@ -5225,6 +5166,7 @@ function TPasResolver.ResolveBracketOperatorClass(Params: TParamsExpr;
   Access: TResolvedRefAccess): boolean;
 var
   PropEl: TPasProperty;
+  Value: TPasExpr;
 begin
   PropEl:=ClassScope.DefaultProperty;
   if PropEl<>nil then
@@ -5232,8 +5174,9 @@ begin
     // class has default property
     if (ResolvedValue.IdentEl is TPasType) and (not PropEl.IsClass) then
       RaiseMsg(20170216152213,nIllegalQualifier,sIllegalQualifier,['['],Params);
-    if Params.Value.CustomData is TResolvedReference then
-      TResolvedReference(Params.Value.CustomData).Access:=rraRead;
+    Value:=Params.Value;
+    if Value.CustomData is TResolvedReference then
+      SetResolvedRefAccess(Value,TResolvedReference(Value.CustomData),rraRead);
     CreateReference(PropEl,Params,Access);
     CheckCallPropertyCompatibility(PropEl,Params,true);
     FinishPropertyParamAccess(Params,PropEl);
@@ -5258,6 +5201,119 @@ var
 begin
   for i:=0 to length(El.Values)-1 do
     ResolveExpr(El.Values[i],rraRead);
+end;
+
+procedure TPasResolver.SetResolvedRefAccess(Expr: TPasExpr;
+  Ref: TResolvedReference; Access: TResolvedRefAccess);
+begin
+  if (Ref.Access=Access) then exit;
+  if Access in [rraNone,rraParamToUnknownProc] then
+    exit;
+
+  case Ref.Access of
+    rraNone,rraParamToUnknownProc:
+      Ref.Access:=Access;
+    rraRead:
+      if Access in [rraAssign,rraReadAndAssign,rraVarParam,rraOutParam] then
+        Ref.Access:=rraReadAndAssign
+      else
+        exit;
+    rraAssign,rraOutParam:
+      if Access in [rraRead,rraReadAndAssign,rraVarParam] then
+        Ref.Access:=rraReadAndAssign
+      else
+        exit;
+    rraReadAndAssign: exit;
+    rraVarParam: exit;
+  else
+    RaiseInternalError(20170403163727);
+  end;
+
+  if (Expr.ClassType=TSelfExpr)
+      or ((Expr.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent)) then
+    begin
+    if Ref.WithExprScope<>nil then
+      begin
+      if Ref.WithExprScope.Scope is TPasRecordScope then
+        begin
+        // a record member was accessed -> access the record too
+        AccessExpr(Ref.WithExprScope.Expr,Access);
+        exit;
+        end;
+      end;
+    if (Ref.Declaration is TPasVariable)
+        and (Expr.Parent is TBinaryExpr)
+        and (TBinaryExpr(Expr.Parent).right=Expr) then
+      begin
+      if ((Ref.Declaration.Parent is TPasRecordType)
+            or (Ref.Declaration.Parent is TPasVariant)) then
+        begin
+        // a record member was accessed -> access the record too
+        AccessExpr(TBinaryExpr(Expr.Parent).left,Access);
+        end;
+      end;
+    end;
+end;
+
+procedure TPasResolver.AccessExpr(Expr: TPasExpr;
+  Access: TResolvedRefAccess);
+// called after a call overload was found for each element
+// to set the rraParamToUnknownProc to Access
+var
+  Ref: TResolvedReference;
+  Bin: TBinaryExpr;
+  Params: TParamsExpr;
+  ValueResolved: TPasResolverResult;
+  C: TClass;
+begin
+  if (Expr.CustomData is TResolvedReference) then
+    begin
+    Ref:=TResolvedReference(Expr.CustomData);
+    SetResolvedRefAccess(Expr,Ref,Access);
+    end;
+
+  C:=Expr.ClassType;
+  if C=TBinaryExpr then
+    begin
+    Bin:=TBinaryExpr(Expr);
+    if Bin.OpCode in [eopSubIdent,eopNone] then
+      AccessExpr(Bin.right,Access);
+    end
+  else if C=TParamsExpr then
+    begin
+    Params:=TParamsExpr(Expr);
+    case Params.Kind of
+    pekFuncParams:
+      if IsTypeCast(Params) then
+        AccessExpr(Params.Params[0],Access)
+      else
+        AccessExpr(Params.Value,Access);
+    pekArrayParams:
+      begin
+      ComputeElement(Params.Value,ValueResolved,[]);
+      if not IsDynArray(ValueResolved.TypeEl) then
+        AccessExpr(Params.Value,Access);
+      end;
+    pekSet:
+      if Access<>rraRead then
+        RaiseMsg(20170306112306,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Expr);
+    end;
+    end
+  else if (C=TSelfExpr) or ((C=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent)) then
+    // ok
+  else if (Access=rraRead)
+      and ((C=TPrimitiveExpr)
+        or (C=TNilExpr)
+        or (C=TBoolConstExpr)
+        or (C=TUnaryExpr)) then
+    // ok
+  else
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.AccessExpr Expr=',GetObjName(Expr),' Access=',Access,' Declaration="',Expr.GetDeclaration(false),'"');
+    {$ENDIF}
+    RaiseNotYetImplemented(20170306102158,Expr);
+    end;
 end;
 
 procedure TPasResolver.CheckPendingForwards(El: TPasElement);
@@ -6624,8 +6680,8 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  FinishParamExpressionAccess(P[0],rraVarParam);
-  FinishParamExpressionAccess(P[1],rraRead);
+  AccessExpr(P[0],rraVarParam);
+  AccessExpr(P[1],rraRead);
 end;
 
 function TPasResolver.BI_InExclude_OnGetCallCompatibility(
@@ -6684,8 +6740,8 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  FinishParamExpressionAccess(P[0],rraVarParam);
-  FinishParamExpressionAccess(P[1],rraRead);
+  AccessExpr(P[0],rraVarParam);
+  AccessExpr(P[1],rraRead);
 end;
 
 function TPasResolver.BI_Break_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
@@ -6842,9 +6898,9 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  FinishParamExpressionAccess(P[0],rraVarParam);
+  AccessExpr(P[0],rraVarParam);
   if Length(P)>1 then
-    FinishParamExpressionAccess(P[1],rraRead);
+    AccessExpr(P[1],rraRead);
 end;
 
 function TPasResolver.BI_Assigned_OnGetCallCompatibility(
@@ -7170,8 +7226,8 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  FinishParamExpressionAccess(P[0],rraRead);
-  FinishParamExpressionAccess(P[1],rraVarParam);
+  AccessExpr(P[0],rraRead);
+  AccessExpr(P[1],rraVarParam);
 end;
 
 function TPasResolver.BI_StrFunc_OnGetCallCompatibility(
@@ -7360,9 +7416,9 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  FinishParamExpressionAccess(P[0],rraRead);
-  FinishParamExpressionAccess(P[1],rraVarParam);
-  FinishParamExpressionAccess(P[2],rraRead);
+  AccessExpr(P[0],rraRead);
+  AccessExpr(P[1],rraVarParam);
+  AccessExpr(P[2],rraRead);
 end;
 
 function TPasResolver.BI_DeleteArray_OnGetCallCompatibility(
@@ -7415,9 +7471,9 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  FinishParamExpressionAccess(P[0],rraVarParam);
-  FinishParamExpressionAccess(P[1],rraRead);
-  FinishParamExpressionAccess(P[2],rraRead);
+  AccessExpr(P[0],rraVarParam);
+  AccessExpr(P[1],rraRead);
+  AccessExpr(P[2],rraRead);
 end;
 
 constructor TPasResolver.Create;
@@ -7569,7 +7625,8 @@ begin
         RaiseMsg(20170328003146,nIllegalExpression,sIllegalExpression,[],LastElement);
       end;
     {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.FindElement searching scope "',CurName,'" RightPath="',RightPath,'" ...');
+    if RightPath<>'' then
+      writeln('TPasResolver.FindElement searching scope "',CurName,'" RightPath="',RightPath,'" ...');
     {$ENDIF}
     if not IsValidIdent(CurName) then
       RaiseNotYetImplemented(20170328000033,LastElement);
@@ -8143,7 +8200,6 @@ begin
   writeln('TPasResolver.CreateReference RefEl=',GetObjName(RefEl),' DeclEl=',GetObjName(DeclEl));
   {$ENDIF}
   Result:=TResolvedReference.Create;
-  Result.Access:=Access;
   if FindData<>nil then
     begin
     if FindData^.StartScope.ClassType=ScopeClass_WithExpr then
@@ -8151,6 +8207,8 @@ begin
     end;
   AddResolveData(RefEl,Result,lkModule);
   Result.Declaration:=DeclEl;
+  if RefEl is TPasExpr then
+    SetResolvedRefAccess(TPasExpr(RefEl),Result,Access);
 end;
 
 function TPasResolver.CreateScope(El: TPasElement; ScopeClass: TPasScopeClass

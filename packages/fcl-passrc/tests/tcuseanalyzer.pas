@@ -90,6 +90,8 @@ type
     procedure TestM_Hint_LocalMethodInProgramNotUsed;
     procedure TestM_Hint_AssemblerParameterIgnored;
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet;
+    procedure TestM_Hint_FunctionResultRecord;
+    procedure TestM_Hint_FunctionResultPassRecordElement;
 
     // whole program optimization
     procedure TestWP_LocalVar;
@@ -1128,6 +1130,42 @@ begin
   AnalyzeProgram;
   CheckHasHint(mtHint,nPAFunctionResultDoesNotSeemToBeSet,
     sPAFunctionResultDoesNotSeemToBeSet);
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_FunctionResultRecord;
+begin
+  StartProgram(true);
+  Add('type');
+  Add('  TPoint = record X,Y:longint; end;');
+  Add('function Point(Left,Top: longint): TPoint;');
+  Add('begin');
+  Add('  Result.X:=Left;');
+  Add('end;');
+  Add('begin');
+  Add('  Point(1,2);');
+  AnalyzeProgram;
+  CheckHasHint(mtHint,nPAFunctionResultDoesNotSeemToBeSet,
+    sPAFunctionResultDoesNotSeemToBeSet,false);
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_FunctionResultPassRecordElement;
+begin
+  StartProgram(true);
+  Add('type');
+  Add('  TPoint = record X,Y:longint; end;');
+  Add('procedure Three(out x: longint);');
+  Add('begin');
+  Add('  x:=3;');
+  Add('end;');
+  Add('function Point(Left,Top: longint): TPoint;');
+  Add('begin');
+  Add('  Three(Result.X)');
+  Add('end;');
+  Add('begin');
+  Add('  Point(1,2);');
+  AnalyzeProgram;
+  CheckHasHint(mtHint,nPAFunctionResultDoesNotSeemToBeSet,
+    sPAFunctionResultDoesNotSeemToBeSet,false);
 end;
 
 procedure TTestUseAnalyzer.TestWP_LocalVar;

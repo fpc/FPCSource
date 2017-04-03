@@ -215,7 +215,6 @@ Works:
 ToDos:
 - external class array accessor: pass by ref
 - remove 'Object' array workaround
-- pass by ref: arr[3] ->  omit this.a
 - FuncName:= (instead of Result:=)
 - ord(s[i]) -> s.charCodeAt(i)
 - $modeswitch -> define <modeswitch>
@@ -260,6 +259,8 @@ Not in Version 1.0:
   -O1 no function Result var when assigned only once
   - SetLength(scope.a,l) -> read scope only once, same for
     Include, Exclude, Inc, Dec
+  -O1 replace constant expression with result
+  -O1 pass array element by ref: when index is constant, use that directly
 - objects, interfaces, advanced records
 - class helpers, type helpers, record helpers,
 - generics
@@ -2024,7 +2025,7 @@ begin
       if (not (rrfReadable in ParamResolved.Flags))
           or not (ParamResolved.BaseType in btAllInteger) then
         CheckRaiseTypeArgNo(20170402194221,1,Param,ParamResolved,'integer',true);
-      FinishParamExpressionAccess(Param,rraRead);
+      AccessExpr(Param,rraRead);
       exit(true);
       end
     else if IsExternalClassName(aClass,'Object') then
@@ -2040,7 +2041,7 @@ begin
       if (not (rrfReadable in ParamResolved.Flags))
           or not (ParamResolved.BaseType in btAllStringAndChars) then
         CheckRaiseTypeArgNo(20170402194511,1,Param,ParamResolved,'string',true);
-      FinishParamExpressionAccess(Param,rraRead);
+      AccessExpr(Param,rraRead);
       exit(true);
       end;
     end;
