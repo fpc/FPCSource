@@ -4953,6 +4953,14 @@ begin
       else if FindCallData.Found is TPasType then
         // Note: check TPasType after TPasUnresolvedSymbolRef
         CheckTypeCast(TPasType(FindCallData.Found),Params,true)
+      else if FindCallData.Found is TPasVariable then
+        begin
+        TypeEl:=ResolveAliasType(TPasVariable(FindCallData.Found).VarType);
+        if TypeEl is TPasProcedureType then
+          CheckCallProcCompatibility(TPasProcedureType(TypeEl),Params,true)
+        else
+          RaiseMsg(20170405003522,nIllegalQualifier,sIllegalQualifier,['('],Params);
+        end
       else
         RaiseNotYetImplemented(20161003134755,FindCallData.Found);
       end;

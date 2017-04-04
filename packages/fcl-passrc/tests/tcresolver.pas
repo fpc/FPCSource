@@ -518,6 +518,8 @@ type
     Procedure TestProcType_AllowNested;
     Procedure TestProcType_AllowNestedOfObject;
     Procedure TestProcType_AsArgOtherUnit;
+    Procedure TestProcType_Property;
+    Procedure TestProcType_PropertyCallWrongArgFail;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -8358,6 +8360,51 @@ begin
   Add('begin');
   Add('  a.forEach(@ShowElement);');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_Property;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('  TNotifyEvent = procedure(Sender: TObject) of object;');
+  Add('  TControl = class');
+  Add('    FOnClick: TNotifyEvent;');
+  Add('    property OnClick: TNotifyEvent read FOnClick write FOnClick;');
+  Add('    procedure Click(Sender: TObject);');
+  Add('  end;');
+  Add('procedure TControl.Click(Sender: TObject);');
+  Add('begin');
+  Add('  if Assigned(OnClick) then ;');
+  Add('  OnClick:=@Click');
+  Add('  OnClick(Sender);');
+  Add('  Self.OnClick(Sender);');
+  Add('  with Self do OnClick(Sender);');
+  Add('end;');
+  Add('var Btn: TControl;');
+  Add('begin');
+  Add('  if Assigned(Btn.OnClick) then ;');
+  Add('  Btn.OnClick(Btn);');
+  Add('  Btn.OnClick(Btn);');
+  Add('  with Btn do OnClick(Btn);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_PropertyCallWrongArgFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('  TNotifyEvent = procedure(Sender: TObject) of object;');
+  Add('  TControl = class');
+  Add('    FOnClick: TNotifyEvent;');
+  Add('    property OnClick: TNotifyEvent read FOnClick write FOnClick;');
+  Add('  end;');
+  Add('var Btn: TControl;');
+  Add('begin');
+  Add('  Btn.OnClick(3);');
+  CheckResolverException('Incompatible type arg no. 1: Got "Longint", expected "TObject"',
+    nIncompatibleTypeArgNo);
 end;
 
 initialization
