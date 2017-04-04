@@ -50,7 +50,7 @@
   {//$define SUPPORT_MMX}
   {$define cpumm}
   {$define fewintregisters}
-  {//$define cpurox}
+  {$define cpurox}
   {$define cpurefshaveindexreg}
   {$define SUPPORT_SAFECALL}
   {$define cpuneedsmulhelper}

@@ -1047,8 +1047,13 @@ implementation
                    tshlshrnode(left).left.isequal(tshlshrnode(right).left) and
                    not(might_have_sideeffects(tshlshrnode(left).left)) then
                    begin
-                     if tordconstnode(tshlshrnode(left).right).value=
-                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value then
+                     if (tordconstnode(tshlshrnode(left).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value)
+{$ifdef i8086}
+                         and (not(torddef(left.resultdef).ordtype in [s32bit,u32bit]) or
+                           (tordconstnode(tshlshrnode(left).right).value.svalue in [1,15,16,17,31]))
+{$endif i8086}
+                        then
                        begin
                          result:=cinlinenode.create(in_ror_x_y,false,
                            ccallparanode.create(tshlshrnode(left).right,
@@ -1057,8 +1062,13 @@ implementation
                          tshlshrnode(left).right:=nil;
                          exit;
                        end
-                     else if tordconstnode(tshlshrnode(right).right).value=
-                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value then
+                     else if (tordconstnode(tshlshrnode(right).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value)
+{$ifdef i8086}
+                         and (not(torddef(left.resultdef).ordtype in [s32bit,u32bit]) or
+                           (tordconstnode(tshlshrnode(right).right).value.svalue in [1,15,16,17,31]))
+{$endif i8086}
+                        then
                        begin
                          result:=cinlinenode.create(in_rol_x_y,false,
                            ccallparanode.create(tshlshrnode(right).right,
@@ -1076,8 +1086,13 @@ implementation
                    tshlshrnode(left).left.isequal(tshlshrnode(right).left) and
                    not(might_have_sideeffects(tshlshrnode(left).left)) then
                    begin
-                     if tordconstnode(tshlshrnode(left).right).value=
-                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value then
+                     if (tordconstnode(tshlshrnode(left).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value)
+{$ifdef i8086}
+                         and (not(torddef(left.resultdef).ordtype in [s32bit,u32bit]) or
+                           (tordconstnode(tshlshrnode(left).right).value.svalue in [1,15,16,17,31]))
+{$endif i8086}
+                        then
                        begin
                          result:=cinlinenode.create(in_rol_x_y,false,
                            ccallparanode.create(tshlshrnode(left).right,
@@ -1086,8 +1101,13 @@ implementation
                          tshlshrnode(left).right:=nil;
                          exit;
                        end
-                     else if tordconstnode(tshlshrnode(right).right).value=
-                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value then
+                     else if (tordconstnode(tshlshrnode(right).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value)
+{$ifdef i8086}
+                         and (not(torddef(left.resultdef).ordtype in [s32bit,u32bit]) or
+                           (tordconstnode(tshlshrnode(right).right).value.svalue in [1,15,16,17,31]))
+{$endif i8086}
+                        then
                        begin
                          result:=cinlinenode.create(in_ror_x_y,false,
                            ccallparanode.create(tshlshrnode(right).right,

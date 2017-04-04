@@ -257,7 +257,7 @@ unit cgcpu;
         tmpreg: tregister;
         op1, op2: TAsmOp;
         ax_subreg: tregister;
-        hl_loop_start: tasmlabel;
+        hl_loop_start,hl_skip: tasmlabel;
         ai: taicpu;
         use_loop, use_186_fast_shift, use_8086_fast_shift,
           use_386_fast_shift: Boolean;
@@ -561,6 +561,61 @@ unit cgcpu;
                             end;
                         end;
                     end;
+                end;
+              OP_ROL,OP_ROR:
+                begin
+                  a:=a and 31;
+                  if a=16 then
+                    list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)))
+                  else if ((a=1) and (op=OP_ROL)) or ((a=31) and (op=OP_ROR)) then
+                    begin
+                      list.Concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg)));
+                      list.Concat(taicpu.op_const_reg(A_RCL,S_W,1,reg));
+                      list.Concat(taicpu.op_const_reg(A_ADC,S_W,0,GetNextReg(reg)));
+                    end
+                  else if ((a=15) and (op=OP_ROL)) or ((a=31) and (op=OP_ROR)) then
+                    begin
+                      list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)));
+
+                      list.Concat(taicpu.op_const_reg(A_SHR,S_W,1,reg));
+                      list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg)));
+
+                      current_asmdata.getjumplabel(hl_skip);
+
+                      ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl_skip);
+                      ai.SetCondition(C_NC);
+                      ai.is_jmp:=true;
+                      list.concat(ai);
+
+                      list.Concat(taicpu.op_const_reg(A_ADD,S_W,aint($8000),reg));
+
+                      a_label(list,hl_skip);
+                    end
+                  else if ((a=17) and (op=OP_ROL)) or ((a=31) and (op=OP_ROR)) then
+                    begin
+                      list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)));
+                      list.Concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg)));
+                      list.Concat(taicpu.op_const_reg(A_RCL,S_W,1,reg));
+                      list.Concat(taicpu.op_const_reg(A_ADC,S_W,0,GetNextReg(reg)));
+                    end
+                  else if ((a=31) and (op=OP_ROL)) or ((a=1) and (op=OP_ROR)) then
+                    begin
+                      list.Concat(taicpu.op_const_reg(A_SHR,S_W,1,reg));
+                      list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg)));
+
+                      current_asmdata.getjumplabel(hl_skip);
+
+                      ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl_skip);
+                      ai.SetCondition(C_NC);
+                      ai.is_jmp:=true;
+                      list.concat(ai);
+
+                      list.Concat(taicpu.op_const_reg(A_ADD,S_W,aint($8000),reg));
+
+                      a_label(list,hl_skip);
+                    end
+                  else
+                    internalerror(2017040501);
                 end;
               else
                 begin
