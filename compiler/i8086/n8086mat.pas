@@ -388,7 +388,7 @@ implementation
       var
         hreg64hi,hreg64lo:Tregister;
         v : TConstExprInt;
-        l1,l2,l3:Tasmlabel;
+        l2,l3:Tasmlabel;
         ai: taicpu;
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -485,31 +485,14 @@ implementation
                 { is it in the case CX ? }
               end;
 
-            current_asmdata.getjumplabel(l1);
             current_asmdata.getjumplabel(l2);
             current_asmdata.getjumplabel(l3);
             { for consts, we don't need the extra checks for 0 or >= 64, since
               we've already handled them earlier as a special case }
             if right.nodetype<>ordconstn then
               begin
-                if (cs_opt_size in current_settings.optimizerswitches) or
-                   (current_settings.optimizecputype<=cpu_386) then
-                  begin
-                    ai:=Taicpu.Op_Sym(A_JCXZ,S_W,l3);
-                    ai.is_jmp := True;
-                    current_asmdata.CurrAsmList.Concat(ai);
-                  end
-                else
-                  begin
-                    emit_reg_reg(A_TEST,S_W,NR_CX,NR_CX);
-                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l3);
-                  end;
-                emit_const_reg(A_CMP,S_L,64,NR_CX);
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_L,l1);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,hreg64lo,hreg64lo);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,hreg64hi,hreg64hi);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
-                cg.a_label(current_asmdata.CurrAsmList,l1);
+                emit_const_reg(A_AND,S_W,63,NR_CX);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l3);
               end;
             cg.a_label(current_asmdata.CurrAsmList,l2);
             if nodetype=shln then
