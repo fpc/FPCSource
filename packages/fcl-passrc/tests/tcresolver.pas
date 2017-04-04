@@ -164,6 +164,7 @@ type
     Procedure TestAliasOfVarFail;
     Procedure TestAliasType_UnitPrefix;
     Procedure TestAliasType_UnitPrefix_CycleFail;
+    Procedure TestAliasTypeNotFoundPosition;
     Procedure TestTypeAliasType; // ToDo
 
     // var, const
@@ -386,6 +387,7 @@ type
     Procedure TestClass_SealedDescendFail;
     Procedure TestClass_VarExternal;
     Procedure TestClass_WarnOverrideLowerVisibility;
+    Procedure TestClass_Const;
     // Todo: Fail to use class.method in constant or type, e.g. const p = @o.doit;
 
     // published
@@ -1806,6 +1808,25 @@ begin
   Add('  {#a}a=afile.a;');
   Add('implementation');
   CheckResolverException('identifier not found "a"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestAliasTypeNotFoundPosition;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TColor = NotThere;');
+  CheckResolverException('identifier not found "NotThere"',nIdentifierNotFound);
+  // TColor element was not created yet, so LastElement must nil
+  AssertNull('ResolverEngine.LastElement',ResolverEngine.LastElement);
+  with ResolverEngine.LastSourcePos do
+    begin
+    //writeln('TTestResolver.TestAliasTypeNotFoundPosition ',FileName,' ',Row,' ',Col);
+    //WriteSources(FileName,Row,Column);
+    AssertEquals('ResolverEngine.LastSourcePos.Filename','afile.pp',FileName);
+    AssertEquals('ResolverEngine.LastSourcePos.Row',4,Row);
+    AssertEquals('ResolverEngine.LastSourcePos.Column',20,Column);
+    end;
 end;
 
 procedure TTestResolver.TestTypeAliasType;
@@ -5188,8 +5209,8 @@ begin
   Add('  end;');
   Add('begin');
   Add('  if TObject.i=7 then ;');
-  CheckResolverException('Only class methods, class properties and class variables can be referred with class references',
-    PasResolver.nOnlyClassMembersCanBeReferredWithClassReferences);
+  CheckResolverException(sCannotAccessThisMemberFromAClassReference,
+    PasResolver.nCannotAccessThisMemberFromAClassReference);
 end;
 
 procedure TTestResolver.TestClass_FuncReturningObjectMember;
@@ -5887,6 +5908,54 @@ begin
     'Virtual method "DoPublished" has a lower visibility (protected) than parent class TObject (published)',true);
 end;
 
+procedure TTestResolver.TestClass_Const;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TClass = class of TObject;');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    const cI: integer = 3;');
+  Add('    procedure DoIt;');
+  Add('    class procedure DoMore;');
+  Add('  end;');
+  Add('implementation');
+  Add('procedure tobject.doit;');
+  Add('begin');
+  Add('  if cI=4 then;');
+  Add('  if 5=cI then;');
+  Add('  if Self.cI=6 then;');
+  Add('  if 7=Self.cI then;');
+  Add('  with Self do begin');
+  Add('    if cI=11 then;');
+  Add('    if 12=cI then;');
+  Add('  end;');
+  Add('end;');
+  Add('class procedure tobject.domore;');
+  Add('begin');
+  Add('  if cI=8 then;');
+  Add('  if Self.cI=9 then;');
+  Add('  if 10=cI then;');
+  Add('  if 11=Self.cI then;');
+  Add('  with Self do begin');
+  Add('    if cI=13 then;');
+  Add('    if 14=cI then;');
+  Add('  end;');
+  Add('end;');
+  Add('var');
+  Add('  Obj: TObject;');
+  Add('  Cla: TClass;');
+  Add('begin');
+  Add('  if TObject.cI=21 then ;');
+  Add('  if Obj.cI=22 then ;');
+  Add('  if Cla.cI=23 then ;');
+  Add('  with obj do if ci=24 then;');
+  Add('  with TObject do if ci=25 then;');
+  Add('  with Cla do if ci=26 then;');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestClass_PublishedVarFail;
 begin
   StartProgram(false);
@@ -6133,8 +6202,8 @@ begin
   Add('  oc: TObjectClass;');
   Add('begin');
   Add('  oc.Id:=3;');
-  CheckResolverException('Only class methods, class properties and class variables can be referred with class references',
-    PasResolver.nOnlyClassMembersCanBeReferredWithClassReferences);
+  CheckResolverException(sCannotAccessThisMemberFromAClassReference,
+    PasResolver.nCannotAccessThisMemberFromAClassReference);
 end;
 
 procedure TTestResolver.TestClassOfDotClassProc;
@@ -6193,8 +6262,8 @@ begin
   Add('  oc: TObjectClass;');
   Add('begin');
   Add('  oc.ProcA;');
-  CheckResolverException('Only class methods, class properties and class variables can be referred with class references',
-    PasResolver.nOnlyClassMembersCanBeReferredWithClassReferences);
+  CheckResolverException(sCannotAccessThisMemberFromAClassReference,
+    PasResolver.nCannotAccessThisMemberFromAClassReference);
 end;
 
 procedure TTestResolver.TestClassOfDotClassProperty;
@@ -6240,8 +6309,8 @@ begin
   Add('  oc: TObjectClass;');
   Add('begin');
   Add('  if oc.A=3 then ;');
-  CheckResolverException('Only class methods, class properties and class variables can be referred with class references',
-    PasResolver.nOnlyClassMembersCanBeReferredWithClassReferences);
+  CheckResolverException(sCannotAccessThisMemberFromAClassReference,
+    PasResolver.nCannotAccessThisMemberFromAClassReference);
 end;
 
 procedure TTestResolver.TestClass_ClassProcSelf;

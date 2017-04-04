@@ -1601,7 +1601,7 @@ begin
 
   // procedure was used
 
-  if [pmAssembler,pmExternal]*El.Modifiers<>[] then exit;
+  if [pmAbstract,pmAssembler,pmExternal]*El.Modifiers<>[] then exit;
 
   if ProcScope.DeclarationProc=nil then
     begin
@@ -1624,7 +1624,7 @@ begin
         end;
       end;
     // check result
-    if El is TPasFunction then
+    if (El is TPasFunction) then
       begin
       PosEl:=TPasFunction(El).FuncType.ResultEl;
       if (ProcScope.ImplProc<>nil) and (TPasFunction(ProcScope.ImplProc).FuncType.ResultEl<>nil) then

@@ -229,7 +229,7 @@ const
   nTypesAreNotRelated = 3029;
   nAbstractMethodsCannotBeCalledDirectly = 3030;
   nMissingParameterX = 3031;
-  nOnlyClassMembersCanBeReferredWithClassReferences = 3032;
+  nCannotAccessThisMemberFromAClassReference = 3032;
   nInOperatorExpectsSetElementButGot = 3033;
   nWrongNumberOfParametersForTypeCast = 3034;
   nIllegalTypeConversionTo = 3035;
@@ -286,7 +286,7 @@ resourcestring
   sTypesAreNotRelated = 'Types are not related';
   sAbstractMethodsCannotBeCalledDirectly = 'Abstract methods cannot be called directly';
   sMissingParameterX = 'Missing parameter %s';
-  sOnlyClassMembersCanBeReferredWithClassReferences = 'Only class methods, class properties and class variables can be referred with class references';
+  sCannotAccessThisMemberFromAClassReference = 'Cannot access this member from a class reference';
   sInOperatorExpectsSetElementButGot = 'the in-operator expects a set element, but got %s';
   sWrongNumberOfParametersForTypeCast = 'wrong number of parameters for type cast to %s';
   sIllegalTypeConversionTo = 'Illegal type conversion: "%s" to "%s"';
@@ -520,8 +520,9 @@ type
     MsgNumber: integer;
     MsgPattern: String;
     Args: TMessageArgs;
+    SourcePos: TPasSourcePos;
     destructor Destroy; override;
-    property PasElement: TPasElement read FPasElement write SetPasElement;
+    property PasElement: TPasElement read FPasElement write SetPasElement; // can be nil!
   end;
 
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -983,6 +984,7 @@ type
     FLastMsgNumber: integer;
     FLastMsgPattern: string;
     FLastMsgType: TMessageType;
+    FLastSourcePos: TPasSourcePos;
     FOptions: TPasResolverOptions;
     FPendingForwards: TFPList; // list of TPasElement needed to check for forward procs
     FRootElement: TPasElement;
@@ -1277,7 +1279,7 @@ type
       out Line, Column: integer);
     class function GetElementSourcePosStr(El: TPasElement): string;
     procedure SetLastMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
-      Const Fmt : String; Args : Array of const; Element: TPasElement);
+      Const Fmt : String; Args : Array of const; PosEl: TPasElement);
     procedure LogMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
       const Fmt: String; Args: Array of const; PosEl: TPasElement); overload;
     procedure RaiseMsg(const Id: int64; MsgNumber: integer; const Fmt: String;
@@ -1393,6 +1395,7 @@ type
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
+    property LastSourcePos: TPasSourcePos read FLastSourcePos write FLastSourcePos;
     property Options: TPasResolverOptions read FOptions write FOptions;
     property ScopeClass_Class: TPasClassScopeClass read FScopeClass_Class write FScopeClass_Class;
     property ScopeClass_WithExpr: TPasWithExprScopeClass read FScopeClass_WithExpr write FScopeClass_WithExpr;
@@ -3958,7 +3961,7 @@ begin
   if aClass.IsForward then
     exit;
   if aClass.ObjKind<>okClass then
-    RaiseNotYetImplemented(20161010174638,aClass,ObjKindNames[aClass.ObjKind]);
+    RaiseNotYetImplemented(20161010174638,aClass,'Kind='+ObjKindNames[aClass.ObjKind]);
 
   IsSealed:=false;
   for i:=0 to aClass.Modifiers.Count-1 do
@@ -7611,9 +7614,11 @@ var
   p: SizeInt;
   RightPath, CurName: String;
   NeedPop: Boolean;
-  CurScopeEl, NextEl: TPasElement;
+  CurScopeEl, NextEl, ErrorEl: TPasElement;
 begin
   //writeln('TPasResolver.FindElement Name="',aName,'"');
+  ErrorEl:=nil; // use nil to use scanner position as error position
+
   RightPath:=aName;
   p:=1;
   CurScopeEl:=nil;
@@ -7629,14 +7634,14 @@ begin
       CurName:=LeftStr(RightPath,p-1);
       Delete(RightPath,1,p);
       if RightPath='' then
-        RaiseMsg(20170328003146,nIllegalExpression,sIllegalExpression,[],LastElement);
+        RaiseMsg(20170328003146,nIllegalExpression,sIllegalExpression,[],ErrorEl);
       end;
     {$IFDEF VerbosePasResolver}
     if RightPath<>'' then
       writeln('TPasResolver.FindElement searching scope "',CurName,'" RightPath="',RightPath,'" ...');
     {$ENDIF}
     if not IsValidIdent(CurName) then
-      RaiseNotYetImplemented(20170328000033,LastElement);
+      RaiseNotYetImplemented(20170328000033,ErrorEl);
 
     if CurScopeEl<>nil then
       begin
@@ -7650,19 +7655,19 @@ begin
     else
       NeedPop:=false;
 
-    NextEl:=FindElementWithoutParams(CurName,LastElement,true);
+    NextEl:=FindElementWithoutParams(CurName,ErrorEl,true);
     if RightPath<>'' then
       begin
       if (NextEl is TPasModule) then
         begin
         if CurScopeEl is TPasModule then
-          RaiseXExpectedButYFound(20170328001619,'class',NextEl.ElementTypeName+' '+NextEl.Name,LastElement);
+          RaiseXExpectedButYFound(20170328001619,'class',NextEl.ElementTypeName+' '+NextEl.Name,ErrorEl);
         CurScopeEl:=NextEl;
         end
       else if (CurScopeEl is TPasClassType) then
         CurScopeEl:=NextEl
       else
-        RaiseIdentifierNotFound(20170328001941,CurName,LastElement);
+        RaiseIdentifierNotFound(20170328001941,CurName,ErrorEl);
       end;
 
     // restore scope
@@ -7702,11 +7707,12 @@ begin
   Result:=Data.Found;
   if Result=nil then
     begin
-    if (ErrorPosEl.ClassType=TPasClassOfType)
-        and (TPasClassOfType(ErrorPosEl).DestType=nil) then
+    if (ErrorPosEl=nil) and (LastElement<>nil)
+        and (LastElement.ClassType=TPasClassOfType)
+        and (TPasClassOfType(LastElement).DestType=nil) then
       begin
       // 'class of' of a not yet defined class
-      Result:=CreateElement(TUnresolvedPendingRef,AName,ErrorPosEl,visDefault,
+      Result:=CreateElement(TUnresolvedPendingRef,AName,LastElement,visDefault,
                             CurrentParser.Scanner.CurSourcePos);
       exit;
       end;
@@ -7793,8 +7799,8 @@ begin
         and (vmClass in TPasVariable(FindData.Found).VarModifiers) then
       // class var/const/property: ok
     else
-      RaiseMsg(20170216152348,nOnlyClassMembersCanBeReferredWithClassReferences,
-        sOnlyClassMembersCanBeReferredWithClassReferences,[],FindData.ErrorPosEl);
+      RaiseMsg(20170216152348,nCannotAccessThisMemberFromAClassReference,
+        sCannotAccessThisMemberFromAClassReference,[],FindData.ErrorPosEl);
     end
   else if (proExtClassInstanceNoTypeMembers in Options)
       and (StartScope.ClassType=TPasDotClassScope)
@@ -8407,21 +8413,37 @@ end;
 
 procedure TPasResolver.SetLastMsg(const id: int64; MsgType: TMessageType;
   MsgNumber: integer; const Fmt: String; Args: array of const;
-  Element: TPasElement);
-{$IFDEF VerbosePasResolver}
+  PosEl: TPasElement);
 var
+{$IFDEF VerbosePasResolver}
   s: string;
 {$ENDIF}
+  Column, Row: integer;
 begin
   FLastMsgId := id;
   FLastMsgType := MsgType;
   FLastMsgNumber := MsgNumber;
   FLastMsgPattern := Fmt;
   FLastMsg := SafeFormat(Fmt,Args);
-  FLastElement := Element;
+  FLastElement := PosEl;
+  if PosEl=nil then
+    FLastSourcePos:=CurrentParser.Scanner.CurSourcePos
+  else
+    begin
+    FLastSourcePos.FileName:=PosEl.SourceFilename;
+    UnmangleSourceLineNumber(PosEl.SourceLinenumber,Row,Column);
+    if Row>=0 then
+      FLastSourcePos.Row:=Row
+    else
+      FLastSourcePos.Row:=0;
+    if Column>=0 then
+      FLastSourcePos.Column:=Column
+    else
+      FLastSourcePos.Column:=0;
+    end;
   CreateMsgArgs(FLastMsgArgs,Args);
   {$IFDEF VerbosePasResolver}
-  write('TPasResolver.SetLastMsg ',id,' ',GetElementSourcePosStr(Element),' ');
+  write('TPasResolver.SetLastMsg ',id,' ',GetElementSourcePosStr(PosEl),' ');
   s:='';
   str(MsgType,s);
   write(s);
@@ -8442,6 +8464,7 @@ begin
   E.MsgPattern:=Fmt;
   E.PasElement:=ErrorPosEl;
   E.Args:=FLastMsgArgs;
+  E.SourcePos:=FLastSourcePos;
   raise E;
 end;
 
@@ -8485,7 +8508,7 @@ procedure TPasResolver.RaiseIdentifierNotFound(id: int64; Identifier: string;
   El: TPasElement);
 begin
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.RaiseIdentifierNotFound START "',Identifier,'"');
+  writeln('TPasResolver.RaiseIdentifierNotFound START "',Identifier,'" ErrorEl=',GetObjName(El));
   WriteScopes;
   {$ENDIF}
   RaiseMsg(id,nIdentifierNotFound,sIdentifierNotFound,[Identifier],El);
@@ -9595,16 +9618,14 @@ begin
     begin
     if RHS.BaseType=btNil then
       exit(cExact);
-    writeln('TPasResolver.CheckAssignCompatibilityUserType LTypeEl=',GetObjName(LTypeEl),' RHS.BaseType=',BaseTypeNames[RHS.BaseType],' RTypeEl=',GetObjName(RTypeEl),' RHS.IdentEl=',GetObjName(RHS.IdentEl),' RHS.ExprEl=',GetObjName(RHS.ExprEl),' rrfReadable=',rrfReadable in RHS.Flags);
+    //writeln('TPasResolver.CheckAssignCompatibilityUserType LTypeEl=',GetObjName(LTypeEl),' RHS.BaseType=',BaseTypeNames[RHS.BaseType],' RTypeEl=',GetObjName(RTypeEl),' RHS.IdentEl=',GetObjName(RHS.IdentEl),' RHS.ExprEl=',GetObjName(RHS.ExprEl),' rrfReadable=',rrfReadable in RHS.Flags);
     if (LTypeEl.ClassType=RTypeEl.ClassType)
         and (rrfReadable in RHS.Flags) then
       begin
       // e.g. ProcVar1:=ProcVar2
-        writeln('AAA2 TPasResolver.CheckAssignCompatibilityUserType ');
       if CheckProcTypeCompatibility(TPasProcedureType(LTypeEl),TPasProcedureType(RTypeEl),
           ErrorEl,RaiseOnIncompatible) then
         exit(cExact);
-      writeln('AAA3 TPasResolver.CheckAssignCompatibilityUserType ');
       end;
     if RaiseOnIncompatible then
       begin

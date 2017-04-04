@@ -75,6 +75,7 @@ type
     // single module hints
     procedure TestM_Hint_UnitNotUsed;
     procedure TestM_Hint_ParameterNotUsed;
+    procedure TestM_Hint_ParameterNotUsed_Abstract;
     procedure TestM_Hint_LocalVariableNotUsed;
     procedure TestM_Hint_InterfaceUnitVariableUsed;
     procedure TestM_Hint_ValueParameterIsAssignedButNeverUsed;
@@ -90,6 +91,7 @@ type
     procedure TestM_Hint_LocalMethodInProgramNotUsed;
     procedure TestM_Hint_AssemblerParameterIgnored;
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet;
+    procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet_Abstract;
     procedure TestM_Hint_FunctionResultRecord;
     procedure TestM_Hint_FunctionResultPassRecordElement;
     procedure TestM_Hint_OutParam_No_AssignedButNeverUsed;
@@ -841,6 +843,20 @@ begin
   CheckHasHint(mtHint,nPAParameterNotUsed,'Parameter "i" not used');
 end;
 
+procedure TTestUseAnalyzer.TestM_Hint_ParameterNotUsed_Abstract;
+begin
+  StartProgram(true);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class procedure DoIt(i: longint); virtual; abstract;');
+  Add('  end;');
+  Add('begin');
+  Add('  TObject.DoIt(3);');
+  AnalyzeProgram;
+  CheckHasHint(mtHint,nPAParameterNotUsed,
+    sPAParameterNotUsed,false);
+end;
+
 procedure TTestUseAnalyzer.TestM_Hint_LocalVariableNotUsed;
 begin
   StartProgram(true);
@@ -1137,6 +1153,20 @@ begin
   AnalyzeProgram;
   CheckHasHint(mtHint,nPAFunctionResultDoesNotSeemToBeSet,
     sPAFunctionResultDoesNotSeemToBeSet);
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_FunctionResultDoesNotSeemToBeSet_Abstract;
+begin
+  StartProgram(true);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class function DoIt: longint; virtual; abstract;');
+  Add('  end;');
+  Add('begin');
+  Add('  TObject.DoIt;');
+  AnalyzeProgram;
+  CheckHasHint(mtHint,nPAFunctionResultDoesNotSeemToBeSet,
+    sPAFunctionResultDoesNotSeemToBeSet,false);
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_FunctionResultRecord;

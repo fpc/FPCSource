@@ -2799,6 +2799,8 @@ var
 begin
   SaveComments;
   Result := TPasConst(CreateElement(TPasConst, CurTokenString, Parent));
+  if Parent is TPasClassType then
+    Include(Result.VarModifiers,vmClass);
   ok:=false;
   try
     NextToken;
