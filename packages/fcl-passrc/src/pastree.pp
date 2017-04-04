@@ -1350,6 +1350,7 @@ Type
 
 const
   AccessNames: array[TArgumentAccess] of string[9] = ('', 'const ', 'var ', 'out ','constref ');
+  AccessDescriptions: array[TArgumentAccess] of string[9] = ('default', 'const', 'var', 'out','constref');
   AllVisibilities: TPasMemberVisibilities =
      [visDefault, visPrivate, visProtected, visPublic,
       visPublished, visAutomated];
@@ -2320,6 +2321,8 @@ begin
     okSpecialize : Result := SPasTreeSpecializedType;
     okClassHelper : Result:=SPasClassHelperType;
     okRecordHelper : Result:=SPasRecordHelperType;
+  else
+    Result:='ObjKind('+IntToStr(ord(ObjKind))+')';
   end;
 end;
 

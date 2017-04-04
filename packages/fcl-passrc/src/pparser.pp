@@ -715,6 +715,9 @@ end;
 procedure TPasParser.ParseExc(MsgNumber: integer; const Fmt: String;
   Args: array of const);
 begin
+  {$IFDEF VerbosePasParser}
+  writeln('TPasParser.ParseExc Token="',CurTokenText,'"');
+  {$ENDIF}
   SetLastMsg(mtError,MsgNumber,Fmt,Args);
   raise EParserError.Create(SafeFormat(SParserErrorAtToken,
     [FLastMsg, CurTokenName, Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn])
@@ -1867,7 +1870,7 @@ begin
           if (CurToken<>tkBraceClose) then
             begin
             x.Release;
-            Exit;
+            CheckToken(tkBraceClose);
             end;
           NextToken;
           // for expressions like (ppdouble)^^;
@@ -1888,7 +1891,7 @@ begin
           x:=ParseExpIdent(AParent);
           end;
         if not Assigned(x) then
-          Exit;
+          ParseExcSyntaxError;
         expstack.Add(x);
 
         for i:=1 to pcount do
@@ -1921,7 +1924,7 @@ begin
         PushOper(CurToken);
         NextToken;
         end;
-      // Writeln('Bin ',NotBinary ,' or EOE ',isEndOfExp, ' Ex ',Assigned(x),' stack ',ExpStack.Count);
+       //Writeln('Bin ',NotBinary ,' or EOE ',isEndOfExp, ' Ex ',Assigned(x),' stack ',ExpStack.Count);
     until NotBinary or isEndOfExp(AllowEqual);
 
     if not NotBinary then ParseExcExpectedIdentifier;
@@ -1929,6 +1932,8 @@ begin
     while opstackTop>=0 do PopAndPushOperator;
 
     // only 1 expression should be on the stack, at the end of the correct expression
+    if expstack.Count<>1 then
+      ParseExcSyntaxError;
     if expstack.Count=1 then
       begin
       Result:=TPasExpr(expstack[0]);
@@ -4096,7 +4101,7 @@ begin
   while True do
   begin
     NextToken;
-    // WriteLn({$IFDEF VerbosePasParser}i,{$ENDIF}' Token=',CurTokenText);
+     WriteLn({$IFDEF VerbosePasParser}i,{$ENDIF}' Token=',CurTokenText);
     case CurToken of
     tkasm:
       begin
@@ -4488,8 +4493,10 @@ begin
           if CloseBlock then break;
         end else
           ParseExcSyntaxError;
-      end
-    else
+      end;
+    tkEOF:
+      CheckToken(tkend);
+    tkBraceOpen,tkIdentifier,tkNumber,tkSquaredBraceOpen,tkMinus,tkPlus,tkinherited:
       begin
       left:=DoParseExpression(CurBlock);
       case CurToken of
@@ -4536,6 +4543,8 @@ begin
       if not (CmdElem is TPasImplLabelMark) then
         if NewImplElement=nil then NewImplElement:=CmdElem;
       end;
+    else
+      ParseExcSyntaxError;
     end;
   end;
 end;

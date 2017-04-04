@@ -125,6 +125,7 @@ Works:
   - Delphi without @
   - FPC equal and not equal
   - "is nested"
+  - bark on arguments access mismatch
 - function without params: mark if call or address, rrfImplicitCallWithoutParams
 - procedure break, procedure continue
 - built-in functions pred, succ for range type and enums
@@ -212,7 +213,7 @@ const
   nCantDetermineWhichOverloadedFunctionToCall = 3013;
   nForwardTypeNotResolved = 3014;
   nForwardProcNotResolved = 3015;
-  nInvalidXModifiersY = 3016;
+  nInvalidXModifierY = 3016;
   nAbstractMethodsMustNotHaveImplementation = 3017;
   nCallingConventionMismatch = 3018;
   nResultTypeMismatchExpectedButFound = 3019;
@@ -249,6 +250,8 @@ const
   nVirtualMethodXHasLowerVisibility = 3050; // FPC 3250
   nExternalClassInstanceCannotAccessStaticX = 3051;
   nXModifierMismatchY = 3052;
+  nSymbolCannotBePublished = 3053;
+  nCannotTypecastAType = 3054;
 
 // resourcestring patterns of messages
 resourcestring
@@ -267,7 +270,7 @@ resourcestring
   sCantDetermineWhichOverloadedFunctionToCall = 'Can''t determine which overloaded function to call';
   sForwardTypeNotResolved = 'Forward type not resolved "%s"';
   sForwardProcNotResolved = 'Forward %s not resolved "%s"';
-  sInvalidXModifiersY = 'Invalid %s modifiers %s';
+  sInvalidXModifierY = 'Invalid %s modifier %s';
   sAbstractMethodsMustNotHaveImplementation = 'Abstract method must not have an implementation.';
   sCallingConventionMismatch = 'Calling convention mismatch';
   sResultTypeMismatchExpectedButFound = 'Result type mismatch, expected %s, but found %s';
@@ -304,6 +307,8 @@ resourcestring
   sVirtualMethodXHasLowerVisibility = 'Virtual method "%s" has a lower visibility (%s) than parent class %s (%s)';
   sExternalClassInstanceCannotAccessStaticX = 'External class instance cannot access static %s';
   sXModifierMismatchY = '%s modifier "%s" mismatch';
+  sSymbolCannotBePublished = 'Symbol cannot be published. Only methods and properties.';
+  sCannotTypecastAType = 'Cannot type cast a type';
 
 type
   TResolverBaseType = (
@@ -581,10 +586,6 @@ type
     pikBuiltInProc,  // e.g. High(), SetLength()
     pikSimple, // simple vars, consts, types, enums
     pikProc // may need parameter list with round brackets
-    {
-    pikIndexedProperty, // may need parameter list with edged brackets
-    pikGeneric, // may need parameter list with angle brackets
-    pikDottedUses // namespace, needs dotted identifierss }
     );
   TPasIdentifierKinds = set of TPasIdentifierKind;
 
@@ -1288,11 +1289,11 @@ type
     procedure RaiseXExpectedButYFound(id: int64; const X,Y: string; El: TPasElement);
     procedure RaiseConstantExprExp(id: int64; ErrorEl: TPasElement);
     procedure RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
-      const Args: array of const; const DescA,DescB: String; ErrorEl: TPasElement);
+      const Args: array of const; const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
     procedure RaiseIncompatibleType(id: int64; MsgNumber: integer;
-      const Args: array of const; TypeA, TypeB: TPasType; ErrorEl: TPasElement);
+      const Args: array of const; GotType, ExpType: TPasType; ErrorEl: TPasElement);
     procedure RaiseIncompatibleTypeRes(id: int64; MsgNumber: integer;
-      const Args: array of const; const TypeA, TypeB: TPasResolverResult;
+      const Args: array of const; const GotType, ExpType: TPasResolverResult;
       ErrorEl: TPasElement);
     procedure WriteScopes;
     // find value and type of an element
@@ -1478,6 +1479,8 @@ function GetTypeDesc(aType: TPasType; AddPath: boolean): string;
     s: String;
   begin
     Result:=aType.Name;
+    if Result='' then
+      Result:=aType.ElementTypeName;
     if AddPath then
       begin
       s:=aType.FullPath;
@@ -1489,7 +1492,7 @@ function GetTypeDesc(aType: TPasType; AddPath: boolean): string;
 var
   C: TClass;
 begin
-  if aType=nil then exit('nil');
+  if aType=nil then exit('untyped');
   C:=aType.ClassType;
   if (C=TPasUnresolvedSymbolRef) then
     begin
@@ -1718,7 +1721,7 @@ begin
       if length(ArrayEl.Ranges)=0 then
         Result:='array of '+ArrayEl.ElType.Name
       else
-        Result:='array[] of '+ArrayEl.ElType.Name;
+        Result:='static array[] of '+ArrayEl.ElType.Name;
       end
     else if T.TypeEl is TPasProcedureType then
       Result:=GetProcDesc(TPasProcedureType(T.TypeEl),false)
@@ -2857,8 +2860,21 @@ var
   Identifier, OlderIdentifier: TPasIdentifier;
   ClassScope: TPasClassScope;
   OlderEl: TPasElement;
+  IsClassScope: Boolean;
 begin
-  if (Kind=pikSimple) and (Scope is TPasClassScope)
+  IsClassScope:=(Scope is TPasClassScope);
+
+  if (El.Visibility=visPublished) then
+    begin
+    if El.ClassType=TPasProperty then
+      // Note: VarModifiers are not yet set
+    else if (El.ClassType=TPasProcedure) or (El.ClassType=TPasFunction) then
+      // ok
+    else
+      RaiseMsg(20170403223024,nSymbolCannotBePublished,sSymbolCannotBePublished,[],El);
+    end;
+
+  if (Kind=pikSimple) and IsClassScope
       and (El.ClassType<>TPasProperty) then
     begin
     // check duplicate in ancestors
@@ -2890,7 +2906,9 @@ begin
   // check duplicate in current scope
   OlderIdentifier:=Identifier.NextSameIdentifier;
   if (OlderIdentifier<>nil) then
-    if (Identifier.Kind=pikSimple) or (OlderIdentifier.Kind=pikSimple) then
+    if (Identifier.Kind=pikSimple)
+        or (OlderIdentifier.Kind=pikSimple)
+        or (El.Visibility=visPublished) then
       begin
       if (OlderIdentifier.Element.ClassType=TPasEnumValue)
           and (OlderIdentifier.Element.Parent.Parent<>Scope.Element) then
@@ -3267,8 +3285,8 @@ begin
                         pmStatic, pmVarargs,
                         pmExternal, pmDispId,
                         pmfar]) then
-          RaiseMsg(20170216151616,nInvalidXModifiersY,
-            sInvalidXModifiersY,[Proc.ElementTypeName,'external, '+ModifierNames[pm]],Proc);
+          RaiseMsg(20170216151616,nInvalidXModifierY,
+            sInvalidXModifierY,[Proc.ElementTypeName,'external, '+ModifierNames[pm]],Proc);
 
     if Proc.Parent is TPasClassType then
       begin
@@ -3276,31 +3294,31 @@ begin
       if Proc.IsAbstract then
         begin
         if not Proc.IsVirtual then
-          RaiseMsg(20170216151623,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'abstract without virtual'],Proc);
+          RaiseMsg(20170216151623,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'abstract without virtual'],Proc);
         if Proc.IsOverride then
-          RaiseMsg(20170216151625,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'abstract, override'],Proc);
+          RaiseMsg(20170216151625,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'abstract, override'],Proc);
         end;
       if Proc.IsVirtual and Proc.IsOverride then
-        RaiseMsg(20170216151627,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'virtual, override'],Proc);
+        RaiseMsg(20170216151627,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'virtual, override'],Proc);
       if Proc.IsForward then
-        RaiseMsg(20170216151629,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'forward'],Proc);
+        RaiseMsg(20170216151629,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'forward'],Proc);
       if Proc.IsStatic then
         if (Proc.ClassType<>TPasClassProcedure) and (Proc.ClassType<>TPasClassFunction) then
-          RaiseMsg(20170216151631,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'static'],Proc);
+          RaiseMsg(20170216151631,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'static'],Proc);
       end
     else
       begin
       // intf proc, forward proc, proc body, method body
       if Proc.IsAbstract then
-        RaiseMsg(20170216151634,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'abstract'],Proc);
+        RaiseMsg(20170216151634,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'abstract'],Proc);
       if Proc.IsVirtual then
-        RaiseMsg(20170216151635,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'virtual'],Proc);
+        RaiseMsg(20170216151635,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'virtual'],Proc);
       if Proc.IsOverride then
-        RaiseMsg(20170216151637,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'override'],Proc);
+        RaiseMsg(20170216151637,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'override'],Proc);
       if Proc.IsMessage then
-        RaiseMsg(20170216151638,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'message'],Proc);
+        RaiseMsg(20170216151638,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'message'],Proc);
       if Proc.IsStatic then
-        RaiseMsg(20170216151640,nInvalidXModifiersY,sInvalidXModifiersY,[Proc.ElementTypeName,'static'],Proc);
+        RaiseMsg(20170216151640,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'static'],Proc);
       end;
 
     if Pos('.',ProcName)>1 then
@@ -3479,9 +3497,9 @@ var
   p: Integer;
 begin
   if ImplProc.IsExternal then
-    RaiseMsg(20170216151715,nInvalidXModifiersY,sInvalidXModifiersY,[ImplProc.ElementTypeName,'external'],ImplProc);
+    RaiseMsg(20170216151715,nInvalidXModifierY,sInvalidXModifierY,[ImplProc.ElementTypeName,'external'],ImplProc);
   if ImplProc.IsExported then
-    RaiseMsg(20170216151717,nInvalidXModifiersY,sInvalidXModifiersY,[ImplProc.ElementTypeName,'export'],ImplProc);
+    RaiseMsg(20170216151717,nInvalidXModifierY,sInvalidXModifierY,[ImplProc.ElementTypeName,'export'],ImplProc);
 
   ProcName:=ImplProc.Name;
   {$IFDEF VerbosePasResolver}
@@ -3587,6 +3605,8 @@ end;
 
 procedure TPasResolver.FinishVariable(El: TPasVariable);
 begin
+  if (El.Visibility=visPublished) then
+    RaiseMsg(20170403223837,nSymbolCannotBePublished,sSymbolCannotBePublished,[],El);
   if El.Expr<>nil then
     begin
     ResolveExpr(El.Expr,rraRead);
@@ -3701,7 +3721,8 @@ var
       // check access: var, const, ...
       if PropArg.Access<>ProcArg.Access then
         RaiseMsg(20170216151808,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-          [IntToStr(ArgNo),AccessNames[ProcArg.Access],AccessNames[PropArg.Access]],ErrorEl);
+          [IntToStr(ArgNo),AccessDescriptions[ProcArg.Access],
+           AccessDescriptions[PropArg.Access]],ErrorEl);
 
       // check typed
       if PropArg.ArgType=nil then
@@ -3740,9 +3761,16 @@ var
   Arg: TPasArgument;
   PropArgCount: Integer;
   PropTypeResolved, DefaultResolved: TPasResolverResult;
+  m: TVariableModifier;
 begin
   CheckTopScope(TPasPropertyScope);
   PopScope;
+
+  if PropEl.Visibility=visPublished then
+    for m in PropEl.VarModifiers do
+      if not (m in [vmExternal]) then
+        RaiseMsg(20170403224112,nInvalidXModifierY,sInvalidXModifierY,
+          ['published property','"'+VariableModifierNames[m]+'"'],PropEl);
 
   PropType:=nil;
   CurClassType:=PropEl.Parent as TPasClassType;
@@ -3848,7 +3876,8 @@ begin
       Arg:=TPasArgument(Proc.ProcType.Args[PropArgCount]);
       if not (Arg.Access in [argDefault,argConst]) then
         RaiseMsg(20170216151917,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-          [IntToStr(PropArgCount+1),AccessNames[Arg.Access],AccessNames[argConst]],PropEl.WriteAccessor);
+          [IntToStr(PropArgCount+1),AccessDescriptions[Arg.Access],
+           AccessDescriptions[argConst]],PropEl.WriteAccessor);
       if Arg.ArgType<>PropType then
         RaiseIncompatibleType(20170216151919,nIncompatibleTypeArgNo,
           [IntToStr(PropArgCount+1)],Arg.ArgType,PropType,PropEl.WriteAccessor);
@@ -8410,6 +8439,7 @@ begin
   E.Id:=Id;
   E.MsgType:=mtError;
   E.MsgNumber:=MsgNumber;
+  E.MsgPattern:=Fmt;
   E.PasElement:=ErrorPosEl;
   E.Args:=FLastMsgArgs;
   raise E;
@@ -8473,7 +8503,7 @@ begin
 end;
 
 procedure TPasResolver.RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
-  const Args: array of const; const DescA, DescB: String; ErrorEl: TPasElement);
+  const Args: array of const; const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
 
   function GetString(ArgNo: integer): string;
   begin
@@ -8487,83 +8517,99 @@ procedure TPasResolver.RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
 begin
   case MsgNumber of
     nIllegalTypeConversionTo:
-      RaiseMsg(id,MsgNumber,sIllegalTypeConversionTo,[DescA,DescB],ErrorEl);
+      RaiseMsg(id,MsgNumber,sIllegalTypeConversionTo,[GotDesc,ExpDesc],ErrorEl);
     nIncompatibleTypesGotExpected:
-      RaiseMsg(id,MsgNumber,sIncompatibleTypesGotExpected,[DescA,DescB],ErrorEl);
+      RaiseMsg(id,MsgNumber,sIncompatibleTypesGotExpected,[GotDesc,ExpDesc],ErrorEl);
     nIncompatibleTypeArgNo:
-      RaiseMsg(id,MsgNumber,sIncompatibleTypeArgNo,[GetString(0),DescA,DescB],ErrorEl);
+      RaiseMsg(id,MsgNumber,sIncompatibleTypeArgNo,[GetString(0),GotDesc,ExpDesc],ErrorEl);
     nIncompatibleTypeArgNoVarParamMustMatchExactly:
       RaiseMsg(id,MsgNumber,sIncompatibleTypeArgNoVarParamMustMatchExactly,
-               [GetString(0),DescA,DescB],ErrorEl);
+               [GetString(0),GotDesc,ExpDesc],ErrorEl);
     nResultTypeMismatchExpectedButFound:
-      RaiseMsg(id,MsgNumber,sResultTypeMismatchExpectedButFound,[DescA,DescB],ErrorEl);
+      RaiseMsg(id,MsgNumber,sResultTypeMismatchExpectedButFound,[GotDesc,ExpDesc],ErrorEl);
     nXExpectedButYFound:
-      RaiseMsg(id,MsgNumber,sXExpectedButYFound,[DescA,DescB],ErrorEl);
+      RaiseMsg(id,MsgNumber,sXExpectedButYFound,[GotDesc,ExpDesc],ErrorEl);
   else
     RaiseInternalError(20170329112911);
   end;
 end;
 
 procedure TPasResolver.RaiseIncompatibleType(id: int64; MsgNumber: integer;
-  const Args: array of const; TypeA, TypeB: TPasType; ErrorEl: TPasElement);
+  const Args: array of const; GotType, ExpType: TPasType; ErrorEl: TPasElement);
 var
   DescA, DescB: String;
 begin
-  DescA:=GetTypeDesc(TypeA);
-  DescB:=GetTypeDesc(TypeB);
+  DescA:=GetTypeDesc(GotType);
+  DescB:=GetTypeDesc(ExpType);
   if DescA=DescB then
     begin
-    DescA:=GetTypeDesc(TypeA,true);
-    DescB:=GetTypeDesc(TypeB,true);
+    DescA:=GetTypeDesc(GotType,true);
+    DescB:=GetTypeDesc(ExpType,true);
     end;
   RaiseIncompatibleTypeDesc(id,MsgNumber,Args,DescA,DescB,ErrorEl);
 end;
 
 procedure TPasResolver.RaiseIncompatibleTypeRes(id: int64; MsgNumber: integer;
-  const Args: array of const; const TypeA, TypeB: TPasResolverResult;
+  const Args: array of const; const GotType, ExpType: TPasResolverResult;
   ErrorEl: TPasElement);
-var
-  DescA, DescB: String;
-begin
-  if TypeA.BaseType<>TypeB.BaseType then
-    begin
-    if TypeA.BaseType=btContext then
-      DescA:=GetTypeDesc(TypeA.TypeEl)
-    else
-      DescA:=BaseTypeNames[TypeA.BaseType];
-    if TypeB.BaseType=btContext then
-      DescB:=GetTypeDesc(TypeB.TypeEl)
-    else
-      DescB:=BaseTypeNames[TypeB.BaseType];
-    if DescA=DescB then
+
+  function GetTypeDsc(const R: TPasResolverResult; AddPath: boolean = false): string;
+  begin
+    Result:=GetTypeDesc(R.TypeEl,AddPath);
+    if R.IdentEl=R.TypeEl then
       begin
-      if TypeA.BaseType=btContext then
-        DescA:=GetTypeDesc(TypeA.TypeEl,true);
-      if TypeB.BaseType=btContext then
-        DescB:=GetTypeDesc(TypeB.TypeEl,true);
+      if R.TypeEl.ElementTypeName<>'' then
+        Result:=R.TypeEl.ElementTypeName+' '+Result
+      else
+        Result:='type '+Result;
+      end;
+  end;
+
+  function GetBaseDecs(const R: TPasResolverResult; AddPath: boolean = false): string;
+  begin
+    if R.BaseType=btContext then
+      Result:=GetTypeDsc(R,AddPath)
+    else
+      Result:=BaseTypeNames[R.BaseType];
+  end;
+
+var
+  GotDesc, ExpDesc: String;
+begin
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.RaiseIncompatibleTypeRes Got={',GetResolverResultDesc(GotType),'} Expected={',GetResolverResultDesc(ExpType),'}');
+  {$ENDIF}
+  if GotType.BaseType<>ExpType.BaseType then
+    begin
+    GotDesc:=GetBaseDecs(GotType);
+    ExpDesc:=GetBaseDecs(ExpType);
+    if GotDesc=ExpDesc then
+      begin
+      GotDesc:=GetBaseDecs(GotType,true);
+      ExpDesc:=GetBaseDecs(ExpType,true);
       end;
     end
-  else if (TypeA.TypeEl<>nil) and (TypeB.TypeEl<>nil) then
+  else if (GotType.TypeEl<>nil) and (ExpType.TypeEl<>nil) then
     begin
-    DescA:=GetTypeDesc(TypeA.TypeEl);
-    DescB:=GetTypeDesc(TypeB.TypeEl);
-    if DescA=DescB then
+    GotDesc:=GetTypeDsc(GotType);
+    ExpDesc:=GetTypeDsc(ExpType);
+    if GotDesc=ExpDesc then
       begin
-      DescA:=GetTypeDesc(TypeA.TypeEl,true);
-      DescB:=GetTypeDesc(TypeB.TypeEl,true);
+      GotDesc:=GetTypeDsc(GotType,true);
+      ExpDesc:=GetTypeDsc(ExpType,true);
       end;
     end
   else
     begin
-    DescA:=GetResolverResultDescription(TypeA,true);
-    DescB:=GetResolverResultDescription(TypeA,true);
-    if DescA=DescB then
+    GotDesc:=GetResolverResultDescription(GotType,true);
+    ExpDesc:=GetResolverResultDescription(ExpType,true);
+    if GotDesc=ExpDesc then
       begin
-      DescA:=GetResolverResultDescription(TypeA,false);
-      DescB:=GetResolverResultDescription(TypeA,false);
+      GotDesc:=GetResolverResultDescription(GotType,false);
+      ExpDesc:=GetResolverResultDescription(ExpType,false);
       end;
     end;
-  RaiseIncompatibleTypeDesc(id,MsgNumber,Args,DescA,DescB,ErrorEl);
+  RaiseIncompatibleTypeDesc(id,MsgNumber,Args,GotDesc,ExpDesc,ErrorEl);
 end;
 
 procedure TPasResolver.LogMsg(const id: int64; MsgType: TMessageType;
@@ -8783,6 +8829,7 @@ end;
 function TPasResolver.CheckProcTypeCompatibility(Proc1,
   Proc2: TPasProcedureType; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
   ): boolean;
+// if RaiseOnIncompatible=true, then Expected=Proc1 Actual=Proc2
 
   function ModifierError(const Modifier: string): boolean;
   begin
@@ -8796,12 +8843,13 @@ var
   ProcArgs1, ProcArgs2: TFPList;
   i: Integer;
   Result1Resolved, Result2Resolved: TPasResolverResult;
+  ExpectedArg, ActualArg: TPasArgument;
 begin
   Result:=false;
   if Proc1.ClassType<>Proc2.ClassType then
     begin
     if RaiseOnIncompatible then
-      RaiseXExpectedButYFound(20170402112353,Proc1.TypeName,Proc2.TypeName,ErrorEl);
+      RaiseXExpectedButYFound(20170402112353,Proc1.ElementTypeName,Proc2.ElementTypeName,ErrorEl);
     exit;
     end;
   if Proc1.IsNested<>Proc2.IsNested then
@@ -8830,16 +8878,29 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.CheckProcAssignCompatibility ',i,'/',ProcArgs1.Count);
     {$ENDIF}
-    if not CheckProcArgCompatibility(TPasArgument(ProcArgs1[i]),TPasArgument(ProcArgs2[i])) then
+    ExpectedArg:=TPasArgument(ProcArgs1[i]);
+    ActualArg:=TPasArgument(ProcArgs2[i]);
+    if not CheckProcArgCompatibility(ExpectedArg,ActualArg) then
+      begin
+      if RaiseOnIncompatible then
+        begin
+        if ExpectedArg.Access<>ActualArg.Access then
+          RaiseMsg(20170404151541,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
+            [IntToStr(i+1),'access modifier '+AccessDescriptions[ActualArg.Access],
+             AccessDescriptions[ExpectedArg.Access]],
+            ErrorEl);
+        RaiseIncompatibleType(20170404151538,nIncompatibleTypeArgNo,
+          [IntToStr(i+1)],ExpectedArg.ArgType,ActualArg.ArgType,ErrorEl);
+        end;
       exit;
+      end;
     end;
   if Proc1 is TPasFunctionType then
     begin
     ComputeElement(TPasFunctionType(Proc1).ResultEl.ResultType,Result1Resolved,[rcType]);
     ComputeElement(TPasFunctionType(Proc2).ResultEl.ResultType,Result2Resolved,[rcType]);
     if (Result1Resolved.BaseType<>Result2Resolved.BaseType)
-        or (Result1Resolved.TypeEl=nil)
-        or (Result1Resolved.TypeEl<>Result2Resolved.TypeEl) then
+        or not IsSameType(Result1Resolved.TypeEl,Result2Resolved.TypeEl) then
       begin
       if RaiseOnIncompatible then
         RaiseIncompatibleTypeRes(20170402112648,nResultTypeMismatchExpectedButFound,
@@ -8966,6 +9027,9 @@ begin
 
   Handled:=false;
   Result:=CheckAssignCompatibilityCustom(LHS,RHS,ErrorEl,RaiseOnIncompatible,Handled);
+  if Handled and (Result>=cExact) and (Result<cIncompatible) then
+    exit;
+
   if not Handled then
     begin
     if LHS.TypeEl=nil then
@@ -9062,10 +9126,10 @@ begin
     else if (LHS.BaseType=btContext) and (LHS.TypeEl is TPasArrayType) then
       Result:=CheckAssignCompatibilityArrayType(LHS,RHS,ErrorEl,RaiseOnIncompatible);
     end;
+
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CheckAssignResCompatibility incompatible LHS='+GetResolverResultDesc(LHS)+' RHS='+GetResolverResultDesc(RHS));
   {$ENDIF}
-
   if (Result>=0) and (Result<cIncompatible) then
     begin
     // type fits -> check readable
@@ -9467,6 +9531,7 @@ var
   RTypeEl, LTypeEl: TPasType;
   SrcResolved, DstResolved: TPasResolverResult;
   LArray, RArray: TPasArrayType;
+
   function RaiseIncompatType: integer;
   begin
     if not RaiseOnIncompatible then exit(cIncompatible);
@@ -9529,14 +9594,23 @@ begin
   else if LTypeEl is TPasProcedureType then
     begin
     if RHS.BaseType=btNil then
-      Result:=cExact
-    else if (LTypeEl.ClassType=RTypeEl.ClassType)
+      exit(cExact);
+    writeln('TPasResolver.CheckAssignCompatibilityUserType LTypeEl=',GetObjName(LTypeEl),' RHS.BaseType=',BaseTypeNames[RHS.BaseType],' RTypeEl=',GetObjName(RTypeEl),' RHS.IdentEl=',GetObjName(RHS.IdentEl),' RHS.ExprEl=',GetObjName(RHS.ExprEl),' rrfReadable=',rrfReadable in RHS.Flags);
+    if (LTypeEl.ClassType=RTypeEl.ClassType)
         and (rrfReadable in RHS.Flags) then
       begin
       // e.g. ProcVar1:=ProcVar2
+        writeln('AAA2 TPasResolver.CheckAssignCompatibilityUserType ');
       if CheckProcTypeCompatibility(TPasProcedureType(LTypeEl),TPasProcedureType(RTypeEl),
           ErrorEl,RaiseOnIncompatible) then
-        Result:=cExact;
+        exit(cExact);
+      writeln('AAA3 TPasResolver.CheckAssignCompatibilityUserType ');
+      end;
+    if RaiseOnIncompatible then
+      begin
+      if (RTypeEl is TPasProcedureType) and (rrfReadable in RHS.Flags) then
+        RaiseMsg(20170404154738,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
+          [RTypeEl.ElementTypeName,LTypeEl.ElementTypeName],ErrorEl);
       end;
     end
   else if LTypeEl.ClassType=TPasArrayType then
@@ -9927,9 +10001,10 @@ begin
       if FromResolved.BaseType=btNil then
         Result:=cExact
       else if (FromResolved.BaseType=btContext)
-          and (FromResolved.TypeEl.ClassType=TPasClassType)
-          and (not (FromResolved.IdentEl is TPasType)) then
+          and (FromResolved.TypeEl.ClassType=TPasClassType) then
         begin
+        if (FromResolved.IdentEl is TPasType) then
+          RaiseMsg(20170404162606,nCannotTypecastAType,sCannotTypecastAType,[],ErrorEl);
         // type cast upwards or downwards
         Result:=CheckSrcIsADstType(FromResolved,ToResolved,ErrorEl);
         if Result=cIncompatible then
@@ -9943,9 +10018,10 @@ begin
       //writeln('TPasResolver.CheckTypeCast class-of FromRes.TypeEl=',GetObjName(FromResolved.TypeEl),' FromRes.IdentEl=',GetObjName(FromResolved.IdentEl));
       if (FromResolved.BaseType=btContext) then
         begin
-        if (FromResolved.TypeEl.ClassType=TPasClassOfType)
-            and (not (FromResolved.IdentEl is TPasType)) then
+        if (FromResolved.TypeEl.ClassType=TPasClassOfType) then
           begin
+          if (FromResolved.IdentEl is TPasType) then
+            RaiseMsg(20170404162604,nCannotTypecastAType,sCannotTypecastAType,[],ErrorEl);
           // type cast  classof(classof-var)  upwards or downwards
           ToClassType:=TPasClassOfType(ToTypeEl).DestType;
           FromClassType:=TPasClassOfType(FromResolved.TypeEl).DestType;
@@ -9980,6 +10056,12 @@ begin
       ToClassType:=TPasClassOfType(ToTypeEl).DestType;
       FromClassType:=TPasClassType(FromResolved.TypeEl);
       Result:=CheckClassesAreRelated(ToClassType,FromClassType,ErrorEl);
+      if Result<cIncompatible then exit;
+      end;
+    if RaiseOnError then
+      begin
+      if FromResolved.IdentEl is TPasType then
+        RaiseMsg(20170404162610,nCannotTypecastAType,sCannotTypecastAType,[],ErrorEl);
       end;
     end;
 

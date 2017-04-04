@@ -2364,8 +2364,12 @@ function TPascalScanner.FetchLine: boolean;
 begin
   if CurSourceFile.IsEOF then
   begin
-    FCurLine := '';
-    TokenStr := nil;
+    if TokenStr<>nil then
+      begin
+      FCurLine := '';
+      TokenStr := nil;
+      inc(FCurRow); // set CurRow to last line+1
+      end;
     Result := false;
   end else
   begin
