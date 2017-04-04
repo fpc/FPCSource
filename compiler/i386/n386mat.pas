@@ -119,7 +119,7 @@ implementation
       var
         hreg64hi,hreg64lo:Tregister;
         v : TConstExprInt;
-        l1,l2,l3:Tasmlabel;
+        l2,l3:Tasmlabel;
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
@@ -177,15 +177,9 @@ implementation
 
             { the damned shift instructions work only til a count of 32 }
             { so we've to do some tricks here                           }
-            current_asmdata.getjumplabel(l1);
             current_asmdata.getjumplabel(l2);
             current_asmdata.getjumplabel(l3);
-            emit_const_reg(A_CMP,S_L,64,NR_ECX);
-            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_L,l1);
-            emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);
-            emit_reg_reg(A_XOR,S_L,hreg64hi,hreg64hi);
-            cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
-            cg.a_label(current_asmdata.CurrAsmList,l1);
+            emit_const_reg(A_AND,S_L,63,NR_ECX);
             emit_const_reg(A_CMP,S_L,32,NR_ECX);
             cg.a_jmp_flags(current_asmdata.CurrAsmList,F_L,l2);
             emit_const_reg(A_SUB,S_L,32,NR_ECX);
