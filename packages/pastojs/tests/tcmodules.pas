@@ -7072,8 +7072,8 @@ begin
   Add('    procedure DoIt; override; external name ''DoIt'';');
   Add('  end;');
   Add('begin');
-  SetExpectedPasResolverError('Invalid procedure modifiers override,external',
-    nInvalidXModifiersY);
+  SetExpectedPasResolverError('Invalid procedure modifier override,external',
+    nInvalidXModifierY);
   ConvertProgram;
 end;
 
@@ -9793,6 +9793,7 @@ begin
   Add('  c: TClass;');
   Add('begin');
   Add('  v:=c;');
+  Add('  v:=TObject;');
   Add('  v:=TClass(c);');
   Add('  v:=TBirds(c);');
   Add('  c:=TClass(v);');
@@ -9813,6 +9814,7 @@ begin
     '']),
     LinesToStr([ // this.$main
     'this.v = this.c;',
+    'this.v = this.TObject;',
     'this.v = this.c;',
     'this.v = this.c;',
     'this.c = rtl.getObject(this.v);',

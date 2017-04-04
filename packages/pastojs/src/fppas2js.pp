@@ -213,15 +213,24 @@ Works:
   - use 0o for octal literals
 
 ToDos:
+- class const
+- class enumtype
+- analyzer: do not warn abstract method args
+- codetools: external class not using TObject as ancestor
+- remove empty $impl
+- using external class must not mark the unit as used
+- compiler error code only when option -Jsomething given for fpc compatibility
+- -Jirtl.js-
+- make -Jirtl.js default for -Jc and -Tnodejs
 - external class array accessor: pass by ref
 - remove 'Object' array workaround
 - FuncName:= (instead of Result:=)
 - ord(s[i]) -> s.charCodeAt(i)
 - $modeswitch -> define <modeswitch>
 - $modeswitch- -> turn off
-- add rtl functions IsString, IsInteger, IsBoolean, IsDouble, IsTObject, IsClass, IsEnum, IsUndefined
 - integer range
-- @@ compare method in
+- @@ compare method in delphi mode
+- make records more lightweight
 - dotted unit names, namespaces
 - type alias type
 - RTTI
@@ -1578,8 +1587,8 @@ begin
 
     // check pmPublic
     if [pmPublic,pmExternal]<=Proc.Modifiers then
-      RaiseMsg(20170324150149,nInvalidXModifiersY,
-        sInvalidXModifiersY,[Proc.ElementTypeName,'public, external'],Proc);
+      RaiseMsg(20170324150149,nInvalidXModifierY,
+        sInvalidXModifierY,[Proc.ElementTypeName,'public, external'],Proc);
     if (Proc.PublicName<>nil) then
       RaiseMsg(20170324150417,nPasElementNotSupported,sPasElementNotSupported,
         ['public name'],Proc.PublicName);
@@ -1596,8 +1605,8 @@ begin
         if not (pmExternal in Proc.Modifiers) then
           begin
           if Proc.LibrarySymbolName<>nil then
-            RaiseMsg(20170322142158,nInvalidXModifiersY,
-              sInvalidXModifiersY,[Proc.ElementTypeName,'symbol name'],Proc.LibrarySymbolName);
+            RaiseMsg(20170322142158,nInvalidXModifierY,
+              sInvalidXModifierY,[Proc.ElementTypeName,'symbol name'],Proc.LibrarySymbolName);
           Proc.Modifiers:=Proc.Modifiers+[pmExternal];
           Proc.LibrarySymbolName:=TPrimitiveExpr.Create(El,pekString,''''+Proc.Name+'''');
           end;
@@ -1610,7 +1619,7 @@ begin
           begin
           if Proc.IsVirtual then
             // constructor of external class can't be overriden -> forbid virtual
-            RaiseMsg(20170323100447,nInvalidXModifiersY,sInvalidXModifiersY,
+            RaiseMsg(20170323100447,nInvalidXModifierY,sInvalidXModifierY,
               [Proc.ElementTypeName,'virtual,external'],Proc);
           if CompareText(Proc.Name,'new')=0 then
             begin
@@ -1623,7 +1632,7 @@ begin
             RaiseMsg(20170322164357,nNoArgumentsAllowedForExternalObjectConstructor,
               sNoArgumentsAllowedForExternalObjectConstructor,[],TPasArgument(El.Args[0]));
           if pmVirtual in Proc.Modifiers then
-            RaiseMsg(20170322183141,nInvalidXModifiersY,sInvalidXModifiersY,
+            RaiseMsg(20170322183141,nInvalidXModifierY,sInvalidXModifierY,
               [Proc.ElementTypeName,'virtual'],Proc.ProcType);
           end
         else
@@ -1657,7 +1666,7 @@ begin
 
       // external override -> unneeded information, probably a bug
       if Proc.IsOverride then
-        RaiseMsg(20170321101715,nInvalidXModifiersY,sInvalidXModifiersY,
+        RaiseMsg(20170321101715,nInvalidXModifierY,sInvalidXModifierY,
           [Proc.ElementTypeName,'override,external'],Proc);
 
       if Proc.LibraryExpr<>nil then
@@ -1669,7 +1678,7 @@ begin
 
       for pm in [pmAssembler,pmForward,pmNoReturn,pmInline] do
         if pm in Proc.Modifiers then
-          RaiseMsg(20170323100842,nInvalidXModifiersY,sInvalidXModifiersY,
+          RaiseMsg(20170323100842,nInvalidXModifierY,sInvalidXModifierY,
             [Proc.ElementTypeName,ModifierNames[pm]],Proc);
 
       // compute external name
@@ -1912,7 +1921,8 @@ begin
         end;
       end;
     end
-  else if (LHS.BaseType=btContext) and (LHS.TypeEl.ClassType=TPasArrayType) then
+  else if (LHS.BaseType=btContext) and (LHS.TypeEl.ClassType=TPasArrayType)
+      and (rrfReadable in RHS.Flags) then
     begin
     LArray:=TPasArrayType(LHS.TypeEl);
     if length(LArray.Ranges)>0 then
@@ -1927,8 +1937,9 @@ begin
       Result:=cExact+1;
       end;
     end;
-  if RaiseOnIncompatible then
-    if ErrorEl=nil then ;
+
+  if RaiseOnIncompatible then ;
+  if ErrorEl=nil then ;
 end;
 
 function TPas2JSResolver.CheckTypeCastClassInstanceToClass(const FromClassRes,
