@@ -328,6 +328,7 @@ type
     Procedure TestClass_ExternalVirtualNameMismatchFail;
     Procedure TestClass_ExternalOverrideFail;
     Procedure TestClass_ExternalVar;
+    Procedure TestClass_Const;
 
     // class of
     Procedure TestClassOf_Create;
@@ -1069,14 +1070,13 @@ end;
 
 procedure TCustomTestModule.HandlePasResolveError(E: EPasResolve);
 var
-  Row, Col: integer;
+  P: TPasSourcePos;
 begin
   if IsErrorExpected(E) then exit;
-  Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
-  WriteSources(E.PasElement.SourceFilename,Row,Col);
+  P:=E.SourcePos;
+  WriteSources(P.FileName,P.Row,P.Column);
   writeln('ERROR: TCustomTestModule.HandlePasResolveError '+E.ClassName+':'+E.Message
-    +' '+E.PasElement.SourceFilename
-    +'('+IntToStr(Row)+','+IntToStr(Col)+')');
+    +' '+P.FileName+'('+IntToStr(P.Row)+','+IntToStr(P.Column)+')');
   RaiseException(E);
 end;
 
@@ -7135,6 +7135,95 @@ begin
     'var $with1 = $impl.Obj;',
     '$with1.$Intern = $with1.$Intern + 1;',
     '$with1.$Intern2 = $with1.$Intern2 + 2;',
+    '']));
+end;
+
+procedure TTestModule.TestClass_Const;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TClass = class of TObject;');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    const cI: integer = 3;');
+  Add('    procedure DoIt;');
+  Add('    class procedure DoMore;');
+  Add('  end;');
+  Add('implementation');
+  Add('procedure tobject.doit;');
+  Add('begin');
+  Add('  if cI=4 then;');
+  Add('  if 5=cI then;');
+  Add('  if Self.cI=6 then;');
+  Add('  if 7=Self.cI then;');
+  Add('  with Self do begin');
+  Add('    if cI=11 then;');
+  Add('    if 12=cI then;');
+  Add('  end;');
+  Add('end;');
+  Add('class procedure tobject.domore;');
+  Add('begin');
+  Add('  if cI=8 then;');
+  Add('  if Self.cI=9 then;');
+  Add('  if 10=cI then;');
+  Add('  if 11=Self.cI then;');
+  Add('  with Self do begin');
+  Add('    if cI=13 then;');
+  Add('    if 14=cI then;');
+  Add('  end;');
+  Add('end;');
+  Add('var');
+  Add('  Obj: TObject;');
+  Add('  Cla: TClass;');
+  Add('begin');
+  Add('  if TObject.cI=21 then ;');
+  Add('  if Obj.cI=22 then ;');
+  Add('  if Cla.cI=23 then ;');
+  Add('  with obj do if ci=24 then;');
+  Add('  with TObject do if ci=25 then;');
+  Add('  with Cla do if ci=26 then;');
+  ConvertProgram;
+  CheckSource('TestClass_Const',
+    LinesToStr([
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.cI = 3;',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '    if (this.cI == 4) ;',
+    '    if (5 == this.cI) ;',
+    '    if (this.cI == 6) ;',
+    '    if (7 == this.cI) ;',
+    '    var $with1 = this;',
+    '    if ($with1.cI == 11) ;',
+    '    if (12 == $with1.cI) ;',
+    '  };',
+    '  this.DoMore = function () {',
+    '    if (this.cI == 8) ;',
+    '    if (this.cI == 9) ;',
+    '    if (10 == this.cI) ;',
+    '    if (11 == this.cI) ;',
+    '    var $with1 = this;',
+    '    if ($with1.cI == 13) ;',
+    '    if (14 == $with1.cI) ;',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.Cla = null;',
+    '']),
+    LinesToStr([
+    'if (this.TObject.cI == 21) ;',
+    'if (this.Obj.cI == 22) ;',
+    'if (this.Cla.cI == 23) ;',
+    'var $with1 = this.Obj;',
+    'if ($with1.cI == 24) ;',
+    'var $with2 = this.TObject;',
+    'if ($with2.cI == 25) ;',
+    'var $with3 = this.Cla;',
+    'if ($with3.cI == 26) ;',
     '']));
 end;
 

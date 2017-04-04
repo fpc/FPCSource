@@ -102,6 +102,7 @@ Works:
   - overloads, reintroduce  append $1, $2, ...
   - reintroduced variables
   - external vars and methods
+  - const
 - dynamic arrays
   - arrays can be null
   - init as "arr = []"  so typeof works
@@ -213,9 +214,6 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- class const
-- class enumtype
-- analyzer: do not warn abstract method args
 - codetools: external class not using TObject as ancestor
 - remove empty $impl
 - using external class must not mark the unit as used
