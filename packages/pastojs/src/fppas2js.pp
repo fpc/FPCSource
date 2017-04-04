@@ -214,8 +214,6 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- codetools: external class not using TObject as ancestor
-- remove empty $impl
 - using external class must not mark the unit as used
 - compiler error code only when option -Jsomething given for fpc compatibility
 - -Jirtl.js-
@@ -907,6 +905,8 @@ type
     Function CreateTypeDecl(El: TPasType; AContext: TConvertContext): TJSElement;
     Function CreateVarDecl(El: TPasVariable; AContext: TConvertContext): TJSElement;
     Procedure AddToSourceElements(Src: TJSSourceElements; El: TJSElement);
+    procedure RemoveFromSourceElements(Src: TJSSourceElements;
+      El: TJSElement);
     function GetBuildInNames(bin: TPas2JSBuiltInName): string;
     procedure SetBuildInNames(bin: TPas2JSBuiltInName; const AValue: string);
     procedure SetPreservedWords(const AValue: TJSReservedWordList);
@@ -967,7 +967,7 @@ type
     Function CreateReferencePath(El: TPasElement; AContext : TConvertContext;
       Kind: TRefPathKind; Full: boolean = false; Ref: TResolvedReference = nil): string; virtual;
     Function CreateReferencePathExpr(El: TPasElement; AContext : TConvertContext; Full: boolean = false; Ref: TResolvedReference = nil): TJSPrimaryExpressionIdent; virtual;
-    Procedure CreateImplementationSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext);
+    Function CreateImplementationSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext): TJSElement;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext);
     Function CreateDotExpression(aParent: TPasElement; Left, Right: TJSElement): TJSElement; virtual;
     Function CreateReferencedSet(El: TPasElement; SetExpr: TJSElement): TJSElement; virtual;
@@ -2707,6 +2707,18 @@ begin
   end;
 end;
 
+procedure TPasToJSConverter.RemoveFromSourceElements(Src: TJSSourceElements;
+  El: TJSElement);
+var
+  Statements: TJSElementNodes;
+  i: Integer;
+begin
+  Statements:=Src.Statements;
+  for i:=Statements.Count-1 downto 0 do
+    if Statements[i].Node=El then
+      Statements.Delete(i);
+end;
+
 function TPasToJSConverter.GetBuildInNames(bin: TPas2JSBuiltInName): string;
 begin
   Result:=FBuiltInNames[bin];
@@ -2755,9 +2767,10 @@ Var
   UsesSection: TPasSection;
   ModuleName: String;
   IntfContext: TInterfaceContext;
-  VarSt: TJSVariableStatement;
+  ImplVarSt: TJSVariableStatement;
   VarDecl: TJSVarDeclaration;
-  AssignSt: TJSSimpleAssignStatement;
+  ImplAssignSt: TJSSimpleAssignStatement;
+  ImplDecl: TJSElement;
 begin
   Result:=Nil;
   OuterSrc:=TJSSourceElements(CreateElement(TJSSourceElements, El));
@@ -2815,25 +2828,38 @@ begin
       end
     else
       begin // unit
-      // add interface section
+      // add implementation object at top, so the interface elemwnts can add stuff
       if (FBuiltInNames[pbivnImplementation]<>'') and Assigned(El.ImplementationSection) then
         begin
         // add 'var $impl = {};'
-        VarSt:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
-        AddToSourceElements(Src,VarSt);
+        ImplVarSt:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
+        AddToSourceElements(Src,ImplVarSt);
         VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
-        VarSt.A:=VarDecl;
+        ImplVarSt.A:=VarDecl;
         VarDecl.Name:=FBuiltInNames[pbivnImplementation];
         VarDecl.Init:=TJSEmptyBlockStatement(CreateElement(TJSEmptyBlockStatement,El.ImplementationSection));
         // add 'this.$impl = $impl;'
-        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-        AddToSourceElements(Src,AssignSt);
-        AssignSt.LHS:=CreateBuiltInIdentifierExpr('this.'+FBuiltInNames[pbivnImplementation]);
-        AssignSt.Expr:=CreateBuiltInIdentifierExpr(FBuiltInNames[pbivnImplementation]);
+        ImplAssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+        AddToSourceElements(Src,ImplAssignSt);
+        ImplAssignSt.LHS:=CreateBuiltInIdentifierExpr('this.'+FBuiltInNames[pbivnImplementation]);
+        ImplAssignSt.Expr:=CreateBuiltInIdentifierExpr(FBuiltInNames[pbivnImplementation]);
+        end
+      else
+        begin
+        ImplVarSt:=nil;
+        ImplAssignSt:=nil;
         end;
       if Assigned(El.InterfaceSection) then
         AddToSourceElements(Src,ConvertDeclarations(El.InterfaceSection,IntfContext));
-      CreateImplementationSection(El,Src,IntfContext);
+      if ImplVarSt<>nil then
+        begin
+        ImplDecl:=CreateImplementationSection(El,Src,IntfContext);
+        if ImplDecl=nil then
+          begin
+          RemoveFromSourceElements(Src,ImplVarSt);
+          RemoveFromSourceElements(Src,ImplAssignSt);
+          end;
+        end;
       CreateInitSection(El,Src,IntfContext);
 
       // add optional implementation uses list: [<implementation uses1>,<uses2>, ...]
@@ -7170,17 +7196,19 @@ begin
   end;
 end;
 
-procedure TPasToJSConverter.CreateImplementationSection(El: TPasModule;
-  Src: TJSSourceElements; AContext: TConvertContext);
+function TPasToJSConverter.CreateImplementationSection(El: TPasModule;
+  Src: TJSSourceElements; AContext: TConvertContext): TJSElement;
 var
   Section: TImplementationSection;
 begin
+  Result:=nil;
   if not Assigned(El.ImplementationSection) then
     exit;
   Section:=El.ImplementationSection;
   // add implementation section
   // merge interface and implementation
-  AddToSourceElements(Src,ConvertDeclarations(Section,AContext));
+  Result:=ConvertDeclarations(Section,AContext);
+  AddToSourceElements(Src,Result);
 end;
 
 procedure TPasToJSConverter.CreateInitSection(El: TPasModule;

@@ -766,6 +766,7 @@ var
   InitAssign: TJSSimpleAssignStatement;
   FunBody: TJSFunctionBody;
   InitName: String;
+  LastNode: TJSElement;
 begin
   if SkipTests then exit;
   try
@@ -840,14 +841,18 @@ begin
   FJSInitBody:=nil;
   if JSModuleSrc.Statements.Count>0 then
     begin
-    InitAssign:=JSModuleSrc.Statements.Nodes[JSModuleSrc.Statements.Count-1].Node as TJSSimpleAssignStatement;
-    if GetDottedIdentifier(InitAssign.LHS)='this.'+InitName then
+    LastNode:=JSModuleSrc.Statements.Nodes[JSModuleSrc.Statements.Count-1].Node;
+    if LastNode is TJSSimpleAssignStatement then
       begin
-      InitFunction:=InitAssign.Expr as TJSFunctionDeclarationStatement;
-      FJSInitBody:=InitFunction.AFunction.Body as TJSFunctionBody;
-      end
-    else if Module is TPasProgram then
-      CheckDottedIdentifier('init function',InitAssign.LHS,'this.'+InitName);
+      InitAssign:=LastNode as TJSSimpleAssignStatement;
+      if GetDottedIdentifier(InitAssign.LHS)='this.'+InitName then
+        begin
+        InitFunction:=InitAssign.Expr as TJSFunctionDeclarationStatement;
+        FJSInitBody:=InitFunction.AFunction.Body as TJSFunctionBody;
+        end
+      else if Module is TPasProgram then
+        CheckDottedIdentifier('init function',InitAssign.LHS,'this.'+InitName);
+      end;
     end;
 end;
 
@@ -1183,9 +1188,6 @@ begin
   ConvertUnit;
   CheckSource('TestEmptyUnit',
     LinesToStr([
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;'
     ]),
     '');
 end;
@@ -1199,10 +1201,7 @@ begin
   ConvertUnit;
   CheckSource('TestEmptyUnitUseStrict',
     LinesToStr([
-    '"use strict";',
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;'
+    '"use strict";'
     ]),
     '');
 end;
@@ -2051,10 +2050,7 @@ begin
   ConvertUnit;
   CheckSource('TestProcedureExternalOtherUnit',
     LinesToStr([
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;'
-    ]),
+    '']),
     LinesToStr([
     'Date.now();',
     'Date.now();',
@@ -8066,9 +8062,6 @@ begin
   ConvertUnit;
   CheckSource('TestExternalClass_ClassOtherUnit',
     LinesToStr([
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;',
     '']),
     LinesToStr([
     'ExtA.Id = ExtA.Id + 1;',
