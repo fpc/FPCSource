@@ -488,7 +488,7 @@ implementation
     procedure tcgshlshrnode.second_integer;
       var
          op : topcg;
-         opdef: tdef;
+         opdef,shiftcountdef: tdef;
          hcountreg : tregister;
          opsize : tcgsize;
          shiftval : longint;
@@ -503,6 +503,7 @@ implementation
 {$ifdef cpunodefaultint}
         opsize:=left.location.size;
         opdef:=left.resultdef;
+        shiftcountdef:=opdef;
 {$else cpunodefaultint}
         if left.resultdef.size<=4 then
           begin
@@ -517,8 +518,13 @@ implementation
                 else
                   begin
                     opdef:=s32inttype;
-                    opsize:=OS_S32
-                  end
+                    opsize:=OS_S32;
+                  end;
+{$ifdef cpu16bitalu}
+                shiftcountdef:=s16inttype;
+{$else cpu16bitalu}
+                shiftcountdef:=opdef;
+{$endif cpu16bitalu}
               end
             else
               begin
@@ -532,7 +538,12 @@ implementation
                   begin
                     opdef:=u32inttype;
                     opsize:=OS_32;
-                  end
+                  end;
+{$ifdef cpu16bitalu}
+                shiftcountdef:=u16inttype;
+{$else cpu16bitalu}
+                shiftcountdef:=opdef;
+{$endif cpu16bitalu}
               end
           end
         else
@@ -547,6 +558,7 @@ implementation
                 opdef:=u64inttype;
                 opsize:=OS_64;
               end;
+            shiftcountdef:=opdef;
           end;
 {$endif cpunodefaultint}
 
@@ -576,7 +588,7 @@ implementation
                 is done since most target cpu which will use this
                 node do not support a shift count in a mem. location (cec)
               }
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,shiftcountdef,true);
               hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,right.location.register,left.location.register,location.register);
            end;
          { shl/shr nodes return the same type as left, which can be different
