@@ -259,7 +259,8 @@ unit cgcpu;
         ax_subreg: tregister;
         hl_loop_start: tasmlabel;
         ai: taicpu;
-        use_loop, use_186_fast_shift, use_8086_fast_shift: Boolean;
+        use_loop, use_186_fast_shift, use_8086_fast_shift,
+          use_386_fast_shift: Boolean;
         i: Integer;
       begin
         optimize_op_const(size, op, a);
@@ -396,12 +397,36 @@ unit cgcpu;
                   else if a<>0 then
                     begin
                       use_loop:=a>2;
-                      use_186_fast_shift:=(current_settings.cputype>=cpu_186) and (a>2)
+                      use_386_fast_shift:=(current_settings.cputype>=cpu_386) and (a>1);
+                      use_186_fast_shift:=not use_386_fast_shift
+                        and (current_settings.cputype>=cpu_186) and (a>2)
                         and not (cs_opt_size in current_settings.optimizerswitches);
                       use_8086_fast_shift:=(current_settings.cputype<cpu_186) and (a>2)
                         and not (cs_opt_size in current_settings.optimizerswitches);
 
-                      if use_186_fast_shift then
+                      if use_386_fast_shift then
+                        begin
+                          case op of
+                            OP_SHR:
+                              begin
+                                list.concat(taicpu.op_const_reg_reg(A_SHRD,S_W,a,GetNextReg(reg),reg));
+                                list.concat(taicpu.op_const_reg(A_SHR,S_W,a,GetNextReg(reg)));
+                              end;
+                            OP_SAR:
+                              begin
+                                list.concat(taicpu.op_const_reg_reg(A_SHRD,S_W,a,GetNextReg(reg),reg));
+                                list.concat(taicpu.op_const_reg(A_SAR,S_W,a,GetNextReg(reg)));
+                              end;
+                            OP_SHL:
+                              begin
+                                list.concat(taicpu.op_const_reg_reg(A_SHLD,S_W,a,reg,GetNextReg(reg)));
+                                list.concat(taicpu.op_const_reg(A_SHL,S_W,a,reg));
+                              end;
+                            else
+                              internalerror(2017040401);
+                          end;
+                        end
+                      else if use_186_fast_shift then
                         begin
                           tmpreg:=getintregister(list,OS_16);
                           case op of
