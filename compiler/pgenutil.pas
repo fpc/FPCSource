@@ -144,7 +144,22 @@ uses
               begin
                 case formaldef.typ of
                   recorddef:
-                    MessagePos(filepos,type_e_record_type_expected);
+                    { delphi has own fantasy about record constraint
+                      (almost non-nullable/non-nilable value type) }
+                    if m_delphi in current_settings.modeswitches then
+                      case paradef.typ of
+                        floatdef,enumdef,orddef:
+                          continue;
+                        objectdef:
+                          if tobjectdef(paradef).objecttype=odt_object then
+                            continue
+                          else
+                            MessagePos(filepos,type_e_record_type_expected);
+                        else
+                          MessagePos(filepos,type_e_record_type_expected);
+                      end
+                    else
+                      MessagePos(filepos,type_e_record_type_expected);
                   objectdef:
                     case tobjectdef(formaldef).objecttype of
                       odt_class,
