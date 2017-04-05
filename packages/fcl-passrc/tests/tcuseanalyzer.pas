@@ -74,6 +74,7 @@ type
 
     // single module hints
     procedure TestM_Hint_UnitNotUsed;
+    procedure TestM_Hint_UnitNotUsed_No_OnlyExternal;
     procedure TestM_Hint_ParameterNotUsed;
     procedure TestM_Hint_ParameterNotUsed_Abstract;
     procedure TestM_Hint_LocalVariableNotUsed;
@@ -830,6 +831,27 @@ begin
   Add('begin');
   AnalyzeProgram;
   CheckHasHint(mtHint,nPAUnitNotUsed,'Unit "unit2" not used in afile');
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_UnitNotUsed_No_OnlyExternal;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var State: longint; external name ''state'';',
+    'procedure DoIt; external name ''doing'';',
+    '']),
+    LinesToStr([
+    ]));
+
+  StartProgram(true);
+  Add('uses unit2;');
+  Add('begin');
+  Add('  State:=3;');
+  Add('  DoIt;');
+  AnalyzeProgram;
+
+  // unit hints: no hint, even though no code is actually used
+  CheckHasHint(mtHint,nPAUnitNotUsed,'Unit "unit2" not used in afile',false);
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_ParameterNotUsed;
