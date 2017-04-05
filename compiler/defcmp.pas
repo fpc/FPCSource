@@ -296,11 +296,23 @@ implementation
                      exit;
                    end;
 
-                 { one is definitely a constraint, for the other we don't
-                   care right now }
-                 doconv:=tc_equal;
-                 compare_defs_ext:=te_exact;
-                 exit;
+                 { maybe we are in generic type declaration/implementation.
+                   In this case constraint in comparison to not specialized generic
+                   is not "exact" nor "incompatible" }
+                 if not(((df_genconstraint in def_from.defoptions) and
+                        ([df_generic,df_specialization]*def_to.defoptions=[df_generic])
+                      ) or
+                      (
+                        (df_genconstraint in def_to.defoptions) and
+                        ([df_generic,df_specialization]*def_from.defoptions=[df_generic]))
+                    ) then
+                   begin
+                     { one is definitely a constraint, for the other we don't
+                       care right now }
+                     doconv:=tc_equal;
+                     compare_defs_ext:=te_exact;
+                     exit;
+                   end;
                end;
            end;
 
