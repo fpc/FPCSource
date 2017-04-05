@@ -367,12 +367,16 @@ type
     Procedure TestExternalClass_NewInstance_NonVirtualFail;
     Procedure TestExternalClass_NewInstance_FirstParamNotString_Fail;
     Procedure TestExternalClass_NewInstance_SecondParamTyped_Fail;
+    Procedure TestExternalClass_PascalProperty;
     Procedure TestExternalClass_TypeCastToRootClass;
     Procedure TestExternalClass_TypeCastStringToExternalString;
     Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
     Procedure TestExternalClass_BracketOperatorOld;
-    Procedure TestExternalClass_BracketOperator;
-    // ToDo: check array accessors has one parameter
+    Procedure TestExternalClass_BracketAccessor;
+    Procedure TestExternalClass_BracketAccessor_2ParamsFail;
+    Procedure TestExternalClass_BracketAccessor_ReadOnly;
+    Procedure TestExternalClass_BracketAccessor_WriteOnly;
+    Procedure TestExternalClass_BracketAccessor_MultiType;
 
     // proc types
     Procedure TestProcType;
@@ -8516,6 +8520,52 @@ begin
   ConvertProgram;
 end;
 
+procedure TTestModule.TestExternalClass_PascalProperty;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSElement = class;');
+  Add('  TJSNotifyEvent = procedure(Sender: TJSElement) of object;');
+  Add('  TJSElement = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TControl = class(TJSElement)');
+  Add('  private');
+  Add('    FOnClick: TJSNotifyEvent;');
+  Add('    property OnClick: TJSNotifyEvent read FOnClick write FOnClick;');
+  Add('    procedure Click(Sender: TJSElement);');
+  Add('  end;');
+  Add('procedure TControl.Click(Sender: TJSElement);');
+  Add('begin');
+  Add('  OnClick(Self);');
+  Add('end;');
+  Add('var');
+  Add('  Ctrl: TControl;');
+  Add('begin');
+  Add('  Ctrl.OnClick:=@Ctrl.Click;');
+  Add('  Ctrl.OnClick(Ctrl);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_PascalProperty',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TControl", ExtA, "", function () {',
+    '  this.$init = function () {',
+    '    this.FOnClick = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.FOnClick = undefined;',
+    '  };',
+    '  this.Click = function (Sender) {',
+    '    this.FOnClick(this);',
+    '  };',
+    '});',
+    'this.Ctrl = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Ctrl.FOnClick = rtl.createCallback(this.Ctrl, "Click");',
+    'this.Ctrl.FOnClick(this.Ctrl);',
+    '']));
+end;
+
 procedure TTestModule.TestExternalClass_TypeCastToRootClass;
 begin
   StartProgram(false);
@@ -8711,14 +8761,14 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestExternalClass_BracketOperator;
+procedure TTestModule.TestExternalClass_BracketAccessor;
 begin
   StartProgram(false);
   Add('{$modeswitch externalclass}');
   Add('type');
   Add('  TJSArray = class external name ''Array2''');
-  Add('    function GetItems(Index: longint): jsvalue; external name ''Array'';');
-  Add('    procedure SetItems(Index: longint; Value: jsvalue); external name ''Array'';');
+  Add('    function GetItems(Index: longint): jsvalue; external name ''[]'';');
+  Add('    procedure SetItems(Index: longint; Value: jsvalue); external name ''[]'';');
   Add('    property Items[Index: longint]: jsvalue read GetItems write SetItems; default;');
   Add('  end;');
   Add('procedure DoIt(vI: JSValue; const vJ: jsvalue; var vK: jsvalue; out vL: jsvalue);');
@@ -8737,7 +8787,7 @@ begin
   Add('  arr[5]:=arr[6];');
   Add('  arr.items[7]:=arr.items[8];');
   Add('  with arr do items[9]:=items[10];');
-  //Add('  doit(arr[7],arr[8],arr[9],arr[10]);');
+  Add('  doit(arr[7],arr[8],arr[9],arr[10]);');
   ConvertProgram;
   CheckSource('TestExternalClass_BracketOperator',
     LinesToStr([ // statements
@@ -8758,6 +8808,154 @@ begin
     'this.Arr[7] = this.Arr[8];',
     'var $with1 = this.Arr;',
     '$with1[9] = $with1[10];',
+    'this.DoIt(this.Arr[7], this.Arr[8], {',
+    '  a: 9,',
+    '  p: this.Arr,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '}, {',
+    '  a: 10,',
+    '  p: this.Arr,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '});',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_BracketAccessor_2ParamsFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    function GetItems(Index1, Index2: longint): jsvalue; external name ''[]'';');
+  Add('    procedure SetItems(Index1, Index2: longint; Value: jsvalue); external name ''[]'';');
+  Add('    property Items[Index1, Index2: longint]: jsvalue read GetItems write SetItems; default;');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError(sBracketAccessorOfExternalClassMustHaveOneParameter,
+    nBracketAccessorOfExternalClassMustHaveOneParameter);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_BracketAccessor_ReadOnly;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    function GetItems(Index: longint): jsvalue; external name ''[]'';');
+  Add('    property Items[Index: longint]: jsvalue read GetItems; default;');
+  Add('  end;');
+  Add('procedure DoIt(vI: JSValue; const vJ: jsvalue);');
+  Add('begin end;');
+  Add('var');
+  Add('  Arr: tjsarray;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  v:=arr[0];');
+  Add('  v:=arr.items[1];');
+  Add('  with arr do v:=items[2];');
+  Add('  doit(arr[3],arr[4]);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketAccessor_ReadOnly',
+    LinesToStr([ // statements
+    'this.DoIt = function (vI, vJ) {',
+    '};',
+    'this.Arr = null;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.Arr[0];',
+    'this.v = this.Arr[1];',
+    'var $with1 = this.Arr;',
+    'this.v = $with1[2];',
+    'this.DoIt(this.Arr[3], this.Arr[4]);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_BracketAccessor_WriteOnly;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    procedure SetItems(Index: longint; Value: jsvalue); external name ''[]'';');
+  Add('    property Items[Index: longint]: jsvalue write SetItems; default;');
+  Add('  end;');
+  Add('var');
+  Add('  Arr: tjsarray;');
+  Add('  s: string;');
+  Add('  i: longint;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  arr[2]:=s;');
+  Add('  arr.items[3]:=s;');
+  Add('  arr[4]:=i;');
+  Add('  with arr do items[5]:=i;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketAccessor_WriteOnly',
+    LinesToStr([ // statements
+    'this.Arr = null;',
+    'this.s = "";',
+    'this.i = 0;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Arr[2] = this.s;',
+    'this.Arr[3] = this.s;',
+    'this.Arr[4] = this.i;',
+    'var $with1 = this.Arr;',
+    '$with1[5] = this.i;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_BracketAccessor_MultiType;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    procedure SetItems(Index: longint; Value: jsvalue); external name ''[]'';');
+  Add('    property Items[Index: longint]: jsvalue write SetItems; default;');
+  Add('    procedure SetNumbers(Index: longint; Value: longint); external name ''[]'';');
+  Add('    property Numbers[Index: longint]: longint write SetNumbers;');
+  Add('  end;');
+  Add('var');
+  Add('  Arr: tjsarray;');
+  Add('  s: string;');
+  Add('  i: longint;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  arr[2]:=s;');
+  Add('  arr.items[3]:=s;');
+  Add('  arr.numbers[4]:=i;');
+  Add('  with arr do items[5]:=i;');
+  Add('  with arr do numbers[6]:=i;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketAccessor_MultiType',
+    LinesToStr([ // statements
+    'this.Arr = null;',
+    'this.s = "";',
+    'this.i = 0;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Arr[2] = this.s;',
+    'this.Arr[3] = this.s;',
+    'this.Arr[4] = this.i;',
+    'var $with1 = this.Arr;',
+    '$with1[5] = this.i;',
+    'var $with2 = this.Arr;',
+    '$with2[6] = this.i;',
     '']));
 end;
 

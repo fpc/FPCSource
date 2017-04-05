@@ -188,6 +188,7 @@ Works:
   - Pascal descendant can override newinstance
   - any class can be typecasted to any root class
   - class instances cannot access external class members (e.g. static class functions)
+  - external class bracket accessor, getter/setter has external name '[]'
   - external class 'Array' bracket operator [integer] type jsvalue
   - external class 'Object' bracket operator [string] type jsvalue
 - jsvalue
@@ -214,11 +215,8 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- using external class must not mark the unit as used
-- compiler error code only when option -Jsomething given for fpc compatibility
 - -Jirtl.js-
-- make -Jirtl.js default for -Jc and -Tnodejs
-- external class array accessor: pass by ref
+- make -Jirtl.js default for -Jc and -Tnodejs, needs #IFDEF in cfg
 - remove 'Object' array workaround
 - FuncName:= (instead of Result:=)
 - ord(s[i]) -> s.charCodeAt(i)
@@ -307,7 +305,7 @@ const
   nNewInstanceFunctionMustBeVirtual = 4016;
   nNewInstanceFunctionMustHaveTwoParameters = 4017;
   nNewInstanceFunctionMustNotHaveOverloads = 4018;
-  nArrayAccessorOfExternalClassMustHaveOneParameter = 4019;
+  nBracketAccessorOfExternalClassMustHaveOneParameter = 4019;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -328,10 +326,10 @@ resourcestring
   sNewInstanceFunctionMustBeVirtual = 'NewInstance function must be virtual';
   sNewInstanceFunctionMustHaveTwoParameters = 'NewInstance function must have two parameters';
   sNewInstanceFunctionMustNotHaveOverloads = 'NewInstance function must not have overloads';
-  sArrayAccessorOfExternalClassMustHaveOneParameter = 'Array accessor of external class must have one parameter';
+  sBracketAccessorOfExternalClassMustHaveOneParameter = 'Bracket accessor of external class must have one parameter';
 
 const
-  ExtClassArrayAccessor = 'Array'; // external name 'Array' marks the array param getter/setter
+  ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
 
 type
   TPas2JSBuiltInName = (
@@ -702,7 +700,7 @@ type
     function ExtractPasStringLiteral(El: TPasElement; const S: String): TJSString; virtual;
     function ComputeConst(Expr: TPasExpr; StoreCustomData: boolean): TJSValue; virtual;
     function ComputeConstString(Expr: TPasExpr; StoreCustomData, NotEmpty: boolean): String; virtual;
-    function IsExternalArrayAccessor(El: TPasElement): boolean;
+    function IsExternalBracketAccessor(El: TPasElement): boolean;
     // CustomData
     function GetElementData(El: TPasElementBase;
       DataClass: TPas2JsElementDataClass): TPas2JsElementData; virtual;
@@ -1698,30 +1696,30 @@ end;
 procedure TPas2JSResolver.FinishPropertyOfClass(PropEl: TPasProperty);
 var
   Getter, Setter: TPasElement;
-  GetterIsArrayAccessor, SetterIsArrayAcessor: Boolean;
+  GetterIsBracketAccessor, SetterIsBracketAccessor: Boolean;
   Arg: TPasArgument;
   ArgResolved: TPasResolverResult;
 begin
   inherited FinishPropertyOfClass(PropEl);
   Getter:=GetPasPropertyGetter(PropEl);
-  GetterIsArrayAccessor:=IsExternalArrayAccessor(Getter);
+  GetterIsBracketAccessor:=IsExternalBracketAccessor(Getter);
   Setter:=GetPasPropertySetter(PropEl);
-  SetterIsArrayAcessor:=IsExternalArrayAccessor(Setter);
-  if GetterIsArrayAccessor then
+  SetterIsBracketAccessor:=IsExternalBracketAccessor(Setter);
+  if GetterIsBracketAccessor then
     begin
     if PropEl.Args.Count<>1 then
-      RaiseMsg(20170403001743,nArrayAccessorOfExternalClassMustHaveOneParameter,
-        sArrayAccessorOfExternalClassMustHaveOneParameter,
+      RaiseMsg(20170403001743,nBracketAccessorOfExternalClassMustHaveOneParameter,
+        sBracketAccessorOfExternalClassMustHaveOneParameter,
         [],PropEl);
     end;
-  if SetterIsArrayAcessor then
+  if SetterIsBracketAccessor then
     begin
     if PropEl.Args.Count<>1 then
-      RaiseMsg(20170403001806,nArrayAccessorOfExternalClassMustHaveOneParameter,
-        sArrayAccessorOfExternalClassMustHaveOneParameter,
+      RaiseMsg(20170403001806,nBracketAccessorOfExternalClassMustHaveOneParameter,
+        sBracketAccessorOfExternalClassMustHaveOneParameter,
         [],PropEl);
     end;
-  if GetterIsArrayAccessor or SetterIsArrayAcessor then
+  if GetterIsBracketAccessor or SetterIsBracketAccessor then
     begin
     Arg:=TPasArgument(PropEl.Args[0]);
     if not (Arg.Access in [argDefault,argConst]) then
@@ -2397,14 +2395,14 @@ begin
   Result:=String(V.AsString);
 end;
 
-function TPas2JSResolver.IsExternalArrayAccessor(El: TPasElement): boolean;
+function TPas2JSResolver.IsExternalBracketAccessor(El: TPasElement): boolean;
 var
   ExtName: String;
 begin
   if (not (El is TPasProcedure)) or (TPasProcedure(El).LibrarySymbolName=nil) then
     exit(false);
   ExtName:=ComputeConstString(TPasProcedure(El).LibrarySymbolName,false,false);
-  Result:=ExtName=ExtClassArrayAccessor;
+  Result:=ExtName=ExtClassBracketAccessor;
 end;
 
 function TPas2JSResolver.GetElementData(El: TPasElementBase;
@@ -4168,7 +4166,7 @@ var
     end;
   end;
 
-  function IsJSArrayAccessorAndConvert(Prop: TPasProperty;
+  function IsJSBracketAccessorAndConvert(Prop: TPasProperty;
     AccessEl: TPasElement;
     AContext: TConvertContext; ChompPropName: boolean): boolean;
   // If El.Value contains property name set ChompPropName = true
@@ -4179,13 +4177,13 @@ var
     Ref: TResolvedReference;
     Path: String;
   begin
-    if not AContext.Resolver.IsExternalArrayAccessor(AccessEl) then
+    if not AContext.Resolver.IsExternalBracketAccessor(AccessEl) then
       exit(false);
     Result:=true;
-    // array accessor of external class
+    // bracket accessor of external class
     if Prop.Args.Count<>1 then
       RaiseInconsistency(20170403003753);
-    // array accessor of external class  -> create  PathEl[param]
+    // bracket accessor of external class  -> create  PathEl[param]
     Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,Prop));
     try
       PathEl:=El.Value;
@@ -4252,7 +4250,7 @@ var
       caAssign:
         begin
         AccessEl:=AContext.Resolver.GetPasPropertySetter(Prop);
-        if IsJSArrayAccessorAndConvert(Prop,AccessEl,AContext,true) then
+        if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
             exit;
         AssignContext:=AContext.AccessContext as TAssignContext;
         AssignContext.PropertyEl:=Prop;
@@ -4262,7 +4260,7 @@ var
       caRead:
         begin
         AccessEl:=AContext.Resolver.GetPasPropertyGetter(Prop);
-        if IsJSArrayAccessorAndConvert(Prop,AccessEl,AContext,true) then
+        if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
           exit;
         end
       else
@@ -4322,32 +4320,38 @@ var
     DotContext: TDotContext;
     Left, Right: TJSElement;
     OldAccess: TCtxAccess;
-    AccessEl: TPasElement;
+    AccessEl, SetAccessEl: TPasElement;
   begin
     case AContext.Access of
     caAssign:
       begin
       AccessEl:=AContext.Resolver.GetPasPropertySetter(Prop);
-      if IsJSArrayAccessorAndConvert(Prop,AccessEl,AContext,false) then
+      if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,false) then
         exit;
       end;
     caRead:
       begin
       AccessEl:=AContext.Resolver.GetPasPropertyGetter(Prop);
-      if IsJSArrayAccessorAndConvert(Prop,AccessEl,AContext,false) then
+      if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,false) then
         exit;
       end;
-    {caByReference:
+    caByReference:
       begin
-      ParamContext:=AContext.AccessContext as TParamContext;
+      //ParamContext:=AContext.AccessContext as TParamContext;
       AccessEl:=AContext.Resolver.GetPasPropertyGetter(Prop);
       SetAccessEl:=AContext.Resolver.GetPasPropertySetter(Prop);
-      if IsJSArrayAccessorAndConvert(Prop,AccessEl,AContext,false) then
+      if AContext.Resolver.IsExternalBracketAccessor(AccessEl) then
         begin
-
+        if AContext.Resolver.IsExternalBracketAccessor(SetAccessEl) then
+          begin
+          // read and write are brackets -> easy
+          if not IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,false) then
+            RaiseNotSupported(El,AContext,20170405090845);
+          exit;
+          end;
         end;
       RaiseNotSupported(El,AContext,20170403000550);
-      end;}
+      end;
     else
       RaiseNotSupported(El,AContext,20170402233834);
     end;
