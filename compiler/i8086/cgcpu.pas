@@ -708,6 +708,7 @@ unit cgcpu;
                     rm_fast_386:
                       begin
                         tmpreg:=getintregister(list,OS_16);
+                        a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg),tmpreg);
                         if op=OP_ROL then
                           begin
                             list.Concat(taicpu.op_const_reg_reg(A_SHLD,S_W,rol_amount,reg,GetNextReg(reg)));
