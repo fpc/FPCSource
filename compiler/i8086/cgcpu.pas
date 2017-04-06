@@ -583,11 +583,40 @@ unit cgcpu;
                       ror_amount:=a;
                     end;
                   case rol_amount of
-                    1: rox32method:=rm_unrolledleftloop;
-                    15: rox32method:=rm_unrolledrightloop;
-                    16: rox32method:=rm_unrolledleftloop;
-                    17: rox32method:=rm_unrolledrightloop;
-                    31: rox32method:=rm_unrolledrightloop;
+                    1,17:
+                      rox32method:=rm_unrolledleftloop;
+                    2,18:
+                      if current_settings.cputype>=cpu_386 then
+                        rox32method:=rm_fast_386
+                      else if not (cs_opt_size in current_settings.optimizerswitches) then
+                        rox32method:=rm_unrolledleftloop
+                      else
+                        rox32method:=rm_loopleft;
+                    3..8,19..24:
+                      if current_settings.cputype>=cpu_386 then
+                        rox32method:=rm_fast_386
+                      else
+                        rox32method:=rm_loopleft;
+                    15,31:
+                      rox32method:=rm_unrolledrightloop;
+                    14,30:
+                      if current_settings.cputype>=cpu_386 then
+                        rox32method:=rm_fast_386
+                      else if not (cs_opt_size in current_settings.optimizerswitches) then
+                        rox32method:=rm_unrolledrightloop
+                      else
+                        { the left loop has a smaller size }
+                        rox32method:=rm_loopleft;
+                    9..13,25..29:
+                      if current_settings.cputype>=cpu_386 then
+                        rox32method:=rm_fast_386
+                      else if not (cs_opt_size in current_settings.optimizerswitches) then
+                        rox32method:=rm_loopright
+                      else
+                        { the left loop has a smaller size }
+                        rox32method:=rm_loopleft;
+                    16:
+                      rox32method:=rm_unrolledleftloop;
                     else
                       internalerror(2017040601);
                   end;
@@ -622,9 +651,74 @@ unit cgcpu;
                             list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
                           end;
                       end;
-                    rm_loopleft,rm_loopright,rm_fast_386:
-                      {todo: implement the other methods}
-                      internalerror(2017040603);
+                    rm_loopleft:
+                      begin
+                        if (rol_amount>=16) and not (cs_opt_size in current_settings.optimizerswitches) then
+                          begin
+                            list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)));
+                            dec(rol_amount,16);
+                            if rol_amount=0 then
+                              exit;
+                          end;
+
+                        getcpuregister(list,NR_CX);
+                        a_load_const_reg(list,OS_16,rol_amount,NR_CX);
+
+                        current_asmdata.getjumplabel(hl_loop_start);
+                        a_label(list,hl_loop_start);
+
+                        list.Concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg)));
+                        list.Concat(taicpu.op_const_reg(A_RCL,S_W,1,reg));
+                        list.Concat(taicpu.op_const_reg(A_ADC,S_W,0,GetNextReg(reg)));
+
+                        ai:=Taicpu.Op_Sym(A_LOOP,S_W,hl_loop_start);
+                        ai.is_jmp:=true;
+                        list.concat(ai);
+
+                        ungetcpuregister(list,NR_CX);
+                      end;
+                    rm_loopright:
+                      begin
+                        if (ror_amount>=16) and not (cs_opt_size in current_settings.optimizerswitches) then
+                          begin
+                            list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)));
+                            dec(ror_amount,16);
+                            if ror_amount=0 then
+                              exit;
+                          end;
+
+                        getcpuregister(list,NR_CX);
+                        a_load_const_reg(list,OS_16,ror_amount,NR_CX);
+
+                        current_asmdata.getjumplabel(hl_loop_start);
+                        a_label(list,hl_loop_start);
+
+                        tmpreg:=getintregister(list,OS_16);
+                        a_load_reg_reg(list,OS_16,OS_16,reg,tmpreg);
+                        list.Concat(taicpu.op_const_reg(A_SHR,S_W,1,tmpreg));
+                        list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg)));
+                        list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
+
+                        ai:=Taicpu.Op_Sym(A_LOOP,S_W,hl_loop_start);
+                        ai.is_jmp:=true;
+                        list.concat(ai);
+
+                        ungetcpuregister(list,NR_CX);
+                      end;
+                    rm_fast_386:
+                      begin
+                        tmpreg:=getintregister(list,OS_16);
+                        if op=OP_ROL then
+                          begin
+                            list.Concat(taicpu.op_const_reg_reg(A_SHLD,S_W,rol_amount,reg,GetNextReg(reg)));
+                            list.Concat(taicpu.op_const_reg_reg(A_SHLD,S_W,rol_amount,tmpreg,reg));
+                          end
+                        else
+                          begin
+                            list.Concat(taicpu.op_const_reg_reg(A_SHRD,S_W,ror_amount,reg,GetNextReg(reg)));
+                            list.Concat(taicpu.op_const_reg_reg(A_SHRD,S_W,ror_amount,tmpreg,reg));
+                          end;
+                      end;
                     else
                       internalerror(2017040602);
                   end;
