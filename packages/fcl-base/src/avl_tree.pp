@@ -27,6 +27,7 @@ unit AVL_Tree;
 interface
 
 {off $DEFINE MEM_CHECK}
+{off $DEFINE CheckAVLTreeNodeManager}
 
 uses
   {$IFDEF MEM_CHECK}MemCheck,{$ENDIF}
@@ -65,7 +66,7 @@ type
   { TAVLTreeNodeEnumerator }
 
   TAVLTreeNodeEnumerator = class
-  private
+  protected
     FCurrent: TAVLTreeNode;
     FLowToHigh: boolean;
     FTree: TAVLTree;
@@ -99,6 +100,7 @@ type
     procedure SetOnObjectCompare(const AValue: TObjectSortCompare);
     procedure SetCompares(const NewCompare: TListSortCompare;
                           const NewObjectCompare: TObjectSortCompare);
+    procedure SetNodeClass(const AValue: TAVLTreeNodeClass);
   public
     constructor Create(const OnCompareMethod: TListSortCompare);
     constructor CreateObjectCompare(const OnCompareMethod: TObjectSortCompare);
@@ -106,7 +108,7 @@ type
     destructor Destroy; override;
     property OnCompare: TListSortCompare read FOnCompare write SetOnCompare;
     property OnObjectCompare: TObjectSortCompare read FOnObjectCompare write SetOnObjectCompare;
-    property NodeClass: TAVLTreeNodeClass read FNodeClass write FNodeClass; // used for new nodes
+    property NodeClass: TAVLTreeNodeClass read FNodeClass write SetNodeClass; // used for new nodes
     procedure SetNodeManager(NewMgr: TBaseAVLTreeNodeManager;
                              AutoFree: boolean = false);
     function NewNode: TAVLTreeNode; virtual; // create a node outside the tree
@@ -118,13 +120,13 @@ type
     function AddAscendingSequence(Data: Pointer; LastAdded: TAVLTreeNode;
       var Successor: TAVLTreeNode): TAVLTreeNode;
     procedure Delete(ANode: TAVLTreeNode);
-    procedure Remove(Data: Pointer);
-    procedure RemovePointer(Data: Pointer);
+    function Remove(Data: Pointer): boolean;
+    function RemovePointer(Data: Pointer): boolean;
     procedure MoveDataLeftMost(var ANode: TAVLTreeNode);
     procedure MoveDataRightMost(var ANode: TAVLTreeNode);
     procedure Clear;
     procedure FreeAndClear;
-    procedure FreeAndDelete(ANode: TAVLTreeNode);
+    procedure FreeAndDelete(ANode: TAVLTreeNode); virtual;
     function Equals(Obj: TObject): boolean; override; // same as IsEqual(aTree,false)
     function IsEqual(aTree: TAVLTree; CheckDataPointer: boolean): boolean; // checks only keys or Data (references), not the data itself, O(n)
     procedure Assign(aTree: TAVLTree); virtual; // clear and copy all Data (references), O(n)
@@ -159,7 +161,7 @@ type
     function GetEnumeratorHighToLow: TAVLTreeNodeEnumerator;
 
     // consistency
-    function ConsistencyCheck: integer;
+    procedure ConsistencyCheck; virtual; // JuMa: changed to procedure and added "virtual".
     procedure WriteReportToStream(s: TStream);
     function NodeToReportStr(aNode: TAVLTreeNode): string; virtual;
     function ReportAsString: string;
@@ -175,6 +177,9 @@ type
     FCount: SizeInt;
     FMinFree: SizeInt;
     FMaxFreeRatio: SizeInt;
+    {$IFDEF CheckAVLTreeNodeManager}
+    FThreadId: TThreadID;
+    {$ENDIF}
     procedure SetMaxFreeRatio(NewValue: SizeInt);
     procedure SetMinFree(NewValue: SizeInt);
     procedure DisposeFirstFreeNode;
@@ -235,7 +240,7 @@ end;
 
 function TAVLTree.Add(Data: Pointer): TAVLTreeNode;
 begin
-  Result:=fNodeMgr.NewNode;
+  Result:=NewNode;
   Result.Data:=Data;
   Add(Result);
 end;
@@ -248,8 +253,8 @@ function TAVLTree.AddAscendingSequence(Data: Pointer; LastAdded: TAVLTreeNode;
   For nodes with same value the order of the sequence is kept.
 
   Usage:
-    LastNode:=nil; // TAvgLvlTreeNode
-    Successor:=nil; // TAvgLvlTreeNode
+    LastNode:=nil; // TAvlTreeNode
+    Successor:=nil; // TAvlTreeNode
     for i:=1 to 1000 do
       LastNode:=Tree.AddAscendingSequence(TItem.Create(i),LastNode,Successor);
 }
@@ -283,16 +288,16 @@ end;
 
 function TAVLTree.NewNode: TAVLTreeNode;
 begin
-  if NodeMemManager<>nil then
-    Result:=NodeMemManager.NewNode
+  if fNodeMgr<>nil then
+    Result:=fNodeMgr.NewNode
   else
     Result:=NodeClass.Create;
 end;
 
 procedure TAVLTree.DisposeNode(ANode: TAVLTreeNode);
 begin
-  if NodeMemManager<>nil then
-    NodeMemManager.DisposeNode(ANode)
+  if fNodeMgr<>nil then
+    fNodeMgr.DisposeNode(ANode)
   else
     ANode.Free;
 end;
@@ -490,6 +495,17 @@ begin
   end;
 end;
 
+procedure TAVLTree.SetNodeClass(const AValue: TAVLTreeNodeClass);
+begin
+  if FNodeClass=AValue then Exit;
+  if Count>0 then
+    raise Exception.Create(ClassName+'.SetNodeClass Count='+IntToStr(Count)
+      +' Old='+fNodeMgr.ClassName+' New='+AValue.ClassName);
+  FNodeClass:=AValue;
+  if fNodeMgr=NodeMemManager then
+    fNodeMgr:=nil;
+end;
+
 procedure TAVLTree.BalanceAfterInsert(ANode: TAVLTreeNode);
 var
   OldParent, OldRight, OldLeft: TAVLTreeNode;
@@ -608,7 +624,7 @@ procedure TAVLTree.Clear;
       if ANode.Left<>nil then DeleteNode(ANode.Left);
       if ANode.Right<>nil then DeleteNode(ANode.Right);
     end;
-    fNodeMgr.DisposeNode(ANode);
+    DisposeNode(ANode);
   end;
 
 // Clear
@@ -620,7 +636,6 @@ end;
 
 constructor TAVLTree.Create(const OnCompareMethod: TListSortCompare);
 begin
-  inherited Create;
   fNodeMgr:=NodeMemManager;
   FOnCompare:=OnCompareMethod;
   Init;
@@ -643,6 +658,12 @@ procedure TAVLTree.Delete(ANode: TAVLTreeNode);
 var
   OldParent, Child: TAVLTreeNode;
 begin
+  {$IFDEF CheckAVLTreeNodeManager}
+  OldParent:=ANode;
+  while OldParent.Parent<>nil do OldParent:=OldParent.Parent;
+  if OldParent<>Root then
+    raise Exception.Create('TAVLTree.Delete'); // not my node
+  {$ENDIF}
   if (ANode.Left<>nil) and (ANode.Right<>nil) then begin
     // ANode has both: Left and Right
     // Switch ANode position with Successor
@@ -679,21 +700,28 @@ begin
   DisposeNode(ANode);
 end;
 
-procedure TAVLTree.Remove(Data: Pointer);
-var ANode: TAVLTreeNode;
+function TAVLTree.Remove(Data: Pointer): boolean;
+var
+  ANode: TAvlTreeNode;
 begin
   ANode:=Find(Data);
-  if ANode<>nil then
+  if ANode<>nil then begin
     Delete(ANode);
+    Result:=true;
+  end else
+    Result:=false;
 end;
 
-procedure TAVLTree.RemovePointer(Data: Pointer);
+function TAVLTree.RemovePointer(Data: Pointer): boolean;
 var
-  ANode: TAVLTreeNode;
+  ANode: TAvlTreeNode;
 begin
   ANode:=FindPointer(Data);
-  if ANode<>nil then
+  if ANode<>nil then begin
     Delete(ANode);
+    Result:=true;
+  end else
+    Result:=false;
 end;
 
 destructor TAVLTree.Destroy;
@@ -1050,7 +1078,8 @@ begin
 end;
 
 procedure TAVLTree.MoveDataLeftMost(var ANode: TAVLTreeNode);
-var LeftMost, PreNode: TAVLTreeNode;
+var
+  LeftMost, PreNode: TAVLTreeNode;
   Data: Pointer;
 begin
   if ANode=nil then exit;
@@ -1068,7 +1097,8 @@ begin
 end;
 
 procedure TAVLTree.MoveDataRightMost(var ANode: TAVLTreeNode);
-var RightMost, PostNode: TAVLTreeNode;
+var
+  RightMost, PostNode: TAVLTreeNode;
   Data: Pointer;
 begin
   if ANode=nil then exit;
@@ -1085,7 +1115,7 @@ begin
   ANode:=RightMost;
 end;
 
-function TAVLTree.ConsistencyCheck: integer;
+procedure TAVLTree.ConsistencyCheck;
 
   procedure E(Msg: string);
   begin
@@ -1095,7 +1125,6 @@ function TAVLTree.ConsistencyCheck: integer;
 var
   RealCount: SizeInt;
 begin
-  Result:=0;
   RealCount:=0;
   if FRoot<>nil then begin
     FRoot.ConsistencyCheck(Self);
@@ -1160,7 +1189,7 @@ begin
     end else begin
       if Compare(MyNode.Data,OtherNode.Data)<>0 then exit;
     end;
-    MyNode:=MyNode.Successor;;
+    MyNode:=MyNode.Successor;
     OtherNode:=OtherNode.Successor;
   end;
   if OtherNode<>nil then exit;
@@ -1190,7 +1219,7 @@ begin
   if IsEqual(aTree,true) then exit;
   Clear;
   SetCompares(aTree.OnCompare,aTree.OnObjectCompare);
-  FNodeClass:=aTree.NodeClass;
+  NodeClass:=aTree.NodeClass;
   if aTree.Root<>nil then
     AssignNode(fRoot,aTree.Root);
   FCount:=aTree.Count;
@@ -1293,6 +1322,9 @@ procedure TAVLTree.SetNodeManager(NewMgr: TBaseAVLTreeNodeManager;
   AutoFree: boolean);
 // only allowed just after create.
 begin
+  if fNodeMgr=NewMgr then exit;
+  if Count>0 then
+    raise Exception.Create('TAVLTree.SetNodeManager');
   if fNodeMgrAutoFree then
     FreeAndNil(fNodeMgr);
   fNodeMgr:=NewMgr;
@@ -1407,6 +1439,9 @@ end;
 
 constructor TAVLTreeNodeMemManager.Create;
 begin
+  {$IFDEF CheckAVLTreeNodeManager}
+  FThreadId:=GetCurrentThreadId;
+  {$ENDIF}
   inherited Create;
   FFirstFree:=nil;
   FFreeCount:=0;
@@ -1424,6 +1459,15 @@ end;
 procedure TAVLTreeNodeMemManager.DisposeNode(ANode: TAVLTreeNode);
 begin
   if ANode=nil then exit;
+  {$IFDEF CheckAVLTreeNodeManager}
+  if GetCurrentThreadId<>FThreadId then
+    raise Exception.Create('not thread safe!');
+  {$ENDIF}
+  if FCount < 0 then
+    raise Exception.CreateFmt(
+      '%s.DisposeNode: FCount (%d) is negative. Should not happen.'
+     +' FFreeCount=%d, FMinFree=%d, FMaxFreeRatio=%d.',
+      [ClassName, FCount, FFreeCount, FMinFree, FMaxFreeRatio]);
   if (FFreeCount<FMinFree) or (FFreeCount<((FCount shr 3)*FMaxFreeRatio)) then
   begin
     // add ANode to Free list
@@ -1444,11 +1488,16 @@ end;
 
 function TAVLTreeNodeMemManager.NewNode: TAVLTreeNode;
 begin
+  {$IFDEF CheckAVLTreeNodeManager}
+  if GetCurrentThreadId<>FThreadId then
+    raise Exception.Create('not thread safe!');
+  {$ENDIF}
   if FFirstFree<>nil then begin
     // take from free list
     Result:=FFirstFree;
     FFirstFree:=FFirstFree.Right;
     Result.Right:=nil;
+    dec(FFreeCount);
   end else begin
     // free list empty -> create new node
     Result:=TAVLTreeNode.Create;
@@ -1459,6 +1508,10 @@ end;
 procedure TAVLTreeNodeMemManager.Clear;
 var ANode: TAVLTreeNode;
 begin
+  {$IFDEF CheckAVLTreeNodeManager}
+  if GetCurrentThreadId<>FThreadId then
+    raise Exception.Create('not thread safe!');
+  {$ENDIF}
   while FFirstFree<>nil do begin
     ANode:=FFirstFree;
     FFirstFree:=FFirstFree.Right;
