@@ -253,6 +253,9 @@ unit cgcpu;
 
     procedure tcg8086.a_op_const_reg(list: TAsmList; Op: TOpCG; size: TCGSize;
       a: tcgint; reg: TRegister);
+      type
+        trox32method=(rm_unspecified,rm_unrolledleftloop,rm_unrolledrightloop,
+                      rm_loopleft,rm_loopright,rm_fast_386);
       var
         tmpreg: tregister;
         op1, op2: TAsmOp;
@@ -261,7 +264,9 @@ unit cgcpu;
         ai: taicpu;
         use_loop, use_186_fast_shift, use_8086_fast_shift,
           use_386_fast_shift: Boolean;
+        rox32method: trox32method=rm_unspecified;
         i: Integer;
+        rol_amount, ror_amount: TCGInt;
       begin
         optimize_op_const(size, op, a);
         check_register_size(size,reg);
@@ -565,40 +570,64 @@ unit cgcpu;
               OP_ROL,OP_ROR:
                 begin
                   a:=a and 31;
-                  if a=16 then
-                    list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)))
-                  else if ((a=1) and (op=OP_ROL)) or ((a=31) and (op=OP_ROR)) then
+                  if a=0 then
+                    exit;
+                  if op=OP_ROL then
                     begin
-                      list.Concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg)));
-                      list.Concat(taicpu.op_const_reg(A_RCL,S_W,1,reg));
-                      list.Concat(taicpu.op_const_reg(A_ADC,S_W,0,GetNextReg(reg)));
-                    end
-                  else if ((a=15) and (op=OP_ROL)) or ((a=31) and (op=OP_ROR)) then
-                    begin
-                      list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)));
-                      tmpreg:=getintregister(list,OS_16);
-                      a_load_reg_reg(list,OS_16,OS_16,reg,tmpreg);
-                      list.Concat(taicpu.op_const_reg(A_SHR,S_W,1,tmpreg));
-                      list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg)));
-                      list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
-                    end
-                  else if ((a=17) and (op=OP_ROL)) or ((a=31) and (op=OP_ROR)) then
-                    begin
-                      list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)));
-                      list.Concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg)));
-                      list.Concat(taicpu.op_const_reg(A_RCL,S_W,1,reg));
-                      list.Concat(taicpu.op_const_reg(A_ADC,S_W,0,GetNextReg(reg)));
-                    end
-                  else if ((a=31) and (op=OP_ROL)) or ((a=1) and (op=OP_ROR)) then
-                    begin
-                      tmpreg:=getintregister(list,OS_16);
-                      a_load_reg_reg(list,OS_16,OS_16,reg,tmpreg);
-                      list.Concat(taicpu.op_const_reg(A_SHR,S_W,1,tmpreg));
-                      list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg)));
-                      list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
+                      rol_amount:=a;
+                      ror_amount:=32-a;
                     end
                   else
-                    internalerror(2017040501);
+                    begin
+                      rol_amount:=32-a;
+                      ror_amount:=a;
+                    end;
+                  case rol_amount of
+                    1: rox32method:=rm_unrolledleftloop;
+                    15: rox32method:=rm_unrolledrightloop;
+                    16: rox32method:=rm_unrolledleftloop;
+                    17: rox32method:=rm_unrolledrightloop;
+                    31: rox32method:=rm_unrolledrightloop;
+                    else
+                      internalerror(2017040601);
+                  end;
+                  case rox32method of
+                    rm_unrolledleftloop:
+                      begin
+                        if rol_amount>=16 then
+                          begin
+                            list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)));
+                            dec(rol_amount,16);
+                          end;
+                        for i:=1 to rol_amount do
+                          begin
+                            list.Concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg)));
+                            list.Concat(taicpu.op_const_reg(A_RCL,S_W,1,reg));
+                            list.Concat(taicpu.op_const_reg(A_ADC,S_W,0,GetNextReg(reg)));
+                          end;
+                      end;
+                    rm_unrolledrightloop:
+                      begin
+                        if ror_amount>=16 then
+                          begin
+                            list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)));
+                            dec(ror_amount,16);
+                          end;
+                        tmpreg:=getintregister(list,OS_16);
+                        for i:=1 to ror_amount do
+                          begin
+                            a_load_reg_reg(list,OS_16,OS_16,reg,tmpreg);
+                            list.Concat(taicpu.op_const_reg(A_SHR,S_W,1,tmpreg));
+                            list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg)));
+                            list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
+                          end;
+                      end;
+                    rm_loopleft,rm_loopright,rm_fast_386:
+                      {todo: implement the other methods}
+                      internalerror(2017040603);
+                    else
+                      internalerror(2017040602);
+                  end;
                 end;
               else
                 begin
