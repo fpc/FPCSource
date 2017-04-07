@@ -511,12 +511,28 @@ implementation
           { load parameter, must be a reference }
           secondpass(left);
 
+          location_reset(location,LOC_VOID,OS_NO);
+
+          if left.location.loc=LOC_REGISTER then
+            begin
 {$ifndef cpu64bitalu}
-          if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
-            cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],def_cgsize(left.resultdef),NR_NO64,left.location)
-          else
+              if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
+                cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],def_cgsize(left.resultdef),left.location.register64,left.location)
+              else
 {$endif not cpu64bitalu}
-            hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],left.resultdef,NR_NO,left.location);
+                hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],left.resultdef,left.location.register,left.location);
+            end
+          else if left.location.loc=LOC_REFERENCE then
+            begin
+{$ifndef cpu64bitalu}
+              if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
+                cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],def_cgsize(left.resultdef),NR_NO64,left.location)
+              else
+{$endif not cpu64bitalu}
+                hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],left.resultdef,NR_NO,left.location);
+            end
+          else
+            internalerror(2017040701);
         end;
 
 
