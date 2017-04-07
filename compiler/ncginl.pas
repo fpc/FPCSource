@@ -513,7 +513,7 @@ implementation
 
           location_reset(location,LOC_VOID,OS_NO);
 
-          if left.location.loc=LOC_REGISTER then
+          if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
             begin
 {$ifndef cpu64bitalu}
               if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
@@ -522,7 +522,7 @@ implementation
 {$endif not cpu64bitalu}
                 hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],left.resultdef,left.location.register,left.location);
             end
-          else if left.location.loc=LOC_REFERENCE then
+          else if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
             begin
 {$ifndef cpu64bitalu}
               if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
