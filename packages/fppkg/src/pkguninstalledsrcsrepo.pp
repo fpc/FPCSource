@@ -8,7 +8,6 @@ uses
   Classes,
   SysUtils,
   fpmkunit,
-  fpTemplate,
   pkgoptions,
   pkgFppkg,
   pkgglobals,
@@ -72,8 +71,6 @@ type
 implementation
 
 const
-  KeyScanForUnits      = 'ScanForUnits';
-  KeyUnitPath          = 'UnitPath';
   KeySourceRepository  = 'SourceRepository';
 
   SLogSourceRepository = '  SourceRepository:%s';
