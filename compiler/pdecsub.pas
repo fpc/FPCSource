@@ -79,7 +79,7 @@ interface
     procedure parse_record_proc_directives(pd:tabstractprocdef);
     function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
     function  parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef;isgeneric:boolean):tprocdef;
-    procedure parse_proc_dec_finish(pd:tprocdef;isclassmethod:boolean);
+    procedure parse_proc_dec_finish(pd:tprocdef;isclassmethod:boolean;astruct:tabstractrecorddef);
 
     { parse a record method declaration (not a (class) constructor/destructor) }
     function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
@@ -1254,7 +1254,7 @@ implementation
       end;
 
 
-    procedure parse_proc_dec_finish(pd:tprocdef;isclassmethod:boolean);
+    procedure parse_proc_dec_finish(pd:tprocdef;isclassmethod:boolean;astruct:tabstractrecorddef);
       var
         locationstr: string;
         i: integer;
@@ -1494,12 +1494,15 @@ implementation
                          else
                            MessagePos(pd.fileinfo,type_e_type_id_expected);
                      end;
-                   if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
-                      equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
-                      (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
-                     message(parser_e_no_such_assignment)
-                   else if not isoperatoracceptable(pd,optoken) then
-                     Message(parser_e_overload_impossible);
+                   if not assigned(pd.struct) or assigned(astruct) then
+                     begin
+                       if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
+                          equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
+                          (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
+                         message(parser_e_no_such_assignment)
+                       else if not isoperatoracceptable(pd,optoken) then
+                         Message(parser_e_overload_impossible);
+                     end;
                  end;
             end;
           else
@@ -1556,7 +1559,7 @@ implementation
                 begin
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
-                    parse_proc_dec_finish(pd,isclassmethod)
+                    parse_proc_dec_finish(pd,isclassmethod,astruct)
                   else
                     finish_intf_mapping;
                 end
@@ -1576,7 +1579,7 @@ implementation
                 begin
                   { pd=nil when it is an interface mapping }
                   if assigned(pd) then
-                    parse_proc_dec_finish(pd,isclassmethod)
+                    parse_proc_dec_finish(pd,isclassmethod,astruct)
                   else
                     finish_intf_mapping;
                 end
@@ -1592,7 +1595,7 @@ implementation
               else
                 recover:=not parse_proc_head(astruct,potype_constructor,false,nil,nil,pd);
               if not recover then
-                parse_proc_dec_finish(pd,isclassmethod);
+                parse_proc_dec_finish(pd,isclassmethod,astruct);
             end;
 
           _DESTRUCTOR :
@@ -1603,7 +1606,7 @@ implementation
               else
                 recover:=not parse_proc_head(astruct,potype_destructor,false,nil,nil,pd);
               if not recover then
-                parse_proc_dec_finish(pd,isclassmethod);
+                parse_proc_dec_finish(pd,isclassmethod,astruct);
             end;
         else
           if (token=_OPERATOR) or
@@ -1618,7 +1621,7 @@ implementation
               parse_proc_head(astruct,potype_operator,false,nil,nil,pd);
               block_type:=old_block_type;
               if assigned(pd) then
-                parse_proc_dec_finish(pd,isclassmethod)
+                parse_proc_dec_finish(pd,isclassmethod,astruct)
               else
                 begin
                   { recover }

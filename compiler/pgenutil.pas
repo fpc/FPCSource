@@ -1018,7 +1018,7 @@ uses
                           pd.procsym:=psym
                         else
                           pd.procsym:=srsym;
-                        parse_proc_dec_finish(pd,po_classmethod in tprocdef(genericdef).procoptions);
+                        parse_proc_dec_finish(pd,po_classmethod in tprocdef(genericdef).procoptions,tprocdef(genericdef).struct);
                       end;
                     result:=pd;
                   end
