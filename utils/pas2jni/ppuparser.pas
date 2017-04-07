@@ -411,6 +411,13 @@ var
                 AncestorClass:=TClassDef(_GetRef(it.Get('Ancestor', TJSONObject(nil)), TClassDef));
               if CType in [ctObject, ctRecord] then
                 Size:=it.Integers['Size'];
+              arr:=it.Get('Options', TJSONArray(nil));
+              if arr <> nil then
+                for j:=0 to arr.Count - 1 do begin
+                  s:=arr.Strings[j];
+                  if s = 'abstract_methods' then
+                    HasAbstractMethods:=True;
+                end;
               _ReadDefs(d, it, 'Fields');
             end;
           dtProc, dtProcType:

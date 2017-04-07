@@ -3349,7 +3349,10 @@ begin
                   writeln([space,'       IID String : ',objdef.IID]);
                end;
 
-             writeln([space,' Abstract methods : ',getlongint]);
+             l:=getlongint;
+             if l > 0 then
+               objdef.Options:=objdef.Options + [ooAbstractMethods];
+             writeln([space,' Abstract methods : ',l]);
 
              if tobjecttyp(b)=odt_helper then
                begin

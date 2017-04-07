@@ -256,7 +256,7 @@ type
   end;
 
   TPpuObjType = (otUnknown, otClass, otObject, otInterface, otHelper);
-  TPpuObjOption = (ooIsAbstract, ooCopied);
+  TPpuObjOption = (ooIsAbstract, ooCopied, ooAbstractMethods);
   TPpuObjOptions = set of TPpuObjOption;
 
   { TPpuObjectDef }
@@ -460,7 +460,7 @@ const
     ('', 'class', 'object', 'interface', 'helper');
 
   ObjOptionNames: array[TPpuObjOption] of string =
-    ('abstract','copied');
+    ('abstract','copied','abstract_methods');
 
   PropOptionNames: array[TPpuPropOption] of string =
     ('default');
