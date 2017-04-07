@@ -350,6 +350,7 @@ begin
             IncludeFile(FileDir+SR.Name);
           until FindNext(SR)<>0;
         end;
+      FindClose(SR);
     end
   else
     log(llWarning, SLogIncludeFileMaskDoesNotExist, [FileDir, AFileNameMask]);

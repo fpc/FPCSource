@@ -143,7 +143,7 @@ begin
           FindClose(SRF);
       until FindNext(SRD)<>0;
     end;
-  FindClose(SRF);
+  FindClose(SRD);
 
   Result:=true;
 end;
