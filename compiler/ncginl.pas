@@ -36,6 +36,7 @@ interface
           procedure second_predsucc;virtual;
           procedure second_incdec;virtual;
           procedure second_AndOrXor_assign;virtual;
+          procedure second_NegNot_assign;virtual;
           procedure second_typeinfo;virtual;
           procedure second_includeexclude;virtual;
           procedure second_pi; virtual;
@@ -204,6 +205,9 @@ implementation
             in_or_assign_x_y,
             in_xor_assign_x_y:
                second_AndOrXor_assign;
+            in_neg_assign_x,
+            in_not_assign_x:
+               second_NegNot_assign;
             else internalerror(9);
          end;
       end;
@@ -490,6 +494,29 @@ implementation
                  hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],tcallparanode(left).right.resultdef,
                    hregister,tcallparanode(tcallparanode(left).right).left.location);
              end;
+        end;
+
+
+{*****************************************************************************
+                       NEG/NOT ASSIGN GENERIC HANDLING
+*****************************************************************************}
+      procedure tcginlinenode.second_NegNot_assign;
+        const
+          negnotop:array[in_neg_assign_x..in_not_assign_x] of TOpCG=(OP_NEG,OP_NOT);
+{$ifndef cpu64bitalu}
+        var
+          NR_NO64: tregister64=(reglo:NR_NO;reghi:NR_NO);
+{$endif not cpu64bitalu}
+        begin
+          { load parameter, must be a reference }
+          secondpass(left);
+
+{$ifndef cpu64bitalu}
+          if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
+            cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],def_cgsize(left.resultdef),NR_NO64,left.location)
+          else
+{$endif not cpu64bitalu}
+            hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],left.resultdef,NR_NO,left.location);
         end;
 
 

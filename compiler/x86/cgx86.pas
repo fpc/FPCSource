@@ -2059,7 +2059,8 @@ unit cgx86;
       begin
         tmpref:=ref;
         make_simple_ref(list,tmpref);
-        check_register_size(size,reg);
+        if not (op in [OP_NEG,OP_NOT]) then
+          check_register_size(size,reg);
         if (op=OP_MUL) and not (cs_check_overflow in current_settings.localswitches) then
           op:=OP_IMUL;
         case op of

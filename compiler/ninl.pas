@@ -91,6 +91,7 @@ interface
           function first_sar: tnode; virtual;
           function first_fma : tnode; virtual;
           function first_AndOrXor_assign: tnode; virtual;
+          function first_NegNot_assign: tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -3067,6 +3068,34 @@ implementation
                     end;
                 end;
 
+              in_neg_assign_x,
+              in_not_assign_x:
+                begin
+                  resultdef:=voidtype;
+                  if not(df_generic in current_procinfo.procdef.defoptions) then
+                    begin
+                      valid_for_var(left,true);
+                      set_varstate(left,vs_readwritten,[vsf_must_be_valid]);
+
+                      if is_integer(left.resultdef) then
+                        begin
+                          { value of left gets changed -> must be unique }
+                          set_unique(left);
+                          { these nodes shouldn't be created, when range checking is on }
+                          if [cs_check_range,cs_check_overflow]*current_settings.localswitches<>[] then
+                            internalerror(2017040703);
+                        end
+                      { generic type parameter? }
+                      else if is_typeparam(left.resultdef) then
+                        begin
+                          result:=cnothingnode.create;
+                          exit;
+                        end
+                      else
+                        CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
+                    end;
+                end;
+
               in_read_x,
               in_readln_x,
               in_readstr_x,
@@ -3595,6 +3624,12 @@ implementation
           in_xor_assign_x_y:
             begin
               result:=first_AndOrXor_assign;
+            end;
+
+          in_neg_assign_x,
+          in_not_assign_x:
+            begin
+              result:=first_NegNot_assign;
             end;
 
          in_include_x_y,
@@ -4616,6 +4651,13 @@ implementation
        begin
          result:=nil;
          expectloc:=tcallparanode(tcallparanode(left).right).left.expectloc;
+       end;
+
+
+     function tinlinenode.first_NegNot_assign: tnode;
+       begin
+         result:=nil;
+         expectloc:=left.expectloc;
        end;
 
 end.

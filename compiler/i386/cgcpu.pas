@@ -662,21 +662,42 @@ unit cgcpu;
         op1,op2 : TAsmOp;
         tempref : treference;
       begin
-        if not(op in [OP_NEG,OP_NOT]) then
-          begin
-            get_64bit_ops(op,op1,op2);
-            tempref:=ref;
-            tcgx86(cg).make_simple_ref(list,tempref);
-            if op in [OP_ADD,OP_SUB] then
+        case op of
+          OP_NOT:
+            begin
+              tempref:=ref;
+              tcgx86(cg).make_simple_ref(list,tempref);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
+            end;
+          OP_NEG:
+            begin
+              tempref:=ref;
+              tcgx86(cg).make_simple_ref(list,tempref);
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
               cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
-            list.concat(taicpu.op_reg_ref(op1,S_L,reg.reglo,tempref));
-            inc(tempref.offset,4);
-            list.concat(taicpu.op_reg_ref(op2,S_L,reg.reghi,tempref));
-            if op in [OP_ADD,OP_SUB] then
+              dec(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NEG,S_L,tempref));
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_const_ref(A_SBB,S_L,-1,tempref));
               cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
-          end
-        else
-          inherited;
+            end;
+          else
+            begin
+              get_64bit_ops(op,op1,op2);
+              tempref:=ref;
+              tcgx86(cg).make_simple_ref(list,tempref);
+              if op in [OP_ADD,OP_SUB] then
+                cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+              list.concat(taicpu.op_reg_ref(op1,S_L,reg.reglo,tempref));
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_reg_ref(op2,S_L,reg.reghi,tempref));
+              if op in [OP_ADD,OP_SUB] then
+                cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            end;
+        end;
       end;
 
 

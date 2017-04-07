@@ -101,10 +101,9 @@ const
    in_shl_assign_x_y    = 90;
    in_shr_assign_x_y    = 91;
    in_rol_assign_x_y    = 92;
-   in_ror_assign_x_y    = 93;
+   in_ror_assign_x_y    = 93;}
    in_neg_assign_x      = 94;
    in_not_assign_x      = 95;
-}
 
 { Internal constant functions }
    in_const_sqr        = 100;
