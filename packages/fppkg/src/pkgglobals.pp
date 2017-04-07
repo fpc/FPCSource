@@ -381,13 +381,17 @@ var
   infosl: TStringList;
 begin
   infosl:=TStringList.Create;
-  infosl.Delimiter:=' ';
-  infosl.DelimitedText:=GetCompilerInfo(ACompiler,AOptions);
-  if infosl.Count<>3 then
-    Raise EPackagerError.Create(SErrInvalidFPCInfo);
-  AVersion:=infosl[0];
-  ACPU:=StringToCPU(infosl[1]);
-  AOS:=StringToOS(infosl[2]);
+  try
+    infosl.Delimiter:=' ';
+    infosl.DelimitedText:=GetCompilerInfo(ACompiler,AOptions);
+    if infosl.Count<>3 then
+      Raise EPackagerError.Create(SErrInvalidFPCInfo);
+    AVersion:=infosl[0];
+    ACPU:=StringToCPU(infosl[1]);
+    AOS:=StringToOS(infosl[2]);
+  finally
+    infosl.Free;
+  end;
 end;
 
 function IsSuperUser:boolean;
