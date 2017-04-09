@@ -1698,7 +1698,14 @@ implementation
       begin
         tmpreg:=getintregister(list,size);
         a_load_ref_reg(list,size,size,ref,tmpreg);
-        a_op_reg_reg(list,op,size,reg,tmpreg);
+        if op in [OP_NEG,OP_NOT] then
+          begin
+            if reg<>NR_NO then
+              internalerror(2017040901);
+            a_op_reg_reg(list,op,size,tmpreg,tmpreg);
+          end
+        else
+          a_op_reg_reg(list,op,size,reg,tmpreg);
         a_load_reg_ref(list,size,size,tmpreg,ref);
       end;
 
