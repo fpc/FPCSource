@@ -668,6 +668,31 @@ implementation
                     taddnode(right).left:=nil;
                     exit;
                   end;
+                { replace i:=not i  by in_not_assign_x(i)
+                          i:=-i     by in_neg_assign_x(i)
+                  todo: for some integer types, there are extra implicit
+                        typecasts inserted by the compiler; this code should be
+                        updated to handle them as well }
+                if (right.nodetype in [notn,unaryminusn]) and
+                  (tunarynode(right).left.isequal(left)) and
+
+                  is_integer(tunarynode(right).left.resultdef) and
+
+                  ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+                  ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+                  valid_for_var(tunarynode(right).left,false) and
+                  not(might_have_sideeffects(tunarynode(right).left)) then
+                  begin
+                    if right.nodetype=notn then
+                      newinlinenodetype:=in_not_assign_x
+                    else
+                      newinlinenodetype:=in_neg_assign_x;
+                    result:=cinlinenode.createintern(
+                      newinlinenodetype,false,tunarynode(right).left);
+                    left:=nil;
+                    tunarynode(right).left:=nil;
+                    exit;
+                  end;
               end;
           end;
       end;
