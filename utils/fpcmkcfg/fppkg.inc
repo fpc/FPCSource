@@ -30,6 +30,6 @@ const fppkg : array[0..2,1..240] of char=(
   'Prefix={LocalRepository}'#010+
   #010+
   '[IncludeFiles]'#010+
-  'FileMask=%CompilerConfigDir%conf.d/*.conf'#010+
+  'FileMask=%CompilerConfigDir%/conf.d/*.conf'#010+
   #010
 );
