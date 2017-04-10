@@ -13,7 +13,8 @@ uses
   CustApp,
   process,
   fpmkunit,
-  pkgFppkg, fprepos;
+  pkgFppkg,
+  fprepos;
 
 type
 
@@ -134,7 +135,7 @@ begin
   if FFPCSourcePath<>'' then
     FFPCSourcePath := ExpandFileName(FFPCSourcePath);
   FStartCompiler := CustomApplication.GetOptionValue('s','startcompiler');
-  FTestPath := ExpandFileName(CustomApplication.GetOptionValue('t','testpath'));
+  FTestPath := CustomApplication.GetOptionValue('t','testpath');
   if FTestPath='' then
     FTestPath := IncludeTrailingPathDelimiter(ConcatPaths([ExtractFilePath(ParamStr(0)),'testroot']))
   else
