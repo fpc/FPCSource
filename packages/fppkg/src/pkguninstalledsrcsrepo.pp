@@ -118,6 +118,7 @@ begin
                 P:=ARepository.AddPackage(ChangeFileExt(SRF.Name,''));
                 P.LoadUnitConfigFromFile(UF);
                 P.PackagesStructure:=Self;
+                log(llDebug,SLogFoundPackageInFile,[P.Name, UF]);
                 if P.IsFPMakeAddIn then
                   AddFPMakeAddIn(P);
               until FindNext(SRF)<>0;

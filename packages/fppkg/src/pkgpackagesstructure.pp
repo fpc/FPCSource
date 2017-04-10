@@ -294,6 +294,7 @@ begin
             P:=ARepository.AddPackage(ChangeFileExt(SR.Name,''));
             P.LoadUnitConfigFromFile(UF);
             P.PackagesStructure:=Self;
+            log(llDebug,SLogFoundPackageInFile,[P.Name, UF]);
             if P.IsFPMakeAddIn then
               AddFPMakeAddIn(P);
           end;
@@ -319,6 +320,7 @@ begin
                     P:=ARepository.AddPackage(SR.Name);
                     P.PackagesStructure:=Self;
                     P.LoadUnitConfigFromFile(UF);
+                    log(llDebug,SLogFoundPackageInFile,[P.Name, UF]);
                     if P.IsFPMakeAddIn then
                       AddFPMakeAddIn(P);
                   end;
@@ -334,6 +336,7 @@ begin
                         P:=ARepository.AddPackage(SR.Name);
                         P.PackagesStructure:=Self;
                         LoadPackagefpcFromFile(P,UF);
+                        log(llDebug,SLogFoundPackageInFile,[P.Name, UF]);
                       end;
                   end;
               end;

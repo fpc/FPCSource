@@ -9,6 +9,9 @@ Resourcestring
   SError                     = 'Error: ';
   SWarning                   = 'Warning: ';
   SDebug                     = 'Debug: ';
+  SProgres                   = 'Progres: ';
+  SInfo                      = 'Info: ';
+  SCommand                   = 'Command: ';
 
   SErrInValidArgument        = 'Invalid command-line argument at position %d : %s';
   SErrNeedArgument           = 'Option at position %d (%s) needs an argument';
@@ -79,6 +82,7 @@ Resourcestring
   SLogLoadingPackagesFile    = 'Loading available packages from "%s"';
   SLogLoadingMirrorsFile     = 'Loading available mirrors from "%s"';
   SLogFindInstalledPackages  = 'Searching for installed packages in "%s"';
+  SLogFoundPackageInFile     = 'Found package "%s" in file "%s"';
   SLogFoundFPMakeAddin       = 'Found FPMake-AddIn "%s"';
   SLogUpdateFPMakeAddin      = 'FPMake-AddIn "%s" updated';
   SLogSavingStatusFile       = 'Saving local status to "%s"';
