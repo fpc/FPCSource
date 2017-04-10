@@ -97,21 +97,6 @@ end;
 
 function TFPUninstalledSourcesPackagesStructure.AddPackagesToRepository(ARepository: TFPRepository): Boolean;
 
-  procedure LoadPackagefpcFromFile(APackage:TFPPackage;const AFileName: String);
-  Var
-    L : TStrings;
-    V : String;
-  begin
-    L:=TStringList.Create;
-    Try
-      ReadIniFile(AFileName,L);
-      V:=L.Values['version'];
-      APackage.Version.AsString:=V;
-    Finally
-      L.Free;
-    end;
-  end;
-
 var
   SRD : TSearchRec;
   SRF : TSearchRec;
