@@ -259,6 +259,9 @@ interface
     {# Returns true, if def is a 64 bit type }
     function is_64bit(def : tdef) : boolean;
 
+    { true, if def1 and def2 are both integers of the same bit size and sign }
+    function are_equal_ints(def1, def2: tdef): boolean;
+
     { true, if def is an int type, larger than the processor's native int size }
     function is_oversizedint(def : tdef) : boolean;
 
@@ -922,6 +925,16 @@ implementation
     function is_64bit(def : tdef) : boolean;
       begin
          is_64bit:=(def.typ=orddef) and (torddef(def).ordtype in [u64bit,s64bit,scurrency,pasbool64,bool64bit])
+      end;
+
+
+    { true, if def1 and def2 are both integers of the same bit size and sign }
+    function are_equal_ints(def1, def2: tdef): boolean;
+      begin
+        result:=(def1.typ=orddef) and (def2.typ=orddef) and
+          (torddef(def1).ordtype in [u8bit,u16bit,u32bit,u64bit,
+                                     s8bit,s16bit,s32bit,s64bit]) and
+          (torddef(def1).ordtype=torddef(def2).ordtype);
       end;
 
 
