@@ -670,9 +670,8 @@ implementation
                   end;
                 { replace i:=not i  by in_not_assign_x(i)
                           i:=-i     by in_neg_assign_x(i)
-                  todo: for some integer types, there are extra implicit
-                        typecasts inserted by the compiler; this code should be
-                        updated to handle them as well }
+
+                  this handles the case, where there are no implicit type conversions }
                 if (right.nodetype in [notn,unaryminusn]) and
                   (tunarynode(right).left.isequal(left)) and
                   is_integer(tunarynode(right).left.resultdef) and
@@ -682,6 +681,38 @@ implementation
                   not(might_have_sideeffects(tunarynode(right).left)) then
                   begin
                     if right.nodetype=notn then
+                      newinlinenodetype:=in_not_assign_x
+                    else
+                      newinlinenodetype:=in_neg_assign_x;
+                    result:=cinlinenode.createintern(
+                      newinlinenodetype,false,left);
+                    left:=nil;
+                    exit;
+                  end;
+                { replace i:=not i  by in_not_assign_x(i)
+                          i:=-i     by in_neg_assign_x(i)
+
+                  this handles the case with type conversions:
+                       outer typeconv: right
+                              neg/not: ttypeconvnode(right).left
+                       inner typeconv: tunarynode(ttypeconvnode(right).left).left
+                       right side 'i': ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left }
+                if (right.nodetype=typeconvn) and
+                   (ttypeconvnode(right).convtype=tc_int_2_int) and
+                   (ttypeconvnode(right).left.nodetype in [notn,unaryminusn]) and
+                   is_integer(ttypeconvnode(right).left.resultdef) and
+                   (right.resultdef.size<=ttypeconvnode(right).left.resultdef.size) and
+                   (tunarynode(ttypeconvnode(right).left).left.nodetype=typeconvn) and
+                   (ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).convtype=tc_int_2_int) and
+                   are_equal_ints(right.resultdef,ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left.resultdef) and
+                   ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left.isequal(left) and
+                   is_integer(ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left.resultdef) and
+                   ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+                   ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+                   valid_for_var(ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left,false) and
+                   not(might_have_sideeffects(ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left)) then
+                  begin
+                    if ttypeconvnode(right).left.nodetype=notn then
                       newinlinenodetype:=in_not_assign_x
                     else
                       newinlinenodetype:=in_neg_assign_x;
