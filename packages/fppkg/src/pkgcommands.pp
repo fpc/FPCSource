@@ -423,7 +423,11 @@ begin
       case InstallRepo.DefaultPackagesStructure.IsInstallationNeeded(AvailPackage) of
         fpinInstallationNeeded:
           begin
-            log(llDebug,SDbgPackageInstallRequired,[AvailPackage.Repository.RepositoryName+'-'+PackageName, InstallRepo.RepositoryName]);
+            if Assigned(AvailPackage) then
+              S := AvailPackage.GetDebugName
+            else
+              S := PackageName;
+            log(llDebug,SDbgPackageInstallRequired,[S, InstallRepo.RepositoryName]);
             ExecuteAction(PackageName,'fpmakeinstall');
           end;
         fpinInstallationImpossible:

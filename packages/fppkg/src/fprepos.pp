@@ -142,6 +142,7 @@ type
     Procedure Assign(Source : TPersistent); override;
     Function AddDependency(Const APackageName : String; const AMinVersion : String = '') : TFPDependency;
     Function IsPackageBroken: Boolean;
+    Function GetDebugName: string;
     Property Dependencies : TFPDependencies Read FDependencies;
     Property OSes : TOSes Read FOSes Write FOses;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
@@ -337,6 +338,7 @@ ResourceString
   SErrDuplicatePackageName = 'Duplicate package name : "%s"';
   SErrMaxLevelExceeded     = 'Maximum number of dependency levels exceeded (%d) at package "%s".';
   SErrMirrorNotFound       = 'Mirror "%s" not found.';
+  SRepoUnknown             = 'RepositoryUnknown';
 
 
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
@@ -724,6 +726,13 @@ begin
     raise Exception.Create(SErrRepositoryNotAssigned);
 end;
 
+Function TFPPackage.GetDebugName: string;
+begin
+  if Assigned(Repository) then
+    Result:=Repository.RepositoryName+'-'+Name
+  else
+    Result:=SRepoUnknown+'-'+Name;
+end;
 
 { TFPPackages }
 
