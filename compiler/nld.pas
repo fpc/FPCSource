@@ -686,9 +686,8 @@ implementation
                     else
                       newinlinenodetype:=in_neg_assign_x;
                     result:=cinlinenode.createintern(
-                      newinlinenodetype,false,tunarynode(right).left);
+                      newinlinenodetype,false,left);
                     left:=nil;
-                    tunarynode(right).left:=nil;
                     exit;
                   end;
               end;
