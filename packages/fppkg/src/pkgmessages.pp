@@ -83,6 +83,7 @@ Resourcestring
   SLogLoadingMirrorsFile     = 'Loading available mirrors from "%s"';
   SLogFindInstalledPackages  = 'Searching for installed packages in "%s"';
   SLogFoundPackageInFile     = 'Found package "%s" in file "%s"';
+  SLogFailedLoadingPackage   = 'Failed to load package "%s" in file "%s". Package is skipped. Message: %s';
   SLogFoundFPMakeAddin       = 'Found FPMake-AddIn "%s"';
   SLogUpdateFPMakeAddin      = 'FPMake-AddIn "%s" updated';
   SLogSavingStatusFile       = 'Saving local status to "%s"';

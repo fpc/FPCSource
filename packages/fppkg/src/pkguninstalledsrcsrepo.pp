@@ -101,7 +101,7 @@ var
   SRD : TSearchRec;
   SRF : TSearchRec;
   P  : TFPPackage;
-  UF,UD : String;
+  UD : String;
 begin
   Result:=false;
   log(llDebug,SLogFindInstalledPackages,[Path]);
@@ -114,13 +114,7 @@ begin
           if FindFirst(UD+'*'+FpmkExt,faAnyFile,SRF)=0 then
             begin
               repeat
-                UF := UD+SRF.Name;
-                P:=ARepository.AddPackage(ChangeFileExt(SRF.Name,''));
-                P.LoadUnitConfigFromFile(UF);
-                P.PackagesStructure:=Self;
-                log(llDebug,SLogFoundPackageInFile,[P.Name, UF]);
-                if P.IsFPMakeAddIn then
-                  AddFPMakeAddIn(P);
+                AddPackageToRepository(ARepository, ChangeFileExt(SRF.Name,''), UD+SRF.Name);
               until FindNext(SRF)<>0;
             end;
           FindClose(SRF);

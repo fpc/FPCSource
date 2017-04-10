@@ -31,6 +31,7 @@ type
   protected
     function GetPath: string; virtual;
     procedure SetPath(AValue: string); virtual;
+    procedure AddPackageToRepository(ARepository: TFPRepository; APackageName: string; APackageFilename: string);
   public
     property Path: string read GetPath write SetPath;
   end;
@@ -104,6 +105,26 @@ end;
 procedure TFPCustomFileSystemPackagesStructure.SetPath(AValue: string);
 begin
   FPath := AValue;
+end;
+
+procedure TFPCustomFileSystemPackagesStructure.AddPackageToRepository(ARepository: TFPRepository; APackageName: string; APackageFilename: string);
+var
+  P: TFPPackage;
+begin
+  P:=ARepository.AddPackage(APackageName);
+  try
+    P.LoadUnitConfigFromFile(APackageFilename);
+    P.PackagesStructure:=Self;
+    log(llDebug,SLogFoundPackageInFile,[P.Name, APackageFilename]);
+    if P.IsFPMakeAddIn then
+      AddFPMakeAddIn(P);
+  except
+    on E: Exception do
+      begin
+      log(llWarning,SLogFailedLoadingPackage,[APackageName, APackageFilename, E.Message]);
+      P.Free;
+      end;
+  end;
 end;
 
 { TFPTemporaryDirectoryPackagesStructure }
@@ -290,13 +311,7 @@ begin
         if ((SR.Attr and faDirectory)=0) then
           begin
             // Try new .fpm-file
-            UF:=FpmkDir+SR.Name;
-            P:=ARepository.AddPackage(ChangeFileExt(SR.Name,''));
-            P.LoadUnitConfigFromFile(UF);
-            P.PackagesStructure:=Self;
-            log(llDebug,SLogFoundPackageInFile,[P.Name, UF]);
-            if P.IsFPMakeAddIn then
-              AddFPMakeAddIn(P);
+            AddPackageToRepository(ARepository, ChangeFileExt(SR.Name,''), FpmkDir+SR.Name);
           end;
       until FindNext(SR)<>0;
     end;
@@ -317,12 +332,7 @@ begin
               begin
                 if not Assigned(ARepository.FindPackage(SR.Name)) then
                   begin
-                    P:=ARepository.AddPackage(SR.Name);
-                    P.PackagesStructure:=Self;
-                    P.LoadUnitConfigFromFile(UF);
-                    log(llDebug,SLogFoundPackageInFile,[P.Name, UF]);
-                    if P.IsFPMakeAddIn then
-                      AddFPMakeAddIn(P);
+                    AddPackageToRepository(ARepository, SR.Name, UF);
                   end;
               end
             else
