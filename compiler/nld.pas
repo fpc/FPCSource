@@ -675,9 +675,7 @@ implementation
                         updated to handle them as well }
                 if (right.nodetype in [notn,unaryminusn]) and
                   (tunarynode(right).left.isequal(left)) and
-
                   is_integer(tunarynode(right).left.resultdef) and
-
                   ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
                   ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
                   valid_for_var(tunarynode(right).left,false) and
