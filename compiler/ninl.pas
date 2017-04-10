@@ -38,6 +38,7 @@ interface
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
+          procedure printnodeinfo(var t : text);override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean): tnode;override;
@@ -175,6 +176,13 @@ implementation
          n:=tinlinenode(inherited dogetcopy);
          n.inlinenumber:=inlinenumber;
          result:=n;
+      end;
+
+
+    procedure tinlinenode.printnodeinfo(var t : text);
+      begin
+        inherited;
+        write(t,', inlinenumber = ',inlinenumber);
       end;
 
 
