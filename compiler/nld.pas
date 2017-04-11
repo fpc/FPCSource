@@ -583,8 +583,8 @@ implementation
                   newinlinenodetype:=in_dec_x;
                 result:=cinlinenode.createintern(
                   newinlinenodetype,false,ccallparanode.create(
-                  left,nil));
-                left:=nil;
+                  tinlinenode(right).left,nil));
+                tinlinenode(right).left:=nil;
                 exit;
               end;
             if cs_opt_level3 in current_settings.optimizerswitches then
@@ -620,12 +620,12 @@ implementation
                     if right.nodetype in [addn,subn] then
                       result:=cinlinenode.createintern(
                         newinlinenodetype,false,ccallparanode.create(
-                        left,ccallparanode.create(taddnode(right).right,nil)))
+                        taddnode(right).left,ccallparanode.create(taddnode(right).right,nil)))
                     else
                       result:=cinlinenode.createintern(
                         newinlinenodetype,false,ccallparanode.create(
-                        taddnode(right).right,ccallparanode.create(left,nil)));
-                    left:=nil;
+                        taddnode(right).right,ccallparanode.create(taddnode(right).left,nil)));
+                    taddnode(right).left:=nil;
                     taddnode(right).right:=nil;
                     exit;
                   end;
@@ -674,12 +674,12 @@ implementation
                     if ttypeconvnode(right).left.nodetype in [addn,subn] then
                       result:=cinlinenode.createintern(
                         newinlinenodetype,false,ccallparanode.create(
-                        left,ccallparanode.create(taddnode(ttypeconvnode(right).left).right,nil)))
+                        ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left,ccallparanode.create(taddnode(ttypeconvnode(right).left).right,nil)))
                     else
                       result:=cinlinenode.createintern(
                         newinlinenodetype,false,ccallparanode.create(
-                        taddnode(ttypeconvnode(right).left).right,ccallparanode.create(left,nil)));
-                    left:=nil;
+                        taddnode(ttypeconvnode(right).left).right,ccallparanode.create(ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left,nil)));
+                    ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left:=nil;
                     taddnode(ttypeconvnode(right).left).right:=nil;
                     exit;
                   end;
@@ -712,12 +712,12 @@ implementation
                     if right.nodetype=addn then
                       result:=cinlinenode.createintern(
                         newinlinenodetype,false,ccallparanode.create(
-                        left,ccallparanode.create(taddnode(right).left,nil)))
+                        taddnode(right).right,ccallparanode.create(taddnode(right).left,nil)))
                     else
                       result:=cinlinenode.createintern(
                         newinlinenodetype,false,ccallparanode.create(
-                        taddnode(right).left,ccallparanode.create(left,nil)));
-                    left:=nil;
+                        taddnode(right).left,ccallparanode.create(taddnode(right).right,nil)));
+                    taddnode(right).right:=nil;
                     taddnode(right).left:=nil;
                     exit;
                   end;
@@ -738,8 +738,8 @@ implementation
                     else
                       newinlinenodetype:=in_neg_assign_x;
                     result:=cinlinenode.createintern(
-                      newinlinenodetype,false,left);
-                    left:=nil;
+                      newinlinenodetype,false,tunarynode(right).left);
+                    tunarynode(right).left:=nil;
                     exit;
                   end;
                 { replace i:=not i  by in_not_assign_x(i)
@@ -770,8 +770,8 @@ implementation
                     else
                       newinlinenodetype:=in_neg_assign_x;
                     result:=cinlinenode.createintern(
-                      newinlinenodetype,false,left);
-                    left:=nil;
+                      newinlinenodetype,false,ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left);
+                    ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left:=nil;
                     exit;
                   end;
               end;
