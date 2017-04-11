@@ -28,6 +28,7 @@ type
     procedure TestListPackages;
     procedure IntTestListPackages;
     procedure TestPackageA;
+    procedure TestLooseFPMFile;
   end;
 
   { TFullFPCInstallationSetup }
@@ -337,6 +338,19 @@ begin
   Check(pos('PackageA', s) = 0, 'Just de-installed PackageA is still in package-list');
   CheckFalse(DirectoryExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA'])), 'PackageAUnitA-directory found after uninstall');
   CheckFalse(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'PackageA.fpm'])), 'PackageAUnitA.fpm found after uninstall');
+end;
+
+procedure TFullFPCInstallationTests.TestLooseFPMFile;
+var
+  F: Text;
+  s: string;
+begin
+  System.Assign(F, ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst', TFullFPCInstallationSetup.GetTargetString,'empty.fpm']));
+  System.Rewrite(F);
+  System.Close(F);
+
+  s := RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['list'], 'list packages');
+  Check(pos('Failed to load package "empty"', s) > 0, 'Missing warning that the invalid package is skipped')
 end;
 
 Initialization
