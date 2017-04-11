@@ -26,7 +26,8 @@ Resourcestring
   SErrMissingPackage         = 'Could not find package "%s"';
   SErrMissingInstallRepo     = 'Could not find repository "%s"';
   SErrNoPackageSpecified     = 'No package specified';
-  SErrNoPackageAvailable     = 'Package %s %s is not available';
+  SErrPackageNotAvailable    = 'Source of package %s is not available';
+  SErrNoPackageAvailable     = 'Package dependency %s %s is not available';
   SErrOnlyLocalDir           = 'The specified command "%s" works only on current dir, not on a (remote) package';
   SErrIllConfRepository      = 'Invalid configured repository "%s"';
   SErrExecutionFPMake        = 'Execution of FPMake %s failed';

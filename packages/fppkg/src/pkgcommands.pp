@@ -366,11 +366,14 @@ begin
       else
         begin
           P:=PackageManager.FindPackage(PackageName, pkgpkAvailable);
-          if Assigned(P) then
+          if not Assigned(P) then
             begin
-              if P.PackagesStructure.UnzipBeforeUse then
-                ExecuteAction(PackageName,'unzip');
+              Error(Format(SErrPackageNotAvailable, [PackageName]));
+              Exit;
             end;
+
+          if P.PackagesStructure.UnzipBeforeUse then
+            ExecuteAction(PackageName,'unzip');
           ExecuteAction(PackageName,'installdependencies');
         end;
     end;
