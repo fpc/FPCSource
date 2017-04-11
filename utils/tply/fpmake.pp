@@ -77,7 +77,7 @@ begin
       begin
       // Do not install these files when performing a cross-installation
       if Defaults.OS in AllUnixOSes then
-        lexyaccpath:='$(prefix)lib/fpc/lexyacc'
+        lexyaccpath:='$(baseinstalldir)../lexyacc'
       else
         lexyaccpath:='$(bininstalldir)';
       P.InstallFiles.Add('yylex.cod',lexyaccpath);
