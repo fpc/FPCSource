@@ -592,9 +592,8 @@ implementation
                 { replace i:=i+k by inc(i,k)
                           i:=i-k by dec(i,k)
                           i:=i and/or/xor k  by in_[and/or/xor]_assign_x_y(i,k)
-                  todo: for some integer types, there are extra implicit
-                        typecasts inserted by the compiler; this code should be
-                        updated to handle them as well }
+
+                  this handles the case, where there are no implicit type conversions }
                 if (right.nodetype in [addn,subn,andn,orn,xorn]) and
                   (taddnode(right).left.isequal(left)) and
                   is_integer(taddnode(right).left.resultdef) and
@@ -628,6 +627,60 @@ implementation
                         taddnode(right).right,ccallparanode.create(left,nil)));
                     left:=nil;
                     taddnode(right).right:=nil;
+                    exit;
+                  end;
+                { replace i:=i+k by inc(i,k)
+                          i:=i-k by dec(i,k)
+                          i:=i and/or/xor k  by in_[and/or/xor]_assign_x_y(i,k)
+
+                  this handles the case with two conversions (outer and inner):
+                       outer typeconv: right
+                   add/sub/and/or/xor: ttypeconvnode(right).left
+                       inner typeconv: taddnode(ttypeconvnode(right).left).left
+                       right side 'i': ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left
+                       right side 'k': taddnode(ttypeconvnode(right).left).right }
+                if (right.nodetype=typeconvn) and
+                   (ttypeconvnode(right).convtype=tc_int_2_int) and
+                   (ttypeconvnode(right).left.nodetype in [addn,subn,andn,orn,xorn]) and
+                   is_integer(ttypeconvnode(right).left.resultdef) and
+                   (right.resultdef.size<=ttypeconvnode(right).left.resultdef.size) and
+                   (taddnode(ttypeconvnode(right).left).left.nodetype=typeconvn) and
+                   (ttypeconvnode(taddnode(ttypeconvnode(right).left).left).convtype=tc_int_2_int) and
+                   are_equal_ints(right.resultdef,ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left.resultdef) and
+                   ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left.isequal(left) and
+                   is_integer(taddnode(ttypeconvnode(right).left).left.resultdef) and
+                   is_integer(taddnode(ttypeconvnode(right).left).right.resultdef) and
+                   is_integer(ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left.resultdef) and
+                   ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+                   ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+                   valid_for_var(ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left,false) and
+                   not(might_have_sideeffects(ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left)) then
+                  begin
+                    case ttypeconvnode(right).left.nodetype of
+                      addn:
+                        newinlinenodetype:=in_inc_x;
+                      subn:
+                        newinlinenodetype:=in_dec_x;
+                      andn:
+                        newinlinenodetype:=in_and_assign_x_y;
+                      orn:
+                        newinlinenodetype:=in_or_assign_x_y;
+                      xorn:
+                        newinlinenodetype:=in_xor_assign_x_y;
+                      else
+                        internalerror(2017032901);
+                    end;
+                    inserttypeconv_internal(taddnode(ttypeconvnode(right).left).right,left.resultdef);
+                    if ttypeconvnode(right).left.nodetype in [addn,subn] then
+                      result:=cinlinenode.createintern(
+                        newinlinenodetype,false,ccallparanode.create(
+                        left,ccallparanode.create(taddnode(ttypeconvnode(right).left).right,nil)))
+                    else
+                      result:=cinlinenode.createintern(
+                        newinlinenodetype,false,ccallparanode.create(
+                        taddnode(ttypeconvnode(right).left).right,ccallparanode.create(left,nil)));
+                    left:=nil;
+                    taddnode(ttypeconvnode(right).left).right:=nil;
                     exit;
                   end;
                 { replace i:=k+i by inc(i,k)
