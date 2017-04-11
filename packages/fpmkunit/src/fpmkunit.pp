@@ -1671,6 +1671,7 @@ ResourceString
   SInfoDestDoesNotExist   = 'Destination file "%s" does not exist.';
   SInfoFallbackBuildmode  = 'Buildmode not supported by package, falling back to one by one unit compilation';
   SInfoFallbackBuildmodeBU= 'Buildmode not supported by package, falling back to compilation using a buildunit';
+  SInfoDirectoryNoPackage = 'Found directory "%s" which does not contain a package';
 
   SDbgComparingFileTimes    = 'Comparing file "%s" time "%s" to "%s" time "%s".';
   SDbgCompilingDependenciesOfTarget = 'Compiling dependencies of target %s';
@@ -1687,6 +1688,7 @@ ResourceString
   SDbgTargetIsNotAUnitOrProgram = 'Skipping Target %s, not an unit or program';
   SDbgConsideringTarget     = 'Considering target %s';
   SDbgConsideringPackage    = 'Considering package %s';
+  SDbgSearchExtDepPath      = 'Search path for external dependency %s';
   SDbgExternalDependency    = 'External dependency %s found in "%s"';
   SDbgBuildEngineArchiving  = 'Build engine archiving';
   SDbgBuildEngineGenerateManifests = 'Build engine generating manifests';
@@ -2788,18 +2790,33 @@ begin
 
   if (PackageBaseDir<>'') and ABuildEngine.SysDirectoryExists(PackageBaseDir) then
     begin
-      AContinue := False;
+      AnUnitConfigFilename:=APackage.Dictionary.ReplaceStrings(AnUnitConfigFilename);
+      if ABuildEngine.SysFileExists(AnUnitConfigFilename) then
+        APackage.UnitConfigFileName:=AnUnitConfigFilename
+      else if not IsPackageSourceLocation then
+        begin
+          // To avoid that directories which do not contain installed packages
+          // check that there is an unit-configfile, or Packages.fpc file. (The
+          // latter to detect packages compiled using old style Makefile's, like
+          // the rtl). These directories which are not packages may exist in
+          // Lazarus-source-repositories.
+          if not ABuildEngine.SysFileExists(ConcatPaths([PackageBaseDir, 'Package.fpc'])) then
+            begin
+              Installer.Log(vlInfo,Format(SInfoDirectoryNoPackage,[PackageBaseDir]));
+              Exit;
+            end;
+        end;
+
       APackage.UnitDir:=PackageBaseDir;
+      AContinue := False;
+
       if IsPackageSourceLocation then
         // Set the state to tsNoCompile and not tsCompiled. Because packages
         // in the tsCompiled state trigger a rebuild of packages that depend
         // on it.
         APackage.FTargetState:=tsNoCompile
       else if not (APackage.FTargetState in [tsCompiled, tsNoCompile]) then
-        APackage.FTargetState:=tsInstalled; // als installed, afdwingen dat unitconfigfile bestaat! werkt niet - zie rtl
-      AnUnitConfigFilename:=APackage.Dictionary.ReplaceStrings(AnUnitConfigFilename);
-      if FileExists(AnUnitConfigFilename) then
-        APackage.UnitConfigFileName:=AnUnitConfigFilename;
+        APackage.FTargetState:=tsInstalled;
     end
   else
     AContinue := True;
@@ -6251,6 +6268,7 @@ var
 begin
   if APackage.UnitDir='' then
     begin
+      Log(vldebug, SDbgSearchExtDepPath, [APackage.Name]);
       GetPluginManager.BeforeResolvePackagePath(Self, APackage, Continue);
       if Continue then
         begin
