@@ -29,6 +29,9 @@ type
     procedure IntTestListPackages;
     procedure TestPackageA;
     procedure TestLooseFPMFile;
+    procedure TestMissingSource;
+    procedure TestBuildWithInstalledDependency;
+    procedure TestFakePackageDir;
   end;
 
   { TFullFPCInstallationSetup }
@@ -60,7 +63,7 @@ type
 
 implementation
 
-function RunTestCommandIndir(const Curdir:string; const Exename:string; const Commands:array of string; TaskDescription: string):string;
+function RunTestCommandIndir(const Curdir:string; const Exename:string; const Commands:array of string; TaskDescription: string; ExpectedExitStatus: Integer = 0):string;
 var
   CommandOutput: string;
   i: integer;
@@ -69,7 +72,7 @@ var
 begin
   if RunCommandInDir(Curdir, Exename, Commands, CommandOutput, ExitStatus, [poStderrToOutPut]) <> 0 then
     raise Exception.CreateFmt('Failed to run ''%s''', [exename]);
-  if ExitStatus<>0 then
+  if ExitStatus<>ExpectedExitStatus then
     begin
     for i := 0 to length(Commands) -1 do
       begin
@@ -80,7 +83,7 @@ begin
   result := CommandOutput;
 end;
 
-function RunFppkgIndir(const Curdir:string; Commands: array of string; TaskDescription: string):string;
+function RunFppkgIndir(const Curdir:string; Commands: array of string; TaskDescription: string; ExpectedExitStatus: Integer = 0):string;
 var
   i: Integer;
   StrArr: array of string;
@@ -91,7 +94,7 @@ begin
   StrArr[i+1] := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'etc','fppkg.cfg']);
   for i := 0 to length(Commands) -1 do
     StrArr[i] := Commands[i];
-  Result := RunTestCommandIndir(Curdir, TFullFPCInstallationSetup.GetTestBinPath+'fppkg', StrArr, TaskDescription);
+  Result := RunTestCommandIndir(Curdir, TFullFPCInstallationSetup.GetTestBinPath+'fppkg', StrArr, TaskDescription, ExpectedExitStatus);
 end;
 
 function DeleteDirectory(const DirectoryName: string; OnlyChildren: boolean): boolean;
@@ -351,6 +354,69 @@ begin
 
   s := RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['list'], 'list packages');
   Check(pos('Failed to load package "empty"', s) > 0, 'Missing warning that the invalid package is skipped')
+end;
+
+procedure TFullFPCInstallationTests.TestMissingSource;
+var
+  s: String;
+begin
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagea');
+  // Build and install package
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['build'], 'build PackageA');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['install'], 'install PackageA');
+
+  // Destroy the installation
+  DeleteFile(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA','PackageAUnitA.ppu']));
+
+  // Re-install
+  RunFppkgIndir(TFullFPCInstallationSetup.GetTestPath, ['install', 'packagea'], 're-install PackageA');
+
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found after re-install');
+
+  // Remove the original sources
+  DeleteDirectory(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', False);
+
+  s := RunFppkgIndir(TFullFPCInstallationSetup.GetTestPath, ['install', 'packagea'], 'Re-install PackageA without source', 1);
+  Check(pos('Source of package packagea is not available', s) > 0, 'Missing warning that the package-source is unavailable. Fppkg-output: ' + s)
+end;
+
+procedure TFullFPCInstallationTests.TestBuildWithInstalledDependency;
+var
+  s: String;
+begin
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagea');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packageb');
+  // Build and install package
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['install'], 'install PackageA');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb', ['install'], 'install PackageB using the installed dependency PackageA');
+
+  // Test installation
+  s := RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['list'], 'list packages');
+  Check(pos('PackageA', s) > 0, 'Just installed PackageA is not in package-list');
+  Check(pos('PackageB', s) > 0, 'Just installed PackageB is not in package-list');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageB','PackageBUnitB.ppu'])), 'PackageBUnitB.ppu not found');
+end;
+
+procedure TFullFPCInstallationTests.TestFakePackageDir;
+var
+  s: String;
+begin
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagea');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packageb');
+  // Build and install package
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['install', '-i', 'fpc'], 'install PackageA');
+
+  ForceDirectories(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units', TFullFPCInstallationSetup.GetTargetString, 'PackageA']));
+
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb', ['install'], 'install PackageB using the installed dependency PackageA');
+
+  // Test installation
+  s := RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['list'], 'list packages');
+  Check(pos('PackageA', s) > 0, 'Just installed PackageA is not in package-list');
+  Check(pos('PackageB', s) > 0, 'Just installed PackageB is not in package-list');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageB','PackageBUnitB.ppu'])), 'PackageBUnitB.ppu not found');
 end;
 
 Initialization
