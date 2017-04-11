@@ -31,7 +31,7 @@ uses
 type
   TDefType = (dtNone, dtUnit, dtClass, dtProc, dtField, dtProp, dtParam, dtVar,
               dtType, dtConst, dtProcType, dtEnum, dtSet, dtPointer, dtArray,
-              dtJniObject, dtJniEnv);
+              dtJniObject, dtJniEnv, dtClassRef);
 
   TDefClass = class of TDef;
   { TDef }
@@ -166,7 +166,7 @@ type
   end;
 
   TProcType = (ptProcedure, ptFunction, ptConstructor, ptDestructor);
-  TProcOption = (poOverride, poOverload, poMethodPtr, poPrivate, poProtected);
+  TProcOption = (poOverride, poOverload, poMethodPtr, poPrivate, poProtected, poClassMethod);
   TProcOptions = set of TProcOption;
 
   { TProcDef }
@@ -234,6 +234,20 @@ type
     function GetRefDef2: TDef; override;
   end;
 
+  { TClassRefDef }
+
+  TClassRefDef = class(TDef)
+  private
+    FHasClassRef: boolean;
+  protected
+    procedure SetIsUsed(const AValue: boolean); override;
+  public
+    ClassRef: TDef;
+    procedure ResolveDefs; override;
+    function GetRefDef: TDef; override;
+  end;
+
+
 const
   ReplDefs  = [dtField, dtProp, dtProc];
 
@@ -252,6 +266,25 @@ begin
   if t1.DefType <> dtType then
     exit;
   Result:=TTypeDef(t1).BasicType = TTypeDef(t2).BasicType;
+end;
+
+{ TClassRefDef }
+
+procedure TClassRefDef.SetIsUsed(const AValue: boolean);
+begin
+  inherited SetIsUsed(AValue);
+  SetExtUsed(ClassRef, AValue, FHasClassRef);
+end;
+
+procedure TClassRefDef.ResolveDefs;
+begin
+  inherited ResolveDefs;
+  ClassRef:=ResolveDef(ClassRef);
+end;
+
+function TClassRefDef.GetRefDef: TDef;
+begin
+  Result:=ClassRef;
 end;
 
 { TArrayDef }
@@ -472,10 +505,24 @@ end;
 { TVarDef }
 
 procedure TVarDef.SetIsUsed(const AValue: boolean);
+var
+  ptr, d: TDef;
 begin
   if IsPrivate then
     exit;
   inherited SetIsUsed(AValue);
+  // Detect circular pointers
+  if (VarType <> nil) and (VarType.DefType = dtPointer) and (VarType.RefCnt > 0) then begin
+    ptr:=TPointerDef(VarType).PtrType;
+    if ptr <> nil then begin
+      d:=Self;
+      while d <> nil do begin
+        if d = ptr then
+          exit;
+        d:=d.Parent;;
+      end;
+    end;
+  end;
   SetExtUsed(VarType, AValue, FHasTypeRef);
 end;
 

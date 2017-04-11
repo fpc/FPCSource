@@ -387,6 +387,9 @@ var
         if jt = 'array' then
           d:=TArrayDef.Create(CurDef, dtArray)
         else
+        if jt = 'classref' then
+          d:=TClassRefDef.Create(CurDef, dtClassRef)
+        else
           continue;
 
         if (CurObjName = '') and not (d.DefType in [dtEnum, dtArray]) then begin
@@ -452,7 +455,10 @@ var
                     ProcOpt:=ProcOpt + [poOverload]
                   else
                   if s = 'abstract' then
-                    TClassDef(Parent).HasAbstractMethods:=True;
+                    TClassDef(Parent).HasAbstractMethods:=True
+                  else
+                  if s = 'classmethod' then
+                    ProcOpt:=ProcOpt + [poClassMethod];
                 end;
 
                 ReturnType:=_GetRef(it.Get('RetType', TJSONObject(nil)));
@@ -549,6 +555,10 @@ var
               RangeHigh:=it.Get('High', -1);
               RangeType:=_GetRef(it.Get('RangeType', TJSONObject(nil)));
               ElType:=_GetRef(it.Get('ElType', TJSONObject(nil)));
+            end;
+          dtClassRef:
+            with TClassRefDef(d) do begin
+              ClassRef:=_GetRef(it.Get('Ref', TJSONObject(nil)));;
             end;
         end;
       end;
