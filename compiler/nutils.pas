@@ -1329,7 +1329,8 @@ implementation
              in_reset_typedfile_name,in_rewrite_typedfile_name,in_settextbuf_file_x,
              in_inc_x,in_dec_x,in_include_x_y,in_exclude_x_y,in_break,in_continue,in_setlength_x,
              in_finalize_x,in_new_x,in_dispose_x,in_exit,in_copy_x,in_initialize_x,in_leave,in_cycle,
-             in_and_assign_x_y,in_or_assign_x_y,in_xor_assign_x_y,in_neg_assign_x,in_not_assign_x])
+             in_and_assign_x_y,in_or_assign_x_y,in_xor_assign_x_y,in_sar_assign_x_y,in_shl_assign_x_y,
+             in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y,in_neg_assign_x,in_not_assign_x])
           ) then
           result:=fen_norecurse_true;
       end;
