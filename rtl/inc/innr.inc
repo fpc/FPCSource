@@ -97,6 +97,11 @@ const
    fpc_in_and_assign_x_y    = 86;
    fpc_in_or_assign_x_y     = 87;
    fpc_in_xor_assign_x_y    = 88;
+   fpc_in_sar_assign_x_y    = 89;
+   fpc_in_shl_assign_x_y    = 90;
+   fpc_in_shr_assign_x_y    = 91;
+   fpc_in_rol_assign_x_y    = 92;
+   fpc_in_ror_assign_x_y    = 93;
    fpc_in_neg_assign_x      = 94;
    fpc_in_not_assign_x      = 95;
 

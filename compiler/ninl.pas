@@ -91,7 +91,7 @@ interface
           function first_seg: tnode; virtual;
           function first_sar: tnode; virtual;
           function first_fma : tnode; virtual;
-          function first_AndOrXor_assign: tnode; virtual;
+          function first_AndOrXorShiftRot_assign: tnode; virtual;
           function first_NegNot_assign: tnode; virtual;
         private
           function handle_str: tnode;
@@ -3032,7 +3032,12 @@ implementation
 
               in_and_assign_x_y,
               in_or_assign_x_y,
-              in_xor_assign_x_y:
+              in_xor_assign_x_y,
+              in_sar_assign_x_y,
+              in_shl_assign_x_y,
+              in_shr_assign_x_y,
+              in_rol_assign_x_y,
+              in_ror_assign_x_y:
                 begin
                   resultdef:=voidtype;
                   if not(df_generic in current_procinfo.procdef.defoptions) then
@@ -3060,7 +3065,10 @@ implementation
                               { these nodes shouldn't be created, when range checking is on }
                               if [cs_check_range,cs_check_overflow]*current_settings.localswitches<>[] then
                                 internalerror(2017032701);
-                              inserttypeconv(tcallparanode(left).left,tcallparanode(tcallparanode(left).right).left.resultdef);
+                              if inlinenumber in [in_sar_assign_x_y,in_shl_assign_x_y,in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y] then
+                                inserttypeconv(tcallparanode(left).left,sinttype)
+                              else
+                                inserttypeconv(tcallparanode(left).left,tcallparanode(tcallparanode(left).right).left.resultdef);
                             end
                           else
                             CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
@@ -3629,9 +3637,14 @@ implementation
 
           in_and_assign_x_y,
           in_or_assign_x_y,
-          in_xor_assign_x_y:
+          in_xor_assign_x_y,
+          in_sar_assign_x_y,
+          in_shl_assign_x_y,
+          in_shr_assign_x_y,
+          in_rol_assign_x_y,
+          in_ror_assign_x_y:
             begin
-              result:=first_AndOrXor_assign;
+              result:=first_AndOrXorShiftRot_assign;
             end;
 
           in_neg_assign_x,
@@ -4655,7 +4668,7 @@ implementation
        end;
 
 
-     function tinlinenode.first_AndOrXor_assign: tnode;
+     function tinlinenode.first_AndOrXorShiftRot_assign: tnode;
        begin
          result:=nil;
          expectloc:=tcallparanode(tcallparanode(left).right).left.expectloc;

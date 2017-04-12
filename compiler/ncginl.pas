@@ -35,7 +35,7 @@ interface
           procedure second_length;virtual;
           procedure second_predsucc;virtual;
           procedure second_incdec;virtual;
-          procedure second_AndOrXor_assign;virtual;
+          procedure second_AndOrXorShiftRot_assign;virtual;
           procedure second_NegNot_assign;virtual;
           procedure second_typeinfo;virtual;
           procedure second_includeexclude;virtual;
@@ -203,8 +203,13 @@ implementation
                second_fma;
             in_and_assign_x_y,
             in_or_assign_x_y,
-            in_xor_assign_x_y:
-               second_AndOrXor_assign;
+            in_xor_assign_x_y,
+            in_sar_assign_x_y,
+            in_shl_assign_x_y,
+            in_shr_assign_x_y,
+            in_rol_assign_x_y,
+            in_ror_assign_x_y:
+               second_AndOrXorShiftRot_assign;
             in_neg_assign_x,
             in_not_assign_x:
                second_NegNot_assign;
@@ -427,11 +432,12 @@ implementation
 
 
 {*****************************************************************************
-                     AND/OR/XOR ASSIGN GENERIC HANDLING
+              AND/OR/XOR/SHIFT/ROTATE ASSIGN GENERIC HANDLING
 *****************************************************************************}
-      procedure tcginlinenode.second_AndOrXor_assign;
+      procedure tcginlinenode.second_AndOrXorShiftRot_assign;
         const
-          andorxorop:array[in_and_assign_x_y..in_xor_assign_x_y] of TOpCG=(OP_AND,OP_OR,OP_XOR);
+          andorxorop:array[in_and_assign_x_y..in_ror_assign_x_y] of TOpCG=
+            (OP_AND,OP_OR,OP_XOR,OP_SAR,OP_SHL,OP_SHR,OP_ROL,OP_ROR);
         var
           maskvalue : TConstExprInt;
           maskconstant : boolean;
@@ -467,9 +473,14 @@ implementation
 {$endif not cpu64bitalu}
               maskconstant:=false;
             end;
-          { write the and/or/xor instruction }
+          { write the and/or/xor/sar/shl/shr/rol/ror instruction }
           if maskconstant then
             begin
+              if inlinenumber in [in_sar_assign_x_y,in_shl_assign_x_y,in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y] then
+                if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
+                  maskvalue:=maskvalue and 63
+                else
+                  maskvalue:=maskvalue and 31;
 {$ifndef cpu64bitalu}
               if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
                 cg64.a_op64_const_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),maskvalue.svalue,tcallparanode(tcallparanode(left).right).left.location)
