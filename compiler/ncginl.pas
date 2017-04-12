@@ -477,12 +477,12 @@ implementation
           if maskconstant then
             begin
               if inlinenumber in [in_sar_assign_x_y,in_shl_assign_x_y,in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y] then
-                if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
+                if def_cgsize(tcallparanode(left).right.resultdef) in [OS_64,OS_S64] then
                   maskvalue:=maskvalue and 63
                 else
                   maskvalue:=maskvalue and 31;
 {$ifndef cpu64bitalu}
-              if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
+              if def_cgsize(tcallparanode(left).right.resultdef) in [OS_64,OS_S64] then
                 cg64.a_op64_const_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),maskvalue.svalue,tcallparanode(tcallparanode(left).right).left.location)
               else
 {$endif not cpu64bitalu}
