@@ -915,6 +915,7 @@ function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {$if defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_ROX_QWORD}
+{$define FPC_HAS_INTERNAL_ROX_ASSIGN_QWORD}
 {$endif defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
 
 {$endif FPC_HAS_INTERNAL_ROX}
@@ -992,6 +993,7 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 
 {$if defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_SAR_QWORD}
+{$define FPC_HAS_INTERNAL_SAR_ASSIGN_QWORD}
 {$endif defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
 
 {$endif FPC_HAS_INTERNAL_SAR}

@@ -2704,6 +2704,33 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 {$endif FPC_SYSTEM_HAS_ROX_QWORD}
 {$endif FPC_HAS_INTERNAL_ROX_QWORD}
 
+{$ifndef FPC_HAS_INTERNAL_ROX_ASSIGN_QWORD}
+{$ifndef FPC_SYSTEM_HAS_ROX_ASSIGN_QWORD}
+procedure fpc_ror_assign_int64(var AValue : int64;const Dist : Byte); [Public,Alias:'FPC_ROR_ASSIGN_INT64']; compilerproc;
+  begin
+    AValue:=(AValue shr (Dist and 63)) or (AValue shl (64-(Dist and 63)));
+  end;
+
+
+procedure fpc_ror_assign_qword(var AValue : QWord;const Dist : Byte); [Public,Alias:'FPC_ROR_ASSIGN_QWORD']; compilerproc;
+  begin
+    AValue:=(AValue shr (Dist and 63)) or (AValue shl (64-(Dist and 63)));
+  end;
+
+
+procedure fpc_rol_assign_int64(var AValue : int64;const Dist : Byte); [Public,Alias:'FPC_ROL_ASSIGN_INT64']; compilerproc;
+  begin
+    AValue:=(AValue shl (Dist and 63)) or (AValue shr (64-(Dist and 63)));
+  end;
+
+
+procedure fpc_rol_assign_qword(var AValue : QWord;const Dist : Byte); [Public,Alias:'FPC_ROL_ASSIGN_QWORD']; compilerproc;
+  begin
+    AValue:=(AValue shl (Dist and 63)) or (AValue shr (64-(Dist and 63)));
+  end;
+{$endif FPC_SYSTEM_HAS_ROX_ASSIGN_QWORD}
+{$endif FPC_HAS_INTERNAL_ROX_ASSIGN_QWORD}
+
 {$ifndef FPC_HAS_INTERNAL_SAR_BYTE}
 {$ifndef FPC_SYSTEM_HAS_SAR_BYTE}
 function SarShortint(Const AValue : Shortint;const Shift : Byte): Shortint;
@@ -2739,6 +2766,19 @@ function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,A
   end;
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 {$endif FPC_SYSTEM_HAS_SAR_QWORD}
+
+{$ifndef FPC_HAS_INTERNAL_SAR_ASSIGN_QWORD}
+{$ifndef FPC_SYSTEM_HAS_SAR_ASSIGN_QWORD}
+procedure fpc_sar_assign_int64(var AValue : Int64;const Shift : Byte); [Public,Alias:'FPC_SAR_ASSIGN_INT64']; compilerproc;
+  begin
+    AValue:=int64(qword(qword(qword(AValue) shr (Shift and 63)) or (qword(int64(qword(0-qword(qword(AValue) shr 63)) and qword(int64(0-(ord((Shift and 63)<>0){ and 1}))))) shl (64-(Shift and 63)))));
+  end;
+procedure fpc_sar_assign_qword(var AValue : QWord;const Shift : Byte); [Public,Alias:'FPC_SAR_ASSIGN_QWORD']; compilerproc;
+  begin
+    AValue:=qword(qword(qword(qword(AValue) shr (Shift and 63)) or (qword(int64(qword(0-qword(qword(AValue) shr 63)) and qword(int64(0-(ord((Shift and 63)<>0){ and 1}))))) shl (64-(Shift and 63)))));
+  end;
+{$endif FPC_HAS_INTERNAL_SAR_ASSIGN_QWORD}
+{$endif FPC_SYSTEM_HAS_SAR_ASSIGN_QWORD}
 
 {$ifndef FPC_HAS_INTERNAL_BSF_BYTE}
 {$ifndef FPC_SYSTEM_HAS_BSF_BYTE}

@@ -91,6 +91,9 @@ interface
           function first_seg: tnode; virtual;
           function first_sar: tnode; virtual;
           function first_fma : tnode; virtual;
+{$ifndef cpu64bitalu}
+          function first_ShiftRot_assign_64bitint: tnode; virtual;
+{$endif not cpu64bitalu}
           function first_AndOrXorShiftRot_assign: tnode; virtual;
           function first_NegNot_assign: tnode; virtual;
         private
@@ -4668,10 +4671,52 @@ implementation
        end;
 
 
+{$ifndef cpu64bitalu}
+     function tinlinenode.first_ShiftRot_assign_64bitint: tnode;
+       var
+         procname: string[31];
+       begin
+         result := nil;
+         if is_signed(tcallparanode(left).right.resultdef) then
+           procname:='int64'
+         else
+           procname:='qword';
+         case inlinenumber of
+           in_sar_assign_x_y:
+             procname := 'fpc_sar_assign_'+procname;
+           in_shl_assign_x_y:
+             procname := 'fpc_shl_assign_'+procname;
+           in_shr_assign_x_y:
+             procname := 'fpc_shr_assign_'+procname;
+           in_rol_assign_x_y:
+             procname := 'fpc_rol_assign_'+procname;
+           in_ror_assign_x_y:
+             procname := 'fpc_ror_assign_'+procname;
+           else
+             internalerror(2017041301);
+         end;
+         result := ccallnode.createintern(procname,ccallparanode.create(tcallparanode(left).left,
+           ccallparanode.create(tcallparanode(tcallparanode(left).right).left,nil)));
+         tcallparanode(tcallparanode(left).right).left := nil;
+         tcallparanode(left).left := nil;
+         firstpass(result);
+       end;
+{$endif not cpu64bitalu}
+
+
      function tinlinenode.first_AndOrXorShiftRot_assign: tnode;
        begin
-         result:=nil;
-         expectloc:=tcallparanode(tcallparanode(left).right).left.expectloc;
+{$ifndef cpu64bitalu}
+         { 64 bit ints have their own shift handling }
+         if is_64bit(tcallparanode(left).right.resultdef) and
+            (inlinenumber in [in_sar_assign_x_y,in_shl_assign_x_y,in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y]) then
+           result := first_ShiftRot_assign_64bitint
+         else
+{$endif not cpu64bitalu}
+           begin
+             result:=nil;
+             expectloc:=tcallparanode(tcallparanode(left).right).left.expectloc;
+           end;
        end;
 
 

@@ -619,7 +619,21 @@ function fpc_shl_qword(value : qword; shift : sizeint) : qword; compilerproc;
 function fpc_shr_qword(value : qword; shift : sizeint) : qword; compilerproc;
 function fpc_shl_int64(value : int64; shift : sizeint) : int64; compilerproc;
 function fpc_shr_int64(value : int64; shift : sizeint) : int64; compilerproc;
+procedure fpc_shl_assign_qword(var value : qword; shift : sizeint); compilerproc;
+procedure fpc_shr_assign_qword(var value : qword; shift : sizeint); compilerproc;
+procedure fpc_shl_assign_int64(var value : int64; shift : sizeint); compilerproc;
+procedure fpc_shr_assign_int64(var value : int64; shift : sizeint); compilerproc;
 {$endif  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+{$ifndef FPC_HAS_INTERNAL_SAR_ASSIGN_QWORD}
+procedure fpc_sar_assign_int64(var AValue : Int64;const Shift : Byte);compilerproc;
+procedure fpc_sar_assign_qword(var AValue : qword;const Shift : Byte);compilerproc;
+{$endif FPC_HAS_INTERNAL_SAR_ASSIGN_QWORD}
+{$ifndef FPC_HAS_INTERNAL_ROX_ASSIGN_QWORD}
+procedure fpc_ror_assign_int64(var AValue : int64;const Dist : Byte);compilerproc;
+procedure fpc_ror_assign_qword(var AValue : QWord;const Dist : Byte);compilerproc;
+procedure fpc_rol_assign_int64(var AValue : int64;const Dist : Byte);compilerproc;
+procedure fpc_rol_assign_qword(var AValue : QWord;const Dist : Byte);compilerproc;
+{$endif FPC_HAS_INTERNAL_ROX_ASSIGN_QWORD}
 
 
 function fpc_popcnt_byte(AValue : Byte): Byte;compilerproc;

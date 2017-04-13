@@ -53,6 +53,27 @@
 {$endif FPC_SYSTEM_HAS_SHL_QWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_SHL_ASSIGN_QWORD}
+    procedure fpc_shl_assign_qword(var value : qword;shift : sizeint); [public,alias: 'FPC_SHL_ASSIGN_QWORD']; compilerproc;
+      begin
+        shift:=shift and 63;
+        if shift<>0 then
+          begin
+            if shift>31 then
+              begin
+                tqwordrec(value).high:=tqwordrec(value).low shl (shift-32);
+                tqwordrec(value).low:=0;
+              end
+            else
+              begin
+                tqwordrec(value).high:=(tqwordrec(value).high shl shift) or (tqwordrec(value).low shr (32-shift));
+                tqwordrec(value).low:=tqwordrec(value).low shl shift;
+              end;
+          end;
+      end;
+{$endif FPC_SYSTEM_HAS_SHL_ASSIGN_QWORD}
+
+
 {$ifndef FPC_SYSTEM_HAS_SHR_QWORD}
    function fpc_shr_qword(value : qword;shift : sizeint) : qword; [public,alias: 'FPC_SHR_QWORD']; compilerproc;
       begin
@@ -71,6 +92,27 @@
           end;
       end;
 {$endif FPC_SYSTEM_HAS_SHR_QWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_SHR_ASSIGN_QWORD}
+   procedure fpc_shr_assign_qword(var value : qword;shift : sizeint); [public,alias: 'FPC_SHR_ASSIGN_QWORD']; compilerproc;
+      begin
+        shift:=shift and 63;
+        if shift<>0 then
+          begin
+            if shift>31 then
+              begin
+                tqwordrec(value).low:=tqwordrec(value).high shr (shift-32);
+                tqwordrec(value).high:=0;
+              end
+            else
+              begin
+                tqwordrec(value).low:=(tqwordrec(value).low shr shift) or (tqwordrec(value).high shl (32-shift));
+                tqwordrec(value).high:=tqwordrec(value).high shr shift;
+              end;
+          end;
+      end;
+{$endif FPC_SYSTEM_HAS_SHR_ASSIGN_QWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_SHL_INT64}
@@ -93,6 +135,27 @@
 {$endif FPC_SYSTEM_HAS_SHL_INT64}
 
 
+{$ifndef FPC_SYSTEM_HAS_SHL_ASSIGN_INT64}
+    procedure fpc_shl_assign_int64(var value : int64;shift : sizeint); [public,alias: 'FPC_SHL_ASSIGN_INT64']; compilerproc;
+      begin
+        shift:=shift and 63;
+        if shift<>0 then
+          begin
+            if shift>31 then
+              begin
+                tqwordrec(value).high:=tqwordrec(value).low shl (shift-32);
+                tqwordrec(value).low:=0;
+              end
+            else
+              begin
+                tqwordrec(value).high:=(tqwordrec(value).high shl shift) or (tqwordrec(value).low shr (32-shift));
+                tqwordrec(value).low:=tqwordrec(value).low shl shift;
+              end;
+          end;
+      end;
+{$endif FPC_SYSTEM_HAS_SHL_ASSIGN_INT64}
+
+
 {$ifndef FPC_SYSTEM_HAS_SHR_INT64}
     function fpc_shr_int64(value : int64;shift : sizeint) : int64; [public,alias: 'FPC_SHR_INT64']; compilerproc;
       begin
@@ -111,6 +174,27 @@
           end;
       end;
 {$endif FPC_SYSTEM_HAS_SHR_INT64}
+
+
+{$ifndef FPC_SYSTEM_HAS_SHR_ASSIGN_INT64}
+    procedure fpc_shr_assign_int64(var value : int64;shift : sizeint); [public,alias: 'FPC_SHR_ASSIGN_INT64']; compilerproc;
+      begin
+        shift:=shift and 63;
+        if shift<>0 then
+          begin
+            if shift>31 then
+              begin
+                tqwordrec(value).low:=tqwordrec(value).high shr (shift-32);
+                tqwordrec(value).high:=0;
+              end
+            else
+              begin
+                tqwordrec(value).low:=(tqwordrec(value).low shr shift) or (tqwordrec(value).high shl (32-shift));
+                tqwordrec(value).high:=tqwordrec(value).high shr shift;
+              end;
+          end;
+      end;
+{$endif FPC_SYSTEM_HAS_SHR_ASSIGN_INT64}
 
 
 {$endif FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
