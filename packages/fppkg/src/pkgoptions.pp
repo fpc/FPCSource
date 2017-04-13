@@ -876,12 +876,14 @@ begin
   CurrentSection.RepositoryName:='global';
   CurrentSection.Description:='global';
   CurrentSection.Path:=ACompilerOptions.GlobalInstallDir;
+  CurrentSection.Prefix:=ACompilerOptions.GlobalPrefix;
   FSectionList.Add(CurrentSection);
 
   CurrentSection := TFppkgRepositoryOptionSection.Create(FOptionParser);
   CurrentSection.RepositoryName:='local';
   CurrentSection.Description:='local';
   CurrentSection.Path:=ACompilerOptions.LocalInstallDir;
+  CurrentSection.Prefix:=ACompilerOptions.LocalPrefix;
   FSectionList.Add(CurrentSection);
 
   if CommandLineSection.InstallRepository='' then
