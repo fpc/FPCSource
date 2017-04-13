@@ -765,6 +765,7 @@ unit cgcpu;
       var
         op1,op2 : TAsmOp;
         tempref : treference;
+        tmpreg: TRegister;
       begin
         tempref:=ref;
         tcgx86(cg).make_simple_ref(list,tempref);
@@ -784,6 +785,80 @@ unit cgcpu;
               inc(tempref.offset,4);
               list.concat(taicpu.op_const_ref(op2,S_L,aint(hi(value)),tempref));
               cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            end;
+          OP_SHR,OP_SHL,OP_SAR:
+            begin
+              value:=value and 63;
+              if value<>0 then
+                begin
+                  if value=1 then
+                    case op of
+                      OP_SHR:
+                        begin
+                          inc(tempref.offset,4);
+                          list.concat(taicpu.op_const_ref(A_SHR,S_L,value,tempref));
+                          dec(tempref.offset,4);
+                          list.concat(taicpu.op_const_ref(A_RCR,S_L,value,tempref));
+                        end;
+                      OP_SHL:
+                        begin
+                          list.concat(taicpu.op_const_ref(A_SHL,S_L,value,tempref));
+                          inc(tempref.offset,4);
+                          list.concat(taicpu.op_const_ref(A_RCL,S_L,value,tempref));
+                        end;
+                      OP_SAR:
+                        begin
+                          inc(tempref.offset,4);
+                          list.concat(taicpu.op_const_ref(A_SAR,S_L,value,tempref));
+                          dec(tempref.offset,4);
+                          list.concat(taicpu.op_const_ref(A_RCR,S_L,value,tempref));
+                        end;
+                    end
+                  else
+                    case op of
+                      OP_SHR,OP_SAR:
+                        begin
+                          tmpreg:=cg.getintregister(list,OS_32);
+                          inc(tempref.offset,4);
+                          cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                          dec(tempref.offset,4);
+                          list.concat(taicpu.op_const_reg_ref(A_SHRD,S_L,value,tmpreg,tempref));
+                          inc(tempref.offset,4);
+                          if cs_opt_size in current_settings.optimizerswitches then
+                            begin
+                              if op=OP_SHR then
+                                list.concat(taicpu.op_const_ref(A_SHR,S_L,value,tempref))
+                              else
+                                list.concat(taicpu.op_const_ref(A_SAR,S_L,value,tempref));
+                            end
+                          else
+                            begin
+                              if op=OP_SHR then
+                                list.concat(taicpu.op_const_reg(A_SHR,S_L,value,tmpreg))
+                              else
+                                list.concat(taicpu.op_const_reg(A_SAR,S_L,value,tmpreg));
+                              cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                            end;
+                        end;
+                      OP_SHL:
+                        begin
+                          tmpreg:=cg.getintregister(list,OS_32);
+                          cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                          inc(tempref.offset,4);
+                          list.concat(taicpu.op_const_reg_ref(A_SHLD,S_L,value,tmpreg,tempref));
+                          dec(tempref.offset,4);
+                          if cs_opt_size in current_settings.optimizerswitches then
+                            list.concat(taicpu.op_const_ref(A_SHL,S_L,value,tempref))
+                          else
+                            begin
+                              list.concat(taicpu.op_const_reg(A_SHL,S_L,value,tmpreg));
+                              cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                            end;
+                        end;
+                      else
+                        internalerror(2017041201);
+                    end;
+                end;
             end;
           else
             internalerror(200204022);
