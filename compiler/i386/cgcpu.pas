@@ -764,18 +764,24 @@ unit cgcpu;
                     case op of
                       OP_SHR:
                         begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           list.concat(taicpu.op_const_reg(A_SHR,S_L,value,reg.reghi));
                           list.concat(taicpu.op_const_reg(A_RCR,S_L,value,reg.reglo));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                       OP_SHL:
                         begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           list.concat(taicpu.op_const_reg(A_SHL,S_L,value,reg.reglo));
                           list.concat(taicpu.op_const_reg(A_RCL,S_L,value,reg.reghi));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                       OP_SAR:
                         begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           list.concat(taicpu.op_const_reg(A_SAR,S_L,value,reg.reghi));
                           list.concat(taicpu.op_const_reg(A_RCR,S_L,value,reg.reglo));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                     end
                   else if value>31 then
@@ -866,23 +872,29 @@ unit cgcpu;
                     case op of
                       OP_SHR:
                         begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           inc(tempref.offset,4);
                           list.concat(taicpu.op_const_ref(A_SHR,S_L,value,tempref));
                           dec(tempref.offset,4);
                           list.concat(taicpu.op_const_ref(A_RCR,S_L,value,tempref));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                       OP_SHL:
                         begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           list.concat(taicpu.op_const_ref(A_SHL,S_L,value,tempref));
                           inc(tempref.offset,4);
                           list.concat(taicpu.op_const_ref(A_RCL,S_L,value,tempref));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                       OP_SAR:
                         begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           inc(tempref.offset,4);
                           list.concat(taicpu.op_const_ref(A_SAR,S_L,value,tempref));
                           dec(tempref.offset,4);
                           list.concat(taicpu.op_const_ref(A_RCR,S_L,value,tempref));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                     end
                   else
