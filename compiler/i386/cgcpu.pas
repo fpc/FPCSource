@@ -755,6 +755,77 @@ unit cgcpu;
               list.concat(taicpu.op_const_reg(op2,S_L,aint(hi(value)),reg.reghi));
               cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
+          OP_SHR,OP_SHL,OP_SAR:
+            begin
+              value:=value and 63;
+              if value<>0 then
+                begin
+                  if value=1 then
+                    case op of
+                      OP_SHR:
+                        begin
+                          list.concat(taicpu.op_const_reg(A_SHR,S_L,value,reg.reghi));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_L,value,reg.reglo));
+                        end;
+                      OP_SHL:
+                        begin
+                          list.concat(taicpu.op_const_reg(A_SHL,S_L,value,reg.reglo));
+                          list.concat(taicpu.op_const_reg(A_RCL,S_L,value,reg.reghi));
+                        end;
+                      OP_SAR:
+                        begin
+                          list.concat(taicpu.op_const_reg(A_SAR,S_L,value,reg.reghi));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_L,value,reg.reglo));
+                        end;
+                    end
+                  else if value>31 then
+                    case op of
+                      OP_SAR:
+                        begin
+                          cg.a_load_reg_reg(list,OS_32,OS_32,reg.reghi,reg.reglo);
+                          list.concat(taicpu.op_const_reg(A_SAR,S_L,31,reg.reghi));
+                          if (value and 31)<>0 then
+                            list.concat(taicpu.op_const_reg(A_SAR,S_L,value and 31,reg.reglo));
+                        end;
+                      OP_SHR:
+                        begin
+                          cg.a_load_reg_reg(list,OS_32,OS_32,reg.reghi,reg.reglo);
+                          list.concat(taicpu.op_reg_reg(A_XOR,S_L,reg.reghi,reg.reghi));
+                          if (value and 31)<>0 then
+                            list.concat(taicpu.op_const_reg(A_SHR,S_L,value and 31,reg.reglo));
+                        end;
+                      OP_SHL:
+                        begin
+                          cg.a_load_reg_reg(list,OS_32,OS_32,reg.reglo,reg.reghi);
+                          list.concat(taicpu.op_reg_reg(A_XOR,S_L,reg.reglo,reg.reglo));
+                          if (value and 31)<>0 then
+                            list.concat(taicpu.op_const_reg(A_SHL,S_L,value and 31,reg.reghi));
+                        end;
+                      else
+                        internalerror(2017041201);
+                    end
+                  else
+                    case op of
+                      OP_SAR:
+                        begin
+                          list.concat(taicpu.op_const_reg_reg(A_SHRD,S_L,value,reg.reghi,reg.reglo));
+                          list.concat(taicpu.op_const_reg(A_SAR,S_L,value,reg.reghi));
+                        end;
+                      OP_SHR:
+                        begin
+                          list.concat(taicpu.op_const_reg_reg(A_SHRD,S_L,value,reg.reghi,reg.reglo));
+                          list.concat(taicpu.op_const_reg(A_SHR,S_L,value,reg.reghi));
+                        end;
+                      OP_SHL:
+                        begin
+                          list.concat(taicpu.op_const_reg_reg(A_SHLD,S_L,value,reg.reglo,reg.reghi));
+                          list.concat(taicpu.op_const_reg(A_SHL,S_L,value,reg.reglo));
+                        end;
+                      else
+                        internalerror(2017041201);
+                    end;
+                end;
+            end;
           else
             internalerror(200204021);
         end;
