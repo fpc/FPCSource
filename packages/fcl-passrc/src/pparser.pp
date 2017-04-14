@@ -245,6 +245,7 @@ type
     function GetVariableModifiers(Parent: TPasElement; Out VarMods: TVariableModifiers; Out LibName, ExportName: TPasExpr; ExternalClass : Boolean): string;
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
+    procedure HandleProcedureTypeModifier(ProcType: TPasProcedureType; ptm : TProcTypeModifier);
     procedure ParseClassLocalConsts(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseClassLocalTypes(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
@@ -299,8 +300,9 @@ type
     function CreateRecordValues(AParent : TPasElement): TRecordValues;
     Function IsCurTokenHint(out AHint : TPasMemberHint) : Boolean; overload;
     Function IsCurTokenHint: Boolean; overload;
-    Function TokenIsCallingConvention(S : String; out CC : TCallingConvention) : Boolean; virtual;
-    Function TokenIsProcedureModifier(Parent : TPasElement; S : String; Out Pm : TProcedureModifier) : Boolean; virtual;
+    Function TokenIsCallingConvention(const S : String; out CC : TCallingConvention) : Boolean; virtual;
+    Function TokenIsProcedureModifier(Parent : TPasElement; const S : String; Out PM : TProcedureModifier) : Boolean; virtual;
+    Function TokenIsProcedureTypeModifier(Parent : TPasElement; const S : String; Out PTM : TProcTypeModifier) : Boolean; virtual;
     Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
     function ParseParams(AParent : TPasElement;paramskind: TPasExprKind; AllowFormatting : Boolean = False): TParamsExpr;
     function ParseExpIdent(AParent : TPasElement): TPasExpr;
@@ -401,7 +403,7 @@ function ParseSource(AEngine: TPasTreeContainer;
                      const FPCCommandLine, OSTarget, CPUTarget: String;
                      UseStreams  : Boolean = False): TPasModule;
 Function IsHintToken(T : String; Out AHint : TPasMemberHint) : boolean;
-Function IsModifier(S : String; Out Pm : TProcedureModifier) : Boolean;
+Function IsProcModifier(S : String; Out PM : TProcedureModifier) : Boolean;
 Function IsCallingConvention(S : String; out CC : TCallingConvention) : Boolean;
 Function TokenToAssignKind( tk : TToken) : TAssignKind;
 
@@ -459,9 +461,7 @@ begin
     end;
 end;
 
-
-Function IsModifier(S : String; Out Pm : TProcedureModifier) : Boolean;
-
+Function IsProcModifier(S : String; Out PM : TProcedureModifier) : Boolean;
 
 Var
   P : TProcedureModifier;
@@ -924,17 +924,17 @@ begin
   Result:=IsCurTokenHint(dummy);
 end;
 
-function TPasParser.TokenIsCallingConvention(S: String; out
+function TPasParser.TokenIsCallingConvention(const S: String; out
   CC: TCallingConvention): Boolean;
 begin
   Result:=IsCallingConvention(S,CC);
 end;
 
-function TPasParser.TokenIsProcedureModifier(Parent: TPasElement; S: String;
-  out Pm: TProcedureModifier): Boolean;
+function TPasParser.TokenIsProcedureModifier(Parent: TPasElement;
+  const S: String; out PM: TProcedureModifier): Boolean;
 begin
-  Result:=IsModifier(S,PM);
-  if result and (pm in [pmPublic,pmForward]) then
+  Result:=IsProcModifier(S,PM);
+  if Result and (PM in [pmPublic,pmForward]) then
     begin
     While (Parent<>Nil) and Not ((Parent is TPasClassType) or (Parent is TPasRecordType)) do
       Parent:=Parent.Parent;
@@ -942,6 +942,23 @@ begin
     end;
 end;
 
+function TPasParser.TokenIsProcedureTypeModifier(Parent: TPasElement;
+  const S: String; out PTM: TProcTypeModifier): Boolean;
+begin
+  if CompareText(S,ProcTypeModifiers[ptmVarargs])=0 then
+    begin
+    Result:=true;
+    PTM:=ptmVarargs;
+    end
+  else if CompareText(S,ProcTypeModifiers[ptmStatic])=0 then
+    begin
+    Result:=true;
+    PTM:=ptmStatic;
+    end
+  else
+   Result:=false;
+  if Parent=nil then;
+end;
 
 function TPasParser.CheckHint(Element: TPasElement; ExpectSemiColon: Boolean
   ): TPasMemberHints;
@@ -2601,6 +2618,7 @@ begin
                   for i := 0 to List.Count - 1 do
                   begin
                     VarEl := TPasVariable(List[i]);
+                    Engine.FinishScope(stDeclaration,VarEl);
                     Declarations.Declarations.Add(VarEl);
                     Declarations.Variables.Add(VarEl);
                   end;
@@ -3083,7 +3101,8 @@ end;
 
 
 // Full means that a full variable declaration is being parsed.
-procedure TPasParser.ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full : Boolean);
+procedure TPasParser.ParseVarList(Parent: TPasElement; VarList: TFPList;
+  AVisibility: TPasMemberVisibility; Full : Boolean);
 // on Exception the VarList is restored, no need to Release the new elements
 
 var
@@ -3186,8 +3205,6 @@ begin
         aExpName.AddRef;
         end;
       end;
-    for i := OldListCount to VarList.Count - 1 do
-      Engine.FinishScope(stDeclaration,TPasVariable(VarList[i]));
     ok:=true;
   finally
     if aLibName<>nil then aLibName.Release;
@@ -3441,8 +3458,6 @@ Var
   end;
 
 begin
-  if not (Parent is TPasProcedure) then
-    exit;
   P:=TPasProcedure(Parent);
   if pm<>pmPublic then
     AddModifier;
@@ -3541,6 +3556,14 @@ begin
   end; // Case
 end;
 
+procedure TPasParser.HandleProcedureTypeModifier(ProcType: TPasProcedureType;
+  ptm: TProcTypeModifier);
+begin
+  if ptm in ProcType.Modifiers then
+    ParseExcSyntaxError;
+  Include(ProcType.Modifiers,ptm);
+end;
+
 // Next token is expected to be a "(", ";" or for a function ":". The caller
 // will get the token after the final ";" as next token.
 procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
@@ -3608,12 +3631,16 @@ Var
   PM : TProcedureModifier;
   Done: Boolean;
   ResultEl: TPasResultElement;
-  OK : Boolean;
+  OK,IsProc : Boolean;
+  PTM: TProcTypeModifier;
+  ModCount: Integer;
+  LastToken: TToken;
 
 begin
   // Element must be non-nil. Removed all checks for not-nil.
   // If it is nil, the following fails anyway.
   CheckProcedureArgs(Element,Element.Args,ProcType in [ptOperator,ptClassOperator]);
+  IsProc:=Parent is TPasProcedure;
   case ProcType of
     ptFunction,ptClassFunction:
       begin
@@ -3667,12 +3694,12 @@ begin
   if OfObjectPossible then
     begin
     NextToken;
-    if (curToken =tkOf) then
+    if (CurToken = tkOf) then
       begin
       ExpectToken(tkObject);
       Element.IsOfObject := True;
       end
-    else if (curToken = tkIs) then
+    else if (CurToken = tkIs) then
       begin
       expectToken(tkIdentifier);
       if (lowerCase(CurTokenString)<>'nested') then
@@ -3682,18 +3709,23 @@ begin
     else
       UnGetToken;
     end;
-  NextToken;
-  if CurToken = tkEqual then
-    begin
-    // for example: const p: procedure = nil;
-    UngetToken;
-    exit;
-    end
-  else
-    UngetToken;
+  ModCount:=0;
   Repeat
+    inc(ModCount);
+    LastToken:=CurToken;
     NextToken;
-    If TokenIsCallingConvention(CurTokenString,cc) then
+    if (ModCount=1) and (CurToken = tkEqual) then
+      begin
+      // for example: const p: procedure = nil;
+      UngetToken;
+      exit;
+      end;
+    If CurToken=tkSemicolon then
+      begin
+      if LastToken=tkSemicolon then
+        ParseExcSyntaxError;
+      end
+    else if TokenIsCallingConvention(CurTokenString,cc) then
       begin
       Element.CallingConvention:=Cc;
       if cc = ccSysCall then
@@ -3712,8 +3744,10 @@ begin
       end;
       ExpectToken(tkSemicolon);
       end
-    else if TokenIsProcedureModifier(Parent,CurTokenString,pm) then
-      HandleProcedureModifier(Parent,Pm)
+    else if IsProc and TokenIsProcedureModifier(Parent,CurTokenString,PM) then
+      HandleProcedureModifier(Parent,PM)
+    else if TokenIsProcedureTypeModifier(Parent,CurTokenString,PTM) then
+      HandleProcedureTypeModifier(Element,PTM)
     else if (CurToken=tklibrary) then // library is a token and a directive.
       begin
       Tok:=UpperCase(CurTokenString);
@@ -3743,16 +3777,17 @@ begin
       until CurToken = tkSquaredBraceClose;
       ExpectToken(tkSemicolon);
       end
-    else if CurToken<>tkSemicolon then
+    else
       CheckToken(tkSemicolon);
     Done:=(CurToken=tkSemiColon);
     if Done then
       begin
       NextToken;
       Done:=Not ((Curtoken=tkSquaredBraceOpen) or
-                  TokenIsProcedureModifier(Parent,CurtokenString,Pm) or
-                  IscurtokenHint() or
-                  TokenisCallingConvention(CurTokenString,cc) or
+                  TokenIsProcedureModifier(Parent,CurtokenString,PM) or
+                  TokenIsProcedureTypeModifier(Parent,CurtokenString,PTM) or
+                  IsCurTokenHint() or
+                  TokenIsCallingConvention(CurTokenString,cc) or
                   (CurToken=tkIdentifier) and (CompareText(CurTokenText,'alias')=0));
 //      DumpCurToken('Done '+IntToStr(Ord(Done)));
       UngetToken;
@@ -3852,7 +3887,7 @@ var
 begin
   Result:=TPasProperty(CreateElement(TPasProperty,AName,Parent,AVisibility));
   if IsClassField then
-    Result.VarModifiers:=Result.VarModifiers+[vmClass];
+    Include(Result.VarModifiers,vmClass);
   ok:=false;
   try
     NextToken;
@@ -4760,6 +4795,7 @@ Var
   Cons : TPasConst;
   isClass : Boolean;
   NamePos: TPasSourcePos;
+  OldCount, i: Integer;
 begin
   v:=visDefault;
   isClass:=False;
@@ -4818,7 +4854,10 @@ begin
             NextToken;
             Continue;
             end;
+        OldCount:=ARec.Members.Count;
         ParseInlineVarDecl(ARec, ARec.Members, v, AEndToken=tkBraceClose);
+        for i:=OldCount to ARec.Members.Count-1 do
+          Engine.FinishScope(stDeclaration,TPasVariable(ARec.Members[i]));
         end;
       tkCase :
         begin
@@ -4946,6 +4985,7 @@ Var
   Element: TPasElement;
   I : Integer;
   isStatic : Boolean;
+  VarEl: TPasVariable;
 
 begin
   VarList := TFPList.Create;
@@ -4966,10 +5006,12 @@ begin
       Element.Visibility := AVisibility;
       if (Element is TPasVariable) then
         begin
+        VarEl:=TPasVariable(Element);
         if IsClassField then
-          TPasVariable(Element).VarModifiers:=TPasVariable(Element).VarModifiers+[vmClass];
+          Include(VarEl.VarModifiers,vmClass);
         if isStatic then
-          TPasVariable(Element).VarModifiers:=TPasVariable(Element).VarModifiers+[vmStatic];
+          Include(VarEl.VarModifiers,vmStatic);
+        Engine.FinishScope(stDeclaration,VarEl);
         end;
       AType.Members.Add(Element);
       end;

@@ -101,7 +101,10 @@ type
     visPublished, visAutomated,
     visStrictPrivate, visStrictProtected);
 
-  TCallingConvention = (ccDefault,ccRegister,ccPascal,ccCDecl,ccStdCall,ccOldFPCCall,ccSafeCall,ccSysCall);
+  TCallingConvention = (ccDefault,ccRegister,ccPascal,ccCDecl,ccStdCall,
+                        ccOldFPCCall,ccSafeCall,ccSysCall);
+  TProcTypeModifier = (ptmOfObject,ptmIsNested,ptmStatic,ptmVarargs);
+  TProcTypeModifiers = set of TProcTypeModifier;
   TPackMode = (pmNone,pmPacked,pmBitPacked);
 
   TPasMemberVisibilities = set of TPasMemberVisibility;
@@ -648,6 +651,11 @@ type
   { TPasProcedureType }
 
   TPasProcedureType = class(TPasType)
+  private
+    function GetIsNested: Boolean;
+    function GetIsOfObject: Boolean;
+    procedure SetIsNested(const AValue: Boolean);
+    procedure SetIsOfObject(const AValue: Boolean);
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
@@ -659,10 +667,11 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    IsOfObject: Boolean;
-    IsNested : Boolean;
     Args: TFPList;        // List of TPasArgument objects
     CallingConvention: TCallingConvention;
+    Modifiers: TProcTypeModifiers;
+    property IsOfObject: Boolean read GetIsOfObject write SetIsOfObject;
+    property IsNested : Boolean read GetIsNested write SetIsNested;
   end;
 
   { TPasResultElement }
@@ -828,7 +837,7 @@ type
 
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
                         pmExport, pmOverload, pmMessage, pmReintroduce,
-                        pmStatic,pmInline,pmAssembler,pmVarargs, pmPublic,
+                        pmInline,pmAssembler, pmPublic,
                         pmCompilerProc,pmExternal,pmForward, pmDispId, 
                         pmNoReturn, pmfar);
   TProcedureModifiers = Set of TProcedureModifier;
@@ -1410,11 +1419,13 @@ const
       ( 'deprecated', 'library', 'platform', 'experimental', 'unimplemented' );
   cCallingConventions : Array[TCallingConvention] of string =
       ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall','SysCall');
+  ProcTypeModifiers : Array[TProcTypeModifier] of string =
+      ('of Object', 'is nested','static','varargs');
 
   ModifierNames : Array[TProcedureModifier] of string
                 = ('virtual', 'dynamic','abstract', 'override',
                    'export', 'overload', 'message', 'reintroduce',
-                   'static','inline','assembler','varargs', 'public',
+                   'inline','assembler','public',
                    'compilerproc','external','forward','dispid',
                    'noreturn','far');
 
@@ -2446,6 +2457,32 @@ begin
 end;
 
 { TPasProcedureType }
+
+function TPasProcedureType.GetIsNested: Boolean;
+begin
+  Result:=ptmIsNested in Modifiers;
+end;
+
+function TPasProcedureType.GetIsOfObject: Boolean;
+begin
+  Result:=ptmOfObject in Modifiers;
+end;
+
+procedure TPasProcedureType.SetIsNested(const AValue: Boolean);
+begin
+  if AValue then
+    Include(Modifiers,ptmIsNested)
+  else
+    Exclude(Modifiers,ptmIsNested);
+end;
+
+procedure TPasProcedureType.SetIsOfObject(const AValue: Boolean);
+begin
+  if AValue then
+    Include(Modifiers,ptmOfObject)
+  else
+    Exclude(Modifiers,ptmOfObject);
+end;
 
 constructor TPasProcedureType.Create(const AName: string; AParent: TPasElement);
 begin
@@ -3690,7 +3727,7 @@ end;
 function TPasProcedure.IsStatic: Boolean;
 
 begin
-  Result:=pmStatic in FModifiers;
+  Result:=ptmStatic in ProcType.Modifiers;
 end;
 
 function TPasProcedure.IsForward: Boolean;
