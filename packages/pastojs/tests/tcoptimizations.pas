@@ -38,8 +38,8 @@ type
     FAnalyzerModule: TPasAnalyzer;
     FAnalyzerProgram: TPasAnalyzer;
     FWholeProgramOptimization: boolean;
-    function OnConverterIsElementUsed(Sender: TObject; El: TPasElement
-      ): boolean;
+    function OnConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
+    function OnConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement): boolean;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -78,6 +78,7 @@ type
     procedure TestWPO_CallInherited;
     procedure TestWPO_UseUnit;
     procedure TestWPO_ProgramPublicDeclaration;
+    procedure TestWPO_RTTI_PublishedField;
   end;
 
 implementation
@@ -99,6 +100,21 @@ begin
   {$ENDIF}
 end;
 
+function TCustomTestOptimizations.OnConverterIsTypeInfoUsed(Sender: TObject;
+  El: TPasElement): boolean;
+var
+  A: TPasAnalyzer;
+begin
+  if WholeProgramOptimization then
+    A:=AnalyzerProgram
+  else
+    A:=AnalyzerModule;
+  Result:=A.IsTypeInfoUsed(El);
+  {$IF defined(VerbosePas2JS) or defined(VerbosePasAnalyzer)}
+  writeln('TCustomTestOptimizations.OnConverterIsTypeInfoUsed El=',GetObjName(El),' WPO=',WholeProgramOptimization,' Result=',Result);
+  {$ENDIF}
+end;
+
 procedure TCustomTestOptimizations.SetUp;
 begin
   inherited SetUp;
@@ -108,6 +124,7 @@ begin
   FAnalyzerProgram:=TPasAnalyzer.Create;
   FAnalyzerProgram.Resolver:=Engine;
   Converter.OnIsElementUsed:=@OnConverterIsElementUsed;
+  Converter.OnIsTypeInfoUsed:=@OnConverterIsTypeInfoUsed;
 end;
 
 procedure TCustomTestOptimizations.TearDown;
@@ -754,6 +771,53 @@ begin
     '});',
     '']);
   CheckDiff('TestWPO_ProgramPublicDeclaration',ExpectedSrc,ActualSrc);
+end;
+
+procedure TTestOptimizations.TestWPO_RTTI_PublishedField;
+var
+  ActualSrc, ExpectedSrc: String;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(true);
+  Add('type');
+  Add('  TArrA = array of char;');
+  Add('  TArrB = array of string;');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    PublicA: TArrA;');
+  Add('  published');
+  Add('    PublishedB: TArrB;');
+  Add('  end;');
+  Add('var');
+  Add('  C: TObject;');
+  Add('begin');
+  Add('  C.PublicA:=nil;');
+  ConvertProgram;
+  ActualSrc:=JSToStr(JSModule);
+  ExpectedSrc:=LinesToStr([
+    'rtl.module("program", ["system"], function () {',
+     'this.$rtti.$DynArray("TArrB", {',
+    '  eltype: rtl.string',
+    '});',
+    '  rtl.createClass(this, "TObject", null, function () {',
+    '    this.$init = function () {',
+    '      this.PublicA = [];',
+    '      this.PublishedB = [];',
+    '    };',
+    '    this.$final = function () {',
+    '      this.PublicA = undefined;',
+    '      this.PublishedB = undefined;',
+    '    };',
+    '    var $r = this.$rtti;',
+    '    $r.addField("PublishedB", program.$rtti["TArrB"]);',
+    '  });',
+    '  this.C = null;',
+    '  this.$main = function () {',
+    '    this.C.PublicA = [];',
+    '  };',
+    '});',
+    '']);
+  CheckDiff('TestWPO_RTTI_PublishedField',ExpectedSrc,ActualSrc);
 end;
 
 Initialization

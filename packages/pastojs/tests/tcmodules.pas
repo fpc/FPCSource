@@ -28,7 +28,9 @@ uses
   pastree, PScanner, PasResolver, PParser, jstree, jswriter, jsbase;
 
 const
+  // default parser+scanner options
   po_pas2js = [po_asmwhole,po_resolvestandardtypes];
+  co_tcmodules = [coNoTypeInfo];
 type
 
   { TTestPasParser }
@@ -73,7 +75,10 @@ type
     FExpectedErrorNumber: integer;
     FFilename: string;
     FFileResolver: TStreamResolver;
+    FJSImplementationSrc: TJSSourceElements;
+    FJSImplementationUses: TJSArrayLiteral;
     FJSInitBody: TJSFunctionBody;
+    FJSImplentationUses: TJSArrayLiteral;
     FJSInterfaceUses: TJSArrayLiteral;
     FJSModule: TJSSourceElements;
     FJSModuleSrc: TJSSourceElements;
@@ -113,7 +118,8 @@ type
     Procedure ConvertUnit; virtual;
     procedure CheckDottedIdentifier(Msg: string; El: TJSElement; DottedName: string);
     function GetDottedIdentifier(El: TJSElement): string;
-    procedure CheckSource(Msg,Statements, InitStatements: string); virtual;
+    procedure CheckSource(Msg,Statements: String; InitStatements: string = '';
+      ImplStatements: string = ''); virtual;
     procedure CheckDiff(Msg, Expected, Actual: string); virtual;
     procedure SetExpectedPasResolverError(Msg: string; MsgNumber: integer);
     procedure SetExpectedConverterError(Msg: string; MsgNumber: integer);
@@ -137,9 +143,11 @@ type
     property JSModule: TJSSourceElements read FJSModule;
     property JSRegModuleCall: TJSCallExpression read FJSRegModuleCall;
     property JSModuleCallArgs: TJSArguments read FJSModuleCallArgs;
+    property JSImplementationUses: TJSArrayLiteral read FJSImplementationUses;
     property JSInterfaceUses: TJSArrayLiteral read FJSInterfaceUses;
     property JSModuleSrc: TJSSourceElements read FJSModuleSrc;
     property JSInitBody: TJSFunctionBody read FJSInitBody;
+    property JSImplementationSrc: TJSSourceElements read FJSImplementationSrc;
     property ExpectedErrorClass: ExceptClass read FExpectedErrorClass write FExpectedErrorClass;
     property ExpectedErrorMsg: string read FExpectedErrorMsg write FExpectedErrorMsg;
     property ExpectedErrorNumber: integer read FExpectedErrorNumber write FExpectedErrorNumber;
@@ -237,6 +245,7 @@ type
     Procedure TestEnum_AsParams;
     Procedure TestSet_AsParams;
     Procedure TestSet_Property;
+    Procedure TestEnumConst;
 
     // statements
     Procedure TestNestBegin;
@@ -279,8 +288,9 @@ type
     Procedure TestArray_InsertDelete;
     Procedure TestExternalClass_TypeCastArrayToExternalArray;
     Procedure TestExternalClass_TypeCastArrayFromExternalArray;
-    // ToDo: const array
+    // ToDo: array const
     // ToDo: SetLength(array of static array)
+    // ToDo: SetLength(dim1,dim2)
 
     // record
     Procedure TestRecord_Var;
@@ -390,6 +400,12 @@ type
     Procedure TestProcType_WithClassInstDoPropertyFPC;
     Procedure TestProcType_Nested;
 
+    // pointer
+    Procedure TestPointer;
+    Procedure TestPointer_AssignRecordFail;
+    Procedure TestPointer_AssignStaticArrayFail;
+    Procedure TestPointer_ArrayParamsFail;
+
     // jsvalue
     Procedure TestJSValue_AssignToJSValue;
     Procedure TestJSValue_TypeCastToBaseType;
@@ -403,6 +419,34 @@ type
     Procedure TestJSValue_FuncResultType;
     Procedure TestJSValue_ProcType_Assign;
     Procedure TestJSValue_ProcType_Equal;
+
+    // RTTI
+    Procedure TestRTTI_ProcType;
+    Procedure TestRTTI_ProcType_ArgFromOtherUnit;
+    Procedure TestRTTI_EnumAndSetType;
+    Procedure TestRTTI_StaticArray;
+    Procedure TestRTTI_DynArray;
+    // ToDo: Procedure TestRTTI_Pointer;
+    Procedure TestRTTI_PublishedMethodOverloadFail;
+    Procedure TestRTTI_PublishedMethodExternalFail;
+    Procedure TestRTTI_PublishedClassPropertyFail;
+    Procedure TestRTTI_PublishedClassFieldFail;
+    Procedure TestRTTI_PublishedFieldExternalFail;
+    Procedure TestRTTI_Class_Field;
+    Procedure TestRTTI_Class_Method;
+    Procedure TestRTTI_Class_Property;
+    // ToDo: property default value
+    Procedure TestRTTI_OverrideMethod;
+    Procedure TestRTTI_OverloadProperty;
+    // ToDo: array argument
+    Procedure TestRTTI_ClassForward;
+    Procedure TestRTTI_ClassOf;
+    Procedure TestRTTI_Record;
+    Procedure TestRTTI_LocalTypes;
+    Procedure TestRTTI_TypeInfo_BaseTypes;
+    Procedure TestRTTI_TypeInfo_LocalFail;
+    Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses1;
+    Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses2;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -573,7 +617,7 @@ begin
   Parser.Options:=Parser.Options+po_pas2js;
   FModule:=Nil;
   FConverter:=TPasToJSConverter.Create;
-  FConverter.UseLowerCase:=false;
+  FConverter.Options:=co_tcmodules;
 
   FExpectedErrorClass:=nil;
 end;
@@ -584,6 +628,7 @@ begin
   FJSModule:=nil;
   FJSRegModuleCall:=nil;
   FJSModuleCallArgs:=nil;
+  FJSImplentationUses:=nil;
   FJSInterfaceUses:=nil;
   FJSModuleSrc:=nil;
   FJSInitBody:=nil;
@@ -697,7 +742,7 @@ begin
     Fail('TTestModuleConverter.AddModule: file "'+aFilename+'" already exists');
   Result:=TTestEnginePasResolver.Create;
   Result.Filename:=aFilename;
-  Result.AddObjFPCBuiltInIdentifiers([btChar,btString,btLongint,btInt64,btBoolean,btDouble]);
+  Result.AddObjFPCBuiltInIdentifiers(btAllPas2jsBaseTypes,bfAllPas2jsBaseProcs);
   Result.OnFindUnit:=@OnPasResolverFindUnit;
   FModules.Add(Result);
 end;
@@ -763,14 +808,61 @@ begin
 end;
 
 procedure TCustomTestModule.ConvertModule;
+
+  procedure CheckUsesList(UsesName: String; Arg: TJSArrayLiteralElement;
+    out UsesLit: TJSArrayLiteral);
+  var
+    i: Integer;
+    Item: TJSElement;
+    Lit: TJSLiteral;
+  begin
+    UsesLit:=nil;
+    AssertNotNull(UsesName+' uses section',Arg.Expr);
+    if (Arg.Expr.ClassType=TJSLiteral) and TJSLiteral(Arg.Expr).Value.IsNull then
+      exit; // null is ok
+    AssertEquals(UsesName+' uses section param is array',TJSArrayLiteral,Arg.Expr.ClassType);
+    FJSInterfaceUses:=TJSArrayLiteral(Arg.Expr);
+    for i:=0 to FJSInterfaceUses.Elements.Count-1 do
+      begin
+      Item:=FJSInterfaceUses.Elements.Elements[i].Expr;
+      AssertNotNull(UsesName+' uses section item['+IntToStr(i)+'].Expr',Item);
+      AssertEquals(UsesName+' uses section item['+IntToStr(i)+'] is lit',TJSLiteral,Item.ClassType);
+      Lit:=TJSLiteral(Item);
+      AssertEquals(UsesName+' uses section item['+IntToStr(i)+'] is string lit',
+        ord(jsbase.jstString),ord(Lit.Value.ValueType));
+      end;
+  end;
+
+  procedure CheckFunctionParam(ParamName: string; Arg: TJSArrayLiteralElement;
+    out Src: TJSSourceElements);
+  var
+    FunDecl: TJSFunctionDeclarationStatement;
+    FunDef: TJSFuncDef;
+    FunBody: TJSFunctionBody;
+  begin
+    Src:=nil;
+    AssertNotNull(ParamName,Arg.Expr);
+    AssertEquals(ParamName+' Arg.Expr type',TJSFunctionDeclarationStatement,Arg.Expr.ClassType);
+    FunDecl:=Arg.Expr as TJSFunctionDeclarationStatement;
+    AssertNotNull(ParamName+' FunDecl.AFunction',FunDecl.AFunction);
+    AssertEquals(ParamName+' FunDecl.AFunction type',TJSFuncDef,FunDecl.AFunction.ClassType);
+    FunDef:=FunDecl.AFunction as TJSFuncDef;
+    AssertEquals(ParamName+' name empty','',String(FunDef.Name));
+    AssertNotNull(ParamName+' body',FunDef.Body);
+    AssertEquals(ParamName+' body type',TJSFunctionBody,FunDef.Body.ClassType);
+    FunBody:=FunDef.Body as TJSFunctionBody;
+    AssertNotNull(ParamName+' body.A',FunBody.A);
+    AssertEquals(ParamName+' body.A type',TJSSourceElements,FunBody.A.ClassType);
+    Src:=FunBody.A as TJSSourceElements;
+  end;
+
 var
   ModuleNameExpr: TJSLiteral;
-  FunDecl, InitFunction: TJSFunctionDeclarationStatement;
-  FunDef: TJSFuncDef;
+  InitFunction: TJSFunctionDeclarationStatement;
   InitAssign: TJSSimpleAssignStatement;
-  FunBody: TJSFunctionBody;
   InitName: String;
   LastNode: TJSElement;
+  Arg: TJSArrayLiteralElement;
 begin
   if SkipTests then exit;
   try
@@ -807,11 +899,13 @@ begin
   AssertNotNull('register module rtl.module args',JSRegModuleCall.Args);
   AssertEquals('rtl.module args',TJSArguments,JSRegModuleCall.Args.ClassType);
   FJSModuleCallArgs:=JSRegModuleCall.Args as TJSArguments;
-  AssertEquals('rtl.module args.count',3,JSModuleCallArgs.Elements.Count);
 
   // parameter 'unitname'
-  AssertNotNull('module name param',JSModuleCallArgs.Elements.Elements[0].Expr);
-  ModuleNameExpr:=JSModuleCallArgs.Elements.Elements[0].Expr as TJSLiteral;
+  if JSModuleCallArgs.Elements.Count<1 then
+    Fail('rtl.module first param unit missing');
+  Arg:=JSModuleCallArgs.Elements.Elements[0];
+  AssertNotNull('module name param',Arg.Expr);
+  ModuleNameExpr:=Arg.Expr as TJSLiteral;
   AssertEquals('module name param is string',ord(jstString),ord(ModuleNameExpr.Value.ValueType));
   if Module is TPasProgram then
     AssertEquals('module name','program',String(ModuleNameExpr.Value.AsString))
@@ -819,22 +913,18 @@ begin
     AssertEquals('module name',Module.Name,String(ModuleNameExpr.Value.AsString));
 
   // main uses section
-  AssertNotNull('interface uses section',JSModuleCallArgs.Elements.Elements[1].Expr);
-  AssertEquals('interface uses section type',TJSArrayLiteral,JSModuleCallArgs.Elements.Elements[1].Expr.ClassType);
-  FJSInterfaceUses:=JSModuleCallArgs.Elements.Elements[1].Expr as TJSArrayLiteral;
+  if JSModuleCallArgs.Elements.Count<2 then
+    Fail('rtl.module second param main uses missing');
+  Arg:=JSModuleCallArgs.Elements.Elements[1];
+  CheckUsesList('interface',Arg,FJSInterfaceUses);
 
-  // function()
-  AssertNotNull('module function',JSModuleCallArgs.Elements.Elements[2].Expr);
-  AssertEquals('module function type',TJSFunctionDeclarationStatement,JSModuleCallArgs.Elements.Elements[2].Expr.ClassType);
-  FunDecl:=JSModuleCallArgs.Elements.Elements[2].Expr as TJSFunctionDeclarationStatement;
-  AssertNotNull('module function def',FunDecl.AFunction);
-  FunDef:=FunDecl.AFunction as TJSFuncDef;
-  AssertEquals('module function name','',String(FunDef.Name));
-  AssertNotNull('module function body',FunDef.Body);
-  FunBody:=FunDef.Body as TJSFunctionBody;
-  FJSModuleSrc:=FunBody.A as TJSSourceElements;
+  // program/library/interface function()
+  if JSModuleCallArgs.Elements.Count<3 then
+    Fail('rtl.module third param intf-function missing');
+  Arg:=JSModuleCallArgs.Elements.Elements[2];
+  CheckFunctionParam('module intf-function',Arg,FJSModuleSrc);
 
-  // init this.$main - the last statement
+  // search for this.$init or this.$main - the last statement
   if Module is TPasProgram then
     begin
     InitName:='$main';
@@ -858,6 +948,18 @@ begin
         CheckDottedIdentifier('init function',InitAssign.LHS,'this.'+InitName);
       end;
     end;
+
+  // optional: implementation uses section
+  if JSModuleCallArgs.Elements.Count<4 then
+    exit;
+  Arg:=JSModuleCallArgs.Elements.Elements[3];
+  CheckUsesList('implementation',Arg,FJSImplentationUses);
+
+  // optional: implementation function()
+  if JSModuleCallArgs.Elements.Count<5 then
+    exit;
+  Arg:=JSModuleCallArgs.Elements.Elements[4];
+  CheckFunctionParam('module impl-function',Arg,FJSImplementationSrc);
 end;
 
 procedure TCustomTestModule.ConvertProgram;
@@ -900,7 +1002,8 @@ begin
     AssertEquals('GetDottedIdentifier',TJSPrimaryExpressionIdent,El.ClassType);
 end;
 
-procedure TCustomTestModule.CheckSource(Msg, Statements, InitStatements: string);
+procedure TCustomTestModule.CheckSource(Msg, Statements: String;
+  InitStatements: string; ImplStatements: string);
 var
   ActualSrc, ExpectedSrc, InitName: String;
 begin
@@ -910,11 +1013,24 @@ begin
     InitName:='$main'
   else
     InitName:='$init';
-  if (Module is TPasProgram) or (InitStatements<>'') then
+  if (Module is TPasProgram) or (Trim(InitStatements)<>'') then
     ExpectedSrc:=ExpectedSrc+LineEnding
       +'this.'+InitName+' = function () {'+LineEnding
       +InitStatements
       +'};'+LineEnding;
+  //writeln('TTestModule.CheckSource InitStatements="',InitStatements,'"');
+  CheckDiff(Msg,ExpectedSrc,ActualSrc);
+
+  if (JSImplementationSrc<>nil) then
+    begin
+    ActualSrc:=JSToStr(JSImplementationSrc);
+    ExpectedSrc:='var $impl = this.$impl;'+LineEnding+ImplStatements;
+    end
+  else
+    begin
+    ActualSrc:='';
+    ExpectedSrc:=ImplStatements;
+    end;
   //writeln('TTestModule.CheckSource InitStatements="',InitStatements,'"');
   CheckDiff(Msg,ExpectedSrc,ActualSrc);
 end;
@@ -975,7 +1091,7 @@ var
         break;
       end;
     until p^=#0;
-    raise Exception.Create('diff found, but lines are the same, internal error');
+    Fail('diff found, but lines are the same, internal error');
   end;
 
 var
@@ -1072,7 +1188,7 @@ begin
   WriteSources(E.Filename,E.Row,E.Column);
   writeln('ERROR: TCustomTestModule.HandleParserError '+E.ClassName+':'+E.Message
     +' '+E.Filename+'('+IntToStr(E.Row)+','+IntToStr(E.Column)+')'
-    +' Line="'+Scanner.CurLine+'"'
+    +' MainModuleScannerLine="'+Scanner.CurLine+'"'
     );
   RaiseException(E);
 end;
@@ -1105,8 +1221,11 @@ end;
 procedure TCustomTestModule.HandleException(E: Exception);
 begin
   if IsErrorExpected(E) then exit;
-  WriteSources('',0,0);
-  writeln('ERROR: TCustomTestModule.HandleException '+E.ClassName+':'+E.Message);
+  if not (E is EAssertionFailedError) then
+    begin
+    WriteSources('',0,0);
+    writeln('ERROR: TCustomTestModule.HandleException '+E.ClassName+':'+E.Message);
+    end;
   RaiseException(E);
 end;
 
@@ -1141,6 +1260,7 @@ var
   Line: string;
   aModule: TTestEnginePasResolver;
 begin
+  writeln('TCustomTestModule.WriteSources File="',aFilename,'" Row=',aRow,' Col=',aCol);
   for i:=0 to ModuleCount-1 do
     begin
     aModule:=Modules[i];
@@ -1679,16 +1799,17 @@ begin
   ConvertUnit;
   CheckSource('TestUnitProcVar',
     LinesToStr([ // statements
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;',
+    'var $impl = this.$impl;',
     'this.Proc1 = function () {',
     '  var v1 = 0;',
     '};',
-    '$impl.v2 = "";'
-    ]),
-    '' // this.$init
-    );
+    '']),
+    // this.$init
+    '',
+    // implementation
+    LinesToStr([
+    '$impl.v2 = "";',
+    '']));
 end;
 
 procedure TTestModule.TestImplProc;
@@ -1708,18 +1829,19 @@ begin
   ConvertUnit;
   CheckSource('TestImplProc',
     LinesToStr([ // statements
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;',
+    'var $impl = this.$impl;',
     'this.Proc1 = function () {',
-    '};',
-    '$impl.Proc2 = function () {',
     '};',
     '']),
     LinesToStr([ // this.$init
     'this.Proc1();',
     '$impl.Proc2();',
-    '']));
+    '']),
+    LinesToStr([ // implementation
+    '$impl.Proc2 = function () {',
+    '};',
+    ''])
+    );
 end;
 
 procedure TTestModule.TestFunctionResult;
@@ -2251,26 +2373,26 @@ begin
   ConvertUnit;
   CheckSource('TestProcedureOverloadUnit',
     LinesToStr([ // statements
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;',
+    'var $impl = this.$impl;',
     'this.DoIt = function (vI) {',
     '};',
     'this.DoIt$1 = function (vI, vJ) {',
     '};',
+    '']),
+    LinesToStr([ // this.$init
+    'this.DoIt(1);',
+    'this.DoIt$1(2, 3);',
+    '$impl.DoIt$3(4,5,6);',
+    '$impl.DoIt$4(7,8,9,10);',
+    '$impl.DoIt$2(11,12,13,14,15);',
+    '']),
+    LinesToStr([ // implementation
     '$impl.DoIt$3 = function (vI, vJ, vK) {',
     '};',
     '$impl.DoIt$4 = function (vI, vJ, vK, vL) {',
     '};',
     '$impl.DoIt$2 = function (vI, vJ, vK, vL, vM) {',
     '};',
-    '']),
-    LinesToStr([
-    'this.DoIt(1);',
-    'this.DoIt$1(2, 3);',
-    '$impl.DoIt$3(4,5,6);',
-    '$impl.DoIt$4(7,8,9,10);',
-    '$impl.DoIt$2(11,12,13,14,15);',
     '']));
 end;
 
@@ -2961,6 +3083,43 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestEnumConst;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TEnum = (Red,Blue);');
+  Add('  TEnums = set of TEnum;');
+  Add('const');
+  Add('  Orange = red;');
+  Add('var');
+  Add('  Enum: tenum;');
+  Add('  Enums: tenums;');
+  Add('begin');
+  Add('  Include(enums,orange);');
+  Add('  Exclude(enums,orange);');
+  Add('  if orange in enums then;');
+  Add('  if orange in [orange,red] then;');
+  ConvertProgram;
+  CheckSource('TestEnumConst',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "Red",',
+    '  Red: 0,',
+    '  "1": "Blue",',
+    '  Blue: 1',
+    '};',
+    'this.Orange = this.TEnum.Red;',
+    'this.Enum = 0;',
+    'this.Enums = {};',
+    '']),
+    LinesToStr([
+    'this.Enums = rtl.includeSet(this.Enums, this.Orange);',
+    'this.Enums = rtl.excludeSet(this.Enums, this.Orange);',
+    'if (this.Enums[this.Orange]) ;',
+    'if (rtl.createSet(this.Orange, this.TEnum.Red)[this.Orange]) ;',
+    '']));
+end;
+
 procedure TTestModule.TestNestBegin;
 begin
   StartProgram(false);
@@ -2990,14 +3149,14 @@ begin
   ConvertUnit;
   CheckSource('TestUnitImplVars',
     LinesToStr([ // statements
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;',
+    'var $impl = this.$impl;',
+    '']),
+    '', // this.$init
+    LinesToStr([ // implementation
     '$impl.V1 = 0;',
     '$impl.V2 = 3;',
-    '$impl.V3 = "abc";'
-    ]),
-    '');
+    '$impl.V3 = "abc";',
+    '']) );
 end;
 
 procedure TTestModule.TestUnitImplConsts;
@@ -3012,14 +3171,14 @@ begin
   ConvertUnit;
   CheckSource('TestUnitImplConsts',
     LinesToStr([ // statements
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;',
+    'var $impl = this.$impl;',
+    '']),
+    '', // this.$init
+    LinesToStr([ // implementation
     '$impl.v1 = 3;',
     '$impl.v2 = 4;',
-    '$impl.v3 = "abc";'
-    ]),
-    '');
+    '$impl.v3 = "abc";',
+    '']) );
 end;
 
 procedure TTestModule.TestUnitImplRecord;
@@ -3037,9 +3196,11 @@ begin
   ConvertUnit;
   CheckSource('TestUnitImplRecord',
     LinesToStr([ // statements
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;',
+    'var $impl = this.$impl;',
+    '']),
+    // this.$init
+    '$impl.aRec.i = 3;',
+    LinesToStr([ // implementation
     '$impl.TMyRecord = function (s) {',
     '  if (s) {',
     '    this.i = s.i;',
@@ -3050,10 +3211,8 @@ begin
     '    return this.i == b.i;',
     '  };',
     '};',
-    '$impl.aRec = new $impl.TMyRecord();'
-    ]),
-    '$impl.aRec.i = 3;'
-    );
+    '$impl.aRec = new $impl.TMyRecord();',
+    '']) );
 end;
 
 procedure TTestModule.TestRenameJSNameConflict;
@@ -3157,20 +3316,20 @@ begin
   ConvertUnit;
   CheckSource('TestVarExternalOtherUnit',
     LinesToStr([
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;',
+    'var $impl = this.$impl;',
+    '']),
+    LinesToStr([ // this.$init
+    '$impl.d = Global.NaN;',
+    '$impl.d = Global.NaN;',
+    '$impl.d = Global.NaN;',
+    '$impl.i = pas.unit2.iV;',
+    '$impl.i = pas.unit2.iV;',
+    '$impl.i = pas.unit2.iV;',
+    '']),
+    LinesToStr([ // implementation
     '$impl.d = 0.0;',
     '$impl.i = 0;',
-    '']),
-    LinesToStr([
-    '$impl.d = Global.NaN;',
-    '$impl.d = Global.NaN;',
-    '$impl.d = Global.NaN;',
-    '$impl.i = pas.unit2.iV;',
-    '$impl.i = pas.unit2.iV;',
-    '$impl.i = pas.unit2.iV;',
-    '']));
+    '']) );
 end;
 
 procedure TTestModule.TestCharConst;
@@ -3263,16 +3422,20 @@ begin
   Add('var');
   Add('  c: char;');
   Add('  i: longint;');
+  Add('  s: string;');
   Add('begin');
   Add('  i:=ord(c);');
+  Add('  i:=ord(s[i]);');
   ConvertProgram;
   CheckSource('TestChar_Ord',
     LinesToStr([
     'this.c = "";',
-    'this.i = 0;'
+    'this.i = 0;',
+    'this.s = "";'
     ]),
     LinesToStr([
     'this.i = this.c.charCodeAt();',
+    'this.i = this.s.charCodeAt(this.i-1);',
     '']));
 end;
 
@@ -3834,19 +3997,19 @@ begin
   // ToDo: check use analyzer
   CheckSource('TestAsmPas_Impl',
     LinesToStr([
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;',
+    'var $impl = this.$impl;',
     'this.cIntf = 1;',
     'this.vIntf = 0;',
+    '']),
+    '', // this.$init
+    LinesToStr([ // implementation
     'var cLoc = 3;',
     '$impl.cImpl = 2;',
     '$impl.vImpl = 0;',
     '$impl.DoIt = function () {',
     '  var vLoc = 0;',
     '};',
-    '']),
-    '');
+    '']) );
 end;
 
 procedure TTestModule.TestTryFinally;
@@ -7020,9 +7183,7 @@ begin
   ConvertUnit;
   CheckSource('TestClass_ExternalMethod',
     LinesToStr([
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;',
+    'var $impl = this.$impl;',
     'rtl.createClass(this, "TCar", pas.unit2.TObject, function () {',
     '    this.DoIt = function () {',
     '      this.$DoIntern();',
@@ -7031,9 +7192,8 @@ begin
     '      this.$DoIntern2();',
     '    };',
     '  });',
-    '$impl.Obj = null;',
     '']),
-    LinesToStr([
+    LinesToStr([ // this.$init
     '$impl.Obj.$DoIntern();',
     '$impl.Obj.$DoIntern();',
     '$impl.Obj.$DoIntern2();',
@@ -7045,7 +7205,10 @@ begin
     '$with1.$DoIntern();',
     '$with1.$DoIntern2();',
     '$with1.$DoIntern2();',
-    '']));
+    '']),
+    LinesToStr([ // implementation
+    '$impl.Obj = null;',
+    '']) );
 end;
 
 procedure TTestModule.TestClass_ExternalVirtualNameMismatchFail;
@@ -7118,16 +7281,13 @@ begin
   ConvertUnit;
   CheckSource('TestClass_ExternalVar',
     LinesToStr([
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;',
+    'var $impl = this.$impl;',
     'rtl.createClass(this, "TCar", pas.unit2.TObject, function () {',
     '    this.DoIt = function () {',
     '      this.$Intern = this.$Intern + 1;',
     '      this.$Intern2 = this.$Intern2 + 2;',
     '    };',
     '  });',
-    '$impl.Obj = null;',
     '']),
     LinesToStr([
     '$impl.Obj.$Intern = $impl.Obj.$Intern + 1;',
@@ -7135,6 +7295,9 @@ begin
     'var $with1 = $impl.Obj;',
     '$with1.$Intern = $with1.$Intern + 1;',
     '$with1.$Intern2 = $with1.$Intern2 + 2;',
+    '']),
+    LinesToStr([ // implementation
+    '$impl.Obj = null;',
     '']));
 end;
 
@@ -9798,6 +9961,106 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestPointer;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('  TClass = class of TObject;');
+  Add('  TArrInt = array of longint;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  Obj: tobject;');
+  Add('  C: tclass;');
+  Add('  a: tarrint;');
+  Add('  p: Pointer;');
+  Add('begin');
+  Add('  p:=p;');
+  Add('  p:=nil;');
+  Add('  if p=nil then;');
+  Add('  if nil=p then;');
+  Add('  if Assigned(p) then;');
+  Add('  p:=Pointer(v);');
+  Add('  p:=obj;');
+  Add('  p:=c;');
+  Add('  p:=a;');
+  Add('  p:=tobject;');
+  Add('  obj:=TObject(p);');
+  Add('  c:=TClass(p);');
+  Add('  a:=TArrInt(p);');
+  ConvertProgram;
+  CheckSource('TestPointer',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.v = undefined;',
+    'this.Obj = null;',
+    'this.C = null;',
+    'this.a = [];',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.p = this.p;',
+    'this.p = null;',
+    'if (this.p == null) ;',
+    'if (null == this.p) ;',
+    'if (this.p != null) ;',
+    'this.p = this.v;',
+    'this.p = this.Obj;',
+    'this.p = this.C;',
+    'this.p = this.a;',
+    'this.p = this.TObject;',
+    'this.Obj = this.p;',
+    'this.C = this.p;',
+    'this.a = this.p;',
+    '']));
+end;
+
+procedure TTestModule.TestPointer_AssignRecordFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TRec = record end;');
+  Add('var');
+  Add('  p: Pointer;');
+  Add('  r: TRec;');
+  Add('begin');
+  Add('  p:=r;');
+  SetExpectedPasResolverError('Incompatible types: got "TRec" expected "Pointer"',
+    nIncompatibleTypesGotExpected);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_AssignStaticArrayFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArr = array[boolean] of longint;');
+  Add('var');
+  Add('  p: Pointer;');
+  Add('  a: TArr;');
+  Add('begin');
+  Add('  p:=a;');
+  SetExpectedPasResolverError('Incompatible types: got "TArr" expected "Pointer"',
+    nIncompatibleTypesGotExpected);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_ArrayParamsFail;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  p: Pointer;');
+  Add('begin');
+  Add('  p:=p[1];');
+  SetExpectedPasResolverError('illegal qualifier "["',nIllegalQualifier);
+  ConvertProgram;
+end;
+
 procedure TTestModule.TestJSValue_AssignToJSValue;
 begin
   StartProgram(false);
@@ -9807,6 +10070,7 @@ begin
   Add('  s: string;');
   Add('  b: boolean;');
   Add('  d: double;');
+  Add('  p: pointer;');
   Add('begin');
   Add('  v:=v;');
   Add('  v:=1;');
@@ -9821,6 +10085,7 @@ begin
   Add('  v:=0.1;');
   Add('  v:=d;');
   Add('  v:=nil;');
+  Add('  v:=p;');
   ConvertProgram;
   CheckSource('TestJSValue_AssignToJSValue',
     LinesToStr([ // statements
@@ -9829,6 +10094,7 @@ begin
     'this.s = "";',
     'this.b = false;',
     'this.d = 0.0;',
+    'this.p = null;',
     '']),
     LinesToStr([ // this.$main
     'this.v = this.v;',
@@ -9844,6 +10110,7 @@ begin
     'this.v = 0.1;',
     'this.v = this.d;',
     'this.v = null;',
+    'this.v = this.p;',
     '']));
 end;
 
@@ -10487,6 +10754,981 @@ begin
     'if (rtl.eqCallback(rtl.createCallback(this, "GetIt"), this.V)) ;',
     'if (rtl.eqCallback(rtl.createCallback(this.o, "Getter"), this.V)) ;',
     'if (rtl.eqCallback(rtl.createCallback(this.o.$class, "GetGlob"), this.V)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_ProcType;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TProcA = procedure;');
+  Add('  TMethodB = procedure of object;');
+  Add('  TProcC = procedure; varargs;');
+  Add('  TProcD = procedure(i: longint; const j: string; var c: char; out d: double);');
+  Add('  TProcE = function: longint;');
+  Add('  TProcF = function(const p: TProcA): longint;');
+  Add('var p: pointer;');
+  Add('begin');
+  Add('  p:=typeinfo(tproca);');
+  ConvertProgram;
+  CheckSource('TestRTTI_ProcType',
+    LinesToStr([ // statements
+    'this.$rtti.$ProcVar("TProcA", {',
+    '  procsig: rtl.newTIProcSig(null)',
+    '});',
+    'this.$rtti.$MethodVar("TMethodB", {',
+    '  procsig: rtl.newTIProcSig(null),',
+    '  methodkind: 0',
+    '});',
+    'this.$rtti.$ProcVar("TProcC", {',
+    '  procsig: rtl.newTIProcSig(null, 2)',
+    '});',
+    'this.$rtti.$ProcVar("TProcD", {',
+    '  procsig: rtl.newTIProcSig([["i", rtl.longint], ["j", rtl.string, 2], ["c", rtl.char, 1], ["d", rtl.double, 4]])',
+    '});',
+    'this.$rtti.$ProcVar("TProcE", {',
+    '  procsig: rtl.newTIProcSig(null, rtl.longint)',
+    '});',
+    'this.$rtti.$ProcVar("TProcF", {',
+    '  procsig: rtl.newTIProcSig([["p", this.$rtti["TProcA"], 2]], rtl.longint)',
+    '});',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.p = this.$rtti["TProcA"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_ProcType_ArgFromOtherUnit;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class end;'
+    ]),
+    '');
+  StartUnit(true);
+  Add('interface');
+  Add('uses unit2;');
+  Add('type');
+  Add('  TProcA = function(o: tobject): tobject;');
+  Add('implementation');
+  Add('type');
+  Add('  TProcB = function(o: tobject): tobject;');
+  Add('var p: Pointer;');
+  Add('initialization');
+  Add('  p:=typeinfo(tproca);');
+  Add('  p:=typeinfo(tprocb);');
+  ConvertUnit;
+  CheckSource('TestRTTI_ProcType_ArgFromOtherUnit',
+    LinesToStr([ // statements
+    'var $impl = this.$impl;',
+    'this.$rtti.$ProcVar("TProcA", {',
+    '  procsig: rtl.newTIProcSig([["o", unit2.$rtti["TObject"]]], unit2.$rtti["TObject"])',
+    '});',
+    '']),
+    LinesToStr([ // this.$init
+    '$impl.p = this.$rtti["TProcA"];',
+    '$impl.p = this.$rtti["TProcB"];',
+    '']),
+    LinesToStr([ // implementation
+    'this.$rtti.$ProcVar("TProcB", {',
+    '  procsig: rtl.newTIProcSig([["o", unit2.$rtti["TObject"]]], unit2.$rtti["TObject"])',
+    '});',
+    '$impl.p = null;',
+    '']) );
+end;
+
+procedure TTestModule.TestRTTI_EnumAndSetType;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (light,dark);');
+  Add('  TFlags = set of TFlag;');
+  Add('  TProc = function(f: TFlags): TFlag;');
+  Add('var p: pointer;');
+  Add('begin');
+  Add('  p:=typeinfo(tflag);');
+  Add('  p:=typeinfo(tflags);');
+  ConvertProgram;
+  CheckSource('TestRTTI_EnumAndType',
+    LinesToStr([ // statements
+    'this.TFlag = {',
+    '  "0": "light",',
+    '  light: 0,',
+    '  "1": "dark",',
+    '  dark: 1',
+    '};',
+    'this.$rtti.$Enum("TFlag", {',
+    '  minvalue: 0,',
+    '  maxvalue: 1,',
+    '  enumtype: this.TFlag',
+    '});',
+    'this.$rtti.$Set("TFlags", {',
+    '  comptype: this.$rtti["TFlag"]',
+    '});',
+    'this.$rtti.$ProcVar("TProc", {',
+    '  procsig: rtl.newTIProcSig([["f", this.$rtti["TFlags"]]], this.$rtti["TFlag"])',
+    '});',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.p = this.$rtti["TFlag"];',
+    'this.p = this.$rtti["TFlags"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_StaticArray;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (light,dark);');
+  Add('  TFlagNames = array[TFlag] of string;');
+  Add('  TBoolNames = array[boolean] of string;');
+  Add('  TProc = function(f: TBoolNames): TFlagNames;');
+  Add('var p: pointer;');
+  Add('begin');
+  Add('  p:=typeinfo(TFlagNames);');
+  Add('  p:=typeinfo(TBoolNames);');
+  ConvertProgram;
+  CheckSource('TestRTTI_StaticArray',
+    LinesToStr([ // statements
+    'this.TFlag = {',
+    '  "0": "light",',
+    '  light: 0,',
+    '  "1": "dark",',
+    '  dark: 1',
+    '};',
+    'this.$rtti.$Enum("TFlag", {',
+    '  minvalue: 0,',
+    '  maxvalue: 1,',
+    '  enumtype: this.TFlag',
+    '});',
+    'this.$rtti.$StaticArray("TFlagNames", {',
+    '  dims: [2],',
+    '  eltype: rtl.string',
+    '});',
+    'this.$rtti.$StaticArray("TBoolNames", {',
+    '  dims: [2],',
+    '  eltype: rtl.string',
+    '});',
+    'this.$rtti.$ProcVar("TProc", {',
+    '  procsig: rtl.newTIProcSig([["f", this.$rtti["TBoolNames"]]], this.$rtti["TFlagNames"])',
+    '});',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.p = this.$rtti["TFlagNames"];',
+    'this.p = this.$rtti["TBoolNames"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_DynArray;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TArrStr = array of string;');
+  Add('  TArr2Dim = array of tarrstr;');
+  Add('  TProc = function(f: TArrStr): TArr2Dim;');
+  Add('var p: pointer;');
+  Add('begin');
+  Add('  p:=typeinfo(tarrstr);');
+  Add('  p:=typeinfo(tarr2dim);');
+  ConvertProgram;
+  CheckSource('TestRTTI_DynArray',
+    LinesToStr([ // statements
+    'this.$rtti.$DynArray("TArrStr", {',
+    '  eltype: rtl.string',
+    '});',
+    'this.$rtti.$DynArray("TArr2Dim", {',
+    '  eltype: this.$rtti["TArrStr"]',
+    '});',
+    'this.$rtti.$ProcVar("TProc", {',
+    '  procsig: rtl.newTIProcSig([["f", this.$rtti["TArrStr"]]], this.$rtti["TArr2Dim"])',
+    '});',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.p = this.$rtti["TArrStr"];',
+    'this.p = this.$rtti["TArr2Dim"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_PublishedMethodOverloadFail;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  published');
+  Add('    procedure Proc; virtual; abstract;');
+  Add('    procedure Proc(Sender: tobject); virtual; abstract;');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError('Duplicate identifier "Proc" at test1.pp(6,18)',
+    nDuplicateIdentifier);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestRTTI_PublishedMethodExternalFail;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  published');
+  Add('    procedure Proc; external name ''foo'';');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError(sPublishedNameMustMatchExternal,
+    nPublishedNameMustMatchExternal);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestRTTI_PublishedClassPropertyFail;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class var FA: longint;');
+  Add('  published');
+  Add('    class property A: longint read FA;');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError('Invalid published property modifier "class"',
+    nInvalidXModifierY);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestRTTI_PublishedClassFieldFail;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  published');
+  Add('    class var FA: longint;');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError(sSymbolCannotBePublished,
+    nSymbolCannotBePublished);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestRTTI_PublishedFieldExternalFail;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TObject = class');
+  Add('  published');
+  Add('    V: longint; external name ''foo'';');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError(sPublishedNameMustMatchExternal,
+    nPublishedNameMustMatchExternal);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestRTTI_Class_Field;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    FPropA: string;');
+  Add('  published');
+  Add('    VarLI: longint;');
+  Add('    VarC: char;');
+  Add('    VarS: string;');
+  Add('    VarD: double;');
+  Add('    VarB: boolean;');
+  Add('    VarCa: cardinal;');
+  Add('    VarSmI: smallint;');
+  Add('    VarW: word;');
+  Add('    VarShI: shortint;');
+  Add('    VarBy: byte;');
+  Add('    VarExt: longint external name ''VarExt'';');
+  Add('  end;');
+  Add('var p: pointer;');
+  Add('  Obj: tobject;');
+  Add('begin');
+  Add('  p:=typeinfo(tobject);');
+  Add('  p:=typeinfo(p);');
+  Add('  p:=typeinfo(obj);');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_Field',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FPropA = "";',
+    '    this.VarLI = 0;',
+    '    this.VarC = "";',
+    '    this.VarS = "";',
+    '    this.VarD = 0.0;',
+    '    this.VarB = false;',
+    '    this.VarCa = 0;',
+    '    this.VarSmI = 0;',
+    '    this.VarW = 0;',
+    '    this.VarShI = 0;',
+    '    this.VarBy = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("VarLI", rtl.longint);',
+    '  $r.addField("VarC", rtl.char);',
+    '  $r.addField("VarS", rtl.string);',
+    '  $r.addField("VarD", rtl.double);',
+    '  $r.addField("VarB", rtl.boolean);',
+    '  $r.addField("VarCa", rtl.cardinal);',
+    '  $r.addField("VarSmI", rtl.smallint);',
+    '  $r.addField("VarW", rtl.word);',
+    '  $r.addField("VarShI", rtl.shortint);',
+    '  $r.addField("VarBy", rtl.byte);',
+    '  $r.addField("VarExt", rtl.longint);',
+    '});',
+    'this.p = null;',
+    'this.Obj = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.p = this.$rtti["TObject"];',
+    'this.p = rtl.pointer;',
+    'this.p = this.$rtti["TObject"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_Method;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    procedure Internal; external name ''$intern'';');
+  Add('  published');
+  Add('    procedure Click; virtual; abstract;');
+  Add('    procedure Notify(Sender: TObject); virtual; abstract;');
+  Add('    function GetNotify: boolean; external name ''GetNotify'';');
+  Add('    procedure Println(a,b: longint); varargs; virtual; abstract;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_Method',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addMethod("Click", 0, null);',
+    '  $r.addMethod("Notify", 0, [["Sender", $r]]);',
+    '  $r.addMethod("GetNotify", 1, null, rtl.boolean,{flags: 4});',
+    '  $r.addMethod("Println", 0, [["a", rtl.longint], ["b", rtl.longint]], null, {',
+    '    flags: 2',
+    '  });',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_Property;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    FColor: longint;');
+  Add('    FColorStored: boolean;');
+  Add('    procedure SetColor(Value: longint); virtual; abstract;');
+  Add('    function GetColor: longint; virtual; abstract;');
+  Add('    function GetColorStored: boolean; virtual; abstract;');
+  Add('    FExtSize: longint external name ''$extSize'';');
+  Add('    FExtSizeStored: boolean external name ''$extSizeStored'';');
+  Add('    procedure SetExtSize(Value: longint); external name ''$setSize'';');
+  Add('    function GetExtSize: longint; external name ''$getSize'';');
+  Add('    function GetExtSizeStored: boolean; external name ''$getExtSizeStored'';');
+  Add('  published');
+  Add('    property ColorA: longint read FColor;');
+  Add('    property ColorB: longint write FColor;');
+  Add('    property ColorC: longint read GetColor write SetColor;');
+  Add('    property ColorD: longint read FColor write FColor stored FColorStored;');
+  Add('    property ExtSizeA: longint read FExtSize write FExtSize;');
+  Add('    property ExtSizeB: longint read GetExtSize write SetExtSize stored FExtSizeStored;');
+  Add('    property ExtSizeC: longint read FExtSize write FExtSize stored GetExtSizeStored;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_Property',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FColor = 0;',
+    '    this.FColorStored = false;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty("ColorA", 0, rtl.longint, "FColor", "");',
+    '  $r.addProperty("ColorB", 0, rtl.longint, "", "FColor");',
+    '  $r.addProperty("ColorC", 3, rtl.longint, "GetColor", "SetColor");',
+    '  $r.addProperty("ColorD", 0, rtl.longint, "FColor", "FColor",{',
+    '      stored: "FColorStored"',
+    '    }',
+    '  );',
+    '  $r.addProperty("ExtSizeA", 0, rtl.longint, "$extSize", "$extSize");',
+    '  $r.addProperty("ExtSizeB", 3, rtl.longint, "$getSize", "$setSize",{',
+    '      stored: "$extSizeStored"',
+    '    }',
+    '  );',
+    '  $r.addProperty("ExtSizeC", 4, rtl.longint, "$extSize", "$extSize",{',
+    '      stored: "$getExtSizeStored"',
+    '    }',
+    '  );',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_OverrideMethod;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  published');
+  Add('    procedure DoIt; virtual; abstract;');
+  Add('  end;');
+  Add('  TSky = class');
+  Add('  published');
+  Add('    procedure DoIt; override;');
+  Add('  end;');
+  Add('procedure TSky.DoIt; begin end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_OverrideMethod',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addMethod("DoIt", 0, null);',
+    '});',
+    'rtl.createClass(this, "TSky", this.TObject, function () {',
+    '  this.DoIt = function () {',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_OverloadProperty;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  protected');
+  Add('    FFlag: longint;');
+  Add('  published');
+  Add('    property Flag: longint read FFlag;');
+  Add('  end;');
+  Add('  TSky = class');
+  Add('  published');
+  Add('    property Flag: longint write FFlag;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_OverrideMethod',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FFlag = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty("Flag", 0, rtl.longint, "FFlag", "");',
+    '});',
+    'rtl.createClass(this, "TSky", this.TObject, function () {',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty("Flag", 0, rtl.longint, "", "FFlag");',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_ClassForward;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('  tbridge = class;');
+  Add('  TProc = function: tbridge;');
+  Add('  TOger = class');
+  Add('  published');
+  Add('    FBridge: tbridge;');
+  Add('    procedure SetBridge(Value: tbridge); virtual; abstract;');
+  Add('    property Bridge: tbridge read fbridge write setbridge;');
+  Add('  end;');
+  Add('  TBridge = class');
+  Add('    FOger: toger;');
+  Add('  end;');
+  Add('var p: Pointer;');
+  Add(' b: tbridge;');
+  Add('begin');
+  Add('  p:=typeinfo(tbridge);');
+  Add('  p:=typeinfo(b);');
+  ConvertProgram;
+  CheckSource('TestRTTI_ClassForward',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.$rtti.$Class("TBridge");',
+    'this.$rtti.$ProcVar("TProc", {',
+    '  procsig: rtl.newTIProcSig(null, this.$rtti["TBridge"])',
+    '});',
+    'rtl.createClass(this, "TOger", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TObject.$init.call(this);',
+    '    this.FBridge = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.FBridge = undefined;',
+    '    pas.program.TObject.$final.call(this);',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("FBridge", program.$rtti["TBridge"]);',
+    '  $r.addMethod("SetBridge", 0, [["Value", program.$rtti["TBridge"]]]);',
+    '  $r.addProperty("Bridge", 2, program.$rtti["TBridge"], "FBridge", "SetBridge");',
+    '});',
+    'rtl.createClass(this, "TBridge", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TObject.$init.call(this);',
+    '    this.FOger = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.FOger = undefined;',
+    '    pas.program.TObject.$final.call(this);',
+    '  };',
+    '});',
+    'this.p = null;',
+    'this.b = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.p = this.$rtti["TBridge"];',
+    'this.p = this.$rtti["TBridge"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_ClassOf;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TClass = class of tobject;');
+  Add('  TProcA = function: TClass;');
+  Add('  TObject = class');
+  Add('  published');
+  Add('    C: tclass;');
+  Add('  end;');
+  Add('  tfox = class;');
+  Add('  TBird = class end;');
+  Add('  TBirds = class of tbird;');
+  Add('  TFox = class end;');
+  Add('  TFoxes = class of tfox;');
+  Add('  TCows = class of TCow;');
+  Add('  TCow = class;');
+  Add('  TCow = class end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_ClassOf',
+    LinesToStr([ // statements
+    'this.$rtti.$Class("TObject");',
+    'this.$rtti.$ClassRef("TClass", {',
+    '  instancetype: this.$rtti["TObject"]',
+    '});',
+    'this.$rtti.$ProcVar("TProcA", {',
+    '  procsig: rtl.newTIProcSig(null, this.$rtti["TClass"])',
+    '});',
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.C = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.C = undefined;',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("C", program.$rtti["TClass"]);',
+    '});',
+    'this.$rtti.$Class("TFox");',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '});',
+    'this.$rtti.$ClassRef("TBirds", {',
+    '  instancetype: this.$rtti["TBird"]',
+    '});',
+    'rtl.createClass(this, "TFox", this.TObject, function () {',
+    '});',
+    'this.$rtti.$ClassRef("TFoxes", {',
+    '  instancetype: this.$rtti["TFox"]',
+    '});',
+    'this.$rtti.$Class("TCow");',
+    'this.$rtti.$ClassRef("TCows", {',
+    '  instancetype: this.$rtti["TCow"]',
+    '});',
+    'rtl.createClass(this, "TCow", this.TObject, function () {',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Record;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TPoint = record');
+  Add('    x,y: integer;');
+  Add('  end;');
+  Add('var p: pointer;');
+  Add('  r: tpoint;');
+  Add('begin');
+  Add('  p:=typeinfo(tpoint);');
+  Add('  p:=typeinfo(r);');
+  Add('  p:=typeinfo(r.x);');
+  ConvertProgram;
+  CheckSource('TestRTTI_Record',
+    LinesToStr([ // statements
+    'this.TPoint = function (s) {',
+    '  if (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '  } else {',
+    '    this.x = 0;',
+    '    this.y = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return (this.x == b.x) && (this.y == b.y);',
+    '  };',
+    '};',
+    'this.$rtti.$Record("TPoint", {}).addFields("x", rtl.longint, "y", rtl.longint);',
+    'this.p = null;',
+    'this.r = new this.TPoint();',
+    '']),
+    LinesToStr([ // this.$main
+    'this.p = this.$rtti["TPoint"];',
+    'this.p = this.$rtti["TPoint"];',
+    'this.p = rtl.longint;',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_LocalTypes;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('procedure DoIt;');
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TPoint = record');
+  Add('    x,y: integer;');
+  Add('  end;');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_LocalTypes',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  this.TPoint = function (s) {',
+    '    if (s) {',
+    '      this.x = s.x;',
+    '      this.y = s.y;',
+    '    } else {',
+    '      this.x = 0;',
+    '      this.y = 0;',
+    '    };',
+    '    this.$equal = function (b) {',
+    '      return (this.x == b.x) && (this.y == b.y);',
+    '    };',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_TypeInfo_BaseTypes;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TCaption = string;');
+  Add('  TYesNo = boolean;');
+  Add('  TLetter = char;');
+  Add('  TFloat = double;');
+  Add('  TPtr = pointer;');
+  Add('  TShortInt = shortint;');
+  Add('  TByte = byte;');
+  Add('  TSmallInt = smallint;');
+  Add('  TWord = word;');
+  Add('  TInt32 = longint;');
+  Add('  TDWord = cardinal;');
+  Add('  TValue = jsvalue;');
+  Add('var p: TPtr;');
+  Add('begin');
+  Add('  p:=typeinfo(string);');
+  Add('  p:=typeinfo(tcaption);');
+  Add('  p:=typeinfo(boolean);');
+  Add('  p:=typeinfo(tyesno);');
+  Add('  p:=typeinfo(char);');
+  Add('  p:=typeinfo(tletter);');
+  Add('  p:=typeinfo(double);');
+  Add('  p:=typeinfo(tfloat);');
+  Add('  p:=typeinfo(pointer);');
+  Add('  p:=typeinfo(tptr);');
+  Add('  p:=typeinfo(shortint);');
+  Add('  p:=typeinfo(tshortint);');
+  Add('  p:=typeinfo(byte);');
+  Add('  p:=typeinfo(tbyte);');
+  Add('  p:=typeinfo(smallint);');
+  Add('  p:=typeinfo(tsmallint);');
+  Add('  p:=typeinfo(word);');
+  Add('  p:=typeinfo(tword);');
+  Add('  p:=typeinfo(cardinal);');
+  Add('  p:=typeinfo(tdword);');
+  Add('  p:=typeinfo(jsvalue);');
+  Add('  p:=typeinfo(tvalue);');
+  ConvertProgram;
+  CheckSource('TestRTTI_TypeInfo_BaseTypes',
+    LinesToStr([ // statements
+    'this.p = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.p = rtl.string;',
+    'this.p = rtl.string;',
+    'this.p = rtl.boolean;',
+    'this.p = rtl.boolean;',
+    'this.p = rtl.char;',
+    'this.p = rtl.char;',
+    'this.p = rtl.double;',
+    'this.p = rtl.double;',
+    'this.p = rtl.pointer;',
+    'this.p = rtl.pointer;',
+    'this.p = rtl.shortint;',
+    'this.p = rtl.shortint;',
+    'this.p = rtl.byte;',
+    'this.p = rtl.byte;',
+    'this.p = rtl.smallint;',
+    'this.p = rtl.smallint;',
+    'this.p = rtl.word;',
+    'this.p = rtl.word;',
+    'this.p = rtl.cardinal;',
+    'this.p = rtl.cardinal;',
+    'this.p = rtl.jsvalue;',
+    'this.p = rtl.jsvalue;',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_TypeInfo_LocalFail;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('procedure DoIt;');
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TPoint = record');
+  Add('    x,y: integer;');
+  Add('  end;');
+  Add('var p: pointer;');
+  Add('begin');
+  Add('  p:=typeinfo(tpoint);');
+  Add('end;');
+  Add('begin');
+  SetExpectedPasResolverError(sSymbolCannotBePublished,nSymbolCannotBePublished);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestRTTI_TypeInfo_ExtTypeInfoClasses1;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TTypeInfo = class external name ''rtl.tTypeInfo'' end;');
+  Add('  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo) end;');
+  Add('  TFlag = (up,down);');
+  Add('  TTypeInfoEnum = class external name ''rtl.tTypeInfoEnum''(TTypeInfoInteger) end;');
+  Add('  TFlags = set of TFlag;');
+  Add('  TTypeInfoSet = class external name ''rtl.tTypeInfoSet''(TTypeInfo) end;');
+  Add('var');
+  Add('  ti: TTypeInfo;');
+  Add('  tiInt: TTypeInfoInteger;');
+  Add('  tiEnum: TTypeInfoEnum;');
+  Add('  tiSet: TTypeInfoSet;');
+  Add('begin');
+  Add('  ti:=typeinfo(string);');
+  Add('  ti:=typeinfo(boolean);');
+  Add('  ti:=typeinfo(char);');
+  Add('  ti:=typeinfo(double);');
+  Add('  tiInt:=typeinfo(shortint);');
+  Add('  tiInt:=typeinfo(byte);');
+  Add('  tiInt:=typeinfo(smallint);');
+  Add('  tiInt:=typeinfo(word);');
+  Add('  tiInt:=typeinfo(longint);');
+  Add('  tiInt:=typeinfo(cardinal);');
+  Add('  ti:=typeinfo(jsvalue);');
+  Add('  tiEnum:=typeinfo(tflag);');
+  Add('  tiSet:=typeinfo(tflags);');
+  ConvertProgram;
+  CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses1',
+    LinesToStr([ // statements
+    'this.TFlag = {',
+    '  "0": "up",',
+    '  up: 0,',
+    '  "1": "down",',
+    '  down: 1',
+    '};',
+    'this.$rtti.$Enum("TFlag", {',
+    '  minvalue: 0,',
+    '  maxvalue: 1,',
+    '  enumtype: this.TFlag',
+    '});',
+    'this.$rtti.$Set("TFlags", {',
+    '  comptype: this.$rtti["TFlag"]',
+    '});',
+    'this.ti = null;',
+    'this.tiInt = null;',
+    'this.tiEnum = null;',
+    'this.tiSet = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.ti = rtl.string;',
+    'this.ti = rtl.boolean;',
+    'this.ti = rtl.char;',
+    'this.ti = rtl.double;',
+    'this.tiInt = rtl.shortint;',
+    'this.tiInt = rtl.byte;',
+    'this.tiInt = rtl.smallint;',
+    'this.tiInt = rtl.word;',
+    'this.tiInt = rtl.longint;',
+    'this.tiInt = rtl.cardinal;',
+    'this.ti = rtl.jsvalue;',
+    'this.tiEnum = this.$rtti["TFlag"];',
+    'this.tiSet = this.$rtti["TFlags"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_TypeInfo_ExtTypeInfoClasses2;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TTypeInfo = class external name ''rtl.tTypeInfo'' end;');
+  Add('  TStaticArr = array[boolean] of string;');
+  Add('  TTypeInfoStaticArray = class external name ''rtl.tTypeInfoStaticArray''(TTypeInfo) end;');
+  Add('  TDynArr = array of string;');
+  Add('  TTypeInfoDynArray = class external name ''rtl.tTypeInfoDynArray''(TTypeInfo) end;');
+  Add('  TProc = procedure;');
+  Add('  TTypeInfoProcVar = class external name ''rtl.tTypeInfoProcVar''(TTypeInfo) end;');
+  Add('  TMethod = procedure of object;');
+  Add('  TTypeInfoMethodVar = class external name ''rtl.tTypeInfoMethodVar''(TTypeInfoProcVar) end;');
+  Add('  TRec = record end;');
+  Add('  TTypeInfoRecord = class external name ''rtl.tTypeInfoRecord''(TTypeInfo) end;');
+  Add('  TObject = class end;');
+  Add('  TTypeInfoClass = class external name ''rtl.tTypeInfoClass''(TTypeInfo) end;');
+  Add('  TClass = class of tobject;');
+  Add('  TTypeInfoClassRef = class external name ''rtl.tTypeInfoClassRef''(TTypeInfo) end;');
+  Add('  TTypeInfoPointer = class external name ''rtl.tTypeInfoPointer''(TTypeInfo) end;');
+  Add('var');
+  Add('  tiStaticArray: TTypeInfoStaticArray;');
+  Add('  tiDynArray: TTypeInfoDynArray;');
+  Add('  tiProcVar: TTypeInfoProcVar;');
+  Add('  tiMethodVar: TTypeInfoMethodVar;');
+  Add('  tiRecord: TTypeInfoRecord;');
+  Add('  tiClass: TTypeInfoClass;');
+  Add('  tiClassRef: TTypeInfoClassRef;');
+  Add('  tiPointer: TTypeInfoPointer;');
+  Add('begin');
+  Add('  tiStaticArray:=typeinfo(TStaticArr);');
+  Add('  tiDynArray:=typeinfo(TDynArr);');
+  Add('  tiProcVar:=typeinfo(TProc);');
+  Add('  tiMethodVar:=typeinfo(TMethod);');
+  Add('  tiRecord:=typeinfo(TRec);');
+  Add('  tiClass:=typeinfo(TObject);');
+  Add('  tiClassRef:=typeinfo(TClass);');
+  ConvertProgram;
+  CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses2',
+    LinesToStr([ // statements
+    '  this.$rtti.$StaticArray("TStaticArr", {',
+    '  dims: [2],',
+    '  eltype: rtl.string',
+    '});',
+    'this.$rtti.$DynArray("TDynArr", {',
+    '  eltype: rtl.string',
+    '});',
+    'this.$rtti.$ProcVar("TProc", {',
+    '  procsig: rtl.newTIProcSig(null)',
+    '});',
+    'this.$rtti.$MethodVar("TMethod", {',
+    '  procsig: rtl.newTIProcSig(null),',
+    '  methodkind: 0',
+    '});',
+    'this.TRec = function (s) {',
+    '};',
+    'this.$rtti.$Record("TRec", {});',
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.$rtti.$ClassRef("TClass", {',
+    '  instancetype: this.$rtti["TObject"]',
+    '});',
+    'this.tiStaticArray = null;',
+    'this.tiDynArray = null;',
+    'this.tiProcVar = null;',
+    'this.tiMethodVar = null;',
+    'this.tiRecord = null;',
+    'this.tiClass = null;',
+    'this.tiClassRef = null;',
+    'this.tiPointer = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.tiStaticArray = this.$rtti["TStaticArr"];',
+    'this.tiDynArray = this.$rtti["TDynArr"];',
+    'this.tiProcVar = this.$rtti["TProc"];',
+    'this.tiMethodVar = this.$rtti["TMethod"];',
+    'this.tiRecord = this.$rtti["TRec"];',
+    'this.tiClass = this.$rtti["TObject"];',
+    'this.tiClassRef = this.$rtti["TClass"];',
     '']));
 end;
 
