@@ -33,6 +33,7 @@ type
     procedure TestBuildWithInstalledDependency;
     procedure TestFakePackageDir;
     procedure TestSourceDependency;
+    procedure TestTransmitOptions;
   end;
 
   { TFullFPCInstallationSetup }
@@ -55,11 +56,12 @@ type
     class function GetTemplatePath: string;
     class function GetTestPath: string;
     class function GetBasePackagesPath: string;
+    class function GetSpecificPackagesPath: string;
     class function GetCurrentTestBasePackagesPath: string;
     class function GetTestBinPath: string;
     class function GetTargetString: string;
     class function GetCompilerVersion: string;
-    class function SyncPackageIntoCurrentTest(APackageName: string): string;
+    class function SyncPackageIntoCurrentTest(APackageName: string; SpecificPackageDir: string = ''): string;
   end;
 
 implementation
@@ -246,6 +248,11 @@ begin
   Result := IncludeTrailingPathDelimiter(ConcatPaths([FPackagesPath, 'base']));
 end;
 
+class function TFullFPCInstallationSetup.GetSpecificPackagesPath: string;
+begin
+  Result := IncludeTrailingPathDelimiter(ConcatPaths([FPackagesPath, 'specific']));
+end;
+
 class function TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath: string;
 begin
   Result := IncludeTrailingPathDelimiter(ConcatPaths([GetCurrentTestPath, 'packages']));
@@ -266,10 +273,16 @@ begin
   Result := FCompilerVersion;
 end;
 
-class function TFullFPCInstallationSetup.SyncPackageIntoCurrentTest(APackageName: string): string;
+class function TFullFPCInstallationSetup.SyncPackageIntoCurrentTest(APackageName: string; SpecificPackageDir: string): string;
+var
+  PackagePath: string;
 begin
   ForceDirectories(ConcatPaths([TFullFPCInstallationSetup.GetTestPath, 'currenttest', 'packages']));
-  RunTestCommandIndir(TFullFPCInstallationSetup.GetTestPath, 'rsync', ['-rtvu', '--delete', TFullFPCInstallationSetup.GetBasePackagesPath+APackageName+PathDelim, TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath+APackageName], 'sync template');
+  if SpecificPackageDir='' then
+    PackagePath := TFullFPCInstallationSetup.GetBasePackagesPath+APackageName+PathDelim
+  else
+    PackagePath := ConcatPaths([TFullFPCInstallationSetup.GetSpecificPackagesPath, SpecificPackageDir, APackageName])+PathDelim;
+  RunTestCommandIndir(TFullFPCInstallationSetup.GetTestPath, 'rsync', ['-rtvu', '--delete', PackagePath, TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath+APackageName], 'sync template');
 end;
 
 procedure TFullFPCInstallationTests.SetUp;
@@ -442,6 +455,23 @@ begin
 
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb', ['build'], 'create fpmake-executable', 1);
   RunTestCommandIndir(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packageb']), ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packageb', 'fpmake']), ['build', '--nofpccfg', '--compiler='+CompilerStr, '--searchpath='+FpcSearchpath, '--searchpath='+PackageSearchpath], 'build packagea');
+end;
+
+procedure TFullFPCInstallationTests.TestTransmitOptions;
+begin
+  // Test the TransmitOptions settings. PackageA contain some TransmitOptions,
+  // without which the other packages won't compile.
+  // PackageC depends on both PackageB's, but should only add the TransmitOptions
+  // from PackageA once.
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagea', 'transmitoptions');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packageb1', 'transmitoptions');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packageb2', 'transmitoptions');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagec', 'transmitoptions');
+
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['install'], 'build PackageA');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb1', ['install'], 'build PackageB1');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb2', ['install'], 'build PackageB2');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagec', ['install'], 'build PackageC');
 end;
 
 Initialization

@@ -790,6 +790,7 @@ Type
     FSources: TSources;
     FDirectory: String;
     FOptions: TStrings;
+    FTransmitOptions: TStrings;
     FFileName: String;
     FShortName: String;
     FAuthor: String;
@@ -823,8 +824,10 @@ Type
     Function GetFileName : string;
     Function GetShortName : string;
     function GetOptions: TStrings;
+    function GetTransmitOptions: TStrings;
     Function GetVersion : string;
     procedure SetOptions(const AValue: TStrings);
+    procedure SetTransmitOptions(AValue: TStrings);
     Procedure SetVersion(const V : string);
   Protected
     procedure SetName(const AValue: String);override;
@@ -870,6 +873,9 @@ Type
     Property SupportBuildModes: TBuildModes read FSupportBuildModes write FSupportBuildModes;
     Property BuildMode: TBuildMode read FBuildMode;
     Property Flags: TStrings read FFlags;
+    // Options which are passed to the compiler for packages which depend on
+    // this package.
+    Property TransmitOptions: TStrings Read GetTransmitOptions Write SetTransmitOptions;
     // Compiler options.
     Property OSes : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
@@ -1153,6 +1159,7 @@ Type
     procedure ResolvePackagePaths(APackage:TPackage);
     procedure AddDependencyPaths(L: TStrings; DependencyType: TDependencyType; ATarget: TTarget);
     procedure AddDependencyUnitPaths(L:TStrings;APackage: TPackage);
+    procedure AddDependencyTransmittedOptions(Args: TStrings; APackage: TPackage);
   Public
     Constructor Create(AOwner : TComponent); override;
     destructor Destroy;override;
@@ -1797,6 +1804,7 @@ Const
   KeyNeedLibC = 'NeedLibC';
   KeyDepends  = 'Depends';
   KeyFlags    = 'Flags';
+  KeyTransmit = 'TransmitOptions';
   KeyAddIn    = 'FPMakeAddIn';
   KeySourcePath = 'SourcePath';
   KeyFPMakeOptions = 'FPMakeOptions';
@@ -3539,6 +3547,7 @@ begin
   FreeAndNil(FTargets);
   FreeAndNil(FVersion);
   FreeAndNil(FOptions);
+  FreeAndNil(FTransmitOptions);
   FreeAndNil(FFlags);
   FreeAndNil(FPackageVariants);
   inherited destroy;
@@ -3749,6 +3758,13 @@ begin
     Options.Assign(AValue);
 end;
 
+procedure TPackage.SetTransmitOptions(AValue: TStrings);
+begin
+  If (AValue=Nil) or (AValue.Count=0) then
+    FreeAndNil(FTransmitOptions)
+  else
+    TransmitOptions.Assign(AValue);
+end;
 
 Procedure TPackage.SetVersion(const V : string);
 begin
@@ -3785,6 +3801,12 @@ begin
   Result:=FOptions;
 end;
 
+function TPackage.GetTransmitOptions: TStrings;
+begin
+  If (FTransmitOptions=Nil) then
+    FTransmitOptions:=TStringList.Create;
+  Result:=FTransmitOptions;
+end;
 
 Procedure TPackage.GetManifest(Manifest : TStrings);
 
@@ -3999,7 +4021,8 @@ begin
         NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
         IsFPMakeAddIn:=Upcase(Values[KeyAddIn])='Y';
         Flags.DelimitedText:=Values[KeyFlags];
-
+        if Values[KeyTransmit]<>'' then
+          TransmitOptions.DelimitedText:=Values[KeyTransmit];
         i := 1;
         repeat
         PackageVariantsStr:=Values[KeyPackageVar+inttostr(i)];
@@ -4079,6 +4102,8 @@ begin
       Values[KeyDepends]:=Deps;
       if Flags.Count>0 then
         Values[KeyFlags]:=Flags.DelimitedText;
+      if TransmitOptions.Count>0 then
+        Values[KeyTransmit]:=TransmitOptions.DelimitedText;
       if NeedLibC then
         Values[KeyNeedLibC]:='Y'
       else
@@ -6350,6 +6375,51 @@ begin
     end;
 end;
 
+threadvar
+  GHandledRecursiveDependencies: TStrings;
+
+procedure TBuildEngine.AddDependencyTransmittedOptions(Args: TStrings; APackage: TPackage);
+Var
+  I, J : Integer;
+  P : TPackage;
+  D : TDependency;
+  S : String;
+  IsRootLevel: Boolean;
+begin
+  if not Assigned(GHandledRecursiveDependencies) then
+    begin
+      GHandledRecursiveDependencies := TStringList.Create;
+      IsRootLevel := True;
+    end
+  else
+    IsRootLevel := False;
+
+  try
+    For I:=0 to APackage.Dependencies.Count-1 do
+      begin
+        D:=APackage.Dependencies[i];
+        if (D.DependencyType=depPackage) and
+           (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then
+          begin
+            P:=TPackage(D.Target);
+            If Assigned(P) then
+              begin
+                // Already processed?
+                if GHandledRecursiveDependencies.IndexOf(P.Name)=-1 then
+                  begin
+                    GHandledRecursiveDependencies.Add(P.Name);
+                    AddDependencyTransmittedOptions(Args,P);
+                    Args.AddStrings(P.TransmitOptions);
+                  end;
+              end;
+          end;
+      end;
+  finally
+    if IsRootLevel then
+      FreeAndNil(GHandledRecursiveDependencies);
+  end;
+end;
+
 function TBuildEngine.AddPathPrefix(APackage: TPackage; APath: string): string;
 begin
   if IsRelativePath(APath) and (GPathPrefix<>'') then
@@ -6449,6 +6519,9 @@ begin
 
     Args.Add('-Fl'+FCachedlibcPath);
     end;
+
+  // Custom options which are added by dependencies
+  AddDependencyTransmittedOptions(Args, APackage);
 
   // Custom Options
   If (Defaults.HaveOptions) then
