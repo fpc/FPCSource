@@ -9,7 +9,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('PackageA');
+    P:=AddPackage('packagea');
     P.Version:='1.2.3';
 
     P.Author := 'Joost vam der Sluis';

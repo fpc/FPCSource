@@ -32,6 +32,7 @@ type
     procedure TestMissingSource;
     procedure TestBuildWithInstalledDependency;
     procedure TestFakePackageDir;
+    procedure TestSourceDependency;
   end;
 
   { TFullFPCInstallationSetup }
@@ -328,19 +329,19 @@ begin
 
   // Test installation
   s := RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['list'], 'list packages');
-  Check(pos('PackageA', s) > 0, 'Just installed PackageA is not in package-list');
-  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
-  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA','PackageAUnitA.o'])), 'PackageAUnitA.o not found');
-  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'PackageA.fpm'])), 'PackageAUnitA.fpm not found');
+  Check(pos('packagea', s) > 0, 'Just installed PackageA is not in package-list');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.o'])), 'PackageAUnitA.o not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'packagea.fpm'])), 'PackageAUnitA.fpm not found');
 
   // uninstall package
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['uninstall'], 'install PackageA');
 
   // check uninstallation
   s := RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['list'], 'list packages');
-  Check(pos('PackageA', s) = 0, 'Just de-installed PackageA is still in package-list');
-  CheckFalse(DirectoryExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA'])), 'PackageAUnitA-directory found after uninstall');
-  CheckFalse(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'PackageA.fpm'])), 'PackageAUnitA.fpm found after uninstall');
+  Check(pos('packagea', s) = 0, 'Just de-installed PackageA is still in package-list');
+  CheckFalse(DirectoryExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea'])), 'PackageAUnitA-directory found after uninstall');
+  CheckFalse(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'packagea.fpm'])), 'PackageAUnitA.fpm found after uninstall');
 end;
 
 procedure TFullFPCInstallationTests.TestLooseFPMFile;
@@ -366,12 +367,12 @@ begin
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['install'], 'install PackageA');
 
   // Destroy the installation
-  DeleteFile(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA','PackageAUnitA.ppu']));
+  DeleteFile(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.ppu']));
 
   // Re-install
   RunFppkgIndir(TFullFPCInstallationSetup.GetTestPath, ['install', 'packagea'], 're-install PackageA');
 
-  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found after re-install');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found after re-install');
 
   // Remove the original sources
   DeleteDirectory(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', False);
@@ -392,9 +393,9 @@ begin
 
   // Test installation
   s := RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['list'], 'list packages');
-  Check(pos('PackageA', s) > 0, 'Just installed PackageA is not in package-list');
+  Check(pos('packagea', s) > 0, 'Just installed PackageA is not in package-list');
   Check(pos('PackageB', s) > 0, 'Just installed PackageB is not in package-list');
-  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
   Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageB','PackageBUnitB.ppu'])), 'PackageBUnitB.ppu not found');
 end;
 
@@ -413,10 +414,34 @@ begin
 
   // Test installation
   s := RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['list'], 'list packages');
-  Check(pos('PackageA', s) > 0, 'Just installed PackageA is not in package-list');
+  Check(pos('packagea', s) > 0, 'Just installed PackageA is not in package-list');
   Check(pos('PackageB', s) > 0, 'Just installed PackageB is not in package-list');
-  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageA','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
   Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageB','PackageBUnitB.ppu'])), 'PackageBUnitB.ppu not found');
+end;
+
+procedure TFullFPCInstallationTests.TestSourceDependency;
+var
+  CompilerStr,
+  FpcSearchpath,
+  PackageSearchpath: string;
+begin
+  // This is to test if fpmkunit works correctly when a dependency is available
+  // not as an installed but as a (compiled) source-package. This happens for
+  // example if you try to compile _one_ fpmake-packages in fpcsrc/packages,
+  // using 'make clean all' and it needs one of the other packages in
+  // fpcsrc/packages.
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagea');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packageb');
+
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['build'], 'build PackageA');
+
+  CompilerStr := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'bin', 'fpc']);
+  FpcSearchpath := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion]);
+  PackageSearchpath := TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath;
+
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb', ['build'], 'create fpmake-executable', 1);
+  RunTestCommandIndir(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packageb']), ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packageb', 'fpmake']), ['build', '--nofpccfg', '--compiler='+CompilerStr, '--searchpath='+FpcSearchpath, '--searchpath='+PackageSearchpath], 'build packagea');
 end;
 
 Initialization

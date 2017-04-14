@@ -18,7 +18,7 @@ begin
     P.Email := '';
     P.Description := 'Basic test-package that depends on PackageA';
 
-    P.Dependencies.Add('PackageA');
+    P.Dependencies.Add('packagea');
 
     P.SourcePath.Add('src');
  
