@@ -106,6 +106,8 @@ type
     procedure TestWP_CallInherited;
     procedure TestWP_ProgramPublicDeclarations;
     procedure TestWP_ClassDefaultProperty;
+    procedure TestWP_Published;
+    procedure TestWP_PublishedProperty;
   end;
 
 implementation
@@ -1399,6 +1401,52 @@ begin
   Add('  {#l_used}L: TObject;');
   Add('begin');
   Add('  L[0]:=''birdy'';');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_Published;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#tobject_used}TObject = class');
+  Add('  private');
+  Add('    {#fcol_used}FCol: string;');
+  Add('    {#fbird_notused}FBird: string;');
+  Add('  published');
+  Add('    {#fielda_used}FieldA: longint;');
+  Add('    procedure {#doit_used}ProcA; virtual; abstract;');
+  Add('    property {#col_used}Col: string read FCol;');
+  Add('  end;');
+  Add('var');
+  Add('  {#o_used}o: TObject;');
+  Add('begin');
+  Add('  o:=nil;');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_PublishedProperty;
+begin
+  StartProgram(false);
+  Add('const');
+  Add('  {#defcol_used}DefCol = 3;');
+  Add('  {#defsize_notused}DefSize = 43;');
+  Add('type');
+  Add('  {#tobject_used}TObject = class');
+  Add('  private');
+  Add('    {#fcol_used}FCol: longint;');
+  Add('    {#fsize_used}FSize: longint;');
+  Add('    {#fbird_notused}FBird: string;');
+  Add('    {#fcolstored_used}FColStored: boolean;');
+  Add('    {#fsizestored_notused}FSizeStored: boolean;');
+  Add('  public');
+  Add('    property {#size_used}Size: longint read FSize stored FSizeStored default DefSize;');
+  Add('  published');
+  Add('    property {#col_used}Col: longint read FCol stored FColStored default DefCol;');
+  Add('  end;');
+  Add('var');
+  Add('  {#o_used}o: TObject;');
+  Add('begin');
+  Add('  if o.Size=13 then ;');
   AnalyzeWholeProgram;
 end;
 

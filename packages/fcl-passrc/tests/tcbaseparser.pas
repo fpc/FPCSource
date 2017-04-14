@@ -79,6 +79,7 @@ Type
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasMemberVisibility); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureModifier); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureModifiers); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcTypeModifiers); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TAssignKind); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureMessageType); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TOperatorType); overload;
@@ -843,6 +844,27 @@ procedure TTestParser.AssertEquals(const Msg: String; AExpected,
         If (Result<>'') then
            Result:=Result+',';
         Result:=Result+GetEnumName(TypeInfo(TProcedureModifier),Ord(m))
+        end;
+  end;
+begin
+  AssertEquals(Msg,Sn(AExpected),SN(AActual));
+end;
+
+procedure TTestParser.AssertEquals(const Msg: String; AExpected,
+  AActual: TProcTypeModifiers);
+
+  Function Sn (S : TProcTypeModifiers) : String;
+
+  Var
+    m : TProcTypeModifier;
+  begin
+    Result:='';
+    For M:=Low(TProcTypeModifier) to High(TProcTypeModifier) do
+      If (m in S) then
+        begin
+        If (Result<>'') then
+           Result:=Result+',';
+        Result:=Result+GetEnumName(TypeInfo(TProcTypeModifier),Ord(m))
         end;
   end;
 begin
