@@ -213,7 +213,7 @@ Type
     FFindex: Integer;
   Public
     Destructor Destroy; override;
-    Property Expr : TJSelement Read FExpr Write FExpr;
+    Property Expr : TJSElement Read FExpr Write FExpr;
     Property ElementIndex : Integer Read FFindex Write FFIndex;
   end;
 
@@ -234,6 +234,7 @@ Type
     FElements: TJSArrayLiteralElements;
   Public
     Constructor Create(ALine,ARow : Integer; const ASource : String = ''); override;
+    procedure AddElement(El: TJSElement);
     Destructor Destroy; override;
     Property Elements : TJSArrayLiteralElements Read FElements;
   end;
@@ -292,6 +293,7 @@ Type
     FArgs: TJSArguments;
   Public
     Destructor Destroy; override;
+    procedure AddArg(El: TJSElement);
     Property Args : TJSArguments Read FArgs Write FArgs;
   end;
 
@@ -322,6 +324,7 @@ Type
     FExpr: TJSElement;
   Public
     Destructor Destroy; override;
+    procedure AddArg(El: TJSElement);
     Property Expr : TJSElement Read FExpr Write FExpr;
     Property Args : TJSArguments Read FArgs Write FArgs;
   end;
@@ -1549,10 +1552,15 @@ end;
 
 { TJSArrayLiteral }
 
-constructor TJSArrayLiteral.Create(ALine, ARow: Integer; Const ASource: String = '');
+constructor TJSArrayLiteral.Create(ALine, ARow: Integer; const ASource: String);
 begin
   inherited Create(ALine, ARow, ASource);
   FElements:=TJSArrayLiteralElements.Create(TJSArrayLiteralElement);
+end;
+
+procedure TJSArrayLiteral.AddElement(El: TJSElement);
+begin
+  Elements.AddElement.Expr:=El;
 end;
 
 destructor TJSArrayLiteral.Destroy;
@@ -1613,6 +1621,11 @@ begin
   inherited Destroy;
 end;
 
+procedure TJSNewMemberExpression.AddArg(El: TJSElement);
+begin
+  Args.Elements.AddElement.Expr:=El;
+end;
+
 { TJSMemberExpression }
 
 destructor TJSMemberExpression.Destroy;
@@ -1628,6 +1641,11 @@ begin
   FreeAndNil(FExpr);
   FreeAndNil(FArgs);
   inherited Destroy;
+end;
+
+procedure TJSCallExpression.AddArg(El: TJSElement);
+begin
+  Args.Elements.AddElement.Expr:=El;
 end;
 
 { TJSUnary }
