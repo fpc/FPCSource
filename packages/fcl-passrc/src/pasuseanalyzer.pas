@@ -1135,7 +1135,7 @@ begin
   if ImplProc.Body<>nil then
     UseImplBlock(ImplProc.Body.Body,false);
 
-  if ProcScope.OverriddenProc<>nil then
+  if Proc.IsOverride and (ProcScope.OverriddenProc<>nil) then
     AddOverride(ProcScope.OverriddenProc,Proc);
 
   // mark overrides
@@ -1304,8 +1304,17 @@ begin
     if FirstTime and (Member is TPasProcedure) then
       begin
       ProcScope:=Member.CustomData as TPasProcedureScope;
-      if ProcScope.OverriddenProc<>nil then
+      if TPasProcedure(Member).IsOverride and (ProcScope.OverriddenProc<>nil) then
+        begin
+        // this is an override
         AddOverride(ProcScope.OverriddenProc,Member);
+        if ScopeModule<>nil then
+          begin
+          // when analyzingf a single module, all overrides are assumed to be called
+          UseElement(Member,rraNone,true);
+          continue;
+          end;
+        end;
       end;
     if AllPublished and (Member.Visibility=visPublished) then
       begin

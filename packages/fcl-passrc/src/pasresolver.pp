@@ -8745,7 +8745,10 @@ begin
   if GotType.BaseType<>ExpType.BaseType then
     begin
     GotDesc:=GetBaseDecs(GotType);
-    ExpDesc:=GetBaseDecs(ExpType);
+    if ExpType.BaseType=btNil then
+      ExpDesc:=BaseTypeNames[btPointer]
+    else
+      ExpDesc:=GetBaseDecs(ExpType);
     if GotDesc=ExpDesc then
       begin
       GotDesc:=GetBaseDecs(GotType,true);
@@ -9472,10 +9475,10 @@ begin
             or (TypeEl is TPasProcedureType)
             or IsDynArray(TypeEl) then
           exit(cExact);
-        end
-      else if RaiseOnIncompatible then
-        RaiseMsg(20170216152442,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          [BaseTypeNames[RHS.BaseType],BaseTypeNames[LHS.BaseType]],LErrorEl)
+        end;
+      if RaiseOnIncompatible then
+        RaiseIncompatibleTypeRes(20170216152442,nIncompatibleTypesGotExpected,
+          [],RHS,LHS,RErrorEl)
       else
         exit(cIncompatible);
     end
@@ -9492,10 +9495,10 @@ begin
             or (TypeEl is TPasProcedureType)
             or IsDynArray(TypeEl) then
           exit(cExact);
-        end
-      else if RaiseOnIncompatible then
-        RaiseMsg(20170216152444,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          [BaseTypeNames[LHS.BaseType],BaseTypeNames[RHS.BaseType]],LErrorEl)
+        end;
+      if RaiseOnIncompatible then
+        RaiseIncompatibleTypeRes(20170216152444,nIncompatibleTypesGotExpected,
+          [],LHS,RHS,LErrorEl)
       else
         exit(cIncompatible);
     end

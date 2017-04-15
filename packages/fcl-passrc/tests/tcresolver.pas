@@ -203,6 +203,7 @@ type
     Procedure TestEnumHighLow;
     Procedure TestEnumOrd;
     Procedure TestEnumPredSucc;
+    Procedure TestEnum_EqualNilFail;
     Procedure TestEnum_CastIntegerToEnum;
     Procedure TestEnum_Str;
     Procedure TestSet_AnonymousEnumtype;
@@ -2364,6 +2365,19 @@ begin
   Add('  f:=Succ(f);');
   Add('  if Succ(green)=Succ(TFlag.Blue) then;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestEnum_EqualNilFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red, green);');
+  Add('var');
+  Add('  f: TFlag;');
+  Add('begin');
+  Add('  if f=nil then ;');
+  CheckResolverException('Incompatible types: got "TFlag" expected "Pointer"',
+    nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestEnum_CastIntegerToEnum;
