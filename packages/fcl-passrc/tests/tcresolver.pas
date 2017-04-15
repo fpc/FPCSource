@@ -205,6 +205,8 @@ type
     Procedure TestEnumPredSucc;
     Procedure TestEnum_CastIntegerToEnum;
     Procedure TestEnum_Str;
+    Procedure TestSet_AnonymousEnumtype;
+    Procedure TestSet_AnonymousEnumtypeName;
 
     // operators
     Procedure TestPrgAssignment;
@@ -2393,6 +2395,57 @@ begin
   Add('  aString:=str(f);');
   Add('  aString:=str(f:3);');
   Add('  str(f,aString);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestSet_AnonymousEnumtype;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlags = set of (red, green);');
+  Add('const');
+  Add('  favorite = red;');
+  Add('var');
+  Add('  f: TFlags;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  Include(f,red);');
+  Add('  Include(f,favorite);');
+  Add('  i:=ord(red);');
+  Add('  i:=ord(favorite);');
+  Add('  i:=ord(low(TFlags));');
+  Add('  i:=ord(low(f));');
+  Add('  i:=ord(low(favorite));');
+  Add('  i:=ord(high(TFlags));');
+  Add('  i:=ord(high(f));');
+  Add('  i:=ord(high(favorite));');
+  Add('  f:=[green,favorite];');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestSet_AnonymousEnumtypeName;
+begin
+  ResolverEngine.AnonymousEnumtypePostfix:='$enum';
+  StartProgram(false);
+  Add('type');
+  Add('  TFlags = set of (red, green);');
+  Add('const');
+  Add('  favorite = red;');
+  Add('var');
+  Add('  f: TFlags;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  Include(f,red);');
+  Add('  Include(f,favorite);');
+  Add('  i:=ord(red);');
+  Add('  i:=ord(favorite);');
+  Add('  i:=ord(low(TFlags));');
+  Add('  i:=ord(low(f));');
+  Add('  i:=ord(low(favorite));');
+  Add('  i:=ord(high(TFlags));');
+  Add('  i:=ord(high(f));');
+  Add('  i:=ord(high(favorite));');
+  Add('  f:=[green,favorite];');
   ParseProgram;
 end;
 

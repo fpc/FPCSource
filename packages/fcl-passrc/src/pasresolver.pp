@@ -976,6 +976,7 @@ type
       TResolveDataListKind = (lkBuiltIn,lkModule);
     procedure ClearResolveDataList(Kind: TResolveDataListKind);
   private
+    FAnonymousEnumtypePostfix: String;
     FBaseTypes: array[TResolverBaseType] of TPasUnresolvedSymbolRef;
     FBaseTypeStringIndex: TResolverBaseType;
     FDefaultScope: TPasDefaultScope;
@@ -1410,6 +1411,8 @@ type
     property Options: TPasResolverOptions read FOptions write FOptions;
     property ScopeClass_Class: TPasClassScopeClass read FScopeClass_Class write FScopeClass_Class;
     property ScopeClass_WithExpr: TPasWithExprScopeClass read FScopeClass_WithExpr write FScopeClass_WithExpr;
+    property AnonymousEnumtypePostfix: String read FAnonymousEnumtypePostfix
+      write FAnonymousEnumtypePostfix; // default empty, if set, anonymous enumtypes are named SetName+Postfix and add to declarations
   end;
 
 function GetObjName(o: TObject): string;
@@ -3146,16 +3149,49 @@ var
   RangeExpr: TBinaryExpr;
   C: TClass;
   EnumType: TPasType;
+
+  procedure CheckAnonymousElType;
+  var
+    Decl: TPasDeclarations;
+    EnumScope: TPasEnumTypeScope;
+  begin
+    if (EnumType.Name<>'') or (AnonymousEnumtypePostfix='') then exit;
+    if El.Name='' then
+      RaiseNotYetImplemented(20170415165455,EnumType);
+    // give anonymous enumtype a name
+    EnumType.Name:=El.Name+AnonymousEnumtypePostfix;
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.FinishSetType set="',GetObjName(El),'" named anonymous enumtype "',GetObjName(EnumType),'"');
+    {$ENDIF}
+    if not (El.Parent is TPasDeclarations) then
+      RaiseNotYetImplemented(20170415161624,EnumType,GetObjName(El.Parent));
+    Decl:=TPasDeclarations(El.Parent);
+    Decl.Declarations.Add(EnumType);
+    EnumType.AddRef;
+    EnumType.Parent:=Decl;
+    Decl.Types.Add(EnumType);
+    if EnumType is TPasEnumType then
+      begin
+      EnumScope:=TPasEnumTypeScope(EnumType.CustomData);
+      ReleaseAndNil(TPasElement(EnumScope.CanonicalSet));
+      EnumScope.CanonicalSet:=El;
+      end;
+  end;
+
 begin
   EnumType:=El.EnumType;
   C:=EnumType.ClassType;
   if C=TPasEnumType then
-    exit
+    begin
+    CheckAnonymousElType;
+    exit;
+    end
   else if C=TPasRangeType then
     begin
     RangeExpr:=TPasRangeType(EnumType).RangeExpr;
     if RangeExpr.Parent=El then
       CheckRangeExpr(RangeExpr.left,RangeExpr.right,StartResolved,EndResolved);
+    CheckAnonymousElType;
     exit;
     end
   else if C=TPasUnresolvedSymbolRef then
