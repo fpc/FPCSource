@@ -381,7 +381,6 @@ type
     Procedure TestExternalClass_TypeCastToRootClass;
     Procedure TestExternalClass_TypeCastStringToExternalString;
     Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
-    Procedure TestExternalClass_BracketOperatorOld;
     Procedure TestExternalClass_BracketAccessor;
     Procedure TestExternalClass_BracketAccessor_2ParamsFail;
     Procedure TestExternalClass_BracketAccessor_ReadOnly;
@@ -435,6 +434,7 @@ type
     Procedure TestRTTI_Class_Field;
     Procedure TestRTTI_Class_Method;
     Procedure TestRTTI_Class_Property;
+    Procedure TestRTTI_Class_PropertyParams;
     // ToDo: property default value
     Procedure TestRTTI_OverrideMethod;
     Procedure TestRTTI_OverloadProperty;
@@ -447,6 +447,7 @@ type
     Procedure TestRTTI_TypeInfo_LocalFail;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses1;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses2;
+    Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses3;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -8837,93 +8838,6 @@ begin
   ConvertProgram;
 end;
 
-procedure TTestModule.TestExternalClass_BracketOperatorOld;
-begin
-  StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TJSArray = class external name ''Array''');
-  Add('  end;');
-  Add('  TJSObject = class external name ''Object''');
-  Add('  end;');
-  Add('procedure DoIt(vI: JSValue; const vJ: jsvalue; var vK: jsvalue; out vL: jsvalue);');
-  Add('begin end;');
-  Add('var');
-  Add('  Obj: tjsobject;');
-  Add('  Arr: tjsarray;');
-  Add('  s: string;');
-  Add('  i: longint;');
-  Add('  v: jsvalue;');
-  Add('begin');
-  Add('  arr[1]:=s;');
-  Add('  arr[2]:=i;');
-  Add('  arr[3]:=arr[4];');
-  Add('  v:=arr[5];');
-  Add('  v:=obj[''one''];');
-  Add('  obj[''two'']:=i;');
-  Add('  obj[''three'']:=v;');
-  Add('  doit(arr[6],arr[7],arr[8],arr[9]);');
-  Add('  doit(obj[''10''],obj[''11''],obj[''12''],obj[''13'']);');
-  ConvertProgram;
-  CheckSource('TestExternalClass_BracketOperator',
-    LinesToStr([ // statements
-    'this.DoIt = function (vI, vJ, vK, vL) {',
-    '};',
-    'this.Obj = null;',
-    'this.Arr = null;',
-    'this.s = "";',
-    'this.i = 0;',
-    'this.v = undefined;',
-    '']),
-    LinesToStr([ // this.$main
-    'this.Arr[1] = this.s;',
-    'this.Arr[2] = this.i;',
-    'this.Arr[3] = this.Arr[4];',
-    'this.v = this.Arr[5];',
-    'this.v = this.Obj["one"];',
-    'this.Obj["two"] = this.i;',
-    'this.Obj["three"] = this.v;',
-    'this.DoIt(this.Arr[6], this.Arr[7], {',
-    '  a: 8,',
-    '  p: this.Arr,',
-    '  get: function () {',
-    '      return this.p[this.a];',
-    '    },',
-    '  set: function (v) {',
-    '      this.p[this.a] = v;',
-    '    }',
-    '}, {',
-    '  a: 9,',
-    '  p: this.Arr,',
-    '  get: function () {',
-    '      return this.p[this.a];',
-    '    },',
-    '  set: function (v) {',
-    '      this.p[this.a] = v;',
-    '    }',
-    '});',
-    ' this.DoIt(this.Obj["10"], this.Obj["11"], {',
-    '  a: "12",',
-    '  p: this.Obj,',
-    '  get: function () {',
-    '      return this.p[this.a];',
-    '    },',
-    '  set: function (v) {',
-    '      this.p[this.a] = v;',
-    '    }',
-    '}, {',
-    '  a: "13",',
-    '  p: this.Obj,',
-    '  get: function () {',
-    '      return this.p[this.a];',
-    '    },',
-    '  set: function (v) {',
-    '      this.p[this.a] = v;',
-    '    }',
-    '});',
-    '']));
-end;
-
 procedure TTestModule.TestExternalClass_BracketAccessor;
 begin
   StartProgram(false);
@@ -11104,7 +11018,7 @@ begin
     LinesToStr([ // this.$main
     'this.p = this.$rtti["TObject"];',
     'this.p = rtl.pointer;',
-    'this.p = this.$rtti["TObject"];',
+    'this.p = this.Obj.$rtti;',
     '']));
 end;
 
@@ -11199,6 +11113,41 @@ begin
     '      stored: "$getExtSizeStored"',
     '    }',
     '  );',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_PropertyParams;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    function GetItems(i: integer): tobject; virtual; abstract;');
+  Add('    procedure SetItems(i: integer; value: tobject); virtual; abstract;');
+  Add('    function GetValues(const i: integer; var b: boolean): char; virtual; abstract;');
+  Add('    procedure SetValues(const i: integer; var b: boolean; value: char); virtual; abstract;');
+  Add('  published');
+  Add('    property Items[Index: integer]: tobject read getitems write setitems;');
+  Add('    property Values[const keya: integer; var keyb: boolean]: char read getvalues write setvalues;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_PropertyParams',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty("Items", 3, $r, "GetItems", "SetItems");',
+    '  $r.addProperty("Values", 3, rtl.char, "GetValues", "SetValues");',
     '});',
     '']),
     LinesToStr([ // this.$main
@@ -11341,7 +11290,7 @@ begin
     '']),
     LinesToStr([ // this.$main
     'this.p = this.$rtti["TBridge"];',
-    'this.p = this.$rtti["TBridge"];',
+    'this.p = this.b.$rtti;',
     '']));
 end;
 
@@ -11659,30 +11608,24 @@ begin
   Add('  TTypeInfoProcVar = class external name ''rtl.tTypeInfoProcVar''(TTypeInfo) end;');
   Add('  TMethod = procedure of object;');
   Add('  TTypeInfoMethodVar = class external name ''rtl.tTypeInfoMethodVar''(TTypeInfoProcVar) end;');
-  Add('  TRec = record end;');
-  Add('  TTypeInfoRecord = class external name ''rtl.tTypeInfoRecord''(TTypeInfo) end;');
-  Add('  TObject = class end;');
-  Add('  TTypeInfoClass = class external name ''rtl.tTypeInfoClass''(TTypeInfo) end;');
-  Add('  TClass = class of tobject;');
-  Add('  TTypeInfoClassRef = class external name ''rtl.tTypeInfoClassRef''(TTypeInfo) end;');
-  Add('  TTypeInfoPointer = class external name ''rtl.tTypeInfoPointer''(TTypeInfo) end;');
   Add('var');
+  Add('  StaticArray: TStaticArr;');
   Add('  tiStaticArray: TTypeInfoStaticArray;');
+  Add('  DynArray: TDynArr;');
   Add('  tiDynArray: TTypeInfoDynArray;');
+  Add('  ProcVar: TProc;');
   Add('  tiProcVar: TTypeInfoProcVar;');
+  Add('  MethodVar: TMethod;');
   Add('  tiMethodVar: TTypeInfoMethodVar;');
-  Add('  tiRecord: TTypeInfoRecord;');
-  Add('  tiClass: TTypeInfoClass;');
-  Add('  tiClassRef: TTypeInfoClassRef;');
-  Add('  tiPointer: TTypeInfoPointer;');
   Add('begin');
+  Add('  tiStaticArray:=typeinfo(StaticArray);');
   Add('  tiStaticArray:=typeinfo(TStaticArr);');
+  Add('  tiDynArray:=typeinfo(DynArray);');
   Add('  tiDynArray:=typeinfo(TDynArr);');
+  Add('  tiProcVar:=typeinfo(ProcVar);');
   Add('  tiProcVar:=typeinfo(TProc);');
+  Add('  tiMethodVar:=typeinfo(MethodVar);');
   Add('  tiMethodVar:=typeinfo(TMethod);');
-  Add('  tiRecord:=typeinfo(TRec);');
-  Add('  tiClass:=typeinfo(TObject);');
-  Add('  tiClassRef:=typeinfo(TClass);');
   ConvertProgram;
   CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses2',
     LinesToStr([ // statements
@@ -11700,6 +11643,61 @@ begin
     '  procsig: rtl.newTIProcSig(null),',
     '  methodkind: 0',
     '});',
+    'this.StaticArray = rtl.arrayNewMultiDim([2], "");',
+    'this.tiStaticArray = null;',
+    'this.DynArray = [];',
+    'this.tiDynArray = null;',
+    'this.ProcVar = null;',
+    'this.tiProcVar = null;',
+    'this.MethodVar = null;',
+    'this.tiMethodVar = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.tiStaticArray = this.$rtti["TStaticArr"];',
+    'this.tiStaticArray = this.$rtti["TStaticArr"];',
+    'this.tiDynArray = this.$rtti["TDynArr"];',
+    'this.tiDynArray = this.$rtti["TDynArr"];',
+    'this.tiProcVar = this.$rtti["TProc"];',
+    'this.tiProcVar = this.$rtti["TProc"];',
+    'this.tiMethodVar = this.$rtti["TMethod"];',
+    'this.tiMethodVar = this.$rtti["TMethod"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_TypeInfo_ExtTypeInfoClasses3;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TTypeInfo = class external name ''rtl.tTypeInfo'' end;');
+  Add('  TRec = record end;');
+  Add('  TTypeInfoRecord = class external name ''rtl.tTypeInfoRecord''(TTypeInfo) end;');
+  // ToDo: ^PRec
+  Add('  TObject = class end;');
+  Add('  TTypeInfoClass = class external name ''rtl.tTypeInfoClass''(TTypeInfo) end;');
+  Add('  TClass = class of tobject;');
+  Add('  TTypeInfoClassRef = class external name ''rtl.tTypeInfoClassRef''(TTypeInfo) end;');
+  Add('  TTypeInfoPointer = class external name ''rtl.tTypeInfoPointer''(TTypeInfo) end;');
+  Add('var');
+  Add('  Rec: trec;');
+  Add('  tiRecord: ttypeinforecord;');
+  Add('  Obj: tobject;');
+  Add('  tiClass: ttypeinfoclass;');
+  Add('  aClass: tclass;');
+  Add('  tiClassRef: ttypeinfoclassref;');
+  // ToDo: ^PRec
+  Add('  tiPointer: ttypeinfopointer;');
+  Add('begin');
+  Add('  tirecord:=typeinfo(trec);');
+  Add('  tirecord:=typeinfo(trec);');
+  Add('  ticlass:=typeinfo(obj);');
+  Add('  ticlass:=typeinfo(tobject);');
+  Add('  ticlassref:=typeinfo(aclass);');
+  Add('  ticlassref:=typeinfo(tclass);');
+  ConvertProgram;
+  CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses3',
+    LinesToStr([ // statements
     'this.TRec = function (s) {',
     '};',
     'this.$rtti.$Record("TRec", {});',
@@ -11712,22 +11710,20 @@ begin
     'this.$rtti.$ClassRef("TClass", {',
     '  instancetype: this.$rtti["TObject"]',
     '});',
-    'this.tiStaticArray = null;',
-    'this.tiDynArray = null;',
-    'this.tiProcVar = null;',
-    'this.tiMethodVar = null;',
+    'this.Rec = new this.TRec();',
     'this.tiRecord = null;',
+    'this.Obj = null;',
     'this.tiClass = null;',
+    'this.aClass = null;',
     'this.tiClassRef = null;',
     'this.tiPointer = null;',
     '']),
     LinesToStr([ // this.$main
-    'this.tiStaticArray = this.$rtti["TStaticArr"];',
-    'this.tiDynArray = this.$rtti["TDynArr"];',
-    'this.tiProcVar = this.$rtti["TProc"];',
-    'this.tiMethodVar = this.$rtti["TMethod"];',
     'this.tiRecord = this.$rtti["TRec"];',
+    'this.tiRecord = this.$rtti["TRec"];',
+    'this.tiClass = this.Obj.$rtti;',
     'this.tiClass = this.$rtti["TObject"];',
+    'this.tiClassRef = this.$rtti["TClass"];',
     'this.tiClassRef = this.$rtti["TClass"];',
     '']));
 end;

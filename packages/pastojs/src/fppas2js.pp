@@ -228,6 +228,7 @@ Works:
   - record type  tkRecord
   - no typeinfo for local types
   - built-in function typeinfo(): Pointer/TTypeInfo/...;
+    - typeinfo(class) -> class.$rtti
   - WPO skip not used typeinfo
 - pointer
   - compare with and assign nil
@@ -236,20 +237,18 @@ Works:
   - use 0o for octal literals
 
 ToDos:
+- move pas.System calls from rtl.js to system unit initialization, because of
+  UseLowerCase and WPO
 - RTTI
   - codetools function typeinfo
   - jsinteger (pasresolver: btIntDouble)
   - class property
-    - indexed property
     - defaultvalue
   - type alias type
   - typinfo.pp functions to get/setprop
-- move pas.System calls from rtl.js to system unit initialization
 - warn int64
 - local var absolute
 - make -Jirtl.js default for -Jc and -Tnodejs, needs #IFDEF in cfg
-- remove 'Object' array workaround
-- use TJSObject[] for RegisterClass
 - FuncName:= (instead of Result:=)
 - $modeswitch -> define <modeswitch>
 - $modeswitch- -> turn off
@@ -277,6 +276,7 @@ Not in Version 1.0:
   - set of (enum,enum2)  - anonymous enumtype
 - call array of proc element without ()
 - record const
+- class: property modifier index
 - enums with custom values
 - library
 - option typecast checking
@@ -824,12 +824,6 @@ type
     function CheckEqualCompatibilityCustomType(const LHS,
       RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer; override;
-    function ResolveBracketOperatorClass(Params: TParamsExpr;
-      const ResolvedValue: TPasResolverResult; ClassScope: TPasClassScope;
-      Access: TResolvedRefAccess): boolean; override;
-    procedure ComputeArrayParams_Class(Params: TParamsExpr; var
-      ResolvedEl: TPasResolverResult; ClassScope: TPasClassScope;
-      Flags: TPasResolverComputeFlags; StartEl: TPasElement); override;
     procedure BI_TypeInfo_OnGetCallResult(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); override;
   public
@@ -2351,77 +2345,6 @@ begin
     exit(CheckEqualCompatibilityCustomType(RHS,LHS,ErrorEl,RaiseOnIncompatible))
   else
     RaiseInternalError(20170330005725);
-end;
-
-function TPas2JSResolver.ResolveBracketOperatorClass(Params: TParamsExpr;
-  const ResolvedValue: TPasResolverResult; ClassScope: TPasClassScope;
-  Access: TResolvedRefAccess): boolean;
-var
-  ParamResolved: TPasResolverResult;
-  Param: TPasExpr;
-  aClass: TPasClassType;
-begin
-  if ClassScope.DefaultProperty=nil then
-    begin
-    aClass:=TPasClassType(ClassScope.Element);
-    if IsExternalClassName(aClass,'Array') then
-      begin
-      if ResolvedValue.IdentEl is TPasType then
-        RaiseMsg(20170402194000,nIllegalQualifier,sIllegalQualifier,['['],Params);
-      if length(Params.Params)<>1 then
-        RaiseMsg(20170402194059,nWrongNumberOfParametersForArray,
-          sWrongNumberOfParametersForArray,[],Params);
-      // check first param is an integer value
-      Param:=Params.Params[0];
-      ComputeElement(Param,ParamResolved,[]);
-      if (not (rrfReadable in ParamResolved.Flags))
-          or not (ParamResolved.BaseType in btAllInteger) then
-        CheckRaiseTypeArgNo(20170402194221,1,Param,ParamResolved,'integer',true);
-      AccessExpr(Param,rraRead);
-      exit(true);
-      end
-    else if IsExternalClassName(aClass,'Object') then
-      begin
-      if ResolvedValue.IdentEl is TPasType then
-        RaiseMsg(20170402194453,nIllegalQualifier,sIllegalQualifier,['['],Params);
-      if length(Params.Params)<>1 then
-        RaiseMsg(20170402194456,nWrongNumberOfParametersForArray,
-          sWrongNumberOfParametersForArray,[],Params);
-      // check first param is a string value
-      Param:=Params.Params[0];
-      ComputeElement(Param,ParamResolved,[]);
-      if (not (rrfReadable in ParamResolved.Flags))
-          or not (ParamResolved.BaseType in btAllStringAndChars) then
-        CheckRaiseTypeArgNo(20170402194511,1,Param,ParamResolved,'string',true);
-      AccessExpr(Param,rraRead);
-      exit(true);
-      end;
-    end;
-  Result:=inherited ResolveBracketOperatorClass(Params, ResolvedValue, ClassScope, Access);
-end;
-
-procedure TPas2JSResolver.ComputeArrayParams_Class(Params: TParamsExpr;
-  var ResolvedEl: TPasResolverResult; ClassScope: TPasClassScope;
-  Flags: TPasResolverComputeFlags; StartEl: TPasElement);
-var
-  aClass: TPasClassType;
-  OrigResolved: TPasResolverResult;
-begin
-  aClass:=TPasClassType(ClassScope.Element);
-  if IsExternalClassName(aClass,'Array') or IsExternalClassName(aClass,'Object') then
-    begin
-    if [rcConstant,rcType]*Flags<>[] then
-      RaiseConstantExprExp(20170402202137,Params);
-    OrigResolved:=ResolvedEl;
-    SetResolverTypeExpr(ResolvedEl,btCustom,JSBaseTypes[pbtJSValue],[rrfReadable,rrfWritable]);
-    // identifier and value is the array/object itself
-    ResolvedEl.IdentEl:=OrigResolved.IdentEl;
-    ResolvedEl.ExprEl:=OrigResolved.ExprEl;
-    ResolvedEl.Flags:=OrigResolved.Flags+[rrfReadable,rrfWritable];
-    exit;
-    end;
-  inherited ComputeArrayParams_Class(Params, ResolvedEl, ClassScope, Flags,
-    StartEl);
 end;
 
 procedure TPas2JSResolver.BI_TypeInfo_OnGetCallResult(
@@ -4992,12 +4915,9 @@ begin
     if TypeEl.ClassType=TPasClassType then
       begin
       aClass:=TPasClassType(TypeEl);
-      ClassScope:=TypeEl.CustomData as TPas2JSClassScope;
+      ClassScope:=aClass.CustomData as TPas2JSClassScope;
       if ClassScope.DefaultProperty<>nil then
         ConvertDefaultProperty(ResolvedEl,ClassScope.DefaultProperty)
-      else if AContext.Resolver.IsExternalClassName(aClass,'Array')
-          or AContext.Resolver.IsExternalClassName(aClass,'Object') then
-        ConvertJSObject
       else
         RaiseInconsistency(20170206180448);
       end
@@ -6579,7 +6499,19 @@ begin
   if ParamResolved.IdentEl is TPasType then
     Result:=CreateTypeInfoRef(TPasType(ParamResolved.IdentEl),AContext,Param)
   else if ParamResolved.TypeEl<>nil then
-    Result:=CreateTypeInfoRef(ParamResolved.TypeEl,AContext,Param)
+    begin
+    if (ParamResolved.TypeEl.ClassType=TPasClassType)
+        and (rrfReadable in ParamResolved.Flags)
+        and ((ParamResolved.IdentEl is TPasVariable)
+          or (ParamResolved.IdentEl.ClassType=TPasArgument)) then
+      begin
+      // typeinfo(classinstance) -> classinstance.$rtti
+      Result:=ConvertElement(Param,AContext);
+      Result:=CreateDotExpression(El,Result,CreateBuiltInIdentifierExpr(FBuiltInNames[pbivnRTTI]));
+      end
+    else
+      Result:=CreateTypeInfoRef(ParamResolved.TypeEl,AContext,Param);
+    end
   else
     RaiseNotSupported(El,AContext,20170413001544);
 end;

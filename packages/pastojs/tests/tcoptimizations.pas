@@ -79,6 +79,7 @@ type
     procedure TestWPO_UseUnit;
     procedure TestWPO_ProgramPublicDeclaration;
     procedure TestWPO_RTTI_PublishedField;
+    procedure TestWPO_RTTI_TypeInfo;
   end;
 
 implementation
@@ -796,7 +797,7 @@ begin
   ActualSrc:=JSToStr(JSModule);
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system"], function () {',
-     'this.$rtti.$DynArray("TArrB", {',
+    'this.$rtti.$DynArray("TArrB", {',
     '  eltype: rtl.string',
     '});',
     '  rtl.createClass(this, "TObject", null, function () {',
@@ -818,6 +819,41 @@ begin
     '});',
     '']);
   CheckDiff('TestWPO_RTTI_PublishedField',ExpectedSrc,ActualSrc);
+end;
+
+procedure TTestOptimizations.TestWPO_RTTI_TypeInfo;
+var
+  ActualSrc, ExpectedSrc: String;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(true);
+  Add('type');
+  Add('  TArrA = array of char;');
+  Add('  TArrB = array of string;');
+  Add('var');
+  Add('  A: TArrA;');
+  Add('  B: TArrB;');
+  Add('  p: pointer;');
+  Add('begin');
+  Add('  A:=nil;');
+  Add('  p:=typeinfo(B);');
+  ConvertProgram;
+  ActualSrc:=JSToStr(JSModule);
+  ExpectedSrc:=LinesToStr([
+    'rtl.module("program", ["system"], function () {',
+    'this.$rtti.$DynArray("TArrB", {',
+    '  eltype: rtl.string',
+    '});',
+    '  this.A = [];',
+    '  this.B = [];',
+    '  this.p = null;',
+    '  this.$main = function () {',
+    '    this.A = [];',
+    '    this.p = this.$rtti["TArrB"];',
+    '  };',
+    '});',
+    '']);
+  CheckDiff('TestWPO_RTTI_TypeInfo',ExpectedSrc,ActualSrc);
 end;
 
 Initialization
