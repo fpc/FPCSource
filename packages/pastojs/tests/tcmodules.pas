@@ -10793,7 +10793,7 @@ begin
     LinesToStr([ // statements
     'var $impl = this.$impl;',
     'this.$rtti.$ProcVar("TProcA", {',
-    '  procsig: rtl.newTIProcSig([["o", unit2.$rtti["TObject"]]], unit2.$rtti["TObject"])',
+    '  procsig: rtl.newTIProcSig([["o", pas.unit2.$rtti["TObject"]]], pas.unit2.$rtti["TObject"])',
     '});',
     '']),
     LinesToStr([ // this.$init
@@ -10802,7 +10802,7 @@ begin
     '']),
     LinesToStr([ // implementation
     'this.$rtti.$ProcVar("TProcB", {',
-    '  procsig: rtl.newTIProcSig([["o", unit2.$rtti["TObject"]]], unit2.$rtti["TObject"])',
+    '  procsig: rtl.newTIProcSig([["o", pas.unit2.$rtti["TObject"]]], pas.unit2.$rtti["TObject"])',
     '});',
     '$impl.p = null;',
     '']) );
@@ -11357,9 +11357,9 @@ begin
     '    pas.program.TObject.$final.call(this);',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addField("FBridge", program.$rtti["TBridge"]);',
-    '  $r.addMethod("SetBridge", 0, [["Value", program.$rtti["TBridge"]]]);',
-    '  $r.addProperty("Bridge", 2, program.$rtti["TBridge"], "FBridge", "SetBridge");',
+    '  $r.addField("FBridge", pas.program.$rtti["TBridge"]);',
+    '  $r.addMethod("SetBridge", 0, [["Value", pas.program.$rtti["TBridge"]]]);',
+    '  $r.addProperty("Bridge", 2, pas.program.$rtti["TBridge"], "FBridge", "SetBridge");',
     '});',
     'rtl.createClass(this, "TBridge", this.TObject, function () {',
     '  this.$init = function () {',
@@ -11418,7 +11418,7 @@ begin
     '    this.C = undefined;',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addField("C", program.$rtti["TClass"]);',
+    '  $r.addField("C", pas.program.$rtti["TClass"]);',
     '});',
     'this.$rtti.$Class("TFox");',
     'rtl.createClass(this, "TBird", this.TObject, function () {',

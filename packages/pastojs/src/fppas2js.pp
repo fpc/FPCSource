@@ -1078,7 +1078,7 @@ type
     // Name mangling
     Function TransformVariableName(El: TPasElement; Const AName: String; AContext : TConvertContext): String; virtual;
     Function TransformVariableName(El: TPasElement; AContext : TConvertContext) : String; virtual;
-    Function TransformModuleName(El: TPasModule; AContext : TConvertContext) : String; virtual;
+    Function TransformModuleName(El: TPasModule; AddModulesPrefix: boolean; AContext : TConvertContext) : String; virtual;
     Function IsPreservedWord(const aName: string): boolean; virtual;
     // Never create an element manually, always use the below functions
     Function IsElementUsed(El: TPasElement): boolean; virtual;
@@ -3205,7 +3205,7 @@ begin
   RegModuleCall.Args:=ArgArray;
 
   // add unitname parameter: unitname
-  ModuleName:=TransformModuleName(El,AContext);
+  ModuleName:=TransformModuleName(El,false,AContext);
   ArgArray.Elements.AddElement.Expr:=CreateLiteralString(El,ModuleName);
 
   // add interface-uses-section parameter: [<interface uses1>,<uses2>, ...]
@@ -4264,7 +4264,7 @@ begin
     writeln('TPasToJSConverter.ConvertIdentifierExpr ',GetObjName(El),' Decl=',GetObjName(Decl),' Decl.Parent=',GetObjName(Decl.Parent));
     {$ENDIF}
     if Decl is TPasModule then
-      Name:=FBuiltInNames[pbivnModules]+'.'+TransformModuleName(TPasModule(Decl),AContext)
+      Name:=TransformModuleName(TPasModule(Decl),true,AContext)
     else if (Decl is TPasFunctionType) and (CompareText(ResolverResultVar,El.Value)=0) then
       Name:=ResolverResultVar
     else if Decl.ClassType=TPasEnumValue then
@@ -8543,7 +8543,7 @@ begin
       if AContext.GetThis=aModule then
         aModName:='this'
       else
-        aModName:=TransformModuleName(aModule,AContext);
+        aModName:=TransformModuleName(aModule,true,AContext);
       Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
       Bracket.MExpr:=CreateMemberExpression([aModName,FBuiltInNames[pbivnRTTI]]);
       Bracket.Name:=CreateLiteralString(El,aName);
@@ -8632,8 +8632,7 @@ begin
     RttiPath:='this'
   else
     begin
-    RttiPath:=CallFuncName+'.'
-      +TransformModuleName(ThisContext.GetRootModule,AContext);
+    RttiPath:=TransformModuleName(ThisContext.GetRootModule,true,AContext);
     end;
   Call:=CreateCallExpression(El);
   try
@@ -10117,8 +10116,7 @@ begin
             Prepend(Result,FBuiltInNames[pbivnImplementation])
           else
             // in other unit -> use pas.unitname.$impl
-            Prepend(Result,FBuiltInNames[pbivnModules]
-               +'.'+TransformModuleName(FoundModule,AContext)
+            Prepend(Result,TransformModuleName(FoundModule,true,AContext)
                +'.'+FBuiltInNames[pbivnImplementation]);
           end;
         break;
@@ -10129,8 +10127,7 @@ begin
         if ParentEl=This then
           Prepend(Result,'this')
         else
-          Prepend(Result,FBuiltInNames[pbivnModules]
-            +'.'+TransformModuleName(TPasModule(ParentEl),AContext));
+          Prepend(Result,TransformModuleName(TPasModule(ParentEl),true,AContext));
         break;
         end
       else if (ParentEl.ClassType=TPasClassType)
@@ -11221,12 +11218,14 @@ begin
 end;
 
 function TPasToJSConverter.TransformModuleName(El: TPasModule;
-  AContext: TConvertContext): String;
+  AddModulesPrefix: boolean; AContext: TConvertContext): String;
 begin
   if El is TPasProgram then
     Result:='program'
   else
     Result:=TransformVariableName(El,AContext);
+  if AddModulesPrefix then
+    Result:=FBuiltInNames[pbivnModules]+'.'+Result;
 end;
 
 function TPasToJSConverter.IsPreservedWord(const aName: string): boolean;

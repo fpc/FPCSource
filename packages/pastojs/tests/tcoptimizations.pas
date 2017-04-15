@@ -810,7 +810,7 @@ begin
     '      this.PublishedB = undefined;',
     '    };',
     '    var $r = this.$rtti;',
-    '    $r.addField("PublishedB", program.$rtti["TArrB"]);',
+    '    $r.addField("PublishedB", pas.program.$rtti["TArrB"]);',
     '  });',
     '  this.C = null;',
     '  this.$main = function () {',
