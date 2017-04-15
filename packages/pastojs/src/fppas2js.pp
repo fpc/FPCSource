@@ -144,6 +144,7 @@ Works:
   - in-operator
   - low(), high()
   - when passing as argument set state referenced
+  - set of (enum,enum2)  - anonymous enumtype
 - with-do  using local var
   - with record do i:=v;
   - with classinstance do begin create; i:=v; f(); i:=a[]; end;
@@ -237,8 +238,9 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- move pas.System calls from rtl.js to system unit initialization, because of
-  UseLowerCase and WPO
+- nicer error message on "set of ()"
+- nicer error message on "array of array of ()"
+- move local types to unit scope
 - RTTI
   - codetools function typeinfo
   - jsinteger (pasresolver: btIntDouble)
@@ -246,6 +248,7 @@ ToDos:
     - defaultvalue
   - type alias type
   - typinfo.pp functions to get/setprop
+  - documentation
 - warn int64
 - local var absolute
 - make -Jirtl.js default for -Jc and -Tnodejs, needs #IFDEF in cfg
@@ -273,7 +276,6 @@ Not in Version 1.0:
   - array of const
 - sets
   - set of char, boolean, integer range, char range, enum range
-  - set of (enum,enum2)  - anonymous enumtype
 - call array of proc element without ()
 - record const
 - class: property modifier index
@@ -441,6 +443,7 @@ type
     pbivnRTTIPropStored,
     pbivnRTTISet_CompType,
     pbivnWith,
+    pbitnAnonymEnum,
     pbitnTI,
     pbitnTIClass,
     pbitnTIClassRef,
@@ -530,6 +533,7 @@ const
     'stored',
     'comptype',
     '$with',
+    '$enum',
     'tTypeInfo',
     'tTypeInfoClass',
     'tTypeInfoClassRef',
@@ -2478,6 +2482,7 @@ begin
   ScopeClass_WithExpr:=TPas2JSWithExprScope;
   for bt in [pbtJSValue] do
     AddJSBaseType(Pas2jsBaseTypeNames[bt],bt);
+  AnonymousEnumtypePostfix:=Pas2JSBuiltInNames[pbitnAnonymEnum];
 end;
 
 destructor TPas2JSResolver.Destroy;

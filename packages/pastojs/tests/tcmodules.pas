@@ -223,29 +223,30 @@ type
     Procedure TestExit;
     Procedure TestBreak;
     Procedure TestContinue;
-    Procedure TestProcedureExternal;
-    Procedure TestProcedureExternalOtherUnit;
-    Procedure TestProcedure_Asm;
-    Procedure TestProcedureAssembler;
-    Procedure TestProcedure_VarParam;
-    Procedure TestProcedureOverload;
-    Procedure TestProcedureOverloadForward;
-    Procedure TestProcedureOverloadUnit;
-    Procedure TestProcedureOverloadNested;
+    Procedure TestProc_External;
+    Procedure TestProc_ExternalOtherUnit;
+    Procedure TestProc_Asm;
+    Procedure TestProc_Assembler;
+    Procedure TestProc_VarParam;
+    Procedure TestProc_Overload;
+    Procedure TestProc_OverloadForward;
+    Procedure TestProc_OverloadUnit;
+    Procedure TestProc_OverloadNested;
     Procedure TestProc_Varargs;
 
     // enums, sets
-    Procedure TestEnumName;
-    Procedure TestEnumNumber;
-    Procedure TestEnumFunctions;
-    Procedure TestSet;
-    Procedure TestSetOperators;
-    Procedure TestSetFunctions;
-    Procedure TestSet_PassAsArgClone;
+    Procedure TestEnum_Name;
+    Procedure TestEnum_Number;
+    Procedure TestEnum_Functions;
     Procedure TestEnum_AsParams;
+    Procedure TestSet;
+    Procedure TestSet_Operators;
+    Procedure TestSet_Functions;
+    Procedure TestSet_PassAsArgClone;
     Procedure TestSet_AsParams;
     Procedure TestSet_Property;
-    Procedure TestEnumConst;
+    Procedure TestSet_EnumConst;
+    Procedure TestSet_AnonymousEnumType;
 
     // statements
     Procedure TestNestBegin;
@@ -423,6 +424,7 @@ type
     Procedure TestRTTI_ProcType;
     Procedure TestRTTI_ProcType_ArgFromOtherUnit;
     Procedure TestRTTI_EnumAndSetType;
+    Procedure TestRTTI_AnonymousEnumType;
     Procedure TestRTTI_StaticArray;
     Procedure TestRTTI_DynArray;
     // ToDo: Procedure TestRTTI_Pointer;
@@ -2127,7 +2129,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestProcedureExternal;
+procedure TTestModule.TestProc_External;
 begin
   StartProgram(false);
   Add('procedure Foo; external name ''console.log'';');
@@ -2151,7 +2153,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestProcedureExternalOtherUnit;
+procedure TTestModule.TestProc_ExternalOtherUnit;
 begin
   AddModuleWithIntfImplSrc('unit2.pas',
     LinesToStr([
@@ -2191,7 +2193,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestProcedure_Asm;
+procedure TTestModule.TestProc_Asm;
 begin
   StartProgram(false);
   Add('function DoIt: longint;');
@@ -2215,7 +2217,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestProcedureAssembler;
+procedure TTestModule.TestProc_Assembler;
 begin
   StartProgram(false);
   Add('function DoIt: longint; assembler;');
@@ -2235,7 +2237,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestProcedure_VarParam;
+procedure TTestModule.TestProc_VarParam;
 begin
   StartProgram(false);
   Add('type integer = longint;');
@@ -2302,7 +2304,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestProcedureOverload;
+procedure TTestModule.TestProc_Overload;
 begin
   StartProgram(false);
   Add('procedure DoIt(vI: longint); begin end;');
@@ -2329,7 +2331,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestProcedureOverloadForward;
+procedure TTestModule.TestProc_OverloadForward;
 begin
   StartProgram(false);
   Add('procedure DoIt(vI: longint); forward;');
@@ -2352,7 +2354,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestProcedureOverloadUnit;
+procedure TTestModule.TestProc_OverloadUnit;
 begin
   StartUnit(false);
   Add('interface');
@@ -2397,7 +2399,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestProcedureOverloadNested;
+procedure TTestModule.TestProc_OverloadNested;
 begin
   StartProgram(false);
   Add('procedure DoIt(vA: longint); forward;');
@@ -2558,7 +2560,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestEnumName;
+procedure TTestModule.TestEnum_Name;
 begin
   StartProgram(false);
   Add('type TMyEnum = (Red, Green, Blue);');
@@ -2585,7 +2587,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestEnumNumber;
+procedure TTestModule.TestEnum_Number;
 begin
   Converter.Options:=Converter.Options+[coEnumNumbers];
   StartProgram(false);
@@ -2612,7 +2614,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestEnumFunctions;
+procedure TTestModule.TestEnum_Functions;
 begin
   StartProgram(false);
   Add('type TMyEnum = (Red, Green);');
@@ -2670,6 +2672,79 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestEnum_AsParams;
+begin
+  StartProgram(false);
+  Add('type TEnum = (Red,Blue);');
+  Add('procedure DoIt(vG: TEnum; const vH: TEnum; var vI: TEnum);');
+  Add('var vJ: TEnum;');
+  Add('begin');
+  Add('  vg:=vg;');
+  Add('  vj:=vh;');
+  Add('  vi:=vi;');
+  Add('  doit(vg,vg,vg);');
+  Add('  doit(vh,vh,vj);');
+  Add('  doit(vi,vi,vi);');
+  Add('  doit(vj,vj,vj);');
+  Add('end;');
+  Add('var i: TEnum;');
+  Add('begin');
+  Add('  doit(i,i,i);');
+  ConvertProgram;
+  CheckSource('TestEnum_AsParams',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "Red",',
+    '  Red: 0,',
+    '  "1": "Blue",',
+    '  Blue: 1',
+    '};',
+    'this.DoIt = function (vG,vH,vI) {',
+    '  var vJ = 0;',
+    '  vG = vG;',
+    '  vJ = vH;',
+    '  vI.set(vI.get());',
+    '  this.DoIt(vG, vG, {',
+    '    get: function () {',
+    '      return vG;',
+    '    },',
+    '    set: function (v) {',
+    '      vG = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(vH, vH, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '  this.DoIt(vI.get(), vI.get(), vI);',
+    '  this.DoIt(vJ, vJ, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '};',
+    'this.i = 0;'
+    ]),
+    LinesToStr([
+    'this.DoIt(this.i,this.i,{',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});'
+    ]));
+end;
+
 procedure TTestModule.TestSet;
 begin
   StartProgram(false);
@@ -2716,7 +2791,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestSetOperators;
+procedure TTestModule.TestSet_Operators;
 begin
   StartProgram(false);
   Add('type');
@@ -2826,7 +2901,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestSetFunctions;
+procedure TTestModule.TestSet_Functions;
 begin
   StartProgram(false);
   Add('type');
@@ -2892,79 +2967,6 @@ begin
     'this.DoDefault(rtl.refSet(this.aSet));',
     'this.DoConst(this.aSet);',
     '']));
-end;
-
-procedure TTestModule.TestEnum_AsParams;
-begin
-  StartProgram(false);
-  Add('type TEnum = (Red,Blue);');
-  Add('procedure DoIt(vG: TEnum; const vH: TEnum; var vI: TEnum);');
-  Add('var vJ: TEnum;');
-  Add('begin');
-  Add('  vg:=vg;');
-  Add('  vj:=vh;');
-  Add('  vi:=vi;');
-  Add('  doit(vg,vg,vg);');
-  Add('  doit(vh,vh,vj);');
-  Add('  doit(vi,vi,vi);');
-  Add('  doit(vj,vj,vj);');
-  Add('end;');
-  Add('var i: TEnum;');
-  Add('begin');
-  Add('  doit(i,i,i);');
-  ConvertProgram;
-  CheckSource('TestEnum_AsParams',
-    LinesToStr([ // statements
-    'this.TEnum = {',
-    '  "0": "Red",',
-    '  Red: 0,',
-    '  "1": "Blue",',
-    '  Blue: 1',
-    '};',
-    'this.DoIt = function (vG,vH,vI) {',
-    '  var vJ = 0;',
-    '  vG = vG;',
-    '  vJ = vH;',
-    '  vI.set(vI.get());',
-    '  this.DoIt(vG, vG, {',
-    '    get: function () {',
-    '      return vG;',
-    '    },',
-    '    set: function (v) {',
-    '      vG = v;',
-    '    }',
-    '  });',
-    '  this.DoIt(vH, vH, {',
-    '    get: function () {',
-    '      return vJ;',
-    '    },',
-    '    set: function (v) {',
-    '      vJ = v;',
-    '    }',
-    '  });',
-    '  this.DoIt(vI.get(), vI.get(), vI);',
-    '  this.DoIt(vJ, vJ, {',
-    '    get: function () {',
-    '      return vJ;',
-    '    },',
-    '    set: function (v) {',
-    '      vJ = v;',
-    '    }',
-    '  });',
-    '};',
-    'this.i = 0;'
-    ]),
-    LinesToStr([
-    'this.DoIt(this.i,this.i,{',
-    '  p: this,',
-    '  get: function () {',
-    '      return this.p.i;',
-    '    },',
-    '  set: function (v) {',
-    '      this.p.i = v;',
-    '    }',
-    '});'
-    ]));
 end;
 
 procedure TTestModule.TestSet_AsParams;
@@ -3084,7 +3086,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestEnumConst;
+procedure TTestModule.TestSet_EnumConst;
 begin
   StartProgram(false);
   Add('type');
@@ -3118,6 +3120,56 @@ begin
     'this.Enums = rtl.excludeSet(this.Enums, this.Orange);',
     'if (this.Enums[this.Orange]) ;',
     'if (rtl.createSet(this.Orange, this.TEnum.Red)[this.Orange]) ;',
+    '']));
+end;
+
+procedure TTestModule.TestSet_AnonymousEnumType;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlags = set of (red, green);');
+  Add('const');
+  Add('  favorite = red;');
+  Add('var');
+  Add('  f: TFlags;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  Include(f,red);');
+  Add('  Include(f,favorite);');
+  Add('  i:=ord(red);');
+  Add('  i:=ord(favorite);');
+  Add('  i:=ord(low(TFlags));');
+  Add('  i:=ord(low(f));');
+  Add('  i:=ord(low(favorite));');
+  Add('  i:=ord(high(TFlags));');
+  Add('  i:=ord(high(f));');
+  Add('  i:=ord(high(favorite));');
+  Add('  f:=[green,favorite];');
+  ConvertProgram;
+  CheckSource('TestSet_AnonymousEnumType',
+    LinesToStr([ // statements
+    'this.TFlags$enum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "green",',
+    '  green: 1',
+    '};',
+    'this.favorite = this.TFlags$enum.red;',
+    'this.f = {};',
+    'this.i = 0;',
+    '']),
+    LinesToStr([
+    'this.f = rtl.includeSet(this.f, this.TFlags$enum.red);',
+    'this.f = rtl.includeSet(this.f, this.favorite);',
+    'this.i = this.TFlags$enum.red;',
+    'this.i = this.favorite;',
+    'this.i = this.TFlags$enum.red;',
+    'this.i = this.TFlags$enum.red;',
+    'this.i = this.TFlags$enum.red;',
+    'this.i = this.TFlags$enum.green;',
+    'this.i = this.TFlags$enum.green;',
+    'this.i = this.TFlags$enum.green;',
+    'this.f = rtl.createSet(this.TFlags$enum.green, this.favorite);',
     '']));
 end;
 
@@ -10793,6 +10845,40 @@ begin
     LinesToStr([ // this.$main
     'this.p = this.$rtti["TFlag"];',
     'this.p = this.$rtti["TFlags"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_AnonymousEnumType;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TFlags = set of (red, green);');
+  Add('var');
+  Add('  f: TFlags;');
+  Add('begin');
+  Add('  Include(f,red);');
+  ConvertProgram;
+  CheckSource('TestRTTI_AnonymousEnumType',
+    LinesToStr([ // statements
+    'this.TFlags$enum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "green",',
+    '  green: 1',
+    '};',
+    'this.$rtti.$Enum("TFlags$enum", {',
+    '  minvalue: 0,',
+    '  maxvalue: 1,',
+    '  enumtype: this.TFlags$enum',
+    '});',
+    'this.$rtti.$Set("TFlags", {',
+    '  comptype: this.$rtti["TFlags$enum"]',
+    '});',
+    'this.f = {};',
+    '']),
+    LinesToStr([
+    'this.f = rtl.includeSet(this.f, this.TFlags$enum.red);',
     '']));
 end;
 
