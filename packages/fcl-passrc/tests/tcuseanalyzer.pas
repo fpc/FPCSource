@@ -107,6 +107,11 @@ type
     procedure TestWP_ProgramPublicDeclarations;
     procedure TestWP_ClassDefaultProperty;
     procedure TestWP_Published;
+    procedure TestWP_PublishedSetType;
+    procedure TestWP_PublishedArrayType;
+    procedure TestWP_PublishedClassOfType;
+    procedure TestWP_PublishedRecordType;
+    procedure TestWP_PublishedProcType;
     procedure TestWP_PublishedProperty;
   end;
 
@@ -1416,6 +1421,99 @@ begin
   Add('    {#fielda_used}FieldA: longint;');
   Add('    procedure {#doit_used}ProcA; virtual; abstract;');
   Add('    property {#col_used}Col: string read FCol;');
+  Add('  end;');
+  Add('var');
+  Add('  {#o_used}o: TObject;');
+  Add('begin');
+  Add('  o:=nil;');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_PublishedSetType;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#tflag_used}TFlag = (red, green);');
+  Add('  {#tflags_used}TFlags = set of TFlag;');
+  Add('  {#tobject_used}TObject = class');
+  Add('  published');
+  Add('    {#fielda_used}FieldA: TFlag;');
+  Add('    {#fieldb_used}FieldB: TFlags;');
+  Add('  end;');
+  Add('var');
+  Add('  {#o_used}o: TObject;');
+  Add('begin');
+  Add('  o:=nil;');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_PublishedArrayType;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#tdynarr_used}TDynArr = array of longint;');
+  Add('  {#tstatarr_used}TStatArr = array[boolean] of longint;');
+  Add('  {#tobject_used}TObject = class');
+  Add('  published');
+  Add('    {#fielda_used}FieldA: TDynArr;');
+  Add('    {#fieldb_used}FieldB: TStatArr;');
+  Add('  end;');
+  Add('var');
+  Add('  {#o_used}o: TObject;');
+  Add('begin');
+  Add('  o:=nil;');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_PublishedClassOfType;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#tobjectclass_used}TObjectClass = class of TObject;');
+  Add('  {#tobject_used}TObject = class');
+  Add('  published');
+  Add('    {#fielda_used}FieldA: TObjectClass;');
+  Add('  end;');
+  Add('  {#tclass_used}TClass = class of TObject;');
+  Add('var');
+  Add('  {#c_used}c: TClass;');
+  Add('begin');
+  Add('  c:=nil;');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_PublishedRecordType;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#trec_used}TRec = record');
+  Add('    {treci_used}i: longint;');
+  Add('  end;');
+  Add('  {#tobject_used}TObject = class');
+  Add('  published');
+  Add('    {#fielda_used}FieldA: TRec;');
+  Add('  end;');
+  Add('var');
+  Add('  {#o_used}o: TObject;');
+  Add('begin');
+  Add('  o:=nil;');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_PublishedProcType;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#ta_used}ta = array of longint;');
+  Add('  {#tb_used}tb = array of longint;');
+  Add('  {#tproca_used}TProcA = procedure;');
+  Add('  {#tfunca_used}TFuncA = function: ta;');
+  Add('  {#tprocb_used}TProcB = procedure(a: tb);');
+  Add('  {#tobject_used}TObject = class');
+  Add('  published');
+  Add('    {#fielda_used}FieldA: TProcA;');
+  Add('    {#fieldb_used}FieldB: TFuncA;');
+  Add('    {#fieldc_used}FieldC: TProcB;');
   Add('  end;');
   Add('var');
   Add('  {#o_used}o: TObject;');

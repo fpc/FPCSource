@@ -651,6 +651,7 @@ begin
     end
   else if (C=TPasAliasType) or (C=TPasTypeAliasType) then
     UsePublished(TPasAliasType(El).DestType)
+  else if C=TPasEnumType then
   else if C=TPasSetType then
     UsePublished(TPasSetType(El).EnumType)
   else if C=TPasArrayType then
@@ -673,7 +674,8 @@ begin
     Members:=TPasRecordType(El).Members;
     for i:=0 to Members.Count-1 do
       begin
-      UsePublished(TPasElement(Members[i]));
+      Member:=TPasElement(Members[i]);
+      UsePublished(Member);
       UseElement(Member,rraNone,true);
       end;
     end
@@ -953,18 +955,22 @@ var
   C: TClass;
   Params: TPasExprArray;
   i: Integer;
+  BuiltInProc: TResElDataBuiltInProc;
+  ParamResolved: TPasResolverResult;
+  Decl: TPasElement;
 begin
   if El=nil then exit;
   // expressions are not marked
 
+  Ref:=nil;
   if El.CustomData is TResolvedReference then
     begin
     // this is a reference -> mark target
     Ref:=TResolvedReference(El.CustomData);
-    UseElement(Ref.Declaration,Ref.Access,false);
+    Decl:=Ref.Declaration;
+    UseElement(Decl,Ref.Access,false);
 
-    if (El.ClassType=TSelfExpr)
-        or ((El.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(El).Kind=pekIdent)) then
+    if Resolver.IsNameExpr(El) then
       begin
       if Ref.WithExprScope<>nil then
         begin
@@ -975,15 +981,29 @@ begin
           exit;
           end;
         end;
-      if (Ref.Declaration is TPasVariable)
+      if (Decl is TPasVariable)
           and (El.Parent is TBinaryExpr)
           and (TBinaryExpr(El.Parent).right=El) then
         begin
-        if ((Ref.Declaration.Parent is TPasRecordType)
-              or (Ref.Declaration.Parent is TPasVariant)) then
+        if ((Decl.Parent is TPasRecordType)
+              or (Decl.Parent is TPasVariant)) then
           begin
           // a record member was accessed -> access the record too
           UseExprRef(TBinaryExpr(El.Parent).left,Ref.Access,false);
+          end;
+        end;
+      end;
+
+    if Decl is TPasUnresolvedSymbolRef then
+      begin
+      if Decl.CustomData is TResElDataBuiltInProc then
+        begin
+        BuiltInProc:=TResElDataBuiltInProc(Decl.CustomData);
+        if BuiltInProc.BuiltIn=bfTypeInfo then
+          begin
+          Params:=(El.Parent as TParamsExpr).Params;
+          Resolver.ComputeElement(Params[0],ParamResolved,[]);
+          UsePublished(ParamResolved.IdentEl);
           end;
         end;
       end;
