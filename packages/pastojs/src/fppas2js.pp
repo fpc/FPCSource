@@ -7608,7 +7608,6 @@ begin
   writeln('TPasToJSConverter.ConvertArrayType ',GetObjName(El));
   {$ENDIF}
   if not HasTypeInfo(El,AContext) then exit;
-  writeln('AAA1 TPasToJSConverter.ConvertArrayType ');
 
   // module.$rtti.$DynArray("name",{...})
   if length(El.Ranges)>0 then
@@ -9912,7 +9911,6 @@ begin
   else if Result.ClassType=TJSCallExpression then
     begin
     Call:=TJSCallExpression(Result);
-    writeln('AAA1 TPasToJSConverter.CreateSetLiteralElement ',GetObjName(Call.Expr));
     if (Call.Expr is TJSDotMemberExpression) then
       begin
       DotExpr:=TJSDotMemberExpression(Call.Expr);
