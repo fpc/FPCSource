@@ -238,7 +238,6 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- nicer error message on "set of ()"
 - nicer error message on "array of array of ()"
 - move local types to unit scope
 - RTTI
@@ -341,6 +340,7 @@ const
   nNewInstanceFunctionMustNotHaveOverloadAtX = 4019;
   nBracketAccessorOfExternalClassMustHaveOneParameter = 4020;
   nTypeXCannotBePublished = 4021;
+  nNotSupportedX = 4022;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -364,6 +364,7 @@ resourcestring
   sNewInstanceFunctionMustNotHaveOverloadAtX = 'NewInstance function must not have overload at %s';
   sBracketAccessorOfExternalClassMustHaveOneParameter = 'Bracket accessor of external class must have one parameter';
   sTypeXCannotBePublished = 'Type "%s" cannot be published';
+  sNotSupportedX = 'Not supported: %s';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -548,7 +549,7 @@ const
     'tTypeInfoStaticArray'
     );
 
-  JSReservedWords: array[0..106] of string = (
+  JSReservedWords: array[0..108] of string = (
      // keep sorted, first uppercase, then lowercase !
      'Array',
      'ArrayBuffer',
@@ -602,6 +603,8 @@ const
      'call',
      'case',
      'catch',
+     'charAt',
+     'charCodeAt',
      'class',
      'constructor',
      'continue',
@@ -805,6 +808,7 @@ type
     procedure PopOverloadScope;
     procedure ResolveImplAsm(El: TPasImplAsmStatement); override;
     procedure FinishModule(CurModule: TPasModule); override;
+    procedure FinishSetType(El: TPasSetType); override;
     procedure FinishClassType(El: TPasClassType); override;
     procedure FinishVariable(El: TPasVariable); override;
     procedure FinishProcedureType(El: TPasProcedureType); override;
@@ -1115,6 +1119,7 @@ type
     Function CreateLiteralBoolean(El: TPasElement; b: boolean): TJSLiteral; virtual;
     Function CreateLiteralNull(El: TPasElement): TJSLiteral; virtual;
     Function CreateLiteralUndefined(El: TPasElement): TJSLiteral; virtual;
+    Function CreateSetLiteralElement(Expr: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
     Function CreateRecordInit(aRecord: TPasRecordType; Expr: TPasElement;
       El: TPasElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateArrayInit(ArrayType: TPasArrayType; Expr: TPasElement;
@@ -1753,6 +1758,18 @@ begin
   finally
     FOverloadScopes.Free;
   end;
+end;
+
+procedure TPas2JSResolver.FinishSetType(El: TPasSetType);
+var
+  TypeEl: TPasType;
+begin
+  inherited FinishSetType(El);
+  TypeEl:=ResolveAliasType(El.EnumType);
+  if TypeEl.ClassType=TPasEnumType then
+    // ok
+  else
+    RaiseMsg(20170415182320,nNotSupportedX,sNotSupportedX,['set of '+TypeEl.Name],El);
 end;
 
 procedure TPas2JSResolver.FinishClassType(El: TPasClassType);
@@ -3805,9 +3822,9 @@ function TPasToJSConverter.ConvertBinaryExpressionRes(El: TBinaryExpr;
 var
   FunName: String;
   Call: TJSCallExpression;
-  Bracket: TJSBracketMemberExpression;
   DotExpr: TJSDotMemberExpression;
   NotEl: TJSUnaryNotExpression;
+  InOp: TJSRelationalExpressionIn;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertBinaryExpressionRes OpCode="',OpcodeStrings[El.OpCode],'" Left=',GetResolverResultDesc(LeftResolved),' Right=',GetResolverResultDesc(RightResolved));
@@ -3839,13 +3856,18 @@ begin
     end
   else if (RightResolved.BaseType=btSet) and (El.OpCode=eopIn) then
     begin
-    // a in b -> b[a]
-    Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
-    Bracket.MExpr:=B;
-    B:=nil;
-    Bracket.Name:=A;
+    // a in b -> a in b
+    if not (A is TJSLiteral) or (TJSLiteral(A).Value.ValueType<>jstNumber) then
+      begin
+      FreeAndNil(A);
+      A:=CreateSetLiteralElement(El.left,AContext);
+      end;
+    InOp:=TJSRelationalExpressionIn(CreateElement(TJSRelationalExpressionIn,El));
+    InOp.A:=A;
     A:=nil;
-    Result:=Bracket;
+    InOp.B:=B;
+    B:=nil;
+    Result:=InOp;
     exit;
     end
   else if (El.OpCode=eopIs) then
@@ -5436,8 +5458,15 @@ function TPasToJSConverter.ConvertSetLiteral(El: TParamsExpr;
 var
   Call: TJSCallExpression;
   ArgContext: TConvertContext;
+
+  procedure AddArg(Expr: TPasExpr);
+  begin
+    Result:=CreateSetLiteralElement(Expr,ArgContext);
+    Call.AddArg(Result);
+  end;
+
+var
   i: Integer;
-  Arg: TJSElement;
   ArgEl: TPasExpr;
 begin
   if El.Kind<>pekSet then
@@ -5464,21 +5493,12 @@ begin
         if (ArgEl.ClassType=TBinaryExpr) and (TBinaryExpr(ArgEl).Kind=pekRange) then
           begin
           // range -> add three parameters: null,left,right
-          // ToDo: error if left>right
-          // add null
           Call.AddArg(CreateLiteralNull(ArgEl));
-          // add left
-          Arg:=ConvertElement(TBinaryExpr(ArgEl).left,ArgContext);
-          Call.AddArg(Arg);
-          // add right
-          Arg:=ConvertElement(TBinaryExpr(ArgEl).right,ArgContext);
-          Call.AddArg(Arg);
+          AddArg(TBinaryExpr(ArgEl).left);
+          AddArg(TBinaryExpr(ArgEl).right);
           end
         else
-          begin
-          Arg:=ConvertElement(ArgEl,ArgContext);
-          Call.AddArg(Arg);
-          end;
+          AddArg(ArgEl);
         end;
       Result:=Call;
     finally
@@ -9662,37 +9682,58 @@ var
   Lit: TJSLiteral;
   bt: TResolverBaseType;
   JSBaseType: TPas2jsBaseType;
+  C: TClass;
 begin
   T:=PasType;
   if AContext.Resolver<>nil then
     T:=AContext.Resolver.ResolveAliasType(T);
 
-  if (T is TPasArrayType) then
+  //writeln('START TPasToJSConverter.CreateValInit PasType=',GetObjName(PasType),' El=',GetObjName(El),' T=',GetObjName(T),' Expr=',GetObjName(Expr));
+  if T=nil then
+    begin
+    // untyped var/const
+    if Expr=nil then
+      begin
+      if AContext.Resolver=nil then
+        exit(CreateLiteralUndefined(El));
+      RaiseInconsistency(20170415185745);
+      end;
+    Result:=ConvertElement(Expr,AContext);
+    if Result=nil then
+      begin
+      {$IFDEF VerbosePas2JS}
+      writeln('TPasToJSConverter.CreateValInit PasType=',GetObjName(PasType),' El=',GetObjName(El),' T=',GetObjName(T),' Expr=',GetObjName(Expr));
+      {$ENDIF}
+      RaiseNotSupported(Expr,AContext,20170415185927);
+      end;
+    exit;
+    end;
+
+  C:=T.ClassType;
+  if C=TPasArrayType then
     Result:=CreateArrayInit(TPasArrayType(T),Expr,El,AContext)
-  else if T is TPasRecordType then
+  else if C=TPasRecordType then
     Result:=CreateRecordInit(TPasRecordType(T),Expr,El,AContext)
   else if Assigned(Expr) then
     Result:=ConvertElement(Expr,AContext)
-  else if T is TPasSetType then
+  else if C=TPasSetType then
     Result:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El))
   else
     begin
     // always init with a default value to create a typed variable (faster and more readable)
     Lit:=TJSLiteral(CreateElement(TJSLiteral,El));
     Result:=Lit;
-    if T=nil then
-      Lit.Value.IsUndefined:=true
-    else if (T.ClassType=TPasPointerType)
-        or (T.ClassType=TPasClassType)
-        or (T.ClassType=TPasClassOfType)
-        or (T.ClassType=TPasProcedureType)
-        or (T.ClassType=TPasFunctionType) then
+    if (C=TPasPointerType)
+        or (C=TPasClassType)
+        or (C=TPasClassOfType)
+        or (C=TPasProcedureType)
+        or (C=TPasFunctionType) then
       Lit.Value.IsNull:=true
-    else if T.ClassType=TPasStringType then
+    else if C=TPasStringType then
       Lit.Value.AsString:=''
-    else if T.ClassType=TPasEnumType then
+    else if C=TPasEnumType then
       Lit.Value.AsNumber:=0
-    else if T.ClassType=TPasUnresolvedSymbolRef then
+    else if C=TPasUnresolvedSymbolRef then
       begin
       if T.CustomData is TResElDataBaseType then
         begin
@@ -9721,6 +9762,13 @@ begin
           RaiseNotSupported(PasType,AContext,20170208162121);
           end;
         end
+      else if AContext.Resolver<>nil then
+        begin
+        {$IFDEF VerbosePas2JS}
+        writeln('TPasToJSConverter.CreateValInit PasType=',GetObjName(PasType),' El=',GetObjName(El),' T=',GetObjName(T),' Expr=',GetObjName(Expr));
+        {$ENDIF}
+        RaiseNotSupported(El,AContext,20170415190259);
+        end
       else if (CompareText(T.Name,'longint')=0)
            or (CompareText(T.Name,'int64')=0)
            or (CompareText(T.Name,'real')=0)
@@ -9748,6 +9796,13 @@ begin
       {$ENDIF}
       RaiseNotSupported(PasType,AContext,20170208161506);
       end;
+    end;
+  if Result=nil then
+    begin
+    {$IFDEF VerbosePas2JS}
+    writeln('TPasToJSConverter.CreateValInit PasType=',GetObjName(PasType),' El=',GetObjName(El),' T=',GetObjName(T),' Expr=',GetObjName(Expr));
+    {$ENDIF}
+    RaiseNotSupported(El,AContext,20170415190103);
     end;
 end;
 
@@ -9810,6 +9865,87 @@ function TPasToJSConverter.CreateLiteralUndefined(El: TPasElement): TJSLiteral;
 begin
   Result:=TJSLiteral(CreateElement(TJSLiteral,El));
   Result.Value.IsUndefined:=true;
+end;
+
+function TPasToJSConverter.CreateSetLiteralElement(Expr: TPasExpr;
+  AContext: TConvertContext): TJSElement;
+var
+  LitVal: TJSValue;
+  NewEl: TJSElement;
+  WS: TJSString;
+  ExprResolved: TPasResolverResult;
+  Call: TJSCallExpression;
+  DotExpr: TJSDotMemberExpression;
+begin
+  Result:=ConvertElement(Expr,AContext);
+  if Result=nil then
+    RaiseNotSupported(Expr,AContext,20170415192209);
+  if Result.ClassType=TJSLiteral then
+    begin
+    // argument is a literal  -> convert to number
+    LitVal:=TJSLiteral(Result).Value;
+    case LitVal.ValueType of
+      jstBoolean:
+        begin
+        if LitVal.AsBoolean=LowJSBoolean then
+          NewEl:=CreateLiteralNumber(Expr,0)
+        else
+          NewEl:=CreateLiteralNumber(Expr,1);
+        Result.Free;
+        exit(NewEl);
+        end;
+      jstNumber:
+        exit;
+      jstString:
+        begin
+        WS:=LitVal.AsString;
+        Result.Free;
+        if length(WS)<>1 then
+          DoError(20170415193254,nXExpectedButYFound,sXExpectedButYFound,['char','string'],Expr);
+        Result:=CreateLiteralNumber(Expr,ord(WS[1]));
+        exit;
+        end;
+    else
+      RaiseNotSupported(Expr,AContext,20170415205955);
+    end;
+    end
+  else if Result.ClassType=TJSCallExpression then
+    begin
+    Call:=TJSCallExpression(Result);
+    writeln('AAA1 TPasToJSConverter.CreateSetLiteralElement ',GetObjName(Call.Expr));
+    if (Call.Expr is TJSDotMemberExpression) then
+      begin
+      DotExpr:=TJSDotMemberExpression(Call.Expr);
+      if DotExpr.Name='charCodeAt' then
+        exit;
+      if DotExpr.Name='charAt' then
+        begin
+        DotExpr.Name:='charCodeAt';
+        exit;
+        end;
+      end;
+    end;
+
+  if AContext.Resolver<>nil then
+    begin
+    AContext.Resolver.ComputeElement(Expr,ExprResolved,[]);
+    if ExprResolved.BaseType in btAllStringAndChars then
+      begin
+      // aChar -> aChar.charCodeAt()
+      Call:=TJSCallExpression(CreateElement(TJSCallExpression,Expr));
+      Call.Expr:=CreateDotExpression(Expr,Result,CreateBuiltInIdentifierExpr('charCodeAt'));
+      Result:=Call;
+      end
+    else if ExprResolved.BaseType=btContext then
+      begin
+      if ExprResolved.TypeEl.ClassType=TPasEnumType then
+        // ok
+      else
+        RaiseNotSupported(Expr,AContext,20170415191933);
+      end
+    else
+      RaiseNotSupported(Expr,AContext,20170415191822);
+    end;
 end;
 
 function TPasToJSConverter.CreateRecordInit(aRecord: TPasRecordType;

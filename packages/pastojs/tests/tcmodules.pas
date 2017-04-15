@@ -241,12 +241,16 @@ type
     Procedure TestEnum_AsParams;
     Procedure TestSet;
     Procedure TestSet_Operators;
+    Procedure TestSet_Operator_In;
     Procedure TestSet_Functions;
     Procedure TestSet_PassAsArgClone;
     Procedure TestSet_AsParams;
     Procedure TestSet_Property;
     Procedure TestSet_EnumConst;
     Procedure TestSet_AnonymousEnumType;
+    Procedure TestSet_CharFail;
+    Procedure TestSet_BooleanFail;
+    Procedure TestSet_ConstChar;
 
     // statements
     Procedure TestNestBegin;
@@ -2838,12 +2842,8 @@ begin
   Add('  b:=vt>=[red];');
   Add('  b:=[red]>=vt;');
   Add('  b:=[red]>=[green];');
-  Add('  b:=Red in vt;');
-  Add('  b:=vc in vt;');
-  Add('  b:=Green in [Red..Blue];');
-  Add('  b:=vc in [Red..Blue];');
   ConvertProgram;
-  CheckSource('TestEnumName',
+  CheckSource('TestSet_Operators',
     LinesToStr([ // statements
     'this.TColor = {',
     '  "0":"Red",',
@@ -2894,10 +2894,54 @@ begin
     'this.B = rtl.geSet(this.vT, rtl.createSet(this.TColor.Red));',
     'this.B = rtl.geSet(rtl.createSet(this.TColor.Red), this.vT);',
     'this.B = rtl.geSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
-    'this.B = this.vT[this.TColor.Red];',
-    'this.B = this.vT[this.vC];',
-    'this.B = rtl.createSet(null, this.TColor.Red, this.TColor.Blue)[this.TColor.Green];',
-    'this.B = rtl.createSet(null, this.TColor.Red, this.TColor.Blue)[this.vC];',
+    '']));
+end;
+
+procedure TTestModule.TestSet_Operator_In;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TColor = (Red, Green, Blue);');
+  Add('  TColors = set of tcolor;');
+  Add('var');
+  Add('  vC: tcolor;');
+  Add('  vT: tcolors;');
+  Add('  B: boolean;');
+  Add('begin');
+  Add('  b:=red in vt;');
+  Add('  b:=vc in vt;');
+  Add('  b:=green in [red..blue];');
+  Add('  b:=vc in [red..blue];');
+  Add('  ');
+  Add('  if red in vt then ;');
+  Add('  while vC in vt do ;');
+  Add('  repeat');
+  Add('  until vC in vt;');
+  ConvertProgram;
+  CheckSource('TestSet_Operator_In',
+    LinesToStr([ // statements
+    'this.TColor = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1,',
+    '  "2":"Blue",',
+    '  Blue:2',
+    '  };',
+    'this.vC = 0;',
+    'this.vT = {};',
+    'this.B = false;'
+    ]),
+    LinesToStr([
+    'this.B = this.TColor.Red in this.vT;',
+    'this.B = this.vC in this.vT;',
+    'this.B = this.TColor.Green in rtl.createSet(null, this.TColor.Red, this.TColor.Blue);',
+    'this.B = this.vC in rtl.createSet(null, this.TColor.Red, this.TColor.Blue);',
+    'if (this.TColor.Red in this.vT) ;',
+    'while (this.vC in this.vT) {',
+    '};',
+    'do {',
+    '} while (!(this.vC in this.vT));',
     '']));
 end;
 
@@ -3118,8 +3162,8 @@ begin
     LinesToStr([
     'this.Enums = rtl.includeSet(this.Enums, this.Orange);',
     'this.Enums = rtl.excludeSet(this.Enums, this.Orange);',
-    'if (this.Enums[this.Orange]) ;',
-    'if (rtl.createSet(this.Orange, this.TEnum.Red)[this.Orange]) ;',
+    'if (this.Orange in this.Enums) ;',
+    'if (this.Orange in rtl.createSet(this.Orange, this.TEnum.Red)) ;',
     '']));
 end;
 
@@ -3170,6 +3214,60 @@ begin
     'this.i = this.TFlags$enum.green;',
     'this.i = this.TFlags$enum.green;',
     'this.f = rtl.createSet(this.TFlags$enum.green, this.favorite);',
+    '']));
+end;
+
+procedure TTestModule.TestSet_CharFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TChars = set of char;');
+  Add('begin');
+  SetExpectedPasResolverError('Not supported: set of Char',nNotSupportedX);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestSet_BooleanFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TBools = set of boolean;');
+  Add('begin');
+  SetExpectedPasResolverError('Not supported: set of Boolean',nNotSupportedX);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestSet_ConstChar;
+begin
+  StartProgram(false);
+  Add('const');
+  Add('  LowChars = [''a''..''z''];');
+  Add('  Chars = LowChars+[''A''..''Z''];');
+  Add('var');
+  Add('  c: char;');
+  Add('  s: string;');
+  Add('begin');
+  Add('  if c in lowchars then ;');
+  Add('  if ''a'' in lowchars then ;');
+  Add('  if s[1] in lowchars then ;');
+  Add('  if c in chars then ;');
+  Add('  if c in [''a''..''z'',''_''] then ;');
+  Add('  if ''b'' in [''a''..''z'',''_''] then ;');
+  ConvertProgram;
+  CheckSource('TestSet_ConstChar',
+    LinesToStr([ // statements
+    'this.LowChars = rtl.createSet(null, 97, 122);',
+    'this.Chars = rtl.unionSet(this.LowChars, rtl.createSet(null, 65, 90));',
+    'this.c = "";',
+    'this.s = "";',
+    '']),
+    LinesToStr([
+    'if (this.c.charCodeAt() in this.LowChars) ;',
+    'if (97 in this.LowChars) ;',
+    'if (this.s.charCodeAt(1 - 1) in this.LowChars) ;',
+    'if (this.c.charCodeAt() in this.Chars) ;',
+    'if (this.c.charCodeAt() in rtl.createSet(null, 97, 122, 95)) ;',
+    'if (98 in rtl.createSet(null, 97, 122, 95)) ;',
     '']));
 end;
 
