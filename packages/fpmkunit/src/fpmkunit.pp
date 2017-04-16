@@ -1710,7 +1710,7 @@ ResourceString
   SDbgArchivingFile         = 'Archiving "%s"';
   SDbgSearchPath            = 'Using %s path "%s"';
   SDbgEnterDir              = 'Entering directory "%s"';
-  SDbgPackageChecksumChanged = 'Dependent package %s is modified';
+  SDbgPackageChecksumChanged = 'Package %s depends on the %s package which has been modified';
   SDbgFileDoesNotExist      = 'File "%s" does not exist';
   SDbgDirectoryDoesNotExist = 'Directory "%s" does not exist';
   SDbgDirectoryNotEmpty     = 'Directory "%s" is not empty. Will not remove';
@@ -7004,10 +7004,10 @@ begin
               D.Target:=CheckExternalPackage(D.Value, true);
               P:=TPackage(D.Target);
             end;
-          if (D.RequireChecksum<>$ffffffff) and
+          if (D.RequireChecksum<>$ffffffff) and (D.RequireChecksum<>0) and
              (P.InstalledChecksum<>$ffffffff) and
              (P.InstalledChecksum<>D.RequireChecksum) then
-            Log(vlDebug,SDbgPackageChecksumChanged,[P.Name]);
+            Log(vlWarning,SDbgPackageChecksumChanged,[APackage.Name, P.Name]);
           APackage.InheritPackageVariantsFromDependency(P);
         end;
     end;
@@ -7049,7 +7049,7 @@ begin
           if (D.RequireChecksum<>$ffffffff) and
              (P.InstalledChecksum<>$ffffffff) and
              (P.InstalledChecksum<>D.RequireChecksum) then
-            Log(vlDebug,SDbgPackageChecksumChanged,[P.Name]);
+            Log(vldebug,SDbgPackageChecksumChanged,[APackage.Name, P.Name]);
           APackage.InheritPackageVariantsFromDependency(P);
         end;
     end;
