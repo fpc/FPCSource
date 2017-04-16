@@ -311,6 +311,7 @@ type
     Procedure TestProc_Varargs;
     Procedure TestProc_ParameterExprAccess;
     Procedure TestProc_FunctionResult_DeclProc;
+    Procedure TestProc_TypeCastFunctionResult;
     // ToDo: fail builtin functions in constant with non const param
 
     // record
@@ -4264,6 +4265,16 @@ begin
     end;
     aMarker:=aMarker^.Next;
     end;
+end;
+
+procedure TTestResolver.TestProc_TypeCastFunctionResult;
+begin
+  StartProgram(false);
+  Add('function GetIt: longint; begin end;');
+  Add('var s: smallint;');
+  Add('begin');
+  Add('   s:=smallint(GetIt);');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestRecord;

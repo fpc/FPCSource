@@ -10207,8 +10207,8 @@ begin
     exit(cIncompatible);
     end;
   Param:=Params.Params[0];
-  ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
-  ComputeElement(El,ResolvedEl,[rcNoImplicitProc]);
+  ComputeElement(Param,ParamResolved,[rcNoImplicitProcType]);
+  ComputeElement(El,ResolvedEl,[rcType]);
   Result:=CheckTypeCastRes(ParamResolved,ResolvedEl,Param,RaiseOnError);
 end;
 
@@ -10444,7 +10444,7 @@ begin
   if Result=cIncompatible then
     begin
     {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.CheckTypeCastRes From=',GetResolverResultDesc(FromResolved),' To=',GetResolverResultDesc(ToResolved));
+    writeln('TPasResolver.CheckTypeCastRes From={',GetResolverResultDbg(FromResolved),'} To={',GetResolverResultDbg(ToResolved),'}');
     {$ENDIF}
     if RaiseOnError then
       RaiseIncompatibleTypeRes(20170216152528,nIllegalTypeConversionTo,
