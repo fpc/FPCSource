@@ -537,6 +537,7 @@ Type
   TPackageVariants = class(TNamedCollection)
   private
     FActivePackageVariantName: string;
+    FAutoAddToPackage: boolean;
     FDefaultPackageVariantName: string;
     FIsInheritable: boolean;
     FMasterPackage: TPackage;
@@ -554,6 +555,7 @@ Type
     property DefaultPackageVariantName: string read FDefaultPackageVariantName write SetDefaultPackageVariantName;
     property ActivePackageVariantName: string read FActivePackageVariantName write SetActivePackageVariantName;
     property IsInheritable: boolean read FIsInheritable;
+    property AutoAddToPackage: boolean read FAutoAddToPackage;
   end;
 
 
@@ -1274,11 +1276,12 @@ Type
     Procedure Archive; virtual;
     Procedure Manifest; virtual;
     Procedure PkgList; virtual;
+    procedure AddAutoPackageVariantsToPackage(APackage: TPackage); virtual;
   Public
     Constructor Create(AOwner : TComponent); virtual;
     Destructor destroy; override;
     Function AddPackage(Const AName : String) : TPackage;
-    Function  AddPackageVariant(AName: string; AIsInheritable: boolean): TPackageVariants;
+    Function AddPackageVariant(AName: string; AIsInheritable: boolean; AutoAddToPackage: Boolean = false): TPackageVariants;
     Function Run : Boolean;
     Property FPMakeOptionsString: string read FFPMakeOptionsString;
     Property BuildEngine : TBuildEngine Read FBuildEngine;
@@ -1632,6 +1635,7 @@ ResourceString
   SErrEventNotSupported = 'Unsupported event type';
   SErrorPkgNotInstalled = 'Package "%s" is not installed, can not uninstall.';
   SErrBuildUnitCompilation = 'Compilation of "%s" failed';
+  SErrExpectPkgVariant  = 'The Package-variant on the command-line position %d (%s) should have at least one item';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
@@ -1767,6 +1771,12 @@ ResourceString
   sHelpUseEnvironment = 'Use environment to pass options to compiler.';
   SHelpUseBuildUnit   = 'Compile package in Build-unit mode.';
   sHelpZipPrefix      = 'Use indicated prefix for generated archives.';
+  sHelpPackageVariant1= 'To add a package-variant to all packages:';
+  sHelpPackageVariant2= ' +[variantname]-=[variant1],<variant2>,...';
+  sHelpPackageVariant3= 'To add a package-variant to all packages which other packages will inherit:';
+  sHelpPackageVariant4= ' +[variantname]+=[variant1],<variant2>,...';
+  sHelpPackageVariant5= 'To add specific options for one package-variant:';
+  sHelpPackageVariant6= ' --options_[variantname]_[variant1]=Value';
 
 
 Const
@@ -4872,13 +4882,15 @@ end;
 Function TCustomInstaller.AddPackage(const AName: String) : TPackage;
 begin
   result:=Packages.AddPackage(AName);
+  AddAutoPackageVariantsToPackage(result);
 end;
 
-function TCustomInstaller.AddPackageVariant(AName: string; AIsInheritable: boolean): TPackageVariants;
+Function TCustomInstaller.AddPackageVariant(AName: string; AIsInheritable: boolean; AutoAddToPackage: Boolean): TPackageVariants;
 begin
   result := TPackageVariants.Create(TPackageVariant);
   result.Name:=AName;
   result.FIsInheritable:=AIsInheritable;
+  result.FAutoAddToPackage:=AutoAddToPackage;
   FPackageVariants.Add(result);
 end;
 
@@ -4899,6 +4911,9 @@ procedure TCustomInstaller.AnalyzeOptions;
     O : String;
     BuildModeName: string;
     P: integer;
+    C: string;
+    PV: TPackageVariants;
+    SL: TStringList;
   begin
     O:=Paramstr(Index);
     result := O[1]='+';
@@ -4911,7 +4926,32 @@ procedure TCustomInstaller.AnalyzeOptions;
         begin
         BuildModeName:=copy(o,2,P-2);
         Delete(O,1,P);
-        FPackageVariantSettings.Values[BuildModeName] := O;
+
+        c := RightStr(BuildModeName,1);
+        if (c = '*') or (c = '+') then
+          begin
+          // Add a new package-variant
+          BuildModeName := copy(BuildModeName, 1, length(BuildModeName) -1);
+          PV := AddPackageVariant(BuildModeName, (C = '*'), True);
+          SL := TStringList.Create;
+          try
+            SL.CommaText := O;
+            if SL.Count=0 then
+              Error(SErrExpectPkgVariant,[Index,ParamStr(Index)]);
+            for P := 0 to SL.Count -1 do
+              begin
+              PV.Add(SL.ValueFromIndex[P]);
+              end;
+            FPackageVariantSettings.Values[BuildModeName] := SL.ValueFromIndex[0];
+          finally
+            SL.Free;
+          end;
+          end
+        else
+          begin
+          // Set the value of the package-variant.
+          FPackageVariantSettings.Values[BuildModeName] := O;
+          end;
         end;
       end;
   end;
@@ -4986,6 +5026,39 @@ procedure TCustomInstaller.AnalyzeOptions;
       begin
         result := SplitString;
         SplitString:='';
+      end;
+  end;
+
+  Function CheckPackageVariantOptionSetValue(Index: Integer): boolean;
+  var
+    O : String;
+    OptionName: string;
+    I,J: integer;
+    P: Integer;
+    PV: TPackageVariants;
+  begin
+    result := false;
+    O:=Paramstr(Index);
+    if copy(O,1,2)<>'--' then
+      Exit;
+    P:=Pos('=',Paramstr(Index));
+    if P > 0 then
+      begin
+      OptionName:=copy(o,3,P-3);
+      Delete(O,1,P);
+      for I := 0 to FPackageVariants.Count -1 do
+        begin
+        PV := TObject(FPackageVariants.Items[I]) as TPackageVariants;
+        for J := 0 to PV.Count-1 do
+          begin
+          if OptionName = 'options_'+PV.Name+'_'+PV.Items[J].Name then
+            begin
+            result := true;
+            while O <> '' do
+              (PV.Items[J] as TPackageVariant).Options.Add(SplitSpaces(O));
+            end;
+          end;
+        end;
       end;
   end;
 
@@ -5119,7 +5192,8 @@ begin
         CustomFpMakeCommandlineValues := TStringList.Create;
       CustomFpMakeCommandlineValues.Values[CustOptName]:=OptionArg(I, true)
       end
-    else if (not CheckBuildOptionSetValue(I)) and (not Defaults.IgnoreInvalidOptions) then
+    else if (not CheckBuildOptionSetValue(I)) and (not CheckPackageVariantOptionSetValue(I))
+      and (not Defaults.IgnoreInvalidOptions) then
       begin
       Usage(SErrInValidArgument,[I,ParamStr(I)]);
       end;
@@ -5201,7 +5275,14 @@ begin
 {$endif NO_THREADING}
   if assigned(CustomFpmakeCommandlineOptions) then for i  := 0 to CustomFpmakeCommandlineOptions.Count-1 do
     LogArgOption(' ',CustomFpmakeCommandlineOptions.Names[i],CustomFpmakeCommandlineOptions.ValueFromIndex[i]);
+  Log(vlInfo, sHelpPackageVariant1);
+  Log(vlInfo, sHelpPackageVariant2);
+  Log(vlInfo, sHelpPackageVariant3);
+  Log(vlInfo, sHelpPackageVariant4);
+  Log(vlInfo, sHelpPackageVariant5);
+  Log(vlInfo, sHelpPackageVariant6);
   Log(vlInfo,'');
+
   If (FMT<>'') then
     halt(1)
   else
@@ -5272,6 +5353,18 @@ begin
   NotifyEventCollection.CallEvents(neaAfterPkgList, self);
 end;
 
+procedure TCustomInstaller.AddAutoPackageVariantsToPackage(APackage: TPackage);
+var
+  i: Integer;
+  PV: TPackageVariants;
+begin
+  for i := 0 to FPackageVariants.Count-1 do
+    begin
+    PV := TObject(FPackageVariants.Items[i]) as TPackageVariants;
+    if PV.AutoAddToPackage then
+      APackage.AddPackageVariant(PV);
+    end;
+end;
 
 procedure TCustomInstaller.CheckPackages;
 begin
