@@ -455,7 +455,7 @@ begin
   PackageSearchpath := TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath;
 
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb', ['build'], 'create fpmake-executable', 1);
-  RunTestCommandIndir(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packageb']), ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packageb', 'fpmake']), ['build', '--nofpccfg', '--compiler='+CompilerStr, '--searchpath='+FpcSearchpath, '--searchpath='+PackageSearchpath], 'build packagea');
+  RunTestCommandIndir(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packageb']), ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packageb', 'fpmake']), ['build', '--nofpccfg', '--compiler='+CompilerStr, '--searchpath='+FpcSearchpath, '--searchpath='+PackageSearchpath], 'build packageb');
 end;
 
 procedure TFullFPCInstallationTests.TestTransmitOptions;
