@@ -1772,9 +1772,9 @@ ResourceString
   SHelpUseBuildUnit   = 'Compile package in Build-unit mode.';
   sHelpZipPrefix      = 'Use indicated prefix for generated archives.';
   sHelpPackageVariant1= 'To add a package-variant to all packages:';
-  sHelpPackageVariant2= ' +[variantname]-=[variant1],<variant2>,...';
+  sHelpPackageVariant2= ' +[variantname]+=[variant1],<variant2>,...';
   sHelpPackageVariant3= 'To add a package-variant to all packages which other packages will inherit:';
-  sHelpPackageVariant4= ' +[variantname]+=[variant1],<variant2>,...';
+  sHelpPackageVariant4= ' +[variantname]*=[variant1],<variant2>,...';
   sHelpPackageVariant5= 'To add specific options for one package-variant:';
   sHelpPackageVariant6= ' --options_[variantname]_[variant1]=Value';
 
