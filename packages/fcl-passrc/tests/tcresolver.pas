@@ -473,6 +473,7 @@ type
     Procedure TestDynArrayOfLongint;
     Procedure TestStaticArray;
     Procedure TestArrayOfArray;
+    Procedure TestArrayOfArray_NameAnonymous;
     Procedure TestFunctionReturningArray;
     Procedure TestArray_LowHigh;
     Procedure TestArray_AssignSameSignatureFail;
@@ -528,10 +529,14 @@ type
     Procedure TestProcType_AsArgOtherUnit;
     Procedure TestProcType_Property;
     Procedure TestProcType_PropertyCallWrongArgFail;
+    Procedure TestProcType_Typecast;
 
     // pointer
     Procedure TestPointer;
     Procedure TestPointer_AssignPointerToClassFail;
+    Procedure TestPointer_TypecastToMethodTypeFail;
+    Procedure TestPointer_TypecastFromMethodTypeFail;
+    Procedure TestPointer_TypecastMethod_proMethodAddrAsPointer;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -2439,7 +2444,7 @@ end;
 
 procedure TTestResolver.TestSet_AnonymousEnumtypeName;
 begin
-  ResolverEngine.AnonymousEnumtypePostfix:='$enum';
+  ResolverEngine.AnonymousElTypePostfix:='$enum';
   StartProgram(false);
   Add('type');
   Add('  TFlags = set of (red, green);');
@@ -7358,6 +7363,22 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestArrayOfArray_NameAnonymous;
+begin
+  ResolverEngine.AnonymousElTypePostfix:='$array';
+  StartProgram(false);
+  Add('type');
+  Add('  TArrA = array of array of longint;');
+  Add('var');
+  Add('  a: TArrA;');
+  Add('begin');
+  Add('  a[1][2]:=5;');
+  Add('  a[1,2]:=5;');
+  Add('  if a[2,1]=a[0,1] then ;');
+  Add('  a[3][4]:=a[5,6];');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestFunctionReturningArray;
 begin
   StartProgram(false);
@@ -8110,7 +8131,7 @@ begin
   Add('var n: TNotifyEvent;');
   Add('begin');
   Add('  n:=@ProcA;');
-  CheckResolverException('procedure type modifier "of object" mismatch',
+  CheckResolverException('procedure type modifier "of Object" mismatch',
     PasResolver.nXModifierMismatchY);
 end;
 
@@ -8129,7 +8150,7 @@ begin
   Add('  o: TObject;');
   Add('begin');
   Add('  n:=@o.ProcA;');
-  CheckResolverException('procedure type modifier "of object" mismatch',
+  CheckResolverException('procedure type modifier "of Object" mismatch',
     PasResolver.nXModifierMismatchY);
 end;
 
@@ -8304,7 +8325,7 @@ begin
   Add('begin');
   Add('  Button1.OnClick := App.BtnClickHandler();');
   CheckResolverException(
-    'Wrong number of parameters specified for call to "procedure BtnClickHandler(TObject) of object"',
+    'Wrong number of parameters specified for call to "procedure BtnClickHandler(TObject) of Object"',
     nWrongNumberOfParametersForCallTo);
 end;
 
@@ -8328,7 +8349,7 @@ begin
   Add('begin');
   Add('  Button1.OnClick := @App.BtnClickHandler();');
   CheckResolverException(
-    'Wrong number of parameters specified for call to "procedure BtnClickHandler(TObject) of object"',
+    'Wrong number of parameters specified for call to "procedure BtnClickHandler(TObject) of Object"',
     nWrongNumberOfParametersForCallTo);
 end;
 
@@ -8538,6 +8559,32 @@ begin
     nIncompatibleTypeArgNo);
 end;
 
+procedure TTestResolver.TestProcType_Typecast;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TNotifyEvent = procedure(Sender: Pointer) of object;');
+  Add('  TEvent = procedure of object;');
+  Add('  TProcA = procedure(i: longint);');
+  Add('  TFuncB = function(i, j: longint): longint;');
+  Add('var');
+  Add('  Notify: TNotifyEvent;');
+  Add('  Event: TEvent;');
+  Add('  ProcA: TProcA;');
+  Add('  FuncB: TFuncB;');
+  Add('  p: pointer;');
+  Add('begin');
+  Add('  Notify:=TNotifyEvent(Event);');
+  Add('  Event:=TEvent(Event);');
+  Add('  Event:=TEvent(Notify);');
+  Add('  ProcA:=TProcA(FuncB);');
+  Add('  FuncB:=TFuncB(FuncB);');
+  Add('  FuncB:=TFuncB(ProcA);');
+  Add('  ProcA:=TProcA(p);');
+  Add('  FuncB:=TFuncB(p);');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestPointer;
 begin
   StartProgram(false);
@@ -8546,11 +8593,14 @@ begin
   Add('  TClass = class of TObject;');
   Add('  TMyPtr = pointer;');
   Add('  TArrInt = array of longint;');
+  Add('  TFunc = function: longint;');
+  Add('procedure DoIt; begin end;');
   Add('var');
   Add('  p: TMyPtr;');
   Add('  Obj: TObject;');
   Add('  Cl: TClass;');
   Add('  a: tarrint;');
+  Add('  f: TFunc;');
   Add('begin');
   Add('  p:=nil;');
   Add('  if p=nil then;');
@@ -8559,6 +8609,9 @@ begin
   Add('  p:=obj;');
   Add('  p:=cl;');
   Add('  p:=a;');
+  Add('  p:=Pointer(f);');
+  Add('  p:=@DoIt;');
+  Add('  p:=Pointer(@DoIt)');
   Add('  obj:=TObject(p);');
   Add('  cl:=TClass(p);');
   Add('  a:=TArrInt(p);');
@@ -8577,6 +8630,49 @@ begin
   Add('  obj:=p;');
   CheckResolverException('Incompatible types: got "Pointer" expected "TObject"',
     nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestPointer_TypecastToMethodTypeFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TEvent = procedure of object;');
+  Add('var');
+  Add('  p: pointer;');
+  Add('  e: TEvent;');
+  Add('begin');
+  Add('  e:=TEvent(p);');
+  CheckResolverException('Illegal type conversion: "Pointer" to "procedure type of Object"',
+    nIllegalTypeConversionTo);
+end;
+
+procedure TTestResolver.TestPointer_TypecastFromMethodTypeFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TEvent = procedure of object;');
+  Add('var');
+  Add('  p: pointer;');
+  Add('  e: TEvent;');
+  Add('begin');
+  Add('  p:=Pointer(e);');
+  CheckResolverException('Illegal type conversion: "procedure type of Object" to "Pointer"',
+    nIllegalTypeConversionTo);
+end;
+
+procedure TTestResolver.TestPointer_TypecastMethod_proMethodAddrAsPointer;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proMethodAddrAsPointer];
+  StartProgram(false);
+  Add('type');
+  Add('  TEvent = procedure of object;');
+  Add('var');
+  Add('  p: pointer;');
+  Add('  e: TEvent;');
+  Add('begin');
+  Add('  e:=TEvent(p);');
+  Add('  p:=Pointer(e);');
+  ParseProgram;
 end;
 
 initialization

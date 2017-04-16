@@ -79,6 +79,7 @@ type
     procedure TestM_Hint_UnitNotUsed_No_OnlyExternal;
     procedure TestM_Hint_ParameterNotUsed;
     procedure TestM_Hint_ParameterNotUsed_Abstract;
+    procedure TestM_Hint_ParameterNotUsedTypecast;
     procedure TestM_Hint_LocalVariableNotUsed;
     procedure TestM_Hint_InterfaceUnitVariableUsed;
     procedure TestM_Hint_ValueParameterIsAssignedButNeverUsed;
@@ -896,6 +897,27 @@ begin
   Add('  end;');
   Add('begin');
   Add('  TObject.DoIt(3);');
+  AnalyzeProgram;
+  CheckUnexpectedMessages;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_ParameterNotUsedTypecast;
+begin
+  StartProgram(true);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('  TSortCompare = function(a,b: Pointer): integer;');
+  Add('  TObjCompare = function(a,b: TObject): integer;');
+  Add('procedure Sort(const Compare: TSortCompare);');
+  Add('begin');
+  Add('  Compare(nil,nil);');
+  Add('end;');
+  Add('procedure DoIt(const Compare: TObjCompare);');
+  Add('begin');
+  Add('  Sort(TSortCompare(Compare));');
+  Add('end;');
+  Add('begin');
+  Add('  DoIt(nil);');
   AnalyzeProgram;
   CheckUnexpectedMessages;
 end;
