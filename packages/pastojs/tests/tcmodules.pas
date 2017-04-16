@@ -6919,9 +6919,10 @@ begin
   Add('  obj:=tcontrol(obj).next;');
   Add('  tcontrol(obj):=nil;');
   Add('  obj:=tcontrol(obj);');
+  Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit);');
   Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit());');
   Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit(1));');
-  Add('  tcontrol(obj):=tcontrol(tcontrol(tcontrol(obj).getit()).arr[2]);');
+  Add('  tcontrol(obj):=tcontrol(tcontrol(tcontrol(obj).getit).arr[2]);');
   ConvertProgram;
   CheckSource('TestClass_TypeCast',
     LinesToStr([ // statements
@@ -6955,6 +6956,7 @@ begin
     'this.Obj = this.Obj.Next;',
     'this.Obj = null;',
     'this.Obj = this.Obj;',
+    'this.Obj = this.Obj.GetIt(0);',
     'this.Obj = this.Obj.GetIt(0);',
     'this.Obj = this.Obj.GetIt(1);',
     'this.Obj = this.Obj.GetIt(0).Arr[2];',
