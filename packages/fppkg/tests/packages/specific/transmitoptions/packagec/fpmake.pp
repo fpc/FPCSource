@@ -15,7 +15,7 @@ begin
     P:=AddPackage('packagec');
     P.Version:='4.5.6';
 
-    P.Author := 'Joost vam der Sluis';
+    P.Author := 'Joost van der Sluis';
     P.License := 'GPL';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';

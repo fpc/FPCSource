@@ -34,6 +34,7 @@ type
     procedure TestFakePackageDir;
     procedure TestSourceDependency;
     procedure TestTransmitOptions;
+    procedure TestPackageVariantPackage;
   end;
 
   { TFullFPCInstallationSetup }
@@ -472,6 +473,52 @@ begin
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb1', ['install'], 'build PackageB1');
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb2', ['install'], 'build PackageB2');
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagec', ['install'], 'build PackageC');
+end;
+
+procedure TFullFPCInstallationTests.TestPackageVariantPackage;
+var
+  s: String;
+  CompilerStr,
+  FpcSearchpath,
+  PackageSearchpath: string;
+begin
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagevarianta');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagevariantp');
+
+  // Compile the packages with their default variant
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagevarianta', ['install'], 'install PackageVariantA');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagevariantp', ['install'], 'install PackageVariantP');
+
+  // Check the usage of the versiona-subdirectory
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units', TFullFPCInstallationSetup.GetTargetString, 'packagevarianta', 'versiona', 'packagevariantbaseunit.ppu'])), 'packagevariantbaseunit.ppu not found');
+
+  // Check the output of the generated executable
+  s := RunTestCommandIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'bin', 'packagevariantp']), [], 'Run PackageVariantP');
+  Check(pos('Hello version A', s) > 0, 'Package is not compiled with Version-A unit');
+
+  // Compile the package in the ProcVersion=VersionB variant
+  CompilerStr := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'bin', 'fpc']);
+  FpcSearchpath := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion]);
+  PackageSearchpath := TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath;
+
+  RunTestCommandIndir(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packagevarianta']), ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packagevarianta', 'fpmake']), ['build', '--nofpccfg', '--compiler='+CompilerStr, '--searchpath='+FpcSearchpath, '--searchpath='+PackageSearchpath, '+ProcVersion=versionb'], 'build PackageVariantA in the VersionB variant');
+  RunTestCommandIndir(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packagevariantp']), ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packagevariantp', 'fpmake']), ['build', '--nofpccfg', '--compiler='+CompilerStr, '--searchpath='+FpcSearchpath, '--searchpath='+PackageSearchpath, '+ProcVersion=versionb'], 'build PackageVariantP in the VersionB variant');
+
+  // Check the usage of the versiona- & versionb-subdirectory
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath, 'packagevarianta', 'units', TFullFPCInstallationSetup.GetTargetString, 'versiona', 'packagevariantbaseunit.ppu'])), 'packagevariantbaseunit.ppu versiona not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath, 'packagevarianta', 'units', TFullFPCInstallationSetup.GetTargetString, 'versionb', 'packagevariantbaseunit.ppu'])), 'packagevariantbaseunit.ppu versionb not found');
+
+  // Check the output of the generated executable
+  s := RunTestCommandIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath, 'packagevariantp', 'bin', TFullFPCInstallationSetup.GetTargetString, 'packagevariantp']), [], 'Run PackageVariantP');
+  Check(pos('Bye version B', s) > 0, 'Package is not compiled with Version-B unit');
+  Check(pos('Now with extra unit!', s) > 0, 'Package is not compiled with extra Version-B unit');
+
+  // Compile PackageVariantP again, but now with VersionA
+  RunTestCommandIndir(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packagevariantp']), ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packagevariantp', 'fpmake']), ['build', '--nofpccfg', '--compiler='+CompilerStr, '--searchpath='+FpcSearchpath, '--searchpath='+PackageSearchpath, '+ProcVersion=versiona'], 'build PackageVariantP in the VersionB variant');
+
+  // Check the output of the generated executable
+  s := RunTestCommandIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath, 'packagevariantp', 'bin', TFullFPCInstallationSetup.GetTargetString, 'packagevariantp']), [], 'Run PackageVariantP');
+  Check(pos('Hello version A', s) > 0, 'Package is not compiled with Version-A unit');
 end;
 
 Initialization
