@@ -238,9 +238,9 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- nicer error message on "array of array of ()"
-- move local types to unit scope
+- typecast proctype
 - RTTI
+  - open array param
   - codetools function typeinfo
   - jsinteger (pasresolver: btIntDouble)
   - class property
@@ -249,6 +249,7 @@ ToDos:
   - typinfo.pp functions to get/setprop
   - documentation
 - warn int64
+- move local types to unit scope
 - local var absolute
 - make -Jirtl.js default for -Jc and -Tnodejs, needs #IFDEF in cfg
 - FuncName:= (instead of Result:=)
@@ -444,7 +445,7 @@ type
     pbivnRTTIPropStored,
     pbivnRTTISet_CompType,
     pbivnWith,
-    pbitnAnonymEnum,
+    pbitnAnonymousPostfix,
     pbitnTI,
     pbitnTIClass,
     pbitnTIClassRef,
@@ -534,7 +535,7 @@ const
     'stored',
     'comptype',
     '$with',
-    '$enum',
+    '$a',
     'tTypeInfo',
     'tTypeInfoClass',
     'tTypeInfoClassRef',
@@ -781,7 +782,8 @@ const
     proClassOfIs,
     proExtClassInstanceNoTypeMembers,
     proOpenAsDynArrays,
-    proProcTypeWithoutIsNested
+    proProcTypeWithoutIsNested,
+    proMethodAddrAsPointer
     ];
 type
   TPas2JSResolver = class(TPasResolver)
@@ -1178,7 +1180,7 @@ type
     Function ConvertExternalConstructor(Left: TPasElement;
       Ref: TResolvedReference; ParamsExpr: TParamsExpr;
       AContext : TConvertContext): TJSElement; virtual;
-    Function ConvertTypeCastToBaseType(El: TParamsExpr; AContext: TConvertContext; BaseTypeData: TResElDataBaseType): TJSElement; virtual;
+    Function ConvertTypeCastToBaseType(El: TParamsExpr; AContext: TConvertContext; ToBaseTypeData: TResElDataBaseType): TJSElement; virtual;
     Function ConvertSetLiteral(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertOpenArrayParam(ElType: TPasType; El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Length(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -2499,7 +2501,7 @@ begin
   ScopeClass_WithExpr:=TPas2JSWithExprScope;
   for bt in [pbtJSValue] do
     AddJSBaseType(Pas2jsBaseTypeNames[bt],bt);
-  AnonymousEnumtypePostfix:=Pas2JSBuiltInNames[pbitnAnonymEnum];
+  AnonymousElTypePostfix:=Pas2JSBuiltInNames[pbitnAnonymousPostfix];
 end;
 
 destructor TPas2JSResolver.Destroy;
@@ -2585,11 +2587,8 @@ begin
             Result:=cExact+1 // type cast JSValue to simple base type
           else if ToResolved.BaseType=btContext then
             begin
-            C:=ToResolved.TypeEl.ClassType;
-            if (C=TPasClassType)
-                or (C=TPasClassOfType)
-                or (C=TPasEnumType) then
-              Result:=cExact+1;
+            // typecast JSValue to user type
+            Result:=cExact+1;
             end;
           end;
         exit;
@@ -4975,7 +4974,7 @@ var
   Elements: TJSArrayLiteralElements;
   E: TJSArrayLiteral;
   OldAccess: TCtxAccess;
-  DeclResolved, ParamResolved: TPasResolverResult;
+  DeclResolved, ParamResolved, ValueResolved: TPasResolverResult;
   Param: TPasExpr;
   JSBaseType: TPas2jsBaseType;
   C: TClass;
@@ -5106,7 +5105,19 @@ begin
     else if (C=TPasProcedureType)
         or (C=TPasFunctionType) then
       begin
-      TargetProcType:=TPasProcedureType(Decl);
+      AContext.Resolver.ComputeElement(El.Value,ValueResolved,[rcNoImplicitProc]);
+      if ValueResolved.IdentEl is TPasProcedureType then
+        begin
+         // type cast to proc type
+        Param:=El.Params[0];
+        Result:=ConvertElement(Param,AContext);
+        exit;
+        end
+      else
+        begin
+        // calling proc var
+        TargetProcType:=TPasProcedureType(Decl);
+        end;
       end
     else
       begin
@@ -5236,9 +5247,9 @@ begin
 end;
 
 function TPasToJSConverter.ConvertTypeCastToBaseType(El: TParamsExpr;
-  AContext: TConvertContext; BaseTypeData: TResElDataBaseType): TJSElement;
+  AContext: TConvertContext; ToBaseTypeData: TResElDataBaseType): TJSElement;
 var
-  bt: TResolverBaseType;
+  to_bt: TResolverBaseType;
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
   NotEqual: TJSEqualityExpressionNE;
@@ -5271,8 +5282,8 @@ begin
   JSBaseTypeData:=nil;
   JSBaseType:=pbtNone;
 
-  bt:=BaseTypeData.BaseType;
-  if bt in btAllInteger then
+  to_bt:=ToBaseTypeData.BaseType;
+  if to_bt in btAllInteger then
     begin
     if ParamResolved.BaseType in btAllInteger then
       begin
@@ -5307,7 +5318,7 @@ begin
         end;
       end;
     end
-  else if bt in btAllBooleans then
+  else if to_bt in btAllBooleans then
     begin
     if ParamResolved.BaseType in btAllBooleans then
       begin
@@ -5342,7 +5353,7 @@ begin
         end;
       end;
     end
-  else if bt in btAllFloats then
+  else if to_bt in btAllFloats then
     begin
     if ParamResolved.BaseType in (btAllFloats+btAllInteger) then
       begin
@@ -5365,7 +5376,7 @@ begin
         end;
       end;
     end
-  else if bt in btAllStrings then
+  else if to_bt in btAllStrings then
     begin
     if ParamResolved.BaseType in btAllStringAndChars then
       begin
@@ -5388,7 +5399,7 @@ begin
         end;
       end;
     end
-  else if bt=btChar then
+  else if to_bt=btChar then
     begin
     if ParamResolved.BaseType=btChar then
       begin
@@ -5411,7 +5422,7 @@ begin
         end;
       end;
     end
-  else if bt=btPointer then
+  else if to_bt=btPointer then
     begin
     if IsParamPas2JSBaseType then
       begin
@@ -5421,11 +5432,17 @@ begin
         Result:=ConvertElement(Param,AContext);
         exit;
         end;
+      end
+    else if ParamResolved.BaseType=btContext then
+      begin
+      // convert user type/value to pointer -> pass through
+      Result:=ConvertElement(Param,AContext);
+      exit;
       end;
     end
-  else if (bt=btCustom) and (BaseTypeData is TResElDataPas2JSBaseType) then
+  else if (to_bt=btCustom) and (ToBaseTypeData is TResElDataPas2JSBaseType) then
     begin
-    JSBaseType:=TResElDataPas2JSBaseType(BaseTypeData).JSBaseType;
+    JSBaseType:=TResElDataPas2JSBaseType(ToBaseTypeData).JSBaseType;
     if JSBaseType=pbtJSValue then
       begin
       // type cast to jsvalue
@@ -5448,7 +5465,7 @@ begin
       end;
     end;
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.ConvertTypeCastToBaseType BaseTypeData=',BaseTypeNames[bt],' ParamResolved=',GetResolverResultDesc(ParamResolved));
+  writeln('TPasToJSConverter.ConvertTypeCastToBaseType BaseTypeData=',BaseTypeNames[to_bt],' ParamResolved=',GetResolverResultDesc(ParamResolved));
   {$ENDIF}
   RaiseNotSupported(El,AContext,20170325161150);
 end;

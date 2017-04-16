@@ -403,9 +403,11 @@ type
     Procedure TestProcType_PropertyDelphi;
     Procedure TestProcType_WithClassInstDoPropertyFPC;
     Procedure TestProcType_Nested;
+    Procedure TestProcType_Typecast;
 
     // pointer
     Procedure TestPointer;
+    Procedure TestPointer_Proc;
     Procedure TestPointer_AssignRecordFail;
     Procedure TestPointer_AssignStaticArrayFail;
     Procedure TestPointer_ArrayParamsFail;
@@ -431,6 +433,7 @@ type
     Procedure TestRTTI_AnonymousEnumType;
     Procedure TestRTTI_StaticArray;
     Procedure TestRTTI_DynArray;
+    Procedure TestRTTI_ArrayNestedAnonymous;
     // ToDo: Procedure TestRTTI_Pointer;
     Procedure TestRTTI_PublishedMethodOverloadFail;
     Procedure TestRTTI_PublishedMethodExternalFail;
@@ -3192,28 +3195,28 @@ begin
   ConvertProgram;
   CheckSource('TestSet_AnonymousEnumType',
     LinesToStr([ // statements
-    'this.TFlags$enum = {',
+    'this.TFlags$a = {',
     '  "0": "red",',
     '  red: 0,',
     '  "1": "green",',
     '  green: 1',
     '};',
-    'this.favorite = this.TFlags$enum.red;',
+    'this.favorite = this.TFlags$a.red;',
     'this.f = {};',
     'this.i = 0;',
     '']),
     LinesToStr([
-    'this.f = rtl.includeSet(this.f, this.TFlags$enum.red);',
+    'this.f = rtl.includeSet(this.f, this.TFlags$a.red);',
     'this.f = rtl.includeSet(this.f, this.favorite);',
-    'this.i = this.TFlags$enum.red;',
+    'this.i = this.TFlags$a.red;',
     'this.i = this.favorite;',
-    'this.i = this.TFlags$enum.red;',
-    'this.i = this.TFlags$enum.red;',
-    'this.i = this.TFlags$enum.red;',
-    'this.i = this.TFlags$enum.green;',
-    'this.i = this.TFlags$enum.green;',
-    'this.i = this.TFlags$enum.green;',
-    'this.f = rtl.createSet(this.TFlags$enum.green, this.favorite);',
+    'this.i = this.TFlags$a.red;',
+    'this.i = this.TFlags$a.red;',
+    'this.i = this.TFlags$a.red;',
+    'this.i = this.TFlags$a.green;',
+    'this.i = this.TFlags$a.green;',
+    'this.i = this.TFlags$a.green;',
+    'this.f = rtl.createSet(this.TFlags$a.green, this.favorite);',
     '']));
 end;
 
@@ -6916,10 +6919,9 @@ begin
   Add('  obj:=tcontrol(obj).next;');
   Add('  tcontrol(obj):=nil;');
   Add('  obj:=tcontrol(obj);');
-  Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit);');
   Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit());');
   Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit(1));');
-  Add('  tcontrol(obj):=tcontrol(tcontrol(tcontrol(obj).getit).arr[2]);');
+  Add('  tcontrol(obj):=tcontrol(tcontrol(tcontrol(obj).getit()).arr[2]);');
   ConvertProgram;
   CheckSource('TestClass_TypeCast',
     LinesToStr([ // statements
@@ -6953,7 +6955,6 @@ begin
     'this.Obj = this.Obj.Next;',
     'this.Obj = null;',
     'this.Obj = this.Obj;',
-    'this.Obj = this.Obj.GetIt(0);',
     'this.Obj = this.Obj.GetIt(0);',
     'this.Obj = this.Obj.GetIt(1);',
     'this.Obj = this.Obj.GetIt(0).Arr[2];',
@@ -10025,6 +10026,62 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestProcType_Typecast;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TNotifyEvent = procedure(Sender: Pointer) of object;');
+  Add('  TEvent = procedure of object;');
+  Add('  TProcA = procedure(i: longint);');
+  Add('  TFuncB = function(i, j: longint): longint;');
+  Add('var');
+  Add('  Notify: TNotifyEvent;');
+  Add('  Event: TEvent;');
+  Add('  ProcA: TProcA;');
+  Add('  FuncB: TFuncB;');
+  Add('  p: pointer;');
+  Add('begin');
+  Add('  Notify:=TNotifyEvent(Event);');
+  Add('  Event:=TEvent(Event);');
+  Add('  Event:=TEvent(Notify);');
+  Add('  ProcA:=TProcA(FuncB);');
+  Add('  FuncB:=TFuncB(FuncB);');
+  Add('  FuncB:=TFuncB(ProcA);');
+  Add('  ProcA:=TProcA(p);');
+  Add('  FuncB:=TFuncB(p);');
+  Add('  p:=Pointer(Notify);');
+  Add('  p:=Notify;');
+  Add('  p:=Pointer(ProcA);');
+  Add('  p:=ProcA;');
+  Add('  p:=Pointer(FuncB);');
+  Add('  p:=FuncB;');
+  ConvertProgram;
+  CheckSource('TestProcType_Typecast',
+    LinesToStr([ // statements
+    'this.Notify = null;',
+    'this.Event = null;',
+    'this.ProcA = null;',
+    'this.FuncB = null;',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Notify = this.Event;',
+    'this.Event = this.Event;',
+    'this.Event = this.Notify;',
+    'this.ProcA = this.FuncB;',
+    'this.FuncB = this.FuncB;',
+    'this.FuncB = this.ProcA;',
+    'this.ProcA = this.p;',
+    'this.FuncB = this.p;',
+    'this.p = this.Notify;',
+    'this.p = this.Notify;',
+    'this.p = this.ProcA;',
+    'this.p = this.ProcA;',
+    'this.p = this.FuncB;',
+    'this.p = this.FuncB;',
+    '']));
+end;
+
 procedure TTestModule.TestPointer;
 begin
   StartProgram(false);
@@ -10081,6 +10138,40 @@ begin
     'this.Obj = this.p;',
     'this.C = this.p;',
     'this.a = this.p;',
+    '']));
+end;
+
+procedure TTestModule.TestPointer_Proc;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure DoIt; virtual; abstract;');
+  Add('  end;');
+  Add('procedure DoSome; begin end;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('  p: Pointer;');
+  Add('begin');
+  Add('  p:=@DoSome;');
+  Add('  p:=@o.DoIt;');
+  ConvertProgram;
+  CheckSource('TestPointer_Proc',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.DoSome = function () {',
+    '};',
+    'this.o = null;',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.p = rtl.createCallback(this, "DoSome");',
+    'this.p = rtl.createCallback(this.o, "DoIt");',
     '']));
 end;
 
@@ -10959,24 +11050,24 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_AnonymousEnumType',
     LinesToStr([ // statements
-    'this.TFlags$enum = {',
+    'this.TFlags$a = {',
     '  "0": "red",',
     '  red: 0,',
     '  "1": "green",',
     '  green: 1',
     '};',
-    'this.$rtti.$Enum("TFlags$enum", {',
+    'this.$rtti.$Enum("TFlags$a", {',
     '  minvalue: 0,',
     '  maxvalue: 1,',
-    '  enumtype: this.TFlags$enum',
+    '  enumtype: this.TFlags$a',
     '});',
     'this.$rtti.$Set("TFlags", {',
-    '  comptype: this.$rtti["TFlags$enum"]',
+    '  comptype: this.$rtti["TFlags$a"]',
     '});',
     'this.f = {};',
     '']),
     LinesToStr([
-    'this.f = rtl.includeSet(this.f, this.TFlags$enum.red);',
+    'this.f = rtl.includeSet(this.f, this.TFlags$a.red);',
     '']));
 end;
 
@@ -11056,6 +11147,29 @@ begin
     'this.p = this.$rtti["TArrStr"];',
     'this.p = this.$rtti["TArr2Dim"];',
     '']));
+end;
+
+procedure TTestModule.TestRTTI_ArrayNestedAnonymous;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TArr = array of array of longint;');
+  Add('var a: TArr;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_ArrayNestedAnonymous',
+    LinesToStr([ // statements
+    'this.$rtti.$DynArray("TArr$a", {',
+    '  eltype: rtl.longint',
+    '});',
+    'this.$rtti.$DynArray("TArr", {',
+    '  eltype: this.$rtti["TArr$a"]',
+    '});',
+    'this.a = [];',
+    '']),
+    LinesToStr([ // this.$main
+    ]));
 end;
 
 procedure TTestModule.TestRTTI_PublishedMethodOverloadFail;
