@@ -1664,7 +1664,7 @@ var
                   (pu.u.crc<>pu.checksum)
                  ) then
                begin
-                 Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.realmodulename^,@queuecomment);
+                 Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.ppufilename,@queuecomment);
 {$ifdef DEBUG_UNIT_CRC_CHANGES}
                  if (pu.u.interface_crc<>pu.interface_checksum) then
                    writeln('  intfcrc change: ',hexstr(pu.u.interface_crc,8),' <> ',hexstr(pu.interface_checksum,8))
@@ -1720,7 +1720,7 @@ var
               if (pu.u.interface_crc<>pu.interface_checksum) or
                  (pu.u.indirect_crc<>pu.indirect_checksum) then
                 begin
-                  Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.realmodulename^+' {impl}',@queuecomment);
+                  Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.ppufilename+' {impl}',@queuecomment);
 {$ifdef DEBUG_UNIT_CRC_CHANGES}
                   if (pu.u.interface_crc<>pu.interface_checksum) then
                     writeln('  intfcrc change (2): ',hexstr(pu.u.interface_crc,8),' <> ',hexstr(pu.interface_checksum,8))
