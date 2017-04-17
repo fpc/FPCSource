@@ -4,7 +4,7 @@ unit fpwebfile;
 
 interface
 
-uses SysUtils, Classes, httpdefs, fphttp;
+uses SysUtils, Classes, httpdefs, fphttp, httproute;
 
 Type
   TFPCustomFileModule = Class(TCustomHTTPModule)
@@ -21,6 +21,28 @@ Type
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
   end;
   TFPCustomFileModuleClass = Class of TFPCustomFileModule;
+
+  { TSimpleFileModule }
+
+  TSimpleFileLog = Procedure (EventType : TEventType; Const Msg : String) of object;
+  TSimpleFileModule = class(TFPCustomFileModule,IRouteInterface)
+  private
+    FRequestedFileName,
+    FMappedFileName : String;
+    class procedure HandleSimpleFileRequest(ARequest: TRequest; AResponse: TResponse); static;
+    Function MapFileName(Const AFileName : String) : String; override;
+    Function GetRequestFileName(Const ARequest : TRequest) : String; override;
+    Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
+  Public
+  Class var
+    // Where to serve files from
+    BaseDir : String;
+    // For directories, convert to index.html if this is set.
+    IndexPageName : String;
+    // If you want some logging, set this.
+    OnLog : TSimpleFileLog;
+    Class Procedure RegisterDefaultRoute;
+  end;
 
 Var
   // Set this if you want a descendent class to serve the files.
@@ -73,6 +95,51 @@ begin
   else  
     Locations.Values[IncludeHTTPPathDelimiter(ALocation)]:=IncludeTrailingPathDelimiter(ADirectory);
   RegisterHTTPModule(ALocation,DefaultFileModuleClass,true);
+end;
+
+{ TSimpleFileModule }
+
+Class Procedure TSimpleFileModule.HandleSimpleFileRequest(ARequest : TRequest; AResponse : TResponse); static;
+
+begin
+  With TSimpleFileModule.CreateNew(Nil) do
+    try
+      HandleRequest(ARequest,AResponse);
+    finally
+      Free;
+    end;
+end;
+
+function TSimpleFileModule.MapFileName(const AFileName: String): String;
+
+begin
+  Result:=AFileName;
+  While (Result<>'') and (Result[1]='/') do
+    Delete(Result,1,1);
+  Result:=IncludeTrailingPathDelimiter(BaseDir)+Result;
+  FRequestedFileName:=AFileName;
+  FMappedFileName:=Result;
+end;
+
+function TSimpleFileModule.GetRequestFileName(const ARequest: TRequest): String;
+begin
+  Result:=inherited GetRequestFileName(ARequest);
+  if (IndexPageName<>'') and ((Result='') or (Result[Length(Result)]='/')) then
+    Result:=Result+IndexPageName;
+end;
+
+procedure TSimpleFileModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+begin
+  Inherited;
+  if Assigned (OnLog) then
+    OnLog(etInfo,Format('%d serving "%s" -> "%s"',[AResponse.Code,FRequestedFileName,FMappedFileName]));
+end;
+
+class procedure TSimpleFileModule.RegisterDefaultRoute;
+begin
+  if BaseDir='' then
+    BaseDir:=IncludeTrailingPathDelimiter(GetCurrentDir);
+  httprouter.RegisterRoute('/*',@HandleSimpleFileRequest);
 end;
 
 Function TFPCustomFileModule.GetRequestFileName(Const ARequest : TRequest) : String;
