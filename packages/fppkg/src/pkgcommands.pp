@@ -437,7 +437,7 @@ begin
           Error(SErrInstallationImpossible,[PackageName, InstallRepo.RepositoryName]);
         else if ForceInstall then
           begin
-            log(llDebug,SDbgForcePackageInstall,[P.Name]);
+            log(llDebug,SDbgForcePackageInstall,[PackageName]);
             ExecuteAction(PackageName,'fpmakeinstall');
           end;
       end;
