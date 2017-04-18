@@ -323,19 +323,19 @@ type
     btModule,
     btUntyped,     // TPasArgument without ArgType
     btChar,        // char
+    btAnsiChar,    // ansichar
     btWideChar,    // widechar
     btString,      // string
     btAnsiString,  // ansistring
     btShortString, // shortstring
     btWideString,  // widestring
     btUnicodeString,// unicodestring
-    btReal,        // real  platform, single or double
+    btRawByteString, // rawbytestring
     btSingle,      // single  1.5E-45..3.4E38, digits 7-8, bytes 4
     btDouble,      // double  5.0E-324..1.7E308, digits 15-16, bytes 8
     btExtended,    // extended  platform, double or 1.9E-4932..1.1E4932, digits 19-20, bytes 10
     btCExtended,   // cextended
-    btComp,        // comp  -2E64+1..2E63-1, digits 19-20, bytes 8
-    btCurrency,    // currency  ?, bytes 8
+    btCurrency,    // currency  -2E64+1 .. 2E63-1, bytes 8
     btBoolean,     // boolean
     btByteBool,    // bytebool  true=not zero
     btWordBool,    // wordbool  true=not zero
@@ -346,10 +346,10 @@ type
     btWord,        // word  unsigned 2 bytes
     btSmallInt,    // smallint signed 2 bytes
     btLongWord,    // longword unsigned 4 bytes
-    btCardinal,    // cardinal see longword
     btLongint,     // longint  signed 4 bytes
     btQWord,       // qword   0..18446744073709551615, bytes 8
     btInt64,       // int64   -9223372036854775808..9223372036854775807, bytes 8
+    btComp,        // comp  -2E64+1..2E63-1, digits 19-20, bytes 8
     btPointer,     // pointer
     btFile,        // file
     btText,        // text
@@ -363,27 +363,28 @@ type
     );
   TResolveBaseTypes = set of TResolverBaseType;
 const
-  btAllInteger = [btComp,btCurrency,btByte,btShortInt,btWord,btSmallInt,
-    btLongWord,btCardinal,btLongint,btQWord,btInt64];
+  btAllInteger = [btByte,btShortInt,btWord,btSmallInt,
+    btLongWord,btLongint,btQWord,btInt64,btComp];
+  btAllChars = [btChar,btAnsiChar,btWideChar];
   btAllStrings = [btString,btAnsiString,btShortString,
-    btWideString,btUnicodeString];
-  btAllStringAndChars = btAllStrings+[btChar,btWideChar];
-  btAllFloats = [btReal,btSingle,btDouble,btExtended,btCExtended];
+    btWideString,btUnicodeString,btRawByteString];
+  btAllStringAndChars = btAllStrings+btAllChars;
+  btAllFloats = [btSingle,btDouble,btExtended,btCExtended,btCurrency];
   btAllBooleans = [btBoolean,btByteBool,btWordBool,btLongBool,btQWordBool];
   btAllStandardTypes = [
     btChar,
+    btAnsiChar,
     btWideChar,
     btString,
     btAnsiString,
     btShortString,
     btWideString,
     btUnicodeString,
-    btReal,
+    btRawByteString,
     btSingle,
     btDouble,
     btExtended,
     btCExtended,
-    btComp,
     btCurrency,
     btBoolean,
     btByteBool,
@@ -395,17 +396,16 @@ const
     btWord,
     btSmallInt,
     btLongWord,
-    btCardinal,
     btLongint,
     btQWord,
     btInt64,
+    btComp,
     btPointer,
     btFile,
     btText,
     btVariant
     ];
-  btArrayRangeTypes = [btBoolean,btChar,btWideChar,
-      btByte,btShortInt,btWord,btSmallInt,btLongWord,btCardinal,btLongint];
+  btArrayRangeTypes = btAllChars+[btBoolean]+btAllInteger;
 
   BaseTypeNames: array[TResolverBaseType] of shortstring =(
     'None',
@@ -414,18 +414,18 @@ const
     'Module',
     'Untyped',
     'Char',
+    'AnsiChar',
     'WideChar',
     'String',
     'AnsiString',
     'ShortString',
     'WideString',
     'UnicodeString',
-    'Real',
+    'RawByteString',
     'Single',
     'Double',
     'Extended',
     'CExtended',
-    'Comp',
     'Currency',
     'Boolean',
     'ByteBool',
@@ -437,10 +437,10 @@ const
     'Word',
     'SmallInt',
     'LongWord',
-    'Cardinal',
     'Longint',
     'QWord',
     'Int64',
+    'Comp',
     'Pointer',
     'File',
     'Text',
@@ -981,8 +981,10 @@ type
     procedure ClearResolveDataList(Kind: TResolveDataListKind);
   private
     FAnonymousElTypePostfix: String;
+    FBaseTypeChar: TResolverBaseType;
+    FBaseTypeExtended: TResolverBaseType;
     FBaseTypes: array[TResolverBaseType] of TPasUnresolvedSymbolRef;
-    FBaseTypeStringIndex: TResolverBaseType;
+    FBaseTypeString: TResolverBaseType;
     FDefaultScope: TPasDefaultScope;
     FLastCreatedData: array[TResolveDataListKind] of TResolveData;
     FLastElement: TPasElement;
@@ -1011,6 +1013,12 @@ type
     const
       cIncompatible = High(integer);
       cExact = 0;
+      cCompatible = cExact+1;
+      cIntToIntConversion = ord(High(TResolverBaseType));
+      cToFloatConversion = 2*cIntToIntConversion;
+      cTypeConversion = cExact+10000; // e.g. TObject to Pointer
+      cLossyConversion = cExact+100000;
+      cCompatibleWithDefaultParams = cLossyConversion+100000;
     type
       TFindCallElData = record
         Params: TParamsExpr;
@@ -1393,9 +1401,12 @@ type
     function ProcNeedsParams(El: TPasProcedureType): boolean;
     function GetRangeLength(RangeResolved: TPasResolverResult): integer;
     function HasTypeInfo(El: TPasType): boolean; virtual;
+    function GetActualBaseType(bt: TResolverBaseType): TResolverBaseType; virtual;
   public
     property BaseTypes[bt: TResolverBaseType]: TPasUnresolvedSymbolRef read GetBaseTypes;
-    property BaseTypeStringIndex: TResolverBaseType read FBaseTypeStringIndex write FBaseTypeStringIndex;
+    property BaseTypeChar: TResolverBaseType read FBaseTypeChar write FBaseTypeChar;
+    property BaseTypeExtended: TResolverBaseType read FBaseTypeExtended write FBaseTypeExtended;
+    property BaseTypeString: TResolverBaseType read FBaseTypeString write FBaseTypeString;
     property LastElement: TPasElement read FLastElement;
     property StoreSrcColumns: boolean read FStoreSrcColumns write FStoreSrcColumns; {
        If true Line and Column is mangled together in TPasElement.SourceLineNumber.
@@ -1428,6 +1439,7 @@ function GetResolverResultDesc(const T: TPasResolverResult): string;
 function GetResolverResultDescription(const T: TPasResolverResult; OnlyType: boolean = false): string;
 function GetResolverResultDbg(const T: TPasResolverResult): string;
 function ResolverResultFlagsToStr(const Flags: TPasResolverResultFlags): string;
+
 procedure SetResolverIdentifier(out ResolvedType: TPasResolverResult;
   BaseType: TResolverBaseType; IdentEl: TPasElement;
   TypeEl: TPasType; Flags: TPasResolverResultFlags); overload;
@@ -1437,7 +1449,10 @@ procedure SetResolverTypeExpr(out ResolvedType: TPasResolverResult;
 procedure SetResolverValueExpr(out ResolvedType: TPasResolverResult;
   BaseType: TResolverBaseType; TypeEl: TPasType; ExprEl: TPasExpr;
   Flags: TPasResolverResultFlags); overload;
+
 function ProcNeedsImplProc(Proc: TPasProcedure): boolean;
+function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: int64): boolean;
+
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
 function dbgs(const a: TResolvedRefAccess): string;
 function dbgs(const Flags: TResolvedReferenceFlags): string; overload;
@@ -1837,6 +1852,25 @@ begin
     if not Proc.IsAbstract then exit;
     end;
   Result:=false;
+end;
+
+function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: int64
+  ): boolean;
+begin
+  Result:=true;
+  case bt of
+  btByte: begin MinVal:=Low(byte); MaxVal:=High(byte); end;
+  btShortInt: begin MinVal:=low(ShortInt); MaxVal:=high(ShortInt); end;
+  btWord: begin MinVal:=low(word); MaxVal:=high(word); end;
+  btSmallInt: begin MinVal:=low(SmallInt); MaxVal:=high(SmallInt); end;
+  btLongWord: begin MinVal:=low(LongWord); MaxVal:=high(LongWord); end;
+  btLongint: begin MinVal:=low(LongInt); MaxVal:=high(LongInt); end;
+  btInt64,btExtended,btComp: begin MinVal:=low(int64); MaxVal:=high(int64); end;
+  btSingle: begin MinVal:=-16777216; MaxVal:=16777216; end;
+  btDouble: begin MinVal:=-$10000000000000; MaxVal:=$fffffffffffff; end;
+  else
+    Result:=false;
+  end;
 end;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string;
@@ -2639,7 +2673,7 @@ var
   C: TClass;
 begin
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.OnFindCallElements START ---------');
+  writeln('TPasResolver.OnFindCallElements START --------- ',GetObjName(El),' at ',GetElementSourcePosStr(El));
   {$ENDIF}
   CandidateFound:=false;
 
@@ -2690,7 +2724,7 @@ begin
 
     Distance:=CheckCallProcCompatibility(Proc.ProcType,Data^.Params,false);
     {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.OnFindCallElements Proc Compatible=',Distance,' Data^.Found=',Data^.Found<>nil,' Data^.Compatible=',ord(Data^.Distance));
+    writeln('TPasResolver.OnFindCallElements Proc Distance=',Distance,' Data^.Found=',Data^.Found<>nil,' Data^.Distance=',ord(Data^.Distance));
     {$ENDIF}
     CandidateFound:=true;
     end
@@ -2791,11 +2825,12 @@ begin
     exit;
     end;
 
-  // El is a candidate
-  if (Data^.Found=nil) or (Distance<Data^.Distance) then
+  // El is a candidate (might be incompatible)
+  if (Data^.Found=nil)
+      or ((Data^.Distance=cIncompatible) and (Distance<cIncompatible)) then
     begin
     {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.OnFindCallElements Found a better candidate Distance=',Distance,' Data^.Distance=',Data^.Distance);
+    writeln('TPasResolver.OnFindCallElements Found first candidate Distance=',Distance);
     {$ENDIF}
     Data^.Found:=El;
     Data^.ElScope:=ElScope;
@@ -2808,8 +2843,19 @@ begin
       Data^.List.Add(El);
       end;
     end
-  else if Distance=Data^.Distance then
+  else if Distance=cIncompatible then
+    // another candidate, but it is incompatible -> ignore
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.OnFindCallElements Found another candidate, but it is incompatible -> ignore')
+    {$ENDIF}
+  else if (Distance>=cCompatibleWithDefaultParams)
+        or (Data^.Distance=Distance)
+        or ((Distance>=cLossyConversion) and (Data^.Distance>=cLossyConversion)) then
     begin
+    // found another compatible one -> collect
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.OnFindCallElements Found another candidate Distance=',Distance,' OldDistance=',Data^.Distance);
+    {$ENDIF}
     inc(Data^.Count);
     if (Data^.List<>nil) then
       begin
@@ -2826,6 +2872,32 @@ begin
         end;
       Data^.List.Add(El);
       end;
+    end
+  else if (Distance<Data^.Distance) then
+    begin
+    // found a better one
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.OnFindCallElements Found a better candidate Distance=',Distance,' Data^.Distance=',Data^.Distance);
+    {$ENDIF}
+    Data^.Found:=El;
+    Data^.ElScope:=ElScope;
+    Data^.StartScope:=StartScope;
+    Data^.Distance:=Distance;
+    if (Distance<cLossyConversion) then
+      begin
+      // found a good one
+      Data^.Count:=1;
+      if Data^.List<>nil then
+        Data^.List.Clear;
+      end
+    else
+      begin
+      // found another lossy one
+      // -> collect them
+      inc(Data^.Count);
+      end;
+    if Data^.List<>nil then
+      Data^.List.Add(El);
     end;
 end;
 
@@ -4379,7 +4451,7 @@ begin
   ResolveExpr(Loop.VariableName,rraAssign);
   ComputeElement(Loop.VariableName,VarResolved,[rcNoImplicitProc]);
   if ResolvedElCanBeVarParam(VarResolved)
-      and ((VarResolved.BaseType in (btAllBooleans+btAllInteger+[btChar,btWideChar]))
+      and ((VarResolved.BaseType in (btAllBooleans+btAllInteger+btAllChars))
         or ((VarResolved.BaseType=btContext) and (VarResolved.TypeEl.ClassType=TPasEnumType))) then
   else
     RaiseMsg(20170216151955,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Loop.VariableName);
@@ -5079,11 +5151,12 @@ begin
         Msg:='';
         for i:=0 to FindCallData.List.Count-1 do
           begin
-          // ToDo: create a hint for each candidate
           El:=TPasElement(FindCallData.List[i]);
           {$IFDEF VerbosePasResolver}
           writeln('TPasResolver.ResolveFuncParamsExpr Overload Candidate: ',GetElementSourcePosStr(El),' ',GetTreeDesc(El));
           {$ENDIF}
+          // emit a hint for each candidate
+          //ToDo: LogMsg(20170417180320,mtHint,);
           Msg:=Msg+', ';
           Msg:=Msg+GetElementSourcePosStr(El);
           end;
@@ -5274,7 +5347,7 @@ begin
     ComputeElement(ArgExp,ResolvedArg,[rcSkipTypeAlias]);
     if not (ResolvedArg.BaseType in btAllInteger) then
       RaiseMsg(20170216152209,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-        [BaseTypeNames[ResolvedArg.BaseType],BaseTypeNames[BaseTypeStringIndex]],ArgExp);
+        [BaseTypeNames[ResolvedArg.BaseType],'integer'],ArgExp);
     if not (rrfReadable in ResolvedArg.Flags) then
       RaiseMsg(20170216152211,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
         ['type','value'],ArgExp);
@@ -5909,24 +5982,66 @@ begin
           case LeftResolved.BaseType of
           btChar:
             begin
+            case RightResolved.BaseType of
+            btChar: SetBaseType(btString);
+            btAnsiChar:
+              if BaseTypeChar=btAnsiChar then
+                SetBaseType(btString)
+              else
+                SetBaseType(btUnicodeString);
+            btWideChar:
+              if BaseTypeChar=btWideChar then
+                SetBaseType(btString)
+              else
+                SetBaseType(btUnicodeString);
+            else
+              // use right type for result
+              SetResolverValueExpr(ResolvedEl,RightResolved.BaseType,RightResolved.TypeEl,Bin,[rrfReadable]);
+            end;
+            exit;
+            end;
+          btAnsiChar:
+            begin
+            case RightResolved.BaseType of
+            btChar:
+              if BaseTypeChar=btAnsiChar then
+                SetBaseType(btString)
+              else
+                SetBaseType(btUnicodeString);
+            btAnsiChar:
+              if BaseTypeChar=btAnsiChar then
+                SetBaseType(btString)
+              else
+                SetBaseType(btAnsiString);
+            btWideChar:
+              if BaseTypeChar=btWideChar then
+                SetBaseType(btString)
+              else
+                SetBaseType(btUnicodeString);
+            else
+              // use right type for result
+              SetResolverValueExpr(ResolvedEl,RightResolved.BaseType,RightResolved.TypeEl,Bin,[rrfReadable]);
+            end;
+            exit;
+            end;
+          btWideChar:
+            begin
               case RightResolved.BaseType of
-              btChar: SetBaseType(btString);
-              btWideChar: SetBaseType(btUnicodeString);
+              btChar,btAnsiChar,btWideChar:
+                if BaseTypeChar=btWideChar then
+                  SetBaseType(btString)
+                else
+                  SetBaseType(btUnicodeString);
               else
                 // use right type for result
                 SetResolverValueExpr(ResolvedEl,RightResolved.BaseType,RightResolved.TypeEl,Bin,[rrfReadable]);
               end;
               exit;
             end;
-          btWideChar:
-            begin
-            SetBaseType(btUnicodeString);
-            exit;
-            end;
           btShortString:
             begin
               case RightResolved.BaseType of
-              btChar,btShortString,btWideChar:
+              btChar,btAnsiChar,btShortString,btWideChar:
                 // use left type for result
                 SetResolverValueExpr(ResolvedEl,LeftResolved.BaseType,LeftResolved.TypeEl,Bin,[rrfReadable]);
               else
@@ -6294,10 +6409,20 @@ begin
   if ResolvedEl.BaseType in btAllStrings then
     begin
     // stringvar[] => char
-    if ResolvedEl.BaseType in [btWideString,btUnicodeString] then
-      ResolvedEl.BaseType:=btWideChar
+    case GetActualBaseType(ResolvedEl.BaseType) of
+    btWideString,btUnicodeString:
+      if BaseTypeChar=btWideChar then
+        ResolvedEl.BaseType:=btChar
+      else
+        ResolvedEl.BaseType:=btWideChar;
+    btAnsiString,btRawByteString,btShortString:
+      if BaseTypeChar=btAnsiChar then
+        ResolvedEl.BaseType:=btChar
+      else
+        ResolvedEl.BaseType:=btAnsiChar;
     else
-      ResolvedEl.BaseType:=btChar;
+      RaiseNotYetImplemented(20170417202354,Params);
+    end;
     // keep ResolvedEl.IdentEl the string var
     ResolvedEl.TypeEl:=FBaseTypes[ResolvedEl.BaseType];
     ResolvedEl.ExprEl:=Params;
@@ -7676,7 +7801,9 @@ begin
   inherited Create;
   FDefaultScope:=TPasDefaultScope.Create;
   FPendingForwards:=TFPList.Create;
-  FBaseTypeStringIndex:=btChar;
+  FBaseTypeChar:=btAnsiChar;
+  FBaseTypeString:=btAnsiString;
+  FBaseTypeExtended:=btDouble;
   FScopeClass_Class:=TPasClassScope;
   FScopeClass_WithExpr:=TPasWithExprScope;
   PushScope(FDefaultScope);
@@ -8894,15 +9021,21 @@ begin
     inc(Result,ParamCompatibility);
     inc(i);
     end;
-  if (i<ProcArgs.Count) and (TPasArgument(ProcArgs[i]).ValueExpr=nil) then
-    begin
-    // not enough arguments
-    if RaiseOnError then
-      // ToDo: position cursor on identifier
-      RaiseMsg(20170216152410,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[GetProcDesc(ProcType)],Params.Value);
-    exit(cIncompatible);
-    end;
+  if (i<ProcArgs.Count) then
+    if (TPasArgument(ProcArgs[i]).ValueExpr=nil) then
+      begin
+      // not enough arguments
+      if RaiseOnError then
+        // ToDo: position cursor on identifier
+        RaiseMsg(20170216152410,nWrongNumberOfParametersForCallTo,
+          sWrongNumberOfParametersForCallTo,[GetProcDesc(ProcType)],Params.Value);
+      exit(cIncompatible);
+      end
+    else
+      begin
+      // the rest are default params
+      Result:=cCompatibleWithDefaultParams;
+      end;
 end;
 
 function TPasResolver.CheckCallPropertyCompatibility(PropEl: TPasProperty;
@@ -8989,7 +9122,7 @@ begin
           continue
         else if (bt in btAllInteger) and (ParamResolved.BaseType in btAllInteger) then
           continue
-        else if (bt in [btChar,btWideChar]) and (ParamResolved.BaseType in [btChar,btWideChar]) then
+        else if (bt in btAllChars) and (ParamResolved.BaseType in btAllChars) then
           continue
         else if (bt=btContext) and (ParamResolved.BaseType=btContext) then
           begin
@@ -9235,6 +9368,7 @@ var
   TypeEl: TPasType;
   Handled: Boolean;
   C: TClass;
+  LBT, RBT: TResolverBaseType;
 begin
   // check if the RHS can be converted to LHS
   {$IFDEF VerbosePasResolver}
@@ -9249,43 +9383,113 @@ begin
 
   if not Handled then
     begin
+    LBT:=GetActualBaseType(LHS.BaseType);
+    RBT:=GetActualBaseType(RHS.BaseType);
     if LHS.TypeEl=nil then
       begin
-      if LHS.BaseType=btUntyped then
+      if LBT=btUntyped then
         begin
         // untyped parameter
-        Result:=cExact+1;
+        Result:=cTypeConversion;
         end
       else
         RaiseNotYetImplemented(20160922163631,LHS.IdentEl);
       end
-    else if LHS.BaseType=RHS.BaseType then
+    else if LBT=RBT then
       begin
-      if LHS.BaseType=btContext then
+      if LBT=btContext then
         exit(CheckAssignCompatibilityUserType(LHS,RHS,ErrorEl,RaiseOnIncompatible))
       else
         Result:=cExact; // same base type, maybe not same type name (e.g. longint and integer)
       end
-    else if (LHS.BaseType in btAllInteger)
-        and (RHS.BaseType in btAllInteger) then
-      Result:=cExact+1
-    else if (LHS.BaseType in btAllBooleans)
-        and (RHS.BaseType in btAllBooleans) then
-      Result:=cExact+1
-    else if (LHS.BaseType in btAllStringAndChars)
-        and (RHS.BaseType in btAllStringAndChars) then
-      Result:=cExact+1
-    else if (LHS.BaseType in btAllFloats)
-        and (RHS.BaseType in btAllFloats+btAllInteger) then
-      Result:=cExact+1
-    else if LHS.BaseType=btNil then
+    else if (LBT in btAllBooleans)
+        and (RBT in btAllBooleans) then
+      Result:=cCompatible
+    else if (LBT in btAllStringAndChars)
+        and (RBT in btAllStringAndChars) then
+      case LBT of
+      btAnsiChar:
+        Result:=cLossyConversion;
+      btWideChar:
+        if RBT=btAnsiChar then
+          Result:=cCompatible
+        else
+          Result:=cLossyConversion;
+      btAnsiString:
+        if RBT in [btAnsiChar,btShortString,btRawByteString] then
+          Result:=cCompatible
+        else
+          Result:=cLossyConversion;
+      btShortString:
+        if RBT=btAnsiChar then
+          Result:=cCompatible
+        else
+          Result:=cLossyConversion;
+      btWideString,btUnicodeString:
+        Result:=cCompatible;
+      btRawByteString:
+        if RBT in [btAnsiChar,btAnsiString,btShortString] then
+          Result:=cCompatible
+        else
+          Result:=cLossyConversion;
+      else
+        RaiseNotYetImplemented(20170417195208,ErrorEl,BaseTypeNames[LBT]);
+      end
+    else if (LBT in btAllInteger)
+        and (RBT in btAllInteger) then
+      begin
+      Result:=cIntToIntConversion+ord(LBT)-ord(RBT);
+      case LBT of
+      btByte,
+      btShortInt: inc(Result,cLossyConversion);
+      btWord,btSmallInt:
+        if not (RBT in [btByte,btShortInt]) then
+          inc(Result,cLossyConversion);
+      btLongWord,
+      btLongint:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt]) then
+          inc(Result,cLossyConversion);
+      btQWord,
+      btInt64,
+      btComp:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,btLongint]) then
+          inc(Result,cLossyConversion);
+      else
+        RaiseNotYetImplemented(20170417205301,ErrorEl,BaseTypeNames[LBT]);
+      end;
+      end
+    else if (LBT in btAllFloats)
+        and (RBT in (btAllFloats+btAllInteger)) then
+      begin
+      Result:=cToFloatConversion+ord(LBT)-ord(RBT);
+      case LBT of
+      btSingle:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt]) then
+          inc(Result,cLossyConversion);
+      btDouble:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,
+            btLongint,btSingle]) then
+          inc(Result,cLossyConversion);
+      btExtended,btCExtended:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,
+            btLongint,btInt64,btComp,btSingle,btDouble]) then
+          inc(Result,cLossyConversion);
+      btCurrency:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,
+            btLongint,btSingle]) then
+          inc(Result,cLossyConversion);
+      else
+        RaiseNotYetImplemented(20170417205910,ErrorEl,BaseTypeNames[LBT]);
+      end;
+      end
+    else if LBT=btNil then
       begin
       if RaiseOnIncompatible then
         RaiseMsg(20170216152431,nCantAssignValuesToAnAddress,sCantAssignValuesToAnAddress,
           [],ErrorEl);
       exit(cIncompatible);
       end
-    else if LHS.BaseType in [btRange,btSet,btModule,btArray,btProc] then
+    else if LBT in [btRange,btSet,btModule,btArray,btProc] then
       begin
       if RaiseOnIncompatible then
         RaiseMsg(20170216152432,nIllegalExpression,sIllegalExpression,[],ErrorEl);
@@ -9297,11 +9501,11 @@ begin
         RaiseMsg(20170216152434,nIllegalExpression,sIllegalExpression,[],ErrorEl);
       exit(cIncompatible);
       end
-    else if RHS.BaseType=btNil then
+    else if RBT=btNil then
       begin
-      if LHS.BaseType=btPointer then
+      if LBT=btPointer then
         Result:=cExact
-      else if LHS.BaseType=btContext then
+      else if LBT=btContext then
         begin
         TypeEl:=LHS.TypeEl;
         C:=TypeEl.ClassType;
@@ -9313,9 +9517,9 @@ begin
           Result:=cExact;
         end;
       end
-    else if RHS.BaseType=btSet then
+    else if RBT=btSet then
       begin
-      if (LHS.BaseType=btSet) then
+      if (LBT=btSet) then
         begin
         if RHS.TypeEl=nil then
           Result:=cExact // empty set
@@ -9323,13 +9527,13 @@ begin
           Result:=cExact
         else if ((LHS.SubType in btAllBooleans) and (RHS.SubType in btAllBooleans))
             or ((LHS.SubType in btAllInteger) and (RHS.SubType in btAllInteger)) then
-          Result:=cExact+1
+          Result:=cCompatible
         else if (LHS.SubType=btContext) and (LHS.TypeEl is TPasEnumType)
             and (LHS.TypeEl=RHS.TypeEl) then
           Result:=cExact;
         end;
       end
-    else if RHS.BaseType=btProc then
+    else if RBT=btProc then
       begin
       if (msDelphi in CurrentParser.CurrentModeswitches)
           and (LHS.TypeEl is TPasProcedureType)
@@ -9341,14 +9545,14 @@ begin
           Result:=cExact;
         end;
       end
-    else if LHS.BaseType=btPointer then
+    else if LBT=btPointer then
       begin
-      if RHS.BaseType=btPointer then
+      if RBT=btPointer then
         begin
         if IsBaseType(LHS.TypeEl,btPointer) then
           Result:=cExact // btPointer can take any pointer
         else if IsBaseType(RHS.TypeEl,btPointer) then
-          Result:=cExact+1 // any pointer can take a btPointer
+          Result:=cTypeConversion // any pointer can take a btPointer
         else if IsSameType(LHS.TypeEl,RHS.TypeEl) then
           Result:=cExact // pointer of same type
         else if (LHS.TypeEl.ClassType=TPasPointerType)
@@ -9358,24 +9562,25 @@ begin
         end
       else if IsBaseType(LHS.TypeEl,btPointer) then
         begin
-        if RHS.BaseType=btContext then
+        if RBT=btContext then
           begin
           C:=RHS.TypeEl.ClassType;
           if C=TPasClassType then
-            exit(cExact) // class type or class instance
+            exit(cTypeConversion) // class type or class instance
           else if C=TPasClassOfType then
-            Result:=cExact
+            Result:=cTypeConversion
           else if C=TPasArrayType then
             begin
             if IsDynArray(RHS.TypeEl) then
-              Result:=cExact;
+              Result:=cTypeConversion;
             end
           else if (C=TPasProcedureType) or (C=TPasFunctionType) then
-            Result:=cExact+1;
+            // pointer:=procvar
+            Result:=cLossyConversion;
           end;
         end;
       end
-    else if (LHS.BaseType=btContext) and (LHS.TypeEl is TPasArrayType) then
+    else if (LBT=btContext) and (LHS.TypeEl is TPasArrayType) then
       Result:=CheckAssignCompatibilityArrayType(LHS,RHS,ErrorEl,RaiseOnIncompatible);
     end;
 
@@ -9510,13 +9715,13 @@ begin
     end
   else if (LHS.BaseType in btAllInteger+btAllFloats)
       and (RHS.BaseType in btAllInteger+btAllFloats) then
-    exit(cExact+1) // ToDo: range check for Expr
+    exit(cCompatible)
   else if (LHS.BaseType in btAllBooleans)
       and (RHS.BaseType in btAllBooleans) then
-    exit(cExact+1)
+    exit(cCompatible)
   else if (LHS.BaseType in btAllStringAndChars)
       and (RHS.BaseType in btAllStringAndChars) then
-    exit(cExact+1)
+    exit(cCompatible)
   else if LHS.BaseType=btNil then
     begin
       if RHS.BaseType in [btPointer,btNil] then
@@ -9569,7 +9774,7 @@ begin
         exit(cExact);
       if ((LHS.SubType in btAllBooleans) and (RHS.SubType in btAllBooleans))
           or ((LHS.SubType in btAllInteger) and (RHS.SubType in btAllInteger)) then
-        exit(cExact+1);
+        exit(cCompatible);
       if (LHS.SubType=btContext) and (LHS.TypeEl is TPasEnumType)
           and (LHS.TypeEl=RHS.TypeEl) then
         exit(cExact);
@@ -10230,7 +10435,7 @@ begin
     if FromResolved.BaseType=btUntyped then
       begin
       // typecast an untyped parameter
-      Result:=cExact+1;
+      Result:=cCompatible;
       end
     else if C=TPasUnresolvedSymbolRef then
       begin
@@ -10244,23 +10449,29 @@ begin
           Result:=cExact
         else if ToTypeBaseType in btAllInteger then
           begin
-          if FromResolved.BaseType in (btAllInteger+btAllBooleans) then
-            Result:=cExact+1;
+          if FromResolved.BaseType in btAllInteger then
+            Result:=cCompatible
+          else if FromResolved.BaseType in btAllBooleans then
+            Result:=cCompatible;
           end
         else if ToTypeBaseType in btAllFloats then
           begin
-          if FromResolved.BaseType in (btAllInteger+btAllFloats) then
-            Result:=cExact+1;
+          if FromResolved.BaseType in btAllFloats then
+            Result:=cCompatible
+          else if FromResolved.BaseType in btAllInteger then
+            Result:=cCompatible;
           end
         else if ToTypeBaseType in btAllBooleans then
           begin
-          if FromResolved.BaseType in (btAllBooleans+btAllInteger) then
-            Result:=cExact+1;
+          if FromResolved.BaseType in btAllBooleans then
+            Result:=cCompatible
+          else if FromResolved.BaseType in btAllInteger then
+            Result:=cCompatible;
           end
         else if ToTypeBaseType in btAllStrings then
           begin
           if FromResolved.BaseType in btAllStringAndChars then
-            Result:=cExact+1;
+            Result:=cCompatible;
           end
         else if ToTypeBaseType=btPointer then
           begin
@@ -10281,7 +10492,7 @@ begin
               if FromProcType.IsOfObject then
                 begin
                 if proMethodAddrAsPointer in Options then
-                  Result:=cExact+1
+                  Result:=cCompatible
                 else if RaiseOnError then
                   RaiseMsg(20170416183615,nIllegalTypeConversionTo,sIllegalTypeConversionTo,
                     [FromProcType.ElementTypeName+' '+ProcTypeModifiers[ptmOfObject],
@@ -10295,7 +10506,7 @@ begin
                      BaseTypeNames[btPointer]],ErrorEl);
                 end
               else
-                Result:=cExact+1;
+                Result:=cCompatible;
               end;
             end;
           end;
@@ -10374,7 +10585,7 @@ begin
         if ToProcType.IsOfObject then
           begin
           if proMethodAddrAsPointer in Options then
-            Result:=cExact+1
+            Result:=cCompatible
           else if RaiseOnError then
             RaiseMsg(20170416183940,nIllegalTypeConversionTo,sIllegalTypeConversionTo,
               [BaseTypeNames[btPointer],
@@ -10388,7 +10599,7 @@ begin
                ToProcType.ElementTypeName+' '+ProcTypeModifiers[ptmIsNested]],ErrorEl);
           end
         else
-          Result:=cExact+1;
+          Result:=cCompatible;
         end
       else if FromResolved.BaseType=btContext then
         begin
@@ -10412,7 +10623,7 @@ begin
                  ToProcType.ElementTypeName+BoolToStr(ToProcType.IsNested,' '+ProcTypeModifiers[ptmIsNested],'')],ErrorEl);
             end
           else
-            Result:=cExact+1;
+            Result:=cCompatible;
           end;
         end;
       end;
@@ -11201,6 +11412,17 @@ begin
   if (El.Parent is TPasType) and not HasTypeInfo(TPasType(El.Parent)) then
     exit;
   Result:=true;
+end;
+
+function TPasResolver.GetActualBaseType(bt: TResolverBaseType
+  ): TResolverBaseType;
+begin
+  case bt of
+  btChar: Result:=BaseTypeChar;
+  btString: Result:=BaseTypeString;
+  btExtended: Result:=BaseTypeExtended;
+  else Result:=bt;
+  end;
 end;
 
 function TPasResolver.CheckSrcIsADstType(const ResolvedSrcType,

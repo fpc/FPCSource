@@ -279,6 +279,10 @@ type
     Procedure TestProcedureResultFail;
     Procedure TestProcOverload;
     Procedure TestProcOverloadWithBaseTypes;
+    Procedure TestProcOverloadWithBaseTypes2;
+    Procedure TestProcOverloadNearestHigherPrecision;
+    Procedure TestProcCallLowPrecision;
+    Procedure TestProcOverloadMultiLowPrecisionFail;
     Procedure TestProcOverloadWithClassTypes;
     Procedure TestProcOverloadWithInhClassTypes;
     Procedure TestProcOverloadWithInhAliasClassTypes;
@@ -538,6 +542,7 @@ type
     Procedure TestPointer_TypecastToMethodTypeFail;
     Procedure TestPointer_TypecastFromMethodTypeFail;
     Procedure TestPointer_TypecastMethod_proMethodAddrAsPointer;
+    Procedure TestPointer_OverloadSignature;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -2107,7 +2112,7 @@ begin
   Add('var s: string;');
   Add('begin');
   Add('  if s[true]=s then ;');
-  CheckResolverException('Incompatible types: got "Boolean" expected "Char"',
+  CheckResolverException('Incompatible types: got "Boolean" expected "integer"',
     PasResolver.nIncompatibleTypesGotExpected);
 end;
 
@@ -2596,8 +2601,9 @@ begin
   Add('  {#vshortint}vshortint:shortint;');
   Add('  {#vword}vword:word;');
   Add('  {#vsmallint}vsmallint:smallint;');
-  Add('  {#vcardinal}vcardinal:cardinal;');
+  Add('  {#vlongword}vlongword:longword;');
   Add('  {#vlongint}vlongint:longint;');
+  Add('  {#vqword}vqword:qword;');
   Add('  {#vint64}vint64:int64;');
   Add('  {#vcomp}vcomp:comp;');
   Add('begin');
@@ -2611,8 +2617,8 @@ begin
   Add('  {@vsmallint}vsmallint:=0;');
   Add('  {@vsmallint}vsmallint:=-$8000;');
   Add('  {@vsmallint}vsmallint:= $7fff;');
-  Add('  {@vcardinal}vcardinal:=0;');
-  Add('  {@vcardinal}vcardinal:=$ffffffff;');
+  Add('  {@vlongword}vlongword:=0;');
+  Add('  {@vlongword}vlongword:=$ffffffff;');
   Add('  {@vlongint}vlongint:=0;');
   Add('  {@vlongint}vlongint:=-$80000000;');
   Add('  {@vlongint}vlongint:= $7fffffff;');
@@ -2621,11 +2627,14 @@ begin
   Add('  {@vlongint}vlongint:={@vword}vword;');
   Add('  {@vlongint}vlongint:={@vsmallint}vsmallint;');
   Add('  {@vlongint}vlongint:={@vlongint}vlongint;');
-  Add('  {@vcomp}vcomp:=0;');
-  Add('  {@vcomp}vcomp:=$ffffffffffffffff;');
   Add('  {@vint64}vint64:=0;');
   Add('  {@vint64}vint64:=-$8000000000000000;');
   Add('  {@vint64}vint64:= $7fffffffffffffff;');
+  Add('  {@vqword}vqword:=0;');
+  Add('  {@vqword}vqword:=$ffffffffffffffff;');
+  Add('  {@vcomp}vcomp:=0;');
+  Add('  {@vcomp}vcomp:=-$8000000000000000;');
+  Add('  {@vcomp}vcomp:= $7fffffffffffffff;');
   ParseProgram;
 end;
 
@@ -3686,6 +3695,86 @@ begin
   Add('begin');
   Add('  {@A}Func1(3);');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadWithBaseTypes2;
+begin
+  StartProgram(false);
+  Add('procedure {#byte}DoIt(p: byte); external;  var by: byte;');
+  Add('procedure {#shortint}DoIt(p: shortint); external;  var shi: shortint;');
+  Add('procedure {#word}DoIt(p: word); external;  var w: word;');
+  Add('procedure {#smallint}DoIt(p: smallint); external;  var smi: smallint;');
+  Add('procedure {#longword}DoIt(p: longword); external;  var lw: longword;');
+  Add('procedure {#longint}DoIt(p: longint); external;  var li: longint;');
+  Add('procedure {#qword}DoIt(p: qword); external;  var qw: qword;');
+  Add('procedure {#int64}DoIt(p: int64); external;  var i6: int64;');
+  Add('procedure {#comp}DoIt(p: comp); external;  var co: comp;');
+  Add('procedure {#boolean}DoIt(p: boolean); external;  var bo: boolean;');
+  Add('procedure {#char}DoIt(p: char); external;  var ch: char;');
+  Add('procedure {#widechar}DoIt(p: widechar); external;  var wc: widechar;');
+  Add('procedure {#string}DoIt(p: string); external;  var st: string;');
+  Add('procedure {#widestring}DoIt(p: widestring); external;  var ws: widestring;');
+  Add('procedure {#shortstring}DoIt(p: shortstring); external;  var ss: shortstring;');
+  Add('procedure {#unicodestring}DoIt(p: unicodestring); external;  var us: unicodestring;');
+  Add('procedure {#rawbytestring}DoIt(p: rawbytestring); external;  var rs: rawbytestring;');
+  Add('begin');
+  Add('  {@byte}DoIt(by);');
+  Add('  {@shortint}DoIt(shi);');
+  Add('  {@word}DoIt(w);');
+  Add('  {@smallint}DoIt(smi);');
+  Add('  {@longword}DoIt(lw);');
+  Add('  {@longint}DoIt(li);');
+  Add('  {@qword}DoIt(qw);');
+  Add('  {@int64}DoIt(i6);');
+  Add('  {@comp}DoIt(co);');
+  Add('  {@boolean}DoIt(bo);');
+  Add('  {@char}DoIt(ch);');
+  Add('  {@widechar}DoIt(wc);');
+  Add('  {@string}DoIt(st);');
+  Add('  {@widestring}DoIt(ws);');
+  Add('  {@shortstring}DoIt(ss);');
+  Add('  {@unicodestring}DoIt(us);');
+  Add('  {@rawbytestring}DoIt(rs);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadNearestHigherPrecision;
+begin
+  StartProgram(false);
+  Add([
+  'procedure {#longint}DoIt(i: longint); external;',
+  'procedure DoIt(i: int64); external;',
+  'var w: word;',
+  'begin',
+  '  {@longint}DoIt(w);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcCallLowPrecision;
+begin
+  StartProgram(false);
+  Add([
+  'procedure {#longint}DoIt(i: longint); external;',
+  'var i: int64;',
+  'begin',
+  '  {@longint}DoIt(i);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadMultiLowPrecisionFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(i: longint); external;',
+  'procedure DoIt(w: longword); external;',
+  'var i: int64;',
+  'begin',
+  '  DoIt(i);',
+  '']);
+  CheckResolverException('Can''t determine which overloaded function to call, afile.pp(3,15), afile.pp(2,15)',
+    nCantDetermineWhichOverloadedFunctionToCall);
 end;
 
 procedure TTestResolver.TestProcOverloadWithClassTypes;
@@ -8683,6 +8772,32 @@ begin
   Add('begin');
   Add('  e:=TEvent(p);');
   Add('  p:=Pointer(e);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPointer_OverloadSignature;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('  TClass = class of TObject;');
+  Add('  TBird = class(TObject) end;');
+  Add('  TBirds = class of TBird;');
+  Add('procedure {#pointer}DoIt(p: Pointer); begin end;');
+  Add('procedure {#tobject}DoIt(o: TObject); begin end;');
+  Add('procedure {#tclass}DoIt(c: TClass); begin end;');
+  Add('var');
+  Add('  p: pointer;');
+  Add('  o: TObject;');
+  Add('  c: TClass;');
+  Add('  b: TBird;');
+  Add('  bc: TBirds;');
+  Add('begin');
+  Add('  {@pointer}DoIt(p);');
+  Add('  {@tobject}DoIt(o);');
+  Add('  {@tclass}DoIt(c);');
+  Add('  {@tobject}DoIt(b);');
+  Add('  {@tclass}DoIt(bc);');
   ParseProgram;
 end;
 
