@@ -1045,6 +1045,43 @@ unit cgcpu;
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                     end
+                  else if value>31 then
+                    case op of
+                      OP_SHR,OP_SAR:
+                        begin
+                          tmpreg:=cg.getintregister(list,OS_32);
+                          inc(tempref.offset,4);
+                          cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                          if (value and 31)<>0 then
+                            if op=OP_SHR then
+                              list.concat(taicpu.op_const_reg(A_SHR,S_L,value and 31,tmpreg))
+                            else
+                              list.concat(taicpu.op_const_reg(A_SAR,S_L,value and 31,tmpreg));
+                          dec(tempref.offset,4);
+                          cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                          inc(tempref.offset,4);
+                          if op=OP_SHR then
+                            cg.a_load_const_ref(list,OS_32,0,tempref)
+                          else
+                            begin
+                              list.concat(taicpu.op_const_reg(A_SAR,S_L,31,tmpreg));
+                              cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                            end;
+                        end;
+                      OP_SHL:
+                        begin
+                          tmpreg:=cg.getintregister(list,OS_32);
+                          cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                          if (value and 31)<>0 then
+                            list.concat(taicpu.op_const_reg(A_SHL,S_L,value and 31,tmpreg));
+                          inc(tempref.offset,4);
+                          cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                          dec(tempref.offset,4);
+                          cg.a_load_const_ref(list,OS_32,0,tempref);
+                        end;
+                      else
+                        internalerror(2017041801);
+                    end
                   else
                     case op of
                       OP_SHR,OP_SAR:
