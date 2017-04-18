@@ -366,7 +366,8 @@ type
 
     // external class
     Procedure TestExternalClass_Var;
-    // ToDo TestExternalClass_Const
+    //ToDo Procedure TestExternalClass_Const;
+    Procedure TestExternalClass_Dollar;
     Procedure TestExternalClass_DuplicateVarFail;
     Procedure TestExternalClass_Method;
     Procedure TestExternalClass_NonExternalOverride;
@@ -8338,6 +8339,35 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.Obj.$Id = $mod.Obj.$Id + 1;',
     '$mod.Obj.B = $mod.Obj.B + 1;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_Dollar;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''$''',
+  '    Id: longint external name ''$'';',
+  '    function Bla(i: longint): longint; external name ''$'';',
+  '  end;',
+  'function dollar(k: longint): longint; external name ''$'';',
+  'var Obj: TExtA;',
+  'begin',
+  '  dollar(1);',
+  '  obj.id:=obj.id+2;',
+  '  obj.Bla(3);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_Dollar',
+    LinesToStr([ // statements
+    'this.Obj = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$(1);',
+    '$mod.Obj.$ = $mod.Obj.$ + 2;',
+    '$mod.Obj.$(3);',
     '']));
 end;
 
