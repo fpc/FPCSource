@@ -704,6 +704,7 @@ unit cgcpu;
     procedure tcg64f386.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       var
         op1,op2 : TAsmOp;
+        l1, l2: TAsmLabel;
       begin
         case op of
           OP_NEG :
@@ -723,6 +724,58 @@ unit cgcpu;
                 a_load64_reg_reg(list,regsrc,regdst);
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reglo));
+              exit;
+            end;
+          OP_SHR,OP_SHL,OP_SAR:
+            begin
+              { load right operators in a register }
+              cg.getcpuregister(list,NR_ECX);
+              cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reglo,NR_ECX);
+
+              { the damned shift instructions work only til a count of 32 }
+              { so we've to do some tricks here                           }
+              current_asmdata.getjumplabel(l1);
+              current_asmdata.getjumplabel(l2);
+              list.Concat(taicpu.op_const_reg(A_TEST,S_L,32,NR_ECX));
+              cg.a_jmp_flags(list,F_E,l1);
+              list.Concat(taicpu.op_const_reg(A_SUB,S_L,32,NR_ECX));
+              case op of
+                OP_SHL:
+                  begin
+                    list.Concat(taicpu.op_reg_reg(A_SHL,S_L,NR_CL,regdst.reglo));
+                    cg.a_load_reg_reg(list,OS_32,OS_32,regdst.reglo,regdst.reghi);
+                    list.Concat(taicpu.op_reg_reg(A_XOR,S_L,regdst.reglo,regdst.reglo));
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SHLD,S_L,NR_CL,regdst.reglo,regdst.reghi));
+                    list.Concat(taicpu.op_reg_reg(A_SHL,S_L,NR_CL,regdst.reglo));
+                  end;
+                OP_SHR:
+                  begin
+                    list.Concat(taicpu.op_reg_reg(A_SHR,S_L,NR_CL,regdst.reghi));
+                    cg.a_load_reg_reg(list,OS_32,OS_32,regdst.reghi,regdst.reglo);
+                    list.Concat(taicpu.op_reg_reg(A_XOR,S_L,regdst.reghi,regdst.reghi));
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SHRD,S_L,NR_CL,regdst.reghi,regdst.reglo));
+                    list.Concat(taicpu.op_reg_reg(A_SHR,S_L,NR_CL,regdst.reghi));
+                  end;
+                OP_SAR:
+                  begin
+                    cg.a_load_reg_reg(list,OS_32,OS_32,regdst.reghi,regdst.reglo);
+                    list.Concat(taicpu.op_reg_reg(A_SAR,S_L,NR_CL,regdst.reglo));
+                    list.Concat(taicpu.op_const_reg(A_SAR,S_L,31,regdst.reghi));
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SHRD,S_L,NR_CL,regdst.reghi,regdst.reglo));
+                    list.Concat(taicpu.op_reg_reg(A_SAR,S_L,NR_CL,regdst.reghi));
+                  end;
+                else
+                  internalerror(2017041801);
+              end;
+              cg.a_label(list,l2);
+
+              cg.ungetcpuregister(list,NR_ECX);
               exit;
             end;
         end;
