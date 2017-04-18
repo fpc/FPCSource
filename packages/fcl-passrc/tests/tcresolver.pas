@@ -358,6 +358,7 @@ type
     Procedure TestClassCallInheritedNoParamsAbstractFail;
     Procedure TestClassCallInheritedWithParamsAbstractFail;
     Procedure TestClassCallInheritedConstructor;
+    Procedure TestClassCallInheritedNested;
     Procedure TestClassAssignNil;
     Procedure TestClassAssign;
     Procedure TestClassNilAsParam;
@@ -5088,6 +5089,38 @@ begin
   Add('  inherited {@TOBJ_CreateA}Create({@i1}vI);');
   Add('end;');
   Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassCallInheritedNested;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function DoIt: longint; virtual;',
+  '  end;',
+  '  TBird = class',
+  '    function DoIt: longint; override;',
+  '  end;',
+  'function tobject.doit: longint;',
+  'begin',
+  'end;',
+  'function tbird.doit: longint;',
+  '  procedure Sub;',
+  '  begin',
+  '    inherited;',
+  '    inherited DoIt;',
+  '    if inherited DoIt=4 then ;',
+  '  end;',
+  'begin',
+  '  Sub;',
+  '  inherited;',
+  '  inherited DoIt;',
+  '  if inherited DoIt=14 then ;',
+  'end;',
+  'begin',
+   '']);
   ParseProgram;
 end;
 

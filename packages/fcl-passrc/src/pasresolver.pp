@@ -255,6 +255,7 @@ const
   nCannotTypecastAType = 3054;
   nTypeIdentifierExpected = 3055;
   nCannotNestAnonymousX = 3056;
+  nFoundCallCandidateX = 3057;
 
 // resourcestring patterns of messages
 resourcestring
@@ -314,6 +315,7 @@ resourcestring
   sCannotTypecastAType = 'Cannot type cast a type';
   sTypeIdentifierExpected = 'Type identifier expected';
   sCannotNestAnonymousX = 'Cannot nest anonymous %s';
+  sFoundCallCandidateX = 'Found call candidate %s';
 
 type
   TResolverBaseType = (
@@ -709,6 +711,7 @@ type
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
       var Abort: boolean); override;
+    function GetSelfScope: TPasProcedureScope; // get the next parent procscope with a classcope
     procedure WriteIdentifiers(Prefix: string); override;
     destructor Destroy; override;
   end;
@@ -1565,9 +1568,9 @@ begin
     if El.ClassType=TUnaryExpr then
       Result:=Result+GetTreeDesc(TUnaryExpr(El).Operand,Indent)
     else if El.ClassType=TBinaryExpr then
-      Result:=Result+GetTreeDesc(TBinaryExpr(El).left,Indent)
+      Result:=Result+'Left={'+GetTreeDesc(TBinaryExpr(El).left,Indent)+'}'
          +OpcodeStrings[TPasExpr(El).OpCode]
-         +GetTreeDesc(TBinaryExpr(El).right,Indent)
+         +'Right={'+GetTreeDesc(TBinaryExpr(El).right,Indent)+'}'
     else if El.ClassType=TPrimitiveExpr then
       Result:=Result+TPrimitiveExpr(El).Value
     else if El.ClassType=TBoolConstExpr then
@@ -2022,6 +2025,20 @@ begin
   if Abort then exit;
   if ClassScope<>nil then
     ClassScope.IterateElements(aName, StartScope, OnIterateElement, Data, Abort);
+end;
+
+function TPasProcedureScope.GetSelfScope: TPasProcedureScope;
+var
+  Proc: TPasProcedure;
+begin
+  Result:=Self;
+  repeat
+    if Result.ClassScope<>nil then exit;
+    Proc:=TPasProcedure(Element);
+    if not (Proc.Parent is TProcedureBody) then exit(nil);
+    Proc:=Proc.Parent.Parent as TPasProcedure;
+    Result:=TPasProcedureScope(Proc.CustomData);
+  until false;
 end;
 
 procedure TPasProcedureScope.WriteIdentifiers(Prefix: string);
@@ -4789,8 +4806,8 @@ end;
 procedure TPasResolver.ResolveInherited(El: TInheritedExpr;
   Access: TResolvedRefAccess);
 var
-  ProcScope, DeclProcScope: TPasProcedureScope;
-  AncestorScope: TPasClassScope;
+  ProcScope, DeclProcScope, SelfScope: TPasProcedureScope;
+  AncestorScope, ClassScope: TPasClassScope;
   DeclProc, AncestorProc: TPasProcedure;
 begin
   {$IFDEF VerbosePasResolver}
@@ -4807,10 +4824,12 @@ begin
   // 'inherited;' without expression
   CheckTopScope(TPasProcedureScope);
   ProcScope:=TPasProcedureScope(TopScope);
-  if ProcScope.ClassScope=nil then
+  SelfScope:=ProcScope.GetSelfScope;
+  if SelfScope=nil then
     RaiseMsg(20170216152141,nInheritedOnlyWorksInMethods,sInheritedOnlyWorksInMethods,[],El);
+  ClassScope:=SelfScope.ClassScope;
 
-  AncestorScope:=ProcScope.ClassScope.AncestorScope;
+  AncestorScope:=ClassScope.AncestorScope;
   if AncestorScope=nil then
     begin
     // 'inherited;' without ancestor class is silently ignored
@@ -4818,7 +4837,7 @@ begin
     end;
 
   // search ancestor in element, i.e. 'inherited' expression
-  DeclProc:=ProcScope.DeclarationProc;
+  DeclProc:=SelfScope.DeclarationProc;
   DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
   AncestorProc:=DeclProcScope.OverriddenProc;
   if AncestorProc<>nil then
@@ -4841,8 +4860,8 @@ procedure TPasResolver.ResolveInheritedCall(El: TBinaryExpr;
 // El.left is TInheritedExpr
 // El.right is the identifier and parameters
 var
-  ProcScope: TPasProcedureScope;
-  AncestorScope: TPasClassScope;
+  ProcScope, SelfScope: TPasProcedureScope;
+  AncestorScope, ClassScope: TPasClassScope;
   AncestorClass: TPasClassType;
   InhScope: TPasDotClassScope;
 begin
@@ -4852,10 +4871,12 @@ begin
 
   CheckTopScope(TPasProcedureScope);
   ProcScope:=TPasProcedureScope(TopScope);
-  if ProcScope.ClassScope=nil then
+  SelfScope:=ProcScope.GetSelfScope;
+  if SelfScope=nil then
     RaiseMsg(20170216152148,nInheritedOnlyWorksInMethods,sInheritedOnlyWorksInMethods,[],El);
+  ClassScope:=SelfScope.ClassScope;
 
-  AncestorScope:=ProcScope.ClassScope.AncestorScope;
+  AncestorScope:=ClassScope.AncestorScope;
   if AncestorScope=nil then
     RaiseMsg(20170216152151,nInheritedNeedsAncestor,sInheritedNeedsAncestor,[],El.left);
 
@@ -5156,9 +5177,10 @@ begin
           writeln('TPasResolver.ResolveFuncParamsExpr Overload Candidate: ',GetElementSourcePosStr(El),' ',GetTreeDesc(El));
           {$ENDIF}
           // emit a hint for each candidate
-          //ToDo: LogMsg(20170417180320,mtHint,);
-          Msg:=Msg+', ';
-          Msg:=Msg+GetElementSourcePosStr(El);
+          if El is TPasProcedure then
+            LogMsg(20170417180320,mtHint,nFoundCallCandidateX,sFoundCallCandidateX,
+              [GetProcDesc(TPasProcedure(El).ProcType,true,true)],El);
+          Msg:=Msg+', '+GetElementSourcePosStr(El);
           end;
         RaiseMsg(20170216152200,nCantDetermineWhichOverloadedFunctionToCall,
           sCantDetermineWhichOverloadedFunctionToCall+Msg,[ElName],Value);
