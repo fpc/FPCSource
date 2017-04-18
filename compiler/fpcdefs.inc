@@ -75,6 +75,7 @@
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   {$define cpucapabilities}
+  {$define cpucg64shiftsupport}
 {$endif i386}
 
 {$ifdef x86_64}

@@ -4676,6 +4676,14 @@ implementation
        var
          procname: string[31];
        begin
+{$ifdef cpucg64shiftsupport}
+         if inlinenumber in [in_sar_assign_x_y,in_shl_assign_x_y,in_shr_assign_x_y] then
+           begin
+             result:=nil;
+             expectloc:=tcallparanode(tcallparanode(left).right).left.expectloc;
+             exit;
+           end;
+{$endif cpucg64shiftsupport}
          result := nil;
          if is_signed(tcallparanode(left).right.resultdef) then
            procname:='int64'
