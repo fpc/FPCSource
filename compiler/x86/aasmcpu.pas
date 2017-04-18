@@ -309,6 +309,7 @@ interface
          constructor op_const_ref_reg(op : tasmop;_size : topsize;_op1 : aint;const _op2 : treference;_op3 : tregister);
          constructor op_ref_reg_reg(op : tasmop;_size : topsize;const _op1 : treference;_op2,_op3 : tregister);
          constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister;const _op3 : treference);
+         constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;const _op3 : treference);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
@@ -972,6 +973,17 @@ implementation
          loadconst(0,_op1);
          loadreg(1,_op2);
          loadref(2,_op3);
+      end;
+
+
+    constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;const _op3 : treference);
+      begin
+        inherited create(op);
+        init(_size);
+        ops:=3;
+        loadreg(0,_op1);
+        loadreg(1,_op2);
+        loadref(2,_op3);
       end;
 
 
