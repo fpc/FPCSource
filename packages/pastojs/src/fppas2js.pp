@@ -238,7 +238,6 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- typecast proctype
 - RTTI
   - open array param
   - codetools function typeinfo
@@ -266,6 +265,7 @@ ToDos:
 - asm: pas() - useful for overloads and protect an identifier from optimization
 - source maps
 - ifthen
+- stdcall ->  add 'this' as first param, rtl.createCallbackStd, cannot be called from Pascal
 
 Not in Version 1.0:
 - write, writeln
@@ -550,7 +550,7 @@ const
     'tTypeInfoStaticArray'
     );
 
-  JSReservedWords: array[0..108] of string = (
+  JSReservedWords: array[0..113] of string = (
      // keep sorted, first uppercase, then lowercase !
      'Array',
      'ArrayBuffer',
@@ -627,6 +627,7 @@ const
      'for',
      'function',
      'getPrototypeOf',
+     'hasOwnProperty',
      'if',
      'implements',
      'import',
@@ -643,6 +644,7 @@ const
      'parseFloat',
      'parseInt',
      'private',
+     'propertyIsEnumerable',
      'protected',
      'prototype',
      'public',
@@ -652,11 +654,14 @@ const
      'switch',
      'this',
      'throw',
+     'toLocaleString',
+     'toString',
      'true',
      'try',
      'undefined',
      'unescape',
      'uneval',
+     'valueOf',
      'var',
      'while',
      'with',
@@ -765,7 +770,6 @@ const
     btWord,
     btSmallInt,
     btLongWord,
-    btCardinal,
     btLongint,
     //btQWord,
     btInt64,
@@ -902,6 +906,8 @@ type
     function CreateLocalIdentifier(const Prefix: string): string;
     function CurrentModeswitches: TModeSwitches;
     function GetSingletonFunc: TFunctionContext;
+    procedure WriteStack;
+    function ToString: ansistring; override;
   end;
 
   { TRootContext }
@@ -917,6 +923,7 @@ type
   public
     This: TPasElement;
     constructor Create(PasEl: TPasElement; JSEl: TJSElement; aParent: TConvertContext); override;
+    function ToString: ansistring; override;
   end;
 
   { TObjectContext }
@@ -1296,7 +1303,7 @@ var
     'completion'
     );
 
-function CodePointToJSString(u: cardinal): TJSString;
+function CodePointToJSString(u: longword): TJSString;
 function PosLast(c: char; const s: string): integer;
 
 implementation
@@ -1306,7 +1313,7 @@ const
   TempRefObjSetterName = 'set';
   TempRefObjSetterArgName = 'v';
 
-function CodePointToJSString(u: cardinal): TJSString;
+function CodePointToJSString(u: longword): TJSString;
 begin
   if u < $10000 then
     // Note: codepoints $D800 - $DFFF are reserved
@@ -2502,6 +2509,8 @@ begin
   for bt in [pbtJSValue] do
     AddJSBaseType(Pas2jsBaseTypeNames[bt],bt);
   AnonymousElTypePostfix:=Pas2JSBuiltInNames[pbitnAnonymousPostfix];
+  BaseTypeChar:=btWideChar;
+  BaseTypeString:=btUnicodeString;
 end;
 
 destructor TPas2JSResolver.Destroy;
@@ -2987,6 +2996,11 @@ begin
   Kind:=cjkFunction;
 end;
 
+function TFunctionContext.ToString: ansistring;
+begin
+  Result:=inherited ToString+' This='+GetObjName(This);
+end;
+
 { TRootContext }
 
 constructor TRootContext.Create(PasEl: TPasElement; JSEl: TJSElement;
@@ -3080,6 +3094,28 @@ begin
       exit(TFunctionContext(Ctx));
     Ctx:=Ctx.Parent;
     end;
+end;
+
+procedure TConvertContext.WriteStack;
+
+  procedure W(Index: integer; AContext: TConvertContext);
+  begin
+    writeln('  ',Index,' ',AContext.ToString);
+    if AContext.Parent<>nil then
+      W(Index+1,AContext.Parent);
+  end;
+
+begin
+  writeln('TConvertContext.WriteStack: ');
+  W(1,Self);
+end;
+
+function TConvertContext.ToString: ansistring;
+begin
+  Result:='['+ClassName+']'
+    +' pas='+GetObjName(PasElement)
+    +' js='+GetObjName(JSElement)
+    +' Singleton='+BoolToStr(IsSingleton,true);
 end;
 
 { TPasToJSConverter }
@@ -3597,12 +3633,12 @@ begin
     MinValue:=-$80000000;
     MaxValue:=$7fffffff;
     end
-  else if RangeResolved.BaseType=btCardinal then
+  else if RangeResolved.BaseType=btLongWord then
     begin
     MinValue:=0;
     MaxValue:=$ffffffff;
     end
-  else if RangeResolved.BaseType in [btChar,btWideChar] then
+  else if RangeResolved.BaseType in btAllChars then
     begin
     MinValue:=0;
     MaxValue:=$ffff;
@@ -6012,6 +6048,7 @@ begin
         end;
       end;
     btChar,
+    btAnsiChar,
     btWideChar:
       begin
       Result:=CreateLiteralJSString(El,#0);
@@ -8503,7 +8540,7 @@ begin
       begin
       bt:=TResElDataBaseType(El.CustomData).BaseType;
       case bt of
-      btLongint,btCardinal,btSmallInt,btWord,btShortInt,btByte,
+      btLongint,btLongWord,btSmallInt,btWord,btShortInt,btByte,
       btString,btChar,
       btDouble,
       btBoolean,
@@ -10166,7 +10203,8 @@ var
   ProcScope: TPasProcedureScope;
 begin
   Result:='';
-  //writeln('TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext));
+  //writeln('TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext),' ',GetObjName(AContext.GetThis));
+  //AContext.WriteStack;
 
   if AContext is TDotContext then
     begin
@@ -10224,6 +10262,7 @@ begin
     end
   else if (El.ClassType=TPasClassType) and TPasClassType(El).IsExternal then
     begin
+    // an external var -> use the literal
     Result:=TPasClassType(El).ExternalName;
     exit;
     end

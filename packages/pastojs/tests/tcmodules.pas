@@ -1877,6 +1877,7 @@ end;
 procedure TTestModule.TestNestedProc;
 begin
   StartProgram(false);
+  Add('var vInUnit: longint;');
   Add('function DoIt(pA,pD: longint): longint;');
   Add('var');
   Add('  vB: longint;');
@@ -1884,7 +1885,7 @@ begin
   Add('  function Nesty(pA: longint): longint; ');
   Add('  var vB: longint;');
   Add('  begin');
-  Add('    Result:=pa+vb+vc+pd;');
+  Add('    Result:=pa+vb+vc+pd+vInUnit;');
   Add('  end;');
   Add('begin');
   Add('  Result:=pa+vb+vc;');
@@ -1893,6 +1894,7 @@ begin
   ConvertProgram;
   CheckSource('TestNestedProc',
     LinesToStr([ // statements
+    'this.vInUnit = 0;',
     'this.DoIt = function (pA, pD) {',
     '  var Result = 0;',
     '  var vB = 0;',
@@ -1900,7 +1902,7 @@ begin
     '  function Nesty(pA) {',
     '    var Result = 0;',
     '    var vB = 0;',
-    '    Result = ((pA + vB) + vC) + pD;',
+    '    Result = (((pA + vB) + vC) + pD) + this.vInUnit;',
     '    return Result;',
     '  };',
     '  Result = (pA + vB) + vC;',
@@ -11267,7 +11269,7 @@ begin
   Add('    VarS: string;');
   Add('    VarD: double;');
   Add('    VarB: boolean;');
-  Add('    VarCa: cardinal;');
+  Add('    VarLW: longword;');
   Add('    VarSmI: smallint;');
   Add('    VarW: word;');
   Add('    VarShI: shortint;');
@@ -11291,7 +11293,7 @@ begin
     '    this.VarS = "";',
     '    this.VarD = 0.0;',
     '    this.VarB = false;',
-    '    this.VarCa = 0;',
+    '    this.VarLW = 0;',
     '    this.VarSmI = 0;',
     '    this.VarW = 0;',
     '    this.VarShI = 0;',
@@ -11305,7 +11307,7 @@ begin
     '  $r.addField("VarS", rtl.string);',
     '  $r.addField("VarD", rtl.double);',
     '  $r.addField("VarB", rtl.boolean);',
-    '  $r.addField("VarCa", rtl.cardinal);',
+    '  $r.addField("VarLW", rtl.longword);',
     '  $r.addField("VarSmI", rtl.smallint);',
     '  $r.addField("VarW", rtl.word);',
     '  $r.addField("VarShI", rtl.shortint);',
@@ -11747,7 +11749,7 @@ begin
   Add('  TSmallInt = smallint;');
   Add('  TWord = word;');
   Add('  TInt32 = longint;');
-  Add('  TDWord = cardinal;');
+  Add('  TDWord = longword;');
   Add('  TValue = jsvalue;');
   Add('var p: TPtr;');
   Add('begin');
@@ -11769,7 +11771,7 @@ begin
   Add('  p:=typeinfo(tsmallint);');
   Add('  p:=typeinfo(word);');
   Add('  p:=typeinfo(tword);');
-  Add('  p:=typeinfo(cardinal);');
+  Add('  p:=typeinfo(longword);');
   Add('  p:=typeinfo(tdword);');
   Add('  p:=typeinfo(jsvalue);');
   Add('  p:=typeinfo(tvalue);');
@@ -11797,8 +11799,8 @@ begin
     'this.p = rtl.smallint;',
     'this.p = rtl.word;',
     'this.p = rtl.word;',
-    'this.p = rtl.cardinal;',
-    'this.p = rtl.cardinal;',
+    'this.p = rtl.longword;',
+    'this.p = rtl.longword;',
     'this.p = rtl.jsvalue;',
     'this.p = rtl.jsvalue;',
     '']));
@@ -11850,7 +11852,7 @@ begin
   Add('  tiInt:=typeinfo(smallint);');
   Add('  tiInt:=typeinfo(word);');
   Add('  tiInt:=typeinfo(longint);');
-  Add('  tiInt:=typeinfo(cardinal);');
+  Add('  tiInt:=typeinfo(longword);');
   Add('  ti:=typeinfo(jsvalue);');
   Add('  tiEnum:=typeinfo(tflag);');
   Add('  tiSet:=typeinfo(tflags);');
@@ -11886,7 +11888,7 @@ begin
     'this.tiInt = rtl.smallint;',
     'this.tiInt = rtl.word;',
     'this.tiInt = rtl.longint;',
-    'this.tiInt = rtl.cardinal;',
+    'this.tiInt = rtl.longword;',
     'this.ti = rtl.jsvalue;',
     'this.tiEnum = this.$rtti["TFlag"];',
     'this.tiSet = this.$rtti["TFlags"];',
