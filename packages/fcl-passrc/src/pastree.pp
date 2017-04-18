@@ -103,7 +103,7 @@ type
 
   TCallingConvention = (ccDefault,ccRegister,ccPascal,ccCDecl,ccStdCall,
                         ccOldFPCCall,ccSafeCall,ccSysCall);
-  TProcTypeModifier = (ptmOfObject,ptmIsNested,ptmStatic,ptmVarargs);
+  TProcTypeModifier = (ptmOfObject,ptmIsNested,ptmStatic,ptmVarargs,ptmReferenceTo);
   TProcTypeModifiers = set of TProcTypeModifier;
   TPackMode = (pmNone,pmPacked,pmBitPacked);
 
@@ -654,8 +654,10 @@ type
   private
     function GetIsNested: Boolean;
     function GetIsOfObject: Boolean;
+    function GetIsReference: Boolean;
     procedure SetIsNested(const AValue: Boolean);
     procedure SetIsOfObject(const AValue: Boolean);
+    procedure SetIsReference(AValue: Boolean);
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
@@ -672,6 +674,7 @@ type
     Modifiers: TProcTypeModifiers;
     property IsOfObject: Boolean read GetIsOfObject write SetIsOfObject;
     property IsNested : Boolean read GetIsNested write SetIsNested;
+    property IsReferenceTo : Boolean Read GetIsReference write SetIsReference;
   end;
 
   { TPasResultElement }
@@ -1420,7 +1423,7 @@ const
   cCallingConventions : Array[TCallingConvention] of string =
       ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall','SysCall');
   ProcTypeModifiers : Array[TProcTypeModifier] of string =
-      ('of Object', 'is nested','static','varargs');
+      ('of Object', 'is nested','static','varargs','reference to');
 
   ModifierNames : Array[TProcedureModifier] of string
                 = ('virtual', 'dynamic','abstract', 'override',
@@ -2468,6 +2471,11 @@ begin
   Result:=ptmOfObject in Modifiers;
 end;
 
+function TPasProcedureType.GetIsReference: Boolean;
+begin
+  Result:=ptmReferenceTo in Modifiers;
+end;
+
 procedure TPasProcedureType.SetIsNested(const AValue: Boolean);
 begin
   if AValue then
@@ -2482,6 +2490,14 @@ begin
     Include(Modifiers,ptmOfObject)
   else
     Exclude(Modifiers,ptmOfObject);
+end;
+
+procedure TPasProcedureType.SetIsReference(AValue: Boolean);
+begin
+  if AValue then
+    Include(Modifiers,ptmReferenceTo)
+  else
+    Exclude(Modifiers,ptmReferenceTo);
 end;
 
 constructor TPasProcedureType.Create(const AName: string; AParent: TPasElement);

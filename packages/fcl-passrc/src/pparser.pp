@@ -336,6 +336,7 @@ type
     function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     function ParseTypeDecl(Parent: TPasElement): TPasType;
     function ParseType(Parent: TPasElement; const NamePos: TPasSourcePos; const TypeName: String = ''; Full: Boolean = false; GenericArgs: TFPList = nil): TPasType;
+    function ParseReferenceToProcedureType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasProcedureType;
     function ParseProcedureType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; const PT: TProcType): TPasProcedureType;
     function ParseStringType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasAliasType;
     function ParseSimpleType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; IsFull : Boolean = False): TPasType;
@@ -1331,7 +1332,16 @@ begin
           Result:=ParseAliasType(Parent,NamePos,TypeName);
         end;
       // Always allowed
-      tkIdentifier: Result:=ParseSimpleType(Parent,NamePos,TypeName,Full);
+      tkIdentifier:
+        begin
+        if CurTokenIsIdentifier('reference') then
+          begin
+          CH:=False;
+          Result:=ParseReferencetoProcedureType(Parent,NamePos,TypeName)
+          end
+        else
+          Result:=ParseSimpleType(Parent,NamePos,TypeName,Full);
+        end;
       tkCaret: Result:=ParsePointerType(Parent,NamePos,TypeName);
       tkFile: Result:=ParseFileType(Parent,NamePos,TypeName);
       tkArray: Result:=ParseArrayType(Parent,NamePos,TypeName,pm);
@@ -1369,6 +1379,22 @@ begin
       if Result<>nil then
         Result.Release;
   end;
+end;
+
+function TPasParser.ParseReferenceToProcedureType(Parent: TPasElement; const NamePos: TPasSourcePos; const TypeName: String
+  ): TPasProcedureType;
+begin
+  if not CurTokenIsIdentifier('reference') then
+    ParseExcTokenError('reference');
+  ExpectToken(tkTo);
+  NextToken;
+  Case CurToken of
+   tkprocedure : Result:=ParseProcedureType(Parent,NamePos,TypeName,ptProcedure);
+   tkfunction : Result:=ParseProcedureType(Parent,NamePos,TypeName,ptFunction);
+  else
+    ParseExcTokenError('procedure or function');
+  end;
+  Result.IsReferenceTo:=True;
 end;
 
 function TPasParser.ParseComplexType(Parent : TPasElement = Nil): TPasType;
