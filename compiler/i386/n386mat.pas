@@ -181,7 +181,6 @@ implementation
             current_asmdata.getjumplabel(l3);
             emit_const_reg(A_TEST,S_L,32,NR_ECX);
             cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l2);
-            emit_const_reg(A_SUB,S_L,32,NR_ECX);
             if nodetype=shln then
               begin
                 emit_reg_reg(A_SHL,S_L,NR_CL,hreg64lo);

@@ -701,7 +701,6 @@ unit cgcpu;
               current_asmdata.getjumplabel(l2);
               list.Concat(taicpu.op_const_reg(A_TEST,S_L,32,NR_ECX));
               cg.a_jmp_flags(list,F_E,l1);
-              list.Concat(taicpu.op_const_reg(A_SUB,S_L,32,NR_ECX));
               tmpreg:=cg.getintregister(list,OS_32);
               case op of
                 OP_SHL:
@@ -835,7 +834,6 @@ unit cgcpu;
               current_asmdata.getjumplabel(l2);
               list.Concat(taicpu.op_const_reg(A_TEST,S_L,32,NR_ECX));
               cg.a_jmp_flags(list,F_E,l1);
-              list.Concat(taicpu.op_const_reg(A_SUB,S_L,32,NR_ECX));
               case op of
                 OP_SHL:
                   begin
