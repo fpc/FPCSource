@@ -908,7 +908,16 @@ unit cgcpu;
               value:=value and 63;
               if value<>0 then
                 begin
-                  if value=1 then
+                  if (value=1) and (op=OP_SHL) and
+                     (current_settings.optimizecputype<=cpu_486) and
+                     not (cs_opt_size in current_settings.optimizerswitches) then
+                    begin
+                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                      list.concat(taicpu.op_reg_reg(A_ADD,S_L,reg.reglo,reg.reglo));
+                      list.concat(taicpu.op_reg_reg(A_ADC,S_L,reg.reghi,reg.reghi));
+                      cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                    end
+                  else if (value=1) and (cs_opt_size in current_settings.optimizerswitches) then
                     case op of
                       OP_SHR:
                         begin
