@@ -2054,6 +2054,17 @@ unit cgx86;
 
 
     procedure tcgx86.a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize;reg: TRegister; const ref: TReference);
+      const
+{$if defined(cpu64bitalu)}
+        REGCX=NR_RCX;
+        REGCX_Size = OS_64;
+{$elseif defined(cpu32bitalu)}
+        REGCX=NR_ECX;
+        REGCX_Size = OS_32;
+{$elseif defined(cpu16bitalu)}
+        REGCX=NR_CX;
+        REGCX_Size = OS_16;
+{$endif}
       var
         tmpref  : treference;
       begin
@@ -2069,6 +2080,14 @@ unit cgx86;
               if reg<>NR_NO then
                 internalerror(200109237);
               list.concat(taicpu.op_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],tmpref));
+            end;
+          OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
+            begin
+              { Use ecx to load the value, that allows better coalescing }
+              getcpuregister(list,REGCX);
+              a_load_reg_reg(list,size,REGCX_Size,reg,REGCX);
+              list.concat(taicpu.op_reg_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],NR_CL,tmpref));
+              ungetcpuregister(list,REGCX);
             end;
           OP_IMUL:
             begin
