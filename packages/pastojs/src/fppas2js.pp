@@ -3911,6 +3911,14 @@ begin
               DoError(20161024191234,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,['logical XOR'],El);
             end;
           end;
+        eopPower:
+          begin
+          Call:=CreateCallExpression(El);
+          Call.Expr:=CreateBuiltInIdentifierExpr('Math.pow');
+          Call.AddArg(A);
+          Call.AddArg(B);
+          Result:=Call;
+          end
         else
           if C=nil then
             DoError(20161024191244,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,[OpcodeStrings[El.OpCode]],El);

@@ -184,6 +184,9 @@ type
     Procedure TestVarExternal;
     Procedure TestVarExternalOtherUnit;
 
+    // numbers
+    Procedure TestDouble;
+
     // strings
     Procedure TestCharConst;
     Procedure TestChar_Compare;
@@ -3509,6 +3512,39 @@ begin
     '$impl.d = 0.0;',
     '$impl.i = 0;',
     '']) );
+end;
+
+procedure TTestModule.TestDouble;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  d: double;',
+  'begin',
+  '  d:=1.0;',
+  '  d:=1.0/3.0;',
+  '  d:=1/3;',
+  '  d:=5.0E-324;',
+  '  d:=1.7E308;',
+  '  d:=10**3;',
+  '  d:=10 mod 3;',
+  '  d:=10 div 3;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestDouble',
+    LinesToStr([
+    'this.d=0.0;'
+    ]),
+    LinesToStr([
+    '$mod.d = 1.0;',
+    '$mod.d = 1.0 / 3.0;',
+    '$mod.d = 1 / 3;',
+    '$mod.d = 5.0E-324;',
+    '$mod.d = 1.7E308;',
+    '$mod.d = Math.pow(10, 3);',
+    '$mod.d = 10 % 3;',
+    '$mod.d = Math.floor(10 / 3);',
+    '']));
 end;
 
 procedure TTestModule.TestCharConst;
