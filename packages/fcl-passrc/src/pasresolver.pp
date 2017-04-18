@@ -5954,6 +5954,11 @@ begin
             SetBaseType(btBoolean);
             exit;
             end;
+          eopDivide:
+            begin
+            SetBaseType(BaseTypeExtended);
+            exit;
+            end;
           end
         else if (RightResolved.BaseType=btSet) and (RightResolved.SubType in btAllInteger)
             and (Bin.OpCode=eopIn) then

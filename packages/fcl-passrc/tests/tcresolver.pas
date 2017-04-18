@@ -2693,8 +2693,11 @@ begin
   Add('  i:=-j+k;');
   Add('  i:=j*k;');
   Add('  i:=j**k;');
+  Add('  i:=10**3;');
   Add('  i:=j div k;');
+  Add('  i:=10 div 3;');
   Add('  i:=j mod k;');
+  Add('  i:=10 mod 3;');
   Add('  i:=j shl k;');
   Add('  i:=j shr k;');
   Add('  i:=j and k;');
@@ -2753,6 +2756,7 @@ begin
   StartProgram(false);
   Add('var');
   Add('  i,j,k:double;');
+  Add('  o,p:longint;');
   Add('begin');
   Add('  i:=1;');
   Add('  i:=1+2;');
@@ -2764,8 +2768,18 @@ begin
   Add('  i:=j+k;');
   Add('  i:=-j+k;');
   Add('  i:=j*k;');
+  Add('  i:=10/3;');
+  Add('  i:=10.0/3;');
+  Add('  i:=10/3.0;');
+  Add('  i:=10.0/3.0;');
   Add('  i:=j/k;');
+  Add('  i:=o/p;');
+  Add('  i:=10**3;');
+  Add('  i:=10.0**3;');
+  Add('  i:=10.0**3.0;');
+  Add('  i:=10**3.0;');
   Add('  i:=j**k;');
+  Add('  i:=o**p;');
   Add('  i:=(j+k)/3;');
   ParseProgram;
 end;
