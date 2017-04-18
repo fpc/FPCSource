@@ -887,7 +887,12 @@ end;
 procedure TPasParser.CheckToken(tk: TToken);
 begin
   if (CurToken<>tk) then
+    begin
+    {$IFDEF VerbosePasParser}
+    writeln('TPasParser.ParseExcTokenError String="',CurTokenString,'" Text="',CurTokenText,'" CurToken=',CurToken,' tk=',tk);
+    {$ENDIF}
     ParseExcTokenError(TokenInfos[tk]);
+    end;
 end;
 
 
@@ -3119,7 +3124,7 @@ begin
   if not CurTokenIsIdentifier('name') then
     ParseExcSyntaxError;
   NextToken;
-  if not (CurToken in [tkString,tkIdentifier]) then
+  if not (CurToken in [tkChar,tkString,tkIdentifier]) then
     ParseExcTokenError(TokenInfos[tkString]);
   Result := Result + ' ' + CurTokenText;
   ExportName:=DoParseExpression(Parent);
@@ -3511,7 +3516,7 @@ begin
         if ((CurToken=tkIdentifier) and (Tok='NAME')) then
           begin
           NextToken;
-          if not (CurToken in [tkString,tkIdentifier]) then
+          if not (CurToken in [tkChar,tkString,tkIdentifier]) then
             ParseExcTokenError(TokenInfos[tkString]);
           E:=DoParseExpression(Parent);
           if Assigned(P) then
@@ -5267,7 +5272,9 @@ begin
     ExpectIdentifier;
     If Not CurTokenIsIdentifier('Name')  then
       ParseExc(nParserExpectedExternalClassName,SParserExpectedExternalClassName);
-    ExpectToken(tkString);
+    NextToken;
+    if not (CurToken in [tkChar,tkString]) then
+      CheckToken(tkString);
     AExternalName:=CurTokenString;
     NextToken;
     end
