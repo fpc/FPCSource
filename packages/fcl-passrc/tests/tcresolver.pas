@@ -104,6 +104,7 @@ type
     FModules: TObjectList;// list of TTestEnginePasResolver
     FResolverEngine: TTestEnginePasResolver;
     FResolverMsgs: TObjectList; // list of TTestResolverMessage
+    FResolverGoodMsgs: TFPList; // list of TTestResolverMessage marked as expected
     function GetModuleCount: integer;
     function GetModules(Index: integer): TTestEnginePasResolver;
     function GetMsgCount: integer;
@@ -121,7 +122,8 @@ type
     procedure ParseProgram; virtual;
     procedure ParseUnit; virtual;
     procedure CheckReferenceDirectives; virtual;
-    procedure CheckResolverHint(MsgType: TMessageType; MsgNumber: integer; Msg: string; MustHave: boolean);
+    procedure CheckResolverHint(MsgType: TMessageType; MsgNumber: integer; Msg: string); virtual;
+    procedure CheckResolverUnexpectedHints; virtual;
     procedure CheckResolverException(Msg: string; MsgNumber: integer);
     procedure CheckParserException(Msg: string; MsgNumber: integer);
     procedure CheckAccessMarkers; virtual;
@@ -191,6 +193,7 @@ type
     Procedure TestStringElement_IndexNonIntFail;
     Procedure TestStringElement_AsVarArgFail;
     Procedure TestString_DoubleQuotesFail;
+    Procedure TestString_ShortstringType;
 
     // enums
     Procedure TestEnums;
@@ -545,6 +548,9 @@ type
     Procedure TestPointer_TypecastFromMethodTypeFail;
     Procedure TestPointer_TypecastMethod_proMethodAddrAsPointer;
     Procedure TestPointer_OverloadSignature;
+
+    // hints
+    Procedure TestHint_ElementHints;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -619,6 +625,7 @@ end;
 procedure TCustomTestResolver.TearDown;
 begin
   FResolverMsgs.Clear;
+  FResolverGoodMsgs.Clear;
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown START FreeSrcMarkers');
   {$ENDIF}
@@ -1098,29 +1105,24 @@ begin
 end;
 
 procedure TCustomTestResolver.CheckResolverHint(MsgType: TMessageType;
-  MsgNumber: integer; Msg: string; MustHave: boolean);
+  MsgNumber: integer; Msg: string);
 var
   i: Integer;
   Item: TTestResolverMessage;
   Expected,Actual: string;
 begin
-  writeln('TCustomTestResolver.CheckResolverHint MsgCount=',MsgCount);
+  //writeln('TCustomTestResolver.CheckResolverHint MsgCount=',MsgCount);
   for i:=0 to MsgCount-1 do
     begin
     Item:=Msgs[i];
     if (Item.MsgNumber<>MsgNumber) or (Item.Msg<>Msg) then continue;
     // found
+    FResolverGoodMsgs.Add(Item);
     str(Item.MsgType,Actual);
-    if not MustHave then
-      begin
-      WriteSources('',0,0);
-      Fail('Expected to *not* emit '+Actual+' ('+IntToStr(MsgNumber)+') {'+Msg+'}');
-      end;
     str(MsgType,Expected);
     AssertEquals('MsgType',Expected,Actual);
     exit;
     end;
-  if not MustHave then exit;
 
   // needed message missing -> show emitted messages
   WriteSources('',0,0);
@@ -1131,6 +1133,22 @@ begin
     end;
   str(MsgType,Expected);
   Fail('Missing '+Expected+' ('+IntToStr(MsgNumber)+') '+Msg);
+end;
+
+procedure TCustomTestResolver.CheckResolverUnexpectedHints;
+var
+  i: Integer;
+  s: String;
+  Msg: TTestResolverMessage;
+begin
+  for i:=0 to MsgCount-1 do
+    begin
+    Msg:=Msgs[i];
+    if FResolverGoodMsgs.IndexOf(Msg)>=0 then continue;
+    s:='';
+    str(Msg.MsgType,s);
+    Fail('Unexpected resolver message found ['+IntToStr(Msg.Id)+'] '+s+': ('+IntToStr(Msg.MsgNumber)+') {'+Msg.Msg+'}');
+    end;
 end;
 
 procedure TCustomTestResolver.CheckResolverException(Msg: string; MsgNumber: integer);
@@ -1364,11 +1382,13 @@ constructor TCustomTestResolver.Create;
 begin
   inherited Create;
   FResolverMsgs:=TObjectList.Create(true);
+  FResolverGoodMsgs:=TFPList.Create;
 end;
 
 destructor TCustomTestResolver.Destroy;
 begin
   FreeAndNil(FResolverMsgs);
+  FreeAndNil(FResolverGoodMsgs);
   inherited Destroy;
 end;
 
@@ -2138,6 +2158,19 @@ begin
   Add('begin');
   Add('  s:="abc" + "def";');
   CheckParserException('Invalid character ''"''',PScanner.nErrInvalidCharacter);
+end;
+
+procedure TTestResolver.TestString_ShortstringType;
+begin
+  StartProgram(false);
+  Add([
+  'type t = string[12];',
+  'var',
+  '  s: t;',
+  'begin',
+  '  s:=''abc'';',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestEnums;
@@ -6153,13 +6186,14 @@ begin
   Add('begin');
   ParseProgram;
   CheckResolverHint(mtNote,nVirtualMethodXHasLowerVisibility,
-    'Virtual method "DoStrictProtected" has a lower visibility (private) than parent class TObject (strict protected)',true);
+    'Virtual method "DoStrictProtected" has a lower visibility (private) than parent class TObject (strict protected)');
   CheckResolverHint(mtNote,nVirtualMethodXHasLowerVisibility,
-    'Virtual method "DoProtected" has a lower visibility (private) than parent class TObject (protected)',true);
+    'Virtual method "DoProtected" has a lower visibility (private) than parent class TObject (protected)');
   CheckResolverHint(mtNote,nVirtualMethodXHasLowerVisibility,
-    'Virtual method "DoPublic" has a lower visibility (protected) than parent class TObject (public)',true);
+    'Virtual method "DoPublic" has a lower visibility (protected) than parent class TObject (public)');
   CheckResolverHint(mtNote,nVirtualMethodXHasLowerVisibility,
-    'Virtual method "DoPublished" has a lower visibility (protected) than parent class TObject (published)',true);
+    'Virtual method "DoPublished" has a lower visibility (protected) than parent class TObject (published)');
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestClass_Const;
@@ -8904,6 +8938,33 @@ begin
   Add('  {@tobject}DoIt(b);');
   Add('  {@tclass}DoIt(bc);');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestHint_ElementHints;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TDeprecated = longint deprecated;',
+  '  TLibrary = longint library;',
+  '  TPlatform = longint platform;',
+  '  TExperimental = longint experimental;',
+  '  TUnimplemented = longint unimplemented;',
+  'var',
+  '  vDeprecated: TDeprecated;',
+  '  vLibrary: TLibrary;',
+  '  vPlatform: TPlatform;',
+  '  vExperimental: TExperimental;',
+  '  vUnimplemented: TUnimplemented;',
+  'begin',
+  '']);
+  ParseProgram;
+  CheckResolverHint(mtWarning,nSymbolXIsDeprecated,'Symbol "TDeprecated" is deprecated');
+  CheckResolverHint(mtWarning,nSymbolXBelongsToALibrary,'Symbol "TLibrary" belongs to a library');
+  CheckResolverHint(mtWarning,nSymbolXIsNotPortable,'Symbol "TPlatform" is not portable');
+  CheckResolverHint(mtWarning,nSymbolXIsExperimental,'Symbol "TExperimental" is experimental');
+  CheckResolverHint(mtWarning,nSymbolXIsNotImplemented,'Symbol "TUnimplemented" is implemented');
+  CheckResolverUnexpectedHints;
 end;
 
 initialization

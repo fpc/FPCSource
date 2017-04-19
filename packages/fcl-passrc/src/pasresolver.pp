@@ -135,6 +135,7 @@ Works:
   - nil, assigned(), typecast, class, classref, dynarray, procvar
 
 ToDo:
+- test forward class in argument
 - fix slow lookup declaration proc in PParser
 - fail to write a loop var inside the loop
 - warn: create class with abstract methods
@@ -256,6 +257,11 @@ const
   nTypeIdentifierExpected = 3055;
   nCannotNestAnonymousX = 3056;
   nFoundCallCandidateX = 3057;
+  nSymbolXIsNotPortable = 3058;
+  nSymbolXIsExperimental = 3059;
+  nSymbolXIsNotImplemented = 3060;
+  nSymbolXBelongsToALibrary = 3061;
+  nSymbolXIsDeprecated = 3062;
 
 // resourcestring patterns of messages
 resourcestring
@@ -316,6 +322,11 @@ resourcestring
   sTypeIdentifierExpected = 'Type identifier expected';
   sCannotNestAnonymousX = 'Cannot nest anonymous %s';
   sFoundCallCandidateX = 'Found call candidate %s';
+  sSymbolXIsNotPortable = 'Symbol "%s" is not portable';
+  sSymbolXIsExperimental = 'Symbol "%s" is experimental';
+  sSymbolXIsNotImplemented = 'Symbol "%s" is implemented';
+  sSymbolXBelongsToALibrary = 'Symbol "%s" belongs to a library';
+  sSymbolXIsDeprecated = 'Symbol "%s" is deprecated';
 
 type
   TResolverBaseType = (
@@ -1105,7 +1116,7 @@ type
     procedure FinishTypeDef(El: TPasType); virtual;
     procedure FinishEnumType(El: TPasEnumType); virtual;
     procedure FinishSetType(El: TPasSetType); virtual;
-    procedure FinishSubElementType(Parent, El: TPasElement); virtual;
+    procedure FinishSubElementType(Parent: TPasElement; El: TPasType); virtual;
     procedure FinishRangeType(El: TPasRangeType); virtual;
     procedure FinishRecordType(El: TPasRecordType); virtual;
     procedure FinishClassType(El: TPasClassType); virtual;
@@ -1125,6 +1136,8 @@ type
     procedure FinishAncestors(aClass: TPasClassType); virtual;
     procedure FinishPropertyParamAccess(Params: TParamsExpr;
       Prop: TPasProperty);
+    procedure EmitTypeHints(PosEl: TPasElement; aType: TPasType); virtual;
+    function EmitElementHints(PosEl, El: TPasElement): boolean; virtual;
     procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure);
     procedure CheckPendingForwards(El: TPasElement);
@@ -3153,6 +3166,8 @@ begin
     writeln('TPasResolver.FinishUsesList Add UsesScope=',GetObjName(UsesScope));
     {$ENDIF}
     Scope.UsesList.Add(UsesScope);
+
+    EmitElementHints(Section,El);
     end;
 end;
 
@@ -3295,11 +3310,12 @@ begin
   RaiseXExpectedButYFound(20170216151557,'enum type',EnumType.ElementTypeName,EnumType);
 end;
 
-procedure TPasResolver.FinishSubElementType(Parent, El: TPasElement);
+procedure TPasResolver.FinishSubElementType(Parent: TPasElement; El: TPasType);
 var
   Decl: TPasDeclarations;
   EnumScope: TPasEnumTypeScope;
 begin
+  EmitTypeHints(Parent,El);
   if (El.Name<>'') or (AnonymousElTypePostfix='') then exit;
   if Parent.Name='' then
     RaiseMsg(20170415165455,nCannotNestAnonymousX,sCannotNestAnonymousX,[El.ElementTypeName],El);
@@ -3797,7 +3813,13 @@ begin
   else if C=TPasProperty then
     FinishPropertyOfClass(TPasProperty(El))
   else if C=TPasArgument then
-    FinishArgument(TPasArgument(El));
+    FinishArgument(TPasArgument(El))
+  else
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.FinishDeclaration ',GetObjName(El));
+    {$ENDIF}
+    end;
 end;
 
 procedure TPasResolver.FinishVariable(El: TPasVariable);
@@ -3812,6 +3834,7 @@ begin
     ResolveExpr(El.Expr,rraRead);
     CheckAssignCompatibility(El,El.Expr,true);
     end;
+  EmitTypeHints(El,El.VarType);
 end;
 
 procedure TPasResolver.FinishPropertyOfClass(PropEl: TPasProperty);
@@ -4146,6 +4169,7 @@ begin
       RaiseMsg(20170216151938,nOnlyOneDefaultPropertyIsAllowed,sOnlyOneDefaultPropertyIsAllowed,[],PropEl);
     ClassScope.DefaultProperty:=PropEl;
     end;
+  EmitTypeHints(PropEl,PropEl.VarType);
 end;
 
 procedure TPasResolver.FinishArgument(El: TPasArgument);
@@ -4156,6 +4180,7 @@ begin
     if El.ArgType<>nil then
       CheckAssignCompatibility(El,El.ValueExpr,true);
     end;
+  EmitTypeHints(El,El.ArgType);
 end;
 
 procedure TPasResolver.FinishAncestors(aClass: TPasClassType);
@@ -4206,7 +4231,10 @@ begin
   else if AncestorType.ClassType<>TPasClassType then
     RaiseXExpectedButYFound(20170216151944,'class type',GetTypeDesc(AncestorType),aClass)
   else
+    begin
     AncestorEl:=TPasClassType(AncestorType);
+    EmitTypeHints(aClass,AncestorEl);
+    end;
 
   AncestorClassScope:=nil;
   if AncestorEl=nil then
@@ -4274,6 +4302,45 @@ begin
       end;
     AccessExpr(Params.Params[i],ParamAccess);
     end;
+end;
+
+procedure TPasResolver.EmitTypeHints(PosEl: TPasElement; aType: TPasType);
+begin
+  while aType<>nil do
+    begin
+    if EmitElementHints(PosEl,aType) then
+      exit; // give only hints for the nearest
+    if aType.InheritsFrom(TPasAliasType) then
+      aType:=TPasAliasType(aType).DestType
+    else if aType.ClassType=TPasPointerType then
+      aType:=TPasPointerType(aType).DestType
+    else if (aType.ClassType=TPasClassType) and TPasClassType(aType).IsForward
+        and (aType.CustomData<>nil) then
+      aType:=TPasType((aType.CustomData as TResolvedReference).Declaration)
+    else
+      exit;
+    end;
+end;
+
+function TPasResolver.EmitElementHints(PosEl, El: TPasElement): boolean;
+begin
+  if El.Hints=[] then exit(false);
+  Result:=true;
+  if hDeprecated in El.Hints then
+    LogMsg(20170419190434,mtWarning,nSymbolXIsDeprecated,sSymbolXIsDeprecated,
+      [El.Name],PosEl);
+  if hLibrary in El.Hints then
+    LogMsg(20170419190426,mtWarning,nSymbolXBelongsToALibrary,sSymbolXBelongsToALibrary,
+      [El.Name],PosEl);
+  if hPlatform in El.Hints then
+    LogMsg(20170419185916,mtWarning,nSymbolXIsNotPortable,sSymbolXIsNotPortable,
+      [El.Name],PosEl);
+  if hExperimental in El.Hints then
+    LogMsg(20170419190111,mtWarning,nSymbolXIsExperimental,sSymbolXIsExperimental,
+      [El.Name],PosEl);
+  if hUnimplemented in El.Hints then
+    LogMsg(20170419190317,mtWarning,nSymbolXIsNotImplemented,sSymbolXIsNotImplemented,
+      [El.Name],PosEl);
 end;
 
 procedure TPasResolver.ReplaceProcScopeImplArgsWithDeclArgs(
@@ -7931,6 +7998,12 @@ begin
       or (AClass=TPasSetType)
       or (AClass=TPasRangeType) then
     AddType(TPasType(El))
+  else if AClass=TPasStringType then
+    begin
+    AddType(TPasType(El));
+    if BaseTypes[btShortString]=nil then
+      RaiseMsg(20170419203043,nIllegalQualifier,sIllegalQualifier,['['],El);
+    end
   else if AClass=TPasRecordType then
     AddRecordType(TPasRecordType(El))
   else if AClass=TPasClassType then
@@ -8583,6 +8656,7 @@ begin
   Result.Declaration:=DeclEl;
   if RefEl is TPasExpr then
     SetResolvedRefAccess(TPasExpr(RefEl),Result,Access);
+  EmitElementHints(RefEl,DeclEl);
 end;
 
 function TPasResolver.CreateScope(El: TPasElement; ScopeClass: TPasScopeClass
@@ -11125,7 +11199,7 @@ begin
     end
   else if ElClass=TPasClassType then
     begin
-    if TPasClassType(El).IsForward then
+    if TPasClassType(El).IsForward and (El.CustomData<>nil) then
       begin
       DeclEl:=(TPasClassType(El).CustomData as TResolvedReference).Declaration;
       ResolvedEl.TypeEl:=DeclEl as TPasClassType;
@@ -11134,9 +11208,6 @@ begin
       ResolvedEl.TypeEl:=TPasClassType(El);
     SetResolverIdentifier(ResolvedEl,btContext,
                           ResolvedEl.TypeEl,ResolvedEl.TypeEl,[]);
-    //if not TPasClassType(El).IsExternal then
-    //  Include(ResolvedEl.Flags,rrfReadable);
-    // Note: rrfReadable because a class has a vmt as value
     end
   else if ElClass=TPasClassOfType then
     SetResolverIdentifier(ResolvedEl,btContext,El,TPasClassOfType(El),[])
@@ -11187,6 +11258,12 @@ begin
     SetResolverIdentifier(ResolvedEl,btContext,El,TPasArrayType(El),[])
   else if ElClass=TArrayValues then
     SetResolverValueExpr(ResolvedEl,btArray,nil,TArrayValues(El),[rrfReadable])
+  else if ElClass=TPasStringType then
+    begin
+    SetResolverTypeExpr(ResolvedEl,btShortString,BaseTypes[btShortString],[rrfReadable]);
+    if BaseTypes[btShortString]=nil then
+      RaiseMsg(20170419203146,nIllegalQualifier,sIllegalQualifier,['['],El);
+    end
   else
     RaiseNotYetImplemented(20160922163705,El);
 end;

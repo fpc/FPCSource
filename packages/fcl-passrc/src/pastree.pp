@@ -721,7 +721,7 @@ type
     function ElementTypeName: string; override;
   end;
 
-  { TPasStringType }
+  { TPasStringType - e.g. string[len] }
 
   TPasStringType = class(TPasUnresolvedTypeRef)
   public
