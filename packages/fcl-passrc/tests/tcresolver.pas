@@ -530,6 +530,7 @@ type
     Procedure TestProcType_WhileListCompare;
     Procedure TestProcType_IsNested;
     Procedure TestProcType_IsNested_AssignProcFail;
+    Procedure TestProcType_ReferenceTo;
     Procedure TestProcType_AllowNested;
     Procedure TestProcType_AllowNestedOfObject;
     Procedure TestProcType_AsArgOtherUnit;
@@ -8558,6 +8559,63 @@ begin
   Add('begin');
   Add('  p:=@DoIt;');
   CheckResolverException('procedure type modifier "is nested" mismatch',nXModifierMismatchY);
+end;
+
+procedure TTestResolver.TestProcType_ReferenceTo;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProcRef = reference to procedure(i: longint = 0);',
+  '  TFuncRef = reference to function(i: longint = 0): longint;',
+  '  TObject = class',
+  '    function Grow(s: longint): longint;',
+  '  end;',
+  'var',
+  '  p: TProcRef;',
+  '  f: TFuncRef;',
+  'function tobject.Grow(s: longint): longint;',
+  '  function GrowSub(i: longint): longint;',
+  '  begin',
+  '    f:=@Grow;',
+  '    f:=@GrowSub;',
+  '    f;',
+  '    f();',
+  '    f(1);',
+  '  end;',
+  'begin',
+  '  f:=@Grow;',
+  '  f:=@GrowSub;',
+  '  f;',
+  '  f();',
+  '  f(1);',
+  'end;',
+  'procedure DoIt(i: longint);',
+  'begin',
+  'end;',
+  'function GetIt(i: longint): longint;',
+  '  function Sub(i: longint): longint;',
+  '  begin',
+  '    p:=@DoIt;',
+  '    f:=@GetIt;',
+  '    f:=@Sub;',
+  '  end;',
+  'begin',
+  '  p:=@DoIt;',
+  '  f:=@GetIt;',
+  '  f;',
+  '  f();',
+  '  f(1);',
+  'end;',
+  'begin',
+  '  p:=@DoIt;',
+  '  f:=@GetIt;',
+  '  f;',
+  '  f();',
+  '  f(1);',
+  '  p:=TProcRef(f);',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProcType_AllowNested;

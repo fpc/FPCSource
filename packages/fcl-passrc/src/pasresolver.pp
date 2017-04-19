@@ -1322,6 +1322,10 @@ type
     procedure RaiseIncompatibleTypeRes(id: int64; MsgNumber: integer;
       const Args: array of const; const GotType, ExpType: TPasResolverResult;
       ErrorEl: TPasElement);
+    procedure RaiseInvalidProcTypeModifier(id: int64; ProcType: TPasProcedureType;
+      ptm: TProcTypeModifier; ErrorEl: TPasElement);
+    procedure RaiseInvalidProcModifier(id: int64; Proc: TPasProcedure;
+      pm: TProcedureModifier; ErrorEl: TPasElement);
     procedure WriteScopes;
     // find value and type of an element
     procedure ComputeElement(El: TPasElement; out ResolvedEl: TPasResolverResult;
@@ -1362,7 +1366,7 @@ type
       ErrorEl: TPasElement): integer;
     function CheckOverloadProcCompatibility(Proc1, Proc2: TPasProcedure): boolean;
     function CheckProcTypeCompatibility(Proc1, Proc2: TPasProcedureType;
-      ErrorEl: TPasElement; RaiseOnIncompatible: boolean): boolean;
+      IsAssign: boolean; ErrorEl: TPasElement; RaiseOnIncompatible: boolean): boolean;
     function CheckProcArgCompatibility(Arg1, Arg2: TPasArgument): boolean;
     function CheckProcArgTypeCompatibility(Arg1, Arg2: TPasType): boolean;
     function CheckCanBeLHS(const ResolvedEl: TPasResolverResult;
@@ -1481,6 +1485,8 @@ var
 begin
   if ProcType=nil then exit('nil');
   Result:=ProcType.TypeName;
+  if ProcType.IsReferenceTo then
+    Result:=ProcTypeModifiers[ptmReferenceTo]+' '+Result;
   if UseName and (ProcType.Parent is TPasProcedure) then
     begin
     if AddPaths then
@@ -1644,6 +1650,8 @@ begin
     end
   else if El is TPasProcedureType then
     begin
+    if TPasProcedureType(El).IsReferenceTo then
+      Result:=Result+' '+ProcTypeModifiers[ptmIsNested];
     Result:=Result+'(';
     l:=TPasProcedureType(El).Args.Count;
     if l>0 then
@@ -3436,7 +3444,7 @@ begin
     ProcName:=Proc.Name;
 
     if (proProcTypeWithoutIsNested in Options) and El.IsNested then
-      RaiseMsg(20170402120811,nIllegalQualifier,sIllegalQualifier,['is nested'],El);
+      RaiseInvalidProcTypeModifier(20170402120811,El,ptmIsNested,El);
 
     if (Proc.Parent.ClassType=TProcedureBody) then
       begin
@@ -3447,6 +3455,14 @@ begin
       ParentProc:=Proc.Parent.Parent as TPasProcedure;
       if ParentProc.ProcType.IsOfObject then
         El.IsOfObject:=true;
+      end;
+
+    if El.IsReferenceTo then
+      begin
+      if El.IsNested then
+        RaiseInvalidProcTypeModifier(20170419142818,El,ptmIsNested,El);
+      if El.IsOfObject then
+        RaiseInvalidProcTypeModifier(20170419142844,El,ptmOfObject,El);
       end;
 
     if Proc.IsExternal then
@@ -3461,7 +3477,7 @@ begin
             sInvalidXModifierY,[Proc.ElementTypeName,'external, '+ModifierNames[pm]],Proc);
       for ptm in TProcTypeModifier do
         if (ptm in Proc.ProcType.Modifiers)
-            and not (ptm in [ptmOfObject,ptmIsNested,ptmStatic,ptmVarargs]) then
+            and not (ptm in [ptmOfObject,ptmIsNested,ptmStatic,ptmVarargs,ptmReferenceTo]) then
           RaiseMsg(20170411171224,nInvalidXModifierY,
             sInvalidXModifierY,[Proc.ElementTypeName,'external, '+ProcTypeModifiers[ptm]],Proc);
       end;
@@ -3488,15 +3504,15 @@ begin
       begin
       // intf proc, forward proc, proc body, method body
       if Proc.IsAbstract then
-        RaiseMsg(20170216151634,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'abstract'],Proc);
+        RaiseInvalidProcModifier(20170216151634,Proc,pmAbstract,Proc);
       if Proc.IsVirtual then
-        RaiseMsg(20170216151635,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'virtual'],Proc);
+        RaiseInvalidProcModifier(20170216151635,Proc,pmVirtual,Proc);
       if Proc.IsOverride then
-        RaiseMsg(20170216151637,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'override'],Proc);
+        RaiseInvalidProcModifier(20170216151637,Proc,pmOverride,Proc);
       if Proc.IsMessage then
-        RaiseMsg(20170216151638,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'message'],Proc);
+        RaiseInvalidProcModifier(20170216151638,Proc,pmMessage,Proc);
       if Proc.IsStatic then
-        RaiseMsg(20170216151640,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,'static'],Proc);
+        RaiseInvalidProcTypeModifier(20170216151640,El,ptmStatic,El);
       end;
 
     if Pos('.',ProcName)>1 then
@@ -8983,6 +8999,20 @@ begin
   RaiseIncompatibleTypeDesc(id,MsgNumber,Args,GotDesc,ExpDesc,ErrorEl);
 end;
 
+procedure TPasResolver.RaiseInvalidProcTypeModifier(id: int64;
+  ProcType: TPasProcedureType; ptm: TProcTypeModifier; ErrorEl: TPasElement);
+begin
+  RaiseMsg(id,nInvalidXModifierY,sInvalidXModifierY,[ProcType.ElementTypeName,
+    ProcTypeModifiers[ptm]],ErrorEl);
+end;
+
+procedure TPasResolver.RaiseInvalidProcModifier(id: int64; Proc: TPasProcedure;
+  pm: TProcedureModifier; ErrorEl: TPasElement);
+begin
+  RaiseMsg(id,nInvalidXModifierY,sInvalidXModifierY,[Proc.ElementTypeName,
+    ModifierNames[pm]],ErrorEl);
+end;
+
 procedure TPasResolver.LogMsg(const id: int64; MsgType: TMessageType;
   MsgNumber: integer; const Fmt: String; Args: array of const;
   PosEl: TPasElement);
@@ -9203,16 +9233,16 @@ begin
 end;
 
 function TPasResolver.CheckProcTypeCompatibility(Proc1,
-  Proc2: TPasProcedureType; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
-  ): boolean;
+  Proc2: TPasProcedureType; IsAssign: boolean; ErrorEl: TPasElement;
+  RaiseOnIncompatible: boolean): boolean;
 // if RaiseOnIncompatible=true, then Expected=Proc1 Actual=Proc2
 
-  function ModifierError(const Modifier: string): boolean;
+  function ModifierError(Modifier: TProcTypeModifier): boolean;
   begin
     Result:=false;
     if not RaiseOnIncompatible then exit;
     RaiseMsg(20170402112049,nXModifierMismatchY,sXModifierMismatchY,
-      [Proc1.ElementTypeName,Modifier],ErrorEl);
+      [Proc1.ElementTypeName,ProcTypeModifiers[Modifier]],ErrorEl);
   end;
 
 var
@@ -9228,16 +9258,35 @@ begin
       RaiseXExpectedButYFound(20170402112353,Proc1.ElementTypeName,Proc2.ElementTypeName,ErrorEl);
     exit;
     end;
-  if Proc1.IsNested<>Proc2.IsNested then
-    exit(ModifierError(ProcTypeModifiers[ptmIsNested]));
-  if Proc1.IsOfObject<>Proc2.IsOfObject then
+  if Proc1.IsReferenceTo then
     begin
-    if (proProcTypeWithoutIsNested in Options) then
-      exit(ModifierError(ProcTypeModifiers[ptmOfObject]))
-    else if Proc1.IsNested then
-      // "is nested" can handle both, proc and method.
+    if IsAssign then
+      // aRefTo:=aproc -> any IsNested/OfObject is allowed
     else
-      exit(ModifierError(ProcTypeModifiers[ptmOfObject]))
+      ; // aRefTo = AnyProc -> ok
+    end
+  else if Proc2.IsReferenceTo then
+    begin
+    if IsAssign then
+      // NonRefTo := aRefTo  -> not possible
+      exit(ModifierError(ptmReferenceTo))
+    else
+      ; // AnyProc = aRefTo -> ok
+    end
+  else
+    begin
+    // neither Proc1 nor Proc2 is a reference-to  -> check isNested and OfObject
+    if Proc1.IsNested<>Proc2.IsNested then
+      exit(ModifierError(ptmIsNested));
+    if Proc1.IsOfObject<>Proc2.IsOfObject then
+      begin
+      if (proProcTypeWithoutIsNested in Options) then
+        exit(ModifierError(ptmOfObject))
+      else if Proc1.IsNested then
+        // "is nested" can handle both, proc and method.
+      else
+        exit(ModifierError(ptmOfObject))
+      end;
     end;
   if Proc1.CallingConvention<>Proc2.CallingConvention then
     begin
@@ -9568,7 +9617,7 @@ begin
         begin
         // for example  ProcVar:=Proc
         if CheckProcTypeCompatibility(TPasProcedureType(LHS.TypeEl),
-            TPasProcedure(RHS.IdentEl).ProcType,ErrorEl,RaiseOnIncompatible) then
+            TPasProcedure(RHS.IdentEl).ProcType,true,ErrorEl,RaiseOnIncompatible) then
           Result:=cExact;
         end;
       end
@@ -10103,7 +10152,7 @@ begin
       begin
       // e.g. ProcVar1:=ProcVar2
       if CheckProcTypeCompatibility(TPasProcedureType(LTypeEl),TPasProcedureType(RTypeEl),
-          ErrorEl,RaiseOnIncompatible) then
+          true,ErrorEl,RaiseOnIncompatible) then
         exit(cExact);
       end;
     if RaiseOnIncompatible then
@@ -10415,7 +10464,7 @@ begin
       begin
       // e.g. ProcVar1 = ProcVar2
       if CheckProcTypeCompatibility(TPasProcedureType(ElA),TPasProcedureType(ElB),
-          nil,false) then
+          false,nil,false) then
         exit(cExact);
       end
     else
@@ -10532,6 +10581,15 @@ begin
                     [FromProcType.ElementTypeName+' '+ProcTypeModifiers[ptmIsNested],
                      BaseTypeNames[btPointer]],ErrorEl);
                 end
+              else if FromProcType.IsReferenceTo then
+                begin
+                if proProcTypeWithoutIsNested in Options then
+                  Result:=cCompatible
+                else if RaiseOnError then
+                  RaiseMsg(20170419144311,nIllegalTypeConversionTo,sIllegalTypeConversionTo,
+                    [FromProcType.ElementTypeName+' '+ProcTypeModifiers[ptmReferenceTo],
+                     BaseTypeNames[btPointer]],ErrorEl);
+                end
               else
                 Result:=cCompatible;
               end;
@@ -10625,6 +10683,15 @@ begin
               [BaseTypeNames[btPointer],
                ToProcType.ElementTypeName+' '+ProcTypeModifiers[ptmIsNested]],ErrorEl);
           end
+        else if ToProcType.IsReferenceTo then
+          begin
+          if proMethodAddrAsPointer in Options then
+            Result:=cCompatible
+          else if RaiseOnError then
+            RaiseMsg(20170419144357,nIllegalTypeConversionTo,sIllegalTypeConversionTo,
+              [BaseTypeNames[btPointer],
+               ToProcType.ElementTypeName+' '+ProcTypeModifiers[ptmReferenceTo]],ErrorEl);
+          end
         else
           Result:=cCompatible;
         end
@@ -10634,7 +10701,11 @@ begin
           begin
           // type cast procvar to proctype
           FromProcType:=TPasProcedureType(FromResolved.TypeEl);
-          if (FromProcType.IsOfObject<>ToProcType.IsOfObject)
+          if ToProcType.IsReferenceTo then
+            Result:=cCompatible
+          else if FromProcType.IsReferenceTo then
+            Result:=cCompatible
+          else if (FromProcType.IsOfObject<>ToProcType.IsOfObject)
               and not (proMethodAddrAsPointer in Options) then
             begin
             if RaiseOnError then
