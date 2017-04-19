@@ -169,6 +169,7 @@ Works:
   - mode delphi: proctype:=proc
   - mode delphi: functype=funcresulttype
   - nested functions
+  - reference to
 - class-of
   - assign :=   nil, var
   - call class method
@@ -243,8 +244,6 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- documentation: $mod, Self, createCallBack on method,proc,nested
-- reference to
 - RTTI
   - open array param
   - codetools function typeinfo
@@ -293,8 +292,11 @@ Not in Version 1.0:
 - option range checking -Cr
 - option overflow checking -Co
 - optimizations:
+  - add $mod only if needed
+  - add Self only if needed
   - set operators on literals without temporary arrays, a in [b], [a]*b<>[]
   - use a number for small sets
+  - nested procs without var, instead as "function name(){}"
   -O1 insert local/unit vars for global type references:
       at start of intf var $r1;
       at end of impl: $r1=path;
@@ -414,6 +416,7 @@ type
     pbifnRTTINewProcSig,// rtl.newTIProcSig
     pbifnRTTINewProcVar,// typeinfo of tkProcVar $ProcVar
     pbifnRTTINewRecord,// typeinfo creator of tkRecord $Record
+    pbifnRTTINewRefToProcVar,// typeinfo of tkRefToProcVar $RefToProcVar
     pbifnRTTINewSet,// typeinfo of tkSet $Set
     pbifnRTTINewStaticArray,// typeinfo of tkArray $StaticArray
     pbifnSetCharAt,
@@ -467,6 +470,7 @@ type
     pbitnTIPointer,
     pbitnTIProcVar,
     pbitnTIRecord,
+    pbitnTIRefToProcVar,
     pbitnTISet,
     pbitnTIStaticArray
     );
@@ -506,6 +510,7 @@ const
     'newTIProcSig',
     '$ProcVar',
     '$Record',
+    '$RefToProcVar',
     '$Set',
     '$StaticArray',
     'setCharAt', // rtl.setCharAt
@@ -559,6 +564,7 @@ const
     'tTypeInfoPointer',
     'tTypeInfoProcVar',
     'tTypeInfoRecord',
+    'tTypeInfoRefToProcVar',
     'tTypeInfoSet',
     'tTypeInfoStaticArray'
     );
@@ -2461,7 +2467,9 @@ begin
       TIName:=Pas2JSBuiltInNames[pbitnTISet]
     else if C.InheritsFrom(TPasProcedureType) then
       begin
-      if TPasProcedureType(TypeEl).IsOfObject then
+      if TPasProcedureType(TypeEl).IsReferenceTo then
+        TIName:=Pas2JSBuiltInNames[pbitnTIRefToProcVar]
+      else if TPasProcedureType(TypeEl).IsOfObject then
         TIName:=Pas2JSBuiltInNames[pbitnTIMethodVar]
       else
         TIName:=Pas2JSBuiltInNames[pbitnTIProcVar];
@@ -7740,7 +7748,9 @@ begin
   if not HasTypeInfo(El,AContext) then exit;
 
   // module.$rtti.$ProcVar("name",function(){})
-  if El.IsOfObject then
+  if El.IsReferenceTo then
+    FunName:=FBuiltInNames[pbifnRTTINewRefToProcVar]
+  else if El.IsOfObject then
     FunName:=FBuiltInNames[pbifnRTTINewMethodVar]
   else
     FunName:=FBuiltInNames[pbifnRTTINewProcVar];

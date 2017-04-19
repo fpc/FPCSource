@@ -414,6 +414,8 @@ type
     Procedure TestProcType_WithClassInstDoPropertyFPC;
     Procedure TestProcType_Nested;
     Procedure TestProcType_NestedOfObject;
+    Procedure TestProcType_ReferenceToProc;
+    Procedure TestProcType_ReferenceToMethod;
     Procedure TestProcType_Typecast;
 
     // pointer
@@ -10420,6 +10422,113 @@ begin
     '    b = rtl.eqCallback(Sub, aProc);',
     '  };',
     '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestProcType_ReferenceToProc;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProcRef = reference to procedure(i: longint = 0);',
+  '  TFuncRef = reference to function(i: longint = 0): longint;',
+  'var',
+  '  p: TProcRef;',
+  '  f: TFuncRef;',
+  'procedure DoIt(i: longint);',
+  'begin',
+  'end;',
+  'function GetIt(i: longint): longint;',
+  'begin',
+  '  p:=@DoIt;',
+  '  f:=@GetIt;',
+  '  f;',
+  '  f();',
+  '  f(1);',
+  'end;',
+  'begin',
+  '  p:=@DoIt;',
+  '  f:=@GetIt;',
+  '  f;',
+  '  f();',
+  '  f(1);',
+  '  p:=TProcRef(f);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestProcType_ReferenceToProc',
+    LinesToStr([ // statements
+    'this.p = null;',
+    'this.f = null;',
+    'this.DoIt = function (i) {',
+    '};',
+    'this.GetIt = function (i) {',
+    '  var Result = 0;',
+    '  $mod.p = $mod.DoIt;',
+    '  $mod.f = $mod.GetIt;',
+    '  $mod.f(0);',
+    '  $mod.f(0);',
+    '  $mod.f(1);',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.DoIt;',
+    '$mod.f = $mod.GetIt;',
+    '$mod.f(0);',
+    '$mod.f(0);',
+    '$mod.f(1);',
+    '$mod.p = $mod.f;',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_ReferenceToMethod;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TFuncRef = reference to function(i: longint = 5): longint;',
+  '  TObject = class',
+  '    function Grow(s: longint): longint;',
+  '  end;',
+  'var',
+  '  f: tfuncref;',
+  'function tobject.grow(s: longint): longint;',
+  '  function GrowSub(i: longint): longint;',
+  '  begin',
+  '    f:=@grow;',
+  '    f:=@growsub;',
+  '  end;',
+  'begin',
+  '  f:=@grow;',
+  '  f:=@growsub;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestProcType_ReferenceToMethod',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Grow = function (s) {',
+    '    var Self = this;',
+    '    var Result = 0;',
+    '    function GrowSub(i) {',
+    '      var Result = 0;',
+    '      $mod.f = rtl.createCallback(Self, "Grow");',
+    '      $mod.f = GrowSub;',
+    '      return Result;',
+    '    };',
+    '    $mod.f = rtl.createCallback(Self, "Grow");',
+    '    $mod.f = GrowSub;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.f = null;',
     '']),
     LinesToStr([ // $mod.$main
     '']));
