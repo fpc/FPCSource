@@ -213,7 +213,7 @@ interface
          this changed content afterwards (add/sub/..., but e.g. not rep
          or movsd)}
         Ch_MEAX, Ch_MECX, Ch_MEDX, Ch_MEBX, Ch_MESP, Ch_MEBP, Ch_MESI, Ch_MEDI,
-        Ch_CDirFlag {clear direction flag}, Ch_SDirFlag {set dir flag},
+        Ch_CDirFlag {clear direction flag}, Ch_SDirFlag {set dir flag},Ch_RDirFlag {read direction flag},
         Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU,
         Ch_Rop1, Ch_Wop1, Ch_RWop1,Ch_Mop1,
         Ch_Rop2, Ch_Wop2, Ch_RWop2,Ch_Mop2,
