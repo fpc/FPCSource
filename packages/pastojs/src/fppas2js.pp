@@ -894,6 +894,8 @@ type
     function CreateElementData(DataClass: TPas2JsElementDataClass;
       El: TPasElement): TPas2JsElementData; virtual;
     // utility
+    function GetBaseDescription(const R: TPasResolverResult; AddPath: boolean=
+      false): string; override;
     function HasTypeInfo(El: TPasType): boolean; override;
   end;
 
@@ -2916,6 +2918,15 @@ begin
   Result:=DataClass.Create;
   Result.Element:=El;
   AddElementData(Result);
+end;
+
+function TPas2JSResolver.GetBaseDescription(const R: TPasResolverResult;
+  AddPath: boolean): string;
+begin
+  if (R.BaseType=btCustom) and (R.TypeEl.CustomData is TResElDataPas2JSBaseType) then
+    Result:=Pas2jsBaseTypeNames[TResElDataPas2JSBaseType(R.TypeEl.CustomData).JSBaseType]
+  else
+    Result:=inherited GetBaseDescription(R, AddPath);
 end;
 
 function TPas2JSResolver.HasTypeInfo(El: TPasType): boolean;

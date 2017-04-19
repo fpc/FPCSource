@@ -439,6 +439,7 @@ type
     Procedure TestJSValue_FuncResultType;
     Procedure TestJSValue_ProcType_Assign;
     Procedure TestJSValue_ProcType_Equal;
+    Procedure TestJSValue_AssignToPointerFail;
 
     // RTTI
     Procedure TestRTTI_ProcType;
@@ -774,7 +775,7 @@ begin
     Fail('TTestModuleConverter.AddModule: file "'+aFilename+'" already exists');
   Result:=TTestEnginePasResolver.Create;
   Result.Filename:=aFilename;
-  Result.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllPas2jsBaseProcs);
+  Result.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
   Result.OnFindUnit:=@OnPasResolverFindUnit;
   FModules.Add(Result);
 end;
@@ -11429,6 +11430,21 @@ begin
     'if (rtl.eqCallback(rtl.createCallback($mod.o, "Getter"), $mod.V)) ;',
     'if (rtl.eqCallback(rtl.createCallback($mod.o.$class, "GetGlob"), $mod.V)) ;',
     '']));
+end;
+
+procedure TTestModule.TestJSValue_AssignToPointerFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  v: JSValue;',
+  '  p: Pointer;',
+  'begin',
+  '  p:=v;',
+  '']);
+  SetExpectedPasResolverError('Incompatible types: got "JSValue" expected "Pointer"',
+    nIncompatibleTypesGotExpected);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestRTTI_ProcType;
