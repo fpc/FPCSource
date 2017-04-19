@@ -179,7 +179,7 @@ implementation
             { so we've to do some tricks here                           }
             current_asmdata.getjumplabel(l2);
             current_asmdata.getjumplabel(l3);
-            emit_const_reg(A_TEST,S_L,32,NR_ECX);
+            emit_const_reg(A_TEST,S_B,32,NR_CL);
             cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l2);
             if nodetype=shln then
               begin
