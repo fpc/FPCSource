@@ -202,6 +202,7 @@ type
     Procedure TestBaseType_UnicodeStringFail;
     Procedure TestBaseType_ShortStringFail;
     Procedure TestBaseType_RawByteStringFail;
+    Procedure TestTypeShortstring_Fail;
 
     // alias types
     Procedure TestAliasTypeRef;
@@ -773,7 +774,7 @@ begin
     Fail('TTestModuleConverter.AddModule: file "'+aFilename+'" already exists');
   Result:=TTestEnginePasResolver.Create;
   Result.Filename:=aFilename;
-  Result.AddObjFPCBuiltInIdentifiers(btAllPas2jsBaseTypes,bfAllPas2jsBaseProcs);
+  Result.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllPas2jsBaseProcs);
   Result.OnFindUnit:=@OnPasResolverFindUnit;
   FModules.Add(Result);
 end;
@@ -3894,6 +3895,16 @@ begin
   StartProgram(false);
   Add('var s: RawByteString');
   SetExpectedPasResolverError('identifier not found "RawByteString"',nIdentifierNotFound);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestTypeShortstring_Fail;
+begin
+  StartProgram(false);
+  Add('type t = string[12];');
+  Add('var s: t;');
+  Add('begin');
+  SetExpectedPasResolverError('illegal qualifier "["',nIllegalQualifier);
   ConvertProgram;
 end;
 

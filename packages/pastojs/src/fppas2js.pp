@@ -295,6 +295,7 @@ Not in Version 1.0:
   - add $mod only if needed
   - add Self only if needed
   - set operators on literals without temporary arrays, a in [b], [a]*b<>[]
+  - shortcut for test set is empty  a=[]  a<>[]
   - use a number for small sets
   - nested procs without var, instead as "function name(){}"
   -O1 insert local/unit vars for global type references:
@@ -720,10 +721,6 @@ const
     'None',
     'JSValue'
     );
-  btAllJSValueSrcTypes = [btNil,btUntyped,btPointer]+btAllInteger
-      +btAllStringAndChars+btAllFloats+btAllBooleans;
-  btAllJSValueTypeCastTo = btAllInteger
-      +btAllStringAndChars+btAllFloats+btAllBooleans+[btPointer];
 
 //------------------------------------------------------------------------------
 // Element CustomData
@@ -775,7 +772,7 @@ type
 //------------------------------------------------------------------------------
 // TPas2JSResolver
 const
-  btAllPas2jsBaseTypes = [
+  btAllJSBaseTypes = [
     btChar,
     btString,
     btDouble,
@@ -797,7 +794,22 @@ const
     //btText,
     //btVariant
     ];
-  bfAllPas2jsBaseProcs = bfAllStandardProcs;
+  bfAllJSBaseProcs = bfAllStandardProcs;
+
+  btAllJSStrings = [btString];
+  btAllJSChars = [btChar];
+  btAllJSStringAndChars = btAllJSStrings+btAllJSChars;
+  btAllJSFloats = [btDouble];
+  btAllJSBooleans = [btBoolean];
+  btAllJSInteger = [btByte,btShortInt,btWord,btSmallInt,btLongWord,btLongint,
+    btInt64 // ToDo: remove int64
+    ];
+  btAllJSValueSrcTypes = [btNil,btUntyped,btPointer]+btAllJSInteger
+      +btAllJSStringAndChars+btAllJSFloats+btAllJSBooleans;
+  btAllJSValueTypeCastTo = btAllJSInteger
+      +btAllJSStringAndChars+btAllJSFloats+btAllJSBooleans+[btPointer];
+
+
   DefaultPasResolverOptions = [
     proFixCaseOfOverrides,
     proClassPropertyNonStatic,
@@ -2133,7 +2145,7 @@ begin
       RaiseMsg(20170403090225,nXExpectedButYFound,sXExpectedButYFound,
         ['default or "const"',AccessNames[Arg.Access]],PropEl);
     ComputeElement(Arg,ArgResolved,[rcType],Arg);
-    if not (ArgResolved.BaseType in (btAllInteger+btAllStringAndChars+btAllBooleans+btAllFloats)) then
+    if not (ArgResolved.BaseType in (btAllJSInteger+btAllJSStringAndChars+btAllJSBooleans+btAllJSFloats)) then
       RaiseMsg(20170403090628,nIncompatibleTypesGotExpected,
         sIncompatibleTypesGotExpected,
         [GetResolverResultDescription(ArgResolved,true),'string'],Arg);
@@ -2451,7 +2463,7 @@ begin
     else if TypeEl.CustomData is TResElDataBaseType then
       begin
       bt:=TResElDataBaseType(TypeEl.CustomData).BaseType;
-      if bt in btAllInteger then
+      if bt in btAllJSInteger then
         TIName:=Pas2JSBuiltInNames[pbitnTIInteger]
       else if bt in [btString,btChar,btDouble,btBoolean] then
         TIName:=Pas2JSBuiltInNames[pbitnTI]
@@ -2569,11 +2581,11 @@ var
   InvalidProcs: TResolverBuiltInProcs;
   bf: TResolverBuiltInProc;
 begin
-  InvalidTypes:=TheBaseTypes-btAllPas2jsBaseTypes;
+  InvalidTypes:=TheBaseTypes-btAllJSBaseTypes;
   if InvalidTypes<>[] then
     for bt in InvalidTypes do
       RaiseInternalError(20170409180202,BaseTypeNames[bt]);
-  InvalidProcs:=TheBaseProcs-bfAllPas2jsBaseProcs;
+  InvalidProcs:=TheBaseProcs-bfAllJSBaseProcs;
   if InvalidProcs<>[] then
     for bf in InvalidProcs do
       RaiseInternalError(20170409180246,ResolverBuiltInProcNames[bf]);
@@ -2652,7 +2664,7 @@ begin
         if ToClass.IsExternal then
           begin
           if IsExternalClassName(ToClass,'String')
-              and (FromResolved.BaseType in btAllStringAndChars) then
+              and (FromResolved.BaseType in btAllJSStringAndChars) then
             exit(cExact);
           if IsExternalClassName(ToClass,'Array')
               and ((FromResolved.BaseType=btArray)
@@ -3591,7 +3603,7 @@ begin
       if AContext.Resolver<>nil then
         begin
         AContext.Resolver.ComputeElement(El.Operand,ResolvedOp,[]);
-        BitwiseNot:=ResolvedOp.BaseType in btAllInteger;
+        BitwiseNot:=ResolvedOp.BaseType in btAllJSInteger;
         end;
       if BitwiseNot then
         U:=TJSUnaryInvExpression(CreateElement(TJSUnaryInvExpression,El))
@@ -3724,7 +3736,7 @@ procedure TPasToJSConverter.ComputeRange(
 var
   EnumType: TPasEnumType;
 begin
-  if RangeResolved.BaseType in btAllBooleans then
+  if RangeResolved.BaseType in btAllJSBooleans then
     begin
     MinValue:=0;
     MaxValue:=1;
@@ -3759,7 +3771,7 @@ begin
     MinValue:=0;
     MaxValue:=$ffffffff;
     end
-  else if RangeResolved.BaseType in btAllChars then
+  else if RangeResolved.BaseType in btAllJSChars then
     begin
     MinValue:=0;
     MaxValue:=$ffff;
@@ -3900,8 +3912,8 @@ begin
         eopXor:
           begin
           if AContext.Resolver<>nil then
-            UseBitwiseOp:=((LeftResolved.BaseType in btAllInteger)
-                       or (RightResolved.BaseType in btAllInteger))
+            UseBitwiseOp:=((LeftResolved.BaseType in btAllJSInteger)
+                       or (RightResolved.BaseType in btAllJSInteger))
           else
             UseBitwiseOp:=(GetExpressionValueType(El.left,AContext)=jstNumber)
               or (GetExpressionValueType(El.right,AContext)=jstNumber);
@@ -5126,7 +5138,7 @@ begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertArrayParams Value=',GetResolverResultDesc(ResolvedEl));
   {$ENDIF}
-  if ResolvedEl.BaseType in btAllStrings then
+  if ResolvedEl.BaseType in btAllJSStrings then
     ConvertStringBracket
   else if (ResolvedEl.IdentEl is TPasProperty)
       and (TPasProperty(ResolvedEl.IdentEl).Args.Count>0) then
@@ -5479,15 +5491,15 @@ begin
   JSBaseType:=pbtNone;
 
   to_bt:=ToBaseTypeData.BaseType;
-  if to_bt in btAllInteger then
+  if to_bt in btAllJSInteger then
     begin
-    if ParamResolved.BaseType in btAllInteger then
+    if ParamResolved.BaseType in btAllJSInteger then
       begin
       // integer to integer -> value
       Result:=ConvertElement(Param,AContext);
       exit;
       end
-    else if ParamResolved.BaseType in btAllBooleans then
+    else if ParamResolved.BaseType in btAllJSBooleans then
       begin
       // boolean to integer -> value?1:0
       Result:=ConvertElement(Param,AContext);
@@ -5514,15 +5526,15 @@ begin
         end;
       end;
     end
-  else if to_bt in btAllBooleans then
+  else if to_bt in btAllJSBooleans then
     begin
-    if ParamResolved.BaseType in btAllBooleans then
+    if ParamResolved.BaseType in btAllJSBooleans then
       begin
       // boolean to boolean -> value
       Result:=ConvertElement(Param,AContext);
       exit;
       end
-    else if ParamResolved.BaseType in btAllInteger then
+    else if ParamResolved.BaseType in btAllJSInteger then
       begin
       // integer to boolean -> value!=0
       Result:=ConvertElement(Param,AContext);
@@ -5549,9 +5561,9 @@ begin
         end;
       end;
     end
-  else if to_bt in btAllFloats then
+  else if to_bt in btAllJSFloats then
     begin
-    if ParamResolved.BaseType in (btAllFloats+btAllInteger) then
+    if ParamResolved.BaseType in (btAllJSFloats+btAllJSInteger) then
       begin
       // double to double -> value
       Result:=ConvertElement(Param,AContext);
@@ -5572,9 +5584,9 @@ begin
         end;
       end;
     end
-  else if to_bt in btAllStrings then
+  else if to_bt in btAllJSStrings then
     begin
-    if ParamResolved.BaseType in btAllStringAndChars then
+    if ParamResolved.BaseType in btAllJSStringAndChars then
       begin
       // string or char to string -> value
       Result:=ConvertElement(Param,AContext);
@@ -6052,7 +6064,7 @@ begin
     RaiseInconsistency(20170325185847);
   Param:=El.Params[0];
   AContext.Resolver.ComputeElement(Param,ParamResolved,[]);
-  if ParamResolved.BaseType in btAllInteger then
+  if ParamResolved.BaseType in btAllJSInteger then
     begin
     // chr(integer) -> String.fromCharCode(integer)
     Result:=ConvertElement(Param,AContext);
@@ -6091,7 +6103,7 @@ begin
         // e.g. ord(something[index])
         SubParam:=SubParams.Value;
         AContext.Resolver.ComputeElement(SubParam,SubParamResolved,[]);
-        if SubParamResolved.BaseType in btAllStrings then
+        if SubParamResolved.BaseType in btAllJSStrings then
           begin
           // e.g. ord(aString[index]) -> aString.charCodeAt(index-1)
           SubParamJS:=ConvertElement(SubParam,AContext);
@@ -6313,7 +6325,7 @@ begin
             Result:=CreateLiteralBoolean(Param,HighJSBoolean);
             exit;
             end
-          else if RangeResolved.BaseType in btAllInteger then
+          else if RangeResolved.BaseType in btAllJSInteger then
             begin
             ComputeRange(RangeResolved,aMinValue,aMaxValue,Range);
             Result:=CreateLiteralNumber(Param,aMaxValue);
@@ -6490,12 +6502,12 @@ begin
   Bracket:=nil;
   try
     NeedStrLit:=false;
-    if ResolvedEl.BaseType in (btAllBooleans+btAllInteger) then
+    if ResolvedEl.BaseType in (btAllJSBooleans+btAllJSInteger) then
       begin
       NeedStrLit:=true;
       Add:=ConvertElement(El,AContext);
       end
-    else if ResolvedEl.BaseType in btAllFloats then
+    else if ResolvedEl.BaseType in btAllJSFloats then
       begin
       NeedStrLit:=true;
       Add:=ConvertElement(El,AContext);
@@ -6510,7 +6522,7 @@ begin
         Call:=nil;
         end;
       end
-    else if IsStrFunc and (ResolvedEl.BaseType in btAllStringAndChars) then
+    else if IsStrFunc and (ResolvedEl.BaseType in btAllJSStringAndChars) then
       Add:=ConvertElement(El,AContext)
     else if ResolvedEl.BaseType=btContext then
       begin
@@ -10009,13 +10021,13 @@ begin
       if T.CustomData is TResElDataBaseType then
         begin
         bt:=TResElDataBaseType(T.CustomData).BaseType;
-        if bt in btAllInteger then
+        if bt in btAllJSInteger then
           Lit.Value.AsNumber:=0
-        else if bt in btAllFloats then
+        else if bt in btAllJSFloats then
           Lit.Value.CustomValue:='0.0'
-        else if bt in btAllStringAndChars then
+        else if bt in btAllJSStringAndChars then
           Lit.Value.AsString:=''
-        else if bt in btAllBooleans then
+        else if bt in btAllJSBooleans then
           Lit.Value.AsBoolean:=false
         else if bt in [btNil,btPointer,btProc] then
           Lit.Value.IsNull:=true
@@ -10200,7 +10212,7 @@ begin
   if AContext.Resolver<>nil then
     begin
     AContext.Resolver.ComputeElement(Expr,ExprResolved,[]);
-    if ExprResolved.BaseType in btAllStringAndChars then
+    if ExprResolved.BaseType in btAllJSStringAndChars then
       begin
       // aChar -> aChar.charCodeAt()
       Call:=TJSCallExpression(CreateElement(TJSCallExpression,Expr));
