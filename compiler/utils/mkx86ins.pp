@@ -348,6 +348,8 @@ begin
            repeat
              readln(infile,inschanges);
            until eof(infile) or ((inschanges<>'') and (inschanges[1]<>';'));
+           inschanges[1]:='[';
+           inschanges[length(inschanges)]:=']';
            continue;
          end;
         { we must have an opcode }

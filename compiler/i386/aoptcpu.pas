@@ -181,37 +181,77 @@ unit aoptcpu;
                   RegReadByInstruction := true;
                   exit
                 end;
-            for opcount := 1 to maxinschanges do
-              case insprop[p.opcode].ch[opcount] of
-                CH_REAX..CH_REDI,CH_RWEAX..CH_MEDI:
-                  if getsupreg(reg) = tch2reg(insprop[p.opcode].ch[opcount]) then
-                    begin
-                      RegReadByInstruction := true;
-                      exit
-                    end;
-                CH_RWOP1,CH_ROP1,CH_MOP1:
-                  if reginop(reg,p.oper[0]^) then
-                    begin
-                      RegReadByInstruction := true;
-                      exit
-                    end;
-                Ch_RWOP2,Ch_ROP2,Ch_MOP2:
-                  if reginop(reg,p.oper[1]^) then
-                    begin
-                      RegReadByInstruction := true;
-                      exit
-                    end;
-                Ch_RWOP3,Ch_ROP3,Ch_MOP3:
-                  if reginop(reg,p.oper[2]^) then
-                    begin
-                      RegReadByInstruction := true;
-                      exit
-                    end;
-                Ch_RFlags,Ch_RWFlags:
-                  if reg=NR_DEFAULTFLAGS then
-                    begin
-                      RegReadByInstruction := true;
-                      exit
+            with insprop[p.opcode] do
+              begin
+                case getsupreg(reg) of
+                  RS_EAX:
+                    if [Ch_REAX,Ch_RWEAX,Ch_MEAX]*Ch<>[] then
+                      begin
+                        RegReadByInstruction := true;
+                        exit
+                      end;
+                  RS_ECX:
+                    if [Ch_RECX,Ch_RWECX,Ch_MECX]*Ch<>[] then
+                      begin
+                        RegReadByInstruction := true;
+                        exit
+                      end;
+                  RS_EDX:
+                    if [Ch_REDX,Ch_RWEDX,Ch_MEDX]*Ch<>[] then
+                      begin
+                        RegReadByInstruction := true;
+                        exit
+                      end;
+                  RS_EBX:
+                    if [Ch_REBX,Ch_RWEBX,Ch_MEBX]*Ch<>[] then
+                      begin
+                        RegReadByInstruction := true;
+                        exit
+                      end;
+                  RS_ESP:
+                    if [Ch_RESP,Ch_RWESP,Ch_MESP]*Ch<>[] then
+                      begin
+                        RegReadByInstruction := true;
+                        exit
+                      end;
+                  RS_EBP:
+                    if [Ch_REBP,Ch_RWEBP,Ch_MEBP]*Ch<>[] then
+                      begin
+                        RegReadByInstruction := true;
+                        exit
+                      end;
+                  RS_ESI:
+                    if [Ch_RESI,Ch_RWESI,Ch_MESI]*Ch<>[] then
+                      begin
+                        RegReadByInstruction := true;
+                        exit
+                      end;
+                  RS_EDI:
+                    if [Ch_REDI,Ch_RWEDI,Ch_MEDI]*Ch<>[] then
+                      begin
+                        RegReadByInstruction := true;
+                        exit
+                      end;
+                end;
+                if ([CH_RWOP1,CH_ROP1,CH_MOP1]*Ch<>[]) and reginop(reg,p.oper[0]^) then
+                  begin
+                    RegReadByInstruction := true;
+                    exit
+                  end;
+                if ([Ch_RWOP2,Ch_ROP2,Ch_MOP2]*Ch<>[]) and reginop(reg,p.oper[1]^) then
+                  begin
+                    RegReadByInstruction := true;
+                    exit
+                  end;
+                if ([Ch_RWOP3,Ch_ROP3,Ch_MOP3]*Ch<>[]) and reginop(reg,p.oper[2]^) then
+                  begin
+                    RegReadByInstruction := true;
+                    exit
+                  end;
+                if ([Ch_RFlags,Ch_RWFlags]*Ch<>[]) and (reg=NR_DEFAULTFLAGS) then
+                  begin
+                    RegReadByInstruction := true;
+                    exit
                   end;
               end;
           end;
@@ -240,11 +280,8 @@ function InstrReadsFlags(p: tai): boolean;
     InstrReadsFlags := true;
     case p.typ of
       ait_instruction:
-        begin
-          for l := 1 to maxinschanges do
-            if InsProp[taicpu(p).opcode].Ch[l] in [Ch_RFlags,Ch_RWFlags,Ch_All] then
-              exit;
-        end;
+        if InsProp[taicpu(p).opcode].Ch*[Ch_RFlags,Ch_RWFlags,Ch_All]<>[] then
+          exit;
       ait_label:
         exit;
     end;

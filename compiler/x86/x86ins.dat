@@ -12,25 +12,25 @@
 
 
 [NONE]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  void                            none
 
 [AAA]
-(Ch_MEAX, Ch_RWFlags, Ch_None)
+(Ch_MEAX, Ch_RWFlags)
 void                  \1\x37                          8086,NOX86_64
 
 [AAD,aadX]
-(Ch_MEAX, Ch_WFlags, Ch_None)
+(Ch_MEAX, Ch_WFlags)
 void                  \2\xD5\x0A                      8086,NOX86_64
 imm                   \1\xD5\24                       8086,SB,NOX86_64
 
 [AAM,aamX]
-(Ch_MEAX, Ch_WFlags, Ch_None)
+(Ch_MEAX, Ch_WFlags)
 void                  \2\xD4\x0A                      8086,NOX86_64
 imm                   \1\xD4\24                       8086,SB,NOX86_64
 
 [AAS]
-(Ch_MEAX, Ch_RWFlags, Ch_None)
+(Ch_MEAX, Ch_RWFlags)
 void                  \1\x3F                          8086,NOX86_64
 
 [ADC,adcX]
@@ -82,12 +82,12 @@ reg_al,imm            \1\x24\21                       8086,SB
 rm8,imm               \1\x80\204\21                   8086,SB
 
 [ARPL,arplX]
-(Ch_WFlags, Ch_None, Ch_None)
+(Ch_WFlags)
 reg16,reg16           \1\x63\101                      286,PROT,NOX86_64
 mem,reg16             \1\x63\101                      286,PROT,SM,NOX86_64
 
 [BOUND,boundX]
-(Ch_Rop1, Ch_None, Ch_None)
+(Ch_Rop1)
 reg16|32,mem          \320\1\x62\110                  186,NOX86_64
 
 [BSF,bsfX]
@@ -99,7 +99,7 @@ reg16|32|64,regmem    \320\2\x0F\xBC\110              386,SM
 reg16|32|64,regmem    \320\2\x0F\xBD\110              386,SM
 
 [BSWAP,bswapX]
-(Ch_MOp1, Ch_None, Ch_None)
+(Ch_MOp1)
 reg32|64              \320\1\x0F\10\xC8               486
 
 [BT,btX]
@@ -124,7 +124,7 @@ rm16|32|64,imm        \320\2\x0F\xBA\205\25           386,SB
 
 [CALL,call]
 ; don't know value of any register
-(Ch_ROp1, Ch_All, Ch_None)
+(Ch_ROp1, Ch_All)
 ; Compiler emits CALL/JMP with opsize=S_NO which matches any size,
 ; and will match the first entry in sequence.
 ; Therefore rm16 must be placed after rm32/rm64
@@ -146,31 +146,31 @@ imm32:imm             \325\1\x9A\41\30                386,NOX86_64
 imm:imm32             \325\1\x9A\41\30                386,NOX86_64
 
 [CBW,cbtw]
-(Ch_MEAX, Ch_None, Ch_None)
+(Ch_MEAX)
 void                  \324\1\x98                      8086
 
 [CDQ,cltd]
-(Ch_MEAX, Ch_WEDX, Ch_None)
+(Ch_MEAX, Ch_WEDX)
 void                  \325\1\x99                      386
 
 [CLC]
-(Ch_WFlags, Ch_None, Ch_None)
+(Ch_WFlags)
 void                  \1\xF8                          8086
 
 [CLD]
-(Ch_CDirFlag, Ch_None, Ch_None)
+(Ch_CDirFlag)
 void                  \1\xFC                          8086
 
 [CLI]
-(Ch_WFlags, Ch_None, Ch_None)
+(Ch_WFlags)
 void                  \1\xFA                          8086
 
 [CLTS]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \2\x0F\x06                      286,PRIV
 
 [CMC]
-(Ch_RWFlags, Ch_None, Ch_None)
+(Ch_RWFlags)
 void                  \1\xF5                          8086
 
 [CMP,cmpX]
@@ -206,41 +206,41 @@ xmmreg,xmmrm,imm      \334\2\x0F\xC2\110\26           WILLAMETTE,SSE2,SM2,SB,AR2
 void                  \332\324\1\xA7                  8086
 
 [CMPXCHG,cmpxchgX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 regmem,reg16|32|64    \320\2\x0F\xB1\101              PENT,SM
 rm8,reg8              \2\x0F\xB0\101                  PENT
 
 [CMPXCHG486,cmpxchg486X]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 regmem,reg16|32|64    \320\2\x0F\xA7\101              486,SM
 rm8,reg8              \2\x0F\xA6\101                  486,UNDOC
 
 [CMPXCHG8B,cmpxchg8b]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\xC7\201                  PENT
 
 [CPUID]
-(Ch_All, Ch_None, Ch_none)
+(Ch_All)
 void                  \2\x0F\xA2                      PENT
 
 [CWD]
-(Ch_MEAX, Ch_WEDX, Ch_None)
+(Ch_MEAX, Ch_WEDX)
 void                  \324\1\x99                      8086
 
 [CWDE,cwtl]
-(Ch_MEAX, Ch_None, Ch_None)
+(Ch_MEAX)
 void                  \325\1\x98                      386
 
 [DAA]
-(Ch_MEAX, Ch_None, Ch_None)
+(Ch_MEAX)
 void                  \1\x27                          8086,NOX86_64
 
 [DAS]
-(Ch_MEAX, Ch_None, Ch_None)
+(Ch_MEAX)
 void                  \1\x2F                          8086,NOX86_64
 
 [DEC,decX]
-(Ch_Mop1, Ch_WFlags, Ch_None)
+(Ch_Mop1, Ch_WFlags)
 reg16|32              \320\10\x48                     8086,NOX86_64
 rm16|32|64            \320\1\xFF\201                  8086
 rm8                   \1\xFE\201                      8086
@@ -251,23 +251,23 @@ rm16|32|64            \320\1\xF7\206                  8086
 rm8                   \1\xF6\206                      8086
 
 [EMMS]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\x0F\x77                      PENT,MMX
 
 [ENTER,enterX]
-(Ch_RWESP, Ch_None, Ch_None)
+(Ch_RWESP)
 imm,imm               \1\xC8\30\25                    186
 
 [F2XM1]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xF0                      8086,FPU
 
 [FABS]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xE1                      8086,FPU
 
 [FADD,faddF]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 mem32                 \1\xD8\200                      8086,FPU
 mem64                 \1\xDC\200                      8086,FPU
 void                  \2\xDE\xC1                      8086,FPU
@@ -277,79 +277,79 @@ fpureg                \1\xD8\10\xC0                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xC0                   8086,FPU
 
 [FADDP,faddpF]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 void                  \2\xDE\xC1                      8086,FPU
 fpureg                \1\xDE\10\xC0                   8086,FPU
 fpureg,fpu0           \1\xDE\10\xC0                   8086,FPU
 
 [FBLD,fbld]
-(Ch_Rop1, Ch_FPU, Ch_None)
+(Ch_Rop1, Ch_FPU)
 mem80                 \1\xDF\204                      8086,FPU
 mem                   \1\xDF\204                      8086,FPU
 
 [FBSTP,fbstp]
-(Ch_Wop1, Ch_FPU, Ch_None)
+(Ch_Wop1, Ch_FPU)
 mem80                 \1\xDF\206                      8086,FPU
 mem                   \1\xDF\206                      8086,FPU
 
 [FCHS]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xE0                      8086,FPU
 
 [FCLEX]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \3\x9B\xDB\xE2                  8086,FPU
 
 [FCMOVB,fcmovbF]
-(Ch_FPU, Ch_RFLAGS, Ch_None)
+(Ch_FPU, Ch_RFLAGS)
 void                  \2\xDA\xC1                      P6,FPU
 fpureg                \1\xDA\10\xC0                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xC0                   P6,FPU
 
 [FCMOVBE,fcmovbeF]
-(Ch_FPU, Ch_RFLAGS, Ch_None)
+(Ch_FPU, Ch_RFLAGS)
 void                  \2\xDA\xD1                      P6,FPU
 fpureg                \1\xDA\10\xD0                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xD0                   P6,FPU
 
 [FCMOVE,fcmoveF]
-(Ch_FPU, Ch_RFLAGS, Ch_None)
+(Ch_FPU, Ch_RFLAGS)
 void                  \2\xDA\xC9                      P6,FPU
 fpureg                \1\xDA\10\xC8                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xC8                   P6,FPU
 
 [FCMOVNB,fcmovnbF]
-(Ch_FPU, Ch_RFLAGS, Ch_None)
+(Ch_FPU, Ch_RFLAGS)
 void                  \2\xDB\xC1                      P6,FPU
 fpureg                \1\xDB\10\xC0                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xC0                   P6,FPU
 
 [FCMOVNBE,fcmovnbeF]
-(Ch_FPU, Ch_RFLAGS, Ch_None)
+(Ch_FPU, Ch_RFLAGS)
 void                  \2\xDB\xD1                      P6,FPU
 fpureg                \1\xDB\10\xD0                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xD0                   P6,FPU
 
 [FCMOVNE,fcmovneF]
-(Ch_FPU, Ch_RFLAGS, Ch_None)
+(Ch_FPU, Ch_RFLAGS)
 void                  \2\xDB\xC9                      P6,FPU
 fpureg                \1\xDB\10\xC8                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xC8                   P6,FPU
 
 [FCMOVNU,fcmovnuF]
-(Ch_FPU, Ch_RFLAGS, Ch_None)
+(Ch_FPU, Ch_RFLAGS)
 void                  \2\xDB\xD9                      P6,FPU
 fpureg                \1\xDB\10\xD8                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xD8                   P6,FPU
 
 [FCMOVU,fcmovuF]
-(Ch_FPU, Ch_RFLAGS, Ch_None)
+(Ch_FPU, Ch_RFLAGS)
 void                  \2\xDA\xD9                      P6,FPU
 fpureg                \1\xDA\10\xD8                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xD8                   P6,FPU
 
 [FCOM,fcomF]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 mem32                 \1\xD8\202                      8086,FPU
 mem64                 \1\xDC\202                      8086,FPU
 void                  \2\xD8\xD1                      8086,FPU
@@ -357,19 +357,19 @@ fpureg                \1\xD8\10\xD0                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xD0                   8086,FPU
 
 [FCOMI,fcomiF]
-(Ch_WFLAGS, Ch_None, Ch_None)
+(Ch_WFLAGS)
 void                  \2\xDB\xF1                      P6,FPU
 fpureg                \1\xDB\10\xF0                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xF0                   P6,FPU
 
 [FCOMIP,fcomipF]
-(Ch_FPU, Ch_WFLAGS, Ch_None)
+(Ch_FPU, Ch_WFLAGS)
 void                  \2\xDF\xF1                      P6,FPU
 fpureg                \1\xDF\10\xF0                   P6,FPU
 fpu0,fpureg           \1\xDF\11\xF0                   P6,FPU
 
 [FCOMP,fcompF]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 mem32                 \1\xD8\203                      8086,FPU
 mem64                 \1\xDC\203                      8086,FPU
 void                  \2\xD8\xD9                      8086,FPU
@@ -377,23 +377,23 @@ fpureg                \1\xD8\10\xD8                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xD8                   8086,FPU
 
 [FCOMPP]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xDE\xD9                      8086,FPU
 
 [FCOS]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xFF                      386,FPU
 
 [FDECSTP]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xF6                      8086,FPU
 
 [FDISI]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \3\x9B\xDB\xE1                  8086,FPU
 
 [FDIV,fdivF]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 mem32                 \1\xD8\206                      8086,FPU
 mem64                 \1\xDC\206                      8086,FPU
 void                  \2\xDC\xF1                      8086,FPU
@@ -403,13 +403,13 @@ fpureg                \1\xD8\10\xF0                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xF0                   8086,FPU
 
 [FDIVP,fdivpF]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 void                  \2\xDE\xF1                      8086,FPU
 fpureg,fpu0           \1\xDE\10\xF0                   8086,FPU
 fpureg                \1\xDE\10\xF0                   8086,FPU
 
 [FDIVR,fdivrF]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 mem32                 \1\xD8\207                      8086,FPU
 mem64                 \1\xDC\207                      8086,FPU
 void                  \2\xDC\xF9                      8086,FPU
@@ -419,139 +419,139 @@ fpureg                \1\xD8\10\xF8                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xF8                   8086,FPU
 
 [FDIVRP,fdivrpF]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 void                  \2\xDE\xF9                      8086,FPU
 fpureg                \1\xDE\10\xF8                   8086,FPU
 fpureg,fpu0           \1\xDE\10\xF8                   8086,FPU
 
 [FEMMS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x0E                      PENT,3DNOW
 
 [FENI]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \3\x9B\xDB\xE0                  8086,FPU
 
 [FFREE]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 fpureg                \1\xDD\10\xC0                   8086,FPU
 
 [FIADD,fiaddR]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 mem16                 \1\xDE\200                      8086,FPU
 mem32                 \1\xDA\200                      8086,FPU
 
 [FICOM,ficomR]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 mem16                 \1\xDE\202                      8086,FPU
 mem32                 \1\xDA\202                      8086,FPU
 
 [FICOMP,ficompR]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 mem16                 \1\xDE\203                      8086,FPU
 mem32                 \1\xDA\203                      8086,FPU
 
 [FIDIV,fidivR]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 mem16                 \1\xDE\206                      8086,FPU
 mem32                 \1\xDA\206                      8086,FPU
 
 [FIDIVR,fidivrR]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 mem16                 \1\xDE\207                      8086,FPU
 mem32                 \1\xDA\207                      8086,FPU
 
 [FILD,fildR]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 mem32                 \1\xDB\200                      8086,FPU
 mem16                 \1\xDF\200                      8086,FPU
 mem64                 \1\xDF\205                      8086,FPU
 
 [FIMUL,fimulR]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 mem16                 \1\xDE\201                      8086,FPU
 mem32                 \1\xDA\201                      8086,FPU
 
 [FINCSTP]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xF7                      8086,FPU
 
 [FINIT]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \3\x9B\xDB\xE3                  8086,FPU
 
 [FIST,fistR]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem32                 \1\xDB\202                      8086,FPU
 mem16                 \324\1\xDF\202                  8086,FPU
 
 [FISTP,fistpR]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem32                 \1\xDB\203                      8086,FPU
 mem16                 \324\1\xDF\203                  8086,FPU
 mem64                 \1\xDF\207                      8086,FPU
 
 [FISTTP,fisttpR]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem32                 \1\xDB\201                      PRESCOTT,FPU
 mem16                 \1\xDF\201                      PRESCOTT,FPU
 mem64                 \1\xDD\201                      PRESCOTT,FPU
 
 [FISUB,fisubR]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 mem16                 \1\xDE\204                      8086,FPU
 mem32                 \1\xDA\204                      8086,FPU
 
 [FISUBR,fisubrR]
-(Ch_FPU, Ch_ROp1, Ch_None)
+(Ch_FPU, Ch_ROp1)
 mem16                 \1\xDE\205                      8086,FPU
 mem32                 \1\xDA\205                      8086,FPU
 
 [FLD,fldF]
-(Ch_Rop1, Ch_FPU, Ch_None)
+(Ch_Rop1, Ch_FPU)
 mem32                 \1\xD9\200                      8086,FPU
 mem64                 \1\xDD\200                      8086,FPU
 mem80                 \1\xDB\205                      8086,FPU
 fpureg                \1\xD9\10\xC0                   8086,FPU
 
 [FLD1]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xE8                      8086,FPU
 
 [FLDCW,fldcwX]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 mem                   \1\xD9\205                      8086,FPU,SW
 
 [FLDENV,fldenv]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 mem                   \1\xD9\204                      8086,FPU
 
 [FLDL2E]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xEA                      8086,FPU
 
 [FLDL2T]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xE9                      8086,FPU
 
 [FLDLG2]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xEC                      8086,FPU
 
 [FLDLN2]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xED                      8086,FPU
 
 [FLDPI]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xEB                      8086,FPU
 
 [FLDZ]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xEE                      8086,FPU
 
 [FMUL,fmulF]
-(Ch_ROp1, Ch_FPU, Ch_None)
+(Ch_ROp1, Ch_FPU)
 mem32                 \1\xD8\201                      8086,FPU
 mem64                 \1\xDC\201                      8086,FPU
 void                  \2\xDC\xC9                      8086,FPU
@@ -561,125 +561,125 @@ fpureg                \1\xD8\10\xC8                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xC8                   8086,FPU
 
 [FMULP,fmulpF]
-(Ch_ROp1, Ch_FPU, Ch_None)
+(Ch_ROp1, Ch_FPU)
 void                  \2\xDE\xC9                      8086,FPU
 fpureg                \1\xDE\10\xC8                   8086,FPU
 fpureg,fpu0           \1\xDE\10\xC8                   8086,FPU
 
 [FNCLEX]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xDB\xE2                      8086,FPU
 
 [FNDISI]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xDB\xE1                      8086,FPU
 
 [FNENI]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xDB\xE0                      8086,FPU
 
 [FNINIT]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xDB\xE3                      8086,FPU
 
 [FNOP]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xD0                      8086,FPU
 
 [FNSAVE,fnsave]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 mem                   \1\xDD\206                      8086,FPU
 
 [FNSTCW,fnstcwX]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem                   \1\xD9\207                      8086,FPU,SW
 
 [FNSTENV,fnstenv]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem                   \1\xD9\206                      8086,FPU
 
 [FNSTSW,fnstswX]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem                   \1\xDD\207                      8086,FPU,SW
 reg_ax                \2\xDF\xE0                      286,FPU
 
 [FPATAN]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xF3                      8086,FPU
 
 [FPREM]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xF8                      8086,FPU
 
 [FPREM1]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xF5                      386,FPU
 
 [FPTAN]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xF2                      8086,FPU
 
 [FRNDINT]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xFC                      8086,FPU
 
 [FRSTOR,frstor]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 mem                   \1\xDD\204                      8086,FPU
 
 [FSAVE,fsave]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem                   \2\x9B\xDD\206                  8086,FPU
 
 [FSCALE]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xFD                      8086,FPU
 
 [FSETPM]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xDB\xE4                      286,FPU
 
 [FSIN]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xFE                      386,FPU
 
 [FSINCOS]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xFB                      386,FPU
 
 [FSQRT]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xFA                      8086,FPU
 
 [FST,fstF]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem32                 \1\xD9\202                      8086,FPU
 mem64                 \1\xDD\202                      8086,FPU
 fpureg                \1\xDD\10\xD0                   8086,FPU
 
 [FSTCW,fstcwX]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem                   \2\x9B\xD9\207                  8086,FPU,SW
 
 [FSTENV,fstenv]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem                   \2\x9B\xD9\206                  8086,FPU
 
 [FSTP,fstpF]
-(Ch_Wop1, Ch_FPU, Ch_None)
+(Ch_Wop1, Ch_FPU)
 mem32                 \1\xD9\203                      8086,FPU
 mem64                 \1\xDD\203                      8086,FPU
 mem80                 \1\xDB\207                      8086,FPU
 fpureg                \1\xDD\10\xD8                   8086,FPU
 
 [FSTSW,fstswX]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem                   \2\x9B\xDD\207                  8086,FPU,SW
 void                  \3\x9B\xDF\xE0                  286,FPU
 reg_ax                \3\x9B\xDF\xE0                  286,FPU
 
 [FSUB,fsubF]
-(Ch_ROp1, Ch_FPU, Ch_None)
+(Ch_ROp1, Ch_FPU)
 mem32                 \1\xD8\204                      8086,FPU
 mem64                 \1\xDC\204                      8086,FPU
 void                  \2\xDC\xE1                      8086,FPU
@@ -689,13 +689,13 @@ fpureg                \1\xD8\10\xE0                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xE0                   8086,FPU
 
 [FSUBP,fsubpF]
-(Ch_ROp1, Ch_FPU, Ch_None)
+(Ch_ROp1, Ch_FPU)
 void                  \2\xDE\xE1                      8086,FPU
 fpureg                \1\xDE\10\xE0                   8086,FPU
 fpureg,fpu0           \1\xDE\10\xE0                   8086,FPU
 
 [FSUBR,fsubrF]
-(Ch_ROp1, Ch_FPU, Ch_None)
+(Ch_ROp1, Ch_FPU)
 mem32                 \1\xD8\205                      8086,FPU
 mem64                 \1\xDC\205                      8086,FPU
 void                  \2\xDC\xE9                      8086,FPU
@@ -705,80 +705,80 @@ fpureg                \1\xD8\10\xE8                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xE8                   8086,FPU
 
 [FSUBRP,fsubrpF]
-(Ch_ROp1, Ch_FPU, Ch_None)
+(Ch_ROp1, Ch_FPU)
 void                  \2\xDE\xE9                      8086,FPU
 fpureg                \1\xDE\10\xE8                   8086,FPU
 fpureg,fpu0           \1\xDE\10\xE8                   8086,FPU
 
 [FTST]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xE4                      8086,FPU
 
 [FUCOM,fucomF]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \2\xDD\xE1                      386,FPU
 fpureg                \1\xDD\10\xE0                   386,FPU
 fpu0,fpureg           \1\xDD\11\xE0                   386,FPU
 
 [FUCOMI,fucomiF]
-(Ch_WFLAGS, Ch_None, Ch_None)
+(Ch_WFLAGS)
 void                  \2\xDB\xE9                      P6,FPU
 fpureg                \1\xDB\10\xE8                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xE8                   P6,FPU
 
 [FUCOMIP,fucomipF]
-(Ch_FPU, Ch_WFLAGS, Ch_None)
+(Ch_FPU, Ch_WFLAGS)
 void                  \2\xDF\xE9                      P6,FPU
 fpureg                \1\xDF\10\xE8                   P6,FPU
 fpu0,fpureg           \1\xDF\11\xE8                   P6,FPU
 
 [FUCOMP,fucompF]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xDD\xE9                      386,FPU
 fpureg                \1\xDD\10\xE8                   386,FPU
 fpu0,fpureg           \1\xDD\11\xE8                   386,FPU
 
 [FUCOMPP]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xDA\xE9                      386,FPU
 
 [FWAIT]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \1\x9B                          8086,FPU
 
 [FXAM]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xE5                      8086,FPU
 
 [FXCH,fxchF]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xC9                      8086,FPU
 fpureg                \1\xD9\10\xC8                   8086,FPU
 fpureg,fpu0           \1\xD9\10\xC8                   8086,FPU
 fpu0,fpureg           \1\xD9\11\xC8                   8086,FPU
 
 [FXTRACT]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xF4                      8086,FPU
 
 [FYL2X]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xF1                      8086,FPU
 
 [FYL2XP1]
-(Ch_FPU, Ch_None, Ch_None)
+(Ch_FPU)
 void                  \2\xD9\xF9                      8086,FPU
 
 [HLT]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\xF4                          8086,PRIV
 
 [IBTS,ibtsX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 regmem,reg16|32|64    \320\2\x0F\xA7\101              386,SM,UNDOC,ND
 
 [ICEBP]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \1\xF1                          386,ND
 
 [IDIV,idivX]
@@ -803,14 +803,14 @@ rm8                   \1\xF6\205                      8086
 
 ; 64-bit variant does not exist
 [IN,inX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg_al,imm            \1\xE4\25                       8086,SB
 reg_ax|32,imm         \320\1\xE5\25                   8086,SB
 reg_al,reg_dx         \1\xEC                          8086
 reg_ax|32,reg_dx      \320\1\xED                      8086
 
 [INC,incX]
-(Ch_Mop1, Ch_WFlags, Ch_None)
+(Ch_Mop1, Ch_WFlags)
 reg16|32              \320\10\x40                     8086,NOX86_64
 rm16|32|64            \320\1\xFF\200                  8086
 rm8                   \1\xFE\200                      8086
@@ -828,67 +828,67 @@ void                  \325\1\x6D                      386
 void                  \324\1\x6D                      186
 
 [INT]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 imm                   \1\xCD\24                       8086,SB
 
 [INT01]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \1\xF1                          386,ND
 
 [INT1]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \1\xF1                          386
 
 [INT03]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\xCC                          8086,ND
 
 [INT3]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\xCC                          8086
 
 [INTO]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \1\xCE                          8086,NOX86_64
 
 [INVD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x08                      486,PRIV
 
 [INVLPG,invlpgX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\x01\207                  486,PRIV
 
 [IRET]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \327\1\xCF                      8086
 
 [IRETD,iret]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \325\1\xCF                      386
 
 [IRETW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \324\1\xCF                      8086
 
 [IRETQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \326\1\xCF                      X86_64
 
 [JCXZ]
-(Ch_RECX, Ch_None, Ch_None)
+(Ch_RECX)
 imm                   \310\1\xE3\50                   8086,NOX86_64
 
 [JECXZ]
-(Ch_RECX, Ch_None, Ch_None)
+(Ch_RECX)
 imm                   \311\1\xE3\50                   386
 
 [JRCXZ]
-(Ch_RECX, Ch_None, Ch_None)
+(Ch_RECX)
 imm                   \1\xE3\50                       X86_64
 
 [JMP,jmpX]
-(Ch_ROp1, Ch_None, Ch_None)
+(Ch_ROp1)
 ; rm16 should be after rm32/rm64, see comments for CALL.
 ; However, on i8086, rm16 must be first, so it's repeated in the beginning
 ; with a 16BITONLY flag
@@ -909,77 +909,77 @@ imm:imm32             \325\1\xEA\41\30                386,NOX86_64
 
 ; SAHF/LAHF are valid in x86_64 only if CPUID.80000001h:ECX.0=1
 [LAHF]
-(Ch_WEAX, Ch_RFlags, Ch_None)
+(Ch_WEAX, Ch_RFlags)
 void                  \1\x9F                          8086
 
 [LAR,larX]
-(Ch_Wop2, Ch_None, Ch_None)
+(Ch_Wop2)
 reg16|32|64,regmem    \320\2\x0F\x02\110              286,PROT,SM
 
 [LCALL,lcall]
 ; don't know value of any register
 ; Far call, AT&T only (there are no near/far modifiers in AT&T syntax, so separate mnemonic is needed)
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem32                  \325\1\xFF\203                  386,NOX86_64
 mem64                  \335\1\xFF\203                  X86_64
 mem16                  \324\1\xFF\203                  8086
 
 [LDS,ldsX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg16|32,mem          \320\1\xC5\110                  8086,NOX86_64
 
 [LEA,leaX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg16|32|64,mem       \301\320\1\x8D\110              8086
 
 [LEAVE]
-(Ch_RWESP, Ch_WEBP, Ch_None)
+(Ch_RWESP, Ch_WEBP)
 void                  \1\xC9                          186
 
 [LES,lesX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg16|32,mem          \320\1\xC4\110                  8086,NOX86_64
 
 [LFS,lfsX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg16|32,mem          \320\2\x0F\xB4\110              386
 
 [LGDT,lgdtX]
-(Ch_None, Ch_None, Ch_None)
+()
 mem                   \2\x0F\x01\202                  286,PRIV
 
 [LGS,lgsX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg16|32,mem          \320\2\x0F\xB5\110              386
 
 [LIDT,lidtX]
-(Ch_None, Ch_None, Ch_None)
+()
 mem                   \2\x0F\x01\203                  286,PRIV
 
 [LJMP,ljmp]
-(Ch_ROp1, Ch_None, Ch_None)
+(Ch_ROp1)
 mem32                 \325\1\xFF\205                  386,NOX86_64
 mem64                 \335\1\xFF\205                  X86_64
 mem16                 \324\1\xFF\205                  8086
 
 [LLDT,lldtX]
-(Ch_None, Ch_None, Ch_None)
+()
 rm16                  \2\x0F\x00\202                  286,PROT,PRIV
 
 [LMSW,lmswX]
-(Ch_None, Ch_None, Ch_None)
+()
 rm16                  \2\x0F\x01\206                  286,PRIV
 
 [LOADALL]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x07                      386,UNDOC
 
 [LOADALL286]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x05                      286,UNDOC
 
 [LOCK]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\xF0                          8086,PRE
 
 [LODSB]
@@ -995,54 +995,54 @@ void                  \325\1\xAD                      386
 void                  \324\1\xAD                      8086
 
 [LOOP]
-(Ch_RWECX, Ch_None, Ch_None)
+(Ch_RWECX)
 imm                   \312\1\xE2\50                   8086
 imm,reg_cx            \310\1\xE2\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE2\50                   386
 
 [LOOPE]
-(Ch_RWECX, Ch_RFlags, Ch_None)
+(Ch_RWECX, Ch_RFlags)
 imm                   \312\1\xE1\50                   8086
 imm,reg_cx            \310\1\xE1\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE1\50                   386
 
 [LOOPNE]
-(Ch_RWECX, Ch_RFlags, Ch_None)
+(Ch_RWECX, Ch_RFlags)
 imm                   \312\1\xE0\50                   8086
 imm,reg_cx            \310\1\xE0\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE0\50                   386
 
 [LOOPNZ]
-(Ch_RWECX, Ch_RFlags, Ch_None)
+(Ch_RWECX, Ch_RFlags)
 imm                   \312\1\xE0\50                   8086
 imm,reg_cx            \310\1\xE0\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE0\50                   386
 
 [LOOPZ]
-(Ch_RWECX, Ch_RFlags, Ch_None)
+(Ch_RWECX, Ch_RFlags)
 imm                   \312\1\xE1\50                   8086
 imm,reg_cx            \310\1\xE1\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE1\50                   386
 
 [LSL,lslX]
-(Ch_Wop2, Ch_WFlags, Ch_None)
+(Ch_Wop2, Ch_WFlags)
 reg16|32|64,regmem    \320\2\x0F\x03\110              286,PROT,SM
 
 [LSS,lssX]
-(Ch_Wop2, Ch_ROP1, Ch_None)
+(Ch_Wop2, Ch_ROP1)
 reg16|32|64,mem       \320\2\x0F\xB2\110              386
 
 [LTR,ltrX]
-(Ch_None, Ch_None, Ch_None)
+()
 rm16                  \2\x0F\x00\203                  286,PROT,PRIV
 
 [MONITOR]
-(Ch_None, Ch_None, Ch_None)
+()
 void		      \3\x0F\x01\xC8		      PRESCOTT
 reg_eax,reg_ecx,reg_edx      \3\x0F\x01\xC8           PRESCOTT,ND
 
 [MOV,movX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 mem_offs,reg_ax       \324\1\xA3\44                   8086,SM
 mem_offs,reg_eax      \325\1\xA3\44                   386,SM
 mem_offs,reg_rax      \326\1\xA3\44                   X86_64,SM
@@ -1086,14 +1086,14 @@ reg_dreg,reg64        \2\x0F\x23\110                  386,PRIV,X86_64
 reg_treg,reg64        \2\x0F\x26\110                  386,PRIV,X86_64
 
 [MOVD,movd]
-(Ch_Rop1, Ch_Wop2, Ch_None)
+(Ch_Rop1, Ch_Wop2)
 mmxreg,rm32           \2\x0F\x6E\110                  PENT,MMX,SD
 rm32,mmxreg           \2\x0F\x7E\101                  PENT,MMX,SD
 xmmreg,rm32           \361\2\x0F\x6E\110              WILLAMETTE,SSE2
 rm32,xmmreg           \361\2\x0F\x7E\101              WILLAMETTE,SSE2
 
 [MOVQ,movq]
-(Ch_Rop1, Ch_Wop2, Ch_None)
+(Ch_Rop1, Ch_Wop2)
 mmxreg,mmxrm          \2\x0F\x6F\110                  PENT,MMX,SM
 mmxrm,mmxreg          \2\x0F\x7F\101                  PENT,MMX,SM
 mmxreg,rm64           \326\2\x0F\x6E\110              X86_64,MMX
@@ -1104,31 +1104,31 @@ xmmreg,reg64          \361\326\2\x0F\x6E\110          WILLAMETTE,SSE2,X86_64
 reg64,xmmreg          \361\326\2\x0F\x7E\101          WILLAMETTE,SSE2,X86_64
 
 [MOVSB]
-(Ch_All, Ch_RDirFlag, Ch_None)
+(Ch_All, Ch_RDirFlag)
 void                  \1\xA4                          8086
 
 [MOVSD,movsl]
 ; Ch_All and Ch_RDirFlag aren't correct for the sse move, but how can it be solved? (FK)
-(Ch_All, Ch_RDirFlag, Ch_None)
+(Ch_All, Ch_RDirFlag)
 void                  \325\1\xA5                      386
 xmmreg,xmmrm          \334\2\x0F\x10\110              WILLAMETTE,SSE2
 xmmrm,xmmreg          \334\2\x0F\x11\101              WILLAMETTE,SSE2
 
 [MOVSQ]
-(Ch_All, Ch_RDirFlag, Ch_None)
+(Ch_All, Ch_RDirFlag)
 void                  \326\1\xA5                      X86_64
 
 [MOVSW]
-(Ch_All, Ch_RDirFlag, Ch_None)
+(Ch_All, Ch_RDirFlag)
 void                  \324\1\xA5                      8086
 
 [MOVSX,movsY]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg32|64,rm16         \320\2\x0F\xBF\110              386
 reg16|32|64,rm8       \320\2\x0F\xBE\110              386
 
 [MOVZX,movzY]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg32|64,rm16         \320\2\x0F\xB7\110              386
 reg16|32|64,rm8       \320\2\x0F\xB6\110              386
 
@@ -1138,22 +1138,22 @@ rm16|32|64            \320\1\xF7\204                  8086
 rm8                   \1\xF6\204                      8086
 
 [MWAIT]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \3\x0F\x01\xC9                  PRESCOTT
 reg_eax,reg_ecx       \3\x0F\x01\xC9                  PRESCOTT,ND
 
 
 [NEG,negX]
-(Ch_Mop1, Ch_None, Ch_None)
+(Ch_Mop1)
 rm16|32|64            \320\1\xF7\203                  8086
 rm8                   \1\xF6\203                      8086
 
 [NOP]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\x90                          8086
 
 [NOT,notX]
-(Ch_Mop1, Ch_None, Ch_None)
+(Ch_Mop1)
 rm16|32|64            \320\1\xF7\202                  8086
 rm8                   \1\xF6\202                      8086
 
@@ -1174,7 +1174,7 @@ reg_al,imm            \1\x0C\21                       8086,SB
 rm8,imm               \1\x80\201\21                   8086,SB
 
 [OUT,outX]
-(Ch_Rop1, Ch_Rop2, Ch_None)
+(Ch_Rop1, Ch_Rop2)
 imm,reg_al            \1\xE6\24                       8086,SB
 imm,reg_ax            \324\1\xE7\24                   8086,SB
 imm,reg_eax           \325\1\xE7\24                   386,SB
@@ -1183,244 +1183,244 @@ reg_dx,reg_ax         \324\1\xEF                      8086
 reg_dx,reg_eax        \325\1\xEF                      386
 
 [OUTSB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \1\x6E                          186
 
 [OUTSD,outsl]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \325\1\x6F                      386
 
 [OUTSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \324\1\x6F                      186
 
 [PACKSSDW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x6B\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x6B\110              WILLAMETTE,SSE2,SM
 
 [PACKSSWB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x63\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x63\110              WILLAMETTE,SSE2,SM
 
 [PACKUSWB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x67\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x67\110              WILLAMETTE,SSE2,SM
 
 [PADDB]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xFC\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xFC\110              WILLAMETTE,SSE2,SM
 
 [PADDD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xFE\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xFE\110              WILLAMETTE,SSE2,SM
 
 [PADDSB]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xEC\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xEC\110              WILLAMETTE,SSE2,SM
 
 [PADDSIW]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x51\110                  PENT,MMX,SM,CYRIX
 
 [PADDSW]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xED\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xED\110              WILLAMETTE,SSE2,SM
 
 [PADDUSB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xDC\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xDC\110              WILLAMETTE,SSE2,SM
 
 [PADDUSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xDD\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xDD\110              WILLAMETTE,SSE2,SM
 
 [PADDW]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xFD\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xFD\110              WILLAMETTE,SSE2,SM
 
 [PAND]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xDB\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xDB\110              WILLAMETTE,SSE2,SM
 
 [PANDN]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xDF\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xDF\110              WILLAMETTE,SSE2,SM
 
 [PAVEB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x50\110                  PENT,MMX,SM,CYRIX
 
 [PAVGUSB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xBF           PENT,3DNOW,SM
 
 [PCMPEQB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x74\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x74\110              WILLAMETTE,SSE2,SM
 
 [PCMPEQD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x76\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x76\110              WILLAMETTE,SSE2,SM
 
 [PCMPEQW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x75\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x75\110              WILLAMETTE,SSE2,SM
 
 [PCMPGTB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x64\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x64\110              WILLAMETTE,SSE2,SM
 
 [PCMPGTD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x66\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x66\110              WILLAMETTE,SSE2,SM
 
 [PCMPGTW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x65\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x65\110              WILLAMETTE,SSE2,SM
 
 [PDISTIB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mem            \2\x0F\x54\110                  PENT,MMX,SM,CYRIX
 
 [PF2ID]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x1D           PENT,3DNOW,SM
 
 [PFACC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xAE           PENT,3DNOW,SM
 
 [PFADD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x9E           PENT,3DNOW,SM
 
 [PFCMPEQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xB0           PENT,3DNOW,SM
 
 [PFCMPGE]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x90           PENT,3DNOW,SM
 
 [PFCMPGT]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xA0           PENT,3DNOW,SM
 
 [PFMAX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xA4           PENT,3DNOW,SM
 
 [PFMIN]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x94           PENT,3DNOW,SM
 
 [PFMUL]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xB4           PENT,3DNOW,SM
 
 [PFRCP]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x96           PENT,3DNOW,SM
 
 [PFRCPIT1]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xA6           PENT,3DNOW,SM
 
 [PFRCPIT2]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xB6           PENT,3DNOW,SM
 
 [PFRSQIT1]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xA7           PENT,3DNOW,SM
 
 [PFRSQRT]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x97           PENT,3DNOW,SM
 
 [PFSUB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x9A           PENT,3DNOW,SM
 
 [PFSUBR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xAA           PENT,3DNOW,SM
 
 [PI2FD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x0D           PENT,3DNOW,SM
 
 [PMACHRIW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mem            \2\x0F\x5E\110                  PENT,MMX,SM,CYRIX
 
 [PMADDWD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xF5\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xF5\110              WILLAMETTE,SM,SSE2
 
 [PMAGW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x52\110                  PENT,MMX,SM,CYRIX
 
 [PMULHRIW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x5D\110                  PENT,MMX,SM,CYRIX
 
 [PMULHRWA]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\1\xB7            PENT,3DNOW,SM
 
 [PMULHRWC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x59\110                  PENT,MMX,SM,CYRIX
 
 [PMULHW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xE5\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE5\110              WILLAMETTE,SSE2,SM
 
 [PMULLW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xD5\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xD5\110              WILLAMETTE,SSE2,SM
 
 [PMVGEZB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mem            \2\x0F\x5C\110                  PENT,MMX,SM,CYRIX
 
 [PMVLZB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mem            \2\x0F\x5B\110                  PENT,MMX,SM,CYRIX
 
 [PMVNZB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mem            \2\x0F\x5A\110                  PENT,MMX,SM,CYRIX
 
 [PMVZB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mem            \2\x0F\x58\110                  PENT,MMX,SM,CYRIX
 
 [POP,popX]
-(Ch_Wop1, Ch_RWESP, Ch_None)
+(Ch_Wop1, Ch_RWESP)
 reg16                 \324\10\x58                     8086
 reg32                 \325\10\x58                     386,NOX86_64
 reg64                 \335\10\x58                     X86_64
@@ -1432,180 +1432,180 @@ reg_dess              \4                              8086,NOX86_64
 reg_fsgs              \1\x0F\5\335                    386
 
 [POPA,popaX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \327\1\x61                      186,NOX86_64
 
 [POPAD,popal]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \325\1\x61                      386,NOX86_64
 
 [POPAW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \324\1\x61                      186,NOX86_64
 
 [POPF]
-(Ch_RWESP, Ch_WFlags, Ch_None)
+(Ch_RWESP, Ch_WFlags)
 void                  \327\1\x9D                      8086,NOX86_64
 void                  \326\1\x9D                      X86_64
 
 [POPFD,popfl]
-(Ch_RWESP, Ch_WFlags, Ch_None)
+(Ch_RWESP, Ch_WFlags)
 void                  \325\1\x9D                      386,NOX86_64
 
 [POPFW]
-(Ch_RWESP, Ch_WFLAGS, Ch_None)
+(Ch_RWESP, Ch_WFLAGS)
 void                  \324\1\x9D                      8086,NOX86_64
 void                  \1\x9D                          X86_64
 
 [POPFQ]
-(Ch_RWESP, Ch_WFlags, Ch_None)
+(Ch_RWESP, Ch_WFlags)
 void                  \326\1\x9D                      X86_64
 
 [POR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xEB\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xEB\110              WILLAMETTE,SSE2,SM
 
 [PREFETCH,prefetchX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\x0D\200                  PENT,3DNOW,SM
 
 [PREFETCHW,prefetchwX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\x0D\201                  PENT,3DNOW,SM
 
 [PSLLD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xF2\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x72\206\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xF2\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x72\206\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSLLDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,imm            \361\2\x0F\x73\207\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSLLQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xF3\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x73\206\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xF3\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x73\206\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSLLW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xF1\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x71\206\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xF1\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x71\206\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSRAD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xE2\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x72\204\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xE2\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x72\204\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSRAW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xE1\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x71\204\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xE1\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x71\204\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSRLD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xD2\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x72\202\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xD2\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x72\202\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSRLQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xD3\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x73\202\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xD3\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x73\202\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSRLW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xD1\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x71\202\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xD1\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x71\202\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSUBB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xF8\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xF8\110              WILLAMETTE,SSE2,SM
 
 [PSUBD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xFA\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xFA\110              WILLAMETTE,SSE2,SM
 
 [PSUBSB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xE8\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE8\110              WILLAMETTE,SSE2,SM
 
 [PSUBSIW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mem            \2\x0F\x55\110                  PENT,MMX,SM,CYRIX
 mmxreg,mmxreg         \2\x0F\x55\110                  PENT,MMX,CYRIX
 
 [PSUBSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xE9\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE9\110              WILLAMETTE,SSE2,SM
 
 [PSUBUSB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xD8\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xD8\110              WILLAMETTE,SSE2,SM
 
 [PSUBUSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xD9\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xD9\110              WILLAMETTE,SSE2,SM
 
 [PSUBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xF9\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xF9\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKHBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x68\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x68\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKHDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x6A\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x6A\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKHWD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x69\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x69\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKLBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x60\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x60\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKLDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x62\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x62\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKLWD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x61\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x61\110              WILLAMETTE,SSE2,SM
 
 [PUSH,pushX]
-(Ch_Rop1, Ch_RWESP, Ch_None)
+(Ch_Rop1, Ch_RWESP)
 reg16                 \324\10\x50                     8086
 reg32                 \325\10\x50                     386,NOX86_64
 reg64                 \335\10\x50                     X86_64
@@ -1619,35 +1619,35 @@ reg_fsgs              \1\x0F\7\335                    386,NOX86_64
 reg_sreg              \6                              8086,NOX86_64
 
 [PUSHA,pushaX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \327\1\x60                      186,NOX86_64
 
 [PUSHAD,pushal]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \325\1\x60                      386,NOX86_64
 
 [PUSHAW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \324\1\x60                      186,NOX86_64
 
 [PUSHF]
-(Ch_RWESP, Ch_RFlags, Ch_None)
+(Ch_RWESP, Ch_RFlags)
 void                  \327\1\x9C                      8086
 
 [PUSHFD,pushfl]
-(Ch_RWESP, Ch_RFlags, Ch_None)
+(Ch_RWESP, Ch_RFlags)
 void                  \325\1\x9C                      386,NOX86_64
 
 [PUSHFW]
-(Ch_RWESP, Ch_RFLAGS, Ch_None)
+(Ch_RWESP, Ch_RFLAGS)
 void                  \324\1\x9C                      8086
 
 [PUSHFQ]
-(Ch_RWESP, Ch_RFlags, Ch_None)
+(Ch_RWESP, Ch_RFlags)
 void                  \326\1\x9C                      X86_64
 
 [PXOR]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xEF\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xEF\110              WILLAMETTE,SSE2,SM
 
@@ -1670,53 +1670,53 @@ rm8,reg_cl            \1\xD2\203                      8086
 rm8,imm               \1\xC0\203\25                   186,SB
 
 [RDSHR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x36                      P6,CYRIX,SMM
 
 [RDMSR]
-(Ch_WEAX, Ch_WEDX, Ch_None)
+(Ch_WEAX, Ch_WEDX)
 void                  \2\x0F\x32                      PENT,PRIV
 
 [RDPMC]
-(Ch_WEAX, Ch_WEDX, Ch_None)
+(Ch_WEAX, Ch_WEDX)
 void                  \2\x0F\x33                      P6
 
 [RDTSC]
-(Ch_WEAX, Ch_WEDX, Ch_None)
+(Ch_WEAX, Ch_WEDX)
 void                  \2\x0F\x31                      PENT
 
 [REP]
-(Ch_RWECX, Ch_None, Ch_None)
+(Ch_RWECX)
 void                  \1\xF3                          8086,PRE
 
 [REPE]
-(Ch_RWECX, Ch_RFlags, Ch_None)
+(Ch_RWECX, Ch_RFlags)
 void                  \1\xF3                          8086,PRE
 
 [REPNE]
-(Ch_RWECX, Ch_RFlags, Ch_None)
+(Ch_RWECX, Ch_RFlags)
 void                  \1\xF2                          8086,PRE
 
 [REPNZ]
-(Ch_RWECX, Ch_RFLAGS, Ch_None)
+(Ch_RWECX, Ch_RFLAGS)
 void                  \1\xF2                          8086,PRE
 
 [REPZ]
-(Ch_RWECX, Ch_RFLAGS, Ch_None)
+(Ch_RWECX, Ch_RFLAGS)
 void                  \1\xF3                          8086,PRE
 
 [RET]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \1\xC3                          8086
 imm                   \1\xC2\30                       8086,SW
 
 [RETF,lret]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \1\xCB                          8086
 imm                   \1\xCA\30                       8086,SW
 
 [RETN,ret]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \1\xC3                          8086
 imm                   \1\xC2\30                       8086,SW
 
@@ -1739,20 +1739,20 @@ rm8,reg_cl            \1\xD2\201                      8086
 rm8,imm               \1\xC0\201\25                   186,SB
 
 [RSDC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg_sreg,mem80        \2\x0F\x79\101                  486,CYRIX,SMM
 
 [RSLDT]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem80                 \2\x0F\x7B\200                  486,CYRIX,SMM
 
 [RSM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\xAA                      PENT,SMM
 
 ; SAHF/LAHF are valid in x86_64 only if CPUID.80000001h:ECX.0=1
 [SAHF]
-(Ch_WFlags, Ch_REAX, Ch_None)
+(Ch_WFlags, Ch_REAX)
 void                  \1\x9E                          8086
 
 [SAL,salX]
@@ -1765,7 +1765,7 @@ rm8,reg_cl            \1\xD2\204                      8086,ND
 rm8,imm               \1\xC0\204\25                   186,ND,SB
 
 [SALC]
-(Ch_WEAX, Ch_RFLAGS, Ch_None)
+(Ch_WEAX, Ch_RFLAGS)
 void                  \1\xD6                          8086,UNDOC,NOX86_64
 
 [SAR,sarX]
@@ -1810,31 +1810,31 @@ void                  \332\326\1\xAF                  X86_64
 void                  \332\324\1\xAF                  8086
 
 [SEGCS,cs]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\x2E                          8086,PRE
 
 [SEGDS,ds]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\x3E                          8086,PRE
 
 [SEGES,es]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\x26                          8086,PRE
 
 [SEGFS,fs]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\x64                          386,PRE
 
 [SEGGS,gs]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\x65                          386,PRE
 
 [SEGSS,ss]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\x36                          8086,PRE
 
 [SGDT]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem                   \2\x0F\x01\200                  286
 
 [SHL,shlX]
@@ -1866,40 +1866,40 @@ rm16|32|64,reg16|32|64,imm    \321\2\x0F\xAC\101\26       386,SM2,SB,AR2
 rm16|32|64,reg16|32|64,reg_cl \321\2\x0F\xAD\101          386,SM
 
 [SIDT,sidtX]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem                   \2\x0F\x01\201              286
 
 [SLDT,sldtX]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem                   \2\x0F\x00\200                  286
 reg16|32|64           \320\2\x0F\x00\200              286
 
 [SMI]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \1\xF1                          386,UNDOC
 
 [SMINT]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x38                      P6,CYRIX
 
 [SMINTOLD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x7E                      486,CYRIX,ND
 
 [SMSW,smswX]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 rm16|32|64            \320\2\x0F\x01\204              286
 
 [STC]
-(Ch_WFlags, Ch_None, Ch_None)
+(Ch_WFlags)
 void                  \1\xF9                          8086
 
 [STD]
-(Ch_SDirFlag, Ch_None, Ch_None)
+(Ch_SDirFlag)
 void                  \1\xFD                          8086
 
 [STI]
-(Ch_WFlags, Ch_None, Ch_None)
+(Ch_WFlags)
 void                  \1\xFB                          8086
 
 [STOSB]
@@ -1918,7 +1918,7 @@ void                  \325\1\xAB                      386
 void                  \324\1\xAB                      8086
 
 [STR,strX]
-(Ch_Wop1, Ch_None, Ch_None)
+(Ch_Wop1)
 mem                   \2\x0F\x00\201                  286,PROT
 reg16|32|64           \320\2\x0F\x00\201              286,PROT
 
@@ -1939,31 +1939,31 @@ reg_al,imm            \1\x2C\21                       8086,SB
 rm8,imm               \1\x80\205\21                   8086,SB
 
 [SVDC,svdcX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem80,reg_sreg        \2\x0F\x78\101                  486,CYRIX,SMM
 
 [SVLDT,svldtX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem80                 \2\x0F\x7A\200                  486,CYRIX,SMM
 
 [SVTS,svtsX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem80                 \2\x0F\x7C\200                  486,CYRIX,SMM
 
 [SYSCALL]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x05                      P6,AMD
 
 [SYSENTER]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x34                      P6
 
 [SYSEXIT]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x35                      P6,PRIV
 
 [SYSRET]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x07                      P6,PRIV,AMD
 
 [TEST,testX]
@@ -1985,50 +1985,50 @@ mem,imm16             \324\1\xF7\200\31               8086,SM
 mem,imm8              \1\xF6\200\21                   8086,SM
 
 [UD1]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\xB9                      286,UNDOC
 
 [UD2]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x0B                      286
 
 [UMOV,umovX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 regmem,reg16|32|64    \320\2\x0F\x11\101              386,UNDOC,SM
 reg16|32|64,mem       \320\2\x0F\x13\110              386,UNDOC,SM
 rm8,reg8              \2\x0F\x10\101                  386,UNDOC
 reg8,rm8              \2\x0F\x12\110                  386,UNDOC
 
 [VERR,verrX]
-(Ch_WFlags, Ch_None, Ch_None)
+(Ch_WFlags)
 mem                   \2\x0F\x00\204                  286,PROT
 mem16                 \2\x0F\x00\204                  286,PROT
 reg16                 \2\x0F\x00\204                  286,PROT
 
 [VERW]
-(Ch_WFlags, Ch_None, Ch_None)
+(Ch_WFlags)
 mem                   \2\x0F\x00\205                  286,PROT
 mem16                 \2\x0F\x00\205                  286,PROT
 reg16                 \2\x0F\x00\205                  286,PROT
 
 [WAIT]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \1\x9B                          8086
 
 [WBINVD]
-(Ch_None, Ch_None, Ch_None)
+()
 void                  \2\x0F\x09                      486,PRIV
 
 [WRSHR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x37                      P6,CYRIX,SMM
 
 [WRMSR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x30                      PENT,PRIV
 
 [XADD,xaddX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem,reg16|32|64       \320\2\x0F\xC1\101              486,SM
 rm8,reg8              \2\x0F\xC0\101                  486
 reg8,reg8             \2\x0F\xC0\101                  486
@@ -2037,14 +2037,14 @@ reg32,reg32           \321\2\x0F\xC1\101              486
 reg64,reg64           \320\2\x0F\xC1\101              X86_64
 
 [XBTS,xbtsX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg16,mem             \324\2\x0F\xA6\110              386,SW,UNDOC,ND
 reg16,reg16           \324\2\x0F\xA6\110              386,UNDOC,ND
 reg32,mem             \325\2\x0F\xA6\110              386,SD,UNDOC,ND
 reg32,reg32           \325\2\x0F\xA6\110              386,UNDOC,ND
 
 [XCHG,xchgX]
-(Ch_RWop1, Ch_RWop2, Ch_None)
+(Ch_RWop1, Ch_RWop2)
 reg_ax,reg16          \324\11\x90                     8086
 reg_eax,reg32         \325\11\x90                     386
 reg_rax,reg64         \326\11\x90                     X86_64
@@ -2057,11 +2057,11 @@ reg8,rm8              \1\x86\110                      8086
 mem8,reg8             \1\x86\101                      8086
 
 [XLAT]
-(Ch_WEAX, Ch_REBX, Ch_None)
+(Ch_WEAX, Ch_REBX)
 void                  \1\xD7                          8086
 
 [XLATB]
-(Ch_WEAX, Ch_REBX, Ch_None)
+(Ch_WEAX, Ch_REBX)
 void                  \1\xD7                          8086
 
 [XOR,xorX]
@@ -2081,23 +2081,23 @@ reg_al,imm            \1\x34\21                       8086,SB
 rm8,imm               \1\x80\206\21                   8086,SB
 
 [XSTORE]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\xA7\xC0                  P6,CYRIX
 
 [XCRYPTECB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \333\3\x0F\xA7\xC8              P6,CYRIX
 
 [XCRYPTCBC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \333\3\x0F\xA7\xD0              P6,CYRIX
 
 [XCRYPTCFB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \333\3\x0F\xA7\xE0              P6,CYRIX
 
 [XCRYPTOFB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \333\3\x0F\xA7\xE8              P6,CYRIX
 
 [CMOVcc,cmovCCX]
@@ -2105,7 +2105,7 @@ void                  \333\3\x0F\xA7\xE8              P6,CYRIX
 reg16|32|64,regmem    \320\1\x0F\13\x40\110          P6,SM
 
 [Jcc]
-(Ch_RFLAGS, Ch_None, Ch_None)
+(Ch_RFLAGS)
 imm8                  \13\x70\50                     8086
 imm16|32              \320\1\x0F\13\x80\64           386,PASS2
 imm16                 \23\x70\1\x03\1\xE9\60         8086,PASS2,16BITONLY
@@ -2114,7 +2114,7 @@ imm|near              \320\1\x0F\13\x80\64           386,PASS2
 imm16|near            \23\x70\1\x03\1\xE9\60         8086,PASS2,16BITONLY
 
 [SETcc,setCCX]
-(Ch_RFLAGS, Ch_WOp1, Ch_None)
+(Ch_RFLAGS, Ch_WOp1)
 rm8                   \1\x0F\13\x90\200              386
 
 ;
@@ -2122,83 +2122,83 @@ rm8                   \1\x0F\13\x90\200              386
 ;
 
 [ADDPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \331\2\x0F\x58\110              KATMAI,SSE
 
 [ADDSS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \333\2\x0F\x58\110              KATMAI,SSE
 
 [ANDNPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \2\x0F\x55\110                  KATMAI,SSE
 
 [ANDPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \2\x0F\x54\110                  KATMAI,SSE
 
 [CMPEQPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \331\2\x0F\xC2\110\1\x00        KATMAI,SSE
 
 [CMPEQSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \333\2\x0F\xC2\110\1\x00        KATMAI,SSE
 
 [CMPLEPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \331\2\x0F\xC2\110\1\x02        KATMAI,SSE
 
 [CMPLESS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \333\2\x0F\xC2\110\1\x02        KATMAI,SSE
 
 [CMPLTPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \331\2\x0F\xC2\110\1\x01        KATMAI,SSE
 
 [CMPLTSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \333\2\x0F\xC2\110\1\x01        KATMAI,SSE
 
 [CMPNEQPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \331\2\x0F\xC2\110\1\x04        KATMAI,SSE
 
 [CMPNEQSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \333\2\x0F\xC2\110\1\x04        KATMAI,SSE
 
 [CMPNLEPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \331\2\x0F\xC2\110\1\x06        KATMAI,SSE
 
 [CMPNLESS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \333\2\x0F\xC2\110\1\x06        KATMAI,SSE
 
 [CMPNLTPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \331\2\x0F\xC2\110\1\x05        KATMAI,SSE
 
 [CMPNLTSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \333\2\x0F\xC2\110\1\x05        KATMAI,SSE
 
 [CMPORDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \331\2\x0F\xC2\110\1\x07        KATMAI,SSE
 
 [CMPORDSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \333\2\x0F\xC2\110\1\x07        KATMAI,SSE
 
 [CMPUNORDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \331\2\x0F\xC2\110\1\x03        KATMAI,SSE
 
 [CMPUNORDSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \333\2\x0F\xC2\110\1\x03        KATMAI,SSE
 
 ;
@@ -2207,11 +2207,11 @@ xmmreg,xmmrm          \333\2\x0F\xC2\110\1\x03        KATMAI,SSE
 ;
 
 [CMPPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm      \331\2\x0F\xC2\110\22           KATMAI,SSE,SB,AR2
 
 [CMPSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm      \333\2\x0F\xC2\110\22           KATMAI,SSE,SB,AR2
 
 [COMISS]
@@ -2219,155 +2219,155 @@ xmmreg,xmmrm,imm      \333\2\x0F\xC2\110\22           KATMAI,SSE,SB,AR2
 xmmreg,xmmrm          \2\x0F\x2F\110                  KATMAI,SSE
 
 [CVTPI2PS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,mmxrm         \331\2\x0F\x2A\110             KATMAI,SSE,MMX
 
 [CVTPS2PI]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 mmxreg,mem64          \331\2\x0F\x2D\110              KATMAI,SSE,MMX
 mmxreg,xmmreg         \331\2\x0F\x2D\110              KATMAI,SSE,MMX
 
 [CVTSI2SS,cvtsi2ssX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,rm32           \333\321\2\x0F\x2A\110      KATMAI,SSE
 xmmreg,rm64           \333\321\2\x0F\x2A\110      KATMAI,SSE,X86_64
 
 [CVTSS2SI,cvtss2siX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg32|64,mem32	      \333\320\2\x0F\x2D\110          KATMAI,SSE
 reg32|64,xmmreg       \333\320\2\x0F\x2D\110          KATMAI,SSE
 
 [CVTTPS2PI]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 mmxreg,mem64          \331\2\x0F\x2C\110              KATMAI,SSE,MMX
 mmxreg,xmmreg         \331\2\x0F\x2C\110              KATMAI,SSE,MMX
 
 [CVTTSS2SI,cvttss2siX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg32|64,mem32        \333\320\2\x0F\x2C\110          KATMAI,SSE
 reg32|64,xmmreg       \333\320\2\x0F\x2C\110          KATMAI,SSE
 
 [DIVPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \331\2\x0F\x5E\110              KATMAI,SSE
 
 [DIVSS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \333\2\x0F\x5E\110              KATMAI,SSE
 
 [LDMXCSR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\xAE\202                  KATMAI,SSE,SD
 
 [MAXPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \331\2\x0F\x5F\110              KATMAI,SSE
 
 [MAXSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \333\2\x0F\x5F\110              KATMAI,SSE
 
 [MINPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \331\2\x0F\x5D\110              KATMAI,SSE
 
 [MINSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \333\2\x0F\x5D\110              KATMAI,SSE
 
 [MOVAPS]
-(Ch_ROp1, Ch_WOp2, Ch_None)
+(Ch_ROp1, Ch_WOp2)
 xmmreg,xmmrm          \2\x0F\x28\110                  KATMAI,SSE
 xmmrm,xmmreg          \2\x0F\x29\101                  KATMAI,SSE
 
 [MOVHPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem            \2\x0F\x16\110                  KATMAI,SSE
 mem,xmmreg            \2\x0F\x17\101                  KATMAI,SSE
 
 [MOVLHPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg         \2\x0F\x16\110                  KATMAI,SSE
 
 [MOVLPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem            \2\x0F\x12\110                  KATMAI,SSE
 mem,xmmreg            \2\x0F\x13\101                  KATMAI,SSE
 
 [MOVHLPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg         \2\x0F\x12\110                  KATMAI,SSE
 
 [MOVMSKPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32,xmmreg          \2\x0F\x50\110                  KATMAI,SSE
 
 [MOVNTPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem,xmmreg            \2\x0F\x2B\101                  KATMAI,SSE
 
 [MOVSS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg         \333\2\x0F\x10\110              KATMAI,SSE
 xmmreg,mem32          \333\2\x0F\x10\110              KATMAI,SSE
 xmmreg,xmmreg         \333\2\x0F\x11\101              KATMAI,SSE
 mem32,xmmreg          \333\2\x0F\x11\101              KATMAI,SSE
 
 [MOVUPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \331\2\x0F\x10\110              KATMAI,SSE
 xmmrm,xmmreg          \331\2\x0F\x11\101              KATMAI,SSE
 
 [MULPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \2\x0F\x59\110                  KATMAI,SSE
 
 [MULSS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \333\2\x0F\x59\110              KATMAI,SSE
 
 [ORPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \2\x0F\x56\110                  KATMAI,SSE
 
 [RCPPS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \331\2\x0F\x53\110              KATMAI,SSE
 
 [RCPSS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \333\2\x0F\x53\110              KATMAI,SSE
 
 [RSQRTPS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \331\2\x0F\x52\110              KATMAI,SSE
 
 [RSQRTSS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \333\2\x0F\x52\110              KATMAI,SSE
 
 [SHUFPS]
-(Ch_Mop3, Ch_Rop2, Ch_None)
+(Ch_Mop3, Ch_Rop2)
 xmmreg,xmmrm,imm      \2\x0F\xC6\110\22               KATMAI,SSE,SB,AR2
 
 [SQRTPS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \331\2\x0F\x51\110              KATMAI,SSE
 
 [SQRTSS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \333\2\x0F\x51\110              KATMAI,SSE
 
 [STMXCSR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\xAE\203                  KATMAI,SSE,SD
 
 [SUBPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \331\2\x0F\x5C\110              KATMAI,SSE
 
 [SUBSS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \333\2\x0F\x5C\110              KATMAI,SSE
 
 [UCOMISS]
@@ -2375,15 +2375,15 @@ xmmreg,xmmrm          \333\2\x0F\x5C\110              KATMAI,SSE
 xmmreg,xmmrm          \2\x0F\x2E\110                  KATMAI,SSE
 
 [UNPCKHPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \2\x0F\x15\110                  KATMAI,SSE
 
 [UNPCKLPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \2\x0F\x14\110                  KATMAI,SSE
 
 [XORPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \2\x0F\x57\110                  KATMAI,SSE
 
 ;
@@ -2391,11 +2391,11 @@ xmmreg,xmmrm          \2\x0F\x57\110                  KATMAI,SSE
 ;
 
 [FXRSTOR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\xAE\201                  P6,SSE,FPU
 
 [FXSAVE]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\xAE\200                  P6,SSE,FPU
 
 ;
@@ -2404,23 +2404,23 @@ mem                   \2\x0F\xAE\200                  P6,SSE,FPU
 ;
 
 [PREFETCHNTA]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\x18\200                      KATMAI
 
 [PREFETCHT0]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\x18\201                      KATMAI
 
 [PREFETCHT1]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\x18\202                      KATMAI
 
 [PREFETCHT2]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\x18\203                      KATMAI
 
 [SFENCE]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\xAE\xF8                  KATMAI
 
 ;
@@ -2428,32 +2428,32 @@ void                  \3\x0F\xAE\xF8                  KATMAI
 ;
 
 [MASKMOVQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxreg         \2\x0F\xF7\110                  KATMAI,MMX
 
 [MOVNTQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem,mmxreg            \2\x0F\xE7\101                  KATMAI,MMX,SM
 
 [PAVGB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xE0\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE0\110              WILLAMETTE,SSE2,SM
 
 [PAVGW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xE3\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE3\110              WILLAMETTE,SSE2,SM
 
 [PEXTRW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32,mmxreg,imm      \2\x0F\xC5\110\22               KATMAI,MMX,SB,AR2
 reg32,xmmreg,imm      \361\2\x0F\xC5\110\26           SSE41
 mem32,xmmreg,imm      \361\3\x0F\x3A\x15\101\26       SSE41
 
 
 [PINSRW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ; PINSRW is documented as using a reg32, but it's really using only 16 bit
 ; -- accept either, but be truthful in disassembly
 mmxreg,reg16,imm      \2\x0F\xC4\110\22               KATMAI,MMX,SB,AR2
@@ -2466,42 +2466,42 @@ xmmreg,mem,imm        \361\2\x0F\xC4\110\26           WILLAMETTE,SSE2,SB,AR2
 xmmreg,mem16,imm      \361\2\x0F\xC4\110\26           WILLAMETTE,SSE2,SB,AR2,ND
 
 [PMAXSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xEE\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xEE\110              WILLAMETTE,SSE2,SM
 
 [PMAXUB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xDE\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xDE\110              WILLAMETTE,SSE2,SM
 
 [PMINSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xEA\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xEA\110              WILLAMETTE,SSE2,SM
 
 [PMINUB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xDA\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xDA\110              WILLAMETTE,SSE2,SM
 
 [PMOVMSKB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32,mmxreg          \2\x0F\xD7\110                  KATMAI,MMX
 reg32,xmmreg          \361\2\x0F\xD7\110              WILLAMETTE,SSE2
 
 [PMULHUW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xE4\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE4\110              WILLAMETTE,SSE2,SM
 
 [PSADBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\xF6\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xF6\110              WILLAMETTE,SSE2,SM
 
 [PSHUFW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm,imm      \2\x0F\x70\110\22               KATMAI,MMX,SM2,SB,AR2
 
 ;
@@ -2509,211 +2509,211 @@ mmxreg,mmxrm,imm      \2\x0F\x70\110\22               KATMAI,MMX,SM2,SB,AR2
 ;
 
 [PFNACC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x8A           PENT,3DNOW,SM
 
 [PFPNACC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x8E           PENT,3DNOW,SM
 
 [PI2FW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x0C           PENT,3DNOW,SM
 
 [PF2IW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\x1C           PENT,3DNOW,SM
 
 [PSWAPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xBB           PENT,3DNOW,SM
 
 [FFREEP]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 fpureg                \1\xDF\10\xC0                   PENT,3DNOW,FPU
 
 ; Willamette SSE2 Cacheability Instructions
 [MASKMOVDQU]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg           \361\2\x0F\xF7\110            WILLAMETTE,SSE2
 
 ; CLFLUSH needs its own feature flag implemented one day
 [CLFLUSH]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                     \2\x0F\xAE\207                WILLAMETTE,SSE2
 
 [MOVNTDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem,xmmreg              \361\2\x0F\xE7\101            WILLAMETTE,SSE2,SM
 
 [MOVNTI,movntiX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem,reg32|64            \320\2\x0F\xC3\101            WILLAMETTE,SSE2,SM
 
 [MOVNTPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem,xmmreg              \361\2\x0F\x2B\101            WILLAMETTE,SSE2,SM
 
 [PAUSE]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                    \333\1\x90                    WILLAMETTE,SSE2
 
 [LFENCE]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                    \3\x0F\xAE\xE8                WILLAMETTE,SSE2
 
 [MFENCE]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                    \3\x0F\xAE\xF0                WILLAMETTE,SSE2
 
 ;
 ; Willamette MMX instructions (SSE2 SIMD Integer Instructions)
 ;
 [MOVDQA]
-(Ch_Rop1, Ch_Wop2, Ch_None)
+(Ch_Rop1, Ch_Wop2)
 xmmrm,xmmreg            \361\2\x0F\x7F\101              WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \361\2\x0F\x6F\110              WILLAMETTE,SSE2,SM
 
 [MOVDQU]
-(Ch_Rop1, Ch_Wop2, Ch_None)
+(Ch_Rop1, Ch_Wop2)
 xmmrm,xmmreg            \333\2\x0F\x7F\101              WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \333\2\x0F\x6F\110              WILLAMETTE,SSE2,SM
 
 [MOVDQ2Q]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,xmmreg           \334\2\x0F\xD6\110              WILLAMETTE,SSE2
 
 [MOVQ2DQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mmxreg           \333\2\x0F\xD6\110              WILLAMETTE,SSE2
 
 [PADDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm            \2\x0F\xD4\110                  WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \361\2\x0F\xD4\110              WILLAMETTE,SSE2,SM
 
 [PMULUDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm            \2\x0F\xF4\110                  WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \361\2\x0F\xF4\110              WILLAMETTE,SSE2,SM
 
 [PSHUFD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm        \361\2\x0F\x70\110\22           WILLAMETTE,SSE2,SM2,SB,AR2
 
 [PSHUFHW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm        \333\2\x0F\x70\110\22           WILLAMETTE,SSE2,SM2,SB,AR2
 
 [PSHUFLW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm        \334\2\x0F\x70\110\22           WILLAMETTE,SSE2,SM2,SB,AR2
 
 [PSRLDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,imm              \361\2\x0F\x73\203\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSUBQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm            \2\x0F\xFB\110                  WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \361\2\x0F\xFB\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKHQDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\x6D\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKLQDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\x6C\110              WILLAMETTE,SSE2,SM
 
 ;
 ; Willamette Streaming SIMD instructions (SSE2)
 ;
 [ADDPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x58\110              WILLAMETTE,SSE2,SM
 
 [ADDSD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \334\2\x0F\x58\110              WILLAMETTE,SSE2
 
 [ANDNPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x55\110              WILLAMETTE,SSE2,SM
 
 [ANDPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x54\110              WILLAMETTE,SSE2,SM
 
 [CMPEQPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\xC2\110\1\x00        WILLAMETTE,SSE2,SM
 
 ; note: no SM flag on CMPxxSD, they use 64-bit memory location, not 128-bit
 [CMPEQSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \334\2\x0F\xC2\110\1\x00        WILLAMETTE,SSE2
 
 [CMPLEPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\xC2\110\1\x02        WILLAMETTE,SSE2,SM
 
 [CMPLESD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \334\2\x0F\xC2\110\1\x02        WILLAMETTE,SSE2
 
 [CMPLTPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\xC2\110\1\x01        WILLAMETTE,SSE2,SM
 
 [CMPLTSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \334\2\x0F\xC2\110\1\x01        WILLAMETTE,SSE2
 
 [CMPNEQPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\xC2\110\1\x04        WILLAMETTE,SSE2,SM
 
 [CMPNEQSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \334\2\x0F\xC2\110\1\x04        WILLAMETTE,SSE2
 
 [CMPNLEPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\xC2\110\1\x06        WILLAMETTE,SSE2,SM
 
 [CMPNLESD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \334\2\x0F\xC2\110\1\x06        WILLAMETTE,SSE2
 
 [CMPNLTPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\xC2\110\1\x05        WILLAMETTE,SSE2,SM
 
 [CMPNLTSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \334\2\x0F\xC2\110\1\x05        WILLAMETTE,SSE2
 
 [CMPORDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\xC2\110\1\x07        WILLAMETTE,SSE2,SM
 
 [CMPORDSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \334\2\x0F\xC2\110\1\x07        WILLAMETTE,SSE2
 
 [CMPUNORDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\xC2\110\1\x03        WILLAMETTE,SSE2,SM
 
 [CMPUNORDSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \334\2\x0F\xC2\110\1\x03        WILLAMETTE,SSE2
 
 ; CMPPD/CMPSD must come after the specific ops; that way the disassembler will find the
 ; specific ops first and only disassemble illegal ones as cmppd/cmpsd.
 [CMPPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm        \361\2\x0F\xC2\110\26           WILLAMETTE,SSE2,SM2,SB,AR2
 
 [COMISD]
@@ -2721,157 +2721,157 @@ xmmreg,xmmrm,imm        \361\2\x0F\xC2\110\26           WILLAMETTE,SSE2,SM2,SB,A
 xmmreg,xmmrm            \361\2\x0F\x2F\110              WILLAMETTE,SSE2
 
 [CVTDQ2PD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg            \333\2\x0F\xE6\110              WILLAMETTE,SSE2
 xmmreg,mem64             \333\2\x0F\xE6\110              WILLAMETTE,SSE2
 
 [CVTDQ2PS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \2\x0F\x5B\110                  WILLAMETTE,SSE2,SM
 
 [CVTPD2DQ]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \334\2\x0F\xE6\110              WILLAMETTE,SSE2,SM
 
 [CVTPD2PI]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 mmxreg,xmmrm            \361\2\x0F\x2D\110              WILLAMETTE,SSE2 ;,SO
 
 [CVTPD2PS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x5A\110              WILLAMETTE,SSE2,SM
 
 [CVTPI2PD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,mmxrm            \361\2\x0F\x2A\110              WILLAMETTE,SSE2 ;,SO
 
 [CVTPS2DQ]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x5B\110              WILLAMETTE,SSE2,SM
 
 [CVTPS2PD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg            \2\x0F\x5A\110                WILLAMETTE,SSE2 ;,SQ
 xmmreg,mem64             \2\x0F\x5A\110                WILLAMETTE,SSE2 ;,SQ
 
 [CVTSD2SI,cvtsd2siX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg32,xmmreg 	        \334\2\x0F\x2D\110        WILLAMETTE,SSE2
 reg32,mem64          	\334\2\x0F\x2D\110        WILLAMETTE,SSE2
 reg64,xmmreg 	        \334\320\2\x0F\x2D\110        WILLAMETTE,SSE2,X86_64
 reg64,mem64 	        \334\320\2\x0F\x2D\110        WILLAMETTE,SSE2,X86_64
 
 [CVTSD2SS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg           \334\2\x0F\x5A\110              WILLAMETTE,SSE2 ;,SQ
 xmmreg,mem64            \334\2\x0F\x5A\110              WILLAMETTE,SSE2 ;,SQ
 
 [CVTSI2SD,cvtsi2sdX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,rm32             \334\2\x0F\x2A\110        	WILLAMETTE,SSE2
 xmmreg,rm64             \326\334\321\2\x0F\x2A\110      WILLAMETTE,SSE2,X86_64
 
 [CVTSS2SD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg            \333\2\x0F\x5A\110            WILLAMETTE,SSE2 ;,SD
 xmmreg,mem32             \333\2\x0F\x5A\110            WILLAMETTE,SSE2 ;,SD
 
 [CVTTPD2PI]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 mmxreg,xmmrm            \361\2\x0F\x2C\110              WILLAMETTE,SSE2
 
 [CVTTPD2DQ]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\xE6\110              WILLAMETTE,SSE2,SM
 
 [CVTTPS2DQ]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \333\2\x0F\x5B\110              WILLAMETTE,SSE2,SM
 
 [CVTTSD2SI,cvttsd2siX]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg32|64,xmmreg         \334\320\2\x0F\x2C\110        WILLAMETTE,SSE2
 reg32|64,mem64          \334\320\2\x0F\x2C\110        WILLAMETTE,SSE2
 
 [DIVPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x5E\110            WILLAMETTE,SSE2,SM
 
 [DIVSD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \334\2\x0F\x5E\110          WILLAMETTE,SSE2
 
 [MAXPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\x5F\110          WILLAMETTE,SSE2,SM
 
 [MAXSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \334\2\x0F\x5F\110          WILLAMETTE,SSE2
 
 [MINPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\x5D\110          WILLAMETTE,SSE2,SM
 
 [MINSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \334\2\x0F\x5D\110          WILLAMETTE,SSE2
 
 [MOVAPD]
-(Ch_ROp1, Ch_WOp2, Ch_None)
+(Ch_ROp1, Ch_WOp2)
 xmmrm,xmmreg            \361\2\x0F\x29\101        WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \361\2\x0F\x28\110        WILLAMETTE,SSE2,SM
 
 [MOVHPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem,xmmreg              \361\2\x0F\x17\101        WILLAMETTE,SSE2
 xmmreg,mem              \361\2\x0F\x16\110        WILLAMETTE,SSE2
 
 [MOVLPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem,xmmreg              \361\2\x0F\x13\101        WILLAMETTE,SSE2
 xmmreg,mem              \361\2\x0F\x12\110        WILLAMETTE,SSE2
 
 [MOVMSKPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32,xmmreg            \361\2\x0F\x50\110        WILLAMETTE,SSE2
 
 [MOVUPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmrm,xmmreg            \361\2\x0F\x11\101        WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \361\2\x0F\x10\110        WILLAMETTE,SSE2,SM
 
 [MULPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x59\110        WILLAMETTE,SSE2,SM
 
 [MULSD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \334\2\x0F\x59\110        WILLAMETTE,SSE2
 
 [ORPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x56\110        WILLAMETTE,SSE2,SM
 
 [SHUFPD]
-(Ch_Mop3, Ch_Rop2, Ch_None)
+(Ch_Mop3, Ch_Rop2)
 xmmreg,xmmrm,imm        \361\2\x0F\xC6\110\26     WILLAMETTE,SSE2,SM2,SB,AR2
 
 [SQRTPD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x51\110        WILLAMETTE,SSE2,SM
 
 [SQRTSD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \334\2\x0F\x51\110        WILLAMETTE,SSE2
 
 
 [SUBPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x5C\110        WILLAMETTE,SSE2,SM
 
 [SUBSD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \334\2\x0F\x5C\110        WILLAMETTE,SSE2
 
 [UCOMISD]
@@ -2879,173 +2879,173 @@ xmmreg,xmmrm            \334\2\x0F\x5C\110        WILLAMETTE,SSE2
 xmmreg,xmmrm            \361\2\x0F\x2E\110        WILLAMETTE,SSE2
 
 [UNPCKHPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\x15\110        WILLAMETTE,SSE2,SM
 
 [UNPCKLPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\x14\110        WILLAMETTE,SSE2,SM
 
 [XORPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x57\110        WILLAMETTE,SSE2,SM
 
 ;
 ; Prescott New Instructions (SSE3)
 ;
 [ADDSUBPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \361\2\x0F\xD0\110        PRESCOTT,SSE3,SM
 
 [ADDSUBPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \334\2\x0F\xD0\110        PRESCOTT,SSE3,SM
 
 [HADDPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x7C\110        PRESCOTT,SSE3,SM
 
 [HADDPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \334\2\x0F\x7C\110        PRESCOTT,SSE3,SM
 
 [HSUBPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\x7D\110        PRESCOTT,SSE3,SM
 
 [HSUBPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \334\2\x0F\x7D\110        PRESCOTT,SSE3,SM
 
 [LDDQU]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem              \334\2\x0F\xF0\110        PRESCOTT,SSE3
 
 [MOVDDUP]
-(Ch_Rop1, Ch_Wop2, Ch_None)
+(Ch_Rop1, Ch_Wop2)
 xmmreg,xmmrm            \334\2\x0F\x12\110        PRESCOTT,SSE3
 
 [MOVSHDUP]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \333\2\x0F\x16\110        PRESCOTT,SSE3,SM
 
 [MOVSLDUP]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm            \333\2\x0F\x12\110        PRESCOTT,SSE3,SM
 
 ;
 ; Intel VT
 ;
 [VMREAD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32,reg32           \2\x0F\x78\101              386,PRIV,PROT
 mem,reg32             \2\x0F\x78\101              386,PRIV,PROT,SM
 
 [VMWRITE]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32,reg32           \2\x0F\x79\110              386,PRIV,PROT
 reg32,mem             \2\x0F\x79\110              386,PRIV,PROT,SM
 
 [VMCALL]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xC1                  386,PRIV,PROT
 
 [VMLAUNCH]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xC2                  386,PRIV,PROT
 
 [VMRESUME]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xC3                  386,PRIV,PROT
 
 [VMXOFF]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xC4                  386,PRIV,PROT
 
 ; note: ideally the following should be tagged with SQ
 
 [VMXON]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \333\2\x0F\xC7\206              PRIV,PROT
 
 [VMCLEAR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \361\2\x0F\xC7\206              PRIV,PROT
 
 [VMPTRLD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\xC7\206                  PRIV,PROT
 
 [VMPTRST]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\xC7\207                  PRIV,PROT
 
 ;
 ; AMD SVM
 ;
 [VMRUN]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xD8                  386,SVM,PRIV,PROT
 
 [VMMCALL]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xD9                  386,SVM
 
 [VMLOAD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xDA                  386,SVM,PRIV,PROT
 
 [VMSAVE]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xDB                  386,SVM,PRIV,PROT
 
 [STGI]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xDC                  386,SVM,PRIV,PROT
 
 [CLGI]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xDD                  386,SVM,PRIV,PROT
 
 [SKINIT]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xDE                  386,SVM,PRIV,PROT
 
 [INVLPGA]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \3\x0F\x01\xDF                  386,SVM,PRIV,PROT
 
 ;
 ; VIA (Centaur)
 ;
 [MONTMUL]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \333\3\x0F\xA6\xC0              P6,CYRIX
 
 [XSHA1]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \333\3\x0F\xA6\xC8              P6,CYRIX
 
 [XSHA256]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \333\3\x0F\xA6\xD0              P6,CYRIX
 
 ;
 ; Geode
 ;
 [DMINT]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void \2\x0F\x39                                       P6,CYRIX
 
 [RDM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                  \2\x0F\x3A                      P6,CYRIX
 
 ;
 ; GAS specific x86-64 instructions
 ;
 [MOVABS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg_al,mem_offs       \1\xA0\45                       X86_64,SM
 reg_ax|32|64,mem_offs \320\1\xA1\45                   X86_64,SM
 mem_offs,reg_al       \1\xA2\44                       X86_64,SM
@@ -3053,45 +3053,45 @@ mem_offs,reg_ax|32|64 \321\xA3\44                     X86_64,SM
 reg64,imm             \326\10\xB8\55                  X86_64
 
 [MOVSXD,movslq]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg64,mem             \326\1\x63\110                  X86_64
 reg64,reg32           \326\1\x63\110                  X86_64
 
 [CQO,cqto]
-(Ch_MRAX, Ch_WRDX, Ch_None)
+(Ch_MRAX, Ch_WRDX)
 void                  \326\1\x99                      X86_64
 
 [CDQE,cltq]
-(Ch_MRAX, Ch_None, Ch_None)
+(Ch_MRAX)
 void                  \326\1\x98                      X86_64
 
 [CMPXCHG16B,cmpxchg16bX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \326\2\x0F\xC7\201              X86_64
 
 ;
 ; SSE4a (AMD Barcelona CPUs, n/a on Intel)
 ;
 [MOVNTSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem,xmmreg              \333\2\x0F\x2B\101                        SSE4,SD
 
 [MOVNTSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem,xmmreg              \334\325\2\x0F\x2B\101                SSE4 ;,SQ
 
 [INSERTQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg           \334\2\x0F\x79\110                        SSE4
 xmmreg,xmmreg,imm,imm   \334\2\x0F\x78\110\26\27          SSE4,SB
 
 [EXTRQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,imm,imm          \361\2\x0F\x78\200\25\26                  SSE4,SB
 xmmreg,xmmreg           \361\2\x0F\x79\110                        SSE4
 
 [LZCNT,lzcntX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg16,regmem            \320\333\2\x0F\xBD\110                386,SM,SSE4
 reg32|64,regmem         \321\333\2\x0F\xBD\110                386,SM,SSE4
 
@@ -3099,82 +3099,82 @@ reg32|64,regmem         \321\333\2\x0F\xBD\110                386,SM,SSE4
 ;**********SSSE3****************************************************************
 ;*******************************************************************************
 [PABSB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x1C\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x1C\110                   SSSE3,SM
 
 [PABSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x1D\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x1D\110                   SSSE3,SM
 
 [PABSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x1E\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x1E\110                   SSSE3,SM
 
 [PALIGNR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm,imm      \331\3\x0F\x3A\x0F\110\26                SSSE3,MMX,SM2,SB,AR2
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x0F\110\26                SSSE3,SM2,SB,AR2
 
 [PHADDW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x01\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x01\110                   SSSE3,SM
 
 [PHADDD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x02\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x02\110                   SSSE3,SM
 
 [PHADDSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x03\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x03\110                   SSSE3,SM
 
 [PHSUBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x05\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x05\110                   SSSE3,SM
 
 [PHSUBD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x06\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x06\110                   SSSE3,SM
 
 [PHSUBSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x07\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x07\110                   SSSE3,SM
 
 [PMADDUBSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x04\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x04\110                   SSSE3,SM
 
 [PMULHRSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x0B\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x0B\110                   SSSE3,SM
 
 [PSHUFB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x00\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x00\110                   SSSE3,SM
 
 [PSIGNB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x08\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x08\110                   SSSE3,SM
 
 [PSIGNW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x09\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x09\110                   SSSE3,SM
 
 [PSIGND]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mmxreg,mmxrm          \331\3\x0F\x38\x0A\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x0A\110                   SSSE3,SM
 
@@ -3182,204 +3182,204 @@ xmmreg,xmmrm          \361\3\x0F\x38\x0A\110                   SSSE3,SM
 ;**********SSE4.1***************************************************************
 ;*******************************************************************************
 [BLENDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x0C\110\26                SSE41,SM2,SB,AR2
 
 [BLENDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x0D\110\26                SSE41,SM2,SB,AR2
 
 [BLENDVPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x14\110                   SSE41,SM
 
 [BLENDVPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x15\110                   SSE41,SM
 
 [DPPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x40\110\26                SSE41,SM2,SB,AR2
 
 [DPPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x41\110\26                SSE41,SM2,SB,AR2
 
 [EXTRACTPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem,xmmreg,imm       \361\325\3\x0F\x3A\x17\101\26    SSE41,SB,AR2
 reg32|64,xmmreg,imm  \361\3\x0F\x3A\x17\101\26    SSE41,SB,AR2
 
 [INSERTPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm     \361\3\x0F\x3A\x21\110\26            SSE41,SM2,SB,AR2
 
 [MOVNTDQA]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem           \361\3\x0F\x38\x2A\110               SSE41,SM
 
 [MPSADBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm     \361\3\x0F\x3A\x42\110\26            SSE41,SM2,SB,AR2
 
 [PACKUSDW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm         \361\3\x0F\x38\x2B\110               SSE41,SM
 
 [PBLENDVB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm         \361\3\x0F\x38\x10\110               SSE41,SM
 
 [PBLENDW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm     \361\3\x0F\x3A\x0E\110\26            SSE41,SM2,SB,AR2
 
 [PCMPEQQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm         \361\3\x0F\x38\x29\110               SSE41,SM
 
 [PEXTRB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32|64,xmmreg,imm   \361\3\x0F\x3A\x14\101\26                SSE41,SB,AR2
 mem8,xmmreg,imm       \361\3\x0F\x3A\x14\101\26            SSE41,SB,AR2
 
 ;PEXTRW - Look is prev. implementation
 
 [PEXTRD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32,xmmreg,imm      \361\3\x0F\x3A\x16\101\26            SSE41,SB,AR2
 mem32,xmmreg,imm      \361\3\x0F\x3A\x16\101\26            SSE41,SB,AR2
 
 [PEXTRQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg64,xmmreg,imm      \361\326\3\x0F\x3A\x16\101\26        SSE41,X86_64,SB,AR2
 mem64,xmmreg,imm      \361\326\3\x0F\x3A\x16\101\26        SSE41,X86_64,SB,AR2
 
 [PHMINPOSUW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x41\110               SSE41,SM
 
 [PINSRB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,reg32|64,imm   \361\3\x0F\x3A\x20\110\26            SSE41,SB,AR2
 xmmreg,mem8,imm       \361\3\x0F\x3A\x20\110\26            SSE41,SB,AR2
 
 [PINSRD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,reg32,imm      \361\3\x0F\x3A\x22\110\26            SSE41,SB,AR2
 xmmreg,mem32,imm      \361\3\x0F\x3A\x22\110\26            SSE41,SB,AR2
 
 [PINSRQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,reg64,imm      \361\326\3\x0F\x3A\x22\110\26        SSE41,X86_64,SB,AR2
 xmmreg,mem64,imm      \361\326\3\x0F\x3A\x22\110\26        SSE41,X86_64,SB,AR2
 
 [PMAXSB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x3C\110               SSE41,SM
 
 [PMAXSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x3D\110               SSE41,SM
 
 [PMAXUD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x3F\110               SSE41,SM
 
 [PMAXUW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x3E\110               SSE41,SM
 
 [PMINSB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x38\110               SSE41,SM
 
 [PMINSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x39\110               SSE41,SM
 
 [PMINUW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x3A\110               SSE41,SM
 
 [PMINUD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x3B\110               SSE41,SM
 
 [PMOVSXBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x20\110               SSE41,SM
 
 [PMOVSXBD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x21\110               SSE41,SM
 
 [PMOVSXBQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x22\110               SSE41,SM
 
 [PMOVSXWD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x23\110               SSE41,SM
 
 [PMOVSXWQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x24\110               SSE41,SM
 
 [PMOVSXDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x25\110               SSE41,SM
 
 [PMOVZXBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x30\110               SSE41,SM
 
 [PMOVZXBD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x31\110               SSE41,SM
 
 [PMOVZXBQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x32\110               SSE41,SM
 
 [PMOVZXWD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x33\110               SSE41,SM
 
 [PMOVZXWQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x34\110               SSE41,SM
 
 [PMOVZXDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x35\110               SSE41,SM
 
 [PMULDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x28\110               SSE41,SM
 
 [PMULLD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x40\110               SSE41,SM
 
 [PTEST]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\x17\110               SSE41,SM
 
 [ROUNDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x08\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x09\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x0A\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x0B\110\26            SSE41,SM2,SB,AR2
 
 ;*******************************************************************************
@@ -3387,34 +3387,34 @@ xmmreg,xmmrm,imm      \361\3\x0F\x3A\x0B\110\26            SSE41,SM2,SB,AR2
 ;*******************************************************************************
 
 [CRC32,crc32X]
-(Ch_Mop1, Ch_Rop2, Ch_None)
+(Ch_Mop1, Ch_Rop2)
 reg32,rm8              \334\3\x0F\x38\xF0\110                  SSE42
 reg32,rm16|32          \321\334\3\x0F\x38\xF1\110              SSE42
 reg64,rm8              \334\326\3\x0F\x38\xF0\110              SSE42,X86_64
 reg64,rm64             \334\326\3\x0F\x38\xF1\110              SSE42,X86_64
 
 [PCMPESTRI]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm       \361\3\x0F\x3A\x61\110\26               SSE42,SM2,SB,AR2
 
 [PCMPESTRM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm       \361\3\x0F\x3A\x60\110\26               SSE42,SM2,SB,AR2
 
 [PCMPISTRI]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm       \361\3\x0F\x3A\x63\110\26               SSE42,SM2,SB,AR2
 
 [PCMPISTRM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm       \361\3\x0F\x3A\x62\110\26               SSE42,SM2,SB,AR2
 
 [PCMPGTQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm           \361\3\x0F\x38\x37\110                  SSE42,SM
 
 [POPCNT,popcntX]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg16,rm16             \333\320\2\x0F\xB8\110              386,SM,SSE4
 reg32,rm32             \333\320\2\x0F\xB8\110              386,SM,SSE4
 reg64,rm64             \333\320\2\x0F\xB8\110              386,SM,SSE4,X86_64
@@ -3425,27 +3425,27 @@ reg64,rm64             \333\320\2\x0F\xB8\110              386,SM,SSE4,X86_64
 ;Use SSE4, but need special flag for AES insructions set
 
 [AESENC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\xDC\110               SSE4,SM
 
 [AESENCLAST]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\xDD\110               SSE4,SM
 
 [AESDEC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\xDE\110               SSE4,SM
 
 [AESDECLAST]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\xDF\110               SSE4,SM
 
 [AESIMC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm          \361\3\x0F\x38\xDB\110               SSE4,SM
 
 [AESKEYGENASSIST]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\xDF\110\26            SSE4,SB,AR2
 
 ;*******************************************************************************
@@ -3453,7 +3453,7 @@ xmmreg,xmmrm,imm      \361\3\x0F\x3A\xDF\110\26            SSE4,SB,AR2
 ;*******************************************************************************
 ;Use SSE4, but actually a special flag would be needed
 [RDTSCP]
-(Ch_WEAX, Ch_WEDX, Ch_None)
+(Ch_WEAX, Ch_WEDX)
 void                  \3\x0F\x01\xf9                       SSE4,SM
 
 ;*******************************************************************************
@@ -3497,37 +3497,37 @@ xmmreg,xmmreg,mem32                  \333\362\370\1\x58\75\120            AVX,SA
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x58\75\120            AVX,SANDYBRIDGE
 
 [VADDSUBPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xD0\75\120        AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\xD0\75\120            AVX,SANDYBRIDGE
 
 [VADDSUBPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm                  \334\362\364\370\1\xD0\75\120        AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmrm                  \334\362\370\1\xD0\75\120            AVX,SANDYBRIDGE
 
 [VAESDEC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\xDE\75\120            AVX,SANDYBRIDGE
 
 [VAESDECLAST]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\xDF\75\120            AVX,SANDYBRIDGE
 
 [VAESENC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\xDC\75\120            AVX,SANDYBRIDGE
 
 [VAESENCLAST]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\xDD\75\120            AVX,SANDYBRIDGE
 
 [VAESIMC]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm                         \361\362\371\1\xDB\110               AVX,SANDYBRIDGE
 
 [VAESKEYGENASSIST]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm8                    \361\362\372\1\xDF\110\26            AVX,SANDYBRIDGE
 
 [VANDNPD]
@@ -3551,58 +3551,58 @@ xmmreg,xmmreg,xmmrm                  \362\370\1\x54\75\120                AVX,SA
 ymmreg,ymmreg,ymmrm                  \362\364\370\1\x54\75\120            AVX,SANDYBRIDGE
 
 [VBLENDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \361\362\372\1\x0D\75\120\27         AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x0D\75\120\27     AVX,SANDYBRIDGE
 
 [VBLENDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \361\362\372\1\x0C\75\120\27         AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x0C\75\120\27     AVX,SANDYBRIDGE
 
 [VBLENDVPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,xmmreg           \361\362\372\1\x4B\75\120\367        AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,ymmreg           \361\362\364\372\1\x4B\75\120\367    AVX,SANDYBRIDGE
 
 [VBLENDVPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,xmmreg           \361\362\372\1\x4A\75\120\367        AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,ymmreg           \361\362\364\372\1\x4A\75\120\367    AVX,SANDYBRIDGE
 
 [VBROADCASTF128]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,mem128                        \361\362\364\371\1\x1A\110           AVX,SANDYBRIDGE
 
 [VBROADCASTSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,mem64                         \361\362\364\371\1\x19\110           AVX,SANDYBRIDGE
 ymmreg,xmmreg                        \361\362\364\371\1\x19\110           AVX2
 
 [VBROADCASTSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,mem32                         \361\362\364\371\1\x18\110           AVX,SANDYBRIDGE
 xmmreg,mem32                         \361\362\371\1\x18\110               AVX,SANDYBRIDGE
 ymmreg,xmmreg                        \361\362\364\371\1\x18\110           AVX2
 xmmreg,xmmreg                        \361\362\371\1\x18\110               AVX2
 
 [VCMPPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \361\362\370\1\xC2\75\120\27         AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\370\1\xC2\75\120\27     AVX,SANDYBRIDGE
 
 [VCMPPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \362\370\1\xC2\75\120\27             AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,imm8             \362\364\370\1\xC2\75\120\27         AVX,SANDYBRIDGE
 
 [VCMPSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem64,imm8             \334\362\370\1\xC2\75\120\27         AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg,imm8            \334\362\370\1\xC2\75\120\27         AVX,SANDYBRIDGE
 
 [VCMPSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem64,imm8             \333\362\370\1\xC2\75\120\27         AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg,imm8            \333\362\370\1\xC2\75\120\27         AVX,SANDYBRIDGE
 
@@ -3617,40 +3617,40 @@ xmmreg,mem32                         \362\370\1\x2F\110                   AVX,SA
 xmmreg,xmmreg                        \362\370\1\x2F\110                   AVX,SANDYBRIDGE
 
 [VCVTDQ2PD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,mem64                         \333\362\370\1\xE6\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \333\362\370\1\xE6\110               AVX,SANDYBRIDGE
 ymmreg,xmmreg                        \333\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 ymmreg,mem128                        \333\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 
 [VCVTDQ2PS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \362\370\1\x5B\110                   AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \362\364\370\1\x5B\110               AVX,SANDYBRIDGE
 
 [VCVTPD2DQ,vcvtpd2dqM]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \334\362\370\1\xE6\110               AVX,SANDYBRIDGE
 xmmreg,ymmrm                         \334\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 
 [VCVTPD2PS,vcvtpd2psM]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \361\362\370\1\x5A\110               AVX,SANDYBRIDGE
 xmmreg,ymmrm                         \361\362\364\370\1\x5A\110           AVX,SANDYBRIDGE
 
 [VCVTPS2DQ]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \361\362\370\1\x5B\110               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\370\1\x5B\110           AVX,SANDYBRIDGE
 
 [VCVTPS2PD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,mem64                         \362\370\1\x5A\110                   AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \362\370\1\x5A\110                   AVX,SANDYBRIDGE
 ymmreg,xmmrm                         \362\364\370\1\x5A\110               AVX,SANDYBRIDGE
 
 [VCVTSD2SI]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg32,mem64                          \334\362\370\1\x2D\110               AVX,SANDYBRIDGE
 reg32,xmmreg                         \334\362\370\1\x2D\110               AVX,SANDYBRIDGE
 reg64,mem64                          \334\362\363\370\1\x2D\110           AVX,SANDYBRIDGE
@@ -3677,31 +3677,31 @@ xmmreg,xmmreg,mem32                  \333\362\370\1\x5A\75\120            AVX,SA
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x5A\75\120            AVX,SANDYBRIDGE
 
 [VCVTSS2SI]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg32,mem32                          \333\362\370\1\x2D\110               AVX,SANDYBRIDGE
 reg32,xmmreg                         \333\362\370\1\x2D\110               AVX,SANDYBRIDGE
 reg64,mem32                          \333\362\363\370\1\x2D\110           AVX,SANDYBRIDGE
 reg64,xmmreg                         \333\362\363\370\1\x2D\110           AVX,SANDYBRIDGE
 
 [VCVTTPD2DQ,vcvttpd2dqM]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \361\362\370\1\xE6\110               AVX,SANDYBRIDGE
 xmmreg,ymmrm                         \361\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 
 [VCVTTPS2DQ]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \333\362\370\1\x5B\110               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \333\362\364\370\1\x5B\110           AVX,SANDYBRIDGE
 
 [VCVTTSD2SI]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg32,mem64                          \334\362\370\1\x2C\110               AVX,SANDYBRIDGE
 reg32,xmmreg                         \334\362\370\1\x2C\110               AVX,SANDYBRIDGE
 reg64,mem64                          \334\362\363\370\1\x2C\110           AVX,SANDYBRIDGE
 reg64,xmmreg                         \334\362\363\370\1\x2C\110           AVX,SANDYBRIDGE
 
 [VCVTTSS2SI]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 reg32,mem32                          \333\362\370\1\x2C\110               AVX,SANDYBRIDGE
 reg32,xmmreg                         \333\362\370\1\x2C\110               AVX,SANDYBRIDGE
 reg64,mem32                          \333\362\363\370\1\x2C\110           AVX,SANDYBRIDGE
@@ -3728,221 +3728,221 @@ xmmreg,xmmreg,mem32                  \333\362\370\1\x5E\75\120            AVX,SA
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x5E\75\120            AVX,SANDYBRIDGE
 
 [VDPPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \361\362\372\1\x41\75\120\27         AVX,SANDYBRIDGE
 
 [VDPPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \361\362\372\1\x40\75\120\27         AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x40\75\120\27     AVX,SANDYBRIDGE
 
 [VEXTRACTF128]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmrm,ymmreg,imm8                    \361\362\364\372\1\x19\101\26        AVX,SANDYBRIDGE
 
 [VEXTRACTPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 rm32,xmmreg,imm8                     \361\362\372\1\x17\101\26            AVX,SANDYBRIDGE
 
 [VHADDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x7C\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x7C\75\120        AVX,SANDYBRIDGE
 
 [VHADDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \334\362\370\1\x7C\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \334\362\364\370\1\x7C\75\120        AVX,SANDYBRIDGE
 
 [VHSUBPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x7D\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x7D\75\120        AVX,SANDYBRIDGE
 
 [VHSUBPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \334\362\370\1\x7D\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \334\362\364\370\1\x7D\75\120        AVX,SANDYBRIDGE
 
 [VINSERTF128]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,xmmrm,imm8             \361\362\364\372\1\x18\75\120\27     AVX,SANDYBRIDGE
 
 [VINSERTPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem32,imm8             \361\362\372\1\x21\75\120\27         AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg,imm8            \361\362\372\1\x21\75\120\27         AVX,SANDYBRIDGE
 
 [VLDDQU]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem128                        \334\362\370\1\xF0\110               AVX,SANDYBRIDGE
 ymmreg,mem256                        \334\362\364\370\1\xF0\110           AVX,SANDYBRIDGE
 
 [VLDMXCSR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem32                                \362\370\1\xAE\202                   AVX,SANDYBRIDGE
 
 [VMASKMOVDQU]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg                        \361\362\370\1\xF7\110               AVX,SANDYBRIDGE
 
 [VMASKMOVPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem256,ymmreg,ymmreg                 \361\362\364\371\1\x2F\75\102        AVX,SANDYBRIDGE
 mem128,xmmreg,xmmreg                 \361\362\371\1\x2F\75\102            AVX,SANDYBRIDGE
 ymmreg,ymmreg,mem256                 \361\362\364\371\1\x2D\75\120        AVX,SANDYBRIDGE
 xmmreg,xmmreg,mem128                 \361\362\371\1\x2D\75\120            AVX,SANDYBRIDGE
 
 [VMASKMOVPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem256,ymmreg,ymmreg                 \361\362\364\371\1\x2E\75\102        AVX,SANDYBRIDGE
 mem128,xmmreg,xmmreg                 \361\362\371\1\x2E\75\102            AVX,SANDYBRIDGE
 ymmreg,ymmreg,mem256                 \361\362\364\371\1\x2C\75\120        AVX,SANDYBRIDGE
 xmmreg,xmmreg,mem128                 \361\362\371\1\x2C\75\120            AVX,SANDYBRIDGE
 
 [VMAXPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x5F\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x5F\75\120        AVX,SANDYBRIDGE
 
 [VMAXPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \362\370\1\x5F\75\120                AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \362\364\370\1\x5F\75\120            AVX,SANDYBRIDGE
 
 [VMAXSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem64                  \334\362\370\1\x5F\75\120            AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \334\362\370\1\x5F\75\120            AVX,SANDYBRIDGE
 
 [VMAXSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem32                  \333\362\370\1\x5F\75\120            AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x5F\75\120            AVX,SANDYBRIDGE
 
 [VMINPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x5D\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x5D\75\120        AVX,SANDYBRIDGE
 
 [VMINPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \362\370\1\x5D\75\120                AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \362\364\370\1\x5D\75\120            AVX,SANDYBRIDGE
 
 [VMINSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem64                  \334\362\370\1\x5D\75\120            AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \334\362\370\1\x5D\75\120            AVX,SANDYBRIDGE
 
 [VMINSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem32                  \333\362\370\1\x5D\75\120            AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x5D\75\120            AVX,SANDYBRIDGE
 
 [VMOVAPD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \361\362\370\1\x28\110               AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \361\362\370\1\x29\101               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\370\1\x28\110           AVX,SANDYBRIDGE
 ymmrm,ymmreg                         \361\362\364\370\1\x29\101           AVX,SANDYBRIDGE
 
 [VMOVAPS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \362\370\1\x28\110                   AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \362\370\1\x29\101                   AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \362\364\370\1\x28\110               AVX,SANDYBRIDGE
 ymmrm,ymmreg                         \362\364\370\1\x29\101               AVX,SANDYBRIDGE
 
 [VMOVD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,rm32                          \361\362\370\1\x6E\110               AVX,SANDYBRIDGE
 rm32,xmmreg                          \361\362\370\1\x7E\101               AVX,SANDYBRIDGE
 
 [VMOVDDUP]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 ymmreg,ymmrm                         \334\362\364\370\1\x12\110           AVX,SANDYBRIDGE
 xmmreg,mem64                         \334\362\370\1\x12\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \334\362\370\1\x12\110               AVX,SANDYBRIDGE
 
 [VMOVDQA]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 ymmrm,ymmreg                         \361\362\364\370\1\x7F\101           AVX,SANDYBRIDGE
 xmmreg,xmmrm                         \361\362\370\1\x6F\110               AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \361\362\370\1\x7F\101               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\370\1\x6F\110           AVX,SANDYBRIDGE
 
 [VMOVDQU]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 ymmreg,ymmrm                         \333\362\364\370\1\x6F\110           AVX,SANDYBRIDGE
 xmmreg,xmmrm                         \333\362\370\1\x6F\110               AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \333\362\370\1\x7F\101               AVX,SANDYBRIDGE
 ymmrm,ymmreg                         \333\362\364\370\1\x7F\101           AVX,SANDYBRIDGE
 
 [VMOVHLPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmreg                 \362\370\1\x12\75\120                AVX,SANDYBRIDGE
 
 [VMOVHPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem64,xmmreg                         \361\362\370\1\x17\101               AVX,SANDYBRIDGE
 xmmreg,xmmreg,mem64                  \361\362\370\1\x16\75\120            AVX,SANDYBRIDGE
 
 [VMOVHPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem64                  \362\370\1\x16\75\120                AVX,SANDYBRIDGE
 mem64,xmmreg                         \362\370\1\x17\101                   AVX,SANDYBRIDGE
 
 [VMOVLHPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmreg                 \362\370\1\x16\75\120                AVX,SANDYBRIDGE
 
 [VMOVLPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem64,xmmreg                         \361\362\370\1\x13\101               AVX,SANDYBRIDGE
 xmmreg,xmmreg,mem64                  \361\362\370\1\x12\75\120            AVX,SANDYBRIDGE
 
 [VMOVLPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem64,xmmreg                         \362\370\1\x13\101                   AVX,SANDYBRIDGE
 xmmreg,xmmreg,mem64                  \362\370\1\x12\75\120                AVX,SANDYBRIDGE
 
 [VMOVMSKPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32,ymmreg                         \361\362\364\370\1\x50\110           AVX,SANDYBRIDGE
 reg64,xmmreg                         \361\362\370\1\x50\110               AVX,SANDYBRIDGE
 reg32,xmmreg                         \361\362\370\1\x50\110               AVX,SANDYBRIDGE
 reg64,ymmreg                         \361\362\364\370\1\x50\110           AVX,SANDYBRIDGE
 
 [VMOVMSKPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32,ymmreg                         \362\364\370\1\x50\110               AVX,SANDYBRIDGE
 reg64,xmmreg                         \362\370\1\x50\110                   AVX,SANDYBRIDGE
 reg32,xmmreg                         \362\370\1\x50\110                   AVX,SANDYBRIDGE
 reg64,ymmreg                         \362\364\370\1\x50\110               AVX,SANDYBRIDGE
 
 [VMOVNTDQ]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 mem128,xmmreg                        \361\362\370\1\xE7\101               AVX,SANDYBRIDGE
 mem256,ymmreg                        \361\362\364\370\1\xE7\101           AVX,SANDYBRIDGE
 
 [VMOVNTDQA]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,mem128                        \361\362\371\1\x2A\110               AVX,SANDYBRIDGE
 ymmreg,mem256                        \361\362\364\371\1\x2A\110           AVX2
 
 [VMOVNTPD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 mem256,ymmreg                        \361\362\364\370\1\x2B\101           AVX,SANDYBRIDGE
 mem128,xmmreg                        \361\362\370\1\x2B\101               AVX,SANDYBRIDGE
 
 [VMOVNTPS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 mem128,ymmreg                        \362\364\370\1\x2B\101               AVX,SANDYBRIDGE
 mem128,xmmreg                        \362\370\1\x2B\101                   AVX,SANDYBRIDGE
 
 [VMOVQ]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg                        \362\333\370\1\x7E\110               AVX,SANDYBRIDGE
 xmmreg,mem64                         \362\333\370\1\x7E\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \362\361\370\1\xD6\101               AVX,SANDYBRIDGE
@@ -3952,46 +3952,46 @@ xmmreg,rm64                          \362\361\363\370\1\x6E\110           AVX,SA
 
 [VMOVSD]
 ; the three ops must be handle by the compiler internally
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg,xmmreg                 \334\362\370\1\x10\75\120            AVX,SANDYBRIDGE
 xmmreg,mem64                         \334\362\370\1\x10\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \334\362\370\1\x11\75\102            AVX,SANDYBRIDGE
 mem64,xmmreg                         \334\362\370\1\x11\101               AVX,SANDYBRIDGE
 
 [VMOVSHDUP]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm                         \333\362\370\1\x16\110               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \333\362\364\370\1\x16\110           AVX,SANDYBRIDGE
 
 [VMOVSLDUP]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm                         \333\362\370\1\x12\110               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \333\362\364\370\1\x12\110           AVX,SANDYBRIDGE
 
 [VMOVSS]
 ; the three ops must be handle by the compiler internally
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x10\75\120            AVX,SANDYBRIDGE
 xmmreg,mem32                         \333\362\370\1\x10\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x11\75\102            AVX,SANDYBRIDGE
 mem32,xmmreg                         \333\362\370\1\x11\101               AVX,SANDYBRIDGE
 
 [VMOVUPD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \361\362\370\1\x10\110               AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \361\362\370\1\x11\101               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\370\1\x10\110           AVX,SANDYBRIDGE
 ymmrm,ymmreg                         \361\362\364\370\1\x11\101           AVX,SANDYBRIDGE
 
 [VMOVUPS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \362\370\1\x10\110                   AVX,SANDYBRIDGE
 xmmrm,xmmreg                         \362\370\1\x11\101                   AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \362\364\370\1\x10\110               AVX,SANDYBRIDGE
 ymmrm,ymmreg                         \362\364\370\1\x11\101               AVX,SANDYBRIDGE
 
 [VMPSADBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \361\362\372\1\x42\75\120\27         AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x42\75\120\27     AVX2
 
@@ -4025,47 +4025,47 @@ xmmreg,xmmreg,xmmrm                  \362\370\1\x56\75\120                AVX,SA
 ymmreg,ymmreg,ymmrm                  \362\364\370\1\x56\75\120            AVX,SANDYBRIDGE
 
 [VPABSB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm                         \361\362\371\1\x1C\110               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\371\1\x1C\110           AVX2
 
 [VPABSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm                         \361\362\371\1\x1E\110               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\371\1\x1E\110           AVX2
 
 [VPABSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm                         \361\362\371\1\x1D\110               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\371\1\x1D\110           AVX2
 
 [VPACKSSDW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x6B\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x6B\75\120        AVX2
 
 [VPACKSSWB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x63\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x63\75\120        AVX2
 
 [VPACKUSDW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x2B\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x2B\75\120        AVX2
 
 [VPACKUSWB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x67\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x67\75\120        AVX2
 
 [VPADDB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\xFC\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xFC\75\120        AVX2
 
 [VPADDD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\xFE\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xFE\75\120        AVX2
 
@@ -4100,7 +4100,7 @@ xmmreg,xmmreg,xmmrm                  \361\362\370\1\xFD\75\120            AVX,SA
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xFD\75\120        AVX2
 
 [VPALIGNR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \361\362\372\1\x0F\75\120\27         AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x0F\75\120\27     AVX2
 
@@ -4115,119 +4115,119 @@ xmmreg,xmmreg,xmmrm                  \361\362\370\1\xDF\75\120            AVX,SA
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xDF\75\120        AVX2
 
 [VPAVGB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\xE0\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xE0\75\120        AVX2
 
 [VPAVGW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\xE3\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xE3\75\120        AVX2
 
 [VPBLENDVB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,xmmreg           \361\362\372\1\x4C\75\120\367        AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,ymmreg           \361\362\364\372\1\x4C\75\120\367    AVX2
 
 [VPBLENDW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \361\362\372\1\x0E\75\120\27         AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x0E\75\120\27     AVX2
 
 [VPCLMULQDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \361\362\372\1\x44\75\120\27         AVX,SANDYBRIDGE
 
 [VPCMPEQB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x74\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x74\75\120        AVX2
 
 [VPCMPEQD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x76\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x76\75\120        AVX2
 
 [VPCMPEQQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x29\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x29\75\120        AVX2
 
 [VPCMPEQW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x75\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x75\75\120        AVX2
 
 [VPCMPESTRI]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm8                    \361\362\372\1\x61\110\26            AVX,SANDYBRIDGE
 
 [VPCMPESTRM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm8                    \361\362\372\1\x60\110\26            AVX,SANDYBRIDGE
 
 [VPCMPGTB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x64\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x64\75\120        AVX2
 
 [VPCMPGTD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x66\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x66\75\120        AVX2
 
 [VPCMPGTQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x37\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x37\75\120        AVX2
 
 [VPCMPGTW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x65\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x65\75\120        AVX2
 
 [VPCMPISTRI]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm8                    \361\362\372\1\x63\110\26            AVX,SANDYBRIDGE
 
 [VPCMPISTRM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm8                    \361\362\372\1\x62\110\26            AVX,SANDYBRIDGE
 
 [VPERM2F128]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x06\75\120\27     AVX,SANDYBRIDGE
 
 [VPERMILPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x0D\75\120        AVX,SANDYBRIDGE
 xmmreg,xmmrm,imm8                    \361\362\372\1\x05\110\26            AVX,SANDYBRIDGE
 ymmreg,ymmrm,imm8                    \361\362\364\372\1\x05\110\26        AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x0D\75\120            AVX,SANDYBRIDGE
 
 [VPERMILPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x0C\75\120        AVX,SANDYBRIDGE
 xmmreg,xmmrm,imm8                    \361\362\372\1\x04\110\26            AVX,SANDYBRIDGE
 ymmreg,ymmrm,imm8                    \361\362\364\372\1\x04\110\26        AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x0C\75\120            AVX,SANDYBRIDGE
 
 [VPEXTRB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32,xmmreg,imm8                    \361\362\372\1\x14\101\26            AVX,SANDYBRIDGE
 reg64,xmmreg,imm8                    \361\362\372\1\x14\101\26            AVX,SANDYBRIDGE
 mem8,xmmreg,imm8                     \361\362\372\1\x14\101\26            AVX,SANDYBRIDGE
 
 [VPEXTRD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 rm32,xmmreg,imm8                     \361\362\372\1\x16\101\26            AVX,SANDYBRIDGE
 
 [VPEXTRQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 rm64,xmmreg,imm8                     \361\362\363\372\1\x16\101\26        AVX,SANDYBRIDGE
 
 [VPEXTRW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg32,xmmreg,imm8                    \361\362\370\1\xC5\110\26            AVX,SANDYBRIDGE
 reg64,xmmreg,imm8                    \361\362\370\1\xC5\110\26            AVX,SANDYBRIDGE
 reg32,xmmreg,imm8                    \361\362\372\1\x15\101\26            AVX,SANDYBRIDGE
@@ -4236,207 +4236,207 @@ mem16,xmmreg,imm8                    \361\362\372\1\x15\101\26            AVX,SA
 
 
 [VPHADDD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x02\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x02\75\120        AVX2
 
 [VPHADDSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x03\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x03\75\120        AVX2
 
 [VPHADDW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x01\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x01\75\120        AVX2
 
 [VPHMINPOSUW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm                         \361\362\371\1\x41\110               AVX,SANDYBRIDGE
 
 [VPHSUBD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x06\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x06\75\120        AVX2
 
 [VPHSUBSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x07\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x07\75\120        AVX2
 
 [VPHSUBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x05\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x05\75\120        AVX2
 
 [VPINSRB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,reg32,imm8             \361\362\372\1\x20\75\120\27         AVX,SANDYBRIDGE
 xmmreg,xmmreg,mem8,imm8              \361\362\372\1\x20\75\120\27         AVX,SANDYBRIDGE
 
 [VPINSRD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,rm32,imm8              \361\362\372\1\x22\75\120\27         AVX,SANDYBRIDGE
 
 [VPINSRQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,rm64,imm8              \361\362\363\372\1\x22\75\120\27     AVX,SANDYBRIDGE
 
 [VPINSRW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,reg32,imm8             \361\362\370\1\xC4\75\120\27         AVX,SANDYBRIDGE
 xmmreg,xmmreg,mem16,imm8             \361\362\370\1\xC4\75\120\27         AVX,SANDYBRIDGE
 
 [VPMADDUBSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x04\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x04\75\120        AVX2
 
 [VPMADDWD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\xF5\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xF5\75\120        AVX2
 
 [VPMAXSB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x3C\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x3C\75\120        AVX2
 
 [VPMAXSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x3D\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x3D\75\120        AVX2
 
 [VPMAXSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\xEE\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xEE\75\120        AVX2
 
 [VPMAXUB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\xDE\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xDE\75\120        AVX2
 
 [VPMAXUD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x3F\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x3F\75\120        AVX2
 
 [VPMAXUW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x3E\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x3E\75\120        AVX2
 
 [VPMINSB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x38\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x38\75\120        AVX2
 
 [VPMINSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x39\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x39\75\120        AVX2
 
 [VPMINSW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\xEA\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xEA\75\120        AVX2
 
 [VPMINUB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\xDA\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xDA\75\120        AVX2
 
 [VPMINUD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x3B\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x3B\75\120        AVX2
 
 [VPMINUW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x3A\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x3A\75\120        AVX2
 
 [VPMOVMSKB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg64,xmmreg                         \361\362\370\1\xD7\110               AVX,SANDYBRIDGE
 reg32,xmmreg                         \361\362\370\1\xD7\110               AVX,SANDYBRIDGE
 reg32,ymmreg                         \361\362\364\370\1\xD7\110           AVX2
 reg64,ymmreg                         \361\362\364\370\1\xD7\110           AVX2
 
 [VPMOVSXBD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem32                         \361\362\371\1\x21\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x21\110               AVX,SANDYBRIDGE
 ymmreg,xmmreg                        \361\362\364\371\1\x21\110           AVX2
 ymmreg,mem64                         \361\362\364\371\1\x21\110           AVX2
 
 [VPMOVSXBQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem16                         \361\362\371\1\x22\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x22\110               AVX,SANDYBRIDGE
 ymmreg,mem32                         \361\362\364\371\1\x22\110           AVX2
 ymmreg,xmmreg                        \361\362\364\371\1\x22\110           AVX2
 
 [VPMOVSXBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem64                         \361\362\371\1\x20\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x20\110               AVX,SANDYBRIDGE
 ymmreg,xmmrm                         \361\362\364\371\1\x20\110           AVX2
 
 [VPMOVSXDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem64                         \361\362\371\1\x25\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x25\110               AVX,SANDYBRIDGE
 ymmreg,xmmrm                         \361\362\364\371\1\x25\110           AVX2
 
 [VPMOVSXWD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem64                         \361\362\371\1\x23\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x23\110               AVX,SANDYBRIDGE
 ymmreg,xmmrm                         \361\362\364\371\1\x23\110           AVX2
 
 [VPMOVSXWQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem32                         \361\362\371\1\x24\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x24\110               AVX,SANDYBRIDGE
 ymmreg,mem64                         \361\362\364\371\1\x24\110           AVX2
 ymmreg,xmmreg                        \361\362\364\371\1\x24\110           AVX2
 
 [VPMOVZXBD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem32                         \361\362\371\1\x31\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x31\110               AVX,SANDYBRIDGE
 ymmreg,mem64                         \361\362\364\371\1\x31\110           AVX2
 ymmreg,xmmreg                        \361\362\364\371\1\x31\110           AVX2
 
 [VPMOVZXBQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem16                         \361\362\371\1\x32\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x32\110               AVX,SANDYBRIDGE
 ymmreg,mem32                         \361\362\364\371\1\x32\110           AVX2
 ymmreg,xmmreg                        \361\362\364\371\1\x32\110           AVX2
 
 [VPMOVZXBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem64                         \361\362\371\1\x30\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x30\110               AVX,SANDYBRIDGE
 ymmreg,xmmrm                         \361\362\364\371\1\x30\110           AVX2
 
 [VPMOVZXDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem64                         \361\362\371\1\x35\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x35\110               AVX,SANDYBRIDGE
 ymmreg,xmmrm                         \361\362\364\371\1\x35\110           AVX2
 
 [VPMOVZXWD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem64                         \361\362\371\1\x33\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x33\110               AVX,SANDYBRIDGE
 ymmreg,xmmrm                         \361\362\364\371\1\x33\110           AVX2
 
 [VPMOVZXWQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem32                         \361\362\371\1\x34\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\371\1\x34\110               AVX,SANDYBRIDGE
 ymmreg,mem64                         \361\362\364\371\1\x34\110           AVX2
@@ -4484,42 +4484,42 @@ xmmreg,xmmreg,xmmrm                  \361\362\370\1\xEB\75\120            AVX,SA
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xEB\75\120        AVX2
 
 [VPSADBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\xF6\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xF6\75\120        AVX2
 
 [VPSHUFB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x00\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x00\75\120        AVX2
 
 [VPSHUFD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm8                    \361\362\370\1\x70\110\26            AVX,SANDYBRIDGE
 ymmreg,ymmrm,imm8                    \361\362\364\370\1\x70\110\26        AVX2
 
 [VPSHUFHW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm8                    \333\362\370\1\x70\110\26            AVX,SANDYBRIDGE
 ymmreg,ymmrm,imm8                    \333\362\364\370\1\x70\110\26        AVX2
 
 [VPSHUFLW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm,imm8                    \334\362\370\1\x70\110\26            AVX,SANDYBRIDGE
 ymmreg,ymmrm,imm8                    \334\362\364\370\1\x70\110\26        AVX2
 
 [VPSIGNB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x08\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x08\75\120        AVX2
 
 [VPSIGND]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x0A\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x0A\75\120        AVX2
 
 [VPSIGNW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x09\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x09\75\120        AVX2
 
@@ -4633,47 +4633,47 @@ xmmreg,xmmreg,xmmrm                  \361\362\370\1\xF9\75\120            AVX,SA
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xF9\75\120        AVX2
 
 [VPTEST]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmrm                         \361\362\364\371\1\x17\110           AVX,SANDYBRIDGE
 xmmreg,xmmrm                         \361\362\371\1\x17\110               AVX,SANDYBRIDGE
 
 [VPUNPCKHBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x68\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x68\75\120        AVX2
 
 [VPUNPCKHDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x6A\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x6A\75\120        AVX2
 
 [VPUNPCKHQDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x6D\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x6D\75\120        AVX2
 
 [VPUNPCKHWD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x69\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x69\75\120        AVX2
 
 [VPUNPCKLBW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x60\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x60\75\120        AVX2
 
 [VPUNPCKLDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x62\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x62\75\120        AVX2
 
 [VPUNPCKLQDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x6C\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x6C\75\120        AVX2
 
 [VPUNPCKLWD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x61\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x61\75\120        AVX2
 
@@ -4683,37 +4683,37 @@ xmmreg,xmmreg,xmmrm                  \361\362\370\1\xEF\75\120            AVX,SA
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\xEF\75\120        AVX2
 
 [VRCPPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm                         \362\370\1\x53\110                   AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \362\364\370\1\x53\110               AVX,SANDYBRIDGE
 
 [VRCPSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem32                  \333\362\370\1\x53\75\120            AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x53\75\120            AVX,SANDYBRIDGE
 
 [VROUNDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmrm,imm8                    \361\362\364\372\1\x09\110\26        AVX,SANDYBRIDGE
 xmmreg,xmmrm,imm8                    \361\362\372\1\x09\110\26            AVX,SANDYBRIDGE
 
 [VROUNDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmrm,imm8                    \361\362\364\372\1\x08\110\26        AVX,SANDYBRIDGE
 xmmreg,xmmrm,imm8                    \361\362\372\1\x08\110\26            AVX,SANDYBRIDGE
 
 [VROUNDSD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem64,imm8             \361\362\372\1\x0B\75\120\27         AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg,imm8            \361\362\372\1\x0B\75\120\27         AVX,SANDYBRIDGE
 
 [VROUNDSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem32,imm8             \361\362\372\1\x0A\75\120\27         AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg,imm8            \361\362\372\1\x0A\75\120\27         AVX,SANDYBRIDGE
 
 [VRSQRTPS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 ymmreg,ymmrm                         \362\364\370\1\x52\110               AVX,SANDYBRIDGE
 xmmreg,xmmrm                         \362\370\1\x52\110                   AVX,SANDYBRIDGE
 
@@ -4723,22 +4723,22 @@ xmmreg,xmmreg,mem32                  \333\362\370\1\x52\75\120            AVX,SA
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x52\75\120            AVX,SANDYBRIDGE
 
 [VSHUFPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \361\362\370\1\xC6\75\120\27         AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\370\1\xC6\75\120\27     AVX,SANDYBRIDGE
 
 [VSHUFPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm,imm8             \362\370\1\xC6\75\120\27             AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm,imm8             \362\364\370\1\xC6\75\120\27         AVX,SANDYBRIDGE
 
 [VSQRTPD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \361\362\370\1\x51\110               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\370\1\x51\110           AVX,SANDYBRIDGE
 
 [VSQRTPS]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \362\370\1\x51\110                   AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \362\364\370\1\x51\110               AVX,SANDYBRIDGE
 
@@ -4753,7 +4753,7 @@ xmmreg,xmmreg,mem32                  \333\362\370\1\x51\75\120            AVX,SA
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x51\75\120            AVX,SANDYBRIDGE
 
 [VSTMXCSR]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem32                                \362\370\1\xAE\203                   AVX,SANDYBRIDGE
 
 [VSUBPD]
@@ -4777,42 +4777,42 @@ xmmreg,xmmreg,mem32                  \333\362\370\1\x5C\75\120            AVX,SA
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x5C\75\120            AVX,SANDYBRIDGE
 
 [VTESTPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmrm                         \361\362\371\1\x0F\110               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\371\1\x0F\110           AVX,SANDYBRIDGE
 
 [VTESTPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmrm                         \361\362\364\371\1\x0E\110           AVX,SANDYBRIDGE
 xmmreg,xmmrm                         \361\362\371\1\x0E\110               AVX,SANDYBRIDGE
 
 [VUCOMISD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem64                         \361\362\370\1\x2E\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\370\1\x2E\110               AVX,SANDYBRIDGE
 
 [VUCOMISS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem32                         \362\370\1\x2E\110                   AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \362\370\1\x2E\110                   AVX,SANDYBRIDGE
 
 [VUNPCKHPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x15\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x15\75\120        AVX,SANDYBRIDGE
 
 [VUNPCKHPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \362\370\1\x15\75\120                AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \362\364\370\1\x15\75\120            AVX,SANDYBRIDGE
 
 [VUNPCKLPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x14\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x14\75\120        AVX,SANDYBRIDGE
 
 [VUNPCKLPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \362\370\1\x14\75\120                AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \362\364\370\1\x14\75\120            AVX,SANDYBRIDGE
 
@@ -4827,11 +4827,11 @@ xmmreg,xmmreg,xmmrm                  \362\370\1\x57\75\120                AVX,SA
 ymmreg,ymmreg,ymmrm                  \362\364\370\1\x57\75\120            AVX,SANDYBRIDGE
 
 [VZEROALL]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                                 \362\364\370\1\x77                   AVX,SANDYBRIDGE
 
 [VZEROUPPER]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                                 \362\370\1\x77                       AVX,SANDYBRIDGE
 
 ;*******************************************************************************
@@ -4857,7 +4857,7 @@ reg16|32|64,regmem                    \320\333\2\x0F\xBC\110              BMI1,S
 ;*******************************************************************************
 
 [RORX]
-(Ch_Rop1, Ch_Wop2, Ch_None)
+(Ch_Rop1, Ch_Wop2)
 reg32,rm32,imm8                      \334\362\372\1\xf0\110\26            BMI2
 reg64,rm64,imm8                      \334\362\363\372\1\xf0\110\26        BMI2,X86_64
 
@@ -4882,146 +4882,146 @@ reg64,rm64,reg64                      \334\362\363\371\1\xf7\76\110       BMI2,X
 ;*******************************************************************************
 
 [VBROADCASTI128]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,mem128                        \361\362\364\371\1\x5A\110           AVX2
 
 [VEXTRACTI128]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmrm,ymmreg,imm8                    \361\362\364\372\1\x39\101\26        AVX2
 
 [VINSERTI128]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,xmmrm,imm8             \361\362\364\372\1\x38\75\120\27     AVX2
 
 [VPBLENDD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x02\75\120\27     AVX2
 xmmreg,xmmreg,xmmrm,imm8             \361\362\372\1\x02\75\120\27         AVX2
 
 [VPBROADCASTB]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg                        \361\362\371\1\x78\110               AVX2
 ymmreg,xmmreg                        \361\362\364\371\1\x78\110           AVX2
 xmmreg,mem8                          \361\362\371\1\x78\110               AVX2
 ymmreg,mem8                          \361\362\364\371\1\x78\110           AVX2
 
 [VPBROADCASTD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,xmmreg                        \361\362\364\371\1\x58\110           AVX2
 xmmreg,mem32                         \361\362\371\1\x58\110               AVX2
 xmmreg,xmmreg                        \361\362\371\1\x58\110               AVX2
 ymmreg,mem32                         \361\362\364\371\1\x58\110           AVX2
 
 [VPBROADCASTQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,mem64                         \361\362\364\371\1\x59\110           AVX2
 xmmreg,mem64                         \361\362\371\1\x59\110               AVX2
 xmmreg,xmmreg                        \361\362\371\1\x59\110               AVX2
 ymmreg,xmmreg                        \361\362\364\371\1\x59\110           AVX2
 
 [VPBROADCASTW]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,mem16                         \361\362\371\1\x79\110               AVX2
 xmmreg,xmmreg                        \361\362\371\1\x79\110               AVX2
 ymmreg,mem16                         \361\362\364\371\1\x79\110           AVX2
 ymmreg,xmmreg                        \361\362\364\371\1\x79\110           AVX2
 
 [VPERM2I128]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm,imm8             \361\362\364\372\1\x46\75\120\27     AVX2
 
 [VPERMD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x36\75\120        AVX2
 
 [VPERMPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmrm,imm8                    \361\362\363\364\372\1\x01\110\26    AVX2
 
 [VPERMPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x16\75\120        AVX2
 
 [VPERMQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmrm,imm8                    \361\362\363\364\372\1\x00\110\26    AVX2
 
 [VPMASKMOVD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem128                 \361\362\371\1\x8C\75\120            AVX2
 mem128,xmmreg,xmmreg                 \361\362\371\1\x8E\75\102            AVX2
 ymmreg,ymmreg,mem256                 \361\362\364\371\1\x8C\75\120        AVX2
 mem256,ymmreg,ymmreg                 \361\362\364\371\1\x8E\75\102        AVX2
 
 [VPMASKMOVQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,mem128                 \361\362\363\371\1\x8C\75\120        AVX2
 mem128,xmmreg,xmmreg                 \361\362\363\371\1\x8E\75\102        AVX2
 mem256,ymmreg,ymmreg                 \361\362\363\364\371\1\x8E\75\102    AVX2
 ymmreg,ymmreg,mem256                 \361\362\363\364\371\1\x8C\75\120    AVX2
 
 [VPSLLVD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x47\75\120        AVX2
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x47\75\120            AVX2
 
 [VPSLLVQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmmreg,xmmrm                  \361\362\363\371\1\x47\75\120        AVX2
 ymmreg,ymmreg,ymmrm                  \361\362\363\364\371\1\x47\75\120    AVX2
 
 [VPSRAVD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x46\75\120        AVX2
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x46\75\120            AVX2
 
 [VPSRLVD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm                  \361\362\364\371\1\x45\75\120        AVX2
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\x45\75\120            AVX2
 
 [VPSRLVQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 ymmreg,ymmreg,ymmrm                  \361\362\363\364\371\1\x45\75\120    AVX2
 xmmreg,xmmreg,xmmrm                  \361\362\363\371\1\x45\75\120        AVX2
 
 [VGATHERDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x92\76\110        AVX2
 ymmreg,xmem64,ymmreg                 \361\362\363\364\371\1\x92\76\110    AVX2
 
 [VGATHERDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmem32,xmmreg                 \361\362\371\1\x92\76\110            AVX2
 ymmreg,ymem32,ymmreg                 \361\362\364\371\1\x92\76\110        AVX2
 
 [VGATHERQPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x93\76\110        AVX2
 ymmreg,ymem64,ymmreg                 \361\362\363\364\371\1\x93\76\110    AVX2
 
 [VGATHERQPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmem32,xmmreg                 \361\362\371\1\x93\76\110            AVX2
 xmmreg,ymem32,xmmreg                 \361\362\364\371\1\x93\76\110        AVX2
 
 [VPGATHERDD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmem32,xmmreg                 \361\362\371\1\x90\76\110            AVX2
 ymmreg,ymem32,ymmreg                 \361\362\364\371\1\x90\76\110        AVX2
 
 [VPGATHERDQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x90\76\110        AVX2
 ymmreg,xmem64,ymmreg                 \361\362\363\364\371\1\x90\76\110    AVX2
 
 [VPGATHERQD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmem32,xmmreg                 \361\362\371\1\x91\76\110            AVX2
 xmmreg,ymem32,xmmreg                 \361\362\364\371\1\x91\76\110        AVX2
 
 [VPGATHERQQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x91\76\110        AVX2
 ymmreg,ymem64,ymmreg                 \361\362\363\364\371\1\x91\76\110    AVX2
 
@@ -5030,68 +5030,68 @@ ymmreg,ymem64,ymmreg                 \361\362\363\364\371\1\x91\76\110    AVX2
 ;*******************************************************************************
 
 [ADD4S]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                                  \2\x0F\x20                          NEC,16BITONLY
 
 [BRKEM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 imm                                   \2\x0F\xFF\24                       NEC,SB,16BITONLY
 
 [CLR1]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 rm8,reg_cl                            \2\x0F\x12\200                      NEC,16BITONLY
 rm16,reg_cl                           \2\x0F\x13\200                      NEC,16BITONLY
 rm8,imm                               \2\x0F\x1A\200\25                   NEC,SB,IMM3,16BITONLY
 rm16,imm                              \2\x0F\x1B\200\25                   NEC,SW,IMM4,16BITONLY
 
 [CMP4S]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                                  \2\x0F\x26                          NEC,16BITONLY
 
 [EXT]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg8,reg8                             \2\x0F\x33\101                      NEC,16BITONLY
 reg8,imm                              \2\x0F\x3B\200\25                   NEC,SB,IMM4,16BITONLY
 
 ;[FPO2]
 
 [INS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 reg8,reg8                             \2\x0F\x31\101                      NEC,16BITONLY
 reg8,imm                              \2\x0F\x39\200\25                   NEC,SB,IMM4,16BITONLY
 
 [NOT1]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 rm8,reg_cl                            \2\x0F\x16\200                      NEC,16BITONLY
 rm16,reg_cl                           \2\x0F\x17\200                      NEC,16BITONLY
 rm8,imm                               \2\x0F\x1E\200\25                   NEC,SB,IMM3,16BITONLY
 rm16,imm                              \2\x0F\x1F\200\25                   NEC,SW,IMM4,16BITONLY
 
 [REPC]
-(Ch_RWECX, Ch_RFlags, Ch_None)
+(Ch_RWECX, Ch_RFlags)
 void                                  \1\x65                              NEC,PRE,16BITONLY
 
 [REPNC]
-(Ch_RWECX, Ch_RFlags, Ch_None)
+(Ch_RWECX, Ch_RFlags)
 void                                  \1\x64                              NEC,PRE,16BITONLY
 
 [ROL4]
-(Ch_Mop1, Ch_RWEAX, Ch_None)
+(Ch_Mop1, Ch_RWEAX)
 rm8                                   \2\x0F\x28\200                      NEC,16BITONLY
 
 [ROR4]
-(Ch_Mop1, Ch_RWEAX, Ch_None)
+(Ch_Mop1, Ch_RWEAX)
 rm8                                   \2\x0F\x2A\200                      NEC,16BITONLY
 
 [SET1]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Mop2, Ch_Rop1)
 rm8,reg_cl                            \2\x0F\x14\200                      NEC,16BITONLY
 rm16,reg_cl                           \2\x0F\x15\200                      NEC,16BITONLY
 rm8,imm                               \2\x0F\x1C\200\25                   NEC,SB,IMM3,16BITONLY
 rm16,imm                              \2\x0F\x1D\200\25                   NEC,SW,IMM4,16BITONLY
 
 [SUB4S]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 void                                  \2\x0F\x22                          NEC,16BITONLY
 
 [TEST1]
@@ -5389,39 +5389,39 @@ xmmreg,xmmreg,xmmrm                  \361\362\371\1\xBF\75\120            FMA
 ;********** TSX ****************************************************************
 ;*******************************************************************************
 [XACQUIRE]
-(Ch_None, Ch_None, Ch_None)
+()
 void                                 \1\xF2                               TSX
 
 [XRELEASE]
-(Ch_None, Ch_None, Ch_None)
+()
 void                                 \1\xF3                               TSX
 
 [XBEGIN,xbeginX]
-(Ch_None, Ch_None, Ch_None)
+()
 mem                                  \320\2\xC7\xF8\64                    TSX
 ; mem|short                           \324\2\xC7\xF8\64                     TSX - Make correct xbeginW opcode and offset, but offset is 4 bytes long (need 2 bytes)
 
 [XABORT]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 imm                                  \2\xC6\xF8\24                        TSX,SB
 
 [XEND]
-(Ch_None, Ch_None, Ch_None)
+()
 void                                 \3\x0F\x01\xD5                       TSX
 
 [XTEST]
-(Ch_WFlags, Ch_None, Ch_None)
+(Ch_WFlags)
 void                                 \3\x0F\x01\xD6                       TSX
 
 ;*******************************************************************************
 ;********** RAND ***************************************************************
 ;*******************************************************************************
 [RDRAND]
-(Ch_Wop1, Ch_WFlags, CH_None)
+(Ch_Wop1, Ch_WFlags)
 reg16|32|64                          \320\2\x0F\xC7\206                   RAND
 
 [RDSEED]
-(Ch_Wop1, Ch_WFlags, CH_None)
+(Ch_Wop1, Ch_WFlags)
 reg16|32|64                          \320\2\x0F\xC7\207                   RAND
 
 ;*******************************************************************************
@@ -5435,6 +5435,6 @@ void                  \3\x0F\x01\xD0                                      XSAVE
 ;********** PREFETCHWT1 ********************************************************
 ;*******************************************************************************
 [PREFETCHWT1,prefetchwt1X]
-(Ch_All, Ch_None, Ch_None)
+(Ch_All)
 mem                   \2\x0F\x0D\202                                      PREFETCHWT1
 

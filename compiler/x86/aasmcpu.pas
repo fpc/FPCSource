@@ -196,7 +196,6 @@ interface
       instabentries = {$i i8086nop.inc}
 {$endif}
       maxinfolen    = 8;
-      MaxInsChanges = 3; { Max things a instruction can change }
 
     type
       { What an instruction can change. Needed for optimizer and spilling code.
@@ -228,7 +227,7 @@ interface
       );
 
       TInsProp = packed record
-        Ch : Array[1..MaxInsChanges] of TInsChange;
+        Ch : set of TInsChange;
       end;
 
       TMemRefSizeInfo = (msiUnkown, msiUnsupported, msiNoSize,
@@ -3474,34 +3473,27 @@ implementation
         new(operation_type_table);
         fillchar(operation_type_table^,sizeof(toperation_type_table),byte(operand_read));
         for opcode:=low(tasmop) to high(tasmop) do
-          begin
-            for i:=1 to MaxInsChanges do
-              begin
-                case InsProp[opcode].Ch[i] of
-                  Ch_Rop1 :
-                    operation_type_table^[opcode,0]:=operand_read;
-                  Ch_Wop1 :
-                    operation_type_table^[opcode,0]:=operand_write;
-                  Ch_RWop1,
-                  Ch_Mop1 :
-                    operation_type_table^[opcode,0]:=operand_readwrite;
-                  Ch_Rop2 :
-                    operation_type_table^[opcode,1]:=operand_read;
-                  Ch_Wop2 :
-                    operation_type_table^[opcode,1]:=operand_write;
-                  Ch_RWop2,
-                  Ch_Mop2 :
-                    operation_type_table^[opcode,1]:=operand_readwrite;
-                  Ch_Rop3 :
-                    operation_type_table^[opcode,2]:=operand_read;
-                  Ch_Wop3 :
-                    operation_type_table^[opcode,2]:=operand_write;
-                  Ch_RWop3,
-                  Ch_Mop3 :
-                    operation_type_table^[opcode,2]:=operand_readwrite;
-                end;
-              end;
-          end;
+          with InsProp[opcode] do
+            begin
+              if Ch_Rop1 in Ch then
+                operation_type_table^[opcode,0]:=operand_read;
+              if Ch_Wop1 in Ch then
+                operation_type_table^[opcode,0]:=operand_write;
+              if [Ch_RWop1,Ch_Mop1]*Ch<>[] then
+                operation_type_table^[opcode,0]:=operand_readwrite;
+              if Ch_Rop2 in Ch then
+                operation_type_table^[opcode,1]:=operand_read;
+              if Ch_Wop2 in Ch then
+                operation_type_table^[opcode,1]:=operand_write;
+              if [Ch_RWop2,Ch_Mop2]*Ch<>[] then
+                operation_type_table^[opcode,1]:=operand_readwrite;
+              if Ch_Rop3 in Ch then
+                operation_type_table^[opcode,2]:=operand_read;
+              if Ch_Wop3 in Ch then
+                operation_type_table^[opcode,2]:=operand_write;
+              if [Ch_RWop3,Ch_Mop3]*Ch<>[] then
+                operation_type_table^[opcode,2]:=operand_readwrite;
+            end;
       end;
 
 
