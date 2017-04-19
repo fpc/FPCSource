@@ -1397,6 +1397,8 @@ type
     function ResolvedElCanBeVarParam(const ResolvedEl: TPasResolverResult): boolean;
     function ResolvedElIsClassInstance(const ResolvedEl: TPasResolverResult): boolean;
     // uility functions
+    function GetTypeDescription(const R: TPasResolverResult; AddPath: boolean = false): string; virtual;
+    function GetBaseDescription(const R: TPasResolverResult; AddPath: boolean = false): string; virtual;
     function GetPasPropertyType(El: TPasProperty): TPasType;
     function GetPasPropertyAncestor(El: TPasProperty): TPasProperty;
     function GetPasPropertyGetter(El: TPasProperty): TPasElement;
@@ -9010,27 +9012,6 @@ end;
 procedure TPasResolver.RaiseIncompatibleTypeRes(id: int64; MsgNumber: integer;
   const Args: array of const; const GotType, ExpType: TPasResolverResult;
   ErrorEl: TPasElement);
-
-  function GetTypeDsc(const R: TPasResolverResult; AddPath: boolean = false): string;
-  begin
-    Result:=GetTypeDesc(R.TypeEl,AddPath);
-    if R.IdentEl=R.TypeEl then
-      begin
-      if R.TypeEl.ElementTypeName<>'' then
-        Result:=R.TypeEl.ElementTypeName+' '+Result
-      else
-        Result:='type '+Result;
-      end;
-  end;
-
-  function GetBaseDecs(const R: TPasResolverResult; AddPath: boolean = false): string;
-  begin
-    if R.BaseType=btContext then
-      Result:=GetTypeDsc(R,AddPath)
-    else
-      Result:=BaseTypeNames[R.BaseType];
-  end;
-
 var
   GotDesc, ExpDesc: String;
 begin
@@ -9039,25 +9020,25 @@ begin
   {$ENDIF}
   if GotType.BaseType<>ExpType.BaseType then
     begin
-    GotDesc:=GetBaseDecs(GotType);
+    GotDesc:=GetBaseDescription(GotType);
     if ExpType.BaseType=btNil then
       ExpDesc:=BaseTypeNames[btPointer]
     else
-      ExpDesc:=GetBaseDecs(ExpType);
+      ExpDesc:=GetBaseDescription(ExpType);
     if GotDesc=ExpDesc then
       begin
-      GotDesc:=GetBaseDecs(GotType,true);
-      ExpDesc:=GetBaseDecs(ExpType,true);
+      GotDesc:=GetBaseDescription(GotType,true);
+      ExpDesc:=GetBaseDescription(ExpType,true);
       end;
     end
   else if (GotType.TypeEl<>nil) and (ExpType.TypeEl<>nil) then
     begin
-    GotDesc:=GetTypeDsc(GotType);
-    ExpDesc:=GetTypeDsc(ExpType);
+    GotDesc:=GetTypeDescription(GotType);
+    ExpDesc:=GetTypeDescription(ExpType);
     if GotDesc=ExpDesc then
       begin
-      GotDesc:=GetTypeDsc(GotType,true);
-      ExpDesc:=GetTypeDsc(ExpType,true);
+      GotDesc:=GetTypeDescription(GotType,true);
+      ExpDesc:=GetTypeDescription(ExpType,true);
       end;
     end
   else
@@ -9994,6 +9975,28 @@ begin
       or (ResolvedEl.IdentEl.ClassType=TPasArgument)
       or (ResolvedEl.IdentEl.ClassType=TPasResultElement) then
     exit(true);
+end;
+
+function TPasResolver.GetTypeDescription(const R: TPasResolverResult;
+  AddPath: boolean): string;
+begin
+  Result:=GetTypeDesc(R.TypeEl,AddPath);
+  if R.IdentEl=R.TypeEl then
+    begin
+    if R.TypeEl.ElementTypeName<>'' then
+      Result:=R.TypeEl.ElementTypeName+' '+Result
+    else
+      Result:='type '+Result;
+    end;
+end;
+
+function TPasResolver.GetBaseDescription(const R: TPasResolverResult;
+  AddPath: boolean): string;
+begin
+  if R.BaseType=btContext then
+    Result:=GetTypeDescription(R,AddPath)
+  else
+    Result:=BaseTypeNames[R.BaseType];
 end;
 
 function TPasResolver.GetPasPropertyType(El: TPasProperty): TPasType;

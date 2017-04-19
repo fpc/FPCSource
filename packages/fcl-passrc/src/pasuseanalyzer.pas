@@ -636,6 +636,8 @@ begin
   if C=TPasUnresolvedSymbolRef then
   else if (C=TPasVariable) or (C=TPasConst) then
     UsePublished(TPasVariable(El).VarType)
+  else if (C=TPasArgument) then
+    UsePublished(TPasArgument(El).ArgType)
   else if C=TPasProperty then
     begin
     // published property
