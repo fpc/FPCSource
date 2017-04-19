@@ -1903,18 +1903,15 @@ void                  \1\xFD                          8086
 void                  \1\xFB                          8086
 
 [STOSB]
-; todo: also needs Ch_CDirFlag
-(Ch_REAX, Ch_WMemEDI, Ch_RWEDI)
+(Ch_REAX, Ch_WMemEDI, Ch_RWEDI, Ch_RDirFlag)
 void                  \1\xAA                          8086
 
 [STOSD,stosl]
-; todo: also needs Ch_CDirFlag
-(Ch_REAX, Ch_WMemEDI, Ch_RWEDI)
+(Ch_REAX, Ch_WMemEDI, Ch_RWEDI, Ch_RDirFlag)
 void                  \325\1\xAB                      386
 
 [STOSW]
-; todo: also needs Ch_CDirFlag
-(Ch_REAX, Ch_WMemEDI, Ch_RWEDI)
+(Ch_REAX, Ch_WMemEDI, Ch_RWEDI, Ch_RDirFlag)
 void                  \324\1\xAB                      8086
 
 [STR,strX]
