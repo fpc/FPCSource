@@ -457,6 +457,7 @@ type
     Procedure TestRTTI_PublishedFieldExternalFail;
     Procedure TestRTTI_Class_Field;
     Procedure TestRTTI_Class_Method;
+    Procedure TestRTTI_Class_MethodArgFlags;
     Procedure TestRTTI_Class_Property;
     Procedure TestRTTI_Class_PropertyParams;
     // ToDo: property default value
@@ -1394,10 +1395,12 @@ begin
   Add('  b2: boolean = true;');
   Add('  d2: double = 5.6;');
   Add('  i3: longint = $707;');
-  Add('  i4: int64 = 4503599627370495;');
-  Add('  i5: int64 = -4503599627370496;');
-  Add('  i6: int64 =   $fffffffffffff;');
-  Add('  i7: int64 = -$10000000000000;');
+  Add('  i4: nativeint = 4503599627370495;');
+  Add('  i5: nativeint = -4503599627370496;');
+  Add('  i6: nativeint =   $fffffffffffff;');
+  Add('  i7: nativeint = -$10000000000000;');
+  Add('  u8: nativeuint =  $fffffffffffff;');
+  Add('  u9: nativeuint =  $0000000000000;');
   Add('begin');
   ConvertProgram;
   CheckSource('TestVarBaseTypes',
@@ -1416,7 +1419,9 @@ begin
     'this.i4= 4503599627370495;',
     'this.i5= -4503599627370496;',
     'this.i6= 0xfffffffffffff;',
-    'this.i7=-0x10000000000000;'
+    'this.i7=-0x10000000000000;',
+    'this.u8= 0xfffffffffffff;',
+    'this.u9= 0x0000000000000;'
     ]),
     '');
 end;
@@ -11885,6 +11890,36 @@ begin
     '  $r.addMethod("Println", 0, [["a", rtl.longint], ["b", rtl.longint]], null, {',
     '    flags: 2',
     '  });',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_MethodArgFlags;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  published');
+  Add('    procedure OpenArray(const Args: array of string); virtual; abstract;');
+  Add('    procedure ByRef(var Value: longint; out Item: longint); virtual; abstract;');
+  Add('    procedure Untyped(var Value; out Item); virtual; abstract;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_MethodOpenArray',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '$r.addMethod("OpenArray", 0, [["Args", rtl.string, 10]]);',
+    '$r.addMethod("ByRef", 0, [["Value", rtl.longint, 1], ["Item", rtl.longint, 4]]);',
+    '$r.addMethod("Untyped", 0, [["Value", null, 1], ["Item", null, 4]]);',
     '});',
     '']),
     LinesToStr([ // $mod.$main

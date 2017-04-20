@@ -237,6 +237,7 @@ Works:
   - built-in function typeinfo(): Pointer/TTypeInfo/...;
     - typeinfo(class) -> class.$rtti
   - WPO skip not used typeinfo
+  - open array param
 - pointer
   - compare with and assign nil
 - ECMAScript6:
@@ -245,13 +246,10 @@ Works:
 
 ToDos:
 - RTTI
-  - open array param
-  - codetools function typeinfo
   - jsinteger (pasresolver: btIntDouble)
   - class property
     - defaultvalue
   - type alias type
-  - typinfo.pp functions to get/setprop
   - documentation
 - warn int64
 - move local types to unit scope
@@ -461,6 +459,7 @@ type
     pbivnSelf,
     pbivnWith,
     pbitnAnonymousPostfix,
+    pbitnIntDouble,
     pbitnTI,
     pbitnTIClass,
     pbitnTIClassRef,
@@ -473,7 +472,8 @@ type
     pbitnTIRecord,
     pbitnTIRefToProcVar,
     pbitnTISet,
-    pbitnTIStaticArray
+    pbitnTIStaticArray,
+    pbitnUIntDouble
     );
 
 const
@@ -555,6 +555,7 @@ const
     'Self',
     '$with',
     '$a',
+    'NativeInt',
     'tTypeInfo',
     'tTypeInfoClass',
     'tTypeInfoClassRef',
@@ -567,7 +568,8 @@ const
     'tTypeInfoRecord',
     'tTypeInfoRefToProcVar',
     'tTypeInfoSet',
-    'tTypeInfoStaticArray'
+    'tTypeInfoStaticArray',
+    'NativeUInt'
     );
 
   JSReservedWords: array[0..113] of string = (
@@ -690,8 +692,8 @@ const
 
 const
   ClassVarModifiersType = [vmClass,vmStatic];
-  LowJSInteger = -$10000000000000;
-  HighJSInteger = $fffffffffffff;
+  LowJSNativeInt = -$10000000000000;
+  HighJSNativeInt = $fffffffffffff;
   LowJSBoolean = false;
   HighJSBoolean = true;
 Type
@@ -777,22 +779,19 @@ const
     btString,
     btDouble,
     btBoolean,
-    //btByteBool,
-    //btWordBool,
-    //btLongBool,
-    //btQWordBool,
+    btByteBool,
+    btWordBool,
+    btLongBool,
+    btQWordBool,
     btByte,
     btShortInt,
     btWord,
     btSmallInt,
     btLongWord,
     btLongint,
-    //btQWord,
-    btInt64,
+    btUIntDouble,
+    btIntDouble,
     btPointer
-    //btFile,
-    //btText,
-    //btVariant
     ];
   bfAllJSBaseProcs = bfAllStandardProcs;
 
@@ -802,8 +801,7 @@ const
   btAllJSFloats = [btDouble];
   btAllJSBooleans = [btBoolean];
   btAllJSInteger = [btByte,btShortInt,btWord,btSmallInt,btLongWord,btLongint,
-    btInt64 // ToDo: remove int64
-    ];
+    btIntDouble,btUIntDouble];
   btAllJSValueSrcTypes = [btNil,btUntyped,btPointer]+btAllJSInteger
       +btAllJSStringAndChars+btAllJSFloats+btAllJSBooleans;
   btAllJSValueTypeCastTo = btAllJSInteger
@@ -1300,6 +1298,7 @@ type
       pfVar = 1;
       pfConst = 2;
       pfOut = 4;
+      pfArray = 8;
       // TProcedureFlag
       pfStatic = 1;
       pfVarargs = 2;
@@ -2570,6 +2569,7 @@ begin
   AnonymousElTypePostfix:=Pas2JSBuiltInNames[pbitnAnonymousPostfix];
   BaseTypeChar:=btWideChar;
   BaseTypeString:=btUnicodeString;
+  BaseTypeLength:=btIntDouble;
 end;
 
 destructor TPas2JSResolver.Destroy;
@@ -2596,7 +2596,11 @@ begin
   if InvalidProcs<>[] then
     for bf in InvalidProcs do
       RaiseInternalError(20170409180246,ResolverBuiltInProcNames[bf]);
-  inherited AddObjFPCBuiltInIdentifiers(TheBaseTypes,TheBaseProcs);
+  inherited AddObjFPCBuiltInIdentifiers(TheBaseTypes-[btUIntDouble,btIntDouble],TheBaseProcs);
+  if btUIntDouble in TheBaseTypes then
+    AddBaseType(Pas2JSBuiltInNames[pbitnUIntDouble],btUIntDouble);
+  if btIntDouble in TheBaseTypes then
+    AddBaseType(Pas2JSBuiltInNames[pbitnIntDouble],btIntDouble);
 end;
 
 function TPas2JSResolver.CheckTypeCastRes(const FromResolved,
@@ -8908,6 +8912,7 @@ var
   Param: TJSArrayLiteral;
   ArgName: String;
   Flags: Integer;
+  ArrType: TPasArrayType;
 begin
   // for each param add  "["argname",argtype,flags]"  Note: flags only if >0
   Param:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,Arg));
@@ -8915,14 +8920,21 @@ begin
   // add "argname"
   ArgName:=TransformVariableName(Arg,Arg.Name,AContext);
   Param.Elements.AddElement.Expr:=CreateLiteralString(Arg,ArgName);
+  Flags:=0;
   // add "argtype"
   if Arg.ArgType=nil then
     // untyped
     Param.Elements.AddElement.Expr:=CreateLiteralNull(Arg)
+  else if (Arg.ArgType.Name='') and (Arg.ArgType.ClassType=TPasArrayType) then
+    begin
+    // open array param
+    inc(Flags,pfArray);
+    ArrType:=TPasArrayType(Arg.ArgType);
+    Param.Elements.AddElement.Expr:=CreateTypeInfoRef(ArrType.ElType,AContext,Arg);
+    end
   else
     Param.Elements.AddElement.Expr:=CreateTypeInfoRef(Arg.ArgType,AContext,Arg);
   // add flags
-  Flags:=0;
   case Arg.Access of
     argDefault: ;
     argConst: inc(Flags,pfConst);
