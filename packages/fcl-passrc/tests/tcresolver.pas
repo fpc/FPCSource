@@ -338,6 +338,7 @@ type
     Procedure TestClassForwardAsAncestorFail;
     Procedure TestClassForwardNotResolved;
     Procedure TestClass_Method;
+    Procedure TestClass_ConstructorMissingDotFail;
     Procedure TestClass_MethodWithoutClassFail;
     Procedure TestClass_MethodWithParams;
     Procedure TestClass_MethodUnresolvedPrg;
@@ -355,6 +356,7 @@ type
     Procedure TestClass_MethodOverrideSameResultType;
     Procedure TestClass_MethodOverrideDiffResultTypeFail;
     Procedure TestClass_MethodOverloadAncestor;
+    Procedure TestClass_MethodOverloadArrayOfTClass;
     Procedure TestClass_MethodScope;
     Procedure TestClass_IdentifierSelf;
     Procedure TestClassCallInherited;
@@ -4668,6 +4670,21 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestClass_ConstructorMissingDotFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  'constructor Create; begin end;',
+  'begin',
+  '']);
+  CheckResolverException('full method name expected, but short name found',
+    nXExpectedButYFound);
+end;
+
 procedure TTestResolver.TestClass_MethodWithoutClassFail;
 begin
   StartProgram(false);
@@ -4997,6 +5014,59 @@ begin
   Add('end;');
   Add('procedure TCar.DoIt(i: longint); begin end;');
   Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_MethodOverloadArrayOfTClass;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '    constructor {#A}Builder(AClass: TClass; AName: string); reintroduce; overload; virtual;',
+  '    constructor {#B}Builder(AClass: TClass); reintroduce; overload; virtual;',
+  '    constructor {#C}Builder(AClassArray: Array of TClass); reintroduce; overload; virtual;',
+  '    constructor {#D}Builder(AName: string); reintroduce; overload; virtual;',
+  '    constructor {#E}Builder; reintroduce; overload; virtual;',
+  '    class var ClassName: string;',
+  '  end;',
+  '  TTestCase = class end;',
+  'constructor TObject.Builder(AClass: TClass; AName: string);',
+  'begin',
+  '  Builder(AClass);',
+  'end;',
+  'constructor TObject.Builder(AClass: TClass);',
+  'begin',
+  '  Builder(AClass.ClassName);',
+  'end;',
+  'constructor TObject.Builder(AClassArray: Array of TClass);',
+  'var',
+  '  i: longint;',
+  'begin',
+  '  Builder;',
+  '  for i := Low(AClassArray) to High(AClassArray) do',
+  '    if Assigned(AClassArray[i]) then ;',
+  'end;',
+  'constructor TObject.Builder(AName: string);',
+  'begin',
+  '  Builder();',
+  'end;',
+  'constructor TObject.Builder;',
+  'begin',
+  'end;',
+  'var',
+  '  o: TObject;',
+  'begin',
+  '  o.{@A}Builder(TTestCase,''first'');',
+  '  o.{@B}Builder(TTestCase);',
+  '  o.{@C}Builder([]);',
+  '  o.{@C}Builder([TTestCase]);',
+  '  o.{@C}Builder([TObject,TTestCase]);',
+  '  o.{@D}Builder(''fourth'');',
+  '  o.{@E}Builder();',
+  '  o.{@E}Builder;',
+  '']);
   ParseProgram;
 end;
 
