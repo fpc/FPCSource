@@ -2303,7 +2303,7 @@ begin
     if not (LHS.TypeEl is TPasUnresolvedSymbolRef) then
       begin
       {$IFDEF VerbosePas2JS}
-      writeln('TPas2JSResolver.CheckAssignCompatibilityCustomBaseType LHS=',GetResolverResultDesc(LHS));
+      writeln('TPas2JSResolver.CheckAssignCompatibilityCustomBaseType LHS=',GetResolverResultDbg(LHS));
       {$ENDIF}
       RaiseInternalError(20170325114554);
       end;
@@ -2388,7 +2388,7 @@ begin
     if not (LHS.TypeEl is TPasUnresolvedSymbolRef) then
       begin
       {$IFDEF VerbosePas2JS}
-      writeln('TPas2JSResolver.CheckEqualCompatibilityCustomType LHS=',GetResolverResultDesc(LHS));
+      writeln('TPas2JSResolver.CheckEqualCompatibilityCustomType LHS=',GetResolverResultDbg(LHS));
       {$ENDIF}
       RaiseInternalError(20170330005841);
       end;
@@ -2516,7 +2516,7 @@ begin
   if TIName='' then
     begin
     {$IFDEF VerbosePas2JS}
-    writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult ',GetResolverResultDesc(ParamResolved));
+    writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult ',GetResolverResultDbg(ParamResolved));
     {$ENDIF}
     RaiseMsg(20170413091852,nTypeIdentifierExpected,sTypeIdentifierExpected,[],Param);
     end;
@@ -2604,7 +2604,7 @@ var
 begin
   Result:=cIncompatible;
   {$IFDEF VerbosePas2JS}
-  writeln('TPas2JSResolver.CheckTypeCastCustomBaseType To=',GetResolverResultDesc(ToResolved),' From=',GetResolverResultDesc(FromResolved));
+  writeln('TPas2JSResolver.CheckTypeCastCustomBaseType To=',GetResolverResultDbg(ToResolved),' From=',GetResolverResultDbg(FromResolved));
   {$ENDIF}
   if rrfReadable in FromResolved.Flags then
     begin
@@ -2669,8 +2669,7 @@ begin
               and (FromResolved.BaseType in btAllJSStringAndChars) then
             exit(cExact);
           if IsExternalClassName(ToClass,'Array')
-              and ((FromResolved.BaseType=btArray)
-                  or (FromResolved.BaseType=btContext)) then
+              and (FromResolved.BaseType=btContext) then
             exit(cExact);
           end;
         end
@@ -3628,7 +3627,7 @@ begin
         NotSupported;
       AContext.Resolver.ComputeElement(El.Operand,ResolvedEl,[rcNoImplicitProc]);
       {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.ConvertUnaryExpression ',GetResolverResultDesc(ResolvedEl));
+      writeln('TPasToJSConverter.ConvertUnaryExpression ',GetResolverResultDbg(ResolvedEl));
       {$ENDIF}
       if ResolvedEl.BaseType=btProc then
         begin
@@ -3896,7 +3895,7 @@ begin
       Result:=ConvertBinaryExpressionRes(El,AContext,LeftResolved,RightResolved,A,B);
       if Result<>nil then exit;
       {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.ConvertBinaryExpression Left=',GetResolverResultDesc(LeftResolved),' Right=',GetResolverResultDesc(RightResolved));
+      writeln('TPasToJSConverter.ConvertBinaryExpression Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
       {$ENDIF}
       end;
 
@@ -4014,7 +4013,7 @@ var
   InOp: TJSRelationalExpressionIn;
 begin
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.ConvertBinaryExpressionRes OpCode="',OpcodeStrings[El.OpCode],'" Left=',GetResolverResultDesc(LeftResolved),' Right=',GetResolverResultDesc(RightResolved));
+  writeln('TPasToJSConverter.ConvertBinaryExpressionRes OpCode="',OpcodeStrings[El.OpCode],'" Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
   {$ENDIF}
   Result:=nil;
   if LeftResolved.BaseType=btSet then
@@ -5147,7 +5146,7 @@ begin
   // has Resolver
   AContext.Resolver.ComputeElement(El.Value,ResolvedEl,[]);
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.ConvertArrayParams Value=',GetResolverResultDesc(ResolvedEl));
+  writeln('TPasToJSConverter.ConvertArrayParams Value=',GetResolverResultDbg(ResolvedEl));
   {$ENDIF}
   if ResolvedEl.BaseType in btAllJSStrings then
     ConvertStringBracket
@@ -5176,7 +5175,7 @@ begin
     else if TypeEl.ClassType=TPasArrayType then
       ConvertArray(TPasArrayType(TypeEl))
     else
-      RaiseNotSupported(El,AContext,20170206181220,GetResolverResultDesc(ResolvedEl));
+      RaiseNotSupported(El,AContext,20170206181220,GetResolverResultDbg(ResolvedEl));
     end
   else
     RaiseNotSupported(El,AContext,20170206180222);
@@ -5684,7 +5683,7 @@ begin
       end;
     end;
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.ConvertTypeCastToBaseType BaseTypeData=',BaseTypeNames[to_bt],' ParamResolved=',GetResolverResultDesc(ParamResolved));
+  writeln('TPasToJSConverter.ConvertTypeCastToBaseType BaseTypeData=',BaseTypeNames[to_bt],' ParamResolved=',GetResolverResultDbg(ParamResolved));
   {$ENDIF}
   RaiseNotSupported(El,AContext,20170325161150);
 end;
@@ -5846,7 +5845,7 @@ begin
     RaiseInconsistency(20170213213621);
   AContext.Resolver.ComputeElement(Param0,ResolvedParam0,[rcNoImplicitProc]);
   {$IFDEF VerbosePasResolver}
-  writeln('TPasToJSConverter.ConvertBuiltInSetLength ',GetResolverResultDesc(ResolvedParam0));
+  writeln('TPasToJSConverter.ConvertBuiltInSetLength ',GetResolverResultDbg(ResolvedParam0));
   {$ENDIF}
   if ResolvedParam0.TypeEl is TPasArrayType then
     begin
@@ -5906,7 +5905,7 @@ begin
     end;
     end
   else
-    RaiseNotSupported(El.Value,AContext,20170130141026,'setlength '+GetResolverResultDesc(ResolvedParam0));
+    RaiseNotSupported(El.Value,AContext,20170130141026,'setlength '+GetResolverResultDbg(ResolvedParam0));
 end;
 
 function TPasToJSConverter.ConvertBuiltIn_ExcludeInclude(El: TParamsExpr;
@@ -6018,7 +6017,7 @@ begin
   Param:=El.Params[0];
   AContext.Resolver.ComputeElement(Param,ParamResolved,[rcNoImplicitProcType]);
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.ConvertBuiltInAssigned ParamResolved=',GetResolverResultDesc(ParamResolved));
+  writeln('TPasToJSConverter.ConvertBuiltInAssigned ParamResolved=',GetResolverResultDbg(ParamResolved));
   {$ENDIF}
   if ParamResolved.BaseType=btPointer then
     begin
@@ -6613,7 +6612,7 @@ begin
     Call:=CreateCallExpression(El);
     try
       {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.ConvertBuiltInConcatArray Count=',length(El.Params),' ElType=',GetResolverResultDesc(ElTypeResolved));
+      writeln('TPasToJSConverter.ConvertBuiltInConcatArray Count=',length(El.Params),' ElType=',GetResolverResultDbg(ElTypeResolved));
       {$ENDIF}
       if ElTypeResolved.BaseType=btContext then
         begin
@@ -9344,7 +9343,7 @@ begin
         end;
       AContext.Resolver.ComputeElement(El.right,AssignContext.RightResolved,Flags);
       {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.ConvertAssignStatement Left={',GetResolverResultDesc(AssignContext.LeftResolved),'} Right={',GetResolverResultDesc(AssignContext.RightResolved),'}');
+      writeln('TPasToJSConverter.ConvertAssignStatement Left={',GetResolverResultDbg(AssignContext.LeftResolved),'} Right={',GetResolverResultDbg(AssignContext.RightResolved),'}');
       {$ENDIF}
       if LeftIsProcType and (msDelphi in AContext.CurrentModeswitches)
           and (AssignContext.RightResolved.BaseType=btProc) then
@@ -9368,7 +9367,7 @@ begin
       begin
       // right side is a set variable -> create reference
       {$IFDEF VerbosePas2JS}
-      //writeln('TPasToJSConverter.ConvertAssignStatement SET variable Right={',GetResolverResultDesc(AssignContext.RightResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(AssignContext.RightResolved.IdentEl));
+      //writeln('TPasToJSConverter.ConvertAssignStatement SET variable Right={',GetResolverResultDbg(AssignContext.RightResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(AssignContext.RightResolved.IdentEl));
       {$ENDIF}
       // create  rtl.refSet(right)
       AssignContext.RightSide:=CreateReferencedSet(El.right,AssignContext.RightSide);
@@ -9379,7 +9378,7 @@ begin
         begin
         // right side is a record -> clone
         {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.ConvertAssignStatement RECORD variable Right={',GetResolverResultDesc(AssignContext.RightResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(AssignContext.RightResolved.IdentEl));
+        writeln('TPasToJSConverter.ConvertAssignStatement RECORD variable Right={',GetResolverResultDbg(AssignContext.RightResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(AssignContext.RightResolved.IdentEl));
         {$ENDIF}
         // create  "new RightRecordType(RightRecord)"
         AssignContext.RightSide:=CreateCloneRecord(El.right,
@@ -10276,7 +10275,7 @@ begin
     ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
     try
       AContext.Resolver.ComputeElement(Expr,ExprResolved,[rcConstant]);
-      if (ExprResolved.BaseType=btArray)
+      if (ExprResolved.BaseType=btSet)
           and (ExprResolved.ExprEl is TArrayValues) then
         begin
         ArrayValues:=TArrayValues(ExprResolved.ExprEl).Values;
@@ -10453,7 +10452,7 @@ begin
       begin
       if El is TPasVariable then
         begin
-        //writeln('TPasToJSConverter.CreateReferencePath Left=',GetResolverResultDesc(Dot.LeftResolved),' Right=class var ',GetObjName(El));
+        //writeln('TPasToJSConverter.CreateReferencePath Left=',GetResolverResultDbg(Dot.LeftResolved),' Right=class var ',GetObjName(El));
         if (ClassVarModifiersType*TPasVariable(El).VarModifiers<>[])
             and (Dot.Access=caAssign)
             and Dot.Resolver.ResolvedElIsClassInstance(Dot.LeftResolved) then
@@ -10749,7 +10748,7 @@ begin
         begin
         // right side is a set variable -> create reference
         {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.CreateProcedureCallArg create reference of SET variable Right={',GetResolverResultDesc(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
+        writeln('TPasToJSConverter.CreateProcedureCallArg create reference of SET variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
         {$ENDIF}
         // create  rtl.refSet(right)
         Result:=CreateReferencedSet(El,Result);
@@ -10761,7 +10760,7 @@ begin
           begin
           // right side is a record -> clone
           {$IFDEF VerbosePas2JS}
-          writeln('TPasToJSConverter.CreateProcedureCallArg clone RECORD variable Right={',GetResolverResultDesc(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
+          writeln('TPasToJSConverter.CreateProcedureCallArg clone RECORD variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
           {$ENDIF}
           // create  "new RightRecordType(RightRecord)"
           Result:=CreateCloneRecord(El,ExprResolved,Result,AContext);
