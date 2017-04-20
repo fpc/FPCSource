@@ -466,7 +466,11 @@ implementation
              maskvalue:=get_ordinal_value(tcallparanode(left).left)
           else
             begin
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,tcallparanode(left).right.resultdef,true);
+              { for shift/rotate the shift count can be of different size than the shifted variable }
+              if inlinenumber in [in_sar_assign_x_y,in_shl_assign_x_y,in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y] then
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,tcallparanode(left).left.resultdef,true)
+              else
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,tcallparanode(left).right.resultdef,true);
               hregister:=tcallparanode(left).left.location.register;
 {$ifndef cpu64bitalu}
               hregisterhi:=tcallparanode(left).left.location.register64.reghi;

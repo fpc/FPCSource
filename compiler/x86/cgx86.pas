@@ -2070,7 +2070,20 @@ unit cgx86;
       begin
         tmpref:=ref;
         make_simple_ref(list,tmpref);
-        if not (op in [OP_NEG,OP_NOT]) then
+        { we don't check the register size for some operations, for the following reasons:
+          NEG,NOT:
+            reg isn't used in these operations (they are unary and use only ref)
+          SHR,SHL,SAR,ROL,ROR:
+            We allow the register size to differ from the destination size.
+            This allows generating better code when performing, for example, a
+            shift/rotate in place (x:=x shl y) of a byte variable. In this case,
+            we allow the shift count (y) to be located in a 32-bit register,
+            even though x is a byte. This:
+              - reduces register pressure on i386 (because only EAX,EBX,ECX and
+                EDX have 8-bit subregisters)
+              - avoids partial register writes, which can cause various
+                performance issues on modern out-of-order execution x86 CPUs }
+        if not (op in [OP_NEG,OP_NOT,OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR]) then
           check_register_size(size,reg);
         if (op=OP_MUL) and not (cs_check_overflow in current_settings.localswitches) then
           op:=OP_IMUL;
@@ -2085,7 +2098,7 @@ unit cgx86;
             begin
               { Use ecx to load the value, that allows better coalescing }
               getcpuregister(list,REGCX);
-              a_load_reg_reg(list,size,REGCX_Size,reg,REGCX);
+              a_load_reg_reg(list,reg_cgsize(reg),REGCX_Size,reg,REGCX);
               list.concat(taicpu.op_reg_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],NR_CL,tmpref));
               ungetcpuregister(list,REGCX);
             end;
