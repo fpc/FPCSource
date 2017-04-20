@@ -217,6 +217,9 @@ interface
         Ch_Rop1, Ch_Wop1, Ch_RWop1,Ch_Mop1,
         Ch_Rop2, Ch_Wop2, Ch_RWop2,Ch_Mop2,
         Ch_Rop3, Ch_WOp3, Ch_RWOp3,Ch_Mop3,
+        { instruction doesn't read it's input register, in case both parameters
+          are the same register (e.g. xor eax,eax; sub eax,eax; sbb eax,eax (reads flags only), etc.) }
+        Ch_NoReadIfEqualRegs,
         Ch_WMemEDI,
         Ch_All,
         { x86_64 registers }

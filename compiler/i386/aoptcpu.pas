@@ -233,6 +233,15 @@ unit aoptcpu;
                         exit
                       end;
                 end;
+                if ([Ch_RFlags,Ch_RWFlags]*Ch<>[]) and (reg=NR_DEFAULTFLAGS) then
+                  begin
+                    RegReadByInstruction := true;
+                    exit
+                  end;
+                if (Ch_NoReadIfEqualRegs in Ch) and (p.ops=2) and
+                   (p.oper[0]^.typ=top_reg) and (p.oper[1]^.typ=top_reg) and
+                   (p.oper[0]^.reg=p.oper[1]^.reg) then
+                  exit;
                 if ([CH_RWOP1,CH_ROP1,CH_MOP1]*Ch<>[]) and reginop(reg,p.oper[0]^) then
                   begin
                     RegReadByInstruction := true;
@@ -244,11 +253,6 @@ unit aoptcpu;
                     exit
                   end;
                 if ([Ch_RWOP3,Ch_ROP3,Ch_MOP3]*Ch<>[]) and reginop(reg,p.oper[2]^) then
-                  begin
-                    RegReadByInstruction := true;
-                    exit
-                  end;
-                if ([Ch_RFlags,Ch_RWFlags]*Ch<>[]) and (reg=NR_DEFAULTFLAGS) then
                   begin
                     RegReadByInstruction := true;
                     exit
