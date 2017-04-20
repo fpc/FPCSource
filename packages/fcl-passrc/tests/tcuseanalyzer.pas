@@ -117,6 +117,7 @@ type
     procedure TestWP_PublishedRecordType;
     procedure TestWP_PublishedProcType;
     procedure TestWP_PublishedProperty;
+    procedure TestWP_BuiltInFunctions;
   end;
 
 implementation
@@ -1631,6 +1632,18 @@ begin
   Add('  {#o_used}o: TObject;');
   Add('begin');
   Add('  if o.Size=13 then ;');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_BuiltInFunctions;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#tordenum_used}TOrdEnum = (ordenum1,ordenum2);',
+  'begin',
+  '  if ord(ordenum1)=1 then ;',
+  '']);
   AnalyzeWholeProgram;
 end;
 

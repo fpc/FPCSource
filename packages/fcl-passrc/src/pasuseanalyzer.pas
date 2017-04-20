@@ -610,7 +610,12 @@ begin
   else if C.InheritsFrom(TPasExpr) then
     UseExpr(TPasExpr(El))
   else if C=TPasEnumValue then
-    MarkElementAsUsed(El)
+    begin
+    repeat
+      MarkElementAsUsed(El);
+      El:=El.Parent;
+    until not (El is TPasType);
+    end
   else if C.InheritsFrom(TPasModule) then
     // e.g. unitname.identifier -> the module is used by the identifier
   else
