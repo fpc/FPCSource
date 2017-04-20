@@ -362,8 +362,12 @@ type
     btShortInt,    // shortint -128..127
     btWord,        // word  unsigned 2 bytes
     btSmallInt,    // smallint signed 2 bytes
+    btUIntSingle,  // unsigned integer range of single 22bit
+    btIntSingle,   // integer range of single  23bit
     btLongWord,    // longword unsigned 4 bytes
     btLongint,     // longint  signed 4 bytes
+    btUIntDouble,  // unsigned integer range of double 52bit
+    btIntDouble,   // integer range of double  53bit
     btQWord,       // qword   0..18446744073709551615, bytes 8
     btInt64,       // int64   -9223372036854775808..9223372036854775807, bytes 8
     btComp,        // comp  -2E64+1..2E63-1, digits 19-20, bytes 8
@@ -379,13 +383,13 @@ type
     );
   TResolveBaseTypes = set of TResolverBaseType;
 const
-  btAllInteger = [btByte,btShortInt,btWord,btSmallInt,
-    btLongWord,btLongint,btQWord,btInt64,btComp];
+  btAllInteger = [btByte,btShortInt,btWord,btSmallInt,btIntSingle,btUIntSingle,
+    btLongWord,btLongint,btIntDouble,btUIntDouble,btQWord,btInt64];
   btAllChars = [btChar,btAnsiChar,btWideChar];
   btAllStrings = [btString,btAnsiString,btShortString,
     btWideString,btUnicodeString,btRawByteString];
   btAllStringAndChars = btAllStrings+btAllChars;
-  btAllFloats = [btSingle,btDouble,btExtended,btCExtended,btCurrency];
+  btAllFloats = [btSingle,btDouble,btExtended,btCExtended,btCurrency,btComp];
   btAllBooleans = [btBoolean,btByteBool,btWordBool,btLongBool,btQWordBool];
   btAllStandardTypes = [
     btChar,
@@ -452,8 +456,12 @@ const
     'ShortInt',
     'Word',
     'SmallInt',
+    'UIntSingle',
+    'IntSingle',
     'LongWord',
     'Longint',
+    'UIntDouble',
+    'IntDouble',
     'QWord',
     'Int64',
     'Comp',
@@ -999,6 +1007,7 @@ type
     FAnonymousElTypePostfix: String;
     FBaseTypeChar: TResolverBaseType;
     FBaseTypeExtended: TResolverBaseType;
+    FBaseTypeLength: TResolverBaseType;
     FBaseTypes: array[TResolverBaseType] of TPasUnresolvedSymbolRef;
     FBaseTypeString: TResolverBaseType;
     FDefaultScope: TPasDefaultScope;
@@ -1440,6 +1449,7 @@ type
     property BaseTypeChar: TResolverBaseType read FBaseTypeChar write FBaseTypeChar;
     property BaseTypeExtended: TResolverBaseType read FBaseTypeExtended write FBaseTypeExtended;
     property BaseTypeString: TResolverBaseType read FBaseTypeString write FBaseTypeString;
+    property BaseTypeLength: TResolverBaseType read FBaseTypeLength write FBaseTypeLength;
     property LastElement: TPasElement read FLastElement;
     property StoreSrcColumns: boolean read FStoreSrcColumns write FStoreSrcColumns; {
        If true Line and Column is mangled together in TPasElement.SourceLineNumber.
@@ -7171,7 +7181,8 @@ procedure TPasResolver.BI_Length_OnGetCallResult(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
 begin
   if Params=nil then ;
-  SetResolverIdentifier(ResolvedEl,btInt64,Proc.Proc,FBaseTypes[btInt64],[rrfReadable]);
+  SetResolverIdentifier(ResolvedEl,BaseTypeLength,Proc.Proc,
+    FBaseTypes[BaseTypeLength],[rrfReadable]);
 end;
 
 function TPasResolver.BI_SetLength_OnGetCallCompatibility(
@@ -7605,7 +7616,8 @@ begin
       // array: result type is type of first dimension
       ArrayEl:=TPasArrayType(TypeEl);
       if length(ArrayEl.Ranges)=0 then
-        SetResolverIdentifier(ResolvedEl,btInt64,Proc.Proc,FBaseTypes[btInt64],[rrfReadable])
+        SetResolverIdentifier(ResolvedEl,BaseTypeLength,Proc.Proc,
+          FBaseTypes[BaseTypeLength],[rrfReadable])
       else
         begin
         ComputeElement(ArrayEl.Ranges[0],ResolvedEl,[rcConstant]);
@@ -8074,6 +8086,7 @@ begin
   FBaseTypeChar:=btAnsiChar;
   FBaseTypeString:=btAnsiString;
   FBaseTypeExtended:=btDouble;
+  FBaseTypeLength:=btInt64;
   FScopeClass_Class:=TPasClassScope;
   FScopeClass_WithExpr:=TPasWithExprScope;
   PushScope(FDefaultScope);
@@ -9731,17 +9744,30 @@ begin
       case LBT of
       btByte,
       btShortInt: inc(Result,cLossyConversion);
-      btWord,btSmallInt:
+      btWord,
+      btSmallInt:
         if not (RBT in [btByte,btShortInt]) then
+          inc(Result,cLossyConversion);
+      btUIntSingle:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt]) then
+          inc(Result,cLossyConversion);
+      btIntSingle:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btUIntSingle]) then
           inc(Result,cLossyConversion);
       btLongWord,
       btLongint:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt]) then
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btUIntSingle,btIntSingle]) then
+          inc(Result,cLossyConversion);
+      btUIntDouble:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,btLongint]) then
+          inc(Result,cLossyConversion);
+      btIntDouble:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,btLongint,btUIntDouble]) then
           inc(Result,cLossyConversion);
       btQWord,
-      btInt64,
-      btComp:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,btLongint]) then
+      btInt64:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btUIntSingle,btIntSingle,
+            btLongWord,btLongint,btUIntDouble,btIntDouble]) then
           inc(Result,cLossyConversion);
       else
         RaiseNotYetImplemented(20170417205301,ErrorEl,BaseTypeNames[LBT]);
@@ -9764,6 +9790,10 @@ begin
             btLongint,btInt64,btComp,btSingle,btDouble]) then
           inc(Result,cLossyConversion);
       btCurrency:
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,
+            btLongint,btSingle]) then
+          inc(Result,cLossyConversion);
+      btComp:
         if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,
             btLongint,btSingle]) then
           inc(Result,cLossyConversion);
@@ -11840,8 +11870,12 @@ begin
   btShortInt: begin Precision:=8; Signed:=true; end;
   btWord: begin Precision:=16; Signed:=false; end;
   btSmallInt: begin Precision:=16; Signed:=true; end;
+  btIntSingle: begin Precision:=23; Signed:=true; end;
+  btUIntSingle: begin Precision:=22; Signed:=false; end;
   btLongWord: begin Precision:=32; Signed:=false; end;
   btLongint: begin Precision:=32; Signed:=true; end;
+  btIntDouble: begin Precision:=53; Signed:=true; end;
+  btUIntDouble: begin Precision:=52; Signed:=false; end;
   btQWord: begin Precision:=64; Signed:=false; end;
   btInt64: begin Precision:=64; Signed:=true; end;
   else
@@ -11868,6 +11902,10 @@ begin
       Result:=btWord;
     if BaseTypes[Result]<>nil then exit;
     end;
+  if (Precision<=22) and (not Signed) and (BaseTypes[btUIntSingle]<>nil) then
+    exit(btUIntSingle);
+  if (Precision<=23) and Signed and (BaseTypes[btIntSingle]<>nil) then
+    exit(btIntSingle);
   if Precision<=32 then
     begin
     if Signed then
@@ -11876,6 +11914,10 @@ begin
       Result:=btLongWord;
     if BaseTypes[Result]<>nil then exit;
     end;
+  if (Precision<=52) and (not Signed) and (BaseTypes[btUIntDouble]<>nil) then
+    exit(btUIntDouble);
+  if (Precision<=53) and Signed and (BaseTypes[btIntDouble]<>nil) then
+    exit(btIntDouble);
   if Precision<=64 then
     begin
     if Signed then
