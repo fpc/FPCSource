@@ -39,7 +39,9 @@ unit aoptcpu;
   Implementation
 
     uses
+      globals,
       verbose,
+      cpuinfo,
       aoptx86,
       aasmcpu;
 
@@ -70,7 +72,11 @@ unit aoptcpu;
 
                       OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp2).oper[0]^) and
 
-                      (MatchOperand(taicpu(hp2).oper[1]^,NR_ES) or MatchOperand(taicpu(hp2).oper[1]^,NR_DS)) and
+                      (MatchOperand(taicpu(hp2).oper[1]^,NR_ES) or MatchOperand(taicpu(hp2).oper[1]^,NR_DS) or
+                       ((current_settings.cputype>=cpu_386) and
+                        (MatchOperand(taicpu(hp2).oper[1]^,NR_SS) or
+                         MatchOperand(taicpu(hp2).oper[1]^,NR_FS) or
+                         MatchOperand(taicpu(hp2).oper[1]^,NR_GS)))) and
 
                       (taicpu(p).oper[0]^.ref^.base=taicpu(hp1).oper[0]^.ref^.base) and
                       (taicpu(p).oper[0]^.ref^.index=taicpu(hp1).oper[0]^.ref^.index) and
@@ -85,6 +91,12 @@ unit aoptcpu;
                             taicpu(p).opcode:=A_LDS;
                           NR_ES:
                             taicpu(p).opcode:=A_LES;
+                          NR_SS:
+                            taicpu(p).opcode:=A_LSS;
+                          NR_FS:
+                            taicpu(p).opcode:=A_LFS;
+                          NR_GS:
+                            taicpu(p).opcode:=A_LGS;
                           else
                             internalerror(2015092601);
                         end;
