@@ -5923,6 +5923,7 @@ end;
 procedure TPasResolver.AddFunctionResult(El: TPasResultElement);
 begin
   if TopScope.ClassType<>TPasProcedureScope then exit;
+  if not (El.Parent is TPasProcedure) then exit;
   AddIdentifier(TPasProcedureScope(TopScope),ResolverResultVar,El,pikSimple);
 end;
 

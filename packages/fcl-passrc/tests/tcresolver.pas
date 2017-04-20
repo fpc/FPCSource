@@ -542,6 +542,7 @@ type
     Procedure TestProcType_Property;
     Procedure TestProcType_PropertyCallWrongArgFail;
     Procedure TestProcType_Typecast;
+    Procedure TestProcType_InsideFunction;
 
     // pointer
     Procedure TestPointer;
@@ -8891,6 +8892,22 @@ begin
   Add('  FuncB:=TFuncB(ProcA);');
   Add('  ProcA:=TProcA(p);');
   Add('  FuncB:=TFuncB(p);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_InsideFunction;
+begin
+  StartProgram(false);
+  Add([
+  'function GetIt: longint;',
+  'type TGetter = function: longint;',
+  'var',
+  '  p: Pointer;',
+  'begin',
+  '  Result:=TGetter(p)();',
+  'end;',
+  'begin',
+  '']);
   ParseProgram;
 end;
 
