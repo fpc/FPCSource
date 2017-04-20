@@ -12526,7 +12526,7 @@ begin
   Add('  tirecord:=typeinfo(trec);');
   Add('  ticlass:=typeinfo(obj);');
   Add('  ticlass:=typeinfo(tobject);');
-  Add('  ticlassref:=typeinfo(aclass);');
+  Add('  ticlass:=typeinfo(aclass);');
   Add('  ticlassref:=typeinfo(tclass);');
   ConvertProgram;
   CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses3',
@@ -12556,7 +12556,7 @@ begin
     '$mod.tiRecord = $mod.$rtti["TRec"];',
     '$mod.tiClass = $mod.Obj.$rtti;',
     '$mod.tiClass = $mod.$rtti["TObject"];',
-    '$mod.tiClassRef = $mod.aClass.$rtti;',
+    '$mod.tiClass = $mod.aClass.$rtti;',
     '$mod.tiClassRef = $mod.$rtti["TClass"];',
     '']));
 end;

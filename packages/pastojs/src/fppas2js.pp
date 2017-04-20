@@ -2493,7 +2493,12 @@ begin
     else if C=TPasClassType then
       TIName:=Pas2JSBuiltInNames[pbitnTIClass]
     else if C=TPasClassOfType then
-      TIName:=Pas2JSBuiltInNames[pbitnTIClassRef]
+      begin
+      if rrfReadable in ParamResolved.Flags then
+        TIName:=Pas2JSBuiltInNames[pbitnTIClass]
+      else
+        TIName:=Pas2JSBuiltInNames[pbitnTIClassRef];
+      end
     else if C=TPasArrayType then
       begin
       if length(TPasArrayType(TypeEl).Ranges)>0 then
