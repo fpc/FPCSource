@@ -6761,12 +6761,14 @@ begin
     Result:=CreateTypeInfoRef(TPasType(ParamResolved.IdentEl),AContext,Param)
   else if ParamResolved.TypeEl<>nil then
     begin
-    if (ParamResolved.TypeEl.ClassType=TPasClassType)
-        and (rrfReadable in ParamResolved.Flags)
+    if (rrfReadable in ParamResolved.Flags)
+        and ((ParamResolved.TypeEl.ClassType=TPasClassType)
+          or (ParamResolved.TypeEl.ClassType=TPasClassOfType))
         and ((ParamResolved.IdentEl is TPasVariable)
           or (ParamResolved.IdentEl.ClassType=TPasArgument)) then
       begin
       // typeinfo(classinstance) -> classinstance.$rtti
+      // typeinfo(classof) -> classof.$rtti
       Result:=ConvertElement(Param,AContext);
       Result:=CreateDotExpression(El,Result,CreateBuiltInIdentifierExpr(FBuiltInNames[pbivnRTTI]));
       end

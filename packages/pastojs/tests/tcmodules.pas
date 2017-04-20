@@ -12556,7 +12556,7 @@ begin
     '$mod.tiRecord = $mod.$rtti["TRec"];',
     '$mod.tiClass = $mod.Obj.$rtti;',
     '$mod.tiClass = $mod.$rtti["TObject"];',
-    '$mod.tiClassRef = $mod.$rtti["TClass"];',
+    '$mod.tiClassRef = $mod.aClass.$rtti;',
     '$mod.tiClassRef = $mod.$rtti["TClass"];',
     '']));
 end;
