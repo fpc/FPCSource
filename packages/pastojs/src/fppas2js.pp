@@ -3792,6 +3792,16 @@ begin
     MinValue:=0;
     MaxValue:=$ffffffff;
     end
+  else if RangeResolved.BaseType=btUIntDouble then
+    begin
+    MinValue:=0;
+    MaxValue:=HighJSNativeInt;
+    end
+  else if RangeResolved.BaseType=btIntDouble then
+    begin
+    MinValue:=LowJSNativeInt;
+    MaxValue:=HighJSNativeInt;
+    end
   else if RangeResolved.BaseType in btAllJSChars then
     begin
     MinValue:=0;
@@ -8802,7 +8812,10 @@ begin
       begin
       bt:=TResElDataBaseType(El.CustomData).BaseType;
       case bt of
-      btLongint,btLongWord,btSmallInt,btWord,btShortInt,btByte,
+      btShortInt,btByte,
+      btSmallInt,btWord,
+      btLongint,btLongWord,
+      btIntDouble,btUIntDouble,
       btString,btChar,
       btDouble,
       btBoolean,

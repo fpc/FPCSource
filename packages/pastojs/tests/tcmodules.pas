@@ -255,6 +255,7 @@ type
     Procedure TestSet_AnonymousEnumType;
     Procedure TestSet_CharFail;
     Procedure TestSet_BooleanFail;
+    Procedure TestSet_ConstEnum;
     Procedure TestSet_ConstChar;
 
     // statements
@@ -3275,6 +3276,57 @@ begin
   Add('begin');
   SetExpectedPasResolverError('Not supported: set of Boolean',nNotSupportedX);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestSet_ConstEnum;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (red,blue,green);',
+  '  TEnums = set of TEnum;',
+  'const',
+  '  teAny = [low(TEnum)..high(TEnum)];',
+  '  teRedBlue = [low(TEnum)..pred(high(TEnum))];',
+  'var',
+  '  e: TEnum;',
+  '  s: TEnums;',
+  'begin',
+  '  if blue in teAny then;',
+  '  if blue in teAny+[e] then;',
+  '  if blue in teAny+teRedBlue then;',
+  '  s:=teAny;',
+  '  s:=teAny+[e];',
+  '  s:=[e]+teAny;',
+  '  s:=teAny+teRedBlue;',
+  '  s:=teAny+teRedBlue+[e];',
+  '']);
+  ConvertProgram;
+  CheckSource('TestSet_ConstEnum',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1,',
+    '  "2": "green",',
+    '  green: 2',
+    '};',
+    'this.teAny = rtl.createSet(null, $mod.TEnum.red, $mod.TEnum.green);',
+    'this.teRedBlue = rtl.createSet(null, $mod.TEnum.red, $mod.TEnum.green - 1);',
+    'this.e = 0;',
+    'this.s = {};',
+    '']),
+    LinesToStr([
+    'if ($mod.TEnum.blue in $mod.teAny) ;',
+    'if ($mod.TEnum.blue in rtl.unionSet($mod.teAny, rtl.createSet($mod.e))) ;',
+    'if ($mod.TEnum.blue in rtl.unionSet($mod.teAny, $mod.teRedBlue)) ;',
+    '$mod.s = rtl.refSet($mod.teAny);',
+    '$mod.s = rtl.unionSet($mod.teAny, rtl.createSet($mod.e));',
+    '$mod.s = rtl.unionSet(rtl.createSet($mod.e), $mod.teAny);',
+    '$mod.s = rtl.unionSet($mod.teAny, $mod.teRedBlue);',
+    '$mod.s = rtl.unionSet(rtl.unionSet($mod.teAny, $mod.teRedBlue), rtl.createSet($mod.e));',
+    '']));
 end;
 
 procedure TTestModule.TestSet_ConstChar;
@@ -11461,8 +11513,8 @@ begin
   Add('  TMethodB = procedure of object;');
   Add('  TProcC = procedure; varargs;');
   Add('  TProcD = procedure(i: longint; const j: string; var c: char; out d: double);');
-  Add('  TProcE = function: longint;');
-  Add('  TProcF = function(const p: TProcA): longint;');
+  Add('  TProcE = function: nativeint;');
+  Add('  TProcF = function(const p: TProcA): nativeuint;');
   Add('var p: pointer;');
   Add('begin');
   Add('  p:=typeinfo(tproca);');
@@ -11483,10 +11535,10 @@ begin
     '  procsig: rtl.newTIProcSig([["i", rtl.longint], ["j", rtl.string, 2], ["c", rtl.char, 1], ["d", rtl.double, 4]])',
     '});',
     '$mod.$rtti.$ProcVar("TProcE", {',
-    '  procsig: rtl.newTIProcSig(null, rtl.longint)',
+    '  procsig: rtl.newTIProcSig(null, rtl.nativeint)',
     '});',
     '$mod.$rtti.$ProcVar("TProcF", {',
-    '  procsig: rtl.newTIProcSig([["p", $mod.$rtti["TProcA"], 2]], rtl.longint)',
+    '  procsig: rtl.newTIProcSig([["p", $mod.$rtti["TProcA"], 2]], rtl.nativeuint)',
     '});',
     'this.p = null;',
     '']),
