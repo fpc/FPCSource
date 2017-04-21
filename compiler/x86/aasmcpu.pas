@@ -212,8 +212,23 @@ interface
          this changed content afterwards (add/sub/..., but e.g. not rep
          or movsd)}
         Ch_MEAX, Ch_MECX, Ch_MEDX, Ch_MEBX, Ch_MESP, Ch_MEBP, Ch_MESI, Ch_MEDI,
-        Ch_CDirFlag {clear direction flag}, Ch_SDirFlag {set dir flag},Ch_RDirFlag {read direction flag},
-        Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU,
+        {read individual flag bits from the flags register}
+        Ch_RCarryFlag,Ch_RParityFlag,Ch_RAuxiliaryFlag,Ch_RZeroFlag,Ch_RSignFlag,Ch_ROverflowFlag,
+        {write individual flag bits to the flags register}
+        Ch_WCarryFlag,Ch_WParityFlag,Ch_WAuxiliaryFlag,Ch_WZeroFlag,Ch_WSignFlag,Ch_WOverflowFlag,
+        {set individual flag bits to 0 in the flags register}
+        Ch_W0CarryFlag,Ch_W0ParityFlag,Ch_W0AuxiliaryFlag,Ch_W0ZeroFlag,Ch_W0SignFlag,Ch_W0OverflowFlag,
+        {set individual flag bits to 1 in the flags register}
+        Ch_W1CarryFlag,Ch_W1ParityFlag,Ch_W1AuxiliaryFlag,Ch_W1ZeroFlag,Ch_W1SignFlag,Ch_W1OverflowFlag,
+        {write an undefined value to individual flag bits in the flags register}
+        Ch_WUCarryFlag,Ch_WUParityFlag,Ch_WUAuxiliaryFlag,Ch_WUZeroFlag,Ch_WUSignFlag,Ch_WUOverflowFlag,
+        {read and write flag bits}
+        Ch_RWCarryFlag,Ch_RWParityFlag,Ch_RWAuxiliaryFlag,Ch_RWZeroFlag,Ch_RWSignFlag,Ch_RWOverflowFlag,
+        {more specialized flag bits (not considered part of NR_DEFAULTFLAGS by the compiler)}
+        Ch_RDirFlag,Ch_W0DirFlag,Ch_W1DirFlag,Ch_W0IntFlag,Ch_W1IntFlag,
+        {read/write/read+write the entire flags/eflags/rflags register}
+        Ch_RFlags, Ch_WFlags, Ch_RWFlags,
+        Ch_FPU,
         Ch_Rop1, Ch_Wop1, Ch_RWop1,Ch_Mop1,
         Ch_Rop2, Ch_Wop2, Ch_RWop2,Ch_Mop2,
         Ch_Rop3, Ch_WOp3, Ch_RWOp3,Ch_Mop3,

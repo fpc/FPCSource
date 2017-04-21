@@ -233,7 +233,9 @@ unit aoptcpu;
                         exit
                       end;
                 end;
-                if ([Ch_RFlags,Ch_RWFlags]*Ch<>[]) and (reg=NR_DEFAULTFLAGS) then
+                if ([Ch_RCarryFlag,Ch_RParityFlag,Ch_RAuxiliaryFlag,Ch_RZeroFlag,Ch_RSignFlag,Ch_ROverflowFlag,
+                     Ch_RWCarryFlag,Ch_RWParityFlag,Ch_RWAuxiliaryFlag,Ch_RWZeroFlag,Ch_RWSignFlag,Ch_RWOverflowFlag,
+                     Ch_RFlags,Ch_RWFlags]*Ch<>[]) and (reg=NR_DEFAULTFLAGS) then
                   begin
                     RegReadByInstruction := true;
                     exit
@@ -284,7 +286,10 @@ function InstrReadsFlags(p: tai): boolean;
     InstrReadsFlags := true;
     case p.typ of
       ait_instruction:
-        if InsProp[taicpu(p).opcode].Ch*[Ch_RFlags,Ch_RWFlags,Ch_All]<>[] then
+        if InsProp[taicpu(p).opcode].Ch*
+           [Ch_RCarryFlag,Ch_RParityFlag,Ch_RAuxiliaryFlag,Ch_RZeroFlag,Ch_RSignFlag,Ch_ROverflowFlag,
+            Ch_RWCarryFlag,Ch_RWParityFlag,Ch_RWAuxiliaryFlag,Ch_RWZeroFlag,Ch_RWSignFlag,Ch_RWOverflowFlag,
+            Ch_RFlags,Ch_RWFlags,Ch_All]<>[] then
           exit;
       ait_label:
         exit;

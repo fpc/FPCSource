@@ -16,25 +16,25 @@
 void                  void                            none
 
 [AAA]
-(Ch_MEAX, Ch_RWFlags)
+(Ch_MEAX, Ch_RWAuxiliaryFlag, Ch_WCarryFlag, Ch_WUOverflowFlag, Ch_WUSignFlag, Ch_WUZeroFlag, Ch_WUParityFlag)
 void                  \1\x37                          8086,NOX86_64
 
 [AAD,aadX]
-(Ch_MEAX, Ch_WFlags)
+(Ch_MEAX, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUOverflowFlag, Ch_WUAuxiliaryFlag, Ch_WUCarryFlag)
 void                  \2\xD5\x0A                      8086,NOX86_64
 imm                   \1\xD5\24                       8086,SB,NOX86_64
 
 [AAM,aamX]
-(Ch_MEAX, Ch_WFlags)
+(Ch_MEAX, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUOverflowFlag, Ch_WUAuxiliaryFlag, Ch_WUCarryFlag)
 void                  \2\xD4\x0A                      8086,NOX86_64
 imm                   \1\xD4\24                       8086,SB,NOX86_64
 
 [AAS]
-(Ch_MEAX, Ch_RWFlags)
+(Ch_MEAX, Ch_RWAuxiliaryFlag, Ch_WCarryFlag, Ch_WUOverflowFlag, Ch_WUSignFlag, Ch_WUZeroFlag, Ch_WUParityFlag)
 void                  \1\x3F                          8086,NOX86_64
 
 [ADC,adcX]
-(Ch_Mop2, Ch_Rop1, Ch_RWFlags)
+(Ch_Mop2, Ch_Rop1, Ch_RWCarryFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WParityFlag)
 regmem,reg16|32|64    \320\1\x11\101                  8086,SM
 reg16|32|64,regmem    \320\1\x13\110                  8086,SM
 rm8,reg8              \1\x10\101                      8086
@@ -50,7 +50,7 @@ reg_al,imm            \1\x14\21                       8086,SB
 rm8,imm               \1\x80\202\21                   8086,SB
 
 [ADD,addX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 regmem,reg16|32|64    \320\1\x01\101                  8086,SM
 reg16|32|64,regmem    \320\1\x03\110                  8086,SM
 rm8,reg8              \1\x00\101                      8086
@@ -66,7 +66,7 @@ reg_al,imm            \1\x04\21                       8086,SB
 rm8,imm               \1\x80\200\21                   8086,SB
 
 [AND,andX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_W0OverflowFlag, Ch_W0CarryFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUAuxiliaryFlag)
 regmem,reg16|32|64    \320\1\x21\101                  8086,SM
 reg16|32|64,regmem    \320\1\x23\110                  8086,SM
 rm8,reg8              \1\x20\101                      8086
@@ -82,7 +82,7 @@ reg_al,imm            \1\x24\21                       8086,SB
 rm8,imm               \1\x80\204\21                   8086,SB
 
 [ARPL,arplX]
-(Ch_WFlags)
+(Ch_WZeroFlag)
 reg16,reg16           \1\x63\101                      286,PROT,NOX86_64
 mem,reg16             \1\x63\101                      286,PROT,SM,NOX86_64
 
@@ -91,11 +91,11 @@ mem,reg16             \1\x63\101                      286,PROT,SM,NOX86_64
 reg16|32,mem          \320\1\x62\110                  186,NOX86_64
 
 [BSF,bsfX]
-(Ch_Wop2, Ch_WFlags, Ch_Rop1)
+(Ch_Wop2, Ch_Rop1, Ch_WZeroFlag, Ch_WUCarryFlag, Ch_WUOverflowFlag, Ch_WUSignFlag, Ch_WUAuxiliaryFlag, Ch_WUParityFlag)
 reg16|32|64,regmem    \320\2\x0F\xBC\110              386,SM
 
 [BSR,bsrX]
-(Ch_Wop2, Ch_WFlags, Ch_Rop1)
+(Ch_Wop2, Ch_Rop1, Ch_WZeroFlag, Ch_WUCarryFlag, Ch_WUOverflowFlag, Ch_WUSignFlag, Ch_WUAuxiliaryFlag, Ch_WUParityFlag)
 reg16|32|64,regmem    \320\2\x0F\xBD\110              386,SM
 
 [BSWAP,bswapX]
@@ -103,22 +103,22 @@ reg16|32|64,regmem    \320\2\x0F\xBD\110              386,SM
 reg32|64              \320\1\x0F\10\xC8               486
 
 [BT,btX]
-(Ch_WFlags, Ch_Rop1, Ch_Rop2)
+(Ch_Rop1, Ch_Rop2, Ch_WCarryFlag, Ch_WUOverflowFlag, Ch_WUSignFlag, Ch_WUAuxiliaryFlag, Ch_WUParityFlag)
 regmem,reg16|32|64    \320\2\x0F\xA3\101              386,SM
 rm16|32|64,imm        \320\2\x0F\xBA\204\25           386,SB
 
 [BTC,btcX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_WCarryFlag, Ch_WUOverflowFlag, Ch_WUSignFlag, Ch_WUAuxiliaryFlag, Ch_WUParityFlag)
 regmem,reg16|32|64    \320\2\x0F\xBB\101              386,SM
 rm16|32|64,imm        \320\2\x0F\xBA\207\25           386,SB
 
 [BTR,btrX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_WCarryFlag, Ch_WUOverflowFlag, Ch_WUSignFlag, Ch_WUAuxiliaryFlag, Ch_WUParityFlag)
 regmem,reg16|32|64    \320\2\x0F\xB3\101              386,SM
 rm16|32|64,imm        \320\2\x0F\xBA\206\25           386,SB
 
 [BTS,btsX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_WCarryFlag, Ch_WUOverflowFlag, Ch_WUSignFlag, Ch_WUAuxiliaryFlag, Ch_WUParityFlag)
 regmem,reg16|32|64    \320\2\x0F\xAB\101              386,SM
 rm16|32|64,imm        \320\2\x0F\xBA\205\25           386,SB
 
@@ -154,15 +154,15 @@ void                  \324\1\x98                      8086
 void                  \325\1\x99                      386
 
 [CLC]
-(Ch_WFlags)
+(Ch_W0CarryFlag)
 void                  \1\xF8                          8086
 
 [CLD]
-(Ch_CDirFlag)
+(Ch_W0DirFlag)
 void                  \1\xFC                          8086
 
 [CLI]
-(Ch_WFlags)
+(Ch_W0IntFlag)
 void                  \1\xFA                          8086
 
 [CLTS]
@@ -170,11 +170,11 @@ void                  \1\xFA                          8086
 void                  \2\x0F\x06                      286,PRIV
 
 [CMC]
-(Ch_RWFlags)
+(Ch_RWCarryFlag)
 void                  \1\xF5                          8086
 
 [CMP,cmpX]
-(Ch_ROp1, Ch_ROp2, Ch_WFlags, Ch_NoReadIfEqualRegs)
+(Ch_ROp1, Ch_ROp2, Ch_NoReadIfEqualRegs, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 regmem,reg16|32|64    \320\1\x39\101                  8086,SM
 reg16|32|64,regmem    \320\1\x3B\110                  8086,SM
 rm8,reg8              \1\x38\101                      8086
@@ -193,30 +193,30 @@ mem,imm16             \324\1\x81\207\31               8086,SW
 mem,imm8              \1\x80\207\21                   8086,SB
 
 [CMPSB]
-(Ch_All, Ch_WFlags, Ch_RDirFlag)
+(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\1\xA6                      8086
 
 [CMPSD,cmpsl]
-(Ch_All, Ch_WFlags, Ch_RDirFlag)
+(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\325\1\xA7                  386
 xmmreg,xmmrm,imm      \334\2\x0F\xC2\110\26           WILLAMETTE,SSE2,SM2,SB,AR2
 
 [CMPSW]
-(Ch_All, Ch_WFlags, Ch_RDirFlag)
+(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\324\1\xA7                  8086
 
 [CMPXCHG,cmpxchgX]
-(Ch_All)
+(Ch_All, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 regmem,reg16|32|64    \320\2\x0F\xB1\101              PENT,SM
 rm8,reg8              \2\x0F\xB0\101                  PENT
 
 [CMPXCHG486,cmpxchg486X]
-(Ch_All)
+(Ch_All, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 regmem,reg16|32|64    \320\2\x0F\xA7\101              486,SM
 rm8,reg8              \2\x0F\xA6\101                  486,UNDOC
 
 [CMPXCHG8B,cmpxchg8b]
-(Ch_All)
+(Ch_All, Ch_WZeroFlag)
 mem                   \2\x0F\xC7\201                  PENT
 
 [CPUID]
@@ -232,21 +232,21 @@ void                  \324\1\x99                      8086
 void                  \325\1\x98                      386
 
 [DAA]
-(Ch_MEAX)
+(Ch_MEAX, Ch_RWAuxiliaryFlag, Ch_RWCarryFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUOverflowFlag)
 void                  \1\x27                          8086,NOX86_64
 
 [DAS]
-(Ch_MEAX)
+(Ch_MEAX, Ch_RWAuxiliaryFlag, Ch_RWCarryFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUOverflowFlag)
 void                  \1\x2F                          8086,NOX86_64
 
 [DEC,decX]
-(Ch_Mop1, Ch_WFlags)
+(Ch_Mop1, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WParityFlag)
 reg16|32              \320\10\x48                     8086,NOX86_64
 rm16|32|64            \320\1\xFF\201                  8086
 rm8                   \1\xFE\201                      8086
 
 [DIV,divX]
-(Ch_RWEAX, Ch_WEDX, Ch_WFlags)
+(Ch_RWEAX, Ch_WEDX, Ch_WUCarryFlag, Ch_WUOverflowFlag, Ch_WUSignFlag, Ch_WUZeroFlag, Ch_WUAuxiliaryFlag, Ch_WUParityFlag)
 rm16|32|64            \320\1\xF7\206                  8086
 rm8                   \1\xF6\206                      8086
 
@@ -301,49 +301,49 @@ void                  \2\xD9\xE0                      8086,FPU
 void                  \3\x9B\xDB\xE2                  8086,FPU
 
 [FCMOVB,fcmovbF]
-(Ch_FPU, Ch_RFLAGS)
+(Ch_FPU, Ch_RCarryFlag)
 void                  \2\xDA\xC1                      P6,FPU
 fpureg                \1\xDA\10\xC0                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xC0                   P6,FPU
 
 [FCMOVBE,fcmovbeF]
-(Ch_FPU, Ch_RFLAGS)
+(Ch_FPU, Ch_RCarryFlag, Ch_RZeroFlag)
 void                  \2\xDA\xD1                      P6,FPU
 fpureg                \1\xDA\10\xD0                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xD0                   P6,FPU
 
 [FCMOVE,fcmoveF]
-(Ch_FPU, Ch_RFLAGS)
+(Ch_FPU, Ch_RZeroFlag)
 void                  \2\xDA\xC9                      P6,FPU
 fpureg                \1\xDA\10\xC8                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xC8                   P6,FPU
 
 [FCMOVNB,fcmovnbF]
-(Ch_FPU, Ch_RFLAGS)
+(Ch_FPU, Ch_RCarryFlag)
 void                  \2\xDB\xC1                      P6,FPU
 fpureg                \1\xDB\10\xC0                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xC0                   P6,FPU
 
 [FCMOVNBE,fcmovnbeF]
-(Ch_FPU, Ch_RFLAGS)
+(Ch_FPU, Ch_RCarryFlag, Ch_RZeroFlag)
 void                  \2\xDB\xD1                      P6,FPU
 fpureg                \1\xDB\10\xD0                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xD0                   P6,FPU
 
 [FCMOVNE,fcmovneF]
-(Ch_FPU, Ch_RFLAGS)
+(Ch_FPU, Ch_RZeroFlag)
 void                  \2\xDB\xC9                      P6,FPU
 fpureg                \1\xDB\10\xC8                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xC8                   P6,FPU
 
 [FCMOVNU,fcmovnuF]
-(Ch_FPU, Ch_RFLAGS)
+(Ch_FPU, Ch_RParityFlag)
 void                  \2\xDB\xD9                      P6,FPU
 fpureg                \1\xDB\10\xD8                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xD8                   P6,FPU
 
 [FCMOVU,fcmovuF]
-(Ch_FPU, Ch_RFLAGS)
+(Ch_FPU, Ch_RParityFlag)
 void                  \2\xDA\xD9                      P6,FPU
 fpureg                \1\xDA\10\xD8                   P6,FPU
 fpu0,fpureg           \1\xDA\11\xD8                   P6,FPU
@@ -357,13 +357,13 @@ fpureg                \1\xD8\10\xD0                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xD0                   8086,FPU
 
 [FCOMI,fcomiF]
-(Ch_WFLAGS)
+(Ch_WZeroFlag, Ch_WParityFlag, Ch_WCarryFlag, Ch_W0OverflowFlag, Ch_W0SignFlag, Ch_W0AuxiliaryFlag)
 void                  \2\xDB\xF1                      P6,FPU
 fpureg                \1\xDB\10\xF0                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xF0                   P6,FPU
 
 [FCOMIP,fcomipF]
-(Ch_FPU, Ch_WFLAGS)
+(Ch_FPU, Ch_WZeroFlag, Ch_WParityFlag, Ch_WCarryFlag, Ch_W0OverflowFlag, Ch_W0SignFlag, Ch_W0AuxiliaryFlag)
 void                  \2\xDF\xF1                      P6,FPU
 fpureg                \1\xDF\10\xF0                   P6,FPU
 fpu0,fpureg           \1\xDF\11\xF0                   P6,FPU
@@ -721,13 +721,13 @@ fpureg                \1\xDD\10\xE0                   386,FPU
 fpu0,fpureg           \1\xDD\11\xE0                   386,FPU
 
 [FUCOMI,fucomiF]
-(Ch_WFLAGS)
+(Ch_WZeroFlag, Ch_WParityFlag, Ch_WCarryFlag, Ch_W0OverflowFlag, Ch_W0SignFlag, Ch_W0AuxiliaryFlag)
 void                  \2\xDB\xE9                      P6,FPU
 fpureg                \1\xDB\10\xE8                   P6,FPU
 fpu0,fpureg           \1\xDB\11\xE8                   P6,FPU
 
 [FUCOMIP,fucomipF]
-(Ch_FPU, Ch_WFLAGS)
+(Ch_FPU, Ch_WZeroFlag, Ch_WParityFlag, Ch_WCarryFlag, Ch_W0OverflowFlag, Ch_W0SignFlag, Ch_W0AuxiliaryFlag)
 void                  \2\xDF\xE9                      P6,FPU
 fpureg                \1\xDF\10\xE8                   P6,FPU
 fpu0,fpureg           \1\xDF\11\xE8                   P6,FPU
@@ -782,12 +782,12 @@ regmem,reg16|32|64    \320\2\x0F\xA7\101              386,SM,UNDOC,ND
 void                  \1\xF1                          386,ND
 
 [IDIV,idivX]
-(Ch_RWEAX, Ch_WEDX, Ch_WFlags)
+(Ch_RWEAX, Ch_WEDX, Ch_WUCarryFlag, Ch_WUOverflowFlag, Ch_WUSignFlag, Ch_WUZeroFlag, Ch_WUAuxiliaryFlag, Ch_WUParityFlag)
 rm16|32|64            \320\1\xF7\207                  8086
 rm8                   \1\xF6\207                      8086
 
 [IMUL,imulX]
-(Ch_RWEAX, Ch_WEDX, Ch_WFlags)
+(Ch_RWEAX, Ch_WEDX, Ch_WCarryFlag, Ch_WOverflowFlag, Ch_WUSignFlag, Ch_WUZeroFlag, Ch_WUAuxiliaryFlag, Ch_WUParityFlag)
 reg16|32|64,regmem    \320\2\x0F\xAF\110              386,SM
 rm16|32|64            \320\1\xF7\205                  8086
 reg32|64,regmem,imm8  \320\1\x6B\110\16               386,SM
@@ -810,21 +810,21 @@ reg_al,reg_dx         \1\xEC                          8086
 reg_ax|32,reg_dx      \320\1\xED                      8086
 
 [INC,incX]
-(Ch_Mop1, Ch_WFlags)
+(Ch_Mop1, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WParityFlag)
 reg16|32              \320\10\x40                     8086,NOX86_64
 rm16|32|64            \320\1\xFF\200                  8086
 rm8                   \1\xFE\200                      8086
 
 [INSB]
-(Ch_WMemEDI, Ch_RWEDI, Ch_REDX)
+(Ch_WMemEDI, Ch_RWEDI, Ch_REDX, Ch_RDirFlag)
 void                  \1\x6C                          186
 
 [INSD,insl]
-(Ch_WMemEDI, Ch_RWEDI, Ch_REDX)
+(Ch_WMemEDI, Ch_RWEDI, Ch_REDX, Ch_RDirFlag)
 void                  \325\1\x6D                      386
 
 [INSW]
-(Ch_WMemEDI, Ch_RWEDI, Ch_REDX)
+(Ch_WMemEDI, Ch_RWEDI, Ch_REDX, Ch_RDirFlag)
 void                  \324\1\x6D                      186
 
 [INT]
@@ -848,7 +848,7 @@ void                  \1\xCC                          8086,ND
 void                  \1\xCC                          8086
 
 [INTO]
-(Ch_All)
+(Ch_All, Ch_ROverflowFlag)
 void                  \1\xCE                          8086,NOX86_64
 
 [INVD]
@@ -913,7 +913,7 @@ imm:imm32             \325\1\xEA\41\30                386,NOX86_64
 void                  \1\x9F                          8086
 
 [LAR,larX]
-(Ch_Wop2)
+(Ch_Wop2, Ch_WZeroFlag)
 reg16|32|64,regmem    \320\2\x0F\x02\110              286,PROT,SM
 
 [LCALL,lcall]
@@ -1001,31 +1001,31 @@ imm,reg_cx            \310\1\xE2\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE2\50                   386
 
 [LOOPE]
-(Ch_RWECX, Ch_RFlags)
+(Ch_RWECX, Ch_RZeroFlag)
 imm                   \312\1\xE1\50                   8086
 imm,reg_cx            \310\1\xE1\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE1\50                   386
 
 [LOOPNE]
-(Ch_RWECX, Ch_RFlags)
+(Ch_RWECX, Ch_RZeroFlag)
 imm                   \312\1\xE0\50                   8086
 imm,reg_cx            \310\1\xE0\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE0\50                   386
 
 [LOOPNZ]
-(Ch_RWECX, Ch_RFlags)
+(Ch_RWECX, Ch_RZeroFlag)
 imm                   \312\1\xE0\50                   8086
 imm,reg_cx            \310\1\xE0\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE0\50                   386
 
 [LOOPZ]
-(Ch_RWECX, Ch_RFlags)
+(Ch_RWECX, Ch_RZeroFlag)
 imm                   \312\1\xE1\50                   8086
 imm,reg_cx            \310\1\xE1\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE1\50                   386
 
 [LSL,lslX]
-(Ch_Wop2, Ch_WFlags)
+(Ch_Wop2, Ch_WZeroFlag)
 reg16|32|64,regmem    \320\2\x0F\x03\110              286,PROT,SM
 
 [LSS,lssX]
@@ -1133,7 +1133,7 @@ reg32|64,rm16         \320\2\x0F\xB7\110              386
 reg16|32|64,rm8       \320\2\x0F\xB6\110              386
 
 [MUL,mulX]
-(Ch_RWEAX, Ch_WEDX, Ch_WFlags)
+(Ch_RWEAX, Ch_WEDX, Ch_WCarryFlag, Ch_WOverflowFlag, Ch_WUSignFlag, Ch_WUZeroFlag, Ch_WUAuxiliaryFlag, Ch_WUParityFlag)
 rm16|32|64            \320\1\xF7\204                  8086
 rm8                   \1\xF6\204                      8086
 
@@ -1144,7 +1144,7 @@ reg_eax,reg_ecx       \3\x0F\x01\xC9                  PRESCOTT,ND
 
 
 [NEG,negX]
-(Ch_Mop1)
+(Ch_Mop1, Ch_WCarryFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WParityFlag)
 rm16|32|64            \320\1\xF7\203                  8086
 rm8                   \1\xF6\203                      8086
 
@@ -1158,7 +1158,7 @@ rm16|32|64            \320\1\xF7\202                  8086
 rm8                   \1\xF6\202                      8086
 
 [OR,orX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_W0OverflowFlag, Ch_W0CarryFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUAuxiliaryFlag)
 regmem,reg16|32|64    \320\1\x09\101                  8086,SM
 reg16|32|64,regmem    \320\1\x0B\110                  8086,SM
 rm8,reg8              \1\x08\101                      8086
@@ -1183,15 +1183,15 @@ reg_dx,reg_ax         \324\1\xEF                      8086
 reg_dx,reg_eax        \325\1\xEF                      386
 
 [OUTSB]
-(Ch_All)
+(Ch_All, Ch_RDirFlag)
 void                  \1\x6E                          186
 
 [OUTSD,outsl]
-(Ch_All)
+(Ch_All, Ch_RDirFlag)
 void                  \325\1\x6F                      386
 
 [OUTSW]
-(Ch_All)
+(Ch_All, Ch_RDirFlag)
 void                  \324\1\x6F                      186
 
 [PACKSSDW]
@@ -1652,7 +1652,7 @@ mmxreg,mmxrm          \2\x0F\xEF\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xEF\110              WILLAMETTE,SSE2,SM
 
 [RCL,rclX]
-(Ch_Mop2, Ch_Rop1, Ch_RWFlags)
+(Ch_Mop2, Ch_Rop1, Ch_RWCarryFlag, Ch_WOverflowFlag)
 rm16|32|64,unity      \320\1\xD1\202                  8086
 rm16|32|64,reg_cl     \320\1\xD3\202                  8086
 rm16|32|64,imm        \320\1\xC1\202\25               186,SB
@@ -1661,7 +1661,7 @@ rm8,reg_cl            \1\xD2\202                      8086
 rm8,imm               \1\xC0\202\25                   186,SB
 
 [RCR,rcrX]
-(Ch_Mop2, Ch_Rop1, Ch_RWFlags)
+(Ch_Mop2, Ch_Rop1, Ch_RWCarryFlag, Ch_WOverflowFlag)
 rm16|32|64,unity      \320\1\xD1\203                  8086
 rm16|32|64,reg_cl     \320\1\xD3\203                  8086
 rm16|32|64,imm        \320\1\xC1\203\25               186,SB
@@ -1690,19 +1690,19 @@ void                  \2\x0F\x31                      PENT
 void                  \1\xF3                          8086,PRE
 
 [REPE]
-(Ch_RWECX, Ch_RFlags)
+(Ch_RWECX, Ch_RZeroFlag)
 void                  \1\xF3                          8086,PRE
 
 [REPNE]
-(Ch_RWECX, Ch_RFlags)
+(Ch_RWECX, Ch_RZeroFlag)
 void                  \1\xF2                          8086,PRE
 
 [REPNZ]
-(Ch_RWECX, Ch_RFLAGS)
+(Ch_RWECX, Ch_RZeroFlag)
 void                  \1\xF2                          8086,PRE
 
 [REPZ]
-(Ch_RWECX, Ch_RFLAGS)
+(Ch_RWECX, Ch_RZeroFlag)
 void                  \1\xF3                          8086,PRE
 
 [RET]
@@ -1721,7 +1721,7 @@ void                  \1\xC3                          8086
 imm                   \1\xC2\30                       8086,SW
 
 [ROL,rolX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_WCarryFlag, Ch_WOverflowFlag)
 rm16|32|64,unity      \320\1\xD1\200                  8086
 rm16|32|64,reg_cl     \320\1\xD3\200                  8086
 rm16|32|64,imm        \320\1\xC1\200\25               186,SB
@@ -1730,7 +1730,7 @@ rm8,reg_cl            \1\xD2\200                      8086
 rm8,imm               \1\xC0\200\25                   186,SB
 
 [ROR,rorX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_WCarryFlag, Ch_WOverflowFlag)
 rm16|32|64,unity      \320\1\xD1\201                  8086
 rm16|32|64,reg_cl     \320\1\xD3\201                  8086
 rm16|32|64,imm        \320\1\xC1\201\25               186,SB
@@ -1752,11 +1752,11 @@ void                  \2\x0F\xAA                      PENT,SMM
 
 ; SAHF/LAHF are valid in x86_64 only if CPUID.80000001h:ECX.0=1
 [SAHF]
-(Ch_WFlags, Ch_REAX)
+(Ch_REAX, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WParityFlag, Ch_WCarryFlag)
 void                  \1\x9E                          8086
 
 [SAL,salX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_WCarryFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUAuxiliaryFlag)
 rm16|32|64,unity      \320\1\xD1\204                  8086,ND
 rm16|32|64,reg_cl     \320\1\xD3\204                  8086,ND
 rm16|32|64,imm        \320\1\xC1\204\25               186,ND,SB
@@ -1769,7 +1769,7 @@ rm8,imm               \1\xC0\204\25                   186,ND,SB
 void                  \1\xD6                          8086,UNDOC,NOX86_64
 
 [SAR,sarX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_WCarryFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUAuxiliaryFlag)
 rm16|32|64,unity      \320\1\xD1\207                  8086
 rm16|32|64,reg_cl     \320\1\xD3\207                  8086
 rm16|32|64,imm        \320\1\xC1\207\25               186,SB
@@ -1778,7 +1778,7 @@ rm8,reg_cl            \1\xD2\207                      8086
 rm8,imm               \1\xC0\207\25                   186,SB
 
 [SBB,sbbX]
-(Ch_Mop2, Ch_Rop1, Ch_RWFlags, Ch_NoReadIfEqualRegs)
+(Ch_Mop2, Ch_Rop1, Ch_NoReadIfEqualRegs, Ch_RWCarryFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WParityFlag)
 regmem,reg16|32|64    \320\1\x19\101                  8086,SM
 reg16|32|64,regmem    \320\1\x1B\110                  8086,SM
 rm16|32|64,imm8       \320\1\x83\203\15               8086
@@ -1794,19 +1794,19 @@ reg_al,imm            \1\x1C\21                       8086,SB
 rm8,imm               \1\x80\203\21                   8086,SB
 
 [SCASB]
-(Ch_All, Ch_WFlags, Ch_RDirFlag)
+(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\1\xAE                      8086
 
 [SCASD,scasl]
-(Ch_All, Ch_WFlags, Ch_RDirFlag)
+(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\325\1\xAF                  386
 
 [SCASQ]
-(Ch_All, Ch_WFlags, Ch_RDirFlag)
+(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\326\1\xAF                  X86_64
 
 [SCASW]
-(Ch_All, Ch_WFlags, Ch_RDirFlag)
+(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\324\1\xAF                  8086
 
 [SEGCS,cs]
@@ -1838,7 +1838,7 @@ void                  \1\x36                          8086,PRE
 mem                   \2\x0F\x01\200                  286
 
 [SHL,shlX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_WCarryFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUAuxiliaryFlag)
 rm16|32|64,unity      \320\1\xD1\204                  8086
 rm16|32|64,reg_cl     \320\1\xD3\204                  8086
 rm16|32|64,imm        \320\1\xC1\204\25               186,SW
@@ -1847,12 +1847,12 @@ rm8,reg_cl            \1\xD2\204                      8086
 rm8,imm               \1\xC0\204\25                   186,SB
 
 [SHLD,shldX]
-(Ch_MOp3, Ch_WFlags, Ch_Rop2)
+(Ch_MOp3, Ch_Rop2, Ch_WCarryFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUAuxiliaryFlag)
 rm16|32|64,reg16|32|64,imm    \321\2\x0F\xA4\101\26       386,SM2,SB,AR2
 rm16|32|64,reg16|32|64,reg_cl \321\2\x0F\xA5\101          386,SM
 
 [SHR,shrX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags)
+(Ch_Mop2, Ch_Rop1, Ch_WCarryFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUAuxiliaryFlag)
 rm16|32|64,unity      \320\1\xD1\205                  8086
 rm16|32|64,reg_cl     \320\1\xD3\205                  8086
 rm16|32|64,imm        \320\1\xC1\205\25               186,SW
@@ -1861,7 +1861,7 @@ rm8,reg_cl            \1\xD2\205                      8086
 rm8,imm               \1\xC0\205\25                   186,SB
 
 [SHRD,shrdX]
-(Ch_MOp3, Ch_WFlags, Ch_Rop2)
+(Ch_MOp3, Ch_Rop2, Ch_WCarryFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUAuxiliaryFlag)
 rm16|32|64,reg16|32|64,imm    \321\2\x0F\xAC\101\26       386,SM2,SB,AR2
 rm16|32|64,reg16|32|64,reg_cl \321\2\x0F\xAD\101          386,SM
 
@@ -1891,15 +1891,15 @@ void                  \2\x0F\x7E                      486,CYRIX,ND
 rm16|32|64            \320\2\x0F\x01\204              286
 
 [STC]
-(Ch_WFlags)
+(Ch_W1CarryFlag)
 void                  \1\xF9                          8086
 
 [STD]
-(Ch_SDirFlag)
+(Ch_W1DirFlag)
 void                  \1\xFD                          8086
 
 [STI]
-(Ch_WFlags)
+(Ch_W1IntFlag)
 void                  \1\xFB                          8086
 
 [STOSB]
@@ -1920,7 +1920,7 @@ mem                   \2\x0F\x00\201                  286,PROT
 reg16|32|64           \320\2\x0F\x00\201              286,PROT
 
 [SUB,subX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags, Ch_NoReadIfEqualRegs)
+(Ch_Mop2, Ch_Rop1, Ch_NoReadIfEqualRegs, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 regmem,reg16|32|64    \320\1\x29\101                  8086,SM
 reg16|32|64,regmem    \320\1\x2B\110                  8086,SM
 rm8,reg8              \1\x28\101                      8086
@@ -1964,7 +1964,7 @@ void                  \2\x0F\x35                      P6,PRIV
 void                  \2\x0F\x07                      P6,PRIV,AMD
 
 [TEST,testX]
-(Ch_WFlags, Ch_Rop1, Ch_Rop2)
+(Ch_Rop1, Ch_Rop2, Ch_W0OverflowFlag, Ch_W0CarryFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUAuxiliaryFlag)
 regmem,reg16|32|64    \320\1\x85\101                  8086,SM
 reg16|32|64,mem       \320\1\x85\110                  8086,SM
 reg8,reg8             \1\x84\101                      8086
@@ -1997,13 +1997,13 @@ rm8,reg8              \2\x0F\x10\101                  386,UNDOC
 reg8,rm8              \2\x0F\x12\110                  386,UNDOC
 
 [VERR,verrX]
-(Ch_WFlags)
+(Ch_WZeroFlag)
 mem                   \2\x0F\x00\204                  286,PROT
 mem16                 \2\x0F\x00\204                  286,PROT
 reg16                 \2\x0F\x00\204                  286,PROT
 
 [VERW]
-(Ch_WFlags)
+(Ch_WZeroFlag)
 mem                   \2\x0F\x00\205                  286,PROT
 mem16                 \2\x0F\x00\205                  286,PROT
 reg16                 \2\x0F\x00\205                  286,PROT
@@ -2025,7 +2025,7 @@ void                  \2\x0F\x37                      P6,CYRIX,SMM
 void                  \2\x0F\x30                      PENT,PRIV
 
 [XADD,xaddX]
-(Ch_All)
+(Ch_All, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 mem,reg16|32|64       \320\2\x0F\xC1\101              486,SM
 rm8,reg8              \2\x0F\xC0\101                  486
 reg8,reg8             \2\x0F\xC0\101                  486
@@ -2062,7 +2062,7 @@ void                  \1\xD7                          8086
 void                  \1\xD7                          8086
 
 [XOR,xorX]
-(Ch_Mop2, Ch_Rop1, Ch_WFlags, Ch_NoReadIfEqualRegs)
+(Ch_Mop2, Ch_Rop1, Ch_NoReadIfEqualRegs, Ch_W0OverflowFlag, Ch_W0CarryFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WParityFlag, Ch_WUAuxiliaryFlag)
 regmem,reg16|32|64    \320\1\x31\101                  8086,SM
 reg16|32|64,regmem    \320\1\x33\110                  8086,SM
 rm8,reg8              \1\x30\101                      8086
@@ -3465,7 +3465,7 @@ void                   \326\1\xAB                                    X86_64
 void                   \326\1\xAD                                    X86_64
 
 [CMPSQ]
-(Ch_All, Ch_WFlags, Ch_RDirFlag)
+(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                   \326\1\xA7                                    X86_64
 
 ;*******************************************************************************
@@ -5065,11 +5065,11 @@ rm8,imm                               \2\x0F\x1E\200\25                   NEC,SB
 rm16,imm                              \2\x0F\x1F\200\25                   NEC,SW,IMM4,16BITONLY
 
 [REPC]
-(Ch_RWECX, Ch_RFlags)
+(Ch_RWECX, Ch_RCarryFlag)
 void                                  \1\x65                              NEC,PRE,16BITONLY
 
 [REPNC]
-(Ch_RWECX, Ch_RFlags)
+(Ch_RWECX, Ch_RCarryFlag)
 void                                  \1\x64                              NEC,PRE,16BITONLY
 
 [ROL4]
