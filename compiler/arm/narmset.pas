@@ -424,25 +424,22 @@ implementation
           { no range label: }
           if p^._low=p^._high then
             begin
-               if greaterlabel=lesslabel then
-                 begin
-                   if p^._low-1<>parentvalue then
-                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,p^._low,hregister,lesslabel);
-                 end
-               else
-                 begin
-                   cmplow:=p^._low-1<>parentvalue;
-                   if cmplow then
-                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
-                   if p^._high+1<>parentvalue then
-                     begin
-                       if cmplow then
-                         hlcg.a_jmp_flags(current_asmdata.CurrAsmList,cond_gt,greaterlabel)
-                       else
-                         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._low,hregister,greaterlabel);
-                     end;
-                 end;
-               hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
+              if greaterlabel=lesslabel then
+                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,p^._low,hregister,lesslabel)
+              else
+                begin
+                  cmplow:=p^._low-1<>parentvalue;
+                  if cmplow then
+                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,p^._low,hregister,lesslabel);
+                  if p^._high+1<>parentvalue then
+                    begin
+                      if cmplow then
+                        hlcg.a_jmp_flags(current_asmdata.CurrAsmList,cond_gt,greaterlabel)
+                      else
+                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,p^._low,hregister,greaterlabel);
+                    end;
+                end;
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,blocklabel(p^.blockid));
             end
           else
             begin
