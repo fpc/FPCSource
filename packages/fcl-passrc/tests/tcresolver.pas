@@ -6735,8 +6735,8 @@ begin
   Add('  if TObject(Self)=nil then ;');
   Add('end;');
   Add('begin');
-  CheckResolverException('Cannot type cast a type',
-    PasResolver.nCannotTypecastAType);
+  CheckResolverException('Illegal type conversion: "Self" to "class TObject"',
+    PasResolver.nIllegalTypeConversionTo);
 end;
 
 procedure TTestResolver.TestClass_ClassMembers;

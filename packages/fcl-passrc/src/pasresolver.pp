@@ -708,9 +708,11 @@ type
   TPasClassScope = Class(TPasIdentifierScope)
   public
     AncestorScope: TPasClassScope;
+    CanonicalClassOf: TPasClassOfType;
     DirectAncestor: TPasType; // TPasClassType or TPasAliasType or TPasTypeAliasType
     DefaultProperty: TPasProperty;
     Flags: TPasClassScopeFlags;
+    destructor Destroy; override;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
@@ -1934,6 +1936,12 @@ begin
 end;
 
 { TPasClassScope }
+
+destructor TPasClassScope.Destroy;
+begin
+  ReleaseAndNil(TPasElement(CanonicalClassOf));
+  inherited Destroy;
+end;
 
 function TPasClassScope.FindIdentifier(const Identifier: String
   ): TPasIdentifier;
@@ -3633,8 +3641,16 @@ begin
         or (DeclProc.ClassType=TPasClassProcedure)
         or (DeclProc.ClassType=TPasClassFunction) then
       begin
-      // 'Self' in a class proc is the class VMT
-      AddIdentifier(ImplProcScope,'Self',CurClassType,pikSimple);
+      if not DeclProc.IsStatic then
+        begin
+        // 'Self' in a class proc is the hidden classtype argument
+        SelfArg:=TPasArgument.Create('Self',DeclProc);
+        ImplProcScope.SelfArg:=SelfArg;
+        SelfArg.Access:=argConst;
+        SelfArg.ArgType:=CurClassScope.CanonicalClassOf;
+        SelfArg.ArgType.AddRef;
+        AddIdentifier(ImplProcScope,'Self',SelfArg,pikSimple);
+        end;
       end
     else
       begin
@@ -4062,6 +4078,7 @@ var
   i: Integer;
   aModifier: String;
   IsSealed: Boolean;
+  CanonicalSelf: TPasClassOfType;
 begin
   if aClass.IsForward then
     exit;
@@ -4153,6 +4170,14 @@ begin
     ClassScope.AncestorScope:=AncestorEl.CustomData as TPasClassScope;
     ClassScope.DefaultProperty:=ClassScope.AncestorScope.DefaultProperty;
     end;
+  // create canonical class-of for the "Self" in class functions
+  CanonicalSelf:=TPasClassOfType.Create('Self',aClass);
+  ClassScope.CanonicalClassOf:=CanonicalSelf;
+  CanonicalSelf.DestType:=aClass;
+  aClass.AddRef;
+  CanonicalSelf.Visibility:=visStrictPrivate;
+  CanonicalSelf.SourceFilename:=aClass.SourceFilename;
+  CanonicalSelf.SourceLinenumber:=aClass.SourceLinenumber;
 end;
 
 procedure TPasResolver.FinishPropertyParamAccess(Params: TParamsExpr;
@@ -7936,11 +7961,24 @@ begin
       aType:=TPasType(Decl)
     else if Decl is TPasVariable then
       aType:=TPasVariable(Decl).VarType
-    else if Decl is TPasArgument then
-      aType:=TPasArgument(Decl).ArgType;
+    else if Decl.ClassType=TPasArgument then
+      aType:=TPasArgument(Decl).ArgType
+    else if Decl.ClassType=TPasResultElement then
+      aType:=TPasResultElement(Decl).ResultType
+    else if Decl is TPasFunction then
+      aType:=TPasFunction(Decl).FuncType.ResultEl.ResultType;
+    {$IFDEF VerbosePasResolver}
+    if aType=nil then
+      writeln('TPasResolver.BI_TypeInfo_OnGetCallCompatibility Decl=',GetObjName(Decl));
+    {$ENDIF}
     end;
   if aType=nil then
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.BI_TypeInfo_OnGetCallCompatibility ',GetResolverResultDbg(ParamResolved));
+    {$ENDIF}
     RaiseMsg(20170411100259,nTypeIdentifierExpected,sTypeIdentifierExpected,[],Param);
+    end;
   aType:=ResolveAliasType(aType);
   if not HasTypeInfo(aType) then
     RaiseMsg(20170413200118,nSymbolCannotBePublished,sSymbolCannotBePublished,[],Param);
