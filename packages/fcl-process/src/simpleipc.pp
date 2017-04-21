@@ -653,7 +653,8 @@ begin
   try
     MsgItem:=FQueue.Pop;
   finally
-    LeaveCriticalsection(FLock);
+    if DoLock then
+      LeaveCriticalsection(FLock);
   end;
   Result:=Assigned(MsgItem);
   if Result then
