@@ -245,13 +245,14 @@ Works:
   - use 0o for octal literals
 
 ToDos:
+- jsinteger (pasresolver: btIntDouble)
+- bark if there is an overload in the same unit with same signature
 - RTTI
-  - jsinteger (pasresolver: btIntDouble)
+  - stored false/true
   - class property
     - defaultvalue
   - type alias type
   - documentation
-- warn int64
 - move local types to unit scope
 - local var absolute
 - make -Jirtl.js default for -Jc and -Tnodejs, needs #IFDEF in cfg
@@ -1129,7 +1130,8 @@ type
     Function ComputeConstString(Expr: TPasExpr; AContext: TConvertContext; NotEmpty: boolean): String; virtual;
     Function IsExternalClassConstructor(El: TPasElement): boolean;
     Procedure ComputeRange(const RangeResolved: TPasResolverResult;
-      out MinValue, MaxValue: int64; ErrorEl: TPasElement); virtual;
+      AContext: TConvertContext; out MinValue, MaxValue: int64;
+      ErrorEl: TPasElement); virtual;
     // Name mangling
     Function TransformVariableName(El: TPasElement; Const AName: String; AContext : TConvertContext): String; virtual;
     Function TransformVariableName(El: TPasElement; AContext : TConvertContext) : String; virtual;
@@ -3750,8 +3752,8 @@ begin
 end;
 
 procedure TPasToJSConverter.ComputeRange(
-  const RangeResolved: TPasResolverResult; out MinValue, MaxValue: int64;
-  ErrorEl: TPasElement);
+  const RangeResolved: TPasResolverResult; AContext: TConvertContext; out
+  MinValue, MaxValue: int64; ErrorEl: TPasElement);
 var
   EnumType: TPasEnumType;
 begin
@@ -3806,7 +3808,7 @@ begin
     end
   else
     DoError(20170411224022,nPasElementNotSupported,sPasElementNotSupported,
-      [BaseTypeNames[RangeResolved.BaseType]],ErrorEl);
+      [AContext.Resolver.BaseTypeNames[RangeResolved.BaseType]],ErrorEl);
 end;
 
 function TPasToJSConverter.ConvertBinaryExpression(El: TBinaryExpr;
@@ -4691,7 +4693,7 @@ begin
     else
       begin
       {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.ConvertInheritedExpression Parent=',GetTreeDesc(El.Parent,2));
+      writeln('TPasToJSConverter.ConvertInheritedExpression Parent=',GetTreeDbg(El.Parent,2));
       {$ENDIF}
       DoError(20170418205955,nXExpectedButYFound,sXExpectedButYFound,
         ['inherited name()',Right.ElementTypeName],Right);
@@ -5692,7 +5694,7 @@ begin
       end;
     end;
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.ConvertTypeCastToBaseType BaseTypeData=',BaseTypeNames[to_bt],' ParamResolved=',GetResolverResultDbg(ParamResolved));
+  writeln('TPasToJSConverter.ConvertTypeCastToBaseType BaseTypeData=',AContext.Resolver.BaseTypeNames[to_bt],' ParamResolved=',GetResolverResultDbg(ParamResolved));
   {$ENDIF}
   RaiseNotSupported(El,AContext,20170325161150);
 end;
@@ -5812,7 +5814,7 @@ begin
           RaiseNotSupported(El,AContext,20170223131042);
         RangeEl:=Ranges[0];
         AContext.Resolver.ComputeElement(RangeEl,RangeResolved,[rcType]);
-        ComputeRange(RangeResolved,aMinValue,aMaxValue,RangeEl);
+        ComputeRange(RangeResolved,AContext,aMinValue,aMaxValue,RangeEl);
         Result:=CreateLiteralNumber(El,aMaxValue-aMinValue+1);
         exit;
         end
@@ -6094,7 +6096,8 @@ begin
     Result:=Call;
     exit;
     end;
-  DoError(20170325185906,nExpectedXButFoundY,sExpectedXButFoundY,['integer',GetResolverResultDescription(ParamResolved)],Param);
+  DoError(20170325185906,nExpectedXButFoundY,sExpectedXButFoundY,['integer',
+    AContext.Resolver.GetResolverResultDescription(ParamResolved)],Param);
 end;
 
 function TPasToJSConverter.ConvertBuiltIn_Ord(El: TParamsExpr;
@@ -6163,7 +6166,8 @@ begin
       exit;
       end;
     end;
-  DoError(20170210105339,nExpectedXButFoundY,sExpectedXButFoundY,['enum',GetResolverResultDescription(ParamResolved)],Param);
+  DoError(20170210105339,nExpectedXButFoundY,sExpectedXButFoundY,['enum',
+    AContext.Resolver.GetResolverResultDescription(ParamResolved)],Param);
 end;
 
 function TPasToJSConverter.ConvertBuiltIn_Low(El: TParamsExpr;
@@ -6260,7 +6264,8 @@ begin
         end;
       end;
   end;
-  DoError(20170210110717,nExpectedXButFoundY,sExpectedXButFoundY,['enum or array',GetResolverResultDescription(ResolvedEl)],Param);
+  DoError(20170210110717,nExpectedXButFoundY,sExpectedXButFoundY,['enum or array',
+    AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
 end;
 
 function TPasToJSConverter.ConvertBuiltIn_High(El: TParamsExpr;
@@ -6346,7 +6351,7 @@ begin
             end
           else if RangeResolved.BaseType in btAllJSInteger then
             begin
-            ComputeRange(RangeResolved,aMinValue,aMaxValue,Range);
+            ComputeRange(RangeResolved,AContext,aMinValue,aMaxValue,Range);
             Result:=CreateLiteralNumber(Param,aMaxValue);
             exit;
             end;
@@ -6369,7 +6374,8 @@ begin
         end;
       end;
   end;
-  DoError(20170210114139,nExpectedXButFoundY,sExpectedXButFoundY,['enum or array',GetResolverResultDescription(ResolvedEl)],Param);
+  DoError(20170210114139,nExpectedXButFoundY,sExpectedXButFoundY,['enum or array',
+    AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
 end;
 
 function TPasToJSConverter.ConvertBuiltIn_Pred(El: TParamsExpr;
@@ -6396,7 +6402,8 @@ begin
     Result:=Expr;
     exit;
     end;
-  DoError(20170210120039,nExpectedXButFoundY,sExpectedXButFoundY,['enum',GetResolverResultDescription(ResolvedEl)],Param);
+  DoError(20170210120039,nExpectedXButFoundY,sExpectedXButFoundY,['enum',
+    AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
 end;
 
 function TPasToJSConverter.ConvertBuiltIn_Succ(El: TParamsExpr;
@@ -6423,7 +6430,8 @@ begin
     Result:=Expr;
     exit;
     end;
-  DoError(20170210120626,nExpectedXButFoundY,sExpectedXButFoundY,['enum',GetResolverResultDescription(ResolvedEl)],Param);
+  DoError(20170210120626,nExpectedXButFoundY,sExpectedXButFoundY,['enum',
+    AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
 end;
 
 function TPasToJSConverter.ConvertBuiltIn_StrProc(El: TParamsExpr;
@@ -7885,7 +7893,7 @@ begin
       repeat
         RangeEl:=Arr.Ranges[Index];
         AContext.Resolver.ComputeElement(RangeEl,RangeResolved,[rcType]);
-        ComputeRange(RangeResolved,aMinValue,aMaxValue,RangeEl);
+        ComputeRange(RangeResolved,AContext,aMinValue,aMaxValue,RangeEl);
         ArrLit.AddElement(CreateLiteralNumber(RangeEl,aMaxValue-aMinValue+1));
         inc(Index);
         if Index=length(Arr.Ranges) then
@@ -8801,7 +8809,8 @@ begin
       btPointer:
         begin
         // create rtl.basename
-        Result:=CreateMemberExpression([FBuiltInNames[pbivnRTL],lowercase(BaseTypeNames[bt])]);
+        Result:=CreateMemberExpression([FBuiltInNames[pbivnRTL],lowercase(
+         AContext.Resolver.BaseTypeNames[bt])]);
         exit;
         end;
       btCustom:
@@ -8824,12 +8833,12 @@ begin
         else
           begin
           {$IFDEF VerbosePas2JS}
-          writeln('TPasToJSConverter.CreateTypeInfoRef [20170409174645] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData),' bt=',BaseTypeNames[bt]);
+          writeln('TPasToJSConverter.CreateTypeInfoRef [20170409174645] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData),' bt=',AContext.Resolver.BaseTypeNames[bt]);
           {$ENDIF}
           end
       else
         {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.CreateTypeInfoRef [20170409173746] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData),' bt=',BaseTypeNames[bt]);
+        writeln('TPasToJSConverter.CreateTypeInfoRef [20170409173746] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData),' bt=',AContext.Resolver.BaseTypeNames[bt]);
         {$ENDIF}
       end;
       end
@@ -9640,7 +9649,8 @@ begin
       begin
       AContext.Resolver.ComputeElement(El.VariableName,ResolvedVar,[rcNoImplicitProc]);
       if not (ResolvedVar.IdentEl is TPasVariable) then
-        DoError(20170213214404,nExpectedXButFoundY,sExpectedXButFoundY,['var',GetResolverResultDescription(ResolvedVar)],El);
+        DoError(20170213214404,nExpectedXButFoundY,sExpectedXButFoundY,['var',
+          AContext.Resolver.GetResolverResultDescription(ResolvedVar)],El);
       end;
     SimpleAss.LHS:=ConvertElement(El.VariableName,AContext);
     SimpleAss.Expr:=ConvertElement(El.StartExpr,AContext);
@@ -10069,7 +10079,7 @@ begin
         else
           begin
           {$IFDEF VerbosePas2JS}
-          writeln('TPasToJSConverter.CreateVarInit unknown PasType T=',GetObjName(T),' basetype=',BaseTypeNames[bt]);
+          writeln('TPasToJSConverter.CreateVarInit unknown PasType T=',GetObjName(T),' basetype=',AContext.Resolver.BaseTypeNames[bt]);
           {$ENDIF}
           RaiseNotSupported(PasType,AContext,20170208162121);
           end;
