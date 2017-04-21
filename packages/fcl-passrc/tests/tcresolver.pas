@@ -1634,7 +1634,7 @@ var
   var
     s: String;
   begin
-    s:='TTestResolver.OnCheckElementParent El='+GetTreeDesc(El)+' '+
+    s:='TTestResolver.OnCheckElementParent El='+GetTreeDbg(El)+' '+
       ResolverEngine.GetElementSourcePosStr(El)+' '+Msg;
     writeln('ERROR: ',s);
     Fail(s);
