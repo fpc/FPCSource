@@ -474,6 +474,7 @@ type
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses1;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses2;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses3;
+    Procedure TestRTTI_TypeInfo_FunctionClassType;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -12645,6 +12646,77 @@ begin
     '$mod.tiClass = $mod.$rtti["TObject"];',
     '$mod.tiClass = $mod.aClass.$rtti;',
     '$mod.tiClassRef = $mod.$rtti["TClass"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_TypeInfo_FunctionClassType;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TClass = class of tobject;',
+  '  TObject = class',
+  '    function MyClass: TClass;',
+  '    class function ClassType: TClass;',
+  '  end;',
+  '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
+  '  TTypeInfoClass = class external name ''rtl.tTypeInfoClass''(TTypeInfo) end;',
+  'function TObject.MyClass: TClass;',
+  'var t: TTypeInfoClass;',
+  'begin',
+  '  t:=TypeInfo(Self);',
+  '  t:=TypeInfo(Result);',
+  'end;',
+  'class function TObject.ClassType: TClass;',
+  'var t: TTypeInfoClass;',
+  'begin',
+  '  t:=TypeInfo(Self);',
+  '  t:=TypeInfo(Result);',
+  'end;',
+  'var',
+  '  Obj: TObject;',
+  '  t: TTypeInfoClass;',
+  'begin',
+  '  t:=TypeInfo(TObject.ClassType);',
+  '  t:=TypeInfo(Obj.ClassType);',
+  '  t:=TypeInfo(Obj.MyClass);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRTTI_TypeInfo_FunctionClassType',
+    LinesToStr([ // statements
+    '$mod.$rtti.$Class("TObject");',
+    '$mod.$rtti.$ClassRef("TClass", {',
+    '  instancetype: $mod.$rtti["TObject"]',
+    '});',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.MyClass = function () {',
+    '    var Result = null;',
+    '    var t = null;',
+    '    t = this.$rtti;',
+    '    t = Result.$rtti;',
+    '    return Result;',
+    '  };',
+    '  this.ClassType = function () {',
+    '    var Result = null;',
+    '    var t = null;',
+    '    t = this.$rtti;',
+    '    t = Result.$rtti;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.t = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.t = $mod.TObject.ClassType().$rtti;',
+    '$mod.t = $mod.Obj.$class.ClassType().$rtti;',
+    '$mod.t = $mod.Obj.MyClass().$rtti;',
     '']));
 end;
 

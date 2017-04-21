@@ -245,7 +245,6 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- jsinteger (pasresolver: btIntDouble)
 - bark if there is an overload in the same unit with same signature
 - RTTI
   - stored false/true
@@ -270,7 +269,6 @@ ToDos:
 - asm: pas() - useful for overloads and protect an identifier from optimization
 - source maps
 - ifthen
-- stdcall ->  add 'this' as first param, rtl.createCallbackStd, cannot be called from Pascal
 
 Not in Version 1.0:
 - write, writeln
@@ -2451,10 +2449,21 @@ begin
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
   if ParamResolved.TypeEl=nil then
     RaiseInternalError(20170413090726);
+  if (ParamResolved.BaseType=btProc) and (ParamResolved.IdentEl is TPasFunction) then
+    begin
+    // typeinfo of function result -> resolve once
+    TypeEl:=TPasFunction(ParamResolved.IdentEl).FuncType.ResultEl.ResultType;
+    ComputeElement(TypeEl,ParamResolved,[rcNoImplicitProc]);
+    Include(ParamResolved.Flags,rrfReadable);
+    if ParamResolved.TypeEl=nil then
+      RaiseInternalError(20170421124923);
+    end;
+
   TypeEl:=ResolveAliasType(ParamResolved.TypeEl);
   C:=TypeEl.ClassType;
   TIName:='';
   //writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult TypeEl=',GetObjName(TypeEl));
+
   if C=TPasUnresolvedSymbolRef then
     begin
     if TypeEl.CustomData is TResElDataPas2JSBaseType then
@@ -2514,10 +2523,6 @@ begin
     begin
     if ParamResolved.IdentEl is TPasSetType then
       TIName:=Pas2JSBuiltInNames[pbitnTISet];
-    end
-  else if ParamResolved.BaseType=btCustom then
-    begin
-
     end;
   if TIName='' then
     begin
@@ -5240,7 +5245,7 @@ begin
         begin
         BuiltInProc:=TResElDataBuiltInProc(Decl.CustomData);
         {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.ConvertFuncParams ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
+        writeln('TPasToJSConverter.ConvertFuncParams BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
         {$ENDIF}
         case BuiltInProc.BuiltIn of
           bfLength: Result:=ConvertBuiltIn_Length(El,AContext);
@@ -6780,30 +6785,57 @@ function TPasToJSConverter.ConvertBuiltIn_TypeInfo(El: TParamsExpr;
 var
   ParamResolved: TPasResolverResult;
   Param: TPasExpr;
+  ResultEl: TPasResultElement;
+  TypeEl: TPasType;
+  Call: TJSCallExpression;
+  NeedCall: Boolean;
 begin
   Result:=nil;
   Param:=El.Params[0];
   AContext.Resolver.ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
-  if ParamResolved.IdentEl is TPasType then
-    Result:=CreateTypeInfoRef(TPasType(ParamResolved.IdentEl),AContext,Param)
-  else if ParamResolved.TypeEl<>nil then
+  {$IFDEF VerbosePas2JS}
+  writeln('TPasToJSConverter.ConvertBuiltIn_TypeInfo ',GetResolverResultDbg(ParamResolved));
+  {$ENDIF}
+  NeedCall:=false;
+  if (ParamResolved.BaseType=btProc) and (ParamResolved.IdentEl is TPasFunction) then
     begin
-    if (rrfReadable in ParamResolved.Flags)
-        and ((ParamResolved.TypeEl.ClassType=TPasClassType)
-          or (ParamResolved.TypeEl.ClassType=TPasClassOfType))
-        and ((ParamResolved.IdentEl is TPasVariable)
-          or (ParamResolved.IdentEl.ClassType=TPasArgument)) then
+    // typeinfo(function) ->
+    ResultEl:=TPasFunction(ParamResolved.IdentEl).FuncType.ResultEl;
+    AContext.Resolver.ComputeElement(ResultEl.ResultType,ParamResolved,[rcNoImplicitProc]);
+    {$IFDEF VerbosePas2JS}
+    writeln('TPasToJSConverter.ConvertBuiltIn_TypeInfo FuncResult=',GetResolverResultDbg(ParamResolved));
+    {$ENDIF}
+    Include(ParamResolved.Flags,rrfReadable);
+    ParamResolved.IdentEl:=ResultEl;
+    NeedCall:=true;
+    end;
+  TypeEl:=AContext.Resolver.ResolveAliasType(ParamResolved.TypeEl);
+  if TypeEl=nil then
+    RaiseNotSupported(El,AContext,20170413001544)
+  else if ParamResolved.IdentEl is TPasType then
+    Result:=CreateTypeInfoRef(TPasType(ParamResolved.IdentEl),AContext,Param)
+  else if (rrfReadable in ParamResolved.Flags)
+      and ((TypeEl.ClassType=TPasClassType)
+        or (TypeEl.ClassType=TPasClassOfType))
+      and ((ParamResolved.IdentEl is TPasVariable)
+        or (ParamResolved.IdentEl.ClassType=TPasArgument)
+        or (ParamResolved.IdentEl.ClassType=TPasResultElement)) then
+    begin
+    // typeinfo(classinstance) -> classinstance.$rtti
+    // typeinfo(classof) -> classof.$rtti
+    Result:=ConvertElement(Param,AContext);
+    if NeedCall then
       begin
-      // typeinfo(classinstance) -> classinstance.$rtti
-      // typeinfo(classof) -> classof.$rtti
-      Result:=ConvertElement(Param,AContext);
-      Result:=CreateDotExpression(El,Result,CreateBuiltInIdentifierExpr(FBuiltInNames[pbivnRTTI]));
-      end
-    else
-      Result:=CreateTypeInfoRef(ParamResolved.TypeEl,AContext,Param);
+      // typeinfo(afunction:class) -> afunction().$rtti
+      // typeinfo(afucntion:classof) -> afunction().$rtti
+      Call:=TJSCallExpression(CreateElement(TJSCallExpression,El));
+      Call.Expr:=Result;
+      Result:=Call;
+      end;
+    Result:=CreateDotExpression(El,Result,CreateBuiltInIdentifierExpr(FBuiltInNames[pbivnRTTI]));
     end
   else
-    RaiseNotSupported(El,AContext,20170413001544);
+    Result:=CreateTypeInfoRef(TypeEl,AContext,Param);
 end;
 
 function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;
@@ -8097,7 +8129,9 @@ begin
             end;
           end;
         end;
-      FuncContext.WriteStack;
+      {$IFDEF VerbosePas2JS}
+      //FuncContext.WriteStack;
+      {$ENDIF}
       AddBodyStatement(ConvertDeclarations(BodyPas,FuncContext),BodyPas);
     finally
       FuncContext.Free;
