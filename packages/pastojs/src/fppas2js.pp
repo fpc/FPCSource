@@ -269,6 +269,7 @@ ToDos:
 - asm: pas() - useful for overloads and protect an identifier from optimization
 - source maps
 - ifthen
+- stdcall of methods: pass original 'this' as first parameter
 
 Not in Version 1.0:
 - write, writeln
@@ -8837,7 +8838,8 @@ begin
       RaiseNotSupported(ErrorEl,AContext,20170409195518,'cannot typeinfo itself');
     end;
   if El.Name='' then
-    RaiseNotSupported(El,AContext,20170412125911,'typeinfo of anonymous '+El.ElementTypeName);
+    DoError(20170421145257,nTypeXCannotBePublished,sTypeXCannotBePublished,
+      ['typeinfo of anonymous '+El.ElementTypeName],ErrorEl);
 
   C:=El.ClassType;
   if C=TPasUnresolvedSymbolRef then
