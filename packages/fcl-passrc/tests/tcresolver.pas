@@ -183,6 +183,7 @@ type
     Procedure TestArgWrongExprFail;
     Procedure TestVarExternal;
     Procedure TestVarNoSemicolonBeginFail;
+    Procedure TestIntegerRange;
 
     // strings
     Procedure TestChar_Ord;
@@ -198,7 +199,6 @@ type
     // enums
     Procedure TestEnums;
     Procedure TestSets;
-    Procedure TestSetConstRange;
     Procedure TestSetOperators;
     Procedure TestEnumParams;
     Procedure TestSetParams;
@@ -209,6 +209,7 @@ type
     Procedure TestEnum_EqualNilFail;
     Procedure TestEnum_CastIntegerToEnum;
     Procedure TestEnum_Str;
+    Procedure TestSetConstRange;
     Procedure TestSet_AnonymousEnumtype;
     Procedure TestSet_AnonymousEnumtypeName;
 
@@ -2071,6 +2072,16 @@ begin
     nParserExpectTokenError);
 end;
 
+procedure TTestResolver.TestIntegerRange;
+begin
+  StartProgram(false);
+  Add('const');
+  Add('  MinInt = -1;');
+  Add('  MaxInt = +1;');
+  Add('  {#TMyInt}TMyInt = MinInt..MaxInt;');
+  Add('begin');
+end;
+
 procedure TTestResolver.TestChar_Ord;
 begin
   StartProgram(false);
@@ -2234,16 +2245,6 @@ begin
   Add('  {@MyBools}MyBools:=[false,true];');
   Add('  {@MyBools}MyBools:=[true..false];');
   ParseProgram;
-end;
-
-procedure TTestResolver.TestSetConstRange;
-begin
-  StartProgram(false);
-  Add('const');
-  Add('  MinInt = -1;');
-  Add('  MaxInt = +1;');
-  Add('  {#TMyInt}TMyInt = MinInt..MaxInt;');
-  Add('begin');
 end;
 
 procedure TTestResolver.TestSetOperators;
@@ -2458,6 +2459,32 @@ begin
   Add('  aString:=str(f);');
   Add('  aString:=str(f:3);');
   Add('  str(f,aString);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestSetConstRange;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (red,blue,green);',
+  '  TEnums = set of TEnum;',
+  'const',
+  '  teAny = [low(TEnum)..high(TEnum)];',
+  '  teRedBlue = [low(TEnum)..pred(high(TEnum))];',
+  'var',
+  '  e: TEnum;',
+  '  s: TEnums;',
+  'begin',
+  '  if blue in teAny then;',
+  '  if blue in teAny+[e] then;',
+  '  if blue in teAny+teRedBlue then;',
+  '  s:=teAny;',
+  '  s:=teAny+[e];',
+  '  s:=[e]+teAny;',
+  '  s:=teAny+teRedBlue;',
+  '  s:=teAny+teRedBlue+[e];',
+  '']);
   ParseProgram;
 end;
 

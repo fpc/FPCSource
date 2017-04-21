@@ -1407,7 +1407,6 @@ type
     function CheckEqualResCompatibility(const LHS, RHS: TPasResolverResult;
       LErrorEl: TPasElement; RaiseOnIncompatible: boolean;
       RErrorEl: TPasElement = nil): integer;
-    function ResolvedElHasValue(const ResolvedEl: TPasResolverResult): boolean;
     function ResolvedElCanBeVarParam(const ResolvedEl: TPasResolverResult): boolean;
     function ResolvedElIsClassInstance(const ResolvedEl: TPasResolverResult): boolean;
     // uility functions
@@ -5310,7 +5309,7 @@ begin
   if ResolvedValue.BaseType in btAllStrings then
     begin
     // string -> check that ResolvedValue is not merely a type, but has a value
-    if not ResolvedElHasValue(ResolvedValue) then
+    if not (rrfReadable in ResolvedValue.Flags) then
       RaiseXExpectedButYFound(20170216152548,'variable',ResolvedValue.TypeEl.ElementTypeName,Params);
     // check single argument
     if length(Params.Params)<1 then
@@ -6712,14 +6711,14 @@ var
   LBT, RBT: TResolverBaseType;
 begin
   // check both are values
-  if not ResolvedElHasValue(LHS) then
+  if not (rrfReadable in LHS.Flags) then
     begin
     if LHS.TypeEl<>nil then
       RaiseXExpectedButYFound(20170216152645,'ordinal',LHS.TypeEl.ElementTypeName,Left)
     else
       RaiseXExpectedButYFound(20170216152648,'ordinal',BaseTypeNames[LHS.BaseType],Left);
     end;
-  if not ResolvedElHasValue(RHS) then
+  if not (rrfReadable in RHS.Flags) then
     begin
     if RHS.TypeEl<>nil then
       RaiseXExpectedButYFound(20170216152651,'ordinal',RHS.TypeEl.ElementTypeName,Right)
@@ -9985,19 +9984,6 @@ begin
   else
     exit(cIncompatible);
   RaiseNotYetImplemented(20161007101041,LErrorEl,'LHS='+GetResolverResultDbg(LHS)+' RHS='+GetResolverResultDbg(RHS));
-end;
-
-function TPasResolver.ResolvedElHasValue(const ResolvedEl: TPasResolverResult
-  ): boolean;
-begin
-  if not (rrfReadable in ResolvedEl.Flags) then
-    Result:=false
-  else if ResolvedEl.ExprEl<>nil then
-    Result:=true
-  else if (ResolvedEl.IdentEl<>nil) then
-    Result:=not (ResolvedEl.IdentEl is TPasType)
-  else
-    Result:=false;
 end;
 
 function TPasResolver.ResolvedElCanBeVarParam(
