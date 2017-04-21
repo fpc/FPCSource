@@ -595,7 +595,7 @@ begin
     // TargetCPU
     s := UpperCase(CPUTarget);
     Scanner.AddDefine('CPU'+s);
-    if (s='x86_64') then
+    if (s='X86_64') then
       Scanner.AddDefine('CPU64')
     else
       Scanner.AddDefine('CPU32');
