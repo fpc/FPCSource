@@ -6468,7 +6468,11 @@ begin
     end;
 end;
 
+{$ifdef NO_THREADING}
+var
+{$else NO_THREADING}
 threadvar
+{$endif NO_THREADING}
   GHandledRecursiveDependencies: TStrings;
 
 procedure TBuildEngine.AddDependencyTransmittedOptions(Args: TStrings; APackage: TPackage);
