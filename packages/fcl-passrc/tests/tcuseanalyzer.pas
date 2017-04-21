@@ -100,6 +100,7 @@ type
     procedure TestM_Hint_FunctionResultRecord;
     procedure TestM_Hint_FunctionResultPassRecordElement;
     procedure TestM_Hint_OutParam_No_AssignedButNeverUsed;
+    procedure TestM_Hint_ArgPassed_No_ParameterNotUsed;
 
     // whole program optimization
     procedure TestWP_LocalVar;
@@ -118,6 +119,7 @@ type
     procedure TestWP_PublishedProcType;
     procedure TestWP_PublishedProperty;
     procedure TestWP_BuiltInFunctions;
+    procedure TestWP_TypeInfo;
   end;
 
 implementation
@@ -1336,6 +1338,25 @@ begin
   CheckUseAnalyzerUnexpectedHints;
 end;
 
+procedure TTestUseAnalyzer.TestM_Hint_ArgPassed_No_ParameterNotUsed;
+begin
+  StartProgram(false);
+  Add([
+  'procedure AssertTrue(b: boolean);',
+  'begin',
+  '  if b then ;',
+  'end;',
+  'procedure AssertFalse(b: boolean);',
+  'begin',
+  '  AssertTrue(not b);',
+  'end;',
+  'begin',
+  '  AssertFalse(true);',
+  '']);
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
 procedure TTestUseAnalyzer.TestWP_LocalVar;
 begin
   StartProgram(false);
@@ -1643,6 +1664,50 @@ begin
   '  {#tordenum_used}TOrdEnum = (ordenum1,ordenum2);',
   'begin',
   '  if ord(ordenum1)=1 then ;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_TypeInfo;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#integer_used}integer = longint;',
+  '  {#trec_used}TRec = record',
+  '    {#trecv_used}v: integer;',
+  '  end;',
+  '  {#tclass_used}TClass = class of TObject;',
+  '  {#tobject_used}TObject = class',
+  '    class function {#tobject_classtype_used}ClassType: TClass; virtual; abstract;',
+  '  end;',
+  '  {#tbirds_used}TBirds = class of TBird;',
+  '  {#tbird_used}TBird = class',
+  '  end;',
+  'function {#getbirdclass_used}GetBirdClass: TBirds;',
+  'begin',
+  '  Result:=nil;',
+  'end;',
+  'var',
+  '  {#i_used}i: integer;',
+  '  {#s_used}s: string;',
+  '  {#p_used}p: pointer;',
+  '  {#r_used}r: TRec;',
+  '  {#o_used}o: TObject;',
+  '  {#c_used}c: TClass;',
+  'begin',
+  '  p:=typeinfo(integer);',
+  '  p:=typeinfo(longint);',
+  '  p:=typeinfo(i);',
+  '  p:=typeinfo(s);',
+  '  p:=typeinfo(p);',
+  '  p:=typeinfo(r.v);',
+  '  p:=typeinfo(TObject.ClassType);',
+  '  p:=typeinfo(o.ClassType);',
+  '  p:=typeinfo(o);',
+  '  p:=typeinfo(c);',
+  '  p:=typeinfo(c.ClassType);',
+  '  p:=typeinfo(GetBirdClass);',
   '']);
   AnalyzeWholeProgram;
 end;

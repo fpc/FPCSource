@@ -3159,23 +3159,36 @@ end;
 procedure TTestResolver.TestTypeInfo;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  integer = longint;');
-  Add('  TRec = record');
-  Add('    v: integer;');
-  Add('  end;');
-  Add('var');
-  Add('  i: integer;');
-  Add('  s: string;');
-  Add('  p: pointer;');
-  Add('  r: TRec;');
-  Add('begin');
-  Add('  p:=typeinfo(integer);');
-  Add('  p:=typeinfo(longint);');
-  Add('  p:=typeinfo(i);');
-  Add('  p:=typeinfo(s);');
-  Add('  p:=typeinfo(p);');
-  Add('  p:=typeinfo(r.v);');
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TRec = record',
+  '    v: integer;',
+  '  end;',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '    class function ClassType: TClass; virtual; abstract;',
+  '  end;',
+  'var',
+  '  i: integer;',
+  '  s: string;',
+  '  p: pointer;',
+  '  r: TRec;',
+  '  o: TObject;',
+  '  c: TClass;',
+  'begin',
+  '  p:=typeinfo(integer);',
+  '  p:=typeinfo(longint);',
+  '  p:=typeinfo(i);',
+  '  p:=typeinfo(s);',
+  '  p:=typeinfo(p);',
+  '  p:=typeinfo(r.v);',
+  '  p:=typeinfo(TObject.ClassType);',
+  '  p:=typeinfo(o.ClassType);',
+  '  p:=typeinfo(o);',
+  '  p:=typeinfo(c);',
+  '  p:=typeinfo(c.ClassType);',
+  '']);
   ParseProgram;
 end;
 

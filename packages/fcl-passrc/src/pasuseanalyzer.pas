@@ -623,7 +623,7 @@ begin
 end;
 
 procedure TPasAnalyzer.UsePublished(El: TPasElement);
-// mark typeinfo, do not
+// mark typeinfo, do not mark code
 var
   C: TClass;
   Members: TFPList;
@@ -1009,8 +1009,14 @@ begin
         if BuiltInProc.BuiltIn=bfTypeInfo then
           begin
           Params:=(El.Parent as TParamsExpr).Params;
-          Resolver.ComputeElement(Params[0],ParamResolved,[]);
-          UsePublished(ParamResolved.IdentEl);
+          Resolver.ComputeElement(Params[0],ParamResolved,[rcNoImplicitProc]);
+          {$IFDEF VerbosePasAnalyzer}
+          writeln('TPasAnalyzer.UseExpr typeinfo ',GetResolverResultDbg(ParamResolved));
+          {$ENDIF}
+          if ParamResolved.IdentEl is TPasFunction then
+            UsePublished(TPasFunction(ParamResolved.IdentEl).FuncType.ResultEl.ResultType)
+          else
+            UsePublished(ParamResolved.IdentEl);
           end;
         end;
       end;

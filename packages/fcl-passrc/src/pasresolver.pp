@@ -4683,7 +4683,7 @@ var
   ElClass: TClass;
 begin
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.ResolveExpr ',GetObjName(El));
+  writeln('TPasResolver.ResolveExpr ',GetObjName(El),' ',Access);
   {$ENDIF}
   if El=nil then
     RaiseNotYetImplemented(20160922163453,El);
@@ -5504,9 +5504,10 @@ begin
   else if (Access=rraRead)
       and ((C=TPrimitiveExpr)
         or (C=TNilExpr)
-        or (C=TBoolConstExpr)
-        or (C=TUnaryExpr)) then
+        or (C=TBoolConstExpr)) then
     // ok
+  else if C=TUnaryExpr then
+    AccessExpr(TUnaryExpr(Expr).Operand,Access)
   else
     begin
     {$IFDEF VerbosePasResolver}
