@@ -362,15 +362,14 @@ end;
 
 procedure TCustomApplication.Terminate;
 begin
-  Terminate(0);
+  Terminate(ExitCode);
 end;
 
 procedure TCustomApplication.Terminate(AExitCode : Integer) ;
 
 begin
   FTerminated:=True;
-  If (AExitCode<>0) then
-    ExitCode:=AExitCode;
+  ExitCode:=AExitCode;
 end;
 
 function TCustomApplication.GetOptionAtIndex(AIndex : Integer; IsLong: Boolean): String;
