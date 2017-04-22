@@ -25,8 +25,8 @@ Unit aoptcpu;
 
 {$i fpcdefs.inc}
 
-{$define DEBUG_PREREGSCHEDULER}
-{$define DEBUG_AOPTCPU}
+{ $define DEBUG_PREREGSCHEDULER}
+{ $define DEBUG_AOPTCPU}
 
 Interface
 
