@@ -686,6 +686,12 @@ Function GetUnicodeStrProp(Instance: TObject; const PropName: string): UnicodeSt
 Procedure SetUnicodeStrProp(Instance: TObject; const PropName: string; const Value: UnicodeString);
 Procedure SetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: UnicodeString);
 
+Function GetRawbyteStrProp(Instance: TObject; PropInfo: PPropInfo): RawByteString;
+Function GetRawByteStrProp(Instance: TObject; const PropName: string): RawByteString;
+Procedure SetRawByteStrProp(Instance: TObject; const PropName: string; const Value: RawByteString);
+Procedure SetRawByteStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: RawByteString);
+
+
 {$ifndef FPUNONE}
 Function  GetFloatProp(Instance: TObject; PropInfo : PPropInfo) : Extended;
 Function  GetFloatProp(Instance: TObject; const PropName: string): Extended;
@@ -2148,6 +2154,94 @@ begin
         end;
       end;
   end;
+end;
+
+function GetRawbyteStrProp(Instance: TObject; PropInfo: PPropInfo): RawByteString;
+
+type
+  TGetRawByteStrProcIndex=function(index:longint): RawByteString of object;
+  TGetRawByteStrProc=function():RawByteString of object;
+var
+  AMethod : TMethod;
+begin
+  Result:='';
+  case Propinfo^.PropType^.Kind of
+    tkWString:
+      Result:=RawByteString(GetWideStrProp(Instance,PropInfo));
+    tkUString:
+      Result:=RawByteString(GetUnicodeStrProp(Instance,PropInfo));
+    tkSString:
+      Result:=RawByteString(GetStrProp(Instance,PropInfo));
+    tkAString:
+      begin
+        case (PropInfo^.PropProcs) and 3 of
+          ptField:
+            Result := PAnsiString(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
+          ptStatic,
+          ptVirtual:
+            begin
+              if (PropInfo^.PropProcs and 3)=ptStatic then
+                AMethod.Code:=PropInfo^.GetProc
+              else
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+              AMethod.Data:=Instance;
+              if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+                Result:=TGetRawByteStrProcIndex(AMethod)(PropInfo^.Index)
+              else
+                Result:=TGetRawByteStrProc(AMethod)();
+            end;
+        end;
+      end;
+  end;
+end;
+
+function GetRawByteStrProp(Instance: TObject; const PropName: string): RawByteString;
+begin
+  Result:=GetRawByteStrProp(Instance,FindPropInfo(Instance,PropName));
+end;
+
+procedure SetRawByteStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: RawByteString);
+
+type
+  TSetRawByteStrProcIndex=procedure(index:longint;s:RawByteString) of object;
+  TSetRawByteStrProc=procedure(s:RawByteString) of object;
+var
+  AMethod : TMethod;
+begin
+  case Propinfo^.PropType^.Kind of
+    tkWString:
+      SetWideStrProp(Instance,PropInfo,WideString(Value));
+    tkUString:
+       SetUnicodeStrProp(Instance,PropInfo,UnicodeString(Value));
+    tkSString:
+      SetStrProp(Instance,PropInfo,Value); // Not 100% sure about this.
+    tkAString:
+      begin
+        case (PropInfo^.PropProcs shr 2) and 3 of
+          ptField:
+            PAnsiString(Pointer(Instance) + LongWord(PropInfo^.SetProc))^:=Value;
+          ptStatic,
+          ptVirtual:
+            begin
+              if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
+                AMethod.Code:=PropInfo^.SetProc
+              else
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+              AMethod.Data:=Instance;
+              if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+                TSetRawByteStrProcIndex(AMethod)(PropInfo^.Index,Value)
+              else
+                TSetRawByteStrProc(AMethod)(Value);
+            end;
+        end;
+      end;
+  end;
+end;
+procedure SetRawByteStrProp(Instance: TObject; const PropName: string; const Value: RawByteString);
+
+begin
+  SetRawByteStrProp(Instance,FindPropInfo(Instance,PropName),Value);
+
 end;
 
 
