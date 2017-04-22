@@ -2097,6 +2097,8 @@ begin
   Add('  exit(''abc'');');
   Add('end;');
   Add('begin');
+  Add('  exit;');
+  Add('  exit(1);');
   ConvertProgram;
   CheckSource('TestExit',
     LinesToStr([ // statements
@@ -4382,7 +4384,7 @@ begin
     LinesToStr([ // $mod.$main
     'try {',
     '  $mod.vI = 1;',
-    '} catch {',
+    '} catch ($e) {',
     '  $mod.vI = 2;',
     '};',
     'try {',

@@ -245,7 +245,6 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- if jsvalue then
 - constant evaluation
 - integer ranges
 - static arrays
@@ -1089,13 +1088,6 @@ type
       end;
       PForLoopFindData = ^TForLoopFindData;
     procedure ForLoop_OnProcBodyElement(El: TPasElement; arg: pointer);
-  private
-    type
-      TTryExceptFindData = record
-        HasRaiseWithoutObject: boolean;
-      end;
-      PTryExceptFindData = ^TTryExceptFindData;
-    procedure TryExcept_OnElement(El: TPasElement; arg: pointer);
   private
     FBuiltInNames: array[TPas2JSBuiltInName] of string;
     FOnIsElementUsed: TPas2JSIsElementUsedEvent;
@@ -7997,14 +7989,6 @@ begin
     end;
 end;
 
-procedure TPasToJSConverter.TryExcept_OnElement(El: TPasElement; arg: pointer);
-var
-  Data: PTryExceptFindData absolute arg;
-begin
-  if (El is TPasImplRaise) and (TPasImplRaise(El).ExceptObject=nil) then
-    Data^.HasRaiseWithoutObject:=true;
-end;
-
 procedure TPasToJSConverter.SetUseEnumNumbers(const AValue: boolean);
 begin
   if AValue then
@@ -8257,20 +8241,6 @@ end;
 
 function TPasToJSConverter.ConvertTryStatement(El: TPasImplTry;
   AContext: TConvertContext): TJSElement;
-
-  function NeedExceptObject: boolean;
-  var
-    Data: TTryExceptFindData;
-  begin
-    Result:=false;
-    if El.FinallyExcept.Elements.Count=0 then exit;
-    if TPasElement(El.FinallyExcept.Elements[0]) is TPasImplExceptOn then
-      exit(true);
-    Data:=Default(TTryExceptFindData);
-    El.FinallyExcept.ForEachCall(@TryExcept_OnElement,@Data);
-    Result:=Data.HasRaiseWithoutObject;
-  end;
-
 Var
   T : TJSTryStatement;
   ExceptBlock: TPasImplTryHandler;
@@ -8292,9 +8262,8 @@ begin
       begin
       T:=TJSTryCatchStatement(CreateElement(TJSTryCatchStatement,El));
       T.Block:=ConvertImplBlockElements(El,AContext,true);
-      if NeedExceptObject then
-        T.Ident:=TJSString(FBuiltInNames[pbivnExceptObject]);
-      //T.BCatch:=ConvertElement(El.FinallyExcept,AContext);
+      // always set the catch except object, needed by nodejs
+      T.Ident:=TJSString(FBuiltInNames[pbivnExceptObject]);
       ExceptBlock:=El.FinallyExcept;
       if (ExceptBlock.Elements.Count>0)
           and (TPasImplElement(ExceptBlock.Elements[0]) is TPasImplExceptOn) then

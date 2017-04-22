@@ -604,6 +604,7 @@ Var
   F : TPasImplTryExcept;
   El : TJSTryCatchStatement;
   L : TJSStatementList;
+  ExceptObjName: String;
 
 begin
   // Try a:=b except b:=c end;
@@ -611,7 +612,7 @@ begin
     Becomes:
     try {
      a=b;
-    } catch {
+    } catch ($e) {
       b = c;
     }
   *)
@@ -621,7 +622,9 @@ begin
   F.AddElement(CreateAssignStatement('b','c'));
   // Convert
   El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
-  AssertEquals('No exception object name','',String(El.Ident));
+  // check "catch(exceptobject)"
+  ExceptObjName:=lowercase(Pas2JSBuiltInNames[pbivnExceptObject]);
+  AssertEquals('Correct exception object name',ExceptObjName,String(El.Ident));
   // check "a=b;"
   L:=AssertListStatement('try..except block is statement list',El.Block);
   AssertAssignStatement('Correct assignment in try..except block',L.A,'a','b');
