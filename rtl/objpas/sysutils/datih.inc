@@ -57,8 +57,8 @@ var
       dddd   : day of week (full)
       ddddd  : shortdateformat
       dddddd : longdateformat
-      m      : month
-      mm     : month (leading zero)
+      m      : month. If preceded by h or hh specifiers, then minutes.
+      mm     : month. If preceded by h or hh specifiers, then minutes (leading zero).
       mmm    : month (abbreviation)
       mmmm   : month (full)
       y      : year (two digits)
