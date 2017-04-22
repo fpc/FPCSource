@@ -549,6 +549,8 @@ var
       case s[2] of
         'd': // -d define
           Scanner.AddDefine(UpperCase(Copy(s, 3, Length(s))));
+        'u': // -u undefine
+          Scanner.RemoveDefine(UpperCase(Copy(s, 3, Length(s))));
         'F': // -F
           if (length(s)>2) and (s[3] = 'i') then // -Fi include path
             FileResolver.AddIncludePath(Copy(s, 4, Length(s)));
@@ -556,10 +558,18 @@ var
           FileResolver.AddIncludePath(Copy(s, 3, Length(s)));
         'S': // -S mode
           if  (length(s)>2) then
-            case S[3] of
-              'c' : Scanner.Options:=Scanner.Options+[po_cassignments];
-              'd' : Scanner.SetCompilerMode('DELPHI');
-              '2' : Scanner.SetCompilerMode('OBJFPC');
+            begin
+            l:=3;
+            While L<=Length(S) do
+              begin
+              case S[l] of
+                'c' : Scanner.Options:=Scanner.Options+[po_cassignments];
+                'd' : Scanner.SetCompilerMode('DELPHI');
+                '2' : Scanner.SetCompilerMode('OBJFPC');
+                'h' : ; // do nothing
+              end;
+              inc(l);
+              end;
             end;
         'M' :
            begin
