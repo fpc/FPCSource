@@ -521,18 +521,20 @@ implementation
 
             TODO: This likely applies to all systems which smartlink without
             creating libraries }
-          if is_smart_section(atype) and (aname<>'') then
-            begin
-              s:=sectionattrs(atype);
-              if (s<>'') then
-                writer.AsmWrite(',"'+s+'"');
-            end
-         else if target_info.system in systems_aix then
-           begin
-             s:=sectionalignment_aix(atype,secalign);
-             if s<>'' then
-               writer.AsmWrite(','+s);
-           end;
+          begin
+            if is_smart_section(atype) and (aname<>'') then
+              begin
+                s:=sectionattrs(atype);
+                if (s<>'') then
+                  writer.AsmWrite(',"'+s+'"');
+              end;
+            if target_info.system in systems_aix then
+              begin
+                s:=sectionalignment_aix(atype,secalign);
+                if s<>'' then
+                  writer.AsmWrite(','+s);
+              end;
+          end;
         end;
         writer.AsmLn;
         LastSecType:=atype;
