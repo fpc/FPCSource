@@ -5,25 +5,16 @@
 
 {$h+}
 
-{$ifdef fpc}
- // define ODBC version 3.52 by default for Windows and MAC and 3.51 for Linux/Unix
- {$if defined(WINDOWS) or defined(DARWIN)}
-  {$define ODBCVER:=$0352}
- {$else}
-  {$define ODBCVER:=$0351}
- {$endif}
-{$else fpc}
- {$define ODBCVER:=$0352}
-{$endif fpc}
+// define ODBC version 3.52 by default
+{$define ODBCVER:=$0352}
+
 {$if ODBCVER >= $0300}
   {$define ODBCVER3}
 {$endif}
 {$if ODBCVER >= $0350}
   {$define ODBCVER35}
 {$endif}
-{$if ODBCVER >= $0352}
-  {$define ODBCVER352}
-{$endif}
+
 
 {$ifndef DYNLOADINGODBC}
  {$IFDEF WINDOWS}
@@ -74,8 +65,8 @@ type
   SQLUSMALLINT = cushort;
   SQLINTEGER   = clong;
   SQLUINTEGER  = culong;
-  SQLLEN       = {$IFDEF ODBCVER352}PtrInt{$ELSE}SQLINTEGER{$ENDIF};
-  SQLULEN      = {$IFDEF ODBCVER352}PtrUInt{$ELSE}SQLUINTEGER{$ENDIF};
+  SQLLEN       = PtrInt;
+  SQLULEN      = PtrUInt;
   SQLREAL      = cfloat;
   SQLDOUBLE    = cdouble;
   SQLFLOAT     = cdouble;
@@ -87,7 +78,7 @@ type
   SQLHSTMT     = SQLHANDLE;
   SQLHDESC     = SQLHANDLE;
   SQLHWND      = pointer;
-  SQLSETPOSIROW= {$IF DEFINED(CPU64) AND DEFINED(ODBCVER352)}cuint64{$ELSE}SQLUSMALLINT{$ENDIF};
+  SQLSETPOSIROW= {$IF DEFINED(CPU64)}cuint64{$ELSE}SQLUSMALLINT{$ENDIF};
   PSQLCHAR      = PAnsiChar;
   PSQLWCHAR     = PWideChar;
   PSQLSMALLINT  = ^SQLSMALLINT;
@@ -114,6 +105,9 @@ const
   SQL_WCHAR         =(-8);
   SQL_WVARCHAR      =(-9);
   SQL_WLONGVARCHAR  =(-10);
+ {$ifdef ODBCVER35}
+  SQL_GUID          =(-11);
+ {$endif}
 
   SQL_CHAR          = 1;
   SQL_NUMERIC       = 2;
@@ -123,9 +117,15 @@ const
   SQL_FLOAT         = 6;
   SQL_REAL          = 7;
   SQL_DOUBLE        = 8;
+  SQL_DATE          = 9;
  {$ifdef ODBCVER3}
   SQL_DATETIME      = 9;
  {$endif}
+  SQL_TIME          = 10;
+ {$ifdef ODBCVER3}
+  SQL_INTERVAL      = 10;
+ {$endif}
+  SQL_TIMESTAMP     = 11;
   SQL_VARCHAR       = 12;
 
  {$ifdef ODBCVER3}
@@ -141,15 +141,6 @@ const
   SQL_SS_TIMESTAMPOFFSET  = -155;
  {$endif}
 
-  SQL_DATE       = 9;
-  SQL_TIME       = 10;
-  SQL_TIMESTAMP  = 11;
-  {$if ODBCVER >= $0300}
-  SQL_INTERVAL   = 10;
-  {$endif}
-  {$if ODBCVER >= $0350}
-  SQL_GUID       = -11;
-  {$endif}
 
   { interval codes}
   {$ifdef ODBCVER3}
@@ -260,17 +251,13 @@ const
   SQL_C_ULONG    =  SQL_C_LONG +SQL_UNSIGNED_OFFSET; // UNSIGNED INTEGER
   SQL_C_USHORT   =  SQL_C_SHORT+SQL_UNSIGNED_OFFSET; // UNSIGNED SMALLINT
   SQL_C_UTINYINT =  SQL_TINYINT+SQL_UNSIGNED_OFFSET; // UNSIGNED TINYINT
-  SQL_C_BOOKMARK = {$if defined(CPU64) and defined(ODBCVER352)}SQL_C_UBIGINT{$else}SQL_C_ULONG{$endif}; // BOOKMARK
+  SQL_C_BOOKMARK = {$if defined(CPU64)}SQL_C_UBIGINT{$else}SQL_C_ULONG{$endif}; // BOOKMARK
 
 {$ifdef ODBCVER35}
   SQL_C_GUID    = SQL_GUID;
 {$endif}
 
   SQL_TYPE_NULL = 0;
-{$ifndef ODBCVER3}
-  SQL_TYPE_MIN  = SQL_BIT;
-  SQL_TYPE_MAX  = SQL_VARCHAR;
-{$endif}
 
 {$ifdef ODBCVER3}
   SQL_C_VARBOOKMARK = SQL_C_BINARY;
@@ -739,7 +726,7 @@ const
    and in SQLDataSources() }
   SQL_FETCH_NEXT     = 1;
   SQL_FETCH_FIRST    = 2;
-{$ifdef odbcver3}
+{$ifdef ODBCVER3}
   SQL_FETCH_FIRST_USER = 31;
   SQL_FETCH_FIRST_SYSTEM = 32;
 {$endif}
@@ -758,7 +745,7 @@ const
   SQL_NULL_HENV       = SQLHENV(0);
   SQL_NULL_HDBC       = SQLHDBC(0);
   SQL_NULL_HSTMT      = SQLHSTMT(0);
-{$ifdef odbcver3}
+{$ifdef ODBCVER3}
   SQL_NULL_HDESC      = SQLHDESC(0);
 {$endif}
 
@@ -1040,6 +1027,9 @@ const
   SQL_DESC_NUM_PREC_RADIX    = 32;
   SQL_DESC_PARAMETER_TYPE    = 33;
   SQL_DESC_ROWS_PROCESSED_PTR = 34;
+{$ifdef ODBCVER35}
+  SQL_DESC_ROWVER            = 35;
+{$endif}
   SQL_DESC_SCHEMA_NAME       = SQL_COLUMN_OWNER_NAME;
   SQL_DESC_SEARCHABLE        = SQL_COLUMN_SEARCHABLE;
   SQL_DESC_TYPE_NAME         = SQL_COLUMN_TYPE_NAME;
