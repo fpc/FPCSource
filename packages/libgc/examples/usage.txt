@@ -1,0 +1,2 @@
+Boehm GC can act as a leak detector. In order to be used so, the library must be compiled in a special way and preloaded, see www.hboehm.info/gc/leak.html
+

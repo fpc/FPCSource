@@ -758,3 +758,9 @@ begin
   with Installer do
 {$include pastojs/fpmake.pp}
 end;
+
+procedure add_libgc(const ADirectory: string);
+begin
+  with Installer do
+{$include libgc/fpmake.pp}
+end;
