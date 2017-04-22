@@ -2119,7 +2119,10 @@ begin
     '  return Result;',
     '};'
     ]),
-    '');
+    LinesToStr([
+    'return;',
+    'return 1;',
+    '']));
 end;
 
 procedure TTestModule.TestBreak;

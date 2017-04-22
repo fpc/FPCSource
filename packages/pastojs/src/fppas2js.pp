@@ -6005,7 +6005,8 @@ begin
     begin
     // without parameter.
     ProcEl:=El.Parent;
-    while not (ProcEl is TPasProcedure) do ProcEl:=ProcEl.Parent;
+    while (ProcEl<>nil) and not (ProcEl is TPasProcedure) do
+      ProcEl:=ProcEl.Parent;
     if ProcEl is TPasFunction then
       // in a function, "return result;"
       TJSReturnStatement(Result).Expr:=CreateBuiltInIdentifierExpr(ResolverResultVar)
