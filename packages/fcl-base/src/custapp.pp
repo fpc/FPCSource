@@ -648,15 +648,15 @@ begin
           J:=2;
           While ((Result='') or AllErrors) and (J<=L) do
             begin
-            P:=Pos(O[J],ShortOptions);
+            P:=Pos(O[J],SO);
             If (P=0) or (O[j]=':') then
               AddToResult(Format(SErrInvalidOption,[I,O[J]]))
             else
               begin
-              If (P<Length(ShortOptions)) and (Shortoptions[P+1]=':') then
+              If (P<Length(SO)) and (SO[P+1]=':') then
                 begin
                 // Required argument
-                If ((P+1)=Length(ShortOptions)) or (Shortoptions[P+2]<>':') Then
+                If ((P+1)=Length(SO)) or (SO[P+2]<>':') Then
                   If (J<L) or not haveArg then // Must be last in multi-opt !!
                     AddToResult(Format(SErrOptionNeeded,[I,O[J]]));
                 O:=O[j]; // O is added to arguments.
