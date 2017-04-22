@@ -402,9 +402,18 @@ type
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
   end;
 
+Type
+  TParseSourceOption = (poUseStreams,poSkipDefaultDefs);
+  TParseSourceOptions = set of TParseSourceOption;
+function ParseSource(AEngine: TPasTreeContainer;
+                     const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule;
 function ParseSource(AEngine: TPasTreeContainer;
                      const FPCCommandLine, OSTarget, CPUTarget: String;
-                     UseStreams  : Boolean = False): TPasModule;
+                     UseStreams  : Boolean): TPasModule; deprecated;
+function ParseSource(AEngine: TPasTreeContainer;
+                     const FPCCommandLine, OSTarget, CPUTarget: String;
+                     Options : TParseSourceOptions): TPasModule;
+                     
 Function IsHintToken(T : String; Out AHint : TPasMemberHint) : boolean;
 Function IsProcModifier(S : String; Out PM : TProcedureModifier) : Boolean;
 Function IsCallingConvention(S : String; out CC : TCallingConvention) : Boolean;
@@ -498,8 +507,25 @@ begin
 end;
 
 function ParseSource(AEngine: TPasTreeContainer;
+  const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule;
+
+begin
+  Result:=ParseSource(AENgine,FPCCommandLine, OSTarget, CPUTarget,[]);
+end;
+
+function ParseSource(AEngine: TPasTreeContainer;
+  const FPCCommandLine, OSTarget, CPUTarget: String; UseStreams : Boolean): TPasModule;
+
+begin
+  if UseStreams then
+    Result:=ParseSource(AENgine,FPCCommandLine, OSTarget, CPUTarget,[poUseStreams])
+  else
+    Result:=ParseSource(AENgine,FPCCommandLine, OSTarget, CPUTarget,[]);
+end;
+
+function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String;
-  UseStreams  : Boolean = False): TPasModule;
+  Options : TParseSourceOptions): TPasModule;
 var
   FileResolver: TFileResolver;
   Parser: TPasParser;
@@ -557,51 +583,52 @@ begin
   Parser := nil;
   try
     FileResolver := TFileResolver.Create;
-    FileResolver.UseStreams:=UseStreams;
+    FileResolver.UseStreams:=poUseStreams in Options;
     Scanner := TPascalScanner.Create(FileResolver);
-    Scanner.AddDefine('FPK');
-    Scanner.AddDefine('FPC');
     SCanner.LogEvents:=AEngine.ScannerLogEvents;
     SCanner.OnLog:=AEngine.Onlog;
+    if not (poSkipDefaultDefs in Options) then
+      begin
+      Scanner.AddDefine('FPK');
+      Scanner.AddDefine('FPC');
+      // TargetOS
+      s := UpperCase(OSTarget);
+      Scanner.AddDefine(s);
+      if s = 'LINUX' then
+        Scanner.AddDefine('UNIX')
+      else if s = 'FREEBSD' then
+      begin
+        Scanner.AddDefine('BSD');
+        Scanner.AddDefine('UNIX');
+      end else if s = 'NETBSD' then
+      begin
+        Scanner.AddDefine('BSD');
+        Scanner.AddDefine('UNIX');
+      end else if s = 'SUNOS' then
+      begin
+        Scanner.AddDefine('SOLARIS');
+        Scanner.AddDefine('UNIX');
+      end else if s = 'GO32V2' then
+        Scanner.AddDefine('DPMI')
+      else if s = 'BEOS' then
+        Scanner.AddDefine('UNIX')
+      else if s = 'QNX' then
+        Scanner.AddDefine('UNIX')
+      else if s = 'AROS' then
+        Scanner.AddDefine('HASAMIGA')
+      else if s = 'MORPHOS' then
+        Scanner.AddDefine('HASAMIGA')
+      else if s = 'AMIGA' then
+        Scanner.AddDefine('HASAMIGA');
 
-    // TargetOS
-    s := UpperCase(OSTarget);
-    Scanner.AddDefine(s);
-    if s = 'LINUX' then
-      Scanner.AddDefine('UNIX')
-    else if s = 'FREEBSD' then
-    begin
-      Scanner.AddDefine('BSD');
-      Scanner.AddDefine('UNIX');
-    end else if s = 'NETBSD' then
-    begin
-      Scanner.AddDefine('BSD');
-      Scanner.AddDefine('UNIX');
-    end else if s = 'SUNOS' then
-    begin
-      Scanner.AddDefine('SOLARIS');
-      Scanner.AddDefine('UNIX');
-    end else if s = 'GO32V2' then
-      Scanner.AddDefine('DPMI')
-    else if s = 'BEOS' then
-      Scanner.AddDefine('UNIX')
-    else if s = 'QNX' then
-      Scanner.AddDefine('UNIX')
-    else if s = 'AROS' then
-      Scanner.AddDefine('HASAMIGA')
-    else if s = 'MORPHOS' then
-      Scanner.AddDefine('HASAMIGA')
-    else if s = 'AMIGA' then
-      Scanner.AddDefine('HASAMIGA');
-
-    // TargetCPU
-    s := UpperCase(CPUTarget);
-    Scanner.AddDefine('CPU'+s);
-    if (s='X86_64') then
-      Scanner.AddDefine('CPU64')
-    else
-      Scanner.AddDefine('CPU32');
-
+      // TargetCPU
+      s := UpperCase(CPUTarget);
+      Scanner.AddDefine('CPU'+s);
+      if (s='X86_64') then
+        Scanner.AddDefine('CPU64')
+      else
+        Scanner.AddDefine('CPU32');
+      end;
     Parser := TPasParser.Create(Scanner, FileResolver, AEngine);
     Filename := '';
     Parser.LogEvents:=AEngine.ParserLogEvents;
