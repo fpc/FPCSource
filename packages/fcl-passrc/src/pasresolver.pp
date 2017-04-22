@@ -1304,7 +1304,7 @@ type
       const TheBaseProcs: TResolverBuiltInProcs = bfAllStandardProcs); virtual;
     function AddBaseType(const aName: string; Typ: TResolverBaseType): TResElDataBaseType;
     function AddCustomBaseType(const aName: string; aClass: TResElDataBaseTypeClass): TPasUnresolvedSymbolRef;
-    function IsBaseType(aType: TPasType; BaseType: TResolverBaseType): boolean;
+    function IsBaseType(aType: TPasType; BaseType: TResolverBaseType; ResolveAlias: boolean = false): boolean;
     function AddBuiltInProc(const aName: string; Signature: string;
       const GetCallCompatibility: TOnGetCallCompatibility;
       const GetCallResult: TOnGetCallResult;
@@ -1360,7 +1360,7 @@ type
     procedure ComputeElement(El: TPasElement; out ResolvedEl: TPasResolverResult;
       Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil);
     // checking compatibilility
-    function IsSameType(TypeA, TypeB: TPasType): boolean; // check if it is exactly the same
+    function IsSameType(TypeA, TypeB: TPasType; ResolveAlias: boolean = false): boolean; // check if it is exactly the same
     function CheckCallProcCompatibility(ProcType: TPasProcedureType;
       Params: TParamsExpr; RaiseOnError: boolean): integer;
     function CheckCallPropertyCompatibility(PropEl: TPasProperty;
@@ -3897,7 +3897,7 @@ begin
       begin
       if PropEl.Args.Count>0 then
         RaiseXExpectedButYFound(20170216151823,'function',AccEl.ElementTypeName,PropEl.ReadAccessor);
-      if TPasVariable(AccEl).VarType<>PropType then
+      if not IsSameType(TPasVariable(AccEl).VarType,PropType,true) then
         RaiseIncompatibleType(20170216151826,nIncompatibleTypesGotExpected,
           [],PropType,TPasVariable(AccEl).VarType,PropEl.ReadAccessor);
       if (vmClass in PropEl.VarModifiers)<>(vmClass in TPasVariable(AccEl).VarModifiers) then
@@ -3927,7 +3927,7 @@ begin
         end;
       // check function result type
       ResultType:=TPasFunction(Proc).FuncType.ResultEl.ResultType;
-      if not IsSameType(ResultType,PropType) then
+      if not IsSameType(ResultType,PropType,true) then
         RaiseXExpectedButYFound(20170216151844,'function result '+GetTypeDescription(PropType,true),
           GetTypeDescription(ResultType,true),PropEl.ReadAccessor);
       // check args
@@ -3947,7 +3947,7 @@ begin
       begin
       if PropEl.Args.Count>0 then
         RaiseXExpectedButYFound(20170216151852,'procedure',AccEl.ElementTypeName,PropEl.WriteAccessor);
-      if TPasVariable(AccEl).VarType<>PropType then
+      if not IsSameType(TPasVariable(AccEl).VarType,PropType,true) then
         RaiseIncompatibleType(20170216151855,nIncompatibleTypesGotExpected,
           [],PropType,TPasVariable(AccEl).VarType,PropEl.WriteAccessor);
       if (vmClass in PropEl.VarModifiers)<>(vmClass in TPasVariable(AccEl).VarModifiers) then
@@ -3986,7 +3986,7 @@ begin
         RaiseMsg(20170216151917,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
           [IntToStr(PropArgCount+1),AccessDescriptions[Arg.Access],
            AccessDescriptions[argConst]],PropEl.WriteAccessor);
-      if Arg.ArgType<>PropType then
+      if not IsSameType(Arg.ArgType,PropType,true) then
         RaiseIncompatibleType(20170216151919,nIncompatibleTypeArgNo,
           [IntToStr(PropArgCount+1)],Arg.ArgType,PropType,PropEl.WriteAccessor);
       end
@@ -4007,8 +4007,10 @@ begin
       begin
       if PropEl.IndexExpr<>nil then
         RaiseNotYetImplemented(20170409214006,PropEl.StoredAccessor,'stored with index');
-      TypeEl:=ResolveAliasType(TPasVariable(AccEl).VarType);
-      if not IsBaseType(TypeEl,btBoolean) then
+      TypeEl:=TPasVariable(AccEl).VarType;
+      // ToDo: TypeEl=nil  TPasConst false/true
+      TypeEl:=ResolveAliasType(TypeEl);
+      if not IsBaseType(TypeEl,btBoolean,true) then
         RaiseIncompatibleType(20170409214300,nIncompatibleTypesGotExpected,
           [],TypeEl,BaseTypes[btBoolean],PropEl.StoredAccessor);
       if (vmClass in PropEl.VarModifiers)<>(vmClass in TPasVariable(AccEl).VarModifiers) then
@@ -4025,7 +4027,7 @@ begin
         RaiseXExpectedButYFound(20170216151925,'function',Proc.ElementTypeName,PropEl.StoredAccessor);
       // check function result type
       ResultType:=TPasFunction(Proc).FuncType.ResultEl.ResultType;
-      if not IsBaseType(ResultType,btBoolean) then
+      if not IsBaseType(ResultType,btBoolean,true) then
         RaiseXExpectedButYFound(20170216151929,'function: boolean',
           'function:'+GetTypeDescription(ResultType),PropEl.StoredAccessor);
       // check arg count
@@ -8670,11 +8672,13 @@ begin
   FDefaultScope.AddIdentifier(aName,Result,pikBaseType);
 end;
 
-function TPasResolver.IsBaseType(aType: TPasType; BaseType: TResolverBaseType
-  ): boolean;
+function TPasResolver.IsBaseType(aType: TPasType; BaseType: TResolverBaseType;
+  ResolveAlias: boolean): boolean;
 begin
   Result:=false;
   if aType=nil then exit;
+  if ResolveAlias then
+    aType:=ResolveAliasType(aType);
   if aType.ClassType<>TPasUnresolvedSymbolRef then exit;
   Result:=CompareText(aType.Name,BaseTypeNames[BaseType])=0;
 end;
@@ -11528,9 +11532,15 @@ begin
     RaiseNotYetImplemented(20160922163705,El);
 end;
 
-function TPasResolver.IsSameType(TypeA, TypeB: TPasType): boolean;
+function TPasResolver.IsSameType(TypeA, TypeB: TPasType; ResolveAlias: boolean
+  ): boolean;
 begin
-  if TypeA=nil then exit(false);
+  if (TypeA=nil) or (TypeB=nil) then exit(false);
+  if ResolveAlias then
+    begin
+    TypeA:=ResolveAliasType(TypeA);
+    TypeB:=ResolveAliasType(TypeB);
+    end;
   if TypeA=TypeB then exit(true);
   if (TypeA.ClassType=TPasUnresolvedSymbolRef)
       and (TypeB.ClassType=TPasUnresolvedSymbolRef) then

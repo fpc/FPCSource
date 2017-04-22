@@ -6963,10 +6963,11 @@ procedure TTestResolver.TestProperty1;
 begin
   StartProgram(false);
   Add('type');
+  Add('  integer = longint;');
   Add('  {#TOBJ}TObject = class');
   Add('  end;');
   Add('  {#A}TClassA = class');
-  Add('    {#FB}FB: longint;');
+  Add('    {#FB}FB: integer;');
   Add('    property {#B}B: longint read {@FB}FB write {@FB}FB;');
   Add('  end;');
   Add('var');
