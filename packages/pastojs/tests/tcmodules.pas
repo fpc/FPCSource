@@ -431,6 +431,7 @@ type
     Procedure TestJSValue_AssignToJSValue;
     Procedure TestJSValue_TypeCastToBaseType;
     Procedure TestJSValue_Equal;
+    Procedure TestJSValue_If;
     Procedure TestJSValue_Enum;
     Procedure TestJSValue_ClassInstance;
     Procedure TestJSValue_ClassOf;
@@ -10983,6 +10984,31 @@ begin
     '$mod.b = $mod.m == $mod.m;',
     '$mod.b = $mod.v == $mod.m;',
     '$mod.b = $mod.m == $mod.v;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_If;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  v: jsvalue;',
+  'begin',
+  '  if v then ;',
+  '  while v do ;',
+  '  repeat until v;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_If',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'if ($mod.v) ;',
+    'while($mod.v){',
+    '};',
+    'do{',
+    '} while(!$mod.v);',
     '']));
 end;
 

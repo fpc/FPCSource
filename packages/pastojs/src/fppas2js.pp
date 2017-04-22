@@ -245,7 +245,11 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- bark if there is an overload in the same unit with same signature
+- if jsvalue then
+- constant evaluation
+- integer ranges
+- static arrays
+- property index specifier
 - RTTI
   - stored false/true
   - class property
@@ -259,7 +263,6 @@ ToDos:
 - $modeswitch -> define <modeswitch>
 - $modeswitch- -> turn off
 - check memleaks
-- integer range
 - @@ compare method in delphi mode
 - make records more lightweight
 - dotted unit names, namespaces
@@ -848,6 +851,8 @@ type
     procedure FinishVariable(El: TPasVariable); override;
     procedure FinishProcedureType(El: TPasProcedureType); override;
     procedure FinishPropertyOfClass(PropEl: TPasProperty); override;
+    procedure CheckConditionExpr(El: TPasExpr;
+      const ResolvedEl: TPasResolverResult); override;
     procedure CheckNewInstanceFunction(ClassScope: TPas2JSClassScope); virtual;
     function AddExternalName(const aName: string; El: TPasElement): TPasIdentifier; virtual;
     function FindExternalName(const aName: String): TPasIdentifier; virtual;
@@ -2152,6 +2157,14 @@ begin
         sIncompatibleTypesGotExpected,
         [GetResolverResultDescription(ArgResolved,true),'string'],Arg);
     end;
+end;
+
+procedure TPas2JSResolver.CheckConditionExpr(El: TPasExpr;
+  const ResolvedEl: TPasResolverResult);
+begin
+  if (ResolvedEl.BaseType=btCustom) and (IsJSBaseType(ResolvedEl,pbtJSValue)) then
+    exit;
+  inherited CheckConditionExpr(El, ResolvedEl);
 end;
 
 procedure TPas2JSResolver.CheckNewInstanceFunction(ClassScope: TPas2JSClassScope
