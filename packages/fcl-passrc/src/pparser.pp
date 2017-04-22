@@ -327,7 +327,9 @@ type
     procedure NextToken; // read next non whitespace, non space
     procedure UngetToken;
     procedure CheckToken(tk: TToken);
+    procedure CheckTokens(tk: TTokens);
     procedure ExpectToken(tk: TToken);
+    procedure ExpectTokens(tk:  TTokens);
     function ExpectIdentifier: String;
     Function CurTokenIsIdentifier(Const S : String) : Boolean;
     // Expression parsing
@@ -895,11 +897,41 @@ begin
     end;
 end;
 
+procedure TPasParser.CheckTokens(tk: TTokens);
+
+Var
+  S : String;
+  T : TToken;
+begin
+  if not (CurToken in tk) then
+    begin
+    {$IFDEF VerbosePasParser}
+    writeln('TPasParser.ParseExcTokenError String="',CurTokenString,'" Text="',CurTokenText,'" CurToken=',CurToken,' tk=',tk);
+    {$ENDIF}
+    S:='';
+    For T in TToken do
+      if t in tk then
+        begin
+        if (S<>'') then
+          S:=S+' or ';
+        S:=S+TokenInfos[t];
+        end;
+    ParseExcTokenError(S);
+    end;
+
+end;
+
 
 procedure TPasParser.ExpectToken(tk: TToken);
 begin
   NextToken;
   CheckToken(tk);
+end;
+
+procedure TPasParser.ExpectTokens(tk: TTokens);
+begin
+  NextToken;
+  CheckTokens(tk);
 end;
 
 function TPasParser.ExpectIdentifier: String;
@@ -3743,9 +3775,10 @@ begin
   ModCount:=0;
   Repeat
     inc(ModCount);
+    // Writeln(modcount, curtokentext);
     LastToken:=CurToken;
     NextToken;
-    if (ModCount=1) and (CurToken = tkEqual) then
+    if (ModCount in [1,2,3]) and (CurToken = tkEqual) then
       begin
       // for example: const p: procedure = nil;
       UngetToken;
@@ -3773,7 +3806,9 @@ begin
           NextToken; // remove offset
           end;
       end;
-      ExpectToken(tkSemicolon);
+      ExpectTokens([tkSemicolon,tkEqual]);
+      if curtoken=tkEqual then
+        ungettoken;
       end
     else if IsProc and TokenIsProcedureModifier(Parent,CurTokenString,PM) then
       HandleProcedureModifier(Parent,PM)
@@ -3823,6 +3858,7 @@ begin
 //      DumpCurToken('Done '+IntToStr(Ord(Done)));
       UngetToken;
       end;
+
 //    Writeln('Done: ',TokenInfos[Curtoken],' ',CurtokenString);
   Until Done;
   if DoCheckHint then  // deprecated,platform,experimental,library, unimplemented etc

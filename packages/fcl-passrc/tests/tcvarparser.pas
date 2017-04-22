@@ -34,6 +34,7 @@ Type
     procedure TestSimpleVarInitializedDeprecated;
     procedure TestSimpleVarInitializedPlatform;
     Procedure TestVarProcedure;
+    Procedure TestVarFunctionINitialized;
     Procedure TestVarProcedureDeprecated;
     Procedure TestVarRecord;
     Procedure TestVarRecordDeprecated;
@@ -185,6 +186,12 @@ procedure TTestVarParser.TestVarProcedure;
 begin
   ParseVar('procedure','');
   AssertVariableType(TPasProcedureType);
+end;
+
+procedure TTestVarParser.TestVarFunctionINitialized;
+begin
+  ParseVar('function (device: pointer): pointer; cdecl = nil','');
+  AssertVariableType(TPasFunctionType);
 end;
 
 procedure TTestVarParser.TestVarProcedureDeprecated;
