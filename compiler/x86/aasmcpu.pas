@@ -226,6 +226,8 @@ interface
         Ch_RWCarryFlag,Ch_RWParityFlag,Ch_RWAuxiliaryFlag,Ch_RWZeroFlag,Ch_RWSignFlag,Ch_RWOverflowFlag,
         {more specialized flag bits (not considered part of NR_DEFAULTFLAGS by the compiler)}
         Ch_RDirFlag,Ch_W0DirFlag,Ch_W1DirFlag,Ch_W0IntFlag,Ch_W1IntFlag,
+        {instruction reads flag bits, according to its condition (used by Jcc/SETcc/CMOVcc)}
+        Ch_RFLAGScc,
         {read/write/read+write the entire flags/eflags/rflags register}
         Ch_RFlags, Ch_WFlags, Ch_RWFlags,
         Ch_FPU,
