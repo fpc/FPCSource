@@ -114,6 +114,7 @@ Type
     Procedure TestAsm;
     Procedure TestAsmBlock;
     Procedure TestGotoInIfThen;
+    procedure AssignToAddress;
   end;
 
 implementation
@@ -1656,6 +1657,13 @@ begin
   Source.Add('end;');
   Source.Add('begin');
   Source.Add('end.');
+  ParseModule;
+end;
+
+Procedure TTestStatementParser.AssignToAddress;
+
+begin
+  AddStatements(['@Proc:=Nil']);
   ParseModule;
 end;
 

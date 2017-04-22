@@ -4638,8 +4638,11 @@ begin
       end;
     tkEOF:
       CheckToken(tkend);
-    tkBraceOpen,tkIdentifier,tkNumber,tkSquaredBraceOpen,tkMinus,tkPlus,tkinherited:
+    tkAt,tkBraceOpen,tkIdentifier,tkNumber,tkSquaredBraceOpen,tkMinus,tkPlus,tkinherited:
       begin
+// This should in fact not be checked here.
+//      if (CurToken=tkAt) and not (msDelphi in CurrentModeswitches) then
+//        ParseExc;
       left:=DoParseExpression(CurBlock);
       case CurToken of
         tkAssign,
