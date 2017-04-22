@@ -2805,7 +2805,8 @@ begin
         if Declarations is TProcedureBody then
           begin
           Proc:=Declarations.Parent as TPasProcedure;
-          if not (pmAssembler in Proc.Modifiers) then
+          // Assembler keyword is optional in Delphi mode (bug 31690)
+          if not ((pmAssembler in Proc.Modifiers) or (msDelphi in CurrentModeswitches)) then
             ParseExc(nParserExpectTokenError,SParserExpectTokenError,['begin']);
           SetBlock(declNone);
           ParseProcAsmBlock(TProcedureBody(Declarations));

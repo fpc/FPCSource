@@ -110,8 +110,9 @@ Type
     Procedure TestTryExceptOn2;
     Procedure TestTryExceptOnElse;
     Procedure TestTryExceptOnIfElse;
-    procedure  TestTryExceptRaise;
+    procedure TestTryExceptRaise;
     Procedure TestAsm;
+    Procedure TestAsmBlock;
     Procedure TestGotoInIfThen;
   end;
 
@@ -1645,6 +1646,17 @@ begin
   AssertEquals('token 2 ','eax',T.Tokens[1]);
   AssertEquals('token 3 ',',',T.Tokens[2]);
   AssertEquals('token 4 ','1',T.Tokens[3]);
+end;
+
+procedure TTestStatementParser.TestAsmBlock;
+begin
+  Source.Add('{$MODE DELPHI}');
+  Source.Add('function BitsHighest(X: Cardinal): Integer;');
+  Source.Add('asm');
+  Source.Add('end;');
+  Source.Add('begin');
+  Source.Add('end.');
+  ParseModule;
 end;
 
 Procedure TTestStatementParser.TestGotoInIfThen;
