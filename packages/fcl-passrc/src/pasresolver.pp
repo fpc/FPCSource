@@ -9076,6 +9076,8 @@ procedure TPasResolver.RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
 
   function GetString(ArgNo: integer): string;
   begin
+    if ArgNo>=High(Args) then
+      exit('invalid param '+IntToStr(ArgNo));
     case Args[ArgNo].VType of
     vtAnsiString: Result:=AnsiString(Args[ArgNo].VAnsiString);
     else

@@ -4256,6 +4256,8 @@ begin
   Add('  exit(''abc'');');
   Add('end;');
   Add('begin');
+  Add('  exit;');
+  Add('  exit(4);');
   ParseProgram;
 end;
 
