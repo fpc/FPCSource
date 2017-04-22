@@ -1153,6 +1153,7 @@ type
     procedure EmitTypeHints(PosEl: TPasElement; aType: TPasType); virtual;
     function EmitElementHints(PosEl, El: TPasElement): boolean; virtual;
     procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
+    procedure CheckConditionExpr(El: TPasExpr; const ResolvedEl: TPasResolverResult); virtual;
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure);
     procedure CheckPendingForwards(El: TPasElement);
     procedure ComputeBinaryExpr(Bin: TBinaryExpr;
@@ -4277,6 +4278,14 @@ begin
     end;
 end;
 
+procedure TPasResolver.CheckConditionExpr(El: TPasExpr;
+  const ResolvedEl: TPasResolverResult);
+begin
+  if ResolvedEl.BaseType<>btBoolean then
+    RaiseMsg(20170216152135,nXExpectedButYFound,sXExpectedButYFound,
+      [BaseTypeNames[btBoolean],BaseTypeNames[ResolvedEl.BaseType]],El);
+end;
+
 procedure TPasResolver.CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure
   );
 var
@@ -4736,9 +4745,7 @@ var
 begin
   ResolveExpr(El,rraRead);
   ComputeElement(El,ResolvedCond,[rcSkipTypeAlias]);
-  if ResolvedCond.BaseType<>btBoolean then
-    RaiseMsg(20170216152135,nXExpectedButYFound,sXExpectedButYFound,
-      [BaseTypeNames[btBoolean],BaseTypeNames[ResolvedCond.BaseType]],El);
+  CheckConditionExpr(El,ResolvedCond);
 end;
 
 procedure TPasResolver.ResolveNameExpr(El: TPasExpr; const aName: string;

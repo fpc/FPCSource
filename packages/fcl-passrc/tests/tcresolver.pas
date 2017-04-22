@@ -3967,10 +3967,11 @@ end;
 procedure TTestResolver.TestProcDuplicate;
 begin
   StartProgram(false);
+  Add('type integer = longint;');
   Add('procedure ProcA(i: longint);');
   Add('begin');
   Add('end;');
-  Add('procedure ProcA(i: longint);');
+  Add('procedure ProcA(i: integer);');
   Add('begin');
   Add('end;');
   Add('begin');
