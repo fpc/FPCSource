@@ -1243,6 +1243,7 @@ end;
 
 procedure TTestRecordTypeParser.AssertConst1(Hints: TPasMemberHints);
 begin
+  if Hints=[] then ;
   AssertEquals('Member 1 type',TPasConst,TObject(TheRecord.Members[0]).ClassType);
   AssertEquals('Const 1 name','x',Const1.Name);
   AssertNotNull('Have 1 const expr',Const1.Expr);

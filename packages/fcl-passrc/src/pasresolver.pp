@@ -264,7 +264,8 @@ const
   nSymbolXIsNotImplemented = 3060;
   nSymbolXBelongsToALibrary = 3061;
   nSymbolXIsDeprecated = 3062;
-  nRangeCheckError = 3063;
+  nSymbolXIsDeprecatedY = 3063;
+  nRangeCheckError = 3064;
 
 // resourcestring patterns of messages
 resourcestring
@@ -330,6 +331,7 @@ resourcestring
   sSymbolXIsNotImplemented = 'Symbol "%s" is implemented';
   sSymbolXBelongsToALibrary = 'Symbol "%s" belongs to a library';
   sSymbolXIsDeprecated = 'Symbol "%s" is deprecated';
+  sSymbolXIsDeprecatedY = 'Symbol "%s" is deprecated: %s';
   sRangeCheckError = 'Range check error';
 
 type
@@ -3290,6 +3292,8 @@ begin
   Body:=aProc.Body;
   if Body<>nil then
     begin
+    if Body.Body is TPasImplAsmStatement then
+      aProc.Modifiers:=aProc.Modifiers+[pmAssembler];
     ResolveImplBlock(Body.Body);
 
     // check if all forward procs are resolved
@@ -4224,8 +4228,14 @@ begin
   if El.Hints=[] then exit(false);
   Result:=true;
   if hDeprecated in El.Hints then
-    LogMsg(20170419190434,mtWarning,nSymbolXIsDeprecated,sSymbolXIsDeprecated,
-      [El.Name],PosEl);
+    begin
+    if El.HintMessage<>'' then
+      LogMsg(20170422160807,mtWarning,nSymbolXIsDeprecatedY,sSymbolXIsDeprecatedY,
+        [El.Name,El.HintMessage],PosEl)
+    else
+      LogMsg(20170419190434,mtWarning,nSymbolXIsDeprecated,sSymbolXIsDeprecated,
+        [El.Name],PosEl);
+    end;
   if hLibrary in El.Hints then
     LogMsg(20170419190426,mtWarning,nSymbolXBelongsToALibrary,sSymbolXBelongsToALibrary,
       [El.Name],PosEl);

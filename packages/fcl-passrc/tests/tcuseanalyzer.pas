@@ -95,6 +95,7 @@ type
     procedure TestM_Hint_LocalClassInProgramNotUsed;
     procedure TestM_Hint_LocalMethodInProgramNotUsed;
     procedure TestM_Hint_AssemblerParameterIgnored;
+    procedure TestM_Hint_AssemblerDelphiParameterIgnored;
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet;
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet_Abstract;
     procedure TestM_Hint_FunctionResultRecord;
@@ -1256,6 +1257,32 @@ begin
   Add('asm end;');
   Add('begin');
   Add('  DoIt(1);');
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_AssemblerDelphiParameterIgnored;
+begin
+  StartProgram(true);
+  Add([
+  '{$mode Delphi}',
+  'procedure DoIt(i: longint);',
+  'type',
+  '  {#tcolor_notused}TColor = longint;',
+  '  {#tflag_notused}TFlag = (red,green);',
+  '  {#tflags_notused}TFlags = set of TFlag;',
+  '  {#tarrint_notused}TArrInt = array of integer;',
+  'const',
+  '  {#a_notused}a = 13;',
+  '  {#b_notused}b: longint = 14;',
+  'var',
+  '  {#c_notused}c: char;',
+  '  {#d_notused}d: longint = 15;',
+  '  procedure {#sub_notused}Sub; begin end;',
+  'asm end;',
+  'begin',
+  '  DoIt(1);',
+  '']);
   AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;
 end;

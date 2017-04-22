@@ -3991,8 +3991,6 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
 
 var
   isArray , ok: Boolean;
-  h   : TPasMemberHint;
-
 begin
   Result:=TPasProperty(CreateElement(TPasProperty,AName,Parent,AVisibility));
   if IsClassField then

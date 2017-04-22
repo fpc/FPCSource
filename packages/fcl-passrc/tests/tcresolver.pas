@@ -555,6 +555,7 @@ type
 
     // hints
     Procedure TestHint_ElementHints;
+    Procedure TestHint_ElementHintsMsg;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -9093,6 +9094,21 @@ begin
   CheckResolverHint(mtWarning,nSymbolXIsNotPortable,'Symbol "TPlatform" is not portable');
   CheckResolverHint(mtWarning,nSymbolXIsExperimental,'Symbol "TExperimental" is experimental');
   CheckResolverHint(mtWarning,nSymbolXIsNotImplemented,'Symbol "TUnimplemented" is implemented');
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestHint_ElementHintsMsg;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TDeprecated = longint deprecated ''foo'';',
+  'var',
+  '  vDeprecated: TDeprecated;',
+  'begin',
+  '']);
+  ParseProgram;
+  CheckResolverHint(mtWarning,nSymbolXIsDeprecatedY,'Symbol "TDeprecated" is deprecated: ''foo''');
   CheckResolverUnexpectedHints;
 end;
 
