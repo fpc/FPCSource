@@ -239,6 +239,7 @@ type
     FTokenBufferSize: Integer; // maximum valid index in FTokenBuffer
     FDumpIndent : String;
     function CheckOverloadList(AList: TFPList; AName: String; out OldMember: TPasElement): TPasOverloadedProc;
+    function DoCheckHint(Element: TPasElement): Boolean;
     procedure DumpCurToken(Const Msg : String; IndentAction : TIndentAction = iaNone);
     function GetCurrentModeSwitches: TModeSwitches;
     Procedure SetCurrentModeSwitches(AValue: TModeSwitches);
@@ -3667,6 +3668,28 @@ end;
 
 // Next token is expected to be a "(", ";" or for a function ":". The caller
 // will get the token after the final ";" as next token.
+
+function TPasParser.DoCheckHint(Element : TPasElement): Boolean;
+
+var
+  ahint : TPasMemberHint;
+
+begin
+  Result:= IsCurTokenHint(ahint);
+  if Result then  // deprecated,platform,experimental,library, unimplemented etc
+    begin
+    Element.Hints:=Element.Hints+[ahint];
+    if aHint=hDeprecated then
+      begin
+      NextToken;
+      if (CurToken<>tkString) then
+        UngetToken
+      else
+        Element.HintMessage:=CurTokenString;
+      end;
+    end;
+end;
+
 procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
   Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
 
@@ -3706,25 +3729,6 @@ procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
       UngetToken;
   end;
 
-  function DoCheckHint : Boolean;
-
-  var
-    ahint : TPasMemberHint;
-  begin
-  Result:= IsCurTokenHint(ahint);
-  if Result then  // deprecated,platform,experimental,library, unimplemented etc
-    begin
-    Element.Hints:=Element.Hints+[ahint];
-    if aHint=hDeprecated then
-      begin
-      NextToken;
-      if (CurToken<>tkString) then
-        UngetToken
-      else
-        Element.HintMessage:=CurTokenString;
-      end;
-    end;
-  end;
 
 Var
   Tok : String;
@@ -3864,7 +3868,7 @@ begin
         ExpectToken(tkSemicolon);
         end;
       end
-    else if DoCheckHint then
+    else if DoCheckHint(Element) then
       ConsumeSemi
     else if (CurToken=tkIdentifier) and (CompareText(CurTokenText,'alias')=0) then
       begin
@@ -3899,7 +3903,7 @@ begin
 
 //    Writeln('Done: ',TokenInfos[Curtoken],' ',CurtokenString);
   Until Done;
-  if DoCheckHint then  // deprecated,platform,experimental,library, unimplemented etc
+  if DoCheckHint(Element) then  // deprecated,platform,experimental,library, unimplemented etc
     ConsumeSemi;
   if (ProcType in [ptOperator,ptClassOperator]) and (Parent is TPasOperator) then
     TPasOperator(Parent).CorrectName;
@@ -4084,14 +4088,10 @@ begin
         end
       end;
     // Handle hints
-    while IsCurTokenHint(h) do
-      begin
-      Result.Hints:=Result.Hints+[h];
+    while DoCheckHint(Result) do
       NextToken;
-      if CurToken=tkSemicolon then
-        NextToken;
-      end;
-    UngetToken;
+    if Result.Hints=[] then
+      UngetToken;
     ok:=true;
   finally
     if not ok then

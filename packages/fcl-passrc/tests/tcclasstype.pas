@@ -144,6 +144,8 @@ type
     Procedure TestPropertyReadFromRecordField;
     procedure TestPropertyReadFromArrayField;
     procedure TestPropertyReadWriteFromRecordField;
+    procedure TestPropertyDeprecated;
+    procedure TestPropertyDeprecatedMessage;
     Procedure TestExternalClass;
     Procedure TestExternalClassNoNameSpace;
     Procedure TestExternalClassNoNameKeyWord;
@@ -1476,6 +1478,40 @@ begin
   AssertNull('No default expression',Property1.DefaultExpr);
   Assertequals('Default value','',Property1.DefaultValue);
 
+end;
+
+procedure TTestClassType.TestPropertyDeprecated;
+
+begin
+  StartVisibility(visPublished);
+  AddMember('Property Something : AInterface Read FSomething; deprecated');
+  ParseClass;
+  AssertProperty(Property1,visPublished,'Something','FSomething','','','',0,False,False);
+  AssertNotNull('Have type',Property1.VarType);
+  AssertEquals('Property type class type',TPasUnresolvedTypeRef,Property1.vartype.ClassType);
+  AssertEquals('Property type name','AInterface',Property1.vartype.name);
+  Assertequals('No index','',Property1.IndexValue);
+  AssertNull('No Index expression',Property1.IndexExpr);
+  AssertNull('No default expression',Property1.DefaultExpr);
+  Assertequals('Default value','',Property1.DefaultValue);
+  AssertTrue('Deprecated',[hDeprecated]=Property1.Hints);
+end;
+
+procedure TTestClassType.TestPropertyDeprecatedMessage;
+
+begin
+  StartVisibility(visPublished);
+  AddMember('Property Something : AInterface Read FSomething; deprecated ''this is no longer used'' ');
+  ParseClass;
+  AssertProperty(Property1,visPublished,'Something','FSomething','','','',0,False,False);
+  AssertNotNull('Have type',Property1.VarType);
+  AssertEquals('Property type class type',TPasUnresolvedTypeRef,Property1.vartype.ClassType);
+  AssertEquals('Property type name','AInterface',Property1.vartype.name);
+  Assertequals('No index','',Property1.IndexValue);
+  AssertNull('No Index expression',Property1.IndexExpr);
+  AssertNull('No default expression',Property1.DefaultExpr);
+  Assertequals('Default value','',Property1.DefaultValue);
+  AssertTrue('Deprecated',[hDeprecated]=Property1.Hints);
 end;
 
 procedure TTestClassType.TestPropertyImplementsFullyQualifiedName;
