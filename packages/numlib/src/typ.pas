@@ -35,6 +35,9 @@ Also some stuff had to be added to get ipf running (vector object and
 complex.inp and scale methods)
  }
 
+{$mode objfpc}{$H+}
+{$modeswitch nestedprocvars}
+
 unit typ;
 
 {$I DIRECT.INC}                 {Contains "global" compilerswitches which
@@ -182,6 +185,7 @@ type
 
      {Standard Functions used in NumLib}
      rfunc1r    = Function(x : ArbFloat): ArbFloat;
+     rfunc1rn   = Function(x : ArbFloat): ArbFloat is nested;
      rfunc2r    = Function(x, y : ArbFloat): ArbFloat;
 
      {Complex version}
