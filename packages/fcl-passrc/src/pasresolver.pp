@@ -1492,6 +1492,7 @@ type
 function GetObjName(o: TObject): string;
 function GetTreeDbg(El: TPasElement; Indent: integer = 0): string;
 function GetResolverResultDbg(const T: TPasResolverResult): string;
+function GetClassAncestorsDbg(El: TPasClassType): string;
 function ResolverResultFlagsToStr(const Flags: TPasResolverResultFlags): string;
 
 procedure SetResolverIdentifier(out ResolvedType: TPasResolverResult;
@@ -1674,6 +1675,42 @@ begin
          +' Expr='+GetObjName(T.ExprEl)
          +' Flags='+ResolverResultFlagsToStr(T.Flags)
          +']';
+end;
+
+function GetClassAncestorsDbg(El: TPasClassType): string;
+
+  function GetClassDesc(C: TPasClassType): string;
+  var
+    Module: TPasModule;
+  begin
+    if C.IsExternal then
+      Result:='class external '
+    else
+      Result:='class ';
+    Module:=C.GetModule;
+    if Module<>nil then
+      Result:=Result+Module.Name+'.';
+    Result:=Result+C.FullName;
+  end;
+
+var
+  Scope, AncestorScope: TPasClassScope;
+  AncestorEl: TPasClassType;
+begin
+  if El=nil then exit('nil');
+  Result:=GetClassDesc(El);
+  if El.CustomData is TPasClassScope then
+    begin
+    Scope:=TPasClassScope(El.CustomData);
+    AncestorScope:=Scope.AncestorScope;
+    while AncestorScope<>nil do
+      begin
+      Result:=Result+LineEnding+'  ';
+      AncestorEl:=AncestorScope.Element as TPasClassType;
+      Result:=Result+GetClassDesc(AncestorEl);
+      AncestorScope:=AncestorScope.AncestorScope;
+      end;
+    end;
 end;
 
 function ResolverResultFlagsToStr(const Flags: TPasResolverResultFlags): string;
@@ -6248,6 +6285,17 @@ begin
             SetBaseType(btBoolean);
             exit;
             end
+          else if CheckSrcIsADstType(LeftResolved,RightResolved,Bin)<>cIncompatible then
+            begin
+            // e.g. if Image is TObject then ;
+            // This is useful after some unchecked typecast -> allow
+            SetBaseType(btBoolean);
+            exit;
+            end;
+          {$IFDEF VerbosePasResolver}
+          writeln('TPasResolver.ComputeBinaryExpr LeftClass=',GetClassAncestorsDbg(TPasClassType(LeftResolved.TypeEl)));
+          writeln('TPasResolver.ComputeBinaryExpr RightClass=',GetClassAncestorsDbg(TPasClassType(RightResolved.IdentEl)));
+          {$ENDIF}
           end
         else if (RightResolved.TypeEl is TPasClassOfType)
             and (rrfReadable in RightResolved.Flags) then
@@ -6258,7 +6306,7 @@ begin
             begin
             SetBaseType(btBoolean);
             exit;
-            end
+            end;
           end
         else
           RaiseXExpectedButYFound(20170216152625,'class type',RightResolved.TypeEl.ElementTypeName,Bin.right);

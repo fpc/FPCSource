@@ -5378,6 +5378,7 @@ begin
   Add('begin');
   Add('  if {@o}o is {@A}TClassA then;');
   Add('  if {@v}v is {@A}TClassA then;');
+  Add('  if {@v}v is {@TOBJ}TObject then;');
   Add('  if {@v}v.{@Sub}Sub is {@A}TClassA then;');
   Add('  {@v}v:={@o}o as {@A}TClassA;');
   ParseProgram;
