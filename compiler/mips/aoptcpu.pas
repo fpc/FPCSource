@@ -157,12 +157,12 @@ unit aoptcpu;
         exit;
       p:=taicpu(hp);
 
-      i:=1;
+      i:=0;
       while(i<p.ops) do
         begin
           case p.oper[I]^.typ of
             top_reg:
-              result:=(p.oper[I]^.reg=reg) and (I<2);
+              result:=(p.oper[I]^.reg=reg) and (p.spilling_get_operation_type(I)<>operand_write);
             top_ref:
               result:=
                 (p.oper[I]^.ref^.base=reg) or
