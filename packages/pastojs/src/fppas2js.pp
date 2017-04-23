@@ -7430,7 +7430,10 @@ begin
       Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnCreateClass]]);
 
     // add parameter: owner. For top level class, the module is the owner.
-    OwnerName:=AContext.GetLocalName(El.GetModule);
+    if El.Parent is TImplementationSection then
+      OwnerName:=AContext.GetLocalName(El.Parent)
+    else
+      OwnerName:=AContext.GetLocalName(El.GetModule);
     if OwnerName='' then
       OwnerName:='this';
     Call.AddArg(CreateBuiltInIdentifierExpr(OwnerName));

@@ -321,6 +321,7 @@ type
     Procedure TestClass_TObjectConstructorWithParams;
     Procedure TestClass_Var;
     Procedure TestClass_Method;
+    Procedure TestClass_Implementation;
     Procedure TestClass_Inheritance;
     Procedure TestClass_AbstractMethod;
     Procedure TestClass_CallInherited_NoParams;
@@ -5940,6 +5941,74 @@ begin
     '$mod.Obj.Sub.GetIt(7).GetIt(8);',
     '$mod.Obj.Sub.GetIt(9).Sub.GetIt(10);'
     ]));
+end;
+
+procedure TTestModule.TestClass_Implementation;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  'implementation',
+  'type',
+  '  TIntClass = class',
+  '    constructor Create; reintroduce;',
+  '    class procedure DoGlob;',
+  '  end;',
+  'constructor tintclass.create;',
+  'begin',
+  '  inherited;',
+  '  inherited create;',
+  '  doglob;',
+  'end;',
+  'class procedure tintclass.doglob;',
+  'begin',
+  'end;',
+  'constructor tobject.create;',
+  'var',
+  '  iC: tintclass;',
+  'begin',
+  '  ic:=tintclass.create;',
+  '  tintclass.doglob;',
+  '  ic.doglob;',
+  'end;',
+  'initialization',
+  '  tintclass.doglob;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestClass_Implementation',
+    LinesToStr([ // statements
+    'var $impl = $mod.$impl;',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '    var iC = null;',
+    '    iC = $impl.TIntClass.$create("Create$1");',
+    '    $impl.TIntClass.DoGlob();',
+    '    iC.$class.DoGlob();',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$impl.TIntClass.DoGlob();',
+    '']),
+    LinesToStr([
+    'rtl.createClass($impl, "TIntClass", $mod.TObject, function () {',
+    '  this.Create$1 = function () {',
+    '    $mod.TObject.Create.apply(this, arguments);',
+    '    $mod.TObject.Create.call(this);',
+    '    this.$class.DoGlob();',
+    '  };',
+    '  this.DoGlob = function () {',
+    '  };',
+    '});',
+    '']));
 end;
 
 procedure TTestModule.TestClass_Inheritance;
