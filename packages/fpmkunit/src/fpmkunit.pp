@@ -835,6 +835,7 @@ Type
     procedure SetName(const AValue: String);override;
     procedure SaveUnitConfigToStringList(Const AStringList: TStrings;ACPU:TCPU;AOS:TOS); virtual;
     property Dictionary: TDictionary read GetDictionary;
+    property PackageVariantsList: TFPList read FPackageVariants;
   Public
     constructor Create(ACollection: TCollection); override;
     destructor destroy; override;
