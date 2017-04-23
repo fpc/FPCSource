@@ -182,6 +182,7 @@ type
     function FindElement(const AName: String): TPasElement; virtual; abstract;
     procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
     function FindModule(const AName: String): TPasModule; virtual;
+    function NeedArrayValues(El: TPasElement): boolean; virtual;
     property Package: TPasPackage read FPackage;
     property InterfaceOnly : Boolean Read FInterfaceOnly Write FInterFaceOnly;
     property ScannerLogEvents : TPScannerLogEvents Read FScannerLogEvents Write FScannerLogEvents;
@@ -729,6 +730,12 @@ function TPasTreeContainer.FindModule(const AName: String): TPasModule;
 begin
   if AName='' then ;
   Result := nil;
+end;
+
+function TPasTreeContainer.NeedArrayValues(El: TPasElement): boolean;
+begin
+  Result:=false;
+  if El=nil then ;
 end;
 
 { ---------------------------------------------------------------------
@@ -2085,11 +2092,6 @@ begin
 end;
 
 function TPasParser.DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
-var
-  x : TPasExpr;
-  n : AnsiString;
-  r : TRecordValues;
-  a : TArrayValues;
 
   function lastfield:boolean;
 
@@ -2105,76 +2107,95 @@ var
      end;
   end;
 
+  procedure ReadArrayValues(x : TPasExpr);
+  var
+    a: TArrayValues;
+  begin
+    Result:=nil;
+    a:=nil;
+    try
+      a:=CreateArrayValues(AParent);
+      if x<>nil then
+        begin
+        a.AddValues(x);
+        x:=nil;
+        end;
+      repeat
+        NextToken;
+        a.AddValues(DoParseConstValueExpression(AParent));
+      until CurToken<>tkComma;
+      Result:=a;
+    finally
+      if Result=nil then
+        begin
+        a.Free;
+        x.Free;
+        end;
+    end;
+  end;
+
+var
+  x : TPasExpr;
+  n : AnsiString;
+  r : TRecordValues;
 begin
   if CurToken <> tkBraceOpen then
     Result:=DoParseExpression(AParent)
   else begin
     Result:=nil;
-    NextToken;
-    x:=DoParseConstValueExpression(AParent);
-    case CurToken of
-      tkComma: // array of values (a,b,c);
-        try
-          a:=CreateArrayValues(AParent);
-          a.AddValues(x);
-          x:=nil;
-          repeat
-            NextToken;
-            x:=DoParseConstValueExpression(AParent);
-            a.AddValues(x);
-            x:=nil;
-          until CurToken<>tkComma;
-          Result:=a;
-        finally
-          if Result=nil then
-            begin
-            a.Free;
-            x.Free;
-            end;
-        end;
-
-      tkColon: // record field (a:xxx;b:yyy;c:zzz);
-        begin
-          r:=nil;
-          try
-            n:=GetExprIdent(x);
-            ReleaseAndNil(TPasElement(x));
-            r:=CreateRecordValues(AParent);
-            NextToken;
-            x:=DoParseConstValueExpression(AParent);
-            r.AddField(n, x);
-            x:=nil;
-            if not lastfield then
-              repeat
-                n:=ExpectIdentifier;
-                ExpectToken(tkColon);
-                NextToken;
-                x:=DoParseConstValueExpression(AParent);
-                r.AddField(n, x);
-                x:=nil;
-              until lastfield; // CurToken<>tkSemicolon;
-            Result:=r;
-          finally
-            if Result=nil then
-              begin
-              r.Free;
-              x.Free;
-              end;
-          end;
-        end;
+    if Engine.NeedArrayValues(AParent) then
+      ReadArrayValues(nil)
     else
-      // Binary expression!  ((128 div sizeof(longint)) - 3);
-      Result:=DoParseExpression(AParent,x);
-      if CurToken<>tkBraceClose then
-        begin
-        ReleaseAndNil(TPasElement(Result));
-        ParseExc(nParserExpectedCommaRBracket,SParserExpectedCommaRBracket);
-        end;
+      begin
       NextToken;
-      if CurToken <> tkSemicolon then // the continue of expression
-        Result:=DoParseExpression(AParent,Result);
-      Exit;
-    end;
+      x:=DoParseConstValueExpression(AParent);
+      case CurToken of
+        tkComma: // array of values (a,b,c);
+          ReadArrayValues(x);
+
+        tkColon: // record field (a:xxx;b:yyy;c:zzz);
+          begin
+            r:=nil;
+            try
+              n:=GetExprIdent(x);
+              ReleaseAndNil(TPasElement(x));
+              r:=CreateRecordValues(AParent);
+              NextToken;
+              x:=DoParseConstValueExpression(AParent);
+              r.AddField(n, x);
+              x:=nil;
+              if not lastfield then
+                repeat
+                  n:=ExpectIdentifier;
+                  ExpectToken(tkColon);
+                  NextToken;
+                  x:=DoParseConstValueExpression(AParent);
+                  r.AddField(n, x);
+                  x:=nil;
+                until lastfield; // CurToken<>tkSemicolon;
+              Result:=r;
+            finally
+              if Result=nil then
+                begin
+                r.Free;
+                x.Free;
+                end;
+            end;
+          end;
+      else
+        // Binary expression!  ((128 div sizeof(longint)) - 3);
+        Result:=DoParseExpression(AParent,x);
+        if CurToken<>tkBraceClose then
+          begin
+          ReleaseAndNil(TPasElement(Result));
+          ParseExc(nParserExpectedCommaRBracket,SParserExpectedCommaRBracket);
+          end;
+        NextToken;
+        if CurToken <> tkSemicolon then // the continue of expression
+          Result:=DoParseExpression(AParent,Result);
+        Exit;
+      end;
+      end;
     if CurToken<>tkBraceClose then
       begin
       ReleaseAndNil(TPasElement(Result));

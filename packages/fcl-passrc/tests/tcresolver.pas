@@ -498,6 +498,7 @@ type
     Procedure TestArrayEnumTypeConstWrongTypeFail;
     Procedure TestArrayEnumTypeConstNonConstFail;
     Procedure TestArrayEnumTypeSetLengthFail;
+    Procedure TestArray_DynArrayConst;
     Procedure TestArray_AssignNilToStaticArrayFail1;
     Procedure TestArray_SetLengthProperty;
     Procedure TestArray_PassArrayElementToVarParam;
@@ -7893,6 +7894,26 @@ begin
   Add('  SetLength(a,1);');
   CheckResolverException('Incompatible type arg no. 1: Got "static array[] of Longint", expected "string or dynamic array variable"',
     nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestArray_DynArrayConst;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TArrInt = array of integer;',
+  '  TArrStr = array of string;',
+  'const',
+  '  Ints: TArrInt = (1,2,3);',
+  '  Names: array of string = (''a'',''foo'');',
+  '  Aliases: TarrStr = (''foo'',''b'');',
+  '  OneInt: TArrInt = (7);',
+  '  OneStr: array of integer = (7);',
+  '  Chars: array of char = ''aoc'';',
+  'begin',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestArray_AssignNilToStaticArrayFail1;

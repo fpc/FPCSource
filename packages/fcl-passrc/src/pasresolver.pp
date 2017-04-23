@@ -1300,6 +1300,7 @@ type
       Ref: TResolvedReference); virtual;
     function GetVisibilityContext: TPasElement;
     procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); override;
+    function NeedArrayValues(El: TPasElement): boolean; override;
     // built in types and functions
     procedure ClearBuiltInIdentifiers; virtual;
     procedure AddObjFPCBuiltInIdentifiers(
@@ -1437,6 +1438,7 @@ type
     function IsDynArray(TypeEl: TPasType): boolean;
     function IsOpenArray(TypeEl: TPasType): boolean;
     function IsDynOrOpenArray(TypeEl: TPasType): boolean;
+    function IsVarInit(Expr: TPasExpr): boolean;
     function IsEmptySet(const ResolvedEl: TPasResolverResult): boolean;
     function IsClassMethod(El: TPasElement): boolean;
     function IsExternalClassName(aClass: TPasClassType; const ExtName: string): boolean;
@@ -8515,6 +8517,26 @@ begin
   end;
 end;
 
+function TPasResolver.NeedArrayValues(El: TPasElement): boolean;
+// called by the parser when reading DoParseConstValueExpression
+var
+  C: TClass;
+  V: TPasVariable;
+  TypeEl: TPasType;
+begin
+  Result:=false;
+  if El=nil then exit;
+  C:=El.ClassType;
+  if (C=TPasConst) or (C=TPasVariable) then
+    begin
+    V:=TPasVariable(El);
+    if V.VarType=nil then exit;
+    TypeEl:=ResolveAliasType(V.VarType);
+    Result:=TypeEl.ClassType=TPasArrayType;
+    end;
+  //writeln('TPasResolver.NeedArrayValues ',GetObjName(El));
+end;
+
 class procedure TPasResolver.UnmangleSourceLineNumber(LineNumber: integer; out
   Line, Column: integer);
 begin
@@ -10561,10 +10583,17 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
           Count:=length(TArrayValues(Expr).Values)
         else if (Expr.ClassType=TParamsExpr) and (TParamsExpr(Expr).Kind=pekSet) then
           Count:=length(TParamsExpr(Expr).Params)
+        else if (Values.BaseType in btAllStringAndChars) and IsVarInit(Expr) then
+          begin
+          // const a: dynarray = string
+          ComputeElement(ArrType.ElType,ElTypeResolved,[rcType]);
+          if ElTypeResolved.BaseType in btAllChars then
+            Result:=cExact;
+          exit;
+          end
         else
           begin
-          if RaiseOnIncompatible then
-            RaiseNotYetImplemented(20170420151703,Expr,'assign one value to a dynamic array');
+          // single value
           exit;
           end;
         end;
@@ -11775,19 +11804,36 @@ begin
       and (length(TPasArrayType(TypeEl).Ranges)=0);
 end;
 
+function TPasResolver.IsVarInit(Expr: TPasExpr): boolean;
+var
+  C: TClass;
+begin
+  Result:=false;
+  if Expr=nil then exit;
+  if Expr.Parent=nil then exit;
+  C:=Expr.Parent.ClassType;
+  if C.InheritsFrom(TPasVariable) then
+    Result:=(TPasVariable(Expr.Parent).Expr=Expr)
+  else if C=TPasArgument then
+    Result:=(TPasArgument(Expr.Parent).ValueExpr=Expr);
+end;
+
 function TPasResolver.IsEmptySet(const ResolvedEl: TPasResolverResult): boolean;
 begin
   Result:=(ResolvedEl.BaseType=btSet) and (ResolvedEl.SubType=btNone);
 end;
 
 function TPasResolver.IsClassMethod(El: TPasElement): boolean;
+var
+  C: TClass;
 begin
-  Result:=(El<>nil)
-     and ((El.ClassType=TPasClassConstructor)
-       or (El.ClassType=TPasClassDestructor)
-       or (El.ClassType=TPasClassProcedure)
-       or (El.ClassType=TPasClassFunction)
-       or (El.ClassType=TPasClassOperator));
+  if El=nil then exit(false);
+  C:=El.ClassType;;
+  Result:=(C=TPasClassConstructor)
+       or (C=TPasClassDestructor)
+       or (C=TPasClassProcedure)
+       or (C=TPasClassFunction)
+       or (C=TPasClassOperator);
 end;
 
 function TPasResolver.IsExternalClassName(aClass: TPasClassType;
