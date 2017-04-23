@@ -462,6 +462,8 @@ begin
 end;
 
 procedure TFullFPCInstallationTests.TestSourceDependency;
+var
+  s: String;
 begin
   // This is to test if fpmkunit works correctly when a dependency is available
   // not as an installed but as a (compiled) source-package. This happens for
@@ -475,6 +477,17 @@ begin
 
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb', ['build'], 'create fpmake-executable', 1);
   RunFPMakeIndir(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packageb']), ['build'], 'build packageb');
+
+  // When there is no .fpm file, fpmake should complain that the package is not
+  // compiled. (Another possibility is that another packages is mistakenly being
+  // used, for example when the package-name does not match the directory-name)
+  // This has to be enforced because without the .fpm, the dependencies are
+  // not handled.
+  s := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packagea','packagea-'+TFullFPCInstallationSetup.GetTargetString+'.fpm']);
+  DeleteFile(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packagea','packagea-'+TFullFPCInstallationSetup.GetTargetString+'.fpm']));
+  s := RunFPMakeIndir(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath,'packageb']), ['build', '-d'], 'build packageb without fpm', 1);
+  Check(pos('the package is not compiled', s) > 0, 'Missing .fpm-file detection did not trigger');
+  Check(pos('Could not find unit directory for dependency package', s) > 0, 'Incorrect error message');
 end;
 
 procedure TFullFPCInstallationTests.TestTransmitOptions;

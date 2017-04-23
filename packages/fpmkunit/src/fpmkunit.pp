@@ -1682,7 +1682,8 @@ ResourceString
   SInfoDestDoesNotExist   = 'Destination file "%s" does not exist.';
   SInfoFallbackBuildmode  = 'Buildmode not supported by package, falling back to one by one unit compilation';
   SInfoFallbackBuildmodeBU= 'Buildmode not supported by package, falling back to compilation using a buildunit';
-  SInfoDirectoryNoPackage = 'Found directory "%s" which does not contain a package';
+  SInfoDirectoryNoPackage = 'Found directory "%s" while searching for package "%s" which does not contain a package';
+  SInfoSrcDirectoryNoPkg  = 'Found source-directory "%s" while searching for package "%s" but the package is not compiled or has the wrong name';
 
   SDbgComparingFileTimes    = 'Comparing file "%s" time "%s" to "%s" time "%s".';
   SDbgCompilingDependenciesOfTarget = 'Compiling dependencies of target %s';
@@ -2811,7 +2812,7 @@ begin
       AnUnitConfigFilename:=APackage.Dictionary.ReplaceStrings(AnUnitConfigFilename);
       if ABuildEngine.SysFileExists(AnUnitConfigFilename) then
         APackage.UnitConfigFileName:=AnUnitConfigFilename
-      else if not IsPackageSourceLocation then
+      else
         begin
           // To avoid that directories which do not contain installed packages
           // check that there is an unit-configfile, or Packages.fpc file. (The
@@ -2820,8 +2821,22 @@ begin
           // Lazarus-source-repositories.
           if not ABuildEngine.SysFileExists(ConcatPaths([PackageBaseDir, 'Package.fpc'])) then
             begin
-              Installer.Log(vlInfo,Format(SInfoDirectoryNoPackage,[PackageBaseDir]));
-              Exit;
+              if IsPackageSourceLocation then
+                begin
+                // There is no way that I know of to confirm that a directory
+                // contains the compiled sources of the rtl. So we need a
+                // workaround. This test is skipped in case of the rtl.
+                if APackage.Name<>'rtl' then
+                  begin
+                  Installer.Log(vlInfo,Format(SInfoSrcDirectoryNoPkg,[PackageBaseDir, APackage.Name]));
+                  Exit;
+                  end;
+                end
+              else
+                begin
+                Installer.Log(vlInfo,Format(SInfoDirectoryNoPackage,[PackageBaseDir, APackage.Name]));
+                Exit;
+                end;
             end;
         end;
 
