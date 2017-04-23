@@ -297,9 +297,10 @@ type
     Procedure TestArray_Concat;
     Procedure TestArray_Copy;
     Procedure TestArray_InsertDelete;
+    Procedure TestArray_DynArrayConst;
     Procedure TestExternalClass_TypeCastArrayToExternalArray;
     Procedure TestExternalClass_TypeCastArrayFromExternalArray;
-    // ToDo: array const
+    // ToDo: static array const
     // ToDo: SetLength(array of static array)
     // ToDo: SetLength(dim1,dim2)
 
@@ -5195,6 +5196,36 @@ begin
     '$mod.ArrRec.splice(14, 15);',
     '$mod.ArrSet.splice(17, 18);',
     '$mod.ArrJSValue.splice(19, 10);',
+    '']));
+end;
+
+procedure TTestModule.TestArray_DynArrayConst;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TArrInt = array of integer;',
+  '  TArrStr = array of string;',
+  'const',
+  '  Ints: TArrInt = (1,2,3);',
+  '  Names: array of string = (''a'',''foo'');',
+  '  Aliases: TarrStr = (''foo'',''b'');',
+  '  OneInt: TArrInt = (7);',
+  '  OneStr: array of integer = (7);',
+  //'  Chars: array of char = ''aoc'';',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_DynArrayConst',
+    LinesToStr([ // statements
+    'this.Ints = [1, 2, 3];',
+    'this.Names = ["a", "foo"];',
+    'this.Aliases = ["foo", "b"];',
+    'this.OneInt = [7];',
+    'this.OneStr = [7];',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

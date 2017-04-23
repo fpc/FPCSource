@@ -280,6 +280,7 @@ Not in Version 1.0:
   - array of static array: setlength
   - array range char, char range, integer range, enum range
   - array of const
+  - TestArray_DynArrayConst: Chars: array of char = ''aoc'';
 - sets
   - set of char, boolean, integer range, char range, enum range
 - call array of proc element without ()
