@@ -1846,7 +1846,7 @@ const
   ClassFieldModifiersAllowed = [vmClass,vmStatic,vmExternal,vmPublic];
   RecordVarModifiersAllowed = [];
   LocalVarModifiersAllowed = [];
-  ImplementationVarModifiersAllowed = [];
+  ImplementationVarModifiersAllowed = [vmExternal];
   SectionVarModifiersAllowed = [vmExternal,vmPublic];
 
   procedure RaiseVarModifierNotSupported(const Allowed: TVariableModifiers);

@@ -3555,7 +3555,7 @@ begin
   Add('implementation');
   Add('var');
   Add('  d: double;');
-  Add('  i: longint;');
+  Add('  i: longint; external name ''$i'';');
   Add('begin');
   Add('  d:=nan;');
   Add('  d:=uNit2.nan;');
@@ -3572,13 +3572,12 @@ begin
     '$impl.d = Global.NaN;',
     '$impl.d = Global.NaN;',
     '$impl.d = Global.NaN;',
-    '$impl.i = pas.unit2.iV;',
-    '$impl.i = pas.unit2.iV;',
-    '$impl.i = pas.unit2.iV;',
+    '$i = pas.unit2.iV;',
+    '$i = pas.unit2.iV;',
+    '$i = pas.unit2.iV;',
     '']),
     LinesToStr([ // implementation
     '$impl.d = 0.0;',
-    '$impl.i = 0;',
     '']) );
 end;
 
