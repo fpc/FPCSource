@@ -422,6 +422,7 @@ type
     Procedure TestProcType_ReferenceToProc;
     Procedure TestProcType_ReferenceToMethod;
     Procedure TestProcType_Typecast;
+    Procedure TestProcType_PassProcToUntyped;
 
     // pointer
     Procedure TestPointer;
@@ -429,6 +430,7 @@ type
     Procedure TestPointer_AssignRecordFail;
     Procedure TestPointer_AssignStaticArrayFail;
     Procedure TestPointer_ArrayParamsFail;
+    Procedure TestPointer_TypeCastJSValueToPointer;
 
     // jsvalue
     Procedure TestJSValue_AssignToJSValue;
@@ -9751,6 +9753,7 @@ begin
   Add('  b:=vp<>@doit;');
   Add('  b:=@doit<>vp;');
   Add('  b:=Assigned(vp);');
+  Add('  if Assigned(vp) then ;');
   ConvertProgram;
   CheckSource('TestProcType',
     LinesToStr([ // statements
@@ -9778,6 +9781,7 @@ begin
     '$mod.b = !rtl.eqCallback($mod.vP, $mod.DoIt);',
     '$mod.b = !rtl.eqCallback($mod.DoIt, $mod.vP);',
     '$mod.b = $mod.vP != null;',
+    'if ($mod.vP != null) ;',
     '']));
 end;
 
@@ -10747,37 +10751,50 @@ end;
 procedure TTestModule.TestProcType_Typecast;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TNotifyEvent = procedure(Sender: Pointer) of object;');
-  Add('  TEvent = procedure of object;');
-  Add('  TProcA = procedure(i: longint);');
-  Add('  TFuncB = function(i, j: longint): longint;');
-  Add('var');
-  Add('  Notify: TNotifyEvent;');
-  Add('  Event: TEvent;');
-  Add('  ProcA: TProcA;');
-  Add('  FuncB: TFuncB;');
-  Add('  p: pointer;');
-  Add('begin');
-  Add('  Notify:=TNotifyEvent(Event);');
-  Add('  Event:=TEvent(Event);');
-  Add('  Event:=TEvent(Notify);');
-  Add('  ProcA:=TProcA(FuncB);');
-  Add('  FuncB:=TFuncB(FuncB);');
-  Add('  FuncB:=TFuncB(ProcA);');
-  Add('  ProcA:=TProcA(p);');
-  Add('  FuncB:=TFuncB(p);');
-  Add('  p:=Pointer(Notify);');
-  Add('  p:=Notify;');
-  Add('  p:=Pointer(ProcA);');
-  Add('  p:=ProcA;');
-  Add('  p:=Pointer(FuncB);');
-  Add('  p:=FuncB;');
+  Add([
+  'type',
+  '  TNotifyEvent = procedure(Sender: Pointer) of object;',
+  '  TEvent = procedure of object;',
+  '  TGetter = function:longint of object;',
+  '  TProcA = procedure(i: longint);',
+  '  TFuncB = function(i, j: longint): longint;',
+  'procedure DoIt(); varargs; begin end;',
+  'var',
+  '  Notify: tnotifyevent;',
+  '  Event: tevent;',
+  '  Getter: tgetter;',
+  '  ProcA: tproca;',
+  '  FuncB: tfuncb;',
+  '  p: pointer;',
+  'begin',
+  '  notify:=tnotifyevent(event);',
+  '  event:=tevent(event);',
+  '  event:=tevent(notify);',
+  '  event:=tevent(getter);',
+  '  event:=tevent(proca);',
+  '  proca:=tproca(funcb);',
+  '  funcb:=tfuncb(funcb);',
+  '  funcb:=tfuncb(proca);',
+  '  funcb:=tfuncb(getter);',
+  '  proca:=tproca(p);',
+  '  funcb:=tfuncb(p);',
+  '  getter:=tgetter(p);',
+  '  p:=pointer(notify);',
+  '  p:=notify;',
+  '  p:=pointer(proca);',
+  '  p:=proca;',
+  '  p:=pointer(funcb);',
+  '  p:=funcb;',
+  '  doit(Pointer(notify),pointer(event),pointer(proca));',
+  '']);
   ConvertProgram;
   CheckSource('TestProcType_Typecast',
     LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '};',
     'this.Notify = null;',
     'this.Event = null;',
+    'this.Getter = null;',
     'this.ProcA = null;',
     'this.FuncB = null;',
     'this.p = null;',
@@ -10786,17 +10803,72 @@ begin
     '$mod.Notify = $mod.Event;',
     '$mod.Event = $mod.Event;',
     '$mod.Event = $mod.Notify;',
+    '$mod.Event = $mod.Getter;',
+    '$mod.Event = $mod.ProcA;',
     '$mod.ProcA = $mod.FuncB;',
     '$mod.FuncB = $mod.FuncB;',
     '$mod.FuncB = $mod.ProcA;',
+    '$mod.FuncB = $mod.Getter;',
     '$mod.ProcA = $mod.p;',
     '$mod.FuncB = $mod.p;',
+    '$mod.Getter = $mod.p;',
     '$mod.p = $mod.Notify;',
     '$mod.p = $mod.Notify;',
     '$mod.p = $mod.ProcA;',
     '$mod.p = $mod.ProcA;',
     '$mod.p = $mod.FuncB;',
     '$mod.p = $mod.FuncB;',
+    '$mod.DoIt($mod.Notify, $mod.Event, $mod.ProcA);',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_PassProcToUntyped;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEvent = procedure of object;',
+  '  TFunc = function: longint;',
+  'procedure DoIt(); varargs; begin end;',
+  'procedure DoSome(const a; var b; p: pointer); begin end;',
+  'var',
+  '  Event: tevent;',
+  '  Func: TFunc;',
+  'begin',
+  '  doit(event,func);',
+  '  dosome(event,event,event);',
+  '  dosome(func,func,func);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestProcType_PassProcToUntyped',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '};',
+    'this.DoSome = function (a, b, p) {',
+    '};',
+    'this.Event = null;',
+    'this.Func = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.Event, $mod.Func);',
+    '$mod.DoSome($mod.Event, {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.Event;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.Event = v;',
+    '    }',
+    '}, $mod.Event);',
+    '$mod.DoSome($mod.Func, {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.Func;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.Func = v;',
+    '    }',
+    '}, $mod.Func);',
     '']));
 end;
 
@@ -10932,6 +11004,33 @@ begin
   Add('  p:=p[1];');
   SetExpectedPasResolverError('illegal qualifier "["',nIllegalQualifier);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_TypeCastJSValueToPointer;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(args: array of jsvalue); begin end;',
+  'procedure DoAll; varargs; begin end;',
+  'var',
+  '  v: jsvalue;',
+  'begin',
+  '  DoIt([pointer(v)]);',
+  '  DoAll(pointer(v));',
+  '']);
+  ConvertProgram;
+  CheckSource('TestPointer_TypeCastJSValueToPointer',
+    LinesToStr([ // statements
+    'this.DoIt = function (args) {',
+    '};',
+    'this.DoAll = function () {',
+    '};',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt([$mod.v]);',
+    '$mod.DoAll($mod.v);',
+    '']));
 end;
 
 procedure TTestModule.TestJSValue_AssignToJSValue;
@@ -12284,11 +12383,11 @@ begin
   Add('  protected');
   Add('    FFlag: longint;');
   Add('  published');
-  Add('    property Flag: longint read FFlag;');
+  Add('    property Flag: longint read fflag;');
   Add('  end;');
   Add('  TSky = class');
   Add('  published');
-  Add('    property Flag: longint write FFlag;');
+  Add('    property FLAG: longint write fflag;');
   Add('  end;');
   Add('begin');
   ConvertProgram;

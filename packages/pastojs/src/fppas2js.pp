@@ -6796,8 +6796,6 @@ var
   Param: TPasExpr;
   ResultEl: TPasResultElement;
   TypeEl: TPasType;
-  Call: TJSCallExpression;
-  NeedCall: Boolean;
 begin
   Result:=nil;
   Param:=El.Params[0];
@@ -6805,7 +6803,6 @@ begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertBuiltIn_TypeInfo ',GetResolverResultDbg(ParamResolved));
   {$ENDIF}
-  NeedCall:=false;
   if (ParamResolved.BaseType=btProc) and (ParamResolved.IdentEl is TPasFunction) then
     begin
     // typeinfo(function) ->
@@ -6816,7 +6813,6 @@ begin
     {$ENDIF}
     Include(ParamResolved.Flags,rrfReadable);
     ParamResolved.IdentEl:=ResultEl;
-    NeedCall:=true;
     end;
   TypeEl:=AContext.Resolver.ResolveAliasType(ParamResolved.TypeEl);
   if TypeEl=nil then
@@ -6833,14 +6829,6 @@ begin
     // typeinfo(classinstance) -> classinstance.$rtti
     // typeinfo(classof) -> classof.$rtti
     Result:=ConvertElement(Param,AContext);
-    if NeedCall then
-      begin
-      // typeinfo(afunction:class) -> afunction().$rtti
-      // typeinfo(afucntion:classof) -> afunction().$rtti
-      Call:=TJSCallExpression(CreateElement(TJSCallExpression,El));
-      Call.Expr:=Result;
-      Result:=Call;
-      end;
     Result:=CreateDotExpression(El,Result,CreateBuiltInIdentifierExpr(FBuiltInNames[pbivnRTTI]));
     end
   else
