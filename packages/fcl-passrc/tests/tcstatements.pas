@@ -113,7 +113,8 @@ Type
     procedure TestTryExceptRaise;
     Procedure TestAsm;
     Procedure TestAsmBlock;
-    Procedure TestAdmBlockWithEndLabel;
+    Procedure TestAsmBlockWithEndLabel;
+    Procedure TestAsmBlockInIfThen;
     Procedure TestGotoInIfThen;
     procedure AssignToAddress;
   end;
@@ -1661,7 +1662,7 @@ begin
   ParseModule;
 end;
 
-procedure TTestStatementParser.TestAdmBlockWithEndLabel;
+procedure TTestStatementParser.TestAsmBlockWithEndLabel;
 begin
   Source.Add('{$MODE DELPHI}');
   Source.Add('function BitsHighest(X: Cardinal): Integer;');
@@ -1675,6 +1676,23 @@ begin
   Source.Add('end;');
   Source.Add('begin');
   Source.Add('end.');
+  ParseModule;
+end;
+
+procedure TTestStatementParser.TestAsmBlockInIfThen;
+begin
+  Source.Add('{$MODE DELPHI}');
+  Source.Add('function Get8087StatusWord(ClearExceptions: Boolean): Word;');
+  Source.Add('  begin');
+  Source.Add('    if ClearExceptions then');
+  Source.Add('    asm');
+  Source.Add('    end');
+  Source.Add('    else');
+  Source.Add('    asm');
+  Source.Add('    end;');
+  Source.Add('  end;');
+  Source.Add('  begin');
+  Source.Add('  end.');
   ParseModule;
 end;
 

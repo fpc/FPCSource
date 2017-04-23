@@ -4159,6 +4159,12 @@ procedure TPasParser.ParseAsmBlock(AsmBlock: TPasImplAsmStatement);
 Var
   LastToken : TToken;
 
+  Function atEndofAsm : Boolean;
+
+  begin
+    Result:=(CurToken=tkEnd) and (LastToken<>tkAt);
+  end;
+
 begin
   if po_asmwhole in Options then
     begin
@@ -4193,9 +4199,8 @@ begin
     begin
     LastToken:=tkEOF;
     NextToken;
-    While Not ((CurToken=tkEnd) and (LastToken<>tkAt)) do
+    While Not AtEndOfAsm do
       begin
-      // ToDo: allow @@end
       AsmBlock.Tokens.Add(CurTokenText);
       LastToken:=CurToken;
       NextToken;
@@ -4276,7 +4281,7 @@ begin
       ParseAsmBlock(TPasImplAsmStatement(El));
       CurBlock.AddElement(El);
       if NewImplElement=nil then NewImplElement:=CurBlock;
-      if CloseStatement(true) then
+      if CloseStatement(False) then
         break;
       end;
     tkbegin:
@@ -4343,6 +4348,11 @@ begin
       end else if (CurBlock is TPasImplRaise) then
       begin
         //if .. then Raise Exception else ..
+        CloseBlock;
+        UngetToken;
+      end else if (CurBlock is TPasImplAsmStatement) then
+      begin
+        //if .. then asm end else ..
         CloseBlock;
         UngetToken;
       end else if (CurBlock is TPasImplTryExcept) then
