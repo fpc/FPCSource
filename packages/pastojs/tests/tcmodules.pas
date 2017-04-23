@@ -404,6 +404,7 @@ type
     Procedure TestExternalClass_BracketAccessor_ReadOnly;
     Procedure TestExternalClass_BracketAccessor_WriteOnly;
     Procedure TestExternalClass_BracketAccessor_MultiType;
+    Procedure TestExternalClass_BracketAccessor_Index;
 
     // proc types
     Procedure TestProcType;
@@ -9449,7 +9450,7 @@ begin
   Add('  with arr do items[9]:=items[10];');
   Add('  doit(arr[7],arr[8],arr[9],arr[10]);');
   ConvertProgram;
-  CheckSource('TestExternalClass_BracketOperator',
+  CheckSource('TestExternalClass_BracketAccessor',
     LinesToStr([ // statements
     'this.DoIt = function (vI, vJ, vK, vL) {',
     '};',
@@ -9616,6 +9617,40 @@ begin
     '$with1[5] = $mod.i;',
     'var $with2 = $mod.Arr;',
     '$with2[6] = $mod.i;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_BracketAccessor_Index;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    function GetItems(Index: longint): jsvalue; external name ''[]'';');
+  Add('    procedure SetItems(Index: longint; Value: jsvalue); external name ''[]'';');
+  Add('    property Items[Index: longint]: jsvalue read GetItems write SetItems; default;');
+  Add('  end;');
+  Add('var');
+  Add('  Arr: tjsarray;');
+  Add('  i: longint;');
+  Add('  IntArr: array of longint;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  v:=arr.items[i];');
+  Add('  arr[longint(v)]:=arr.items[intarr[0]];');
+  Add('  arr.items[intarr[1]]:=arr[IntArr[2]];');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketAccessor_Index',
+    LinesToStr([ // statements
+    'this.Arr = null;',
+    'this.i = 0;',
+    'this.IntArr = [];',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.v = $mod.Arr[$mod.i];',
+    '$mod.Arr[Math.floor($mod.v)] = $mod.Arr[$mod.IntArr[0]];',
+    '$mod.Arr[$mod.IntArr[1]] = $mod.Arr[$mod.IntArr[2]];',
     '']));
 end;
 

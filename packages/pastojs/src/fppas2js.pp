@@ -125,6 +125,7 @@ Works:
   - function copy(array,start=0,count=max): array
   - procedure insert(item,var array,const position)
   - procedure delete(var array,const start,count)
+  - const c: dynarray = (a,b,...)
 - static arrays
   - range: enumtype
   - init as arr = rtl.arrayNewMultiDim([dim1,dim2,...],value)
@@ -4982,7 +4983,7 @@ var
 
       OldAccess:=ArgContext.Access;
       ArgContext.Access:=caRead;
-      Bracket.Name:=ConvertElement(El.Params[0],AContext);
+      Bracket.Name:=ConvertElement(El.Params[0],ArgContext);
       ArgContext.Access:=OldAccess;
       ConvertArrayParams:=Bracket;
       Bracket:=nil;
@@ -4991,7 +4992,7 @@ var
     end;
   end;
 
-  procedure ConvertIndexProperty(Prop: TPasProperty; AContext: TConvertContext);
+  procedure ConvertIndexedProperty(Prop: TPasProperty; AContext: TConvertContext);
   var
     Call: TJSCallExpression;
     i: Integer;
@@ -5046,7 +5047,7 @@ var
         if TargetArg.ValueExpr=nil then
           begin
           {$IFDEF VerbosePas2JS}
-          writeln('TPasToJSConverter.ConvertArrayParams.ConvertIndexProperty missing default value: Prop=',Prop.Name,' i=',i);
+          writeln('TPasToJSConverter.ConvertArrayParams.ConvertIndexedProperty missing default value: Prop=',Prop.Name,' i=',i);
           {$ENDIF}
           RaiseInconsistency(20170206185126);
           end;
@@ -5127,7 +5128,7 @@ var
 
       DotContext:=TDotContext.Create(El.Value,Left,AContext);
       DotContext.LeftResolved:=ResolvedEl;
-      ConvertIndexProperty(Prop,DotContext);
+      ConvertIndexedProperty(Prop,DotContext);
       Right:=Result;
       Result:=nil;
     finally
@@ -5185,7 +5186,7 @@ begin
     ConvertStringBracket
   else if (ResolvedEl.IdentEl is TPasProperty)
       and (TPasProperty(ResolvedEl.IdentEl).Args.Count>0) then
-    ConvertIndexProperty(TPasProperty(ResolvedEl.IdentEl),AContext)
+    ConvertIndexedProperty(TPasProperty(ResolvedEl.IdentEl),AContext)
   else if ResolvedEl.BaseType=btContext then
     begin
     TypeEl:=ResolvedEl.TypeEl;
@@ -10503,7 +10504,7 @@ var
 begin
   Result:='';
   {$IFDEF VerbosePas2JS}
-  //writeln('TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext),' ',GetObjName(AContext.GetThis));
+  //writeln('TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext),' SelfContext=',GetObjName(AContext.GetSelfContext));
   //AContext.WriteStack;
   {$ENDIF}
 

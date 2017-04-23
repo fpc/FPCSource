@@ -1046,7 +1046,7 @@ begin
     end
   else if C=TArrayValues then
     begin
-      Params:=TArrayValues(El).Values;
+    Params:=TArrayValues(El).Values;
     for i:=0 to length(Params)-1 do
       UseExpr(Params[i]);
     end
