@@ -109,6 +109,7 @@ type
     Procedure TestMethodVirtual;
     Procedure TestMethodVirtualSemicolon;
     Procedure TestMethodVirtualAbstract;
+    procedure TestMethodVirtualAbstractFinal;
     Procedure TestMethodOverride;
     procedure TestMethodDynamic;
     procedure TestMethodReintroduce;
@@ -1000,6 +1001,16 @@ begin
   DefaultMethod;
   AssertEquals('Default visibility',visDefault,Method1.Visibility);
   AssertEquals('Virtual, abstract modifiers',[pmVirtual,pmAbstract],Method1.Modifiers);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+end;
+
+procedure TTestClassType.TestMethodVirtualAbstractFinal;
+begin
+  AddMember('Procedure DoSomething(A : Integer) virtual; abstract; final');
+  ParseClass;
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Virtual, abstract modifiers',[pmVirtual,pmAbstract,pmFinal],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 

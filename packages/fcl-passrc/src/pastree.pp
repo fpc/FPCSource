@@ -842,7 +842,7 @@ type
                         pmExport, pmOverload, pmMessage, pmReintroduce,
                         pmInline,pmAssembler, pmPublic,
                         pmCompilerProc,pmExternal,pmForward, pmDispId, 
-                        pmNoReturn, pmfar);
+                        pmNoReturn, pmfar, pmFinal);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
                         
@@ -1430,7 +1430,7 @@ const
                    'export', 'overload', 'message', 'reintroduce',
                    'inline','assembler','public',
                    'compilerproc','external','forward','dispid',
-                   'noreturn','far');
+                   'noreturn','far','final');
 
   VariableModifierNames : Array[TVariableModifier] of string
      = ('cvar', 'external', 'public', 'export', 'class', 'static');
