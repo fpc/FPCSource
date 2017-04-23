@@ -792,19 +792,22 @@ begin
             if not Assigned(CurrentSection) or CurrentSection.AllowDuplicate then
               begin
                 if SameText(s, KeyGlobalSection) or SameText(s, KeyDeprGlobalSection) then
-                  CurrentSection := TFppkgGlobalOptionSection.Create(FOptionParser)
-                else if SameText(s, KeyRepositorySection) then
-                  CurrentSection := TFppkgRepositoryOptionSection.Create(FOptionParser)
-                else if SameText(s, KeySrcRepositorySection) then
-                  CurrentSection := TFppkgUninstalledSourceRepositoryOptionSection.Create(FOptionParser)
-                else if SameText(s, KeyIncludeFilesSection) then
-                  CurrentSection := TFppkgIncludeFilesOptionSection.Create(FOptionParser, Self, ExtractFileDir(AFileName))
-                else if SameText(s, KeyUninstalledRepository) then
-                  CurrentSection := TFppkgUninstalledRepositoryOptionSection.Create(FOptionParser)
+                  CurrentSection := GetGlobalSection
                 else
-                  CurrentSection := TFppkgCustomOptionSection.Create(FOptionParser);
-                FSectionList.Add(CurrentSection);
-                CurrentSection.Name := s;
+                  begin
+                    if SameText(s, KeyRepositorySection) then
+                      CurrentSection := TFppkgRepositoryOptionSection.Create(FOptionParser)
+                    else if SameText(s, KeySrcRepositorySection) then
+                      CurrentSection := TFppkgUninstalledSourceRepositoryOptionSection.Create(FOptionParser)
+                    else if SameText(s, KeyIncludeFilesSection) then
+                      CurrentSection := TFppkgIncludeFilesOptionSection.Create(FOptionParser, Self, ExtractFileDir(AFileName))
+                    else if SameText(s, KeyUninstalledRepository) then
+                      CurrentSection := TFppkgUninstalledRepositoryOptionSection.Create(FOptionParser)
+                    else
+                      CurrentSection := TFppkgCustomOptionSection.Create(FOptionParser);
+                    FSectionList.Add(CurrentSection);
+                    CurrentSection.Name := s;
+                  end;
               end
           end
         else if copy(s,1,1)<>';' then // comment

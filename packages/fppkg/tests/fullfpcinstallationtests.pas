@@ -27,6 +27,7 @@ type
   published
     procedure TestListPackages;
     procedure IntTestListPackages;
+    procedure IntTestMergeGlobalOptions;
     procedure TestPackageA;
     procedure TestLooseFPMFile;
     procedure TestMissingSource;
@@ -357,6 +358,39 @@ begin
    finally
      FPpkg.Free;
    end;
+end;
+
+procedure TFullFPCInstallationTests.IntTestMergeGlobalOptions;
+var
+  FPpkg: TpkgFPpkg;
+  ExtraConfFile: Text;
+  s: string;
+begin
+  // When there are multiple global-sections, it's values should be merged.
+  s := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'config', 'conf.d', 'extrasettings.conf']);
+  AssignFile(ExtraConfFile, ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'config', 'conf.d', 'extrasettings.conf']));
+  Rewrite(ExtraConfFile);
+  WriteLn(ExtraConfFile, '[global]');
+  WriteLn(ExtraConfFile, 'FPMakeOptions="-T 4"');
+  CloseFile(ExtraConfFile);
+
+  FPpkg := TpkgFPpkg.Create(nil);
+  try
+    FPpkg.InitializeGlobalOptions(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'etc','fppkg.cfg']));
+    FPpkg.Options.GlobalSection.Downloader := 'FPC';
+    FPpkg.InitializeCompilerOptions;
+
+    FPpkg.CompilerOptions.InitCompilerDefaults;
+    FPpkg.FpmakeCompilerOptions.InitCompilerDefaults;
+    FPpkg.CompilerOptions.CheckCompilerValues;
+    FPpkg.FpmakeCompilerOptions.CheckCompilerValues;
+    FPpkg.LoadLocalAvailableMirrors;
+
+    CheckEquals('user', FPpkg.Options.GlobalSection.InstallRepository, 'The InstallRepository does not match the value in the original configuration file');
+    CheckEquals('"-T 4"', FPpkg.Options.GlobalSection.CustomFPMakeOptions, 'The custom FPMakeOptions do not match the value in the extra configuration file');
+  finally
+    FPpkg.Free;
+  end;
 end;
 
 procedure TFullFPCInstallationTests.TestPackageA;
