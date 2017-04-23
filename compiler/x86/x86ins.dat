@@ -193,16 +193,16 @@ mem,imm16             \324\1\x81\207\31               8086,SW
 mem,imm8              \1\x80\207\21                   8086,SB
 
 [CMPSB]
-(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
+(Ch_RWESI, Ch_RMemEDI, Ch_RWEDI, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\1\xA6                      8086
 
 [CMPSD,cmpsl]
-(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
+(Ch_RWESI, Ch_RMemEDI, Ch_RWEDI, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\325\1\xA7                  386
 xmmreg,xmmrm,imm      \334\2\x0F\xC2\110\26           WILLAMETTE,SSE2,SM2,SB,AR2
 
 [CMPSW]
-(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
+(Ch_RWESI, Ch_RMemEDI, Ch_RWEDI, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\324\1\xA7                  8086
 
 [CMPXCHG,cmpxchgX]
@@ -1104,7 +1104,7 @@ xmmreg,reg64          \361\326\2\x0F\x6E\110          WILLAMETTE,SSE2,X86_64
 reg64,xmmreg          \361\326\2\x0F\x7E\101          WILLAMETTE,SSE2,X86_64
 
 [MOVSB]
-(Ch_All, Ch_RDirFlag)
+(Ch_RWESI, Ch_WMemEDI, Ch_RWEDI, Ch_RDirFlag)
 void                  \1\xA4                          8086
 
 [MOVSD,movsl]
@@ -1115,11 +1115,11 @@ xmmreg,xmmrm          \334\2\x0F\x10\110              WILLAMETTE,SSE2
 xmmrm,xmmreg          \334\2\x0F\x11\101              WILLAMETTE,SSE2
 
 [MOVSQ]
-(Ch_All, Ch_RDirFlag)
+(Ch_RWRSI, Ch_WMemEDI, Ch_RWRDI, Ch_RDirFlag)
 void                  \326\1\xA5                      X86_64
 
 [MOVSW]
-(Ch_All, Ch_RDirFlag)
+(Ch_RWESI, Ch_WMemEDI, Ch_RWEDI, Ch_RDirFlag)
 void                  \324\1\xA5                      8086
 
 [MOVSX,movsY]
@@ -1794,19 +1794,19 @@ reg_al,imm            \1\x1C\21                       8086,SB
 rm8,imm               \1\x80\203\21                   8086,SB
 
 [SCASB]
-(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
+(Ch_REAX, Ch_RMemEDI, Ch_RWEDI, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\1\xAE                      8086
 
 [SCASD,scasl]
-(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
+(Ch_REAX, Ch_RMemEDI, Ch_RWEDI, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\325\1\xAF                  386
 
 [SCASQ]
-(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
+(Ch_RRAX, Ch_RMemEDI, Ch_RWRDI, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\326\1\xAF                  X86_64
 
 [SCASW]
-(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
+(Ch_REAX, Ch_RMemEDI, Ch_RWEDI, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                  \332\324\1\xAF                  8086
 
 [SEGCS,cs]
@@ -3465,7 +3465,7 @@ void                   \326\1\xAB                                    X86_64
 void                   \326\1\xAD                                    X86_64
 
 [CMPSQ]
-(Ch_All, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
+(Ch_RWRSI, Ch_RMemEDI, Ch_RWRDI, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
 void                   \326\1\xA7                                    X86_64
 
 ;*******************************************************************************

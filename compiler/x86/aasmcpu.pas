@@ -237,7 +237,7 @@ interface
         { instruction doesn't read it's input register, in case both parameters
           are the same register (e.g. xor eax,eax; sub eax,eax; sbb eax,eax (reads flags only), etc.) }
         Ch_NoReadIfEqualRegs,
-        Ch_WMemEDI,
+        Ch_RMemEDI,Ch_WMemEDI,
         Ch_All,
         { x86_64 registers }
         Ch_RRAX, Ch_RRCX, Ch_RRDX, Ch_RRBX, Ch_RRSP, Ch_RRBP, Ch_RRSI, Ch_RRDI,
