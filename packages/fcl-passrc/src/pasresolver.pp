@@ -745,7 +745,8 @@ type
 
   TPasPropertyScope = Class(TPasIdentifierScope)
   public
-    AncestorProp: TPasProperty;
+    AncestorProp: TPasProperty; { if TPasProperty(Element).VarType=nil this is an override
+                                  otherwise it is a redeclaration }
     destructor Destroy; override;
   end;
 
@@ -990,7 +991,7 @@ type
   PPRFindData = ^TPRFindData;
 
   TPasResolverOption = (
-    proFixCaseOfOverrides,  // fix Name of overriding procs to the overriden proc
+    proFixCaseOfOverrides,  // fix Name of overriding proc/property to the overriden proc/property
     proClassPropertyNonStatic,  // class property accessor must be non static
     proPropertyAsVarParam, // allows to pass a property as a var/out argument
     proClassOfIs, // class-of supports is and as operator
@@ -1426,7 +1427,7 @@ type
     function GetTypeDescription(const R: TPasResolverResult; AddPath: boolean = false): string; virtual;
     function GetBaseDescription(const R: TPasResolverResult; AddPath: boolean = false): string; virtual;
     function GetPasPropertyType(El: TPasProperty): TPasType;
-    function GetPasPropertyAncestor(El: TPasProperty): TPasProperty;
+    function GetPasPropertyAncestor(El: TPasProperty; WithRedeclarations: boolean = false): TPasProperty;
     function GetPasPropertyGetter(El: TPasProperty): TPasElement;
     function GetPasPropertySetter(El: TPasProperty): TPasElement;
     function GetPasPropertyStored(El: TPasProperty): TPasElement;
@@ -3743,21 +3744,31 @@ var
     AncProp: TPasProperty;
   begin
     if PropType<>nil then exit;
+    AncEl:=nil;
+    if ClassScope.AncestorScope<>nil then
+      AncEl:=ClassScope.AncestorScope.FindElement(PropEl.Name);
+    if AncEl is TPasProperty then
+      begin
+      // override or redeclaration property
+      AncProp:=TPasProperty(AncEl);
+      TPasPropertyScope(PropEl.CustomData).AncestorProp:=AncProp;
+      AncProp.AddRef;
+      if proFixCaseOfOverrides in Options then
+        PropEl.Name:=AncProp.Name;
+      end
+    else
+      AncProp:=nil;
+
     if PropEl.VarType<>nil then
-      PropType:=PropEl.VarType
-      // Note: a property with a type has no ancestor property
+      begin
+      // new property or redeclaration
+      PropType:=PropEl.VarType;
+      end
     else
       begin
-      // search property in ancestor
-      AncEl:=nil;
-      if ClassScope.AncestorScope<>nil then
-        AncEl:=ClassScope.AncestorScope.FindElement(PropEl.Name);
-      if (not (AncEl is TPasProperty)) then
+      // property override
+      if AncProp=nil then
         RaiseMsg(20170216151741,nNoPropertyFoundToOverride,sNoPropertyFoundToOverride,[],PropEl);
-      // found -> create reference
-      AncProp:=TPasProperty(AncEl);
-      (PropEl.CustomData as TPasPropertyScope).AncestorProp:=AncProp;
-      AncProp.AddRef;
       // check property versus class property
       if PropEl.ClassType<>AncProp.ClassType then
         RaiseXExpectedButYFound(20170216151744,AncProp.ElementTypeName,PropEl.ElementTypeName,PropEl);
@@ -10311,10 +10322,12 @@ begin
     end;
 end;
 
-function TPasResolver.GetPasPropertyAncestor(El: TPasProperty): TPasProperty;
+function TPasResolver.GetPasPropertyAncestor(El: TPasProperty;
+  WithRedeclarations: boolean): TPasProperty;
 begin
   Result:=nil;
   if El=nil then exit;
+  if (not WithRedeclarations) and (El.VarType<>nil) then exit;
   if El.CustomData=nil then exit;
   Result:=TPasPropertyScope(El.CustomData).AncestorProp;
 end;

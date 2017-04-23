@@ -8269,6 +8269,9 @@ begin
   Add('  doi({#h}f());');
   Add('  doi({#i}f(2));');
   Add('  dofconst({#j}f);');
+  Add('  if Assigned({#k}f) then;');
+  Add('  if {#l}f=nil then;');
+  Add('  if nil={#m}f then;');
   ParseProgram;
 
   aMarker:=FirstSrcMarker;
