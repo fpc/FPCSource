@@ -545,6 +545,7 @@ type
     Procedure TestProcType_PropertyCallWrongArgFail;
     Procedure TestProcType_Typecast;
     Procedure TestProcType_InsideFunction;
+    Procedure TestProcType_PassProcToUntyped;
 
     // pointer
     Procedure TestPointer;
@@ -3510,7 +3511,7 @@ begin
   Add('  case i of');
   Add('  ''1'': ;');
   Add('  end;');
-  CheckResolverException('Incompatible types: got "Longint" expected "Char"',
+  CheckResolverException('Incompatible types: got "Char" expected "Longint"',
     nIncompatibleTypesGotExpected);
 end;
 
@@ -8975,6 +8976,59 @@ begin
   'begin',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProcType_PassProcToUntyped;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualImplicitCallWithoutParams: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEvent = procedure of object;',
+  '  TFunc = function: longint of object;',
+  'procedure DoIt; varargs; begin end;',
+  'procedure DoSome(const a; var b; c: pointer); begin end;',
+  'var',
+  '  E: TEvent;',
+  '  F: TFunc;',
+  'begin',
+  '  DoIt({#a1}E,{#a2}F);',
+  '  DoSome({#b1}E,{#b2}E,{#b3}E);',
+  '  DoSome({#c1}F,{#c2}F,{#c3}F);',
+  '']);
+  ParseProgram;
+
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestProcType_PassProcToUntyped ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualImplicitCallWithoutParams:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestProcType_PassProcToUntyped ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        //writeln('TTestResolver.TestProcType_PassProcToUntyped ',GetObjName(Ref.Declaration),' rrfImplicitCallWithoutParams=',rrfImplicitCallWithoutParams in Ref.Flags);
+        if rrfImplicitCallWithoutParams in Ref.Flags then
+          ActualImplicitCallWithoutParams:=true;
+        break;
+        end;
+      if ActualImplicitCallWithoutParams then
+        RaiseErrorAtSrcMarker('expected no implicit call at "#'+aMarker^.Identifier+'"',aMarker);
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
 end;
 
 procedure TTestResolver.TestPointer;
