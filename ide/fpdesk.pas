@@ -382,6 +382,8 @@ var W: PWindow;
     TP,TP2: TPoint;
     L: longint;
     R: TRect;
+    ZZ: byte;
+    Z: TRect;
 begin
   XDataOfs:=0;
   Desktop^.Lock;
@@ -532,6 +534,29 @@ begin
       end
     else
       W^.Hide;
+  ZZ:=0;
+  Desktop^.GetExtent(Z);
+  if R.A.Y>Z.B.Y-7 then
+    begin
+      R.A.Y:=Z.B.Y-7;
+      ZZ:=1;
+    end;
+  if R.A.X>Z.B.X-4 then
+    begin
+      R.A.X:=Z.B.X-4;
+      ZZ:=1;
+    end;
+  if R.A.Y<0 then
+    begin
+      R.A.Y:=0;
+      ZZ:=1;
+    end;
+  if R.A.X<0 then
+    begin
+      R.A.X:=0;
+      ZZ:=1;
+    end;
+  if ZZ<>0 then W^.MoveTo(R.A.X,R.A.Y);
   W^.Number:=WI.WinNb;
   Desktop^.Unlock;
 end;
