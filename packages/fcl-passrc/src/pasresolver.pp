@@ -3859,7 +3859,7 @@ var
           RaiseInternalError(20161010125255);
         if ProcArgResolved.TypeEl=nil then
           RaiseInternalError(20161010125304);
-        if (PropArgResolved.TypeEl<>ProcArgResolved.TypeEl) then
+        if not IsSameType(PropArgResolved.TypeEl,ProcArgResolved.TypeEl,true) then
           RaiseIncompatibleType(20170216151819,nIncompatibleTypeArgNo,
             [IntToStr(ArgNo)],ProcArgResolved.TypeEl,PropArgResolved.TypeEl,ErrorEl);
         end;
@@ -3982,6 +3982,8 @@ begin
         end;
       // check args
       CheckArgs(Proc,PropEl.ReadAccessor);
+      // ToDo: check index arg
+      // check write arg
       PropArgCount:=PropEl.Args.Count;
       if Proc.ProcType.Args.Count<>PropArgCount+1 then
         RaiseMsg(20170216151913,nWrongNumberOfParametersForCallTo,sWrongNumberOfParametersForCallTo,
@@ -4463,7 +4465,7 @@ var
   VarResolved, StartResolved, EndResolved: TPasResolverResult;
 begin
   // loop var
-  ResolveExpr(Loop.VariableName,rraAssign);
+  ResolveExpr(Loop.VariableName,rraReadAndAssign);
   ComputeElement(Loop.VariableName,VarResolved,[rcNoImplicitProc]);
   if ResolvedElCanBeVarParam(VarResolved)
       and ((VarResolved.BaseType in (btAllBooleans+btAllInteger+btAllChars))
@@ -9076,7 +9078,7 @@ procedure TPasResolver.RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
 
   function GetString(ArgNo: integer): string;
   begin
-    if ArgNo>=High(Args) then
+    if ArgNo>High(Args) then
       exit('invalid param '+IntToStr(ArgNo));
     case Args[ArgNo].VType of
     vtAnsiString: Result:=AnsiString(Args[ArgNo].VAnsiString);

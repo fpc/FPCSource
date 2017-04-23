@@ -81,6 +81,7 @@ type
     procedure TestM_Hint_ParameterNotUsed_Abstract;
     procedure TestM_Hint_ParameterNotUsedTypecast;
     procedure TestM_Hint_LocalVariableNotUsed;
+    procedure TestM_Hint_ForVar_No_LocalVariableNotUsed;
     procedure TestM_Hint_InterfaceUnitVariableUsed;
     procedure TestM_Hint_ValueParameterIsAssignedButNeverUsed;
     procedure TestM_Hint_LocalVariableIsAssignedButNeverUsed;
@@ -944,6 +945,22 @@ begin
   CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local constant "b" not used');
   CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "c" not used');
   CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "d" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_ForVar_No_LocalVariableNotUsed;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'var i: longint;',
+  'begin',
+  '  for i:=1 to 2 do ;',
+  'end;',
+  'begin',
+  '  DoIt;',
+  '']);
+  AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;
 end;
 
