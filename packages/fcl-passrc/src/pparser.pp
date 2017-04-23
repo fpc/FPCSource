@@ -4155,6 +4155,10 @@ begin
 end;
 
 procedure TPasParser.ParseAsmBlock(AsmBlock: TPasImplAsmStatement);
+
+Var
+  LastToken : TToken;
+
 begin
   if po_asmwhole in Options then
     begin
@@ -4187,11 +4191,13 @@ begin
     end
   else
     begin
+    LastToken:=tkEOF;
     NextToken;
-    While CurToken<>tkEnd do
+    While Not ((CurToken=tkEnd) and (LastToken<>tkAt)) do
       begin
       // ToDo: allow @@end
       AsmBlock.Tokens.Add(CurTokenText);
+      LastToken:=CurToken;
       NextToken;
       end;
     end;

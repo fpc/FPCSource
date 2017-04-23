@@ -113,6 +113,7 @@ Type
     procedure TestTryExceptRaise;
     Procedure TestAsm;
     Procedure TestAsmBlock;
+    Procedure TestAdmBlockWithEndLabel;
     Procedure TestGotoInIfThen;
     procedure AssignToAddress;
   end;
@@ -1654,6 +1655,23 @@ begin
   Source.Add('{$MODE DELPHI}');
   Source.Add('function BitsHighest(X: Cardinal): Integer;');
   Source.Add('asm');
+  Source.Add('end;');
+  Source.Add('begin');
+  Source.Add('end.');
+  ParseModule;
+end;
+
+procedure TTestStatementParser.TestAdmBlockWithEndLabel;
+begin
+  Source.Add('{$MODE DELPHI}');
+  Source.Add('function BitsHighest(X: Cardinal): Integer;');
+  Source.Add('asm');
+  Source.Add('  MOV ECX, EAX');
+  Source.Add('  MOV EAX, -1');
+  Source.Add('  BSR EAX, ECX');
+  Source.Add('  JNZ @@End');
+  Source.Add('  MOV EAX, -1');
+  Source.Add('@@End:');
   Source.Add('end;');
   Source.Add('begin');
   Source.Add('end.');
