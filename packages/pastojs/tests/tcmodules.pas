@@ -447,6 +447,12 @@ type
     Procedure TestJSValue_ProcType_Assign;
     Procedure TestJSValue_ProcType_Equal;
     Procedure TestJSValue_AssignToPointerFail;
+    Procedure TestJSValue_OverloadDouble;
+    Procedure TestJSValue_OverloadNativeInt;
+    Procedure TestJSValue_OverloadWord;
+    Procedure TestJSValue_OverloadString;
+    Procedure TestJSValue_OverloadChar;
+    Procedure TestJSValue_OverloadPointer;
 
     // RTTI
     Procedure TestRTTI_ProcType;
@@ -11767,6 +11773,317 @@ begin
   SetExpectedPasResolverError('Incompatible types: got "JSValue" expected "Pointer"',
     nIncompatibleTypesGotExpected);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestJSValue_OverloadDouble;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  tdatetime = double;',
+  'procedure DoIt(d: double); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  d: double;',
+  '  dt: tdatetime;',
+  '  i: integer;',
+  '  b: byte;',
+  '  shi: shortint;',
+  '  w: word;',
+  '  smi: smallint;',
+  '  lw: longword;',
+  '  li: longint;',
+  '  ni: nativeint;',
+  '  nu: nativeuint;',
+  'begin',
+  '  DoIt(d);',
+  '  DoIt(dt);',
+  '  DoIt(i);',
+  '  DoIt(b);',
+  '  DoIt(shi);',
+  '  DoIt(w);',
+  '  DoIt(smi);',
+  '  DoIt(lw);',
+  '  DoIt(li);',
+  '  DoIt(ni);',
+  '  DoIt(nu);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadDouble',
+    LinesToStr([ // statements
+    'this.DoIt = function (d) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.d = 0.0;',
+    'this.dt = 0.0;',
+    'this.i = 0;',
+    'this.b = 0;',
+    'this.shi = 0;',
+    'this.w = 0;',
+    'this.smi = 0;',
+    'this.lw = 0;',
+    'this.li = 0;',
+    'this.ni = 0;',
+    'this.nu = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.d);',
+    '$mod.DoIt($mod.dt);',
+    '$mod.DoIt($mod.i);',
+    '$mod.DoIt($mod.b);',
+    '$mod.DoIt($mod.shi);',
+    '$mod.DoIt($mod.w);',
+    '$mod.DoIt($mod.smi);',
+    '$mod.DoIt($mod.lw);',
+    '$mod.DoIt($mod.li);',
+    '$mod.DoIt($mod.ni);',
+    '$mod.DoIt($mod.nu);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_OverloadNativeInt;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  int53 = nativeint;',
+  '  tdatetime = double;',
+  'procedure DoIt(n: nativeint); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  d: double;',
+  '  dt: tdatetime;',
+  '  i: integer;',
+  '  b: byte;',
+  '  shi: shortint;',
+  '  w: word;',
+  '  smi: smallint;',
+  '  lw: longword;',
+  '  li: longint;',
+  '  ni: nativeint;',
+  '  nu: nativeuint;',
+  'begin',
+  '  DoIt(d);',
+  '  DoIt(dt);',
+  '  DoIt(i);',
+  '  DoIt(b);',
+  '  DoIt(shi);',
+  '  DoIt(w);',
+  '  DoIt(smi);',
+  '  DoIt(lw);',
+  '  DoIt(li);',
+  '  DoIt(ni);',
+  '  DoIt(nu);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadNativeInt',
+    LinesToStr([ // statements
+    'this.DoIt = function (n) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.d = 0.0;',
+    'this.dt = 0.0;',
+    'this.i = 0;',
+    'this.b = 0;',
+    'this.shi = 0;',
+    'this.w = 0;',
+    'this.smi = 0;',
+    'this.lw = 0;',
+    'this.li = 0;',
+    'this.ni = 0;',
+    'this.nu = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt$1($mod.d);',
+    '$mod.DoIt$1($mod.dt);',
+    '$mod.DoIt($mod.i);',
+    '$mod.DoIt($mod.b);',
+    '$mod.DoIt($mod.shi);',
+    '$mod.DoIt($mod.w);',
+    '$mod.DoIt($mod.smi);',
+    '$mod.DoIt($mod.lw);',
+    '$mod.DoIt($mod.li);',
+    '$mod.DoIt($mod.ni);',
+    '$mod.DoIt($mod.nu);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_OverloadWord;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  int53 = nativeint;',
+  '  tdatetime = double;',
+  'procedure DoIt(w: word); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  d: double;',
+  '  dt: tdatetime;',
+  '  i: integer;',
+  '  b: byte;',
+  '  shi: shortint;',
+  '  w: word;',
+  '  smi: smallint;',
+  '  lw: longword;',
+  '  li: longint;',
+  '  ni: nativeint;',
+  '  nu: nativeuint;',
+  'begin',
+  '  DoIt(d);',
+  '  DoIt(dt);',
+  '  DoIt(i);',
+  '  DoIt(b);',
+  '  DoIt(shi);',
+  '  DoIt(w);',
+  '  DoIt(smi);',
+  '  DoIt(lw);',
+  '  DoIt(li);',
+  '  DoIt(ni);',
+  '  DoIt(nu);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadWord',
+    LinesToStr([ // statements
+    'this.DoIt = function (w) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.d = 0.0;',
+    'this.dt = 0.0;',
+    'this.i = 0;',
+    'this.b = 0;',
+    'this.shi = 0;',
+    'this.w = 0;',
+    'this.smi = 0;',
+    'this.lw = 0;',
+    'this.li = 0;',
+    'this.ni = 0;',
+    'this.nu = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt$1($mod.d);',
+    '$mod.DoIt$1($mod.dt);',
+    '$mod.DoIt$1($mod.i);',
+    '$mod.DoIt($mod.b);',
+    '$mod.DoIt($mod.shi);',
+    '$mod.DoIt($mod.w);',
+    '$mod.DoIt$1($mod.smi);',
+    '$mod.DoIt$1($mod.lw);',
+    '$mod.DoIt$1($mod.li);',
+    '$mod.DoIt$1($mod.ni);',
+    '$mod.DoIt$1($mod.nu);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_OverloadString;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  uni = string;',
+  '  WideChar = char;',
+  'procedure DoIt(s: string); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  s: string;',
+  '  c: char;',
+  '  u: uni;',
+  'begin',
+  '  DoIt(s);',
+  '  DoIt(c);',
+  '  DoIt(u);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadString',
+    LinesToStr([ // statements
+    'this.DoIt = function (s) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.s = "";',
+    'this.c = "";',
+    'this.u = "";',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.s);',
+    '$mod.DoIt($mod.c);',
+    '$mod.DoIt($mod.u);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_OverloadChar;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  uni = string;',
+  '  WideChar = char;',
+  'procedure DoIt(c: char); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  s: string;',
+  '  c: char;',
+  '  u: uni;',
+  'begin',
+  '  DoIt(s);',
+  '  DoIt(c);',
+  '  DoIt(u);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadChar',
+    LinesToStr([ // statements
+    'this.DoIt = function (c) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.s = "";',
+    'this.c = "";',
+    'this.u = "";',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt$1($mod.s);',
+    '$mod.DoIt($mod.c);',
+    '$mod.DoIt$1($mod.u);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_OverloadPointer;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  'procedure DoIt(p: pointer); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  o: TObject;',
+  'begin',
+  '  DoIt(o);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadPointer',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.DoIt = function (p) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.o);',
+    '']));
 end;
 
 procedure TTestModule.TestRTTI_ProcType;

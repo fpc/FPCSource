@@ -246,6 +246,7 @@ Works:
   - use 0o for octal literals
 
 ToDos:
+- overload: jsvalue last,
 - constant evaluation
 - integer ranges
 - static arrays
@@ -696,8 +697,8 @@ const
 
 const
   ClassVarModifiersType = [vmClass,vmStatic];
-  LowJSNativeInt = -$10000000000000;
-  HighJSNativeInt = $fffffffffffff;
+  LowJSNativeInt = MinSafeIntDouble;
+  HighJSNativeInt = MaxSafeIntDouble;
   LowJSBoolean = false;
   HighJSBoolean = true;
 Type
@@ -860,6 +861,8 @@ type
     procedure AddExternalPath(aName: string; El: TPasElement);
     procedure ClearElementData; virtual;
   protected
+    const
+      cJSValueConversion = 2*cTypeConversion;
     // additional base types
     function AddJSBaseType(const aName: string; Typ: TPas2jsBaseType): TResElDataPas2JSBaseType;
     function IsJSBaseType(TypeEl: TPasType; Typ: TPas2jsBaseType): boolean;
@@ -2325,14 +2328,14 @@ begin
         begin
         // RHS is a value
         if (RHS.BaseType in btAllJSValueSrcTypes) then
-          Result:=cExact+1 // type cast to JSValue
+          Result:=cJSValueConversion // type cast to JSValue
         else if RHS.BaseType=btCustom then
           begin
           if IsJSBaseType(RHS,pbtJSValue) then
             Result:=cExact;
           end
         else if RHS.BaseType=btContext then
-          Result:=cExact+1;
+          Result:=cJSValueConversion;
         end
       else if RHS.BaseType=btContext then
         begin
@@ -2340,7 +2343,7 @@ begin
         if RHS.IdentEl<>nil then
           begin
           if RHS.IdentEl.ClassType=TPasClassType then
-            Result:=cExact+1; // RHS is a class type
+            Result:=cJSValueConversion; // RHS is a class type
           end;
         end;
       end;
@@ -2358,7 +2361,7 @@ begin
       begin
       // array of jsvalue := array
       Handled:=true;
-      Result:=cExact+1;
+      Result:=cJSValueConversion;
       end;
     end;
 
@@ -2377,7 +2380,7 @@ begin
   ClassScope:=ToClass.CustomData as TPasClassScope;
   if ClassScope.AncestorScope=nil then
     // type cast to root class
-    Result:=cExact+1
+    Result:=cTypeConversion+1
   else
     Result:=cIncompatible;
   if ErrorEl=nil then ;
@@ -2409,14 +2412,14 @@ begin
         if (rrfReadable in RHS.Flags) then
           begin
           if RHS.BaseType in btAllJSValueSrcTypes then
-            Result:=cExact
+            Result:=cJSValueConversion
           else if RHS.BaseType=btCustom then
             begin
             if IsJSBaseType(RHS,pbtJSValue) then
               Result:=cExact;
             end
           else if RHS.BaseType=btContext then
-            Result:=cExact+1;
+            Result:=cJSValueConversion;
           end
         else if RHS.BaseType=btContext then
           begin
@@ -2424,7 +2427,7 @@ begin
           if RHS.IdentEl<>nil then
             begin
             if RHS.IdentEl.ClassType=TPasClassType then
-              Result:=cExact+1; // RHS is a class
+              Result:=cJSValueConversion; // RHS is a class
             end;
           end;
         end;
