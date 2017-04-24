@@ -1050,10 +1050,12 @@ unit cgcpu;
       var
         tmpref: treference;
         op1,op2: TAsmOp;
+        hl_skip, hl_loop_start: TAsmLabel;
+        ai: taicpu;
       begin
         tmpref:=ref;
         make_simple_ref(list,tmpref);
-        if not (op in [OP_NEG,OP_NOT]) then
+        if not (op in [OP_NEG,OP_NOT,OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR]) then
           check_register_size(size,reg);
 
         if size in [OS_64, OS_S64] then
@@ -1102,6 +1104,62 @@ unit cgcpu;
                   list.concat(taicpu.op_reg_ref(op2, S_W, GetNextReg(reg), tmpref));
                   if op in [OP_ADD,OP_SUB] then
                     cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                end;
+              OP_SHR,OP_SHL,OP_SAR:
+                begin
+                  getcpuregister(list,NR_CX);
+                  a_load_reg_reg(list,size,OS_16,reg,NR_CX);
+                  cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                  list.concat(taicpu.op_const_reg(A_AND,S_W,$1f,NR_CX));
+
+                  current_asmdata.getjumplabel(hl_skip);
+                  ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl_skip);
+                  ai.SetCondition(C_Z);
+                  ai.is_jmp:=true;
+                  list.concat(ai);
+                  cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+
+                  current_asmdata.getjumplabel(hl_loop_start);
+                  a_label(list,hl_loop_start);
+
+                  case op of
+                    OP_SHR:
+                      begin
+                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        inc(tmpref.offset, 2);
+                        list.concat(taicpu.op_const_ref(A_SHR,S_W,1,tmpref));
+                        dec(tmpref.offset, 2);
+                        list.concat(taicpu.op_const_ref(A_RCR,S_W,1,tmpref));
+                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                      end;
+                    OP_SAR:
+                      begin
+                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        inc(tmpref.offset, 2);
+                        list.concat(taicpu.op_const_ref(A_SAR,S_W,1,tmpref));
+                        dec(tmpref.offset, 2);
+                        list.concat(taicpu.op_const_ref(A_RCR,S_W,1,tmpref));
+                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                      end;
+                    OP_SHL:
+                      begin
+                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        list.concat(taicpu.op_const_ref(A_SHL,S_W,1,tmpref));
+                        inc(tmpref.offset, 2);
+                        list.concat(taicpu.op_const_ref(A_RCL,S_W,1,tmpref));
+                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                      end;
+                    else
+                      internalerror(2013030903);
+                  end;
+
+                  ai:=Taicpu.Op_Sym(A_LOOP,S_W,hl_loop_start);
+                  ai.is_jmp:=true;
+                  list.concat(ai);
+
+                  a_label(list,hl_skip);
+
+                  ungetcpuregister(list,NR_CX);
                 end;
               else
                 internalerror(2013050804);
