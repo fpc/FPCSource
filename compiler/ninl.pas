@@ -2534,6 +2534,13 @@ implementation
               in_ror_x,
               in_ror_x_y :
                 result:=handle_const_rox;
+              in_popcnt_x :
+                begin
+                  if left.nodetype=ordconstn then
+                    begin
+                      result:=cordconstnode.create(PopCnt(tordconstnode(left).value),resultdef,false);
+                    end;
+                end;
             end;
           end;
       end;
