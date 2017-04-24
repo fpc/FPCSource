@@ -1317,6 +1317,9 @@ var
   I,L,R,Dir: Integer;
 begin
   Result := false;
+  Index := -1;
+  if not Sorted then
+    raise EListError.Create(SErrFindNeedsSortedList);
   // Use binary search.
   L := 0;
   R := FCount-1;
@@ -1550,7 +1553,8 @@ function TFPGMap.TryGetData(const AKey: TKey; out AData: TData): Boolean;
 var
   I: Integer;
 begin
-  Result := inherited Find(@AKey, I);
+  I := IndexOf(AKey);
+  Result := (I >= 0);
   if Result then
     AData := TData(inherited GetData(I)^)
   else
@@ -1735,7 +1739,8 @@ function TFPGMapObject.TryGetData(const AKey: TKey; out AData: TData): Boolean;
 var
   I: Integer;
 begin
-  Result := inherited Find(@AKey, I);
+  I := IndexOf(AKey);
+  Result := (I >= 0);
   if Result then
     AData := TData(inherited GetData(I)^)
   else
@@ -1916,7 +1921,8 @@ function TFPGMapInterfacedObjectData.TryGetData(const AKey: TKey; out AData: TDa
 var
   I: Integer;
 begin
-  Result := inherited Find(@AKey, I);
+  I := IndexOf(AKey);
+  Result := (I >= 0);
   if Result then
     AData := TData(inherited GetData(I)^)
   else
