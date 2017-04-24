@@ -2901,7 +2901,7 @@ begin
   if CurrentParser<>nil then
     CurrentParser.Options:=CurrentParser.Options
       +[po_resolvestandardtypes,po_nooverloadedprocs,po_keepclassforward,
-        po_arrayrangeexpr];
+        po_arrayrangeexpr,po_CheckModeswitches];
 end;
 
 procedure TPasResolver.CheckTopScope(ExpectedClass: TPasScopeClass);

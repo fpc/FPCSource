@@ -386,7 +386,8 @@ type
     po_NoOverloadedProcs,    // do not create TPasOverloadedProc for procs with same name
     po_KeepClassForward,     // disabled: delete class fowards when there is a class declaration
     po_ArrayRangeExpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
-    po_SelfToken             // Self is a token. For backward compatibility.
+    po_SelfToken,            // Self is a token. For backward compatibility.
+    po_CheckModeswitches     // stop on unknown modeswitch
     );
   TPOptions = set of TPOption;
 
@@ -1691,7 +1692,12 @@ begin
   While (MS<>msNone) and (SModeSwitchNames[MS]<>MSN) do
     MS:=Pred(MS);
   if (MS=msNone) or not (MS in AllowedModeSwitches) then
-    Error(nErrInvalidModeSwitch,SErrInvalidModeSwitch,[Param]);
+    begin
+    if po_CheckModeswitches in Options then
+      Error(nErrInvalidModeSwitch,SErrInvalidModeSwitch,[Param])
+    else
+      exit; // ignore
+    end;
   if (PM='-') or (PM='OFF') then
     CurrentModeSwitches:=CurrentModeSwitches-[MS]
   else
