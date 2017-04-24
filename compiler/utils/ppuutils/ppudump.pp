@@ -2300,6 +2300,56 @@ begin
 end;
 
 
+
+function readmanagementoperatoroptions(const space : string):tmanagementoperators;
+{ type is in unit symconst }
+{ Management operator options
+  tmanagementoperator=(
+    mop_none,
+    mop_initialize,
+    mop_finalize,
+    mop_addref,
+    mop_copy);
+}
+type
+  tmopopt=record
+    mask : tmanagementoperator;
+    str  : string[10];
+  end;
+const
+  managementoperatoropt : array[1..ord(high(tmanagementoperator))] of tmopopt=(
+    (mask:mop_initialize;str:'initialize'),
+    (mask:mop_finalize;str:'finalize'),
+    (mask:mop_addref;str:'addref'),
+    (mask:mop_copy;str:'copy')
+  );
+var
+  i      : longint;
+  first  : boolean;
+begin
+  ppufile.getsmallset(result);
+  if result<>[] then
+   begin
+     first:=true;
+     for i:=1 to high(managementoperatoropt) do
+      if (managementoperatoropt[i].mask in result) then
+       begin
+         if first then
+           begin
+             write(space);
+             write('Management operator options: ');
+             first:=false;
+           end
+         else
+           write(', ');
+         write(managementoperatoropt[i].str);
+       end;
+   end;
+  if not first then
+    writeln;
+end;
+
+
 procedure readnodetree;
 var
   l : longint;
@@ -3279,6 +3329,7 @@ begin
                  objdef.Size:=getasizeint;
                  writeln([space,'         DataSize : ',objdef.Size]);
                  writeln([space,'      PaddingSize : ',getword]);
+                 readmanagementoperatoroptions(space);
                end;
              if not EndOfEntry then
                HasMoreInfos;
