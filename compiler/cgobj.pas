@@ -1505,6 +1505,12 @@ implementation
                 if a=0 then
                   op:=OP_MOVE;
             end;
+          OP_XOR :
+            begin
+              { xor with zero returns same result }
+              if a = 0 then
+                op:=OP_NONE;
+            end;
           OP_DIV :
             begin
               { division by 1 returns result }
