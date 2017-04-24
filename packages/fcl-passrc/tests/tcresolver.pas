@@ -369,7 +369,6 @@ type
     Procedure TestClassAssign;
     Procedure TestClassNilAsParam;
     Procedure TestClass_Operators_Is_As;
-    Procedure TestClass_OperatorIsOnNonDescendantFail;
     Procedure TestClass_OperatorIsOnNonTypeFail;
     Procedure TestClass_OperatorAsOnNonDescendantFail;
     Procedure TestClass_OperatorAsOnNonTypeFail;
@@ -5382,22 +5381,6 @@ begin
   Add('  if {@v}v.{@Sub}Sub is {@A}TClassA then;');
   Add('  {@v}v:={@o}o as {@A}TClassA;');
   ParseProgram;
-end;
-
-procedure TTestResolver.TestClass_OperatorIsOnNonDescendantFail;
-begin
-  StartProgram(false);
-  Add('type');
-  Add('  {#TOBJ}TObject = class');
-  Add('  end;');
-  Add('  {#A}TClassA = class');
-  Add('  end;');
-  Add('var');
-  Add('  {#o}{=TOBJ}o: TObject;');
-  Add('  {#v}{=A}v: TClassA;');
-  Add('begin');
-  Add('  if {@v}v is {@TObj}TObject then;');
-  CheckResolverException(sTypesAreNotRelated,PasResolver.nTypesAreNotRelated);
 end;
 
 procedure TTestResolver.TestClass_OperatorIsOnNonTypeFail;

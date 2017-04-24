@@ -354,7 +354,7 @@ type
     btDouble,      // double  5.0E-324..1.7E308, digits 15-16, bytes 8
     btExtended,    // extended  platform, double or 1.9E-4932..1.1E4932, digits 19-20, bytes 10
     btCExtended,   // cextended
-    btCurrency,    // currency  -2E64+1 .. 2E63-1, bytes 8
+    btCurrency,    // as int64, but least 4 digits are the decimals (*10000), bytes 8
     btBoolean,     // boolean
     btByteBool,    // bytebool  true=not zero
     btWordBool,    // wordbool  true=not zero
@@ -372,7 +372,7 @@ type
     btIntDouble,   // integer range of double  53bit
     btQWord,       // qword   0..18446744073709551615, bytes 8
     btInt64,       // int64   -9223372036854775808..9223372036854775807, bytes 8
-    btComp,        // comp  -2E64+1..2E63-1, digits 19-20, bytes 8
+    btComp,        // as Int64 but not ordinal
     btPointer,     // pointer
     btFile,        // file
     btText,        // text
@@ -386,12 +386,12 @@ type
   TResolveBaseTypes = set of TResolverBaseType;
 const
   btAllInteger = [btByte,btShortInt,btWord,btSmallInt,btIntSingle,btUIntSingle,
-    btLongWord,btLongint,btIntDouble,btUIntDouble,btQWord,btInt64];
+    btLongWord,btLongint,btIntDouble,btUIntDouble,btQWord,btInt64,btComp];
   btAllChars = [btChar,btAnsiChar,btWideChar];
   btAllStrings = [btString,btAnsiString,btShortString,
     btWideString,btUnicodeString,btRawByteString];
   btAllStringAndChars = btAllStrings+btAllChars;
-  btAllFloats = [btSingle,btDouble,btExtended,btCExtended,btCurrency,btComp];
+  btAllFloats = [btSingle,btDouble,btExtended,btCExtended,btCurrency];
   btAllBooleans = [btBoolean,btByteBool,btWordBool,btLongBool,btQWordBool];
   btAllStandardTypes = [
     btChar,
@@ -477,6 +477,14 @@ const
     'set',
     'range..'
     );
+
+const
+  MinSafeIntCurrency = -922337203685477;
+  MaxSafeIntCurrency =  922337203685477;
+  MinSafeIntSingle = -16777216;
+  MaxSafeIntSingle =  16777216;
+  MinSafeIntDouble = -$10000000000000;
+  MaxSafeIntDouble =   $fffffffffffff;
 
 type
   TResolverBuiltInProc = (
@@ -1456,6 +1464,7 @@ type
     function GetCombinedBoolean(Bool1, Bool2: TResolverBaseType; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedInt(const Int1, Int2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     procedure GetIntegerProps(bt: TResolverBaseType; out Precision: word; out Signed: boolean);
+    function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: int64): boolean;
     function GetIntegerBaseType(Precision: word; Signed: boolean; ErrorEl: TPasElement): TResolverBaseType;
     function GetCombinedChar(const Char1, Char2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedString(const Str1, Str2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
@@ -1506,7 +1515,6 @@ procedure SetResolverValueExpr(out ResolvedType: TPasResolverResult;
   Flags: TPasResolverResultFlags); overload;
 
 function ProcNeedsImplProc(Proc: TPasProcedure): boolean;
-function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: int64): boolean;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
 function dbgs(const a: TResolvedRefAccess): string;
@@ -1776,25 +1784,6 @@ begin
     if not Proc.IsAbstract then exit;
     end;
   Result:=false;
-end;
-
-function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: int64
-  ): boolean;
-begin
-  Result:=true;
-  case bt of
-  btByte: begin MinVal:=Low(byte); MaxVal:=High(byte); end;
-  btShortInt: begin MinVal:=low(ShortInt); MaxVal:=high(ShortInt); end;
-  btWord: begin MinVal:=low(word); MaxVal:=high(word); end;
-  btSmallInt: begin MinVal:=low(SmallInt); MaxVal:=high(SmallInt); end;
-  btLongWord: begin MinVal:=low(LongWord); MaxVal:=high(LongWord); end;
-  btLongint: begin MinVal:=low(LongInt); MaxVal:=high(LongInt); end;
-  btInt64,btExtended,btComp: begin MinVal:=low(int64); MaxVal:=high(int64); end;
-  btSingle: begin MinVal:=-16777216; MaxVal:=16777216; end;
-  btDouble: begin MinVal:=-$10000000000000; MaxVal:=$fffffffffffff; end;
-  else
-    Result:=false;
-  end;
 end;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string;
@@ -9815,7 +9804,7 @@ begin
         if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,btLongint,btUIntDouble]) then
           inc(Result,cLossyConversion);
       btQWord,
-      btInt64:
+      btInt64,btComp:
         if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btUIntSingle,btIntSingle,
             btLongWord,btLongint,btUIntDouble,btIntDouble]) then
           inc(Result,cLossyConversion);
@@ -9829,23 +9818,26 @@ begin
       Result:=cToFloatConversion+ord(LBT)-ord(RBT);
       case LBT of
       btSingle:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt]) then
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
+            btIntSingle,btUIntSingle]) then
           inc(Result,cLossyConversion);
       btDouble:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,
-            btLongint,btSingle]) then
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
+            btIntSingle,btUIntSingle,btSingle,
+            btLongWord,btLongint,
+            btIntDouble,btUIntDouble]) then
           inc(Result,cLossyConversion);
       btExtended,btCExtended:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,
-            btLongint,btInt64,btComp,btSingle,btDouble]) then
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
+            btIntSingle,btUIntSingle,btSingle,
+            btLongWord,btLongint,
+            btInt64,btComp,
+            btIntDouble,btUIntDouble,btDouble]) then
           inc(Result,cLossyConversion);
       btCurrency:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,
-            btLongint,btSingle]) then
-          inc(Result,cLossyConversion);
-      btComp:
-        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,btLongWord,
-            btLongint,btSingle]) then
+        if not (RBT in [btByte,btShortInt,btWord,btSmallInt,
+            btIntSingle,btUIntSingle,
+            btLongWord,btLongint]) then
           inc(Result,cLossyConversion);
       else
         RaiseNotYetImplemented(20170417205910,ErrorEl,BaseTypeNames[LBT]);
@@ -12115,9 +12107,32 @@ begin
   btIntDouble: begin Precision:=53; Signed:=true; end;
   btUIntDouble: begin Precision:=52; Signed:=false; end;
   btQWord: begin Precision:=64; Signed:=false; end;
-  btInt64: begin Precision:=64; Signed:=true; end;
+  btInt64,btComp: begin Precision:=64; Signed:=true; end;
   else
     RaiseInternalError(20170420095727);
+  end;
+end;
+
+function TPasResolver.GetIntegerRange(bt: TResolverBaseType; out MinVal,
+  MaxVal: int64): boolean;
+begin
+  Result:=true;
+  if bt=btExtended then bt:=BaseTypeExtended;
+  case bt of
+  btByte: begin MinVal:=Low(byte); MaxVal:=High(byte); end;
+  btShortInt: begin MinVal:=low(ShortInt); MaxVal:=high(ShortInt); end;
+  btWord: begin MinVal:=low(word); MaxVal:=high(word); end;
+  btSmallInt: begin MinVal:=low(SmallInt); MaxVal:=high(SmallInt); end;
+  btLongWord: begin MinVal:=low(LongWord); MaxVal:=high(LongWord); end;
+  btLongint: begin MinVal:=low(LongInt); MaxVal:=high(LongInt); end;
+  btInt64,btComp: begin MinVal:=low(int64); MaxVal:=high(int64); end;
+  btSingle,btIntSingle: begin MinVal:=MinSafeIntSingle; MaxVal:=MaxSafeIntSingle; end;
+  btUIntSingle: begin MinVal:=0; MaxVal:=MaxSafeIntSingle; end;
+  btDouble,btIntDouble: begin MinVal:=MinSafeIntDouble; MaxVal:=MaxSafeIntDouble; end;
+  btUIntDouble: begin MinVal:=0; MaxVal:=MaxSafeIntDouble; end;
+  btCurrency: begin MinVal:=MinSafeIntCurrency; MaxVal:=MaxSafeIntCurrency; end;
+  else
+    Result:=false;
   end;
 end;
 
