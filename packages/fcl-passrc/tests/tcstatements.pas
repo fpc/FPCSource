@@ -117,6 +117,7 @@ Type
     Procedure TestAsmBlockInIfThen;
     Procedure TestGotoInIfThen;
     procedure AssignToAddress;
+    procedure FinalizationNoSemicolon;
   end;
 
 implementation
@@ -1700,6 +1701,19 @@ Procedure TTestStatementParser.AssignToAddress;
 
 begin
   AddStatements(['@Proc:=Nil']);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.FinalizationNoSemicolon;
+begin
+  Source.Add('unit afile;');
+  Source.Add('{$mode objfpc}');
+  Source.Add('interface');
+  Source.Add('implementation');
+  Source.Add('initialization');
+  Source.Add('  writeln(''qqq'')');
+  Source.Add('finalization');
+  Source.Add('  writeln(''qqq'')');
   ParseModule;
 end;
 

@@ -4653,6 +4653,8 @@ begin
       end;
     tkSemiColon:
       if CloseStatement(true) then break;
+    tkFinalization:
+      if CloseStatement(true) then break;
     tkuntil:
       begin
         if CloseStatement(true) then
