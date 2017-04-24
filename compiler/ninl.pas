@@ -2534,6 +2534,42 @@ implementation
               in_ror_x,
               in_ror_x_y :
                 result:=handle_const_rox;
+              in_bsf_x:
+                begin
+                  if left.nodetype=ordconstn then
+                    begin
+                      case left.resultdef.size of
+                        1:
+                          result:=cordconstnode.create(BsfByte(Byte(tordconstnode(left).value.uvalue)),resultdef,false);
+                        2:
+                          result:=cordconstnode.create(BsfWord(Word(tordconstnode(left).value.uvalue)),resultdef,false);
+                        4:
+                          result:=cordconstnode.create(BsfDWord(DWord(tordconstnode(left).value.uvalue)),resultdef,false);
+                        8:
+                          result:=cordconstnode.create(BsfQWord(QWord(tordconstnode(left).value.uvalue)),resultdef,false);
+                        else
+                          internalerror(2017042401);
+                      end;
+                    end;
+                end;
+              in_bsr_x :
+                begin
+                  if left.nodetype=ordconstn then
+                    begin
+                      case left.resultdef.size of
+                        1:
+                          result:=cordconstnode.create(BsrByte(Byte(tordconstnode(left).value.uvalue)),resultdef,false);
+                        2:
+                          result:=cordconstnode.create(BsrWord(Word(tordconstnode(left).value.uvalue)),resultdef,false);
+                        4:
+                          result:=cordconstnode.create(BsrDWord(DWord(tordconstnode(left).value.uvalue)),resultdef,false);
+                        8:
+                          result:=cordconstnode.create(BsrQWord(QWord(tordconstnode(left).value.uvalue)),resultdef,false);
+                        else
+                          internalerror(2017042401);
+                      end;
+                    end;
+                end;
               in_popcnt_x :
                 begin
                   if left.nodetype=ordconstn then

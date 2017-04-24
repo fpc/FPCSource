@@ -12104,6 +12104,7 @@ tests/test/tblock2a.pp svneol=native#text/plain
 tests/test/tbopr.pp svneol=native#text/plain
 tests/test/tbrtlevt.pp svneol=native#text/plain
 tests/test/tbsx1.pp svneol=native#text/plain
+tests/test/tbsx2.pp svneol=native#text/plain
 tests/test/tcas128.pp svneol=native#text/pascal
 tests/test/tcase0.pp svneol=native#text/pascal
 tests/test/tcase1.pp svneol=native#text/plain
