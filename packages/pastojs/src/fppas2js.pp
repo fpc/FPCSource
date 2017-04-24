@@ -246,7 +246,6 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- overload: jsvalue last,
 - constant evaluation
 - integer ranges
 - static arrays
@@ -262,6 +261,7 @@ ToDos:
 - make -Jirtl.js default for -Jc and -Tnodejs, needs #IFDEF in cfg
 - FuncName:= (instead of Result:=)
 - $modeswitch -> define <modeswitch>
+- scanner: define list of allowed modeswitches
 - $modeswitch- -> turn off
 - check memleaks
 - @@ compare method in delphi mode
@@ -779,6 +779,9 @@ type
 //------------------------------------------------------------------------------
 // TPas2JSResolver
 const
+  msAllPas2jsModeSwitches = [msDelphi,msFpc,msObjfpc,
+    msExternalClass,msHintDirective,msNestedComment];
+
   btAllJSBaseTypes = [
     btChar,
     btString,
