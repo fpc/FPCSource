@@ -713,7 +713,7 @@ begin
   AssertEquals('member count',1,TheClass.members.Count);
   AssertNotNull('Have function',Members[0]);
   AssertMemberName('b',Members[0]);
-  AssertMemberType(TPasFunction,Members[0]);
+  AssertMemberType(TPasClassFunction,Members[0]);
   AssertVisibility(visPublic,Members[0]);
 end;
 
