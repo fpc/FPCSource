@@ -120,6 +120,7 @@ Type
     procedure FinalizationNoSemicolon;
   end;
 
+
 implementation
 
 { TTestStatementParser }

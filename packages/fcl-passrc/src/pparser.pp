@@ -5205,39 +5205,50 @@ end;
 
 procedure TPasParser.ParseClassMembers(AType: TPasClassType);
 
+Type
+  TSectionType = (stNone,stConst,stType,stVar);
+
 Var
   CurVisibility : TPasMemberVisibility;
+  CurSection : TSectionType;
 
 begin
+  CurSection:=stNone;
   CurVisibility := visDefault;
   while (CurToken<>tkEnd) do
     begin
     case CurToken of
       tkType:
-        begin
-        ExpectToken(tkIdentifier);
-        SaveComments;
-        ParseClassLocalTypes(AType,CurVisibility);
-        end;
+        CurSection:=stType;
       tkConst:
-        begin
-        ExpectToken(tkIdentifier);
-        SaveComments;
-        ParseClassLocalConsts(AType,CurVisibility);
-        end;
-      tkVar,
+        CurSection:=stConst;
+      tkVar:
+        CurSection:=stVar;
       tkIdentifier:
-        begin
-        if (AType.ObjKind in [okInterface,okDispInterface]) then
-          ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowed);
-        if CurToken=tkVar then
-          ExpectToken(tkIdentifier);
-        SaveComments;
-        if Not CheckVisibility(CurtokenString,CurVisibility) then
-          ParseClassFields(AType,CurVisibility,false);
-        end;
+        if CheckVisibility(CurtokenString,CurVisibility) then
+          CurSection:=stNone
+        else
+          begin
+          SaveComments;
+          Case CurSection of
+          stType:
+            ParseClassLocalTypes(AType,CurVisibility);
+          stConst :
+            ParseClassLocalConsts(AType,CurVisibility);
+          stNone,
+          stvar:
+            begin
+            if (AType.ObjKind in [okInterface,okDispInterface]) then
+              ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowed);
+            ParseClassFields(AType,CurVisibility,false);
+            end;
+          else
+            Raise Exception.Create('Internal error 201704251415');
+          end;
+          end;
       tkProcedure,tkFunction,tkConstructor,tkDestructor:
         begin
+        curSection:=stNone;
         SaveComments;
         if (Curtoken in [tkConstructor,tkDestructor]) and (AType.ObjKind in [okInterface,okDispInterface,okRecordHelper]) then
           ParseExc(nParserNoConstructorAllowed,SParserNoConstructorAllowed);
@@ -5245,6 +5256,7 @@ begin
         end;
       tkclass:
         begin
+        curSection:=stNone;
          SaveComments;
          NextToken;
          if CurToken in [tkConstructor,tkDestructor,tkProcedure,tkFunction] then
@@ -5264,6 +5276,7 @@ begin
         end;
       tkProperty:
         begin
+        curSection:=stNone;
         SaveComments;
         ExpectIdentifier;
         AType.Members.Add(ParseProperty(AType,CurtokenString,CurVisibility,false));

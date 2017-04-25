@@ -83,6 +83,7 @@ type
     Procedure TestTwoFields;
     Procedure TestTwoFieldsB;
     Procedure TestTwoVarFieldsB;
+    procedure TestNoVarFields;
     Procedure TestTwoFieldsVisibility;
     Procedure TestConstProtectedEnd;
     Procedure TestTypeProtectedEnd;
@@ -686,6 +687,20 @@ begin
   AssertMemberName('b',Members[1]);
   AssertMemberType(TPasVariable,Members[1]);
   AssertVisibility(visPublic,Members[1]);
+end;
+
+procedure TTestClassType.TestNoVarFields;
+
+begin
+  StartVisibility(visPublic);
+  FDecl.Add('var');
+  AddMember('Function b : integer');
+  ParseClass;
+  AssertEquals('member count',1,TheClass.members.Count);
+  AssertNotNull('Have function',Members[0]);
+  AssertMemberName('b',Members[0]);
+  AssertMemberType(TPasFunction,Members[0]);
+  AssertVisibility(visPublic,Members[0]);
 end;
 
 procedure TTestClassType.TestTwoFieldsVisibility;
