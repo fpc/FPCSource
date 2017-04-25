@@ -968,6 +968,7 @@ unit cgcpu;
         op1, op2: TAsmOp;
         hl_skip, hl_loop_start: TAsmLabel;
         ai: taicpu;
+        tmpreg: TRegister;
       begin
         check_register_size(size,src);
         check_register_size(size,dst);
@@ -1054,6 +1055,54 @@ unit cgcpu;
 
                   ungetcpuregister(list,NR_CX);
                 end;
+              OP_ROL,OP_ROR:
+                begin
+                  getcpuregister(list,NR_CX);
+                  a_load_reg_reg(list,size,OS_16,src,NR_CX);
+                  cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                  list.concat(taicpu.op_const_reg(A_AND,S_W,$1f,NR_CX));
+
+                  current_asmdata.getjumplabel(hl_skip);
+                  ai:=Taicpu.Op_Sym(A_Jcc,S_NO,hl_skip);
+                  ai.SetCondition(C_Z);
+                  ai.is_jmp:=true;
+                  list.concat(ai);
+                  cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+
+                  current_asmdata.getjumplabel(hl_loop_start);
+                  a_label(list,hl_loop_start);
+
+                  case op of
+                    OP_ROL:
+                      begin
+                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        list.Concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(dst)));
+                        list.Concat(taicpu.op_const_reg(A_RCL,S_W,1,dst));
+                        list.Concat(taicpu.op_const_reg(A_ADC,S_W,0,GetNextReg(dst)));
+                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                      end;
+                    OP_ROR:
+                      begin
+                        tmpreg:=getintregister(list,OS_16);
+                        a_load_reg_reg(list,OS_16,OS_16,dst,tmpreg);
+                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        list.Concat(taicpu.op_const_reg(A_SHR,S_W,1,tmpreg));
+                        list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(dst)));
+                        list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,dst));
+                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                      end;
+                    else
+                      internalerror(2017042502);
+                  end;
+
+                  ai:=Taicpu.Op_Sym(A_LOOP,S_W,hl_loop_start);
+                  ai.is_jmp:=true;
+                  list.concat(ai);
+
+                  a_label(list,hl_skip);
+
+                  ungetcpuregister(list,NR_CX);
+                end;
               else
                 internalerror(2013030901);
             end;
@@ -1104,6 +1153,7 @@ unit cgcpu;
         op1,op2: TAsmOp;
         hl_skip, hl_loop_start: TAsmLabel;
         ai: taicpu;
+        tmpreg: TRegister;
       begin
         tmpref:=ref;
         make_simple_ref(list,tmpref);
@@ -1212,6 +1262,13 @@ unit cgcpu;
                   a_label(list,hl_skip);
 
                   ungetcpuregister(list,NR_CX);
+                end;
+              OP_ROL,OP_ROR:
+                begin
+                  tmpreg:=getintregister(list,size);
+                  a_load_ref_reg(list,size,size,ref,tmpreg);
+                  a_op_reg_reg(list,Op,size,reg,tmpreg);
+                  a_load_reg_ref(list,size,size,tmpreg,ref);
                 end;
               else
                 internalerror(2013050804);
