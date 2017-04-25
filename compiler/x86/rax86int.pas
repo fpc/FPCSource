@@ -229,7 +229,7 @@ Unit Rax86int;
         is_register:=false;
         actasmregister:=masm_regnum_search(lower(s));
         { don't acceps "flags" as register name in an instruction }
-        if actasmregister=NR_FLAGS then
+        if (getsupreg(actasmregister)=RS_DEFAULTFLAGS) and (getregtype(actasmregister)=getregtype(NR_DEFAULTFLAGS)) then
           actasmregister:=NR_NO;
         if (actasmregister=NR_NO) and
            (current_procinfo.procdef.proccalloption=pocall_register) and

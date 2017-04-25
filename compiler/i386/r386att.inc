@@ -31,6 +31,7 @@
 '%fs',
 '%gs',
 '%flags',
+'%eflags',
 '%eip',
 '%dr0',
 '%dr1',

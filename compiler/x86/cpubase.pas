@@ -145,7 +145,13 @@ uses
       RS_XMM14       = $0e;
       RS_XMM15       = $0f;
 
-      RS_FLAGS       = $07;
+{$if defined(x86_64)}
+      RS_RFLAGS      = $06;
+{$elseif defined(i386)}
+      RS_EFLAGS      = $06;
+{$elseif defined(i8086)}
+      RS_FLAGS       = $06;
+{$endif}
 
       { Number of first imaginary register }
 {$ifdef x86_64}
@@ -219,8 +225,16 @@ uses
 {$endif}
       );
 
+{$if defined(x86_64)}
+      RS_DEFAULTFLAGS = RS_RFLAGS;
+      NR_DEFAULTFLAGS = NR_RFLAGS;
+{$elseif defined(i386)}
+      RS_DEFAULTFLAGS = RS_EFLAGS;
+      NR_DEFAULTFLAGS = NR_EFLAGS;
+{$elseif defined(i8086)}
       RS_DEFAULTFLAGS = RS_FLAGS;
       NR_DEFAULTFLAGS = NR_FLAGS;
+{$endif}
 
    type
       totherregisterset = set of tregisterindex;

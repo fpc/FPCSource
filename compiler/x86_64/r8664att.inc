@@ -75,6 +75,8 @@
 '%fs',
 '%gs',
 '%flags',
+'%eflags',
+'%rflags',
 '%rip',
 '%eip',
 '%dr0',
