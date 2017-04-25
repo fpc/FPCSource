@@ -1416,7 +1416,9 @@ begin
       // Always allowed
       tkIdentifier:
         begin
-        if CurTokenIsIdentifier('reference') then
+        // Bug 31709: PReference = ^Reference;
+        // Checked in Delphi: ^Reference to procedure; is not allowed !!
+        if CurTokenIsIdentifier('reference') and Not (Parent is TPasPointerType) then
           begin
           CH:=False;
           Result:=ParseReferencetoProcedureType(Parent,NamePos,TypeName)

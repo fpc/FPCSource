@@ -161,6 +161,7 @@ type
     Procedure TestReferencePointer;
     Procedure TestInvalidColon;
     Procedure TestTypeHelper;
+    procedure TestPointerReference;
   end;
 
   { TTestRecordTypeParser }
@@ -3312,6 +3313,17 @@ end;
 procedure TTestTypeParser.TestTypeHelper;
 begin
   ParseType('Type Helper for AnsiString end',TPasClassType,'');
+end;
+
+procedure TTestTypeParser.TestPointerReference;
+begin
+  Add('Type');
+  Add('  pReference = ^Reference;');
+  Add('  Reference = object');
+  Add('  end;');
+  ParseDeclarations;
+  AssertEquals('type definition count',1,Declarations.Types.Count);
+  AssertEquals('object definition count',1,Declarations.Classes.Count);
 end;
 
 
