@@ -804,6 +804,7 @@ unit cgcpu;
       var
         tmpref: treference;
         op1,op2: TAsmOp;
+        tmpreg: TRegister;
       begin
         optimize_op_const(size, op, a);
         tmpref:=ref;
@@ -900,6 +901,57 @@ unit cgcpu;
                     end
                   else
                     a_op_const_ref(list,op,OS_16,aint(a shr 16),tmpref);
+                end;
+              OP_SHR,OP_SHL,OP_SAR:
+                begin
+                  a:=a and 31;
+                  if a=1 then
+                    begin
+                      case op of
+                        OP_SHR:
+                          begin
+                            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                            inc(tmpref.offset, 2);
+                            list.concat(taicpu.op_const_ref(A_SHR,S_W,1,tmpref));
+                            dec(tmpref.offset, 2);
+                            list.concat(taicpu.op_const_ref(A_RCR,S_W,1,tmpref));
+                            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                          end;
+                        OP_SAR:
+                          begin
+                            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                            inc(tmpref.offset, 2);
+                            list.concat(taicpu.op_const_ref(A_SAR,S_W,1,tmpref));
+                            dec(tmpref.offset, 2);
+                            list.concat(taicpu.op_const_ref(A_RCR,S_W,1,tmpref));
+                            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                          end;
+                        OP_SHL:
+                          begin
+                            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                            list.concat(taicpu.op_const_ref(A_SHL,S_W,1,tmpref));
+                            inc(tmpref.offset, 2);
+                            list.concat(taicpu.op_const_ref(A_RCL,S_W,1,tmpref));
+                            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                          end;
+                        else
+                          internalerror(2015042501);
+                      end;
+                    end
+                  else
+                    begin
+                      tmpreg:=getintregister(list,size);
+                      a_load_ref_reg(list,size,size,ref,tmpreg);
+                      a_op_const_reg(list,Op,size,a,tmpreg);
+                      a_load_reg_ref(list,size,size,tmpreg,ref);
+                    end;
+                end;
+              OP_ROL,OP_ROR:
+                begin
+                  tmpreg:=getintregister(list,size);
+                  a_load_ref_reg(list,size,size,ref,tmpreg);
+                  a_op_const_reg(list,Op,size,a,tmpreg);
+                  a_load_reg_ref(list,size,size,tmpreg,ref);
                 end;
               else
                 internalerror(2013050802);
