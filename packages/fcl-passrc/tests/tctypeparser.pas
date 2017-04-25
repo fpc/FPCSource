@@ -162,6 +162,7 @@ type
     Procedure TestInvalidColon;
     Procedure TestTypeHelper;
     procedure TestPointerReference;
+    Procedure TestPointerKeyWord;
   end;
 
   { TTestRecordTypeParser }
@@ -3323,6 +3324,15 @@ begin
   Add('  end;');
   ParseDeclarations;
   AssertEquals('type definition count',1,Declarations.Types.Count);
+  AssertEquals('object definition count',1,Declarations.Classes.Count);
+end;
+
+procedure TTestTypeParser.TestPointerKeyWord;
+begin
+  Add('type');
+  Add('  &file = object');
+  Add('  end;');
+  ParseDeclarations;
   AssertEquals('object definition count',1,Declarations.Classes.Count);
 end;
 
