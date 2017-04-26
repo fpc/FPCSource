@@ -68,7 +68,7 @@ Unit raarmgas;
       symconst,symsym,
       procinfo,
       rabase,rautils,
-      cgbase,cgutils;
+      cgbase,cgutils,paramgr;
 
 
     function tarmunifiedattreader.is_unified: boolean;
@@ -635,8 +635,9 @@ Unit raarmgas;
                     will generate buggy code. Allow it only for explicit typecasting }
                   if hasdot and
                      (not oper.hastype) and
-                     (tabstractnormalvarsym(oper.opr.localsym).owner.symtabletype=parasymtable) and
-                     (current_procinfo.procdef.proccalloption<>pocall_register) then
+                     (oper.opr.localsym.typ=paravarsym) and
+                     ((tparavarsym(oper.opr.localsym).paraloc[calleeside].location^.loc<>LOC_REGISTER) or
+                      not paramanager.push_addr_param(oper.opr.localsym.varspez,oper.opr.localsym.vardef,current_procinfo.procdef.proccalloption)) then
                     Message(asmr_e_cannot_access_field_directly_for_parameters);
                   inc(oper.opr.localsymofs,l)
                 end;

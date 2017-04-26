@@ -62,7 +62,7 @@ Unit Rax86int;
          procedure GetToken;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
-         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
+         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
          procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry:boolean);
          function BuildConstExpression:aint;
          function BuildRefConstExpression(startingminus:boolean=false):aint;
@@ -91,7 +91,7 @@ Unit Rax86int;
        { register allocator }
        rabase,rautils,itx86int,
        { codegen }
-       cgbase,cgobj,procinfo
+       cgbase,cgobj,procinfo,paramgr
        ;
 
     type
@@ -232,7 +232,6 @@ Unit Rax86int;
         if (getsupreg(actasmregister)=RS_DEFAULTFLAGS) and (getregtype(actasmregister)=getregtype(NR_DEFAULTFLAGS)) then
           actasmregister:=NR_NO;
         if (actasmregister=NR_NO) and
-           (current_procinfo.procdef.proccalloption=pocall_register) and
            (po_assembler in current_procinfo.procdef.procoptions) then
           begin
             entry:=current_procinfo.procdef.parast.Find(s);
@@ -763,12 +762,13 @@ Unit Rax86int;
     { This routine builds up a record offset after a AS_DOT
       token is encountered.
       On entry actasmtoken should be equal to AS_DOT                     }
-    Procedure tx86intreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
+    Procedure tx86intreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
       var
         s: string;
       Begin
         offset:=0;
         size:=0;
+        hastypecast:=false;
         s:=expr;
         while (actasmtoken=AS_DOT) do
          begin
@@ -785,7 +785,7 @@ Unit Rax86int;
               break;
             end;
          end;
-        if not GetRecordOffsetSize(s,offset,size,mangledname,needvmtofs) then
+        if not GetRecordOffsetSize(s,offset,size,mangledname,needvmtofs,hastypecast) then
           Message(asmr_e_building_record_offset);
       end;
 
@@ -804,6 +804,7 @@ Unit Rax86int;
         def : tdef;
         sym : tsym;
         srsymtable : TSymtable;
+        hastypecast : boolean;
       Begin
         { reset }
         value:=0;
@@ -943,10 +944,12 @@ Unit Rax86int;
                    Consume(AS_ID);
                    if actasmtoken=AS_DOT then
                      begin
-                       BuildRecordOffsetSize(tempstr,k,l,mangledname,false);
+                       BuildRecordOffsetSize(tempstr,k,l,mangledname,false,hastypecast);
                        if mangledname<>'' then
                          { procsym }
                          Message(asmr_e_wrong_sym_type);
+                       if hastypecast then
+
                      end
                    else
                     begin
@@ -1114,7 +1117,7 @@ Unit Rax86int;
                        (sym.typ = fieldvarsym) and
                        not(sp_static in sym.symoptions)) then
                      begin
-                      BuildRecordOffsetSize(tempstr,l,k,hs,needvmtofs);
+                      BuildRecordOffsetSize(tempstr,l,k,hs,needvmtofs,hastypecast);
                       if hs <> '' then
                         hssymtyp:=AT_FUNCTION
                       else
@@ -1224,7 +1227,8 @@ Unit Rax86int;
         GotPlus,Negative : boolean;
         hl : tasmlabel;
         isseg: boolean;
-        is_farproc_entry : boolean;
+        is_farproc_entry,
+        hastypecast: boolean;
       Begin
         Consume(AS_LBRACKET);
         if not(oper.opr.typ in [OPR_LOCAL,OPR_REFERENCE]) then
@@ -1342,7 +1346,7 @@ Unit Rax86int;
                    { record.field ? }
                    if actasmtoken=AS_DOT then
                     begin
-                      BuildRecordOffsetSize(tempstr,l,k,hs,false);
+                      BuildRecordOffsetSize(tempstr,l,k,hs,false,hastypecast);
                       if (hs<>'') then
                         Message(asmr_e_invalid_symbol_ref);
                       case oper.opr.typ of
@@ -1351,6 +1355,8 @@ Unit Rax86int;
                         OPR_REFERENCE :
                           inc(oper.opr.ref.offset,l);
                       end;
+                      if hastypecast then
+                       oper.hastype:=true;
                       oper.SetSize(k,false);
                     end;
                    if GotOffset then
@@ -1701,6 +1707,7 @@ Unit Rax86int;
         hl      : tasmlabel;
         toffset,
         tsize   : aint;
+        hastypecast: boolean;
       begin
         expr:='';
         repeat
@@ -1708,11 +1715,13 @@ Unit Rax86int;
             begin
               if expr<>'' then
                 begin
-                  BuildRecordOffsetSize(expr,toffset,tsize,hs,false);
+                  BuildRecordOffsetSize(expr,toffset,tsize,hs,false,hastypecast);
                   if (oper.opr.typ<>OPR_NONE) and
                      (hs<>'') then
                     Message(asmr_e_wrong_sym_type);
                   oper.SetSize(tsize,true);
+                  if hastypecast then
+                    oper.hastype:=true;
                   { we have used the size of a field. Reset the typesize of the record }
                   oper.typesize:=0;
                   case oper.opr.typ of
@@ -1722,8 +1731,9 @@ Unit Rax86int;
                           will generate buggy code. Allow it only for explicit typecasting
                           and when the parameter is in a register (delphi compatible) }
                         if (not oper.hastype) and
-                           (oper.opr.localsym.owner.symtabletype=parasymtable) and
-                           (current_procinfo.procdef.proccalloption<>pocall_register) then
+                           (oper.opr.localsym.typ=paravarsym) and
+                           ((tparavarsym(oper.opr.localsym).paraloc[calleeside].location^.loc<>LOC_REGISTER) or
+                            not paramanager.push_addr_param(oper.opr.localsym.varspez,oper.opr.localsym.vardef,current_procinfo.procdef.proccalloption)) then
                           Message(asmr_e_cannot_access_field_directly_for_parameters);
 
                         oper.opr.localforceref:=true;

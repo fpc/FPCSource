@@ -1331,6 +1331,7 @@ unit raatt;
       { On entry actasmtoken should be equal to AS_DOT                     }
       var
         s : string;
+        hastypecast: boolean;
       Begin
         offset:=0;
         size:=0;
@@ -1352,7 +1353,7 @@ unit raatt;
               break;
             end;
          end;
-        if not GetRecordOffsetSize(s,offset,size,mangledname,needvmtofs) then
+        if not GetRecordOffsetSize(s,offset,size,mangledname,needvmtofs,hastypecast) then
          Message(asmr_e_building_record_offset);
       end;
 
