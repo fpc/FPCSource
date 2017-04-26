@@ -41,6 +41,7 @@ const
   nLogIFIgnored = 1014;
   nErrInvalidMode = 1015;
   nErrInvalidModeSwitch = 1016;
+  nUserDefined = 1017;
 
 // resourcestring patterns of messages
 resourcestring
@@ -60,6 +61,7 @@ resourcestring
   SLogIFIgnored = 'IF %s found, ignoring (rejected).';
   SErrInvalidMode = 'Invalid mode: "%s"';
   SErrInvalidModeSwitch = 'Invalid mode switch: "%s"';
+  SErrUserDefined = 'User defined error: "%s"';
 
 type
   TMessageType = (
@@ -458,6 +460,7 @@ type
     procedure HandleELSE(const AParam: String);
     procedure HandleENDIF(const AParam: String);
     procedure HandleDefine(Param: String); virtual;
+    procedure HandleError(Param: String); virtual;
     procedure HandleIncludeFile(Param: String); virtual;
     procedure HandleUnDefine(Param: String);virtual;
     function HandleInclude(const Param: String): TToken;virtual;
@@ -1593,6 +1596,11 @@ begin
     end;
 end;
 
+procedure TPascalScanner.HandleError(Param: String);
+begin
+  Error(nUserDefined, SErrUserDefined,[Param])
+end;
+
 procedure TPascalScanner.HandleUnDefine(Param: String);
 
 Var
@@ -1866,6 +1874,9 @@ begin
   'DEFINE':
      if not PPIsSkipping then
        HandleDefine(Param);
+  'ERROR':
+     if not PPIsSkipping then
+       HandleError(Param);
   'UNDEF':
      if not PPIsSkipping then
        HandleUnDefine(Param);
@@ -2229,7 +2240,7 @@ begin
     '^':
       begin
       if ForceCaret or PPisSkipping or
-         (PreviousToken in [tkeof,tkComment,tkIdentifier,tkNil,tkOperator,tkBraceClose,tkSquaredBraceClose,tkCARET]) then
+         (PreviousToken in [tkeof,tkComment,tkIdentifier,tkNil,tkOperator,tkBraceClose,tkSquaredBraceClose,tkCARET,tkWhitespace]) then
         begin
         Inc(TokenStr);
         Result := tkCaret;
