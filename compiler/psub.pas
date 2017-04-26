@@ -129,7 +129,8 @@ implementation
        optcse,
        optloop,
        optconstprop,
-       optdeadstore
+       optdeadstore,
+       optloadmodifystore
 {$if defined(arm)}
        ,cpuinfo
 {$endif arm}
@@ -1436,6 +1437,9 @@ implementation
 
         if cs_opt_nodecse in current_settings.optimizerswitches then
           do_optcse(code);
+
+        if cs_opt_use_load_modify_store in current_settings.optimizerswitches then
+          do_optloadmodifystore(code);
 
         { only do secondpass if there are no errors }
         if (ErrorCount=0) then

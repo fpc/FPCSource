@@ -313,7 +313,8 @@ interface
          cs_opt_remove_emtpy_proc,
          cs_opt_constant_propagate,
          cs_opt_dead_store_eliminate,
-         cs_opt_forcenostackframe
+         cs_opt_forcenostackframe,
+         cs_opt_use_load_modify_store
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -335,14 +336,14 @@ interface
        end;
 
     const
-       OptimizerSwitchStr : array[toptimizerswitch] of string[17] = ('',
+       OptimizerSwitchStr : array[toptimizerswitch] of string[18] = ('',
          'LEVEL1','LEVEL2','LEVEL3','LEVEL4',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP','USERBP',
          'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
          'CONSTPROP',
-         'DEADSTORE','FORCENOSTACKFRAME'
+         'DEADSTORE','FORCENOSTACKFRAME','USELOADMODIFYSTORE'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -368,7 +369,7 @@ interface
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
        genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
-       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa];
+       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa,cs_opt_use_load_modify_store];
        genericlevel4optimizerswitches = [cs_opt_level4,cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
        { whole program optimizations whose information generation requires

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="9"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -28,7 +28,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="251">
+    <Units Count="252">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -449,6 +449,7 @@
       <Unit104>
         <Filename Value="aoptobj.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="AoptObj"/>
       </Unit104>
       <Unit105>
         <Filename Value="assemble.pas"/>
@@ -1035,6 +1036,10 @@
         <Filename Value="syscinfo.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit250>
+      <Unit251>
+        <Filename Value="optloadmodifystore.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit251>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
