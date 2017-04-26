@@ -200,7 +200,16 @@ interface
         R_SUBMMWHOLE,  { = 11; complete MM register, size depends on CPU }
         { For Intel X86 AVX-Register }
         R_SUBMMX,     { = 12; 128 BITS }
-        R_SUBMMY      { = 13; 256 BITS }
+        R_SUBMMY,     { = 13; 256 BITS }
+        { Subregisters for the flags register (x86) }
+        R_SUBFLAGCARRY,     { = 14; Carry flag }
+        R_SUBFLAGPARITY,    { = 15; Parity flag }
+        R_SUBFLAGAUXILIARY, { = 16; Auxiliary flag }
+        R_SUBFLAGZERO,      { = 17; Zero flag }
+        R_SUBFLAGSIGN,      { = 18; Sign flag }
+        R_SUBFLAGOVERFLOW,  { = 19; Overflow flag }
+        R_SUBFLAGINTERRUPT, { = 20; Interrupt enable flag }
+        R_SUBFLAGDIRECTION  { = 21; Direction flag }
       );
       TSubRegisterSet = set of TSubRegister;
 

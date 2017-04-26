@@ -40,7 +40,7 @@ implementation
 
     const
     {$if defined(x86_64)}
-      int_regname_table : array[tregisterindex] of string[7] = (
+      int_regname_table : array[tregisterindex] of string[13] = (
         {$i r8664int.inc}
       );
 
@@ -48,7 +48,7 @@ implementation
         {$i r8664iri.inc}
       );
     {$elseif defined(i386)}
-      int_regname_table : array[tregisterindex] of string[7] = (
+      int_regname_table : array[tregisterindex] of string[13] = (
         {$i r386int.inc}
       );
 
@@ -56,7 +56,7 @@ implementation
         {$i r386iri.inc}
       );
     {$elseif defined(i8086)}
-      int_regname_table : array[tregisterindex] of string[7] = (
+      int_regname_table : array[tregisterindex] of string[13] = (
         {$i r8086int.inc}
       );
 

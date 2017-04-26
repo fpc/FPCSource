@@ -72,7 +72,7 @@ interface
     const
       line_length = 64;
 
-      nasm_regname_table : array[tregisterindex] of string[7] = (
+      nasm_regname_table : array[tregisterindex] of string[13] = (
         {r386nasm.inc contains the Nasm name of each register.}
 {$if defined(x86_64)}
         {$i r8664nasm.inc}

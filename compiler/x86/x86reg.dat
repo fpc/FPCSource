@@ -94,6 +94,15 @@ NR_GS,$05000005,gs,%gs,gs,gs,-1,-1,-1,OT_REG_FSGS,5
 NR_FLAGS,$05030006,flags,%flags,flags,flags,-1,-1,-1,OT_NONE,0
 NR_EFLAGS,$05040006,eflags,%eflags,eflags,eflags,-1,-1,-1,OT_NONE,0
 NR_RFLAGS,$05050006,rflags,%rflags,rflags,rflags,-1,-1,-1,OT_NONE,0,64
+NR_CARRYFLAG,$050e0006,carryflag,%carryflag,carryflag,carryflag,-1,-1,-1,OT_NONE,0
+NR_PARITYFLAG,$050f0006,parityflag,%parityflag,parityflag,parityflag,-1,-1,-1,OT_NONE,0
+NR_AUXILIARYFLAG,$05100006,auxiliaryflag,%auxiliaryflag,auxiliaryflag,auxiliaryflag,-1,-1,-1,OT_NONE,0
+NR_ZEROFLAG,$05110006,zeroflag,%zeroflag,zeroflag,zeroflag,-1,-1,-1,OT_NONE,0
+NR_SIGNFLAG,$05120006,signflag,%signflag,signflag,signflag,-1,-1,-1,OT_NONE,0
+NR_OVERFLOWFLAG,$05130006,overflowflag,%overflowflag,overflowflag,overflowflag,-1,-1,-1,OT_NONE,0
+NR_INTERRUPTFLAG,$05140006,interruptflag,%interruptflag,interruptflag,interruptflag,-1,-1,-1,OT_NONE,0
+NR_DIRECTIONFLAG,$05150006,directionflag,%directionflag,directionflag,directionflag,-1,-1,-1,OT_NONE,0
+
 ; EIP is needed for DWARF call frame info return address (RA)
 NR_RIP,$05050007,rip,%rip,rip,rip,-1,8,16,OT_NONE,0,64
 NR_EIP,$05040007,eip,%eip,eip,eip,-1,8,16,OT_NONE,0
