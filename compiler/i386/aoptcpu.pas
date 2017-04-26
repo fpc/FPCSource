@@ -160,17 +160,33 @@ unit aoptcpu;
         A_IMUL:
           case p.ops of
             1:
-              regReadByInstruction :=
-                 (reg = NR_EAX) or RegInOp(reg,p.oper[0]^);
+              regReadByInstruction := RegInOp(reg,p.oper[0]^) or
+                 (
+                  ((getregtype(reg)=R_INTREGISTER) and (getsupreg(reg)=RS_EAX)) and
+                  ((getsubreg(reg)<>R_SUBH) or (p.opsize<>S_B))
+                 );
             2,3:
               regReadByInstruction :=
                 reginop(reg,p.oper[0]^) or
                 reginop(reg,p.oper[1]^);
           end;
-        A_IDIV,A_DIV,A_MUL:
+        A_MUL:
           begin
-            regReadByInstruction :=
-              RegInOp(reg,p.oper[0]^) or ((getregtype(reg)=R_INTREGISTER) and (getsupreg(reg) in [RS_EAX,RS_EDX]));
+            regReadByInstruction := RegInOp(reg,p.oper[0]^) or
+               (
+                ((getregtype(reg)=R_INTREGISTER) and (getsupreg(reg)=RS_EAX)) and
+                ((getsubreg(reg)<>R_SUBH) or (p.opsize<>S_B))
+               );
+          end;
+        A_IDIV,A_DIV:
+          begin
+            regReadByInstruction := RegInOp(reg,p.oper[0]^) or
+               (
+                 (getregtype(reg)=R_INTREGISTER) and
+                 (
+                   (getsupreg(reg)=RS_EAX) or ((getsupreg(reg)=RS_EDX) and (p.opsize<>S_B))
+                 )
+               );
           end;
         else
           begin
