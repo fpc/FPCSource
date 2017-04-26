@@ -285,29 +285,16 @@ Type
 
   TDecoratorTestSuite = Class(TTestSuite)
   public
-    Procedure  FreeDecorators(T : TTest);
     Destructor Destroy; override;
   end;
 
-Procedure  TDecoratorTestSuite.FreeDecorators(T : TTest);
-
-Var
-  I : Integer;
-begin
-  If (T is TTestSuite) then
-    for I:=0 to TTestSuite(t).ChildTestCount-1 do
-      FreeDecorators(TTest(TTestSuite(t).Test[i]));
-  if (T is TTestDecorator) and (TTestDecorator(T).Test is TDecoratorTestSuite) then
-    T.free;
-end;
 
 { TDecoratorTestSuite }
 
 destructor TDecoratorTestSuite.Destroy;
+
 begin
-  FreeDecorators(Self);
-  // We need to find something for this.
-  Tests.Clear;
+  OwnsTests:=False;
   inherited Destroy;
 end;
 
