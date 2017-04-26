@@ -233,12 +233,34 @@ unit aoptcpu;
                         exit
                       end;
                 end;
-                if ([Ch_RCarryFlag,Ch_RParityFlag,Ch_RAuxiliaryFlag,Ch_RZeroFlag,Ch_RSignFlag,Ch_ROverflowFlag,
-                     Ch_RWCarryFlag,Ch_RWParityFlag,Ch_RWAuxiliaryFlag,Ch_RWZeroFlag,Ch_RWSignFlag,Ch_RWOverflowFlag,
-                     Ch_RFlags,Ch_RWFlags,Ch_RFLAGScc]*Ch<>[]) and (reg=NR_DEFAULTFLAGS) then
+                if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) then
                   begin
-                    RegReadByInstruction := true;
-                    exit
+                    case getsubreg(reg) of
+                      R_SUBW,R_SUBD,R_SUBQ:
+                        RegReadByInstruction :=
+                          [Ch_RCarryFlag,Ch_RParityFlag,Ch_RAuxiliaryFlag,Ch_RZeroFlag,Ch_RSignFlag,Ch_ROverflowFlag,
+                           Ch_RWCarryFlag,Ch_RWParityFlag,Ch_RWAuxiliaryFlag,Ch_RWZeroFlag,Ch_RWSignFlag,Ch_RWOverflowFlag,
+                           Ch_RDirFlag,Ch_RFlags,Ch_RWFlags,Ch_RFLAGScc]*Ch<>[];
+                      R_SUBFLAGCARRY:
+                        RegReadByInstruction:=[Ch_RCarryFlag,Ch_RWCarryFlag,Ch_RFlags,Ch_RWFlags,Ch_RFLAGScc]*Ch<>[];
+                      R_SUBFLAGPARITY:
+                        RegReadByInstruction:=[Ch_RParityFlag,Ch_RWParityFlag,Ch_RFlags,Ch_RWFlags,Ch_RFLAGScc]*Ch<>[];
+                      R_SUBFLAGAUXILIARY:
+                        RegReadByInstruction:=[Ch_RAuxiliaryFlag,Ch_RWAuxiliaryFlag,Ch_RFlags,Ch_RWFlags,Ch_RFLAGScc]*Ch<>[];
+                      R_SUBFLAGZERO:
+                        RegReadByInstruction:=[Ch_RZeroFlag,Ch_RWZeroFlag,Ch_RFlags,Ch_RWFlags,Ch_RFLAGScc]*Ch<>[];
+                      R_SUBFLAGSIGN:
+                        RegReadByInstruction:=[Ch_RSignFlag,Ch_RWSignFlag,Ch_RFlags,Ch_RWFlags,Ch_RFLAGScc]*Ch<>[];
+                      R_SUBFLAGOVERFLOW:
+                        RegReadByInstruction:=[Ch_ROverflowFlag,Ch_RWOverflowFlag,Ch_RFlags,Ch_RWFlags,Ch_RFLAGScc]*Ch<>[];
+                      R_SUBFLAGINTERRUPT:
+                        RegReadByInstruction:=[Ch_RFlags,Ch_RWFlags]*Ch<>[];
+                      R_SUBFLAGDIRECTION:
+                        RegReadByInstruction:=[Ch_RDirFlag,Ch_RFlags,Ch_RWFlags]*Ch<>[];
+                      else
+                        internalerror(2017042601);
+                    end;
+                    exit;
                   end;
                 if (Ch_NoReadIfEqualRegs in Ch) and (p.ops=2) and
                    (p.oper[0]^.typ=top_reg) and (p.oper[1]^.typ=top_reg) and
