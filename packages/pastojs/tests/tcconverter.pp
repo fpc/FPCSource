@@ -333,8 +333,13 @@ begin
   AssertEquals('Correct condition class',TJSUnaryNotExpression,E.Cond.ClassType);
   AssertIdentifier('Conditional expression',TJSUnaryNotExpression(E.Cond).A,'a');
   L:=AssertListStatement('Multiple statements',E.Body);
+  //  writeln('TTestStatementConverter.TestRepeatUntilStatementTwo L.A=',L.A.ClassName);
+  // writeln('  L.B=',L.B.ClassName);
+  // writeln('  L.B.A=',TJSStatementList(L.B).A.ClassName);
+  // writeln('  L.B.B=',TJSStatementList(L.B).B.ClassName);
+
   AssertAssignStatement('First List statement is assignment',L.A,'b','c');
-  AssertAssignStatement('Second List statement is assignment',L.b,'d','e');
+  AssertAssignStatement('Second List statement is assignment',L.B,'d','e');
 end;
 
 Procedure TTestStatementConverter.TestRepeatUntilStatementThree;
@@ -369,35 +374,47 @@ Var
   F : TPasImplForLoop;
   E : TJSForStatement;
   L : TJSStatementList;
-  VS : TJSVariableStatement;
   VD : TJSVarDeclaration;
   A : TJSSimpleAssignStatement;
   I : TJSUnaryPostPlusPlusExpression;
   C : TJSRelationalExpressionLE;
+  VS: TJSVariableStatement;
 
 begin
-  // For I:=0 to 100 do a:=b;
+  // For I:=1 to 100 do a:=b;
   F:=TPasImplForLoop.Create('',Nil);
   F.Variable:=TPasVariable.Create('I',F);
-  F.VariableName:='I';
+  F.VariableName:=CreateIdent('I');
   F.StartExpr:=CreateLiteral(1);
   F.EndExpr:=CreateLiteral(100);
   F.Body:=CreateAssignStatement();
   L:=TJSStatementList(Convert(F,TJSStatementList));
-  VS:=TJSVariableStatement(AssertElement('Start with upper limit temp var',TJSVariableStatement,L.A));
-  VD:=TJSVarDeclaration(AssertElement('Have variable',TJSVarDeclaration,VS.A));
-  AssertEquals('Correct name for end value','i$endloopvalue',VD.Name);
-  AssertLiteral('Correct end value',VD.Init,100);
-  E:=TJSForStatement(AssertElement('Second in list is for statement',TJSForStatement,L.B));
-  A:=TJSSimpleAssignStatement(AssertElement('Init statement is assign statement',TJSSimpleAssignStatement,E.Init));
-  AssertLiteral('Init statement RHS is start value',A.Expr,1);
+  // Should be a list of two statements:
+  //   i:=1;
+  //   for(var $loopend=100; i<=$loopend; i++){ a:=b; }
+  A:=TJSSimpleAssignStatement(AssertElement('First in list is Init statement',TJSSimpleAssignStatement,L.A));
   AssertIdentifier('Init statement LHS is loop variable',A.LHS,'i');
-  I:=TJSUnaryPostPlusPlusExpression(AssertElement('Increment is ++ statement',TJSUnaryPostPlusPlusExpression,E.Incr));
-  AssertIdentifier('++ on correct variable name',I.A,'i');
-  AssertAssignStatement('Correct body',E.Body);
+  AssertLiteral('Init statement RHS is start value',A.Expr,1);
+
+  E:=TJSForStatement(AssertElement('Second in list is "for" statement',TJSForStatement,L.B));
+
+  // "var $loopend=100"
+  VS:=TJSVariableStatement(AssertElement('var '+LoopEndVarName,TJSVariableStatement,E.Init));
+  VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVarName,TJSVarDeclaration,VS.A));
+  AssertEquals('Correct name for '+LoopEndVarName,LoopEndVarName,VD.Name);
+  AssertLiteral('Correct end value',VD.Init,100);
+
+  // i<=$loopend
   C:=TJSRelationalExpressionLE(AssertElement('Condition is <= expression',TJSRelationalExpressionLE,E.Cond));
   AssertIdentifier('Cond LHS is loop variable',C.A,'i');
-  AssertIdentifier('Cond RHS is end loop value variable',C.B,'i$endloopvalue');
+  AssertIdentifier('Cond RHS is '+LoopEndVarName,C.B,LoopEndVarName);
+
+  // i++
+  I:=TJSUnaryPostPlusPlusExpression(AssertElement('Increment is ++ statement',TJSUnaryPostPlusPlusExpression,E.Incr));
+  AssertIdentifier('++ on correct variable name',I.A,'i');
+
+  // body
+  AssertAssignStatement('Correct body',E.Body);
 end;
 
 Procedure TTestStatementConverter.TestForLoopDown;
@@ -405,36 +422,49 @@ Var
   F : TPasImplForLoop;
   E : TJSForStatement;
   L : TJSStatementList;
-  VS : TJSVariableStatement;
   VD : TJSVarDeclaration;
   A : TJSSimpleAssignStatement;
   I : TJSUnaryPostMinusMinusExpression;
   C : TJSRelationalExpressionGE;
+  VS: TJSVariableStatement;
 
 begin
-  // For I:=0 to 100 do a:=b;
+  // For I:=100 downto 1 do a:=b;
   F:=TPasImplForLoop.Create('',Nil);
   F.Variable:=TPasVariable.Create('I',F);
-  F.VariableName:='I';
+  F.VariableName:=CreateIdent('I');
   F.StartExpr:=CreateLiteral(100);
   F.EndExpr:=CreateLiteral(1);
   F.LoopType:=ltDown;
   F.Body:=CreateAssignStatement();
   L:=TJSStatementList(Convert(F,TJSStatementList));
-  VS:=TJSVariableStatement(AssertElement('Start with upper limit temp var',TJSVariableStatement,L.A));
-  VD:=TJSVarDeclaration(AssertElement('Have variable',TJSVarDeclaration,VS.A));
-  AssertEquals('Correct name for end value','i$endloopvalue',VD.Name);
-  AssertLiteral('Correct end value',VD.Init,1);
-  E:=TJSForStatement(AssertElement('Second in list is for statement',TJSForStatement,L.B));
-  A:=TJSSimpleAssignStatement(AssertElement('Init statement is assign statement',TJSSimpleAssignStatement,E.Init));
-  AssertLiteral('Init statement RHS is start value',A.Expr,100);
+
+  // Should be a list of two statements:
+  //   i:=100;
+  //   for(var $loopend=1; i>=$loopend; i--){ a:=b; }
+  A:=TJSSimpleAssignStatement(AssertElement('First in list is Init statement',TJSSimpleAssignStatement,L.A));
   AssertIdentifier('Init statement LHS is loop variable',A.LHS,'i');
-  I:=TJSUnaryPostMinusMinusExpression(AssertElement('Increment is -- statement',TJSUnaryPostMinusMinusExpression,E.Incr));
-  AssertIdentifier('++ on correct variable name',I.A,'i');
-  AssertAssignStatement('Correct body',E.Body);
-  C:=TJSRelationalExpressionGE(AssertElement('Condition is <= expression',TJSRelationalExpressionGE,E.Cond));
+  AssertLiteral('Init statement RHS is start value',A.Expr,100);
+
+  E:=TJSForStatement(AssertElement('Second in list is "for" statement',TJSForStatement,L.B));
+
+  // "var $loopend=1"
+  VS:=TJSVariableStatement(AssertElement('var '+LoopEndVarName,TJSVariableStatement,E.Init));
+  VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVarName,TJSVarDeclaration,VS.A));
+  AssertEquals('Correct name for '+LoopEndVarName,LoopEndVarName,VD.Name);
+  AssertLiteral('Correct end value',VD.Init,1);
+
+  // i>=$loopend
+  C:=TJSRelationalExpressionGE(AssertElement('Condition is >= expression',TJSRelationalExpressionGE,E.Cond));
   AssertIdentifier('Cond LHS is loop variable',C.A,'i');
-  AssertIdentifier('Cond RHS is end loop value variable',C.B,'i$endloopvalue');
+  AssertIdentifier('Cond RHS is '+LoopEndVarName,C.B,LoopEndVarName);
+
+  // i--
+  I:=TJSUnaryPostMinusMinusExpression(AssertElement('Increment is -- statement',TJSUnaryPostMinusMinusExpression,E.Incr));
+  AssertIdentifier('-- on correct variable name',I.A,'i');
+
+  // body
+  AssertAssignStatement('Correct body',E.Body);
 end;
 
 Procedure TTestStatementConverter.TestBeginEndBlockEmpty;
@@ -1308,7 +1338,7 @@ Class Procedure TTestConverter.AssertAssignStatement(Const Msg : String; El : TJ
 begin
   AssertNotNull(Msg+': have statement',EL);
   If not (El is TJSSimpleAssignStatement) then
-    Fail(Msg+': statement is not assign statement but is'+El.ClassName);
+    Fail(Msg+': statement is not assign statement but is '+El.ClassName);
   AssertIdentifier(Msg+': left hand side ('+LHS+')',TJSAssignStatement(EL).LHS,LHS);
   AssertIdentifier(Msg+': left hand side ('+LHS+')',TJSAssignStatement(EL).Expr,RHS);
 end;

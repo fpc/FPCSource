@@ -3,7 +3,10 @@ program testjs;
 {$mode objfpc}{$H+}
 
 uses
-  cwstring,Classes, consoletestrunner, tcscanner, jsparser, jsscanner, jstree, jsbase,
+  {$IFDEF Unix}
+  cwstring,
+  {$ENDIF}
+  Classes, consoletestrunner, tcscanner, jsparser, jsscanner, jstree, jsbase,
   tcparser, jswriter, tcwriter, jstoken;
 
 var

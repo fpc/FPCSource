@@ -383,7 +383,7 @@ type
     Property ProtocolVersion : String Index ord(hvHTTPVErsion) Read GetHTTPVariable Write SetHTTPVariable;
     // Specials, mostly from CGI protocol/Apache.
     Property PathInfo : String index Ord(hvPathInfo) read GetHTTPVariable Write SetHTTPVariable;
-    Property PathTranslated : String index Ord(hvPathInfo) read GetHTTPVariable Write SetHTTPVariable;
+    Property PathTranslated : String index Ord(hvPathTranslated) read GetHTTPVariable Write SetHTTPVariable;
     Property RemoteAddress : String Index Ord(hvRemoteAddress) read GetHTTPVariable Write SetHTTPVariable;
     Property RemoteAddr : String Index Ord(hvRemoteAddress) read GetHTTPVariable Write SetHTTPVariable; // Alias, Delphi-compat
     Property RemoteHost : String Index Ord(hvRemoteHost) read  GetHTTPVariable Write SetHTTPVariable;

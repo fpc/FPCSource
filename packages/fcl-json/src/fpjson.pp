@@ -623,7 +623,6 @@ Resourcestring
   SErrCannotConvertFromObject = 'Cannot convert data from object value';
   SErrCannotConvertToObject = 'Cannot convert data to object value';
   SErrInvalidFloat = 'Invalid float value : %s';
-  SErrInvalidInteger = 'Invalid float value : %s';
   SErrCannotSetNotIsNull = 'IsNull cannot be set to False';
   SErrCannotAddArrayTwice = 'Adding an array object to an array twice is not allowed';
   SErrCannotAddObjectTwice = 'Adding an object to an array twice is not allowed';
@@ -1074,7 +1073,7 @@ procedure TJSONData.DumpJSON(S: TStream);
   end;
 
 Var
-  I,C : Integer;
+  I: Integer;
   O : TJSONObject;
 
 begin
@@ -2049,13 +2048,20 @@ function TJSONArray.GetAsJSON: TJSONStringType;
 Var
   I : Integer;
   Sep : String;
+  D : TJSONData;
+  V : TJSONStringType;
 
 begin
   Sep:=TJSONData.FElementSep;
   Result:='[';
   For I:=0 to Count-1 do
     begin
-    Result:=Result+Items[i].AsJSON;
+    D:=Items[i];
+    if D<>Nil then
+      V:=D.AsJSON
+    else
+      V:='null';
+    Result:=Result+V;
     If (I<Count-1) then
       Result:=Result+Sep;
     end;
@@ -2093,7 +2099,10 @@ begin
     begin
     if MultiLine then
       Result:=Result+Ind;
-    Result:=Result+Items[i].DoFormatJSON(Options,CurrentIndent+Indent,Indent);
+    if Items[i]=Nil then
+      Result:=Result+'null'
+    else
+      Result:=Result+Items[i].DoFormatJSON(Options,CurrentIndent+Indent,Indent);
     If (I<Count-1) then
       if MultiLine then
         Result:=Result+','
@@ -2671,6 +2680,8 @@ function TJSONObject.GetAsJSON: TJSONStringType;
 Var
   I : Integer;
   Sep : String;
+  V : TJSONStringType;
+  D : TJSONData;
 
 begin
   Sep:=TJSONData.FElementSep;
@@ -2679,7 +2690,12 @@ begin
     begin
     If (Result<>'') then
       Result:=Result+Sep;
-    Result:=Result+FElementStart+StringToJSONString(Names[i])+FElementEnd+Items[I].AsJSON;
+    D:=Items[i];
+    if Assigned(D) then
+      V:=Items[I].AsJSON
+    else
+      V:='null';
+    Result:=Result+FElementStart+StringToJSONString(Names[i])+FElementEnd+V;
     end;
   If (Result<>'') then
     Result:=FObjStartSep+Result+FObjEndSep
@@ -2807,6 +2823,9 @@ Var
   S : TJSONStringType;
   MultiLine,UseQuotes, SkipWhiteSpace : Boolean;
   NSep,Sep,Ind : String;
+  V : TJSONStringType;
+  D : TJSONData;
+
 begin
   Result:='';
   UseQuotes:=Not (foDoNotQuoteMembers in options);
@@ -2833,7 +2852,12 @@ begin
     S:=StringToJSONString(Names[i]);
     If UseQuotes then
       S:='"'+S+'"';
-    Result:=Result+S+NSep+Items[I].DoFormatJSON(Options,CurrentIndent,Indent);
+    D:=Items[i];
+    if D=Nil then
+      V:='null'
+    else
+      v:=Items[I].DoFormatJSON(Options,CurrentIndent,Indent);
+    Result:=Result+S+NSep+V;
     end;
   If (Result<>'') then
     begin
