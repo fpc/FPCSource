@@ -124,6 +124,7 @@ type
     tkconstref,
     tkconstructor,
     tkdestructor,
+    tkdispinterface,
     tkdiv,
     tkdo,
     tkdownto,
@@ -139,7 +140,6 @@ type
     tkfunction,
     tkgeneric,
     tkgoto,
-    tkHelper,
     tkif,
     tkimplementation,
     tkin,
@@ -329,7 +329,10 @@ type
     po_delphi, // Delphi mode: forbid nested comments
     po_cassignments,  // allow C-operators += -= *= /=
     po_resolvestandardtypes, // search for 'longint', 'string', etc., do not use dummies, TPasResolver sets this to use its declarations
-    po_asmwhole  // store whole text between asm..end in TPasImplAsmStatement.Tokens
+    po_asmwhole,  // store whole text between asm..end in TPasImplAsmStatement.Tokens
+    po_nooverloadedprocs,  // do not create TPasOverloadedProc for procs with same name
+    po_keepclassforward,   // disabled: delete class fowards when there is a class declaration
+    po_arrayrangeexpr    // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
     );
   TPOptions = set of TPOption;
 
@@ -386,9 +389,19 @@ type
     Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
     procedure Error(MsgNumber: integer; const Msg: string);overload;
     procedure Error(MsgNumber: integer; const Fmt: string; Args: array of Const);overload;
+    procedure PushSkipMode;
+    function HandleDirective(const ADirectiveText: String): TToken; virtual;
+    procedure HandleIFDEF(const AParam: String);
+    procedure HandleIFNDEF(const AParam: String);
+    procedure HandleIFOPT(const AParam: String);
+    procedure HandleIF(const AParam: String);
+    procedure HandleELSE(const AParam: String);
+    procedure HandleENDIF(const AParam: String);
     procedure HandleDefine(Param: String); virtual;
     procedure HandleIncludeFile(Param: String); virtual;
     procedure HandleUnDefine(Param: String);virtual;
+    function HandleInclude(const Param: String): TToken;virtual;
+    procedure HandleMode(const Param: String);virtual;
     function HandleMacro(AIndex: integer): TToken;virtual;
     procedure PushStackItem; virtual;
     function DoFetchTextToken: TToken;
@@ -484,6 +497,7 @@ const
     'constref',
     'constructor',
     'destructor',
+    'dispinterface',
     'div',
     'do',
     'downto',
@@ -499,7 +513,6 @@ const
     'function',
     'generic',
     'goto',
-    'helper',
     'if',
     'implementation',
     'in',
@@ -848,7 +861,8 @@ Procedure TStreamLineReader.InitFromStream(AStream : TStream);
 
 begin
   SetLength(FContent,AStream.Size);
-  AStream.Read(FContent[1],AStream.Size);
+  if FContent<>'' then
+    AStream.Read(FContent[1],length(FContent));
   FPos:=0;
 end;
 
@@ -1415,12 +1429,217 @@ begin
     end;
 end;
 
+Function TPascalScanner.HandleInclude(Const Param : String) : TToken;
+
+begin
+  Result:=tkComment;
+  if ((Param='') or (Param[1]<>'%')) then
+    HandleIncludeFile(param)
+  else if Param[1]='%' then
+    begin
+    fcurtokenstring:='{$i '+param+'}';
+    fcurtoken:=tkstring;
+    result:=fcurtoken;
+    end
+end;
+
+Procedure TPascalScanner.HandleMode(Const Param : String);
+
+Var
+  P : String;
+
+begin
+  P:=UpperCase(Param);
+  // Eventually, we'll need to make the distinction...
+  // For now, treat OBJFPC as Delphi mode.
+  if (P='DELPHI') or (P='OBJFPC') then
+    Options:=Options+[po_delphi]
+  else
+    Options:=Options-[po_delphi]
+end;
+
+Procedure TPascalScanner.PushSkipMode;
+
+begin
+  if PPSkipStackIndex = High(PPSkipModeStack) then
+    Error(nErrIfXXXNestingLimitReached,SErrIfXXXNestingLimitReached);
+  PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
+  PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
+  Inc(PPSkipStackIndex);
+end;
+
+Procedure TPascalScanner.HandleIFDEF(Const AParam : String);
+
+Var
+  ADefine : String;
+  Index : Integer;
+
+begin
+  PushSkipMode;
+  if PPIsSkipping then
+    PPSkipMode := ppSkipAll
+  else
+    begin
+    ADefine := UpperCase(AParam);
+    Index := Defines.IndexOf(ADefine);
+    if Index < 0 then
+      Index := Macros.IndexOf(ADefine);
+    if Index < 0 then
+      begin
+      PPSkipMode := ppSkipIfBranch;
+      PPIsSkipping := true;
+      end
+    else
+      PPSkipMode := ppSkipElseBranch;
+    If LogEvent(sleConditionals) then
+      if PPSkipMode=ppSkipElseBranch then
+        DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[AParam])
+      else
+        DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[AParam])
+    end;
+end;
+
+Procedure TPascalScanner.HandleIFNDEF(Const AParam : String);
+
+Var
+  ADefine : String;
+  Index : Integer;
+
+begin
+  PushSkipMode;
+  if PPIsSkipping then
+    PPSkipMode := ppSkipAll
+  else
+    begin
+    ADefine := UpperCase(AParam);
+    Index := Defines.IndexOf(ADefine);
+    // Not sure about this
+    if Index < 0 then
+      Index := Macros.IndexOf(ADefine);
+    if Index >= 0 then
+      begin
+      PPSkipMode := ppSkipIfBranch;
+      PPIsSkipping := true;
+      end
+    else
+      PPSkipMode := ppSkipElseBranch;
+    If LogEvent(sleConditionals) then
+      if PPSkipMode=ppSkipElseBranch then
+        DoLog(mtInfo,nLogIFNDefAccepted,sLogIFNDefAccepted,[AParam])
+      else
+        DoLog(mtInfo,nLogIFNDefRejected,sLogIFNDefRejected,[AParam])
+    end;
+end;
+
+Procedure TPascalScanner.HandleIFOPT(Const AParam : String);
+
+begin
+  PushSkipMode;
+  if PPIsSkipping then
+    PPSkipMode := ppSkipAll
+  else
+    begin
+    { !!!: Currently, options are not supported, so they are just
+      assumed as not being set. }
+    PPSkipMode := ppSkipIfBranch;
+    PPIsSkipping := true;
+    end;
+  If LogEvent(sleConditionals) then
+    DoLog(mtInfo,nLogIFOPTIgnored,sLogIFOPTIgnored,[Uppercase(AParam)])
+end;
+
+Procedure TPascalScanner.HandleIF(Const AParam : String);
+
+begin
+  PushSkipMode;
+  if PPIsSkipping then
+    PPSkipMode := ppSkipAll
+  else
+    begin
+    { !!!: Currently, expressions are not supported, so they are
+      just assumed as evaluating to false. }
+    PPSkipMode := ppSkipIfBranch;
+    PPIsSkipping := true;
+    If LogEvent(sleConditionals) then
+       DoLog(mtInfo,nLogIFIgnored,sLogIFIgnored,[Uppercase(AParam)])
+    end;
+end;
+
+Procedure TPascalScanner.HandleELSE(Const AParam : String);
+
+begin
+  if PPSkipStackIndex = 0 then
+     Error(nErrInvalidPPElse,sErrInvalidPPElse);
+  if PPSkipMode = ppSkipIfBranch then
+    PPIsSkipping := false
+  else if PPSkipMode = ppSkipElseBranch then
+    PPIsSkipping := true;
+end;
+
+
+Procedure TPascalScanner.HandleENDIF(Const AParam : String);
+
+begin
+  if PPSkipStackIndex = 0 then
+    Error(nErrInvalidPPEndif,sErrInvalidPPEndif);
+  Dec(PPSkipStackIndex);
+  PPSkipMode := PPSkipModeStack[PPSkipStackIndex];
+  PPIsSkipping := PPIsSkippingStack[PPSkipStackIndex];
+end;
+
+Function TPascalScanner.HandleDirective(Const ADirectiveText : String) : TToken;
+
+Var
+  Directive,Param : String;
+  P : Integer;
+
+begin
+  Result:=tkComment;
+  P:=Pos(' ',ADirectiveText);
+  If P=0 then
+    P:=Length(ADirectiveText)+1;
+  Directive:=Copy(ADirectiveText,2,P-2); // 1 is $
+  Param:=ADirectiveText;
+  Delete(Param,1,P);
+//  Writeln('Directive: "',Directive,'", Param : "',Param,'"');
+  Case UpperCase(Directive) of
+  'I':
+    if not PPIsSkipping then
+      Result:=HandleInclude(Param);
+  'INCLUDE':
+    if not PPIsSkipping then
+      Result:=HandleInclude(Param);
+  'MODE':
+     if not PPIsSkipping then
+      HandleMode(Param);
+  'DEFINE':
+     if not PPIsSkipping then
+       HandleDefine(Param);
+  'UNDEF':
+     if not PPIsSkipping then
+       HandleUnDefine(Param);
+  'IFDEF':
+     HandleIFDEF(Param);
+  'IFNDEF':
+     HandleIFNDEF(Param);
+  'IFOPT':
+     HandleIFOPT(Param);
+  'IF':
+     HandleIF(Param);
+  'ELSE':
+     HandleELSE(Param);
+  'ENDIF':
+    HandleENDIF(Param);
+  'IFEND':
+    HandleENDIF(Param);
+  end;
+end;
+
 function TPascalScanner.DoFetchToken: TToken;
 var
-  TokenStart, CurPos: PChar;
+  TokenStart: PChar;
   i: TToken;
   OldLength, SectionLength, NestingLevel, Index: Integer;
-  Directive, Param : string;
 begin
   if TokenStr = nil then
     if not FetchLine then
@@ -1429,9 +1648,7 @@ begin
       FCurToken := Result;
       exit;
     end;
-
   FCurTokenString := '';
-
   case TokenStr[0] of
     #0:         // Empty line
       begin
@@ -1505,27 +1722,45 @@ begin
     '(':
       begin
         Inc(TokenStr);
-        if TokenStr[0] = '*' then
-        begin
+        if TokenStr[0] <> '*' then
+          Result := tkBraceOpen
+        else
+          begin
           // Old-style multi-line comment
           Inc(TokenStr);
+          TokenStart := TokenStr;
+          FCurTokenString := '';
+          OldLength := 0;
           while (TokenStr[0] <> '*') or (TokenStr[1] <> ')') do
-          begin
-            if TokenStr[0] = #0 then
             begin
-              if not FetchLine then
+            if TokenStr[0] = #0 then
               begin
+              SectionLength:=TokenStr - TokenStart +1;
+              SetLength(FCurTokenString, OldLength + SectionLength);
+              if SectionLength > 1 then
+                Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength - 1);
+              Inc(OldLength, SectionLength);
+              FCurTokenString[OldLength] := #10;
+              if not FetchLine then
+                begin
                 Result := tkEOF;
                 FCurToken := Result;
                 exit;
-              end;
-            end else
+                end;
+              TokenStart:=TokenStr;
+              end
+            else
               Inc(TokenStr);
           end;
+          SectionLength := TokenStr - TokenStart;
+          SetLength(FCurTokenString, OldLength + SectionLength);
+          if SectionLength > 0 then
+            Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
           Inc(TokenStr, 2);
           Result := tkComment;
-        end else
-          Result := tkBraceOpen;
+          if Copy(CurTokenString,1,1)='$' then
+            Result := HandleDirective(CurTokenString);
+          end;
       end;
     ')':
       begin
@@ -1674,14 +1909,21 @@ begin
       begin
         Inc(TokenStr);
         if TokenStr[0] = '>' then
-        begin
+          begin
           Inc(TokenStr);
           Result := tkNotEqual;
-        end else if TokenStr[0] = '=' then
-        begin
+          end
+        else if TokenStr[0] = '=' then
+          begin
           Inc(TokenStr);
           Result := tkLessEqualThan;
-        end else
+          end
+        else if TokenStr[0] = '<' then
+          begin
+          Inc(TokenStr);
+          Result := tkshl;
+          end
+        else
           Result := tkLessThan;
       end;
     '=':
@@ -1693,14 +1935,20 @@ begin
       begin
         Inc(TokenStr);
         if TokenStr[0] = '=' then
-        begin
+          begin
           Inc(TokenStr);
           Result := tkGreaterEqualThan;
             end else if TokenStr[0] = '<' then
             begin
           Inc(TokenStr);
           Result := tkSymmetricalDifference;
-        end else
+          end
+        else if TokenStr[0] = '>' then
+          begin
+          Inc(TokenStr);
+          Result := tkshr;
+          end
+        else
           Result := tkGreaterThan;
       end;
     '@':
@@ -1769,164 +2017,8 @@ begin
         Inc(TokenStr);
         Result := tkComment;
         //WriteLn('Kommentar: "', CurTokenString, '"');
-        if (Length(CurTokenString) > 0) and (CurTokenString[1] = '$') then
-        begin
-          TokenStart := @CurTokenString[2];
-          CurPos := TokenStart;
-          while (CurPos[0] <> ' ') and (CurPos[0] <> #0) do
-            Inc(CurPos);
-          SectionLength := CurPos - TokenStart;
-          SetLength(Directive, SectionLength);
-          if SectionLength > 0 then
-          begin
-            Move(TokenStart^, Directive[1], SectionLength);
-            Directive := UpperCase(Directive);
-            if CurPos[0] <> #0 then
-            begin
-              TokenStart := CurPos + 1;
-              CurPos := TokenStart;
-              while CurPos[0] <> #0 do
-                Inc(CurPos);
-              SectionLength := CurPos - TokenStart;
-              SetLength(Param, SectionLength);
-              if SectionLength > 0 then
-                Move(TokenStart^, Param[1], SectionLength);
-            end else
-              Param := '';
-            if Not PPIsSkipping then
-              begin
-              if (Directive = 'I') or (Directive = 'INCLUDE') then
-                begin
-                if ((Param='') or (Param[1]<>'%')) then
-                  HandleIncludeFile(param)
-                else if Param[1]='%' then
-                  begin
-                  fcurtokenstring:='{$i '+param+'}';
-                  fcurtoken:=tkstring;
-                  result:=fcurtoken;
-                  exit;
-                  end
-                end
-              else if (Directive = 'DEFINE') then
-                HandleDefine(Param)
-              else if (Directive = 'UNDEF') then
-                HandleUnDefine(Param)
-              end;
-            if (Directive = 'IFDEF') then
-              begin
-              if PPSkipStackIndex = High(PPSkipModeStack) then
-                Error(nErrIfXXXNestingLimitReached,SErrIfXXXNestingLimitReached);
-              PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
-              PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
-              Inc(PPSkipStackIndex);
-              if PPIsSkipping then
-              begin
-                PPSkipMode := ppSkipAll;
-                PPIsSkipping := true;
-              end else
-              begin
-                Param := UpperCase(Param);
-                Index := Defines.IndexOf(Param);
-                if Index < 0 then
-                  Index := Macros.IndexOf(Param);
-                if Index < 0 then
-                begin
-                  PPSkipMode := ppSkipIfBranch;
-                  PPIsSkipping := true;
-                end else
-                  PPSkipMode := ppSkipElseBranch;
-                If LogEvent(sleConditionals) then
-                  if PPSkipMode=ppSkipElseBranch then
-                    DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[Param])
-                  else
-                    DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[Param])
-              end;
-            end else if Directive = 'IFNDEF' then
-            begin
-              if PPSkipStackIndex = High(PPSkipModeStack) then
-                Error(nErrIfXXXNestingLimitReached,sErrIfXXXNestingLimitReached);
-              PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
-              PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
-              Inc(PPSkipStackIndex);
-              if PPIsSkipping then
-              begin
-                PPSkipMode := ppSkipAll;
-                PPIsSkipping := true;
-              end else
-              begin
-                Param := UpperCase(Param);
-                Index := Defines.IndexOf(Param);
-                if Index >= 0 then
-                begin
-                  PPSkipMode := ppSkipIfBranch;
-                  PPIsSkipping := true;
-                end else
-                  PPSkipMode := ppSkipElseBranch;
-                If LogEvent(sleConditionals) then
-                  if PPSkipMode=ppSkipElseBranch then
-                    DoLog(mtInfo,nLogIFNDefAccepted,sLogIFNDefAccepted,[Param])
-                  else
-                    DoLog(mtInfo,nLogIFNDefRejected,sLogIFNDefRejected,[Param])
-              end;
-            end else if Directive = 'IFOPT' then
-            begin
-              if PPSkipStackIndex = High(PPSkipModeStack) then
-                Error(nErrIfXXXNestingLimitReached,sErrIfXXXNestingLimitReached);
-              PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
-              PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
-              Inc(PPSkipStackIndex);
-              if PPIsSkipping then
-              begin
-                PPSkipMode := ppSkipAll;
-                PPIsSkipping := true;
-              end else
-              begin
-                { !!!: Currently, options are not supported, so they are just
-                  assumed as not being set. }
-                PPSkipMode := ppSkipIfBranch;
-                PPIsSkipping := true;
-              end;
-              If LogEvent(sleConditionals) then
-                DoLog(mtInfo,nLogIFOPTIgnored,sLogIFOPTIgnored,[Uppercase(Param)])
-            end else if Directive = 'IF' then
-            begin
-              if PPSkipStackIndex = High(PPSkipModeStack) then
-                Error(nErrIfXXXNestingLimitReached,sErrIfXXXNestingLimitReached);
-              PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
-              PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
-              Inc(PPSkipStackIndex);
-              if PPIsSkipping then
-              begin
-                PPSkipMode := ppSkipAll;
-                PPIsSkipping := true;
-              end else
-              begin
-                { !!!: Currently, expressions are not supported, so they are
-                  just assumed as evaluating to false. }
-                PPSkipMode := ppSkipIfBranch;
-                PPIsSkipping := true;
-              If LogEvent(sleConditionals) then
-                 DoLog(mtInfo,nLogIFIgnored,sLogIFIgnored,[Uppercase(Param)])
-              end;
-            end else if Directive = 'ELSE' then
-            begin
-              if PPSkipStackIndex = 0 then
-                Error(nErrInvalidPPElse,sErrInvalidPPElse);
-              if PPSkipMode = ppSkipIfBranch then
-                PPIsSkipping := false
-              else if PPSkipMode = ppSkipElseBranch then
-                PPIsSkipping := true;
-            end else if ((Directive = 'ENDIF') or (Directive='IFEND')) then
-            begin
-              if PPSkipStackIndex = 0 then
-                Error(nErrInvalidPPEndif,sErrInvalidPPEndif);
-              Dec(PPSkipStackIndex);
-              PPSkipMode := PPSkipModeStack[PPSkipStackIndex];
-              PPIsSkipping := PPIsSkippingStack[PPSkipStackIndex];
-            end;
-          end else
-            Directive := '';
-        end;
+        if (Copy(CurTokenString,1,1)='$') then
+          Result:=HandleDirective(CurTokenString);
       end;
     'A'..'Z', 'a'..'z', '_':
       begin

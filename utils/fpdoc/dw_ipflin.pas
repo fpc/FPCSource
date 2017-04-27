@@ -72,8 +72,8 @@ type
     Procedure StartAccess; override;
     Procedure StartErrors; override;
     Procedure StartVersion; override;
-    Procedure StartSeealso; override;
-    Procedure EndSeealso; override;
+    Procedure StartSeeAlso; override;
+    Procedure EndSeeAlso; override;
     procedure StartUnitOverview(AModuleName,AModuleLabel : String);override;
     procedure WriteUnitEntry(UnitRef : TPasType); override;
     Procedure EndUnitOverview; override;
@@ -1068,7 +1068,7 @@ begin
   WriteLn(Format(':pd. %s', [ADescr]));
 end;
 
-procedure TIPFNewWriter.StartSeealso;
+procedure TIPFNewWriter.StartSeeAlso;
 begin
   writeln('');
   writeln(':p.');
@@ -1078,7 +1078,7 @@ begin
   writeln('.br');
 end;
 
-procedure TIPFNewWriter.EndSeealso;
+procedure TIPFNewWriter.EndSeeAlso;
 begin
   writeln('');
 end;

@@ -65,12 +65,15 @@ type
     Procedure TestToken(t : TToken; Const ASource : String; Const CheckEOF : Boolean = True);
     Procedure TestTokens(t : array of TToken; Const ASource : String; Const CheckEOF : Boolean = True;Const DoClear : Boolean = True);
     Property LastIDentifier : String Read FLI Write FLi;
+    Property Scanner : TPascalScanner Read FScanner;
   published
     procedure TestEOF;
     procedure TestWhitespace;
     procedure TestComment1;
     procedure TestComment2;
     procedure TestComment3;
+    procedure TestComment4;
+    procedure TestComment5;
     procedure TestNestedComment1;
     procedure TestNestedComment2;
     procedure TestNestedComment3;
@@ -120,6 +123,7 @@ type
     procedure TestConst;
     procedure TestConstructor;
     procedure TestDestructor;
+    procedure TestDispinterface;
     procedure TestDiv;
     procedure TestDo;
     procedure TestDownto;
@@ -166,6 +170,8 @@ type
     procedure TestSet;
     procedure TestShl;
     procedure TestShr;
+    procedure TestShlC;
+    procedure TestShrC;
     procedure TestSpecialize;
     procedure TestThen;
     procedure TestThreadvar;
@@ -187,8 +193,11 @@ type
     Procedure TestTokenSeriesComments;
     Procedure TestTokenSeriesNoComments;
     Procedure TestDefine0;
+    procedure TestDefine01;
     Procedure TestDefine1;
     Procedure TestDefine2;
+    Procedure TestDefine21;
+    procedure TestDefine22;
     Procedure TestDefine3;
     Procedure TestDefine4;
     Procedure TestDefine5;
@@ -199,6 +208,7 @@ type
     Procedure TestDefine10;
     Procedure TestDefine11;
     Procedure TestDefine12;
+    Procedure TestDefine13;
     Procedure TestInclude;
     Procedure TestInclude2;
     Procedure TestUnDefine1;
@@ -359,11 +369,13 @@ begin
   if DoClear then
     FResolver.Clear;
   FResolver.AddStream('afile.pp',TStringStream.Create(Source));
+  Writeln('// TestName');
+  Writeln(Source);
   FScanner.OpenFile('afile.pp');
 end;
 
 procedure TTestScanner.DoTestToken(t: TToken; const ASource: String;
-  Const CheckEOF: Boolean);
+  const CheckEOF: Boolean);
 
 Var
   tk : ttoken;
@@ -381,7 +393,8 @@ begin
     end;
 end;
 
-procedure TTestScanner.TestToken(t: TToken; const ASource: String; Const CheckEOF: Boolean);
+procedure TTestScanner.TestToken(t: TToken; const ASource: String;
+  const CheckEOF: Boolean);
 Var
   S : String;
 begin
@@ -397,7 +410,7 @@ begin
 end;
 
 procedure TTestScanner.TestTokens(t: array of TToken; const ASource: String;
-  const CheckEOF: Boolean;Const DoClear : Boolean = True);
+  const CheckEOF: Boolean; const DoClear: Boolean);
 Var
   tk : ttoken;
   i : integer;
@@ -451,6 +464,20 @@ procedure TTestScanner.TestComment3;
 
 begin
   TestToken(tkComment,'//');
+end;
+
+procedure TTestScanner.TestComment4;
+
+begin
+  DoTestToken(tkComment,'(* abc *)',False);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment5;
+
+begin
+  DoTestToken(tkComment,'(* abc'+LineEnding+'def *)',False);
+  AssertEquals('Correct comment',' abc'+LineEnding+'def ',Scanner.CurTokenString);
 end;
 
 procedure TTestScanner.TestNestedComment1;
@@ -788,6 +815,10 @@ begin
   TestToken(tkdestructor,'destructor');
 end;
 
+procedure TTestScanner.TestDispinterface;
+begin
+  TestToken(tkdispinterface,'dispinterface');
+end;
 
 procedure TTestScanner.TestDiv;
 
@@ -895,7 +926,7 @@ end;
 
 procedure TTestScanner.TestHelper;
 begin
-  TestToken(tkHelper,'helper');
+  TestToken(tkIdentifier,'helper');
 end;
 
 
@@ -1108,6 +1139,16 @@ begin
   TestToken(tkshr,'shr');
 end;
 
+procedure TTestScanner.TestShlC;
+begin
+  TestToken(tkshl,'<<');
+end;
+
+procedure TTestScanner.TestShrC;
+begin
+  TestToken(tkshr,'>>');
+end;
+
 
 procedure TTestScanner.TestSpecialize;
 
@@ -1249,6 +1290,13 @@ begin
     Fail('Define not defined');
 end;
 
+procedure TTestScanner.TestDefine01;
+begin
+  TestTokens([tkComment],'(*$DEFINE NEVER*)');
+  If FSCanner.Defines.IndexOf('NEVER')=-1 then
+    Fail('Define not defined');
+end;
+
 procedure TTestScanner.TestDefine1;
 begin
   TestTokens([tkComment],'{$IFDEF NEVER} of {$ENDIF}');
@@ -1259,6 +1307,19 @@ procedure TTestScanner.TestDefine2;
 begin
   FSCanner.Defines.Add('ALWAYS');
   TestTokens([tkComment,tkWhitespace,tkOf,tkWhitespace,tkcomment],'{$IFDEF ALWAYS} of {$ENDIF}');
+end;
+
+procedure TTestScanner.TestDefine21;
+begin
+  FSCanner.Defines.Add('ALWAYS');
+  TestTokens([tkComment,tkWhitespace,tkOf,tkWhitespace,tkcomment],'(*$IFDEF ALWAYS*) of (*$ENDIF*)');
+end;
+
+procedure TTestScanner.TestDefine22;
+begin
+  FSCanner.Defines.Add('ALWAYS');
+  // No whitespace. Test border of *)
+  TestTokens([tkComment,tkOf,tkWhitespace,tkcomment],'(*$IFDEF ALWAYS*)of (*$ENDIF*)');
 end;
 
 procedure TTestScanner.TestDefine3;
@@ -1326,6 +1387,13 @@ begin
   FScanner.SkipComments:=True;
   FScanner.SkipWhiteSpace:=True;
   TestTokens([tkin],'{$IFDEF ALWAYS} of {$ELSE} in {$ENDIF}');
+end;
+
+procedure TTestScanner.TestDefine13;
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  TestTokens([tkin],'{$IFDEF ALWAYS} }; ą è {$ELSE} in {$ENDIF}');
 end;
 
 procedure TTestScanner.TestInclude;

@@ -33,6 +33,7 @@ type
   TTestTypeParser = Class(TBaseTestTypeParser)
   private
   Protected
+    procedure StartTypeHelper(ForType: String; AParent: String);
     Procedure DoTestAliasType(Const AnAliasType : String; Const AHint : String);
     procedure DoTestStringType(const AnAliasType: String; const AHint: String);
     procedure DoTypeError(Const AMsg,ASource : string);
@@ -127,6 +128,7 @@ type
     Procedure TestFileTypeDeprecated;
     Procedure TestFileTypePlatform;
     Procedure TestRangeType;
+    Procedure TestCharRangeType;
     Procedure TestRangeTypeDeprecated;
     Procedure TestRangeTypePlatform;
     Procedure TestIdentifierRangeType;
@@ -139,6 +141,7 @@ type
     Procedure TestComplexSet;
     Procedure TestComplexSetDeprecated;
     Procedure TestComplexSetPlatform;
+    procedure TestRangeLowHigh;
     Procedure TestRangeSet;
     Procedure TestSubRangeSet;
     Procedure TestRangeSetDeprecated;
@@ -154,6 +157,9 @@ type
     Procedure TestReferenceFile;
     Procedure TestReferenceArray;
     Procedure TestReferencePointer;
+    Procedure TestInvalidColon;
+    Procedure TestTypeHelper;
+    Procedure TestSpecializationDelphi;
   end;
 
   { TTestRecordTypeParser }
@@ -174,6 +180,7 @@ type
     procedure AssertField1(Hints: TPasMemberHints);
     procedure AssertField2(Hints: TPasMemberHints);
     procedure AssertMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
+    procedure AssertConstructor2(Hints: TPasMemberHints; isClass : Boolean = False);
     procedure AssertOperatorMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
     procedure AssertVariant1(Hints: TPasMemberHints);
     procedure AssertVariant1(Hints: TPasMemberHints; VariantLabels : Array of string);
@@ -182,6 +189,7 @@ type
     procedure AssertOneIntegerField(Hints: TPasMemberHints);
     procedure AssertTwoIntegerFields(Hints1, Hints2: TPasMemberHints);
     procedure AssertIntegerFieldAndMethod(Hints1, Hints2: TPasMemberHints);
+    procedure AssertIntegerFieldAndConstructor(Hints1, Hints2: TPasMemberHints);
     procedure AssertRecordField(AIndex: Integer;Hints: TPasMemberHints);
     procedure AssertRecordVariant(AIndex: Integer;Hints: TPasMemberHints; VariantLabels : Array of string);
     Procedure AssertRecordVariantVariant(AIndex: Integer;Const AFieldName,ATypeName: string;Hints: TPasMemberHints; VariantLabels : Array of string);
@@ -248,6 +256,7 @@ type
     Procedure TestTwoDeprecatedFieldsCombined;
     Procedure TestTwoDeprecatedFieldsCombinedDeprecated;
     Procedure TestTwoDeprecatedFieldsCombinedPlatform;
+    procedure TestFieldAndConstructor;
     Procedure TestFieldAndMethod;
     Procedure TestFieldAnd2Methods;
     Procedure TestFieldAndProperty;
@@ -1518,6 +1527,21 @@ begin
   AssertTrue('Method hints match',P.Hints=Hints)
 end;
 
+procedure TTestRecordTypeParser.AssertConstructor2(Hints: TPasMemberHints;
+  isClass: Boolean);
+Var
+  P : TPasProcedure;
+
+begin
+  if IsClass then
+    AssertEquals('Member 2 type',TPasClassConstructor,TObject(TheRecord.Members[1]).ClassType)
+  else
+    AssertEquals('Member 2 type',TPasConstructor,TObject(TheRecord.Members[1]).ClassType);
+  P:=TPasProcedure(TheRecord.Members[1]);
+  AssertEquals('Constructor name','create',P.Name);
+  AssertTrue('Constructor hints match',P.Hints=Hints)
+end;
+
 procedure TTestRecordTypeParser.AssertOperatorMethod2(Hints: TPasMemberHints;
   isClass: Boolean);
 Var
@@ -1555,6 +1579,14 @@ begin
   AssertEquals('Two members',2,TheRecord.Members.Count);
   AssertField1(Hints1);
   AssertMethod2(Hints2);
+end;
+
+procedure TTestRecordTypeParser.AssertIntegerFieldAndConstructor(Hints1,
+  Hints2: TPasMemberHints);
+begin
+  AssertEquals('Two members',2,TheRecord.Members.Count);
+  AssertField1(Hints1);
+  AssertConstructor2(Hints2);
 end;
 
 procedure TTestRecordTypeParser.AssertRecordField(AIndex: Integer;
@@ -1902,6 +1934,14 @@ procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombinedPlatform;
 begin
   TestFields(['x,y : integer deprecated;'],'platform',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndConstructor;
+
+begin
+  Parser.Options:=[po_delphi];
+  TestFields(['x : integer;','constructor create;'],'',False);
+  AssertIntegerFieldAndConstructor([],[]);
 end;
 
 procedure TTestRecordTypeParser.TestFieldAndMethod;
@@ -2325,6 +2365,7 @@ Function TBaseTestTypeParser.ParseType(ASource: String; ATypeClass: TClass;
 
 Var
   D : String;
+
 begin
   Hint:=AHint;
   Add('Type');
@@ -2339,11 +2380,19 @@ begin
   Add('  '+D+';');
 //  Writeln(source.text);
   ParseDeclarations;
-  AssertEquals('One type definition',1,Declarations.Types.Count);
+  if ATypeClass.InHeritsFrom(TPasClassType) then
+    AssertEquals('One type definition',1,Declarations.Classes.Count)
+  else
+    AssertEquals('One type definition',1,Declarations.Types.Count);
   If (AtypeClass<>Nil) then
-    AssertEquals('First declaration is type definition.',ATypeClass,TObject(Declarations.Types[0]).ClassType);
-  AssertEquals('First declaration has correct name.','A',TPasType(Declarations.Types[0]).Name);
-  Result:=TPasType(Declarations.Types[0]);
+    begin
+    if ATypeClass.InHeritsFrom(TPasClassType) then
+      Result:=TPasType(Declarations.Classes[0])
+    else
+      Result:=TPasType(Declarations.Types[0]);
+    AssertEquals('First declaration is type definition.',ATypeClass,Result.ClassType);
+    end;
+  AssertEquals('First declaration has correct name.','A',Result.Name);
   FType:=Result;
   Definition:=Result;
   if (Hint<>'') then
@@ -2975,6 +3024,11 @@ begin
   DoTestRangeType('1','4','');
 end;
 
+procedure TTestTypeParser.TestCharRangeType;
+begin
+  DoTestRangeType('#1','#4','');
+end;
+
 procedure TTestTypeParser.TestRangeTypeDeprecated;
 begin
   DoTestRangeType('1','4','deprecated');
@@ -3042,6 +3096,13 @@ begin
   DoParseComplexSet('(one, two, three)','platform');
   DoTestComplexSet;
 end;
+
+procedure TTestTypeParser.TestRangeLowHigh;
+
+begin
+  DoParseRangeSet('low(TRange)..high(TRange)','');
+end;
+
 
 procedure TTestTypeParser.TestRangeSet;
 begin
@@ -3183,6 +3244,46 @@ begin
   AssertSame('Second declaration references first.',Declarations.Types[0],TPasPointerType(Declarations.Types[1]).DestType);
 end;
 
+procedure TTestTypeParser.TestInvalidColon;
+var
+  ok: Boolean;
+begin
+  ok:=false;
+  try
+    ParseType(':1..2',TPasSetType);
+  except
+    on E: EParserError do
+      ok:=true;
+  end;
+  AssertEquals('wrong colon in type raised an error',true,ok);
+end;
+
+
+procedure TTestTypeParser.StartTypeHelper(ForType: String; AParent: String);
+Var
+  S : String;
+begin
+
+  S:='TMyClass = Type Helper';
+  if (AParent<>'') then
+    begin
+    S:=S+'('+AParent;
+    S:=S+')';
+    end;
+  S:=S+' for '+ForType;
+  Add(S);
+
+end;
+
+procedure TTestTypeParser.TestTypeHelper;
+begin
+  ParseType('Type Helper for AnsiString end',TPasClassType,'');
+end;
+
+procedure TTestTypeParser.TestSpecializationDelphi;
+begin
+  ParseType('TFPGList<integer>',TPasClassType,'');
+end;
 
 initialization
   RegisterTests([TTestTypeParser,TTestRecordTypeParser,TTestProcedureTypeParser]);

@@ -333,11 +333,6 @@ begin
   AssertEquals('Correct condition class',TJSUnaryNotExpression,E.Cond.ClassType);
   AssertIdentifier('Conditional expression',TJSUnaryNotExpression(E.Cond).A,'a');
   L:=AssertListStatement('Multiple statements',E.Body);
-  //  writeln('TTestStatementConverter.TestRepeatUntilStatementTwo L.A=',L.A.ClassName);
-  // writeln('  L.B=',L.B.ClassName);
-  // writeln('  L.B.A=',TJSStatementList(L.B).A.ClassName);
-  // writeln('  L.B.B=',TJSStatementList(L.B).B.ClassName);
-
   AssertAssignStatement('First List statement is assignment',L.A,'b','c');
   AssertAssignStatement('Second List statement is assignment',L.B,'d','e');
 end;
@@ -649,7 +644,7 @@ begin
   T:=TPasImplTry.Create('',Nil);
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddExcept;
-  O:=F.AddExceptOn(CreateIdent('E'),CreateIdent('Exception'));
+  O:=F.AddExceptOn('E','Exception');
   O.Body:=CreateAssignStatement('b','c');
   // Convert
   El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
@@ -697,7 +692,7 @@ begin
   T:=TPasImplTry.Create('',Nil);
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddExcept;
-  O:=F.AddExceptOn(CreateIdent('E'),CreateIdent('Exception'));
+  O:=F.AddExceptOn('E','Exception');
   O.Body:=TPasImplRaise.Create('',Nil);
   // Convert
   El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));

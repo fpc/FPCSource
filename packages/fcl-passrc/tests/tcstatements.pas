@@ -19,6 +19,8 @@ Type
   private
     FStatement: TPasImplBlock;
     FVariables : TStrings;
+    procedure DoTestCallOtherFormat;
+    procedure TestCallFormat(FN: String; Two: Boolean);
   Protected
     Procedure SetUp; override;
     Procedure TearDown; override;
@@ -48,6 +50,13 @@ Type
     Procedure TestCallQualified2;
     Procedure TestCallNoArgs;
     Procedure TestCallOneArg;
+    procedure TestCallWriteFormat1;
+    procedure TestCallWriteFormat2;
+    procedure TestCallWritelnFormat1;
+    procedure TestCallWritelnFormat2;
+    procedure TestCallStrFormat1;
+    procedure TestCallStrFormat2;
+    procedure TestCallOtherFormat;
     Procedure TestIf;
     Procedure TestIfBlock;
     Procedure TestIfAssignment;
@@ -97,6 +106,7 @@ Type
     Procedure TestTryExceptOn2;
     Procedure TestTryExceptOnElse;
     Procedure TestTryExceptOnIfElse;
+    procedure TestTryExceptRaise;
     Procedure TestAsm;
   end;
 
@@ -412,6 +422,7 @@ begin
 end;
 
 procedure TTestStatementParser.TestCallOneArg;
+
 Var
   S : TPasImplSimple;
   P : TParamsExpr;
@@ -426,6 +437,76 @@ begin
   AssertExpression('Correct function call name',P.Value,pekIdent,'Doit');
   AssertEquals('One param',1,Length(P.Params));
   AssertExpression('Parameter is constant',P.Params[0],pekNumber,'1');
+end;
+
+procedure TTestStatementParser.TestCallFormat(FN : String; Two : Boolean);
+
+Var
+  S : TPasImplSimple;
+  P : TParamsExpr;
+  N : String;
+begin
+  N:=fn+'(a:3';
+  if Two then
+    N:=N+':2';
+  N:=N+');';
+  TestStatement(N);
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+  AssertEquals('Simple statement',TPasImplSimple,Statement.ClassType);
+  S:=Statement as TPasImplSimple;
+  AssertExpression('Doit call',S.Expr,pekFuncParams,TParamsExpr);
+  P:=S.Expr as TParamsExpr;
+  AssertExpression('Correct function call name',P.Value,pekIdent,FN);
+  AssertEquals('One param',1,Length(P.Params));
+  AssertExpression('Parameter is identifier',P.Params[0],pekIdent,'a');
+  AssertExpression('Parameter has formatting constant 1' ,P.Params[0].format1,pekNumber,'3');
+  if Two then
+    AssertExpression('Parameter has formatting constant 2',P.Params[0].format2,pekNumber,'2');
+end;
+
+procedure TTestStatementParser.TestCallWriteFormat1;
+
+begin
+  TestCalLFormat('write',False);
+end;
+
+procedure TTestStatementParser.TestCallWriteFormat2;
+
+begin
+  TestCalLFormat('write',True);
+end;
+
+procedure TTestStatementParser.TestCallWritelnFormat1;
+begin
+  TestCalLFormat('writeln',False);
+
+end;
+
+procedure TTestStatementParser.TestCallWritelnFormat2;
+begin
+  TestCalLFormat('writeln',True);
+end;
+
+procedure TTestStatementParser.TestCallStrFormat1;
+begin
+  TestCalLFormat('str',False);
+end;
+
+procedure TTestStatementParser.TestCallStrFormat2;
+begin
+  TestCalLFormat('str',True);
+end;
+
+procedure TTestStatementParser.DoTestCallOtherFormat;
+
+begin
+  TestCalLFormat('nono',False);
+end;
+
+procedure TTestStatementParser.TestCallOtherFormat;
+
+begin
+  AssertException('Only Write(ln) and str allow format',EParserError,@DoTestCallOtherFormat);
 end;
 
 procedure TTestStatementParser.TestIf;
@@ -1326,8 +1407,8 @@ begin
   O:=TPasImplExceptOn(E.Elements[0]);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   S:=TPasImplSimple(O.Elements[0]);
   AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse');
 //  AssertEquals('Variable name',
@@ -1364,8 +1445,8 @@ begin
   O:=TPasImplExceptOn(E.Elements[0]);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   S:=TPasImplSimple(O.Elements[0]);
   AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse');
   // Exception handler 2
@@ -1373,8 +1454,8 @@ begin
   O:=TPasImplExceptOn(E.Elements[1]);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'Y');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception2');
+  AssertEquals('Exception Variable name','Y',O.VariableName);
+  AssertEquals('Exception Type name','Exception2',O.TypeName);
   S:=TPasImplSimple(O.Elements[0]);
   AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse2');
 end;
@@ -1407,8 +1488,8 @@ begin
   AssertEquals(1,E.Elements.Count);
   AssertEquals('Except on handler',TPasImplExceptOn,TPasElement(E.Elements[0]).ClassType);
   O:=TPasImplExceptOn(E.Elements[0]);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplIfElse,TPasElement(O.Elements[0]).ClassType);
   I:=TPasImplIfElse(O.Elements[0]);
@@ -1450,8 +1531,8 @@ begin
   AssertEquals(1,E.Elements.Count);
   AssertEquals('Except on handler',TPasImplExceptOn,TPasElement(E.Elements[0]).ClassType);
   O:=TPasImplExceptOn(E.Elements[0]);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
   S:=TPasImplSimple(O.Elements[0]);
@@ -1463,6 +1544,29 @@ begin
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(EE.Elements[0]).ClassType);
   S:=TPasImplSimple(EE.Elements[0]);
   AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomethingMore');
+end;
+
+procedure TTestStatementParser.TestTryExceptRaise;
+Var
+  T : TPasImplTry;
+  S : TPasImplSimple;
+  E : TPasImplTryExcept;
+
+begin
+  TestStatement(['Try','  DoSomething;','except','  raise','end']);
+  T:=AssertStatement('Try statement',TPasImplTry) as TPasImplTry;
+  AssertEquals(1,T.Elements.Count);
+  AssertNotNull(T.FinallyExcept);
+  AssertNull(T.ElseBranch);
+  AssertNotNull(T.Elements[0]);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  S:=TPasImplSimple(T.Elements[0]);
+  AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomething');
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  AssertEquals('Except statement',TPasImplTryExcept,T.FinallyExcept.ClassType);
+  E:=TPasImplTryExcept(T.FinallyExcept);
+  AssertEquals(1,E.Elements.Count);
+  AssertEquals('Raise statement',TPasImplRaise,TPasElement(E.Elements[0]).ClassType);
 end;
 
 procedure TTestStatementParser.TestAsm;

@@ -26,12 +26,14 @@ Type
     FOnLog: TPasParserLogHandler;
     FPParserLogEvents: TPParserLogEvents;
     FProject : TFPDocProject;
+    FProjectMacros: TStrings;
     FScannerLogEvents: TPScannerLogEvents;
     FVerbose: Boolean;
     function GetOptions: TEngineOptions;
     function GetPackages: TFPDocPackages;
     procedure SetBaseDescrDir(AValue: String);
     procedure SetBaseInputDir(AValue: String);
+    procedure SetProjectMacros(AValue: TStrings);
   Protected
     Function FixInputFile(Const AFileName : String) : String;
     Function FixDescrFile(Const AFileName : String) : String;
@@ -58,6 +60,8 @@ Type
     // When set, they will be prepended to non-absolute filenames.
     Property BaseInputDir : String Read FBaseInputDir Write SetBaseInputDir;
     Property BaseDescrDir : String Read FBaseDescrDir Write SetBaseDescrDir;
+    // Macros used when loading the project file
+    Property ProjectMacros : TStrings Read FProjectMacros Write SetProjectMacros;
   end;
 
 implementation
@@ -81,13 +85,13 @@ begin
     end;
 end;
 
-Procedure TFPDocCreator.DoLog(Const Msg: String);
+procedure TFPDocCreator.DoLog(const Msg: String);
 begin
   If Assigned(OnLog) then
     OnLog(Self,Msg);
 end;
 
-procedure TFPDocCreator.DoLog(Const Fmt: String; Args: Array of Const);
+procedure TFPDocCreator.DoLog(const Fmt: String; Args: array of const);
 begin
   DoLog(Format(Fmt,Args));
 end;
@@ -132,7 +136,7 @@ begin
   Result:=FProject.Packages;
 end;
 
-Function TFPDocCreator.FixInputFile(Const AFileName: String): String;
+function TFPDocCreator.FixInputFile(const AFileName: String): String;
 begin
   Result:=AFileName;
   If Result='' then exit;
@@ -140,7 +144,7 @@ begin
     Result:=BaseInputDir+Result;
 end;
 
-Function TFPDocCreator.FixDescrFile(Const AFileName: String): String;
+function TFPDocCreator.FixDescrFile(const AFileName: String): String;
 begin
   Result:=AFileName;
   If Result='' then exit;
@@ -164,13 +168,19 @@ begin
     FBaseInputDir:=IncludeTrailingPathDelimiter(FBaseInputDir);
 end;
 
-Procedure TFPDocCreator.DoBeforeEmitNote(Sender: TObject; Note: TDomElement;
-  Var EmitNote: Boolean);
+procedure TFPDocCreator.SetProjectMacros(AValue: TStrings);
+begin
+  if FProjectMacros=AValue then Exit;
+  FProjectMacros.Assign(AValue);
+end;
+
+procedure TFPDocCreator.DoBeforeEmitNote(Sender: TObject; Note: TDomElement;
+  var EmitNote: Boolean);
 begin
   EmitNote:=True;
 end;
 
-Constructor TFPDocCreator.Create(AOwner: TComponent);
+constructor TFPDocCreator.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FProject:=TFPDocProject.Create(Self);
@@ -178,12 +188,14 @@ begin
   FProject.Options.CPUTarget:=DefCPUTarget;
   FProject.Options.OSTarget:=DefOSTarget;
   FProcessedUnits:=TStringList.Create;
+  FProjectMacros:=TStringList.Create;
 end;
 
-Destructor TFPDocCreator.Destroy;
+destructor TFPDocCreator.Destroy;
 begin
   FreeAndNil(FProcessedUnits);
   FreeAndNil(FProject);
+  FreeAndNil(FProjectMacros);
   inherited Destroy;
 end;
 
@@ -221,7 +233,7 @@ begin
     Engine.WriteContentFile(APackage.ContentFile);
 end;
 
-Procedure TFPDocCreator.CreateDocumentation(APackage: TFPDocPackage;
+procedure TFPDocCreator.CreateDocumentation(APackage: TFPDocPackage;
   ParseOnly: Boolean);
 
 var
@@ -282,7 +294,7 @@ begin
   end;
 end;
 
-Procedure TFPDocCreator.CreateProjectFile(Const AFileName: string);
+procedure TFPDocCreator.CreateProjectFile(const AFileName: string);
 begin
   With TXMLFPDocOptions.Create(Self) do
   try
@@ -292,11 +304,14 @@ begin
   end;
 end;
 
-Procedure TFPDocCreator.LoadProjectFile(Const AFileName: string);
+procedure TFPDocCreator.LoadProjectFile(const AFileName: string);
 begin
   With TXMLFPDocOptions.Create(self) do
     try
-      LoadOptionsFromFile(FProject,AFileName);
+      if (ProjectMacros.Count>0) then
+        LoadOptionsFromFile(FProject,AFileName,ProjectMacros)
+      else
+        LoadOptionsFromFile(FProject,AFileName,Nil);
     finally
       Free;
     end;

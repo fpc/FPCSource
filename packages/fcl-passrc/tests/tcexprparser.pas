@@ -62,6 +62,8 @@ type
     Procedure TestUnaryAddress;
     Procedure TestUnaryNot;
     Procedure TestUnaryDeref;
+    Procedure TestUnaryDoubleDeref;
+    Procedure TestUnaryDoubleDeref2;
     Procedure TestBinaryAdd;
     Procedure TestBinarySubtract;
     Procedure TestBinaryMultiply;
@@ -210,13 +212,14 @@ Var
 begin
   DeclareVar('record a : array[1..2] of integer; end ','b');
   ParseExpression('b.a[1]');
-  P:=TParamsExpr(AssertExpression('Simple identifier',theExpr,pekArrayParams,TParamsExpr));
-  B:=AssertExpression('Name of array',P.Value,pekBinary,TBInaryExpr) as TBinaryExpr;
-  AssertEquals('name is Subident',eopSubIdent,B.Opcode);
+  B:=AssertExpression('Binary of record',TheExpr,pekBinary,TBinaryExpr) as TBinaryExpr;
+  AssertEquals('Name is Subident',eopSubIdent,B.Opcode);
   AssertExpression('Name of array',B.Left,pekIdent,'b');
-  AssertExpression('Name of array',B.Right,pekIdent,'a');
-  AssertEquals('One dimension',1,Length(p.params));
-  AssertExpression('Simple identifier',p.params[0],pekNumber,'1');
+  P:=TParamsExpr(AssertExpression('Simple identifier',B.right,pekArrayParams,TParamsExpr));
+  AssertExpression('Name of array',P.Value,pekIdent,'a');
+  TAssert.AssertSame('P.value.parent=P',P,P.Value.Parent);
+  AssertEquals('One dimension',1,Length(P.params));
+  AssertExpression('Simple identifier',P.params[0],pekNumber,'1');
   TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
   TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
 end;
@@ -549,8 +552,28 @@ begin
   DeclareVar('integer','a');
   DeclareVar('pinteger','b');
   ParseExpression('b^');
-  AssertUnaryExpr('Simple address unary',eopDeref,FLeft);
+  AssertUnaryExpr('Simple deref unary',eopDeref,FLeft);
   AssertExpression('Simple identifier',theLeft,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestUnaryDoubleDeref;
+begin
+  DeclareVar('integer','a');
+  DeclareVar('ppinteger','b');
+  ParseExpression('(b)^^');
+  AssertExpression('Deref expression 1',TheExpr,pekUnary,TUnaryExpr);
+  AssertExpression('Deref expression 2',TUnaryExpr(TheExpr).Operand,pekUnary,TUnaryExpr);
+  AssertExpression('Deref expression 3',TUnaryExpr(TUnaryExpr(TheExpr).Operand).Operand,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestUnaryDoubleDeref2;
+begin
+  DeclareVar('integer','a');
+  DeclareVar('ppinteger','b');
+  ParseExpression('b^^');
+  AssertExpression('Deref expression 1',TheExpr,pekUnary,TUnaryExpr);
+  AssertExpression('Deref expression 2',TUnaryExpr(TheExpr).Operand,pekUnary,TUnaryExpr);
+  AssertExpression('Deref expression 3',TUnaryExpr(TUnaryExpr(TheExpr).Operand).Operand,pekIdent,'b');
 end;
 
 procedure TTestExpressions.TestBinaryAdd;

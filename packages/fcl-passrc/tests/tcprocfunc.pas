@@ -80,6 +80,7 @@ type
     Procedure TestFunctionOneArgDefaultExpr;
     procedure TestProcedureTwoArgsDefault;
     Procedure TestFunctionTwoArgsDefault;
+    procedure TestFunctionOneArgEnumeratedExplicit;
     procedure TestProcedureOneUntypedVarArg;
     Procedure TestFunctionOneUntypedVarArg;
     procedure TestProcedureTwoUntypedVarArgs;
@@ -160,6 +161,7 @@ type
     Procedure TestFunctionCdeclExternalName;
     Procedure TestOperatorTokens;
     procedure TestOperatorNames;
+    Procedure TestFunctionNoResult;
   end;
 
 implementation
@@ -560,6 +562,13 @@ begin
   ParseFunction('(B : Integer = 1)');
   AssertFunc([],ccDefault,1);
   AssertArg(FuncType,0,'B',argDefault,'Integer','1');
+end;
+
+procedure TTestProcedureFunction.TestFunctionOneArgEnumeratedExplicit;
+begin
+  ParseFunction('(B : TSomeEnum = TSomeEnum.False)');
+  AssertFunc([],ccDefault,1);
+  AssertArg(FuncType,0,'B',argDefault,'TSomeEnum','TSomeEnum.False');
 end;
 
 procedure TTestProcedureFunction.TestProcedureOneArgDefaultSet;
@@ -1154,24 +1163,26 @@ procedure TTestProcedureFunction.TestOperatorTokens;
 
 Var
   t : TOperatorType;
+  s : string;
 
 begin
   For t:=otMul to High(TOperatorType) do
     // No way to distinguish between logical/bitwise or/and/Xor
     if not (t in [otBitwiseOr,otBitwiseAnd,otBitwiseXor]) then
       begin
+      S:=GetEnumName(TypeInfo(TOperatorType),Ord(T));
       ResetParser;
       if t in UnaryOperators then
         AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorTokens[t]]))
       else
         AddDeclaration(Format('operator %s (a: Integer; b: integer) : te',[OperatorTokens[t]]));
       ParseOperator;
-      AssertEquals('Token based',Not (T in [otInc,otDec]),FOperator.TokenBased);
-      AssertEquals('Correct operator type',T,FOperator.OperatorType);
+      AssertEquals(S+': Token based ',Not (T in [otInc,otDec,otEnumerator]),FOperator.TokenBased);
+      AssertEquals(S+': Correct operator type',T,FOperator.OperatorType);
       if t in UnaryOperators then
-        AssertEquals('Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
+        AssertEquals(S+': Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
       else
-        AssertEquals('Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
+        AssertEquals(S+': Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
       end;
 end;
 
@@ -1196,6 +1207,21 @@ begin
       else
         AssertEquals('Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
       end;
+end;
+
+procedure TTestProcedureFunction.TestFunctionNoResult;
+begin
+  Add('unit afile;');
+  Add('{$mode delphi}');
+  Add('interface');
+  Add('function TestDelphiModeFuncs(d:double):string;');
+  Add('implementation');
+  Add('function TestDelphiModeFuncs;');
+  Add('begin');
+  Add('end;');
+  EndSource;
+  Parser.Options:=[po_delphi];
+  ParseModule;
 end;
 
 procedure TTestProcedureFunction.SetUp;
