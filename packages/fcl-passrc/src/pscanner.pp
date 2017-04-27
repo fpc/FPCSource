@@ -251,7 +251,7 @@ type
 
   TStringStreamLineReader = class(TStreamLineReader)
   Public
-    constructor Create( const AFilename: string; Const ASource: String);
+    constructor Create( const AFilename: string; Const ASource: String); reintroduce;
   end;
 
   { TMacroReader }

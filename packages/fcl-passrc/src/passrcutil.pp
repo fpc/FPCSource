@@ -171,8 +171,6 @@ procedure TPasSrcAnalysis.GetClassMembers(AClass: TPasClassType; List: TStrings;
 Var
   I : Integer;
   E : TPasElement;
-  V : TPasVariant;
-
 begin
   For I:=0 to AClass.Members.Count-1 do
     begin

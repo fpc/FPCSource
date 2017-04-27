@@ -134,7 +134,7 @@ type
     procedure Accept(Visitor: TPassTreeVisitor); override;
     property RefCount: LongWord read FRefCount;
     property Name: string read FName write FName;
-    property Parent: TPasElement read FParent;
+    property Parent: TPasElement read FParent Write FParent;
     Property Hints : TPasMemberHints Read FHints Write FHints;
     Property CustomData : TObject Read FData Write FData;
     Property HintMessage : String Read FHintMessage Write FHintMessage;
@@ -158,7 +158,7 @@ type
 
   TPasExpr = class(TPasElement)
     Kind      : TPasExprKind;
-    OpCode    : TexprOpcode;
+    OpCode    : TExprOpCode;
     constructor Create(AParent : TPasElement; AKind: TPasExprKind; AOpCode: TexprOpcode); virtual; overload;
   end;
 
@@ -428,6 +428,7 @@ type
     IndexRange : string;
     PackMode : TPackMode;
     ElType: TPasType;
+    Function IsGenericArray : Boolean;
     Function IsPacked : Boolean;
   end;
 
@@ -512,7 +513,7 @@ type
     Function IsAdvancedRecord : Boolean;
   end;
 
-  TPasGenericTemplateType = Class(TPasElement);
+  TPasGenericTemplateType = Class(TPasType);
   TPasObjKind = (okObject, okClass, okInterface, okGeneric, okSpecialize,
                  okClassHelper,okRecordHelper,okTypeHelper);
 
@@ -613,9 +614,9 @@ type
   { TPasUnresolvedUnitRef }
 
   TPasUnresolvedUnitRef = Class(TPasUnresolvedSymbolRef)
-    function ElementTypeName: string; override;
-  Public
+  public
     FileName : string;
+    function ElementTypeName: string; override;
   end;
 
   { TPasStringType }
@@ -629,7 +630,6 @@ type
   { TPasTypeRef }
 
   TPasTypeRef = class(TPasUnresolvedTypeRef)
-  public
   public
     RefType: TPasType;
   end;
@@ -656,6 +656,7 @@ type
   { TPasExportSymbol }
 
   TPasExportSymbol = class(TPasElement)
+  public
     ExportName : TPasExpr;
     Exportindex : TPasExpr;
     Destructor Destroy; override;
@@ -667,14 +668,13 @@ type
 
   TPasConst = class(TPasVariable)
   public
-  public
     function ElementTypeName: string; override;
   end;
 
   { TPasProperty }
 
   TPasProperty = class(TPasVariable)
-  Public
+  public
     FResolvedType : TPasType;
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
@@ -863,7 +863,6 @@ Type
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
   public
-
     Labels: TFPList;
     Body: TPasImplBlock;
   end;
@@ -2561,6 +2560,11 @@ begin
     end;
 end;
 
+function TPasArrayType.IsGenericArray: Boolean;
+begin
+  Result:=elType is TPasGenericTemplateType;
+end;
+
 function TPasArrayType.IsPacked: Boolean;
 begin
   Result:=PackMode=pmPacked;
@@ -3527,7 +3531,7 @@ end;
 
 { TBinaryExpr }
 
-function TBinaryExpr.GetDeclaration(Full : Boolean):AnsiString;
+function TBinaryExpr.GetDeclaration(full: Boolean): string;
   function OpLevel(op: TPasExpr): Integer;
   begin
     case op.OpCode of
@@ -3574,14 +3578,18 @@ constructor TBinaryExpr.Create(AParent : TPasElement; xleft,xright:TPasExpr; AOp
 begin
   inherited Create(AParent,pekBinary, AOpCode);
   left:=xleft;
+  left.Parent:=Self;
   right:=xright;
+  right.Parent:=Self;
 end;
 
 constructor TBinaryExpr.CreateRange(AParent : TPasElement; xleft,xright:TPasExpr);
 begin
   inherited Create(AParent,pekRange, eopNone);
   left:=xleft;
+  left.Parent:=Self;
   right:=xright;
+  right.Parent:=Self;
 end;
 
 destructor TBinaryExpr.Destroy;

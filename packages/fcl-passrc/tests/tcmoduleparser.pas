@@ -118,7 +118,8 @@ begin
   StartUnit('unit1');
   StartImplementation;
   ParseUnit;
-  AssertEquals('No interface units',0,IntfSection.UsesList.Count);
+  AssertEquals('Only system in interface units',1,IntfSection.UsesList.Count);
+  CheckUnit(0,'System',IntfSection.UsesList);
   AssertEquals('No implementation units',0,ImplSection.UsesList.Count);
 end;
 
@@ -155,7 +156,8 @@ begin
   ParseUnit;
   AssertEquals('One implementation units',1,ImplSection.UsesList.Count);
   CheckUnit(0,'a',ImplSection.UsesList);
-  AssertEquals('No interface units',0,IntfSection.UsesList.Count);
+  AssertEquals('Only system in interface units',1,IntfSection.UsesList.Count);
+  CheckUnit(0,'System',IntfSection.UsesList);
 end;
 
 procedure TTestModuleParser.TestUnitTwoImplUses;
@@ -164,10 +166,11 @@ begin
   StartImplementation;
   UsesClause(['a','b']);
   ParseUnit;
+  AssertEquals('One interface unit',1,IntfSection.UsesList.Count);
+  CheckUnit(0,'System',IntfSection.UsesList);
   AssertEquals('Two implementation units',2,ImplSection.UsesList.Count);
   CheckUnit(0,'a',ImplSection.UsesList);
   CheckUnit(1,'b',ImplSection.UsesList);
-  AssertEquals('No interface units',0,IntfSection.UsesList.Count);
 end;
 
 procedure TTestModuleParser.TestEmptyUnitInitialization;
