@@ -60,6 +60,8 @@ type
     procedure TearDown; override;
     Function TokenToString(tk : TToken) : string;
     Procedure AssertEquals(Msg : String; Expected,Actual : TToken); overload;
+    Procedure AssertEquals(Msg : String; Expected,Actual : TModeSwitch); overload;
+    Procedure AssertEquals(Msg : String; Expected,Actual : TModeSwitches); overload;
     procedure NewSource(Const Source : string; DoClear : Boolean = True);
     Procedure DoTestToken(t : TToken; Const ASource : String; Const CheckEOF : Boolean = True);
     Procedure TestToken(t : TToken; Const ASource : String; Const CheckEOF : Boolean = True);
@@ -67,6 +69,7 @@ type
     Property LastIDentifier : String Read FLI Write FLi;
     Property Scanner : TPascalScanner Read FScanner;
   published
+    Procedure TestEmpty;
     procedure TestEOF;
     procedure TestWhitespace;
     procedure TestComment1;
@@ -82,6 +85,7 @@ type
     procedure TestString;
     procedure TestNumber;
     procedure TestChar;
+    procedure TestCharString;
     procedure TestBraceOpen;
     procedure TestBraceClose;
     procedure TestMul;
@@ -209,6 +213,7 @@ type
     Procedure TestDefine11;
     Procedure TestDefine12;
     Procedure TestDefine13;
+    Procedure TestDefine14;
     Procedure TestInclude;
     Procedure TestInclude2;
     Procedure TestUnDefine1;
@@ -216,6 +221,7 @@ type
     procedure TestMacro2;
     procedure TestMacro3;
     procedure TestMacroHandling;
+    Procedure TestModeSwitch;
   end;
 
 implementation
@@ -364,12 +370,40 @@ begin
   AssertEquals(Msg,TokenToString(Expected),TokenToString(Actual));
 end;
 
+procedure TTestScanner.AssertEquals(Msg: String; Expected, Actual: TModeSwitch);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TModeSwitch),Ord(Expected)),
+                   GetEnumName(TypeInfo(TModeSwitch),Ord(Actual)))
+end;
+
+procedure TTestScanner.AssertEquals(Msg: String; Expected, Actual: TModeSwitches);
+
+  Function ToString(S : TModeSwitches) : String;
+
+  Var
+    M : TModeSwitch;
+
+  begin
+    Result:='';
+    For M in TModeswitch do
+      if M in S then
+        begin
+        If (Result<>'') then
+          Result:=Result+', ';
+        Result:=Result+GetEnumName(TypeInfo(TModeSwitch), Ord(M));
+        end;
+  end;
+
+begin
+  AssertEquals(Msg,ToString(Expected),ToString(Actual));
+end;
+
 procedure TTestScanner.NewSource(const Source: string; DoClear : Boolean = True);
 begin
   if DoClear then
     FResolver.Clear;
   FResolver.AddStream('afile.pp',TStringStream.Create(Source));
-  Writeln('// TestName');
+  Writeln('// '+TestName);
   Writeln(Source);
   FScanner.OpenFile('afile.pp');
 end;
@@ -431,6 +465,13 @@ begin
       tk:=FScanner.FetchToken;
     AssertEquals('EOF reached.',tkEOF,FScanner.FetchToken);
     end;
+end;
+
+procedure TTestScanner.TestEmpty;
+begin
+  AssertNotNull('Have Scanner',Scanner);
+  AssertTrue('Options is empty',[]=Scanner.Options);
+  AssertEquals('FPC modes is default',FPCModeSwitches,Scanner.CurrentModeSwitches);
 end;
 
 procedure TTestScanner.TestEOF;
@@ -514,6 +555,11 @@ begin
   TestToken(pscanner.tkString,'''A string''');
 end;
 
+procedure TTestScanner.TestCharString;
+
+begin
+  TestToken(pscanner.tkChar,'''A''');
+end;
 
 procedure TTestScanner.TestNumber;
 
@@ -1396,6 +1442,26 @@ begin
   TestTokens([tkin],'{$IFDEF ALWAYS} }; ą è {$ELSE} in {$ENDIF}');
 end;
 
+procedure TTestScanner.TestDefine14;
+Const
+   Source = '{$ifdef NEVER_DEFINED}' +sLineBreak+
+            'type'+sLineBreak+
+            '  TNPEventModel = ('+sLineBreak+
+            '  NPEventModelCarbon = 0,'+sLineBreak+
+            '  NPEventModelCocoa = 1'+sLineBreak+
+            '}; // yes, this is an error... except this code should never be included.'+sLineBreak+
+            'ą'+sLineBreak+
+            '|'+sLineBreak+
+            '{$endif}'+sLineBreak+
+            ''+sLineBreak+
+            'begin'+sLineBreak+
+            'end.'+sLineBreak;
+begin
+  NewSource(Source,True);
+  While FScanner.fetchToken<>tkEOF do
+
+end;
+
 procedure TTestScanner.TestInclude;
 begin
   FResolver.AddStream('myinclude.inc',TStringStream.Create('if true then'));
@@ -1447,6 +1513,29 @@ begin
   FScanner.SkipWhiteSpace:=True;
   TestTokens([tkIdentifier],'{$DEFINE MM:=begin end}'#13#10'MM');
   AssertEQuals('Correct identifier', 'somethingweird',LastIdentifier);
+end;
+
+procedure TTestScanner.TestModeSwitch;
+
+Const
+   PlusMinus = [' ','+','-'];
+
+Var
+  M : TModeSwitch;
+  C : Char;
+begin
+  For M in TModeSwitch do
+    for C in PlusMinus do
+      if SModeSwitchNames[M]<>'' then
+        begin
+        Scanner.CurrentModeSwitches:=[];
+        NewSource('{$MODESWITCH '+SModeSwitchNames[M]+' '+C+'}');
+        While not (Scanner.FetchToken=tkEOF) do;
+        if C in [' ','+'] then
+          AssertTrue(SModeSwitchNames[M]+C+' sets '+GetEnumName(TypeInfo(TModeSwitch),Ord(M)),M in Scanner.CurrentModeSwitches)
+        else
+          AssertFalse(SModeSwitchNames[M]+C+' removes '+GetEnumName(TypeInfo(TModeSwitch),Ord(M)),M in Scanner.CurrentModeSwitches);
+        end;
 end;
 
 initialization

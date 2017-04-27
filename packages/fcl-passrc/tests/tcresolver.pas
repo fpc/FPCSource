@@ -21,7 +21,29 @@ uses
   Classes, SysUtils, fpcunit, PasTree, PScanner, PParser, PasResolver,
   tcbaseparser, testregistry, contnrs;
 
-Type
+type
+  TSrcMarkerKind = (
+    mkLabel,
+    mkResolverReference,
+    mkDirectReference
+    );
+  PSrcMarker = ^TSrcMarker;
+  TSrcMarker = record
+    Kind: TSrcMarkerKind;
+    Filename: string;
+    Row: integer;
+    StartCol, EndCol: integer; // token start, end column
+    Identifier: string;
+    Next: PSrcMarker;
+  end;
+
+const
+  SrcMarker: array[TSrcMarkerKind] of char = (
+    '#', // mkLabel
+    '@', // mkResolverReference
+    '='  // mkDirectReference
+    );
+type
   TOnFindUnit = function(const aUnitName: String): TPasModule of object;
 
   { TTestEnginePasResolver }
@@ -51,7 +73,7 @@ Type
 
   TTestResolverReferenceData = record
     Filename: string;
-    Line: integer;
+    Row: integer;
     StartCol: integer;
     EndCol: integer;
     Found: TFPList; // list of TPasElement at this token
@@ -75,7 +97,9 @@ Type
     function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
     procedure OnFindReference(El: TPasElement; FindData: pointer);
     procedure OnCheckElementParent(El: TPasElement; arg: pointer);
+    procedure FreeSrcMarkers;
   Protected
+    FirstSrcMarker, LastSrcMarker: PSrcMarker;
     Procedure SetUp; override;
     Procedure TearDown; override;
     procedure CreateEngine(var TheEngine: TPasTreeContainer); override;
@@ -84,6 +108,14 @@ Type
     procedure CheckReferenceDirectives;
     procedure CheckResolverException(Msg: string; MsgNumber: integer);
     procedure CheckParserException(Msg: string; MsgNumber: integer);
+    procedure GetSrc(Index: integer; out SrcLines: TStringList; out aFilename: string);
+    function FindElementsAt(aFilename: string; aLine, aStartCol, aEndCol: integer): TFPList;// list of TPasElement
+    function FindElementsAt(aMarker: PSrcMarker; ErrorOnNoElements: boolean = true): TFPList;// list of TPasElement
+    function FindSrcLabel(const Identifier: string): PSrcMarker;
+    function FindElementsAtSrcLabel(const Identifier: string; ErrorOnNoElements: boolean = true): TFPList;// list of TPasElement
+    procedure WriteSources(const aFilename: string; aRow, aCol: integer);
+    procedure RaiseErrorAtSrc(Msg: string; const aFilename: string; aRow, aCol: integer);
+    procedure RaiseErrorAtSrcMarker(Msg: string; aMarker: PSrcMarker);
   Public
     function FindModuleWithFilename(aFilename: string): TTestEnginePasResolver;
     function AddModule(aFilename: string): TTestEnginePasResolver;
@@ -110,6 +142,7 @@ Type
     Procedure TestVarInteger;
     Procedure TestConstInteger;
     Procedure TestDuplicateVar;
+    Procedure TestVarInitConst;
     Procedure TestVarOfVarFail;
     Procedure TestConstOfVarFail;
     Procedure TestTypedConstWrongExprFail;
@@ -118,12 +151,20 @@ Type
     Procedure TestIncDec;
     Procedure TestIncStringFail;
 
+    // strings
+    Procedure TestString_SetLength;
+
     // enums
     Procedure TestEnums;
     Procedure TestSets;
+    Procedure TestSetOperators;
     Procedure TestEnumParams;
     Procedure TestSetParams;
+    Procedure TestSetFunctions;
     Procedure TestEnumHighLow;
+    Procedure TestEnumOrd;
+    Procedure TestEnumPredSucc;
+    Procedure TestEnum_CastIntegerToEnum;
 
     // operators
     Procedure TestPrgAssignment;
@@ -191,11 +232,14 @@ Type
     Procedure TestUnitIntfMismatchArgName;
     Procedure TestProcOverloadIsNotFunc;
     Procedure TestProcCallMissingParams;
+    Procedure TestProcArgDefaultValueTypeMismatch;
     Procedure TestBuiltInProcCallMissingParams;
     Procedure TestAssignFunctionResult;
     Procedure TestAssignProcResultFail;
     Procedure TestFunctionResultInCondition;
     Procedure TestExit;
+    Procedure TestBreak;
+    Procedure TestContinue;
 
     // record
     Procedure TestRecord;
@@ -208,19 +252,21 @@ Type
     Procedure TestClassTripleInheritance;
     Procedure TestClassForward;
     Procedure TestClassForwardNotResolved;
-    Procedure TestClassMethod;
-    Procedure TestClassMethodUnresolved;
-    Procedure TestClassMethodAbstract;
-    Procedure TestClassMethodAbstractWithoutVirtual;
-    Procedure TestClassMethodAbstractHasBody;
-    Procedure TestClassMethodUnresolvedWithAncestor;
-    Procedure TestClassProcFuncMismatch;
-    Procedure TestClassMethodOverload;
-    Procedure TestClassMethodInvalidOverload;
-    Procedure TestClassOverride;
-    Procedure TestClassOverride2;
-    Procedure TestClassMethodScope;
-    Procedure TestClassIdentifierSelf;
+    Procedure TestClass_Method;
+    Procedure TestClass_MethodWithParams;
+    Procedure TestClass_MethodUnresolved;
+    Procedure TestClass_MethodAbstract;
+    Procedure TestClass_MethodAbstractWithoutVirtualFail;
+    Procedure TestClass_MethodAbstractHasBodyFail;
+    Procedure TestClass_MethodUnresolvedWithAncestor;
+    Procedure TestClass_ProcFuncMismatch;
+    Procedure TestClass_MethodOverload;
+    Procedure TestClass_MethodInvalidOverload;
+    Procedure TestClass_MethodOverride;
+    Procedure TestClass_MethodOverride2;
+    Procedure TestClass_MethodOverrideFixCase;
+    Procedure TestClass_MethodScope;
+    Procedure TestClass_IdentifierSelf;
     Procedure TestClassCallInherited;
     Procedure TestClassCallInheritedNoParamsAbstractFail;
     Procedure TestClassCallInheritedWithParamsAbstractFail;
@@ -228,11 +274,11 @@ Type
     Procedure TestClassAssignNil;
     Procedure TestClassAssign;
     Procedure TestClassNilAsParam;
-    Procedure TestClassOperator_Is_As;
-    Procedure TestClassOperatorIsOnNonDescendantFail;
-    Procedure TestClassOperatorIsOnNonTypeFail;
-    Procedure TestClassOperatorAsOnNonDescendantFail;
-    Procedure TestClassOperatorAsOnNonTypeFail;
+    Procedure TestClass_Operators_Is_As;
+    Procedure TestClass_OperatorIsOnNonDescendantFail;
+    Procedure TestClass_OperatorIsOnNonTypeFail;
+    Procedure TestClass_OperatorAsOnNonDescendantFail;
+    Procedure TestClass_OperatorAsOnNonTypeFail;
     Procedure TestClassAsFuncResult;
     Procedure TestClassTypeCast;
     Procedure TestClassTypeCastUnrelatedFail;
@@ -247,6 +293,12 @@ Type
     Procedure TestClass_ProtectedInDescendant;
     Procedure TestClass_StrictPrivateInMainBeginFail;
     Procedure TestClass_StrictProtectedInMainBeginFail;
+    Procedure TestClass_Constructor_NewInstance;
+    Procedure TestClass_Constructor_InstanceCallResultFail;
+    Procedure TestClass_Destructor_FreeInstance;
+    Procedure TestClass_ConDestructor_CallInherited;
+    Procedure TestClass_Constructor_Inherited;
+    Procedure TestClass_SubObject;
 
     // class of
     Procedure TestClassOf;
@@ -289,7 +341,11 @@ Type
     Procedure TestPropertyArgs1;
     Procedure TestPropertyArgs2;
     Procedure TestPropertyArgsWithDefaultsFail;
+    Procedure TestProperty_Index;
+    Procedure TestProperty_WrongTypeAsIndexFail;
+    Procedure TestProperty_Option_ClassPropertyNonStatic;
     Procedure TestDefaultProperty;
+    Procedure TestMissingDefaultProperty;
 
     // with
     Procedure TestWithBlock1;
@@ -303,6 +359,7 @@ Type
     Procedure TestArrayOfArray;
     Procedure TestFunctionReturningArray;
     Procedure TestLowHighArray;
+    Procedure TestPropertyOfTypeArray;
 
     // procedure types
     Procedure TestProcTypesAssignObjFPC;
@@ -377,6 +434,8 @@ end;
 
 procedure TTestResolver.SetUp;
 begin
+  FirstSrcMarker:=nil;
+  LastSrcMarker:=nil;
   FModules:=TObjectList.Create(true);
   inherited SetUp;
   Parser.Options:=Parser.Options+[po_resolvestandardtypes];
@@ -384,6 +443,7 @@ end;
 
 procedure TTestResolver.TearDown;
 begin
+  FreeSrcMarkers;
   ResolverEngine.Clear;
   if FModules<>nil then
     begin
@@ -403,6 +463,9 @@ begin
 end;
 
 procedure TTestResolver.ParseProgram;
+var
+  aFilename: String;
+  aRow, aCol: Integer;
 begin
   FFirstStatement:=nil;
   try
@@ -410,24 +473,29 @@ begin
   except
     on E: EParserError do
       begin
+      aFilename:=Scanner.CurFilename;
+      aRow:=Scanner.CurRow;
+      aCol:=Scanner.CurColumn;
+      WriteSources(aFilename,aRow,aCol);
       writeln('ERROR: TTestResolver.ParseProgram Parser: '+E.ClassName+':'+E.Message
         +' Scanner at'
-        +' File='+Scanner.CurFilename
-        +' Row='+IntToStr(Scanner.CurRow)
-        +' Col='+IntToStr(Scanner.CurColumn)
-        +' Line="'+Scanner.CurLine+'"'
-        );
+        +' at '+aFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+')'
+        +' Line="'+Scanner.CurLine+'"');
       raise E;
       end;
     on E: EPasResolve do
       begin
+      aFilename:=Scanner.CurFilename;
+      aRow:=Scanner.CurRow;
+      aCol:=Scanner.CurColumn;
+      if E.PasElement<>nil then
+        begin
+        aFilename:=E.PasElement.SourceFilename;
+        ResolverEngine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,aRow,aCol);
+        end;
+      WriteSources(aFilename,aRow,aCol);
       writeln('ERROR: TTestResolver.ParseProgram PasResolver: '+E.ClassName+':'+E.Message
-        +' Scanner at'
-        +' File='+Scanner.CurFilename
-        +' Row='+IntToStr(Scanner.CurRow)
-        +' Col='+IntToStr(Scanner.CurColumn)
-        +' Line="'+Scanner.CurLine+'"'
-        );
+        +' at '+aFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+')');
       raise E;
       end;
     on E: Exception do
@@ -490,87 +558,33 @@ begin
 end;
 
 procedure TTestResolver.CheckReferenceDirectives;
-type
-  TMarkerKind = (
-    mkLabel,
-    mkResolverReference,
-    mkDirectReference
-    );
-  PMarker = ^TMarker;
-  TMarker = record
-    Kind: TMarkerKind;
-    Filename: string;
-    LineNumber: integer;
-    StartCol, EndCol: integer; // token start, end column
-    Identifier: string;
-    Next: PMarker;
-  end;
-
 var
-  FirstMarker, LastMarker: PMarker;
   Filename: string;
   LineNumber: Integer;
   SrcLine: String;
   CommentStartP, CommentEndP: PChar;
-  FoundRefs: TTestResolverReferenceData;
-
-  procedure GetSrc(Index: integer; out SrcLines: TStringList; out aFilename: string);
-  var
-    aStream: TStream;
-  begin
-    SrcLines:=TStringList.Create;
-    aStream:=Resolver.Streams.Objects[Index] as TStream;
-    aStream.Position:=0;
-    SrcLines.LoadFromStream(aStream);
-    aFilename:=Resolver.Streams[Index];
-  end;
-
-  procedure RaiseErrorAt(Msg: string; const aFilename: string; aLine, aCol: integer);
-  var
-    s, SrcFilename: String;
-    i, j: Integer;
-    SrcLines: TStringList;
-  begin
-    // write all source files
-    for i:=0 to Resolver.Streams.Count-1 do
-      begin
-      GetSrc(i,SrcLines,SrcFilename);
-      writeln('Testcode:-File="',SrcFilename,'"----------------------------------:');
-      for j:=1 to SrcLines.Count do
-        writeln(Format('%:4d: ',[j]),SrcLines[j-1]);
-      SrcLines.Free;
-      end;
-    s:=Msg+' at '+aFilename+' line='+IntToStr(aLine)+', col='+IntToStr(aCol);
-    writeln('ERROR: TTestResolver.CheckReferenceDirectives: ',s);
-    raise Exception.Create('TTestResolver.CheckReferenceDirectives: '+s);
-  end;
-
-  procedure RaiseErrorAt(Msg: string; aMarker: PMarker);
-  begin
-    RaiseErrorAt(Msg,aMarker^.Filename,aMarker^.LineNumber,aMarker^.StartCol);
-  end;
 
   procedure RaiseError(Msg: string; p: PChar);
   begin
-    RaiseErrorAt(Msg,Filename,LineNumber,p-PChar(SrcLine)+1);
+    RaiseErrorAtSrc(Msg,Filename,LineNumber,p-PChar(SrcLine)+1);
   end;
 
-  procedure AddMarker(Marker: PMarker);
+  procedure AddMarker(Marker: PSrcMarker);
   begin
-    if LastMarker<>nil then
-      LastMarker^.Next:=Marker
+    if LastSrcMarker<>nil then
+      LastSrcMarker^.Next:=Marker
     else
-      FirstMarker:=Marker;
-    LastMarker:=Marker;
+      FirstSrcMarker:=Marker;
+    LastSrcMarker:=Marker;
   end;
 
-  function AddMarker(Kind: TMarkerKind; const aFilename: string;
-    aLine, aStartCol, aEndCol: integer; const Identifier: string): PMarker;
+  function AddMarker(Kind: TSrcMarkerKind; const aFilename: string;
+    aLine, aStartCol, aEndCol: integer; const Identifier: string): PSrcMarker;
   begin
     New(Result);
     Result^.Kind:=Kind;
     Result^.Filename:=aFilename;
-    Result^.LineNumber:=aLine;
+    Result^.Row:=aLine;
     Result^.StartCol:=aStartCol;
     Result^.EndCol:=aEndCol;
     Result^.Identifier:=Identifier;
@@ -579,8 +593,8 @@ var
     AddMarker(Result);
   end;
 
-  function AddMarkerForTokenBehindComment(Kind: TMarkerKind;
-    const Identifer: string): PMarker;
+  function AddMarkerForTokenBehindComment(Kind: TSrcMarkerKind;
+    const Identifer: string): PSrcMarker;
   var
     TokenStart, p: PChar;
   begin
@@ -588,18 +602,6 @@ var
     ReadNextPascalToken(p,TokenStart,false,false);
     Result:=AddMarker(Kind,Filename,LineNumber,
       CommentEndP-PChar(SrcLine)+1,p-PChar(SrcLine)+1,Identifer);
-  end;
-
-  function FindLabel(const Identifier: string): PMarker;
-  begin
-    Result:=FirstMarker;
-    while Result<>nil do
-      begin
-      if (Result^.Kind=mkLabel)
-      and (CompareText(Result^.Identifier,Identifier)=0) then
-        exit;
-      Result:=Result^.Next;
-      end;
   end;
 
   function ReadIdentifier(var p: PChar): string;
@@ -623,7 +625,7 @@ var
     p:=CommentStartP+2;
     Identifier:=ReadIdentifier(p);
     //writeln('TTestResolver.CheckReferenceDirectives.AddLabel ',Identifier);
-    if FindLabel(Identifier)<>nil then
+    if FindSrcLabel(Identifier)<>nil then
       RaiseError('duplicate label "'+Identifier+'"',p);
     AddMarkerForTokenBehindComment(mkLabel,Identifier);
   end;
@@ -721,50 +723,24 @@ var
       end;
   end;
 
-  function FindElementsAt(aFilename: string; aLine, aStartCol, aEndCol: integer): TFPList;
-  var
-    ok: Boolean;
-  begin
-    FoundRefs.Filename:=aFilename;
-    FoundRefs.Line:=aLine;
-    FoundRefs.StartCol:=aStartCol;
-    FoundRefs.EndCol:=aEndCol;
-    FoundRefs.Found:=TFPList.Create;
-    ok:=false;
-    try
-      Module.ForEachCall(@OnFindReference,@FoundRefs);
-      ok:=true;
-    finally
-      if not ok then
-        FreeAndNil(FoundRefs.Found);
-    end;
-    Result:=FoundRefs.Found;
-    FoundRefs.Found:=nil;
-  end;
-
-  procedure CheckResolverReference(aMarker: PMarker);
+  procedure CheckResolverReference(aMarker: PSrcMarker);
   // check if one element at {@a} has a TResolvedReference to an element labeled {#a}
   var
-    aLabel: PMarker;
+    aLabel: PSrcMarker;
     ReferenceElements, LabelElements: TFPList;
     i, j, aLine, aCol: Integer;
     El, Ref, LabelEl: TPasElement;
   begin
-    //writeln('CheckResolverReference searching reference: ',aMarker^.Filename,' Line=',aMarker^.LineNumber,' Col=',aMarker^.StartCol,'-',aMarker^.EndCol,' Label="',aMarker^.Identifier,'"');
-    aLabel:=FindLabel(aMarker^.Identifier);
+    //writeln('CheckResolverReference searching reference: ',aMarker^.Filename,' Line=',aMarker^.Row,' Col=',aMarker^.StartCol,'-',aMarker^.EndCol,' Label="',aMarker^.Identifier,'"');
+    aLabel:=FindSrcLabel(aMarker^.Identifier);
     if aLabel=nil then
-      RaiseErrorAt('label "'+aMarker^.Identifier+'" not found',aMarker^.Filename,aMarker^.LineNumber,aMarker^.StartCol);
+      RaiseErrorAtSrc('label "'+aMarker^.Identifier+'" not found',aMarker^.Filename,aMarker^.Row,aMarker^.StartCol);
 
     LabelElements:=nil;
     ReferenceElements:=nil;
     try
-      LabelElements:=FindElementsAt(aLabel^.Filename,aLabel^.LineNumber,aLabel^.StartCol,aLabel^.EndCol);
-      if LabelElements.Count=0 then
-        RaiseErrorAt('label "'+aLabel^.Identifier+'" has no elements',aLabel);
-
-      ReferenceElements:=FindElementsAt(aMarker^.Filename,aMarker^.LineNumber,aMarker^.StartCol,aMarker^.EndCol);
-      if ReferenceElements.Count=0 then
-        RaiseErrorAt('reference "'+aMarker^.Identifier+'" has no elements',aMarker);
+      LabelElements:=FindElementsAt(aLabel);
+      ReferenceElements:=FindElementsAt(aMarker);
 
       for i:=0 to ReferenceElements.Count-1 do
         begin
@@ -787,7 +763,7 @@ var
       for i:=0 to ReferenceElements.Count-1 do
         begin
         El:=TPasElement(ReferenceElements[i]);
-        write('Reference candidate for "',aMarker^.Identifier,'" at reference ',aMarker^.Filename,'(',aMarker^.LineNumber,',',aMarker^.StartCol,'-',aMarker^.EndCol,')');
+        write('Reference candidate for "',aMarker^.Identifier,'" at reference ',aMarker^.Filename,'(',aMarker^.Row,',',aMarker^.StartCol,'-',aMarker^.EndCol,')');
         write(' El=',GetObjName(El));
         Ref:=nil;
         if El.CustomData is TResolvedReference then
@@ -807,54 +783,49 @@ var
       for i:=0 to LabelElements.Count-1 do
         begin
         El:=TPasElement(LabelElements[i]);
-        write('Label candidate for "',aLabel^.Identifier,'" at reference ',aLabel^.Filename,'(',aLabel^.LineNumber,',',aLabel^.StartCol,'-',aLabel^.EndCol,')');
+        write('Label candidate for "',aLabel^.Identifier,'" at reference ',aLabel^.Filename,'(',aLabel^.Row,',',aLabel^.StartCol,'-',aLabel^.EndCol,')');
         write(' El=',GetObjName(El));
         writeln;
         end;
 
-      RaiseErrorAt('wrong resolved reference "'+aMarker^.Identifier+'"',aMarker);
+      RaiseErrorAtSrcMarker('wrong resolved reference "'+aMarker^.Identifier+'"',aMarker);
     finally
       LabelElements.Free;
       ReferenceElements.Free;
     end;
   end;
 
-  procedure CheckDirectReference(aMarker: PMarker);
+  procedure CheckDirectReference(aMarker: PSrcMarker);
   // check if one element at {=a} is a TPasAliasType pointing to an element labeled {#a}
   var
-    aLabel: PMarker;
+    aLabel: PSrcMarker;
     ReferenceElements, LabelElements: TFPList;
     i, LabelLine, LabelCol, j: Integer;
     El, LabelEl: TPasElement;
     DeclEl, TypeEl: TPasType;
   begin
-    writeln('CheckDirectReference searching pointer: ',aMarker^.Filename,' Line=',aMarker^.LineNumber,' Col=',aMarker^.StartCol,'-',aMarker^.EndCol,' Label="',aMarker^.Identifier,'"');
-    aLabel:=FindLabel(aMarker^.Identifier);
+    //writeln('CheckDirectReference searching pointer: ',aMarker^.Filename,' Line=',aMarker^.Row,' Col=',aMarker^.StartCol,'-',aMarker^.EndCol,' Label="',aMarker^.Identifier,'"');
+    aLabel:=FindSrcLabel(aMarker^.Identifier);
     if aLabel=nil then
-      RaiseErrorAt('label "'+aMarker^.Identifier+'" not found',aMarker);
+      RaiseErrorAtSrcMarker('label "'+aMarker^.Identifier+'" not found',aMarker);
 
     LabelElements:=nil;
     ReferenceElements:=nil;
     try
-      writeln('CheckDirectReference finding elements at label ...');
-      LabelElements:=FindElementsAt(aLabel^.Filename,aLabel^.LineNumber,aLabel^.StartCol,aLabel^.EndCol);
-      if LabelElements.Count=0 then
-        RaiseErrorAt('label "'+aLabel^.Identifier+'" has no elements',aLabel);
-
-      writeln('CheckDirectReference finding elements at reference ...');
-      ReferenceElements:=FindElementsAt(aMarker^.Filename,aMarker^.LineNumber,aMarker^.StartCol,aMarker^.EndCol);
-      if ReferenceElements.Count=0 then
-        RaiseErrorAt('reference "'+aMarker^.Identifier+'" has no elements',aMarker);
+      //writeln('CheckDirectReference finding elements at label ...');
+      LabelElements:=FindElementsAt(aLabel);
+      //writeln('CheckDirectReference finding elements at reference ...');
+      ReferenceElements:=FindElementsAt(aMarker);
 
       for i:=0 to ReferenceElements.Count-1 do
         begin
         El:=TPasElement(ReferenceElements[i]);
-        writeln('CheckDirectReference ',i,'/',ReferenceElements.Count,' ',GetTreeDesc(El,2));
+        //writeln('CheckDirectReference ',i,'/',ReferenceElements.Count,' ',GetTreeDesc(El,2));
         if El.ClassType=TPasVariable then
           begin
           if TPasVariable(El).VarType=nil then
             begin
-            writeln('CheckDirectReference Var without Type: ',GetObjName(El),' El.Parent=',GetObjName(El.Parent));
+            //writeln('CheckDirectReference Var without Type: ',GetObjName(El),' El.Parent=',GetObjName(El.Parent));
             AssertNotNull('TPasVariable(El='+El.Name+').VarType',TPasVariable(El).VarType);
             end;
           TypeEl:=TPasVariable(El).VarType;
@@ -870,7 +841,7 @@ var
           DeclEl:=TPasAliasType(El).DestType;
           ResolverEngine.UnmangleSourceLineNumber(DeclEl.SourceLinenumber,LabelLine,LabelCol);
           if (aLabel^.Filename=DeclEl.SourceFilename)
-          and (aLabel^.LineNumber=LabelLine)
+          and (aLabel^.Row=LabelLine)
           and (aLabel^.StartCol<=LabelCol)
           and (aLabel^.EndCol>=LabelCol) then
             exit; // success
@@ -899,7 +870,7 @@ var
         El:=TPasElement(ReferenceElements[i]);
         writeln('  Reference ',GetObjName(El),' at ',ResolverEngine.GetElementSourcePosStr(El));
         end;
-      RaiseErrorAt('wrong direct reference "'+aMarker^.Identifier+'"',aMarker);
+      RaiseErrorAtSrcMarker('wrong direct reference "'+aMarker^.Identifier+'"',aMarker);
     finally
       LabelElements.Free;
       ReferenceElements.Free;
@@ -907,45 +878,32 @@ var
   end;
 
 var
-  aMarker: PMarker;
+  aMarker: PSrcMarker;
   i: Integer;
   SrcLines: TStringList;
 begin
   Module.ForEachCall(@OnCheckElementParent,nil);
-  FirstMarker:=nil;
-  LastMarker:=nil;
-  FoundRefs:=Default(TTestResolverReferenceData);
-  try
-    //writeln('TTestResolver.CheckReferenceDirectives find all markers');
-    // find all markers
-    for i:=0 to Resolver.Streams.Count-1 do
-      begin
-      GetSrc(i,SrcLines,Filename);
-      ParseCode(SrcLines,Filename);
-      SrcLines.Free;
-      end;
+  //writeln('TTestResolver.CheckReferenceDirectives find all markers');
+  // find all markers
+  for i:=0 to Resolver.Streams.Count-1 do
+    begin
+    GetSrc(i,SrcLines,Filename);
+    ParseCode(SrcLines,Filename);
+    SrcLines.Free;
+    end;
 
-    //writeln('TTestResolver.CheckReferenceDirectives check references');
-    // check references
-    aMarker:=FirstMarker;
-    while aMarker<>nil do
-      begin
-      case aMarker^.Kind of
-      mkResolverReference: CheckResolverReference(aMarker);
-      mkDirectReference: CheckDirectReference(aMarker);
-      end;
-      aMarker:=aMarker^.Next;
-      end;
-    writeln('TTestResolver.CheckReferenceDirectives COMPLETE');
-
-  finally
-    while FirstMarker<>nil do
-      begin
-      aMarker:=FirstMarker;
-      FirstMarker:=FirstMarker^.Next;
-      Dispose(aMarker);
-      end;
-  end;
+  //writeln('TTestResolver.CheckReferenceDirectives check references');
+  // check references
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    case aMarker^.Kind of
+    mkResolverReference: CheckResolverReference(aMarker);
+    mkDirectReference: CheckDirectReference(aMarker);
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+  //writeln('TTestResolver.CheckReferenceDirectives COMPLETE');
 end;
 
 procedure TTestResolver.CheckResolverException(Msg: string; MsgNumber: integer);
@@ -984,6 +942,116 @@ begin
   AssertEquals('Missing parser error '+Msg+' ('+IntToStr(MsgNumber)+')',true,ok);
 end;
 
+procedure TTestResolver.GetSrc(Index: integer; out SrcLines: TStringList; out
+  aFilename: string);
+var
+  aStream: TStream;
+begin
+  SrcLines:=TStringList.Create;
+  aStream:=Resolver.Streams.Objects[Index] as TStream;
+  aStream.Position:=0;
+  SrcLines.LoadFromStream(aStream);
+  aFilename:=Resolver.Streams[Index];
+end;
+
+function TTestResolver.FindElementsAt(aFilename: string; aLine, aStartCol,
+  aEndCol: integer): TFPList;
+var
+  ok: Boolean;
+  FoundRefs: TTestResolverReferenceData;
+begin
+  FoundRefs:=Default(TTestResolverReferenceData);
+  FoundRefs.Filename:=aFilename;
+  FoundRefs.Row:=aLine;
+  FoundRefs.StartCol:=aStartCol;
+  FoundRefs.EndCol:=aEndCol;
+  FoundRefs.Found:=TFPList.Create;
+  ok:=false;
+  try
+    Module.ForEachCall(@OnFindReference,@FoundRefs);
+    ok:=true;
+  finally
+    if not ok then
+      FreeAndNil(FoundRefs.Found);
+  end;
+  Result:=FoundRefs.Found;
+  FoundRefs.Found:=nil;
+end;
+
+function TTestResolver.FindElementsAt(aMarker: PSrcMarker;
+  ErrorOnNoElements: boolean): TFPList;
+begin
+  Result:=FindElementsAt(aMarker^.Filename,aMarker^.Row,aMarker^.StartCol,aMarker^.EndCol);
+  if ErrorOnNoElements and ((Result=nil) or (Result.Count=0)) then
+    RaiseErrorAtSrcMarker('marker '+SrcMarker[aMarker^.Kind]+aMarker^.Identifier+' has no elements',aMarker);
+end;
+
+function TTestResolver.FindSrcLabel(const Identifier: string): PSrcMarker;
+begin
+  Result:=FirstSrcMarker;
+  while Result<>nil do
+    begin
+    if (Result^.Kind=mkLabel)
+    and (CompareText(Result^.Identifier,Identifier)=0) then
+      exit;
+    Result:=Result^.Next;
+    end;
+end;
+
+function TTestResolver.FindElementsAtSrcLabel(const Identifier: string;
+  ErrorOnNoElements: boolean): TFPList;
+var
+  SrcLabel: PSrcMarker;
+begin
+  SrcLabel:=FindSrcLabel(Identifier);
+  if SrcLabel=nil then
+    Fail('missing label "'+Identifier+'"');
+  Result:=FindElementsAt(SrcLabel,ErrorOnNoElements);
+end;
+
+procedure TTestResolver.WriteSources(const aFilename: string; aRow,
+  aCol: integer);
+var
+  IsSrc: Boolean;
+  i, j: Integer;
+  SrcLines: TStringList;
+  SrcFilename, Line: string;
+begin
+  for i:=0 to Resolver.Streams.Count-1 do
+    begin
+    GetSrc(i,SrcLines,SrcFilename);
+    IsSrc:=ExtractFilename(aFilename)=ExtractFileName(aFilename);
+    writeln('Testcode:-File="',SrcFilename,'"----------------------------------:');
+    for j:=1 to SrcLines.Count do
+      begin
+      Line:=SrcLines[j-1];
+      if IsSrc and (j=aRow) then
+        begin
+        write('*');
+        Line:=LeftStr(Line,aCol-1)+'|'+copy(Line,aCol,length(Line));
+        end;
+      writeln(Format('%:4d: ',[j]),Line);
+      end;
+    SrcLines.Free;
+    end;
+end;
+
+procedure TTestResolver.RaiseErrorAtSrc(Msg: string; const aFilename: string;
+  aRow, aCol: integer);
+var
+  s: String;
+begin
+  WriteSources(aFilename,aRow,aCol);
+  s:='[TTestResolver.RaiseErrorAtSrc] '+aFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+') Error: '+Msg;
+  writeln('ERROR: ',s);
+  raise EAssertionFailedError.Create(s);
+end;
+
+procedure TTestResolver.RaiseErrorAtSrcMarker(Msg: string; aMarker: PSrcMarker);
+begin
+  RaiseErrorAtSrc(Msg,aMarker^.Filename,aMarker^.Row,aMarker^.StartCol);
+end;
+
 function TTestResolver.FindModuleWithFilename(aFilename: string
   ): TTestEnginePasResolver;
 var
@@ -999,7 +1067,7 @@ function TTestResolver.AddModule(aFilename: string): TTestEnginePasResolver;
 begin
   //writeln('TTestResolver.AddModule ',aFilename);
   if FindModuleWithFilename(aFilename)<>nil then
-    raise Exception.Create('TTestResolver.AddModule: file "'+aFilename+'" already exists');
+    raise EAssertionFailedError.Create('TTestResolver.AddModule: file "'+aFilename+'" already exists');
   Result:=TTestEnginePasResolver.Create;
   Result.Filename:=aFilename;
   Result.AddObjFPCBuiltInIdentifiers;
@@ -1140,7 +1208,7 @@ begin
       end;
     end;
   writeln('TTestResolver.OnPasResolverFindUnit missing unit "',aUnitName,'"');
-  raise Exception.Create('can''t find unit "'+aUnitName+'"');
+  raise EAssertionFailedError.Create('can''t find unit "'+aUnitName+'"');
 end;
 
 procedure TTestResolver.OnFindReference(El: TPasElement; FindData: pointer);
@@ -1149,9 +1217,9 @@ var
   Line, Col: integer;
 begin
   ResolverEngine.UnmangleSourceLineNumber(El.SourceLinenumber,Line,Col);
-  //writeln('TTestResolver.OnFindReference ',El.SourceFilename,' Line=',Line,',Col=',Col,' ',GetObjName(El),' SearchFile=',Data^.Filename,',Line=',Data^.Line,',Col=',Data^.StartCol,'-',Data^.EndCol);
+  //writeln('TTestResolver.OnFindReference ',El.SourceFilename,' Line=',Line,',Col=',Col,' ',GetObjName(El),' SearchFile=',Data^.Filename,',Line=',Data^.Row,',Col=',Data^.StartCol,'-',Data^.EndCol);
   if (Data^.Filename=El.SourceFilename)
-  and (Data^.Line=Line)
+  and (Data^.Row=Line)
   and (Data^.StartCol<=Col)
   and (Data^.EndCol>=Col)
   then
@@ -1170,7 +1238,7 @@ var
     s:='TTestResolver.OnCheckElementParent El='+GetTreeDesc(El)+' '+
       ResolverEngine.GetElementSourcePosStr(El)+' '+Msg;
     writeln('ERROR: ',s);
-    raise Exception.Create(s);
+    raise EAssertionFailedError.Create(s);
   end;
 
 begin
@@ -1231,6 +1299,19 @@ begin
     for i:=0 to TPasProcedureType(El).Args.Count-1 do
       if TPasArgument(TPasProcedureType(El).Args[i]).Parent<>El then
         E('TPasArgument(TPasProcedureType(El).Args[i]).Parent='+GetObjName(TPasArgument(TPasProcedureType(El).Args[i]).Parent)+'<>El');
+    end;
+end;
+
+procedure TTestResolver.FreeSrcMarkers;
+var
+  aMarker, Last: PSrcMarker;
+begin
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    Last:=aMarker;
+    aMarker:=aMarker^.Next;
+    Dispose(Last);
     end;
 end;
 
@@ -1409,6 +1490,15 @@ begin
   CheckResolverException('duplicate identifier',PasResolver.nDuplicateIdentifier);
 end;
 
+procedure TTestResolver.TestVarInitConst;
+begin
+  StartProgram(false);
+  Add('const {#c}c=1;');
+  Add('var a: longint = {@c}c;');
+  Add('begin');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestVarOfVarFail;
 begin
   StartProgram(false);
@@ -1484,13 +1574,24 @@ begin
   CheckResolverException('Incompatible type arg no. 1: Got "String", expected "Longint"',PasResolver.nIncompatibleTypeArgNo);
 end;
 
+procedure TTestResolver.TestString_SetLength;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  s: string;');
+  Add('begin');
+  Add('  SetLength(s,3);');
+  Add('  SetLength(s,length(s));');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestEnums;
 begin
   StartProgram(false);
   Add('type {#TFlag}TFlag = ({#Red}Red, {#Green}Green, {#Blue}Blue);');
   Add('var');
   Add('  {#f}{=TFlag}f: TFlag;');
-  Add('  {#v}{=TFlag}v: TFlag;');
+  Add('  {#v}{=TFlag}v: TFlag = Green;');
   Add('begin');
   Add('  {@f}f:={@Red}Red;');
   Add('  {@f}f:={@v}v;');
@@ -1522,7 +1623,7 @@ begin
   Add('var');
   Add('  {#f}{=TFlag}f: TFlag;');
   Add('  {#s}{=TFlags}s: TFlags;');
-  Add('  {#t}{=TFlags}t: TFlags;');
+  Add('  {#t}{=TFlags}t: TFlags = [Green,Gray];');
   Add('  {#Chars}{=TChars}Chars: TChars;');
   Add('  {#MyInts}{=TMyInts}MyInts: TMyInts;');
   Add('  {#MyBools}{=TMyBools}MyBools: TMyBools;');
@@ -1532,30 +1633,6 @@ begin
   Add('  {@s}s:=[{@Red}Red];');
   Add('  {@s}s:=[{@Red}Red,{@Blue}Blue];');
   Add('  {@s}s:=[{@Gray}Gray..{@White}White];');
-  Add('  {@s}s:=[{@Red}Red]+[{@Blue}Blue,{@Gray}Gray];');
-  Add('  {@s}s:=[{@Blue}Blue,{@Gray}Gray]-[{@Blue}Blue];');
-  Add('  {@s}s:={@t}t+[];');
-  Add('  {@s}s:=[{@Red}Red]+{@s}s;');
-  Add('  {@s}s:={@s}s+[{@Red}Red];');
-  Add('  {@s}s:=[{@Red}Red]-{@s}s;');
-  Add('  {@s}s:={@s}s-[{@Red}Red];');
-  Add('  Include({@s}s,{@Blue}Blue);');
-  Add('  Exclude({@s}s,{@Blue}Blue);');
-  Add('  {@s}s:={@s}s+[{@f}f];');
-  Add('  if {@Green}Green in {@s}s then ;');
-  Add('  if {@Blue}Blue in {@Colors}Colors then ;');
-  Add('  if {@f}f in {@ExtColors}ExtColors then ;');
-  Add('  {@s}s:={@s}s * Colors;');
-  Add('  {@s}s:=Colors * {@s}s;');
-  Add('  s:=ExtColors * Colors;');
-  Add('  s:=Colors >< ExtColors;');
-  Add('  s:=s >< ExtColors;');
-  Add('  s:=ExtColors >< s;');
-  Add('  if ''p'' in [''a''..''z''] then ; ');
-  Add('  if ''p'' in [''a''..''z'',''A''..''Z'',''0''..''9'',''_''] then ; ');
-  Add('  if ''p'' in {@Chars}Chars then ; ');
-  Add('  if 7 in {@MyInts}MyInts then ; ');
-  Add('  if 7 in [1+2,(3*4)+5,(-2+6)..(8-3)] then ; ');
   Add('  {@MyInts}MyInts:=[1];');
   Add('  {@MyInts}MyInts:=[1,2];');
   Add('  {@MyInts}MyInts:=[1..2];');
@@ -1565,7 +1642,71 @@ begin
   Add('  {@MyBools}MyBools:=[false];');
   Add('  {@MyBools}MyBools:=[false,true];');
   Add('  {@MyBools}MyBools:=[true..false];');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestSetOperators;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#TFlag}TFlag = ({#Red}Red, {#Green}Green, {#Blue}Blue, {#Gray}Gray, {#Black}Black, {#White}White);');
+  Add('  {#TFlags}TFlags = set of TFlag;');
+  Add('  {#TChars}TChars = set of Char;');
+  Add('  {#TMyInt}TMyInt = 0..17;');
+  Add('  {#TMyInts}TMyInts = set of TMyInt;');
+  Add('  {#TMyBools}TMyBools = set of boolean;');
+  Add('const');
+  Add('  {#Colors}Colors = [{@Red}Red..{@Blue}Blue];');
+  Add('  {#ExtColors}ExtColors = {@Colors}Colors+[{@White}White,{@Black}Black];');
+  Add('var');
+  Add('  {#f}{=TFlag}f: TFlag;');
+  Add('  {#s}{=TFlags}s: TFlags;');
+  Add('  {#t}{=TFlags}t: TFlags = [Green,Gray];');
+  Add('  {#Chars}{=TChars}Chars: TChars;');
+  Add('  {#MyInts}{=TMyInts}MyInts: TMyInts;');
+  Add('  {#MyBools}{=TMyBools}MyBools: TMyBools;');
+  Add('begin');
+  Add('  {@s}s:=[];');
+  Add('  {@s}s:=[{@Red}Red]+[{@Blue}Blue,{@Gray}Gray];');
+  Add('  {@s}s:=[{@Blue}Blue,{@Gray}Gray]-[{@Blue}Blue];');
+  Add('  {@s}s:={@t}t+[];');
+  Add('  {@s}s:=[{@Red}Red]+{@s}s;');
+  Add('  {@s}s:={@s}s+[{@Red}Red];');
+  Add('  {@s}s:=[{@Red}Red]-{@s}s;');
+  Add('  {@s}s:={@s}s-[{@Red}Red];');
+  Add('  Include({@s}s,{@Blue}Blue);');
+  Add('  Include({@s}s,{@f}f);');
+  Add('  Exclude({@s}s,{@Blue}Blue);');
+  Add('  Exclude({@s}s,{@f}f);');
+  Add('  {@s}s:={@s}s+[{@f}f];');
+  Add('  if {@Green}Green in {@s}s then ;');
+  Add('  if {@Blue}Blue in {@Colors}Colors then ;');
+  Add('  if {@f}f in {@ExtColors}ExtColors then ;');
+  Add('  {@s}s:={@s}s * {@Colors}Colors;');
+  Add('  {@s}s:={@Colors}Colors * {@s}s;');
+  Add('  {@s}s:={@ExtColors}ExtColors * {@Colors}Colors;');
+  Add('  {@s}s:=Colors >< {@ExtColors}ExtColors;');
+  Add('  {@s}s:={@s}s >< {@ExtColors}ExtColors;');
+  Add('  {@s}s:={@ExtColors}ExtColors >< s;');
+  Add('  {@s}s:={@s}s >< {@s}s;');
+  Add('  if ''p'' in [''a''..''z''] then ; ');
+  Add('  if ''p'' in [''a''..''z'',''A''..''Z'',''0''..''9'',''_''] then ; ');
+  Add('  if ''p'' in {@Chars}Chars then ; ');
+  Add('  if 7 in {@MyInts}MyInts then ; ');
+  Add('  if 7 in [1+2,(3*4)+5,(-2+6)..(8-3)] then ; ');
   Add('  if [red,blue]*s=[red,blue] then ;');
+  Add('  if {@s}s = t then;');
+  Add('  if {@s}s = {@Colors}Colors then;');
+  Add('  if {@Colors}Colors = s then;');
+  Add('  if {@s}s <> t then;');
+  Add('  if {@s}s <> {@Colors}Colors then;');
+  Add('  if {@Colors}Colors <> s then;');
+  Add('  if {@s}s <= t then;');
+  Add('  if {@s}s <= {@Colors}Colors then;');
+  Add('  if {@Colors}Colors <= s then;');
+  Add('  if {@s}s >= t then;');
+  Add('  if {@s}s >= {@Colors}Colors then;');
+  Add('  if {@Colors}Colors >= {@s}s then;');
   ParseProgram;
 end;
 
@@ -1615,6 +1756,23 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestSetFunctions;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red, green, blue);');
+  Add('  TFlags = set of TFlag;');
+  Add('var');
+  Add('  e: TFlag;');
+  Add('  s: TFlags;');
+  Add('begin');
+  Add('  e:=Low(TFlags);');
+  Add('  e:=Low(s);');
+  Add('  e:=High(TFlags);');
+  Add('  e:=High(s);');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestEnumHighLow;
 begin
   StartProgram(false);
@@ -1623,6 +1781,52 @@ begin
   Add('var f: TFlag;');
   Add('begin');
   Add('  for f:=low(TFlag) to high(TFlag) do ;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestEnumOrd;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red, green, blue);');
+  Add('var');
+  Add('  f: TFlag;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  i:=ord(f);');
+  Add('  i:=ord(green);');
+  Add('  if i=ord(f) then ;');
+  Add('  if ord(f)=i then ;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestEnumPredSucc;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red, green, blue);');
+  Add('var');
+  Add('  f: TFlag;');
+  Add('begin');
+  Add('  f:=Pred(f);');
+  Add('  if Pred(green)=Pred(TFlag.Blue) then;');
+  Add('  f:=Succ(f);');
+  Add('  if Succ(green)=Succ(TFlag.Blue) then;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestEnum_CastIntegerToEnum;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red, green, blue);');
+  Add('var');
+  Add('  f: TFlag;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  f:=TFlag(1);');
+  Add('  f:=TFlag(i);');
+  Add('  if TFlag(i)=TFlag(1) then;');
   ParseProgram;
 end;
 
@@ -1848,6 +2052,12 @@ begin
   Add('  i:=j or k;');
   Add('  i:=j and not k;');
   Add('  i:=(j+k) div 3;');
+  Add('  if i=j then;');
+  Add('  if i<>j then;');
+  Add('  if i>j then;');
+  Add('  if i>=j then;');
+  Add('  if i<j then;');
+  Add('  if i<=j then;');
   ParseProgram;
 end;
 
@@ -1865,6 +2075,9 @@ begin
   Add('  i:=(not j) or k;');
   Add('  i:=j or false;');
   Add('  i:=j and true;');
+  Add('  i:=j xor k;');
+  Add('  i:=j=k;');
+  Add('  i:=j<>k;');
   ParseProgram;
 end;
 
@@ -2120,12 +2333,13 @@ begin
   Add('    {@v1}v1:={@e1}e;');
   Add('  except');
   Add('    {@v1}v1:={@e1}e;');
+  Add('    raise;');
   Add('  end');
   Add('  try');
   Add('    {@v1}v1:={@e1}e;');
   Add('  except');
   Add('    on {#e2}{=Exec}E: Exception do');
-  Add('      if {@e2}e=nil then ;');
+  Add('      if {@e2}e=nil then raise;');
   Add('    on {#e3}{=Exec}E: Exception do');
   Add('      raise {@e3}e;');
   Add('    else');
@@ -2668,10 +2882,11 @@ procedure TTestResolver.TestUnitIntfProc;
 begin
   StartUnit(false);
   Add('interface');
-  Add('procedure {#A_forward}FuncA(i: longint);');
+  Add('procedure {#A_forward}FuncA({#Bar}Bar: longint);');
   Add('implementation');
-  Add('procedure {#A}FuncA(i: longint);');
+  Add('procedure {#A}FuncA(bar: longint);');
   Add('begin');
+  Add('  if {@Bar}bar=3 then ;');
   Add('end;');
   Add('initialization');
   Add('  {@A_forward}FuncA(3);');
@@ -2724,6 +2939,17 @@ begin
   Add('  Proc1;');
   CheckResolverException('Wrong number of parameters for call to "Proc1"',
     PasResolver.nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestProcArgDefaultValueTypeMismatch;
+begin
+  StartProgram(false);
+  Add('procedure Proc1(a: string = 3);');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  CheckResolverException('Incompatible types: got "Longint" expected "String"',
+    PasResolver.nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestBuiltInProcCallMissingParams;
@@ -2801,6 +3027,36 @@ begin
   Add('  exit(''abc'');');
   Add('end;');
   Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestBreak;
+begin
+  StartProgram(false);
+  Add('var i: longint;');
+  Add('begin');
+  Add('  repeat');
+  Add('    break;');
+  Add('  until false;');
+  Add('  while true do');
+  Add('    break;');
+  Add('  for i:=0 to 1 do');
+  Add('    break;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestContinue;
+begin
+  StartProgram(false);
+  Add('var i: longint;');
+  Add('begin');
+  Add('  repeat');
+  Add('    continue;');
+  Add('  until false;');
+  Add('  while true do');
+  Add('    continue;');
+  Add('  for i:=0 to 1 do');
+  Add('    continue;');
   ParseProgram;
 end;
 
@@ -2971,7 +3227,7 @@ begin
   AssertEquals('Forward class not resolved raises correct error',nForwardTypeNotResolved,ErrorNo);
 end;
 
-procedure TTestResolver.TestClassMethod;
+procedure TTestResolver.TestClass_Method;
 begin
   StartProgram(false);
   Add('type');
@@ -2990,7 +3246,25 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClassMethodUnresolved;
+procedure TTestResolver.TestClass_MethodWithParams;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#A}TObject = class');
+  Add('    procedure {#ProcA_Decl}ProcA({#Bar}Bar: longint);');
+  Add('  end;');
+  Add('procedure tobject.proca(bar: longint);');
+  Add('begin');
+  Add('  if {@Bar}bar=3 then ;');
+  Add('end;');
+  Add('var');
+  Add('  {#V}{=A}Obj: TObject;');
+  Add('begin');
+  Add('  {@V}Obj.{@ProcA_Decl}ProcA(4);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_MethodUnresolved;
 begin
   StartProgram(false);
   Add('type');
@@ -3003,7 +3277,7 @@ begin
   CheckResolverException('forward proc not resolved',PasResolver.nForwardProcNotResolved);
 end;
 
-procedure TTestResolver.TestClassMethodAbstract;
+procedure TTestResolver.TestClass_MethodAbstract;
 begin
   StartProgram(false);
   Add('type');
@@ -3014,7 +3288,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClassMethodAbstractWithoutVirtual;
+procedure TTestResolver.TestClass_MethodAbstractWithoutVirtualFail;
 begin
   StartProgram(false);
   Add('type');
@@ -3025,7 +3299,7 @@ begin
   CheckResolverException('abstract without virtual',PasResolver.nInvalidProcModifiers);
 end;
 
-procedure TTestResolver.TestClassMethodAbstractHasBody;
+procedure TTestResolver.TestClass_MethodAbstractHasBodyFail;
 begin
   StartProgram(false);
   Add('type');
@@ -3040,7 +3314,7 @@ begin
     PasResolver.nAbstractMethodsMustNotHaveImplementation);
 end;
 
-procedure TTestResolver.TestClassMethodUnresolvedWithAncestor;
+procedure TTestResolver.TestClass_MethodUnresolvedWithAncestor;
 begin
   StartProgram(false);
   Add('type');
@@ -3054,7 +3328,7 @@ begin
   CheckResolverException('forward proc not resolved',PasResolver.nForwardProcNotResolved);
 end;
 
-procedure TTestResolver.TestClassProcFuncMismatch;
+procedure TTestResolver.TestClass_ProcFuncMismatch;
 begin
   StartProgram(false);
   Add('type');
@@ -3068,7 +3342,7 @@ begin
   CheckResolverException('procedure expected, but function found',PasResolver.nXExpectedButYFound);
 end;
 
-procedure TTestResolver.TestClassMethodOverload;
+procedure TTestResolver.TestClass_MethodOverload;
 begin
   StartProgram(false);
   Add('type');
@@ -3090,7 +3364,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClassMethodInvalidOverload;
+procedure TTestResolver.TestClass_MethodInvalidOverload;
 begin
   StartProgram(false);
   Add('type');
@@ -3108,7 +3382,7 @@ begin
   CheckResolverException('Duplicate identifier',PasResolver.nDuplicateIdentifier);
 end;
 
-procedure TTestResolver.TestClassOverride;
+procedure TTestResolver.TestClass_MethodOverride;
 begin
   StartProgram(false);
   Add('type');
@@ -3128,7 +3402,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClassOverride2;
+procedure TTestResolver.TestClass_MethodOverride2;
 begin
   StartProgram(false);
   Add('type');
@@ -3154,7 +3428,60 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClassMethodScope;
+procedure TTestResolver.TestClass_MethodOverrideFixCase;
+
+  procedure CheckOverrideName(aLabel: string);
+  var
+    Elements: TFPList;
+    i: Integer;
+    El: TPasElement;
+    Scope: TPasProcedureScope;
+  begin
+    Elements:=FindElementsAtSrcLabel(aLabel);
+    try
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        if not (El is TPasProcedure) then continue;
+        Scope:=El.CustomData as TPasProcedureScope;
+        if Scope.OverriddenProc=nil then
+          Fail('Scope.OverriddenProc=nil');
+        AssertEquals('Proc Name and Proc.Scope.OverriddenProc.Name',El.Name,Scope.OverriddenProc.Name);
+        end;
+    finally
+      Elements.Free;
+    end;
+  end;
+
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proFixCaseOfOverrides];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure {#TOBJ_ProcA}ProcA; virtual; abstract;');
+  Add('  end;');
+  Add('  {#A}TClassA = class');
+  Add('    procedure {#A_ProcA}proca; override;');
+  Add('  end;');
+  Add('  {#B}TClassB = class');
+  Add('    procedure {#B_ProcA}prOca; override;');
+  Add('  end;');
+  Add('procedure tclassa.proca;');
+  Add('begin');
+  Add('end;');
+  Add('procedure tclassb.proca;');
+  Add('begin');
+  Add('end;');
+  Add('var');
+  Add('  {#V}{=B}v: TClassB;');
+  Add('begin');
+  Add('  {@V}v.{@B_ProcA}ProcA;');
+  ParseProgram;
+  CheckOverrideName('A_ProcA');
+  CheckOverrideName('B_ProcA');
+end;
+
+procedure TTestResolver.TestClass_MethodScope;
 begin
   StartProgram(false);
   Add('type');
@@ -3172,7 +3499,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClassIdentifierSelf;
+procedure TTestResolver.TestClass_IdentifierSelf;
 begin
   StartProgram(false);
   Add('type');
@@ -3198,30 +3525,35 @@ begin
   StartProgram(false);
   Add('type');
   Add('  TObject = class');
-  Add('    procedure {#TOBJ_ProcA}ProcA(i: longint); virtual;');
-  Add('    procedure {#TOBJ_ProcB}ProcB(j: longint); virtual;');
+  Add('    procedure {#TOBJ_ProcA}ProcA(vI: longint); virtual;');
+  Add('    procedure {#TOBJ_ProcB}ProcB(vJ: longint); virtual;');
   Add('  end;');
   Add('  {#A}TClassA = class');
-  Add('    procedure {#A_ProcA}ProcA(i: longint); override;');
-  Add('    procedure {#A_ProcB}ProcB(j: longint); override;');
+  Add('    procedure {#A_ProcA}ProcA({#i1}vI: longint); override;');
+  Add('    procedure {#A_ProcB}ProcB(vJ: longint); override;');
+  Add('    procedure {#A_ProcC}ProcC; virtual;');
   Add('  end;');
-  Add('procedure TObject.ProcA(i: longint);');
+  Add('procedure TObject.ProcA(vi: longint);');
   Add('begin');
-  Add('  inherited; // ignore and do not raise error');
+  Add('  inherited; // ignore, do not raise error');
   Add('end;');
-  Add('procedure TObject.ProcB(j: longint);');
+  Add('procedure TObject.ProcB(vj: longint);');
   Add('begin');
   Add('end;');
-  Add('procedure TClassA.ProcA({#i1}i: longint);');
+  Add('procedure TClassA.ProcA(vi: longint);');
   Add('begin');
-  Add('  {@A_ProcA}ProcA({@i1}i);');
+  Add('  {@A_ProcA}ProcA({@i1}vI);');
   Add('  {@TOBJ_ProcA}inherited;');
-  Add('  inherited {@TOBJ_ProcA}ProcA({@i1}i);');
-  Add('  {@A_ProcB}ProcB({@i1}i);');
-  Add('  inherited {@TOBJ_ProcB}ProcB({@i1}i);');
+  Add('  inherited {@TOBJ_ProcA}ProcA({@i1}vI);');
+  Add('  {@A_ProcB}ProcB({@i1}vI);');
+  Add('  inherited {@TOBJ_ProcB}ProcB({@i1}vI);');
   Add('end;');
-  Add('procedure TClassA.ProcB(j: longint);');
+  Add('procedure TClassA.ProcB(vJ: longint);');
   Add('begin');
+  Add('end;');
+  Add('procedure TClassA.ProcC;');
+  Add('begin');
+  Add('  inherited; // ignore, do not raise error');
   Add('end;');
   Add('begin');
   ParseProgram;
@@ -3270,20 +3602,20 @@ begin
   StartProgram(false);
   Add('type');
   Add('  TObject = class');
-  Add('    constructor {#TOBJ_CreateA}Create(i: longint); virtual;');
+  Add('    constructor {#TOBJ_CreateA}Create(vI: longint); virtual;');
   Add('  end;');
   Add('  {#A}TClassA = class');
-  Add('    constructor {#A_CreateA}Create(i: longint); override;');
+  Add('    constructor {#A_CreateA}Create({#i1}vI: longint); override;');
   Add('  end;');
-  Add('constructor TObject.Create(i: longint);');
+  Add('constructor TObject.Create(vI: longint);');
   Add('begin');
   Add('  inherited; // ignore and do not raise error');
   Add('end;');
-  Add('constructor TClassA.Create({#i1}i: longint);');
+  Add('constructor TClassA.Create(vI: longint);');
   Add('begin');
-  Add('  {@A_CreateA}Create({@i1}i);');
+  Add('  {@A_CreateA}Create({@i1}vI);');
   Add('  {@TOBJ_CreateA}inherited;');
-  Add('  inherited {@TOBJ_CreateA}Create({@i1}i);');
+  Add('  inherited {@TOBJ_CreateA}Create({@i1}vI);');
   Add('end;');
   Add('begin');
   ParseProgram;
@@ -3363,7 +3695,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClassOperator_Is_As;
+procedure TTestResolver.TestClass_Operators_Is_As;
 begin
   StartProgram(false);
   Add('type');
@@ -3383,7 +3715,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClassOperatorIsOnNonDescendantFail;
+procedure TTestResolver.TestClass_OperatorIsOnNonDescendantFail;
 begin
   StartProgram(false);
   Add('type');
@@ -3399,7 +3731,7 @@ begin
   CheckResolverException('types are not related',PasResolver.nTypesAreNotRelated);
 end;
 
-procedure TTestResolver.TestClassOperatorIsOnNonTypeFail;
+procedure TTestResolver.TestClass_OperatorIsOnNonTypeFail;
 begin
   StartProgram(false);
   Add('type');
@@ -3416,7 +3748,7 @@ begin
     PasResolver.nXExpectedButYFound);
 end;
 
-procedure TTestResolver.TestClassOperatorAsOnNonDescendantFail;
+procedure TTestResolver.TestClass_OperatorAsOnNonDescendantFail;
 begin
   StartProgram(false);
   Add('type');
@@ -3432,7 +3764,7 @@ begin
   CheckResolverException('types are not related',PasResolver.nTypesAreNotRelated);
 end;
 
-procedure TTestResolver.TestClassOperatorAsOnNonTypeFail;
+procedure TTestResolver.TestClass_OperatorAsOnNonTypeFail;
 begin
   StartProgram(false);
   Add('type');
@@ -3512,9 +3844,12 @@ begin
   Add('  {@v}v:=TClassA({@o}o);');
   Add('  {@v}v:=TClassA(TObject({@o}o));');
   Add('  {@v}v:=TClassA({@v}v);');
+  Add('  {@v}v:=v as TClassA;');
+  Add('  {@v}v:=o as TClassA;');
   Add('  ProcA({@v}v);');
   Add('  ProcA(TClassA({@o}o));');
   Add('  if TClassA({@o}o).id=3 then ;');
+  Add('  if (o as TClassA).id=3 then ;');
   ParseProgram;
 end;
 
@@ -3768,6 +4103,274 @@ begin
     PasResolver.nCantAccessPrivateMember);
 end;
 
+procedure TTestResolver.TestClass_Constructor_NewInstance;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+  ActualNewInstance, ActualImplicitCallWithoutParams: Boolean;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    constructor Create;');
+  Add('    class function DoSome: TObject;');
+  Add('  end;');
+  Add('constructor TObject.Create;');
+  Add('begin');
+  Add('  {#a}Create; // normal call');
+  Add('  TObject.{#b}Create; // new instance');
+  Add('end;');
+  Add('class function TObject.DoSome: TObject;');
+  Add('begin');
+  Add('  Result:={#c}Create; // new instance');
+  Add('end;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  TObject.{#p}Create; // new object');
+  Add('  o:=TObject.{#q}Create; // new object');
+  Add('  o.{#r}Create; // normal call');
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestClass_Constructor_NewInstance ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualNewInstance:=false;
+      ActualImplicitCallWithoutParams:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestClass_Constructor_NewInstance ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestClass_Constructor_NewInstance ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if (Ref.Declaration is TPasConstructor) then
+          ActualNewInstance:=rrfNewInstance in Ref.Flags;
+        ActualImplicitCallWithoutParams:=rrfImplicitCallWithoutParams in Ref.Flags;
+        break;
+        end;
+      if not ActualImplicitCallWithoutParams then
+        RaiseErrorAtSrcMarker('expected implicit call at "#'+aMarker^.Identifier+', but got function ref"',aMarker);
+      case aMarker^.Identifier of
+      'a','r':// should be normal call
+        if ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
+      else // should be newinstance
+        if not ActualNewInstance then
+          RaiseErrorAtSrcMarker('expected newinstance at "#'+aMarker^.Identifier+', but got normal call"',aMarker);
+      end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TTestResolver.TestClass_Constructor_InstanceCallResultFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    constructor Create;');
+  Add('  end;');
+  Add('constructor TObject.Create;');
+  Add('begin');
+  Add('end;');
+  Add('var');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  o:=o.Create; // normal call has no result -> fail');
+  CheckResolverException('Incompatible types: got "Procedure/Function" expected "TObject"',
+    PasResolver.nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestClass_Destructor_FreeInstance;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+  ActualFreeInstance, ActualImplicitCallWithoutParams: Boolean;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    destructor Destroy; virtual;');
+  Add('  end;');
+  Add('  TChild = class(TObject)');
+  Add('    destructor DestroyOther;');
+  Add('  end;');
+  Add('destructor TObject.Destroy;');
+  Add('begin');
+  Add('end;');
+  Add('destructor TChild.DestroyOther;');
+  Add('begin');
+  Add('  {#a}Destroy; // free instance');
+  Add('  inherited {#b}Destroy; // normal call');
+  Add('end;');
+  Add('var');
+  Add('  c: TChild;');
+  Add('begin');
+  Add('  c.{#c}Destroy; // free instance');
+  Add('  c.{#d}DestroyOther; // free instance');
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestClass_Destructor_FreeInstance ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualFreeInstance:=false;
+      ActualImplicitCallWithoutParams:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestClass_Destructor_FreeInstance ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestClass_Destructor_FreeInstance ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if (Ref.Declaration is TPasDestructor) then
+          ActualFreeInstance:=rrfFreeInstance in Ref.Flags;
+        ActualImplicitCallWithoutParams:=rrfImplicitCallWithoutParams in Ref.Flags;
+        break;
+        end;
+      if not ActualImplicitCallWithoutParams then
+        RaiseErrorAtSrcMarker('expected implicit call at "#'+aMarker^.Identifier+', but got function ref"',aMarker);
+      case aMarker^.Identifier of
+      'b':// should be normal call
+        if ActualFreeInstance then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got freeinstance"',aMarker);
+      else // should be freeinstance
+        if not ActualFreeInstance then
+          RaiseErrorAtSrcMarker('expected freeinstance at "#'+aMarker^.Identifier+', but got normal call"',aMarker);
+      end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TTestResolver.TestClass_ConDestructor_CallInherited;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    constructor Create;');
+  Add('    destructor Destroy; virtual;');
+  Add('  end;');
+  Add('  TChild = class(TObject)');
+  Add('    constructor Create;');
+  Add('    destructor Destroy; override;');
+  Add('  end;');
+  Add('constructor TObject.Create;');
+  Add('begin');
+  Add('end;');
+  Add('destructor TObject.Destroy;');
+  Add('begin');
+  Add('end;');
+  Add('constructor TChild.Create;');
+  Add('begin');
+  Add('  {#c}inherited; // normal call');
+  Add('end;');
+  Add('destructor TChild.Destroy;');
+  Add('begin');
+  Add('  {#d}inherited; // normal call');
+  Add('end;');
+  Add('begin');
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    writeln('TTestResolver.TestClass_ConDestructor_Inherited ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        writeln('TTestResolver.TestClass_ConDestructor_Inherited ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        writeln('TTestResolver.TestClass_ConDestructor_Inherited ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        if rrfNewInstance in Ref.Flags then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
+        if rrfFreeInstance in Ref.Flags then
+          RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got freeinstance"',aMarker);
+        break;
+        end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TTestResolver.TestClass_Constructor_Inherited;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#TOBJ}TObject = class');
+  Add('    constructor Create;');
+  Add('    destructor Destroy;');
+  Add('    procedure DoIt;');
+  Add('  end;');
+  Add('  {#TClassA}TClassA = class');
+  Add('    Sub: TObject;');
+  Add('  end;');
+  Add('constructor TObject.Create; begin end;');
+  Add('destructor TObject.Destroy; begin end;');
+  Add('procedure TObject.DoIt; begin end;');
+  Add('var a: TClassA;');
+  Add('begin');
+  Add('  a:=TClassA.Create;');
+  Add('  a.DoIt;');
+  Add('  a.Destroy;');
+  Add('  if TClassA.Create.Sub=nil then ;');
+  Add('  with TClassA.Create do Sub:=nil;');
+  Add('  with TClassA do a:=Create;');
+  Add('  with TClassA do Create.Sub:=nil;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_SubObject;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  {#TOBJ}TObject = class');
+  Add('    {#Sub}Sub: TObject;');
+  Add('    procedure DoIt(p: longint);');
+  Add('    function GetIt(p: longint): TObject;');
+  Add('  end;');
+  Add('procedure TObject.DoIt(p: longint); begin end;');
+  Add('function TObject.GetIt(p: longint): TObject; begin end;');
+  Add('var o: TObject;');
+  Add('begin');
+  Add('  o.Sub:=nil;');
+  Add('  o.Sub.Sub:=nil;');
+  Add('  if o.Sub=nil then ;');
+  Add('  if o.Sub=o.Sub.Sub then ;');
+  Add('  o.Sub.DoIt(3);');
+  Add('  o.Sub.GetIt(4);');
+  Add('  o.Sub.GetIt(5).DoIt(6);');
+  Add('  o.Sub.GetIt(7).Sub.DoIt(8);');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestClassOf;
 begin
   StartProgram(false);
@@ -3799,6 +4402,8 @@ begin
   Add('begin');
   Add('  c:=nil;');
   Add('  c:=o.ClassType;');
+  Add('  if c=nil then;');
+  Add('  if nil=c then;');
   Add('  if c=o.ClassType then ;');
   Add('  if c<>o.ClassType then ;');
   Add('  if Assigned(o) then ;');
@@ -4452,6 +5057,77 @@ begin
     PParser.nParserPropertyArgumentsCanNotHaveDefaultValues);
 end;
 
+procedure TTestResolver.TestProperty_Index;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    {#FItems}FItems: array of string;');
+  Add('    function {#GetItems}GetItems(Index: longint): string;');
+  Add('    procedure {#SetItems}SetItems(Index: longint; Value: string);');
+  Add('    procedure DoIt;');
+  Add('    property {#Items}Items[Index: longint]: string read {@GetItems}getitems write {@SetItems}setitems;');
+  Add('  end;');
+  Add('function tobject.getitems(index: longint): string;');
+  Add('begin');
+  Add('  Result:={@FItems}fitems[index];');
+  Add('end;');
+  Add('procedure tobject.setitems(index: longint; value: string);');
+  Add('begin');
+  Add('  {@FItems}fitems[index]:=value;');
+  Add('end;');
+  Add('procedure tobject.doit;');
+  Add('begin');
+  Add('  {@Items}items[1]:={@Items}items[2];');
+  Add('  self.{@Items}items[3]:=self.{@Items}items[4];');
+  Add('end;');
+  Add('var Obj: tobject;');
+  Add('begin');
+  Add('  obj.{@Items}Items[11]:=obj.{@Items}Items[12];');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProperty_WrongTypeAsIndexFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    function GetItems(Index: string): string;');
+  Add('    property Items[Index: string]: string read getitems;');
+  Add('  end;');
+  Add('function tobject.getitems(index: string): string;');
+  Add('begin');
+  Add('end;');
+  Add('var Obj: tobject;');
+  Add('begin');
+  Add('  obj.Items[3]:=4;');
+  CheckResolverException('Incompatible type arg no. 1: Got "Longint", expected "Index:String"',
+    PasResolver.nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestProperty_Option_ClassPropertyNonStatic;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proClassPropertyNonStatic];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    class function GetB: longint;');
+  Add('    class procedure SetB(Value: longint);');
+  Add('    class property B: longint read GetB write SetB;');
+  Add('  end;');
+  Add('class function TObject.GetB: longint;');
+  Add('begin');
+  Add('end;');
+  Add('class procedure TObject.SetB(Value: longint);');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  Add('  TObject.B:=4;');
+  Add('  if TObject.B=6 then;');
+  Add('  if 7=TObject.B then;');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestDefaultProperty;
 begin
   StartProgram(false);
@@ -4473,6 +5149,19 @@ begin
   Add('  if o[5]=6 then;');
   Add('  if 7=o[8] then;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestMissingDefaultProperty;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('var o: TObject;');
+  Add('begin');
+  Add('  if o[5]=6 then;');
+  CheckResolverException('illegal qualifier "["',
+    PasResolver.nIllegalQualifier);
 end;
 
 procedure TTestResolver.TestPropertyAssign;
@@ -4633,11 +5322,15 @@ begin
   Add('type TIntArray = array of longint;');
   Add('var a: TIntArray;');
   Add('begin');
+  Add('  a:=nil;');
+  Add('  if a=nil then ;');
+  Add('  if nil=a then ;');
   Add('  SetLength(a,3);');
   Add('  a[0]:=1;');
   Add('  a[1]:=length(a);');
   Add('  a[2]:=a[0];');
   Add('  if a[3]=a[4] then ;');
+  Add('  a[a[5]]:=a[a[6]];');
   ParseProgram;
 end;
 
@@ -4710,6 +5403,35 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestPropertyOfTypeArray;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArray = array of longint;');
+  Add('  TObject = class');
+  Add('    FItems: TArray;');
+  Add('    function GetItems: TArray;');
+  Add('    procedure SetItems(Value: TArray);');
+  Add('    property Items: TArray read FItems write FItems;');
+  Add('    property Numbers: TArray read GetItems write SetItems;');
+  Add('  end;');
+  Add('function TObject.GetItems: TArray;');
+  Add('begin');
+  Add('  Result:=FItems;');
+  Add('end;');
+  Add('procedure TObject.SetItems(Value: TArray);');
+  Add('begin');
+  Add('  FItems:=Value;');
+  Add('end;');
+  Add('var Obj: TObject;');
+  Add('begin');
+  Add('  Obj.Items[3]:=4;');
+  Add('  if Obj.Items[5]=6 then;');
+  Add('  Obj.Numbers[7]:=8;');
+  Add('  if Obj.Numbers[9]=10 then;');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestProcTypesAssignObjFPC;
 begin
   StartProgram(false);
@@ -4735,7 +5457,7 @@ begin
   Add('  f: TFunctionInt;');
   Add('  ff: TFunctionIntFunc;');
   Add('begin');
-  Add('  i:=GetNumber;');
+  Add('  i:=GetNumber; // omit ()');
   Add('  i:=GetNumber();');
   Add('  i:=GetNumberFunc()();');
   Add('  i:=GetNumberFuncFunc()()();');

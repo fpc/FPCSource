@@ -43,7 +43,7 @@ type
     Procedure DoParseEnumerated(Const ASource : String; Const AHint : String; ACount : integer);
     Procedure DoTestFileType(Const AType : String; Const AHint : String; ADestType : TClass = Nil);
     Procedure DoTestRangeType(Const AStart,AStop,AHint : String);
-    Procedure DoParseSimpleSet(Const ASource : String; Const AHint : String);
+    Procedure DoParseSimpleSet(Const ASource : String; Const AHint : String; IsPacked : Boolean = False);
     Procedure DoParseComplexSet(Const ASource : String; Const AHint : String);
     procedure DoParseRangeSet(const ASource: String; const AHint: String);
     Procedure DoTestComplexSet;
@@ -129,6 +129,7 @@ type
     Procedure TestFileTypePlatform;
     Procedure TestRangeType;
     Procedure TestCharRangeType;
+    Procedure TestCharRangeType2;
     Procedure TestRangeTypeDeprecated;
     Procedure TestRangeTypePlatform;
     Procedure TestIdentifierRangeType;
@@ -136,6 +137,7 @@ type
     Procedure TestIdentifierRangeTypePlatform;
     Procedure TestNegativeIdentifierRangeType;
     Procedure TestSimpleSet;
+    Procedure TestPackedSet;
     Procedure TestSimpleSetDeprecated;
     Procedure TestSimpleSetPlatform;
     Procedure TestComplexSet;
@@ -234,6 +236,7 @@ type
     Procedure TestOnePlatformFieldDeprecated;
     Procedure TestOnePlatformFieldPlatform;
     Procedure TestOneConstOneField;
+    Procedure TestOneGenericField;
     Procedure TestTwoFields;
     procedure TestTwoFieldProtected;
     procedure TestTwoFieldStrictPrivate;
@@ -1776,6 +1779,16 @@ begin
   AssertField2([]);
 end;
 
+procedure TTestRecordTypeParser.TestOneGenericField;
+begin
+  TestFields(['Generic : Integer;'],'',False);
+  AssertEquals('Member 1 field type',TPasVariable,TObject(TheRecord.Members[0]).ClassType);
+  AssertEquals('Field 1 name','Generic',Field1.Name);
+  AssertNotNull('Have 1 Field type',Field1.VarType);
+  AssertEquals('Field 1 type',TPasUnresolvedTypeRef,Field1.VarType.ClassType);
+  AssertEquals('Field 1 type name','Integer',Field1.VarType.Name);
+end;
+
 procedure TTestRecordTypeParser.TestTwoFields;
 begin
   TestFields(['x : integer;','y : integer'],'',False);
@@ -2507,12 +2520,15 @@ begin
   AssertEquals('Range start',AStop,Stringreplace(TPasRangeType(TheType).RangeEnd,' ','',[rfReplaceAll]));
 end;
 
-procedure TTestTypeParser.DoParseSimpleSet(const ASource: String;
-  const AHint: String);
+procedure TTestTypeParser.DoParseSimpleSet(const ASource: String; const AHint: String; IsPacked: Boolean);
 begin
-  ParseType('Set of '+ASource,TPasSetType,AHint);
+  if IsPacked then
+    ParseType('Packed Set of '+ASource,TPasSetType,AHint)
+  else
+    ParseType('Set of '+ASource,TPasSetType,AHint);
   AssertNotNull('Have enumtype',TPasSetType(TheType).EnumType);
   AssertEquals('Element type ',TPasUnresolvedTypeRef,TPasSetType(TheType).EnumType.ClassType);
+  AssertEquals('IsPacked is correct',isPacked,TPasSetType(TheType).IsPacked);
 end;
 
 procedure TTestTypeParser.DoParseComplexSet(const ASource: String;
@@ -3029,6 +3045,11 @@ begin
   DoTestRangeType('#1','#4','');
 end;
 
+procedure TTestTypeParser.TestCharRangeType2;
+begin
+  DoTestRangeType('''A''','''B''','');
+end;
+
 procedure TTestTypeParser.TestRangeTypeDeprecated;
 begin
   DoTestRangeType('1','4','deprecated');
@@ -3095,6 +3116,11 @@ procedure TTestTypeParser.TestComplexSetPlatform;
 begin
   DoParseComplexSet('(one, two, three)','platform');
   DoTestComplexSet;
+end;
+
+procedure TTestTypeParser.TestPackedSet;
+begin
+  DoParseSimpleSet('Byte','',True);
 end;
 
 procedure TTestTypeParser.TestRangeLowHigh;

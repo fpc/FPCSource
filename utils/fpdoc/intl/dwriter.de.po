@@ -1,5 +1,5 @@
 #: dwriter:serrfilewriting
-msgid "An error occured during writing of file \"%s\": %s"
+msgid "An error occurred during writing of file \"%s\": %s"
 msgstr "Beim Schreiben der Datei \"%s\" ist ein Fehler aufgetrete: %s"
 
 #: dwriter:serrinvalidshortdescr

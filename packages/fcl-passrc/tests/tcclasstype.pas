@@ -37,6 +37,7 @@ type
     Procedure EndClass(AEnd : String = 'end');
     Procedure AddMember(S : String);
     Procedure ParseClass;
+    Procedure ParseClassFail(Msg: string; MsgNumber: integer);
     Procedure DoParseClass(FromSpecial : Boolean = False);
     procedure SetUp; override;
     procedure TearDown; override;
@@ -92,6 +93,7 @@ type
     procedure TestHintFieldUninmplemented;
     Procedure TestMethodSimple;
     Procedure TestMethodSimpleComment;
+    Procedure TestMethodWithDotFails;
     Procedure TestClassMethodSimple;
     Procedure TestClassMethodSimpleComment;
     Procedure TestConstructor;
@@ -149,8 +151,11 @@ type
     procedure TestInterfaceDisp;
     procedure TestInterfaceParentedEmpty;
     procedure TestInterfaceOneMethod;
+    procedure TestInterfaceDispIDMethod;
+    procedure TestInterfaceDispIDMethod2;
     procedure TestInterfaceProperty;
     procedure TestInterfaceDispProperty;
+    procedure TestInterfaceDispPropertyReadOnly;
     procedure TestInterfaceNoConstructor;
     procedure TestInterfaceNoDestructor;
     procedure TestInterfaceNoFields;
@@ -326,6 +331,23 @@ begin
   DoParseClass(False);
 end;
 
+procedure TTestClassType.ParseClassFail(Msg: string; MsgNumber: integer);
+var
+  ok: Boolean;
+begin
+  ok:=false;
+  try
+    ParseClass;
+  except
+    on E: EParserError do
+      begin
+      AssertEquals('Expected {'+Msg+'}, but got msg {'+Parser.LastMsg+'}',MsgNumber,Parser.LastMsgNumber);
+      ok:=true;
+      end;
+  end;
+  AssertEquals('Missing parser error {'+Msg+'} ('+IntToStr(MsgNumber)+')',true,ok);
+end;
+
 procedure TTestClassType.DoParseClass(FromSpecial: Boolean);
 begin
   EndClass;
@@ -360,7 +382,6 @@ begin
     AssertNull('No helperfortype if not helper',TheClass.HelperForType);
   if TheClass.Members.Count>0 then
     FMember1:=TObject(TheClass.Members[0]) as TPaselement;
-
 end;
 
 procedure TTestClassType.SetUp;
@@ -406,6 +427,7 @@ procedure TTestClassType.AssertProperty(P: TPasProperty;
   AVisibility: TPasMemberVisibility; AName, ARead, AWrite, AStored,
   AImplements: String; AArgCount: Integer; ADefault, ANodefault: Boolean);
 begin
+  AssertEquals('Property Name',AName,P.Name);
   AssertEquals(P.Name+': Visibility',AVisibility,P.Visibility);
   Assertequals(P.Name+': No args',AArgCount,P.Args.Count);
   Assertequals(P.Name+': Read accessor',ARead,P.ReadAccessorName);
@@ -765,6 +787,12 @@ begin
   AssertEquals('Comment','c'+sLineBreak,Method1.DocComment);
 end;
 
+procedure TTestClassType.TestMethodWithDotFails;
+begin
+  AddMember('Procedure DoSomething.Stupid');
+  ParseClassFail('Expected ";"',nParserExpectTokenError);
+end;
+
 procedure TTestClassType.TestClassMethodSimple;
 begin
   AddMember('Class Procedure DoSomething');
@@ -1039,7 +1067,7 @@ begin
   ParseClass;
   DefaultMethod;
   AssertEquals('Default visibility',visDefault,Method1.Visibility);
-  AssertEquals('No modifiers',[pmMessage],Method1.Modifiers);
+  AssertEquals('message modifier',[pmMessage],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertEquals('Message name','123',Method1.MessageName);
 end;
@@ -1050,7 +1078,7 @@ begin
   ParseClass;
   DefaultMethod;
   AssertEquals('Default visibility',visDefault,Method1.Visibility);
-  AssertEquals('No modifiers',[pmMessage],Method1.Modifiers);
+  AssertEquals('message modifiers',[pmMessage],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertEquals('Message name','''aha''',Method1.MessageName);
 end;
@@ -1609,6 +1637,31 @@ begin
   AssertNull('No UUID',TheClass.GUIDExpr);
 end;
 
+procedure TTestClassType.TestInterfaceDispIDMethod;
+
+begin
+  StartInterface('IInterface','');
+  AddMember('Procedure DoSomething(A : Integer) dispid 12');
+  ParseClass;
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('dispid modifier',[pmDispID],Method1.Modifiers);
+  AssertNotNull('dispid expression',Method1.DispIDExpr);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+end;
+
+procedure TTestClassType.TestInterfaceDispIDMethod2;
+begin
+  StartInterface('IInterface','');
+  AddMember('Procedure DoSomething(A : Integer); dispid 12');
+  ParseClass;
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('dispid modifier',[pmDispID],Method1.Modifiers);
+  AssertNotNull('dispid expression',Method1.DispIDExpr);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+end;
+
 procedure TTestClassType.TestInterfaceProperty;
 begin
   StartInterface('IInterface','');
@@ -1643,6 +1696,23 @@ begin
   AssertNotNull('Have property',Property1);
   AssertMemberName('S',Property1);
   AssertNotNull('Have property dispID',Property1.DispIDExpr);
+  AssertEquals('Have number',pekNumber,Property1.DispIDExpr.Kind);
+  AssertEquals('Have number','1', (Property1.DispIDExpr as TPrimitiveExpr).Value);
+end;
+
+procedure TTestClassType.TestInterfaceDispPropertyReadOnly;
+begin
+  StartInterface('IInterface','',True);
+  AddMember('Property S : Integer readonly DispID 1');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okDispInterface,TheClass.ObjKind);
+  if TheClass.members.Count<1 then
+    Fail('No members for method');
+  AssertNotNull('Have property',Property1);
+  AssertMemberName('S',Property1);
+  AssertNotNull('Have property dispID',Property1.DispIDExpr);
+  AssertTrue('DispID property is readonly',Property1.DispIDReadOnly);
   AssertEquals('Have number',pekNumber,Property1.DispIDExpr.Kind);
   AssertEquals('Have number','1', (Property1.DispIDExpr as TPrimitiveExpr).Value);
 end;

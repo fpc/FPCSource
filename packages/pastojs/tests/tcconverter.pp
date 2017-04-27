@@ -108,7 +108,6 @@ type
     Procedure TestMemberExpressionArrayTwoDim;
     Procedure TestVariable;
     Procedure TestArrayVariable;
-    procedure TestClassDecleration;
   end;
 
   { TTestStatementConverter }
@@ -374,6 +373,7 @@ Var
   I : TJSUnaryPostPlusPlusExpression;
   C : TJSRelationalExpressionLE;
   VS: TJSVariableStatement;
+  LoopEndVar: String;
 
 begin
   // For I:=1 to 100 do a:=b;
@@ -385,24 +385,27 @@ begin
   F.Body:=CreateAssignStatement();
   L:=TJSStatementList(Convert(F,TJSStatementList));
   // Should be a list of two statements:
-  //   i:=1;
-  //   for(var $loopend=100; i<=$loopend; i++){ a:=b; }
-  A:=TJSSimpleAssignStatement(AssertElement('First in list is Init statement',TJSSimpleAssignStatement,L.A));
-  AssertIdentifier('Init statement LHS is loop variable',A.LHS,'i');
-  AssertLiteral('Init statement RHS is start value',A.Expr,1);
+  //   var $loopend1=100;
+  //   for(i=1; i<=$loopend1; i++){ a:=b; }
+
+  // "var $loopend1=100"
+  LoopEndVar:=DefaultLoopEndVarName+'1';
+  VS:=TJSVariableStatement(AssertElement('First in list is var '+LoopEndVar,TJSVariableStatement,L.A));
+  VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,VS.A));
+  AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
+  AssertLiteral('Correct end value',VD.Init,100);
 
   E:=TJSForStatement(AssertElement('Second in list is "for" statement',TJSForStatement,L.B));
 
-  // "var $loopend=100"
-  VS:=TJSVariableStatement(AssertElement('var '+LoopEndVarName,TJSVariableStatement,E.Init));
-  VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVarName,TJSVarDeclaration,VS.A));
-  AssertEquals('Correct name for '+LoopEndVarName,LoopEndVarName,VD.Name);
-  AssertLiteral('Correct end value',VD.Init,100);
+  // i:=1
+  A:=TJSSimpleAssignStatement(AssertElement('Init statement',TJSSimpleAssignStatement,E.Init));
+  AssertIdentifier('Init statement LHS is loop variable',A.LHS,'i');
+  AssertLiteral('Init statement RHS is start value',A.Expr,1);
 
-  // i<=$loopend
+  // i<=$loopend1
   C:=TJSRelationalExpressionLE(AssertElement('Condition is <= expression',TJSRelationalExpressionLE,E.Cond));
   AssertIdentifier('Cond LHS is loop variable',C.A,'i');
-  AssertIdentifier('Cond RHS is '+LoopEndVarName,C.B,LoopEndVarName);
+  AssertIdentifier('Cond RHS is '+LoopEndVar,C.B,LoopEndVar);
 
   // i++
   I:=TJSUnaryPostPlusPlusExpression(AssertElement('Increment is ++ statement',TJSUnaryPostPlusPlusExpression,E.Incr));
@@ -422,6 +425,7 @@ Var
   I : TJSUnaryPostMinusMinusExpression;
   C : TJSRelationalExpressionGE;
   VS: TJSVariableStatement;
+  LoopEndVar: String;
 
 begin
   // For I:=100 downto 1 do a:=b;
@@ -435,24 +439,27 @@ begin
   L:=TJSStatementList(Convert(F,TJSStatementList));
 
   // Should be a list of two statements:
-  //   i:=100;
-  //   for(var $loopend=1; i>=$loopend; i--){ a:=b; }
-  A:=TJSSimpleAssignStatement(AssertElement('First in list is Init statement',TJSSimpleAssignStatement,L.A));
-  AssertIdentifier('Init statement LHS is loop variable',A.LHS,'i');
-  AssertLiteral('Init statement RHS is start value',A.Expr,100);
+  //   var $loopend1=1;
+  //   for(i=100; i>=$loopend1; i--){ a:=b; }
+
+  // "var $loopend1=1"
+  LoopEndVar:=DefaultLoopEndVarName+'1';
+  VS:=TJSVariableStatement(AssertElement('var '+LoopEndVar,TJSVariableStatement,L.A));
+  VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,VS.A));
+  AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
+  AssertLiteral('Correct end value',VD.Init,1);
 
   E:=TJSForStatement(AssertElement('Second in list is "for" statement',TJSForStatement,L.B));
 
-  // "var $loopend=1"
-  VS:=TJSVariableStatement(AssertElement('var '+LoopEndVarName,TJSVariableStatement,E.Init));
-  VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVarName,TJSVarDeclaration,VS.A));
-  AssertEquals('Correct name for '+LoopEndVarName,LoopEndVarName,VD.Name);
-  AssertLiteral('Correct end value',VD.Init,1);
+  // i=100;
+  A:=TJSSimpleAssignStatement(AssertElement('First in list is Init statement',TJSSimpleAssignStatement,E.Init));
+  AssertIdentifier('Init statement LHS is loop variable',A.LHS,'i');
+  AssertLiteral('Init statement RHS is start value',A.Expr,100);
 
-  // i>=$loopend
+  // i>=$loopend1
   C:=TJSRelationalExpressionGE(AssertElement('Condition is >= expression',TJSRelationalExpressionGE,E.Cond));
   AssertIdentifier('Cond LHS is loop variable',C.A,'i');
-  AssertIdentifier('Cond RHS is '+LoopEndVarName,C.B,LoopEndVarName);
+  AssertIdentifier('Cond RHS is '+LoopEndVar,C.B,LoopEndVar);
 
   // i--
   I:=TJSUnaryPostMinusMinusExpression(AssertElement('Increment is -- statement',TJSUnaryPostMinusMinusExpression,E.Incr));
@@ -596,22 +603,33 @@ Procedure TTestStatementConverter.TestTryExceptStatement;
 Var
   T : TPasImplTry;
   F : TPasImplTryExcept;
-  El : TJSTryFinallyStatement;
+  El : TJSTryCatchStatement;
   L : TJSStatementList;
 
 begin
-  // Try a:=B except b:=c end;
+  // Try a:=b except b:=c end;
+  (*
+    Becomes:
+    try {
+     a=b;
+    } catch {
+      b = c;
+    }
+  *)
   T:=TPasImplTry.Create('',Nil);
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddExcept;
   F.AddElement(CreateAssignStatement('b','c'));
-  El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
+  // Convert
+  El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
+  AssertEquals('No exception object name','',String(El.Ident));
+  // check "a=b;"
   L:=AssertListStatement('try..except block is statement list',El.Block);
   AssertAssignStatement('Correct assignment in try..except block',L.A,'a','b');
   AssertNull('No second statement',L.B);
+  // check "b=c;'
   L:=AssertListStatement('try..except block is statement list',El.BCatch);
   AssertAssignStatement('Correct assignment in except..end block',L.A,'b','c');
-  AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),String(El.Ident));
   AssertNull('No second statement',L.B);
 end;
 
@@ -621,22 +639,24 @@ Var
   T : TPasImplTry;
   F : TPasImplTryExcept;
   O : TPasImplExceptOn;
-  El : TJSTryFinallyStatement;
+  El : TJSTryCatchStatement;
   L : TJSStatementList;
   I : TJSIfStatement;
-  IC : TJSRelationalExpressionInstanceOf;
-  V : TJSVarDeclaration;
+  IC : TJSCallExpression;
+  D: TJSDotMemberExpression;
+  ExObj: TJSElement;
+  VS: TJSVariableStatement;
+  V: TJSVarDeclaration;
 
 begin
-  // Try a:=B except on E : exception do  b:=c end;
   // Try a:=B except on E : exception do  b:=c end;
   (*
     Becomes:
     try {
      a=b;
-    } catch (ExceptObject) {
-      if (ExceptObject instanceof exception) {
-        var e = ExceptObject;
+    } catch (exceptobject) {
+      if (exception.isPrototypeOf(exceptobject)) {
+        var e = exceptobject;
         b = c;
       }
     }
@@ -647,21 +667,29 @@ begin
   O:=F.AddExceptOn('E','Exception');
   O.Body:=CreateAssignStatement('b','c');
   // Convert
-  El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
+  El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
+  // check "catch(exceptobject)"
   AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),String(El.Ident));
-  L:=AssertListStatement('try..except block is statement list',El.BCatch);
-  AssertNull('No second statement',L.B);
-  I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,L.A));
-  Ic:=TJSRelationalExpressionInstanceOf(AssertElement('If condition is InstanceOf expression',TJSRelationalExpressionInstanceOf,I.Cond));
-  Assertidentifier('InstanceOf left is exception object',Ic.A,lowercase(DefaultJSExceptionObject));
-  // Lowercased exception - May need checking
-  Assertidentifier('InstanceOf right is original exception type',Ic.B,'exception');
-  L:=AssertListStatement('On block is always a list',i.btrue);
-  V:=TJSVarDeclaration(AssertElement('First statement in list is a var declaration',TJSVarDeclaration,L.A));
+  // check "if"
+  I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,El.BCatch));
+  // check if condition "exception.isPrototypeOf(exceptobject)"
+  IC:=TJSCallExpression(AssertElement('If condition is call expression',TJSCallExpression,I.Cond));
+  D:=TJSDotMemberExpression(AssertElement('exception.isPrototypeOf is dot member expression',TJSDotMemberExpression,IC.Expr));
+  Assertidentifier('left side of exception.isPrototypeOf',D.MExpr,'exception');
+  AssertEquals('right side of exception.isPrototypeOf','isPrototypeOf',String(D.Name));
+  AssertNotNull('args of exception.isPrototypeOf(exceptobject)',IC.Args);
+  AssertEquals('args of exception.isPrototypeOf(exceptobject)',1,IC.Args.Elements.Count);
+  ExObj:=IC.Args.Elements.Elements[0].Expr;
+  Assertidentifier('arg of exception.isPrototypeOf(exceptobject)',ExObj,lowercase(DefaultJSExceptionObject));
+  // check statement "var e = exceptobject;"
+  L:=AssertListStatement('On block is always a list',I.BTrue);
+  writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
+  VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
+  V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',v.init,lowercase(DefaultJSExceptionObject));
-  L:=AssertListStatement('Second statement is again list',L.B);
-  AssertAssignStatement('Original assignment in second statement',L.A,'b','c');
+  Assertidentifier('Variable init is exception object',V.Init,lowercase(DefaultJSExceptionObject));
+  // check "b = c;"
+  AssertAssignStatement('Original assignment in second statement',L.B,'b','c');
 end;
 
 Procedure TTestStatementConverter.TestReRaise;
@@ -669,23 +697,26 @@ Var
   T : TPasImplTry;
   F : TPasImplTryExcept;
   O : TPasImplExceptOn;
-  El : TJSTryFinallyStatement;
+  El : TJSTryCatchStatement;
   L : TJSStatementList;
   I : TJSIfStatement;
-  IC : TJSRelationalExpressionInstanceOf;
+  IC : TJSCallExpression;
   R : TJSThrowStatement;
   V : TJSVarDeclaration;
+  D: TJSDotMemberExpression;
+  ExObj: TJSElement;
+  VS: TJSVariableStatement;
 
 begin
-  // Try a:=B except on E : exception do  b:=c end;
+  // Try a:=B except on E : exception do raise; end;
   (*
     Becomes:
     try {
      a=b;
-    } catch (jsexception) {
-      if jsexception instanceof exception {
-        var e = jsexception;
-        throw jsexception;
+    } catch (exceptobject) {
+      if (exception.isPrototypeOf(exceptobject)) {
+        var e = exceptobject;
+        throw exceptobject;
       }
     }
   *)
@@ -695,20 +726,28 @@ begin
   O:=F.AddExceptOn('E','Exception');
   O.Body:=TPasImplRaise.Create('',Nil);
   // Convert
-  El:=TJSTryFinallyStatement(Convert(T,TJSTryCatchStatement));
+  El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
+  // check "catch(exceptobject)"
   AssertEquals('Correct exception object name',lowercase(DefaultJSExceptionObject),String(El.Ident));
-  L:=AssertListStatement('try..except block is statement list',El.BCatch);
-  AssertNull('No second statement',L.B);
-  I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,L.A));
-  Ic:=TJSRelationalExpressionInstanceOf(AssertElement('If condition is InstanceOf expression',TJSRelationalExpressionInstanceOf,I.Cond));
-  Assertidentifier('InstanceOf left is exception object',Ic.A,lowercase(DefaultJSExceptionObject));
-  // Lowercased exception - May need checking
-  L:=AssertListStatement('On block is always a list',i.btrue);
-  V:=TJSVarDeclaration(AssertElement('First statement in list is a var declaration',TJSVarDeclaration,L.A));
+  // check "if"
+  I:=TJSIfStatement(AssertElement('On block is if',TJSIfStatement,El.BCatch));
+  // check if condition "exception.isPrototypeOf(exceptobject)"
+  IC:=TJSCallExpression(AssertElement('If condition is call expression',TJSCallExpression,I.Cond));
+  D:=TJSDotMemberExpression(AssertElement('exception.isPrototypeOf is dot member expression',TJSDotMemberExpression,IC.Expr));
+  Assertidentifier('left side of exception.isPrototypeOf',D.MExpr,'exception');
+  AssertEquals('right side of exception.isPrototypeOf','isPrototypeOf',String(D.Name));
+  AssertNotNull('args of exception.isPrototypeOf(ExceptObject)',IC.Args);
+  AssertEquals('args of exception.isPrototypeOf(ExceptObject)',1,IC.Args.Elements.Count);
+  ExObj:=IC.Args.Elements.Elements[0].Expr;
+  Assertidentifier('arg of exception.isPrototypeOf(ExceptObject)',ExObj,lowercase(DefaultJSExceptionObject));
+  // check statement "var e = exceptobject;"
+  L:=AssertListStatement('On block is always a list',I.BTrue);
+  writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
+  VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
+  V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.A));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
-  Assertidentifier('Variable init is exception object',v.init,lowercase(DefaultJSExceptionObject));
-  L:=AssertListStatement('Second statement is again list',L.B);
-  R:=TJSThrowStatement(AssertElement('On block is throw statement',TJSThrowStatement,L.A));
+  Assertidentifier('Variable init is exception object',V.Init,lowercase(DefaultJSExceptionObject));
+  R:=TJSThrowStatement(AssertElement('On block is throw statement',TJSThrowStatement,L.B));
   Assertidentifier('R expression is original exception ',R.A,lowercase(DefaultJSExceptionObject));
 end;
 
@@ -756,6 +795,7 @@ begin
   AssertNotNull('Convert returned a result',E);
   if not (E is TJSUnary) then
     Fail('Do not have unary class, but: '+E.ClassName);
+  AssertEquals('TTestExpressionConverter.TestUnaryExpression: wrong class',AClass.ClassName,E.ClassName);
   Result:=TJSUnary(E);
 end;
 
@@ -1186,27 +1226,7 @@ begin
   A:=TJSArrayLiteral(AssertElement('Init is array literal',TJSArrayLiteral,VD.Init));
   AssertEquals('No elements',0,A.Elements.Count);
 end;
-procedure TTestExpressionConverter.TestClassDecleration;
-var
-  C: TPasClassType;
-  Decl: TPasDeclarations;
-  Sl: TJSStatementList;
-  Uni: TJSUnary;
-  Asi: TJSSimpleAssignStatement;
-  pex: TJSPrimaryExpressionIdent;
-  Call: TJSCallExpression;
-begin
-  Decl:=TPasDeclarations.Create('',Nil);
-  C:=TPasClassType.Create('myclass',Nil);
-  Decl.Declarations.Add(c);
-  Sl:=TJSStatementList(Convert(Decl,TJSStatementList));
-  Uni:=TJSUnary(AssertElement('Sl.A is TJSUnary',TJSUnary,Sl.A));
-  Asi:=TJSSimpleAssignStatement(AssertElement('Sl.A is TJSUnary',TJSSimpleAssignStatement,Uni.A));
-  pex:=TJSPrimaryExpressionIdent(AssertElement('Asi.LHS is TJSPrimaryExpressionIdent',TJSPrimaryExpressionIdent,Asi.LHS));
-  AssertEquals('Correct name','myclass',String(pex.Name));
-  Call:=TJSCallExpression(AssertElement('Asi.Expr is TJSCallExpression',TJSCallExpression,Asi.Expr));
-  if Call=nil then ;
-end;
+
 procedure TTestTestConverter.TestEmpty;
 begin
   AssertNotNull('Have converter',Converter);

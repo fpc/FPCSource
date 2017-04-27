@@ -535,6 +535,7 @@ type
       const Arg: Pointer); override;
   public
     EnumType: TPasType;
+    IsPacked : Boolean;
   end;
 
   TPasRecordType = class;
@@ -709,7 +710,7 @@ type
   end;
 
   { TPasVariable }
-  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass,vmStatic);
+  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass, vmStatic);
   TVariableModifiers = set of TVariableModifier;
 
   TPasVariable = class(TPasElement)
@@ -775,6 +776,7 @@ type
     Args: TFPList;        // List of TPasArgument objects
     ReadAccessorName, WriteAccessorName, ImplementsName,
       StoredAccessorName: string;
+    DispIDReadOnly,
     IsDefault, IsNodefault: Boolean;
     property IsClass: boolean read GetIsClass write SetIsClass;
     Function ResolvedType : TPasType;
@@ -808,7 +810,7 @@ type
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
                         pmExport, pmOverload, pmMessage, pmReintroduce,
                         pmStatic,pmInline,pmAssembler,pmVarargs, pmPublic,
-                        pmCompilerProc,pmExternal,pmForward);
+                        pmCompilerProc,pmExternal,pmForward, pmdispid, pmnoreturn);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
                         
@@ -835,6 +837,8 @@ type
     PublicName,
     LibrarySymbolName,
     LibraryExpr : TPasExpr;
+    DispIDExpr :  TPasExpr;
+    AliasName : String;
     Procedure AddModifier(AModifier : TProcedureModifier);
     Function IsVirtual : Boolean;
     Function IsDynamic : Boolean;
@@ -1386,7 +1390,10 @@ const
                 = ('virtual', 'dynamic','abstract', 'override',
                    'export', 'overload', 'message', 'reintroduce',
                    'static','inline','assembler','varargs', 'public',
-                   'compilerproc','external','forward');
+                   'compilerproc','external','forward','dispid','noreturn');
+
+  VariableModifierNames : Array[TVariableModifier] of string
+     = ('cvar', 'external', 'public', 'export', 'class', 'static');
 
 procedure ReleaseAndNil(var El: TPasElement); overload;
 
