@@ -135,6 +135,9 @@ type
     Procedure TestTypeCast;
     procedure TestTypeCast2;
     Procedure TestCreate;
+    procedure TestChainedPointers;
+    Procedure TestNilCaret;
+    Procedure TestExpCaret;
   end;
 
 implementation
@@ -579,6 +582,47 @@ procedure TTestExpressions.TestCreate;
 begin
   DeclareVar('ESDOSerializationException');
   ParseExpression('ESDOSerializationException.CreateFmt(SERR_InvalidDataTypeInContext,[IntToStr(Ord(AOwner^.DataType))])');
+end;
+
+procedure TTestExpressions.TestChainedPointers;
+begin
+  // From bug report 31719
+  Source.Add('type');
+  Source.Add('    PTResourceManager=^TResourceManager;');
+  Source.Add('    TResourceManager=object');
+  Source.Add('      function LoadResourceFromFile(filename:string):PTResourceManager;');
+  Source.Add('    end;');
+  Source.Add('    function TResourceManager.LoadResourceFromFile(filename:string):PTResourceManager;');
+  Source.Add('    begin');
+  Source.Add('      result:=@self;');
+  Source.Add('    end;');
+  Source.Add('');
+  Source.Add('  var');
+  Source.Add('    ResourceManager:TResourceManager;');
+  Source.Add('');
+  Source.Add('  begin');
+  Source.Add('    ResourceManager.LoadResourceFromFile(''file1'')');
+  Source.Add('                  ^.LoadResourceFromFile(''file2'');');
+  Source.Add('  end.');
+  ParseModule;
+end;
+
+procedure TTestExpressions.TestNilCaret;
+begin
+  Source.Add('{$mode objfpc}');
+  Source.Add('begin');
+  Source.Add('FillChar(nil^,10,10);');
+  Source.Add('end.');
+  ParseModule;
+end;
+
+procedure TTestExpressions.TestExpCaret;
+begin
+  Source.Add('{$mode objfpc}');
+  Source.Add('begin');
+  Source.Add('A:=B^;');
+  Source.Add('end.');
+  ParseModule;
 end;
 
 

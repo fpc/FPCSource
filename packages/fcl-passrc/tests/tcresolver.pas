@@ -369,7 +369,6 @@ type
     Procedure TestClassAssign;
     Procedure TestClassNilAsParam;
     Procedure TestClass_Operators_Is_As;
-    Procedure TestClass_OperatorIsOnNonDescendantFail;
     Procedure TestClass_OperatorIsOnNonTypeFail;
     Procedure TestClass_OperatorAsOnNonDescendantFail;
     Procedure TestClass_OperatorAsOnNonTypeFail;
@@ -498,6 +497,7 @@ type
     Procedure TestArrayEnumTypeConstWrongTypeFail;
     Procedure TestArrayEnumTypeConstNonConstFail;
     Procedure TestArrayEnumTypeSetLengthFail;
+    Procedure TestArray_DynArrayConst;
     Procedure TestArray_AssignNilToStaticArrayFail1;
     Procedure TestArray_SetLengthProperty;
     Procedure TestArray_PassArrayElementToVarParam;
@@ -544,6 +544,7 @@ type
     Procedure TestProcType_PropertyCallWrongArgFail;
     Procedure TestProcType_Typecast;
     Procedure TestProcType_InsideFunction;
+    Procedure TestProcType_PassProcToUntyped;
 
     // pointer
     Procedure TestPointer;
@@ -555,6 +556,7 @@ type
 
     // hints
     Procedure TestHint_ElementHints;
+    Procedure TestHint_ElementHintsMsg;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -3508,7 +3510,7 @@ begin
   Add('  case i of');
   Add('  ''1'': ;');
   Add('  end;');
-  CheckResolverException('Incompatible types: got "Longint" expected "Char"',
+  CheckResolverException('Incompatible types: got "Char" expected "Longint"',
     nIncompatibleTypesGotExpected);
 end;
 
@@ -3967,10 +3969,11 @@ end;
 procedure TTestResolver.TestProcDuplicate;
 begin
   StartProgram(false);
+  Add('type integer = longint;');
   Add('procedure ProcA(i: longint);');
   Add('begin');
   Add('end;');
-  Add('procedure ProcA(i: longint);');
+  Add('procedure ProcA(i: integer);');
   Add('begin');
   Add('end;');
   Add('begin');
@@ -4254,6 +4257,8 @@ begin
   Add('  exit(''abc'');');
   Add('end;');
   Add('begin');
+  Add('  exit;');
+  Add('  exit(4);');
   ParseProgram;
 end;
 
@@ -5372,25 +5377,10 @@ begin
   Add('begin');
   Add('  if {@o}o is {@A}TClassA then;');
   Add('  if {@v}v is {@A}TClassA then;');
+  Add('  if {@v}v is {@TOBJ}TObject then;');
   Add('  if {@v}v.{@Sub}Sub is {@A}TClassA then;');
   Add('  {@v}v:={@o}o as {@A}TClassA;');
   ParseProgram;
-end;
-
-procedure TTestResolver.TestClass_OperatorIsOnNonDescendantFail;
-begin
-  StartProgram(false);
-  Add('type');
-  Add('  {#TOBJ}TObject = class');
-  Add('  end;');
-  Add('  {#A}TClassA = class');
-  Add('  end;');
-  Add('var');
-  Add('  {#o}{=TOBJ}o: TObject;');
-  Add('  {#v}{=A}v: TClassA;');
-  Add('begin');
-  Add('  if {@v}v is {@TObj}TObject then;');
-  CheckResolverException(sTypesAreNotRelated,PasResolver.nTypesAreNotRelated);
 end;
 
 procedure TTestResolver.TestClass_OperatorIsOnNonTypeFail;
@@ -6963,10 +6953,11 @@ procedure TTestResolver.TestProperty1;
 begin
   StartProgram(false);
   Add('type');
+  Add('  integer = longint;');
   Add('  {#TOBJ}TObject = class');
   Add('  end;');
   Add('  {#A}TClassA = class');
-  Add('    {#FB}FB: longint;');
+  Add('    {#FB}FB: integer;');
   Add('    property {#B}B: longint read {@FB}FB write {@FB}FB;');
   Add('  end;');
   Add('var');
@@ -7890,6 +7881,26 @@ begin
     nIncompatibleTypeArgNo);
 end;
 
+procedure TTestResolver.TestArray_DynArrayConst;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TArrInt = array of integer;',
+  '  TArrStr = array of string;',
+  'const',
+  '  Ints: TArrInt = (1,2,3);',
+  '  Names: array of string = (''a'',''foo'');',
+  '  Aliases: TarrStr = (''foo'',''b'');',
+  '  OneInt: TArrInt = (7);',
+  '  OneStr: array of integer = (7);',
+  '  Chars: array of char = ''aoc'';',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestArray_AssignNilToStaticArrayFail1;
 begin
   StartProgram(false);
@@ -8242,6 +8253,9 @@ begin
   Add('  doi({#h}f());');
   Add('  doi({#i}f(2));');
   Add('  dofconst({#j}f);');
+  Add('  if Assigned({#k}f) then;');
+  Add('  if {#l}f=nil then;');
+  Add('  if nil={#m}f then;');
   ParseProgram;
 
   aMarker:=FirstSrcMarker;
@@ -8951,6 +8965,59 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestProcType_PassProcToUntyped;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualImplicitCallWithoutParams: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEvent = procedure of object;',
+  '  TFunc = function: longint of object;',
+  'procedure DoIt; varargs; begin end;',
+  'procedure DoSome(const a; var b; c: pointer); begin end;',
+  'var',
+  '  E: TEvent;',
+  '  F: TFunc;',
+  'begin',
+  '  DoIt({#a1}E,{#a2}F);',
+  '  DoSome({#b1}E,{#b2}E,{#b3}E);',
+  '  DoSome({#c1}F,{#c2}F,{#c3}F);',
+  '']);
+  ParseProgram;
+
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestProcType_PassProcToUntyped ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualImplicitCallWithoutParams:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestProcType_PassProcToUntyped ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        //writeln('TTestResolver.TestProcType_PassProcToUntyped ',GetObjName(Ref.Declaration),' rrfImplicitCallWithoutParams=',rrfImplicitCallWithoutParams in Ref.Flags);
+        if rrfImplicitCallWithoutParams in Ref.Flags then
+          ActualImplicitCallWithoutParams:=true;
+        break;
+        end;
+      if ActualImplicitCallWithoutParams then
+        RaiseErrorAtSrcMarker('expected no implicit call at "#'+aMarker^.Identifier+'"',aMarker);
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
 procedure TTestResolver.TestPointer;
 begin
   StartProgram(false);
@@ -9091,6 +9158,21 @@ begin
   CheckResolverHint(mtWarning,nSymbolXIsNotPortable,'Symbol "TPlatform" is not portable');
   CheckResolverHint(mtWarning,nSymbolXIsExperimental,'Symbol "TExperimental" is experimental');
   CheckResolverHint(mtWarning,nSymbolXIsNotImplemented,'Symbol "TUnimplemented" is implemented');
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestHint_ElementHintsMsg;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TDeprecated = longint deprecated ''foo'';',
+  'var',
+  '  vDeprecated: TDeprecated;',
+  'begin',
+  '']);
+  ParseProgram;
+  CheckResolverHint(mtWarning,nSymbolXIsDeprecatedY,'Symbol "TDeprecated" is deprecated: ''foo''');
   CheckResolverUnexpectedHints;
 end;
 

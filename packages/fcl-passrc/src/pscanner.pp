@@ -41,6 +41,7 @@ const
   nLogIFIgnored = 1014;
   nErrInvalidMode = 1015;
   nErrInvalidModeSwitch = 1016;
+  nUserDefined = 1017;
 
 // resourcestring patterns of messages
 resourcestring
@@ -60,6 +61,7 @@ resourcestring
   SLogIFIgnored = 'IF %s found, ignoring (rejected).';
   SErrInvalidMode = 'Invalid mode: "%s"';
   SErrInvalidModeSwitch = 'Invalid mode switch: "%s"';
+  SErrUserDefined = 'User defined error: "%s"';
 
 type
   TMessageType = (
@@ -386,7 +388,8 @@ type
     po_NoOverloadedProcs,    // do not create TPasOverloadedProc for procs with same name
     po_KeepClassForward,     // disabled: delete class fowards when there is a class declaration
     po_ArrayRangeExpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
-    po_SelfToken             // Self is a token. For backward compatibility.
+    po_SelfToken,            // Self is a token. For backward compatibility.
+    po_CheckModeswitches     // stop on unknown modeswitch
     );
   TPOptions = set of TPOption;
 
@@ -405,6 +408,7 @@ type
 
   TPascalScanner = class
   private
+    FAllowedModeSwitches: TModeSwitches;
     FCurrentModeSwitches: TModeSwitches;
     FForceCaret: Boolean;
     FLastMsg: string;
@@ -437,6 +441,8 @@ type
     PPSkipModeStack: array[0..255] of TPascalScannerPPSkipMode;
     PPIsSkippingStack: array[0..255] of Boolean;
     function GetCurColumn: Integer;
+    procedure SetAllowedModeSwitches(const AValue: TModeSwitches);
+    procedure SetCurrentModeSwitches(AValue: TModeSwitches);
     procedure SetOptions(AValue: TPOptions);
   protected
     function FetchLine: boolean;
@@ -454,6 +460,7 @@ type
     procedure HandleELSE(const AParam: String);
     procedure HandleENDIF(const AParam: String);
     procedure HandleDefine(Param: String); virtual;
+    procedure HandleError(Param: String); virtual;
     procedure HandleIncludeFile(Param: String); virtual;
     procedure HandleUnDefine(Param: String);virtual;
     function HandleInclude(const Param: String): TToken;virtual;
@@ -503,7 +510,8 @@ type
     property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
-    Property CurrentModeSwitches : TModeSwitches Read FCurrentModeSwitches Write FCurrentModeSwitches;
+    Property AllowedModeSwitches: TModeSwitches Read FAllowedModeSwitches Write SetAllowedModeSwitches;
+    Property CurrentModeSwitches: TModeSwitches Read FCurrentModeSwitches Write SetCurrentModeSwitches;
     Property ForceCaret : Boolean Read FForceCaret;
   end;
 
@@ -668,6 +676,8 @@ const
   AllLanguageModes = [msFPC,msObjFPC,msDelphi,msTP7,msMac,msISO,msExtPas];
 
 const
+  // all mode switches supported by FPC
+  msAllFPCModeSwitches = [low(TModeSwitch)..High(TModeSwitch)];
 
   DelphiModeSwitches = [msDelphi,msClass,msObjpas,msresult,msstringpchar,
      mspointer2procedure,msautoderef,msTPprocvar,msinitfinal,msdefaultansistring,
@@ -676,6 +686,7 @@ const
 
   DelphiUnicodeModeSwitches = delphimodeswitches + [mssystemcodepage,msdefaultunicodestring];
 
+  // mode switches of $mode FPC, don't confuse with msAllFPCModeSwitches
   FPCModeSwitches = [msfpc,msstringpchar,msnestedcomment,msrepeatforward,
     mscvarsupport,msinitfinal,mshintdirective, msproperty,msdefaultinline];
 
@@ -1237,6 +1248,7 @@ begin
   FDefines := CS;
   FMacros:=CS;
   FCurrentModeSwitches:=FPCModeSwitches;
+  FAllowedModeSwitches:=msAllFPCModeSwitches;
 end;
 
 destructor TPascalScanner.Destroy;
@@ -1584,6 +1596,11 @@ begin
     end;
 end;
 
+procedure TPascalScanner.HandleError(Param: String);
+begin
+  Error(nUserDefined, SErrUserDefined,[Param])
+end;
+
 procedure TPascalScanner.HandleUnDefine(Param: String);
 
 Var
@@ -1605,7 +1622,7 @@ begin
     end;
 end;
 
-Function TPascalScanner.HandleInclude(Const Param : String) : TToken;
+function TPascalScanner.HandleInclude(const Param: String): TToken;
 
 begin
   Result:=tkComment;
@@ -1619,62 +1636,46 @@ begin
     end
 end;
 
-Procedure TPascalScanner.HandleMode(Const Param : String);
+procedure TPascalScanner.HandleMode(const Param: String);
+
+  procedure SetMode(const NeededModes, NewModeSwitches: TModeSwitches;
+    IsDelphi: boolean);
+  begin
+    if not (NeededModes<=AllowedModeSwitches) then
+      Error(nErrInvalidMode,SErrInvalidMode,[Param]);
+    CurrentModeSwitches:=NewModeSwitches;
+    if IsDelphi then
+      FOptions:=FOptions+[po_delphi]
+    else
+      FOptions:=FOptions-[po_delphi];
+  end;
 
 Var
   P : String;
 
 begin
   P:=UpperCase(Param);
-  // Eventually, we'll need to make the distinction...
-  // For now, treat OBJFPC as Delphi mode.
   Case P of
-  'DELPHI':
-     begin
-     CurrentModeSwitches:=delphimodeswitches;
-     FOptions:=FOptions+[po_delphi]
-     end;
-  'DELPHIUNICODE':
-     begin
-     CurrentModeSwitches:=DelphiUnicodeModeSwitches;
-     FOptions:=FOptions+[po_delphi]
-     end;
-  'TP':
-     begin
-     CurrentModeSwitches:=TPModeSwitches;
-     FOptions:=FOptions-[po_delphi]
-     end;
-  'GPC':
-     begin
-     CurrentModeSwitches:=GPCModeSwitches;
-     FOptions:=FOptions-[po_delphi]
-     end;
-  'ISO':
-     begin
-     CurrentModeSwitches:=ISOModeSwitches;
-     FOptions:=FOptions-[po_delphi]
-     end;
-  'EXTENDED':
-     begin
-     CurrentModeSwitches:=ExtPasModeSwitches;
-     FOptions:=FOptions-[po_delphi]
-     end;
-  'MACPAS':
-     begin
-     CurrentModeSwitches:=MacModeSwitches;
-     FOptions:=FOptions-[po_delphi]
-     end;
+  'FPC':
+    SetMode([msFpc],FPCModeSwitches,false);
   'OBJFPC':
-    begin
-    CurrentModeSwitches:=ObjFPCModeSwitches;
-    FOptions:=FOptions+[po_delphi]
-    end;
-  'FPC',
+    SetMode([msObjfpc],OBJFPCModeSwitches,true);
+  'DELPHI':
+    SetMode([msDelphi],DelphiModeSwitches,true);
+  'DELPHIUNICODE':
+    SetMode([msDelphi,msDefaultUnicodestring],DelphiUnicodeModeSwitches,true);
+  'TP':
+    SetMode([msTP7],TPModeSwitches,false);
+  'MACPAS':
+    SetMode([msMac],MacModeSwitches,false);
+  'ISO':
+    SetMode([msIso],ISOModeSwitches,false);
+  'EXTENDED':
+    SetMode([msExtpas],ExtPasModeSwitches,false);
+  'GPC':
+    SetMode([msGPC],GPCModeSwitches,false);
   'DEFAULT':
-    begin
-      CurrentModeSwitches:=FPCModeSwitches;
-      FOptions:=FOptions-[po_delphi]
-    end;
+    SetMode([msFpc],FPCModeSwitches,false);
   else
     Error(nErrInvalidMode,SErrInvalidMode,[Param])
   end;
@@ -1697,16 +1698,21 @@ begin
     MSN:=Copy(MSN,1,P-1);
     end;
   While (MS<>msNone) and (SModeSwitchNames[MS]<>MSN) do
-   MS:=Pred(MS);
-  if MS=msNone then
-    Error(nErrInvalidModeSwitch,SErrInvalidModeSwitch,[Param]);
-  if (PM='') or (PM='+') or (PM='ON') then
-    CurrentModeSwitches:=CurrentModeSwitches+[MS]
+    MS:=Pred(MS);
+  if (MS=msNone) or not (MS in AllowedModeSwitches) then
+    begin
+    if po_CheckModeswitches in Options then
+      Error(nErrInvalidModeSwitch,SErrInvalidModeSwitch,[Param])
+    else
+      exit; // ignore
+    end;
+  if (PM='-') or (PM='OFF') then
+    CurrentModeSwitches:=CurrentModeSwitches-[MS]
   else
-    CurrentModeSwitches:=CurrentModeSwitches-[MS];
+    CurrentModeSwitches:=CurrentModeSwitches+[MS];
 end;
 
-Procedure TPascalScanner.PushSkipMode;
+procedure TPascalScanner.PushSkipMode;
 
 begin
   if PPSkipStackIndex = High(PPSkipModeStack) then
@@ -1716,7 +1722,7 @@ begin
   Inc(PPSkipStackIndex);
 end;
 
-Procedure TPascalScanner.HandleIFDEF(Const AParam : String);
+procedure TPascalScanner.HandleIFDEF(const AParam: String);
 
 Var
   ADefine : String;
@@ -1747,7 +1753,7 @@ begin
     end;
 end;
 
-Procedure TPascalScanner.HandleIFNDEF(Const AParam : String);
+procedure TPascalScanner.HandleIFNDEF(const AParam: String);
 
 Var
   ADefine : String;
@@ -1779,7 +1785,7 @@ begin
     end;
 end;
 
-Procedure TPascalScanner.HandleIFOPT(Const AParam : String);
+procedure TPascalScanner.HandleIFOPT(const AParam: String);
 
 begin
   PushSkipMode;
@@ -1796,7 +1802,7 @@ begin
     DoLog(mtInfo,nLogIFOPTIgnored,sLogIFOPTIgnored,[Uppercase(AParam)])
 end;
 
-Procedure TPascalScanner.HandleIF(Const AParam : String);
+procedure TPascalScanner.HandleIF(const AParam: String);
 
 begin
   PushSkipMode;
@@ -1813,7 +1819,7 @@ begin
     end;
 end;
 
-Procedure TPascalScanner.HandleELSE(Const AParam : String);
+procedure TPascalScanner.HandleELSE(const AParam: String);
 
 begin
   if AParam='' then;
@@ -1826,7 +1832,7 @@ begin
 end;
 
 
-Procedure TPascalScanner.HandleENDIF(Const AParam : String);
+procedure TPascalScanner.HandleENDIF(const AParam: String);
 
 begin
   if AParam='' then;
@@ -1837,7 +1843,7 @@ begin
   PPIsSkipping := PPIsSkippingStack[PPSkipStackIndex];
 end;
 
-Function TPascalScanner.HandleDirective(Const ADirectiveText : String) : TToken;
+function TPascalScanner.HandleDirective(const ADirectiveText: String): TToken;
 
 Var
   Directive,Param : String;
@@ -1868,6 +1874,9 @@ begin
   'DEFINE':
      if not PPIsSkipping then
        HandleDefine(Param);
+  'ERROR':
+     if not PPIsSkipping then
+       HandleError(Param);
   'UNDEF':
      if not PPIsSkipping then
        HandleUnDefine(Param);
@@ -1944,10 +1953,18 @@ begin
           Inc(TokenStr);
         until not (TokenStr[0] in ['0'..'7']);
         SectionLength := TokenStr - TokenStart;
-        SetLength(FCurTokenString, SectionLength);
-        if SectionLength > 0 then
-          Move(TokenStart^, FCurTokenString[1], SectionLength);
-        Result := tkNumber;
+        if (SectionLength=1) then // &Keyword
+          begin
+          DoFetchToken();
+          Result:=tkIdentifier;
+          end
+        else
+          begin
+          SetLength(FCurTokenString, SectionLength);
+          if SectionLength > 0 then
+            Move(TokenStart^, FCurTokenString[1], SectionLength);
+          Result := tkNumber;
+          end;
       end;
     '$':
       begin
@@ -2223,7 +2240,7 @@ begin
     '^':
       begin
       if ForceCaret or PPisSkipping or
-         (PreviousToken in [tkeof,tkComment,tkIdentifier,tkNil,tkOperator,tkBraceClose,tkSquaredBraceClose,tkCARET]) then
+         (PreviousToken in [tkeof,tkComment,tkIdentifier,tkNil,tkOperator,tkBraceClose,tkSquaredBraceClose,tkCARET,tkWhitespace]) then
         begin
         Inc(TokenStr);
         Result := tkCaret;
@@ -2326,6 +2343,20 @@ begin
     Result := 0;
 end;
 
+procedure TPascalScanner.SetAllowedModeSwitches(const AValue: TModeSwitches);
+begin
+  if FAllowedModeSwitches=AValue then Exit;
+  FAllowedModeSwitches:=AValue;
+  CurrentModeSwitches:=FCurrentModeSwitches*AllowedModeSwitches;
+end;
+
+procedure TPascalScanner.SetCurrentModeSwitches(AValue: TModeSwitches);
+begin
+  AValue:=AValue*AllowedModeSwitches;
+  if FCurrentModeSwitches=AValue then Exit;
+  FCurrentModeSwitches:=AValue;
+end;
+
 procedure TPascalScanner.DoLog(MsgType: TMessageType; MsgNumber: integer;
   const Msg: String; SkipSourceInfo: Boolean);
 begin
@@ -2422,7 +2453,7 @@ begin
   Result.Column:=CurColumn;
 end;
 
-Function TPascalScanner.SetForceCaret (AValue : Boolean): Boolean;
+function TPascalScanner.SetForceCaret(AValue: Boolean): Boolean;
 
 begin
   Result:=FForceCaret;

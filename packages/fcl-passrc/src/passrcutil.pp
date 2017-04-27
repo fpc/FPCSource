@@ -192,7 +192,11 @@ procedure TPasSrcAnalysis.GetUses(ASection : TPasSection; List: TStrings);
 Var
   I : Integer;
 begin
-  If Assigned(ASection) and Assigned(ASection.UsesList) then
+  If not Assigned(ASection) then exit;
+  if ASection.UsesList.Count=length(ASection.UsesClause) then
+    For I:=0 to length(ASection.UsesClause)-1 do
+      List.Add(ASection.UsesClause[i].Identifier)
+  else
     For I:=0 to ASection.UsesList.Count-1 do
       List.Add(TPasElement(ASection.UsesList[i]).Name);
 end;

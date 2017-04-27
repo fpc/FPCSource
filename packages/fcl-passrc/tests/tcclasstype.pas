@@ -83,6 +83,8 @@ type
     Procedure TestTwoFields;
     Procedure TestTwoFieldsB;
     Procedure TestTwoVarFieldsB;
+    procedure TestNoVarFields;
+    procedure TestVarClassFunction;
     Procedure TestTwoFieldsVisibility;
     Procedure TestConstProtectedEnd;
     Procedure TestTypeProtectedEnd;
@@ -109,6 +111,7 @@ type
     Procedure TestMethodVirtual;
     Procedure TestMethodVirtualSemicolon;
     Procedure TestMethodVirtualAbstract;
+    procedure TestMethodVirtualAbstractFinal;
     Procedure TestMethodOverride;
     procedure TestMethodDynamic;
     procedure TestMethodReintroduce;
@@ -144,6 +147,8 @@ type
     Procedure TestPropertyReadFromRecordField;
     procedure TestPropertyReadFromArrayField;
     procedure TestPropertyReadWriteFromRecordField;
+    procedure TestPropertyDeprecated;
+    procedure TestPropertyDeprecatedMessage;
     Procedure TestExternalClass;
     Procedure TestExternalClassNoNameSpace;
     Procedure TestExternalClassNoNameKeyWord;
@@ -685,6 +690,33 @@ begin
   AssertVisibility(visPublic,Members[1]);
 end;
 
+procedure TTestClassType.TestNoVarFields;
+
+begin
+  StartVisibility(visPublic);
+  FDecl.Add('var');
+  AddMember('Function b : integer');
+  ParseClass;
+  AssertEquals('member count',1,TheClass.members.Count);
+  AssertNotNull('Have function',Members[0]);
+  AssertMemberName('b',Members[0]);
+  AssertMemberType(TPasFunction,Members[0]);
+  AssertVisibility(visPublic,Members[0]);
+end;
+
+procedure TTestClassType.TestVarClassFunction;
+begin
+  StartVisibility(visPublic);
+  FDecl.Add('var');
+  AddMember('class Function b : integer');
+  ParseClass;
+  AssertEquals('member count',1,TheClass.members.Count);
+  AssertNotNull('Have function',Members[0]);
+  AssertMemberName('b',Members[0]);
+  AssertMemberType(TPasClassFunction,Members[0]);
+  AssertVisibility(visPublic,Members[0]);
+end;
+
 procedure TTestClassType.TestTwoFieldsVisibility;
 begin
   StartVisibility(visPublic);
@@ -998,6 +1030,16 @@ begin
   DefaultMethod;
   AssertEquals('Default visibility',visDefault,Method1.Visibility);
   AssertEquals('Virtual, abstract modifiers',[pmVirtual,pmAbstract],Method1.Modifiers);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+end;
+
+procedure TTestClassType.TestMethodVirtualAbstractFinal;
+begin
+  AddMember('Procedure DoSomething(A : Integer) virtual; abstract; final');
+  ParseClass;
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Virtual, abstract modifiers',[pmVirtual,pmAbstract,pmFinal],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
@@ -1476,6 +1518,40 @@ begin
   AssertNull('No default expression',Property1.DefaultExpr);
   Assertequals('Default value','',Property1.DefaultValue);
 
+end;
+
+procedure TTestClassType.TestPropertyDeprecated;
+
+begin
+  StartVisibility(visPublished);
+  AddMember('Property Something : AInterface Read FSomething; deprecated');
+  ParseClass;
+  AssertProperty(Property1,visPublished,'Something','FSomething','','','',0,False,False);
+  AssertNotNull('Have type',Property1.VarType);
+  AssertEquals('Property type class type',TPasUnresolvedTypeRef,Property1.vartype.ClassType);
+  AssertEquals('Property type name','AInterface',Property1.vartype.name);
+  Assertequals('No index','',Property1.IndexValue);
+  AssertNull('No Index expression',Property1.IndexExpr);
+  AssertNull('No default expression',Property1.DefaultExpr);
+  Assertequals('Default value','',Property1.DefaultValue);
+  AssertTrue('Deprecated',[hDeprecated]=Property1.Hints);
+end;
+
+procedure TTestClassType.TestPropertyDeprecatedMessage;
+
+begin
+  StartVisibility(visPublished);
+  AddMember('Property Something : AInterface Read FSomething; deprecated ''this is no longer used'' ');
+  ParseClass;
+  AssertProperty(Property1,visPublished,'Something','FSomething','','','',0,False,False);
+  AssertNotNull('Have type',Property1.VarType);
+  AssertEquals('Property type class type',TPasUnresolvedTypeRef,Property1.vartype.ClassType);
+  AssertEquals('Property type name','AInterface',Property1.vartype.name);
+  Assertequals('No index','',Property1.IndexValue);
+  AssertNull('No Index expression',Property1.IndexExpr);
+  AssertNull('No default expression',Property1.DefaultExpr);
+  Assertequals('Default value','',Property1.DefaultValue);
+  AssertTrue('Deprecated',[hDeprecated]=Property1.Hints);
 end;
 
 procedure TTestClassType.TestPropertyImplementsFullyQualifiedName;

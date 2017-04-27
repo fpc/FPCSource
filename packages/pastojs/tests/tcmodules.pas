@@ -297,9 +297,10 @@ type
     Procedure TestArray_Concat;
     Procedure TestArray_Copy;
     Procedure TestArray_InsertDelete;
+    Procedure TestArray_DynArrayConst;
     Procedure TestExternalClass_TypeCastArrayToExternalArray;
     Procedure TestExternalClass_TypeCastArrayFromExternalArray;
-    // ToDo: array const
+    // ToDo: static array const
     // ToDo: SetLength(array of static array)
     // ToDo: SetLength(dim1,dim2)
 
@@ -320,6 +321,7 @@ type
     Procedure TestClass_TObjectConstructorWithParams;
     Procedure TestClass_Var;
     Procedure TestClass_Method;
+    Procedure TestClass_Implementation;
     Procedure TestClass_Inheritance;
     Procedure TestClass_AbstractMethod;
     Procedure TestClass_CallInherited_NoParams;
@@ -403,6 +405,7 @@ type
     Procedure TestExternalClass_BracketAccessor_ReadOnly;
     Procedure TestExternalClass_BracketAccessor_WriteOnly;
     Procedure TestExternalClass_BracketAccessor_MultiType;
+    Procedure TestExternalClass_BracketAccessor_Index;
 
     // proc types
     Procedure TestProcType;
@@ -419,6 +422,7 @@ type
     Procedure TestProcType_ReferenceToProc;
     Procedure TestProcType_ReferenceToMethod;
     Procedure TestProcType_Typecast;
+    Procedure TestProcType_PassProcToUntyped;
 
     // pointer
     Procedure TestPointer;
@@ -426,11 +430,13 @@ type
     Procedure TestPointer_AssignRecordFail;
     Procedure TestPointer_AssignStaticArrayFail;
     Procedure TestPointer_ArrayParamsFail;
+    Procedure TestPointer_TypeCastJSValueToPointer;
 
     // jsvalue
     Procedure TestJSValue_AssignToJSValue;
     Procedure TestJSValue_TypeCastToBaseType;
     Procedure TestJSValue_Equal;
+    Procedure TestJSValue_If;
     Procedure TestJSValue_Enum;
     Procedure TestJSValue_ClassInstance;
     Procedure TestJSValue_ClassOf;
@@ -441,6 +447,12 @@ type
     Procedure TestJSValue_ProcType_Assign;
     Procedure TestJSValue_ProcType_Equal;
     Procedure TestJSValue_AssignToPointerFail;
+    Procedure TestJSValue_OverloadDouble;
+    Procedure TestJSValue_OverloadNativeInt;
+    Procedure TestJSValue_OverloadWord;
+    Procedure TestJSValue_OverloadString;
+    Procedure TestJSValue_OverloadChar;
+    Procedure TestJSValue_OverloadPointer;
 
     // RTTI
     Procedure TestRTTI_ProcType;
@@ -640,6 +652,7 @@ begin
   FFileResolver:=TStreamResolver.Create;
   FFileResolver.OwnsStreams:=True;
   FScanner:=TPascalScanner.Create(FFileResolver);
+  FScanner.AllowedModeSwitches:=msAllPas2jsModeSwitches;
   FEngine:=AddModule(Filename);
   FParser:=TTestPasParser.Create(FScanner,FFileResolver,FEngine);
   Parser.Options:=Parser.Options+po_pas2js;
@@ -2096,6 +2109,8 @@ begin
   Add('  exit(''abc'');');
   Add('end;');
   Add('begin');
+  Add('  exit;');
+  Add('  exit(1);');
   ConvertProgram;
   CheckSource('TestExit',
     LinesToStr([ // statements
@@ -2116,7 +2131,10 @@ begin
     '  return Result;',
     '};'
     ]),
-    '');
+    LinesToStr([
+    'return;',
+    'return 1;',
+    '']));
 end;
 
 procedure TTestModule.TestBreak;
@@ -3549,7 +3567,7 @@ begin
   Add('implementation');
   Add('var');
   Add('  d: double;');
-  Add('  i: longint;');
+  Add('  i: longint; external name ''$i'';');
   Add('begin');
   Add('  d:=nan;');
   Add('  d:=uNit2.nan;');
@@ -3566,13 +3584,12 @@ begin
     '$impl.d = Global.NaN;',
     '$impl.d = Global.NaN;',
     '$impl.d = Global.NaN;',
-    '$impl.i = pas.unit2.iV;',
-    '$impl.i = pas.unit2.iV;',
-    '$impl.i = pas.unit2.iV;',
+    '$i = pas.unit2.iV;',
+    '$i = pas.unit2.iV;',
+    '$i = pas.unit2.iV;',
     '']),
     LinesToStr([ // implementation
     '$impl.d = 0.0;',
-    '$impl.i = 0;',
     '']) );
 end;
 
@@ -4381,7 +4398,7 @@ begin
     LinesToStr([ // $mod.$main
     'try {',
     '  $mod.vI = 1;',
-    '} catch {',
+    '} catch ($e) {',
     '  $mod.vI = 2;',
     '};',
     'try {',
@@ -5193,6 +5210,36 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestArray_DynArrayConst;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TArrInt = array of integer;',
+  '  TArrStr = array of string;',
+  'const',
+  '  Ints: TArrInt = (1,2,3);',
+  '  Names: array of string = (''a'',''foo'');',
+  '  Aliases: TarrStr = (''foo'',''b'');',
+  '  OneInt: TArrInt = (7);',
+  '  OneStr: array of integer = (7);',
+  //'  Chars: array of char = ''aoc'';',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_DynArrayConst',
+    LinesToStr([ // statements
+    'this.Ints = [1, 2, 3];',
+    'this.Names = ["a", "foo"];',
+    'this.Aliases = ["foo", "b"];',
+    'this.OneInt = [7];',
+    'this.OneStr = [7];',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
 procedure TTestModule.TestExternalClass_TypeCastArrayToExternalArray;
 begin
   StartProgram(false);
@@ -5903,6 +5950,74 @@ begin
     '$mod.Obj.Sub.GetIt(7).GetIt(8);',
     '$mod.Obj.Sub.GetIt(9).Sub.GetIt(10);'
     ]));
+end;
+
+procedure TTestModule.TestClass_Implementation;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  'implementation',
+  'type',
+  '  TIntClass = class',
+  '    constructor Create; reintroduce;',
+  '    class procedure DoGlob;',
+  '  end;',
+  'constructor tintclass.create;',
+  'begin',
+  '  inherited;',
+  '  inherited create;',
+  '  doglob;',
+  'end;',
+  'class procedure tintclass.doglob;',
+  'begin',
+  'end;',
+  'constructor tobject.create;',
+  'var',
+  '  iC: tintclass;',
+  'begin',
+  '  ic:=tintclass.create;',
+  '  tintclass.doglob;',
+  '  ic.doglob;',
+  'end;',
+  'initialization',
+  '  tintclass.doglob;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestClass_Implementation',
+    LinesToStr([ // statements
+    'var $impl = $mod.$impl;',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '    var iC = null;',
+    '    iC = $impl.TIntClass.$create("Create$1");',
+    '    $impl.TIntClass.DoGlob();',
+    '    iC.$class.DoGlob();',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$impl.TIntClass.DoGlob();',
+    '']),
+    LinesToStr([
+    'rtl.createClass($impl, "TIntClass", $mod.TObject, function () {',
+    '  this.Create$1 = function () {',
+    '    $mod.TObject.Create.apply(this, arguments);',
+    '    $mod.TObject.Create.call(this);',
+    '    this.$class.DoGlob();',
+    '  };',
+    '  this.DoGlob = function () {',
+    '  };',
+    '});',
+    '']));
 end;
 
 procedure TTestModule.TestClass_Inheritance;
@@ -9413,7 +9528,7 @@ begin
   Add('  with arr do items[9]:=items[10];');
   Add('  doit(arr[7],arr[8],arr[9],arr[10]);');
   ConvertProgram;
-  CheckSource('TestExternalClass_BracketOperator',
+  CheckSource('TestExternalClass_BracketAccessor',
     LinesToStr([ // statements
     'this.DoIt = function (vI, vJ, vK, vL) {',
     '};',
@@ -9583,6 +9698,40 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestExternalClass_BracketAccessor_Index;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    function GetItems(Index: longint): jsvalue; external name ''[]'';');
+  Add('    procedure SetItems(Index: longint; Value: jsvalue); external name ''[]'';');
+  Add('    property Items[Index: longint]: jsvalue read GetItems write SetItems; default;');
+  Add('  end;');
+  Add('var');
+  Add('  Arr: tjsarray;');
+  Add('  i: longint;');
+  Add('  IntArr: array of longint;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  v:=arr.items[i];');
+  Add('  arr[longint(v)]:=arr.items[intarr[0]];');
+  Add('  arr.items[intarr[1]]:=arr[IntArr[2]];');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketAccessor_Index',
+    LinesToStr([ // statements
+    'this.Arr = null;',
+    'this.i = 0;',
+    'this.IntArr = [];',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.v = $mod.Arr[$mod.i];',
+    '$mod.Arr[Math.floor($mod.v)] = $mod.Arr[$mod.IntArr[0]];',
+    '$mod.Arr[$mod.IntArr[1]] = $mod.Arr[$mod.IntArr[2]];',
+    '']));
+end;
+
 procedure TTestModule.TestProcType;
 begin
   StartProgram(false);
@@ -9611,6 +9760,7 @@ begin
   Add('  b:=vp<>@doit;');
   Add('  b:=@doit<>vp;');
   Add('  b:=Assigned(vp);');
+  Add('  if Assigned(vp) then ;');
   ConvertProgram;
   CheckSource('TestProcType',
     LinesToStr([ // statements
@@ -9638,6 +9788,7 @@ begin
     '$mod.b = !rtl.eqCallback($mod.vP, $mod.DoIt);',
     '$mod.b = !rtl.eqCallback($mod.DoIt, $mod.vP);',
     '$mod.b = $mod.vP != null;',
+    'if ($mod.vP != null) ;',
     '']));
 end;
 
@@ -10607,37 +10758,50 @@ end;
 procedure TTestModule.TestProcType_Typecast;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TNotifyEvent = procedure(Sender: Pointer) of object;');
-  Add('  TEvent = procedure of object;');
-  Add('  TProcA = procedure(i: longint);');
-  Add('  TFuncB = function(i, j: longint): longint;');
-  Add('var');
-  Add('  Notify: TNotifyEvent;');
-  Add('  Event: TEvent;');
-  Add('  ProcA: TProcA;');
-  Add('  FuncB: TFuncB;');
-  Add('  p: pointer;');
-  Add('begin');
-  Add('  Notify:=TNotifyEvent(Event);');
-  Add('  Event:=TEvent(Event);');
-  Add('  Event:=TEvent(Notify);');
-  Add('  ProcA:=TProcA(FuncB);');
-  Add('  FuncB:=TFuncB(FuncB);');
-  Add('  FuncB:=TFuncB(ProcA);');
-  Add('  ProcA:=TProcA(p);');
-  Add('  FuncB:=TFuncB(p);');
-  Add('  p:=Pointer(Notify);');
-  Add('  p:=Notify;');
-  Add('  p:=Pointer(ProcA);');
-  Add('  p:=ProcA;');
-  Add('  p:=Pointer(FuncB);');
-  Add('  p:=FuncB;');
+  Add([
+  'type',
+  '  TNotifyEvent = procedure(Sender: Pointer) of object;',
+  '  TEvent = procedure of object;',
+  '  TGetter = function:longint of object;',
+  '  TProcA = procedure(i: longint);',
+  '  TFuncB = function(i, j: longint): longint;',
+  'procedure DoIt(); varargs; begin end;',
+  'var',
+  '  Notify: tnotifyevent;',
+  '  Event: tevent;',
+  '  Getter: tgetter;',
+  '  ProcA: tproca;',
+  '  FuncB: tfuncb;',
+  '  p: pointer;',
+  'begin',
+  '  notify:=tnotifyevent(event);',
+  '  event:=tevent(event);',
+  '  event:=tevent(notify);',
+  '  event:=tevent(getter);',
+  '  event:=tevent(proca);',
+  '  proca:=tproca(funcb);',
+  '  funcb:=tfuncb(funcb);',
+  '  funcb:=tfuncb(proca);',
+  '  funcb:=tfuncb(getter);',
+  '  proca:=tproca(p);',
+  '  funcb:=tfuncb(p);',
+  '  getter:=tgetter(p);',
+  '  p:=pointer(notify);',
+  '  p:=notify;',
+  '  p:=pointer(proca);',
+  '  p:=proca;',
+  '  p:=pointer(funcb);',
+  '  p:=funcb;',
+  '  doit(Pointer(notify),pointer(event),pointer(proca));',
+  '']);
   ConvertProgram;
   CheckSource('TestProcType_Typecast',
     LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '};',
     'this.Notify = null;',
     'this.Event = null;',
+    'this.Getter = null;',
     'this.ProcA = null;',
     'this.FuncB = null;',
     'this.p = null;',
@@ -10646,17 +10810,72 @@ begin
     '$mod.Notify = $mod.Event;',
     '$mod.Event = $mod.Event;',
     '$mod.Event = $mod.Notify;',
+    '$mod.Event = $mod.Getter;',
+    '$mod.Event = $mod.ProcA;',
     '$mod.ProcA = $mod.FuncB;',
     '$mod.FuncB = $mod.FuncB;',
     '$mod.FuncB = $mod.ProcA;',
+    '$mod.FuncB = $mod.Getter;',
     '$mod.ProcA = $mod.p;',
     '$mod.FuncB = $mod.p;',
+    '$mod.Getter = $mod.p;',
     '$mod.p = $mod.Notify;',
     '$mod.p = $mod.Notify;',
     '$mod.p = $mod.ProcA;',
     '$mod.p = $mod.ProcA;',
     '$mod.p = $mod.FuncB;',
     '$mod.p = $mod.FuncB;',
+    '$mod.DoIt($mod.Notify, $mod.Event, $mod.ProcA);',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_PassProcToUntyped;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEvent = procedure of object;',
+  '  TFunc = function: longint;',
+  'procedure DoIt(); varargs; begin end;',
+  'procedure DoSome(const a; var b; p: pointer); begin end;',
+  'var',
+  '  Event: tevent;',
+  '  Func: TFunc;',
+  'begin',
+  '  doit(event,func);',
+  '  dosome(event,event,event);',
+  '  dosome(func,func,func);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestProcType_PassProcToUntyped',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '};',
+    'this.DoSome = function (a, b, p) {',
+    '};',
+    'this.Event = null;',
+    'this.Func = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.Event, $mod.Func);',
+    '$mod.DoSome($mod.Event, {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.Event;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.Event = v;',
+    '    }',
+    '}, $mod.Event);',
+    '$mod.DoSome($mod.Func, {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.Func;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.Func = v;',
+    '    }',
+    '}, $mod.Func);',
     '']));
 end;
 
@@ -10792,6 +11011,33 @@ begin
   Add('  p:=p[1];');
   SetExpectedPasResolverError('illegal qualifier "["',nIllegalQualifier);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_TypeCastJSValueToPointer;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(args: array of jsvalue); begin end;',
+  'procedure DoAll; varargs; begin end;',
+  'var',
+  '  v: jsvalue;',
+  'begin',
+  '  DoIt([pointer(v)]);',
+  '  DoAll(pointer(v));',
+  '']);
+  ConvertProgram;
+  CheckSource('TestPointer_TypeCastJSValueToPointer',
+    LinesToStr([ // statements
+    'this.DoIt = function (args) {',
+    '};',
+    'this.DoAll = function () {',
+    '};',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt([$mod.v]);',
+    '$mod.DoAll($mod.v);',
+    '']));
 end;
 
 procedure TTestModule.TestJSValue_AssignToJSValue;
@@ -10983,6 +11229,31 @@ begin
     '$mod.b = $mod.m == $mod.m;',
     '$mod.b = $mod.v == $mod.m;',
     '$mod.b = $mod.m == $mod.v;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_If;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  v: jsvalue;',
+  'begin',
+  '  if v then ;',
+  '  while v do ;',
+  '  repeat until v;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_If',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'if ($mod.v) ;',
+    'while($mod.v){',
+    '};',
+    'do{',
+    '} while(!$mod.v);',
     '']));
 end;
 
@@ -11503,6 +11774,317 @@ begin
   SetExpectedPasResolverError('Incompatible types: got "JSValue" expected "Pointer"',
     nIncompatibleTypesGotExpected);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestJSValue_OverloadDouble;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  tdatetime = double;',
+  'procedure DoIt(d: double); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  d: double;',
+  '  dt: tdatetime;',
+  '  i: integer;',
+  '  b: byte;',
+  '  shi: shortint;',
+  '  w: word;',
+  '  smi: smallint;',
+  '  lw: longword;',
+  '  li: longint;',
+  '  ni: nativeint;',
+  '  nu: nativeuint;',
+  'begin',
+  '  DoIt(d);',
+  '  DoIt(dt);',
+  '  DoIt(i);',
+  '  DoIt(b);',
+  '  DoIt(shi);',
+  '  DoIt(w);',
+  '  DoIt(smi);',
+  '  DoIt(lw);',
+  '  DoIt(li);',
+  '  DoIt(ni);',
+  '  DoIt(nu);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadDouble',
+    LinesToStr([ // statements
+    'this.DoIt = function (d) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.d = 0.0;',
+    'this.dt = 0.0;',
+    'this.i = 0;',
+    'this.b = 0;',
+    'this.shi = 0;',
+    'this.w = 0;',
+    'this.smi = 0;',
+    'this.lw = 0;',
+    'this.li = 0;',
+    'this.ni = 0;',
+    'this.nu = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.d);',
+    '$mod.DoIt($mod.dt);',
+    '$mod.DoIt($mod.i);',
+    '$mod.DoIt($mod.b);',
+    '$mod.DoIt($mod.shi);',
+    '$mod.DoIt($mod.w);',
+    '$mod.DoIt($mod.smi);',
+    '$mod.DoIt($mod.lw);',
+    '$mod.DoIt($mod.li);',
+    '$mod.DoIt($mod.ni);',
+    '$mod.DoIt($mod.nu);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_OverloadNativeInt;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  int53 = nativeint;',
+  '  tdatetime = double;',
+  'procedure DoIt(n: nativeint); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  d: double;',
+  '  dt: tdatetime;',
+  '  i: integer;',
+  '  b: byte;',
+  '  shi: shortint;',
+  '  w: word;',
+  '  smi: smallint;',
+  '  lw: longword;',
+  '  li: longint;',
+  '  ni: nativeint;',
+  '  nu: nativeuint;',
+  'begin',
+  '  DoIt(d);',
+  '  DoIt(dt);',
+  '  DoIt(i);',
+  '  DoIt(b);',
+  '  DoIt(shi);',
+  '  DoIt(w);',
+  '  DoIt(smi);',
+  '  DoIt(lw);',
+  '  DoIt(li);',
+  '  DoIt(ni);',
+  '  DoIt(nu);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadNativeInt',
+    LinesToStr([ // statements
+    'this.DoIt = function (n) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.d = 0.0;',
+    'this.dt = 0.0;',
+    'this.i = 0;',
+    'this.b = 0;',
+    'this.shi = 0;',
+    'this.w = 0;',
+    'this.smi = 0;',
+    'this.lw = 0;',
+    'this.li = 0;',
+    'this.ni = 0;',
+    'this.nu = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt$1($mod.d);',
+    '$mod.DoIt$1($mod.dt);',
+    '$mod.DoIt($mod.i);',
+    '$mod.DoIt($mod.b);',
+    '$mod.DoIt($mod.shi);',
+    '$mod.DoIt($mod.w);',
+    '$mod.DoIt($mod.smi);',
+    '$mod.DoIt($mod.lw);',
+    '$mod.DoIt($mod.li);',
+    '$mod.DoIt($mod.ni);',
+    '$mod.DoIt($mod.nu);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_OverloadWord;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  int53 = nativeint;',
+  '  tdatetime = double;',
+  'procedure DoIt(w: word); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  d: double;',
+  '  dt: tdatetime;',
+  '  i: integer;',
+  '  b: byte;',
+  '  shi: shortint;',
+  '  w: word;',
+  '  smi: smallint;',
+  '  lw: longword;',
+  '  li: longint;',
+  '  ni: nativeint;',
+  '  nu: nativeuint;',
+  'begin',
+  '  DoIt(d);',
+  '  DoIt(dt);',
+  '  DoIt(i);',
+  '  DoIt(b);',
+  '  DoIt(shi);',
+  '  DoIt(w);',
+  '  DoIt(smi);',
+  '  DoIt(lw);',
+  '  DoIt(li);',
+  '  DoIt(ni);',
+  '  DoIt(nu);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadWord',
+    LinesToStr([ // statements
+    'this.DoIt = function (w) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.d = 0.0;',
+    'this.dt = 0.0;',
+    'this.i = 0;',
+    'this.b = 0;',
+    'this.shi = 0;',
+    'this.w = 0;',
+    'this.smi = 0;',
+    'this.lw = 0;',
+    'this.li = 0;',
+    'this.ni = 0;',
+    'this.nu = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt$1($mod.d);',
+    '$mod.DoIt$1($mod.dt);',
+    '$mod.DoIt$1($mod.i);',
+    '$mod.DoIt($mod.b);',
+    '$mod.DoIt($mod.shi);',
+    '$mod.DoIt($mod.w);',
+    '$mod.DoIt$1($mod.smi);',
+    '$mod.DoIt$1($mod.lw);',
+    '$mod.DoIt$1($mod.li);',
+    '$mod.DoIt$1($mod.ni);',
+    '$mod.DoIt$1($mod.nu);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_OverloadString;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  uni = string;',
+  '  WideChar = char;',
+  'procedure DoIt(s: string); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  s: string;',
+  '  c: char;',
+  '  u: uni;',
+  'begin',
+  '  DoIt(s);',
+  '  DoIt(c);',
+  '  DoIt(u);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadString',
+    LinesToStr([ // statements
+    'this.DoIt = function (s) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.s = "";',
+    'this.c = "";',
+    'this.u = "";',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.s);',
+    '$mod.DoIt($mod.c);',
+    '$mod.DoIt($mod.u);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_OverloadChar;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  uni = string;',
+  '  WideChar = char;',
+  'procedure DoIt(c: char); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  s: string;',
+  '  c: char;',
+  '  u: uni;',
+  'begin',
+  '  DoIt(s);',
+  '  DoIt(c);',
+  '  DoIt(u);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadChar',
+    LinesToStr([ // statements
+    'this.DoIt = function (c) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.s = "";',
+    'this.c = "";',
+    'this.u = "";',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt$1($mod.s);',
+    '$mod.DoIt($mod.c);',
+    '$mod.DoIt$1($mod.u);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_OverloadPointer;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  'procedure DoIt(p: pointer); begin end;',
+  'procedure DoIt(v: jsvalue); begin end;',
+  'var',
+  '  o: TObject;',
+  'begin',
+  '  DoIt(o);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_OverloadPointer',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.DoIt = function (p) {',
+    '};',
+    'this.DoIt$1 = function (v) {',
+    '};',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.o);',
+    '']));
 end;
 
 procedure TTestModule.TestRTTI_ProcType;
@@ -12119,11 +12701,11 @@ begin
   Add('  protected');
   Add('    FFlag: longint;');
   Add('  published');
-  Add('    property Flag: longint read FFlag;');
+  Add('    property Flag: longint read fflag;');
   Add('  end;');
   Add('  TSky = class');
   Add('  published');
-  Add('    property Flag: longint write FFlag;');
+  Add('    property FLAG: longint write fflag;');
   Add('  end;');
   Add('begin');
   ConvertProgram;

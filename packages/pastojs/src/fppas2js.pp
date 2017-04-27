@@ -125,6 +125,7 @@ Works:
   - function copy(array,start=0,count=max): array
   - procedure insert(item,var array,const position)
   - procedure delete(var array,const start,count)
+  - const c: dynarray = (a,b,...)
 - static arrays
   - range: enumtype
   - init as arr = rtl.arrayNewMultiDim([dim1,dim2,...],value)
@@ -245,7 +246,10 @@ Works:
   - use 0o for octal literals
 
 ToDos:
-- bark if there is an overload in the same unit with same signature
+- constant evaluation
+- integer ranges
+- static arrays
+- property index specifier
 - RTTI
   - stored false/true
   - class property
@@ -257,9 +261,9 @@ ToDos:
 - make -Jirtl.js default for -Jc and -Tnodejs, needs #IFDEF in cfg
 - FuncName:= (instead of Result:=)
 - $modeswitch -> define <modeswitch>
+- scanner: define list of allowed modeswitches
 - $modeswitch- -> turn off
 - check memleaks
-- integer range
 - @@ compare method in delphi mode
 - make records more lightweight
 - dotted unit names, namespaces
@@ -278,6 +282,7 @@ Not in Version 1.0:
   - array of static array: setlength
   - array range char, char range, integer range, enum range
   - array of const
+  - TestArray_DynArrayConst: Chars: array of char = ''aoc'';
 - sets
   - set of char, boolean, integer range, char range, enum range
 - call array of proc element without ()
@@ -692,8 +697,8 @@ const
 
 const
   ClassVarModifiersType = [vmClass,vmStatic];
-  LowJSNativeInt = -$10000000000000;
-  HighJSNativeInt = $fffffffffffff;
+  LowJSNativeInt = MinSafeIntDouble;
+  HighJSNativeInt = MaxSafeIntDouble;
   LowJSBoolean = false;
   HighJSBoolean = true;
 Type
@@ -774,6 +779,9 @@ type
 //------------------------------------------------------------------------------
 // TPas2JSResolver
 const
+  msAllPas2jsModeSwitches = [msDelphi,msFpc,msObjfpc,
+    msExternalClass,msHintDirective,msNestedComment];
+
   btAllJSBaseTypes = [
     btChar,
     btString,
@@ -848,12 +856,16 @@ type
     procedure FinishVariable(El: TPasVariable); override;
     procedure FinishProcedureType(El: TPasProcedureType); override;
     procedure FinishPropertyOfClass(PropEl: TPasProperty); override;
+    procedure CheckConditionExpr(El: TPasExpr;
+      const ResolvedEl: TPasResolverResult); override;
     procedure CheckNewInstanceFunction(ClassScope: TPas2JSClassScope); virtual;
     function AddExternalName(const aName: string; El: TPasElement): TPasIdentifier; virtual;
     function FindExternalName(const aName: String): TPasIdentifier; virtual;
     procedure AddExternalPath(aName: string; El: TPasElement);
     procedure ClearElementData; virtual;
   protected
+    const
+      cJSValueConversion = 2*cTypeConversion;
     // additional base types
     function AddJSBaseType(const aName: string; Typ: TPas2jsBaseType): TResElDataPas2JSBaseType;
     function IsJSBaseType(TypeEl: TPasType; Typ: TPas2jsBaseType): boolean;
@@ -1084,13 +1096,6 @@ type
       end;
       PForLoopFindData = ^TForLoopFindData;
     procedure ForLoop_OnProcBodyElement(El: TPasElement; arg: pointer);
-  private
-    type
-      TTryExceptFindData = record
-        HasRaiseWithoutObject: boolean;
-      end;
-      PTryExceptFindData = ^TTryExceptFindData;
-    procedure TryExcept_OnElement(El: TPasElement; arg: pointer);
   private
     FBuiltInNames: array[TPas2JSBuiltInName] of string;
     FOnIsElementUsed: TPas2JSIsElementUsedEvent;
@@ -1849,7 +1854,7 @@ const
   ClassFieldModifiersAllowed = [vmClass,vmStatic,vmExternal,vmPublic];
   RecordVarModifiersAllowed = [];
   LocalVarModifiersAllowed = [];
-  ImplementationVarModifiersAllowed = [];
+  ImplementationVarModifiersAllowed = [vmExternal];
   SectionVarModifiersAllowed = [vmExternal,vmPublic];
 
   procedure RaiseVarModifierNotSupported(const Allowed: TVariableModifiers);
@@ -2154,6 +2159,14 @@ begin
     end;
 end;
 
+procedure TPas2JSResolver.CheckConditionExpr(El: TPasExpr;
+  const ResolvedEl: TPasResolverResult);
+begin
+  if (ResolvedEl.BaseType=btCustom) and (IsJSBaseType(ResolvedEl,pbtJSValue)) then
+    exit;
+  inherited CheckConditionExpr(El, ResolvedEl);
+end;
+
 procedure TPas2JSResolver.CheckNewInstanceFunction(ClassScope: TPas2JSClassScope
   );
 var
@@ -2318,14 +2331,14 @@ begin
         begin
         // RHS is a value
         if (RHS.BaseType in btAllJSValueSrcTypes) then
-          Result:=cExact+1 // type cast to JSValue
+          Result:=cJSValueConversion // type cast to JSValue
         else if RHS.BaseType=btCustom then
           begin
           if IsJSBaseType(RHS,pbtJSValue) then
             Result:=cExact;
           end
         else if RHS.BaseType=btContext then
-          Result:=cExact+1;
+          Result:=cJSValueConversion;
         end
       else if RHS.BaseType=btContext then
         begin
@@ -2333,7 +2346,7 @@ begin
         if RHS.IdentEl<>nil then
           begin
           if RHS.IdentEl.ClassType=TPasClassType then
-            Result:=cExact+1; // RHS is a class type
+            Result:=cJSValueConversion; // RHS is a class type
           end;
         end;
       end;
@@ -2351,7 +2364,7 @@ begin
       begin
       // array of jsvalue := array
       Handled:=true;
-      Result:=cExact+1;
+      Result:=cJSValueConversion;
       end;
     end;
 
@@ -2370,7 +2383,7 @@ begin
   ClassScope:=ToClass.CustomData as TPasClassScope;
   if ClassScope.AncestorScope=nil then
     // type cast to root class
-    Result:=cExact+1
+    Result:=cTypeConversion+1
   else
     Result:=cIncompatible;
   if ErrorEl=nil then ;
@@ -2402,14 +2415,14 @@ begin
         if (rrfReadable in RHS.Flags) then
           begin
           if RHS.BaseType in btAllJSValueSrcTypes then
-            Result:=cExact
+            Result:=cJSValueConversion
           else if RHS.BaseType=btCustom then
             begin
             if IsJSBaseType(RHS,pbtJSValue) then
               Result:=cExact;
             end
           else if RHS.BaseType=btContext then
-            Result:=cExact+1;
+            Result:=cJSValueConversion;
           end
         else if RHS.BaseType=btContext then
           begin
@@ -2417,7 +2430,7 @@ begin
           if RHS.IdentEl<>nil then
             begin
             if RHS.IdentEl.ClassType=TPasClassType then
-              Result:=cExact+1; // RHS is a class
+              Result:=cJSValueConversion; // RHS is a class
             end;
           end;
         end;
@@ -4976,7 +4989,7 @@ var
 
       OldAccess:=ArgContext.Access;
       ArgContext.Access:=caRead;
-      Bracket.Name:=ConvertElement(El.Params[0],AContext);
+      Bracket.Name:=ConvertElement(El.Params[0],ArgContext);
       ArgContext.Access:=OldAccess;
       ConvertArrayParams:=Bracket;
       Bracket:=nil;
@@ -4985,7 +4998,7 @@ var
     end;
   end;
 
-  procedure ConvertIndexProperty(Prop: TPasProperty; AContext: TConvertContext);
+  procedure ConvertIndexedProperty(Prop: TPasProperty; AContext: TConvertContext);
   var
     Call: TJSCallExpression;
     i: Integer;
@@ -5040,7 +5053,7 @@ var
         if TargetArg.ValueExpr=nil then
           begin
           {$IFDEF VerbosePas2JS}
-          writeln('TPasToJSConverter.ConvertArrayParams.ConvertIndexProperty missing default value: Prop=',Prop.Name,' i=',i);
+          writeln('TPasToJSConverter.ConvertArrayParams.ConvertIndexedProperty missing default value: Prop=',Prop.Name,' i=',i);
           {$ENDIF}
           RaiseInconsistency(20170206185126);
           end;
@@ -5121,7 +5134,7 @@ var
 
       DotContext:=TDotContext.Create(El.Value,Left,AContext);
       DotContext.LeftResolved:=ResolvedEl;
-      ConvertIndexProperty(Prop,DotContext);
+      ConvertIndexedProperty(Prop,DotContext);
       Right:=Result;
       Result:=nil;
     finally
@@ -5179,7 +5192,7 @@ begin
     ConvertStringBracket
   else if (ResolvedEl.IdentEl is TPasProperty)
       and (TPasProperty(ResolvedEl.IdentEl).Args.Count>0) then
-    ConvertIndexProperty(TPasProperty(ResolvedEl.IdentEl),AContext)
+    ConvertIndexedProperty(TPasProperty(ResolvedEl.IdentEl),AContext)
   else if ResolvedEl.BaseType=btContext then
     begin
     TypeEl:=ResolvedEl.TypeEl;
@@ -6000,7 +6013,8 @@ begin
     begin
     // without parameter.
     ProcEl:=El.Parent;
-    while not (ProcEl is TPasProcedure) do ProcEl:=ProcEl.Parent;
+    while (ProcEl<>nil) and not (ProcEl is TPasProcedure) do
+      ProcEl:=ProcEl.Parent;
     if ProcEl is TPasFunction then
       // in a function, "return result;"
       TJSReturnStatement(Result).Expr:=CreateBuiltInIdentifierExpr(ResolverResultVar)
@@ -6788,8 +6802,6 @@ var
   Param: TPasExpr;
   ResultEl: TPasResultElement;
   TypeEl: TPasType;
-  Call: TJSCallExpression;
-  NeedCall: Boolean;
 begin
   Result:=nil;
   Param:=El.Params[0];
@@ -6797,7 +6809,6 @@ begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertBuiltIn_TypeInfo ',GetResolverResultDbg(ParamResolved));
   {$ENDIF}
-  NeedCall:=false;
   if (ParamResolved.BaseType=btProc) and (ParamResolved.IdentEl is TPasFunction) then
     begin
     // typeinfo(function) ->
@@ -6808,7 +6819,6 @@ begin
     {$ENDIF}
     Include(ParamResolved.Flags,rrfReadable);
     ParamResolved.IdentEl:=ResultEl;
-    NeedCall:=true;
     end;
   TypeEl:=AContext.Resolver.ResolveAliasType(ParamResolved.TypeEl);
   if TypeEl=nil then
@@ -6825,14 +6835,6 @@ begin
     // typeinfo(classinstance) -> classinstance.$rtti
     // typeinfo(classof) -> classof.$rtti
     Result:=ConvertElement(Param,AContext);
-    if NeedCall then
-      begin
-      // typeinfo(afunction:class) -> afunction().$rtti
-      // typeinfo(afucntion:classof) -> afunction().$rtti
-      Call:=TJSCallExpression(CreateElement(TJSCallExpression,El));
-      Call.Expr:=Result;
-      Result:=Call;
-      end;
     Result:=CreateDotExpression(El,Result,CreateBuiltInIdentifierExpr(FBuiltInNames[pbivnRTTI]));
     end
   else
@@ -7422,7 +7424,10 @@ begin
       Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnCreateClass]]);
 
     // add parameter: owner. For top level class, the module is the owner.
-    OwnerName:=AContext.GetLocalName(El.GetModule);
+    if (El.Parent<>nil) and (El.Parent.ClassType=TImplementationSection) then
+      OwnerName:=AContext.GetLocalName(El.Parent)
+    else
+      OwnerName:=AContext.GetLocalName(El.GetModule);
     if OwnerName='' then
       OwnerName:='this';
     Call.AddArg(CreateBuiltInIdentifierExpr(OwnerName));
@@ -7984,14 +7989,6 @@ begin
     end;
 end;
 
-procedure TPasToJSConverter.TryExcept_OnElement(El: TPasElement; arg: pointer);
-var
-  Data: PTryExceptFindData absolute arg;
-begin
-  if (El is TPasImplRaise) and (TPasImplRaise(El).ExceptObject=nil) then
-    Data^.HasRaiseWithoutObject:=true;
-end;
-
 procedure TPasToJSConverter.SetUseEnumNumbers(const AValue: boolean);
 begin
   if AValue then
@@ -8244,20 +8241,6 @@ end;
 
 function TPasToJSConverter.ConvertTryStatement(El: TPasImplTry;
   AContext: TConvertContext): TJSElement;
-
-  function NeedExceptObject: boolean;
-  var
-    Data: TTryExceptFindData;
-  begin
-    Result:=false;
-    if El.FinallyExcept.Elements.Count=0 then exit;
-    if TPasElement(El.FinallyExcept.Elements[0]) is TPasImplExceptOn then
-      exit(true);
-    Data:=Default(TTryExceptFindData);
-    El.FinallyExcept.ForEachCall(@TryExcept_OnElement,@Data);
-    Result:=Data.HasRaiseWithoutObject;
-  end;
-
 Var
   T : TJSTryStatement;
   ExceptBlock: TPasImplTryHandler;
@@ -8279,9 +8262,8 @@ begin
       begin
       T:=TJSTryCatchStatement(CreateElement(TJSTryCatchStatement,El));
       T.Block:=ConvertImplBlockElements(El,AContext,true);
-      if NeedExceptObject then
-        T.Ident:=TJSString(FBuiltInNames[pbivnExceptObject]);
-      //T.BCatch:=ConvertElement(El.FinallyExcept,AContext);
+      // always set the catch except object, needed by nodejs
+      T.Ident:=TJSString(FBuiltInNames[pbivnExceptObject]);
       ExceptBlock:=El.FinallyExcept;
       if (ExceptBlock.Elements.Count>0)
           and (TPasImplElement(ExceptBlock.Elements[0]) is TPasImplExceptOn) then
@@ -10519,7 +10501,7 @@ var
 begin
   Result:='';
   {$IFDEF VerbosePas2JS}
-  //writeln('TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext),' ',GetObjName(AContext.GetThis));
+  //writeln('TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext),' SelfContext=',GetObjName(AContext.GetSelfContext));
   //AContext.WriteStack;
   {$ENDIF}
 

@@ -194,6 +194,7 @@ type
     procedure TestXor;
     procedure TestLineEnding;
     procedure TestTab;
+    Procedure TestEscapedKeyWord;
     Procedure TestTokenSeries;
     Procedure TestTokenSeriesNoWhiteSpace;
     Procedure TestTokenSeriesComments;
@@ -407,6 +408,8 @@ begin
   FResolver.AddStream('afile.pp',TStringStream.Create(Source));
   Writeln('// '+TestName);
   Writeln(Source);
+//  FreeAndNil(FScanner);
+//  FScanner:=TTestingPascalScanner.Create(FResolver);
   FScanner.OpenFile('afile.pp');
 end;
 
@@ -426,7 +429,8 @@ begin
     if (tk=tkLineEnding) and not (t in [tkEOF,tkLineEnding]) then
       tk:=FScanner.FetchToken;
     AssertEquals('EOF reached.',tkEOF,FScanner.FetchToken);
-    end;
+    end
+
 end;
 
 procedure TTestScanner.TestToken(t: TToken; const ASource: String;
@@ -1318,6 +1322,11 @@ procedure TTestScanner.TestTab;
 
 begin
   TestToken(tkTab,#9);
+end;
+
+procedure TTestScanner.TestEscapedKeyWord;
+begin
+  TestToken(tkIdentifier,'&xor');
 end;
 
 procedure TTestScanner.TestTokenSeries;

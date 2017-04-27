@@ -110,10 +110,16 @@ Type
     Procedure TestTryExceptOn2;
     Procedure TestTryExceptOnElse;
     Procedure TestTryExceptOnIfElse;
-    procedure  TestTryExceptRaise;
+    procedure TestTryExceptRaise;
     Procedure TestAsm;
+    Procedure TestAsmBlock;
+    Procedure TestAsmBlockWithEndLabel;
+    Procedure TestAsmBlockInIfThen;
     Procedure TestGotoInIfThen;
+    procedure AssignToAddress;
+    procedure FinalizationNoSemicolon;
   end;
+
 
 implementation
 
@@ -1645,6 +1651,71 @@ begin
   AssertEquals('token 2 ','eax',T.Tokens[1]);
   AssertEquals('token 3 ',',',T.Tokens[2]);
   AssertEquals('token 4 ','1',T.Tokens[3]);
+end;
+
+procedure TTestStatementParser.TestAsmBlock;
+begin
+  Source.Add('{$MODE DELPHI}');
+  Source.Add('function BitsHighest(X: Cardinal): Integer;');
+  Source.Add('asm');
+  Source.Add('end;');
+  Source.Add('begin');
+  Source.Add('end.');
+  ParseModule;
+end;
+
+procedure TTestStatementParser.TestAsmBlockWithEndLabel;
+begin
+  Source.Add('{$MODE DELPHI}');
+  Source.Add('function BitsHighest(X: Cardinal): Integer;');
+  Source.Add('asm');
+  Source.Add('  MOV ECX, EAX');
+  Source.Add('  MOV EAX, -1');
+  Source.Add('  BSR EAX, ECX');
+  Source.Add('  JNZ @@End');
+  Source.Add('  MOV EAX, -1');
+  Source.Add('@@End:');
+  Source.Add('end;');
+  Source.Add('begin');
+  Source.Add('end.');
+  ParseModule;
+end;
+
+procedure TTestStatementParser.TestAsmBlockInIfThen;
+begin
+  Source.Add('{$MODE DELPHI}');
+  Source.Add('function Get8087StatusWord(ClearExceptions: Boolean): Word;');
+  Source.Add('  begin');
+  Source.Add('    if ClearExceptions then');
+  Source.Add('    asm');
+  Source.Add('    end');
+  Source.Add('    else');
+  Source.Add('    asm');
+  Source.Add('    end;');
+  Source.Add('  end;');
+  Source.Add('  begin');
+  Source.Add('  end.');
+  ParseModule;
+end;
+
+Procedure TTestStatementParser.AssignToAddress;
+
+begin
+  AddStatements(['@Proc:=Nil']);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.FinalizationNoSemicolon;
+begin
+  Source.Add('unit afile;');
+  Source.Add('{$mode objfpc}');
+  Source.Add('interface');
+  Source.Add('implementation');
+  Source.Add('initialization');
+  Source.Add('  writeln(''qqq'')');
+  Source.Add('finalization');
+  Source.Add('  writeln(''qqq'')');
+  ParseModule;
 end;
 
 Procedure TTestStatementParser.TestGotoInIfThen;

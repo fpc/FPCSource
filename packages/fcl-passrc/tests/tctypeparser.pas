@@ -161,6 +161,8 @@ type
     Procedure TestReferencePointer;
     Procedure TestInvalidColon;
     Procedure TestTypeHelper;
+    procedure TestPointerReference;
+    Procedure TestPointerKeyWord;
   end;
 
   { TTestRecordTypeParser }
@@ -1243,6 +1245,7 @@ end;
 
 procedure TTestRecordTypeParser.AssertConst1(Hints: TPasMemberHints);
 begin
+  if Hints=[] then ;
   AssertEquals('Member 1 type',TPasConst,TObject(TheRecord.Members[0]).ClassType);
   AssertEquals('Const 1 name','x',Const1.Name);
   AssertNotNull('Have 1 const expr',Const1.Expr);
@@ -3311,6 +3314,26 @@ end;
 procedure TTestTypeParser.TestTypeHelper;
 begin
   ParseType('Type Helper for AnsiString end',TPasClassType,'');
+end;
+
+procedure TTestTypeParser.TestPointerReference;
+begin
+  Add('Type');
+  Add('  pReference = ^Reference;');
+  Add('  Reference = object');
+  Add('  end;');
+  ParseDeclarations;
+  AssertEquals('type definition count',1,Declarations.Types.Count);
+  AssertEquals('object definition count',1,Declarations.Classes.Count);
+end;
+
+procedure TTestTypeParser.TestPointerKeyWord;
+begin
+  Add('type');
+  Add('  &file = object');
+  Add('  end;');
+  ParseDeclarations;
+  AssertEquals('object definition count',1,Declarations.Classes.Count);
 end;
 
 

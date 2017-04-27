@@ -182,18 +182,28 @@ procedure TPasWriter.WriteSection(ASection: TPasSection);
 var
   i: Integer;
 begin
-  if ASection.UsesList.Count > 0 then
-  begin
-    wrt('uses ');
-    for i := 0 to ASection.UsesList.Count - 1 do
+  if ASection.UsesList.Count>0 then
     begin
-      if i > 0 then
-        wrt(', ');
-      wrt(TPasElement(ASection.UsesList[i]).Name);
-    end;
+    wrt('uses ');
+    if length(ASection.UsesClause)=ASection.UsesList.Count then
+      for i := 0 to length(ASection.UsesClause)-1 do
+        begin
+        if i > 0 then
+          wrt(', ');
+        wrt(ASection.UsesClause[i].Identifier);
+        if ASection.UsesClause[i].InFilename is TPrimitiveExpr then
+          wrt(' in '''+TPrimitiveExpr(ASection.UsesClause[i].InFilename).Value+'''');
+        end
+    else
+      for i := 0 to ASection.UsesList.Count - 1 do
+        begin
+        if i > 0 then
+          wrt(', ');
+        wrt(TPasElement(ASection.UsesList[i]).Name);
+        end;
     wrtln(';');
     wrtln;
-  end;
+    end;
 
   CurDeclSection := '';
 
