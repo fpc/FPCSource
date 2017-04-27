@@ -350,6 +350,11 @@ Unit AoptObj;
         function PeepHoleOptPass1Cpu(var p: tai): boolean; virtual;
         function PeepHoleOptPass2Cpu(var p: tai): boolean; virtual;
         function PostPeepHoleOptsCpu(var p: tai): boolean; virtual;
+
+        { insert debug comments about which registers are read and written by
+          each instruction. Useful for debugging the InstructionLoadsFromReg and
+          other similar functions. }
+        procedure Debug_InsertInstrRegisterDependencyInfo; virtual;
       End;
 
        Function ArrayRefsEq(const r1, r2: TReference): Boolean;
@@ -1570,6 +1575,32 @@ Unit AoptObj;
     function TAOptObj.PostPeepHoleOptsCpu(var p: tai): boolean;
       begin
         result := false;
+      end;
+
+
+    procedure TAOptObj.Debug_InsertInstrRegisterDependencyInfo;
+      var
+        p: tai;
+        ri: tregisterindex;
+        reg: TRegister;
+        commentstr: AnsiString;
+      begin
+        p:=tai(AsmL.First);
+        while (p<>AsmL.Last) Do
+          begin
+            if p.typ=ait_instruction then
+              begin
+                commentstr:='Instruction reads';
+                for ri in tregisterindex do
+                  begin
+                    reg:=regnumber_table[ri];
+                    if (reg<>NR_NO) and InstructionLoadsFromReg(reg,p) then
+                      commentstr:=commentstr+' '+std_regname(reg);
+                  end;
+                AsmL.InsertAfter(tai_comment.Create(strpnew(commentstr)),p);
+              end;
+            p:=tai(p.next);
+          end;
       end;
 
 End.
