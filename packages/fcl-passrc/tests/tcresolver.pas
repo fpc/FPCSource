@@ -104,6 +104,7 @@ type
     FModules: TObjectList;// list of TTestEnginePasResolver
     FResolverEngine: TTestEnginePasResolver;
     FResolverMsgs: TObjectList; // list of TTestResolverMessage
+    FResolverGoodMsgs: TFPList; // list of TTestResolverMessage marked as expected
     function GetModuleCount: integer;
     function GetModules(Index: integer): TTestEnginePasResolver;
     function GetMsgCount: integer;
@@ -121,7 +122,8 @@ type
     procedure ParseProgram; virtual;
     procedure ParseUnit; virtual;
     procedure CheckReferenceDirectives; virtual;
-    procedure CheckResolverHint(MsgType: TMessageType; MsgNumber: integer; Msg: string; MustHave: boolean);
+    procedure CheckResolverHint(MsgType: TMessageType; MsgNumber: integer; Msg: string); virtual;
+    procedure CheckResolverUnexpectedHints; virtual;
     procedure CheckResolverException(Msg: string; MsgNumber: integer);
     procedure CheckParserException(Msg: string; MsgNumber: integer);
     procedure CheckAccessMarkers; virtual;
@@ -181,6 +183,7 @@ type
     Procedure TestArgWrongExprFail;
     Procedure TestVarExternal;
     Procedure TestVarNoSemicolonBeginFail;
+    Procedure TestIntegerRange;
 
     // strings
     Procedure TestChar_Ord;
@@ -191,11 +194,11 @@ type
     Procedure TestStringElement_IndexNonIntFail;
     Procedure TestStringElement_AsVarArgFail;
     Procedure TestString_DoubleQuotesFail;
+    Procedure TestString_ShortstringType;
 
     // enums
     Procedure TestEnums;
     Procedure TestSets;
-    Procedure TestSetConstRange;
     Procedure TestSetOperators;
     Procedure TestEnumParams;
     Procedure TestSetParams;
@@ -206,6 +209,7 @@ type
     Procedure TestEnum_EqualNilFail;
     Procedure TestEnum_CastIntegerToEnum;
     Procedure TestEnum_Str;
+    Procedure TestSetConstRange;
     Procedure TestSet_AnonymousEnumtype;
     Procedure TestSet_AnonymousEnumtypeName;
 
@@ -279,6 +283,10 @@ type
     Procedure TestProcedureResultFail;
     Procedure TestProcOverload;
     Procedure TestProcOverloadWithBaseTypes;
+    Procedure TestProcOverloadWithBaseTypes2;
+    Procedure TestProcOverloadNearestHigherPrecision;
+    Procedure TestProcCallLowPrecision;
+    Procedure TestProcOverloadMultiLowPrecisionFail;
     Procedure TestProcOverloadWithClassTypes;
     Procedure TestProcOverloadWithInhClassTypes;
     Procedure TestProcOverloadWithInhAliasClassTypes;
@@ -331,6 +339,7 @@ type
     Procedure TestClassForwardAsAncestorFail;
     Procedure TestClassForwardNotResolved;
     Procedure TestClass_Method;
+    Procedure TestClass_ConstructorMissingDotFail;
     Procedure TestClass_MethodWithoutClassFail;
     Procedure TestClass_MethodWithParams;
     Procedure TestClass_MethodUnresolvedPrg;
@@ -348,12 +357,14 @@ type
     Procedure TestClass_MethodOverrideSameResultType;
     Procedure TestClass_MethodOverrideDiffResultTypeFail;
     Procedure TestClass_MethodOverloadAncestor;
+    Procedure TestClass_MethodOverloadArrayOfTClass;
     Procedure TestClass_MethodScope;
     Procedure TestClass_IdentifierSelf;
     Procedure TestClassCallInherited;
     Procedure TestClassCallInheritedNoParamsAbstractFail;
     Procedure TestClassCallInheritedWithParamsAbstractFail;
     Procedure TestClassCallInheritedConstructor;
+    Procedure TestClassCallInheritedNested;
     Procedure TestClassAssignNil;
     Procedure TestClassAssign;
     Procedure TestClassNilAsParam;
@@ -525,12 +536,14 @@ type
     Procedure TestProcType_WhileListCompare;
     Procedure TestProcType_IsNested;
     Procedure TestProcType_IsNested_AssignProcFail;
+    Procedure TestProcType_ReferenceTo;
     Procedure TestProcType_AllowNested;
     Procedure TestProcType_AllowNestedOfObject;
     Procedure TestProcType_AsArgOtherUnit;
     Procedure TestProcType_Property;
     Procedure TestProcType_PropertyCallWrongArgFail;
     Procedure TestProcType_Typecast;
+    Procedure TestProcType_InsideFunction;
 
     // pointer
     Procedure TestPointer;
@@ -538,6 +551,10 @@ type
     Procedure TestPointer_TypecastToMethodTypeFail;
     Procedure TestPointer_TypecastFromMethodTypeFail;
     Procedure TestPointer_TypecastMethod_proMethodAddrAsPointer;
+    Procedure TestPointer_OverloadSignature;
+
+    // hints
+    Procedure TestHint_ElementHints;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -612,6 +629,7 @@ end;
 procedure TCustomTestResolver.TearDown;
 begin
   FResolverMsgs.Clear;
+  FResolverGoodMsgs.Clear;
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown START FreeSrcMarkers');
   {$ENDIF}
@@ -1091,29 +1109,24 @@ begin
 end;
 
 procedure TCustomTestResolver.CheckResolverHint(MsgType: TMessageType;
-  MsgNumber: integer; Msg: string; MustHave: boolean);
+  MsgNumber: integer; Msg: string);
 var
   i: Integer;
   Item: TTestResolverMessage;
   Expected,Actual: string;
 begin
-  writeln('TCustomTestResolver.CheckResolverHint MsgCount=',MsgCount);
+  //writeln('TCustomTestResolver.CheckResolverHint MsgCount=',MsgCount);
   for i:=0 to MsgCount-1 do
     begin
     Item:=Msgs[i];
     if (Item.MsgNumber<>MsgNumber) or (Item.Msg<>Msg) then continue;
     // found
+    FResolverGoodMsgs.Add(Item);
     str(Item.MsgType,Actual);
-    if not MustHave then
-      begin
-      WriteSources('',0,0);
-      Fail('Expected to *not* emit '+Actual+' ('+IntToStr(MsgNumber)+') {'+Msg+'}');
-      end;
     str(MsgType,Expected);
     AssertEquals('MsgType',Expected,Actual);
     exit;
     end;
-  if not MustHave then exit;
 
   // needed message missing -> show emitted messages
   WriteSources('',0,0);
@@ -1124,6 +1137,22 @@ begin
     end;
   str(MsgType,Expected);
   Fail('Missing '+Expected+' ('+IntToStr(MsgNumber)+') '+Msg);
+end;
+
+procedure TCustomTestResolver.CheckResolverUnexpectedHints;
+var
+  i: Integer;
+  s: String;
+  Msg: TTestResolverMessage;
+begin
+  for i:=0 to MsgCount-1 do
+    begin
+    Msg:=Msgs[i];
+    if FResolverGoodMsgs.IndexOf(Msg)>=0 then continue;
+    s:='';
+    str(Msg.MsgType,s);
+    Fail('Unexpected resolver message found ['+IntToStr(Msg.Id)+'] '+s+': ('+IntToStr(Msg.MsgNumber)+') {'+Msg.Msg+'}');
+    end;
 end;
 
 procedure TCustomTestResolver.CheckResolverException(Msg: string; MsgNumber: integer);
@@ -1357,11 +1386,13 @@ constructor TCustomTestResolver.Create;
 begin
   inherited Create;
   FResolverMsgs:=TObjectList.Create(true);
+  FResolverGoodMsgs:=TFPList.Create;
 end;
 
 destructor TCustomTestResolver.Destroy;
 begin
   FreeAndNil(FResolverMsgs);
+  FreeAndNil(FResolverGoodMsgs);
   inherited Destroy;
 end;
 
@@ -1604,7 +1635,7 @@ var
   var
     s: String;
   begin
-    s:='TTestResolver.OnCheckElementParent El='+GetTreeDesc(El)+' '+
+    s:='TTestResolver.OnCheckElementParent El='+GetTreeDbg(El)+' '+
       ResolverEngine.GetElementSourcePosStr(El)+' '+Msg;
     writeln('ERROR: ',s);
     Fail(s);
@@ -2041,6 +2072,16 @@ begin
     nParserExpectTokenError);
 end;
 
+procedure TTestResolver.TestIntegerRange;
+begin
+  StartProgram(false);
+  Add('const');
+  Add('  MinInt = -1;');
+  Add('  MaxInt = +1;');
+  Add('  {#TMyInt}TMyInt = MinInt..MaxInt;');
+  Add('begin');
+end;
+
 procedure TTestResolver.TestChar_Ord;
 begin
   StartProgram(false);
@@ -2107,7 +2148,7 @@ begin
   Add('var s: string;');
   Add('begin');
   Add('  if s[true]=s then ;');
-  CheckResolverException('Incompatible types: got "Boolean" expected "Char"',
+  CheckResolverException('Incompatible types: got "Boolean" expected "integer"',
     PasResolver.nIncompatibleTypesGotExpected);
 end;
 
@@ -2131,6 +2172,19 @@ begin
   Add('begin');
   Add('  s:="abc" + "def";');
   CheckParserException('Invalid character ''"''',PScanner.nErrInvalidCharacter);
+end;
+
+procedure TTestResolver.TestString_ShortstringType;
+begin
+  StartProgram(false);
+  Add([
+  'type t = string[12];',
+  'var',
+  '  s: t;',
+  'begin',
+  '  s:=''abc'';',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestEnums;
@@ -2191,16 +2245,6 @@ begin
   Add('  {@MyBools}MyBools:=[false,true];');
   Add('  {@MyBools}MyBools:=[true..false];');
   ParseProgram;
-end;
-
-procedure TTestResolver.TestSetConstRange;
-begin
-  StartProgram(false);
-  Add('const');
-  Add('  MinInt = -1;');
-  Add('  MaxInt = +1;');
-  Add('  {#TMyInt}TMyInt = MinInt..MaxInt;');
-  Add('begin');
 end;
 
 procedure TTestResolver.TestSetOperators;
@@ -2418,6 +2462,32 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestSetConstRange;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (red,blue,green);',
+  '  TEnums = set of TEnum;',
+  'const',
+  '  teAny = [low(TEnum)..high(TEnum)];',
+  '  teRedBlue = [low(TEnum)..pred(high(TEnum))];',
+  'var',
+  '  e: TEnum;',
+  '  s: TEnums;',
+  'begin',
+  '  if blue in teAny then;',
+  '  if blue in teAny+[e] then;',
+  '  if blue in teAny+teRedBlue then;',
+  '  s:=teAny;',
+  '  s:=teAny+[e];',
+  '  s:=[e]+teAny;',
+  '  s:=teAny+teRedBlue;',
+  '  s:=teAny+teRedBlue+[e];',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestSet_AnonymousEnumtype;
 begin
   StartProgram(false);
@@ -2596,8 +2666,9 @@ begin
   Add('  {#vshortint}vshortint:shortint;');
   Add('  {#vword}vword:word;');
   Add('  {#vsmallint}vsmallint:smallint;');
-  Add('  {#vcardinal}vcardinal:cardinal;');
+  Add('  {#vlongword}vlongword:longword;');
   Add('  {#vlongint}vlongint:longint;');
+  Add('  {#vqword}vqword:qword;');
   Add('  {#vint64}vint64:int64;');
   Add('  {#vcomp}vcomp:comp;');
   Add('begin');
@@ -2611,8 +2682,8 @@ begin
   Add('  {@vsmallint}vsmallint:=0;');
   Add('  {@vsmallint}vsmallint:=-$8000;');
   Add('  {@vsmallint}vsmallint:= $7fff;');
-  Add('  {@vcardinal}vcardinal:=0;');
-  Add('  {@vcardinal}vcardinal:=$ffffffff;');
+  Add('  {@vlongword}vlongword:=0;');
+  Add('  {@vlongword}vlongword:=$ffffffff;');
   Add('  {@vlongint}vlongint:=0;');
   Add('  {@vlongint}vlongint:=-$80000000;');
   Add('  {@vlongint}vlongint:= $7fffffff;');
@@ -2621,11 +2692,14 @@ begin
   Add('  {@vlongint}vlongint:={@vword}vword;');
   Add('  {@vlongint}vlongint:={@vsmallint}vsmallint;');
   Add('  {@vlongint}vlongint:={@vlongint}vlongint;');
-  Add('  {@vcomp}vcomp:=0;');
-  Add('  {@vcomp}vcomp:=$ffffffffffffffff;');
   Add('  {@vint64}vint64:=0;');
   Add('  {@vint64}vint64:=-$8000000000000000;');
   Add('  {@vint64}vint64:= $7fffffffffffffff;');
+  Add('  {@vqword}vqword:=0;');
+  Add('  {@vqword}vqword:=$ffffffffffffffff;');
+  Add('  {@vcomp}vcomp:=0;');
+  Add('  {@vcomp}vcomp:=-$8000000000000000;');
+  Add('  {@vcomp}vcomp:= $7fffffffffffffff;');
   ParseProgram;
 end;
 
@@ -2683,8 +2757,11 @@ begin
   Add('  i:=-j+k;');
   Add('  i:=j*k;');
   Add('  i:=j**k;');
+  Add('  i:=10**3;');
   Add('  i:=j div k;');
+  Add('  i:=10 div 3;');
   Add('  i:=j mod k;');
+  Add('  i:=10 mod 3;');
   Add('  i:=j shl k;');
   Add('  i:=j shr k;');
   Add('  i:=j and k;');
@@ -2743,6 +2820,7 @@ begin
   StartProgram(false);
   Add('var');
   Add('  i,j,k:double;');
+  Add('  o,p:longint;');
   Add('begin');
   Add('  i:=1;');
   Add('  i:=1+2;');
@@ -2754,8 +2832,18 @@ begin
   Add('  i:=j+k;');
   Add('  i:=-j+k;');
   Add('  i:=j*k;');
+  Add('  i:=10/3;');
+  Add('  i:=10.0/3;');
+  Add('  i:=10/3.0;');
+  Add('  i:=10.0/3.0;');
   Add('  i:=j/k;');
+  Add('  i:=o/p;');
+  Add('  i:=10**3;');
+  Add('  i:=10.0**3;');
+  Add('  i:=10.0**3.0;');
+  Add('  i:=10**3.0;');
   Add('  i:=j**k;');
+  Add('  i:=o**p;');
   Add('  i:=(j+k)/3;');
   ParseProgram;
 end;
@@ -3071,23 +3159,36 @@ end;
 procedure TTestResolver.TestTypeInfo;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  integer = longint;');
-  Add('  TRec = record');
-  Add('    v: integer;');
-  Add('  end;');
-  Add('var');
-  Add('  i: integer;');
-  Add('  s: string;');
-  Add('  p: pointer;');
-  Add('  r: TRec;');
-  Add('begin');
-  Add('  p:=typeinfo(integer);');
-  Add('  p:=typeinfo(longint);');
-  Add('  p:=typeinfo(i);');
-  Add('  p:=typeinfo(s);');
-  Add('  p:=typeinfo(p);');
-  Add('  p:=typeinfo(r.v);');
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TRec = record',
+  '    v: integer;',
+  '  end;',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '    class function ClassType: TClass; virtual; abstract;',
+  '  end;',
+  'var',
+  '  i: integer;',
+  '  s: string;',
+  '  p: pointer;',
+  '  r: TRec;',
+  '  o: TObject;',
+  '  c: TClass;',
+  'begin',
+  '  p:=typeinfo(integer);',
+  '  p:=typeinfo(longint);',
+  '  p:=typeinfo(i);',
+  '  p:=typeinfo(s);',
+  '  p:=typeinfo(p);',
+  '  p:=typeinfo(r.v);',
+  '  p:=typeinfo(TObject.ClassType);',
+  '  p:=typeinfo(o.ClassType);',
+  '  p:=typeinfo(o);',
+  '  p:=typeinfo(c);',
+  '  p:=typeinfo(c.ClassType);',
+  '']);
   ParseProgram;
 end;
 
@@ -3686,6 +3787,86 @@ begin
   Add('begin');
   Add('  {@A}Func1(3);');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadWithBaseTypes2;
+begin
+  StartProgram(false);
+  Add('procedure {#byte}DoIt(p: byte); external;  var by: byte;');
+  Add('procedure {#shortint}DoIt(p: shortint); external;  var shi: shortint;');
+  Add('procedure {#word}DoIt(p: word); external;  var w: word;');
+  Add('procedure {#smallint}DoIt(p: smallint); external;  var smi: smallint;');
+  Add('procedure {#longword}DoIt(p: longword); external;  var lw: longword;');
+  Add('procedure {#longint}DoIt(p: longint); external;  var li: longint;');
+  Add('procedure {#qword}DoIt(p: qword); external;  var qw: qword;');
+  Add('procedure {#int64}DoIt(p: int64); external;  var i6: int64;');
+  Add('procedure {#comp}DoIt(p: comp); external;  var co: comp;');
+  Add('procedure {#boolean}DoIt(p: boolean); external;  var bo: boolean;');
+  Add('procedure {#char}DoIt(p: char); external;  var ch: char;');
+  Add('procedure {#widechar}DoIt(p: widechar); external;  var wc: widechar;');
+  Add('procedure {#string}DoIt(p: string); external;  var st: string;');
+  Add('procedure {#widestring}DoIt(p: widestring); external;  var ws: widestring;');
+  Add('procedure {#shortstring}DoIt(p: shortstring); external;  var ss: shortstring;');
+  Add('procedure {#unicodestring}DoIt(p: unicodestring); external;  var us: unicodestring;');
+  Add('procedure {#rawbytestring}DoIt(p: rawbytestring); external;  var rs: rawbytestring;');
+  Add('begin');
+  Add('  {@byte}DoIt(by);');
+  Add('  {@shortint}DoIt(shi);');
+  Add('  {@word}DoIt(w);');
+  Add('  {@smallint}DoIt(smi);');
+  Add('  {@longword}DoIt(lw);');
+  Add('  {@longint}DoIt(li);');
+  Add('  {@qword}DoIt(qw);');
+  Add('  {@int64}DoIt(i6);');
+  Add('  {@comp}DoIt(co);');
+  Add('  {@boolean}DoIt(bo);');
+  Add('  {@char}DoIt(ch);');
+  Add('  {@widechar}DoIt(wc);');
+  Add('  {@string}DoIt(st);');
+  Add('  {@widestring}DoIt(ws);');
+  Add('  {@shortstring}DoIt(ss);');
+  Add('  {@unicodestring}DoIt(us);');
+  Add('  {@rawbytestring}DoIt(rs);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadNearestHigherPrecision;
+begin
+  StartProgram(false);
+  Add([
+  'procedure {#longint}DoIt(i: longint); external;',
+  'procedure DoIt(i: int64); external;',
+  'var w: word;',
+  'begin',
+  '  {@longint}DoIt(w);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcCallLowPrecision;
+begin
+  StartProgram(false);
+  Add([
+  'procedure {#longint}DoIt(i: longint); external;',
+  'var i: int64;',
+  'begin',
+  '  {@longint}DoIt(i);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadMultiLowPrecisionFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(i: longint); external;',
+  'procedure DoIt(w: longword); external;',
+  'var i: int64;',
+  'begin',
+  '  DoIt(i);',
+  '']);
+  CheckResolverException('Can''t determine which overloaded function to call, afile.pp(3,15), afile.pp(2,15)',
+    nCantDetermineWhichOverloadedFunctionToCall);
 end;
 
 procedure TTestResolver.TestProcOverloadWithClassTypes;
@@ -4530,6 +4711,21 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestClass_ConstructorMissingDotFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  'constructor Create; begin end;',
+  'begin',
+  '']);
+  CheckResolverException('full method name expected, but short name found',
+    nXExpectedButYFound);
+end;
+
 procedure TTestResolver.TestClass_MethodWithoutClassFail;
 begin
   StartProgram(false);
@@ -4862,6 +5058,59 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestClass_MethodOverloadArrayOfTClass;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '    constructor {#A}Builder(AClass: TClass; AName: string); reintroduce; overload; virtual;',
+  '    constructor {#B}Builder(AClass: TClass); reintroduce; overload; virtual;',
+  '    constructor {#C}Builder(AClassArray: Array of TClass); reintroduce; overload; virtual;',
+  '    constructor {#D}Builder(AName: string); reintroduce; overload; virtual;',
+  '    constructor {#E}Builder; reintroduce; overload; virtual;',
+  '    class var ClassName: string;',
+  '  end;',
+  '  TTestCase = class end;',
+  'constructor TObject.Builder(AClass: TClass; AName: string);',
+  'begin',
+  '  Builder(AClass);',
+  'end;',
+  'constructor TObject.Builder(AClass: TClass);',
+  'begin',
+  '  Builder(AClass.ClassName);',
+  'end;',
+  'constructor TObject.Builder(AClassArray: Array of TClass);',
+  'var',
+  '  i: longint;',
+  'begin',
+  '  Builder;',
+  '  for i := Low(AClassArray) to High(AClassArray) do',
+  '    if Assigned(AClassArray[i]) then ;',
+  'end;',
+  'constructor TObject.Builder(AName: string);',
+  'begin',
+  '  Builder();',
+  'end;',
+  'constructor TObject.Builder;',
+  'begin',
+  'end;',
+  'var',
+  '  o: TObject;',
+  'begin',
+  '  o.{@A}Builder(TTestCase,''first'');',
+  '  o.{@B}Builder(TTestCase);',
+  '  o.{@C}Builder([]);',
+  '  o.{@C}Builder([TTestCase]);',
+  '  o.{@C}Builder([TObject,TTestCase]);',
+  '  o.{@D}Builder(''fourth'');',
+  '  o.{@E}Builder();',
+  '  o.{@E}Builder;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestClass_MethodScope;
 begin
   StartProgram(false);
@@ -4999,6 +5248,38 @@ begin
   Add('  inherited {@TOBJ_CreateA}Create({@i1}vI);');
   Add('end;');
   Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassCallInheritedNested;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function DoIt: longint; virtual;',
+  '  end;',
+  '  TBird = class',
+  '    function DoIt: longint; override;',
+  '  end;',
+  'function tobject.doit: longint;',
+  'begin',
+  'end;',
+  'function tbird.doit: longint;',
+  '  procedure Sub;',
+  '  begin',
+  '    inherited;',
+  '    inherited DoIt;',
+  '    if inherited DoIt=4 then ;',
+  '  end;',
+  'begin',
+  '  Sub;',
+  '  inherited;',
+  '  inherited DoIt;',
+  '  if inherited DoIt=14 then ;',
+  'end;',
+  'begin',
+   '']);
   ParseProgram;
 end;
 
@@ -6016,13 +6297,14 @@ begin
   Add('begin');
   ParseProgram;
   CheckResolverHint(mtNote,nVirtualMethodXHasLowerVisibility,
-    'Virtual method "DoStrictProtected" has a lower visibility (private) than parent class TObject (strict protected)',true);
+    'Virtual method "DoStrictProtected" has a lower visibility (private) than parent class TObject (strict protected)');
   CheckResolverHint(mtNote,nVirtualMethodXHasLowerVisibility,
-    'Virtual method "DoProtected" has a lower visibility (private) than parent class TObject (protected)',true);
+    'Virtual method "DoProtected" has a lower visibility (private) than parent class TObject (protected)');
   CheckResolverHint(mtNote,nVirtualMethodXHasLowerVisibility,
-    'Virtual method "DoPublic" has a lower visibility (protected) than parent class TObject (public)',true);
+    'Virtual method "DoPublic" has a lower visibility (protected) than parent class TObject (public)');
   CheckResolverHint(mtNote,nVirtualMethodXHasLowerVisibility,
-    'Virtual method "DoPublished" has a lower visibility (protected) than parent class TObject (published)',true);
+    'Virtual method "DoPublished" has a lower visibility (protected) than parent class TObject (published)');
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestClass_Const;
@@ -6466,8 +6748,8 @@ begin
   Add('  if TObject(Self)=nil then ;');
   Add('end;');
   Add('begin');
-  CheckResolverException('Cannot type cast a type',
-    PasResolver.nCannotTypecastAType);
+  CheckResolverException('Illegal type conversion: "Self" to "class TObject"',
+    PasResolver.nIllegalTypeConversionTo);
 end;
 
 procedure TTestResolver.TestClass_ClassMembers;
@@ -8424,6 +8706,63 @@ begin
   CheckResolverException('procedure type modifier "is nested" mismatch',nXModifierMismatchY);
 end;
 
+procedure TTestResolver.TestProcType_ReferenceTo;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProcRef = reference to procedure(i: longint = 0);',
+  '  TFuncRef = reference to function(i: longint = 0): longint;',
+  '  TObject = class',
+  '    function Grow(s: longint): longint;',
+  '  end;',
+  'var',
+  '  p: TProcRef;',
+  '  f: TFuncRef;',
+  'function tobject.Grow(s: longint): longint;',
+  '  function GrowSub(i: longint): longint;',
+  '  begin',
+  '    f:=@Grow;',
+  '    f:=@GrowSub;',
+  '    f;',
+  '    f();',
+  '    f(1);',
+  '  end;',
+  'begin',
+  '  f:=@Grow;',
+  '  f:=@GrowSub;',
+  '  f;',
+  '  f();',
+  '  f(1);',
+  'end;',
+  'procedure DoIt(i: longint);',
+  'begin',
+  'end;',
+  'function GetIt(i: longint): longint;',
+  '  function Sub(i: longint): longint;',
+  '  begin',
+  '    p:=@DoIt;',
+  '    f:=@GetIt;',
+  '    f:=@Sub;',
+  '  end;',
+  'begin',
+  '  p:=@DoIt;',
+  '  f:=@GetIt;',
+  '  f;',
+  '  f();',
+  '  f(1);',
+  'end;',
+  'begin',
+  '  p:=@DoIt;',
+  '  f:=@GetIt;',
+  '  f;',
+  '  f();',
+  '  f(1);',
+  '  p:=TProcRef(f);',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestProcType_AllowNested;
 begin
   ResolverEngine.Options:=ResolverEngine.Options+[proProcTypeWithoutIsNested];
@@ -8596,6 +8935,22 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestProcType_InsideFunction;
+begin
+  StartProgram(false);
+  Add([
+  'function GetIt: longint;',
+  'type TGetter = function: longint;',
+  'var',
+  '  p: Pointer;',
+  'begin',
+  '  Result:=TGetter(p)();',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestPointer;
 begin
   StartProgram(false);
@@ -8684,6 +9039,59 @@ begin
   Add('  e:=TEvent(p);');
   Add('  p:=Pointer(e);');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestPointer_OverloadSignature;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class end;');
+  Add('  TClass = class of TObject;');
+  Add('  TBird = class(TObject) end;');
+  Add('  TBirds = class of TBird;');
+  Add('procedure {#pointer}DoIt(p: Pointer); begin end;');
+  Add('procedure {#tobject}DoIt(o: TObject); begin end;');
+  Add('procedure {#tclass}DoIt(c: TClass); begin end;');
+  Add('var');
+  Add('  p: pointer;');
+  Add('  o: TObject;');
+  Add('  c: TClass;');
+  Add('  b: TBird;');
+  Add('  bc: TBirds;');
+  Add('begin');
+  Add('  {@pointer}DoIt(p);');
+  Add('  {@tobject}DoIt(o);');
+  Add('  {@tclass}DoIt(c);');
+  Add('  {@tobject}DoIt(b);');
+  Add('  {@tclass}DoIt(bc);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestHint_ElementHints;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TDeprecated = longint deprecated;',
+  '  TLibrary = longint library;',
+  '  TPlatform = longint platform;',
+  '  TExperimental = longint experimental;',
+  '  TUnimplemented = longint unimplemented;',
+  'var',
+  '  vDeprecated: TDeprecated;',
+  '  vLibrary: TLibrary;',
+  '  vPlatform: TPlatform;',
+  '  vExperimental: TExperimental;',
+  '  vUnimplemented: TUnimplemented;',
+  'begin',
+  '']);
+  ParseProgram;
+  CheckResolverHint(mtWarning,nSymbolXIsDeprecated,'Symbol "TDeprecated" is deprecated');
+  CheckResolverHint(mtWarning,nSymbolXBelongsToALibrary,'Symbol "TLibrary" belongs to a library');
+  CheckResolverHint(mtWarning,nSymbolXIsNotPortable,'Symbol "TPlatform" is not portable');
+  CheckResolverHint(mtWarning,nSymbolXIsExperimental,'Symbol "TExperimental" is experimental');
+  CheckResolverHint(mtWarning,nSymbolXIsNotImplemented,'Symbol "TUnimplemented" is implemented');
+  CheckResolverUnexpectedHints;
 end;
 
 initialization

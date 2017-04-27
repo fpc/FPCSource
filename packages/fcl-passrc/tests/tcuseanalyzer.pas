@@ -32,9 +32,9 @@ type
     procedure AnalyzeUnit; virtual;
     procedure AnalyzeWholeProgram; virtual;
     procedure CheckUsedMarkers; virtual;
-    procedure CheckHasHint(MsgType: TMessageType; MsgNumber: integer;
+    procedure CheckUseAnalyzerHint(MsgType: TMessageType; MsgNumber: integer;
       const MsgText: string); virtual;
-    procedure CheckUnexpectedMessages; virtual;
+    procedure CheckUseAnalyzerUnexpectedHints; virtual;
     procedure CheckUnitUsed(const aFilename: string; Used: boolean); virtual;
   public
     property Analyzer: TPasAnalyzer read FAnalyzer;
@@ -100,6 +100,7 @@ type
     procedure TestM_Hint_FunctionResultRecord;
     procedure TestM_Hint_FunctionResultPassRecordElement;
     procedure TestM_Hint_OutParam_No_AssignedButNeverUsed;
+    procedure TestM_Hint_ArgPassed_No_ParameterNotUsed;
 
     // whole program optimization
     procedure TestWP_LocalVar;
@@ -117,6 +118,8 @@ type
     procedure TestWP_PublishedRecordType;
     procedure TestWP_PublishedProcType;
     procedure TestWP_PublishedProperty;
+    procedure TestWP_BuiltInFunctions;
+    procedure TestWP_TypeInfo;
   end;
 
 implementation
@@ -239,7 +242,7 @@ begin
 
 end;
 
-procedure TCustomTestUseAnalyzer.CheckHasHint(MsgType: TMessageType;
+procedure TCustomTestUseAnalyzer.CheckUseAnalyzerHint(MsgType: TMessageType;
   MsgNumber: integer; const MsgText: string);
 var
   i: Integer;
@@ -272,7 +275,7 @@ begin
   Fail('Analyzer Message not found: '+s+': ('+IntToStr(MsgNumber)+') {'+MsgText+'}');
 end;
 
-procedure TCustomTestUseAnalyzer.CheckUnexpectedMessages;
+procedure TCustomTestUseAnalyzer.CheckUseAnalyzerUnexpectedHints;
 var
   i: Integer;
   Msg: TPAMessage;
@@ -284,7 +287,7 @@ begin
     if FPAGoodMessages.IndexOf(Msg)>=0 then continue;
     s:='';
     str(Msg.MsgType,s);
-    Fail('Analyzer Message found ['+IntToStr(Msg.Id)+'] '+s+': ('+IntToStr(Msg.MsgNumber)+') {'+Msg.MsgText+'}');
+    Fail('Unexpected analyzer message found ['+IntToStr(Msg.Id)+'] '+s+': ('+IntToStr(Msg.MsgNumber)+') {'+Msg.MsgText+'}');
     end;
 end;
 
@@ -851,8 +854,8 @@ begin
   Add('uses unit2;');
   Add('begin');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPAUnitNotUsed,'Unit "unit2" not used in afile');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerHint(mtHint,nPAUnitNotUsed,'Unit "unit2" not used in afile');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_UnitNotUsed_No_OnlyExternal;
@@ -873,7 +876,7 @@ begin
   AnalyzeProgram;
 
   // unit hints: no hint, even though no code is actually used
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_ParameterNotUsed;
@@ -884,8 +887,8 @@ begin
   Add('begin');
   Add('  DoIt(1);');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPAParameterNotUsed,'Parameter "i" not used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerHint(mtHint,nPAParameterNotUsed,'Parameter "i" not used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_ParameterNotUsed_Abstract;
@@ -898,7 +901,7 @@ begin
   Add('begin');
   Add('  TObject.DoIt(3);');
   AnalyzeProgram;
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_ParameterNotUsedTypecast;
@@ -919,7 +922,7 @@ begin
   Add('begin');
   Add('  DoIt(nil);');
   AnalyzeProgram;
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_LocalVariableNotUsed;
@@ -936,11 +939,11 @@ begin
   Add('begin');
   Add('  DoIt;');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local constant "a" not used');
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local constant "b" not used');
-  CheckHasHint(mtHint,nPALocalVariableNotUsed,'Local variable "c" not used');
-  CheckHasHint(mtHint,nPALocalVariableNotUsed,'Local variable "d" not used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local constant "a" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local constant "b" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "c" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "d" not used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_InterfaceUnitVariableUsed;
@@ -965,14 +968,14 @@ begin
   Add('  {#ImpTFlags_notused}ImpTFlags = set of TFlag;');
   Add('  {#ImpTArrInt_notused}ImpTArrInt = array of integer;');
   AnalyzeUnit;
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local constant "d" not used');
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local constant "e" not used');
-  CheckHasHint(mtHint,nPALocalVariableNotUsed,'Local variable "f" not used');
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local alias type "ImpTColor" not used');
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local enumeration type "ImpTFlag" not used');
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local set type "ImpTFlags" not used');
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local array type "ImpTArrInt" not used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local constant "d" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local constant "e" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "f" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local alias type "ImpTColor" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local enumeration type "ImpTFlag" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local set type "ImpTFlags" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local array type "ImpTArrInt" not used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_ValueParameterIsAssignedButNeverUsed;
@@ -985,9 +988,9 @@ begin
   Add('begin');
   Add('  DoIt(1);');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPAValueParameterIsAssignedButNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPAValueParameterIsAssignedButNeverUsed,
     'Value parameter "i" is assigned but never used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_LocalVariableIsAssignedButNeverUsed;
@@ -1007,13 +1010,13 @@ begin
   Add('begin');
   Add('  DoIt;');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
     'Local variable "a" is assigned but never used');
-  CheckHasHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
     'Local variable "b" is assigned but never used');
-  CheckHasHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
     'Local variable "c" is assigned but never used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_LocalXYNotUsed;
@@ -1031,12 +1034,12 @@ begin
   Add('begin');
   Add('  DoIt;');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local alias type "TColor" not used');
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local enumeration type "TFlag" not used');
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local set type "TFlags" not used');
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local array type "TArrInt" not used');
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local procedure "Sub" not used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local alias type "TColor" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local enumeration type "TFlag" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local set type "TFlags" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local array type "TArrInt" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local procedure "Sub" not used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_PrivateFieldIsNeverUsed;
@@ -1051,11 +1054,11 @@ begin
   Add('begin');
   Add('  m:=nil;');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPAPrivateFieldIsNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPAPrivateFieldIsNeverUsed,
     'Private field "TMobile.a" is never used');
-  CheckHasHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
     'Local variable "m" is assigned but never used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_PrivateFieldIsAssignedButNeverUsed;
@@ -1075,9 +1078,9 @@ begin
   Add('begin');
   Add('  TMobile.Create;');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPAPrivateFieldIsAssignedButNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPAPrivateFieldIsAssignedButNeverUsed,
     'Private field "TMobile.a" is assigned but never used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_PrivateMethodIsNeverUsed;
@@ -1096,9 +1099,9 @@ begin
   Add('begin');
   Add('  TMobile.Create;');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPAPrivateMethodIsNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPAPrivateMethodIsNeverUsed,
     'Private method "TMobile.DoSome" is never used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_LocalDestructor_No_IsNeverUsed;
@@ -1125,7 +1128,7 @@ begin
   Add('  o:=TMobile.Create;');
   Add('  o.Destroy;');
   AnalyzeProgram;
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_PrivateTypeNeverUsed;
@@ -1144,9 +1147,9 @@ begin
   Add('begin');
   Add('  TMobile.Create;');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPAPrivateTypeXNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPAPrivateTypeXNeverUsed,
     'Private type "TMobile.t" never used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_PrivateConstNeverUsed;
@@ -1165,9 +1168,9 @@ begin
   Add('begin');
   Add('  TMobile.Create;');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPAPrivateConstXNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPAPrivateConstXNeverUsed,
     'Private const "TMobile.c" never used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_PrivatePropertyNeverUsed;
@@ -1187,11 +1190,11 @@ begin
   Add('begin');
   Add('  TMobile.Create;');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPAPrivatePropertyXNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPAPrivatePropertyXNeverUsed,
     'Private property "TMobile.A" never used');
-  CheckHasHint(mtHint,nPAPrivateFieldIsNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPAPrivateFieldIsNeverUsed,
     'Private field "TMobile.FA" is never used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_LocalClassInProgramNotUsed;
@@ -1209,9 +1212,9 @@ begin
   Add('  m: TMobile;');
   Add('begin');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local class "TMobile" not used');
-  CheckHasHint(mtHint,nPALocalVariableNotUsed,'Local variable "m" not used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local class "TMobile" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "m" not used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_LocalMethodInProgramNotUsed;
@@ -1230,8 +1233,8 @@ begin
   Add('begin');
   Add('  if m=nil then ;');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPALocalXYNotUsed,'Local constructor "Create" not used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local constructor "Create" not used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_AssemblerParameterIgnored;
@@ -1254,7 +1257,7 @@ begin
   Add('begin');
   Add('  DoIt(1);');
   AnalyzeProgram;
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_FunctionResultDoesNotSeemToBeSet;
@@ -1265,9 +1268,9 @@ begin
   Add('begin');
   Add('  DoIt();');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPAFunctionResultDoesNotSeemToBeSet,
+  CheckUseAnalyzerHint(mtHint,nPAFunctionResultDoesNotSeemToBeSet,
     sPAFunctionResultDoesNotSeemToBeSet);
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_FunctionResultDoesNotSeemToBeSet_Abstract;
@@ -1280,7 +1283,7 @@ begin
   Add('begin');
   Add('  TObject.DoIt;');
   AnalyzeProgram;
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_FunctionResultRecord;
@@ -1295,10 +1298,10 @@ begin
   Add('begin');
   Add('  Point(1);');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
     'Local variable "X" is assigned but never used');
-  CheckHasHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_FunctionResultPassRecordElement;
@@ -1317,8 +1320,8 @@ begin
   Add('begin');
   Add('  Point();');
   AnalyzeProgram;
-  CheckHasHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_OutParam_No_AssignedButNeverUsed;
@@ -1332,7 +1335,26 @@ begin
   Add('begin');
   Add('  DoIt(i);');
   AnalyzeProgram;
-  CheckUnexpectedMessages;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_ArgPassed_No_ParameterNotUsed;
+begin
+  StartProgram(false);
+  Add([
+  'procedure AssertTrue(b: boolean);',
+  'begin',
+  '  if b then ;',
+  'end;',
+  'procedure AssertFalse(b: boolean);',
+  'begin',
+  '  AssertTrue(not b);',
+  'end;',
+  'begin',
+  '  AssertFalse(true);',
+  '']);
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 procedure TTestUseAnalyzer.TestWP_LocalVar;
@@ -1631,6 +1653,62 @@ begin
   Add('  {#o_used}o: TObject;');
   Add('begin');
   Add('  if o.Size=13 then ;');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_BuiltInFunctions;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#tordenum_used}TOrdEnum = (ordenum1,ordenum2);',
+  'begin',
+  '  if ord(ordenum1)=1 then ;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_TypeInfo;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#integer_used}integer = longint;',
+  '  {#trec_used}TRec = record',
+  '    {#trecv_used}v: integer;',
+  '  end;',
+  '  {#tclass_used}TClass = class of TObject;',
+  '  {#tobject_used}TObject = class',
+  '    class function {#tobject_classtype_used}ClassType: TClass; virtual; abstract;',
+  '  end;',
+  '  {#tbirds_used}TBirds = class of TBird;',
+  '  {#tbird_used}TBird = class',
+  '  end;',
+  'function {#getbirdclass_used}GetBirdClass: TBirds;',
+  'begin',
+  '  Result:=nil;',
+  'end;',
+  'var',
+  '  {#i_used}i: integer;',
+  '  {#s_used}s: string;',
+  '  {#p_used}p: pointer;',
+  '  {#r_used}r: TRec;',
+  '  {#o_used}o: TObject;',
+  '  {#c_used}c: TClass;',
+  'begin',
+  '  p:=typeinfo(integer);',
+  '  p:=typeinfo(longint);',
+  '  p:=typeinfo(i);',
+  '  p:=typeinfo(s);',
+  '  p:=typeinfo(p);',
+  '  p:=typeinfo(r.v);',
+  '  p:=typeinfo(TObject.ClassType);',
+  '  p:=typeinfo(o.ClassType);',
+  '  p:=typeinfo(o);',
+  '  p:=typeinfo(c);',
+  '  p:=typeinfo(c.ClassType);',
+  '  p:=typeinfo(GetBirdClass);',
+  '']);
   AnalyzeWholeProgram;
 end;
 

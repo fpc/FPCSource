@@ -336,6 +336,7 @@ type
     function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     function ParseTypeDecl(Parent: TPasElement): TPasType;
     function ParseType(Parent: TPasElement; const NamePos: TPasSourcePos; const TypeName: String = ''; Full: Boolean = false; GenericArgs: TFPList = nil): TPasType;
+    function ParseReferenceToProcedureType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasProcedureType;
     function ParseProcedureType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; const PT: TProcType): TPasProcedureType;
     function ParseStringType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasAliasType;
     function ParseSimpleType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; IsFull : Boolean = False): TPasType;
@@ -594,7 +595,7 @@ begin
     // TargetCPU
     s := UpperCase(CPUTarget);
     Scanner.AddDefine('CPU'+s);
-    if (s='x86_64') then
+    if (s='X86_64') then
       Scanner.AddDefine('CPU64')
     else
       Scanner.AddDefine('CPU32');
@@ -886,7 +887,12 @@ end;
 procedure TPasParser.CheckToken(tk: TToken);
 begin
   if (CurToken<>tk) then
+    begin
+    {$IFDEF VerbosePasParser}
+    writeln('TPasParser.ParseExcTokenError String="',CurTokenString,'" Text="',CurTokenText,'" CurToken=',CurToken,' tk=',tk);
+    {$ENDIF}
     ParseExcTokenError(TokenInfos[tk]);
+    end;
 end;
 
 
@@ -1331,7 +1337,16 @@ begin
           Result:=ParseAliasType(Parent,NamePos,TypeName);
         end;
       // Always allowed
-      tkIdentifier: Result:=ParseSimpleType(Parent,NamePos,TypeName,Full);
+      tkIdentifier:
+        begin
+        if CurTokenIsIdentifier('reference') then
+          begin
+          CH:=False;
+          Result:=ParseReferencetoProcedureType(Parent,NamePos,TypeName)
+          end
+        else
+          Result:=ParseSimpleType(Parent,NamePos,TypeName,Full);
+        end;
       tkCaret: Result:=ParsePointerType(Parent,NamePos,TypeName);
       tkFile: Result:=ParseFileType(Parent,NamePos,TypeName);
       tkArray: Result:=ParseArrayType(Parent,NamePos,TypeName,pm);
@@ -1369,6 +1384,22 @@ begin
       if Result<>nil then
         Result.Release;
   end;
+end;
+
+function TPasParser.ParseReferenceToProcedureType(Parent: TPasElement; const NamePos: TPasSourcePos; const TypeName: String
+  ): TPasProcedureType;
+begin
+  if not CurTokenIsIdentifier('reference') then
+    ParseExcTokenError('reference');
+  ExpectToken(tkTo);
+  NextToken;
+  Case CurToken of
+   tkprocedure : Result:=ParseProcedureType(Parent,NamePos,TypeName,ptProcedure);
+   tkfunction : Result:=ParseProcedureType(Parent,NamePos,TypeName,ptFunction);
+  else
+    ParseExcTokenError('procedure or function');
+  end;
+  Result.IsReferenceTo:=True;
 end;
 
 function TPasParser.ParseComplexType(Parent : TPasElement = Nil): TPasType;
@@ -3093,7 +3124,7 @@ begin
   if not CurTokenIsIdentifier('name') then
     ParseExcSyntaxError;
   NextToken;
-  if not (CurToken in [tkString,tkIdentifier]) then
+  if not (CurToken in [tkChar,tkString,tkIdentifier]) then
     ParseExcTokenError(TokenInfos[tkString]);
   Result := Result + ' ' + CurTokenText;
   ExportName:=DoParseExpression(Parent);
@@ -3485,7 +3516,7 @@ begin
         if ((CurToken=tkIdentifier) and (Tok='NAME')) then
           begin
           NextToken;
-          if not (CurToken in [tkString,tkIdentifier]) then
+          if not (CurToken in [tkChar,tkString,tkIdentifier]) then
             ParseExcTokenError(TokenInfos[tkString]);
           E:=DoParseExpression(Parent);
           if Assigned(P) then
@@ -5241,7 +5272,9 @@ begin
     ExpectIdentifier;
     If Not CurTokenIsIdentifier('Name')  then
       ParseExc(nParserExpectedExternalClassName,SParserExpectedExternalClassName);
-    ExpectToken(tkString);
+    NextToken;
+    if not (CurToken in [tkChar,tkString]) then
+      CheckToken(tkString);
     AExternalName:=CurTokenString;
     NextToken;
     end

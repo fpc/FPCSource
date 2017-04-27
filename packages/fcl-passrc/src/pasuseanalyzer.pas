@@ -610,7 +610,12 @@ begin
   else if C.InheritsFrom(TPasExpr) then
     UseExpr(TPasExpr(El))
   else if C=TPasEnumValue then
-    MarkElementAsUsed(El)
+    begin
+    repeat
+      MarkElementAsUsed(El);
+      El:=El.Parent;
+    until not (El is TPasType);
+    end
   else if C.InheritsFrom(TPasModule) then
     // e.g. unitname.identifier -> the module is used by the identifier
   else
@@ -618,7 +623,7 @@ begin
 end;
 
 procedure TPasAnalyzer.UsePublished(El: TPasElement);
-// mark typeinfo, do not
+// mark typeinfo, do not mark code
 var
   C: TClass;
   Members: TFPList;
@@ -636,6 +641,8 @@ begin
   if C=TPasUnresolvedSymbolRef then
   else if (C=TPasVariable) or (C=TPasConst) then
     UsePublished(TPasVariable(El).VarType)
+  else if (C=TPasArgument) then
+    UsePublished(TPasArgument(El).ArgType)
   else if C=TPasProperty then
     begin
     // published property
@@ -1002,8 +1009,14 @@ begin
         if BuiltInProc.BuiltIn=bfTypeInfo then
           begin
           Params:=(El.Parent as TParamsExpr).Params;
-          Resolver.ComputeElement(Params[0],ParamResolved,[]);
-          UsePublished(ParamResolved.IdentEl);
+          Resolver.ComputeElement(Params[0],ParamResolved,[rcNoImplicitProc]);
+          {$IFDEF VerbosePasAnalyzer}
+          writeln('TPasAnalyzer.UseExpr typeinfo ',GetResolverResultDbg(ParamResolved));
+          {$ENDIF}
+          if ParamResolved.IdentEl is TPasFunction then
+            UsePublished(TPasFunction(ParamResolved.IdentEl).FuncType.ResultEl.ResultType)
+          else
+            UsePublished(ParamResolved.IdentEl);
           end;
         end;
       end;

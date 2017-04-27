@@ -410,6 +410,7 @@ type
     Procedure TestProcedureOutOpenArray;
     Procedure TestProcedureVarOpenArray;
     Procedure TestProcedureArrayOfConst;
+    Procedure TestProcedureReference;
     Procedure TestProcedureOfObject;
     Procedure TestProcedureOfObjectOneArg;
     Procedure TestProcedureIsNested;
@@ -1084,6 +1085,13 @@ end;
 Procedure TTestProcedureTypeParser.TestProcedureArrayOfConst;
 begin
   TestCallingConventions(@DoTestProcedureArrayOfConst);
+end;
+
+procedure TTestProcedureTypeParser.TestProcedureReference;
+begin
+  ParseType('reference to procedure',ccDefault,TPasProcedureType);
+  AssertEquals('Argument count',0,Proc.Args.Count);
+  AssertEquals('Is Reference to',True,Proc.IsReferenceTo);
 end;
 
 Procedure TTestProcedureTypeParser.TestProcedureOfObject;

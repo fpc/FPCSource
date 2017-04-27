@@ -100,6 +100,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     Procedure Add(Line: string); virtual;
+    Procedure Add(const Lines: array of string);
     Procedure StartParsing; virtual;
     procedure ParseModule; virtual;
     procedure ParseProgram; virtual;
@@ -183,6 +184,9 @@ type
     Procedure TestVarExternal;
     Procedure TestVarExternalOtherUnit;
 
+    // numbers
+    Procedure TestDouble;
+
     // strings
     Procedure TestCharConst;
     Procedure TestChar_Compare;
@@ -198,6 +202,7 @@ type
     Procedure TestBaseType_UnicodeStringFail;
     Procedure TestBaseType_ShortStringFail;
     Procedure TestBaseType_RawByteStringFail;
+    Procedure TestTypeShortstring_Fail;
 
     // alias types
     Procedure TestAliasTypeRef;
@@ -250,6 +255,7 @@ type
     Procedure TestSet_AnonymousEnumType;
     Procedure TestSet_CharFail;
     Procedure TestSet_BooleanFail;
+    Procedure TestSet_ConstEnum;
     Procedure TestSet_ConstChar;
 
     // statements
@@ -344,6 +350,11 @@ type
     Procedure TestClass_ExternalOverrideFail;
     Procedure TestClass_ExternalVar;
     Procedure TestClass_Const;
+    Procedure TestClass_LocalVarSelfFail;
+    Procedure TestClass_ArgSelfFail;
+    Procedure TestClass_NestedSelf;
+    Procedure TestClass_NestedClassSelf;
+    Procedure TestClass_NestedCallInherited;
 
     // class of
     Procedure TestClassOf_Create;
@@ -360,7 +371,8 @@ type
 
     // external class
     Procedure TestExternalClass_Var;
-    // ToDo TestExternalClass_Const
+    //ToDo Procedure TestExternalClass_Const;
+    Procedure TestExternalClass_Dollar;
     Procedure TestExternalClass_DuplicateVarFail;
     Procedure TestExternalClass_Method;
     Procedure TestExternalClass_NonExternalOverride;
@@ -403,6 +415,9 @@ type
     Procedure TestProcType_PropertyDelphi;
     Procedure TestProcType_WithClassInstDoPropertyFPC;
     Procedure TestProcType_Nested;
+    Procedure TestProcType_NestedOfObject;
+    Procedure TestProcType_ReferenceToProc;
+    Procedure TestProcType_ReferenceToMethod;
     Procedure TestProcType_Typecast;
 
     // pointer
@@ -425,6 +440,7 @@ type
     Procedure TestJSValue_FuncResultType;
     Procedure TestJSValue_ProcType_Assign;
     Procedure TestJSValue_ProcType_Equal;
+    Procedure TestJSValue_AssignToPointerFail;
 
     // RTTI
     Procedure TestRTTI_ProcType;
@@ -442,6 +458,7 @@ type
     Procedure TestRTTI_PublishedFieldExternalFail;
     Procedure TestRTTI_Class_Field;
     Procedure TestRTTI_Class_Method;
+    Procedure TestRTTI_Class_MethodArgFlags;
     Procedure TestRTTI_Class_Property;
     Procedure TestRTTI_Class_PropertyParams;
     // ToDo: property default value
@@ -457,6 +474,7 @@ type
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses1;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses2;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses3;
+    Procedure TestRTTI_TypeInfo_FunctionClassType;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -669,6 +687,14 @@ begin
   Source.Add(Line);
 end;
 
+procedure TCustomTestModule.Add(const Lines: array of string);
+var
+  i: Integer;
+begin
+  for i:=low(Lines) to high(Lines) do
+    Add(Lines[i]);
+end;
+
 procedure TCustomTestModule.StartParsing;
 var
   Src: String;
@@ -752,7 +778,7 @@ begin
     Fail('TTestModuleConverter.AddModule: file "'+aFilename+'" already exists');
   Result:=TTestEnginePasResolver.Create;
   Result.Filename:=aFilename;
-  Result.AddObjFPCBuiltInIdentifiers(btAllPas2jsBaseTypes,bfAllPas2jsBaseProcs);
+  Result.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
   Result.OnFindUnit:=@OnPasResolverFindUnit;
   FModules.Add(Result);
 end;
@@ -934,11 +960,11 @@ begin
   Arg:=JSModuleCallArgs.Elements.Elements[2];
   CheckFunctionParam('module intf-function',Arg,FJSModuleSrc);
 
-  // search for this.$init or this.$main - the last statement
+  // search for $mod.$init or $mod.$main - the last statement
   if Module is TPasProgram then
     begin
     InitName:='$main';
-    AssertEquals('this.'+InitName+' function 1',true,JSModuleSrc.Statements.Count>0);
+    AssertEquals('$mod.'+InitName+' function 1',true,JSModuleSrc.Statements.Count>0);
     end
   else
     InitName:='$init';
@@ -949,13 +975,13 @@ begin
     if LastNode is TJSSimpleAssignStatement then
       begin
       InitAssign:=LastNode as TJSSimpleAssignStatement;
-      if GetDottedIdentifier(InitAssign.LHS)='this.'+InitName then
+      if GetDottedIdentifier(InitAssign.LHS)='$mod.'+InitName then
         begin
         InitFunction:=InitAssign.Expr as TJSFunctionDeclarationStatement;
         FJSInitBody:=InitFunction.AFunction.Body as TJSFunctionBody;
         end
       else if Module is TPasProgram then
-        CheckDottedIdentifier('init function',InitAssign.LHS,'this.'+InitName);
+        CheckDottedIdentifier('init function',InitAssign.LHS,'$mod.'+InitName);
       end;
     end;
 
@@ -1018,14 +1044,18 @@ var
   ActualSrc, ExpectedSrc, InitName: String;
 begin
   ActualSrc:=JSToStr(JSModuleSrc);
-  ExpectedSrc:=Statements;
+  ExpectedSrc:=
+    'var $mod = this;'+LineEnding
+   +Statements;
+  if coUseStrict in Converter.Options then
+    ExpectedSrc:='"use strict";'+LineEnding+ExpectedSrc;
   if Module is TPasProgram then
     InitName:='$main'
   else
     InitName:='$init';
   if (Module is TPasProgram) or (Trim(InitStatements)<>'') then
     ExpectedSrc:=ExpectedSrc+LineEnding
-      +'this.'+InitName+' = function () {'+LineEnding
+      +'$mod.'+InitName+' = function () {'+LineEnding
       +InitStatements
       +'};'+LineEnding;
   //writeln('TTestModule.CheckSource InitStatements="',InitStatements,'"');
@@ -1034,7 +1064,10 @@ begin
   if (JSImplementationSrc<>nil) then
     begin
     ActualSrc:=JSToStr(JSImplementationSrc);
-    ExpectedSrc:='var $impl = this.$impl;'+LineEnding+ImplStatements;
+    ExpectedSrc:=
+      'var $mod = this;'+LineEnding
+     +'var $impl = $mod.$impl;'+LineEnding
+     +ImplStatements;
     end
   else
     begin
@@ -1311,7 +1344,7 @@ begin
   StartProgram(false);
   Add('begin');
   ConvertProgram;
-  CheckSource('TestEmptyProgramUseStrict','"use strict";','');
+  CheckSource('TestEmptyProgramUseStrict','','');
 end;
 
 procedure TTestModule.TestEmptyUnit;
@@ -1335,7 +1368,7 @@ begin
   ConvertUnit;
   CheckSource('TestEmptyUnitUseStrict',
     LinesToStr([
-    '"use strict";'
+    ''
     ]),
     '');
 end;
@@ -1364,10 +1397,12 @@ begin
   Add('  b2: boolean = true;');
   Add('  d2: double = 5.6;');
   Add('  i3: longint = $707;');
-  Add('  i4: int64 = 4503599627370495;');
-  Add('  i5: int64 = -4503599627370496;');
-  Add('  i6: int64 =   $fffffffffffff;');
-  Add('  i7: int64 = -$10000000000000;');
+  Add('  i4: nativeint = 4503599627370495;');
+  Add('  i5: nativeint = -4503599627370496;');
+  Add('  i6: nativeint =   $fffffffffffff;');
+  Add('  i7: nativeint = -$10000000000000;');
+  Add('  u8: nativeuint =  $fffffffffffff;');
+  Add('  u9: nativeuint =  $0000000000000;');
   Add('begin');
   ConvertProgram;
   CheckSource('TestVarBaseTypes',
@@ -1386,7 +1421,9 @@ begin
     'this.i4= 4503599627370495;',
     'this.i5= -4503599627370496;',
     'this.i6= 0xfffffffffffff;',
-    'this.i7=-0x10000000000000;'
+    'this.i7=-0x10000000000000;',
+    'this.u8= 0xfffffffffffff;',
+    'this.u9= 0x0000000000000;'
     ]),
     '');
 end;
@@ -1479,15 +1516,15 @@ begin
     'this.c = "";',
     '']),
     LinesToStr([ // this.$main
-    'this.i = this.i;',
-    'this.i = (this.b ? 1 : 0);',
-    'this.b = this.b;',
-    'this.b = this.i != 0;',
-    'this.d = this.d;',
-    'this.d = this.i;',
-    'this.s = this.s;',
-    'this.s = this.c;',
-    'this.c = this.c;',
+    '$mod.i = $mod.i;',
+    '$mod.i = ($mod.b ? 1 : 0);',
+    '$mod.b = $mod.b;',
+    '$mod.b = $mod.i != 0;',
+    '$mod.d = $mod.d;',
+    '$mod.d = $mod.i;',
+    '$mod.s = $mod.s;',
+    '$mod.s = $mod.c;',
+    '$mod.c = $mod.c;',
     '']));
 end;
 
@@ -1526,15 +1563,15 @@ begin
     'this.c = "";',
     '']),
     LinesToStr([ // this.$main
-    'this.i = this.i;',
-    'this.i = (this.b ? 1 : 0);',
-    'this.b = this.b;',
-    'this.b = this.i != 0;',
-    'this.d = this.d;',
-    'this.d = this.i;',
-    'this.s = this.s;',
-    'this.s = this.c;',
-    'this.c = this.c;',
+    '$mod.i = $mod.i;',
+    '$mod.i = ($mod.b ? 1 : 0);',
+    '$mod.b = $mod.b;',
+    '$mod.b = $mod.i != 0;',
+    '$mod.d = $mod.d;',
+    '$mod.d = $mod.i;',
+    '$mod.s = $mod.s;',
+    '$mod.s = $mod.c;',
+    '$mod.c = $mod.c;',
     '']));
 end;
 
@@ -1571,7 +1608,7 @@ begin
     '};'
     ]),
     LinesToStr([ // this.$main
-    'this.ProcA(3);'
+    '$mod.ProcA(3);'
     ]));
 end;
 
@@ -1597,10 +1634,10 @@ begin
     'this.i=0;'
     ]),
     LinesToStr([ // this.$main
-    'this.i=this.FuncA();',
-    'this.i=this.FuncA();',
-    'this.FuncA();',
-    'this.FuncA();'
+    '$mod.i=$mod.FuncA();',
+    '$mod.i=$mod.FuncA();',
+    '$mod.FuncA();',
+    '$mod.FuncA();'
     ]));
 end;
 
@@ -1620,8 +1657,8 @@ begin
     '};'
     ]),
     LinesToStr([ // this.$main
-    'this.ProcA();',
-    'this.ProcA();'
+    '$mod.ProcA();',
+    '$mod.ProcA();'
     ]));
 end;
 
@@ -1641,10 +1678,10 @@ begin
     'this.Bar = 0;'
     ]),
     LinesToStr([ // this.$main
-    'this.Bar+=1;',
-    'this.Bar+=2;',
-    'this.Bar-=1;',
-    'this.Bar-=3;'
+    '$mod.Bar+=1;',
+    '$mod.Bar+=2;',
+    '$mod.Bar-=1;',
+    '$mod.Bar-=3;'
     ]));
 end;
 
@@ -1665,10 +1702,10 @@ begin
     'this.Bar = 0;'
     ]),
     LinesToStr([ // this.$main
-    'this.Bar=3;',
-    'this.Bar+=4;',
-    'this.Bar-=5;',
-    'this.Bar*=6;'
+    '$mod.Bar=3;',
+    '$mod.Bar+=4;',
+    '$mod.Bar-=5;',
+    '$mod.Bar*=6;'
     ]));
 end;
 
@@ -1695,15 +1732,15 @@ begin
     'this.vC = 0;'
     ]),
     LinesToStr([ // this.$main
-    'this.vA = 1;',
-    'this.vB = this.vA + this.vA;',
-    'this.vB = Math.floor(this.vA / this.vB);',
-    'this.vB = this.vA % this.vB;',
-    'this.vB = (this.vA + (this.vA * this.vB)) + Math.floor(this.vA / this.vB);',
-    'this.vC = -this.vA;',
-    'this.vA = this.vA - this.vB;',
-    'this.vB = this.vA;',
-    'if (this.vA < this.vB){ this.vC = this.vA } else this.vC = this.vB;'
+    '$mod.vA = 1;',
+    '$mod.vB = $mod.vA + $mod.vA;',
+    '$mod.vB = Math.floor($mod.vA / $mod.vB);',
+    '$mod.vB = $mod.vA % $mod.vB;',
+    '$mod.vB = ($mod.vA + ($mod.vA * $mod.vB)) + Math.floor($mod.vA / $mod.vB);',
+    '$mod.vC = -$mod.vA;',
+    '$mod.vA = $mod.vA - $mod.vB;',
+    '$mod.vB = $mod.vA;',
+    'if ($mod.vA < $mod.vB){ $mod.vC = $mod.vA } else $mod.vC = $mod.vB;'
     ]));
 end;
 
@@ -1726,11 +1763,11 @@ begin
     'this.vC = false;'
     ]),
     LinesToStr([ // this.$main
-    'this.vA = this.vB && this.vC;',
-    'this.vA = this.vB || this.vC;',
-    'this.vA = true && this.vC;',
-    'this.vA = (this.vB && this.vC) || (this.vA && this.vB);',
-    'this.vA = !this.vB;'
+    '$mod.vA = $mod.vB && $mod.vC;',
+    '$mod.vA = $mod.vB || $mod.vC;',
+    '$mod.vA = true && $mod.vC;',
+    '$mod.vA = ($mod.vB && $mod.vC) || ($mod.vA && $mod.vB);',
+    '$mod.vA = !$mod.vB;'
     ]));
 end;
 
@@ -1756,14 +1793,14 @@ begin
     'this.vC = 0;'
     ]),
     LinesToStr([ // this.$main
-    'this.vA = this.vB & this.vC;',
-    'this.vA = this.vB | this.vC;',
-    'this.vA = this.vB ^ this.vC;',
-    'this.vA = this.vB << this.vC;',
-    'this.vA = this.vB >>> this.vC;',
-    'this.vA = 3 & this.vC;',
-    'this.vA = (this.vB & this.vC) | (this.vA & this.vB);',
-    'this.vA = ~this.vB;'
+    '$mod.vA = $mod.vB & $mod.vC;',
+    '$mod.vA = $mod.vB | $mod.vC;',
+    '$mod.vA = $mod.vB ^ $mod.vC;',
+    '$mod.vA = $mod.vB << $mod.vC;',
+    '$mod.vA = $mod.vB >>> $mod.vC;',
+    '$mod.vA = 3 & $mod.vC;',
+    '$mod.vA = ($mod.vB & $mod.vC) | ($mod.vA & $mod.vB);',
+    '$mod.vA = ~$mod.vB;'
     ]));
 end;
 
@@ -1809,7 +1846,7 @@ begin
   ConvertUnit;
   CheckSource('TestUnitProcVar',
     LinesToStr([ // statements
-    'var $impl = this.$impl;',
+    'var $impl = $mod.$impl;',
     'this.Proc1 = function () {',
     '  var v1 = 0;',
     '};',
@@ -1839,12 +1876,12 @@ begin
   ConvertUnit;
   CheckSource('TestImplProc',
     LinesToStr([ // statements
-    'var $impl = this.$impl;',
+    'var $impl = $mod.$impl;',
     'this.Proc1 = function () {',
     '};',
     '']),
     LinesToStr([ // this.$init
-    'this.Proc1();',
+    '$mod.Proc1();',
     '$impl.Proc2();',
     '']),
     LinesToStr([ // implementation
@@ -1877,6 +1914,7 @@ end;
 procedure TTestModule.TestNestedProc;
 begin
   StartProgram(false);
+  Add('var vInUnit: longint;');
   Add('function DoIt(pA,pD: longint): longint;');
   Add('var');
   Add('  vB: longint;');
@@ -1884,7 +1922,7 @@ begin
   Add('  function Nesty(pA: longint): longint; ');
   Add('  var vB: longint;');
   Add('  begin');
-  Add('    Result:=pa+vb+vc+pd;');
+  Add('    Result:=pa+vb+vc+pd+vInUnit;');
   Add('  end;');
   Add('begin');
   Add('  Result:=pa+vb+vc;');
@@ -1893,6 +1931,7 @@ begin
   ConvertProgram;
   CheckSource('TestNestedProc',
     LinesToStr([ // statements
+    'this.vInUnit = 0;',
     'this.DoIt = function (pA, pD) {',
     '  var Result = 0;',
     '  var vB = 0;',
@@ -1900,7 +1939,7 @@ begin
     '  function Nesty(pA) {',
     '    var Result = 0;',
     '    var vB = 0;',
-    '    Result = ((pA + vB) + vC) + pD;',
+    '    Result = (((pA + vB) + vC) + pD) + $mod.vInUnit;',
     '    return Result;',
     '  };',
     '  Result = (pA + vB) + vC;',
@@ -1929,15 +1968,15 @@ begin
   CheckSource('TestForwardProc',
     LinesToStr([ // statements'
     'this.FuncB = function (Bar) {',
-    '  this.FuncA(Bar);',
+    '  $mod.FuncA(Bar);',
     '};',
     'this.FuncA = function (Bar) {',
     '  if (Bar == 3);',
     '};'
     ]),
     LinesToStr([
-    'this.FuncA(4);',
-    'this.FuncB(5);'
+    '$mod.FuncA(4);',
+    '$mod.FuncB(5);'
     ])
     );
 end;
@@ -1974,7 +2013,7 @@ begin
     '};'
     ]),
     LinesToStr([
-    'this.FuncA();'
+    '$mod.FuncA();'
     ])
     );
 end;
@@ -1999,8 +2038,8 @@ begin
      'this.i = 0;'
     ]),
     LinesToStr([
-    'this.i = this.Func1();',
-    'this.i = this.Func1() + this.Func1();'
+    '$mod.i = $mod.Func1();',
+    '$mod.i = $mod.Func1() + $mod.Func1();'
     ]));
 end;
 
@@ -2032,9 +2071,9 @@ begin
      'this.i = 0;'
     ]),
     LinesToStr([
-    'if (this.Func2());',
-    'if (this.i == this.Func1());',
-    'if (this.i == this.Func1());'
+    'if ($mod.Func2());',
+    'if ($mod.i == $mod.Func1());',
+    'if ($mod.i == $mod.Func1());'
     ]));
 end;
 
@@ -2103,8 +2142,8 @@ begin
     '} while (!true);',
     'while (true) break;',
     'var $loopend1 = 2;',
-    'for (this.i = 1; this.i <= $loopend1; this.i++) break;',
-    'if (this.i > $loopend1) this.i--;'
+    'for ($mod.i = 1; $mod.i <= $loopend1; $mod.i++) break;',
+    'if ($mod.i > $loopend1) $mod.i--;'
     ]));
 end;
 
@@ -2131,8 +2170,8 @@ begin
     '} while (!true);',
     'while (true) continue;',
     'var $loopend1 = 2;',
-    'for (this.i = 1; this.i <= $loopend1; this.i++) continue;',
-    'if (this.i > $loopend1) this.i--;'
+    'for ($mod.i = 1; $mod.i <= $loopend1; $mod.i++) continue;',
+    'if ($mod.i > $loopend1) $mod.i--;'
     ]));
 end;
 
@@ -2155,8 +2194,8 @@ begin
     ]),
     LinesToStr([
     'console.log();',
-    'this.i = get.item();',
-    'this.i = apply.something("abc");'
+    '$mod.i = get.item();',
+    '$mod.i = apply.something("abc");'
     ]));
 end;
 
@@ -2270,7 +2309,7 @@ begin
     '  vG = vG + 1;',
     '  vJ = vH + 2;',
     '  vI.set(vI.get()+3);',
-    '  this.DoIt(vG, vG, {',
+    '  $mod.DoIt(vG, vG, {',
     '    get: function () {',
     '      return vG;',
     '    },',
@@ -2278,7 +2317,7 @@ begin
     '      vG = v;',
     '    }',
     '  });',
-    '  this.DoIt(vH, vH, {',
+    '  $mod.DoIt(vH, vH, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -2286,8 +2325,8 @@ begin
     '      vJ = v;',
     '    }',
     '  });',
-    '  this.DoIt(vI.get(), vI.get(), vI);',
-    '  this.DoIt(vJ, vJ, {',
+    '  $mod.DoIt(vI.get(), vI.get(), vI);',
+    '  $mod.DoIt(vJ, vJ, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -2299,8 +2338,8 @@ begin
     'this.i = 0;'
     ]),
     LinesToStr([
-    'this.DoIt(this.i,this.i,{',
-    '  p: this,',
+    '$mod.DoIt($mod.i,$mod.i,{',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -2332,9 +2371,9 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt(1);',
-    'this.DoIt$1(2, 3);',
-    'this.DoIt$2(4.5);',
+    '$mod.DoIt(1);',
+    '$mod.DoIt$1(2, 3);',
+    '$mod.DoIt$2(4.5);',
     '']));
 end;
 
@@ -2356,8 +2395,8 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt(1);',
-    'this.DoIt$1(2, 3);',
+    '$mod.DoIt(1);',
+    '$mod.DoIt$1(2, 3);',
     '']));
 end;
 
@@ -2383,15 +2422,15 @@ begin
   ConvertUnit;
   CheckSource('TestProcedureOverloadUnit',
     LinesToStr([ // statements
-    'var $impl = this.$impl;',
+    'var $impl = $mod.$impl;',
     'this.DoIt = function (vI) {',
     '};',
     'this.DoIt$1 = function (vI, vJ) {',
     '};',
     '']),
     LinesToStr([ // this.$init
-    'this.DoIt(1);',
-    'this.DoIt$1(2, 3);',
+    '$mod.DoIt(1);',
+    '$mod.DoIt$1(2, 3);',
     '$impl.DoIt$3(4,5,6);',
     '$impl.DoIt$4(7,8,9,10);',
     '$impl.DoIt$2(11,12,13,14,15);',
@@ -2465,49 +2504,49 @@ begin
   CheckSource('TestProcedureOverloadNested',
     LinesToStr([ // statements
     'this.DoIt$1 = function (vB, vC) {',
-    '  this.DoIt(1);',
-    '  this.DoIt$1(1, 2);',
+    '  $mod.DoIt(1);',
+    '  $mod.DoIt$1(1, 2);',
     '};',
     'this.DoIt = function (vA) {',
     '  function DoIt$3(vA, vB, vC, vD) {',
-    '    this.DoIt(1);',
-    '    this.DoIt$1(1, 2);',
+    '    $mod.DoIt(1);',
+    '    $mod.DoIt$1(1, 2);',
     '    DoIt$2(1, 2, 3);',
     '    DoIt$3(1, 2, 3, 4);',
     '  };',
     '  function DoIt$2(vA, vB, vC) {',
     '    function DoIt$5(vA, vB, vC, vD, vE, vF) {',
-    '      this.DoIt(1);',
-    '      this.DoIt$1(1, 2);',
+    '      $mod.DoIt(1);',
+    '      $mod.DoIt$1(1, 2);',
     '      DoIt$2(1, 2, 3);',
     '      DoIt$3(1, 2, 3, 4);',
     '      DoIt$4(1, 2, 3, 4, 5);',
     '      DoIt$5(1, 2, 3, 4, 5, 6);',
     '    };',
     '    function DoIt$4(vA, vB, vC, vD, vE) {',
-    '      this.DoIt(1);',
-    '      this.DoIt$1(1, 2);',
+    '      $mod.DoIt(1);',
+    '      $mod.DoIt$1(1, 2);',
     '      DoIt$2(1, 2, 3);',
     '      DoIt$3(1, 2, 3, 4);',
     '      DoIt$4(1, 2, 3, 4, 5);',
     '      DoIt$5(1, 2, 3, 4, 5, 6);',
     '    };',
-    '    this.DoIt(1);',
-    '    this.DoIt$1(1, 2);',
+    '    $mod.DoIt(1);',
+    '    $mod.DoIt$1(1, 2);',
     '    DoIt$2(1, 2, 3);',
     '    DoIt$3(1, 2, 3, 4);',
     '    DoIt$4(1, 2, 3, 4, 5);',
     '    DoIt$5(1, 2, 3, 4, 5, 6);',
     '  };',
-    '  this.DoIt(1);',
-    '  this.DoIt$1(1, 2);',
+    '  $mod.DoIt(1);',
+    '  $mod.DoIt$1(1, 2);',
     '  DoIt$2(1, 2, 3);',
     '  DoIt$3(1, 2, 3, 4);',
     '};',
     '']),
     LinesToStr([
-    'this.DoIt(1);',
-    'this.DoIt$1(1, 2);',
+    '$mod.DoIt(1);',
+    '$mod.DoIt$1(1, 2);',
     '']));
 end;
 
@@ -2561,9 +2600,9 @@ begin
     'ProcC(17);',
     'ProcC(4);',
     'ProcC(5, "foo");',
-    'ProcB(this.GetIt());',
-    'ProcB(this.GetIt());',
-    'ProcB(this.GetIt(), this.GetIt());',
+    'ProcB($mod.GetIt());',
+    'ProcB($mod.GetIt());',
+    'ProcB($mod.GetIt(), $mod.GetIt());',
     '']));
 end;
 
@@ -2587,10 +2626,10 @@ begin
     '  Blue:2',
     '  };',
     'this.e = 0;',
-    'this.f = this.TMyEnum.Blue;'
+    'this.f = $mod.TMyEnum.Blue;'
     ]),
     LinesToStr([
-    'this.e=this.TMyEnum.Green;'
+    '$mod.e=$mod.TMyEnum.Green;'
     ]));
 end;
 
@@ -2617,7 +2656,7 @@ begin
     'this.f = 1;'
     ]),
     LinesToStr([
-    'this.e=1;'
+    '$mod.e=1;'
     ]));
 end;
 
@@ -2660,22 +2699,22 @@ begin
     'this.s = "";'
     ]),
     LinesToStr([
-    'this.i=this.TMyEnum.Red;',
-    'this.i=this.TMyEnum.Green;',
-    'this.i=this.e;',
-    'this.e=this.TMyEnum.Red;',
-    'this.e=this.TMyEnum.Red;',
-    'this.e=this.TMyEnum.Green;',
-    'this.e=this.TMyEnum.Green;',
-    'this.e=this.TMyEnum.Green-1;',
-    'this.e=this.e-1;',
-    'this.e=this.TMyEnum.Red+1;',
-    'this.e=this.e+1;',
-    'this.e=1;',
-    'this.e=this.i;',
-    'this.s = this.TMyEnum[this.e];',
-    'this.s = this.TMyEnum[this.e];',
-    'this.s = rtl.spaceLeft(this.TMyEnum[this.e], 3);',
+    '$mod.i=$mod.TMyEnum.Red;',
+    '$mod.i=$mod.TMyEnum.Green;',
+    '$mod.i=$mod.e;',
+    '$mod.e=$mod.TMyEnum.Red;',
+    '$mod.e=$mod.TMyEnum.Red;',
+    '$mod.e=$mod.TMyEnum.Green;',
+    '$mod.e=$mod.TMyEnum.Green;',
+    '$mod.e=$mod.TMyEnum.Green-1;',
+    '$mod.e=$mod.e-1;',
+    '$mod.e=$mod.TMyEnum.Red+1;',
+    '$mod.e=$mod.e+1;',
+    '$mod.e=1;',
+    '$mod.e=$mod.i;',
+    '$mod.s = $mod.TMyEnum[$mod.e];',
+    '$mod.s = $mod.TMyEnum[$mod.e];',
+    '$mod.s = rtl.spaceLeft($mod.TMyEnum[$mod.e], 3);',
     '']));
 end;
 
@@ -2711,7 +2750,7 @@ begin
     '  vG = vG;',
     '  vJ = vH;',
     '  vI.set(vI.get());',
-    '  this.DoIt(vG, vG, {',
+    '  $mod.DoIt(vG, vG, {',
     '    get: function () {',
     '      return vG;',
     '    },',
@@ -2719,7 +2758,7 @@ begin
     '      vG = v;',
     '    }',
     '  });',
-    '  this.DoIt(vH, vH, {',
+    '  $mod.DoIt(vH, vH, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -2727,8 +2766,8 @@ begin
     '      vJ = v;',
     '    }',
     '  });',
-    '  this.DoIt(vI.get(), vI.get(), vI);',
-    '  this.DoIt(vJ, vJ, {',
+    '  $mod.DoIt(vI.get(), vI.get(), vI);',
+    '  $mod.DoIt(vJ, vJ, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -2740,8 +2779,8 @@ begin
     'this.i = 0;'
     ]),
     LinesToStr([
-    'this.DoIt(this.i,this.i,{',
-    '  p: this,',
+    '$mod.DoIt($mod.i,$mod.i,{',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -2785,16 +2824,16 @@ begin
     'this.c = 0;',
     'this.s = {};',
     'this.t = {};',
-    'this.u = rtl.createSet(this.TColor.Red);'
+    'this.u = rtl.createSet($mod.TColor.Red);'
     ]),
     LinesToStr([
-    'this.s={};',
-    'this.s=rtl.createSet(this.TColor.Green);',
-    'this.s=rtl.createSet(this.TColor.Green,this.TColor.Blue);',
-    'this.s=rtl.createSet(null,this.TColor.Red,this.TColor.Blue);',
-    'this.s=rtl.createSet(this.TColor.Red,null,this.TColor.Green,this.TColor.Blue);',
-    'this.s=rtl.createSet(this.TColor.Red,this.c);',
-    'this.s=rtl.refSet(this.t);',
+    '$mod.s={};',
+    '$mod.s=rtl.createSet($mod.TColor.Green);',
+    '$mod.s=rtl.createSet($mod.TColor.Green,$mod.TColor.Blue);',
+    '$mod.s=rtl.createSet(null,$mod.TColor.Red,$mod.TColor.Blue);',
+    '$mod.s=rtl.createSet($mod.TColor.Red,null,$mod.TColor.Green,$mod.TColor.Blue);',
+    '$mod.s=rtl.createSet($mod.TColor.Red,$mod.c);',
+    '$mod.s=rtl.refSet($mod.t);',
     '']));
 end;
 
@@ -2863,40 +2902,40 @@ begin
     'this.B = false;'
     ]),
     LinesToStr([
-    'this.vS = rtl.includeSet(this.vS,this.TColor.Green);',
-    'this.vS = rtl.excludeSet(this.vS,this.vC);',
-    'this.vS = rtl.unionSet(this.vT, this.vU);',
-    'this.vS = rtl.unionSet(this.vT, rtl.createSet(this.TColor.Red));',
-    'this.vS = rtl.unionSet(rtl.createSet(this.TColor.Red), this.vT);',
-    'this.vS = rtl.unionSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
-    'this.vS = rtl.diffSet(this.vT, this.vU);',
-    'this.vS = rtl.diffSet(this.vT, rtl.createSet(this.TColor.Red));',
-    'this.vS = rtl.diffSet(rtl.createSet(this.TColor.Red), this.vT);',
-    'this.vS = rtl.diffSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
-    'this.vS = rtl.intersectSet(this.vT, this.vU);',
-    'this.vS = rtl.intersectSet(this.vT, rtl.createSet(this.TColor.Red));',
-    'this.vS = rtl.intersectSet(rtl.createSet(this.TColor.Red), this.vT);',
-    'this.vS = rtl.intersectSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
-    'this.vS = rtl.symDiffSet(this.vT, this.vU);',
-    'this.vS = rtl.symDiffSet(this.vT, rtl.createSet(this.TColor.Red));',
-    'this.vS = rtl.symDiffSet(rtl.createSet(this.TColor.Red), this.vT);',
-    'this.vS = rtl.symDiffSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
-    'this.B = rtl.eqSet(this.vT, this.vU);',
-    'this.B = rtl.eqSet(this.vT, rtl.createSet(this.TColor.Red));',
-    'this.B = rtl.eqSet(rtl.createSet(this.TColor.Red), this.vT);',
-    'this.B = rtl.eqSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
-    'this.B = rtl.neSet(this.vT, this.vU);',
-    'this.B = rtl.neSet(this.vT, rtl.createSet(this.TColor.Red));',
-    'this.B = rtl.neSet(rtl.createSet(this.TColor.Red), this.vT);',
-    'this.B = rtl.neSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
-    'this.B = rtl.leSet(this.vT, this.vU);',
-    'this.B = rtl.leSet(this.vT, rtl.createSet(this.TColor.Red));',
-    'this.B = rtl.leSet(rtl.createSet(this.TColor.Red), this.vT);',
-    'this.B = rtl.leSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
-    'this.B = rtl.geSet(this.vT, this.vU);',
-    'this.B = rtl.geSet(this.vT, rtl.createSet(this.TColor.Red));',
-    'this.B = rtl.geSet(rtl.createSet(this.TColor.Red), this.vT);',
-    'this.B = rtl.geSet(rtl.createSet(this.TColor.Red), rtl.createSet(this.TColor.Green));',
+    '$mod.vS = rtl.includeSet($mod.vS,$mod.TColor.Green);',
+    '$mod.vS = rtl.excludeSet($mod.vS,$mod.vC);',
+    '$mod.vS = rtl.unionSet($mod.vT, $mod.vU);',
+    '$mod.vS = rtl.unionSet($mod.vT, rtl.createSet($mod.TColor.Red));',
+    '$mod.vS = rtl.unionSet(rtl.createSet($mod.TColor.Red), $mod.vT);',
+    '$mod.vS = rtl.unionSet(rtl.createSet($mod.TColor.Red), rtl.createSet($mod.TColor.Green));',
+    '$mod.vS = rtl.diffSet($mod.vT, $mod.vU);',
+    '$mod.vS = rtl.diffSet($mod.vT, rtl.createSet($mod.TColor.Red));',
+    '$mod.vS = rtl.diffSet(rtl.createSet($mod.TColor.Red), $mod.vT);',
+    '$mod.vS = rtl.diffSet(rtl.createSet($mod.TColor.Red), rtl.createSet($mod.TColor.Green));',
+    '$mod.vS = rtl.intersectSet($mod.vT, $mod.vU);',
+    '$mod.vS = rtl.intersectSet($mod.vT, rtl.createSet($mod.TColor.Red));',
+    '$mod.vS = rtl.intersectSet(rtl.createSet($mod.TColor.Red), $mod.vT);',
+    '$mod.vS = rtl.intersectSet(rtl.createSet($mod.TColor.Red), rtl.createSet($mod.TColor.Green));',
+    '$mod.vS = rtl.symDiffSet($mod.vT, $mod.vU);',
+    '$mod.vS = rtl.symDiffSet($mod.vT, rtl.createSet($mod.TColor.Red));',
+    '$mod.vS = rtl.symDiffSet(rtl.createSet($mod.TColor.Red), $mod.vT);',
+    '$mod.vS = rtl.symDiffSet(rtl.createSet($mod.TColor.Red), rtl.createSet($mod.TColor.Green));',
+    '$mod.B = rtl.eqSet($mod.vT, $mod.vU);',
+    '$mod.B = rtl.eqSet($mod.vT, rtl.createSet($mod.TColor.Red));',
+    '$mod.B = rtl.eqSet(rtl.createSet($mod.TColor.Red), $mod.vT);',
+    '$mod.B = rtl.eqSet(rtl.createSet($mod.TColor.Red), rtl.createSet($mod.TColor.Green));',
+    '$mod.B = rtl.neSet($mod.vT, $mod.vU);',
+    '$mod.B = rtl.neSet($mod.vT, rtl.createSet($mod.TColor.Red));',
+    '$mod.B = rtl.neSet(rtl.createSet($mod.TColor.Red), $mod.vT);',
+    '$mod.B = rtl.neSet(rtl.createSet($mod.TColor.Red), rtl.createSet($mod.TColor.Green));',
+    '$mod.B = rtl.leSet($mod.vT, $mod.vU);',
+    '$mod.B = rtl.leSet($mod.vT, rtl.createSet($mod.TColor.Red));',
+    '$mod.B = rtl.leSet(rtl.createSet($mod.TColor.Red), $mod.vT);',
+    '$mod.B = rtl.leSet(rtl.createSet($mod.TColor.Red), rtl.createSet($mod.TColor.Green));',
+    '$mod.B = rtl.geSet($mod.vT, $mod.vU);',
+    '$mod.B = rtl.geSet($mod.vT, rtl.createSet($mod.TColor.Red));',
+    '$mod.B = rtl.geSet(rtl.createSet($mod.TColor.Red), $mod.vT);',
+    '$mod.B = rtl.geSet(rtl.createSet($mod.TColor.Red), rtl.createSet($mod.TColor.Green));',
     '']));
 end;
 
@@ -2936,15 +2975,15 @@ begin
     'this.B = false;'
     ]),
     LinesToStr([
-    'this.B = this.TColor.Red in this.vT;',
-    'this.B = this.vC in this.vT;',
-    'this.B = this.TColor.Green in rtl.createSet(null, this.TColor.Red, this.TColor.Blue);',
-    'this.B = this.vC in rtl.createSet(null, this.TColor.Red, this.TColor.Blue);',
-    'if (this.TColor.Red in this.vT) ;',
-    'while (this.vC in this.vT) {',
+    '$mod.B = $mod.TColor.Red in $mod.vT;',
+    '$mod.B = $mod.vC in $mod.vT;',
+    '$mod.B = $mod.TColor.Green in rtl.createSet(null, $mod.TColor.Red, $mod.TColor.Blue);',
+    '$mod.B = $mod.vC in rtl.createSet(null, $mod.TColor.Red, $mod.TColor.Blue);',
+    'if ($mod.TColor.Red in $mod.vT) ;',
+    'while ($mod.vC in $mod.vT) {',
     '};',
     'do {',
-    '} while (!(this.vC in this.vT));',
+    '} while (!($mod.vC in $mod.vT));',
     '']));
 end;
 
@@ -2975,10 +3014,10 @@ begin
     'this.s = {};'
     ]),
     LinesToStr([
-    'this.e=this.TMyEnum.Red;',
-    'this.e=this.TMyEnum.Red;',
-    'this.e=this.TMyEnum.Green;',
-    'this.e=this.TMyEnum.Green;',
+    '$mod.e=$mod.TMyEnum.Red;',
+    '$mod.e=$mod.TMyEnum.Red;',
+    '$mod.e=$mod.TMyEnum.Green;',
+    '$mod.e=$mod.TMyEnum.Green;',
     '']));
 end;
 
@@ -3011,8 +3050,8 @@ begin
     'this.aSet = {};'
     ]),
     LinesToStr([
-    'this.DoDefault(rtl.refSet(this.aSet));',
-    'this.DoConst(this.aSet);',
+    '$mod.DoDefault(rtl.refSet($mod.aSet));',
+    '$mod.DoConst($mod.aSet);',
     '']));
 end;
 
@@ -3049,7 +3088,7 @@ begin
     '  vG = rtl.refSet(vG);',
     '  vJ = rtl.refSet(vH);',
     '  vI.set(rtl.refSet(vI.get()));',
-    '  this.DoIt(rtl.refSet(vG), vG, {',
+    '  $mod.DoIt(rtl.refSet(vG), vG, {',
     '    get: function () {',
     '      return vG;',
     '    },',
@@ -3057,7 +3096,7 @@ begin
     '      vG = v;',
     '    }',
     '  });',
-    '  this.DoIt(rtl.refSet(vH), vH, {',
+    '  $mod.DoIt(rtl.refSet(vH), vH, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -3065,8 +3104,8 @@ begin
     '      vJ = v;',
     '    }',
     '  });',
-    '  this.DoIt(rtl.refSet(vI.get()), vI.get(), vI);',
-    '  this.DoIt(rtl.refSet(vJ), vJ, {',
+    '  $mod.DoIt(rtl.refSet(vI.get()), vI.get(), vI);',
+    '  $mod.DoIt(rtl.refSet(vJ), vJ, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -3078,8 +3117,8 @@ begin
     'this.i = {};'
     ]),
     LinesToStr([
-    'this.DoIt(rtl.refSet(this.i),this.i,{',
-    '  p: this,',
+    '$mod.DoIt(rtl.refSet($mod.i),$mod.i,{',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -3117,7 +3156,7 @@ begin
     '  "1": "Blue",',
     '  Blue: 1',
     '};',
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -3128,8 +3167,8 @@ begin
     'this.Obj = null;',
     '']),
     LinesToStr([
-    'this.Obj.SetColors(rtl.includeSet(this.Obj.GetColors(), this.TEnum.Red));',
-    'this.Obj.SetColors(rtl.excludeSet(this.Obj.GetColors(), this.TEnum.Red));',
+    '$mod.Obj.SetColors(rtl.includeSet($mod.Obj.GetColors(), $mod.TEnum.Red));',
+    '$mod.Obj.SetColors(rtl.excludeSet($mod.Obj.GetColors(), $mod.TEnum.Red));',
     '']));
 end;
 
@@ -3158,15 +3197,15 @@ begin
     '  "1": "Blue",',
     '  Blue: 1',
     '};',
-    'this.Orange = this.TEnum.Red;',
+    'this.Orange = $mod.TEnum.Red;',
     'this.Enum = 0;',
     'this.Enums = {};',
     '']),
     LinesToStr([
-    'this.Enums = rtl.includeSet(this.Enums, this.Orange);',
-    'this.Enums = rtl.excludeSet(this.Enums, this.Orange);',
-    'if (this.Orange in this.Enums) ;',
-    'if (this.Orange in rtl.createSet(this.Orange, this.TEnum.Red)) ;',
+    '$mod.Enums = rtl.includeSet($mod.Enums, $mod.Orange);',
+    '$mod.Enums = rtl.excludeSet($mod.Enums, $mod.Orange);',
+    'if ($mod.Orange in $mod.Enums) ;',
+    'if ($mod.Orange in rtl.createSet($mod.Orange, $mod.TEnum.Red)) ;',
     '']));
 end;
 
@@ -3201,22 +3240,22 @@ begin
     '  "1": "green",',
     '  green: 1',
     '};',
-    'this.favorite = this.TFlags$a.red;',
+    'this.favorite = $mod.TFlags$a.red;',
     'this.f = {};',
     'this.i = 0;',
     '']),
     LinesToStr([
-    'this.f = rtl.includeSet(this.f, this.TFlags$a.red);',
-    'this.f = rtl.includeSet(this.f, this.favorite);',
-    'this.i = this.TFlags$a.red;',
-    'this.i = this.favorite;',
-    'this.i = this.TFlags$a.red;',
-    'this.i = this.TFlags$a.red;',
-    'this.i = this.TFlags$a.red;',
-    'this.i = this.TFlags$a.green;',
-    'this.i = this.TFlags$a.green;',
-    'this.i = this.TFlags$a.green;',
-    'this.f = rtl.createSet(this.TFlags$a.green, this.favorite);',
+    '$mod.f = rtl.includeSet($mod.f, $mod.TFlags$a.red);',
+    '$mod.f = rtl.includeSet($mod.f, $mod.favorite);',
+    '$mod.i = $mod.TFlags$a.red;',
+    '$mod.i = $mod.favorite;',
+    '$mod.i = $mod.TFlags$a.red;',
+    '$mod.i = $mod.TFlags$a.red;',
+    '$mod.i = $mod.TFlags$a.red;',
+    '$mod.i = $mod.TFlags$a.green;',
+    '$mod.i = $mod.TFlags$a.green;',
+    '$mod.i = $mod.TFlags$a.green;',
+    '$mod.f = rtl.createSet($mod.TFlags$a.green, $mod.favorite);',
     '']));
 end;
 
@@ -3240,6 +3279,57 @@ begin
   ConvertProgram;
 end;
 
+procedure TTestModule.TestSet_ConstEnum;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (red,blue,green);',
+  '  TEnums = set of TEnum;',
+  'const',
+  '  teAny = [low(TEnum)..high(TEnum)];',
+  '  teRedBlue = [low(TEnum)..pred(high(TEnum))];',
+  'var',
+  '  e: TEnum;',
+  '  s: TEnums;',
+  'begin',
+  '  if blue in teAny then;',
+  '  if blue in teAny+[e] then;',
+  '  if blue in teAny+teRedBlue then;',
+  '  s:=teAny;',
+  '  s:=teAny+[e];',
+  '  s:=[e]+teAny;',
+  '  s:=teAny+teRedBlue;',
+  '  s:=teAny+teRedBlue+[e];',
+  '']);
+  ConvertProgram;
+  CheckSource('TestSet_ConstEnum',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1,',
+    '  "2": "green",',
+    '  green: 2',
+    '};',
+    'this.teAny = rtl.createSet(null, $mod.TEnum.red, $mod.TEnum.green);',
+    'this.teRedBlue = rtl.createSet(null, $mod.TEnum.red, $mod.TEnum.green - 1);',
+    'this.e = 0;',
+    'this.s = {};',
+    '']),
+    LinesToStr([
+    'if ($mod.TEnum.blue in $mod.teAny) ;',
+    'if ($mod.TEnum.blue in rtl.unionSet($mod.teAny, rtl.createSet($mod.e))) ;',
+    'if ($mod.TEnum.blue in rtl.unionSet($mod.teAny, $mod.teRedBlue)) ;',
+    '$mod.s = rtl.refSet($mod.teAny);',
+    '$mod.s = rtl.unionSet($mod.teAny, rtl.createSet($mod.e));',
+    '$mod.s = rtl.unionSet(rtl.createSet($mod.e), $mod.teAny);',
+    '$mod.s = rtl.unionSet($mod.teAny, $mod.teRedBlue);',
+    '$mod.s = rtl.unionSet(rtl.unionSet($mod.teAny, $mod.teRedBlue), rtl.createSet($mod.e));',
+    '']));
+end;
+
 procedure TTestModule.TestSet_ConstChar;
 begin
   StartProgram(false);
@@ -3260,16 +3350,16 @@ begin
   CheckSource('TestSet_ConstChar',
     LinesToStr([ // statements
     'this.LowChars = rtl.createSet(null, 97, 122);',
-    'this.Chars = rtl.unionSet(this.LowChars, rtl.createSet(null, 65, 90));',
+    'this.Chars = rtl.unionSet($mod.LowChars, rtl.createSet(null, 65, 90));',
     'this.c = "";',
     'this.s = "";',
     '']),
     LinesToStr([
-    'if (this.c.charCodeAt() in this.LowChars) ;',
-    'if (97 in this.LowChars) ;',
-    'if (this.s.charCodeAt(1 - 1) in this.LowChars) ;',
-    'if (this.c.charCodeAt() in this.Chars) ;',
-    'if (this.c.charCodeAt() in rtl.createSet(null, 97, 122, 95)) ;',
+    'if ($mod.c.charCodeAt() in $mod.LowChars) ;',
+    'if (97 in $mod.LowChars) ;',
+    'if ($mod.s.charCodeAt(1 - 1) in $mod.LowChars) ;',
+    'if ($mod.c.charCodeAt() in $mod.Chars) ;',
+    'if ($mod.c.charCodeAt() in rtl.createSet(null, 97, 122, 95)) ;',
     'if (98 in rtl.createSet(null, 97, 122, 95)) ;',
     '']));
 end;
@@ -3303,7 +3393,7 @@ begin
   ConvertUnit;
   CheckSource('TestUnitImplVars',
     LinesToStr([ // statements
-    'var $impl = this.$impl;',
+    'var $impl = $mod.$impl;',
     '']),
     '', // this.$init
     LinesToStr([ // implementation
@@ -3325,7 +3415,7 @@ begin
   ConvertUnit;
   CheckSource('TestUnitImplConsts',
     LinesToStr([ // statements
-    'var $impl = this.$impl;',
+    'var $impl = $mod.$impl;',
     '']),
     '', // this.$init
     LinesToStr([ // implementation
@@ -3350,7 +3440,7 @@ begin
   ConvertUnit;
   CheckSource('TestUnitImplRecord',
     LinesToStr([ // statements
-    'var $impl = this.$impl;',
+    'var $impl = $mod.$impl;',
     '']),
     // this.$init
     '$impl.aRec.i = 3;',
@@ -3440,7 +3530,7 @@ begin
     'this.d = 0.0;'
     ]),
     LinesToStr([
-    'this.d = Global.NaN;'
+    '$mod.d = Global.NaN;'
     ]));
 end;
 
@@ -3470,7 +3560,7 @@ begin
   ConvertUnit;
   CheckSource('TestVarExternalOtherUnit',
     LinesToStr([
-    'var $impl = this.$impl;',
+    'var $impl = $mod.$impl;',
     '']),
     LinesToStr([ // this.$init
     '$impl.d = Global.NaN;',
@@ -3484,6 +3574,39 @@ begin
     '$impl.d = 0.0;',
     '$impl.i = 0;',
     '']) );
+end;
+
+procedure TTestModule.TestDouble;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  d: double;',
+  'begin',
+  '  d:=1.0;',
+  '  d:=1.0/3.0;',
+  '  d:=1/3;',
+  '  d:=5.0E-324;',
+  '  d:=1.7E308;',
+  '  d:=10**3;',
+  '  d:=10 mod 3;',
+  '  d:=10 div 3;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestDouble',
+    LinesToStr([
+    'this.d=0.0;'
+    ]),
+    LinesToStr([
+    '$mod.d = 1.0;',
+    '$mod.d = 1.0 / 3.0;',
+    '$mod.d = 1 / 3;',
+    '$mod.d = 5.0E-324;',
+    '$mod.d = 1.7E308;',
+    '$mod.d = Math.pow(10, 3);',
+    '$mod.d = 10 % 3;',
+    '$mod.d = Math.floor(10 / 3);',
+    '']));
 end;
 
 procedure TTestModule.TestCharConst;
@@ -3511,19 +3634,19 @@ begin
     'this.c="1";'
     ]),
     LinesToStr([
-    'this.c="\x00";',
-    'this.c="\x01";',
-    'this.c="\t";',
-    'this.c="\n";',
-    'this.c="\r";',
-    'this.c="\x1F";',
-    'this.c=" ";',
-    'this.c="\n";',
-    'this.c="\n";',
-    'this.c="\x0B";',
-    'this.c="\x0B";',
-    'this.c="\x01";',
-    'this.c=''"'';'
+    '$mod.c="\x00";',
+    '$mod.c="\x01";',
+    '$mod.c="\t";',
+    '$mod.c="\n";',
+    '$mod.c="\r";',
+    '$mod.c="\x1F";',
+    '$mod.c=" ";',
+    '$mod.c="\n";',
+    '$mod.c="\n";',
+    '$mod.c="\x0B";',
+    '$mod.c="\x0B";',
+    '$mod.c="\x01";',
+    '$mod.c=''"'';'
     ]));
 end;
 
@@ -3554,19 +3677,19 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([
-    'this.b = this.c == "1";',
-    'this.b = "2" == this.c;',
-    'this.b = "3" == "4";',
-    'this.b = this.c != "5";',
-    'this.b = "6" != this.c;',
-    'this.b = this.c > "7";',
-    'this.b = "8" > this.c;',
-    'this.b = this.c >= "9";',
-    'this.b = "A" >= this.c;',
-    'this.b = this.c < "B";',
-    'this.b = "C" < this.c;',
-    'this.b = this.c <= "D";',
-    'this.b = "E" <= this.c;',
+    '$mod.b = $mod.c == "1";',
+    '$mod.b = "2" == $mod.c;',
+    '$mod.b = "3" == "4";',
+    '$mod.b = $mod.c != "5";',
+    '$mod.b = "6" != $mod.c;',
+    '$mod.b = $mod.c > "7";',
+    '$mod.b = "8" > $mod.c;',
+    '$mod.b = $mod.c >= "9";',
+    '$mod.b = "A" >= $mod.c;',
+    '$mod.b = $mod.c < "B";',
+    '$mod.b = "C" < $mod.c;',
+    '$mod.b = $mod.c <= "D";',
+    '$mod.b = "E" <= $mod.c;',
     '']));
 end;
 
@@ -3588,8 +3711,8 @@ begin
     'this.s = "";'
     ]),
     LinesToStr([
-    'this.i = this.c.charCodeAt();',
-    'this.i = this.s.charCodeAt(this.i-1);',
+    '$mod.i = $mod.c.charCodeAt();',
+    '$mod.i = $mod.s.charCodeAt($mod.i-1);',
     '']));
 end;
 
@@ -3608,7 +3731,7 @@ begin
     'this.i = 0;'
     ]),
     LinesToStr([
-    'this.c = String.fromCharCode(this.i);',
+    '$mod.c = String.fromCharCode($mod.i);',
     '']));
 end;
 
@@ -3631,13 +3754,13 @@ begin
     'this.s="abc";'
     ]),
     LinesToStr([
-    'this.s="";',
-    'this.s="\r\n";',
-    'this.s="\tfoo";',
-    'this.s="©";',
-    'this.s="foo\rbar";',
-    'this.s=''"'';',
-    'this.s=''"\''"'';'
+    '$mod.s="";',
+    '$mod.s="\r\n";',
+    '$mod.s="\tfoo";',
+    '$mod.s="©";',
+    '$mod.s="foo\rbar";',
+    '$mod.s=''"'';',
+    '$mod.s=''"\''"'';'
     ]));
 end;
 
@@ -3661,10 +3784,10 @@ begin
     'this.i = 0;',
     '']),
     LinesToStr([
-    'this.i = this.s.length;',
-    'this.i = (this.s+this.s).length;',
-    'this.i = "abc".length;',
-    'this.i = this.c.length;',
+    '$mod.i = $mod.s.length;',
+    '$mod.i = ($mod.s+$mod.s).length;',
+    '$mod.i = "abc".length;',
+    '$mod.i = $mod.c.length;',
     '']));
 end;
 
@@ -3689,12 +3812,12 @@ begin
     'this.b =false;'
     ]),
     LinesToStr([ // this.$main
-    'this.b = this.s == this.t;',
-    'this.b = this.s != this.t;',
-    'this.b = this.s > this.t;',
-    'this.b = this.s >= this.t;',
-    'this.b = this.s < this.t;',
-    'this.b = this.s <= this.t;',
+    '$mod.b = $mod.s == $mod.t;',
+    '$mod.b = $mod.s != $mod.t;',
+    '$mod.b = $mod.s > $mod.t;',
+    '$mod.b = $mod.s >= $mod.t;',
+    '$mod.b = $mod.s < $mod.t;',
+    '$mod.b = $mod.s <= $mod.t;',
     '']));
 end;
 
@@ -3710,7 +3833,7 @@ begin
     'this.s = "";'
     ]),
     LinesToStr([ // this.$main
-    'this.s.length = 3;'
+    '$mod.s.length = 3;'
     ]));
 end;
 
@@ -3738,14 +3861,14 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([ // this.$main
-    'this.b = this.s.charAt(1-1) == this.c;',
-    'this.b = this.c == this.s.charAt(1 - 1);',
-    'this.b = this.c != this.s.charAt(1 - 1);',
-    'this.b = this.c > this.s.charAt(1 - 1);',
-    'this.b = this.c >= this.s.charAt(1 - 1);',
-    'this.b = this.c < this.s.charAt(1 - 1);',
-    'this.b = this.c <= this.s.charAt(1 - 1);',
-    'this.s = rtl.setCharAt(this.s, 1, this.c);',
+    '$mod.b = $mod.s.charAt(1-1) == $mod.c;',
+    '$mod.b = $mod.c == $mod.s.charAt(1 - 1);',
+    '$mod.b = $mod.c != $mod.s.charAt(1 - 1);',
+    '$mod.b = $mod.c > $mod.s.charAt(1 - 1);',
+    '$mod.b = $mod.c >= $mod.s.charAt(1 - 1);',
+    '$mod.b = $mod.c < $mod.s.charAt(1 - 1);',
+    '$mod.b = $mod.c <= $mod.s.charAt(1 - 1);',
+    '$mod.s = rtl.setCharAt($mod.s, 1, $mod.c);',
     '']));
 end;
 
@@ -3783,22 +3906,22 @@ begin
     'this.s = "";',
     '']),
     LinesToStr([ // this.$main
-    'this.s = ""+this.b;',
-    'this.s = ""+this.i;',
-    'this.s = ""+this.d;',
-    'this.s = rtl.spaceLeft(""+this.i,3);',
-    'this.s = rtl.spaceLeft(this.d.toFixed(2),3);',
-    'this.s = ""+this.b;',
-    'this.s = ""+this.i;',
-    'this.s = ""+this.d;',
-    'this.s = (""+this.i)+this.i;',
-    'this.s = rtl.spaceLeft(""+this.i,3);',
-    'this.s = rtl.spaceLeft(this.d.toFixed(2),3);',
-    'this.s = rtl.spaceLeft("" + this.i, 4) + this.i;',
-    'this.s = ("" + this.i) + rtl.spaceLeft("" + this.i, 5);',
-    'this.s = rtl.spaceLeft("" + this.i, 4) + rtl.spaceLeft("" + this.i, 5);',
-    'this.s = this.s + this.s;',
-    'this.s = this.s + "foo";',
+    '$mod.s = ""+$mod.b;',
+    '$mod.s = ""+$mod.i;',
+    '$mod.s = ""+$mod.d;',
+    '$mod.s = rtl.spaceLeft(""+$mod.i,3);',
+    '$mod.s = rtl.spaceLeft($mod.d.toFixed(2),3);',
+    '$mod.s = ""+$mod.b;',
+    '$mod.s = ""+$mod.i;',
+    '$mod.s = ""+$mod.d;',
+    '$mod.s = (""+$mod.i)+$mod.i;',
+    '$mod.s = rtl.spaceLeft(""+$mod.i,3);',
+    '$mod.s = rtl.spaceLeft($mod.d.toFixed(2),3);',
+    '$mod.s = rtl.spaceLeft("" + $mod.i, 4) + $mod.i;',
+    '$mod.s = ("" + $mod.i) + rtl.spaceLeft("" + $mod.i, 5);',
+    '$mod.s = rtl.spaceLeft("" + $mod.i, 4) + rtl.spaceLeft("" + $mod.i, 5);',
+    '$mod.s = $mod.s + $mod.s;',
+    '$mod.s = $mod.s + "foo";',
     '']));
 end;
 
@@ -3831,6 +3954,16 @@ begin
   StartProgram(false);
   Add('var s: RawByteString');
   SetExpectedPasResolverError('identifier not found "RawByteString"',nIdentifierNotFound);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestTypeShortstring_Fail;
+begin
+  StartProgram(false);
+  Add('type t = string[12];');
+  Add('var s: t;');
+  Add('begin');
+  SetExpectedPasResolverError('illegal qualifier "["',nIllegalQualifier);
   ConvertProgram;
 end;
 
@@ -3884,14 +4017,14 @@ begin
     '};'
     ]),
     LinesToStr([ // this.$main
-    '  this.p1(1);',
-    '  this.p1(1);',
-    '  this.p1(11);',
-    '  this.p2(1,"a");',
-    '  this.p2(1,"a");',
-    '  this.p2(12,"a");',
-    '  this.p2(13,"b");',
-    '  this.p3(1.0,false,"abc");'
+    '  $mod.p1(1);',
+    '  $mod.p1(1);',
+    '  $mod.p1(11);',
+    '  $mod.p2(1,"a");',
+    '  $mod.p2(1,"a");',
+    '  $mod.p2(12,"a");',
+    '  $mod.p2(13,"b");',
+    '  $mod.p3(1.0,false,"abc");'
     ]));
 end;
 
@@ -3959,13 +4092,13 @@ begin
     'this.vN = 0;'
     ]),
     LinesToStr([ // this.$main
-    '  this.vJ = 0;',
-    '  this.vN = 3;',
-    '  var $loopend1 = this.vN;',
-    '  for (this.vI = 1; this.vI <= $loopend1; this.vI++) {',
-    '    this.vJ = this.vJ + this.vI;',
+    '  $mod.vJ = 0;',
+    '  $mod.vN = 3;',
+    '  var $loopend1 = $mod.vN;',
+    '  for ($mod.vI = 1; $mod.vI <= $loopend1; $mod.vI++) {',
+    '    $mod.vJ = $mod.vJ + $mod.vI;',
     '  };',
-    '  if (this.vI > $loopend1) this.vI--;'
+    '  if ($mod.vI > $loopend1) $mod.vI--;'
     ]));
 end;
 
@@ -3999,8 +4132,8 @@ begin
     '  return Result;',
     '};'
     ]),
-    LinesToStr([ // this.$main
-    '  this.SumNumbers(3);'
+    LinesToStr([ // $mod.$main
+    '  $mod.SumNumbers(3);'
     ]));
 end;
 
@@ -4019,9 +4152,9 @@ begin
     ]),
     LinesToStr([ // this.$main
     '  var $loopend1 = 2;',
-    '  for (this.vI = 1; this.vI <= $loopend1; this.vI++);',
-    '  if(this.vI>$loopend1)this.vI--;',
-    '  if (this.vI==3) ;'
+    '  for ($mod.vI = 1; $mod.vI <= $loopend1; $mod.vI++);',
+    '  if($mod.vI>$loopend1)$mod.vI--;',
+    '  if ($mod.vI==3) ;'
     ]));
 end;
 
@@ -4062,8 +4195,8 @@ begin
     '  return Result;',
     '};'
     ]),
-    LinesToStr([ // this.$main
-    '  this.SumNumbers(3);'
+    LinesToStr([ // $mod.$main
+    '  $mod.SumNumbers(3);'
     ]));
 end;
 
@@ -4087,14 +4220,14 @@ begin
     'this.vJ = 0;',
     'this.vN = 0;'
     ]),
-    LinesToStr([ // this.$main
-    '  this.vN = 3;',
-    '  this.vJ = 0;',
-    '  this.vI = 0;',
+    LinesToStr([ // $mod.$main
+    '  $mod.vN = 3;',
+    '  $mod.vJ = 0;',
+    '  $mod.vI = 0;',
     '  do{',
-    '    this.vI = this.vI + 1;',
-    '    this.vJ = this.vJ + this.vI;',
-    '  }while(!(this.vI>=this.vN));'
+    '    $mod.vI = $mod.vI + 1;',
+    '    $mod.vJ = $mod.vJ + $mod.vI;',
+    '  }while(!($mod.vI>=$mod.vN));'
     ]));
 end;
 
@@ -4117,14 +4250,14 @@ begin
     LinesToStr([ // statements
     'this.vI = 0;'
     ]),
-    LinesToStr([ // this.$main
-    'this.vI = 1;',
+    LinesToStr([ // $mod.$main
+    '$mod.vI = 1;',
     'if (vI==1) {',
     '  vI=2;',
     '}',
     'if (vI==2){ vI=3; }',
     ';',
-    'this.vI = 4;'
+    '$mod.vI = 4;'
     ]));
 end;
 
@@ -4151,7 +4284,7 @@ begin
   // ToDo: check use analyzer
   CheckSource('TestAsmPas_Impl',
     LinesToStr([
-    'var $impl = this.$impl;',
+    'var $impl = $mod.$impl;',
     'this.cIntf = 1;',
     'this.vIntf = 0;',
     '']),
@@ -4181,12 +4314,12 @@ begin
     LinesToStr([ // statements
     'this.i = 0;'
     ]),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     'try {',
-    '  this.i = 0;',
-    '  this.i = Math.floor(2 / this.i);',
+    '  $mod.i = 0;',
+    '  $mod.i = Math.floor(2 / $mod.i);',
     '} finally {',
-    '  this.i = 3;',
+    '  $mod.i = 3;',
     '};'
     ]));
 end;
@@ -4229,49 +4362,49 @@ begin
   ConvertProgram;
   CheckSource('TestTryExcept',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
     '  };',
     '});',
-    'rtl.createClass(this, "Exception", this.TObject, function () {',
+    'rtl.createClass($mod, "Exception", $mod.TObject, function () {',
     '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
+    '    $mod.TObject.$init.call(this);',
     '    this.Msg = "";',
     '  };',
     '});',
-    'rtl.createClass(this, "EInvalidCast", this.Exception, function () {',
+    'rtl.createClass($mod, "EInvalidCast", $mod.Exception, function () {',
     '});',
     'this.vI = 0;'
     ]),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     'try {',
-    '  this.vI = 1;',
+    '  $mod.vI = 1;',
     '} catch {',
-    '  this.vI = 2;',
+    '  $mod.vI = 2;',
     '};',
     'try {',
-    '  this.vI = 3;',
+    '  $mod.vI = 3;',
     '} catch ($e) {',
     '  throw $e;',
     '};',
     'try {',
-    '  this.vI = 4;',
+    '  $mod.vI = 4;',
     '} catch ($e) {',
-    '  if (this.EInvalidCast.isPrototypeOf($e)){',
+    '  if ($mod.EInvalidCast.isPrototypeOf($e)){',
     '    throw $e',
-    '  } else if (this.Exception.isPrototypeOf($e)) {',
+    '  } else if ($mod.Exception.isPrototypeOf($e)) {',
     '    var E = $e;',
     '    if (E.Msg == "") throw E;',
     '  } else {',
-    '    this.vI = 5;',
+    '    $mod.vI = 5;',
     '  }',
     '};',
     'try {',
-    '  this.vI = 6;',
+    '  $mod.vI = 6;',
     '} catch ($e) {',
-    '  if (this.EInvalidCast.isPrototypeOf($e)){' ,
+    '  if ($mod.EInvalidCast.isPrototypeOf($e)){' ,
     '  } else throw $e',
     '};',
     '']));
@@ -4293,10 +4426,10 @@ begin
     LinesToStr([ // statements
     'this.vI = 0;'
     ]),
-    LinesToStr([ // this.$main
-    'var $tmp1 = this.vI;',
-    'if ($tmp1 == 1) {} else if ($tmp1 == 2){ this.vI = 3 }else {',
-    '  this.vI = 4;',
+    LinesToStr([ // $mod.$main
+    'var $tmp1 = $mod.vI;',
+    'if ($tmp1 == 1) {} else if ($tmp1 == 2){ $mod.vI = 3 }else {',
+    '  $mod.vI = 4;',
     '};'
     ]));
 end;
@@ -4318,15 +4451,15 @@ begin
     LinesToStr([ // statements
     'this.Vi = 0;'
     ]),
-    LinesToStr([ // this.$main
-    'switch (this.Vi) {',
+    LinesToStr([ // $mod.$main
+    'switch ($mod.Vi) {',
     'case 1:',
     '  break;',
     'case 2:',
-    '  this.Vi = 3;',
+    '  $mod.Vi = 3;',
     '  break;',
     'default:',
-    '  this.Vi = 4;',
+    '  $mod.Vi = 4;',
     '};'
     ]));
 end;
@@ -4344,11 +4477,11 @@ begin
     LinesToStr([ // statements
     'this.Vi = 0;'
     ]),
-    LinesToStr([ // this.$main
-    'var $tmp1 = this.Vi;',
+    LinesToStr([ // $mod.$main
+    'var $tmp1 = $mod.Vi;',
     'if ($tmp1 == 1) {',
-    '  this.Vi = 2;',
-    '  this.Vi = 3;',
+    '  $mod.Vi = 2;',
+    '  $mod.Vi = 3;',
     '};'
     ]));
 end;
@@ -4367,11 +4500,11 @@ begin
     LinesToStr([ // statements
     'this.vI = 0;'
     ]),
-    LinesToStr([ // this.$main
-    'switch (this.vI) {',
+    LinesToStr([ // $mod.$main
+    'switch ($mod.vI) {',
     'case 1:',
-    '  this.vI = 2;',
-    '  this.vI = 3;',
+    '  $mod.vI = 2;',
+    '  $mod.vI = 3;',
     '  break;',
     '};'
     ]));
@@ -4393,12 +4526,12 @@ begin
     LinesToStr([ // statements
     'this.vI = 0;'
     ]),
-    LinesToStr([ // this.$main
-    'var $tmp1 = this.vI;',
+    LinesToStr([ // $mod.$main
+    'var $tmp1 = $mod.vI;',
     'if (($tmp1 >= 1) && ($tmp1 <= 3)){',
-    '  this.vI = 14',
+    '  $mod.vI = 14',
     '} else if (($tmp1 == 4) || ($tmp1 == 5)){',
-    '  this.vI = 16',
+    '  $mod.vI = 16',
     '} else if ((($tmp1 >= 6) && ($tmp1 <= 7)) || (($tmp1 >= 9) && ($tmp1 <= 10))) ;'
     ]));
 end;
@@ -4428,15 +4561,15 @@ begin
     'this.i = 0;',
     'this.b = false;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Arr = rtl.arraySetLength(this.Arr,3,0);',
-    'this.Arr[0] = 4;',
-    'this.Arr[1] = rtl.length(this.Arr) + this.Arr[0];',
-    'this.Arr[this.i] = 5;',
-    'this.Arr[this.Arr[this.i]] = this.Arr[6];',
-    'this.i = 0;',
-    'this.i = rtl.length(this.Arr) - 1;',
-    'this.b = rtl.length(this.Arr) > 0;',
+    LinesToStr([ // $mod.$main
+    '$mod.Arr = rtl.arraySetLength($mod.Arr,3,0);',
+    '$mod.Arr[0] = 4;',
+    '$mod.Arr[1] = rtl.length($mod.Arr) + $mod.Arr[0];',
+    '$mod.Arr[$mod.i] = 5;',
+    '$mod.Arr[$mod.Arr[$mod.i]] = $mod.Arr[6];',
+    '$mod.i = 0;',
+    '$mod.i = rtl.length($mod.Arr) - 1;',
+    '$mod.b = rtl.length($mod.Arr) > 0;',
     '']));
 end;
 
@@ -4462,13 +4595,13 @@ begin
     'this.DoIt = function(i,j){',
     '};'
     ]),
-    LinesToStr([ // this.$main
-    'this.Arr = [];',
-    'if (rtl.length(this.Arr) == 0) ;',
-    'if (rtl.length(this.Arr) == 0) ;',
-    'if (rtl.length(this.Arr) > 0) ;',
-    'if (rtl.length(this.Arr) > 0) ;',
-    'this.DoIt([],[]);',
+    LinesToStr([ // $mod.$main
+    '$mod.Arr = [];',
+    'if (rtl.length($mod.Arr) == 0) ;',
+    'if (rtl.length($mod.Arr) == 0) ;',
+    'if (rtl.length($mod.Arr) > 0) ;',
+    'if (rtl.length($mod.Arr) > 0) ;',
+    '$mod.DoIt([],[]);',
     '']));
 end;
 
@@ -4504,21 +4637,21 @@ begin
     'this.Arr2 = [];',
     'this.i = 0;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Arr2 = [];',
-    'if (rtl.length(this.Arr2) == 0) ;',
-    'if (rtl.length(this.Arr2) == 0) ;',
-    'this.i = 0;',
-    'this.i = 0;',
-    'this.i = rtl.length(this.Arr2) - 1;',
-    'this.i = rtl.length(this.Arr2[2]) - 1;',
-    'this.Arr2[3] = this.Arr;',
-    'this.Arr2[4][5] = this.i;',
-    'this.i = this.Arr2[6][7];',
-    'this.Arr2[8][9] = this.i;',
-    'this.i = this.Arr2[10][11];',
-    'this.Arr2 = rtl.arraySetLength(this.Arr2, 14, []);',
-    'this.Arr2[15] = rtl.arraySetLength(this.Arr2[15], 16, 0);',
+    LinesToStr([ // $mod.$main
+    '$mod.Arr2 = [];',
+    'if (rtl.length($mod.Arr2) == 0) ;',
+    'if (rtl.length($mod.Arr2) == 0) ;',
+    '$mod.i = 0;',
+    '$mod.i = 0;',
+    '$mod.i = rtl.length($mod.Arr2) - 1;',
+    '$mod.i = rtl.length($mod.Arr2[2]) - 1;',
+    '$mod.Arr2[3] = $mod.Arr;',
+    '$mod.Arr2[4][5] = $mod.i;',
+    '$mod.i = $mod.Arr2[6][7];',
+    '$mod.Arr2[8][9] = $mod.i;',
+    '$mod.i = $mod.Arr2[10][11];',
+    '$mod.Arr2 = rtl.arraySetLength($mod.Arr2, 14, []);',
+    '$mod.Arr2[15] = rtl.arraySetLength($mod.Arr2[15], 16, 0);',
     '']));
 end;
 
@@ -4557,18 +4690,18 @@ begin
     '  };',
     '};',
     'this.Arr = [];',
-    'this.r = new this.TRec();',
+    'this.r = new $mod.TRec();',
     'this.i = 0;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Arr = rtl.arraySetLength(this.Arr,3, this.TRec);',
-    'this.Arr[0].Int = 4;',
-    'this.Arr[1].Int = rtl.length(this.Arr)+this.Arr[2].Int;',
-    'this.Arr[this.Arr[this.i].Int].Int = this.Arr[5].Int;',
-    'this.Arr[7] = new this.TRec(this.r);',
-    'this.r = new this.TRec(this.Arr[8]);',
-    'this.i = 0;',
-    'this.i = rtl.length(this.Arr)-1;',
+    LinesToStr([ // $mod.$main
+    '$mod.Arr = rtl.arraySetLength($mod.Arr,3, $mod.TRec);',
+    '$mod.Arr[0].Int = 4;',
+    '$mod.Arr[1].Int = rtl.length($mod.Arr)+$mod.Arr[2].Int;',
+    '$mod.Arr[$mod.Arr[$mod.i].Int].Int = $mod.Arr[5].Int;',
+    '$mod.Arr[7] = new $mod.TRec($mod.r);',
+    '$mod.r = new $mod.TRec($mod.Arr[8]);',
+    '$mod.i = 0;',
+    '$mod.i = rtl.length($mod.Arr)-1;',
     '']));
 end;
 
@@ -4599,7 +4732,7 @@ begin
     '  vG = vG;',
     '  vJ = vH;',
     '  vI.set(vI.get());',
-    '  this.DoIt(vG, vG, {',
+    '  $mod.DoIt(vG, vG, {',
     '    get: function () {',
     '      return vG;',
     '    },',
@@ -4607,7 +4740,7 @@ begin
     '      vG = v;',
     '    }',
     '  });',
-    '  this.DoIt(vH, vH, {',
+    '  $mod.DoIt(vH, vH, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -4615,8 +4748,8 @@ begin
     '      vJ = v;',
     '    }',
     '  });',
-    '  this.DoIt(vI.get(), vI.get(), vI);',
-    '  this.DoIt(vJ, vJ, {',
+    '  $mod.DoIt(vI.get(), vI.get(), vI);',
+    '  $mod.DoIt(vJ, vJ, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -4628,8 +4761,8 @@ begin
     'this.i = [];'
     ]),
     LinesToStr([
-    'this.DoIt(this.i,this.i,{',
-    '  p: this,',
+    '$mod.DoIt($mod.i,$mod.i,{',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -4661,8 +4794,8 @@ begin
     'this.DoIt = function (vG,vH,vI) {',
     '  var vJ = [];',
     '  vI.set(vI.get());',
-    '  this.DoIt(vI.get(), vI.get(), vI);',
-    '  this.DoIt(vJ[1+1], vJ[1+2], {',
+    '  $mod.DoIt(vI.get(), vI.get(), vI);',
+    '  $mod.DoIt(vJ[1+1], vJ[1+2], {',
     '    a:1+3,',
     '    p:vJ,',
     '    get: function () {',
@@ -4676,9 +4809,9 @@ begin
     'this.a = [];'
     ]),
     LinesToStr([
-    'this.DoIt(this.a[1+4],this.a[1+5],{',
+    '$mod.DoIt($mod.a[1+4],$mod.a[1+5],{',
     '  a: 1+6,',
-    '  p: this.a,',
+    '  p: $mod.a,',
     '  get: function () {',
     '      return this.p[this.a];',
     '    },',
@@ -4715,9 +4848,9 @@ begin
     '};'
     ]),
     LinesToStr([
-    'this.DoIt(this.GetArr(0)[1+1],this.GetArr(0)[1+2],{',
+    '$mod.DoIt($mod.GetArr(0)[1+1],$mod.GetArr(0)[1+2],{',
     '  a: 1+3,',
-    '  p: this.GetArr(0),',
+    '  p: $mod.GetArr(0),',
     '  get: function () {',
     '      return this.p[this.a];',
     '    },',
@@ -4725,9 +4858,9 @@ begin
     '      this.p[this.a] = v;',
     '    }',
     '});',
-    'this.DoIt(this.GetArr(0)[2+1],this.GetArr(0)[2+2],{',
+    '$mod.DoIt($mod.GetArr(0)[2+1],$mod.GetArr(0)[2+2],{',
     '  a: 2+3,',
-    '  p: this.GetArr(0),',
+    '  p: $mod.GetArr(0),',
     '  get: function () {',
     '      return this.p[this.a];',
     '    },',
@@ -4735,9 +4868,9 @@ begin
     '      this.p[this.a] = v;',
     '    }',
     '});',
-    'this.DoIt(this.GetArr(7)[3+1],this.GetArr(8)[3+2],{',
+    '$mod.DoIt($mod.GetArr(7)[3+1],$mod.GetArr(8)[3+2],{',
     '  a: 3+3,',
-    '  p: this.GetArr(9),',
+    '  p: $mod.GetArr(9),',
     '  get: function () {',
     '      return this.p[this.a];',
     '    },',
@@ -4780,11 +4913,11 @@ begin
     'this.numbers = [1, 2];',
     'this.names = ["red", "blue"];',
     '']),
-    LinesToStr([ // this.$main
-    'this.e = this.TEnum.red;',
-    'this.e = this.TEnum.blue;',
-    'this.i = this.a[this.TEnum.red]+2;',
-    'this.a[this.e] = this.a[this.e];',
+    LinesToStr([ // $mod.$main
+    '$mod.e = $mod.TEnum.red;',
+    '$mod.e = $mod.TEnum.blue;',
+    '$mod.i = $mod.a[$mod.TEnum.red]+2;',
+    '$mod.a[$mod.e] = $mod.a[$mod.e];',
     '']));
 end;
 
@@ -4804,7 +4937,7 @@ begin
   ConvertProgram;
   CheckSource('TestArray_SetLengthProperty',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -4813,7 +4946,7 @@ begin
     'this.Obj = null;',
     '']),
     LinesToStr([
-    'this.Obj.SetColors(rtl.arraySetLength(this.Obj.GetColors(), 2, 0));',
+    '$mod.Obj.SetColors(rtl.arraySetLength($mod.Obj.GetColors(), 2, 0));',
     '']));
 end;
 
@@ -4843,8 +4976,8 @@ begin
     'this.s = "";',
     '']),
     LinesToStr([
-    'this.DoIt([]);',
-    'this.DoIt([this.s, "foo", "", this.s + this.s]);',
+    '$mod.DoIt([]);',
+    '$mod.DoIt([$mod.s, "foo", "", $mod.s + $mod.s]);',
     '']));
 end;
 
@@ -4904,19 +5037,19 @@ begin
     'this.ArrSet = [];',
     'this.ArrJSValue = [];',
     '']),
-    LinesToStr([ // this.$main
-    'this.ArrInt = this.ArrInt;',
-    'this.ArrInt = this.ArrInt.concat(this.ArrInt);',
-    'this.ArrInt = this.ArrInt.concat(this.ArrInt,this.ArrInt);',
-    'this.ArrRec = this.ArrRec;',
-    'this.ArrRec = rtl.arrayConcat(this.TRec, this.ArrRec);',
-    'this.ArrRec = rtl.arrayConcat(this.TRec, this.ArrRec, this.ArrRec);',
-    'this.ArrSet = this.ArrSet;',
-    'this.ArrSet = rtl.arrayConcat("refSet", this.ArrSet);',
-    'this.ArrSet = rtl.arrayConcat("refSet", this.ArrSet, this.ArrSet);',
-    'this.ArrJSValue = this.ArrJSValue;',
-    'this.ArrJSValue = this.ArrJSValue.concat(this.ArrJSValue);',
-    'this.ArrJSValue = this.ArrJSValue.concat(this.ArrJSValue, this.ArrJSValue);',
+    LinesToStr([ // $mod.$main
+    '$mod.ArrInt = $mod.ArrInt;',
+    '$mod.ArrInt = $mod.ArrInt.concat($mod.ArrInt);',
+    '$mod.ArrInt = $mod.ArrInt.concat($mod.ArrInt,$mod.ArrInt);',
+    '$mod.ArrRec = $mod.ArrRec;',
+    '$mod.ArrRec = rtl.arrayConcat($mod.TRec, $mod.ArrRec);',
+    '$mod.ArrRec = rtl.arrayConcat($mod.TRec, $mod.ArrRec, $mod.ArrRec);',
+    '$mod.ArrSet = $mod.ArrSet;',
+    '$mod.ArrSet = rtl.arrayConcat("refSet", $mod.ArrSet);',
+    '$mod.ArrSet = rtl.arrayConcat("refSet", $mod.ArrSet, $mod.ArrSet);',
+    '$mod.ArrJSValue = $mod.ArrJSValue;',
+    '$mod.ArrJSValue = $mod.ArrJSValue.concat($mod.ArrJSValue);',
+    '$mod.ArrJSValue = $mod.ArrJSValue.concat($mod.ArrJSValue, $mod.ArrJSValue);',
     '']));
 end;
 
@@ -4976,19 +5109,19 @@ begin
     'this.ArrSet = [];',
     'this.ArrJSValue = [];',
     '']),
-    LinesToStr([ // this.$main
-    'this.ArrInt = rtl.arrayCopy(0, this.ArrInt, 0);',
-    'this.ArrInt = rtl.arrayCopy(0, this.ArrInt, 2);',
-    'this.ArrInt = rtl.arrayCopy(0, this.ArrInt, 3, 4);',
-    'this.ArrRec = rtl.arrayCopy(this.TRec, this.ArrRec, 0);',
-    'this.ArrRec = rtl.arrayCopy(this.TRec, this.ArrRec, 5);',
-    'this.ArrRec = rtl.arrayCopy(this.TRec, this.ArrRec, 6, 7);',
-    'this.ArrSet = rtl.arrayCopy("refSet", this.ArrSet, 0);',
-    'this.ArrSet = rtl.arrayCopy("refSet", this.ArrSet, 8);',
-    'this.ArrSet = rtl.arrayCopy("refSet", this.ArrSet, 9, 10);',
-    'this.ArrJSValue = rtl.arrayCopy(0, this.ArrJSValue, 0);',
-    'this.ArrJSValue = rtl.arrayCopy(0, this.ArrJSValue, 11);',
-    'this.ArrJSValue = rtl.arrayCopy(0, this.ArrJSValue, 12, 13);',
+    LinesToStr([ // $mod.$main
+    '$mod.ArrInt = rtl.arrayCopy(0, $mod.ArrInt, 0);',
+    '$mod.ArrInt = rtl.arrayCopy(0, $mod.ArrInt, 2);',
+    '$mod.ArrInt = rtl.arrayCopy(0, $mod.ArrInt, 3, 4);',
+    '$mod.ArrRec = rtl.arrayCopy($mod.TRec, $mod.ArrRec, 0);',
+    '$mod.ArrRec = rtl.arrayCopy($mod.TRec, $mod.ArrRec, 5);',
+    '$mod.ArrRec = rtl.arrayCopy($mod.TRec, $mod.ArrRec, 6, 7);',
+    '$mod.ArrSet = rtl.arrayCopy("refSet", $mod.ArrSet, 0);',
+    '$mod.ArrSet = rtl.arrayCopy("refSet", $mod.ArrSet, 8);',
+    '$mod.ArrSet = rtl.arrayCopy("refSet", $mod.ArrSet, 9, 10);',
+    '$mod.ArrJSValue = rtl.arrayCopy(0, $mod.ArrJSValue, 0);',
+    '$mod.ArrJSValue = rtl.arrayCopy(0, $mod.ArrJSValue, 11);',
+    '$mod.ArrJSValue = rtl.arrayCopy(0, $mod.ArrJSValue, 12, 13);',
     '']));
 end;
 
@@ -5046,17 +5179,17 @@ begin
     'this.ArrSet = [];',
     'this.ArrJSValue = [];',
     '']),
-    LinesToStr([ // this.$main
-    'this.ArrInt.splice(2, 1, 1);',
-    'this.ArrInt.splice(4, 1, this.ArrInt[3]);',
-    'this.ArrRec.splice(6, 1, this.ArrRec[5]);',
-    'this.ArrSet.splice(7, 1, this.ArrSet[7]);',
-    'this.ArrJSValue.splice(9, 1, this.ArrJSValue[8]);',
-    'this.ArrJSValue.splice(11, 1, 10);',
-    'this.ArrInt.splice(12, 13);',
-    'this.ArrRec.splice(14, 15);',
-    'this.ArrSet.splice(17, 18);',
-    'this.ArrJSValue.splice(19, 10);',
+    LinesToStr([ // $mod.$main
+    '$mod.ArrInt.splice(2, 1, 1);',
+    '$mod.ArrInt.splice(4, 1, $mod.ArrInt[3]);',
+    '$mod.ArrRec.splice(6, 1, $mod.ArrRec[5]);',
+    '$mod.ArrSet.splice(7, 1, $mod.ArrSet[7]);',
+    '$mod.ArrJSValue.splice(9, 1, $mod.ArrJSValue[8]);',
+    '$mod.ArrJSValue.splice(11, 1, 10);',
+    '$mod.ArrInt.splice(12, 13);',
+    '$mod.ArrRec.splice(14, 15);',
+    '$mod.ArrSet.splice(17, 18);',
+    '$mod.ArrJSValue.splice(19, 10);',
     '']));
 end;
 
@@ -5081,9 +5214,9 @@ begin
     'this.aObj = null;',
     'this.a = [];',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     'if (Array.isArray(65)) ;',
-    'this.aObj = this.a.concat(this.a);',
+    '$mod.aObj = $mod.a.concat($mod.a);',
     '']));
 end;
 
@@ -5107,9 +5240,9 @@ begin
     'this.aObj = null;',
     'this.a = [];',
     '']),
-    LinesToStr([ // this.$main
-    'this.a = this.aObj;',
-    'this.aObj[1] = this.aObj[2];',
+    LinesToStr([ // $mod.$main
+    '$mod.a = $mod.aObj;',
+    '$mod.aObj[1] = $mod.aObj[2];',
     '']));
 end;
 
@@ -5136,10 +5269,10 @@ begin
     '    return this.Bold == b.Bold;',
     '  };',
     '};',
-    'this.Rec = new this.TRecA();'
+    'this.Rec = new $mod.TRecA();'
     ]),
-    LinesToStr([ // this.$main
-    'this.Rec.Bold = 123;'
+    LinesToStr([ // $mod.$main
+    '$mod.Rec.Bold = 123;'
     ]));
 end;
 
@@ -5174,14 +5307,14 @@ begin
     '  };',
     '};',
     'this.Int = 0;',
-    'this.r = new this.TRec();'
+    'this.r = new $mod.TRec();'
     ]),
-    LinesToStr([ // this.$main
-    'var $with1 = this.r;',
-    'this.Int = $with1.vI;',
-    'var $with2 = this.r;',
-    'this.Int = $with2.vI;',
-    '$with2.vI = this.Int;'
+    LinesToStr([ // $mod.$main
+    'var $with1 = $mod.r;',
+    '$mod.Int = $with1.vI;',
+    'var $with2 = $mod.r;',
+    '$mod.Int = $with2.vI;',
+    '$with2.vI = $mod.Int;'
     ]));
 end;
 
@@ -5229,13 +5362,13 @@ begin
     '    this.Int = s.Int;',
     '    this.D = s.D;',
     '    this.Arr = s.Arr;',
-    '    this.Small = new pas.program.TSmallRec(s.Small);',
+    '    this.Small = new $mod.TSmallRec(s.Small);',
     '    this.Enums = rtl.refSet(s.Enums);',
     '  } else {',
     '    this.Int = 0;',
     '    this.D = 0.0;',
     '    this.Arr = [];',
-    '    this.Small = new pas.program.TSmallRec();',
+    '    this.Small = new $mod.TSmallRec();',
     '    this.Enums = {};',
     '  };',
     '  this.$equal = function (b) {',
@@ -5243,11 +5376,11 @@ begin
     ' && (this.Small.$equal(b.Small) && rtl.eqSet(this.Enums, b.Enums))));',
     '  };',
     '};',
-    'this.r = new this.TBigRec();',
-    'this.s = new this.TBigRec();'
+    'this.r = new $mod.TBigRec();',
+    'this.s = new $mod.TBigRec();'
     ]),
-    LinesToStr([ // this.$main
-    'this.r = new this.TBigRec(this.s);',
+    LinesToStr([ // $mod.$main
+    '$mod.r = new $mod.TBigRec($mod.s);',
     '']));
 end;
 
@@ -5281,11 +5414,11 @@ begin
     '};',
     'this.DoConst = function (r) {',
     '};',
-    'this.Rec = new this.TRecA();'
+    'this.Rec = new $mod.TRecA();'
     ]),
-    LinesToStr([ // this.$main
-    'this.DoDefault(new this.TRecA(this.Rec));',
-    'this.DoConst(this.Rec);',
+    LinesToStr([ // $mod.$main
+    '$mod.DoDefault(new $mod.TRecA($mod.Rec));',
+    '$mod.DoConst($mod.Rec);',
     '']));
 end;
 
@@ -5325,11 +5458,11 @@ begin
     '  };',
     '};',
     'this.DoIt = function (vG,vH,vI) {',
-    '  var vJ = new this.TRecord();',
-    '  vG = new this.TRecord(vG);',
-    '  vJ = new this.TRecord(vH);',
-    '  vI.set(new this.TRecord(vI.get()));',
-    '  this.DoIt(new this.TRecord(vG), vG, {',
+    '  var vJ = new $mod.TRecord();',
+    '  vG = new $mod.TRecord(vG);',
+    '  vJ = new $mod.TRecord(vH);',
+    '  vI.set(new $mod.TRecord(vI.get()));',
+    '  $mod.DoIt(new $mod.TRecord(vG), vG, {',
     '    get: function () {',
     '      return vG;',
     '    },',
@@ -5337,7 +5470,7 @@ begin
     '      vG = v;',
     '    }',
     '  });',
-    '  this.DoIt(new this.TRecord(vH), vH, {',
+    '  $mod.DoIt(new $mod.TRecord(vH), vH, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -5345,8 +5478,8 @@ begin
     '      vJ = v;',
     '    }',
     '  });',
-    '  this.DoIt(new this.TRecord(vI.get()), vI.get(), vI);',
-    '  this.DoIt(new this.TRecord(vJ), vJ, {',
+    '  $mod.DoIt(new $mod.TRecord(vI.get()), vI.get(), vI);',
+    '  $mod.DoIt(new $mod.TRecord(vJ), vJ, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -5355,11 +5488,11 @@ begin
     '    }',
     '  });',
     '};',
-    'this.i = new this.TRecord();'
+    'this.i = new $mod.TRecord();'
     ]),
     LinesToStr([
-    'this.DoIt(new this.TRecord(this.i),this.i,{',
-    '  p: this,',
+    '$mod.DoIt(new $mod.TRecord($mod.i),$mod.i,{',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -5400,8 +5533,8 @@ begin
     '  };',
     '};',
     'this.DoIt = function (vG,vH,vI) {',
-    '  var vJ = new this.TRecord();',
-    '  this.DoIt(vJ.i, vJ.i, {',
+    '  var vJ = new $mod.TRecord();',
+    '  $mod.DoIt(vJ.i, vJ.i, {',
     '    p: vJ,',
     '    get: function () {',
     '      return this.p.i;',
@@ -5411,11 +5544,11 @@ begin
     '    }',
     '  });',
     '};',
-    'this.r = new this.TRecord();'
+    'this.r = new $mod.TRecord();'
     ]),
     LinesToStr([
-    'this.DoIt(this.r.i,this.r.i,{',
-    '  p: this.r,',
+    '$mod.DoIt($mod.r.i,$mod.r.i,{',
+    '  p: $mod.r,',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -5458,15 +5591,15 @@ begin
     '  };',
     '};',
     'this.GetRec = function (vB) {',
-    '  var Result = new this.TRecord();',
+    '  var Result = new $mod.TRecord();',
     '  return Result;',
     '};',
     'this.DoIt = function (vG,vH,vI) {',
     '};'
     ]),
     LinesToStr([
-    'this.DoIt(this.GetRec(0).i,this.GetRec(0).i,{',
-    '  p: this.GetRec(0),',
+    '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i,{',
+    '  p: $mod.GetRec(0),',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -5474,8 +5607,8 @@ begin
     '      this.p.i = v;',
     '    }',
     '});',
-    'this.DoIt(this.GetRec(0).i,this.GetRec(0).i,{',
-    '  p: this.GetRec(0),',
+    '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i,{',
+    '  p: $mod.GetRec(0),',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -5483,8 +5616,8 @@ begin
     '      this.p.i = v;',
     '    }',
     '});',
-    'this.DoIt(this.GetRec(1).i,this.GetRec(2).i,{',
-    '  p: this.GetRec(3),',
+    '$mod.DoIt($mod.GetRec(1).i,$mod.GetRec(2).i,{',
+    '  p: $mod.GetRec(3),',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -5525,11 +5658,11 @@ begin
     '};',
     'this.DoIt = function (vG,vH,vI) {',
     '};',
-    'this.r = new this.TRecord();'
+    'this.r = new $mod.TRecord();'
     ]),
     LinesToStr([
-    'var $with1 = this.r;',
-    'this.DoIt($with1.i,$with1.i,{',
+    'var $with1 = $mod.r;',
+    '$mod.DoIt($with1.i,$with1.i,{',
     '  p: $with1,',
     '  get: function () {',
     '      return this.p.i;',
@@ -5588,21 +5721,21 @@ begin
     '};',
     'this.TNested = function (s) {',
     '  if (s) {',
-    '    this.r = new pas.program.TRecord(s.r);',
+    '    this.r = new $mod.TRecord(s.r);',
     '  } else {',
-    '    this.r = new pas.program.TRecord();',
+    '    this.r = new $mod.TRecord();',
     '  };',
     '  this.$equal = function (b) {',
     '    return this.r.$equal(b.r);',
     '  };',
     '};',
     'this.b = false;',
-    'this.r = new this.TRecord();',
-    'this.s = new this.TRecord();'
+    'this.r = new $mod.TRecord();',
+    'this.s = new $mod.TRecord();'
     ]),
     LinesToStr([
-    'this.b = this.r.$equal(this.s);',
-    'this.b = !this.r.$equal(this.s);',
+    '$mod.b = $mod.r.$equal($mod.s);',
+    '$mod.b = !$mod.r.$equal($mod.s);',
     '']));
 end;
 
@@ -5626,7 +5759,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_TObjectDefaultConstructor',
     LinesToStr([ // statements
-    'rtl.createClass(this,"TObject",null,function(){',
+    'rtl.createClass($mod,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -5638,9 +5771,9 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj = this.TObject.$create("Create");',
-    'this.Obj.$destroy("Destroy");',
+    LinesToStr([ // $mod.$main
+    '$mod.Obj = $mod.TObject.$create("Create");',
+    '$mod.Obj.$destroy("Destroy");',
     '']));
 end;
 
@@ -5660,7 +5793,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_TObjectConstructorWithParams',
     LinesToStr([ // statements
-    'rtl.createClass(this,"TObject",null,function(){',
+    'rtl.createClass($mod,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -5670,8 +5803,8 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj = this.TObject.$create("Create",[3]);'
+    LinesToStr([ // $mod.$main
+    '$mod.Obj = $mod.TObject.$create("Create",[3]);'
     ]));
 end;
 
@@ -5695,7 +5828,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_Var',
     LinesToStr([ // statements
-    'rtl.createClass(this,"TObject",null,function(){',
+    'rtl.createClass($mod,"TObject",null,function(){',
     '  this.$init = function () {',
     '    this.vI = 0;',
     '  };',
@@ -5707,9 +5840,9 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj = this.TObject.$create("Create",[4]);',
-    'this.Obj.vI = this.Obj.vI + 5;'
+    LinesToStr([ // $mod.$main
+    '$mod.Obj = $mod.TObject.$create("Create",[4]);',
+    '$mod.Obj.vI = $mod.Obj.vI + 5;'
     ]));
 end;
 
@@ -5742,7 +5875,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_Method',
     LinesToStr([ // statements
-    'rtl.createClass(this,"TObject",null,function(){',
+    'rtl.createClass($mod,"TObject",null,function(){',
     '  this.$init = function () {',
     '    this.vI = 0;',
     '    this.Sub = null;',
@@ -5761,14 +5894,14 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj = this.TObject.$create("Create");',
-    'this.Obj.GetIt(4);',
-    'this.Obj.Sub.Sub=null;',
-    'this.Obj.Sub.GetIt(5);',
-    'this.Obj.Sub.GetIt(6).Sub=null;',
-    'this.Obj.Sub.GetIt(7).GetIt(8);',
-    'this.Obj.Sub.GetIt(9).Sub.GetIt(10);'
+    LinesToStr([ // $mod.$main
+    '$mod.Obj = $mod.TObject.$create("Create");',
+    '$mod.Obj.GetIt(4);',
+    '$mod.Obj.Sub.Sub=null;',
+    '$mod.Obj.Sub.GetIt(5);',
+    '$mod.Obj.Sub.GetIt(6).Sub=null;',
+    '$mod.Obj.Sub.GetIt(7).GetIt(8);',
+    '$mod.Obj.Sub.GetIt(9).Sub.GetIt(10);'
     ]));
 end;
 
@@ -5801,7 +5934,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_Inheritance',
     LinesToStr([ // statements
-    'rtl.createClass(this,"TObject",null,function(){',
+    'rtl.createClass($mod,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -5809,9 +5942,9 @@ begin
     '  this.Create = function () {',
     '  };',
     '});',
-    'rtl.createClass(this,"TClassA",this.TObject,function(){',
+    'rtl.createClass($mod,"TClassA",$mod.TObject,function(){',
     '});',
-    'rtl.createClass(this,"TClassB",this.TObject,function(){',
+    'rtl.createClass($mod,"TClassB",$mod.TObject,function(){',
     '  this.ProcB = function () {',
     '  };',
     '});',
@@ -5819,13 +5952,13 @@ begin
     'this.oA = null;',
     'this.oB = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.oO = this.TObject.$create("Create");',
-    'this.oA = this.TClassA.$create("Create");',
-    'this.oB = this.TClassB.$create("Create");',
-    'if (this.TClassA.isPrototypeOf(this.oO));',
-    'this.oB = rtl.as(this.oO, this.TClassB);',
-    'rtl.as(this.oO, this.TClassB).ProcB();'
+    LinesToStr([ // $mod.$main
+    '$mod.oO = $mod.TObject.$create("Create");',
+    '$mod.oA = $mod.TClassA.$create("Create");',
+    '$mod.oB = $mod.TClassB.$create("Create");',
+    'if ($mod.TClassA.isPrototypeOf($mod.oO));',
+    '$mod.oB = rtl.as($mod.oO, $mod.TClassB);',
+    'rtl.as($mod.oO, $mod.TClassB).ProcB();'
     ]));
 end;
 
@@ -5841,7 +5974,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_AbstractMethod',
     LinesToStr([ // statements
-    'rtl.createClass(this,"TObject",null,function(){',
+    'rtl.createClass($mod,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -5894,7 +6027,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_CallInherited_NoParams',
     LinesToStr([ // statements
-    'rtl.createClass(this,"TObject",null,function(){',
+    'rtl.createClass($mod,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -5904,14 +6037,14 @@ begin
     '  this.DoIt = function () {',
     '  };',
     '});',
-    'rtl.createClass(this, "TA", this.TObject, function () {',
+    'rtl.createClass($mod, "TA", $mod.TObject, function () {',
     '  this.DoAbstract = function () {',
-    '    pas.program.TObject.DoVirtual.call(this);',
+    '    $mod.TObject.DoVirtual.call(this);',
     '  };',
     '  this.DoVirtual = function () {',
-    '    pas.program.TObject.DoVirtual.apply(this, arguments);',
-    '    pas.program.TObject.DoVirtual.call(this);',
-    '    pas.program.TObject.DoVirtual.call(this);',
+    '    $mod.TObject.DoVirtual.apply(this, arguments);',
+    '    $mod.TObject.DoVirtual.call(this);',
+    '    $mod.TObject.DoVirtual.call(this);',
     '    this.DoIt();',
     '    this.DoIt();',
     '  };',
@@ -5966,7 +6099,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_CallInherited_WithParams',
     LinesToStr([ // statements
-    'rtl.createClass(this,"TObject",null,function(){',
+    'rtl.createClass($mod,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -5978,15 +6111,15 @@ begin
     '  this.DoIt2 = function (pA,pB) {',
     '  };',
     '});',
-    'rtl.createClass(this, "TClassA", this.TObject, function () {',
+    'rtl.createClass($mod, "TClassA", $mod.TObject, function () {',
     '  this.DoAbstract = function (pA,pB) {',
-    '    pas.program.TObject.DoVirtual.call(this,pA,pB);',
-    '    pas.program.TObject.DoVirtual.call(this,pA,0);',
+    '    $mod.TObject.DoVirtual.call(this,pA,pB);',
+    '    $mod.TObject.DoVirtual.call(this,pA,0);',
     '  };',
     '  this.DoVirtual = function (pA,pB) {',
-    '    pas.program.TObject.DoVirtual.apply(this, arguments);',
-    '    pas.program.TObject.DoVirtual.call(this,pA,pB);',
-    '    pas.program.TObject.DoVirtual.call(this,pA,0);',
+    '    $mod.TObject.DoVirtual.apply(this, arguments);',
+    '    $mod.TObject.DoVirtual.call(this,pA,pB);',
+    '    $mod.TObject.DoVirtual.call(this,pA,0);',
     '    this.DoIt(pA,pB);',
     '    this.DoIt(pA,0);',
     '    this.DoIt2(pA,2);',
@@ -6052,7 +6185,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_CallInheritedConstructor',
     LinesToStr([ // statements
-    'rtl.createClass(this,"TObject",null,function(){',
+    'rtl.createClass($mod,"TObject",null,function(){',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -6063,15 +6196,15 @@ begin
     '    this.Create();',
     '  };',
     '});',
-    'rtl.createClass(this, "TA", this.TObject, function () {',
+    'rtl.createClass($mod, "TA", $mod.TObject, function () {',
     '  this.Create = function () {',
-    '    pas.program.TObject.Create.apply(this, arguments);',
-    '    pas.program.TObject.Create.call(this);',
-    '    pas.program.TObject.CreateWithB.call(this, false);',
+    '    $mod.TObject.Create.apply(this, arguments);',
+    '    $mod.TObject.Create.call(this);',
+    '    $mod.TObject.CreateWithB.call(this, false);',
     '  };',
     '  this.CreateWithC = function (c) {',
-    '    pas.program.TObject.Create.call(this);',
-    '    pas.program.TObject.CreateWithB.call(this, true);',
+    '    $mod.TObject.Create.call(this);',
+    '    $mod.TObject.CreateWithB.call(this, true);',
     '    this.DoIt();',
     '    this.DoIt();',
     '    this.$class.DoSome();',
@@ -6128,7 +6261,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_ClassVar',
     LinesToStr([ // statements
-    'rtl.createClass(this,"TObject",null,function(){',
+    'rtl.createClass($mod,"TObject",null,function(){',
     '  this.vI = 0;',
     '  this.Sub = null;',
     '  this.$init = function () {',
@@ -6149,13 +6282,13 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj = this.TObject.$create("Create");',
-    'this.TObject.vI = 3;',
-    'if (this.TObject.vI == 4);',
-    'this.TObject.Sub=null;',
-    'this.Obj.$class.Sub=null;',
-    'this.Obj.Sub.$class.Sub=null;',
+    LinesToStr([ // $mod.$main
+    '$mod.Obj = $mod.TObject.$create("Create");',
+    '$mod.TObject.vI = 3;',
+    'if ($mod.TObject.vI == 4);',
+    '$mod.TObject.Sub=null;',
+    '$mod.Obj.$class.Sub=null;',
+    '$mod.Obj.Sub.$class.Sub=null;',
     '']));
 end;
 
@@ -6204,7 +6337,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_CallClassMethod',
     LinesToStr([ // statements
-    'rtl.createClass(this,"TObject",null,function(){',
+    'rtl.createClass($mod,"TObject",null,function(){',
     '  this.vI = 0;',
     '  this.Sub = null;',
     '  this.$init = function () {',
@@ -6236,14 +6369,14 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj = this.TObject.$create("Create");',
-    'this.TObject.GetIt(5);',
-    'this.Obj.$class.GetIt(6);',
-    'this.Obj.Sub.$class.GetIt(7);',
-    'this.Obj.Sub.$class.GetIt(8).$class.Sub=null;',
-    'this.Obj.Sub.$class.GetIt(9).$class.GetIt(10);',
-    'this.Obj.Sub.$class.GetIt(11).Sub.$class.GetIt(12);',
+    LinesToStr([ // $mod.$main
+    '$mod.Obj = $mod.TObject.$create("Create");',
+    '$mod.TObject.GetIt(5);',
+    '$mod.Obj.$class.GetIt(6);',
+    '$mod.Obj.Sub.$class.GetIt(7);',
+    '$mod.Obj.Sub.$class.GetIt(8).$class.Sub=null;',
+    '$mod.Obj.Sub.$class.GetIt(9).$class.GetIt(10);',
+    '$mod.Obj.Sub.$class.GetIt(11).Sub.$class.GetIt(12);',
     '']));
 end;
 
@@ -6285,7 +6418,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_Property',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.Fx = 0;',
     '    this.Fy = 0;',
@@ -6310,11 +6443,11 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj.Fy = this.Obj.Fx + 1;',
-    'if (this.Obj.GetInt() == 2);',
-    'this.Obj.SetInt(this.Obj.GetInt() + 2);',
-    'this.Obj.SetInt(this.Obj.Fx);'
+    LinesToStr([ // $mod.$main
+    '$mod.Obj.Fy = $mod.Obj.Fx + 1;',
+    'if ($mod.Obj.GetInt() == 2);',
+    '$mod.Obj.SetInt($mod.Obj.GetInt() + 2);',
+    '$mod.Obj.SetInt($mod.Obj.Fx);'
     ]));
 end;
 
@@ -6358,7 +6491,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_Property_ClassMethod',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.Fx = 0;',
     '  this.Fy = 0;',
     '  this.$init = function () {',
@@ -6381,15 +6514,15 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.TObject.Fy = this.TObject.Fx + 1;',
-    'if (this.TObject.GetInt() == 2);',
-    'this.TObject.SetInt(this.TObject.GetInt() + 2);',
-    'this.TObject.SetInt(this.TObject.Fx);',
-    'this.Obj.$class.Fy = this.Obj.Fx + 1;',
-    'if (this.Obj.$class.GetInt() == 2);',
-    'this.Obj.$class.SetInt(this.Obj.$class.GetInt() + 2);',
-    'this.Obj.$class.SetInt(this.Obj.Fx);'
+    LinesToStr([ // $mod.$main
+    '$mod.TObject.Fy = $mod.TObject.Fx + 1;',
+    'if ($mod.TObject.GetInt() == 2);',
+    '$mod.TObject.SetInt($mod.TObject.GetInt() + 2);',
+    '$mod.TObject.SetInt($mod.TObject.Fx);',
+    '$mod.Obj.$class.Fy = $mod.Obj.Fx + 1;',
+    'if ($mod.Obj.$class.GetInt() == 2);',
+    '$mod.Obj.$class.SetInt($mod.Obj.$class.GetInt() + 2);',
+    '$mod.Obj.$class.SetInt($mod.Obj.Fx);'
     ]));
 end;
 
@@ -6425,7 +6558,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_Property_Index',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FItems = [];',
     '  };',
@@ -6449,8 +6582,8 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj.SetItems(11,this.Obj.GetItems(12));'
+    LinesToStr([ // $mod.$main
+    '$mod.Obj.SetItems(11,$mod.Obj.GetItems(12));'
     ]));
 end;
 
@@ -6490,7 +6623,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_PropertyOfTypeArray',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FItems = [];',
     '  };',
@@ -6517,10 +6650,10 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj.SetItems([]);',
-    'this.Obj.SetItems(this.Obj.GetItems());',
-    'this.Obj.GetItems()[11] = this.Obj.GetItems()[12];'
+    LinesToStr([ // $mod.$main
+    '$mod.Obj.SetItems([]);',
+    '$mod.Obj.SetItems($mod.Obj.GetItems());',
+    '$mod.Obj.GetItems()[11] = $mod.Obj.GetItems()[12];'
     ]));
 end;
 
@@ -6553,7 +6686,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_PropertyDefault',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FItems = [];',
     '  };',
@@ -6573,10 +6706,10 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj.SetItems(11, 12);',
-    'this.Obj.SetItems(13, this.Obj.GetItems(14));',
-    'this.Obj.SetItems(this.Obj.GetItems(15), this.Obj.GetItems(this.Obj.GetItems(15)));'
+    LinesToStr([ // $mod.$main
+    '$mod.Obj.SetItems(11, 12);',
+    '$mod.Obj.SetItems(13, $mod.Obj.GetItems(14));',
+    '$mod.Obj.SetItems($mod.Obj.GetItems(15), $mod.Obj.GetItems($mod.Obj.GetItems(15)));'
     ]));
 end;
 
@@ -6605,25 +6738,25 @@ begin
   ConvertProgram;
   CheckSource('TestClass_PropertyOverride',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FItem = 0;',
     '  };',
     '  this.$final = function () {',
     '  };',
     '});',
-    'rtl.createClass(this, "TCar", this.TObject, function () {',
+    'rtl.createClass($mod, "TCar", $mod.TObject, function () {',
     '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
+    '    $mod.TObject.$init.call(this);',
     '    this.FBag = 0;',
     '  };',
     '});',
     'this.Obj = null;',
     'this.Car = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.Obj.SetItem(this.Obj.GetItem());',
-    'this.Car.SetItem(this.Car.GetBag());',
+    LinesToStr([ // $mod.$main
+    '$mod.Obj.SetItem($mod.Obj.GetItem());',
+    '$mod.Car.SetItem($mod.Car.GetBag());',
     '']));
 end;
 
@@ -6642,7 +6775,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_Assigned',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -6651,9 +6784,9 @@ begin
     'this.Obj = null;',
     'this.b = false;'
     ]),
-    LinesToStr([ // this.$main
-    'if (this.Obj != null);',
-    'this.b = (this.Obj != null) || false;'
+    LinesToStr([ // $mod.$main
+    'if ($mod.Obj != null);',
+    '$mod.b = ($mod.Obj != null) || false;'
     ]));
 end;
 
@@ -6689,7 +6822,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_WithClassDoCreate',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.aBool = false;',
     '    this.Arr = [];',
@@ -6703,20 +6836,20 @@ begin
     'this.Obj = null;',
     'this.b = false;'
     ]),
-    LinesToStr([ // this.$main
-    'var $with1 = this.TObject.$create("Create");',
-    'this.b = $with1.aBool;',
-    '$with1.aBool = this.b;',
-    'this.b = $with1.Arr[1];',
-    '$with1.Arr[2] = this.b;',
-    'var $with2 = this.TObject;',
-    'this.Obj = $with2.$create("Create");',
-    'var $with3 = this.Obj;',
+    LinesToStr([ // $mod.$main
+    'var $with1 = $mod.TObject.$create("Create");',
+    '$mod.b = $with1.aBool;',
+    '$with1.aBool = $mod.b;',
+    '$mod.b = $with1.Arr[1];',
+    '$with1.Arr[2] = $mod.b;',
+    'var $with2 = $mod.TObject;',
+    '$mod.Obj = $with2.$create("Create");',
+    'var $with3 = $mod.Obj;',
     '$with3.Create();',
-    'this.b = $with3.aBool;',
-    '$with3.aBool = this.b;',
-    'this.b = $with3.Arr[3];',
-    '$with3.Arr[4] = this.b;',
+    '$mod.b = $with3.aBool;',
+    '$with3.aBool = $mod.b;',
+    '$mod.b = $with3.Arr[3];',
+    '$with3.Arr[4] = $mod.b;',
     '']));
 end;
 
@@ -6754,7 +6887,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_WithClassInstDoProperty',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FInt = 0;',
     '  };',
@@ -6772,17 +6905,17 @@ begin
     'this.Obj = null;',
     'this.i = 0;'
     ]),
-    LinesToStr([ // this.$main
-    'var $with1 = this.TObject.$create("Create");',
-    'this.i = $with1.FInt;',
-    '$with1.FInt = this.i;',
-    'this.i = $with1.GetSize();',
-    '$with1.SetSize(this.i);',
-    'var $with2 = this.Obj;',
-    'this.i = $with2.FInt;',
-    '$with2.FInt = this.i;',
-    'this.i = $with2.GetSize();',
-    '$with2.SetSize(this.i);',
+    LinesToStr([ // $mod.$main
+    'var $with1 = $mod.TObject.$create("Create");',
+    '$mod.i = $with1.FInt;',
+    '$with1.FInt = $mod.i;',
+    '$mod.i = $with1.GetSize();',
+    '$with1.SetSize($mod.i);',
+    'var $with2 = $mod.Obj;',
+    '$mod.i = $with2.FInt;',
+    '$with2.FInt = $mod.i;',
+    '$mod.i = $with2.GetSize();',
+    '$with2.SetSize($mod.i);',
     '']));
 end;
 
@@ -6814,7 +6947,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_WithClassInstDoPropertyWithParams',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -6831,13 +6964,13 @@ begin
     'this.Obj = null;',
     'this.i = 0;'
     ]),
-    LinesToStr([ // this.$main
-    'var $with1 = this.TObject.$create("Create");',
-    'this.i = $with1.GetItems(1);',
-    '$with1.SetItems(2, this.i);',
-    'var $with2 = this.Obj;',
-    'this.i = $with2.GetItems(3);',
-    '$with2.SetItems(4, this.i);',
+    LinesToStr([ // $mod.$main
+    'var $with1 = $mod.TObject.$create("Create");',
+    '$mod.i = $with1.GetItems(1);',
+    '$with1.SetItems(2, $mod.i);',
+    'var $with2 = $mod.Obj;',
+    '$mod.i = $with2.GetItems(3);',
+    '$with2.SetItems(4, $mod.i);',
     '']));
 end;
 
@@ -6870,7 +7003,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_WithClassInstDoFunc',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -6887,15 +7020,15 @@ begin
     'this.Obj = null;',
     'this.i = 0;'
     ]),
-    LinesToStr([ // this.$main
-    'var $with1 = this.TObject.$create("Create");',
-    'this.i = $with1.GetSize();',
-    'this.i = $with1.GetSize();',
-    '$with1.SetSize(this.i);',
-    'var $with2 = this.Obj;',
-    'this.i = $with2.GetSize();',
-    'this.i = $with2.GetSize();',
-    '$with2.SetSize(this.i);',
+    LinesToStr([ // $mod.$main
+    'var $with1 = $mod.TObject.$create("Create");',
+    '$mod.i = $with1.GetSize();',
+    '$mod.i = $with1.GetSize();',
+    '$with1.SetSize($mod.i);',
+    'var $with2 = $mod.Obj;',
+    '$mod.i = $with2.GetSize();',
+    '$mod.i = $with2.GetSize();',
+    '$with2.SetSize($mod.i);',
     '']));
 end;
 
@@ -6926,7 +7059,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_TypeCast',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.Next = null;',
     '  };',
@@ -6936,14 +7069,14 @@ begin
     '  this.Create = function () {',
     '  };',
     '});',
-    'rtl.createClass(this, "TControl", this.TObject, function () {',
+    'rtl.createClass($mod, "TControl", $mod.TObject, function () {',
     '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
+    '    $mod.TObject.$init.call(this);',
     '    this.Arr = [];',
     '  };',
     '  this.$final = function () {',
     '    this.Arr = undefined;',
-    '    pas.program.TObject.$final.call(this);',
+    '    $mod.TObject.$final.call(this);',
     '  };',
     '  this.GetIt = function (vI) {',
     '    var Result = null;',
@@ -6952,14 +7085,14 @@ begin
     '});',
     'this.Obj = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj = this.Obj.Next;',
-    'this.Obj = null;',
-    'this.Obj = this.Obj;',
-    'this.Obj = this.Obj.GetIt(0);',
-    'this.Obj = this.Obj.GetIt(0);',
-    'this.Obj = this.Obj.GetIt(1);',
-    'this.Obj = this.Obj.GetIt(0).Arr[2];',
+    LinesToStr([ // $mod.$main
+    '$mod.Obj = $mod.Obj.Next;',
+    '$mod.Obj = null;',
+    '$mod.Obj = $mod.Obj;',
+    '$mod.Obj = $mod.Obj.GetIt(0);',
+    '$mod.Obj = $mod.Obj.GetIt(0);',
+    '$mod.Obj = $mod.Obj.GetIt(1);',
+    '$mod.Obj = $mod.Obj.GetIt(0).Arr[2];',
     '']));
 end;
 
@@ -6995,7 +7128,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_TypeCastUntypedParam',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7019,9 +7152,9 @@ begin
     '};',
     'this.o = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.ProcA({',
-    '  p: this,',
+    LinesToStr([ // $mod.$main
+    '$mod.ProcA({',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.o;',
     '    },',
@@ -7029,8 +7162,8 @@ begin
     '      this.p.o = v;',
     '    }',
     '});',
-    'this.ProcB({',
-    '  p: this,',
+    '$mod.ProcB({',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.o;',
     '    },',
@@ -7038,7 +7171,7 @@ begin
     '      this.p.o = v;',
     '    }',
     '});',
-    'this.ProcC(this.o);',
+    '$mod.ProcC($mod.o);',
     '']));
 end;
 
@@ -7060,7 +7193,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_Overloads',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7073,7 +7206,7 @@ begin
     '  };',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -7109,7 +7242,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_OverloadsAncestor',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7121,18 +7254,18 @@ begin
     '  this.DoIt$1 = function (vA, vB) {',
     '  };',
     '});',
-    'rtl.createClass(this, "TCar", this.TObject, function () {',
+    'rtl.createClass($mod, "TCar", $mod.TObject, function () {',
     '  this.DoIt$2 = function (vA) {',
     '    this.DoIt$2(1);',
     '    this.DoIt$3(1, 2);',
-    '    pas.program.TObject.DoIt.call(this, 1);',
-    '    pas.program.TObject.DoIt$1.call(this, 1, 2);',
+    '    $mod.TObject.DoIt.call(this, 1);',
+    '    $mod.TObject.DoIt$1.call(this, 1, 2);',
     '  };',
     '  this.DoIt$3 = function (vA, vB) {',
     '  };',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -7170,7 +7303,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_OverloadConstructor',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7182,22 +7315,22 @@ begin
     '  this.Create$1 = function (vA, vB) {',
     '  };',
     '});',
-    'rtl.createClass(this, "TCar", this.TObject, function () {',
+    'rtl.createClass($mod, "TCar", $mod.TObject, function () {',
     '  this.Create$2 = function (vA) {',
     '    this.Create$2(1);',
     '    this.Create$3(1, 2);',
-    '    pas.program.TObject.Create.call(this, 1);',
-    '    pas.program.TObject.Create$1.call(this, 1, 2);',
+    '    $mod.TObject.Create.call(this, 1);',
+    '    $mod.TObject.Create$1.call(this, 1, 2);',
     '  };',
     '  this.Create$3 = function (vA, vB) {',
     '  };',
     '});',
     '']),
-    LinesToStr([ // this.$main
-    'this.TObject.$create("Create", [1]);',
-    'this.TObject.$create("Create$1", [1, 2]);',
-    'this.TCar.$create("Create$2", [1]);',
-    'this.TCar.$create("Create$3", [1, 2]);',
+    LinesToStr([ // $mod.$main
+    '$mod.TObject.$create("Create", [1]);',
+    '$mod.TObject.$create("Create$1", [1, 2]);',
+    '$mod.TCar.$create("Create$2", [1]);',
+    '$mod.TCar.$create("Create$3", [1, 2]);',
     '']));
 end;
 
@@ -7227,20 +7360,20 @@ begin
   ConvertProgram;
   CheckSource('TestClass_ReintroducedVar',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.Some = 0;',
     '  };',
     '  this.$final = function () {',
     '  };',
     '});',
-    'rtl.createClass(this, "TMobile", this.TObject, function () {',
+    'rtl.createClass($mod, "TMobile", $mod.TObject, function () {',
     '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
+    '    $mod.TObject.$init.call(this);',
     '    this.Some$1 = "";',
     '  };',
     '});',
-    'rtl.createClass(this, "TCar", this.TMobile, function () {',
+    'rtl.createClass($mod, "TCar", $mod.TMobile, function () {',
     '  this.Some$2 = function () {',
     '    this.Some$2();',
     '    this.Some$3(1);',
@@ -7249,7 +7382,7 @@ begin
     '  };',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -7271,7 +7404,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_RaiseDescendant',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7279,14 +7412,14 @@ begin
     '  this.Create = function (Msg) {',
     '  };',
     '});',
-    'rtl.createClass(this, "Exception", this.TObject, function () {',
+    'rtl.createClass($mod, "Exception", $mod.TObject, function () {',
     '});',
-    'rtl.createClass(this, "EConvertError", this.Exception, function () {',
+    'rtl.createClass($mod, "EConvertError", $mod.Exception, function () {',
     '});',
     '']),
-    LinesToStr([ // this.$main
-    'throw this.Exception.$create("Create",["Bar1"]);',
-    'throw this.EConvertError.$create("Create",["Bar2"]);',
+    LinesToStr([ // $mod.$main
+    'throw $mod.Exception.$create("Create",["Bar1"]);',
+    'throw $mod.EConvertError.$create("Create",["Bar2"]);',
     '']));
 end;
 
@@ -7337,8 +7470,8 @@ begin
   ConvertUnit;
   CheckSource('TestClass_ExternalMethod',
     LinesToStr([
-    'var $impl = this.$impl;',
-    'rtl.createClass(this, "TCar", pas.unit2.TObject, function () {',
+    'var $impl = $mod.$impl;',
+    'rtl.createClass($mod, "TCar", pas.unit2.TObject, function () {',
     '    this.DoIt = function () {',
     '      this.$DoIntern();',
     '      this.$DoIntern();',
@@ -7435,8 +7568,8 @@ begin
   ConvertUnit;
   CheckSource('TestClass_ExternalVar',
     LinesToStr([
-    'var $impl = this.$impl;',
-    'rtl.createClass(this, "TCar", pas.unit2.TObject, function () {',
+    'var $impl = $mod.$impl;',
+    'rtl.createClass($mod, "TCar", pas.unit2.TObject, function () {',
     '    this.DoIt = function () {',
     '      this.$Intern = this.$Intern + 1;',
     '      this.$Intern2 = this.$Intern2 + 2;',
@@ -7503,7 +7636,7 @@ begin
   ConvertProgram;
   CheckSource('TestClass_Const',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.cI = 3;',
     '  this.$init = function () {',
     '  };',
@@ -7532,15 +7665,247 @@ begin
     'this.Cla = null;',
     '']),
     LinesToStr([
-    'if (this.TObject.cI == 21) ;',
-    'if (this.Obj.cI == 22) ;',
-    'if (this.Cla.cI == 23) ;',
-    'var $with1 = this.Obj;',
+    'if ($mod.TObject.cI == 21) ;',
+    'if ($mod.Obj.cI == 22) ;',
+    'if ($mod.Cla.cI == 23) ;',
+    'var $with1 = $mod.Obj;',
     'if ($with1.cI == 24) ;',
-    'var $with2 = this.TObject;',
+    'var $with2 = $mod.TObject;',
     'if ($with2.cI == 25) ;',
-    'var $with3 = this.Cla;',
+    'var $with3 = $mod.Cla;',
     'if ($with3.cI == 26) ;',
+    '']));
+end;
+
+procedure TTestModule.TestClass_LocalVarSelfFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  'constructor tobject.create;',
+  'var self: longint;',
+  'begin',
+  'end',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Duplicate identifier "self" at (0)',nDuplicateIdentifier);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClass_ArgSelfFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoIt(Self: longint);',
+  '  end;',
+  'procedure tobject.doit(self: longint);',
+  'begin',
+  'end',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Duplicate identifier "Self" at test1.pp(5,23)',nDuplicateIdentifier);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClass_NestedSelf;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    Key: longint;',
+  '    class var State: longint;',
+  '    procedure DoIt;',
+  '    function GetSize: longint; virtual; abstract;',
+  '    procedure SetSize(Value: longint); virtual; abstract;',
+  '    property Size: longint read GetSize write SetSize;',
+  '  end;',
+  'procedure tobject.doit;',
+  '  procedure Sub;',
+  '  begin',
+  '    key:=key+2;',
+  '    self.key:=self.key+3;',
+  '    state:=state+4;',
+  '    self.state:=self.state+5;',
+  '    tobject.state:=tobject.state+6;',
+  '    size:=size+7;',
+  '    self.size:=self.size+8;',
+  '  end;',
+  'begin',
+  '  sub;',
+  '  key:=key+12;',
+  '  self.key:=self.key+13;',
+  '  state:=state+14;',
+  '  self.state:=self.state+15;',
+  '  tobject.state:=tobject.state+16;',
+  '  size:=size+17;',
+  '  self.size:=self.size+18;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_NestedSelf',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.State = 0;',
+    '  this.$init = function () {',
+    '    this.Key = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '    var Self = this;',
+    '    function Sub() {',
+    '      Self.Key = Self.Key + 2;',
+    '      Self.Key = Self.Key + 3;',
+    '      Self.$class.State = Self.State + 4;',
+    '      Self.$class.State = Self.State + 5;',
+    '      $mod.TObject.State = $mod.TObject.State + 6;',
+    '      Self.SetSize(Self.GetSize() + 7);',
+    '      Self.SetSize(Self.GetSize() + 8);',
+    '    };',
+    '    Sub();',
+    '    Self.Key = Self.Key + 12;',
+    '    Self.Key = Self.Key + 13;',
+    '    Self.$class.State = Self.State + 14;',
+    '    Self.$class.State = Self.State + 15;',
+    '    $mod.TObject.State = $mod.TObject.State + 16;',
+    '    Self.SetSize(Self.GetSize() + 17);',
+    '    Self.SetSize(Self.GetSize() + 18);',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClass_NestedClassSelf;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class var State: longint;',
+  '    class procedure DoIt;',
+  '    class function GetSize: longint; virtual; abstract;',
+  '    class procedure SetSize(Value: longint); virtual; abstract;',
+  '    class property Size: longint read GetSize write SetSize;',
+  '  end;',
+  'class procedure tobject.doit;',
+  '  procedure Sub;',
+  '  begin',
+  '    state:=state+2;',
+  '    self.state:=self.state+3;',
+  '    tobject.state:=tobject.state+4;',
+  '    size:=size+5;',
+  '    self.size:=self.size+6;',
+  '    tobject.size:=tobject.size+7;',
+  '  end;',
+  'begin',
+  '  sub;',
+  '  state:=state+12;',
+  '  self.state:=self.state+13;',
+  '  tobject.state:=tobject.state+14;',
+  '  size:=size+15;',
+  '  self.size:=self.size+16;',
+  '  tobject.size:=tobject.size+17;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_NestedClassSelf',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.State = 0;',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '    var Self = this;',
+    '    function Sub() {',
+    '      Self.State = Self.State + 2;',
+    '      Self.State = Self.State + 3;',
+    '      $mod.TObject.State = $mod.TObject.State + 4;',
+    '      Self.SetSize(Self.GetSize() + 5);',
+    '      Self.SetSize(Self.GetSize() + 6);',
+    '      $mod.TObject.SetSize($mod.TObject.GetSize() + 7);',
+    '    };',
+    '    Sub();',
+    '    Self.State = Self.State + 12;',
+    '    Self.State = Self.State + 13;',
+    '    $mod.TObject.State = $mod.TObject.State + 14;',
+    '    Self.SetSize(Self.GetSize() + 15);',
+    '    Self.SetSize(Self.GetSize() + 16);',
+    '    $mod.TObject.SetSize($mod.TObject.GetSize() + 17);',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClass_NestedCallInherited;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function DoIt(k: boolean): longint; virtual;',
+  '  end;',
+  '  TBird = class',
+  '    function DoIt(k: boolean): longint; override;',
+  '  end;',
+  'function tobject.doit(k: boolean): longint;',
+  'begin',
+  'end;',
+  'function tbird.doit(k: boolean): longint;',
+  '  procedure Sub;',
+  '  begin',
+  '    inherited DoIt(true);',
+  //'    if inherited DoIt(false)=4 then ;',
+  '  end;',
+  'begin',
+  '  Sub;',
+  '  inherited;',
+  '  inherited DoIt(true);',
+  //'  if inherited DoIt(false)=14 then ;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_NestedCallInherited',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function (k) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.DoIt = function (k) {',
+    '    var Self = this;',
+    '    var Result = 0;',
+    '    function Sub() {',
+    '      $mod.TObject.DoIt.call(Self, true);',
+    '    };',
+    '    Sub();',
+    '    $mod.TObject.DoIt.apply(Self, arguments);',
+    '    $mod.TObject.DoIt.call(Self, true);',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -7562,7 +7927,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassOf_Create',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7573,10 +7938,10 @@ begin
     'this.Obj = null;',
     'this.C = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj = this.C.$create("Create");',
-    'var $with1 = this.C;',
-    'this.Obj = $with1.$create("Create");',
+    LinesToStr([ // $mod.$main
+    '$mod.Obj = $mod.C.$create("Create");',
+    'var $with1 = $mod.C;',
+    '$mod.Obj = $with1.$create("Create");',
     '']));
 end;
 
@@ -7597,7 +7962,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassOf_Call',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7607,9 +7972,9 @@ begin
     '});',
     'this.C = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.C.DoIt();',
-    'var $with1 = this.C;',
+    LinesToStr([ // $mod.$main
+    '$mod.C.DoIt();',
+    'var $with1 = $mod.C;',
     '$with1.DoIt();',
     '']));
 end;
@@ -7631,7 +7996,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassOf_Assign',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.ClassType = null;',
     '  };',
@@ -7642,9 +8007,9 @@ begin
     'this.Obj = null;',
     'this.C = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.C = null;',
-    'this.C = this.Obj.ClassType;',
+    LinesToStr([ // $mod.$main
+    '$mod.C = null;',
+    '$mod.C = $mod.Obj.ClassType;',
     '']));
 end;
 
@@ -7668,21 +8033,21 @@ begin
   ConvertProgram;
   CheckSource('TestClassOf_Is',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
     '  };',
     '});',
-    'rtl.createClass(this, "TCar", this.TObject, function () {',
+    'rtl.createClass($mod, "TCar", $mod.TObject, function () {',
     '});',
     'this.Obj = null;',
     'this.C = null;',
     'this.Cars = null;'
     ]),
-    LinesToStr([ // this.$main
-    'if(rtl.is(this.C,this.TCar));',
-    'if(rtl.is(this.C,this.TCar));',
+    LinesToStr([ // $mod.$main
+    'if(rtl.is($mod.C,$mod.TCar));',
+    'if(rtl.is($mod.C,$mod.TCar));',
     '']));
 end;
 
@@ -7714,7 +8079,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassOf_Compare',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.ClassType = null;',
     '  };',
@@ -7726,19 +8091,19 @@ begin
     'this.Obj = null;',
     'this.C = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.b = this.C == null;',
-    'this.b = null == this.C;',
-    'this.b = this.C == this.Obj.ClassType;',
-    'this.b = this.Obj.ClassType == this.C;',
-    'this.b = this.C == this.TObject;',
-    'this.b = this.TObject == this.C;',
-    'this.b = this.C != null;',
-    'this.b = null != this.C;',
-    'this.b = this.C != this.Obj.ClassType;',
-    'this.b = this.Obj.ClassType != this.C;',
-    'this.b = this.C != this.TObject;',
-    'this.b = this.TObject != this.C;',
+    LinesToStr([ // $mod.$main
+    '$mod.b = $mod.C == null;',
+    '$mod.b = null == $mod.C;',
+    '$mod.b = $mod.C == $mod.Obj.ClassType;',
+    '$mod.b = $mod.Obj.ClassType == $mod.C;',
+    '$mod.b = $mod.C == $mod.TObject;',
+    '$mod.b = $mod.TObject == $mod.C;',
+    '$mod.b = $mod.C != null;',
+    '$mod.b = null != $mod.C;',
+    '$mod.b = $mod.C != $mod.Obj.ClassType;',
+    '$mod.b = $mod.Obj.ClassType != $mod.C;',
+    '$mod.b = $mod.C != $mod.TObject;',
+    '$mod.b = $mod.TObject != $mod.C;',
     '']));
 end;
 
@@ -7757,7 +8122,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassOf_ClassVar',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.id = 0;',
     '  this.$init = function () {',
     '  };',
@@ -7766,8 +8131,8 @@ begin
     '});',
     'this.C = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.C.id = this.C.id;',
+    LinesToStr([ // $mod.$main
+    '$mod.C.id = $mod.C.id;',
     '']));
 end;
 
@@ -7791,7 +8156,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassOf_ClassMethod',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7804,11 +8169,11 @@ begin
     'this.i = 0;',
     'this.C = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.C.DoIt(0);',
-    'this.C.DoIt(0);',
-    'this.i = this.C.DoIt(0);',
-    'this.i = this.C.DoIt(0);',
+    LinesToStr([ // $mod.$main
+    '$mod.C.DoIt(0);',
+    '$mod.C.DoIt(0);',
+    '$mod.i = $mod.C.DoIt(0);',
+    '$mod.i = $mod.C.DoIt(0);',
     '']));
 end;
 
@@ -7849,7 +8214,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassOf_ClassProperty',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.FA = 0;',
     '  this.$init = function () {',
     '  };',
@@ -7866,22 +8231,22 @@ begin
     'this.Obj = null;',
     'this.Cla = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.Obj.$class.FA = this.Obj.FA;',
-    'this.Obj.$class.SetA(this.Obj.$class.GetA());',
-    'this.b = this.Obj.FA == 4;',
-    'this.b = this.Obj.$class.GetA() == this.Obj.$class.GetA();',
-    'this.b = 5 == this.Obj.FA;',
-    'this.Cla.FA = 6;',
-    'this.Cla.FA = this.Cla.FA;',
-    'this.Cla.SetA(this.Cla.GetA());',
-    'this.b = this.Cla.FA == 7;',
-    'this.b = this.Cla.GetA() == this.Cla.GetA();',
-    'this.b = 8 == this.Cla.FA;',
-    'this.TObject.FA = 9;',
-    'this.TObject.SetA(this.TObject.GetA());',
-    'this.b = this.TObject.FA == 10;',
-    'this.b = 11 == this.TObject.FA;',
+    LinesToStr([ // $mod.$main
+    '$mod.Obj.$class.FA = $mod.Obj.FA;',
+    '$mod.Obj.$class.SetA($mod.Obj.$class.GetA());',
+    '$mod.b = $mod.Obj.FA == 4;',
+    '$mod.b = $mod.Obj.$class.GetA() == $mod.Obj.$class.GetA();',
+    '$mod.b = 5 == $mod.Obj.FA;',
+    '$mod.Cla.FA = 6;',
+    '$mod.Cla.FA = $mod.Cla.FA;',
+    '$mod.Cla.SetA($mod.Cla.GetA());',
+    '$mod.b = $mod.Cla.FA == 7;',
+    '$mod.b = $mod.Cla.GetA() == $mod.Cla.GetA();',
+    '$mod.b = 8 == $mod.Cla.FA;',
+    '$mod.TObject.FA = 9;',
+    '$mod.TObject.SetA($mod.TObject.GetA());',
+    '$mod.b = $mod.TObject.FA == 10;',
+    '$mod.b = 11 == $mod.TObject.FA;',
     '']));
 end;
 
@@ -7906,7 +8271,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassOf_ClassMethodSelf',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.GlobalId = 0;',
     '  this.$init = function () {',
     '  };',
@@ -7922,7 +8287,7 @@ begin
     '  };',
     '});'
     ]),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -7974,7 +8339,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassOf_TypeCast',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -7984,14 +8349,14 @@ begin
     '    this.DoIt$1();',
     '  };',
     '});',
-    'rtl.createClass(this, "TMobile", this.TObject, function () {',
+    'rtl.createClass($mod, "TMobile", $mod.TObject, function () {',
     '  this.DoIt$1 = function () {',
     '    this.DoIt();',
     '    this.DoIt$1();',
     '    this.DoIt$2();',
     '  };',
     '});',
-    'rtl.createClass(this, "TCar", this.TMobile, function () {',
+    'rtl.createClass($mod, "TCar", $mod.TMobile, function () {',
     '  this.DoIt$2 = function () {',
     '  };',
     '});',
@@ -7999,19 +8364,19 @@ begin
     'this.MobileC = null;',
     'this.CarC = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.ObjC.DoIt();',
-    'this.MobileC.DoIt$1();',
-    'this.CarC.DoIt$2();',
-    'this.ObjC.DoIt();',
-    'this.ObjC.DoIt$1();',
-    'this.ObjC.DoIt$2();',
-    'this.MobileC.DoIt();',
-    'this.MobileC.DoIt$1();',
-    'this.MobileC.DoIt$2();',
-    'this.CarC.DoIt();',
-    'this.CarC.DoIt$1();',
-    'this.CarC.DoIt$2();',
+    LinesToStr([ // $mod.$main
+    '$mod.ObjC.DoIt();',
+    '$mod.MobileC.DoIt$1();',
+    '$mod.CarC.DoIt$2();',
+    '$mod.ObjC.DoIt();',
+    '$mod.ObjC.DoIt$1();',
+    '$mod.ObjC.DoIt$2();',
+    '$mod.MobileC.DoIt();',
+    '$mod.MobileC.DoIt$1();',
+    '$mod.MobileC.DoIt$2();',
+    '$mod.CarC.DoIt();',
+    '$mod.CarC.DoIt$1();',
+    '$mod.CarC.DoIt$2();',
     '']));
 end;
 
@@ -8036,7 +8401,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassOf_ImplicitFunctionCall',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -8053,11 +8418,11 @@ begin
     'this.Obj = null;',
     'this.vI = 0;',
     '']),
-    LinesToStr([ // this.$main
-    'this.Obj.CurNow();',
-    'this.vI = this.Obj.CurNow();',
-    'this.TObject.Now();',
-    'this.vI = this.TObject.Now();',
+    LinesToStr([ // $mod.$main
+    '$mod.Obj.CurNow();',
+    '$mod.vI = $mod.Obj.CurNow();',
+    '$mod.TObject.Now();',
+    '$mod.vI = $mod.TObject.Now();',
     '']));
 end;
 
@@ -8079,9 +8444,38 @@ begin
     LinesToStr([ // statements
     'this.Obj = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.Obj.$Id = this.Obj.$Id + 1;',
-    'this.Obj.B = this.Obj.B + 1;',
+    LinesToStr([ // $mod.$main
+    '$mod.Obj.$Id = $mod.Obj.$Id + 1;',
+    '$mod.Obj.B = $mod.Obj.B + 1;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_Dollar;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''$''',
+  '    Id: longint external name ''$'';',
+  '    function Bla(i: longint): longint; external name ''$'';',
+  '  end;',
+  'function dollar(k: longint): longint; external name ''$'';',
+  'var Obj: TExtA;',
+  'begin',
+  '  dollar(1);',
+  '  obj.id:=obj.id+2;',
+  '  obj.Bla(3);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_Dollar',
+    LinesToStr([ // statements
+    'this.Obj = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$(1);',
+    '$mod.Obj.$ = $mod.Obj.$ + 2;',
+    '$mod.Obj.$(3);',
     '']));
 end;
 
@@ -8125,11 +8519,11 @@ begin
     LinesToStr([ // statements
     'this.Obj = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.Obj.$Execute(1);',
-    'this.Obj.$Execute(1);',
-    'this.Obj.$Execute(2);',
-    'var $with1 = this.Obj;',
+    LinesToStr([ // $mod.$main
+    '$mod.Obj.$Execute(1);',
+    '$mod.Obj.$Execute(1);',
+    '$mod.Obj.$Execute(2);',
+    'var $with1 = $mod.Obj;',
     '$with1.$Execute(1);',
     '$with1.$Execute(1);',
     '$with1.$Execute(3);',
@@ -8168,7 +8562,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_NonExternalOverride',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtC", ExtObjB, "", function () {',
+    'rtl.createClassExt($mod, "TExtC", ExtObjB, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -8184,10 +8578,10 @@ begin
     'this.B = null;',
     'this.C = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.A.ProcA();',
-    'this.B.ProcA();',
-    'this.C.ProcA();',
+    LinesToStr([ // $mod.$main
+    '$mod.A.ProcA();',
+    '$mod.B.ProcA();',
+    '$mod.C.ProcA();',
     '']));
 end;
 
@@ -8218,7 +8612,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_NonExternalOverride',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtB", ExtA, "", function () {',
+    'rtl.createClassExt($mod, "TExtB", ExtA, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -8230,9 +8624,9 @@ begin
     'this.A = null;',
     'this.B = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.A.setYear(this.A.getYear()+1);',
-    'this.B.OtherSetYear(this.B.getYear()+2);',
+    LinesToStr([ // $mod.$main
+    '$mod.A.setYear($mod.A.getYear()+1);',
+    '$mod.B.OtherSetYear($mod.B.getYear()+2);',
     '']));
 end;
 
@@ -8275,7 +8669,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_ClassProperty',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtB", ExtA, "", function () {',
+    'rtl.createClassExt($mod, "TExtB", ExtA, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -8288,20 +8682,20 @@ begin
     '    this.setYear(Value + 11);',
     '    ExtA.setYear(ExtA.getYear() + 12);',
     '    this.setYear(this.getYear() + 13);',
-    '    pas.program.TExtB.SetCentury(pas.program.TExtB.GetCentury() + 14);',
+    '    $mod.TExtB.SetCentury($mod.TExtB.GetCentury() + 14);',
     '    this.SetCentury(this.GetCentury() + 15);',
     '  };',
     '});',
     'this.A = null;',
     'this.B = null;',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     'ExtA.setYear(ExtA.getYear() + 1);',
-    'this.TExtB.setYear(this.TExtB.getYear() + 2);',
+    '$mod.TExtB.setYear($mod.TExtB.getYear() + 2);',
     'ExtA.setYear(ExtA.getYear() + 3);',
-    'this.B.setYear(this.B.getYear() + 4);',
-    'this.TExtB.SetCentury(this.TExtB.GetCentury() + 5);',
-    'this.B.$class.SetCentury(this.B.$class.GetCentury() + 6);',
+    '$mod.B.setYear($mod.B.getYear() + 4);',
+    '$mod.TExtB.SetCentury($mod.TExtB.GetCentury() + 5);',
+    '$mod.B.$class.SetCentury($mod.B.$class.GetCentury() + 6);',
     '']));
 end;
 
@@ -8337,7 +8731,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_ClassOf',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtC", ExtB, "", function () {',
+    'rtl.createClassExt($mod, "TExtC", ExtB, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -8352,13 +8746,13 @@ begin
     'this.C = null;',
     'this.ClC = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.ClA = ExtA;',
-    'this.ClA = ExtB;',
-    'this.ClA = this.TExtC;',
-    'this.ClB = ExtB;',
-    'this.ClB = this.TExtC;',
-    'this.ClC = this.TExtC;',
+    LinesToStr([ // $mod.$main
+    '$mod.ClA = ExtA;',
+    '$mod.ClA = ExtB;',
+    '$mod.ClA = $mod.TExtC;',
+    '$mod.ClB = ExtB;',
+    '$mod.ClB = $mod.TExtC;',
+    '$mod.ClC = $mod.TExtC;',
     '']));
 end;
 
@@ -8417,7 +8811,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_Is',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtC", ExtB, "", function () {',
+    'rtl.createClassExt($mod, "TExtC", ExtB, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -8430,13 +8824,13 @@ begin
     'this.C = null;',
     'this.ClC = null;',
     '']),
-    LinesToStr([ // this.$main
-    'if (rtl.isExt(this.A, ExtB)) ;',
-    'if (this.TExtC.isPrototypeOf(this.A)) ;',
-    'if (this.TExtC.isPrototypeOf(this.B)) ;',
-    'if (rtl.isExt(this.ClA, ExtB)) ;',
-    'if (rtl.is(this.ClA, this.TExtC)) ;',
-    'if (rtl.is(this.ClB, this.TExtC)) ;',
+    LinesToStr([ // $mod.$main
+    'if (rtl.isExt($mod.A, ExtB)) ;',
+    'if ($mod.TExtC.isPrototypeOf($mod.A)) ;',
+    'if ($mod.TExtC.isPrototypeOf($mod.B)) ;',
+    'if (rtl.isExt($mod.ClA, ExtB)) ;',
+    'if (rtl.is($mod.ClA, $mod.TExtC)) ;',
+    'if (rtl.is($mod.ClB, $mod.TExtC)) ;',
     '']));
 end;
 
@@ -8462,7 +8856,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_Is',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TExtC", ExtB, "", function () {',
+    'rtl.createClassExt($mod, "TExtC", ExtB, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -8472,10 +8866,10 @@ begin
     'this.B = null;',
     'this.C = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.B = rtl.asExt(this.A, ExtB);',
-    'this.C = rtl.as(this.A, this.TExtC);',
-    'this.C = rtl.as(this.B, this.TExtC);',
+    LinesToStr([ // $mod.$main
+    '$mod.B = rtl.asExt($mod.A, ExtB);',
+    '$mod.C = rtl.as($mod.A, $mod.TExtC);',
+    '$mod.C = rtl.as($mod.B, $mod.TExtC);',
     '']));
 end;
 
@@ -8520,17 +8914,17 @@ begin
     LinesToStr([ // statements
     'this.A = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.A = new ExtA();',
-    'this.A = new ExtA();',
-    'this.A = new ExtA(1,2);',
+    LinesToStr([ // $mod.$main
+    '$mod.A = new ExtA();',
+    '$mod.A = new ExtA();',
+    '$mod.A = new ExtA(1,2);',
     'var $with1 = ExtA;',
-    'this.A = new $with1();',
-    'this.A = new $with1();',
-    'this.A = new $with1(2,2);',
-    'this.A = new ExtA();',
-    'this.A = new ExtA();',
-    'this.A = new ExtA(3,2);',
+    '$mod.A = new $with1();',
+    '$mod.A = new $with1();',
+    '$mod.A = new $with1(2,2);',
+    '$mod.A = new ExtA();',
+    '$mod.A = new ExtA();',
+    '$mod.A = new ExtA(3,2);',
     '']));
 end;
 
@@ -8561,14 +8955,14 @@ begin
     'this.A = null;',
     'this.C = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.A = new this.C();',
-    'this.A = new this.C();',
-    'var $with1 = this.C;',
-    'this.A = new $with1();',
-    'this.A = new $with1();',
-    'this.A = new this.C();',
-    'this.A = new this.C();',
+    LinesToStr([ // $mod.$main
+    '$mod.A = new $mod.C();',
+    '$mod.A = new $mod.C();',
+    'var $with1 = $mod.C;',
+    '$mod.A = new $with1();',
+    '$mod.A = new $with1();',
+    '$mod.A = new $mod.C();',
+    '$mod.A = new $mod.C();',
     '']));
 end;
 
@@ -8606,14 +9000,14 @@ begin
     '};',
     'this.A = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.A = new (this.GetCreator())();',
-    'this.A = new (this.GetCreator())();',
-    'this.A = new (this.GetCreator())();',
-    'this.A = new (this.GetCreator())();',
-    'var $with1 = this.GetCreator();',
-    'this.A = new $with1();',
-    'this.A = new $with1();',
+    LinesToStr([ // $mod.$main
+    '$mod.A = new ($mod.GetCreator())();',
+    '$mod.A = new ($mod.GetCreator())();',
+    '$mod.A = new ($mod.GetCreator())();',
+    '$mod.A = new ($mod.GetCreator())();',
+    'var $with1 = $mod.GetCreator();',
+    '$mod.A = new $with1();',
+    '$mod.A = new $with1();',
     '']));
 end;
 
@@ -8645,8 +9039,8 @@ begin
     '};',
     'this.A = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.A = new ExtA();',
+    LinesToStr([ // $mod.$main
+    '$mod.A = new ExtA();',
     '']));
 end;
 
@@ -8666,7 +9060,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_ReintroduceOverload',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TMyA", ExtA, "", function () {',
+    'rtl.createClassExt($mod, "TMyA", ExtA, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -8675,7 +9069,7 @@ begin
     '  };',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -8712,7 +9106,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_ReintroduceOverload',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TMyC", ExtB, "", function () {',
+    'rtl.createClassExt($mod, "TMyC", ExtB, "", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -8731,7 +9125,7 @@ begin
     '  };',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -8766,7 +9160,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_NewInstance',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TMyB", ExtA, "NewInstance", function () {',
+    'rtl.createClassExt($mod, "TMyB", ExtA, "NewInstance", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -8777,7 +9171,7 @@ begin
     '  };',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -8864,7 +9258,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_PascalProperty',
     LinesToStr([ // statements
-    'rtl.createClassExt(this, "TControl", ExtA, "", function () {',
+    'rtl.createClassExt($mod, "TControl", ExtA, "", function () {',
     '  this.$init = function () {',
     '    this.FOnClick = null;',
     '  };',
@@ -8877,9 +9271,9 @@ begin
     '});',
     'this.Ctrl = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.Ctrl.FOnClick = rtl.createCallback(this.Ctrl, "Click");',
-    'this.Ctrl.FOnClick(this.Ctrl);',
+    LinesToStr([ // $mod.$main
+    '$mod.Ctrl.FOnClick = rtl.createCallback($mod.Ctrl, "Click");',
+    '$mod.Ctrl.FOnClick($mod.Ctrl);',
     '']));
 end;
 
@@ -8919,13 +9313,13 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_TypeCastToRootClass',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
     '  };',
     '});',
-    'rtl.createClass(this, "TChild", this.TObject, function () {',
+    'rtl.createClass($mod, "TChild", $mod.TObject, function () {',
     '});',
     'this.Obj = null;',
     'this.Child = null;',
@@ -8934,15 +9328,15 @@ begin
     'this.RootB = null;',
     'this.ChildB = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.Obj = this.RootA;',
-    'this.Obj = this.ChildA;',
-    'this.Child = this.RootA;',
-    'this.RootA = this.Obj;',
-    'this.RootA = this.Child;',
-    'this.RootA = this.RootB;',
-    'this.RootA = this.ChildB;',
-    'this.ChildA = this.Obj;',
+    LinesToStr([ // $mod.$main
+    '$mod.Obj = $mod.RootA;',
+    '$mod.Obj = $mod.ChildA;',
+    '$mod.Child = $mod.RootA;',
+    '$mod.RootA = $mod.Obj;',
+    '$mod.RootA = $mod.Child;',
+    '$mod.RootA = $mod.RootB;',
+    '$mod.RootA = $mod.ChildB;',
+    '$mod.ChildA = $mod.Obj;',
     '']));
 end;
 
@@ -8966,10 +9360,10 @@ begin
     LinesToStr([ // statements
     'this.s = "";',
     '']),
-    LinesToStr([ // this.$main
-    'this.s = String.fromCharCode(65, 66);',
-    'this.s = this.s.anchor(this.s);',
-    'this.s = "foo".anchor(this.s);',
+    LinesToStr([ // $mod.$main
+    '$mod.s = String.fromCharCode(65, 66);',
+    '$mod.s = $mod.s.anchor($mod.s);',
+    '$mod.s = "foo".anchor($mod.s);',
     '']));
 end;
 
@@ -9028,19 +9422,19 @@ begin
     'this.i = 0;',
     'this.v = undefined;',
     '']),
-    LinesToStr([ // this.$main
-    'this.v = this.Arr[0];',
-    'this.v = this.Arr[1];',
-    'this.Arr[2] = this.s;',
-    'this.Arr[3] = this.s;',
-    'this.Arr[4] = this.i;',
-    'this.Arr[5] = this.Arr[6];',
-    'this.Arr[7] = this.Arr[8];',
-    'var $with1 = this.Arr;',
+    LinesToStr([ // $mod.$main
+    '$mod.v = $mod.Arr[0];',
+    '$mod.v = $mod.Arr[1];',
+    '$mod.Arr[2] = $mod.s;',
+    '$mod.Arr[3] = $mod.s;',
+    '$mod.Arr[4] = $mod.i;',
+    '$mod.Arr[5] = $mod.Arr[6];',
+    '$mod.Arr[7] = $mod.Arr[8];',
+    'var $with1 = $mod.Arr;',
     '$with1[9] = $with1[10];',
-    'this.DoIt(this.Arr[7], this.Arr[8], {',
+    '$mod.DoIt($mod.Arr[7], $mod.Arr[8], {',
     '  a: 9,',
-    '  p: this.Arr,',
+    '  p: $mod.Arr,',
     '  get: function () {',
     '      return this.p[this.a];',
     '    },',
@@ -9049,7 +9443,7 @@ begin
     '    }',
     '}, {',
     '  a: 10,',
-    '  p: this.Arr,',
+    '  p: $mod.Arr,',
     '  get: function () {',
     '      return this.p[this.a];',
     '    },',
@@ -9103,12 +9497,12 @@ begin
     'this.Arr = null;',
     'this.v = undefined;',
     '']),
-    LinesToStr([ // this.$main
-    'this.v = this.Arr[0];',
-    'this.v = this.Arr[1];',
-    'var $with1 = this.Arr;',
-    'this.v = $with1[2];',
-    'this.DoIt(this.Arr[3], this.Arr[4]);',
+    LinesToStr([ // $mod.$main
+    '$mod.v = $mod.Arr[0];',
+    '$mod.v = $mod.Arr[1];',
+    'var $with1 = $mod.Arr;',
+    '$mod.v = $with1[2];',
+    '$mod.DoIt($mod.Arr[3], $mod.Arr[4]);',
     '']));
 end;
 
@@ -9139,12 +9533,12 @@ begin
     'this.i = 0;',
     'this.v = undefined;',
     '']),
-    LinesToStr([ // this.$main
-    'this.Arr[2] = this.s;',
-    'this.Arr[3] = this.s;',
-    'this.Arr[4] = this.i;',
-    'var $with1 = this.Arr;',
-    '$with1[5] = this.i;',
+    LinesToStr([ // $mod.$main
+    '$mod.Arr[2] = $mod.s;',
+    '$mod.Arr[3] = $mod.s;',
+    '$mod.Arr[4] = $mod.i;',
+    'var $with1 = $mod.Arr;',
+    '$with1[5] = $mod.i;',
     '']));
 end;
 
@@ -9178,14 +9572,14 @@ begin
     'this.i = 0;',
     'this.v = undefined;',
     '']),
-    LinesToStr([ // this.$main
-    'this.Arr[2] = this.s;',
-    'this.Arr[3] = this.s;',
-    'this.Arr[4] = this.i;',
-    'var $with1 = this.Arr;',
-    '$with1[5] = this.i;',
-    'var $with2 = this.Arr;',
-    '$with2[6] = this.i;',
+    LinesToStr([ // $mod.$main
+    '$mod.Arr[2] = $mod.s;',
+    '$mod.Arr[3] = $mod.s;',
+    '$mod.Arr[4] = $mod.i;',
+    'var $with1 = $mod.Arr;',
+    '$with1[5] = $mod.i;',
+    'var $with2 = $mod.Arr;',
+    '$with2[6] = $mod.i;',
     '']));
 end;
 
@@ -9226,24 +9620,24 @@ begin
     'this.vP = null;',
     'this.vQ = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.vP = null;',
-    'this.vP = this.vP;',
-    'this.vP = rtl.createCallback(this,"DoIt");',
-    'this.vP(1);',
-    'this.vP(1);',
-    'this.vP(2);',
-    'this.b = this.vP == null;',
-    'this.b = null == this.vP;',
-    'this.b = rtl.eqCallback(this.vP,this.vQ);',
-    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this, "DoIt"));',
-    'this.b = rtl.eqCallback(rtl.createCallback(this, "DoIt"), this.vP);',
-    'this.b = this.vP != null;',
-    'this.b = null != this.vP;',
-    'this.b = !rtl.eqCallback(this.vP,this.vQ);',
-    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this, "DoIt"));',
-    'this.b = !rtl.eqCallback(rtl.createCallback(this, "DoIt"), this.vP);',
-    'this.b = this.vP != null;',
+    LinesToStr([ // $mod.$main
+    '$mod.vP = null;',
+    '$mod.vP = $mod.vP;',
+    '$mod.vP = $mod.DoIt;',
+    '$mod.vP(1);',
+    '$mod.vP(1);',
+    '$mod.vP(2);',
+    '$mod.b = $mod.vP == null;',
+    '$mod.b = null == $mod.vP;',
+    '$mod.b = rtl.eqCallback($mod.vP,$mod.vQ);',
+    '$mod.b = rtl.eqCallback($mod.vP, $mod.DoIt);',
+    '$mod.b = rtl.eqCallback($mod.DoIt, $mod.vP);',
+    '$mod.b = $mod.vP != null;',
+    '$mod.b = null != $mod.vP;',
+    '$mod.b = !rtl.eqCallback($mod.vP,$mod.vQ);',
+    '$mod.b = !rtl.eqCallback($mod.vP, $mod.DoIt);',
+    '$mod.b = !rtl.eqCallback($mod.DoIt, $mod.vP);',
+    '$mod.b = $mod.vP != null;',
     '']));
 end;
 
@@ -9294,28 +9688,28 @@ begin
     'this.vP = null;',
     'this.vQ = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.vP = null;',
-    'this.vP = this.vP;',
-    'this.vP = rtl.createCallback(this,"DoIt");',
-    'this.vP(1);',
-    'this.vP(1);',
-    'this.vP(2);',
-    'this.b = this.vP == null;',
-    'this.b = null == this.vP;',
-    'this.b = rtl.eqCallback(this.vP,this.vQ);',
-    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this, "DoIt"));',
-    'this.b = rtl.eqCallback(rtl.createCallback(this, "DoIt"), this.vP);',
-    'this.b = 4 == this.vP(1);',
-    'this.b = this.vP != null;',
-    'this.b = null != this.vP;',
-    'this.b = !rtl.eqCallback(this.vP,this.vQ);',
-    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this, "DoIt"));',
-    'this.b = !rtl.eqCallback(rtl.createCallback(this, "DoIt"), this.vP);',
-    'this.b = 6 != this.vP(1);',
-    'this.b = this.vP != null;',
-    'this.DoIt(this.vP(1));',
-    'this.DoIt(this.vP(2));',
+    LinesToStr([ // $mod.$main
+    '$mod.vP = null;',
+    '$mod.vP = $mod.vP;',
+    '$mod.vP = $mod.DoIt;',
+    '$mod.vP(1);',
+    '$mod.vP(1);',
+    '$mod.vP(2);',
+    '$mod.b = $mod.vP == null;',
+    '$mod.b = null == $mod.vP;',
+    '$mod.b = rtl.eqCallback($mod.vP,$mod.vQ);',
+    '$mod.b = rtl.eqCallback($mod.vP, $mod.DoIt);',
+    '$mod.b = rtl.eqCallback($mod.DoIt, $mod.vP);',
+    '$mod.b = 4 == $mod.vP(1);',
+    '$mod.b = $mod.vP != null;',
+    '$mod.b = null != $mod.vP;',
+    '$mod.b = !rtl.eqCallback($mod.vP,$mod.vQ);',
+    '$mod.b = !rtl.eqCallback($mod.vP, $mod.DoIt);',
+    '$mod.b = !rtl.eqCallback($mod.DoIt, $mod.vP);',
+    '$mod.b = 6 != $mod.vP(1);',
+    '$mod.b = $mod.vP != null;',
+    '$mod.DoIt($mod.vP(1));',
+    '$mod.DoIt($mod.vP(2));',
     '']));
 end;
 
@@ -9367,24 +9761,24 @@ begin
     'this.vP = null;',
     'this.vQ = null;'
     ]),
-    LinesToStr([ // this.$main
-    'this.vP = null;',
-    'this.vP = this.vP;',
-    'this.vP = rtl.createCallback(this,"DoIt");',
-    'this.vP = rtl.createCallback(this,"DoIt");',
-    'this.vP(1);',
-    'this.vP(1);',
-    'this.vP(2);',
-    'this.b = this.vP(1) == this.vQ(1);',
-    'this.b = this.vP(1) == 3;',
-    'this.b = 4 == this.vP(1);',
-    'this.b = this.vP(1) != this.vQ(1);',
-    'this.b = this.vP(1) != 5;',
-    'this.b = 6 != this.vP(1);',
-    'this.b = this.vP != null;',
-    'this.DoIt(this.vP(1));',
-    'this.DoIt(this.vP(1));',
-    'this.DoIt(this.vP(2));',
+    LinesToStr([ // $mod.$main
+    '$mod.vP = null;',
+    '$mod.vP = $mod.vP;',
+    '$mod.vP = $mod.DoIt;',
+    '$mod.vP = $mod.DoIt;',
+    '$mod.vP(1);',
+    '$mod.vP(1);',
+    '$mod.vP(2);',
+    '$mod.b = $mod.vP(1) == $mod.vQ(1);',
+    '$mod.b = $mod.vP(1) == 3;',
+    '$mod.b = 4 == $mod.vP(1);',
+    '$mod.b = $mod.vP(1) != $mod.vQ(1);',
+    '$mod.b = $mod.vP(1) != 5;',
+    '$mod.b = 6 != $mod.vP(1);',
+    '$mod.b = $mod.vP != null;',
+    '$mod.DoIt($mod.vP(1));',
+    '$mod.DoIt($mod.vP(1));',
+    '$mod.DoIt($mod.vP(2));',
     '']));
 end;
 
@@ -9415,7 +9809,7 @@ begin
     '  vG = vG;',
     '  vJ = vH;',
     '  vI.set(vI.get());',
-    '  this.DoIt(vG, vG, {',
+    '  $mod.DoIt(vG, vG, {',
     '    get: function () {',
     '      return vG;',
     '    },',
@@ -9423,7 +9817,7 @@ begin
     '      vG = v;',
     '    }',
     '  });',
-    '  this.DoIt(vH, vH, {',
+    '  $mod.DoIt(vH, vH, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -9431,8 +9825,8 @@ begin
     '      vJ = v;',
     '    }',
     '  });',
-    '  this.DoIt(vI.get(), vI.get(), vI);',
-    '  this.DoIt(vJ, vJ, {',
+    '  $mod.DoIt(vI.get(), vI.get(), vI);',
+    '  $mod.DoIt(vJ, vJ, {',
     '    get: function () {',
     '      return vJ;',
     '    },',
@@ -9444,8 +9838,8 @@ begin
     'this.i = null;'
     ]),
     LinesToStr([
-    'this.DoIt(this.i,this.i,{',
-    '  p: this,',
+    '$mod.DoIt($mod.i,$mod.i,{',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -9484,7 +9878,7 @@ begin
   ConvertProgram;
   CheckSource('TestProcType_MethodFPC',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -9499,14 +9893,14 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([
-    'this.vP = rtl.createCallback(this.Obj, "DoIt");',
-    'this.vP(1);',
-    'this.vP(1);',
-    'this.vP(2);',
-    'this.b = rtl.eqCallback(this.vP, rtl.createCallback(this.Obj, "DoIt"));',
-    'this.b = rtl.eqCallback(rtl.createCallback(this.Obj, "DoIt"), this.vP);',
-    'this.b = !rtl.eqCallback(this.vP, rtl.createCallback(this.Obj, "DoIt"));',
-    'this.b = !rtl.eqCallback(rtl.createCallback(this.Obj, "DoIt"), this.vP);',
+    '$mod.vP = rtl.createCallback($mod.Obj, "DoIt");',
+    '$mod.vP(1);',
+    '$mod.vP(1);',
+    '$mod.vP(2);',
+    '$mod.b = rtl.eqCallback($mod.vP, rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.b = rtl.eqCallback(rtl.createCallback($mod.Obj, "DoIt"), $mod.vP);',
+    '$mod.b = !rtl.eqCallback($mod.vP, rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.b = !rtl.eqCallback(rtl.createCallback($mod.Obj, "DoIt"), $mod.vP);',
     '']));
 end;
 
@@ -9539,7 +9933,7 @@ begin
   ConvertProgram;
   CheckSource('TestProcType_MethodDelphi',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -9554,11 +9948,11 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([
-    'this.vP = rtl.createCallback(this.Obj, "DoIt");',
-    'this.vP = rtl.createCallback(this.Obj, "DoIt");',
-    'this.vP(1);',
-    'this.vP(1);',
-    'this.vP(2);',
+    '$mod.vP = rtl.createCallback($mod.Obj, "DoIt");',
+    '$mod.vP = rtl.createCallback($mod.Obj, "DoIt");',
+    '$mod.vP(1);',
+    '$mod.vP(1);',
+    '$mod.vP(2);',
     '']));
 end;
 
@@ -9633,7 +10027,7 @@ begin
   ConvertProgram;
   CheckSource('TestProcType_PropertyFPC',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FOnFoo = null;',
     '  };',
@@ -9662,44 +10056,44 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([
-    'this.Obj.FOnFoo = null;',
-    'this.Obj.SetFoo(null);',
-    'this.Obj.SetEvents(1, null);',
-    'this.Obj.FOnFoo = this.Obj.FOnFoo;',
-    'this.Obj.SetFoo(this.Obj.GetFoo());',
-    'this.Obj.SetEvents(2, this.Obj.GetEvents(3));',
-    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, "DoIt");',
-    'this.Obj.SetFoo(rtl.createCallback(this.Obj, "DoIt"));',
-    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, "DoIt"));',
-    'this.Obj.FOnFoo(1);',
-    'this.Obj.GetFoo();',
-    'this.Obj.FOnFoo(1);',
-    'this.Obj.GetFoo()(1);',
-    'this.Obj.GetEvents(6)(1);',
-    'this.b = this.Obj.FOnFoo == null;',
-    'this.b = this.Obj.GetFoo() == null;',
-    'this.b = this.Obj.GetEvents(7) == null;',
-    'this.b = this.Obj.FOnFoo != null;',
-    'this.b = this.Obj.GetFoo() != null;',
-    'this.b = this.Obj.GetEvents(8) != null;',
-    'this.b = rtl.eqCallback(this.Obj.FOnFoo, this.vP);',
-    'this.b = rtl.eqCallback(this.Obj.GetFoo(), this.vP);',
-    'this.b = rtl.eqCallback(this.Obj.GetEvents(9), this.vP);',
-    'this.b = rtl.eqCallback(this.Obj.FOnFoo, this.Obj.FOnFoo);',
-    'this.b = rtl.eqCallback(this.Obj.GetFoo(), this.Obj.FOnFoo);',
-    'this.b = rtl.eqCallback(this.Obj.GetEvents(10), this.Obj.FOnFoo);',
-    'this.b = !rtl.eqCallback(this.Obj.FOnFoo, this.Obj.FOnFoo);',
-    'this.b = !rtl.eqCallback(this.Obj.GetFoo(), this.Obj.FOnFoo);',
-    'this.b = !rtl.eqCallback(this.Obj.GetEvents(11), this.Obj.FOnFoo);',
-    'this.b = rtl.eqCallback(this.Obj.FOnFoo, rtl.createCallback(this.Obj, "DoIt"));',
-    'this.b = rtl.eqCallback(this.Obj.GetFoo(), rtl.createCallback(this.Obj, "DoIt"));',
-    'this.b = rtl.eqCallback(this.Obj.GetEvents(12), rtl.createCallback(this.Obj, "DoIt"));',
-    'this.b = !rtl.eqCallback(this.Obj.FOnFoo, rtl.createCallback(this.Obj, "DoIt"));',
-    'this.b = !rtl.eqCallback(this.Obj.GetFoo(), rtl.createCallback(this.Obj, "DoIt"));',
-    'this.b = !rtl.eqCallback(this.Obj.GetEvents(12), rtl.createCallback(this.Obj, "DoIt"));',
-    'this.b = this.Obj.FOnFoo != null;',
-    'this.b = this.Obj.GetFoo() != null;',
-    'this.b = this.Obj.GetEvents(13) != null;',
+    '$mod.Obj.FOnFoo = null;',
+    '$mod.Obj.SetFoo(null);',
+    '$mod.Obj.SetEvents(1, null);',
+    '$mod.Obj.FOnFoo = $mod.Obj.FOnFoo;',
+    '$mod.Obj.SetFoo($mod.Obj.GetFoo());',
+    '$mod.Obj.SetEvents(2, $mod.Obj.GetEvents(3));',
+    '$mod.Obj.FOnFoo = rtl.createCallback($mod.Obj, "DoIt");',
+    '$mod.Obj.SetFoo(rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.Obj.SetEvents(4, rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.Obj.FOnFoo(1);',
+    '$mod.Obj.GetFoo();',
+    '$mod.Obj.FOnFoo(1);',
+    '$mod.Obj.GetFoo()(1);',
+    '$mod.Obj.GetEvents(6)(1);',
+    '$mod.b = $mod.Obj.FOnFoo == null;',
+    '$mod.b = $mod.Obj.GetFoo() == null;',
+    '$mod.b = $mod.Obj.GetEvents(7) == null;',
+    '$mod.b = $mod.Obj.FOnFoo != null;',
+    '$mod.b = $mod.Obj.GetFoo() != null;',
+    '$mod.b = $mod.Obj.GetEvents(8) != null;',
+    '$mod.b = rtl.eqCallback($mod.Obj.FOnFoo, $mod.vP);',
+    '$mod.b = rtl.eqCallback($mod.Obj.GetFoo(), $mod.vP);',
+    '$mod.b = rtl.eqCallback($mod.Obj.GetEvents(9), $mod.vP);',
+    '$mod.b = rtl.eqCallback($mod.Obj.FOnFoo, $mod.Obj.FOnFoo);',
+    '$mod.b = rtl.eqCallback($mod.Obj.GetFoo(), $mod.Obj.FOnFoo);',
+    '$mod.b = rtl.eqCallback($mod.Obj.GetEvents(10), $mod.Obj.FOnFoo);',
+    '$mod.b = !rtl.eqCallback($mod.Obj.FOnFoo, $mod.Obj.FOnFoo);',
+    '$mod.b = !rtl.eqCallback($mod.Obj.GetFoo(), $mod.Obj.FOnFoo);',
+    '$mod.b = !rtl.eqCallback($mod.Obj.GetEvents(11), $mod.Obj.FOnFoo);',
+    '$mod.b = rtl.eqCallback($mod.Obj.FOnFoo, rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.b = rtl.eqCallback($mod.Obj.GetFoo(), rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.b = rtl.eqCallback($mod.Obj.GetEvents(12), rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.b = !rtl.eqCallback($mod.Obj.FOnFoo, rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.b = !rtl.eqCallback($mod.Obj.GetFoo(), rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.b = !rtl.eqCallback($mod.Obj.GetEvents(12), rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.b = $mod.Obj.FOnFoo != null;',
+    '$mod.b = $mod.Obj.GetFoo() != null;',
+    '$mod.b = $mod.Obj.GetEvents(13) != null;',
     '']));
 end;
 
@@ -9775,7 +10169,7 @@ begin
   ConvertProgram;
   CheckSource('TestProcType_PropertyDelphi',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FOnFoo = null;',
     '  };',
@@ -9804,32 +10198,32 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([
-    'this.Obj.FOnFoo = null;',
-    'this.Obj.SetFoo(null);',
-    'this.Obj.SetEvents(1, null);',
-    'this.Obj.FOnFoo = this.Obj.FOnFoo;',
-    'this.Obj.SetFoo(this.Obj.GetFoo());',
-    'this.Obj.SetEvents(2, this.Obj.GetEvents(3));',
-    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, "DoIt");',
-    'this.Obj.SetFoo(rtl.createCallback(this.Obj, "DoIt"));',
-    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, "DoIt"));',
-    'this.Obj.FOnFoo = rtl.createCallback(this.Obj, "DoIt");',
-    'this.Obj.SetFoo(rtl.createCallback(this.Obj, "DoIt"));',
-    'this.Obj.SetEvents(4, rtl.createCallback(this.Obj, "DoIt"));',
-    'this.Obj.FOnFoo(1);',
-    'this.Obj.GetFoo();',
-    'this.Obj.FOnFoo(1);',
-    'this.Obj.GetFoo()(1);',
-    'this.Obj.GetEvents(6)(1);',
-    'this.b = this.Obj.FOnFoo(1) == this.vP(1);',
-    'this.b = this.Obj.GetFoo() == this.vP(1);',
-    'this.b = this.Obj.FOnFoo(1) == this.Obj.FOnFoo(1);',
-    'this.b = this.Obj.GetFoo() == this.Obj.FOnFoo(1);',
-    'this.b = this.Obj.FOnFoo(1) != this.Obj.FOnFoo(1);',
-    'this.b = this.Obj.GetFoo() != this.Obj.FOnFoo(1);',
-    'this.b = this.Obj.FOnFoo != null;',
-    'this.b = this.Obj.GetFoo() != null;',
-    'this.b = this.Obj.GetEvents(13) != null;',
+    '$mod.Obj.FOnFoo = null;',
+    '$mod.Obj.SetFoo(null);',
+    '$mod.Obj.SetEvents(1, null);',
+    '$mod.Obj.FOnFoo = $mod.Obj.FOnFoo;',
+    '$mod.Obj.SetFoo($mod.Obj.GetFoo());',
+    '$mod.Obj.SetEvents(2, $mod.Obj.GetEvents(3));',
+    '$mod.Obj.FOnFoo = rtl.createCallback($mod.Obj, "DoIt");',
+    '$mod.Obj.SetFoo(rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.Obj.SetEvents(4, rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.Obj.FOnFoo = rtl.createCallback($mod.Obj, "DoIt");',
+    '$mod.Obj.SetFoo(rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.Obj.SetEvents(4, rtl.createCallback($mod.Obj, "DoIt"));',
+    '$mod.Obj.FOnFoo(1);',
+    '$mod.Obj.GetFoo();',
+    '$mod.Obj.FOnFoo(1);',
+    '$mod.Obj.GetFoo()(1);',
+    '$mod.Obj.GetEvents(6)(1);',
+    '$mod.b = $mod.Obj.FOnFoo(1) == $mod.vP(1);',
+    '$mod.b = $mod.Obj.GetFoo() == $mod.vP(1);',
+    '$mod.b = $mod.Obj.FOnFoo(1) == $mod.Obj.FOnFoo(1);',
+    '$mod.b = $mod.Obj.GetFoo() == $mod.Obj.FOnFoo(1);',
+    '$mod.b = $mod.Obj.FOnFoo(1) != $mod.Obj.FOnFoo(1);',
+    '$mod.b = $mod.Obj.GetFoo() != $mod.Obj.FOnFoo(1);',
+    '$mod.b = $mod.Obj.FOnFoo != null;',
+    '$mod.b = $mod.Obj.GetFoo() != null;',
+    '$mod.b = $mod.Obj.GetEvents(13) != null;',
     '']));
 end;
 
@@ -9901,7 +10295,7 @@ begin
   ConvertProgram;
   CheckSource('TestProcType_WithClassInstDoPropertyFPC',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FOnFoo = null;',
     '  };',
@@ -9924,7 +10318,7 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([
-    'var $with1 = this.Obj;',
+    'var $with1 = $mod.Obj;',
     '$with1.FOnFoo = null;',
     '$with1.FOnFoo = null;',
     '$with1.SetFoo(null);',
@@ -9940,64 +10334,66 @@ begin
     '$with1.FOnFoo(1);',
     '$with1.FOnFoo(1);',
     '$with1.GetFoo()(1);',
-    'this.b = $with1.FOnFoo == null;',
-    'this.b = $with1.FOnFoo == null;',
-    'this.b = $with1.GetFoo() == null;',
-    'this.b = $with1.FOnFoo != null;',
-    'this.b = $with1.FOnFoo != null;',
-    'this.b = $with1.GetFoo() != null;',
-    'this.b = rtl.eqCallback($with1.FOnFoo, this.vP);',
-    'this.b = rtl.eqCallback($with1.FOnFoo, this.vP);',
-    'this.b = rtl.eqCallback($with1.GetFoo(), this.vP);',
-    'this.b = rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
-    'this.b = rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
-    'this.b = rtl.eqCallback($with1.GetFoo(), $with1.FOnFoo);',
-    'this.b = !rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
-    'this.b = !rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
-    'this.b = !rtl.eqCallback($with1.GetFoo(), $with1.FOnFoo);',
-    'this.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
-    'this.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
-    'this.b = rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, "DoIt"));',
-    'this.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
-    'this.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
-    'this.b = !rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, "DoIt"));',
-    'this.b = $with1.FOnFoo != null;',
-    'this.b = $with1.FOnFoo != null;',
-    'this.b = $with1.GetFoo() != null;',
+    '$mod.b = $with1.FOnFoo == null;',
+    '$mod.b = $with1.FOnFoo == null;',
+    '$mod.b = $with1.GetFoo() == null;',
+    '$mod.b = $with1.FOnFoo != null;',
+    '$mod.b = $with1.FOnFoo != null;',
+    '$mod.b = $with1.GetFoo() != null;',
+    '$mod.b = rtl.eqCallback($with1.FOnFoo, $mod.vP);',
+    '$mod.b = rtl.eqCallback($with1.FOnFoo, $mod.vP);',
+    '$mod.b = rtl.eqCallback($with1.GetFoo(), $mod.vP);',
+    '$mod.b = rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
+    '$mod.b = rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
+    '$mod.b = rtl.eqCallback($with1.GetFoo(), $with1.FOnFoo);',
+    '$mod.b = !rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
+    '$mod.b = !rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
+    '$mod.b = !rtl.eqCallback($with1.GetFoo(), $with1.FOnFoo);',
+    '$mod.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
+    '$mod.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
+    '$mod.b = rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, "DoIt"));',
+    '$mod.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
+    '$mod.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
+    '$mod.b = !rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, "DoIt"));',
+    '$mod.b = $with1.FOnFoo != null;',
+    '$mod.b = $with1.FOnFoo != null;',
+    '$mod.b = $with1.GetFoo() != null;',
     '']));
 end;
 
 procedure TTestModule.TestProcType_Nested;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TProcInt = procedure(vI: longint = 1);');
-  Add('procedure DoIt(vJ: longint);');
-  Add('var aProc: TProcInt;');
-  Add('    b: boolean;');
-  Add('  procedure Sub(vK: longint);');
-  Add('  var aSub: TProcInt;');
-  Add('    procedure SubSub(vK: longint);');
-  Add('    var aSubSub: TProcInt;');
-  Add('    begin;');
-  Add('      aProc:=@DoIt;');
-  Add('      aSub:=@DoIt;');
-  Add('      aSubSub:=@DoIt;');
-  Add('      aProc:=@Sub;');
-  Add('      aSub:=@Sub;');
-  Add('      aSubSub:=@Sub;');
-  Add('      aProc:=@SubSub;');
-  Add('      aSub:=@SubSub;');
-  Add('      aSubSub:=@SubSub;');
-  Add('    end;');
-  Add('  begin;');
-  Add('  end;');
-  Add('begin;');
-  Add('  aProc:=@Sub;');
-  Add('  b:=aProc=@Sub;');
-  Add('  b:=@Sub=aProc;');
-  Add('end;');
-  Add('begin');
+  Add([
+  'type',
+  '  TProcInt = procedure(vI: longint = 1);',
+  'procedure DoIt(vJ: longint);',
+  'var aProc: TProcInt;',
+  '    b: boolean;',
+  '  procedure Sub(vK: longint);',
+  '  var aSub: TProcInt;',
+  '    procedure SubSub(vK: longint);',
+  '    var aSubSub: TProcInt;',
+  '    begin;',
+  '      aProc:=@DoIt;',
+  '      aSub:=@DoIt;',
+  '      aSubSub:=@DoIt;',
+  '      aProc:=@Sub;',
+  '      aSub:=@Sub;',
+  '      aSubSub:=@Sub;',
+  '      aProc:=@SubSub;',
+  '      aSub:=@SubSub;',
+  '      aSubSub:=@SubSub;',
+  '    end;',
+  '  begin;',
+  '  end;',
+  'begin;',
+  '  aProc:=@Sub;',
+  '  b:=aProc=@Sub;',
+  '  b:=@Sub=aProc;',
+  'end;',
+  'begin',
+  '']);
   ConvertProgram;
   CheckSource('TestProcType_Nested',
     LinesToStr([ // statements
@@ -10008,23 +10404,203 @@ begin
     '    var aSub = null;',
     '    function SubSub(vK) {',
     '      var aSubSub = null;',
-    '      aProc = rtl.createCallback(this, "DoIt");',
-    '      aSub = rtl.createCallback(this, "DoIt");',
-    '      aSubSub = rtl.createCallback(this, "DoIt");',
-    '      aProc = rtl.createCallback(this, Sub);',
-    '      aSub = rtl.createCallback(this, Sub);',
-    '      aSubSub = rtl.createCallback(this, Sub);',
-    '      aProc = rtl.createCallback(this, SubSub);',
-    '      aSub = rtl.createCallback(this, SubSub);',
-    '      aSubSub = rtl.createCallback(this, SubSub);',
+    '      aProc = $mod.DoIt;',
+    '      aSub = $mod.DoIt;',
+    '      aSubSub = $mod.DoIt;',
+    '      aProc = Sub;',
+    '      aSub = Sub;',
+    '      aSubSub = Sub;',
+    '      aProc = SubSub;',
+    '      aSub = SubSub;',
+    '      aSubSub = SubSub;',
     '    };',
     '  };',
-    '  aProc = rtl.createCallback(this, Sub);',
-    '  b = rtl.eqCallback(aProc, rtl.createCallback(this, Sub));',
-    '  b = rtl.eqCallback(rtl.createCallback(this, Sub), aProc);',
+    '  aProc = Sub;',
+    '  b = rtl.eqCallback(aProc, Sub);',
+    '  b = rtl.eqCallback(Sub, aProc);',
     '};',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestProcType_NestedOfObject;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProcInt = procedure(vI: longint = 1) of object;',
+  '  TObject = class',
+  '    procedure DoIt(vJ: longint);',
+  '  end;',
+  'procedure TObject.DoIt(vJ: longint);',
+  'var aProc: TProcInt;',
+  '    b: boolean;',
+  '  procedure Sub(vK: longint);',
+  '  var aSub: TProcInt;',
+  '    procedure SubSub(vK: longint);',
+  '    var aSubSub: TProcInt;',
+  '    begin;',
+  '      aProc:=@DoIt;',
+  '      aSub:=@DoIt;',
+  '      aSubSub:=@DoIt;',
+  '      aProc:=@Sub;',
+  '      aSub:=@Sub;',
+  '      aSubSub:=@Sub;',
+  '      aProc:=@SubSub;',
+  '      aSub:=@SubSub;',
+  '      aSubSub:=@SubSub;',
+  '    end;',
+  '  begin;',
+  '  end;',
+  'begin;',
+  '  aProc:=@Sub;',
+  '  b:=aProc=@Sub;',
+  '  b:=@Sub=aProc;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestProcType_Nested',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function (vJ) {',
+    '    var Self = this;',
+    '    var aProc = null;',
+    '    var b = false;',
+    '    function Sub(vK) {',
+    '      var aSub = null;',
+    '      function SubSub(vK) {',
+    '        var aSubSub = null;',
+    '        aProc = rtl.createCallback(Self, "DoIt");',
+    '        aSub = rtl.createCallback(Self, "DoIt");',
+    '        aSubSub = rtl.createCallback(Self, "DoIt");',
+    '        aProc = Sub;',
+    '        aSub = Sub;',
+    '        aSubSub = Sub;',
+    '        aProc = SubSub;',
+    '        aSub = SubSub;',
+    '        aSubSub = SubSub;',
+    '      };',
+    '    };',
+    '    aProc = Sub;',
+    '    b = rtl.eqCallback(aProc, Sub);',
+    '    b = rtl.eqCallback(Sub, aProc);',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestProcType_ReferenceToProc;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProcRef = reference to procedure(i: longint = 0);',
+  '  TFuncRef = reference to function(i: longint = 0): longint;',
+  'var',
+  '  p: TProcRef;',
+  '  f: TFuncRef;',
+  'procedure DoIt(i: longint);',
+  'begin',
+  'end;',
+  'function GetIt(i: longint): longint;',
+  'begin',
+  '  p:=@DoIt;',
+  '  f:=@GetIt;',
+  '  f;',
+  '  f();',
+  '  f(1);',
+  'end;',
+  'begin',
+  '  p:=@DoIt;',
+  '  f:=@GetIt;',
+  '  f;',
+  '  f();',
+  '  f(1);',
+  '  p:=TProcRef(f);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestProcType_ReferenceToProc',
+    LinesToStr([ // statements
+    'this.p = null;',
+    'this.f = null;',
+    'this.DoIt = function (i) {',
+    '};',
+    'this.GetIt = function (i) {',
+    '  var Result = 0;',
+    '  $mod.p = $mod.DoIt;',
+    '  $mod.f = $mod.GetIt;',
+    '  $mod.f(0);',
+    '  $mod.f(0);',
+    '  $mod.f(1);',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.DoIt;',
+    '$mod.f = $mod.GetIt;',
+    '$mod.f(0);',
+    '$mod.f(0);',
+    '$mod.f(1);',
+    '$mod.p = $mod.f;',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_ReferenceToMethod;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TFuncRef = reference to function(i: longint = 5): longint;',
+  '  TObject = class',
+  '    function Grow(s: longint): longint;',
+  '  end;',
+  'var',
+  '  f: tfuncref;',
+  'function tobject.grow(s: longint): longint;',
+  '  function GrowSub(i: longint): longint;',
+  '  begin',
+  '    f:=@grow;',
+  '    f:=@growsub;',
+  '  end;',
+  'begin',
+  '  f:=@grow;',
+  '  f:=@growsub;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestProcType_ReferenceToMethod',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Grow = function (s) {',
+    '    var Self = this;',
+    '    var Result = 0;',
+    '    function GrowSub(i) {',
+    '      var Result = 0;',
+    '      $mod.f = rtl.createCallback(Self, "Grow");',
+    '      $mod.f = GrowSub;',
+    '      return Result;',
+    '    };',
+    '    $mod.f = rtl.createCallback(Self, "Grow");',
+    '    $mod.f = GrowSub;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.f = null;',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -10066,21 +10642,21 @@ begin
     'this.FuncB = null;',
     'this.p = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.Notify = this.Event;',
-    'this.Event = this.Event;',
-    'this.Event = this.Notify;',
-    'this.ProcA = this.FuncB;',
-    'this.FuncB = this.FuncB;',
-    'this.FuncB = this.ProcA;',
-    'this.ProcA = this.p;',
-    'this.FuncB = this.p;',
-    'this.p = this.Notify;',
-    'this.p = this.Notify;',
-    'this.p = this.ProcA;',
-    'this.p = this.ProcA;',
-    'this.p = this.FuncB;',
-    'this.p = this.FuncB;',
+    LinesToStr([ // $mod.$main
+    '$mod.Notify = $mod.Event;',
+    '$mod.Event = $mod.Event;',
+    '$mod.Event = $mod.Notify;',
+    '$mod.ProcA = $mod.FuncB;',
+    '$mod.FuncB = $mod.FuncB;',
+    '$mod.FuncB = $mod.ProcA;',
+    '$mod.ProcA = $mod.p;',
+    '$mod.FuncB = $mod.p;',
+    '$mod.p = $mod.Notify;',
+    '$mod.p = $mod.Notify;',
+    '$mod.p = $mod.ProcA;',
+    '$mod.p = $mod.ProcA;',
+    '$mod.p = $mod.FuncB;',
+    '$mod.p = $mod.FuncB;',
     '']));
 end;
 
@@ -10114,7 +10690,7 @@ begin
   ConvertProgram;
   CheckSource('TestPointer',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -10126,20 +10702,20 @@ begin
     'this.a = [];',
     'this.p = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.p = this.p;',
-    'this.p = null;',
-    'if (this.p == null) ;',
-    'if (null == this.p) ;',
-    'if (this.p != null) ;',
-    'this.p = this.v;',
-    'this.p = this.Obj;',
-    'this.p = this.C;',
-    'this.p = this.a;',
-    'this.p = this.TObject;',
-    'this.Obj = this.p;',
-    'this.C = this.p;',
-    'this.a = this.p;',
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.p;',
+    '$mod.p = null;',
+    'if ($mod.p == null) ;',
+    'if (null == $mod.p) ;',
+    'if ($mod.p != null) ;',
+    '$mod.p = $mod.v;',
+    '$mod.p = $mod.Obj;',
+    '$mod.p = $mod.C;',
+    '$mod.p = $mod.a;',
+    '$mod.p = $mod.TObject;',
+    '$mod.Obj = $mod.p;',
+    '$mod.C = $mod.p;',
+    '$mod.a = $mod.p;',
     '']));
 end;
 
@@ -10160,7 +10736,7 @@ begin
   ConvertProgram;
   CheckSource('TestPointer_Proc',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -10171,9 +10747,9 @@ begin
     'this.o = null;',
     'this.p = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.p = rtl.createCallback(this, "DoSome");',
-    'this.p = rtl.createCallback(this.o, "DoIt");',
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.DoSome;',
+    '$mod.p = rtl.createCallback($mod.o, "DoIt");',
     '']));
 end;
 
@@ -10253,21 +10829,21 @@ begin
     'this.d = 0.0;',
     'this.p = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.v = this.v;',
-    'this.v = 1;',
-    'this.v = this.i;',
-    'this.v = "";',
-    'this.v = "c";',
-    'this.v = "foo";',
-    'this.v = this.s;',
-    'this.v = false;',
-    'this.v = true;',
-    'this.v = this.b;',
-    'this.v = 0.1;',
-    'this.v = this.d;',
-    'this.v = null;',
-    'this.v = this.p;',
+    LinesToStr([ // $mod.$main
+    '$mod.v = $mod.v;',
+    '$mod.v = 1;',
+    '$mod.v = $mod.i;',
+    '$mod.v = "";',
+    '$mod.v = "c";',
+    '$mod.v = "foo";',
+    '$mod.v = $mod.s;',
+    '$mod.v = false;',
+    '$mod.v = true;',
+    '$mod.v = $mod.b;',
+    '$mod.v = 0.1;',
+    '$mod.v = $mod.d;',
+    '$mod.v = null;',
+    '$mod.v = $mod.p;',
     '']));
 end;
 
@@ -10308,17 +10884,17 @@ begin
     'this.d = 0.0;',
     'this.c = "";',
     '']),
-    LinesToStr([ // this.$main
-    'this.i = Math.floor(this.v);',
-    'this.i = Math.floor(this.v);',
-    'this.s = "" + this.v;',
-    'this.s = "" + this.v;',
-    'this.b = !(this.v == false);',
-    'this.b = !(this.v == false);',
-    'this.d = rtl.getNumber(this.v);',
-    'this.d = rtl.getNumber(this.v);',
-    'this.c = rtl.getChar(this.v);',
-    'this.c = rtl.getChar(this.v);',
+    LinesToStr([ // $mod.$main
+    '$mod.i = Math.floor($mod.v);',
+    '$mod.i = Math.floor($mod.v);',
+    '$mod.s = "" + $mod.v;',
+    '$mod.s = "" + $mod.v;',
+    '$mod.b = !($mod.v == false);',
+    '$mod.b = !($mod.v == false);',
+    '$mod.d = rtl.getNumber($mod.v);',
+    '$mod.d = rtl.getNumber($mod.v);',
+    '$mod.c = rtl.getChar($mod.v);',
+    '$mod.c = rtl.getChar($mod.v);',
     '']));
 end;
 
@@ -10379,34 +10955,34 @@ begin
     'this.c = "";',
     'this.m = undefined;',
     '']),
-    LinesToStr([ // this.$main
-    'this.b = this.v == this.v;',
-    'this.b = this.v != this.v;',
-    'this.b = this.v == 1;',
-    'this.b = this.v != 1;',
-    'this.b = 2 == this.v;',
-    'this.b = 2 != this.v;',
-    'this.b = this.v == this.i;',
-    'this.b = this.i == this.v;',
-    'this.b = this.v == null;',
-    'this.b = null == this.v;',
-    'this.b = this.v == false;',
-    'this.b = true == this.v;',
-    'this.b = this.v == this.b;',
-    'this.b = this.b == this.v;',
-    'this.b = this.v == this.s;',
-    'this.b = this.s == this.v;',
-    'this.b = this.v == "foo";',
-    'this.b = "" == this.v;',
-    'this.b = this.v == this.d;',
-    'this.b = this.d == this.v;',
-    'this.b = this.v == 3.4;',
-    'this.b = 5.6 == this.v;',
-    'this.b = this.v == this.c;',
-    'this.b = this.c == this.v;',
-    'this.b = this.m == this.m;',
-    'this.b = this.v == this.m;',
-    'this.b = this.m == this.v;',
+    LinesToStr([ // $mod.$main
+    '$mod.b = $mod.v == $mod.v;',
+    '$mod.b = $mod.v != $mod.v;',
+    '$mod.b = $mod.v == 1;',
+    '$mod.b = $mod.v != 1;',
+    '$mod.b = 2 == $mod.v;',
+    '$mod.b = 2 != $mod.v;',
+    '$mod.b = $mod.v == $mod.i;',
+    '$mod.b = $mod.i == $mod.v;',
+    '$mod.b = $mod.v == null;',
+    '$mod.b = null == $mod.v;',
+    '$mod.b = $mod.v == false;',
+    '$mod.b = true == $mod.v;',
+    '$mod.b = $mod.v == $mod.b;',
+    '$mod.b = $mod.b == $mod.v;',
+    '$mod.b = $mod.v == $mod.s;',
+    '$mod.b = $mod.s == $mod.v;',
+    '$mod.b = $mod.v == "foo";',
+    '$mod.b = "" == $mod.v;',
+    '$mod.b = $mod.v == $mod.d;',
+    '$mod.b = $mod.d == $mod.v;',
+    '$mod.b = $mod.v == 3.4;',
+    '$mod.b = 5.6 == $mod.v;',
+    '$mod.b = $mod.v == $mod.c;',
+    '$mod.b = $mod.c == $mod.v;',
+    '$mod.b = $mod.m == $mod.m;',
+    '$mod.b = $mod.v == $mod.m;',
+    '$mod.b = $mod.m == $mod.v;',
     '']));
 end;
 
@@ -10437,12 +11013,12 @@ begin
     'this.v = undefined;',
     'this.e = 0;',
     '']),
-    LinesToStr([ // this.$main
-    'this.v = this.e;',
-    'this.v = this.e;',
-    'this.v = this.e;',
-    'this.e = this.v;',
-    'this.e = this.v;',
+    LinesToStr([ // $mod.$main
+    '$mod.v = $mod.e;',
+    '$mod.v = $mod.e;',
+    '$mod.v = $mod.e;',
+    '$mod.e = $mod.v;',
+    '$mod.e = $mod.v;',
     '']));
 end;
 
@@ -10465,7 +11041,7 @@ begin
   ConvertProgram;
   CheckSource('TestJSValue_ClassInstance',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -10474,12 +11050,12 @@ begin
     'this.v = undefined;',
     'this.o = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.v = this.o;',
-    'this.v = this.o;',
-    'this.v = this.o;',
-    'this.o = rtl.getObject(this.v);',
-    'this.o = rtl.getObject(this.v);',
+    LinesToStr([ // $mod.$main
+    '$mod.v = $mod.o;',
+    '$mod.v = $mod.o;',
+    '$mod.v = $mod.o;',
+    '$mod.o = rtl.getObject($mod.v);',
+    '$mod.o = rtl.getObject($mod.v);',
     '']));
 end;
 
@@ -10505,24 +11081,24 @@ begin
   ConvertProgram;
   CheckSource('TestJSValue_ClassOf',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
     '  };',
     '});',
-    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
     '});',
     'this.v = undefined;',
     'this.c = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.v = this.c;',
-    'this.v = this.TObject;',
-    'this.v = this.c;',
-    'this.v = this.c;',
-    'this.c = rtl.getObject(this.v);',
-    'this.c = rtl.getObject(this.v);',
+    LinesToStr([ // $mod.$main
+    '$mod.v = $mod.c;',
+    '$mod.v = $mod.TObject;',
+    '$mod.v = $mod.c;',
+    '$mod.v = $mod.c;',
+    '$mod.c = rtl.getObject($mod.v);',
+    '$mod.c = rtl.getObject($mod.v);',
     '']));
 end;
 
@@ -10565,22 +11141,22 @@ begin
     'this.i = 0;',
     'this.ArrInt = [];',
     '']),
-    LinesToStr([ // this.$main
-    'this.Arr = this.TheArray;',
-    'this.TheArray = this.Arr;',
-    'this.Arr = rtl.arraySetLength(this.Arr,2,undefined);',
-    'this.TheArray = rtl.arraySetLength(this.TheArray,3,undefined);',
-    'this.Arr[4] = this.v;',
-    'this.Arr[5] = rtl.length(this.TheArray);',
-    'this.Arr[6] = null;',
-    'this.Arr[7] = this.TheArray[8];',
-    'this.Arr[0] = rtl.length(this.TheArray) - 1;',
-    'this.Arr = this.ArrInt;',
-    'this.ArrInt = this.Arr;',
-    'if (rtl.length(this.TheArray) == 0) ;',
-    'if (rtl.length(this.TheArray) == 0) ;',
-    'if (rtl.length(this.TheArray) > 0) ;',
-    'if (rtl.length(this.TheArray) > 0) ;',
+    LinesToStr([ // $mod.$main
+    '$mod.Arr = $mod.TheArray;',
+    '$mod.TheArray = $mod.Arr;',
+    '$mod.Arr = rtl.arraySetLength($mod.Arr,2,undefined);',
+    '$mod.TheArray = rtl.arraySetLength($mod.TheArray,3,undefined);',
+    '$mod.Arr[4] = $mod.v;',
+    '$mod.Arr[5] = rtl.length($mod.TheArray);',
+    '$mod.Arr[6] = null;',
+    '$mod.Arr[7] = $mod.TheArray[8];',
+    '$mod.Arr[0] = rtl.length($mod.TheArray) - 1;',
+    '$mod.Arr = $mod.ArrInt;',
+    '$mod.ArrInt = $mod.Arr;',
+    'if (rtl.length($mod.TheArray) == 0) ;',
+    'if (rtl.length($mod.TheArray) == 0) ;',
+    'if (rtl.length($mod.TheArray) > 0) ;',
+    'if (rtl.length($mod.TheArray) > 0) ;',
     '']));
 end;
 
@@ -10642,9 +11218,9 @@ begin
     'this.s = "";',
     'this.c = "";',
     '']),
-    LinesToStr([ // this.$main
-    'this.v = this.DoIt(this.v, this.v, {',
-    '  p: this,',
+    LinesToStr([ // $mod.$main
+    '$mod.v = $mod.DoIt($mod.v, $mod.v, {',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.v;',
     '    },',
@@ -10652,7 +11228,7 @@ begin
     '      this.p.v = v;',
     '    }',
     '}, {',
-    '  p: this,',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.v;',
     '    },',
@@ -10660,11 +11236,11 @@ begin
     '      this.p.v = v;',
     '    }',
     '});',
-    'this.i = Math.floor(this.DoSome(this.i, this.i));',
-    'this.b = !(this.DoSome(this.b, this.b) == false);',
-    'this.d = rtl.getNumber(this.DoSome(this.d, this.d));',
-    'this.s = "" + this.DoSome(this.s, this.s);',
-    'this.c = rtl.getChar(this.DoSome(this.c, this.c));',
+    '$mod.i = Math.floor($mod.DoSome($mod.i, $mod.i));',
+    '$mod.b = !($mod.DoSome($mod.b, $mod.b) == false);',
+    '$mod.d = rtl.getNumber($mod.DoSome($mod.d, $mod.d));',
+    '$mod.s = "" + $mod.DoSome($mod.s, $mod.s);',
+    '$mod.c = rtl.getChar($mod.DoSome($mod.c, $mod.c));',
     '']));
 end;
 
@@ -10696,9 +11272,9 @@ begin
     '};',
     'this.i = 0;',
     '']),
-    LinesToStr([ // this.$main
-    'this.DoIt(this.i, {',
-    '  p: this,',
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.i, {',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -10706,7 +11282,7 @@ begin
     '      this.p.i = v;',
     '    }',
     '}, {',
-    '  p: this,',
+    '  p: $mod,',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -10748,11 +11324,11 @@ begin
     'this.V = undefined;',
     'this.i = 0;',
     '']),
-    LinesToStr([ // this.$main
-    'if (this.Compare(this.V, this.V) > 0) ;',
-    'if (this.Compare(this.i, this.i) > 1) ;',
-    'if (this.Compare(null, false) > 2) ;',
-    'if (this.Compare(1, true) > 3) ;',
+    LinesToStr([ // $mod.$main
+    'if ($mod.Compare($mod.V, $mod.V) > 0) ;',
+    'if ($mod.Compare($mod.i, $mod.i) > 1) ;',
+    'if ($mod.Compare(null, false) > 2) ;',
+    'if ($mod.Compare(1, true) > 3) ;',
     '']));
 end;
 
@@ -10794,7 +11370,7 @@ begin
   ConvertProgram;
   CheckSource('TestJSValue_ProcType_Assign',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -10819,16 +11395,16 @@ begin
     'this.GetIt = function (i) {',
     '  var Result = 0;',
     '  var v3 = undefined;',
-    '  v3 = rtl.createCallback(this, "GetIt");',
+    '  v3 = $mod.GetIt;',
     '  return Result;',
     '};',
     'this.V = undefined;',
     'this.o = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.V = rtl.createCallback(this, "GetIt");',
-    'this.V = rtl.createCallback(this.o, "Getter");',
-    'this.V = rtl.createCallback(this.o.$class, "GetGlob");',
+    LinesToStr([ // $mod.$main
+    '$mod.V = $mod.GetIt;',
+    '$mod.V = rtl.createCallback($mod.o, "Getter");',
+    '$mod.V = rtl.createCallback($mod.o.$class, "GetGlob");',
     '']));
 end;
 
@@ -10873,7 +11449,7 @@ begin
   ConvertProgram;
   CheckSource('TestJSValue_ProcType_Equal',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -10898,20 +11474,35 @@ begin
     'this.GetIt = function (i) {',
     '  var Result = 0;',
     '  var v3 = undefined;',
-    '  if (rtl.eqCallback(v3, rtl.createCallback(this, "GetIt"))) ;',
+    '  if (rtl.eqCallback(v3, $mod.GetIt)) ;',
     '  return Result;',
     '};',
     'this.V = undefined;',
     'this.o = null;',
     '']),
-    LinesToStr([ // this.$main
-    'if (rtl.eqCallback(this.V, rtl.createCallback(this, "GetIt"))) ;',
-    'if (rtl.eqCallback(this.V, rtl.createCallback(this.o, "Getter"))) ;',
-    'if (rtl.eqCallback(this.V, rtl.createCallback(this.o.$class, "GetGlob"))) ;',
-    'if (rtl.eqCallback(rtl.createCallback(this, "GetIt"), this.V)) ;',
-    'if (rtl.eqCallback(rtl.createCallback(this.o, "Getter"), this.V)) ;',
-    'if (rtl.eqCallback(rtl.createCallback(this.o.$class, "GetGlob"), this.V)) ;',
+    LinesToStr([ // $mod.$main
+    'if (rtl.eqCallback($mod.V, $mod.GetIt)) ;',
+    'if (rtl.eqCallback($mod.V, rtl.createCallback($mod.o, "Getter"))) ;',
+    'if (rtl.eqCallback($mod.V, rtl.createCallback($mod.o.$class, "GetGlob"))) ;',
+    'if (rtl.eqCallback($mod.GetIt, $mod.V)) ;',
+    'if (rtl.eqCallback(rtl.createCallback($mod.o, "Getter"), $mod.V)) ;',
+    'if (rtl.eqCallback(rtl.createCallback($mod.o.$class, "GetGlob"), $mod.V)) ;',
     '']));
+end;
+
+procedure TTestModule.TestJSValue_AssignToPointerFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  v: JSValue;',
+  '  p: Pointer;',
+  'begin',
+  '  p:=v;',
+  '']);
+  SetExpectedPasResolverError('Incompatible types: got "JSValue" expected "Pointer"',
+    nIncompatibleTypesGotExpected);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestRTTI_ProcType;
@@ -10923,37 +11514,37 @@ begin
   Add('  TMethodB = procedure of object;');
   Add('  TProcC = procedure; varargs;');
   Add('  TProcD = procedure(i: longint; const j: string; var c: char; out d: double);');
-  Add('  TProcE = function: longint;');
-  Add('  TProcF = function(const p: TProcA): longint;');
+  Add('  TProcE = function: nativeint;');
+  Add('  TProcF = function(const p: TProcA): nativeuint;');
   Add('var p: pointer;');
   Add('begin');
   Add('  p:=typeinfo(tproca);');
   ConvertProgram;
   CheckSource('TestRTTI_ProcType',
     LinesToStr([ // statements
-    'this.$rtti.$ProcVar("TProcA", {',
+    '$mod.$rtti.$ProcVar("TProcA", {',
     '  procsig: rtl.newTIProcSig(null)',
     '});',
-    'this.$rtti.$MethodVar("TMethodB", {',
+    '$mod.$rtti.$MethodVar("TMethodB", {',
     '  procsig: rtl.newTIProcSig(null),',
     '  methodkind: 0',
     '});',
-    'this.$rtti.$ProcVar("TProcC", {',
+    '$mod.$rtti.$ProcVar("TProcC", {',
     '  procsig: rtl.newTIProcSig(null, 2)',
     '});',
-    'this.$rtti.$ProcVar("TProcD", {',
+    '$mod.$rtti.$ProcVar("TProcD", {',
     '  procsig: rtl.newTIProcSig([["i", rtl.longint], ["j", rtl.string, 2], ["c", rtl.char, 1], ["d", rtl.double, 4]])',
     '});',
-    'this.$rtti.$ProcVar("TProcE", {',
-    '  procsig: rtl.newTIProcSig(null, rtl.longint)',
+    '$mod.$rtti.$ProcVar("TProcE", {',
+    '  procsig: rtl.newTIProcSig(null, rtl.nativeint)',
     '});',
-    'this.$rtti.$ProcVar("TProcF", {',
-    '  procsig: rtl.newTIProcSig([["p", this.$rtti["TProcA"], 2]], rtl.longint)',
+    '$mod.$rtti.$ProcVar("TProcF", {',
+    '  procsig: rtl.newTIProcSig([["p", $mod.$rtti["TProcA"], 2]], rtl.nativeuint)',
     '});',
     'this.p = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.p = this.$rtti["TProcA"];',
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TProcA"];',
     '']));
 end;
 
@@ -10982,17 +11573,17 @@ begin
   ConvertUnit;
   CheckSource('TestRTTI_ProcType_ArgFromOtherUnit',
     LinesToStr([ // statements
-    'var $impl = this.$impl;',
-    'this.$rtti.$ProcVar("TProcA", {',
+    'var $impl = $mod.$impl;',
+    '$mod.$rtti.$ProcVar("TProcA", {',
     '  procsig: rtl.newTIProcSig([["o", pas.unit2.$rtti["TObject"]]], pas.unit2.$rtti["TObject"])',
     '});',
     '']),
     LinesToStr([ // this.$init
-    '$impl.p = this.$rtti["TProcA"];',
-    '$impl.p = this.$rtti["TProcB"];',
+    '$impl.p = $mod.$rtti["TProcA"];',
+    '$impl.p = $mod.$rtti["TProcB"];',
     '']),
     LinesToStr([ // implementation
-    'this.$rtti.$ProcVar("TProcB", {',
+    '$mod.$rtti.$ProcVar("TProcB", {',
     '  procsig: rtl.newTIProcSig([["o", pas.unit2.$rtti["TObject"]]], pas.unit2.$rtti["TObject"])',
     '});',
     '$impl.p = null;',
@@ -11020,22 +11611,22 @@ begin
     '  "1": "dark",',
     '  dark: 1',
     '};',
-    'this.$rtti.$Enum("TFlag", {',
+    '$mod.$rtti.$Enum("TFlag", {',
     '  minvalue: 0,',
     '  maxvalue: 1,',
     '  enumtype: this.TFlag',
     '});',
-    'this.$rtti.$Set("TFlags", {',
-    '  comptype: this.$rtti["TFlag"]',
+    '$mod.$rtti.$Set("TFlags", {',
+    '  comptype: $mod.$rtti["TFlag"]',
     '});',
-    'this.$rtti.$ProcVar("TProc", {',
-    '  procsig: rtl.newTIProcSig([["f", this.$rtti["TFlags"]]], this.$rtti["TFlag"])',
+    '$mod.$rtti.$ProcVar("TProc", {',
+    '  procsig: rtl.newTIProcSig([["f", $mod.$rtti["TFlags"]]], $mod.$rtti["TFlag"])',
     '});',
     'this.p = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.p = this.$rtti["TFlag"];',
-    'this.p = this.$rtti["TFlags"];',
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TFlag"];',
+    '$mod.p = $mod.$rtti["TFlags"];',
     '']));
 end;
 
@@ -11058,18 +11649,18 @@ begin
     '  "1": "green",',
     '  green: 1',
     '};',
-    'this.$rtti.$Enum("TFlags$a", {',
+    '$mod.$rtti.$Enum("TFlags$a", {',
     '  minvalue: 0,',
     '  maxvalue: 1,',
     '  enumtype: this.TFlags$a',
     '});',
-    'this.$rtti.$Set("TFlags", {',
-    '  comptype: this.$rtti["TFlags$a"]',
+    '$mod.$rtti.$Set("TFlags", {',
+    '  comptype: $mod.$rtti["TFlags$a"]',
     '});',
     'this.f = {};',
     '']),
     LinesToStr([
-    'this.f = rtl.includeSet(this.f, this.TFlags$a.red);',
+    '$mod.f = rtl.includeSet($mod.f, $mod.TFlags$a.red);',
     '']));
 end;
 
@@ -11095,27 +11686,27 @@ begin
     '  "1": "dark",',
     '  dark: 1',
     '};',
-    'this.$rtti.$Enum("TFlag", {',
+    '$mod.$rtti.$Enum("TFlag", {',
     '  minvalue: 0,',
     '  maxvalue: 1,',
     '  enumtype: this.TFlag',
     '});',
-    'this.$rtti.$StaticArray("TFlagNames", {',
+    '$mod.$rtti.$StaticArray("TFlagNames", {',
     '  dims: [2],',
     '  eltype: rtl.string',
     '});',
-    'this.$rtti.$StaticArray("TBoolNames", {',
+    '$mod.$rtti.$StaticArray("TBoolNames", {',
     '  dims: [2],',
     '  eltype: rtl.string',
     '});',
-    'this.$rtti.$ProcVar("TProc", {',
-    '  procsig: rtl.newTIProcSig([["f", this.$rtti["TBoolNames"]]], this.$rtti["TFlagNames"])',
+    '$mod.$rtti.$ProcVar("TProc", {',
+    '  procsig: rtl.newTIProcSig([["f", $mod.$rtti["TBoolNames"]]], $mod.$rtti["TFlagNames"])',
     '});',
     'this.p = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.p = this.$rtti["TFlagNames"];',
-    'this.p = this.$rtti["TBoolNames"];',
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TFlagNames"];',
+    '$mod.p = $mod.$rtti["TBoolNames"];',
     '']));
 end;
 
@@ -11134,20 +11725,20 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_DynArray',
     LinesToStr([ // statements
-    'this.$rtti.$DynArray("TArrStr", {',
+    '$mod.$rtti.$DynArray("TArrStr", {',
     '  eltype: rtl.string',
     '});',
-    'this.$rtti.$DynArray("TArr2Dim", {',
-    '  eltype: this.$rtti["TArrStr"]',
+    '$mod.$rtti.$DynArray("TArr2Dim", {',
+    '  eltype: $mod.$rtti["TArrStr"]',
     '});',
-    'this.$rtti.$ProcVar("TProc", {',
-    '  procsig: rtl.newTIProcSig([["f", this.$rtti["TArrStr"]]], this.$rtti["TArr2Dim"])',
+    '$mod.$rtti.$ProcVar("TProc", {',
+    '  procsig: rtl.newTIProcSig([["f", $mod.$rtti["TArrStr"]]], $mod.$rtti["TArr2Dim"])',
     '});',
     'this.p = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.p = this.$rtti["TArrStr"];',
-    'this.p = this.$rtti["TArr2Dim"];',
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TArrStr"];',
+    '$mod.p = $mod.$rtti["TArr2Dim"];',
     '']));
 end;
 
@@ -11162,15 +11753,15 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_ArrayNestedAnonymous',
     LinesToStr([ // statements
-    'this.$rtti.$DynArray("TArr$a", {',
+    '$mod.$rtti.$DynArray("TArr$a", {',
     '  eltype: rtl.longint',
     '});',
-    'this.$rtti.$DynArray("TArr", {',
-    '  eltype: this.$rtti["TArr$a"]',
+    '$mod.$rtti.$DynArray("TArr", {',
+    '  eltype: $mod.$rtti["TArr$a"]',
     '});',
     'this.a = [];',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     ]));
 end;
 
@@ -11267,7 +11858,7 @@ begin
   Add('    VarS: string;');
   Add('    VarD: double;');
   Add('    VarB: boolean;');
-  Add('    VarCa: cardinal;');
+  Add('    VarLW: longword;');
   Add('    VarSmI: smallint;');
   Add('    VarW: word;');
   Add('    VarShI: shortint;');
@@ -11283,7 +11874,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Class_Field',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FPropA = "";',
     '    this.VarLI = 0;',
@@ -11291,7 +11882,7 @@ begin
     '    this.VarS = "";',
     '    this.VarD = 0.0;',
     '    this.VarB = false;',
-    '    this.VarCa = 0;',
+    '    this.VarLW = 0;',
     '    this.VarSmI = 0;',
     '    this.VarW = 0;',
     '    this.VarShI = 0;',
@@ -11305,7 +11896,7 @@ begin
     '  $r.addField("VarS", rtl.string);',
     '  $r.addField("VarD", rtl.double);',
     '  $r.addField("VarB", rtl.boolean);',
-    '  $r.addField("VarCa", rtl.cardinal);',
+    '  $r.addField("VarLW", rtl.longword);',
     '  $r.addField("VarSmI", rtl.smallint);',
     '  $r.addField("VarW", rtl.word);',
     '  $r.addField("VarShI", rtl.shortint);',
@@ -11315,10 +11906,10 @@ begin
     'this.p = null;',
     'this.Obj = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.p = this.$rtti["TObject"];',
-    'this.p = rtl.pointer;',
-    'this.p = this.Obj.$rtti;',
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TObject"];',
+    '$mod.p = rtl.pointer;',
+    '$mod.p = $mod.Obj.$rtti;',
     '']));
 end;
 
@@ -11340,7 +11931,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Class_Method',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -11354,7 +11945,37 @@ begin
     '  });',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_MethodArgFlags;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  published');
+  Add('    procedure OpenArray(const Args: array of string); virtual; abstract;');
+  Add('    procedure ByRef(var Value: longint; out Item: longint); virtual; abstract;');
+  Add('    procedure Untyped(var Value; out Item); virtual; abstract;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_MethodOpenArray',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '$r.addMethod("OpenArray", 0, [["Args", rtl.string, 10]]);',
+    '$r.addMethod("ByRef", 0, [["Value", rtl.longint, 1], ["Item", rtl.longint, 4]]);',
+    '$r.addMethod("Untyped", 0, [["Value", null, 1], ["Item", null, 4]]);',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -11389,7 +12010,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Class_Property',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FColor = 0;',
     '    this.FColorStored = false;',
@@ -11415,7 +12036,7 @@ begin
     '  );',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -11440,7 +12061,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Class_PropertyParams',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -11450,7 +12071,7 @@ begin
     '  $r.addProperty("Values", 3, rtl.char, "GetValues", "SetValues");',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -11472,7 +12093,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_OverrideMethod',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -11480,12 +12101,12 @@ begin
     '  var $r = this.$rtti;',
     '  $r.addMethod("DoIt", 0, null);',
     '});',
-    'rtl.createClass(this, "TSky", this.TObject, function () {',
+    'rtl.createClass($mod, "TSky", $mod.TObject, function () {',
     '  this.DoIt = function () {',
     '  };',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -11508,7 +12129,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_OverrideMethod',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFlag = 0;',
     '  };',
@@ -11517,12 +12138,12 @@ begin
     '  var $r = this.$rtti;',
     '  $r.addProperty("Flag", 0, rtl.longint, "FFlag", "");',
     '});',
-    'rtl.createClass(this, "TSky", this.TObject, function () {',
+    'rtl.createClass($mod, "TSky", $mod.TObject, function () {',
     '  var $r = this.$rtti;',
     '  $r.addProperty("Flag", 0, rtl.longint, "", "FFlag");',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -11551,46 +12172,46 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_ClassForward',
     LinesToStr([ // statements
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
     '  };',
     '});',
-    'this.$rtti.$Class("TBridge");',
-    'this.$rtti.$ProcVar("TProc", {',
-    '  procsig: rtl.newTIProcSig(null, this.$rtti["TBridge"])',
+    '$mod.$rtti.$Class("TBridge");',
+    '$mod.$rtti.$ProcVar("TProc", {',
+    '  procsig: rtl.newTIProcSig(null, $mod.$rtti["TBridge"])',
     '});',
-    'rtl.createClass(this, "TOger", this.TObject, function () {',
+    'rtl.createClass($mod, "TOger", $mod.TObject, function () {',
     '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
+    '    $mod.TObject.$init.call(this);',
     '    this.FBridge = null;',
     '  };',
     '  this.$final = function () {',
     '    this.FBridge = undefined;',
-    '    pas.program.TObject.$final.call(this);',
+    '    $mod.TObject.$final.call(this);',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addField("FBridge", pas.program.$rtti["TBridge"]);',
-    '  $r.addMethod("SetBridge", 0, [["Value", pas.program.$rtti["TBridge"]]]);',
-    '  $r.addProperty("Bridge", 2, pas.program.$rtti["TBridge"], "FBridge", "SetBridge");',
+    '  $r.addField("FBridge", $mod.$rtti["TBridge"]);',
+    '  $r.addMethod("SetBridge", 0, [["Value", $mod.$rtti["TBridge"]]]);',
+    '  $r.addProperty("Bridge", 2, $mod.$rtti["TBridge"], "FBridge", "SetBridge");',
     '});',
-    'rtl.createClass(this, "TBridge", this.TObject, function () {',
+    'rtl.createClass($mod, "TBridge", $mod.TObject, function () {',
     '  this.$init = function () {',
-    '    pas.program.TObject.$init.call(this);',
+    '    $mod.TObject.$init.call(this);',
     '    this.FOger = null;',
     '  };',
     '  this.$final = function () {',
     '    this.FOger = undefined;',
-    '    pas.program.TObject.$final.call(this);',
+    '    $mod.TObject.$final.call(this);',
     '  };',
     '});',
     'this.p = null;',
     'this.b = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.p = this.$rtti["TBridge"];',
-    'this.p = this.b.$rtti;',
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TBridge"];',
+    '$mod.p = $mod.b.$rtti;',
     '']));
 end;
 
@@ -11617,14 +12238,14 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_ClassOf',
     LinesToStr([ // statements
-    'this.$rtti.$Class("TObject");',
-    'this.$rtti.$ClassRef("TClass", {',
-    '  instancetype: this.$rtti["TObject"]',
+    '$mod.$rtti.$Class("TObject");',
+    '$mod.$rtti.$ClassRef("TClass", {',
+    '  instancetype: $mod.$rtti["TObject"]',
     '});',
-    'this.$rtti.$ProcVar("TProcA", {',
-    '  procsig: rtl.newTIProcSig(null, this.$rtti["TClass"])',
+    '$mod.$rtti.$ProcVar("TProcA", {',
+    '  procsig: rtl.newTIProcSig(null, $mod.$rtti["TClass"])',
     '});',
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.C = null;',
     '  };',
@@ -11632,27 +12253,27 @@ begin
     '    this.C = undefined;',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addField("C", pas.program.$rtti["TClass"]);',
+    '  $r.addField("C", $mod.$rtti["TClass"]);',
     '});',
-    'this.$rtti.$Class("TFox");',
-    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '$mod.$rtti.$Class("TFox");',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
     '});',
-    'this.$rtti.$ClassRef("TBirds", {',
-    '  instancetype: this.$rtti["TBird"]',
+    '$mod.$rtti.$ClassRef("TBirds", {',
+    '  instancetype: $mod.$rtti["TBird"]',
     '});',
-    'rtl.createClass(this, "TFox", this.TObject, function () {',
+    'rtl.createClass($mod, "TFox", $mod.TObject, function () {',
     '});',
-    'this.$rtti.$ClassRef("TFoxes", {',
-    '  instancetype: this.$rtti["TFox"]',
+    '$mod.$rtti.$ClassRef("TFoxes", {',
+    '  instancetype: $mod.$rtti["TFox"]',
     '});',
-    'this.$rtti.$Class("TCow");',
-    'this.$rtti.$ClassRef("TCows", {',
-    '  instancetype: this.$rtti["TCow"]',
+    '$mod.$rtti.$Class("TCow");',
+    '$mod.$rtti.$ClassRef("TCows", {',
+    '  instancetype: $mod.$rtti["TCow"]',
     '});',
-    'rtl.createClass(this, "TCow", this.TObject, function () {',
+    'rtl.createClass($mod, "TCow", $mod.TObject, function () {',
     '});',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -11686,14 +12307,14 @@ begin
     '    return (this.x == b.x) && (this.y == b.y);',
     '  };',
     '};',
-    'this.$rtti.$Record("TPoint", {}).addFields("x", rtl.longint, "y", rtl.longint);',
+    '$mod.$rtti.$Record("TPoint", {}).addFields("x", rtl.longint, "y", rtl.longint);',
     'this.p = null;',
-    'this.r = new this.TPoint();',
+    'this.r = new $mod.TPoint();',
     '']),
-    LinesToStr([ // this.$main
-    'this.p = this.$rtti["TPoint"];',
-    'this.p = this.$rtti["TPoint"];',
-    'this.p = rtl.longint;',
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TPoint"];',
+    '$mod.p = $mod.$rtti["TPoint"];',
+    '$mod.p = rtl.longint;',
     '']));
 end;
 
@@ -11728,7 +12349,7 @@ begin
     '  };',
     '};',
     '']),
-    LinesToStr([ // this.$main
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -11747,7 +12368,7 @@ begin
   Add('  TSmallInt = smallint;');
   Add('  TWord = word;');
   Add('  TInt32 = longint;');
-  Add('  TDWord = cardinal;');
+  Add('  TDWord = longword;');
   Add('  TValue = jsvalue;');
   Add('var p: TPtr;');
   Add('begin');
@@ -11769,7 +12390,7 @@ begin
   Add('  p:=typeinfo(tsmallint);');
   Add('  p:=typeinfo(word);');
   Add('  p:=typeinfo(tword);');
-  Add('  p:=typeinfo(cardinal);');
+  Add('  p:=typeinfo(longword);');
   Add('  p:=typeinfo(tdword);');
   Add('  p:=typeinfo(jsvalue);');
   Add('  p:=typeinfo(tvalue);');
@@ -11778,29 +12399,29 @@ begin
     LinesToStr([ // statements
     'this.p = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.p = rtl.string;',
-    'this.p = rtl.string;',
-    'this.p = rtl.boolean;',
-    'this.p = rtl.boolean;',
-    'this.p = rtl.char;',
-    'this.p = rtl.char;',
-    'this.p = rtl.double;',
-    'this.p = rtl.double;',
-    'this.p = rtl.pointer;',
-    'this.p = rtl.pointer;',
-    'this.p = rtl.shortint;',
-    'this.p = rtl.shortint;',
-    'this.p = rtl.byte;',
-    'this.p = rtl.byte;',
-    'this.p = rtl.smallint;',
-    'this.p = rtl.smallint;',
-    'this.p = rtl.word;',
-    'this.p = rtl.word;',
-    'this.p = rtl.cardinal;',
-    'this.p = rtl.cardinal;',
-    'this.p = rtl.jsvalue;',
-    'this.p = rtl.jsvalue;',
+    LinesToStr([ // $mod.$main
+    '$mod.p = rtl.string;',
+    '$mod.p = rtl.string;',
+    '$mod.p = rtl.boolean;',
+    '$mod.p = rtl.boolean;',
+    '$mod.p = rtl.char;',
+    '$mod.p = rtl.char;',
+    '$mod.p = rtl.double;',
+    '$mod.p = rtl.double;',
+    '$mod.p = rtl.pointer;',
+    '$mod.p = rtl.pointer;',
+    '$mod.p = rtl.shortint;',
+    '$mod.p = rtl.shortint;',
+    '$mod.p = rtl.byte;',
+    '$mod.p = rtl.byte;',
+    '$mod.p = rtl.smallint;',
+    '$mod.p = rtl.smallint;',
+    '$mod.p = rtl.word;',
+    '$mod.p = rtl.word;',
+    '$mod.p = rtl.longword;',
+    '$mod.p = rtl.longword;',
+    '$mod.p = rtl.jsvalue;',
+    '$mod.p = rtl.jsvalue;',
     '']));
 end;
 
@@ -11850,7 +12471,7 @@ begin
   Add('  tiInt:=typeinfo(smallint);');
   Add('  tiInt:=typeinfo(word);');
   Add('  tiInt:=typeinfo(longint);');
-  Add('  tiInt:=typeinfo(cardinal);');
+  Add('  tiInt:=typeinfo(longword);');
   Add('  ti:=typeinfo(jsvalue);');
   Add('  tiEnum:=typeinfo(tflag);');
   Add('  tiSet:=typeinfo(tflags);');
@@ -11863,33 +12484,33 @@ begin
     '  "1": "down",',
     '  down: 1',
     '};',
-    'this.$rtti.$Enum("TFlag", {',
+    '$mod.$rtti.$Enum("TFlag", {',
     '  minvalue: 0,',
     '  maxvalue: 1,',
     '  enumtype: this.TFlag',
     '});',
-    'this.$rtti.$Set("TFlags", {',
-    '  comptype: this.$rtti["TFlag"]',
+    '$mod.$rtti.$Set("TFlags", {',
+    '  comptype: $mod.$rtti["TFlag"]',
     '});',
     'this.ti = null;',
     'this.tiInt = null;',
     'this.tiEnum = null;',
     'this.tiSet = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.ti = rtl.string;',
-    'this.ti = rtl.boolean;',
-    'this.ti = rtl.char;',
-    'this.ti = rtl.double;',
-    'this.tiInt = rtl.shortint;',
-    'this.tiInt = rtl.byte;',
-    'this.tiInt = rtl.smallint;',
-    'this.tiInt = rtl.word;',
-    'this.tiInt = rtl.longint;',
-    'this.tiInt = rtl.cardinal;',
-    'this.ti = rtl.jsvalue;',
-    'this.tiEnum = this.$rtti["TFlag"];',
-    'this.tiSet = this.$rtti["TFlags"];',
+    LinesToStr([ // $mod.$main
+    '$mod.ti = rtl.string;',
+    '$mod.ti = rtl.boolean;',
+    '$mod.ti = rtl.char;',
+    '$mod.ti = rtl.double;',
+    '$mod.tiInt = rtl.shortint;',
+    '$mod.tiInt = rtl.byte;',
+    '$mod.tiInt = rtl.smallint;',
+    '$mod.tiInt = rtl.word;',
+    '$mod.tiInt = rtl.longint;',
+    '$mod.tiInt = rtl.longword;',
+    '$mod.ti = rtl.jsvalue;',
+    '$mod.tiEnum = $mod.$rtti["TFlag"];',
+    '$mod.tiSet = $mod.$rtti["TFlags"];',
     '']));
 end;
 
@@ -11929,17 +12550,17 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses2',
     LinesToStr([ // statements
-    '  this.$rtti.$StaticArray("TStaticArr", {',
+    '  $mod.$rtti.$StaticArray("TStaticArr", {',
     '  dims: [2],',
     '  eltype: rtl.string',
     '});',
-    'this.$rtti.$DynArray("TDynArr", {',
+    '$mod.$rtti.$DynArray("TDynArr", {',
     '  eltype: rtl.string',
     '});',
-    'this.$rtti.$ProcVar("TProc", {',
+    '$mod.$rtti.$ProcVar("TProc", {',
     '  procsig: rtl.newTIProcSig(null)',
     '});',
-    'this.$rtti.$MethodVar("TMethod", {',
+    '$mod.$rtti.$MethodVar("TMethod", {',
     '  procsig: rtl.newTIProcSig(null),',
     '  methodkind: 0',
     '});',
@@ -11952,15 +12573,15 @@ begin
     'this.MethodVar = null;',
     'this.tiMethodVar = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.tiStaticArray = this.$rtti["TStaticArr"];',
-    'this.tiStaticArray = this.$rtti["TStaticArr"];',
-    'this.tiDynArray = this.$rtti["TDynArr"];',
-    'this.tiDynArray = this.$rtti["TDynArr"];',
-    'this.tiProcVar = this.$rtti["TProc"];',
-    'this.tiProcVar = this.$rtti["TProc"];',
-    'this.tiMethodVar = this.$rtti["TMethod"];',
-    'this.tiMethodVar = this.$rtti["TMethod"];',
+    LinesToStr([ // $mod.$main
+    '$mod.tiStaticArray = $mod.$rtti["TStaticArr"];',
+    '$mod.tiStaticArray = $mod.$rtti["TStaticArr"];',
+    '$mod.tiDynArray = $mod.$rtti["TDynArr"];',
+    '$mod.tiDynArray = $mod.$rtti["TDynArr"];',
+    '$mod.tiProcVar = $mod.$rtti["TProc"];',
+    '$mod.tiProcVar = $mod.$rtti["TProc"];',
+    '$mod.tiMethodVar = $mod.$rtti["TMethod"];',
+    '$mod.tiMethodVar = $mod.$rtti["TMethod"];',
     '']));
 end;
 
@@ -11993,24 +12614,24 @@ begin
   Add('  tirecord:=typeinfo(trec);');
   Add('  ticlass:=typeinfo(obj);');
   Add('  ticlass:=typeinfo(tobject);');
-  Add('  ticlassref:=typeinfo(aclass);');
+  Add('  ticlass:=typeinfo(aclass);');
   Add('  ticlassref:=typeinfo(tclass);');
   ConvertProgram;
   CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses3',
     LinesToStr([ // statements
     'this.TRec = function (s) {',
     '};',
-    'this.$rtti.$Record("TRec", {});',
-    'rtl.createClass(this, "TObject", null, function () {',
+    '$mod.$rtti.$Record("TRec", {});',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
     '  };',
     '});',
-    'this.$rtti.$ClassRef("TClass", {',
-    '  instancetype: this.$rtti["TObject"]',
+    '$mod.$rtti.$ClassRef("TClass", {',
+    '  instancetype: $mod.$rtti["TObject"]',
     '});',
-    'this.Rec = new this.TRec();',
+    'this.Rec = new $mod.TRec();',
     'this.tiRecord = null;',
     'this.Obj = null;',
     'this.tiClass = null;',
@@ -12018,13 +12639,84 @@ begin
     'this.tiClassRef = null;',
     'this.tiPointer = null;',
     '']),
-    LinesToStr([ // this.$main
-    'this.tiRecord = this.$rtti["TRec"];',
-    'this.tiRecord = this.$rtti["TRec"];',
-    'this.tiClass = this.Obj.$rtti;',
-    'this.tiClass = this.$rtti["TObject"];',
-    'this.tiClassRef = this.$rtti["TClass"];',
-    'this.tiClassRef = this.$rtti["TClass"];',
+    LinesToStr([ // $mod.$main
+    '$mod.tiRecord = $mod.$rtti["TRec"];',
+    '$mod.tiRecord = $mod.$rtti["TRec"];',
+    '$mod.tiClass = $mod.Obj.$rtti;',
+    '$mod.tiClass = $mod.$rtti["TObject"];',
+    '$mod.tiClass = $mod.aClass.$rtti;',
+    '$mod.tiClassRef = $mod.$rtti["TClass"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_TypeInfo_FunctionClassType;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TClass = class of tobject;',
+  '  TObject = class',
+  '    function MyClass: TClass;',
+  '    class function ClassType: TClass;',
+  '  end;',
+  '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
+  '  TTypeInfoClass = class external name ''rtl.tTypeInfoClass''(TTypeInfo) end;',
+  'function TObject.MyClass: TClass;',
+  'var t: TTypeInfoClass;',
+  'begin',
+  '  t:=TypeInfo(Self);',
+  '  t:=TypeInfo(Result);',
+  'end;',
+  'class function TObject.ClassType: TClass;',
+  'var t: TTypeInfoClass;',
+  'begin',
+  '  t:=TypeInfo(Self);',
+  '  t:=TypeInfo(Result);',
+  'end;',
+  'var',
+  '  Obj: TObject;',
+  '  t: TTypeInfoClass;',
+  'begin',
+  '  t:=TypeInfo(TObject.ClassType);',
+  '  t:=TypeInfo(Obj.ClassType);',
+  '  t:=TypeInfo(Obj.MyClass);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRTTI_TypeInfo_FunctionClassType',
+    LinesToStr([ // statements
+    '$mod.$rtti.$Class("TObject");',
+    '$mod.$rtti.$ClassRef("TClass", {',
+    '  instancetype: $mod.$rtti["TObject"]',
+    '});',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.MyClass = function () {',
+    '    var Result = null;',
+    '    var t = null;',
+    '    t = this.$rtti;',
+    '    t = Result.$rtti;',
+    '    return Result;',
+    '  };',
+    '  this.ClassType = function () {',
+    '    var Result = null;',
+    '    var t = null;',
+    '    t = this.$rtti;',
+    '    t = Result.$rtti;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.t = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.t = $mod.TObject.ClassType().$rtti;',
+    '$mod.t = $mod.Obj.$class.ClassType().$rtti;',
+    '$mod.t = $mod.Obj.MyClass().$rtti;',
     '']));
 end;
 

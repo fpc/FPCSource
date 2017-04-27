@@ -173,7 +173,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitLocalVar',
     'this.b = 0;',
-    'this.b = 3;');
+    '$mod.b = 3;');
 end;
 
 procedure TTestOptimizations.TestWPO_OmitLocalProc;
@@ -190,7 +190,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -210,7 +210,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -239,7 +239,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -269,7 +269,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -295,7 +295,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -320,7 +320,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -347,7 +347,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -375,10 +375,10 @@ begin
     '    return this.a == b.a;',
     '  };',
     '};',
-    'this.r = new this.TRec();',
+    'this.r = new $mod.TRec();',
     '']),
     LinesToStr([
-    'this.r.a = 3;',
+    '$mod.r.a = 3;',
     '']));
 end;
 
@@ -413,7 +413,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_TObject',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -426,7 +426,7 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o = null;']));
+    '$mod.o = null;']));
 end;
 
 procedure TTestOptimizations.TestWPO_OmitClassField;
@@ -443,7 +443,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassField',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.a = 0;',
     '  };',
@@ -453,7 +453,7 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.a = 3;']));
+    '$mod.o.a = 3;']));
 end;
 
 procedure TTestOptimizations.TestWPO_OmitClassMethod;
@@ -472,7 +472,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassMethod',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -483,7 +483,7 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.ProcB();']));
+    '$mod.o.ProcB();']));
 end;
 
 procedure TTestOptimizations.TestWPO_OmitClassClassMethod;
@@ -502,7 +502,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassMethod',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -513,7 +513,7 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.$class.ProcB();']));
+    '$mod.o.$class.ProcB();']));
 end;
 
 procedure TTestOptimizations.TestWPO_OmitPropertyGetter1;
@@ -538,7 +538,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertyGetter1',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -548,7 +548,7 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'if (this.o.FFoo);',
+    'if ($mod.o.FFoo);',
     '']));
 end;
 
@@ -569,7 +569,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertyGetter2',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -584,7 +584,7 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'if (this.o.GetFoo()) ;',
+    'if ($mod.o.GetFoo()) ;',
     '']));
 end;
 
@@ -610,7 +610,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertySetter1',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -620,7 +620,7 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.FFoo = true;',
+    '$mod.o.FFoo = true;',
     '']));
 end;
 
@@ -641,7 +641,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertySetter2',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -654,7 +654,7 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.SetFoo(true);',
+    '$mod.o.SetFoo(true);',
     '']));
 end;
 
@@ -687,7 +687,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_CallInherited',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -697,19 +697,19 @@ begin
     '  this.DoB = function () {',
     '  };',
     '});',
-    ' rtl.createClass(this, "TMobile", this.TObject, function () {',
+    ' rtl.createClass($mod, "TMobile", $mod.TObject, function () {',
     '  this.DoA$1 = function () {',
-    '    pas.program.TObject.DoA.apply(this, arguments);',
+    '    $mod.TObject.DoA.apply(this, arguments);',
     '  };',
     '  this.DoC = function () {',
-    '    pas.program.TObject.DoB.call(this);',
+    '    $mod.TObject.DoB.call(this);',
     '  };',
     '});',
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.DoA$1();',
-    'this.o.DoC();',
+    '$mod.o.DoA$1();',
+    '$mod.o.DoC();',
     '']));
 end;
 
@@ -741,7 +741,8 @@ begin
   ActualSrc:=JSToStr(JSModule);
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system", "unit2"], function () {',
-    '  this.$main = function () {',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
     '    pas.unit2.j = 3;',
     '  };',
     '});',
@@ -764,10 +765,11 @@ begin
   ActualSrc:=JSToStr(JSModule);
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system"], function () {',
+    '  var $mod = this;',
     '  this.vPublic = 0;',
     '  this.DoPublic =function(){',
     '  };',
-    '  this.$main = function () {',
+    '  $mod.$main = function () {',
     '  };',
     '});',
     '']);
@@ -797,10 +799,11 @@ begin
   ActualSrc:=JSToStr(JSModule);
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system"], function () {',
-    'this.$rtti.$DynArray("TArrB", {',
-    '  eltype: rtl.string',
-    '});',
-    '  rtl.createClass(this, "TObject", null, function () {',
+    '  var $mod = this;',
+    '  $mod.$rtti.$DynArray("TArrB", {',
+    '    eltype: rtl.string',
+    '  });',
+    '  rtl.createClass($mod, "TObject", null, function () {',
     '    this.$init = function () {',
     '      this.PublicA = [];',
     '      this.PublishedB = [];',
@@ -810,11 +813,11 @@ begin
     '      this.PublishedB = undefined;',
     '    };',
     '    var $r = this.$rtti;',
-    '    $r.addField("PublishedB", pas.program.$rtti["TArrB"]);',
+    '    $r.addField("PublishedB", $mod.$rtti["TArrB"]);',
     '  });',
     '  this.C = null;',
-    '  this.$main = function () {',
-    '    this.C.PublicA = [];',
+    '  $mod.$main = function () {',
+    '    $mod.C.PublicA = [];',
     '  };',
     '});',
     '']);
@@ -841,15 +844,16 @@ begin
   ActualSrc:=JSToStr(JSModule);
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system"], function () {',
-    'this.$rtti.$DynArray("TArrB", {',
-    '  eltype: rtl.string',
-    '});',
+    '  var $mod = this;',
+    '  $mod.$rtti.$DynArray("TArrB", {',
+    '    eltype: rtl.string',
+    '  });',
     '  this.A = [];',
     '  this.B = [];',
     '  this.p = null;',
-    '  this.$main = function () {',
-    '    this.A = [];',
-    '    this.p = this.$rtti["TArrB"];',
+    '  $mod.$main = function () {',
+    '    $mod.A = [];',
+    '    $mod.p = $mod.$rtti["TArrB"];',
     '  };',
     '});',
     '']);
