@@ -38,6 +38,9 @@ unit aoptx86;
       TX86AsmOptimizer = class(TAsmOptimizer)
         function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
       protected
+        { checks whether loading a new value in reg1 overwrites the entirety of reg2 }
+        function Reg1WriteOverwritesReg2Entirely(reg1, reg2: tregister): boolean;
+
         procedure PostPeepholeOptMov(const p : tai);
 
         function OptPass1AND(var p : tai) : boolean;
@@ -221,6 +224,43 @@ unit aoptx86;
       begin
       end;
 {$endif DEBUG_AOPTCPU}
+
+
+    function TX86AsmOptimizer.Reg1WriteOverwritesReg2Entirely(reg1, reg2: tregister): boolean;
+      begin
+        if not SuperRegistersEqual(reg1,reg2) then
+          exit(false);
+        if getregtype(reg1)<>R_INTREGISTER then
+          exit(true);  {because SuperRegisterEqual is true}
+        case getsubreg(reg1) of
+          { A write to R_SUBL doesn't change R_SUBH and if reg2 is R_SUBW or
+            higher, it preserves the high bits, so the new value depends on
+            reg2's previous value. In other words, it is equivalent to doing:
+
+            reg2 := (reg2 and $ffffff00) or byte(reg1); }
+          R_SUBL:
+            exit(getsubreg(reg2)=R_SUBL);
+          { A write to R_SUBH doesn't change R_SUBL and if reg2 is R_SUBW or
+            higher, it actually does a:
+
+            reg2 := (reg2 and $ffff00ff) or (reg1 and $ff00); }
+          R_SUBH:
+            exit(getsubreg(reg2)=R_SUBH);
+          { If reg2 is R_SUBD or larger, a write to R_SUBW preserves the high 16
+            bits of reg2:
+
+            reg2 := (reg2 and $ffff0000) or word(reg1); }
+          R_SUBW:
+            exit(getsubreg(reg2) in [R_SUBL,R_SUBH,R_SUBW]);
+          { a write to R_SUBD always overwrites every other subregister,
+            because it clears the high 32 bits of R_SUBQ on x86_64 }
+          R_SUBD,
+          R_SUBQ:
+            exit(true);
+          else
+            internalerror(2017042801);
+        end;
+      end;
 
 
     { allocates register reg between (and including) instructions p1 and p2
