@@ -19,6 +19,8 @@ Type
 
   TFPDocCreator = Class(TComponent)
   Private
+    FBaseDescrDir: String;
+    FBaseInputDir: String;
     FCurPackage : TFPDocPackage;
     FProcessedUnits : TStrings;
     FOnLog: TPasParserLogHandler;
@@ -28,7 +30,11 @@ Type
     FVerbose: Boolean;
     function GetOptions: TEngineOptions;
     function GetPackages: TFPDocPackages;
+    procedure SetBaseDescrDir(AValue: String);
+    procedure SetBaseInputDir(AValue: String);
   Protected
+    Function FixInputFile(Const AFileName : String) : String;
+    Function FixDescrFile(Const AFileName : String) : String;
     Procedure DoBeforeEmitNote(Sender : TObject; Note : TDomElement; Var EmitNote : Boolean); virtual;
     procedure HandleOnParseUnit(Sender: TObject; const AUnitName: String; out AInputFile, OSTarget, CPUTarget: String);
     procedure SetVerbose(AValue: Boolean); virtual;
@@ -49,6 +55,9 @@ Type
     // Easy access
     Property Options : TEngineOptions Read GetOptions;
     Property Packages : TFPDocPackages Read GetPackages;
+    // When set, they will be prepended to non-absolute filenames.
+    Property BaseInputDir : String Read FBaseInputDir Write SetBaseInputDir;
+    Property BaseDescrDir : String Read FBaseDescrDir Write SetBaseDescrDir;
   end;
 
 implementation
@@ -72,13 +81,13 @@ begin
     end;
 end;
 
-procedure TFPDocCreator.DoLog(const Msg: String);
+Procedure TFPDocCreator.DoLog(Const Msg: String);
 begin
   If Assigned(OnLog) then
     OnLog(Self,Msg);
 end;
 
-procedure TFPDocCreator.DoLog(const Fmt: String; Args: array of const);
+procedure TFPDocCreator.DoLog(Const Fmt: String; Args: Array of Const);
 begin
   DoLog(Format(Fmt,Args));
 end;
@@ -103,7 +112,7 @@ begin
        SplitInputFIleOption(S,UN,Opts);
        if CompareText(ChangeFileExt(ExtractFileName(Un),''),AUnitName)=0 then
          begin
-         AInputFile:=S;
+         AInputFile:=FixInputFile(UN)+' '+Opts;
          OSTarget:=FProject.Options.OSTarget;
          CPUTarget:=FProject.Options.CPUTarget;
          FProcessedUnits.Add(UN);
@@ -123,13 +132,45 @@ begin
   Result:=FProject.Packages;
 end;
 
-procedure TFPDocCreator.DoBeforeEmitNote(Sender: TObject; Note: TDomElement;
-  var EmitNote: Boolean);
+Function TFPDocCreator.FixInputFile(Const AFileName: String): String;
+begin
+  Result:=AFileName;
+  If Result='' then exit;
+  if (ExtractFileDrive(Result)='') and (Result[1]<>PathDelim) then
+    Result:=BaseInputDir+Result;
+end;
+
+Function TFPDocCreator.FixDescrFile(Const AFileName: String): String;
+begin
+  Result:=AFileName;
+  If Result='' then exit;
+  if (ExtractFileDrive(Result)='') and (Result[1]<>PathDelim) then
+    Result:=BaseDescrDir+Result;
+end;
+
+procedure TFPDocCreator.SetBaseDescrDir(AValue: String);
+begin
+  if FBaseDescrDir=AValue then Exit;
+  FBaseDescrDir:=AValue;
+  If FBaseDescrDir<>'' then
+    FBaseDescrDir:=IncludeTrailingPathDelimiter(FBaseDescrDir);
+end;
+
+procedure TFPDocCreator.SetBaseInputDir(AValue: String);
+begin
+  if FBaseInputDir=AValue then Exit;
+  FBaseInputDir:=AValue;
+  If FBaseInputDir<>'' then
+    FBaseInputDir:=IncludeTrailingPathDelimiter(FBaseInputDir);
+end;
+
+Procedure TFPDocCreator.DoBeforeEmitNote(Sender: TObject; Note: TDomElement;
+  Var EmitNote: Boolean);
 begin
   EmitNote:=True;
 end;
 
-constructor TFPDocCreator.Create(AOwner: TComponent);
+Constructor TFPDocCreator.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FProject:=TFPDocProject.Create(Self);
@@ -139,7 +180,7 @@ begin
   FProcessedUnits:=TStringList.Create;
 end;
 
-destructor TFPDocCreator.Destroy;
+Destructor TFPDocCreator.Destroy;
 begin
   FreeAndNil(FProcessedUnits);
   FreeAndNil(FProject);
@@ -180,7 +221,8 @@ begin
     Engine.WriteContentFile(APackage.ContentFile);
 end;
 
-procedure TFPDocCreator.CreateDocumentation(APackage: TFPDocPackage; ParseOnly : Boolean);
+Procedure TFPDocCreator.CreateDocumentation(APackage: TFPDocPackage;
+  ParseOnly: Boolean);
 
 var
   i,j: Integer;
@@ -201,7 +243,7 @@ begin
       Engine.ReadContentFile(Arg, Cmd);
       end;
     for i := 0 to APackage.Descriptions.Count - 1 do
-      Engine.AddDocFile(APackage.Descriptions[i],Options.donttrim);
+      Engine.AddDocFile(FixDescrFile(APackage.Descriptions[i]),Options.donttrim);
     Engine.SetPackageName(APackage.Name);
     Engine.Output:=APackage.Output;
     Engine.OnLog:=Self.OnLog;
@@ -216,10 +258,11 @@ begin
     for i := 0 to APackage.Inputs.Count - 1 do
       try
         SplitInputFileOption(APackage.Inputs[i],Cmd,Arg);
+        Cmd:=FixInputFIle(Cmd);
         if FProcessedUnits.IndexOf(Cmd)=-1 then
           begin
           FProcessedUnits.Add(Cmd);
-          ParseSource(Engine, APackage.Inputs[i], Options.OSTarget, Options.CPUTarget);
+          ParseSource(Engine,Cmd+' '+Arg, Options.OSTarget, Options.CPUTarget);
           end;
       except
         on e: EParserError do
@@ -239,7 +282,7 @@ begin
   end;
 end;
 
-procedure TFPDocCreator.CreateProjectFile(Const AFileName: string);
+Procedure TFPDocCreator.CreateProjectFile(Const AFileName: string);
 begin
   With TXMLFPDocOptions.Create(Self) do
   try
@@ -249,7 +292,7 @@ begin
   end;
 end;
 
-procedure TFPDocCreator.LoadProjectFile(const AFileName: string);
+Procedure TFPDocCreator.LoadProjectFile(Const AFileName: string);
 begin
   With TXMLFPDocOptions.Create(self) do
     try

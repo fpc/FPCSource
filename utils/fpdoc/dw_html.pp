@@ -2471,7 +2471,7 @@ begin
     try
       B.BuildTree(AList);
       // Classes
-      WriteXMLFile(B.ClassTree,'tree.xml');
+      // WriteXMLFile(B.ClassTree,'tree.xml');
       // Dummy TObject
       E:=B.ClassTree.DocumentElement;
       PushClassList;
