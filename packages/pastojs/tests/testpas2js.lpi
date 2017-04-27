@@ -38,17 +38,14 @@
       <Unit0>
         <Filename Value="testpas2js.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="testpas2js"/>
       </Unit0>
       <Unit1>
         <Filename Value="tcconverter.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcconverter"/>
       </Unit1>
       <Unit2>
         <Filename Value="../src/fppas2js.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fppas2js"/>
       </Unit2>
     </Units>
   </ProjectOptions>
@@ -58,12 +55,6 @@
       <IncludeFiles Value="$(ProjOutDir)"/>
       <OtherUnitFiles Value="../src"/>
     </SearchPaths>
-    <Other>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
