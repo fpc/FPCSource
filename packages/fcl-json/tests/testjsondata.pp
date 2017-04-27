@@ -256,6 +256,7 @@ type
     Procedure TestFormat;
     Procedure TestFormatNil;
     Procedure TestFind;
+    Procedure TestIfFind;
   end;
 
   { TTestJSONPath }
@@ -3548,6 +3549,28 @@ begin
     AssertEquals('4 Existing exact match, case insensitive',1,J.IndexOfName(B,true));
     AssertEquals('5 Existing , case sensitive again',2,J.IndexOfName(C));
     AssertEquals('6 Existing case-insensitive match, case insensitive',2,J.IndexOfName(Uppercase(C),true));
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+Procedure TTestObject.TestIfFind;
+Var
+  J: TJSONObject;
+  B: TJSONBoolean;
+  S: TJSONString;
+  N: TJSONNumber;
+  D: TJSONData;
+begin
+  J:=TJSONObject.Create(['s', 'astring', 'b', true, 'n', 1]);
+  try
+    TestJSONType(J,jtObject);
+    TestIsNull(J,False);
+    TestItemCount(J,3);
+    AssertEquals('boolean found', true, j.Find('b', B));
+    AssertEquals('string found', true, j.Find('s', S));
+    AssertEquals('number found', true, j.Find('n', N));
+    AssertEquals('data found', true, j.Find('s', D));
   finally
     FreeAndNil(J);
   end;

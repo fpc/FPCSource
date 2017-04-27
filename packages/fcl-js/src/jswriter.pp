@@ -83,8 +83,14 @@ Type
     Property AsUnicodeString : UnicodeString Read GetUnicodeString;
   end;
 
+  TJSEscapeQuote = (
+    jseqSingle,
+    jseqDouble,
+    jseqBoth
+    );
 
   { TJSWriter }
+
   TWriteOption = (woCompact,
                   woUseUTF8,
                   woTabIndent,
@@ -151,7 +157,7 @@ Type
     Procedure WritePrimaryExpression(El: TJSPrimaryExpression);virtual;
     Procedure WriteBinary(El: TJSBinary);virtual;
   Public
-    Function EscapeString(const S: TJSString): String;
+    Function EscapeString(const S: TJSString; Quote: TJSEscapeQuote = jseqDouble): String;
     Function JSStringToStr(const S: TJSString): string;
     Constructor Create(AWriter : TTextWriter);
     Constructor Create(Const AFileName : String);
@@ -164,7 +170,7 @@ Type
     Property IndentSize : Byte Read FIndentSize Write FIndentSize;
     Property UseUTF8 : Boolean Read GetUseUTF8;
   end;
-  EJSWriter = CLass(Exception);
+  EJSWriter = Class(Exception);
 
 implementation
 
@@ -380,27 +386,30 @@ begin
     end;
 end;
 
-function TJSWriter.EscapeString(const S: TJSString): String;
+function TJSWriter.EscapeString(const S: TJSString; Quote: TJSEscapeQuote
+  ): String;
 
 Var
   I,J,L : Integer;
-  P : PWideChar;
+  P : TJSPChar;
 
 begin
   I:=1;
   J:=1;
   Result:='';
   L:=Length(S);
-  P:=PWideChar(S);
+  P:=TJSPChar(S);
   While I<=L do
     begin
-    if (P^ in ['"','/','\',#8,#9,#10,#12,#13]) then
+    if (P^ in [#0..#31,'"','''','/','\']) then
       begin
       Result:=Result+JSStringToStr(Copy(S,J,I-J));
       Case P^ of
         '\' : Result:=Result+'\\';
         '/' : Result:=Result+'\/';
-        '"' : Result:=Result+'\"';
+        '"' : if Quote=jseqSingle then Result:=Result+'"' else Result:=Result+'\"';
+        '''': if Quote=jseqDouble then Result:=Result+'''' else Result:=Result+'\''';
+        #0..#7,#11,#14..#31: Result:=Result+'\x'+hexStr(ord(P^),2);
         #8  : Result:=Result+'\b';
         #9  : Result:=Result+'\t';
         #10 : Result:=Result+'\n';
@@ -427,6 +436,7 @@ procedure TJSWriter.WriteValue(V: TJSValue);
 
 Var
   S : String;
+  JS: TJSString;
 begin
   if V.CustomValue<>'' then
     S:=JSStringToStr(V.CustomValue)
@@ -435,7 +445,14 @@ begin
       jstUNDEFINED : S:='undefined';
       jstNull : s:='null';
       jstBoolean : if V.AsBoolean then s:='true' else s:='false';
-      jstString : S:='"'+EscapeString(V.AsString)+'"';
+      jstString :
+        begin
+        JS:=V.AsString;
+        if Pos('"',JS)>0 then
+          S:=''''+EscapeString(JS,jseqSingle)+''''
+        else
+          S:='"'+EscapeString(JS,jseqDouble)+'"';
+        end;
       jstNumber :
         if Frac(V.AsNumber)=0 then // this needs to be improved
           Str(Round(V.AsNumber),S)
@@ -544,10 +561,10 @@ procedure TJSWriter.WriteRegularExpressionLiteral(
 
 begin
   Write('/');
-  Write(EscapeString(El.Pattern.AsString));
+  Write(EscapeString(El.Pattern.AsString,jseqBoth));
   Write('/');
   If Assigned(El.PatternFlags) then
-    Write(EscapeString(El.PatternFlags.AsString));
+    Write(EscapeString(El.PatternFlags.AsString,jseqBoth));
 end;
 
 procedure TJSWriter.WriteLiteral(El: TJSLiteral);
@@ -642,7 +659,7 @@ begin
   For I:=0 to C do
    begin
    S:=El.Elements[i].Name;
-   if QE then
+   if QE or not IsValidJSIdentifier(S) then
      S:='"'+S+'"';
    Write(S+': ');
    Indent;

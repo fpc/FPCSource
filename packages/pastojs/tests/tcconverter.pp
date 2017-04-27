@@ -389,7 +389,7 @@ begin
   //   for(i=1; i<=$loopend1; i++){ a:=b; }
 
   // "var $loopend1=100"
-  LoopEndVar:=DefaultLoopEndVarName+'1';
+  LoopEndVar:=DefaultVarNameLoopEnd+'1';
   VS:=TJSVariableStatement(AssertElement('First in list is var '+LoopEndVar,TJSVariableStatement,L.A));
   VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,VS.A));
   AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
@@ -443,7 +443,7 @@ begin
   //   for(i=100; i>=$loopend1; i--){ a:=b; }
 
   // "var $loopend1=1"
-  LoopEndVar:=DefaultLoopEndVarName+'1';
+  LoopEndVar:=DefaultVarNameLoopEnd+'1';
   VS:=TJSVariableStatement(AssertElement('var '+LoopEndVar,TJSVariableStatement,L.A));
   VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,VS.A));
   AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
@@ -1197,7 +1197,7 @@ begin
   B.AddParam(CreateIdent('b'));
   B.AddParam(CreateIdent('c'));
   AttemptConvert:=B;
-  AssertException('Cannot yet convert 2-dim arrays',EPasToJS,@TryConvert);
+  AssertException('Pascal element not supported: TParamsExpr:TParamsExpr: Cannot convert 2-dim arrays',EPas2JS,@TryConvert);
 end;
 
 Procedure TTestExpressionConverter.TestVariable;
