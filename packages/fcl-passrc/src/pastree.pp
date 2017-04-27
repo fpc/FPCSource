@@ -27,6 +27,11 @@ resourcestring
   // Parse tree node type names
   SPasTreeElement = 'generic element';
   SPasTreeSection = 'unit section';
+  SPasTreeProgramSection = 'program section';
+  SPasTreeLibrarySection = 'library section';
+  SPasTreeInterfaceSection = 'interface section';
+  SPasTreeImplementationSection = 'implementation section';
+  SPasTreeUsesUnit = 'uses unit';
   SPasTreeModule = 'module';
   SPasTreeUnit = 'unit';
   SPasTreeProgram = 'program';
@@ -305,6 +310,22 @@ type
     Functions, Variables, Properties, ExportSymbols: TFPList;
   end;
 
+  { TPasUsesUnit }
+
+  TPasUsesUnit = class(TPasElement)
+  public
+    destructor Destroy; override;
+    function ElementTypeName: string; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+  public
+    Expr: TPasExpr;
+    Identifier: string; // e.g. 'name.space.unitname'
+    InFilename: TPrimitiveExpr; // Kind=pekString, can be nil
+    Module: TPasElement; // TPasUnresolvedTypeRef or TPasModule
+  end;
+  TPasUsesClause = array of TPasUsesUnit;
+
   { TPasSection }
 
   TPasSection = class(TPasDeclarations)
@@ -312,26 +333,40 @@ type
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
     procedure AddUnitToUsesList(const AUnitName: string);
+    function ElementTypeName: string; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    UsesList: TFPList;            // TPasUnresolvedTypeRef or TPasModule elements
+    UsesList: TFPList;   // kept for compatibility, see UsesClause Module
+    UsesClause: TPasUsesClause;
   end;
 
   { TInterfaceSection }
 
   TInterfaceSection = class(TPasSection)
+  public
+    function ElementTypeName: string; override;
   end;
 
   { TImplementationSection }
 
   TImplementationSection = class(TPasSection)
+  public
+    function ElementTypeName: string; override;
   end;
+
+  { TProgramSection }
 
   TProgramSection = class(TImplementationSection)
+  public
+    function ElementTypeName: string; override;
   end;
 
+  { TLibrarySection }
+
   TLibrarySection = class(TImplementationSection)
+  public
+    function ElementTypeName: string; override;
   end;
 
   TInitializationSection = class;
@@ -1447,6 +1482,58 @@ begin
   {$IFDEF VerbosePasTreeMem}writeln('ReleaseAndNil ',El.Name,' ',El.ClassName);{$ENDIF}
   El.Release;
   El:=nil;
+end;
+
+{ TInterfaceSection }
+
+function TInterfaceSection.ElementTypeName: string;
+begin
+  Result:=SPasTreeInterfaceSection;
+end;
+
+{ TLibrarySection }
+
+function TLibrarySection.ElementTypeName: string;
+begin
+  Result:=SPasTreeLibrarySection;
+end;
+
+{ TProgramSection }
+
+function TProgramSection.ElementTypeName: string;
+begin
+  Result:=SPasTreeProgramSection;
+end;
+
+{ TImplementationSection }
+
+function TImplementationSection.ElementTypeName: string;
+begin
+  Result:=SPasTreeImplementationSection;
+end;
+
+{ TPasUsesUnit }
+
+destructor TPasUsesUnit.Destroy;
+begin
+  ReleaseAndNil(TPasElement(Expr));
+  ReleaseAndNil(TPasElement(InFilename));
+  ReleaseAndNil(TPasElement(Module));
+  inherited Destroy;
+end;
+
+function TPasUsesUnit.ElementTypeName: string;
+begin
+  Result := SPasTreeUsesUnit;
+end;
+
+procedure TPasUsesUnit.ForEachCall(const aMethodCall: TOnForEachPasElement;
+  const Arg: Pointer);
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  ForEachChildCall(aMethodCall,Arg,Expr,false);
+  ForEachChildCall(aMethodCall,Arg,InFilename,false);
+  ForEachChildCall(aMethodCall,Arg,Module,true);
 end;
 
 { TPasElementBase }
@@ -3929,8 +4016,12 @@ var
 begin
   {$IFDEF VerbosePasTreeMem}writeln('TPasSection.Destroy UsesList');{$ENDIF}
   for i := 0 to UsesList.Count - 1 do
+    begin
     TPasType(UsesList[i]).Release;
+    UsesClause[i].Release;
+    end;
   FreeAndNil(UsesList);
+  SetLength(UsesClause,0);
 
   {$IFDEF VerbosePasTreeMem}writeln('TPasSection.Destroy inherited');{$ENDIF}
   inherited Destroy;
@@ -3938,8 +4029,18 @@ begin
 end;
 
 procedure TPasSection.AddUnitToUsesList(const AUnitName: string);
+var
+  l: Integer;
 begin
   UsesList.Add(TPasUnresolvedTypeRef.Create(AUnitName, Self));
+  l:=length(UsesClause);
+  SetLength(UsesClause,l+1);
+  UsesClause[l]:=TPasUsesUnit.Create(AUnitName,Self);
+end;
+
+function TPasSection.ElementTypeName: string;
+begin
+  Result := SPasTreeSection;
 end;
 
 procedure TPasSection.ForEachCall(const aMethodCall: TOnForEachPasElement;
@@ -3948,8 +4049,8 @@ var
   i: Integer;
 begin
   inherited ForEachCall(aMethodCall, Arg);
-  for i:=0 to UsesList.Count-1 do
-    ForEachChildCall(aMethodCall,Arg,TPasElement(UsesList[i]),true);
+  for i:=0 to length(UsesClause)-1 do
+    ForEachChildCall(aMethodCall,Arg,UsesClause[i],false);
 end;
 
 { TProcedureBody }

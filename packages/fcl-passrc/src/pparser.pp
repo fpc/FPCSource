@@ -1729,7 +1729,6 @@ var
   b       : TBinaryExpr;
   optk    : TToken;
   ok: Boolean;
-  S : String;
 
 begin
   Result:=nil;
