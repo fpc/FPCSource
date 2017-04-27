@@ -147,15 +147,15 @@ type
   end;
 
   TPasAnalyzerOption = (
-    paoKeepPublished, // when a class is used, all its published members are used as well
     paoOnlyExports // default: use all class members accessible from outside (protected, but not private)
     );
   TPasAnalyzerOptions = set of TPasAnalyzerOption;
 
   TPAUseMode = (
-    paumElement, // mark element
-    paumAllPublic, // mark element and descend into children and mark public identifiers
-    paumAllExports // do not mark element and descend into children and mark exports
+    paumElement, // Mark element. Do not descend into children.
+    paumAllPublic, // Mark element and descend into children and mark public identifiers
+    paumAllExports, // Do not mark element. Descend into children and mark exports.
+    paumPublished // Mark element and its type and descend into children and mark published identifiers
     );
   TPAUseModes = set of TPAUseMode;
 
@@ -188,6 +188,7 @@ type
     function ElementVisited(El: TPasElement; Mode: TPAUseMode): boolean;
     procedure UseElement(El: TPasElement; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
+    procedure UsePublished(El: TPasElement); virtual;
     procedure UseModule(aModule: TPasModule; Mode: TPAUseMode); virtual;
     procedure UseSection(Section: TPasSection; Mode: TPAUseMode); virtual;
     procedure UseImplBlock(Block: TPasImplBlock; Mark: boolean); virtual;
@@ -221,6 +222,7 @@ type
     function FindElement(El: TPasElement): TPAElement;
     // utility
     function IsUsed(El: TPasElement): boolean; // valid after calling Analyze*
+    function IsTypeInfoUsed(El: TPasElement): boolean; // valid after calling Analyze*
     function IsModuleInternal(El: TPasElement): boolean;
     function IsExport(El: TPasElement): boolean;
     function IsIdentifier(El: TPasElement): boolean;
@@ -615,6 +617,82 @@ begin
     RaiseNotSupported(20170307090947,El);
 end;
 
+procedure TPasAnalyzer.UsePublished(El: TPasElement);
+// mark typeinfo, do not
+var
+  C: TClass;
+  Members: TFPList;
+  i: Integer;
+  Member: TPasElement;
+  MemberResolved: TPasResolverResult;
+  Prop: TPasProperty;
+  ProcType: TPasProcedureType;
+begin
+  {$IFDEF VerbosePasAnalyzer}
+  writeln('TPasAnalyzer.UsePublished START ',GetObjName(El));
+  {$ENDIF}
+  if ElementVisited(El,paumPublished) then exit;
+  C:=El.ClassType;
+  if C=TPasUnresolvedSymbolRef then
+  else if (C=TPasVariable) or (C=TPasConst) then
+    UsePublished(TPasVariable(El).VarType)
+  else if C=TPasProperty then
+    begin
+    // published property
+    Prop:=TPasProperty(El);
+    for i:=0 to Prop.Args.Count-1 do
+      UsePublished(TPasArgument(Prop.Args[i]).ArgType);
+    UsePublished(Prop.VarType);
+    // Note: read, write and index don't need extra typeinfo
+
+    // stored and defaultvalue are only used when published -> mark as used
+    UseElement(Prop.StoredAccessor,rraRead,false);
+    UseElement(Prop.DefaultExpr,rraRead,false);
+    end
+  else if (C=TPasAliasType) or (C=TPasTypeAliasType) then
+    UsePublished(TPasAliasType(El).DestType)
+  else if C=TPasEnumType then
+  else if C=TPasSetType then
+    UsePublished(TPasSetType(El).EnumType)
+  else if C=TPasArrayType then
+    begin
+    UsePublished(TPasArrayType(El).ElType);
+    for i:=0 to length(TPasArrayType(El).Ranges)-1 do
+      begin
+      Member:=TPasArrayType(El).Ranges[i];
+      Resolver.ComputeElement(Member,MemberResolved,[rcConstant]);
+      UsePublished(MemberResolved.TypeEl);
+      end;
+    end
+  else if C=TPasPointerType then
+    UsePublished(TPasPointerType(El).DestType)
+  else if C=TPasClassType then
+  else if C=TPasClassOfType then
+  else if C=TPasRecordType then
+    begin
+    // published record: use all members
+    Members:=TPasRecordType(El).Members;
+    for i:=0 to Members.Count-1 do
+      begin
+      Member:=TPasElement(Members[i]);
+      UsePublished(Member);
+      UseElement(Member,rraNone,true);
+      end;
+    end
+  else if C.InheritsFrom(TPasProcedure) then
+    UsePublished(TPasProcedure(El).ProcType)
+  else if C.InheritsFrom(TPasProcedureType) then
+    begin
+    ProcType:=TPasProcedureType(El);
+    for i:=0 to ProcType.Args.Count-1 do
+      UsePublished(TPasArgument(ProcType.Args[i]).ArgType);
+    if El is TPasFunctionType then
+      UsePublished(TPasFunctionType(El).ResultEl.ResultType);
+    end
+  else
+    RaiseNotSupported(20170414153904,El);
+end;
+
 procedure TPasAnalyzer.UseModule(aModule: TPasModule; Mode: TPAUseMode);
 
   procedure UseInitFinal(aSection: TPasImplBlock);
@@ -877,18 +955,22 @@ var
   C: TClass;
   Params: TPasExprArray;
   i: Integer;
+  BuiltInProc: TResElDataBuiltInProc;
+  ParamResolved: TPasResolverResult;
+  Decl: TPasElement;
 begin
   if El=nil then exit;
   // expressions are not marked
 
+  Ref:=nil;
   if El.CustomData is TResolvedReference then
     begin
     // this is a reference -> mark target
     Ref:=TResolvedReference(El.CustomData);
-    UseElement(Ref.Declaration,Ref.Access,false);
+    Decl:=Ref.Declaration;
+    UseElement(Decl,Ref.Access,false);
 
-    if (El.ClassType=TSelfExpr)
-        or ((El.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(El).Kind=pekIdent)) then
+    if Resolver.IsNameExpr(El) then
       begin
       if Ref.WithExprScope<>nil then
         begin
@@ -899,15 +981,29 @@ begin
           exit;
           end;
         end;
-      if (Ref.Declaration is TPasVariable)
+      if (Decl is TPasVariable)
           and (El.Parent is TBinaryExpr)
           and (TBinaryExpr(El.Parent).right=El) then
         begin
-        if ((Ref.Declaration.Parent is TPasRecordType)
-              or (Ref.Declaration.Parent is TPasVariant)) then
+        if ((Decl.Parent is TPasRecordType)
+              or (Decl.Parent is TPasVariant)) then
           begin
           // a record member was accessed -> access the record too
           UseExprRef(TBinaryExpr(El.Parent).left,Ref.Access,false);
+          end;
+        end;
+      end;
+
+    if Decl is TPasUnresolvedSymbolRef then
+      begin
+      if Decl.CustomData is TResElDataBuiltInProc then
+        begin
+        BuiltInProc:=TResElDataBuiltInProc(Decl.CustomData);
+        if BuiltInProc.BuiltIn=bfTypeInfo then
+          begin
+          Params:=(El.Parent as TParamsExpr).Params;
+          Resolver.ComputeElement(Params[0],ParamResolved,[]);
+          UsePublished(ParamResolved.IdentEl);
           end;
         end;
       end;
@@ -1039,7 +1135,7 @@ begin
   if ImplProc.Body<>nil then
     UseImplBlock(ImplProc.Body.Body,false);
 
-  if ProcScope.OverriddenProc<>nil then
+  if Proc.IsOverride and (ProcScope.OverriddenProc<>nil) then
     AddOverride(ProcScope.OverriddenProc,Proc);
 
   // mark overrides
@@ -1158,7 +1254,7 @@ procedure TPasAnalyzer.UseClassType(El: TPasClassType; Mode: TPAUseMode);
 var
   i: Integer;
   Member: TPasElement;
-  UsePublished, FirstTime: Boolean;
+  AllPublished, FirstTime: Boolean;
   ProcScope: TPasProcedureScope;
   ClassScope: TPasClassScope;
   Ref: TResolvedReference;
@@ -1178,6 +1274,8 @@ begin
     end;
   paumElement:
     if not MarkElementAsUsed(El) then exit;
+  else
+    RaiseInconsistency(20170414152143,IntToStr(ord(Mode)));
   end;
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseClassType ',GetElModName(El),' ',Mode,' First=',FirstTime);
@@ -1199,20 +1297,30 @@ begin
       UseType(TPasType(El.Interfaces[i]),paumElement);
     end;
   // members
-  UsePublished:=(Mode<>paumAllExports) and (paoKeepPublished in Options);
+  AllPublished:=(Mode<>paumAllExports);
   for i:=0 to El.Members.Count-1 do
     begin
     Member:=TPasElement(El.Members[i]);
     if FirstTime and (Member is TPasProcedure) then
       begin
       ProcScope:=Member.CustomData as TPasProcedureScope;
-      if ProcScope.OverriddenProc<>nil then
+      if TPasProcedure(Member).IsOverride and (ProcScope.OverriddenProc<>nil) then
+        begin
+        // this is an override
         AddOverride(ProcScope.OverriddenProc,Member);
+        if ScopeModule<>nil then
+          begin
+          // when analyzingf a single module, all overrides are assumed to be called
+          UseElement(Member,rraNone,true);
+          continue;
+          end;
+        end;
       end;
-    if UsePublished and (Member.Visibility=visPublished) then
+    if AllPublished and (Member.Visibility=visPublished) then
       begin
       // include published
       if not FirstTime then continue;
+      UsePublished(Member);
       end
     else if Mode=paumElement then
       continue
@@ -1763,6 +1871,11 @@ begin
   Result:=FindElement(El)<>nil;
 end;
 
+function TPasAnalyzer.IsTypeInfoUsed(El: TPasElement): boolean;
+begin
+  Result:=FChecked[paumPublished].Find(El)<>nil;
+end;
+
 function TPasAnalyzer.IsModuleInternal(El: TPasElement): boolean;
 begin
   if El=nil then
@@ -1772,7 +1885,7 @@ begin
   if IsExport(El) then exit(false);
   case El.Visibility of
   visPrivate,visStrictPrivate: exit(true);
-  visPublished: if paoKeepPublished in Options then exit(false);
+  visPublished: exit(false);
   end;
   Result:=IsModuleInternal(El.Parent);
 end;
