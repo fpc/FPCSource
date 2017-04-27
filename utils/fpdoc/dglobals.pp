@@ -633,6 +633,7 @@ begin
   FreeAndNil(DescrDocNames);
   FreeAndNil(DescrDocs);
   FreeAndNil(FAlwaysVisible);
+  FreeAndNil(FPackages);
   inherited Destroy;
 end;
 
