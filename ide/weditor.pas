@@ -1076,7 +1076,7 @@ begin
      BMFScan := NotFoundValue;
      exit;
    end;
-  s2[0]:=chr(len);       { sets the length to that of the search String }
+  SetLength(s2,len);     { sets the length to that of the search String }
   found:=False;
   numb:=pred(len);
   While (not found) and (numb<size) do
@@ -1185,7 +1185,7 @@ begin
      BMBScan := NotFoundValue;
      exit;
    end;
-  s2[0]:=chr(len);       { sets the length to that of the search String }
+  SetLength(S2,len);      { sets the length to that of the search String }
   found:=False;
   numb:=size-len;
   While (not found) and (numb>=0) do
