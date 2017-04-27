@@ -30,6 +30,8 @@ begin
     P.SourcePath.Add('src');
 
     P.OSes:=AllAmigaLikeOSes;
+    if Defaults.CPU=powerpc then
+      P.OSes:=P.OSes-[amiga];
 
     T:=P.Targets.AddUnit('cliputils.pas');
 

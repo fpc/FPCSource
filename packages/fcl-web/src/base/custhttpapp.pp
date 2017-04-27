@@ -37,6 +37,8 @@ Type
     Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); override;
     Property WebHandler : TFPHTTPServerHandler Read FWebHandler;
     Property Active;
+    Property OnAcceptIdle;
+    Property AcceptIdleTimeout;
   end;
 
   { TFCgiHandler }
@@ -49,9 +51,13 @@ Type
     FServer: TEmbeddedHTTPServer;
     function GetAllowConnect: TConnectQuery;
     function GetAddress: string;
+    function GetIdle: TNotifyEvent;
+    function GetIDleTimeOut: Cardinal;
     function GetPort: Word;
     function GetQueueSize: Word;
     function GetThreaded: Boolean;
+    procedure SetIdle(AValue: TNotifyEvent);
+    procedure SetIDleTimeOut(AValue: Cardinal);
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
     procedure SetAddress(const AValue: string);
     procedure SetPort(const AValue: Word);
@@ -86,13 +92,22 @@ Type
     Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
     // Should addresses be matched to hostnames ? (expensive)
     Property LookupHostNames : Boolean Read GetLookupHostNames Write SetLookupHostNames;
+    // Event handler called when going Idle while waiting for a connection
+    Property OnAcceptIdle : TNotifyEvent Read GetIdle Write SetIdle;
+    // If >0, when no new connection appeared after timeout, OnAcceptIdle is called.
+    Property AcceptIdleTimeout : Cardinal Read GetIDleTimeOut Write SetIDleTimeOut;
   end;
 
   { TCustomHTTPApplication }
 
   TCustomHTTPApplication = Class(TCustomWebApplication)
   private
+    procedure FakeConnect;
+    function GetIdle: TNotifyEvent;
+    function GetIDleTimeOut: Cardinal;
     function GetLookupHostNames : Boolean;
+    procedure SetIdle(AValue: TNotifyEvent);
+    procedure SetIDleTimeOut(AValue: Cardinal);
     Procedure SetLookupHostnames(Avalue : Boolean);
     function GetAllowConnect: TConnectQuery;
     function GetAddress: String;
@@ -108,6 +123,7 @@ Type
     function InitializeWebHandler: TWebHandler; override;
     Function HTTPHandler : TFPHTTPServerHandler;
   Public
+    procedure Terminate; override;
     Property Address : string Read GetAddress Write SetAddress;
     Property Port : Word Read GetPort Write SetPort Default 80;
     // Max connections on queue (for Listen call)
@@ -118,6 +134,10 @@ Type
     property Threaded : Boolean read GetThreaded Write SetThreaded;
     // Should addresses be matched to hostnames ? (expensive)
     Property LookupHostNames : Boolean Read GetLookupHostNames Write SetLookupHostNames;
+    // Event handler called when going Idle while waiting for a connection
+    Property OnAcceptIdle : TNotifyEvent Read GetIdle Write SetIdle;
+    // If >0, when no new connection appeared after timeout, OnAcceptIdle is called.
+    Property AcceptIdleTimeout : Cardinal Read GetIDleTimeOut Write SetIDleTimeOut;
   end;
 
 
@@ -143,13 +163,33 @@ uses
 
 { TCustomHTTPApplication }
 
+function TCustomHTTPApplication.GetIdle: TNotifyEvent;
+begin
+  Result:=HTTPHandler.OnAcceptIdle;
+end;
+
+function TCustomHTTPApplication.GetIDleTimeOut: Cardinal;
+begin
+  Result:=HTTPHandler.AcceptIdleTimeout;
+end;
+
 function TCustomHTTPApplication.GetLookupHostNames : Boolean;
 
 begin
   Result:=HTTPHandler.LookupHostNames;
 end;
 
-Procedure TCustomHTTPApplication.SetLookupHostnames(Avalue : Boolean);
+procedure TCustomHTTPApplication.SetIdle(AValue: TNotifyEvent);
+begin
+  HTTPHandler.OnAcceptIdle:=AValue;
+end;
+
+procedure TCustomHTTPApplication.SetIDleTimeOut(AValue: Cardinal);
+begin
+  HTTPHandler.AcceptIdleTimeOut:=AValue;
+end;
+
+procedure TCustomHTTPApplication.SetLookupHostnames(Avalue: Boolean);
 
 begin
   HTTPHandler.LookupHostNames:=AValue;
@@ -215,6 +255,25 @@ begin
   Result:=Webhandler as TFPHTTPServerHandler;
 end;
 
+procedure TCustomHTTPApplication.FakeConnect;
+
+begin
+  try
+    TInetSocket.Create('localhost',Self.Port).Free;
+  except
+    // Ignore errors this may raise.
+  end
+end;
+
+procedure TCustomHTTPApplication.Terminate;
+
+begin
+  inherited Terminate;
+  // We need to break the accept loop. Do a fake connect.
+  if Threaded And (AcceptIdleTimeout=0) then
+    FakeConnect;
+end;
+
 { TFPHTTPServerHandler }
 
 procedure TFPHTTPServerHandler.HandleRequestError(Sender: TObject; E: Exception
@@ -251,7 +310,7 @@ begin
   Result:=FServer.LookupHostNames;
 end;
 
-Procedure TFPHTTPServerHandler.SetLookupHostnames(Avalue : Boolean);
+procedure TFPHTTPServerHandler.SetLookupHostnames(Avalue: Boolean);
 
 begin
   FServer.LookupHostNames:=AValue;
@@ -267,6 +326,16 @@ begin
   Result:=FServer.Address;
 end;
 
+function TFPHTTPServerHandler.GetIdle: TNotifyEvent;
+begin
+  Result:=FServer.OnAcceptIdle;
+end;
+
+function TFPHTTPServerHandler.GetIDleTimeOut: Cardinal;
+begin
+  Result:=FServer.AcceptIdleTimeout;
+end;
+
 function TFPHTTPServerHandler.GetPort: Word;
 begin
   Result:=FServer.Port;
@@ -280,6 +349,16 @@ end;
 function TFPHTTPServerHandler.GetThreaded: Boolean;
 begin
   Result:=FServer.Threaded;
+end;
+
+procedure TFPHTTPServerHandler.SetIdle(AValue: TNotifyEvent);
+begin
+  FServer.OnAcceptIdle:=AValue;
+end;
+
+procedure TFPHTTPServerHandler.SetIDleTimeOut(AValue: Cardinal);
+begin
+  FServer.AcceptIdleTimeOut:=AValue;
 end;
 
 procedure TFPHTTPServerHandler.SetOnAllowConnect(const AValue: TConnectQuery);

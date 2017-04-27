@@ -658,7 +658,7 @@ end;
 
 procedure TFPCustomHttpServer.StopServerSocket;
 begin
-  FServer.StopAccepting(True);
+  FServer.StopAccepting(False);
 end;
 
 procedure TFPCustomHttpServer.SetActive(const AValue: Boolean);
