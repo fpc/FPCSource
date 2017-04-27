@@ -4016,11 +4016,11 @@ var
 begin
   {$IFDEF VerbosePasTreeMem}writeln('TPasSection.Destroy UsesList');{$ENDIF}
   for i := 0 to UsesList.Count - 1 do
-    begin
     TPasType(UsesList[i]).Release;
-    UsesClause[i].Release;
-    end;
   FreeAndNil(UsesList);
+  {$IFDEF VerbosePasTreeMem}writeln('TPasSection.Destroy UsesClause');{$ENDIF}
+  for i := 0 to length(UsesClause) - 1 do
+    UsesClause[i].Release;
   SetLength(UsesClause,0);
 
   {$IFDEF VerbosePasTreeMem}writeln('TPasSection.Destroy inherited');{$ENDIF}
