@@ -121,7 +121,7 @@ procedure TTestStatementParser.AddStatements(ASource: array of string);
 Var
   I :Integer;
 begin
-  StartProgram('afile');
+  StartProgram(ExtractFileUnitName(MainFilename));
   if FVariables.Count>0 then
     begin
     Add('Var');
@@ -369,9 +369,10 @@ begin
   S:=Statement as TPasImplSimple;
   AssertExpression('Doit call',S.Expr,pekBinary,TBinaryExpr);
   B:=S.Expr as TBinaryExpr;
+  TAssert.AssertSame('B.left.Parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.Parent=B',B,B.right.Parent);
   AssertExpression('Unit name',B.Left,pekIdent,'Unita');
   AssertExpression('Doit call',B.Right,pekIdent,'Doit');
-
 end;
 
 procedure TTestStatementParser.TestCallQualified2;
@@ -662,7 +663,7 @@ begin
   DeclareVar('integer');
   TestStatement(['For a:=1 to 10 do',';']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Loop type',ltNormal,F.Looptype);
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekNumber,'1');
@@ -679,7 +680,7 @@ begin
   DeclareVar('integer');
   TestStatement(['For a in SomeSet Do',';']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Loop type',ltIn,F.Looptype);
   AssertEquals('In loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekIdent,'SomeSet');
@@ -696,7 +697,7 @@ begin
   DeclareVar('integer');
   TestStatement(['For a:=1+1 to 5+5 do',';']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start expression',F.StartExpr,pekBinary,TBinaryExpr);
   B:=F.StartExpr as TBinaryExpr;
@@ -718,7 +719,7 @@ begin
   DeclareVar('integer');
   TestStatement(['For a:=1 to 10 do','begin','end']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekNumber,'1');
   AssertExpression('End value',F.EndExpr,pekNumber,'10');
@@ -736,7 +737,7 @@ begin
   DeclareVar('integer');
   TestStatement(['For a:=10 downto 1 do','begin','end']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Down loop',True,F.Down);
   AssertExpression('Start value',F.StartExpr,pekNumber,'10');
   AssertExpression('End value',F.EndExpr,pekNumber,'1');
@@ -754,14 +755,14 @@ begin
   DeclareVar('integer','b');
   TestStatement(['For a:=1 to 10 do','For b:=11 to 20 do','begin','end']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekNumber,'1');
   AssertExpression('End value',F.EndExpr,pekNumber,'10');
   AssertNotNull('Have while body',F.Body);
   AssertEquals('begin end block',TPasImplForLoop,F.Body.ClassType);
   F:=F.Body as TPasImplForLoop;
-  AssertEquals('Loop variable name','b',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'b');
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekNumber,'11');
   AssertExpression('End value',F.EndExpr,pekNumber,'20');

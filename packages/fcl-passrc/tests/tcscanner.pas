@@ -1381,9 +1381,6 @@ begin
   AssertEQuals('Correct identifier', 'somethingweird',LastIdentifier);
 end;
 
-
-
-
 initialization
   RegisterTests([TTestTokenFinder,TTestStreamLineReader,TTestScanner]);
 end.

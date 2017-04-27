@@ -695,6 +695,8 @@ begin
   AssertNotNull('have right expr', B.Right);
   AssertEquals('argument right expr type', TPrimitiveExpr, B.right.ClassType);
   AssertEquals('argument right expr value', '2', TPrimitiveExpr(B.right).Value);
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
 end;
 
 procedure TTestProcedureTypeParser.DoTestProcedureOneArgDefaultSet(
@@ -1744,6 +1746,7 @@ procedure TTestRecordTypeParser.TestTwoFieldPrivateNoDelphi;
 Var
   EC : TClass;
 begin
+  EC:=nil;
   try
     TestFields(['private','x : integer'],'',False);
     Fail('Need po_Delphi for visibility specifier');
@@ -1759,16 +1762,22 @@ end;
 procedure TTestRecordTypeParser.TestTwoFieldProtected;
 Var
   B : Boolean;
+  EName: String;
 begin
+  B:=false;
+  EName:='';
   try
     TestFields(['protected','x : integer'],'',False);
     Fail('Protected not allowed as record visibility specifier')
   except
     on E : Exception do
+      begin
+      EName:=E.ClassName;
       B:=E is EParserError;
+      end;
   end;
   If not B then
-    Fail('Wrong exception class.');
+    Fail('Wrong exception class "'+EName+'".');
 end;
 
 procedure TTestRecordTypeParser.TestTwoFieldPrivate;
