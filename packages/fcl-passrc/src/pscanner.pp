@@ -237,7 +237,8 @@ type
     msBlocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
     msISOLikeIO,           { I/O as it required by an ISO compatible compiler }
     msISOLikeProgramsPara, { program parameters as it required by an ISO compatible compiler }
-    msISOLikeMod           { mod operation as it is required by an iso compatible compiler }
+    msISOLikeMod,          { mod operation as it is required by an iso compatible compiler }
+    msExternalClass        { Allow external class definitions }
   );
   TModeSwitches = Set of TModeSwitch;
 
@@ -378,13 +379,14 @@ type
 
   TPOption = (
     po_delphi,               // DEPRECATED Delphi mode: forbid nested comments
-    po_cassignments,         // allow C-operators += -= *= /=
-    po_resolvestandardtypes, // search for 'longint', 'string', etc., do not use dummies, TPasResolver sets this to use its declarations
-    po_asmwhole,             // store whole text between asm..end in TPasImplAsmStatement.Tokens
-    po_nooverloadedprocs,    // do not create TPasOverloadedProc for procs with same name
-    po_keepclassforward,     // disabled: delete class fowards when there is a class declaration
-    po_arrayrangeexpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
-    po_selftoken             // Self is a token. For backward compatibility.
+    po_KeepScannerError,     // default: catch EScannerError and raise an EParserError instead
+    po_CAssignments,         // allow C-operators += -= *= /=
+    po_ResolveStandardTypes, // search for 'longint', 'string', etc., do not use dummies, TPasResolver sets this to use its declarations
+    po_AsmWhole,             // store whole text between asm..end in TPasImplAsmStatement.Tokens
+    po_NoOverloadedProcs,    // do not create TPasOverloadedProc for procs with same name
+    po_KeepClassForward,     // disabled: delete class fowards when there is a class declaration
+    po_ArrayRangeExpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
+    po_SelfToken             // Self is a token. For backward compatibility.
     );
   TPOptions = set of TPOption;
 
@@ -658,7 +660,8 @@ const
     'CBLOCKS',
     'ISOIO',
     'ISOPROGRAMPARAS',
-    'ISOMOD'
+    'ISOMOD',
+    'EXTERNALCLASS'
     );
 
 const
@@ -699,6 +702,7 @@ function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
 function IsNamedToken(Const AToken : String; Out T : TToken) : Boolean;
 
 procedure CreateMsgArgs(var MsgArgs: TMessageArgs; Args: array of const);
+function SafeFormat(const Fmt: string; Args: array of const): string;
 
 implementation
 
@@ -786,7 +790,6 @@ var
 begin
   SetLength(MsgArgs, High(Args)-Low(Args)+1);
   for i:=Low(Args) to High(Args) do
-  begin
     case Args[i].VType of
       vtInteger:      MsgArgs[i] := IntToStr(Args[i].VInteger);
       vtBoolean:      MsgArgs[i] := BoolToStr(Args[i].VBoolean);
@@ -810,6 +813,26 @@ begin
       vtQWord:        MsgArgs[i] := IntToStr(Args[i].VQWord^);
       vtUnicodeString:MsgArgs[i] := AnsiString(UnicodeString(Args[i].VUnicodeString));
     end;
+end;
+
+function SafeFormat(const Fmt: string; Args: array of const): string;
+var
+  MsgArgs: TMessageArgs;
+  i: Integer;
+begin
+  try
+    Result:=Format(Fmt,Args);
+  except
+    Result:='';
+    MsgArgs:=nil;
+    CreateMsgArgs(MsgArgs,Args);
+    for i:=0 to length(MsgArgs)-1 do
+      begin
+      if i>0 then
+        Result:=Result+',';
+      Result:=Result+MsgArgs[i];
+      end;
+    Result:='{'+Fmt+'}['+Result+']';
   end;
 end;
 
@@ -1309,7 +1332,8 @@ begin
         FCurToken:=tkIdentifier;
         Result:=FCurToken;
         end;
-      Break;
+      if not (FSkipComments or PPIsSkipping) then
+        Break;
       end;
     else
       if not PPIsSkipping then
@@ -1961,7 +1985,8 @@ begin
           TokenStart := TokenStr;
           FCurTokenString := '';
           OldLength := 0;
-          while (TokenStr[0] <> '*') or (TokenStr[1] <> ')') do
+          NestingLevel:=0;
+          while (TokenStr[0] <> '*') or (TokenStr[1] <> ')') or (NestingLevel>0) do
             begin
             if TokenStr[0] = #0 then
               begin
@@ -1980,7 +2005,16 @@ begin
               TokenStart:=TokenStr;
               end
             else
+              begin
+              If (msNestedComment in CurrentModeSwitches) then
+                 begin
+                 if (TokenStr[0] = '(') and (TokenStr[1] = '*') then
+                   Inc(NestingLevel)
+                 else if (TokenStr[0] = '*') and (TokenStr[1] = ')') and not PPIsSkipping then
+                   Dec(NestingLevel);
+                 end;
               Inc(TokenStr);
+              end;
           end;
           SectionLength := TokenStr - TokenStart;
           SetLength(FCurTokenString, OldLength + SectionLength);
@@ -2006,7 +2040,7 @@ begin
           Inc(TokenStr);
           Result := tkPower;
           end 
-        else if (po_cassignments in options) then
+        else if (po_CAssignments in options) then
           begin
           if TokenStr[0]='=' then
             begin
@@ -2019,7 +2053,7 @@ begin
       begin
         Result:=tkPlus;
         Inc(TokenStr);
-        if (po_cassignments in options) then
+        if (po_CAssignments in options) then
           begin
           if TokenStr[0]='=' then
             begin
@@ -2037,7 +2071,7 @@ begin
       begin
         Result := tkMinus;
         Inc(TokenStr);
-        if (po_cassignments in options) then
+        if (po_CAssignments in options) then
           begin
           if TokenStr[0]='=' then
             begin
@@ -2073,7 +2107,7 @@ begin
             Move(TokenStart^, FCurTokenString[1], SectionLength);
           Result := tkComment;
           end
-        else if (po_cassignments in options) then
+        else if (po_CAssignments in options) then
           begin
           if TokenStr[0]='=' then
             begin
@@ -2289,7 +2323,7 @@ begin
   If (TokenStr<>Nil) then
     Result := TokenStr - PChar(CurLine)
   else
-    Result:=0;
+    Result := 0;
 end;
 
 procedure TPascalScanner.DoLog(MsgType: TMessageType; MsgNumber: integer;
@@ -2330,8 +2364,12 @@ function TPascalScanner.FetchLine: boolean;
 begin
   if CurSourceFile.IsEOF then
   begin
-    FCurLine := '';
-    TokenStr := nil;
+    if TokenStr<>nil then
+      begin
+      FCurLine := '';
+      TokenStr := nil;
+      inc(FCurRow); // set CurRow to last line+1
+      end;
     Result := false;
   end else
   begin
@@ -2350,7 +2388,7 @@ begin
   FLastMsgType := MsgType;
   FLastMsgNumber := MsgNumber;
   FLastMsgPattern := Fmt;
-  FLastMsg := Format(Fmt,Args);
+  FLastMsg := SafeFormat(Fmt,Args);
   CreateMsgArgs(FLastMsgArgs,Args);
 end;
 

@@ -81,6 +81,7 @@ type
     procedure TestNestedComment2;
     procedure TestNestedComment3;
     procedure TestNestedComment4;
+    procedure TestNestedComment5;
     procedure TestIdentifier;
     procedure TestSelf;
     procedure TestSelfNoToken;
@@ -540,6 +541,11 @@ end;
 procedure TTestScanner.TestNestedComment4;
 begin
   TestToken(tkComment,'{ (* comment *) }');
+end;
+
+procedure TTestScanner.TestNestedComment5;
+begin
+  TestToken(tkComment,'(* (* comment *) *)');
 end;
 
 

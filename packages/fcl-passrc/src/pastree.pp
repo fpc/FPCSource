@@ -174,7 +174,7 @@ type
   TPasExpr = class(TPasElement)
     Kind      : TPasExprKind;
     OpCode    : TExprOpCode;
-    format1,format2 : TPasExpr;
+    format1,format2 : TPasExpr; // write, writeln, str
     constructor Create(AParent : TPasElement; AKind: TPasExprKind; AOpCode: TExprOpCode); virtual; overload;
     destructor Destroy; override;
   end;
@@ -346,7 +346,7 @@ type
   public
     InterfaceSection: TInterfaceSection;
     ImplementationSection: TImplementationSection;
-    InitializationSection: TInitializationSection;
+    InitializationSection: TInitializationSection; // in TPasProgram the begin..end.
     FinalizationSection: TFinalizationSection;
     PackageName: string;
     Filename   : String;  // the IN filename, only written when not empty.
@@ -369,6 +369,7 @@ type
   Public
     ProgramSection: TProgramSection;
     InputFile,OutPutFile : String;
+    // Note: the begin..end. block is in the InitializationSection
   end;
 
   { TPasLibrary }
@@ -506,7 +507,7 @@ type
     ElType: TPasType;
   end;
 
-  { TPasEnumValue }
+  { TPasEnumValue - Parent is TPasEnumType }
 
   TPasEnumValue = class(TPasElement)
   public
@@ -605,16 +606,23 @@ type
     AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef or TPasAliasType or TPasTypeAliasType
     HelperForType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
     IsForward: Boolean;
+    IsExternal : Boolean;
     IsShortDefinition: Boolean;//class(anchestor); without end
     GUIDExpr : TPasExpr;
     Members: TFPList;     // list of TPasElement
     Modifiers: TStringList;
     Interfaces : TFPList; // list of TPasElement
     GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType
+    ExternalNameSpace : String;
+    ExternalName : String;
+    Procedure SetGenericTemplates(AList : TFPList);
     Function FindMember(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function IsPacked : Boolean;
     Function InterfaceGUID : string;
+    Function IsSealed : Boolean;
+    Function IsAbstract : Boolean;
+    Function HasModifier(const aModifier: String): Boolean;
   end;
 
 
@@ -821,7 +829,8 @@ type
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
                         pmExport, pmOverload, pmMessage, pmReintroduce,
                         pmStatic,pmInline,pmAssembler,pmVarargs, pmPublic,
-                        pmCompilerProc,pmExternal,pmForward, pmDispId, pmNoReturn);
+                        pmCompilerProc,pmExternal,pmForward, pmDispId, 
+                        pmNoReturn, pmfar);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
                         
@@ -845,9 +854,9 @@ type
   public
     ProcType : TPasProcedureType;
     Body : TProcedureBody;
-    PublicName,
+    PublicName, // e.g. public PublicName;
     LibrarySymbolName,
-    LibraryExpr : TPasExpr;
+    LibraryExpr : TPasExpr; // e.g. external LibraryExpr name LibrarySymbolName;
     DispIDExpr :  TPasExpr;
     AliasName : String;
     Procedure AddModifier(AModifier : TProcedureModifier);
@@ -1217,6 +1226,7 @@ Type
   end;
 
   { TPasImplForLoop }
+
   TLoopType = (ltNormal,ltDown,ltIn);
   TPasImplForLoop = class(TPasImplStatement)
   public
@@ -1340,6 +1350,7 @@ Type
 
 const
   AccessNames: array[TArgumentAccess] of string[9] = ('', 'const ', 'var ', 'out ','constref ');
+  AccessDescriptions: array[TArgumentAccess] of string[9] = ('default', 'const', 'var', 'out','constref');
   AllVisibilities: TPasMemberVisibilities =
      [visDefault, visPrivate, visProtected, visPublic,
       visPublished, visAutomated];
@@ -1404,7 +1415,8 @@ const
                 = ('virtual', 'dynamic','abstract', 'override',
                    'export', 'overload', 'message', 'reintroduce',
                    'static','inline','assembler','varargs', 'public',
-                   'compilerproc','external','forward','dispid','noreturn');
+                   'compilerproc','external','forward','dispid',
+                   'noreturn','far');
 
   VariableModifierNames : Array[TVariableModifier] of string
      = ('cvar', 'external', 'public', 'export', 'class', 'static');
@@ -2309,6 +2321,8 @@ begin
     okSpecialize : Result := SPasTreeSpecializedType;
     okClassHelper : Result:=SPasClassHelperType;
     okRecordHelper : Result:=SPasRecordHelperType;
+  else
+    Result:='ObjKind('+IntToStr(ord(ObjKind))+')';
   end;
 end;
 
@@ -2328,6 +2342,21 @@ begin
     ForEachChildCall(aMethodCall,Arg,TPasElement(Members[i]),false);
   for i:=0 to GenericTemplateTypes.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
+end;
+
+procedure TPasClassType.SetGenericTemplates(AList: TFPList);
+
+Var
+  I : Integer;
+
+begin
+  ObjKind:=okGeneric;
+  For I:=0 to AList.Count-1 do
+    begin
+    TPasElement(AList[i]).Parent:=Self;
+    GenericTemplateTypes.Add(AList[i]);
+    end;
+  ObjKind:=okGeneric;
 end;
 
 function TPasClassType.FindMember(MemberClass: TPTreeElement; const MemberName: String): TPasElement;
@@ -2379,6 +2408,26 @@ begin
     Result:=GUIDExpr.GetDeclaration(True)
   else
     Result:=''
+end;
+
+function TPasClassType.IsSealed: Boolean;
+begin
+  Result:=HasModifier('sealed');
+end;
+
+function TPasClassType.IsAbstract: Boolean;
+begin
+  Result:=HasModifier('abstract');
+end;
+
+function TPasClassType.HasModifier(const aModifier: String): Boolean;
+var
+  i: Integer;
+begin
+  for i:=0 to Modifiers.Count-1 do
+    if CompareText(aModifier,Modifiers[i])=0 then
+      exit(true);
+  Result:=false;
 end;
 
 function TPasClassType.IsPacked: Boolean;
@@ -2648,7 +2697,7 @@ begin
   if IfBranch=nil then
     begin
     IfBranch:=Element;
-    element.AddRef;
+    Element.AddRef;
     end
   else if ElseBranch=nil then
     begin
@@ -2667,10 +2716,12 @@ end;
 procedure TPasImplIfElse.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,ConditionExpr,false);
-  ForEachChildCall(aMethodCall,Arg,IfBranch,false);
-  ForEachChildCall(aMethodCall,Arg,ElseBranch,false);
+  if Elements.IndexOf(IfBranch)<0 then
+    ForEachChildCall(aMethodCall,Arg,IfBranch,false);
+  if Elements.IndexOf(ElseBranch)<0 then
+    ForEachChildCall(aMethodCall,Arg,ElseBranch,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 function TPasImplIfElse.Condition: string;
@@ -2704,12 +2755,13 @@ end;
 procedure TPasImplForLoop.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,VariableName,false);
   ForEachChildCall(aMethodCall,Arg,Variable,false);
   ForEachChildCall(aMethodCall,Arg,StartExpr,false);
   ForEachChildCall(aMethodCall,Arg,EndExpr,false);
-  ForEachChildCall(aMethodCall,Arg,Body,false);
+  if Elements.IndexOf(Body)<0 then
+    ForEachChildCall(aMethodCall,Arg,Body,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 function TPasImplForLoop.Down: boolean;
@@ -3886,15 +3938,16 @@ begin
     Body.AddRef;
     end
   else
-    raise Exception.Create('TPasImplWhileDo.AddElement body already set - please report this bug');
+    raise Exception.Create('TPasImplWhileDo.AddElement body already set');
 end;
 
 procedure TPasImplWhileDo.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,ConditionExpr,false);
-  ForEachChildCall(aMethodCall,Arg,Body,false);
+  if Elements.IndexOf(Body)<0 then
+    ForEachChildCall(aMethodCall,Arg,Body,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 function TPasImplWhileDo.Condition: string;
@@ -3937,9 +3990,10 @@ end;
 procedure TPasImplCaseOf.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,CaseExpr,false);
-  ForEachChildCall(aMethodCall,Arg,ElseBranch,false);
+  if Elements.IndexOf(ElseBranch)<0 then
+    ForEachChildCall(aMethodCall,Arg,ElseBranch,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 function TPasImplCaseOf.Expression: string;
@@ -3980,6 +4034,8 @@ begin
     Body:=Element;
     Body.AddRef;
     end
+  else
+    raise Exception.Create('TPasImplCaseStatement.AddElement body already set');
 end;
 
 procedure TPasImplCaseStatement.AddExpression(const Expr: TPasExpr);
@@ -3993,10 +4049,11 @@ procedure TPasImplCaseStatement.ForEachCall(
 var
   i: Integer;
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   for i:=0 to Expressions.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(Expressions[i]),false);
-  ForEachChildCall(aMethodCall,Arg,Body,false);
+  if Elements.IndexOf(Body)<0 then
+    ForEachChildCall(aMethodCall,Arg,Body,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 { TPasImplWithDo }
@@ -4026,7 +4083,9 @@ begin
     begin
     Body:=Element;
     Body.AddRef;
-    end;
+    end
+  else
+    raise Exception.Create('TPasImplWithDo.AddElement body already set');
 end;
 
 procedure TPasImplWithDo.AddExpression(const Expression: TPasExpr);
@@ -4039,10 +4098,11 @@ procedure TPasImplWithDo.ForEachCall(const aMethodCall: TOnForEachPasElement;
 var
   i: Integer;
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   for i:=0 to Expressions.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(Expressions[i]),false);
-  ForEachChildCall(aMethodCall,Arg,Body,false);
+  if Elements.IndexOf(Body)<0 then
+    ForEachChildCall(aMethodCall,Arg,Body,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 { TPasImplTry }
@@ -4105,10 +4165,11 @@ end;
 procedure TPasImplExceptOn.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
-  inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,VarEl,false);
   ForEachChildCall(aMethodCall,Arg,TypeEl,false);
-  ForEachChildCall(aMethodCall,Arg,Body,false);
+  if Elements.IndexOf(Body)<0 then
+    ForEachChildCall(aMethodCall,Arg,Body,false);
+  inherited ForEachCall(aMethodCall, Arg);
 end;
 
 function TPasImplExceptOn.VariableName: String;

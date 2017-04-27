@@ -103,6 +103,7 @@ type
     Procedure TestFunctionCall;
     Procedure TestFunctionCall2args;
     Procedure TestFunctionCallNoArgs;
+    Procedure ParseStrWithFormatFullyQualified;
     Procedure TestRange;
     Procedure TestBracketsTotal;
     Procedure TestBracketsLeft;
@@ -1029,6 +1030,24 @@ begin
   AssertEquals(Msg+' opcode OK',Op,Result.OpCode);
   AOperand:=Result.Operand;
   AssertNotNull('Have left',AOperand);
+end;
+
+Procedure TTestExpressions.ParseStrWithFormatFullyQualified;
+
+Var
+  P : TParamsExpr;
+  B : TBinaryExpr;
+
+begin
+  DeclareVar('string','a');
+  DeclareVar('integer','i');
+  ParseExpression('system.str(i:0:3,a)');
+  B:=TBinaryExpr(AssertExpression('Binary identifier',theExpr,pekBinary,TBinaryExpr));
+  P:=TParamsExpr(AssertExpression('Simple identifier',B.Right,pekFuncParams,TParamsExpr));
+  AssertExpression('Name of function',P.Value,pekIdent,'str');
+  AssertEquals('2 argument',2,Length(p.params));
+  AssertExpression('Simple identifier',p.params[0],pekIdent,'i');
+  AssertExpression('Simple identifier',p.params[1],pekIdent,'a');
 end;
 
 initialization

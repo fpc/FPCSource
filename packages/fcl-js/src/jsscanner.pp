@@ -515,7 +515,10 @@ begin
       FCurToken := Result;
       exit;
       end;
+    {$Push}
+    {$R-}
     I:=Succ(I);
+    {$Pop}
     end
 end;
 

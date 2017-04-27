@@ -140,6 +140,8 @@ type
     procedure TestEmpty;
     procedure TestBoolean;
     procedure TestInteger;
+    procedure TestIntegerCaseInsensitive;
+    procedure TestIntegerCaseSensitive;
     procedure TestString;
     procedure TestFloat;
     procedure TestFloat2;
@@ -316,6 +318,31 @@ begin
   B:=TIntegerComponent.Create(Nil);
   DeStream('{ "IntProp" : 22 }',B);
   AssertEquals('Correct integer value',22,B.IntProp);
+end;
+
+procedure TTestJSONDeStreamer.TestIntegerCaseInsensitive;
+
+Var
+  B : TIntegerComponent;
+
+begin
+  DS.Options:=DS.Options+[jdoCaseInsensitive];
+  B:=TIntegerComponent.Create(Nil);
+  DeStream('{ "intprop" : 22 }',B);
+  AssertEquals('Correct integer value',22,B.IntProp);
+end;
+
+procedure TTestJSONDeStreamer.TestIntegerCaseSensitive;
+
+Var
+  B : TIntegerComponent;
+
+begin
+  DS.Options:=DS.Options;
+  B:=TIntegerComponent.Create(Nil);
+  B.IntProp:=0;
+  DeStream('{ "intprop" : 22 }',B);
+  AssertEquals('Correct integer value not reas',0,B.IntProp);
 end;
 
 procedure TTestJSONDeStreamer.TestString;

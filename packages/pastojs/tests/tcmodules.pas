@@ -62,12 +62,15 @@ type
     property Module: TPasModule read FModule write SetModule;
   end;
 
-  { TTestModule }
+  { TCustomTestModule }
 
-  TTestModule = Class(TTestCase)
+  TCustomTestModule = Class(TTestCase)
   private
     FConverter: TPasToJSConverter;
     FEngine: TTestEnginePasResolver;
+    FExpectedErrorClass: ExceptClass;
+    FExpectedErrorMsg: string;
+    FExpectedErrorNumber: integer;
     FFilename: string;
     FFileResolver: TStreamResolver;
     FJSInitBody: TJSFunctionBody;
@@ -82,6 +85,7 @@ type
     FPasProgram: TPasProgram;
     FJSRegModuleCall: TJSCallExpression;
     FScanner: TPascalScanner;
+    FSkipTests: boolean;
     FSource: TStringList;
     FFirstPasStatement: TPasImplBlock;
     function GetModuleCount: integer;
@@ -90,28 +94,37 @@ type
   protected
     procedure SetUp; override;
     procedure TearDown; override;
-    Procedure Add(Line: string);
-    Procedure StartParsing;
-    procedure ParseModule;
-    procedure ParseProgram;
-    procedure ParseUnit;
+    Procedure Add(Line: string); virtual;
+    Procedure StartParsing; virtual;
+    procedure ParseModule; virtual;
+    procedure ParseProgram; virtual;
+    procedure ParseUnit; virtual;
   protected
-    function FindModuleWithFilename(aFilename: string): TTestEnginePasResolver;
-    function AddModule(aFilename: string): TTestEnginePasResolver;
-    function AddModuleWithSrc(aFilename, Src: string): TTestEnginePasResolver;
+    function FindModuleWithFilename(aFilename: string): TTestEnginePasResolver; virtual;
+    function AddModule(aFilename: string): TTestEnginePasResolver; virtual;
+    function AddModuleWithSrc(aFilename, Src: string): TTestEnginePasResolver; virtual;
     function AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
-      ImplementationSrc: string): TTestEnginePasResolver;
-    procedure AddSystemUnit;
-    procedure StartProgram(NeedSystemUnit: boolean);
-    procedure StartUnit(NeedSystemUnit: boolean);
-    Procedure ConvertModule;
-    Procedure ConvertProgram;
-    Procedure ConvertUnit;
+      ImplementationSrc: string): TTestEnginePasResolver; virtual;
+    procedure AddSystemUnit; virtual;
+    procedure StartProgram(NeedSystemUnit: boolean); virtual;
+    procedure StartUnit(NeedSystemUnit: boolean); virtual;
+    Procedure ConvertModule; virtual;
+    Procedure ConvertProgram; virtual;
+    Procedure ConvertUnit; virtual;
     procedure CheckDottedIdentifier(Msg: string; El: TJSElement; DottedName: string);
     function GetDottedIdentifier(El: TJSElement): string;
-    procedure CheckSource(Msg,Statements, InitStatements: string);
-    procedure CheckDiff(Msg, Expected, Actual: string);
-    procedure WriteSource(aFilename: string; Row: integer = 0; Col: integer = 0);
+    procedure CheckSource(Msg,Statements, InitStatements: string); virtual;
+    procedure CheckDiff(Msg, Expected, Actual: string); virtual;
+    procedure SetExpectedPasResolverError(Msg: string; MsgNumber: integer);
+    procedure SetExpectedConverterError(Msg: string; MsgNumber: integer);
+    function IsErrorExpected(E: Exception): boolean;
+    procedure HandleScannerError(E: EScannerError);
+    procedure HandleParserError(E: EParserError);
+    procedure HandlePasResolveError(E: EPasResolve);
+    procedure HandlePas2JSError(E: EPas2JS);
+    procedure HandleException(E: Exception);
+    procedure RaiseException(E: Exception);
+    procedure WriteSources(const aFilename: string; aRow, aCol: integer);
     property PasProgram: TPasProgram Read FPasProgram;
     property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
     property ModuleCount: integer read GetModuleCount;
@@ -127,11 +140,20 @@ type
     property JSInterfaceUses: TJSArrayLiteral read FJSInterfaceUses;
     property JSModuleSrc: TJSSourceElements read FJSModuleSrc;
     property JSInitBody: TJSFunctionBody read FJSInitBody;
+    property ExpectedErrorClass: ExceptClass read FExpectedErrorClass write FExpectedErrorClass;
+    property ExpectedErrorMsg: string read FExpectedErrorMsg write FExpectedErrorMsg;
+    property ExpectedErrorNumber: integer read FExpectedErrorNumber write FExpectedErrorNumber;
+    property SkipTests: boolean read FSkipTests write FSkipTests;
   public
     property Source: TStringList read FSource;
     property FileResolver: TStreamResolver read FFileResolver;
     property Scanner: TPascalScanner read FScanner;
     property Parser: TTestPasParser read FParser;
+  end;
+
+  { TTestModule }
+
+  TTestModule = class(TCustomTestModule)
   Published
     // modules
     Procedure TestEmptyProgram;
@@ -142,6 +164,8 @@ type
     // vars/const
     Procedure TestVarInt;
     Procedure TestVarBaseTypes;
+    Procedure TestBaseTypeSingleFail;
+    Procedure TestBaseTypeExtendedFail;
     Procedure TestConstBaseTypes;
     Procedure TestUnitImplVars;
     Procedure TestUnitImplConsts;
@@ -149,18 +173,28 @@ type
     Procedure TestRenameJSNameConflict;
     Procedure TestLocalConst;
     Procedure TestVarExternal;
+    Procedure TestVarExternalOtherUnit;
 
     // strings
     Procedure TestCharConst;
     Procedure TestChar_Compare;
+    Procedure TestChar_Ord;
+    Procedure TestChar_Chr;
     Procedure TestStringConst;
     Procedure TestString_Length;
     Procedure TestString_Compare;
     Procedure TestString_SetLength;
     Procedure TestString_CharAt;
+    Procedure TestStr;
+    Procedure TestBaseType_AnsiStringFail;
+    Procedure TestBaseType_UnicodeStringFail;
+    Procedure TestBaseType_ShortStringFail;
+    Procedure TestBaseType_RawByteStringFail;
 
     // alias types
     Procedure TestAliasTypeRef;
+    Procedure TestTypeCast_BaseTypes;
+    Procedure TestTypeCast_AliasBaseTypes;
 
     // functions
     Procedure TestEmptyProc;
@@ -182,7 +216,8 @@ type
     Procedure TestBreak;
     Procedure TestContinue;
     Procedure TestProcedureExternal;
-    Procedure TestProcedureAsm;
+    Procedure TestProcedureExternalOtherUnit;
+    Procedure TestProcedure_Asm;
     Procedure TestProcedureAssembler;
     Procedure TestProcedure_VarParam;
     Procedure TestProcedureOverload;
@@ -204,6 +239,7 @@ type
     Procedure TestSet_Property;
 
     // statements
+    Procedure TestNestBegin;
     Procedure TestIncDec;
     Procedure TestAssignments;
     Procedure TestArithmeticOperators1;
@@ -217,6 +253,7 @@ type
     Procedure TestForLoop_Nested;
     Procedure TestRepeatUntil;
     Procedure TestAsmBlock;
+    Procedure TestAsmPas_Impl; // ToDo
     Procedure TestTryFinally;
     Procedure TestTryExcept;
     Procedure TestCaseOf;
@@ -230,11 +267,18 @@ type
     Procedure TestArray_Dynamic_Nil;
     Procedure TestArray_DynMultiDimensional;
     Procedure TestArrayOfRecord;
+    // ToDo: Procedure TestArrayOfSet;
     Procedure TestArray_AsParams;
     Procedure TestArrayElement_AsParams;
     Procedure TestArrayElementFromFuncResult_AsParams;
     Procedure TestArrayEnumTypeRange;
     Procedure TestArray_SetLengthProperty;
+    Procedure TestArray_OpenArrayOfString;
+    Procedure TestArray_Concat;
+    Procedure TestArray_Copy;
+    Procedure TestArray_InsertDelete;
+    Procedure TestExternalClass_TypeCastArrayToExternalArray;
+    Procedure TestExternalClass_TypeCastArrayFromExternalArray;
     // ToDo: const array
     // ToDo: SetLength(array of static array)
 
@@ -267,6 +311,7 @@ type
     Procedure TestClass_Property_Index;
     Procedure TestClass_PropertyOfTypeArray;
     Procedure TestClass_PropertyDefault;
+    Procedure TestClass_PropertyOverride;
     Procedure TestClass_Assigned;
     Procedure TestClass_WithClassDoCreate;
     Procedure TestClass_WithClassInstDoProperty;
@@ -278,17 +323,60 @@ type
     Procedure TestClass_OverloadsAncestor;
     Procedure TestClass_OverloadConstructor;
     Procedure TestClass_ReintroducedVar;
+    Procedure TestClass_RaiseDescendant;
+    Procedure TestClass_ExternalMethod;
+    Procedure TestClass_ExternalVirtualNameMismatchFail;
+    Procedure TestClass_ExternalOverrideFail;
+    Procedure TestClass_ExternalVar;
+    Procedure TestClass_Const;
 
     // class of
     Procedure TestClassOf_Create;
     Procedure TestClassOf_Call;
     Procedure TestClassOf_Assign;
+    Procedure TestClassOf_Is;
     Procedure TestClassOf_Compare;
     Procedure TestClassOf_ClassVar;
     Procedure TestClassOf_ClassMethod;
     Procedure TestClassOf_ClassProperty;
     Procedure TestClassOf_ClassMethodSelf;
     Procedure TestClassOf_TypeCast;
+    Procedure TestClassOf_ImplicitFunctionCall;
+
+    // external class
+    Procedure TestExternalClass_Var;
+    // ToDo TestExternalClass_Const
+    Procedure TestExternalClass_DuplicateVarFail;
+    Procedure TestExternalClass_Method;
+    Procedure TestExternalClass_NonExternalOverride;
+    Procedure TestExternalClass_Property;
+    Procedure TestExternalClass_ClassProperty;
+    Procedure TestExternalClass_ClassOf;
+    Procedure TestExternalClass_ClassOtherUnit;
+    Procedure TestExternalClass_Is;
+    Procedure TestExternalClass_As;
+    Procedure TestExternalClass_DestructorFail;
+    Procedure TestExternalClass_New;
+    Procedure TestExternalClass_ClassOf_New;
+    Procedure TestExternalClass_FuncClassOf_New;
+    Procedure TestExternalClass_LocalConstSameName;
+    Procedure TestExternalClass_ReintroduceOverload;
+    Procedure TestExternalClass_Inherited;
+    Procedure TestExternalClass_PascalAncestorFail;
+    Procedure TestExternalClass_NewInstance;
+    Procedure TestExternalClass_NewInstance_NonVirtualFail;
+    Procedure TestExternalClass_NewInstance_FirstParamNotString_Fail;
+    Procedure TestExternalClass_NewInstance_SecondParamTyped_Fail;
+    Procedure TestExternalClass_PascalProperty;
+    Procedure TestExternalClass_TypeCastToRootClass;
+    Procedure TestExternalClass_TypeCastStringToExternalString;
+    Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
+    Procedure TestExternalClass_BracketOperatorOld;
+    Procedure TestExternalClass_BracketAccessor;
+    Procedure TestExternalClass_BracketAccessor_2ParamsFail;
+    Procedure TestExternalClass_BracketAccessor_ReadOnly;
+    Procedure TestExternalClass_BracketAccessor_WriteOnly;
+    Procedure TestExternalClass_BracketAccessor_MultiType;
 
     // proc types
     Procedure TestProcType;
@@ -300,6 +388,21 @@ type
     Procedure TestProcType_PropertyFPC;
     Procedure TestProcType_PropertyDelphi;
     Procedure TestProcType_WithClassInstDoPropertyFPC;
+    Procedure TestProcType_Nested;
+
+    // jsvalue
+    Procedure TestJSValue_AssignToJSValue;
+    Procedure TestJSValue_TypeCastToBaseType;
+    Procedure TestJSValue_Equal;
+    Procedure TestJSValue_Enum;
+    Procedure TestJSValue_ClassInstance;
+    Procedure TestJSValue_ClassOf;
+    Procedure TestJSValue_ArrayOfJSValue;
+    Procedure TestJSValue_Params;
+    Procedure TestJSValue_UntypedParam;
+    Procedure TestJSValue_FuncResultType;
+    Procedure TestJSValue_ProcType_Assign;
+    Procedure TestJSValue_ProcType_Equal;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -390,20 +493,20 @@ begin
     Result:=OnFindUnit(AName);
 end;
 
-{ TTestModule }
+{ TCustomTestModule }
 
-function TTestModule.GetModuleCount: integer;
+function TCustomTestModule.GetModuleCount: integer;
 begin
   Result:=FModules.Count;
 end;
 
-function TTestModule.GetModules(Index: integer
+function TCustomTestModule.GetModules(Index: integer
   ): TTestEnginePasResolver;
 begin
   Result:=TTestEnginePasResolver(FModules[Index]);
 end;
 
-function TTestModule.OnPasResolverFindUnit(const aUnitName: String
+function TCustomTestModule.OnPasResolverFindUnit(const aUnitName: String
   ): TPasModule;
 var
   i: Integer;
@@ -438,16 +541,12 @@ begin
         CurEngine.Parser.NextToken;
         CurEngine.Parser.ParseUnit(CurEngine.FModule);
       except
+        on E: EParserError do
+          HandleParserError(E);
+        on E: EPasResolve do
+          HandlePasResolveError(E);
         on E: Exception do
-          begin
-          writeln('ERROR: TTestModule.OnPasResolverFindUnit during parsing: '+E.ClassName+':'+E.Message
-            +' File='+CurEngine.Scanner.CurFilename
-            +' LineNo='+IntToStr(CurEngine.Scanner.CurRow)
-            +' Col='+IntToStr(CurEngine.Scanner.CurColumn)
-            +' Line="'+CurEngine.Scanner.CurLine+'"'
-            );
-          raise E;
-          end;
+          HandleException(E);
       end;
       //writeln('TTestModule.OnPasResolverFindUnit END ',CurUnitName);
       Result:=CurEngine.Module;
@@ -455,12 +554,13 @@ begin
       end;
     end;
   writeln('TTestModule.OnPasResolverFindUnit missing unit "',aUnitName,'"');
-  raise Exception.Create('can''t find unit "'+aUnitName+'"');
+  Fail('can''t find unit "'+aUnitName+'"');
 end;
 
-procedure TTestModule.SetUp;
+procedure TCustomTestModule.SetUp;
 begin
   inherited SetUp;
+  FSkipTests:=false;
   FSource:=TStringList.Create;
   FModules:=TObjectList.Create(true);
 
@@ -474,10 +574,13 @@ begin
   FModule:=Nil;
   FConverter:=TPasToJSConverter.Create;
   FConverter.UseLowerCase:=false;
+
+  FExpectedErrorClass:=nil;
 end;
 
-procedure TTestModule.TearDown;
+procedure TCustomTestModule.TearDown;
 begin
+  FSkipTests:=false;
   FJSModule:=nil;
   FJSRegModuleCall:=nil;
   FJSModuleCallArgs:=nil;
@@ -506,60 +609,52 @@ begin
   inherited TearDown;
 end;
 
-procedure TTestModule.Add(Line: string);
+procedure TCustomTestModule.Add(Line: string);
 begin
   Source.Add(Line);
 end;
 
-procedure TTestModule.StartParsing;
+procedure TCustomTestModule.StartParsing;
+var
+  Src: String;
 begin
-  FileResolver.AddStream(FileName,TStringStream.Create(Source.Text));
+  Src:=Source.Text;
+  FEngine.Source:=Src;
+  FileResolver.AddStream(FileName,TStringStream.Create(Src));
   Scanner.OpenFile(FileName);
   Writeln('// Test : ',Self.TestName);
-  Writeln(Source.Text);
+  Writeln(Src);
 end;
 
-procedure TTestModule.ParseModule;
-var
-  Row, Col: integer;
+procedure TCustomTestModule.ParseModule;
 begin
+  if SkipTests then exit;
   FFirstPasStatement:=nil;
   try
     StartParsing;
     Parser.ParseMain(FModule);
   except
     on E: EParserError do
-      begin
-      WriteSource(E.Filename,E.Row,E.Column);
-      writeln('ERROR: TTestModule.ParseModule Parser: '+E.ClassName+':'+E.Message
-        +' '+E.Filename+'('+IntToStr(E.Row)+','+IntToStr(E.Column)+')'
-        +' Line="'+Scanner.CurLine+'"'
-        );
-      raise E;
-      end;
+      HandleParserError(E);
     on E: EPasResolve do
-      begin
-      Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
-      WriteSource(E.PasElement.SourceFilename,Row,Col);
-      writeln('ERROR: TTestModule.ParseModule PasResolver: '+E.ClassName+':'+E.Message
-        +' '+E.PasElement.SourceFilename
-        +'('+IntToStr(Row)+','+IntToStr(Col)+')');
-      raise E;
-      end;
+      HandlePasResolveError(E);
+    on E: EPas2JS do
+      HandlePas2JSError(E);
     on E: Exception do
-      begin
-      writeln('ERROR: TTestModule.ParseModule Exception: '+E.ClassName+':'+E.Message);
-      raise E;
-      end;
+      HandleException(E);
   end;
+  if SkipTests then exit;
+
   AssertNotNull('Module resulted in Module',FModule);
   AssertEquals('modulename',lowercase(ChangeFileExt(FFileName,'')),lowercase(Module.Name));
   TAssert.AssertSame('Has resolver',Engine,Parser.Engine);
 end;
 
-procedure TTestModule.ParseProgram;
+procedure TCustomTestModule.ParseProgram;
 begin
+  if SkipTests then exit;
   ParseModule;
+  if SkipTests then exit;
   AssertEquals('Has program',TPasProgram,Module.ClassType);
   FPasProgram:=TPasProgram(Module);
   AssertNotNull('Has program section',PasProgram.ProgramSection);
@@ -569,9 +664,11 @@ begin
       FFirstPasStatement:=TPasImplBlock(PasProgram.InitializationSection.Elements[0]);
 end;
 
-procedure TTestModule.ParseUnit;
+procedure TCustomTestModule.ParseUnit;
 begin
+  if SkipTests then exit;
   ParseModule;
+  if SkipTests then exit;
   AssertEquals('Has unit (TPasModule)',TPasModule,Module.ClassType);
   AssertNotNull('Has interface section',Module.InterfaceSection);
   AssertNotNull('Has implementation section',Module.ImplementationSection);
@@ -581,7 +678,7 @@ begin
     FFirstPasStatement:=TPasImplBlock(Module.InitializationSection.Elements[0]);
 end;
 
-function TTestModule.FindModuleWithFilename(aFilename: string
+function TCustomTestModule.FindModuleWithFilename(aFilename: string
   ): TTestEnginePasResolver;
 var
   i: Integer;
@@ -592,12 +689,12 @@ begin
   Result:=nil;
 end;
 
-function TTestModule.AddModule(aFilename: string
+function TCustomTestModule.AddModule(aFilename: string
   ): TTestEnginePasResolver;
 begin
   //writeln('TTestModuleConverter.AddModule ',aFilename);
   if FindModuleWithFilename(aFilename)<>nil then
-    raise Exception.Create('TTestModuleConverter.AddModule: file "'+aFilename+'" already exists');
+    Fail('TTestModuleConverter.AddModule: file "'+aFilename+'" already exists');
   Result:=TTestEnginePasResolver.Create;
   Result.Filename:=aFilename;
   Result.AddObjFPCBuiltInIdentifiers([btChar,btString,btLongint,btInt64,btBoolean,btDouble]);
@@ -605,14 +702,14 @@ begin
   FModules.Add(Result);
 end;
 
-function TTestModule.AddModuleWithSrc(aFilename, Src: string
+function TCustomTestModule.AddModuleWithSrc(aFilename, Src: string
   ): TTestEnginePasResolver;
 begin
   Result:=AddModule(aFilename);
   Result.Source:=Src;
 end;
 
-function TTestModule.AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
+function TCustomTestModule.AddModuleWithIntfImplSrc(aFilename, InterfaceSrc,
   ImplementationSrc: string): TTestEnginePasResolver;
 var
   Src: String;
@@ -629,7 +726,7 @@ begin
   Result:=AddModuleWithSrc(aFilename,Src);
 end;
 
-procedure TTestModule.AddSystemUnit;
+procedure TCustomTestModule.AddSystemUnit;
 begin
   AddModuleWithIntfImplSrc('system.pp',
     // interface
@@ -645,7 +742,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.StartProgram(NeedSystemUnit: boolean);
+procedure TCustomTestModule.StartProgram(NeedSystemUnit: boolean);
 begin
   if NeedSystemUnit then
     AddSystemUnit
@@ -655,7 +752,7 @@ begin
   Add('');
 end;
 
-procedure TTestModule.StartUnit(NeedSystemUnit: boolean);
+procedure TCustomTestModule.StartUnit(NeedSystemUnit: boolean);
 begin
   if NeedSystemUnit then
     AddSystemUnit
@@ -665,7 +762,7 @@ begin
   Add('');
 end;
 
-procedure TTestModule.ConvertModule;
+procedure TCustomTestModule.ConvertModule;
 var
   ModuleNameExpr: TJSLiteral;
   FunDecl, InitFunction: TJSFunctionDeclarationStatement;
@@ -673,54 +770,27 @@ var
   InitAssign: TJSSimpleAssignStatement;
   FunBody: TJSFunctionBody;
   InitName: String;
-  Row, Col: integer;
+  LastNode: TJSElement;
 begin
+  if SkipTests then exit;
   try
     FJSModule:=FConverter.ConvertPasElement(Module,Engine) as TJSSourceElements;
   except
-    on E: EScannerError do begin
-      WriteSource(Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn);
-      writeln('ERROR: TTestModule.ConvertModule Scanner: '+E.ClassName+':'+E.Message
-        +' '+Scanner.CurFilename
-        +'('+IntToStr(Scanner.CurRow)+','+IntToStr(Scanner.CurColumn)+')');
-      raise E;
-    end;
-    on E: EParserError do begin
-      WriteSource(Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn);
-      writeln('ERROR: TTestModule.ConvertModule Parser: '+E.ClassName+':'+E.Message
-        +' '+Scanner.CurFilename
-        +'('+IntToStr(Scanner.CurRow)+','+IntToStr(Scanner.CurColumn)+')');
-      raise E;
-    end;
+    on E: EScannerError do
+      HandleScannerError(E);
+    on E: EParserError do
+      HandleParserError(E);
     on E: EPasResolve do
-      begin
-      Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
-      WriteSource(E.PasElement.SourceFilename,Row,Col);
-      writeln('ERROR: TTestModule.ConvertModule PasResolver: '+E.ClassName+':'+E.Message
-        +' '+E.PasElement.SourceFilename
-        +'('+IntToStr(Row)+','+IntToStr(Col)+')');
-      raise E;
-      end;
+      HandlePasResolveError(E);
     on E: EPas2JS do
-      begin
-      if E.PasElement<>nil then
-        begin
-        Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
-        WriteSource(E.PasElement.SourceFilename,Row,Col);
-        writeln('ERROR: TTestModule.ConvertModule Converter: '+E.ClassName+':'+E.Message
-          +' '+E.PasElement.SourceFilename
-          +'('+IntToStr(Row)+','+IntToStr(Col)+')');
-        end
-      else
-        writeln('ERROR: TTestModule.ConvertModule Exception: '+E.ClassName+':'+E.Message);
-      raise E;
-      end;
+      HandlePas2JSError(E);
     on E: Exception do
-      begin
-      writeln('ERROR: TTestModule.ConvertModule Exception: '+E.ClassName+':'+E.Message);
-      raise E;
-      end;
+      HandleException(E);
   end;
+  if SkipTests then exit;
+  if ExpectedErrorClass<>nil then
+    Fail('Missing '+ExpectedErrorClass.ClassName+' error {'+ExpectedErrorMsg+'} ('+IntToStr(ExpectedErrorNumber)+')');
+
   FJSSource:=TStringList.Create;
   FJSSource.Text:=JSToStr(JSModule);
   {$IFDEF VerbosePas2JS}
@@ -775,32 +845,36 @@ begin
   FJSInitBody:=nil;
   if JSModuleSrc.Statements.Count>0 then
     begin
-    InitAssign:=JSModuleSrc.Statements.Nodes[JSModuleSrc.Statements.Count-1].Node as TJSSimpleAssignStatement;
-    if GetDottedIdentifier(InitAssign.LHS)='this.'+InitName then
+    LastNode:=JSModuleSrc.Statements.Nodes[JSModuleSrc.Statements.Count-1].Node;
+    if LastNode is TJSSimpleAssignStatement then
       begin
-      InitFunction:=InitAssign.Expr as TJSFunctionDeclarationStatement;
-      FJSInitBody:=InitFunction.AFunction.Body as TJSFunctionBody;
-      end
-    else if Module is TPasProgram then
-      CheckDottedIdentifier('init function',InitAssign.LHS,'this.'+InitName);
+      InitAssign:=LastNode as TJSSimpleAssignStatement;
+      if GetDottedIdentifier(InitAssign.LHS)='this.'+InitName then
+        begin
+        InitFunction:=InitAssign.Expr as TJSFunctionDeclarationStatement;
+        FJSInitBody:=InitFunction.AFunction.Body as TJSFunctionBody;
+        end
+      else if Module is TPasProgram then
+        CheckDottedIdentifier('init function',InitAssign.LHS,'this.'+InitName);
+      end;
     end;
 end;
 
-procedure TTestModule.ConvertProgram;
+procedure TCustomTestModule.ConvertProgram;
 begin
   Add('end.');
   ParseProgram;
   ConvertModule;
 end;
 
-procedure TTestModule.ConvertUnit;
+procedure TCustomTestModule.ConvertUnit;
 begin
   Add('end.');
   ParseUnit;
   ConvertModule;
 end;
 
-procedure TTestModule.CheckDottedIdentifier(Msg: string; El: TJSElement;
+procedure TCustomTestModule.CheckDottedIdentifier(Msg: string; El: TJSElement;
   DottedName: string);
 begin
   if DottedName='' then
@@ -814,7 +888,7 @@ begin
     end;
 end;
 
-function TTestModule.GetDottedIdentifier(El: TJSElement): string;
+function TCustomTestModule.GetDottedIdentifier(El: TJSElement): string;
 begin
   if El=nil then
     Result:=''
@@ -826,7 +900,7 @@ begin
     AssertEquals('GetDottedIdentifier',TJSPrimaryExpressionIdent,El.ClassType);
 end;
 
-procedure TTestModule.CheckSource(Msg, Statements, InitStatements: string);
+procedure TCustomTestModule.CheckSource(Msg, Statements, InitStatements: string);
 var
   ActualSrc, ExpectedSrc, InitName: String;
 begin
@@ -845,7 +919,7 @@ begin
   CheckDiff(Msg,ExpectedSrc,ActualSrc);
 end;
 
-procedure TTestModule.CheckDiff(Msg, Expected, Actual: string);
+procedure TCustomTestModule.CheckDiff(Msg, Expected, Actual: string);
 // search diff, ignore changes in spaces
 const
   SpaceChars = [#9,#10,#13,' '];
@@ -949,33 +1023,149 @@ begin
   until false;
 end;
 
-procedure TTestModule.WriteSource(aFilename: string; Row: integer; Col: integer
-  );
-var
-  LR: TLineReader;
-  CurRow: Integer;
-  Line: String;
+procedure TCustomTestModule.SetExpectedPasResolverError(Msg: string;
+  MsgNumber: integer);
 begin
-  LR:=FileResolver.FindSourceFile(aFilename);
-  writeln('Testcode:-File="',aFilename,'"----------------------------------:');
-  if LR=nil then
-    writeln('Error: file not loaded: "',aFilename,'"')
+  ExpectedErrorClass:=EPasResolve;
+  ExpectedErrorMsg:=Msg;
+  ExpectedErrorNumber:=MsgNumber;
+end;
+
+procedure TCustomTestModule.SetExpectedConverterError(Msg: string;
+  MsgNumber: integer);
+begin
+  ExpectedErrorClass:=EPas2JS;
+  ExpectedErrorMsg:=Msg;
+  ExpectedErrorNumber:=MsgNumber;
+end;
+
+function TCustomTestModule.IsErrorExpected(E: Exception): boolean;
+var
+  MsgNumber: Integer;
+begin
+  Result:=false;
+  if (ExpectedErrorClass=nil) or (ExpectedErrorClass<>E.ClassType) then exit;
+  if E is EPas2JS then
+    MsgNumber:=EPas2JS(E).MsgNumber
+  else if E is EPasResolve then
+    MsgNumber:=EPasResolve(E).MsgNumber
   else
+    MsgNumber:=0;
+  Result:=(MsgNumber=ExpectedErrorNumber) and (E.Message=ExpectedErrorMsg);
+  if Result then
+    SkipTests:=true;
+end;
+
+procedure TCustomTestModule.HandleScannerError(E: EScannerError);
+begin
+  if IsErrorExpected(E) then exit;
+  WriteSources(Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn);
+  writeln('ERROR: TCustomTestModule.HandleScannerError '+E.ClassName+':'+E.Message
+    +' '+Scanner.CurFilename
+    +'('+IntToStr(Scanner.CurRow)+','+IntToStr(Scanner.CurColumn)+')');
+  RaiseException(E);
+end;
+
+procedure TCustomTestModule.HandleParserError(E: EParserError);
+begin
+  if IsErrorExpected(E) then exit;
+  WriteSources(E.Filename,E.Row,E.Column);
+  writeln('ERROR: TCustomTestModule.HandleParserError '+E.ClassName+':'+E.Message
+    +' '+E.Filename+'('+IntToStr(E.Row)+','+IntToStr(E.Column)+')'
+    +' Line="'+Scanner.CurLine+'"'
+    );
+  RaiseException(E);
+end;
+
+procedure TCustomTestModule.HandlePasResolveError(E: EPasResolve);
+var
+  P: TPasSourcePos;
+begin
+  if IsErrorExpected(E) then exit;
+  P:=E.SourcePos;
+  WriteSources(P.FileName,P.Row,P.Column);
+  writeln('ERROR: TCustomTestModule.HandlePasResolveError '+E.ClassName+':'+E.Message
+    +' '+P.FileName+'('+IntToStr(P.Row)+','+IntToStr(P.Column)+')');
+  RaiseException(E);
+end;
+
+procedure TCustomTestModule.HandlePas2JSError(E: EPas2JS);
+var
+  Row, Col: integer;
+begin
+  if IsErrorExpected(E) then exit;
+  Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
+  WriteSources(E.PasElement.SourceFilename,Row,Col);
+  writeln('ERROR: TCustomTestModule.HandlePas2JSError '+E.ClassName+':'+E.Message
+    +' '+E.PasElement.SourceFilename
+    +'('+IntToStr(Row)+','+IntToStr(Col)+')');
+  RaiseException(E);
+end;
+
+procedure TCustomTestModule.HandleException(E: Exception);
+begin
+  if IsErrorExpected(E) then exit;
+  WriteSources('',0,0);
+  writeln('ERROR: TCustomTestModule.HandleException '+E.ClassName+':'+E.Message);
+  RaiseException(E);
+end;
+
+procedure TCustomTestModule.RaiseException(E: Exception);
+var
+  MsgNumber: Integer;
+begin
+  if ExpectedErrorClass<>nil then begin
+    if FExpectedErrorClass=E.ClassType then begin
+      if E is EPas2JS then
+        MsgNumber:=EPas2JS(E).MsgNumber
+      else if E is EPasResolve then
+        MsgNumber:=EPasResolve(E).MsgNumber
+      else
+        MsgNumber:=0;
+      AssertEquals('Expected error message ('+IntToStr(ExpectedErrorNumber)+')','{'+ExpectedErrorMsg+'}','{'+E.Message+'}');
+      AssertEquals('Expected {'+ExpectedErrorMsg+'}, but got msg {'+E.Message+'} number',
+        ExpectedErrorNumber,MsgNumber);
+    end else begin
+      AssertEquals('Wrong exception class',ExpectedErrorClass.ClassName,E.ClassName);
+    end;
+  end;
+  Fail(E.Message);
+end;
+
+procedure TCustomTestModule.WriteSources(const aFilename: string; aRow,
+  aCol: integer);
+var
+  IsSrc: Boolean;
+  i, j: Integer;
+  SrcLines: TStringList;
+  Line: string;
+  aModule: TTestEnginePasResolver;
+begin
+  for i:=0 to ModuleCount-1 do
     begin
-    CurRow:=0;
-    while not LR.IsEOF do
-      begin
-      inc(CurRow);
-      Line:=LR.ReadLine;
-      if (Row=CurRow) then
+    aModule:=Modules[i];
+    SrcLines:=TStringList.Create;
+    try
+      SrcLines.Text:=aModule.Source;
+      IsSrc:=ExtractFilename(aModule.Filename)=ExtractFileName(aFilename);
+      writeln('Testcode:-File="',aModule.Filename,'"----------------------------------:');
+      for j:=1 to SrcLines.Count do
         begin
-        write('*');
-        Line:=LeftStr(Line,Col-1)+'|'+copy(Line,Col,length(Line));
+        Line:=SrcLines[j-1];
+        if IsSrc and (j=aRow) then
+          begin
+          write('*');
+          Line:=LeftStr(Line,aCol-1)+'|'+copy(Line,aCol,length(Line));
+          end;
+        writeln(Format('%:4d: ',[j]),Line);
         end;
-      writeln(Format('%:4d: ',[CurRow]),Line);
-      end;
+    finally
+      SrcLines.Free;
+    end;
     end;
 end;
+
+{ TTestModule }
 
 procedure TTestModule.TestEmptyProgram;
 begin
@@ -1002,9 +1192,6 @@ begin
   ConvertUnit;
   CheckSource('TestEmptyUnit',
     LinesToStr([
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;'
     ]),
     '');
 end;
@@ -1018,10 +1205,7 @@ begin
   ConvertUnit;
   CheckSource('TestEmptyUnitUseStrict',
     LinesToStr([
-    '"use strict";',
-    'var $impl = {',
-    '};',
-    'this.$impl = $impl;'
+    '"use strict";'
     ]),
     '');
 end;
@@ -1077,6 +1261,22 @@ begin
     '');
 end;
 
+procedure TTestModule.TestBaseTypeSingleFail;
+begin
+  StartProgram(false);
+  Add('var s: single;');
+  SetExpectedPasResolverError('identifier not found "single"',nIdentifierNotFound);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestBaseTypeExtendedFail;
+begin
+  StartProgram(false);
+  Add('var e: extended;');
+  SetExpectedPasResolverError('identifier not found "extended"',nIdentifierNotFound);
+  ConvertProgram;
+end;
+
 procedure TTestModule.TestConstBaseTypes;
 begin
   StartProgram(false);
@@ -1118,6 +1318,94 @@ begin
     LinesToStr([ // this.$main
     ''
     ]));
+end;
+
+procedure TTestModule.TestTypeCast_BaseTypes;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  i: longint;');
+  Add('  b: boolean;');
+  Add('  d: double;');
+  Add('  s: string;');
+  Add('  c: char;');
+  Add('begin');
+  Add('  i:=longint(i);');
+  Add('  i:=longint(b);');
+  Add('  b:=boolean(b);');
+  Add('  b:=boolean(i);');
+  Add('  d:=double(d);');
+  Add('  d:=double(i);');
+  Add('  s:=string(s);');
+  Add('  s:=string(c);');
+  Add('  c:=char(c);');
+  ConvertProgram;
+  CheckSource('TestAliasTypeRef',
+    LinesToStr([ // statements
+    'this.i = 0;',
+    'this.b = false;',
+    'this.d = 0.0;',
+    'this.s = "";',
+    'this.c = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.i = this.i;',
+    'this.i = (this.b ? 1 : 0);',
+    'this.b = this.b;',
+    'this.b = this.i != 0;',
+    'this.d = this.d;',
+    'this.d = this.i;',
+    'this.s = this.s;',
+    'this.s = this.c;',
+    'this.c = this.c;',
+    '']));
+end;
+
+procedure TTestModule.TestTypeCast_AliasBaseTypes;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TYesNo = boolean;');
+  Add('  TFloat = double;');
+  Add('  TCaption = string;');
+  Add('  TChar = char;');
+  Add('var');
+  Add('  i: integer;');
+  Add('  b: TYesNo;');
+  Add('  d: TFloat;');
+  Add('  s: TCaption;');
+  Add('  c: TChar;');
+  Add('begin');
+  Add('  i:=integer(i);');
+  Add('  i:=integer(b);');
+  Add('  b:=TYesNo(b);');
+  Add('  b:=TYesNo(i);');
+  Add('  d:=TFloat(d);');
+  Add('  d:=TFloat(i);');
+  Add('  s:=TCaption(s);');
+  Add('  s:=TCaption(c);');
+  Add('  c:=TChar(c);');
+  ConvertProgram;
+  CheckSource('TestAliasTypeRef',
+    LinesToStr([ // statements
+    'this.i = 0;',
+    'this.b = false;',
+    'this.d = 0.0;',
+    'this.s = "";',
+    'this.c = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.i = this.i;',
+    'this.i = (this.b ? 1 : 0);',
+    'this.b = this.b;',
+    'this.b = this.i != 0;',
+    'this.d = this.d;',
+    'this.d = this.i;',
+    'this.s = this.s;',
+    'this.s = this.c;',
+    'this.c = this.c;',
+    '']));
 end;
 
 procedure TTestModule.TestEmptyProc;
@@ -1285,7 +1573,7 @@ begin
     'this.vC = -this.vA;',
     'this.vA = this.vA - this.vB;',
     'this.vB = this.vA;',
-    'if (this.vA < this.vB) this.vC = this.vA else this.vC = this.vB;'
+    'if (this.vA < this.vB){ this.vC = this.vA } else this.vC = this.vB;'
     ]));
 end;
 
@@ -1512,8 +1800,7 @@ begin
     '  this.FuncA(Bar);',
     '};',
     'this.FuncA = function (Bar) {',
-    '  if (Bar == 3) {',
-    '  };',
+    '  if (Bar == 3);',
     '};'
     ]),
     LinesToStr([
@@ -1549,8 +1836,7 @@ begin
     '    FuncB(i);',
     '  };',
     '  function FuncB(i) {',
-    '    if (i == 3) {',
-    '    };',
+    '    if (i == 3);',
     '  };',
     '  FuncC(4);',
     '};'
@@ -1614,12 +1900,9 @@ begin
      'this.i = 0;'
     ]),
     LinesToStr([
-    'if (this.Func2()) {',
-    '};',
-    'if (this.i == this.Func1()) {',
-    '};',
-    'if (this.i == this.Func1()) {',
-    '};'
+    'if (this.Func2());',
+    'if (this.i == this.Func1());',
+    'if (this.i == this.Func1());'
     ]));
 end;
 
@@ -1745,7 +2028,47 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestProcedureAsm;
+procedure TTestModule.TestProcedureExternalOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'procedure Now; external name ''Date.now'';',
+    'procedure DoIt;'
+    ]),
+    'procedure doit; begin end;');
+
+  StartUnit(true);
+  Add('interface');
+  Add('uses unit2;');
+  Add('implementation');
+  Add('begin');
+  Add('  now;');
+  Add('  now();');
+  Add('  uNit2.now;');
+  Add('  uNit2.now();');
+  Add('  test1.now;');
+  Add('  test1.now();');
+  Add('  doit;');
+  Add('  uNit2.doit;');
+  Add('  test1.doit;');
+  ConvertUnit;
+  CheckSource('TestProcedureExternalOtherUnit',
+    LinesToStr([
+    '']),
+    LinesToStr([
+    'Date.now();',
+    'Date.now();',
+    'Date.now();',
+    'Date.now();',
+    'Date.now();',
+    'Date.now();',
+    'pas.unit2.DoIt();',
+    'pas.unit2.DoIt();',
+    'pas.unit2.DoIt();'
+    ]));
+end;
+
+procedure TTestModule.TestProcedure_Asm;
 begin
   StartProgram(false);
   Add('function DoIt: longint;');
@@ -2062,6 +2385,7 @@ begin
   Add('procedure ProcA(i:longint); varargs; external name ''ProcA'';');
   Add('procedure ProcB; varargs; external name ''ProcB'';');
   Add('procedure ProcC(i: longint = 17); varargs; external name ''ProcC'';');
+  Add('function GetIt: longint; begin end;');
   Add('begin');
   Add('  ProcA(1);');
   Add('  ProcA(1,2);');
@@ -2078,9 +2402,16 @@ begin
   Add('  ProcC();');
   Add('  ProcC(4);');
   Add('  ProcC(5,''foo'');');
+  Add('  ProcB(GetIt);');
+  Add('  ProcB(GetIt());');
+  Add('  ProcB(GetIt,GetIt());');
   ConvertProgram;
   CheckSource('TestProc_Varargs',
     LinesToStr([ // statements
+    'this.GetIt = function () {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
     '']),
     LinesToStr([
     'ProcA(1);',
@@ -2098,6 +2429,9 @@ begin
     'ProcC(17);',
     'ProcC(4);',
     'ProcC(5, "foo");',
+    'ProcB(this.GetIt());',
+    'ProcB(this.GetIt());',
+    'ProcB(this.GetIt(), this.GetIt());',
     '']));
 end;
 
@@ -2162,6 +2496,7 @@ begin
   Add('var');
   Add('  e: TMyEnum;');
   Add('  i: longint;');
+  Add('  s: string;');
   Add('begin');
   Add('  i:=ord(red);');
   Add('  i:=ord(green);');
@@ -2176,6 +2511,9 @@ begin
   Add('  e:=succ(e);');
   Add('  e:=tmyenum(1);');
   Add('  e:=tmyenum(i);');
+  Add('  s:=str(e);');
+  Add('  str(e,s)');
+  Add('  s:=str(e:3);');
   ConvertProgram;
   CheckSource('TestEnumNumber',
     LinesToStr([ // statements
@@ -2186,7 +2524,8 @@ begin
     '  Green:1',
     '  };',
     'this.e = 0;',
-    'this.i = 0;'
+    'this.i = 0;',
+    'this.s = "";'
     ]),
     LinesToStr([
     'this.i=this.TMyEnum.Red;',
@@ -2202,6 +2541,9 @@ begin
     'this.e=this.e+1;',
     'this.e=1;',
     'this.e=this.i;',
+    'this.s = this.TMyEnum[this.e];',
+    'this.s = this.TMyEnum[this.e];',
+    'this.s = rtl.spaceLeft(this.TMyEnum[this.e], 3);',
     '']));
 end;
 
@@ -2619,6 +2961,23 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestNestBegin;
+begin
+  StartProgram(false);
+  Add('begin');
+  Add('  begin');
+  Add('    begin');
+  Add('    end;');
+  Add('    begin');
+  Add('      if true then ;');
+  Add('    end;');
+  Add('  end;');
+  ConvertProgram;
+  CheckSource('TestNestBegin',
+    '',
+    'if (true) ;');
+end;
+
 procedure TTestModule.TestUnitImplVars;
 begin
   StartUnit(false);
@@ -2772,6 +3131,48 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestVarExternalOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'var NaN: double; external name ''Global.NaN'';',
+    'var iV: longint;'
+    ]),
+    '');
+
+  StartUnit(true);
+  Add('interface');
+  Add('uses unit2;');
+  Add('implementation');
+  Add('var');
+  Add('  d: double;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  d:=nan;');
+  Add('  d:=uNit2.nan;');
+  Add('  d:=test1.nan;');
+  Add('  i:=iv;');
+  Add('  i:=uNit2.iv;');
+  Add('  i:=test1.iv;');
+  ConvertUnit;
+  CheckSource('TestVarExternalOtherUnit',
+    LinesToStr([
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;',
+    '$impl.d = 0.0;',
+    '$impl.i = 0;',
+    '']),
+    LinesToStr([
+    '$impl.d = Global.NaN;',
+    '$impl.d = Global.NaN;',
+    '$impl.d = Global.NaN;',
+    '$impl.i = pas.unit2.iV;',
+    '$impl.i = pas.unit2.iV;',
+    '$impl.i = pas.unit2.iV;',
+    '']));
+end;
+
 procedure TTestModule.TestCharConst;
 begin
   StartProgram(false);
@@ -2853,6 +3254,44 @@ begin
     'this.b = "C" < this.c;',
     'this.b = this.c <= "D";',
     'this.b = "E" <= this.c;',
+    '']));
+end;
+
+procedure TTestModule.TestChar_Ord;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  c: char;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  i:=ord(c);');
+  ConvertProgram;
+  CheckSource('TestChar_Ord',
+    LinesToStr([
+    'this.c = "";',
+    'this.i = 0;'
+    ]),
+    LinesToStr([
+    'this.i = this.c.charCodeAt();',
+    '']));
+end;
+
+procedure TTestModule.TestChar_Chr;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  c: char;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  c:=chr(i);');
+  ConvertProgram;
+  CheckSource('TestChar_Chr',
+    LinesToStr([
+    'this.c = "";',
+    'this.i = 0;'
+    ]),
+    LinesToStr([
+    'this.c = String.fromCharCode(this.i);',
     '']));
 end;
 
@@ -2991,6 +3430,91 @@ begin
     'this.b = this.c <= this.s.charAt(1 - 1);',
     'this.s = rtl.setCharAt(this.s, 1, this.c);',
     '']));
+end;
+
+procedure TTestModule.TestStr;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  b: boolean;');
+  Add('  i: longint;');
+  Add('  d: double;');
+  Add('  s: string;');
+  Add('begin');
+  Add('  str(b,s);');
+  Add('  str(i,s);');
+  Add('  str(d,s);');
+  Add('  str(i:3,s);');
+  Add('  str(d:3:2,s);');
+  Add('  s:=str(b);');
+  Add('  s:=str(i);');
+  Add('  s:=str(d);');
+  Add('  s:=str(i,i);');
+  Add('  s:=str(i:3);');
+  Add('  s:=str(d:3:2);');
+  Add('  s:=str(i:4,i);');
+  Add('  s:=str(i,i:5);');
+  Add('  s:=str(i:4,i:5);');
+  Add('  s:=str(s,s);');
+  Add('  s:=str(s,''foo'');');
+  ConvertProgram;
+  CheckSource('TestStr',
+    LinesToStr([ // statements
+    'this.b = false;',
+    'this.i = 0;',
+    'this.d = 0.0;',
+    'this.s = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.s = ""+this.b;',
+    'this.s = ""+this.i;',
+    'this.s = ""+this.d;',
+    'this.s = rtl.spaceLeft(""+this.i,3);',
+    'this.s = rtl.spaceLeft(this.d.toFixed(2),3);',
+    'this.s = ""+this.b;',
+    'this.s = ""+this.i;',
+    'this.s = ""+this.d;',
+    'this.s = (""+this.i)+this.i;',
+    'this.s = rtl.spaceLeft(""+this.i,3);',
+    'this.s = rtl.spaceLeft(this.d.toFixed(2),3);',
+    'this.s = rtl.spaceLeft("" + this.i, 4) + this.i;',
+    'this.s = ("" + this.i) + rtl.spaceLeft("" + this.i, 5);',
+    'this.s = rtl.spaceLeft("" + this.i, 4) + rtl.spaceLeft("" + this.i, 5);',
+    'this.s = this.s + this.s;',
+    'this.s = this.s + "foo";',
+    '']));
+end;
+
+procedure TTestModule.TestBaseType_AnsiStringFail;
+begin
+  StartProgram(false);
+  Add('var s: AnsiString');
+  SetExpectedPasResolverError('identifier not found "AnsiString"',nIdentifierNotFound);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestBaseType_UnicodeStringFail;
+begin
+  StartProgram(false);
+  Add('var s: UnicodeString');
+  SetExpectedPasResolverError('identifier not found "UnicodeString"',nIdentifierNotFound);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestBaseType_ShortStringFail;
+begin
+  StartProgram(false);
+  Add('var s: ShortString');
+  SetExpectedPasResolverError('identifier not found "ShortString"',nIdentifierNotFound);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestBaseType_RawByteStringFail;
+begin
+  StartProgram(false);
+  Add('var s: RawByteString');
+  SetExpectedPasResolverError('identifier not found "RawByteString"',nIdentifierNotFound);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestProcTwoArgs;
@@ -3180,7 +3704,7 @@ begin
     '  var $loopend1 = 2;',
     '  for (this.vI = 1; this.vI <= $loopend1; this.vI++);',
     '  if(this.vI>$loopend1)this.vI--;',
-    '  if (this.vI==3){} ;'
+    '  if (this.vI==3) ;'
     ]));
 end;
 
@@ -3279,12 +3803,50 @@ begin
     LinesToStr([ // this.$main
     'this.vI = 1;',
     'if (vI==1) {',
-    'vI=2;',
+    '  vI=2;',
     '}',
     'if (vI==2){ vI=3; }',
     ';',
     'this.vI = 4;'
     ]));
+end;
+
+procedure TTestModule.TestAsmPas_Impl;
+begin
+  StartUnit(false);
+  Add('interface');
+  Add('const cIntf: longint = 1;');
+  Add('var vIntf: longint;');
+  Add('implementation');
+  Add('const cImpl: longint = 2;');
+  Add('var vImpl: longint;');
+  Add('procedure DoIt;');
+  Add('const cLoc: longint = 3;');
+  Add('var vLoc: longint;');
+  Add('begin;');
+  Add('  asm');
+  //Add('    pas(vIntf)=pas(cIntf);');
+  //Add('    pas(vImpl)=pas(cImpl);');
+  //Add('    pas(vLoc)=pas(cLoc);');
+  Add('  end;');
+  Add('end;');
+  ConvertUnit;
+  // ToDo: check use analyzer
+  CheckSource('TestAsmPas_Impl',
+    LinesToStr([
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;',
+    'this.cIntf = 1;',
+    'this.vIntf = 0;',
+    'var cLoc = 3;',
+    '$impl.cImpl = 2;',
+    '$impl.vImpl = 0;',
+    '$impl.DoIt = function () {',
+    '  var vLoc = 0;',
+    '};',
+    '']),
+    '');
 end;
 
 procedure TTestModule.TestTryFinally;
@@ -3342,6 +3904,11 @@ begin
   Add('    else');
   Add('      vi:=5');
   Add('  end;');
+  Add('  try');
+  Add('    VI:=6;');
+  Add('  except');
+  Add('    on einvalidcast do ;');
+  Add('  end;');
   ConvertProgram;
   CheckSource('TestTryExcept',
     LinesToStr([ // statements
@@ -3369,21 +3936,28 @@ begin
     '};',
     'try {',
     '  this.vI = 3;',
-    '} catch ('+DefaultJSExceptionObject+') {',
-    '  throw '+DefaultJSExceptionObject+';',
+    '} catch ($e) {',
+    '  throw $e;',
     '};',
     'try {',
     '  this.vI = 4;',
-    '} catch ('+DefaultJSExceptionObject+') {',
-    '  if (this.EInvalidCast.isPrototypeOf('+DefaultJSExceptionObject+')) throw '+DefaultJSExceptionObject,
-    '  else if (this.Exception.isPrototypeOf('+DefaultJSExceptionObject+')) {',
-    '    var E = '+DefaultJSExceptionObject+';',
+    '} catch ($e) {',
+    '  if (this.EInvalidCast.isPrototypeOf($e)){',
+    '    throw $e',
+    '  } else if (this.Exception.isPrototypeOf($e)) {',
+    '    var E = $e;',
     '    if (E.Msg == "") throw E;',
     '  } else {',
     '    this.vI = 5;',
     '  }',
-    '};'
-    ]));
+    '};',
+    'try {',
+    '  this.vI = 6;',
+    '} catch ($e) {',
+    '  if (this.EInvalidCast.isPrototypeOf($e)){' ,
+    '  } else throw $e',
+    '};',
+    '']));
 end;
 
 procedure TTestModule.TestCaseOf;
@@ -3404,7 +3978,7 @@ begin
     ]),
     LinesToStr([ // this.$main
     'var $tmp1 = this.vI;',
-    'if ($tmp1 == 1) {} else if ($tmp1 == 2) this.vI = 3 else {',
+    'if ($tmp1 == 1) {} else if ($tmp1 == 2){ this.vI = 3 }else {',
     '  this.vI = 4;',
     '};'
     ]));
@@ -3504,8 +4078,11 @@ begin
     ]),
     LinesToStr([ // this.$main
     'var $tmp1 = this.vI;',
-    'if (($tmp1 >= 1) && ($tmp1 <= 3)) this.vI = 14 else if (($tmp1 == 4) || ($tmp1 == 5)) this.vI = 16 else if ((($tmp1 >= 6) && ($tmp1 <= 7)) || (($tmp1 >= 9) && ($tmp1 <= 10))) {} else {',
-    '};'
+    'if (($tmp1 >= 1) && ($tmp1 <= 3)){',
+    '  this.vI = 14',
+    '} else if (($tmp1 == 4) || ($tmp1 == 5)){',
+    '  this.vI = 16',
+    '} else if ((($tmp1 >= 6) && ($tmp1 <= 7)) || (($tmp1 >= 9) && ($tmp1 <= 10))) ;'
     ]));
 end;
 
@@ -3517,6 +4094,7 @@ begin
   Add('var');
   Add('  Arr: TArrayInt;');
   Add('  i: longint;');
+  Add('  b: boolean;');
   Add('begin');
   Add('  SetLength(arr,3);');
   Add('  arr[0]:=4;');
@@ -3525,20 +4103,23 @@ begin
   Add('  arr[arr[i]]:=arr[6];');
   Add('  i:=low(arr);');
   Add('  i:=high(arr);');
+  Add('  b:=Assigned(arr);');
   ConvertProgram;
   CheckSource('TestArray_Dynamic',
     LinesToStr([ // statements
     'this.Arr = [];',
-    'this.i = 0;'
+    'this.i = 0;',
+    'this.b = false;'
     ]),
     LinesToStr([ // this.$main
     'this.Arr = rtl.arraySetLength(this.Arr,3,0);',
     'this.Arr[0] = 4;',
-    'this.Arr[1] = this.Arr.length + this.Arr[0];',
+    'this.Arr[1] = rtl.length(this.Arr) + this.Arr[0];',
     'this.Arr[this.i] = 5;',
     'this.Arr[this.Arr[this.i]] = this.Arr[6];',
     'this.i = 0;',
-    'this.i = this.Arr.length - 1;',
+    'this.i = rtl.length(this.Arr) - 1;',
+    'this.b = rtl.length(this.Arr) > 0;',
     '']));
 end;
 
@@ -3554,6 +4135,8 @@ begin
   Add('  arr:=nil;');
   Add('  if arr=nil then;');
   Add('  if nil=arr then;');
+  Add('  if arr<>nil then;');
+  Add('  if nil<>arr then;');
   Add('  DoIt(nil,nil);');
   ConvertProgram;
   CheckSource('TestArray_Dynamic',
@@ -3564,8 +4147,10 @@ begin
     ]),
     LinesToStr([ // this.$main
     'this.Arr = [];',
-    'if (this.Arr.length == 0) {};',
-    'if (0 == this.Arr.length) {};',
+    'if (rtl.length(this.Arr) == 0) ;',
+    'if (rtl.length(this.Arr) == 0) ;',
+    'if (rtl.length(this.Arr) > 0) ;',
+    'if (rtl.length(this.Arr) > 0) ;',
     'this.DoIt([],[]);',
     '']));
 end;
@@ -3604,12 +4189,12 @@ begin
     ]),
     LinesToStr([ // this.$main
     'this.Arr2 = [];',
-    'if (this.Arr2.length == 0) {};',
-    'if (0 == this.Arr2.length) {};',
+    'if (rtl.length(this.Arr2) == 0) ;',
+    'if (rtl.length(this.Arr2) == 0) ;',
     'this.i = 0;',
     'this.i = 0;',
-    'this.i = this.Arr2.length-1;',
-    'this.i = this.Arr2[2].length-1;',
+    'this.i = rtl.length(this.Arr2) - 1;',
+    'this.i = rtl.length(this.Arr2[2]) - 1;',
     'this.Arr2[3] = this.Arr;',
     'this.Arr2[4][5] = this.i;',
     'this.i = this.Arr2[6][7];',
@@ -3661,12 +4246,12 @@ begin
     LinesToStr([ // this.$main
     'this.Arr = rtl.arraySetLength(this.Arr,3, this.TRec);',
     'this.Arr[0].Int = 4;',
-    'this.Arr[1].Int = this.Arr.length+this.Arr[2].Int;',
+    'this.Arr[1].Int = rtl.length(this.Arr)+this.Arr[2].Int;',
     'this.Arr[this.Arr[this.i].Int].Int = this.Arr[5].Int;',
     'this.Arr[7] = new this.TRec(this.r);',
     'this.r = new this.TRec(this.Arr[8]);',
     'this.i = 0;',
-    'this.i = this.Arr.length-1;',
+    'this.i = rtl.length(this.Arr)-1;',
     '']));
 end;
 
@@ -3912,6 +4497,302 @@ begin
     '']),
     LinesToStr([
     'this.Obj.SetColors(rtl.arraySetLength(this.Obj.GetColors(), 2, 0));',
+    '']));
+end;
+
+procedure TTestModule.TestArray_OpenArrayOfString;
+begin
+  StartProgram(false);
+  Add('procedure DoIt(const a: array of String);');
+  Add('var');
+  Add('  i: longint;');
+  Add('  s: string;');
+  Add('begin');
+  Add('  for i:=low(a) to high(a) do s:=a[length(a)-i-1];');
+  Add('end;');
+  Add('var s: string;');
+  Add('begin');
+  Add('  DoIt([]);');
+  Add('  DoIt([s,''foo'','''',s+s]);');
+  ConvertProgram;
+  CheckSource('TestArray_OpenArrayOfString',
+    LinesToStr([ // statements
+    'this.DoIt = function (a) {',
+    '  var i = 0;',
+    '  var s = "";',
+    '  var $loopend1 = rtl.length(a) - 1;',
+    '  for (i = 0; i <= $loopend1; i++) s = a[(rtl.length(a) - i) - 1];',
+    '};',
+    'this.s = "";',
+    '']),
+    LinesToStr([
+    'this.DoIt([]);',
+    'this.DoIt([this.s, "foo", "", this.s + this.s]);',
+    '']));
+end;
+
+procedure TTestModule.TestArray_Concat;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TFlag = (big,small);');
+  Add('  TFlags = set of TFlag;');
+  Add('  TRec = record');
+  Add('    i: integer;');
+  Add('  end;');
+  Add('  TArrInt = array of integer;');
+  Add('  TArrRec = array of TRec;');
+  Add('  TArrSet = array of TFlags;');
+  Add('  TArrJSValue = array of jsvalue;');
+  Add('var');
+  Add('  ArrInt: tarrint;');
+  Add('  ArrRec: tarrrec;');
+  Add('  ArrSet: tarrset;');
+  Add('  ArrJSValue: tarrjsvalue;');
+  Add('begin');
+  Add('  arrint:=concat(arrint);');
+  Add('  arrint:=concat(arrint,arrint);');
+  Add('  arrint:=concat(arrint,arrint,arrint);');
+  Add('  arrrec:=concat(arrrec);');
+  Add('  arrrec:=concat(arrrec,arrrec);');
+  Add('  arrrec:=concat(arrrec,arrrec,arrrec);');
+  Add('  arrset:=concat(arrset);');
+  Add('  arrset:=concat(arrset,arrset);');
+  Add('  arrset:=concat(arrset,arrset,arrset);');
+  Add('  arrjsvalue:=concat(arrjsvalue);');
+  Add('  arrjsvalue:=concat(arrjsvalue,arrjsvalue);');
+  Add('  arrjsvalue:=concat(arrjsvalue,arrjsvalue,arrjsvalue);');
+  ConvertProgram;
+  CheckSource('TestArray_Concat',
+    LinesToStr([ // statements
+    'this.TFlag = {',
+    '  "0": "big",',
+    '  big: 0,',
+    '  "1": "small",',
+    '  small: 1',
+    '};',
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
+    '  };',
+    '};',
+    'this.ArrInt = [];',
+    'this.ArrRec = [];',
+    'this.ArrSet = [];',
+    'this.ArrJSValue = [];',
+    '']),
+    LinesToStr([ // this.$main
+    'this.ArrInt = this.ArrInt;',
+    'this.ArrInt = this.ArrInt.concat(this.ArrInt);',
+    'this.ArrInt = this.ArrInt.concat(this.ArrInt,this.ArrInt);',
+    'this.ArrRec = this.ArrRec;',
+    'this.ArrRec = rtl.arrayConcat(this.TRec, this.ArrRec);',
+    'this.ArrRec = rtl.arrayConcat(this.TRec, this.ArrRec, this.ArrRec);',
+    'this.ArrSet = this.ArrSet;',
+    'this.ArrSet = rtl.arrayConcat("refSet", this.ArrSet);',
+    'this.ArrSet = rtl.arrayConcat("refSet", this.ArrSet, this.ArrSet);',
+    'this.ArrJSValue = this.ArrJSValue;',
+    'this.ArrJSValue = this.ArrJSValue.concat(this.ArrJSValue);',
+    'this.ArrJSValue = this.ArrJSValue.concat(this.ArrJSValue, this.ArrJSValue);',
+    '']));
+end;
+
+procedure TTestModule.TestArray_Copy;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TFlag = (big,small);');
+  Add('  TFlags = set of TFlag;');
+  Add('  TRec = record');
+  Add('    i: integer;');
+  Add('  end;');
+  Add('  TArrInt = array of integer;');
+  Add('  TArrRec = array of TRec;');
+  Add('  TArrSet = array of TFlags;');
+  Add('  TArrJSValue = array of jsvalue;');
+  Add('var');
+  Add('  ArrInt: tarrint;');
+  Add('  ArrRec: tarrrec;');
+  Add('  ArrSet: tarrset;');
+  Add('  ArrJSValue: tarrjsvalue;');
+  Add('begin');
+  Add('  arrint:=copy(arrint);');
+  Add('  arrint:=copy(arrint,2);');
+  Add('  arrint:=copy(arrint,3,4);');
+  Add('  arrrec:=copy(arrrec);');
+  Add('  arrrec:=copy(arrrec,5);');
+  Add('  arrrec:=copy(arrrec,6,7);');
+  Add('  arrset:=copy(arrset);');
+  Add('  arrset:=copy(arrset,8);');
+  Add('  arrset:=copy(arrset,9,10);');
+  Add('  arrjsvalue:=copy(arrjsvalue);');
+  Add('  arrjsvalue:=copy(arrjsvalue,11);');
+  Add('  arrjsvalue:=copy(arrjsvalue,12,13);');
+  ConvertProgram;
+  CheckSource('TestArray_Copy',
+    LinesToStr([ // statements
+    'this.TFlag = {',
+    '  "0": "big",',
+    '  big: 0,',
+    '  "1": "small",',
+    '  small: 1',
+    '};',
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
+    '  };',
+    '};',
+    'this.ArrInt = [];',
+    'this.ArrRec = [];',
+    'this.ArrSet = [];',
+    'this.ArrJSValue = [];',
+    '']),
+    LinesToStr([ // this.$main
+    'this.ArrInt = rtl.arrayCopy(0, this.ArrInt, 0);',
+    'this.ArrInt = rtl.arrayCopy(0, this.ArrInt, 2);',
+    'this.ArrInt = rtl.arrayCopy(0, this.ArrInt, 3, 4);',
+    'this.ArrRec = rtl.arrayCopy(this.TRec, this.ArrRec, 0);',
+    'this.ArrRec = rtl.arrayCopy(this.TRec, this.ArrRec, 5);',
+    'this.ArrRec = rtl.arrayCopy(this.TRec, this.ArrRec, 6, 7);',
+    'this.ArrSet = rtl.arrayCopy("refSet", this.ArrSet, 0);',
+    'this.ArrSet = rtl.arrayCopy("refSet", this.ArrSet, 8);',
+    'this.ArrSet = rtl.arrayCopy("refSet", this.ArrSet, 9, 10);',
+    'this.ArrJSValue = rtl.arrayCopy(0, this.ArrJSValue, 0);',
+    'this.ArrJSValue = rtl.arrayCopy(0, this.ArrJSValue, 11);',
+    'this.ArrJSValue = rtl.arrayCopy(0, this.ArrJSValue, 12, 13);',
+    '']));
+end;
+
+procedure TTestModule.TestArray_InsertDelete;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TFlag = (big,small);');
+  Add('  TFlags = set of TFlag;');
+  Add('  TRec = record');
+  Add('    i: integer;');
+  Add('  end;');
+  Add('  TArrInt = array of integer;');
+  Add('  TArrRec = array of TRec;');
+  Add('  TArrSet = array of TFlags;');
+  Add('  TArrJSValue = array of jsvalue;');
+  Add('var');
+  Add('  ArrInt: tarrint;');
+  Add('  ArrRec: tarrrec;');
+  Add('  ArrSet: tarrset;');
+  Add('  ArrJSValue: tarrjsvalue;');
+  Add('begin');
+  Add('  Insert(1,arrint,2);');
+  Add('  Insert(arrint[3],arrint,4);');
+  Add('  Insert(arrrec[5],arrrec,6);');
+  Add('  Insert(arrset[7],arrset,7);');
+  Add('  Insert(arrjsvalue[8],arrjsvalue,9);');
+  Add('  Insert(10,arrjsvalue,11);');
+  Add('  Delete(arrint,12,13);');
+  Add('  Delete(arrrec,14,15);');
+  Add('  Delete(arrset,17,18);');
+  Add('  Delete(arrjsvalue,19,10);');
+  ConvertProgram;
+  CheckSource('TestArray_InsertDelete',
+    LinesToStr([ // statements
+    'this.TFlag = {',
+    '  "0": "big",',
+    '  big: 0,',
+    '  "1": "small",',
+    '  small: 1',
+    '};',
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
+    '  };',
+    '};',
+    'this.ArrInt = [];',
+    'this.ArrRec = [];',
+    'this.ArrSet = [];',
+    'this.ArrJSValue = [];',
+    '']),
+    LinesToStr([ // this.$main
+    'this.ArrInt.splice(2, 1, 1);',
+    'this.ArrInt.splice(4, 1, this.ArrInt[3]);',
+    'this.ArrRec.splice(6, 1, this.ArrRec[5]);',
+    'this.ArrSet.splice(7, 1, this.ArrSet[7]);',
+    'this.ArrJSValue.splice(9, 1, this.ArrJSValue[8]);',
+    'this.ArrJSValue.splice(11, 1, 10);',
+    'this.ArrInt.splice(12, 13);',
+    'this.ArrRec.splice(14, 15);',
+    'this.ArrSet.splice(17, 18);',
+    'this.ArrJSValue.splice(19, 10);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_TypeCastArrayToExternalArray;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array''');
+  Add('    class function isArray(Value: JSValue) : boolean;');
+  Add('    function concat() : TJSArray; varargs;');
+  Add('  end;');
+  Add('var');
+  Add('  aObj: TJSArray;');
+  Add('  a: array of longint;');
+  Add('begin');
+  Add('  if TJSArray.isArray(65) then ;');
+  Add('  aObj:=TJSArray(a).concat(a);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastArrayToExternalArray',
+    LinesToStr([ // statements
+    'this.aObj = null;',
+    'this.a = [];',
+    '']),
+    LinesToStr([ // this.$main
+    'if (Array.isArray(65)) ;',
+    'this.aObj = this.a.concat(this.a);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_TypeCastArrayFromExternalArray;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TArrStr = array of string;');
+  Add('  TJSArray = class external name ''Array''');
+  Add('  end;');
+  Add('var');
+  Add('  aObj: TJSArray;');
+  Add('  a: TArrStr;');
+  Add('begin');
+  Add('  a:=TArrStr(aObj);');
+  Add('  TArrStr(aObj)[1]:=TArrStr(aObj)[2];');
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastArrayFromExternalArray',
+    LinesToStr([ // statements
+    'this.aObj = null;',
+    'this.a = [];',
+    '']),
+    LinesToStr([ // this.$main
+    'this.a = this.aObj;',
+    'this.aObj[1] = this.aObj[2];',
     '']));
 end;
 
@@ -4625,8 +5506,7 @@ begin
     'this.oO = this.TObject.$create("Create");',
     'this.oA = this.TClassA.$create("Create");',
     'this.oB = this.TClassB.$create("Create");',
-    'if (this.TClassA.isPrototypeOf(this.oO)) {',
-    '};',
+    'if (this.TClassA.isPrototypeOf(this.oO));',
     'this.oB = rtl.as(this.oO, this.TClassB);',
     'rtl.as(this.oO, this.TClassB).ProcB();'
     ]));
@@ -4955,7 +5835,7 @@ begin
     LinesToStr([ // this.$main
     'this.Obj = this.TObject.$create("Create");',
     'this.TObject.vI = 3;',
-    'if (this.TObject.vI == 4){};',
+    'if (this.TObject.vI == 4);',
     'this.TObject.Sub=null;',
     'this.Obj.$class.Sub=null;',
     'this.Obj.Sub.$class.Sub=null;',
@@ -5115,8 +5995,7 @@ begin
     ]),
     LinesToStr([ // this.$main
     'this.Obj.Fy = this.Obj.Fx + 1;',
-    'if (this.Obj.GetInt() == 2) {',
-    '};',
+    'if (this.Obj.GetInt() == 2);',
     'this.Obj.SetInt(this.Obj.GetInt() + 2);',
     'this.Obj.SetInt(this.Obj.Fx);'
     ]));
@@ -5187,13 +6066,11 @@ begin
     ]),
     LinesToStr([ // this.$main
     'this.TObject.Fy = this.TObject.Fx + 1;',
-    'if (this.TObject.GetInt() == 2) {',
-    '};',
+    'if (this.TObject.GetInt() == 2);',
     'this.TObject.SetInt(this.TObject.GetInt() + 2);',
     'this.TObject.SetInt(this.TObject.Fx);',
     'this.Obj.$class.Fy = this.Obj.Fx + 1;',
-    'if (this.Obj.$class.GetInt() == 2) {',
-    '};',
+    'if (this.Obj.$class.GetInt() == 2);',
     'this.Obj.$class.SetInt(this.Obj.$class.GetInt() + 2);',
     'this.Obj.$class.SetInt(this.Obj.Fx);'
     ]));
@@ -5386,6 +6263,53 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestClass_PropertyOverride;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TObject = class');
+  Add('    FItem: integer;');
+  Add('    function GetItem: integer; external name ''GetItem'';');
+  Add('    procedure SetItem(Value: integer); external name ''SetItem'';');
+  Add('    property Item: integer read getitem write setitem;');
+  Add('  end;');
+  Add('  TCar = class');
+  Add('    FBag: integer;');
+  Add('    function GetBag: integer; external name ''GetBag'';');
+  Add('    property Item read getbag;');
+  Add('  end;');
+  Add('var');
+  Add('  Obj: tobject;');
+  Add('  Car: tcar;');
+  Add('begin');
+  Add('  Obj.Item:=Obj.Item;');
+  Add('  Car.Item:=Car.Item;');
+  ConvertProgram;
+  CheckSource('TestClass_PropertyOverride',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FItem = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TCar", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    pas.program.TObject.$init.call(this);',
+    '    this.FBag = 0;',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.Car = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Obj.SetItem(this.Obj.GetItem());',
+    'this.Car.SetItem(this.Car.GetBag());',
+    '']));
+end;
+
 procedure TTestModule.TestClass_Assigned;
 begin
   StartProgram(false);
@@ -5411,8 +6335,7 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([ // this.$main
-    'if (this.Obj != null) {',
-    '};',
+    'if (this.Obj != null);',
     'this.b = (this.Obj != null) || false;'
     ]));
 end;
@@ -5764,24 +6687,18 @@ begin
     'this.ProcA = function (A) {',
     '  A.set(null);',
     '  A.set(A.get());',
-    '  if (A.get() == null) {',
-    '  };',
-    '  if (null == A.get()) {',
-    '  };',
+    '  if (A.get() == null);',
+    '  if (null == A.get());',
     '};',
     'this.ProcB = function (A) {',
     '  A.set(null);',
     '  A.set(A.get());',
-    '  if (A.get() == null) {',
-    '  };',
-    '  if (null == A.get()) {',
-    '  };',
+    '  if (A.get() == null);',
+    '  if (null == A.get());',
     '};',
     'this.ProcC = function (A) {',
-    '  if (A == null) {',
-    '  };',
-    '  if (null == A) {',
-    '  };',
+    '  if (A == null);',
+    '  if (null == A);',
     '};',
     'this.o = null;',
     '']),
@@ -5847,10 +6764,12 @@ procedure TTestModule.TestClass_OverloadsAncestor;
 begin
   StartProgram(false);
   Add('type');
+  Add('  TObject = class;');
   Add('  TObject = class');
   Add('    procedure DoIt(vA: longint);');
   Add('    procedure DoIt(vA, vB: longint);');
   Add('  end;');
+  Add('  TCar = class;');
   Add('  TCar = class');
   Add('    procedure DoIt(vA: longint);');
   Add('    procedure DoIt(vA, vB: longint);');
@@ -6017,6 +6936,297 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestClass_RaiseDescendant;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    constructor Create(Msg: string);');
+  Add('  end;');
+  Add('  Exception = class');
+  Add('  end;');
+  Add('  EConvertError = class(Exception)');
+  Add('  end;');
+  Add('constructor TObject.Create(Msg: string); begin end;');
+  Add('begin');
+  Add('  raise Exception.Create(''Bar1'');');
+  Add('  raise EConvertError.Create(''Bar2'');');
+  ConvertProgram;
+  CheckSource('TestClass_RaiseDescendant',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function (Msg) {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "Exception", this.TObject, function () {',
+    '});',
+    'rtl.createClass(this, "EConvertError", this.Exception, function () {',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    'throw this.Exception.$create("Create",["Bar1"]);',
+    'throw this.EConvertError.$create("Create",["Bar2"]);',
+    '']));
+end;
+
+procedure TTestModule.TestClass_ExternalMethod;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  public',
+    '    procedure Intern; external name ''$DoIntern'';',
+    '  end;',
+    '']),
+    LinesToStr([
+    '']));
+
+  StartUnit(true);
+  Add('interface');
+  Add('uses unit2;');
+  Add('type');
+  Add('  TCar = class(TObject)');
+  Add('  public');
+  Add('    procedure Intern2; external name ''$DoIntern2'';');
+  Add('    procedure DoIt;');
+  Add('  end;');
+  Add('implementation');
+  Add('procedure tcar.doit;');
+  Add('begin');
+  Add('  Intern;');
+  Add('  Intern();');
+  Add('  Intern2;');
+  Add('  Intern2();');
+  Add('end;');
+  Add('var Obj: TCar;');
+  Add('begin');
+  Add('  obj.intern;');
+  Add('  obj.intern();');
+  Add('  obj.intern2;');
+  Add('  obj.intern2();');
+  Add('  obj.doit;');
+  Add('  obj.doit();');
+  Add('  with obj do begin');
+  Add('    Intern;');
+  Add('    Intern();');
+  Add('    Intern2;');
+  Add('    Intern2();');
+  Add('  end;');
+  ConvertUnit;
+  CheckSource('TestClass_ExternalMethod',
+    LinesToStr([
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;',
+    'rtl.createClass(this, "TCar", pas.unit2.TObject, function () {',
+    '    this.DoIt = function () {',
+    '      this.$DoIntern();',
+    '      this.$DoIntern();',
+    '      this.$DoIntern2();',
+    '      this.$DoIntern2();',
+    '    };',
+    '  });',
+    '$impl.Obj = null;',
+    '']),
+    LinesToStr([
+    '$impl.Obj.$DoIntern();',
+    '$impl.Obj.$DoIntern();',
+    '$impl.Obj.$DoIntern2();',
+    '$impl.Obj.$DoIntern2();',
+    '$impl.Obj.DoIt();',
+    '$impl.Obj.DoIt();',
+    'var $with1 = $impl.Obj;',
+    '$with1.$DoIntern();',
+    '$with1.$DoIntern();',
+    '$with1.$DoIntern2();',
+    '$with1.$DoIntern2();',
+    '']));
+end;
+
+procedure TTestModule.TestClass_ExternalVirtualNameMismatchFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure DoIt; virtual; external name ''Foo'';');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError('Virtual method name must match external',
+    nVirtualMethodNameMustMatchExternal);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClass_ExternalOverrideFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    procedure DoIt; virtual; external name ''DoIt'';');
+  Add('  end;');
+  Add('  TCar = class');
+  Add('    procedure DoIt; override; external name ''DoIt'';');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError('Invalid procedure modifier override,external',
+    nInvalidXModifierY);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClass_ExternalVar;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$modeswitch externalclass}',
+    'type',
+    '  TObject = class',
+    '  public',
+    '    Intern: longint external name ''$Intern'';',
+    '  end;',
+    '']),
+    LinesToStr([
+    '']));
+
+  StartUnit(true);
+  Add('interface');
+  Add('uses unit2;');
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TCar = class(tobject)');
+  Add('  public');
+  Add('    Intern2: longint external name ''$Intern2'';');
+  Add('    procedure DoIt;');
+  Add('  end;');
+  Add('implementation');
+  Add('procedure tcar.doit;');
+  Add('begin');
+  Add('  Intern:=Intern+1;');
+  Add('  Intern2:=Intern2+2;');
+  Add('end;');
+  Add('var Obj: TCar;');
+  Add('begin');
+  Add('  obj.intern:=obj.intern+1;');
+  Add('  obj.intern2:=obj.intern2+2;');
+  Add('  with obj do begin');
+  Add('    intern:=intern+1;');
+  Add('    intern2:=intern2+2;');
+  Add('  end;');
+  ConvertUnit;
+  CheckSource('TestClass_ExternalVar',
+    LinesToStr([
+    'var $impl = {',
+    '};',
+    'this.$impl = $impl;',
+    'rtl.createClass(this, "TCar", pas.unit2.TObject, function () {',
+    '    this.DoIt = function () {',
+    '      this.$Intern = this.$Intern + 1;',
+    '      this.$Intern2 = this.$Intern2 + 2;',
+    '    };',
+    '  });',
+    '$impl.Obj = null;',
+    '']),
+    LinesToStr([
+    '$impl.Obj.$Intern = $impl.Obj.$Intern + 1;',
+    '$impl.Obj.$Intern2 = $impl.Obj.$Intern2 + 2;',
+    'var $with1 = $impl.Obj;',
+    '$with1.$Intern = $with1.$Intern + 1;',
+    '$with1.$Intern2 = $with1.$Intern2 + 2;',
+    '']));
+end;
+
+procedure TTestModule.TestClass_Const;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TClass = class of TObject;');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    const cI: integer = 3;');
+  Add('    procedure DoIt;');
+  Add('    class procedure DoMore;');
+  Add('  end;');
+  Add('implementation');
+  Add('procedure tobject.doit;');
+  Add('begin');
+  Add('  if cI=4 then;');
+  Add('  if 5=cI then;');
+  Add('  if Self.cI=6 then;');
+  Add('  if 7=Self.cI then;');
+  Add('  with Self do begin');
+  Add('    if cI=11 then;');
+  Add('    if 12=cI then;');
+  Add('  end;');
+  Add('end;');
+  Add('class procedure tobject.domore;');
+  Add('begin');
+  Add('  if cI=8 then;');
+  Add('  if Self.cI=9 then;');
+  Add('  if 10=cI then;');
+  Add('  if 11=Self.cI then;');
+  Add('  with Self do begin');
+  Add('    if cI=13 then;');
+  Add('    if 14=cI then;');
+  Add('  end;');
+  Add('end;');
+  Add('var');
+  Add('  Obj: TObject;');
+  Add('  Cla: TClass;');
+  Add('begin');
+  Add('  if TObject.cI=21 then ;');
+  Add('  if Obj.cI=22 then ;');
+  Add('  if Cla.cI=23 then ;');
+  Add('  with obj do if ci=24 then;');
+  Add('  with TObject do if ci=25 then;');
+  Add('  with Cla do if ci=26 then;');
+  ConvertProgram;
+  CheckSource('TestClass_Const',
+    LinesToStr([
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.cI = 3;',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '    if (this.cI == 4) ;',
+    '    if (5 == this.cI) ;',
+    '    if (this.cI == 6) ;',
+    '    if (7 == this.cI) ;',
+    '    var $with1 = this;',
+    '    if ($with1.cI == 11) ;',
+    '    if (12 == $with1.cI) ;',
+    '  };',
+    '  this.DoMore = function () {',
+    '    if (this.cI == 8) ;',
+    '    if (this.cI == 9) ;',
+    '    if (10 == this.cI) ;',
+    '    if (11 == this.cI) ;',
+    '    var $with1 = this;',
+    '    if ($with1.cI == 13) ;',
+    '    if (14 == $with1.cI) ;',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.Cla = null;',
+    '']),
+    LinesToStr([
+    'if (this.TObject.cI == 21) ;',
+    'if (this.Obj.cI == 22) ;',
+    'if (this.Cla.cI == 23) ;',
+    'var $with1 = this.Obj;',
+    'if ($with1.cI == 24) ;',
+    'var $with2 = this.TObject;',
+    'if ($with2.cI == 25) ;',
+    'var $with3 = this.Cla;',
+    'if ($with3.cI == 26) ;',
+    '']));
+end;
+
 procedure TTestModule.TestClassOf_Create;
 begin
   StartProgram(false);
@@ -6118,6 +7328,44 @@ begin
     LinesToStr([ // this.$main
     'this.C = null;',
     'this.C = this.Obj.ClassType;',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_Is;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TClass = class of TObject;');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TCar = class');
+  Add('  end;');
+  Add('  TCars = class of TCar;');
+  Add('var');
+  Add('  Obj: tobject;');
+  Add('  C: tclass;');
+  Add('  Cars: tcars;');
+  Add('begin');
+  Add('  if c is tcar then ;');
+  Add('  if c is tcars then ;');
+  ConvertProgram;
+  CheckSource('TestClassOf_Is',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TCar", this.TObject, function () {',
+    '});',
+    'this.Obj = null;',
+    'this.C = null;',
+    'this.Cars = null;'
+    ]),
+    LinesToStr([ // this.$main
+    'if(rtl.is(this.C,this.TCar));',
+    'if(rtl.is(this.C,this.TCar));',
     '']));
 end;
 
@@ -6254,13 +7502,13 @@ begin
   Add('  TObject = class');
   Add('    class var FA: longint;');
   Add('    class function GetA: longint;');
-  Add('    class procedure SetA(Value: longint): longint;');
+  Add('    class procedure SetA(Value: longint);');
   Add('    class property pA: longint read fa write fa;');
   Add('    class property pB: longint read geta write seta;');
   Add('  end;');
   Add('  TObjectClass = class of tobject;');
   Add('class function tobject.geta: longint; begin end;');
-  Add('class procedure tobject.seta(value: longint): longint; begin end;');
+  Add('class procedure tobject.seta(value: longint); begin end;');
   Add('var');
   Add('  b: boolean;');
   Add('  Obj: tobject;');
@@ -6447,6 +7695,1267 @@ begin
     'this.CarC.DoIt();',
     'this.CarC.DoIt$1();',
     'this.CarC.DoIt$2();',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_ImplicitFunctionCall;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('    function CurNow: longint; ');
+  Add('    class function Now: longint; ');
+  Add('  end;');
+  Add('function TObject.CurNow: longint; begin end;');
+  Add('class function TObject.Now: longint; begin end;');
+  Add('var');
+  Add('  Obj: tobject;');
+  Add('  vI: longint;');
+  Add('begin');
+  Add('  obj.curnow;');
+  Add('  vi:=obj.curnow;');
+  Add('  tobject.now;');
+  Add('  vi:=tobject.now;');
+  ConvertProgram;
+  CheckSource('TestClassOf_ImplicitFunctionCall',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.CurNow = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.Now = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.vI = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Obj.CurNow();',
+    'this.vI = this.Obj.CurNow();',
+    'this.TObject.Now();',
+    'this.vI = this.TObject.Now();',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_Var;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtObj''');
+  Add('    Id: longint external name ''$Id'';');
+  Add('    B: longint;');
+  Add('  end;');
+  Add('var Obj: TExtA;');
+  Add('begin');
+  Add('  obj.id:=obj.id+1;');
+  Add('  obj.B:=obj.B+1;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_Var',
+    LinesToStr([ // statements
+    'this.Obj = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Obj.$Id = this.Obj.$Id + 1;',
+    'this.Obj.B = this.Obj.B + 1;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_DuplicateVarFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    Id: longint external name ''$Id'';');
+  Add('  end;');
+  Add('  TExtB = class external ''lib'' name ''ExtB''(TExtA)');
+  Add('    Id: longint;');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError('Duplicate identifier "Id" at test1.pp(6,6)',nDuplicateIdentifier);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_Method;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtObj''');
+  Add('    procedure DoIt(Id: longint = 1); external name ''$Execute'';');
+  Add('    procedure DoSome(Id: longint = 1);');
+  Add('  end;');
+  Add('var Obj: texta;');
+  Add('begin');
+  Add('  obj.doit;');
+  Add('  obj.doit();');
+  Add('  obj.doit(2);');
+  Add('  with obj do begin');
+  Add('    doit;');
+  Add('    doit();');
+  Add('    doit(3);');
+  Add('  end;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_Method',
+    LinesToStr([ // statements
+    'this.Obj = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Obj.$Execute(1);',
+    'this.Obj.$Execute(1);',
+    'this.Obj.$Execute(2);',
+    'var $with1 = this.Obj;',
+    '$with1.$Execute(1);',
+    '$with1.$Execute(1);',
+    '$with1.$Execute(3);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_NonExternalOverride;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtObjA''');
+  Add('    procedure ProcA; virtual;');
+  Add('    procedure ProcB; virtual;');
+  Add('  end;');
+  Add('  TExtB = class external name ''ExtObjB'' (TExtA)');
+  Add('  end;');
+  Add('  TExtC = class (TExtB)');
+  Add('    procedure ProcA; override;');
+  Add('  end;');
+  Add('procedure TExtC.ProcA;');
+  Add('begin');
+  Add('  ProcA;');
+  Add('  Self.ProcA;');
+  Add('  ProcB;');
+  Add('  Self.ProcB;');
+  Add('end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('  B: textb;');
+  Add('  C: textc;');
+  Add('begin');
+  Add('  a.proca;');
+  Add('  b.proca;');
+  Add('  c.proca;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_NonExternalOverride',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtC", ExtObjB, "", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.ProcA = function () {',
+    '    this.ProcA();',
+    '    this.ProcA();',
+    '    this.ProcB();',
+    '    this.ProcB();',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.B = null;',
+    'this.C = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A.ProcA();',
+    'this.B.ProcA();',
+    'this.C.ProcA();',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_Property;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    function getYear: longint;');
+  Add('    procedure setYear(Value: longint);');
+  Add('    property Year: longint read getyear write setyear;');
+  Add('  end;');
+  Add('  TExtB = class (TExtA)');
+  Add('    procedure OtherSetYear(Value: longint);');
+  Add('    property year write othersetyear;');
+  Add('  end;');
+  Add('procedure textb.othersetyear(value: longint);');
+  Add('begin');
+  Add('  setYear(Value+4);');
+  Add('end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('  B: textb;');
+  Add('begin');
+  Add('  a.year:=a.year+1;');
+  Add('  b.year:=b.year+2;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_NonExternalOverride',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtB", ExtA, "", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.OtherSetYear = function (Value) {',
+    '    this.setYear(Value+4);',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.B = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A.setYear(this.A.getYear()+1);',
+    'this.B.OtherSetYear(this.B.getYear()+2);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ClassProperty;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    class function getYear: longint;');
+  Add('    class procedure setYear(Value: longint);');
+  Add('    class property Year: longint read getyear write setyear;');
+  Add('  end;');
+  Add('  TExtB = class (TExtA)');
+  Add('    class function GetCentury: longint;');
+  Add('    class procedure SetCentury(Value: longint);');
+  Add('    class property Century: longint read getcentury write setcentury;');
+  Add('  end;');
+  Add('class function textb.getcentury: longint;');
+  Add('begin');
+  Add('end;');
+  Add('class procedure textb.setcentury(value: longint);');
+  Add('begin');
+  Add('  setyear(value+11);');
+  Add('  texta.year:=texta.year+12;');
+  Add('  year:=year+13;');
+  Add('  textb.century:=textb.century+14;');
+  Add('  century:=century+15;');
+  Add('end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('  B: textb;');
+  Add('begin');
+  Add('  texta.year:=texta.year+1;');
+  Add('  textb.year:=textb.year+2;');
+  Add('  TextA.year:=TextA.year+3;');
+  Add('  b.year:=b.year+4;');
+  Add('  textb.century:=textb.century+5;');
+  Add('  b.century:=b.century+6;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ClassProperty',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtB", ExtA, "", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetCentury = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.SetCentury = function (Value) {',
+    '    this.setYear(Value + 11);',
+    '    ExtA.setYear(ExtA.getYear() + 12);',
+    '    this.setYear(this.getYear() + 13);',
+    '    pas.program.TExtB.SetCentury(pas.program.TExtB.GetCentury() + 14);',
+    '    this.SetCentury(this.GetCentury() + 15);',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.B = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'ExtA.setYear(ExtA.getYear() + 1);',
+    'this.TExtB.setYear(this.TExtB.getYear() + 2);',
+    'ExtA.setYear(ExtA.getYear() + 3);',
+    'this.B.setYear(this.B.getYear() + 4);',
+    'this.TExtB.SetCentury(this.TExtB.GetCentury() + 5);',
+    'this.B.$class.SetCentury(this.B.$class.GetCentury() + 6);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ClassOf;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    procedure ProcA; virtual;');
+  Add('    procedure ProcB; virtual;');
+  Add('  end;');
+  Add('  TExtAClass = class of TExtA;');
+  Add('  TExtB = class external name ''ExtB'' (TExtA)');
+  Add('  end;');
+  Add('  TExtBClass = class of TExtB;');
+  Add('  TExtC = class (TExtB)');
+  Add('    procedure ProcA; override;');
+  Add('  end;');
+  Add('  TExtCClass = class of TExtC;');
+  Add('procedure TExtC.ProcA; begin end;');
+  Add('var');
+  Add('  A: texta; ClA: TExtAClass;');
+  Add('  B: textb; ClB: TExtBClass;');
+  Add('  C: textc; ClC: TExtCClass;');
+  Add('begin');
+  Add('  ClA:=texta;');
+  Add('  ClA:=textb;');
+  Add('  ClA:=textc;');
+  Add('  ClB:=textb;');
+  Add('  ClB:=textc;');
+  Add('  ClC:=textc;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ClassOf',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtC", ExtB, "", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.ProcA = function () {',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.ClA = null;',
+    'this.B = null;',
+    'this.ClB = null;',
+    'this.C = null;',
+    'this.ClC = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.ClA = ExtA;',
+    'this.ClA = ExtB;',
+    'this.ClA = this.TExtC;',
+    'this.ClB = ExtB;',
+    'this.ClB = this.TExtC;',
+    'this.ClC = this.TExtC;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ClassOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$modeswitch externalclass}',
+    'type',
+    '  TExtA = class external name ''ExtA''',
+    '    class var Id: longint;',
+    '  end;',
+    '']),
+    '');
+
+  StartUnit(true);
+  Add('interface');
+  Add('uses unit2;');
+  Add('implementation');
+  Add('begin');
+  Add('  unit2.texta.id:=unit2.texta.id+1;');
+  ConvertUnit;
+  CheckSource('TestExternalClass_ClassOtherUnit',
+    LinesToStr([
+    '']),
+    LinesToStr([
+    'ExtA.Id = ExtA.Id + 1;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_Is;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TExtAClass = class of TExtA;');
+  Add('  TExtB = class external name ''ExtB'' (TExtA)');
+  Add('  end;');
+  Add('  TExtBClass = class of TExtB;');
+  Add('  TExtC = class (TExtB)');
+  Add('  end;');
+  Add('  TExtCClass = class of TExtC;');
+  Add('var');
+  Add('  A: texta; ClA: TExtAClass;');
+  Add('  B: textb; ClB: TExtBClass;');
+  Add('  C: textc; ClC: TExtCClass;');
+  Add('begin');
+  Add('  if a is textb then ;');
+  Add('  if a is textc then ;');
+  Add('  if b is textc then ;');
+  Add('  if cla is textb then ;');
+  Add('  if cla is textc then ;');
+  Add('  if clb is textc then ;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_Is',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtC", ExtB, "", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.ClA = null;',
+    'this.B = null;',
+    'this.ClB = null;',
+    'this.C = null;',
+    'this.ClC = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'if (rtl.isExt(this.A, ExtB)) ;',
+    'if (this.TExtC.isPrototypeOf(this.A)) ;',
+    'if (this.TExtC.isPrototypeOf(this.B)) ;',
+    'if (rtl.isExt(this.ClA, ExtB)) ;',
+    'if (rtl.is(this.ClA, this.TExtC)) ;',
+    'if (rtl.is(this.ClB, this.TExtC)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_As;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TExtB = class external name ''ExtB'' (TExtA)');
+  Add('  end;');
+  Add('  TExtC = class (TExtB)');
+  Add('  end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('  B: textb;');
+  Add('  C: textc;');
+  Add('begin');
+  Add('  b:=a as textb;');
+  Add('  c:=a as textc;');
+  Add('  c:=b as textc;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_Is',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TExtC", ExtB, "", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.A = null;',
+    'this.B = null;',
+    'this.C = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.B = rtl.asExt(this.A, ExtB);',
+    'this.C = rtl.as(this.A, this.TExtC);',
+    'this.C = rtl.as(this.B, this.TExtC);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_DestructorFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    destructor Free;');
+  Add('  end;');
+  SetExpectedPasResolverError('Pascal element not supported: destructor',
+    nPasElementNotSupported);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_New;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    constructor New;');
+  Add('    constructor New(i: longint; j: longint = 2);');
+  Add('  end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('begin');
+  Add('  a:=texta.new;');
+  Add('  a:=texta.new();');
+  Add('  a:=texta.new(1);');
+  Add('  with texta do begin');
+  Add('    a:=new;');
+  Add('    a:=new();');
+  Add('    a:=new(2);');
+  Add('  end;');
+  Add('  a:=test1.texta.new;');
+  Add('  a:=test1.texta.new();');
+  Add('  a:=test1.texta.new(3);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ObjectCreate',
+    LinesToStr([ // statements
+    'this.A = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A = new ExtA();',
+    'this.A = new ExtA();',
+    'this.A = new ExtA(1,2);',
+    'var $with1 = ExtA;',
+    'this.A = new $with1();',
+    'this.A = new $with1();',
+    'this.A = new $with1(2,2);',
+    'this.A = new ExtA();',
+    'this.A = new ExtA();',
+    'this.A = new ExtA(3,2);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ClassOf_New;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtAClass = class of TExtA;');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    constructor New;');
+  Add('  end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('  C: textaclass;');
+  Add('begin');
+  Add('  a:=c.new;');
+  Add('  a:=c.new();');
+  Add('  with C do begin');
+  Add('    a:=new;');
+  Add('    a:=new();');
+  Add('  end;');
+  Add('  a:=test1.c.new;');
+  Add('  a:=test1.c.new();');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ClassOf_New',
+    LinesToStr([ // statements
+    'this.A = null;',
+    'this.C = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A = new this.C();',
+    'this.A = new this.C();',
+    'var $with1 = this.C;',
+    'this.A = new $with1();',
+    'this.A = new $with1();',
+    'this.A = new this.C();',
+    'this.A = new this.C();',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_FuncClassOf_New;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtAClass = class of TExtA;');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    constructor New;');
+  Add('  end;');
+  Add('function GetCreator: TExtAClass;');
+  Add('begin');
+  Add('  Result:=TExtA;');
+  Add('end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('begin');
+  Add('  a:=getcreator.new;');
+  Add('  a:=getcreator().new;');
+  Add('  a:=getcreator().new();');
+  Add('  a:=getcreator.new();');
+  Add('  with getcreator do begin');
+  Add('    a:=new;');
+  Add('    a:=new();');
+  Add('  end;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_FuncClassOf_New',
+    LinesToStr([ // statements
+    'this.GetCreator = function () {',
+    '  var Result = null;',
+    '  Result = ExtA;',
+    '  return Result;',
+    '};',
+    'this.A = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A = new (this.GetCreator())();',
+    'this.A = new (this.GetCreator())();',
+    'this.A = new (this.GetCreator())();',
+    'this.A = new (this.GetCreator())();',
+    'var $with1 = this.GetCreator();',
+    'this.A = new $with1();',
+    'this.A = new $with1();',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_LocalConstSameName;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    constructor New;');
+  Add('  end;');
+  Add('function DoIt: longint;');
+  Add('const ExtA = 3;');
+  Add('begin');
+  Add('  Result:=ExtA;');
+  Add('end;');
+  Add('var');
+  Add('  A: texta;');
+  Add('begin');
+  Add('  a:=texta.new;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_LocalConstSameName',
+    LinesToStr([ // statements
+    'var ExtA$1 = 3;',
+    'this.DoIt = function () {',
+    '  var Result = 0;',
+    '  Result = ExtA$1;',
+    '  return Result;',
+    '};',
+    'this.A = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.A = new ExtA();',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ReintroduceOverload;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    procedure DoIt;');
+  Add('  end;');
+  Add('  TMyA = class(TExtA)');
+  Add('    procedure DoIt;');
+  Add('  end;');
+  Add('procedure TMyA.DoIt; begin end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ReintroduceOverload',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TMyA", ExtA, "", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt$1 = function () {',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_Inherited;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('    procedure DoIt(i: longint = 1); virtual;');
+  Add('    procedure DoSome(j: longint = 2);');
+  Add('  end;');
+  Add('  TExtB = class external name ''ExtB''(TExtA)');
+  Add('  end;');
+  Add('  TMyC = class(TExtB)');
+  Add('    procedure DoIt(i: longint = 1); override;');
+  Add('    procedure DoSome(j: longint = 2); reintroduce;');
+  Add('  end;');
+  Add('procedure TMyC.DoIt(i: longint);');
+  Add('begin');
+  Add('  inherited;');
+  Add('  inherited DoIt;');
+  Add('  inherited DoIt();');
+  Add('  inherited DoIt(3);');
+  Add('  inherited DoSome;');
+  Add('  inherited DoSome();');
+  Add('  inherited DoSome(4);');
+  Add('end;');
+  Add('procedure TMyC.DoSome(j: longint);');
+  Add('begin');
+  Add('  inherited;');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestExternalClass_ReintroduceOverload',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TMyC", ExtB, "", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function (i) {',
+    '    ExtB.DoIt.apply(this, arguments);',
+    '    ExtB.DoIt.call(this, 1);',
+    '    ExtB.DoIt.call(this, 1);',
+    '    ExtB.DoIt.call(this, 3);',
+    '    ExtB.DoSome.call(this, 2);',
+    '    ExtB.DoSome.call(this, 2);',
+    '    ExtB.DoSome.call(this, 4);',
+    '  };',
+    '  this.DoSome$1 = function (j) {',
+    '    ExtB.DoSome.apply(this, arguments);',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_PascalAncestorFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TExtA = class external name ''ExtA''(TObject)');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError('Ancestor "TObject" is not external',nAncestorIsNotExternal);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_NewInstance;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TMyB = class(TExtA)');
+  Add('  protected');
+  Add('    class function NewInstance(fnname: string; const paramarray): TMyB; virtual;');
+  Add('  end;');
+  Add('class function TMyB.NewInstance(fnname: string; const paramarray): TMyB;');
+  Add('begin end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestExternalClass_NewInstance',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TMyB", ExtA, "NewInstance", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.NewInstance = function (fnname, paramarray) {',
+    '    var Result = null;',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_NewInstance_NonVirtualFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TMyB = class(TExtA)');
+  Add('  protected');
+  Add('    class function NewInstance(fnname: string; const paramarray): TMyB;');
+  Add('  end;');
+  Add('class function TMyB.NewInstance(fnname: string; const paramarray): TMyB;');
+  Add('begin end;');
+  Add('begin');
+  SetExpectedPasResolverError(sNewInstanceFunctionMustBeVirtual,nNewInstanceFunctionMustBeVirtual);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_NewInstance_FirstParamNotString_Fail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TMyB = class(TExtA)');
+  Add('  protected');
+  Add('    class function NewInstance(fnname: longint; const paramarray): TMyB; virtual;');
+  Add('  end;');
+  Add('class function TMyB.NewInstance(fnname: longint; const paramarray): TMyB;');
+  Add('begin end;');
+  Add('begin');
+  SetExpectedPasResolverError('Incompatible type arg no. 1: Got "Longint", expected "String"',
+    nIncompatibleTypeArgNo);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_NewInstance_SecondParamTyped_Fail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TExtA = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TMyB = class(TExtA)');
+  Add('  protected');
+  Add('    class function NewInstance(fnname: string; const paramarray: string): TMyB; virtual;');
+  Add('  end;');
+  Add('class function TMyB.NewInstance(fnname: string; const paramarray: string): TMyB;');
+  Add('begin end;');
+  Add('begin');
+  SetExpectedPasResolverError('Incompatible type arg no. 2: Got "type", expected "untyped"',
+    nIncompatibleTypeArgNo);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_PascalProperty;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSElement = class;');
+  Add('  TJSNotifyEvent = procedure(Sender: TJSElement) of object;');
+  Add('  TJSElement = class external name ''ExtA''');
+  Add('  end;');
+  Add('  TControl = class(TJSElement)');
+  Add('  private');
+  Add('    FOnClick: TJSNotifyEvent;');
+  Add('    property OnClick: TJSNotifyEvent read FOnClick write FOnClick;');
+  Add('    procedure Click(Sender: TJSElement);');
+  Add('  end;');
+  Add('procedure TControl.Click(Sender: TJSElement);');
+  Add('begin');
+  Add('  OnClick(Self);');
+  Add('end;');
+  Add('var');
+  Add('  Ctrl: TControl;');
+  Add('begin');
+  Add('  Ctrl.OnClick:=@Ctrl.Click;');
+  Add('  Ctrl.OnClick(Ctrl);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_PascalProperty',
+    LinesToStr([ // statements
+    'rtl.createClassExt(this, "TControl", ExtA, "", function () {',
+    '  this.$init = function () {',
+    '    this.FOnClick = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.FOnClick = undefined;',
+    '  };',
+    '  this.Click = function (Sender) {',
+    '    this.FOnClick(this);',
+    '  };',
+    '});',
+    'this.Ctrl = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Ctrl.FOnClick = rtl.createCallback(this.Ctrl, "Click");',
+    'this.Ctrl.FOnClick(this.Ctrl);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_TypeCastToRootClass;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TChild = class');
+  Add('  end;');
+  Add('  TExtRootA = class external name ''ExtRootA''');
+  Add('  end;');
+  Add('  TExtChildA = class external name ''ExtChildA''(TExtRootA)');
+  Add('  end;');
+  Add('  TExtRootB = class external name ''ExtRootB''');
+  Add('  end;');
+  Add('  TExtChildB = class external name ''ExtChildB''(TExtRootB)');
+  Add('  end;');
+  Add('var');
+  Add('  Obj: TObject;');
+  Add('  Child: TChild;');
+  Add('  RootA: TExtRootA;');
+  Add('  ChildA: TExtChildA;');
+  Add('  RootB: TExtRootB;');
+  Add('  ChildB: TExtChildB;');
+  Add('begin');
+  Add('  obj:=tobject(roota);');
+  Add('  obj:=tobject(childa);');
+  Add('  child:=tchild(tobject(roota));');
+  Add('  roota:=textroota(obj);');
+  Add('  roota:=textroota(child);');
+  Add('  roota:=textroota(rootb);');
+  Add('  roota:=textroota(childb);');
+  Add('  childa:=textchilda(textroota(obj));');
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastToRootClass',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TChild", this.TObject, function () {',
+    '});',
+    'this.Obj = null;',
+    'this.Child = null;',
+    'this.RootA = null;',
+    'this.ChildA = null;',
+    'this.RootB = null;',
+    'this.ChildB = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Obj = this.RootA;',
+    'this.Obj = this.ChildA;',
+    'this.Child = this.RootA;',
+    'this.RootA = this.Obj;',
+    'this.RootA = this.Child;',
+    'this.RootA = this.RootB;',
+    'this.RootA = this.ChildB;',
+    'this.ChildA = this.Obj;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_TypeCastStringToExternalString;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSString = class external name ''String''');
+  Add('    class function fromCharCode() : string; varargs;');
+  Add('    function anchor(const aName : string) : string;');
+  Add('  end;');
+  Add('var');
+  Add('  s: string;');
+  Add('begin');
+  Add('  s:=TJSString.fromCharCode(65,66);');
+  Add('  s:=TJSString(s).anchor(s);');
+  Add('  s:=TJSString(''foo'').anchor(s);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastStringToExternalString',
+    LinesToStr([ // statements
+    'this.s = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.s = String.fromCharCode(65, 66);',
+    'this.s = this.s.anchor(this.s);',
+    'this.s = "foo".anchor(this.s);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_CallClassFunctionOfInstanceFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSString = class external name ''String''');
+  Add('    class function fromCharCode() : string; varargs;');
+  Add('  end;');
+  Add('var');
+  Add('  s: string;');
+  Add('  sObj: TJSString;');
+  Add('begin');
+  Add('  s:=sObj.fromCharCode(65,66);');
+  SetExpectedPasResolverError('External class instance cannot access static class function fromCharCode',
+    nExternalClassInstanceCannotAccessStaticX);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_BracketOperatorOld;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array''');
+  Add('  end;');
+  Add('  TJSObject = class external name ''Object''');
+  Add('  end;');
+  Add('procedure DoIt(vI: JSValue; const vJ: jsvalue; var vK: jsvalue; out vL: jsvalue);');
+  Add('begin end;');
+  Add('var');
+  Add('  Obj: tjsobject;');
+  Add('  Arr: tjsarray;');
+  Add('  s: string;');
+  Add('  i: longint;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  arr[1]:=s;');
+  Add('  arr[2]:=i;');
+  Add('  arr[3]:=arr[4];');
+  Add('  v:=arr[5];');
+  Add('  v:=obj[''one''];');
+  Add('  obj[''two'']:=i;');
+  Add('  obj[''three'']:=v;');
+  Add('  doit(arr[6],arr[7],arr[8],arr[9]);');
+  Add('  doit(obj[''10''],obj[''11''],obj[''12''],obj[''13'']);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketOperator',
+    LinesToStr([ // statements
+    'this.DoIt = function (vI, vJ, vK, vL) {',
+    '};',
+    'this.Obj = null;',
+    'this.Arr = null;',
+    'this.s = "";',
+    'this.i = 0;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Arr[1] = this.s;',
+    'this.Arr[2] = this.i;',
+    'this.Arr[3] = this.Arr[4];',
+    'this.v = this.Arr[5];',
+    'this.v = this.Obj["one"];',
+    'this.Obj["two"] = this.i;',
+    'this.Obj["three"] = this.v;',
+    'this.DoIt(this.Arr[6], this.Arr[7], {',
+    '  a: 8,',
+    '  p: this.Arr,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '}, {',
+    '  a: 9,',
+    '  p: this.Arr,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '});',
+    ' this.DoIt(this.Obj["10"], this.Obj["11"], {',
+    '  a: "12",',
+    '  p: this.Obj,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '}, {',
+    '  a: "13",',
+    '  p: this.Obj,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '});',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_BracketAccessor;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    function GetItems(Index: longint): jsvalue; external name ''[]'';');
+  Add('    procedure SetItems(Index: longint; Value: jsvalue); external name ''[]'';');
+  Add('    property Items[Index: longint]: jsvalue read GetItems write SetItems; default;');
+  Add('  end;');
+  Add('procedure DoIt(vI: JSValue; const vJ: jsvalue; var vK: jsvalue; out vL: jsvalue);');
+  Add('begin end;');
+  Add('var');
+  Add('  Arr: tjsarray;');
+  Add('  s: string;');
+  Add('  i: longint;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  v:=arr[0];');
+  Add('  v:=arr.items[1];');
+  Add('  arr[2]:=s;');
+  Add('  arr.items[3]:=s;');
+  Add('  arr[4]:=i;');
+  Add('  arr[5]:=arr[6];');
+  Add('  arr.items[7]:=arr.items[8];');
+  Add('  with arr do items[9]:=items[10];');
+  Add('  doit(arr[7],arr[8],arr[9],arr[10]);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketOperator',
+    LinesToStr([ // statements
+    'this.DoIt = function (vI, vJ, vK, vL) {',
+    '};',
+    'this.Arr = null;',
+    'this.s = "";',
+    'this.i = 0;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.Arr[0];',
+    'this.v = this.Arr[1];',
+    'this.Arr[2] = this.s;',
+    'this.Arr[3] = this.s;',
+    'this.Arr[4] = this.i;',
+    'this.Arr[5] = this.Arr[6];',
+    'this.Arr[7] = this.Arr[8];',
+    'var $with1 = this.Arr;',
+    '$with1[9] = $with1[10];',
+    'this.DoIt(this.Arr[7], this.Arr[8], {',
+    '  a: 9,',
+    '  p: this.Arr,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '}, {',
+    '  a: 10,',
+    '  p: this.Arr,',
+    '  get: function () {',
+    '      return this.p[this.a];',
+    '    },',
+    '  set: function (v) {',
+    '      this.p[this.a] = v;',
+    '    }',
+    '});',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_BracketAccessor_2ParamsFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    function GetItems(Index1, Index2: longint): jsvalue; external name ''[]'';');
+  Add('    procedure SetItems(Index1, Index2: longint; Value: jsvalue); external name ''[]'';');
+  Add('    property Items[Index1, Index2: longint]: jsvalue read GetItems write SetItems; default;');
+  Add('  end;');
+  Add('begin');
+  SetExpectedPasResolverError(sBracketAccessorOfExternalClassMustHaveOneParameter,
+    nBracketAccessorOfExternalClassMustHaveOneParameter);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_BracketAccessor_ReadOnly;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    function GetItems(Index: longint): jsvalue; external name ''[]'';');
+  Add('    property Items[Index: longint]: jsvalue read GetItems; default;');
+  Add('  end;');
+  Add('procedure DoIt(vI: JSValue; const vJ: jsvalue);');
+  Add('begin end;');
+  Add('var');
+  Add('  Arr: tjsarray;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  v:=arr[0];');
+  Add('  v:=arr.items[1];');
+  Add('  with arr do v:=items[2];');
+  Add('  doit(arr[3],arr[4]);');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketAccessor_ReadOnly',
+    LinesToStr([ // statements
+    'this.DoIt = function (vI, vJ) {',
+    '};',
+    'this.Arr = null;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.Arr[0];',
+    'this.v = this.Arr[1];',
+    'var $with1 = this.Arr;',
+    'this.v = $with1[2];',
+    'this.DoIt(this.Arr[3], this.Arr[4]);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_BracketAccessor_WriteOnly;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    procedure SetItems(Index: longint; Value: jsvalue); external name ''[]'';');
+  Add('    property Items[Index: longint]: jsvalue write SetItems; default;');
+  Add('  end;');
+  Add('var');
+  Add('  Arr: tjsarray;');
+  Add('  s: string;');
+  Add('  i: longint;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  arr[2]:=s;');
+  Add('  arr.items[3]:=s;');
+  Add('  arr[4]:=i;');
+  Add('  with arr do items[5]:=i;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketAccessor_WriteOnly',
+    LinesToStr([ // statements
+    'this.Arr = null;',
+    'this.s = "";',
+    'this.i = 0;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Arr[2] = this.s;',
+    'this.Arr[3] = this.s;',
+    'this.Arr[4] = this.i;',
+    'var $with1 = this.Arr;',
+    '$with1[5] = this.i;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_BracketAccessor_MultiType;
+begin
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TJSArray = class external name ''Array2''');
+  Add('    procedure SetItems(Index: longint; Value: jsvalue); external name ''[]'';');
+  Add('    property Items[Index: longint]: jsvalue write SetItems; default;');
+  Add('    procedure SetNumbers(Index: longint; Value: longint); external name ''[]'';');
+  Add('    property Numbers[Index: longint]: longint write SetNumbers;');
+  Add('  end;');
+  Add('var');
+  Add('  Arr: tjsarray;');
+  Add('  s: string;');
+  Add('  i: longint;');
+  Add('  v: jsvalue;');
+  Add('begin');
+  Add('  arr[2]:=s;');
+  Add('  arr.items[3]:=s;');
+  Add('  arr.numbers[4]:=i;');
+  Add('  with arr do items[5]:=i;');
+  Add('  with arr do numbers[6]:=i;');
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketAccessor_MultiType',
+    LinesToStr([ // statements
+    'this.Arr = null;',
+    'this.s = "";',
+    'this.i = 0;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Arr[2] = this.s;',
+    'this.Arr[3] = this.s;',
+    'this.Arr[4] = this.i;',
+    'var $with1 = this.Arr;',
+    '$with1[5] = this.i;',
+    'var $with2 = this.Arr;',
+    '$with2[6] = this.i;',
     '']));
 end;
 
@@ -7225,6 +9734,759 @@ begin
     'this.b = $with1.FOnFoo != null;',
     'this.b = $with1.FOnFoo != null;',
     'this.b = $with1.GetFoo() != null;',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_Nested;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TProcInt = procedure(vI: longint = 1);');
+  Add('procedure DoIt(vJ: longint);');
+  Add('var aProc: TProcInt;');
+  Add('    b: boolean;');
+  Add('  procedure Sub(vK: longint);');
+  Add('  var aSub: TProcInt;');
+  Add('    procedure SubSub(vK: longint);');
+  Add('    var aSubSub: TProcInt;');
+  Add('    begin;');
+  Add('      aProc:=@DoIt;');
+  Add('      aSub:=@DoIt;');
+  Add('      aSubSub:=@DoIt;');
+  Add('      aProc:=@Sub;');
+  Add('      aSub:=@Sub;');
+  Add('      aSubSub:=@Sub;');
+  Add('      aProc:=@SubSub;');
+  Add('      aSub:=@SubSub;');
+  Add('      aSubSub:=@SubSub;');
+  Add('    end;');
+  Add('  begin;');
+  Add('  end;');
+  Add('begin;');
+  Add('  aProc:=@Sub;');
+  Add('  b:=aProc=@Sub;');
+  Add('  b:=@Sub=aProc;');
+  Add('end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestProcType_Nested',
+    LinesToStr([ // statements
+    'this.DoIt = function (vJ) {',
+    '  var aProc = null;',
+    '  var b = false;',
+    '  function Sub(vK) {',
+    '    var aSub = null;',
+    '    function SubSub(vK) {',
+    '      var aSubSub = null;',
+    '      aProc = rtl.createCallback(this, "DoIt");',
+    '      aSub = rtl.createCallback(this, "DoIt");',
+    '      aSubSub = rtl.createCallback(this, "DoIt");',
+    '      aProc = rtl.createCallback(this, Sub);',
+    '      aSub = rtl.createCallback(this, Sub);',
+    '      aSubSub = rtl.createCallback(this, Sub);',
+    '      aProc = rtl.createCallback(this, SubSub);',
+    '      aSub = rtl.createCallback(this, SubSub);',
+    '      aSubSub = rtl.createCallback(this, SubSub);',
+    '    };',
+    '  };',
+    '  aProc = rtl.createCallback(this, Sub);',
+    '  b = rtl.eqCallback(aProc, rtl.createCallback(this, Sub));',
+    '  b = rtl.eqCallback(rtl.createCallback(this, Sub), aProc);',
+    '};',
+    '']),
+    LinesToStr([ // this.$main
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_AssignToJSValue;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  i: longint;');
+  Add('  s: string;');
+  Add('  b: boolean;');
+  Add('  d: double;');
+  Add('begin');
+  Add('  v:=v;');
+  Add('  v:=1;');
+  Add('  v:=i;');
+  Add('  v:='''';');
+  Add('  v:=''c'';');
+  Add('  v:=''foo'';');
+  Add('  v:=s;');
+  Add('  v:=false;');
+  Add('  v:=true;');
+  Add('  v:=b;');
+  Add('  v:=0.1;');
+  Add('  v:=d;');
+  Add('  v:=nil;');
+  ConvertProgram;
+  CheckSource('TestJSValue_AssignToJSValue',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    'this.i = 0;',
+    'this.s = "";',
+    'this.b = false;',
+    'this.d = 0.0;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.v;',
+    'this.v = 1;',
+    'this.v = this.i;',
+    'this.v = "";',
+    'this.v = "c";',
+    'this.v = "foo";',
+    'this.v = this.s;',
+    'this.v = false;',
+    'this.v = true;',
+    'this.v = this.b;',
+    'this.v = 0.1;',
+    'this.v = this.d;',
+    'this.v = null;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_TypeCastToBaseType;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TYesNo = boolean;');
+  Add('  TFloat = double;');
+  Add('  TCaption = string;');
+  Add('  TChar = char;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  i: integer;');
+  Add('  s: TCaption;');
+  Add('  b: TYesNo;');
+  Add('  d: TFloat;');
+  Add('  c: char;');
+  Add('begin');
+  Add('  i:=longint(v);');
+  Add('  i:=integer(v);');
+  Add('  s:=string(v);');
+  Add('  s:=TCaption(v);');
+  Add('  b:=boolean(v);');
+  Add('  b:=TYesNo(v);');
+  Add('  d:=double(v);');
+  Add('  d:=TFloat(v);');
+  Add('  c:=char(v);');
+  Add('  c:=TChar(v);');
+  ConvertProgram;
+  CheckSource('TestJSValue_TypeCastToBaseType',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    'this.i = 0;',
+    'this.s = "";',
+    'this.b = false;',
+    'this.d = 0.0;',
+    'this.c = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.i = Math.floor(this.v);',
+    'this.i = Math.floor(this.v);',
+    'this.s = "" + this.v;',
+    'this.s = "" + this.v;',
+    'this.b = !(this.v == false);',
+    'this.b = !(this.v == false);',
+    'this.d = rtl.getNumber(this.v);',
+    'this.d = rtl.getNumber(this.v);',
+    'this.c = rtl.getChar(this.v);',
+    'this.c = rtl.getChar(this.v);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_Equal;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TYesNo = boolean;');
+  Add('  TFloat = double;');
+  Add('  TCaption = string;');
+  Add('  TChar = char;');
+  Add('  TMulti = JSValue;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  i: integer;');
+  Add('  s: TCaption;');
+  Add('  b: TYesNo;');
+  Add('  d: TFloat;');
+  Add('  c: char;');
+  Add('  m: TMulti;');
+  Add('begin');
+  Add('  b:=v=v;');
+  Add('  b:=v<>v;');
+  Add('  b:=v=1;');
+  Add('  b:=v<>1;');
+  Add('  b:=2=v;');
+  Add('  b:=2<>v;');
+  Add('  b:=v=i;');
+  Add('  b:=i=v;');
+  Add('  b:=v=nil;');
+  Add('  b:=nil=v;');
+  Add('  b:=v=false;');
+  Add('  b:=true=v;');
+  Add('  b:=v=b;');
+  Add('  b:=b=v;');
+  Add('  b:=v=s;');
+  Add('  b:=s=v;');
+  Add('  b:=v=''foo'';');
+  Add('  b:=''''=v;');
+  Add('  b:=v=d;');
+  Add('  b:=d=v;');
+  Add('  b:=v=3.4;');
+  Add('  b:=5.6=v;');
+  Add('  b:=v=c;');
+  Add('  b:=c=v;');
+  Add('  b:=m=m;');
+  Add('  b:=v=m;');
+  Add('  b:=m=v;');
+  ConvertProgram;
+  CheckSource('TestJSValue_Equal',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    'this.i = 0;',
+    'this.s = "";',
+    'this.b = false;',
+    'this.d = 0.0;',
+    'this.c = "";',
+    'this.m = undefined;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.b = this.v == this.v;',
+    'this.b = this.v != this.v;',
+    'this.b = this.v == 1;',
+    'this.b = this.v != 1;',
+    'this.b = 2 == this.v;',
+    'this.b = 2 != this.v;',
+    'this.b = this.v == this.i;',
+    'this.b = this.i == this.v;',
+    'this.b = this.v == null;',
+    'this.b = null == this.v;',
+    'this.b = this.v == false;',
+    'this.b = true == this.v;',
+    'this.b = this.v == this.b;',
+    'this.b = this.b == this.v;',
+    'this.b = this.v == this.s;',
+    'this.b = this.s == this.v;',
+    'this.b = this.v == "foo";',
+    'this.b = "" == this.v;',
+    'this.b = this.v == this.d;',
+    'this.b = this.d == this.v;',
+    'this.b = this.v == 3.4;',
+    'this.b = 5.6 == this.v;',
+    'this.b = this.v == this.c;',
+    'this.b = this.c == this.v;',
+    'this.b = this.m == this.m;',
+    'this.b = this.v == this.m;',
+    'this.b = this.m == this.v;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_Enum;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TColor = (red, blue);');
+  Add('  TRedBlue = TColor;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  e: TColor;');
+  Add('begin');
+  Add('  v:=e;');
+  Add('  v:=TColor(e);');
+  Add('  v:=TRedBlue(e);');
+  Add('  e:=TColor(v);');
+  Add('  e:=TRedBlue(v);');
+  ConvertProgram;
+  CheckSource('TestJSValue_Enum',
+    LinesToStr([ // statements
+    'this.TColor = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'this.v = undefined;',
+    'this.e = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.e;',
+    'this.v = this.e;',
+    'this.v = this.e;',
+    'this.e = this.v;',
+    'this.e = this.v;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ClassInstance;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TBirdObject = TObject;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  v:=o;');
+  Add('  v:=TObject(o);');
+  Add('  v:=TBirdObject(o);');
+  Add('  o:=TObject(v);');
+  Add('  o:=TBirdObject(v);');
+  ConvertProgram;
+  CheckSource('TestJSValue_ClassInstance',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.v = undefined;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.o;',
+    'this.v = this.o;',
+    'this.v = this.o;',
+    'this.o = rtl.getObject(this.v);',
+    'this.o = rtl.getObject(this.v);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ClassOf;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TClass = class of TObject;');
+  Add('  TObject = class');
+  Add('  end;');
+  Add('  TBirds = class of TBird;');
+  Add('  TBird = class(TObject) end;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  c: TClass;');
+  Add('begin');
+  Add('  v:=c;');
+  Add('  v:=TObject;');
+  Add('  v:=TClass(c);');
+  Add('  v:=TBirds(c);');
+  Add('  c:=TClass(v);');
+  Add('  c:=TBirds(v);');
+  ConvertProgram;
+  CheckSource('TestJSValue_ClassOf',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '});',
+    'this.v = undefined;',
+    'this.c = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.c;',
+    'this.v = this.TObject;',
+    'this.v = this.c;',
+    'this.v = this.c;',
+    'this.c = rtl.getObject(this.v);',
+    'this.c = rtl.getObject(this.v);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ArrayOfJSValue;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TArray = array of JSValue;');
+  Add('  TArrgh = tarray;');
+  Add('  TArrInt = array of integer;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  TheArray: tarray;');
+  Add('  Arr: tarrgh;');
+  Add('  i: integer;');
+  Add('  ArrInt: tarrint;');
+  Add('begin');
+  Add('  arr:=thearray;');
+  Add('  thearray:=arr;');
+  Add('  setlength(arr,2);');
+  Add('  setlength(thearray,3);');
+  Add('  arr[4]:=v;');
+  Add('  arr[5]:=length(thearray);');
+  Add('  arr[6]:=nil;');
+  Add('  arr[7]:=thearray[8];');
+  Add('  arr[low(arr)]:=high(thearray);');
+  Add('  arr:=arrint;');
+  Add('  arrInt:=tarrint(arr);');
+  Add('  if TheArray = nil then ;');
+  Add('  if nil = TheArray then ;');
+  Add('  if TheArray <> nil then ;');
+  Add('  if nil <> TheArray then ;');
+  ConvertProgram;
+  CheckSource('TestJSValue_ArrayOfJSValue',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    'this.TheArray = [];',
+    'this.Arr = [];',
+    'this.i = 0;',
+    'this.ArrInt = [];',
+    '']),
+    LinesToStr([ // this.$main
+    'this.Arr = this.TheArray;',
+    'this.TheArray = this.Arr;',
+    'this.Arr = rtl.arraySetLength(this.Arr,2,undefined);',
+    'this.TheArray = rtl.arraySetLength(this.TheArray,3,undefined);',
+    'this.Arr[4] = this.v;',
+    'this.Arr[5] = rtl.length(this.TheArray);',
+    'this.Arr[6] = null;',
+    'this.Arr[7] = this.TheArray[8];',
+    'this.Arr[0] = rtl.length(this.TheArray) - 1;',
+    'this.Arr = this.ArrInt;',
+    'this.ArrInt = this.Arr;',
+    'if (rtl.length(this.TheArray) == 0) ;',
+    'if (rtl.length(this.TheArray) == 0) ;',
+    'if (rtl.length(this.TheArray) > 0) ;',
+    'if (rtl.length(this.TheArray) > 0) ;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_Params;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TYesNo = boolean;');
+  Add('  TFloat = double;');
+  Add('  TCaption = string;');
+  Add('  TChar = char;');
+  Add('function DoIt(a: jsvalue; const b: jsvalue; var c: jsvalue; out d: jsvalue): jsvalue;');
+  Add('var');
+  Add('  l: jsvalue;');
+  Add('begin');
+  Add('  a:=a;');
+  Add('  l:=b;');
+  Add('  c:=c;');
+  Add('  d:=d;');
+  Add('  Result:=l;');
+  Add('end;');
+  Add('function DoSome(a: jsvalue; const b: jsvalue): jsvalue; begin end;');
+  Add('var');
+  Add('  v: jsvalue;');
+  Add('  i: integer;');
+  Add('  b: TYesNo;');
+  Add('  d: TFloat;');
+  Add('  s: TCaption;');
+  Add('  c: TChar;');
+  Add('begin');
+  Add('  v:=doit(v,v,v,v);');
+  Add('  i:=integer(dosome(i,i));');
+  Add('  b:=TYesNo(dosome(b,b));');
+  Add('  d:=TFloat(dosome(d,d));');
+  Add('  s:=TCaption(dosome(s,s));');
+  Add('  c:=TChar(dosome(c,c));');
+  ConvertProgram;
+  CheckSource('TestJSValue_Params',
+    LinesToStr([ // statements
+    'this.DoIt = function (a, b, c, d) {',
+    '  var Result = undefined;',
+    '  var l = undefined;',
+    '  a = a;',
+    '  l = b;',
+    '  c.set(c.get());',
+    '  d.set(d.get());',
+    '  Result = l;',
+    '  return Result;',
+    '};',
+    'this.DoSome = function (a, b) {',
+    '  var Result = undefined;',
+    '  return Result;',
+    '};',
+    'this.v = undefined;',
+    'this.i = 0;',
+    'this.b = false;',
+    'this.d = 0.0;',
+    'this.s = "";',
+    'this.c = "";',
+    '']),
+    LinesToStr([ // this.$main
+    'this.v = this.DoIt(this.v, this.v, {',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.v;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.v = v;',
+    '    }',
+    '}, {',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.v;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.v = v;',
+    '    }',
+    '});',
+    'this.i = Math.floor(this.DoSome(this.i, this.i));',
+    'this.b = !(this.DoSome(this.b, this.b) == false);',
+    'this.d = rtl.getNumber(this.DoSome(this.d, this.d));',
+    'this.s = "" + this.DoSome(this.s, this.s);',
+    'this.c = rtl.getChar(this.DoSome(this.c, this.c));',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_UntypedParam;
+begin
+  StartProgram(false);
+  Add('function DoIt(const a; var b; out c): jsvalue;');
+  Add('begin');
+  Add('  Result:=a;');
+  Add('  Result:=b;');
+  Add('  Result:=c;');
+  Add('  b:=Result;');
+  Add('  c:=Result;');
+  Add('end;');
+  Add('var i: longint;');
+  Add('begin');
+  Add('  doit(i,i,i);');
+  ConvertProgram;
+  CheckSource('TestJSValue_UntypedParam',
+    LinesToStr([ // statements
+    'this.DoIt = function (a, b, c) {',
+    '  var Result = undefined;',
+    '  Result = a;',
+    '  Result = b.get();',
+    '  Result = c.get();',
+    '  b.set(Result);',
+    '  c.set(Result);',
+    '  return Result;',
+    '};',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.DoIt(this.i, {',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '}, {',
+    '  p: this,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_FuncResultType;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TJSValueArray = array of JSValue;');
+  Add('  TListSortCompare = function(Item1, Item2: JSValue): Integer;');
+  Add('procedure Sort(P: JSValue; aList: TJSValueArray; const Compare: TListSortCompare);');
+  Add('begin');
+  Add('  while Compare(P,aList[0])>0 do ;');
+  Add('end;');
+  Add('var');
+  Add('  Compare: TListSortCompare;');
+  Add('  V: JSValue;');
+  Add('  i: integer;');
+  Add('begin');
+  Add('  if Compare(V,V)>0 then ;');
+  Add('  if Compare(i,i)>1 then ;');
+  Add('  if Compare(nil,false)>2 then ;');
+  Add('  if Compare(1,true)>3 then ;');
+  ConvertProgram;
+  CheckSource('TestJSValue_UntypedParam',
+    LinesToStr([ // statements
+    'this.Sort = function (P, aList, Compare) {',
+    '  while (Compare(P, aList[0]) > 0) {',
+    '  };',
+    '};',
+    'this.Compare = null;',
+    'this.V = undefined;',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    'if (this.Compare(this.V, this.V) > 0) ;',
+    'if (this.Compare(this.i, this.i) > 1) ;',
+    'if (this.Compare(null, false) > 2) ;',
+    'if (this.Compare(1, true) > 3) ;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ProcType_Assign;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TObject = class');
+  Add('    class function GetGlob: integer;');
+  Add('    function Getter: integer;');
+  Add('  end;');
+  Add('class function TObject.GetGlob: integer;');
+  Add('var v1: jsvalue;');
+  Add('begin');
+  Add('  v1:=@GetGlob;');
+  Add('  v1:=@Self.GetGlob;');
+  Add('end;');
+  Add('function TObject.Getter: integer;');
+  Add('var v2: jsvalue;');
+  Add('begin');
+  Add('  v2:=@Getter;');
+  Add('  v2:=@Self.Getter;');
+  Add('  v2:=@GetGlob;');
+  Add('  v2:=@Self.GetGlob;');
+  Add('end;');
+  Add('function GetIt(i: integer): integer;');
+  Add('var v3: jsvalue;');
+  Add('begin');
+  Add('  v3:=@GetIt;');
+  Add('end;');
+  Add('var');
+  Add('  V: JSValue;');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  v:=@GetIt;');
+  Add('  v:=@o.Getter;');
+  Add('  v:=@o.GetGlob;');
+  ConvertProgram;
+  CheckSource('TestJSValue_ProcType_Assign',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetGlob = function () {',
+    '    var Result = 0;',
+    '    var v1 = undefined;',
+    '    v1 = rtl.createCallback(this, "GetGlob");',
+    '    v1 = rtl.createCallback(this, "GetGlob");',
+    '    return Result;',
+    '  };',
+    '  this.Getter = function () {',
+    '    var Result = 0;',
+    '    var v2 = undefined;',
+    '    v2 = rtl.createCallback(this, "Getter");',
+    '    v2 = rtl.createCallback(this, "Getter");',
+    '    v2 = rtl.createCallback(this.$class, "GetGlob");',
+    '    v2 = rtl.createCallback(this.$class, "GetGlob");',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.GetIt = function (i) {',
+    '  var Result = 0;',
+    '  var v3 = undefined;',
+    '  v3 = rtl.createCallback(this, "GetIt");',
+    '  return Result;',
+    '};',
+    'this.V = undefined;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'this.V = rtl.createCallback(this, "GetIt");',
+    'this.V = rtl.createCallback(this.o, "Getter");',
+    'this.V = rtl.createCallback(this.o.$class, "GetGlob");',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ProcType_Equal;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TObject = class');
+  Add('    class function GetGlob: integer;');
+  Add('    function Getter: integer;');
+  Add('  end;');
+  Add('class function TObject.GetGlob: integer;');
+  Add('var v1: jsvalue;');
+  Add('begin');
+  Add('  if v1=@GetGlob then;');
+  Add('  if v1=@Self.GetGlob then ;');
+  Add('end;');
+  Add('function TObject.Getter: integer;');
+  Add('var v2: jsvalue;');
+  Add('begin');
+  Add('  if v2=@Getter then;');
+  Add('  if v2=@Self.Getter then ;');
+  Add('  if v2=@GetGlob then;');
+  Add('  if v2=@Self.GetGlob then;');
+  Add('end;');
+  Add('function GetIt(i: integer): integer;');
+  Add('var v3: jsvalue;');
+  Add('begin');
+  Add('  if v3=@GetIt then;');
+  Add('end;');
+  Add('var');
+  Add('  V: JSValue;');
+  Add('  o: TObject;');
+  Add('begin');
+  Add('  if v=@GetIt then;');
+  Add('  if v=@o.Getter then;');
+  Add('  if v=@o.GetGlob then;');
+  Add('  if @GetIt=v then;');
+  Add('  if @o.Getter=v then;');
+  Add('  if @o.GetGlob=v then;');
+  ConvertProgram;
+  CheckSource('TestJSValue_ProcType_Equal',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetGlob = function () {',
+    '    var Result = 0;',
+    '    var v1 = undefined;',
+    '    if (rtl.eqCallback(v1, rtl.createCallback(this, "GetGlob"))) ;',
+    '    if (rtl.eqCallback(v1, rtl.createCallback(this, "GetGlob"))) ;',
+    '    return Result;',
+    '  };',
+    '  this.Getter = function () {',
+    '    var Result = 0;',
+    '    var v2 = undefined;',
+    '    if (rtl.eqCallback(v2, rtl.createCallback(this, "Getter"))) ;',
+    '    if (rtl.eqCallback(v2, rtl.createCallback(this, "Getter"))) ;',
+    '    if (rtl.eqCallback(v2, rtl.createCallback(this.$class, "GetGlob"))) ;',
+    '    if (rtl.eqCallback(v2, rtl.createCallback(this.$class, "GetGlob"))) ;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.GetIt = function (i) {',
+    '  var Result = 0;',
+    '  var v3 = undefined;',
+    '  if (rtl.eqCallback(v3, rtl.createCallback(this, "GetIt"))) ;',
+    '  return Result;',
+    '};',
+    'this.V = undefined;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // this.$main
+    'if (rtl.eqCallback(this.V, rtl.createCallback(this, "GetIt"))) ;',
+    'if (rtl.eqCallback(this.V, rtl.createCallback(this.o, "Getter"))) ;',
+    'if (rtl.eqCallback(this.V, rtl.createCallback(this.o.$class, "GetGlob"))) ;',
+    'if (rtl.eqCallback(rtl.createCallback(this, "GetIt"), this.V)) ;',
+    'if (rtl.eqCallback(rtl.createCallback(this.o, "Getter"), this.V)) ;',
+    'if (rtl.eqCallback(rtl.createCallback(this.o.$class, "GetGlob"), this.V)) ;',
     '']));
 end;
 

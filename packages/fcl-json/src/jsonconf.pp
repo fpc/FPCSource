@@ -724,7 +724,7 @@ Var
   F : TFileStream;
 
 begin
-  F:=TFileStream.Create(AFileName,fmopenRead);
+  F:=TFileStream.Create(AFileName,fmopenRead or fmShareDenyWrite);
   try
     LoadFromStream(F);
   finally
