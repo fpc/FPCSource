@@ -622,7 +622,7 @@ type
   public
     Access: TArgumentAccess;
     ArgType: TPasType;
-    ValueExpr: TPasExpr;
+    ValueExpr: TPasExpr; // the default value
     Function Value : String;
   end;
 

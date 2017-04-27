@@ -340,7 +340,7 @@ end;
 
 destructor TIniWebSession.Destroy;
 begin
-  // In case an exception occured and UpdateResponse is not called,
+  // In case an exception occurred and UpdateResponse is not called,
   // write the updates to disk and free FIniFile
   FreeIniFile;
   inherited Destroy;
@@ -376,7 +376,7 @@ begin
   SID := '';
   FSessionStarted := False;
   FTerminated := False;
-  // If a exception occured during a prior request FIniFile is still not freed
+  // If a exception occurred during a prior request FIniFile is still not freed
   if assigned(FIniFile) then FreeIniFile;
   If (SessionCookie='') then
     SessionCookie:=SFPWebSession;

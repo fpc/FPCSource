@@ -25,7 +25,7 @@ uses
 Type
   TJSType = (jstUNDEFINED,jstNull,jstBoolean,jstNumber,jstString,jstObject,jstReference,JSTCompletion);
 
-  TJSString = WideString;
+  TJSString = UnicodeString;
   TJSNumber = Double;
 
   { TJSValue }
@@ -39,6 +39,7 @@ Type
       1 : (F : TJSNumber);
       2 : (I : Integer);
     end;
+    FCustomValue: TJSString;
     procedure ClearValue(ANewValue: TJSType);
     function GetAsBoolean: Boolean;
     function GetAsCompletion: TObject;
@@ -64,6 +65,7 @@ Type
     Constructor Create(AString: TJSString);
     Destructor Destroy; override;
     Property ValueType : TJSType Read FValueType;
+    Property CustomValue: TJSString Read FCustomValue Write FCustomValue;
     Property IsUndefined : Boolean Read GetIsUndefined Write SetIsUndefined;
     Property IsNull : Boolean Read GetIsNull Write SetIsNull;
     Property AsNumber : TJSNumber Read GetAsNumber Write SetAsNumber;
@@ -144,6 +146,7 @@ begin
     FValue.I:=0;
   end;
   FValueType:=ANewValue;
+  FCustomValue:='';
 end;
 
 procedure TJSValue.SetAsBoolean(const AValue: Boolean);
@@ -184,40 +187,46 @@ end;
 
 procedure TJSValue.SetIsNull(const AValue: Boolean);
 begin
-  ClearValue(jstNull);
+  if AValue then
+    ClearValue(jstNull)
+  else if IsNull then
+    ClearValue(jstUNDEFINED);
 end;
 
 procedure TJSValue.SetIsUndefined(const AValue: Boolean);
 begin
-  ClearValue(jstUndefined);
+  if AValue then
+    ClearValue(jstUndefined)
+  else if IsUndefined then
+    ClearValue(jstNull);
 end;
 
-Constructor TJSValue.CreateNull;
+constructor TJSValue.CreateNull;
 begin
   IsNull:=True;
 end;
 
-Constructor TJSValue.Create;
+constructor TJSValue.Create;
 begin
   IsUndefined:=True;
 end;
 
-Constructor TJSValue.Create(ANumber: TJSNumber);
+constructor TJSValue.Create(ANumber: TJSNumber);
 begin
   AsNumber:=ANumber;
 end;
 
-Constructor TJSValue.Create(ABoolean: Boolean);
+constructor TJSValue.Create(ABoolean: Boolean);
 begin
   AsBoolean:=ABoolean;
 end;
 
-Constructor TJSValue.Create(AString: TJSString);
+constructor TJSValue.Create(AString: TJSString);
 begin
   AsString:=AString;
 end;
 
-Destructor TJSValue.Destroy;
+destructor TJSValue.Destroy;
 begin
   ClearValue(jstUndefined);
   inherited Destroy;

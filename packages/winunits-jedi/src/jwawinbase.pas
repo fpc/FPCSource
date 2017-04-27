@@ -1361,7 +1361,7 @@ const
   {$EXTERNALSYM EV_ERR}
   EV_RING     = $0100; // Ring signal detected
   {$EXTERNALSYM EV_RING}
-  EV_PERR     = $0200; // Printer error occured
+  EV_PERR     = $0200; // Printer error occurred
   {$EXTERNALSYM EV_PERR}
   EV_RX80FULL = $0400; // Receive buffer is 80 percent full
   {$EXTERNALSYM EV_RX80FULL}

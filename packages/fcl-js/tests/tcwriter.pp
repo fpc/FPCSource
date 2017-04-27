@@ -2430,7 +2430,6 @@ end;
 
 
 Initialization
-
   RegisterTests([TTestTestJSWriter,TTestLiteralWriter,TTestExpressionWriter,TTestStatementWriter]);
 end.
 

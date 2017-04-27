@@ -8414,7 +8414,7 @@ TYPE
 CONST
          MCN_GETDAYSTATE                = (MCN_FIRST + 3);
 
-// MCN_SELECT is sent whenever a selection has occured (via mouse or keyboard)
+// MCN_SELECT is sent whenever a selection has occurred (via mouse or keyboard)
 //
 TYPE
 

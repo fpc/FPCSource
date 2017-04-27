@@ -2162,7 +2162,7 @@ type
 // The exception information stream contains the id of the thread that caused
 // the exception (ThreadId), the exception record for the exception
 // (ExceptionRecord) and an RVA to the thread context where the exception
-// occured.
+// occurred.
 //
 
   PMINIDUMP_EXCEPTION_STREAM = ^MINIDUMP_EXCEPTION_STREAM;

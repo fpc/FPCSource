@@ -239,7 +239,7 @@ type
     cFramesAvailable: DWM_FRAME_COUNT;
 
     // number of rendered frames that were never
-    // displayed because composition occured too late
+    // displayed because composition occurred too late
     cFramesDropped: DWM_FRAME_COUNT;
 
     // number of times an old frame was composed
