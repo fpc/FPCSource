@@ -224,6 +224,9 @@ Function RouteMethodToString (R : TRouteMethod)  : String;
 // Shortcut for THTTPRouter.Service;
 Function HTTPRouter : THTTPRouter;
 
+Const
+  RouteMethodNames : Array[TRouteMethod] of String = ('','','GET','POST','PUT','DELETE','OPTIONS','HEAD','TRACE');
+
 implementation
 
 uses strutils, typinfo;
@@ -395,8 +398,17 @@ begin
 end;
 
 class function THTTPRouter.StringToRouteMethod(const S: String): TRouteMethod;
-begin
 
+
+Var
+  MN : String;
+
+begin
+  Result:=High(TRouteMethod);
+  MN:=Uppercase(S);
+  While (Result>=Low(TRouteMethod)) and (RouteMethodNames[Result]<>MN) do
+    Result:=Pred(Result);
+  if Result=rmAll then Result:=rmUnknown;
 end;
 
 function THTTPRouter.RegisterRoute(const APattern: String;AData : Pointer;

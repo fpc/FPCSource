@@ -287,7 +287,6 @@ type
     FContentFields: TStrings;
     FCookieFields: TStrings;
     FHTTPVersion: String;
-    FHTTPXRequestedWith: String;
     FFields : THeadersArray;
     FVariables : THTTPVariables;
     FQueryFields: TStrings;
@@ -299,7 +298,7 @@ type
     Function GetFieldCount : Integer;
     Function GetContentLength : Integer;
     Procedure SetContentLength(Value : Integer);
-    Function GetFieldOrigin(AIndex : Integer; Out H : THeader; V : THTTPVAriableType) : Boolean;
+    Function GetFieldOrigin(AIndex : Integer; Out H : THeader; Out V : THTTPVAriableType) : Boolean;
     Function GetServerPort : Word;
     Procedure SetServerPort(AValue : Word);
     Function GetSetFieldValue(Index : Integer) : String; virtual;
@@ -412,9 +411,7 @@ type
     FFiles : TUploadedFiles;
     FReturnedPathInfo : String;
     FLocalPathPrefix : string;
-    FServerPort : String;
     FContentRead : Boolean;
-    FContent : String;
     FRouteParams : TStrings;
     function GetLocalPathPrefix: string;
     function GetFirstHeaderLine: String;
@@ -606,9 +603,7 @@ Resourcestring
   SErrInternalUploadedFileError = 'Internal uploaded file configuration error';
   SErrNoSuchUploadedFile        = 'No such uploaded file : "%s"';
   SErrUnknownCookie             = 'Unknown cookie: "%s"';
-  SErrUnsupportedContentType    = 'Unsupported content type: "%s"';
   SErrNoRequestMethod           = 'No REQUEST_METHOD passed from server.';
-  SErrInvalidRequestMethod      = 'Invalid REQUEST_METHOD passed from server: %s.';
 
 const
    hexTable = '0123456789ABCDEF';
@@ -816,7 +811,7 @@ end;
 
 
 function THTTPHeader.GetFieldOrigin(AIndex: Integer; out H: THeader;
-  V: THTTPVAriableType): Boolean;
+  Out V: THTTPVAriableType): Boolean;
 
 
 begin
@@ -1241,10 +1236,9 @@ end;
 procedure TMimeItems.CreateUploadFiles(Files: TUploadedFiles; Vars : TStrings);
 
 Var
-  I,j : Integer;
+  I : Integer;
   P : TMimeItem;
-  LFN,Name,Value : String;
-  U : TUploadedFile;
+  Name,Value : String;
 
 begin
   For I:=Count-1 downto 0 do
@@ -1798,10 +1792,8 @@ procedure TRequest.ProcessMultiPart(Stream: TStream; const Boundary: String;
 Var
   L : TMimeItems;
   B : String;
-  I,J : Integer;
-  S,FF,key, Value : String;
-  FI : TMimeItem;
-  F : TStream;
+  I : Integer;
+  S : String;
 
 begin
 {$ifdef CGIDEBUG} SendMethodEnter('ProcessMultiPart');{$endif CGIDEBUG}
@@ -1935,9 +1927,6 @@ end;
   ---------------------------------------------------------------------}
 
 procedure TUploadedFile.DeleteTempUploadedFile;
-
-Var
-  s: String;
 
 begin
   if (FStream is TFileStream) then

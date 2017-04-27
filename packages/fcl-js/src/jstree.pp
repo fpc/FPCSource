@@ -121,7 +121,7 @@ Type
 
   TJSString = jsbase.TJSString; // beware of jstoken.tjsString
 
-  { TJSFuncDef - e.g. 'function Name(Params)Body' }
+  { TJSFuncDef - part of TJSFunctionDeclarationStatement, e.g. 'function Name(Params)Body' }
 
   TJSFuncDef = Class(TJSObject)
   private
@@ -457,7 +457,7 @@ Type
 
   TJSVariableDeclarationList = Class(TJSBinary); // A->first variable, B->next in list, chained.
 
-  { TJSWithStatement }
+  { TJSWithStatement - with(A)do B; }
 
   TJSWithStatement = Class(TJSBinary); // A-> with expression, B->statement(s)
 

@@ -82,6 +82,8 @@ type
     procedure TestNestedComment3;
     procedure TestNestedComment4;
     procedure TestIdentifier;
+    procedure TestSelf;
+    procedure TestSelfNoToken;
     procedure TestString;
     procedure TestNumber;
     procedure TestChar;
@@ -170,7 +172,6 @@ type
     procedure TestRecord;
     procedure TestRepeat;
     procedure TestResourceString;
-    procedure TestSelf;
     procedure TestSet;
     procedure TestShl;
     procedure TestShr;
@@ -1161,7 +1162,13 @@ end;
 procedure TTestScanner.TestSelf;
 
 begin
+  FScanner.Options:=FScanner.Options + [po_selftoken];
   TestToken(tkself,'self');
+end;
+
+procedure TTestScanner.TestSelfNoToken;
+begin
+  TestToken(tkIdentifier,'self');
 end;
 
 

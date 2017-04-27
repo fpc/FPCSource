@@ -74,6 +74,7 @@ end;
 
 function TSrcContainer.FindElement(const AName: String): TPasElement;
 begin
+  if AName='' then ;
   Result:=Nil;
 end;
 

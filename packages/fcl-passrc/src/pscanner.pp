@@ -383,7 +383,8 @@ type
     po_asmwhole,             // store whole text between asm..end in TPasImplAsmStatement.Tokens
     po_nooverloadedprocs,    // do not create TPasOverloadedProc for procs with same name
     po_keepclassforward,     // disabled: delete class fowards when there is a class declaration
-    po_arrayrangeexpr        // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
+    po_arrayrangeexpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
+    po_selftoken             // Self is a token. For backward compatibility.
     );
   TPOptions = set of TPOption;
 
@@ -929,6 +930,7 @@ begin
   S:=FindStream(AName,ScanIncludes);
   If (S<>Nil) then
     begin
+    S.Position:=0;
     SL:=TStreamLineReader.Create(AName);
     try
       SL.InitFromStream(S);
@@ -1166,7 +1168,7 @@ end;
 function TFileResolver.FindSourceFile(const AName: string): TLineReader;
 begin
   if not FileExists(AName) then
-    Raise EFileNotFoundError.create(Aname)
+    Raise EFileNotFoundError.create(AName)
   else
     try
       Result := CreateFileReader(AName)
@@ -1182,7 +1184,7 @@ Var
 
 begin
   Result:=Nil;
-  FN:=FindIncludeFileName(ANAme);
+  FN:=FindIncludeFileName(AName);
   If (FN<>'') then
     try
       Result := TFileLineReader.Create(FN);
@@ -1300,6 +1302,15 @@ begin
     tkComment:
       if not (FSkipComments or PPIsSkipping) then
         Break;
+    tkSelf:
+      begin
+      if Not (po_selftoken in Options) then
+        begin
+        FCurToken:=tkIdentifier;
+        Result:=FCurToken;
+        end;
+      Break;
+      end;
     else
       if not PPIsSkipping then
         break;
@@ -2073,35 +2084,25 @@ begin
       end;
     '0'..'9':
       begin
+        // 1, 12, 1.2, 1.2E3, 1.E2, 1E2, 1.2E-3, 1E+2
+        // beware of 1..2
         TokenStart := TokenStr;
-        while true do
+        repeat
+          Inc(TokenStr);
+        until not (TokenStr[0] in ['0'..'9']);
+        if (TokenStr[0]='.') and (TokenStr[1]<>'.') then
+          begin
+          inc(TokenStr);
+          while TokenStr[0] in ['0'..'9'] do
+            Inc(TokenStr);
+          end;
+        if TokenStr[0] in ['e', 'E'] then
         begin
           Inc(TokenStr);
-          case TokenStr[0] of
-            '.':
-              begin
-                if TokenStr[1] in ['0'..'9', 'e', 'E'] then
-                begin
-                  Inc(TokenStr);
-                  repeat
-                    Inc(TokenStr);
-                  until not (TokenStr[0] in ['0'..'9', 'e', 'E']);
-                end;
-                break;
-              end;
-            '0'..'9': ;
-            'e', 'E':
-              begin
-                Inc(TokenStr);
-                if TokenStr[0] = '-'  then
-                  Inc(TokenStr);
-                while TokenStr[0] in ['0'..'9'] do
-                  Inc(TokenStr);
-                break;
-              end;
-            else
-              break;
-          end;
+          if TokenStr[0] in ['-','+'] then
+            inc(TokenStr);
+          while TokenStr[0] in ['0'..'9'] do
+            Inc(TokenStr);
         end;
         SectionLength := TokenStr - TokenStart;
         SetLength(FCurTokenString, SectionLength);

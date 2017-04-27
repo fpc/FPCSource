@@ -139,6 +139,7 @@ type
     Procedure TestPropertyImplements;
     Procedure TestPropertyImplementsFullyQualifiedName;
     Procedure TestPropertyReadFromRecordField;
+    procedure TestPropertyReadFromArrayField;
     procedure TestPropertyReadWriteFromRecordField;
     Procedure TestLocalSimpleType;
     Procedure TestLocalSimpleTypes;
@@ -1454,6 +1455,21 @@ begin
   AddMember('Property Something : Integer Read FPoint.X');
   ParseClass;
   AssertProperty(Property1,visPublished,'Something','FPoint.X','','','',0,False,False);
+  AssertNotNull('Have type',Property1.VarType);
+  AssertEquals('Property type class type',TPasUnresolvedTypeRef,Property1.vartype.ClassType);
+  AssertEquals('Property type name','Integer',Property1.vartype.name);
+  Assertequals('No index','',Property1.IndexValue);
+  AssertNull('No Index expression',Property1.IndexExpr);
+  AssertNull('No default expression',Property1.DefaultExpr);
+  Assertequals('Default value','',Property1.DefaultValue);
+end;
+
+procedure TTestClassType.TestPropertyReadFromArrayField;
+begin
+  StartVisibility(visPublished);
+  AddMember('Property Something : Integer Read FPoint.W[x].y.Z');
+  ParseClass;
+  AssertProperty(Property1,visPublished,'Something','FPoint.W[x].y.Z','','','',0,False,False);
   AssertNotNull('Have type',Property1.VarType);
   AssertEquals('Property type class type',TPasUnresolvedTypeRef,Property1.vartype.ClassType);
   AssertEquals('Property type name','Integer',Property1.vartype.name);
