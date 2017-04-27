@@ -269,7 +269,7 @@ procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete,hasCR 
       linecomplete:=true;
     if (c=#10) then
       hasCR:=true;
-    s[0]:=chr(i);
+    setlength(s,i);  
   end;
 
 procedure ReadlnFromFile(var f : file; var S:string;
@@ -324,13 +324,13 @@ procedure ReadlnFromFile(var f : file; var S:string;
            (LastSpacePos>1) then
           begin
 {$ifdef DEBUG}
-            s[0]:=chr(i);
+            setlength(s,i); 
             filename:=strpas(@(filerec(f).Name));
             DebugMessage(filename,'s='+s,1,1);
 {$endif DEBUG}
             i:=LastSpacePos;
 {$ifdef DEBUG}
-            s[0]:=chr(i);
+            setlength(s,i);
             DebugMessage(filename,'reduced to '+s,1,1);
 {$endif DEBUG}
             system.seek(f,LastSpaceFilePos);
@@ -341,13 +341,13 @@ procedure ReadlnFromFile(var f : file; var S:string;
       linecomplete:=true;
     if (c=#10) then
       hasCR:=true;
-    s[0]:=chr(i);
+    setlength(s,i);
   end;
 
 function MemToStr(var B; Count: byte): string;
 var S: string;
 begin
-  S[0]:=chr(Count);
+  setlength(s,count);
   if Count>0 then Move(B,S[1],Count);
   MemToStr:=S;
 end;
@@ -376,7 +376,7 @@ begin
     end
   else if Count>255 then
     Count:=255;
-  CharStr[0]:=chr(Count);
+  setlength(CharStr,Count);
   FillChar(CharStr[1],Count,C);
 end;
 
@@ -389,7 +389,7 @@ begin
       UpCaseStr[I]:=chr(ord(S[I])-32)
     else
       UpCaseStr[I]:=S[I];
-  UpcaseStr[0]:=S[0];
+  Setlength(UpcaseStr,length(s));
 end;
 
 function RExpand(const S: string; MinLen: byte): string;
@@ -598,7 +598,7 @@ begin
   i:=Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
   if (i>0) and (i<=high(hs2)) then
     begin
-      hs2[0]:=chr(strlen(@hs2[1]));
+      setlength(hs2,strlen(@hs2[1]));
       GetShortName:=hs2;
     end;
 {$endif}
@@ -909,8 +909,8 @@ procedure TFastBufStream.Readline(var s:string;var linecomplete,hasCR : boolean)
     if (c=#10) or (getpos>=getsize) then
       linecomplete:=true;
     if (c=#10) then
-      hasCR:=true;
-    s[0]:=chr(i);
+      hasCR:=true; 
+    setlength(s,i);    
   end;
 
 

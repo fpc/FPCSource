@@ -547,7 +547,7 @@ end;
 function CharStr(C: char; Count: byte): string;
 var S: string;
 begin
-  S[0]:=chr(Count);
+  setlength(s,count);
   if Count>0 then FillChar(S[1],Count,C);
   CharStr:=S;
 end;
