@@ -1804,7 +1804,7 @@ begin
 
   ok:=false;
   try
-    if Last.Kind in [pekIdent,pekSelf] then
+    if Last.Kind in [pekIdent,pekSelf,pekNil] then
       begin
       while CurToken in [tkDot] do
         begin
