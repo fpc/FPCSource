@@ -187,7 +187,7 @@
 (Ch: [Ch_Rop1, Ch_Wop2]),
 (Ch: [Ch_Rop1, Ch_Wop2]),
 (Ch: [Ch_RWESI, Ch_WMemEDI, Ch_RWEDI, Ch_RDirFlag]),
-(Ch: [Ch_All, Ch_RDirFlag]),
+(Ch: [Ch_RWESI, Ch_WMemEDI, Ch_RWEDI, Ch_RDirFlag]),
 (Ch: [Ch_RWRSI, Ch_WMemEDI, Ch_RWRDI, Ch_RDirFlag]),
 (Ch: [Ch_RWESI, Ch_WMemEDI, Ch_RWEDI, Ch_RDirFlag]),
 (Ch: [Ch_Wop2, Ch_Rop1]),

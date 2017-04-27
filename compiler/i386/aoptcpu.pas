@@ -197,6 +197,17 @@ unit aoptcpu;
                   RegReadByInstruction := true;
                   exit
                 end;
+            { special handling for SSE MOVSD }
+            if (p.opcode=A_MOVSD) and (p.ops>0) then
+              begin
+                if p.ops<>2 then
+                  internalerror(2017042702);
+                regReadByInstruction := reginop(reg,p.oper[1]^) or
+                  (
+                   (p.oper[0]^.typ=top_reg) and (p.oper[1]^.typ=top_reg) and reginop(reg, p.oper[0]^)
+                  );
+                exit;
+              end;
             with insprop[p.opcode] do
               begin
                 if getregtype(reg)=R_INTREGISTER then
