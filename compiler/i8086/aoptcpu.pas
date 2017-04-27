@@ -28,11 +28,11 @@ unit aoptcpu;
   Interface
 
     uses
-      cpubase, aoptobj, aoptcpub, aopt,
+      cpubase, aoptobj, aoptcpub, aopt, aoptx86,
       aasmtai;
 
     Type
-      TCpuAsmOptimizer = class(TAsmOptimizer)
+      TCpuAsmOptimizer = class(TX86AsmOptimizer)
         function PeepHoleOptPass1Cpu(var p : tai) : boolean; override;
       End;
 
@@ -42,7 +42,6 @@ unit aoptcpu;
       globals,
       verbose,
       cpuinfo,
-      aoptx86,
       aasmcpu;
 
     function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p : tai) : boolean;
