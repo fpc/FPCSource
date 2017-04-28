@@ -202,9 +202,9 @@ unit aoptcpu;
               begin
                 if p.ops<>2 then
                   internalerror(2017042702);
-                regReadByInstruction := reginop(reg,p.oper[1]^) or
+                regReadByInstruction := reginop(reg,p.oper[0]^) or
                   (
-                   (p.oper[0]^.typ=top_reg) and (p.oper[1]^.typ=top_reg) and reginop(reg, p.oper[0]^)
+                   (p.oper[1]^.typ=top_reg) and (p.oper[0]^.typ=top_reg) and reginop(reg, p.oper[1]^)
                   );
                 exit;
               end;
