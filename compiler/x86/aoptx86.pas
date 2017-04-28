@@ -425,6 +425,7 @@ unit aoptx86;
             (p.opcode = A_MOVQ) or
             (p.opcode = A_MOVAPD) or
             (p.opcode = A_MOVAPS)) and
+           (p.ops=2) and  { A_MOVSD can have zero operands, so this check is needed }
            (p.oper[1]^.typ = top_reg) and
            (SuperRegistersEqual(p.oper[1]^.reg,reg)) and
            ((p.oper[0]^.typ = top_const) or
