@@ -15,7 +15,7 @@ Const
 //  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
 //    unixlikes-[beos];
 // 
-  StrUtilsOSes  = [amiga,aros,emx,gba,go32v2,msdos,netware,wince,morphos,nativent,os2,netwlibc,win32,win64]+UnixLikes;
+  StrUtilsOSes  = [amiga,aros,emx,gba,go32v2,msdos,nds,netware,wince,morphos,nativent,os2,netwlibc,win32,win64]+UnixLikes;
   VarUtilsOSes  = [amiga,aros,emx,gba,go32v2,msdos,nds,netware,wince,morphos,nativent,os2,netwlibc,watcom,wii,win32,win64]+UnixLikes;
   ConvUtilsOSes = [nativent,netware,netwlibc,win32,win64,wince]+UnixLikes-[BeOS];
   ConvUtilOSes  = [Go32v2,msdos,os2,emx];

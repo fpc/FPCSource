@@ -28,6 +28,9 @@ unit gd;
 {$IFDEF GBA}
   {$UNDEF FPC_TARGET_SUPPORTS_DYNLIBS}
 {$ENDIF GBA}
+{$IFDEF NDS}
+  {$UNDEF FPC_TARGET_SUPPORTS_DYNLIBS}
+{$ENDIF NDS}
 
 interface
 
@@ -100,7 +103,11 @@ uses
   {$DEFINE gdlib := }
   {$DEFINE clib := }
 {$ENDIF GBA}
-
+{$IFDEF NDS}
+  {$UNDEF LOAD_DYNAMICALLY}
+  {$DEFINE gdlib := }
+  {$DEFINE clib := }
+{$ENDIF NDS}
 
 {$IFNDEF LOAD_DYNAMICALLY}
   {$IFDEF darwin}

@@ -51,6 +51,10 @@ Interface
  {$DEFINE NO_THREADING}
 {$ENDIF GO32V2}
 
+{$IFDEF NDS}
+ {$DEFINE NO_THREADING}
+{$ENDIF NDS}
+
 {$IFDEF NETBSD}
  { NetBSD pthreads are not yet working, try to use fpmake without threads }
   {$DEFINE NO_THREADING}
