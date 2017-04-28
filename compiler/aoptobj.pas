@@ -1584,6 +1584,7 @@ Unit AoptObj;
         ri: tregisterindex;
         reg: TRegister;
         commentstr: AnsiString;
+        registers_found: Boolean;
       begin
         p:=tai(AsmL.First);
         while (p<>AsmL.Last) Do
@@ -1591,12 +1592,31 @@ Unit AoptObj;
             if p.typ=ait_instruction then
               begin
                 commentstr:='Instruction reads';
+                registers_found:=false;
                 for ri in tregisterindex do
                   begin
                     reg:=regnumber_table[ri];
                     if (reg<>NR_NO) and InstructionLoadsFromReg(reg,p) then
-                      commentstr:=commentstr+' '+std_regname(reg);
+                      begin
+                        commentstr:=commentstr+' '+std_regname(reg);
+                        registers_found:=true;
+                      end;
                   end;
+                if not registers_found then
+                  commentstr:=commentstr+' no registers';
+                commentstr:=commentstr+' and writes new values in';
+                registers_found:=false;
+                for ri in tregisterindex do
+                  begin
+                    reg:=regnumber_table[ri];
+                    if (reg<>NR_NO) and RegLoadedWithNewValue(reg,p) then
+                      begin
+                        commentstr:=commentstr+' '+std_regname(reg);
+                        registers_found:=true;
+                      end;
+                  end;
+                if not registers_found then
+                  commentstr:=commentstr+' no registers';
                 AsmL.InsertAfter(tai_comment.Create(strpnew(commentstr)),p);
               end;
             p:=tai(p.next);
