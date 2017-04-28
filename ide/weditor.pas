@@ -6805,8 +6805,7 @@ begin
     S:=GetLineText(Line);
     { Remove all traling spaces PM }
     if not Editor^.IsFlagSet(efKeepTrailingSpaces) then
-      While (Length(S)>0) and (S[Length(S)]=' ') do
-       Dec(S[0]);
+      s:=RTrim(S);
     { if FlagSet(efUseTabCharacters) then
       S:=CompressUsingTabs(S,TabSize);
       }
