@@ -561,7 +561,8 @@ implementation
       var
         p : tregisterindex;
       begin
-        if getregtype(r) in [R_MMREGISTER,R_MMXREGISTER] then
+        if (getregtype(r)=R_MMXREGISTER) or
+          ((getregtype(r)=R_MMREGISTER) and not(getsubreg(r) in [R_SUBMMX,R_SUBMMY])) then
           r:=newreg(getregtype(r),getsupreg(r),R_SUBNONE);
         p:=findreg_by_number(r);
         if p<>0 then
