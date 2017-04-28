@@ -43,7 +43,7 @@ The following constants are userd when handling this array:
 
 FBufferCount :   The number of buffers allocated, minus one.
 FRecordCount :   The number of buffers that is actually filled in.
-FActiveBuffer :  The index of the active record in TDataset.
+FActiveRecord :  The index of the active record in TDataset.
 FCurrentRecord : The index of the supposedly active record in the underlying
                  dataset (ie. the index in the last call to SetToInternalRecord)
                  Call CursorPosChanged to reset FCurrentRecord if the active
@@ -60,7 +60,7 @@ So the following picture follows from this:
    ...
 |               |
 +---------------+
-| FActivebuffer |
+| FActiveRecord |
 +---------------+
 |               |
     ...

@@ -1076,7 +1076,7 @@ Var
   S : TFileStream;
 
 begin
-  S:=TFileStream.Create(FileName,fmOpenRead);
+  S:=TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
   Try
     LoadFromStream(S,BlobType);
   Finally

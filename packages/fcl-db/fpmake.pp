@@ -14,7 +14,6 @@ const
   SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
   DBaseOSes           = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android,os2,dragonfly];
   MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,solaris,win32,win64,android,dragonfly];
-  SqldbWithoutOracleOSes   = [win64];
 
 
 Var
@@ -47,7 +46,7 @@ begin
     P.SourcePath.Add('src/sqldb/mysql', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/odbc', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/examples', SqldbConnectionOSes);
-    P.SourcePath.Add('src/sqldb/oracle', SqldbConnectionOSes-SqldbWithoutOracleOSes);
+    P.SourcePath.Add('src/sqldb/oracle', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/mssql', MSSQLOSes);
     P.SourcePath.Add('src/sdf');
     P.SourcePath.Add('src/json');
@@ -74,7 +73,7 @@ begin
     P.Dependencies.Add('ibase', SqldbConnectionOSes);
     P.Dependencies.Add('mysql', SqldbConnectionOSes);
     P.Dependencies.Add('odbc', SqldbConnectionOSes);
-    P.Dependencies.Add('oracle', SqldbConnectionOSes-SqldbWithoutOracleOSes);
+    P.Dependencies.Add('oracle', SqldbConnectionOSes);
     P.Dependencies.Add('postgres', SqldbConnectionOSes);
     P.Dependencies.Add('sqlite', SqldbConnectionOSes+SqliteOSes);
     P.Dependencies.Add('dblib', MSSQLOSes);
@@ -450,7 +449,7 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('odbcconn');
         end;
-    T:=P.Targets.AddUnit('fpddoracle.pp', DatadictOSes-SqldbWithoutOracleOSes);
+    T:=P.Targets.AddUnit('fpddoracle.pp', DatadictOSes);
       with T.Dependencies do
         begin
           AddUnit('sqldb');
@@ -474,7 +473,7 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('mssqlconn');
         end;
-    T:=P.Targets.AddUnit('fpddregstd.pp', (DatadictOSes*MSSQLOses)-SqldbWithoutOracleOSes);
+    T:=P.Targets.AddUnit('fpddregstd.pp', (DatadictOSes*MSSQLOses));
       with T.Dependencies do
         begin
           AddUnit('fpdatadict');
@@ -693,7 +692,7 @@ begin
           AddUnit('bufdataset');
           AddUnit('dbconst');
         end;
-    T:=P.Targets.AddUnit('oracleconnection.pp', SqldbConnectionOSes-SqldbWithoutOracleOSes);
+    T:=P.Targets.AddUnit('oracleconnection.pp', SqldbConnectionOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin
@@ -817,7 +816,3 @@ begin
   Installer.Run;
 end.
 {$endif ALLPACKAGES}
-
-
-
-
