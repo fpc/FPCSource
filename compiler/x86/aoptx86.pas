@@ -40,6 +40,11 @@ unit aoptx86;
       protected
         { checks whether loading a new value in reg1 overwrites the entirety of reg2 }
         function Reg1WriteOverwritesReg2Entirely(reg1, reg2: tregister): boolean;
+        { checks whether reading the value in reg1 depends on the value of reg2. This
+          is very similar to SuperRegisterEquals, except it takes into account that
+          R_SUBH and R_SUBL are independendent (e.g. reading from AL does not
+          depend on the value in AH). }
+        function Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean;
 
         procedure PostPeepholeOptMov(const p : tai);
 
@@ -259,6 +264,27 @@ unit aoptx86;
             exit(true);
           else
             internalerror(2017042801);
+        end;
+      end;
+
+
+    function TX86AsmOptimizer.Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean;
+      begin
+        if not SuperRegistersEqual(reg1,reg2) then
+          exit(false);
+        if getregtype(reg1)<>R_INTREGISTER then
+          exit(true);  {because SuperRegisterEqual is true}
+        case getsubreg(reg1) of
+          R_SUBL:
+            exit(getsubreg(reg2)<>R_SUBH);
+          R_SUBH:
+            exit(getsubreg(reg2)<>R_SUBL);
+          R_SUBW,
+          R_SUBD,
+          R_SUBQ:
+            exit(true);
+          else
+            internalerror(2017042802);
         end;
       end;
 
