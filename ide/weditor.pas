@@ -6805,7 +6805,7 @@ begin
     S:=GetLineText(Line);
     { Remove all traling spaces PM }
     if not Editor^.IsFlagSet(efKeepTrailingSpaces) then
-      s:=RTrim(S);
+      s:=RTrim(S,False); // removes trailing #0 too
     { if FlagSet(efUseTabCharacters) then
       S:=CompressUsingTabs(S,TabSize);
       }
