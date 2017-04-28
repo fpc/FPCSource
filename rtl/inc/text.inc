@@ -210,7 +210,7 @@ Begin
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$endif FPC_HAS_CPSTRING}
   FileFunc(TextRec(t).OpenFunc)(TextRec(t));
-  { reset the mode to closed when an error has occured }
+  { reset the mode to closed when an error has occurred }
   if InOutRes<>0 then
    TextRec(t).mode:=fmClosed;
 End;

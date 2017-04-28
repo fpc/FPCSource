@@ -1004,7 +1004,7 @@ begin
     show_call_frame(djgpp_exception_state_ptr)
 {$ifdef DPMIEXCP_DEBUG}
   else
-    errln('Exception occured in another context');
+    errln('Exception occurred in another context');
 {$endif def DPMIEXCP_DEBUG}
    ;
   if assigned(djgpp_exception_state_ptr^.__exception_ptr) then
@@ -1016,7 +1016,7 @@ begin
 {$ifdef DPMIEXCP_DEBUG}
   else
     begin
-       errln('First exception occured in another context');
+       errln('First exception occurred in another context');
        djgpp_exception_state_ptr:=djgpp_exception_state_ptr^.__exception_ptr;
        do_faulting_finish_message(false);
     end;
