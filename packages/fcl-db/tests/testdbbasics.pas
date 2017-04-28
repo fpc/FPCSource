@@ -88,6 +88,7 @@ type
     procedure TestMultipleDeleteUpdateBuffer;
     procedure TestDoubleDelete;
     procedure TestMergeChangeLog;
+    procedure TestRevertRecord;
   // index tests
     procedure TestAddIndexInteger;
     procedure TestAddIndexSmallInt;
@@ -1231,6 +1232,7 @@ begin
     begin
     Open;
 
+    // modify records
     for i := 0 to 16 do
       begin
       if i mod 4=0 then
@@ -1242,19 +1244,21 @@ begin
       next;
       end;
 
-    for i := 17 to 20 do
+    // append new records
+    for i := 18 to 21 do
       begin
       append;
-      fieldbyname('id').AsInteger:=i+1;
-      fieldbyname('name').AsString:='TestName'+inttostr(i+1);
+      fieldbyname('id').AsInteger:=i;
+      fieldbyname('name').AsString:='TestName'+inttostr(i);
       post;
       end;
 
+    // delete records #1,5,9,13,17,21 which was modified or appended before
     first;
     for i := 0 to 20 do if i mod 4=0 then
       delete
     else
-       next;
+      next;
 
     First;
     i := 0;
@@ -1279,10 +1283,10 @@ begin
       CancelUpdates;
 
       First;
-      for i := 0 to 16 do
+      for i := 1 to 17 do
         begin
-        CheckEquals(i+1,FieldByName('ID').AsInteger);
-        CheckEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
+        CheckEquals(i, FieldByName('ID').AsInteger);
+        CheckEquals('TestName'+inttostr(i), FieldByName('NAME').AsString);
         next;
         end;
 
@@ -1783,6 +1787,77 @@ begin
     RecNo:=11; CheckEquals('b11', FieldByName(FN).AsString);
     Next;      CheckEquals('b12', FieldByName(FN).AsString);
     end;
+end;
+
+procedure TTestBufDatasetDBBasics.TestRevertRecord;
+begin
+  with DBConnector.GetNDataset(True,1) as TCustomBufDataset do
+  begin
+    Open;
+    // update value in one record and revert them
+    Edit;
+    FieldByName('ID').AsInteger := 100;
+    Post;
+    CheckEquals(100, FieldByName('ID').AsInteger);
+    RevertRecord;
+    CheckEquals(1, FieldByName('ID').AsInteger, 'Revert modified #1');
+    // append new record and delete prior and revert appended
+    AppendRecord([3,'']);
+    InsertRecord([2,'']);
+    Prior;
+    Delete; // 1st
+    Next;
+    RevertRecord; // 3rd
+    CheckEquals(2, FieldByName('ID').AsInteger, 'Revert inserted #1a');
+    RevertRecord; // 2nd
+    CheckTrue(Eof, 'Revert inserted #1b');
+    CancelUpdates; // restores 1st deleted record
+    CheckEquals(1, FieldByName('ID').AsInteger, 'CancelUpdates #1');
+    Close;
+  end;
+
+  with DBConnector.GetNDataset(False,0) as TCustomBufDataset do
+  begin
+    Open;
+    // insert one record and revert them
+    InsertRecord([1,'']);
+    RevertRecord;
+    CheckTrue(Eof);
+    CheckEquals(0, ChangeCount);
+
+    // insert two records and revert them in inverse order
+    AppendRecord([2,'']);
+    InsertRecord([1,'']); // this record in update-buffer is linked to 2
+    RevertRecord;
+    CheckEquals(2, FieldByName('ID').AsInteger);
+    CheckEquals(1, ChangeCount);
+    RevertRecord;
+    CheckTrue(Eof);
+    CheckEquals(0, ChangeCount);
+
+    // insert more records and some delete and some revert
+    AppendRecord([4,'']);
+    InsertRecord([3,'']);
+    InsertRecord([2,'']);
+    InsertRecord([1,'']);
+    CheckEquals(4, ChangeCount);
+    Delete;  // 1
+    CheckEquals(4, ChangeCount);
+    Next;    // 3
+    RevertRecord;
+    CheckEquals(4, FieldByName('ID').AsInteger);
+    CheckEquals(3, ChangeCount);
+    Prior;   // 2
+    RevertRecord;
+    CheckEquals(4, FieldByName('ID').AsInteger);
+    CheckEquals(2, ChangeCount);
+
+    CancelUpdates;
+    CheckTrue(Eof);
+    CheckEquals(0, ChangeCount);
+
+    Close;
+  end;
 end;
 
 procedure TTestBufDatasetDBBasics.FTestXMLDatasetDefinition(ADataset: TDataset);

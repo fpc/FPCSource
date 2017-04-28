@@ -47,11 +47,11 @@ uses
 
 type
   TIBBackupOption=(IBBkpVerbose,IBBkpIgnoreChecksums,IBBkpIgnoreLimbo,IBBkpMetadataOnly,
-     IBBkpNoGarbageCollect,IBBkpOldDescriptions,IBBkpNonTransportable,IBBkpConvert);
+     IBBkpNoGarbageCollect,IBBkpOldDescriptions,IBBkpNonTransportable,IBBkpConvert,IBBkpWait);
   TIBBackupOptions= set of TIBBackupOption;
   TIBRestoreOption=(IBResVerbose,IBResDeactivateIdx,IBResNoShadow,IBResNoValidity,
      IBResOneAtaTime,IBResReplace,IBResCreate,IBResUseAllSpace,IBResAMReadOnly,IBResAMReadWrite,
-     IBFixFssData, IBFixFssMeta);
+     IBFixFssData, IBFixFssMeta,IBResWait);
   TIBRestoreOptions= set of TIBRestoreOption;
   TServiceProtocol=(IBSPLOCAL,IBSPTCPIP,IBSPNETBEUI,IBSPNAMEDPIPE);
   TIBOnOutput= procedure(Sender: TObject; msg: string; IBAdminAction: string) of object;
@@ -82,6 +82,7 @@ type
     FSvcHandle: isc_svc_handle;
     FUseExceptions: boolean;
     FUser: string;
+    FWaitInterval: Integer;
     function CheckConnected(ProcName: string):boolean;
     procedure CheckError(ProcName : string; Status : PISC_STATUS);
     function GetDBInfo:boolean;
@@ -94,7 +95,6 @@ type
     function IBSPBParamSerialize(isccode:byte;value:longint):string;
     function MakeBackupOptions(options:TIBBackupOptions):longint;
     function MakeRestoreOptions(options:TIBRestoreOptions):longint;
-
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -140,6 +140,12 @@ type
     function GetUsers(Users:TStrings):boolean;
     //Get database server log file
     function GetDatabaseLog:boolean;
+    // For Backup, Restore this will check if the service call is still running.
+    function ServiceRunning: Boolean;
+    // Wait till the service stops running, or until aTimeout (in milliseconds) is reached.
+    // Return true if the service stopped, false if timeout reached.
+    // WaitInterval is the interval (in milliseconds) between ServiceRunning calls.
+    function WaitForServiceCompletion(aTimeOut: Integer): Boolean;
     //Get database statistics
     function GetDatabaseStats(Database:string;Options:TIBStatOptions;TableNames:String = ''): boolean;
     //Database server version
@@ -183,10 +189,14 @@ type
     //Event handler for Service output messages
     //Used in Backup and Restore operations and GetLog
     property OnOutput: TIBOnOutput read FOnOutput write FOnOutput;
+    // Interval (in milliseconds) to sleep while waiting for the service operation to end.
+    Property WaitInterval : Integer Read FWaitInterval Write FWaitInterval;
   end;
 
 
 implementation
+
+uses dateutils;
 
 resourcestring
   SErrNotConnected = '%s : %s : Not connected.';
@@ -383,6 +393,7 @@ end;
 destructor TFBAdmin.Destroy;
 begin
   if FSvcHandle<>FB_API_NULLHANDLE then
+  WaitInterval:=100;
     DisConnect;
   FOutput.Destroy;
   inherited Destroy;
@@ -454,7 +465,9 @@ begin
     exit;
     end;
   if IBBkpVerbose in Options then
-    result:=GetOutput('Backup');
+    result:=GetOutput('Backup')
+  else if (IBBkpWait in Options) then
+    WaitForServiceCompletion(0);
 end;
 
 function TFBAdmin.BackupMultiFile(Database: string; Filenames: TStrings;
@@ -483,8 +496,51 @@ begin
     exit;
     end;
   if IBBkpVerbose in Options then
-    result:=GetOutput('BackupMultiFile');
+    result:=GetOutput('BackupMultiFile')
+  else if (IBBkpWait in Options) then
+    WaitForServiceCompletion(0);
 end;
+
+Function TFBAdmin.ServiceRunning : Boolean;
+
+const
+  BUFFERSIZE=1000;
+
+var
+  res:integer;
+  buffer: string;
+  spb:string;
+
+begin
+  FOutput.Clear;
+  spb:=chr(isc_info_svc_running);
+  setlength(buffer,BUFFERSIZE);
+  result:=isc_service_query(@FStatus[0], @FSvcHandle, nil, 0, nil, length(spb),
+          @spb[1],BUFFERSIZE,@buffer[1])=0;
+  if Not Result then
+    CheckError('ServiceRunning',FSTatus);
+  if (Buffer[1]=Char(isc_info_svc_running)) then
+    begin
+    res:=isc_vax_integer(@Buffer[2],4);
+    Result:=res=1;
+    end
+  else
+    IBRaiseError(0,'%s: Service status detection returned wrong result',[self.Name]);
+end;
+
+Function TFBAdmin.WaitForServiceCompletion(aTimeOut : Integer) : Boolean;
+
+Var
+  N : TDateTime;
+
+begin
+  N:=Now;
+  Repeat
+    Sleep(WaitInterval);
+    Result:=not ServiceRunning;
+  until Result or ((aTimeOut<>0) and (MilliSecondsBetween(Now,N)>aTimeOut*WaitInterval));
+end;
+
 
 function TFBAdmin.Restore(Database, Filename: string;
   Options: TIBRestoreOptions; RoleName: string): boolean;
@@ -524,7 +580,9 @@ begin
     exit;
     end;
   if IBResVerbose in Options then
-    result:=GetOutput('Restore');
+    result:=GetOutput('Restore')
+  else if IBResWait in Options then
+    WaitForServiceCompletion(0);
 end;
 
 
