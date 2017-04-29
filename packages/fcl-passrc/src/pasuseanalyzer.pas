@@ -740,11 +740,11 @@ end;
 procedure TPasAnalyzer.UseSection(Section: TPasSection; Mode: TPAUseMode);
 // called by UseModule
 var
-  UsesList: TFPList;
   i: Integer;
   UsedModule: TPasModule;
   Decl: TPasElement;
   OnlyExports: Boolean;
+  UsesClause: TPasUsesClause;
 begin
   // Section is TProgramSection, TLibrarySection, TInterfaceSection, TImplementationSection
   if Mode=paumElement then
@@ -760,12 +760,12 @@ begin
   {$ENDIF}
 
   // used units
-  UsesList:=Section.UsesList;
-  for i:=0 to UsesList.Count-1 do
+  UsesClause:=Section.UsesClause;
+  for i:=0 to length(UsesClause)-1 do
     begin
-    if TObject(UsesList[i]) is TPasModule then
+    if UsesClause[i].Module is TPasModule then
       begin
-      UsedModule:=TPasModule(UsesList[i]);
+      UsedModule:=TPasModule(UsesClause[i].Module);
       if ScopeModule=nil then
         // whole program analysis
         UseModule(UsedModule,paumAllExports)
@@ -1563,21 +1563,21 @@ end;
 
 procedure TPasAnalyzer.EmitSectionHints(Section: TPasSection);
 var
-  UsesList: TFPList;
   i: Integer;
   UsedModule, aModule: TPasModule;
+  UsesClause: TPasUsesClause;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitSectionHints ',GetElModName(Section));
   {$ENDIF}
   // initialization, program or library sections
   aModule:=Section.GetModule;
-  UsesList:=Section.UsesList;
-  for i:=0 to UsesList.Count-1 do
+  UsesClause:=Section.UsesClause;
+  for i:=0 to length(UsesClause)-1 do
     begin
-    if TObject(UsesList[i]) is TPasModule then
+    if UsesClause[i].Module is TPasModule then
       begin
-      UsedModule:=TPasModule(UsesList[i]);
+      UsedModule:=TPasModule(UsesClause[i].Module);
       if CompareText(UsedModule.Name,'system')=0 then continue;
       if FindNode(UsedModule)=nil then
         EmitMessage(20170311191725,mtHint,nPAUnitNotUsed,sPAUnitNotUsed,

@@ -319,10 +319,9 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    Expr: TPasExpr;
-    Identifier: string; // e.g. 'name.space.unitname'
+    Expr: TPasExpr; // name expression
     InFilename: TPrimitiveExpr; // Kind=pekString, can be nil
-    Module: TPasElement; // TPasUnresolvedTypeRef or TPasModule
+    Module: TPasElement; // TPasUnresolvedUnitRef or TPasModule
   end;
   TPasUsesClause = array of TPasUsesUnit;
 
@@ -332,12 +331,13 @@ type
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
-    procedure AddUnitToUsesList(const AUnitName: string);
+    function AddUnitToUsesList(const AUnitName: string; aName: TPasExpr = nil;
+      InFilename: TPrimitiveExpr = nil; aModule: TPasElement = nil): TPasUsesUnit;
     function ElementTypeName: string; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    UsesList: TFPList;   // kept for compatibility, see UsesClause Module
+    UsesList: TFPList; // kept for compatibility, see TPasUsesUnit.Module
     UsesClause: TPasUsesClause;
   end;
 
@@ -4028,14 +4028,26 @@ begin
   {$IFDEF VerbosePasTreeMem}writeln('TPasSection.Destroy END');{$ENDIF}
 end;
 
-procedure TPasSection.AddUnitToUsesList(const AUnitName: string);
+function TPasSection.AddUnitToUsesList(const AUnitName: string;
+  aName: TPasExpr; InFilename: TPrimitiveExpr; aModule: TPasElement
+  ): TPasUsesUnit;
 var
   l: Integer;
 begin
-  UsesList.Add(TPasUnresolvedTypeRef.Create(AUnitName, Self));
+  if (InFilename<>nil) and (InFilename.Kind<>pekString) then
+    raise Exception.Create('');
+  if aModule=nil then
+    aModule:=TPasUnresolvedUnitRef.Create(AUnitName, Self);
   l:=length(UsesClause);
   SetLength(UsesClause,l+1);
-  UsesClause[l]:=TPasUsesUnit.Create(AUnitName,Self);
+  Result:=TPasUsesUnit.Create(AUnitName,Self);
+  UsesClause[l]:=Result;
+  Result.Expr:=aName;
+  Result.InFilename:=InFilename;
+  Result.Module:=aModule;
+
+  UsesList.Add(aModule);
+  aModule.AddRef;
 end;
 
 function TPasSection.ElementTypeName: string;

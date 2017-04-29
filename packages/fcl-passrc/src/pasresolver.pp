@@ -1137,7 +1137,7 @@ type
       Access: TResolvedRefAccess); virtual;
     procedure AccessExpr(Expr: TPasExpr; Access: TResolvedRefAccess);
     procedure FinishModule(CurModule: TPasModule); virtual;
-    procedure FinishUsesList; virtual;
+    procedure FinishUsesClause; virtual;
     procedure FinishTypeSection(El: TPasDeclarations); virtual;
     procedure FinishTypeDef(El: TPasType); virtual;
     procedure FinishEnumType(El: TPasEnumType); virtual;
@@ -3025,54 +3025,56 @@ begin
   {$ENDIF}
 end;
 
-procedure TPasResolver.FinishUsesList;
+procedure TPasResolver.FinishUsesClause;
 var
   Section: TPasSection;
   i: Integer;
-  El, PublicEl: TPasElement;
+  PublicEl, UseModule: TPasElement;
   Scope: TPasSectionScope;
   UsesScope: TPasIdentifierScope;
+  UseUnit: TPasUsesUnit;
 begin
   CheckTopScope(TPasSectionScope);
   Scope:=TPasSectionScope(TopScope);
   Section:=TPasSection(Scope.Element);
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.FinishUsesList Section=',Section.ClassName,' Section.UsesList.Count=',Section.UsesList.Count);
+  writeln('TPasResolver.FinishUsesClause Section=',Section.ClassName,' Section.UsesList.Count=',Section.UsesList.Count);
   {$ENDIF}
   for i:=0 to Section.UsesList.Count-1 do
     begin
-    El:=TPasElement(Section.UsesList[i]);
+    UseUnit:=Section.UsesClause[i];
     {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.FinishUsesList ',GetObjName(El));
+    writeln('TPasResolver.FinishUsesClause ',GetObjName(UseUnit));
     {$ENDIF}
-    if (El.ClassType=TProgramSection) then
-      RaiseInternalError(20160922163346,'used unit is a program: '+GetObjName(El));
+    UseModule:=UseUnit.Module;
+    if (UseModule.ClassType=TProgramSection) then
+      RaiseInternalError(20160922163346,'used unit is a program: '+GetObjName(UseModule));
 
     // add unitname as identifier
-    AddIdentifier(Scope,El.Name,El,pikSimple);
+    AddIdentifier(Scope,UseUnit.Name,UseModule,pikSimple);
 
     // check used unit
     PublicEl:=nil;
-    if (El.ClassType=TLibrarySection) then
-      PublicEl:=El
-    else if (El.ClassType=TPasModule) then
-      PublicEl:=TPasModule(El).InterfaceSection;
+    if (UseModule.ClassType=TLibrarySection) then
+      PublicEl:=UseModule
+    else if (UseModule.ClassType=TPasModule) then
+      PublicEl:=TPasModule(UseModule).InterfaceSection;
     if PublicEl=nil then
-      RaiseInternalError(20160922163352,'uses element has no interface section: '+GetObjName(El));
+      RaiseInternalError(20160922163352,'uses element has no interface section: '+GetObjName(UseModule));
     if PublicEl.CustomData=nil then
       RaiseInternalError(20160922163358,'uses element has no resolver data: '
-        +El.Name+'->'+GetObjName(PublicEl));
+        +UseUnit.Name+'->'+GetObjName(PublicEl));
     if not (PublicEl.CustomData is TPasIdentifierScope) then
       RaiseInternalError(20160922163403,'uses element has invalid resolver data: '
-        +El.Name+'->'+GetObjName(PublicEl)+'->'+PublicEl.CustomData.ClassName);
+        +UseUnit.Name+'->'+GetObjName(PublicEl)+'->'+PublicEl.CustomData.ClassName);
 
     UsesScope:=TPasIdentifierScope(PublicEl.CustomData);
     {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.FinishUsesList Add UsesScope=',GetObjName(UsesScope));
+    writeln('TPasResolver.FinishUsesClause Add UsesScope=',GetObjName(UsesScope));
     {$ENDIF}
     Scope.UsesList.Add(UsesScope);
 
-    EmitElementHints(Section,El);
+    EmitElementHints(Section,UseUnit);
     end;
 end;
 
@@ -8569,7 +8571,7 @@ procedure TPasResolver.FinishScope(ScopeType: TPasScopeType; El: TPasElement);
 begin
   case ScopeType of
   stModule: FinishModule(El as TPasModule);
-  stUsesList: FinishUsesList;
+  stUsesClause: FinishUsesClause;
   stTypeSection: FinishTypeSection(El as TPasDeclarations);
   stTypeDef: FinishTypeDef(El as TPasType);
   stConstDef: FinishConstDef(El as TPasConst);
@@ -11656,11 +11658,18 @@ begin
     ResolvedEl.IdentEl:=El;
     ResolvedEl.Flags:=[rrfReadable,rrfWritable];
     end
-  else if El is TPasModule then
+  else if ElClass=TPasUsesUnit then
+    begin
+    if TPasUsesUnit(El).Module is TPasModule then
+      SetResolverIdentifier(ResolvedEl,btModule,TPasUsesUnit(El).Module,nil,[])
+    else
+      RaiseNotYetImplemented(20170429112047,TPasUsesUnit(El).Module);
+    end
+  else if El.InheritsFrom(TPasModule) then
     SetResolverIdentifier(ResolvedEl,btModule,El,nil,[])
   else if ElClass=TNilExpr then
     SetResolverValueExpr(ResolvedEl,btNil,FBaseTypes[btNil],TNilExpr(El),[rrfReadable])
-  else if El is TPasProcedure then
+  else if El.InheritsFrom(TPasProcedure) then
     begin
     SetResolverIdentifier(ResolvedEl,btProc,El,TPasProcedure(El).ProcType,[rrfCanBeStatement]);
     if El is TPasFunction then
@@ -11668,7 +11677,7 @@ begin
     // Note: the readability of TPasConstructor depends on the context
     // Note: implicit calls are handled in TPrimitiveExpr
     end
-  else if El is TPasProcedureType then
+  else if El.InheritsFrom(TPasProcedureType) then
     begin
     SetResolverIdentifier(ResolvedEl,btContext,El,TPasProcedureType(El),[rrfCanBeStatement]);
     // Note: implicit calls are handled in TPrimitiveExpr

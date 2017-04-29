@@ -16,7 +16,7 @@ type
     FAnalyser : TPasSrcAnalysis;
     FSrc : TStrings;
     FList : TStrings;
-    FStream: TmemoryStream;
+    FStream: TMemoryStream;
   protected
     procedure SetUp; override;
     procedure TearDown; override;

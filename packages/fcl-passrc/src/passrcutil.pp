@@ -195,7 +195,7 @@ begin
   If not Assigned(ASection) then exit;
   if ASection.UsesList.Count=length(ASection.UsesClause) then
     For I:=0 to length(ASection.UsesClause)-1 do
-      List.Add(ASection.UsesClause[i].Identifier)
+      List.Add(ASection.UsesClause[i].Name)
   else
     For I:=0 to ASection.UsesList.Count-1 do
       List.Add(TPasElement(ASection.UsesList[i]).Name);

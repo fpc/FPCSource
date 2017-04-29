@@ -134,7 +134,7 @@ resourcestring
 type
   TPasScopeType = (
     stModule,  // e.g. unit, program, library
-    stUsesList,
+    stUsesClause,
     stTypeSection,
     stTypeDef, // e.g. a TPasType
     stConstDef, // e.g. a TPasConst
@@ -312,7 +312,8 @@ type
     function DoParseExpression(AParent: TPaselement;InitExpr: TPasExpr=nil; AllowEqual : Boolean = True): TPasExpr;
     function DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
     function CheckPackMode: TPackMode;
-    function CheckUseUnit(ASection: TPasSection; AUnitName : string): TPasElement;
+    function AddUseUnit(ASection: TPasSection; AUnitName : string;
+      NameExpr: TPasExpr; InFileExpr: TPrimitiveExpr): TPasElement;
     procedure CheckImplicitUsedUnits(ASection: TPasSection);
     // Overload handling
     procedure AddProcOrFunction(Decs: TPasDeclarations; AProc: TPasProcedure);
@@ -2425,14 +2426,14 @@ begin
 end;
 
 procedure TPasParser.ParseOptionalUsesList(ASection: TPasSection);
-// checks if next token is Uses keyword and read uses list
+// checks if next token is Uses keyword and reads the uses list
 begin
   NextToken;
   if CurToken=tkuses then
     ParseUsesList(ASection)
   else begin
     CheckImplicitUsedUnits(ASection);
-    Engine.FinishScope(stUsesList,ASection);
+    Engine.FinishScope(stUsesClause,ASection);
     UngetToken;
   end;
 end;
@@ -2852,38 +2853,64 @@ begin
   SetBlock(declNone);
 end;
 
-function TPasParser.CheckUseUnit(ASection: TPasSection; AUnitName: string
-  ): TPasElement;
+function TPasParser.AddUseUnit(ASection: TPasSection; AUnitName: string;
+  NameExpr: TPasExpr; InFileExpr: TPrimitiveExpr): TPasElement;
 
-  procedure CheckDuplicateInUsesList(AUnitName : string; UsesList: TFPList);
+  procedure CheckDuplicateInUsesList(AUnitName : string; UsesClause: TPasUsesClause);
   var
     i: Integer;
   begin
-    if UsesList=nil then exit;
-    for i:=0 to UsesList.Count-1 do
-      if CompareText(AUnitName,TPasModule(UsesList[i]).Name)=0 then
+    if UsesClause=nil then exit;
+    for i:=0 to length(UsesClause)-1 do
+      if CompareText(AUnitName,UsesClause[i].Name)=0 then
         ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
   end;
 
+var
+  UnitRef: TPasElement;
 begin
-  if CompareText(AUnitName,CurModule.Name)=0 then
-    begin
-    // System is implicit, except when parsing system unit.
-    if CompareText(AUnitName,'System')=0 then
-      exit;
-    ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
-    end;
-  CheckDuplicateInUsesList(AUnitName,ASection.UsesList);
-  if ASection.ClassType=TImplementationSection then
-    CheckDuplicateInUsesList(AUnitName,CurModule.InterfaceSection.UsesList);
+  Result:=nil;
+  try
+    {$IFDEF VerbosePasParser}
+    writeln('TPasParser.AddUseUnit AUnitName=',AUnitName,' CurModule.Name=',CurModule.Name);
+    {$ENDIF}
+    if CompareText(AUnitName,CurModule.Name)=0 then
+      begin
+      if CompareText(AUnitName,'System')=0 then
+        exit; // for compatibility ignore implicit use of system in system
+      ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
+      end;
+    CheckDuplicateInUsesList(AUnitName,ASection.UsesClause);
+    if ASection.ClassType=TImplementationSection then
+      CheckDuplicateInUsesList(AUnitName,CurModule.InterfaceSection.UsesClause);
 
-  result := Engine.FindModule(AUnitName);  // should we resolve module here when "IN" filename is not known yet?
-  if Assigned(result) then
-    result.AddRef
-  else
-    Result := TPasUnresolvedUnitRef(CreateElement(TPasUnresolvedUnitRef,
-      AUnitName, ASection));
-  ASection.UsesList.Add(Result);
+    UnitRef := Engine.FindModule(AUnitName);  // should we resolve module here when "IN" filename is not known yet?
+    if Assigned(UnitRef) then
+      UnitRef.AddRef
+    else
+      UnitRef := TPasUnresolvedUnitRef(CreateElement(TPasUnresolvedUnitRef,
+        AUnitName, ASection));
+
+    Result:=ASection.AddUnitToUsesList(AUnitName,NameExpr,InFileExpr,UnitRef);
+    if InFileExpr<>nil then
+      begin
+      if UnitRef is TPasModule then
+        begin
+        if TPasModule(UnitRef).Filename='' then
+          TPasModule(UnitRef).Filename:=InFileExpr.Value;
+        end
+      else if UnitRef is TPasUnresolvedUnitRef then
+        TPasUnresolvedUnitRef(UnitRef).FileName:=InFileExpr.Value;
+      end;
+  finally
+    if Result=nil then
+      begin
+      if NameExpr<>nil then
+        NameExpr.Release;
+      if InFileExpr<>nil then
+        InFileExpr.Release;
+      end;
+  end;
 end;
 
 procedure TPasParser.CheckImplicitUsedUnits(ASection: TPasSection);
@@ -2894,43 +2921,60 @@ begin
     begin
     // load implicit units, like 'System'
     for i:=0 to ImplicitUses.Count-1 do
-      CheckUseUnit(ASection,ImplicitUses[i]);
+      AddUseUnit(ASection,ImplicitUses[i],nil,nil);
     end;
 end;
 
 // Starts after the "uses" token
 procedure TPasParser.ParseUsesList(ASection: TPasSection);
 var
-  AUnitName: String;
-  Element: TPasElement;
+  AUnitName, aName: String;
+  NameExpr: TPasExpr;
+  InFileExpr: TPrimitiveExpr;
+  FreeExpr: Boolean;
 begin
   CheckImplicitUsedUnits(ASection);
 
-  Repeat
-    AUnitName := ExpectIdentifier;
-    NextToken;
-    while CurToken = tkDot do
-    begin
-      ExpectIdentifier;
-      AUnitName := AUnitName + '.' + CurTokenString;
+  NameExpr:=nil;
+  InFileExpr:=nil;
+  FreeExpr:=true;
+  try
+    Repeat
+      FreeExpr:=true;
+      AUnitName := ExpectIdentifier;
+      NameExpr:=CreatePrimitiveExpr(ASection,pekString,AUnitName);
       NextToken;
-    end;
-    Element := CheckUseUnit(ASection,AUnitName);
-    if (CurToken=tkin) then
+      while CurToken = tkDot do
       begin
-      ExpectToken(tkString);
-      if (Element is TPasModule) and (TPasmodule(Element).filename='')  then
-        TPasModule(Element).FileName:=curtokenstring
-      else if (Element is TPasUnresolvedUnitRef) then
-        TPasUnresolvedUnitRef(Element).FileName:=curtokenstring;
-      NextToken;
+        ExpectIdentifier;
+        aName:=CurTokenString;
+        AUnitName := AUnitName + '.' + aName;
+        AddToBinaryExprChain(NameExpr,CreatePrimitiveExpr(ASection,pekString,aName),eopSubIdent);
+        NextToken;
       end;
+      if (CurToken=tkin) then
+        begin
+        ExpectToken(tkString);
+        InFileExpr:=CreatePrimitiveExpr(ASection,pekString,CurTokenString);
+        NextToken;
+        end;
+      FreeExpr:=false;
+      AddUseUnit(ASection,AUnitName,NameExpr,InFileExpr);
+      InFileExpr:=nil;
+      NameExpr:=nil;
 
-    if Not (CurToken in [tkComma,tkSemicolon]) then
-      ParseExc(nParserExpectedCommaSemicolon,SParserExpectedCommaSemicolon);
-  Until (CurToken=tkSemicolon);
+      if Not (CurToken in [tkComma,tkSemicolon]) then
+        ParseExc(nParserExpectedCommaSemicolon,SParserExpectedCommaSemicolon);
+    Until (CurToken=tkSemicolon);
+  finally
+    if FreeExpr then
+      begin
+      NameExpr.Release;
+      InFileExpr.Release;
+      end;
+  end;
 
-  Engine.FinishScope(stUsesList,ASection);
+  Engine.FinishScope(stUsesClause,ASection);
 end;
 
 // Starts after the variable name

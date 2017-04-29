@@ -15,7 +15,7 @@ Type
   private
     function GetIf: TInterfaceSection;
     function GetIm: TImplementationSection;
-    function CheckUnit(AIndex: Integer; const AName: String; AList: TFPList): TPasUnresolvedUnitRef;
+    function CheckUnit(AIndex: Integer; const AName: String; Section: TPasSection): TPasUnresolvedUnitRef;
   Protected
     Procedure ParseUnit;
     Procedure ParseProgram;
@@ -98,18 +98,32 @@ begin
 end;
 
 function TTestModuleParser.CheckUnit(AIndex: Integer; const AName: String;
-  AList: TFPList) : TPasUnresolvedUnitRef;
+  Section: TPasSection): TPasUnresolvedUnitRef;
 
 Var
   C : string;
+  AList: TFPList;
+  Clause: TPasUsesClause;
 
 begin
+  Result:=nil;
   C:='Unit '+IntTostr(AIndex)+' ';
+
+  AList:=Section.UsesList;
+  AssertNotNull('Have useslist',AList);
   if (AIndex>=AList.Count) then
     Fail(Format('Index %d larger than unit list count %d',[AIndex,AList.Count ]));
   AssertNotNull('Have pascal element',AList[AIndex]);
   AssertEquals(C+'Correct class',TPasUnresolvedUnitRef,TObject(AList[AIndex]).CLassType);
-  Result:=TPasUnresolvedUnitRef(AList[AIndex]);
+
+  Clause:=Section.UsesClause;
+  if AIndex>=length(Clause) then
+    Fail(Format('Index %d larger than unit list count %d',[AIndex,length(Clause) ]));
+  AssertNotNull('Have pascal element',Clause[AIndex]);
+  AssertEquals(C+'Correct class',TPasUsesUnit,Clause[AIndex].ClassType);
+  AssertNotNull(C+'Has Module',Clause[AIndex].Module);
+  AssertEquals(C+'Correct module class',TPasUnresolvedUnitRef,Clause[AIndex].Module.ClassType);
+  Result:=TPasUnresolvedUnitRef(Clause[AIndex].Module);
   AssertEquals(C+'Unit name correct',AName,Result.Name);
 end;
 
@@ -119,8 +133,10 @@ begin
   StartImplementation;
   ParseUnit;
   AssertEquals('Only system in interface units',1,IntfSection.UsesList.Count);
-  CheckUnit(0,'System',IntfSection.UsesList);
+  AssertEquals('Only system in interface units',1,length(IntfSection.UsesClause));
+  CheckUnit(0,'System',IntfSection);
   AssertEquals('No implementation units',0,ImplSection.UsesList.Count);
+  AssertEquals('No implementation units',0,length(ImplSection.UsesClause));
 end;
 
 procedure TTestModuleParser.TestUnitOneUses;
@@ -130,9 +146,11 @@ begin
   StartImplementation;
   ParseUnit;
   AssertEquals('Two interface units',2,IntfSection.UsesList.Count);
-  CheckUnit(0,'System',IntfSection.UsesList);
-  CheckUnit(1,'a',IntfSection.UsesList);
+  AssertEquals('Two interface units',2,length(IntfSection.UsesClause));
+  CheckUnit(0,'System',IntfSection);
+  CheckUnit(1,'a',IntfSection);
   AssertEquals('No implementation units',0,ImplSection.UsesList.Count);
+  AssertEquals('No implementation units',0,length(ImplSection.UsesClause));
 end;
 
 procedure TTestModuleParser.TestUnitTwoUses;
@@ -141,11 +159,13 @@ begin
   UsesClause(['a','b']);
   StartImplementation;
   ParseUnit;
-  AssertEquals('Two interface units',3,IntfSection.UsesList.Count);
-  CheckUnit(0,'System',IntfSection.UsesList);
-  CheckUnit(1,'a',IntfSection.UsesList);
-  CheckUnit(2,'b',IntfSection.UsesList);
+  AssertEquals('Three interface units',3,IntfSection.UsesList.Count);
+  AssertEquals('Three interface units',3,length(IntfSection.UsesClause));
+  CheckUnit(0,'System',IntfSection);
+  CheckUnit(1,'a',IntfSection);
+  CheckUnit(2,'b',IntfSection);
   AssertEquals('No implementation units',0,ImplSection.UsesList.Count);
+  AssertEquals('No implementation units',0,length(ImplSection.UsesClause));
 end;
 
 procedure TTestModuleParser.TestUnitOneImplUses;
@@ -155,9 +175,11 @@ begin
   UsesClause(['a']);
   ParseUnit;
   AssertEquals('One implementation units',1,ImplSection.UsesList.Count);
-  CheckUnit(0,'a',ImplSection.UsesList);
+  AssertEquals('One implementation units',1,length(ImplSection.UsesClause));
+  CheckUnit(0,'a',ImplSection);
   AssertEquals('Only system in interface units',1,IntfSection.UsesList.Count);
-  CheckUnit(0,'System',IntfSection.UsesList);
+  AssertEquals('Only system in interface units',1,length(IntfSection.UsesClause));
+  CheckUnit(0,'System',IntfSection);
 end;
 
 procedure TTestModuleParser.TestUnitTwoImplUses;
@@ -167,10 +189,12 @@ begin
   UsesClause(['a','b']);
   ParseUnit;
   AssertEquals('One interface unit',1,IntfSection.UsesList.Count);
-  CheckUnit(0,'System',IntfSection.UsesList);
+  AssertEquals('One interface unit',1,length(IntfSection.UsesClause));
+  CheckUnit(0,'System',IntfSection);
   AssertEquals('Two implementation units',2,ImplSection.UsesList.Count);
-  CheckUnit(0,'a',ImplSection.UsesList);
-  CheckUnit(1,'b',ImplSection.UsesList);
+  AssertEquals('Two implementation units',2,length(ImplSection.UsesClause));
+  CheckUnit(0,'a',ImplSection);
+  CheckUnit(1,'b',ImplSection);
 end;
 
 procedure TTestModuleParser.TestEmptyUnitInitialization;
@@ -260,8 +284,9 @@ begin
   Add('begin');
   ParseProgram;
   AssertEquals('Two interface units',2, PasProgram.ProgramSection.UsesList.Count);
-  CheckUnit(0,'System',PasProgram.ProgramSection.UsesList);
-  CheckUnit(1,'a',PasProgram.ProgramSection.UsesList);
+  AssertEquals('Two interface units',2, length(PasProgram.ProgramSection.UsesClause));
+  CheckUnit(0,'System',PasProgram.ProgramSection);
+  CheckUnit(1,'a',PasProgram.ProgramSection);
 end;
 
 procedure TTestModuleParser.TestEmptyProgramUsesTwoUnits;
@@ -270,9 +295,10 @@ begin
   Add('begin');
   ParseProgram;
   AssertEquals('Three interface units',3, PasProgram.ProgramSection.UsesList.Count);
-  CheckUnit(0,'System',PasProgram.ProgramSection.UsesList);
-  CheckUnit(1,'a',PasProgram.ProgramSection.UsesList);
-  CheckUnit(2,'b',PasProgram.ProgramSection.UsesList);
+  AssertEquals('Three interface unit',3, length(PasProgram.ProgramSection.UsesClause));
+  CheckUnit(0,'System',PasProgram.ProgramSection);
+  CheckUnit(1,'a',PasProgram.ProgramSection);
+  CheckUnit(2,'b',PasProgram.ProgramSection);
 end;
 
 procedure TTestModuleParser.TestEmptyProgramUsesUnitIn;
@@ -284,11 +310,12 @@ begin
   UsesClause(['a in ''../a.pas''','b']);
   Add('begin');
   ParseProgram;
-  AssertEquals('One interface unit',3, PasProgram.ProgramSection.UsesList.Count);
-  CheckUnit(0,'System',PasProgram.ProgramSection.UsesList);
-  U:=CheckUnit(1,'a',PasProgram.ProgramSection.UsesList);
+  AssertEquals('Three interface unit',3, PasProgram.ProgramSection.UsesList.Count);
+  AssertEquals('Three interface unit',3, length(PasProgram.ProgramSection.UsesClause));
+  CheckUnit(0,'System',PasProgram.ProgramSection);
+  U:=CheckUnit(1,'a',PasProgram.ProgramSection);
   AssertEquals('Filename','''../a.pas''',U.FileName);
-  CheckUnit(2,'b',PasProgram.ProgramSection.UsesList);
+  CheckUnit(2,'b',PasProgram.ProgramSection);
 end;
 
 procedure TTestModuleParser.TestEmptyLibrary;
@@ -305,8 +332,9 @@ begin
   ParseLibrary;
   AssertEquals('Correct class',TPasLibrary,Module.ClassType);
   AssertEquals('Two interface units',2, PasLibrary.LibrarySection.UsesList.Count);
-  CheckUnit(0,'System',PasLibrary.LibrarySection.UsesList);
-  CheckUnit(1,'a',PasLibrary.LibrarySection.UsesList);
+  AssertEquals('Two interface units',2, length(PasLibrary.LibrarySection.UsesClause));
+  CheckUnit(0,'System',PasLibrary.LibrarySection);
+  CheckUnit(1,'a',PasLibrary.LibrarySection);
 end;
 
 procedure TTestModuleParser.TestEmptyLibraryExports;
