@@ -110,32 +110,32 @@ Label
 
 Asm
   mov CpuFlags, 0
-  pushf
+  pushfd
   pop eax
   mov ecx, eax
   xor eax, 40000h
   push eax
-  popf
-  pushf
+  popfd
+  pushfd
   pop eax
   xor eax, ecx
   jz nocpuid
   push ecx
-  popf
+  popfd
   mov eax, ecx
   xor eax, 200000h
   push eax
-  popf
-  pushf
+  popfd
+  pushfd
   pop eax
   xor eax, ecx
   je nocpuid
 
-  pusha
+  pushad
   mov eax, 1
   cpuid
   mov CpuFlags, edx
-  popa
+  popad
 
 nocpuid:
 end;
