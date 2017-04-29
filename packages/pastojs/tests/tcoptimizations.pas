@@ -24,7 +24,7 @@ unit tcoptimizations;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, fppas2js, pastree,
+  Classes, SysUtils, testregistry, fppas2js, pastree,
   PScanner, PasUseAnalyzer, PasResolver,
   tcmodules;
 
