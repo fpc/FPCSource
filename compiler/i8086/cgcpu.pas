@@ -2873,6 +2873,8 @@ unit cgcpu;
     procedure tcg64f8086.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       var
         op1,op2 : TAsmOp;
+        l2, l3: TAsmLabel;
+        ai: taicpu;
       begin
         case op of
           OP_NEG :
@@ -2895,6 +2897,48 @@ unit cgcpu;
                 a_load64_reg_reg(list,regsrc,regdst);
               cg.a_op_reg_reg(list,OP_NOT,OS_32,regdst.reglo,regdst.reglo);
               cg.a_op_reg_reg(list,OP_NOT,OS_32,regdst.reghi,regdst.reghi);
+              exit;
+            end;
+          OP_SHR,OP_SHL,OP_SAR:
+            begin
+              { load right operators in a register }
+              cg.getcpuregister(list,NR_CX);
+
+              cg.a_load_reg_reg(list,OS_16,OS_16,regsrc.reglo,NR_CX);
+
+              current_asmdata.getjumplabel(l2);
+              current_asmdata.getjumplabel(l3);
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+              list.concat(taicpu.op_const_reg(A_AND,S_W,63,NR_CX));
+              cg.a_jmp_flags(list,F_E,l3);
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+              cg.a_label(list,l2);
+              case op of
+                OP_SHL:
+                  begin
+                    cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                    list.concat(taicpu.op_const_reg(A_SHL,S_W,1,regdst.reglo));
+                    list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(regdst.reglo)));
+                    list.concat(taicpu.op_const_reg(A_RCL,S_W,1,regdst.reghi));
+                    list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(regdst.reghi)));
+                    cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                  end;
+                OP_SHR,OP_SAR:
+                  begin
+                    cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                    cg.a_op_const_reg(list,op,OS_16,1,GetNextReg(regdst.reghi));
+                    list.concat(taicpu.op_const_reg(A_RCR,S_W,1,regdst.reghi));
+                    list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(regdst.reglo)));
+                    list.concat(taicpu.op_const_reg(A_RCR,S_W,1,regdst.reglo));
+                    cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                  end;
+              end;
+              ai:=Taicpu.Op_Sym(A_LOOP,S_W,l2);
+              ai.is_jmp := True;
+              list.Concat(ai);
+              cg.a_label(list,l3);
+
+              cg.ungetcpuregister(list,NR_CX);
               exit;
             end;
         end;

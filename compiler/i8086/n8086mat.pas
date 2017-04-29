@@ -388,8 +388,7 @@ implementation
       var
         hreg64hi,hreg64lo:Tregister;
         v : TConstExprInt;
-        l2,l3:Tasmlabel;
-        ai: taicpu;
+        tmpreg64: tregister64;
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
@@ -413,39 +412,13 @@ implementation
         else
           begin
             { load right operators in a register }
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
-
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u16inttype,right.location,NR_CX);
-
-            { left operator is already in a register }
-            { hence are both in a register }
-            { is it in the case CX ? }
-
-            current_asmdata.getjumplabel(l2);
-            current_asmdata.getjumplabel(l3);
-            emit_const_reg(A_AND,S_W,63,NR_CX);
-            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l3);
-            cg.a_label(current_asmdata.CurrAsmList,l2);
+            tmpreg64.reghi:=NR_NO;
+            tmpreg64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u16inttype,right.location,tmpreg64.reglo);
             if nodetype=shln then
-              begin
-                emit_const_reg(A_SHL,S_W,1,hreg64lo);
-                emit_const_reg(A_RCL,S_W,1,GetNextReg(hreg64lo));
-                emit_const_reg(A_RCL,S_W,1,hreg64hi);
-                emit_const_reg(A_RCL,S_W,1,GetNextReg(hreg64hi));
-              end
+              cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_64,tmpreg64,location.register64)
             else
-              begin
-                emit_const_reg(A_SHR,S_W,1,GetNextReg(hreg64hi));
-                emit_const_reg(A_RCR,S_W,1,hreg64hi);
-                emit_const_reg(A_RCR,S_W,1,GetNextReg(hreg64lo));
-                emit_const_reg(A_RCR,S_W,1,hreg64lo);
-              end;
-            ai:=Taicpu.Op_Sym(A_LOOP,S_W,l2);
-            ai.is_jmp := True;
-            current_asmdata.CurrAsmList.Concat(ai);
-            cg.a_label(current_asmdata.CurrAsmList,l3);
-
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
+              cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_64,tmpreg64,location.register64);
           end;
       end;
 
