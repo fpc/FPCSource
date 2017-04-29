@@ -400,100 +400,31 @@ implementation
         location.register64.reglo:=hreg64lo;
         location.register64.reghi:=hreg64hi;
 
-        v:=0;
         if right.nodetype=ordconstn then
-          v:=Tordconstnode(right).value and 63;
-
-        { shifting by 0 directly coded: }
-        if (right.nodetype=ordconstn) and (v=0) then
           begin
-            { ultra hyper fast shift by 0 }
-          end
-        { shifting by 1 directly coded: }
-        else if (right.nodetype=ordconstn) and (v=1) then
-          begin
+            v:=Tordconstnode(right).value and 63;
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             if nodetype=shln then
-              begin
-                emit_const_reg(A_SHL,S_W,1,hreg64lo);
-                emit_const_reg(A_RCL,S_W,1,GetNextReg(hreg64lo));
-                emit_const_reg(A_RCL,S_W,1,hreg64hi);
-                emit_const_reg(A_RCL,S_W,1,GetNextReg(hreg64hi));
-              end
+              cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_64,v,left.location.register64,location.register64)
             else
-              begin
-                emit_const_reg(A_SHR,S_W,1,GetNextReg(hreg64hi));
-                emit_const_reg(A_RCR,S_W,1,hreg64hi);
-                emit_const_reg(A_RCR,S_W,1,GetNextReg(hreg64lo));
-                emit_const_reg(A_RCR,S_W,1,hreg64lo);
-              end;
-          end
-        { shifting by >=48 }
-        else if (right.nodetype=ordconstn) and (v>=48) then
-          begin
-            if nodetype=shln then
-              begin
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,hreg64lo,GetNextReg(hreg64hi));
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64lo,hreg64lo);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64lo),GetNextReg(hreg64lo));
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64hi,hreg64hi);
-                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_16,v-48,GetNextReg(hreg64hi));
-              end
-            else
-              begin
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,GetNextReg(hreg64hi),hreg64lo);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64hi),GetNextReg(hreg64hi));
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64hi,hreg64hi);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64lo),GetNextReg(hreg64lo));
-                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_16,v-48,hreg64lo);
-              end;
-          end
-        { shifting by 32..47 }
-        else if (right.nodetype=ordconstn) and (v>=32) and (v<=47) then
-          begin
-            if nodetype=shln then
-              begin
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64hi,hreg64hi);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64hi),GetNextReg(hreg64hi));
-                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,v-32,hreg64lo);
-              end
-            else
-              begin
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64lo,hreg64lo);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64lo),GetNextReg(hreg64lo));
-                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,v-32,hreg64hi);
-              end;
-            location.register64.reghi:=hreg64lo;
-            location.register64.reglo:=hreg64hi;
+              cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_64,v,left.location.register64,location.register64);
           end
         else
           begin
             { load right operators in a register }
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
 
-            { shifting by a constant? }
-            if right.nodetype=ordconstn then
-              begin
-                v:=Tordconstnode(right).value and 63;
-                hlcg.a_load_const_reg(current_asmdata.CurrAsmList,u16inttype,v,NR_CX);
-              end
-            else
-              begin
-                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u16inttype,right.location,NR_CX);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u16inttype,right.location,NR_CX);
 
-                { left operator is already in a register }
-                { hence are both in a register }
-                { is it in the case CX ? }
-              end;
+            { left operator is already in a register }
+            { hence are both in a register }
+            { is it in the case CX ? }
 
             current_asmdata.getjumplabel(l2);
             current_asmdata.getjumplabel(l3);
-            { for consts, we don't need the extra checks for 0 or >= 64, since
-              we've already handled them earlier as a special case }
-            if right.nodetype<>ordconstn then
-              begin
-                emit_const_reg(A_AND,S_W,63,NR_CX);
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l3);
-              end;
+            emit_const_reg(A_AND,S_W,63,NR_CX);
+            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l3);
             cg.a_label(current_asmdata.CurrAsmList,l2);
             if nodetype=shln then
               begin

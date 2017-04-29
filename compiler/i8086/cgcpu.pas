@@ -2913,6 +2913,8 @@ unit cgcpu;
     procedure tcg64f8086.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       var
         op1,op2 : TAsmOp;
+        loop_start: TAsmLabel;
+        ai: taicpu;
       begin
         case op of
           OP_AND,OP_OR,OP_XOR:
@@ -2953,6 +2955,202 @@ unit cgcpu;
                   list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),GetNextReg(reg.reghi)));
                   cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
+            end;
+          OP_SHR,OP_SHL,OP_SAR:
+            begin
+              value:=value and 63;
+              case value of
+                0:
+                  { ultra hyper fast shift by 0 };
+                1:
+                  case op of
+                    OP_SHL:
+                      begin
+                        list.concat(taicpu.op_const_reg(A_SHL,S_W,1,reg.reglo));
+                        list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reglo)));
+                        list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
+                        list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                      end;
+                    OP_SHR,OP_SAR:
+                      begin
+                        cg.a_op_const_reg(list,op,OS_16,1,GetNextReg(reg.reghi));
+                        list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reghi));
+                        list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
+                        list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
+                      end;
+                  end;
+                2..15:
+                  begin
+                    cg.getcpuregister(list,NR_CX);
+                    cg.a_load_const_reg(list,OS_16,value,NR_CX);
+                    current_asmdata.getjumplabel(loop_start);
+                    cg.a_label(list,loop_start);
+                    case op of
+                      OP_SHL:
+                        begin
+                          list.concat(taicpu.op_const_reg(A_SHL,S_W,1,reg.reglo));
+                          list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reglo)));
+                          list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
+                          list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                        end;
+                      OP_SHR,OP_SAR:
+                        begin
+                          cg.a_op_const_reg(list,op,OS_16,1,GetNextReg(reg.reghi));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reghi));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
+                        end;
+                    end;
+                    ai:=Taicpu.Op_Sym(A_LOOP,S_W,loop_start);
+                    ai.is_jmp := True;
+                    list.Concat(ai);
+                    cg.ungetcpuregister(list,NR_CX);
+                  end;
+                16,17:
+                  begin
+                    case op of
+                      OP_SHL:
+                        begin
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reghi));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reghi);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reglo,GetNextReg(reg.reglo));
+                          cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reglo,reg.reglo);
+                        end;
+                      OP_SHR:
+                        begin
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reglo);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reghi);
+                          cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reghi),GetNextReg(reg.reghi));
+                        end;
+                      OP_SAR:
+                        begin
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reglo);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reghi);
+                          cg.a_op_const_reg(list,OP_SAR,OS_16,15,GetNextReg(reg.reghi));
+                        end;
+                    end;
+                    if value=17 then
+                      case op of
+                        OP_SHL:
+                          begin
+                            list.concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg.reglo)));
+                            list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
+                            list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                          end;
+                        OP_SHR,OP_SAR:
+                          begin
+                            cg.a_op_const_reg(list,op,OS_16,1,reg.reghi);
+                            list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
+                            list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
+                          end;
+                      end;
+                  end;
+                18..31:
+                  begin
+                    case op of
+                      OP_SHL:
+                        begin
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reghi));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reghi);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reglo,GetNextReg(reg.reglo));
+                          cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reglo,reg.reglo);
+                        end;
+                      OP_SHR:
+                        begin
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reglo);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reghi);
+                          cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reghi),GetNextReg(reg.reghi));
+                        end;
+                      OP_SAR:
+                        begin
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reglo);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reghi);
+                          cg.a_op_const_reg(list,OP_SAR,OS_16,15,GetNextReg(reg.reghi));
+                        end;
+                    end;
+                    cg.getcpuregister(list,NR_CX);
+                    cg.a_load_const_reg(list,OS_16,value-16,NR_CX);
+                    current_asmdata.getjumplabel(loop_start);
+                    cg.a_label(list,loop_start);
+                    case op of
+                      OP_SHL:
+                        begin
+                          list.concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg.reglo)));
+                          list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
+                          list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                        end;
+                      OP_SHR,OP_SAR:
+                        begin
+                          cg.a_op_const_reg(list,op,OS_16,1,reg.reghi);
+                          list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
+                        end;
+                    end;
+                    ai:=Taicpu.Op_Sym(A_LOOP,S_W,loop_start);
+                    ai.is_jmp := True;
+                    list.Concat(ai);
+                    cg.ungetcpuregister(list,NR_CX);
+                  end;
+                32..47:
+                  case op of
+                    OP_SHL:
+                      begin
+                        cg.a_op_const_reg_reg(list,OP_SHL,OS_32,value-32,reg.reglo,reg.reghi);
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reglo,reg.reglo);
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reglo),GetNextReg(reg.reglo));
+                      end;
+                    OP_SHR:
+                      begin
+                        cg.a_op_const_reg_reg(list,OP_SHR,OS_32,value-32,reg.reghi,reg.reglo);
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reghi,reg.reghi);
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reghi),GetNextReg(reg.reghi));
+                      end;
+                    OP_SAR:
+                      begin
+                        cg.a_op_const_reg_reg(list,OP_SAR,OS_32,value-32,reg.reghi,reg.reglo);
+                        cg.a_op_const_reg_reg(list,OP_SAR,OS_16,15-(value-32),GetNextReg(reg.reglo),reg.reghi);
+                        cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reghi));
+                      end;
+                  end;
+                48..63:
+                  case op of
+                    OP_SHL:
+                      begin
+                        cg.a_load_reg_reg(list,OS_16,OS_16,reg.reglo,GetNextReg(reg.reghi));
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reglo,reg.reglo);
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reglo),GetNextReg(reg.reglo));
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reghi,reg.reghi);
+                        cg.a_op_const_reg(list,OP_SHL,OS_16,value-48,GetNextReg(reg.reghi));
+                      end;
+                    OP_SHR:
+                      begin
+                        cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reglo);
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reghi),GetNextReg(reg.reghi));
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reghi,reg.reghi);
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reglo),GetNextReg(reg.reglo));
+                        cg.a_op_const_reg(list,OP_SHR,OS_16,value-48,reg.reglo);
+                      end;
+                    OP_SAR:
+                      if value=63 then
+                        begin
+                          cg.a_op_const_reg(list,OP_SAR,OS_16,15,GetNextReg(reg.reghi));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reghi);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reglo);
+                        end
+                      else
+                        begin
+                          cg.a_op_const_reg_reg(list,OP_SAR,OS_16,value-48,GetNextReg(reg.reghi),reg.reglo);
+                          cg.a_op_const_reg_reg(list,OP_SAR,OS_16,15-(value-48),reg.reglo,GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reghi);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),GetNextReg(reg.reghi));
+                        end;
+                  end;
+              end;
             end;
           else
             internalerror(200204021);
