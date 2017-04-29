@@ -1,46 +1,18 @@
 program ttfdump;
 
 {$mode objfpc}{$H+}
+{$codepage utf8}
 
 uses
-  {$IFDEF UNIX}{$IFDEF UseCThreads}
-  cwstrings,
-  {$ENDIF}{$ENDIF}
-  Classes, SysUtils, CustApp,
-  fpparsettf, contnrs;
+  {$ifdef unix}cwstring,{$endif}  // required for UnicodeString handling.
+  Classes,
+  SysUtils,
+  CustApp,
+  fpparsettf,
+  FPFontTextMapping,
+  fpTTFSubsetter;
 
 type
-  // forward declarations
-  TTextMapping = class;
-
-
-  TTextMappingList = class(TObject)
-  private
-    FList: TFPObjectList;
-    function GetCount: Integer;
-  protected
-    function    GetItem(AIndex: Integer): TTextMapping; reintroduce;
-    procedure   SetItem(AIndex: Integer; AValue: TTextMapping); reintroduce;
-  public
-    constructor Create;
-    destructor  Destroy; override;
-    function    Add(AObject: TTextMapping): Integer; overload;
-    function    Add(const ACharID, AGlyphID: uint16): Integer; overload;
-    property    Count: Integer read GetCount;
-    property    Items[Index: Integer]: TTextMapping read GetItem write SetItem; default;
-  end;
-
-
-  TTextMapping = class(TObject)
-  private
-    FCharID: uint16;
-    FGlyphID: uint16;
-  public
-    class function NewTextMap(const ACharID, AGlyphID: uint16): TTextMapping;
-    property    CharID: uint16 read FCharID write FCharID;
-    property    GlyphID: uint16 read FGlyphID write FGlyphID;
-  end;
-
 
   TMyApplication = class(TCustomApplication)
   private
@@ -48,6 +20,7 @@ type
     procedure   DumpGlyphIndex;
     function    GetGlyphIndicesString(const AText: UnicodeString): AnsiString; overload;
     function    GetGlyphIndices(const AText: UnicodeString): TTextMappingList; overload;
+    procedure   CreateSubsetFontFile(const AList: TTextMappingList);
   protected
     procedure   DoRun; override;
   public
@@ -56,70 +29,10 @@ type
     procedure   WriteHelp; virtual;
   end;
 
+
   TFriendClass = class(TTFFileInfo)
   end;
 
-{ TTextMappingList }
-
-function TTextMappingList.GetCount: Integer;
-begin
-  Result := FList.Count;
-end;
-
-function TTextMappingList.GetItem(AIndex: Integer): TTextMapping;
-begin
-  Result := TTextMapping(FList.Items[AIndex]);
-end;
-
-procedure TTextMappingList.SetItem(AIndex: Integer; AValue: TTextMapping);
-begin
-  FList.Items[AIndex] := AValue;
-end;
-
-constructor TTextMappingList.Create;
-begin
-  FList := TFPObjectList.Create;
-end;
-
-destructor TTextMappingList.Destroy;
-begin
-  FList.Free;
-  inherited Destroy;
-end;
-
-function TTextMappingList.Add(AObject: TTextMapping): Integer;
-var
-  i: integer;
-begin
-  Result := -1;
-  for i := 0 to FList.Count-1 do
-  begin
-    if TTextMapping(FList.Items[i]).CharID = AObject.CharID then
-      Exit; // mapping already exists
-  end;
-  Result := FList.Add(AObject);
-end;
-
-function TTextMappingList.Add(const ACharID, AGlyphID: uint16): Integer;
-var
-  o: TTextMapping;
-begin
-  o := TTextMapping.Create;
-  o.CharID := ACharID;
-  o.GlyphID := AGlyphID;
-  Result := Add(o);
-  if Result = -1 then
-    o.Free;
-end;
-
-{ TTextMapping }
-
-class function TTextMapping.NewTextMap(const ACharID, AGlyphID: uint16): TTextMapping;
-begin
-  Result := TTextMapping.Create;
-  Result.CharID := ACharID;
-  Result.GlyphID := AGlyphID;
-end;
 
 { TMyApplication }
 
@@ -127,16 +40,16 @@ procedure TMyApplication.DumpGlyphIndex;
 begin
   Writeln('FHHead.numberOfHMetrics = ', FFontFile.HHead.numberOfHMetrics);
   Writeln('Length(Chars[]) = ', Length(FFontFile.Chars));
-
+  writeln;
   writeln('Glyph Index values:');
-  Writeln('U+0020 (space) = ', FFontFile.Chars[$0020]);
-  Writeln('U+0021 (!) = ', FFontFile.Chars[$0021]);
-  Writeln('U+0048 (H) = ', FFontFile.Chars[$0048]);
-
+  Writeln('  U+0020 (space) = ', Format('%d  (%0:4.4x)', [FFontFile.Chars[$0020]]));
+  Writeln('  U+0021 (!) = ', Format('%d  (%0:4.4x)', [FFontFile.Chars[$0021]]));
+  Writeln('  U+0048 (H) = ', Format('%d  (%0:4.4x)', [FFontFile.Chars[$0048]]));
+  writeln;
   Writeln('Glyph widths:');
-  Writeln('3 = ', TFriendClass(FFontFile).ToNatural(FFontFile.Widths[FFontFile.Chars[$0020]].AdvanceWidth));
-  Writeln('4 = ', TFriendClass(FFontFile).ToNatural(FFontFile.Widths[FFontFile.Chars[$0021]].AdvanceWidth));
-  Writeln('H = ', TFriendClass(FFontFile).ToNatural(FFontFile.Widths[FFontFile.Chars[$0048]].AdvanceWidth));
+  Writeln('  3 = ', TFriendClass(FFontFile).ToNatural(FFontFile.Widths[FFontFile.Chars[$0020]].AdvanceWidth));
+  Writeln('  4 = ', TFriendClass(FFontFile).ToNatural(FFontFile.Widths[FFontFile.Chars[$0021]].AdvanceWidth));
+  Writeln('  H = ', TFriendClass(FFontFile).ToNatural(FFontFile.Widths[FFontFile.Chars[$0048]].AdvanceWidth));
 end;
 
 function TMyApplication.GetGlyphIndices(const AText: UnicodeString): TTextMappingList;
@@ -151,6 +64,20 @@ begin
   begin
     c := uint16(AText[i]);
     Result.Add(c, FFontFile.Chars[c]);
+  end;
+end;
+
+procedure TMyApplication.CreateSubsetFontFile(const AList: TTextMappingList);
+var
+  lSubset: TFontSubsetter;
+begin
+  writeln;
+  writeln('called CreateSubsetFontFile...');
+  lSubset := TFontSubsetter.Create(FFontFile, AList);
+  try
+    lSubSet.SaveToFile(ExtractFileName(GetOptionValue('f'))+'.subset.ttf');
+  finally
+    FreeAndNil(lSubSet);
   end;
 end;
 
@@ -177,7 +104,7 @@ var
   i: integer;
 begin
   // quick check parameters
-  ErrorMsg := CheckOptions('hf:', 'help');
+  ErrorMsg := CheckOptions('hf:s', 'help');
   if ErrorMsg <> '' then
   begin
     ShowException(Exception.Create(ErrorMsg));
@@ -196,13 +123,25 @@ begin
   FFontFile.LoadFromFile(self.GetOptionValue('f'));
   DumpGlyphIndex;
 
-  s := 'Hello, World!';
+  // test #1
+//  s := 'Hello, World!';
+  // test #2
+  s := 'Typography: “What’s wrong?”';
+
   Writeln('');
   lst := GetGlyphIndices(s);
   Writeln(Format('%d Glyph indices for: "%s"', [lst.Count, s]));
+  writeln(#9'GID'#9'CharID');
+  writeln(#9'---'#9'------');
   for i := 0 to lst.Count-1 do
-    Writeln(Format(#9'%s'#9'%s', [IntToHex(lst[i].GlyphID, 4), IntToHex(lst[i].CharID, 4)]));
+    Writeln(Format(#9'%s'#9'%s'#9'%s', [IntToHex(lst[i].GlyphID, 4), IntToHex(lst[i].CharID, 4), Char(lst[i].CharID)]));
 
+  if HasOption('s','') then
+    CreateSubsetFontFile(lst);
+  lst.Free;
+
+  writeln;
+  writeln;
   // stop program loop
   Terminate;
 end;
@@ -225,11 +164,13 @@ begin
   writeln('Usage: ', ExeName, ' -h');
   writeln('   -h            Show this help.');
   writeln('   -f <ttf>      Load TTF font file.');
+  writeln('   -s            Generate a subset TTF file.');
 end;
+
+
 
 var
   Application: TMyApplication;
-
 begin
   Application := TMyApplication.Create(nil);
   Application.Title := 'TTF Font Dump';
