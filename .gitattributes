@@ -2634,6 +2634,7 @@ packages/fcl-registry/src/xregreg.inc svneol=native#text/plain
 packages/fcl-registry/tests/Makefile svneol=native#text/plain
 packages/fcl-registry/tests/Makefile.fpc -text
 packages/fcl-registry/tests/regtestframework.pp -text
+packages/fcl-registry/tests/tcxmlreg.pp svneol=native#text/plain
 packages/fcl-registry/tests/testbasics.pp svneol=native#text/plain
 packages/fcl-registry/tests/tregistry2.pp svneol=native#text/plain
 packages/fcl-res/Makefile svneol=native#text/plain
