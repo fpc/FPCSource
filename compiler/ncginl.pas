@@ -800,27 +800,61 @@ implementation
         hlcg.location_force_reg(current_asmdata.CurrAsmList,op1.location,op1.resultdef,resultdef,true);
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+{$ifndef cpu64bitalu}
+        if def_cgsize(resultdef) in [OS_64,OS_S64] then
+          begin
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+          end
+        else
+{$endif not cpu64bitalu}
+          location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
         if assigned(op2) then
           begin
              { rotating by a constant directly coded: }
              if op2.nodetype=ordconstn then
-               hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,
-                 tordconstnode(op2).value.uvalue and (resultdef.size*8-1),
-                 op1.location.register, location.register)
+{$ifndef cpu64bitalu}
+               if def_cgsize(resultdef) in [OS_64,OS_S64] then
+                 cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
+                   tordconstnode(op2).value.uvalue and (resultdef.size*8-1),
+                   op1.location.register64, location.register64)
+               else
+{$endif not cpu64bitalu}
+                 hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,
+                   tordconstnode(op2).value.uvalue and (resultdef.size*8-1),
+                   op1.location.register, location.register)
              else
                begin
-                 hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,
-                                         op2.resultdef,resultdef,true);
-                 hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,resultdef,
-                                       op2.location.register,op1.location.register,
-                                       location.register);
+{$ifndef cpu64bitalu}
+                 if def_cgsize(resultdef) in [OS_64,OS_S64] then
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,
+                                             op2.resultdef,alusinttype,true);
+                     cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
+                                             joinreg64(op2.location.register,NR_NO),op1.location.register64,
+                                             location.register64);
+                   end
+                 else
+{$endif not cpu64bitalu}
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,
+                                             op2.resultdef,resultdef,true);
+                     hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,resultdef,
+                                           op2.location.register,op1.location.register,
+                                           location.register);
+                   end;
                end;
           end
         else
-          hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,1,
-                                  op1.location.register,location.register);
+{$ifndef cpu64bitalu}
+          if def_cgsize(resultdef) in [OS_64,OS_S64] then
+            cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),1,
+                                      op1.location.register64,location.register64)
+          else
+{$endif not cpu64bitalu}
+            hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,1,
+                                    op1.location.register,location.register);
       end;
 
 

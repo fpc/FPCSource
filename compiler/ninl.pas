@@ -4485,7 +4485,7 @@ implementation
        begin
          result:=nil;
          expectloc:=LOC_REGISTER;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpucg64shiftsupport)}
          if is_64bitint(resultdef) then
            begin
              if (inlinenumber=in_sar_x) then
@@ -4494,7 +4494,7 @@ implementation
              result:=ccallnode.createintern('fpc_sarint64',left);
              left:=nil;
            end;
-{$endif cpu64bitalu}
+{$endif not defined(cpu64bitalu) and not defined(cpucg64shiftsupport)}
        end;
 
 
