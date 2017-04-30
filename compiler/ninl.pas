@@ -2023,11 +2023,17 @@ implementation
               if (left.nodetype=callparan) and
                  assigned(tcallparanode(left).right) then
                 begin
+                  vl:=tordconstnode(tcallparanode(left).left).value;
                   if (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
                     begin
                       def:=tcallparanode(tcallparanode(left).right).left.resultdef;
-                      vl:=tordconstnode(tcallparanode(left).left).value;
                       vl2:=tordconstnode(tcallparanode(tcallparanode(left).right).left).value;
+                    end
+                  else if vl=0 then
+                    begin
+                      result:=tcallparanode(tcallparanode(left).right).left;
+                      tcallparanode(tcallparanode(left).right).left:=nil;
+                      exit;
                     end
                   else
                     exit;
