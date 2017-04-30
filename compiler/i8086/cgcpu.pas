@@ -3010,17 +3010,21 @@ unit cgcpu;
                   case op of
                     OP_SHL:
                       begin
+                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                         list.concat(taicpu.op_const_reg(A_SHL,S_W,1,reg.reglo));
                         list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reglo)));
                         list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
                         list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     OP_SHR,OP_SAR:
                       begin
+                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                         cg.a_op_const_reg(list,op,OS_16,1,GetNextReg(reg.reghi));
                         list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reghi));
                         list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
                         list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
+                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                   end;
                 2..15:
@@ -3032,17 +3036,21 @@ unit cgcpu;
                     case op of
                       OP_SHL:
                         begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           list.concat(taicpu.op_const_reg(A_SHL,S_W,1,reg.reglo));
                           list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reglo)));
                           list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
                           list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                       OP_SHR,OP_SAR:
                         begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           cg.a_op_const_reg(list,op,OS_16,1,GetNextReg(reg.reghi));
                           list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reghi));
                           list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
                           list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                     end;
                     ai:=Taicpu.Op_Sym(A_LOOP,S_W,loop_start);
@@ -3079,15 +3087,19 @@ unit cgcpu;
                       case op of
                         OP_SHL:
                           begin
+                            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                             list.concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg.reglo)));
                             list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
                             list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                           end;
                         OP_SHR,OP_SAR:
                           begin
+                            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                             cg.a_op_const_reg(list,op,OS_16,1,reg.reghi);
                             list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
                             list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
+                            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                           end;
                       end;
                   end;
@@ -3123,15 +3135,19 @@ unit cgcpu;
                     case op of
                       OP_SHL:
                         begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           list.concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg.reglo)));
                           list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
                           list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                       OP_SHR,OP_SAR:
                         begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           cg.a_op_const_reg(list,op,OS_16,1,reg.reghi);
                           list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
                           list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                     end;
                     ai:=Taicpu.Op_Sym(A_LOOP,S_W,loop_start);
