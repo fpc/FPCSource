@@ -132,6 +132,9 @@ uses
 {$ifdef aix}
   ,i_aix
 {$endif aix}
+{$ifdef uefi}
+  ,i_uefi
+{$endif uefi}
   ,globtype;
 
 function Compile(const cmd:TCmdStr):longint;

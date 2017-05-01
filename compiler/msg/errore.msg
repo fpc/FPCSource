@@ -3955,6 +3955,7 @@ p*2Tlinux_Linux
 S*2Tsolaris_Solaris
 S*2Tlinux_Linux
 V*2Tembedded_Embedded
+3*2Tuefi_UEFI
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
 **2Un_Do not check where the unit name matches the file name

@@ -89,6 +89,9 @@ implementation
     {$ifndef NOTARGETAROS}
       ,t_aros
     {$endif}
+    {$ifndef NOTTARGETUEFI}
+      ,t_uefi
+    {$endif NOTTARGETUEFI}
 
 {**************************************
              Assemblers

@@ -175,7 +175,8 @@
              system_i8086_win16,        { 89 }
              system_i8086_embedded,     { 90 }
              system_arm_aros,           { 91 }
-             system_wasm_wasm32         { 92 }
+             system_wasm_wasm32,        { 92 }
+             system_i386_uefi           { 93 }
        );
 
      type
@@ -265,7 +266,8 @@
              ld_int_nativent,
              ld_int_netware,
              ld_int_windows,
-             ld_int_msdos
+             ld_int_msdos,
+             ld_int_uefi
        );
 
        tar = (ar_none
