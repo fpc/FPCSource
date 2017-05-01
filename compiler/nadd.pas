@@ -1012,7 +1012,39 @@ implementation
                           end;
                     end;
                   end
-               end;
+              end;
+
+            if is_integer(left.resultdef) and is_integer(right.resultdef) then
+              begin
+                if not might_have_sideeffects(left) and
+                  left.isequal(right) then
+                  begin
+                    case nodetype of
+                      andn,orn:
+                        begin
+                          result:=left;
+                          left:=nil;
+                          exit;
+                        end;
+                      xorn,
+                      subn,
+                      unequaln,
+                      ltn,
+                      gtn:
+                        begin
+                          result:=cordconstnode.create(0,resultdef,true);
+                          exit;
+                        end;
+                      equaln,
+                      lten,
+                      gten:
+                        begin
+                          result:=cordconstnode.create(0,resultdef,true);
+                          exit;
+                        end;
+                    end;
+                  end;
+              end;
 
             { using sqr(x) for reals instead of x*x might reduces register pressure and/or
               memory accesses while sqr(<real>) has no drawback }
