@@ -2107,6 +2107,7 @@ implementation
                   else
                     internalerror(2011061901);
                   end;
+{$pop}
             end
           else if (left.nodetype=callparan) and assigned(tcallparanode(left).right) and
                   (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
