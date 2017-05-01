@@ -1,0 +1,162 @@
+#
+#   Makefile.fpc for Free Pascal UEFI RTL
+#
+
+[package]
+main=rtl
+
+[target]
+loaders=
+#units=system objpas macpas iso7185 buildrtl lineinfo lnfodwrf
+units=system uuchar objpas iso7185 cpall buildrtl strings character fpwidestring heaptrc
+implicitunits= \
+      ctypes strings \
+      heaptrc \
+#      initc cmem dynlibs signals \
+#      dos \
+      rtlconsts sysconst sysutils math types \
+      typinfo fgl classes \
+      $(CPU_UNITS) charset getopts \
+#      sockets printer \
+#      keyboard
+#      sharemem exeinfo fpintres \
+      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
+      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+
+# shared=$(DLLS)
+
+rsts=math typinfo classes sysconst
+
+[require]
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+target=uefi
+
+[compiler]
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
+
+
+[prerules]
+RTL=..
+INC=$(RTL)/inc
+COMMON=$(RTL)/common
+PROCINC=$(RTL)/$(CPU_TARGET)
+
+UNITPREFIX=rtl
+SYSTEMUNIT=system
+
+CPU_UNITS=
+
+ifeq ($(ARCH),i386)
+CPU_UNITS=cpu mmx
+endif
+
+ifeq ($(ARCH),x86_64)
+CPU_UNITS=x86 cpu
+endif
+
+LOADERS=crt0
+
+ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
+#LOADERS=wprt0 wdllprt0 gprt0 wcygprt0
+DLLS=
+else
+DLLS=fpcmemdll
+endif
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+
+[rules]
+.NOTPARALLEL:
+SYSTEMPPU=$(addsuffix $(PPUEXT),system)
+
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
+
+#
+# Loaders
+#
+
+crt0$(OEXT) : $(CPU_TARGET)/crt0.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)crt0$(OEXT) $(CPU_TARGET)/crt0.as
+
+#
+# Unit specific rules
+#
+
+system$(PPUEXT) : system.pp $(SYSDEPS)
+        $(COMPILER) -Us -Sg system.pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+                   $(SYSTEMUNIT)$(PPUEXT)
+
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
+        $(COMPILER) $(INC)/macpas.pp $(REDIR)
+
+
+#
+# Delphi Compatible Units
+#
+
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+                    objpas$(PPUEXT) $(OBJPASDIR)/sysconst$(PPUEXT) # beos$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) $(OBJPASDIR)/typinfo$(PPUEXT) types$(PPUEXT) $(OBJPASDIR)/rtlconsts$(PPUEXT) 
+#                   $(UNIXINC)/systhrd$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) -Fi$(OBJPASDIR)/classes classes.pp
+
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -Fi$(DDKINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/math.pp
+
+types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+       	$(COMPILER) $(OBJPASDIR)/types.pp
+
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
+
+# let it depend on buildcollations to prevent simultaneous building of unicodedata
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/character.pas
+
+fpwidestring$(PPUEXT) : $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
+
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/heaptrc.pp
