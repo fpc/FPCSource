@@ -702,6 +702,28 @@ implementation
                 result:=left;
                 left:=nil;
               end;
+          end
+        else if is_constintnode(left) then
+          begin
+            lvalue:=tordconstnode(left).value;
+            { shl/shr are unsigned operations, so cut off upper bits }
+            case resultdef.size of
+              1:
+                lvalue:=tordconstnode(left).value and byte($ff);
+              2:
+                lvalue:=tordconstnode(left).value and word($ffff);
+              4:
+                lvalue:=tordconstnode(left).value and dword($ffffffff);
+              8:
+                lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
+              else
+                internalerror(2013122301);
+            end;
+            { '0 shl x' and '0 shr x' are 0 }
+            if (lvalue=0) and
+               ((cs_opt_level4 in current_settings.optimizerswitches) or
+                not might_have_sideeffects(right)) then
+              result:=cordconstnode.create(0,resultdef,true);
           end;
       end;
 
