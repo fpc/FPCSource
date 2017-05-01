@@ -50,7 +50,7 @@ Works:
   - chr(integer)  -> String.fromCharCode(integer)
 - string
   - literals
-  - setlength(s,newlen) -> s.length == newlen
+  - setlength(s,newlen) -> s = rtl.strSetLength(s,newlen)
   - read and write char aString[]
   - allow only String, no ShortString, AnsiString, UnicodeString,...
   - allow type casting string to external class name 'String'
@@ -307,7 +307,7 @@ Not in Version 1.0:
   -O1 insert unit vars for complex literals
   -O1 no function Result var when assigned only once
   - SetLength(scope.a,l) -> read scope only once, same for
-    Include, Exclude, Inc, Dec
+    Include, Exclude, Inc, Dec, +=, -=, *=, /=
   -O1 replace constant expression with result
   -O1 pass array element by ref: when index is constant, use that directly
 - objects, interfaces, advanced records
@@ -438,6 +438,7 @@ type
     pbifnSet_SymDiffSet,
     pbifnSet_Union,
     pbifnSpaceLeft,
+    pbifnStringSetLength,
     pbifnUnitInit,
     pbivnExceptObject,
     pbivnImplementation,
@@ -534,6 +535,7 @@ const
     'symDiffSet', // rtl.symDiffSet >< (symmetrical difference)
     'unionSet', // rtl.unionSet +
     'spaceLeft', // rtl.spaceLeft
+    'strSetLength',
     '$init',
     '$e',
     '$impl',
@@ -5883,8 +5885,7 @@ var
   ResolvedParam0: TPasResolverResult;
   ArrayType: TPasArrayType;
   Call: TJSCallExpression;
-  ValInit, Arg: TJSElement;
-  AssignSt: TJSSimpleAssignStatement;
+  ValInit: TJSElement;
   AssignContext: TAssignContext;
   ElType: TPasType;
 begin
@@ -5936,21 +5937,26 @@ begin
     end
   else if ResolvedParam0.BaseType=btString then
     begin
-    // convert "SetLength(string,NewLen);" to "string.length == NewLen;"
+    // convert "SetLength(astring,NewLen);" to "astring = rtl.strSetLength(astring,NewLen);"
     {$IFDEF VerbosePasResolver}
     writeln('TPasToJSConverter.ConvertBuiltInSetLength string');
     {$ENDIF}
-    AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+    AssignContext:=TAssignContext.Create(El,nil,AContext);
     try
-      Arg:=ConvertElement(Param0,AContext);
-      // left side: string.length
-      AssignSt.LHS:=CreateDotExpression(El,Arg,CreateBuiltInIdentifierExpr('length'));
-      // right side: newlength
-      AssignSt.Expr:=ConvertElement(El.Params[1],AContext);
-      Result:=AssignSt;
+      AContext.Resolver.ComputeElement(Param0,AssignContext.LeftResolved,[rcNoImplicitProc]);
+      AssignContext.RightResolved:=AssignContext.LeftResolved;
+
+      // create right side  rtl.strSetLength(aString,NewLen)
+      Call:=CreateCallExpression(El);
+      AssignContext.RightSide:=Call;
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnStringSetLength]]);
+      Call.AddArg(ConvertElement(Param0,AContext));
+      Call.AddArg(ConvertElement(El.Params[1],AContext));
+
+      Result:=CreateAssignStatement(Param0,AssignContext);
     finally
-      if Result=nil then
-        AssignSt.Free;
+      AssignContext.RightSide.Free;
+      AssignContext.Free;
     end;
     end
   else

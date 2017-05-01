@@ -292,6 +292,7 @@ type
     Procedure TestArrayElement_AsParams;
     Procedure TestArrayElementFromFuncResult_AsParams;
     Procedure TestArrayEnumTypeRange;
+    Procedure TestArray_SetLengthOutArg;
     Procedure TestArray_SetLengthProperty;
     Procedure TestArray_OpenArrayOfString;
     Procedure TestArray_Concat;
@@ -3853,16 +3854,25 @@ end;
 procedure TTestModule.TestString_SetLength;
 begin
   StartProgram(false);
-  Add('var s: string;');
-  Add('begin');
-  Add('  SetLength(s,3);');
+  Add([
+  'procedure DoIt(var s: string);',
+  'begin',
+  '  SetLength(s,2);',
+  'end;',
+  'var s: string;',
+  'begin',
+  '  SetLength(s,3);',
+  '']);
   ConvertProgram;
   CheckSource('TestString_SetLength',
     LinesToStr([ // statements
-    'this.s = "";'
-    ]),
+    'this.DoIt = function (s) {',
+    '  s.set(rtl.strSetLength(s.get(), 2));',
+    '};',
+    'this.s = "";',
+    '']),
     LinesToStr([ // this.$main
-    '$mod.s.length = 3;'
+    '$mod.s = rtl.strSetLength($mod.s, 3);'
     ]));
 end;
 
@@ -4947,6 +4957,28 @@ begin
     '$mod.e = $mod.TEnum.blue;',
     '$mod.i = $mod.a[$mod.TEnum.red]+2;',
     '$mod.a[$mod.e] = $mod.a[$mod.e];',
+    '']));
+end;
+
+procedure TTestModule.TestArray_SetLengthOutArg;
+begin
+  StartProgram(false);
+  Add([
+  'type TArrInt = array of longint;',
+  'procedure DoIt(out a: TArrInt);',
+  'begin',
+  '  SetLength(a,2);',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_SetLengthOutArg',
+    LinesToStr([ // statements
+    'this.DoIt = function (a) {',
+    '  a.set(rtl.arraySetLength(a.get(), 2, 0));',
+    '};',
+    '']),
+    LinesToStr([
     '']));
 end;
 
