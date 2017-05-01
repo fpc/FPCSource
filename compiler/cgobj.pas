@@ -1545,11 +1545,26 @@ implementation
                if a = 0 then
                  op:=OP_NONE;
             end;
-        OP_SAR,OP_SHL,OP_SHR,OP_ROL,OP_ROR:
+        OP_SAR,OP_SHL,OP_SHR:
            begin
-              if a = 0 then
-                op:=OP_NONE;
+             if a = 0 then
+               op:=OP_NONE;
            end;
+        OP_ROL,OP_ROR:
+          begin
+            case size of
+              OS_64,OS_S64:
+                a:=a and 63;
+              OS_32,OS_S32:
+                a:=a and 31;
+              OS_16,OS_S16:
+                a:=a and 15;
+              OS_8,OS_S8:
+                a:=a and 7;
+            end;
+            if a = 0 then
+              op:=OP_NONE;
+          end;
         end;
       end;
 
