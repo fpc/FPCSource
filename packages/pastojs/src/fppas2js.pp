@@ -1107,6 +1107,7 @@ type
     Function CreateBuiltInIdentifierExpr(AName: string): TJSPrimaryExpressionIdent;
     Function CreateSubDeclNameExpr(El: TPasElement; const Name: string;
       AContext: TConvertContext): TJSPrimaryExpressionIdent;
+    Function CreateIdentifierExpr(El: TPasElement; AContext: TConvertContext): TJSPrimaryExpressionIdent;
     Function CreateIdentifierExpr(AName: string; El: TPasElement; AContext: TConvertContext): TJSPrimaryExpressionIdent;
     Function CreateSwitchStatement(El: TPasImplCaseOf; AContext: TConvertContext): TJSElement;
     Function CreateTypeDecl(El: TPasType; AContext: TConvertContext): TJSElement;
@@ -3403,13 +3404,13 @@ Var
   OuterSrc , Src: TJSSourceElements;
   RegModuleCall: TJSCallExpression;
   ArgArray: TJSArguments;
-  UsesList: TFPList;
   FunDecl, ImplFunc: TJSFunctionDeclarationStatement;
   UsesSection: TPasSection;
   ModuleName, ModVarName: String;
   IntfContext: TSectionContext;
   ImplVarSt: TJSVariableStatement;
   HasImplUsesList: Boolean;
+  UsesList: TFPList;
 begin
   Result:=Nil;
   OuterSrc:=TJSSourceElements(CreateElement(TJSSourceElements, El));
@@ -4261,12 +4262,20 @@ begin
   Result:=CreateDotExpression(El,Left,Right);
 end;
 
+function TPasToJSConverter.CreateIdentifierExpr(El: TPasElement;
+  AContext: TConvertContext): TJSPrimaryExpressionIdent;
+var
+  I: TJSPrimaryExpressionIdent;
+begin
+  I:=TJSPrimaryExpressionIdent(CreateElement(TJSPrimaryExpressionIdent,El));
+  I.Name:=TJSString(TransformVariableName(El,AContext));
+  Result:=I;
+end;
+
 function TPasToJSConverter.CreateIdentifierExpr(AName: string; El: TPasElement;
   AContext: TConvertContext): TJSPrimaryExpressionIdent;
-
 Var
   I : TJSPrimaryExpressionIdent;
-
 begin
   I:=TJSPrimaryExpressionIdent(CreateElement(TJSPrimaryExpressionIdent,El));
   AName:=TransformVariableName(El,AName,AContext);
@@ -6025,21 +6034,96 @@ end;
 
 function TPasToJSConverter.ConvertBuiltIn_IncDec(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
-// convert inc(a,b) to a+=b
-// convert dec(a,b) to a-=b
+{ inc(a) or inc(a,b)
+ if a is a variable:
+   convert inc(a,b) to a+=b
+ if a is a var/out arg:
+   convert inc(a,b) to a.set(a.get+b)
+ if a is a property
+   Getter: field, procedure
+ if a is an indexed-property
+   Getter: field, procedure
+ if a is a property with index-specifier
+   Getter: field, procedure
+}
 var
   AssignSt: TJSAssignStatement;
+  Expr: TPasExpr;
+  ExprResolved: TPasResolverResult;
+  ExprArg: TPasArgument;
+  ValueJS: TJSElement;
+  Call: TJSCallExpression;
+  IsInc: Boolean;
+  AddJS: TJSAdditiveExpression;
 begin
-  if CompareText((El.Value as TPrimitiveExpr).Value,'inc')=0 then
-    AssignSt:=TJSAddEqAssignStatement(CreateElement(TJSAddEqAssignStatement,El))
-  else
-    AssignSt:=TJSSubEqAssignStatement(CreateElement(TJSSubEqAssignStatement,El));
-  Result:=AssignSt;
-  AssignSt.LHS:=ConvertExpression(El.Params[0],AContext);
+  Result:=nil;
+  IsInc:=CompareText((El.Value as TPrimitiveExpr).Value,'inc')=0;
+  Expr:=El.Params[0];
+  AContext.Resolver.ComputeElement(Expr,ExprResolved,[]);
+
+  // convert value
   if length(El.Params)=1 then
-    AssignSt.Expr:=CreateLiteralNumber(El,1)
+    ValueJS:=CreateLiteralNumber(El,1)
   else
-    AssignSt.Expr:=ConvertExpression(El.Params[1],AContext);
+    ValueJS:=ConvertExpression(El.Params[1],AContext);
+
+  // check target variable
+  AssignSt:=nil;
+  Call:=nil;
+  try
+    if ExprResolved.IdentEl is TPasArgument then
+      begin
+      ExprArg:=TPasArgument(ExprResolved.IdentEl);
+      if ExprArg.Access in [argVar,argOut] then
+        begin
+        // target variable is a reference
+        // -> convert inc(ref,b)  to  ref.set(ref.get()+b)
+        Call:=CreateCallExpression(El);
+        // create "ref.set"
+        Call.Expr:=CreateDotExpression(El,
+          CreateIdentifierExpr(ExprResolved.IdentEl,AContext),
+          CreateBuiltInIdentifierExpr(TempRefObjSetterName));
+        // create "+"
+        if IsInc then
+          AddJS:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,El))
+        else
+          AddJS:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,El));
+        Call.AddArg(AddJS);
+        // create "ref.get()"
+        AddJS.A:=TJSCallExpression(CreateElement(TJSCallExpression,El));
+        TJSCallExpression(AddJS.A).Expr:=CreateDotExpression(El,
+          CreateIdentifierExpr(ExprResolved.IdentEl,AContext),
+          CreateBuiltInIdentifierExpr(TempRefObjGetterName));
+        // add "b"
+        AddJS.B:=ValueJS;
+        ValueJS:=nil;
+
+        Result:=Call;
+        exit;
+        end;
+      end
+    else if ExprResolved.IdentEl is TPasProperty then
+      begin
+      RaiseNotSupported(Expr,AContext,20170501151316);
+      end;
+
+    // convert inc(avar,b)  to  a+=b
+    if IsInc then
+      AssignSt:=TJSAddEqAssignStatement(CreateElement(TJSAddEqAssignStatement,El))
+    else
+      AssignSt:=TJSSubEqAssignStatement(CreateElement(TJSSubEqAssignStatement,El));
+    AssignSt.LHS:=ConvertExpression(El.Params[0],AContext);
+    AssignSt.Expr:=ValueJS;
+    ValueJS:=nil;
+    Result:=AssignSt;
+  finally
+    ValueJS.Free;
+    if Result=nil then
+      begin
+      AssignSt.Free;
+      Call.Free;
+      end;
+  end;
 end;
 
 function TPasToJSConverter.ConvertBuiltIn_Assigned(El: TParamsExpr;

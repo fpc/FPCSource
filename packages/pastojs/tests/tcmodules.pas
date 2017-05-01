@@ -357,6 +357,7 @@ type
     Procedure TestClass_NestedSelf;
     Procedure TestClass_NestedClassSelf;
     Procedure TestClass_NestedCallInherited;
+    Procedure TestClass_TObjectFree; // ToDO
 
     // class of
     Procedure TestClassOf_Create;
@@ -1678,16 +1679,27 @@ end;
 procedure TTestModule.TestIncDec;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  Bar: longint;');
-  Add('begin');
-  Add('  inc(bar);');
-  Add('  inc(bar,2);');
-  Add('  dec(bar);');
-  Add('  dec(bar,3);');
+  Add([
+  'procedure DoIt(var i: longint);',
+  'begin',
+  '  inc(i);',
+  '  inc(i,2);',
+  'end;',
+  'var',
+  '  Bar: longint;',
+  'begin',
+  '  inc(bar);',
+  '  inc(bar,2);',
+  '  dec(bar);',
+  '  dec(bar,3);',
+  '']);
   ConvertProgram;
   CheckSource('TestIncDec',
     LinesToStr([ // statements
+    'this.DoIt = function (i) {',
+    '  i.set(i.get()+1);',
+    '  i.set(i.get()+2);',
+    '};',
     'this.Bar = 0;'
     ]),
     LinesToStr([ // this.$main
@@ -8019,6 +8031,59 @@ begin
     '    return Result;',
     '  };',
     '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClass_TObjectFree;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    Obj: tobject;',
+  '    procedure Free;',
+  '  end;',
+  'procedure tobject.free;',
+  'begin',
+  'end;',
+  'function DoIt(o: tobject): tobject;',
+  'var l: tobject;',
+  'begin',
+  '  o.free;',
+  '  o.free();',
+  '  l.free;',
+  '  o.obj.free;',
+  '  o.obj.free();',
+  '  result.Free;',
+  '  result.Free();',
+  'end;',
+  'var o: tobject;',
+  'begin',
+  '  o.free;',
+  '  o.obj.free;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_NestedCallInherited',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.Obj = null;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Free = function () {',
+    '  };',
+    '});',
+    'this.DoIt = function (o) {',
+    '  var Result = null;',
+    '  var l = null;',
+    '  return Result;',
+    '};',
+    'this.o = null;',
     '']),
     LinesToStr([ // $mod.$main
     '']));
