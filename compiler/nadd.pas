@@ -1039,7 +1039,7 @@ implementation
                       lten,
                       gten:
                         begin
-                          result:=cordconstnode.create(0,resultdef,true);
+                          result:=cordconstnode.create(1,resultdef,true);
                           exit;
                         end;
                     end;
