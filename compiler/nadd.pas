@@ -976,8 +976,7 @@ implementation
                   side effects, because this can change the result (e.g., in an
                   or-node that calls the same function twice and first returns
                   false and then true because of a global state change }
-                if not might_have_sideeffects(left) and
-                  left.isequal(right) then
+                if left.isequal(right) and not might_have_sideeffects(left) then
                   begin
                     case nodetype of
                       andn,orn:
@@ -1016,8 +1015,7 @@ implementation
 
             if is_integer(left.resultdef) and is_integer(right.resultdef) then
               begin
-                if not might_have_sideeffects(left) and
-                  left.isequal(right) then
+                if left.isequal(right) and not might_have_sideeffects(left) then
                   begin
                     case nodetype of
                       andn,orn:
