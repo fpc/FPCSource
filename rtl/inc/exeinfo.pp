@@ -23,8 +23,6 @@
 
 {$checkpointer off}
 
-{$mode objfpc}
-
 unit exeinfo;
 interface
 
