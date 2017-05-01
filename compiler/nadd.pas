@@ -1015,7 +1015,8 @@ implementation
 
             if is_integer(left.resultdef) and is_integer(right.resultdef) then
               begin
-                if left.isequal(right) and not might_have_sideeffects(left) then
+                if (cs_opt_level3 in current_settings.optimizerswitches) and
+                   left.isequal(right) and not might_have_sideeffects(left) then
                   begin
                     case nodetype of
                       andn,orn:
