@@ -2107,6 +2107,35 @@ implementation
                   else
                     internalerror(2011061901);
                   end;
+            end
+          else if (left.nodetype=callparan) and assigned(tcallparanode(left).right) and
+                  (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
+            begin
+              def:=tcallparanode(tcallparanode(left).right).left.resultdef;
+              vl2:=tordconstnode(tcallparanode(tcallparanode(left).right).left).value;
+              { rol/ror are unsigned operations, so cut off upper bits }
+              case resultdef.size of
+                1:
+                  vl2:=vl2 and byte($ff);
+                2:
+                  vl2:=vl2 and word($ffff);
+                4:
+                  vl2:=vl2 and dword($ffffffff);
+                8:
+                  vl2:=vl2 and qword($ffffffffffffffff);
+                else
+                  internalerror(2017050101);
+              end;
+              { rol(0,x) and ror(0,x) are 0 }
+              { rol32(ffffffff,x) and ror32(ffffffff,x) are ffffffff, etc. }
+              if ((vl2=0) or
+                  ((resultdef.size=1) and (vl2=$ff)) or
+                  ((resultdef.size=2) and (vl2=$ffff)) or
+                  ((resultdef.size=4) and (vl2=$ffffffff)) or
+                  ((resultdef.size=8) and (vl2=$ffffffffffffffff))) and
+                 ((cs_opt_level4 in current_settings.optimizerswitches) or
+                  not might_have_sideeffects(tcallparanode(left).left)) then
+                result:=cordconstnode.create(vl2,resultdef,true);
             end;
         end;
 
