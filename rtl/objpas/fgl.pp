@@ -15,9 +15,12 @@
  **********************************************************************}
 {$mode objfpc}
 
-{.$define CLASSESINLINE}
+{$define FGLINLINE}
 
-{ be aware, this unit is a prototype and subject to be changed heavily }
+{$ifdef FGLINLINE}
+{$inline on}
+{$endif FGLINLINE}
+
 unit fgl;
 
 interface
@@ -49,7 +52,7 @@ type
     procedure Deref(FromIndex, ToIndex: Integer); overload;
     function Get(Index: Integer): Pointer;
     procedure InternalExchange(Index1, Index2: Integer);
-    function  InternalGet(Index: Integer): Pointer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  InternalGet(Index: Integer): Pointer; {$ifdef FGLINLINE} inline; {$endif}
     procedure InternalPut(Index: Integer; NewItem: Pointer);
     procedure Put(Index: Integer; Item: Pointer);
     procedure QuickSort(L, R: Integer; Compare: TFPSListCompareFunc);
@@ -61,6 +64,7 @@ type
     procedure SetLast(const Value: Pointer);
     function GetFirst: Pointer;
     procedure SetFirst(const Value: Pointer);
+    Procedure CheckIndex(AIndex : Integer); inline;
   public
     constructor Create(AItemSize: Integer = sizeof(Pointer));
     destructor Destroy; override;
@@ -114,32 +118,33 @@ type
       TTypeList = array[0..MaxGListSize] of T;
       PTypeList = ^TTypeList;
       PT = ^T;
-      TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
   {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
-    function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
-    function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  Get(Index: Integer): T; {$ifdef FGLINLINE} inline; {$endif}
+    function  GetList: PTypeList; {$ifdef FGLINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
-    procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetLast: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure SetLast(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetFirst: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure SetFirst(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure Put(Index: Integer; const Item: T); {$ifdef FGLINLINE} inline; {$endif}
+    function GetLast: T; {$ifdef FGLINLINE} inline; {$endif}
+    procedure SetLast(const Value: T); {$ifdef FGLINLINE} inline; {$endif}
+    function GetFirst: T; {$ifdef FGLINLINE} inline; {$endif}
+    procedure SetFirst(const Value: T); {$ifdef FGLINLINE} inline; {$endif}
   public
+    Type
+      TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
     constructor Create;
-    function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Add(const Item: T): Integer; {$ifdef FGLINLINE} inline; {$endif}
+    function Extract(const Item: T): T; {$ifdef FGLINLINE} inline; {$endif}
     property First: T read GetFirst write SetFirst;
-    function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef FGLINLINE} inline; {$endif}
     function IndexOf(const Item: T): Integer;
-    procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure Insert(Index: Integer; const Item: T); {$ifdef FGLINLINE} inline; {$endif}
     property Last: T read GetLast write SetLast;
 {$ifndef VER2_4}
     procedure Assign(Source: TFPGList);
 {$endif VER2_4}
-    function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Remove(const Item: T): Integer; {$ifdef FGLINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
     property List: PTypeList read GetList;
@@ -158,27 +163,27 @@ type
       FFreeObjects: Boolean;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
-    function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
-    function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  Get(Index: Integer): T; {$ifdef FGLINLINE} inline; {$endif}
+    function  GetList: PTypeList; {$ifdef FGLINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
-    procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetLast: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure SetLast(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetFirst: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure SetFirst(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure Put(Index: Integer; const Item: T); {$ifdef FGLINLINE} inline; {$endif}
+    function GetLast: T; {$ifdef FGLINLINE} inline; {$endif}
+    procedure SetLast(const Value: T); {$ifdef FGLINLINE} inline; {$endif}
+    function GetFirst: T; {$ifdef FGLINLINE} inline; {$endif}
+    procedure SetFirst(const Value: T); {$ifdef FGLINLINE} inline; {$endif}
   public
     constructor Create(FreeObjects: Boolean = True);
-    function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Add(const Item: T): Integer; {$ifdef FGLINLINE} inline; {$endif}
+    function Extract(const Item: T): T; {$ifdef FGLINLINE} inline; {$endif}
     property First: T read GetFirst write SetFirst;
-    function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef FGLINLINE} inline; {$endif}
     function IndexOf(const Item: T): Integer;
-    procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure Insert(Index: Integer; const Item: T); {$ifdef FGLINLINE} inline; {$endif}
     property Last: T read GetLast write SetLast;
 {$ifndef VER2_4}
     procedure Assign(Source: TFPGObjectList);
 {$endif VER2_4}
-    function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Remove(const Item: T): Integer; {$ifdef FGLINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
     property List: PTypeList read GetList;
@@ -197,27 +202,27 @@ type
       FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
-    function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
-    function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  Get(Index: Integer): T; {$ifdef FGLINLINE} inline; {$endif}
+    function  GetList: PTypeList; {$ifdef FGLINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
-    procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetLast: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure SetLast(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetFirst: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure SetFirst(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure Put(Index: Integer; const Item: T); {$ifdef FGLINLINE} inline; {$endif}
+    function GetLast: T; {$ifdef FGLINLINE} inline; {$endif}
+    procedure SetLast(const Value: T); {$ifdef FGLINLINE} inline; {$endif}
+    function GetFirst: T; {$ifdef FGLINLINE} inline; {$endif}
+    procedure SetFirst(const Value: T); {$ifdef FGLINLINE} inline; {$endif}
   public
     constructor Create;
-    function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Add(const Item: T): Integer; {$ifdef FGLINLINE} inline; {$endif}
+    function Extract(const Item: T): T; {$ifdef FGLINLINE} inline; {$endif}
     property First: T read GetFirst write SetFirst;
-    function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef FGLINLINE} inline; {$endif}
     function IndexOf(const Item: T): Integer;
-    procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure Insert(Index: Integer; const Item: T); {$ifdef FGLINLINE} inline; {$endif}
     property Last: T read GetLast write SetLast;
 {$ifndef VER2_4}
     procedure Assign(Source: TFPGInterfacedObjectList);
 {$endif VER2_4}
-    function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Remove(const Item: T): Integer; {$ifdef FGLINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
     property List: PTypeList read GetList;
@@ -288,26 +293,26 @@ type
     procedure CopyData(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
     procedure InitOnPtrCompare; override;
-    function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetKey(Index: Integer): TKey; {$ifdef FGLINLINE} inline; {$endif}
+    function GetKeyData(const AKey: TKey): TData; {$ifdef FGLINLINE} inline; {$endif}
+    function GetData(Index: Integer): TData; {$ifdef FGLINLINE} inline; {$endif}
     function KeyCompare(Key1, Key2: Pointer): Integer;
     function KeyCustomCompare(Key1, Key2: Pointer): Integer;
     //function DataCompare(Data1, Data2: Pointer): Integer;
     function DataCustomCompare(Data1, Data2: Pointer): Integer;
-    procedure PutKey(Index: Integer; const NewKey: TKey); {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure PutData(Index: Integer; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure PutKey(Index: Integer; const NewKey: TKey); {$ifdef FGLINLINE} inline; {$endif}
+    procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef FGLINLINE} inline; {$endif}
+    procedure PutData(Index: Integer; const NewData: TData); {$ifdef FGLINLINE} inline; {$endif}
     procedure SetOnKeyCompare(NewCompare: TKeyCompareFunc);
     procedure SetOnDataCompare(NewCompare: TDataCompareFunc);
   public
     constructor Create;
-    function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Add(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
-    function TryGetData(const AKey: TKey; out AData: TData): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure AddOrSetData(const AKey: TKey; const AData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
-    function IndexOf(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef FGLINLINE} inline; {$endif}
+    function Add(const AKey: TKey): Integer; {$ifdef FGLINLINE} inline; {$endif}
+    function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef FGLINLINE} inline; {$endif}
+    function TryGetData(const AKey: TKey; out AData: TData): Boolean; {$ifdef FGLINLINE} inline; {$endif}
+    procedure AddOrSetData(const AKey: TKey; const AData: TData); {$ifdef FGLINLINE} inline; {$endif}
+    function IndexOf(const AKey: TKey): Integer; {$ifdef FGLINLINE} inline; {$endif}
     function IndexOfData(const AData: TData): Integer;
     procedure InsertKey(Index: Integer; const AKey: TKey);
     procedure InsertKeyData(Index: Integer; const AKey: TKey; const AData: TData);
@@ -336,27 +341,27 @@ type
     procedure CopyData(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
     procedure InitOnPtrCompare; override;
-    function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetKey(Index: Integer): TKey; {$ifdef FGLINLINE} inline; {$endif}
+    function GetKeyData(const AKey: TKey): TData; {$ifdef FGLINLINE} inline; {$endif}
+    function GetData(Index: Integer): TData; {$ifdef FGLINLINE} inline; {$endif}
     function KeyCompare(Key1, Key2: Pointer): Integer;
     function KeyCustomCompare(Key1, Key2: Pointer): Integer;
     //function DataCompare(Data1, Data2: Pointer): Integer;
     function DataCustomCompare(Data1, Data2: Pointer): Integer;
-    procedure PutKey(Index: Integer; const NewKey: TKey); {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure PutData(Index: Integer; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure PutKey(Index: Integer; const NewKey: TKey); {$ifdef FGLINLINE} inline; {$endif}
+    procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef FGLINLINE} inline; {$endif}
+    procedure PutData(Index: Integer; const NewData: TData); {$ifdef FGLINLINE} inline; {$endif}
     procedure SetOnKeyCompare(NewCompare: TKeyCompareFunc);
     procedure SetOnDataCompare(NewCompare: TDataCompareFunc);
   public
     constructor Create(AFreeObjects: Boolean);
     constructor Create;
-    function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Add(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
-    function TryGetData(const AKey: TKey; out AData: TData): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure AddOrSetData(const AKey: TKey; const AData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
-    function IndexOf(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef FGLINLINE} inline; {$endif}
+    function Add(const AKey: TKey): Integer; {$ifdef FGLINLINE} inline; {$endif}
+    function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef FGLINLINE} inline; {$endif}
+    function TryGetData(const AKey: TKey; out AData: TData): Boolean; {$ifdef FGLINLINE} inline; {$endif}
+    procedure AddOrSetData(const AKey: TKey; const AData: TData); {$ifdef FGLINLINE} inline; {$endif}
+    function IndexOf(const AKey: TKey): Integer; {$ifdef FGLINLINE} inline; {$endif}
     function IndexOfData(const AData: TData): Integer;
     procedure InsertKey(Index: Integer; const AKey: TKey);
     procedure InsertKeyData(Index: Integer; const AKey: TKey; const AData: TData);
@@ -384,26 +389,26 @@ type
     procedure CopyData(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
     procedure InitOnPtrCompare; override;
-    function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetKey(Index: Integer): TKey; {$ifdef FGLINLINE} inline; {$endif}
+    function GetKeyData(const AKey: TKey): TData; {$ifdef FGLINLINE} inline; {$endif}
+    function GetData(Index: Integer): TData; {$ifdef FGLINLINE} inline; {$endif}
     function KeyCompare(Key1, Key2: Pointer): Integer;
     function KeyCustomCompare(Key1, Key2: Pointer): Integer;
     //function DataCompare(Data1, Data2: Pointer): Integer;
     function DataCustomCompare(Data1, Data2: Pointer): Integer;
-    procedure PutKey(Index: Integer; const NewKey: TKey); {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure PutData(Index: Integer; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure PutKey(Index: Integer; const NewKey: TKey); {$ifdef FGLINLINE} inline; {$endif}
+    procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef FGLINLINE} inline; {$endif}
+    procedure PutData(Index: Integer; const NewData: TData); {$ifdef FGLINLINE} inline; {$endif}
     procedure SetOnKeyCompare(NewCompare: TKeyCompareFunc);
     procedure SetOnDataCompare(NewCompare: TDataCompareFunc);
   public
     constructor Create;
-    function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Add(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
-    function TryGetData(const AKey: TKey; out AData: TData): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure AddOrSetData(const AKey: TKey; const AData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
-    function IndexOf(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef FGLINLINE} inline; {$endif}
+    function Add(const AKey: TKey): Integer; {$ifdef FGLINLINE} inline; {$endif}
+    function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef FGLINLINE} inline; {$endif}
+    function TryGetData(const AKey: TKey; out AData: TData): Boolean; {$ifdef FGLINLINE} inline; {$endif}
+    procedure AddOrSetData(const AKey: TKey; const AData: TData); {$ifdef FGLINLINE} inline; {$endif}
+    function IndexOf(const AKey: TKey): Integer; {$ifdef FGLINLINE} inline; {$endif}
     function IndexOfData(const AData: TData): Integer;
     procedure InsertKey(Index: Integer; const AKey: TKey);
     procedure InsertKeyData(Index: Integer; const AKey: TKey; const AData: TData);
@@ -465,16 +470,14 @@ end;
 
 function TFPSList.Get(Index: Integer): Pointer;
 begin
-  if (Index < 0) or (Index >= FCount) then
-    RaiseIndexError(Index);
+  CheckIndex(Index);
   Result := InternalItems[Index];
 end;
 
 procedure TFPSList.Put(Index: Integer; Item: Pointer);
 var p : Pointer;
 begin
-  if (Index < 0) or (Index >= FCount) then
-    RaiseIndexError(Index);
+  CheckIndex(Index);
   p:=InternalItems[Index];
   if assigned(p) then
     DeRef(p);	
@@ -532,6 +535,14 @@ begin
   Inc(FCount);
 end;
 
+procedure TFPSList.CheckIndex(AIndex : Integer);
+
+begin
+  if (AIndex < 0) or (AIndex >= FCount) then
+    Error(SListIndexError, AIndex);
+end;
+
+
 procedure TFPSList.Clear;
 begin
   if Assigned(FList) then
@@ -545,8 +556,7 @@ procedure TFPSList.Delete(Index: Integer);
 var
   ListItem: Pointer;
 begin
-  if (Index < 0) or (Index >= FCount) then
-    Error(SListIndexError, Index);
+  CheckIndex(Index);
   Dec(FCount);
   ListItem := InternalItems[Index];
   Deref(ListItem);
@@ -588,10 +598,8 @@ end;
 
 procedure TFPSList.Exchange(Index1, Index2: Integer);
 begin
-  if ((Index1 >= FCount) or (Index1 < 0)) then
-    Error(SListIndexError, Index1);
-  if ((Index2 >= FCount) or (Index2 < 0)) then
-    Error(SListIndexError, Index2);
+  CheckIndex(Index1);
+  CheckIndex(Index2);
   InternalExchange(Index1, Index2);
 end;
 
@@ -680,10 +688,8 @@ var
   CurItem, NewItem, TmpItem, Src, Dest: Pointer;
   MoveCount: Integer;
 begin
-  if (CurIndex < 0) or (CurIndex >= Count) then
-    Error(SListIndexError, CurIndex);
-  if (NewIndex < 0) or (NewIndex >= Count) then
-    Error(SListIndexError, NewIndex);
+  CheckIndex(CurIndex);
+  CheckIndex(NewIndex);
   if CurIndex = NewIndex then
     exit;
   CurItem := InternalItems[CurIndex];
@@ -1311,6 +1317,9 @@ var
   I,L,R,Dir: Integer;
 begin
   Result := false;
+  Index := -1;
+  if not Sorted then
+    raise EListError.Create(SErrFindNeedsSortedList);
   // Use binary search.
   L := 0;
   R := FCount-1;
@@ -1544,7 +1553,8 @@ function TFPGMap.TryGetData(const AKey: TKey; out AData: TData): Boolean;
 var
   I: Integer;
 begin
-  Result := inherited Find(@AKey, I);
+  I := IndexOf(AKey);
+  Result := (I >= 0);
   if Result then
     AData := TData(inherited GetData(I)^)
   else
@@ -1729,7 +1739,8 @@ function TFPGMapObject.TryGetData(const AKey: TKey; out AData: TData): Boolean;
 var
   I: Integer;
 begin
-  Result := inherited Find(@AKey, I);
+  I := IndexOf(AKey);
+  Result := (I >= 0);
   if Result then
     AData := TData(inherited GetData(I)^)
   else
@@ -1910,7 +1921,8 @@ function TFPGMapInterfacedObjectData.TryGetData(const AKey: TKey; out AData: TDa
 var
   I: Integer;
 begin
-  Result := inherited Find(@AKey, I);
+  I := IndexOf(AKey);
+  Result := (I >= 0);
   if Result then
     AData := TData(inherited GetData(I)^)
   else
