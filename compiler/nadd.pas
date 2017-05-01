@@ -623,7 +623,7 @@ implementation
                   andn,muln:
                    if (cs_opt_level4 in current_settings.optimizerswitches) or
                        not might_have_sideeffects(right) then
-                     result:=cordconstnode.create(0,right.resultdef,true);
+                     result:=cordconstnode.create(0,resultdef,true);
                 end;
               end
             else if tordconstnode(left).value = 1 then
