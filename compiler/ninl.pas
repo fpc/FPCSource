@@ -1962,6 +1962,15 @@ implementation
                  assigned(tcallparanode(left).right) then
                 begin
                   vl:=tordconstnode(tcallparanode(left).left).value;
+                  if forinline then
+                    case resultdef.size of
+                      1,2,4:
+                        vl:=vl and byte($1f);
+                      8:
+                        vl:=vl and byte($3f);
+                      else
+                        internalerror(2013122302);
+                    end;
                   if (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
                     begin
                       def:=tcallparanode(tcallparanode(left).right).left.resultdef;
@@ -2024,6 +2033,22 @@ implementation
                  assigned(tcallparanode(left).right) then
                 begin
                   vl:=tordconstnode(tcallparanode(left).left).value;
+                  if forinline then
+                    case resultdef.size of
+                      { unlike shifts, for rotates, when masking out the higher bits
+                        of the rotate count, we go all the way down to byte, because
+                        it doesn't matter, it produces the same result, since it's a rotate }
+                      1:
+                        vl:=vl and byte($07);
+                      2:
+                        vl:=vl and byte($0f);
+                      4:
+                        vl:=vl and byte($1f);
+                      8:
+                        vl:=vl and byte($3f);
+                      else
+                        internalerror(2013122302);
+                    end;
                   if (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
                     begin
                       def:=tcallparanode(tcallparanode(left).right).left.resultdef;
