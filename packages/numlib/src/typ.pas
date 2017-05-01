@@ -35,6 +35,9 @@ Also some stuff had to be added to get ipf running (vector object and
 complex.inp and scale methods)
  }
 
+{$mode objfpc}{$H+}
+{$modeswitch nestedprocvars}
+
 unit typ;
 
 {$I DIRECT.INC}                 {Contains "global" compilerswitches which
@@ -43,6 +46,9 @@ unit typ;
 {$DEFINE ArbExtended}
 
 interface
+
+uses
+  Math;
 
 
 CONST numlib_version=2;         {used to detect version conflicts between
@@ -68,10 +74,8 @@ CONST {Some constants for the variables below, in binary formats.}
     TC1 :  Float8Arb  = ($00,$00,$00,$00,$00,$00,$B0,$3C);
     TC2 :  Float8Arb  = ($FF,$FF,$FF,$FF,$FF,$FF,$EF,$7F);
     TC3 :  Float8Arb  = ($00,$00,$00,$00,$01,$00,$10,$00);
-    TC4 :  Float8Arb  = ($00,$00,$00,$00,$00,$00,$F0,$7F);
     TC5 :  Float8Arb  = ($EF,$39,$FA,$FE,$42,$2E,$86,$40);
     TC6 :  Float8Arb  = ($D6,$BC,$FA,$BC,$2B,$23,$86,$C0);
-    TC7 :  Float8Arb  = ($FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF);
 {$ENDIF}
 
      {For Extended}
@@ -79,10 +83,8 @@ CONST {Some constants for the variables below, in binary formats.}
     TC1 : Float10Arb = (0,0,$00,$00,$00,$00,0,128,192,63);         {Eps}
     TC2 : Float10Arb = ($FF,$FF,$FF,$FF,$FF,$FF,$FF,$D6,$FE,127);  {9.99188560553925115E+4931}
     TC3 : Float10Arb = (1,0,0,0,0,0,0,0,0,0);                      {3.64519953188247460E-4951}
-    TC4 : Float10Arb = (0,0,0,0,0,0,0,$80,$FF,$7F);                {Inf}
     TC5 : Float10Arb = (18,25,219,91,61,101,113,177,12,64);        {1.13563488668777920E+0004}
     TC6 : Float10Arb = (108,115,3,170,182,56,27,178,12,192);       {-1.13988053843083006E+0004}
-    TC7 : Float10Arb = ($FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF);  {NaN}
 {$ENDIF}
   { numdig  is the number of useful (safe) decimal places of an "ArbFloat"
             for display.
@@ -100,11 +102,8 @@ var
                                         the smallest ArbFloat > 1}
     giant    : ArbFloat absolute TC2;  { the largest ArbFloat}
     midget   : ArbFloat absolute TC3;  { the smallest positive ArbFloat}
-    infinity : ArbFloat absolute TC4;  { INF as defined in IEEE-754(double)
-                                         or intel (for extended)}
     LnGiant  : ArbFloat absolute TC5;  {ln of giant}
     LnMidget : ArbFloat absolute TC6;  {ln of midget}
-    NaN      : ArbFloat absolute TC7;  {Not A Number}
 
 {Copied from Det. Needs ArbExtended conditional}
 const               {  og = 8^-maxexp, ogý>=midget,
@@ -186,6 +185,7 @@ type
 
      {Standard Functions used in NumLib}
      rfunc1r    = Function(x : ArbFloat): ArbFloat;
+     rfunc1rn   = Function(x : ArbFloat): ArbFloat is nested;
      rfunc2r    = Function(x, y : ArbFloat): ArbFloat;
 
      {Complex version}
