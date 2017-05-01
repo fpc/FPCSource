@@ -589,7 +589,9 @@ implementation
                   addn,subn,orn,xorn:
                    result := left.getcopy;
                   andn,muln:
-                   result:=cordconstnode.create(0,resultdef,true);
+                   if (cs_opt_level4 in current_settings.optimizerswitches) or
+                       not might_have_sideeffects(left) then
+                     result:=cordconstnode.create(0,resultdef,true);
                 end;
               end
             else if tordconstnode(right).value = 1 then
@@ -619,7 +621,9 @@ implementation
                   subn:
                    result := cunaryminusnode.create(right.getcopy);
                   andn,muln:
-                   result:=cordconstnode.create(0,right.resultdef,true);
+                   if (cs_opt_level4 in current_settings.optimizerswitches) or
+                       not might_have_sideeffects(right) then
+                     result:=cordconstnode.create(0,right.resultdef,true);
                 end;
               end
             else if tordconstnode(left).value = 1 then
