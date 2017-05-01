@@ -2016,7 +2016,27 @@ implementation
                 result:=cordconstnode.create((vl2.svalue shr shift) and mask,def,false);
 {$pop}
             end
-          else
+          else if (left.nodetype=callparan) and assigned(tcallparanode(left).right) and
+                  (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
+            begin
+              def:=tcallparanode(tcallparanode(left).right).left.resultdef;
+              vl2:=tordconstnode(tcallparanode(tcallparanode(left).right).left).value;
+              { sar(0,x) is 0 }
+              { sar32(ffffffff,x) is ffffffff, etc. }
+              if ((vl2=0) or
+                  ((resultdef.size=1) and (shortint(vl2.svalue)=-1)) or
+                  ((resultdef.size=2) and (smallint(vl2.svalue)=-1)) or
+                  ((resultdef.size=4) and (longint(vl2.svalue)=-1)) or
+                  ((resultdef.size=8) and (int64(vl2.svalue)=-1))) and
+                 ((cs_opt_level4 in current_settings.optimizerswitches) or
+                  not might_have_sideeffects(tcallparanode(left).left)) then
+                begin
+                  if vl2=0 then
+                    result:=cordconstnode.create(0,resultdef,true)
+                  else
+                    result:=cordconstnode.create(-1,resultdef,true);
+                end;
+            end;
         end;
 
 
