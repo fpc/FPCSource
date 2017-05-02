@@ -2174,6 +2174,10 @@ begin
                             else
                               SetApptype(app_native);
                           end
+                        else if target_info.system in [system_i386_uefi] then
+                          begin
+                            SetApptype(app_efi_app);
+                          end                          
                         else
                           IllegalPara(opt);
                       end;

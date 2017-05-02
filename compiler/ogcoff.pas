@@ -340,6 +340,9 @@ implementation
        PE_SUBSYSTEM_WINDOWS_GUI    = 2;
        PE_SUBSYSTEM_WINDOWS_CUI    = 3;
        PE_SUBSYSTEM_WINDOWS_CE_GUI = 9;
+       PE_SUBSYSTEM_EFI_APP        = 10;
+       PE_SUBSYSTEM_EFI_BOOT       = 11;
+       PE_SUBSYSTEM_EFI_RUN        = 12;       
 
        PE_FILE_RELOCS_STRIPPED         = $0001;
        PE_FILE_EXECUTABLE_IMAGE        = $0002;
@@ -2578,6 +2581,17 @@ const pemagic : array[0..3] of byte = (
             else
               if target_info.system in systems_wince then
                 peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
+              else if target_info.system in [system_i386_uefi] then
+                begin
+                  case apptype of
+                    app_efi_app :
+        	          peoptheader.Subsystem:=PE_SUBSYSTEM_EFI_APP;
+        	        app_efi_boot :
+            	      peoptheader.Subsystem:=PE_SUBSYSTEM_EFI_BOOT;
+            	    app_efi_run :
+            	      peoptheader.Subsystem:=PE_SUBSYSTEM_EFI_RUN;
+        	      end;                
+                end                
               else
                 if apptype=app_gui then
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_GUI

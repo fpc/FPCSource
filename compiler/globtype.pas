@@ -449,7 +449,11 @@ interface
          app_arm7,      { for Nintendo DS target }
          app_arm9,      { for Nintendo DS target }
          app_bundle,    { dynamically loadable bundle, Darwin only }
-         app_com        { DOS .COM file }
+         app_com,       { DOS .COM file }
+         app_efi_app,   { EFI application (UEFI target) }
+         app_efi_boot,  { EFI boot driver (UEFI target) }
+         app_efi_run,   { EFI runtime driver (UEFI target) }
+         app_efi_rom    { EFI ROM (UEFI target) }         
        );
 
        { interface types }
