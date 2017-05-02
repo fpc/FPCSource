@@ -26,7 +26,7 @@ Unit aoptcpu;
 
 {$i fpcdefs.inc}
 
-{$define DEBUG_AOPTCPU}
+{ $define DEBUG_AOPTCPU}
 
 Interface
 
