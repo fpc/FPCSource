@@ -2153,7 +2153,7 @@ implementation
                   ((resultdef.size=1) and (vl2=$ff)) or
                   ((resultdef.size=2) and (vl2=$ffff)) or
                   ((resultdef.size=4) and (vl2=$ffffffff)) or
-                  ((resultdef.size=8) and (vl2=$ffffffffffffffff))) and
+                  ((resultdef.size=8) and (vl2.uvalue=qword($ffffffffffffffff)))) and
                  ((cs_opt_level4 in current_settings.optimizerswitches) or
                   not might_have_sideeffects(tcallparanode(left).left)) then
                 result:=cordconstnode.create(vl2,resultdef,true);
