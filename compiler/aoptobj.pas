@@ -1591,6 +1591,9 @@ Unit AoptObj;
           begin
             if p.typ=ait_instruction then
               begin
+{$ifdef x86}
+                taicpu(p).SetOperandOrder(op_att);
+{$endif x86}
                 commentstr:='Instruction reads';
                 registers_found:=false;
                 for ri in tregisterindex do
