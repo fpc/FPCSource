@@ -312,8 +312,8 @@ type
     function DoParseExpression(AParent: TPaselement;InitExpr: TPasExpr=nil; AllowEqual : Boolean = True): TPasExpr;
     function DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
     function CheckPackMode: TPackMode;
-    function AddUseUnit(ASection: TPasSection; AUnitName : string;
-      NameExpr: TPasExpr; InFileExpr: TPrimitiveExpr): TPasElement;
+    function AddUseUnit(ASection: TPasSection; const NamePos: TPasSourcePos;
+      AUnitName : string; NameExpr: TPasExpr; InFileExpr: TPrimitiveExpr): TPasElement;
     procedure CheckImplicitUsedUnits(ASection: TPasSection);
     // Overload handling
     procedure AddProcOrFunction(Decs: TPasDeclarations; AProc: TPasProcedure);
@@ -2319,21 +2319,21 @@ begin
   AUnitName := ExpectIdentifier;
   NextToken;
   while CurToken = tkDot do
-  begin
+    begin
     ExpectIdentifier;
     AUnitName := AUnitName + '.' + CurTokenString;
     NextToken;
-  end;
+    end;
   UngetToken;
   Module := TPasModule(CreateElement(TPasModule, AUnitName,
     Engine.Package));
   FCurModule:=Module;
   try
     if Assigned(Engine.Package) then
-    begin
+      begin
       Module.PackageName := Engine.Package.Name;
       Engine.Package.Modules.Add(Module);
-    end;
+      end;
     CheckHint(Module,True);
 //    ExpectToken(tkSemicolon);
     ExpectToken(tkInterface);
@@ -2358,7 +2358,17 @@ begin
   if SkipHeader then
     N:=ChangeFileExt(Scanner.CurFilename,'')
   else
+    begin
     N:=ExpectIdentifier;
+    NextToken;
+    while CurToken = tkDot do
+      begin
+      ExpectIdentifier;
+      N := N + '.' + CurTokenString;
+      NextToken;
+      end;
+    UngetToken;
+    end;
   Module := nil;
   PP:=TPasProgram(CreateElement(TPasProgram, N, Engine.Package));
   Module :=PP;
@@ -2396,14 +2406,25 @@ begin
   end;
 end;
 
+// Starts after the "library" token
 procedure TPasParser.ParseLibrary(var Module: TPasModule);
 Var
   PP : TPasLibrary;
   Section : TLibrarySection;
+  N: String;
 
 begin
+  N:=ExpectIdentifier;
+  NextToken;
+  while CurToken = tkDot do
+    begin
+    ExpectIdentifier;
+    N := N + '.' + CurTokenString;
+    NextToken;
+    end;
+  UngetToken;
   Module := nil;
-  PP:=TPasLibrary(CreateElement(TPasLibrary, ExpectIdentifier, Engine.Package));
+  PP:=TPasLibrary(CreateElement(TPasLibrary, N, Engine.Package));
   Module :=PP;
   FCurModule:=Module;
   try
@@ -2853,8 +2874,9 @@ begin
   SetBlock(declNone);
 end;
 
-function TPasParser.AddUseUnit(ASection: TPasSection; AUnitName: string;
-  NameExpr: TPasExpr; InFileExpr: TPrimitiveExpr): TPasElement;
+function TPasParser.AddUseUnit(ASection: TPasSection;
+  const NamePos: TPasSourcePos; AUnitName: string; NameExpr: TPasExpr;
+  InFileExpr: TPrimitiveExpr): TPasElement;
 
   procedure CheckDuplicateInUsesList(AUnitName : string; UsesClause: TPasUsesClause);
   var
@@ -2868,8 +2890,10 @@ function TPasParser.AddUseUnit(ASection: TPasSection; AUnitName: string;
 
 var
   UnitRef: TPasElement;
+  UsesUnit: TPasUsesUnit;
 begin
   Result:=nil;
+  UsesUnit:=nil;
   try
     {$IFDEF VerbosePasParser}
     writeln('TPasParser.AddUseUnit AUnitName=',AUnitName,' CurModule.Name=',CurModule.Name);
@@ -2891,7 +2915,8 @@ begin
       UnitRef := TPasUnresolvedUnitRef(CreateElement(TPasUnresolvedUnitRef,
         AUnitName, ASection));
 
-    Result:=ASection.AddUnitToUsesList(AUnitName,NameExpr,InFileExpr,UnitRef);
+    UsesUnit:=TPasUsesUnit(CreateElement(TPasUsesUnit,AUnitName,ASection,NamePos));
+    Result:=ASection.AddUnitToUsesList(AUnitName,NameExpr,InFileExpr,UnitRef,UsesUnit);
     if InFileExpr<>nil then
       begin
       if UnitRef is TPasModule then
@@ -2905,6 +2930,8 @@ begin
   finally
     if Result=nil then
       begin
+      if UsesUnit<>nil then
+        UsesUnit.Release;
       if NameExpr<>nil then
         NameExpr.Release;
       if InFileExpr<>nil then
@@ -2916,12 +2943,14 @@ end;
 procedure TPasParser.CheckImplicitUsedUnits(ASection: TPasSection);
 var
   i: Integer;
+  NamePos: TPasSourcePos;
 begin
   If not (ASection.ClassType=TImplementationSection) Then // interface,program,library,package
     begin
     // load implicit units, like 'System'
+    NamePos:=Scanner.CurSourcePos;
     for i:=0 to ImplicitUses.Count-1 do
-      AddUseUnit(ASection,ImplicitUses[i],nil,nil);
+      AddUseUnit(ASection,NamePos,ImplicitUses[i],nil,nil);
     end;
 end;
 
@@ -2932,6 +2961,7 @@ var
   NameExpr: TPasExpr;
   InFileExpr: TPrimitiveExpr;
   FreeExpr: Boolean;
+  NamePos: TPasSourcePos;
 begin
   CheckImplicitUsedUnits(ASection);
 
@@ -2942,6 +2972,7 @@ begin
     Repeat
       FreeExpr:=true;
       AUnitName := ExpectIdentifier;
+      NamePos:=Scanner.CurSourcePos;
       NameExpr:=CreatePrimitiveExpr(ASection,pekString,AUnitName);
       NextToken;
       while CurToken = tkDot do
@@ -2959,7 +2990,7 @@ begin
         NextToken;
         end;
       FreeExpr:=false;
-      AddUseUnit(ASection,AUnitName,NameExpr,InFileExpr);
+      AddUseUnit(ASection,NamePos,AUnitName,NameExpr,InFileExpr);
       InFileExpr:=nil;
       NameExpr:=nil;
 

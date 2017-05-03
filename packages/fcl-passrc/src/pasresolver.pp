@@ -684,7 +684,7 @@ type
 
   TPasSectionScope = Class(TPasIdentifierScope)
   public
-    UsesList: TFPList; // list of TPasSectionScope
+    UsesScopes: TFPList; // list of TPasSectionScope
     constructor Create; override;
     destructor Destroy; override;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
@@ -1025,6 +1025,7 @@ type
     FBaseTypeLength: TResolverBaseType;
     FBaseTypes: array[TResolverBaseType] of TPasUnresolvedSymbolRef;
     FBaseTypeString: TResolverBaseType;
+    FDefaultNameSpace: String;
     FDefaultScope: TPasDefaultScope;
     FLastCreatedData: array[TResolveDataListKind] of TResolveData;
     FLastElement: TPasElement;
@@ -1303,6 +1304,7 @@ type
       NoProcsWithArgs: boolean): TPasElement;
     function FindElementWithoutParams(const AName: String; out Data: TPRFindData;
       ErrorPosEl: TPasElement; NoProcsWithArgs: boolean): TPasElement;
+    procedure FindLongestUnitName(var El: TPasElement; Expr: TPasExpr);
     procedure IterateElements(const aName: string;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
       var Abort: boolean); virtual;
@@ -1444,6 +1446,9 @@ type
     function ResolveAliasType(aType: TPasType): TPasType;
     function ExprIsAddrTarget(El: TPasExpr): boolean;
     function IsNameExpr(El: TPasExpr): boolean; inline; // TSelfExpr or TPrimitiveExpr with Kind=pekIdent
+    function GetNameExprValue(El: TPasExpr): string; // TSelfExpr or TPrimitiveExpr with Kind=pekIdent
+    function GetNextDottedExpr(El: TPasExpr): TPasExpr;
+    function GetPathStart(El: TPasExpr): TPasExpr;
     function GetLastExprIdentifier(El: TPasExpr): TPasExpr;
     function ParentNeedsExprResult(El: TPasExpr): boolean;
     function GetReference_NewInstanceClass(Ref: TResolvedReference): TPasClassType;
@@ -1469,20 +1474,30 @@ type
     function GetCombinedChar(const Char1, Char2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedString(const Str1, Str2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
   public
+    // options
+    property Options: TPasResolverOptions read FOptions write FOptions;
+    property AnonymousElTypePostfix: String read FAnonymousElTypePostfix
+      write FAnonymousElTypePostfix; // default empty, if set, anonymous element types are named ArrayName+Postfix and added to declarations
     property BaseTypes[bt: TResolverBaseType]: TPasUnresolvedSymbolRef read GetBaseTypes;
     property BaseTypeChar: TResolverBaseType read FBaseTypeChar write FBaseTypeChar;
     property BaseTypeExtended: TResolverBaseType read FBaseTypeExtended write FBaseTypeExtended;
     property BaseTypeString: TResolverBaseType read FBaseTypeString write FBaseTypeString;
     property BaseTypeLength: TResolverBaseType read FBaseTypeLength write FBaseTypeLength;
-    property LastElement: TPasElement read FLastElement;
+    // parsed values
+    property DefaultNameSpace: String read FDefaultNameSpace;
+    property RootElement: TPasElement read FRootElement;
+    // scopes
     property StoreSrcColumns: boolean read FStoreSrcColumns write FStoreSrcColumns; {
        If true Line and Column is mangled together in TPasElement.SourceLineNumber.
        Use method UnmangleSourceLineNumber to extract. }
     property Scopes[Index: integer]: TPasScope read GetScopes;
     property ScopeCount: integer read FScopeCount;
     property TopScope: TPasScope read FTopScope;
-    property RootElement: TPasElement read FRootElement;
     property DefaultScope: TPasDefaultScope read FDefaultScope write FDefaultScope;
+    property ScopeClass_Class: TPasClassScopeClass read FScopeClass_Class write FScopeClass_Class;
+    property ScopeClass_WithExpr: TPasWithExprScopeClass read FScopeClass_WithExpr write FScopeClass_WithExpr;
+    // last element
+    property LastElement: TPasElement read FLastElement;
     property LastMsg: string read FLastMsg write FLastMsg;
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
     property LastMsgElement: TPasElement read FLastMsgElement write FLastMsgElement;
@@ -1491,11 +1506,6 @@ type
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
     property LastSourcePos: TPasSourcePos read FLastSourcePos write FLastSourcePos;
-    property Options: TPasResolverOptions read FOptions write FOptions;
-    property ScopeClass_Class: TPasClassScopeClass read FScopeClass_Class write FScopeClass_Class;
-    property ScopeClass_WithExpr: TPasWithExprScopeClass read FScopeClass_WithExpr write FScopeClass_WithExpr;
-    property AnonymousElTypePostfix: String read FAnonymousElTypePostfix
-      write FAnonymousElTypePostfix; // default empty, if set, anonymous element types are named ArrayName+Postfix and added to declarations
   end;
 
 function GetObjName(o: TObject): string;
@@ -1515,6 +1525,7 @@ procedure SetResolverValueExpr(out ResolvedType: TPasResolverResult;
   Flags: TPasResolverResultFlags); overload;
 
 function ProcNeedsImplProc(Proc: TPasProcedure): boolean;
+function ChompDottedIdentifier(const Identifier: string): string;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
 function dbgs(const a: TResolvedRefAccess): string;
@@ -1784,6 +1795,20 @@ begin
     if not Proc.IsAbstract then exit;
     end;
   Result:=false;
+end;
+
+function ChompDottedIdentifier(const Identifier: string): string;
+var
+  p: Integer;
+begin
+  Result:=Identifier;
+  p:=length(Identifier);
+  while (p>0) do
+    begin
+    if Identifier[p]='.' then
+      exit(LeftStr(Identifier,p-1));
+    dec(p);
+    end;
 end;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string;
@@ -2100,7 +2125,7 @@ procedure TPasModuleDotScope.OnInternalIterate(El: TPasElement; ElScope,
 var
   FilterData: PPasIterateFilterData absolute Data;
 begin
-  if El.ClassType=TPasModule then
+  if (El.ClassType=TPasModule) or (El.ClassType=TPasUsesUnit) then
     exit; // skip used units
   // call the original iterator
   FilterData^.OnIterate(El,ElScope,StartScope,FilterData^.Data,Abort);
@@ -2153,11 +2178,11 @@ begin
   FilterData.Data:=Data;
   if ImplementationScope<>nil then
     begin
-    ImplementationScope.IterateElements(aName,StartScope,@OnInternalIterate,@FilterData,Abort);
+    ImplementationScope.IterateLocalElements(aName,StartScope,@OnInternalIterate,@FilterData,Abort);
     if Abort then exit;
     end;
   if InterfaceScope<>nil then
-    InterfaceScope.IterateElements(aName,StartScope,@OnInternalIterate,@FilterData,Abort);
+    InterfaceScope.IterateLocalElements(aName,StartScope,@OnInternalIterate,@FilterData,Abort);
 end;
 
 procedure TPasModuleDotScope.WriteIdentifiers(Prefix: string);
@@ -2173,7 +2198,7 @@ end;
 constructor TPasSectionScope.Create;
 begin
   inherited Create;
-  UsesList:=TFPList.Create;
+  UsesScopes:=TFPList.Create;
 end;
 
 destructor TPasSectionScope.Destroy;
@@ -2181,7 +2206,7 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasSectionScope.Destroy START ',ClassName);
   {$ENDIF}
-  FreeAndNil(UsesList);
+  FreeAndNil(UsesScopes);
   inherited Destroy;
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasSectionScope.Destroy END ',ClassName);
@@ -2197,9 +2222,9 @@ begin
   Result:=inherited FindIdentifier(Identifier);
   if Result<>nil then
     exit;
-  for i:=0 to UsesList.Count-1 do
+  for i:=0 to UsesScopes.Count-1 do
     begin
-    UsesScope:=TPasIdentifierScope(UsesList[i]);
+    UsesScope:=TPasIdentifierScope(UsesScopes[i]);
     {$IFDEF VerbosePasResolver}
     writeln('TPasSectionScope.FindIdentifier "',Identifier,'" in used unit ',GetObjName(UsesScope.Element));
     {$ENDIF}
@@ -2217,9 +2242,9 @@ var
 begin
   inherited IterateElements(aName, StartScope, OnIterateElement, Data, Abort);
   if Abort then exit;
-  for i:=0 to UsesList.Count-1 do
+  for i:=0 to UsesScopes.Count-1 do
     begin
-    UsesScope:=TPasIdentifierScope(UsesList[i]);
+    UsesScope:=TPasIdentifierScope(UsesScopes[i]);
     {$IFDEF VerbosePasResolver}
     writeln('TPasSectionScope.IterateElements "',aName,'" in used unit ',GetObjName(UsesScope.Element));
     {$ENDIF}
@@ -2234,9 +2259,9 @@ var
   UsesScope: TPasIdentifierScope;
 begin
   inherited WriteIdentifiers(Prefix);
-  for i:=0 to UsesList.Count-1 do
+  for i:=0 to UsesScopes.Count-1 do
     begin
-    UsesScope:=TPasIdentifierScope(UsesList[i]);
+    UsesScope:=TPasIdentifierScope(UsesScopes[i]);
     writeln(Prefix+'Uses: '+GetObjName(UsesScope.Element));
     end;
 end;
@@ -2555,6 +2580,95 @@ function TPasResolver.IsNameExpr(El: TPasExpr): boolean;
 begin
   Result:=(El.ClassType=TSelfExpr)
       or ((El.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(El).Kind=pekIdent));
+end;
+
+function TPasResolver.GetNameExprValue(El: TPasExpr): string;
+begin
+  if El=nil then
+    Result:=''
+  else if El.ClassType=TPrimitiveExpr then
+    begin
+    if TPrimitiveExpr(El).Kind=pekIdent then
+      Result:=TPrimitiveExpr(El).Value
+    else
+      Result:='';
+    end
+  else if El.ClassType=TSelfExpr then
+    Result:='self'
+  else
+    Result:='';
+end;
+
+function TPasResolver.GetNextDottedExpr(El: TPasExpr): TPasExpr;
+// returns TSelfExpr or TPrimitiveExpr (Kind=pekIdent)
+var
+  Bin: TBinaryExpr;
+  C: TClass;
+begin
+  Result:=nil;
+  if El=nil then exit;
+  repeat
+    if not (El.Parent is TBinaryExpr) then exit;
+    Bin:=TBinaryExpr(El.Parent);
+    if Bin.OpCode<>eopSubIdent then exit;
+    if El=Bin.right then
+      El:=Bin
+    else
+      begin
+      El:=Bin.right;
+      // find left most
+      repeat
+        C:=El.ClassType;
+        if C=TSelfExpr then
+          exit(El)
+        else if C=TPrimitiveExpr then
+          begin
+          if TPrimitiveExpr(El).Kind<>pekIdent then
+            RaiseNotYetImplemented(20170502163825,El);
+          exit(El);
+          end
+        else if C=TBinaryExpr then
+          begin
+          if TBinaryExpr(El).OpCode<>eopSubIdent then
+            RaiseNotYetImplemented(20170502163718,El);
+          El:=TBinaryExpr(El).left;
+          end
+        else if C=TParamsExpr then
+          begin
+          if not (TParamsExpr(El).Kind in [pekFuncParams,pekArrayParams]) then
+            RaiseNotYetImplemented(20170502163908,El);
+          El:=TParamsExpr(El).Value;
+          end;
+      until El=nil;
+      RaiseNotYetImplemented(20170502163953,Bin);
+      end;
+  until false;
+end;
+
+function TPasResolver.GetPathStart(El: TPasExpr): TPasExpr;
+var
+  C: TClass;
+begin
+  Result:=nil;
+  while El<>nil do
+    begin
+    C:=El.ClassType;
+    if C=TPrimitiveExpr then
+      exit(El)
+    else if C=TSelfExpr then
+      exit(El)
+    else if C=TBinaryExpr then
+      begin
+      if TBinaryExpr(El).OpCode=eopSubIdent then
+        El:=TBinaryExpr(El).left
+      else
+        exit;
+      end
+    else if C=TParamsExpr then
+      El:=TParamsExpr(El).Value
+    else
+      exit;
+    end;
 end;
 
 procedure TPasResolver.ClearResolveDataList(Kind: TResolveDataListKind);
@@ -3027,12 +3141,15 @@ end;
 
 procedure TPasResolver.FinishUsesClause;
 var
-  Section: TPasSection;
-  i: Integer;
+  Section, CurSection: TPasSection;
+  i, j: Integer;
   PublicEl, UseModule: TPasElement;
   Scope: TPasSectionScope;
   UsesScope: TPasIdentifierScope;
   UseUnit: TPasUsesUnit;
+  FirstName: String;
+  p: SizeInt;
+  OldIdentifier: TPasIdentifier;
 begin
   CheckTopScope(TPasSectionScope);
   Scope:=TPasSectionScope(TopScope);
@@ -3047,18 +3164,15 @@ begin
     writeln('TPasResolver.FinishUsesClause ',GetObjName(UseUnit));
     {$ENDIF}
     UseModule:=UseUnit.Module;
-    if (UseModule.ClassType=TProgramSection) then
-      RaiseInternalError(20160922163346,'used unit is a program: '+GetObjName(UseModule));
-
-    // add unitname as identifier
-    AddIdentifier(Scope,UseUnit.Name,UseModule,pikSimple);
 
     // check used unit
     PublicEl:=nil;
     if (UseModule.ClassType=TLibrarySection) then
       PublicEl:=UseModule
     else if (UseModule.ClassType=TPasModule) then
-      PublicEl:=TPasModule(UseModule).InterfaceSection;
+      PublicEl:=TPasModule(UseModule).InterfaceSection
+    else
+      RaiseXExpectedButYFound(20170503004803,'unit',UseModule.ElementTypeName,UseUnit);
     if PublicEl=nil then
       RaiseInternalError(20160922163352,'uses element has no interface section: '+GetObjName(UseModule));
     if PublicEl.CustomData=nil then
@@ -3068,13 +3182,55 @@ begin
       RaiseInternalError(20160922163403,'uses element has invalid resolver data: '
         +UseUnit.Name+'->'+GetObjName(PublicEl)+'->'+PublicEl.CustomData.ClassName);
 
+    // check if module was already used by a different name
+    j:=i;
+    CurSection:=Section;
+    repeat
+      dec(j);
+      if j<0 then
+        begin
+        if CurSection.ClassType<>TImplementationSection then
+          break;
+        CurSection:=CurSection.GetModule.InterfaceSection;
+        if CurSection=nil then break;
+        j:=length(CurSection.UsesClause)-1;
+        if j<0 then break;
+        end;
+      if CurSection.UsesClause[j].Module=UseModule then
+        RaiseMsg(20170503004022,nDuplicateIdentifier,sDuplicateIdentifier,
+          [UseModule.Name,GetElementSourcePosStr(CurSection.UsesClause[j])],UseUnit);
+    until false;
+
+    // add full uses name
+    AddIdentifier(Scope,UseUnit.Name,UseUnit,pikSimple);
+
+    // add scope
     UsesScope:=TPasIdentifierScope(PublicEl.CustomData);
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.FinishUsesClause Add UsesScope=',GetObjName(UsesScope));
     {$ENDIF}
-    Scope.UsesList.Add(UsesScope);
+    Scope.UsesScopes.Add(UsesScope);
 
     EmitElementHints(Section,UseUnit);
+    end;
+
+  // Note: a sub identifier (e.g. a class member) hides all unitnames starting
+  //       with this identifier
+  // -> add first name of dotted unitname as identifier
+  for i:=0 to Section.UsesList.Count-1 do
+    begin
+    UseUnit:=Section.UsesClause[i];
+    FirstName:=UseUnit.Name;
+    p:=Pos('.',FirstName);
+    if p<1 then continue;
+    FirstName:=LeftStr(FirstName,p-1);
+    OldIdentifier:=Scope.FindLocalIdentifier(FirstName);
+    if OldIdentifier=nil then
+      AddIdentifier(Scope,FirstName,UseUnit.Module,pikSimple)
+    else
+      // a reference in the implementation needs to find a match in the
+      // implementation clause -> replace identfier in the scope
+      OldIdentifier.Element:=UseUnit;
     end;
 end;
 
@@ -4812,13 +4968,23 @@ var
   Proc: TPasProcedure;
   Ref: TResolvedReference;
   BuiltInProc: TResElDataBuiltInProc;
+  p: SizeInt;
+  DottedName: String;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveNameExpr El=',GetObjName(El),' Name="',aName,'" ',Access);
   {$ENDIF}
   DeclEl:=FindElementWithoutParams(aName,FindData,El,false);
+  if DeclEl.ClassType=TPasUsesUnit then
+    begin
+    // the first name of a unit matches -> find unit with longest match
+    FindLongestUnitName(DeclEl,El);
+    FindData.Found:=DeclEl;
+    end;
+
   Ref:=CreateReference(DeclEl,El,Access,@FindData);
   CheckFoundElement(FindData,Ref);
+
   if DeclEl is TPasProcedure then
     begin
     // identifier is a proc and args brackets are missing
@@ -4844,6 +5010,29 @@ begin
       begin
       BuiltInProc:=TResElDataBuiltInProc(DeclEl.CustomData);
       BuiltInProc.GetCallCompatibility(BuiltInProc,El,true);
+      end;
+    end
+  else if (DeclEl.ClassType=TPasUsesUnit) or (DeclEl is TPasModule) then
+    begin
+    // unit reference
+    // dotted unit names needs a ref for each expression identifier
+    // Note: El is the first TPrimitiveExpr of the dotted unit name reference
+    DottedName:=DeclEl.Name;
+    repeat
+      p:=Pos('.',DottedName);
+      if p<1 then break;
+      Delete(DottedName,1,p);
+      El:=GetNextDottedExpr(El);
+      if El=nil then
+        RaiseInternalError(20170503002012);
+      CreateReference(DeclEl,El,Access);
+    until false;
+    // and add references to the binary expressions
+    while (El.Parent is TBinaryExpr) and (TBinaryExpr(El.Parent).right=El) do
+      begin
+      El:=TBinaryExpr(El.Parent);
+      if TBinaryExpr(El).OpCode<>eopSubIdent then break;
+      CreateReference(DeclEl,El,Access);
       end;
     end;
 end;
@@ -4998,6 +5187,9 @@ var
   RecordEl: TPasRecordType;
   RecordScope: TPasDotRecordScope;
 begin
+  if El.CustomData is TResolvedReference then
+    exit; // for example, when a.b has a dotted unit name
+
   Left:=El.left;
   //writeln('TPasResolver.ResolveSubIdent Left=',GetObjName(Left));
   ComputeElement(Left,LeftResolved,[rcSetReferenceFlags]);
@@ -5638,11 +5830,18 @@ begin
 end;
 
 procedure TPasResolver.AddModule(El: TPasModule);
+var
+  C: TClass;
 begin
   if TopScope<>DefaultScope then
     RaiseInvalidScopeForElement(20160922163504,El);
   PushScope(El,TPasModuleScope);
   TPasModuleScope(TopScope).VisibilityContext:=El;
+  C:=El.ClassType;
+  if (C=TPasProgram) or (C=TPasLibrary) or (C=TPasPackage) then
+    FDefaultNameSpace:=ChompDottedIdentifier(El.Name)
+  else
+    FDefaultNameSpace:='';
 end;
 
 procedure TPasResolver.AddSection(El: TPasSection);
@@ -8210,6 +8409,7 @@ begin
       or (AClass=TPasProgram)
       or (AClass=TPasLibrary) then
     AddModule(TPasModule(El))
+  else if AClass=TPasUsesUnit then
   else if AClass.InheritsFrom(TPasExpr) then
     // resolved when finished
   else if AClass.InheritsFrom(TPasImplBlock) then
@@ -8334,6 +8534,88 @@ begin
     // proc needs parameters
     RaiseMsg(20170216152347,nWrongNumberOfParametersForCallTo,
       sWrongNumberOfParametersForCallTo,[GetProcTypeDescription(TPasProcedure(Result).ProcType)],ErrorPosEl);
+end;
+
+procedure TPasResolver.FindLongestUnitName(var El: TPasElement; Expr: TPasExpr);
+// Input: El is TPasUsesUnit
+// Output: El is either a TPasUsesUnit or the root module
+var
+  CurUsesUnit: TPasUsesUnit;
+  BestEl: TPasElement;
+  aName, CurName: String;
+  Clause: TPasUsesClause;
+  i, CurLen: Integer;
+  Section: TPasSection;
+begin
+  {$IFDEF VerbosePasResolver}
+  //writeln('TPasResolver.FindLongestUnitName El=',GetObjName(El),' Expr=',GetObjName(Expr));
+  {$ENDIF}
+  if not (El is TPasUsesUnit) then
+    RaiseInternalError(20170503000945);
+  aName:=GetNameExprValue(Expr);
+  if aName='' then
+    RaiseNotYetImplemented(20170503110217,Expr);
+  repeat
+    Expr:=GetNextDottedExpr(Expr);
+    if Expr=nil then break;
+    CurName:=GetNameExprValue(Expr);
+    if CurName='' then
+      RaiseNotYetImplemented(20170502164242,Expr);
+    aName:=aName+'.'+CurName;
+  until false;
+
+  {$IFDEF VerbosePasResolver}
+  //writeln('TPasResolver.FindLongestUnitName Dotted="',aName,'"');
+  {$ENDIF}
+  // search in uses clause
+  BestEl:=nil;
+  Section:=TPasUsesUnit(El).Parent as TPasSection;
+  repeat
+    Clause:=Section.UsesClause;
+    for i:=0 to length(Clause)-1 do
+      begin
+      CurUsesUnit:=Clause[i];
+      CurName:=CurUsesUnit.Name;
+      CurLen:=length(CurName);
+      if (CompareText(CurName,LeftStr(aName,CurLen))=0)
+          and ((CurLen=length(aName)) or (aName[CurLen+1]='.')) then
+        begin
+        // a match
+        if (BestEl=nil) or (CurLen>length(BestEl.Name)) then
+          BestEl:=CurUsesUnit; // a better match
+        end;
+      end;
+    if Section is TImplementationSection then
+      begin
+      // search in interface uses clause too
+      Section:=(Section.Parent as TPasModule).InterfaceSection;
+      end
+    else
+      break;
+  until Section=nil;
+  {$IFDEF VerbosePasResolver}
+  //writeln('TPasResolver.FindLongestUnitName LongestUnit="',GetObjName(BestEl),'"');
+  {$ENDIF}
+
+  // check module name
+  CurName:=El.GetModule.Name;
+  CurLen:=length(CurName);
+  if (CompareText(CurName,LeftStr(aName,CurLen))=0)
+      and ((CurLen=length(aName)) or (aName[CurLen+1]='.')) then
+    begin
+    // a match
+    if (BestEl=nil) or (CurLen>length(BestEl.Name)) then
+      BestEl:=El.GetModule; // a better match
+    end;
+  if BestEl=nil then
+    begin
+    // no dotted module name fits the expression
+    RaiseIdentifierNotFound(20170503140643,GetNameExprValue(Expr),Expr);
+    end;
+  El:=BestEl;
+  {$IFDEF VerbosePasResolver}
+  //writeln('TPasResolver.FindLongestUnitName END Best="',GetObjName(El),'"');
+  {$ENDIF}
 end;
 
 procedure TPasResolver.IterateElements(const aName: string;

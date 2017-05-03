@@ -310,7 +310,7 @@ type
     Functions, Variables, Properties, ExportSymbols: TFPList;
   end;
 
-  { TPasUsesUnit }
+  { TPasUsesUnit - Parent is TPasSection }
 
   TPasUsesUnit = class(TPasElement)
   public
@@ -332,7 +332,8 @@ type
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
     function AddUnitToUsesList(const AUnitName: string; aName: TPasExpr = nil;
-      InFilename: TPrimitiveExpr = nil; aModule: TPasElement = nil): TPasUsesUnit;
+      InFilename: TPrimitiveExpr = nil; aModule: TPasElement = nil;
+      UsesUnit: TPasUsesUnit = nil): TPasUsesUnit;
     function ElementTypeName: string; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
@@ -4029,8 +4030,8 @@ begin
 end;
 
 function TPasSection.AddUnitToUsesList(const AUnitName: string;
-  aName: TPasExpr; InFilename: TPrimitiveExpr; aModule: TPasElement
-  ): TPasUsesUnit;
+  aName: TPasExpr; InFilename: TPrimitiveExpr; aModule: TPasElement;
+  UsesUnit: TPasUsesUnit): TPasUsesUnit;
 var
   l: Integer;
 begin
@@ -4040,11 +4041,20 @@ begin
     aModule:=TPasUnresolvedUnitRef.Create(AUnitName, Self);
   l:=length(UsesClause);
   SetLength(UsesClause,l+1);
-  Result:=TPasUsesUnit.Create(AUnitName,Self);
-  UsesClause[l]:=Result;
-  Result.Expr:=aName;
-  Result.InFilename:=InFilename;
-  Result.Module:=aModule;
+  if UsesUnit=nil then
+    begin
+    UsesUnit:=TPasUsesUnit.Create(AUnitName,Self);
+    if aName<>nil then
+      begin
+      Result.SourceFilename:=aName.SourceFilename;
+      Result.SourceLinenumber:=aName.SourceLinenumber;
+      end;
+    end;
+  UsesClause[l]:=UsesUnit;
+  UsesUnit.Expr:=aName;
+  UsesUnit.InFilename:=InFilename;
+  UsesUnit.Module:=aModule;
+  Result:=UsesUnit;
 
   UsesList.Add(aModule);
   aModule.AddRef;

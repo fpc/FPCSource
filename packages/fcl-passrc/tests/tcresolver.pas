@@ -45,7 +45,7 @@ const
     '='  // mkDirectReference
     );
 type
-  TOnFindUnit = function(const aUnitName: String): TPasModule of object;
+  TOnFindUnit = function(Sender: TPasResolver; const aUnitName: String): TPasModule of object;
 
   { TTestEnginePasResolver }
 
@@ -109,7 +109,8 @@ type
     function GetModules(Index: integer): TTestEnginePasResolver;
     function GetMsgCount: integer;
     function GetMsgs(Index: integer): TTestResolverMessage;
-    function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
+    function OnPasResolverFindUnit(SrcResolver: TPasResolver;
+      const aUnitName: String): TPasModule;
     procedure OnFindReference(El: TPasElement; FindData: pointer);
     procedure OnCheckElementParent(El: TPasElement; arg: pointer);
     procedure FreeSrcMarkers;
@@ -271,10 +272,18 @@ type
 
     // units
     Procedure TestUnitOverloads;
-    Procedure TestUnitIntfInitalization;
+    Procedure TestUnitIntfInitialization;
     Procedure TestUnitUseIntf;
     Procedure TestUnitUseImplFail;
+    Procedure TestUnit_DuplicateUsesFail;
     Procedure TestUnit_NestedFail;
+    Procedure TestUnitUseDotted;
+    Procedure TestUnit_ProgramDefaultNamespace;
+    Procedure TestUnit_DottedIdentifier;
+    Procedure TestUnit_DuplicateDottedUsesFail;
+    Procedure TestUnit_DuplicateUsesDiffNameFail;
+    Procedure TestUnit_Unit1DotUnit2Fail;
+    Procedure TestUnit_InFilename; // ToDo
 
     // procs
     Procedure TestProcParam;
@@ -614,7 +623,7 @@ function TTestEnginePasResolver.FindModule(const AName: String): TPasModule;
 begin
   Result:=nil;
   if Assigned(OnFindUnit) then
-    Result:=OnFindUnit(AName);
+    Result:=OnFindUnit(Self,AName);
 end;
 
 { TCustomTestResolver }
@@ -1193,6 +1202,8 @@ begin
   except
     on E: EParserError do
       begin
+      if (Parser.LastMsg<>Msg) and (Parser.LastMsgPattern<>Msg) then
+        Fail('Expected msg {'+Msg+'}, but got {'+Parser.LastMsg+'} OR pattern {'+Parser.LastMsgPattern+'}');
       AssertEquals('Expected {'+Msg+'}, but got msg {'+E.Message+'} number',
         MsgNumber,Parser.LastMsgNumber);
       ok:=true;
@@ -1554,61 +1565,83 @@ begin
   Add('unit '+ExtractFileUnitName(MainFilename)+';');
 end;
 
-function TCustomTestResolver.OnPasResolverFindUnit(const aUnitName: String
-  ): TPasModule;
-var
-  i, ErrRow, ErrCol: Integer;
-  CurEngine: TTestEnginePasResolver;
-  CurUnitName, ErrFilename: String;
-begin
-  //writeln('TTestResolver.OnPasResolverFindUnit START Unit="',aUnitName,'"');
-  Result:=nil;
-  for i:=0 to ModuleCount-1 do
-    begin
-    CurEngine:=Modules[i];
-    CurUnitName:=ExtractFileUnitName(CurEngine.Filename);
-    //writeln('TTestResolver.OnPasResolverFindUnit Checking ',i,'/',ModuleCount,' ',CurEngine.Filename,' ',CurUnitName);
-    if CompareText(aUnitName,CurUnitName)=0 then
-      begin
-      Result:=CurEngine.Module;
-      if Result<>nil then exit;
-      //writeln('TTestResolver.OnPasResolverFindUnit PARSING unit "',CurEngine.Filename,'"');
-      //Resolver.FindSourceFile(aUnitName);
+function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
+  const aUnitName: String): TPasModule;
 
-      CurEngine.Resolver:=Resolver;
-      //CurEngine.Resolver:=TStreamResolver.Create;
-      //CurEngine.Resolver.OwnsStreams:=True;
-      //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurEngine.Source);
-      CurEngine.Resolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
-      CurEngine.Scanner:=TPascalScanner.Create(CurEngine.Resolver);
-      CurEngine.Parser:=TPasParser.Create(CurEngine.Scanner,CurEngine.Resolver,CurEngine);
-      if CompareText(CurUnitName,'System')=0 then
-        CurEngine.Parser.ImplicitUses.Clear;
-      CurEngine.Scanner.OpenFile(CurEngine.Filename);
-      try
-        CurEngine.Parser.NextToken;
-        CurEngine.Parser.ParseUnit(CurEngine.FModule);
-      except
-        on E: Exception do
-          begin
-          ErrFilename:=CurEngine.Scanner.CurFilename;
-          ErrRow:=CurEngine.Scanner.CurRow;
-          ErrCol:=CurEngine.Scanner.CurColumn;
-          writeln('ERROR: TTestResolver.OnPasResolverFindUnit during parsing: '+E.ClassName+':'+E.Message
-            +' File='+ErrFilename
-            +' LineNo='+IntToStr(ErrRow)
-            +' Col='+IntToStr(ErrCol)
-            +' Line="'+CurEngine.Scanner.CurLine+'"'
-            );
-          WriteSources(ErrFilename,ErrRow,ErrCol);
-          Fail(E.Message);
-          end;
+  function FindUnit(const aUnitName: String): TPasModule;
+  var
+    i, ErrRow, ErrCol: Integer;
+    CurEngine: TTestEnginePasResolver;
+    CurUnitName, ErrFilename: String;
+  begin
+    {$IFDEF VerboseUnitSearch}
+    writeln('TTestResolver.OnPasResolverFindUnit START Unit="',aUnitName,'"');
+    {$ENDIF}
+    Result:=nil;
+    for i:=0 to ModuleCount-1 do
+      begin
+      CurEngine:=Modules[i];
+      CurUnitName:=ExtractFileUnitName(CurEngine.Filename);
+      {$IFDEF VerboseUnitSearch}
+      writeln('TTestResolver.OnPasResolverFindUnit Checking ',i,'/',ModuleCount,' ',CurEngine.Filename,' ',CurUnitName);
+      {$ENDIF}
+      if CompareText(aUnitName,CurUnitName)=0 then
+        begin
+        Result:=CurEngine.Module;
+        {$IFDEF VerboseUnitSearch}
+        writeln('TTestResolver.OnPasResolverFindUnit Found unit "',CurEngine.Filename,'" Module=',GetObjName(Result));
+        {$ENDIF}
+        if Result<>nil then exit;
+        {$IFDEF VerboseUnitSearch}
+        writeln('TTestResolver.OnPasResolverFindUnit PARSING unit "',CurEngine.Filename,'"');
+        {$ENDIF}
+
+        CurEngine.Resolver:=Resolver;
+        //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurEngine.Source);
+        CurEngine.Resolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
+        CurEngine.Scanner:=TPascalScanner.Create(CurEngine.Resolver);
+        CurEngine.Parser:=TPasParser.Create(CurEngine.Scanner,CurEngine.Resolver,CurEngine);
+        if CompareText(CurUnitName,'System')=0 then
+          CurEngine.Parser.ImplicitUses.Clear;
+        CurEngine.Scanner.OpenFile(CurEngine.Filename);
+        try
+          CurEngine.Parser.NextToken;
+          CurEngine.Parser.ParseUnit(CurEngine.FModule);
+        except
+          on E: Exception do
+            begin
+            ErrFilename:=CurEngine.Scanner.CurFilename;
+            ErrRow:=CurEngine.Scanner.CurRow;
+            ErrCol:=CurEngine.Scanner.CurColumn;
+            writeln('ERROR: TTestResolver.OnPasResolverFindUnit during parsing: '+E.ClassName+':'+E.Message
+              +' File='+ErrFilename
+              +' LineNo='+IntToStr(ErrRow)
+              +' Col='+IntToStr(ErrCol)
+              +' Line="'+CurEngine.Scanner.CurLine+'"'
+              );
+            WriteSources(ErrFilename,ErrRow,ErrCol);
+            Fail(E.Message);
+            end;
+        end;
+        //writeln('TTestResolver.OnPasResolverFindUnit END ',CurUnitName);
+        Result:=CurEngine.Module;
+        exit;
+        end;
       end;
-      //writeln('TTestResolver.OnPasResolverFindUnit END ',CurUnitName);
-      Result:=CurEngine.Module;
-      exit;
-      end;
+  end;
+begin
+  if SrcResolver=nil then ;
+  if (Pos('.',aUnitName)<1) and (ResolverEngine.DefaultNameSpace<>'') then
+    begin
+    // first search in default program namespace
+    {$IFDEF VerbosePasResolver}
+    writeln('TCustomTestResolver.OnPasResolverFindUnit searching "',aUnitName,'" in default program/library namespace "',ResolverEngine.DefaultNameSpace,'"');
+    {$ENDIF}
+    Result:=FindUnit(ResolverEngine.DefaultNameSpace+'.'+aUnitName);
+    if Result<>nil then exit;
     end;
+  Result:=FindUnit(aUnitName);
+  if Result<>nil then exit;
   writeln('TTestResolver.OnPasResolverFindUnit missing unit "',aUnitName,'"');
   Fail('can''t find unit "'+aUnitName+'"');
 end;
@@ -2070,7 +2103,7 @@ begin
   Add('  i: longint');
   Add('begin');
   Add('  doit;');
-  CheckParserException('Expected ";" at token "begin" in file afile.pp at line 5 column 5',
+  CheckParserException('Expected ";"',
     nParserExpectTokenError);
 end;
 
@@ -3545,7 +3578,7 @@ begin
   ParseUnit;
 end;
 
-procedure TTestResolver.TestUnitIntfInitalization;
+procedure TTestResolver.TestUnitIntfInitialization;
 var
   El, DeclEl, OtherUnit: TPasElement;
   LocalVar: TPasVariable;
@@ -3622,7 +3655,7 @@ begin
   AssertEquals('other unit assign unit ref resolved',TResolvedReference,Prim1.CustomData.ClassType);
   DeclEl:=TResolvedReference(Prim1.CustomData).Declaration;
   OtherUnit:=DeclEl;
-  AssertEquals('other unit assign unit ref',TPasModule,DeclEl.ClassType);
+  AssertEquals('other unit assign unit ref',TPasUsesUnit,DeclEl.ClassType);
   AssertEquals('other unit assign unit ref system','system',lowercase(DeclEl.Name));
 
   AssertEquals('other unit assign dot',eopSubIdent,BinExp.OpCode);
@@ -3636,7 +3669,7 @@ begin
   DeclEl:=TResolvedReference(Prim2.CustomData).Declaration;
   AssertEquals('other unit assign var',TPasVariable,DeclEl.ClassType);
   AssertEquals('other unit assign var exitcode','exitcode',lowercase(DeclEl.Name));
-  AssertSame('other unit assign var exitcode',OtherUnit,DeclEl.GetModule);
+  AssertSame('other unit assign var exitcode',(OtherUnit as TPasUsesUnit).Module,DeclEl.GetModule);
 end;
 
 procedure TTestResolver.TestUnitUseIntf;
@@ -3672,6 +3705,22 @@ begin
   CheckResolverException('identifier not found "DoIt"',nIdentifierNotFound);
 end;
 
+procedure TTestResolver.TestUnit_DuplicateUsesFail;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var i: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add('uses unit2, unit2;');
+  Add('begin');
+  Add('  i:=3;');
+  CheckParserException('Duplicate identifier "unit2"',
+    nParserDuplicateIdentifier);
+end;
+
 procedure TTestResolver.TestUnit_NestedFail;
 begin
   AddModuleWithIntfImplSrc('unit2.pp',
@@ -3688,11 +3737,174 @@ begin
     '']));
 
   StartProgram(true);
-  Add('uses unit1;');
-  Add('begin');
-  Add('  if j1=0 then ;');
-  Add('  if i2=0 then ;');
+  Add([
+  'uses unit1;',
+  'begin',
+  '  if j1=0 then ;',
+  '  if i2=0 then ;',
+  '']);
   CheckResolverException('identifier not found "i2"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestUnitUseDotted;
+begin
+  AddModuleWithIntfImplSrc('ns1.unit2.pp',
+    LinesToStr([
+    'var i2: longint;']),
+    LinesToStr([
+    '']));
+
+  AddModuleWithIntfImplSrc('ns2.ns2A.unit1.pp',
+    LinesToStr([
+    'uses ns1.unit2;',
+    'var j1: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses ns2.ns2A.unit1;',
+  'begin',
+  '  if j1=0 then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestUnit_ProgramDefaultNamespace;
+begin
+  MainFilename:='ns1.main1.pas';
+
+  AddModuleWithIntfImplSrc('ns1.unit2.pp',
+    LinesToStr([
+    'var i2: longint;']),
+    LinesToStr([
+    '']));
+
+  AddModuleWithIntfImplSrc('ns1.unit1.pp',
+    LinesToStr([
+    'uses unit2;',
+    'var j1: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'begin',
+  '  if j1=0 then ;',
+  '']);
+  writeln('TTestResolver.TestUnit_ProgramDefaultNamespace ');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestUnit_DottedIdentifier;
+begin
+  MainFilename:='unitdots.main1.pas';
+  AddModuleWithIntfImplSrc('unitdots.unit1.pp',
+    LinesToStr([
+    'var i1: longint;']),
+    LinesToStr([
+    '']));
+
+  AddModuleWithIntfImplSrc('unitdots.pp',
+    LinesToStr([
+    'var j1: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses unitdots.unit1, unitdots;',
+  'var k1: longint;',
+  'begin',
+  '  if unitdots.main1.k1=0 then ;',
+  '  if unitdots.j1=0 then ;',
+  '  if unitdots.unit1.i1=0 then ;',
+  '']);
+  writeln('TTestResolver.TestUnit_DottedIdentifier ');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestUnit_DuplicateDottedUsesFail;
+begin
+  AddModuleWithIntfImplSrc('ns.unit2.pp',
+    LinesToStr([
+    'var i: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add('uses ns.unit2, ns.unit2;');
+  Add('begin');
+  Add('  i:=3;');
+  CheckParserException('Duplicate identifier "ns.unit2"',
+    nParserDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestUnit_DuplicateUsesDiffNameFail;
+begin
+  MainFilename:='unitdots.main1.pas';
+  AddModuleWithIntfImplSrc('unitdots.unit1.pp',
+    LinesToStr([
+    'var j1: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses unitdots.unit1, unit1;',
+  'var k1: longint;',
+  'begin',
+  '  if unitdots.main1.k1=0 then ;',
+  '  if unit1.j1=0 then ;',
+  '  if unitdots.unit1.j1=0 then ;',
+  '']);
+  CheckResolverException('Duplicate identifier "unitdots.unit1" at unitdots.main1.pas(2,13)',
+    nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestUnit_Unit1DotUnit2Fail;
+begin
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'var i1: longint;']),
+    LinesToStr([
+    '']));
+
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'uses unit1;',
+    'var j1: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'begin',
+  '  if unit2.unit1.i1=0 then ;',
+  '']);
+  CheckResolverException('identifier not found "unit1"',
+    nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestUnit_InFilename;
+begin
+  exit;
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'uses unit1;',
+    'var j1: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses foo in ''unit2.pas'';',
+  'begin',
+  '  if foo.i1=0 then ;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProcParam;
@@ -3747,7 +3959,7 @@ begin
   StartProgram(false);
   Add('procedure A: longint; begin end;');
   Add('begin');
-  CheckParserException('Expected ";" at token ":" in file afile.pp at line 2 column 12',
+  CheckParserException('Expected ";"',
     nParserExpectTokenError);
 end;
 

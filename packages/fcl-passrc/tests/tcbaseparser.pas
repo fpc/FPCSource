@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, fpcunit, pastree, pscanner, pparser, testregistry;
 
 const
-  MainFilename = 'afile.pp';
+  DefaultMainFilename = 'afile.pp';
 Type
   { TTestEngine }
 
@@ -32,6 +32,7 @@ Type
     FDeclarations: TPasDeclarations;
     FDefinition: TPasElement;
     FEngine : TPasTreeContainer;
+    FMainFilename: string;
     FModule: TPasModule;
     FParseResult: TPasElement;
     FScanner : TPascalScanner;
@@ -98,6 +99,7 @@ Type
     // If set, Will be freed in teardown
     Property ParseResult : TPasElement Read FParseResult Write FParseResult;
     Property UseImplementation : Boolean Read FUseImplementation Write FUseImplementation;
+    Property MainFilename: string read FMainFilename write FMainFilename;
   end;
 
 function ExtractFileUnitName(aFilename: string): string;
@@ -517,6 +519,7 @@ end;
 
 procedure TTestParser.SetUp;
 begin
+  FMainFilename:=DefaultMainFilename;
   Inherited;
   SetupParser;
 end;
