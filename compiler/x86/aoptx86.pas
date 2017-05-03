@@ -439,7 +439,20 @@ unit aoptx86;
            (p.ops=3) and
            (Reg1WriteOverwritesReg2Entirely(p.oper[2]^.reg,reg)) and
            (((p.oper[1]^.typ=top_reg) and not(Reg1ReadDependsOnReg2(p.oper[1]^.reg,reg))) or
-            ((p.oper[1]^.typ=top_ref) and not(RegInRef(reg,p.oper[1]^.ref^)))));
+            ((p.oper[1]^.typ=top_ref) and not(RegInRef(reg,p.oper[1]^.ref^))))) or
+          ((((p.opcode = A_IMUL) or
+             (p.opcode = A_MUL)) and
+            (p.ops=1)) and
+           (((p.oper[0]^.typ=top_reg) and not(Reg1ReadDependsOnReg2(p.oper[0]^.reg,reg))) or
+            ((p.oper[0]^.typ=top_ref) and not(RegInRef(reg,p.oper[0]^.ref^)))) and
+           (((p.opsize=S_B) and Reg1WriteOverwritesReg2Entirely(NR_AX,reg) and not(Reg1ReadDependsOnReg2(NR_AL,reg))) or
+            ((p.opsize=S_W) and Reg1WriteOverwritesReg2Entirely(NR_DX,reg)) or
+            ((p.opsize=S_L) and Reg1WriteOverwritesReg2Entirely(NR_EDX,reg))
+{$ifdef x86_64}
+         or ((p.opsize=S_Q) and Reg1WriteOverwritesReg2Entirely(NR_RDX,reg))
+{$endif x86_64}
+           )
+          );
       end;
 
 
