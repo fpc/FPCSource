@@ -427,18 +427,18 @@ unit aoptx86;
             (p.opcode = A_MOVAPS)) and
            (p.ops=2) and  { A_MOVSD can have zero operands, so this check is needed }
            (p.oper[1]^.typ = top_reg) and
-           (SuperRegistersEqual(p.oper[1]^.reg,reg)) and
+           (Reg1WriteOverwritesReg2Entirely(p.oper[1]^.reg,reg)) and
            ((p.oper[0]^.typ = top_const) or
             ((p.oper[0]^.typ = top_reg) and
-             not(SuperRegistersEqual(p.oper[0]^.reg,reg))) or
+             not(Reg1ReadDependsOnReg2(p.oper[0]^.reg,reg))) or
             ((p.oper[0]^.typ = top_ref) and
              not RegInRef(reg,p.oper[0]^.ref^)))) or
           ((p.opcode = A_POP) and
-           (SuperRegistersEqual(p.oper[0]^.reg,reg))) or
+           (Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg))) or
           ((p.opcode = A_IMUL) and
            (p.ops=3) and
-           (SuperRegistersEqual(p.oper[2]^.reg,reg)) and
-           not((SuperRegistersEqual(p.oper[1]^.reg,reg))));
+           (Reg1WriteOverwritesReg2Entirely(p.oper[2]^.reg,reg)) and
+           not((Reg1ReadDependsOnReg2(p.oper[1]^.reg,reg))));
       end;
 
 
