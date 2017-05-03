@@ -180,6 +180,35 @@ var
     OOptions:=OOptions+maybequoted(s);
   end;
 
+  procedure AddDependencySearchPaths(APackageName: string);
+  var
+    i: Integer;
+    D: TFPDependency;
+    UnitDir: string;
+    Package: TFPPackage;
+  begin
+    Package := PackageManager.FindPackage(APackageName, pkgpkInstalled);
+    if not assigned(Package) then
+      begin
+        Error(SErrMissingInstallPackage, [PackageName]);
+      end;
+    for i := 0 to Package.Dependencies.Count -1 do
+      begin
+        D := Package.Dependencies[i];
+        if (PackageManager.CompilerOptions.CompilerOS in D.OSes) and
+           (PackageManager.CompilerOptions.CompilerCPU in D.CPUs) then
+          begin
+            if CheckUnitDir(D.PackageName, UnitDir) then
+              begin
+                AddDependencySearchPaths(D.PackageName);
+                AddOption('-Fu'+UnitDir)
+              end
+            else
+              Error(SErrMissingInstallPackage, [D.PackageName]);
+          end;
+      end;
+  end;
+
 Var
   i : Integer;
   TempBuildDir,
@@ -191,6 +220,7 @@ Var
   FPMKUnitDepAvailable: Boolean;
   FPMKUnitDepPackage: TFPPackage;
   P : TFPPackage;
+  DepPackage: TFPPackage;
 begin
   P:=DeterminePackage;
   NeedFPMKUnitSource:=false;
@@ -236,7 +266,10 @@ begin
           if FPMKUnitDepAvailable then
             begin
               if CheckUnitDir(FPMKUnitDeps[i].package,DepDir) then
-                AddOption('-Fu'+DepDir)
+                begin
+                  AddDependencySearchPaths(FPMKUnitDeps[i].package);
+                  AddOption('-Fu'+DepDir)
+                end
               else
                 Error(SErrMissingInstallPackage,[FPMKUnitDeps[i].package]);
               if FPMKUnitDeps[i].def<>'' then

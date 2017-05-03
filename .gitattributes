@@ -3445,6 +3445,12 @@ packages/fppkg/tests/packages/base/packagevarianta/src/packagevariantbaseunit.pp
 packages/fppkg/tests/packages/base/packagevarianta/src/packagevariantversionbonly.pp svneol=native#text/pascal
 packages/fppkg/tests/packages/base/packagevariantp/fpmake.pp svneol=native#text/pascal
 packages/fppkg/tests/packages/base/packagevariantp/src/packagevariantp.pp svneol=native#text/pascal
+packages/fppkg/tests/packages/specific/plugindependencies/packageusingplugin/fpmake.pp svneol=native#text/pascal
+packages/fppkg/tests/packages/specific/plugindependencies/packageusingplugin/src/packageusingpluginunit.pas svneol=native#text/pascal
+packages/fppkg/tests/packages/specific/plugindependencies/plugindependency/fpmake.pp svneol=native#text/pascal
+packages/fppkg/tests/packages/specific/plugindependencies/plugindependency/src/plugindependencyunit.pas svneol=native#text/pascal
+packages/fppkg/tests/packages/specific/plugindependencies/pluginpackage/fpmake.pp svneol=native#text/pascal
+packages/fppkg/tests/packages/specific/plugindependencies/pluginpackage/src/pluginunit.pas svneol=native#text/pascal
 packages/fppkg/tests/packages/specific/transmitoptions/packagea/fpmake.pp svneol=native#text/pascal
 packages/fppkg/tests/packages/specific/transmitoptions/packagea/src/PackageAUnitA.pas svneol=native#text/pascal
 packages/fppkg/tests/packages/specific/transmitoptions/packageb1/fpmake.pp svneol=native#text/pascal

@@ -37,6 +37,7 @@ type
     procedure TestTransmitOptions;
     procedure TestPackageVariantPackage;
     procedure TestFPMakeCommandLikePackageVariants;
+    procedure TestFpmakePluginDependencies;
   end;
 
   { TFullFPCInstallationSetup }
@@ -322,6 +323,19 @@ end;
 procedure TFullFPCInstallationTests.TearDown;
 begin
 
+end;
+
+procedure TFullFPCInstallationTests.TestFpmakePluginDependencies;
+begin
+  // A fpmake-plugin could have it's own dependencies. These dependencies have
+  // to be installed, and it's path must be used to compile the fpmake-executable.
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packageusingplugin', 'plugindependencies');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('plugindependency', 'plugindependencies');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('pluginpackage', 'plugindependencies');
+
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'plugindependency', ['install'], 'Install dependency');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'pluginpackage', ['install'], 'Install plugin');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageusingplugin', ['install'], 'Install package that depends on plugin');
 end;
 
 procedure TFullFPCInstallationTests.TestListPackages;
