@@ -438,7 +438,8 @@ unit aoptx86;
           ((p.opcode = A_IMUL) and
            (p.ops=3) and
            (Reg1WriteOverwritesReg2Entirely(p.oper[2]^.reg,reg)) and
-           not((Reg1ReadDependsOnReg2(p.oper[1]^.reg,reg))));
+           (((p.oper[1]^.typ=top_reg) and not(Reg1ReadDependsOnReg2(p.oper[1]^.reg,reg))) or
+            ((p.oper[1]^.typ=top_ref) and not(RegInRef(reg,p.oper[1]^.ref^)))));
       end;
 
 
