@@ -2248,11 +2248,8 @@ begin
   Add('  now();');
   Add('  uNit2.now;');
   Add('  uNit2.now();');
-  Add('  test1.now;');
-  Add('  test1.now();');
   Add('  doit;');
   Add('  uNit2.doit;');
-  Add('  test1.doit;');
   ConvertUnit;
   CheckSource('TestProcedureExternalOtherUnit',
     LinesToStr([
@@ -2262,12 +2259,9 @@ begin
     'Date.now();',
     'Date.now();',
     'Date.now();',
-    'Date.now();',
-    'Date.now();',
     'pas.unit2.DoIt();',
     'pas.unit2.DoIt();',
-    'pas.unit2.DoIt();'
-    ]));
+    '']));
 end;
 
 procedure TTestModule.TestProc_Asm;
@@ -3584,10 +3578,10 @@ begin
   Add('begin');
   Add('  d:=nan;');
   Add('  d:=uNit2.nan;');
-  Add('  d:=test1.nan;');
+  Add('  d:=test1.d;');
   Add('  i:=iv;');
   Add('  i:=uNit2.iv;');
-  Add('  i:=test1.iv;');
+  Add('  i:=test1.i;');
   ConvertUnit;
   CheckSource('TestVarExternalOtherUnit',
     LinesToStr([
@@ -3596,10 +3590,10 @@ begin
     LinesToStr([ // this.$init
     '$impl.d = Global.NaN;',
     '$impl.d = Global.NaN;',
-    '$impl.d = Global.NaN;',
+    '$impl.d = $impl.d;',
     '$i = pas.unit2.iV;',
     '$i = pas.unit2.iV;',
-    '$i = pas.unit2.iV;',
+    '$i = $i;',
     '']),
     LinesToStr([ // implementation
     '$impl.d = 0.0;',
