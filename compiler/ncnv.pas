@@ -287,6 +287,7 @@ interface
     procedure inserttypeconv_explicit(var p:tnode;def:tdef);
     procedure inserttypeconv_internal(var p:tnode;def:tdef);
     procedure arrayconstructor_to_set(var p : tnode);
+    function arrayconstructor_can_be_set(p:tnode):boolean;
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
 
     function maybe_global_proc_to_nested(var fromnode: tnode; todef: tdef): boolean;
@@ -463,6 +464,7 @@ implementation
         hp : tarrayconstructornode;
         oldfilepos: tfileposinfo;
       begin
+        { keep in sync with arrayconstructor_can_be_set }
         if p.nodetype<>arrayconstructorn then
           internalerror(200205105);
         new(constset);
@@ -653,6 +655,85 @@ implementation
         typecheckpass(buildp);
         { set the new tree }
         p:=buildp;
+      end;
+
+
+    function arrayconstructor_can_be_set(p:tnode):boolean;
+      var
+        p1,p2 : tnode;
+        hdef : tdef;
+      begin
+        { keep in sync with arrayconstructor_to_set }
+        if not assigned(p) then
+          internalerror(2015050401);
+        if not assigned(tarrayconstructornode(p).left) then
+          begin
+            if assigned(tarrayconstructornode(p).right) then
+              internalerror(2015050103);
+            result:=true;
+          end
+        else
+          begin
+            result:=false;
+
+            hdef:=nil;
+
+            while assigned(p) do
+              begin
+                if tarrayconstructornode(p).left.nodetype=arrayconstructorrangen then
+                  begin
+                    p1:=tarrayconstructorrangenode(tarrayconstructornode(p).left).left;
+                    p2:=tarrayconstructorrangenode(tarrayconstructornode(p).left).right;
+                  end
+                else
+                  begin
+                    p1:=tarrayconstructornode(p).left;
+                    p2:=nil;
+                  end;
+
+                case p1.resultdef.typ of
+                  orddef,
+                  enumdef:
+                    begin
+                      if is_widechar(p1.resultdef) then
+                        begin
+                          if p1.nodetype<>ordconstn then
+                            exit
+                          else if tordconstnode(p1).value.uvalue>high(byte) then
+                            exit;
+                        end;
+
+                      if assigned(p2) then
+                        begin
+                          if is_widechar(p2.resultdef) then
+                            begin
+                              if p2.nodetype<>ordconstn then
+                                exit
+                              else if tordconstnode(p2).value.uvalue>high(byte) then
+                                exit;
+                            end;
+
+                          { anything to exclude? }
+                        end
+                      else
+                        begin
+                          { anything to exclude? }
+                        end;
+                    end;
+                  stringdef:
+                    if p1.nodetype<>stringconstn then
+                      exit
+                    else if assigned(hdef) and not is_char(hdef) then
+                      exit;
+                  else
+                    exit;
+                end;
+
+                p:=tarrayconstructornode(p).right;
+              end;
+
+            result:=true;
+          end;
       end;
 
 
