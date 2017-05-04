@@ -904,7 +904,6 @@ implementation
       procedure tcgcasenode.genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);
         var
           lesslabel,greaterlabel : tasmlabel;
-          less,greater : pcaselabel;
         begin
           current_asmdata.CurrAsmList.concat(cai_align.Create(current_settings.alignment.jumpalign));
           cg.a_label(current_asmdata.CurrAsmList,p^.labellabel);

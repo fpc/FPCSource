@@ -399,7 +399,6 @@ implementation
       procedure tarmcasenode.genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);
         var
           lesslabel,greaterlabel : tasmlabel;
-          less,greater : pcaselabel;
           cond_gt: TResFlags;
           cmplow : Boolean;
         begin
