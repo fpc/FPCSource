@@ -15,6 +15,13 @@
 
  **********************************************************************}
 
+{ IMPORTANT!
+  Never use the "BLX label" instruction! Use "BL label" instead.
+  The linker will always change BL to BLX if necessary, but not vice versa (linker version dependent).
+  "BLX label" ALWAYS changes the instruction set. It changes a processor in ARM state to Thumb state,
+  or a processor in Thumb state to ARM state.
+}
+
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_FPC_MOVE}
 {$endif FPC_SYSTEM_HAS_MOVE}
@@ -547,14 +554,7 @@ asm
 {$endif}
   stmfd   sp!, {r1, lr}
   sub     r0, r1, #8
-
-// We use always bl, as newer binutils apparently never translate blx into bl
-// {$if defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
-//   blx     InterLockedDecrement
-// {$else defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
   bl      InterLockedDecrement
-// {$endif defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
-
   // InterLockedDecrement is a nice guy and sets the z flag for us
   // if the reference count dropped to 0
   ldmnefd sp!, {r1, pc}
@@ -659,11 +659,7 @@ asm
 // lock
   {$ifdef FPC_PIC}
     push {r0,lr}
-    {$ifdef CPUARM_HAS_BLX}
-      blx get_fpc_system_lock_ptr
-    {$else}
-      bl get_fpc_system_lock_ptr
-    {$endif CPUARM_HAS_BLX}
+    bl get_fpc_system_lock_ptr
     mov r3,r0
     pop {r0,lr}
   {$else FPC_PIC}
@@ -744,11 +740,7 @@ asm
 // lock
   {$ifdef FPC_PIC}
     push {r0,lr}
-    {$ifdef CPUARM_HAS_BLX}
-      blx get_fpc_system_lock_ptr
-    {$else}
-      bl get_fpc_system_lock_ptr
-    {$endif CPUARM_HAS_BLX}
+    bl get_fpc_system_lock_ptr
     mov r3,r0
     pop {r0,lr}
   {$else FPC_PIC}
@@ -829,11 +821,7 @@ asm
 // lock
   {$ifdef FPC_PIC}
     push {r0,r1,lr}
-    {$ifdef CPUARM_HAS_BLX}
-      blx get_fpc_system_lock_ptr
-    {$else}
-      bl get_fpc_system_lock_ptr
-    {$endif CPUARM_HAS_BLX}
+    bl get_fpc_system_lock_ptr
     mov r3,r0
     pop {r0,r1,lr}
   {$else FPC_PIC}
@@ -919,11 +907,7 @@ asm
 // lock
   {$ifdef FPC_PIC}
     push {r0,r1,lr}
-    {$ifdef CPUARM_HAS_BLX}
-      blx get_fpc_system_lock_ptr
-    {$else}
-      bl get_fpc_system_lock_ptr
-    {$endif CPUARM_HAS_BLX}
+    bl get_fpc_system_lock_ptr
     mov r3,r0
     pop {r0,r1,lr}
   {$else FPC_PIC}
@@ -1012,11 +996,7 @@ asm
 // lock
   {$ifdef FPC_PIC}
     push {r0,r1,r2,lr}
-    {$ifdef CPUARM_HAS_BLX}
-      blx get_fpc_system_lock_ptr
-    {$else}
-      bl get_fpc_system_lock_ptr
-    {$endif CPUARM_HAS_BLX}
+    bl get_fpc_system_lock_ptr
     mov r12,r0
     pop {r0,r1,r2,lr}
   {$else FPC_PIC}

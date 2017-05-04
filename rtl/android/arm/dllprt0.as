@@ -47,9 +47,9 @@ FPC_SHARED_LIB_START:
         str r0,[ip]
 
         /* Call main */
-        blx FPC_LIB_MAIN_ANDROID
+        bl FPC_LIB_MAIN_ANDROID
         /* Call library init */
-        blx FPC_LIB_INIT_ANDROID
+        bl FPC_LIB_INIT_ANDROID
 
         ldmea fp, {fp, sp, pc}
 
@@ -72,7 +72,7 @@ _haltproc:
         .type   _haltproc_eabi,#function
 _haltproc_eabi:
         /* Simply call libc exit(). _haltproc has the same declaration as exit. */
-        blx exit
+        bl exit
 
 /* --------------------------------------------------------- */
 .data
