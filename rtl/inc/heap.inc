@@ -227,8 +227,8 @@ var
 {$ifdef FPC_HAS_FEATURE_THREADING}
   heap_lock : trtlcriticalsection;
   heap_lock_use : integer;
-{$endif}
 threadvar
+{$endif}
   freelists : tfreelists;
 
 {$ifdef DUMP_MEM_USAGE}
@@ -238,7 +238,11 @@ const
   sizeusagesize = sizeusageindex shl sizeusageshift;
 type
   tsizeusagelist = array[0..sizeusageindex] of longint;
+{$ifdef FPC_HAS_FEATURE_THREADING}
 threadvar
+{$else}
+var
+{$endif}
   sizeusage, maxsizeusage: tsizeusagelist;
 {$endif}
 

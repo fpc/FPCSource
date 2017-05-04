@@ -177,7 +177,11 @@ var
   orphaned_info: theap_info;
   todo_lock: trtlcriticalsection;
   textoutput : ^text;
+{$ifdef FPC_HAS_FEATURE_THREADING}
 threadvar
+{$else}
+var
+{$endif}
   heap_info: theap_info;
 
 {*****************************************************************************
@@ -371,7 +375,7 @@ function released_modified(p : pheap_mem_info;var ptext : text) : boolean;
      pb : pbyte;
      i : longint;
 begin
-  released_modified:=false; 
+  released_modified:=false;
   { Check tail_size bytes just after allocation !! }
   pl:=pointer(p)+sizeof(theap_mem_info)+p^.size;
   pb:=pointer(p)+sizeof(theap_mem_info);
@@ -379,13 +383,13 @@ begin
     if pb[i]<>$F0 then
       begin
         Writeln(ptext,'offset',i,':$',hexstr(i,2*sizeof(pointer)),'"',hexstr(pb[i],2),'"');
-        released_modified:=true; 
+        released_modified:=true;
       end;
   for i:=1 to (tail_size div sizeof(dword)) do
     begin
       if unaligned(pl^) <> AllocateSig then
         begin
-          released_modified:=true; 
+          released_modified:=true;
           writeln(ptext,'Tail modified after release at pos ',i*sizeof(ptruint));
           printhex(pointer(p)+p^.extra_info_size+sizeof(theap_mem_info)+p^.size,tail_size,ptext);
           break;
@@ -480,9 +484,13 @@ procedure try_finish_heap_free_todo_list(loc_info: pheap_info);
 begin
   if loc_info^.heap_free_todo <> nil then
   begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
     entercriticalsection(todo_lock);
+{$endif}
     finish_heap_free_todo_list(loc_info);
+{$ifdef FPC_HAS_FEATURE_THREADING}
     leavecriticalsection(todo_lock);
+{$endif}
   end;
 end;
 
@@ -701,8 +709,10 @@ begin
     inc(ppsize,tail_size);
   { do various checking }
   release_mem := CheckFreeMemSize(loc_info, pp, size, ppsize);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   if release_todo_lock then
     leavecriticalsection(todo_lock);
+{$endif}
   if release_mem then
   begin
     { release the normal memory at least }
@@ -734,7 +744,9 @@ begin
   begin
     if pp^.todolist = main_orig_todolist then
       pp^.todolist := main_relo_todolist;
+{$ifdef FPC_HAS_FEATURE_THREADING}
     entercriticalsection(todo_lock);
+{$endif}
     release_lock:=true;
     if pp^.todolist = @orphaned_info.heap_free_todo then
     begin
@@ -746,7 +758,9 @@ begin
       pp^.todonext := pp^.todolist^;
       pp^.todolist^ := pp;
       TraceFreeMemSize := pp^.size;
+{$ifdef FPC_HAS_FEATURE_THREADING}
       leavecriticalsection(todo_lock);
+{$endif}
       exit;
     end;
   end;
@@ -1286,7 +1300,9 @@ end;
 procedure TraceRelocateHeap;
 begin
   main_relo_todolist := @heap_info.heap_free_todo;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   initcriticalsection(todo_lock);
+{$endif}
 end;
 
 procedure move_heap_info(src_info, dst_info: pheap_info);
@@ -1331,9 +1347,13 @@ var
   loc_info: pheap_info;
 begin
   loc_info := @heap_info;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   entercriticalsection(todo_lock);
+{$endif}
   move_heap_info(loc_info, @orphaned_info);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   leavecriticalsection(todo_lock);
+{$endif}
 end;
 
 function TraceGetHeapStatus:THeapStatus;
@@ -1488,8 +1508,10 @@ begin
   dumpheap;
   if heap_info.error_in_heap and (exitcode=0) then
     exitcode:=203;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   if main_relo_todolist <> nil then
     donecriticalsection(todo_lock);
+{$endif}
 {$ifdef EXTRA}
   Close(error_file);
 {$endif EXTRA}
