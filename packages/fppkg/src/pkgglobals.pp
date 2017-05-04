@@ -23,7 +23,7 @@ Const
 
 Type
   TFPMKUnitDep=record
-    package    : string[12];
+    package    : string[64];
     reqver     : string[8];
     undef      : string[32];
     def        : string[32];
