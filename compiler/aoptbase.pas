@@ -160,6 +160,14 @@ unit aoptbase;
 {$ifdef cpurefshaveindexreg}
     Or SuperRegistersEqual(Ref.Index,Reg)
 {$endif cpurefshaveindexreg}
+{$ifdef x86}
+    or (Reg=Ref.segment)
+    { if Ref.segment isn't set, the cpu uses implicitly ss or ds, depending on the base register }
+    or ((Ref.segment=NR_NO) and (
+      ((Reg=NR_SS) and (SuperRegistersEqual(Ref.base,NR_EBP) or SuperRegistersEqual(Ref.base,NR_ESP))) or
+      ((Reg=NR_DS) and not(SuperRegistersEqual(Ref.base,NR_EBP) or SuperRegistersEqual(Ref.base,NR_ESP)))
+    ))
+{$endif x86}
   End;
 
   Function TAOptBase.RegModifiedByInstruction(Reg: TRegister; p1: tai): Boolean;
