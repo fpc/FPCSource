@@ -977,7 +977,17 @@ implementation
                         { to dynamic array }
                         else if is_dynamic_array(def_to) then
                          begin
-                           if equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
+                           if is_array_constructor(def_from) then
+                             begin
+                               { array constructor -> dynamic array }
+                               if (tarraydef(def_from).elementdef=voidtype) or
+                                   (compare_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef,nothingn)>te_incompatible) then
+                                 begin
+                                   eq:=te_convert_l1;
+                                   doconv:=tc_arrayconstructor_2_dynarray;
+                                 end;
+                             end
+                           else if equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                              begin
                                { dynamic array -> dynamic array }
                                if is_dynamic_array(def_from) then
