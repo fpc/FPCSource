@@ -872,6 +872,14 @@ implementation
                     hloopbody.free;
                   end;
               end
+            { "for x in [] do ..." always results in a never executed loop body }
+            else if (is_array_constructor(expr.resultdef) and
+                (tarraydef(expr.resultdef).elementdef=voidtype)) then
+              begin
+                if assigned(hloopbody) then
+                  MessagePos(hloopbody.fileinfo,cg_w_unreachable_code);
+                result:=cnothingnode.create;
+              end
             else
               begin
                 // search for operator first
