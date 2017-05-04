@@ -472,6 +472,12 @@ unit aoptx86;
           ((p.opcode = A_LFS) and (reg=NR_FS) and not(RegInRef(reg,p.oper[0]^.ref^))) or
           ((p.opcode = A_LGS) and (reg=NR_GS) and not(RegInRef(reg,p.oper[0]^.ref^))) or
           ((p.opcode = A_LSS) and (reg=NR_SS) and not(RegInRef(reg,p.oper[0]^.ref^))) or
+          ((p.opcode = A_LODSB) and Reg1WriteOverwritesReg2Entirely(NR_AL,reg)) or
+          ((p.opcode = A_LODSW) and Reg1WriteOverwritesReg2Entirely(NR_AX,reg)) or
+          ((p.opcode = A_LODSD) and Reg1WriteOverwritesReg2Entirely(NR_EAX,reg)) or
+{$ifdef x86_64}
+          ((p.opcode = A_LODSQ) and Reg1WriteOverwritesReg2Entirely(NR_RAX,reg)) or
+{$endif x86_64}
           ((p.opcode = A_SETcc) and (p.oper[0]^.typ=top_reg) and Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg));
       end;
 
