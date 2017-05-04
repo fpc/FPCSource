@@ -390,7 +390,7 @@ type
       { functions and properties to match TBits class }
       procedure SetBit(bit : longint; value : Boolean);
       procedure SetSize(value : longint);
-   Protected   
+   Protected
       procedure CheckBitIndex (Bit : longint;CurrentSize : Boolean);
    public
       { Public declarations }
@@ -669,9 +669,9 @@ type
     function AddObject(const Fmt: string; Args : Array of const; AObject: TObject): Integer; overload;
     procedure Append(const S: string);
     procedure AddStrings(TheStrings: TStrings); overload; virtual;
-    procedure AddStrings(TheStrings: TStrings; ClearFirst : Boolean); overload; 
+    procedure AddStrings(TheStrings: TStrings; ClearFirst : Boolean); overload;
     procedure AddStrings(const TheStrings: array of string); overload; virtual;
-    procedure AddStrings(const TheStrings: array of string; ClearFirst : Boolean); overload; 
+    procedure AddStrings(const TheStrings: array of string; ClearFirst : Boolean); overload;
     Procedure AddText(Const S : String); virtual;
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
@@ -1579,13 +1579,13 @@ type
 
 { TThread }
   TThread = Class;
-  
+
   EThread = class(Exception);
   EThreadExternalException = class(EThread);
   EThreadDestroyCalled = class(EThread);
   TSynchronizeProcVar = procedure;
   TThreadMethod = procedure of object;
-  
+
   TThreadReportStatus = Procedure(Const status : String) of Object;
 
   TThreadStatusNotifyEvent = Procedure(Sender : TThread; Const status : String) of Object;
@@ -1596,9 +1596,11 @@ type
   TThreadStatusNotifyCallBack = Procedure(Sender : TThread; AData : Pointer; Const status : String);
   TThreadExecuteCallBack = Procedure(AData : Pointer);
   TThreadExecuteStatusCallBack = Procedure(AData : Pointer; ReportStatus : TThreadReportStatus);
-  
+
   TThreadPriority = (tpIdle, tpLowest, tpLower, tpNormal, tpHigher, tpHighest,
     tpTimeCritical);
+
+
 
   TThread = class
   private type

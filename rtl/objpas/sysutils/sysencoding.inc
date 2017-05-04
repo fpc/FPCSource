@@ -17,13 +17,17 @@
 
 class function TEncoding.GetANSI: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seAnsi]) then
       FStandardEncodings[seAnsi] := TMBCSEncoding.Create(DefaultSystemCodePage);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seAnsi];
 end;
 
@@ -52,25 +56,33 @@ end;
 
 class function TEncoding.GetASCII: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seAscii]) then
       FStandardEncodings[seAscii] := TMBCSEncoding.Create(CP_ASCII);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seAscii];
 end;
 
 class function TEncoding.GetBigEndianUnicode: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seBigEndianUnicode]) then
       FStandardEncodings[seBigEndianUnicode] := TBigEndianUnicodeEncoding.Create;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seBigEndianUnicode];
 end;
 
@@ -81,37 +93,49 @@ end;
 
 class function TEncoding.GetUnicode: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seUnicode]) then
       FStandardEncodings[seUnicode] := TUnicodeEncoding.Create;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seUnicode];
 end;
 
 class function TEncoding.GetUTF7: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seUTF7]) then
       FStandardEncodings[seUTF7] := TUTF7Encoding.Create;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seUTF7];
 end;
 
 class function TEncoding.GetUTF8: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seUTF8]) then
       FStandardEncodings[seUTF8] := TUTF8Encoding.Create;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seUTF8];
 end;
 
@@ -119,13 +143,17 @@ class procedure TEncoding.FreeEncodings;
 var
   E: TStandardEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     for E := Low(FStandardEncodings) to High(FStandardEncodings) do
       FStandardEncodings[E].Free;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
 end;
 
 class constructor TEncoding.Create;
@@ -134,13 +162,17 @@ var
 begin
   for E := Low(FStandardEncodings) to High(FStandardEncodings) do
     FStandardEncodings[E] := nil;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(FLock);
+{$endif}
 end;
 
 class destructor TEncoding.Destroy;
 begin
   FreeEncodings;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   DoneCriticalSection(FLock);
+{$endif}
 end;
 
 function TEncoding.Clone: TEncoding;
