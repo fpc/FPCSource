@@ -103,7 +103,8 @@ interface
           tc_interface_2_variant,
           tc_variant_2_interface,
           tc_array_2_dynarray,
-          tc_elem_2_openarray
+          tc_elem_2_openarray,
+          tc_arrayconstructor_2_dynarray
        );
 
     function compare_defs_ext(def_from,def_to : tdef;
