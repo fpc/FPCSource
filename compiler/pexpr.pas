@@ -152,8 +152,7 @@ implementation
       var
          p1,p2,argname : tnode;
          prev_in_args,
-         old_named_args_allowed,
-         old_allow_array_constructor : boolean;
+         old_named_args_allowed : boolean;
       begin
          if token=end_of_paras then
            begin
@@ -162,12 +161,10 @@ implementation
            end;
          { save old values }
          prev_in_args:=in_args;
-         old_allow_array_constructor:=allow_array_constructor;
          old_named_args_allowed:=named_args_allowed;
          { set para parsing values }
          in_args:=true;
          named_args_allowed:=false;
-         allow_array_constructor:=true;
          p2:=nil;
          repeat
            if __namedpara then
@@ -214,7 +211,6 @@ implementation
                  end
              end;
          until not try_to_consume(_COMMA);
-         allow_array_constructor:=old_allow_array_constructor;
          in_args:=prev_in_args;
          named_args_allowed:=old_named_args_allowed;
          parse_paras:=p2;
@@ -3257,7 +3253,6 @@ implementation
            p1,p2 : tnode;
            lastp,
            buildp : tarrayconstructornode;
-           old_allow_array_constructor : boolean;
          begin
            buildp:=nil;
            lastp:=nil;
@@ -3267,9 +3262,6 @@ implementation
              buildp:=carrayconstructornode.create(nil,buildp)
            else
             repeat
-              { nested array constructors are not allowed, see also tests/webtbs/tw17213.pp }
-              old_allow_array_constructor:=allow_array_constructor;
-              allow_array_constructor:=false;
               p1:=comp_expr([ef_accept_equal]);
               if try_to_consume(_POINTPOINT) then
                 begin
@@ -3287,7 +3279,6 @@ implementation
                  lastp.right:=carrayconstructornode.create(p1,nil);
                  lastp:=tarrayconstructornode(lastp.right);
                end;
-             allow_array_constructor:=old_allow_array_constructor;
            { there could be more elements }
            until not try_to_consume(_COMMA);
            buildp.allow_array_constructor:=block_type in [bt_body,bt_except];

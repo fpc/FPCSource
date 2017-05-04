@@ -146,9 +146,6 @@ interface
         (tok:_OP_COPY      ; managementoperator: mop_copy)
       );
 
-      { true, if we are parsing stuff which allows array constructors }
-      allow_array_constructor : boolean = false;
-
     function node2opstr(nt:tnodetype):string;
     function token2managementoperator(optoken:ttoken):tmanagementoperator;
 

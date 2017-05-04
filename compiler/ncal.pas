@@ -1037,8 +1037,6 @@ implementation
       begin
          if assigned(right) then
           tcallparanode(right).get_paratype;
-         old_array_constructor:=allow_array_constructor;
-         allow_array_constructor:=true;
          if assigned(fparainit) then
           typecheckpass(fparainit);
          typecheckpass(left);
@@ -1046,7 +1044,6 @@ implementation
            typecheckpass(third);
          if assigned(fparacopyback) then
            typecheckpass(fparacopyback);
-         allow_array_constructor:=old_array_constructor;
          if codegenerror then
           resultdef:=generrordef
          else

@@ -324,7 +324,6 @@ implementation
          named_args_allowed:=false;
          got_addrn:=false;
          getprocvardef:=nil;
-         allow_array_constructor:=false;
 
        { show info }
          Message1(parser_i_compiling,filename);
