@@ -424,7 +424,14 @@ unit aoptx86;
             (p.opcode = A_MOVSD) or
             (p.opcode = A_MOVQ) or
             (p.opcode = A_MOVAPD) or
-            (p.opcode = A_MOVAPS)) and
+            (p.opcode = A_MOVAPS) or
+{$ifndef x86_64}
+            (p.opcode = A_LDS) or
+            (p.opcode = A_LES) or
+{$endif not x86_64}
+            (p.opcode = A_LFS) or
+            (p.opcode = A_LGS) or
+            (p.opcode = A_LSS)) and
            (p.ops=2) and  { A_MOVSD can have zero operands, so this check is needed }
            (p.oper[1]^.typ = top_reg) and
            (Reg1WriteOverwritesReg2Entirely(p.oper[1]^.reg,reg)) and
@@ -457,7 +464,14 @@ unit aoptx86;
 {$ifdef x86_64}
           ((p.opcode = A_CQO) and Reg1WriteOverwritesReg2Entirely(NR_RDX,reg)) or
 {$endif x86_64}
-          ((p.opcode = A_CBW) and Reg1WriteOverwritesReg2Entirely(NR_AX,reg) and not(Reg1ReadDependsOnReg2(NR_AL,reg)));
+          ((p.opcode = A_CBW) and Reg1WriteOverwritesReg2Entirely(NR_AX,reg) and not(Reg1ReadDependsOnReg2(NR_AL,reg))) or
+{$ifndef x86_64}
+          ((p.opcode = A_LDS) and (reg=NR_DS) and not(RegInRef(reg,p.oper[0]^.ref^))) or
+          ((p.opcode = A_LES) and (reg=NR_ES) and not(RegInRef(reg,p.oper[0]^.ref^))) or
+{$endif not x86_64}
+          ((p.opcode = A_LFS) and (reg=NR_FS) and not(RegInRef(reg,p.oper[0]^.ref^))) or
+          ((p.opcode = A_LGS) and (reg=NR_GS) and not(RegInRef(reg,p.oper[0]^.ref^))) or
+          ((p.opcode = A_LSS) and (reg=NR_SS) and not(RegInRef(reg,p.oper[0]^.ref^)));
       end;
 
 
