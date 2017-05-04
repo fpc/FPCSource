@@ -134,9 +134,10 @@ Works:
 - pointer TPasPointerType
   - nil, assigned(), typecast, class, classref, dynarray, procvar
 - emit hints platform, deprecated, experimental, library, unimplemented
+- dotted unitnames
 
 ToDo:
-- test forward class in argument
+- @@
 - fix slow lookup declaration proc in PParser
 - fail to write a loop var inside the loop
 - warn: create class with abstract methods
@@ -151,6 +152,7 @@ ToDo:
    - pointer of record
 - proc: check if forward and impl default values match
 - call array of proc without ()
+- array+array
 - pointer type, ^type, @ operator, [] operator
 - type alias type
 - object
@@ -158,12 +160,12 @@ ToDo:
   - implements, supports
 - TPasResString
 - generics, nested param lists
-- dotted unitnames
 - type helpers
 - record/class helpers
 - generics
 - operator overload
-- is nested
+- attributes
+- anonymous functions
 - TPasFileType
 - labels
 - many more: search for "ToDo:"
@@ -1039,7 +1041,7 @@ type
     FLastSourcePos: TPasSourcePos;
     FOptions: TPasResolverOptions;
     FPendingForwards: TFPList; // list of TPasElement needed to check for forward procs
-    FRootElement: TPasElement;
+    FRootElement: TPasModule;
     FScopeClass_Class: TPasClassScopeClass;
     FScopeClass_WithExpr: TPasWithExprScopeClass;
     FScopeCount: integer;
@@ -1485,7 +1487,7 @@ type
     property BaseTypeLength: TResolverBaseType read FBaseTypeLength write FBaseTypeLength;
     // parsed values
     property DefaultNameSpace: String read FDefaultNameSpace;
-    property RootElement: TPasElement read FRootElement;
+    property RootElement: TPasModule read FRootElement;
     // scopes
     property StoreSrcColumns: boolean read FStoreSrcColumns write FStoreSrcColumns; {
        If true Line and Column is mangled together in TPasElement.SourceLineNumber.
@@ -1526,6 +1528,7 @@ procedure SetResolverValueExpr(out ResolvedType: TPasResolverResult;
 
 function ProcNeedsImplProc(Proc: TPasProcedure): boolean;
 function ChompDottedIdentifier(const Identifier: string): string;
+function IsDottedIdentifierPrefix(const Prefix, Identifier: string): boolean;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
 function dbgs(const a: TResolvedRefAccess): string;
@@ -1806,9 +1809,21 @@ begin
   while (p>0) do
     begin
     if Identifier[p]='.' then
-      exit(LeftStr(Identifier,p-1));
+      break;
     dec(p);
     end;
+  Result:=LeftStr(Identifier,p-1);
+end;
+
+function IsDottedIdentifierPrefix(const Prefix, Identifier: string): boolean;
+var
+  l: Integer;
+begin
+  l:=length(Prefix);
+  if (l>length(Identifier))
+      or (CompareText(Prefix,LeftStr(Identifier,l))<>0) then
+    exit(false);
+  Result:=(length(Identifier)=l) or (Identifier[l+1]='.');
 end;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string;
@@ -8355,7 +8370,7 @@ begin
   El.SourceFilename:=ASrcPos.FileName;
   El.SourceLinenumber:=SrcY;
   if FRootElement=nil then
-    FRootElement:=Result;
+    FRootElement:=Result as TPasModule;
 
   // create scope
   if (AClass=TPasVariable)
@@ -8419,12 +8434,15 @@ begin
 end;
 
 function TPasResolver.FindElement(const aName: String): TPasElement;
-// called by TPasParser
+// called by TPasParser for direct types, e.g. type t = ns1.unit1.tobj.tsub
 var
   p: SizeInt;
   RightPath, CurName: String;
   NeedPop: Boolean;
-  CurScopeEl, NextEl, ErrorEl: TPasElement;
+  CurScopeEl, NextEl, ErrorEl, BestEl: TPasElement;
+  CurSection: TPasSection;
+  i: Integer;
+  UsesUnit: TPasUsesUnit;
 begin
   //writeln('TPasResolver.FindElement Name="',aName,'"');
   ErrorEl:=nil; // use nil to use scanner position as error position
@@ -8452,7 +8470,6 @@ begin
     {$ENDIF}
     if not IsValidIdent(CurName) then
       RaiseNotYetImplemented(20170328000033,ErrorEl);
-
     if CurScopeEl<>nil then
       begin
       NeedPop:=true;
@@ -8460,21 +8477,70 @@ begin
         // check visibility
         PushClassDotScope(TPasClassType(CurScopeEl))
       else if CurScopeEl is TPasModule then
-        PushModuleDotScope(TPasModule(CurScopeEl));
+        PushModuleDotScope(TPasModule(CurScopeEl))
+      else
+        RaiseInternalError(20170504174021);
       end
     else
       NeedPop:=false;
 
     NextEl:=FindElementWithoutParams(CurName,ErrorEl,true);
-    if RightPath<>'' then
+    if NextEl is TPasModule then
       begin
-      if (NextEl is TPasModule) then
+      if CurScopeEl is TPasModule then
+        RaiseXExpectedButYFound(20170328001619,'class',NextEl.ElementTypeName+' '+NextEl.Name,ErrorEl);
+      if Pos('.',NextEl.Name)>0 then
         begin
-        if CurScopeEl is TPasModule then
-          RaiseXExpectedButYFound(20170328001619,'class',NextEl.ElementTypeName+' '+NextEl.Name,ErrorEl);
-        CurScopeEl:=NextEl;
-        end
-      else if (CurScopeEl is TPasClassType) then
+        // dotted module name -> check if the full module name is in aName
+        if CompareText(NextEl.Name+'.',LeftStr(aName,length(NextEl.Name)+1))<>0 then
+          begin
+          if CompareText(NextEl.Name,aName)=0 then
+            RaiseXExpectedButYFound(20170504165825,'type',NextEl.ElementTypeName,ErrorEl)
+          else
+            RaiseIdentifierNotFound(20170504165412,aName,ErrorEl);
+          end;
+        RightPath:=copy(aName,length(NextEl.Name)+2,length(aName));
+        end;
+      CurScopeEl:=NextEl;
+      end
+    else if NextEl.ClassType=TPasUsesUnit then
+      begin
+      // the first name of a used unit matches -> find longest match
+      CurSection:=NextEl.Parent as TPasSection;
+      i:=length(CurSection.UsesClause)-1;
+      BestEl:=nil;
+      while i>=0 do
+        begin
+        UsesUnit:=CurSection.UsesClause[i];
+        CurName:=UsesUnit.Name;
+        if IsDottedIdentifierPrefix(CurName,aName)
+            and ((BestEl=nil) or (length(CurName)>length(BestEl.Name))) then
+          BestEl:=UsesUnit;
+        dec(i);
+        if (i<0) and (CurSection.ClassType=TImplementationSection) then
+          begin
+          CurSection:=(CurSection.Parent as TPasModule).InterfaceSection;
+          if CurSection=nil then break;
+          i:=length(CurSection.UsesClause)-1;
+          end;
+        end;
+      // check module name too
+      CurName:=RootElement.Name;
+      if IsDottedIdentifierPrefix(CurName,aName)
+          and ((BestEl=nil) or (length(CurName)>length(BestEl.Name))) then
+        BestEl:=RootElement;
+
+      if BestEl=nil then
+        RaiseIdentifierNotFound(20170504172440,aName,ErrorEl);
+      RightPath:=copy(aName,length(BestEl.Name)+2,length(aName));
+      if BestEl.ClassType=TPasUsesUnit then
+        CurScopeEl:=TPasUsesUnit(BestEl).Module
+      else
+        CurScopeEl:=BestEl;
+      end
+    else if RightPath<>'' then
+      begin
+      if (CurScopeEl is TPasClassType) then
         CurScopeEl:=NextEl
       else
         RaiseIdentifierNotFound(20170328001941,CurName,ErrorEl);
@@ -8544,7 +8610,7 @@ var
   BestEl: TPasElement;
   aName, CurName: String;
   Clause: TPasUsesClause;
-  i, CurLen: Integer;
+  i: Integer;
   Section: TPasSection;
 begin
   {$IFDEF VerbosePasResolver}
@@ -8576,14 +8642,9 @@ begin
       begin
       CurUsesUnit:=Clause[i];
       CurName:=CurUsesUnit.Name;
-      CurLen:=length(CurName);
-      if (CompareText(CurName,LeftStr(aName,CurLen))=0)
-          and ((CurLen=length(aName)) or (aName[CurLen+1]='.')) then
-        begin
-        // a match
-        if (BestEl=nil) or (CurLen>length(BestEl.Name)) then
-          BestEl:=CurUsesUnit; // a better match
-        end;
+      if IsDottedIdentifierPrefix(CurName,aName)
+          and ((BestEl=nil) or (length(CurName)>length(BestEl.Name))) then
+        BestEl:=CurUsesUnit; // a better match
       end;
     if Section is TImplementationSection then
       begin
@@ -8599,14 +8660,9 @@ begin
 
   // check module name
   CurName:=El.GetModule.Name;
-  CurLen:=length(CurName);
-  if (CompareText(CurName,LeftStr(aName,CurLen))=0)
-      and ((CurLen=length(aName)) or (aName[CurLen+1]='.')) then
-    begin
-    // a match
-    if (BestEl=nil) or (CurLen>length(BestEl.Name)) then
-      BestEl:=El.GetModule; // a better match
-    end;
+  if IsDottedIdentifierPrefix(CurName,aName)
+      and ((BestEl=nil) or (length(CurName)>length(BestEl.Name))) then
+    BestEl:=El.GetModule; // a better match
   if BestEl=nil then
     begin
     // no dotted module name fits the expression

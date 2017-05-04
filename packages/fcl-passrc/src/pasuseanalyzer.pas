@@ -616,7 +616,7 @@ begin
       El:=El.Parent;
     until not (El is TPasType);
     end
-  else if C.InheritsFrom(TPasModule) then
+  else if (C.InheritsFrom(TPasModule)) or (C=TPasUsesUnit) then
     // e.g. unitname.identifier -> the module is used by the identifier
   else
     RaiseNotSupported(20170307090947,El);

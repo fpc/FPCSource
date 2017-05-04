@@ -3676,6 +3676,7 @@ procedure TTestResolver.TestUnitUseIntf;
 begin
   AddModuleWithIntfImplSrc('unit2.pp',
     LinesToStr([
+    'type TListCallBack = procedure;',
     'var i: longint;',
     'procedure DoIt;',
     '']),
@@ -3684,6 +3685,7 @@ begin
 
   StartProgram(true);
   Add('uses unit2;');
+  Add('type TListCB = unit2.tlistcallback;');
   Add('begin');
   Add('  if i=2 then');
   Add('    DoIt;');
@@ -3802,12 +3804,14 @@ begin
   MainFilename:='unitdots.main1.pas';
   AddModuleWithIntfImplSrc('unitdots.unit1.pp',
     LinesToStr([
+    'type TColor = longint;',
     'var i1: longint;']),
     LinesToStr([
     '']));
 
   AddModuleWithIntfImplSrc('unitdots.pp',
     LinesToStr([
+    'type TBright = longint;',
     'var j1: longint;']),
     LinesToStr([
     '']));
@@ -3815,6 +3819,10 @@ begin
   StartProgram(true);
   Add([
   'uses unitdots.unit1, unitdots;',
+  'type',
+  '  TPrgBright = unitdots.tbright;',
+  '  TPrgColor = unitdots.unit1.tcolor;',
+  '  TStrange = unitdots.main1.tprgcolor;',
   'var k1: longint;',
   'begin',
   '  if unitdots.main1.k1=0 then ;',
