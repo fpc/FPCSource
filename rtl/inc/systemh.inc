@@ -762,7 +762,7 @@ Var
   { Stack checking }
   StackBottom : Pointer;
   StackLength : SizeUInt;
-  
+
 Var
   WriteErrorsToStdErr : Boolean = True;
 
@@ -1595,7 +1595,20 @@ const
 { Generic threadmanager }
 {$ifdef FPC_HAS_FEATURE_THREADING}
 {$i threadh.inc}
-{$endif FPC_HAS_FEATURE_THREADING}
+{$else not FPC_HAS_FEATURE_THREADING}
+{ Bare minimum needed to get RTL to compile
+  without threading support }
+const
+{$ifndef FPC_USE_SMALL_DEFAULTSTACKSIZE}
+  { includes 16384 bytes margin for stackchecking }
+  DefaultStackSize = 4*1024*1024;
+{$else i.e. FPC_USE_SMALL_DEFAULTSTACKSIZE}
+  { Special value of Default stack size }
+  DefaultStackSize = 16 * 1024;
+{$endif not FPC_USE_SMALL_DEFAULTSTACKSIZE}
+type
+  PRTLEvent   = type pointer;
+{$endif not FPC_HAS_FEATURE_THREADING}
 
 {*****************************************************************************
                           Dynamic library support
