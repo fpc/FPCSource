@@ -1582,6 +1582,13 @@ Begin
         end;
     end;
 end;
+{$elseif defined(uefi)}
+Function GetEnv(P:string):Pchar;
+begin
+  { UEFI does not have environment strings.
+    Add some way to specify heaptrc options? }
+  GetEnv:=nil;
+end;
 {$else}
 Function GetEnv(P:string):Pchar;
 {

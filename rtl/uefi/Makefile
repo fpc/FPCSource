@@ -2058,6 +2058,7 @@ endif
 ifeq ($(OS_TARGET),uefi)
 SHAREDLIBEXT=.efi
 SHORTSUFFIX=efi
+EXEEXT=.efi
 endif
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 FPCMADE=fpcmade.$(SHORTSUFFIX)

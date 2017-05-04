@@ -25,7 +25,7 @@ begin
     P.Email := '';
     P.Description := 'Library for pixel graphics conversion';
     P.NeedLibC := false;
-    P.OSes:=AllOSes-[embedded,msdos,win16];
+    P.OSes:=AllOSes-[embedded,msdos,win16,uefi];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

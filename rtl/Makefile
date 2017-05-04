@@ -396,6 +396,9 @@ endif
 ifeq ($(FULL_TARGET),i386-aros)
 override TARGET_DIRS+=aros
 endif
+ifeq ($(FULL_TARGET),i386-uefi)
+override TARGET_DIRS+=uefi
+endif
 ifeq ($(FULL_TARGET),m68k-linux)
 override TARGET_DIRS+=linux
 endif
@@ -1820,6 +1823,9 @@ endif
 ifeq ($(FULL_TARGET),i386-aros)
 TARGET_DIRS_AROS=1
 endif
+ifeq ($(FULL_TARGET),i386-uefi)
+TARGET_DIRS_UEFI=1
+endif
 ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_LINUX=1
 endif
@@ -2899,6 +2905,51 @@ aros_makefiles:
 aros:
 	$(MAKE) -C aros all
 .PHONY: aros_all aros_debug aros_smart aros_release aros_units aros_examples aros_shared aros_install aros_sourceinstall aros_exampleinstall aros_distinstall aros_zipinstall aros_zipsourceinstall aros_zipexampleinstall aros_zipdistinstall aros_clean aros_distclean aros_cleanall aros_info aros_makefiles aros
+endif
+ifdef TARGET_DIRS_UEFI
+uefi_all:
+	$(MAKE) -C uefi all
+uefi_debug:
+	$(MAKE) -C uefi debug
+uefi_smart:
+	$(MAKE) -C uefi smart
+uefi_release:
+	$(MAKE) -C uefi release
+uefi_units:
+	$(MAKE) -C uefi units
+uefi_examples:
+	$(MAKE) -C uefi examples
+uefi_shared:
+	$(MAKE) -C uefi shared
+uefi_install:
+	$(MAKE) -C uefi install
+uefi_sourceinstall:
+	$(MAKE) -C uefi sourceinstall
+uefi_exampleinstall:
+	$(MAKE) -C uefi exampleinstall
+uefi_distinstall:
+	$(MAKE) -C uefi distinstall
+uefi_zipinstall:
+	$(MAKE) -C uefi zipinstall
+uefi_zipsourceinstall:
+	$(MAKE) -C uefi zipsourceinstall
+uefi_zipexampleinstall:
+	$(MAKE) -C uefi zipexampleinstall
+uefi_zipdistinstall:
+	$(MAKE) -C uefi zipdistinstall
+uefi_clean:
+	$(MAKE) -C uefi clean
+uefi_distclean:
+	$(MAKE) -C uefi distclean
+uefi_cleanall:
+	$(MAKE) -C uefi cleanall
+uefi_info:
+	$(MAKE) -C uefi info
+uefi_makefiles:
+	$(MAKE) -C uefi makefiles
+uefi:
+	$(MAKE) -C uefi all
+.PHONY: uefi_all uefi_debug uefi_smart uefi_release uefi_units uefi_examples uefi_shared uefi_install uefi_sourceinstall uefi_exampleinstall uefi_distinstall uefi_zipinstall uefi_zipsourceinstall uefi_zipexampleinstall uefi_zipdistinstall uefi_clean uefi_distclean uefi_cleanall uefi_info uefi_makefiles uefi
 endif
 ifdef TARGET_DIRS_AMIGA
 amiga_all:

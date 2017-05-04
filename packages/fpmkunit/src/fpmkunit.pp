@@ -121,7 +121,7 @@ Type
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
     aix,java,android,nativent,msdos,wii,aros,dragonfly,
-    win16
+    win16,uefi
   );
   TOSes = Set of TOS;
 
@@ -224,7 +224,8 @@ Const
     { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false, false),
     { aros }    ( true,  false, false, false, false, false, true,  false, false, false, false, false, false, false, false),
     { dragonfly}( false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false),
-    { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false)
+    { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false),
+    { uefi  }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false)
   );
 
   // Useful

@@ -25,7 +25,7 @@ begin
     P.Email := '';
     P.Description := 'Generic container library of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded];
+    P.OSes:=AllOSes-[embedded,uefi];
 
     P.Options.Add('-S2h');
     P.SourcePath.Add('src');

@@ -19,7 +19,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.1.1';
-    P.OSes:=P.OSes-[embedded,win16];
+    P.OSes:=P.OSes-[embedded,win16,uefi];
     P.Dependencies.Add('rtl-objpas');
     P.SourcePath.Add('src');
 

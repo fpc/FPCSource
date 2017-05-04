@@ -18,6 +18,7 @@ units_darwin=matrix ucomplex objects
 units_iphonesim=matrix ucomplex objects
 units_beos=matrix ucomplex objects
 units_haiku=matrix ucomplex objects
+units_uefi=
 
 units_go32v2=matrix ucomplex objects 
 units_watcom=ucomplex

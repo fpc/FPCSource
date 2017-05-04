@@ -26,7 +26,7 @@ begin
     P.Email := '';
     P.Description := 'Json interfacing, part of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos,win16];
+    P.OSes:=AllOSes-[embedded,msdos,win16,uefi];
 
     P.SourcePath.Add('src');
 
