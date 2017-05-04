@@ -1070,10 +1070,10 @@ implementation
             is_open_array(hdef) then
            hdef:=voidtype;
          resultdef:=carraydef.create(0,len-1,s32inttype);
-         tarraydef(resultdef).elementdef:=hdef;
          include(tarraydef(resultdef).arrayoptions,ado_IsConstructor);
          if varia then
            include(tarraydef(resultdef).arrayoptions,ado_IsVariant);
+         tarraydef(resultdef).elementdef:=hdef;
       end;
 
 
