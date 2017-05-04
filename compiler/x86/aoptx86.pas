@@ -475,13 +475,18 @@ unit aoptx86;
 {$ifndef x86_64}
           ((p.opcode = A_AAM) and Reg1WriteOverwritesReg2Entirely(NR_AH,reg)) or
 {$endif not x86_64}
+          ((p.opcode = A_LAHF) and Reg1WriteOverwritesReg2Entirely(NR_AH,reg)) or
           ((p.opcode = A_LODSB) and Reg1WriteOverwritesReg2Entirely(NR_AL,reg)) or
           ((p.opcode = A_LODSW) and Reg1WriteOverwritesReg2Entirely(NR_AX,reg)) or
           ((p.opcode = A_LODSD) and Reg1WriteOverwritesReg2Entirely(NR_EAX,reg)) or
 {$ifdef x86_64}
           ((p.opcode = A_LODSQ) and Reg1WriteOverwritesReg2Entirely(NR_RAX,reg)) or
 {$endif x86_64}
-          ((p.opcode = A_SETcc) and (p.oper[0]^.typ=top_reg) and Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg));
+          ((p.opcode = A_SETcc) and (p.oper[0]^.typ=top_reg) and Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg)) or
+          (((p.opcode = A_FSTSW) or
+            (p.opcode = A_FNSTSW)) and
+           (p.oper[0]^.typ=top_reg) and
+           Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg));
       end;
 
 
