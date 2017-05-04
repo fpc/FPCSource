@@ -626,9 +626,16 @@ implementation
               converted node (that array is 2^31 or 2^63 bytes large) }
             exit;
 
-        { assigning nil to a dynamic array clears the array }
+        { assigning nil or [] to a dynamic array clears the array }
         if is_dynamic_array(left.resultdef) and
-           (right.nodetype=niln) then
+            (
+              (right.nodetype=niln) or
+              (
+                (right.nodetype=arrayconstructorn) and
+                (right.resultdef.typ=arraydef) and
+                (tarraydef(right.resultdef).elementdef=voidtype)
+              )
+            ) then
          begin
            { remove property flag to avoid errors, see comments for }
            { tf_winlikewidestring assignments below                 }
