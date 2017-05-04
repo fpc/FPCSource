@@ -3866,6 +3866,7 @@ implementation
         if not(
                (ado_IsDynamicArray in arrayoptions) or
                (ado_IsConvertedPointer in arrayoptions) or
+               (ado_IsConstructor in arrayoptions) or
                (highrange<lowrange)
 	      ) and
            (size=-1) then
