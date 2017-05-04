@@ -108,6 +108,8 @@ interface
        tarrayconstructorrangenodeclass = class of tarrayconstructorrangenode;
 
        tarrayconstructornode = class(tbinarynode)
+         private
+          function has_range_node:boolean;
          protected
           procedure wrapmanagedvarrec(var n: tnode);virtual;abstract;
          public
@@ -984,6 +986,24 @@ implementation
       begin
          n:=tarrayconstructornode(inherited dogetcopy);
          result:=n;
+      end;
+
+
+    function tarrayconstructornode.has_range_node:boolean;
+      var
+        n : tarrayconstructornode;
+      begin
+        result:=false;
+        n:=self;
+        while assigned(n) do
+          begin
+            if assigned(n.left) and (n.left.nodetype=arrayconstructorrangen) then
+              begin
+                result:=true;
+                break;
+              end;
+            n:=tarrayconstructornode(n.right);
+          end;
       end;
 
 
