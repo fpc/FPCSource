@@ -690,8 +690,10 @@ program h2pas;
                    (* is this a good method ??                       *)
                    if varpara and
                       (p^.p1^.p1^.typ=t_pointerdef) and
-                      (p^.p1^.p1^.p1^.typ=t_id) and
-                      (pos('CHAR',uppercase(p^.p1^.p1^.p1^.str))<>0) then
+                      (((p^.p1^.p1^.p1^.typ=t_id) and
+                        (pos('CHAR',uppercase(p^.p1^.p1^.p1^.str))<>0)) or
+                        ((p^.p1^.p1^.p1^.typ=t_void))
+                      ) then
                      varpara:=false;
                    if varpara then
                      begin
