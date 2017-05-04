@@ -1146,6 +1146,7 @@ type
     Function IsPreservedWord(const aName: string): boolean; virtual;
     // Never create an element manually, always use the below functions
     Function IsElementUsed(El: TPasElement): boolean; virtual;
+    Function IsSystemUnit(aModule: TPasModule): boolean; virtual;
     Function HasTypeInfo(El: TPasType; AContext: TConvertContext): boolean; virtual;
     Function IsClassRTTICreatedBefore(aClass: TPasClassType; Before: TPasElement): boolean;
     Function CreateElement(C: TJSElementClass; Src: TPasElement): TJSElement; virtual;
@@ -3411,8 +3412,8 @@ Var
   ModuleName, ModVarName: String;
   IntfContext: TSectionContext;
   ImplVarSt: TJSVariableStatement;
-  HasImplUsesList: Boolean;
-  UsesList: TFPList;
+  HasImplUsesClause: Boolean;
+  UsesClause: TPasUsesClause;
 begin
   Result:=Nil;
   OuterSrc:=TJSSourceElements(CreateElement(TJSSourceElements, El));
@@ -3448,7 +3449,7 @@ begin
     AddToSourceElements(Src,CreateLiteralString(El,'use strict'));
 
   ImplVarSt:=nil;
-  HasImplUsesList:=false;
+  HasImplUsesClause:=false;
 
   IntfContext:=TSectionContext.Create(El,Src,AContext);
   try
@@ -3489,11 +3490,11 @@ begin
       // add optional implementation uses list: [<implementation uses1>,<uses2>, ...]
       if Assigned(El.ImplementationSection) then
         begin
-        UsesList:=El.ImplementationSection.UsesList;
-        if (UsesList<>nil) and (UsesList.Count>0) then
+        UsesClause:=El.ImplementationSection.UsesClause;
+        if length(UsesClause)>0 then
           begin
           ArgArray.Elements.AddElement.Expr:=CreateUsesList(El.ImplementationSection,AContext);
-          HasImplUsesList:=true;
+          HasImplUsesClause:=true;
           end;
         end;
 
@@ -3514,7 +3515,7 @@ begin
     else
       begin
       // add param
-      if not HasImplUsesList then
+      if not HasImplUsesClause then
         ArgArray.Elements.AddElement.Expr:=CreateLiteralNull(El);
       ArgArray.Elements.AddElement.Expr:=ImplFunc;
       end;
@@ -9932,6 +9933,11 @@ begin
     Result:=true;
 end;
 
+function TPasToJSConverter.IsSystemUnit(aModule: TPasModule): boolean;
+begin
+  Result:=CompareText(aModule.Name,'system')=0;
+end;
+
 function TPasToJSConverter.HasTypeInfo(El: TPasType; AContext: TConvertContext
   ): boolean;
 begin
@@ -10031,25 +10037,23 @@ function TPasToJSConverter.CreateUsesList(UsesSection: TPasSection;
   AContext: TConvertContext): TJSArrayLiteral;
 var
   ArgArray: TJSArrayLiteral;
-  k: Integer;
-  El: TPasElement;
+  i: Integer;
   anUnitName: String;
   ArgEx: TJSLiteral;
-  UsesList: TFPList;
+  UsesClause: TPasUsesClause;
+  aModule: TPasModule;
 begin
-  UsesList:=UsesSection.UsesList;
+  UsesClause:=UsesSection.UsesClause;
   ArgArray:=TJSArrayLiteral.Create(0,0);
-  if UsesList<>nil then
-    for k:=0 to UsesList.Count-1 do
-      begin
-      El:=TPasElement(UsesList[k]);
-      if not (El is TPasModule) then continue;
-      if (not IsElementUsed(El)) and (CompareText('system',El.Name)<>0) then
-        continue;
-      anUnitName := TransformVariableName(TPasModule(El),AContext);
-      ArgEx := CreateLiteralString(UsesSection,anUnitName);
-      ArgArray.Elements.AddElement.Expr := ArgEx;
-      end;
+  for i:=0 to length(UsesClause)-1 do
+    begin
+    aModule:=UsesClause[i].Module as TPasModule;
+    if (not IsElementUsed(aModule)) and not IsSystemUnit(aModule) then
+      continue;
+    anUnitName := TransformVariableName(aModule,AContext);
+    ArgEx := CreateLiteralString(UsesSection,anUnitName);
+    ArgArray.Elements.AddElement.Expr := ArgEx;
+    end;
   Result:=ArgArray;
 end;
 
