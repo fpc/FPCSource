@@ -925,6 +925,15 @@ implementation
                   end
                 else
                   begin
+                    { prefer set if loop var could be a set var and the loop
+                      expression can indeed be a set }
+                    if (expr.nodetype=arrayconstructorn) and
+                        (hloopvar.resultdef.typ in [enumdef,orddef]) and
+                        arrayconstructor_can_be_set(expr) then
+                      begin
+                        expr:=arrayconstructor_to_set(expr,false);
+                        typecheckpass(expr);
+                      end;
                     case expr.resultdef.typ of
                       stringdef: result:=create_string_for_in_loop(hloopvar, hloopbody, expr);
                       arraydef: result:=create_array_for_in_loop(hloopvar, hloopbody, expr);
