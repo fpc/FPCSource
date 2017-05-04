@@ -190,6 +190,11 @@ unit aoptcpu;
           end;
         else
           begin
+            if (p.opcode=A_LEA) and is_segment_reg(reg) then
+              begin
+                RegReadByInstruction := false;
+                exit;
+              end;
             for opcount := 0 to p.ops-1 do
               if (p.oper[opCount]^.typ = top_ref) and
                  RegInRef(reg,p.oper[opcount]^.ref^) then
