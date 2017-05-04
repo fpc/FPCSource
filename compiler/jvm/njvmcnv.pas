@@ -502,6 +502,7 @@ implementation
           end;
         if not assigned(procdefparas) then
           procdefparas:=carrayconstructornode.create(nil,nil);
+        procdefparas.allow_array_constructor:=true;
         constrparas:=ccallparanode.create(procdefparas,constrparas);
         result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',constrparas);
         { typecast to the procvar type }

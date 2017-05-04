@@ -108,6 +108,7 @@ interface
        tarrayconstructorrangenodeclass = class of tarrayconstructorrangenode;
 
        tarrayconstructornode = class(tbinarynode)
+          allow_array_constructor : boolean;
          private
           function has_range_node:boolean;
          protected
@@ -984,6 +985,7 @@ implementation
     constructor tarrayconstructornode.create(l,r : tnode);
       begin
          inherited create(arrayconstructorn,l,r);
+         allow_array_constructor:=false;
       end;
 
 

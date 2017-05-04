@@ -3290,6 +3290,7 @@ implementation
              allow_array_constructor:=old_allow_array_constructor;
            { there could be more elements }
            until not try_to_consume(_COMMA);
+           buildp.allow_array_constructor:=allow_array_constructor;
            factor_read_set:=buildp;
          end;
 
