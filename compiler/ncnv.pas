@@ -286,7 +286,8 @@ interface
     procedure inserttypeconv(var p:tnode;def:tdef);
     procedure inserttypeconv_explicit(var p:tnode;def:tdef);
     procedure inserttypeconv_internal(var p:tnode;def:tdef);
-    procedure arrayconstructor_to_set(var p : tnode);
+    procedure arrayconstructor_to_set(var p : tnode);inline;
+    function arrayconstructor_to_set(p:tnode;freep:boolean):tnode;
     function arrayconstructor_can_be_set(p:tnode):boolean;
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
 
@@ -380,10 +381,14 @@ implementation
 *****************************************************************************}
 
     procedure arrayconstructor_to_set(var p : tnode);
+      begin
+        p:=arrayconstructor_to_set(p,true);
+      end;
 
+
+    function arrayconstructor_to_set(p:tnode;freep:boolean):tnode;
       var
         constp      : tsetconstnode;
-        buildp,
         p2,p3,p4    : tnode;
         hdef        : tdef;
         constset    : Pconstset;
@@ -478,7 +483,7 @@ implementation
         constsethi:=0;
         constp:=csetconstnode.create(nil,hdef);
         constp.value_set:=constset;
-        buildp:=constp;
+        result:=constp;
         hp:=tarrayconstructornode(p);
         if assigned(hp.left) then
          begin
@@ -617,7 +622,7 @@ implementation
                           Message(parser_e_illegal_expression)
                         { if we've already set elements which are constants }
                         { throw an error                                    }
-                        else if ((hdef=nil) and assigned(buildp)) or
+                        else if ((hdef=nil) and assigned(result)) or
                           not(is_char(hdef)) then
                           CGMessage(type_e_typeconflict_in_set)
                         else
@@ -633,12 +638,13 @@ implementation
               end;
               { insert the set creation tree }
               if assigned(p4) then
-               buildp:=caddnode.create(addn,buildp,p4);
+               result:=caddnode.create(addn,result,p4);
               { load next and dispose current node }
               p2:=hp;
               hp:=tarrayconstructornode(tarrayconstructornode(p2).right);
               tarrayconstructornode(p2).right:=nil;
-              p2.free;
+              if freep then
+                p2.free;
               current_filepos:=oldfilepos;
             end;
            if (hdef=nil) then
@@ -647,14 +653,13 @@ implementation
         else
          begin
            { empty set [], only remove node }
-           p.free;
+           if freep then
+             p.free;
          end;
         { set the initial set type }
         constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue,true);
         { determine the resultdef for the tree }
-        typecheckpass(buildp);
-        { set the new tree }
-        p:=buildp;
+        typecheckpass(result);
       end;
 
 
