@@ -1184,7 +1184,7 @@ begin
       K:=stkAlias
     else if (CurToken=tkSquaredBraceOpen) then
       begin
-      if LowerCase(Name)='string' then // Type A = String[12];
+      if LowerCase(Name)='string' then // Type A = String[12]; shortstring
         K:=stkString
       else
         ParseExcSyntaxError;
@@ -3798,18 +3798,17 @@ procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
     CT : TPasClassType;
 
   begin
-    // ToDo: add an event for the resolver to use a faster lookup
     I:=ASection.Functions.Count-1;
     While (I>=0) and (CompareText(TPasElement(ASection.Functions[I]).Name,AName)<>0) do
       Dec(I);
     Result:=I<>-1;
     I:=Pos('.',AName);
-    if (Not Result) and (I<>0) then
+    if (Not Result) and (I>0) then
       begin
       CN:=Copy(AName,1,I-1);
-      FN:=Aname;
+      FN:=AName;
       Delete(FN,1,I);
-      I:=Asection.Classes.Count-1;
+      I:=ASection.Classes.Count-1;
       While Not Result and (I>=0) do
         begin
         CT:=TPasClassType(ASection.Classes[i]);
@@ -3819,13 +3818,13 @@ procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
         end;
       end;
   end;
+
   procedure ConsumeSemi;
   begin
     NextToken;
     if (CurToken <> tkSemicolon) and IsCurTokenHint then
       UngetToken;
   end;
-
 
 Var
   Tok : String;
@@ -3852,7 +3851,8 @@ begin
         ResultEl:=TPasFunctionType(Element).ResultEl;
         ResultEl.ResultType := ParseType(ResultEl,Scanner.CurSourcePos);
         end
-      // In Delphi mode, the implementation in the implementation section can be without result as it was declared
+      // In Delphi mode, the implementation in the implementation section can be
+      // without result as it was declared
       // We actually check if the function exists in the interface section.
       else if (msDelphi in CurrentModeswitches) and
               (Assigned(CurModule.ImplementationSection) or
