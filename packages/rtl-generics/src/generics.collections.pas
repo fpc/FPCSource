@@ -996,7 +996,9 @@ constructor TThreadList<T>.Create;
 begin
   inherited Create;
   FDuplicates:=dupIgnore;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(FLock);
+{$endif}
   FList := TList<T>.Create;
 end;
 
@@ -1008,7 +1010,9 @@ begin
     inherited Destroy;
   finally
     UnlockList;
+{$ifdef FPC_HAS_FEATURE_THREADING}
     DoneCriticalSection(FLock);
+{$endif}
   end;
 end;
 
@@ -1048,12 +1052,16 @@ end;
 function TThreadList<T>.LockList: TList<T>;
 begin
   Result:=FList;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   System.EnterCriticalSection(FLock);
+{$endif}
 end;
 
 procedure TThreadList<T>.UnlockList;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   System.LeaveCriticalSection(FLock);
+{$endif}
 end;
 
 { TQueue<T>.TEnumerator }

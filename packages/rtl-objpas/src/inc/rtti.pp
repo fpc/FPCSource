@@ -315,9 +315,13 @@ function TRttiPool.GetTypes: specialize TArray<TRttiType>;
 begin
   if not Assigned(FTypesList) then
     Exit(Nil);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalsection(FLock);
+{$endif}
   Result := Copy(FTypesList, 0, FTypeCount);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   LeaveCriticalsection(FLock);
+{$endif}
 end;
 
 function TRttiPool.GetType(ATypeInfo: PTypeInfo): TRttiType;
@@ -326,7 +330,9 @@ var
 begin
   if not Assigned(ATypeInfo) then
     Exit(Nil);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalsection(FLock);
+{$endif}
   Result := Nil;
   for i := 0 to FTypeCount - 1 do
     begin
@@ -356,12 +362,16 @@ begin
       FTypesList[FTypeCount] := Result;
       Inc(FTypeCount);
     end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   LeaveCriticalsection(FLock);
+{$endif}
 end;
 
 constructor TRttiPool.Create;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(FLock);
+{$endif}
   SetLength(FTypesList, 32);
 end;
 
@@ -371,7 +381,9 @@ var
 begin
   for i := 0 to length(FTypesList)-1 do
     FTypesList[i].Free;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   DoneCriticalsection(FLock);
+{$endif}
   inherited Destroy;
 end;
 
