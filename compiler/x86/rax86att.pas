@@ -907,6 +907,9 @@ Implementation
                     this cannot be expressed by the instruction table format so we have to hack around this here }
                   if (actopcode = A_NONE) and (upper(s) = 'MOVSD') then
                     actopcode := A_MOVSD;
+                  { cmpsd also needs special handling for pretty much the same reasons as movsd }
+                  if (actopcode = A_NONE) and (upper(s) = 'CMPSD') then
+                    actopcode := A_CMPSD;
 
                   { two-letter suffix is allowed by just a few instructions (movsx,movzx),
                     and it is always required whenever allowed }
