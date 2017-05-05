@@ -1531,6 +1531,9 @@ function ProcNeedsImplProc(Proc: TPasProcedure): boolean;
 function ChompDottedIdentifier(const Identifier: string): string;
 function FirstDottedIdentifier(const Identifier: string): string;
 function IsDottedIdentifierPrefix(const Prefix, Identifier: string): boolean;
+{$IF FPC_FULLVERSION<30101}
+function IsValidIdent(const Ident: string; AllowDots: Boolean = False; StrictDots: Boolean = False): Boolean;
+{$ENDIF}
 
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
 function dbgs(const a: TResolvedRefAccess): string;
@@ -1838,6 +1841,44 @@ begin
     exit(false);
   Result:=(length(Identifier)=l) or (Identifier[l+1]='.');
 end;
+
+{$IF FPC_FULLVERSION<30101}
+function IsValidIdent(const Ident: string; AllowDots: Boolean;
+  StrictDots: Boolean): Boolean;
+const
+  Alpha = ['A'..'Z', 'a'..'z', '_'];
+  AlphaNum = Alpha + ['0'..'9'];
+  Dot = '.';
+var
+  First: Boolean;
+  I, Len: Integer;
+begin
+  Len := Length(Ident);
+  if Len < 1 then
+    Exit(False);
+  First := True;
+  for I := 1 to Len do
+  begin
+    if First then
+    begin
+      Result := Ident[I] in Alpha;
+      First := False;
+    end
+    else if AllowDots and (Ident[I] = Dot) then
+    begin
+      if StrictDots then
+      begin
+        Result := I < Len;
+        First := True;
+      end;
+    end
+    else
+      Result := Ident[I] in AlphaNum;
+    if not Result then
+      Break;
+  end;
+end;
+{$ENDIF}
 
 function dbgs(const Flags: TPasResolverComputeFlags): string;
 var
