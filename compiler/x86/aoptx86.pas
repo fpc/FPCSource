@@ -486,7 +486,11 @@ unit aoptx86;
           (((p.opcode = A_FSTSW) or
             (p.opcode = A_FNSTSW)) and
            (p.oper[0]^.typ=top_reg) and
-           Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg));
+           Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg)) or
+          (((p.opcode = A_XOR) or (p.opcode = A_SUB)) and
+           (p.oper[0]^.typ=top_reg) and (p.oper[1]^.typ=top_reg) and
+           (p.oper[0]^.reg=p.oper[1]^.reg) and
+           Reg1WriteOverwritesReg2Entirely(p.oper[1]^.reg,reg));
       end;
 
 
