@@ -1184,8 +1184,7 @@ begin
       K:=stkAlias
     else if (CurToken=tkSquaredBraceOpen) then
       begin
-      // Todo: check via resolver
-      if ((LowerCase(Name)='string') or (LowerCase(Name)='ansistring')) then // Type A = String[12];
+      if LowerCase(Name)='string' then // Type A = String[12];
         K:=stkString
       else
         ParseExcSyntaxError;
