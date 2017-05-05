@@ -4586,6 +4586,7 @@ type
     procedure tscannerfile.readtoken(allowrecordtoken:boolean);
       var
         code    : integer;
+        d : cardinal;
         len,
         low,high,mid : longint;
         w : word;
@@ -5160,9 +5161,35 @@ type
                                    iswidestring:=true;
                                    len:=0;
                                  end;
-                               { four or more chars aren't handled }
+                               { four chars }
                                if (ord(c) and $f0)=$f0 then
-                                 message(scan_e_utf8_bigger_than_65535)
+                                 begin
+                                   { this always represents a surrogate pair, so
+                                     read as 32-bit value and then split into
+                                     the corresponding pair of two wchars }
+                                   d:=ord(c) and $f;
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=(d shl 6) or (ord(c) and $3f);
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=(d shl 6) or (ord(c) and $3f);
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=(d shl 6) or (ord(c) and $3f);
+                                   if d<$10000 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=d-$10000;
+                                   { high surrogate }
+                                   w:=$d800+(d shr 10);
+                                   concatwidestringchar(patternw,w);
+                                   { low surrogate }
+                                   w:=$dc00+(d and $3ff);
+                                   concatwidestringchar(patternw,w);
+                                 end
                                { three chars }
                                else if (ord(c) and $e0)=$e0 then
                                  begin
