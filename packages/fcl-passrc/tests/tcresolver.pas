@@ -460,6 +460,7 @@ type
     Procedure TestPropertyReadAccessorFuncWrongResult;
     Procedure TestPropertyReadAccessorFuncWrongArgCount;
     Procedure TestPropertyReadAccessorFunc;
+    // ToDo: read accessor allow ancestor of field
     Procedure TestPropertyWriteAccessorVarWrongType;
     Procedure TestPropertyWriteAccessorFuncNotProc;
     Procedure TestPropertyWriteAccessorProcWrongArgCount;
