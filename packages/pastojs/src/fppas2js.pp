@@ -244,6 +244,7 @@ Works:
 - ECMAScript6:
   - use 0b for binary literals
   - use 0o for octal literals
+- dotted unit names, namespaces
 
 ToDos:
 - constant evaluation
@@ -266,7 +267,6 @@ ToDos:
 - check memleaks
 - @@ compare method in delphi mode
 - make records more lightweight
-- dotted unit names, namespaces
 - enumeration  for..in..do
 - pointer of record
 - nested types in class
@@ -10050,7 +10050,7 @@ begin
     aModule:=UsesClause[i].Module as TPasModule;
     if (not IsElementUsed(aModule)) and not IsSystemUnit(aModule) then
       continue;
-    anUnitName := TransformVariableName(aModule,AContext);
+    anUnitName := TransformModuleName(aModule,false,AContext);
     ArgEx := CreateLiteralString(UsesSection,anUnitName);
     ArgArray.Elements.AddElement.Expr := ArgEx;
     end;
@@ -11805,13 +11805,35 @@ end;
 
 function TPasToJSConverter.TransformModuleName(El: TPasModule;
   AddModulesPrefix: boolean; AContext: TConvertContext): String;
+var
+  p, StartP: Integer;
+  aName, Part: String;
 begin
   if El is TPasProgram then
     Result:='program'
   else
-    Result:=TransformVariableName(El,AContext);
+    begin
+    Result:='';
+    aName:=El.Name;
+    p:=1;
+    while p<=length(aName) do
+      begin
+      StartP:=p;
+      while (p<=length(aName)) and (aName[p]<>'.') do inc(p);
+      Part:=copy(aName,StartP,p-StartP);
+      Part:=TransformVariableName(El,Part,AContext);
+      if Result<>'' then Result:=Result+'.';
+      Result:=Result+Part;
+      inc(p);
+      end;
+    end;
   if AddModulesPrefix then
-    Result:=FBuiltInNames[pbivnModules]+'.'+Result;
+    begin
+    if Pos('.',Result)>0 then
+      Result:=FBuiltInNames[pbivnModules]+'["'+Result+'"]'
+    else
+      Result:=FBuiltInNames[pbivnModules]+'.'+Result;
+    end;
 end;
 
 function TPasToJSConverter.IsPreservedWord(const aName: string): boolean;

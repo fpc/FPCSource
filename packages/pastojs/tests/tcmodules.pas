@@ -96,6 +96,7 @@ type
     function GetModuleCount: integer;
     function GetModules(Index: integer): TTestEnginePasResolver;
     function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
+    function FindUnit(const aUnitName: String): TPasModule;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -114,9 +115,9 @@ type
     procedure AddSystemUnit; virtual;
     procedure StartProgram(NeedSystemUnit: boolean); virtual;
     procedure StartUnit(NeedSystemUnit: boolean); virtual;
-    Procedure ConvertModule; virtual;
-    Procedure ConvertProgram; virtual;
-    Procedure ConvertUnit; virtual;
+    procedure ConvertModule; virtual;
+    procedure ConvertProgram; virtual;
+    procedure ConvertUnit; virtual;
     procedure CheckDottedIdentifier(Msg: string; El: TJSElement; DottedName: string);
     function GetDottedIdentifier(El: TJSElement): string;
     procedure CheckSource(Msg,Statements: String; InitStatements: string = '';
@@ -132,6 +133,7 @@ type
     procedure HandleException(E: Exception);
     procedure RaiseException(E: Exception);
     procedure WriteSources(const aFilename: string; aRow, aCol: integer);
+    function GetDefaultNamespace: string;
     property PasProgram: TPasProgram Read FPasProgram;
     property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
     property ModuleCount: integer read GetModuleCount;
@@ -169,6 +171,8 @@ type
     Procedure TestEmptyProgramUseStrict;
     Procedure TestEmptyUnit;
     Procedure TestEmptyUnitUseStrict;
+    Procedure TestDottedUnitNames;
+    Procedure TestDottedUnitExpr;
 
     // vars/const
     Procedure TestVarInt;
@@ -595,27 +599,47 @@ end;
 function TCustomTestModule.OnPasResolverFindUnit(const aUnitName: String
   ): TPasModule;
 var
+  DefNamespace: String;
+begin
+  //writeln('TTestModule.OnPasResolverFindUnit START Unit="',aUnitName,'"');
+  if (Pos('.',aUnitName)<1) then
+    begin
+    DefNamespace:=GetDefaultNamespace;
+    if DefNamespace<>'' then
+      begin
+      Result:=FindUnit(DefNamespace+'.'+aUnitName);
+      if Result<>nil then exit;
+      end;
+    end;
+  Result:=FindUnit(aUnitName);
+  if Result<>nil then exit;
+  writeln('TTestModule.OnPasResolverFindUnit missing unit "',aUnitName,'"');
+  Fail('can''t find unit "'+aUnitName+'"');
+end;
+
+function TCustomTestModule.FindUnit(const aUnitName: String): TPasModule;
+var
   i: Integer;
   CurEngine: TTestEnginePasResolver;
   CurUnitName: String;
 begin
-  //writeln('TTestModule.OnPasResolverFindUnit START Unit="',aUnitName,'"');
+  //writeln('TTestModule.FindUnit START Unit="',aUnitName,'"');
   Result:=nil;
   for i:=0 to ModuleCount-1 do
     begin
     CurEngine:=Modules[i];
     CurUnitName:=ExtractFileUnitName(CurEngine.Filename);
-    //writeln('TTestModule.OnPasResolverFindUnit Checking ',i,'/',ModuleCount,' ',CurEngine.Filename,' ',CurUnitName);
+    //writeln('TTestModule.FindUnit Checking ',i,'/',ModuleCount,' ',CurEngine.Filename,' ',CurUnitName);
     if CompareText(aUnitName,CurUnitName)=0 then
       begin
       Result:=CurEngine.Module;
       if Result<>nil then exit;
-      //writeln('TTestModule.OnPasResolverFindUnit PARSING unit "',CurEngine.Filename,'"');
+      //writeln('TTestModule.FindUnit PARSING unit "',CurEngine.Filename,'"');
       FileResolver.FindSourceFile(aUnitName);
 
       CurEngine.Resolver:=TStreamResolver.Create;
       CurEngine.Resolver.OwnsStreams:=True;
-      //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurEngine.Source);
+      //writeln('TTestModule.FindUnit SOURCE=',CurEngine.Source);
       CurEngine.Resolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
       CurEngine.Scanner:=TPascalScanner.Create(CurEngine.Resolver);
       CurEngine.Parser:=TTestPasParser.Create(CurEngine.Scanner,CurEngine.Resolver,CurEngine);
@@ -634,13 +658,11 @@ begin
         on E: Exception do
           HandleException(E);
       end;
-      //writeln('TTestModule.OnPasResolverFindUnit END ',CurUnitName);
+      //writeln('TTestModule.FindUnit END ',CurUnitName);
       Result:=CurEngine.Module;
       exit;
       end;
     end;
-  writeln('TTestModule.OnPasResolverFindUnit missing unit "',aUnitName,'"');
-  Fail('can''t find unit "'+aUnitName+'"');
 end;
 
 procedure TCustomTestModule.SetUp;
@@ -844,7 +866,7 @@ begin
     AddSystemUnit
   else
     Parser.ImplicitUses.Clear;
-  Add('program test1;');
+  Add('program '+ExtractFileUnitName(Filename)+';');
   Add('');
 end;
 
@@ -1343,6 +1365,17 @@ begin
     end;
 end;
 
+function TCustomTestModule.GetDefaultNamespace: string;
+var
+  C: TClass;
+begin
+  Result:='';
+  if FModule=nil then exit;
+  C:=FModule.ClassType;
+  if (C=TPasProgram) or (C=TPasLibrary) or (C=TPasPackage) then
+    Result:=Engine.DefaultNameSpace;
+end;
+
 { TTestModule }
 
 procedure TTestModule.TestEmptyProgram;
@@ -1386,6 +1419,64 @@ begin
     ''
     ]),
     '');
+end;
+
+procedure TTestModule.TestDottedUnitNames;
+begin
+  AddModuleWithIntfImplSrc('NS1.Unit2.pas',
+    LinesToStr([
+    'var iV: longint;'
+    ]),
+    '');
+
+  FFilename:='ns1.test1.pp';
+  StartProgram(true);
+  Add('uses unIt2;');
+  Add('implementation');
+  Add('var');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  i:=iv;');
+  Add('  i:=uNit2.iv;');
+  Add('  i:=Ns1.TEst1.i;');
+  ConvertProgram;
+  CheckSource('TestDottedUnitNames',
+    LinesToStr([
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // this.$init
+    '$mod.i = pas["NS1.Unit2"].iV;',
+    '$mod.i = pas["NS1.Unit2"].iV;',
+    '$mod.i = $mod.i;',
+    '']) );
+end;
+
+procedure TTestModule.TestDottedUnitExpr;
+begin
+  AddModuleWithIntfImplSrc('NS2.SubNs2.Unit2.pas',
+    LinesToStr([
+    'procedure DoIt;'
+    ]),
+    'procedure DoIt; begin end;');
+
+  FFilename:='Ns1.SubNs1.Test1.pp';
+  StartProgram(true);
+  Add('uses Ns2.sUbnS2.unIt2;');
+  Add('implementation');
+  Add('var');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  ns2.subns2.unit2.doit;');
+  Add('  i:=Ns1.SubNS1.TEst1.i;');
+  ConvertProgram;
+  CheckSource('TestDottedUnitExpr',
+    LinesToStr([
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // this.$init
+    'pas["NS2.SubNs2.Unit2"].DoIt();',
+    '$mod.i = $mod.i;',
+    '']) );
 end;
 
 procedure TTestModule.TestVarInt;
