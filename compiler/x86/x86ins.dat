@@ -2368,7 +2368,7 @@ xmmreg,xmmrm          \331\2\x0F\x5C\110              KATMAI,SSE
 xmmreg,xmmrm          \333\2\x0F\x5C\110              KATMAI,SSE
 
 [UCOMISS]
-(Ch_Rop1, Ch_Rop2, Ch_WFlags)
+(Ch_Rop1, Ch_Rop2, Ch_WZeroFlag, Ch_WParityFlag, Ch_WCarryFlag, Ch_W0OverflowFlag, Ch_W0SignFlag, Ch_W0AuxiliaryFlag)
 xmmreg,xmmrm          \2\x0F\x2E\110                  KATMAI,SSE
 
 [UNPCKHPS]
@@ -2872,7 +2872,7 @@ xmmreg,xmmrm            \361\2\x0F\x5C\110        WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \334\2\x0F\x5C\110        WILLAMETTE,SSE2
 
 [UCOMISD]
-(Ch_Rop1, Ch_Rop2, Ch_WFlags)
+(Ch_Rop1, Ch_Rop2, Ch_WZeroFlag, Ch_WParityFlag, Ch_WCarryFlag, Ch_W0OverflowFlag, Ch_W0SignFlag, Ch_W0AuxiliaryFlag)
 xmmreg,xmmrm            \361\2\x0F\x2E\110        WILLAMETTE,SSE2
 
 [UNPCKHPD]
@@ -4784,12 +4784,12 @@ ymmreg,ymmrm                         \361\362\364\371\1\x0E\110           AVX,SA
 xmmreg,xmmrm                         \361\362\371\1\x0E\110               AVX,SANDYBRIDGE
 
 [VUCOMISD]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_WZeroFlag, Ch_WParityFlag, Ch_WCarryFlag, Ch_W0OverflowFlag, Ch_W0SignFlag, Ch_W0AuxiliaryFlag)
 xmmreg,mem64                         \361\362\370\1\x2E\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \361\362\370\1\x2E\110               AVX,SANDYBRIDGE
 
 [VUCOMISS]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_WZeroFlag, Ch_WParityFlag, Ch_WCarryFlag, Ch_W0OverflowFlag, Ch_W0SignFlag, Ch_W0AuxiliaryFlag)
 xmmreg,mem32                         \362\370\1\x2E\110                   AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \362\370\1\x2E\110                   AVX,SANDYBRIDGE
 
