@@ -280,6 +280,9 @@ type
     Procedure TestUnitUseDotted;
     Procedure TestUnit_ProgramDefaultNamespace;
     Procedure TestUnit_DottedIdentifier;
+    Procedure TestUnit_DottedPrg;
+    Procedure TestUnit_DottedUnit;
+    Procedure TestUnit_DottedExpr;
     Procedure TestUnit_DuplicateDottedUsesFail;
     Procedure TestUnit_DuplicateUsesDiffNameFail;
     Procedure TestUnit_Unit1DotUnit2Fail;
@@ -1260,14 +1263,14 @@ begin
           Ref:=TResolvedReference(El.CustomData);
           if ActualAccess<>rraNone then
             begin
-            writeln('TTestResolver.CheckAccessMarkers multiple references at "#'+aMarker^.Identifier+'":');
+            //writeln('TTestResolver.CheckAccessMarkers multiple references at "#'+aMarker^.Identifier+'":');
             for j:=0 to Elements.Count-1 do
               begin
               El2:=TPasElement(Elements[i]);
               if not (El2.CustomData is TResolvedReference) then continue;
               //writeln('TTestResolver.CheckAccessMarkers ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
               Ref:=TResolvedReference(El.CustomData);
-              writeln('  ',j,'/',Elements.Count,' Element=',GetObjName(El2),' ',AccessNames[Ref.Access],' Declaration="',El2.GetDeclaration(true),'"');
+              //writeln('  ',j,'/',Elements.Count,' Element=',GetObjName(El2),' ',AccessNames[Ref.Access],' Declaration="',El2.GetDeclaration(true),'"');
               end;
             RaiseErrorAtSrcMarker('multiple references at "#'+aMarker^.Identifier+'"',aMarker);
             end;
@@ -3795,13 +3798,13 @@ begin
   'begin',
   '  if j1=0 then ;',
   '']);
-  writeln('TTestResolver.TestUnit_ProgramDefaultNamespace ');
   ParseProgram;
 end;
 
 procedure TTestResolver.TestUnit_DottedIdentifier;
 begin
   MainFilename:='unitdots.main1.pas';
+
   AddModuleWithIntfImplSrc('unitdots.unit1.pp',
     LinesToStr([
     'type TColor = longint;',
@@ -3829,7 +3832,74 @@ begin
   '  if unitdots.j1=0 then ;',
   '  if unitdots.unit1.i1=0 then ;',
   '']);
-  writeln('TTestResolver.TestUnit_DottedIdentifier ');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestUnit_DottedPrg;
+begin
+  MainFilename:='unitdots.main1.pas';
+
+  AddModuleWithIntfImplSrc('unitdots.unit1.pp',
+    LinesToStr([
+    'type TColor = longint;',
+    'var i1: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses UnIt1;',
+  'type',
+  '  TPrgColor = UNIT1.tcolor;',
+  '  TStrange = UnitDots.Main1.tprgcolor;',
+  'var k1: longint;',
+  'begin',
+  '  if unitdots.main1.k1=0 then ;',
+  '  if unit1.i1=0 then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestUnit_DottedUnit;
+begin
+  MainFilename:='unitdots.unit1.pas';
+  StartUnit(false);
+  Add([
+  'interface',
+  'var k1: longint;',
+  'implementation',
+  'initialization',
+  '  if unitDots.Unit1.k1=0 then ;',
+  '']);
+  ParseUnit;
+end;
+
+procedure TTestResolver.TestUnit_DottedExpr;
+begin
+  MainFilename:='unitdots1.sub1.main1.pas';
+
+  AddModuleWithIntfImplSrc('unitdots2.sub2.unit2.pp',
+    LinesToStr([
+    'procedure DoIt; external name ''$DoIt'';']),
+    LinesToStr([
+    '']));
+
+  AddModuleWithIntfImplSrc('unitdots3.sub3.unit3.pp',
+    LinesToStr([
+    'procedure DoSome;']),
+    LinesToStr([
+    'uses unitdots2.sub2.unit2;',
+    'procedure DoSome;',
+    'begin',
+    '  unitdots2.sub2.unit2.doit;',
+    'end;']));
+
+  StartProgram(true);
+  Add([
+  'uses unitdots3.sub3.unit3;',
+  'begin',
+  '  unitdots3.sub3.unit3.dosome;',
+  '']);
   ParseProgram;
 end;
 
@@ -4648,16 +4718,16 @@ begin
   aMarker:=FirstSrcMarker;
   while aMarker<>nil do
     begin
-    writeln('TTestResolver.TestProc_FunctionResult_DeclProc ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    //writeln('TTestResolver.TestProc_FunctionResult_DeclProc ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
     Elements:=FindElementsAt(aMarker);
     try
       for i:=0 to Elements.Count-1 do
         begin
         El:=TPasElement(Elements[i]);
-        writeln('TTestResolver.TestProc_FunctionResult_DeclProc ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        //writeln('TTestResolver.TestProc_FunctionResult_DeclProc ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
         if not (El.CustomData is TResolvedReference) then continue;
         Ref:=TResolvedReference(El.CustomData);
-        writeln('TTestResolver.TestProc_FunctionResult_DeclProc ',GetObjName(Ref.Declaration));
+        //writeln('TTestResolver.TestProc_FunctionResult_DeclProc ',GetObjName(Ref.Declaration));
         if not (Ref.Declaration is TPasResultElement) then continue;
         ResultEl:=TPasResultElement(Ref.Declaration);
         Proc:=ResultEl.Parent as TPasProcedure;
@@ -6203,17 +6273,17 @@ begin
   aMarker:=FirstSrcMarker;
   while aMarker<>nil do
     begin
-    writeln('TTestResolver.TestClass_ConDestructor_Inherited ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    //writeln('TTestResolver.TestClass_ConDestructor_Inherited ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
     Elements:=FindElementsAt(aMarker);
     try
       for i:=0 to Elements.Count-1 do
         begin
         El:=TPasElement(Elements[i]);
-        writeln('TTestResolver.TestClass_ConDestructor_Inherited ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        //writeln('TTestResolver.TestClass_ConDestructor_Inherited ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
         if not (El.CustomData is TResolvedReference) then continue;
         Ref:=TResolvedReference(El.CustomData);
         if not (Ref.Declaration is TPasProcedure) then continue;
-        writeln('TTestResolver.TestClass_ConDestructor_Inherited ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        //writeln('TTestResolver.TestClass_ConDestructor_Inherited ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
         if rrfNewInstance in Ref.Flags then
           RaiseErrorAtSrcMarker('expected normal call at "#'+aMarker^.Identifier+', but got newinstance"',aMarker);
         if rrfFreeInstance in Ref.Flags then

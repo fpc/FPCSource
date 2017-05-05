@@ -618,6 +618,7 @@ type
 
   TPasModuleScope = class(TPasScope)
   public
+    FirstName: string;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
       var Abort: boolean); override;
@@ -1528,6 +1529,7 @@ procedure SetResolverValueExpr(out ResolvedType: TPasResolverResult;
 
 function ProcNeedsImplProc(Proc: TPasProcedure): boolean;
 function ChompDottedIdentifier(const Identifier: string): string;
+function FirstDottedIdentifier(const Identifier: string): string;
 function IsDottedIdentifierPrefix(const Prefix, Identifier: string): boolean;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
@@ -1813,6 +1815,17 @@ begin
     dec(p);
     end;
   Result:=LeftStr(Identifier,p-1);
+end;
+
+function FirstDottedIdentifier(const Identifier: string): string;
+var
+  p: SizeInt;
+begin
+  p:=Pos('.',Identifier);
+  if p<1 then
+    Result:=Identifier
+  else
+    Result:=LeftStr(Identifier,p-1);
 end;
 
 function IsDottedIdentifierPrefix(const Prefix, Identifier: string): boolean;
@@ -2287,7 +2300,7 @@ procedure TPasModuleScope.IterateElements(const aName: string;
   StartScope: TPasScope; const OnIterateElement: TIterateScopeElement;
   Data: Pointer; var Abort: boolean);
 begin
-  if CompareText(aName,Element.Name)<>0 then exit;
+  if CompareText(aName,FirstName)<>0 then exit;
   OnIterateElement(Element,Self,StartScope,Data,Abort);
 end;
 
@@ -4985,6 +4998,7 @@ var
   BuiltInProc: TResElDataBuiltInProc;
   p: SizeInt;
   DottedName: String;
+  Bin: TBinaryExpr;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveNameExpr El=',GetObjName(El),' Name="',aName,'" ',Access);
@@ -5041,14 +5055,18 @@ begin
       if El=nil then
         RaiseInternalError(20170503002012);
       CreateReference(DeclEl,El,Access);
+      if (El.Parent is TBinaryExpr) and (TBinaryExpr(El.Parent).right=El) then
+        begin
+        Bin:=TBinaryExpr(El.Parent);
+        while Bin.OpCode=eopSubIdent do
+          begin
+          CreateReference(DeclEl,Bin,Access);
+          if not (Bin.Parent is TBinaryExpr) then break;
+          if (TBinaryExpr(Bin.Parent).right<>Bin) then break;
+          Bin:=TBinaryExpr(Bin.Parent);
+          end;
+        end;
     until false;
-    // and add references to the binary expressions
-    while (El.Parent is TBinaryExpr) and (TBinaryExpr(El.Parent).right=El) do
-      begin
-      El:=TBinaryExpr(El.Parent);
-      if TBinaryExpr(El).OpCode<>eopSubIdent then break;
-      CreateReference(DeclEl,El,Access);
-      end;
     end;
 end;
 
@@ -5847,11 +5865,13 @@ end;
 procedure TPasResolver.AddModule(El: TPasModule);
 var
   C: TClass;
+  ModScope: TPasModuleScope;
 begin
   if TopScope<>DefaultScope then
     RaiseInvalidScopeForElement(20160922163504,El);
-  PushScope(El,TPasModuleScope);
-  TPasModuleScope(TopScope).VisibilityContext:=El;
+  ModScope:=TPasModuleScope(PushScope(El,TPasModuleScope));
+  ModScope.VisibilityContext:=El;
+  ModScope.FirstName:=FirstDottedIdentifier(El.Name);
   C:=El.ClassType;
   if (C=TPasProgram) or (C=TPasLibrary) or (C=TPasPackage) then
     FDefaultNameSpace:=ChompDottedIdentifier(El.Name)
