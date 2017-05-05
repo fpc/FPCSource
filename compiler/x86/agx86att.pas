@@ -322,6 +322,9 @@ interface
           are (xmm) arguments }
         if (op=A_MOVSD) and (taicpu(hp).ops>0) then
           owner.writer.AsmWrite('movsd')
+        { the same applies to cmpsd as well }
+        else if (op=A_CMPSD) and (taicpu(hp).ops>0) then
+          owner.writer.AsmWrite('cmpsd')
         else
           owner.writer.AsmWrite(gas_op2str[op]);
         owner.writer.AsmWrite(cond2str[taicpu(hp).condition]);
