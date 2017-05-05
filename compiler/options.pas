@@ -3104,6 +3104,8 @@ begin
     system_i386_nativent:
       // until these features are implemented, they are disabled in the compiler
       target_unsup_features:=[f_stackcheck];
+    system_i8086_msdos:
+      target_unsup_features:=[f_threading,f_dynlibs];
     system_jvm_java32,
     system_jvm_android32:
       target_unsup_features:=[f_heap,f_textio,f_consoleio,f_fileio,
