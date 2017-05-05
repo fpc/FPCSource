@@ -238,6 +238,9 @@ interface
 {$endif PREPROCWRITE}
 
     var
+        { true, if we are parsing preprocessor expressions }
+        in_preproc_comp_expr: boolean = false;
+
         { read strings }
         c              : char;
         orgpattern,
@@ -2117,10 +2120,12 @@ type
         end;
 
      begin
+       in_preproc_comp_expr:=true;
        current_scanner.skipspace;
        { start preproc expression scanner }
        current_scanner.preproc_token:=current_scanner.readpreproc;
        preproc_comp_expr:=preproc_sub_expr(opcompare,true);
+       in_preproc_comp_expr:=false;
      end;
 
     function boolean_compile_time_expr(var valuedescr: string): Boolean;
