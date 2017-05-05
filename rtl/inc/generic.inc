@@ -793,7 +793,7 @@ begin
      exit;
    if (pobjectvmt(ppointer(_self+vmt_pos)^)^.size=0) or
       (pobjectvmt(ppointer(_self+vmt_pos)^)^.size+pobjectvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
-     RunError(210);
+     HandleError(210);
    { reset vmt to nil for protection }
    ppointer(_self+vmt_pos)^:=nil;
    freemem(_self);
@@ -832,7 +832,7 @@ begin
   if (_vmt=nil) or
      (pobjectvmt(_vmt)^.size=0) or
      (pobjectvmt(_vmt)^.size+pobjectvmt(_vmt)^.msize<>0) then
-    RunError(210);
+    HandleError(210);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
@@ -847,7 +847,7 @@ begin
    if (vmt=nil) or
       (pobjectvmt(vmt)^.size=0) or
       (pobjectvmt(vmt)^.size+pobjectvmt(vmt)^.msize<>0) then
-        RunError(210);
+        HandleError(210);
    while assigned(vmt) do
      if vmt=expvmt then
        exit
@@ -860,7 +860,7 @@ begin
        else
          vmt:=nil;
        {$endif}
-   RunError(219);
+   HandleError(219);
 end;
 {$endif not FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
 
