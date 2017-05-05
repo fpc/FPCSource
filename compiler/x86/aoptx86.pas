@@ -410,6 +410,39 @@ unit aoptx86;
            exit;
          end;
         p := taicpu(hp);
+        if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) then
+          with insprop[p.opcode] do
+            begin
+              case getsubreg(reg) of
+                R_SUBW,R_SUBD,R_SUBQ:
+                  Result:=
+                    RegLoadedWithNewValue(NR_CARRYFLAG,hp) and
+                    RegLoadedWithNewValue(NR_PARITYFLAG,hp) and
+                    RegLoadedWithNewValue(NR_AUXILIARYFLAG,hp) and
+                    RegLoadedWithNewValue(NR_ZEROFLAG,hp) and
+                    RegLoadedWithNewValue(NR_SIGNFLAG,hp) and
+                    RegLoadedWithNewValue(NR_OVERFLOWFLAG,hp);
+                R_SUBFLAGCARRY:
+                  Result:=[Ch_W0CarryFlag,Ch_W1CarryFlag,Ch_WCarryFlag,Ch_WUCarryFlag,Ch_WFlags]*Ch<>[];
+                R_SUBFLAGPARITY:
+                  Result:=[Ch_W0ParityFlag,Ch_W1ParityFlag,Ch_WParityFlag,Ch_WUParityFlag,Ch_WFlags]*Ch<>[];
+                R_SUBFLAGAUXILIARY:
+                  Result:=[Ch_W0AuxiliaryFlag,Ch_W1AuxiliaryFlag,Ch_WAuxiliaryFlag,Ch_WUAuxiliaryFlag,Ch_WFlags]*Ch<>[];
+                R_SUBFLAGZERO:
+                  Result:=[Ch_W0ZeroFlag,Ch_W1ZeroFlag,Ch_WZeroFlag,Ch_WUZeroFlag,Ch_WFlags]*Ch<>[];
+                R_SUBFLAGSIGN:
+                  Result:=[Ch_W0SignFlag,Ch_W1SignFlag,Ch_WSignFlag,Ch_WUSignFlag,Ch_WFlags]*Ch<>[];
+                R_SUBFLAGOVERFLOW:
+                  Result:=[Ch_W0OverflowFlag,Ch_W1OverflowFlag,Ch_WOverflowFlag,Ch_WUOverflowFlag,Ch_WFlags]*Ch<>[];
+                R_SUBFLAGINTERRUPT:
+                  Result:=[Ch_W0IntFlag,Ch_W1IntFlag,Ch_WFlags]*Ch<>[];
+                R_SUBFLAGDIRECTION:
+                  Result:=[Ch_W0DirFlag,Ch_W1DirFlag,Ch_WFlags]*Ch<>[];
+                else
+                  internalerror(2017050501);
+              end;
+              exit;
+            end;
         Result :=
           (((p.opcode = A_MOV) or
             (p.opcode = A_MOVZX) or
