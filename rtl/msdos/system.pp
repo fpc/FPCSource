@@ -554,7 +554,9 @@ begin
 { Setup heap }
   InitDosHeap;
   SysInitExceptions;
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
   initunicodestringmanager;
+{$endif def FPC_HAS_FEATURE_UNICODESTRINGS}
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Setup environment and arguments }
