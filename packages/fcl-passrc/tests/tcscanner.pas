@@ -1511,6 +1511,7 @@ procedure TTestScanner.TestMacro1;
 begin
   FScanner.SkipWhiteSpace:=True;
   FScanner.SkipComments:=True;
+  FScanner.MacrosOn:=true;
   TestTokens([tkbegin,tkend,tkDot],'{$DEFINE MM:=begin end.}'#13#10'MM',True,False);
 end;
 
@@ -1518,6 +1519,7 @@ procedure TTestScanner.TestMacro2;
 begin
   FScanner.SkipWhiteSpace:=True;
   FScanner.SkipComments:=True;
+  FScanner.MacrosOn:=true;
   TestTokens([tkbegin,tkend,tkDot],'{$DEFINE MM:=begin end}'#13#10'MM .',True,False);
 end;
 
@@ -1525,6 +1527,7 @@ procedure TTestScanner.TestMacro3;
 begin
   FScanner.SkipComments:=True;
   FScanner.SkipWhiteSpace:=True;
+  FScanner.MacrosOn:=true;
   TestTokens([tkof],'{$DEFINE MM:=begin end}'#13#10'{$IFDEF MM} of {$ELSE} in {$ENDIF}');
 end;
 
@@ -1533,6 +1536,7 @@ begin
   TTestingPascalScanner(FScanner).DoSpecial:=True;
   FScanner.SkipComments:=True;
   FScanner.SkipWhiteSpace:=True;
+  FScanner.MacrosOn:=true;
   TestTokens([tkIdentifier],'{$DEFINE MM:=begin end}'#13#10'MM');
   AssertEQuals('Correct identifier', 'somethingweird',LastIdentifier);
 end;

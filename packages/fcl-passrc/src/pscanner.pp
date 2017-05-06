@@ -42,6 +42,7 @@ const
   nErrInvalidMode = 1015;
   nErrInvalidModeSwitch = 1016;
   nUserDefined = 1017;
+  nErrXExpectedButYFound = 1018;
 
 // resourcestring patterns of messages
 resourcestring
@@ -62,6 +63,7 @@ resourcestring
   SErrInvalidMode = 'Invalid mode: "%s"';
   SErrInvalidModeSwitch = 'Invalid mode switch: "%s"';
   SErrUserDefined = 'User defined error: "%s"';
+  SErrXExpectedButYFound = '"%s" expected, but "%s" found';
 
 type
   TMessageType = (
@@ -425,6 +427,7 @@ type
     FCurLine: string;
     FMacros,
     FDefines: TStrings;
+    FMacrosOn: boolean;
     FOptions: TPOptions;
     FLogEvents: TPScannerLogEvents;
     FOnLog: TPScannerLogHandler;
@@ -464,6 +467,7 @@ type
     procedure HandleIncludeFile(Param: String); virtual;
     procedure HandleUnDefine(Param: String);virtual;
     function HandleInclude(const Param: String): TToken;virtual;
+    procedure HandleMacroDirective(const Param: String);virtual;
     procedure HandleMode(const Param: String);virtual;
     procedure HandleModeSwitch(const Param: String);virtual;
     function HandleMacro(AIndex: integer): TToken;virtual;
@@ -505,9 +509,10 @@ type
 
     property Defines: TStrings read FDefines;
     property Macros: TStrings read FMacros;
-    Property Options : TPOptions Read FOptions Write SetOptions;
-    Property LogEvents : TPScannerLogEvents Read FLogEvents Write FLogEvents;
-    Property OnLog : TPScannerLogHandler Read FOnLog Write FOnLog;
+    property Options : TPOptions Read FOptions Write SetOptions;
+    property LogEvents : TPScannerLogEvents Read FLogEvents Write FLogEvents;
+    property OnLog : TPScannerLogHandler Read FOnLog Write FOnLog;
+    property MacrosOn: boolean read FMacrosOn write FMacrosOn;
 
     property LastMsg: string read FLastMsg write FLastMsg;
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
@@ -1620,6 +1625,16 @@ begin
     end
 end;
 
+procedure TPascalScanner.HandleMacroDirective(const Param: String);
+begin
+  if CompareText(Param,'on')=0 then
+    MacrosOn:=true
+  else if CompareText(Param,'off')=0 then
+    MacrosOn:=false
+  else
+    Error(nErrXExpectedButYFound,SErrXExpectedButYFound,['on',Param]);
+end;
+
 procedure TPascalScanner.HandleMode(const Param: String);
 
   procedure SetMode(const NeededModes, NewModeSwitches: TModeSwitches;
@@ -1830,6 +1845,9 @@ begin
   'INCLUDE':
     if not PPIsSkipping then
       Result:=HandleInclude(Param);
+  'MACRO':
+    if not PPIsSkipping then
+      HandleMacroDirective(Param);
   'MODE':
      if not PPIsSkipping then
       HandleMode(Param);
@@ -2279,11 +2297,13 @@ begin
             FCurToken := Result;
             exit;
           end;
-        Index:=FMacros.IndexOf(CurtokenString);
-        if (Index=-1) then
-          Result := tkIdentifier
-        else
-          Result:=HandleMacro(index);
+        Result := tkIdentifier;
+        if MacrosOn then
+          begin
+          Index:=FMacros.IndexOf(CurtokenString);
+          if Index>=0 then
+            Result:=HandleMacro(Index);
+          end;
       end;
   else
     if PPIsSkipping then
