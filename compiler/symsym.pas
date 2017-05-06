@@ -1690,7 +1690,7 @@ implementation
     procedure tabstractvarsym.setvardef_and_regable(def:tdef);
       begin
         setvardef(def);
-         setregable;
+        setregable;
       end;
 
 
