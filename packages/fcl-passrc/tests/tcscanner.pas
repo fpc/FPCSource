@@ -44,7 +44,7 @@ type
   private
     FDoSpecial: Boolean;
   protected
-    function HandleMacro(aMacro: PPasNameValue): TToken; override;
+    function HandleMacro(AIndex: integer): TToken;override;
   Public
     Property DoSpecial : Boolean Read FDoSpecial Write FDoSpecial;
   end;
@@ -231,7 +231,7 @@ implementation
 
 { TTestingPascalScanner }
 
-function TTestingPascalScanner.HandleMacro(aMacro: PPasNameValue): TToken;
+function TTestingPascalScanner.HandleMacro(AIndex: integer): TToken;
 begin
   if DoSpecial then
     begin
@@ -239,7 +239,7 @@ begin
     SetCurTokenstring('somethingweird');
     end
   else
-    Result:=inherited HandleMacro(aMacro);
+    Result:=inherited HandleMacro(AIndex);
 end;
 
 { TTestTokenFinder }
