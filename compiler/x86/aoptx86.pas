@@ -909,19 +909,20 @@ unit aoptx86;
                 end
               { change
                   mov reg1, mem1
-                  cmp x, mem1
+                  test/cmp x, mem1
 
                   to
 
                   mov reg1, mem1
-                  cmp x, reg1
+                  test/cmp x, reg1
               }
               else if MatchOpType(p,top_reg,top_ref) and
-                  MatchInstruction(hp1,A_CMP,[taicpu(p).opsize]) and
+                  MatchInstruction(hp1,A_CMP,A_TEST,[taicpu(p).opsize]) and
                   (taicpu(hp1).oper[1]^.typ = top_ref) and
                    RefsEqual(taicpu(p).oper[1]^.ref^, taicpu(hp1).oper[1]^.ref^) then
                   begin
                     taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
+                    DebugMsg('Peephole MovTestCmp2MovTestCmp 1',hp1);
                     AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
                   end;
             end;
