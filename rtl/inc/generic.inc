@@ -793,7 +793,7 @@ begin
      exit;
    if (pobjectvmt(ppointer(_self+vmt_pos)^)^.size=0) or
       (pobjectvmt(ppointer(_self+vmt_pos)^)^.size+pobjectvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
-     HandleError(210);
+     HandleErrorAddrFrameInd(210,get_pc_addr,get_frame);
    { reset vmt to nil for protection }
    ppointer(_self+vmt_pos)^:=nil;
    freemem(_self);
@@ -832,7 +832,7 @@ begin
   if (_vmt=nil) or
      (pobjectvmt(_vmt)^.size=0) or
      (pobjectvmt(_vmt)^.size+pobjectvmt(_vmt)^.msize<>0) then
-    HandleError(210);
+    HandleErrorAddrFrameInd(210,get_pc_addr,get_frame);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
@@ -847,7 +847,7 @@ begin
    if (vmt=nil) or
       (pobjectvmt(vmt)^.size=0) or
       (pobjectvmt(vmt)^.size+pobjectvmt(vmt)^.msize<>0) then
-        HandleError(210);
+        HandleErrorAddrFrameInd(210,get_pc_addr,get_frame);
    while assigned(vmt) do
      if vmt=expvmt then
        exit
@@ -860,7 +860,7 @@ begin
        else
          vmt:=nil;
        {$endif}
-   HandleError(219);
+   HandleErrorAddrFrameInd(219,get_pc_addr,get_frame);
 end;
 {$endif not FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
 
