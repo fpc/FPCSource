@@ -55,6 +55,7 @@ unit aoptx86;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
+        function OptPass2Jmp(var p : tai) : boolean;
 
         procedure DebugMsg(const s : string; p : tai);inline;
 
@@ -89,6 +90,8 @@ unit aoptx86;
       cutils,
       verbose,
       procinfo,
+      aasmbase,
+      aoptutils,
       symconst,symsym,
       itcpugas;
 
@@ -1365,6 +1368,45 @@ unit aoptx86;
                 result:=true;
               end;
             ReleaseUsedRegs(TmpUsedRegs);
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass2Jmp(var p : tai) : boolean;
+      var
+        hp1 : tai;
+      begin
+        {
+          change
+                 jmp .L1
+                 ...
+             .L1:
+                 ret
+          into
+                 ret
+        }
+        result:=false;
+        if (taicpu(p).oper[0]^.typ=top_ref) and (taicpu(p).oper[0]^.ref^.refaddr=addr_full) and (taicpu(p).oper[0]^.ref^.base=NR_NO) and
+          (taicpu(p).oper[0]^.ref^.index=NR_NO) then
+          begin
+            hp1:=getlabelwithsym(tasmlabel(taicpu(p).oper[0]^.ref^.symbol));
+            if (taicpu(p).condition=C_None) and assigned(hp1) and SkipLabels(hp1,hp1) and
+              MatchInstruction(hp1,A_RET,[S_NO]) then
+              begin
+                tasmlabel(taicpu(p).oper[0]^.ref^.symbol).decrefs;
+                taicpu(p).opcode:=A_RET;
+                taicpu(p).is_jmp:=false;
+                taicpu(p).ops:=taicpu(hp1).ops;
+                case taicpu(hp1).ops of
+                  0:
+                    taicpu(p).clearop(0);
+                  1:
+                    taicpu(p).loadconst(0,taicpu(hp1).oper[0]^.val);
+                  else
+                    internalerror(2016041301);
+                end;
+                result:=true;
+              end;
           end;
       end;
 

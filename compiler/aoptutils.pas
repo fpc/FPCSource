@@ -32,6 +32,9 @@ unit aoptutils;
     function MatchOpType(const p : taicpu;type0: toptype) : Boolean;
     function MatchOpType(const p : taicpu;type0,type1 : toptype) : Boolean;
 
+    { skips all labels and returns the next "real" instruction }
+    function SkipLabels(hp: tai; var hp2: tai): boolean;
+
   implementation
 
     function MatchOpType(const p : taicpu; type0: toptype) : Boolean;
@@ -44,6 +47,26 @@ unit aoptutils;
       begin
         Result:=(p.oper[0]^.typ=type0) and (p.oper[0]^.typ=type1);
       end;
+
+
+    { skips all labels and returns the next "real" instruction }
+    function SkipLabels(hp: tai; var hp2: tai): boolean;
+      begin
+        while assigned(hp.next) and
+              (tai(hp.next).typ in SkipInstr + [ait_label,ait_align]) Do
+          hp := tai(hp.next);
+        if assigned(hp.next) then
+          begin
+            SkipLabels := True;
+            hp2 := tai(hp.next)
+          end
+        else
+          begin
+            hp2 := hp;
+            SkipLabels := False
+          end;
+      end;
+
 
 end.
 

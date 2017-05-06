@@ -357,6 +357,8 @@ end;
                   Result:=OptPass2MOV(p);
                 A_IMUL:
                   Result:=OptPass2Imul(p);
+                A_JMP:
+                  Result:=OptPass2Jmp(p);
               end;
             end;
         end;

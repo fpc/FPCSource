@@ -367,7 +367,8 @@ Unit AoptObj;
       cutils,
       globals,
       verbose,
-      procinfo;
+      procinfo,
+      aoptutils;
 
 
     function JumpTargetOp(ai: taicpu): poper; inline;
@@ -1144,25 +1145,6 @@ Unit AoptObj;
       begin
          Result:=assigned(FindRegDealloc(reg,tai(p.Next))) or
            RegLoadedWithNewValue(reg,p);
-      end;
-
-
-    function SkipLabels(hp: tai; var hp2: tai): boolean;
-      {skips all labels and returns the next "real" instruction}
-      begin
-        while assigned(hp.next) and
-              (tai(hp.next).typ in SkipInstr + [ait_label,ait_align]) Do
-          hp := tai(hp.next);
-        if assigned(hp.next) then
-          begin
-            SkipLabels := True;
-            hp2 := tai(hp.next)
-          end
-        else
-          begin
-            hp2 := hp;
-            SkipLabels := False
-          end;
       end;
 
 
