@@ -1,4 +1,4 @@
-{ %OPT=-O3 }
+{ %OPT=-O- -O3 }
 
 program tb0627a;
 
