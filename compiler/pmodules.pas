@@ -1865,6 +1865,10 @@ type
          i : Longint;
          sysinitmod: tmodule;
       begin
+         // Under UEFI, an application is technically a dll.
+         // So, we build both programs and libraries as libraries
+         if target_info.system in [system_i386_uefi] then
+           IsLibrary := true;
          Status.IsLibrary:=IsLibrary;
          Status.IsPackage:=false;
          Status.IsExe:=true;
@@ -1911,7 +1915,19 @@ type
 
          if islibrary then
            begin
-              consume(_LIBRARY);
+              if target_info.system in [system_i386_uefi] then
+                begin
+                  // For UEFI targets, every binaries are libraries.
+                  // So, we treat 'program' as 'library' as well.
+                  if not try_to_consume(_LIBRARY) then
+                    begin
+                       consume(_PROGRAM);
+                    end;
+                end
+              else
+                begin
+                   consume(_LIBRARY);
+                 end;
               program_name:=orgpattern;
               consume(_ID);
               while token=_POINT do
