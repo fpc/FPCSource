@@ -3846,6 +3846,7 @@ implementation
         if nf_explicit in flags then
           { check if the result could be in a register }
           if (not(tstoreddef(resultdef).is_intregable) and
+              not(tstoreddef(resultdef).is_const_intregable) and
               not(tstoreddef(resultdef).is_fpuregable)) or
              ((left.resultdef.typ = floatdef) and
               (resultdef.typ <> floatdef))  then
