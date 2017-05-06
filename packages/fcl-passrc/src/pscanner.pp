@@ -37,12 +37,18 @@ const
   nLogIFDefRejected = 1010;
   nLogIFNDefAccepted = 1011;
   nLogIFNDefRejected = 1012;
-  nLogIFOPTIgnored = 1013;
-  nLogIFIgnored = 1014;
-  nErrInvalidMode = 1015;
-  nErrInvalidModeSwitch = 1016;
-  nUserDefined = 1017;
-  nErrXExpectedButYFound = 1018;
+  nLogIFAccepted = 1013;
+  nLogIFRejected = 1014;
+  nLogIFOPTIgnored = 1015;
+  nLogIFIgnored = 1016;
+  nErrInvalidMode = 1017;
+  nErrInvalidModeSwitch = 1018;
+  nErrXExpectedButYFound = 1019;
+  nErrRangeCheck = 1020;
+  nErrDivByZero = 1021;
+  nErrOperandAndOperatorMismatch = 1022;
+  // keep this last:
+  nUserDefined = 1023;
 
 // resourcestring patterns of messages
 resourcestring
@@ -58,12 +64,17 @@ resourcestring
   SLogIFDefRejected = 'IFDEF %s found, rejecting.';
   SLogIFNDefAccepted = 'IFNDEF %s found, accepting.';
   SLogIFNDefRejected = 'IFNDEF %s found, rejecting.';
+  SLogIFAccepted = 'IF %s found, accepting.';
+  SLogIFRejected = 'IF %s found, rejecting.';
   SLogIFOPTIgnored = 'IFOPT %s found, ignoring (rejected).';
   SLogIFIgnored = 'IF %s found, ignoring (rejected).';
   SErrInvalidMode = 'Invalid mode: "%s"';
   SErrInvalidModeSwitch = 'Invalid mode switch: "%s"';
   SErrUserDefined = 'User defined error: "%s"';
   SErrXExpectedButYFound = '"%s" expected, but "%s" found';
+  sErrRangeCheck = 'range check failed';
+  sErrDivByZero = 'division by zero';
+  sErrOperandAndOperatorMismatch = 'operand and operator mismatch';
 
 type
   TMessageType = (
@@ -376,6 +387,74 @@ type
     Property Streams: TStringList read FStreams;
   end;
 
+const
+  CondDirectiveBool: array[boolean] of string = (
+    '0', // false
+    '1'  // true  Note: True is <>'0'
+    );
+type
+  TCondDirectiveEvaluator = class;
+
+  TCEEvalVarEvent = function(Sender: TCondDirectiveEvaluator; Name: String; out Value: string): boolean of object;
+  TCEEvalFunctionEvent = function(Sender: TCondDirectiveEvaluator; Name, Param: String; out Value: string): boolean of object;
+  TCELogEvent = procedure(Sender: TCondDirectiveEvaluator; Args : Array of const) of object;
+
+  { TCondDirectiveEvaluator - evaluate $IF expression }
+
+  TCondDirectiveEvaluator = class
+  private
+    FOnEvalFunction: TCEEvalFunctionEvent;
+    FOnEvalVariable: TCEEvalVarEvent;
+    FOnLog: TCELogEvent;
+  protected
+    type
+      TPrecedenceLevel = (
+        ceplFirst, // tkNot
+        ceplSecond, // *, /, div, mod, and, shl, shr
+        ceplThird, // +, -, or, xor
+        ceplFourth // =, <>, <, >, <=, >=
+        );
+      TStackItem = record
+        Level: TPrecedenceLevel;
+        Operathor: TToken;
+        Operand: String;
+        OperandPos: integer;
+      end;
+  protected
+    FTokenStart: PChar;
+    FTokenEnd: PChar;
+    FToken: TToken;
+    FStack: array of TStackItem;
+    FStackTop: integer;
+    function IsFalse(const Value: String): boolean; inline;
+    function IsTrue(const Value: String): boolean; inline;
+    function IsInteger(const Value: String; out i: int64): boolean;
+    function IsExtended(const Value: String; out e: extended): boolean;
+    procedure NextToken;
+    procedure Log(aMsgType: TMessageType; aMsgNumber: integer;
+      const aMsgFmt: String; const Args: array of const; MsgPos: integer = 0);
+    procedure LogXExpectedButTokenFound(const X: String; ErrorPos: integer = 0);
+    procedure ReadOperand(Skip: boolean = false); // unary operators plus one operand
+    procedure ReadExpression; // binary operators
+    procedure ResolveStack(MinStackLvl: integer; Level: TPrecedenceLevel;
+      NewOperator: TToken);
+    function GetTokenString: String;
+    function GetStringLiteralValue: String; // read value of tkString
+    procedure Push(const AnOperand: String; OperandPosition: integer);
+  public
+    Expression: String;
+    MsgPos: integer;
+    MsgNumber: integer;
+    MsgType: TMessageType;
+    MsgPattern: String; // Format parameter
+    constructor Create;
+    destructor Destroy; override;
+    function Eval(const Expr: string): boolean;
+    property OnEvalVariable: TCEEvalVarEvent read FOnEvalVariable write FOnEvalVariable;
+    property OnEvalFunction: TCEEvalFunctionEvent read FOnEvalFunction write FOnEvalFunction;
+    property OnLog: TCELogEvent read FOnLog write FOnLog;
+  end;
+
   EScannerError       = class(Exception);
   EFileNotFoundError  = class(Exception);
 
@@ -411,6 +490,7 @@ type
   TPascalScanner = class
   private
     FAllowedModeSwitches: TModeSwitches;
+    FConditionEval: TCondDirectiveEvaluator;
     FCurrentModeSwitches: TModeSwitches;
     FForceCaret: Boolean;
     FLastMsg: string;
@@ -428,6 +508,8 @@ type
     FMacros,
     FDefines: TStrings;
     FMacrosOn: boolean;
+    FOnEvalFunction: TCEEvalFunctionEvent;
+    FOnEvalVariable: TCEEvalVarEvent;
     FOptions: TPOptions;
     FLogEvents: TPScannerLogEvents;
     FOnLog: TPScannerLogHandler;
@@ -444,6 +526,12 @@ type
     PPSkipModeStack: array[0..255] of TPascalScannerPPSkipMode;
     PPIsSkippingStack: array[0..255] of Boolean;
     function GetCurColumn: Integer;
+    function OnCondEvalFunction(Sender: TCondDirectiveEvaluator; Name,
+      Param: String; out Value: string): boolean;
+    procedure OnCondEvalLog(Sender: TCondDirectiveEvaluator;
+      Args: array of const);
+    function OnCondEvalVar(Sender: TCondDirectiveEvaluator; Name: String; out
+      Value: string): boolean;
     procedure SetAllowedModeSwitches(const AValue: TModeSwitches);
     procedure SetCurrentModeSwitches(AValue: TModeSwitches);
     procedure SetOptions(AValue: TPOptions);
@@ -513,6 +601,9 @@ type
     property LogEvents : TPScannerLogEvents Read FLogEvents Write FLogEvents;
     property OnLog : TPScannerLogHandler Read FOnLog Write FOnLog;
     property MacrosOn: boolean read FMacrosOn write FMacrosOn;
+    property ConditionEval: TCondDirectiveEvaluator read FConditionEval;
+    property OnEvalVariable: TCEEvalVarEvent read FOnEvalVariable write FOnEvalVariable;
+    property OnEvalFunction: TCEEvalFunctionEvent read FOnEvalFunction write FOnEvalFunction;
 
     property LastMsg: string read FLastMsg write FLastMsg;
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
@@ -891,6 +982,743 @@ begin
   Result:=(TheFilename<>'') and (TheFilename[1]='/');
 end;
 
+{ TCondDirectiveEvaluator }
+
+// inline
+function TCondDirectiveEvaluator.IsFalse(const Value: String): boolean;
+begin
+  Result:=Value=CondDirectiveBool[false];
+end;
+
+// inline
+function TCondDirectiveEvaluator.IsTrue(const Value: String): boolean;
+begin
+  Result:=Value<>CondDirectiveBool[false];
+end;
+
+function TCondDirectiveEvaluator.IsInteger(const Value: String; out i: int64
+  ): boolean;
+var
+  Code: integer;
+begin
+  val(Value,i,Code);
+  Result:=Code=0;
+end;
+
+function TCondDirectiveEvaluator.IsExtended(const Value: String; out e: extended
+  ): boolean;
+var
+  Code: integer;
+begin
+  val(Value,e,Code);
+  Result:=Code=0;
+end;
+
+procedure TCondDirectiveEvaluator.NextToken;
+const
+  IdentChars = ['a'..'z','A'..'Z','_','0'..'9'];
+
+  function IsIdentifier(a,b: PChar): boolean;
+  var
+    ac: Char;
+  begin
+    repeat
+      ac:=a^;
+      if (ac in IdentChars) and (upcase(ac)=upcase(b^)) then
+        begin
+        inc(a);
+        inc(b);
+        end
+      else
+        begin
+        Result:=(not (ac in IdentChars)) and (not (b^ in IdentChars));
+        exit;
+        end;
+    until false;
+  end;
+
+  function ReadIdentifier: TToken;
+  begin
+    Result:=tkIdentifier;
+    case FTokenEnd-FTokenStart of
+    2:
+      if IsIdentifier(FTokenStart,'or') then
+        Result:=tkor;
+    3:
+      if IsIdentifier(FTokenStart,'not') then
+        Result:=tknot
+      else if IsIdentifier(FTokenStart,'and') then
+        Result:=tkand
+      else if IsIdentifier(FTokenStart,'xor') then
+        Result:=tkxor
+      else if IsIdentifier(FTokenStart,'shl') then
+        Result:=tkshl
+      else if IsIdentifier(FTokenStart,'shr') then
+        Result:=tkshr
+      else if IsIdentifier(FTokenStart,'mod') then
+        Result:=tkmod
+      else if IsIdentifier(FTokenStart,'div') then
+        Result:=tkdiv;
+    end;
+  end;
+
+begin
+  FTokenStart:=FTokenEnd;
+  // skip white space
+  repeat
+    case FTokenStart^ of
+      #0:
+      if FTokenStart-PChar(Expression)>=length(Expression) then
+        begin
+        FToken:=tkEOF;
+        FTokenEnd:=FTokenStart;
+        exit;
+        end
+      else
+        inc(FTokenStart);
+      #9,#10,#13,' ':
+        inc(FTokenStart);
+      else break;
+    end;
+  until false;
+  // read token
+  FTokenEnd:=FTokenStart;
+  case FTokenEnd^ of
+  'a'..'z','A'..'Z','_':
+    begin
+    inc(FTokenEnd);
+    while FTokenEnd^ in IdentChars do inc(FTokenEnd);
+    FToken:=ReadIdentifier;
+    end;
+  '0'..'9':
+    begin
+    FToken:=tkNumber;
+    // examples: 1, 1.2, 1.2E3, 1E-2
+    inc(FTokenEnd);
+    while FTokenEnd^ in ['0'..'9'] do inc(FTokenEnd);
+    if (FTokenEnd^='.') and (FTokenEnd[1]<>'.') then
+      begin
+      inc(FTokenEnd);
+      while FTokenEnd^ in ['0'..'9'] do inc(FTokenEnd);
+      end;
+    if FTokenEnd^ in ['e','E'] then
+      begin
+      inc(FTokenEnd);
+      if FTokenEnd^ in ['-','+'] then inc(FTokenEnd);
+      while FTokenEnd^ in ['0'..'9'] do inc(FTokenEnd);
+      end;
+    end;
+  '$':
+    begin
+    FToken:=tkNumber;
+    while FTokenEnd^ in ['0'..'9','a'..'f','A'..'F'] do inc(FTokenEnd);
+    end;
+  '%':
+    begin
+    FToken:=tkNumber;
+    while FTokenEnd^ in ['0','1'] do inc(FTokenEnd);
+    end;
+  '(':
+    begin
+    FToken:=tkBraceOpen;
+    inc(FTokenEnd);
+    end;
+  ')':
+    begin
+    FToken:=tkBraceClose;
+    inc(FTokenEnd);
+    end;
+  '=':
+    begin
+    FToken:=tkEqual;
+    inc(FTokenEnd);
+    end;
+  '<':
+    begin
+    inc(FTokenEnd);
+    case FTokenEnd^ of
+    '=':
+      begin
+      FToken:=tkLessEqualThan;
+      inc(FTokenEnd);
+      end;
+    '<':
+      begin
+      FToken:=tkshl;
+      inc(FTokenEnd);
+      end;
+    '>':
+      begin
+      FToken:=tkNotEqual;
+      inc(FTokenEnd);
+      end;
+    else
+      FToken:=tkLessThan;
+    end;
+    end;
+  '>':
+    begin
+    inc(FTokenEnd);
+    case FTokenEnd^ of
+    '=':
+      begin
+      FToken:=tkGreaterEqualThan;
+      inc(FTokenEnd);
+      end;
+    '>':
+      begin
+      FToken:=tkshr;
+      inc(FTokenEnd);
+      end;
+    else
+      FToken:=tkGreaterThan;
+    end;
+    end;
+  '+':
+    begin
+    FToken:=tkPlus;
+    inc(FTokenEnd);
+    end;
+  '-':
+    begin
+    FToken:=tkMinus;
+    inc(FTokenEnd);
+    end;
+  '*':
+    begin
+    FToken:=tkMul;
+    inc(FTokenEnd);
+    end;
+  '/':
+    begin
+    FToken:=tkDivision;
+    inc(FTokenEnd);
+    end;
+  '''':
+    begin
+    FToken:=tkString;
+    repeat
+      inc(FTokenEnd);
+      if FTokenEnd^='''' then
+        begin
+        inc(FTokenEnd);
+        if FTokenEnd^<>'''' then break;
+        end
+      else if FTokenEnd^ in [#0,#10,#13] then
+        Log(mtError,nErrOpenString,SErrOpenString,[]);
+    until false;
+    end
+  else
+    FToken:=tkEOF;
+  end;
+  {$IFDEF VerbosePasDirectiveEval}
+  writeln('TCondDirectiveEvaluator.NextToken END Token[',FTokenStart-PChar(Expression)+1,']="',GetTokenString,'" ',FToken);
+  {$ENDIF}
+end;
+
+procedure TCondDirectiveEvaluator.Log(aMsgType: TMessageType;
+  aMsgNumber: integer; const aMsgFmt: String; const Args: array of const;
+  MsgPos: integer);
+begin
+  if MsgPos<1 then
+    MsgPos:=FTokenEnd-PChar(Expression)+1;
+  MsgType:=aMsgType;
+  MsgNumber:=aMsgNumber;
+  MsgPattern:=aMsgFmt;
+  if Assigned(OnLog) then
+    begin
+    OnLog(Self,Args);
+    if not (aMsgType in [mtError,mtFatal]) then exit;
+    end;
+  raise EScannerError.CreateFmt(MsgPattern+' at '+IntToStr(MsgPos),Args);
+end;
+
+procedure TCondDirectiveEvaluator.LogXExpectedButTokenFound(const X: String;
+  ErrorPos: integer);
+begin
+  Log(mtError,nErrXExpectedButYFound,SErrXExpectedButYFound,
+      [X,TokenInfos[FToken]],ErrorPos);
+end;
+
+procedure TCondDirectiveEvaluator.ReadOperand(Skip: boolean);
+{ Read operand and put it on the stack
+  Examples:
+   Variable
+   not Variable
+   not not undefined Variable
+   defined(Variable)
+   !Variable
+   unicodestring
+   123
+   $45
+   'Abc'
+   (expression)
+}
+var
+  i: Int64;
+  e: extended;
+  S, aName, Param: String;
+  Code: integer;
+  NameStartP: PChar;
+  p, Lvl: integer;
+begin
+  {$IFDEF VerbosePasDirectiveEval}
+  writeln('TCondDirectiveEvaluator.ReadOperand START Token[',FTokenStart-PChar(Expression)+1,']="',GetTokenString,'" ',FToken,BoolToStr(Skip,' SKIP',''));
+  {$ENDIF}
+  case FToken of
+    tknot:
+      begin
+      // boolean not
+      NextToken;
+      ReadOperand(Skip);
+      if not Skip then
+        FStack[FStackTop].Operand:=CondDirectiveBool[IsFalse(FStack[FStackTop].Operand)];
+      end;
+    tkMinus:
+      begin
+      // unary minus
+      NextToken;
+      ReadOperand(Skip);
+      if not Skip then
+        begin
+        i:=StrToInt64Def(FStack[FStackTop].Operand,0);
+        FStack[FStackTop].Operand:=IntToStr(-i);
+        end;
+      end;
+    tkPlus:
+      begin
+      // unary plus
+      NextToken;
+      ReadOperand(Skip);
+      if not Skip then
+        begin
+        i:=StrToInt64Def(FStack[FStackTop].Operand,0);
+        FStack[FStackTop].Operand:=IntToStr(i);
+        end;
+      end;
+    tkNumber:
+      begin
+      // number: convert to decimal
+      if not Skip then
+        begin
+        S:=GetTokenString;
+        val(S,i,Code);
+        if Code=0 then
+          begin
+          // integer
+          Push(IntToStr(i),FTokenStart-PChar(Expression)+1);
+          end
+        else
+          begin
+          val(S,e,Code);
+          if Code>0 then
+            Log(mtError,nErrRangeCheck,sErrRangeCheck,[]);
+          if e=0 then ;
+          // float
+          Push(S,FTokenStart-PChar(Expression)+1);
+          end;
+        end;
+      NextToken;
+      end;
+    tkString:
+      begin
+      // string literal
+      if not Skip then
+        Push(GetStringLiteralValue,FTokenStart-PChar(Expression)+1);
+      NextToken;
+      end;
+    tkIdentifier:
+      if Skip then
+        begin
+        NextToken;
+        if FToken=tkBraceOpen then
+          begin
+          // only one parameter is supported
+          NextToken;
+          if FToken=tkIdentifier then
+            NextToken;
+          if FToken<>tkBraceClose then
+            LogXExpectedButTokenFound(')');
+          NextToken;
+          end;
+        end
+      else
+        begin
+        aName:=GetTokenString;
+        p:=FTokenStart-PChar(Expression)+1;
+        NextToken;
+        if FToken=tkBraceOpen then
+          begin
+          // function
+          NameStartP:=FTokenStart;
+          NextToken;
+          // only one parameter is supported
+          Param:='';
+          if FToken=tkIdentifier then
+            begin
+            Param:=GetTokenString;
+            NextToken;
+            end;
+          if FToken<>tkBraceClose then
+            LogXExpectedButTokenFound(')');
+          if not OnEvalFunction(Self,aName,Param,S) then
+            begin
+            FTokenStart:=NameStartP;
+            FTokenEnd:=FTokenStart+length(aName);
+            LogXExpectedButTokenFound('function');
+            end;
+          Push(S,p);
+          NextToken;
+          end
+        else
+          begin
+          // variable
+          if OnEvalVariable(Self,aName,S) then
+            Push(S,p)
+          else
+            begin
+            // variable does not exist -> evaluates to false
+            Push(CondDirectiveBool[false],p);
+            end;
+          end;
+        end;
+    tkBraceOpen:
+      begin
+      NextToken;
+      if Skip then
+        begin
+        Lvl:=1;
+        repeat
+          case FToken of
+          tkEOF:
+            LogXExpectedButTokenFound(')');
+          tkBraceOpen: inc(Lvl);
+          tkBraceClose:
+            begin
+            dec(Lvl);
+            if Lvl=0 then break;
+            end;
+          end;
+          NextToken;
+        until false;
+        end
+      else
+        begin
+        ReadExpression;
+        if FToken<>tkBraceClose then
+          LogXExpectedButTokenFound(')');
+        end;
+      NextToken;
+      end;
+  else
+    LogXExpectedButTokenFound('identifier');
+  end;
+  {$IFDEF VerbosePasDirectiveEval}
+  writeln('TCondDirectiveEvaluator.ReadOperand END Top=',FStackTop,' Value="',FStack[FStackTop].Operand,'" Token[',FTokenStart-PChar(Expression)+1,']="',GetTokenString,'" ',FToken);
+  {$ENDIF}
+end;
+
+procedure TCondDirectiveEvaluator.ReadExpression;
+// read operand operator operand ... til tkEOF or tkBraceClose
+var
+  OldStackTop: Integer;
+
+  procedure ReadBinary(Level: TPrecedenceLevel; NewOperator: TToken);
+  begin
+    ResolveStack(OldStackTop,Level,NewOperator);
+    NextToken;
+    ReadOperand;
+  end;
+
+begin
+  OldStackTop:=FStackTop;
+  {$IFDEF VerbosePasDirectiveEval}
+  writeln('TCondDirectiveEvaluator.ReadExpression START Top=',FStackTop,' Token[',FTokenStart-PChar(Expression)+1,']="',GetTokenString,'" ',FToken);
+  {$ENDIF}
+  ReadOperand;
+  repeat
+    {$IFDEF VerbosePasDirectiveEval}
+    writeln('TCondDirectiveEvaluator.ReadExpression NEXT Top=',FStackTop,' Token[',FTokenStart-PChar(Expression)+1,']="',GetTokenString,'" ',FToken);
+    {$ENDIF}
+    case FToken of
+    tkEOF,tkBraceClose:
+      begin
+      ResolveStack(OldStackTop,high(TPrecedenceLevel),tkEOF);
+      exit;
+      end;
+    tkand:
+      begin
+      ResolveStack(OldStackTop,ceplSecond,tkand);
+      NextToken;
+      if (FStackTop=OldStackTop+1) and IsFalse(FStack[FStackTop].Operand) then
+        begin
+        // false and ...
+        // -> skip all "and"
+        repeat
+          ReadOperand(true);
+          if FToken<>tkand then break;
+          NextToken;
+        until false;
+        FStack[FStackTop].Operathor:=tkEOF;
+        end
+      else
+        ReadOperand;
+      end;
+    tkMul,tkDivision,tkdiv,tkmod,tkshl,tkshr:
+      ReadBinary(ceplSecond,FToken);
+    tkor:
+      begin
+      ResolveStack(OldStackTop,ceplThird,tkor);
+      NextToken;
+      if (FStackTop=OldStackTop+1) and IsTrue(FStack[FStackTop].Operand) then
+        begin
+        // true or ...
+        // -> skip all "and" and "or"
+        repeat
+          ReadOperand(true);
+          if not (FToken in [tkand,tkor]) then break;
+          NextToken;
+        until false;
+        FStack[FStackTop].Operathor:=tkEOF;
+        end
+      else
+        ReadOperand;
+      end;
+    tkPlus,tkMinus,tkxor:
+      ReadBinary(ceplThird,FToken);
+    tkEqual,tkNotEqual,tkLessThan,tkGreaterThan,tkLessEqualThan,tkGreaterEqualThan:
+      ReadBinary(ceplFourth,FToken);
+    else
+      LogXExpectedButTokenFound('operator');
+    end;
+  until false;
+  {$IFDEF VerbosePasDirectiveEval}
+  writeln('TCondDirectiveEvaluator.ReadExpression END Top=',FStackTop,' Value="',FStack[FStackTop].Operand,'" Token[',FTokenStart-PChar(Expression)+1,']=',GetTokenString,' ',FToken);
+  {$ENDIF}
+end;
+
+procedure TCondDirectiveEvaluator.ResolveStack(MinStackLvl: integer;
+  Level: TPrecedenceLevel; NewOperator: TToken);
+var
+  A, B, R: String;
+  Op: TToken;
+  AInt, BInt: int64;
+  AFloat, BFloat: extended;
+  BPos: Integer;
+begin
+  // resolve all higher or equal level operations
+  // Note: the stack top contains operand B
+  //       the stack second contains operand A and the operator between A and B
+
+  //writeln('TCondDirectiveEvaluator.ResolveStack FStackTop=',FStackTop,' MinStackLvl=',MinStackLvl);
+  //if FStackTop>MinStackLvl+1 then
+  //  writeln('  FStack[FStackTop-1].Level=',FStack[FStackTop-1].Level,' Level=',Level);
+  while (FStackTop>MinStackLvl+1) and (FStack[FStackTop-1].Level<=Level) do
+    begin
+    // pop last operand and operator from stack
+    B:=FStack[FStackTop].Operand;
+    BPos:=FStack[FStackTop].OperandPos;
+    dec(FStackTop);
+    Op:=FStack[FStackTop].Operathor;
+    A:=FStack[FStackTop].Operand;
+    {$IFDEF VerbosePasDirectiveEval}
+    writeln('  ResolveStack Top=',FStackTop,' A="',A,'" ',Op,' B="',B,'"');
+    {$ENDIF}
+    {$IFOPT R+}{$DEFINE RangeChecking}{$ENDIF}
+    {$R+}
+    try
+      case Op of
+      tkand: // boolean and
+        R:=CondDirectiveBool[IsTrue(A) and IsTrue(B)];
+      tkor: // boolean or
+        R:=CondDirectiveBool[IsTrue(A) or IsTrue(B)];
+      tkxor: // boolean xor
+        R:=CondDirectiveBool[IsTrue(A) xor IsTrue(B)];
+      tkMul, tkdiv, tkmod, tkshl, tkshr, tkPlus, tkMinus:
+        if IsInteger(A,AInt) then
+          begin
+          if IsInteger(B,BInt) then
+            case Op of
+              tkMul: R:=IntToStr(AInt*BInt);
+              tkdiv: R:=IntToStr(AInt div BInt);
+              tkmod: R:=IntToStr(AInt mod BInt);
+              tkshl: R:=IntToStr(AInt shl BInt);
+              tkshr: R:=IntToStr(AInt shr BInt);
+              tkPlus: R:=IntToStr(AInt+BInt);
+              tkMinus: R:=IntToStr(AInt-BInt);
+            end
+          else if IsExtended(B,BFloat) then
+            case Op of
+              tkMul: R:=FloatToStr(Extended(AInt)*BFloat);
+              tkPlus: R:=FloatToStr(Extended(AInt)+BFloat);
+              tkMinus: R:=FloatToStr(Extended(AInt)-BFloat);
+            else
+              LogXExpectedButTokenFound('integer',BPos);
+            end
+          else
+            LogXExpectedButTokenFound('integer',BPos);
+          end
+        else if IsExtended(A,AFloat) then
+          begin
+          if IsExtended(B,BFloat) then
+            case Op of
+              tkMul: R:=FloatToStr(AFloat*BFloat);
+              tkPlus: R:=FloatToStr(AFloat+BFloat);
+              tkMinus: R:=FloatToStr(AFloat-BFloat);
+            else
+              LogXExpectedButTokenFound('float',BPos);
+            end
+          else
+            LogXExpectedButTokenFound('float',BPos);
+          end
+        else
+          Log(mtError,nErrOperandAndOperatorMismatch,sErrOperandAndOperatorMismatch,[]);
+      tkDivision:
+        if IsExtended(A,AFloat) then
+          begin
+          if IsExtended(B,BFloat) then
+            R:=FloatToStr(AFloat/BFloat)
+          else
+            LogXExpectedButTokenFound('float',BPos);
+          end
+        else
+          Log(mtError,nErrOperandAndOperatorMismatch,sErrOperandAndOperatorMismatch,[]);
+      tkEqual,
+      tkNotEqual,
+      tkLessThan,tkGreaterThan,
+      tkLessEqualThan,tkGreaterEqualThan:
+        begin
+        if IsInteger(A,AInt) and IsInteger(B,BInt) then
+          case Op of
+          tkEqual: R:=CondDirectiveBool[AInt=BInt];
+          tkNotEqual: R:=CondDirectiveBool[AInt<>BInt];
+          tkLessThan: R:=CondDirectiveBool[AInt<BInt];
+          tkGreaterThan: R:=CondDirectiveBool[AInt>BInt];
+          tkLessEqualThan: R:=CondDirectiveBool[AInt<=BInt];
+          tkGreaterEqualThan: R:=CondDirectiveBool[AInt>=BInt];
+          end
+        else if IsExtended(A,AFloat) and IsExtended(B,BFloat) then
+          case Op of
+          tkEqual: R:=CondDirectiveBool[AFloat=BFloat];
+          tkNotEqual: R:=CondDirectiveBool[AFloat<>BFloat];
+          tkLessThan: R:=CondDirectiveBool[AFloat<BFloat];
+          tkGreaterThan: R:=CondDirectiveBool[AFloat>BFloat];
+          tkLessEqualThan: R:=CondDirectiveBool[AFloat<=BFloat];
+          tkGreaterEqualThan: R:=CondDirectiveBool[AFloat>=BFloat];
+          end
+        else
+          case Op of
+          tkEqual: R:=CondDirectiveBool[A=B];
+          tkNotEqual: R:=CondDirectiveBool[A<>B];
+          tkLessThan: R:=CondDirectiveBool[A<B];
+          tkGreaterThan: R:=CondDirectiveBool[A>B];
+          tkLessEqualThan: R:=CondDirectiveBool[A<=B];
+          tkGreaterEqualThan: R:=CondDirectiveBool[A>=B];
+          end;
+        end;
+      else
+        Log(mtError,nErrOperandAndOperatorMismatch,sErrOperandAndOperatorMismatch,[]);
+      end;
+    except
+      on E: EDivByZero do
+        Log(mtError,nErrDivByZero,sErrDivByZero,[]);
+      on E: EZeroDivide do
+        Log(mtError,nErrDivByZero,sErrDivByZero,[]);
+      on E: EMathError do
+        Log(mtError,nErrRangeCheck,sErrRangeCheck+' '+E.Message,[]);
+      on E: EInterror do
+        Log(mtError,nErrRangeCheck,sErrRangeCheck+' '+E.Message,[]);
+    end;
+    {$IFNDEF RangeChecking}{$R-}{$UNDEF RangeChecking}{$ENDIF}
+    {$IFDEF VerbosePasDirectiveEval}
+    writeln('  ResolveStack Top=',FStackTop,' A="',A,'" ',Op,' B="',B,'" = "',R,'"');
+    {$ENDIF}
+    FStack[FStackTop].Operand:=R;
+    FStack[FStackTop].OperandPos:=BPos;
+    end;
+  FStack[FStackTop].Operathor:=NewOperator;
+  FStack[FStackTop].Level:=Level;
+end;
+
+function TCondDirectiveEvaluator.GetTokenString: String;
+begin
+  Result:=copy(Expression,FTokenStart-PChar(Expression)+1,FTokenEnd-FTokenStart);
+end;
+
+function TCondDirectiveEvaluator.GetStringLiteralValue: String;
+var
+  p, StartP: PChar;
+begin
+  Result:='';
+  p:=FTokenStart;
+  repeat
+    case p^ of
+    '''':
+      begin
+      inc(p);
+      StartP:=p;
+      repeat
+        case p^ of
+        #0: Log(mtError,nErrInvalidCharacter,SErrInvalidCharacter,['#0']);
+        '''': break;
+        end;
+      until false;
+      if p>StartP then
+        Result:=Result+copy(Expression,StartP-PChar(Expression)+1,p-StartP);
+      inc(p);
+      end;
+    else
+      Log(mtError,nErrInvalidCharacter,SErrInvalidCharacter,['#0']);
+    end;
+  until false;
+end;
+
+procedure TCondDirectiveEvaluator.Push(const AnOperand: String;
+  OperandPosition: integer);
+begin
+  inc(FStackTop);
+  if FStackTop>=length(FStack) then
+    SetLength(FStack,length(FStack)*2+4);
+  with FStack[FStackTop] do
+    begin
+    Operand:=AnOperand;
+    OperandPos:=OperandPosition;
+    Operathor:=tkEOF;
+    Level:=ceplFourth;
+    end;
+  {$IFDEF VerbosePasDirectiveEval}
+  writeln('TCondDirectiveEvaluator.Push Top=',FStackTop,' Operand="',AnOperand,'" Pos=',OperandPosition);
+  {$ENDIF}
+end;
+
+constructor TCondDirectiveEvaluator.Create;
+begin
+
+end;
+
+destructor TCondDirectiveEvaluator.Destroy;
+begin
+  inherited Destroy;
+end;
+
+function TCondDirectiveEvaluator.Eval(const Expr: string): boolean;
+begin
+  {$IFDEF VerbosePasDirectiveEval}
+  writeln('TCondDirectiveEvaluator.Eval Expr="',Expr,'"');
+  {$ENDIF}
+  Expression:=Expr;
+  MsgType:=mtInfo;
+  MsgNumber:=0;
+  MsgPattern:='';
+  if Expr='' then exit(false);
+  FTokenStart:=PChar(Expr);
+  FTokenEnd:=FTokenStart;
+  FStackTop:=-1;
+  NextToken;
+  ReadExpression;
+  Result:=IsTrue(FStack[0].Operand);
+end;
+
 { TMacroDef }
 
 constructor TMacroDef.Create(const AName, AValue: String);
@@ -1258,10 +2086,15 @@ begin
   FMacros:=CS;
   FCurrentModeSwitches:=FPCModeSwitches;
   FAllowedModeSwitches:=msAllFPCModeSwitches;
+  FConditionEval:=TCondDirectiveEvaluator.Create;
+  FConditionEval.OnLog:=@OnCondEvalLog;
+  FConditionEval.OnEvalVariable:=@OnCondEvalVar;
+  FConditionEval.OnEvalFunction:=@OnCondEvalFunction;
 end;
 
 destructor TPascalScanner.Destroy;
 begin
+  FreeAndNil(FConditionEval);
   ClearMacros;
   FreeAndNil(FMacros);
   FreeAndNil(FDefines);
@@ -1445,14 +2278,14 @@ end;
 procedure TPascalScanner.Error(MsgNumber: integer; const Msg: string);
 begin
   SetCurMsg(mtError,MsgNumber,Msg,[]);
-  raise EScannerError.Create(Msg);
+  raise EScannerError.Create(FLastMsg);
 end;
 
 procedure TPascalScanner.Error(MsgNumber: integer; const Fmt: string;
   Args: array of const);
 begin
   SetCurMsg(mtError,MsgNumber,Fmt,Args);
-  raise EScannerError.CreateFmt(Fmt, Args);
+  raise EScannerError.Create(FLastMsg);
 end;
 
 function TPascalScanner.DoFetchTextToken:TToken;
@@ -1790,12 +2623,18 @@ begin
     PPSkipMode := ppSkipAll
   else
     begin
-    { !!!: Currently, expressions are not supported, so they are
-      just assumed as evaluating to false. }
-    PPSkipMode := ppSkipIfBranch;
-    PPIsSkipping := true;
+    if ConditionEval.Eval(AParam) then
+      PPSkipMode := ppSkipElseBranch
+    else
+      begin
+      PPSkipMode := ppSkipIfBranch;
+      PPIsSkipping := true;
+      end;
     If LogEvent(sleConditionals) then
-       DoLog(mtInfo,nLogIFIgnored,sLogIFIgnored,[Uppercase(AParam)])
+      if PPSkipMode=ppSkipElseBranch then
+        DoLog(mtInfo,nLogIFAccepted,sLogIFAccepted,[AParam])
+      else
+        DoLog(mtInfo,nLogIFRejected,sLogIFRejected,[AParam])
     end;
 end;
 
@@ -2326,6 +3165,87 @@ begin
     Result := TokenStr - PChar(CurLine)
   else
     Result := 0;
+end;
+
+function TPascalScanner.OnCondEvalFunction(Sender: TCondDirectiveEvaluator;
+  Name, Param: String; out Value: string): boolean;
+begin
+  {$IFDEF VerbosePasDirectiveEval}
+  writeln('TPascalScanner.OnCondEvalFunction Func="',Name,'" Param="',Param,'"');
+  {$ENDIF}
+  if CompareText(Name,'defined')=0 then
+    begin
+    if not IsValidIdent(Param) then
+      Sender.Log(mtError,nErrXExpectedButYFound,SErrXExpectedButYFound,
+        ['identifier',Param]);
+    Value:=CondDirectiveBool[IsDefined(Param)];
+    exit(true);
+    end;
+  if CompareText(Name,'undefined')=0 then
+    begin
+    if not IsValidIdent(Param) then
+      Sender.Log(mtError,nErrXExpectedButYFound,SErrXExpectedButYFound,
+        ['identifier',Param]);
+    Value:=CondDirectiveBool[not IsDefined(Param)];
+    exit(true);
+    end;
+  // last check user hook
+  if Assigned(OnEvalFunction) then
+    begin
+    Result:=OnEvalFunction(Sender,Name,Param,Value);
+    exit;
+    end;
+  Value:='';
+  Result:=false;
+end;
+
+procedure TPascalScanner.OnCondEvalLog(Sender: TCondDirectiveEvaluator;
+  Args: array of const);
+begin
+  {$IFDEF VerbosePasDirectiveEval}
+  writeln('TPascalScanner.OnCondEvalLog "',Sender.MsgPattern,'"');
+  {$ENDIF}
+  // ToDo: move CurLine/CurRow to Sender.MsgPos
+  if Sender.MsgType<=mtError then
+    begin
+    SetCurMsg(Sender.MsgType,Sender.MsgNumber,Sender.MsgPattern,Args);
+    raise EScannerError.Create(FLastMsg);
+    end
+  else
+    DoLog(Sender.MsgType,Sender.MsgNumber,Sender.MsgPattern,Args,true);
+end;
+
+function TPascalScanner.OnCondEvalVar(Sender: TCondDirectiveEvaluator;
+  Name: String; out Value: string): boolean;
+var
+  i: Integer;
+  M: TMacroDef;
+begin
+  {$IFDEF VerbosePasDirectiveEval}
+  writeln('TPascalScanner.OnCondEvalVar "',Name,'"');
+  {$ENDIF}
+  // first check defines
+  if FDefines.IndexOf(Name)>=0 then
+    begin
+    Value:='1';
+    exit(true);
+    end;
+  // then check macros
+  i:=FMacros.IndexOf(Name);
+  if i>=0 then
+    begin
+    M:=FMacros.Objects[i] as TMacroDef;
+    Value:=M.Value;
+    exit(true);
+    end;
+  // last check user hook
+  if Assigned(OnEvalVariable) then
+    begin
+    Result:=OnEvalVariable(Sender,Name,Value);
+    exit;
+    end;
+  Value:='';
+  Result:=false;
 end;
 
 procedure TPascalScanner.SetAllowedModeSwitches(const AValue: TModeSwitches);

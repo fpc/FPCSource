@@ -137,8 +137,9 @@ Works:
 - dotted unitnames
 
 ToDo:
+- $IFOpt
+  $IF option()
 - @@
-- fix slow lookup declaration proc in PParser
 - fail to write a loop var inside the loop
 - warn: create class with abstract methods
 - classes - TPasClassType
