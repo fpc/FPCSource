@@ -480,8 +480,12 @@ type
     procedure OpenFile(const AFilename: string);
     function FetchToken: TToken;
     function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken;
-    Procedure AddDefine(S : String);
-    Procedure RemoveDefine(S : String);
+    Procedure AddDefine(const aName: String);
+    Procedure RemoveDefine(const aName: String);
+    Procedure UnDefine(const aName: String); // check defines and macros
+    function IsDefined(const aName: String): boolean; // check defines and macros
+    Procedure AddMacro(const aName, aValue: String);
+    Procedure RemoveMacro(const aName: String);
     Procedure SetCompilerMode(S : String);
     function CurSourcePos: TPasSourcePos;
     Function SetForceCaret(AValue : Boolean) : Boolean;
@@ -1576,7 +1580,7 @@ procedure TPascalScanner.HandleDefine(Param: String);
 
 Var
   Index : Integer;
-  MN,MV : String;
+  MName,MValue : String;
 
 begin
   Param := UpperCase(Param);
@@ -1585,14 +1589,10 @@ begin
     AddDefine(Param)
   else
     begin
-    MV:=Trim(Param);
-    MN:=Trim(Copy(MV,1,Index-1));
-    Delete(MV,1,Index+1);
-    Index:=FMacros.IndexOf(MN);
-    If (Index=-1) then
-      FMacros.AddObject(MN,TMacroDef.Create(MN,MV))
-    else
-      TMacroDef(FMacros.Objects[index]).Value:=MV;
+    MValue:=Trim(Param);
+    MName:=Trim(Copy(MValue,1,Index-1));
+    Delete(MValue,1,Index+1);
+    AddMacro(MName,MValue);
     end;
 end;
 
@@ -1602,24 +1602,8 @@ begin
 end;
 
 procedure TPascalScanner.HandleUnDefine(Param: String);
-
-Var
-  Index : integer;
-
 begin
-  Param := UpperCase(Param);
-  Index:=FDefines.IndexOf(Param);
-  If (Index>=0) then
-    RemoveDefine(Param)
-  else
-    begin
-    Index := FMacros.IndexOf(Param);
-    If (Index>=0) then
-      begin
-      FMacros.Objects[Index].FRee;
-      FMacros.Delete(Index);
-      end;
-    end;
+  UnDefine(Param);
 end;
 
 function TPascalScanner.HandleInclude(const Param: String): TToken;
@@ -1627,12 +1611,12 @@ function TPascalScanner.HandleInclude(const Param: String): TToken;
 begin
   Result:=tkComment;
   if ((Param='') or (Param[1]<>'%')) then
-    HandleIncludeFile(param)
+    HandleIncludeFile(Param)
   else if Param[1]='%' then
     begin
-    fcurtokenstring:='{$i '+param+'}';
-    fcurtoken:=tkstring;
-    result:=fcurtoken;
+    FCurTokenString:='{$i '+Param+'}';
+    FCurToken:=tkString;
+    Result:=FCurToken;
     end
 end;
 
@@ -1723,28 +1707,19 @@ begin
 end;
 
 procedure TPascalScanner.HandleIFDEF(const AParam: String);
-
-Var
-  ADefine : String;
-  Index : Integer;
-
 begin
   PushSkipMode;
   if PPIsSkipping then
     PPSkipMode := ppSkipAll
   else
     begin
-    ADefine := UpperCase(AParam);
-    Index := Defines.IndexOf(ADefine);
-    if Index < 0 then
-      Index := Macros.IndexOf(ADefine);
-    if Index < 0 then
+    if IsDefined(AParam) then
+      PPSkipMode := ppSkipElseBranch
+    else
       begin
       PPSkipMode := ppSkipIfBranch;
       PPIsSkipping := true;
-      end
-    else
-      PPSkipMode := ppSkipElseBranch;
+      end;
     If LogEvent(sleConditionals) then
       if PPSkipMode=ppSkipElseBranch then
         DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[AParam])
@@ -1754,23 +1729,13 @@ begin
 end;
 
 procedure TPascalScanner.HandleIFNDEF(const AParam: String);
-
-Var
-  ADefine : String;
-  Index : Integer;
-
 begin
   PushSkipMode;
   if PPIsSkipping then
     PPSkipMode := ppSkipAll
   else
     begin
-    ADefine := UpperCase(AParam);
-    Index := Defines.IndexOf(ADefine);
-    // Not sure about this
-    if Index < 0 then
-      Index := Macros.IndexOf(ADefine);
-    if Index >= 0 then
+    if IsDefined(AParam) then
       begin
       PPSkipMode := ppSkipIfBranch;
       PPIsSkipping := true;
@@ -2423,22 +2388,54 @@ begin
   CreateMsgArgs(FLastMsgArgs,Args);
 end;
 
-procedure TPascalScanner.AddDefine(S: String);
+procedure TPascalScanner.AddDefine(const aName: String);
 
 begin
-  If FDefines.IndexOf(S)=-1 then
-    FDefines.Add(S);
+  If FDefines.IndexOf(aName)=-1 then
+    FDefines.Add(aName);
 end;
 
-procedure TPascalScanner.RemoveDefine(S: String);
+procedure TPascalScanner.RemoveDefine(const aName: String);
 
 Var
   I : Integer;
 
 begin
-  I:=FDefines.IndexOf(S);
+  I:=FDefines.IndexOf(aName);
   if (I<>-1) then
     FDefines.Delete(I);
+end;
+
+procedure TPascalScanner.UnDefine(const aName: String);
+begin
+  RemoveDefine(aName);
+  RemoveMacro(aName);
+end;
+
+function TPascalScanner.IsDefined(const aName: String): boolean;
+begin
+  Result:=(FDefines.IndexOf(aName)>=0) or (FMacros.IndexOf(aName)>=0);
+end;
+
+procedure TPascalScanner.AddMacro(const aName, aValue: String);
+var
+  Index: Integer;
+begin
+  Index:=FMacros.IndexOf(aName);
+  If (Index=-1) then
+    FMacros.AddObject(aName,TMacroDef.Create(aName,aValue))
+  else
+    TMacroDef(FMacros.Objects[Index]).Value:=aValue;
+end;
+
+procedure TPascalScanner.RemoveMacro(const aName: String);
+var
+  Index: Integer;
+begin
+  Index:=FMacros.IndexOf(aName);
+  if Index<0 then exit;
+  TMacroDef(FMacros.Objects[Index]).Free;
+  FMacros.Delete(Index);
 end;
 
 procedure TPascalScanner.SetCompilerMode(S: String);
