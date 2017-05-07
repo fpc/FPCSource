@@ -1667,6 +1667,7 @@ begin
                          RefsEqual(taicpu(hp1).oper[0]^.ref^, taicpu(p).oper[0]^.ref^) then
                         begin
                           taicpu(p).loadReg(0,taicpu(hp1).oper[1]^.reg);
+                          DebugMsg('Peephole optimizer SetccMovbLeaveRet2SetccLeaveRet',p);
                           asml.remove(hp1);
                           hp1.free;
                         end
