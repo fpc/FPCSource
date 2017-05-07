@@ -2419,7 +2419,7 @@ unit cgx86;
         an i7-4770 (FK) }
       if (CPUX86_HAS_AVXUNIT in cpu_capabilities[current_settings.cputype]) and
         // (cs_opt_size in current_settings.optimizerswitches) and
-         ((len=8) or (len=16) or (len=24) or (len=32) { or (len=40) or (len=48)}) then
+         ({$ifdef i386}(len=8) or{$endif i386}(len=16) or (len=24) or (len=32) { or (len=40) or (len=48)}) then
          cm:=copy_avx
       else
 {$ifdef dummy}
