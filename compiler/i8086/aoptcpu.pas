@@ -42,7 +42,8 @@ unit aoptcpu;
       globals,
       verbose,
       cpuinfo,
-      aasmcpu;
+      aasmcpu,
+      aoptutils;
 
     function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p : tai) : boolean;
       var
@@ -57,15 +58,15 @@ unit aoptcpu;
                 A_MOV:
                   begin
                     if MatchInstruction(p,A_MOV,[S_W]) and
-                      MatchOpType(p,top_ref,top_reg) and
+                      MatchOpType(taicpu(p),top_ref,top_reg) and
 
                       GetNextInstruction(p, hp1) and
                       MatchInstruction(hp1,A_MOV,[S_W]) and
-                      MatchOpType(hp1,top_ref,top_reg) and
+                      MatchOpType(taicpu(hp1),top_ref,top_reg) and
 
                       GetNextInstruction(hp1, hp2) and
                       MatchInstruction(hp2,A_MOV,[S_W]) and
-                      MatchOpType(hp2,top_reg,top_reg) and
+                      MatchOpType(taicpu(hp2),top_reg,top_reg) and
 
                       not(OpsEqual(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^)) and
 

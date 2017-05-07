@@ -83,8 +83,6 @@ unit aoptx86;
       and having an offset }
     function MatchReferenceWithOffset(const ref : treference;base,index : TRegister) : Boolean;
 
-    function MatchOpType(const instr : tai;ot0,ot1 : toptype) : Boolean;
-
   implementation
 
     uses
@@ -213,14 +211,6 @@ unit aoptx86;
           (ref.base=base)) and
          ((index=NR_INVALID) or
           (ref.index=index));
-      end;
-
-
-    function MatchOpType(const instr : tai;ot0,ot1 : toptype) : Boolean;
-      begin
-        Result:=(taicpu(instr).ops=2) and
-          (taicpu(instr).oper[0]^.typ=ot0) and
-          (taicpu(instr).oper[1]^.typ=ot1);
       end;
 
 
@@ -899,7 +889,7 @@ unit aoptx86;
             (tai(hp1).typ = ait_instruction) then
             begin
               if IsExitCode(hp1) and
-                MatchOpType(p,top_reg,top_ref) and
+                MatchOpType(taicpu(p),top_reg,top_ref) and
                 (taicpu(p).oper[1]^.ref^.base = current_procinfo.FramePointer) and
                 not(assigned(current_procinfo.procdef.funcretsym) and
                    (taicpu(p).oper[1]^.ref^.offset < tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
@@ -921,7 +911,7 @@ unit aoptx86;
                   mov reg1, mem1
                   test/cmp x, reg1
               }
-              else if MatchOpType(p,top_reg,top_ref) and
+              else if MatchOpType(taicpu(p),top_reg,top_ref) and
                   MatchInstruction(hp1,A_CMP,A_TEST,[taicpu(p).opsize]) and
                   (taicpu(hp1).oper[1]^.typ = top_ref) and
                    RefsEqual(taicpu(p).oper[1]^.ref^, taicpu(hp1).oper[1]^.ref^) then
@@ -1351,7 +1341,7 @@ unit aoptx86;
              (taicpu(p).oper[2]^.reg = taicpu(p).oper[1]^.reg))) and
            GetLastInstruction(p,hp1) and
            MatchInstruction(hp1,A_MOV,[]) and
-           MatchOpType(hp1,top_reg,top_reg) and
+           MatchOpType(taicpu(hp1),top_reg,top_reg) and
            ((taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) or
             ((taicpu(hp1).opsize=S_L) and (taicpu(p).opsize=S_Q) and SuperRegistersEqual(taicpu(hp1).oper[1]^.reg,taicpu(p).oper[1]^.reg))) then
           begin
@@ -1423,7 +1413,7 @@ unit aoptx86;
             or ((taicpu(p).oper[0]^.typ = top_ref) and
              (taicpu(p).oper[0]^.ref^.refaddr = addr_no))
            }
-           MatchOpType(p,top_reg,top_reg);
+           MatchOpType(taicpu(p),top_reg,top_reg);
       end;
 
 
@@ -1632,9 +1622,9 @@ unit aoptx86;
         if not(GetNextInstruction(p, hp1)) then
           exit;
 
-        if MatchOpType(p,top_const,top_reg) and
+        if MatchOpType(taicpu(p),top_const,top_reg) and
           MatchInstruction(hp1,A_AND,[]) and
-          MatchOpType(hp1,top_const,top_reg) and
+          MatchOpType(taicpu(hp1),top_const,top_reg) and
           (getsupreg(taicpu(p).oper[1]^.reg) = getsupreg(taicpu(hp1).oper[1]^.reg)) and
           { the second register must contain the first one, so compare their subreg types }
           (getsubreg(taicpu(p).oper[1]^.reg)<=getsubreg(taicpu(hp1).oper[1]^.reg)) and
@@ -1654,7 +1644,7 @@ unit aoptx86;
             Result:=true;
             exit;
           end
-        else if MatchOpType(p,top_const,top_reg) and
+        else if MatchOpType(taicpu(p),top_const,top_reg) and
           MatchInstruction(hp1,A_MOVZX,[]) and
           (taicpu(hp1).oper[0]^.typ = top_reg) and
           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
@@ -1688,7 +1678,7 @@ unit aoptx86;
                     hp1.free;
                   end;
               end
-        else if MatchOpType(p,top_const,top_reg) and
+        else if MatchOpType(taicpu(p),top_const,top_reg) and
           MatchInstruction(hp1,A_MOVSX{$ifdef x86_64},A_MOVSXD{$endif x86_64},[]) and
           (taicpu(hp1).oper[0]^.typ = top_reg) and
           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and

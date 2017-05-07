@@ -39,13 +39,13 @@ unit aoptutils;
 
     function MatchOpType(const p : taicpu; type0: toptype) : Boolean;
       begin
-        Result:=(p.oper[0]^.typ=type0);
+        Result:=(p.ops=1) and (p.oper[0]^.typ=type0);
       end;
 
 
     function MatchOpType(const p : taicpu; type0,type1 : toptype) : Boolean;
       begin
-        Result:=(p.oper[0]^.typ=type0) and (p.oper[0]^.typ=type1);
+        Result:=(p.ops=2) and (p.oper[0]^.typ=type0) and (p.oper[1]^.typ=type1);
       end;
 
 

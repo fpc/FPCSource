@@ -43,7 +43,7 @@ uses
   cutils,
   verbose,
   cgutils,
-  aoptobj,
+  aoptobj,aoptutils,
   aasmbase, aasmdata, aasmcpu,
   itcpugas;
 

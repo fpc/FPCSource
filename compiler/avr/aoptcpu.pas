@@ -30,7 +30,7 @@ Unit aoptcpu;
 
 Interface
 
-uses cpubase, cgbase, aasmtai, aopt,AoptObj, aoptcpub;
+uses cpubase,cgbase,aasmtai,aopt,AoptObj,aoptcpub;
 
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)
@@ -54,6 +54,7 @@ Implementation
     verbose,
     cpuinfo,
     aasmbase,aasmcpu,aasmdata,
+    aoptutils,
     globals,globtype,
     cgutils;
 
@@ -125,13 +126,6 @@ Implementation
         (taicpu(instr).ops=opcount);
     end;
 
-
-  function MatchOpType(const instr : tai;ot0,ot1 : toptype) : Boolean;
-    begin
-      Result:=(taicpu(instr).ops=2) and
-        (taicpu(instr).oper[0]^.typ=ot0) and
-        (taicpu(instr).oper[1]^.typ=ot1);
-    end;
 
 {$ifdef DEBUG_AOPTCPU}
   procedure TCpuAsmOptimizer.DebugMsg(const s: string;p : tai);
@@ -312,11 +306,11 @@ Implementation
                       into
                       cpi/ldi reg1, imm
                     }
-                    if MatchOpType(p,top_reg,top_const) and
+                    if MatchOpType(taicpu(p),top_reg,top_const) and
                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
                        MatchInstruction(hp1,[A_CP,A_MOV],2) and
                        (not RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)) and
-                       MatchOpType(hp1,top_reg,top_reg) and
+                       MatchOpType(taicpu(hp1),top_reg,top_reg) and
                        (getsupreg(taicpu(hp1).oper[0]^.reg) in [16..31]) and
                        (taicpu(hp1).oper[1]^.reg=taicpu(p).oper[0]^.reg) then
                       begin
