@@ -2043,5 +2043,7 @@ include fpcmake.loc
 endif
 .NOTPARALLEL:
 utils: all
+dosbox_wrapper$(SRCEXEEXT): dosbox/dosbox_wrapper.pas  
+	$(COMPILER) -FE./dosbox $<
 utilsdb:
 	$(MAKE) utils DBDIGEST="dbdigest dbconfig"
