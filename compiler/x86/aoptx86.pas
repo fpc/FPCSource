@@ -1485,6 +1485,7 @@ unit aoptx86;
                   end;
               end;
           end;
+{$ifndef i8086}
         if CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype] then
           begin
              { check for
@@ -1615,6 +1616,7 @@ unit aoptx86;
                     end;
                end;
           end;
+{$endif i8086}
       end;
 
 
