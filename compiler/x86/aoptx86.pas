@@ -526,26 +526,31 @@ unit aoptx86;
       var
         hp2,hp3 : tai;
       begin
-        result:=(p.typ=ait_instruction) and
+        { some x86-64 issue a NOP before the real exit code }
+        if MatchInstruction(p,A_NOP,[]) then
+          GetNextInstruction(p,p);
+        result:=assigned(p) and (p.typ=ait_instruction) and
         ((taicpu(p).opcode = A_RET) or
          ((taicpu(p).opcode=A_LEAVE) and
           GetNextInstruction(p,hp2) and
-          (hp2.typ=ait_instruction) and
-          (taicpu(hp2).opcode=A_RET)
+          MatchInstruction(hp2,A_RET,[S_NO])
          ) or
-         ((taicpu(p).opcode=A_MOV) and
-          (taicpu(p).oper[0]^.typ=top_reg) and
-          (taicpu(p).oper[0]^.reg=NR_EBP) and
-          (taicpu(p).oper[1]^.typ=top_reg) and
-          (taicpu(p).oper[1]^.reg=NR_ESP) and
+         ((((taicpu(p).opcode=A_MOV) and
+           MatchOpType(taicpu(p),top_reg,top_reg) and
+           (taicpu(p).oper[0]^.reg=current_procinfo.framepointer) and
+           (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG)) or
+           ((taicpu(p).opcode=A_LEA) and
+           MatchOpType(taicpu(p),top_ref,top_reg) and
+           (taicpu(p).oper[0]^.ref^.base=current_procinfo.framepointer) and
+           (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG)
+           )
+          ) and
           GetNextInstruction(p,hp2) and
-          (hp2.typ=ait_instruction) and
-          (taicpu(hp2).opcode=A_POP) and
-          (taicpu(hp2).oper[0]^.typ=top_reg) and
-          (taicpu(hp2).oper[0]^.reg=NR_EBP) and
+          MatchInstruction(hp2,A_POP,[reg2opsize(current_procinfo.framepointer)]) and
+          MatchOpType(taicpu(hp2),top_reg) and
+          (taicpu(hp2).oper[0]^.reg=current_procinfo.framepointer) and
           GetNextInstruction(hp2,hp3) and
-          (hp3.typ=ait_instruction) and
-          (taicpu(hp3).opcode=A_RET)
+          MatchInstruction(hp3,A_RET,[S_NO])
          )
         );
       end;
