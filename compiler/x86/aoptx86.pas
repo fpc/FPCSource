@@ -56,6 +56,7 @@ unit aoptx86;
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
         function OptPass2Jmp(var p : tai) : boolean;
+        function OptPass2Jcc(var p : tai) : boolean;
 
         procedure DebugMsg(const s : string; p : tai);inline;
 
@@ -87,8 +88,9 @@ unit aoptx86;
   implementation
 
     uses
-      cutils,
-      verbose,
+      cutils,verbose,
+      globals,
+      cpuinfo,
       procinfo,
       aasmbase,
       aoptutils,
@@ -1407,6 +1409,216 @@ unit aoptx86;
                 end;
                 result:=true;
               end;
+          end;
+      end;
+
+
+    function CanBeCMOV(p : tai) : boolean;
+      begin
+         CanBeCMOV:=assigned(p) and
+           MatchInstruction(p,A_MOV,[S_W,S_L,S_Q]) and
+           { we can't use cmov ref,reg because
+             ref could be nil and cmov still throws an exception
+             if ref=nil but the mov isn't done (FK)
+            or ((taicpu(p).oper[0]^.typ = top_ref) and
+             (taicpu(p).oper[0]^.ref^.refaddr = addr_no))
+           }
+           MatchOpType(p,top_reg,top_reg);
+      end;
+
+
+    function TX86AsmOptimizer.OptPass2Jcc(var p : tai) : boolean;
+      var
+        hp1,hp2,hp3: tai;
+        carryadd_opcode : TAsmOp;
+        l : Longint;
+        condition : TAsmCond;
+      begin
+        { jb @@1                            cmc
+          inc/dec operand           -->     adc/sbb operand,0
+	@@1:
+
+	... and ...
+
+          jnb @@1
+          inc/dec operand           -->     adc/sbb operand,0
+	@@1: }
+        result:=false;
+        if GetNextInstruction(p,hp1) and (hp1.typ=ait_instruction) and
+           GetNextInstruction(hp1,hp2) and (hp2.typ=ait_label) and
+           (Tasmlabel(Taicpu(p).oper[0]^.ref^.symbol)=Tai_label(hp2).labsym) then
+          begin
+            carryadd_opcode:=A_NONE;
+            if Taicpu(p).condition in [C_NAE,C_B] then
+              begin
+                if Taicpu(hp1).opcode=A_INC then
+                  carryadd_opcode:=A_ADC;
+                if Taicpu(hp1).opcode=A_DEC then
+                  carryadd_opcode:=A_SBB;
+                if carryadd_opcode<>A_NONE then
+                  begin
+                    Taicpu(p).clearop(0);
+                    Taicpu(p).ops:=0;
+                    Taicpu(p).is_jmp:=false;
+                    Taicpu(p).opcode:=A_CMC;
+                    Taicpu(p).condition:=C_NONE;
+                    Taicpu(hp1).ops:=2;
+                    Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
+                    Taicpu(hp1).loadconst(0,0);
+                    Taicpu(hp1).opcode:=carryadd_opcode;
+                    result:=true;
+                    exit;
+                  end;
+              end;
+            if Taicpu(p).condition in [C_AE,C_NB] then
+              begin
+                if Taicpu(hp1).opcode=A_INC then
+                  carryadd_opcode:=A_ADC;
+                if Taicpu(hp1).opcode=A_DEC then
+                  carryadd_opcode:=A_SBB;
+                if carryadd_opcode<>A_NONE then
+                  begin
+                    asml.remove(p);
+                    p.free;
+                    Taicpu(hp1).ops:=2;
+                    Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
+                    Taicpu(hp1).loadconst(0,0);
+                    Taicpu(hp1).opcode:=carryadd_opcode;
+                    p:=hp1;
+                    result:=true;
+                    exit;
+                  end;
+              end;
+          end;
+        if CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype] then
+          begin
+             { check for
+                    jCC   xxx
+                    <several movs>
+                 xxx:
+             }
+             l:=0;
+             GetNextInstruction(p, hp1);
+             while assigned(hp1) and
+               CanBeCMOV(hp1) and
+               { stop on labels }
+               not(hp1.typ=ait_label) do
+               begin
+                  inc(l);
+                  GetNextInstruction(hp1,hp1);
+               end;
+             if assigned(hp1) then
+               begin
+                  if FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol),hp1) then
+                    begin
+                      if (l<=4) and (l>0) then
+                        begin
+                          condition:=inverse_cond(taicpu(p).condition);
+                          hp2:=p;
+                          GetNextInstruction(p,hp1);
+                          p:=hp1;
+                          repeat
+                            taicpu(hp1).opcode:=A_CMOVcc;
+                            taicpu(hp1).condition:=condition;
+                            GetNextInstruction(hp1,hp1);
+                          until not(assigned(hp1)) or
+                            not(CanBeCMOV(hp1));
+                          { wait with removing else GetNextInstruction could
+                            ignore the label if it was the only usage in the
+                            jump moved away }
+                          tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol).decrefs;
+                          { if the label refs. reach zero, remove any alignment before the label }
+                          if (hp1.typ=ait_align) and (tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol).getrefs=0) then
+                            begin
+                              asml.Remove(hp1);
+                              hp1.Free;
+                            end;
+                          asml.remove(hp2);
+                          hp2.free;
+                          result:=true;
+                          exit;
+                        end;
+                    end
+                  else
+                    begin
+                       { check further for
+                              jCC   xxx
+                              <several movs 1>
+                              jmp   yyy
+                      xxx:
+                              <several movs 2>
+                      yyy:
+                       }
+                      { hp2 points to jmp yyy }
+                      hp2:=hp1;
+                      { skip hp1 to xxx }
+                      GetNextInstruction(hp1, hp1);
+                      if assigned(hp2) and
+                        assigned(hp1) and
+                        (l<=3) and
+                        (hp2.typ=ait_instruction) and
+                        (taicpu(hp2).is_jmp) and
+                        (taicpu(hp2).condition=C_None) and
+                        { real label and jump, no further references to the
+                          label are allowed }
+                        (tasmlabel(taicpu(p).oper[0]^.ref^.symbol).getrefs=1) and
+                        FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol),hp1) then
+                         begin
+                           l:=0;
+                           { skip hp1 to <several moves 2> }
+                           GetNextInstruction(hp1, hp1);
+                           while assigned(hp1) and
+                             CanBeCMOV(hp1) do
+                             begin
+                               inc(l);
+                               GetNextInstruction(hp1, hp1);
+                             end;
+                           { hp1 points to yyy: }
+                           if assigned(hp1) and
+                             FindLabel(tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol),hp1) then
+                             begin
+                                condition:=inverse_cond(taicpu(p).condition);
+                                GetNextInstruction(p,hp1);
+                                hp3:=p;
+                                p:=hp1;
+                                repeat
+                                  taicpu(hp1).opcode:=A_CMOVcc;
+                                  taicpu(hp1).condition:=condition;
+                                  GetNextInstruction(hp1,hp1);
+                                until not(assigned(hp1)) or
+                                  not(CanBeCMOV(hp1));
+                                { hp2 is still at jmp yyy }
+                                GetNextInstruction(hp2,hp1);
+                                { hp2 is now at xxx: }
+                                condition:=inverse_cond(condition);
+                                GetNextInstruction(hp1,hp1);
+                                { hp1 is now at <several movs 2> }
+                                repeat
+                                  taicpu(hp1).opcode:=A_CMOVcc;
+                                  taicpu(hp1).condition:=condition;
+                                  GetNextInstruction(hp1,hp1);
+                                until not(assigned(hp1)) or
+                                  not(CanBeCMOV(hp1));
+                                {
+                                asml.remove(hp1.next)
+                                hp1.next.free;
+                                asml.remove(hp1);
+                                hp1.free;
+                                }
+                                { remove jCC }
+                                tasmlabel(taicpu(hp3).oper[0]^.ref^.symbol).decrefs;
+                                asml.remove(hp3);
+                                hp3.free;
+                                { remove jmp }
+                                tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol).decrefs;
+                                asml.remove(hp2);
+                                hp2.free;
+                                result:=true;
+                                exit;
+                             end;
+                         end;
+                    end;
+               end;
           end;
       end;
 

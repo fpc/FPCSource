@@ -359,6 +359,8 @@ end;
                   Result:=OptPass2Imul(p);
                 A_JMP:
                   Result:=OptPass2Jmp(p);
+                A_Jcc:
+                  Result:=OptPass2Jcc(p);
               end;
             end;
         end;
