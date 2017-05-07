@@ -825,7 +825,7 @@ begin
 {$elseif defined(cpu32bitaddr)}
   result:=getlongint;
 {$elseif defined(cpu16bitaddr)}
-  result:=getword;
+  result:=asizeint(getword);
 {$endif}
 {$endif not generic_cpu}
 end;
