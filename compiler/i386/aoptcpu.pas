@@ -1742,24 +1742,8 @@ end;
 
 
 procedure TCPUAsmOptimizer.PeepHoleOptPass2;
-
-{$ifdef DEBUG_AOPTCPU}
-  procedure DebugMsg(const s: string;p : tai);
-    begin
-      asml.insertbefore(tai_comment.Create(strpnew(s)), p);
-    end;
-{$else DEBUG_AOPTCPU}
-  procedure DebugMsg(const s: string;p : tai);inline;
-    begin
-    end;
-{$endif DEBUG_AOPTCPU}
-
 var
-  p,hp1,hp2,hp3: tai;
-  l : longint;
-  condition : tasmcond;
-  carryadd_opcode: Tasmop;
-
+  p : tai;
 begin
   p := BlockStart;
   ClearUsedRegs;
