@@ -577,7 +577,7 @@ type
     Procedure AddDefine(const aName: String);
     Procedure RemoveDefine(const aName: String);
     Procedure UnDefine(const aName: String); // check defines and macros
-    function IsDefined(const aName: String): boolean; // check defines, macros and modeswitches
+    function IsDefined(const aName: String): boolean; // check defines and macros
     Procedure AddMacro(const aName, aValue: String);
     Procedure RemoveMacro(const aName: String);
     Procedure SetCompilerMode(S : String);
@@ -3273,10 +3273,25 @@ begin
 end;
 
 procedure TPascalScanner.SetCurrentModeSwitches(AValue: TModeSwitches);
+var
+  Old, AddedMS, RemovedMS: TModeSwitches;
 begin
   AValue:=AValue*AllowedModeSwitches;
   if FCurrentModeSwitches=AValue then Exit;
+  Old:=FCurrentModeSwitches;
   FCurrentModeSwitches:=AValue;
+  AddedMS:=FCurrentModeSwitches-Old;
+  RemovedMS:=Old-FCurrentModeSwitches;
+  if msDefaultUnicodestring in AddedMS then
+    begin
+    AddDefine('UNICODE');
+    AddDefine('FPC_UNICODESTRINGS');
+    end
+  else if msDefaultUnicodestring in RemovedMS then
+    begin
+    UnDefine('UNICODE');
+    UnDefine('FPC_UNICODESTRINGS');
+    end;
 end;
 
 procedure TPascalScanner.DoLog(MsgType: TMessageType; MsgNumber: integer;
@@ -3378,13 +3393,8 @@ begin
 end;
 
 function TPascalScanner.IsDefined(const aName: String): boolean;
-var
-  ms: TModeSwitch;
 begin
-  if FDefines.IndexOf(aName)>=0 then exit(true);
-  if FMacros.IndexOf(aName)>=0 then exit(true);
-  ms:=StrToModeSwitch(aName);
-  if (ms<>msNone) and (ms in CurrentModeSwitches) then exit(true);
+  Result:=(FDefines.IndexOf(aName)>=0) or (FMacros.IndexOf(aName)>=0);
   Result:=false;
 end;
 
