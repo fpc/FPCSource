@@ -909,14 +909,14 @@ function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$define FPC_HAS_INTERNAL_ROX_WORD}
 {$endif defined(cpux86_64) or defined(cpui386) or defined(cpui8086)}
 
-{$if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(cpuaarch64)}
+{$if defined(cpux86_64) or defined(cpui386) or defined(cpuarm) or defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_ROX_DWORD}
-{$endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(cpuaarch64)}
+{$endif defined(cpux86_64) or defined(cpui386) or defined(cpuarm) or defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpuaarch64)}
 
-{$if defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
+{$if defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_ROX_QWORD}
 {$define FPC_HAS_INTERNAL_ROX_ASSIGN_QWORD}
-{$endif defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
+{$endif defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64)}
 
 {$endif FPC_HAS_INTERNAL_ROX}
 
@@ -981,20 +981,20 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 
 {$ifdef FPC_HAS_INTERNAL_SAR}
 
-{$if defined(cpux86_64) or defined(cpui386) or defined(cpui8086) or defined(mips) or defined(mipsel) or defined(sparc)}
+{$if defined(cpux86_64) or defined(cpui386) or defined(cpui8086) or defined(cpumips) or defined(cpumipsel) or defined(cpusparc)}
 {$define FPC_HAS_INTERNAL_SAR_BYTE}
 {$define FPC_HAS_INTERNAL_SAR_WORD}
-{$endif defined(cpux86_64) or defined(cpui386) or defined(cpui8086) or defined(mips) or defined(mipsel) or defined(sparc)}
+{$endif defined(cpux86_64) or defined(cpui386) or defined(cpui8086) or defined(cpumips) or defined(cpumipsel) or defined(cpusparc)}
 
 { currently, all supported CPUs have an internal 32 bit sar implementation }
-{ $if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(mips) or defined(mipsel)}
+{ $if defined(cpux86_64) or defined(cpui386) or defined(cpuarm) or defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpumips) or defined(cpumipsel)}
 {$define FPC_HAS_INTERNAL_SAR_DWORD}
-{ $endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(mips) or defined(mipsel)}
+{ $endif defined(cpux86_64) or defined(cpui386) or defined(cpuarm) or defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpumips) or defined(cpumipsel)}
 
-{$if defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
+{$if defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_SAR_QWORD}
 {$define FPC_HAS_INTERNAL_SAR_ASSIGN_QWORD}
-{$endif defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
+{$endif defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64)}
 
 {$endif FPC_HAS_INTERNAL_SAR}
 
