@@ -963,7 +963,7 @@ type
     function GetSelfContext: TFunctionContext;
     function GetContextOfType(aType: TConvertContextClass): TConvertContext;
     function CreateLocalIdentifier(const Prefix: string): string;
-    function CurrentModeswitches: TModeSwitches;
+    function CurrentModeSwitches: TModeSwitches;
     function GetGlobalFunc: TFunctionContext;
     procedure WriteStack;
     procedure DoWriteStack(Index: integer); virtual;
@@ -3261,7 +3261,7 @@ begin
   Result:=Prefix+IntToStr(TmpVarCount);
 end;
 
-function TConvertContext.CurrentModeswitches: TModeSwitches;
+function TConvertContext.CurrentModeSwitches: TModeSwitches;
 begin
   if Resolver=nil then
     Result:=OBJFPCModeSwitches
@@ -3935,7 +3935,7 @@ begin
 
     if AContext.Resolver<>nil then
       begin
-      ModeSwitches:=AContext.CurrentModeswitches;
+      ModeSwitches:=AContext.CurrentModeSwitches;
       // compute left
       Flags:=[];
       if El.OpCode in [eopEqual,eopNotEqual] then
@@ -9507,7 +9507,7 @@ begin
       LeftIsProcType:=AContext.Resolver.IsProcedureType(AssignContext.LeftResolved,true);
       if LeftIsProcType then
         begin
-        if msDelphi in AContext.CurrentModeswitches then
+        if msDelphi in AContext.CurrentModeSwitches then
           Include(Flags,rcNoImplicitProc)
         else
           Include(Flags,rcNoImplicitProcType);
@@ -9516,7 +9516,7 @@ begin
       {$IFDEF VerbosePas2JS}
       writeln('TPasToJSConverter.ConvertAssignStatement Left={',GetResolverResultDbg(AssignContext.LeftResolved),'} Right={',GetResolverResultDbg(AssignContext.RightResolved),'}');
       {$ENDIF}
-      if LeftIsProcType and (msDelphi in AContext.CurrentModeswitches)
+      if LeftIsProcType and (msDelphi in AContext.CurrentModeSwitches)
           and (AssignContext.RightResolved.BaseType=btProc) then
         begin
           // Delphi allows assigning a proc without @: proctype:=proc
