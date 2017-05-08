@@ -46,7 +46,14 @@ unit aoptx86;
           depend on the value in AH). }
         function Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean;
 
-        procedure PostPeepholeOptMov(const p : tai);
+        procedure DebugMsg(const s : string; p : tai);inline;
+
+        procedure AllocRegBetween(reg : tregister; p1,p2 : tai;var initialusedregs : TAllUsedRegs);
+        class function IsExitCode(p : tai) : boolean;
+        class function isFoldableArithOp(hp1 : taicpu; reg : tregister) : boolean;
+        procedure RemoveLastDeallocForFuncRes(p : tai);
+
+        function PrePeepholeOptSxx(var p : tai) : boolean;
 
         function OptPass1AND(var p : tai) : boolean;
         function OptPass1VMOVAP(var p : tai) : boolean;
@@ -58,12 +65,7 @@ unit aoptx86;
         function OptPass2Jmp(var p : tai) : boolean;
         function OptPass2Jcc(var p : tai) : boolean;
 
-        procedure DebugMsg(const s : string; p : tai);inline;
-
-        procedure AllocRegBetween(reg : tregister; p1,p2 : tai;var initialusedregs : TAllUsedRegs);
-        class function IsExitCode(p : tai) : boolean;
-        class function isFoldableArithOp(hp1 : taicpu; reg : tregister) : boolean;
-        procedure RemoveLastDeallocForFuncRes(p : tai);
+        procedure PostPeepholeOptMov(const p : tai);
       end;
 
     function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
@@ -281,6 +283,85 @@ unit aoptx86;
           else
             internalerror(2017042802);
         end;
+      end;
+
+
+    function TX86AsmOptimizer.PrePeepholeOptSxx(var p : tai) : boolean;
+      var
+        hp1 : tai;
+        l : TCGInt;
+      begin
+        result:=false;
+        { changes the code sequence
+          shr/sar const1, x
+          shl     const2, x
+
+          to
+
+          either "sar/and", "shl/and" or just "and" depending on const1 and const2 }
+        if GetNextInstruction(p, hp1) and
+          MatchInstruction(hp1,A_SHL,[]) and
+          (taicpu(p).oper[0]^.typ = top_const) and
+          (taicpu(hp1).oper[0]^.typ = top_const) and
+          (taicpu(hp1).opsize = taicpu(p).opsize) and
+          (taicpu(hp1).oper[1]^.typ = taicpu(p).oper[1]^.typ) and
+          OpsEqual(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^) then
+          begin
+            if (taicpu(p).oper[0]^.val > taicpu(hp1).oper[0]^.val) and
+              not(cs_opt_size in current_settings.optimizerswitches) then
+              begin
+                { shr/sar const1, %reg
+                  shl     const2, %reg
+                  with const1 > const2 }
+                taicpu(p).loadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
+                taicpu(hp1).opcode := A_AND;
+                l := (1 shl (taicpu(hp1).oper[0]^.val)) - 1;
+                case taicpu(p).opsize Of
+                  S_B: taicpu(hp1).loadConst(0,l Xor $ff);
+                  S_W: taicpu(hp1).loadConst(0,l Xor $ffff);
+                  S_L: taicpu(hp1).loadConst(0,l Xor aint($ffffffff));
+                  S_Q: taicpu(hp1).loadConst(0,l Xor aint($ffffffffffffffff));
+                  else
+                    Internalerror(2017050703)
+                end;
+              end
+            else if (taicpu(p).oper[0]^.val<taicpu(hp1).oper[0]^.val) and
+              not(cs_opt_size in current_settings.optimizerswitches) then
+              begin
+                { shr/sar const1, %reg
+                  shl     const2, %reg
+                  with const1 < const2 }
+                taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val-taicpu(p).oper[0]^.val);
+                taicpu(p).opcode := A_AND;
+                l := (1 shl (taicpu(p).oper[0]^.val))-1;
+                case taicpu(p).opsize Of
+                  S_B: taicpu(p).loadConst(0,l Xor $ff);
+                  S_W: taicpu(p).loadConst(0,l Xor $ffff);
+                  S_L: taicpu(p).loadConst(0,l Xor aint($ffffffff));
+                  S_Q: taicpu(p).loadConst(0,l Xor aint($ffffffffffffffff));
+                  else
+                    Internalerror(2017050702)
+                end;
+              end
+            else if (taicpu(p).oper[0]^.val = taicpu(hp1).oper[0]^.val) then
+              begin
+                { shr/sar const1, %reg
+                  shl     const2, %reg
+                  with const1 = const2 }
+                taicpu(p).opcode := A_AND;
+                l := (1 shl (taicpu(p).oper[0]^.val))-1;
+                case taicpu(p).opsize Of
+                  S_B: taicpu(p).loadConst(0,l Xor $ff);
+                  S_W: taicpu(p).loadConst(0,l Xor $ffff);
+                  S_L: taicpu(p).loadConst(0,l Xor aint($ffffffff));
+                  S_Q: taicpu(p).loadConst(0,l Xor aint($ffffffffffffffff));
+                  else
+                    Internalerror(2017050701)
+                end;
+                asml.remove(hp1);
+                hp1.free;
+              end;
+          end;
       end;
 
 

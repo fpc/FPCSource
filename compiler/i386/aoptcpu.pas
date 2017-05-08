@@ -607,67 +607,9 @@ begin
                         end;
                       end;
                 end;
-              A_SAR, A_SHR:
-                  {changes the code sequence
-                   shr/sar const1, x
-                   shl     const2, x
-                   to either "sar/and", "shl/and" or just "and" depending on const1 and const2}
-                begin
-                  if GetNextInstruction(p, hp1) and
-                     (tai(hp1).typ = ait_instruction) and
-                     (taicpu(hp1).opcode = A_SHL) and
-                     (taicpu(p).oper[0]^.typ = top_const) and
-                     (taicpu(hp1).oper[0]^.typ = top_const) and
-                     (taicpu(hp1).opsize = taicpu(p).opsize) and
-                     (taicpu(hp1).oper[1]^.typ = taicpu(p).oper[1]^.typ) and
-                     OpsEqual(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^) then
-                    if (taicpu(p).oper[0]^.val > taicpu(hp1).oper[0]^.val) and
-                       not(cs_opt_size in current_settings.optimizerswitches) then
-                  { shr/sar const1, %reg
-                    shl     const2, %reg
-                    with const1 > const2 }
-                      begin
-                        taicpu(p).loadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
-                        taicpu(hp1).opcode := A_AND;
-                        l := (1 shl (taicpu(hp1).oper[0]^.val)) - 1;
-                        case taicpu(p).opsize Of
-                          S_L: taicpu(hp1).loadConst(0,l Xor aint($ffffffff));
-                          S_B: taicpu(hp1).loadConst(0,l Xor $ff);
-                          S_W: taicpu(hp1).loadConst(0,l Xor $ffff);
-                        end;
-                      end
-                    else if (taicpu(p).oper[0]^.val<taicpu(hp1).oper[0]^.val) and
-                            not(cs_opt_size in current_settings.optimizerswitches) then
-                  { shr/sar const1, %reg
-                    shl     const2, %reg
-                    with const1 < const2 }
-                      begin
-                        taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val-taicpu(p).oper[0]^.val);
-                        taicpu(p).opcode := A_AND;
-                        l := (1 shl (taicpu(p).oper[0]^.val))-1;
-                        case taicpu(p).opsize Of
-                          S_L: taicpu(p).loadConst(0,l Xor aint($ffffffff));
-                          S_B: taicpu(p).loadConst(0,l Xor $ff);
-                          S_W: taicpu(p).loadConst(0,l Xor $ffff);
-                        end;
-                      end
-                    else
-                  { shr/sar const1, %reg
-                    shl     const2, %reg
-                    with const1 = const2 }
-                      if (taicpu(p).oper[0]^.val = taicpu(hp1).oper[0]^.val) then
-                        begin
-                          taicpu(p).opcode := A_AND;
-                          l := (1 shl (taicpu(p).oper[0]^.val))-1;
-                          case taicpu(p).opsize Of
-                            S_B: taicpu(p).loadConst(0,l Xor $ff);
-                            S_W: taicpu(p).loadConst(0,l Xor $ffff);
-                            S_L: taicpu(p).loadConst(0,l Xor aint($ffffffff));
-                          end;
-                          asml.remove(hp1);
-                          hp1.free;
-                        end;
-                end;
+              A_SAR,A_SHR:
+                if PrePeepholeOptSxx(p) then
+                  continue;
               A_XOR:
                 if (taicpu(p).oper[0]^.typ = top_reg) and
                    (taicpu(p).oper[1]^.typ = top_reg) and
