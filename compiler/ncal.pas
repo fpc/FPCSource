@@ -1032,8 +1032,6 @@ implementation
 
 
     procedure tcallparanode.get_paratype;
-      var
-        old_array_constructor : boolean;
       begin
          if assigned(right) then
           tcallparanode(right).get_paratype;
