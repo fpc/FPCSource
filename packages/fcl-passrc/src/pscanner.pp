@@ -47,6 +47,7 @@ const
   nErrRangeCheck = 1020;
   nErrDivByZero = 1021;
   nErrOperandAndOperatorMismatch = 1022;
+  nErrUnknownDirective = 1023;
   // keep this last:
   nUserDefined = 1023;
 
@@ -75,6 +76,7 @@ resourcestring
   sErrRangeCheck = 'range check failed';
   sErrDivByZero = 'division by zero';
   sErrOperandAndOperatorMismatch = 'operand and operator mismatch';
+  sErrUnknownDirective = 'unknown directive "%s"';
 
 type
   TMessageType = (
@@ -546,6 +548,7 @@ type
     procedure Error(MsgNumber: integer; const Fmt: string; Args: array of Const);overload;
     procedure PushSkipMode;
     function HandleDirective(const ADirectiveText: String): TToken; virtual;
+    function HandleLetterDirective(Letter: char; Enable: boolean): TToken; virtual;
     procedure HandleIFDEF(const AParam: String);
     procedure HandleIFNDEF(const AParam: String);
     procedure HandleIFOPT(const AParam: String);
@@ -578,6 +581,7 @@ type
     Procedure RemoveDefine(const aName: String);
     Procedure UnDefine(const aName: String); // check defines and macros
     function IsDefined(const aName: String): boolean; // check defines and macros
+    function IfOpt(Letter: Char): boolean;
     Procedure AddMacro(const aName, aValue: String);
     Procedure RemoveMacro(const aName: String);
     Procedure SetCompilerMode(S : String);
@@ -775,6 +779,34 @@ const
     'EXTERNALCLASS'
     );
 
+  LetterSwitchNames: array['A'..'Z'] of string=(
+     'ALIGN'          // A
+    ,'BOOLEVAL'       // B
+    ,'ASSERTIONS'     // C
+    ,'DEBUGINFO'      // D
+    ,'EXTENSION'      // E
+    ,''               // F
+    ,'IMPORTEDDATA'   // G
+    ,'LONGSTRINGS'    // H
+    ,'IOCHECKS'       // I
+    ,'WRITEABLECONST' // J
+    ,''               // K
+    ,'LOCALSYMBOLS'   // L
+    ,'TYPEINFO'       // M
+    ,''               // N
+    ,'OPTIMIZATION'   // O
+    ,'OPENSTRINGS'    // P
+    ,'OVERFLOWCHECKS' // Q
+    ,'RANGECHECKS'    // R
+    ,''               // S
+    ,'TYPEADDRESS'    // T
+    ,'SAFEDIVIDE'     // U
+    ,'VARSTRINGCHECKS'// V
+    ,'STACKFRAMES'    // W
+    ,'EXTENDEDSYNTAX' // X
+    ,'REFERENCEINFO'  // Y
+    ,''               // Z
+   );
 const
   AllLanguageModes = [msFPC,msObjFPC,msDelphi,msTP7,msMac,msISO,msExtPas];
 
@@ -2623,13 +2655,22 @@ begin
     PPSkipMode := ppSkipAll
   else
     begin
-    { !!!: Currently, options are not supported, so they are just
-      assumed as not being set. }
-    PPSkipMode := ppSkipIfBranch;
-    PPIsSkipping := true;
+    if (length(AParam)<>2) or not (AParam[1] in ['a'..'z','A'..'Z'])
+        or not (AParam[2] in ['+','-']) then
+      Error(nErrXExpectedButYFound,sErrXExpectedButYFound,['letter[+|-]',AParam]);
+    if IfOpt(AParam[1])=(AParam[2]='+') then
+      PPSkipMode := ppSkipElseBranch
+    else
+      begin
+      PPSkipMode := ppSkipIfBranch;
+      PPIsSkipping := true;
+      end;
+    If LogEvent(sleConditionals) then
+      if PPSkipMode=ppSkipElseBranch then
+        DoLog(mtInfo,nLogIFAccepted,sLogIFAccepted,[AParam])
+      else
+        DoLog(mtInfo,nLogIFRejected,sLogIFRejected,[AParam])
     end;
-  If LogEvent(sleConditionals) then
-    DoLog(mtInfo,nLogIFOPTIgnored,sLogIFOPTIgnored,[Uppercase(AParam)])
 end;
 
 procedure TPascalScanner.HandleIF(const AParam: String);
@@ -2693,32 +2734,9 @@ begin
   Directive:=Copy(ADirectiveText,2,P-2); // 1 is $
   Param:=ADirectiveText;
   Delete(Param,1,P);
-//  Writeln('Directive: "',Directive,'", Param : "',Param,'"');
+  Writeln('Directive: "',Directive,'", Param : "',Param,'"');
+
   Case UpperCase(Directive) of
-  'I':
-    if not PPIsSkipping then
-      Result:=HandleInclude(Param);
-  'INCLUDE':
-    if not PPIsSkipping then
-      Result:=HandleInclude(Param);
-  'MACRO':
-    if not PPIsSkipping then
-      HandleMacroDirective(Param);
-  'MODE':
-     if not PPIsSkipping then
-      HandleMode(Param);
-  'MODESWITCH':
-     if not PPIsSkipping then
-      HandleModeSwitch(Param);
-  'DEFINE':
-     if not PPIsSkipping then
-       HandleDefine(Param);
-  'ERROR':
-     if not PPIsSkipping then
-       HandleError(Param);
-  'UNDEF':
-     if not PPIsSkipping then
-       HandleUnDefine(Param);
   'IFDEF':
      HandleIFDEF(Param);
   'IFNDEF':
@@ -2733,7 +2751,47 @@ begin
     HandleENDIF(Param);
   'IFEND':
     HandleENDIF(Param);
+  else
+    if PPIsSkipping then exit;
+    if (length(Directive)=2)
+        and (Directive[1] in ['a'..'z','A'..'Z'])
+        and (Directive[2] in ['-','+']) then
+      begin
+      Result:=HandleLetterDirective(Directive[1],Directive[2]='+');
+      exit;
+      end;
+
+    Case UpperCase(Directive) of
+    'I','INCLUDE':
+      Result:=HandleInclude(Param);
+    'MACRO':
+      HandleMacroDirective(Param);
+    'MODE':
+      HandleMode(Param);
+    'MODESWITCH':
+      HandleModeSwitch(Param);
+    'DEFINE':
+      HandleDefine(Param);
+    'ERROR':
+      HandleError(Param);
+    'UNDEF':
+      HandleUnDefine(Param);
+    else
+      // ToDo: call hook
+    end;
   end;
+end;
+
+function TPascalScanner.HandleLetterDirective(Letter: char; Enable: boolean): TToken;
+begin
+  Result:=tkComment;
+  Letter:=upcase(Letter);
+  if LetterSwitchNames[Letter]='' then
+    Error(nErrUnknownDirective,sErrUnknownDirective,[Letter]);
+  if Enable then
+    AddDefine(LetterSwitchNames[Letter])
+  else
+    UnDefine(LetterSwitchNames[Letter]);
 end;
 
 function TPascalScanner.DoFetchToken: TToken;
@@ -3197,15 +3255,23 @@ begin
         ['identifier',Param]);
     Value:=CondDirectiveBool[IsDefined(Param)];
     exit(true);
-    end;
-  if CompareText(Name,'undefined')=0 then
+    end
+  else if CompareText(Name,'undefined')=0 then
     begin
     if not IsValidIdent(Param) then
       Sender.Log(mtError,nErrXExpectedButYFound,SErrXExpectedButYFound,
         ['identifier',Param]);
     Value:=CondDirectiveBool[not IsDefined(Param)];
     exit(true);
-    end;
+    end
+  else if CompareText(Name,'option')=0 then
+    begin
+    if (length(Param)<>1) or not (Param[1] in ['a'..'z','A'..'Z']) then
+      Sender.Log(mtError,nErrXExpectedButYFound,SErrXExpectedButYFound,
+        ['letter',Param]);
+    Value:=CondDirectiveBool[IfOpt(Param[1])];
+    exit(true);
+    end   ;
   // last check user hook
   if Assigned(OnEvalFunction) then
     begin
@@ -3395,7 +3461,13 @@ end;
 function TPascalScanner.IsDefined(const aName: String): boolean;
 begin
   Result:=(FDefines.IndexOf(aName)>=0) or (FMacros.IndexOf(aName)>=0);
-  Result:=false;
+end;
+
+function TPascalScanner.IfOpt(Letter: Char): boolean;
+begin
+  Letter:=upcase(Letter);
+  Result:=(Letter in ['A'..'Z']) and (LetterSwitchNames[Letter]<>'')
+    and IsDefined(LetterSwitchNames[Letter]);
 end;
 
 procedure TPascalScanner.AddMacro(const aName, aValue: String);
