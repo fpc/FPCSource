@@ -249,7 +249,7 @@ type
                                ansistring; similarly, char becomes unicodechar rather than ansichar }
     msTypeHelpers,         { allows the declaration of "type helper" (non-Delphi) or "record helper"
                              (Delphi) for primitive types }
-    msBlocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
+    msCBlocks,             { 'cblocks', support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
     msISOLikeIO,           { I/O as it required by an ISO compatible compiler }
     msISOLikeProgramsPara, { program parameters as it required by an ISO compatible compiler }
     msISOLikeMod,          { mod operation as it is required by an iso compatible compiler }
@@ -514,6 +514,7 @@ type
     FLogEvents: TPScannerLogEvents;
     FOnLog: TPScannerLogHandler;
     FPreviousToken: TToken;
+    FReadOnlyModeSwitches: TModeSwitches;
     FSkipComments: Boolean;
     FSkipWhiteSpace: Boolean;
     TokenStr: PChar;
@@ -535,6 +536,7 @@ type
     procedure SetAllowedModeSwitches(const AValue: TModeSwitches);
     procedure SetCurrentModeSwitches(AValue: TModeSwitches);
     procedure SetOptions(AValue: TPOptions);
+    procedure SetReadOnlyModeSwitches(const AValue: TModeSwitches);
   protected
     function FetchLine: boolean;
     procedure SetCurMsg(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const);
@@ -575,7 +577,7 @@ type
     Procedure AddDefine(const aName: String);
     Procedure RemoveDefine(const aName: String);
     Procedure UnDefine(const aName: String); // check defines and macros
-    function IsDefined(const aName: String): boolean; // check defines and macros
+    function IsDefined(const aName: String): boolean; // check defines, macros and modeswitches
     Procedure AddMacro(const aName, aValue: String);
     Procedure RemoveMacro(const aName: String);
     Procedure SetCompilerMode(S : String);
@@ -597,10 +599,14 @@ type
 
     property Defines: TStrings read FDefines;
     property Macros: TStrings read FMacros;
+    property MacrosOn: boolean read FMacrosOn write FMacrosOn;
+    Property AllowedModeSwitches: TModeSwitches Read FAllowedModeSwitches Write SetAllowedModeSwitches;
+    Property ReadOnlyModeSwitches: TModeSwitches Read FReadOnlyModeSwitches Write SetReadOnlyModeSwitches;// always set, cannot be disabled
+    Property CurrentModeSwitches: TModeSwitches Read FCurrentModeSwitches Write SetCurrentModeSwitches;
     property Options : TPOptions Read FOptions Write SetOptions;
+    Property ForceCaret : Boolean Read FForceCaret;
     property LogEvents : TPScannerLogEvents Read FLogEvents Write FLogEvents;
     property OnLog : TPScannerLogHandler Read FOnLog Write FOnLog;
-    property MacrosOn: boolean read FMacrosOn write FMacrosOn;
     property ConditionEval: TCondDirectiveEvaluator read FConditionEval;
     property OnEvalVariable: TCEEvalVarEvent read FOnEvalVariable write FOnEvalVariable;
     property OnEvalFunction: TCEEvalFunctionEvent read FOnEvalFunction write FOnEvalFunction;
@@ -610,9 +616,6 @@ type
     property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
-    Property AllowedModeSwitches: TModeSwitches Read FAllowedModeSwitches Write SetAllowedModeSwitches;
-    Property CurrentModeSwitches: TModeSwitches Read FCurrentModeSwitches Write SetCurrentModeSwitches;
-    Property ForceCaret : Boolean Read FForceCaret;
   end;
 
 const
@@ -790,7 +793,7 @@ const
   FPCModeSwitches = [msfpc,msstringpchar,msnestedcomment,msrepeatforward,
     mscvarsupport,msinitfinal,mshintdirective, msproperty,msdefaultinline];
 
-  OBJFPCModeSwitches =  [msobjfpc,msfpc,msclass,msobjpas,msresult,msstringpchar,msnestedcomment,
+  OBJFPCModeSwitches =  [msobjfpc,msclass,msobjpas,msresult,msstringpchar,msnestedcomment,
     msrepeatforward,mscvarsupport,msinitfinal,msout,msdefaultpara,mshintdirective,
     msproperty,msdefaultinline,msexcept];
 
@@ -807,6 +810,7 @@ const
   ExtPasModeSwitches = [msextpas,mstpprocvar,msduplicatenames,msnestedprocvars,msnonlocalgoto,msisolikeunaryminus,msisolikeio,
     msisolikeprogramspara, msisolikemod];
 
+function StrToModeSwitch(aName: String): TModeSwitch;
 function FilenameIsAbsolute(const TheFilename: string):boolean;
 function FilenameIsWinAbsolute(const TheFilename: string): boolean;
 function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
@@ -957,6 +961,17 @@ type
     Row: Integer;
     TokenStr: PChar;
   end;
+
+function StrToModeSwitch(aName: String): TModeSwitch;
+var
+  ms: TModeSwitch;
+begin
+  aName:=UpperCase(aName);
+  if aName='' then exit(msNone);
+  for ms in TModeSwitch do
+    if SModeSwitchNames[ms]=aName then exit(ms);
+  Result:=msNone;
+end;
 
 function FilenameIsAbsolute(const TheFilename: string):boolean;
 begin
@@ -2475,7 +2490,7 @@ procedure TPascalScanner.HandleMode(const Param: String);
   begin
     if not (NeededModes<=AllowedModeSwitches) then
       Error(nErrInvalidMode,SErrInvalidMode,[Param]);
-    CurrentModeSwitches:=NewModeSwitches;
+    CurrentModeSwitches:=(NewModeSwitches+ReadOnlyModeSwitches)*AllowedModeSwitches;
     if IsDelphi then
       FOptions:=FOptions+[po_delphi]
     else
@@ -2522,15 +2537,13 @@ Var
 
 begin
   MSN:=Uppercase(Param);
-  MS:=High(TModeSwitch);
   P:=Pos(' ',MSN);
   if P<>0 then
     begin
     PM:=Trim(Copy(MSN,P+1,Length(MSN)-P));
     MSN:=Copy(MSN,1,P-1);
     end;
-  While (MS<>msNone) and (SModeSwitchNames[MS]<>MSN) do
-    MS:=Pred(MS);
+  MS:=StrToModeSwitch(MSN);
   if (MS=msNone) or not (MS in AllowedModeSwitches) then
     begin
     if po_CheckModeswitches in Options then
@@ -2539,7 +2552,11 @@ begin
       exit; // ignore
     end;
   if (PM='-') or (PM='OFF') then
+    begin
+    if MS in ReadOnlyModeSwitches then
+      Error(nErrInvalidModeSwitch,SErrInvalidModeSwitch,[Param]);
     CurrentModeSwitches:=CurrentModeSwitches-[MS]
+    end
   else
     CurrentModeSwitches:=CurrentModeSwitches+[MS];
 end;
@@ -3296,6 +3313,14 @@ begin
       CurrentModeSwitches:=FPCModeSwitches
 end;
 
+procedure TPascalScanner.SetReadOnlyModeSwitches(const AValue: TModeSwitches);
+begin
+  if FReadOnlyModeSwitches=AValue then Exit;
+  FReadOnlyModeSwitches:=AValue;
+  FAllowedModeSwitches:=FAllowedModeSwitches+FReadOnlyModeSwitches;
+  FCurrentModeSwitches:=FCurrentModeSwitches+FReadOnlyModeSwitches;
+end;
+
 function TPascalScanner.FetchLine: boolean;
 begin
   if CurSourceFile.IsEOF then
@@ -3353,8 +3378,14 @@ begin
 end;
 
 function TPascalScanner.IsDefined(const aName: String): boolean;
+var
+  ms: TModeSwitch;
 begin
-  Result:=(FDefines.IndexOf(aName)>=0) or (FMacros.IndexOf(aName)>=0);
+  if FDefines.IndexOf(aName)>=0 then exit(true);
+  if FMacros.IndexOf(aName)>=0 then exit(true);
+  ms:=StrToModeSwitch(aName);
+  if (ms<>msNone) and (ms in CurrentModeSwitches) then exit(true);
+  Result:=false;
 end;
 
 procedure TPascalScanner.AddMacro(const aName, aValue: String);

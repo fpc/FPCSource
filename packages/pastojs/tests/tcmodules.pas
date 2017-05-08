@@ -677,6 +677,8 @@ begin
   FFileResolver.OwnsStreams:=True;
   FScanner:=TPascalScanner.Create(FFileResolver);
   FScanner.AllowedModeSwitches:=msAllPas2jsModeSwitches;
+  FScanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
+  FScanner.CurrentModeSwitches:=OBJFPCModeSwitches*msAllPas2jsModeSwitches+msAllPas2jsModeSwitchesReadOnly;
   FEngine:=AddModule(Filename);
   FParser:=TTestPasParser.Create(FScanner,FFileResolver,FEngine);
   Parser.Options:=Parser.Options+po_pas2js;
