@@ -54,6 +54,9 @@ implementation
       verbose,script,cpuinfo,
       itx86int,
       cgbase
+{$ifdef EXTDEBUG}
+      ,fmodule
+{$endif EXTDEBUG}
       ;
 
     const

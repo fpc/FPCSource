@@ -574,14 +574,12 @@ interface
 
 implementation
 
+{$if defined(macos)}
     uses
-{$ifdef macos}
-      macutils,
-{$endif}
-{$ifdef mswindows}
+      macutils;
+{$elseif defined(mswindows)}
+    uses
       windirs;
-{$else}
-      ;
 {$endif}
 
 {****************************************************************************
